@@ -1,4 +1,4 @@
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { useCallback } from 'react'
 import {
 	Editor,
@@ -10,7 +10,7 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import mermaidDefinitions from './mermaids'
 
 const GAP = 100
@@ -166,7 +166,7 @@ function TopPanel() {
 	}, [editor, isGeneratingAtom, countAtom])
 
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div
 				style={{
 					position: 'fixed',
@@ -182,12 +182,12 @@ function TopPanel() {
 					opacity: isGenerating ? 0 : 1,
 				}}
 			>
-				<TlButton type="low" onClick={handleClick}>
+				<TldrawUiButton type="low" onClick={handleClick}>
 					Click to see a thousand mermaids
 					{count > 0 && <>({count} actually…)</>}
-				</TlButton>
+				</TldrawUiButton>
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 }
 

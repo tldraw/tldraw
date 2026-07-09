@@ -1,6 +1,10 @@
-import { TlButton } from '@tldraw/ui'
-import { TlButtonIcon } from '@tldraw/ui'
-import { TlDropdownMenuContent, TlDropdownMenuRoot, TlDropdownMenuTrigger } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import {
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '@tldraw/ui'
 import { ReactNode, memo } from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
@@ -21,13 +25,13 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 	const content = children ?? <DefaultMainMenuContent />
 
 	return (
-		<TlDropdownMenuRoot id="main menu" modal={false}>
-			<TlDropdownMenuTrigger>
-				<TlButton type="icon" data-testid="main-menu.button" title={msg('menu.title')}>
-					<TlButtonIcon icon="menu" small />
-				</TlButton>
-			</TlDropdownMenuTrigger>
-			<TlDropdownMenuContent
+		<TldrawUiDropdownMenuRoot id="main menu" modal={false}>
+			<TldrawUiDropdownMenuTrigger>
+				<TldrawUiButton type="icon" data-testid="main-menu.button" title={msg('menu.title')}>
+					<TldrawUiButtonIcon icon="menu" small />
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiDropdownMenuContent
 				side="bottom"
 				align="start"
 				collisionPadding={4}
@@ -37,7 +41,7 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 				<TldrawUiMenuContextProvider type="menu" sourceId="main-menu">
 					{content}
 				</TldrawUiMenuContextProvider>
-			</TlDropdownMenuContent>
-		</TlDropdownMenuRoot>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
 	)
 })

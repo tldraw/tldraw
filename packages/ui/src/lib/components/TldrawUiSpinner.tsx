@@ -1,12 +1,12 @@
 import classNames from 'classnames'
 
 /** @public */
-export interface TlSpinnerProps extends React.SVGProps<SVGSVGElement> {
+export interface TldrawUiSpinnerProps extends React.SVGProps<SVGSVGElement> {
 	label?: string
 }
 
 /** @public @react */
-export function TlSpinner({ label, ...props }: TlSpinnerProps) {
+export function TldrawUiSpinner({ label, ...props }: TldrawUiSpinnerProps) {
 	return (
 		<svg
 			width={16}

@@ -1,8 +1,8 @@
 import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
-import { TlButtonIcon } from '@tldraw/ui'
-import { useTlOrientation } from '@tldraw/ui'
-import { TlPopover, TlPopoverContent, TlPopoverTrigger } from '@tldraw/ui'
-import { TlToolbar, TlToolbarButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { useTldrawUiOrientation } from '@tldraw/ui'
+import { TldrawUiPopover, TldrawUiPopoverContent, TldrawUiPopoverTrigger } from '@tldraw/ui'
+import { TldrawUiToolbar, TldrawUiToolbarButton } from '@tldraw/ui'
 import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -23,7 +23,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()
-	const { orientation } = useTlOrientation()
+	const { orientation } = useTldrawUiOrientation()
 
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
@@ -43,20 +43,20 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	if (isReadonlyMode && !isInAcceptableReadonlyState) return
 
 	return (
-		<TlPopover id="actions-menu">
-			<TlPopoverTrigger>
-				<TlToolbarButton
+		<TldrawUiPopover id="actions-menu">
+			<TldrawUiPopoverTrigger>
+				<TldrawUiToolbarButton
 					type="icon"
 					data-testid="actions-menu.button"
 					title={msg('actions-menu.title')}
 				>
-					<TlButtonIcon
+					<TldrawUiButtonIcon
 						icon={orientation === 'horizontal' ? 'dots-vertical' : 'dots-horizontal'}
 						small
 					/>
-				</TlToolbarButton>
-			</TlPopoverTrigger>
-			<TlPopoverContent
+				</TldrawUiToolbarButton>
+			</TldrawUiPopoverTrigger>
+			<TldrawUiPopoverContent
 				side={
 					orientation === 'horizontal'
 						? breakpoint >= PORTRAIT_BREAKPOINT.TABLET
@@ -66,7 +66,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				}
 				sideOffset={6}
 			>
-				<TlToolbar
+				<TldrawUiToolbar
 					ref={ref}
 					label={msg('actions-menu.title')}
 					className="tlui-actions-menu"
@@ -76,8 +76,8 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
 						{content}
 					</TldrawUiMenuContextProvider>
-				</TlToolbar>
-			</TlPopoverContent>
-		</TlPopover>
+				</TldrawUiToolbar>
+			</TldrawUiPopoverContent>
+		</TldrawUiPopover>
 	)
 })

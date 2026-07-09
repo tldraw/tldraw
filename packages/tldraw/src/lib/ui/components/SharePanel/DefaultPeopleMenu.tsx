@@ -1,5 +1,5 @@
 import { useEditor, usePeerIds, useValue } from '@tldraw/editor'
-import { TlPopover, TlPopoverContent, TlPopoverTrigger } from '@tldraw/ui'
+import { TldrawUiPopover, TldrawUiPopoverContent, TldrawUiPopoverTrigger } from '@tldraw/ui'
 import { ReactNode } from 'react'
 import { useTldrawUiComponents } from '../../context/components'
 import { useCollaborationStatus } from '../../hooks/useCollaborationStatus'
@@ -37,17 +37,17 @@ export function DefaultPeopleMenu({ children }: DefaultPeopleMenuProps) {
 	const content = children ?? <DefaultPeopleMenuContent userIds={userIds} />
 
 	return (
-		<TlPopover id="people menu">
-			<TlPopoverTrigger>
+		<TldrawUiPopover id="people menu">
+			<TldrawUiPopoverTrigger>
 				<button className="tlui-people-menu__avatars-button" title={msg('people-menu.title')}>
 					{PeopleMenuFacePile ? (
 						<PeopleMenuFacePile userColor={userColor} userIds={userIds} userName={userName} />
 					) : null}
 				</button>
-			</TlPopoverTrigger>
-			<TlPopoverContent side="bottom" sideOffset={2} collisionPadding={4}>
+			</TldrawUiPopoverTrigger>
+			<TldrawUiPopoverContent side="bottom" sideOffset={2} collisionPadding={4}>
 				<div className="tlui-people-menu__wrapper">{content}</div>
-			</TlPopoverContent>
-		</TlPopover>
+			</TldrawUiPopoverContent>
+		</TldrawUiPopover>
 	)
 }

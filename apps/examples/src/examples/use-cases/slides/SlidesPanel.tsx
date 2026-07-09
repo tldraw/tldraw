@@ -1,6 +1,6 @@
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { track, useEditor, useValue } from 'tldraw'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import { moveToSlide, useCurrentSlide, useSlides } from './useSlides'
 
 export const SlidesPanel = track(() => {
@@ -11,12 +11,12 @@ export const SlidesPanel = track(() => {
 
 	if (slides.length === 0) return null
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div className="slides-panel scroll-light" onPointerDown={editor.markEventAsHandled}>
 				{slides.map((slide, i) => {
 					const isSelected = selectedShapes.includes(slide)
 					return (
-						<TlButton
+						<TldrawUiButton
 							key={'slides-panel-button:' + slide.id}
 							type="normal"
 							className="slides-panel-button"
@@ -28,10 +28,10 @@ export const SlidesPanel = track(() => {
 							}}
 						>
 							{`Slide ${i + 1}`}
-						</TlButton>
+						</TldrawUiButton>
 					)
 				})}
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 })

@@ -1,7 +1,11 @@
 /* ---------------------- Menu ---------------------- */
 
 import { FILE_PREFIX, TlaFile, ZErrorCode } from '@tldraw/dotcom-shared'
-import { TlDropdownMenuContent, TlDropdownMenuRoot, TlDropdownMenuTrigger } from '@tldraw/ui'
+import {
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '@tldraw/ui'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -78,17 +82,22 @@ export function TlaFileMenu({
 		/>
 	)
 	return (
-		<TlDropdownMenuRoot id={`file-menu-${fileId}-${source}-${id}`}>
+		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}-${id}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-				<TlDropdownMenuTrigger>{trigger}</TlDropdownMenuTrigger>
+				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
 				{/* Sidebar menus hang ~8px over the sidebar's right edge, so they keep the shared
 				    side/collision offsets but override alignOffset (the default is tuned for the
 				    share/select menus, which would leave these looking inset). */}
-				<TlDropdownMenuContent side="bottom" align="end" {...TLA_MENU_POSITION} alignOffset={-16}>
+				<TldrawUiDropdownMenuContent
+					side="bottom"
+					align="end"
+					{...TLA_MENU_POSITION}
+					alignOffset={-16}
+				>
 					{children ?? fileItemsWhenNoChildren}
-				</TlDropdownMenuContent>
+				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
-		</TlDropdownMenuRoot>
+		</TldrawUiDropdownMenuRoot>
 	)
 }
 

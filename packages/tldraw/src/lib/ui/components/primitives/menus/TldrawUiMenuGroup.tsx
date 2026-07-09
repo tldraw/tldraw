@@ -1,5 +1,5 @@
-import { TlColumn, TlGrid, TlRow, useTlOrientation } from '@tldraw/ui'
-import { TlDropdownMenuGroup } from '@tldraw/ui'
+import { TldrawUiColumn, TldrawUiGrid, TldrawUiRow, useTldrawUiOrientation } from '@tldraw/ui'
+import { TldrawUiDropdownMenuGroup } from '@tldraw/ui'
 import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
@@ -21,7 +21,7 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 /** @public @react */
 export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGroupProps) {
 	const menu = useTldrawUiMenuContext()
-	const { orientation } = useTlOrientation()
+	const { orientation } = useTldrawUiOrientation()
 	const msg = useTranslation()
 	const dir = useDirection()
 	const labelToUse = unwrapLabel(label, menu.type)
@@ -30,9 +30,12 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 	switch (menu.type) {
 		case 'menu': {
 			return (
-				<TlDropdownMenuGroup className={className} data-testid={`${menu.sourceId}-group.${id}`}>
+				<TldrawUiDropdownMenuGroup
+					className={className}
+					data-testid={`${menu.sourceId}-group.${id}`}
+				>
 					{children}
-				</TlDropdownMenuGroup>
+				</TldrawUiDropdownMenuGroup>
 			)
 		}
 		case 'context-menu': {
@@ -56,7 +59,7 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 			)
 		}
 		case 'toolbar': {
-			const Layout = orientation === 'horizontal' ? TlRow : TlColumn
+			const Layout = orientation === 'horizontal' ? TldrawUiRow : TldrawUiColumn
 			return (
 				<Layout className="tlui-main-toolbar__group" data-testid={`${menu.sourceId}-group.${id}`}>
 					{children}
@@ -65,9 +68,12 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 		}
 		case 'toolbar-overflow': {
 			return (
-				<TlGrid className="tlui-main-toolbar__group" data-testid={`${menu.sourceId}-group.${id}`}>
+				<TldrawUiGrid
+					className="tlui-main-toolbar__group"
+					data-testid={`${menu.sourceId}-group.${id}`}
+				>
 					{children}
-				</TlGrid>
+				</TldrawUiGrid>
 			)
 		}
 		default: {

@@ -1,6 +1,10 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { TlDropdownMenuContent, TlDropdownMenuRoot, TlDropdownMenuTrigger } from '@tldraw/ui'
-import { TlToolbarButton } from '@tldraw/ui'
+import {
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '@tldraw/ui'
+import { TldrawUiToolbarButton } from '@tldraw/ui'
 import { ReactNode, memo, useCallback } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -21,9 +25,9 @@ export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZ
 	const content = children ?? <DefaultZoomMenuContent />
 
 	return (
-		<TlDropdownMenuRoot id="zoom menu" modal={false}>
+		<TldrawUiDropdownMenuRoot id="zoom menu" modal={false}>
 			<ZoomTriggerButton />
-			<TlDropdownMenuContent
+			<TldrawUiDropdownMenuContent
 				side="top"
 				align="start"
 				alignOffset={0}
@@ -33,8 +37,8 @@ export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZ
 				<TldrawUiMenuContextProvider type="menu" sourceId="zoom-menu">
 					{content}
 				</TldrawUiMenuContextProvider>
-			</TlDropdownMenuContent>
-		</TlDropdownMenuRoot>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
 	)
 })
 
@@ -52,8 +56,8 @@ const ZoomTriggerButton = () => {
 
 	const value = `${Math.floor(zoom * 100)}%`
 	return (
-		<TlDropdownMenuTrigger>
-			<TlToolbarButton
+		<TldrawUiDropdownMenuTrigger>
+			<TldrawUiToolbarButton
 				type="icon"
 				aria-label={`${msg('navigation-zone.zoom')} — ${value}`}
 				title={`${msg('navigation-zone.zoom')} — ${value}`}
@@ -64,7 +68,7 @@ const ZoomTriggerButton = () => {
 				{breakpoint < PORTRAIT_BREAKPOINT.MOBILE ? null : (
 					<span style={{ flexGrow: 0, textAlign: 'center' }}>{value}</span>
 				)}
-			</TlToolbarButton>
-		</TlDropdownMenuTrigger>
+			</TldrawUiToolbarButton>
+		</TldrawUiDropdownMenuTrigger>
 	)
 }

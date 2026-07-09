@@ -1,34 +1,34 @@
 import {
-	TlButton,
-	TlButtonIcon,
-	TlButtonLabel,
-	TlDropdownMenuCheckboxItem,
-	TlDropdownMenuContent,
-	TlDropdownMenuGroup,
-	TlDropdownMenuItem,
-	TlDropdownMenuRoot,
-	TlDropdownMenuSub,
-	TlDropdownMenuSubContent,
-	TlDropdownMenuSubTrigger,
-	TlDropdownMenuTrigger,
-	TlIcon,
-	TlInput,
-	TlKbd,
-	TlPopover,
-	TlPopoverContent,
-	TlPopoverTrigger,
-	TlSelect,
-	TlSelectContent,
-	TlSelectItem,
-	TlSelectTrigger,
-	TlSelectValue,
-	TlSlider,
-	TlTooltip,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiButtonLabel,
+	TldrawUiDropdownMenuCheckboxItem,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuSub,
+	TldrawUiDropdownMenuSubContent,
+	TldrawUiDropdownMenuSubTrigger,
+	TldrawUiDropdownMenuTrigger,
+	TldrawUiIcon,
+	TldrawUiInput,
+	TldrawUiKbd,
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+	TldrawUiSelect,
+	TldrawUiSelectContent,
+	TldrawUiSelectItem,
+	TldrawUiSelectTrigger,
+	TldrawUiSelectValue,
+	TldrawUiSlider,
+	TldrawUiTooltip,
 } from '@tldraw/ui'
 import { useState } from 'react'
 import { iconTypes, Tldraw, TLEditorComponents, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import './ui-primitives.css'
 
 // [1]
@@ -40,7 +40,7 @@ function UiShowcase() {
 	const [selectValue, setSelectValue] = useState('medium')
 
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div className="ui-showcase" onPointerDown={editor.markEventAsHandled}>
 				<h2>UI primitives</h2>
 
@@ -48,33 +48,33 @@ function UiShowcase() {
 				<section>
 					<h3>Buttons</h3>
 					<div className="ui-row">
-						<TlButton type="normal" onClick={() => {}}>
-							<TlButtonLabel>Normal</TlButtonLabel>
-						</TlButton>
-						<TlButton type="primary" onClick={() => {}}>
-							<TlButtonLabel>Primary</TlButtonLabel>
-						</TlButton>
-						<TlButton type="danger" onClick={() => {}}>
-							<TlButtonLabel>Danger</TlButtonLabel>
-						</TlButton>
-						<TlButton type="normal" disabled>
-							<TlButtonLabel>Disabled</TlButtonLabel>
-						</TlButton>
+						<TldrawUiButton type="normal" onClick={() => {}}>
+							<TldrawUiButtonLabel>Normal</TldrawUiButtonLabel>
+						</TldrawUiButton>
+						<TldrawUiButton type="primary" onClick={() => {}}>
+							<TldrawUiButtonLabel>Primary</TldrawUiButtonLabel>
+						</TldrawUiButton>
+						<TldrawUiButton type="danger" onClick={() => {}}>
+							<TldrawUiButtonLabel>Danger</TldrawUiButtonLabel>
+						</TldrawUiButton>
+						<TldrawUiButton type="normal" disabled>
+							<TldrawUiButtonLabel>Disabled</TldrawUiButtonLabel>
+						</TldrawUiButton>
 					</div>
 					<div className="ui-row">
-						<TlButton type="icon" title="Draw tool">
-							<TlButtonIcon icon="tool-pencil" />
-						</TlButton>
-						<TlButton type="icon" title="Eraser tool">
-							<TlButtonIcon icon="tool-eraser" />
-						</TlButton>
-						<TlButton type="icon" title="Select tool">
-							<TlButtonIcon icon="tool-pointer" />
-						</TlButton>
-						<TlButton type="normal">
-							<TlButtonIcon icon="external-link" />
-							<TlButtonLabel>With icon</TlButtonLabel>
-						</TlButton>
+						<TldrawUiButton type="icon" title="Draw tool">
+							<TldrawUiButtonIcon icon="tool-pencil" />
+						</TldrawUiButton>
+						<TldrawUiButton type="icon" title="Eraser tool">
+							<TldrawUiButtonIcon icon="tool-eraser" />
+						</TldrawUiButton>
+						<TldrawUiButton type="icon" title="Select tool">
+							<TldrawUiButtonIcon icon="tool-pointer" />
+						</TldrawUiButton>
+						<TldrawUiButton type="normal">
+							<TldrawUiButtonIcon icon="external-link" />
+							<TldrawUiButtonLabel>With icon</TldrawUiButtonLabel>
+						</TldrawUiButton>
 					</div>
 				</section>
 
@@ -82,61 +82,61 @@ function UiShowcase() {
 				<section>
 					<h3>Dropdown menu</h3>
 					<div className="ui-row">
-						<TlDropdownMenuRoot id="example-dropdown">
-							<TlDropdownMenuTrigger>
-								<TlButton type="normal">
-									<TlButtonLabel>Open menu</TlButtonLabel>
-								</TlButton>
-							</TlDropdownMenuTrigger>
-							<TlDropdownMenuContent side="bottom" align="start">
-								<TlDropdownMenuGroup>
-									<TlDropdownMenuItem>
-										<TlButton type="menu">
-											<TlButtonLabel>Cut</TlButtonLabel>
-											<TlKbd>⌘X</TlKbd>
-										</TlButton>
-									</TlDropdownMenuItem>
-									<TlDropdownMenuItem>
-										<TlButton type="menu">
-											<TlButtonLabel>Copy</TlButtonLabel>
-											<TlKbd>⌘C</TlKbd>
-										</TlButton>
-									</TlDropdownMenuItem>
-									<TlDropdownMenuItem>
-										<TlButton type="menu">
-											<TlButtonLabel>Paste</TlButtonLabel>
-											<TlKbd>⌘V</TlKbd>
-										</TlButton>
-									</TlDropdownMenuItem>
-								</TlDropdownMenuGroup>
-								<TlDropdownMenuGroup>
-									<TlDropdownMenuCheckboxItem
+						<TldrawUiDropdownMenuRoot id="example-dropdown">
+							<TldrawUiDropdownMenuTrigger>
+								<TldrawUiButton type="normal">
+									<TldrawUiButtonLabel>Open menu</TldrawUiButtonLabel>
+								</TldrawUiButton>
+							</TldrawUiDropdownMenuTrigger>
+							<TldrawUiDropdownMenuContent side="bottom" align="start">
+								<TldrawUiDropdownMenuGroup>
+									<TldrawUiDropdownMenuItem>
+										<TldrawUiButton type="menu">
+											<TldrawUiButtonLabel>Cut</TldrawUiButtonLabel>
+											<TldrawUiKbd>⌘X</TldrawUiKbd>
+										</TldrawUiButton>
+									</TldrawUiDropdownMenuItem>
+									<TldrawUiDropdownMenuItem>
+										<TldrawUiButton type="menu">
+											<TldrawUiButtonLabel>Copy</TldrawUiButtonLabel>
+											<TldrawUiKbd>⌘C</TldrawUiKbd>
+										</TldrawUiButton>
+									</TldrawUiDropdownMenuItem>
+									<TldrawUiDropdownMenuItem>
+										<TldrawUiButton type="menu">
+											<TldrawUiButtonLabel>Paste</TldrawUiButtonLabel>
+											<TldrawUiKbd>⌘V</TldrawUiKbd>
+										</TldrawUiButton>
+									</TldrawUiDropdownMenuItem>
+								</TldrawUiDropdownMenuGroup>
+								<TldrawUiDropdownMenuGroup>
+									<TldrawUiDropdownMenuCheckboxItem
 										checked={checkboxValue}
 										title="Toggle option"
 										onSelect={() => setCheckboxValue(!checkboxValue)}
 									>
-										<TlButtonLabel>Checkbox item</TlButtonLabel>
-									</TlDropdownMenuCheckboxItem>
-								</TlDropdownMenuGroup>
-								<TlDropdownMenuGroup>
-									<TlDropdownMenuSub id="example-submenu">
-										<TlDropdownMenuSubTrigger label="More options..." />
-										<TlDropdownMenuSubContent>
-											<TlDropdownMenuItem>
-												<TlButton type="menu">
-													<TlButtonLabel>Option A</TlButtonLabel>
-												</TlButton>
-											</TlDropdownMenuItem>
-											<TlDropdownMenuItem>
-												<TlButton type="menu">
-													<TlButtonLabel>Option B</TlButtonLabel>
-												</TlButton>
-											</TlDropdownMenuItem>
-										</TlDropdownMenuSubContent>
-									</TlDropdownMenuSub>
-								</TlDropdownMenuGroup>
-							</TlDropdownMenuContent>
-						</TlDropdownMenuRoot>
+										<TldrawUiButtonLabel>Checkbox item</TldrawUiButtonLabel>
+									</TldrawUiDropdownMenuCheckboxItem>
+								</TldrawUiDropdownMenuGroup>
+								<TldrawUiDropdownMenuGroup>
+									<TldrawUiDropdownMenuSub id="example-submenu">
+										<TldrawUiDropdownMenuSubTrigger label="More options..." />
+										<TldrawUiDropdownMenuSubContent>
+											<TldrawUiDropdownMenuItem>
+												<TldrawUiButton type="menu">
+													<TldrawUiButtonLabel>Option A</TldrawUiButtonLabel>
+												</TldrawUiButton>
+											</TldrawUiDropdownMenuItem>
+											<TldrawUiDropdownMenuItem>
+												<TldrawUiButton type="menu">
+													<TldrawUiButtonLabel>Option B</TldrawUiButtonLabel>
+												</TldrawUiButton>
+											</TldrawUiDropdownMenuItem>
+										</TldrawUiDropdownMenuSubContent>
+									</TldrawUiDropdownMenuSub>
+								</TldrawUiDropdownMenuGroup>
+							</TldrawUiDropdownMenuContent>
+						</TldrawUiDropdownMenuRoot>
 					</div>
 				</section>
 
@@ -144,41 +144,47 @@ function UiShowcase() {
 				<section>
 					<h3>Select</h3>
 					<div className="ui-row">
-						<TlSelect id="size-select-icons" value={selectValue} onValueChange={setSelectValue}>
-							<TlSelectTrigger>
-								<TlSelectValue placeholder="Select size...">{selectValue}</TlSelectValue>
-							</TlSelectTrigger>
-							<TlSelectContent>
-								<TlSelectItem value="small" label="Small" icon="size-small" />
-								<TlSelectItem value="medium" label="Medium" icon="size-medium" />
-								<TlSelectItem value="large" label="Large" icon="size-large" />
-							</TlSelectContent>
-						</TlSelect>
-						<TlSelect id="size-select" value={selectValue} onValueChange={setSelectValue}>
-							<TlSelectTrigger>
-								<TlSelectValue placeholder="Select...">{selectValue}</TlSelectValue>
-							</TlSelectTrigger>
-							<TlSelectContent>
-								<TlSelectItem value="small" label="Small" />
-								<TlSelectItem value="medium" label="Medium" />
-								<TlSelectItem value="large" label="Large" />
-							</TlSelectContent>
-						</TlSelect>
-						<TlSelect
+						<TldrawUiSelect
+							id="size-select-icons"
+							value={selectValue}
+							onValueChange={setSelectValue}
+						>
+							<TldrawUiSelectTrigger>
+								<TldrawUiSelectValue placeholder="Select size...">
+									{selectValue}
+								</TldrawUiSelectValue>
+							</TldrawUiSelectTrigger>
+							<TldrawUiSelectContent>
+								<TldrawUiSelectItem value="small" label="Small" icon="size-small" />
+								<TldrawUiSelectItem value="medium" label="Medium" icon="size-medium" />
+								<TldrawUiSelectItem value="large" label="Large" icon="size-large" />
+							</TldrawUiSelectContent>
+						</TldrawUiSelect>
+						<TldrawUiSelect id="size-select" value={selectValue} onValueChange={setSelectValue}>
+							<TldrawUiSelectTrigger>
+								<TldrawUiSelectValue placeholder="Select...">{selectValue}</TldrawUiSelectValue>
+							</TldrawUiSelectTrigger>
+							<TldrawUiSelectContent>
+								<TldrawUiSelectItem value="small" label="Small" />
+								<TldrawUiSelectItem value="medium" label="Medium" />
+								<TldrawUiSelectItem value="large" label="Large" />
+							</TldrawUiSelectContent>
+						</TldrawUiSelect>
+						<TldrawUiSelect
 							id="size-select-disabled"
 							value={selectValue}
 							onValueChange={setSelectValue}
 							disabled
 						>
-							<TlSelectTrigger>
-								<TlSelectValue placeholder="Select...">{selectValue}</TlSelectValue>
-							</TlSelectTrigger>
-							<TlSelectContent>
-								<TlSelectItem value="small" label="Small" />
-								<TlSelectItem value="medium" label="Medium" />
-								<TlSelectItem value="large" label="Large" />
-							</TlSelectContent>
-						</TlSelect>
+							<TldrawUiSelectTrigger>
+								<TldrawUiSelectValue placeholder="Select...">{selectValue}</TldrawUiSelectValue>
+							</TldrawUiSelectTrigger>
+							<TldrawUiSelectContent>
+								<TldrawUiSelectItem value="small" label="Small" />
+								<TldrawUiSelectItem value="medium" label="Medium" />
+								<TldrawUiSelectItem value="large" label="Large" />
+							</TldrawUiSelectContent>
+						</TldrawUiSelect>
 					</div>
 				</section>
 
@@ -186,7 +192,11 @@ function UiShowcase() {
 				<section>
 					<h3>Input</h3>
 					<div className="ui-row">
-						<TlInput placeholder="Enter text..." value={inputValue} onValueChange={setInputValue} />
+						<TldrawUiInput
+							placeholder="Enter text..."
+							value={inputValue}
+							onValueChange={setInputValue}
+						/>
 					</div>
 				</section>
 
@@ -194,7 +204,7 @@ function UiShowcase() {
 				<section>
 					<h3>Slider</h3>
 					<div className="ui-row ui-row-wide">
-						<TlSlider
+						<TldrawUiSlider
 							label="opacity"
 							title="Opacity"
 							value={sliderValue}
@@ -209,19 +219,19 @@ function UiShowcase() {
 				<section>
 					<h3>Popover</h3>
 					<div className="ui-row">
-						<TlPopover id="example-popover">
-							<TlPopoverTrigger>
-								<TlButton type="normal">
-									<TlButtonLabel>Open popover</TlButtonLabel>
-								</TlButton>
-							</TlPopoverTrigger>
-							<TlPopoverContent side="bottom" align="start">
+						<TldrawUiPopover id="example-popover">
+							<TldrawUiPopoverTrigger>
+								<TldrawUiButton type="normal">
+									<TldrawUiButtonLabel>Open popover</TldrawUiButtonLabel>
+								</TldrawUiButton>
+							</TldrawUiPopoverTrigger>
+							<TldrawUiPopoverContent side="bottom" align="start">
 								<div className="ui-popover-content">
 									<p>This is popover content!</p>
 									<p>It can contain any elements.</p>
 								</div>
-							</TlPopoverContent>
-						</TlPopover>
+							</TldrawUiPopoverContent>
+						</TldrawUiPopover>
 					</div>
 				</section>
 
@@ -230,11 +240,11 @@ function UiShowcase() {
 					<h3>Icons ({iconTypes.length})</h3>
 					<div className="ui-icon-grid">
 						{iconTypes.map((icon: (typeof iconTypes)[number]) => (
-							<TlTooltip key={icon} content={icon}>
+							<TldrawUiTooltip key={icon} content={icon}>
 								<div className="ui-icon-cell">
-									<TlIcon icon={icon} label={icon} />
+									<TldrawUiIcon icon={icon} label={icon} />
 								</div>
-							</TlTooltip>
+							</TldrawUiTooltip>
 						))}
 					</div>
 				</section>
@@ -243,16 +253,16 @@ function UiShowcase() {
 				<section>
 					<h3>Tooltip</h3>
 					<div className="ui-row">
-						<TlTooltip content="This is a tooltip!">
-							<TlButton type="normal">
-								<TlButtonLabel>Hover me</TlButtonLabel>
-							</TlButton>
-						</TlTooltip>
-						<TlTooltip content="Info tooltip">
-							<TlButton type="icon" title="Info">
-								<TlButtonIcon icon="question-mark" />
-							</TlButton>
-						</TlTooltip>
+						<TldrawUiTooltip content="This is a tooltip!">
+							<TldrawUiButton type="normal">
+								<TldrawUiButtonLabel>Hover me</TldrawUiButtonLabel>
+							</TldrawUiButton>
+						</TldrawUiTooltip>
+						<TldrawUiTooltip content="Info tooltip">
+							<TldrawUiButton type="icon" title="Info">
+								<TldrawUiButtonIcon icon="question-mark" />
+							</TldrawUiButton>
+						</TldrawUiTooltip>
 					</div>
 				</section>
 
@@ -260,16 +270,16 @@ function UiShowcase() {
 				<section>
 					<h3>Keyboard shortcuts</h3>
 					<div className="ui-row">
-						<TlKbd>⌘</TlKbd>
-						<TlKbd>⇧</TlKbd>
-						<TlKbd>⌥</TlKbd>
-						<TlKbd>⌃</TlKbd>
-						<TlKbd>⌘S</TlKbd>
-						<TlKbd>⌘⇧Z</TlKbd>
+						<TldrawUiKbd>⌘</TldrawUiKbd>
+						<TldrawUiKbd>⇧</TldrawUiKbd>
+						<TldrawUiKbd>⌥</TldrawUiKbd>
+						<TldrawUiKbd>⌃</TldrawUiKbd>
+						<TldrawUiKbd>⌘S</TldrawUiKbd>
+						<TldrawUiKbd>⌘⇧Z</TldrawUiKbd>
 					</div>
 				</section>
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 }
 

@@ -15,9 +15,9 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	Tldraw,
-	TlButtonIcon,
+	TldrawUiButtonIcon,
 	TldrawUiContextualToolbar,
-	TlToolbarButton,
+	TldrawUiToolbarButton,
 	canonicalizeRotation,
 	clamp,
 	createShapeId,
@@ -492,99 +492,108 @@ const FlexLayoutToolbar = track(function FlexLayoutToolbar() {
 
 	return (
 		<TldrawUiContextualToolbar getSelectionBounds={getSelectionBounds} label="Flex layout">
-			<TlToolbarButton
+			<TldrawUiToolbarButton
 				type="icon"
 				title="Horizontal"
 				data-testid="flex-layout.horizontal"
 				data-isactive={shape.props.direction === 'horizontal'}
 				onClick={() => updateLayoutProps({ direction: 'horizontal' })}
 			>
-				<TlButtonIcon small icon="stack-horizontal" />
-			</TlToolbarButton>
-			<TlToolbarButton
+				<TldrawUiButtonIcon small icon="stack-horizontal" />
+			</TldrawUiToolbarButton>
+			<TldrawUiToolbarButton
 				type="icon"
 				title="Vertical"
 				data-testid="flex-layout.vertical"
 				data-isactive={shape.props.direction === 'vertical'}
 				onClick={() => updateLayoutProps({ direction: 'vertical' })}
 			>
-				<TlButtonIcon small icon="stack-vertical" />
-			</TlToolbarButton>
-			<TlToolbarButton
+				<TldrawUiButtonIcon small icon="stack-vertical" />
+			</TldrawUiToolbarButton>
+			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Align left' : 'Align top'}
 				data-testid="flex-layout.justify-start"
 				data-isactive={shape.props.justify === 'start'}
 				onClick={() => updateLayoutProps({ justify: 'start' })}
 			>
-				<TlButtonIcon
+				<TldrawUiButtonIcon
 					small
 					icon={isHorizontal ? 'horizontal-align-start' : 'vertical-align-start'}
 				/>
-			</TlToolbarButton>
-			<TlToolbarButton
+			</TldrawUiToolbarButton>
+			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Align center' : 'Align middle'}
 				data-testid="flex-layout.justify-center"
 				data-isactive={shape.props.justify === 'center'}
 				onClick={() => updateLayoutProps({ justify: 'center' })}
 			>
-				<TlButtonIcon
+				<TldrawUiButtonIcon
 					small
 					icon={isHorizontal ? 'horizontal-align-middle' : 'vertical-align-middle'}
 				/>
-			</TlToolbarButton>
-			<TlToolbarButton
+			</TldrawUiToolbarButton>
+			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Align right' : 'Align bottom'}
 				data-testid="flex-layout.justify-end"
 				data-isactive={shape.props.justify === 'end'}
 				onClick={() => updateLayoutProps({ justify: 'end' })}
 			>
-				<TlButtonIcon small icon={isHorizontal ? 'horizontal-align-end' : 'vertical-align-end'} />
-			</TlToolbarButton>
-			<TlToolbarButton
+				<TldrawUiButtonIcon
+					small
+					icon={isHorizontal ? 'horizontal-align-end' : 'vertical-align-end'}
+				/>
+			</TldrawUiToolbarButton>
+			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Distribute horizontally' : 'Distribute vertically'}
 				data-testid="flex-layout.justify-space-between"
 				data-isactive={shape.props.justify === 'space-between'}
 				onClick={() => updateLayoutProps({ justify: 'space-between' })}
 			>
-				<TlButtonIcon small icon={isHorizontal ? 'distribute-horizontal' : 'distribute-vertical'} />
-			</TlToolbarButton>
-			<TlToolbarButton
+				<TldrawUiButtonIcon
+					small
+					icon={isHorizontal ? 'distribute-horizontal' : 'distribute-vertical'}
+				/>
+			</TldrawUiToolbarButton>
+			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Align top' : 'Align left'}
 				data-testid="flex-layout.align-start"
 				data-isactive={shape.props.align === 'start'}
 				onClick={() => updateLayoutProps({ align: 'start' })}
 			>
-				<TlButtonIcon
+				<TldrawUiButtonIcon
 					small
 					icon={isHorizontal ? 'vertical-align-start' : 'horizontal-align-start'}
 				/>
-			</TlToolbarButton>
-			<TlToolbarButton
+			</TldrawUiToolbarButton>
+			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Align middle' : 'Align center'}
 				data-testid="flex-layout.align-center"
 				data-isactive={shape.props.align === 'center'}
 				onClick={() => updateLayoutProps({ align: 'center' })}
 			>
-				<TlButtonIcon
+				<TldrawUiButtonIcon
 					small
 					icon={isHorizontal ? 'vertical-align-middle' : 'horizontal-align-middle'}
 				/>
-			</TlToolbarButton>
-			<TlToolbarButton
+			</TldrawUiToolbarButton>
+			<TldrawUiToolbarButton
 				type="icon"
 				title={isHorizontal ? 'Align bottom' : 'Align right'}
 				data-testid="flex-layout.align-end"
 				data-isactive={shape.props.align === 'end'}
 				onClick={() => updateLayoutProps({ align: 'end' })}
 			>
-				<TlButtonIcon small icon={isHorizontal ? 'vertical-align-end' : 'horizontal-align-end'} />
-			</TlToolbarButton>
+				<TldrawUiButtonIcon
+					small
+					icon={isHorizontal ? 'vertical-align-end' : 'horizontal-align-end'}
+				/>
+			</TldrawUiToolbarButton>
 		</TldrawUiContextualToolbar>
 	)
 })
@@ -835,7 +844,7 @@ child positions back to the store via a ResizeObserver.
 
 [6]
 A contextual toolbar shown when the layout shape is selected. Uses TldrawUiContextualToolbar and
-TlToolbarButton to provide direction, justify, and align controls.
+TldrawUiToolbarButton to provide direction, justify, and align controls.
 
 [7]
 Helpers for reparenting, relayout, and drop indicators.

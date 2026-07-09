@@ -9,16 +9,16 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { TlButtonIcon } from '@tldraw/ui'
-import { TlButtonLabel } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiButtonLabel } from '@tldraw/ui'
 import {
-	TlDropdownMenuCheckboxItem,
-	TlDropdownMenuContent,
-	TlDropdownMenuRoot,
-	TlDropdownMenuTrigger,
+	TldrawUiDropdownMenuCheckboxItem,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
 } from '@tldraw/ui'
-import { TlSlider } from '@tldraw/ui'
-import { TlToolbarButton } from '@tldraw/ui'
+import { TldrawUiSlider } from '@tldraw/ui'
+import { TldrawUiToolbarButton } from '@tldraw/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	ASPECT_RATIO_OPTION,
@@ -213,7 +213,7 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	if (isManipulating) {
 		return (
 			<>
-				<TlSlider
+				<TldrawUiSlider
 					ref={sliderRef}
 					value={displayValue}
 					label="tool.image-zoom"
@@ -224,17 +224,17 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 					data-testid="tool.image-zoom"
 					title={msg('tool.image-zoom')}
 				/>
-				<TlDropdownMenuRoot id="image-toolbar-aspect-ratio">
-					<TlDropdownMenuTrigger>
-						<TlToolbarButton
+				<TldrawUiDropdownMenuRoot id="image-toolbar-aspect-ratio">
+					<TldrawUiDropdownMenuTrigger>
+						<TldrawUiToolbarButton
 							title={msg('tool.aspect-ratio')}
 							type="icon"
 							data-testid="tool.image-aspect-ratio"
 						>
-							<TlButtonIcon icon="corners" />
-						</TlToolbarButton>
-					</TlDropdownMenuTrigger>
-					<TlDropdownMenuContent side="top" align="center">
+							<TldrawUiButtonIcon icon="corners" />
+						</TldrawUiToolbarButton>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="top" align="center">
 						{ASPECT_RATIO_OPTIONS.map((aspectRatio) => {
 							let checked = false
 							if (isOriginalCrop) {
@@ -258,27 +258,29 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 							}
 
 							return (
-								<TlDropdownMenuCheckboxItem
+								<TldrawUiDropdownMenuCheckboxItem
 									key={aspectRatio}
 									onSelect={() => handleAspectRatioChange(aspectRatio as ASPECT_RATIO_OPTION)}
 									checked={checked}
 									title={msg(`tool.aspect-ratio.${aspectRatio}`)}
 								>
-									<TlButtonLabel>{msg(`tool.aspect-ratio.${aspectRatio}`)}</TlButtonLabel>
-								</TlDropdownMenuCheckboxItem>
+									<TldrawUiButtonLabel>
+										{msg(`tool.aspect-ratio.${aspectRatio}`)}
+									</TldrawUiButtonLabel>
+								</TldrawUiDropdownMenuCheckboxItem>
 							)
 						})}
-					</TlDropdownMenuContent>
-				</TlDropdownMenuRoot>
-				<TlToolbarButton
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiDropdownMenuRoot>
+				<TldrawUiToolbarButton
 					type="icon"
 					onClick={onManipulatingEnd}
 					data-testid="tool.image-crop-confirm"
 					style={{ borderLeft: '1px solid var(--tl-color-divider)', marginLeft: '2px' }}
 					title={msg('tool.image-crop-confirm')}
 				>
-					<TlButtonIcon small icon="check" />
-				</TlToolbarButton>
+					<TldrawUiButtonIcon small icon="check" />
+				</TldrawUiToolbarButton>
 			</>
 		)
 	}
@@ -286,35 +288,35 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 	return (
 		<>
 			{!isReadonly && (
-				<TlToolbarButton
+				<TldrawUiToolbarButton
 					type="icon"
 					data-testid="tool.image-replace"
 					onClick={handleImageReplace}
 					title={msg('tool.replace-media')}
 				>
-					<TlButtonIcon small icon="tool-media" />
-				</TlToolbarButton>
+					<TldrawUiButtonIcon small icon="tool-media" />
+				</TldrawUiToolbarButton>
 			)}
 			{!isReadonly && (
-				<TlToolbarButton
+				<TldrawUiToolbarButton
 					type="icon"
 					title={msg('tool.image-crop')}
 					onClick={onManipulatingStart}
 					data-testid="tool.image-crop"
 				>
-					<TlButtonIcon small icon="crop" />
-				</TlToolbarButton>
+					<TldrawUiButtonIcon small icon="crop" />
+				</TldrawUiToolbarButton>
 			)}
-			<TlToolbarButton
+			<TldrawUiToolbarButton
 				type="icon"
 				title={msg('action.download-original')}
 				onClick={handleImageDownload}
 				data-testid="tool.image-download"
 			>
-				<TlButtonIcon small icon="download" />
-			</TlToolbarButton>
+				<TldrawUiButtonIcon small icon="download" />
+			</TldrawUiToolbarButton>
 			{(altText || !isReadonly) && (
-				<TlToolbarButton
+				<TldrawUiToolbarButton
 					type="icon"
 					title={msg('tool.media-alt-text')}
 					data-testid="tool.image-alt-text"
@@ -323,8 +325,8 @@ export const DefaultImageToolbarContent = track(function DefaultImageToolbarCont
 						onEditAltTextStart()
 					}}
 				>
-					<TlButtonIcon small icon="alt" />
-				</TlToolbarButton>
+					<TldrawUiButtonIcon small icon="alt" />
+				</TldrawUiToolbarButton>
 			)}
 		</>
 	)

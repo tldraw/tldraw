@@ -1,36 +1,44 @@
 import { createContext, ReactNode, useContext } from 'react'
 
 /** @public */
-export interface TlTranslationContextValue {
+export interface TldrawUiTranslationContextValue {
 	dir: 'ltr' | 'rtl'
 	msg(key: string, fallback: string): string
 }
 
-const defaultValue: TlTranslationContextValue = {
+const defaultValue: TldrawUiTranslationContextValue = {
 	dir: 'ltr',
 	msg: (_key, fallback) => fallback,
 }
 
-const TlTranslationContext = createContext<TlTranslationContextValue>(defaultValue)
+const TldrawUiTranslationContext = createContext<TldrawUiTranslationContextValue>(defaultValue)
 
 /** @public */
-export interface TlTranslationProviderProps {
+export interface TldrawUiTranslationProviderProps {
 	dir?: 'ltr' | 'rtl'
 	msg?(key: string): string | undefined
 	children: ReactNode
 }
 
 /** @public @react */
-export function TlTranslationProvider({ dir = 'ltr', msg, children }: TlTranslationProviderProps) {
-	const value: TlTranslationContextValue = {
+export function TldrawUiTranslationProvider({
+	dir = 'ltr',
+	msg,
+	children,
+}: TldrawUiTranslationProviderProps) {
+	const value: TldrawUiTranslationContextValue = {
 		dir,
 		msg: (key, fallback) => msg?.(key) ?? fallback,
 	}
 
-	return <TlTranslationContext.Provider value={value}>{children}</TlTranslationContext.Provider>
+	return (
+		<TldrawUiTranslationContext.Provider value={value}>
+			{children}
+		</TldrawUiTranslationContext.Provider>
+	)
 }
 
 /** @public */
-export function useTlTranslation(): TlTranslationContextValue {
-	return useContext(TlTranslationContext)
+export function useTldrawUiTranslation(): TldrawUiTranslationContextValue {
+	return useContext(TldrawUiTranslationContext)
 }

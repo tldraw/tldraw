@@ -8,10 +8,10 @@ import {
 	useEvent,
 	useUniqueSafeId,
 } from '@tldraw/editor'
-import { TlButtonIcon } from '@tldraw/ui'
-import { TlColumn, TlRow } from '@tldraw/ui'
-import { TlPopover, TlPopoverContent, TlPopoverTrigger } from '@tldraw/ui'
-import { TlToolbar, TlToolbarButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiColumn, TldrawUiRow } from '@tldraw/ui'
+import { TldrawUiPopover, TldrawUiPopoverContent, TldrawUiPopoverTrigger } from '@tldraw/ui'
+import { TldrawUiToolbar, TldrawUiToolbarButton } from '@tldraw/ui'
 import classNames from 'classnames'
 import { createContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -286,10 +286,10 @@ export function OverflowingToolbar({
 
 	const popoverId = 'toolbar overflow'
 
-	const Layout = orientation === 'horizontal' ? TlRow : TlColumn
+	const Layout = orientation === 'horizontal' ? TldrawUiRow : TldrawUiColumn
 	return (
 		<>
-			<TlToolbar
+			<TldrawUiToolbar
 				orientation={orientation}
 				className={classNames('tlui-main-toolbar__tools', {
 					'tlui-main-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
@@ -303,24 +303,24 @@ export function OverflowingToolbar({
 				</Layout>
 				{shouldShowOverflow && (
 					<IsInOverflowContext.Provider value={true}>
-						<TlPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
-							<TlPopoverTrigger>
-								<TlToolbarButton
+						<TldrawUiPopover id={popoverId} open={isOpen} onOpenChange={setIsOpen}>
+							<TldrawUiPopoverTrigger>
+								<TldrawUiToolbarButton
 									title={msg('tool-panel.more')}
 									type="tool"
 									className="tlui-main-toolbar__overflow"
 									data-testid="tools.more-button"
 								>
-									<TlButtonIcon
+									<TldrawUiButtonIcon
 										icon={orientation === 'horizontal' ? 'chevron-up' : 'chevron-right'}
 									/>
-								</TlToolbarButton>
-							</TlPopoverTrigger>
-							<TlPopoverContent
+								</TldrawUiToolbarButton>
+							</TldrawUiPopoverTrigger>
+							<TldrawUiPopoverContent
 								side={orientation === 'horizontal' ? 'top' : 'right'}
 								align={orientation === 'horizontal' ? 'center' : 'end'}
 							>
-								<TlToolbar
+								<TldrawUiToolbar
 									orientation="grid"
 									className="tlui-main-toolbar__overflow-content"
 									ref={setOverflowTools}
@@ -335,12 +335,12 @@ export function OverflowingToolbar({
 									<TldrawUiMenuContextProvider type="toolbar-overflow" sourceId="toolbar">
 										{children}
 									</TldrawUiMenuContextProvider>
-								</TlToolbar>
-							</TlPopoverContent>
-						</TlPopover>
+								</TldrawUiToolbar>
+							</TldrawUiPopoverContent>
+						</TldrawUiPopover>
 					</IsInOverflowContext.Provider>
 				)}
-			</TlToolbar>
+			</TldrawUiToolbar>
 		</>
 	)
 }

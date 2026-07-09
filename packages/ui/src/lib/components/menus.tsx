@@ -1,54 +1,63 @@
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu, DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { createContext, ReactNode, useContext } from 'react'
-import { useTlMenuIsOpen } from '../context/menu-state'
-import { useTlPlatform } from '../context/platform'
-import { TlPortalScope, useTlPortalContainer } from '../context/portal'
-import { useTlTranslation } from '../context/translation'
+import { useTldrawUiMenuIsOpen } from '../context/menu-state'
+import { useTldrawUiPlatform } from '../context/platform'
+import { TldrawUiPortalScope, useTldrawUiPortalContainer } from '../context/portal'
+import { useTldrawUiTranslation } from '../context/translation'
 import { kbdStr } from '../kbd'
 import { preventDefault } from '../utils'
-import { TlButton, TlButtonIcon, TlButtonLabel, TlButtonSpinner } from './TlButton'
 import {
-	TlDropdownMenuGroup,
-	TlDropdownMenuItem,
-	TlDropdownMenuSub,
-	TlDropdownMenuSubContent,
-	TlDropdownMenuSubTrigger,
-} from './TlDropdownMenu'
-import { TlIcon, TlIconJsx } from './TlIcon'
-import { TlKbd } from './TlKbd'
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiButtonLabel,
+	TldrawUiButtonSpinner,
+} from './TldrawUiButton'
+import {
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuSub,
+	TldrawUiDropdownMenuSubContent,
+	TldrawUiDropdownMenuSubTrigger,
+} from './TldrawUiDropdownMenu'
+import { TldrawUiIcon, TldrawUiIconJsx } from './TldrawUiIcon'
+import { TldrawUiKbd } from './TldrawUiKbd'
 
 /** @public */
-export type TlMenuContextType = 'menu' | 'context-menu' | 'panel' | 'small-icons'
+export type TldrawUiMenuContextType = 'menu' | 'context-menu' | 'panel' | 'small-icons'
 
 const menuContext = createContext<{
-	type: TlMenuContextType
+	type: TldrawUiMenuContextType
 	sourceId: string
 } | null>(null)
 
 /** @public */
-export function useTlMenuContext() {
+export function useTldrawUiMenuContext() {
 	const context = useContext(menuContext)
 	if (!context) {
-		throw new Error('useTlMenuContext must be used within a TlMenuContextProvider')
+		throw new Error('useTldrawUiMenuContext must be used within a TldrawUiMenuContextProvider')
 	}
 	return context
 }
 
 /** @public */
-export interface TlMenuContextProviderProps {
-	type: TlMenuContextType
+export interface TldrawUiMenuContextProviderProps {
+	type: TldrawUiMenuContextType
 	sourceId: string
 	children: ReactNode
 }
 
 /** @public @react */
-export function TlMenuContextProvider({ type, sourceId, children }: TlMenuContextProviderProps) {
+export function TldrawUiMenuContextProvider({
+	type,
+	sourceId,
+	children,
+}: TldrawUiMenuContextProviderProps) {
 	return <menuContext.Provider value={{ type, sourceId }}>{children}</menuContext.Provider>
 }
 
 /** @public */
-export interface TlMenuGroupProps {
+export interface TldrawUiMenuGroupProps {
 	id: string
 	label?: string
 	className?: string
@@ -56,16 +65,19 @@ export interface TlMenuGroupProps {
 }
 
 /** @public @react */
-export function TlMenuGroup({ id, className, children }: TlMenuGroupProps) {
-	const menu = useTlMenuContext()
-	const { dir } = useTlTranslation()
+export function TldrawUiMenuGroup({ id, className, children }: TldrawUiMenuGroupProps) {
+	const menu = useTldrawUiMenuContext()
+	const { dir } = useTldrawUiTranslation()
 
 	switch (menu.type) {
 		case 'menu': {
 			return (
-				<TlDropdownMenuGroup className={className} data-testid={`${menu.sourceId}-group.${id}`}>
+				<TldrawUiDropdownMenuGroup
+					className={className}
+					data-testid={`${menu.sourceId}-group.${id}`}
+				>
 					{children}
-				</TlDropdownMenuGroup>
+				</TldrawUiDropdownMenuGroup>
 			)
 		}
 		case 'context-menu':
@@ -90,12 +102,12 @@ export function TlMenuGroup({ id, className, children }: TlMenuGroupProps) {
 }
 
 /** @public */
-export interface TlMenuItemProps {
+export interface TldrawUiMenuItemProps {
 	id: string
 	kbd?: string
 	label?: string
-	icon?: string | TlIconJsx
-	iconLeft?: string | TlIconJsx
+	icon?: string | TldrawUiIconJsx
+	iconLeft?: string | TldrawUiIconJsx
 	disabled?: boolean
 	busy?: boolean
 	isSelected?: boolean
@@ -105,7 +117,7 @@ export interface TlMenuItemProps {
 }
 
 /** @public @react */
-export function TlMenuItem({
+export function TldrawUiMenuItem({
 	disabled = false,
 	spinner = false,
 	busy = false,
@@ -116,10 +128,10 @@ export function TlMenuItem({
 	iconLeft,
 	onSelect,
 	isSelected,
-}: TlMenuItemProps) {
-	const { type: menuType, sourceId } = useTlMenuContext()
-	const { dir } = useTlTranslation()
-	const { isDarwin } = useTlPlatform()
+}: TldrawUiMenuItemProps) {
+	const { type: menuType, sourceId } = useTldrawUiMenuContext()
+	const { dir } = useTldrawUiTranslation()
+	const { isDarwin } = useTldrawUiPlatform()
 
 	const kbdToUse = kbd ? kbdStr(kbd, isDarwin) : undefined
 	const titleStr = label && kbdToUse ? `${label} ${kbdToUse}` : label
@@ -128,19 +140,19 @@ export function TlMenuItem({
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<TlDropdownMenuItem>
-					<TlButton
+				<TldrawUiDropdownMenuItem>
+					<TldrawUiButton
 						type="menu"
 						data-testid={`${sourceId}.${id}`}
 						disabled={disabled}
 						onClick={() => onSelect()}
 					>
-						{iconLeft && <TlButtonIcon icon={iconLeft} small />}
-						<TlButtonLabel>{label}</TlButtonLabel>
-						{kbd && <TlKbd>{kbd}</TlKbd>}
-						{showSpinner && <TlButtonSpinner />}
-					</TlButton>
-				</TlDropdownMenuItem>
+						{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
+						<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+						{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+						{showSpinner && <TldrawUiButtonSpinner />}
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuItem>
 			)
 		}
 		case 'context-menu': {
@@ -162,31 +174,31 @@ export function TlMenuItem({
 					<span className="tl-button__label" draggable={false}>
 						{label}
 					</span>
-					{iconLeft && <TlButtonIcon icon={iconLeft} small />}
-					{kbd && <TlKbd>{kbd}</TlKbd>}
-					{showSpinner && <TlButtonSpinner />}
+					{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+					{showSpinner && <TldrawUiButtonSpinner />}
 				</_ContextMenu.Item>
 			)
 		}
 		case 'panel': {
 			return (
-				<TlButton
+				<TldrawUiButton
 					type="menu"
 					data-testid={`${sourceId}.${id}`}
 					disabled={disabled}
 					isActive={isSelected}
 					onClick={() => onSelect()}
 				>
-					{iconLeft && <TlButtonIcon icon={iconLeft} small />}
-					<TlButtonLabel>{label}</TlButtonLabel>
-					{kbd && <TlKbd>{kbd}</TlKbd>}
-					{showSpinner && <TlButtonSpinner />}
-				</TlButton>
+					{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
+					<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+					{showSpinner && <TldrawUiButtonSpinner />}
+				</TldrawUiButton>
 			)
 		}
 		case 'small-icons': {
 			return (
-				<TlButton
+				<TldrawUiButton
 					type="icon"
 					data-testid={`${sourceId}.${id}`}
 					disabled={disabled}
@@ -194,8 +206,8 @@ export function TlMenuItem({
 					title={titleStr}
 					onClick={() => onSelect()}
 				>
-					<TlButtonIcon icon={icon!} small />
-				</TlButton>
+					<TldrawUiButtonIcon icon={icon!} small />
+				</TldrawUiButton>
 			)
 		}
 		default: {
@@ -205,7 +217,7 @@ export function TlMenuItem({
 }
 
 /** @public */
-export interface TlMenuCheckboxItemProps {
+export interface TldrawUiMenuCheckboxItemProps {
 	id: string
 	kbd?: string
 	label?: string
@@ -215,16 +227,16 @@ export interface TlMenuCheckboxItemProps {
 }
 
 /** @public @react */
-export function TlMenuCheckboxItem({
+export function TldrawUiMenuCheckboxItem({
 	id,
 	kbd,
 	label,
 	disabled = false,
 	checked = false,
 	onSelect,
-}: TlMenuCheckboxItemProps) {
-	const { type: menuType, sourceId } = useTlMenuContext()
-	const { dir, msg } = useTlTranslation()
+}: TldrawUiMenuCheckboxItemProps) {
+	const { type: menuType, sourceId } = useTldrawUiMenuContext()
+	const { dir, msg } = useTldrawUiTranslation()
 
 	switch (menuType) {
 		case 'menu': {
@@ -240,7 +252,7 @@ export function TlMenuCheckboxItem({
 					disabled={disabled}
 					checked={checked}
 				>
-					<TlIcon
+					<TldrawUiIcon
 						small
 						label={msg(checked ? 'ui.checked' : 'ui.unchecked', checked ? 'Checked' : 'Unchecked')}
 						icon={checked ? 'check' : 'none'}
@@ -250,7 +262,7 @@ export function TlMenuCheckboxItem({
 							{label}
 						</span>
 					)}
-					{kbd && <TlKbd>{kbd}</TlKbd>}
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 				</_DropdownMenu.CheckboxItem>
 			)
 		}
@@ -268,7 +280,7 @@ export function TlMenuCheckboxItem({
 					disabled={disabled}
 					checked={checked}
 				>
-					<TlIcon
+					<TldrawUiIcon
 						small
 						label={msg(checked ? 'ui.checked' : 'ui.unchecked', checked ? 'Checked' : 'Unchecked')}
 						icon={checked ? 'check' : 'none'}
@@ -278,7 +290,7 @@ export function TlMenuCheckboxItem({
 							{label}
 						</span>
 					)}
-					{kbd && <TlKbd>{kbd}</TlKbd>}
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 				</_ContextMenu.CheckboxItem>
 			)
 		}
@@ -289,7 +301,7 @@ export function TlMenuCheckboxItem({
 }
 
 /** @public */
-export interface TlMenuSubmenuProps {
+export interface TldrawUiMenuSubmenuProps {
 	id: string
 	label?: string
 	disabled?: boolean
@@ -298,49 +310,49 @@ export interface TlMenuSubmenuProps {
 }
 
 /** @public @react */
-export function TlMenuSubmenu({
+export function TldrawUiMenuSubmenu({
 	id,
 	disabled = false,
 	label,
 	size = 'small',
 	children,
-}: TlMenuSubmenuProps) {
-	const { type: menuType, sourceId } = useTlMenuContext()
-	const container = useTlPortalContainer()
-	const { dir } = useTlTranslation()
+}: TldrawUiMenuSubmenuProps) {
+	const { type: menuType, sourceId } = useTldrawUiMenuContext()
+	const container = useTldrawUiPortalContainer()
+	const { dir } = useTldrawUiTranslation()
 
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<TlDropdownMenuSub id={`${sourceId}-sub.${id}`}>
-					<TlDropdownMenuSubTrigger
+				<TldrawUiDropdownMenuSub id={`${sourceId}-sub.${id}`}>
+					<TldrawUiDropdownMenuSubTrigger
 						id={`${sourceId}-sub.${id}-button`}
 						disabled={disabled}
 						label={label ?? ''}
 					/>
-					<TlDropdownMenuSubContent id={`${sourceId}-sub.${id}-content`} size={size}>
+					<TldrawUiDropdownMenuSubContent id={`${sourceId}-sub.${id}-content`} size={size}>
 						{children}
-					</TlDropdownMenuSubContent>
-				</TlDropdownMenuSub>
+					</TldrawUiDropdownMenuSubContent>
+				</TldrawUiDropdownMenuSub>
 			)
 		}
 		case 'context-menu': {
 			if (disabled) return null
 
 			return (
-				<TlContextMenuSubWithMenu id={`${sourceId}-sub.${id}`}>
+				<TldrawUiContextMenuSubWithMenu id={`${sourceId}-sub.${id}`}>
 					<_ContextMenu.SubTrigger dir={dir} disabled={disabled} asChild>
-						<TlButton
+						<TldrawUiButton
 							data-testid={`${sourceId}-sub.${id}-button`}
 							type="menu"
 							className="tl-menu__submenu-trigger"
 						>
-							<TlButtonLabel>{label}</TlButtonLabel>
-							<TlButtonIcon icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'} small />
-						</TlButton>
+							<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+							<TldrawUiButtonIcon icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'} small />
+						</TldrawUiButton>
 					</_ContextMenu.SubTrigger>
 					<_ContextMenu.Portal container={container}>
-						<TlPortalScope>
+						<TldrawUiPortalScope>
 							<_ContextMenu.SubContent
 								data-testid={`${sourceId}-sub.${id}-content`}
 								className="tl-menu"
@@ -351,9 +363,9 @@ export function TlMenuSubmenu({
 							>
 								{children}
 							</_ContextMenu.SubContent>
-						</TlPortalScope>
+						</TldrawUiPortalScope>
 					</_ContextMenu.Portal>
-				</TlContextMenuSubWithMenu>
+				</TldrawUiContextMenuSubWithMenu>
 			)
 		}
 		default: {
@@ -362,8 +374,8 @@ export function TlMenuSubmenu({
 	}
 }
 
-function TlContextMenuSubWithMenu({ id, children }: { id: string; children: ReactNode }) {
-	const [open, onOpenChange] = useTlMenuIsOpen(id)
+function TldrawUiContextMenuSubWithMenu({ id, children }: { id: string; children: ReactNode }) {
+	const [open, onOpenChange] = useTldrawUiMenuIsOpen(id)
 
 	return (
 		<_ContextMenu.Sub open={open} onOpenChange={onOpenChange}>

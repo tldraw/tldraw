@@ -9,13 +9,13 @@ import {
 	resizeBox,
 	ShapeUtil,
 	T,
-	TlButton,
-	TlButtonLabel,
-	TlDropdownMenuContent,
-	TlDropdownMenuGroup,
-	TlDropdownMenuItem,
-	TlDropdownMenuRoot,
-	TlDropdownMenuTrigger,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
 	TLResizeInfo,
 	TLShape,
 	useEditor,
@@ -321,47 +321,47 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 
 	return (
 		<div className="NodeFooterMenu" onPointerDown={(e) => e.stopPropagation()}>
-			<TlDropdownMenuRoot id={`node-menu-${shape.id}`}>
-				<TlDropdownMenuTrigger>
-					<TlButton type="icon" title="More options" className="NodeFooterMenu-trigger">
+			<TldrawUiDropdownMenuRoot id={`node-menu-${shape.id}`}>
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton type="icon" title="More options" className="NodeFooterMenu-trigger">
 						<svg width="12" height="12" viewBox="0 0 12 12">
 							<circle cx="6" cy="2" r="1.2" fill="currentColor" />
 							<circle cx="6" cy="6" r="1.2" fill="currentColor" />
 							<circle cx="6" cy="10" r="1.2" fill="currentColor" />
 						</svg>
-					</TlButton>
-				</TlDropdownMenuTrigger>
-				<TlDropdownMenuContent side="top" align="end" sideOffset={4} alignOffset={0}>
-					<TlDropdownMenuGroup>
-						<TlDropdownMenuItem>
-							<TlButton type="menu" onClick={handleDuplicate}>
-								<TlButtonLabel>Duplicate</TlButtonLabel>
-							</TlButton>
-						</TlDropdownMenuItem>
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent side="top" align="end" sideOffset={4} alignOffset={0}>
+					<TldrawUiDropdownMenuGroup>
+						<TldrawUiDropdownMenuItem>
+							<TldrawUiButton type="menu" onClick={handleDuplicate}>
+								<TldrawUiButtonLabel>Duplicate</TldrawUiButtonLabel>
+							</TldrawUiButton>
+						</TldrawUiDropdownMenuItem>
 						{imageUrl && (
-							<TlDropdownMenuItem>
-								<TlButton type="menu" onClick={handleDownloadImage}>
-									<TlButtonLabel>Download image</TlButtonLabel>
-								</TlButton>
-							</TlDropdownMenuItem>
+							<TldrawUiDropdownMenuItem>
+								<TldrawUiButton type="menu" onClick={handleDownloadImage}>
+									<TldrawUiButtonLabel>Download image</TldrawUiButtonLabel>
+								</TldrawUiButton>
+							</TldrawUiDropdownMenuItem>
 						)}
 						{textResult && (
-							<TlDropdownMenuItem>
-								<TlButton type="menu" onClick={handleCopyText}>
-									<TlButtonLabel>Copy text</TlButtonLabel>
-								</TlButton>
-							</TlDropdownMenuItem>
+							<TldrawUiDropdownMenuItem>
+								<TldrawUiButton type="menu" onClick={handleCopyText}>
+									<TldrawUiButtonLabel>Copy text</TldrawUiButtonLabel>
+								</TldrawUiButton>
+							</TldrawUiDropdownMenuItem>
 						)}
 						{hasResult && (
-							<TlDropdownMenuItem>
-								<TlButton type="menu" onClick={handleClearResult}>
-									<TlButtonLabel>Clear result</TlButtonLabel>
-								</TlButton>
-							</TlDropdownMenuItem>
+							<TldrawUiDropdownMenuItem>
+								<TldrawUiButton type="menu" onClick={handleClearResult}>
+									<TldrawUiButtonLabel>Clear result</TldrawUiButtonLabel>
+								</TldrawUiButton>
+							</TldrawUiDropdownMenuItem>
 						)}
-					</TlDropdownMenuGroup>
-				</TlDropdownMenuContent>
-			</TlDropdownMenuRoot>
+					</TldrawUiDropdownMenuGroup>
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiDropdownMenuRoot>
 		</div>
 	)
 }

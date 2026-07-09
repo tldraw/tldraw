@@ -1,8 +1,8 @@
 import {
-	TlButton,
-	TlDropdownMenuContent,
-	TlDropdownMenuRoot,
-	TlDropdownMenuTrigger,
+	TldrawUiButton,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
 } from '@tldraw/ui'
 import classNames from 'classnames'
 import {
@@ -44,10 +44,10 @@ export function TlaUserSettingsMenu() {
 	const [, onMenuOpenChange] = useMenuIsOpen(USER_SETTINGS_MENU_ID)
 
 	return (
-		<TlDropdownMenuRoot id={USER_SETTINGS_MENU_ID}>
+		<TldrawUiDropdownMenuRoot id={USER_SETTINGS_MENU_ID}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-				<TlDropdownMenuTrigger>
-					<TlButton
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton
 						type="menu"
 						tooltip={userMenuLbl}
 						title={userMenuLbl}
@@ -71,10 +71,15 @@ export function TlaUserSettingsMenu() {
 						<div className={styles.sidebarUserSettingsIcon}>
 							<TlaIcon icon="help-circle" />
 						</div>
-					</TlButton>
-				</TlDropdownMenuTrigger>
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
 				{/* Hang ~8px over the sidebar's right edge (see TlaFileMenu) rather than inset. */}
-				<TlDropdownMenuContent side="bottom" align="end" {...TLA_MENU_POSITION} alignOffset={-18}>
+				<TldrawUiDropdownMenuContent
+					side="bottom"
+					align="end"
+					{...TLA_MENU_POSITION}
+					alignOffset={-18}
+				>
 					{user && (
 						<>
 							<TldrawUiMenuGroup id="files">
@@ -97,8 +102,8 @@ export function TlaUserSettingsMenu() {
 							<SignOutMenuItem />
 						</TldrawUiMenuGroup>
 					)}
-				</TlDropdownMenuContent>
+				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
-		</TlDropdownMenuRoot>
+		</TldrawUiDropdownMenuRoot>
 	)
 }

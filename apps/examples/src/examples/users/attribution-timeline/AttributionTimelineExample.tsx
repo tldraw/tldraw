@@ -1,4 +1,4 @@
-import { TlButton, TlSlider } from '@tldraw/ui'
+import { TldrawUiButton, TldrawUiSlider } from '@tldraw/ui'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	atom,
@@ -16,7 +16,7 @@ import {
 	UserRecordType,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import './attribution-timeline.css'
 
 // There's a guide at the bottom of this file!
@@ -89,10 +89,10 @@ function UserSwitcher() {
 	const [activeUserId, setActiveUserId] = useState(currentUserIdAtom.get())
 
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div className="tl-menu attribution-timeline-user-switcher">
 				{Object.values(USERS).map((user) => (
-					<TlButton
+					<TldrawUiButton
 						key={user.id}
 						type={activeUserId === user.id ? 'primary' : 'normal'}
 						onClick={() => {
@@ -102,10 +102,10 @@ function UserSwitcher() {
 					>
 						<span className="attribution-timeline-dot" style={{ backgroundColor: user.color }} />
 						{user.name}
-					</TlButton>
+					</TldrawUiButton>
 				))}
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 }
 
@@ -290,13 +290,13 @@ const AttributionTimeline = track(() => {
 	})()
 
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div className="attribution-timeline-controls">
 				<div className="attribution-timeline-row attribution-timeline-row--all">
 					<div className="attribution-timeline-user">
 						<span className="attribution-timeline-name">All</span>
 					</div>
-					<TlSlider
+					<TldrawUiSlider
 						steps={Math.max(totalEntries, 1)}
 						value={totalEntries === 0 ? null : totalApplied}
 						label="History"
@@ -306,7 +306,7 @@ const AttributionTimeline = track(() => {
 					<div className="attribution-timeline-info">
 						{`${totalApplied.toString().padStart(totalLength, '0')} / ${totalEntries.toString().padStart(totalLength, '0')}`}
 					</div>
-					<TlButton
+					<TldrawUiButton
 						type="normal"
 						disabled={totalEntries === 0}
 						onClick={handleReset}
@@ -314,7 +314,7 @@ const AttributionTimeline = track(() => {
 						className="attribution-timeline-reset"
 					>
 						Reset
-					</TlButton>
+					</TldrawUiButton>
 				</div>
 				{Object.values(USERS).map((user) => {
 					const indices = userIndices[user.id] ?? []
@@ -344,7 +344,7 @@ const AttributionTimeline = track(() => {
 								/>
 								<span className="attribution-timeline-name">{user.name}</span>
 							</div>
-							<TlSlider
+							<TldrawUiSlider
 								steps={Math.max(total, 1)}
 								value={isEmpty ? null : applied}
 								label="History"
@@ -358,7 +358,7 @@ const AttributionTimeline = track(() => {
 					)
 				})}
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 })
 

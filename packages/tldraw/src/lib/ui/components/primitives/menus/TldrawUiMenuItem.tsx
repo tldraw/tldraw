@@ -7,14 +7,14 @@ import {
 	Vec,
 	VecModel,
 } from '@tldraw/editor'
-import { TlButton } from '@tldraw/ui'
-import { TlButtonIcon } from '@tldraw/ui'
-import { TlButtonLabel } from '@tldraw/ui'
-import { TlDropdownMenuItem } from '@tldraw/ui'
-import { TlIconJsx } from '@tldraw/ui'
-import { TlKbd } from '@tldraw/ui'
-import { TlToolbarButton } from '@tldraw/ui'
-import { hideAllTlTooltips } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiButtonLabel } from '@tldraw/ui'
+import { TldrawUiDropdownMenuItem } from '@tldraw/ui'
+import { TldrawUiIconJsx } from '@tldraw/ui'
+import { TldrawUiKbd } from '@tldraw/ui'
+import { TldrawUiToolbarButton } from '@tldraw/ui'
+import { hideAllTldrawUiTooltips } from '@tldraw/ui'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { useMemo, useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
@@ -36,11 +36,11 @@ export interface TLUiMenuItemProps<
 	/**
 	 * The icon to display on the item. Icons are only shown in certain menu types.
 	 */
-	icon?: IconType | TlIconJsx
+	icon?: IconType | TldrawUiIconJsx
 	/**
 	 * An icon to display to the left of the menu item.
 	 */
-	iconLeft?: IconType | TlIconJsx
+	iconLeft?: IconType | TldrawUiIconJsx
 	/**
 	 * The keyboard shortcut to display on the item.
 	 */
@@ -116,8 +116,8 @@ export function TldrawUiMenuItem<
 	switch (menuType) {
 		case 'menu': {
 			return (
-				<TlDropdownMenuItem>
-					<TlButton
+				<TldrawUiDropdownMenuItem>
+					<TldrawUiButton
 						type="menu"
 						data-testid={`${sourceId}.${id}`}
 						disabled={disabled}
@@ -132,11 +132,11 @@ export function TldrawUiMenuItem<
 							}
 						}}
 					>
-						{iconLeft && <TlButtonIcon icon={iconLeft} small />}
-						<TlButtonLabel>{labelStr}</TlButtonLabel>
-						{kbd && <TlKbd>{kbd}</TlKbd>}
-					</TlButton>
-				</TlDropdownMenuItem>
+						{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
+						<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+						{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuItem>
 			)
 		}
 		case 'context-menu': {
@@ -170,8 +170,8 @@ export function TldrawUiMenuItem<
 					<span className="tlui-button__label" draggable={false}>
 						{labelStr}
 					</span>
-					{iconLeft && <TlButtonIcon icon={iconLeft} small />}
-					{kbd && <TlKbd>{kbd}</TlKbd>}
+					{iconLeft && <TldrawUiButtonIcon icon={iconLeft} small />}
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 					{spinner && <Spinner />}
 				</_ContextMenu.Item>
 			)
@@ -179,15 +179,15 @@ export function TldrawUiMenuItem<
 		case 'small-icons':
 		case 'icons': {
 			return (
-				<TlToolbarButton
+				<TldrawUiToolbarButton
 					data-testid={`${sourceId}.${id}`}
 					type="icon"
 					title={titleStr}
 					disabled={disabled}
 					onClick={() => onSelect(sourceId)}
 				>
-					<TlButtonIcon icon={icon!} small />
-				</TlToolbarButton>
+					<TldrawUiButtonIcon icon={icon!} small />
+				</TldrawUiToolbarButton>
 			)
 		}
 		case 'keyboard-shortcuts': {
@@ -202,17 +202,21 @@ export function TldrawUiMenuItem<
 				<div className="tlui-shortcuts-dialog__key-pair" data-testid={`${sourceId}.${id}`}>
 					<div className="tlui-shortcuts-dialog__key-pair__key">{labelStr}</div>
 					<div className="tlui-shortcuts-dialog__key-pair__value">
-						<TlKbd visibleOnMobileLayout>{kbd}</TlKbd>
+						<TldrawUiKbd visibleOnMobileLayout>{kbd}</TldrawUiKbd>
 					</div>
 				</div>
 			)
 		}
 		case 'helper-buttons': {
 			return (
-				<TlButton type="low" data-testid={`${sourceId}.${id}`} onClick={() => onSelect(sourceId)}>
-					<TlButtonIcon icon={icon!} />
-					<TlButtonLabel>{labelStr}</TlButtonLabel>
-				</TlButton>
+				<TldrawUiButton
+					type="low"
+					data-testid={`${sourceId}.${id}`}
+					onClick={() => onSelect(sourceId)}
+				>
+					<TldrawUiButtonIcon icon={icon!} />
+					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+				</TldrawUiButton>
 			)
 		}
 		case 'toolbar': {
@@ -231,7 +235,7 @@ export function TldrawUiMenuItem<
 				)
 			}
 			return (
-				<TlToolbarButton
+				<TldrawUiToolbarButton
 					aria-label={labelStr}
 					aria-pressed={isSelected ? 'true' : 'false'}
 					data-testid={`tools.${id}`}
@@ -245,8 +249,8 @@ export function TldrawUiMenuItem<
 					title={titleStr}
 					type="tool"
 				>
-					<TlButtonIcon icon={icon!} />
-				</TlToolbarButton>
+					<TldrawUiButtonIcon icon={icon!} />
+				</TldrawUiToolbarButton>
 			)
 		}
 		case 'toolbar-overflow': {
@@ -266,7 +270,7 @@ export function TldrawUiMenuItem<
 				)
 			}
 			return (
-				<TlToolbarButton
+				<TldrawUiToolbarButton
 					aria-label={labelStr}
 					aria-pressed={isSelected ? 'true' : 'false'}
 					isActive={isSelected}
@@ -277,8 +281,8 @@ export function TldrawUiMenuItem<
 					title={titleStr}
 					type="icon"
 				>
-					<TlButtonIcon icon={icon!} />
-				</TlToolbarButton>
+					<TldrawUiButtonIcon icon={icon!} />
+				</TldrawUiToolbarButton>
 			)
 		}
 		default: {
@@ -359,7 +363,7 @@ function useDraggableEvents(
 							point: screenSpaceStart,
 						})
 
-						hideAllTlTooltips()
+						hideAllTldrawUiTooltips()
 						editor.getContainer().focus()
 					})
 				}
@@ -426,7 +430,7 @@ function DraggableToolbarButton({
 
 	if (overflow) {
 		return (
-			<TlToolbarButton
+			<TldrawUiToolbarButton
 				aria-label={labelStr}
 				aria-pressed={isSelected ? 'true' : 'false'}
 				isActive={isSelected}
@@ -438,13 +442,13 @@ function DraggableToolbarButton({
 				type="icon"
 				{...events}
 			>
-				<TlButtonIcon icon={icon!} />
-			</TlToolbarButton>
+				<TldrawUiButtonIcon icon={icon!} />
+			</TldrawUiToolbarButton>
 		)
 	}
 
 	return (
-		<TlToolbarButton
+		<TldrawUiToolbarButton
 			aria-label={labelStr}
 			aria-pressed={isSelected ? 'true' : 'false'}
 			data-testid={`tools.${id}`}
@@ -458,7 +462,7 @@ function DraggableToolbarButton({
 			type="tool"
 			{...events}
 		>
-			<TlButtonIcon icon={icon!} />
-		</TlToolbarButton>
+			<TldrawUiButtonIcon icon={icon!} />
+		</TldrawUiToolbarButton>
 	)
 }

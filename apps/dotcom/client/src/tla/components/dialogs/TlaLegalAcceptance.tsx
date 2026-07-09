@@ -1,5 +1,5 @@
 import { useUser } from '@clerk/clerk-react'
-import { TlDialogBody, TlDialogHeader, TlDialogTitle } from '@tldraw/ui'
+import { TldrawUiDialogBody, TldrawUiDialogHeader, TldrawUiDialogTitle } from '@tldraw/ui'
 import classNames from 'classnames'
 import { useCallback, useState } from 'react'
 import { F } from '../../utils/i18n'
@@ -47,12 +47,12 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 
 	return (
 		<div className={styles.legalContainer}>
-			<TlDialogHeader className={styles.legalDialogHeader}>
-				<TlDialogTitle>
+			<TldrawUiDialogHeader className={styles.legalDialogHeader}>
+				<TldrawUiDialogTitle>
 					<F defaultMessage="Accept terms of use" />
-				</TlDialogTitle>
-			</TlDialogHeader>
-			<TlDialogBody className={styles.legalBody}>
+				</TldrawUiDialogTitle>
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody className={styles.legalBody}>
 				<p className={styles.legalDescription}>
 					<F
 						defaultMessage="Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>."
@@ -72,7 +72,7 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 				>
 					<F defaultMessage="Accept and continue" />
 				</TlaCtaButton>
-			</TlDialogBody>
+			</TldrawUiDialogBody>
 		</div>
 	)
 }

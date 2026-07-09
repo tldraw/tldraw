@@ -1,4 +1,4 @@
-import { TlSlider } from 'tldraw'
+import { TldrawUiSlider } from 'tldraw'
 import { ConfigPanelLabel } from './ConfigPanelLabel'
 
 const STEPS = 100
@@ -26,7 +26,7 @@ export function ConfigPanelSlider({
 	return (
 		<div className="shader-config-panel__control shader-config-panel__control--slider">
 			<ConfigPanelLabel>{label}</ConfigPanelLabel>
-			<TlSlider
+			<TldrawUiSlider
 				steps={STEPS}
 				min={1}
 				value={sliderValue}

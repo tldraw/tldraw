@@ -1,23 +1,23 @@
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode } from 'react'
-import { TlPortalScope, useTlPortalContainer } from '../context/portal'
-import { useTlTranslation } from '../context/translation'
+import { TldrawUiPortalScope, useTldrawUiPortalContainer } from '../context/portal'
+import { useTldrawUiTranslation } from '../context/translation'
 
 /** @public */
-export interface TlContextMenuRootProps {
+export interface TldrawUiContextMenuRootProps {
 	children: ReactNode
 	modal?: boolean
 	onOpenChange?(open: boolean): void
 }
 
 /** @public @react */
-export function TlContextMenuRoot({
+export function TldrawUiContextMenuRoot({
 	children,
 	modal = false,
 	onOpenChange,
-}: TlContextMenuRootProps) {
-	const { dir } = useTlTranslation()
+}: TldrawUiContextMenuRootProps) {
+	const { dir } = useTldrawUiTranslation()
 
 	return (
 		<_ContextMenu.Root dir={dir} modal={modal} onOpenChange={onOpenChange}>
@@ -27,13 +27,16 @@ export function TlContextMenuRoot({
 }
 
 /** @public */
-export interface TlContextMenuTriggerProps {
+export interface TldrawUiContextMenuTriggerProps {
 	children: ReactNode
 	disabled?: boolean
 }
 
 /** @public @react */
-export function TlContextMenuTrigger({ children, disabled }: TlContextMenuTriggerProps) {
+export function TldrawUiContextMenuTrigger({
+	children,
+	disabled,
+}: TldrawUiContextMenuTriggerProps) {
 	return (
 		<_ContextMenu.Trigger asChild disabled={disabled}>
 			{children}
@@ -42,7 +45,7 @@ export function TlContextMenuTrigger({ children, disabled }: TlContextMenuTrigge
 }
 
 /** @public */
-export interface TlContextMenuContentProps {
+export interface TldrawUiContextMenuContentProps {
 	children: ReactNode
 	className?: string
 	alignOffset?: number
@@ -52,19 +55,19 @@ export interface TlContextMenuContentProps {
 }
 
 /** @public @react */
-export function TlContextMenuContent({
+export function TldrawUiContextMenuContent({
 	children,
 	className,
 	alignOffset = -4,
 	collisionPadding = 4,
 	'aria-label': ariaLabel,
 	'data-testid': dataTestId,
-}: TlContextMenuContentProps) {
-	const container = useTlPortalContainer()
+}: TldrawUiContextMenuContentProps) {
+	const container = useTldrawUiPortalContainer()
 
 	return (
 		<_ContextMenu.Portal container={container}>
-			<TlPortalScope>
+			<TldrawUiPortalScope>
 				<_ContextMenu.Content
 					className={classNames('tl-menu', className)}
 					alignOffset={alignOffset}
@@ -74,7 +77,7 @@ export function TlContextMenuContent({
 				>
 					{children}
 				</_ContextMenu.Content>
-			</TlPortalScope>
+			</TldrawUiPortalScope>
 		</_ContextMenu.Portal>
 	)
 }

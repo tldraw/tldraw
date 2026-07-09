@@ -31,7 +31,7 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { TlTooltip } from '@tldraw/ui'
+import { TldrawUiTooltip } from '@tldraw/ui'
 import { useCallback, useContext } from 'react'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
@@ -370,7 +370,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					}}
 				>
 					{attribution && (
-						<TlTooltip content={attribution.full} side="bottom">
+						<TldrawUiTooltip content={attribution.full} side="bottom">
 							<div
 								className="tl-note__attribution"
 								style={{
@@ -382,7 +382,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							>
 								{attribution.short}
 							</div>
-						</TlTooltip>
+						</TldrawUiTooltip>
 					)}
 					{(isSelected || isReadyForEditing || !isEmpty) && (
 						<RichTextLabel

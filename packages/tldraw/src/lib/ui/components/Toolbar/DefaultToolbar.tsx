@@ -1,6 +1,6 @@
 import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
-import { TlOrientationProvider } from '@tldraw/ui'
-import { TlToolbar } from '@tldraw/ui'
+import { TldrawUiOrientationProvider } from '@tldraw/ui'
+import { TldrawUiToolbar } from '@tldraw/ui'
 import classNames from 'classnames'
 import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -58,7 +58,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 				: breakpoint < PORTRAIT_BREAKPOINT.TABLET
 
 	return (
-		<TlOrientationProvider
+		<TldrawUiOrientationProvider
 			orientation={orientation}
 			tooltipSide={orientation === 'horizontal' ? 'top' : 'right'}
 		>
@@ -71,14 +71,14 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 						{!isReadonlyMode && (
 							<div className="tlui-main-toolbar__extras">
 								{showQuickActions && (
-									<TlToolbar
+									<TldrawUiToolbar
 										orientation={orientation}
 										className="tlui-main-toolbar__extras__controls"
 										label={msg('actions-menu.title')}
 									>
 										{QuickActions && <QuickActions />}
 										{ActionsMenu && <ActionsMenu />}
-									</TlToolbar>
+									</TldrawUiToolbar>
 								)}
 								<ToggleToolLockedButton activeToolId={activeToolId} />
 							</div>
@@ -101,6 +101,6 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 					)}
 				</div>
 			</div>
-		</TlOrientationProvider>
+		</TldrawUiOrientationProvider>
 	)
 })

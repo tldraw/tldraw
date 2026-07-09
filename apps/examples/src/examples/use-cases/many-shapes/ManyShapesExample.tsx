@@ -1,7 +1,7 @@
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { Editor, TLCreateShapePartial, Tldraw, createShapeId, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 
 // [1]
 const GEO_TYPES = [
@@ -112,22 +112,22 @@ function Controls() {
 	}
 
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div style={{ display: 'flex', gap: 4, padding: 8, flexWrap: 'wrap' }}>
-				<TlButton type="normal" onClick={() => handleGenerate(200)}>
+				<TldrawUiButton type="normal" onClick={() => handleGenerate(200)}>
 					Add 200 shapes
-				</TlButton>
-				<TlButton type="normal" onClick={() => handleGenerate(500)}>
+				</TldrawUiButton>
+				<TldrawUiButton type="normal" onClick={() => handleGenerate(500)}>
 					Add 500 shapes
-				</TlButton>
-				<TlButton type="normal" onClick={() => handleGenerate(1000)}>
+				</TldrawUiButton>
+				<TldrawUiButton type="normal" onClick={() => handleGenerate(1000)}>
 					Add 1000 shapes
-				</TlButton>
-				<TlButton type="normal" onClick={handleClear}>
+				</TldrawUiButton>
+				<TldrawUiButton type="normal" onClick={handleClear}>
 					Clear all
-				</TlButton>
+				</TldrawUiButton>
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 }
 

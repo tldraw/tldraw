@@ -1,13 +1,13 @@
 import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react'
 
 /** @public */
-export interface TlPlatformContextValue {
+export interface TldrawUiPlatformContextValue {
 	isDarwin: boolean
 	isCoarsePointer: boolean
 	animationSpeed: number
 }
 
-const defaultPlatform: TlPlatformContextValue = {
+const defaultPlatform: TldrawUiPlatformContextValue = {
 	isDarwin: false,
 	isCoarsePointer: false,
 	animationSpeed: 1,
@@ -23,10 +23,10 @@ function detectIsCoarsePointer(): boolean {
 	return window.matchMedia('(any-pointer: coarse)').matches
 }
 
-const TlPlatformContext = createContext<TlPlatformContextValue>(defaultPlatform)
+const TldrawUiPlatformContext = createContext<TldrawUiPlatformContextValue>(defaultPlatform)
 
 /** @public */
-export interface TlPlatformProviderProps {
+export interface TldrawUiPlatformProviderProps {
 	isDarwin?: boolean
 	isCoarsePointer?: boolean
 	animationSpeed?: number
@@ -34,12 +34,12 @@ export interface TlPlatformProviderProps {
 }
 
 /** @public @react */
-export function TlPlatformProvider({
+export function TldrawUiPlatformProvider({
 	isDarwin: isDarwinProp,
 	isCoarsePointer: isCoarsePointerProp,
 	animationSpeed = 1,
 	children,
-}: TlPlatformProviderProps) {
+}: TldrawUiPlatformProviderProps) {
 	const [isDarwin, setIsDarwin] = useState(isDarwinProp ?? detectIsDarwin())
 	const [isCoarsePointer, setIsCoarsePointer] = useState(
 		isCoarsePointerProp ?? detectIsCoarsePointer()
@@ -86,10 +86,12 @@ export function TlPlatformProvider({
 		[isDarwin, isCoarsePointer, animationSpeed]
 	)
 
-	return <TlPlatformContext.Provider value={value}>{children}</TlPlatformContext.Provider>
+	return (
+		<TldrawUiPlatformContext.Provider value={value}>{children}</TldrawUiPlatformContext.Provider>
+	)
 }
 
 /** @public */
-export function useTlPlatform(): TlPlatformContextValue {
-	return useContext(TlPlatformContext)
+export function useTldrawUiPlatform(): TldrawUiPlatformContextValue {
+	return useContext(TldrawUiPlatformContext)
 }

@@ -1,4 +1,10 @@
-import { TlButton, TlButtonIcon, TlButtonLabel, TlButtonSpinner, TlIcon } from '@tldraw/ui'
+import {
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiButtonLabel,
+	TldrawUiButtonSpinner,
+	TldrawUiIcon,
+} from '@tldraw/ui'
 import classNames from 'classnames'
 import { ButtonHTMLAttributes, forwardRef } from 'react'
 import styles from './button.module.css'
@@ -36,7 +42,7 @@ export const TlaButton = forwardRef<
 	const hasIconRight = !!iconRight
 
 	return (
-		<TlButton
+		<TldrawUiButton
 			{...props}
 			type={buttonType}
 			htmlButtonType={type ?? 'button'}
@@ -58,19 +64,19 @@ export const TlaButton = forwardRef<
 		>
 			{isLoading && !iconRight ? (
 				<div className={styles.spinner}>
-					<TlButtonSpinner />
+					<TldrawUiButtonSpinner />
 				</div>
 			) : (
 				<>
-					{icon && <TlButtonIcon icon={icon} small />}
-					{children && <TlButtonLabel>{children}</TlButtonLabel>}
+					{icon && <TldrawUiButtonIcon icon={icon} small />}
+					{children && <TldrawUiButtonLabel>{children}</TldrawUiButtonLabel>}
 					{iconRight &&
 						(isLoading ? (
 							<div className={classNames(styles.iconRight, iconRightClassName)}>
-								<TlButtonSpinner />
+								<TldrawUiButtonSpinner />
 							</div>
 						) : (
-							<TlIcon
+							<TldrawUiIcon
 								icon={iconRight}
 								small
 								className={classNames('tl-button__icon', styles.iconRight, iconRightClassName)}
@@ -78,6 +84,6 @@ export const TlaButton = forwardRef<
 						))}
 				</>
 			)}
-		</TlButton>
+		</TldrawUiButton>
 	)
 })

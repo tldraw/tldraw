@@ -1,6 +1,6 @@
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { Box, createShapeId, Tldraw, useEditor } from 'tldraw'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import './zoom-to-bounds.css'
 
 export default function ZoomToBoundsExample() {
@@ -42,16 +42,16 @@ export default function ZoomToBoundsExample() {
 					TopPanel: () => {
 						const editor = useEditor()
 						return (
-							<ExampleTlUiProvider>
+							<ExampleTldrawUiProvider>
 								<div className="tl-menu control-panel">
-									<TlButton
+									<TldrawUiButton
 										type="normal"
 										// Zoom to bounds!
 										onClick={() => editor.zoomToBounds(zoomBox1, { inset: 72 })}
 									>
 										Zoom to violet box
-									</TlButton>
-									<TlButton
+									</TldrawUiButton>
+									<TldrawUiButton
 										type="normal"
 										// Zoom to bounds!
 										onClick={() =>
@@ -59,8 +59,8 @@ export default function ZoomToBoundsExample() {
 										}
 									>
 										Zoom to blue box
-									</TlButton>
-									<TlButton
+									</TldrawUiButton>
+									<TldrawUiButton
 										type="normal"
 										// Zoom to bounds!
 										onClick={() =>
@@ -71,9 +71,9 @@ export default function ZoomToBoundsExample() {
 										}
 									>
 										Zoom to both boxes
-									</TlButton>
+									</TldrawUiButton>
 								</div>
-							</ExampleTlUiProvider>
+							</ExampleTldrawUiProvider>
 						)
 					},
 				}}

@@ -3,30 +3,30 @@ import { Slot } from 'radix-ui'
 import { HTMLAttributes, ReactNode, createContext, forwardRef, useContext } from 'react'
 
 /** @public */
-export interface TlOrientationContext {
+export interface TldrawUiOrientationContext {
 	orientation: 'horizontal' | 'vertical'
 	tooltipSide: 'top' | 'right' | 'bottom' | 'left'
 }
 
-const TlOrientationContext = createContext<TlOrientationContext>({
+const TldrawUiOrientationContext = createContext<TldrawUiOrientationContext>({
 	orientation: 'horizontal',
 	tooltipSide: 'bottom',
 })
 
 /** @public */
-export interface TlOrientationProviderProps {
+export interface TldrawUiOrientationProviderProps {
 	children: ReactNode
 	orientation: 'horizontal' | 'vertical'
 	tooltipSide?: 'top' | 'right' | 'bottom' | 'left'
 }
 
 /** @public @react */
-export function TlOrientationProvider({
+export function TldrawUiOrientationProvider({
 	children,
 	orientation,
 	tooltipSide,
-}: TlOrientationProviderProps) {
-	const prevContext = useTlOrientation()
+}: TldrawUiOrientationProviderProps) {
+	const prevContext = useTldrawUiOrientation()
 	const tooltipSideToUse =
 		tooltipSide ??
 		(orientation === prevContext.orientation
@@ -36,19 +36,19 @@ export function TlOrientationProvider({
 				: 'right')
 
 	return (
-		<TlOrientationContext.Provider value={{ orientation, tooltipSide: tooltipSideToUse }}>
+		<TldrawUiOrientationContext.Provider value={{ orientation, tooltipSide: tooltipSideToUse }}>
 			{children}
-		</TlOrientationContext.Provider>
+		</TldrawUiOrientationContext.Provider>
 	)
 }
 
 /** @public */
-export function useTlOrientation(): TlOrientationContext {
-	return useContext(TlOrientationContext)
+export function useTldrawUiOrientation(): TldrawUiOrientationContext {
+	return useContext(TldrawUiOrientationContext)
 }
 
 /** @public */
-export interface TlLayoutProps extends HTMLAttributes<HTMLDivElement> {
+export interface TldrawUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
 	children: ReactNode
 	tooltipSide?: 'top' | 'right' | 'bottom' | 'left'
 	asChild?: boolean
@@ -59,13 +59,13 @@ export interface TlLayoutProps extends HTMLAttributes<HTMLDivElement> {
  *
  * @public @react
  */
-export const TlRow = forwardRef<HTMLDivElement, TlLayoutProps>(
+export const TldrawUiRow = forwardRef<HTMLDivElement, TldrawUiLayoutProps>(
 	({ asChild, className, tooltipSide, ...props }, ref) => {
 		const Component = asChild ? Slot.Root : 'div'
 		return (
-			<TlOrientationProvider orientation="horizontal" tooltipSide={tooltipSide}>
+			<TldrawUiOrientationProvider orientation="horizontal" tooltipSide={tooltipSide}>
 				<Component ref={ref} className={classNames('tl-row', className)} {...props} />
-			</TlOrientationProvider>
+			</TldrawUiOrientationProvider>
 		)
 	}
 )
@@ -75,13 +75,13 @@ export const TlRow = forwardRef<HTMLDivElement, TlLayoutProps>(
  *
  * @public @react
  */
-export const TlColumn = forwardRef<HTMLDivElement, TlLayoutProps>(
+export const TldrawUiColumn = forwardRef<HTMLDivElement, TldrawUiLayoutProps>(
 	({ asChild, className, tooltipSide, ...props }, ref) => {
 		const Component = asChild ? Slot.Root : 'div'
 		return (
-			<TlOrientationProvider orientation="vertical" tooltipSide={tooltipSide}>
+			<TldrawUiOrientationProvider orientation="vertical" tooltipSide={tooltipSide}>
 				<Component ref={ref} className={classNames('tl-column', className)} {...props} />
-			</TlOrientationProvider>
+			</TldrawUiOrientationProvider>
 		)
 	}
 )
@@ -92,13 +92,13 @@ export const TlColumn = forwardRef<HTMLDivElement, TlLayoutProps>(
  *
  * @public @react
  */
-export const TlGrid = forwardRef<HTMLDivElement, TlLayoutProps>(
+export const TldrawUiGrid = forwardRef<HTMLDivElement, TldrawUiLayoutProps>(
 	({ asChild, className, tooltipSide, ...props }, ref) => {
 		const Component = asChild ? Slot.Root : 'div'
 		return (
-			<TlOrientationProvider orientation="horizontal" tooltipSide={tooltipSide}>
+			<TldrawUiOrientationProvider orientation="horizontal" tooltipSide={tooltipSide}>
 				<Component ref={ref} className={classNames('tl-grid', className)} {...props} />
-			</TlOrientationProvider>
+			</TldrawUiOrientationProvider>
 		)
 	}
 )

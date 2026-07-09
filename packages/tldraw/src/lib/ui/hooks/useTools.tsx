@@ -9,7 +9,7 @@ import {
 	useMaybeEditor,
 	warnOnce,
 } from '@tldraw/editor'
-import { TlIconJsx } from '@tldraw/ui'
+import { TldrawUiIconJsx } from '@tldraw/ui'
 import * as React from 'react'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -28,7 +28,7 @@ export interface TLUiToolItem<
 	id: string
 	label: TranslationKey
 	shortcutsLabel?: TranslationKey
-	icon: IconType | TlIconJsx
+	icon: IconType | TldrawUiIconJsx
 	onSelect(source: TLUiEventSource): void
 	onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void
 	/**

@@ -1,6 +1,6 @@
 import { tlenv, useContainer, useEditor, useReactor, useValue } from '@tldraw/editor'
-import { TlButton } from '@tldraw/ui'
-import { TlButtonIcon } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
 import classNames from 'classnames'
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
@@ -201,14 +201,14 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			<SkipToMainContent />
 			{isFocusMode ? (
 				<div className="tlui-layout__top">
-					<TlButton
+					<TldrawUiButton
 						type="icon"
 						className="tlui-focus-button"
 						title={msg('focus-mode.toggle-focus-mode')}
 						onClick={() => toggleFocus.onSelect('menu')}
 					>
-						<TlButtonIcon icon="dot" />
-					</TlButton>
+						<TldrawUiButtonIcon icon="dot" />
+					</TldrawUiButton>
 				</div>
 			) : (
 				<>

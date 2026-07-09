@@ -11,51 +11,51 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { TlDialogRoot } from './TlDialog'
+import { TldrawUiDialogRoot } from './TldrawUiDialog'
 
 /** @public */
-export interface TlDialogProps {
+export interface TldrawUiDialogProps {
 	onClose(): void
 }
 
 /** @public */
-export interface TlDialog {
+export interface TldrawUiDialog {
 	id: string
-	component: ComponentType<TlDialogProps>
+	component: ComponentType<TldrawUiDialogProps>
 	onClose?(): void
 	preventBackgroundClose?: boolean
 }
 
 /** @public */
-export type TlDialogEvent = 'open' | 'close'
+export type TldrawUiDialogEvent = 'open' | 'close'
 
 /** @public */
-export interface TlDialogsContextValue {
-	addDialog(dialog: Omit<TlDialog, 'id'> & { id?: string }): string
+export interface TldrawUiDialogsContextValue {
+	addDialog(dialog: Omit<TldrawUiDialog, 'id'> & { id?: string }): string
 	removeDialog(id: string): void
 	clearDialogs(): void
-	dialogs: Atom<TlDialog[]>
+	dialogs: Atom<TldrawUiDialog[]>
 }
 
-const TlDialogsContext = createContext<TlDialogsContextValue | null>(null)
+const TldrawUiDialogsContext = createContext<TldrawUiDialogsContextValue | null>(null)
 
 /** @public */
-export interface TlDialogsProviderProps {
+export interface TldrawUiDialogsProviderProps {
 	children: ReactNode
-	onEvent?(event: TlDialogEvent, data: { id: string }): void
+	onEvent?(event: TldrawUiDialogEvent, data: { id: string }): void
 }
 
 /** @public @react */
-export function TlDialogsProvider({ children, onEvent }: TlDialogsProviderProps) {
-	const parentCtx = useContext(TlDialogsContext)
-	const dialogsRef = useRef(atom<TlDialog[]>('tl-dialogs', []))
+export function TldrawUiDialogsProvider({ children, onEvent }: TldrawUiDialogsProviderProps) {
+	const parentCtx = useContext(TldrawUiDialogsContext)
+	const dialogsRef = useRef(atom<TldrawUiDialog[]>('tl-dialogs', []))
 
-	const content = useMemo((): TlDialogsContextValue => {
+	const content = useMemo((): TldrawUiDialogsContextValue => {
 		const dialogs = dialogsRef.current
 
 		return {
 			dialogs,
-			addDialog(dialog: Omit<TlDialog, 'id'> & { id?: string }) {
+			addDialog(dialog: Omit<TldrawUiDialog, 'id'> & { id?: string }) {
 				const id = dialog.id ?? uniqueId()
 				dialogs.update((d) => [...d.filter((m) => m.id !== id), { ...dialog, id }])
 				onEvent?.('open', { id })
@@ -84,30 +84,30 @@ export function TlDialogsProvider({ children, onEvent }: TlDialogsProviderProps)
 	if (parentCtx) return <>{children}</>
 
 	return (
-		<TlDialogsContext.Provider value={content}>
+		<TldrawUiDialogsContext.Provider value={content}>
 			{children}
-			<TlDialogsRenderer />
-		</TlDialogsContext.Provider>
+			<TldrawUiDialogsRenderer />
+		</TldrawUiDialogsContext.Provider>
 	)
 }
 
 /** @public */
-export function useTlDialogs(): TlDialogsContextValue {
-	const ctx = useContext(TlDialogsContext)
+export function useTldrawUiDialogs(): TldrawUiDialogsContextValue {
+	const ctx = useContext(TldrawUiDialogsContext)
 
 	if (!ctx) {
-		throw new Error('useTlDialogs must be used within a TlDialogsProvider')
+		throw new Error('useTldrawUiDialogs must be used within a TldrawUiDialogsProvider')
 	}
 
 	return ctx
 }
 
-const TlManagedDialog = memo(function TlManagedDialog({
+const TldrawUiManagedDialog = memo(function TldrawUiManagedDialog({
 	id,
 	component: ModalContent,
 	preventBackgroundClose,
-}: TlDialog) {
-	const { removeDialog } = useTlDialogs()
+}: TldrawUiDialog) {
+	const { removeDialog } = useTldrawUiDialogs()
 
 	const handleOpenChange = useCallback(
 		(isOpen: boolean) => {
@@ -119,24 +119,24 @@ const TlManagedDialog = memo(function TlManagedDialog({
 	)
 
 	return (
-		<TlDialogRoot
+		<TldrawUiDialogRoot
 			defaultOpen
 			onOpenChange={handleOpenChange}
 			preventBackgroundClose={preventBackgroundClose}
 		>
 			<ModalContent onClose={() => handleOpenChange(false)} />
-		</TlDialogRoot>
+		</TldrawUiDialogRoot>
 	)
 })
 
-const TlDialogsRenderer = memo(function TlDialogsRenderer() {
-	const { dialogs } = useTlDialogs()
+const TldrawUiDialogsRenderer = memo(function TldrawUiDialogsRenderer() {
+	const { dialogs } = useTldrawUiDialogs()
 	const dialogsArray = useValue('tl-dialogs', () => dialogs.get(), [dialogs])
 
 	return (
 		<>
 			{dialogsArray.map((dialog) => (
-				<TlManagedDialog key={dialog.id} {...dialog} />
+				<TldrawUiManagedDialog key={dialog.id} {...dialog} />
 			))}
 		</>
 	)

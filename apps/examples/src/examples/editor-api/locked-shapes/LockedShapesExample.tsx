@@ -1,7 +1,7 @@
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { useState } from 'react'
 import { createShapeId, Tldraw, TLShapeId, toRichText, useEditor } from 'tldraw'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import 'tldraw/tldraw.css'
 
 // [1]
@@ -62,7 +62,7 @@ function ControlPanel() {
 	}
 
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div className="tl-menu" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 				<label
 					style={{
@@ -78,14 +78,14 @@ function ControlPanel() {
 					<input type="checkbox" checked={selectLocked} onChange={toggleSelectLocked} />
 					Allow selecting locked shapes
 				</label>
-				<TlButton type="normal" onClick={handleScatter}>
+				<TldrawUiButton type="normal" onClick={handleScatter}>
 					Scatter
-				</TlButton>
-				<TlButton type="normal" onClick={handleReset}>
+				</TldrawUiButton>
+				<TldrawUiButton type="normal" onClick={handleReset}>
 					Reset
-				</TlButton>
+				</TldrawUiButton>
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 }
 

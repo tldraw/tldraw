@@ -1,4 +1,4 @@
-import { TlButton, TlInput } from '@tldraw/ui'
+import { TldrawUiButton, TldrawUiInput } from '@tldraw/ui'
 import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import { useApp } from '../../../hooks/useAppState'
@@ -84,7 +84,7 @@ export function TlaSidebarSearch() {
 			data-testid="tla-sidebar-search-row"
 		>
 			<TlaIcon icon="search" className={styles.sidebarSearchIcon} />
-			<TlInput
+			<TldrawUiInput
 				ref={inputRef}
 				className={classNames(styles.sidebarSearchInput, 'tla-text_ui__regular')}
 				placeholder={searchLbl}
@@ -96,7 +96,7 @@ export function TlaSidebarSearch() {
 				data-testid="tla-sidebar-search-input"
 			/>
 			{query.length > 0 && (
-				<TlButton
+				<TldrawUiButton
 					type="icon"
 					className={styles.sidebarSearchClear}
 					onClick={handleClear}
@@ -105,7 +105,7 @@ export function TlaSidebarSearch() {
 					data-testid="tla-sidebar-search-clear"
 				>
 					<TlaIcon icon="close" style={{ width: 12, height: 12 }} />
-				</TlButton>
+				</TldrawUiButton>
 			)}
 		</div>
 	)

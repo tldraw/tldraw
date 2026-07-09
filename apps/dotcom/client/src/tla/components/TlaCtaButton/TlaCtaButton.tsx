@@ -1,4 +1,4 @@
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import classNames from 'classnames'
 import { ButtonHTMLAttributes, forwardRef } from 'react'
 import styles from './cta-button.module.css'
@@ -12,7 +12,7 @@ export const TlaCtaButton = forwardRef<
 	}
 >(function TlaCtaButton({ className, canvas = false, secondary = false, type, ...props }, ref) {
 	return (
-		<TlButton
+		<TldrawUiButton
 			ref={ref}
 			type="cta"
 			htmlButtonType={type ?? 'button'}

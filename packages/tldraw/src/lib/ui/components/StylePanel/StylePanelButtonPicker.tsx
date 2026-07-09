@@ -8,9 +8,9 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { TlButtonIcon } from '@tldraw/ui'
-import { TlGrid, TlRow } from '@tldraw/ui'
-import { TlToolbar, TlToolbarToggleGroup, TlToolbarToggleItem } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiGrid, TldrawUiRow } from '@tldraw/ui'
+import { TldrawUiToolbar, TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem } from '@tldraw/ui'
 import { memo, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -36,9 +36,9 @@ function StylePanelButtonPickerInner<T extends string>(props: StylePanelButtonPi
 	return (
 		<>
 			{enhancedA11yMode && <StylePanelSubheading>{props.title}</StylePanelSubheading>}
-			<TlToolbar label={props.title}>
+			<TldrawUiToolbar label={props.title}>
 				<StylePanelButtonPickerInline {...props} />
-			</TlToolbar>
+			</TldrawUiToolbar>
 		</>
 	)
 }
@@ -138,10 +138,10 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 		}
 	}, [editor, breakpoint, value, onHistoryMark, onValueChange, style])
 
-	const Layout = items.length > 4 ? TlGrid : TlRow
+	const Layout = items.length > 4 ? TldrawUiGrid : TldrawUiRow
 
 	return (
-		<TlToolbarToggleGroup
+		<TldrawUiToolbarToggleGroup
 			data-testid={`style.${uiType}`}
 			type="single"
 			value={value.type === 'shared' ? value.value : null}
@@ -152,7 +152,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 					const isActive = value.type === 'shared' && value.value === item.value
 					const label = title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
 					return (
-						<TlToolbarToggleItem
+						<TldrawUiToolbarToggleItem
 							type="icon"
 							key={item.value}
 							data-id={item.value}
@@ -178,12 +178,12 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 							onPointerUp={handleButtonPointerUp}
 							onClick={handleButtonClick}
 						>
-							<TlButtonIcon icon={item.icon} />
-						</TlToolbarToggleItem>
+							<TldrawUiButtonIcon icon={item.icon} />
+						</TldrawUiToolbarToggleItem>
 					)
 				})}
 			</Layout>
-		</TlToolbarToggleGroup>
+		</TldrawUiToolbarToggleGroup>
 	)
 }
 

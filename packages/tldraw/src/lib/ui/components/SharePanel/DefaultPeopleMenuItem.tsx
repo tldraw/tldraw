@@ -1,8 +1,8 @@
 import { TLUserId, track, useEditor, usePresence } from '@tldraw/editor'
-import { TlButton } from '@tldraw/ui'
-import { TlButtonIcon } from '@tldraw/ui'
-import { TlRow } from '@tldraw/ui'
-import { TlIcon } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiRow } from '@tldraw/ui'
+import { TldrawUiIcon } from '@tldraw/ui'
 import { useCallback } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -38,22 +38,22 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 	if (!presence) return null
 
 	return (
-		<TlRow
+		<TldrawUiRow
 			className="tlui-people-menu__item"
 			data-follow={youAreFollowingThem || theyAreFollowingYou}
 		>
-			<TlButton
+			<TldrawUiButton
 				type="menu"
 				className="tlui-people-menu__item__button"
 				onClick={() => editor.zoomToUser(userId)}
 				onDoubleClick={handleFollowClick}
 			>
-				<TlIcon label={msg('people-menu.avatar-color')} icon="color" color={presence.color} />
+				<TldrawUiIcon label={msg('people-menu.avatar-color')} icon="color" color={presence.color} />
 				<div className="tlui-people-menu__name">
 					{presence.userName?.trim() || msg('people-menu.anonymous-user')}
 				</div>
-			</TlButton>
-			<TlButton
+			</TldrawUiButton>
+			<TldrawUiButton
 				type="icon"
 				className="tlui-people-menu__item__follow"
 				title={
@@ -66,10 +66,10 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 				onClick={handleFollowClick}
 				disabled={theyAreFollowingYou}
 			>
-				<TlButtonIcon
+				<TldrawUiButtonIcon
 					icon={theyAreFollowingYou ? 'leading' : youAreFollowingThem ? 'following' : 'follow'}
 				/>
-			</TlButton>
-		</TlRow>
+			</TldrawUiButton>
+		</TldrawUiRow>
 	)
 })

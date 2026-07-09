@@ -1,5 +1,5 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
-import { TlTooltip } from '@tldraw/ui'
+import { TldrawUiTooltip } from '@tldraw/ui'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { KeyboardEvent, MouseEvent, ReactNode, useEffect, useRef } from 'react'
@@ -346,7 +346,7 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 
 	return (
 		<div className={styles.sidebarFileListItemGuestBadge} data-testid={testId}>
-			<TlTooltip
+			<TldrawUiTooltip
 				content={
 					<>
 						{ownerName ? (
@@ -365,7 +365,7 @@ function GuestBadge({ file, href }: { file: TlaFile; href: string }) {
 				>
 					<TlaIcon icon="group" className="tlui-guest-icon" />
 				</div>
-			</TlTooltip>
+			</TldrawUiTooltip>
 		</div>
 	)
 }

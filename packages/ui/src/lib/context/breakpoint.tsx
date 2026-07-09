@@ -16,20 +16,27 @@ export const TL_PORTRAIT_BREAKPOINT = {
 	DESKTOP: 7,
 } as const
 
-const TlBreakpointContext = createContext<number>(TL_PORTRAIT_BREAKPOINT.DESKTOP)
+const TldrawUiBreakpointContext = createContext<number>(TL_PORTRAIT_BREAKPOINT.DESKTOP)
 
 /** @public */
-export interface TlBreakpointProviderProps {
+export interface TldrawUiBreakpointProviderProps {
 	breakpoint: number
 	children: ReactNode
 }
 
 /** @public @react */
-export function TlBreakpointProvider({ breakpoint, children }: TlBreakpointProviderProps) {
-	return <TlBreakpointContext.Provider value={breakpoint}>{children}</TlBreakpointContext.Provider>
+export function TldrawUiBreakpointProvider({
+	breakpoint,
+	children,
+}: TldrawUiBreakpointProviderProps) {
+	return (
+		<TldrawUiBreakpointContext.Provider value={breakpoint}>
+			{children}
+		</TldrawUiBreakpointContext.Provider>
+	)
 }
 
 /** @public */
-export function useTlBreakpoint(): number {
-	return useContext(TlBreakpointContext)
+export function useTldrawUiBreakpoint(): number {
+	return useContext(TldrawUiBreakpointContext)
 }

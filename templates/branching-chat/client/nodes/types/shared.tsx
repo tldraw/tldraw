@@ -1,4 +1,4 @@
-import { Editor, T, TlIconJsx } from 'tldraw'
+import { Editor, T, TldrawUiIconJsx } from 'tldraw'
 import { NODE_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
 import { PortId, ShapePort } from '../../ports/Port'
 import { NodeShape } from '../NodeShapeUtil'
@@ -20,7 +20,7 @@ export abstract class NodeDefinition<Node extends { type: string }> {
 	readonly validator: T.Validator<Node>
 	abstract readonly title: string
 	abstract readonly heading?: string
-	abstract readonly icon: TlIconJsx
+	abstract readonly icon: TldrawUiIconJsx
 
 	abstract getDefault(): Node
 	abstract getBodyWidthPx(shape: NodeShape, node: Node): number

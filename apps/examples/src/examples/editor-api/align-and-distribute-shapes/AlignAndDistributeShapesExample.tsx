@@ -1,7 +1,7 @@
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { useRef } from 'react'
 import { createShapeId, Tldraw, useEditor } from 'tldraw'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import 'tldraw/tldraw.css'
 import './align-and-distribute-shapes.css'
 
@@ -23,10 +23,10 @@ function ControlPanel({
 	const editor = useEditor()
 
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div className="tl-menu control-panel">
 				{ALIGN_OPERATIONS.map(({ operation, label }) => (
-					<TlButton
+					<TldrawUiButton
 						type="normal"
 						key={operation}
 						onClick={() => {
@@ -38,10 +38,10 @@ function ControlPanel({
 						}}
 					>
 						{label}
-					</TlButton>
+					</TldrawUiButton>
 				))}
 				{DISTRIBUTE_OPERATIONS.map(({ operation, label }) => (
-					<TlButton
+					<TldrawUiButton
 						type="normal"
 						key={operation}
 						onClick={() => {
@@ -53,9 +53,9 @@ function ControlPanel({
 						}}
 					>
 						{label}
-					</TlButton>
+					</TldrawUiButton>
 				))}
-				<TlButton
+				<TldrawUiButton
 					type="normal"
 					onClick={() => {
 						const shapes = editor.getCurrentPageShapes()
@@ -74,9 +74,9 @@ function ControlPanel({
 					}}
 				>
 					Reset positions
-				</TlButton>
+				</TldrawUiButton>
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 }
 

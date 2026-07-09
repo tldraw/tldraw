@@ -1,4 +1,4 @@
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { useMsg } from '../../../utils/i18n'
 import { TlaFileMenu } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
@@ -23,14 +23,14 @@ export function TlaSidebarFileLinkMenu({
 			source="sidebar"
 			onRenameAction={onRenameAction}
 			trigger={
-				<TlButton
+				<TldrawUiButton
 					type="icon"
 					className={styles.sidebarFileListItemMenuTrigger}
 					tooltip={fileMenuLbl}
 					title={fileMenuLbl}
 				>
 					<TlaIcon icon="dots-vertical-strong" />
-				</TlButton>
+				</TldrawUiButton>
 			}
 		/>
 	)

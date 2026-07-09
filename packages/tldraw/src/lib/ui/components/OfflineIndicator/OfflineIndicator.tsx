@@ -1,5 +1,5 @@
-import { TlIcon } from '@tldraw/ui'
-import { TlTooltip } from '@tldraw/ui'
+import { TldrawUiIcon } from '@tldraw/ui'
+import { TldrawUiTooltip } from '@tldraw/ui'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
 /** @public @react */
@@ -7,10 +7,10 @@ export function OfflineIndicator() {
 	const msg = useTranslation()
 
 	return (
-		<TlTooltip content={msg('status.offline')}>
+		<TldrawUiTooltip content={msg('status.offline')}>
 			<div className="tlui-offline-indicator">
-				<TlIcon icon="status-offline" label={msg('status.offline')} small />
+				<TldrawUiIcon icon="status-offline" label={msg('status.offline')} small />
 			</div>
-		</TlTooltip>
+		</TldrawUiTooltip>
 	)
 }

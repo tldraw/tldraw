@@ -11,7 +11,7 @@ import {
 	DefaultToolbarContent,
 	Editor,
 	Tldraw,
-	TlIcon,
+	TldrawUiIcon,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -100,7 +100,7 @@ function SharePanelContent() {
 					onClick={() => exportTldr(editor, app ?? undefined)}
 					title="Copy to clipboard and download .tldr file"
 				>
-					<TlIcon label="Download .tldr file" icon="download" />
+					<TldrawUiIcon label="Download .tldr file" icon="download" />
 				</button>
 			)}
 			{toggleFullscreen && canFullscreen && (

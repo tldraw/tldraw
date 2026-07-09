@@ -1,7 +1,7 @@
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { useEffect, useRef, useState } from 'react'
 import { EASINGS, Editor, TLShape, track, useEditor } from 'tldraw'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import { showSearch } from './TextSearchExample'
 
 interface SearchResult {
@@ -55,7 +55,7 @@ export const TextSearchPanel = track(() => {
 
 	const results = getShapesWithText(editor, searchText)
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div
 				className="text-search-panel scroll-light"
 				onPointerDown={editor.markEventAsHandled}
@@ -68,17 +68,17 @@ export const TextSearchPanel = track(() => {
 				></input>
 				{results.map((result) => {
 					return (
-						<TlButton
+						<TldrawUiButton
 							key={'text-search-panel-button:' + result.shape.id}
 							type="normal"
 							className="text-search-panel-button"
 							onClick={() => moveToShape(editor, result.shape)}
 						>
 							{result.text}
-						</TlButton>
+						</TldrawUiButton>
 					)
 				})}
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 })

@@ -11,15 +11,15 @@ import React, {
 	useRef,
 	useState,
 } from 'react'
-import { useTlPlatform } from '../context/platform'
-import { TlPortalScope, useTlPortalContainer } from '../context/portal'
-import { useTlTranslation } from '../context/translation'
-import { useTlOrientation } from './layout'
+import { useTldrawUiPlatform } from '../context/platform'
+import { TldrawUiPortalScope, useTldrawUiPortalContainer } from '../context/portal'
+import { useTldrawUiTranslation } from '../context/translation'
+import { useTldrawUiOrientation } from './layout'
 
 const DEFAULT_TOOLTIP_DELAY_MS = 700
 
 /** @public */
-export interface TlTooltipProps {
+export interface TldrawUiTooltipProps {
 	children: React.ReactNode
 	content?: string | React.ReactNode
 	side?: 'top' | 'right' | 'bottom' | 'left'
@@ -160,35 +160,35 @@ class TooltipManager {
 const tooltipManager = TooltipManager.getInstance()
 
 /** @public */
-export function hideAllTlTooltips() {
+export function hideAllTldrawUiTooltips() {
 	tooltipManager.hideAllTooltips()
 }
 
 const TooltipSingletonContext = createContext<boolean>(false)
 
-interface TlTooltipProviderContextValue {
+interface TldrawUiTooltipProviderContextValue {
 	isMoving?(): boolean
 }
 
-const TlTooltipProviderContext = createContext<TlTooltipProviderContextValue>({})
+const TldrawUiTooltipProviderContext = createContext<TldrawUiTooltipProviderContextValue>({})
 
 /** @public */
-export interface TlTooltipProviderProps {
+export interface TldrawUiTooltipProviderProps {
 	children: React.ReactNode
 	isMoving?(): boolean
 }
 
 /** @public @react */
-export function TlTooltipProvider({ children, isMoving }: TlTooltipProviderProps) {
+export function TldrawUiTooltipProvider({ children, isMoving }: TldrawUiTooltipProviderProps) {
 	return (
-		<TlTooltipProviderContext.Provider value={{ isMoving }}>
+		<TldrawUiTooltipProviderContext.Provider value={{ isMoving }}>
 			<_Tooltip.Provider skipDelayDuration={700}>
 				<TooltipSingletonContext.Provider value={true}>
 					{children}
 					<TooltipSingleton />
 				</TooltipSingletonContext.Provider>
 			</_Tooltip.Provider>
-		</TlTooltipProviderContext.Provider>
+		</TldrawUiTooltipProviderContext.Provider>
 	)
 }
 
@@ -202,10 +202,10 @@ function TooltipSingleton() {
 	const [isOpen, setIsOpen] = useState(false)
 	const triggerRef = useRef<HTMLDivElement>(null)
 	const isFirstShowRef = useRef(true)
-	const { dir } = useTlTranslation()
-	const { isCoarsePointer } = useTlPlatform()
-	const portalContainer = useTlPortalContainer()
-	const { isMoving } = useContext(TlTooltipProviderContext)
+	const { dir } = useTldrawUiTranslation()
+	const { isCoarsePointer } = useTldrawUiPlatform()
+	const portalContainer = useTldrawUiPortalContainer()
+	const { isMoving } = useContext(TldrawUiTooltipProviderContext)
 
 	const currentTooltip = useValue(
 		'current tooltip',
@@ -241,7 +241,7 @@ function TooltipSingleton() {
 
 		function handleKeyDown(event: KeyboardEvent) {
 			if (event.key === 'Escape' && filteredTooltip && isOpen) {
-				hideAllTlTooltips()
+				hideAllTldrawUiTooltips()
 				event.stopPropagation()
 			}
 		}
@@ -323,7 +323,7 @@ function TooltipSingleton() {
 				<div ref={triggerRef} />
 			</_Tooltip.Trigger>
 			<_Tooltip.Portal container={portalContainer}>
-				<TlPortalScope>
+				<TldrawUiPortalScope>
 					<_Tooltip.Content
 						className="tl-tooltip"
 						side={filteredTooltip.side}
@@ -335,14 +335,14 @@ function TooltipSingleton() {
 						{filteredTooltip.content}
 						<_Tooltip.Arrow className="tl-tooltip__arrow" />
 					</_Tooltip.Content>
-				</TlPortalScope>
+				</TldrawUiPortalScope>
 			</_Tooltip.Portal>
 		</_Tooltip.Root>
 	)
 }
 
 /** @public @react */
-export const TlTooltip = forwardRef<HTMLButtonElement, TlTooltipProps>(
+export const TldrawUiTooltip = forwardRef<HTMLButtonElement, TldrawUiTooltipProps>(
 	(
 		{
 			children,
@@ -355,11 +355,11 @@ export const TlTooltip = forwardRef<HTMLButtonElement, TlTooltipProps>(
 		},
 		ref
 	) => {
-		const { dir } = useTlTranslation()
-		const portalContainer = useTlPortalContainer()
+		const { dir } = useTldrawUiTranslation()
+		const portalContainer = useTldrawUiPortalContainer()
 		const tooltipId = useRef<string>(uniqueId())
 		const hasProvider = useContext(TooltipSingletonContext)
-		const orientationCtx = useTlOrientation()
+		const orientationCtx = useTldrawUiOrientation()
 		const sideToUse = side ?? orientationCtx.tooltipSide
 
 		const delayDurationToUse = delayDuration ?? DEFAULT_TOOLTIP_DELAY_MS
@@ -388,7 +388,7 @@ export const TlTooltip = forwardRef<HTMLButtonElement, TlTooltipProps>(
 						{children}
 					</_Tooltip.Trigger>
 					<_Tooltip.Portal container={portalContainer}>
-						<TlPortalScope>
+						<TldrawUiPortalScope>
 							<_Tooltip.Content
 								className="tl-tooltip"
 								side={sideToUse}
@@ -400,7 +400,7 @@ export const TlTooltip = forwardRef<HTMLButtonElement, TlTooltipProps>(
 								{content}
 								<_Tooltip.Arrow className="tl-tooltip__arrow" />
 							</_Tooltip.Content>
-						</TlPortalScope>
+						</TldrawUiPortalScope>
 					</_Tooltip.Portal>
 				</_Tooltip.Root>
 			)

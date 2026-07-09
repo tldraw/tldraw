@@ -1,15 +1,15 @@
 import classNames from 'classnames'
 import { Select as _Select } from 'radix-ui'
 import * as React from 'react'
-import { useTlMenuIsOpen } from '../context/menu-state'
-import { TlPortalScope, useTlPortalContainer } from '../context/portal'
-import { useTlTranslation } from '../context/translation'
-import { TlIcon, TlIconJsx } from './TlIcon'
+import { useTldrawUiMenuIsOpen } from '../context/menu-state'
+import { TldrawUiPortalScope, useTldrawUiPortalContainer } from '../context/portal'
+import { useTldrawUiTranslation } from '../context/translation'
+import { TldrawUiIcon, TldrawUiIconJsx } from './TldrawUiIcon'
 
 /* --------------------- Root --------------------- */
 
 /** @public */
-export interface TlSelectProps {
+export interface TldrawUiSelectProps {
 	id: string
 	value: string
 	onValueChange(value: string): void
@@ -26,21 +26,21 @@ export interface TlSelectProps {
  *
  * @example
  * ```tsx
- * <TlSelect id="my-select" value={value} onValueChange={setValue}>
- *   <TlSelectTrigger>
- *     <TlSelectValue placeholder="Select..." />
- *   </TlSelectTrigger>
- *   <TlSelectContent>
- *     <TlSelectItem value="one" label="One" />
- *     <TlSelectItem value="two" label="Two" />
- *   </TlSelectContent>
- * </TlSelect>
+ * <TldrawUiSelect id="my-select" value={value} onValueChange={setValue}>
+ *   <TldrawUiSelectTrigger>
+ *     <TldrawUiSelectValue placeholder="Select..." />
+ *   </TldrawUiSelectTrigger>
+ *   <TldrawUiSelectContent>
+ *     <TldrawUiSelectItem value="one" label="One" />
+ *     <TldrawUiSelectItem value="two" label="Two" />
+ *   </TldrawUiSelectContent>
+ * </TldrawUiSelect>
  * ```
  *
  * @public
  * @react
  */
-export function TlSelect({
+export function TldrawUiSelect({
 	id,
 	value,
 	onValueChange,
@@ -50,9 +50,9 @@ export function TlSelect({
 	children,
 	'data-testid': dataTestId,
 	'aria-label': ariaLabel,
-}: TlSelectProps) {
-	const [open, setOpen] = useTlMenuIsOpen(id)
-	const { dir } = useTlTranslation()
+}: TldrawUiSelectProps) {
+	const [open, setOpen] = useTldrawUiMenuIsOpen(id)
+	const { dir } = useTldrawUiTranslation()
 
 	const handleOpenChange = React.useCallback(
 		(isOpen: boolean) => {
@@ -86,7 +86,7 @@ export function TlSelect({
 /* --------------------- Trigger --------------------- */
 
 /** @public */
-export interface TlSelectTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface TldrawUiSelectTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	children: React.ReactNode
 	className?: string
 }
@@ -97,29 +97,30 @@ export interface TlSelectTriggerProps extends React.ButtonHTMLAttributes<HTMLBut
  * @public
  * @react
  */
-export const TlSelectTrigger = React.forwardRef<HTMLButtonElement, TlSelectTriggerProps>(
-	function TlSelectTrigger({ children, className, ...props }, ref) {
-		return (
-			<_Select.Trigger
-				ref={ref}
-				className={classNames('tl-button tl-select__trigger', className)}
-				{...props}
-			>
-				{children}
-				<_Select.Icon className="tl-select__chevron">
-					<TlIcon icon="chevron-down" label="" small />
-				</_Select.Icon>
-			</_Select.Trigger>
-		)
-	}
-)
+export const TldrawUiSelectTrigger = React.forwardRef<
+	HTMLButtonElement,
+	TldrawUiSelectTriggerProps
+>(function TldrawUiSelectTrigger({ children, className, ...props }, ref) {
+	return (
+		<_Select.Trigger
+			ref={ref}
+			className={classNames('tl-button tl-select__trigger', className)}
+			{...props}
+		>
+			{children}
+			<_Select.Icon className="tl-select__chevron">
+				<TldrawUiIcon icon="chevron-down" label="" small />
+			</_Select.Icon>
+		</_Select.Trigger>
+	)
+})
 
 /* --------------------- Value --------------------- */
 
 /** @public */
-export interface TlSelectValueProps {
+export interface TldrawUiSelectValueProps {
 	placeholder?: string
-	icon?: string | TlIconJsx
+	icon?: string | TldrawUiIconJsx
 	children?: React.ReactNode
 }
 
@@ -129,11 +130,11 @@ export interface TlSelectValueProps {
  * @public
  * @react
  */
-export function TlSelectValue({ placeholder, icon, children }: TlSelectValueProps) {
+export function TldrawUiSelectValue({ placeholder, icon, children }: TldrawUiSelectValueProps) {
 	return (
 		<_Select.Value placeholder={placeholder}>
 			<span className="tl-select__value">
-				{icon && <TlIcon icon={icon} label="" small />}
+				{icon && <TldrawUiIcon icon={icon} label="" small />}
 				<span className="tl-button__label">{children}</span>
 			</span>
 		</_Select.Value>
@@ -143,7 +144,7 @@ export function TlSelectValue({ placeholder, icon, children }: TlSelectValueProp
 /* --------------------- Content --------------------- */
 
 /** @public */
-export interface TlSelectContentProps {
+export interface TldrawUiSelectContentProps {
 	children: React.ReactNode
 	side?: 'top' | 'bottom'
 	align?: 'start' | 'center' | 'end'
@@ -156,17 +157,17 @@ export interface TlSelectContentProps {
  * @public
  * @react
  */
-export function TlSelectContent({
+export function TldrawUiSelectContent({
 	children,
 	side = 'bottom',
 	align = 'start',
 	className,
-}: TlSelectContentProps) {
-	const container = useTlPortalContainer()
+}: TldrawUiSelectContentProps) {
+	const container = useTldrawUiPortalContainer()
 
 	return (
 		<_Select.Portal container={container}>
-			<TlPortalScope>
+			<TldrawUiPortalScope>
 				<_Select.Content
 					className={classNames('tl-menu tl-select__content', className)}
 					position="popper"
@@ -177,7 +178,7 @@ export function TlSelectContent({
 				>
 					<_Select.Viewport className="tl-select__viewport">{children}</_Select.Viewport>
 				</_Select.Content>
-			</TlPortalScope>
+			</TldrawUiPortalScope>
 		</_Select.Portal>
 	)
 }
@@ -185,10 +186,10 @@ export function TlSelectContent({
 /* --------------------- Item --------------------- */
 
 /** @public */
-export interface TlSelectItemProps {
+export interface TldrawUiSelectItemProps {
 	value: string
 	label: React.ReactNode
-	icon?: string | TlIconJsx
+	icon?: string | TldrawUiIconJsx
 	disabled?: boolean
 	destructive?: boolean
 	className?: string
@@ -200,14 +201,14 @@ export interface TlSelectItemProps {
  * @public
  * @react
  */
-export function TlSelectItem({
+export function TldrawUiSelectItem({
 	value,
 	label,
 	icon,
 	disabled,
 	destructive,
 	className,
-}: TlSelectItemProps) {
+}: TldrawUiSelectItemProps) {
 	return (
 		<_Select.Item
 			value={value}
@@ -218,8 +219,8 @@ export function TlSelectItem({
 				className
 			)}
 		>
-			<TlIcon small icon="check" label="" className="tl-select__item-indicator" />
-			{icon && <TlIcon icon={icon} label="" small />}
+			<TldrawUiIcon small icon="check" label="" className="tl-select__item-indicator" />
+			{icon && <TldrawUiIcon icon={icon} label="" small />}
 			<_Select.ItemText className="tl-button__label">{label}</_Select.ItemText>
 		</_Select.Item>
 	)

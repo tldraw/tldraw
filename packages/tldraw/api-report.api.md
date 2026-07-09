@@ -98,6 +98,7 @@ import { TldrawOptions } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeProps } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
+import { TldrawUiIconJsx } from '@tldraw/ui';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEditStartInfo } from '@tldraw/editor';
@@ -118,7 +119,6 @@ import { TLHandle } from '@tldraw/editor';
 import { TLHandleDragInfo } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
 import { TLHighlightShapeProps } from '@tldraw/editor';
-import { TlIconJsx } from '@tldraw/ui';
 import { TLImageAsset } from '@tldraw/editor';
 import { TLImageExportOptions } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
@@ -3735,7 +3735,7 @@ export function StylePanelTextAlignPicker(): JSX.Element | null;
 
 // @public (undocumented)
 export type StyleValuesForUi<T> = readonly {
-    readonly icon: string | TlIconJsx;
+    readonly icon: string | TldrawUiIconJsx;
     readonly value: T;
 }[];
 
@@ -4926,7 +4926,7 @@ export interface TLUiMenuCheckboxItemProps<TranslationKey extends string = strin
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
-    icon?: IconType | TlIconJsx;
+    icon?: IconType | TldrawUiIconJsx;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -4976,8 +4976,8 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 // @public (undocumented)
 export interface TLUiMenuItemProps<TranslationKey extends string = string, IconType extends string = string> {
     disabled?: boolean;
-    icon?: IconType | TlIconJsx;
-    iconLeft?: IconType | TlIconJsx;
+    icon?: IconType | TldrawUiIconJsx;
+    iconLeft?: IconType | TldrawUiIconJsx;
     // (undocumented)
     id: string;
     isSelected?: boolean;
@@ -5127,7 +5127,7 @@ export interface TLUiToastsProviderProps {
 // @public (undocumented)
 export interface TLUiToolItem<TranslationKey extends string = string, IconType extends string = string> {
     // (undocumented)
-    icon: IconType | TlIconJsx;
+    icon: IconType | TldrawUiIconJsx;
     // (undocumented)
     id: string;
     kbd?: string;

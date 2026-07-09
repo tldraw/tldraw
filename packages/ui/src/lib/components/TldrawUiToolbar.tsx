@@ -1,11 +1,11 @@
 import classnames from 'classnames'
 import { Toolbar as _Toolbar } from 'radix-ui'
 import React from 'react'
-import { TlColumn, TlGrid, TlRow } from './layout'
-import { TlTooltip } from './TlTooltip'
+import { TldrawUiColumn, TldrawUiGrid, TldrawUiRow } from './layout'
+import { TldrawUiTooltip } from './TldrawUiTooltip'
 
 /** @public */
-export interface TlToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface TldrawUiToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
 	children?: React.ReactNode
 	className?: string
 	dir?: 'ltr' | 'rtl'
@@ -15,13 +15,13 @@ export interface TlToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const LayoutByOrientation = {
-	horizontal: TlRow,
-	vertical: TlColumn,
-	grid: TlGrid,
+	horizontal: TldrawUiRow,
+	vertical: TldrawUiColumn,
+	grid: TldrawUiGrid,
 }
 
 /** @public @react */
-export const TlToolbar = React.forwardRef<HTMLDivElement, TlToolbarProps>(
+export const TldrawUiToolbar = React.forwardRef<HTMLDivElement, TldrawUiToolbarProps>(
 	(
 		{
 			children,
@@ -30,7 +30,7 @@ export const TlToolbar = React.forwardRef<HTMLDivElement, TlToolbarProps>(
 			orientation = 'horizontal',
 			tooltipSide,
 			...props
-		}: TlToolbarProps,
+		}: TldrawUiToolbarProps,
 		ref
 	) => {
 		const Layout = LayoutByOrientation[orientation]
@@ -51,7 +51,7 @@ export const TlToolbar = React.forwardRef<HTMLDivElement, TlToolbarProps>(
 )
 
 /** @public */
-export interface TlToolbarButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
+export interface TldrawUiToolbarButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 	asChild?: boolean
 	children?: React.ReactNode
 	className?: string
@@ -62,31 +62,32 @@ export interface TlToolbarButtonProps extends React.HTMLAttributes<HTMLButtonEle
 }
 
 /** @public @react */
-export const TlToolbarButton = React.forwardRef<HTMLButtonElement, TlToolbarButtonProps>(
-	({ asChild, children, type, isActive, tooltip, ...props }: TlToolbarButtonProps, ref) => {
-		const button = (
-			<_Toolbar.Button
-				ref={ref}
-				asChild={asChild}
-				draggable={false}
-				data-isactive={isActive}
-				{...props}
-				aria-label={props.title}
-				title={undefined}
-				className={classnames('tl-button', `tl-button--${type}`, props.className)}
-			>
-				{children}
-			</_Toolbar.Button>
-		)
+export const TldrawUiToolbarButton = React.forwardRef<
+	HTMLButtonElement,
+	TldrawUiToolbarButtonProps
+>(({ asChild, children, type, isActive, tooltip, ...props }: TldrawUiToolbarButtonProps, ref) => {
+	const button = (
+		<_Toolbar.Button
+			ref={ref}
+			asChild={asChild}
+			draggable={false}
+			data-isactive={isActive}
+			{...props}
+			aria-label={props.title}
+			title={undefined}
+			className={classnames('tl-button', `tl-button--${type}`, props.className)}
+		>
+			{children}
+		</_Toolbar.Button>
+	)
 
-		const tooltipContent = tooltip || props.title
+	const tooltipContent = tooltip || props.title
 
-		return <TlTooltip content={tooltipContent}>{button}</TlTooltip>
-	}
-)
+	return <TldrawUiTooltip content={tooltipContent}>{button}</TldrawUiTooltip>
+})
 
 /** @public */
-export interface TlToolbarToggleGroupProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface TldrawUiToolbarToggleGroupProps extends React.HTMLAttributes<HTMLDivElement> {
 	children?: React.ReactNode
 	className?: string
 	dir?: 'ltr' | 'rtl'
@@ -97,13 +98,13 @@ export interface TlToolbarToggleGroupProps extends React.HTMLAttributes<HTMLDivE
 }
 
 /** @public @react */
-export function TlToolbarToggleGroup({
+export function TldrawUiToolbarToggleGroup({
 	children,
 	className,
 	type,
 	asChild,
 	...props
-}: TlToolbarToggleGroupProps) {
+}: TldrawUiToolbarToggleGroupProps) {
 	return (
 		<_Toolbar.ToggleGroup
 			asChild={asChild}
@@ -118,7 +119,7 @@ export function TlToolbarToggleGroup({
 }
 
 /** @public */
-export interface TlToolbarToggleItemProps extends React.HTMLAttributes<HTMLButtonElement> {
+export interface TldrawUiToolbarToggleItemProps extends React.HTMLAttributes<HTMLButtonElement> {
 	children?: React.ReactNode
 	className?: string
 	type: 'icon' | 'tool'
@@ -127,14 +128,14 @@ export interface TlToolbarToggleItemProps extends React.HTMLAttributes<HTMLButto
 }
 
 /** @public @react */
-export function TlToolbarToggleItem({
+export function TldrawUiToolbarToggleItem({
 	children,
 	className,
 	type,
 	value,
 	tooltip,
 	...props
-}: TlToolbarToggleItemProps) {
+}: TldrawUiToolbarToggleItemProps) {
 	const toggleItem = (
 		<_Toolbar.ToggleItem
 			{...props}
@@ -153,5 +154,5 @@ export function TlToolbarToggleItem({
 
 	const tooltipContent = tooltip || props.title
 
-	return <TlTooltip content={tooltipContent}>{toggleItem}</TlTooltip>
+	return <TldrawUiTooltip content={tooltipContent}>{toggleItem}</TldrawUiTooltip>
 }

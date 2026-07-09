@@ -2,14 +2,14 @@ import { useAuth } from '@clerk/clerk-react'
 import { addBreadcrumb, withScope } from '@sentry/react'
 import { SubmitFeedbackRequestBody } from '@tldraw/dotcom-shared'
 import {
-	TlButton,
-	TlButtonCheck,
-	TlButtonLabel,
-	TlDialogBody,
-	TlDialogCloseButton,
-	TlDialogFooter,
-	TlDialogHeader,
-	TlDialogTitle,
+	TldrawUiButton,
+	TldrawUiButtonCheck,
+	TldrawUiButtonLabel,
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 } from '@tldraw/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
@@ -41,13 +41,13 @@ export function SubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 function SignedOutSubmitFeedbackDialog() {
 	return (
 		<div className={styles.dialogContainer}>
-			<TlDialogHeader>
-				<TlDialogTitle>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>
 					<F defaultMessage="Send feedback" />
-				</TlDialogTitle>
-				<TlDialogCloseButton />
-			</TlDialogHeader>
-			<TlDialogBody className={styles.dialogBody}>
+				</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody className={styles.dialogBody}>
 				<p>
 					<F defaultMessage="Have a bug, issue, or idea for tldraw? Let us know!" />
 				</p>
@@ -69,8 +69,8 @@ function SignedOutSubmitFeedbackDialog() {
 						</ExternalLink>
 					</li>
 				</ul>
-			</TlDialogBody>
-			<TlDialogFooter />
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter />
 		</div>
 	)
 }
@@ -124,13 +124,13 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 
 	return (
 		<>
-			<TlDialogHeader>
-				<TlDialogTitle>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>
 					<F defaultMessage="Send feedback" />
-				</TlDialogTitle>
-				<TlDialogCloseButton />
-			</TlDialogHeader>
-			<TlDialogBody className={styles.dialogBody}>
+				</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody className={styles.dialogBody}>
 				<p>
 					<F
 						defaultMessage="Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
@@ -167,31 +167,31 @@ function SignedInSubmitFeedbackDialog({ onClose }: { onClose(): void }) {
 					className={styles.feedbackDialogTextArea}
 					ref={rInput}
 				/>
-			</TlDialogBody>
-			<TlDialogFooter className="tlui-dialog__footer__actions">
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<div className="tlui-dialog__footer__file-link-checkbox">
-					<TlButton
+					<TldrawUiButton
 						type="normal"
 						onClick={() => setIncludeFileLink((v) => !v)}
 						className={styles.feedbackDialogCheckbox}
 					>
-						<TlButtonCheck checked={includeFileLink} />
-						<TlButtonLabel>
+						<TldrawUiButtonCheck checked={includeFileLink} />
+						<TldrawUiButtonLabel>
 							<F defaultMessage="Include link to current file" />
-						</TlButtonLabel>
-					</TlButton>
+						</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				</div>
-				<TlButton type="normal" onClick={onClose}>
-					<TlButtonLabel>
+				<TldrawUiButton type="normal" onClick={onClose}>
+					<TldrawUiButtonLabel>
 						<F defaultMessage="Cancel" />
-					</TlButtonLabel>
-				</TlButton>
-				<TlButton type="primary" onClick={onSubmit}>
-					<TlButtonLabel>
+					</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton type="primary" onClick={onSubmit}>
+					<TldrawUiButtonLabel>
 						<F defaultMessage="Submit" />
-					</TlButtonLabel>
-				</TlButton>
-			</TlDialogFooter>
+					</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDialogFooter>
 		</>
 	)
 }

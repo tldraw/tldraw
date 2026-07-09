@@ -10,15 +10,15 @@ import {
 	uniqueId,
 	useEditor,
 } from '@tldraw/editor'
-import { TlButton } from '@tldraw/ui'
-import { TlButtonCheck } from '@tldraw/ui'
-import { TlButtonLabel } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonCheck } from '@tldraw/ui'
+import { TldrawUiButtonLabel } from '@tldraw/ui'
 import {
-	TlDialogBody,
-	TlDialogCloseButton,
-	TlDialogFooter,
-	TlDialogHeader,
-	TlDialogTitle,
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 } from '@tldraw/ui'
 import React from 'react'
 import { useDialogs } from '../../context/dialogs'
@@ -243,29 +243,29 @@ export function ExampleDialog({
 
 	return (
 		<>
-			<TlDialogHeader>
-				<TlDialogTitle>{title}</TlDialogTitle>
-				<TlDialogCloseButton />
-			</TlDialogHeader>
-			<TlDialogBody style={{ maxWidth }}>{body}</TlDialogBody>
-			<TlDialogFooter className="tlui-dialog__footer__actions">
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody style={{ maxWidth }}>{body}</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				{displayDontShowAgain && (
-					<TlButton
+					<TldrawUiButton
 						type="normal"
 						onClick={() => setDontShowAgain(!dontShowAgain)}
 						style={{ marginRight: 'auto' }}
 					>
-						<TlButtonCheck checked={dontShowAgain} />
-						<TlButtonLabel>Don’t show again</TlButtonLabel>
-					</TlButton>
+						<TldrawUiButtonCheck checked={dontShowAgain} />
+						<TldrawUiButtonLabel>Don’t show again</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				)}
-				<TlButton type="normal" onClick={onCancel}>
-					<TlButtonLabel>{cancel}</TlButtonLabel>
-				</TlButton>
-				<TlButton type="primary" onClick={async () => onContinue()}>
-					<TlButtonLabel>{confirm}</TlButtonLabel>
-				</TlButton>
-			</TlDialogFooter>
+				<TldrawUiButton type="normal" onClick={onCancel}>
+					<TldrawUiButtonLabel>{cancel}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton type="primary" onClick={async () => onContinue()}>
+					<TldrawUiButtonLabel>{confirm}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDialogFooter>
 		</>
 	)
 }

@@ -1,13 +1,13 @@
 import classNames from 'classnames'
 import { cloneElement, memo, ReactElement, useEffect, useRef, type HTMLAttributes } from 'react'
-import { useTlIconUrl } from '../context/icons'
+import { useTldrawUiIconUrl } from '../context/icons'
 
 /** @public */
-export type TlIconJsx = ReactElement<HTMLAttributes<HTMLDivElement>>
+export type TldrawUiIconJsx = ReactElement<HTMLAttributes<HTMLDivElement>>
 
 /** @public */
-export interface TlIconProps extends HTMLAttributes<HTMLDivElement> {
-	icon: string | TlIconJsx
+export interface TldrawUiIconProps extends HTMLAttributes<HTMLDivElement> {
+	icon: string | TldrawUiIconJsx
 	label?: string
 	small?: boolean
 	tiny?: boolean
@@ -17,7 +17,7 @@ export interface TlIconProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 /** @public @react */
-export const TlIcon = memo(function TlIcon({
+export const TldrawUiIcon = memo(function TldrawUiIcon({
 	label,
 	small,
 	icon,
@@ -28,7 +28,7 @@ export const TlIcon = memo(function TlIcon({
 	style,
 	crossOrigin,
 	...props
-}: TlIconProps) {
+}: TldrawUiIconProps) {
 	if (typeof icon !== 'string') {
 		return cloneElement(icon, {
 			...props,
@@ -48,7 +48,7 @@ export const TlIcon = memo(function TlIcon({
 	}
 
 	return (
-		<TlIconInner
+		<TldrawUiIconInner
 			label={label}
 			small={small}
 			tiny={tiny}
@@ -63,7 +63,7 @@ export const TlIcon = memo(function TlIcon({
 	)
 })
 
-function TlIconInner({
+function TldrawUiIconInner({
 	label,
 	small,
 	tiny,
@@ -74,8 +74,8 @@ function TlIconInner({
 	style,
 	crossOrigin: _crossOrigin,
 	...props
-}: TlIconProps & { icon: string }) {
-	const asset = useTlIconUrl(icon)
+}: TldrawUiIconProps & { icon: string }) {
+	const asset = useTldrawUiIconUrl(icon)
 	const ref = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {

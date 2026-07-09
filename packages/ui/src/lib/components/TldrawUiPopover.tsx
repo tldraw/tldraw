@@ -1,12 +1,12 @@
 import classNames from 'classnames'
 import { Popover as _Popover } from 'radix-ui'
 import React from 'react'
-import { useTlMenuIsOpen } from '../context/menu-state'
-import { TlPortalScope, useTlPortalContainer } from '../context/portal'
-import { useTlTranslation } from '../context/translation'
+import { useTldrawUiMenuIsOpen } from '../context/menu-state'
+import { TldrawUiPortalScope, useTldrawUiPortalContainer } from '../context/portal'
+import { useTldrawUiTranslation } from '../context/translation'
 
 /** @public */
-export interface TlPopoverProps {
+export interface TldrawUiPopoverProps {
 	id: string
 	open?: boolean
 	children: React.ReactNode
@@ -15,8 +15,14 @@ export interface TlPopoverProps {
 }
 
 /** @public @react */
-export function TlPopover({ id, children, onOpenChange, open, className }: TlPopoverProps) {
-	const [isOpen, setOpen] = useTlMenuIsOpen(id)
+export function TldrawUiPopover({
+	id,
+	children,
+	onOpenChange,
+	open,
+	className,
+}: TldrawUiPopoverProps) {
+	const [isOpen, setOpen] = useTldrawUiMenuIsOpen(id)
 
 	const handleOpenChange = React.useCallback(
 		(nextOpen: boolean) => {
@@ -36,13 +42,13 @@ export function TlPopover({ id, children, onOpenChange, open, className }: TlPop
 }
 
 /** @public */
-export interface TlPopoverTriggerProps {
+export interface TldrawUiPopoverTriggerProps {
 	children?: React.ReactNode
 }
 
 /** @public @react */
-export function TlPopoverTrigger({ children }: TlPopoverTriggerProps) {
-	const { dir } = useTlTranslation()
+export function TldrawUiPopoverTrigger({ children }: TldrawUiPopoverTriggerProps) {
+	const { dir } = useTldrawUiTranslation()
 
 	return (
 		<_Popover.Trigger asChild dir={dir}>
@@ -52,7 +58,7 @@ export function TlPopoverTrigger({ children }: TlPopoverTriggerProps) {
 }
 
 /** @public */
-export interface TlPopoverContentProps {
+export interface TldrawUiPopoverContentProps {
 	children: React.ReactNode
 	side: 'top' | 'bottom' | 'left' | 'right'
 	align?: 'start' | 'center' | 'end'
@@ -69,7 +75,7 @@ export interface TlPopoverContentProps {
 }
 
 /** @public @react */
-export function TlPopoverContent({
+export function TldrawUiPopoverContent({
 	side,
 	children,
 	align = 'center',
@@ -79,9 +85,9 @@ export function TlPopoverContent({
 	collisionPadding,
 	disableEscapeKeyDown = false,
 	autoFocusFirstButton = true,
-}: TlPopoverContentProps) {
-	const container = useTlPortalContainer()
-	const { dir } = useTlTranslation()
+}: TldrawUiPopoverContentProps) {
+	const container = useTldrawUiPortalContainer()
+	const { dir } = useTldrawUiTranslation()
 	const ref = React.useRef<HTMLDivElement>(null)
 
 	const handleOpenAutoFocus = React.useCallback(() => {
@@ -96,7 +102,7 @@ export function TlPopoverContent({
 
 	return (
 		<_Popover.Portal container={container}>
-			<TlPortalScope>
+			<TldrawUiPortalScope>
 				<_Popover.Content
 					className={classNames('tl-popover__content', className)}
 					side={side}
@@ -111,7 +117,7 @@ export function TlPopoverContent({
 				>
 					{children}
 				</_Popover.Content>
-			</TlPortalScope>
+			</TldrawUiPortalScope>
 		</_Popover.Portal>
 	)
 }

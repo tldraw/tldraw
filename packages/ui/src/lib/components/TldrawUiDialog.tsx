@@ -1,31 +1,31 @@
 import classNames from 'classnames'
 import { Dialog as _Dialog } from 'radix-ui'
 import { CSSProperties, ReactNode } from 'react'
-import { TlPortalScope, useTlPortalContainer } from '../context/portal'
-import { useTlTranslation } from '../context/translation'
-import { TlButton, TlButtonIcon } from './TlButton'
+import { TldrawUiPortalScope, useTldrawUiPortalContainer } from '../context/portal'
+import { useTldrawUiTranslation } from '../context/translation'
+import { TldrawUiButton, TldrawUiButtonIcon } from './TldrawUiButton'
 
 /** @public */
-export interface TlDialogHeaderProps {
+export interface TldrawUiDialogHeaderProps {
 	className?: string
 	children: ReactNode
 }
 
 /** @public @react */
-export function TlDialogHeader({ className, children }: TlDialogHeaderProps) {
+export function TldrawUiDialogHeader({ className, children }: TldrawUiDialogHeaderProps) {
 	return <div className={classNames('tl-dialog__header', className)}>{children}</div>
 }
 
 /** @public */
-export interface TlDialogTitleProps {
+export interface TldrawUiDialogTitleProps {
 	className?: string
 	children: ReactNode
 	style?: CSSProperties
 }
 
 /** @public @react */
-export function TlDialogTitle({ className, children, style }: TlDialogTitleProps) {
-	const { dir } = useTlTranslation()
+export function TldrawUiDialogTitle({ className, children, style }: TldrawUiDialogTitleProps) {
+	const { dir } = useTldrawUiTranslation()
 
 	return (
 		<_Dialog.Title
@@ -39,40 +39,40 @@ export function TlDialogTitle({ className, children, style }: TlDialogTitleProps
 }
 
 /** @public */
-export interface TlDialogCloseButtonProps {
+export interface TldrawUiDialogCloseButtonProps {
 	/** Accessible label for the close button. @defaultValue 'Close' */
 	closeLabel?: string
 }
 
 /** @public @react */
-export function TlDialogCloseButton({ closeLabel }: TlDialogCloseButtonProps) {
-	const { dir, msg } = useTlTranslation()
+export function TldrawUiDialogCloseButton({ closeLabel }: TldrawUiDialogCloseButtonProps) {
+	const { dir, msg } = useTldrawUiTranslation()
 	const label = closeLabel ?? msg('ui.close', 'Close')
 
 	return (
 		<div className="tl-dialog__header__close">
 			<_Dialog.Close data-testid="dialog.close" dir={dir} asChild>
-				<TlButton
+				<TldrawUiButton
 					type="icon"
 					aria-label={label}
 					onTouchEnd={(e) => (e.target as HTMLButtonElement).click()}
 				>
-					<TlButtonIcon small icon="cross-2" />
-				</TlButton>
+					<TldrawUiButtonIcon small icon="cross-2" />
+				</TldrawUiButton>
 			</_Dialog.Close>
 		</div>
 	)
 }
 
 /** @public */
-export interface TlDialogBodyProps {
+export interface TldrawUiDialogBodyProps {
 	className?: string
 	children: ReactNode
 	style?: CSSProperties
 }
 
 /** @public @react */
-export function TlDialogBody({ className, children, style }: TlDialogBodyProps) {
+export function TldrawUiDialogBody({ className, children, style }: TldrawUiDialogBodyProps) {
 	return (
 		<div className={classNames('tl-dialog__body', className)} style={style} tabIndex={0}>
 			{children}
@@ -81,18 +81,18 @@ export function TlDialogBody({ className, children, style }: TlDialogBodyProps) 
 }
 
 /** @public */
-export interface TlDialogFooterProps {
+export interface TldrawUiDialogFooterProps {
 	className?: string
 	children?: ReactNode
 }
 
 /** @public @react */
-export function TlDialogFooter({ className, children }: TlDialogFooterProps) {
+export function TldrawUiDialogFooter({ className, children }: TldrawUiDialogFooterProps) {
 	return <div className={classNames('tl-dialog__footer', className)}>{children}</div>
 }
 
 /** @public */
-export interface TlDialogRootProps {
+export interface TldrawUiDialogRootProps {
 	children: ReactNode
 	open?: boolean
 	defaultOpen?: boolean
@@ -104,20 +104,20 @@ export interface TlDialogRootProps {
 }
 
 /** @public @react */
-export function TlDialogRoot({
+export function TldrawUiDialogRoot({
 	children,
 	open,
 	defaultOpen,
 	onOpenChange,
 	preventBackgroundClose,
-}: TlDialogRootProps) {
-	const container = useTlPortalContainer()
-	const { dir } = useTlTranslation()
+}: TldrawUiDialogRootProps) {
+	const container = useTldrawUiPortalContainer()
+	const { dir } = useTldrawUiTranslation()
 
 	return (
 		<_Dialog.Root open={open} defaultOpen={defaultOpen} onOpenChange={onOpenChange}>
 			<_Dialog.Portal container={container}>
-				<TlPortalScope>
+				<TldrawUiPortalScope>
 					<_Dialog.Overlay dir={dir} className="tl-dialog__overlay" />
 					<div dir={dir} className="tl-dialog__positioner">
 						<_Dialog.Content
@@ -133,7 +133,7 @@ export function TlDialogRoot({
 							{children}
 						</_Dialog.Content>
 					</div>
-				</TlPortalScope>
+				</TldrawUiPortalScope>
 			</_Dialog.Portal>
 		</_Dialog.Root>
 	)

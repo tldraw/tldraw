@@ -1,6 +1,6 @@
 import { preventDefault } from '@tldraw/editor'
-import { TlIcon, TlIconJsx } from '@tldraw/ui'
-import { TlKbd } from '@tldraw/ui'
+import { TldrawUiIcon, TldrawUiIconJsx } from '@tldraw/ui'
+import { TldrawUiKbd } from '@tldraw/ui'
 import { ContextMenu as _ContextMenu, DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
@@ -14,7 +14,7 @@ export interface TLUiMenuCheckboxItemProps<
 	TranslationKey extends string = string,
 	IconType extends string = string,
 > {
-	icon?: IconType | TlIconJsx
+	icon?: IconType | TldrawUiIconJsx
 	id: string
 	kbd?: string
 	title?: string
@@ -67,7 +67,7 @@ export function TldrawUiMenuCheckboxItem<
 					disabled={disabled}
 					checked={checked}
 				>
-					<TlIcon
+					<TldrawUiIcon
 						small
 						label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
 						icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
@@ -77,7 +77,7 @@ export function TldrawUiMenuCheckboxItem<
 							{labelStr}
 						</span>
 					)}
-					{kbd && <TlKbd>{kbd}</TlKbd>}
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 				</_DropdownMenu.CheckboxItem>
 			)
 		}
@@ -95,7 +95,7 @@ export function TldrawUiMenuCheckboxItem<
 					disabled={disabled}
 					checked={checked}
 				>
-					<TlIcon
+					<TldrawUiIcon
 						small
 						label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
 						icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
@@ -105,7 +105,7 @@ export function TldrawUiMenuCheckboxItem<
 							{labelStr}
 						</span>
 					)}
-					{kbd && <TlKbd>{kbd}</TlKbd>}
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 				</_ContextMenu.CheckboxItem>
 			)
 		}

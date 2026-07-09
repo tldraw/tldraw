@@ -1,22 +1,22 @@
 import {
-	TlButton,
-	TlButtonLabel,
-	TlDropdownMenuContent,
-	TlDropdownMenuItem,
-	TlDropdownMenuRoot,
-	TlDropdownMenuTrigger,
-	useTlMenuIsOpen,
-	useTlMenuState,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+	useTldrawUiMenuIsOpen,
+	useTldrawUiMenuState,
 } from '@tldraw/ui'
 import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import './menu-system-hover.css'
 
 // [1]
 function HoverControlledMenu() {
-	const { openMenu, closeMenu } = useTlMenuState()
-	const [isOpen] = useTlMenuIsOpen('hover-menu')
+	const { openMenu, closeMenu } = useTldrawUiMenuState()
+	const [isOpen] = useTldrawUiMenuIsOpen('hover-menu')
 
 	return (
 		<div className="hover-menu-container">
@@ -31,30 +31,30 @@ function HoverControlledMenu() {
 			</div>
 
 			{/* [4] */}
-			<TlDropdownMenuRoot id="hover-menu">
-				<TlDropdownMenuTrigger>
-					<TlButton type="normal">
-						<TlButtonLabel>Menu {isOpen ? '(open)' : '(closed)'}</TlButtonLabel>
-					</TlButton>
-				</TlDropdownMenuTrigger>
-				<TlDropdownMenuContent>
-					<TlDropdownMenuItem>
-						<TlButton type="menu">
-							<TlButtonLabel>Menu item 1</TlButtonLabel>
-						</TlButton>
-					</TlDropdownMenuItem>
-					<TlDropdownMenuItem>
-						<TlButton type="menu">
-							<TlButtonLabel>Menu item 2</TlButtonLabel>
-						</TlButton>
-					</TlDropdownMenuItem>
-					<TlDropdownMenuItem>
-						<TlButton type="menu">
-							<TlButtonLabel>Menu item 3</TlButtonLabel>
-						</TlButton>
-					</TlDropdownMenuItem>
-				</TlDropdownMenuContent>
-			</TlDropdownMenuRoot>
+			<TldrawUiDropdownMenuRoot id="hover-menu">
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton type="normal">
+						<TldrawUiButtonLabel>Menu {isOpen ? '(open)' : '(closed)'}</TldrawUiButtonLabel>
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent>
+					<TldrawUiDropdownMenuItem>
+						<TldrawUiButton type="menu">
+							<TldrawUiButtonLabel>Menu item 1</TldrawUiButtonLabel>
+						</TldrawUiButton>
+					</TldrawUiDropdownMenuItem>
+					<TldrawUiDropdownMenuItem>
+						<TldrawUiButton type="menu">
+							<TldrawUiButtonLabel>Menu item 2</TldrawUiButtonLabel>
+						</TldrawUiButton>
+					</TldrawUiDropdownMenuItem>
+					<TldrawUiDropdownMenuItem>
+						<TldrawUiButton type="menu">
+							<TldrawUiButtonLabel>Menu item 3</TldrawUiButtonLabel>
+						</TldrawUiButton>
+					</TldrawUiDropdownMenuItem>
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiDropdownMenuRoot>
 		</div>
 	)
 }
@@ -63,9 +63,9 @@ export default function MenuSystemHoverExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw>
-				<ExampleTlUiProvider>
+				<ExampleTldrawUiProvider>
 					<HoverControlledMenu />
-				</ExampleTlUiProvider>
+				</ExampleTldrawUiProvider>
 			</Tldraw>
 		</div>
 	)
@@ -82,14 +82,14 @@ indicating whether the menu is open.
 [2]
 The first hover zone calls editor.menus.addOpenMenu('hover-menu') on mouse enter.
 This registers the menu as open in the global menu tracking system. The
-TlDropdownMenuRoot will automatically respond to this state change.
+TldrawUiDropdownMenuRoot will automatically respond to this state change.
 
 [3]
 The second hover zone calls editor.menus.deleteOpenMenu('hover-menu') on mouse
 enter, which closes the menu.
 
 [4]
-The TlDropdownMenuRoot is linked to our menu ID ('hover-menu'). It
+The TldrawUiDropdownMenuRoot is linked to our menu ID ('hover-menu'). It
 automatically syncs with the menu tracking system, so when we call addOpenMenu
 or deleteOpenMenu, the dropdown responds accordingly. You can also click the
 trigger button to toggle the menu normally.

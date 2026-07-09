@@ -1,11 +1,11 @@
 import {
-	TlButton,
-	TlButtonLabel,
-	TlDialogBody,
-	TlDialogCloseButton,
-	TlDialogFooter,
-	TlDialogHeader,
-	TlDialogTitle,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 } from '@tldraw/ui'
 import { TLUiDialogsContextType, useTranslation } from 'tldraw'
 
@@ -38,21 +38,21 @@ function ConfirmOpenDialog({ onCancel, onContinue }: { onCancel(): void; onConti
 	const msg = useTranslation()
 	return (
 		<>
-			<TlDialogHeader>
-				<TlDialogTitle>{msg('file-system.confirm-open.title')}</TlDialogTitle>
-				<TlDialogCloseButton />
-			</TlDialogHeader>
-			<TlDialogBody style={{ maxWidth: 350 }}>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{msg('file-system.confirm-open.title')}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
 				{msg('file-system.confirm-open.description')}
-			</TlDialogBody>
-			<TlDialogFooter className="tlui-dialog__footer__actions">
-				<TlButton type="normal" onClick={onCancel}>
-					<TlButtonLabel>{msg('file-system.confirm-open.cancel')}</TlButtonLabel>
-				</TlButton>
-				<TlButton type="primary" onClick={async () => onContinue()}>
-					<TlButtonLabel>{msg('file-system.confirm-open.open')}</TlButtonLabel>
-				</TlButton>
-			</TlDialogFooter>
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+				<TldrawUiButton type="normal" onClick={onCancel}>
+					<TldrawUiButtonLabel>{msg('file-system.confirm-open.cancel')}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton type="primary" onClick={async () => onContinue()}>
+					<TldrawUiButtonLabel>{msg('file-system.confirm-open.open')}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDialogFooter>
 		</>
 	)
 }

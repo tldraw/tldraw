@@ -116,7 +116,7 @@ export interface TLThemeFont {
 	faces?: TLFontFace[]
 	/**
 	 * Icon for the style panel. Accepts a string icon ID (resolved via `assetUrls.icons`)
-	 * or a React element (`TlIconJsx`). Defaults to the built-in icon for known fonts,
+	 * or a React element (`TldrawUiIconJsx`). Defaults to the built-in icon for known fonts,
 	 * or `'font-draw'` for custom fonts.
 	 */
 	icon?: unknown

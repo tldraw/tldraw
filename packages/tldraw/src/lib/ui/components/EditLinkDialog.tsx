@@ -1,14 +1,14 @@
 import { ExtractShapeByProps, T, TLShape, track, useEditor } from '@tldraw/editor'
-import { TlButton } from '@tldraw/ui'
-import { TlButtonLabel } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonLabel } from '@tldraw/ui'
 import {
-	TlDialogBody,
-	TlDialogCloseButton,
-	TlDialogFooter,
-	TlDialogHeader,
-	TlDialogTitle,
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 } from '@tldraw/ui'
-import { TlInput } from '@tldraw/ui'
+import { TldrawUiInput } from '@tldraw/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TLUiDialogProps } from '../context/dialogs'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -150,13 +150,13 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 
 	return (
 		<>
-			<TlDialogHeader>
-				<TlDialogTitle>{msg('edit-link-dialog.title')}</TlDialogTitle>
-				<TlDialogCloseButton />
-			</TlDialogHeader>
-			<TlDialogBody>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{msg('edit-link-dialog.title')}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody>
 				<div className="tlui-edit-link-dialog">
-					<TlInput
+					<TldrawUiInput
 						ref={rInput}
 						className="tlui-edit-link-dialog__input"
 						label="edit-link-dialog.url"
@@ -174,26 +174,26 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 							: msg('edit-link-dialog.invalid-url')}
 					</div>
 				</div>
-			</TlDialogBody>
-			<TlDialogFooter className="tlui-dialog__footer__actions">
-				<TlButton type="normal" onClick={handleCancel} onTouchEnd={handleCancel}>
-					<TlButtonLabel>{msg('edit-link-dialog.cancel')}</TlButtonLabel>
-				</TlButton>
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+				<TldrawUiButton type="normal" onClick={handleCancel} onTouchEnd={handleCancel}>
+					<TldrawUiButtonLabel>{msg('edit-link-dialog.cancel')}</TldrawUiButtonLabel>
+				</TldrawUiButton>
 				{isRemoving ? (
-					<TlButton type={'danger'} onTouchEnd={handleClear} onClick={handleClear}>
-						<TlButtonLabel>{msg('edit-link-dialog.clear')}</TlButtonLabel>
-					</TlButton>
+					<TldrawUiButton type={'danger'} onTouchEnd={handleClear} onClick={handleClear}>
+						<TldrawUiButtonLabel>{msg('edit-link-dialog.clear')}</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				) : (
-					<TlButton
+					<TldrawUiButton
 						type="primary"
 						disabled={!urlInputState.valid}
 						onTouchEnd={handleComplete}
 						onClick={handleComplete}
 					>
-						<TlButtonLabel>{msg('edit-link-dialog.save')}</TlButtonLabel>
-					</TlButton>
+						<TldrawUiButtonLabel>{msg('edit-link-dialog.save')}</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				)}
-			</TlDialogFooter>
+			</TldrawUiDialogFooter>
 		</>
 	)
 })

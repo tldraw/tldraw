@@ -1,7 +1,7 @@
 import { ExtractShapeByProps, preventDefault, TLShape, TLShapeId, useEditor } from '@tldraw/editor'
-import { TlButton } from '@tldraw/ui'
-import { TlButtonIcon } from '@tldraw/ui'
-import { TlInput } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiInput } from '@tldraw/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -80,7 +80,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 
 	return (
 		<>
-			<TlInput
+			<TldrawUiInput
 				ref={ref}
 				className="tlui-media__toolbar-alt-text-input"
 				data-testid="media-toolbar.alt-text-input"
@@ -93,15 +93,15 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 				disabled={isReadonly}
 			/>
 			{!isReadonly && (
-				<TlButton
+				<TldrawUiButton
 					title={msg('tool.media-alt-text-confirm')}
 					data-testid="tool.media-alt-text-confirm"
 					type="icon"
 					onPointerDown={preventDefault}
 					onClick={handleConfirm}
 				>
-					<TlButtonIcon small icon="check" />
-				</TlButton>
+					<TldrawUiButtonIcon small icon="check" />
+				</TldrawUiButton>
 			)}
 		</>
 	)

@@ -4,10 +4,10 @@
  * - `blueprintRender.mapNodeToRenderSpec` maps each flowchart vertex to `flowchart-util` + `mermaidNodeId`.
  * - After import, graph and layer badges come from arrows + bindings (`extractFlowchartPipelineFromEditor`).
  */
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { useCallback, useState } from 'react'
 import { TLComponents, Tldraw, useEditor, useValue } from 'tldraw'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import 'tldraw/tldraw.css'
 import { FlowchartShapeUtil } from './customMermaidShapeUtil'
 import './custom-shape-mermaid.css'
@@ -132,7 +132,7 @@ function TopPanel() {
 	}, [])
 
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div className="custom-shape-mermaid">
 				<div>
 					Paste a Mermaid <strong>flowchart</strong> or <strong>graph</strong> (branching is ok;
@@ -152,17 +152,17 @@ function TopPanel() {
 					<div className="custom-shape-mermaid__error">{pipeline.parseError}</div>
 				)}
 				<div className="custom-shape-mermaid__controls">
-					<TlButton type="normal" onClick={applyWorkflow} disabled={isApplying}>
+					<TldrawUiButton type="normal" onClick={applyWorkflow} disabled={isApplying}>
 						{isApplying ? 'Applying…' : 'Apply workflow'}
-					</TlButton>
-					<TlButton type="low" onClick={runPipeline} disabled={!canRun}>
+					</TldrawUiButton>
+					<TldrawUiButton type="low" onClick={runPipeline} disabled={!canRun}>
 						Run pipeline
-					</TlButton>
+					</TldrawUiButton>
 				</div>
 				{pipeline.isRunning && (
 					<div className="custom-shape-mermaid__notice">Running simulated steps…</div>
 				)}
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 }

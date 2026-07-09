@@ -4,214 +4,225 @@ import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export {
 	PORTRAIT_BREAKPOINTS,
 	TL_PORTRAIT_BREAKPOINT,
-	TlBreakpointProvider,
-	useTlBreakpoint,
-	type TlBreakpointProviderProps,
+	TldrawUiBreakpointProvider,
+	useTldrawUiBreakpoint,
+	type TldrawUiBreakpointProviderProps,
 } from './lib/context/breakpoint'
-export { TlIconProvider, useTlIconUrl, type TlIconProviderProps } from './lib/context/icons'
 export {
-	TlMenuStateProvider,
-	useTlIsAnyMenuOpen,
-	useTlMenuIsOpen,
-	useTlMenuState,
-	type TlMenuStateContextValue,
-	type TlMenuStateProviderProps,
+	TldrawUiIconProvider,
+	useTldrawUiIconUrl,
+	type TldrawUiIconProviderProps,
+} from './lib/context/icons'
+export {
+	TldrawUiMenuStateProvider,
+	useTldrawUiIsAnyMenuOpen,
+	useTldrawUiMenuIsOpen,
+	useTldrawUiMenuState,
+	type TldrawUiMenuStateContextValue,
+	type TldrawUiMenuStateProviderProps,
 } from './lib/context/menu-state'
 export {
-	TlPlatformProvider,
-	useTlPlatform,
-	type TlPlatformContextValue,
-	type TlPlatformProviderProps,
+	TldrawUiPlatformProvider,
+	useTldrawUiPlatform,
+	type TldrawUiPlatformContextValue,
+	type TldrawUiPlatformProviderProps,
 } from './lib/context/platform'
 export {
-	TlPortalProvider,
-	useTlContainer,
-	useTlPortalContainer,
-	type TlPortalProviderProps,
+	TldrawUiPortalProvider,
+	useTldrawUiContainer,
+	useTldrawUiPortalContainer,
+	type TldrawUiPortalProviderProps,
 } from './lib/context/portal'
 export {
-	TlTranslationProvider,
-	useTlTranslation,
-	type TlTranslationContextValue,
-	type TlTranslationProviderProps,
+	TldrawUiTranslationProvider,
+	useTldrawUiTranslation,
+	type TldrawUiTranslationContextValue,
+	type TldrawUiTranslationProviderProps,
 } from './lib/context/translation'
-export { TlUiProvider, type TlUiProviderProps } from './lib/context/TlUiProvider'
+export { TldrawUiProvider, type TldrawUiProviderProps } from './lib/context/TldrawUiProvider'
 
 // Layout
 export {
-	TlColumn,
-	TlGrid,
-	TlOrientationProvider,
-	TlRow,
-	useTlOrientation,
-	type TlLayoutProps,
-	type TlOrientationContext,
-	type TlOrientationProviderProps,
+	TldrawUiColumn,
+	TldrawUiGrid,
+	TldrawUiOrientationProvider,
+	TldrawUiRow,
+	useTldrawUiOrientation,
+	type TldrawUiLayoutProps,
+	type TldrawUiOrientationContext,
+	type TldrawUiOrientationProviderProps,
 } from './lib/components/layout'
 
 // Core primitives
 export {
-	TlButton,
-	TlButtonCheck,
-	TlButtonIcon,
-	TlButtonLabel,
-	TlButtonSpinner,
-	type TlButtonCheckProps,
-	type TlButtonIconProps,
-	type TlButtonLabelProps,
-	type TlButtonProps,
-	type TlButtonType,
-} from './lib/components/TlButton'
+	TldrawUiButton,
+	TldrawUiButtonCheck,
+	TldrawUiButtonIcon,
+	TldrawUiButtonLabel,
+	TldrawUiButtonSpinner,
+	type TldrawUiButtonCheckProps,
+	type TldrawUiButtonIconProps,
+	type TldrawUiButtonLabelProps,
+	type TldrawUiButtonProps,
+	type TldrawUiButtonType,
+} from './lib/components/TldrawUiButton'
 export {
-	TlContextMenuContent,
-	TlContextMenuRoot,
-	TlContextMenuTrigger,
-	type TlContextMenuContentProps,
-	type TlContextMenuRootProps,
-	type TlContextMenuTriggerProps,
-} from './lib/components/TlContextMenu'
+	TldrawUiContextMenuContent,
+	TldrawUiContextMenuRoot,
+	TldrawUiContextMenuTrigger,
+	type TldrawUiContextMenuContentProps,
+	type TldrawUiContextMenuRootProps,
+	type TldrawUiContextMenuTriggerProps,
+} from './lib/components/TldrawUiContextMenu'
 export {
-	TlDialogBody,
-	TlDialogCloseButton,
-	TlDialogFooter,
-	TlDialogHeader,
-	TlDialogRoot,
-	TlDialogTitle,
-	type TlDialogBodyProps,
-	type TlDialogCloseButtonProps,
-	type TlDialogFooterProps,
-	type TlDialogHeaderProps,
-	type TlDialogRootProps,
-	type TlDialogTitleProps,
-} from './lib/components/TlDialog'
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogRoot,
+	TldrawUiDialogTitle,
+	type TldrawUiDialogBodyProps,
+	type TldrawUiDialogCloseButtonProps,
+	type TldrawUiDialogFooterProps,
+	type TldrawUiDialogHeaderProps,
+	type TldrawUiDialogRootProps,
+	type TldrawUiDialogTitleProps,
+} from './lib/components/TldrawUiDialog'
 export {
-	TlDialogsProvider,
-	useTlDialogs,
-	type TlDialog,
-	type TlDialogEvent,
-	type TlDialogProps,
-	type TlDialogsContextValue,
-	type TlDialogsProviderProps,
-} from './lib/components/TlDialogs'
+	TldrawUiDialogsProvider,
+	useTldrawUiDialogs,
+	type TldrawUiDialog,
+	type TldrawUiDialogEvent,
+	type TldrawUiDialogProps,
+	type TldrawUiDialogsContextValue,
+	type TldrawUiDialogsProviderProps,
+} from './lib/components/TldrawUiDialogs'
 export {
-	TlDropdownMenuCheckboxItem,
-	TlDropdownMenuContent,
-	TlDropdownMenuGroup,
-	TlDropdownMenuIndicator,
-	TlDropdownMenuItem,
-	TlDropdownMenuRoot,
-	TlDropdownMenuSub,
-	TlDropdownMenuSubContent,
-	TlDropdownMenuSubTrigger,
-	TlDropdownMenuTrigger,
-	type TlDropdownMenuCheckboxItemProps,
-	type TlDropdownMenuContentProps,
-	type TlDropdownMenuGroupProps,
-	type TlDropdownMenuItemProps,
-	type TlDropdownMenuRootProps,
-	type TlDropdownMenuSubContentProps,
-	type TlDropdownMenuSubProps,
-	type TlDropdownMenuSubTriggerProps,
-	type TlDropdownMenuTriggerProps,
-} from './lib/components/TlDropdownMenu'
-export { TlIcon, type TlIconJsx, type TlIconProps } from './lib/components/TlIcon'
-export { TlInput, type TlInputProps } from './lib/components/TlInput'
-export { TlKbd, type TlKbdProps } from './lib/components/TlKbd'
+	TldrawUiDropdownMenuCheckboxItem,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuIndicator,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuSub,
+	TldrawUiDropdownMenuSubContent,
+	TldrawUiDropdownMenuSubTrigger,
+	TldrawUiDropdownMenuTrigger,
+	type TldrawUiDropdownMenuCheckboxItemProps,
+	type TldrawUiDropdownMenuContentProps,
+	type TldrawUiDropdownMenuGroupProps,
+	type TldrawUiDropdownMenuItemProps,
+	type TldrawUiDropdownMenuRootProps,
+	type TldrawUiDropdownMenuSubContentProps,
+	type TldrawUiDropdownMenuSubProps,
+	type TldrawUiDropdownMenuSubTriggerProps,
+	type TldrawUiDropdownMenuTriggerProps,
+} from './lib/components/TldrawUiDropdownMenu'
 export {
-	TlPopover,
-	TlPopoverContent,
-	TlPopoverTrigger,
-	type TlPopoverContentProps,
-	type TlPopoverProps,
-	type TlPopoverTriggerProps,
-} from './lib/components/TlPopover'
+	TldrawUiIcon,
+	type TldrawUiIconJsx,
+	type TldrawUiIconProps,
+} from './lib/components/TldrawUiIcon'
+export { TldrawUiInput, type TldrawUiInputProps } from './lib/components/TldrawUiInput'
+export { TldrawUiKbd, type TldrawUiKbdProps } from './lib/components/TldrawUiKbd'
 export {
-	TlSelect,
-	TlSelectContent,
-	TlSelectItem,
-	TlSelectTrigger,
-	TlSelectValue,
-	type TlSelectContentProps,
-	type TlSelectItemProps,
-	type TlSelectProps,
-	type TlSelectTriggerProps,
-	type TlSelectValueProps,
-} from './lib/components/TlSelect'
-export { TlSlider, type TlSliderProps } from './lib/components/TlSlider'
-export { TlSpinner, type TlSpinnerProps } from './lib/components/TlSpinner'
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+	type TldrawUiPopoverContentProps,
+	type TldrawUiPopoverProps,
+	type TldrawUiPopoverTriggerProps,
+} from './lib/components/TldrawUiPopover'
 export {
-	TlToast,
-	TlToastProvider,
-	TlToastViewport,
-	type TlToastAction,
-	type TlToastProps,
-	type TlToastProviderProps,
-	type TlToastSeverity,
-} from './lib/components/TlToast'
+	TldrawUiSelect,
+	TldrawUiSelectContent,
+	TldrawUiSelectItem,
+	TldrawUiSelectTrigger,
+	TldrawUiSelectValue,
+	type TldrawUiSelectContentProps,
+	type TldrawUiSelectItemProps,
+	type TldrawUiSelectProps,
+	type TldrawUiSelectTriggerProps,
+	type TldrawUiSelectValueProps,
+} from './lib/components/TldrawUiSelect'
+export { TldrawUiSlider, type TldrawUiSliderProps } from './lib/components/TldrawUiSlider'
+export { TldrawUiSpinner, type TldrawUiSpinnerProps } from './lib/components/TldrawUiSpinner'
 export {
-	TlToastsProvider,
-	useTlToasts,
-	type TlToastData,
-	type TlToastsContextValue,
-	type TlToastsProviderProps,
-} from './lib/components/TlToasts'
+	TldrawUiToast,
+	TldrawUiToastProvider,
+	TldrawUiToastViewport,
+	type TldrawUiToastAction,
+	type TldrawUiToastProps,
+	type TldrawUiToastProviderProps,
+	type TldrawUiToastSeverity,
+} from './lib/components/TldrawUiToast'
 export {
-	TlToolbar,
-	TlToolbarButton,
-	TlToolbarToggleGroup,
-	TlToolbarToggleItem,
-	type TlToolbarButtonProps,
-	type TlToolbarProps,
-	type TlToolbarToggleGroupProps,
-	type TlToolbarToggleItemProps,
-} from './lib/components/TlToolbar'
+	TldrawUiToastsProvider,
+	useTldrawUiToasts,
+	type TldrawUiToastData,
+	type TldrawUiToastsContextValue,
+	type TldrawUiToastsProviderProps,
+} from './lib/components/TldrawUiToasts'
 export {
-	TlTooltip,
-	TlTooltipProvider,
-	hideAllTlTooltips,
-	type TlTooltipProps,
-	type TlTooltipProviderProps,
-} from './lib/components/TlTooltip'
+	TldrawUiToolbar,
+	TldrawUiToolbarButton,
+	TldrawUiToolbarToggleGroup,
+	TldrawUiToolbarToggleItem,
+	type TldrawUiToolbarButtonProps,
+	type TldrawUiToolbarProps,
+	type TldrawUiToolbarToggleGroupProps,
+	type TldrawUiToolbarToggleItemProps,
+} from './lib/components/TldrawUiToolbar'
 export {
-	TlMenuCheckboxItem,
-	TlMenuContextProvider,
-	TlMenuGroup,
-	TlMenuItem,
-	TlMenuSubmenu,
-	useTlMenuContext,
-	type TlMenuCheckboxItemProps,
-	type TlMenuContextProviderProps,
-	type TlMenuContextType,
-	type TlMenuGroupProps,
-	type TlMenuItemProps,
-	type TlMenuSubmenuProps,
+	TldrawUiTooltip,
+	TldrawUiTooltipProvider,
+	hideAllTldrawUiTooltips,
+	type TldrawUiTooltipProps,
+	type TldrawUiTooltipProviderProps,
+} from './lib/components/TldrawUiTooltip'
+export {
+	TldrawUiMenuCheckboxItem,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+	TldrawUiMenuSubmenu,
+	useTldrawUiMenuContext,
+	type TldrawUiMenuCheckboxItemProps,
+	type TldrawUiMenuContextProviderProps,
+	type TldrawUiMenuContextType,
+	type TldrawUiMenuGroupProps,
+	type TldrawUiMenuItemProps,
+	type TldrawUiMenuSubmenuProps,
 } from './lib/components/menus'
 
 // App components
-export { TlCopyButton, type TlCopyButtonProps } from './lib/components/TlCopyButton'
 export {
-	TlMenuControl,
-	TlMenuControlGroup,
-	TlMenuControlInfoTooltip,
-	TlMenuControlLabel,
-	TlMenuDetail,
-	TlMenuSection,
-	type TlMenuControlInfoTooltipProps,
-	type TlMenuControlLabelProps,
-	type TlMenuControlProps,
-} from './lib/components/TlMenuControls'
-export { TlSwitch, type TlSwitchProps } from './lib/components/TlSwitch'
+	TldrawUiCopyButton,
+	type TldrawUiCopyButtonProps,
+} from './lib/components/TldrawUiCopyButton'
 export {
-	TlTabsPage,
-	TlTabsRoot,
-	TlTabsTab,
-	TlTabsTabs,
-	type TlTabsContextValue,
-	type TlTabsPageProps,
-	type TlTabsRootProps,
-	type TlTabsTabProps,
-	type TlTabsTabsProps,
-} from './lib/components/TlTabs'
+	TldrawUiMenuControl,
+	TldrawUiMenuControlGroup,
+	TldrawUiMenuControlInfoTooltip,
+	TldrawUiMenuControlLabel,
+	TldrawUiMenuDetail,
+	TldrawUiMenuSection,
+	type TldrawUiMenuControlInfoTooltipProps,
+	type TldrawUiMenuControlLabelProps,
+	type TldrawUiMenuControlProps,
+} from './lib/components/TldrawUiMenuControls'
+export { TldrawUiSwitch, type TldrawUiSwitchProps } from './lib/components/TldrawUiSwitch'
+export {
+	TldrawUiTabsPage,
+	TldrawUiTabsRoot,
+	TldrawUiTabsTab,
+	TldrawUiTabsTabs,
+	type TldrawUiTabsContextValue,
+	type TldrawUiTabsPageProps,
+	type TldrawUiTabsRootProps,
+	type TldrawUiTabsTabProps,
+	type TldrawUiTabsTabsProps,
+} from './lib/components/TldrawUiTabs'
 
 // Utils
 export { kbd, kbdStr } from './lib/kbd'

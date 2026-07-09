@@ -1,7 +1,7 @@
-import { TlButton, TlIcon } from '@tldraw/ui'
+import { TldrawUiButton, TldrawUiIcon } from '@tldraw/ui'
 import { Tldraw, tlenv, tlenvReactive, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import './environment-detection.css'
 
 // [1]
@@ -15,7 +15,7 @@ function EnvironmentInfo() {
 	const buttonSize = isCoarsePointer ? '48px' : '32px'
 
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div className="tl-menu environment-info">
 				{/* [4] Static detection with tlenv */}
 				<div>
@@ -40,7 +40,7 @@ function EnvironmentInfo() {
 				</div>
 
 				{/* [6] Adaptive button based on pointer type */}
-				<TlButton
+				<TldrawUiButton
 					type="normal"
 					style={{
 						width: buttonSize,
@@ -49,10 +49,10 @@ function EnvironmentInfo() {
 					}}
 					onClick={() => alert(`Button size: ${buttonSize}`)}
 				>
-					<TlIcon icon="dot" label="Dot" />
-				</TlButton>
+					<TldrawUiIcon icon="dot" label="Dot" />
+				</TldrawUiButton>
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 }
 

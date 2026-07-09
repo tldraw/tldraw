@@ -1,21 +1,21 @@
 import {
-	TlMenuControl,
-	TlMenuControlGroup,
-	TlMenuControlInfoTooltip,
-	TlMenuControlLabel,
-	TlMenuDetail,
-	TlMenuSection,
-	TlSelect,
-	TlSelectContent,
-	TlSelectItem,
-	TlSelectTrigger,
-	TlSelectValue,
-	TlSwitch,
-	TlTabsPage,
-	TlTabsRoot,
-	TlTabsTab,
-	TlTabsTabs,
-	TlTooltip,
+	TldrawUiMenuControl,
+	TldrawUiMenuControlGroup,
+	TldrawUiMenuControlInfoTooltip,
+	TldrawUiMenuControlLabel,
+	TldrawUiMenuDetail,
+	TldrawUiMenuSection,
+	TldrawUiSelect,
+	TldrawUiSelectContent,
+	TldrawUiSelectItem,
+	TldrawUiSelectTrigger,
+	TldrawUiSelectValue,
+	TldrawUiSwitch,
+	TldrawUiTabsPage,
+	TldrawUiTabsRoot,
+	TldrawUiTabsTab,
+	TldrawUiTabsTabs,
+	TldrawUiTooltip,
 } from '@tldraw/ui'
 import { HTMLAttributes, ReactNode, useCallback } from 'react'
 import styles from './menu.module.css'
@@ -33,22 +33,22 @@ export const TLA_MENU_POSITION = {
 } as const
 
 // Used to section areas of the menu, ie links vs snapshots
-export { TlMenuSection as TlaMenuSection }
+export { TldrawUiMenuSection as TlaMenuSection }
 
 // Used to group together adjacent controls, ie switches or selects
-export { TlMenuControlGroup as TlaMenuControlGroup }
+export { TldrawUiMenuControlGroup as TlaMenuControlGroup }
 
 // A row for a single control, usually label + input
-export { TlMenuControl as TlaMenuControl }
+export { TldrawUiMenuControl as TlaMenuControl }
 
 // An info button for a single control
-export { TlMenuControlInfoTooltip as TlaMenuControlInfoTooltip }
+export { TldrawUiMenuControlInfoTooltip as TlaMenuControlInfoTooltip }
 
 // A label for a control
-export { TlMenuControlLabel as TlaMenuControlLabel }
+export { TldrawUiMenuControlLabel as TlaMenuControlLabel }
 
 // A detail
-export { TlMenuDetail as TlaMenuDetail }
+export { TldrawUiMenuDetail as TlaMenuDetail }
 
 /* --------------------- Select --------------------- */
 
@@ -95,19 +95,23 @@ export function TlaMenuSelect<T extends string>({
 
 	return (
 		<div className={styles.menuSelectWrapper}>
-			<TlSelect
+			<TldrawUiSelect
 				id={`${id}-menu`}
 				value={value}
 				onValueChange={handleChange}
 				disabled={disabled}
 				aria-label={label}
 			>
-				<TlSelectTrigger id={id} className={styles.menuSelectTrigger} data-testid={dataTestId}>
-					<TlSelectValue>{label}</TlSelectValue>
-				</TlSelectTrigger>
-				<TlSelectContent className={styles.menuSelectContent} side="bottom" align="end">
+				<TldrawUiSelectTrigger
+					id={id}
+					className={styles.menuSelectTrigger}
+					data-testid={dataTestId}
+				>
+					<TldrawUiSelectValue>{label}</TldrawUiSelectValue>
+				</TldrawUiSelectTrigger>
+				<TldrawUiSelectContent className={styles.menuSelectContent} side="bottom" align="end">
 					{options.map((option) => (
-						<TlSelectItem
+						<TldrawUiSelectItem
 							key={option.value}
 							value={option.value}
 							label={option.label}
@@ -120,7 +124,7 @@ export function TlaMenuSelect<T extends string>({
 							<div className={styles.menuSelectSeparator} role="separator" />
 							{actions.map((action) => {
 								const item = (
-									<TlSelectItem
+									<TldrawUiSelectItem
 										key={action.id}
 										value={action.id}
 										label={action.label}
@@ -131,15 +135,15 @@ export function TlaMenuSelect<T extends string>({
 								)
 								if (!action.tooltip) return item
 								return (
-									<TlTooltip key={action.id} content={action.tooltip}>
+									<TldrawUiTooltip key={action.id} content={action.tooltip}>
 										{item}
-									</TlTooltip>
+									</TldrawUiTooltip>
 								)
 							})}
 						</>
 					)}
-				</TlSelectContent>
-			</TlSelect>
+				</TldrawUiSelectContent>
+			</TldrawUiSelect>
 		</div>
 	)
 }
@@ -162,7 +166,7 @@ export function TlaMenuSwitch({
 	...props
 }: TlaMenuSwitchProps) {
 	return (
-		<TlSwitch
+		<TldrawUiSwitch
 			{...props}
 			id={id}
 			checked={checked}
@@ -188,7 +192,7 @@ This is a set of primitives for creating tabs in the UI. Structure is:
 </Root>
 */
 
-export { TlTabsRoot as TlaMenuTabsRoot }
-export { TlTabsTabs as TlaMenuTabsTabs }
-export { TlTabsTab as TlaMenuTabsTab }
-export { TlTabsPage as TlaMenuTabsPage }
+export { TldrawUiTabsRoot as TlaMenuTabsRoot }
+export { TldrawUiTabsTabs as TlaMenuTabsTabs }
+export { TldrawUiTabsTab as TlaMenuTabsTab }
+export { TldrawUiTabsPage as TlaMenuTabsPage }

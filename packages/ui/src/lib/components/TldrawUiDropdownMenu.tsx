@@ -1,15 +1,15 @@
 import classNames from 'classnames'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode } from 'react'
-import { useTlMenuIsOpen } from '../context/menu-state'
-import { TlPortalScope, useTlPortalContainer } from '../context/portal'
-import { useTlTranslation } from '../context/translation'
+import { useTldrawUiMenuIsOpen } from '../context/menu-state'
+import { TldrawUiPortalScope, useTldrawUiPortalContainer } from '../context/portal'
+import { useTldrawUiTranslation } from '../context/translation'
 import { preventDefault } from '../utils'
-import { TlButton, TlButtonIcon, TlButtonLabel } from './TlButton'
-import { TlIcon } from './TlIcon'
+import { TldrawUiButton, TldrawUiButtonIcon, TldrawUiButtonLabel } from './TldrawUiButton'
+import { TldrawUiIcon } from './TldrawUiIcon'
 
 /** @public */
-export interface TlDropdownMenuRootProps {
+export interface TldrawUiDropdownMenuRootProps {
 	id: string
 	children: ReactNode
 	modal?: boolean
@@ -17,14 +17,14 @@ export interface TlDropdownMenuRootProps {
 }
 
 /** @public @react */
-export function TlDropdownMenuRoot({
+export function TldrawUiDropdownMenuRoot({
 	id,
 	children,
 	modal = false,
 	debugOpen = false,
-}: TlDropdownMenuRootProps) {
-	const [open, onOpenChange] = useTlMenuIsOpen(id)
-	const { dir } = useTlTranslation()
+}: TldrawUiDropdownMenuRootProps) {
+	const [open, onOpenChange] = useTldrawUiMenuIsOpen(id)
+	const { dir } = useTldrawUiTranslation()
 
 	return (
 		<_DropdownMenu.Root
@@ -39,13 +39,16 @@ export function TlDropdownMenuRoot({
 }
 
 /** @public */
-export interface TlDropdownMenuTriggerProps {
+export interface TldrawUiDropdownMenuTriggerProps {
 	children?: ReactNode
 }
 
 /** @public @react */
-export function TlDropdownMenuTrigger({ children, ...rest }: TlDropdownMenuTriggerProps) {
-	const { dir } = useTlTranslation()
+export function TldrawUiDropdownMenuTrigger({
+	children,
+	...rest
+}: TldrawUiDropdownMenuTriggerProps) {
+	const { dir } = useTldrawUiTranslation()
 
 	return (
 		<_DropdownMenu.Trigger dir={dir} asChild onTouchEnd={(e) => preventDefault(e)} {...rest}>
@@ -55,7 +58,7 @@ export function TlDropdownMenuTrigger({ children, ...rest }: TlDropdownMenuTrigg
 }
 
 /** @public */
-export interface TlDropdownMenuContentProps {
+export interface TldrawUiDropdownMenuContentProps {
 	id?: string
 	className?: string
 	side?: 'bottom' | 'top' | 'right' | 'left'
@@ -67,7 +70,7 @@ export interface TlDropdownMenuContentProps {
 }
 
 /** @public @react */
-export function TlDropdownMenuContent({
+export function TldrawUiDropdownMenuContent({
 	className,
 	side = 'bottom',
 	align = 'start',
@@ -75,12 +78,12 @@ export function TlDropdownMenuContent({
 	alignOffset = 8,
 	collisionPadding = 4,
 	children,
-}: TlDropdownMenuContentProps) {
-	const container = useTlPortalContainer()
+}: TldrawUiDropdownMenuContentProps) {
+	const container = useTldrawUiPortalContainer()
 
 	return (
 		<_DropdownMenu.Portal container={container}>
-			<TlPortalScope>
+			<TldrawUiPortalScope>
 				<_DropdownMenu.Content
 					className={classNames('tl-menu', className)}
 					side={side}
@@ -91,20 +94,20 @@ export function TlDropdownMenuContent({
 				>
 					{children}
 				</_DropdownMenu.Content>
-			</TlPortalScope>
+			</TldrawUiPortalScope>
 		</_DropdownMenu.Portal>
 	)
 }
 
 /** @public */
-export interface TlDropdownMenuSubProps {
+export interface TldrawUiDropdownMenuSubProps {
 	id: string
 	children: ReactNode
 }
 
 /** @public @react */
-export function TlDropdownMenuSub({ id, children }: TlDropdownMenuSubProps) {
-	const [open, onOpenChange] = useTlMenuIsOpen(id)
+export function TldrawUiDropdownMenuSub({ id, children }: TldrawUiDropdownMenuSubProps) {
+	const [open, onOpenChange] = useTldrawUiMenuIsOpen(id)
 
 	return (
 		<_DropdownMenu.Sub open={open} onOpenChange={onOpenChange}>
@@ -114,7 +117,7 @@ export function TlDropdownMenuSub({ id, children }: TlDropdownMenuSubProps) {
 }
 
 /** @public */
-export interface TlDropdownMenuSubTriggerProps {
+export interface TldrawUiDropdownMenuSubTriggerProps {
 	label: string
 	id?: string
 	title?: string
@@ -123,33 +126,33 @@ export interface TlDropdownMenuSubTriggerProps {
 }
 
 /** @public @react */
-export function TlDropdownMenuSubTrigger({
+export function TldrawUiDropdownMenuSubTrigger({
 	id,
 	label,
 	title,
 	disabled,
 	className,
-}: TlDropdownMenuSubTriggerProps) {
-	const { dir } = useTlTranslation()
+}: TldrawUiDropdownMenuSubTriggerProps) {
+	const { dir } = useTldrawUiTranslation()
 
 	return (
 		<_DropdownMenu.SubTrigger dir={dir} asChild disabled={disabled}>
-			<TlButton
+			<TldrawUiButton
 				data-testid={id}
 				type="menu"
 				className={classNames('tl-menu__submenu-trigger', className)}
 				disabled={disabled}
 				title={title}
 			>
-				<TlButtonLabel>{label}</TlButtonLabel>
-				<TlButtonIcon icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'} small />
-			</TlButton>
+				<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+				<TldrawUiButtonIcon icon={dir === 'rtl' ? 'chevron-left' : 'chevron-right'} small />
+			</TldrawUiButton>
 		</_DropdownMenu.SubTrigger>
 	)
 }
 
 /** @public */
-export interface TlDropdownMenuSubContentProps {
+export interface TldrawUiDropdownMenuSubContentProps {
 	id?: string
 	alignOffset?: number
 	sideOffset?: number
@@ -159,19 +162,19 @@ export interface TlDropdownMenuSubContentProps {
 }
 
 /** @public @react */
-export function TlDropdownMenuSubContent({
+export function TldrawUiDropdownMenuSubContent({
 	id,
 	alignOffset = -1,
 	sideOffset = -6,
 	size = 'small',
 	className,
 	children,
-}: TlDropdownMenuSubContentProps) {
-	const container = useTlPortalContainer()
+}: TldrawUiDropdownMenuSubContentProps) {
+	const container = useTldrawUiPortalContainer()
 
 	return (
 		<_DropdownMenu.Portal container={container}>
-			<TlPortalScope>
+			<TldrawUiPortalScope>
 				<_DropdownMenu.SubContent
 					data-testid={id}
 					className={classNames('tl-menu', className)}
@@ -182,25 +185,25 @@ export function TlDropdownMenuSubContent({
 				>
 					{children}
 				</_DropdownMenu.SubContent>
-			</TlPortalScope>
+			</TldrawUiPortalScope>
 		</_DropdownMenu.Portal>
 	)
 }
 
 /** @public */
-export interface TlDropdownMenuGroupProps {
+export interface TldrawUiDropdownMenuGroupProps {
 	children: ReactNode
 	className?: string
 	'data-testid'?: string
 }
 
 /** @public @react */
-export function TlDropdownMenuGroup({
+export function TldrawUiDropdownMenuGroup({
 	className,
 	children,
 	'data-testid': dataTestId,
-}: TlDropdownMenuGroupProps) {
-	const { dir } = useTlTranslation()
+}: TldrawUiDropdownMenuGroupProps) {
+	const { dir } = useTldrawUiTranslation()
 
 	return (
 		<div dir={dir} className={classNames('tl-menu__group', className)} data-testid={dataTestId}>
@@ -210,25 +213,25 @@ export function TlDropdownMenuGroup({
 }
 
 /** @public @react */
-export function TlDropdownMenuIndicator() {
-	const { dir, msg } = useTlTranslation()
+export function TldrawUiDropdownMenuIndicator() {
+	const { dir, msg } = useTldrawUiTranslation()
 
 	return (
 		<_DropdownMenu.ItemIndicator dir={dir} asChild>
-			<TlIcon label={msg('ui.checked', 'Checked')} icon="check" />
+			<TldrawUiIcon label={msg('ui.checked', 'Checked')} icon="check" />
 		</_DropdownMenu.ItemIndicator>
 	)
 }
 
 /** @public */
-export interface TlDropdownMenuItemProps {
+export interface TldrawUiDropdownMenuItemProps {
 	noClose?: boolean
 	children: ReactNode
 }
 
 /** @public @react */
-export function TlDropdownMenuItem({ noClose, children }: TlDropdownMenuItemProps) {
-	const { dir } = useTlTranslation()
+export function TldrawUiDropdownMenuItem({ noClose, children }: TldrawUiDropdownMenuItemProps) {
+	const { dir } = useTldrawUiTranslation()
 
 	return (
 		<_DropdownMenu.Item dir={dir} asChild onClick={noClose ? preventDefault : undefined}>
@@ -238,7 +241,7 @@ export function TlDropdownMenuItem({ noClose, children }: TlDropdownMenuItemProp
 }
 
 /** @public */
-export interface TlDropdownMenuCheckboxItemProps {
+export interface TldrawUiDropdownMenuCheckboxItemProps {
 	checked?: boolean
 	onSelect?(e: Event): void
 	disabled?: boolean
@@ -249,14 +252,14 @@ export interface TlDropdownMenuCheckboxItemProps {
 }
 
 /** @public @react */
-export function TlDropdownMenuCheckboxItem({
+export function TldrawUiDropdownMenuCheckboxItem({
 	children,
 	onSelect,
 	className,
 	indicatorClassName,
 	...rest
-}: TlDropdownMenuCheckboxItemProps) {
-	const { dir, msg } = useTlTranslation()
+}: TldrawUiDropdownMenuCheckboxItemProps) {
+	const { dir, msg } = useTldrawUiTranslation()
 
 	return (
 		<_DropdownMenu.CheckboxItem
@@ -270,7 +273,7 @@ export function TlDropdownMenuCheckboxItem({
 		>
 			<div className={classNames('tl-menu__checkbox-indicator', indicatorClassName)}>
 				<_DropdownMenu.ItemIndicator dir={dir}>
-					<TlIcon label={msg('ui.checked', 'Checked')} icon="check" small />
+					<TldrawUiIcon label={msg('ui.checked', 'Checked')} icon="check" small />
 				</_DropdownMenu.ItemIndicator>
 			</div>
 			{children}

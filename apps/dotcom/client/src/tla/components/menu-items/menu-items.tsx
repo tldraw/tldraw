@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react'
-import { TlIcon } from '@tldraw/ui'
+import { TldrawUiIcon } from '@tldraw/ui'
 import { fileOpen } from 'browser-fs-access'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { useCallback, useEffect, useState } from 'react'
@@ -158,7 +158,7 @@ function UIThemeMenuCheckboxItem({
 				e.preventDefault()
 			}}
 		>
-			<TlIcon
+			<TldrawUiIcon
 				small
 				label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
 				icon={checked ? 'check' : 'none'}

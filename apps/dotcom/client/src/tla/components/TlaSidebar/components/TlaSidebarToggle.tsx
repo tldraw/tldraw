@@ -1,4 +1,4 @@
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { useValue } from 'tldraw'
 import { useGlobalEditor } from '../../../../utils/globalEditor'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -21,7 +21,7 @@ export function TlaSidebarToggle() {
 	if (hideSidebarToggle) return null
 
 	return (
-		<TlButton
+		<TldrawUiButton
 			type="icon"
 			className={styles.sidebarToggle}
 			data-mobile={false}
@@ -37,6 +37,6 @@ export function TlaSidebarToggle() {
 			}}
 		>
 			<TlaIcon icon="sidebar-strong" />
-		</TlButton>
+		</TldrawUiButton>
 	)
 }

@@ -1,7 +1,7 @@
 import { SharedStyle, StyleProp, tlmenus, useEditor } from '@tldraw/editor'
-import { TlButtonIcon } from '@tldraw/ui'
-import { TlPopover, TlPopoverContent, TlPopoverTrigger } from '@tldraw/ui'
-import { TlToolbar, TlToolbarButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiPopover, TldrawUiPopoverContent, TldrawUiPopoverTrigger } from '@tldraw/ui'
+import { TldrawUiToolbar, TldrawUiToolbarButton } from '@tldraw/ui'
 import * as React from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -34,9 +34,9 @@ function StylePanelDoubleDropdownPickerInner<T extends string>(
 			<div title={msg(props.label)} className="tlui-style-panel__double-select-picker-label">
 				{msg(props.label)}
 			</div>
-			<TlToolbar orientation="horizontal" label={msg(props.label)}>
+			<TldrawUiToolbar orientation="horizontal" label={msg(props.label)}>
 				<StylePanelDoubleDropdownPickerInline {...props} />
-			</TlToolbar>
+			</TldrawUiToolbar>
 		</div>
 	)
 }
@@ -82,9 +82,9 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 	const idB = `style panel ${uiTypeB} B`
 	return (
 		<>
-			<TlPopover id={idA} open={isOpenA} onOpenChange={setIsOpenA}>
-				<TlPopoverTrigger>
-					<TlToolbarButton
+			<TldrawUiPopover id={idA} open={isOpenA} onOpenChange={setIsOpenA}>
+				<TldrawUiPopoverTrigger>
+					<TldrawUiToolbarButton
 						type="icon"
 						data-testid={`style.${uiTypeA}`}
 						title={
@@ -95,15 +95,15 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 								: msg(`${uiTypeA}-style.${valueA.value}` as TLUiTranslationKey))
 						}
 					>
-						<TlButtonIcon icon={iconA} small invertIcon />
-					</TlToolbarButton>
-				</TlPopoverTrigger>
-				<TlPopoverContent side="left" align="center" sideOffset={80} alignOffset={0}>
-					<TlToolbar orientation="grid" label={msg(labelA)}>
+						<TldrawUiButtonIcon icon={iconA} small invertIcon />
+					</TldrawUiToolbarButton>
+				</TldrawUiPopoverTrigger>
+				<TldrawUiPopoverContent side="left" align="center" sideOffset={80} alignOffset={0}>
+					<TldrawUiToolbar orientation="grid" label={msg(labelA)}>
 						<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
 							{itemsA.map((item) => {
 								return (
-									<TlToolbarButton
+									<TldrawUiToolbarButton
 										data-testid={`style.${uiTypeA}.${item.value}`}
 										type="icon"
 										key={item.value}
@@ -114,17 +114,17 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 										}}
 										title={`${msg(labelA)} — ${msg(`${uiTypeA}-style.${item.value}`)}`}
 									>
-										<TlButtonIcon icon={item.icon} invertIcon />
-									</TlToolbarButton>
+										<TldrawUiButtonIcon icon={item.icon} invertIcon />
+									</TldrawUiToolbarButton>
 								)
 							})}
 						</TldrawUiMenuContextProvider>
-					</TlToolbar>
-				</TlPopoverContent>
-			</TlPopover>
-			<TlPopover id={idB} open={isOpenB} onOpenChange={setIsOpenB}>
-				<TlPopoverTrigger>
-					<TlToolbarButton
+					</TldrawUiToolbar>
+				</TldrawUiPopoverContent>
+			</TldrawUiPopover>
+			<TldrawUiPopover id={idB} open={isOpenB} onOpenChange={setIsOpenB}>
+				<TldrawUiPopoverTrigger>
+					<TldrawUiToolbarButton
 						type="icon"
 						data-testid={`style.${uiTypeB}`}
 						title={
@@ -135,15 +135,15 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 								: msg(`${uiTypeB}-style.${valueB.value}` as TLUiTranslationKey))
 						}
 					>
-						<TlButtonIcon icon={iconB} small />
-					</TlToolbarButton>
-				</TlPopoverTrigger>
-				<TlPopoverContent side="left" align="center" sideOffset={116} alignOffset={0}>
-					<TlToolbar orientation="grid" label={msg(labelB)}>
+						<TldrawUiButtonIcon icon={iconB} small />
+					</TldrawUiToolbarButton>
+				</TldrawUiPopoverTrigger>
+				<TldrawUiPopoverContent side="left" align="center" sideOffset={116} alignOffset={0}>
+					<TldrawUiToolbar orientation="grid" label={msg(labelB)}>
 						<TldrawUiMenuContextProvider type="icons" sourceId="style-panel">
 							{itemsB.map((item) => {
 								return (
-									<TlToolbarButton
+									<TldrawUiToolbarButton
 										key={item.value}
 										type="icon"
 										title={`${msg(labelB)} — ${msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)}`}
@@ -154,14 +154,14 @@ function StylePanelDoubleDropdownPickerInlineInner<T extends string>(
 											setIsOpenB(false)
 										}}
 									>
-										<TlButtonIcon icon={item.icon} />
-									</TlToolbarButton>
+										<TldrawUiButtonIcon icon={item.icon} />
+									</TldrawUiToolbarButton>
 								)
 							})}
 						</TldrawUiMenuContextProvider>
-					</TlToolbar>
-				</TlPopoverContent>
-			</TlPopover>
+					</TldrawUiToolbar>
+				</TldrawUiPopoverContent>
+			</TldrawUiPopover>
 		</>
 	)
 }

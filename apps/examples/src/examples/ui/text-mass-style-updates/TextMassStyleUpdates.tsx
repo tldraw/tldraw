@@ -1,6 +1,6 @@
 import { getSchema, JSONContent } from '@tiptap/core'
 import { Fragment, Node, Schema } from '@tiptap/pm/model'
-import { TlButton, TlButtonIcon, TlButtonLabel } from '@tldraw/ui'
+import { TldrawUiButton, TldrawUiButtonIcon, TldrawUiButtonLabel } from '@tldraw/ui'
 import {
 	DefaultStylePanel,
 	DefaultStylePanelContent,
@@ -16,7 +16,7 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 
 // There's a guide at the bottom of this file!
 
@@ -126,7 +126,7 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 	return (
 		<DefaultStylePanel {...props}>
 			{hasTextShapes && (
-				<ExampleTlUiProvider>
+				<ExampleTldrawUiProvider>
 					<div className="tlui-style-panel__section">
 						{STYLES.map(({ style, icon, label }) => (
 							<StyleButton
@@ -138,7 +138,7 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 							/>
 						))}
 					</div>
-				</ExampleTlUiProvider>
+				</ExampleTldrawUiProvider>
 			)}
 			<DefaultStylePanelContent />
 		</DefaultStylePanel>
@@ -166,7 +166,7 @@ function StyleButton({
 	)
 
 	return (
-		<TlButton
+		<TldrawUiButton
 			type="menu"
 			isActive={isActive}
 			onClick={() => {
@@ -179,9 +179,9 @@ function StyleButton({
 			}}
 			title={`${label} all text in selected shapes`}
 		>
-			<TlButtonIcon icon={icon} />
-			<TlButtonLabel>{label} All</TlButtonLabel>
-		</TlButton>
+			<TldrawUiButtonIcon icon={icon} />
+			<TldrawUiButtonLabel>{label} All</TldrawUiButtonLabel>
+		</TldrawUiButton>
 	)
 }
 

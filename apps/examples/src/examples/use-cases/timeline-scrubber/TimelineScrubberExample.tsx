@@ -1,4 +1,4 @@
-import { TlSlider } from '@tldraw/ui'
+import { TldrawUiSlider } from '@tldraw/ui'
 import { useCallback, useEffect, useState } from 'react'
 import {
 	RecordsDiff,
@@ -9,7 +9,7 @@ import {
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import './timeline-scrubber.css'
 
 interface TimelineEntry {
@@ -126,14 +126,14 @@ const TimelineScrubber = track(() => {
 	const length = Math.max(3, String(timeline.entries.length).length)
 
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div className="timeline-scrubber-controls">
 				<div className="timeline-scrubber-info">
 					{isEmpty
 						? '000 / 000'
 						: `${timeline.currentIndex.toString().padStart(length, '0')} / ${timeline.entries.length.toString().padStart(length, '0')}`}
 				</div>
-				<TlSlider
+				<TldrawUiSlider
 					steps={timeline.entries.length}
 					value={isEmpty ? 1 : timeline.currentIndex}
 					label="History"
@@ -147,7 +147,7 @@ const TimelineScrubber = track(() => {
 					onValueChange={handleSliderChange}
 				/>
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 })
 

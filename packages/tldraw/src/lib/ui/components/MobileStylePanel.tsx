@@ -5,10 +5,10 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { TlButton } from '@tldraw/ui'
-import { TlButtonIcon } from '@tldraw/ui'
-import { useTlOrientation } from '@tldraw/ui'
-import { TlPopover, TlPopoverContent, TlPopoverTrigger } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { useTldrawUiOrientation } from '@tldraw/ui'
+import { TldrawUiPopover, TldrawUiPopoverContent, TldrawUiPopoverTrigger } from '@tldraw/ui'
 import { useCallback } from 'react'
 import { useTldrawUiComponents } from '../context/components'
 import { useRelevantStyles } from '../hooks/useRelevantStyles'
@@ -18,7 +18,7 @@ import { useTranslation } from '../hooks/useTranslation/useTranslation'
 export function MobileStylePanel() {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const { orientation } = useTlOrientation()
+	const { orientation } = useTldrawUiOrientation()
 	const relevantStyles = useRelevantStyles()
 	const color = relevantStyles?.get(DefaultColorStyle)
 	const currentColor = useValue(
@@ -51,9 +51,9 @@ export function MobileStylePanel() {
 	if (!StylePanel) return null
 
 	return (
-		<TlPopover id="mobile style menu" onOpenChange={handleStylesOpenChange}>
-			<TlPopoverTrigger>
-				<TlButton
+		<TldrawUiPopover id="mobile style menu" onOpenChange={handleStylesOpenChange}>
+			<TldrawUiPopoverTrigger>
+				<TldrawUiButton
 					type="tool"
 					data-testid="mobile-styles.button"
 					style={{
@@ -62,14 +62,14 @@ export function MobileStylePanel() {
 					title={msg('style-panel.title')}
 					disabled={disableStylePanel}
 				>
-					<TlButtonIcon
+					<TldrawUiButtonIcon
 						icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'}
 					/>
-				</TlButton>
-			</TlPopoverTrigger>
-			<TlPopoverContent side={orientation === 'horizontal' ? 'top' : 'right'} align="end">
+				</TldrawUiButton>
+			</TldrawUiPopoverTrigger>
+			<TldrawUiPopoverContent side={orientation === 'horizontal' ? 'top' : 'right'} align="end">
 				{StylePanel && <StylePanel isMobile />}
-			</TlPopoverContent>
-		</TlPopover>
+			</TldrawUiPopoverContent>
+		</TldrawUiPopover>
 	)
 }

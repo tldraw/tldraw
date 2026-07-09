@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/editor'
-import { TlDialogRoot } from '@tldraw/ui'
+import { TldrawUiDialogRoot } from '@tldraw/ui'
 import { memo, useCallback } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
 
@@ -17,13 +17,13 @@ const TldrawUiDialog = ({ id, component: ModalContent, preventBackgroundClose }:
 	)
 
 	return (
-		<TlDialogRoot
+		<TldrawUiDialogRoot
 			defaultOpen
 			onOpenChange={handleOpenChange}
 			preventBackgroundClose={preventBackgroundClose}
 		>
 			<ModalContent onClose={() => handleOpenChange(false)} />
-		</TlDialogRoot>
+		</TldrawUiDialogRoot>
 	)
 }
 

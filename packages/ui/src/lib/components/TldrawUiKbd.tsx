@@ -1,19 +1,23 @@
 import classNames from 'classnames'
-import { TL_PORTRAIT_BREAKPOINT, useTlBreakpoint } from '../context/breakpoint'
-import { useTlPlatform } from '../context/platform'
+import { TL_PORTRAIT_BREAKPOINT, useTldrawUiBreakpoint } from '../context/breakpoint'
+import { useTldrawUiPlatform } from '../context/platform'
 import { kbd } from '../kbd'
 
 /** @public */
-export interface TlKbdProps {
+export interface TldrawUiKbdProps {
 	children: string
 	visibleOnMobileLayout?: boolean
 	className?: string
 }
 
 /** @public @react */
-export function TlKbd({ children, visibleOnMobileLayout = false, className }: TlKbdProps) {
-	const breakpoint = useTlBreakpoint()
-	const { isDarwin } = useTlPlatform()
+export function TldrawUiKbd({
+	children,
+	visibleOnMobileLayout = false,
+	className,
+}: TldrawUiKbdProps) {
+	const breakpoint = useTldrawUiBreakpoint()
+	const { isDarwin } = useTldrawUiPlatform()
 
 	if (!visibleOnMobileLayout && breakpoint < TL_PORTRAIT_BREAKPOINT.MOBILE) return null
 

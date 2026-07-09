@@ -1,7 +1,11 @@
 import { PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
-import { TlButton } from '@tldraw/ui'
-import { TlButtonIcon } from '@tldraw/ui'
-import { TlDropdownMenuContent, TlDropdownMenuRoot, TlDropdownMenuTrigger } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import {
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '@tldraw/ui'
 import { useCallback } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -49,18 +53,18 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	}, [editor, item, trackEvent])
 
 	return (
-		<TlDropdownMenuRoot id={`page item submenu ${index}`}>
-			<TlDropdownMenuTrigger>
-				<TlButton
+		<TldrawUiDropdownMenuRoot id={`page item submenu ${index}`}>
+			<TldrawUiDropdownMenuTrigger>
+				<TldrawUiButton
 					type="icon"
 					tooltip={msg('page-menu.submenu.title')}
 					title={msg('page-menu.submenu.title')}
 					data-testid="page-menu.item-submenu"
 				>
-					<TlButtonIcon icon="dots-vertical" small />
-				</TlButton>
-			</TlDropdownMenuTrigger>
-			<TlDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+					<TldrawUiButtonIcon icon="dots-vertical" small />
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="page-menu">
 					<TldrawUiMenuGroup id="modify">
 						{onRename && (
@@ -93,7 +97,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 						</TldrawUiMenuGroup>
 					)}
 				</TldrawUiMenuContextProvider>
-			</TlDropdownMenuContent>
-		</TlDropdownMenuRoot>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
 	)
 })

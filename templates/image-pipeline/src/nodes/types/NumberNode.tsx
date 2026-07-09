@@ -1,4 +1,4 @@
-import { T, TlSlider, useEditor } from 'tldraw'
+import { T, TldrawUiSlider, useEditor } from 'tldraw'
 import { NumberIcon } from '../../components/icons/NumberIcon'
 import { NODE_HEADER_HEIGHT_PX, NODE_ROW_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
 import { ShapePort } from '../../ports/Port'
@@ -67,7 +67,7 @@ function NumberNodeComponent({ shape, node }: NodeComponentProps<NumberNode>) {
 	const editor = useEditor()
 	return (
 		<NodeRow className="NumberNode" onPointerDown={editor.markEventAsHandled}>
-			<TlSlider
+			<TldrawUiSlider
 				steps={100}
 				value={node.value}
 				label="Value"

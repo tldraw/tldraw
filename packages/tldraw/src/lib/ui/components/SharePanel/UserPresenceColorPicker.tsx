@@ -1,8 +1,8 @@
 import { USER_COLORS, getOwnerWindow, track, useContainer, useEditor } from '@tldraw/editor'
-import { TlButton } from '@tldraw/ui'
-import { TlButtonIcon } from '@tldraw/ui'
-import { TlGrid } from '@tldraw/ui'
-import { TlPopover, TlPopoverContent, TlPopoverTrigger } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiGrid } from '@tldraw/ui'
+import { TldrawUiPopover, TldrawUiPopoverContent, TldrawUiPopoverTrigger } from '@tldraw/ui'
 import React, { useCallback, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -83,26 +83,26 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 	}, [container, value, onValueChange])
 
 	return (
-		<TlPopover id="people menu user color" onOpenChange={handleOpenChange} open={isOpen}>
-			<TlPopoverTrigger>
-				<TlButton
+		<TldrawUiPopover id="people menu user color" onOpenChange={handleOpenChange} open={isOpen}>
+			<TldrawUiPopoverTrigger>
+				<TldrawUiButton
 					type="icon"
 					className="tlui-people-menu__user__color"
 					style={{ color: editor.user.getColor() }}
 					title={msg('people-menu.change-color')}
 				>
-					<TlButtonIcon icon="color" />
-				</TlButton>
-			</TlPopoverTrigger>
-			<TlPopoverContent
+					<TldrawUiButtonIcon icon="color" />
+				</TldrawUiButton>
+			</TldrawUiPopoverTrigger>
+			<TldrawUiPopoverContent
 				className="tlui-people-menu__user__color-picker"
 				align="start"
 				side="left"
 				sideOffset={8}
 			>
-				<TlGrid>
+				<TldrawUiGrid>
 					{USER_COLORS.map((item: string) => (
-						<TlButton
+						<TldrawUiButton
 							type="icon"
 							key={item}
 							data-id={item}
@@ -116,11 +116,11 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 							onPointerUp={handleButtonPointerUp}
 							onClick={handleButtonClick}
 						>
-							<TlButtonIcon icon="color" />
-						</TlButton>
+							<TldrawUiButtonIcon icon="color" />
+						</TldrawUiButton>
 					))}
-				</TlGrid>
-			</TlPopoverContent>
-		</TlPopover>
+				</TldrawUiGrid>
+			</TldrawUiPopoverContent>
+		</TldrawUiPopover>
 	)
 })

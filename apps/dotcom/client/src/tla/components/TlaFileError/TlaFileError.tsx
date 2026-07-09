@@ -1,5 +1,5 @@
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { ReactElement, useEffect } from 'react'
 import { useDialogs } from 'tldraw'
 import { useSetIsReady } from '../../hooks/useIsReady'
@@ -19,13 +19,13 @@ function DefaultError() {
 					defaultMessage="Still having trouble? <a>Report a problem</a>"
 					values={{
 						a: (chunks) => (
-							<TlButton
+							<TldrawUiButton
 								onClick={() => dialogs.addDialog({ component: SubmitFeedbackDialog })}
 								type={'primary'}
 								style={{ display: 'inline' }}
 							>
 								{chunks}
-							</TlButton>
+							</TldrawUiButton>
 						),
 					}}
 				/>

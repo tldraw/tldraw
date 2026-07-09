@@ -1,4 +1,4 @@
-import { TlIcon } from '@tldraw/ui'
+import { TldrawUiIcon } from '@tldraw/ui'
 import classNames from 'classnames'
 import { CSSProperties } from 'react'
 import mergedSpriteUrl from '../../../assets/0_merged_tla.svg'
@@ -59,7 +59,7 @@ export function TlaIcon({
 	})
 
 	return (
-		<TlIcon
+		<TldrawUiIcon
 			className={_className}
 			aria-hidden={ariaLabel ? undefined : true}
 			label={ariaLabel}

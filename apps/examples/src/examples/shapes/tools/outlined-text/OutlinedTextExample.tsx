@@ -1,6 +1,6 @@
 import { Mark, mergeAttributes } from '@tiptap/core'
 import { StarterKit } from '@tiptap/starter-kit'
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import {
 	DefaultRichTextToolbar,
 	TLComponents,
@@ -10,7 +10,7 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { ExampleTlUiProvider } from '../../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../../misc/ExampleTldrawUiProvider'
 import './OutlinedTextExample.css'
 
 interface OutlineExtensionOptions {
@@ -81,8 +81,8 @@ const components: TLComponents = {
 
 		return (
 			<DefaultRichTextToolbar>
-				<ExampleTlUiProvider>
-					<TlButton
+				<ExampleTldrawUiProvider>
+					<TldrawUiButton
 						type="icon"
 						onClick={() => {
 							textEditor?.chain().focus().toggleOutline().run()
@@ -92,8 +92,8 @@ const components: TLComponents = {
 						title="Toggle text outline"
 					>
 						⬜
-					</TlButton>
-				</ExampleTlUiProvider>
+					</TldrawUiButton>
+				</ExampleTldrawUiProvider>
 			</DefaultRichTextToolbar>
 		)
 	},

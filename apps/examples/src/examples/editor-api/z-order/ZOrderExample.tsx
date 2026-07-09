@@ -1,6 +1,6 @@
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { createShapeId, Tldraw, useEditor } from 'tldraw'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import 'tldraw/tldraw.css'
 import './z-order.css'
 
@@ -36,35 +36,35 @@ export default function ZOrderExample() {
 					TopPanel: () => {
 						const editor = useEditor()
 						return (
-							<ExampleTlUiProvider>
+							<ExampleTldrawUiProvider>
 								<div className="tl-menu z-order-controls">
 									{/* [1] */}
-									<TlButton
+									<TldrawUiButton
 										type="normal"
 										onClick={() => editor.sendToBack(editor.getSelectedShapeIds())}
 									>
 										Send to back
-									</TlButton>
-									<TlButton
+									</TldrawUiButton>
+									<TldrawUiButton
 										type="normal"
 										onClick={() => editor.sendBackward(editor.getSelectedShapeIds())}
 									>
 										Send backward
-									</TlButton>
-									<TlButton
+									</TldrawUiButton>
+									<TldrawUiButton
 										type="normal"
 										onClick={() => editor.bringForward(editor.getSelectedShapeIds())}
 									>
 										Bring forward
-									</TlButton>
-									<TlButton
+									</TldrawUiButton>
+									<TldrawUiButton
 										type="normal"
 										onClick={() => editor.bringToFront(editor.getSelectedShapeIds())}
 									>
 										Bring to front
-									</TlButton>
+									</TldrawUiButton>
 								</div>
-							</ExampleTlUiProvider>
+							</ExampleTldrawUiProvider>
 						)
 					},
 				}}

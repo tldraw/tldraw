@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import { noop } from '@tldraw/utils'
 import classNames from 'classnames'
 import { ComponentType, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -164,20 +164,20 @@ My browser: ${navigator.userAgent}`
 						<h2>Are you sure?</h2>
 						<p>Resetting your data will delete your drawing and cannot be undone.</p>
 						<div className="tl-error-boundary__content__actions">
-							<TlButton
+							<TldrawUiButton
 								type="normal"
 								className="tlui-button"
 								onClick={() => setShouldShowResetConfirmation(false)}
 							>
 								Cancel
-							</TlButton>
-							<TlButton
+							</TldrawUiButton>
+							<TldrawUiButton
 								type="normal"
 								className="tlui-button tl-error-boundary__reset"
 								onClick={resetLocalState}
 							>
 								Reset data
-							</TlButton>
+							</TldrawUiButton>
 						</div>
 					</>
 				) : (
@@ -211,35 +211,35 @@ My browser: ${navigator.userAgent}`
 									<pre>
 										<code>{errorStack ?? errorMessage}</code>
 									</pre>
-									<TlButton type="normal" className="tlui-button" onClick={copyError}>
+									<TldrawUiButton type="normal" className="tlui-button" onClick={copyError}>
 										{didCopy ? 'Copied!' : 'Copy'}
-									</TlButton>
+									</TldrawUiButton>
 								</div>
 							</>
 						)}
 						<div className="tl-error-boundary__content__actions">
-							<TlButton
+							<TldrawUiButton
 								type="normal"
 								className="tlui-button"
 								onClick={() => setShouldShowError(!shouldShowError)}
 							>
 								{shouldShowError ? 'Hide details' : 'Show details'}
-							</TlButton>
+							</TldrawUiButton>
 							<div className="tl-error-boundary__content__actions__group">
-								<TlButton
+								<TldrawUiButton
 									type="normal"
 									className="tlui-button tl-error-boundary__reset"
 									onClick={() => setShouldShowResetConfirmation(true)}
 								>
 									Reset data
-								</TlButton>
-								<TlButton
+								</TldrawUiButton>
+								<TldrawUiButton
 									type="normal"
 									className="tlui-button tl-error-boundary__refresh"
 									onClick={refresh}
 								>
 									Refresh Page
-								</TlButton>
+								</TldrawUiButton>
 							</div>
 						</div>
 					</>

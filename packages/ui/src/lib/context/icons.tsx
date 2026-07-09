@@ -1,23 +1,23 @@
 import { createContext, ReactNode, useContext, useMemo } from 'react'
 
-const TlIconContext = createContext<Record<string, string>>({})
+const TldrawUiIconContext = createContext<Record<string, string>>({})
 
 /** @public */
-export interface TlIconProviderProps {
+export interface TldrawUiIconProviderProps {
 	assetUrls: Record<string, string>
 	children: ReactNode
 }
 
 /** @public @react */
-export function TlIconProvider({ assetUrls, children }: TlIconProviderProps) {
-	const parent = useContext(TlIconContext)
+export function TldrawUiIconProvider({ assetUrls, children }: TldrawUiIconProviderProps) {
+	const parent = useContext(TldrawUiIconContext)
 	const merged = useMemo(() => ({ ...parent, ...assetUrls }), [parent, assetUrls])
 
-	return <TlIconContext.Provider value={merged}>{children}</TlIconContext.Provider>
+	return <TldrawUiIconContext.Provider value={merged}>{children}</TldrawUiIconContext.Provider>
 }
 
 /** @public */
-export function useTlIconUrl(icon: string): string | undefined {
-	const assetUrls = useContext(TlIconContext)
+export function useTldrawUiIconUrl(icon: string): string | undefined {
+	const assetUrls = useContext(TldrawUiIconContext)
 	return assetUrls[icon]
 }

@@ -9,7 +9,7 @@ import {
 	TLUiAssetUrlOverrides,
 	TLUiOverrides,
 	Tldraw,
-	TlButton,
+	TldrawUiButton,
 	TldrawUiMenuItem,
 	toRichText,
 	useIsToolSelected,
@@ -105,9 +105,9 @@ export default function DynamicToolsExample() {
 
 				return (
 					<div className="toggle-button-container">
-						<TlButton onClick={toggleHeartTool} type="normal">
+						<TldrawUiButton onClick={toggleHeartTool} type="normal">
 							{isHeartToolEnabled ? '💔 Remove Heart Tool' : '💖 Add Heart Tool'}
-						</TlButton>
+						</TldrawUiButton>
 					</div>
 				)
 			},

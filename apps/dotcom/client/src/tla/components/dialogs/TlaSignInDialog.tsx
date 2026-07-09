@@ -2,7 +2,12 @@ import { useClerk, useSignIn } from '@clerk/clerk-react'
 import * as Clerk from '@clerk/elements/common'
 import * as SignIn from '@clerk/elements/sign-in'
 import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
-import { TlDialogBody, TlDialogCloseButton, TlDialogHeader, TlDialogTitle } from '@tldraw/ui'
+import {
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
+} from '@tldraw/ui'
 import classNames from 'classnames'
 import { ChangeEvent, ReactNode, useCallback, useEffect, useState, type FormEvent } from 'react'
 import { exhaustiveSwitchError } from 'tldraw'
@@ -71,18 +76,18 @@ export function TlaSignInDialog({
 
 	return (
 		<div className={styles.authContainer}>
-			<TlDialogHeader>
-				<TlDialogTitle>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>
 					<span />
-				</TlDialogTitle>
-				{onClose && <TlDialogCloseButton />}
-			</TlDialogHeader>
-			<TlDialogBody className={styles.authDialogBody}>
+				</TldrawUiDialogTitle>
+				{onClose && <TldrawUiDialogCloseButton />}
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody className={styles.authDialogBody}>
 				<div className={styles.authBody}>{innerContent}</div>
 
 				{/* Clerk's CAPTCHA widget */}
 				<div id="clerk-captcha" className={styles.clerkCaptcha} />
-			</TlDialogBody>
+			</TldrawUiDialogBody>
 		</div>
 	)
 }

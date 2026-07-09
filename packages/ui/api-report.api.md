@@ -20,7 +20,7 @@ import { ReactPortal } from 'react';
 import { RefAttributes } from 'react';
 
 // @public (undocumented)
-export function hideAllTlTooltips(): void;
+export function hideAllTldrawUiTooltips(): void;
 
 // @public (undocumented)
 export function kbd(str: string, isDarwin: boolean): string[];
@@ -52,10 +52,10 @@ export const TL_PORTRAIT_BREAKPOINT: {
 };
 
 // @public (undocumented)
-export function TlBreakpointProvider({ breakpoint, children }: TlBreakpointProviderProps): JSX.Element;
+export function TldrawUiBreakpointProvider({ breakpoint, children }: TldrawUiBreakpointProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlBreakpointProviderProps {
+export interface TldrawUiBreakpointProviderProps {
     // (undocumented)
     breakpoint: number;
     // (undocumented)
@@ -63,24 +63,24 @@ export interface TlBreakpointProviderProps {
 }
 
 // @public (undocumented)
-export const TlButton: React_2.ForwardRefExoticComponent<TlButtonProps & React_2.RefAttributes<HTMLButtonElement>>;
+export const TldrawUiButton: React_2.ForwardRefExoticComponent<TldrawUiButtonProps & React_2.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
-export function TlButtonCheck({ checked }: TlButtonCheckProps): JSX.Element;
+export function TldrawUiButtonCheck({ checked }: TldrawUiButtonCheckProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlButtonCheckProps {
+export interface TldrawUiButtonCheckProps {
     // (undocumented)
     checked: boolean;
 }
 
 // @public (undocumented)
-export function TlButtonIcon({ icon, small, invertIcon }: TlButtonIconProps): JSX.Element;
+export function TldrawUiButtonIcon({ icon, small, invertIcon }: TldrawUiButtonIconProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlButtonIconProps {
+export interface TldrawUiButtonIconProps {
     // (undocumented)
-    icon: string | TlIconJsx;
+    icon: string | TldrawUiIconJsx;
     // (undocumented)
     invertIcon?: boolean;
     // (undocumented)
@@ -88,16 +88,16 @@ export interface TlButtonIconProps {
 }
 
 // @public (undocumented)
-export function TlButtonLabel({ children }: TlButtonLabelProps): JSX.Element;
+export function TldrawUiButtonLabel({ children }: TldrawUiButtonLabelProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlButtonLabelProps {
+export interface TldrawUiButtonLabelProps {
     // (undocumented)
     children?: React_2.ReactNode;
 }
 
 // @public (undocumented)
-export interface TlButtonProps extends React_2.HTMLAttributes<HTMLButtonElement> {
+export interface TldrawUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElement> {
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
@@ -109,23 +109,23 @@ export interface TlButtonProps extends React_2.HTMLAttributes<HTMLButtonElement>
     // (undocumented)
     tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
     // (undocumented)
-    type: TlButtonType;
+    type: TldrawUiButtonType;
 }
 
 // @public (undocumented)
-export function TlButtonSpinner(): JSX.Element;
+export function TldrawUiButtonSpinner(): JSX.Element;
 
 // @public (undocumented)
-export type TlButtonType = 'cta' | 'danger' | 'ghost' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'secondary' | 'tool';
+export type TldrawUiButtonType = 'cta' | 'danger' | 'ghost' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'secondary' | 'tool';
 
 // @public
-export const TlColumn: ForwardRefExoticComponent<TlLayoutProps & RefAttributes<HTMLDivElement>>;
+export const TldrawUiColumn: ForwardRefExoticComponent<TldrawUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export function TlContextMenuContent({ children, className, alignOffset, collisionPadding, 'aria-label': ariaLabel, 'data-testid': dataTestId }: TlContextMenuContentProps): JSX.Element;
+export function TldrawUiContextMenuContent({ children, className, alignOffset, collisionPadding, 'aria-label': ariaLabel, 'data-testid': dataTestId }: TldrawUiContextMenuContentProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlContextMenuContentProps {
+export interface TldrawUiContextMenuContentProps {
     // (undocumented)
     'aria-label'?: string;
     // (undocumented)
@@ -141,10 +141,10 @@ export interface TlContextMenuContentProps {
 }
 
 // @public (undocumented)
-export function TlContextMenuRoot({ children, modal, onOpenChange }: TlContextMenuRootProps): JSX.Element;
+export function TldrawUiContextMenuRoot({ children, modal, onOpenChange }: TldrawUiContextMenuRootProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlContextMenuRootProps {
+export interface TldrawUiContextMenuRootProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -154,10 +154,10 @@ export interface TlContextMenuRootProps {
 }
 
 // @public (undocumented)
-export function TlContextMenuTrigger({ children, disabled }: TlContextMenuTriggerProps): JSX.Element;
+export function TldrawUiContextMenuTrigger({ children, disabled }: TldrawUiContextMenuTriggerProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlContextMenuTriggerProps {
+export interface TldrawUiContextMenuTriggerProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -165,10 +165,10 @@ export interface TlContextMenuTriggerProps {
 }
 
 // @public (undocumented)
-export function TlCopyButton({ children, type, onCopy, value, className }: TlCopyButtonProps): JSX.Element;
+export function TldrawUiCopyButton({ children, type, onCopy, value, className }: TldrawUiCopyButtonProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlCopyButtonProps {
+export interface TldrawUiCopyButtonProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -176,15 +176,15 @@ export interface TlCopyButtonProps {
     // (undocumented)
     onCopy?(): Promise<void> | void;
     // (undocumented)
-    type?: TlButtonType;
+    type?: TldrawUiButtonType;
     // (undocumented)
     value?: string;
 }
 
 // @public (undocumented)
-export interface TlDialog {
+export interface TldrawUiDialog {
     // (undocumented)
-    component: ComponentType<TlDialogProps>;
+    component: ComponentType<TldrawUiDialogProps>;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -194,10 +194,10 @@ export interface TlDialog {
 }
 
 // @public (undocumented)
-export function TlDialogBody({ className, children, style }: TlDialogBodyProps): JSX.Element;
+export function TldrawUiDialogBody({ className, children, style }: TldrawUiDialogBodyProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDialogBodyProps {
+export interface TldrawUiDialogBodyProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -207,21 +207,21 @@ export interface TlDialogBodyProps {
 }
 
 // @public (undocumented)
-export function TlDialogCloseButton({ closeLabel }: TlDialogCloseButtonProps): JSX.Element;
+export function TldrawUiDialogCloseButton({ closeLabel }: TldrawUiDialogCloseButtonProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDialogCloseButtonProps {
+export interface TldrawUiDialogCloseButtonProps {
     closeLabel?: string;
 }
 
 // @public (undocumented)
-export type TlDialogEvent = 'close' | 'open';
+export type TldrawUiDialogEvent = 'close' | 'open';
 
 // @public (undocumented)
-export function TlDialogFooter({ className, children }: TlDialogFooterProps): JSX.Element;
+export function TldrawUiDialogFooter({ className, children }: TldrawUiDialogFooterProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDialogFooterProps {
+export interface TldrawUiDialogFooterProps {
     // (undocumented)
     children?: ReactNode;
     // (undocumented)
@@ -229,10 +229,10 @@ export interface TlDialogFooterProps {
 }
 
 // @public (undocumented)
-export function TlDialogHeader({ className, children }: TlDialogHeaderProps): JSX.Element;
+export function TldrawUiDialogHeader({ className, children }: TldrawUiDialogHeaderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDialogHeaderProps {
+export interface TldrawUiDialogHeaderProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -240,16 +240,16 @@ export interface TlDialogHeaderProps {
 }
 
 // @public (undocumented)
-export interface TlDialogProps {
+export interface TldrawUiDialogProps {
     // (undocumented)
     onClose(): void;
 }
 
 // @public (undocumented)
-export function TlDialogRoot({ children, open, defaultOpen, onOpenChange, preventBackgroundClose }: TlDialogRootProps): JSX.Element;
+export function TldrawUiDialogRoot({ children, open, defaultOpen, onOpenChange, preventBackgroundClose }: TldrawUiDialogRootProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDialogRootProps {
+export interface TldrawUiDialogRootProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -262,37 +262,37 @@ export interface TlDialogRootProps {
 }
 
 // @public (undocumented)
-export interface TlDialogsContextValue {
+export interface TldrawUiDialogsContextValue {
     // (undocumented)
-    addDialog(dialog: Omit<TlDialog, 'id'> & {
+    addDialog(dialog: Omit<TldrawUiDialog, 'id'> & {
         id?: string;
     }): string;
     // (undocumented)
     clearDialogs(): void;
     // (undocumented)
-    dialogs: Atom<TlDialog[]>;
+    dialogs: Atom<TldrawUiDialog[]>;
     // (undocumented)
     removeDialog(id: string): void;
 }
 
 // @public (undocumented)
-export function TlDialogsProvider({ children, onEvent }: TlDialogsProviderProps): JSX.Element;
+export function TldrawUiDialogsProvider({ children, onEvent }: TldrawUiDialogsProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDialogsProviderProps {
+export interface TldrawUiDialogsProviderProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
-    onEvent?(event: TlDialogEvent, data: {
+    onEvent?(event: TldrawUiDialogEvent, data: {
         id: string;
     }): void;
 }
 
 // @public (undocumented)
-export function TlDialogTitle({ className, children, style }: TlDialogTitleProps): JSX.Element;
+export function TldrawUiDialogTitle({ className, children, style }: TldrawUiDialogTitleProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDialogTitleProps {
+export interface TldrawUiDialogTitleProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -302,10 +302,10 @@ export interface TlDialogTitleProps {
 }
 
 // @public (undocumented)
-export function TlDropdownMenuCheckboxItem({ children, onSelect, className, indicatorClassName, ...rest }: TlDropdownMenuCheckboxItemProps): JSX.Element;
+export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, className, indicatorClassName, ...rest }: TldrawUiDropdownMenuCheckboxItemProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDropdownMenuCheckboxItemProps {
+export interface TldrawUiDropdownMenuCheckboxItemProps {
     // (undocumented)
     checked?: boolean;
     // (undocumented)
@@ -323,10 +323,10 @@ export interface TlDropdownMenuCheckboxItemProps {
 }
 
 // @public (undocumented)
-export function TlDropdownMenuContent({ className, side, align, sideOffset, alignOffset, collisionPadding, children }: TlDropdownMenuContentProps): JSX.Element;
+export function TldrawUiDropdownMenuContent({ className, side, align, sideOffset, alignOffset, collisionPadding, children }: TldrawUiDropdownMenuContentProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDropdownMenuContentProps {
+export interface TldrawUiDropdownMenuContentProps {
     // (undocumented)
     align?: 'center' | 'end' | 'start';
     // (undocumented)
@@ -346,10 +346,10 @@ export interface TlDropdownMenuContentProps {
 }
 
 // @public (undocumented)
-export function TlDropdownMenuGroup({ className, children, 'data-testid': dataTestId }: TlDropdownMenuGroupProps): JSX.Element;
+export function TldrawUiDropdownMenuGroup({ className, children, 'data-testid': dataTestId }: TldrawUiDropdownMenuGroupProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDropdownMenuGroupProps {
+export interface TldrawUiDropdownMenuGroupProps {
     // (undocumented)
     'data-testid'?: string;
     // (undocumented)
@@ -359,13 +359,13 @@ export interface TlDropdownMenuGroupProps {
 }
 
 // @public (undocumented)
-export function TlDropdownMenuIndicator(): JSX.Element;
+export function TldrawUiDropdownMenuIndicator(): JSX.Element;
 
 // @public (undocumented)
-export function TlDropdownMenuItem({ noClose, children }: TlDropdownMenuItemProps): JSX.Element;
+export function TldrawUiDropdownMenuItem({ noClose, children }: TldrawUiDropdownMenuItemProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDropdownMenuItemProps {
+export interface TldrawUiDropdownMenuItemProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -373,10 +373,10 @@ export interface TlDropdownMenuItemProps {
 }
 
 // @public (undocumented)
-export function TlDropdownMenuRoot({ id, children, modal, debugOpen }: TlDropdownMenuRootProps): JSX.Element;
+export function TldrawUiDropdownMenuRoot({ id, children, modal, debugOpen }: TldrawUiDropdownMenuRootProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDropdownMenuRootProps {
+export interface TldrawUiDropdownMenuRootProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -388,13 +388,13 @@ export interface TlDropdownMenuRootProps {
 }
 
 // @public (undocumented)
-export function TlDropdownMenuSub({ id, children }: TlDropdownMenuSubProps): JSX.Element;
+export function TldrawUiDropdownMenuSub({ id, children }: TldrawUiDropdownMenuSubProps): JSX.Element;
 
 // @public (undocumented)
-export function TlDropdownMenuSubContent({ id, alignOffset, sideOffset, size, className, children }: TlDropdownMenuSubContentProps): JSX.Element;
+export function TldrawUiDropdownMenuSubContent({ id, alignOffset, sideOffset, size, className, children }: TldrawUiDropdownMenuSubContentProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDropdownMenuSubContentProps {
+export interface TldrawUiDropdownMenuSubContentProps {
     // (undocumented)
     alignOffset?: number;
     // (undocumented)
@@ -410,7 +410,7 @@ export interface TlDropdownMenuSubContentProps {
 }
 
 // @public (undocumented)
-export interface TlDropdownMenuSubProps {
+export interface TldrawUiDropdownMenuSubProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -418,10 +418,10 @@ export interface TlDropdownMenuSubProps {
 }
 
 // @public (undocumented)
-export function TlDropdownMenuSubTrigger({ id, label, title, disabled, className }: TlDropdownMenuSubTriggerProps): JSX.Element;
+export function TldrawUiDropdownMenuSubTrigger({ id, label, title, disabled, className }: TldrawUiDropdownMenuSubTriggerProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDropdownMenuSubTriggerProps {
+export interface TldrawUiDropdownMenuSubTriggerProps {
     // (undocumented)
     className?: string;
     // (undocumented)
@@ -435,31 +435,31 @@ export interface TlDropdownMenuSubTriggerProps {
 }
 
 // @public (undocumented)
-export function TlDropdownMenuTrigger({ children, ...rest }: TlDropdownMenuTriggerProps): JSX.Element;
+export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TldrawUiDropdownMenuTriggerProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlDropdownMenuTriggerProps {
+export interface TldrawUiDropdownMenuTriggerProps {
     // (undocumented)
     children?: ReactNode;
 }
 
 // @public
-export const TlGrid: ForwardRefExoticComponent<TlLayoutProps & RefAttributes<HTMLDivElement>>;
+export const TldrawUiGrid: ForwardRefExoticComponent<TldrawUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export const TlIcon: NamedExoticComponent<TlIconProps>;
+export const TldrawUiIcon: NamedExoticComponent<TldrawUiIconProps>;
 
 // @public (undocumented)
-export type TlIconJsx = ReactElement<HTMLAttributes<HTMLDivElement>>;
+export type TldrawUiIconJsx = ReactElement<HTMLAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export interface TlIconProps extends HTMLAttributes<HTMLDivElement> {
+export interface TldrawUiIconProps extends HTMLAttributes<HTMLDivElement> {
     // (undocumented)
     color?: string;
     // (undocumented)
     crossOrigin?: 'anonymous' | 'use-credentials';
     // (undocumented)
-    icon: string | TlIconJsx;
+    icon: string | TldrawUiIconJsx;
     // (undocumented)
     invertIcon?: boolean;
     // (undocumented)
@@ -471,10 +471,10 @@ export interface TlIconProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 // @public (undocumented)
-export function TlIconProvider({ assetUrls, children }: TlIconProviderProps): JSX.Element;
+export function TldrawUiIconProvider({ assetUrls, children }: TldrawUiIconProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlIconProviderProps {
+export interface TldrawUiIconProviderProps {
     // (undocumented)
     assetUrls: Record<string, string>;
     // (undocumented)
@@ -482,10 +482,10 @@ export interface TlIconProviderProps {
 }
 
 // @public (undocumented)
-export const TlInput: React_2.ForwardRefExoticComponent<TlInputProps & React_2.RefAttributes<HTMLInputElement>>;
+export const TldrawUiInput: React_2.ForwardRefExoticComponent<TldrawUiInputProps & React_2.RefAttributes<HTMLInputElement>>;
 
 // @public (undocumented)
-export interface TlInputProps {
+export interface TldrawUiInputProps {
     // (undocumented)
     'aria-label'?: string;
     // (undocumented)
@@ -535,10 +535,10 @@ export interface TlInputProps {
 }
 
 // @public (undocumented)
-export function TlKbd({ children, visibleOnMobileLayout, className }: TlKbdProps): JSX.Element | null;
+export function TldrawUiKbd({ children, visibleOnMobileLayout, className }: TldrawUiKbdProps): JSX.Element | null;
 
 // @public (undocumented)
-export interface TlKbdProps {
+export interface TldrawUiKbdProps {
     // (undocumented)
     children: string;
     // (undocumented)
@@ -548,7 +548,7 @@ export interface TlKbdProps {
 }
 
 // @public (undocumented)
-export interface TlLayoutProps extends HTMLAttributes<HTMLDivElement> {
+export interface TldrawUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
     // (undocumented)
     asChild?: boolean;
     // (undocumented)
@@ -558,10 +558,10 @@ export interface TlLayoutProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 // @public (undocumented)
-export function TlMenuCheckboxItem({ id, kbd, label, disabled, checked, onSelect }: TlMenuCheckboxItemProps): JSX.Element | null;
+export function TldrawUiMenuCheckboxItem({ id, kbd, label, disabled, checked, onSelect }: TldrawUiMenuCheckboxItemProps): JSX.Element | null;
 
 // @public (undocumented)
-export interface TlMenuCheckboxItemProps {
+export interface TldrawUiMenuCheckboxItemProps {
     // (undocumented)
     checked?: boolean;
     // (undocumented)
@@ -577,34 +577,34 @@ export interface TlMenuCheckboxItemProps {
 }
 
 // @public (undocumented)
-export function TlMenuContextProvider({ type, sourceId, children }: TlMenuContextProviderProps): JSX.Element;
+export function TldrawUiMenuContextProvider({ type, sourceId, children }: TldrawUiMenuContextProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlMenuContextProviderProps {
+export interface TldrawUiMenuContextProviderProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
     sourceId: string;
     // (undocumented)
-    type: TlMenuContextType;
+    type: TldrawUiMenuContextType;
 }
 
 // @public (undocumented)
-export type TlMenuContextType = 'context-menu' | 'menu' | 'panel' | 'small-icons';
+export type TldrawUiMenuContextType = 'context-menu' | 'menu' | 'panel' | 'small-icons';
 
 // @public (undocumented)
-export function TlMenuControl({ children, title, className }: TlMenuControlProps): JSX.Element;
+export function TldrawUiMenuControl({ children, title, className }: TldrawUiMenuControlProps): JSX.Element;
 
 // @public (undocumented)
-export function TlMenuControlGroup({ children }: {
+export function TldrawUiMenuControlGroup({ children }: {
     children: ReactNode;
 }): JSX.Element;
 
 // @public (undocumented)
-export function TlMenuControlInfoTooltip({ href, children, onClick, showOnMobile }: TlMenuControlInfoTooltipProps): JSX.Element;
+export function TldrawUiMenuControlInfoTooltip({ href, children, onClick, showOnMobile }: TldrawUiMenuControlInfoTooltipProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlMenuControlInfoTooltipProps {
+export interface TldrawUiMenuControlInfoTooltipProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -616,10 +616,10 @@ export interface TlMenuControlInfoTooltipProps {
 }
 
 // @public (undocumented)
-export function TlMenuControlLabel({ children, htmlFor }: TlMenuControlLabelProps): JSX.Element;
+export function TldrawUiMenuControlLabel({ children, htmlFor }: TldrawUiMenuControlLabelProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlMenuControlLabelProps {
+export interface TldrawUiMenuControlLabelProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -627,7 +627,7 @@ export interface TlMenuControlLabelProps {
 }
 
 // @public (undocumented)
-export interface TlMenuControlProps {
+export interface TldrawUiMenuControlProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -637,15 +637,15 @@ export interface TlMenuControlProps {
 }
 
 // @public (undocumented)
-export function TlMenuDetail({ children }: {
+export function TldrawUiMenuDetail({ children }: {
     children: ReactNode;
 }): JSX.Element;
 
 // @public (undocumented)
-export function TlMenuGroup({ id, className, children }: TlMenuGroupProps): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
+export function TldrawUiMenuGroup({ id, className, children }: TldrawUiMenuGroupProps): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
 
 // @public (undocumented)
-export interface TlMenuGroupProps {
+export interface TldrawUiMenuGroupProps {
     // (undocumented)
     children?: ReactNode;
     // (undocumented)
@@ -657,18 +657,18 @@ export interface TlMenuGroupProps {
 }
 
 // @public (undocumented)
-export function TlMenuItem({ disabled, spinner, busy, id, kbd, label, icon, iconLeft, onSelect, isSelected }: TlMenuItemProps): JSX.Element | null;
+export function TldrawUiMenuItem({ disabled, spinner, busy, id, kbd, label, icon, iconLeft, onSelect, isSelected }: TldrawUiMenuItemProps): JSX.Element | null;
 
 // @public (undocumented)
-export interface TlMenuItemProps {
+export interface TldrawUiMenuItemProps {
     // (undocumented)
     busy?: boolean;
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
-    icon?: string | TlIconJsx;
+    icon?: string | TldrawUiIconJsx;
     // (undocumented)
-    iconLeft?: string | TlIconJsx;
+    iconLeft?: string | TldrawUiIconJsx;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -686,12 +686,12 @@ export interface TlMenuItemProps {
 }
 
 // @public (undocumented)
-export function TlMenuSection({ children }: {
+export function TldrawUiMenuSection({ children }: {
     children: ReactNode;
 }): JSX.Element;
 
 // @public (undocumented)
-export interface TlMenuStateContextValue {
+export interface TldrawUiMenuStateContextValue {
     // (undocumented)
     closeMenu(id: string): void;
     // (undocumented)
@@ -701,10 +701,10 @@ export interface TlMenuStateContextValue {
 }
 
 // @public (undocumented)
-export function TlMenuStateProvider({ children, onMenuOpenChange, useMenuIsOpen }: TlMenuStateProviderProps): JSX.Element;
+export function TldrawUiMenuStateProvider({ children, onMenuOpenChange, useMenuIsOpen }: TldrawUiMenuStateProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlMenuStateProviderProps {
+export interface TldrawUiMenuStateProviderProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -714,10 +714,10 @@ export interface TlMenuStateProviderProps {
 }
 
 // @public (undocumented)
-export function TlMenuSubmenu({ id, disabled, label, size, children }: TlMenuSubmenuProps): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
+export function TldrawUiMenuSubmenu({ id, disabled, label, size, children }: TldrawUiMenuSubmenuProps): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
 
 // @public (undocumented)
-export interface TlMenuSubmenuProps {
+export interface TldrawUiMenuSubmenuProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -731,7 +731,7 @@ export interface TlMenuSubmenuProps {
 }
 
 // @public (undocumented)
-export interface TlOrientationContext {
+export interface TldrawUiOrientationContext {
     // (undocumented)
     orientation: 'horizontal' | 'vertical';
     // (undocumented)
@@ -739,10 +739,10 @@ export interface TlOrientationContext {
 }
 
 // @public (undocumented)
-export function TlOrientationProvider({ children, orientation, tooltipSide }: TlOrientationProviderProps): JSX.Element;
+export function TldrawUiOrientationProvider({ children, orientation, tooltipSide }: TldrawUiOrientationProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlOrientationProviderProps {
+export interface TldrawUiOrientationProviderProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -752,7 +752,7 @@ export interface TlOrientationProviderProps {
 }
 
 // @public (undocumented)
-export interface TlPlatformContextValue {
+export interface TldrawUiPlatformContextValue {
     // (undocumented)
     animationSpeed: number;
     // (undocumented)
@@ -762,10 +762,10 @@ export interface TlPlatformContextValue {
 }
 
 // @public (undocumented)
-export function TlPlatformProvider({ isDarwin: isDarwinProp, isCoarsePointer: isCoarsePointerProp, animationSpeed, children }: TlPlatformProviderProps): JSX.Element;
+export function TldrawUiPlatformProvider({ isDarwin: isDarwinProp, isCoarsePointer: isCoarsePointerProp, animationSpeed, children }: TldrawUiPlatformProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlPlatformProviderProps {
+export interface TldrawUiPlatformProviderProps {
     // (undocumented)
     animationSpeed?: number;
     // (undocumented)
@@ -777,13 +777,13 @@ export interface TlPlatformProviderProps {
 }
 
 // @public (undocumented)
-export function TlPopover({ id, children, onOpenChange, open, className }: TlPopoverProps): JSX.Element;
+export function TldrawUiPopover({ id, children, onOpenChange, open, className }: TldrawUiPopoverProps): JSX.Element;
 
 // @public (undocumented)
-export function TlPopoverContent({ side, children, align, sideOffset, alignOffset, className, collisionPadding, disableEscapeKeyDown, autoFocusFirstButton }: TlPopoverContentProps): JSX.Element;
+export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, className, collisionPadding, disableEscapeKeyDown, autoFocusFirstButton }: TldrawUiPopoverContentProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlPopoverContentProps {
+export interface TldrawUiPopoverContentProps {
     // (undocumented)
     align?: 'center' | 'end' | 'start';
     // (undocumented)
@@ -804,7 +804,7 @@ export interface TlPopoverContentProps {
 }
 
 // @public (undocumented)
-export interface TlPopoverProps {
+export interface TldrawUiPopoverProps {
     // (undocumented)
     children: React_3.ReactNode;
     // (undocumented)
@@ -818,36 +818,61 @@ export interface TlPopoverProps {
 }
 
 // @public (undocumented)
-export function TlPopoverTrigger({ children }: TlPopoverTriggerProps): JSX.Element;
+export function TldrawUiPopoverTrigger({ children }: TldrawUiPopoverTriggerProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlPopoverTriggerProps {
+export interface TldrawUiPopoverTriggerProps {
     // (undocumented)
     children?: React_3.ReactNode;
 }
 
 // @public (undocumented)
-export function TlPortalProvider({ container, children }: TlPortalProviderProps): JSX.Element;
+export function TldrawUiPortalProvider({ container, children }: TldrawUiPortalProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlPortalProviderProps {
+export interface TldrawUiPortalProviderProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
     container: HTMLElement | null;
 }
 
-// @public
-export const TlRow: ForwardRefExoticComponent<TlLayoutProps & RefAttributes<HTMLDivElement>>;
-
-// @public
-export function TlSelect({ id, value, onValueChange, onOpenChange, disabled, className, children, 'data-testid': dataTestId, 'aria-label': ariaLabel }: TlSelectProps): JSX.Element;
-
-// @public
-export function TlSelectContent({ children, side, align, className }: TlSelectContentProps): JSX.Element;
+// @public (undocumented)
+export function TldrawUiProvider({ theme, dir, msg, iconAssetUrls, container, breakpoint, onMenuOpenChange, className, children }: TldrawUiProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlSelectContentProps {
+export interface TldrawUiProviderProps {
+    // (undocumented)
+    breakpoint?: number;
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    container?: HTMLElement | null;
+    // (undocumented)
+    dir?: 'ltr' | 'rtl';
+    // (undocumented)
+    iconAssetUrls?: Record<string, string>;
+    // (undocumented)
+    msg?(key: string): string | undefined;
+    // (undocumented)
+    onMenuOpenChange?(id: string, isOpen: boolean): void;
+    // (undocumented)
+    theme?: 'dark' | 'light';
+}
+
+// @public
+export const TldrawUiRow: ForwardRefExoticComponent<TldrawUiLayoutProps & RefAttributes<HTMLDivElement>>;
+
+// @public
+export function TldrawUiSelect({ id, value, onValueChange, onOpenChange, disabled, className, children, 'data-testid': dataTestId, 'aria-label': ariaLabel }: TldrawUiSelectProps): JSX.Element;
+
+// @public
+export function TldrawUiSelectContent({ children, side, align, className }: TldrawUiSelectContentProps): JSX.Element;
+
+// @public (undocumented)
+export interface TldrawUiSelectContentProps {
     // (undocumented)
     align?: 'center' | 'end' | 'start';
     // (undocumented)
@@ -859,10 +884,10 @@ export interface TlSelectContentProps {
 }
 
 // @public
-export function TlSelectItem({ value, label, icon, disabled, destructive, className }: TlSelectItemProps): JSX.Element;
+export function TldrawUiSelectItem({ value, label, icon, disabled, destructive, className }: TldrawUiSelectItemProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlSelectItemProps {
+export interface TldrawUiSelectItemProps {
     // (undocumented)
     className?: string;
     // (undocumented)
@@ -870,7 +895,7 @@ export interface TlSelectItemProps {
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
-    icon?: string | TlIconJsx;
+    icon?: string | TldrawUiIconJsx;
     // (undocumented)
     label: React_2.ReactNode;
     // (undocumented)
@@ -878,7 +903,7 @@ export interface TlSelectItemProps {
 }
 
 // @public (undocumented)
-export interface TlSelectProps {
+export interface TldrawUiSelectProps {
     // (undocumented)
     'aria-label'?: string;
     // (undocumented)
@@ -900,10 +925,10 @@ export interface TlSelectProps {
 }
 
 // @public
-export const TlSelectTrigger: React_2.ForwardRefExoticComponent<TlSelectTriggerProps & React_2.RefAttributes<HTMLButtonElement>>;
+export const TldrawUiSelectTrigger: React_2.ForwardRefExoticComponent<TldrawUiSelectTriggerProps & React_2.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
-export interface TlSelectTriggerProps extends React_2.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface TldrawUiSelectTriggerProps extends React_2.ButtonHTMLAttributes<HTMLButtonElement> {
     // (undocumented)
     children: React_2.ReactNode;
     // (undocumented)
@@ -911,23 +936,23 @@ export interface TlSelectTriggerProps extends React_2.ButtonHTMLAttributes<HTMLB
 }
 
 // @public
-export function TlSelectValue({ placeholder, icon, children }: TlSelectValueProps): JSX.Element;
+export function TldrawUiSelectValue({ placeholder, icon, children }: TldrawUiSelectValueProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlSelectValueProps {
+export interface TldrawUiSelectValueProps {
     // (undocumented)
     children?: React_2.ReactNode;
     // (undocumented)
-    icon?: string | TlIconJsx;
+    icon?: string | TldrawUiIconJsx;
     // (undocumented)
     placeholder?: string;
 }
 
 // @public (undocumented)
-export const TlSlider: React_3.ForwardRefExoticComponent<TlSliderProps & React_3.RefAttributes<HTMLDivElement>>;
+export const TldrawUiSlider: React_3.ForwardRefExoticComponent<TldrawUiSliderProps & React_3.RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export interface TlSliderProps {
+export interface TldrawUiSliderProps {
     // (undocumented)
     'data-testid'?: string;
     // (undocumented)
@@ -956,19 +981,19 @@ export interface TlSliderProps {
 }
 
 // @public (undocumented)
-export function TlSpinner({ label, ...props }: TlSpinnerProps): JSX.Element;
+export function TldrawUiSpinner({ label, ...props }: TldrawUiSpinnerProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlSpinnerProps extends React.SVGProps<SVGSVGElement> {
+export interface TldrawUiSpinnerProps extends React.SVGProps<SVGSVGElement> {
     // (undocumented)
     label?: string;
 }
 
 // @public (undocumented)
-export function TlSwitch({ checked, onCheckedChange, disabled, label, id, className, ...props }: TlSwitchProps): JSX.Element;
+export function TldrawUiSwitch({ checked, onCheckedChange, disabled, label, id, className, ...props }: TldrawUiSwitchProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlSwitchProps extends HTMLAttributes<HTMLDivElement> {
+export interface TldrawUiSwitchProps extends HTMLAttributes<HTMLDivElement> {
     // (undocumented)
     checked: boolean;
     // (undocumented)
@@ -982,7 +1007,7 @@ export interface TlSwitchProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 // @public (undocumented)
-export interface TlTabsContextValue {
+export interface TldrawUiTabsContextValue {
     // (undocumented)
     activeTab: string;
     // (undocumented)
@@ -990,28 +1015,28 @@ export interface TlTabsContextValue {
 }
 
 // @public (undocumented)
-export function TlTabsPage({ id, className, ...props }: TlTabsPageProps): JSX.Element | null;
+export function TldrawUiTabsPage({ id, className, ...props }: TldrawUiTabsPageProps): JSX.Element | null;
 
 // @public (undocumented)
-export interface TlTabsPageProps extends HTMLAttributes<HTMLDivElement> {
+export interface TldrawUiTabsPageProps extends HTMLAttributes<HTMLDivElement> {
     // (undocumented)
     id: string;
 }
 
 // @public (undocumented)
-export function TlTabsRoot({ activeTab, onTabChange, children }: TlTabsRootProps): JSX.Element;
+export function TldrawUiTabsRoot({ activeTab, onTabChange, children }: TldrawUiTabsRootProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlTabsRootProps extends TlTabsContextValue {
+export interface TldrawUiTabsRootProps extends TldrawUiTabsContextValue {
     // (undocumented)
     children: ReactNode;
 }
 
 // @public (undocumented)
-export function TlTabsTab({ id, disabled, children, className, ...props }: TlTabsTabProps): JSX.Element;
+export function TldrawUiTabsTab({ id, disabled, children, className, ...props }: TldrawUiTabsTabProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlTabsTabProps extends HTMLAttributes<HTMLButtonElement> {
+export interface TldrawUiTabsTabProps extends HTMLAttributes<HTMLButtonElement> {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -1021,19 +1046,19 @@ export interface TlTabsTabProps extends HTMLAttributes<HTMLButtonElement> {
 }
 
 // @public (undocumented)
-export function TlTabsTabs({ children }: TlTabsTabsProps): JSX.Element;
+export function TldrawUiTabsTabs({ children }: TldrawUiTabsTabsProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlTabsTabsProps {
+export interface TldrawUiTabsTabsProps {
     // (undocumented)
     children: ReactNode;
 }
 
 // @public (undocumented)
-export function TlToast({ open, defaultOpen, onOpenChange, severity, icon, iconLabel, title, description, actions, keepOpen, closeLabel, duration }: TlToastProps): JSX.Element;
+export function TldrawUiToast({ open, defaultOpen, onOpenChange, severity, icon, iconLabel, title, description, actions, keepOpen, closeLabel, duration }: TldrawUiToastProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlToastAction {
+export interface TldrawUiToastAction {
     // (undocumented)
     label: string;
     // (undocumented)
@@ -1043,9 +1068,9 @@ export interface TlToastAction {
 }
 
 // @public (undocumented)
-export interface TlToastData {
+export interface TldrawUiToastData {
     // (undocumented)
-    actions?: TlToastAction[];
+    actions?: TldrawUiToastAction[];
     // (undocumented)
     description?: string;
     // (undocumented)
@@ -1057,15 +1082,15 @@ export interface TlToastData {
     // (undocumented)
     keepOpen?: boolean;
     // (undocumented)
-    severity?: TlToastSeverity;
+    severity?: TldrawUiToastSeverity;
     // (undocumented)
     title?: string;
 }
 
 // @public (undocumented)
-export interface TlToastProps {
+export interface TldrawUiToastProps {
     // (undocumented)
-    actions?: TlToastAction[];
+    actions?: TldrawUiToastAction[];
     // (undocumented)
     closeLabel?: string;
     // (undocumented)
@@ -1085,16 +1110,16 @@ export interface TlToastProps {
     // (undocumented)
     open?: boolean;
     // (undocumented)
-    severity?: TlToastSeverity;
+    severity?: TldrawUiToastSeverity;
     // (undocumented)
     title?: ReactNode;
 }
 
 // @public (undocumented)
-export function TlToastProvider({ children, ...props }: TlToastProviderProps): JSX.Element;
+export function TldrawUiToastProvider({ children, ...props }: TldrawUiToastProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlToastProviderProps {
+export interface TldrawUiToastProviderProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -1106,37 +1131,37 @@ export interface TlToastProviderProps {
 }
 
 // @public (undocumented)
-export interface TlToastsContextValue {
+export interface TldrawUiToastsContextValue {
     // (undocumented)
-    addToast(toast: TlToastData): string;
+    addToast(toast: TldrawUiToastData): string;
     // (undocumented)
     clearToasts(): void;
     // (undocumented)
     removeToast(id: string): void;
     // (undocumented)
-    toasts: Atom<TlToastData[]>;
+    toasts: Atom<TldrawUiToastData[]>;
 }
 
 // @public (undocumented)
-export type TlToastSeverity = 'error' | 'info' | 'success' | 'warning';
+export type TldrawUiToastSeverity = 'error' | 'info' | 'success' | 'warning';
 
 // @public (undocumented)
-export function TlToastsProvider({ children, ...toastProviderProps }: TlToastsProviderProps): JSX.Element;
+export function TldrawUiToastsProvider({ children, ...toastProviderProps }: TldrawUiToastsProviderProps): JSX.Element;
 
 // @public (undocumented)
-export type TlToastsProviderProps = TlToastProviderProps;
+export type TldrawUiToastsProviderProps = TldrawUiToastProviderProps;
 
 // @public (undocumented)
-export function TlToastViewport(): JSX.Element;
+export function TldrawUiToastViewport(): JSX.Element;
 
 // @public (undocumented)
-export const TlToolbar: React_3.ForwardRefExoticComponent<TlToolbarProps & React_3.RefAttributes<HTMLDivElement>>;
+export const TldrawUiToolbar: React_3.ForwardRefExoticComponent<TldrawUiToolbarProps & React_3.RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export const TlToolbarButton: React_3.ForwardRefExoticComponent<TlToolbarButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
+export const TldrawUiToolbarButton: React_3.ForwardRefExoticComponent<TldrawUiToolbarButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
-export interface TlToolbarButtonProps extends React_3.HTMLAttributes<HTMLButtonElement> {
+export interface TldrawUiToolbarButtonProps extends React_3.HTMLAttributes<HTMLButtonElement> {
     // (undocumented)
     asChild?: boolean;
     // (undocumented)
@@ -1154,7 +1179,7 @@ export interface TlToolbarButtonProps extends React_3.HTMLAttributes<HTMLButtonE
 }
 
 // @public (undocumented)
-export interface TlToolbarProps extends React_3.HTMLAttributes<HTMLDivElement> {
+export interface TldrawUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement> {
     // (undocumented)
     children?: React_3.ReactNode;
     // (undocumented)
@@ -1170,10 +1195,10 @@ export interface TlToolbarProps extends React_3.HTMLAttributes<HTMLDivElement> {
 }
 
 // @public (undocumented)
-export function TlToolbarToggleGroup({ children, className, type, asChild, ...props }: TlToolbarToggleGroupProps): JSX.Element;
+export function TldrawUiToolbarToggleGroup({ children, className, type, asChild, ...props }: TldrawUiToolbarToggleGroupProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlToolbarToggleGroupProps extends React_3.HTMLAttributes<HTMLDivElement> {
+export interface TldrawUiToolbarToggleGroupProps extends React_3.HTMLAttributes<HTMLDivElement> {
     // (undocumented)
     asChild?: boolean;
     // (undocumented)
@@ -1191,10 +1216,10 @@ export interface TlToolbarToggleGroupProps extends React_3.HTMLAttributes<HTMLDi
 }
 
 // @public (undocumented)
-export function TlToolbarToggleItem({ children, className, type, value, tooltip, ...props }: TlToolbarToggleItemProps): JSX.Element;
+export function TldrawUiToolbarToggleItem({ children, className, type, value, tooltip, ...props }: TldrawUiToolbarToggleItemProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlToolbarToggleItemProps extends React_3.HTMLAttributes<HTMLButtonElement> {
+export interface TldrawUiToolbarToggleItemProps extends React_3.HTMLAttributes<HTMLButtonElement> {
     // (undocumented)
     children?: React_3.ReactNode;
     // (undocumented)
@@ -1208,10 +1233,10 @@ export interface TlToolbarToggleItemProps extends React_3.HTMLAttributes<HTMLBut
 }
 
 // @public (undocumented)
-export const TlTooltip: React_3.ForwardRefExoticComponent<TlTooltipProps & React_3.RefAttributes<HTMLButtonElement>>;
+export const TldrawUiTooltip: React_3.ForwardRefExoticComponent<TldrawUiTooltipProps & React_3.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
-export interface TlTooltipProps {
+export interface TldrawUiTooltipProps {
     // (undocumented)
     children: React_3.ReactNode;
     // (undocumented)
@@ -1229,10 +1254,10 @@ export interface TlTooltipProps {
 }
 
 // @public (undocumented)
-export function TlTooltipProvider({ children, isMoving }: TlTooltipProviderProps): JSX.Element;
+export function TldrawUiTooltipProvider({ children, isMoving }: TldrawUiTooltipProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlTooltipProviderProps {
+export interface TldrawUiTooltipProviderProps {
     // (undocumented)
     children: React_3.ReactNode;
     // (undocumented)
@@ -1240,7 +1265,7 @@ export interface TlTooltipProviderProps {
 }
 
 // @public (undocumented)
-export interface TlTranslationContextValue {
+export interface TldrawUiTranslationContextValue {
     // (undocumented)
     dir: 'ltr' | 'rtl';
     // (undocumented)
@@ -1248,10 +1273,10 @@ export interface TlTranslationContextValue {
 }
 
 // @public (undocumented)
-export function TlTranslationProvider({ dir, msg, children }: TlTranslationProviderProps): JSX.Element;
+export function TldrawUiTranslationProvider({ dir, msg, children }: TldrawUiTranslationProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface TlTranslationProviderProps {
+export interface TldrawUiTranslationProviderProps {
     // (undocumented)
     children: ReactNode;
     // (undocumented)
@@ -1261,71 +1286,46 @@ export interface TlTranslationProviderProps {
 }
 
 // @public (undocumented)
-export function TlUiProvider({ theme, dir, msg, iconAssetUrls, container, breakpoint, onMenuOpenChange, className, children }: TlUiProviderProps): JSX.Element;
+export function useTldrawUiBreakpoint(): number;
 
 // @public (undocumented)
-export interface TlUiProviderProps {
-    // (undocumented)
-    breakpoint?: number;
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    container?: HTMLElement | null;
-    // (undocumented)
-    dir?: 'ltr' | 'rtl';
-    // (undocumented)
-    iconAssetUrls?: Record<string, string>;
-    // (undocumented)
-    msg?(key: string): string | undefined;
-    // (undocumented)
-    onMenuOpenChange?(id: string, isOpen: boolean): void;
-    // (undocumented)
-    theme?: 'dark' | 'light';
-}
+export function useTldrawUiContainer(): HTMLElement | undefined;
 
 // @public (undocumented)
-export function useTlBreakpoint(): number;
+export function useTldrawUiDialogs(): TldrawUiDialogsContextValue;
 
 // @public (undocumented)
-export function useTlContainer(): HTMLElement | undefined;
+export function useTldrawUiIconUrl(icon: string): string | undefined;
 
 // @public (undocumented)
-export function useTlDialogs(): TlDialogsContextValue;
+export function useTldrawUiIsAnyMenuOpen(): boolean;
 
 // @public (undocumented)
-export function useTlIconUrl(icon: string): string | undefined;
-
-// @public (undocumented)
-export function useTlIsAnyMenuOpen(): boolean;
-
-// @public (undocumented)
-export function useTlMenuContext(): {
+export function useTldrawUiMenuContext(): {
     sourceId: string;
-    type: TlMenuContextType;
+    type: TldrawUiMenuContextType;
 };
 
 // @public (undocumented)
-export function useTlMenuIsOpen(id: string): readonly [isOpen: boolean, onOpenChange: (isOpen: boolean) => void];
+export function useTldrawUiMenuIsOpen(id: string): readonly [isOpen: boolean, onOpenChange: (isOpen: boolean) => void];
 
 // @public (undocumented)
-export function useTlMenuState(): TlMenuStateContextValue;
+export function useTldrawUiMenuState(): TldrawUiMenuStateContextValue;
 
 // @public (undocumented)
-export function useTlOrientation(): TlOrientationContext;
+export function useTldrawUiOrientation(): TldrawUiOrientationContext;
 
 // @public (undocumented)
-export function useTlPlatform(): TlPlatformContextValue;
+export function useTldrawUiPlatform(): TldrawUiPlatformContextValue;
 
 // @public (undocumented)
-export function useTlPortalContainer(): HTMLElement | undefined;
+export function useTldrawUiPortalContainer(): HTMLElement | undefined;
 
 // @public (undocumented)
-export function useTlToasts(): TlToastsContextValue;
+export function useTldrawUiToasts(): TldrawUiToastsContextValue;
 
 // @public (undocumented)
-export function useTlTranslation(): TlTranslationContextValue;
+export function useTldrawUiTranslation(): TldrawUiTranslationContextValue;
 
 // (No @packageDocumentation comment for this package)
 

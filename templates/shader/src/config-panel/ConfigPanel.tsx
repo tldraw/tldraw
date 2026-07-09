@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { TlButton, TlIcon, useLocalStorageState } from 'tldraw'
+import { TldrawUiButton, TldrawUiIcon, useLocalStorageState } from 'tldraw'
 
 export function ConfigPanel({
 	children,
@@ -26,13 +26,21 @@ export function ConfigPanel({
 			{/* Header with collapse/expand button */}
 			<div className="shader-config-panel__header">
 				{isExpanded && (
-					<TlButton type="normal" onClick={onReset} className="shader-config-panel__reset-button">
+					<TldrawUiButton
+						type="normal"
+						onClick={onReset}
+						className="shader-config-panel__reset-button"
+					>
 						Reset
-					</TlButton>
+					</TldrawUiButton>
 				)}
-				<TlButton type="icon" onClick={toggleExpanded} className="shader-config-panel__toggle">
-					<TlIcon icon={<MixerIcon />} small label="Expand / collapse" />
-				</TlButton>
+				<TldrawUiButton
+					type="icon"
+					onClick={toggleExpanded}
+					className="shader-config-panel__toggle"
+				>
+					<TldrawUiIcon icon={<MixerIcon />} small label="Expand / collapse" />
+				</TldrawUiButton>
 			</div>
 
 			{isExpanded && <div className="shader-config-panel__content">{children}</div>}

@@ -5,7 +5,7 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
-import { TlButton } from '@tldraw/ui'
+import { TldrawUiButton } from '@tldraw/ui'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -168,7 +168,7 @@ export function SignedOutShareButton({
 
 	return (
 		<TlaFileShareMenu fileId={fileId} context={context} source="anon">
-			<TlButton
+			<TldrawUiButton
 				type="icon"
 				data-testid="tla-share-button"
 				tooltip={shareLbl}
@@ -177,7 +177,7 @@ export function SignedOutShareButton({
 				onClick={() => trackEvent('open-share-menu', { source: 'anon-top-bar' })}
 			>
 				<TlaIcon icon="share" />
-			</TlButton>
+			</TldrawUiButton>
 		</TlaFileShareMenu>
 	)
 }

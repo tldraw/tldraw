@@ -1,24 +1,30 @@
 import classNames from 'classnames'
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
-import { TlButton, TlButtonIcon, TlButtonLabel, TlButtonSpinner, TlButtonType } from './TlButton'
+import {
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiButtonLabel,
+	TldrawUiButtonSpinner,
+	TldrawUiButtonType,
+} from './TldrawUiButton'
 
 /** @public */
-export interface TlCopyButtonProps {
+export interface TldrawUiCopyButtonProps {
 	onCopy?(): void | Promise<void>
 	value?: string
-	type?: TlButtonType
+	type?: TldrawUiButtonType
 	children: ReactNode
 	className?: string
 }
 
 /** @public @react */
-export function TlCopyButton({
+export function TldrawUiCopyButton({
 	children,
 	type = 'primary',
 	onCopy,
 	value,
 	className,
-}: TlCopyButtonProps) {
+}: TldrawUiCopyButtonProps) {
 	const [copied, setCopied] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)
 	const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -63,15 +69,19 @@ export function TlCopyButton({
 	}, [copied, isLoading, onCopy, value])
 
 	return (
-		<TlButton
+		<TldrawUiButton
 			type={type}
 			className={classNames('tl-copy-button', className)}
 			onClick={handleClick}
 			disabled={isLoading}
 			data-state={isLoading ? 'loading' : 'ready'}
 		>
-			<TlButtonLabel>{children}</TlButtonLabel>
-			{isLoading ? <TlButtonSpinner /> : <TlButtonIcon icon={copied ? 'check' : 'copy'} />}
-		</TlButton>
+			<TldrawUiButtonLabel>{children}</TldrawUiButtonLabel>
+			{isLoading ? (
+				<TldrawUiButtonSpinner />
+			) : (
+				<TldrawUiButtonIcon icon={copied ? 'check' : 'copy'} />
+			)}
+		</TldrawUiButton>
 	)
 }

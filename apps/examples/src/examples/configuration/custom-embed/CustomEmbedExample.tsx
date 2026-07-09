@@ -5,8 +5,8 @@ import {
 	EmbedShapeUtil,
 	TLComponents,
 	Tldraw,
-	TlButton,
-	TlButtonLabel,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
 	useActions,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -58,13 +58,13 @@ function InsertEmbedButton() {
 	const insertEmbed = actions['insert-embed']
 	return (
 		<div style={{ pointerEvents: 'all' }}>
-			<TlButton
+			<TldrawUiButton
 				type="normal"
 				onClick={() => insertEmbed.onSelect('helper-buttons')}
 				style={{ backgroundColor: '#e5e5e5' }}
 			>
-				<TlButtonLabel>Insert embed</TlButtonLabel>
-			</TlButton>
+				<TldrawUiButtonLabel>Insert embed</TldrawUiButtonLabel>
+			</TldrawUiButton>
 		</div>
 	)
 }

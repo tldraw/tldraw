@@ -1,6 +1,6 @@
 import { isAccelKey, preventDefault, TiptapEditor, useEditor } from '@tldraw/editor'
-import { TlButtonIcon } from '@tldraw/ui'
-import { TlToolbarButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiToolbarButton } from '@tldraw/ui'
 import { useEffect, useMemo, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -116,7 +116,7 @@ export function DefaultRichTextToolbarContent({
 	return actions.map(({ name, attrs, onSelect }) => {
 		const isActive = textEditor.view ? textEditor.isActive(name, attrs) : false
 		return (
-			<TlToolbarButton
+			<TldrawUiToolbarButton
 				key={name}
 				title={msg(`tool.rich-text-${name}`)}
 				data-testid={`rich-text.${name}`}
@@ -127,8 +127,8 @@ export function DefaultRichTextToolbarContent({
 				role="option"
 				aria-pressed={isActive}
 			>
-				<TlButtonIcon small icon={name} />
-			</TlToolbarButton>
+				<TldrawUiButtonIcon small icon={name} />
+			</TldrawUiToolbarButton>
 		)
 	})
 }

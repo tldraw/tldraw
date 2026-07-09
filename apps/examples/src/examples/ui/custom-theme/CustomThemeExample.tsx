@@ -1,4 +1,4 @@
-import { TlButton, TlButtonLabel } from '@tldraw/ui'
+import { TldrawUiButton, TldrawUiButtonLabel } from '@tldraw/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	DEFAULT_THEME,
@@ -12,7 +12,7 @@ import {
 	toRichText,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { ExampleTlUiProvider } from '../../../misc/ExampleTlUiProvider'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import silkscreenBoldUrl from './custom-font/Silkscreen-Bold.ttf'
 import silkscreenRegularUrl from './custom-font/Silkscreen-Regular.ttf'
 import './custom-theme.css'
@@ -276,7 +276,7 @@ function ThemeControls({
 	onStrokeWidthChange(v: number): void
 }) {
 	return (
-		<ExampleTlUiProvider>
+		<ExampleTldrawUiProvider>
 			<div className="tl-menu custom-theme-toolbar" onPointerDown={(e) => e.stopPropagation()}>
 				<ThemeSlider
 					label="Font size"
@@ -306,7 +306,7 @@ function ThemeControls({
 					defaultValue={DEFAULTS.strokeWidth}
 				/>
 
-				<TlButton
+				<TldrawUiButton
 					type="low"
 					onClick={() => {
 						onFontSizeChange(DEFAULTS.fontSize)
@@ -314,10 +314,10 @@ function ThemeControls({
 						onStrokeWidthChange(DEFAULTS.strokeWidth)
 					}}
 				>
-					<TlButtonLabel>Reset to defaults</TlButtonLabel>
-				</TlButton>
+					<TldrawUiButtonLabel>Reset to defaults</TldrawUiButtonLabel>
+				</TldrawUiButton>
 			</div>
-		</ExampleTlUiProvider>
+		</ExampleTldrawUiProvider>
 	)
 }
 

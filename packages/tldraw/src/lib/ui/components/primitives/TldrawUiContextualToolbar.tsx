@@ -11,7 +11,7 @@ import {
 	useValue,
 	Vec,
 } from '@tldraw/editor'
-import { TlToolbar } from '@tldraw/ui'
+import { TldrawUiToolbar } from '@tldraw/ui'
 import classNames from 'classnames'
 import React, { RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
@@ -173,9 +173,14 @@ export function TldrawUiContextualToolbar({
 			className={classNames('tlui-contextual-toolbar', className)}
 			onPointerDown={editor.markEventAsHandled}
 		>
-			<TlToolbar orientation="horizontal" className="tlui-menu" label={label} tooltipSide="top">
+			<TldrawUiToolbar
+				orientation="horizontal"
+				className="tlui-menu"
+				label={label}
+				tooltipSide="top"
+			>
 				{children}
-			</TlToolbar>
+			</TldrawUiToolbar>
 		</div>
 	)
 }

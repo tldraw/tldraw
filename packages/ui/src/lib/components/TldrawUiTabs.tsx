@@ -2,28 +2,28 @@ import classNames from 'classnames'
 import { createContext, HTMLAttributes, ReactNode, useCallback, useContext } from 'react'
 
 /** @public */
-export interface TlTabsContextValue {
+export interface TldrawUiTabsContextValue {
 	activeTab: string
 	onTabChange(tab: string): void
 }
 
-const tabsContext = createContext<TlTabsContextValue | null>(null)
+const tabsContext = createContext<TldrawUiTabsContextValue | null>(null)
 
-function useTlTabsContext(): TlTabsContextValue {
+function useTldrawUiTabsContext(): TldrawUiTabsContextValue {
 	const ctx = useContext(tabsContext)
 	if (!ctx) {
-		throw new Error('TlTabsTab must be used inside TlTabsRoot')
+		throw new Error('TldrawUiTabsTab must be used inside TldrawUiTabsRoot')
 	}
 	return ctx
 }
 
 /** @public */
-export interface TlTabsRootProps extends TlTabsContextValue {
+export interface TldrawUiTabsRootProps extends TldrawUiTabsContextValue {
 	children: ReactNode
 }
 
 /** @public @react */
-export function TlTabsRoot({ activeTab, onTabChange, children }: TlTabsRootProps) {
+export function TldrawUiTabsRoot({ activeTab, onTabChange, children }: TldrawUiTabsRootProps) {
 	return (
 		<div className="tl-tabs">
 			<tabsContext.Provider value={{ activeTab, onTabChange }}>{children}</tabsContext.Provider>
@@ -32,12 +32,12 @@ export function TlTabsRoot({ activeTab, onTabChange, children }: TlTabsRootProps
 }
 
 /** @public */
-export interface TlTabsTabsProps {
+export interface TldrawUiTabsTabsProps {
 	children: ReactNode
 }
 
 /** @public @react */
-export function TlTabsTabs({ children }: TlTabsTabsProps) {
+export function TldrawUiTabsTabs({ children }: TldrawUiTabsTabsProps) {
 	return (
 		<div className="tl-tabs__tabs" role="tablist">
 			{children}
@@ -47,15 +47,21 @@ export function TlTabsTabs({ children }: TlTabsTabsProps) {
 }
 
 /** @public */
-export interface TlTabsTabProps extends HTMLAttributes<HTMLButtonElement> {
+export interface TldrawUiTabsTabProps extends HTMLAttributes<HTMLButtonElement> {
 	id: string
 	disabled?: boolean
 	children: ReactNode
 }
 
 /** @public @react */
-export function TlTabsTab({ id, disabled = false, children, className, ...props }: TlTabsTabProps) {
-	const { activeTab, onTabChange } = useTlTabsContext()
+export function TldrawUiTabsTab({
+	id,
+	disabled = false,
+	children,
+	className,
+	...props
+}: TldrawUiTabsTabProps) {
+	const { activeTab, onTabChange } = useTldrawUiTabsContext()
 	const isActive = activeTab === id
 
 	const handleClick = useCallback(() => {
@@ -80,13 +86,13 @@ export function TlTabsTab({ id, disabled = false, children, className, ...props 
 }
 
 /** @public */
-export interface TlTabsPageProps extends HTMLAttributes<HTMLDivElement> {
+export interface TldrawUiTabsPageProps extends HTMLAttributes<HTMLDivElement> {
 	id: string
 }
 
 /** @public @react */
-export function TlTabsPage({ id, className, ...props }: TlTabsPageProps) {
-	const { activeTab } = useTlTabsContext()
+export function TldrawUiTabsPage({ id, className, ...props }: TldrawUiTabsPageProps) {
+	const { activeTab } = useTldrawUiTabsContext()
 	if (activeTab !== id) return null
 
 	return (

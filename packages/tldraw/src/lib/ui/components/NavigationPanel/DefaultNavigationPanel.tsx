@@ -1,6 +1,6 @@
 import { usePassThroughWheelEvents } from '@tldraw/editor'
-import { TlButtonIcon } from '@tldraw/ui'
-import { TlToolbar, TlToolbarButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiToolbar, TldrawUiToolbarButton } from '@tldraw/ui'
 import { memo, useCallback, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { unwrapLabel, useActions } from '../../context/actions'
@@ -34,55 +34,55 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 
 	return (
 		<div ref={ref} className="tlui-navigation-panel">
-			<TlToolbar orientation="horizontal" label={msg('navigation-zone.title')}>
+			<TldrawUiToolbar orientation="horizontal" label={msg('navigation-zone.title')}>
 				{ZoomMenu && breakpoint < PORTRAIT_BREAKPOINT.TABLET ? (
 					<ZoomMenu />
 				) : (
 					<>
 						{Minimap && dir === 'rtl' && (
-							<TlToolbarButton
+							<TldrawUiToolbarButton
 								type="icon"
 								data-testid="minimap.toggle-button"
 								title={msg('navigation-zone.toggle-minimap')}
 								onClick={toggleMinimap}
 							>
-								<TlButtonIcon small icon={collapsed ? 'chevron-left' : 'chevron-right'} />
-							</TlToolbarButton>
+								<TldrawUiButtonIcon small icon={collapsed ? 'chevron-left' : 'chevron-right'} />
+							</TldrawUiToolbarButton>
 						)}
 						{!collapsed && (
-							<TlToolbarButton
+							<TldrawUiToolbarButton
 								type="icon"
 								data-testid="minimap.zoom-out"
 								title={`${msg(unwrapLabel(actions['zoom-out'].label))} ${kbdStr(actions['zoom-out'].kbd!)}`}
 								onClick={() => actions['zoom-out'].onSelect('navigation-zone')}
 							>
-								<TlButtonIcon small icon="minus" />
-							</TlToolbarButton>
+								<TldrawUiButtonIcon small icon="minus" />
+							</TldrawUiToolbarButton>
 						)}
 						{ZoomMenu && <ZoomMenu key="zoom-menu" />}
 						{!collapsed && (
-							<TlToolbarButton
+							<TldrawUiToolbarButton
 								type="icon"
 								data-testid="minimap.zoom-in"
 								title={`${msg(unwrapLabel(actions['zoom-in'].label))} ${kbdStr(actions['zoom-in'].kbd!)}`}
 								onClick={() => actions['zoom-in'].onSelect('navigation-zone')}
 							>
-								<TlButtonIcon small icon="plus" />
-							</TlToolbarButton>
+								<TldrawUiButtonIcon small icon="plus" />
+							</TldrawUiToolbarButton>
 						)}
 						{Minimap && dir !== 'rtl' && (
-							<TlToolbarButton
+							<TldrawUiToolbarButton
 								type="icon"
 								data-testid="minimap.toggle-button"
 								title={msg('navigation-zone.toggle-minimap')}
 								onClick={toggleMinimap}
 							>
-								<TlButtonIcon small icon={collapsed ? 'chevron-right' : 'chevron-left'} />
-							</TlToolbarButton>
+								<TldrawUiButtonIcon small icon={collapsed ? 'chevron-right' : 'chevron-left'} />
+							</TldrawUiToolbarButton>
 						)}
 					</>
 				)}
-			</TlToolbar>
+			</TldrawUiToolbar>
 			{Minimap && breakpoint >= PORTRAIT_BREAKPOINT.TABLET && !collapsed && <Minimap />}
 		</div>
 	)

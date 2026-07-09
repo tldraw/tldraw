@@ -1,12 +1,12 @@
 import { RecursivePartial, defaultUserPreferences, track, useMaybeEditor } from '@tldraw/editor'
 import {
-	TlBreakpointProvider,
-	TlIconProvider,
-	TlMenuStateProvider,
-	TlPlatformProvider,
-	TlPortalProvider,
-	TlTooltipProvider,
-	TlTranslationProvider,
+	TldrawUiBreakpointProvider,
+	TldrawUiIconProvider,
+	TldrawUiMenuStateProvider,
+	TldrawUiPlatformProvider,
+	TldrawUiPortalProvider,
+	TldrawUiTooltipProvider,
+	TldrawUiTranslationProvider as TldrawUiPrimitiveTranslationProvider,
 } from '@tldraw/ui'
 import { ReactNode, useCallback } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
@@ -131,19 +131,19 @@ function TldrawUiSharedProvider({ children }: { children: ReactNode }) {
 	const isMoving = useCallback(() => editor?.getCameraState() === 'moving', [editor])
 
 	return (
-		<TlTranslationProvider dir={dir} msg={msg}>
-			<TlPlatformProvider>
-				<TlPortalProvider container={editor?.getContainer() ?? null}>
-					<TlIconProvider assetUrls={assetUrls.icons}>
-						<TlMenuStateProvider useMenuIsOpen={useMenuIsOpen}>
-							<TlBreakpointProvider breakpoint={breakpoint}>
-								<TlTooltipProvider isMoving={isMoving}>{children}</TlTooltipProvider>
-							</TlBreakpointProvider>
-						</TlMenuStateProvider>
-					</TlIconProvider>
-				</TlPortalProvider>
-			</TlPlatformProvider>
-		</TlTranslationProvider>
+		<TldrawUiPrimitiveTranslationProvider dir={dir} msg={msg}>
+			<TldrawUiPlatformProvider>
+				<TldrawUiPortalProvider container={editor?.getContainer() ?? null}>
+					<TldrawUiIconProvider assetUrls={assetUrls.icons}>
+						<TldrawUiMenuStateProvider useMenuIsOpen={useMenuIsOpen}>
+							<TldrawUiBreakpointProvider breakpoint={breakpoint}>
+								<TldrawUiTooltipProvider isMoving={isMoving}>{children}</TldrawUiTooltipProvider>
+							</TldrawUiBreakpointProvider>
+						</TldrawUiMenuStateProvider>
+					</TldrawUiIconProvider>
+				</TldrawUiPortalProvider>
+			</TldrawUiPlatformProvider>
+		</TldrawUiPrimitiveTranslationProvider>
 	)
 }
 

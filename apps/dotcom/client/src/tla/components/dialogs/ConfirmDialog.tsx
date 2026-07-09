@@ -1,11 +1,11 @@
 import {
-	TlButton,
-	TlButtonLabel,
-	TlDialogBody,
-	TlDialogCloseButton,
-	TlDialogFooter,
-	TlDialogHeader,
-	TlDialogTitle,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 } from '@tldraw/ui'
 import { ReactNode } from 'react'
 
@@ -28,27 +28,27 @@ export function ConfirmDialog({
 }) {
 	return (
 		<>
-			<TlDialogHeader>
-				<TlDialogTitle>{title}</TlDialogTitle>
-				<TlDialogCloseButton />
-			</TlDialogHeader>
-			<TlDialogBody style={{ maxWidth: 300 }}>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{title}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody style={{ maxWidth: 300 }}>
 				<p>{description}</p>
-			</TlDialogBody>
-			<TlDialogFooter className="tlui-dialog__footer__actions">
-				<TlButton type="normal" onClick={onClose}>
-					<TlButtonLabel>{cancelLabel}</TlButtonLabel>
-				</TlButton>
-				<TlButton
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+				<TldrawUiButton type="normal" onClick={onClose}>
+					<TldrawUiButtonLabel>{cancelLabel}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+				<TldrawUiButton
 					type={confirmType}
 					onClick={async () => {
 						await onConfirm()
 						onClose()
 					}}
 				>
-					<TlButtonLabel>{confirmLabel}</TlButtonLabel>
-				</TlButton>
-			</TlDialogFooter>
+					<TldrawUiButtonLabel>{confirmLabel}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDialogFooter>
 		</>
 	)
 }

@@ -1,23 +1,23 @@
 import classnames from 'classnames'
 import { Toast as _Toast } from 'radix-ui'
 import { ReactNode } from 'react'
-import { useTlTranslation } from '../context/translation'
-import { TlButton, TlButtonLabel } from './TlButton'
-import { TlIcon } from './TlIcon'
+import { useTldrawUiTranslation } from '../context/translation'
+import { TldrawUiButton, TldrawUiButtonLabel } from './TldrawUiButton'
+import { TldrawUiIcon } from './TldrawUiIcon'
 
 const DEFAULT_TOAST_DURATION = 4000
 
 /** @public */
-export type TlToastSeverity = 'success' | 'info' | 'warning' | 'error'
+export type TldrawUiToastSeverity = 'success' | 'info' | 'warning' | 'error'
 
-const SEVERITY_TO_ICON: Record<TlToastSeverity, string> = {
+const SEVERITY_TO_ICON: Record<TldrawUiToastSeverity, string> = {
 	success: 'check-circle',
 	warning: 'warning-triangle',
 	error: 'cross-circle',
 	info: 'info-circle',
 }
 
-const SEVERITY_TO_LABEL: Record<TlToastSeverity, string> = {
+const SEVERITY_TO_LABEL: Record<TldrawUiToastSeverity, string> = {
 	success: 'Success',
 	info: 'Info',
 	warning: 'Warning',
@@ -25,14 +25,14 @@ const SEVERITY_TO_LABEL: Record<TlToastSeverity, string> = {
 }
 
 /** @public */
-export interface TlToastAction {
+export interface TldrawUiToastAction {
 	type: 'primary' | 'danger' | 'normal'
 	label: string
 	onClick(): void
 }
 
 /** @public */
-export interface TlToastProviderProps {
+export interface TldrawUiToastProviderProps {
 	children: ReactNode
 	swipeDirection?: 'right' | 'left' | 'up' | 'down'
 	label?: string
@@ -40,28 +40,28 @@ export interface TlToastProviderProps {
 }
 
 /** @public @react */
-export function TlToastProvider({ children, ...props }: TlToastProviderProps) {
+export function TldrawUiToastProvider({ children, ...props }: TldrawUiToastProviderProps) {
 	return <_Toast.Provider {...props}>{children}</_Toast.Provider>
 }
 
 /** @public */
-export interface TlToastProps {
+export interface TldrawUiToastProps {
 	open?: boolean
 	defaultOpen?: boolean
 	onOpenChange?(open: boolean): void
-	severity?: TlToastSeverity
+	severity?: TldrawUiToastSeverity
 	icon?: string
 	iconLabel?: string
 	title?: ReactNode
 	description?: ReactNode
-	actions?: TlToastAction[]
+	actions?: TldrawUiToastAction[]
 	keepOpen?: boolean
 	closeLabel?: string
 	duration?: number
 }
 
 /** @public @react */
-export function TlToast({
+export function TldrawUiToast({
 	open,
 	defaultOpen,
 	onOpenChange,
@@ -74,8 +74,8 @@ export function TlToast({
 	keepOpen,
 	closeLabel,
 	duration,
-}: TlToastProps) {
-	const { msg } = useTlTranslation()
+}: TldrawUiToastProps) {
+	const { msg } = useTldrawUiTranslation()
 
 	const hasActions = actions && actions.length > 0
 
@@ -98,7 +98,7 @@ export function TlToast({
 		>
 			{resolvedIcon && (
 				<div className="tl-toast__icon">
-					<TlIcon label={resolvedIconLabel} icon={resolvedIcon} />
+					<TldrawUiIcon label={resolvedIconLabel} icon={resolvedIcon} />
 				</div>
 			)}
 			<div
@@ -117,24 +117,24 @@ export function TlToast({
 					<div className="tl-toast__actions">
 						{actions.map((action, i) => (
 							<_Toast.Action key={i} altText={action.label} asChild onClick={action.onClick}>
-								<TlButton type={action.type}>
-									<TlButtonLabel>{action.label}</TlButtonLabel>
-								</TlButton>
+								<TldrawUiButton type={action.type}>
+									<TldrawUiButtonLabel>{action.label}</TldrawUiButtonLabel>
+								</TldrawUiButton>
 							</_Toast.Action>
 						))}
 						<_Toast.Close asChild>
-							<TlButton type="normal" className="tl-toast__close">
-								<TlButtonLabel>{resolvedCloseLabel}</TlButtonLabel>
-							</TlButton>
+							<TldrawUiButton type="normal" className="tl-toast__close">
+								<TldrawUiButtonLabel>{resolvedCloseLabel}</TldrawUiButtonLabel>
+							</TldrawUiButton>
 						</_Toast.Close>
 					</div>
 				)}
 			</div>
 			{!hasActions && (
 				<_Toast.Close asChild>
-					<TlButton type="normal" className="tl-toast__close">
-						<TlButtonLabel>{resolvedCloseLabel}</TlButtonLabel>
-					</TlButton>
+					<TldrawUiButton type="normal" className="tl-toast__close">
+						<TldrawUiButtonLabel>{resolvedCloseLabel}</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				</_Toast.Close>
 			)}
 		</_Toast.Root>
@@ -142,6 +142,6 @@ export function TlToast({
 }
 
 /** @public @react */
-export function TlToastViewport() {
+export function TldrawUiToastViewport() {
 	return <_Toast.Viewport className="tl-toast__viewport" />
 }

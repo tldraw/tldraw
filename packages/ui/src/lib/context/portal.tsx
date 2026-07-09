@@ -1,30 +1,32 @@
 import { createContext, ReactNode, useContext } from 'react'
 
-const TlPortalContext = createContext<HTMLElement | undefined>(undefined)
+const TldrawUiPortalContext = createContext<HTMLElement | undefined>(undefined)
 
 /** @public */
-export interface TlPortalProviderProps {
+export interface TldrawUiPortalProviderProps {
 	container: HTMLElement | null
 	children: ReactNode
 }
 
 /** @public @react */
-export function TlPortalProvider({ container, children }: TlPortalProviderProps) {
+export function TldrawUiPortalProvider({ container, children }: TldrawUiPortalProviderProps) {
 	return (
-		<TlPortalContext.Provider value={container ?? undefined}>{children}</TlPortalContext.Provider>
+		<TldrawUiPortalContext.Provider value={container ?? undefined}>
+			{children}
+		</TldrawUiPortalContext.Provider>
 	)
 }
 
 /** @public */
-export function useTlPortalContainer(): HTMLElement | undefined {
-	return useContext(TlPortalContext)
+export function useTldrawUiPortalContainer(): HTMLElement | undefined {
+	return useContext(TldrawUiPortalContext)
 }
 
 /** @public */
-export function useTlContainer(): HTMLElement | undefined {
-	return useTlPortalContainer()
+export function useTldrawUiContainer(): HTMLElement | undefined {
+	return useTldrawUiPortalContainer()
 }
 
-export function TlPortalScope({ children }: { children: ReactNode }) {
+export function TldrawUiPortalScope({ children }: { children: ReactNode }) {
 	return <div className="tl-ui">{children}</div>
 }

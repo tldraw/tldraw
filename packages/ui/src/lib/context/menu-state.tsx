@@ -2,27 +2,27 @@ import { atom, Atom } from '@tldraw/state'
 import { useValue } from '@tldraw/state-react'
 import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useState } from 'react'
 
-interface TlMenuStateProviderContextValue {
+interface TldrawUiMenuStateProviderContextValue {
 	openMenusAtom: Atom<Set<string>>
 	onMenuOpenChange?(id: string, isOpen: boolean): void
 	useMenuIsOpen?(id: string): readonly [isOpen: boolean, onOpenChange: (isOpen: boolean) => void]
 }
 
-const TlMenuStateContext = createContext<TlMenuStateProviderContextValue | null>(null)
+const TldrawUiMenuStateContext = createContext<TldrawUiMenuStateProviderContextValue | null>(null)
 
 /** @public */
-export interface TlMenuStateProviderProps {
+export interface TldrawUiMenuStateProviderProps {
 	children: ReactNode
 	onMenuOpenChange?(id: string, isOpen: boolean): void
 	useMenuIsOpen?(id: string): readonly [isOpen: boolean, onOpenChange: (isOpen: boolean) => void]
 }
 
 /** @public @react */
-export function TlMenuStateProvider({
+export function TldrawUiMenuStateProvider({
 	children,
 	onMenuOpenChange,
 	useMenuIsOpen,
-}: TlMenuStateProviderProps) {
+}: TldrawUiMenuStateProviderProps) {
 	const openMenusRef = useRef(atom<Set<string>>('tl-open-menus', new Set()))
 	const value = useMemo(
 		() => ({
@@ -33,14 +33,16 @@ export function TlMenuStateProvider({
 		[onMenuOpenChange, useMenuIsOpen]
 	)
 
-	return <TlMenuStateContext.Provider value={value}>{children}</TlMenuStateContext.Provider>
+	return (
+		<TldrawUiMenuStateContext.Provider value={value}>{children}</TldrawUiMenuStateContext.Provider>
+	)
 }
 
 /** @public */
-export function useTlMenuIsOpen(
+export function useTldrawUiMenuIsOpen(
 	id: string
 ): readonly [isOpen: boolean, onOpenChange: (isOpen: boolean) => void] {
-	const ctx = useContext(TlMenuStateContext)
+	const ctx = useContext(TldrawUiMenuStateContext)
 	const [localOpen, setLocalOpen] = useState(false)
 
 	const externalMenuState = ctx?.useMenuIsOpen?.(id)
@@ -79,8 +81,8 @@ export function useTlMenuIsOpen(
 }
 
 /** @public */
-export function useTlIsAnyMenuOpen(): boolean {
-	const ctx = useContext(TlMenuStateContext)
+export function useTldrawUiIsAnyMenuOpen(): boolean {
+	const ctx = useContext(TldrawUiMenuStateContext)
 
 	return useValue(
 		'any menu open',
@@ -93,18 +95,18 @@ export function useTlIsAnyMenuOpen(): boolean {
 }
 
 /** @public */
-export interface TlMenuStateContextValue {
+export interface TldrawUiMenuStateContextValue {
 	openMenu(id: string): void
 	closeMenu(id: string): void
 	isMenuOpen(id: string): boolean
 }
 
 /** @public */
-export function useTlMenuState(): TlMenuStateContextValue {
-	const ctx = useContext(TlMenuStateContext)
+export function useTldrawUiMenuState(): TldrawUiMenuStateContextValue {
+	const ctx = useContext(TldrawUiMenuStateContext)
 
 	if (!ctx) {
-		throw new Error('useTlMenuState must be used within a TlMenuStateProvider')
+		throw new Error('useTldrawUiMenuState must be used within a TldrawUiMenuStateProvider')
 	}
 
 	const openMenu = useCallback(

@@ -1,13 +1,13 @@
 import { useAuth } from '@clerk/clerk-react'
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import {
-	TlButton,
-	TlButtonLabel,
-	TlDialogBody,
-	TlDialogCloseButton,
-	TlDialogFooter,
-	TlDialogHeader,
-	TlDialogTitle,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 } from '@tldraw/ui'
 import { useEffect } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
@@ -41,13 +41,13 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 
 	return (
 		<div className={styles.dialog}>
-			<TlDialogHeader>
-				<TlDialogTitle>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>
 					<F defaultMessage="This file is now read-only" />
-				</TlDialogTitle>
-				<TlDialogCloseButton />
-			</TlDialogHeader>
-			<TlDialogBody>
+				</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody>
 				<p>
 					{isSignedIn ? (
 						<F defaultMessage="To continue editing please copy the file to your files." />
@@ -55,21 +55,21 @@ function LegacyChangesModal({ onClose }: { onClose(): void }) {
 						<F defaultMessage="This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files." />
 					)}
 				</p>
-			</TlDialogBody>
-			<TlDialogFooter className={styles.footer}>
+			</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className={styles.footer}>
 				{isSignedIn && (
-					<TlButton type="primary" onClick={handleCopy}>
-						<TlButtonLabel>
+					<TldrawUiButton type="primary" onClick={handleCopy}>
+						<TldrawUiButtonLabel>
 							<F defaultMessage="Copy to personal workspace" />
-						</TlButtonLabel>
-					</TlButton>
+						</TldrawUiButtonLabel>
+					</TldrawUiButton>
 				)}
-				<TlButton type="normal" onClick={onClose} onTouchEnd={onClose}>
-					<TlButtonLabel>
+				<TldrawUiButton type="normal" onClick={onClose} onTouchEnd={onClose}>
+					<TldrawUiButtonLabel>
 						<F defaultMessage="Close" />
-					</TlButtonLabel>
-				</TlButton>
-			</TlDialogFooter>
+					</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDialogFooter>
 		</div>
 	)
 }
