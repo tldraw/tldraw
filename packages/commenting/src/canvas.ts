@@ -11,6 +11,9 @@ export {
 	type PendingComment,
 } from './canvas/comment-tool'
 export { collectClusterLeaves } from './canvas/cluster-input'
+export { computeClusterTable } from './clustering/computeClusterTable'
+export { createClusterRuntime, type ClusterRuntime } from './clustering/runtime'
+export type { ClusterNode, ClusterTable, LeafInput } from './clustering/types'
 export { CommentsFilterMenu, type CommentsFilterMenuProps } from './canvas/comments-filter-menu'
 export { CommentsMenuItem } from './canvas/comments-menu-item'
 export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-overlay'
