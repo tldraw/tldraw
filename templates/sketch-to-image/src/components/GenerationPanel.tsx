@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { PoseOverlay } from '../pose/PoseOverlay'
+import { PoseDebug } from '../pose/usePoseDebug'
 import { GenerationControls, GenerationStatus } from '../realtime/useRealtimeGeneration'
 
 interface GenerationPanelProps {
@@ -11,6 +13,7 @@ interface GenerationPanelProps {
 	setPaused(paused: boolean): void
 	promptIsAuto: boolean
 	resetPromptToAuto(): void
+	poseDebug: PoseDebug
 }
 
 /**
@@ -27,6 +30,7 @@ export function GenerationPanel({
 	setPaused,
 	promptIsAuto,
 	resetPromptToAuto,
+	poseDebug,
 }: GenerationPanelProps) {
 	return (
 		<div className="generation-panel">
@@ -121,7 +125,100 @@ export function GenerationPanel({
 				</label>
 
 				<AnimateButton resultUrl={resultUrl} prompt={controls.prompt} />
+
+				<PoseDebugSection
+					poseDebug={poseDebug}
+					generatedUrl={resultUrl}
+					generationStatus={status}
+					generationError={error}
+				/>
 			</div>
+		</div>
+	)
+}
+
+/**
+ * Development readout for the sketch→pose step, backed by MediaPipe (in-browser
+ * BlazePose). Toggle it on and the skeleton is drawn back over the image the
+ * estimator saw. The source switch feeds it either the raw sketch or the
+ * generated image, so you can compare which tracks the drawn pose better. Left
+ * limbs render blue, right limbs orange, so a swapped side shows up immediately.
+ *
+ * The Generated source depends on a successfully generated image. When there
+ * isn't one yet (generation still running, or it failed), we say so explicitly
+ * rather than showing a blank overlay — a null generated image, not a pose bug,
+ * is the usual reason the Generated view is empty.
+ */
+function PoseDebugSection({
+	poseDebug,
+	generatedUrl,
+	generationStatus,
+	generationError,
+}: {
+	poseDebug: PoseDebug
+	generatedUrl: string | null
+	generationStatus: GenerationStatus
+	generationError: string | null
+}) {
+	const { pose, capturedUrl, status, error, enabled, setEnabled, source, setSource } = poseDebug
+
+	// Why the Generated overlay might be empty: no image generated yet.
+	const generatedMissing = source === 'generated' && !generatedUrl
+	const generatedWaitReason = generationError
+		? `Generation failed: ${generationError}`
+		: generationStatus === 'generating' || generationStatus === 'describing'
+			? 'Generating an image…'
+			: 'Waiting for a generated image — draw, then press Resume to generate one.'
+
+	return (
+		<div className="pose-debug-section">
+			<label className="pose-debug-toggle">
+				<input type="checkbox" checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
+				<span>Show pose {status === 'estimating' && enabled ? '· reading…' : ''}</span>
+			</label>
+			{enabled && (
+				<>
+					<div className="pose-debug-source" role="radiogroup" aria-label="Pose input">
+						<label>
+							<input
+								type="radio"
+								name="pose-source"
+								checked={source === 'sketch'}
+								onChange={() => setSource('sketch')}
+							/>
+							Sketch
+						</label>
+						<label>
+							<input
+								type="radio"
+								name="pose-source"
+								checked={source === 'generated'}
+								onChange={() => setSource('generated')}
+							/>
+							Generated
+						</label>
+					</div>
+					{generatedMissing ? (
+						<div className={`pose-debug-empty${generationError ? ' pose-debug-error' : ''}`}>
+							{generatedWaitReason}
+						</div>
+					) : (
+						<PoseOverlay pose={pose} capturedUrl={capturedUrl} />
+					)}
+					{source === 'sketch' && (
+						<small className="pose-debug-hint">
+							The pose model is trained on photos — it reads the generated image far better than a
+							bare sketch.
+						</small>
+					)}
+					{error && <small className="pose-debug-error">{error}</small>}
+					<small className="pose-debug-legend">
+						<span style={{ color: '#2f7bff' }}>● figure’s left</span>{' '}
+						<span style={{ color: '#ff5a3d' }}>● figure’s right</span>{' '}
+						<span style={{ color: '#8a55ff' }}>● spine</span>
+					</small>
+				</>
+			)}
 		</div>
 	)
 }

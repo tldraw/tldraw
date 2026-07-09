@@ -4799,6 +4799,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mediapipe/tasks-vision@npm:^0.10.35":
+  version: 0.10.35
+  resolution: "@mediapipe/tasks-vision@npm:0.10.35"
+  checksum: 10/951afffdbf855dfdf04703f646f781f967cc3543221e018ea594a4a9267877d66c8b64738fa1149805811cdeaabfdcc98631fc09223a7a7090708ac61ff167ba
+  languageName: node
+  linkType: hard
+
 "@mermaid-js/parser@npm:^1.1.1":
   version: 1.1.1
   resolution: "@mermaid-js/parser@npm:1.1.1"
@@ -31686,6 +31693,7 @@ __metadata:
   resolution: "tldraw-sketch-to-image@workspace:templates/sketch-to-image"
   dependencies:
     "@cloudflare/vite-plugin": "npm:^1.29.1"
+    "@mediapipe/tasks-vision": "npm:^0.10.35"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/three": "npm:^0.185.0"

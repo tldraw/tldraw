@@ -4,6 +4,7 @@ import { ThreeBackground } from './background/ThreeBackground'
 import { CenterPanel } from './components/CenterPanel'
 import { GenerationPanel } from './components/GenerationPanel'
 import { SketchToolbar } from './components/SketchToolbar'
+import { usePoseDebug } from './pose/usePoseDebug'
 import { useRealtimeGeneration } from './realtime/useRealtimeGeneration'
 
 const components: TLComponents = {
@@ -29,6 +30,7 @@ function App() {
 		promptIsAuto,
 		resetPromptToAuto,
 	} = useRealtimeGeneration(editor)
+	const poseDebug = usePoseDebug(editor, resultUrl)
 
 	return (
 		<div className="sketch-layout">
@@ -56,6 +58,7 @@ function App() {
 					setPaused={setPaused}
 					promptIsAuto={promptIsAuto}
 					resetPromptToAuto={resetPromptToAuto}
+					poseDebug={poseDebug}
 				/>
 			</div>
 		</div>

@@ -49,9 +49,12 @@ export interface RealtimeGeneration {
  */
 export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration {
 	const [resultUrl, setResultUrl] = useState<string | null>(null)
-	const [status, setStatus] = useState<GenerationStatus>('idle')
+	// Start paused: nothing generates (neither the prompt nor the image) until the
+	// user presses play. The pause guard in `sendFrame` sits before the describe
+	// call, so a single flag holds back both.
+	const [status, setStatus] = useState<GenerationStatus>('paused')
 	const [error, setError] = useState<string | null>(null)
-	const [isPaused, setIsPaused] = useState(false)
+	const [isPaused, setIsPaused] = useState(true)
 	// The prompt starts empty and is written from the sketch until the user types.
 	const [promptIsAuto, setPromptIsAuto] = useState(true)
 	const [controls, setControlsState] = useState<GenerationControls>({
@@ -130,7 +133,10 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 				describeAbortRef.current = controller
 				setStatus('describing')
 				try {
-					prompt = await describeSketch(imageDataUrl, controller.signal)
+					// Describe in `pose` mode: the generated image is used as a pose
+					// reference for the (photo-trained) estimator, so we want a realistic
+					// full-body photo of a person in the drawn pose, not stylized art.
+					prompt = await describeSketch(imageDataUrl, controller.signal, 'pose')
 				} catch (err) {
 					if (controller.signal.aborted) return // a newer frame took over
 					throw err

@@ -6,3 +6,7 @@ dist/
 
 # Local secrets — never commit your fal.ai API key.
 .dev.vars
+
+# MediaPipe WASM + pose model (~38 MB). Loaded from a CDN at runtime; place them
+# here only if you want to run the pose estimator fully offline.
+/public/mediapipe/

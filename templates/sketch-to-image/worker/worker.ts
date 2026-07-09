@@ -2,6 +2,7 @@ import { AutoRouter, error, IRequest } from 'itty-router'
 import { handleAnimate } from './routes/animate'
 import { handleDescribe } from './routes/describe'
 import { handleFalProxy } from './routes/falProxy'
+import { handlePose } from './routes/pose'
 
 const router = AutoRouter<IRequest, [env: Env, ctx: ExecutionContext]>({
 	catch: (e) => {
@@ -19,6 +20,11 @@ const router = AutoRouter<IRequest, [env: Env, ctx: ExecutionContext]>({
 	// the user doesn't have to type one. The ANTHROPIC_API_KEY is injected
 	// server-side, mirroring the fal proxy.
 	.post('/api/describe', handleDescribe)
+
+	// Read a 2D pose (named joint keypoints + coarse depth hints) out of the
+	// current sketch (Claude vision), for retargeting onto the 3D rig. Same
+	// server-side-key discipline as /api/describe.
+	.post('/api/pose', handlePose)
 
 	// Turn a generated image into a short video (secondary, non-realtime).
 	.post('/api/animate', handleAnimate)

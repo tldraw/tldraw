@@ -11,6 +11,12 @@ export const FAL_PROXY_URL = '/api/fal/proxy'
 export const DESCRIBE_URL = '/api/describe'
 
 /**
+ * Worker route that reads a 2D pose (named joint keypoints + coarse depth hints)
+ * out of the current sketch (via Claude vision), for the sketch→3D-pose pipeline.
+ */
+export const POSE_URL = '/api/pose'
+
+/**
  * LCM is optimized for 512x512. We capture the sketch at this resolution and
  * ask fal to return the same size.
  */

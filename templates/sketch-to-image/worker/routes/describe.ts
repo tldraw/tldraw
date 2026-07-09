@@ -9,6 +9,14 @@ interface DescribeRequest {
 	 * (`data:image/png;base64,...`).
 	 */
 	image: string
+	/**
+	 * What kind of prompt to write:
+	 * - `art` (default): a creative image-generation prompt — subject + style.
+	 * - `pose`: a realistic photograph of a single person in the drawn pose, so
+	 *   the generated image is a clean reference for pose estimation (MediaPipe
+	 *   is trained on photos of people, not stylized art).
+	 */
+	mode?: 'art' | 'pose'
 }
 
 /** The Anthropic model used to turn a sketch into an image-generation prompt. */
@@ -18,16 +26,33 @@ const DESCRIBE_MODEL = 'claude-haiku-4-5'
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
 
 /**
- * Instruction given to Claude. We want a short, positive, image-generation
- * style prompt describing what the sketch should *become* — not a caption of
- * the strokes themselves. LCM leans on the prompt for style and detail, so the
- * result reads best as a concrete subject plus a rendering style.
+ * Instruction given to Claude in `art` mode. We want a short, positive,
+ * image-generation style prompt describing what the sketch should *become* — not
+ * a caption of the strokes themselves. LCM leans on the prompt for style and
+ * detail, so the result reads best as a concrete subject plus a rendering style.
  */
-const SYSTEM_PROMPT = [
+const ART_SYSTEM_PROMPT = [
 	'You turn rough sketches into prompts for an image generator.',
 	'Look at the drawing and write a single short prompt (one line, under 20 words)',
 	'describing what the finished image should be: the subject, plus a fitting art',
 	'style, lighting, or medium. Interpret loose strokes generously.',
+	'Reply with only the prompt text — no quotes, no preamble, no explanation.',
+].join(' ')
+
+/**
+ * Instruction given to Claude in `pose` mode. The generated image is used as a
+ * pose reference for a photo-trained estimator, so we force a realistic
+ * full-body photograph of a single person matching the drawn pose — plain
+ * background, whole body in frame, no artistic styling that would confuse the
+ * estimator.
+ */
+const POSE_SYSTEM_PROMPT = [
+	'The drawing is a stick figure or rough sketch of a person in a pose.',
+	'Write a single short prompt (one line, under 25 words) for an image generator',
+	'that will produce a REALISTIC PHOTOGRAPH of one real person striking that exact',
+	'pose: match the limbs, stance, and gesture you see. Always specify a full-body',
+	'shot, the whole body visible head to feet, plain neutral background, natural',
+	'lighting, sharp focus, photograph — never illustration, painting, or cartoon.',
 	'Reply with only the prompt text — no quotes, no preamble, no explanation.',
 ].join(' ')
 
@@ -62,6 +87,12 @@ export async function handleDescribe(request: IRequest, env: Env): Promise<Respo
 	}
 	const [, mediaType, base64Data] = match
 
+	const pose = body.mode === 'pose'
+	const systemPrompt = pose ? POSE_SYSTEM_PROMPT : ART_SYSTEM_PROMPT
+	const userText = pose
+		? 'Write the photo prompt for a real person in this pose.'
+		: 'Write the image-generation prompt for this sketch.'
+
 	try {
 		const response = await fetch(ANTHROPIC_API_URL, {
 			method: 'POST',
@@ -73,7 +104,7 @@ export async function handleDescribe(request: IRequest, env: Env): Promise<Respo
 			body: JSON.stringify({
 				model: DESCRIBE_MODEL,
 				max_tokens: 64,
-				system: SYSTEM_PROMPT,
+				system: systemPrompt,
 				messages: [
 					{
 						role: 'user',
@@ -82,7 +113,7 @@ export async function handleDescribe(request: IRequest, env: Env): Promise<Respo
 								type: 'image',
 								source: { type: 'base64', media_type: mediaType, data: base64Data },
 							},
-							{ type: 'text', text: 'Write the image-generation prompt for this sketch.' },
+							{ type: 'text', text: userText },
 						],
 					},
 				],
