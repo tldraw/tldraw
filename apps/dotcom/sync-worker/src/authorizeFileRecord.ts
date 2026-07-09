@@ -46,12 +46,18 @@ const authorizeThreadBase = authorizeAuthored<TLCommentThread>('createdBy')
 
 /**
  * Threads stay editable by anyone with access so they can be resolved and reopened, but resolution
- * is itself an attribution — `resolved.by` renders as "Resolved by X". When an update changes the
- * resolution, it must be a reopen (`null`) or a resolve attributed to the session's own user.
+ * is itself an attribution — `resolved.by` renders as "Resolved by X". Whether set at create or
+ * changed by an update, a non-null resolution must be attributed to the session's own user.
  */
 const authorizeThread: TLRecordAuthorizer<TLCommentThread, SessionMeta> = (args) => {
 	const result = authorizeThreadBase(args)
 	if (!result) return null
+	if (args.type === 'create') {
+		// A fresh thread must not arrive pre-resolved in someone else's name (deletes are allowed
+		// for cascade cleanup, so delete + re-put with a forged resolution is otherwise possible).
+		const { session, next } = args
+		if (next.resolved && next.resolved.by !== session.meta.userId) return null
+	}
 	if (args.type === 'update') {
 		const { session, prev, next } = args
 		const changed =

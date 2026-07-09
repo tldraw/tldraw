@@ -113,5 +113,23 @@ describe('authorizeFileRecord', () => {
 			const next = { ...prev, resolved: { ...prev.resolved } }
 			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBe(next)
 		})
+
+		it('vetoes a create with a resolution attributed to someone else', () => {
+			const next = { ...makeThread('real-mallory'), resolved: { at: 1, by: 'real-alice' } }
+			expect(
+				authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
+			).toBeNull()
+		})
+
+		it('allows a create resolved by the creator themselves', () => {
+			const next = { ...makeThread('real-bob'), resolved: { at: 1, by: 'real-bob' } }
+			const result = authorize({
+				session: session('real-bob'),
+				type: 'create',
+				prev: null,
+				next,
+			}) as TLCommentThread
+			expect(result.resolved).toEqual({ at: 1, by: 'real-bob' })
+		})
 	})
 })
