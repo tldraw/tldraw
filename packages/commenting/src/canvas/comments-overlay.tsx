@@ -365,6 +365,25 @@ function ThreadPin({
 	// While dragging the marker, its page point overrides the anchor's; committed on drop.
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
 	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
+	const markerRef = useRef<HTMLDivElement>(null)
+
+	// Clicking outside the open popover (and off its own pin) closes the thread — mirrors the
+	// pending composer's dismiss. Capture phase + a class check rather than stopPropagation, since the
+	// popover portals elsewhere in the DOM. The pin marker is excluded so its own click-to-toggle
+	// handles it instead of this closing then the toggle reopening.
+	useEffect(() => {
+		if (!open) return
+		const onPointerDown = (e: PointerEvent) => {
+			const target = e.target as HTMLElement | null
+			if (!target) return
+			if (target.closest('.cmt-canvas-popover')) return
+			const marker = markerRef.current
+			if (marker && marker.contains(target)) return
+			openThreadId.set(null)
+		}
+		document.addEventListener('pointerdown', onPointerDown, true)
+		return () => document.removeEventListener('pointerdown', onPointerDown, true)
+	}, [open])
 
 	const point = useValue(
 		'pin point',
@@ -546,6 +565,7 @@ function ThreadPin({
 			style={{ left: renderPoint.x, top: renderPoint.y }}
 		>
 			<div
+				ref={markerRef}
 				className="cmt-canvas-pin__marker"
 				onPointerDown={startDrag}
 				onPointerMove={onDrag}

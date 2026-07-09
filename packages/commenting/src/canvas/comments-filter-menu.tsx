@@ -29,7 +29,7 @@ export function CommentsFilterMenu({ canFilterByAuthor }: CommentsFilterMenuProp
 					title="Filter comments"
 					aria-label="Filter comments"
 				>
-					<FunnelIcon />
+					<FilterIcon />
 				</button>
 			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent side="bottom" align="end">
@@ -63,13 +63,22 @@ export function CommentsFilterMenu({ canFilterByAuthor }: CommentsFilterMenuProp
 	)
 }
 
-function FunnelIcon() {
+function FilterIcon() {
 	return (
-		<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-			<path
-				d="M2.75 3.5h10.5a.5.5 0 0 1 .4.8L9.5 9.7v3.05a.5.5 0 0 1-.72.45l-1.5-.75a.5.5 0 0 1-.28-.45V9.7L2.35 4.3a.5.5 0 0 1 .4-.8Z"
-				fill="currentColor"
-			/>
+		<svg
+			width="16"
+			height="16"
+			viewBox="0 0 16 16"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="1.5"
+			strokeLinecap="round"
+			aria-hidden="true"
+		>
+			<line x1="2.5" y1="5" x2="13.5" y2="5" />
+			<line x1="2.5" y1="11" x2="13.5" y2="11" />
+			<circle cx="6" cy="5" r="1.9" fill="currentColor" stroke="none" />
+			<circle cx="10.5" cy="11" r="1.9" fill="currentColor" stroke="none" />
 		</svg>
 	)
 }
