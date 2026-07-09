@@ -88,11 +88,10 @@ export function ThreeBackground() {
 		scene.add(new THREE.AmbientLight(0xffffff, 0.9))
 
 		// The figure lives inside a wrapper we translate/scale each frame. The
-		// glTF's own transform stays untouched inside it. The Xbot model faces
-		// away from the camera by default, so we turn the wrapper 180° to face it
-		// forward, toward the viewer.
+		// glTF's own transform stays untouched inside it. The Xbot model already
+		// faces the camera (+Z) in its default orientation, so no extra rotation
+		// is needed — the figure faces the viewer head-on.
 		const figure = new THREE.Group()
-		figure.rotation.y = Math.PI
 		scene.add(figure)
 
 		// Number of screen pixels one world unit spans at z=0 for this camera.

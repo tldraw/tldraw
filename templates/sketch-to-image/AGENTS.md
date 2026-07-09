@@ -17,6 +17,8 @@ Run from the repo root (not this directory):
 
 `package.json` sets `lint` to `null` in `tldraw_template`, so this template opts out of repo linting.
 
+To verify a visual change (three.js figure, panel layout, etc.), you have permission to run the dev server and drive it with Playwright (installed in the repo-root `node_modules`) to take screenshots — no need to ask first. Vite serves the template on `http://localhost:5174`. For orientation/position claims, measure pixels objectively rather than eyeballing the screenshot.
+
 ## Environment
 
 Generation requires a fal.ai key and prompt auto-writing requires an Anthropic key. Create `.dev.vars` in this directory with `FAL_KEY=...` (fal.ai/dashboard/keys) and `ANTHROPIC_API_KEY=...` (console.anthropic.com). Both are server-side only — the worker injects them and they never reach the browser. For deploys: `wrangler secret put FAL_KEY` and `wrangler secret put ANTHROPIC_API_KEY`. Without the fal key, generation fails with a clear panel error; without the Anthropic key, auto-prompt fails but the user can still type a prompt.
