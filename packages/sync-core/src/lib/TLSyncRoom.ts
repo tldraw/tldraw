@@ -145,6 +145,14 @@ export interface RoomSnapshot {
  * expensive, async checks (e.g. resolving mentions against who can access a file), react after the
  * fact via `onCommittedChanges`.
  *
+ * ⚠︎ Migration caveat: the authorizer sees records at the **client's** schema version, before any
+ * up-migration. On create, the record you return is up-migrated before being stored, so an
+ * up-migration can overwrite stamped fields. On update, when the client's schema is older than the
+ * server's, the committed record is produced by a downgrade→patch→upgrade pipeline and can differ
+ * from the `next` preview the authorizer saw. Only guard record types whose live cross-version
+ * migrations don't touch the fields you stamp or veto — or, like tldraw.com's comment records,
+ * types whose guard migrations reject old-schema sessions outright.
+ *
  * @public
  */
 export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
