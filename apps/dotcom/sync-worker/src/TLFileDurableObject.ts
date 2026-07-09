@@ -1065,6 +1065,14 @@ export class TLFileDurableObject extends DurableObject {
 		try {
 			const key = getR2KeyForRoom({ slug, isApp: this.documentInfo.isApp })
 
+			// Kick off the Postgres comments load now so it overlaps with the R2 fetch below;
+			// only the merge points further down actually await it.
+			const commentsPromise = this.documentInfo.isApp ? this.loadCommentsFromPostgres() : null
+			// Prevent an unhandled rejection if we exit via a path that never merges (e.g.
+			// ROOM_NOT_FOUND). Merge points still await commentsPromise itself, so a Postgres
+			// failure there still fails the room open.
+			commentsPromise?.catch(() => {})
+
 			// when loading, prefer to fetch documents from the bucket
 			const r2FetchTimer = this.timer()
 			const roomFromBucket = await this.r2.rooms.get(key)
@@ -1078,8 +1086,8 @@ export class TLFileDurableObject extends DurableObject {
 				// seed the room and hydrate to clients on connect. A Postgres failure here fails the
 				// room open (bubbling like an R2 failure) — silently opening without comments would
 				// let the next persist treat them as deleted.
-				if (this.documentInfo.isApp) {
-					mergeCommentDocumentsIntoSnapshot(snapshot, await this.loadCommentsFromPostgres())
+				if (commentsPromise) {
+					mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
 				}
 
 				loadTimer.report('db_load_total')
@@ -1114,7 +1122,7 @@ export class TLFileDurableObject extends DurableObject {
 				// here too. Clone the shared DEFAULT_INITIAL_SNAPSHOT constant — the merge reassigns
 				// `documents` and clamps clocks, and must not mutate the module-level object.
 				const snapshot: RoomSnapshot = { ...DEFAULT_INITIAL_SNAPSHOT }
-				mergeCommentDocumentsIntoSnapshot(snapshot, await this.loadCommentsFromPostgres())
+				mergeCommentDocumentsIntoSnapshot(snapshot, await assertExists(commentsPromise))
 
 				return {
 					snapshot,
@@ -1168,16 +1176,10 @@ export class TLFileDurableObject extends DurableObject {
 
 	private async loadCommentsFromPostgres(): Promise<RoomSnapshot['documents']> {
 		const fileId = this.documentInfo.slug
-		const threadRows = await this.db
-			.selectFrom('comment_thread')
-			.where('fileId', '=', fileId)
-			.selectAll()
-			.execute()
-		const commentRows = await this.db
-			.selectFrom('comment')
-			.where('fileId', '=', fileId)
-			.selectAll()
-			.execute()
+		const [threadRows, commentRows] = await Promise.all([
+			this.db.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
+			this.db.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
+		])
 		return rowsToSnapshotDocuments(threadRows, commentRows)
 	}
 
