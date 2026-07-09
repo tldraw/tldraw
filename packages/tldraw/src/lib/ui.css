@@ -1604,6 +1604,7 @@ tldraw? probably.
 .tlui-toast__main {
 	flex-grow: 2;
 	max-width: 280px;
+	min-width: 0;
 }
 
 .tlui-toast__content {
@@ -1612,6 +1613,7 @@ tldraw? probably.
 	line-height: 1.4;
 	flex-direction: column;
 	gap: var(--tl-space-3);
+	min-width: 0;
 }
 
 .tlui-toast__main[data-actions='true'] .tlui-toast__content {
@@ -1623,6 +1625,7 @@ tldraw? probably.
 	color: var(--tl-color-text-1);
 	/* this makes the default toast look better */
 	line-height: 16px;
+	overflow-wrap: anywhere;
 }
 
 .tlui-toast__description {
@@ -1630,6 +1633,7 @@ tldraw? probably.
 	padding: var(--tl-space-3);
 	margin: 0px;
 	padding: 0px;
+	overflow-wrap: anywhere;
 }
 
 .tlui-toast__icon + .tlui-toast__main > .tlui-toast__actions {
