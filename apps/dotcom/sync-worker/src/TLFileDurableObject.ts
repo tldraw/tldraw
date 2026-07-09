@@ -15,7 +15,6 @@ import {
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
 	TLCustomServerEvent,
-	TlaComment,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	can,
@@ -59,6 +58,7 @@ import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
+import { commentRecordToRow, threadRecordToRow } from './commentRows'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
@@ -272,10 +272,11 @@ export class TLFileDurableObject extends DurableObject {
 							messageLength: stringified.length,
 						})
 					},
-					// Project object-lane (comment) changes to Postgres as soon as they commit (not on
-					// the throttled R2 persist) so Zero replicates them to the app-level view quickly.
+					// Record object-lane (comment) changes in the durable outbox as soon as they
+					// commit and push them to Postgres (not on the throttled R2 persist) so Zero
+					// replicates them to the app-level view quickly.
 					onCommittedChanges: ({ diff }) => {
-						this.pushCommentChangesToPostgres(diff)
+						this.enqueueCommentChanges(diff)
 					},
 				})
 
@@ -1152,8 +1153,9 @@ export class TLFileDurableObject extends DurableObject {
 	// resurrect deleted records).
 	private _objectLaneWritten = false
 
-	// Serializes object-lane → Postgres pushes so they land in order. Separate from executionQueue
-	// (the R2/main-persist queue) since these pushes fire immediately on commit, not on the throttle.
+	// Serializes comment outbox drains (and the restore-path deletes) so they land in order.
+	// Separate from executionQueue (the R2/main-persist queue) since these pushes fire immediately
+	// on commit, not on the throttle.
 	private _objectPushQueue = new ExecutionQueue()
 
 	executionQueue = new ExecutionQueue()
@@ -1517,74 +1519,143 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	/**
-	 * Projects comment changes from a committed diff into Postgres so Zero replicates them to the
-	 * app-level view. Fires immediately on commit (see onCommittedChanges), serialized and
-	 * best-effort — it must never block or fail the canvas commit. The authoritative comment content
-	 * still lives in the R2 comment lane; these rows are a derived copy.
+	 * Durable outbox for comment persistence. Postgres is the sole durable store for comment
+	 * records; the DO's SQLite is the room's working copy. Each committed diff synchronously
+	 * appends the touched comment/comment-thread record ids here (same-task with the commit, so
+	 * the DO output gate flushes them together), and the drain pushes the records' current state
+	 * to Postgres. Entries are only removed after Postgres acks, so failed pushes are retried on
+	 * the next commit, persist, or DO wake.
 	 */
-	private pushCommentChangesToPostgres(diff: TLSyncForwardDiff<TLRecord>) {
-		const slug = this.documentInfo.slug
-		const comments: TLComment[] = []
-		const threadsInDiff = new Map<string, TLCommentThread>()
+	private ensureCommentOutbox() {
+		this.ctx.storage.sql.exec(
+			'CREATE TABLE IF NOT EXISTS comment_outbox (seq INTEGER PRIMARY KEY AUTOINCREMENT, recordId TEXT NOT NULL)'
+		)
+	}
+
+	private enqueueCommentChanges(diff: TLSyncForwardDiff<TLRecord>) {
+		const ids: string[] = []
 		for (const put of Object.values(diff.puts)) {
-			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string }
-			if (record.typeName === 'comment') {
-				comments.push(record as unknown as TLComment)
-			} else if (record.typeName === 'comment-thread') {
-				threadsInDiff.set(
-					(record as unknown as TLCommentThread).id,
-					record as unknown as TLCommentThread
-				)
+			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string; id: string }
+			if (record.typeName === 'comment' || record.typeName === 'comment-thread') {
+				ids.push(record.id)
 			}
 		}
-		// Deletes are ids only; comment ids are prefixed with `comment:`. Thread deletions don't
-		// touch the table directly — the client cascades by deleting the thread's comment records,
-		// which arrive here as `comment:` deletes in the same diff.
-		const deletedIds = diff.deletes.filter((id) => id.startsWith('comment:'))
+		for (const id of diff.deletes) {
+			if (id.startsWith('comment:') || id.startsWith('comment-thread:')) {
+				ids.push(id)
+			}
+		}
+		if (ids.length === 0) return
+		this.ensureCommentOutbox()
+		for (const id of ids) {
+			this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
+		}
+		this.drainCommentOutbox()
+	}
 
-		if (comments.length === 0 && deletedIds.length === 0) return
-
-		this._objectPushQueue
+	/**
+	 * Push every outboxed record's current state to Postgres. The outbox stores only ids; whether
+	 * an id is an upsert or a delete is decided by its presence in the object lane at drain time,
+	 * so multiple edits coalesce and a create-then-delete nets out to a delete. Upserts are
+	 * clock-guarded: a replayed push (same lastChangedClock) updates nothing, producing no WAL
+	 * entry and therefore no Zero replication churn.
+	 */
+	private drainCommentOutbox(): Promise<void> {
+		return this._objectPushQueue
 			.push(async () => {
-				if (comments.length > 0) {
-					// The Postgres row denormalizes the thread's shape anchor; resolve each comment's
-					// thread from the same diff or from room storage. (A thread anchor changing does
-					// not re-project its existing comments — acceptable for the spike.)
-					const storage = await this.getStorage()
-					const upserts: TlaComment[] = comments.map((comment) => {
-						const thread =
-							threadsInDiff.get(comment.threadId) ??
-							(storage.transaction((txn) => txn.get(comment.threadId)).result as
-								| TLCommentThread
-								| undefined)
-						return this.commentRecordToRow(comment, thread, slug)
-					})
-					const insertRows = (rows: TlaComment[]) =>
-						this.db
-							.insertInto('comment')
-							.values(rows)
-							.onConflict((oc) =>
-								oc.column('id').doUpdateSet((eb) => ({
+				this.ensureCommentOutbox()
+				const entries = this.ctx.storage.sql
+					.exec('SELECT seq, recordId FROM comment_outbox ORDER BY seq')
+					.toArray() as { seq: number; recordId: string }[]
+				if (entries.length === 0) return
+				const maxSeq = entries[entries.length - 1].seq
+				const pendingIds = new Set(entries.map((e) => e.recordId))
+
+				const storage = await this.getStorage()
+				assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+				const lane = new Map(storage.getObjectsSnapshot().map((doc) => [doc.state.id, doc]))
+				const fileId = this.documentInfo.slug
+
+				const threadUpserts: DB['comment_thread'][] = []
+				const commentUpserts: DB['comment'][] = []
+				const threadDeletes: string[] = []
+				const commentDeletes: string[] = []
+				for (const id of pendingIds) {
+					const doc = lane.get(id as TLRecord['id'])
+					if (id.startsWith('comment-thread:')) {
+						if (doc) {
+							threadUpserts.push(
+								threadRecordToRow(doc.state as TLCommentThread, fileId, doc.lastChangedClock)
+							)
+						} else {
+							threadDeletes.push(id)
+						}
+					} else {
+						if (doc) {
+							const comment = doc.state as TLComment
+							const thread = lane.get(comment.threadId)?.state as TLCommentThread | undefined
+							commentUpserts.push(commentRecordToRow(comment, thread, fileId, doc.lastChangedClock))
+						} else {
+							commentDeletes.push(id)
+						}
+					}
+				}
+
+				const insertThreadRows = (rows: DB['comment_thread'][]) =>
+					this.db
+						.insertInto('comment_thread')
+						.values(rows)
+						.onConflict((oc) =>
+							oc
+								.column('id')
+								.doUpdateSet((eb) => ({
+									pageId: eb.ref('excluded.pageId'),
+									shapeId: eb.ref('excluded.shapeId'),
+									resolved: eb.ref('excluded.resolved'),
+									record: eb.ref('excluded.record'),
+									lastChangedClock: eb.ref('excluded.lastChangedClock'),
+								}))
+								.whereRef('comment_thread.lastChangedClock', '<', 'excluded.lastChangedClock')
+						)
+						.execute()
+				const insertCommentRows = (rows: DB['comment'][]) =>
+					this.db
+						.insertInto('comment')
+						.values(rows)
+						.onConflict((oc) =>
+							oc
+								.column('id')
+								.doUpdateSet((eb) => ({
 									body: eb.ref('excluded.body'),
 									shapeId: eb.ref('excluded.shapeId'),
 									updatedAt: eb.ref('excluded.updatedAt'),
+									record: eb.ref('excluded.record'),
+									lastChangedClock: eb.ref('excluded.lastChangedClock'),
 								}))
-							)
-							.execute()
+								.whereRef('comment.lastChangedClock', '<', 'excluded.lastChangedClock')
+						)
+						.execute()
+
+				// Threads before comments (comment.threadId FK); comment deletes before thread
+				// deletes is not required (thread deletes cascade), but keep the batch → row-by-row
+				// fallback so one bad row (e.g. an FK violation from a since-deleted user) doesn't
+				// drop the whole batch.
+				const runBatchWithFallback = async <R>(
+					rows: R[],
+					insert: (rows: R[]) => Promise<unknown>
+				) => {
+					if (rows.length === 0) return
 					try {
-						await insertRows(upserts)
+						await insert(rows)
 					} catch (batchError) {
-						// A single bad row (e.g. an FK violation from a since-deleted user) must not
-						// drop the whole batch from the projection — retry row by row so only the
-						// genuinely bad rows are lost, and report those.
 						this.reportError(batchError)
-						for (const row of upserts) {
+						for (const row of rows) {
 							try {
-								await insertRows([row])
+								await insert([row])
 							} catch (rowError) {
 								this.logEvent({
 									type: 'room',
-									roomId: slug,
+									roomId: fileId,
 									name: 'failed_persist_comments_to_db',
 								})
 								this.reportError(rowError)
@@ -1592,40 +1663,25 @@ export class TLFileDurableObject extends DurableObject {
 						}
 					}
 				}
-				if (deletedIds.length > 0) {
-					await this.db.deleteFrom('comment').where('id', 'in', deletedIds).execute()
+				await runBatchWithFallback(threadUpserts, insertThreadRows)
+				await runBatchWithFallback(commentUpserts, insertCommentRows)
+				if (commentDeletes.length > 0) {
+					await this.db.deleteFrom('comment').where('id', 'in', commentDeletes).execute()
 				}
+				if (threadDeletes.length > 0) {
+					await this.db.deleteFrom('comment_thread').where('id', 'in', threadDeletes).execute()
+				}
+
+				this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', maxSeq)
 			})
 			.catch((e) => {
 				this.logEvent({
 					type: 'room',
-					roomId: slug,
+					roomId: this.documentInfo.slug,
 					name: 'failed_persist_comments_to_db',
 				})
 				this.reportError(e)
 			})
-	}
-
-	private commentRecordToRow(
-		record: TLComment,
-		thread: TLCommentThread | undefined,
-		fileId: string
-	): TlaComment {
-		return {
-			id: record.id,
-			fileId,
-			threadId: record.threadId,
-			pageId: record.pageId,
-			authorId: record.authorId,
-			shapeId: thread?.anchor.type === 'shape' ? thread.anchor.shapeId : null,
-			// rich text stored as-is (JSONB) — the projection preserves the authoritative
-			// representation rather than flattening to plaintext. TLRichText types its content as
-			// unknown[], which doesn't structurally satisfy zero's ReadonlyJSONValue, but the value
-			// is schema-validated JSON.
-			body: record.body as TlaComment['body'],
-			createdAt: record.createdAt,
-			updatedAt: record.editedAt ?? record.createdAt,
-		}
 	}
 
 	private async persistToPierre(storage: TLSyncStorage<TLRecord>, snapshot: RoomSnapshot) {
