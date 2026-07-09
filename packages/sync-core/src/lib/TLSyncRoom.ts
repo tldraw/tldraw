@@ -150,8 +150,9 @@ export interface RoomSnapshot {
  * up-migration can overwrite stamped fields. On update, when the client's schema is older than the
  * server's, the committed record is produced by a downgrade→patch→upgrade pipeline and can differ
  * from the `next` preview the authorizer saw. Only guard record types whose live cross-version
- * migrations don't touch the fields you stamp or veto — or, like tldraw.com's comment records,
- * types whose guard migrations reject old-schema sessions outright.
+ * migrations don't touch the fields you stamp or veto (tldraw.com's comment threads: the anchor
+ * migration reshapes `anchor` but never `createdBy` or `resolved`), or types whose migrations
+ * reject old-schema sessions outright by having no `down`.
  *
  * @public
  */
