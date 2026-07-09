@@ -281,4 +281,25 @@ describe('mergeCommentDocumentsIntoSnapshot', () => {
 		expect(snapshot.documentClock).toBe(42)
 		expect(snapshot.clock).toBe(100)
 	})
+
+	it('raises tombstoneHistoryStartsAtClock to maxClock when the clamp fires and it was lower', () => {
+		const snapshot = makeSnapshot({ documentClock: 10, tombstoneHistoryStartsAtClock: 5 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(42))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.tombstoneHistoryStartsAtClock).toBe(42)
+	})
+
+	it('sets tombstoneHistoryStartsAtClock to maxClock when the clamp fires and it was undefined', () => {
+		const snapshot = makeSnapshot({ documentClock: 10, tombstoneHistoryStartsAtClock: undefined })
+		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(42))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.tombstoneHistoryStartsAtClock).toBe(42)
+	})
+
+	it('leaves tombstoneHistoryStartsAtClock untouched when the clamp does not fire', () => {
+		const snapshot = makeSnapshot({ documentClock: 10, tombstoneHistoryStartsAtClock: 5 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(3, 10))
+		expect(snapshot.documentClock).toBe(10)
+		expect(snapshot.tombstoneHistoryStartsAtClock).toBe(5)
+	})
 })

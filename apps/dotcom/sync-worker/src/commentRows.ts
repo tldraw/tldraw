@@ -129,6 +129,14 @@ export function rowsToSnapshotDocuments(
  * clamp based on that effective value (setting `documentClock` when only a higher legacy `clock`
  * was present would lower the seed, not raise it) and keep `clock` \>= `documentClock` when both
  * are set.
+ *
+ * When the clamp fires, the room is claiming a clock higher than anything the stale snapshot
+ * actually has history for — the delete/tombstone history between the snapshot's old clock and
+ * `maxClock` lived only in the DO's SQLite storage that we just lost, so it's genuinely gone, not
+ * merely unsynced. We raise `tombstoneHistoryStartsAtClock` to match so `wipeAll` fires for any
+ * client reconnecting with `sinceClock` short of `maxClock`: that forces a full resync instead of
+ * a partial incremental diff, which would otherwise let clients silently keep documents the
+ * server can no longer account for.
  */
 export function mergeCommentDocumentsIntoSnapshot(
 	snapshot: RoomSnapshot,
@@ -143,4 +151,5 @@ export function mergeCommentDocumentsIntoSnapshot(
 	if (snapshot.clock !== undefined && snapshot.clock < maxClock) {
 		snapshot.clock = maxClock
 	}
+	snapshot.tombstoneHistoryStartsAtClock = maxClock
 }
