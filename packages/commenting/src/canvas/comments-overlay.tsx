@@ -22,7 +22,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { computeClusterTable } from '../clustering/computeClusterTable'
-import { createClusterRuntime } from '../clustering/runtime'
+import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
@@ -105,10 +105,21 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	const pending = usePendingComment()
 	const openId = useValue('open thread id', () => openThreadId.get(), [])
 	const { impreciseShapeAnchor } = props
+	// Threads whose anchor has moved (by any means — drag, nudge, align, undo, a collaborator)
+	// since the rendered clustering was built. They pop out of clustering and render as live pins,
+	// and only rejoin at the next zoom event, when everything re-clusters anyway.
+	const [movedThreadIds, setMovedThreadIds] = useState<ReadonlySet<string>>(EMPTY_SET)
+	const adoptOnRebuild = useRef(false)
 	const clusterLeaves = useValue(
 		'comment cluster leaves',
-		() => collectClusterLeaves(editor, threads, openThreadId.get(), impreciseShapeAnchor),
-		[editor, threads, impreciseShapeAnchor]
+		() =>
+			collectClusterLeaves(
+				editor,
+				threads.filter((thread) => !movedThreadIds.has(thread.id)),
+				openThreadId.get(),
+				impreciseShapeAnchor
+			),
+		[editor, threads, impreciseShapeAnchor, movedThreadIds]
 	)
 	const clusterZoomBounds = useValue(
 		'comment cluster zoom bounds',
@@ -129,16 +140,52 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	// badge counts never linger.
 	const [renderedModel, setRenderedModel] = useState(latestModel)
 	let clusterModel = renderedModel
-	if (renderedModel !== latestModel && hasRemovedLeaves(renderedModel.table, latestModel.table)) {
+	if (
+		renderedModel !== latestModel &&
+		(adoptOnRebuild.current || hasRemovedLeaves(renderedModel.table, latestModel.table))
+	) {
+		adoptOnRebuild.current = false
 		setRenderedModel(latestModel)
 		clusterModel = latestModel
 	}
+	// Pop-out detection: a leaf folded inside a badge can't follow its anchor (the badge position
+	// is baked into the model), so when its live position drifts from the baked one it ghosts.
+	// Marking it moved excludes it from the cluster input, which reads as a removal above and
+	// re-clusters the rest of its pile immediately; the pin itself renders live below.
+	const newlyMovedIds = findMovedClusteredLeafIds(clusterModel, latestModel)
+	if (newlyMovedIds.length > 0) {
+		// eslint-disable-next-line no-console
+		console.debug(`[comments] pins popped out of clustering: ${newlyMovedIds.join(', ')}`)
+		const next = new Set(movedThreadIds)
+		for (const id of newlyMovedIds) next.add(id)
+		setMovedThreadIds(next)
+	}
+	// Moved pins rejoin clustering on the next zoom-out motion: clear the set (so the rebuild
+	// includes them again) and adopt that rebuild immediately instead of deferring it. Zooming in
+	// never folds pins into clusters — merging is a zoom-out-only move, matching the runtime.
+	useEffect(() => {
+		if (movedThreadIds.size === 0) return
+		let lastZoom = editor.getZoomLevel()
+		return react('rejoin moved comment pins on zoom out', () => {
+			const zoom = editor.getZoomLevel()
+			const prevZoom = lastZoom
+			lastZoom = zoom
+			if (zoom >= prevZoom) return
+			adoptOnRebuild.current = true
+			setMovedThreadIds(EMPTY_SET)
+		})
+	}, [movedThreadIds, editor])
+	// Adopt a pending rebuild only on zoom-out motion: folding deferred additions into clusters is
+	// a merge, and merging only happens while zooming out. While zooming in, the stale table still
+	// splits correctly on its own (split thresholds are direction-safe by the hysteresis invariant).
 	useEffect(() => {
 		if (clusterModel === latestModel) return
-		const zoomAtBuild = editor.getZoomLevel()
-		return react('adopt pending cluster model on zoom', () => {
+		let lastZoom = editor.getZoomLevel()
+		return react('adopt pending cluster model on zoom out', () => {
 			const zoom = editor.getZoomLevel()
-			if (zoom === zoomAtBuild) return
+			const prevZoom = lastZoom
+			lastZoom = zoom
+			if (zoom >= prevZoom) return
 			latestModel.runtime.seed(zoom)
 			setRenderedModel(latestModel)
 		})
@@ -149,6 +196,10 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		const latestIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
 		return threads.filter((thread) => latestIds.has(thread.id) && !renderedIds.has(thread.id))
 	}, [clusterModel, latestModel, threads])
+	const movedThreads = useMemo(
+		() => threads.filter((thread) => movedThreadIds.has(thread.id) && thread.id !== openId),
+		[threads, movedThreadIds, openId]
+	)
 	// Subscribe to the runtime cursor, not the raw zoom: onCamera runs on every zoom tick (two
 	// O(1) threshold checks against the event table) but returns the same integer until a merge
 	// or split event actually fires — so this component only re-renders on cluster changes, not
@@ -246,6 +297,9 @@ export function CanvasComments(props: CanvasCommentsProps) {
 			{orphanThreads.map((thread) => (
 				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
 			))}
+			{movedThreads.map((thread) => (
+				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
+			))}
 			{openThread && (
 				<ThreadPin key={`open:${openThread.id}`} editor={editor} thread={openThread} {...props} />
 			)}
@@ -255,6 +309,36 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		</div>,
 		container
 	)
+}
+
+const EMPTY_SET: ReadonlySet<string> = new Set()
+const MOVED_LEAF_EPSILON = 1e-6
+
+/**
+ * Leaves folded inside a badge whose live anchor no longer matches the position the rendered
+ * model was built with. Visible (unclustered) leaf pins track their anchor live, so they can
+ * stay deferred; a badge can't follow a member, so these must pop out of clustering.
+ */
+function findMovedClusteredLeafIds(
+	rendered: { runtime: ClusterRuntime; table: ClusterTable },
+	latest: { table: ClusterTable }
+): string[] {
+	if (rendered.table === latest.table) return []
+	const visible = rendered.runtime.getVisible()
+	const latestById = new Map(latest.table.leaves.map((leaf) => [leaf.id, leaf]))
+	const moved: string[] = []
+	for (const leaf of rendered.table.leaves) {
+		if (visible.has(leaf.id)) continue
+		const current = latestById.get(leaf.id)
+		if (!current) continue
+		if (
+			Math.abs(current.centroid.x - leaf.centroid.x) > MOVED_LEAF_EPSILON ||
+			Math.abs(current.centroid.y - leaf.centroid.y) > MOVED_LEAF_EPSILON
+		) {
+			moved.push(leaf.id)
+		}
+	}
+	return moved
 }
 
 function hasRemovedLeaves(rendered: ClusterTable, latest: ClusterTable): boolean {
