@@ -21,10 +21,12 @@ export function DefaultDebugMenu({ children }: TLUiDebugMenuProps) {
 	const content = children ?? <DefaultDebugMenuContent />
 
 	// While the debug menu is mounted, expose the editor on `window.editor` for
-	// console-driven debugging. We remove it on unmount so the editor isn't
-	// retained when debug mode is turned off.
+	// console-driven debugging. Host apps often set `window.editor` themselves,
+	// so we only claim it when it's free and only clean up the value we set —
+	// toggling debug mode off must not delete a global the host app owns.
 	useEffect(() => {
 		const win = window as any
+		if (win.editor) return
 		win.editor = editor
 		return () => {
 			if (win.editor === editor) {
