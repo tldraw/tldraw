@@ -31,12 +31,14 @@
 		"itty-router": "^5.0.18",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
+		"three": "^0.185.1",
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.29.1",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
+		"@types/three": "^0.185.0",
 		"@vitejs/plugin-react": "^6.0.1",
 		"typescript": "^5.8.3",
 		"vite": "^8.0.16",
