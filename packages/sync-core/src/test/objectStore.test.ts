@@ -526,6 +526,42 @@ describe('object store lane', () => {
 			expect(storedIds(storage)).toEqual([note.id])
 		})
 
+		it('vetoes a put that changes the typeName of an existing record', () => {
+			const { room, storage, note } = seededWithNote(authorizeNote)
+			const socket = connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })
+
+			// a `doc`-shaped record reusing the note's id: the authorizer lookup keys off the incoming
+			// typeName, so the swap would consult the doc authorizer (here: none) instead of note's
+			push(room, 'mallory', {
+				[note.id]: [RecordOpType.Put, { id: note.id, typeName: 'doc', title: 'swapped' } as any],
+			})
+
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedNote(storage, note.id)?.typeName).toBe('note')
+		})
+
+		it('vetoes a put over an existing record that changes an immutable field', () => {
+			const { room, storage, note } = seededWithNote(authorizeNote)
+			const socket = connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })
+
+			push(room, 'mallory', { [note.id]: [RecordOpType.Put, { ...note, text: 'tampered' }] })
+
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
+		})
+
+		it('ignores the record returned by an update authorizer (allow/veto only)', () => {
+			const { room, storage, note } = seededWithNote(({ type, prev, next }: any) => {
+				if (type === 'update') return { ...next, text: 'stamped-on-update' }
+				return type === 'delete' ? prev : next
+			})
+			connectSession(room, 'alice', { meta: { userId: 'u' } })
+
+			push(room, 'alice', { [note.id]: [RecordOpType.Put, { ...note, text: 'edited' }] })
+
+			expect(storedNote(storage, note.id)?.text).toBe('edited')
+		})
+
 		it('rejects the write (fail closed) when the authorizer throws, without crashing the push', () => {
 			const { room, storage } = withNote(() => {
 				throw new Error('boom')

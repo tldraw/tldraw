@@ -1314,29 +1314,36 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// Per-type authorizer: lets the host stamp/veto a write from the session's
 								// authenticated identity (e.g. a comment's authorId). Only for registered
 								// types, only for client pushes (session present).
-								const authorizePut = session && this.authorizerFor(record.typeName)
-								if (authorizePut) {
+								if (session && this.authorizeRecord) {
 									const prev = (txn.get(id) as R | undefined) ?? null
-									const result = authorizePut(
-										prev
-											? {
-													session: { sessionId: session.sessionId, meta: session.meta },
-													type: 'update',
-													prev,
-													next: record,
-												}
-											: {
-													session: { sessionId: session.sessionId, meta: session.meta },
-													type: 'create',
-													prev: null,
-													next: record,
-												}
-									)
-									// Rejected: skip the op; the client self-corrects via discard/rebase.
-									if (!result) continue
-									// On create the returned (stamped) record is stored; on update it's an
-									// allow/veto only, so the client's record is stored as-is.
-									if (!prev) record = result
+									// A put must not change the record's typeName: the authorizer lookup keys
+									// off the incoming typeName while the replace path validates against the
+									// stored one, so a swap would consult the wrong authorizer (or none).
+									// Skip it like a veto; the client self-corrects.
+									if (prev && prev.typeName !== record.typeName) continue
+									const authorizePut = this.authorizerFor(record.typeName)
+									if (authorizePut) {
+										const result = authorizePut(
+											prev
+												? {
+														session: { sessionId: session.sessionId, meta: session.meta },
+														type: 'update',
+														prev,
+														next: record,
+													}
+												: {
+														session: { sessionId: session.sessionId, meta: session.meta },
+														type: 'create',
+														prev: null,
+														next: record,
+													}
+										)
+										// Rejected: skip the op; the client self-corrects via discard/rebase.
+										if (!result) continue
+										// On create the returned (stamped) record is stored; on update it's an
+										// allow/veto only, so the client's record is stored as-is.
+										if (!prev) record = result
+									}
 								}
 								addDocument(txn, docChanges, id, record)
 								break
