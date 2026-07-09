@@ -100,3 +100,30 @@ export function rowsToSnapshotDocuments(
 		})),
 	]
 }
+
+/**
+ * Merge rehydrated comment documents into a room snapshot, clamping the snapshot's clocks up to
+ * the highest merged clock. Comments push to Postgres per-commit while the document snapshot
+ * persists on a throttle, so after a storage loss the comment clocks can be ahead of the
+ * snapshot's — seeding the room clock below them would make future edits emit clocks the drain's
+ * lastChangedClock guard rejects, silently dropping those edits from Postgres.
+ *
+ * `SQLiteSyncStorage` seeds its clock from `snapshot.documentClock ?? snapshot.clock ?? 0`, so we
+ * clamp based on that effective value (setting `documentClock` when only a higher legacy `clock`
+ * was present would lower the seed, not raise it) and keep `clock` \>= `documentClock` when both
+ * are set.
+ */
+export function mergeCommentDocumentsIntoSnapshot(
+	snapshot: RoomSnapshot,
+	commentDocs: RoomSnapshot['documents']
+): void {
+	if (commentDocs.length === 0) return
+	snapshot.documents = [...snapshot.documents, ...commentDocs]
+	const maxClock = Math.max(...commentDocs.map((d) => d.lastChangedClock))
+	const effectiveClock = snapshot.documentClock ?? snapshot.clock ?? 0
+	if (effectiveClock >= maxClock) return
+	snapshot.documentClock = maxClock
+	if (snapshot.clock !== undefined && snapshot.clock < maxClock) {
+		snapshot.clock = maxClock
+	}
+}

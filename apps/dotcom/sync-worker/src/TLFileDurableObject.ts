@@ -58,7 +58,12 @@ import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
-import { commentRecordToRow, rowsToSnapshotDocuments, threadRecordToRow } from './commentRows'
+import {
+	commentRecordToRow,
+	mergeCommentDocumentsIntoSnapshot,
+	rowsToSnapshotDocuments,
+	threadRecordToRow,
+} from './commentRows'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
@@ -558,21 +563,38 @@ export class TLFileDurableObject extends DurableObject {
 			// Version snapshots only contain the drawing data. Restoring drops the file's comments
 			// (product decision): loading the bare snapshot wipes the object lane, and the Postgres
 			// rows are deleted explicitly since storage transactions don't fire onCommittedChanges.
-			// The delete runs through _objectPushQueue so it serializes after any in-flight outbox
-			// drain, and the outbox is cleared so a pending drain can't resurrect deleted rows.
+			// The cleanup runs through _objectPushQueue so it serializes after any in-flight outbox
+			// drain, and pre-restore outbox entries are cleared so a pending drain can't resurrect
+			// deleted rows.
+			//
+			// Two invariants make this safe against comments committed concurrently with the
+			// restore:
+			// (a) The lane wipe, the outbox high-water-mark capture, and the queue push below run
+			//     in one synchronous block with NO awaits in between. Storage change notifications
+			//     fire on a microtask, so a comment committed after the wipe enqueues its outbox
+			//     entry (seq > maxSeq) and its drain task strictly after ours (queue is FIFO) —
+			//     the entry survives the scoped clear and the later drain pushes it to Postgres.
+			// (b) The fileId-wide Postgres deletes may remove rows a post-wipe comment already
+			//     drained, but that's safe only because of (a): the surviving outbox entry means
+			//     a subsequent drain re-upserts the row.
 			const snapshot = JSON.parse(dataText) as RoomSnapshot
 
 			const storage = await this.getStorage()
 			storage.transaction((txn) => {
 				loadSnapshotIntoStorage(txn, fileSyncSchema, snapshot)
 			})
-
-			await this._objectPushQueue.push(async () => {
-				this.ensureCommentOutbox()
-				this.ctx.storage.sql.exec('DELETE FROM comment_outbox')
+			this.ensureCommentOutbox()
+			const maxSeq = Number(
+				this.ctx.storage.sql
+					.exec('SELECT COALESCE(MAX(seq), 0) AS maxSeq FROM comment_outbox')
+					.toArray()[0].maxSeq
+			)
+			const cleanup = this._objectPushQueue.push(async () => {
+				this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', maxSeq)
 				await this.db.deleteFrom('comment').where('fileId', '=', roomId).execute()
 				await this.db.deleteFrom('comment_thread').where('fileId', '=', roomId).execute()
 			})
+			await cleanup
 
 			this.maybeAssociateFileAssets()
 
@@ -1056,7 +1078,7 @@ export class TLFileDurableObject extends DurableObject {
 				// room open (bubbling like an R2 failure) — silently opening without comments would
 				// let the next persist treat them as deleted.
 				if (this.documentInfo.isApp) {
-					snapshot.documents = [...snapshot.documents, ...(await this.loadCommentsFromPostgres())]
+					mergeCommentDocumentsIntoSnapshot(snapshot, await this.loadCommentsFromPostgres())
 				}
 
 				loadTimer.report('db_load_total')
@@ -1086,8 +1108,15 @@ export class TLFileDurableObject extends DurableObject {
 					throw ROOM_NOT_FOUND
 				}
 
+				// Comments can exist in Postgres before the first throttled R2 persist ever runs
+				// (e.g. DO SQLite lost right after commenting on a fresh file), so rehydrate them
+				// here too. Clone the shared DEFAULT_INITIAL_SNAPSHOT constant — the merge reassigns
+				// `documents` and clamps clocks, and must not mutate the module-level object.
+				const snapshot: RoomSnapshot = { ...DEFAULT_INITIAL_SNAPSHOT }
+				mergeCommentDocumentsIntoSnapshot(snapshot, await this.loadCommentsFromPostgres())
+
 				return {
-					snapshot: DEFAULT_INITIAL_SNAPSHOT,
+					snapshot,
 					roomSizeMB: 0,
 				}
 			}
@@ -1641,6 +1670,7 @@ export class TLFileDurableObject extends DurableObject {
 							oc
 								.column('id')
 								.doUpdateSet((eb) => ({
+									pageId: eb.ref('excluded.pageId'),
 									body: eb.ref('excluded.body'),
 									editedAt: eb.ref('excluded.editedAt'),
 									updatedAt: eb.ref('excluded.updatedAt'),

@@ -1,3 +1,4 @@
+import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	createComment,
 	createCommentThread,
@@ -8,6 +9,7 @@ import {
 import { describe, expect, it } from 'vitest'
 import {
 	commentRecordToRow,
+	mergeCommentDocumentsIntoSnapshot,
 	rowsToSnapshotDocuments,
 	rowToCommentRecord,
 	rowToThreadRecord,
@@ -185,5 +187,65 @@ describe('rowsToSnapshotDocuments', () => {
 			{ state: thread, lastChangedClock: 42 },
 			{ state: comment, lastChangedClock: 43 },
 		])
+	})
+})
+
+describe('mergeCommentDocumentsIntoSnapshot', () => {
+	function makeDocs(...clocks: number[]): RoomSnapshot['documents'] {
+		return clocks.map((clock) => ({
+			state: makeThread(),
+			lastChangedClock: clock,
+		}))
+	}
+
+	function makeSnapshot(overrides: Partial<RoomSnapshot> = {}): RoomSnapshot {
+		return { documentClock: 10, documents: makeDocs(10), ...overrides }
+	}
+
+	it('merges docs and clamps documentClock up when a comment clock exceeds it', () => {
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		const docs = makeDocs(5, 42)
+		mergeCommentDocumentsIntoSnapshot(snapshot, docs)
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.documents).toHaveLength(3)
+		expect(snapshot.documents.slice(1)).toEqual(docs)
+	})
+
+	it('leaves documentClock alone when all comment clocks are at or below it', () => {
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(3, 10))
+		expect(snapshot.documentClock).toBe(10)
+		expect(snapshot.documents).toHaveLength(3)
+	})
+
+	it('no-ops on empty comment docs', () => {
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		const documents = snapshot.documents
+		mergeCommentDocumentsIntoSnapshot(snapshot, [])
+		expect(snapshot.documentClock).toBe(10)
+		expect(snapshot.documents).toBe(documents)
+	})
+
+	it('clamps both clocks when a legacy snapshot has clock and documentClock below', () => {
+		const snapshot = makeSnapshot({ clock: 12, documentClock: 10 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(42))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.clock).toBe(42)
+	})
+
+	it('does not lower the effective seed for a clock-only snapshot already above the comments', () => {
+		// SQLiteSyncStorage seeds from documentClock ?? clock; introducing a lower documentClock
+		// here would shadow the higher legacy clock and regress the seed
+		const snapshot = makeSnapshot({ clock: 100, documentClock: undefined })
+		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(42))
+		expect(snapshot.documentClock).toBeUndefined()
+		expect(snapshot.clock).toBe(100)
+	})
+
+	it('clamps documentClock but not a clock already above the comments', () => {
+		const snapshot = makeSnapshot({ clock: 100, documentClock: 10 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(42))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.clock).toBe(100)
 	})
 })
