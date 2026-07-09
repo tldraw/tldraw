@@ -214,6 +214,22 @@
 	color: hsl(0, 0%, 72%);
 }
 
+/* count badge */
+.cmt-count-badge {
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--tl-color-text-1);
+	color: var(--tl-color-panel);
+	font-size: 13px;
+	font-weight: 700;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+	user-select: none;
+}
+
 /* thread */
 .cmt-thread {
 	display: flex;

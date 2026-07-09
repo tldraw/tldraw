@@ -10,9 +10,18 @@
 }
 
 .cmt-canvas-pin,
+.cmt-canvas-cluster,
 .cmt-canvas-composer {
 	position: absolute;
+}
+
+.cmt-canvas-pin,
+.cmt-canvas-composer {
 	pointer-events: auto;
+}
+
+.cmt-canvas-cluster {
+	transform: translate(-50%, -50%);
 }
 
 /* The open thread (its pin + popover) sits above the other pins, so nearby markers don't
