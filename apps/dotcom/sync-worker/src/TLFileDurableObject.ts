@@ -58,7 +58,7 @@ import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
-import { commentRecordToRow, threadRecordToRow } from './commentRows'
+import { commentRecordToRow, rowsToSnapshotDocuments, threadRecordToRow } from './commentRows'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
@@ -137,15 +137,15 @@ function arrayBufferToBase64(ab: ArrayBuffer): string {
 const MB = 1024 * 1024
 
 // The schema for a file room. Includes the opt-in `comment` record type so comment records sync
-// through the room; comments are persisted in a separate R2 lane rather than the main document
-// blob (see persistToDatabase / loadFromDatabase). The same records must be registered on the
+// through the room; comments are persisted to Postgres rather than the main document blob (see
+// drainCommentOutbox / loadCommentsFromPostgres). The same records must be registered on the
 // client (see useSync in the dotcom client) or the schemas won't match.
 const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
 
 // Record types served through the room's object-store lane rather than the document lane.
 // Object-lane records sync over the same socket but are gated per session by `objectAccess`
-// (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in a
-// separate R2 lane next to the main document blob.
+// (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in Postgres
+// rather than the R2 document blob.
 const OBJECT_TYPES = ['comment-thread', 'comment'] as const
 
 export class TLFileDurableObject extends DurableObject {
@@ -1047,14 +1047,13 @@ export class TLFileDurableObject extends DurableObject {
 			if (roomFromBucket) {
 				const snapshot = (await roomFromBucket.json()) as RoomSnapshot
 
-				// Object-lane records (comments) live in a separate R2 lane (see persistToDatabase).
-				// Load them and merge them back into the snapshot so they seed the room and hydrate
-				// to clients on connect.
-				const objectLaneFromBucket = await this.r2.rooms.get(`${key}/comments`)
-				if (objectLaneFromBucket) {
-					const objectDocs = (await objectLaneFromBucket.json()) as RoomSnapshot['documents']
-					snapshot.documents = [...snapshot.documents, ...objectDocs]
-					this._objectLaneWritten = true
+				// Object-lane records (comments) live in Postgres, the sole durable comment store
+				// (see drainCommentOutbox). Load them and merge them back into the snapshot so they
+				// seed the room and hydrate to clients on connect. A Postgres failure here fails the
+				// room open (bubbling like an R2 failure) — silently opening without comments would
+				// let the next persist treat them as deleted.
+				if (this.documentInfo.isApp) {
+					snapshot.documents = [...snapshot.documents, ...(await this.loadCommentsFromPostgres())]
 				}
 
 				loadTimer.report('db_load_total')
@@ -1134,6 +1133,21 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
+	private async loadCommentsFromPostgres(): Promise<RoomSnapshot['documents']> {
+		const fileId = this.documentInfo.slug
+		const threadRows = await this.db
+			.selectFrom('comment_thread')
+			.where('fileId', '=', fileId)
+			.selectAll()
+			.execute()
+		const commentRows = await this.db
+			.selectFrom('comment')
+			.where('fileId', '=', fileId)
+			.selectAll()
+			.execute()
+		return rowsToSnapshotDocuments(threadRows, commentRows)
+	}
+
 	timer() {
 		const start = Date.now()
 		return {
@@ -1146,12 +1160,6 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	_lastPersistedClock: number | null = null
-
-	// Whether this room's separate object-lane R2 object has ever been written (or existed on
-	// load). Used so we only write the lane once a room actually has object records, but still
-	// write an empty lane on later deletions (rather than leaving a stale object that would
-	// resurrect deleted records).
-	private _objectLaneWritten = false
 
 	// Serializes comment outbox drains (and the restore-path deletes) so they land in order.
 	// Separate from executionQueue (the R2/main-persist queue) since these pushes fire immediately
@@ -1322,16 +1330,14 @@ export class TLFileDurableObject extends DurableObject {
 						assert(snapshot.documentClock !== undefined, 'documentClock must be present')
 						this.maybeAssociateFileAssets()
 
-						const objectDocs = storage.getObjectsSnapshot()
-
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 						await this._uploadSnapshotToR2(snapshot, key)
-						if (objectDocs.length > 0 || this._objectLaneWritten) {
-							// the lane keeps its original `/comments` key so existing rooms keep their data;
-							// a real API would want per-lane keys (e.g. `${key}/objects/<lane>`)
-							await this.r2.rooms.put(`${key}/comments`, JSON.stringify(objectDocs))
-							this._objectLaneWritten = true
-						}
+
+						// Object-lane records (comments) persist to Postgres via the outbox; the
+						// throttled persist just nudges a drain so pushes that failed earlier get
+						// retried even in a quiet room. Fire-and-forget: a Postgres outage must
+						// not fail the R2 document persist — the outbox keeps the pending work.
+						this.drainCommentOutbox()
 						await this.persistToPierre(storage, snapshot)
 
 						this.logEvent({ type: 'persist_success', attempts: attempt })
