@@ -398,6 +398,12 @@ describe('object store lane', () => {
 	})
 
 	describe('authorizeRecord', () => {
+		it('rejects a presence typeName key at construction', () => {
+			expect(() => makeRoom({ authorizeRecord: { presence: ({ next }: any) => next } })).toThrow(
+				/presence/
+			)
+		})
+
 		// A per-type authorizer like dotcom's: stamp the note's text from the session's user id on
 		// create, keep it immutable on update, allow deletes.
 		const authorizeNote = ({ session, type, prev, next }: any) => {

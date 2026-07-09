@@ -167,6 +167,9 @@ export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
  * renaming a field on the record makes the authorizer that reads it fail to compile, rather than
  * silently stamp or guard the wrong field.
  *
+ * Presence records are never authorized (presence is per-session and ephemeral); registering the
+ * presence typeName is a construction-time error.
+ *
  * @public
  */
 export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
@@ -397,6 +400,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		this.presenceType = presenceTypes.values().next()?.value ?? null
+
+		// The presence lane never consults authorizers, so a presence key in `authorizeRecord`
+		// would be a silent no-op — fail loudly at construction instead.
+		if (this.presenceType && this.authorizeRecord) {
+			assert(
+				!getOwnProperty(this.authorizeRecord, this.presenceType.typeName),
+				`TLSyncRoom: authorizeRecord['${this.presenceType.typeName}'] is a presence type; presence records are not authorized`
+			)
+		}
 
 		const { documentClock } = this.storage.transaction((txn) => {
 			this.schema.migrateStorage(txn)
