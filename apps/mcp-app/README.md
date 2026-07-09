@@ -8,20 +8,21 @@ The app has two parts: a **server** and a **widget**.
 
 ### Server
 
-The server runs in Cloudflare Workers via `src/worker.ts`, using a Durable Object (`TldrawMCP`) backed by SQLite for persistent checkpoint storage.
+The server runs in Cloudflare Workers via `src/worker.ts`. The `TldrawMCP` Durable Object is a transport front; every canvas's authoritative state lives in a per-canvas `CanvasStore` Durable Object addressed by `idFromName('canvas:<canvasId>')` — never by MCP session, which hosts do not keep stable. Every exec forks: it resolves the base canvas's latest state (including the user's hand edits), seeds a new canvas from it, and returns the new canvasId, so the chat scrollback is a version history and any canvasId in it is a valid base. See `docs/canvas-persistence-redesign.md` for the full design.
 
 It exposes:
 
 - `search` — query the extracted Editor API spec in a sandboxed dynamic worker
-- `exec` — execute JavaScript against the live editor in the widget via a pending-request callback bridge
-- `_exec_callback` — app-only tool the widget calls to resolve a pending `exec` request
-- `save_checkpoint` / `read_checkpoint` — app-only tools used by the widget for checkpoint persistence
+- `exec` — run JavaScript against a canvas; every call produces a new canvas forked from the base
+- `get_canvas` — read any canvas's authoritative state and exec job status
+- `_pull_job` / `_submit_result` / `_push_user_edit` — app-only transport tools the widget uses (all canvasId-keyed, so host session routing is irrelevant)
+- `_get_canvas_state` / `save_checkpoint` / `_exec_callback` — app-only tools kept as live shims for cached old widget builds
 
 ### Widget
 
-The widget is a React app (`src/widget/mcp-app.tsx`) that renders a full tldraw canvas inside the MCP host's iframe.
+The widget is a React app (`src/widget/mcp-app.tsx`) that renders a full tldraw canvas inside the MCP host's iframe. Each widget instance is pinned to one canvas for its whole life.
 
-When the AI calls `exec`, the server creates a pending request and the widget picks it up, runs the code through a focused editor proxy (`src/widget/focused/`) that translates between an AI-friendly shape format (simple string IDs, flat `_type` shapes) and tldraw's internal `TLShape`/`TLShapeId` types, then calls `_exec_callback` to resolve the pending request with the result. Canvas state is checkpointed to the Durable Object's SQLite database and to the browser's local storage.
+When the AI calls `exec`, the spawned widget reads the base canvasId from its own tool arguments, pulls its invocation's job from the base canvas's Durable Object (`_pull_job`), hydrates the base snapshot, runs the code through a focused editor proxy (`src/widget/focused/`) that translates between an AI-friendly shape format (simple string IDs, flat `_type` shapes) and tldraw's internal `TLShape`/`TLShapeId` types, then submits the result and final state (`_submit_result`), which the server writes to the new canvas and returns from the exec call. The user's manual edits are pushed to the widget's own canvas (`_push_user_edit`) and flushed on teardown.
 
 ## Developing
 

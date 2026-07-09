@@ -3,8 +3,10 @@
 /**
  * Cloudflare Workers entry point for the tldraw MCP server.
  *
- * Uses a Durable Object (McpAgent) with SQLite for persistent checkpoint storage,
- * R2 for image uploads, and the shared registerTools() for tool registration.
+ * The McpAgent Durable Object (TldrawMCP) is a transport front: all canvas
+ * state and exec coordination live in per-canvas CanvasStore DOs addressed by
+ * idFromName('canvas:<canvasId>') — never by MCP session, which hosts do not
+ * keep stable across model-initiated and widget-initiated calls.
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
@@ -13,9 +15,7 @@ import { CanvasStore } from './canvas-store'
 import { Logger } from './logger'
 import { registerTools } from './register-tools'
 import { loadEditorApiSpecFromAssets, loadMethodMapFromAssets } from './shared/generated-data'
-import { PendingRequests } from './shared/pending-requests'
 import {
-	MAX_CHECKPOINTS,
 	MCP_SERVER_DESCRIPTION,
 	MCP_SERVER_INSTRUCTIONS,
 	MCP_SERVER_NAME,
@@ -23,7 +23,7 @@ import {
 	MCP_SERVER_VERSION,
 	MCP_SERVER_WEBSITE_URL,
 } from './shared/types'
-import type { MCP_APP_HOST_NAMES, PendingBootstrap, ServerDeps } from './shared/types'
+import type { CanvasStoreStub, MCP_APP_HOST_NAMES, ServerDeps } from './shared/types'
 import { resolveMcpAppHostNameFromServerInfo } from './shared/utils'
 
 // --- Types ---
@@ -82,13 +82,11 @@ export class TldrawMCP extends McpAgent<Env> {
 		}
 	)
 	isDev = this.env.MCP_IS_DEV === 'true'
-	logsEnabled = this.isDev
-	activeCheckpointId: string | null = null
 	sessionId: string = ''
-	logger = new Logger('TldrawMCP', this.logsEnabled)
+	// Always log: the coordination paths this server runs must be observable
+	// in production, not only in dev.
+	logger = new Logger('TldrawMCP', true)
 	clientHostName: MCP_APP_HOST_NAMES | undefined = undefined
-	pendingRequests = new PendingRequests()
-	pendingBootstrap: PendingBootstrap | null = null
 
 	/** The MCP session ID used for DO routing (extracted from DO name). */
 	getMcpSessionId(): string {
@@ -108,18 +106,15 @@ export class TldrawMCP extends McpAgent<Env> {
 		}
 
 		// --- DO SQLite setup ---
+		// The checkpoints/canvas_checkpoints tables are the pre-redesign
+		// session-keyed store. They are read-only now: a lazy fallback so old
+		// canvasIds from this session keep working as exec bases. New state
+		// lives in the per-canvas CanvasStore DOs.
 		void this
 			.sql`CREATE TABLE IF NOT EXISTS checkpoints (id TEXT PRIMARY KEY, data TEXT, created_at INTEGER)`
 		void this.sql`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)`
 		void this
 			.sql`CREATE TABLE IF NOT EXISTS canvas_checkpoints (canvas_id TEXT PRIMARY KEY, checkpoint_id TEXT)`
-
-		// Restore active checkpoint on reconnect
-		const rows = [...this.sql`SELECT value FROM meta WHERE key = 'activeCheckpointId'`]
-		if (rows.length > 0) {
-			this.activeCheckpointId = rows[0].value as string
-			this.logger.info('Restored active checkpoint', { checkpointId: this.activeCheckpointId })
-		}
 
 		// Restore client host name on reconnect
 		const hostNameRows = [...this.sql`SELECT value FROM meta WHERE key = 'clientHostName'`]
@@ -149,38 +144,23 @@ export class TldrawMCP extends McpAgent<Env> {
 		let editorApiSpecPromise: ReturnType<typeof loadEditorApiSpecFromAssets> | null = null
 		let methodMapPromise: ReturnType<typeof loadMethodMapFromAssets> | null = null
 
-		// --- Exec rendezvous stubs (host-session-independent result handoff) ---
+		// --- Per-canvas state + job authority ---
 		const canvasStoreNs = this.env.CANVAS_STORE
-		const canvasStoreStub = (name: string) => canvasStoreNs.get(canvasStoreNs.idFromName(name))
+		const getCanvasStub = (canvasId: string): CanvasStoreStub =>
+			canvasStoreNs.get(
+				canvasStoreNs.idFromName(`canvas:${canvasId}`)
+			) as unknown as CanvasStoreStub
 
-		// --- Build ServerDeps from SQLite ---
+		// --- Build ServerDeps ---
 		const deps: ServerDeps = {
-			saveCheckpoint: (id, shapes, assets = [], bindings = []) =>
-				this.saveCheckpoint(id, shapes, assets, bindings),
-			loadCheckpoint: (id) => this.loadCheckpoint(id),
-			getActiveCheckpointId: () => this.activeCheckpointId,
-			setActiveCheckpointId: (id) => {
-				this.activeCheckpointId = id
-				void this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
-			},
+			getCanvasStub,
 			getCanvasCheckpointId: (canvasId) => {
 				const rows = [
 					...this.sql`SELECT checkpoint_id FROM canvas_checkpoints WHERE canvas_id = ${canvasId}`,
 				]
 				return rows.length > 0 ? (rows[0].checkpoint_id as string) : null
 			},
-			setCanvasCheckpointId: (canvasId, checkpointId) => {
-				void this
-					.sql`INSERT OR REPLACE INTO canvas_checkpoints (canvas_id, checkpoint_id) VALUES (${canvasId}, ${checkpointId})`
-			},
-			setPendingBootstrap: (bootstrap) => {
-				this.pendingBootstrap = bootstrap
-			},
-			consumePendingBootstrap: () => {
-				const b = this.pendingBootstrap
-				this.pendingBootstrap = null
-				return b
-			},
+			loadCheckpoint: (id) => this.loadCheckpoint(id),
 			getSessionId: () => this.sessionId,
 			getMcpSessionId: () => this.getMcpSessionId(),
 			loadWidgetHtml: async () => widgetHtml,
@@ -191,21 +171,6 @@ export class TldrawMCP extends McpAgent<Env> {
 			loadMethodMap: async () => {
 				methodMapPromise ??= loadMethodMapFromAssets(this.env.ASSETS)
 				return methodMapPromise
-			},
-			putExecResult: async (execKey, payload) => {
-				const { delivered } = await canvasStoreStub(`exec:${execKey}`).putExecResult(
-					execKey,
-					JSON.stringify(payload)
-				)
-				return delivered
-			},
-			waitExecResult: async (execKey, timeoutMs, notBefore) => {
-				const payload = await canvasStoreStub(`exec:${execKey}`).waitExecResult(
-					execKey,
-					timeoutMs,
-					notBefore
-				)
-				return payload ? JSON.parse(payload) : null
 			},
 		}
 
@@ -220,25 +185,10 @@ export class TldrawMCP extends McpAgent<Env> {
 			isDev: this.isDev,
 			analytics: this.env.MCP_ANALYTICS,
 			getClientHostName: () => this.clientHostName,
-			pendingRequests: this.pendingRequests,
 		})
 	}
 
-	// --- Checkpoint helpers ---
-
-	saveCheckpoint(id: string, shapes: unknown[], assets: unknown[] = [], bindings: unknown[] = []) {
-		const data = JSON.stringify({ shapes, assets, bindings })
-		void this
-			.sql`INSERT OR REPLACE INTO checkpoints (id, data, created_at) VALUES (${id}, ${data}, ${Date.now()})`
-		this.activeCheckpointId = id
-		void this.sql`INSERT OR REPLACE INTO meta (key, value) VALUES ('activeCheckpointId', ${id})`
-
-		// Evict old checkpoints beyond MAX_CHECKPOINTS (LRU)
-		void this
-			.sql`DELETE FROM checkpoints WHERE id NOT IN (SELECT id FROM checkpoints ORDER BY created_at DESC LIMIT ${MAX_CHECKPOINTS})`
-
-		this.logger.debug('Checkpoint saved', { checkpointId: id, shapes: shapes.length })
-	}
+	// --- Legacy checkpoint read (pre-redesign canvases) ---
 
 	loadCheckpoint(id: string): { shapes: unknown[]; assets: unknown[]; bindings: unknown[] } | null {
 		const rows = [...this.sql`SELECT data FROM checkpoints WHERE id = ${id}`]

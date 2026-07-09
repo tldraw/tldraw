@@ -2,10 +2,7 @@ import { type App, McpUiDisplayMode, useApp } from '@modelcontextprotocol/ext-ap
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import {
-	type TLAsset,
-	type TLBindingCreate,
 	type TLComponents,
-	type TLShapeId,
 	type TLUiEventHandler,
 	DefaultToolbar,
 	DefaultToolbarContent,
@@ -28,7 +25,11 @@ import {
 	MCP_SERVER_WEBSITE_URL,
 } from '../shared/types'
 import type { MCP_APP_HOST_NAMES } from '../shared/types'
-import { isHostCodeEditor, resolveMcpAppHostNameFromClientInfo } from '../shared/utils'
+import {
+	isHostCodeEditor,
+	isPlainObject,
+	resolveMcpAppHostNameFromClientInfo,
+} from '../shared/utils'
 import { McpAppContext } from './app-context'
 import { DEV_LOG_PANEL_HEIGHT, DevLogPanel, useDevLog } from './dev-log'
 import { executeCode } from './exec-helpers'
@@ -36,24 +37,19 @@ import { exportTldr } from './export-tldr'
 import { ImageDropGuard, uiOverrides } from './image-guard'
 import {
 	type CanvasSnapshot,
-	getCurrentCanvasId,
-	getEmbeddedBootstrap,
-	getLatestCheckpointSnapshot,
-	loadLocalSnapshot,
-	parseCheckpointFromToolResult,
+	buildContextJson,
+	captureEditorSnapshot,
 	clearCanvasContext,
+	getEmbeddedBootstrap,
 	pushCanvasContext,
-	saveCheckpointToServer,
-	saveLocalSnapshot,
-	setCurrentCanvasId,
-	setCurrentSessionId,
-	syncEditorState,
 } from './persistence'
 import { applySnapshot, zoomToFitRequestShapes } from './snapshot'
 
 const LICENSE_KEY = import.meta.env.VITE_TLDRAW_LICENSE_KEY as string
 
-const SAVE_DEBOUNCE_MS = 500
+const USER_EDIT_DEBOUNCE_MS = 1_500
+const PULL_JOB_ATTEMPTS = 4
+const PULL_JOB_RETRY_MS = 700
 
 function SharePanelContent() {
 	const editor = useEditor()
@@ -157,6 +153,59 @@ function parseHostTheme(value: unknown): 'light' | 'dark' | null {
 	return value === 'dark' || value === 'light' ? value : null
 }
 
+/** Parse an app-only tool result: structuredContent first, then JSON text. */
+function parseToolResultJson(res: unknown): Record<string, unknown> | null {
+	if (!isPlainObject(res)) return null
+	if (isPlainObject(res.structuredContent)) return res.structuredContent
+	if (Array.isArray(res.content)) {
+		const textItem = res.content.find(
+			(c: unknown): c is { type: string; text: string } =>
+				isPlainObject(c) && c.type === 'text' && typeof c.text === 'string'
+		)
+		if (textItem) {
+			try {
+				const parsed = JSON.parse(textItem.text)
+				return isPlainObject(parsed) ? parsed : null
+			} catch {
+				return null
+			}
+		}
+	}
+	return null
+}
+
+function toSnapshot(data: Record<string, unknown>): CanvasSnapshot {
+	return {
+		shapes: Array.isArray(data.shapes) ? (data.shapes as CanvasSnapshot['shapes']) : [],
+		assets: Array.isArray(data.assets) ? (data.assets as CanvasSnapshot['assets']) : [],
+		bindings: Array.isArray(data.bindings) ? (data.bindings as CanvasSnapshot['bindings']) : [],
+	}
+}
+
+/** The canvasId carried by an exec tool result, from structuredContent or text. */
+function parseCanvasIdFromToolResult(result: unknown): string | null {
+	if (!isPlainObject(result)) return null
+	const sc = result.structuredContent
+	if (isPlainObject(sc) && typeof sc.canvasId === 'string' && sc.canvasId) {
+		return sc.canvasId
+	}
+	if (Array.isArray(result.content)) {
+		for (const item of result.content) {
+			if (!isPlainObject(item) || item.type !== 'text' || typeof item.text !== 'string') continue
+			const match = item.text.match(/Canvas (?:ID: )?([a-z0-9]{8,32})\b/)
+			if (match) return match[1]
+		}
+	}
+	return null
+}
+
+interface PendingExecArgs {
+	code: string
+	baseCanvasId?: string
+	/** True once the host delivered the final (non-partial) tool input. */
+	final: boolean
+}
+
 function TldrawCanvas({ app }: { app: App }) {
 	const [displayMode, setDisplayMode] =
 		useState<Extract<McpUiDisplayMode, 'inline' | 'fullscreen'>>('inline')
@@ -173,17 +222,30 @@ function TldrawCanvas({ app }: { app: App }) {
 	const [execError, setExecError] = useState<string | null>(null)
 	const editorRef = useRef<Editor | null>(null)
 
-	const pendingSnapshotRef = useRef<CanvasSnapshot | null>(null)
 	const committedSnapshotRef = useRef<CanvasSnapshot>({ shapes: [], assets: [] })
-	const checkpointIdRef = useRef<string | null>(null)
 	const removeStoreListenerRef = useRef<(() => void) | null>(null)
 	const editorReadyResolveRef = useRef<((editor: Editor) => void) | null>(null)
 	const editorReadyPromiseRef = useRef<Promise<Editor> | null>(null)
-	const saveTimerRef = useRef<number | null>(null)
 	const hasUserEditedSinceAiRef = useRef(false)
 	const lastEditorRef = useRef<'user' | 'ai'>('ai')
-	const execPartialDebounceRef = useRef<number | null>(null)
-	const hasExecRunRef = useRef(false)
+
+	// --- Exec/job coordination state ---
+	// The server-side job store is the single source of execution truth:
+	// pulling a job is an atomic claim, so duplicate or reordered host events
+	// cost one no-op pull at worst. These refs only prevent obviously
+	// redundant local work.
+	const pendingArgsRef = useRef<PendingExecArgs | null>(null)
+	const execStartedRef = useRef(false)
+	// Model code drives the editor through the same 'user'-source store events
+	// as real user edits; suppress the user-edit listener while it runs so
+	// exec output is never pushed (or announced) as a manual edit.
+	const isExecutingRef = useRef(false)
+	const myCanvasIdRef = useRef<string | null>(null)
+	const needsStateLoadRef = useRef(false)
+
+	// --- User edit push state ---
+	const userEditTimerRef = useRef<number | null>(null)
+	const userEditDirtyRef = useRef(false)
 
 	const { isDev, isDevLogVisible, devLogEntries, logIfDevMode, toggleDevLog, enableDevMode } =
 		useDevLog()
@@ -248,13 +310,9 @@ function TldrawCanvas({ app }: { app: App }) {
 	const teardownEditor = useCallback(() => {
 		removeStoreListenerRef.current?.()
 		removeStoreListenerRef.current = null
-		if (saveTimerRef.current !== null) {
-			window.clearTimeout(saveTimerRef.current)
-			saveTimerRef.current = null
-		}
-		if (execPartialDebounceRef.current !== null) {
-			window.clearTimeout(execPartialDebounceRef.current)
-			execPartialDebounceRef.current = null
+		if (userEditTimerRef.current !== null) {
+			window.clearTimeout(userEditTimerRef.current)
+			userEditTimerRef.current = null
 		}
 		editorRef.current?.dispose()
 		editorRef.current = null
@@ -276,6 +334,73 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 	}, [])
 
+	/** Returns the editor, waiting for mount if it hasn't happened yet. */
+	const waitForEditor = useCallback((): Promise<Editor> => {
+		const editor = editorRef.current
+		if (editor) return Promise.resolve(editor)
+
+		if (editorReadyPromiseRef.current) return editorReadyPromiseRef.current
+
+		editorReadyPromiseRef.current = new Promise<Editor>((resolve) => {
+			editorReadyResolveRef.current = resolve
+		})
+		return editorReadyPromiseRef.current
+	}, [])
+
+	// --- User edit persistence (canvasId-keyed, session-agnostic) ---
+
+	const pushUserEdit = useCallback(async (): Promise<void> => {
+		const editor = editorRef.current
+		const canvasId = myCanvasIdRef.current
+		if (!editor || !canvasId || !userEditDirtyRef.current) return
+		userEditDirtyRef.current = false
+
+		const snapshot = captureEditorSnapshot(editor)
+		committedSnapshotRef.current = snapshot
+		try {
+			await app.callServerTool({
+				name: '_push_user_edit',
+				arguments: {
+					canvasId,
+					shapesJson: JSON.stringify(snapshot.shapes),
+					assetsJson: JSON.stringify(snapshot.assets),
+					bindingsJson: JSON.stringify(snapshot.bindings ?? []),
+					contextJson: buildContextJson(editor),
+					widgetVersion: MCP_SERVER_VERSION,
+				},
+			})
+			logIfDevMode(`User edit saved to canvas ${canvasId} (${snapshot.shapes.length} shape(s))`)
+		} catch (err) {
+			userEditDirtyRef.current = true
+			logIfDevMode(`User edit save failed: ${err}`)
+		}
+		// Advisory: authoritative state lives server-side; this tells the model
+		// WHICH canvas the user touched without a tool call.
+		pushCanvasContext(app, editor, {
+			canvasId,
+			message: `The user edited canvas ${canvasId} by hand.`,
+		})
+	}, [app, logIfDevMode])
+
+	const scheduleUserEditPush = useCallback(() => {
+		userEditDirtyRef.current = true
+		if (userEditTimerRef.current !== null) {
+			window.clearTimeout(userEditTimerRef.current)
+		}
+		userEditTimerRef.current = window.setTimeout(() => {
+			userEditTimerRef.current = null
+			void pushUserEdit()
+		}, USER_EDIT_DEBOUNCE_MS)
+	}, [pushUserEdit])
+
+	const flushUserEdit = useCallback(async (): Promise<void> => {
+		if (userEditTimerRef.current !== null) {
+			window.clearTimeout(userEditTimerRef.current)
+			userEditTimerRef.current = null
+		}
+		await pushUserEdit()
+	}, [pushUserEdit])
+
 	const toggleFullscreen = useCallback(async () => {
 		const newMode = displayMode === 'fullscreen' ? 'inline' : 'fullscreen'
 		if (newMode === 'fullscreen' && (isMobilePlatform || !canFullscreen)) {
@@ -283,10 +408,7 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		if (newMode === 'inline') {
-			const editor = editorRef.current
-			if (editor) {
-				committedSnapshotRef.current = syncEditorState(app, editor, checkpointIdRef.current)
-			}
+			void flushUserEdit()
 		}
 
 		try {
@@ -296,7 +418,7 @@ function TldrawCanvas({ app }: { app: App }) {
 		} catch {
 			return
 		}
-	}, [app, canFullscreen, displayMode, isMobilePlatform])
+	}, [app, canFullscreen, displayMode, flushUserEdit, isMobilePlatform])
 
 	const mcpAppCtx = useMemo(
 		() => ({
@@ -327,31 +449,6 @@ function TldrawCanvas({ app }: { app: App }) {
 		]
 	)
 
-	/** Returns the editor, waiting for mount if it hasn't happened yet. */
-	const waitForEditor = useCallback((): Promise<Editor> => {
-		const editor = editorRef.current
-		if (editor) return Promise.resolve(editor)
-
-		if (editorReadyPromiseRef.current) return editorReadyPromiseRef.current
-
-		editorReadyPromiseRef.current = new Promise<Editor>((resolve) => {
-			editorReadyResolveRef.current = resolve
-		})
-		return editorReadyPromiseRef.current
-	}, [])
-
-	const scheduleSave = useCallback(() => {
-		if (saveTimerRef.current !== null) {
-			window.clearTimeout(saveTimerRef.current)
-		}
-		saveTimerRef.current = window.setTimeout(() => {
-			saveTimerRef.current = null
-			const editor = editorRef.current
-			if (!editor) return
-			syncEditorState(app, editor, checkpointIdRef.current)
-		}, SAVE_DEBOUNCE_MS)
-	}, [app])
-
 	useEffect(() => {
 		setHostContext(app.getHostContext())
 		const initialTheme = parseHostTheme(
@@ -368,54 +465,9 @@ function TldrawCanvas({ app }: { app: App }) {
 		// Delete the bootstrap data from the window object to prevent it from being used again.
 		delete window.__TLDRAW_BOOTSTRAP__
 
-		if (bootstrap) {
-			setCurrentSessionId(bootstrap.sessionId)
-			if (bootstrap.canvasId) {
-				setCurrentCanvasId(bootstrap.canvasId)
-			}
-			if (bootstrap.isDev) {
-				enableDevMode()
-			}
-			logIfDevMode(
-				`Bootstrap loaded for session ${bootstrap.sessionId}, canvas ${bootstrap.canvasId ?? 'none'}${bootstrap.isDev ? ' (dev mode)' : ''}`
-			)
-
-			if (bootstrap.snapshot) {
-				if (committedSnapshotRef.current.shapes.length === 0) {
-					const snapshot: CanvasSnapshot = {
-						shapes: bootstrap.snapshot.shapes,
-						assets: bootstrap.snapshot.assets,
-						bindings: bootstrap.snapshot.bindings,
-					}
-					committedSnapshotRef.current = snapshot
-					if (bootstrap.checkpointId) {
-						checkpointIdRef.current = bootstrap.checkpointId
-						logIfDevMode(
-							`Restored embedded checkpoint ${bootstrap.checkpointId} with ${bootstrap.snapshot.shapes.length} shape(s)`
-						)
-					}
-					const editor = editorRef.current
-					if (editor) {
-						applySnapshot(editor, snapshot)
-					} else {
-						pendingSnapshotRef.current = snapshot
-					}
-				}
-			} else {
-				const latestSnapshot = getLatestCheckpointSnapshot()
-				if (latestSnapshot && committedSnapshotRef.current.shapes.length === 0) {
-					logIfDevMode(
-						`Restored latest local snapshot with ${latestSnapshot.shapes.length} shape(s)`
-					)
-					committedSnapshotRef.current = latestSnapshot
-					const editor = editorRef.current
-					if (editor) {
-						applySnapshot(editor, latestSnapshot)
-					} else {
-						pendingSnapshotRef.current = latestSnapshot
-					}
-				}
-			}
+		if (bootstrap?.isDev) {
+			enableDevMode()
+			logIfDevMode('Bootstrap loaded (dev mode)')
 		}
 
 		app.onhostcontextchanged = (ctx) => {
@@ -437,281 +489,267 @@ function TldrawCanvas({ app }: { app: App }) {
 
 			if (ctx.displayMode !== undefined) {
 				const newMode = ctx.displayMode === 'fullscreen' ? 'fullscreen' : 'inline'
-
 				if (newMode !== 'fullscreen') {
-					const editor = editorRef.current
-					if (editor) {
-						committedSnapshotRef.current = syncEditorState(app, editor, checkpointIdRef.current)
-					}
+					void flushUserEdit()
 				}
-
 				setDisplayMode(newMode)
 			}
 		}
 
-		const runExec = (code: string, source: string, canvasId?: string) => {
-			if (hasExecRunRef.current) {
-				logIfDevMode(`Exec: skipping duplicate exec from ${source}`)
-				return
+		// --- Canvas state fetch (remount, or job already handled elsewhere) ---
+
+		const loadAndRender = async (canvasId: string): Promise<void> => {
+			logIfDevMode(`Loading canvas state for ${canvasId}`)
+			const editor = await waitForEditor()
+			try {
+				const res = await app.callServerTool({
+					name: '_get_canvas_state',
+					arguments: { canvasId },
+				})
+				const data = parseToolResultJson(res)
+				if (!data) return
+				const snapshot = toSnapshot(data)
+				myCanvasIdRef.current = canvasId
+				applySnapshot(editor, snapshot)
+				committedSnapshotRef.current = snapshot
+				zoomToFitRequestShapes(editor, new Set(snapshot.shapes.map((s) => s.id)))
+				pushCanvasContext(app, editor, { canvasId })
+				logIfDevMode(`Rendered ${snapshot.shapes.length} shape(s) for canvas ${canvasId}`)
+			} catch (err) {
+				logIfDevMode(`Canvas state fetch failed: ${err}`)
 			}
-			hasExecRunRef.current = true
+		}
 
-			logIfDevMode(`Exec: running from ${source}`)
-			markAiActivity()
+		// --- Exec: pull this invocation's job, execute, submit ---
 
-			void (async () => {
-				logIfDevMode('Exec: waiting for editor...')
-				const editor = await waitForEditor()
-
-				if (canvasId) {
-					setCurrentCanvasId(canvasId)
-
-					if (editor.getCurrentPageShapeIds().size === 0) {
-						logIfDevMode(`Exec: canvas empty, fetching state for canvasId=${canvasId}`)
-						try {
-							const response = await app.callServerTool({
-								name: '_get_canvas_state',
-								arguments: { canvasId },
-							})
-							const res = response as any
-							let data: any = null
-							// Try structuredContent first, fall back to parsing text content
-							if (res?.structuredContent) {
-								data = res.structuredContent
-							} else if (Array.isArray(res?.content)) {
-								const textItem = res.content.find(
-									(c: any) => c.type === 'text' && typeof c.text === 'string'
-								)
-								if (textItem) {
-									try {
-										data = JSON.parse(textItem.text)
-									} catch {
-										// not JSON
-									}
-								}
-							}
-							if (data && Array.isArray(data.shapes) && data.shapes.length > 0) {
-								const snapshot: CanvasSnapshot = {
-									shapes: data.shapes,
-									assets: Array.isArray(data.assets) ? data.assets : [],
-									bindings: Array.isArray(data.bindings) ? data.bindings : [],
-								}
-								applySnapshot(editor, snapshot)
-								committedSnapshotRef.current = snapshot
-								if (typeof data.checkpointId === 'string') {
-									checkpointIdRef.current = data.checkpointId
-								}
-								logIfDevMode(
-									`Exec: restored ${data.shapes.length} shape(s) from server for canvasId=${canvasId}`
-								)
-							} else {
-								logIfDevMode(`Exec: no shapes returned from server for canvasId=${canvasId}`)
-							}
-						} catch (err) {
-							logIfDevMode(`Exec: failed to fetch canvas state: ${err}`)
+		const pullJob = async (rendezvousCanvasId: string, code: string) => {
+			const codeHash = await computeExecKey(code)
+			for (let attempt = 0; attempt < PULL_JOB_ATTEMPTS; attempt++) {
+				if (attempt > 0) {
+					await new Promise((resolve) => setTimeout(resolve, PULL_JOB_RETRY_MS))
+				}
+				try {
+					const res = await app.callServerTool({
+						name: '_pull_job',
+						arguments: { canvasId: rendezvousCanvasId, codeHash },
+					})
+					const data = parseToolResultJson(res)
+					const job = data?.job
+					if (
+						isPlainObject(job) &&
+						typeof job.execId === 'string' &&
+						typeof job.code === 'string' &&
+						typeof job.targetCanvasId === 'string'
+					) {
+						return job as {
+							execId: string
+							code: string
+							targetCanvasId: string
+							baseShapesJson?: string
+							baseAssetsJson?: string
+							baseBindingsJson?: string
 						}
 					}
-				}
-
-				logIfDevMode('Exec: editor ready, executing code')
-
-				const execResult = await executeCode(editor, code)
-				logIfDevMode(
-					`Exec ${execResult.success ? 'succeeded' : 'failed'}: ${JSON.stringify(execResult.result ?? execResult.error)}`
-				)
-
-				// Resolve the waiting exec call. On same-session hosts this settles the
-				// server's in-memory pending request directly; otherwise the server
-				// forwards the result to the exec:<execKey> rendezvous DO, keyed by the
-				// same (canvasId, code) pair both sides derive, so it still reaches the
-				// waiting exec. `canvasId` here is the model-supplied input (undefined
-				// for a new canvas) — the server keys on that same value, so folding it
-				// in keeps same-code-different-canvas invocations from colliding.
-				//
-				// We also include the canvasId in the payload (when present) as a
-				// belt-and-braces cross-check: the waiting exec rejects a delivered
-				// result whose canvasId isn't the one it's editing. Omitted for new
-				// canvases because the server-generated id isn't known here yet, and
-				// sending a stale learned id would cause false mismatches.
-				const execKey = await computeExecKey(code, canvasId)
-				const resultPayload = execResult.success
-					? { success: true, result: execResult.result }
-					: { success: false, error: execResult.error }
-				if (canvasId) {
-					;(resultPayload as { canvasId?: string }).canvasId = canvasId
-				}
-				const callbackArgs = { channel: 'exec', execKey, result: resultPayload }
-				try {
-					await app.callServerTool({ name: '_exec_callback', arguments: callbackArgs })
-					logIfDevMode('Exec: _exec_callback succeeded')
 				} catch (err) {
-					logIfDevMode(`Exec: _exec_callback failed: ${err}`)
+					logIfDevMode(`_pull_job attempt ${attempt + 1} failed: ${err}`)
 				}
+			}
+			return null
+		}
 
-				if (execResult.success) {
-					const cpId = checkpointIdRef.current ?? crypto.randomUUID()
-					checkpointIdRef.current = cpId
+		const runExecJob = async (rendezvousCanvasId: string, code: string): Promise<void> => {
+			if (execStartedRef.current) return
+			execStartedRef.current = true
+			markAiActivity()
 
-					const resultStr =
-						execResult.result !== undefined ? JSON.stringify(execResult.result, null, 2) : undefined
-					committedSnapshotRef.current = syncEditorState(app, editor, cpId, {
-						message: resultStr
-							? `Code executed successfully on canvas. Return value:\n${resultStr}`
-							: 'Code executed successfully on canvas.',
-					})
+			logIfDevMode(`Exec: pulling job via canvas ${rendezvousCanvasId}`)
+			const editor = await waitForEditor()
+			const job = await pullJob(rendezvousCanvasId, code)
 
-					const snapshot = committedSnapshotRef.current
-					const allShapeIds = new Set(snapshot.shapes.map((s) => s.id))
-					zoomToFitRequestShapes(editor, allShapeIds)
+			if (!job) {
+				// The job was already claimed (duplicate event, or a remount long
+				// after execution) or expired. This widget is a viewer: render the
+				// canvas it belongs to once that id is known.
+				logIfDevMode('Exec: no job to pull — rendering existing state')
+				execStartedRef.current = false
+				const canvasId = myCanvasIdRef.current ?? rendezvousCanvasId
+				if (canvasId) {
+					await loadAndRender(canvasId)
 				} else {
-					clearCanvasContext(app, {
-						message:
-							'Canvas context was cleared because code execution failed. Fix the error before using the canvas context again.',
-					})
-					teardownEditor()
-					setExecError(execResult.error ?? 'Unknown error')
-					void app.sendSizeChanged({ width: 400, height: ERROR_BANNER_HEIGHT })
+					needsStateLoadRef.current = true
 				}
-			})()
+				return
+			}
+
+			// Hydrate the base snapshot (empty for a brand-new canvas).
+			try {
+				const base: CanvasSnapshot = {
+					shapes: job.baseShapesJson ? JSON.parse(job.baseShapesJson) : [],
+					assets: job.baseAssetsJson ? JSON.parse(job.baseAssetsJson) : [],
+					bindings: job.baseBindingsJson ? JSON.parse(job.baseBindingsJson) : [],
+				}
+				if (base.shapes.length > 0 || base.assets.length > 0) {
+					applySnapshot(editor, base)
+				}
+			} catch (err) {
+				logIfDevMode(`Exec: base snapshot hydration failed: ${err}`)
+			}
+
+			logIfDevMode(`Exec: executing job ${job.execId} for canvas ${job.targetCanvasId}`)
+			isExecutingRef.current = true
+			let execResult: Awaited<ReturnType<typeof executeCode>>
+			try {
+				execResult = await executeCode(editor, job.code)
+			} finally {
+				isExecutingRef.current = false
+			}
+			logIfDevMode(
+				`Exec ${execResult.success ? 'succeeded' : 'failed'}: ${JSON.stringify(execResult.result ?? execResult.error)}`
+			)
+			myCanvasIdRef.current = job.targetCanvasId
+			markAiActivity()
+
+			if (execResult.success) {
+				const snapshot = captureEditorSnapshot(editor)
+				committedSnapshotRef.current = snapshot
+				try {
+					await app.callServerTool({
+						name: '_submit_result',
+						arguments: {
+							canvasId: rendezvousCanvasId,
+							execId: job.execId,
+							result: { success: true, result: execResult.result },
+							shapesJson: JSON.stringify(snapshot.shapes),
+							assetsJson: JSON.stringify(snapshot.assets),
+							bindingsJson: JSON.stringify(snapshot.bindings ?? []),
+							contextJson: buildContextJson(editor),
+							widgetVersion: MCP_SERVER_VERSION,
+						},
+					})
+					logIfDevMode('Exec: result submitted')
+				} catch (err) {
+					logIfDevMode(`Exec: _submit_result failed: ${err}`)
+				}
+				zoomToFitRequestShapes(editor, new Set(snapshot.shapes.map((s) => s.id)))
+				const resultStr =
+					execResult.result !== undefined ? JSON.stringify(execResult.result, null, 2) : undefined
+				pushCanvasContext(app, editor, {
+					canvasId: job.targetCanvasId,
+					message: resultStr
+						? `Code executed successfully on canvas. Return value:\n${resultStr}`
+						: 'Code executed successfully on canvas.',
+				})
+			} else {
+				try {
+					await app.callServerTool({
+						name: '_submit_result',
+						arguments: {
+							canvasId: rendezvousCanvasId,
+							execId: job.execId,
+							result: { success: false, error: execResult.error },
+							widgetVersion: MCP_SERVER_VERSION,
+						},
+					})
+				} catch (err) {
+					logIfDevMode(`Exec: _submit_result (error) failed: ${err}`)
+				}
+				clearCanvasContext(app, {
+					message:
+						'Canvas context was cleared because code execution failed. Fix the error before using the canvas context again.',
+				})
+				teardownEditor()
+				setExecError(execResult.error ?? 'Unknown error')
+				void app.sendSizeChanged({ width: 400, height: ERROR_BANNER_HEIGHT })
+			}
 		}
 
 		app.ontoolinput = (params) => {
-			logIfDevMode('Exec: ontoolinput called')
 			const code = params.arguments?.code
 			if (typeof code !== 'string' || !code.trim()) return
-			const canvasId =
+			const baseCanvasId =
 				typeof params.arguments?.canvasId === 'string' ? params.arguments.canvasId : undefined
+			pendingArgsRef.current = { code, baseCanvasId, final: true }
+			logIfDevMode(`ontoolinput: base=${baseCanvasId ?? 'none'}`)
 
-			if (execPartialDebounceRef.current !== null) {
-				window.clearTimeout(execPartialDebounceRef.current)
+			// With a base, the rendezvous canvas is in our own args — start now.
+			// Without one, the server-minted canvasId arrives with the tool
+			// result (or already did, on hosts that deliver result first).
+			const rendezvous = baseCanvasId ?? myCanvasIdRef.current
+			if (rendezvous) {
+				void runExecJob(rendezvous, code)
 			}
-			execPartialDebounceRef.current = window.setTimeout(() => {
-				execPartialDebounceRef.current = null
-				runExec(code, 'ontoolinput (debounced)', canvasId)
-			}, 500)
 		}
 
 		app.ontoolinputpartial = (params) => {
+			// Preview-only: never triggers execution. Kept as the args source of
+			// last resort for hosts that fail to deliver a final tool input.
 			const code = params.arguments?.code
 			if (typeof code !== 'string' || !code.trim()) return
-			const canvasId =
+			if (pendingArgsRef.current?.final) return
+			const baseCanvasId =
 				typeof params.arguments?.canvasId === 'string' ? params.arguments.canvasId : undefined
-
-			if (execPartialDebounceRef.current !== null) {
-				window.clearTimeout(execPartialDebounceRef.current)
-			}
-			execPartialDebounceRef.current = window.setTimeout(() => {
-				execPartialDebounceRef.current = null
-				runExec(code, 'ontoolinputpartial (debounced)', canvasId)
-			}, 1000)
-		}
-
-		app.onteardown = async () => {
-			return {}
+			pendingArgsRef.current = { code, baseCanvasId, final: false }
 		}
 
 		app.ontoolresult = async (result) => {
-			logIfDevMode('Exec: ontoolresult called')
-			// If the code already ran for this invocation (via toolinput/partial), a
-			// still-queued debounced run is a duplicate of it — cancel it before
-			// resetting the run guard. If nothing ran yet (hosts that deliver input
-			// and result together), keep the timer so the code still executes once.
-			if (hasExecRunRef.current && execPartialDebounceRef.current !== null) {
-				window.clearTimeout(execPartialDebounceRef.current)
-				execPartialDebounceRef.current = null
-			}
-			hasExecRunRef.current = false
+			logIfDevMode('ontoolresult received')
 			markAiActivity()
 
-			// The tool result carries the server-assigned canvasId on every host,
-			// including those that route widget calls over a separate MCP session. Once
-			// learned, persist the canvas -> checkpoint mapping so future execs can
-			// restore this canvas.
-			const sc = (result as { structuredContent?: { canvasId?: unknown } }).structuredContent
-			if (sc && typeof sc.canvasId === 'string' && sc.canvasId) {
-				const hadCanvasId = getCurrentCanvasId() !== null
-				setCurrentCanvasId(sc.canvasId)
-				logIfDevMode(`Exec: canvasId from tool result: ${sc.canvasId}`)
-				if (!hadCanvasId) {
-					const editor = editorRef.current
-					const cpId = checkpointIdRef.current
-					if (editor && cpId) {
-						void saveCheckpointToServer(app, cpId, editor)
-					}
+			const canvasId = parseCanvasIdFromToolResult(result)
+			if (canvasId && !myCanvasIdRef.current) {
+				myCanvasIdRef.current = canvasId
+				logIfDevMode(`Learned canvasId from tool result: ${canvasId}`)
+			}
+
+			const args = pendingArgsRef.current
+			if (!execStartedRef.current && args?.code) {
+				// New-canvas flow (rendezvous = the id we just learned), or a host
+				// that delivers input and result together.
+				const rendezvous = args.baseCanvasId ?? canvasId
+				if (rendezvous) {
+					void runExecJob(rendezvous, args.code)
+					return
 				}
 			}
 
-			const checkpoint = parseCheckpointFromToolResult(result)
-			if (!checkpoint) return
-			logIfDevMode(`Received tool result for checkpoint ${checkpoint.checkpointId}`)
-
-			const {
-				checkpointId,
-				sessionId,
-				shapes: resultShapes,
-				assets: resultAssets,
-				bindings: resultBindings,
-			} = checkpoint
-			checkpointIdRef.current = checkpointId
-
-			if (sessionId) {
-				setCurrentSessionId(sessionId)
-			}
-
-			const localSnapshot = loadLocalSnapshot(checkpointId)
-			const finalShapes = localSnapshot ? localSnapshot.shapes : resultShapes
-			const finalAssets: TLAsset[] = localSnapshot ? localSnapshot.assets : resultAssets
-			const finalBindings: TLBindingCreate[] = localSnapshot
-				? localSnapshot.bindings
-				: resultBindings
-
-			const previousCommittedIds = new Set(committedSnapshotRef.current.shapes.map((s) => s.id))
-
-			const snapshot: CanvasSnapshot = {
-				shapes: finalShapes,
-				assets: finalAssets,
-				bindings: finalBindings,
-			}
-			committedSnapshotRef.current = snapshot
-
-			const editor = editorRef.current
-			if (!editor) {
-				pendingSnapshotRef.current = snapshot
+			if (needsStateLoadRef.current && canvasId) {
+				needsStateLoadRef.current = false
+				void loadAndRender(canvasId)
 				return
 			}
 
-			applySnapshot(editor, snapshot)
-
-			if (!localSnapshot) {
-				const newIds = new Set<TLShapeId>()
-				for (const shape of finalShapes) {
-					if (!previousCommittedIds.has(shape.id)) newIds.add(shape.id)
-				}
-				zoomToFitRequestShapes(editor, newIds)
+			if (!execStartedRef.current && !args?.code && canvasId) {
+				// Remount without usable tool input: pure viewer.
+				void loadAndRender(canvasId)
 			}
-
-			saveLocalSnapshot(checkpointId, finalShapes, finalAssets, finalBindings)
-			void saveCheckpointToServer(app, checkpointId, editor)
-			pushCanvasContext(app, editor)
 		}
 
 		app.ontoolcancelled = (_params) => {
-			hasExecRunRef.current = false
-			if (execPartialDebounceRef.current !== null) {
-				window.clearTimeout(execPartialDebounceRef.current)
-				execPartialDebounceRef.current = null
-			}
 			markAiActivity()
 			logIfDevMode('Tool invocation cancelled')
 		}
 
+		app.onteardown = async () => {
+			// The one sanctioned save moment: the host awaits this before
+			// unmounting, so flush any pending user edits.
+			await flushUserEdit()
+			return {}
+		}
+
+		const handlePageHide = () => {
+			void flushUserEdit()
+		}
+		window.addEventListener('pagehide', handlePageHide)
+
 		return () => {
+			window.removeEventListener('pagehide', handlePageHide)
 			teardownEditor()
 		}
 	}, [
 		app,
 		applyHostThemeToEditor,
 		enableDevMode,
+		flushUserEdit,
 		logIfDevMode,
 		markAiActivity,
 		teardownEditor,
@@ -755,8 +793,9 @@ function TldrawCanvas({ app }: { app: App }) {
 			removeStoreListenerRef.current?.()
 			removeStoreListenerRef.current = editor.store.listen(
 				() => {
+					if (isExecutingRef.current) return
 					markUserEdit()
-					scheduleSave()
+					scheduleUserEditPush()
 				},
 				{ source: 'user', scope: 'document' }
 			)
@@ -780,16 +819,8 @@ function TldrawCanvas({ app }: { app: App }) {
 					z: cam.z,
 				})
 			})
-
-			const pendingSnapshot = pendingSnapshotRef.current
-			if (pendingSnapshot) {
-				pendingSnapshotRef.current = null
-				applySnapshot(editor, pendingSnapshot)
-			}
-
-			pushCanvasContext(app, editor)
 		},
-		[app, canvasTheme, markUserEdit, scheduleSave]
+		[canvasTheme, markUserEdit, scheduleUserEditPush]
 	)
 
 	if (execError) {
