@@ -8,20 +8,14 @@ export interface SessionMeta {
 	userId: string | null
 }
 
-// The file room's record union, widened to include the object-lane comment records so the per-type
-// authorizers are typed to their record (e.g. `comment`'s `next` is a `TLComment`). Renaming an
-// attribution field makes the authorizer that stamps/guards it fail to compile.
+// The file room's record union, widened to include the object-lane comment records so each
+// authorizer is typed to its record — renaming an attribution field fails to compile here.
 type FileRecord = TLRecord | TLComment | TLCommentThread
 
 /**
- * Build an authorizer for a record whose attribution lives in a single `field`: stamp it from the
- * session's identity on create, keep it immutable on update, and allow deletes (cascade cleanup
- * relies on non-authors being able to remove a shape's comments). `field` is `keyof Rec`, so
- * renaming the record's attribution field is a compile error here.
- *
- * With `ownerOnlyUpdate`, only the record's own author may update it — so nobody can edit someone
- * else's comment (which would render under the original author). Leave it off for records anyone
- * with access may update, e.g. resolving a thread.
+ * Authorize a record whose attribution lives in `field`: stamped from the session on create,
+ * immutable on update, deletes allowed (cascade cleanup needs non-authors to remove a shape's
+ * comments). With `ownerOnlyUpdate`, only the author may update it at all.
  */
 function authorizeAuthored<Rec extends UnknownRecord>(
 	field: keyof Rec & string,
@@ -29,8 +23,7 @@ function authorizeAuthored<Rec extends UnknownRecord>(
 ): TLRecordAuthorizer<Rec, SessionMeta> {
 	return ({ session, type, prev, next }) => {
 		if (type === 'create') {
-			// No authenticated identity → can't attribute → reject; the client self-corrects.
-			if (!session.meta.userId) return null
+			if (!session.meta.userId) return null // no identity to attribute → reject
 			return { ...next, [field]: session.meta.userId } as Rec
 		}
 		if (type === 'update') {
@@ -45,16 +38,15 @@ function authorizeAuthored<Rec extends UnknownRecord>(
 const authorizeThreadBase = authorizeAuthored<TLCommentThread>('createdBy')
 
 /**
- * Threads stay editable by anyone with access so they can be resolved and reopened, but resolution
- * is itself an attribution — `resolved.by` renders as "Resolved by X". Whether set at create or
- * changed by an update, a non-null resolution must be attributed to the session's own user.
+ * Threads stay editable by anyone with access (resolve/reopen), but resolution is itself an
+ * attribution: a non-null `resolved.by`, set at create or changed by update, must be the
+ * session's own user.
  */
 const authorizeThread: TLRecordAuthorizer<TLCommentThread, SessionMeta> = (args) => {
 	const result = authorizeThreadBase(args)
 	if (!result) return null
 	if (args.type === 'create') {
-		// A fresh thread must not arrive pre-resolved in someone else's name (deletes are allowed
-		// for cascade cleanup, so delete + re-put with a forged resolution is otherwise possible).
+		// Delete + re-put could otherwise smuggle in a resolution forged in someone else's name.
 		const { session, next } = args
 		if (next.resolved && next.resolved.by !== session.meta.userId) return null
 	}
@@ -77,13 +69,11 @@ function getNoteAttribution(shape: TLShape): string | null | undefined {
 }
 
 /**
- * Notes stamp `textLastEditedBy` client-side: the current user on text edit, `null` when the text
- * is emptied or the editor is anonymous. Enforce that here: when an update changes the attribution,
- * the new value must be `null` or the session's own user.
- *
- * Creates pass through untouched — duplication and copy/paste legitimately carry another user's
- * attribution, so a forged create is indistinguishable from a duplication and strictness on create
- * would only break duplication. The delete + re-create loophole this leaves is accepted by design.
+ * Notes stamp `textLastEditedBy` client-side (the editor on text edit, `null` when emptied or
+ * anonymous); enforce it here: an update may only change the attribution to `null` or the
+ * session's own user. Creates pass through — duplication legitimately carries another user's
+ * attribution, so a forged create is indistinguishable from a duplicate (the delete + re-create
+ * loophole this leaves is accepted).
  */
 const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 	session,
@@ -100,9 +90,8 @@ const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 }
 
 /**
- * Force comment and thread authorship from the session's authenticated identity, so nobody can post
- * in — or edit a comment into — someone else's name, and guard note text attribution so edits
- * can't be pinned on another user.
+ * Force comment and thread authorship from the session's identity, and guard note text
+ * attribution, so nothing can be posted or pinned in someone else's name.
  */
 export const authorizeFileRecord: TLRecordAuthorizers<FileRecord, SessionMeta> = {
 	comment: authorizeAuthored<TLComment>('authorId', { ownerOnlyUpdate: true }),

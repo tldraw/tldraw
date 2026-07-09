@@ -1193,9 +1193,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			// Get the existing document, if any
 			const doc = storage.get(id) as R | undefined
 
-			// Authorize on the server-schema record: `state` is fully up-migrated, so the authorizer
-			// never sees old field names, and on create the (possibly stamped) record it returns is
-			// stored as-is — no later migration can clobber stamped fields.
+			// Authorize on the up-migrated record; on create the authorizer's return is stored as-is,
+			// so no later migration can clobber stamped fields.
 			if (authorize) {
 				const result = authorize(doc ?? null, state)
 				if (!result) return Result.ok(undefined) // vetoed: skip the op, the client self-corrects
@@ -1249,7 +1248,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// If the versions are compatible, apply the patch and propagate the patch op
 				const diff = applyAndDiffRecord(doc, patch, recordType, legacyAppendMode)
 				if (diff) {
-					// Authorize on the committed candidate — the exact record that will be stored.
+					// Authorize on the committed candidate — the record that will actually be stored.
 					if (authorize && !authorize(doc, diff[1])) return
 					storage.set(id, diff[1])
 					propagateOp(changes, id, [RecordOpType.Patch, diff[0]], doc, diff[1])
@@ -1343,10 +1342,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									)
 								}
 								const record = op[1]
-								// Per-type authorizer: lets the host stamp/veto a write from the session's
-								// authenticated identity (e.g. a comment's authorId). Only for registered
-								// types, only for client pushes (session present). The check itself runs
-								// inside `addDocument`, after the record is migrated to the server's schema.
+								// Per-type authorizer: stamp/veto the write from the session's identity.
+								// Client pushes only; runs inside `addDocument`, on the up-migrated record.
 								let authorize: ((prev: R | null, next: R) => R | null) | undefined
 								if (session && this.authorizeRecord) {
 									const prev = (txn.get(id) as R | undefined) ?? null
@@ -1392,8 +1389,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 												)
 												return null
 											}
-											// On create the returned (stamped) record is stored; on update it's
-											// allow/veto only, so the migrated client record is stored as-is.
+											// create: store the stamped record; update: allow/veto only
 											return prevRec ? next : result
 										}
 									}
@@ -1406,10 +1402,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// if it was already deleted, there's no need to apply the patch
 								if (!doc) continue
 								if (!canWrite(doc.typeName)) continue
-								// Per-type authorizer (update): veto edits the session isn't allowed to make,
-								// e.g. changing a comment's authorId. Runs inside `patchDocument` on the
-								// committed candidate — the server-schema record that will actually be
-								// stored — never on a raw client-version preview. Allow/veto only.
+								// Per-type authorizer (update, allow/veto only): runs inside `patchDocument`
+								// on the committed candidate, never on a raw client-version preview.
 								const authorizePatch = session && this.authorizerFor(doc.typeName)
 								const authorize = authorizePatch
 									? (prev: R, next: R) => {
