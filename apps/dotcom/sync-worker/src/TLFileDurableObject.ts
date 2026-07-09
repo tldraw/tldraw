@@ -555,20 +555,23 @@ export class TLFileDurableObject extends DurableObject {
 
 			await this.r2.rooms.put(roomKey, dataText)
 
-			// Version snapshots only contain the drawing data, so we have to restore both the
-			// document and the current comments — loadSnapshotIntoStorage deletes anything not
-			// present in the snapshot, and deleting comments here would leave their projected
-			// Postgres rows behind (storage transactions don't fire onCommittedChanges).
+			// Version snapshots only contain the drawing data. Restoring drops the file's comments
+			// (product decision): loading the bare snapshot wipes the object lane, and the Postgres
+			// rows are deleted explicitly since storage transactions don't fire onCommittedChanges.
+			// The delete runs through _objectPushQueue so it serializes after any in-flight outbox
+			// drain, and the outbox is cleared so a pending drain can't resurrect deleted rows.
 			const snapshot = JSON.parse(dataText) as RoomSnapshot
-			const comments = await this.r2.rooms.get(`${roomKey}/comments`)
-			if (comments) {
-				const commentDocs = (await comments.json()) as RoomSnapshot['documents']
-				snapshot.documents = [...snapshot.documents, ...commentDocs]
-			}
 
 			const storage = await this.getStorage()
 			storage.transaction((txn) => {
 				loadSnapshotIntoStorage(txn, fileSyncSchema, snapshot)
+			})
+
+			await this._objectPushQueue.push(async () => {
+				this.ensureCommentOutbox()
+				this.ctx.storage.sql.exec('DELETE FROM comment_outbox')
+				await this.db.deleteFrom('comment').where('fileId', '=', roomId).execute()
+				await this.db.deleteFrom('comment_thread').where('fileId', '=', roomId).execute()
 			})
 
 			this.maybeAssociateFileAssets()
