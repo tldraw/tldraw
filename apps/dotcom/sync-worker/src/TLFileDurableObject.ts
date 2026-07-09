@@ -1523,8 +1523,11 @@ export class TLFileDurableObject extends DurableObject {
 	 * records; the DO's SQLite is the room's working copy. Each committed diff synchronously
 	 * appends the touched comment/comment-thread record ids here (same-task with the commit, so
 	 * the DO output gate flushes them together), and the drain pushes the records' current state
-	 * to Postgres. Entries are only removed after Postgres acks, so failed pushes are retried on
-	 * the next commit, persist, or DO wake.
+	 * to Postgres. Delivery is at-least-once: an entry's outbox row is only removed once its push
+	 * to Postgres has actually succeeded, so a row that fails (including its row-by-row retry) stays
+	 * queued and is retried on the next commit, persist, or DO wake. A row that keeps failing (e.g.
+	 * a genuine FK violation from a since-deleted user) stays queued indefinitely and keeps reporting
+	 * via reportError on every drain — that's the visibility mechanism for a stuck row.
 	 */
 	private ensureCommentOutbox() {
 		this.ctx.storage.sql.exec(
@@ -1550,6 +1553,8 @@ export class TLFileDurableObject extends DurableObject {
 		for (const id of ids) {
 			this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
 		}
+		// Fire-and-forget: drainCommentOutbox handles its own errors internally (failed rows stay
+		// queued in the outbox and are retried on the next drain), so we don't await it here.
 		this.drainCommentOutbox()
 	}
 
@@ -1639,20 +1644,25 @@ export class TLFileDurableObject extends DurableObject {
 				// Threads before comments (comment.threadId FK); comment deletes before thread
 				// deletes is not required (thread deletes cascade), but keep the batch → row-by-row
 				// fallback so one bad row (e.g. an FK violation from a since-deleted user) doesn't
-				// drop the whole batch.
-				const runBatchWithFallback = async <R>(
+				// drop the whole batch. Rows that fail both the batch insert and their individual
+				// retry are reported back (by record id) so the caller can keep their outbox entries
+				// queued instead of deleting them.
+				const runBatchWithFallback = async <R extends { id: string }>(
 					rows: R[],
 					insert: (rows: R[]) => Promise<unknown>
-				) => {
-					if (rows.length === 0) return
+				): Promise<string[]> => {
+					if (rows.length === 0) return []
 					try {
 						await insert(rows)
+						return []
 					} catch (batchError) {
 						this.reportError(batchError)
+						const failedIds: string[] = []
 						for (const row of rows) {
 							try {
 								await insert([row])
 							} catch (rowError) {
+								failedIds.push(row.id)
 								this.logEvent({
 									type: 'room',
 									roomId: fileId,
@@ -1661,10 +1671,16 @@ export class TLFileDurableObject extends DurableObject {
 								this.reportError(rowError)
 							}
 						}
+						return failedIds
 					}
 				}
-				await runBatchWithFallback(threadUpserts, insertThreadRows)
-				await runBatchWithFallback(commentUpserts, insertCommentRows)
+				const failedIds = new Set<string>()
+				for (const id of await runBatchWithFallback(threadUpserts, insertThreadRows)) {
+					failedIds.add(id)
+				}
+				for (const id of await runBatchWithFallback(commentUpserts, insertCommentRows)) {
+					failedIds.add(id)
+				}
 				if (commentDeletes.length > 0) {
 					await this.db.deleteFrom('comment').where('id', 'in', commentDeletes).execute()
 				}
@@ -1672,7 +1688,17 @@ export class TLFileDurableObject extends DurableObject {
 					await this.db.deleteFrom('comment_thread').where('id', 'in', threadDeletes).execute()
 				}
 
-				this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', maxSeq)
+				// Keep entries queued for any record that failed to push (they'll be retried on the
+				// next drain); only the entries that made it to Postgres are removed. If nothing
+				// failed, this collapses to the same unconditional delete as before.
+				if (failedIds.size === 0) {
+					this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', maxSeq)
+				} else {
+					for (const entry of entries) {
+						if (failedIds.has(entry.recordId)) continue
+						this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq = ?', entry.seq)
+					}
+				}
 			})
 			.catch((e) => {
 				this.logEvent({
