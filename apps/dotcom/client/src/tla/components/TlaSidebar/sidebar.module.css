@@ -792,6 +792,12 @@
 	background-color: var(--tl-color-divider);
 }
 
+/* The scroll content's own padding already provides the 12px inset, so the
+   divider before the "Clear search" button sits flush like the others. */
+.sidebarContent .sidebarDivider {
+	margin: 0;
+}
+
 .sidebarFileSectionTitlePadding span[role='img'] {
 	margin-bottom: 1px;
 }
