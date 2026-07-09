@@ -35,6 +35,7 @@ import { CountBadge } from '../ui/count-badge'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import { pendingComment, PendingComment } from './comment-tool'
+import { commentsHidden, toggleCommentsHidden } from './comments-visibility'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
 import { anchorPagePoint, openThreadId, shapeAnchorAt } from './thread-state'
 import './canvas.css'
@@ -138,6 +139,7 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		[threads]
 	)
 	const openThread = openId ? threadsById.get(openId) : null
+	const hidden = useValue('comments hidden', () => commentsHidden.get(), [])
 
 	// Reset the transient UI state (open thread, half-placed comment) when this unmounts.
 	useEffect(() => {
@@ -194,6 +196,24 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)
 	}, [])
+
+	// Shift+C toggles comment-pin visibility on the canvas (matching Figma). Skipped while typing so
+	// it never fires from inside a composer. Physical `KeyC` (layout-independent) with shift only.
+	useEffect(() => {
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.code !== 'KeyC' || !e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
+			const target = e.target as HTMLElement | null
+			if (target && target.closest('input, textarea, [contenteditable="true"]')) return
+			toggleCommentsHidden()
+			e.preventDefault()
+		}
+		document.addEventListener('keydown', onKeyDown, true)
+		return () => document.removeEventListener('keydown', onKeyDown, true)
+	}, [])
+
+	// Hidden: the whole canvas layer (pins, open popover, pending composer) is withheld. The signal
+	// is read above so this component stays mounted and its shortcut/Escape effects keep running.
+	if (hidden) return null
 
 	// Render into the container (above the panels' stacking context) so the pins and popovers
 	// live in the UI layer rather than being clipped by the canvas layer.

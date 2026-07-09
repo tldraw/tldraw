@@ -11,8 +11,12 @@ export {
 	type PendingComment,
 } from './canvas/comment-tool'
 export { collectClusterLeaves } from './canvas/cluster-input'
+export { CommentsFilterMenu, type CommentsFilterMenuProps } from './canvas/comments-filter-menu'
+export { CommentsMenuItem } from './canvas/comments-menu-item'
 export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-overlay'
+export { CommentsOverflowMenu } from './canvas/comments-overflow-menu'
 export { CanvasCommentsSidebar, type CanvasCommentsSidebarProps } from './canvas/comments-sidebar'
+export { commentsHidden, toggleCommentsHidden } from './canvas/comments-visibility'
 export {
 	useComments,
 	useCommentThreads,
@@ -20,6 +24,11 @@ export {
 	useThreadComments,
 } from './canvas/hooks'
 export { richTextToPlaintext } from './canvas/rich-text'
+export {
+	DEFAULT_SIDEBAR_FILTERS,
+	type SidebarFilters,
+	sidebarFilters,
+} from './canvas/sidebar-filters'
 export {
 	anchorPagePoint,
 	DEFAULT_IMPRECISE_SHAPE_ANCHOR,

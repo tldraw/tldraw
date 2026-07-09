@@ -453,13 +453,68 @@
 }
 .cmt-list__header {
 	flex-shrink: 0;
-	padding: 12px 14px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 6px 6px 6px 14px;
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+.cmt-list__header-title {
 	font-size: 11px;
 	font-weight: 600;
 	letter-spacing: 0.06em;
 	text-transform: uppercase;
 	color: var(--tl-color-text-3);
-	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+/* a small square icon button in the sidebar header (filter funnel, overflow …) */
+.cmt-header-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	padding: 0;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--tl-color-text-2);
+	cursor: pointer;
+}
+.cmt-header-btn:hover,
+.cmt-header-btn[data-state='open'] {
+	background: var(--tl-color-muted-2);
+	color: var(--tl-color-text-1);
+}
+.cmt-list__header-actions {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+}
+
+/* a menu row with a label and a right-aligned shortcut hint (overflow menu) */
+.cmt-menu-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	width: 100%;
+	padding: 6px 8px;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	font: inherit;
+	font-size: 13px;
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+}
+.cmt-menu-item:hover {
+	background: var(--tl-color-muted-2);
+}
+.cmt-menu-item__shortcut {
+	color: var(--tl-color-text-3);
+	font-size: 12px;
 }
 .cmt-list__items {
 	flex: 1;
@@ -489,7 +544,9 @@
 .cmt-list__item--selected {
 	background: var(--tl-color-muted-1);
 }
-.cmt-list__item[data-resolved] {
+/* resolved rows mute their content but keep the "Resolved" marker legible */
+.cmt-list__item[data-resolved] .cmt-head,
+.cmt-list__item[data-resolved] .cmt-list__item-preview {
 	opacity: 0.55;
 }
 .cmt-list__item-body {
@@ -505,6 +562,28 @@
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
+}
+/* meta line under the preview: page label and/or a resolved marker */
+.cmt-list__item-meta {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 5px;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+}
+.cmt-list__item-resolved {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	font-weight: 600;
+}
+.cmt-list__item-page {
+	display: inline-flex;
+	align-items: center;
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: var(--tl-color-muted-2);
 }
 .cmt-list__item-count {
 	flex-shrink: 0;
