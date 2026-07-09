@@ -60,8 +60,7 @@ export function commentRecordToRow(
 		threadId: record.threadId,
 		pageId: record.pageId,
 		authorId: record.authorId,
-		// rich text stored as-is (JSONB). TLRichText types its content as unknown[], which doesn't
-		// structurally satisfy zero's ReadonlyJSONValue, but the value is schema-validated JSON.
+		// TLRichText's content is unknown[], not structurally a zero ReadonlyJSONValue
 		body: record.body as DB['comment']['body'],
 		createdAt: record.createdAt,
 		editedAt: record.editedAt,

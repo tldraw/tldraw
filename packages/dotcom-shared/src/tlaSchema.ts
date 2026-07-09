@@ -121,15 +121,10 @@ export const group_file = table('group_file')
 	})
 	.primaryKey('fileId', 'groupId')
 
-// Columns are the sole canonical store for comment records: Postgres holds every field of the
-// TLComment record (see commentRows.ts in sync-worker for the full column set, including the
-// sync-worker-only persistence columns), and this table declares the client-visible subset that
-// Zero replicates per user so the app-level /comments view can query comments across all
-// accessible files. The in-document view reads from the file room, not this table. Clients never
-// mutate this table (server-written only).
-// `body` is the comment's rich text (TLRichText JSON) — the projection preserves the authoritative
-// representation; consumers flatten to plaintext for display where needed. The comment's thread
-// (anchor, resolution) is available via the `thread` relationship rather than a denormalized
+// Client-visible subset of the comment record; the full column set (incl. persistence-only
+// columns) lives in commentRows.ts in sync-worker. Zero replicates this per user for the
+// app-level /comments view; the in-document view reads from the file room instead. Server-written
+// only. Thread anchor/resolution is read via the `thread` relationship rather than a denormalized
 // `shapeId` column here, since a thread can be re-anchored after the comment is created.
 export const comment = table('comment')
 	.columns({
@@ -144,11 +139,10 @@ export const comment = table('comment')
 	})
 	.primaryKey('id')
 
-// The comment thread's anchor location and resolution state, denormalized for app-level Zero
-// queries (e.g. filtering resolved threads). Server-written only, like `comment`. The Postgres
-// table also carries `anchor`/`resolvedBy`/`meta`/`lastChangedClock` persistence columns (see
-// CommentThreadPersistenceColumns) which are deliberately absent here so they never replicate to
-// clients.
+// The comment thread's anchor location and resolution state, for app-level Zero queries (e.g.
+// filtering resolved threads). Server-written only. Persistence-only columns
+// (CommentThreadPersistenceColumns: anchor/resolvedBy/meta/lastChangedClock) are deliberately
+// absent here so they never replicate to clients.
 export const comment_thread = table('comment_thread')
 	.columns({
 		id: string(),

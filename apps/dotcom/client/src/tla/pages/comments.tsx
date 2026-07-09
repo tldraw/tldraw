@@ -44,9 +44,8 @@ export function Component() {
 								marginBottom: 8,
 							}}
 						>
-							{/* bodies are rich text; flatten for this basic UI (rich rendering forthcoming).
-							    The zero schema types the json `body` column as opaque JSON; the value is
-							    schema-validated TLRichText end-to-end (see commentRows.ts in sync-worker). */}
+							{/* bodies are rich text; flatten for this basic UI (rich rendering forthcoming) */}
+							{/* zero types json columns as opaque JSON */}
 							<div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
 								{richTextToPlaintext(c.body as TLRichText)}
 							</div>

@@ -1594,8 +1594,6 @@ export class TLFileDurableObject extends DurableObject {
 		for (const id of ids) {
 			this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
 		}
-		// Fire-and-forget: drainCommentOutbox handles its own errors internally (failed rows stay
-		// queued in the outbox and are retried on the next drain), so we don't await it here.
 		this.drainCommentOutbox()
 	}
 
