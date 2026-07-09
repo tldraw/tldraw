@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { TLComment, useContainer, useEditor, useValue } from 'tldraw'
 import { CommentListItemProps, CommentsList } from '../ui/comments-list'
 import { useComments, useCommentThreads } from './hooks'
+import { useCommentingEnabled } from './license'
 import { richTextToPlaintext } from './rich-text'
 import { focusThread, openThreadId } from './thread-state'
 import './canvas.css'
@@ -38,13 +39,14 @@ export function CanvasCommentsSidebar({
 }: CanvasCommentsSidebarProps) {
 	const editor = useEditor()
 	const container = useContainer()
+	const commentingEnabled = useCommentingEnabled()
 	const threads = useCommentThreads(editor)
 	const comments = useComments(editor)
 	const currentPageId = useValue('page id', () => editor.getCurrentPageId(), [editor])
 	const activeTool = useValue('tool id', () => editor.getCurrentToolId(), [editor])
 	const openId = useValue('open thread', () => openThreadId.get(), [])
 
-	if (!tools.includes(activeTool)) return null
+	if (!commentingEnabled || !tools.includes(activeTool)) return null
 
 	// Group comments by thread (they arrive oldest-first, so [0] is each thread's first comment).
 	const byThread = new Map<string, TLComment[]>()

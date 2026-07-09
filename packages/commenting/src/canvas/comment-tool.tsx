@@ -11,6 +11,7 @@ import {
 	useTools,
 	VecLike,
 } from 'tldraw'
+import { useCommentingEnabled } from './license'
 import { shapeAnchorAt } from './thread-state'
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
@@ -73,15 +74,16 @@ export const commentToolOverrides: TLUiOverrides = {
 }
 
 /** A Toolbar with the comment tool added after the default tools. Use as-is, or build your
- *  own toolbar with `tools.comment`. */
+ *  own toolbar with `tools.comment`. The comment button is hidden when commenting isn't licensed. */
 export const commentToolComponents: TLComponents = {
 	Toolbar: (props) => {
 		const tools = useTools()
 		const isSelected = useIsToolSelected(tools.comment)
+		const commentingEnabled = useCommentingEnabled()
 		return (
 			<DefaultToolbar {...props}>
 				<DefaultToolbarContent />
-				<TldrawUiMenuItem {...tools.comment} isSelected={isSelected} />
+				{commentingEnabled && <TldrawUiMenuItem {...tools.comment} isSelected={isSelected} />}
 			</DefaultToolbar>
 		)
 	},
