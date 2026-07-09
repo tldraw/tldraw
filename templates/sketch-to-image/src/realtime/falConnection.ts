@@ -1,5 +1,28 @@
 import { FAL_PROXY_URL, REALTIME_MODEL } from '../constants'
 
+/**
+ * How many times to retry a frame that failed with a transient network error,
+ * and the base backoff between tries (grows linearly per attempt). Tuned to ride
+ * out the worker's cold-start / hot-reload window on a fresh `yarn dev` without
+ * noticeably delaying a real error.
+ */
+const MAX_TRANSIENT_RETRIES = 2
+const RETRY_BACKOFF_MS = 400
+
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
+/**
+ * True when a fetch failed at the network level (the request never got an HTTP
+ * response) rather than the server returning an error status. On a fresh dev
+ * start this is the worker not yet accepting connections; those are worth a
+ * retry, whereas a real fal HTTP error is thrown with a `fal error <status>`
+ * message and should surface immediately. A failed `fetch` rejects with a
+ * TypeError ("Failed to fetch"), which is what we key on.
+ */
+function isNetworkError(err: unknown): boolean {
+	return err instanceof TypeError
+}
+
 /** The input we send to the LCM image-to-image model on each frame. */
 export interface RealtimeInput {
 	/** The sketch, as a base64-encoded PNG data URL. */
@@ -69,32 +92,52 @@ export function createRealtimeConnection(handlers: RealtimeConnectionHandlers): 
 		const controller = new AbortController()
 		inFlight = controller
 
-		try {
-			const response = await fetch(FAL_PROXY_URL, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					'x-fal-target-url': `https://fal.run/${REALTIME_MODEL}`,
-				},
-				body: JSON.stringify(input),
-				signal: controller.signal,
-			})
+		// This frame is still the current one (not superseded, aborted, or closed).
+		const isCurrent = () => !closed && !controller.signal.aborted && requestId === latestRequestId
 
-			if (!response.ok) {
-				const text = await response.text()
-				throw new Error(`fal error ${response.status}: ${text}`)
+		// Retry only transient *network* failures (fetch threw) — the worker isn't
+		// accepting connections yet on a fresh dev start, or a hot-reload restarted
+		// it mid-request. A real fal HTTP error (!response.ok) is not retried. We
+		// keep this bounded and short so it absorbs the cold-start window without
+		// masking genuine outages or stacking work behind a newer frame.
+		for (let attempt = 0; ; attempt++) {
+			try {
+				const response = await fetch(FAL_PROXY_URL, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'x-fal-target-url': `https://fal.run/${REALTIME_MODEL}`,
+					},
+					body: JSON.stringify(input),
+					signal: controller.signal,
+				})
+
+				if (!response.ok) {
+					const text = await response.text()
+					throw new Error(`fal error ${response.status}: ${text}`)
+				}
+
+				const data = (await response.json()) as FalResult
+				// Ignore if a newer frame was sent while we were waiting.
+				if (!isCurrent()) return
+
+				const url = data.images?.[0]?.url
+				if (url) handlers.onResult(url)
+				return
+			} catch (err) {
+				// Aborted / superseded requests are expected when the user keeps
+				// drawing — drop them silently.
+				if (!isCurrent()) return
+				// A network-level failure (fetch threw, not a fal HTTP error) during
+				// startup: wait a beat and retry, up to the cap.
+				if (isNetworkError(err) && attempt < MAX_TRANSIENT_RETRIES) {
+					await delay(RETRY_BACKOFF_MS * (attempt + 1))
+					if (!isCurrent()) return
+					continue
+				}
+				handlers.onError(err)
+				return
 			}
-
-			const data = (await response.json()) as FalResult
-			// Ignore if a newer frame was sent while we were waiting.
-			if (closed || requestId !== latestRequestId) return
-
-			const url = data.images?.[0]?.url
-			if (url) handlers.onResult(url)
-		} catch (err) {
-			// Aborted requests are expected when the user keeps drawing — ignore them.
-			if (controller.signal.aborted) return
-			handlers.onError(err)
 		}
 	}
 
