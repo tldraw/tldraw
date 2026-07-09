@@ -6,7 +6,13 @@ import {
 	TLShapeId,
 } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
-import { commentRecordToRow, rowsToSnapshotDocuments, threadRecordToRow } from './commentRows'
+import {
+	commentRecordToRow,
+	rowsToSnapshotDocuments,
+	rowToCommentRecord,
+	rowToThreadRecord,
+	threadRecordToRow,
+} from './commentRows'
 
 const pageId = 'page:page1' as TLPageId
 const shapeId = 'shape:box1' as TLShapeId
@@ -18,32 +24,35 @@ function makeThread(anchor = { type: 'shape' as const, shapeId, x: 0.5, y: 0.5, 
 }
 
 describe('threadRecordToRow', () => {
-	it('denormalizes shape anchor, resolution, and preserves the full record', () => {
+	it('resolved thread with shape anchor: resolvedAt/resolvedBy set, shapeId denormalized', () => {
 		const thread = { ...makeThread(), resolved: { at: 2000, by: 'user2' } }
 		const row = threadRecordToRow(thread, 'file1', 42)
 		expect(row).toEqual({
 			id: thread.id,
 			fileId: 'file1',
 			pageId,
+			anchor: thread.anchor,
 			shapeId,
-			resolved: true,
+			resolvedAt: 2000,
+			resolvedBy: 'user2',
 			createdBy: 'user1',
 			createdAt: 1000,
-			record: thread,
+			meta: thread.meta,
 			lastChangedClock: 42,
 		})
 	})
 
-	it('leaves shapeId null for non-shape anchors and resolved false for open threads', () => {
+	it('open thread with point anchor: shapeId/resolvedAt/resolvedBy all null', () => {
 		const thread = makeThread({ type: 'point', x: 10, y: 20 } as any)
 		const row = threadRecordToRow(thread, 'file1', 1)
 		expect(row.shapeId).toBeNull()
-		expect(row.resolved).toBe(false)
+		expect(row.resolvedAt).toBeNull()
+		expect(row.resolvedBy).toBeNull()
 	})
 })
 
 describe('commentRecordToRow', () => {
-	it('denormalizes the thread anchor and preserves the full record', () => {
+	it('editedAt null: updatedAt falls back to createdAt', () => {
 		const thread = makeThread()
 		const comment = createComment({
 			threadId: thread.id,
@@ -52,23 +61,23 @@ describe('commentRecordToRow', () => {
 			body,
 			now: 1500,
 		})
-		const row = commentRecordToRow(comment, thread, 'file1', 43)
+		const row = commentRecordToRow(comment, 'file1', 43)
 		expect(row).toEqual({
 			id: comment.id,
 			fileId: 'file1',
 			threadId: thread.id,
 			pageId,
 			authorId: 'user1',
-			shapeId,
 			body: comment.body,
 			createdAt: 1500,
+			editedAt: null,
 			updatedAt: 1500,
-			record: comment,
+			meta: comment.meta,
 			lastChangedClock: 43,
 		})
 	})
 
-	it('uses editedAt for updatedAt and null shapeId when the thread is missing', () => {
+	it('editedAt set: both editedAt and updatedAt carry the edited value', () => {
 		const thread = makeThread()
 		const comment = {
 			...createComment({
@@ -80,9 +89,53 @@ describe('commentRecordToRow', () => {
 			}),
 			editedAt: 1600,
 		}
-		const row = commentRecordToRow(comment, undefined, 'file1', 44)
+		const row = commentRecordToRow(comment, 'file1', 44)
+		expect(row.editedAt).toBe(1600)
 		expect(row.updatedAt).toBe(1600)
-		expect(row.shapeId).toBeNull()
+	})
+})
+
+describe('round-trip: record -> row -> rowTo*Record', () => {
+	it('resolved shape-anchored thread', () => {
+		const thread = { ...makeThread(), resolved: { at: 2000, by: 'user2' } }
+		const row = threadRecordToRow(thread, 'file1', 42)
+		expect(rowToThreadRecord(row)).toEqual(thread)
+	})
+
+	it('open point-anchored thread', () => {
+		const thread = makeThread({ type: 'point', x: 10, y: 20 } as any)
+		const row = threadRecordToRow(thread, 'file1', 1)
+		expect(rowToThreadRecord(row)).toEqual(thread)
+	})
+
+	it('unedited comment', () => {
+		const thread = makeThread()
+		const comment = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'user1',
+			body,
+			now: 1500,
+		})
+		const row = commentRecordToRow(comment, 'file1', 43)
+		expect(rowToCommentRecord(row)).toEqual(comment)
+	})
+
+	it('edited comment with non-empty meta', () => {
+		const thread = makeThread()
+		const comment = {
+			...createComment({
+				threadId: thread.id,
+				pageId,
+				authorId: 'user1',
+				body,
+				now: 1500,
+				meta: { pinned: true },
+			}),
+			editedAt: 1600,
+		}
+		const row = commentRecordToRow(comment, 'file1', 44)
+		expect(rowToCommentRecord(row)).toEqual(comment)
 	})
 })
 
@@ -97,18 +150,40 @@ describe('rowsToSnapshotDocuments', () => {
 			now: 1500,
 		})
 		const threadRow = threadRecordToRow(thread, 'file1', 42)
-		const commentRow = commentRecordToRow(comment, thread, 'file1', 43)
+		const commentRow = commentRecordToRow(comment, 'file1', 43)
 		expect(rowsToSnapshotDocuments([threadRow], [commentRow])).toEqual([
 			{ state: thread, lastChangedClock: 42 },
 			{ state: comment, lastChangedClock: 43 },
 		])
 	})
 
-	it('coerces bigint-as-string clocks from pg to numbers', () => {
-		const thread = makeThread()
-		const threadRow = { ...threadRecordToRow(thread, 'file1', 42), lastChangedClock: '42' as any }
-		expect(rowsToSnapshotDocuments([threadRow], [])).toEqual([
+	it('coerces pg bigint-as-string clocks and timestamps to numbers', () => {
+		const thread = { ...makeThread(), resolved: { at: 2000, by: 'user2' } }
+		const comment = {
+			...createComment({
+				threadId: thread.id,
+				pageId,
+				authorId: 'user1',
+				body,
+				now: 1500,
+			}),
+			editedAt: 1600,
+		}
+		const threadRow = {
+			...threadRecordToRow(thread, 'file1', 42),
+			createdAt: '1000' as any,
+			resolvedAt: '2000' as any,
+			lastChangedClock: '42' as any,
+		}
+		const commentRow = {
+			...commentRecordToRow(comment, 'file1', 43),
+			createdAt: '1500' as any,
+			editedAt: '1600' as any,
+			lastChangedClock: '43' as any,
+		}
+		expect(rowsToSnapshotDocuments([threadRow], [commentRow])).toEqual([
 			{ state: thread, lastChangedClock: 42 },
+			{ state: comment, lastChangedClock: 43 },
 		])
 	})
 })

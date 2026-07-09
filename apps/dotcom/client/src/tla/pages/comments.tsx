@@ -53,7 +53,7 @@ export function Component() {
 								<span> · </span>
 								<Link
 									style={{ color: 'var(--tl-color-primary)' }}
-									to={commentLink(c.fileId, c.shapeId, c.id)}
+									to={commentLink(c.fileId, c.thread?.shapeId, c.id)}
 								>
 									{c.file?.name || c.fileId}
 								</Link>

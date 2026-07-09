@@ -1607,8 +1607,7 @@ export class TLFileDurableObject extends DurableObject {
 					} else {
 						if (doc) {
 							const comment = doc.state as TLComment
-							const thread = lane.get(comment.threadId)?.state as TLCommentThread | undefined
-							commentUpserts.push(commentRecordToRow(comment, thread, fileId, doc.lastChangedClock))
+							commentUpserts.push(commentRecordToRow(comment, fileId, doc.lastChangedClock))
 						} else {
 							commentDeletes.push(id)
 						}
@@ -1624,9 +1623,11 @@ export class TLFileDurableObject extends DurableObject {
 								.column('id')
 								.doUpdateSet((eb) => ({
 									pageId: eb.ref('excluded.pageId'),
+									anchor: eb.ref('excluded.anchor'),
 									shapeId: eb.ref('excluded.shapeId'),
-									resolved: eb.ref('excluded.resolved'),
-									record: eb.ref('excluded.record'),
+									resolvedAt: eb.ref('excluded.resolvedAt'),
+									resolvedBy: eb.ref('excluded.resolvedBy'),
+									meta: eb.ref('excluded.meta'),
 									lastChangedClock: eb.ref('excluded.lastChangedClock'),
 								}))
 								.whereRef('comment_thread.lastChangedClock', '<', 'excluded.lastChangedClock')
@@ -1641,9 +1642,9 @@ export class TLFileDurableObject extends DurableObject {
 								.column('id')
 								.doUpdateSet((eb) => ({
 									body: eb.ref('excluded.body'),
-									shapeId: eb.ref('excluded.shapeId'),
+									editedAt: eb.ref('excluded.editedAt'),
 									updatedAt: eb.ref('excluded.updatedAt'),
-									record: eb.ref('excluded.record'),
+									meta: eb.ref('excluded.meta'),
 									lastChangedClock: eb.ref('excluded.lastChangedClock'),
 								}))
 								.whereRef('comment.lastChangedClock', '<', 'excluded.lastChangedClock')

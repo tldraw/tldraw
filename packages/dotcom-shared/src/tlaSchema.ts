@@ -121,13 +121,16 @@ export const group_file = table('group_file')
 	})
 	.primaryKey('fileId', 'groupId')
 
-// Projected from the `comment` document record (see TLComment in tlschema) by the file's Durable
-// Object. Zero replicates these per user so the app-level /comments view can query comments across
-// all accessible files. Postgres is the sole durable store for comment records (the Durable Object
-// rehydrates its room from these tables); the in-document view reads from the file room. Clients
-// never mutate this table (server-written only).
+// Columns are the sole canonical store for comment records: Postgres holds every field of the
+// TLComment record (see commentRows.ts in sync-worker for the full column set, including the
+// sync-worker-only persistence columns), and this table declares the client-visible subset that
+// Zero replicates per user so the app-level /comments view can query comments across all
+// accessible files. The in-document view reads from the file room, not this table. Clients never
+// mutate this table (server-written only).
 // `body` is the comment's rich text (TLRichText JSON) — the projection preserves the authoritative
-// representation; consumers flatten to plaintext for display where needed.
+// representation; consumers flatten to plaintext for display where needed. The comment's thread
+// (anchor, resolution) is available via the `thread` relationship rather than a denormalized
+// `shapeId` column here, since a thread can be re-anchored after the comment is created.
 export const comment = table('comment')
 	.columns({
 		id: string(),
@@ -135,18 +138,17 @@ export const comment = table('comment')
 		threadId: string(),
 		pageId: string(),
 		authorId: string(),
-		// only set for shape-anchored threads; other anchor kinds have no shape
-		shapeId: string().optional(),
 		body: json(),
 		createdAt: number(),
 		updatedAt: number(),
 	})
 	.primaryKey('id')
 
-// The comment's thread: anchor location and resolution state, denormalized for app-level Zero
+// The comment thread's anchor location and resolution state, denormalized for app-level Zero
 // queries (e.g. filtering resolved threads). Server-written only, like `comment`. The Postgres
-// table also carries `record`/`lastChangedClock` persistence columns (see CommentPersistenceColumns)
-// which are deliberately absent here so they never replicate to clients.
+// table also carries `anchor`/`resolvedBy`/`meta`/`lastChangedClock` persistence columns (see
+// CommentThreadPersistenceColumns) which are deliberately absent here so they never replicate to
+// clients.
 export const comment_thread = table('comment_thread')
 	.columns({
 		id: string(),
@@ -154,7 +156,7 @@ export const comment_thread = table('comment_thread')
 		pageId: string(),
 		// only set for shape-anchored threads; other anchor kinds have no shape
 		shapeId: string().optional(),
-		resolved: boolean(),
+		resolvedAt: number().optional(),
 		createdBy: string(),
 		createdAt: number(),
 	})
@@ -255,6 +257,11 @@ const commentRelationships = relationships(comment, ({ one }) => ({
 		sourceField: ['authorId'],
 		destField: ['id'],
 		destSchema: user,
+	}),
+	thread: one({
+		sourceField: ['threadId'],
+		destField: ['id'],
+		destSchema: comment_thread,
 	}),
 }))
 
@@ -362,12 +369,20 @@ export interface TlaWelcomeTemplate {
 }
 
 /**
- * Sync-worker-only persistence columns on the comment tables. `record` is the exact serialized
- * TLRecord (jsonb) used to rehydrate the file room; `lastChangedClock` is its sync clock. Absent
- * from the Zero table definitions above, so Zero never replicates them to clients.
+ * Sync-worker-only persistence columns, absent from the Zero table definitions above so they
+ * never replicate to clients. Together with the Zero-visible columns they carry every field of
+ * the corresponding TLRecord, so the file's Durable Object can rebuild its room's comment
+ * records from rows alone (see commentRows.ts in sync-worker).
  */
+export interface CommentThreadPersistenceColumns {
+	anchor: unknown
+	resolvedBy: string | null
+	meta: unknown
+	lastChangedClock: number
+}
 export interface CommentPersistenceColumns {
-	record: unknown
+	editedAt: number | null
+	meta: unknown
 	lastChangedClock: number
 }
 
@@ -382,7 +397,7 @@ export interface DB {
 	asset: TlaAsset
 	welcome_template: TlaWelcomeTemplate
 	comment: TlaComment & CommentPersistenceColumns
-	comment_thread: TlaCommentThread & CommentPersistenceColumns
+	comment_thread: TlaCommentThread & CommentThreadPersistenceColumns
 }
 
 export const schema = createSchema({
