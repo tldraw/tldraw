@@ -13,12 +13,14 @@ This is the governing rule; everything below serves it. Write the description fo
 
 **Default to short.** A few sentences of framing is the norm, not the exception. Match length to the change: a one-line fix needs a sentence; a new system needs the fuller treatment. A description that looks long and structured is not more valuable — often it's less, because it buries the framing under scaffolding. If a reviewer would need their own AI to interpret yours, it has failed.
 
-Cover only what the diff can't tell them:
+**Order it coarse to granular.** Structure the description as an inverted pyramid, most important first. A reader should be able to stop at any point and leave with a correct, coherent understanding: a skimmer gets the goal and motivation from the opening lines; someone weighing the approach reads into the design and decisions; a close reviewer continues to the specifics. Never make someone read to the end to find out what the PR is for.
 
-- **Motivation.** Why this change, and why now. What was wrong or missing before.
-- **The higher-level change.** What changes at the level of behavior and structure — the shape of the solution, not a line-by-line restatement.
-- **Trade-offs and decisions.** The choices a reviewer might have made differently: the approach you picked, what you ruled out and why, anything you're unsure about. A decision you don't surface is one the reviewer can't catch.
-- **Short example snippets.** For anything touching an API, data shape, or usage pattern, a few lines of before/after say more than a paragraph. Keep them minimal.
+Cover the following, roughly in this order — each layer more detailed than the last, and each optional once the change no longer warrants it:
+
+- **Goal, motivation, and use case.** Why this change, why now, what it's for. What was wrong or missing before. This comes first, always.
+- **The higher-level change.** The shape of the solution — behavior and structure, not a line-by-line restatement of the diff.
+- **API design and decisions.** New or changed public surface, the approach you picked, what you ruled out and why, and anything you're unsure about. A decision you don't surface is one the reviewer can't catch.
+- **Example snippets and fine detail.** For anything touching an API, data shape, or usage pattern, a few lines of before/after say more than a paragraph. Keep them minimal.
 
 **Do not:**
 
