@@ -18,20 +18,28 @@ afterEach(() => {
 	delete (window as any).editor
 })
 
-describe('DefaultDebugMenu window.editor', () => {
-	it('exposes the editor on window.editor while debug mode is on, and removes it when off', async () => {
+describe('DefaultDebugMenu and window.editor', () => {
+	// Exposing `window.editor` is a host-app responsibility, not the SDK's: apps that want it set it
+	// themselves (usually in `onMount`). The debug menu must not touch the global at all.
+	it('never sets window.editor when debug mode is toggled', async () => {
 		const { editor } = await renderTldrawComponentWithEditor(
 			(onMount) => <Tldraw onMount={onMount} />,
 			{ waitForPatterns: false }
 		)
-		setDebugMode(editor, false)
 		expect(windowEditor()).toBeUndefined()
 
 		setDebugMode(editor, true)
-		await waitFor(() => expect(windowEditor()).toBe(editor))
+		// Give any (unwanted) effect a chance to run before asserting it didn't.
+		await act(async () => {
+			await Promise.resolve()
+		})
+		expect(windowEditor()).toBeUndefined()
 
 		setDebugMode(editor, false)
-		await waitFor(() => expect(windowEditor()).toBeUndefined())
+		await act(async () => {
+			await Promise.resolve()
+		})
+		expect(windowEditor()).toBeUndefined()
 	})
 
 	it('does not clobber a host-set window.editor when debug mode is toggled off', async () => {
@@ -49,11 +57,9 @@ describe('DefaultDebugMenu window.editor', () => {
 		)
 		expect(windowEditor()).toBe(editor)
 
-		// Turning debug mode on must leave the host's value in place...
+		// Toggling debug mode on and back off must leave the host's value untouched.
 		setDebugMode(editor, true)
 		expect(windowEditor()).toBe(editor)
-
-		// ...and turning it back off must not delete the global the host owns.
 		setDebugMode(editor, false)
 		await waitFor(() => expect(windowEditor()).toBe(editor))
 	})

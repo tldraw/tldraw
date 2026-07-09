@@ -1,5 +1,4 @@
-import { useEditor } from '@tldraw/editor'
-import { ReactNode, useEffect } from 'react'
+import { ReactNode } from 'react'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
@@ -17,23 +16,7 @@ export interface TLUiDebugMenuProps {
 
 /** @public @react */
 export function DefaultDebugMenu({ children }: TLUiDebugMenuProps) {
-	const editor = useEditor()
 	const content = children ?? <DefaultDebugMenuContent />
-
-	// While the debug menu is mounted, expose the editor on `window.editor` for
-	// console-driven debugging. Host apps often set `window.editor` themselves,
-	// so we only claim it when it's free and only clean up the value we set —
-	// toggling debug mode off must not delete a global the host app owns.
-	useEffect(() => {
-		const win = window as any
-		if (win.editor) return
-		win.editor = editor
-		return () => {
-			if (win.editor === editor) {
-				delete win.editor
-			}
-		}
-	}, [editor])
 
 	return (
 		<TldrawUiDropdownMenuRoot id="debug">
