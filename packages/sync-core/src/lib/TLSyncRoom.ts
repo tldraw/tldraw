@@ -129,6 +129,11 @@ export interface RoomSnapshot {
  * Called on **create**, **update**, and **delete** of records whose `typeName` it's registered for
  * (see {@link TLRecordAuthorizers}), and only for client pushes — never for server-initiated writes.
  *
+ * `prev` and `next` are always at the **server's** schema version: client writes are migrated
+ * before the authorizer runs, so guarding or stamping a field never requires knowing what older
+ * clients call it. On create, the record you return is what gets stored (after validation) — no
+ * migration runs afterwards, so stamped fields can't be clobbered.
+ *
  * Return `null` to reject the write — it's skipped and the client self-corrects, exactly like the
  * `objectAccess` gate. Otherwise the write is allowed, and:
  *
@@ -139,20 +144,11 @@ export interface RoomSnapshot {
  *   `next`/`prev` to allow, `null` to reject.
  *
  * ⚠︎ Runs synchronously inside the commit transaction, on the same path as every document edit — it
- * must be fast and do **no** I/O. `next`/`prev` are the incoming client-controlled records, so treat
- * their contents as untrusted; prefer returning `null` to reject over throwing, though a throw is
+ * must be fast and do **no** I/O. `next`/`prev` are client-controlled records, so treat their
+ * contents as untrusted; prefer returning `null` to reject over throwing, though a throw is
  * caught, logged, and treated as a rejection (fail closed) rather than crashing the push. For
  * expensive, async checks (e.g. resolving mentions against who can access a file), react after the
  * fact via `onCommittedChanges`.
- *
- * ⚠︎ Migration caveat: the authorizer sees records at the **client's** schema version, before any
- * up-migration. On create, the record you return is up-migrated before being stored, so an
- * up-migration can overwrite stamped fields. On update, when the client's schema is older than the
- * server's, the committed record is produced by a downgrade→patch→upgrade pipeline and can differ
- * from the `next` preview the authorizer saw. Only guard record types whose live cross-version
- * migrations don't touch the fields you stamp or veto (tldraw.com's comment threads: the anchor
- * migration reshapes `anchor` but never `createdBy` or `resolved`), or types whose migrations
- * reject old-schema sessions outright by having no `down`.
  *
  * @public
  */
@@ -1183,7 +1179,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			storage: MinimalDocStore<R>,
 			changes: ActualChanges,
 			id: string,
-			_state: R
+			_state: R,
+			authorize?: (prev: R | null, next: R) => R | null
 		): Result<void, void> => {
 			const res = session
 				? this.schema.migratePersistedRecord(_state, session.serializedSchema, 'up')
@@ -1191,10 +1188,19 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (res.type === 'error') {
 				throw new TLSyncError(res.reason, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			}
-			const { value: state } = res
+			let { value: state } = res
 
 			// Get the existing document, if any
 			const doc = storage.get(id) as R | undefined
+
+			// Authorize on the server-schema record: `state` is fully up-migrated, so the authorizer
+			// never sees old field names, and on create the (possibly stamped) record it returns is
+			// stored as-is — no later migration can clobber stamped fields.
+			if (authorize) {
+				const result = authorize(doc ?? null, state)
+				if (!result) return Result.ok(undefined) // vetoed: skip the op, the client self-corrects
+				if (!doc) state = result // create: store the authorizer's (stamped) record
+			}
 
 			if (doc) {
 				// If there's an existing document, replace it with the new state
@@ -1222,7 +1228,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			storage: MinimalDocStore<R>,
 			changes: ActualChanges,
 			id: string,
-			patch: ObjectDiff
+			patch: ObjectDiff,
+			authorize?: (prev: R, next: R) => R | null
 		) => {
 			// if it was already deleted, there's no need to apply the patch
 			const doc = storage.get(id) as R | undefined
@@ -1242,6 +1249,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// If the versions are compatible, apply the patch and propagate the patch op
 				const diff = applyAndDiffRecord(doc, patch, recordType, legacyAppendMode)
 				if (diff) {
+					// Authorize on the committed candidate — the exact record that will be stored.
+					if (authorize && !authorize(doc, diff[1])) return
 					storage.set(id, diff[1])
 					propagateOp(changes, id, [RecordOpType.Patch, diff[0]], doc, diff[1])
 				}
@@ -1261,6 +1270,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// replace the state with the upgraded version and propagate the patch op
 				const diff = diffAndValidateRecord(doc, upgraded.value, recordType, legacyAppendMode)
 				if (diff) {
+					// Authorize on the committed candidate — the upgraded record, not a raw preview.
+					if (authorize && !authorize(doc, upgraded.value)) return
 					storage.set(id, upgraded.value)
 					propagateOp(changes, id, [RecordOpType.Patch, diff], doc, upgraded.value)
 				}
@@ -1331,10 +1342,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 										TLSyncErrorCloseEventReason.INVALID_RECORD
 									)
 								}
-								let record = op[1]
+								const record = op[1]
 								// Per-type authorizer: lets the host stamp/veto a write from the session's
 								// authenticated identity (e.g. a comment's authorId). Only for registered
-								// types, only for client pushes (session present).
+								// types, only for client pushes (session present). The check itself runs
+								// inside `addDocument`, after the record is migrated to the server's schema.
+								let authorize: ((prev: R | null, next: R) => R | null) | undefined
 								if (session && this.authorizeRecord) {
 									const prev = (txn.get(id) as R | undefined) ?? null
 									// A put must not change the record's typeName: the authorizer lookup keys
@@ -1353,38 +1366,39 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									}
 									const authorizePut = this.authorizerFor(record.typeName)
 									if (authorizePut) {
-										const result = authorizePut(
-											prev
-												? {
-														session: { sessionId: session.sessionId, meta: session.meta },
-														type: 'update',
-														prev,
-														next: record,
-													}
-												: {
-														session: { sessionId: session.sessionId, meta: session.meta },
-														type: 'create',
-														prev: null,
-														next: record,
-													}
-										)
-										// Rejected: skip the op; the client self-corrects via discard/rebase.
-										if (!result) {
-											this.log?.warn?.(
-												'authorizer vetoed put',
-												record.typeName,
-												id,
-												'session:',
-												session.sessionId
+										authorize = (prevRec, next) => {
+											const result = authorizePut(
+												prevRec
+													? {
+															session: { sessionId: session.sessionId, meta: session.meta },
+															type: 'update',
+															prev: prevRec,
+															next,
+														}
+													: {
+															session: { sessionId: session.sessionId, meta: session.meta },
+															type: 'create',
+															prev: null,
+															next,
+														}
 											)
-											continue
+											if (!result) {
+												this.log?.warn?.(
+													'authorizer vetoed put',
+													record.typeName,
+													id,
+													'session:',
+													session.sessionId
+												)
+												return null
+											}
+											// On create the returned (stamped) record is stored; on update it's
+											// allow/veto only, so the migrated client record is stored as-is.
+											return prevRec ? next : result
 										}
-										// On create the returned (stamped) record is stored; on update it's an
-										// allow/veto only, so the client's record is stored as-is.
-										if (!prev) record = result
 									}
 								}
-								addDocument(txn, docChanges, id, record)
+								addDocument(txn, docChanges, id, record, authorize)
 								break
 							}
 							case RecordOpType.Patch: {
@@ -1393,28 +1407,32 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								if (!doc) continue
 								if (!canWrite(doc.typeName)) continue
 								// Per-type authorizer (update): veto edits the session isn't allowed to make,
-								// e.g. changing a comment's authorId. Allow/veto only — the patch applies as-is.
+								// e.g. changing a comment's authorId. Runs inside `patchDocument` on the
+								// committed candidate — the server-schema record that will actually be
+								// stored — never on a raw client-version preview. Allow/veto only.
 								const authorizePatch = session && this.authorizerFor(doc.typeName)
-								if (
-									authorizePatch &&
-									!authorizePatch({
-										session: { sessionId: session.sessionId, meta: session.meta },
-										type: 'update',
-										prev: doc,
-										next: applyObjectDiff(doc, op[1]),
-									})
-								) {
-									this.log?.warn?.(
-										'authorizer vetoed patch',
-										doc.typeName,
-										id,
-										'session:',
-										session.sessionId
-									)
-									continue
-								}
+								const authorize = authorizePatch
+									? (prev: R, next: R) => {
+											const result = authorizePatch({
+												session: { sessionId: session.sessionId, meta: session.meta },
+												type: 'update',
+												prev,
+												next,
+											})
+											if (!result) {
+												this.log?.warn?.(
+													'authorizer vetoed patch',
+													doc.typeName,
+													id,
+													'session:',
+													session.sessionId
+												)
+											}
+											return result
+										}
+									: undefined
 								// Try to patch the document. If it fails, stop here.
-								patchDocument(txn, docChanges, id, op[1])
+								patchDocument(txn, docChanges, id, op[1], authorize)
 								break
 							}
 							case RecordOpType.Remove: {

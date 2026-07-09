@@ -522,6 +522,19 @@ describe('object store lane', () => {
 			expect(storedNote(storage, note.id)?.text).toBe('edited')
 		})
 
+		it('does not consult the authorizer for a no-op patch', () => {
+			const authorize = vi.fn(({ type, prev, next }: any) => (type === 'delete' ? prev : next))
+			const { room, note } = seededWithNote(authorize)
+			connectSession(room, 'alice', { meta: { userId: 'u' } })
+			authorize.mockClear()
+
+			push(room, 'alice', {
+				[note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, note.text] }],
+			})
+
+			expect(authorize).not.toHaveBeenCalled()
+		})
+
 		it('vetoes a delete the authorizer rejects', () => {
 			const { room, storage, note } = seededWithNote(({ type, next }: any) =>
 				type === 'delete' ? null : next
