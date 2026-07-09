@@ -123,8 +123,9 @@ export const group_file = table('group_file')
 
 // Projected from the `comment` document record (see TLComment in tlschema) by the file's Durable
 // Object. Zero replicates these per user so the app-level /comments view can query comments across
-// all accessible files. The authoritative comment content lives in the file's R2 comment lane; the
-// in-document view reads from the file room. Clients never mutate this table (server-written only).
+// all accessible files. Postgres is the sole durable store for comment records (the Durable Object
+// rehydrates its room from these tables); the in-document view reads from the file room. Clients
+// never mutate this table (server-written only).
 // `body` is the comment's rich text (TLRichText JSON) — the projection preserves the authoritative
 // representation; consumers flatten to plaintext for display where needed.
 export const comment = table('comment')
@@ -139,6 +140,23 @@ export const comment = table('comment')
 		body: json(),
 		createdAt: number(),
 		updatedAt: number(),
+	})
+	.primaryKey('id')
+
+// The comment's thread: anchor location and resolution state, denormalized for app-level Zero
+// queries (e.g. filtering resolved threads). Server-written only, like `comment`. The Postgres
+// table also carries `record`/`lastChangedClock` persistence columns (see CommentPersistenceColumns)
+// which are deliberately absent here so they never replicate to clients.
+export const comment_thread = table('comment_thread')
+	.columns({
+		id: string(),
+		fileId: string(),
+		pageId: string(),
+		// only set for shape-anchored threads; other anchor kinds have no shape
+		shapeId: string().optional(),
+		resolved: boolean(),
+		createdBy: string(),
+		createdAt: number(),
 	})
 	.primaryKey('id')
 
@@ -240,6 +258,14 @@ const commentRelationships = relationships(comment, ({ one }) => ({
 	}),
 }))
 
+const commentThreadRelationships = relationships(comment_thread, ({ one }) => ({
+	file: one({
+		sourceField: ['fileId'],
+		destField: ['id'],
+		destSchema: file,
+	}),
+}))
+
 export type TlaFilePartial = Partial<TlaFile> & {
 	id: TlaFile['id']
 }
@@ -270,6 +296,10 @@ export type TlaCommentPartial = Partial<TlaComment> & {
 	id: TlaComment['id']
 }
 
+export type TlaCommentThreadPartial = Partial<TlaCommentThread> & {
+	id: TlaCommentThread['id']
+}
+
 export type TlaRow =
 	| TlaFile
 	| TlaFileState
@@ -278,6 +308,7 @@ export type TlaRow =
 	| TlaGroupUser
 	| TlaGroupFile
 	| TlaComment
+	| TlaCommentThread
 export type TlaRowPartial =
 	| TlaFilePartial
 	| TlaFileStatePartial
@@ -286,6 +317,7 @@ export type TlaRowPartial =
 	| TlaGroupUserPartial
 	| TlaGroupFilePartial
 	| TlaCommentPartial
+	| TlaCommentThreadPartial
 export interface TlaUserMutationNumber {
 	userId: string
 	mutationNumber: number
@@ -329,6 +361,16 @@ export interface TlaWelcomeTemplate {
 	updatedAt: number
 }
 
+/**
+ * Sync-worker-only persistence columns on the comment tables. `record` is the exact serialized
+ * TLRecord (jsonb) used to rehydrate the file room; `lastChangedClock` is its sync clock. Absent
+ * from the Zero table definitions above, so Zero never replicates them to clients.
+ */
+export interface CommentPersistenceColumns {
+	record: unknown
+	lastChangedClock: number
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -339,11 +381,12 @@ export interface DB {
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 	welcome_template: TlaWelcomeTemplate
-	comment: TlaComment
+	comment: TlaComment & CommentPersistenceColumns
+	comment_thread: TlaCommentThread & CommentPersistenceColumns
 }
 
 export const schema = createSchema({
-	tables: [user, file, file_state, group, group_user, group_file, comment],
+	tables: [user, file, file_state, group, group_user, group_file, comment, comment_thread],
 	relationships: [
 		fileRelationships,
 		fileStateRelationships,
@@ -351,6 +394,7 @@ export const schema = createSchema({
 		groupUserRelationships,
 		groupFileRelationships,
 		commentRelationships,
+		commentThreadRelationships,
 	],
 })
 
@@ -362,6 +406,7 @@ export type TlaGroup = Row<typeof schema.tables.group>
 export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaGroupFile = Row<typeof schema.tables.group_file>
 export type TlaComment = Row<typeof schema.tables.comment>
+export type TlaCommentThread = Row<typeof schema.tables.comment_thread>
 
 // Permissions are now handled via Synced Queries in queries.ts
 
