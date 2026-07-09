@@ -1320,7 +1320,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									// off the incoming typeName while the replace path validates against the
 									// stored one, so a swap would consult the wrong authorizer (or none).
 									// Skip it like a veto; the client self-corrects.
-									if (prev && prev.typeName !== record.typeName) continue
+									if (prev && prev.typeName !== record.typeName) {
+										this.log?.warn?.(
+											'skipping put that changes typeName',
+											`${prev.typeName} -> ${record.typeName}`,
+											id,
+											'session:',
+											session.sessionId
+										)
+										continue
+									}
 									const authorizePut = this.authorizerFor(record.typeName)
 									if (authorizePut) {
 										const result = authorizePut(
@@ -1339,7 +1348,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 													}
 										)
 										// Rejected: skip the op; the client self-corrects via discard/rebase.
-										if (!result) continue
+										if (!result) {
+											this.log?.warn?.(
+												'authorizer vetoed put',
+												record.typeName,
+												id,
+												'session:',
+												session.sessionId
+											)
+											continue
+										}
 										// On create the returned (stamped) record is stored; on update it's an
 										// allow/veto only, so the client's record is stored as-is.
 										if (!prev) record = result
@@ -1365,6 +1383,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 										next: applyObjectDiff(doc, op[1]),
 									})
 								) {
+									this.log?.warn?.(
+										'authorizer vetoed patch',
+										doc.typeName,
+										id,
+										'session:',
+										session.sessionId
+									)
 									continue
 								}
 								// Try to patch the document. If it fails, stop here.
@@ -1390,6 +1415,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 										next: null,
 									})
 								) {
+									this.log?.warn?.(
+										'authorizer vetoed delete',
+										doc.typeName,
+										id,
+										'session:',
+										session.sessionId
+									)
 									continue
 								}
 

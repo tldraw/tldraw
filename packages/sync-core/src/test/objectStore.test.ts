@@ -91,6 +91,7 @@ function makeRoom(
 				next: any
 			}) => any
 		}
+		log?: any
 	} = {}
 ) {
 	const storage = new InMemorySyncStorage<R>({
@@ -109,6 +110,7 @@ function makeRoom(
 		objectTypes: opts.objectTypes,
 		onCommittedChanges: opts.onCommittedChanges,
 		authorizeRecord: opts.authorizeRecord,
+		log: opts.log,
 	})
 	disposables.push(() => room.close())
 	return { storage, room }
@@ -588,6 +590,22 @@ describe('object store lane', () => {
 			push(room, 'alice', { [note.id]: [RecordOpType.Remove] }, 3)
 
 			expect(types).toEqual(['create', 'update', 'delete'])
+		})
+
+		it('logs a warning when a write is vetoed', () => {
+			const warn = vi.fn()
+			const note = Note.create({ text: 'by:user-alice' })
+			const { room } = makeRoom({
+				objectTypes: ['note'],
+				authorizeRecord: { note: () => null },
+				log: { warn },
+			})
+			connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })
+
+			push(room, 'mallory', { [note.id]: [RecordOpType.Put, note] })
+
+			expect(warn).toHaveBeenCalledTimes(1)
+			expect(warn.mock.calls[0].join(' ')).toContain(note.id)
 		})
 	})
 })
