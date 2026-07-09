@@ -19,7 +19,7 @@ import {
 
 const pageId = 'page:page1' as TLPageId
 const shapeId = 'shape:box1' as TLShapeId
-// minimal rich text doc; the validator doesn't run in these tests
+// minimal rich text doc; passes richTextValidator (which rowToCommentRecord now runs)
 const body = { type: 'doc', content: [] } as unknown as TLRichText
 
 function makeThread(anchor = { type: 'shape' as const, shapeId, x: 0.5, y: 0.5, isPrecise: true }) {
@@ -171,6 +171,28 @@ describe('round-trip: record -> row -> rowTo*Record', () => {
 		}
 		const row = commentRecordToRow(comment, 'file1', 44)
 		expect(rowToCommentRecord(row)).toEqual(comment)
+	})
+})
+
+describe('rehydration validation', () => {
+	it('rowToThreadRecord throws on a mangled anchor', () => {
+		const row = threadRecordToRow(makeThread(), 'file1', 42)
+		const corrupt = { ...row, anchor: { type: 'shape' } as any }
+		expect(() => rowToThreadRecord(corrupt)).toThrow()
+	})
+
+	it('rowToCommentRecord throws on a mangled body', () => {
+		const thread = makeThread()
+		const comment = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'user1',
+			body,
+			now: 1500,
+		})
+		const row = commentRecordToRow(comment, 'file1', 43)
+		const corrupt = { ...row, body: 'not rich text' as any }
+		expect(() => rowToCommentRecord(corrupt)).toThrow()
 	})
 })
 

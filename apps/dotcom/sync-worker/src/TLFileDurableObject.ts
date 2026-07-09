@@ -171,7 +171,8 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		// SQLite not initialized yet, load from R2 and initialize. The loaded snapshot has the
-		// R2 object lane merged in; the storage routes those records into its objects partition.
+		// Postgres comment rows merged in; the storage routes those records into its objects
+		// partition.
 		const result = await this.loadFromDatabase(slug)
 		const storage = new SQLiteSyncStorage<TLRecord>({
 			sql,
@@ -575,11 +576,21 @@ export class TLFileDurableObject extends DurableObject {
 			// (a) The lane wipe, the outbox high-water-mark capture, and the queue push below run
 			//     in one synchronous block with NO awaits in between. Storage change notifications
 			//     fire on a microtask, so a comment committed after the wipe enqueues its outbox
-			//     entry (seq > maxSeq) and its drain task strictly after ours (queue is FIFO) —
-			//     the entry survives the scoped clear and the later drain pushes it to Postgres.
+			//     entry (seq > maxSeq) and its drain task strictly after ours (queue is FIFO).
+			//     Drains are bounded to the outbox high-water mark captured when they are
+			//     scheduled (see drainCommentOutbox), so no drain queued before ours can touch
+			//     that entry: it survives our scoped clear and its own later drain pushes it to
+			//     Postgres.
 			// (b) The fileId-wide Postgres deletes may remove rows a post-wipe comment already
 			//     drained, but that's safe only because of (a): the surviving outbox entry means
 			//     a subsequent drain re-upserts the row.
+			//
+			// Inside the task, the Postgres deletes run BEFORE the outbox clear: if a delete
+			// throws, the pre-restore outbox entries survive, so subsequent drains keep retrying
+			// the per-id deletes (the records are lane-absent after the wipe, taking the delete
+			// path) and this handler's 500 tells the caller to retry the whole restore. Clearing
+			// the outbox first would destroy the only retry vehicle and let the dropped comments
+			// resurrect on the next fresh-SQLite load.
 			const snapshot = JSON.parse(dataText) as RoomSnapshot
 
 			const storage = await this.getStorage()
@@ -593,9 +604,9 @@ export class TLFileDurableObject extends DurableObject {
 					.toArray()[0].maxSeq
 			)
 			const cleanup = this._objectPushQueue.push(async () => {
-				this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', maxSeq)
 				await this.db.deleteFrom('comment').where('fileId', '=', roomId).execute()
 				await this.db.deleteFrom('comment_thread').where('fileId', '=', roomId).execute()
+				this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', maxSeq)
 			})
 			await cleanup
 
@@ -1358,6 +1369,13 @@ export class TLFileDurableObject extends DurableObject {
 						const slug = this.documentInfo.slug
 						const storage = await this.getStorage()
 						assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+						// Object-lane records (comments) persist to Postgres via the outbox; the
+						// throttled persist just nudges a drain so pushes that failed earlier get
+						// retried. This must run BEFORE the clock early-return below: a quiet room
+						// (no new commits) would otherwise never retry a failed drain. Fire-and-forget:
+						// a Postgres outage must not fail the R2 document persist — the outbox keeps
+						// the pending work.
+						this.drainCommentOutbox()
 						if (this._lastPersistedClock === storage.getClock()) return
 						if (this._isRestoring) return
 
@@ -1370,11 +1388,6 @@ export class TLFileDurableObject extends DurableObject {
 						const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 						await this._uploadSnapshotToR2(snapshot, key)
 
-						// Object-lane records (comments) persist to Postgres via the outbox; the
-						// throttled persist just nudges a drain so pushes that failed earlier get
-						// retried even in a quiet room. Fire-and-forget: a Postgres outage must
-						// not fail the R2 document persist — the outbox keeps the pending work.
-						this.drainCommentOutbox()
 						await this.persistToPierre(storage, snapshot)
 
 						this.logEvent({ type: 'persist_success', attempts: attempt })
@@ -1607,16 +1620,28 @@ export class TLFileDurableObject extends DurableObject {
 	 * so multiple edits coalesce and a create-then-delete nets out to a delete. Upserts are
 	 * clock-guarded: a replayed push (same lastChangedClock) updates nothing, producing no WAL
 	 * entry and therefore no Zero replication churn.
+	 *
+	 * Each drain is bounded to the outbox high-water mark captured synchronously at SCHEDULE time,
+	 * not at execution time: entries enqueued while the drain sat in the queue are left for their
+	 * own drain (scheduled at enqueue, so its bound covers them). This is what lets the restore
+	 * handler wipe the lane and delete the file's Postgres rows without a stale queued drain
+	 * upserting — and clearing the outbox entry of — a comment committed after the wipe, which
+	 * the restore's fileId-wide delete would then remove from Postgres with no retry left.
 	 */
 	private drainCommentOutbox(): Promise<void> {
+		this.ensureCommentOutbox()
+		// sql.exec is synchronous, so the bound is captured before anything else can enqueue.
+		const drainBound = Number(
+			this.ctx.storage.sql
+				.exec('SELECT COALESCE(MAX(seq), 0) AS maxSeq FROM comment_outbox')
+				.toArray()[0].maxSeq
+		)
 		return this._objectPushQueue
 			.push(async () => {
-				this.ensureCommentOutbox()
 				const entries = this.ctx.storage.sql
-					.exec('SELECT seq, recordId FROM comment_outbox ORDER BY seq')
+					.exec('SELECT seq, recordId FROM comment_outbox WHERE seq <= ? ORDER BY seq', drainBound)
 					.toArray() as { seq: number; recordId: string }[]
 				if (entries.length === 0) return
-				const maxSeq = entries[entries.length - 1].seq
 				const pendingIds = new Set(entries.map((e) => e.recordId))
 
 				const storage = await this.getStorage()
@@ -1638,13 +1663,18 @@ export class TLFileDurableObject extends DurableObject {
 						} else {
 							threadDeletes.push(id)
 						}
-					} else {
+					} else if (isCommentId(id)) {
 						if (doc) {
 							const comment = doc.state as TLComment
 							commentUpserts.push(commentRecordToRow(comment, fileId, doc.lastChangedClock))
 						} else {
 							commentDeletes.push(id)
 						}
+					} else {
+						// enqueueCommentChanges only writes comment/comment-thread ids, so an unknown
+						// id means a bug or a corrupted outbox row. Skip it — its entry still clears
+						// below (retrying can't help) — and report for visibility.
+						this.reportError(new Error(`comment outbox: unknown record id ${JSON.stringify(id)}`))
 					}
 				}
 
@@ -1758,31 +1788,30 @@ export class TLFileDurableObject extends DurableObject {
 
 				if (commentResult.prunedIds.length > 0) {
 					this.logEvent({ type: 'room', roomId: fileId, name: 'comment_author_deleted_prune' })
-					// Remove the pruned records from the live room so connected clients see them
-					// disappear. Deleting through the shared storage handle is the sanctioned
-					// server-side mutation path: the room subscribes to storage.onChange and
-					// broadcasts external transactions to its sessions. It does not re-enqueue
-					// outbox entries (onCommittedChanges only fires for client pushes), so this
-					// can't loop; a crash between here and the outbox clear below just replays the
-					// prune on the next drain (the ids are then lane-absent, taking the no-op
-					// Postgres delete path). If the room isn't open there's nothing to mirror into:
-					// the next cold load rehydrates comments from Postgres, where the rows are
-					// already gone.
-					const room = this._room ? await this._room.catch(() => null) : null
-					if (room && !room.isClosed()) {
-						storage.transaction((txn) => {
-							for (const id of commentResult.prunedIds) {
-								txn.delete(id as TLRecord['id'])
-							}
-						})
-					}
+					// Remove the pruned records from the room's storage so it stops carrying rows
+					// Postgres already cascaded away. Deleting through the shared storage handle is
+					// the sanctioned server-side mutation path: a live room subscribes to
+					// storage.onChange and broadcasts external transactions to its sessions, so
+					// connected clients see the records disappear; a closed room needs no broadcast,
+					// but the prune must still run — the warm DO SQLite outlives the room, and
+					// loadStorage short-circuits Postgres rehydration when SQLite is already
+					// initialized, so skipping it would keep the deleted author's comments alive
+					// forever. The delete does not re-enqueue outbox entries (onCommittedChanges
+					// only fires for client pushes), so this can't loop; a crash between here and
+					// the outbox clear below just replays the prune on the next drain (the ids are
+					// then lane-absent, taking the no-op Postgres delete path).
+					storage.transaction((txn) => {
+						for (const id of commentResult.prunedIds) {
+							txn.delete(id as TLRecord['id'])
+						}
+					})
 				}
 
 				// Keep entries queued for any record that failed to push (they'll be retried on the
-				// next drain); only the entries that made it to Postgres are removed. If nothing
-				// failed, this collapses to the same unconditional delete as before.
+				// next drain); only the entries that made it to Postgres are removed. Only entries
+				// within this drain's bound are touched — later entries belong to their own drain.
 				if (failedIds.size === 0) {
-					this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', maxSeq)
+					this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', drainBound)
 				} else {
 					for (const entry of entries) {
 						if (failedIds.has(entry.recordId)) continue

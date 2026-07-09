@@ -23,7 +23,11 @@ CREATE TABLE comment_thread (
   "createdAt" BIGINT NOT NULL,
   "meta" JSONB NOT NULL,
   "lastChangedClock" BIGINT NOT NULL,
-  CONSTRAINT comment_thread_file_id_fkey FOREIGN KEY ("fileId") REFERENCES public."file"("id") ON DELETE CASCADE
+  CONSTRAINT comment_thread_file_id_fkey FOREIGN KEY ("fileId") REFERENCES public."file"("id") ON DELETE CASCADE,
+  -- resolvedAt/resolvedBy encode one nullable `resolved` record field, so they must be set or
+  -- null together; rehydration (rowToThreadRecord) relies on resolvedBy being non-null whenever
+  -- resolvedAt is
+  CONSTRAINT comment_thread_resolved_check CHECK (("resolvedAt" IS NULL) = ("resolvedBy" IS NULL))
 );
 
 CREATE INDEX comment_thread_file_id_idx ON comment_thread("fileId");

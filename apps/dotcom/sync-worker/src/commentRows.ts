@@ -1,6 +1,12 @@
 import { DB } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { TLComment, TLCommentAnchor, TLCommentThread } from '@tldraw/tlschema'
+import {
+	TLComment,
+	TLCommentAnchor,
+	TLCommentThread,
+	commentRecordConfig,
+	commentThreadRecordConfig,
+} from '@tldraw/tlschema'
 import { JsonObject } from '@tldraw/utils'
 
 /**
@@ -8,8 +14,10 @@ import { JsonObject } from '@tldraw/utils'
  * durable store for comment records: the columns collectively carry every record field, so the
  * Durable Object can rebuild the records losslessly on cold start (`rowTo*Record`), and the
  * Zero-visible subset serves app-level queries. `lastChangedClock` preserves each record's sync
- * clock across reloads and guards upserts against no-op replays. Timestamps and clocks come back
- * from pg's bigint parsing as strings, so reads coerce with Number().
+ * clock across reloads and guards upserts against no-op replays. Timestamps and clocks are read
+ * through Number() as defense against driver/config drift: `postgres.ts` installs a global
+ * int8-to-number type parser today, so pg already returns bigints as numbers, but nothing else
+ * enforces that stays true.
  */
 
 /**
@@ -71,7 +79,7 @@ export function commentRecordToRow(
 }
 
 export function rowToThreadRecord(row: DB['comment_thread']): TLCommentThread {
-	return {
+	const record: TLCommentThread = {
 		id: row.id as TLCommentThread['id'],
 		typeName: 'comment-thread',
 		pageId: row.pageId as TLCommentThread['pageId'],
@@ -81,10 +89,13 @@ export function rowToThreadRecord(row: DB['comment_thread']): TLCommentThread {
 		resolved: row.resolvedAt != null ? { at: Number(row.resolvedAt), by: row.resolvedBy! } : null,
 		meta: (row.meta ?? {}) as JsonObject,
 	}
+	// The fields above are raw casts from the row; validate the finished record so a corrupt
+	// Postgres row fails the room open loudly instead of seeding an invalid record into the room.
+	return commentThreadRecordConfig.validator.validate(record) as TLCommentThread
 }
 
 export function rowToCommentRecord(row: DB['comment']): TLComment {
-	return {
+	const record: TLComment = {
 		id: row.id as TLComment['id'],
 		typeName: 'comment',
 		threadId: row.threadId as TLComment['threadId'],
@@ -95,6 +106,9 @@ export function rowToCommentRecord(row: DB['comment']): TLComment {
 		body: row.body as TLComment['body'],
 		meta: (row.meta ?? {}) as JsonObject,
 	}
+	// The fields above are raw casts from the row; validate the finished record so a corrupt
+	// Postgres row fails the room open loudly instead of seeding an invalid record into the room.
+	return commentRecordConfig.validator.validate(record) as TLComment
 }
 
 /**
