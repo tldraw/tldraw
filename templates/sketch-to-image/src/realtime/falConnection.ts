@@ -47,7 +47,19 @@ export function createRealtimeConnection(handlers: RealtimeConnectionHandlers): 
 	let inFlight: AbortController | null = null
 
 	async function send(input: RealtimeInput) {
-		if (closed) return
+		if (closed) {
+			// A send arrived after this connection was torn down. In production this
+			// is a harmless race; during dev it's usually a stale hot-reloaded
+			// closure holding an old connection — surface it so a "prompt updates
+			// but image doesn't" symptom isn't a silent mystery. Reload the page.
+			if (import.meta.env.DEV) {
+				console.warn(
+					'[sketch-to-image] Ignored a frame sent to a closed realtime connection. ' +
+						'If the image stopped updating after a code edit, reload the page.'
+				)
+			}
+			return
+		}
 		const requestId = ++latestRequestId
 
 		// Cancel any request that is still in flight — its result is now stale.

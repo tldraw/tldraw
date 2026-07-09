@@ -159,6 +159,31 @@ body {
 	width: 100%;
 }
 
+/* ---- Auto prompt ---- */
+
+.control-label-row {
+	align-items: center;
+}
+.prompt-auto-badge {
+	font-weight: 500;
+	font-size: 11px;
+	color: #6366f1;
+	background: #eef2ff;
+	padding: 2px 7px;
+	border-radius: 999px;
+}
+.prompt-auto-reset {
+	font: inherit;
+	font-size: 11px;
+	font-weight: 500;
+	color: #6366f1;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
 /* ---- Animate ---- */
 
 .animate-section {
@@ -199,4 +224,13 @@ body {
 .tl-theme__dark ~ * .sketch-sidebar,
 body:has(.tl-theme__dark) .sketch-sidebar {
 	color: #e4e4e7;
+}
+.tl-theme__dark ~ * .prompt-auto-badge,
+body:has(.tl-theme__dark) .prompt-auto-badge {
+	color: #c7d2fe;
+	background: #312e81;
+}
+.tl-theme__dark ~ * .prompt-auto-reset,
+body:has(.tl-theme__dark) .prompt-auto-reset {
+	color: #a5b4fc;
 }

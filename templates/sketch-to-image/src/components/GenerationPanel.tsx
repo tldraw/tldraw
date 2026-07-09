@@ -9,6 +9,8 @@ interface GenerationPanelProps {
 	setControls(update: Partial<GenerationControls>): void
 	isPaused: boolean
 	setPaused(paused: boolean): void
+	promptIsAuto: boolean
+	resetPromptToAuto(): void
 }
 
 /**
@@ -23,6 +25,8 @@ export function GenerationPanel({
 	setControls,
 	isPaused,
 	setPaused,
+	promptIsAuto,
+	resetPromptToAuto,
 }: GenerationPanelProps) {
 	return (
 		<div className="generation-panel">
@@ -42,12 +46,40 @@ export function GenerationPanel({
 
 			<div className="generation-panel-controls">
 				<label className="control">
-					<span>Prompt</span>
+					<span className="control-label-row">
+						Prompt
+						{promptIsAuto ? (
+							<span className="prompt-auto-badge" title="Written from your sketch by Claude">
+								✦ auto
+							</span>
+						) : (
+							<button
+								type="button"
+								className="prompt-auto-reset"
+								onClick={resetPromptToAuto}
+								title="Let Claude write the prompt from your sketch again"
+							>
+								Use auto
+							</button>
+						)}
+					</span>
 					<textarea
 						value={controls.prompt}
 						rows={2}
+						placeholder={
+							promptIsAuto
+								? status === 'describing'
+									? 'Reading your sketch…'
+									: 'Draw something — a prompt will be written for you.'
+								: 'Describe what your sketch should become'
+						}
 						onChange={(e) => setControls({ prompt: e.target.value })}
 					/>
+					<small>
+						{promptIsAuto
+							? 'Auto-written from your sketch. Type to take over.'
+							: 'You’re steering the prompt. Use auto to hand it back.'}
+					</small>
 				</label>
 
 				<label className="control">
@@ -124,6 +156,7 @@ function ResultView({
 	return (
 		<>
 			<img className="result-image" src={resultUrl} alt="Generated result" />
+			{status === 'describing' && <div className="result-badge">reading sketch…</div>}
 			{status === 'generating' && <div className="result-badge">generating…</div>}
 			{status === 'paused' && <div className="result-badge result-badge-paused">paused</div>}
 		</>

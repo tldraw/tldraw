@@ -1,5 +1,6 @@
 import { AutoRouter, error, IRequest } from 'itty-router'
 import { handleAnimate } from './routes/animate'
+import { handleDescribe } from './routes/describe'
 import { handleFalProxy } from './routes/falProxy'
 
 const router = AutoRouter<IRequest, [env: Env, ctx: ExecutionContext]>({
@@ -13,6 +14,11 @@ const router = AutoRouter<IRequest, [env: Env, ctx: ExecutionContext]>({
 	// JWT token handshake and any REST calls, injecting FAL_KEY server-side.
 	.get('/api/fal/proxy', handleFalProxy)
 	.post('/api/fal/proxy', handleFalProxy)
+
+	// Auto-generate an image prompt from the current sketch (Claude vision), so
+	// the user doesn't have to type one. The ANTHROPIC_API_KEY is injected
+	// server-side, mirroring the fal proxy.
+	.post('/api/describe', handleDescribe)
 
 	// Turn a generated image into a short video (secondary, non-realtime).
 	.post('/api/animate', handleAnimate)

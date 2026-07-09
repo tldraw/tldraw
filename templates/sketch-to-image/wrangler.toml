@@ -24,3 +24,11 @@ directory = "./dist/client"
 # Set for deployment with: wrangler secret put FAL_KEY
 # For local development, create a .dev.vars file in this directory:
 #   FAL_KEY=...
+#
+# Anthropic API key. Used by /api/describe to auto-write an image prompt from
+# the sketch (Claude vision), so the user doesn't have to type one. Also injected
+# server-side and never reaches the browser.
+#
+# Set for deployment with: wrangler secret put ANTHROPIC_API_KEY
+# For local development, add it to the same .dev.vars file:
+#   ANTHROPIC_API_KEY=...

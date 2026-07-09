@@ -3,6 +3,7 @@
 // Runtime types generated with workerd@1.20260630.1 2025-05-08 nodejs_compat
 interface __BaseEnv_Env {
 	FAL_KEY: string
+	ANTHROPIC_API_KEY: string
 }
 declare namespace Cloudflare {
 	interface GlobalProps {
@@ -15,7 +16,9 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string
 }
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, 'FAL_KEY'>> {}
+	interface ProcessEnv extends StringifyValues<
+		Pick<Cloudflare.Env, 'FAL_KEY' | 'ANTHROPIC_API_KEY'>
+	> {}
 }
 
 // Begin runtime types

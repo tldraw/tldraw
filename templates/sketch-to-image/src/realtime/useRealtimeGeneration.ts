@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from 'tldraw'
 import { DEBOUNCE_MS, DEFAULTS } from '../constants'
 import { captureSketch } from './captureSketch'
+import { describeSketch } from './describeSketch'
 import { createRealtimeConnection, RealtimeConnection } from './falConnection'
 
 /** User-facing generation controls, surfaced in the panel. */
@@ -13,7 +14,7 @@ export interface GenerationControls {
 	seed: number
 }
 
-export type GenerationStatus = 'idle' | 'generating' | 'error' | 'paused'
+export type GenerationStatus = 'idle' | 'describing' | 'generating' | 'error' | 'paused'
 
 export interface RealtimeGeneration {
 	/** The most recent generated image, as a URL (data URL in sync mode). */
@@ -28,6 +29,14 @@ export interface RealtimeGeneration {
 	isPaused: boolean
 	/** Pause or resume the realtime loop. Resuming regenerates from the current sketch. */
 	setPaused(paused: boolean): void
+	/**
+	 * Whether the prompt is being written automatically from the sketch (true),
+	 * or the user has taken it over by typing (false). Typing pins the prompt;
+	 * `resetPromptToAuto` hands it back to the describer.
+	 */
+	promptIsAuto: boolean
+	/** Re-enable automatic prompt generation and describe the current sketch now. */
+	resetPromptToAuto(): void
 }
 
 /**
@@ -43,6 +52,8 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 	const [status, setStatus] = useState<GenerationStatus>('idle')
 	const [error, setError] = useState<string | null>(null)
 	const [isPaused, setIsPaused] = useState(false)
+	// The prompt starts empty and is written from the sketch until the user types.
+	const [promptIsAuto, setPromptIsAuto] = useState(true)
 	const [controls, setControlsState] = useState<GenerationControls>({
 		prompt: DEFAULTS.prompt,
 		strength: DEFAULTS.strength,
@@ -60,6 +71,11 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 	// stable `sendFrame`, so it reads the current value from a ref.
 	const isPausedRef = useRef(isPaused)
 	isPausedRef.current = isPaused
+	// And for the auto/pinned flag, read by the stable `sendFrame`.
+	const promptIsAutoRef = useRef(promptIsAuto)
+	promptIsAutoRef.current = promptIsAuto
+	// Aborts an in-flight describe call when a newer frame settles.
+	const describeAbortRef = useRef<AbortController | null>(null)
 
 	// Open the connection once per editor.
 	useEffect(() => {
@@ -85,7 +101,9 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 		}
 	}, [editor])
 
-	// Capture the current sketch and push it through the connection.
+	// Capture the current sketch and push it through the connection. When the
+	// prompt is on auto, first ask Claude to describe the settled sketch and use
+	// that as the prompt — this is what lets the user skip writing one.
 	const sendFrame = useCallback(async () => {
 		if (!editor || !connectionRef.current) return
 		// Paused: keep drawing, but don't touch the model.
@@ -93,16 +111,47 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 		try {
 			const imageDataUrl = await captureSketch(editor)
 			if (!imageDataUrl) {
-				// Nothing drawn — clear any previous result.
+				// Nothing drawn — clear the result and any auto-written prompt.
+				describeAbortRef.current?.abort()
 				setResultUrl(null)
 				setStatus('idle')
+				if (promptIsAutoRef.current) {
+					setControlsState((prev) => (prev.prompt ? { ...prev, prompt: '' } : prev))
+					controlsRef.current = { ...controlsRef.current, prompt: '' }
+				}
 				return
 			}
+
+			let prompt = controlsRef.current.prompt
+			// Auto mode: describe the sketch and adopt that prompt before generating.
+			if (promptIsAutoRef.current) {
+				describeAbortRef.current?.abort()
+				const controller = new AbortController()
+				describeAbortRef.current = controller
+				setStatus('describing')
+				try {
+					prompt = await describeSketch(imageDataUrl, controller.signal)
+				} catch (err) {
+					if (controller.signal.aborted) return // a newer frame took over
+					throw err
+				}
+				// A newer frame started describing while we waited — let it win.
+				if (describeAbortRef.current !== controller) return
+				// The user may have started typing while we were describing; if so,
+				// don't clobber their prompt.
+				if (!promptIsAutoRef.current) {
+					prompt = controlsRef.current.prompt
+				} else {
+					setControlsState((prev) => ({ ...prev, prompt }))
+					controlsRef.current = { ...controlsRef.current, prompt }
+				}
+			}
+
 			setStatus('generating')
 			const c = controlsRef.current
 			connectionRef.current.send({
 				image_url: imageDataUrl,
-				prompt: c.prompt,
+				prompt,
 				strength: c.strength,
 				num_inference_steps: c.steps,
 				guidance_scale: c.guidanceScale,
@@ -143,6 +192,14 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 
 	const setControls = useCallback(
 		(update: Partial<GenerationControls>) => {
+			// Editing the prompt text takes it off auto — the user is now steering it.
+			// Cancel any in-flight describe so it can't overwrite what they typed.
+			const editedPrompt = 'prompt' in update
+			if (editedPrompt) {
+				describeAbortRef.current?.abort()
+				setPromptIsAuto(false)
+				promptIsAutoRef.current = false
+			}
 			setControlsState((prev) => {
 				const next = { ...prev, ...update }
 				// Update the ref synchronously so the immediate re-send below reads
@@ -155,6 +212,15 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 		},
 		[sendFrame]
 	)
+
+	const resetPromptToAuto = useCallback(() => {
+		setPromptIsAuto(true)
+		promptIsAutoRef.current = true
+		// Clear the pinned text and re-describe the current sketch.
+		setControlsState((prev) => ({ ...prev, prompt: '' }))
+		controlsRef.current = { ...controlsRef.current, prompt: '' }
+		void sendFrame()
+	}, [sendFrame])
 
 	const regenerate = useCallback(() => void sendFrame(), [sendFrame])
 
@@ -175,5 +241,16 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 		[sendFrame]
 	)
 
-	return { resultUrl, status, error, controls, setControls, regenerate, isPaused, setPaused }
+	return {
+		resultUrl,
+		status,
+		error,
+		controls,
+		setControls,
+		regenerate,
+		isPaused,
+		setPaused,
+		promptIsAuto,
+		resetPromptToAuto,
+	}
 }

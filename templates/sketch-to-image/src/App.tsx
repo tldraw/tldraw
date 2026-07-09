@@ -14,8 +14,17 @@ const options: Partial<TldrawOptions> = {
 
 function App() {
 	const [editor, setEditor] = useState<Editor | null>(null)
-	const { resultUrl, status, error, controls, setControls, isPaused, setPaused } =
-		useRealtimeGeneration(editor)
+	const {
+		resultUrl,
+		status,
+		error,
+		controls,
+		setControls,
+		isPaused,
+		setPaused,
+		promptIsAuto,
+		resetPromptToAuto,
+	} = useRealtimeGeneration(editor)
 
 	return (
 		<div className="sketch-layout">
@@ -41,6 +50,8 @@ function App() {
 					setControls={setControls}
 					isPaused={isPaused}
 					setPaused={setPaused}
+					promptIsAuto={promptIsAuto}
+					resetPromptToAuto={resetPromptToAuto}
 				/>
 			</div>
 		</div>

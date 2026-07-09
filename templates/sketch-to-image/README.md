@@ -9,18 +9,20 @@ This starter kit is a realtime sketch-to-image generator built on [tldraw](https
 
 ## Environment setup
 
-This template uses fal.ai for generation. Create a `.dev.vars` file in this directory and add your fal.ai API key:
+This template uses fal.ai for generation and Anthropic's Claude to auto-write the image prompt from your sketch. Create a `.dev.vars` file in this directory and add both keys:
 
 ```
 FAL_KEY=your_fal_key_here
+ANTHROPIC_API_KEY=your_anthropic_key_here
 ```
 
-You can get a key from [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys). Without a key, generation requests will fail with a clear error in the panel.
+Get a fal.ai key from [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys) and an Anthropic key from [console.anthropic.com](https://console.anthropic.com/settings/keys). Without the fal key, generation requests fail with a clear error in the panel; without the Anthropic key, the auto-prompt fails but you can still type a prompt yourself.
 
-The key never reaches the browser. The worker proxies every fal request and injects the key server-side. For deployment, set the key as a secret instead:
+Neither key reaches the browser. The worker proxies every request and injects the keys server-side. For deployment, set them as secrets instead:
 
 ```
 wrangler secret put FAL_KEY
+wrangler secret put ANTHROPIC_API_KEY
 ```
 
 ## Local development
@@ -33,17 +35,18 @@ Open the printed local URL in your browser, then start drawing.
 
 ## How it works
 
-There are three main pieces:
+There are four main pieces:
 
 1. **The sketch capture** (`src/realtime/captureSketch.ts`): on each canvas edit, the shapes are rasterized to a 512×512 PNG and letterboxed onto a white square — the input format the LCM model expects.
-2. **The generation loop** (`src/realtime/falConnection.ts`): each captured frame is sent to fal's `fal-ai/lcm-sd15-i2i` model through the proxy. LCM returns in ~150–350ms, so with the debounced send loop the result tracks your drawing closely. Each new frame supersedes any in-flight request, so a slow response never overwrites a newer one. The `useRealtimeGeneration` hook debounces edits and wires the two together.
-3. **The worker proxy** (`worker/routes/falProxy.ts`): a small Cloudflare Worker that forwards fal requests with your `FAL_KEY` attached, so the key never reaches the browser. The frontend posts to `/api/fal/proxy` with an `x-fal-target-url` header naming the fal endpoint.
+2. **The auto-prompt** (`src/realtime/describeSketch.ts` → `worker/routes/describe.ts`): once your drawing settles, the captured sketch is sent to Claude, which writes a short image-generation prompt describing what it should become. You never have to type one. Type in the prompt box to take over; hit **Use auto** to hand it back. Because a vision call costs time and money, this runs only on the settled frame (after a ~600ms pause), not on every stroke.
+3. **The generation loop** (`src/realtime/falConnection.ts`): each captured frame is sent to fal's `fal-ai/lcm-sd15-i2i` model through the proxy, using the auto-written (or typed) prompt. LCM returns in ~150–350ms. Each new frame supersedes any in-flight request, so a slow response never overwrites a newer one. The `useRealtimeGeneration` hook debounces edits and wires it all together — on a settled sketch it describes first, then generates.
+4. **The worker proxies** (`worker/routes/falProxy.ts`, `worker/routes/describe.ts`): a small Cloudflare Worker that forwards fal requests with your `FAL_KEY` attached and Claude requests with your `ANTHROPIC_API_KEY` attached, so neither key reaches the browser.
 
 ### Controls
 
 The panel on the right steers generation:
 
-- **Prompt** — what the sketch should become.
+- **Prompt** — what the sketch should become. Written for you from the sketch by default (shown as `✦ auto`); type to steer it yourself.
 - **Strength** — how far the model may deviate from your drawing (lower stays closer to the sketch).
 - **Steps** — LCM needs very few; 4 is a good default.
 - **Seed** — fix it for reproducible results.
@@ -55,8 +58,9 @@ The **Animate → video** button sends the current generated image to fal's Seed
 ## Customizing
 
 - Swap the realtime model in `src/constants.ts` (`REALTIME_MODEL`). fal offers several LCM variants tuned for different input styles.
-- Adjust the capture resolution and debounce in `src/constants.ts`.
+- Adjust the capture resolution and debounce in `src/constants.ts`. The debounce (`DEBOUNCE_MS`) is also how long the sketch must settle before the prompt+image are (re)generated.
 - Change the video model in `worker/routes/animate.ts`.
+- Tune the auto-prompt model or its instructions in `worker/routes/describe.ts` (`DESCRIBE_MODEL`, `SYSTEM_PROMPT`).
 - Edit the available drawing tools in `src/components/SketchToolbar.tsx`.
 
 ## License
