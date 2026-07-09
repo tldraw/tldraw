@@ -11,6 +11,7 @@ export {
 	pendingComment,
 	type PendingComment,
 } from './canvas/comment-tool'
+export { collectClusterLeaves } from './canvas/cluster-input'
 export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-overlay'
 export { CanvasCommentsSidebar, type CanvasCommentsSidebarProps } from './canvas/comments-sidebar'
 export {

@@ -3,6 +3,7 @@ import {
 	type PointerEvent as ReactPointerEvent,
 	ReactNode,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -19,10 +20,15 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { computeClusterTable } from '../clustering/computeClusterTable'
+import { createClusterRuntime } from '../clustering/runtime'
+import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
 import { CommentPin } from '../ui/comment-pin'
 import { CommentThread } from '../ui/comment-thread'
+import { CountBadge } from '../ui/count-badge'
+import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import { pendingComment, PendingComment } from './comment-tool'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
@@ -57,6 +63,7 @@ export interface CanvasCommentsProps {
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
 const initialOf = (name: string): string => (name.trim()[0] ?? '?').toUpperCase()
+const CLUSTER_DMAX = 120
 
 /** The leading element for the placement composer — the comment pin's shape, but a pencil
  *  instead of an initial, marking an unsent draft. */
@@ -92,23 +99,77 @@ function toCardProps(comment: TLComment, props: CanvasCommentsProps): CommentCar
 export function CanvasComments(props: CanvasCommentsProps) {
 	const editor = useEditor()
 	const container = useContainer()
+	const deepLinkHandled = useRef(false)
 	const threads = useCommentThreads(editor)
 	const pending = usePendingComment()
+	const openId = useValue('open thread id', () => openThreadId.get(), [])
+	const { impreciseShapeAnchor } = props
+	const clusterLeaves = useValue(
+		'comment cluster leaves',
+		() => collectClusterLeaves(editor, threads, openThreadId.get(), impreciseShapeAnchor),
+		[editor, threads, impreciseShapeAnchor]
+	)
+	const clusterZoomBounds = useValue(
+		'comment cluster zoom bounds',
+		() => getClusterZoomBounds(editor),
+		[editor]
+	)
+	const clusterModel = useMemo(() => {
+		const table = computeClusterTable(clusterLeaves, clusterZoomBounds)
+		const runtime = createClusterRuntime(table)
+		runtime.seed(editor.getZoomLevel())
+		return { runtime, table }
+	}, [clusterLeaves, clusterZoomBounds, editor])
+	const zoom = useValue('comment cluster zoom', () => editor.getZoomLevel(), [editor])
+	const visibleNodes = useMemo(() => {
+		clusterModel.runtime.onCamera(zoom)
+		return Array.from(clusterModel.runtime.getVisible().values())
+	}, [clusterModel, zoom])
+	const threadsById = useMemo(
+		() => new Map<string, TLCommentThread>(threads.map((thread) => [thread.id, thread])),
+		[threads]
+	)
+	const openThread = openId ? threadsById.get(openId) : null
 
-	// On mount, open the thread named by a deep link (?comment=<thread or comment id>). Reset the
-	// transient UI state (open thread, half-placed comment) when this unmounts.
+	// Reset the transient UI state (open thread, half-placed comment) when this unmounts.
 	useEffect(() => {
-		const id = new URLSearchParams(window.location.search).get('comment')
-		if (id) {
-			const record = editor.store.get(id as any)
-			if (record?.typeName === 'comment') openThreadId.set((record as TLComment).threadId)
-			else if (record?.typeName === 'comment-thread') openThreadId.set(id)
-		}
 		return () => {
 			openThreadId.set(null)
 			pendingComment.set(null)
 		}
-	}, [editor])
+	}, [])
+
+	// Open the thread named by a deep link (?comment=<thread or comment id>). If the thread is
+	// currently inside a cluster, zoom to the first split that reveals it before opening.
+	useEffect(() => {
+		if (deepLinkHandled.current) return
+		const id = new URLSearchParams(window.location.search).get('comment')
+		if (!id) {
+			deepLinkHandled.current = true
+			return
+		}
+
+		const record = editor.store.get(id as any)
+		if (!record) return
+
+		let thread: TLCommentThread | undefined
+		if (record.typeName === 'comment') {
+			thread = threadsById.get((record as TLComment).threadId)
+		} else if (record.typeName === 'comment-thread') {
+			thread = record as TLCommentThread
+		}
+		if (!thread) return
+
+		deepLinkHandled.current = true
+		revealDeepLinkedThread(
+			editor,
+			thread,
+			clusterModel.table,
+			clusterZoomBounds,
+			impreciseShapeAnchor
+		)
+		openThreadId.set(thread.id)
+	}, [clusterModel.table, clusterZoomBounds, editor, threadsById, impreciseShapeAnchor])
 
 	// Escape collapses the open thread. Capture-phase + stopPropagation so it runs ahead of the
 	// editor (which would otherwise cancel the current tool or clear the selection). If a comment is
@@ -130,14 +191,110 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	// live in the UI layer rather than being clipped by the canvas layer.
 	return createPortal(
 		<div className="cmt-canvas-layer">
-			{threads.map((thread) => (
-				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
-			))}
+			{visibleNodes.map((node) => {
+				if (node.count === 1) {
+					const thread = threadsById.get(node.id)
+					if (!thread) return null
+					return <ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
+				}
+				return <ClusterBadge key={node.id} editor={editor} node={node} />
+			})}
+			{openThread && (
+				<ThreadPin key={`open:${openThread.id}`} editor={editor} thread={openThread} {...props} />
+			)}
 			{pending && props.currentUserId && (
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
 		</div>,
 		container
+	)
+}
+
+function getClusterZoomBounds(editor: Editor): { minZoom: number; maxZoom: number } {
+	const cameraOptions = editor.getCameraOptions()
+	const baseZoom = cameraOptions.constraints ? editor.getBaseZoom() : 1
+	const zoomSteps = cameraOptions.zoomSteps
+	return {
+		minZoom: zoomSteps[0] * baseZoom,
+		maxZoom: zoomSteps[zoomSteps.length - 1] * baseZoom,
+	}
+}
+
+function revealDeepLinkedThread(
+	editor: Editor,
+	thread: TLCommentThread,
+	table: ClusterTable,
+	zoomBounds: { minZoom: number; maxZoom: number },
+	impreciseShapeAnchor?: { x: number; y: number }
+) {
+	if (thread.pageId !== editor.getCurrentPageId()) {
+		editor.setCurrentPage(thread.pageId as any)
+	}
+
+	const point = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
+	if (!point) return
+
+	const parentEvent = findDirectParentEvent(table, thread.id)
+	if (
+		parentEvent &&
+		Number.isFinite(parentEvent.zSplit) &&
+		parentEvent.zSplit <= zoomBounds.maxZoom
+	) {
+		const zoom = clamp(parentEvent.zSplit * 1.05, zoomBounds.minZoom, zoomBounds.maxZoom)
+		centerOnPointAtZoom(editor, point, zoom)
+		return
+	}
+
+	editor.centerOnPoint(point, { animation: { duration: 200 } })
+}
+
+function findDirectParentEvent(table: ClusterTable, threadId: string): MergeEvent | undefined {
+	return table.events.find((event) => event.children.some((child) => child.id === threadId))
+}
+
+function centerOnPointAtZoom(editor: Editor, point: { x: number; y: number }, zoom: number) {
+	const viewport = editor.getViewportScreenBounds()
+	editor.setCamera(
+		{
+			x: viewport.w / (2 * zoom) - point.x,
+			y: viewport.h / (2 * zoom) - point.y,
+			z: zoom,
+		},
+		{ animation: { duration: 200 } }
+	)
+}
+
+function clamp(value: number, min: number, max: number): number {
+	return Math.max(min, Math.min(max, value))
+}
+
+function ClusterBadge({ editor, node }: { editor: Editor; node: ClusterNode }) {
+	const point = useValue(
+		'cluster badge point',
+		() => {
+			const pagePoint = editor.pageToViewport(node.centroid)
+			if (!isInInflatedViewport(editor, pagePoint)) return null
+			return pagePoint
+		},
+		[editor, node]
+	)
+
+	if (!point) return null
+
+	return (
+		<div className="cmt-canvas-cluster" style={{ left: point.x, top: point.y }}>
+			<CountBadge count={node.count} />
+		</div>
+	)
+}
+
+function isInInflatedViewport(editor: Editor, point: { x: number; y: number }): boolean {
+	const viewport = editor.getViewportScreenBounds()
+	return (
+		point.x >= -CLUSTER_DMAX &&
+		point.y >= -CLUSTER_DMAX &&
+		point.x <= viewport.w + CLUSTER_DMAX &&
+		point.y <= viewport.h + CLUSTER_DMAX
 	)
 }
 

@@ -1,0 +1,438 @@
+import { describe, expect, it } from 'vitest'
+import { mstEdges } from './mst'
+import { cappedReplay } from './replay'
+import { createClusterRuntime } from './runtime'
+import { contract, finalize } from './schedule'
+import { ClusterNode, ClusterTable, LeafInput, MergeEvent } from './types'
+
+// --- Synthetic builders --------------------------------------------------------
+
+function node(ids: string[], x = 0, y = 0): ClusterNode {
+	const members = ids.slice().sort()
+	return {
+		id: members.length === 1 ? members[0] : `cluster:${members.length}:${members[0]}`,
+		centroid: { x, y },
+		count: members.length,
+		members,
+	}
+}
+
+function mev(
+	zMerge: number,
+	zSplit: number,
+	children: ClusterNode[],
+	result: ClusterNode
+): MergeEvent {
+	return { zMerge, zSplit, children, result }
+}
+
+function visibleIds(runtime: { getVisible(): ReadonlyMap<string, ClusterNode> }): string[] {
+	return [...runtime.getVisible().keys()].sort()
+}
+
+/** Reference derivation: start from all leaves, apply events[0..k) in order. */
+function referenceVisible(table: ClusterTable, k: number): Map<string, ClusterNode> {
+	const map = new Map(table.leaves.map((l) => [l.id, l]))
+	for (let i = 0; i < k; i++) {
+		const ev = table.events[i]
+		for (const child of ev.children) map.delete(child.id)
+		map.set(ev.result.id, ev.result)
+	}
+	return map
+}
+
+/** Contract clause 3 postconditions, asserted after every seed/onCamera. */
+function expectPostconditions(
+	runtime: { readonly k: number; getVisible(): ReadonlyMap<string, ClusterNode> },
+	table: ClusterTable,
+	zoom: number
+) {
+	const k = runtime.k
+	expect(k).toBeGreaterThanOrEqual(0)
+	expect(k).toBeLessThanOrEqual(table.events.length)
+	if (k < table.events.length) expect(zoom).toBeGreaterThan(table.events[k].zMerge)
+	if (k > 0) expect(zoom).toBeLessThan(table.events[k - 1].zSplit)
+	const expected = referenceVisible(table, k)
+	expect(visibleIds(runtime)).toEqual([...expected.keys()].sort())
+	for (const [id, nodeRef] of expected) {
+		// deep equality: a restored leaf may be the event's child object rather
+		// than the leaves-array twin — both are table objects (no-cloning is
+		// asserted by identity in the fixture tests, where objects are shared)
+		expect(runtime.getVisible().get(id)).toEqual(nodeRef)
+	}
+}
+
+// The micro-trace table of CLUSTERING.md §8.5:
+//   E0 { zMerge 4.0, zSplit 6.0, A+B+C → P }
+//   E1 { zMerge 1.0, zSplit 1.5, P+D → Q }
+const A = node(['a'], 0, 0)
+const B = node(['b'], 10, 0)
+const C = node(['c'], 20, 0)
+const D = node(['d'], 100, 0)
+const P = node(['a', 'b', 'c'], 10, 0)
+const Q = node(['a', 'b', 'c', 'd'], 32.5, 0)
+
+function microTraceTable(): ClusterTable {
+	return {
+		events: [mev(4, 6, [A, B, C], P), mev(1, 1.5, [P, D], Q)],
+		leaves: [A, B, C, D],
+	}
+}
+
+// --- Fixtures -------------------------------------------------------------------
+
+describe('createClusterRuntime micro-trace (CLUSTERING.md §8.5)', () => {
+	it('walks the exact documented trace', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+
+		// mount at zoom 5.0 → seed: √(4·6) ≈ 4.9 < 5.0 → k = 0
+		rt.seed(5.0)
+		expect(rt.k).toBe(0)
+		expect(visibleIds(rt)).toEqual(['a', 'b', 'c', 'd'])
+		expectPostconditions(rt, table, 5.0)
+
+		// zoom out to 3.5 → fire E0
+		rt.onCamera(3.5)
+		expect(rt.k).toBe(1)
+		expect(visibleIds(rt)).toEqual(['cluster:3:a', 'd'])
+		expectPostconditions(rt, table, 3.5)
+
+		// zoom back in to 5.0 → inside E0's band (4 < 5 < 6): hold — no flicker
+		rt.onCamera(5.0)
+		expect(rt.k).toBe(1)
+		expect(visibleIds(rt)).toEqual(['cluster:3:a', 'd'])
+		expectPostconditions(rt, table, 5.0)
+
+		// zoom in to 6.2 → split E0
+		rt.onCamera(6.2)
+		expect(rt.k).toBe(0)
+		expect(visibleIds(rt)).toEqual(['a', 'b', 'c', 'd'])
+		expectPostconditions(rt, table, 6.2)
+
+		// zoom-to-fit at 0.8 → fires E0 AND E1 in one call
+		rt.onCamera(0.8)
+		expect(rt.k).toBe(2)
+		expect(visibleIds(rt)).toEqual(['cluster:4:a'])
+		expectPostconditions(rt, table, 0.8)
+
+		// pan (same zoom) → no-op
+		rt.onCamera(0.8)
+		expect(rt.k).toBe(2)
+		expect(visibleIds(rt)).toEqual(['cluster:4:a'])
+	})
+
+	it('splits multiple events in one zoom-in jump', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(0.8) // √(4·6) ≈ 4.9 ≥ 0.8 and √(1·1.5) ≈ 1.22 ≥ 0.8 → k = 2
+		expect(rt.k).toBe(2)
+		rt.onCamera(7) // ≥ both zSplits (1.5 and 6) → unwinds to k = 0
+		expect(rt.k).toBe(0)
+		expect(visibleIds(rt)).toEqual(['a', 'b', 'c', 'd'])
+		expectPostconditions(rt, table, 7)
+	})
+})
+
+describe('createClusterRuntime seeding', () => {
+	it('seeds each side of the geometric band midpoint', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		const mid0 = Math.sqrt(4 * 6) // ≈ 4.898979
+		const mid1 = Math.sqrt(1 * 1.5) // ≈ 1.224745
+
+		rt.seed(mid0 + 0.001) // just above E0's midpoint → unmerged
+		expect(rt.k).toBe(0)
+
+		rt.seed(mid0) // exactly at the midpoint: zoom <= mid counts as merged
+		expect(rt.k).toBe(1)
+
+		rt.seed(mid1 + 0.001) // between the two midpoints → only E0 active
+		expect(rt.k).toBe(1)
+
+		rt.seed(mid1) // at/below E1's midpoint → both active
+		expect(rt.k).toBe(2)
+		expect(visibleIds(rt)).toEqual(['cluster:4:a'])
+	})
+
+	it('re-seeding resets state from scratch', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(0.8)
+		expect(rt.k).toBe(2)
+		rt.seed(5.0) // rebuild-style reset: history is discarded
+		expect(rt.k).toBe(0)
+		expect(visibleIds(rt)).toEqual(['a', 'b', 'c', 'd'])
+	})
+
+	it('throws on non-positive or non-finite seed zoom', () => {
+		const rt = createClusterRuntime(microTraceTable())
+		expect(() => rt.seed(0)).toThrow()
+		expect(() => rt.seed(-1)).toThrow()
+		expect(() => rt.seed(NaN)).toThrow()
+		expect(() => rt.seed(Infinity)).toThrow()
+	})
+
+	it('throws if onCamera is called before any seed', () => {
+		const rt = createClusterRuntime(microTraceTable())
+		expect(() => rt.onCamera(3)).toThrow()
+	})
+
+	it('seed followed by onCamera at the same zoom is a no-op', () => {
+		const table = microTraceTable()
+		for (const zoom of [0.5, 1.1, 2, 4.5, 4.9, 5.5, 8]) {
+			const rt = createClusterRuntime(table)
+			rt.seed(zoom)
+			const k = rt.k
+			const ids = visibleIds(rt)
+			rt.onCamera(zoom)
+			expect(rt.k).toBe(k)
+			expect(visibleIds(rt)).toEqual(ids)
+			expectPostconditions(rt, table, zoom)
+		}
+	})
+})
+
+describe('createClusterRuntime edge cases', () => {
+	it('handles an empty table: all leaves visible at any zoom', () => {
+		const table: ClusterTable = { events: [], leaves: [A, B] }
+		const rt = createClusterRuntime(table)
+		rt.seed(3)
+		expect(rt.k).toBe(0)
+		expect(visibleIds(rt)).toEqual(['a', 'b'])
+		rt.onCamera(0.01)
+		rt.onCamera(100)
+		expect(visibleIds(rt)).toEqual(['a', 'b'])
+	})
+
+	it('keeps Infinity events permanently merged at any reachable zoom', () => {
+		const R = node(['a', 'b'])
+		const table: ClusterTable = { events: [mev(Infinity, Infinity, [A, B], R)], leaves: [A, B] }
+		const rt = createClusterRuntime(table)
+		rt.seed(8) // √(∞·∞) = ∞ ≥ any zoom → seeded merged
+		expect(rt.k).toBe(1)
+		expect(visibleIds(rt)).toEqual(['cluster:2:a'])
+		rt.onCamera(1e9) // no finite zoom reaches zSplit = ∞
+		expect(rt.k).toBe(1)
+		expect(visibleIds(rt)).toEqual(['cluster:2:a'])
+	})
+
+	it('exposes the table node objects by reference, without cloning', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(5)
+		expect(rt.getVisible().get('a')).toBe(A)
+		rt.onCamera(3.5)
+		expect(rt.getVisible().get('cluster:3:a')).toBe(P)
+		expect(rt.getVisible().get('d')).toBe(D)
+	})
+
+	it('never mutates the table', () => {
+		const table = microTraceTable()
+		const snapshot = JSON.parse(JSON.stringify(table))
+		const rt = createClusterRuntime(table)
+		rt.seed(5)
+		rt.onCamera(0.8)
+		rt.onCamera(7)
+		rt.seed(2)
+		expect(JSON.parse(JSON.stringify(table))).toEqual(snapshot)
+	})
+})
+
+// --- Property tests against real pipeline tables --------------------------------
+
+function leaf(id: string, x: number, y: number): LeafInput {
+	return { id, point: { x, y } }
+}
+
+function mulberry32(seed: number): () => number {
+	let a = seed >>> 0
+	return () => {
+		a = (a + 0x6d2b79f5) >>> 0
+		let t = a
+		t = Math.imul(t ^ (t >>> 15), t | 1)
+		t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+		return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+	}
+}
+
+const PIPE_OPTS = { Tc: 40, Tu: 60, eps: 0.12, Dmax: 120, minZoom: 0.05, maxZoom: 8 }
+
+function buildTable(leaves: LeafInput[]): ClusterTable {
+	const rawEvents = cappedReplay(leaves, mstEdges(leaves), {
+		Tc: PIPE_OPTS.Tc,
+		Dmax: PIPE_OPTS.Dmax,
+	})
+	const events = finalize(contract(rawEvents, PIPE_OPTS.eps), {
+		Tc: PIPE_OPTS.Tc,
+		Tu: PIPE_OPTS.Tu,
+		minZoom: PIPE_OPTS.minZoom,
+		maxZoom: PIPE_OPTS.maxZoom,
+	})
+	const leafNodes: ClusterNode[] = leaves.map((l) => ({
+		id: l.id,
+		centroid: { x: l.point.x, y: l.point.y },
+		count: 1,
+		members: [l.id],
+	}))
+	return { events, leaves: leafNodes }
+}
+
+function randomLeaves(n: number, seed: number, scale = 1000): LeafInput[] {
+	const rand = mulberry32(seed)
+	return Array.from({ length: n }, (_, i) => leaf(`leaf-${i}`, rand() * scale, rand() * scale))
+}
+
+/** A zoom walk within camera bounds: mostly small multiplicative steps, some jumps. */
+function zoomWalk(steps: number, seed: number): number[] {
+	const rand = mulberry32(seed)
+	const lnMin = Math.log(PIPE_OPTS.minZoom)
+	const lnMax = Math.log(PIPE_OPTS.maxZoom)
+	let ln = (lnMin + lnMax) / 2
+	const walk: number[] = []
+	for (let i = 0; i < steps; i++) {
+		const r = rand()
+		if (r < 0.15) {
+			// jump anywhere (zoom-to-fit, keyboard shortcuts)
+			ln = lnMin + rand() * (lnMax - lnMin)
+		} else if (r < 0.25) {
+			// hold (pan-only frames)
+		} else {
+			// scrub: small multiplicative step, clamped to bounds
+			ln = Math.min(lnMax, Math.max(lnMin, ln + (rand() - 0.5) * 0.4))
+		}
+		walk.push(Math.exp(ln))
+	}
+	return walk
+}
+
+/**
+ * Independent per-event hysteresis simulator: each event keeps its own bit with
+ * the two-threshold update rule. The prefix property says the bit vector is
+ * always exactly the prefix mask [0..k) — this cross-checks the cursor against
+ * the definition it compresses.
+ */
+class BitSimulator {
+	private bits: boolean[]
+	constructor(
+		private events: readonly MergeEvent[],
+		seedZoom: number
+	) {
+		this.bits = events.map((e) => seedZoom <= Math.sqrt(e.zMerge * e.zSplit))
+	}
+	update(zoom: number) {
+		this.bits = this.events.map((e, i) => {
+			if (zoom <= e.zMerge) return true
+			if (zoom >= e.zSplit) return false
+			return this.bits[i]
+		})
+	}
+	expectPrefixOfLength(k: number) {
+		for (let i = 0; i < this.bits.length; i++) {
+			expect(this.bits[i]).toBe(i < k)
+		}
+	}
+}
+
+describe('createClusterRuntime properties (random tables, random zoom walks)', () => {
+	it('holds all postconditions and matches the per-event bit simulator', () => {
+		for (const [n, seed] of [
+			[2, 1],
+			[15, 42],
+			[60, 7],
+		] as const) {
+			const leaves = randomLeaves(n, seed * 13 + n)
+			const table = buildTable(leaves)
+			const rt = createClusterRuntime(table)
+			const walk = zoomWalk(300, seed + 100)
+
+			const seedZoom = walk[0]
+			rt.seed(seedZoom)
+			const sim = new BitSimulator(table.events, seedZoom)
+			expectPostconditions(rt, table, seedZoom)
+			sim.expectPrefixOfLength(rt.k)
+
+			for (const zoom of walk.slice(1)) {
+				rt.onCamera(zoom)
+				sim.update(zoom)
+				expectPostconditions(rt, table, zoom)
+				sim.expectPrefixOfLength(rt.k)
+				// conservation: visible clusters always partition all n leaves
+				let total = 0
+				for (const cluster of rt.getVisible().values()) total += cluster.count
+				expect(total).toBe(n)
+			}
+		}
+	})
+
+	it('is monotone: k never decreases while zooming out, never increases zooming in', () => {
+		const leaves = randomLeaves(40, 33)
+		const table = buildTable(leaves)
+		const rt = createClusterRuntime(table)
+
+		rt.seed(PIPE_OPTS.maxZoom)
+		let prevK = rt.k
+		for (let zoom = PIPE_OPTS.maxZoom; zoom >= PIPE_OPTS.minZoom; zoom *= 0.97) {
+			rt.onCamera(zoom)
+			expect(rt.k).toBeGreaterThanOrEqual(prevK)
+			prevK = rt.k
+		}
+		expect(rt.k).toBe(table.events.length) // fully zoomed out → everything merged
+
+		for (let zoom = PIPE_OPTS.minZoom; zoom <= PIPE_OPTS.maxZoom; zoom *= 1.03) {
+			rt.onCamera(zoom)
+			expect(rt.k).toBeLessThanOrEqual(prevK)
+			prevK = rt.k
+		}
+	})
+
+	it('produces zero transitions while scrubbing inside a hysteresis band', () => {
+		const leaves = randomLeaves(30, 55)
+		const table = buildTable(leaves)
+		// pick a finite event with a usable band inside camera bounds
+		const ev = table.events.find(
+			(e) =>
+				Number.isFinite(e.zMerge) &&
+				e.zMerge > PIPE_OPTS.minZoom * 2 &&
+				e.zSplit < PIPE_OPTS.maxZoom &&
+				e.zSplit / e.zMerge > 1.01
+		)
+		expect(ev).toBeDefined()
+		const lo = ev!.zMerge * 1.001
+		const hi = ev!.zSplit * 0.999
+
+		const rt = createClusterRuntime(table)
+		// approach from below: merged state, then scrub within (zMerge, zSplit)
+		rt.seed(ev!.zMerge * 0.9)
+		rt.onCamera(lo)
+		const k = rt.k
+		const ids = visibleIds(rt)
+		const rand = mulberry32(9)
+		for (let i = 0; i < 50; i++) {
+			rt.onCamera(lo + rand() * (hi - lo))
+			expect(rt.k).toBe(k)
+			expect(visibleIds(rt)).toEqual(ids)
+		}
+	})
+
+	it('agrees with a fresh seed after any walk that ends outside all bands', () => {
+		// Outside every band, state is history-independent: a runtime that walked
+		// there must equal a runtime seeded there directly.
+		const leaves = randomLeaves(30, 77)
+		const table = buildTable(leaves)
+		const walked = createClusterRuntime(table)
+		walked.seed(2)
+		for (const zoom of zoomWalk(120, 5)) walked.onCamera(zoom)
+
+		// find a zoom outside all bands near the end state
+		const finalZoom = PIPE_OPTS.maxZoom
+		walked.onCamera(finalZoom)
+		const inBand = table.events.some((e) => finalZoom > e.zMerge && finalZoom < e.zSplit)
+		if (!inBand) {
+			const seeded = createClusterRuntime(table)
+			seeded.seed(finalZoom)
+			expect(seeded.k).toBe(walked.k)
+			expect(visibleIds(seeded)).toEqual(visibleIds(walked))
+		}
+	})
+})
