@@ -2397,6 +2397,9 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opt
 // @internal (undocumented)
 export const LICENSE_TIMEOUT = 5000;
 
+// @internal
+export type LicenseFeatureName = 'collaboration' | 'commenting';
+
 // @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
 
@@ -2418,11 +2421,15 @@ export class LicenseManager {
     // (undocumented)
     static className: string;
     // (undocumented)
+    featureFlags: Atom<Record<LicenseFeatureName, boolean>, unknown>;
+    getFeatureFlags(): Record<LicenseFeatureName, boolean>;
+    // (undocumented)
     getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult>;
     // (undocumented)
     isCryptoAvailable: boolean;
     // (undocumented)
     isDevelopment: boolean;
+    isFeatureEnabled(feature: LicenseFeatureName): boolean;
     // (undocumented)
     isTest: boolean;
     // (undocumented)
@@ -5042,6 +5049,12 @@ export function useIsCropping(shapeId: TLShapeId): boolean;
 export function useIsEditing(shapeId: TLShapeId): boolean;
 
 // @internal (undocumented)
+export function useLicenseContext(): LicenseManager;
+
+// @internal
+export function useLicenseFeatureFlag(licenseManager: LicenseManager, feature: LicenseFeatureName): boolean;
+
+// @internal (undocumented)
 export function useLocalStore(options: {
     persistenceKey?: string;
     sessionId?: string;
@@ -5179,6 +5192,10 @@ export interface ValidLicenseKeyResult {
     isAnnualLicense: boolean;
     // (undocumented)
     isAnnualLicenseExpired: boolean;
+    // (undocumented)
+    isCollaborationEnabled: boolean;
+    // (undocumented)
+    isCommentingEnabled: boolean;
     // (undocumented)
     isDevelopment: boolean;
     // (undocumented)
