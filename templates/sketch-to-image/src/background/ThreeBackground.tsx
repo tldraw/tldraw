@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { useEditor, useValue } from 'tldraw'
+import { usePoseChannel } from '../pose/PoseChannel'
+import { PoseRetargeter } from '../pose/retargetPose'
 
 /**
  * A three.js scene rendered behind the tldraw shapes.
@@ -58,6 +60,10 @@ export function ThreeBackground() {
 	const cameraRef = useRef(camera)
 	cameraRef.current = camera
 
+	// The live pose that drives the rig. This is a stable ref whose `.current`
+	// the render loop reads each frame (null → play the idle clip instead).
+	const poseRef = usePoseChannel()
+
 	useEffect(() => {
 		const container = containerRef.current
 		if (!container) return
@@ -101,6 +107,8 @@ export function ThreeBackground() {
 		let unitScale = 1 // world units per pixel of desired figure height
 
 		let mixer: THREE.AnimationMixer | null = null
+		// Drives the rig from the live pose once the model has loaded (null until).
+		let retargeter: PoseRetargeter | null = null
 		// Track elapsed time by hand to feed the animation mixer a per-frame delta
 		// (in seconds). `performance.now()` avoids THREE.Clock, which is deprecated.
 		let lastTime = performance.now()
@@ -138,6 +146,10 @@ export function ThreeBackground() {
 
 				figure.add(model)
 
+				// Capture the rest pose for retargeting BEFORE the mixer starts posing
+				// the rig, so the retargeter's rest directions are the true T-pose.
+				retargeter = new PoseRetargeter(model)
+
 				mixer = new THREE.AnimationMixer(model)
 				const clip =
 					THREE.AnimationClip.findByName(gltf.animations, ACTIVE_CLIP) ?? gltf.animations[0]
@@ -172,8 +184,18 @@ export function ThreeBackground() {
 			raf = requestAnimationFrame(render)
 
 			const now = performance.now()
-			mixer?.update((now - lastTime) / 1000)
+			const delta = (now - lastTime) / 1000
 			lastTime = now
+
+			// A live pose (with 3D world landmarks) overrides the canned idle clip:
+			// retarget the rig to the pose. With no pose — before the first estimate,
+			// or when no figure is detected — fall back to playing idle so the figure
+			// breathes instead of holding a frozen T-pose.
+			const pose = poseRef?.current ?? null
+			const drivenByPose = retargeter && pose?.world ? retargeter.apply(pose) : false
+			if (!drivenByPose) {
+				mixer?.update(delta)
+			}
 
 			const { x, y, z } = cameraRef.current
 			// tldraw: screen = (page + camera) * zoom. Convert that screen pixel
@@ -206,7 +228,9 @@ export function ThreeBackground() {
 			})
 			canvas.remove()
 		}
-	}, [editor])
+		// poseRef is a stable ref (its identity never changes), so this effect still
+		// runs once per editor; the render loop reads poseRef.current live.
+	}, [editor, poseRef])
 
 	// Full-bleed container behind the shapes. `pointer-events: none` lets all
 	// canvas interaction (drawing, selecting) pass straight through.

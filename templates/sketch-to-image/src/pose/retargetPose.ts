@@ -76,7 +76,12 @@ export class PoseRetargeter {
 		bone: THREE.Object3D
 		/** The bone's local rest rotation, restored each frame before applying the delta. */
 		restQuat: THREE.Quaternion
-		/** Unit rest direction (bone → child) in the bone's *parent* space. */
+		/**
+		 * Unit rest direction from the bone to its child, expressed in the bone's
+		 * *parent* space. A local quaternion is relative to the parent, so both the
+		 * rest and target directions must live in parent space for the delta rotation
+		 * that carries one onto the other to be a valid local quaternion.
+		 */
 		restDir: THREE.Vector3
 	}> = []
 
@@ -87,8 +92,6 @@ export class PoseRetargeter {
 	private readonly parentInv = new THREE.Quaternion()
 	private readonly parentWorld = new THREE.Quaternion()
 	private readonly delta = new THREE.Quaternion()
-	private readonly scratchPos = new THREE.Vector3()
-	private readonly scratchScale = new THREE.Vector3()
 
 	constructor(model: THREE.Object3D) {
 		model.updateWorldMatrix(true, true)
@@ -99,13 +102,12 @@ export class PoseRetargeter {
 			const child = bone?.children[0]
 			if (!bone || !child) continue
 
-			// Rest direction in the bone's local space is just the child's local
-			// position (bones sit at their parent's origin). We express the target in
-			// the *parent's* space when applying, so translate the rest dir similarly:
-			// the bone's local frame here already is the parent's-space frame for the
-			// child offset, because a child's position is defined in the bone's frame.
-			const restDir = child.position.clone().normalize()
+			// A child's local position is the bone→child offset in the bone's own
+			// frame; rotating it by the bone's rest rotation lifts it into parent
+			// space, where the per-frame delta rotation is applied.
+			const restDir = child.position.clone().applyQuaternion(bone.quaternion)
 			if (restDir.lengthSq() === 0) continue
+			restDir.normalize()
 
 			this.bones.push({
 				spec,
@@ -167,12 +169,5 @@ export class PoseRetargeter {
 	/** Restore every driven bone to its rest rotation (used when a pose is lost). */
 	reset() {
 		for (const entry of this.bones) entry.bone.quaternion.copy(entry.restQuat)
-	}
-
-	// Kept so the compiler doesn't drop the scratch decomposition helpers if a
-	// future edit needs them; harmless no-op reference.
-	private _touchScratch() {
-		void this.scratchPos
-		void this.scratchScale
 	}
 }
