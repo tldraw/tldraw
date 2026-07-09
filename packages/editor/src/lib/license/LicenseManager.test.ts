@@ -594,38 +594,54 @@ describe('LicenseManager', () => {
 		})
 
 		it('Handles grace period correctly - 20 days expired should still be within grace period', async () => {
-			const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-			const expiredDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 20) // 20 days ago
-			expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiredDate.toISOString()
+			// Pin the clock and use a date-only UTC expiry so the calculation is timezone
+			// independent. The named day is fully usable, so an expiry 20 calendar days before
+			// "now" has been past its usable window for 19 full days.
+			vi.useFakeTimers()
+			vi.setSystemTime(new Date('2026-06-26T12:00:00.000Z'))
+			try {
+				const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+				expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = '2026-06-06' // 20 days before now
 
-			const expiredLicenseKey = await generateLicenseKey(
-				JSON.stringify(expiredLicenseInfo),
-				keyPair
-			)
+				const expiredLicenseKey = await generateLicenseKey(
+					JSON.stringify(expiredLicenseInfo),
+					keyPair
+				)
 
-			// Test the getLicenseFromKey method to verify grace period calculation
-			const result = (await licenseManager.getLicenseFromKey(
-				expiredLicenseKey
-			)) as ValidLicenseKeyResult
-			expect(result.isAnnualLicense).toBe(true)
-			expect(result.isAnnualLicenseExpired).toBe(false) // Within 30-day grace period
-			expect(result.daysSinceExpiry).toBe(20)
+				// Test the getLicenseFromKey method to verify grace period calculation
+				const result = (await licenseManager.getLicenseFromKey(
+					expiredLicenseKey
+				)) as ValidLicenseKeyResult
+				expect(result.isAnnualLicense).toBe(true)
+				expect(result.isAnnualLicenseExpired).toBe(false) // Within 30-day grace period
+				expect(result.daysSinceExpiry).toBe(19)
+			} finally {
+				vi.useRealTimers()
+			}
 		})
 
 		it('Calculates days since expiry correctly', async () => {
-			const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-			const expiredDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 15) // 15 days ago
-			expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiredDate.toISOString()
+			// Pin the clock and use a date-only UTC expiry so the calculation is timezone
+			// independent. The named day is fully usable, so an expiry 15 calendar days before
+			// "now" has been past its usable window for 14 full days.
+			vi.useFakeTimers()
+			vi.setSystemTime(new Date('2026-06-26T12:00:00.000Z'))
+			try {
+				const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+				expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = '2026-06-11' // 15 days before now
 
-			const expiredLicenseKey = await generateLicenseKey(
-				JSON.stringify(expiredLicenseInfo),
-				keyPair
-			)
+				const expiredLicenseKey = await generateLicenseKey(
+					JSON.stringify(expiredLicenseInfo),
+					keyPair
+				)
 
-			const result = (await licenseManager.getLicenseFromKey(
-				expiredLicenseKey
-			)) as ValidLicenseKeyResult
-			expect(result.daysSinceExpiry).toBe(15)
+				const result = (await licenseManager.getLicenseFromKey(
+					expiredLicenseKey
+				)) as ValidLicenseKeyResult
+				expect(result.daysSinceExpiry).toBe(14)
+			} finally {
+				vi.useRealTimers()
+			}
 		})
 	})
 
