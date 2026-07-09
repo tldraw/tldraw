@@ -3,7 +3,7 @@ import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 import { richTextValidator, TLRichText } from '../misc/TLRichText'
-import { CustomRecordInfo, createCustomRecordId } from './TLCustomRecord'
+import { CustomRecordInfo, createCustomRecordId, isCustomRecordId } from './TLCustomRecord'
 import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
 
@@ -231,6 +231,27 @@ export function createCommentThreadId(id?: string): TLCommentThreadId {
 /** @public */
 export function createCommentId(id?: string): TLCommentId {
 	return createCustomRecordId('comment', id) as TLCommentId
+}
+
+/**
+ * Type guard for `TLCommentThreadId`. Note `isCommentId` does not accept these: the prefixes
+ * are `comment-thread:` vs `comment:`, and the character after `comment` differs (`-` vs `:`),
+ * so the two never overlap.
+ *
+ * @public
+ */
+export function isCommentThreadId(id: string): id is TLCommentThreadId {
+	return isCustomRecordId('comment-thread', id)
+}
+
+/**
+ * Type guard for `TLCommentId`. See `isCommentThreadId` for why `comment-thread:...` ids are
+ * correctly rejected here.
+ *
+ * @public
+ */
+export function isCommentId(id: string): id is TLCommentId {
+	return isCustomRecordId('comment', id)
 }
 
 /**

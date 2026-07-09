@@ -45,6 +45,8 @@ import {
 	TLRecord,
 	commentSchemaRecords,
 	createTLSchema,
+	isCommentId,
+	isCommentThreadId,
 } from '@tldraw/tlschema'
 import {
 	ExecutionQueue,
@@ -1587,7 +1589,7 @@ export class TLFileDurableObject extends DurableObject {
 			}
 		}
 		for (const id of diff.deletes) {
-			if (id.startsWith('comment:') || id.startsWith('comment-thread:')) {
+			if (isCommentId(id) || isCommentThreadId(id)) {
 				ids.push(id)
 			}
 		}
@@ -1628,7 +1630,7 @@ export class TLFileDurableObject extends DurableObject {
 				const commentDeletes: string[] = []
 				for (const id of pendingIds) {
 					const doc = lane.get(id as TLRecord['id'])
-					if (id.startsWith('comment-thread:')) {
+					if (isCommentThreadId(id)) {
 						if (doc) {
 							threadUpserts.push(
 								threadRecordToRow(doc.state as TLCommentThread, fileId, doc.lastChangedClock)
