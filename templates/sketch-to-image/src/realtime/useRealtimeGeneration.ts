@@ -13,7 +13,7 @@ export interface GenerationControls {
 	seed: number
 }
 
-export type GenerationStatus = 'idle' | 'generating' | 'error'
+export type GenerationStatus = 'idle' | 'generating' | 'error' | 'paused'
 
 export interface RealtimeGeneration {
 	/** The most recent generated image, as a URL (data URL in sync mode). */
@@ -24,6 +24,10 @@ export interface RealtimeGeneration {
 	setControls(update: Partial<GenerationControls>): void
 	/** Force a regeneration from the current sketch (e.g. after changing a control). */
 	regenerate(): void
+	/** Whether the realtime loop is paused. When paused, edits don't generate. */
+	isPaused: boolean
+	/** Pause or resume the realtime loop. Resuming regenerates from the current sketch. */
+	setPaused(paused: boolean): void
 }
 
 /**
@@ -38,6 +42,7 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 	const [resultUrl, setResultUrl] = useState<string | null>(null)
 	const [status, setStatus] = useState<GenerationStatus>('idle')
 	const [error, setError] = useState<string | null>(null)
+	const [isPaused, setIsPaused] = useState(false)
 	const [controls, setControlsState] = useState<GenerationControls>({
 		prompt: DEFAULTS.prompt,
 		strength: DEFAULTS.strength,
@@ -51,6 +56,10 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 	// reads current values without needing to be re-created on every keystroke.
 	const controlsRef = useRef(controls)
 	controlsRef.current = controls
+	// Same trick for the pause flag: the store listener and debounce keep the
+	// stable `sendFrame`, so it reads the current value from a ref.
+	const isPausedRef = useRef(isPaused)
+	isPausedRef.current = isPaused
 
 	// Open the connection once per editor.
 	useEffect(() => {
@@ -79,6 +88,8 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 	// Capture the current sketch and push it through the connection.
 	const sendFrame = useCallback(async () => {
 		if (!editor || !connectionRef.current) return
+		// Paused: keep drawing, but don't touch the model.
+		if (isPausedRef.current) return
 		try {
 			const imageDataUrl = await captureSketch(editor)
 			if (!imageDataUrl) {
@@ -147,5 +158,22 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 
 	const regenerate = useCallback(() => void sendFrame(), [sendFrame])
 
-	return { resultUrl, status, error, controls, setControls, regenerate }
+	const setPaused = useCallback(
+		(paused: boolean) => {
+			setIsPaused(paused)
+			// Update the ref synchronously so the resume regeneration below isn't
+			// short-circuited by a stale `isPausedRef`.
+			isPausedRef.current = paused
+			if (paused) {
+				setStatus('paused')
+			} else {
+				// Resuming: catch the image up to whatever was drawn while paused.
+				setStatus('idle')
+				void sendFrame()
+			}
+		},
+		[sendFrame]
+	)
+
+	return { resultUrl, status, error, controls, setControls, regenerate, isPaused, setPaused }
 }

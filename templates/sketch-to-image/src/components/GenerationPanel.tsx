@@ -7,6 +7,8 @@ interface GenerationPanelProps {
 	error: string | null
 	controls: GenerationControls
 	setControls(update: Partial<GenerationControls>): void
+	isPaused: boolean
+	setPaused(paused: boolean): void
 }
 
 /**
@@ -19,9 +21,21 @@ export function GenerationPanel({
 	error,
 	controls,
 	setControls,
+	isPaused,
+	setPaused,
 }: GenerationPanelProps) {
 	return (
 		<div className="generation-panel">
+			<div className="generation-panel-header">
+				<button
+					className="pause-button"
+					onClick={() => setPaused(!isPaused)}
+					title={isPaused ? 'Resume live generation' : 'Pause — draw without updating the image'}
+				>
+					{isPaused ? '▶ Resume' : '❚❚ Pause'}
+				</button>
+			</div>
+
 			<div className="generation-panel-preview">
 				<ResultView resultUrl={resultUrl} status={status} error={error} />
 			</div>
@@ -111,6 +125,7 @@ function ResultView({
 		<>
 			<img className="result-image" src={resultUrl} alt="Generated result" />
 			{status === 'generating' && <div className="result-badge">generating…</div>}
+			{status === 'paused' && <div className="result-badge result-badge-paused">paused</div>}
 		</>
 	)
 }

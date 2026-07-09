@@ -35,6 +35,29 @@ body {
 	height: 100%;
 }
 
+.generation-panel-header {
+	display: flex;
+	justify-content: flex-end;
+	padding: 12px 12px 0;
+}
+
+.pause-button {
+	appearance: none;
+	border: none;
+	border-radius: 8px;
+	padding: 7px 14px;
+	font-size: 12px;
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+	color: #3f3f46;
+	background: #f4f4f5;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+	cursor: pointer;
+}
+.pause-button:hover {
+	background: #e4e4e7;
+}
+
 .generation-panel-preview {
 	position: relative;
 	aspect-ratio: 1 / 1;
@@ -64,6 +87,9 @@ body {
 	font-size: 11px;
 	background: rgba(0, 0, 0, 0.6);
 	color: #fff;
+}
+.result-badge-paused {
+	background: rgba(113, 113, 122, 0.85);
 }
 
 .result-placeholder {
