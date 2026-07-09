@@ -12,6 +12,7 @@ import {
 	createComment,
 	createCommentThread,
 	Editor,
+	react,
 	TLComment,
 	TLCommentThread,
 	TldrawUiIcon,
@@ -114,17 +115,60 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		() => getClusterZoomBounds(editor),
 		[editor]
 	)
-	const clusterModel = useMemo(() => {
+	const latestModel = useMemo(() => {
 		const table = computeClusterTable(clusterLeaves, clusterZoomBounds)
 		const runtime = createClusterRuntime(table)
 		runtime.seed(editor.getZoomLevel())
 		return { runtime, table }
 	}, [clusterLeaves, clusterZoomBounds, editor])
-	const zoom = useValue('comment cluster zoom', () => editor.getZoomLevel(), [editor])
+	// Re-clustering only applies while zooming: a rebuilt model (thread added, moved, or closed)
+	// is held as `latestModel` and adopted on the next zoom change, so pins never re-flow into
+	// clusters under a static camera. Until adoption, threads the rendered model doesn't know
+	// about show as plain unclustered pins (`orphanThreads`). Exception: a rebuild that *removed*
+	// leaves (thread deleted or opened, page changed) is adopted immediately, so stale pins and
+	// badge counts never linger.
+	const [renderedModel, setRenderedModel] = useState(latestModel)
+	let clusterModel = renderedModel
+	if (renderedModel !== latestModel && hasRemovedLeaves(renderedModel.table, latestModel.table)) {
+		setRenderedModel(latestModel)
+		clusterModel = latestModel
+	}
+	useEffect(() => {
+		if (clusterModel === latestModel) return
+		const zoomAtBuild = editor.getZoomLevel()
+		return react('adopt pending cluster model on zoom', () => {
+			const zoom = editor.getZoomLevel()
+			if (zoom === zoomAtBuild) return
+			latestModel.runtime.seed(zoom)
+			setRenderedModel(latestModel)
+		})
+	}, [clusterModel, latestModel, editor])
+	const orphanThreads = useMemo(() => {
+		if (clusterModel === latestModel) return []
+		const renderedIds = new Set(clusterModel.table.leaves.map((leaf) => leaf.id))
+		const latestIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
+		return threads.filter((thread) => latestIds.has(thread.id) && !renderedIds.has(thread.id))
+	}, [clusterModel, latestModel, threads])
+	// Subscribe to the runtime cursor, not the raw zoom: onCamera runs on every zoom tick (two
+	// O(1) threshold checks against the event table) but returns the same integer until a merge
+	// or split event actually fires — so this component only re-renders on cluster changes, not
+	// on every camera frame.
+	const clusterCursor = useValue(
+		'comment cluster cursor',
+		() => {
+			clusterModel.runtime.onCamera(editor.getZoomLevel())
+			return clusterModel.runtime.k
+		},
+		[clusterModel, editor]
+	)
 	const visibleNodes = useMemo(() => {
-		clusterModel.runtime.onCamera(zoom)
-		return Array.from(clusterModel.runtime.getVisible().values())
-	}, [clusterModel, zoom])
+		const nodes = Array.from(clusterModel.runtime.getVisible().values())
+		// eslint-disable-next-line no-console
+		console.debug(
+			`[comments] cluster cursor k=${clusterCursor} → re-rendering ${nodes.length} visible nodes`
+		)
+		return nodes
+	}, [clusterModel, clusterCursor])
 	const threadsById = useMemo(
 		() => new Map<string, TLCommentThread>(threads.map((thread) => [thread.id, thread])),
 		[threads]
@@ -199,6 +243,9 @@ export function CanvasComments(props: CanvasCommentsProps) {
 				}
 				return <ClusterBadge key={node.id} editor={editor} node={node} />
 			})}
+			{orphanThreads.map((thread) => (
+				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
+			))}
 			{openThread && (
 				<ThreadPin key={`open:${openThread.id}`} editor={editor} thread={openThread} {...props} />
 			)}
@@ -208,6 +255,12 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		</div>,
 		container
 	)
+}
+
+function hasRemovedLeaves(rendered: ClusterTable, latest: ClusterTable): boolean {
+	if (rendered.leaves.length === 0) return false
+	const latestIds = new Set(latest.leaves.map((leaf) => leaf.id))
+	return rendered.leaves.some((leaf) => !latestIds.has(leaf.id))
 }
 
 function getClusterZoomBounds(editor: Editor): { minZoom: number; maxZoom: number } {
