@@ -137,3 +137,87 @@ describe('Pinch preserves the pre-gesture selection', () => {
 		expect(editor.getEditingShapeId()).toBe(ids.box1)
 	})
 })
+
+describe('Pinch is ignored while a tool interaction is active', () => {
+	it('does not start pinching or zoom when a second finger lands mid-stroke (drawing)', () => {
+		editor.setCurrentTool('draw')
+
+		// First finger draws a stroke and passes the drag threshold.
+		editor.pointerMove(100, 100)
+		editor.pointerDown(100, 100)
+		editor.pointerMove(160, 160)
+		expect(editor.inputs.getIsDragging()).toBe(true)
+		expect(editor.getPath()).toBe('draw.drawing')
+
+		const zoomBefore = editor.getZoomLevel()
+
+		// Second finger lands and tries to pinch. It must be ignored: the stroke
+		// keeps going, we never start pinching, and the camera does not zoom.
+		editor.pinchStart(130, 130, editor.getZoomLevel(), 0, 0, 0)
+		editor.pinchTo(130, 130, 2, 0, 0, 0)
+
+		expect(editor.inputs.getIsPinching()).toBe(false)
+		expect(editor.getZoomLevel()).toBe(zoomBefore)
+		expect(editor.getPath()).toBe('draw.drawing')
+	})
+
+	it('ignores a second finger down while dragging without corrupting the pointer position', () => {
+		editor.setCurrentTool('draw')
+
+		editor.pointerMove(100, 100)
+		editor.pointerDown(100, 100)
+		editor.pointerMove(160, 160)
+		expect(editor.inputs.getIsDragging()).toBe(true)
+
+		const pageBefore = editor.inputs.getCurrentPagePoint().clone()
+
+		// A second finger touches down far away and moves. Because a drag is active,
+		// its events are rejected and must not move the current pointer point.
+		editor.pointerDown(500, 500, { pointerId: 2 })
+		editor.pointerMove(600, 600, { pointerId: 2 })
+		expect(editor.inputs.getCurrentPagePoint()).toMatchObject({
+			x: pageBefore.x,
+			y: pageBefore.y,
+		})
+
+		// The primary finger still controls the interaction.
+		editor.pointerMove(200, 200, { pointerId: 1 })
+		expect(editor.inputs.getCurrentPagePoint()).toMatchObject({ x: 200, y: 200 })
+	})
+
+	it('still allows a pinch that begins before the interaction becomes a drag', () => {
+		// First finger is down but has not passed the drag threshold, so no
+		// interaction is active yet — a pinch from here should zoom as usual.
+		editor.pointerMove(250, 50)
+		editor.pointerDown(250, 50)
+		expect(editor.inputs.getIsDragging()).toBe(false)
+
+		editor.pinchStart(250, 50, editor.getZoomLevel(), 0, 0, 0)
+		editor.pinchTo(250, 50, 2, 0, 0, 0)
+		editor.forceTick()
+
+		expect(editor.inputs.getIsPinching()).toBe(true)
+		expect(editor.getZoomLevel()).toBeGreaterThan(1)
+	})
+
+	it('allows a fresh pinch after the active interaction ends', () => {
+		editor.setCurrentTool('draw')
+
+		editor.pointerMove(100, 100)
+		editor.pointerDown(100, 100)
+		editor.pointerMove(160, 160)
+		editor.pinchStart(130, 130, editor.getZoomLevel(), 0, 0, 0)
+		expect(editor.inputs.getIsPinching()).toBe(false)
+		editor.pointerUp(160, 160)
+		expect(editor.inputs.getIsDragging()).toBe(false)
+
+		// With the stroke finished, a new pinch works normally.
+		editor.setCurrentTool('select')
+		const zoomBefore = editor.getZoomLevel()
+		editor.pinchStart(250, 50, editor.getZoomLevel(), 0, 0, 0)
+		editor.pinchTo(250, 50, 2, 0, 0, 0)
+		editor.forceTick()
+		expect(editor.inputs.getIsPinching()).toBe(true)
+		expect(editor.getZoomLevel()).toBeGreaterThan(zoomBefore)
+	})
+})

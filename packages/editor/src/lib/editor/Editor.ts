@@ -10930,6 +10930,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	capturedPointerId: number | null = null
 
+	/**
+	 * Pointer ids that were rejected because they touched down while another
+	 * pointer was already mid-drag (e.g. a second finger during a stroke). Their
+	 * events are ignored until they lift, so they can't corrupt or hijack the
+	 * active interaction.
+	 * @internal
+	 */
+	private _rejectedPointerIds = new Set<number>()
+
 	/** @internal */
 	private readonly performanceTracker: PerformanceTracker
 
@@ -11083,6 +11092,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		switch (type) {
 			case 'pinch': {
 				if (cameraOptions.isLocked) return
+
+				// Don't let a pinch hijack an interaction that's already underway (e.g.
+				// drawing a stroke, translating, resizing, brushing). Once a drag is
+				// active, a second finger should be ignored rather than interrupting the
+				// current action. Bail before updateFromEvent so the ignored pinch can't
+				// move the pointer to the two-finger midpoint and corrupt the stroke. A
+				// fresh pinch works again after the interaction ends and both fingers lift.
+				if (!inputs.getIsPinching() && inputs.getIsDragging()) return
+
 				clearTimeout(this._longPressTimeout)
 				this.inputs.updateFromEvent(info)
 
@@ -11268,6 +11286,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Ignore pointer events while we're pinching
 				if (inputs.getIsPinching()) return
 
+				// A pointer that touches down while another pointer is already mid-drag
+				// (e.g. a second finger during a stroke) must not disturb that
+				// interaction. Reject it on the way in and ignore its later move/up
+				// events until it lifts, so the active drag continues uninterrupted.
+				if (
+					info.name === 'pointer_down' &&
+					inputs.getIsDragging() &&
+					this.capturedPointerId !== null &&
+					this.capturedPointerId !== info.pointerId
+				) {
+					this._rejectedPointerIds.add(info.pointerId)
+					return
+				}
+				if (this._rejectedPointerIds.has(info.pointerId)) {
+					if (info.name === 'pointer_up') this._rejectedPointerIds.delete(info.pointerId)
+					return
+				}
+
 				this.inputs.updateFromEvent(info)
 				const { isPen } = info
 				const { isPenMode } = instanceState
@@ -11440,6 +11476,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (this.capturedPointerId === info.pointerId) {
 							this.capturedPointerId = null
 							info.button = 0
+							// The primary pointer lifted; forget any pointers we rejected during
+							// its drag so a fresh interaction starts clean.
+							this._rejectedPointerIds.clear()
 						}
 
 						if (inputs.getIsPanning()) {
