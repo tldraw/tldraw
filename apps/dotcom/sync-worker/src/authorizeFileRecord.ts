@@ -34,8 +34,8 @@ function authorizeAuthored<Rec extends UnknownRecord>(
 			return { ...next!, [field]: session.meta.userId } as Rec
 		}
 		if (type === 'update') {
-			if (next![field] !== prev![field]) return null // attribution is immutable
-			if (ownerOnlyUpdate && session.meta.userId !== prev![field]) return null // only the author edits
+			if (next[field] !== prev[field]) return null // attribution is immutable
+			if (ownerOnlyUpdate && session.meta.userId !== prev[field]) return null // only the author edits
 			return next
 		}
 		return prev

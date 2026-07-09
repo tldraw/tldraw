@@ -445,14 +445,23 @@ export interface TLPushRequest<R extends UnknownRecord> {
 
 // @public
 export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: {
-    prev: null | Rec;
-    next: null | Rec;
     session: {
         meta: SessionMeta;
         sessionId: string;
     };
-    type: 'create' | 'delete' | 'update';
-}) => null | Rec;
+} & ({
+    next: null;
+    prev: Rec;
+    type: 'delete';
+} | {
+    next: Rec;
+    prev: null;
+    type: 'create';
+} | {
+    next: Rec;
+    prev: Rec;
+    type: 'update';
+})) => null | Rec;
 
 // @public
 export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {

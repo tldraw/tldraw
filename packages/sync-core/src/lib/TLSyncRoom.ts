@@ -147,16 +147,16 @@ export interface RoomSnapshot {
  *
  * @public
  */
-export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: {
-	/** The session performing the write, including its host-provided `meta` (e.g. the authenticated user id). */
-	session: { sessionId: string; meta: SessionMeta }
-	/** Whether the write creates, updates (put-over-existing or patch), or deletes the record. */
-	type: 'create' | 'update' | 'delete'
-	/** The existing record with this id, or `null` on `create`. */
-	prev: Rec | null
-	/** The record the write would produce (`null` on `delete`). */
-	next: Rec | null
-}) => Rec | null
+export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
+	args: {
+		/** The session performing the write, including its host-provided `meta` (e.g. the authenticated user id). */
+		session: { sessionId: string; meta: SessionMeta }
+	} & (
+		| { type: 'create'; prev: null; next: Rec }
+		| { type: 'update'; prev: Rec; next: Rec }
+		| { type: 'delete'; prev: Rec; next: null }
+	)
+) => Rec | null
 
 /**
  * A map from record `typeName` to a {@link TLRecordAuthorizer} for that record type. Only listed
@@ -1317,12 +1317,21 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const authorizePut = session && this.authorizerFor(record.typeName)
 								if (authorizePut) {
 									const prev = (txn.get(id) as R | undefined) ?? null
-									const result = authorizePut({
-										session: { sessionId: session.sessionId, meta: session.meta },
-										type: prev ? 'update' : 'create',
-										prev,
-										next: record,
-									})
+									const result = authorizePut(
+										prev
+											? {
+													session: { sessionId: session.sessionId, meta: session.meta },
+													type: 'update',
+													prev,
+													next: record,
+												}
+											: {
+													session: { sessionId: session.sessionId, meta: session.meta },
+													type: 'create',
+													prev: null,
+													next: record,
+												}
+									)
 									// Rejected: skip the op; the client self-corrects via discard/rebase.
 									if (!result) continue
 									// On create the returned (stamped) record is stored; on update it's an
