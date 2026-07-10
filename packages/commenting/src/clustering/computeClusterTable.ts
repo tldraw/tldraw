@@ -10,6 +10,7 @@ interface ResolvedClusterOptions {
 	Dmax: number
 	minZoom: number
 	maxZoom: number
+	maxSplitZoom: number
 }
 
 export function computeClusterTable(
@@ -31,6 +32,7 @@ export function computeClusterTable(
 		Tu: opts.Tu,
 		minZoom: opts.minZoom,
 		maxZoom: opts.maxZoom,
+		maxSplitZoom: opts.maxSplitZoom,
 	})
 
 	return { events, leaves: leafNodes }
@@ -41,6 +43,7 @@ function resolveOptions(options: ClusterOptions): ResolvedClusterOptions {
 	const Tu = options.Tu ?? 1.5 * Tc
 	const eps = options.eps ?? 0.12
 	const Dmax = options.Dmax ?? 3 * Tc
+	const maxSplitZoom = options.maxSplitZoom ?? 6
 	const { minZoom, maxZoom } = options
 
 	if (!Number.isFinite(Tc) || Tc <= 0) {
@@ -61,8 +64,11 @@ function resolveOptions(options: ClusterOptions): ResolvedClusterOptions {
 	if (!Number.isFinite(maxZoom) || maxZoom <= minZoom) {
 		throw new Error('maxZoom must be finite and greater than minZoom')
 	}
+	if (!Number.isFinite(maxSplitZoom) || maxSplitZoom <= 0) {
+		throw new Error('maxSplitZoom must be finite and greater than 0')
+	}
 
-	return { Tc, Tu, eps, Dmax, minZoom, maxZoom }
+	return { Tc, Tu, eps, Dmax, minZoom, maxZoom, maxSplitZoom }
 }
 
 function leafToNode(leaf: LeafInput): ClusterNode {

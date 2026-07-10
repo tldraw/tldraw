@@ -1,7 +1,9 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import {
+	memo,
 	type PointerEvent as ReactPointerEvent,
 	ReactNode,
+	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
@@ -65,6 +67,9 @@ const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
 const initialOf = (name: string): string => (name.trim()[0] ?? '?').toUpperCase()
 const CLUSTER_DMAX = 120
+const CLUSTER_FADE_MS = 150
+/** Duration of the click-a-badge zoom-to-split animation. */
+const CLUSTER_EXPAND_ZOOM_MS = 450
 
 /** The leading element for the placement composer — the comment pin's shape, but a pencil
  *  instead of an initial, marking an unsent draft. */
@@ -145,6 +150,11 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		(adoptOnRebuild.current || hasRemovedLeaves(renderedModel.table, latestModel.table))
 	) {
 		adoptOnRebuild.current = false
+		// Carryover seed: events inside their hysteresis band inherit the outgoing partition's
+		// merged/unmerged state instead of the geometric-mean tiebreak, so untouched pins never
+		// snap together (or apart) just because the model was swapped. Idempotent, so safe to
+		// run during render.
+		latestModel.runtime.seedFrom(editor.getZoomLevel(), renderedModel.runtime.getVisible())
 		setRenderedModel(latestModel)
 		clusterModel = latestModel
 	}
@@ -186,7 +196,7 @@ export function CanvasComments(props: CanvasCommentsProps) {
 			const prevZoom = lastZoom
 			lastZoom = zoom
 			if (zoom >= prevZoom) return
-			latestModel.runtime.seed(zoom)
+			latestModel.runtime.seedFrom(zoom, clusterModel.runtime.getVisible())
 			setRenderedModel(latestModel)
 		})
 	}, [clusterModel, latestModel, editor])
@@ -220,6 +230,7 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		)
 		return nodes
 	}, [clusterModel, clusterCursor])
+	const fadeNodes = useFadeVisibleNodes(visibleNodes, clusterModel)
 	const threadsById = useMemo(
 		() => new Map<string, TLCommentThread>(threads.map((thread) => [thread.id, thread])),
 		[threads]
@@ -266,6 +277,22 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		openThreadId.set(thread.id)
 	}, [clusterModel.table, clusterZoomBounds, editor, threadsById, impreciseShapeAnchor])
 
+	// Clicking a badge zooms to just past the zoom at which that cluster first unclusters,
+	// centered on its centroid. The event that created a visible cluster is the event that splits
+	// it, and (by the table's sort + monotone thresholds) it has the smallest zSplit of everything
+	// applied inside it — so its zSplit is exactly the first split within those comments. The
+	// animated zoom-in then drives the runtime cursor like any manual zoom, so the badge splits
+	// (and can be drilled into further) with no extra bookkeeping.
+	const zoomToClusterSplit = useCallback(
+		(node: ClusterNode) => {
+			const event = clusterModel.table.events.find((e) => e.result.id === node.id)
+			if (!event || !Number.isFinite(event.zSplit)) return
+			const zoom = clamp(event.zSplit * 1.05, clusterZoomBounds.minZoom, clusterZoomBounds.maxZoom)
+			centerOnPointAtZoom(editor, node.centroid, zoom, CLUSTER_EXPAND_ZOOM_MS)
+		},
+		[clusterModel, clusterZoomBounds, editor]
+	)
+
 	// Escape collapses the open thread. Capture-phase + stopPropagation so it runs ahead of the
 	// editor (which would otherwise cancel the current tool or clear the selection). If a comment is
 	// being edited, let its own Escape handler exit edit mode first, keeping the thread open.
@@ -286,13 +313,20 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	// live in the UI layer rather than being clipped by the canvas layer.
 	return createPortal(
 		<div className="cmt-canvas-layer">
-			{visibleNodes.map((node) => {
+			{fadeNodes.map(({ node, phase }) => {
+				let content: ReactNode
 				if (node.count === 1) {
 					const thread = threadsById.get(node.id)
 					if (!thread) return null
-					return <ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
+					content = <ThreadPin editor={editor} thread={thread} {...props} />
+				} else {
+					content = <ClusterBadge editor={editor} node={node} onExpand={zoomToClusterSplit} />
 				}
-				return <ClusterBadge key={node.id} editor={editor} node={node} />
+				return (
+					<div key={`cluster-fade:${node.id}`} className={clusterFadeClassName(phase)}>
+						{content}
+					</div>
+				)
 			})}
 			{orphanThreads.map((thread) => (
 				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
@@ -313,6 +347,107 @@ export function CanvasComments(props: CanvasCommentsProps) {
 
 const EMPTY_SET: ReadonlySet<string> = new Set()
 const MOVED_LEAF_EPSILON = 1e-6
+type ClusterFadePhase = 'entering' | 'present' | 'exiting'
+
+interface ClusterFadeNode {
+	node: ClusterNode
+	phase: ClusterFadePhase
+}
+
+function useFadeVisibleNodes(
+	nodes: readonly ClusterNode[],
+	resetKey: { runtime: ClusterRuntime; table: ClusterTable }
+): ClusterFadeNode[] {
+	const resetKeyRef = useRef(resetKey)
+	const didReset = resetKeyRef.current !== resetKey
+	if (didReset) {
+		resetKeyRef.current = resetKey
+	}
+
+	const [fadeNodes, setFadeNodes] = useState<ClusterFadeNode[]>(() => toPresentFadeNodes(nodes))
+	const renderedNodes = didReset ? toPresentFadeNodes(nodes) : fadeNodes
+
+	useEffect(() => {
+		setFadeNodes(toPresentFadeNodes(nodes))
+		// Resets only on a new model (resetKey); node-list changes within the same model are
+		// handled by the reconcile effect below, which fades entries in/out instead of snapping.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [resetKey])
+
+	useEffect(() => {
+		if (didReset) return
+		setFadeNodes((previous) => reconcileFadeNodes(previous, nodes))
+	}, [didReset, nodes])
+
+	const hasEntering = renderedNodes.some((item) => item.phase === 'entering')
+	useEffect(() => {
+		if (!hasEntering) return
+		const frame = requestClusterFadeFrame(() => {
+			setFadeNodes((previous) =>
+				previous.map((item) => (item.phase === 'entering' ? { ...item, phase: 'present' } : item))
+			)
+		})
+		return () => cancelClusterFadeFrame(frame)
+	}, [hasEntering, renderedNodes])
+
+	const hasExiting = renderedNodes.some((item) => item.phase === 'exiting')
+	useEffect(() => {
+		if (!hasExiting) return
+		const timeout = window.setTimeout(() => {
+			setFadeNodes((previous) => previous.filter((item) => item.phase !== 'exiting'))
+		}, CLUSTER_FADE_MS)
+		return () => window.clearTimeout(timeout)
+	}, [hasExiting, renderedNodes])
+
+	return renderedNodes
+}
+
+function toPresentFadeNodes(nodes: readonly ClusterNode[]): ClusterFadeNode[] {
+	return nodes.map((node) => ({ node, phase: 'present' }))
+}
+
+function reconcileFadeNodes(
+	previous: readonly ClusterFadeNode[],
+	nextNodes: readonly ClusterNode[]
+): ClusterFadeNode[] {
+	const previousById = new Map(previous.map((item) => [item.node.id, item]))
+	const nextIds = new Set(nextNodes.map((node) => node.id))
+	const next: ClusterFadeNode[] = []
+
+	for (const node of nextNodes) {
+		const previousItem = previousById.get(node.id)
+		next.push({
+			node,
+			phase:
+				previousItem && previousItem.phase !== 'exiting'
+					? previousItem.phase
+					: previousItem
+						? 'present'
+						: 'entering',
+		})
+	}
+
+	for (const item of previous) {
+		if (nextIds.has(item.node.id)) continue
+		next.push(item.phase === 'exiting' ? item : { ...item, phase: 'exiting' })
+	}
+
+	return next
+}
+
+function requestClusterFadeFrame(callback: FrameRequestCallback): number {
+	if (typeof requestAnimationFrame === 'function') return requestAnimationFrame(callback)
+	return window.setTimeout(() => callback(0), 16)
+}
+
+function cancelClusterFadeFrame(frame: number) {
+	if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
+	else window.clearTimeout(frame)
+}
+
+function clusterFadeClassName(phase: ClusterFadePhase): string {
+	return `cmt-cluster-fade cmt-cluster-fade--${phase}`
+}
 
 /**
  * Leaves folded inside a badge whose live anchor no longer matches the position the rendered
@@ -389,7 +524,12 @@ function findDirectParentEvent(table: ClusterTable, threadId: string): MergeEven
 	return table.events.find((event) => event.children.some((child) => child.id === threadId))
 }
 
-function centerOnPointAtZoom(editor: Editor, point: { x: number; y: number }, zoom: number) {
+function centerOnPointAtZoom(
+	editor: Editor,
+	point: { x: number; y: number },
+	zoom: number,
+	duration = 200
+) {
 	const viewport = editor.getViewportScreenBounds()
 	editor.setCamera(
 		{
@@ -397,7 +537,7 @@ function centerOnPointAtZoom(editor: Editor, point: { x: number; y: number }, zo
 			y: viewport.h / (2 * zoom) - point.y,
 			z: zoom,
 		},
-		{ animation: { duration: 200 } }
+		{ animation: { duration } }
 	)
 }
 
@@ -405,7 +545,19 @@ function clamp(value: number, min: number, max: number): number {
 	return Math.max(min, Math.min(max, value))
 }
 
-function ClusterBadge({ editor, node }: { editor: Editor; node: ClusterNode }) {
+// Memoized: cluster nodes and thread records are identity-stable while unchanged, so pins and
+// badges skip re-rendering when the parent re-renders for reasons that don't concern them
+// (leaf recomputes during shape drags, partition changes elsewhere). Camera tracking still
+// works — each component subscribes to its own viewport position via signals, not via props.
+const ClusterBadge = memo(function ClusterBadge({
+	editor,
+	node,
+	onExpand,
+}: {
+	editor: Editor
+	node: ClusterNode
+	onExpand(node: ClusterNode): void
+}) {
 	const point = useValue(
 		'cluster badge point',
 		() => {
@@ -419,11 +571,19 @@ function ClusterBadge({ editor, node }: { editor: Editor; node: ClusterNode }) {
 	if (!point) return null
 
 	return (
-		<div className="cmt-canvas-cluster" style={{ left: point.x, top: point.y }}>
+		<div
+			className="cmt-canvas-cluster"
+			style={{ left: point.x, top: point.y }}
+			onPointerDown={stop}
+			onClick={(e) => {
+				e.stopPropagation()
+				onExpand(node)
+			}}
+		>
 			<CountBadge count={node.count} />
 		</div>
 	)
-}
+})
 
 function isInInflatedViewport(editor: Editor, point: { x: number; y: number }): boolean {
 	const viewport = editor.getViewportScreenBounds()
@@ -435,7 +595,7 @@ function isInInflatedViewport(editor: Editor, point: { x: number; y: number }): 
 	)
 }
 
-function ThreadPin({
+const ThreadPin = memo(function ThreadPin({
 	editor,
 	thread,
 	...props
@@ -677,7 +837,7 @@ function ThreadPin({
 				)}
 		</div>
 	)
-}
+})
 
 function PendingComposer({
 	editor,
