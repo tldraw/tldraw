@@ -85,3 +85,4 @@ A successful post returns HTTP 204 with an empty body. Report to the user what w
 
 - Do not commit or echo the full webhook URL anywhere.
 - This skill only reads git history and posts a message; it never modifies the repo.
+- `production...main` assumes the normal weekly flow where the dotcom release is the `main → production` promotion, so this range is exactly what's about to ship. During SDK freeze weeks — when `production` ships cherry-picked hotfixes while `main` keeps moving — the range is less precise (it can miss production-only hotfix authors and include `main` work that isn't releasing yet). That's fine: freeze weeks are all-hands anyway, so a perfectly tailored crew list matters less then.
