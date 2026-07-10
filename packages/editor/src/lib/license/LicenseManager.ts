@@ -59,6 +59,15 @@ export interface LicenseInfo {
  */
 export type LicenseFeatureName = 'collaboration' | 'commenting'
 
+const NO_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
+	collaboration: false,
+	commenting: false,
+}
+const ALL_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
+	collaboration: true,
+	commenting: true,
+}
+
 /** @internal */
 export type LicenseState =
 	| 'pending' // License validation is in progress
@@ -115,8 +124,7 @@ export class LicenseManager {
 	public isCryptoAvailable: boolean
 	state = atom<LicenseState>('license state', 'pending')
 	featureFlags = atom<Record<LicenseFeatureName, boolean>>('license feature flags', {
-		collaboration: false,
-		commenting: false,
+		...NO_FEATURES,
 	})
 	public verbose = true
 
@@ -125,6 +133,14 @@ export class LicenseManager {
 		this.isDevelopment = this.getIsDevelopment()
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
+
+		// In development every feature is enabled (see `getEnabledFeatures`), and that doesn't depend
+		// on the async validation result. Reflect it eagerly so features aren't reported as disabled
+		// during the validation window — or left disabled if validation rejects (the `.catch` below
+		// never sets `featureFlags`). In production the fail-closed default stands until validation.
+		if (this.isDevelopment) {
+			this.featureFlags.set({ ...ALL_FEATURES })
+		}
 
 		this.getLicenseFromKey(licenseKey)
 			.then((result) => {
@@ -530,7 +546,7 @@ export function getEnabledFeatures(
 ): Record<LicenseFeatureName, boolean> {
 	// Development gets all features so SDK developers can build against them.
 	if (isDevelopment) {
-		return { collaboration: true, commenting: true }
+		return { ...ALL_FEATURES }
 	}
 
 	// Features require an active, valid license. Both the 30-day grace-period 'licensed' state and
@@ -539,7 +555,7 @@ export function getEnabledFeatures(
 		!result.isLicenseParseable ||
 		(licenseState !== 'licensed' && licenseState !== 'licensed-with-watermark')
 	) {
-		return { collaboration: false, commenting: false }
+		return { ...NO_FEATURES }
 	}
 
 	return {
