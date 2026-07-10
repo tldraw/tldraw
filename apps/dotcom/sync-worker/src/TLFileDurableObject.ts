@@ -204,11 +204,13 @@ export class TLFileDurableObject extends DurableObject {
 					// blip during the last-out drain). Retries are otherwise onChange-driven
 					// (triggerPersist), so a reopened room where users only view would never drain.
 					// Deferred to a microtask because drainCommentOutbox's queued task awaits
-					// getStorage() — i.e. the very promise this callback resolves. The drain queue
-					// runs its tasks asynchronously so even a synchronous call here wouldn't
-					// deadlock, but kicking after this callback returns (storage resolved,
-					// `_storage` fully wired) keeps the non-reentrancy obvious. An empty outbox
-					// no-ops after one synchronous SQL read, so the cost per room start is trivial.
+					// getStorage() — i.e. the very promise this callback resolves. Even a
+					// synchronous call here wouldn't deadlock (ExecutionQueue starts an idle
+					// queue's task synchronously, but the task only suspends on the
+					// already-assigned `_storage` promise — awaiting never blocks); kicking after
+					// this callback returns just keeps the non-reentrancy obvious. An empty
+					// outbox no-ops after a couple of synchronous SQL statements, so the cost per
+					// room start is trivial.
 					queueMicrotask(() => void this.drainCommentOutbox())
 					return storage
 				})
@@ -1613,9 +1615,10 @@ export class TLFileDurableObject extends DurableObject {
 	 * and is retried on the next commit, the next throttled persist, or the drain kicked when
 	 * storage loads on DO wake (see getStorage). A row that keeps failing stays queued
 	 * indefinitely and keeps reporting via reportError on every drain — that's the visibility
-	 * mechanism for a stuck row. The one exception is a comment whose author's account was deleted
-	 * (authorId FK violation): Postgres already cascaded the row away, so the drain prunes the
-	 * record from the room instead of retrying (see drainCommentOutbox).
+	 * mechanism for a stuck row. Two exceptions clear without a successful push: a comment whose
+	 * author's account was deleted (authorId FK violation — Postgres already cascaded the row
+	 * away, so the drain prunes the record from the room instead of retrying; see
+	 * drainCommentOutbox), and malformed/unknown outbox ids, where retrying can't help.
 	 */
 	private ensureCommentOutbox() {
 		this.ctx.storage.sql.exec(
