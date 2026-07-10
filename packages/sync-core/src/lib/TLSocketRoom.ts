@@ -145,9 +145,9 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	objectTypes?: readonly string[]
 	/**
-	 * Per-type authorizers that stamp/veto client record writes (create, update, delete) from the
-	 * session's authenticated identity — e.g. force a comment's `authorId` to the signed-in user, or
-	 * stamp who created a shape. See {@link TLRecordAuthorizers}.
+	 * Per-type authorizers for client record writes (create, update, delete): veto writes the
+	 * session isn't allowed to make, or rewrite the record on create — e.g. force a comment's
+	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
 	 */
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	/**

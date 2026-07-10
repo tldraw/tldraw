@@ -122,9 +122,10 @@ export interface RoomSnapshot {
 }
 
 /**
- * Authorizes and/or stamps a single record write from a client, using the session's authenticated
- * identity — for example, forcing a comment's `authorId` to the signed-in user so nobody can post in
- * someone else's name, or stamping who created a shape.
+ * Authorizes a single record write from a client: any per-record, per-session rule the host wants
+ * to enforce server-side — veto writes the session isn't allowed to make, or rewrite the record on
+ * create. The session's `meta` carries whatever the rule needs (identity, roles, …); for example,
+ * force a comment's `authorId` to the signed-in user so nobody can post in someone else's name.
  *
  * Called on **create**, **update**, and **delete** of records whose `typeName` it's registered for
  * (see {@link TLRecordAuthorizers}), and only for client pushes — never for server-initiated writes.
@@ -353,8 +354,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 */
 		objectTypes?: readonly string[]
 		/**
-		 * Per-type authorizers that stamp/veto client record writes (create, update, delete) from the
-		 * session's authenticated identity. See {@link TLRecordAuthorizers}.
+		 * Per-type authorizers for client record writes (create, update, delete): veto or, on
+		 * create, rewrite. See {@link TLRecordAuthorizers}.
 		 */
 		authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 		storage: TLSyncStorage<R>
