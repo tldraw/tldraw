@@ -16,8 +16,6 @@
 		"dev:clean:all": "yarn run -T tsx ./dev-clean.ts --all",
 		"dev:doctor": "yarn run -T tsx ./dev-doctor.ts",
 		"wait-for-dev-readiness": "yarn run -T tsx ./wait-for-dev-readiness.ts",
-		"bundle-schema": "yarn run -T tsx ./bundle-schema.ts",
-		"bundle-schema:watch": "yarn run -T tsx ./bundle-schema.ts --watch",
 		"docker-up": "yarn run -T tsx ./docker-compose.ts up",
 		"docker-down": "yarn run -T tsx ./docker-compose.ts down",
 		"migrate": "yarn tsx ./migrate.ts",
@@ -39,7 +37,6 @@
 		"dotenv": "^16.4.7",
 		"esbuild": "^0.28.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"nodemon": "^3.1.9",
 		"tsx": "^4.19.2"
 	}
 }
