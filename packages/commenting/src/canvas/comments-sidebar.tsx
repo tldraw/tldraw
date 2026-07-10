@@ -1,7 +1,14 @@
 /* eslint-disable tldraw/jsx-no-literals */
-import { ReactNode } from 'react'
+import { ReactNode, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { TLComment, useContainer, useEditor, useValue } from 'tldraw'
+import {
+	TLComment,
+	useContainer,
+	useEditor,
+	usePassThroughMouseOverEvents,
+	usePassThroughWheelEvents,
+	useValue,
+} from 'tldraw'
 import { CommentListItemProps, CommentsList } from '../ui/comments-list'
 import { useComments, useCommentThreads } from './hooks'
 import { richTextToPlaintext } from './rich-text'
@@ -82,9 +89,22 @@ export function CanvasCommentsSidebar({
 		if (thread) focusThread(editor, thread, impreciseShapeAnchor)
 	}
 
-	return createPortal(
-		<div className="cmt-canvas-sidebar">
+	return (
+		<SidebarPanel container={container}>
 			<CommentsList items={items} header={header} empty={empty} onSelect={focus} />
+		</SidebarPanel>
+	)
+}
+
+/** The sidebar surface, portaled into the container. Over it, wheel and hover events pass through to
+ *  the canvas (except where the list scrolls itself), matching tldraw's own panels. */
+function SidebarPanel({ container, children }: { container: HTMLElement; children: ReactNode }) {
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
+	usePassThroughMouseOverEvents(ref)
+	return createPortal(
+		<div ref={ref} className="cmt-canvas-sidebar">
+			{children}
 		</div>,
 		container
 	)

@@ -50,6 +50,7 @@ export const queries = defineQueries({
 			)
 			.related('author', (author) => author.one())
 			.related('file', (file) => file.one())
+			.related('thread', (thread) => thread.one())
 	),
 })
 

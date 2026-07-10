@@ -10,7 +10,7 @@ import {
 import { Code } from '@tiptap/extension-code'
 import { Highlight } from '@tiptap/extension-highlight'
 import { Node } from '@tiptap/pm/model'
-import { StarterKit } from '@tiptap/starter-kit'
+import { StarterKit, type StarterKitOptions } from '@tiptap/starter-kit'
 import {
 	Editor,
 	getOwnProperty,
@@ -43,32 +43,48 @@ Code.config.excludes = undefined
 Highlight.config.priority = 1100
 
 /**
+ * Build tldraw's default TipTap extension set, optionally overriding the bundled `StarterKit`
+ * options. The one lever most consumers want is turning individual nodes off (e.g. comments use a
+ * headingless set via `getTipTapDefaultExtensions({ heading: false })`); because `StarterKit` is a
+ * single umbrella extension, its sub-extensions can only be disabled through its config, not by
+ * filtering the returned array.
+ *
+ * @public
+ */
+export function getTipTapDefaultExtensions(
+	starterKitOptions?: Partial<StarterKitOptions>
+): Extensions {
+	return [
+		StarterKit.configure({
+			blockquote: false,
+			codeBlock: false,
+			horizontalRule: false,
+			link: {
+				openOnClick: false,
+				autolink: true,
+			},
+			// Prevent trailing paragraph insertion after lists (fixes #7641)
+			trailingNode: {
+				notAfter: ['paragraph', 'bulletList', 'orderedList', 'listItem'],
+			},
+			...starterKitOptions,
+		}),
+		Highlight,
+		KeyboardShiftEnterTweakExtension,
+
+		// N.B. We disable the text direction core extension in RichTextArea,
+		// but we add it back in again here in our own extensions list so that
+		// people can omit/override it if they want to.
+		extensions.TextDirection.configure({ direction: 'auto' }),
+	]
+}
+
+/**
  * Default extensions for the TipTap editor.
  *
  * @public
  */
-export const tipTapDefaultExtensions: Extensions = [
-	StarterKit.configure({
-		blockquote: false,
-		codeBlock: false,
-		horizontalRule: false,
-		link: {
-			openOnClick: false,
-			autolink: true,
-		},
-		// Prevent trailing paragraph insertion after lists (fixes #7641)
-		trailingNode: {
-			notAfter: ['paragraph', 'bulletList', 'orderedList', 'listItem'],
-		},
-	}),
-	Highlight,
-	KeyboardShiftEnterTweakExtension,
-
-	// N.B. We disable the text direction core extension in RichTextArea,
-	// but we add it back in again here in our own extensions list so that
-	// people can omit/override it if they want to.
-	extensions.TextDirection.configure({ direction: 'auto' }),
-]
+export const tipTapDefaultExtensions: Extensions = getTipTapDefaultExtensions()
 
 // todo: bust this if the editor changes, too
 const htmlCache = new WeakCache<TLRichText, string>()

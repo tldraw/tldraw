@@ -87,6 +87,9 @@
 	z-index: var(--tl-layer-menus);
 	pointer-events: auto;
 	transform: translateY(8px);
+	/* The rich-text editor has no intrinsic width (unlike the old <input>), so give the floating
+	   placement composer a definite width or it collapses to nothing. */
+	width: 280px;
 }
 .cmt-canvas-composer .cmt-composer__field {
 	background: var(--tl-color-panel);

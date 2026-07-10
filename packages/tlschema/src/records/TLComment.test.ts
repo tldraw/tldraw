@@ -6,8 +6,11 @@ import {
 	commentSchemaRecords,
 	commentThreadRecordConfig,
 	createComment,
+	createCommentId,
 	createCommentThread,
 	createCommentThreadId,
+	isCommentId,
+	isCommentThreadId,
 	TLCommentAnchor,
 } from './TLComment'
 import { TLPageId } from './TLPage'
@@ -129,6 +132,22 @@ describe('schema registration', () => {
 		const types = schema.types as Record<string, { scope: string } | undefined>
 		expect(types['comment-thread']?.scope).toBe('document')
 		expect(types['comment']?.scope).toBe('document')
+	})
+})
+
+describe('isCommentThreadId / isCommentId', () => {
+	it('isCommentThreadId accepts comment-thread ids and rejects everything else', () => {
+		expect(isCommentThreadId(createCommentThreadId())).toBe(true)
+		expect(isCommentThreadId(createCommentId())).toBe(false)
+		expect(isCommentThreadId('shape:box1')).toBe(false)
+		expect(isCommentThreadId('not-an-id')).toBe(false)
+	})
+
+	it('isCommentId accepts comment ids and rejects everything else, including comment-thread ids', () => {
+		expect(isCommentId(createCommentId())).toBe(true)
+		expect(isCommentId(createCommentThreadId())).toBe(false)
+		expect(isCommentId('shape:box1')).toBe(false)
+		expect(isCommentId('not-an-id')).toBe(false)
 	})
 })
 
