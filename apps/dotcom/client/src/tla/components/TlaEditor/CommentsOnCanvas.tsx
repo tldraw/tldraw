@@ -6,10 +6,10 @@ import { useMaybeApp } from '../../hooks/useAppState'
 /**
  * dotcom's comments layer: a thin consumer of `@tldraw/commenting/canvas`'s `<CanvasComments>`.
  * All the flow (tool, pins, thread popovers, composer, rich-text bodies) lives in the toolkit;
- * dotcom only supplies the pieces that are its own — the signed-in user's id and a name resolver
+ * dotcom only supplies the pieces that are its own — the signed-in user's id, a name resolver
  * (current user from preferences, other authors from the Zero comments query's author join, with
  * live presence as a fallback for users who haven't committed a comment yet, e.g. a draft
- * composer's byline).
+ * composer's byline), and comment read status from Zero's read receipts.
  */
 export function CommentsOnCanvas() {
 	const editor = useEditor()
