@@ -212,7 +212,7 @@ describe('contract validation and purity', () => {
 
 // --- finalize: fixtures --------------------------------------------------------
 
-const FIN_OPTS = { Tc: 40, Tu: 60, minZoom: 0.1, maxZoom: 8 } // r = 1.5
+const FIN_OPTS = { Tc: 40, Tu: 60, minZoom: 0.1, maxZoom: 8, maxSplitZoom: 1e9 } // r = 1.5
 
 function contracted(zMerge: number, children: ClusterNode[], result: ClusterNode): ContractedEvent {
 	return { zMerge, children, result }
@@ -246,12 +246,49 @@ describe('finalize fixtures', () => {
 		expect(finalize([ev], FIN_OPTS)[0].zSplit).toBe(3)
 	})
 
-	it('leaves zMerge >= maxZoom events unclamped (permanently merged)', () => {
+	it('leaves zMerge >= maxZoom events unclamped by maxZoom (band above camera range)', () => {
 		// zMerge exactly at maxZoom: the clamp condition is zMerge < maxZoom, strict
 		const atMax = contracted(8, [A, B], node(['a', 'b']))
 		expect(finalize([atMax], FIN_OPTS)[0].zSplit).toBe(12)
+		// coincident anchors are no longer permanently merged — maxSplitZoom caps them
 		const inf = contracted(Infinity, [X, Y], node(['x', 'y']))
-		expect(finalize([inf], FIN_OPTS)[0].zSplit).toBe(Infinity)
+		expect(finalize([inf], FIN_OPTS)[0]).toMatchObject({ zMerge: 1e9 / 1.5, zSplit: 1e9 })
+	})
+
+	it('caps every split at maxSplitZoom, folding the band below the cap', () => {
+		// r = 1.5, maxSplitZoom 6 -> zMerge cap 4: past zoom 6 nothing stays clustered,
+		// however close (or coincident) the members are.
+		const opts = { ...FIN_OPTS, maxSplitZoom: 6 }
+		const coincident = contracted(Infinity, [A, B], node(['a', 'b']))
+		const tight = contracted(10, [A, B], node(['a', 'b']))
+		const normal = contracted(2, [A, B], node(['a', 'b']))
+		expect(finalize([coincident], opts)[0]).toMatchObject({ zMerge: 4, zSplit: 6 })
+		expect(finalize([tight], opts)[0]).toMatchObject({ zMerge: 4, zSplit: 6 })
+		// events already below the cap are untouched
+		expect(finalize([normal], opts)[0]).toMatchObject({ zMerge: 2, zSplit: 3 })
+	})
+
+	it('capping preserves sort order and the zSplit > zMerge invariant', () => {
+		const opts = { ...FIN_OPTS, maxSplitZoom: 6 }
+		const events = [
+			contracted(Infinity, [A, B], node(['a', 'b'])),
+			contracted(10, [C, X], node(['c', 'x'])),
+			contracted(2, [Y, node(['a', 'b'])], node(['a', 'b', 'y'])),
+		]
+		const out = finalize(events, opts)
+		expect(out.map((e) => e.zMerge)).toEqual([4, 4, 2])
+		for (let i = 0; i < out.length; i++) {
+			expect(out[i].zSplit).toBeGreaterThan(out[i].zMerge)
+			if (i > 0) expect(out[i].zSplit).toBeLessThanOrEqual(out[i - 1].zSplit)
+		}
+	})
+
+	it('throws on non-positive or non-finite maxSplitZoom', () => {
+		const events = [contracted(2, [A, B], node(['a', 'b']))]
+		expect(() => finalize(events, { ...FIN_OPTS, maxSplitZoom: 0 })).toThrow()
+		expect(() => finalize(events, { ...FIN_OPTS, maxSplitZoom: -1 })).toThrow()
+		expect(() => finalize(events, { ...FIN_OPTS, maxSplitZoom: NaN })).toThrow()
+		expect(() => finalize(events, { ...FIN_OPTS, maxSplitZoom: Infinity })).toThrow()
 	})
 
 	it('prunes the trailing suffix below minZoom, keeping the boundary value', () => {
@@ -318,7 +355,15 @@ function randomLeaves(n: number, seed: number, scale = 1000): LeafInput[] {
 	return Array.from({ length: n }, (_, i) => leaf(`leaf-${i}`, rand() * scale, rand() * scale))
 }
 
-const PIPE_OPTS = { Tc: 40, Tu: 60, eps: 0.12, Dmax: 120, minZoom: 1e-6, maxZoom: 8 }
+const PIPE_OPTS = {
+	Tc: 40,
+	Tu: 60,
+	eps: 0.12,
+	Dmax: 120,
+	minZoom: 1e-6,
+	maxZoom: 8,
+	maxSplitZoom: 1e9,
+}
 
 function buildTableEvents(
 	leaves: readonly LeafInput[],
@@ -330,6 +375,7 @@ function buildTableEvents(
 		Tu: opts.Tu,
 		minZoom: opts.minZoom,
 		maxZoom: opts.maxZoom,
+		maxSplitZoom: opts.maxSplitZoom,
 	})
 }
 

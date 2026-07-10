@@ -24,20 +24,25 @@ export function contract(raw: readonly RawMergeEvent[], eps: number): Contracted
 
 export function finalize(
 	events: readonly ContractedEvent[],
-	opts: { Tc: number; Tu: number; minZoom: number; maxZoom: number }
+	opts: { Tc: number; Tu: number; minZoom: number; maxZoom: number; maxSplitZoom: number }
 ): MergeEvent[] {
 	validateFinalizeOptions(opts)
 
 	const r = opts.Tu / opts.Tc
+	// Every cluster must have split by maxSplitZoom, however close (or coincident) its members.
+	// Capping zMerge at maxSplitZoom / r keeps the whole band below the cap, preserving
+	// zSplit > zMerge and the table's sort order (min with a constant is order-preserving).
+	const zMergeCap = opts.maxSplitZoom / r
 	const out: MergeEvent[] = []
 	for (const event of events) {
-		if (event.zMerge < opts.minZoom) break
-		let zSplit = event.zMerge * r
-		if (event.zMerge < opts.maxZoom) {
+		const zMerge = Math.min(event.zMerge, zMergeCap)
+		if (zMerge < opts.minZoom) break
+		let zSplit = zMerge * r
+		if (zMerge < opts.maxZoom) {
 			zSplit = Math.min(zSplit, opts.maxZoom)
 		}
 		out.push({
-			zMerge: event.zMerge,
+			zMerge,
 			zSplit,
 			children: event.children,
 			result: event.result,
@@ -121,7 +126,11 @@ function validateFinalizeOptions(opts: {
 	Tu: number
 	minZoom: number
 	maxZoom: number
+	maxSplitZoom: number
 }) {
+	if (!Number.isFinite(opts.maxSplitZoom) || opts.maxSplitZoom <= 0) {
+		throw new Error('maxSplitZoom must be finite and greater than 0')
+	}
 	if (!Number.isFinite(opts.Tc) || opts.Tc <= 0) {
 		throw new Error('Tc must be finite and greater than 0')
 	}
