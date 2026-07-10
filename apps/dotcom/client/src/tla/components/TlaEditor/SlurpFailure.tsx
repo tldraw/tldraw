@@ -6,7 +6,7 @@ import {
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-} from 'tldraw'
+} from '@tldraw/ui'
 import { routes } from '../../../routeDefs'
 import { F } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'

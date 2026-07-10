@@ -1,10 +1,10 @@
 import { TLVideoShape, track, useEditor, useValue } from '@tldraw/editor'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiToolbarButton } from '@tldraw/ui'
 import { useCallback } from 'react'
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
 /** @public */
 export interface DefaultVideoToolbarContentProps {

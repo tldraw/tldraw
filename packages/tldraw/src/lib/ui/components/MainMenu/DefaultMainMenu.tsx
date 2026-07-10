@@ -1,10 +1,12 @@
-import { useContainer } from '@tldraw/editor'
-import { DropdownMenu as _DropdownMenu } from 'radix-ui'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import {
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '@tldraw/ui'
 import { ReactNode, memo } from 'react'
-import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultMainMenuContent } from './DefaultMainMenuContent'
 
@@ -15,10 +17,7 @@ export interface TLUiMainMenuProps {
 
 /** @public @react */
 export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiMainMenuProps) {
-	const container = useContainer()
-	const [isOpen, onOpenChange] = useMenuIsOpen('main menu')
 	const msg = useTranslation()
-	const dir = useDirection()
 
 	// Get the main menu content, either the default component or the user's
 	// override. If there's no menu content, then the user has set it to null,
@@ -26,26 +25,23 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 	const content = children ?? <DefaultMainMenuContent />
 
 	return (
-		<_DropdownMenu.Root dir={dir} open={isOpen} onOpenChange={onOpenChange} modal={false}>
-			<_DropdownMenu.Trigger asChild dir={dir}>
+		<TldrawUiDropdownMenuRoot id="main menu" modal={false}>
+			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton type="icon" data-testid="main-menu.button" title={msg('menu.title')}>
 					<TldrawUiButtonIcon icon="menu" small />
 				</TldrawUiButton>
-			</_DropdownMenu.Trigger>
-			<_DropdownMenu.Portal container={container}>
-				<_DropdownMenu.Content
-					className="tlui-menu"
-					side="bottom"
-					align="start"
-					collisionPadding={4}
-					alignOffset={0}
-					sideOffset={6}
-				>
-					<TldrawUiMenuContextProvider type="menu" sourceId="main-menu">
-						{content}
-					</TldrawUiMenuContextProvider>
-				</_DropdownMenu.Content>
-			</_DropdownMenu.Portal>
-		</_DropdownMenu.Root>
+			</TldrawUiDropdownMenuTrigger>
+			<TldrawUiDropdownMenuContent
+				side="bottom"
+				align="start"
+				collisionPadding={4}
+				alignOffset={0}
+				sideOffset={6}
+			>
+				<TldrawUiMenuContextProvider type="menu" sourceId="main-menu">
+					{content}
+				</TldrawUiMenuContextProvider>
+			</TldrawUiDropdownMenuContent>
+		</TldrawUiDropdownMenuRoot>
 	)
 })

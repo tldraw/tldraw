@@ -18,20 +18,17 @@ import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ClipboardEvent as ClipboardEvent_2 } from 'react';
 import { ComponentType } from 'react';
-import { CSSProperties } from 'react';
 import { DebugFlag } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { ElbowArrowSnap } from '@tldraw/editor';
 import { Extension } from '@tiptap/core';
 import { Extensions } from '@tiptap/core';
 import { ExtractShapeByProps } from '@tldraw/editor';
-import { ForwardRefExoticComponent } from 'react';
 import { Geometry2d } from '@tldraw/editor';
 import { Geometry2dFilters } from '@tldraw/editor';
 import { Geometry2dOptions } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
-import { HTMLAttributes } from 'react';
 import { IndexKey } from '@tldraw/utils';
 import { IndexKey as IndexKey_2 } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/utils';
@@ -49,6 +46,7 @@ import { PerfectDashTerminal } from '@tldraw/editor';
 import { PointerEvent as PointerEvent_2 } from 'react';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
+import { preventDefault } from '@tldraw/ui';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
@@ -58,7 +56,6 @@ import { ReadonlySharedStyleMap } from '@tldraw/editor';
 import { RecordProps } from '@tldraw/tlschema';
 import { Rectangle2d } from '@tldraw/editor';
 import { RecursivePartial } from '@tldraw/editor';
-import { RefAttributes } from 'react';
 import { RefObject } from 'react';
 import { Result } from '@tldraw/editor';
 import { RichTextFontVisitorState } from '@tldraw/editor';
@@ -69,6 +66,7 @@ import { ShapeWithCrop } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
 import { SnapIndicator } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
+import { stopEventPropagation } from '@tldraw/ui';
 import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
 import { SVGProps } from 'react';
@@ -100,6 +98,7 @@ import { TldrawOptions } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeProps } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
+import { TldrawUiIconJsx } from '@tldraw/ui';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEditStartInfo } from '@tldraw/editor';
@@ -2438,9 +2437,6 @@ export function HeartToolbarItem(): JSX.Element;
 export function HexagonToolbarItem(): JSX.Element;
 
 // @public (undocumented)
-export function hideAllTooltips(): void;
-
-// @public (undocumented)
 export interface HighlightShapeOptions extends ShapeOptionsWithDisplayValues<TLHighlightShape, HighlightShapeUtilDisplayValues> {
     readonly maxPointsPerShape: number;
 }
@@ -3233,6 +3229,8 @@ export function PreferencesGroup(): JSX.Element;
 // @public (undocumented)
 export function preloadFont(id: string, font: TLTypeFace, targetDocument?: Document): Promise<FontFace>;
 
+export { preventDefault }
+
 // @public (undocumented)
 export function PrintItem(): JSX.Element;
 
@@ -3527,6 +3525,8 @@ export function startEditingShapeWithRichText(editor: Editor, shapeOrId: TLShape
 // @public (undocumented)
 export function StarToolbarItem(): JSX.Element;
 
+export { stopEventPropagation }
+
 // @public
 export interface StrokeOptions {
     easing?(pressure: number): number;
@@ -3735,7 +3735,7 @@ export function StylePanelTextAlignPicker(): JSX.Element | null;
 
 // @public (undocumented)
 export type StyleValuesForUi<T> = readonly {
-    readonly icon: string | TLUiIconJsx;
+    readonly icon: string | TldrawUiIconJsx;
     readonly value: T;
 }[];
 
@@ -4177,21 +4177,6 @@ export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;
 export function TldrawUiA11yProvider({ children }: A11yProviderProps): JSX.Element;
 
 // @public (undocumented)
-export const TldrawUiButton: React_2.ForwardRefExoticComponent<TLUiButtonProps & React_2.RefAttributes<HTMLButtonElement>>;
-
-// @public (undocumented)
-export function TldrawUiButtonCheck({ checked }: TLUiButtonCheckProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiButtonIcon({ icon, small, invertIcon }: TLUiButtonIconProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiButtonLabel({ children }: TLUiButtonLabelProps): JSX.Element;
-
-// @public
-export const TldrawUiColumn: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
-
-// @public (undocumented)
 export function TldrawUiComponentsProvider({ overrides, children }: TLUiComponentsProviderProps): JSX.Element;
 
 // @public (undocumented)
@@ -4201,70 +4186,13 @@ export const TldrawUiContextProvider: NamedExoticComponent<TLUiContextProviderPr
 export function TldrawUiContextualToolbar({ children, className, isMousingDown, getSelectionBounds, changeOnlyWhenYChanges, label }: TLUiContextualToolbarProps): JSX.Element;
 
 // @public (undocumented)
-export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDialogCloseButton(): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDialogFooter({ className, children }: TLUiDialogFooterProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDialogHeader({ className, children }: TLUiDialogHeaderProps): JSX.Element;
-
-// @public (undocumented)
 export function TldrawUiDialogsProvider({ context, children }: TLUiDialogsProviderProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDialogTitle({ className, children, style }: TLUiDialogTitleProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDropdownMenuContent({ className, side, align, sideOffset, alignOffset, collisionPadding, children }: TLUiDropdownMenuContentProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDropdownMenuGroup({ className, children }: TLUiDropdownMenuGroupProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDropdownMenuIndicator(): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDropdownMenuItem({ noClose, children }: TLUiDropdownMenuItemProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDropdownMenuRoot({ id, children, modal, debugOpen }: TLUiDropdownMenuRootProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDropdownMenuSub({ id, children }: TLUiDropdownMenuSubProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDropdownMenuSubContent({ id, alignOffset, sideOffset, size, children }: TLUiDropdownMenuSubContentProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDropdownMenuSubTrigger({ id, label, title, disabled }: TLUiDropdownMenuSubTriggerProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiEventsProvider({ onEvent, children }: EventsProviderProps): JSX.Element;
 
-// @public
-export const TldrawUiGrid: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
-
-// @public (undocumented)
-export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
-
 // @public (undocumented)
 export function TldrawUiInFrontOfTheCanvas(): JSX.Element;
-
-// @public (undocumented)
-export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & React_2.RefAttributes<HTMLInputElement>>;
-
-// @public (undocumented)
-export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuActionCheckboxItem({ actionId, ...rest }: TLUiMenuActionCheckboxItemProps): JSX.Element | null;
@@ -4291,36 +4219,6 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, d
 export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX.Element | null;
 
 // @public (undocumented)
-export interface TldrawUiOrientationContext {
-    // (undocumented)
-    orientation: 'horizontal' | 'vertical';
-    // (undocumented)
-    tooltipSide: 'bottom' | 'left' | 'right' | 'top';
-}
-
-// @public (undocumented)
-export function TldrawUiOrientationProvider({ children, orientation, tooltipSide }: TldrawUiOrientationProviderProps): JSX.Element;
-
-// @public (undocumented)
-export interface TldrawUiOrientationProviderProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    orientation: 'horizontal' | 'vertical';
-    // (undocumented)
-    tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
-}
-
-// @public (undocumented)
-export function TldrawUiPopover({ id, children, onOpenChange, open, className }: TLUiPopoverProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, collisionPadding, disableEscapeKeyDown, autoFocusFirstButton }: TLUiPopoverContentProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX.Element;
-
-// @public (undocumented)
 export interface TldrawUiProps extends TLUiContextProviderProps {
     assetUrls?: TLUiAssetUrlOverrides;
     children?: ReactNode;
@@ -4329,71 +4227,8 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
     renderDebugMenuItems?(): React_3.ReactNode;
 }
 
-// @public
-export const TldrawUiRow: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
-
-// @public
-export function TldrawUiSelect({ id, value, onValueChange, onOpenChange, disabled, className, children, 'data-testid': dataTestId, 'aria-label': ariaLabel }: TLUiSelectProps): JSX.Element;
-
-// @public
-export function TldrawUiSelectContent({ children, side, align, className }: TLUiSelectContentProps): JSX.Element;
-
-// @public
-export function TldrawUiSelectItem({ value, label, icon, disabled, className }: TLUiSelectItemProps): JSX.Element;
-
-// @public
-export const TldrawUiSelectTrigger: React_2.ForwardRefExoticComponent<TLUiSelectTriggerProps & React_2.RefAttributes<HTMLButtonElement>>;
-
-// @public
-export function TldrawUiSelectValue({ placeholder, icon, children }: TLUiSelectValueProps): JSX.Element;
-
-// @public (undocumented)
-export const TldrawUiSlider: React_3.ForwardRefExoticComponent<TLUiSliderProps & React_3.RefAttributes<HTMLDivElement>>;
-
 // @public (undocumented)
 export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps): JSX.Element;
-
-// @public (undocumented)
-export const TldrawUiToolbar: React_3.ForwardRefExoticComponent<TLUiToolbarProps & React_3.RefAttributes<HTMLDivElement>>;
-
-// @public (undocumented)
-export const TldrawUiToolbarButton: React_3.ForwardRefExoticComponent<TLUiToolbarButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
-
-// @public (undocumented)
-export function TldrawUiToolbarToggleGroup({ children, className, type, asChild, ...props }: TLUiToolbarToggleGroupProps): JSX.Element;
-
-// @public (undocumented)
-export function TldrawUiToolbarToggleItem({ children, className, type, value, tooltip, ...props }: TLUiToolbarToggleItemProps): JSX.Element;
-
-// @public (undocumented)
-export const TldrawUiTooltip: React_3.ForwardRefExoticComponent<TldrawUiTooltipProps & React_3.RefAttributes<HTMLButtonElement>>;
-
-// @public (undocumented)
-export interface TldrawUiTooltipProps {
-    // (undocumented)
-    children: React_3.ReactNode;
-    // (undocumented)
-    content?: React_3.ReactNode | string;
-    // (undocumented)
-    delayDuration?: number;
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    showOnMobile?: boolean;
-    // (undocumented)
-    side?: 'bottom' | 'left' | 'right' | 'top';
-    // (undocumented)
-    sideOffset?: number;
-}
-
-// @public (undocumented)
-export function TldrawUiTooltipProvider({ children }: TldrawUiTooltipProviderProps): JSX.Element;
-
-// @public (undocumented)
-export interface TldrawUiTooltipProviderProps {
-    // (undocumented)
-    children: React_3.ReactNode;
-}
 
 // @public
 export function TldrawUiTranslationProvider({ overrides, locale, children }: TLUiTranslationProviderProps): JSX.Element;
@@ -4607,42 +4442,6 @@ export interface TLUiAssetUrls extends TLEditorAssetUrls {
 }
 
 // @public (undocumented)
-export interface TLUiButtonCheckProps {
-    // (undocumented)
-    checked: boolean;
-}
-
-// @public (undocumented)
-export interface TLUiButtonIconProps {
-    // (undocumented)
-    icon: string | TLUiIconJsx;
-    // (undocumented)
-    invertIcon?: boolean;
-    // (undocumented)
-    small?: boolean;
-}
-
-// @public (undocumented)
-export interface TLUiButtonLabelProps {
-    // (undocumented)
-    children?: ReactNode;
-}
-
-// @public (undocumented)
-export interface TLUiButtonProps extends React_2.HTMLAttributes<HTMLButtonElement> {
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    htmlButtonType?: 'button' | 'reset' | 'submit';
-    // (undocumented)
-    isActive?: boolean;
-    // (undocumented)
-    tooltip?: string;
-    // (undocumented)
-    type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';
-}
-
-// @public (undocumented)
 export interface TLUiComponents {
     // (undocumented)
     A11y?: ComponentType | null;
@@ -4770,32 +4569,6 @@ export interface TLUiDialog {
 }
 
 // @public (undocumented)
-export interface TLUiDialogBodyProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    style?: CSSProperties;
-}
-
-// @public (undocumented)
-export interface TLUiDialogFooterProps {
-    // (undocumented)
-    children?: ReactNode;
-    // (undocumented)
-    className?: string;
-}
-
-// @public (undocumented)
-export interface TLUiDialogHeaderProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    className?: string;
-}
-
-// @public (undocumented)
 export interface TLUiDialogProps {
     // (undocumented)
     onClose(): void;
@@ -4823,118 +4596,6 @@ export interface TLUiDialogsProviderProps {
     context?: string;
     // (undocumented)
     overrides?(editor: Editor): TLUiDialogsContextType;
-}
-
-// @public (undocumented)
-export interface TLUiDialogTitleProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    style?: CSSProperties;
-}
-
-// @public (undocumented)
-export interface TLUiDropdownMenuCheckboxItemProps {
-    // (undocumented)
-    checked?: boolean;
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    onSelect?(e: Event): void;
-    // (undocumented)
-    title: string;
-}
-
-// @public (undocumented)
-export interface TLUiDropdownMenuContentProps {
-    // (undocumented)
-    align?: 'center' | 'end' | 'start';
-    // (undocumented)
-    alignOffset?: number;
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    collisionPadding?: number;
-    // (undocumented)
-    id?: string;
-    // (undocumented)
-    side?: 'bottom' | 'left' | 'right' | 'top';
-    // (undocumented)
-    sideOffset?: number;
-}
-
-// @public (undocumented)
-export interface TLUiDropdownMenuGroupProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    className?: string;
-}
-
-// @public (undocumented)
-export interface TLUiDropdownMenuItemProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    noClose?: boolean;
-}
-
-// @public (undocumented)
-export interface TLUiDropdownMenuRootProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    debugOpen?: boolean;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    modal?: boolean;
-}
-
-// @public (undocumented)
-export interface TLUiDropdownMenuSubContentProps {
-    // (undocumented)
-    alignOffset?: number;
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    id?: string;
-    // (undocumented)
-    sideOffset?: number;
-    // (undocumented)
-    size?: 'medium' | 'small' | 'tiny' | 'wide';
-}
-
-// @public (undocumented)
-export interface TLUiDropdownMenuSubProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    id: string;
-}
-
-// @public (undocumented)
-export interface TLUiDropdownMenuSubTriggerProps {
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    id?: string;
-    // (undocumented)
-    label: string;
-    // (undocumented)
-    title?: string;
-}
-
-// @public (undocumented)
-export interface TLUiDropdownMenuTriggerProps {
-    // (undocumented)
-    children?: ReactNode;
 }
 
 // @public (undocumented)
@@ -5229,29 +4890,6 @@ export interface TLUiHelpMenuProps {
 }
 
 // @public (undocumented)
-export type TLUiIconJsx = ReactElement<React.HTMLAttributes<HTMLDivElement>>;
-
-// @public (undocumented)
-export interface TLUiIconProps extends React.HTMLAttributes<HTMLDivElement> {
-    // (undocumented)
-    children?: undefined;
-    // (undocumented)
-    color?: string;
-    // (undocumented)
-    crossOrigin?: 'anonymous' | 'use-credentials';
-    // (undocumented)
-    icon: Exclude<string, TLUiIconType> | TLUiIconJsx | TLUiIconType;
-    // (undocumented)
-    invertIcon?: boolean;
-    // (undocumented)
-    label: string;
-    // (undocumented)
-    small?: boolean;
-    // (undocumented)
-    tiny?: boolean;
-}
-
-// @public (undocumented)
 export type TLUiIconType = 'align-bottom' | 'align-center-horizontal' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top' | 'alt' | 'arrow-arc' | 'arrow-cycle' | 'arrow-elbow' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'blob' | 'bold' | 'bookmark' | 'bring-forward' | 'bring-to-front' | 'broken' | 'bulletList' | 'check-circle' | 'check' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'code' | 'color' | 'comment' | 'corners' | 'crop' | 'cross-2' | 'cross-circle' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'disconnected' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'download' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'fill-fill' | 'fill-lined-fill' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-heart' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'heading' | 'help-circle' | 'highlight' | 'horizontal-align-end' | 'horizontal-align-middle' | 'horizontal-align-start' | 'info-circle' | 'italic' | 'leading' | 'link' | 'list' | 'lock' | 'manual' | 'menu' | 'minus' | 'mixed' | 'pack' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'send-backward' | 'send-to-back' | 'share-1' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'status-offline' | 'stretch-horizontal' | 'stretch-vertical' | 'strike' | 'text-align-center' | 'text-align-left' | 'text-align-right' | 'toggle-off' | 'toggle-on' | 'tool-arrow' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-screenshot' | 'tool-text' | 'trash' | 'twitter' | 'underline' | 'undo' | 'ungroup' | 'unlock' | 'vertical-align-end' | 'vertical-align-middle' | 'vertical-align-start' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
 
 // @public (undocumented)
@@ -5261,71 +4899,9 @@ export interface TLUiImageToolbarProps {
 }
 
 // @public (undocumented)
-export interface TLUiInputProps {
-    // (undocumented)
-    'aria-label'?: string;
-    // (undocumented)
-    'data-testid'?: string;
-    // (undocumented)
-    autoFocus?: boolean;
-    // (undocumented)
-    autoSelect?: boolean;
-    // (undocumented)
-    children?: React_2.ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    defaultValue?: string;
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    icon?: Exclude<string, TLUiIconType> | TLUiIconType;
-    // (undocumented)
-    iconLabel?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
-    // (undocumented)
-    iconLeft?: Exclude<string, TLUiIconType> | TLUiIconType;
-    // (undocumented)
-    label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
-    maxLength?: number;
-    // (undocumented)
-    onBlur?(value: string): void;
-    // (undocumented)
-    onCancel?(value: string): void;
-    // (undocumented)
-    onComplete?(value: string): void;
-    // (undocumented)
-    onFocus?(): void;
-    // (undocumented)
-    onValueChange?(value: string): void;
-    // (undocumented)
-    placeholder?: string;
-    shouldManuallyMaintainScrollPositionWhenFocused?: boolean;
-    // (undocumented)
-    value?: string;
-}
-
-// @public (undocumented)
-export interface TLUiKbdProps {
-    // (undocumented)
-    children: string;
-    // (undocumented)
-    visibleOnMobileLayout?: boolean;
-}
-
-// @public (undocumented)
 export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
     children?: ReactNode;
 };
-
-// @public (undocumented)
-export interface TLUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
-    // (undocumented)
-    asChild?: boolean;
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
-}
 
 // @public (undocumented)
 export interface TLUiMainMenuProps {
@@ -5350,7 +4926,7 @@ export interface TLUiMenuCheckboxItemProps<TranslationKey extends string = strin
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
-    icon?: IconType | TLUiIconJsx;
+    icon?: IconType | TldrawUiIconJsx;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -5400,8 +4976,8 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 // @public (undocumented)
 export interface TLUiMenuItemProps<TranslationKey extends string = string, IconType extends string = string> {
     disabled?: boolean;
-    icon?: IconType | TLUiIconJsx;
-    iconLeft?: IconType | TLUiIconJsx;
+    icon?: IconType | TldrawUiIconJsx;
+    iconLeft?: IconType | TldrawUiIconJsx;
     // (undocumented)
     id: string;
     isSelected?: boolean;
@@ -5473,45 +5049,6 @@ export interface TLUiPeopleMenuItemProps {
 }
 
 // @public (undocumented)
-export interface TLUiPopoverContentProps {
-    // (undocumented)
-    align?: 'center' | 'end' | 'start';
-    // (undocumented)
-    alignOffset?: number;
-    // (undocumented)
-    autoFocusFirstButton?: boolean;
-    // (undocumented)
-    children: React_3.ReactNode;
-    collisionPadding?: number;
-    // (undocumented)
-    disableEscapeKeyDown?: boolean;
-    // (undocumented)
-    side: 'bottom' | 'left' | 'right' | 'top';
-    // (undocumented)
-    sideOffset?: number;
-}
-
-// @public (undocumented)
-export interface TLUiPopoverProps {
-    // (undocumented)
-    children: React_3.ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    onOpenChange?(isOpen: boolean): void;
-    // (undocumented)
-    open?: boolean;
-}
-
-// @public (undocumented)
-export interface TLUiPopoverTriggerProps {
-    // (undocumented)
-    children?: React_3.ReactNode;
-}
-
-// @public (undocumented)
 export interface TLUiQuickActionsProps {
     // (undocumented)
     children?: ReactNode;
@@ -5521,94 +5058,6 @@ export interface TLUiQuickActionsProps {
 export interface TLUiRichTextToolbarProps {
     // (undocumented)
     children?: React_3.ReactNode;
-}
-
-// @public (undocumented)
-export interface TLUiSelectContentProps {
-    // (undocumented)
-    align?: 'center' | 'end' | 'start';
-    // (undocumented)
-    children: React_2.ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    side?: 'bottom' | 'top';
-}
-
-// @public (undocumented)
-export interface TLUiSelectItemProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    icon?: Exclude<string, TLUiIconType> | TLUiIconType;
-    // (undocumented)
-    label: string;
-    // (undocumented)
-    value: string;
-}
-
-// @public (undocumented)
-export interface TLUiSelectProps {
-    // (undocumented)
-    'aria-label'?: string;
-    // (undocumented)
-    'data-testid'?: string;
-    // (undocumented)
-    children: React_2.ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    onOpenChange?(isOpen: boolean): void;
-    // (undocumented)
-    onValueChange(value: string): void;
-    // (undocumented)
-    value: string;
-}
-
-// @public (undocumented)
-export interface TLUiSelectTriggerProps {
-    // (undocumented)
-    children: React_2.ReactNode;
-    // (undocumented)
-    className?: string;
-}
-
-// @public (undocumented)
-export interface TLUiSelectValueProps {
-    // (undocumented)
-    children?: React_2.ReactNode;
-    // (undocumented)
-    icon?: Exclude<string, TLUiIconType> | TLUiIconType;
-    // (undocumented)
-    placeholder?: string;
-}
-
-// @public (undocumented)
-export interface TLUiSliderProps {
-    // (undocumented)
-    'data-testid'?: string;
-    // (undocumented)
-    ariaValueModifier?: number;
-    // (undocumented)
-    label: string;
-    // (undocumented)
-    min?: number;
-    // (undocumented)
-    onHistoryMark?(id: string): void;
-    // (undocumented)
-    onValueChange(value: number): void;
-    // (undocumented)
-    steps: number;
-    // (undocumented)
-    title: string;
-    // (undocumented)
-    value: null | number;
 }
 
 // @public (undocumented)
@@ -5676,75 +5125,9 @@ export interface TLUiToastsProviderProps {
 }
 
 // @public (undocumented)
-export interface TLUiToolbarButtonProps extends React_3.HTMLAttributes<HTMLButtonElement> {
-    // (undocumented)
-    asChild?: boolean;
-    // (undocumented)
-    children?: React_3.ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    disabled?: boolean;
-    // (undocumented)
-    isActive?: boolean;
-    // (undocumented)
-    tooltip?: string;
-    // (undocumented)
-    type: 'icon' | 'menu' | 'tool';
-}
-
-// @public (undocumented)
-export interface TLUiToolbarProps extends React_3.HTMLAttributes<HTMLDivElement> {
-    // (undocumented)
-    children?: React_3.ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    dir?: 'ltr' | 'rtl';
-    // (undocumented)
-    label: string;
-    // (undocumented)
-    orientation?: 'grid' | 'horizontal' | 'vertical';
-    // (undocumented)
-    tooltipSide?: 'bottom' | 'left' | 'right' | 'top';
-}
-
-// @public (undocumented)
-export interface TLUiToolbarToggleGroupProps extends React_3.HTMLAttributes<HTMLDivElement> {
-    // (undocumented)
-    asChild?: boolean;
-    // (undocumented)
-    children?: React_3.ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    defaultValue?: any;
-    // (undocumented)
-    dir?: 'ltr' | 'rtl';
-    // (undocumented)
-    type: 'multiple' | 'single';
-    // (undocumented)
-    value: any;
-}
-
-// @public (undocumented)
-export interface TLUiToolbarToggleItemProps extends React_3.HTMLAttributes<HTMLButtonElement> {
-    // (undocumented)
-    children?: React_3.ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    tooltip?: React_3.ReactNode;
-    // (undocumented)
-    type: 'icon' | 'tool';
-    // (undocumented)
-    value: string;
-}
-
-// @public (undocumented)
 export interface TLUiToolItem<TranslationKey extends string = string, IconType extends string = string> {
     // (undocumented)
-    icon: IconType | TLUiIconJsx;
+    icon: IconType | TldrawUiIconJsx;
     // (undocumented)
     id: string;
     kbd?: string;
@@ -6529,9 +5912,6 @@ export function useStylePanelContext(): StylePanelContext;
 export function useTldrawUiComponents(): TLUiComponents;
 
 // @public (undocumented)
-export function useTldrawUiOrientation(): TldrawUiOrientationContext;
-
-// @public (undocumented)
 export function useToasts(): TLUiToastsContextType;
 
 // @public (undocumented)
@@ -6680,6 +6060,7 @@ export function ZoomToSelectionMenuItem(): JSX.Element;
 
 
 export * from "@tldraw/editor";
+export * from "@tldraw/ui";
 
 // (No @packageDocumentation comment for this package)
 

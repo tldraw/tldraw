@@ -1,3 +1,4 @@
+import { TldrawUiButton } from '@tldraw/ui'
 import {
 	Geometry2d,
 	HTMLContainer,
@@ -8,11 +9,11 @@ import {
 	TLComponents,
 	TLShape,
 	Tldraw,
-	TldrawUiButton,
 	track,
 	useEditor,
 	usePrefersReducedMotion,
 } from 'tldraw'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import 'tldraw/tldraw.css'
 import './reduced-motion.css'
 
@@ -92,14 +93,16 @@ const MotionToggle = track(function MotionToggle() {
 	}
 
 	return (
-		<div className="motion-toggle">
-			<span className="motion-toggle__label">
-				Motion: {prefersReducedMotion ? 'Reduced' : 'Normal'}
-			</span>
-			<TldrawUiButton type="primary" onClick={toggleMotion}>
-				Toggle
-			</TldrawUiButton>
-		</div>
+		<ExampleTldrawUiProvider>
+			<div className="motion-toggle">
+				<span className="motion-toggle__label">
+					Motion: {prefersReducedMotion ? 'Reduced' : 'Normal'}
+				</span>
+				<TldrawUiButton type="primary" onClick={toggleMotion}>
+					Toggle
+				</TldrawUiButton>
+			</div>
+		</ExampleTldrawUiProvider>
 	)
 })
 

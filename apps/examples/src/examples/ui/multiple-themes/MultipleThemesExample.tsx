@@ -1,3 +1,4 @@
+import { TldrawUiButton, TldrawUiButtonLabel } from '@tldraw/ui'
 import { useCallback, useMemo } from 'react'
 import {
 	DEFAULT_THEME,
@@ -6,14 +7,13 @@ import {
 	TLThemeId,
 	TLThemes,
 	Tldraw,
-	TldrawUiButton,
-	TldrawUiButtonLabel,
 	structuredClone,
 	toRichText,
 	useEditor,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 
 // There's a guide at the bottom of this file!
 
@@ -106,17 +106,19 @@ function ThemeSwitcher() {
 	)
 
 	return (
-		<div style={useMemo(() => styles.container, [])}>
-			{(Object.keys(THEME_LABELS) as TLThemeId[]).map((id) => (
-				<TldrawUiButton
-					key={id}
-					type={currentThemeId === id ? 'primary' : 'normal'}
-					onClick={() => handleClick(id)}
-				>
-					<TldrawUiButtonLabel>{THEME_LABELS[id]}</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			))}
-		</div>
+		<ExampleTldrawUiProvider>
+			<div style={useMemo(() => styles.container, [])}>
+				{(Object.keys(THEME_LABELS) as TLThemeId[]).map((id) => (
+					<TldrawUiButton
+						key={id}
+						type={currentThemeId === id ? 'primary' : 'normal'}
+						onClick={() => handleClick(id)}
+					>
+						<TldrawUiButtonLabel>{THEME_LABELS[id]}</TldrawUiButtonLabel>
+					</TldrawUiButton>
+				))}
+			</div>
+		</ExampleTldrawUiProvider>
 	)
 }
 

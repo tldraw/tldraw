@@ -1,37 +1,32 @@
 import {
-	Tldraw,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuItem,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-	useEditor,
-	useMenuIsOpen,
-} from 'tldraw'
+	useTldrawUiMenuIsOpen,
+	useTldrawUiMenuState,
+} from '@tldraw/ui'
+import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import './menu-system-hover.css'
 
 // [1]
 function HoverControlledMenu() {
-	const editor = useEditor()
-	const [isOpen] = useMenuIsOpen('hover-menu')
+	const { openMenu, closeMenu } = useTldrawUiMenuState()
+	const [isOpen] = useTldrawUiMenuIsOpen('hover-menu')
 
 	return (
 		<div className="hover-menu-container">
 			{/* [2] */}
-			<div
-				className="hover-zone hover-zone-open"
-				onMouseEnter={() => editor.menus.addOpenMenu('hover-menu')}
-			>
+			<div className="hover-zone hover-zone-open" onMouseEnter={() => openMenu('hover-menu')}>
 				Hover to open menu
 			</div>
 
 			{/* [3] */}
-			<div
-				className="hover-zone hover-zone-close"
-				onMouseEnter={() => editor.menus.deleteOpenMenu('hover-menu')}
-			>
+			<div className="hover-zone hover-zone-close" onMouseEnter={() => closeMenu('hover-menu')}>
 				Hover to close menu
 			</div>
 
@@ -68,7 +63,9 @@ export default function MenuSystemHoverExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw>
-				<HoverControlledMenu />
+				<ExampleTldrawUiProvider>
+					<HoverControlledMenu />
+				</ExampleTldrawUiProvider>
 			</Tldraw>
 		</div>
 	)

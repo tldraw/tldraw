@@ -6,7 +6,7 @@ import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TLShapeId,
-	TLUiIconJsx,
+	TldrawUiIconJsx,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -78,7 +78,7 @@ export abstract class NodeDefinition<Node extends { type: string }> {
 	readonly validator: T.Validator<Node>
 	abstract readonly title: string
 	abstract readonly heading?: string
-	abstract readonly icon: TLUiIconJsx
+	abstract readonly icon: TldrawUiIconJsx
 	/** A short category label for grouping in the toolbar. */
 	abstract readonly category: string
 	readonly resultKeys?: readonly string[]

@@ -1,12 +1,6 @@
-import {
-	createShapeId,
-	EASINGS,
-	TLComponents,
-	Tldraw,
-	TldrawUiButton,
-	useEditor,
-	useValue,
-} from 'tldraw'
+import { TldrawUiButton } from '@tldraw/ui'
+import { createShapeId, EASINGS, TLComponents, Tldraw, useEditor, useValue } from 'tldraw'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import 'tldraw/tldraw.css'
 import './shape-animation.css'
 
@@ -89,23 +83,25 @@ function AnimationControls() {
 	)
 
 	return (
-		<div className="tlui-menu animation-controls">
-			<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animatePosition}>
-				Animate position
-			</TldrawUiButton>
-			<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animateRotation}>
-				Animate rotation
-			</TldrawUiButton>
-			<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animateFade}>
-				Fade in/out
-			</TldrawUiButton>
-			<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animateAll}>
-				Animate all
-			</TldrawUiButton>
-			<TldrawUiButton type="normal" onClick={animateMultiple}>
-				Animate multiple shapes
-			</TldrawUiButton>
-		</div>
+		<ExampleTldrawUiProvider>
+			<div className="tl-menu animation-controls">
+				<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animatePosition}>
+					Animate position
+				</TldrawUiButton>
+				<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animateRotation}>
+					Animate rotation
+				</TldrawUiButton>
+				<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animateFade}>
+					Fade in/out
+				</TldrawUiButton>
+				<TldrawUiButton type="normal" disabled={hasOneSelected} onClick={animateAll}>
+					Animate all
+				</TldrawUiButton>
+				<TldrawUiButton type="normal" onClick={animateMultiple}>
+					Animate multiple shapes
+				</TldrawUiButton>
+			</div>
+		</ExampleTldrawUiProvider>
 	)
 }
 

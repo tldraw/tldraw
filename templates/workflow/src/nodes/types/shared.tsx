@@ -6,7 +6,7 @@ import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TLShapeId,
-	TLUiIconJsx,
+	TldrawUiIconJsx,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -54,7 +54,7 @@ export abstract class NodeDefinition<Node extends { type: string }> {
 	readonly validator: T.Validator<Node>
 	abstract readonly title: string
 	abstract readonly heading?: string
-	abstract readonly icon: TLUiIconJsx
+	abstract readonly icon: TldrawUiIconJsx
 
 	abstract getDefault(): Node
 	abstract getBodyHeightPx(shape: NodeShape, node: Node): number

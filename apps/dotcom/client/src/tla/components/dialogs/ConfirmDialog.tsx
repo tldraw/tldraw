@@ -1,4 +1,3 @@
-import { ReactNode } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -7,7 +6,8 @@ import {
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-} from 'tldraw'
+} from '@tldraw/ui'
+import { ReactNode } from 'react'
 
 export function ConfirmDialog({
 	title,

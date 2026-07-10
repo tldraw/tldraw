@@ -11913,6 +11913,7 @@ __metadata:
     "@tldraw/state-react": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
+    "@tldraw/ui": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/benchmark": "npm:^2.1.5"
@@ -12227,6 +12228,30 @@ __metadata:
     kleur: "npm:^4.1.5"
     lazyrepo: "npm:0.0.0-alpha.27"
     react: "npm:^19.2.1"
+    vitest: "npm:^4.1.7"
+  peerDependencies:
+    react: ^18.2.0 || ^19.2.1
+    react-dom: ^18.2.0 || ^19.2.1
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/ui@workspace:*, @tldraw/ui@workspace:packages/ui":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/ui@workspace:packages/ui"
+  dependencies:
+    "@testing-library/dom": "npm:^10.0.0"
+    "@testing-library/react": "npm:^16.0.0"
+    "@tldraw/state": "workspace:*"
+    "@tldraw/state-react": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    chokidar-cli: "npm:^3.0.0"
+    classnames: "npm:^2.5.1"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    radix-ui: "npm:^1.4.2"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
     vitest: "npm:^4.1.7"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1
@@ -18638,6 +18663,7 @@ __metadata:
     "@tldraw/mermaid": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
+    "@tldraw/ui": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/md5": "npm:^2.3.5"
@@ -19970,6 +19996,7 @@ __metadata:
     "@tldraw/mermaid": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
+    "@tldraw/ui": "workspace:*"
     "@types/d3-geo": "npm:^3.1.0"
     "@types/lodash": "npm:^4.17.14"
     "@types/react": "npm:^19.2.7"
@@ -31746,6 +31773,7 @@ __metadata:
     "@tldraw/driver": "workspace:*"
     "@tldraw/editor": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/ui": "workspace:*"
     "@types/classnames": "npm:^2.3.4"
     "@types/lz-string": "npm:^1.5.0"
     "@types/react": "npm:^19.2.7"

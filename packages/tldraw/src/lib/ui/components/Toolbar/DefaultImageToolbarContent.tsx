@@ -9,6 +9,16 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiButtonLabel } from '@tldraw/ui'
+import {
+	TldrawUiDropdownMenuCheckboxItem,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+} from '@tldraw/ui'
+import { TldrawUiSlider } from '@tldraw/ui'
+import { TldrawUiToolbarButton } from '@tldraw/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	ASPECT_RATIO_OPTION,
@@ -22,16 +32,6 @@ import {
 import { useActions } from '../../context/actions'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
-import {
-	TldrawUiDropdownMenuCheckboxItem,
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
-} from '../primitives/TldrawUiDropdownMenu'
-import { TldrawUiSlider } from '../primitives/TldrawUiSlider'
-import { TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 
 /** @public */
 export interface DefaultImageToolbarContentProps {

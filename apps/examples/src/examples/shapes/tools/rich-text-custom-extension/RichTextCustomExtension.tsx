@@ -1,14 +1,15 @@
 import { Mark, mergeAttributes } from '@tiptap/core'
 import { StarterKit } from '@tiptap/starter-kit'
+import { TldrawUiButton } from '@tldraw/ui'
 import {
 	DefaultRichTextToolbar,
 	TLComponents,
 	Tldraw,
-	TldrawUiButton,
 	preventDefault,
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { ExampleTldrawUiProvider } from '../../../../misc/ExampleTldrawUiProvider'
 import 'tldraw/tldraw.css'
 import './RichTextCustomExtension.css'
 
@@ -76,16 +77,18 @@ const components: TLComponents = {
 
 		return (
 			<DefaultRichTextToolbar>
-				<TldrawUiButton
-					type="icon"
-					onClick={() => {
-						textEditor?.chain().focus().toggleWavy().run()
-					}}
-					isActive={textEditor?.isActive('wavy')}
-					onPointerDown={preventDefault}
-				>
-					〰️
-				</TldrawUiButton>
+				<ExampleTldrawUiProvider>
+					<TldrawUiButton
+						type="icon"
+						onClick={() => {
+							textEditor?.chain().focus().toggleWavy().run()
+						}}
+						isActive={textEditor?.isActive('wavy')}
+						onPointerDown={preventDefault}
+					>
+						〰️
+					</TldrawUiButton>
+				</ExampleTldrawUiProvider>
 				{/* Add the DefaultRichTextToolbarContent if you want to add more items. */}
 				{/* <DefaultRichTextToolbarContent textEditor={textEditor} onEditLinkIntent={() => {}} /> */}
 			</DefaultRichTextToolbar>

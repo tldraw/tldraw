@@ -1,4 +1,6 @@
-import { TldrawUiButton, track, useEditor, useValue } from 'tldraw'
+import { TldrawUiButton } from '@tldraw/ui'
+import { track, useEditor, useValue } from 'tldraw'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import { moveToSlide, useCurrentSlide, useSlides } from './useSlides'
 
 export const SlidesPanel = track(() => {
@@ -9,25 +11,27 @@ export const SlidesPanel = track(() => {
 
 	if (slides.length === 0) return null
 	return (
-		<div className="slides-panel scroll-light" onPointerDown={editor.markEventAsHandled}>
-			{slides.map((slide, i) => {
-				const isSelected = selectedShapes.includes(slide)
-				return (
-					<TldrawUiButton
-						key={'slides-panel-button:' + slide.id}
-						type="normal"
-						className="slides-panel-button"
-						onClick={() => moveToSlide(editor, slide)}
-						style={{
-							background:
-								currentSlide?.id === slide.id ? 'var(--tl-color-background)' : 'transparent',
-							outline: isSelected ? 'var(--tl-color-selection-stroke) solid 1.5px' : 'none',
-						}}
-					>
-						{`Slide ${i + 1}`}
-					</TldrawUiButton>
-				)
-			})}
-		</div>
+		<ExampleTldrawUiProvider>
+			<div className="slides-panel scroll-light" onPointerDown={editor.markEventAsHandled}>
+				{slides.map((slide, i) => {
+					const isSelected = selectedShapes.includes(slide)
+					return (
+						<TldrawUiButton
+							key={'slides-panel-button:' + slide.id}
+							type="normal"
+							className="slides-panel-button"
+							onClick={() => moveToSlide(editor, slide)}
+							style={{
+								background:
+									currentSlide?.id === slide.id ? 'var(--tl-color-background)' : 'transparent',
+								outline: isSelected ? 'var(--tl-color-selection-stroke) solid 1.5px' : 'none',
+							}}
+						>
+							{`Slide ${i + 1}`}
+						</TldrawUiButton>
+					)
+				})}
+			</div>
+		</ExampleTldrawUiProvider>
 	)
 })

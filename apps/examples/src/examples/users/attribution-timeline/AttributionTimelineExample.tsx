@@ -1,3 +1,4 @@
+import { TldrawUiButton, TldrawUiSlider } from '@tldraw/ui'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	atom,
@@ -8,8 +9,6 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffs,
 	Tldraw,
-	TldrawUiButton,
-	TldrawUiSlider,
 	TLUser,
 	TLUserStore,
 	track,
@@ -17,6 +16,7 @@ import {
 	UserRecordType,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import './attribution-timeline.css'
 
 // There's a guide at the bottom of this file!
@@ -89,21 +89,23 @@ function UserSwitcher() {
 	const [activeUserId, setActiveUserId] = useState(currentUserIdAtom.get())
 
 	return (
-		<div className="tlui-menu attribution-timeline-user-switcher">
-			{Object.values(USERS).map((user) => (
-				<TldrawUiButton
-					key={user.id}
-					type={activeUserId === user.id ? 'primary' : 'normal'}
-					onClick={() => {
-						currentUserIdAtom.set(user.id)
-						setActiveUserId(user.id)
-					}}
-				>
-					<span className="attribution-timeline-dot" style={{ backgroundColor: user.color }} />
-					{user.name}
-				</TldrawUiButton>
-			))}
-		</div>
+		<ExampleTldrawUiProvider>
+			<div className="tl-menu attribution-timeline-user-switcher">
+				{Object.values(USERS).map((user) => (
+					<TldrawUiButton
+						key={user.id}
+						type={activeUserId === user.id ? 'primary' : 'normal'}
+						onClick={() => {
+							currentUserIdAtom.set(user.id)
+							setActiveUserId(user.id)
+						}}
+					>
+						<span className="attribution-timeline-dot" style={{ backgroundColor: user.color }} />
+						{user.name}
+					</TldrawUiButton>
+				))}
+			</div>
+		</ExampleTldrawUiProvider>
 	)
 }
 
@@ -288,70 +290,75 @@ const AttributionTimeline = track(() => {
 	})()
 
 	return (
-		<div className="attribution-timeline-controls">
-			<div className="attribution-timeline-row attribution-timeline-row--all">
-				<div className="attribution-timeline-user">
-					<span className="attribution-timeline-name">All</span>
-				</div>
-				<TldrawUiSlider
-					steps={Math.max(totalEntries, 1)}
-					value={totalEntries === 0 ? null : totalApplied}
-					label="History"
-					title={allTitle}
-					onValueChange={handleAllSliderChange}
-				/>
-				<div className="attribution-timeline-info">
-					{`${totalApplied.toString().padStart(totalLength, '0')} / ${totalEntries.toString().padStart(totalLength, '0')}`}
-				</div>
-				<TldrawUiButton
-					type="normal"
-					disabled={totalEntries === 0}
-					onClick={handleReset}
-					tooltip="Clear the canvas and timeline history"
-					className="attribution-timeline-reset"
-				>
-					Reset
-				</TldrawUiButton>
-			</div>
-			{Object.values(USERS).map((user) => {
-				const indices = userIndices[user.id] ?? []
-				const total = indices.length
-				const applied = timeline.appliedCounts[user.id] ?? 0
-				const length = Math.max(2, String(total).length)
-				const isEmpty = total === 0
-
-				const sliderTitle = (() => {
-					if (isEmpty) return `${user.name} hasn't made any changes yet`
-					if (applied === 0) return `None of ${user.name}'s changes applied`
-					const entry = timeline.entries[indices[applied - 1]]
-					if (!entry) return ''
-					const time = new Date(entry.timestamp).toLocaleTimeString()
-					return `${user.name} — ${time}`
-				})()
-
-				return (
-					<div
-						key={user.id}
-						className={`attribution-timeline-row${user.id === activeUserId ? ' attribution-timeline-row--active' : ''}`}
-					>
-						<div className="attribution-timeline-user">
-							<span className="attribution-timeline-dot" style={{ backgroundColor: user.color }} />
-							<span className="attribution-timeline-name">{user.name}</span>
-						</div>
-						<TldrawUiSlider
-							steps={Math.max(total, 1)}
-							value={isEmpty ? null : applied}
-							label="History"
-							title={sliderTitle}
-							onValueChange={(value) => handleUserSliderChange(user.id, value)}
-						/>
-						<div className="attribution-timeline-info">
-							{`${applied.toString().padStart(length, '0')} / ${total.toString().padStart(length, '0')}`}
-						</div>
+		<ExampleTldrawUiProvider>
+			<div className="attribution-timeline-controls">
+				<div className="attribution-timeline-row attribution-timeline-row--all">
+					<div className="attribution-timeline-user">
+						<span className="attribution-timeline-name">All</span>
 					</div>
-				)
-			})}
-		</div>
+					<TldrawUiSlider
+						steps={Math.max(totalEntries, 1)}
+						value={totalEntries === 0 ? null : totalApplied}
+						label="History"
+						title={allTitle}
+						onValueChange={handleAllSliderChange}
+					/>
+					<div className="attribution-timeline-info">
+						{`${totalApplied.toString().padStart(totalLength, '0')} / ${totalEntries.toString().padStart(totalLength, '0')}`}
+					</div>
+					<TldrawUiButton
+						type="normal"
+						disabled={totalEntries === 0}
+						onClick={handleReset}
+						tooltip="Clear the canvas and timeline history"
+						className="attribution-timeline-reset"
+					>
+						Reset
+					</TldrawUiButton>
+				</div>
+				{Object.values(USERS).map((user) => {
+					const indices = userIndices[user.id] ?? []
+					const total = indices.length
+					const applied = timeline.appliedCounts[user.id] ?? 0
+					const length = Math.max(2, String(total).length)
+					const isEmpty = total === 0
+
+					const sliderTitle = (() => {
+						if (isEmpty) return `${user.name} hasn't made any changes yet`
+						if (applied === 0) return `None of ${user.name}'s changes applied`
+						const entry = timeline.entries[indices[applied - 1]]
+						if (!entry) return ''
+						const time = new Date(entry.timestamp).toLocaleTimeString()
+						return `${user.name} — ${time}`
+					})()
+
+					return (
+						<div
+							key={user.id}
+							className={`attribution-timeline-row${user.id === activeUserId ? ' attribution-timeline-row--active' : ''}`}
+						>
+							<div className="attribution-timeline-user">
+								<span
+									className="attribution-timeline-dot"
+									style={{ backgroundColor: user.color }}
+								/>
+								<span className="attribution-timeline-name">{user.name}</span>
+							</div>
+							<TldrawUiSlider
+								steps={Math.max(total, 1)}
+								value={isEmpty ? null : applied}
+								label="History"
+								title={sliderTitle}
+								onValueChange={(value) => handleUserSliderChange(user.id, value)}
+							/>
+							<div className="attribution-timeline-info">
+								{`${applied.toString().padStart(length, '0')} / ${total.toString().padStart(length, '0')}`}
+							</div>
+						</div>
+					)
+				})}
+			</div>
+		</ExampleTldrawUiProvider>
 	)
 })
 

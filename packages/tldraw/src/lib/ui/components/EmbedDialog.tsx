@@ -1,4 +1,14 @@
 import { track, useEditor } from '@tldraw/editor'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonLabel } from '@tldraw/ui'
+import {
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
+} from '@tldraw/ui'
+import { TldrawUiInput } from '@tldraw/ui'
 import { useRef, useState } from 'react'
 import {
 	TLEmbedDefinition,
@@ -11,16 +21,6 @@ import { TLUiDialogProps } from '../context/dialogs'
 import { useGetEmbedDefinition } from '../hooks/useGetEmbedDefinition'
 import { useGetEmbedDefinitions } from '../hooks/useGetEmbedDefinitions'
 import { untranslated, useTranslation } from '../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
-import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
-import {
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogFooter,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
-} from './primitives/TldrawUiDialog'
-import { TldrawUiInput } from './primitives/TldrawUiInput'
 
 export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogProps) {
 	const editor = useEditor()

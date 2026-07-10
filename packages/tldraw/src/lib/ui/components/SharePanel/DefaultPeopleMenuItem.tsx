@@ -1,11 +1,11 @@
 import { TLUserId, track, useEditor, usePresence } from '@tldraw/editor'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiRow } from '@tldraw/ui'
+import { TldrawUiIcon } from '@tldraw/ui'
 import { useCallback } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiRow } from '../primitives/layout'
-import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 
 /** @public */
 export interface TLUiPeopleMenuItemProps {

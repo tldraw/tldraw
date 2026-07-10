@@ -11,10 +11,10 @@ import {
 	useValue,
 	Vec,
 } from '@tldraw/editor'
+import { TldrawUiToolbar } from '@tldraw/ui'
 import classNames from 'classnames'
 import React, { RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { TldrawUiToolbar } from './TldrawUiToolbar'
 
 const MOVE_TIMEOUT = 150
 const HIDE_VISIBILITY_TIMEOUT = 16

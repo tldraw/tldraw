@@ -1,13 +1,13 @@
 import { useEditor } from '@tldraw/editor'
-import { ReactNode, useEffect } from 'react'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
 import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-} from '../primitives/TldrawUiDropdownMenu'
+} from '@tldraw/ui'
+import { ReactNode, useEffect } from 'react'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultDebugMenuContent } from './DefaultDebugMenuContent'
 
 /** @public */

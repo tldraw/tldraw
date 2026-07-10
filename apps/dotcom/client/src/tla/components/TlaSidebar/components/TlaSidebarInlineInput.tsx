@@ -1,6 +1,6 @@
+import { TldrawUiInput } from '@tldraw/ui'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
-import { TldrawUiInput } from 'tldraw'
 import styles from '../sidebar.module.css'
 
 interface TlaSidebarInlineInputProps {

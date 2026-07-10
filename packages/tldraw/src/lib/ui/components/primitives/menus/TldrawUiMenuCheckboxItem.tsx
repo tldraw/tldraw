@@ -1,12 +1,12 @@
 import { preventDefault } from '@tldraw/editor'
+import { TldrawUiIcon, TldrawUiIconJsx } from '@tldraw/ui'
+import { TldrawUiKbd } from '@tldraw/ui'
 import { ContextMenu as _ContextMenu, DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { TldrawUiIcon, TLUiIconJsx } from '../TldrawUiIcon'
-import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -14,7 +14,7 @@ export interface TLUiMenuCheckboxItemProps<
 	TranslationKey extends string = string,
 	IconType extends string = string,
 > {
-	icon?: IconType | TLUiIconJsx
+	icon?: IconType | TldrawUiIconJsx
 	id: string
 	kbd?: string
 	title?: string

@@ -4,8 +4,10 @@
  * - `blueprintRender.mapNodeToRenderSpec` maps each flowchart vertex to `flowchart-util` + `mermaidNodeId`.
  * - After import, graph and layer badges come from arrows + bindings (`extractFlowchartPipelineFromEditor`).
  */
+import { TldrawUiButton } from '@tldraw/ui'
 import { useCallback, useState } from 'react'
-import { TLComponents, Tldraw, TldrawUiButton, useEditor, useValue } from 'tldraw'
+import { TLComponents, Tldraw, useEditor, useValue } from 'tldraw'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import 'tldraw/tldraw.css'
 import { FlowchartShapeUtil } from './customMermaidShapeUtil'
 import './custom-shape-mermaid.css'
@@ -130,35 +132,37 @@ function TopPanel() {
 	}, [])
 
 	return (
-		<div className="custom-shape-mermaid">
-			<div>
-				Paste a Mermaid <strong>flowchart</strong> or <strong>graph</strong> (branching is ok; merge
-				nodes run after <strong>all</strong> incoming steps pass). Apply runs Mermaid import, then
-				builds the DAG from <strong>arrows on the canvas</strong>. Run simulates steps; failures can
-				be retried on the shape. Step badges are Kahn layers, not a global sequence. Status is only
-				in memory for this demo.
+		<ExampleTldrawUiProvider>
+			<div className="custom-shape-mermaid">
+				<div>
+					Paste a Mermaid <strong>flowchart</strong> or <strong>graph</strong> (branching is ok;
+					merge nodes run after <strong>all</strong> incoming steps pass). Apply runs Mermaid
+					import, then builds the DAG from <strong>arrows on the canvas</strong>. Run simulates
+					steps; failures can be retried on the shape. Step badges are Kahn layers, not a global
+					sequence. Status is only in memory for this demo.
+				</div>
+				<textarea
+					value={mermaidText}
+					onChange={(e) => setMermaidText(e.target.value)}
+					rows={7}
+					spellCheck={false}
+					className="custom-shape-mermaid__textarea"
+				/>
+				{pipeline.parseError && (
+					<div className="custom-shape-mermaid__error">{pipeline.parseError}</div>
+				)}
+				<div className="custom-shape-mermaid__controls">
+					<TldrawUiButton type="normal" onClick={applyWorkflow} disabled={isApplying}>
+						{isApplying ? 'Applying…' : 'Apply workflow'}
+					</TldrawUiButton>
+					<TldrawUiButton type="low" onClick={runPipeline} disabled={!canRun}>
+						Run pipeline
+					</TldrawUiButton>
+				</div>
+				{pipeline.isRunning && (
+					<div className="custom-shape-mermaid__notice">Running simulated steps…</div>
+				)}
 			</div>
-			<textarea
-				value={mermaidText}
-				onChange={(e) => setMermaidText(e.target.value)}
-				rows={7}
-				spellCheck={false}
-				className="custom-shape-mermaid__textarea"
-			/>
-			{pipeline.parseError && (
-				<div className="custom-shape-mermaid__error">{pipeline.parseError}</div>
-			)}
-			<div className="custom-shape-mermaid__controls">
-				<TldrawUiButton type="normal" onClick={applyWorkflow} disabled={isApplying}>
-					{isApplying ? 'Applying…' : 'Apply workflow'}
-				</TldrawUiButton>
-				<TldrawUiButton type="low" onClick={runPipeline} disabled={!canRun}>
-					Run pipeline
-				</TldrawUiButton>
-			</div>
-			{pipeline.isRunning && (
-				<div className="custom-shape-mermaid__notice">Running simulated steps…</div>
-			)}
-		</div>
+		</ExampleTldrawUiProvider>
 	)
 }

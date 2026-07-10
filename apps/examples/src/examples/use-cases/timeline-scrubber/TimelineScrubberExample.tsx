@@ -1,14 +1,15 @@
+import { TldrawUiSlider } from '@tldraw/ui'
 import { useCallback, useEffect, useState } from 'react'
 import {
 	RecordsDiff,
 	reverseRecordsDiff,
 	squashRecordDiffs,
 	Tldraw,
-	TldrawUiSlider,
 	track,
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import './timeline-scrubber.css'
 
 interface TimelineEntry {
@@ -125,26 +126,28 @@ const TimelineScrubber = track(() => {
 	const length = Math.max(3, String(timeline.entries.length).length)
 
 	return (
-		<div className="timeline-scrubber-controls">
-			<div className="timeline-scrubber-info">
-				{isEmpty
-					? '000 / 000'
-					: `${timeline.currentIndex.toString().padStart(length, '0')} / ${timeline.entries.length.toString().padStart(length, '0')}`}
+		<ExampleTldrawUiProvider>
+			<div className="timeline-scrubber-controls">
+				<div className="timeline-scrubber-info">
+					{isEmpty
+						? '000 / 000'
+						: `${timeline.currentIndex.toString().padStart(length, '0')} / ${timeline.entries.length.toString().padStart(length, '0')}`}
+				</div>
+				<TldrawUiSlider
+					steps={timeline.entries.length}
+					value={isEmpty ? 1 : timeline.currentIndex}
+					label="History"
+					title={
+						timeline.currentIndex === 0
+							? 'Empty canvas'
+							: new Date(
+									timeline.entries[timeline.currentIndex - 1]?.timestamp ?? Date.now()
+								).toLocaleString()
+					}
+					onValueChange={handleSliderChange}
+				/>
 			</div>
-			<TldrawUiSlider
-				steps={timeline.entries.length}
-				value={isEmpty ? 1 : timeline.currentIndex}
-				label="History"
-				title={
-					timeline.currentIndex === 0
-						? 'Empty canvas'
-						: new Date(
-								timeline.entries[timeline.currentIndex - 1]?.timestamp ?? Date.now()
-							).toLocaleString()
-				}
-				onValueChange={handleSliderChange}
-			/>
-		</div>
+		</ExampleTldrawUiProvider>
 	)
 })
 

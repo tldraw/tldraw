@@ -1,0 +1,14 @@
+/* @tldraw/ui spinner */
+
+.tl-ui .tl-spinner {
+	animation: tl-spin 1s linear infinite;
+}
+
+@keyframes tl-spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}

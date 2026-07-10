@@ -8,19 +8,15 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiGrid, TldrawUiRow } from '@tldraw/ui'
+import { TldrawUiToolbar, TldrawUiToolbarToggleGroup, TldrawUiToolbarToggleItem } from '@tldraw/ui'
 import { memo, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiGrid, TldrawUiRow } from '../primitives/layout'
-import {
-	TldrawUiToolbar,
-	TldrawUiToolbarToggleGroup,
-	TldrawUiToolbarToggleItem,
-} from '../primitives/TldrawUiToolbar'
 import { useStylePanelContext } from './StylePanelContext'
 import { StylePanelSubheading } from './StylePanelSubheading'
 

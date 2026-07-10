@@ -1,6 +1,7 @@
+import { TldrawUiButton } from '@tldraw/ui'
 import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TldrawUiButton, tltime } from 'tldraw'
+import { tltime } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'

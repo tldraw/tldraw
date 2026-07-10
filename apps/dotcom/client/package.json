@@ -46,6 +46,7 @@
 		"@tldraw/mermaid": "workspace:*",
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
+		"@tldraw/ui": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"axe-core": "^4.10.3",
 		"browser-fs-access": "^0.35.0",

@@ -1,6 +1,6 @@
+import { TldrawUiIcon } from '@tldraw/ui'
+import { TldrawUiTooltip } from '@tldraw/ui'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
-import { TldrawUiTooltip } from '../primitives/TldrawUiTooltip'
 
 /** @public @react */
 export function OfflineIndicator() {

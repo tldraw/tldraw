@@ -1,10 +1,10 @@
-import { Tooltip as _Tooltip } from 'radix-ui'
 import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-} from 'tldraw'
+} from '@tldraw/ui'
+import { Tooltip as _Tooltip } from 'radix-ui'
 import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'

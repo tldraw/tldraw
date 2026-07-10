@@ -1,11 +1,18 @@
+import {
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiButtonLabel,
+	TldrawUiButtonSpinner,
+	TldrawUiIcon,
+} from '@tldraw/ui'
 import classNames from 'classnames'
 import { ButtonHTMLAttributes, forwardRef } from 'react'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './button.module.css'
 
 export const TlaButton = forwardRef<
 	HTMLButtonElement,
-	ButtonHTMLAttributes<HTMLButtonElement> & {
+	Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> & {
+		type?: ButtonHTMLAttributes<HTMLButtonElement>['type']
 		isLoading?: boolean
 		icon?: string
 		iconRight?: string
@@ -26,24 +33,30 @@ export const TlaButton = forwardRef<
 		isLoading = false,
 		big = false,
 		onClick,
+		type,
 		...props
 	},
 	ref
 ) {
+	const buttonType = ghost ? 'ghost' : variant
+	const hasIconRight = !!iconRight
+
 	return (
-		<button
+		<TldrawUiButton
 			{...props}
+			type={buttonType}
+			htmlButtonType={type ?? 'button'}
 			onClick={isLoading ? undefined : onClick}
 			ref={ref}
 			data-state={isLoading ? 'loading' : 'ready'}
+			data-has-icon-right={hasIconRight}
 			className={classNames(
 				'tla-button',
+				variant !== 'cta' && 'tl-copy-button',
+				ghost && variant === 'primary' && 'tl-button--primary',
+				ghost && variant === 'secondary' && 'tl-button--secondary',
 				styles.tlaButton,
 				{
-					[styles.cta]: variant === 'cta',
-					[styles.primary]: variant === 'primary',
-					[styles.secondary]: variant === 'secondary',
-					[styles.ghost]: ghost,
 					[styles.big]: big,
 				},
 				className
@@ -51,25 +64,26 @@ export const TlaButton = forwardRef<
 		>
 			{isLoading && !iconRight ? (
 				<div className={styles.spinner}>
-					<TlaIcon className="tla-spinner" icon="spinner" />
+					<TldrawUiButtonSpinner />
 				</div>
 			) : (
 				<>
-					{icon && <TlaIcon icon={icon} />}
-					{children && <span>{children}</span>}
+					{icon && <TldrawUiButtonIcon icon={icon} small />}
+					{children && <TldrawUiButtonLabel>{children}</TldrawUiButtonLabel>}
 					{iconRight &&
 						(isLoading ? (
 							<div className={classNames(styles.iconRight, iconRightClassName)}>
-								<TlaIcon icon={iconRight} className={styles.spinner} />
+								<TldrawUiButtonSpinner />
 							</div>
 						) : (
-							<TlaIcon
+							<TldrawUiIcon
 								icon={iconRight}
-								className={classNames(styles.iconRight, iconRightClassName)}
+								small
+								className={classNames('tl-button__icon', styles.iconRight, iconRightClassName)}
 							/>
 						))}
 				</>
 			)}
-		</button>
+		</TldrawUiButton>
 	)
 })

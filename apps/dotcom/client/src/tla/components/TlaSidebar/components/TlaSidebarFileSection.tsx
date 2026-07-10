@@ -1,6 +1,7 @@
+import { TldrawUiButton } from '@tldraw/ui'
 import classNames from 'classnames'
 import { ReactElement, ReactNode } from 'react'
-import { TldrawUiButton, useUniqueSafeId } from 'tldraw'
+import { useUniqueSafeId } from 'tldraw'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 

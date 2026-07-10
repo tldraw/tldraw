@@ -1,6 +1,6 @@
+import { TldrawUiButton, TldrawUiInput } from '@tldraw/ui'
 import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
-import { TldrawUiButton, TldrawUiInput } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { defineMessages, useMsg } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'

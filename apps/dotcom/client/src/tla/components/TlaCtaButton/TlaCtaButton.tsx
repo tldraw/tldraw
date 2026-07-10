@@ -1,16 +1,21 @@
+import { TldrawUiButton } from '@tldraw/ui'
 import classNames from 'classnames'
 import { ButtonHTMLAttributes, forwardRef } from 'react'
 import styles from './cta-button.module.css'
 
 export const TlaCtaButton = forwardRef<
 	HTMLButtonElement,
-	ButtonHTMLAttributes<HTMLButtonElement> & { canvas?: boolean; secondary?: boolean }
->(function TlaCtaButton({ className, canvas = false, secondary = false, ...props }, ref) {
+	Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> & {
+		type?: ButtonHTMLAttributes<HTMLButtonElement>['type']
+		canvas?: boolean
+		secondary?: boolean
+	}
+>(function TlaCtaButton({ className, canvas = false, secondary = false, type, ...props }, ref) {
 	return (
-		<button
+		<TldrawUiButton
 			ref={ref}
-			type="button"
-			draggable={false}
+			type="cta"
+			htmlButtonType={type ?? 'button'}
 			className={classNames(
 				'tla-primary-button',
 				styles.ctaButton,

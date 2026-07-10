@@ -1,5 +1,4 @@
 import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
-import { useEffect, useRef, useState } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiDialogBody,
@@ -8,7 +7,8 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	TldrawUiInput,
-} from 'tldraw'
+} from '@tldraw/ui'
+import { useEffect, useRef, useState } from 'react'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import styles from './dialogs.module.css'
 

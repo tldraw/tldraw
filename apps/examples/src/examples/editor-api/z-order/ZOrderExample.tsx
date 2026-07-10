@@ -1,4 +1,6 @@
-import { createShapeId, Tldraw, TldrawUiButton, useEditor } from 'tldraw'
+import { TldrawUiButton } from '@tldraw/ui'
+import { createShapeId, Tldraw, useEditor } from 'tldraw'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import 'tldraw/tldraw.css'
 import './z-order.css'
 
@@ -34,33 +36,35 @@ export default function ZOrderExample() {
 					TopPanel: () => {
 						const editor = useEditor()
 						return (
-							<div className="tlui-menu z-order-controls">
-								{/* [1] */}
-								<TldrawUiButton
-									type="normal"
-									onClick={() => editor.sendToBack(editor.getSelectedShapeIds())}
-								>
-									Send to back
-								</TldrawUiButton>
-								<TldrawUiButton
-									type="normal"
-									onClick={() => editor.sendBackward(editor.getSelectedShapeIds())}
-								>
-									Send backward
-								</TldrawUiButton>
-								<TldrawUiButton
-									type="normal"
-									onClick={() => editor.bringForward(editor.getSelectedShapeIds())}
-								>
-									Bring forward
-								</TldrawUiButton>
-								<TldrawUiButton
-									type="normal"
-									onClick={() => editor.bringToFront(editor.getSelectedShapeIds())}
-								>
-									Bring to front
-								</TldrawUiButton>
-							</div>
+							<ExampleTldrawUiProvider>
+								<div className="tl-menu z-order-controls">
+									{/* [1] */}
+									<TldrawUiButton
+										type="normal"
+										onClick={() => editor.sendToBack(editor.getSelectedShapeIds())}
+									>
+										Send to back
+									</TldrawUiButton>
+									<TldrawUiButton
+										type="normal"
+										onClick={() => editor.sendBackward(editor.getSelectedShapeIds())}
+									>
+										Send backward
+									</TldrawUiButton>
+									<TldrawUiButton
+										type="normal"
+										onClick={() => editor.bringForward(editor.getSelectedShapeIds())}
+									>
+										Bring forward
+									</TldrawUiButton>
+									<TldrawUiButton
+										type="normal"
+										onClick={() => editor.bringToFront(editor.getSelectedShapeIds())}
+									>
+										Bring to front
+									</TldrawUiButton>
+								</div>
+							</ExampleTldrawUiProvider>
 						)
 					},
 				}}

@@ -1,5 +1,6 @@
 import { getSchema, JSONContent } from '@tiptap/core'
 import { Fragment, Node, Schema } from '@tiptap/pm/model'
+import { TldrawUiButton, TldrawUiButtonIcon, TldrawUiButtonLabel } from '@tldraw/ui'
 import {
 	DefaultStylePanel,
 	DefaultStylePanelContent,
@@ -7,9 +8,6 @@ import {
 	tipTapDefaultExtensions,
 	TLComponents,
 	Tldraw,
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	TldrawUiButtonLabel,
 	TLShape,
 	TLShapeId,
 	TLTextShape,
@@ -18,6 +16,7 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 
 // There's a guide at the bottom of this file!
 
@@ -127,17 +126,19 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 	return (
 		<DefaultStylePanel {...props}>
 			{hasTextShapes && (
-				<div className="tlui-style-panel__section">
-					{STYLES.map(({ style, icon, label }) => (
-						<StyleButton
-							key={style}
-							style={style}
-							icon={icon}
-							label={label}
-							textShapeIds={allTextShapeIds}
-						/>
-					))}
-				</div>
+				<ExampleTldrawUiProvider>
+					<div className="tlui-style-panel__section">
+						{STYLES.map(({ style, icon, label }) => (
+							<StyleButton
+								key={style}
+								style={style}
+								icon={icon}
+								label={label}
+								textShapeIds={allTextShapeIds}
+							/>
+						))}
+					</div>
+				</ExampleTldrawUiProvider>
 			)}
 			<DefaultStylePanelContent />
 		</DefaultStylePanel>
@@ -167,7 +168,7 @@ function StyleButton({
 	return (
 		<TldrawUiButton
 			type="menu"
-			data-isactive={isActive}
+			isActive={isActive}
 			onClick={() => {
 				const shouldRemove = textShapeIds.every((id) => isUniformlyStyled(editor, id, style))
 				editor.run(() => {

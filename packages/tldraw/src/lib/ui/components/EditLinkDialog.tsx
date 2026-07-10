@@ -1,17 +1,17 @@
 import { ExtractShapeByProps, T, TLShape, track, useEditor } from '@tldraw/editor'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { TLUiDialogProps } from '../context/dialogs'
-import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
-import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonLabel } from '@tldraw/ui'
 import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-} from './primitives/TldrawUiDialog'
-import { TldrawUiInput } from './primitives/TldrawUiInput'
+} from '@tldraw/ui'
+import { TldrawUiInput } from '@tldraw/ui'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { TLUiDialogProps } from '../context/dialogs'
+import { useTranslation } from '../hooks/useTranslation/useTranslation'
 
 // A url can either be invalid, or valid with a protocol, or valid without a protocol.
 // For example, "aol.com" would be valid with a protocol ()

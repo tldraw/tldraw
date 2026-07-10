@@ -31,9 +31,9 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { TldrawUiTooltip } from '@tldraw/ui'
 import { useCallback, useContext } from 'react'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
-import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEditingRichTextList,

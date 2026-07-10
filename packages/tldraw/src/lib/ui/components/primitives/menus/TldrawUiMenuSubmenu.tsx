@@ -1,17 +1,17 @@
 import { useContainer } from '@tldraw/editor'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiButtonLabel } from '@tldraw/ui'
+import {
+	TldrawUiDropdownMenuSub,
+	TldrawUiDropdownMenuSubContent,
+	TldrawUiDropdownMenuSubTrigger,
+} from '@tldraw/ui'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
-import { TldrawUiButtonLabel } from '../Button/TldrawUiButtonLabel'
-import {
-	TldrawUiDropdownMenuSub,
-	TldrawUiDropdownMenuSubContent,
-	TldrawUiDropdownMenuSubTrigger,
-} from '../TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */

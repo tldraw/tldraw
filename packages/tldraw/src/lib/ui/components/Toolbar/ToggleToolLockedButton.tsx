@@ -1,13 +1,13 @@
 import { useEditor, useValue } from '@tldraw/editor'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiTooltip } from '@tldraw/ui'
 import classNames from 'classnames'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../kbd-utils'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiTooltip } from '../primitives/TldrawUiTooltip'
 
 /** @public */
 export interface ToggleToolLockedButtonProps {

@@ -1,7 +1,4 @@
 import { MAX_WORKSPACE_NAME_LENGTH, Role, ZErrorCode, can } from '@tldraw/dotcom-shared'
-import { Tooltip as _Tooltip } from 'radix-ui'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
@@ -9,9 +6,11 @@ import {
 	TldrawUiDialogTitle,
 	TldrawUiInput,
 	TldrawUiTooltip,
-	useDialogs,
-	useValue,
-} from 'tldraw'
+} from '@tldraw/ui'
+import { Tooltip as _Tooltip } from 'radix-ui'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useDialogs, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'

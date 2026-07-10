@@ -3,7 +3,7 @@ import {
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-} from 'tldraw'
+} from '@tldraw/ui'
 import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
 import { F } from '../../utils/i18n'
 import { TlaButton } from '../TlaButton/TlaButton'

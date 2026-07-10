@@ -1,16 +1,16 @@
 import { usePassThroughWheelEvents } from '@tldraw/editor'
-import { ReactNode, memo, useRef } from 'react'
-import { PORTRAIT_BREAKPOINT } from '../../constants'
-import { useBreakpoint } from '../../context/breakpoints'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
 import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-} from '../primitives/TldrawUiDropdownMenu'
+} from '@tldraw/ui'
+import { ReactNode, memo, useRef } from 'react'
+import { PORTRAIT_BREAKPOINT } from '../../constants'
+import { useBreakpoint } from '../../context/breakpoints'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultHelpMenuContent } from './DefaultHelpMenuContent'
 
 /** @public */

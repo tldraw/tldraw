@@ -1,0 +1,152 @@
+/* @tldraw/ui tokens */
+
+.tl-ui {
+	/* Spacing */
+	--tl-space-1: 2px;
+	--tl-space-2: 4px;
+	--tl-space-3: 8px;
+	--tl-space-4: 12px;
+	--tl-space-5: 16px;
+	--tl-space-6: 20px;
+	--tl-space-7: 28px;
+	--tl-space-8: 32px;
+	--tl-space-9: 64px;
+	--tl-space-10: 72px;
+
+	/* Radius */
+	--tl-radius-0: 2px;
+	--tl-radius-1: 4px;
+	--tl-radius-2: 6px;
+	--tl-radius-3: 9px;
+	--tl-radius-4: 11px;
+
+	/* UI z-index layers */
+	--tl-layer-above: 1;
+	--tl-layer-focused-input: 10;
+	--tl-layer-menu-click-capture: 250;
+	--tl-layer-panels: 300;
+	--tl-layer-menus: 400;
+	--tl-layer-overlays: 500;
+	--tl-layer-toasts: 650;
+	--tl-layer-cursor: 700;
+	--tl-layer-header-footer: 999;
+
+	--tl-sab: env(safe-area-inset-bottom);
+
+	/* Dotcom / app tokens */
+	--tl-font-ui:
+		'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.tl-ui.tl-ui--light {
+	--tl-color-selection-fill: hsl(210, 100%, 56%, 24%);
+	--tl-color-selection-stroke: hsl(214, 84%, 56%);
+	--tl-color-background: hsl(210, 20%, 98%);
+	--tl-color-grid: hsl(0, 0%, 43%);
+	--tl-color-low: hsl(204, 16%, 94%);
+	--tl-color-low-border: hsl(204, 16%, 92%);
+	--tl-color-muted-none: hsl(0, 0%, 0%, 0%);
+	--tl-color-muted-0: hsl(0, 0%, 0%, 2%);
+	--tl-color-muted-1: hsl(0, 0%, 0%, 10%);
+	--tl-color-muted-2: hsl(0, 0%, 0%, 4.3%);
+	--tl-color-hint: hsl(0, 0%, 0%, 5.5%);
+	--tl-color-overlay: hsl(0, 0%, 0%, 20%);
+	--tl-color-divider: hsl(0, 0%, 91%);
+	--tl-color-panel: hsl(0, 0%, 99%);
+	--tl-color-panel-contrast: hsl(0, 0%, 100%);
+	--tl-color-panel-overlay: hsl(0, 0%, 100%, 82%);
+	--tl-color-panel-transparent: hsla(0, 0%, 99%, 0%);
+	--tl-color-selected: hsl(214, 84%, 56%);
+	--tl-color-selected-contrast: hsl(0, 0%, 100%);
+	--tl-color-focus: hsl(219, 65%, 50%);
+	--tl-color-tooltip: hsla(200, 14%, 4%, 1);
+	--tl-color-text: hsl(0, 0%, 0%);
+	--tl-color-text-0: hsl(0, 0%, 11%);
+	--tl-color-text-1: hsl(0, 0%, 18%);
+	--tl-color-text-3: hsl(204, 4%, 45%);
+	--tl-color-text-disabled: hsl(204, 4%, 55%);
+	--tl-color-text-shadow: hsl(0, 0%, 100%);
+	--tl-color-text-highlight: hsl(52, 100%, 50%);
+	--tl-color-text-highlight-p3: color(display-p3 0.972 0.8205 0.05);
+	--tl-color-primary: hsl(214, 84%, 56%);
+	--tl-color-success: hsl(123, 46%, 34%);
+	--tl-color-info: hsl(201, 98%, 41%);
+	--tl-color-warning: hsl(27, 98%, 47%);
+	--tl-color-danger: hsl(0, 90%, 43%);
+	--tl-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
+	--tl-shadow-2:
+		0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
+		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+	--tl-shadow-3:
+		0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
+		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+	--tl-shadow-4:
+		0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
+		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+
+	--tl-color-sidebar: hsl(0, 0%, 99%);
+	--tl-color-inactive: hsl(204, 4%, 55%);
+	--tl-color-inactive-hover: hsl(204, 4%, 59%);
+	--tl-color-primary-hover: hsl(214, 84%, 58%);
+	--tl-color-secondary: hsl(0, 0%, 92%);
+	--tl-color-secondary-hover: hsl(0, 0%, 93.5%);
+	--tl-color-secondary-border: hsl(0, 0%, 80%);
+}
+
+.tl-ui.tl-ui--dark {
+	--tl-color-selection-fill: hsl(209, 100%, 57%, 20%);
+	--tl-color-selection-stroke: hsl(214, 84%, 56%);
+	--tl-color-background: hsl(240, 5%, 6.5%);
+	--tl-color-grid: hsl(0, 0%, 40%);
+	--tl-color-low: hsl(260, 4.5%, 10.5%);
+	--tl-color-low-border: hsl(207, 10%, 10%);
+	--tl-color-muted-none: hsl(0, 0%, 100%, 0%);
+	--tl-color-muted-0: hsl(0, 0%, 100%, 2%);
+	--tl-color-muted-1: hsl(0, 0%, 100%, 10%);
+	--tl-color-muted-2: hsl(0, 0%, 100%, 5%);
+	--tl-color-hint: hsl(0, 0%, 100%, 7%);
+	--tl-color-overlay: hsl(0, 0%, 0%, 50%);
+	--tl-color-divider: hsl(240, 9%, 22%);
+	--tl-color-panel: hsl(235, 6.8%, 13.5%);
+	--tl-color-panel-contrast: hsl(245, 12%, 23%);
+	--tl-color-panel-overlay: hsl(210, 10%, 24%, 82%);
+	--tl-color-panel-transparent: hsla(235, 6.8%, 13.5%, 0%);
+	--tl-color-selected: hsl(217, 89%, 61%);
+	--tl-color-selected-contrast: hsl(0, 0%, 100%);
+	--tl-color-focus: hsl(217, 76%, 80%);
+	--tl-color-tooltip: hsla(0, 0%, 100%, 1);
+	--tl-color-text: hsl(210, 17%, 98%);
+	--tl-color-text-0: hsl(0, 9%, 94%);
+	--tl-color-text-1: hsl(0, 0%, 85%);
+	--tl-color-text-3: hsl(204, 4%, 75%);
+	--tl-color-text-disabled: hsl(204, 4%, 50%);
+	--tl-color-text-shadow: hsl(210, 13%, 18%);
+	--tl-color-text-highlight: hsl(52, 100%, 41%);
+	--tl-color-text-highlight-p3: color(display-p3 0.8078 0.6225 0.0312);
+	--tl-color-primary: hsl(214, 84%, 56%);
+	--tl-color-success: hsl(123, 38%, 57%);
+	--tl-color-info: hsl(199, 92%, 56%);
+	--tl-color-warning: hsl(36, 100%, 57%);
+	--tl-color-danger: hsl(0, 82%, 66%);
+	--tl-shadow-1:
+		0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
+		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+	--tl-shadow-2:
+		0px 1px 3px hsl(0, 0%, 0%, 66.6%), 0px 2px 6px hsl(0, 0%, 0%, 33%),
+		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+	--tl-shadow-3:
+		0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
+		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+	--tl-shadow-4:
+		0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
+		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+
+	--tl-color-sidebar: hsl(0, 0%, 5%);
+	--tl-color-inactive: hsl(204, 4%, 45%);
+	--tl-color-inactive-hover: hsl(204, 4%, 49%);
+	--tl-color-primary-hover: hsl(214, 84%, 50%);
+	--tl-color-secondary: hsl(0, 0%, 20%);
+	--tl-color-secondary-hover: hsl(0, 0%, 22%);
+	--tl-color-secondary-border: hsl(0, 0%, 25%);
+}

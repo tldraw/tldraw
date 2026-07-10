@@ -30,16 +30,6 @@ export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { DefaultFollowingIndicator } from './lib/ui/components/DefaultFollowingIndicator'
 export { DefaultDialogs } from './lib/ui/components/Dialogs'
 export {
-	TldrawUiColumn,
-	TldrawUiGrid,
-	TldrawUiOrientationProvider,
-	TldrawUiRow,
-	useTldrawUiOrientation,
-	type TldrawUiOrientationContext,
-	type TldrawUiOrientationProviderProps,
-	type TLUiLayoutProps,
-} from './lib/ui/components/primitives/layout'
-export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuActionCheckboxItem'
@@ -48,6 +38,27 @@ export {
 	type TLUiMenuActionItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuActionItem'
 export {
+	TldrawUiMenuCheckboxItem,
+	type TLUiMenuCheckboxItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem'
+export {
+	TldrawUiMenuContextProvider,
+	type TLUiMenuContextProviderProps,
+	type TLUiMenuContextType,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuContext'
+export {
+	TldrawUiMenuGroup,
+	type TLUiMenuGroupProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuGroup'
+export {
+	TldrawUiMenuItem,
+	type TLUiMenuItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuItem'
+export {
+	TldrawUiMenuSubmenu,
+	type TLUiMenuSubmenuProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
+export {
 	TldrawUiMenuToolItem,
 	type TLUiMenuToolItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
@@ -55,6 +66,9 @@ export { DefaultToasts } from './lib/ui/components/Toasts'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 // eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/editor'
+export { preventDefault, stopEventPropagation } from '@tldraw/ui'
+// eslint-disable-next-line tldraw/no-export-star
+export * from '@tldraw/ui'
 export { BookmarkAssetUtil } from './lib/assets/BookmarkAssetUtil'
 export { ImageAssetUtil } from './lib/assets/ImageAssetUtil'
 export { VideoAssetUtil } from './lib/assets/VideoAssetUtil'
@@ -436,123 +450,9 @@ export {
 	type PageItemSubmenuProps,
 } from './lib/ui/components/PageMenu/PageItemSubmenu'
 export {
-	TldrawUiButton,
-	type TLUiButtonProps,
-} from './lib/ui/components/primitives/Button/TldrawUiButton'
-export {
-	TldrawUiButtonCheck,
-	type TLUiButtonCheckProps,
-} from './lib/ui/components/primitives/Button/TldrawUiButtonCheck'
-export {
-	TldrawUiButtonIcon,
-	type TLUiButtonIconProps,
-} from './lib/ui/components/primitives/Button/TldrawUiButtonIcon'
-export {
-	TldrawUiButtonLabel,
-	type TLUiButtonLabelProps,
-} from './lib/ui/components/primitives/Button/TldrawUiButtonLabel'
-export {
-	TldrawUiMenuCheckboxItem,
-	type TLUiMenuCheckboxItemProps,
-} from './lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem'
-export {
-	TldrawUiMenuContextProvider,
-	type TLUiMenuContextProviderProps,
-	type TLUiMenuContextType,
-} from './lib/ui/components/primitives/menus/TldrawUiMenuContext'
-export {
-	TldrawUiMenuGroup,
-	type TLUiMenuGroupProps,
-} from './lib/ui/components/primitives/menus/TldrawUiMenuGroup'
-export {
-	TldrawUiMenuItem,
-	type TLUiMenuItemProps,
-} from './lib/ui/components/primitives/menus/TldrawUiMenuItem'
-export {
-	TldrawUiMenuSubmenu,
-	type TLUiMenuSubmenuProps,
-} from './lib/ui/components/primitives/menus/TldrawUiMenuSubmenu'
-export {
 	TldrawUiContextualToolbar,
 	type TLUiContextualToolbarProps,
 } from './lib/ui/components/primitives/TldrawUiContextualToolbar'
-export {
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogFooter,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
-	type TLUiDialogBodyProps,
-	type TLUiDialogFooterProps,
-	type TLUiDialogHeaderProps,
-	type TLUiDialogTitleProps,
-} from './lib/ui/components/primitives/TldrawUiDialog'
-export {
-	TldrawUiDropdownMenuCheckboxItem,
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuGroup,
-	TldrawUiDropdownMenuIndicator,
-	TldrawUiDropdownMenuItem,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuSub,
-	TldrawUiDropdownMenuSubContent,
-	TldrawUiDropdownMenuSubTrigger,
-	TldrawUiDropdownMenuTrigger,
-	type TLUiDropdownMenuCheckboxItemProps,
-	type TLUiDropdownMenuContentProps,
-	type TLUiDropdownMenuGroupProps,
-	type TLUiDropdownMenuItemProps,
-	type TLUiDropdownMenuRootProps,
-	type TLUiDropdownMenuSubContentProps,
-	type TLUiDropdownMenuSubProps,
-	type TLUiDropdownMenuSubTriggerProps,
-	type TLUiDropdownMenuTriggerProps,
-} from './lib/ui/components/primitives/TldrawUiDropdownMenu'
-export {
-	TldrawUiIcon,
-	type TLUiIconJsx,
-	type TLUiIconProps,
-} from './lib/ui/components/primitives/TldrawUiIcon'
-export { TldrawUiInput, type TLUiInputProps } from './lib/ui/components/primitives/TldrawUiInput'
-export { TldrawUiKbd, type TLUiKbdProps } from './lib/ui/components/primitives/TldrawUiKbd'
-export {
-	TldrawUiPopover,
-	TldrawUiPopoverContent,
-	TldrawUiPopoverTrigger,
-	type TLUiPopoverContentProps,
-	type TLUiPopoverProps,
-	type TLUiPopoverTriggerProps,
-} from './lib/ui/components/primitives/TldrawUiPopover'
-export {
-	TldrawUiSelect,
-	TldrawUiSelectContent,
-	TldrawUiSelectItem,
-	TldrawUiSelectTrigger,
-	TldrawUiSelectValue,
-	type TLUiSelectContentProps,
-	type TLUiSelectItemProps,
-	type TLUiSelectProps,
-	type TLUiSelectTriggerProps,
-	type TLUiSelectValueProps,
-} from './lib/ui/components/primitives/TldrawUiSelect'
-export { TldrawUiSlider, type TLUiSliderProps } from './lib/ui/components/primitives/TldrawUiSlider'
-export {
-	TldrawUiToolbar,
-	TldrawUiToolbarButton,
-	TldrawUiToolbarToggleGroup,
-	TldrawUiToolbarToggleItem,
-	type TLUiToolbarButtonProps,
-	type TLUiToolbarProps,
-	type TLUiToolbarToggleGroupProps,
-	type TLUiToolbarToggleItemProps,
-} from './lib/ui/components/primitives/TldrawUiToolbar'
-export {
-	hideAllTooltips,
-	TldrawUiTooltip,
-	TldrawUiTooltipProvider,
-	type TldrawUiTooltipProps,
-	type TldrawUiTooltipProviderProps,
-} from './lib/ui/components/primitives/TldrawUiTooltip'
 export {
 	DefaultQuickActions,
 	type TLUiQuickActionsProps,

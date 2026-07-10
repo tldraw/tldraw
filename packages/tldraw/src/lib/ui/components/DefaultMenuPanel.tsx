@@ -1,11 +1,11 @@
 import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
+import { TldrawUiRow } from '@tldraw/ui'
+import { TldrawUiToolbar } from '@tldraw/ui'
 import { memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../constants'
 import { useBreakpoint } from '../context/breakpoints'
 import { useTldrawUiComponents } from '../context/components'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { TldrawUiRow } from './primitives/layout'
-import { TldrawUiToolbar } from './primitives/TldrawUiToolbar'
 
 /** @public @react */
 export const DefaultMenuPanel = memo(function MenuPanel() {

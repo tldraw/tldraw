@@ -1,5 +1,5 @@
+import { TldrawUiIcon } from '@tldraw/ui'
 import classNames from 'classnames'
-import { TldrawUiIcon } from 'tldraw'
 import { defineMessages, useMsg } from '../../../utils/i18n'
 import { ExternalLink } from '../../ExternalLink/ExternalLink'
 import styles from '../sidebar.module.css'

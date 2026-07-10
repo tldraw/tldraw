@@ -1,4 +1,5 @@
-import { TldrawUiButton, useValue } from 'tldraw'
+import { TldrawUiButton } from '@tldraw/ui'
+import { useValue } from 'tldraw'
 import { useGlobalEditor } from '../../../../utils/globalEditor'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { useMsg } from '../../../utils/i18n'

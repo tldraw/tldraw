@@ -1,12 +1,12 @@
 import { useValue } from '@tldraw/editor'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonLabel } from '@tldraw/ui'
+import { TldrawUiIcon } from '@tldraw/ui'
 import { Toast as _Toast } from 'radix-ui'
 import { memo } from 'react'
 import { AlertSeverity, TLUiToast, useToasts } from '../context/toasts'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
-import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
-import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
-import { TldrawUiIcon } from './primitives/TldrawUiIcon'
 
 const DEFAULT_TOAST_DURATION = 4000
 

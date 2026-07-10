@@ -1,15 +1,16 @@
 import { Mark, mergeAttributes } from '@tiptap/core'
 import { StarterKit } from '@tiptap/starter-kit'
+import { TldrawUiButton } from '@tldraw/ui'
 import {
 	DefaultRichTextToolbar,
 	TLComponents,
 	Tldraw,
-	TldrawUiButton,
 	preventDefault,
 	useEditor,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTldrawUiProvider } from '../../../../misc/ExampleTldrawUiProvider'
 import './OutlinedTextExample.css'
 
 interface OutlineExtensionOptions {
@@ -80,17 +81,19 @@ const components: TLComponents = {
 
 		return (
 			<DefaultRichTextToolbar>
-				<TldrawUiButton
-					type="icon"
-					onClick={() => {
-						textEditor?.chain().focus().toggleOutline().run()
-					}}
-					isActive={textEditor?.isActive('outline')}
-					onPointerDown={preventDefault}
-					title="Toggle text outline"
-				>
-					⬜
-				</TldrawUiButton>
+				<ExampleTldrawUiProvider>
+					<TldrawUiButton
+						type="icon"
+						onClick={() => {
+							textEditor?.chain().focus().toggleOutline().run()
+						}}
+						isActive={textEditor?.isActive('outline')}
+						onPointerDown={preventDefault}
+						title="Toggle text outline"
+					>
+						⬜
+					</TldrawUiButton>
+				</ExampleTldrawUiProvider>
 			</DefaultRichTextToolbar>
 		)
 	},

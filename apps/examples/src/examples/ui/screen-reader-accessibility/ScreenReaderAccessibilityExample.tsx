@@ -1,3 +1,4 @@
+import { TldrawUiButton } from '@tldraw/ui'
 import { useState } from 'react'
 import {
 	BaseBoxShapeUtil,
@@ -5,12 +6,12 @@ import {
 	RecordProps,
 	T,
 	Tldraw,
-	TldrawUiButton,
 	TLShape,
 	useA11y,
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import './screen-reader-accessibility.css'
 
 const CARD_SHAPE_TYPE = 'note-card'
@@ -136,17 +137,19 @@ function CustomAnnouncementPanel() {
 	}
 
 	return (
-		<div className="tlui-menu announcement-panel">
-			<TldrawUiButton type="normal" onClick={handleActionConfirmation}>
-				Perform action
-			</TldrawUiButton>
-			<TldrawUiButton type="normal" onClick={handleValidation}>
-				Validate selection
-			</TldrawUiButton>
-			<TldrawUiButton type="normal" onClick={handleToggle}>
-				{isEnabled ? 'Disable' : 'Enable'} feature
-			</TldrawUiButton>
-		</div>
+		<ExampleTldrawUiProvider>
+			<div className="tl-menu announcement-panel">
+				<TldrawUiButton type="normal" onClick={handleActionConfirmation}>
+					Perform action
+				</TldrawUiButton>
+				<TldrawUiButton type="normal" onClick={handleValidation}>
+					Validate selection
+				</TldrawUiButton>
+				<TldrawUiButton type="normal" onClick={handleToggle}>
+					{isEnabled ? 'Disable' : 'Enable'} feature
+				</TldrawUiButton>
+			</div>
+		</ExampleTldrawUiProvider>
 	)
 }
 

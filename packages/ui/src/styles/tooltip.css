@@ -1,0 +1,25 @@
+/* @tldraw/ui tooltip */
+
+.tl-ui .tl-tooltip {
+	font-size: 12px;
+	padding: 2px 8px;
+	border-radius: 4px;
+	background-color: var(--tl-color-tooltip);
+	box-shadow: none;
+	color: var(--tl-color-text-shadow);
+	max-width: 400px;
+	width: fit-content;
+	text-align: center;
+	will-change: transform, opacity;
+	z-index: 2;
+}
+
+.tl-ui .tl-tooltip__arrow {
+	fill: var(--tl-color-tooltip);
+	will-change: opacity;
+}
+
+.tl-ui [data-radix-popper-content-wrapper]:has(.tl-tooltip) {
+	z-index: var(--tl-layer-toasts) !important;
+	pointer-events: none;
+}

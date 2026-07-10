@@ -1,5 +1,7 @@
+import { TldrawUiButton } from '@tldraw/ui'
 import { useRef } from 'react'
-import { createShapeId, Tldraw, TldrawUiButton, useEditor } from 'tldraw'
+import { createShapeId, Tldraw, useEditor } from 'tldraw'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import 'tldraw/tldraw.css'
 import './align-and-distribute-shapes.css'
 
@@ -21,58 +23,60 @@ function ControlPanel({
 	const editor = useEditor()
 
 	return (
-		<div className="tlui-menu control-panel">
-			{ALIGN_OPERATIONS.map(({ operation, label }) => (
-				<TldrawUiButton
-					type="normal"
-					key={operation}
-					onClick={() => {
-						// [2]
-						const selectedIds = editor.getSelectedShapeIds()
-						if (selectedIds.length > 1) {
-							editor.alignShapes(selectedIds, operation)
-						}
-					}}
-				>
-					{label}
-				</TldrawUiButton>
-			))}
-			{DISTRIBUTE_OPERATIONS.map(({ operation, label }) => (
-				<TldrawUiButton
-					type="normal"
-					key={operation}
-					onClick={() => {
-						// [4]
-						const selectedIds = editor.getSelectedShapeIds()
-						if (selectedIds.length > 2) {
-							editor.distributeShapes(selectedIds, operation)
-						}
-					}}
-				>
-					{label}
-				</TldrawUiButton>
-			))}
-			<TldrawUiButton
-				type="normal"
-				onClick={() => {
-					const shapes = editor.getCurrentPageShapes()
-					editor.run(() => {
-						for (const shape of shapes) {
-							const originalPos = originalPositions.current?.get(shape.id)
-							if (originalPos) {
-								editor.updateShape({
-									...shape,
-									x: originalPos.x,
-									y: originalPos.y,
-								})
+		<ExampleTldrawUiProvider>
+			<div className="tl-menu control-panel">
+				{ALIGN_OPERATIONS.map(({ operation, label }) => (
+					<TldrawUiButton
+						type="normal"
+						key={operation}
+						onClick={() => {
+							// [2]
+							const selectedIds = editor.getSelectedShapeIds()
+							if (selectedIds.length > 1) {
+								editor.alignShapes(selectedIds, operation)
 							}
-						}
-					})
-				}}
-			>
-				Reset positions
-			</TldrawUiButton>
-		</div>
+						}}
+					>
+						{label}
+					</TldrawUiButton>
+				))}
+				{DISTRIBUTE_OPERATIONS.map(({ operation, label }) => (
+					<TldrawUiButton
+						type="normal"
+						key={operation}
+						onClick={() => {
+							// [4]
+							const selectedIds = editor.getSelectedShapeIds()
+							if (selectedIds.length > 2) {
+								editor.distributeShapes(selectedIds, operation)
+							}
+						}}
+					>
+						{label}
+					</TldrawUiButton>
+				))}
+				<TldrawUiButton
+					type="normal"
+					onClick={() => {
+						const shapes = editor.getCurrentPageShapes()
+						editor.run(() => {
+							for (const shape of shapes) {
+								const originalPos = originalPositions.current?.get(shape.id)
+								if (originalPos) {
+									editor.updateShape({
+										...shape,
+										x: originalPos.x,
+										y: originalPos.y,
+									})
+								}
+							}
+						})
+					}}
+				>
+					Reset positions
+				</TldrawUiButton>
+			</div>
+		</ExampleTldrawUiProvider>
 	)
 }
 

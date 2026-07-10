@@ -1,8 +1,7 @@
 import { useAuth } from '@clerk/clerk-react'
+import { TldrawUiButton, TldrawUiIcon } from '@tldraw/ui'
 import {
 	PORTRAIT_BREAKPOINT,
-	TldrawUiButton,
-	TldrawUiIcon,
 	useBreakpoint,
 	useEditor,
 	useLocalStorageState,

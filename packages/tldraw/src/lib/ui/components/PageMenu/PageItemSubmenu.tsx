@@ -1,17 +1,17 @@
 import { PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
-import { useCallback } from 'react'
-import { useUiEvents } from '../../context/events'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
-import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
 import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-} from '../primitives/TldrawUiDropdownMenu'
+} from '@tldraw/ui'
+import { useCallback } from 'react'
+import { useUiEvents } from '../../context/events'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
+import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { onMovePage } from './edit-pages-shared'
 /** @public */
 export interface PageItemSubmenuProps {

@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -7,10 +6,9 @@ import {
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-	useDialogs,
-	useEditor,
-	useValue,
-} from 'tldraw'
+} from '@tldraw/ui'
+import { useEffect, useState } from 'react'
+import { useDialogs, useEditor, useValue } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { F } from '../../../utils/i18n'
 

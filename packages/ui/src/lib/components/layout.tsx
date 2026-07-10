@@ -1,0 +1,104 @@
+import classNames from 'classnames'
+import { Slot } from 'radix-ui'
+import { HTMLAttributes, ReactNode, createContext, forwardRef, useContext } from 'react'
+
+/** @public */
+export interface TldrawUiOrientationContext {
+	orientation: 'horizontal' | 'vertical'
+	tooltipSide: 'top' | 'right' | 'bottom' | 'left'
+}
+
+const TldrawUiOrientationContext = createContext<TldrawUiOrientationContext>({
+	orientation: 'horizontal',
+	tooltipSide: 'bottom',
+})
+
+/** @public */
+export interface TldrawUiOrientationProviderProps {
+	children: ReactNode
+	orientation: 'horizontal' | 'vertical'
+	tooltipSide?: 'top' | 'right' | 'bottom' | 'left'
+}
+
+/** @public @react */
+export function TldrawUiOrientationProvider({
+	children,
+	orientation,
+	tooltipSide,
+}: TldrawUiOrientationProviderProps) {
+	const prevContext = useTldrawUiOrientation()
+	const tooltipSideToUse =
+		tooltipSide ??
+		(orientation === prevContext.orientation
+			? prevContext.tooltipSide
+			: orientation === 'horizontal'
+				? 'bottom'
+				: 'right')
+
+	return (
+		<TldrawUiOrientationContext.Provider value={{ orientation, tooltipSide: tooltipSideToUse }}>
+			{children}
+		</TldrawUiOrientationContext.Provider>
+	)
+}
+
+/** @public */
+export function useTldrawUiOrientation(): TldrawUiOrientationContext {
+	return useContext(TldrawUiOrientationContext)
+}
+
+/** @public */
+export interface TldrawUiLayoutProps extends HTMLAttributes<HTMLDivElement> {
+	children: ReactNode
+	tooltipSide?: 'top' | 'right' | 'bottom' | 'left'
+	asChild?: boolean
+}
+
+/**
+ * A row, usually of UI controls like buttons, select dropdown, checkboxes, etc.
+ *
+ * @public @react
+ */
+export const TldrawUiRow = forwardRef<HTMLDivElement, TldrawUiLayoutProps>(
+	({ asChild, className, tooltipSide, ...props }, ref) => {
+		const Component = asChild ? Slot.Root : 'div'
+		return (
+			<TldrawUiOrientationProvider orientation="horizontal" tooltipSide={tooltipSide}>
+				<Component ref={ref} className={classNames('tl-row', className)} {...props} />
+			</TldrawUiOrientationProvider>
+		)
+	}
+)
+
+/**
+ * A column, usually of UI controls like buttons, select dropdown, checkboxes, etc.
+ *
+ * @public @react
+ */
+export const TldrawUiColumn = forwardRef<HTMLDivElement, TldrawUiLayoutProps>(
+	({ asChild, className, tooltipSide, ...props }, ref) => {
+		const Component = asChild ? Slot.Root : 'div'
+		return (
+			<TldrawUiOrientationProvider orientation="vertical" tooltipSide={tooltipSide}>
+				<Component ref={ref} className={classNames('tl-column', className)} {...props} />
+			</TldrawUiOrientationProvider>
+		)
+	}
+)
+
+/**
+ * A tight grid 4 elements wide, usually of UI controls like buttons, select dropdown, checkboxes,
+ * etc.
+ *
+ * @public @react
+ */
+export const TldrawUiGrid = forwardRef<HTMLDivElement, TldrawUiLayoutProps>(
+	({ asChild, className, tooltipSide, ...props }, ref) => {
+		const Component = asChild ? Slot.Root : 'div'
+		return (
+			<TldrawUiOrientationProvider orientation="horizontal" tooltipSide={tooltipSide}>
+				<Component ref={ref} className={classNames('tl-grid', className)} {...props} />
+			</TldrawUiOrientationProvider>
+		)
+	}
+)

@@ -70,7 +70,7 @@
 	text-align: right;
 }
 
-.attribution-timeline-controls .tlui-slider__container {
+.attribution-timeline-controls .tl-slider__container {
 	flex: 1;
 }
 
@@ -96,6 +96,6 @@
 	border-radius: 50%;
 }
 
-.tlui-button .attribution-timeline-dot {
+.tl-button .attribution-timeline-dot {
 	margin-right: 4px;
 }

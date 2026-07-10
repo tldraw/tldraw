@@ -1,4 +1,6 @@
-import { Box, createShapeId, Tldraw, TldrawUiButton, useEditor } from 'tldraw'
+import { TldrawUiButton } from '@tldraw/ui'
+import { Box, createShapeId, Tldraw, useEditor } from 'tldraw'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import './zoom-to-bounds.css'
 
 export default function ZoomToBoundsExample() {
@@ -40,36 +42,38 @@ export default function ZoomToBoundsExample() {
 					TopPanel: () => {
 						const editor = useEditor()
 						return (
-							<div className="tlui-menu control-panel">
-								<TldrawUiButton
-									type="normal"
-									// Zoom to bounds!
-									onClick={() => editor.zoomToBounds(zoomBox1, { inset: 72 })}
-								>
-									Zoom to violet box
-								</TldrawUiButton>
-								<TldrawUiButton
-									type="normal"
-									// Zoom to bounds!
-									onClick={() =>
-										editor.zoomToBounds(zoomBox2, { inset: 72, animation: { duration: 200 } })
-									}
-								>
-									Zoom to blue box
-								</TldrawUiButton>
-								<TldrawUiButton
-									type="normal"
-									// Zoom to bounds!
-									onClick={() =>
-										editor.zoomToBounds(Box.Common([zoomBox1, zoomBox2]), {
-											inset: 200,
-											animation: { duration: 200 },
-										})
-									}
-								>
-									Zoom to both boxes
-								</TldrawUiButton>
-							</div>
+							<ExampleTldrawUiProvider>
+								<div className="tl-menu control-panel">
+									<TldrawUiButton
+										type="normal"
+										// Zoom to bounds!
+										onClick={() => editor.zoomToBounds(zoomBox1, { inset: 72 })}
+									>
+										Zoom to violet box
+									</TldrawUiButton>
+									<TldrawUiButton
+										type="normal"
+										// Zoom to bounds!
+										onClick={() =>
+											editor.zoomToBounds(zoomBox2, { inset: 72, animation: { duration: 200 } })
+										}
+									>
+										Zoom to blue box
+									</TldrawUiButton>
+									<TldrawUiButton
+										type="normal"
+										// Zoom to bounds!
+										onClick={() =>
+											editor.zoomToBounds(Box.Common([zoomBox1, zoomBox2]), {
+												inset: 200,
+												animation: { duration: 200 },
+											})
+										}
+									>
+										Zoom to both boxes
+									</TldrawUiButton>
+								</div>
+							</ExampleTldrawUiProvider>
 						)
 					},
 				}}

@@ -1,10 +1,10 @@
 import { tlenv, useContainer, useEditor, useReactor, useValue } from '@tldraw/editor'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
 import classNames from 'classnames'
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
 import { SkipToMainContent } from './components/A11y'
-import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
 import { PORTRAIT_BREAKPOINT, PORTRAIT_BREAKPOINTS } from './constants'
 import { useActions } from './context/actions'
 import { useBreakpoint } from './context/breakpoints'
@@ -182,7 +182,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 
 	return (
 		<div
-			className={classNames('tlui-layout', {
+			className={classNames('tl-ui', 'tlui-layout', {
 				'tlui-layout__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 			})}
 			// The outer editor container has role="application" so that desktop screen readers treat

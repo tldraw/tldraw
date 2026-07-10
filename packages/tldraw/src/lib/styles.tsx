@@ -6,12 +6,12 @@ import {
 	type TLThemeColors,
 	type TLThemeFont,
 } from '@tldraw/editor'
-import { TLUiIconJsx } from './ui/components/primitives/TldrawUiIcon'
+import { TldrawUiIconJsx } from '@tldraw/ui'
 
 /** @public */
 export type StyleValuesForUi<T> = readonly {
 	readonly value: T
-	readonly icon: string | TLUiIconJsx
+	readonly icon: string | TldrawUiIconJsx
 }[]
 
 function isPaletteColor(value: unknown): boolean {
@@ -89,8 +89,8 @@ export function getFontStyleItems(theme: TLTheme): StyleValuesForUi<string> {
 	return result
 }
 
-function fontIcon(font: TLThemeFont, name: string): string | TLUiIconJsx {
-	if (font.icon != null) return font.icon as string | TLUiIconJsx
+function fontIcon(font: TLThemeFont, name: string): string | TldrawUiIconJsx {
+	if (font.icon != null) return font.icon as string | TldrawUiIconJsx
 	return defaultFontIcons[name] ?? 'font-draw'
 }
 

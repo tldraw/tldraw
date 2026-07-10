@@ -1,10 +1,10 @@
+import { TldrawUiColumn, TldrawUiGrid, TldrawUiRow, useTldrawUiOrientation } from '@tldraw/ui'
+import { TldrawUiDropdownMenuGroup } from '@tldraw/ui'
 import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
-import { TldrawUiColumn, TldrawUiGrid, TldrawUiRow, useTldrawUiOrientation } from '../layout'
-import { TldrawUiDropdownMenuGroup } from '../TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */

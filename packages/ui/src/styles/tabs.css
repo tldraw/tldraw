@@ -1,0 +1,79 @@
+/* @tldraw/ui tabs */
+
+.tl-ui .tl-tabs__tabs {
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	position: relative;
+	overflow-x: auto;
+	flex: 1;
+	--tab-padding: var(--tl-space-4);
+	--tl-line-height: 2px;
+}
+
+.tl-ui .tl-tabs__tab {
+	background: none;
+	border: none;
+	position: relative;
+	cursor: pointer;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	padding: var(--tab-padding);
+	color: var(--tl-color-text-0);
+	font-size: 12px;
+}
+
+.tl-ui .tl-tabs__tab::after {
+	content: '';
+	display: block;
+	position: absolute;
+	bottom: 0px;
+	left: var(--tab-padding);
+	right: var(--tab-padding);
+	height: var(--tl-line-height);
+	z-index: 3;
+	background-color: var(--tl-color-text-0);
+	visibility: hidden;
+}
+
+.tl-ui .tl-tabs__tab:disabled {
+	cursor: default;
+}
+
+.tl-ui .tl-tabs__tab--active,
+.tl-ui .tl-tabs__tab[data-active='true'] {
+	color: var(--tl-color-text-0);
+	z-index: 2;
+}
+
+.tl-ui .tl-tabs__tab--active::after,
+.tl-ui .tl-tabs__tab[data-active='true']::after {
+	visibility: visible;
+}
+
+.tl-ui .tl-tabs__tab:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: -5px;
+	border-radius: 10px;
+}
+
+@media (hover: hover) {
+	.tl-ui .tl-tabs__tab:not(:disabled):hover {
+		color: var(--tl-color-text-0);
+	}
+}
+
+.tl-ui .tl-tabs__tab:nth-of-type(n + 2) {
+	margin-left: var(--tabs-tab-gap, calc(var(--tab-padding) * -0.5));
+}
+
+.tl-ui .tl-tabs__line {
+	position: absolute;
+	bottom: 0px;
+	left: var(--tab-padding);
+	right: var(--tab-padding);
+	height: var(--tl-line-height);
+	background-color: var(--tl-color-low);
+}

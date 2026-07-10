@@ -1,0 +1,32 @@
+/* @tldraw/ui kbd */
+
+.tl-ui .tl-kbd {
+	font-family: inherit;
+	font-size: 11px;
+	line-height: 11px;
+	display: grid;
+	justify-items: center;
+	grid-auto-flow: column;
+	grid-template-columns: auto;
+	grid-auto-columns: minmax(1em, auto);
+	align-self: bottom;
+	color: currentColor;
+	margin-inline-start: var(--tl-space-4);
+}
+
+.tl-ui .tl-kbd > span {
+	width: 100%;
+	text-align: center;
+	display: inline;
+	margin: 0px;
+	padding: 2px;
+	border-radius: 2px;
+}
+
+.tl-ui .tl-kbd > span:last-child {
+	padding-inline-end: 0;
+}
+
+.tl-ui .tl-kbd:not(:last-child) {
+	margin-inline-end: var(--tl-space-2);
+}

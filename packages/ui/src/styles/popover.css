@@ -1,0 +1,32 @@
+/* @tldraw/ui popover */
+
+.tl-ui .tl-popover {
+	position: relative;
+	display: flex;
+	align-content: stretch;
+}
+
+.tl-ui [data-radix-popper-content-wrapper]:has(.tl-popover__content) {
+	z-index: var(--tl-layer-menus) !important;
+}
+
+.tl-ui .tl-popover__content {
+	position: relative;
+	max-height: calc(var(--radix-popover-content-available-height) - 8px);
+	margin: 0px;
+	border: none;
+	border-radius: var(--tl-radius-3);
+	background-color: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-3);
+	z-index: var(--tl-layer-menus);
+	overflow: hidden;
+	overflow-y: auto;
+	touch-action: auto;
+	overscroll-behavior: none;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+
+.tl-ui .tl-popover__content::-webkit-scrollbar {
+	display: none;
+}

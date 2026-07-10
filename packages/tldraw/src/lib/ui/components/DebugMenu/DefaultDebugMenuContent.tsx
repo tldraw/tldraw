@@ -10,24 +10,24 @@ import {
 	uniqueId,
 	useEditor,
 } from '@tldraw/editor'
-import React from 'react'
-import { useDialogs } from '../../context/dialogs'
-import { useToasts } from '../../context/toasts'
-import { untranslated } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonCheck } from '../primitives/Button/TldrawUiButtonCheck'
-import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
-import { TldrawUiMenuCheckboxItem } from '../primitives/menus/TldrawUiMenuCheckboxItem'
-import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
-import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonCheck } from '@tldraw/ui'
+import { TldrawUiButtonLabel } from '@tldraw/ui'
 import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
-} from '../primitives/TldrawUiDialog'
+} from '@tldraw/ui'
+import React from 'react'
+import { useDialogs } from '../../context/dialogs'
+import { useToasts } from '../../context/toasts'
+import { untranslated } from '../../hooks/useTranslation/useTranslation'
+import { TldrawUiMenuCheckboxItem } from '../primitives/menus/TldrawUiMenuCheckboxItem'
+import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
+import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
+import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 
 /** @public */
 export interface CustomDebugFlags {

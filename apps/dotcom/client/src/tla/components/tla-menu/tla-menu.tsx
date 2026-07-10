@@ -1,21 +1,24 @@
-import classNames from 'classnames'
-import { Select as _Select } from 'radix-ui'
 import {
-	ChangeEvent,
-	createContext,
-	HTMLAttributes,
-	ReactNode,
-	useCallback,
-	useContext,
-} from 'react'
-import { TldrawUiButton, TldrawUiIcon, TldrawUiTooltip, useContainer } from 'tldraw'
-import { defineMessages, useMsg } from '../../utils/i18n'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
+	TldrawUiMenuControl,
+	TldrawUiMenuControlGroup,
+	TldrawUiMenuControlInfoTooltip,
+	TldrawUiMenuControlLabel,
+	TldrawUiMenuDetail,
+	TldrawUiMenuSection,
+	TldrawUiSelect,
+	TldrawUiSelectContent,
+	TldrawUiSelectItem,
+	TldrawUiSelectTrigger,
+	TldrawUiSelectValue,
+	TldrawUiSwitch,
+	TldrawUiTabsPage,
+	TldrawUiTabsRoot,
+	TldrawUiTabsTab,
+	TldrawUiTabsTabs,
+	TldrawUiTooltip,
+} from '@tldraw/ui'
+import { HTMLAttributes, ReactNode, useCallback } from 'react'
 import styles from './menu.module.css'
-
-const messages = defineMessages({
-	help: { defaultMessage: 'Help' },
-})
 
 /**
  * Shared positioning for tla dropdowns, popovers, and selects so they sit consistently
@@ -30,89 +33,22 @@ export const TLA_MENU_POSITION = {
 } as const
 
 // Used to section areas of the menu, ie links vs snapshots
-export function TlaMenuSection({ children }: { children: ReactNode }) {
-	return <div className={styles.menuSection}>{children}</div>
-}
+export { TldrawUiMenuSection as TlaMenuSection }
 
 // Used to group together adjacent controls, ie switches or selects
-export function TlaMenuControlGroup({ children }: { children: ReactNode }) {
-	return <div className={styles.menuControlGroup}>{children}</div>
-}
+export { TldrawUiMenuControlGroup as TlaMenuControlGroup }
 
 // A row for a single control, usually label + input
-export function TlaMenuControl({
-	children,
-	title,
-	className,
-}: {
-	children: ReactNode
-	title?: string
-	className?: string
-}) {
-	return (
-		<div className={classNames('tla-control', styles.menuControlRow, className)} title={title}>
-			{children}
-		</div>
-	)
-}
+export { TldrawUiMenuControl as TlaMenuControl }
 
 // An info button for a single control
-export function TlaMenuControlInfoTooltip({
-	href,
-	children,
-	onClick,
-	showOnMobile,
-}: {
-	href?: string
-	onClick?(): void
-	children: ReactNode
-	showOnMobile?: boolean
-}) {
-	const helpMsg = useMsg(messages.help)
-
-	return (
-		<div className={styles.menuInfoTriggerContainer}>
-			<TldrawUiTooltip content={children} showOnMobile={showOnMobile} delayDuration={0}>
-				{href ? (
-					<a
-						onClick={onClick}
-						href={href}
-						target="_blank nofollow noreferrer"
-						className={styles.menuInfoTrigger}
-					>
-						<TldrawUiIcon label={helpMsg} icon="help-circle" small />
-					</a>
-				) : (
-					<TldrawUiButton type="icon" className={styles.menuInfoTrigger}>
-						<TldrawUiIcon label={helpMsg} icon="help-circle" small />
-					</TldrawUiButton>
-				)}
-			</TldrawUiTooltip>
-		</div>
-	)
-}
+export { TldrawUiMenuControlInfoTooltip as TlaMenuControlInfoTooltip }
 
 // A label for a control
-export function TlaMenuControlLabel({
-	children,
-	htmlFor,
-}: {
-	children: ReactNode
-	htmlFor: string
-}) {
-	return (
-		<label className={classNames(styles.menuLabel, 'tla-text_ui__medium')} htmlFor={htmlFor}>
-			{children}
-		</label>
-	)
-}
+export { TldrawUiMenuControlLabel as TlaMenuControlLabel }
 
 // A detail
-export function TlaMenuDetail({ children }: { children: ReactNode }) {
-	return (
-		<div className={classNames(styles.menuDetailCentered, 'tla-text_ui__small')}>{children}</div>
-	)
-}
+export { TldrawUiMenuDetail as TlaMenuDetail }
 
 /* --------------------- Select --------------------- */
 
@@ -145,7 +81,6 @@ export function TlaMenuSelect<T extends string>({
 	}[]
 	'data-testid'?: string
 }) {
-	const container = useContainer()
 	const handleChange = useCallback(
 		(value: string) => {
 			const action = actions?.find((a) => a.id === value)
@@ -160,114 +95,85 @@ export function TlaMenuSelect<T extends string>({
 
 	return (
 		<div className={styles.menuSelectWrapper}>
-			<_Select.Root value={value} onValueChange={handleChange}>
-				<_Select.Trigger
+			<TldrawUiSelect
+				id={`${id}-menu`}
+				value={value}
+				onValueChange={handleChange}
+				disabled={disabled}
+				aria-label={label}
+			>
+				<TldrawUiSelectTrigger
 					id={id}
 					className={styles.menuSelectTrigger}
-					disabled={disabled}
-					aria-label={label}
 					data-testid={dataTestId}
 				>
-					<_Select.Value asChild>
-						<div className={styles.menuSelectLabel}>{label}</div>
-					</_Select.Value>
-					<_Select.Icon>
-						<TlaIcon icon="chevron-down" className={styles.menuSelectChevron} />
-					</_Select.Icon>
-				</_Select.Trigger>
-				<_Select.Portal container={container}>
-					<_Select.Content
-						className={styles.menuSelectContent}
-						position="popper"
-						side="bottom"
-						align="end"
-						{...TLA_MENU_POSITION}
-					>
-						<_Select.Viewport>
-							{options.map((option) => (
-								<_Select.Item
-									key={option.value}
-									className={styles.menuSelectOption}
-									value={option.value}
-									disabled={option.disabled}
-								>
-									<_Select.ItemIndicator>
-										<TlaIcon icon="check" />
-									</_Select.ItemIndicator>
-									<_Select.ItemText>{option.label}</_Select.ItemText>
-								</_Select.Item>
-							))}
-							{actions && actions.length > 0 && (
-								<>
-									<_Select.Separator className={styles.menuSelectSeparator} />
-									{actions.map((action) => {
-										const item = (
-											<_Select.Item
-												key={action.id}
-												className={classNames(
-													styles.menuSelectOption,
-													action.destructive && styles.menuSelectOptionDestructive
-												)}
-												value={action.id}
-												disabled={action.disabled}
-											>
-												<_Select.ItemText>{action.label}</_Select.ItemText>
-											</_Select.Item>
-										)
-										if (!action.tooltip) return item
-										return (
-											<TldrawUiTooltip key={action.id} content={action.tooltip}>
-												{item}
-											</TldrawUiTooltip>
-										)
-									})}
-								</>
-							)}
-						</_Select.Viewport>
-					</_Select.Content>
-				</_Select.Portal>
-			</_Select.Root>
+					<TldrawUiSelectValue>{label}</TldrawUiSelectValue>
+				</TldrawUiSelectTrigger>
+				<TldrawUiSelectContent className={styles.menuSelectContent} side="bottom" align="end">
+					{options.map((option) => (
+						<TldrawUiSelectItem
+							key={option.value}
+							value={option.value}
+							label={option.label}
+							disabled={option.disabled}
+							className={styles.menuSelectOption}
+						/>
+					))}
+					{actions && actions.length > 0 && (
+						<>
+							<div className={styles.menuSelectSeparator} role="separator" />
+							{actions.map((action) => {
+								const item = (
+									<TldrawUiSelectItem
+										key={action.id}
+										value={action.id}
+										label={action.label}
+										disabled={action.disabled}
+										destructive={action.destructive}
+										className={styles.menuSelectOption}
+									/>
+								)
+								if (!action.tooltip) return item
+								return (
+									<TldrawUiTooltip key={action.id} content={action.tooltip}>
+										{item}
+									</TldrawUiTooltip>
+								)
+							})}
+						</>
+					)}
+				</TldrawUiSelectContent>
+			</TldrawUiSelect>
 		</div>
 	)
 }
 
 /* --------------------- Switch --------------------- */
 
-interface TlaMenuSwitchProps extends Omit<HTMLAttributes<HTMLInputElement>, 'onChange'> {
+interface TlaMenuSwitchProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
 	id: string
 	checked: boolean
 	onChange?(checked: boolean): void
 	disabled?: boolean
 }
 
-export function TlaMenuSwitch({ id, checked, onChange, disabled, ...rest }: TlaMenuSwitchProps) {
-	const handleChange = useCallback(
-		(e: ChangeEvent<HTMLInputElement>) => {
-			onChange?.(e.currentTarget.checked)
-		},
-		[onChange]
-	)
-
+export function TlaMenuSwitch({
+	id,
+	checked,
+	onChange,
+	disabled,
+	'aria-label': ariaLabel,
+	...props
+}: TlaMenuSwitchProps) {
 	return (
-		<div
-			className={classNames(
-				'tla-switch',
-				styles.menuSwitchContainer,
-				disabled && styles.menuSwitchDisabled
-			)}
-		>
-			<div className={styles.menuSwitch} data-checked={checked} />
-			<input
-				id={id}
-				name="shared"
-				disabled={disabled}
-				role="switch"
-				type="checkbox"
-				checked={checked}
-				onChange={handleChange}
-				{...rest}
-			/>
-		</div>
+		<TldrawUiSwitch
+			{...props}
+			id={id}
+			checked={checked}
+			onCheckedChange={onChange}
+			disabled={disabled}
+			label={ariaLabel}
+		/>
 	)
 }
 
@@ -286,61 +192,7 @@ This is a set of primitives for creating tabs in the UI. Structure is:
 </Root>
 */
 
-interface TlaMenuTabsContext {
-	activeTab: string
-	onTabChange(tab: string): void
-}
-
-const tabsContext = createContext({} as TlaMenuTabsContext)
-
-export function TlaMenuTabsRoot({
-	activeTab,
-	onTabChange,
-	children,
-}: TlaMenuTabsContext & { children: ReactNode }) {
-	return <tabsContext.Provider value={{ activeTab, onTabChange }}>{children}</tabsContext.Provider>
-}
-
-export function TlaMenuTabsTabs({ children }: { children: ReactNode }) {
-	return (
-		<div className={styles.menuTabsTabs} role="tablist">
-			{children}
-			<div className={styles.menuTabsLine} />
-		</div>
-	)
-}
-
-export function TlaMenuTabsTab({
-	id,
-	disabled = false,
-	...props
-}: {
-	id: string
-	disabled?: boolean
-	children: ReactNode
-} & HTMLAttributes<HTMLButtonElement>) {
-	const { activeTab, onTabChange } = useContext(tabsContext)
-
-	const handleClick = useCallback(() => {
-		onTabChange(id)
-	}, [onTabChange, id])
-
-	return (
-		<button
-			className={classNames(styles.menuTabsTab, 'tla-text_ui__medium')}
-			data-active={activeTab === id}
-			onClick={handleClick}
-			disabled={disabled}
-			aria-selected={activeTab === id}
-			aria-controls={`tla-tabpanel-${id}`}
-			role="tab"
-			{...props}
-		/>
-	)
-}
-
-export function TlaMenuTabsPage({ id, ...props }: { id: string } & HTMLAttributes<HTMLDivElement>) {
-	const { activeTab } = useContext(tabsContext)
-	if (activeTab !== id) return null
-	return <div id={`tla-tabpanel-${id}`} role="tabpanel" {...props} />
-}
+export { TldrawUiTabsRoot as TlaMenuTabsRoot }
+export { TldrawUiTabsTabs as TlaMenuTabsTabs }
+export { TldrawUiTabsTab as TlaMenuTabsTab }
+export { TldrawUiTabsPage as TlaMenuTabsPage }

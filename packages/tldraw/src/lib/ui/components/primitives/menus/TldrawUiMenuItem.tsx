@@ -7,6 +7,14 @@ import {
 	Vec,
 	VecModel,
 } from '@tldraw/editor'
+import { TldrawUiButton } from '@tldraw/ui'
+import { TldrawUiButtonIcon } from '@tldraw/ui'
+import { TldrawUiButtonLabel } from '@tldraw/ui'
+import { TldrawUiDropdownMenuItem } from '@tldraw/ui'
+import { TldrawUiIconJsx } from '@tldraw/ui'
+import { TldrawUiKbd } from '@tldraw/ui'
+import { TldrawUiToolbarButton } from '@tldraw/ui'
+import { hideAllTldrawUiTooltips } from '@tldraw/ui'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { useMemo, useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
@@ -17,14 +25,6 @@ import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslatio
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../../kbd-utils'
 import { Spinner } from '../../Spinner'
-import { TldrawUiButton } from '../Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../Button/TldrawUiButtonIcon'
-import { TldrawUiButtonLabel } from '../Button/TldrawUiButtonLabel'
-import { TldrawUiDropdownMenuItem } from '../TldrawUiDropdownMenu'
-import { TLUiIconJsx } from '../TldrawUiIcon'
-import { TldrawUiKbd } from '../TldrawUiKbd'
-import { TldrawUiToolbarButton } from '../TldrawUiToolbar'
-import { hideAllTooltips } from '../TldrawUiTooltip'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
@@ -36,11 +36,11 @@ export interface TLUiMenuItemProps<
 	/**
 	 * The icon to display on the item. Icons are only shown in certain menu types.
 	 */
-	icon?: IconType | TLUiIconJsx
+	icon?: IconType | TldrawUiIconJsx
 	/**
 	 * An icon to display to the left of the menu item.
 	 */
-	iconLeft?: IconType | TLUiIconJsx
+	iconLeft?: IconType | TldrawUiIconJsx
 	/**
 	 * The keyboard shortcut to display on the item.
 	 */
@@ -363,7 +363,7 @@ function useDraggableEvents(
 							point: screenSpaceStart,
 						})
 
-						hideAllTooltips()
+						hideAllTldrawUiTooltips()
 						editor.getContainer().focus()
 					})
 				}

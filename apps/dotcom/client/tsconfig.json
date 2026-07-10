@@ -27,6 +27,7 @@
 		{ "path": "../../../packages/sync" },
 		{ "path": "../../../packages/sync-core" },
 		{ "path": "../../../packages/tldraw" },
+		{ "path": "../../../packages/ui" },
 		{ "path": "../../../packages/utils" },
 		{ "path": "../../../packages/validate" }
 	]

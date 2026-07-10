@@ -1,3 +1,4 @@
+import { TldrawUiButton, TldrawUiButtonLabel } from '@tldraw/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	DEFAULT_THEME,
@@ -8,11 +9,10 @@ import {
 	TLThemes,
 	TLUiOverrides,
 	Tldraw,
-	TldrawUiButton,
-	TldrawUiButtonLabel,
 	toRichText,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ExampleTldrawUiProvider } from '../../../misc/ExampleTldrawUiProvider'
 import silkscreenBoldUrl from './custom-font/Silkscreen-Bold.ttf'
 import silkscreenRegularUrl from './custom-font/Silkscreen-Regular.ttf'
 import './custom-theme.css'
@@ -276,46 +276,48 @@ function ThemeControls({
 	onStrokeWidthChange(v: number): void
 }) {
 	return (
-		<div className="tlui-menu custom-theme-toolbar" onPointerDown={(e) => e.stopPropagation()}>
-			<ThemeSlider
-				label="Font size"
-				value={fontSize}
-				onChange={onFontSizeChange}
-				min={8}
-				max={32}
-				step={1}
-				defaultValue={DEFAULTS.fontSize}
-			/>
-			<ThemeSlider
-				label="Line height"
-				value={lineHeight}
-				onChange={onLineHeightChange}
-				min={1}
-				max={2}
-				step={0.05}
-				defaultValue={DEFAULTS.lineHeight}
-			/>
-			<ThemeSlider
-				label="Stroke width"
-				value={strokeWidth}
-				onChange={onStrokeWidthChange}
-				min={0.5}
-				max={6}
-				step={0.25}
-				defaultValue={DEFAULTS.strokeWidth}
-			/>
+		<ExampleTldrawUiProvider>
+			<div className="tl-menu custom-theme-toolbar" onPointerDown={(e) => e.stopPropagation()}>
+				<ThemeSlider
+					label="Font size"
+					value={fontSize}
+					onChange={onFontSizeChange}
+					min={8}
+					max={32}
+					step={1}
+					defaultValue={DEFAULTS.fontSize}
+				/>
+				<ThemeSlider
+					label="Line height"
+					value={lineHeight}
+					onChange={onLineHeightChange}
+					min={1}
+					max={2}
+					step={0.05}
+					defaultValue={DEFAULTS.lineHeight}
+				/>
+				<ThemeSlider
+					label="Stroke width"
+					value={strokeWidth}
+					onChange={onStrokeWidthChange}
+					min={0.5}
+					max={6}
+					step={0.25}
+					defaultValue={DEFAULTS.strokeWidth}
+				/>
 
-			<TldrawUiButton
-				type="low"
-				onClick={() => {
-					onFontSizeChange(DEFAULTS.fontSize)
-					onLineHeightChange(DEFAULTS.lineHeight)
-					onStrokeWidthChange(DEFAULTS.strokeWidth)
-				}}
-			>
-				<TldrawUiButtonLabel>Reset to defaults</TldrawUiButtonLabel>
-			</TldrawUiButton>
-		</div>
+				<TldrawUiButton
+					type="low"
+					onClick={() => {
+						onFontSizeChange(DEFAULTS.fontSize)
+						onLineHeightChange(DEFAULTS.lineHeight)
+						onStrokeWidthChange(DEFAULTS.strokeWidth)
+					}}
+				>
+					<TldrawUiButtonLabel>Reset to defaults</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</div>
+		</ExampleTldrawUiProvider>
 	)
 }
 
