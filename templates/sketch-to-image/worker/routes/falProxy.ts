@@ -70,10 +70,14 @@ export async function handleFalProxy(request: IRequest, env: Env): Promise<Respo
 	}
 	forwardHeaders.set('authorization', `Key ${falKey}`)
 
+	// Buffer the POST body before forwarding rather than piping `request.body`
+	// through as a stream — a fully-known body is a well-behaved subrequest.
+	const body = request.method === 'POST' ? await request.arrayBuffer() : undefined
+
 	const upstream = await fetch(parsed.toString(), {
 		method: request.method,
 		headers: forwardHeaders,
-		body: request.method === 'POST' ? request.body : undefined,
+		body,
 	})
 
 	const responseHeaders = new Headers()
@@ -82,7 +86,14 @@ export async function handleFalProxy(request: IRequest, env: Env): Promise<Respo
 		responseHeaders.set(key, value)
 	}
 
-	return new Response(upstream.body, {
+	// Buffer the upstream response before relaying it rather than passing
+	// `upstream.body` through as a stream. In sync mode fal returns a single
+	// complete JSON payload, so there's no streaming benefit, and returning a
+	// fully-read, fixed-length body is the most robust thing for the browser to
+	// consume — no half-flushed chunked stream for `response.json()` to wait on.
+	const responseBody = await upstream.arrayBuffer()
+
+	return new Response(responseBody, {
 		status: upstream.status,
 		statusText: upstream.statusText,
 		headers: responseHeaders,

@@ -9,7 +9,20 @@ import { FAL_PROXY_URL, REALTIME_MODEL } from '../constants'
 const MAX_TRANSIENT_RETRIES = 2
 const RETRY_BACKOFF_MS = 400
 
+/**
+ * How long to wait for a single fal request before giving up on it. LCM returns
+ * in well under a second, so anything past this is a stall — most often the
+ * Cloudflare Vite dev worker wedging on the outbound fetch to fal. Without this,
+ * a wedged request never rejects and the panel sticks on "Generating…" forever.
+ * On timeout we abort and retry (like a transient network error), then surface
+ * an error so the user can just click Generate again.
+ */
+const REQUEST_TIMEOUT_MS = 15000
+
 const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+
+/** Sentinel thrown when a request exceeds REQUEST_TIMEOUT_MS. */
+class TimeoutError extends Error {}
 
 /**
  * True when a fetch failed at the network level (the request never got an HTTP
@@ -21,6 +34,15 @@ const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
  */
 function isNetworkError(err: unknown): boolean {
 	return err instanceof TypeError
+}
+
+/**
+ * True when the caught error is our request timeout firing. The timeout aborts
+ * the controller with a `TimeoutError` reason, so the rejected fetch surfaces
+ * either that error directly or an AbortError whose `signal.reason` is it.
+ */
+function isTimeout(err: unknown, controller: AbortController): boolean {
+	return err instanceof TimeoutError || controller.signal.reason instanceof TimeoutError
 }
 
 /** The input we send to the LCM image-to-image model on each frame. */
@@ -89,7 +111,7 @@ export function createRealtimeConnection(handlers: RealtimeConnectionHandlers): 
 
 		// Cancel any request that is still in flight — its result is now stale.
 		inFlight?.abort()
-		const controller = new AbortController()
+		let controller = new AbortController()
 		inFlight = controller
 
 		// This frame is still the current one (not superseded, aborted, or closed).
@@ -101,6 +123,9 @@ export function createRealtimeConnection(handlers: RealtimeConnectionHandlers): 
 		// keep this bounded and short so it absorbs the cold-start window without
 		// masking genuine outages or stacking work behind a newer frame.
 		for (let attempt = 0; ; attempt++) {
+			// Give this attempt its own timeout that aborts the fetch. A wedged dev
+			// worker otherwise leaves the fetch pending forever.
+			const timeoutId = setTimeout(() => controller.abort(new TimeoutError()), REQUEST_TIMEOUT_MS)
 			try {
 				const response = await fetch(FAL_PROXY_URL, {
 					method: 'POST',
@@ -125,6 +150,21 @@ export function createRealtimeConnection(handlers: RealtimeConnectionHandlers): 
 				if (url) handlers.onResult(url)
 				return
 			} catch (err) {
+				// A timeout fired: the request stalled. Treat it as transient and
+				// retry on a fresh controller, since the old one is now aborted.
+				if (isTimeout(err, controller)) {
+					if (closed || requestId !== latestRequestId) return
+					if (attempt < MAX_TRANSIENT_RETRIES) {
+						const next = new AbortController()
+						inFlight = next
+						controller = next
+						await delay(RETRY_BACKOFF_MS * (attempt + 1))
+						if (!isCurrent()) return
+						continue
+					}
+					handlers.onError(new Error('fal request timed out — try Generate again.'))
+					return
+				}
 				// Aborted / superseded requests are expected when the user keeps
 				// drawing — drop them silently.
 				if (!isCurrent()) return
@@ -137,6 +177,8 @@ export function createRealtimeConnection(handlers: RealtimeConnectionHandlers): 
 				}
 				handlers.onError(err)
 				return
+			} finally {
+				clearTimeout(timeoutId)
 			}
 		}
 	}

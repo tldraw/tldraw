@@ -51,9 +51,18 @@ export const DEFAULTS = {
 	/**
 	 * How much the model is allowed to deviate from the sketch. Lower keeps the
 	 * result close to what you drew; higher leans on the prompt.
+	 *
+	 * We default high (near 1.0) because this panel exists to feed pose
+	 * detection: the sketch is usually a thin stick figure on a mostly-white
+	 * canvas, so a low strength anchors the model to that near-empty image and it
+	 * comes back washed-out white. At ~0.95 the model treats the sketch as loose
+	 * pose guidance and renders a real photograph of a person from the prompt —
+	 * which is what the (photo-trained) estimator can actually read. Strength is
+	 * free speed-wise: it changes how much of the sketch is kept, not the step
+	 * count, so the loop stays as fast as the 4-step model below.
 	 */
-	strength: 0.75,
-	/** LCM needs very few steps. */
+	strength: 0.95,
+	/** LCM needs very few steps — keep it at 4 so generation stays immediate. */
 	steps: 4,
 	guidanceScale: 1,
 	seed: 42,

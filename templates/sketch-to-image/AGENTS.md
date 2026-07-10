@@ -4,7 +4,7 @@ Guidance for AI coding agents working in this template. The repo-root `AGENTS.md
 
 ## What this is
 
-A realtime sketch-to-image generator built on the tldraw SDK and powered by [fal.ai](https://fal.ai), with prompts auto-written from the sketch by [Claude](https://www.anthropic.com). The user draws on a tldraw canvas; each edit is rasterized, described into an image prompt by Claude vision, and sent to an LCM image-to-image model, with the generated image updating live in a side panel. A secondary "Animate → video" action turns the current image into a short clip.
+A realtime sketch-to-image generator built on the tldraw SDK and powered by [fal.ai](https://fal.ai), with prompts auto-written from the sketch by [Claude](https://www.anthropic.com). The user draws on a tldraw canvas; each edit is rasterized, described into an image prompt by Claude vision, and sent to an LCM image-to-image model. The generated image feeds in-browser pose detection, so the side panel is focused on producing a photo the pose estimator can read. A pause/resume button stops all generation API calls while the user keeps drawing.
 
 It ships as a standalone starter template (a Vite app + a Cloudflare Worker), not as part of the SDK. Keep it self-contained and approachable — it is meant to be read and forked, so favor clarity over cleverness.
 
@@ -36,10 +36,10 @@ Two halves: a Vite React frontend (`src/`) and a Cloudflare Worker (`worker/`).
 
 **Worker** (`worker/`):
 
-- [worker.ts](worker/worker.ts) — itty-router with three routes: `/api/fal/proxy`, `/api/describe`, and `/api/animate`.
+- [worker.ts](worker/worker.ts) — itty-router with three routes: `/api/fal/proxy`, `/api/describe`, and `/api/pose`.
 - [routes/falProxy.ts](worker/routes/falProxy.ts) — validates the `x-fal-target-url` header points at an allowed fal host, injects `Authorization: Key <FAL_KEY>`, and relays the response. All realtime traffic flows through here.
 - [routes/describe.ts](worker/routes/describe.ts) — sends the sketch to Claude vision with `ANTHROPIC_API_KEY` injected server-side and returns a one-line prompt. This is what lets the user skip writing a prompt.
-- [routes/animate.ts](worker/routes/animate.ts) — the non-realtime image-to-video action (Seedance). Intentionally minimal: submits and waits synchronously. Production would move to fal's async queue with polling.
+- [routes/pose.ts](worker/routes/pose.ts) — reads a 2D pose from the sketch via Claude vision (same server-side-key discipline as describe).
 
 **Config** ([constants.ts](src/constants.ts)) — the model id, capture size, debounce (also the sketch-settle delay), and default controls live here as the primary customization surface.
 

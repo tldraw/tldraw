@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from 'tldraw'
-import { DEBOUNCE_MS, DEFAULTS, SAFE_NEGATIVE_PROMPT } from '../constants'
+import { DEFAULTS, SAFE_NEGATIVE_PROMPT } from '../constants'
 import { captureSketch } from './captureSketch'
 import { describeSketch } from './describeSketch'
 import { createRealtimeConnection, RealtimeConnection } from './falConnection'
@@ -14,7 +14,7 @@ export interface GenerationControls {
 	seed: number
 }
 
-export type GenerationStatus = 'idle' | 'describing' | 'generating' | 'error' | 'paused'
+export type GenerationStatus = 'idle' | 'describing' | 'generating' | 'error'
 
 export interface RealtimeGeneration {
 	/** The most recent generated image, as a URL (data URL in sync mode). */
@@ -23,38 +23,44 @@ export interface RealtimeGeneration {
 	error: string | null
 	controls: GenerationControls
 	setControls(update: Partial<GenerationControls>): void
-	/** Force a regeneration from the current sketch (e.g. after changing a control). */
-	regenerate(): void
-	/** Whether the realtime loop is paused. When paused, edits don't generate. */
-	isPaused: boolean
-	/** Pause or resume the realtime loop. Resuming regenerates from the current sketch. */
-	setPaused(paused: boolean): void
+	/**
+	 * Generate one image from the current sketch. This is the single trigger for
+	 * the whole pipeline: it captures the sketch, writes a prompt (in auto mode),
+	 * and generates the image the pose detector then reads. Wired to the
+	 * "Generate Pose" button. Ignored while a generation is already in flight, so
+	 * a double-click can't run two overlapping passes.
+	 */
+	generate(): void
+	/** True while a generation is running, so the button can disable itself. */
+	isGenerating: boolean
 	/**
 	 * Whether the prompt is being written automatically from the sketch (true),
 	 * or the user has taken it over by typing (false). Typing pins the prompt;
 	 * `resetPromptToAuto` hands it back to the describer.
 	 */
 	promptIsAuto: boolean
-	/** Re-enable automatic prompt generation and describe the current sketch now. */
+	/** Re-enable automatic prompt generation for the next generation. */
 	resetPromptToAuto(): void
 }
 
 /**
- * Drives the realtime sketch-to-image loop.
+ * Drives one-shot sketch-to-image generation for the pose pipeline.
  *
- * It opens a warm fal realtime connection, then watches the editor for changes.
- * On each change (debounced) it rasterizes the sketch and sends it to the model,
- * updating `resultUrl` as frames stream back. Changing a control re-sends the
- * current sketch with the new parameters.
+ * It opens a warm fal connection once, then does nothing until `generate()` is
+ * called (by the "Generate Pose" button). Each call rasterizes the current
+ * sketch, writes a prompt from it (in auto mode), and generates a single image
+ * — which the pose detector reads to produce the skeleton overlay. There is no
+ * continuous loop: exactly one generation runs per click, and calls are ignored
+ * while one is already in flight, so two passes can never run at once.
  */
 export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration {
 	const [resultUrl, setResultUrl] = useState<string | null>(null)
-	// Start paused: nothing generates (neither the prompt nor the image) until the
-	// user presses play. The pause guard in `sendFrame` sits before the describe
-	// call, so a single flag holds back both.
-	const [status, setStatus] = useState<GenerationStatus>('paused')
+	const [status, setStatus] = useState<GenerationStatus>('idle')
 	const [error, setError] = useState<string | null>(null)
-	const [isPaused, setIsPaused] = useState(true)
+	// True only while a generation is in flight. Used both to disable the button
+	// and to drop a second `generate()` so two passes never overlap.
+	const [isGenerating, setIsGenerating] = useState(false)
+	const isGeneratingRef = useRef(false)
 	// The prompt starts empty and is written from the sketch until the user types.
 	const [promptIsAuto, setPromptIsAuto] = useState(true)
 	const [controls, setControlsState] = useState<GenerationControls>({
@@ -70,11 +76,7 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 	// reads current values without needing to be re-created on every keystroke.
 	const controlsRef = useRef(controls)
 	controlsRef.current = controls
-	// Same trick for the pause flag: the store listener and debounce keep the
-	// stable `sendFrame`, so it reads the current value from a ref.
-	const isPausedRef = useRef(isPaused)
-	isPausedRef.current = isPaused
-	// And for the auto/pinned flag, read by the stable `sendFrame`.
+	// The auto/pinned flag, read by the stable `sendFrame`.
 	const promptIsAutoRef = useRef(promptIsAuto)
 	promptIsAutoRef.current = promptIsAuto
 	// Aborts an in-flight describe call when a newer frame settles.
@@ -89,11 +91,16 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 				setResultUrl(url)
 				setStatus('idle')
 				setError(null)
+				// The image landed — this generation pass is done.
+				isGeneratingRef.current = false
+				setIsGenerating(false)
 			},
 			onError: (err) => {
 				console.error('Realtime generation error:', err)
 				setStatus('error')
 				setError(err instanceof Error ? err.message : 'Generation failed')
+				isGeneratingRef.current = false
+				setIsGenerating(false)
 			},
 		})
 		connectionRef.current = connection
@@ -109,8 +116,17 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 	// that as the prompt — this is what lets the user skip writing one.
 	const sendFrame = useCallback(async () => {
 		if (!editor || !connectionRef.current) return
-		// Paused: keep drawing, but don't touch the model.
-		if (isPausedRef.current) return
+		// One pass at a time: ignore a click while a generation is in flight so two
+		// captures/describes/fal requests can never overlap. Cleared in the
+		// connection's onResult/onError (the send resolves asynchronously) and on
+		// every early return below.
+		if (isGeneratingRef.current) return
+		isGeneratingRef.current = true
+		setIsGenerating(true)
+		const done = () => {
+			isGeneratingRef.current = false
+			setIsGenerating(false)
+		}
 		try {
 			const imageDataUrl = await captureSketch(editor)
 			if (!imageDataUrl) {
@@ -122,6 +138,7 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 					setControlsState((prev) => (prev.prompt ? { ...prev, prompt: '' } : prev))
 					controlsRef.current = { ...controlsRef.current, prompt: '' }
 				}
+				done()
 				return
 			}
 
@@ -138,23 +155,21 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 					// full-body photo of a person in the drawn pose, not stylized art.
 					prompt = await describeSketch(imageDataUrl, controller.signal, 'pose')
 				} catch (err) {
-					if (controller.signal.aborted) return // a newer frame took over
+					if (controller.signal.aborted) {
+						done()
+						return
+					}
 					throw err
 				}
-				// A newer frame started describing while we waited — let it win.
-				if (describeAbortRef.current !== controller) return
-				// The user may have started typing while we were describing; if so,
-				// don't clobber their prompt.
-				if (!promptIsAutoRef.current) {
-					prompt = controlsRef.current.prompt
-				} else {
-					setControlsState((prev) => ({ ...prev, prompt }))
-					controlsRef.current = { ...controlsRef.current, prompt }
-				}
+				// Show the auto-written prompt in the panel.
+				setControlsState((prev) => ({ ...prev, prompt }))
+				controlsRef.current = { ...controlsRef.current, prompt }
 			}
 
 			setStatus('generating')
 			const c = controlsRef.current
+			// `send` resolves the result asynchronously via the connection handlers,
+			// which clear the in-flight flag — don't clear it here.
 			connectionRef.current.send({
 				image_url: imageDataUrl,
 				prompt,
@@ -172,83 +187,37 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 			console.error('Failed to capture/send sketch:', err)
 			setStatus('error')
 			setError(err instanceof Error ? err.message : 'Capture failed')
+			done()
 		}
 	}, [editor])
 
-	// Watch the editor for changes and send debounced frames.
-	useEffect(() => {
-		if (!editor) return
-
-		let timeout: ReturnType<typeof setTimeout> | undefined
-		const schedule = () => {
-			if (timeout) clearTimeout(timeout)
-			timeout = setTimeout(() => void sendFrame(), DEBOUNCE_MS)
+	const setControls = useCallback((update: Partial<GenerationControls>) => {
+		// Editing the prompt text takes it off auto — the user is now steering it.
+		// Cancel any in-flight describe so it can't overwrite what they typed.
+		const editedPrompt = 'prompt' in update
+		if (editedPrompt) {
+			describeAbortRef.current?.abort()
+			setPromptIsAuto(false)
+			promptIsAutoRef.current = false
 		}
-
-		// Fire once for whatever is already on the canvas.
-		schedule()
-
-		const unsubscribe = editor.store.listen(schedule, {
-			source: 'user',
-			scope: 'document',
+		setControlsState((prev) => {
+			const next = { ...prev, ...update }
+			controlsRef.current = next
+			return next
 		})
-
-		return () => {
-			if (timeout) clearTimeout(timeout)
-			unsubscribe()
-		}
-	}, [editor, sendFrame])
-
-	const setControls = useCallback(
-		(update: Partial<GenerationControls>) => {
-			// Editing the prompt text takes it off auto — the user is now steering it.
-			// Cancel any in-flight describe so it can't overwrite what they typed.
-			const editedPrompt = 'prompt' in update
-			if (editedPrompt) {
-				describeAbortRef.current?.abort()
-				setPromptIsAuto(false)
-				promptIsAutoRef.current = false
-			}
-			setControlsState((prev) => {
-				const next = { ...prev, ...update }
-				// Update the ref synchronously so the immediate re-send below reads
-				// the new values rather than the pre-update ones.
-				controlsRef.current = next
-				return next
-			})
-			// Re-run generation with the new settings against the current sketch.
-			void sendFrame()
-		},
-		[sendFrame]
-	)
+		// No auto re-generation: nothing generates until the user clicks
+		// "Generate Pose". Changed controls apply to the next generation.
+	}, [])
 
 	const resetPromptToAuto = useCallback(() => {
 		setPromptIsAuto(true)
 		promptIsAutoRef.current = true
-		// Clear the pinned text and re-describe the current sketch.
+		// Clear the pinned text; the next generation will describe the sketch.
 		setControlsState((prev) => ({ ...prev, prompt: '' }))
 		controlsRef.current = { ...controlsRef.current, prompt: '' }
-		void sendFrame()
-	}, [sendFrame])
+	}, [])
 
-	const regenerate = useCallback(() => void sendFrame(), [sendFrame])
-
-	const setPaused = useCallback(
-		(paused: boolean) => {
-			setIsPaused(paused)
-			// Update the ref synchronously so the resume regeneration below isn't
-			// short-circuited by a stale `isPausedRef`.
-			isPausedRef.current = paused
-			if (paused) {
-				setStatus('paused')
-			} else {
-				// Resuming: catch the image up to whatever was drawn while paused.
-				setStatus('idle')
-				void sendFrame()
-			}
-		},
-		[sendFrame]
-	)
+	const generate = useCallback(() => void sendFrame(), [sendFrame])
 
 	return {
 		resultUrl,
@@ -256,9 +225,8 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 		error,
 		controls,
 		setControls,
-		regenerate,
-		isPaused,
-		setPaused,
+		generate,
+		isGenerating,
 		promptIsAuto,
 		resetPromptToAuto,
 	}

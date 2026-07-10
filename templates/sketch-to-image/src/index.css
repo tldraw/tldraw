@@ -35,82 +35,23 @@ body {
 	height: 100%;
 }
 
-.generation-panel-header {
-	display: flex;
-	justify-content: flex-end;
-	padding: 12px 12px 0;
-}
-
-.pause-button {
+.generate-button {
 	appearance: none;
 	border: none;
 	border-radius: 8px;
-	padding: 7px 14px;
-	font-size: 12px;
-	font-weight: 500;
-	font-variant-numeric: tabular-nums;
-	color: #3f3f46;
-	background: #f4f4f5;
-	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+	padding: 10px 14px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #fff;
+	background: #18181b;
 	cursor: pointer;
 }
-.pause-button:hover {
-	background: #e4e4e7;
+.generate-button:hover:not(:disabled) {
+	background: #3f3f46;
 }
-
-.generation-panel-preview {
-	position: relative;
-	aspect-ratio: 1 / 1;
-	margin: 12px;
-	border-radius: 10px;
-	overflow: hidden;
-	background: #f4f4f5;
-	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.result-image {
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-	display: block;
-}
-
-.result-badge {
-	position: absolute;
-	bottom: 8px;
-	right: 8px;
-	padding: 3px 8px;
-	border-radius: 999px;
-	font-size: 11px;
-	background: rgba(0, 0, 0, 0.6);
-	color: #fff;
-}
-.result-badge-paused {
-	background: rgba(113, 113, 122, 0.85);
-}
-
-.result-placeholder {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-	align-items: center;
-	text-align: center;
-	padding: 24px;
-	color: #71717a;
-}
-.result-placeholder strong {
-	font-size: 14px;
-	color: #3f3f46;
-}
-.result-placeholder span {
-	font-size: 12px;
-	line-height: 1.4;
-}
-.result-error strong {
-	color: #dc2626;
+.generate-button:disabled {
+	background: #d4d4d8;
+	cursor: default;
 }
 
 /* ---- Controls ---- */
@@ -182,41 +123,6 @@ body {
 	padding: 0;
 	cursor: pointer;
 	text-decoration: underline;
-}
-
-/* ---- Animate ---- */
-
-.animate-section {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-top: 4px;
-	padding-top: 14px;
-	border-top: 1px solid #f0f0f0;
-}
-.animate-button {
-	font: inherit;
-	font-weight: 500;
-	font-size: 13px;
-	padding: 9px 12px;
-	border: none;
-	border-radius: 8px;
-	background: #18181b;
-	color: #fff;
-	cursor: pointer;
-}
-.animate-button:disabled {
-	background: #d4d4d8;
-	cursor: not-allowed;
-}
-.animate-error {
-	color: #dc2626;
-	font-size: 11px;
-}
-.result-video {
-	width: 100%;
-	border-radius: 8px;
-	background: #000;
 }
 
 /* ---- Dark mode ---- */

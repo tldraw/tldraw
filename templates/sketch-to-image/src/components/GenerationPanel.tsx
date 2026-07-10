@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { PoseOverlay } from '../pose/PoseOverlay'
 import { PoseDebug } from '../pose/usePoseDebug'
 import { GenerationControls, GenerationStatus } from '../realtime/useRealtimeGeneration'
@@ -9,16 +8,17 @@ interface GenerationPanelProps {
 	error: string | null
 	controls: GenerationControls
 	setControls(update: Partial<GenerationControls>): void
-	isPaused: boolean
-	setPaused(paused: boolean): void
+	generate(): void
+	isGenerating: boolean
 	promptIsAuto: boolean
 	resetPromptToAuto(): void
 	poseDebug: PoseDebug
 }
 
 /**
- * The panel beside the canvas. Shows the live generated image and the controls
- * that steer it, plus a button to animate the current result into a short clip.
+ * The panel beside the canvas. Clicking "Generate Pose" runs one generation of
+ * the sketch and feeds the result to pose detection — no continuous loop, one
+ * pass per click.
  */
 export function GenerationPanel({
 	resultUrl,
@@ -26,29 +26,24 @@ export function GenerationPanel({
 	error,
 	controls,
 	setControls,
-	isPaused,
-	setPaused,
+	generate,
+	isGenerating,
 	promptIsAuto,
 	resetPromptToAuto,
 	poseDebug,
 }: GenerationPanelProps) {
 	return (
 		<div className="generation-panel">
-			<div className="generation-panel-header">
-				<button
-					className="pause-button"
-					onClick={() => setPaused(!isPaused)}
-					title={isPaused ? 'Resume live generation' : 'Pause — draw without updating the image'}
-				>
-					{isPaused ? '▶ Resume' : '❚❚ Pause'}
-				</button>
-			</div>
-
-			<div className="generation-panel-preview">
-				<ResultView resultUrl={resultUrl} status={status} error={error} />
-			</div>
-
 			<div className="generation-panel-controls">
+				<button
+					className="generate-button"
+					onClick={generate}
+					disabled={isGenerating}
+					title="Generate an image from your sketch and detect its pose"
+				>
+					{isGenerating ? 'Generating…' : 'Generate Pose'}
+				</button>
+
 				<label className="control">
 					<span className="control-label-row">
 						Prompt
@@ -124,8 +119,6 @@ export function GenerationPanel({
 					/>
 				</label>
 
-				<AnimateButton resultUrl={resultUrl} prompt={controls.prompt} />
-
 				<PoseDebugSection
 					poseDebug={poseDebug}
 					generatedUrl={resultUrl}
@@ -168,7 +161,7 @@ function PoseDebugSection({
 		? `Generation failed: ${generationError}`
 		: generationStatus === 'generating' || generationStatus === 'describing'
 			? 'Generating an image…'
-			: 'Waiting for a generated image — draw, then press Resume to generate one.'
+			: 'Waiting for a generated image — draw, then click Generate Pose.'
 
 	return (
 		<div className="pose-debug-section">
@@ -219,89 +212,6 @@ function PoseDebugSection({
 					</small>
 				</>
 			)}
-		</div>
-	)
-}
-
-function ResultView({
-	resultUrl,
-	status,
-	error,
-}: {
-	resultUrl: string | null
-	status: GenerationStatus
-	error: string | null
-}) {
-	if (error) {
-		return (
-			<div className="result-placeholder result-error">
-				<strong>Generation error</strong>
-				<span>{error}</span>
-			</div>
-		)
-	}
-
-	if (!resultUrl) {
-		return (
-			<div className="result-placeholder">
-				<strong>Start drawing</strong>
-				<span>Your sketch will be turned into an image here in realtime.</span>
-			</div>
-		)
-	}
-
-	return (
-		<>
-			<img className="result-image" src={resultUrl} alt="Generated result" />
-			{status === 'describing' && <div className="result-badge">reading sketch…</div>}
-			{status === 'generating' && <div className="result-badge">generating…</div>}
-			{status === 'paused' && <div className="result-badge result-badge-paused">paused</div>}
-		</>
-	)
-}
-
-/**
- * Turns the current generated image into a short video via the (non-realtime)
- * /api/animate endpoint. This is the secondary feature of the template.
- */
-function AnimateButton({ resultUrl, prompt }: { resultUrl: string | null; prompt: string }) {
-	const [state, setState] = useState<'idle' | 'loading' | 'error'>('idle')
-	const [videoUrl, setVideoUrl] = useState<string | null>(null)
-
-	const animate = async () => {
-		if (!resultUrl) return
-		setState('loading')
-		setVideoUrl(null)
-		try {
-			const res = await fetch('/api/animate', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ imageUrl: resultUrl, prompt }),
-			})
-			if (!res.ok) {
-				const err = (await res.json()) as { error?: string }
-				throw new Error(err.error ?? 'Failed')
-			}
-			const data = (await res.json()) as { videoUrl: string }
-			setVideoUrl(data.videoUrl)
-			setState('idle')
-		} catch (e) {
-			console.error('Animate failed:', e)
-			setState('error')
-		}
-	}
-
-	return (
-		<div className="animate-section">
-			<button
-				className="animate-button"
-				disabled={!resultUrl || state === 'loading'}
-				onClick={animate}
-			>
-				{state === 'loading' ? 'Animating…' : 'Animate → video'}
-			</button>
-			{state === 'error' && <small className="animate-error">Couldn’t animate. Try again.</small>}
-			{videoUrl && <video className="result-video" src={videoUrl} controls autoPlay loop muted />}
 		</div>
 	)
 }

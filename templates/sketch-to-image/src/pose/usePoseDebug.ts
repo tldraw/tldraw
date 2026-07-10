@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor } from 'tldraw'
-import { DEBOUNCE_MS } from '../constants'
 import { captureSketch } from '../realtime/captureSketch'
 import { PoseData } from '../realtime/estimatePose'
 import { estimatePoseMediaPipe } from './mediapipePose'
@@ -90,28 +89,11 @@ export function usePoseDebug(editor: Editor | null, generatedUrl: string | null)
 		}
 	}, [editor])
 
-	// Watch the editor for settled edits and estimate, but only while enabled and
-	// reading the sketch. (Generated-source re-estimates are driven by the effect
-	// below when a new image arrives.)
-	useEffect(() => {
-		if (!editor) return
-
-		let timeout: ReturnType<typeof setTimeout> | undefined
-		const schedule = () => {
-			if (!enabledRef.current || sourceRef.current !== 'sketch') return
-			if (timeout) clearTimeout(timeout)
-			timeout = setTimeout(() => void estimate(), DEBOUNCE_MS)
-		}
-
-		schedule()
-		const unsubscribe = editor.store.listen(schedule, { source: 'user', scope: 'document' })
-		return () => {
-			if (timeout) clearTimeout(timeout)
-			unsubscribe()
-		}
-	}, [editor, estimate])
-
-	// When reading the generated image, re-estimate whenever a new one arrives.
+	// Re-estimate whenever a new generated image arrives — that's the single
+	// trigger, driven by the user clicking "Generate Pose". (There's no
+	// edit-driven loop anymore: drawing alone doesn't run anything.) When the
+	// source is the raw sketch, estimation is instead run on demand by
+	// `setSourceAndRun` / `setEnabledAndRun` below.
 	useEffect(() => {
 		if (!enabled || source !== 'generated' || !generatedUrl) return
 		void estimate()

@@ -1,5 +1,4 @@
 import { AutoRouter, error, IRequest } from 'itty-router'
-import { handleAnimate } from './routes/animate'
 import { handleDescribe } from './routes/describe'
 import { handleFalProxy } from './routes/falProxy'
 import { handlePose } from './routes/pose'
@@ -25,9 +24,6 @@ const router = AutoRouter<IRequest, [env: Env, ctx: ExecutionContext]>({
 	// current sketch (Claude vision), for retargeting onto the 3D rig. Same
 	// server-side-key discipline as /api/describe.
 	.post('/api/pose', handlePose)
-
-	// Turn a generated image into a short video (secondary, non-realtime).
-	.post('/api/animate', handleAnimate)
 
 	.all('*', () => new Response('Not found', { status: 404 }))
 

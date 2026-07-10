@@ -26,8 +26,8 @@ function App() {
 		error,
 		controls,
 		setControls,
-		isPaused,
-		setPaused,
+		generate,
+		isGenerating,
 		promptIsAuto,
 		resetPromptToAuto,
 	} = useRealtimeGeneration(editor)
@@ -58,8 +58,8 @@ function App() {
 					error={error}
 					controls={controls}
 					setControls={setControls}
-					isPaused={isPaused}
-					setPaused={setPaused}
+					generate={generate}
+					isGenerating={isGenerating}
 					promptIsAuto={promptIsAuto}
 					resetPromptToAuto={resetPromptToAuto}
 					poseDebug={poseDebug}
