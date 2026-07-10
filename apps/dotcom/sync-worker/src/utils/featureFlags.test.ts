@@ -239,6 +239,19 @@ describe('getFeatureFlags (route handler)', () => {
 		// Percentage flags require a userId
 		expect(body.rum_enabled.enabled).toBe(false)
 	})
+
+	it('forces legacy zero_enabled/zero_kill_switch flags on for old client bundles, even unauthenticated', async () => {
+		const { getAuth } = await import('./tla/getAuth')
+		vi.mocked(getAuth).mockResolvedValue(null)
+
+		const env = makeEnv()
+		const response = await getFeatureFlags({} as any, env as any)
+		const body: any = await response.json()
+
+		expect(body.zero_enabled.enabled).toBe(true)
+		expect(body.zero_kill_switch.enabled).toBe(false)
+		expect(body.rum_enabled).toBeDefined()
+	})
 })
 
 describe('getFeatureFlagEnabled', () => {

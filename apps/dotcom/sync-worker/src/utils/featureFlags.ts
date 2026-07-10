@@ -122,6 +122,12 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
 		})
 	)
 
+	// Legacy client compat: bundles built before the polyfill removal still read
+	// these flags to choose a sync path. Force them onto Zero. Remove once stale
+	// bundles have aged out.
+	flags.zero_enabled = { enabled: true }
+	flags.zero_kill_switch = { enabled: false }
+
 	return new Response(JSON.stringify(flags), {
 		headers: {
 			'Content-Type': 'application/json',
