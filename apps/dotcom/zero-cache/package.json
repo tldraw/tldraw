@@ -35,7 +35,6 @@
 	"devDependencies": {
 		"concurrently": "^9.1.2",
 		"dotenv": "^16.4.7",
-		"esbuild": "^0.28.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"tsx": "^4.19.2"
 	}

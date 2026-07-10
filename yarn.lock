@@ -12306,7 +12306,6 @@ __metadata:
     "@rocicorp/zero": "npm:1.7.0"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
-    esbuild: "npm:^0.28.0"
     kysely: "npm:^0.28.12"
     lazyrepo: "npm:0.0.0-alpha.27"
     pg: "npm:^8.16.3"
