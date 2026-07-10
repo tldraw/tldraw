@@ -12,10 +12,15 @@ import { SidebarFilters, sidebarFilters } from './sidebar-filters'
 export interface CommentsFilterMenuProps {
 	/** Whether to offer the "only your threads" toggle (needs a known current user). */
 	canFilterByAuthor?: boolean
+	/** Whether to offer the "only unread" toggle (needs a read-status source). */
+	canFilterByUnread?: boolean
 }
 
 /** The funnel dropdown in the sidebar header: toggles for which threads the list shows. */
-export function CommentsFilterMenu({ canFilterByAuthor }: CommentsFilterMenuProps) {
+export function CommentsFilterMenu({
+	canFilterByAuthor,
+	canFilterByUnread,
+}: CommentsFilterMenuProps) {
 	const msg = useTranslation()
 	const filters = useValue('sidebar filters', () => sidebarFilters.get(), [])
 	const toggle = (key: keyof SidebarFilters) =>
@@ -49,6 +54,15 @@ export function CommentsFilterMenu({ canFilterByAuthor }: CommentsFilterMenuProp
 							onSelect={() => toggle('onlyMine')}
 						>
 							{msg('comments.only-mine')}
+						</TldrawUiDropdownMenuCheckboxItem>
+					)}
+					{canFilterByUnread && (
+						<TldrawUiDropdownMenuCheckboxItem
+							title={msg('comments.only-unread')}
+							checked={filters.onlyUnread}
+							onSelect={() => toggle('onlyUnread')}
+						>
+							{msg('comments.only-unread')}
 						</TldrawUiDropdownMenuCheckboxItem>
 					)}
 					<TldrawUiDropdownMenuCheckboxItem

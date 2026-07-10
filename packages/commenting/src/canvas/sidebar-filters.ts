@@ -10,6 +10,8 @@ export interface SidebarFilters {
 	showResolved: boolean
 	/** Only threads the current user started. Ignored when there's no current user. */
 	onlyMine: boolean
+	/** Only threads with unread comments. Ignored when the host provides no read status. */
+	onlyUnread: boolean
 	/** Only threads on the current page. Off = every page's threads, each labelled. */
 	onlyCurrentPage: boolean
 }
@@ -17,6 +19,7 @@ export interface SidebarFilters {
 export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters = {
 	showResolved: true,
 	onlyMine: false,
+	onlyUnread: false,
 	onlyCurrentPage: true,
 }
 

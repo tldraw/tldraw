@@ -16,6 +16,7 @@ import {
 	Editor,
 	react,
 	TLComment,
+	TLCommentId,
 	TLCommentThread,
 	TLRichText,
 	TldrawUiIcon,
@@ -63,6 +64,13 @@ export interface CanvasCommentsProps {
 	renderPinContent?(thread: TLCommentThread, comments: TLComment[]): ReactNode
 	/** Called after any comment (a new thread's first comment, or a reply) is posted. */
 	onPostComment?(comment: TLComment): void
+	/** Whether a comment is unread for the current user (return true for unread). */
+	isCommentUnread?(commentId: TLCommentId): boolean
+	/**
+	 * Called for each unread comment shown to the user in an open thread popover, so hosts can
+	 * record a read receipt. Needs {@link isCommentUnread} to know what's unread.
+	 */
+	onCommentRead?(commentId: TLCommentId): void
 	/** Where imprecise shape pins sit — a normalized (0–1) spot within the shape. Default top-right. */
 	impreciseShapeAnchor?: { x: number; y: number }
 }
@@ -650,8 +658,15 @@ const ThreadPin = memo(function ThreadPin({
 	thread,
 	...props
 }: CanvasCommentsProps & { editor: Editor; thread: TLCommentThread }) {
-	const { currentUserId, resolveName, renderPinContent, onPostComment, impreciseShapeAnchor } =
-		props
+	const {
+		currentUserId,
+		resolveName,
+		renderPinContent,
+		onPostComment,
+		isCommentUnread,
+		onCommentRead,
+		impreciseShapeAnchor,
+	} = props
 	const container = useContainer()
 	const comments = useThreadComments(editor, thread.id)
 	const msg = useTranslation()
@@ -696,6 +711,19 @@ const ThreadPin = memo(function ThreadPin({
 		},
 		[editor, thread.anchor, thread.pageId, impreciseShapeAnchor]
 	)
+	const visible = point !== null
+
+	// While the popover is open, every unread comment on display gets reported read — including
+	// replies that arrive while it stays open, since the effect re-runs as `comments` changes.
+	// The host's receipt write flips isCommentUnread to false, so re-runs find nothing to report.
+	useEffect(() => {
+		if (!open || !visible || !isCommentUnread || !onCommentRead) return
+		for (const comment of comments) {
+			if (isCommentUnread(comment.id)) {
+				onCommentRead(comment.id)
+			}
+		}
+	}, [open, visible, comments, isCommentUnread, onCommentRead])
 
 	if (!point) return null
 
