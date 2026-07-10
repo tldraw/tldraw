@@ -1,28 +1,58 @@
--- Comments projected from the file room's comment records (see TLComment) by the file Durable
--- Object. Zero replicates these per user so an app-level, cross-document view can query them. The
--- authoritative comment content lives in the file's R2 comment lane; these rows are a derived copy.
--- `body` is the comment's rich text (TLRichText JSON) — the projection preserves the authoritative
--- representation; consumers flatten to plaintext for display where needed.
--- `threadId`/`pageId` are denormalized from the comment record so the view can group by thread
--- and deep-link to the right page without a join. `shapeId` is only set for shape-anchored
--- threads (see TLCommentAnchor); other anchor kinds leave it null.
+-- Comments for app files, written by the file's Durable Object from the room's comment records
+-- (see TLComment / TLCommentThread in tlschema). Postgres is the sole durable store for comment
+-- records: the columns collectively carry every record field, so the Durable Object can rebuild
+-- its room's comment records from rows alone on cold start. `lastChangedClock` preserves each
+-- record's sync clock across reloads and guards upserts against no-op replays (an update that
+-- doesn't advance the clock is skipped, producing no WAL entry for Zero). `anchor`, `meta`,
+-- `resolvedBy`, `editedAt`, and `lastChangedClock` are persistence/rehydration columns not
+-- declared in the Zero schema, so they never reach clients.
+
+CREATE TABLE comment_thread (
+  "id" VARCHAR PRIMARY KEY,
+  "fileId" VARCHAR NOT NULL,
+  "pageId" VARCHAR NOT NULL,
+  -- the thread's TLCommentAnchor (discriminated union) as JSON — canonical, used to rebuild the record
+  "anchor" JSONB NOT NULL,
+  -- denormalized from anchor for queries; only set for shape-anchored threads
+  "shapeId" VARCHAR,
+  "resolvedAt" BIGINT,
+  "resolvedBy" VARCHAR,
+  -- no FK to "user": deleting a user must not cascade-delete threads (and thereby other
+  -- authors' comments); the comment table's authorId FK handles per-author cleanup
+  "createdBy" VARCHAR NOT NULL,
+  "createdAt" BIGINT NOT NULL,
+  "meta" JSONB NOT NULL,
+  "lastChangedClock" BIGINT NOT NULL,
+  CONSTRAINT comment_thread_file_id_fkey FOREIGN KEY ("fileId") REFERENCES public."file"("id") ON DELETE CASCADE,
+  -- resolvedAt/resolvedBy encode one nullable `resolved` record field, so they must be set or
+  -- null together; rehydration (rowToThreadRecord) relies on resolvedBy being non-null whenever
+  -- resolvedAt is
+  CONSTRAINT comment_thread_resolved_check CHECK (("resolvedAt" IS NULL) = ("resolvedBy" IS NULL))
+);
+
+CREATE INDEX comment_thread_file_id_idx ON comment_thread("fileId");
+
 CREATE TABLE comment (
   "id" VARCHAR PRIMARY KEY,
   "fileId" VARCHAR NOT NULL,
   "threadId" VARCHAR NOT NULL,
   "pageId" VARCHAR NOT NULL,
   "authorId" VARCHAR NOT NULL,
-  "shapeId" VARCHAR,
   "body" JSONB NOT NULL,
   "createdAt" BIGINT NOT NULL,
+  -- null until first edited (exact record field; updatedAt below is the derived sort key)
+  "editedAt" BIGINT,
   "updatedAt" BIGINT NOT NULL,
+  "meta" JSONB NOT NULL,
+  "lastChangedClock" BIGINT NOT NULL,
   CONSTRAINT comment_file_id_fkey FOREIGN KEY ("fileId") REFERENCES public."file"("id") ON DELETE CASCADE,
-  CONSTRAINT comment_author_id_fkey FOREIGN KEY ("authorId") REFERENCES public."user"("id") ON DELETE CASCADE
+  CONSTRAINT comment_author_id_fkey FOREIGN KEY ("authorId") REFERENCES public."user"("id") ON DELETE CASCADE,
+  CONSTRAINT comment_thread_id_fkey FOREIGN KEY ("threadId") REFERENCES public."comment_thread"("id") ON DELETE CASCADE
 );
 
 CREATE INDEX comment_file_id_idx ON comment("fileId");
 CREATE INDEX comment_thread_id_idx ON comment("threadId");
 CREATE INDEX comment_author_id_idx ON comment("authorId");
 
--- Replicate to Zero (matches how 023_groups.sql added the group tables).
+ALTER PUBLICATION zero_data ADD TABLE public."comment_thread";
 ALTER PUBLICATION zero_data ADD TABLE public."comment";

@@ -1,6 +1,6 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { Link } from 'react-router-dom'
-import { createDeepLinkString, useValue } from 'tldraw'
+import { createDeepLinkString, TLRichText, useValue } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { useMaybeApp } from '../hooks/useAppState'
 import { richTextToPlaintext } from '../utils/richText'
@@ -22,7 +22,7 @@ export function Component() {
 	const app = useMaybeApp()
 	const comments = useValue(
 		'comments',
-		() => [...((app?.getComments() ?? []) as any[])].sort((a, b) => b.createdAt - a.createdAt),
+		() => [...(app?.getComments() ?? [])].sort((a, b) => b.createdAt - a.createdAt),
 		[app]
 	)
 
@@ -45,15 +45,16 @@ export function Component() {
 							}}
 						>
 							{/* bodies are rich text; flatten for this basic UI (rich rendering forthcoming) */}
+							{/* zero types json columns as opaque JSON */}
 							<div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-								{richTextToPlaintext(c.body)}
+								{richTextToPlaintext(c.body as TLRichText)}
 							</div>
 							<div style={{ fontSize: 12, opacity: 0.7, marginTop: 6 }}>
 								<span>{c.author?.name ?? c.authorId}</span>
 								<span> · </span>
 								<Link
 									style={{ color: 'var(--tl-color-primary)' }}
-									to={commentLink(c.fileId, c.shapeId, c.id)}
+									to={commentLink(c.fileId, c.thread?.shapeId, c.id)}
 								>
 									{c.file?.name || c.fileId}
 								</Link>
