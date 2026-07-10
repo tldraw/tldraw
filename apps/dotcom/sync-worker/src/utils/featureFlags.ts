@@ -10,17 +10,6 @@ import { getAuth } from './tla/getAuth'
 
 function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
 	return {
-		zero_enabled: {
-			type: 'percentage',
-			percentage: 0,
-			enabled: false,
-			description: 'Percentage rollout of proper Zero client (takes effect on next page load)',
-		},
-		zero_kill_switch: {
-			type: 'boolean',
-			enabled: false,
-			description: 'Emergency kill switch — when enabled, forces all users off Zero immediately',
-		},
 		rum_enabled: {
 			type: 'percentage',
 			percentage: 0,
