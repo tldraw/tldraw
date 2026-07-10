@@ -294,8 +294,8 @@ export class TLFileDurableObject extends DurableObject {
 					onCommittedChanges: ({ diff }) => {
 						this.enqueueCommentChanges(diff)
 					},
-					// Stamp attribution from the session's authenticated identity so a client can't post
-					// in someone else's name, and keep that attribution immutable afterwards.
+					// Guard attribution with the session's authenticated identity so a client can't
+					// post or edit in someone else's name.
 					authorizeRecord: authorizeFileRecord,
 				})
 
