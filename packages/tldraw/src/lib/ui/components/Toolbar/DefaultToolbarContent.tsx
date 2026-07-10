@@ -1,4 +1,5 @@
 import { GeoShapeGeoStyle, useEditor, useValue } from '@tldraw/editor'
+import { useCommentingEnabled } from '../../hooks/useCommentingEnabled'
 import { TLUiToolItem, useTools } from '../../hooks/useTools'
 import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 
@@ -96,12 +97,15 @@ export function EraserToolbarItem() {
 }
 
 /**
- * Renders the comment tool if it has been registered (e.g. via `@tldraw/commenting`). Renders
- * nothing otherwise, so it's safe to include in the default toolbar for every editor.
+ * Renders the comment tool if it has been registered (e.g. via `@tldraw/commenting`) and commenting
+ * is licensed. Renders nothing otherwise, so it's safe to include in the default toolbar for every
+ * editor.
  *
  * @public @react
  */
 export function CommentToolbarItem() {
+	const commentingEnabled = useCommentingEnabled()
+	if (!commentingEnabled) return null
 	return <ToolbarItem tool="comment" />
 }
 
