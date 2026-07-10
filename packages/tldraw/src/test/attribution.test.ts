@@ -1,5 +1,7 @@
 import {
+	Atom,
 	TLNoteShape,
+	TLUser,
 	UserRecordType,
 	atom,
 	computed,
@@ -8,6 +10,27 @@ import {
 	toRichText,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
+
+// Build an editor whose current user can be switched between Alice (user-1) and Bob (user-2),
+// so we can assert who a note's attribution is stamped to across edits, duplication, and paste.
+function makeMultiUserEditor(currentUser: Atom<TLUser>) {
+	const alice = UserRecordType.create({ id: createUserId('user-1'), name: 'Alice' })
+	const bob = UserRecordType.create({ id: createUserId('user-2'), name: 'Bob' })
+	return new TestEditor(
+		{},
+		{
+			users: {
+				currentUser,
+				resolve: (userId) =>
+					computed('resolve-' + userId, () => {
+						if (userId === 'user-1') return alice
+						if (userId === 'user-2') return bob
+						return null
+					}),
+			},
+		}
+	)
+}
 
 let editor: TestEditor
 
@@ -213,6 +236,72 @@ describe('TLUserStore', () => {
 		)
 
 		expect(customEditor.getAttributionUserId()).toBeNull()
+		customEditor.dispose()
+	})
+})
+
+describe('note attribution on duplicate', () => {
+	it('re-stamps attribution to the current user when duplicating a note with text', () => {
+		const alice = UserRecordType.create({ id: createUserId('user-1'), name: 'Alice' })
+		const bob = UserRecordType.create({ id: createUserId('user-2'), name: 'Bob' })
+		const currentUser = atom<TLUser>('currentUser', bob)
+		const customEditor = makeMultiUserEditor(currentUser)
+
+		// Bob authors the note
+		customEditor.createShapes([{ id: ids.note1, type: 'note', x: 0, y: 0 }])
+		customEditor.updateShape<TLNoteShape>({
+			id: ids.note1,
+			type: 'note',
+			props: { richText: toRichText('Hello') },
+		})
+		expect(customEditor.getShape<TLNoteShape>(ids.note1)!.props.textLastEditedBy).toBe('user-2')
+
+		// Alice duplicates it — the copy is attributed to Alice, the original stays Bob's
+		currentUser.set(alice)
+		customEditor.duplicateShapes([ids.note1])
+
+		const dupId = customEditor.getSelectedShapeIds()[0]
+		expect(dupId).not.toBe(ids.note1)
+		expect(customEditor.getShape<TLNoteShape>(dupId)!.props.textLastEditedBy).toBe('user-1')
+		expect(customEditor.getShape<TLNoteShape>(ids.note1)!.props.textLastEditedBy).toBe('user-2')
+
+		customEditor.dispose()
+	})
+
+	it('keeps attribution null when duplicating an empty note', () => {
+		editor.createShapes([{ id: ids.note1, type: 'note', x: 0, y: 0 }])
+		editor.duplicateShapes([ids.note1])
+
+		const dupId = editor.getSelectedShapeIds()[0]
+		expect(dupId).not.toBe(ids.note1)
+		expect(editor.getShape<TLNoteShape>(dupId)!.props.textLastEditedBy).toBeNull()
+	})
+
+	it('re-stamps attribution to the current user when pasting a note with text', () => {
+		const alice = UserRecordType.create({ id: createUserId('user-1'), name: 'Alice' })
+		const bob = UserRecordType.create({ id: createUserId('user-2'), name: 'Bob' })
+		const currentUser = atom<TLUser>('currentUser', bob)
+		const customEditor = makeMultiUserEditor(currentUser)
+
+		// Bob authors the note
+		customEditor.createShapes([{ id: ids.note1, type: 'note', x: 0, y: 0 }])
+		customEditor.updateShape<TLNoteShape>({
+			id: ids.note1,
+			type: 'note',
+			props: { richText: toRichText('Hello') },
+		})
+
+		// Alice copies and pastes it — the pasted copy is attributed to Alice
+		const content = customEditor.getContentFromCurrentPage([ids.note1])!
+		currentUser.set(alice)
+		customEditor.selectNone()
+		customEditor.putContentOntoCurrentPage(content, { select: true })
+
+		const pastedId = customEditor.getSelectedShapeIds()[0]
+		expect(pastedId).not.toBe(ids.note1)
+		expect(customEditor.getShape<TLNoteShape>(pastedId)!.props.textLastEditedBy).toBe('user-1')
+		expect(customEditor.getShape<TLNoteShape>(ids.note1)!.props.textLastEditedBy).toBe('user-2')
+
 		customEditor.dispose()
 	})
 })

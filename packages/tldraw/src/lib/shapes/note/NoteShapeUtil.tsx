@@ -518,6 +518,18 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return this.getNoteSizeAdjustments(next)
 	}
 
+	override onDuplicate(_source: TLNoteShape, duplicate: TLNoteShape): TLNoteShape | undefined {
+		// Attribution follows the last person to produce the note's text. Duplicating (or pasting)
+		// a note with text is a new act of authorship by the current user, so re-stamp the copy to
+		// them rather than carrying over the original author's identity. Empty notes have no
+		// attribution to begin with, so leave them alone.
+		if (isEmptyRichText(duplicate.props.richText)) return
+		return {
+			...duplicate,
+			props: { ...duplicate.props, textLastEditedBy: this.editor.getAttributionUserId() },
+		}
+	}
+
 	override onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape) {
 		const richTextChanged = !isEqual(prev.props.richText, next.props.richText)
 

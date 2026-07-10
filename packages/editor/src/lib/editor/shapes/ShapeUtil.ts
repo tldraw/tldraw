@@ -670,6 +670,28 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	onBeforeCreate?(next: Shape): Shape | void
 
 	/**
+	 * A callback called when a shape is reproduced from an existing shape, either by duplicating
+	 * ({@link Editor.duplicateShapes}) or by pasting/putting content onto the page
+	 * ({@link Editor.putContentOntoCurrentPage}). This provides a last chance to modify the copy
+	 * before it's created — for example, to re-stamp attribution so the copy is credited to the
+	 * current user rather than the original author.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * onDuplicate = (source, duplicate) => {
+	 * 	return { ...duplicate, props: { ...duplicate.props, editedBy: this.editor.getAttributionUserId() } }
+	 * }
+	 * ```
+	 *
+	 * @param source - The shape being copied from.
+	 * @param duplicate - The new copy (with its own id), before it's created.
+	 * @returns The next shape or void.
+	 * @public
+	 */
+	onDuplicate?(source: Shape, duplicate: Shape): Shape | void
+
+	/**
 	 * A callback called just before a shape is updated. This method provides a last chance to modify
 	 * the updated shape.
 	 *
