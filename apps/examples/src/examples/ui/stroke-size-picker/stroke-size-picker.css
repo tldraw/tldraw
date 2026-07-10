@@ -1,0 +1,27 @@
+.stroke-size-picker {
+	display: grid;
+	grid-template-columns: repeat(6, 1fr);
+}
+
+.stroke-size-picker__preset {
+	all: unset;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 32px;
+	border-radius: var(--tl-radius-2);
+	cursor: pointer;
+}
+
+.stroke-size-picker__preset:hover {
+	background: var(--tl-color-muted-2);
+}
+
+.stroke-size-picker__preset[data-active='true'] {
+	background: var(--tl-color-hint);
+}
+
+.stroke-size-picker__dot {
+	border-radius: 50%;
+	background: var(--tl-color-text-1);
+}
