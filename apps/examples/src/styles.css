@@ -236,6 +236,37 @@ html,
 	opacity: 1;
 }
 
+/* Mirrors the dotcom sidebar's .sidebarSearchClear. */
+.example__sidebar__search__clear {
+	padding: 0;
+	background: none;
+	border: none;
+	position: relative;
+	outline: none;
+	margin-inline-end: -10px;
+	width: 36px;
+	height: 36px;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	z-index: 3;
+	cursor: pointer;
+	color: var(--example-sidebar-text);
+}
+
+.example__sidebar__search__clear > svg {
+	width: 12px;
+	height: 12px;
+}
+
+.example__sidebar__search__clear:focus-visible {
+	border-radius: 8px;
+	outline: 2px solid var(--example-sidebar-primary);
+	outline-offset: -4px;
+}
+
 .example__sidebar__action-row,
 .example__sidebar__footer-link {
 	position: relative;
@@ -254,6 +285,9 @@ html,
 	text-decoration: none;
 	border-radius: 0;
 	white-space: nowrap;
+	/* Buttons don't inherit the page font like anchors do; this is the
+	   equivalent of the tla-text_ui__regular class on the dotcom buttons. */
+	font: inherit;
 }
 
 .example__sidebar__action-row > svg,
@@ -331,6 +365,25 @@ ul.example__sidebar__category__items {
 	list-style: none;
 	padding: 0;
 	margin: 0;
+}
+
+/* Mirrors the dotcom sidebar's .sidebarSearchEmpty. */
+li.example__sidebar__search-empty {
+	padding: 8px;
+	color: var(--example-sidebar-text-muted);
+}
+
+/* The categories list's own padding already provides the 12px inset, so the
+   "Clear search" section keeps only the vertical rhythm. */
+ul.example__sidebar__categories .example__sidebar__section {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+/* Halve the 28px category gap above "Clear search"; the full inter-category
+   gap reads as too detached for a related control. */
+.example__sidebar__category + .example__sidebar__section {
+	margin-top: -14px;
 }
 
 li.examples__sidebar__item {
