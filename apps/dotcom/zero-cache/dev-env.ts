@@ -49,8 +49,7 @@ export interface DotcomDevEnv {
 	zeroEnv: Record<string, string>
 	wranglerPersistDir: string
 	resetLocalStateUrl: string
-	// Legacy: the pre-#9558-era schema bundle. Nothing generates or reads it anymore,
-	// but dev-clean still deletes stale copies from dev machines.
+	// Only used by dev-clean, to delete stale bundles left by older dev setups.
 	schemaFile: string
 }
 
@@ -97,8 +96,7 @@ export function buildDotcomDevEnv({
 		zeroEnv: {
 			ZERO_REPLICA_FILE: DOTCOM_DEV_ZERO_REPLICA_FILE,
 			ZERO_NUM_SYNC_WORKERS: '1',
-			// Parity with the env defaults the zero-cache-dev wrapper used to inject
-			// before dev.ts spawned zero-cache directly.
+			// Keep connection counts small for the local docker postgres.
 			ZERO_CVR_MAX_CONNS: '6',
 			ZERO_UPSTREAM_MAX_CONNS: '6',
 			NODE_ENV: 'development',

@@ -256,10 +256,6 @@ async function main() {
 	await waitForHttpOk(`http://localhost:${DOTCOM_DEV_PORTS.migrations}`, 'migrations')
 	migrationsReady = true
 
-	// zero-cache is spawned directly: it never reads the client schema (query
-	// transformation happens in sync-worker via ZERO_QUERY_URL/ZERO_MUTATE_URL), and
-	// upstream DDL is picked up in place via the update_schemas() hook in migrate.ts,
-	// so there is nothing to watch and no restart wrapper is needed.
 	spawnManaged('Zero', 'yarn', ['exec', 'zero-cache'])
 
 	await waitForHttpOk(`http://localhost:${DOTCOM_DEV_PORTS.zero}/`, 'Zero')
