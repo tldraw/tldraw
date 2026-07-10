@@ -785,6 +785,16 @@ input,
 .tl-rich-text h6 {
 	margin-top: 5px;
 	margin-bottom: 10px;
+	/**
+	 * Headings render at a larger font-size than the body text (via the browser's
+	 * default h1–h6 sizing), so they can't inherit the container's resolved
+	 * whole-pixel line-height — that value is derived from the base font size and
+	 * would cram the taller lines together. Instead, scale line-height with each
+	 * heading's own font-size using tldraw's unitless line-height multiplier, which
+	 * the rich-text render/measure paths expose here. The 1.35 fallback mirrors the
+	 * default theme line-height (see defaultThemes.ts).
+	 */
+	line-height: var(--tl-rich-text-heading-line-height, 1.35);
 }
 
 .tl-rich-text a {
