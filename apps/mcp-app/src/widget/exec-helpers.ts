@@ -148,19 +148,32 @@ type ExecHelpers = ReturnType<typeof createExecHelpers>
 
 const EXEC_TIMEOUT_MS = 10_000
 
-// Exec code runs with fetch/XHR/timers disabled as a lightweight sandbox. The
-// globals are captured ONCE here, before any exec can disable them, and a depth
-// counter tracks overlapping runs. This makes disable/restore re-entrancy safe:
-// hosts can start a second exec while an earlier one is still awaiting (e.g. a
-// debounced re-run firing during a slow canvas-state fetch), and without this a
-// second run would capture an already-`undefined` timer as its "original" and
-// restore that, permanently clobbering `window.setTimeout` for every later exec.
-const REAL_TIMERS = {
+// Exec code runs with fetch/XHR/timers/WebSocket disabled as a lightweight
+// sandbox. The globals are captured ONCE here, before any exec can disable
+// them, and a depth counter tracks overlapping runs. This makes
+// disable/restore re-entrancy safe: hosts can start a second exec while an
+// earlier one is still awaiting, and without this a second run would capture
+// an already-`undefined` timer as its "original" and restore that, permanently
+// clobbering `window.setTimeout` for every later exec.
+const REAL_GLOBALS = {
 	fetch: typeof window !== 'undefined' ? window.fetch : undefined,
 	XMLHttpRequest: typeof window !== 'undefined' ? window.XMLHttpRequest : undefined,
 	setInterval: typeof window !== 'undefined' ? window.setInterval : undefined,
 	setTimeout: typeof window !== 'undefined' ? window.setTimeout : undefined,
+	WebSocket: typeof window !== 'undefined' ? window.WebSocket : undefined,
 }
+
+// Never invoke a captured timer as a method of the capture object: native
+// window functions brand-check `this`, so `REAL_GLOBALS.setTimeout(...)`
+// throws "TypeError: Illegal invocation" in Chromium. That synchronous throw
+// used to reject the exec timeout race immediately, which made any model code
+// containing an `await` report "Illegal invocation" while its shapes kept
+// appearing. Bind once at capture time for safe invocation; the unbound
+// originals above are only ever assigned back onto window.
+const safeSetTimeout = REAL_GLOBALS.setTimeout
+	? REAL_GLOBALS.setTimeout.bind(window)
+	: (undefined as never)
+
 let execSandboxDepth = 0
 
 function enterExecSandbox() {
@@ -169,6 +182,7 @@ function enterExecSandbox() {
 		;(window as any).XMLHttpRequest = undefined
 		;(window as any).setInterval = undefined
 		;(window as any).setTimeout = undefined
+		;(window as any).WebSocket = undefined
 	}
 }
 
@@ -176,10 +190,11 @@ function exitExecSandbox() {
 	// Only the outermost run restores, so an inner run finishing can't re-enable
 	// timers while an outer run is still executing sandboxed code.
 	if (execSandboxDepth > 0 && --execSandboxDepth === 0) {
-		window.fetch = REAL_TIMERS.fetch!
-		window.XMLHttpRequest = REAL_TIMERS.XMLHttpRequest!
-		window.setInterval = REAL_TIMERS.setInterval!
-		window.setTimeout = REAL_TIMERS.setTimeout!
+		window.fetch = REAL_GLOBALS.fetch!
+		window.XMLHttpRequest = REAL_GLOBALS.XMLHttpRequest!
+		window.setInterval = REAL_GLOBALS.setInterval!
+		window.setTimeout = REAL_GLOBALS.setTimeout!
+		;(window as any).WebSocket = REAL_GLOBALS.WebSocket
 	}
 }
 
@@ -239,8 +254,9 @@ export async function executeCode(
 		const result = await Promise.race([
 			runExec({ editor: focusedEditor, helpers }),
 			new Promise((_, reject) =>
-				// Use the pristine timer (not the sandboxed, possibly-undefined one).
-				REAL_TIMERS.setTimeout!(
+				// Use the pristine, window-bound timer (not the sandboxed,
+				// possibly-undefined one).
+				safeSetTimeout(
 					() => reject(new Error(`Execution timed out after ${EXEC_TIMEOUT_MS}ms`)),
 					EXEC_TIMEOUT_MS
 				)
