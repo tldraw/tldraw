@@ -582,32 +582,11 @@ class DotcomScenario {
 		await opts.owner.page.keyboard.press('Escape')
 	}
 
-	async downgradeClient(actor: DotcomActor) {
-		const userId = await this.getSignedInActorUserId(actor)
-		await actor.page.request.get(
-			`http://localhost:3000/api/app/__test__/user/${userId}/downgrade-client`
-		)
-	}
-
-	async upgradeClient(actor: DotcomActor) {
-		const userId = await this.getSignedInActorUserId(actor)
-		await actor.page.request.get(
-			`http://localhost:3000/api/app/__test__/user/${userId}/upgrade-client`
-		)
-	}
-
 	async goToAndOpenSidebar(actor: DotcomActor) {
 		if (!actor.email) throw new Error(`Actor ${actor.name} is not signed in`)
 
 		await actor.goto()
 		await actor.editor.ensureSidebarOpen()
-	}
-
-	private async getSignedInActorUserId(actor: DotcomActor) {
-		if (!actor.email) throw new Error(`Actor ${actor.name} is not signed in`)
-		const userId = await this.database.getUserIdByEmail(actor.email)
-		if (!userId) throw new Error(`User not found: ${actor.email}`)
-		return userId
 	}
 
 	private async switchToHomeIfAvailable(actor: DotcomActor) {

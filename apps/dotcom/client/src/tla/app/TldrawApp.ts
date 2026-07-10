@@ -150,6 +150,13 @@ export class TldrawApp {
 	trackEvent: TLAppUiContextType
 	navigate: ReturnType<typeof useNavigate>
 
+	/**
+	 * Test-only hook (only set under Playwright, see the constructor) that fires the same
+	 * "client too old" callback Zero's `onUpdateNeeded` would call, so e2e can exercise the
+	 * reload-recovery UI without forcing a real schema/protocol mismatch against zero-cache.
+	 */
+	__test__triggerClientTooOld?: () => void
+
 	private constructor(
 		public readonly userId: string,
 		initialToken: string | undefined,
@@ -161,6 +168,11 @@ export class TldrawApp {
 		this.navigate = navigate
 		this.trackEvent = trackEvent
 		this.getToken = getToken
+		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
+		// without a live schema/protocol mismatch against zero-cache.
+		if (window.navigator.webdriver) {
+			this.__test__triggerClientTooOld = () => onClientTooOld()
+		}
 		const z = new Zero<TlaSchema, TlaMutators, ZeroContext>({
 			auth: initialToken,
 			userID: userId,
