@@ -1,9 +1,10 @@
 import {
-	TldrawUiDropdownMenuCheckboxItem,
 	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiMenuCheckboxItem,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
 	useTranslation,
 	useValue,
 } from 'tldraw'
@@ -23,8 +24,9 @@ export function CommentsFilterMenu({
 }: CommentsFilterMenuProps) {
 	const msg = useTranslation()
 	const filters = useValue('sidebar filters', () => sidebarFilters.get(), [])
-	const toggle = (key: keyof SidebarFilters) =>
+	const toggle = (key: keyof SidebarFilters) => {
 		sidebarFilters.update((f) => ({ ...f, [key]: !f[key] }))
+	}
 
 	return (
 		<TldrawUiDropdownMenuRoot id="comments-filter">
@@ -38,41 +40,39 @@ export function CommentsFilterMenu({
 					<FilterIcon />
 				</button>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent side="bottom" align="end">
-				<TldrawUiDropdownMenuGroup>
-					<TldrawUiDropdownMenuCheckboxItem
-						title={msg('comments.show-resolved')}
-						checked={filters.showResolved}
-						onSelect={() => toggle('showResolved')}
-					>
-						{msg('comments.show-resolved')}
-					</TldrawUiDropdownMenuCheckboxItem>
-					{canFilterByAuthor && (
-						<TldrawUiDropdownMenuCheckboxItem
-							title={msg('comments.only-mine')}
-							checked={filters.onlyMine}
-							onSelect={() => toggle('onlyMine')}
-						>
-							{msg('comments.only-mine')}
-						</TldrawUiDropdownMenuCheckboxItem>
-					)}
-					{canFilterByUnread && (
-						<TldrawUiDropdownMenuCheckboxItem
-							title={msg('comments.only-unread')}
-							checked={filters.onlyUnread}
-							onSelect={() => toggle('onlyUnread')}
-						>
-							{msg('comments.only-unread')}
-						</TldrawUiDropdownMenuCheckboxItem>
-					)}
-					<TldrawUiDropdownMenuCheckboxItem
-						title={msg('comments.only-current-page')}
-						checked={filters.onlyCurrentPage}
-						onSelect={() => toggle('onlyCurrentPage')}
-					>
-						{msg('comments.only-current-page')}
-					</TldrawUiDropdownMenuCheckboxItem>
-				</TldrawUiDropdownMenuGroup>
+			<TldrawUiDropdownMenuContent side="bottom" align="start">
+				<TldrawUiMenuContextProvider type="menu" sourceId="menu">
+					<TldrawUiMenuGroup id="comments-filter">
+						<TldrawUiMenuCheckboxItem
+							id="show-resolved"
+							label="comments.show-resolved"
+							checked={filters.showResolved}
+							onSelect={() => toggle('showResolved')}
+						/>
+						{canFilterByAuthor && (
+							<TldrawUiMenuCheckboxItem
+								id="only-mine"
+								label="comments.only-mine"
+								checked={filters.onlyMine}
+								onSelect={() => toggle('onlyMine')}
+							/>
+						)}
+						{canFilterByUnread && (
+							<TldrawUiMenuCheckboxItem
+								id="only-unread"
+								label="comments.only-unread"
+								checked={filters.onlyUnread}
+								onSelect={() => toggle('onlyUnread')}
+							/>
+						)}
+						<TldrawUiMenuCheckboxItem
+							id="only-current-page"
+							label="comments.only-current-page"
+							checked={filters.onlyCurrentPage}
+							onSelect={() => toggle('onlyCurrentPage')}
+						/>
+					</TldrawUiMenuGroup>
+				</TldrawUiMenuContextProvider>
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
 	)
