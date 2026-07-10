@@ -269,7 +269,9 @@ const commentRelationships = relationships(comment, ({ one, many }) => ({
 		destField: ['id'],
 		destSchema: comment_thread,
 	}),
-	reads: many({
+	// singular name despite many() cardinality (one row per user): every consumer scopes it to
+	// one user and calls .one(), yielding at most one row (see the comments query)
+	read: many({
 		sourceField: ['id'],
 		destField: ['commentId'],
 		destSchema: comment_read,

@@ -36,7 +36,7 @@ export function Component() {
 				<ul style={{ listStyle: 'none', padding: 0 }}>
 					{comments.map((c) => {
 						const isOwn = c.authorId === app?.userId
-						const unread = !isOwn && c.reads.length === 0
+						const unread = !isOwn && !c.read
 						return (
 							<li
 								key={c.id}
