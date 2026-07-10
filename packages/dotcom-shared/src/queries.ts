@@ -50,6 +50,10 @@ export const queries = defineQueries({
 			)
 			.related('author', (author) => author.one())
 			.related('file', (file) => file.one())
+			.related('thread', (thread) => thread.one())
+			// the caller's read receipt (at most one row: PK is (userId, commentId) and we filter
+			// on userId); absent (for others' comments) = unread
+			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
 	),
 })
 

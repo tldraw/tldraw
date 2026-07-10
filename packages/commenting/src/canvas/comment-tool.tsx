@@ -1,17 +1,4 @@
-import {
-	atom,
-	DefaultToolbar,
-	DefaultToolbarContent,
-	StateNode,
-	TldrawUiMenuItem,
-	TLCommentAnchor,
-	TLComponents,
-	TLUiOverrides,
-	useIsToolSelected,
-	useTools,
-	VecLike,
-} from 'tldraw'
-import { useCommentingEnabled } from './license'
+import { atom, StateNode, TLCommentAnchor, TLUiOverrides, VecLike } from 'tldraw'
 import { shapeAnchorAt } from './thread-state'
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
@@ -59,7 +46,8 @@ export class CommentTool extends StateNode {
 
 export const commentTools = [CommentTool]
 
-/** Registers the comment tool in the UI (icon, label, shortcut). Compose into your overrides. */
+/** Registers the comment tool in the UI (icon, label, shortcut). Compose into your overrides.
+ *  Once registered, tldraw's `DefaultToolbarContent` shows the comment button next to the eraser. */
 export const commentToolOverrides: TLUiOverrides = {
 	tools(editor, tools) {
 		tools.comment = {
@@ -70,21 +58,5 @@ export const commentToolOverrides: TLUiOverrides = {
 			onSelect: () => editor.setCurrentTool('comment'),
 		}
 		return tools
-	},
-}
-
-/** A Toolbar with the comment tool added after the default tools. Use as-is, or build your
- *  own toolbar with `tools.comment`. The comment button is hidden when commenting isn't licensed. */
-export const commentToolComponents: TLComponents = {
-	Toolbar: (props) => {
-		const tools = useTools()
-		const isSelected = useIsToolSelected(tools.comment)
-		const commentingEnabled = useCommentingEnabled()
-		return (
-			<DefaultToolbar {...props}>
-				<DefaultToolbarContent />
-				{commentingEnabled && <TldrawUiMenuItem {...tools.comment} isSelected={isSelected} />}
-			</DefaultToolbar>
-		)
 	},
 }

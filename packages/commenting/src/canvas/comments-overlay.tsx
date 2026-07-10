@@ -1,7 +1,9 @@
-/* eslint-disable tldraw/jsx-no-literals */
 import {
+	memo,
+	type CSSProperties,
 	type PointerEvent as ReactPointerEvent,
 	ReactNode,
+	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
@@ -12,28 +14,33 @@ import {
 	createComment,
 	createCommentThread,
 	Editor,
+	react,
 	TLComment,
 	TLCommentThread,
+	TLRichText,
 	TldrawUiIcon,
-	toRichText,
 	useContainer,
 	useEditor,
+	usePassThroughMouseOverEvents,
+	usePassThroughWheelEvents,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { computeClusterTable } from '../clustering/computeClusterTable'
-import { createClusterRuntime } from '../clustering/runtime'
+import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
+import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { CommentPin } from '../ui/comment-pin'
 import { CommentThread } from '../ui/comment-thread'
 import { CountBadge } from '../ui/count-badge'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import { pendingComment, PendingComment } from './comment-tool'
+import { commentsHidden, toggleCommentsHidden } from './comments-visibility'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
-import { richTextToPlaintext } from './rich-text'
 import { anchorPagePoint, openThreadId, shapeAnchorAt } from './thread-state'
 import './canvas.css'
 
@@ -65,6 +72,9 @@ const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
 const initialOf = (name: string): string => (name.trim()[0] ?? '?').toUpperCase()
 const CLUSTER_DMAX = 120
+const CLUSTER_FADE_MS = 150
+/** Duration of the click-a-badge zoom-to-split animation. */
+const CLUSTER_EXPAND_ZOOM_MS = 450
 
 /** The leading element for the placement composer — the comment pin's shape, but a pencil
  *  instead of an initial, marking an unsent draft. */
@@ -108,37 +118,143 @@ export function CanvasComments(props: CanvasCommentsProps) {
 function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const editor = useEditor()
 	const container = useContainer()
+	const layerRef = useRef<HTMLDivElement>(null)
+	// Over the pins and cluster badges, wheel and hover pass through to the canvas beneath (these
+	// events bubble up from the pointer-interactive markers to this layer root).
+	usePassThroughWheelEvents(layerRef)
+	usePassThroughMouseOverEvents(layerRef)
 	const deepLinkHandled = useRef(false)
 	const threads = useCommentThreads(editor)
 	const pending = usePendingComment()
 	const openId = useValue('open thread id', () => openThreadId.get(), [])
 	const { impreciseShapeAnchor } = props
+	// Threads whose anchor has moved (by any means — drag, nudge, align, undo, a collaborator)
+	// since the rendered clustering was built. They pop out of clustering and render as live pins,
+	// and only rejoin at the next zoom event, when everything re-clusters anyway.
+	const [movedThreadIds, setMovedThreadIds] = useState<ReadonlySet<string>>(EMPTY_SET)
+	const adoptOnRebuild = useRef(false)
 	const clusterLeaves = useValue(
 		'comment cluster leaves',
-		() => collectClusterLeaves(editor, threads, openThreadId.get(), impreciseShapeAnchor),
-		[editor, threads, impreciseShapeAnchor]
+		() =>
+			collectClusterLeaves(
+				editor,
+				threads.filter((thread) => !movedThreadIds.has(thread.id)),
+				openThreadId.get(),
+				impreciseShapeAnchor
+			),
+		[editor, threads, impreciseShapeAnchor, movedThreadIds]
 	)
 	const clusterZoomBounds = useValue(
 		'comment cluster zoom bounds',
 		() => getClusterZoomBounds(editor),
 		[editor]
 	)
-	const clusterModel = useMemo(() => {
+	const latestModel = useMemo(() => {
 		const table = computeClusterTable(clusterLeaves, clusterZoomBounds)
 		const runtime = createClusterRuntime(table)
 		runtime.seed(editor.getZoomLevel())
 		return { runtime, table }
 	}, [clusterLeaves, clusterZoomBounds, editor])
-	const zoom = useValue('comment cluster zoom', () => editor.getZoomLevel(), [editor])
+	// Re-clustering only applies while zooming: a rebuilt model (thread added, moved, or closed)
+	// is held as `latestModel` and adopted on the next zoom change, so pins never re-flow into
+	// clusters under a static camera. Until adoption, threads the rendered model doesn't know
+	// about show as plain unclustered pins (`orphanThreads`). Exception: a rebuild that *removed*
+	// leaves (thread deleted or opened, page changed) is adopted immediately, so stale pins and
+	// badge counts never linger.
+	const [renderedModel, setRenderedModel] = useState(latestModel)
+	let clusterModel = renderedModel
+	if (
+		renderedModel !== latestModel &&
+		(adoptOnRebuild.current || hasRemovedLeaves(renderedModel.table, latestModel.table))
+	) {
+		adoptOnRebuild.current = false
+		// Carryover seed: events inside their hysteresis band inherit the outgoing partition's
+		// merged/unmerged state instead of the geometric-mean tiebreak, so untouched pins never
+		// snap together (or apart) just because the model was swapped. Idempotent, so safe to
+		// run during render.
+		latestModel.runtime.seedFrom(editor.getZoomLevel(), renderedModel.runtime.getVisible())
+		setRenderedModel(latestModel)
+		clusterModel = latestModel
+	}
+	// Pop-out detection: a leaf folded inside a badge can't follow its anchor (the badge position
+	// is baked into the model), so when its live position drifts from the baked one it ghosts.
+	// Marking it moved excludes it from the cluster input, which reads as a removal above and
+	// re-clusters the rest of its pile immediately; the pin itself renders live below.
+	const newlyMovedIds = findMovedClusteredLeafIds(clusterModel, latestModel)
+	if (newlyMovedIds.length > 0) {
+		// eslint-disable-next-line no-console
+		console.debug(`[comments] pins popped out of clustering: ${newlyMovedIds.join(', ')}`)
+		const next = new Set(movedThreadIds)
+		for (const id of newlyMovedIds) next.add(id)
+		setMovedThreadIds(next)
+	}
+	// Moved pins rejoin clustering on the next zoom-out motion: clear the set (so the rebuild
+	// includes them again) and adopt that rebuild immediately instead of deferring it. Zooming in
+	// never folds pins into clusters — merging is a zoom-out-only move, matching the runtime.
+	useEffect(() => {
+		if (movedThreadIds.size === 0) return
+		let lastZoom = editor.getZoomLevel()
+		return react('rejoin moved comment pins on zoom out', () => {
+			const zoom = editor.getZoomLevel()
+			const prevZoom = lastZoom
+			lastZoom = zoom
+			if (zoom >= prevZoom) return
+			adoptOnRebuild.current = true
+			setMovedThreadIds(EMPTY_SET)
+		})
+	}, [movedThreadIds, editor])
+	// Adopt a pending rebuild only on zoom-out motion: folding deferred additions into clusters is
+	// a merge, and merging only happens while zooming out. While zooming in, the stale table still
+	// splits correctly on its own (split thresholds are direction-safe by the hysteresis invariant).
+	useEffect(() => {
+		if (clusterModel === latestModel) return
+		let lastZoom = editor.getZoomLevel()
+		return react('adopt pending cluster model on zoom out', () => {
+			const zoom = editor.getZoomLevel()
+			const prevZoom = lastZoom
+			lastZoom = zoom
+			if (zoom >= prevZoom) return
+			latestModel.runtime.seedFrom(zoom, clusterModel.runtime.getVisible())
+			setRenderedModel(latestModel)
+		})
+	}, [clusterModel, latestModel, editor])
+	const orphanThreads = useMemo(() => {
+		if (clusterModel === latestModel) return []
+		const renderedIds = new Set(clusterModel.table.leaves.map((leaf) => leaf.id))
+		const latestIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
+		return threads.filter((thread) => latestIds.has(thread.id) && !renderedIds.has(thread.id))
+	}, [clusterModel, latestModel, threads])
+	const movedThreads = useMemo(
+		() => threads.filter((thread) => movedThreadIds.has(thread.id) && thread.id !== openId),
+		[threads, movedThreadIds, openId]
+	)
+	// Subscribe to the runtime cursor, not the raw zoom: onCamera runs on every zoom tick (two
+	// O(1) threshold checks against the event table) but returns the same integer until a merge
+	// or split event actually fires — so this component only re-renders on cluster changes, not
+	// on every camera frame.
+	const clusterCursor = useValue(
+		'comment cluster cursor',
+		() => {
+			clusterModel.runtime.onCamera(editor.getZoomLevel())
+			return clusterModel.runtime.k
+		},
+		[clusterModel, editor]
+	)
 	const visibleNodes = useMemo(() => {
-		clusterModel.runtime.onCamera(zoom)
-		return Array.from(clusterModel.runtime.getVisible().values())
-	}, [clusterModel, zoom])
+		const nodes = Array.from(clusterModel.runtime.getVisible().values())
+		// eslint-disable-next-line no-console
+		console.debug(
+			`[comments] cluster cursor k=${clusterCursor} → re-rendering ${nodes.length} visible nodes`
+		)
+		return nodes
+	}, [clusterModel, clusterCursor])
+	const fadeNodes = useFadeVisibleNodes(visibleNodes, clusterModel)
 	const threadsById = useMemo(
 		() => new Map<string, TLCommentThread>(threads.map((thread) => [thread.id, thread])),
 		[threads]
 	)
 	const openThread = openId ? threadsById.get(openId) : null
+	const hidden = useValue('comments hidden', () => commentsHidden.get(), [])
 
 	// Reset the transient UI state (open thread, half-placed comment) when this unmounts.
 	useEffect(() => {
@@ -180,6 +296,22 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		openThreadId.set(thread.id)
 	}, [clusterModel.table, clusterZoomBounds, editor, threadsById, impreciseShapeAnchor])
 
+	// Clicking a badge zooms to just past the zoom at which that cluster first unclusters,
+	// centered on its centroid. The event that created a visible cluster is the event that splits
+	// it, and (by the table's sort + monotone thresholds) it has the smallest zSplit of everything
+	// applied inside it — so its zSplit is exactly the first split within those comments. The
+	// animated zoom-in then drives the runtime cursor like any manual zoom, so the badge splits
+	// (and can be drilled into further) with no extra bookkeeping.
+	const zoomToClusterSplit = useCallback(
+		(node: ClusterNode) => {
+			const event = clusterModel.table.events.find((e) => e.result.id === node.id)
+			if (!event || !Number.isFinite(event.zSplit)) return
+			const zoom = clamp(event.zSplit * 1.05, clusterZoomBounds.minZoom, clusterZoomBounds.maxZoom)
+			centerOnPointAtZoom(editor, node.centroid, zoom, CLUSTER_EXPAND_ZOOM_MS)
+		},
+		[clusterModel, clusterZoomBounds, editor]
+	)
+
 	// Escape collapses the open thread. Capture-phase + stopPropagation so it runs ahead of the
 	// editor (which would otherwise cancel the current tool or clear the selection). If a comment is
 	// being edited, let its own Escape handler exit edit mode first, keeping the thread open.
@@ -196,18 +328,49 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		return () => document.removeEventListener('keydown', onKeyDown, true)
 	}, [])
 
+	// Shift+C toggles comment-pin visibility on the canvas (matching Figma). Skipped while typing so
+	// it never fires from inside a composer. Physical `KeyC` (layout-independent) with shift only.
+	useEffect(() => {
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.code !== 'KeyC' || !e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
+			const target = e.target as HTMLElement | null
+			if (target && target.closest('input, textarea, [contenteditable="true"]')) return
+			toggleCommentsHidden()
+			e.preventDefault()
+		}
+		document.addEventListener('keydown', onKeyDown, true)
+		return () => document.removeEventListener('keydown', onKeyDown, true)
+	}, [])
+
+	// Hidden: the whole canvas layer (pins, open popover, pending composer) is withheld. The signal
+	// is read above so this component stays mounted and its shortcut/Escape effects keep running.
+	if (hidden) return null
+
 	// Render into the container (above the panels' stacking context) so the pins and popovers
 	// live in the UI layer rather than being clipped by the canvas layer.
 	return createPortal(
-		<div className="cmt-canvas-layer">
-			{visibleNodes.map((node) => {
+		<div ref={layerRef} className="cmt-canvas-layer">
+			{fadeNodes.map(({ node, phase }) => {
+				let content: ReactNode
 				if (node.count === 1) {
 					const thread = threadsById.get(node.id)
 					if (!thread) return null
-					return <ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
+					content = <ThreadPin editor={editor} thread={thread} {...props} />
+				} else {
+					content = <ClusterBadge editor={editor} node={node} onExpand={zoomToClusterSplit} />
 				}
-				return <ClusterBadge key={node.id} editor={editor} node={node} />
+				return (
+					<div key={`cluster-fade:${node.id}`} className={clusterFadeClassName(phase)}>
+						{content}
+					</div>
+				)
 			})}
+			{orphanThreads.map((thread) => (
+				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
+			))}
+			{movedThreads.map((thread) => (
+				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
+			))}
 			{openThread && (
 				<ThreadPin key={`open:${openThread.id}`} editor={editor} thread={openThread} {...props} />
 			)}
@@ -217,6 +380,143 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		</div>,
 		container
 	)
+}
+
+const EMPTY_SET: ReadonlySet<string> = new Set()
+const MOVED_LEAF_EPSILON = 1e-6
+type ClusterFadePhase = 'entering' | 'present' | 'exiting'
+
+interface ClusterFadeNode {
+	node: ClusterNode
+	phase: ClusterFadePhase
+}
+
+function useFadeVisibleNodes(
+	nodes: readonly ClusterNode[],
+	resetKey: { runtime: ClusterRuntime; table: ClusterTable }
+): ClusterFadeNode[] {
+	const resetKeyRef = useRef(resetKey)
+	const didReset = resetKeyRef.current !== resetKey
+	if (didReset) {
+		resetKeyRef.current = resetKey
+	}
+
+	const [fadeNodes, setFadeNodes] = useState<ClusterFadeNode[]>(() => toPresentFadeNodes(nodes))
+	const renderedNodes = didReset ? toPresentFadeNodes(nodes) : fadeNodes
+
+	useEffect(() => {
+		setFadeNodes(toPresentFadeNodes(nodes))
+		// Resets only on a new model (resetKey); node-list changes within the same model are
+		// handled by the reconcile effect below, which fades entries in/out instead of snapping.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [resetKey])
+
+	useEffect(() => {
+		if (didReset) return
+		setFadeNodes((previous) => reconcileFadeNodes(previous, nodes))
+	}, [didReset, nodes])
+
+	const hasEntering = renderedNodes.some((item) => item.phase === 'entering')
+	useEffect(() => {
+		if (!hasEntering) return
+		const frame = requestClusterFadeFrame(() => {
+			setFadeNodes((previous) =>
+				previous.map((item) => (item.phase === 'entering' ? { ...item, phase: 'present' } : item))
+			)
+		})
+		return () => cancelClusterFadeFrame(frame)
+	}, [hasEntering, renderedNodes])
+
+	const hasExiting = renderedNodes.some((item) => item.phase === 'exiting')
+	useEffect(() => {
+		if (!hasExiting) return
+		const timeout = window.setTimeout(() => {
+			setFadeNodes((previous) => previous.filter((item) => item.phase !== 'exiting'))
+		}, CLUSTER_FADE_MS)
+		return () => window.clearTimeout(timeout)
+	}, [hasExiting, renderedNodes])
+
+	return renderedNodes
+}
+
+function toPresentFadeNodes(nodes: readonly ClusterNode[]): ClusterFadeNode[] {
+	return nodes.map((node) => ({ node, phase: 'present' }))
+}
+
+function reconcileFadeNodes(
+	previous: readonly ClusterFadeNode[],
+	nextNodes: readonly ClusterNode[]
+): ClusterFadeNode[] {
+	const previousById = new Map(previous.map((item) => [item.node.id, item]))
+	const nextIds = new Set(nextNodes.map((node) => node.id))
+	const next: ClusterFadeNode[] = []
+
+	for (const node of nextNodes) {
+		const previousItem = previousById.get(node.id)
+		next.push({
+			node,
+			phase:
+				previousItem && previousItem.phase !== 'exiting'
+					? previousItem.phase
+					: previousItem
+						? 'present'
+						: 'entering',
+		})
+	}
+
+	for (const item of previous) {
+		if (nextIds.has(item.node.id)) continue
+		next.push(item.phase === 'exiting' ? item : { ...item, phase: 'exiting' })
+	}
+
+	return next
+}
+
+function requestClusterFadeFrame(callback: FrameRequestCallback): number {
+	if (typeof requestAnimationFrame === 'function') return requestAnimationFrame(callback)
+	return window.setTimeout(() => callback(0), 16)
+}
+
+function cancelClusterFadeFrame(frame: number) {
+	if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
+	else window.clearTimeout(frame)
+}
+
+function clusterFadeClassName(phase: ClusterFadePhase): string {
+	return `cmt-cluster-fade cmt-cluster-fade--${phase}`
+}
+
+/**
+ * Leaves folded inside a badge whose live anchor no longer matches the position the rendered
+ * model was built with. Visible (unclustered) leaf pins track their anchor live, so they can
+ * stay deferred; a badge can't follow a member, so these must pop out of clustering.
+ */
+function findMovedClusteredLeafIds(
+	rendered: { runtime: ClusterRuntime; table: ClusterTable },
+	latest: { table: ClusterTable }
+): string[] {
+	if (rendered.table === latest.table) return []
+	const visible = rendered.runtime.getVisible()
+	const latestById = new Map(latest.table.leaves.map((leaf) => [leaf.id, leaf]))
+	const moved: string[] = []
+	for (const leaf of rendered.table.leaves) {
+		if (visible.has(leaf.id)) continue
+		const current = latestById.get(leaf.id)
+		if (!current) continue
+		if (
+			Math.abs(current.centroid.x - leaf.centroid.x) > MOVED_LEAF_EPSILON ||
+			Math.abs(current.centroid.y - leaf.centroid.y) > MOVED_LEAF_EPSILON
+		) {
+			moved.push(leaf.id)
+		}
+	}
+	return moved
+}
+
+function hasRemovedLeaves(rendered: ClusterTable, latest: ClusterTable): boolean {
+	if (rendered.leaves.length === 0) return false
+	const latestIds = new Set(latest.leaves.map((leaf) => leaf.id))
+	return rendered.leaves.some((leaf) => !latestIds.has(leaf.id))
 }
 
 function getClusterZoomBounds(editor: Editor): { minZoom: number; maxZoom: number } {
@@ -261,7 +561,12 @@ function findDirectParentEvent(table: ClusterTable, threadId: string): MergeEven
 	return table.events.find((event) => event.children.some((child) => child.id === threadId))
 }
 
-function centerOnPointAtZoom(editor: Editor, point: { x: number; y: number }, zoom: number) {
+function centerOnPointAtZoom(
+	editor: Editor,
+	point: { x: number; y: number },
+	zoom: number,
+	duration = 200
+) {
 	const viewport = editor.getViewportScreenBounds()
 	editor.setCamera(
 		{
@@ -269,7 +574,7 @@ function centerOnPointAtZoom(editor: Editor, point: { x: number; y: number }, zo
 			y: viewport.h / (2 * zoom) - point.y,
 			z: zoom,
 		},
-		{ animation: { duration: 200 } }
+		{ animation: { duration } }
 	)
 }
 
@@ -277,7 +582,19 @@ function clamp(value: number, min: number, max: number): number {
 	return Math.max(min, Math.min(max, value))
 }
 
-function ClusterBadge({ editor, node }: { editor: Editor; node: ClusterNode }) {
+// Memoized: cluster nodes and thread records are identity-stable while unchanged, so pins and
+// badges skip re-rendering when the parent re-renders for reasons that don't concern them
+// (leaf recomputes during shape drags, partition changes elsewhere). Camera tracking still
+// works — each component subscribes to its own viewport position via signals, not via props.
+const ClusterBadge = memo(function ClusterBadge({
+	editor,
+	node,
+	onExpand,
+}: {
+	editor: Editor
+	node: ClusterNode
+	onExpand(node: ClusterNode): void
+}) {
 	const point = useValue(
 		'cluster badge point',
 		() => {
@@ -291,11 +608,19 @@ function ClusterBadge({ editor, node }: { editor: Editor; node: ClusterNode }) {
 	if (!point) return null
 
 	return (
-		<div className="cmt-canvas-cluster" style={{ left: point.x, top: point.y }}>
+		<div
+			className="cmt-canvas-cluster"
+			style={{ left: point.x, top: point.y }}
+			onPointerDown={stop}
+			onClick={(e) => {
+				e.stopPropagation()
+				onExpand(node)
+			}}
+		>
 			<CountBadge count={node.count} />
 		</div>
 	)
-}
+})
 
 function isInInflatedViewport(editor: Editor, point: { x: number; y: number }): boolean {
 	const viewport = editor.getViewportScreenBounds()
@@ -307,7 +632,29 @@ function isInInflatedViewport(editor: Editor, point: { x: number; y: number }): 
 	)
 }
 
-function ThreadPin({
+/** The open thread's popover, portaled above the UI panels. Over it, wheel and hover events pass
+ *  through to the canvas (unless the popover is scrolling its own content), like tldraw's panels. */
+function ThreadPopover({
+	container,
+	style,
+	children,
+}: {
+	container: HTMLElement
+	style: CSSProperties
+	children: ReactNode
+}) {
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
+	usePassThroughMouseOverEvents(ref)
+	return createPortal(
+		<div ref={ref} className="cmt-canvas-popover" style={style} onPointerDown={stop}>
+			{children}
+		</div>,
+		container
+	)
+}
+
+const ThreadPin = memo(function ThreadPin({
 	editor,
 	thread,
 	...props
@@ -316,14 +663,38 @@ function ThreadPin({
 		props
 	const container = useContainer()
 	const comments = useThreadComments(editor, thread.id)
+	const msg = useTranslation()
 	// Only one thread's popover is open at a time — shared across pins via the atom.
 	const open = useValue('thread open', () => openThreadId.get() === thread.id, [thread.id])
-	const [reply, setReply] = useState('')
+	const [reply, setReply] = useState<TLRichText>(EMPTY_COMMENT)
 	const [editingId, setEditingId] = useState<string | null>(null)
-	const [editText, setEditText] = useState('')
+	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	// While dragging the marker, its page point overrides the anchor's; committed on drop.
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
 	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
+	const markerRef = useRef<HTMLDivElement>(null)
+
+	// Clicking outside the open popover (and off its own pin) closes the thread — mirrors the
+	// pending composer's dismiss. Capture phase + a class check rather than stopPropagation, since the
+	// popover portals elsewhere in the DOM. The pin marker is excluded so its own click-to-toggle
+	// handles it instead of this closing then the toggle reopening.
+	useEffect(() => {
+		if (!open) return
+		const onPointerDown = (e: PointerEvent) => {
+			const target = e.target as HTMLElement | null
+			if (!target) return
+			if (target.closest('.cmt-canvas-popover')) return
+			const marker = markerRef.current
+			if (marker && marker.contains(target)) return
+			// A click inside a menu/popover layered above us (e.g. the sidebar's filter or overflow
+			// dropdown, portaled elsewhere) belongs to that layer — defer to its own dismissal
+			// instead of closing the thread out from under it.
+			if (target.closest('.tlui-menu, [data-radix-popper-content-wrapper]')) return
+			openThreadId.set(null)
+		}
+		document.addEventListener('pointerdown', onPointerDown, true)
+		return () => document.removeEventListener('pointerdown', onPointerDown, true)
+	}, [open])
 
 	const point = useValue(
 		'pin point',
@@ -338,22 +709,21 @@ function ThreadPin({
 	if (!point) return null
 
 	const postReply = () => {
-		const trimmed = reply.trim()
-		if (!trimmed || !currentUserId) return
+		if (isCommentEmpty(reply) || !currentUserId) return
 		editor.run(
 			() => {
 				const comment = createComment({
 					threadId: thread.id,
 					pageId: thread.pageId,
 					authorId: currentUserId,
-					body: toRichText(trimmed),
+					body: reply,
 				})
 				editor.store.put([comment as any])
 				if (onPostComment) onPostComment(comment)
 			},
 			{ history: 'ignore' }
 		)
-		setReply('')
+		setReply(EMPTY_COMMENT)
 	}
 
 	const toggleResolve = () => {
@@ -380,16 +750,15 @@ function ThreadPin({
 
 	const startEdit = (comment: TLComment) => {
 		setEditingId(comment.id)
-		setEditText(richTextToPlaintext(comment.body))
+		setEditText(comment.body)
 	}
 
 	const saveEdit = () => {
 		const comment = comments.find((c) => c.id === editingId)
-		const trimmed = editText.trim()
-		if (!comment || !trimmed) return
+		if (!comment || isCommentEmpty(editText)) return
 		editor.run(
 			() => {
-				editor.store.put([{ ...comment, body: toRichText(trimmed), editedAt: Date.now() } as any])
+				editor.store.put([{ ...comment, body: editText, editedAt: Date.now() } as any])
 			},
 			{ history: 'ignore' }
 		)
@@ -413,12 +782,12 @@ function ThreadPin({
 				>
 					<CommentComposer
 						author={card.author}
-						placeholder="Edit comment…"
+						placeholder={msg('comments.edit-placeholder')}
 						value={editText}
 						onChange={setEditText}
 						onSubmit={saveEdit}
-						sendLabel="Save"
-						disabled={!editText.trim()}
+						sendLabel={msg('comments.save')}
+						disabled={isCommentEmpty(editText)}
 						autoFocus
 					/>
 				</div>
@@ -429,8 +798,12 @@ function ThreadPin({
 				{...card}
 				actions={
 					comment.authorId === currentUserId ? (
-						<button className="cmt-thread__action" title="Edit" onClick={() => startEdit(comment)}>
-							<TldrawUiIcon icon="dots-horizontal" label="Edit" small />
+						<button
+							className="cmt-thread__action"
+							title={msg('comments.edit')}
+							onClick={() => startEdit(comment)}
+						>
+							<TldrawUiIcon icon="dots-horizontal" label={msg('comments.edit')} small />
 						</button>
 					) : undefined
 				}
@@ -443,19 +816,31 @@ function ThreadPin({
 			{currentUserId && (
 				<button
 					className="cmt-thread__action"
-					title={thread.resolved ? 'Reopen' : 'Resolve'}
+					title={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
 					onClick={toggleResolve}
 				>
-					<TldrawUiIcon icon="check" label={thread.resolved ? 'Reopen' : 'Resolve'} small />
+					<TldrawUiIcon
+						icon="check"
+						label={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
+						small
+					/>
 				</button>
 			)}
 			{currentUserId && (
-				<button className="cmt-thread__action" title="Delete thread" onClick={deleteThread}>
-					<TldrawUiIcon icon="trash" label="Delete thread" small />
+				<button
+					className="cmt-thread__action"
+					title={msg('comments.delete')}
+					onClick={deleteThread}
+				>
+					<TldrawUiIcon icon="trash" label={msg('comments.delete')} small />
 				</button>
 			)}
-			<button className="cmt-thread__action" title="Dismiss" onClick={() => openThreadId.set(null)}>
-				<TldrawUiIcon icon="cross-2" label="Dismiss" small />
+			<button
+				className="cmt-thread__action"
+				title={msg('comments.dismiss')}
+				onClick={() => openThreadId.set(null)}
+			>
+				<TldrawUiIcon icon="cross-2" label={msg('comments.dismiss')} small />
 			</button>
 		</>
 	)
@@ -507,6 +892,7 @@ function ThreadPin({
 			style={{ left: renderPoint.x, top: renderPoint.y }}
 		>
 			<div
+				ref={markerRef}
 				className="cmt-canvas-pin__marker"
 				onPointerDown={startDrag}
 				onPointerMove={onDrag}
@@ -518,38 +904,40 @@ function ThreadPin({
 			</div>
 			{/* The popover portals up to the menus layer (above the UI panels) so it isn't clipped;
 			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
-			{open &&
-				createPortal(
-					<div
-						className="cmt-canvas-popover"
-						style={{ left: renderPoint.x + 36, top: renderPoint.y - 28 }}
-						onPointerDown={stop}
-					>
-						<CommentThread
-							header="Comment"
-							headerActions={headerActions}
-							renderComment={renderComment}
-							comments={comments.map((c) => toCardProps(c, props))}
-							resolvedBy={thread.resolved ? resolveName(thread.resolved.by) : undefined}
-							composer={
-								currentUserId && !thread.resolved
-									? {
-											author: resolveName(currentUserId),
-											placeholder: 'Reply…',
-											value: reply,
-											onChange: setReply,
-											onSubmit: postReply,
-											disabled: !reply.trim(),
-										}
-									: undefined
-							}
-						/>
-					</div>,
-					container
-				)}
+			{open && (
+				<ThreadPopover
+					container={container}
+					style={{ left: renderPoint.x + 36, top: renderPoint.y - 28 }}
+				>
+					<CommentThread
+						header={msg('comments.thread-title')}
+						headerActions={headerActions}
+						renderComment={renderComment}
+						comments={comments.map((c) => toCardProps(c, props))}
+						resolvedBanner={
+							thread.resolved
+								? msg('comments.resolved-by').replace('{name}', resolveName(thread.resolved.by))
+								: undefined
+						}
+						composer={
+							currentUserId && !thread.resolved
+								? {
+										author: resolveName(currentUserId),
+										placeholder: msg('comments.reply-placeholder'),
+										sendLabel: msg('comments.send'),
+										value: reply,
+										onChange: setReply,
+										onSubmit: postReply,
+										disabled: isCommentEmpty(reply),
+									}
+								: undefined
+						}
+					/>
+				</ThreadPopover>
+			)}
 		</div>
 	)
-}
+})
 
 function PendingComposer({
 	editor,
@@ -558,9 +946,13 @@ function PendingComposer({
 	resolveName,
 	onPostComment,
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
-	const [text, setText] = useState('')
+	const [text, setText] = useState<TLRichText>(EMPTY_COMMENT)
 	const ref = useRef<HTMLDivElement>(null)
+	const msg = useTranslation()
 	const container = useContainer()
+	// Over this floating panel, scroll and hover reach the canvas (except where it scrolls itself).
+	usePassThroughWheelEvents(ref)
+	usePassThroughMouseOverEvents(ref)
 
 	const point = useValue('composer point', () => editor.pageToViewport(pending.point), [
 		editor,
@@ -578,8 +970,7 @@ function PendingComposer({
 	}, [])
 
 	const submit = () => {
-		const trimmed = text.trim()
-		if (!trimmed || !currentUserId) return
+		if (isCommentEmpty(text) || !currentUserId) return
 		editor.run(
 			() => {
 				const pageId = editor.getCurrentPageId()
@@ -592,14 +983,14 @@ function PendingComposer({
 					threadId: thread.id,
 					pageId,
 					authorId: currentUserId,
-					body: toRichText(trimmed),
+					body: text,
 				})
 				editor.store.put([thread as any, comment as any])
 				if (onPostComment) onPostComment(comment)
 			},
 			{ history: 'ignore' }
 		)
-		setText('')
+		setText(EMPTY_COMMENT)
 		pendingComment.set(null)
 	}
 
@@ -615,11 +1006,12 @@ function PendingComposer({
 		>
 			<CommentComposer
 				author={currentUserId ? resolveName(currentUserId) : ''}
-				placeholder="Add a comment…"
+				placeholder={msg('comments.add-placeholder')}
+				sendLabel={msg('comments.send')}
 				value={text}
 				onChange={setText}
 				onSubmit={submit}
-				disabled={!text.trim()}
+				disabled={isCommentEmpty(text)}
 				autoFocus
 				leading={draftAvatar}
 			/>

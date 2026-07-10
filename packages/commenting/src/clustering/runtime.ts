@@ -5,6 +5,16 @@ export interface ClusterRuntime {
 	readonly k: number
 	/** Reset state from scratch for the given zoom (cold start / after rebuild). */
 	seed(zoom: number): void
+	/**
+	 * Reset state for the given zoom, carrying hysteresis state over from a previous partition
+	 * (the visible map of the model being replaced). Threshold-forced events ignore history:
+	 * zoom <= zMerge is always active, zoom >= zSplit always inactive. An event inside its band
+	 * is active iff its members were merged together in `previous`; a band event with no history
+	 * (e.g. introduced by the rebuild) stays inactive until the next zoom-out crosses its zMerge.
+	 * Active events must form a prefix of the table, so classification stops at the first
+	 * inactive event; later band-active events conservatively resolve to split.
+	 */
+	seedFrom(zoom: number, previous: ReadonlyMap<string, ClusterNode>): void
 	/** Advance/retreat the cursor for a camera change. No-op if zoom sits inside all bands. */
 	onCamera(zoom: number): void
 	/** The current partition: cluster id → node. Do not mutate. */
@@ -35,6 +45,32 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 		this.seeded = true
 	}
 
+	seedFrom(zoom: number, previous: ReadonlyMap<string, ClusterNode>): void {
+		validateZoom(zoom)
+		const ownerByMember = new Map<string, string>()
+		for (const node of previous.values()) {
+			for (const member of node.members) {
+				ownerByMember.set(member, node.id)
+			}
+		}
+
+		const events = this.table.events
+		let k = 0
+		while (k < events.length) {
+			const event = events[k]
+			if (zoom >= event.zSplit) break
+			if (zoom > event.zMerge && !wasMergedTogether(event.result.members, ownerByMember)) break
+			k++
+		}
+
+		this.k = k
+		this.resetVisible()
+		for (let i = 0; i < k; i++) {
+			applyEvent(this.visible, events[i])
+		}
+		this.seeded = true
+	}
+
 	onCamera(zoom: number): void {
 		validateZoom(zoom)
 		if (!this.seeded) {
@@ -61,6 +97,19 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 			this.visible.set(leaf.id, leaf)
 		}
 	}
+}
+
+/** True iff every member id belonged to the same node of the previous partition. */
+function wasMergedTogether(
+	members: readonly string[],
+	ownerByMember: ReadonlyMap<string, string>
+): boolean {
+	const owner = ownerByMember.get(members[0])
+	if (owner === undefined) return false
+	for (let i = 1; i < members.length; i++) {
+		if (ownerByMember.get(members[i]) !== owner) return false
+	}
+	return true
 }
 
 function seedCount(events: readonly MergeEvent[], zoom: number): number {

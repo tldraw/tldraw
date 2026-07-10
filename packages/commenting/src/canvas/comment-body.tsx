@@ -1,18 +1,18 @@
 import { useMemo } from 'react'
-import { renderHtmlFromRichText, TLRichText, useEditor } from 'tldraw'
+import { TLRichText } from 'tldraw'
 import '../ui/comments.css'
+import { renderCommentHtml } from './comment-render'
 
 export interface CommentBodyProps {
 	richText: TLRichText
 }
 
 /**
- * Renders a comment's rich-text body read-only — the same path the text shape renders through
- * (`renderHtmlFromRichText`), so formatting (bold, links, lists) is preserved rather than
- * flattened. Use this as the `body` of a `CommentCard` on a canvas that has an editor.
+ * Renders a comment's rich-text body read-only through the limited comment extension set (no
+ * headings), so formatting (bold, links, lists, highlight) is preserved rather than flattened, and
+ * headings can never render. Use this as the `body` of a `CommentCard` on a canvas.
  */
 export function CommentBody({ richText }: CommentBodyProps) {
-	const editor = useEditor()
-	const html = useMemo(() => renderHtmlFromRichText(editor, richText), [editor, richText])
+	const html = useMemo(() => renderCommentHtml(richText), [richText])
 	return <div className="cmt-text" dangerouslySetInnerHTML={{ __html: html }} />
 }

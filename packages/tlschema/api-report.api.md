@@ -564,6 +564,12 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 export function isBindingId(id?: string): id is TLBindingId;
 
 // @public
+export function isCommentId(id: string): id is TLCommentId;
+
+// @public
+export function isCommentThreadId(id: string): id is TLCommentThreadId;
+
+// @public
 export function isCustomRecord(typeName: string, record?: UnknownRecord): boolean;
 
 // @public

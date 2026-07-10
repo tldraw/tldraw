@@ -10,8 +10,8 @@ export interface CommentThreadProps {
 	header?: ReactNode
 	/** Action controls shown at the right of the header (resolve, delete, dismiss…). */
 	headerActions?: ReactNode
-	/** When set, shows a "Resolved by <name>" banner above the comments. */
-	resolvedBy?: string
+	/** When set, shows a banner above the comments (e.g. "Resolved by Jess"). */
+	resolvedBanner?: ReactNode
 	/** Reply composer props. Omit for a read-only thread (no composer). */
 	composer?: CommentComposerProps
 	/** Override how each comment renders. Defaults to `<CommentCard>`. */
@@ -27,7 +27,7 @@ export function CommentThread({
 	comments,
 	header,
 	headerActions,
-	resolvedBy,
+	resolvedBanner,
 	composer,
 	renderComment,
 }: CommentThreadProps) {
@@ -41,9 +41,7 @@ export function CommentThread({
 					)}
 				</div>
 			)}
-			{resolvedBy !== undefined && (
-				<div className="cmt-thread__resolved">Resolved by {resolvedBy}</div>
-			)}
+			{resolvedBanner !== undefined && <div className="cmt-thread__resolved">{resolvedBanner}</div>}
 			<div className="cmt-thread__list">
 				{comments.map((comment, i) => (
 					<div key={i}>

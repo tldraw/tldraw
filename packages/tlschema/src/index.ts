@@ -124,6 +124,8 @@ export {
 	createCommentId,
 	createCommentThread,
 	createCommentThreadId,
+	isCommentId,
+	isCommentThreadId,
 	type TLComment,
 	type TLCommentAnchor,
 	type TLCommentId,

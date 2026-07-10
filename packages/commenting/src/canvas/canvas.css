@@ -20,8 +20,39 @@
 	pointer-events: auto;
 }
 
+/* Badges are clickable (zoom to the cluster's first split). */
 .cmt-canvas-cluster {
 	transform: translate(-50%, -50%);
+	pointer-events: auto;
+	cursor: pointer;
+}
+
+.cmt-cluster-fade {
+	opacity: 1;
+	transition: opacity 150ms ease;
+}
+
+.cmt-cluster-fade--entering {
+	opacity: 0;
+}
+
+.cmt-cluster-fade--present {
+	opacity: 1;
+}
+
+.cmt-cluster-fade--exiting {
+	opacity: 0;
+}
+
+.cmt-cluster-fade--entering *,
+.cmt-cluster-fade--exiting * {
+	pointer-events: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cmt-cluster-fade {
+		transition: none;
+	}
 }
 
 /* The open thread (its pin + popover) sits above the other pins, so nearby markers don't
@@ -56,6 +87,9 @@
 	z-index: var(--tl-layer-menus);
 	pointer-events: auto;
 	transform: translateY(8px);
+	/* The rich-text editor has no intrinsic width (unlike the old <input>), so give the floating
+	   placement composer a definite width or it collapses to nothing. */
+	width: 280px;
 }
 .cmt-canvas-composer .cmt-composer__field {
 	background: var(--tl-color-panel);
@@ -65,13 +99,15 @@
 }
 
 /* The comments list panel — a right-side surface shown while the comment tool is active. Below
-   the popover layer, so an open thread still draws over it. */
+   the popover layer, so an open thread still draws over it. Sits under the top-right share panel
+   (top offset clears its ~48px height) and sizes to its content, scrolling past max-height rather
+   than stretching the full canvas height. */
 .cmt-canvas-sidebar {
 	position: absolute;
-	top: 8px;
+	top: 56px;
 	right: 8px;
-	bottom: 8px;
 	width: 280px;
+	max-height: calc(100% - 64px);
 	z-index: var(--tl-layer-panels);
 	pointer-events: auto;
 	display: flex;

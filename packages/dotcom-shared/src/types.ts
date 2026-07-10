@@ -2,6 +2,8 @@ import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaComment,
+	TlaCommentRead,
+	TlaCommentThread,
 	TlaFile,
 	TlaFileState,
 	TlaGroup,
@@ -127,6 +129,12 @@ export interface ZStoreData {
 	// so the polyfill never populates this. Present only so the CRUD types (generic over all schema
 	// tables) compile.
 	comment?: TlaComment[]
+	// Same as comment: never populated by the legacy polyfill store, present only for the
+	// generic CRUD types.
+	comment_thread?: TlaCommentThread[]
+	// Same as comment: never populated by the legacy polyfill store, present only for the
+	// generic CRUD types.
+	comment_read?: TlaCommentRead[]
 	lsn: string
 }
 
@@ -152,6 +160,8 @@ export type ZTable =
 	| 'group_user'
 	| 'group_file'
 	| 'comment'
+	| 'comment_thread'
+	| 'comment_read'
 
 export type ZEvent = 'insert' | 'update' | 'delete'
 

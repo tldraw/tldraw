@@ -1,17 +1,29 @@
-/* eslint-disable tldraw/jsx-no-literals */
-import { ReactNode } from 'react'
+import { ReactNode, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { TLComment, useContainer, useEditor, useValue } from 'tldraw'
+import {
+	TLComment,
+	useContainer,
+	useEditor,
+	usePassThroughMouseOverEvents,
+	usePassThroughWheelEvents,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import { CommentListItemProps, CommentsList } from '../ui/comments-list'
+import { CommentsFilterMenu } from './comments-filter-menu'
+import { CommentsOverflowMenu } from './comments-overflow-menu'
 import { useComments, useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
 import { richTextToPlaintext } from './rich-text'
+import { sidebarFilters } from './sidebar-filters'
 import { focusThread, openThreadId } from './thread-state'
 import './canvas.css'
 
 export interface CanvasCommentsSidebarProps {
 	/** Map an author id to a display name. */
 	resolveName(id: string): string
+	/** The signed-in user's id. Enables the "only your threads" filter when present. */
+	currentUserId?: string
 	/** Render a thread's preview (its first comment). Defaults to the plaintext of the body. */
 	renderPreview?(comment: TLComment): ReactNode
 	/** Tool ids that show the sidebar. Defaults to the comment tool. */
@@ -31,20 +43,28 @@ export interface CanvasCommentsSidebarProps {
  */
 export function CanvasCommentsSidebar({
 	resolveName,
+	currentUserId,
 	renderPreview,
 	tools = ['comment'],
-	header = 'Comments',
-	empty = 'No comments on this page yet.',
+	header,
+	empty,
 	impreciseShapeAnchor,
 }: CanvasCommentsSidebarProps) {
 	const editor = useEditor()
 	const container = useContainer()
 	const commentingEnabled = useCommentingEnabled()
+	const msg = useTranslation()
 	const threads = useCommentThreads(editor)
 	const comments = useComments(editor)
 	const currentPageId = useValue('page id', () => editor.getCurrentPageId(), [editor])
 	const activeTool = useValue('tool id', () => editor.getCurrentToolId(), [editor])
 	const openId = useValue('open thread', () => openThreadId.get(), [])
+	const filters = useValue('sidebar filters', () => sidebarFilters.get(), [])
+	const pageNames = useValue(
+		'page names',
+		() => new Map(editor.getPages().map((page) => [page.id, page.name])),
+		[editor]
+	)
 
 	if (!commentingEnabled || !tools.includes(activeTool)) return null
 
@@ -57,7 +77,14 @@ export function CanvasCommentsSidebar({
 	}
 
 	const items: CommentListItemProps[] = threads
-		.filter((thread) => thread.pageId === currentPageId)
+		.filter((thread) => !filters.onlyCurrentPage || thread.pageId === currentPageId)
+		.filter((thread) => filters.showResolved || thread.resolved == null)
+		// "Only mine" is ignored without a known user — otherwise a persisted onlyMine=true would
+		// empty the list for a signed-out viewer, with the (hidden) toggle giving no way to clear it.
+		.filter(
+			(thread) =>
+				!filters.onlyMine || currentUserId === undefined || thread.createdBy === currentUserId
+		)
 		.map((thread) => {
 			const threadComments = byThread.get(thread.id) ?? []
 			const first = threadComments[0]
@@ -69,6 +96,7 @@ export function CanvasCommentsSidebar({
 				preview,
 				date: new Date((first ?? thread).createdAt).toISOString(),
 				resolved: thread.resolved != null,
+				page: pageNames.get(thread.pageId),
 				count: threadComments.length,
 				selected: openId === thread.id,
 			}
@@ -84,9 +112,34 @@ export function CanvasCommentsSidebar({
 		if (thread) focusThread(editor, thread, impreciseShapeAnchor)
 	}
 
+	return (
+		<SidebarPanel container={container}>
+			<CommentsList
+				items={items}
+				header={header ?? msg('comments.title')}
+				headerAction={
+					<div className="cmt-list__header-actions">
+						<CommentsFilterMenu canFilterByAuthor={currentUserId !== undefined} />
+						<CommentsOverflowMenu />
+					</div>
+				}
+				empty={empty ?? msg('comments.empty')}
+				resolvedLabel={msg('comments.resolved')}
+				onSelect={focus}
+			/>
+		</SidebarPanel>
+	)
+}
+
+/** The sidebar surface, portaled into the container. Over it, wheel and hover events pass through to
+ *  the canvas (except where the list scrolls itself), matching tldraw's own panels. */
+function SidebarPanel({ container, children }: { container: HTMLElement; children: ReactNode }) {
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
+	usePassThroughMouseOverEvents(ref)
 	return createPortal(
-		<div className="cmt-canvas-sidebar">
-			<CommentsList items={items} header={header} empty={empty} onSelect={focus} />
+		<div ref={ref} className="cmt-canvas-sidebar">
+			{children}
 		</div>,
 		container
 	)
