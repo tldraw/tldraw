@@ -8,9 +8,12 @@ import {
 } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
+	CommentOutboxEntry,
 	commentRecordToRow,
 	isCommentAuthorFkViolation,
 	mergeCommentDocumentsIntoSnapshot,
+	outboxEntriesToClear,
+	planCommentDrain,
 	rowsToSnapshotDocuments,
 	rowToCommentRecord,
 	rowToThreadRecord,
@@ -242,6 +245,114 @@ describe('rowsToSnapshotDocuments', () => {
 			{ state: thread, lastChangedClock: 42 },
 			{ state: comment, lastChangedClock: 43 },
 		])
+	})
+})
+
+describe('planCommentDrain', () => {
+	function makeComment(threadId: ReturnType<typeof makeThread>['id']) {
+		return createComment({ threadId, pageId, authorId: 'user1', body, now: 1500 })
+	}
+
+	function laneOf(...docs: { state: { id: string }; lastChangedClock: number }[]) {
+		return new Map(docs.map((doc) => [doc.state.id, doc]))
+	}
+
+	function entriesOf(...recordIds: string[]): CommentOutboxEntry[] {
+		return recordIds.map((recordId, i) => ({ seq: i + 1, recordId }))
+	}
+
+	it('classifies lane-present ids as upserts built via the row converters', () => {
+		const thread = makeThread()
+		const comment = makeComment(thread.id)
+		const lane = laneOf(
+			{ state: thread, lastChangedClock: 42 },
+			{ state: comment, lastChangedClock: 43 }
+		)
+		expect(planCommentDrain(entriesOf(thread.id, comment.id), lane, 'file1')).toEqual({
+			threadUpserts: [threadRecordToRow(thread, 'file1', 42)],
+			commentUpserts: [commentRecordToRow(comment, 'file1', 43)],
+			threadDeletes: [],
+			commentDeletes: [],
+			unknownIds: [],
+		})
+	})
+
+	it('coalesces duplicate entries for one id into a single write', () => {
+		const thread = makeThread()
+		const lane = laneOf({ state: thread, lastChangedClock: 42 })
+		const plan = planCommentDrain(entriesOf(thread.id, thread.id, thread.id), lane, 'file1')
+		expect(plan.threadUpserts).toEqual([threadRecordToRow(thread, 'file1', 42)])
+	})
+
+	it('nets a create-then-delete out to a delete when the id is absent from the lane', () => {
+		const thread = makeThread()
+		const comment = makeComment(thread.id)
+		const plan = planCommentDrain(
+			entriesOf(thread.id, comment.id, thread.id, comment.id),
+			new Map(),
+			'file1'
+		)
+		expect(plan).toEqual({
+			threadUpserts: [],
+			commentUpserts: [],
+			threadDeletes: [thread.id],
+			commentDeletes: [comment.id],
+			unknownIds: [],
+		})
+	})
+
+	it('only considers ids present in the entries, not everything in the lane', () => {
+		// the caller bounds entries to its drain's high-water mark; lane records outside the
+		// entries belong to a later drain and must not leak into this plan
+		const enqueued = makeThread()
+		const laterThread = makeThread()
+		const lane = laneOf(
+			{ state: enqueued, lastChangedClock: 1 },
+			{ state: laterThread, lastChangedClock: 2 }
+		)
+		const plan = planCommentDrain(entriesOf(enqueued.id), lane, 'file1')
+		expect(plan.threadUpserts).toEqual([threadRecordToRow(enqueued, 'file1', 1)])
+	})
+
+	it('separates unknown ids instead of misfiling them as upserts or deletes', () => {
+		const thread = makeThread()
+		const lane = laneOf({ state: thread, lastChangedClock: 42 })
+		const plan = planCommentDrain(entriesOf('shape:oops', thread.id), lane, 'file1')
+		expect(plan).toEqual({
+			threadUpserts: [threadRecordToRow(thread, 'file1', 42)],
+			commentUpserts: [],
+			threadDeletes: [],
+			commentDeletes: [],
+			unknownIds: ['shape:oops'],
+		})
+	})
+})
+
+describe('outboxEntriesToClear', () => {
+	const entries: CommentOutboxEntry[] = [
+		{ seq: 1, recordId: 'comment:a' },
+		{ seq: 2, recordId: 'comment:b' },
+		{ seq: 3, recordId: 'comment:a' },
+	]
+
+	it('signals the bulk-clear fast path when nothing failed', () => {
+		expect(outboxEntriesToClear(entries, new Set())).toEqual({ clearAll: true, seqs: [] })
+	})
+
+	it('keeps every entry of a failed record queued, clearing only the rest', () => {
+		expect(outboxEntriesToClear(entries, new Set(['comment:a']))).toEqual({
+			clearAll: false,
+			seqs: [2],
+		})
+	})
+
+	it('clears entries for pruned records — pruned ids are not failed ids', () => {
+		// a pruned record (author FK cascade) is never added to failedIds, so its entries clear
+		// like a success; only the genuinely failed record's entries survive
+		expect(outboxEntriesToClear(entries, new Set(['comment:b']))).toEqual({
+			clearAll: false,
+			seqs: [1, 3],
+		})
 	})
 })
 

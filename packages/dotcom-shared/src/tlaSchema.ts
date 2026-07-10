@@ -121,8 +121,8 @@ export const group_file = table('group_file')
 	})
 	.primaryKey('fileId', 'groupId')
 
-// Client-visible subset of the comment record; the full column set (incl. persistence-only
-// columns) lives in commentRows.ts in sync-worker. Zero replicates this per user for the
+// Client-visible subset of the comment record; the full column set adds the persistence-only
+// columns (see CommentPersistenceColumns and DB below). Zero replicates this per user for the
 // app-level /comments view; the in-document view reads from the file room instead. Server-written
 // only. Thread anchor/resolution is read via the `thread` relationship rather than a denormalized
 // `shapeId` column here, since a thread can be re-anchored after the comment is created.

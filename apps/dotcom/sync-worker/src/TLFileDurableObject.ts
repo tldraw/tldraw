@@ -38,8 +38,6 @@ import {
 import {
 	TLAsset,
 	TLAssetId,
-	TLComment,
-	TLCommentThread,
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
@@ -61,11 +59,11 @@ import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import {
-	commentRecordToRow,
 	isCommentAuthorFkViolation,
 	mergeCommentDocumentsIntoSnapshot,
+	outboxEntriesToClear,
+	planCommentDrain,
 	rowsToSnapshotDocuments,
-	threadRecordToRow,
 } from './commentRows'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
@@ -202,6 +200,16 @@ export class TLFileDurableObject extends DurableObject {
 					storage.transaction((txn) => {
 						fileSyncSchema.migrateStorage(txn)
 					})
+					// Drain any outbox entries stranded by a previous incarnation (e.g. a Postgres
+					// blip during the last-out drain). Retries are otherwise onChange-driven
+					// (triggerPersist), so a reopened room where users only view would never drain.
+					// Deferred to a microtask because drainCommentOutbox's queued task awaits
+					// getStorage() — i.e. the very promise this callback resolves. The drain queue
+					// runs its tasks asynchronously so even a synchronous call here wouldn't
+					// deadlock, but kicking after this callback returns (storage resolved,
+					// `_storage` fully wired) keeps the non-reentrancy obvious. An empty outbox
+					// no-ops after one synchronous SQL read, so the cost per room start is trivial.
+					queueMicrotask(() => void this.drainCommentOutbox())
 					return storage
 				})
 				.catch((error) => {
@@ -581,16 +589,21 @@ export class TLFileDurableObject extends DurableObject {
 			//     scheduled (see drainCommentOutbox), so no drain queued before ours can touch
 			//     that entry: it survives our scoped clear and its own later drain pushes it to
 			//     Postgres.
-			// (b) The fileId-wide Postgres deletes may remove rows a post-wipe comment already
-			//     drained, but that's safe only because of (a): the surviving outbox entry means
-			//     a subsequent drain re-upserts the row.
+			// (b) The queue's FIFO order means the cleanup task below runs BEFORE any post-wipe
+			//     comment's drain task, so the fileId-wide Postgres deletes can only remove
+			//     pre-restore rows — never rows a post-wipe drain already wrote. The post-wipe
+			//     entry (seq > maxSeq) survives the scoped outbox clear, and its own drain
+			//     re-upserts the row to Postgres AFTER the cleanup.
 			//
 			// Inside the task, the Postgres deletes run BEFORE the outbox clear: if a delete
-			// throws, the pre-restore outbox entries survive, so subsequent drains keep retrying
-			// the per-id deletes (the records are lane-absent after the wipe, taking the delete
-			// path) and this handler's 500 tells the caller to retry the whole restore. Clearing
-			// the outbox first would destroy the only retry vehicle and let the dropped comments
-			// resurrect on the next fresh-SQLite load.
+			// throws, any pre-restore outbox entries survive, so subsequent drains retry the
+			// per-id deletes (the records are lane-absent after the wipe, taking the delete
+			// path). But a quiescent room has an empty outbox — no per-id retries at all — so
+			// the only guaranteed retry vehicle is this handler's 500 telling the caller to
+			// retry the whole restore. Clearing the outbox first would destroy even the per-id
+			// retries and let the dropped comments resurrect on the next fresh-SQLite load.
+			// follow-up: a durable wipe-marker recorded alongside the outbox would let the DO
+			// itself retry the fileId-wide delete, closing the dependence on caller retries.
 			const snapshot = JSON.parse(dataText) as RoomSnapshot
 
 			const storage = await this.getStorage()
@@ -1117,6 +1130,21 @@ export class TLFileDurableObject extends DurableObject {
 				const res = await this.handleFileCreateFromSource()
 				createFromSourceTimer.report('db_load_create_from_source')
 
+				// `createSource` is never cleared from the file record, so this branch re-enters
+				// whenever the R2 blob is missing — including a from-source file that gained
+				// comments and then lost its DO SQLite before the first throttled R2 persist.
+				// Merge the Postgres comments back in like the other branches, or they'd be
+				// orphaned: visible in the app-level /comments view but absent from the room, and
+				// resurrected inconsistently later. For a genuinely fresh duplicate the query
+				// returns zero rows and the merge is a no-op. Clone the snapshot before merging:
+				// loadCreateSourceData can return the shared DEFAULT_INITIAL_SNAPSHOT module
+				// constant, and the merge mutates top-level snapshot fields.
+				if (commentsPromise) {
+					const snapshot: RoomSnapshot = { ...res.snapshot }
+					mergeCommentDocumentsIntoSnapshot(snapshot, await commentsPromise)
+					res.snapshot = snapshot
+				}
+
 				loadTimer.report('db_load_total')
 
 				return res
@@ -1577,13 +1605,14 @@ export class TLFileDurableObject extends DurableObject {
 
 	/**
 	 * Durable outbox for comment persistence. Postgres is the sole durable store for comment
-	 * records; the DO's SQLite is the room's working copy. Each committed diff synchronously
-	 * appends the touched comment/comment-thread record ids here (same-task with the commit, so
-	 * the DO output gate flushes them together), and the drain pushes the records' current state
-	 * to Postgres. Delivery is at-least-once: an entry's outbox row is only removed once its push
-	 * to Postgres has actually succeeded, so a row that fails (including its row-by-row retry) stays
-	 * queued and is retried on the next commit, persist, or DO wake. A row that keeps failing stays
-	 * queued indefinitely and keeps reporting via reportError on every drain — that's the visibility
+	 * records; the DO's SQLite is the room's working copy. Each committed diff appends the touched
+	 * comment/comment-thread record ids here (same-task with the commit, so the DO output gate
+	 * flushes them together), and the drain pushes the records' current state to Postgres.
+	 * Delivery is at-least-once: an entry's outbox row is only removed once its push to Postgres
+	 * has actually succeeded, so a row that fails (including its row-by-row retry) stays queued
+	 * and is retried on the next commit, the next throttled persist, or the drain kicked when
+	 * storage loads on DO wake (see getStorage). A row that keeps failing stays queued
+	 * indefinitely and keeps reporting via reportError on every drain — that's the visibility
 	 * mechanism for a stuck row. The one exception is a comment whose author's account was deleted
 	 * (authorId FK violation): Postgres already cascaded the row away, so the drain prunes the
 	 * record from the room instead of retrying (see drainCommentOutbox).
@@ -1617,10 +1646,10 @@ export class TLFileDurableObject extends DurableObject {
 
 	/**
 	 * Push every outboxed record's current state to Postgres. The outbox stores only ids; whether
-	 * an id is an upsert or a delete is decided by its presence in the object lane at drain time,
-	 * so multiple edits coalesce and a create-then-delete nets out to a delete. Upserts are
-	 * clock-guarded: a replayed push (same lastChangedClock) updates nothing, producing no WAL
-	 * entry and therefore no Zero replication churn.
+	 * an id is an upsert or a delete is decided by its presence in the object lane at drain time
+	 * (see planCommentDrain), so multiple edits coalesce and a create-then-delete nets out to a
+	 * delete. Upserts are clock-guarded: a replayed push (same lastChangedClock) updates nothing,
+	 * producing no WAL entry and therefore no Zero replication churn.
 	 *
 	 * Each drain is bounded to the outbox high-water mark captured synchronously at SCHEDULE time,
 	 * not at execution time: entries enqueued while the drain sat in the queue are left for their
@@ -1643,40 +1672,21 @@ export class TLFileDurableObject extends DurableObject {
 					.exec('SELECT seq, recordId FROM comment_outbox WHERE seq <= ? ORDER BY seq', drainBound)
 					.toArray() as { seq: number; recordId: string }[]
 				if (entries.length === 0) return
-				const pendingIds = new Set(entries.map((e) => e.recordId))
 
 				const storage = await this.getStorage()
 				assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
-				const lane = new Map(storage.getObjectsSnapshot().map((doc) => [doc.state.id, doc]))
+				const lane = new Map(
+					storage.getObjectsSnapshot().map((doc) => [doc.state.id as string, doc])
+				)
 				const fileId = this.documentInfo.slug
 
-				const threadUpserts: DB['comment_thread'][] = []
-				const commentUpserts: DB['comment'][] = []
-				const threadDeletes: string[] = []
-				const commentDeletes: string[] = []
-				for (const id of pendingIds) {
-					const doc = lane.get(id as TLRecord['id'])
-					if (isCommentThreadId(id)) {
-						if (doc) {
-							threadUpserts.push(
-								threadRecordToRow(doc.state as TLCommentThread, fileId, doc.lastChangedClock)
-							)
-						} else {
-							threadDeletes.push(id)
-						}
-					} else if (isCommentId(id)) {
-						if (doc) {
-							const comment = doc.state as TLComment
-							commentUpserts.push(commentRecordToRow(comment, fileId, doc.lastChangedClock))
-						} else {
-							commentDeletes.push(id)
-						}
-					} else {
-						// enqueueCommentChanges only writes comment/comment-thread ids, so an unknown
-						// id means a bug or a corrupted outbox row. Skip it — its entry still clears
-						// below (retrying can't help) — and report for visibility.
-						this.reportError(new Error(`comment outbox: unknown record id ${JSON.stringify(id)}`))
-					}
+				const { threadUpserts, commentUpserts, threadDeletes, commentDeletes, unknownIds } =
+					planCommentDrain(entries, lane, fileId)
+				for (const id of unknownIds) {
+					// enqueueCommentChanges only writes comment/comment-thread ids, so an unknown
+					// id means a bug or a corrupted outbox row. Skip it — its entry still clears
+					// below (retrying can't help) — and report for visibility.
+					this.reportError(new Error(`comment outbox: unknown record id ${JSON.stringify(id)}`))
 				}
 
 				const insertThreadRows = (rows: DB['comment_thread'][]) =>
@@ -1706,6 +1716,7 @@ export class TLFileDurableObject extends DurableObject {
 							oc
 								.column('id')
 								.doUpdateSet((eb) => ({
+									threadId: eb.ref('excluded.threadId'),
 									pageId: eb.ref('excluded.pageId'),
 									body: eb.ref('excluded.body'),
 									editedAt: eb.ref('excluded.editedAt'),
@@ -1811,12 +1822,12 @@ export class TLFileDurableObject extends DurableObject {
 				// Keep entries queued for any record that failed to push (they'll be retried on the
 				// next drain); only the entries that made it to Postgres are removed. Only entries
 				// within this drain's bound are touched — later entries belong to their own drain.
-				if (failedIds.size === 0) {
+				const toClear = outboxEntriesToClear(entries, failedIds)
+				if (toClear.clearAll) {
 					this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', drainBound)
 				} else {
-					for (const entry of entries) {
-						if (failedIds.has(entry.recordId)) continue
-						this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq = ?', entry.seq)
+					for (const seq of toClear.seqs) {
+						this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq = ?', seq)
 					}
 				}
 			})

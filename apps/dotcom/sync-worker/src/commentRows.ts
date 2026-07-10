@@ -6,6 +6,8 @@ import {
 	TLCommentThread,
 	commentRecordConfig,
 	commentThreadRecordConfig,
+	isCommentId,
+	isCommentThreadId,
 } from '@tldraw/tlschema'
 import { JsonObject } from '@tldraw/utils'
 
@@ -129,6 +131,93 @@ export function rowsToSnapshotDocuments(
 			lastChangedClock: Number(row.lastChangedClock),
 		})),
 	]
+}
+
+/** A row of the DO's `comment_outbox` table: a monotonic sequence number and the touched record id. */
+export interface CommentOutboxEntry {
+	seq: number
+	recordId: string
+}
+
+/** The pure output of `planCommentDrain`: Postgres writes grouped by table and operation. */
+export interface CommentDrainPlan {
+	threadUpserts: DB['comment_thread'][]
+	commentUpserts: DB['comment'][]
+	threadDeletes: string[]
+	commentDeletes: string[]
+	/**
+	 * Ids that are neither comment nor comment-thread ids. The outbox should only ever contain
+	 * those, so an unknown id means a bug or a corrupted outbox row; it is reported here instead
+	 * of being misfiled into an upsert/delete bucket, and the caller decides how to surface it.
+	 */
+	unknownIds: string[]
+}
+
+/**
+ * The pure planning half of the comment outbox drain (see drainCommentOutbox in
+ * TLFileDurableObject). The outbox stores only ids; whether an id is an upsert or a delete is
+ * decided by its presence in the object `lane` at plan time, so multiple entries for one record
+ * coalesce into a single write (deduped by recordId, keeping first-occurrence order) and a
+ * create-then-delete nets out to a delete. Only ids present in `entries` are considered — the
+ * caller bounds the entries to its drain's high-water mark, and lane records outside that set
+ * belong to a later drain.
+ */
+export function planCommentDrain(
+	entries: CommentOutboxEntry[],
+	lane: ReadonlyMap<string, { state: unknown; lastChangedClock: number }>,
+	fileId: string
+): CommentDrainPlan {
+	const plan: CommentDrainPlan = {
+		threadUpserts: [],
+		commentUpserts: [],
+		threadDeletes: [],
+		commentDeletes: [],
+		unknownIds: [],
+	}
+	const pendingIds = new Set(entries.map((e) => e.recordId))
+	for (const id of pendingIds) {
+		const doc = lane.get(id)
+		if (isCommentThreadId(id)) {
+			if (doc) {
+				plan.threadUpserts.push(
+					threadRecordToRow(doc.state as TLCommentThread, fileId, doc.lastChangedClock)
+				)
+			} else {
+				plan.threadDeletes.push(id)
+			}
+		} else if (isCommentId(id)) {
+			if (doc) {
+				plan.commentUpserts.push(
+					commentRecordToRow(doc.state as TLComment, fileId, doc.lastChangedClock)
+				)
+			} else {
+				plan.commentDeletes.push(id)
+			}
+		} else {
+			plan.unknownIds.push(id)
+		}
+	}
+	return plan
+}
+
+/**
+ * Which outbox entries a finished drain may delete. Entries whose recordId is in `failedIds`
+ * are kept queued so the next drain retries them; everything else (including entries for pruned
+ * or unknown ids, where retrying can't help) is cleared. When nothing failed, `clearAll` is the
+ * fast path: the caller can bulk-clear everything up to its drain bound instead of deleting
+ * per-seq.
+ */
+export function outboxEntriesToClear(
+	entries: CommentOutboxEntry[],
+	failedIds: ReadonlySet<string>
+): { clearAll: boolean; seqs: number[] } {
+	if (failedIds.size === 0) {
+		return { clearAll: true, seqs: [] }
+	}
+	return {
+		clearAll: false,
+		seqs: entries.filter((e) => !failedIds.has(e.recordId)).map((e) => e.seq),
+	}
 }
 
 /**
