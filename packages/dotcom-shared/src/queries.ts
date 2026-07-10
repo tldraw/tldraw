@@ -51,6 +51,8 @@ export const queries = defineQueries({
 			.related('author', (author) => author.one())
 			.related('file', (file) => file.one())
 			.related('thread', (thread) => thread.one())
+			// only the caller's read receipts; reads.length === 0 (for others' comments) = unread
+			.related('reads', (reads) => reads.where('userId', '=', ctx.userId))
 	),
 })
 

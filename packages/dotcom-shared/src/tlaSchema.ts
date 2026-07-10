@@ -156,6 +156,18 @@ export const comment_thread = table('comment_thread')
 	})
 	.primaryKey('id')
 
+// Per-user read receipts for comments, for the app-level /comments view. Row present = read;
+// marking unread deletes the row. Written via the comment.markRead/markUnread custom mutators
+// (client-written, unlike comment/comment_thread which are server-written by the file's DO).
+// Authors' own comments have no row: the client treats authorId === me as implicitly read.
+export const comment_read = table('comment_read')
+	.columns({
+		userId: string(),
+		commentId: string(),
+		readAt: number(),
+	})
+	.primaryKey('userId', 'commentId')
+
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
 		sourceField: ['ownerId'],
@@ -241,7 +253,7 @@ const groupFileRelationships = relationships(group_file, ({ one, many }) => ({
 	}),
 }))
 
-const commentRelationships = relationships(comment, ({ one }) => ({
+const commentRelationships = relationships(comment, ({ one, many }) => ({
 	file: one({
 		sourceField: ['fileId'],
 		destField: ['id'],
@@ -256,6 +268,11 @@ const commentRelationships = relationships(comment, ({ one }) => ({
 		sourceField: ['threadId'],
 		destField: ['id'],
 		destSchema: comment_thread,
+	}),
+	reads: many({
+		sourceField: ['id'],
+		destField: ['commentId'],
+		destSchema: comment_read,
 	}),
 }))
 
@@ -301,6 +318,11 @@ export type TlaCommentThreadPartial = Partial<TlaCommentThread> & {
 	id: TlaCommentThread['id']
 }
 
+export type TlaCommentReadPartial = Partial<TlaCommentRead> & {
+	userId: TlaCommentRead['userId']
+	commentId: TlaCommentRead['commentId']
+}
+
 export type TlaRow =
 	| TlaFile
 	| TlaFileState
@@ -310,6 +332,7 @@ export type TlaRow =
 	| TlaGroupFile
 	| TlaComment
 	| TlaCommentThread
+	| TlaCommentRead
 export type TlaRowPartial =
 	| TlaFilePartial
 	| TlaFileStatePartial
@@ -319,6 +342,7 @@ export type TlaRowPartial =
 	| TlaGroupFilePartial
 	| TlaCommentPartial
 	| TlaCommentThreadPartial
+	| TlaCommentReadPartial
 export interface TlaUserMutationNumber {
 	userId: string
 	mutationNumber: number
@@ -392,10 +416,21 @@ export interface DB {
 	welcome_template: TlaWelcomeTemplate
 	comment: TlaComment & CommentPersistenceColumns
 	comment_thread: TlaCommentThread & CommentThreadPersistenceColumns
+	comment_read: TlaCommentRead
 }
 
 export const schema = createSchema({
-	tables: [user, file, file_state, group, group_user, group_file, comment, comment_thread],
+	tables: [
+		user,
+		file,
+		file_state,
+		group,
+		group_user,
+		group_file,
+		comment,
+		comment_thread,
+		comment_read,
+	],
 	relationships: [
 		fileRelationships,
 		fileStateRelationships,
@@ -416,6 +451,7 @@ export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaGroupFile = Row<typeof schema.tables.group_file>
 export type TlaComment = Row<typeof schema.tables.comment>
 export type TlaCommentThread = Row<typeof schema.tables.comment_thread>
+export type TlaCommentRead = Row<typeof schema.tables.comment_read>
 
 // Permissions are now handled via Synced Queries in queries.ts
 
