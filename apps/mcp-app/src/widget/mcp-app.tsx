@@ -50,6 +50,13 @@ const LICENSE_KEY = import.meta.env.VITE_TLDRAW_LICENSE_KEY as string
 const USER_EDIT_DEBOUNCE_MS = 1_500
 const PULL_JOB_ATTEMPTS = 4
 const PULL_JOB_RETRY_MS = 700
+// Some hosts (Claude) stream ontoolinputpartial during the call but deliver
+// the final input only with the tool result — waiting for it would stall
+// execution past the server's wait window. Probing from stabilized partials
+// is safe: jobs are claimed by final-code hash, so an incomplete partial
+// simply matches nothing.
+const PARTIAL_PROBE_DEBOUNCE_MS = 400
+const MAX_PARTIAL_PROBES = 5
 
 function SharePanelContent() {
 	const editor = useEditor()
@@ -236,6 +243,9 @@ function TldrawCanvas({ app }: { app: App }) {
 	// redundant local work.
 	const pendingArgsRef = useRef<PendingExecArgs | null>(null)
 	const execStartedRef = useRef(false)
+	const partialProbeTimerRef = useRef<number | null>(null)
+	const partialProbeCountRef = useRef(0)
+	const probeInFlightRef = useRef(false)
 	// Model code drives the editor through the same 'user'-source store events
 	// as real user edits; suppress the user-edit listener while it runs so
 	// exec output is never pushed (or announced) as a manual edit.
@@ -313,6 +323,10 @@ function TldrawCanvas({ app }: { app: App }) {
 		if (userEditTimerRef.current !== null) {
 			window.clearTimeout(userEditTimerRef.current)
 			userEditTimerRef.current = null
+		}
+		if (partialProbeTimerRef.current !== null) {
+			window.clearTimeout(partialProbeTimerRef.current)
+			partialProbeTimerRef.current = null
 		}
 		editorRef.current?.dispose()
 		editorRef.current = null
@@ -522,9 +536,9 @@ function TldrawCanvas({ app }: { app: App }) {
 
 		// --- Exec: pull this invocation's job, execute, submit ---
 
-		const pullJob = async (rendezvousCanvasId: string, code: string) => {
+		const pullJob = async (rendezvousCanvasId: string, code: string, attempts: number) => {
 			const codeHash = await computeExecKey(code)
-			for (let attempt = 0; attempt < PULL_JOB_ATTEMPTS; attempt++) {
+			for (let attempt = 0; attempt < attempts; attempt++) {
 				if (attempt > 0) {
 					await new Promise((resolve) => setTimeout(resolve, PULL_JOB_RETRY_MS))
 				}
@@ -557,14 +571,24 @@ function TldrawCanvas({ app }: { app: App }) {
 			return null
 		}
 
+		interface PulledJob {
+			execId: string
+			code: string
+			targetCanvasId: string
+			baseShapesJson?: string
+			baseAssetsJson?: string
+			baseBindingsJson?: string
+		}
+
+		// The final-input/result path: pull with retries, and if no job exists
+		// (already claimed, remount, or expired) fall back to rendering.
 		const runExecJob = async (rendezvousCanvasId: string, code: string): Promise<void> => {
 			if (execStartedRef.current) return
 			execStartedRef.current = true
 			markAiActivity()
 
 			logIfDevMode(`Exec: pulling job via canvas ${rendezvousCanvasId}`)
-			const editor = await waitForEditor()
-			const job = await pullJob(rendezvousCanvasId, code)
+			const job = await pullJob(rendezvousCanvasId, code, PULL_JOB_ATTEMPTS)
 
 			if (!job) {
 				// The job was already claimed (duplicate event, or a remount long
@@ -580,6 +604,38 @@ function TldrawCanvas({ app }: { app: App }) {
 				}
 				return
 			}
+
+			await executeJob(rendezvousCanvasId, job)
+		}
+
+		// Speculative path for hosts that stream partials but withhold the
+		// final tool input until after the tool call settles (Claude): one
+		// non-committal pull per stabilized partial. A hash of incomplete code
+		// matches no job, so a miss is a no-op — no fallback, no guard flip.
+		const probePartialExec = async (): Promise<void> => {
+			const args = pendingArgsRef.current
+			if (!args?.code || !args.baseCanvasId) return
+			if (execStartedRef.current || probeInFlightRef.current) return
+			if (partialProbeCountRef.current >= MAX_PARTIAL_PROBES) return
+			partialProbeCountRef.current++
+			probeInFlightRef.current = true
+			try {
+				// Two attempts: the last partial tends to land right as the host
+				// sends the tool call, i.e. just before the server enqueues the job.
+				const job = await pullJob(args.baseCanvasId, args.code, 2)
+				if (job && !execStartedRef.current) {
+					execStartedRef.current = true
+					markAiActivity()
+					logIfDevMode('Exec: job claimed from partial input')
+					await executeJob(args.baseCanvasId, job)
+				}
+			} finally {
+				probeInFlightRef.current = false
+			}
+		}
+
+		const executeJob = async (rendezvousCanvasId: string, job: PulledJob): Promise<void> => {
+			const editor = await waitForEditor()
 
 			// Hydrate the base snapshot (empty for a brand-new canvas).
 			try {
@@ -671,6 +727,12 @@ function TldrawCanvas({ app }: { app: App }) {
 			pendingArgsRef.current = { code, baseCanvasId, final: true }
 			logIfDevMode(`ontoolinput: base=${baseCanvasId ?? 'none'}`)
 
+			// The final input supersedes any scheduled partial probe.
+			if (partialProbeTimerRef.current !== null) {
+				window.clearTimeout(partialProbeTimerRef.current)
+				partialProbeTimerRef.current = null
+			}
+
 			// With a base, the rendezvous canvas is in our own args — start now.
 			// Without one, the server-minted canvasId arrives with the tool
 			// result (or already did, on hosts that deliver result first).
@@ -681,14 +743,23 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		app.ontoolinputpartial = (params) => {
-			// Preview-only: never triggers execution. Kept as the args source of
-			// last resort for hosts that fail to deliver a final tool input.
+			// Args source for hosts that never deliver a usable final input
+			// before the result, and the trigger for speculative job probes.
 			const code = params.arguments?.code
 			if (typeof code !== 'string' || !code.trim()) return
 			if (pendingArgsRef.current?.final) return
 			const baseCanvasId =
 				typeof params.arguments?.canvasId === 'string' ? params.arguments.canvasId : undefined
 			pendingArgsRef.current = { code, baseCanvasId, final: false }
+
+			if (execStartedRef.current) return
+			if (partialProbeTimerRef.current !== null) {
+				window.clearTimeout(partialProbeTimerRef.current)
+			}
+			partialProbeTimerRef.current = window.setTimeout(() => {
+				partialProbeTimerRef.current = null
+				void probePartialExec()
+			}, PARTIAL_PROBE_DEBOUNCE_MS)
 		}
 
 		app.ontoolresult = async (result) => {
@@ -725,6 +796,10 @@ function TldrawCanvas({ app }: { app: App }) {
 		}
 
 		app.ontoolcancelled = (_params) => {
+			if (partialProbeTimerRef.current !== null) {
+				window.clearTimeout(partialProbeTimerRef.current)
+				partialProbeTimerRef.current = null
+			}
 			markAiActivity()
 			logIfDevMode('Tool invocation cancelled')
 		}
