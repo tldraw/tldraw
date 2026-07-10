@@ -1,3 +1,4 @@
+import { getFirstCharacter } from 'tldraw'
 import './comments.css'
 
 export interface AvatarProps {
@@ -5,7 +6,7 @@ export interface AvatarProps {
 }
 
 function initial(name: string) {
-	return (name.trim()[0] ?? '?').toUpperCase()
+	return (getFirstCharacter(name.trim()) || '?').toUpperCase()
 }
 
 /** A single-initial avatar for a commenter. */

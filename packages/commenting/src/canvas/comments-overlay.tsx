@@ -14,6 +14,7 @@ import {
 	createComment,
 	createCommentThread,
 	Editor,
+	getFirstCharacter,
 	react,
 	TLComment,
 	TLCommentId,
@@ -78,7 +79,7 @@ export interface CanvasCommentsProps {
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
-const initialOf = (name: string): string => (name.trim()[0] ?? '?').toUpperCase()
+const initialOf = (name: string): string => (getFirstCharacter(name.trim()) || '?').toUpperCase()
 const CLUSTER_DMAX = 120
 const CLUSTER_FADE_MS = 150
 /** Duration of the click-a-badge zoom-to-split animation. */
