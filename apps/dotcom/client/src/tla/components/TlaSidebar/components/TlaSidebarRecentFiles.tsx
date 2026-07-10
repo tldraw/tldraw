@@ -158,20 +158,24 @@ export function TlaSidebarRecentFiles() {
 			) : null}
 			{isSearching ? (
 				<>
-					<div className={styles.sidebarDivider} />
-					<button
-						className={classNames(
-							styles.sidebarActionButton,
-							styles.hoverable,
-							'tla-text_ui__regular'
-						)}
-						onClick={handleClearSearch}
-						data-testid="tla-sidebar-search-clear-button"
-					>
-						<span className={styles.sidebarActionButtonLabel}>
-							<F defaultMessage="Clear search" />
-						</span>
-					</button>
+					{/* The same section wrapper as the workspace action rows, so the
+					    button gets the same full width and vertical rhythm. The gap
+					    above comes from the file sections' own bottom margin. */}
+					<div className={styles.sidebarSection}>
+						<button
+							className={classNames(
+								styles.sidebarActionButton,
+								styles.hoverable,
+								'tla-text_ui__regular'
+							)}
+							onClick={handleClearSearch}
+							data-testid="tla-sidebar-search-clear-button"
+						>
+							<span className={styles.sidebarActionButtonLabel}>
+								<F defaultMessage="Clear search" />
+							</span>
+						</button>
+					</div>
 				</>
 			) : null}
 		</div>

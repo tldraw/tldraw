@@ -793,9 +793,16 @@
 }
 
 /* The scroll content's own padding already provides the 12px inset, so the
-   divider before the "Clear search" button sits flush like the others. */
-.sidebarContent .sidebarDivider {
-	margin: 0;
+   "Clear search" section keeps only the vertical rhythm. */
+.sidebarContent .sidebarSection {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+/* Halve the 28px section gap between the last file section and "Clear search";
+   the full inter-section gap reads as too detached for a related control. */
+.sidebarContent .sidebarFileSectionWrapper + .sidebarSection {
+	margin-top: -14px;
 }
 
 .sidebarFileSectionTitlePadding span[role='img'] {
