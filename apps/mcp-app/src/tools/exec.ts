@@ -3,38 +3,36 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
 import { computeExecKey } from '../shared/exec-key'
-import type { PendingRequests } from '../shared/pending-requests'
 import { CANVAS_RESOURCE_URI } from '../shared/types'
-import type { ExecResultPayload, MCP_APP_HOST_NAMES } from '../shared/types'
+import type { ExecJobResult, MCP_APP_HOST_NAMES, ServerDeps } from '../shared/types'
 import { generateCanvasId, isHostCodeEditor, writeToolAnalytics } from '../shared/utils'
 
-// Bounded wait for the widget's exec result. The widget runs the code and
-// pushes the resulting canvas state to the model context independently of this
-// wait, so a missed, slow, or misrouted result must never hang the tool: after
-// the window we return a graceful "still executing" result. When the result
-// arrives in time the model gets the full synchronous return value.
-const EXEC_CALLBACK_WAIT_MS = 4_000
-// Code-editor hosts (Cursor, VS Code) can deliver the result inline but boot
-// the widget cold on the first call, so give them a longer window.
-const EXEC_CALLBACK_WAIT_LONG_MS = 8_000
+// Bounded wait for the spawned widget to pull the job, execute, and submit.
+// The widget rendezvouses through the BASE canvas's DO (it reads the base
+// canvasId from its own tool args), so a result inside this window returns
+// synchronously. On timeout the tool answers honestly: the fork already
+// exists server-side seeded from the base, so nothing is lost — the model
+// reads the outcome with get_canvas.
+const EXEC_WAIT_MS = 6_000
+// Code-editor hosts (Cursor, VS Code) boot the widget cold but deliver
+// results inline reliably; give them a longer window.
+const EXEC_WAIT_LONG_MS = 10_000
 
 function isLongWaitHost(hostName: MCP_APP_HOST_NAMES): boolean {
 	return isHostCodeEditor(hostName)
 }
 
+function continueInstructions(canvasId: string): string {
+	return `Canvas ID: ${canvasId} — pass this canvasId to exec to keep building on this state, or pass any earlier canvasId to branch from that version instead. The original canvases are never modified.`
+}
+
 export function registerExecTool(
 	server: McpServer,
+	deps: ServerDeps,
 	opts: {
 		analytics?: AnalyticsEngineDataset
 		log(...args: unknown[]): void
-		pendingRequests: PendingRequests
-		getMcpSessionId(): string
 		getClientHostName(): MCP_APP_HOST_NAMES | undefined
-		waitExecResult(
-			execKey: string,
-			timeoutMs: number,
-			notBefore: number
-		): Promise<ExecResultPayload | null>
 	}
 ) {
 	registerAppTool(
@@ -42,9 +40,9 @@ export function registerExecTool(
 		'exec',
 		{
 			title: 'Execute Code',
-			description: `Execute JavaScript code on a tldraw canvas. The code runs in the widget with access to the live \`editor\` instance, helper functions, and normal js. Use the \`search\` tool first to discover available Editor methods and shape types.
+			description: `Execute JavaScript code on a tldraw canvas. The code runs with access to the live \`editor\` instance, helper functions, and normal js. Use the \`search\` tool first to discover available Editor methods and shape types.
 
-Each canvas has a unique \`canvasId\`. Omit \`canvasId\` to create a new blank canvas. To edit an existing canvas, pass the \`canvasId\` that was returned by a previous exec call.
+Every exec produces a NEW canvas and returns its canvasId. Omit \`canvasId\` to start from a blank canvas. Pass any \`canvasId\` from an earlier result to build on that canvas's latest state (including edits the user made by hand) — the original canvas is never modified, so every canvasId in the conversation remains a valid base to branch from.
 
 Shapes and text grow depending on the amount of text they have. Use clever scripting to ensure there are no unintended overlaps.
 
@@ -66,7 +64,7 @@ Examples:
 					.string()
 					.optional()
 					.describe(
-						'Canvas ID to edit. Omit to create a new blank canvas. Pass a canvasId from a previous exec result to continue editing that canvas.'
+						'Canvas to build on. Omit to start from a blank canvas. Pass a canvasId from any previous exec result to start from that state; the result is a new canvas and the original is unchanged.'
 					),
 			}),
 			annotations: {
@@ -79,126 +77,152 @@ Examples:
 		},
 		async ({
 			code,
-			canvasId: inputCanvasId,
+			canvasId: baseCanvasId,
 		}: {
 			code: string
 			canvasId?: string
 		}): Promise<CallToolResult> => {
 			writeToolAnalytics(opts.analytics, 'exec', code)
 
-			const canvasId = inputCanvasId || generateCanvasId()
-
 			const hostName = opts.getClientHostName()
-			const waitMs =
-				hostName && isLongWaitHost(hostName) ? EXEC_CALLBACK_WAIT_LONG_MS : EXEC_CALLBACK_WAIT_MS
+			const execId = crypto.randomUUID()
+			// Job matching key: pairs each spawned widget with its own invocation
+			// when several execs are in flight on one base. Identical code on the
+			// same base makes the jobs interchangeable, which is harmless.
+			const codeHash = await computeExecKey(code)
+			const newCanvasId = generateCanvasId()
 
-			// Key on the model-supplied canvasId (not the generated fallback): it's
-			// the value the widget also has, and it makes same-code-different-canvas
-			// invocations derive different keys so results can't be swapped.
-			const execKey = await computeExecKey(code, inputCanvasId)
-			const startedAt = Date.now()
-			opts.log(
-				`[tldraw-mcp] exec start: canvasId=${canvasId}, existing=${Boolean(inputCanvasId)}, host=${hostName ?? 'unknown'}, waitMs=${waitMs}, execKey=${execKey}, mcpSessionId=${opts.getMcpSessionId()}, startedAt=${startedAt}`
-			)
-
-			// The widget's result can come back two ways, raced with one shared window:
-			// - the in-memory pending request, when the host routes `_exec_callback`
-			//   over this same session (Cursor, VS Code)
-			// - the exec:<execKey> rendezvous DO, when the callback lands on a
-			//   different session DO (Claude, ChatGPT) and gets forwarded
-			let localWait: Promise<unknown> | null = null
-			try {
-				localWait = opts.pendingRequests.create('exec', waitMs)
-			} catch {
-				// Another exec on this session is already waiting; rely on the rendezvous.
-				localWait = null
-			}
-
-			// Defense in depth against a rendezvous-key collision (identical `code`
-			// from a different invocation hashing to the same exec:<execKey> DO): if
-			// the delivered payload names a canvasId and it isn't the one this
-			// invocation is editing, it belongs to someone else — drop it to null so
-			// the legitimate result can still win the race (or we degrade gracefully).
-			const validate = (payload: ExecResultPayload | null): ExecResultPayload | null => {
-				if (payload && payload.canvasId && payload.canvasId !== canvasId) {
-					opts.log(
-						`[tldraw-mcp] exec result rejected: canvasId mismatch (expected=${canvasId}, got=${payload.canvasId}, execKey=${execKey})`
-					)
-					return null
-				}
-				return payload
-			}
-
-			const sources: Array<Promise<ExecResultPayload | null>> = []
-			if (localWait) {
-				sources.push(
-					localWait.then((value) => validate(value as ExecResultPayload)).catch(() => null)
-				)
-			}
-			sources.push(
-				opts
-					.waitExecResult(execKey, waitMs, startedAt)
-					.then(validate)
-					.catch(() => null)
-			)
-
-			const result = await new Promise<ExecResultPayload | null>((resolve) => {
-				let remaining = sources.length
-				let settled = false
-				for (const source of sources) {
-					void source.then((value) => {
-						remaining--
-						if (settled) return
-						if (value) {
-							settled = true
-							resolve(value)
-						} else if (remaining === 0) {
-							settled = true
-							resolve(null)
-						}
-					})
-				}
-			})
-
-			// Drop whichever waiter didn't win so the channel is free for the next exec.
-			opts.pendingRequests.cancel('exec')
-
-			if (result === null) {
-				// No result arrived within the bounded window. This is NOT a failure:
-				// the widget still runs the code and pushes the resulting canvas state
-				// to the model context on its own, so return a graceful (non-error)
-				// message instead of hanging the tool.
+			// --- Brand-new canvas: no shared secret exists between this handler
+			// and the freshly spawned widget until the tool result delivers the
+			// canvasId, so the first draw is explicitly async. The job is queued
+			// on the NEW canvas's DO; the widget learns the id from
+			// ontoolresult.structuredContent, pulls, executes, and commits.
+			if (!baseCanvasId) {
+				const stub = deps.getCanvasStub(newCanvasId)
+				await stub.seedCanvas({
+					shapesJson: '[]',
+					assetsJson: '[]',
+					bindingsJson: '[]',
+					contextJson: null,
+					parentCanvasId: null,
+					lineageId: newCanvasId,
+				})
+				await stub.enqueueExecJob({
+					execId,
+					code,
+					codeHash,
+					targetCanvasId: newCanvasId,
+					legacyExecKey: await computeExecKey(code),
+				})
 				opts.log(
-					`[tldraw-mcp] exec result not received within ${waitMs}ms (graceful): canvasId=${canvasId}, execKey=${execKey}, mcpSessionId=${opts.getMcpSessionId()}, elapsed=${Date.now() - startedAt}ms`
+					`[tldraw-mcp] exec new canvas: canvasId=${newCanvasId}, execId=${execId}, host=${hostName ?? 'unknown'}`
 				)
-				// structuredContent.canvasId reaches the widget via the host's
-				// tool-result event — the reliable channel for teaching the widget its
-				// server-assigned canvasId regardless of host session routing.
 				return {
 					content: [
 						{
 							type: 'text',
 							text:
-								`Canvas ${canvasId} is rendering and your code is executing. The resulting canvas state will be attached to the conversation shortly (it may already be present).\n\n` +
-								`Canvas ID: ${canvasId} — pass this canvasId to edit the same canvas again. If the expected shapes don't appear in the next canvas-state update, re-run exec with a corrected script.`,
+								`Canvas ${newCanvasId} created. The view is rendering and your code is executing — the resulting canvas state will be attached to the conversation shortly. Call get_canvas({ canvasId: "${newCanvasId}" }) if you need to confirm the result before continuing.\n\n` +
+								continueInstructions(newCanvasId),
 						},
 					],
-					structuredContent: { canvasId },
+					structuredContent: { canvasId: newCanvasId },
 				}
 			}
 
-			if (!result.success) {
+			// --- Build on an existing canvas: fork-by-default. Resolve the base's
+			// latest state, seed the new canvas from it (the fork exists even if
+			// execution never happens), queue the job on the BASE DO where the
+			// spawned widget can find it, and wait for a synchronous result.
+			const baseStub = deps.getCanvasStub(baseCanvasId)
+			let base = await baseStub.getCanvasState()
+
+			if (!base) {
+				// Lazy, best-effort migration: pre-redesign canvases lived in
+				// session-keyed checkpoint tables. That lookup only works when this
+				// conversation still routes to the session DO that stored them.
+				const checkpointId = deps.getCanvasCheckpointId(baseCanvasId)
+				const checkpoint = checkpointId ? deps.loadCheckpoint(checkpointId) : null
+				if (checkpoint) {
+					await baseStub.seedCanvas({
+						shapesJson: JSON.stringify(checkpoint.shapes),
+						assetsJson: JSON.stringify(checkpoint.assets),
+						bindingsJson: JSON.stringify(checkpoint.bindings),
+						contextJson: null,
+						parentCanvasId: null,
+						lineageId: baseCanvasId,
+					})
+					base = await baseStub.getCanvasState()
+				}
+			}
+
+			if (!base) {
+				return {
+					content: [
+						{
+							type: 'text',
+							text: `Canvas ${baseCanvasId} was not found — it may have expired or the id may be wrong. Pass a canvasId from an earlier exec result in this conversation, or omit canvasId to start a new blank canvas.`,
+						},
+					],
+					isError: true,
+				}
+			}
+
+			await deps.getCanvasStub(newCanvasId).seedCanvas({
+				shapesJson: base.shapesJson,
+				assetsJson: base.assetsJson,
+				bindingsJson: base.bindingsJson,
+				contextJson: base.contextJson,
+				parentCanvasId: baseCanvasId,
+				lineageId: base.lineageId ?? baseCanvasId,
+			})
+			await baseStub.enqueueExecJob({
+				execId,
+				code,
+				codeHash,
+				targetCanvasId: newCanvasId,
+				// Old cached widget builds report results via the _exec_callback
+				// shim, addressed by this key.
+				legacyExecKey: await computeExecKey(code, baseCanvasId),
+			})
+
+			const waitMs = hostName && isLongWaitHost(hostName) ? EXEC_WAIT_LONG_MS : EXEC_WAIT_MS
+			const startedAt = Date.now()
+			opts.log(
+				`[tldraw-mcp] exec fork: base=${baseCanvasId}, new=${newCanvasId}, execId=${execId}, host=${hostName ?? 'unknown'}, waitMs=${waitMs}`
+			)
+
+			const result: ExecJobResult | null = await baseStub.waitExecJob({ execId, timeoutMs: waitMs })
+
+			if (result === null) {
+				// Not a failure: the fork exists seeded from the base, and the
+				// widget commits the executed state when it finishes booting.
 				opts.log(
-					`[tldraw-mcp] exec failed via callback after ${Date.now() - startedAt}ms: ${result.error}`
+					`[tldraw-mcp] exec result not received within ${waitMs}ms (graceful): base=${baseCanvasId}, new=${newCanvasId}, elapsed=${Date.now() - startedAt}ms`
 				)
 				return {
 					content: [
 						{
 							type: 'text',
-							text: `Runtime error executing code on canvas. The code was NOT applied successfully. Fix the error and try again.\n\nCanvas ID: ${canvasId} — to retry on this canvas, pass this canvasId.\n\nError: ${result.error}`,
+							text:
+								`Canvas ${newCanvasId} was created from ${baseCanvasId} and your code is still executing in the rendering view. The resulting canvas state will be attached shortly — call get_canvas({ canvasId: "${newCanvasId}" }) to confirm the result. If the code never applies (status "expired"), re-run exec against ${baseCanvasId}.\n\n` +
+								continueInstructions(newCanvasId),
 						},
 					],
-					structuredContent: { canvasId },
+					structuredContent: { canvasId: newCanvasId },
+				}
+			}
+
+			if (!result.success) {
+				opts.log(`[tldraw-mcp] exec failed after ${Date.now() - startedAt}ms: ${result.error}`)
+				return {
+					content: [
+						{
+							type: 'text',
+							text: `Runtime error executing code. The code was NOT applied: canvas ${newCanvasId} contains the unmodified state of ${baseCanvasId}. Fix the error and re-run exec against ${baseCanvasId} (or ${newCanvasId} — they are identical).\n\nError: ${result.error}`,
+						},
+					],
+					structuredContent: { canvasId: newCanvasId },
 					isError: true,
 				}
 			}
@@ -207,17 +231,17 @@ Examples:
 				result.result !== undefined ? JSON.stringify(result.result, null, 2) : undefined
 			const lines = [
 				resultStr
-					? `Code executed successfully on canvas. Return value:\n${resultStr}`
-					: 'Code executed successfully on canvas.',
-				`\nCanvas ID: ${canvasId} — to edit this canvas again, pass this as the canvasId parameter.`,
+					? `Code executed successfully. Return value:\n${resultStr}`
+					: 'Code executed successfully.',
+				`\n${continueInstructions(newCanvasId)}`,
 			]
 
 			opts.log(
-				`[tldraw-mcp] exec succeeded via callback after ${Date.now() - startedAt}ms, canvasId=${canvasId}`
+				`[tldraw-mcp] exec succeeded after ${Date.now() - startedAt}ms, base=${baseCanvasId}, new=${newCanvasId}`
 			)
 			return {
 				content: [{ type: 'text', text: lines.join('\n') }],
-				structuredContent: { canvasId },
+				structuredContent: { canvasId: newCanvasId },
 			}
 		}
 	)

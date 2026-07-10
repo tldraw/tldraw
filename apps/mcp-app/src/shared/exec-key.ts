@@ -1,19 +1,17 @@
 /**
- * Rendezvous key for handing the widget's exec result back to the server.
+ * Content hash used two ways in the exec flow:
  *
- * The server (from the tool args) and the widget (from the code it executes)
- * derive the same key independently, from the two values both sides are
- * guaranteed to share regardless of how the host routes MCP sessions: the exec
- * `code` and the model-supplied `canvasId`. Used to address the `exec:<key>`
- * CanvasStore rendezvous DO.
+ * - As the JOB MATCHING KEY (`computeExecKey(code)`): pairs a freshly spawned
+ *   widget with its own invocation's queued job inside a canvas DO, so
+ *   concurrent execs on one base canvas can't swap jobs. Collisions require
+ *   identical code on the same base, which makes the jobs interchangeable.
  *
- * Folding in the canvasId is what prevents a harmful collision. Two invocations
- * only collide when they hash to the same key, which (SHA-256) means identical
- * code. Identical code on *different* existing canvases would otherwise share a
- * key and could swap results — but those invocations carry different canvasIds,
- * so the key differs. When no canvasId is supplied (a brand-new blank canvas)
- * the key falls back to the code alone; collisions there are harmless because
- * identical code on identical blank canvases produces identical results.
+ * - As the LEGACY EXEC KEY (`computeExecKey(code, canvasId)`): old cached
+ *   widget builds report exec results through the `_exec_callback` shim
+ *   addressed by this key; the server stamps it onto each job so the shim can
+ *   find the job to complete. Hosts cache widget HTML durably, so this path
+ *   stays live until `widgetVersion` telemetry says the old population has
+ *   rolled over.
  *
  * Runs in both the Cloudflare worker and the widget (browser).
  */

@@ -4,20 +4,28 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { CallToolResult, ReadResourceResult } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod'
 import { CANVAS_RESOURCE_URI } from './shared/types'
-import type { RegisterToolsOptions, ServerDeps } from './shared/types'
+import type { ExecJobResult, RegisterToolsOptions, ServerDeps } from './shared/types'
 import { errorResponse, parseTlShapes } from './shared/utils'
 import { registerExecTool } from './tools/exec'
+import { registerGetCanvasTool } from './tools/get-canvas'
 import { registerSearchTool } from './tools/search'
 
 /**
  * Shared tool/resource registration logic for the MCP worker runtime.
  *
- * Tools:
- * - search: Query the Editor API spec (server-side)
- * - exec: Execute JS against the live editor in the widget
- * - read_checkpoint: Read checkpoint data (app-only)
- * - save_checkpoint: Save checkpoint data (app-only)
- * - tldraw-canvas: Interactive canvas widget resource
+ * Model-visible tools:
+ * - search: query the Editor API spec (server-side)
+ * - exec: run JS against a canvas — every exec forks a new canvas
+ * - get_canvas: read any canvas's authoritative state + exec job status
+ *
+ * App-only transport (the widget's host-proxied channel; all canvasId-keyed,
+ * so host session routing is irrelevant by construction):
+ * - _pull_job: widget claims its invocation's queued exec job
+ * - _submit_result: widget reports the exec result + final canvas state
+ * - _push_user_edit: widget persists the user's manual edits
+ *
+ * Legacy live shims (cached old widget builds keep working for months):
+ * - _get_canvas_state, save_checkpoint, _exec_callback
  */
 
 // --- Helpers ---
@@ -79,19 +87,316 @@ export function registerTools(
 		loadSpec: deps.loadEditorApiSpec,
 	})
 
-	// --- exec (client-side code execution) ---
+	// --- exec (fork-by-default code execution) ---
 
-	registerExecTool(server, {
+	registerExecTool(server, deps, {
 		analytics,
 		log,
-		pendingRequests: opts.pendingRequests,
-		getMcpSessionId: () => deps.getMcpSessionId(),
 		getClientHostName: () => opts.getClientHostName(),
-		waitExecResult: (execKey, timeoutMs, notBefore) =>
-			deps.waitExecResult(execKey, timeoutMs, notBefore),
 	})
 
-	// --- _exec_callback (app-only: widget resolves pending exec via callServerTool) ---
+	// --- get_canvas (authoritative read) ---
+
+	registerGetCanvasTool(server, deps)
+
+	// --- _pull_job (app-only: widget claims its invocation's exec job) ---
+
+	server.registerTool(
+		'_pull_job',
+		{
+			title: 'Pull Exec Job',
+			description: 'App-only: widget pulls the queued exec job for its invocation.',
+			inputSchema: z.object({
+				canvasId: z.string().min(1),
+				codeHash: z.string().min(1),
+			}),
+			annotations: {
+				readOnlyHint: false,
+				destructiveHint: false,
+				idempotentHint: false,
+				openWorldHint: false,
+			},
+			_meta: { ui: { visibility: ['app'] } },
+		},
+		async ({
+			canvasId,
+			codeHash,
+		}: {
+			canvasId: string
+			codeHash: string
+		}): Promise<CallToolResult> => {
+			const job = await deps.getCanvasStub(canvasId).pullExecJob({ codeHash })
+			log(
+				`[tldraw-mcp] _pull_job: canvasId=${canvasId}, codeHash=${codeHash}, found=${Boolean(job)}${job ? `, execId=${job.execId}, target=${job.targetCanvasId}` : ''}`
+			)
+			const payload = { job: job ?? null }
+			return {
+				content: [{ type: 'text', text: JSON.stringify(payload) }],
+				structuredContent: payload,
+			}
+		}
+	)
+
+	// --- _submit_result (app-only: widget reports exec outcome + final state) ---
+
+	const submitResultSchema = z.object({
+		/** The canvas the job was pulled from (base canvas, or self for new). */
+		canvasId: z.string().min(1),
+		execId: z.string().min(1),
+		result: z.object({
+			success: z.boolean(),
+			result: z.unknown().optional(),
+			error: z.string().optional(),
+		}),
+		shapesJson: z.string().optional(),
+		assetsJson: z.string().optional(),
+		bindingsJson: z.string().optional(),
+		contextJson: z.string().optional(),
+		widgetVersion: z.string().optional(),
+	})
+
+	server.registerTool(
+		'_submit_result',
+		{
+			title: 'Submit Exec Result',
+			description: 'App-only: widget resolves an exec job with its result and final canvas state.',
+			inputSchema: submitResultSchema,
+			annotations: {
+				readOnlyHint: false,
+				destructiveHint: false,
+				idempotentHint: false,
+				openWorldHint: false,
+			},
+			_meta: { ui: { visibility: ['app'] } },
+		},
+		async (args: z.infer<typeof submitResultSchema>): Promise<CallToolResult> => {
+			try {
+				const outcome = await deps.getCanvasStub(args.canvasId).completeExecJob({
+					execId: args.execId,
+					result: args.result as ExecJobResult,
+					shapesJson: args.shapesJson,
+					assetsJson: args.assetsJson,
+					bindingsJson: args.bindingsJson,
+					contextJson: args.contextJson,
+				})
+				log(
+					`[tldraw-mcp] _submit_result: canvasId=${args.canvasId}, execId=${args.execId}, success=${args.result.success}, handled=${outcome.handled}, widgetVersion=${args.widgetVersion ?? 'unknown'}`
+				)
+				return { content: [{ type: 'text', text: JSON.stringify({ ok: outcome.handled }) }] }
+			} catch (err) {
+				return errorResponse('_submit_result', err)
+			}
+		}
+	)
+
+	// --- _push_user_edit (app-only: persist the user's manual edits) ---
+
+	const pushUserEditSchema = z.object({
+		canvasId: z.string().min(1),
+		shapesJson: z.string(),
+		assetsJson: z.string().optional(),
+		bindingsJson: z.string().optional(),
+		contextJson: z.string().optional(),
+		widgetVersion: z.string().optional(),
+	})
+
+	server.registerTool(
+		'_push_user_edit',
+		{
+			title: 'Push User Edit',
+			description: "App-only: widget persists the user's manual canvas edits.",
+			inputSchema: pushUserEditSchema,
+			annotations: {
+				readOnlyHint: false,
+				destructiveHint: false,
+				idempotentHint: false,
+				openWorldHint: false,
+			},
+			_meta: { ui: { visibility: ['app'] } },
+		},
+		async (args: z.infer<typeof pushUserEditSchema>): Promise<CallToolResult> => {
+			try {
+				parseTlShapes(parseArrayJson(args.shapesJson, 'shapesJson'))
+				const { seq } = await deps.getCanvasStub(args.canvasId).putCanvasState({
+					shapesJson: args.shapesJson,
+					assetsJson: args.assetsJson,
+					bindingsJson: args.bindingsJson,
+					contextJson: args.contextJson,
+					source: 'user',
+				})
+				return { content: [{ type: 'text', text: JSON.stringify({ ok: true, seq }) }] }
+			} catch (err) {
+				return errorResponse('_push_user_edit', err)
+			}
+		}
+	)
+
+	// --- _get_canvas_state (app-only: state fetch; also a legacy shim) ---
+	// New widgets use this to render a canvas on remount (job already done).
+	// Old cached widgets call it to hydrate before executing. Both get the
+	// canvas DO's authoritative state, with the pre-redesign session-keyed
+	// checkpoint tables as a lazy fallback for old canvases.
+
+	server.registerTool(
+		'_get_canvas_state',
+		{
+			title: 'Get Canvas State',
+			description: 'App-only: get the latest state for a canvas by its canvasId.',
+			inputSchema: z.object({ canvasId: z.string().min(1) }),
+			annotations: {
+				readOnlyHint: true,
+				destructiveHint: false,
+				idempotentHint: true,
+				openWorldHint: false,
+			},
+			_meta: { ui: { visibility: ['app'] } },
+		},
+		async ({ canvasId }: { canvasId: string }): Promise<CallToolResult> => {
+			const state = await deps.getCanvasStub(canvasId).getCanvasState()
+			if (state) {
+				return {
+					content: [
+						{
+							type: 'text',
+							text: JSON.stringify({
+								shapes: JSON.parse(state.shapesJson),
+								assets: JSON.parse(state.assetsJson),
+								bindings: JSON.parse(state.bindingsJson),
+								seq: state.seq,
+							}),
+						},
+					],
+				}
+			}
+
+			// Legacy fallback: session-keyed checkpoint tables.
+			const checkpointId = deps.getCanvasCheckpointId(canvasId)
+			const checkpoint = checkpointId ? deps.loadCheckpoint(checkpointId) : null
+			if (!checkpoint) {
+				return {
+					content: [
+						{ type: 'text', text: JSON.stringify({ shapes: [], assets: [], bindings: [] }) },
+					],
+				}
+			}
+			return {
+				content: [
+					{
+						type: 'text',
+						text: JSON.stringify({
+							checkpointId,
+							shapes: parseTlShapes(checkpoint.shapes),
+							assets: checkpoint.assets,
+							bindings: checkpoint.bindings,
+						}),
+					},
+				],
+			}
+		}
+	)
+
+	// --- save_checkpoint (legacy live shim) ---
+	// Old cached widgets save their post-exec and user-edit state here,
+	// addressed at whatever canvasId they currently believe they are showing.
+	// When that canvas has a recent exec job, the save is the executed state of
+	// that job's FORK — redirect it to the target so fork semantics hold for
+	// old widget builds too.
+
+	server.registerTool(
+		'save_checkpoint',
+		{
+			title: 'Save Checkpoint',
+			description:
+				'App-only: save shapes to a canvas (from user edits). shapesJson and assetsJson must be JSON array strings.',
+			inputSchema: z.object({
+				checkpointId: z.string().min(1),
+				shapesJson: z.string(),
+				assetsJson: z.string().optional(),
+				bindingsJson: z.string().optional(),
+				canvasId: z.string().optional(),
+			}),
+			annotations: {
+				readOnlyHint: false,
+				destructiveHint: false,
+				idempotentHint: false,
+				openWorldHint: false,
+			},
+			_meta: { ui: { visibility: ['app'] } },
+		},
+		async ({
+			shapesJson,
+			assetsJson,
+			bindingsJson,
+			canvasId,
+		}: {
+			checkpointId: string
+			shapesJson: string
+			assetsJson?: string
+			bindingsJson?: string
+			canvasId?: string
+		}): Promise<CallToolResult> => {
+			try {
+				const shapes = parseTlShapes(parseArrayJson(shapesJson, 'shapesJson'))
+				if (!canvasId) {
+					// A legacy widget that never learned a canvasId has nowhere
+					// durable to save; acknowledge without persisting (matches the
+					// old session-keyed behavior, which was already unreachable from
+					// other sessions).
+					return {
+						content: [{ type: 'text', text: `Saved ${shapes.length} shape(s).` }],
+						structuredContent: { sessionId: deps.getSessionId(), shapesCount: shapes.length },
+					}
+				}
+
+				const stub = deps.getCanvasStub(canvasId)
+				const recent = await stub.getRecentJobTarget()
+				if (recent) {
+					const completed = await stub.completeExecJob({
+						execId: recent.execId,
+						result: { success: true },
+						shapesJson,
+						assetsJson,
+						bindingsJson,
+					})
+					if (completed.handled) {
+						log(
+							`[tldraw-mcp] save_checkpoint (legacy) redirected to fork target: base=${canvasId}, target=${recent.targetCanvasId}`
+						)
+						return {
+							content: [{ type: 'text', text: `Saved ${shapes.length} shape(s).` }],
+							structuredContent: { sessionId: deps.getSessionId(), shapesCount: shapes.length },
+						}
+					}
+					// Job already settled: this is a follow-up save (e.g. user edits
+					// after exec) — persist onto the fork target.
+					await deps.getCanvasStub(recent.targetCanvasId).putCanvasState({
+						shapesJson,
+						assetsJson,
+						bindingsJson,
+						source: 'legacy',
+					})
+					return {
+						content: [{ type: 'text', text: `Saved ${shapes.length} shape(s).` }],
+						structuredContent: { sessionId: deps.getSessionId(), shapesCount: shapes.length },
+					}
+				}
+
+				await stub.putCanvasState({ shapesJson, assetsJson, bindingsJson, source: 'legacy' })
+				return {
+					content: [{ type: 'text', text: `Saved ${shapes.length} shape(s).` }],
+					structuredContent: { sessionId: deps.getSessionId(), shapesCount: shapes.length },
+				}
+			} catch (err) {
+				return errorResponse('save_checkpoint', err)
+			}
+		}
+	)
+
+	// --- _exec_callback (legacy live shim) ---
+	// Old cached widgets resolve exec results here, keyed by the legacy
+	// sha256(canvasId+code) execKey. Route by the canvasId in the payload to
+	// the base canvas DO and complete the matching job; the widget's follow-up
+	// save_checkpoint delivers the state.
 
 	const execCallbackSchema = z.object({
 		channel: z.string(),
@@ -122,203 +427,27 @@ export function registerTools(
 			_meta: { ui: { visibility: ['app'] } },
 		},
 		async ({
-			channel,
 			execKey,
 			result,
 			error,
 		}: z.infer<typeof execCallbackSchema>): Promise<CallToolResult> => {
+			const canvasId = result?.canvasId
+			if (!execKey || !canvasId) {
+				// New-canvas legacy callbacks carry no canvasId and are unroutable;
+				// the widget's save_checkpoint (after it learns the id from the
+				// tool result) delivers the state instead.
+				return { content: [{ type: 'text', text: JSON.stringify({ ok: false }) }] }
+			}
+			const payload: ExecJobResult = error
+				? { success: false, error }
+				: { success: result?.success ?? false, result: result?.result, error: result?.error }
+			const outcome = await deps
+				.getCanvasStub(canvasId)
+				.completeExecJobByLegacyKey({ legacyExecKey: execKey, result: payload })
 			log(
-				`[tldraw-mcp] _exec_callback received: channel=${channel}, execKey=${execKey ?? 'none'}, isError=${Boolean(error)}, mcpSessionId=${deps.getMcpSessionId()}, receivedAt=${Date.now()}`
+				`[tldraw-mcp] _exec_callback (legacy): canvasId=${canvasId}, execKey=${execKey}, handled=${outcome.handled}`
 			)
-			const handled = error
-				? opts.pendingRequests.reject(channel, error)
-				: opts.pendingRequests.resolve(channel, result)
-
-			if (!handled) {
-				// No pending exec on this DO — the host routed the callback over a
-				// different session than the exec call. Forward the result to the
-				// exec:<execKey> rendezvous DO for the waiting exec to pick up.
-				const payload = error ? { success: false, error } : (result ?? null)
-				let forwarded = false
-				let delivered = false
-				if (execKey && payload) {
-					delivered = await deps.putExecResult(execKey, payload)
-					forwarded = true
-				}
-				log(
-					`[tldraw-mcp] exec callback for non-pending channel "${channel}": ${forwarded ? `forwarded to rendezvous execKey=${execKey} (delivered=${delivered})` : 'no execKey, dropped'}`
-				)
-				return {
-					content: [{ type: 'text', text: JSON.stringify({ ok: forwarded }) }],
-				}
-			}
-
-			return { content: [{ type: 'text', text: JSON.stringify({ ok: true }) }] }
-		}
-	)
-
-	// --- _get_canvas_state (app-only: widget fetches fork data by canvasId) ---
-
-	server.registerTool(
-		'_get_canvas_state',
-		{
-			title: 'Get Canvas State',
-			description: 'App-only: get the latest checkpoint for a canvas by its canvasId.',
-			inputSchema: z.object({ canvasId: z.string().min(1) }),
-			annotations: {
-				readOnlyHint: true,
-				destructiveHint: false,
-				idempotentHint: true,
-				openWorldHint: false,
-			},
-			_meta: { ui: { visibility: ['app'] } },
-		},
-		async ({ canvasId }: { canvasId: string }): Promise<CallToolResult> => {
-			const checkpointId = deps.getCanvasCheckpointId(canvasId)
-			if (!checkpointId) {
-				return {
-					content: [
-						{ type: 'text', text: JSON.stringify({ shapes: [], assets: [], bindings: [] }) },
-					],
-				}
-			}
-			const checkpoint = deps.loadCheckpoint(checkpointId)
-			if (!checkpoint) {
-				return {
-					content: [
-						{ type: 'text', text: JSON.stringify({ shapes: [], assets: [], bindings: [] }) },
-					],
-				}
-			}
-			const shapes = parseTlShapes(checkpoint.shapes)
-			return {
-				content: [
-					{
-						type: 'text',
-						text: JSON.stringify({
-							checkpointId,
-							shapes,
-							assets: checkpoint.assets,
-							bindings: checkpoint.bindings,
-						}),
-					},
-				],
-			}
-		}
-	)
-
-	// --- read_checkpoint (app-only) ---
-
-	server.registerTool(
-		'read_checkpoint',
-		{
-			title: 'Read Checkpoint',
-			description: 'App-only: read shapes from a checkpoint by ID.',
-			inputSchema: z.object({ checkpointId: z.string().min(1) }),
-			annotations: {
-				readOnlyHint: true,
-				destructiveHint: false,
-				idempotentHint: true,
-				openWorldHint: false,
-			},
-			_meta: { ui: { visibility: ['app'] } },
-		},
-		async ({ checkpointId }: { checkpointId: string }): Promise<CallToolResult> => {
-			const checkpoint = deps.loadCheckpoint(checkpointId)
-			if (!checkpoint) {
-				return {
-					content: [{ type: 'text', text: 'Not found.' }],
-					structuredContent: {
-						sessionId: deps.getSessionId(),
-						shapes: [],
-						assets: [],
-						bindings: [],
-					},
-				}
-			}
-
-			const shapes = parseTlShapes(checkpoint.shapes)
-			const assets = checkpoint.assets
-			const bindings = checkpoint.bindings
-
-			return {
-				content: [{ type: 'text', text: `${shapes.length} shape(s), ${assets.length} asset(s).` }],
-				structuredContent: {
-					sessionId: deps.getSessionId(),
-					shapes,
-					assets,
-					bindings,
-				},
-			}
-		}
-	)
-
-	// --- save_checkpoint (app-only) ---
-
-	server.registerTool(
-		'save_checkpoint',
-		{
-			title: 'Save Checkpoint',
-			description:
-				'App-only: save shapes to a checkpoint (from user edits). shapesJson and assetsJson must be JSON array strings.',
-			inputSchema: z.object({
-				checkpointId: z.string().min(1),
-				shapesJson: z.string(),
-				assetsJson: z.string().optional(),
-				bindingsJson: z.string().optional(),
-				canvasId: z.string().optional(),
-			}),
-			annotations: {
-				readOnlyHint: false,
-				destructiveHint: false,
-				idempotentHint: false,
-				openWorldHint: false,
-			},
-			_meta: { ui: { visibility: ['app'] } },
-		},
-		async ({
-			checkpointId,
-			shapesJson,
-			assetsJson,
-			bindingsJson,
-			canvasId,
-		}: {
-			checkpointId: string
-			shapesJson: string
-			assetsJson?: string
-			bindingsJson?: string
-			canvasId?: string
-		}): Promise<CallToolResult> => {
-			try {
-				log(
-					`[tldraw-mcp] save_checkpoint called: checkpointId=${checkpointId}, canvasId=${canvasId ?? 'none'}, prev activeCheckpointId=${deps.getActiveCheckpointId()}`
-				)
-				const raw = parseArrayJson(shapesJson, 'shapesJson')
-				const shapes = parseTlShapes(raw)
-				const assets = assetsJson ? parseArrayJson(assetsJson, 'assetsJson') : []
-				const bindings = bindingsJson ? parseArrayJson(bindingsJson, 'bindingsJson') : []
-				deps.saveCheckpoint(checkpointId, shapes, assets, bindings)
-				deps.setActiveCheckpointId(checkpointId)
-				if (canvasId) {
-					deps.setCanvasCheckpointId(canvasId, checkpointId)
-				}
-				log(
-					`[tldraw-mcp] save_checkpoint done: activeCheckpointId=${deps.getActiveCheckpointId()}, canvasId=${canvasId ?? 'none'}, shapes=${shapes.length}, assets=${assets.length}`
-				)
-				return {
-					content: [
-						{ type: 'text', text: `Saved ${shapes.length} shape(s), ${assets.length} asset(s).` },
-					],
-					structuredContent: {
-						checkpointId,
-						sessionId: deps.getSessionId(),
-						shapesCount: shapes.length,
-						assetsCount: assets.length,
-					},
-				}
-			} catch (err) {
-				return errorResponse('save_checkpoint', err)
-			}
+			return { content: [{ type: 'text', text: JSON.stringify({ ok: outcome.handled }) }] }
 		}
 	)
 
@@ -330,14 +459,13 @@ export function registerTools(
 		})
 		let html = await deps.loadWidgetHtml()
 
-		const sid = deps.getSessionId()
 		const hostName = opts.getClientHostName()
 
+		// Deploy-stable data only: hosts cache this HTML durably, so nothing
+		// per-session or per-invocation may be baked in.
 		const bootstrap: Record<string, unknown> = {
-			sessionId: sid,
 			isDev: opts.isDev,
 			workerOrigin: opts.workerOrigin,
-			mcpSessionId: deps.getMcpSessionId(),
 			methodMap: await deps.loadMethodMap(),
 		}
 

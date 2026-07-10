@@ -3,7 +3,9 @@ import type { TLShape } from 'tldraw'
 import type { MCP_APP_HOST_NAMES } from './types'
 
 const CANVAS_ID_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
-const CANVAS_ID_LENGTH = 8
+// canvasIds are bearer capabilities on a public server: 26 base36 chars keep
+// >128 bits of entropy even with the modulo bias below.
+const CANVAS_ID_LENGTH = 26
 
 export function generateCanvasId(): string {
 	const bytes = new Uint8Array(CANVAS_ID_LENGTH)
