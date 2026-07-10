@@ -10,6 +10,7 @@ export function DefaultToolbarContent() {
 			<HandToolbarItem />
 			<DrawToolbarItem />
 			<EraserToolbarItem />
+			<CommentToolbarItem />
 			<ArrowToolbarItem />
 			<TextToolbarItem />
 			<NoteToolbarItem />
@@ -92,6 +93,16 @@ export function DrawToolbarItem() {
 /** @public @react */
 export function EraserToolbarItem() {
 	return <ToolbarItem tool="eraser" />
+}
+
+/**
+ * Renders the comment tool if it has been registered (e.g. via `@tldraw/commenting`). Renders
+ * nothing otherwise, so it's safe to include in the default toolbar for every editor.
+ *
+ * @public @react
+ */
+export function CommentToolbarItem() {
+	return <ToolbarItem tool="comment" />
 }
 
 /** @public @react */

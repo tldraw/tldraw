@@ -1,9 +1,4 @@
-import {
-	CanvasComments,
-	commentToolComponents,
-	commentToolOverrides,
-	commentTools,
-} from '@tldraw/commenting/canvas'
+import { CanvasComments, commentToolOverrides, commentTools } from '@tldraw/commenting/canvas'
 import { useMemo } from 'react'
 import { commentSchemaRecords, createTLSchema, createTLStore, TLComponents, Tldraw } from 'tldraw'
 import './comment-flow.css'
@@ -25,7 +20,6 @@ export function CommentFlow() {
 	)
 	const components: TLComponents = useMemo(
 		() => ({
-			...commentToolComponents,
 			InFrontOfTheCanvas: () => <CanvasComments currentUserId="me" resolveName={resolveName} />,
 		}),
 		[]

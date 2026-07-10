@@ -36,7 +36,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 	orientation = 'horizontal',
 	minItems = 4,
 	minSizePx = 310,
-	maxItems = 8,
+	maxItems = 9,
 	maxSizePx = 470,
 }: DefaultToolbarProps) {
 	const editor = useEditor()

@@ -20,7 +20,7 @@ const packagesOurTypesCanDependOn = [
 
 // These packages use subpath exports which require moduleResolution: "bundler".
 // We pin to the workspace's resolved versions to avoid installing broken releases.
-const pinnedPackages = ['@tiptap/core', '@tiptap/react', '@tiptap/pm']
+const pinnedPackages = ['@tiptap/core', '@tiptap/react', '@tiptap/pm', '@tiptap/starter-kit']
 
 function getPinnedVersions(): string[] {
 	return pinnedPackages.map((pkg) => {

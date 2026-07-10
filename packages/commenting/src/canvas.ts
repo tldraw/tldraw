@@ -5,7 +5,6 @@
 export { CommentBody, type CommentBodyProps } from './canvas/comment-body'
 export {
 	CommentTool,
-	commentToolComponents,
 	commentToolOverrides,
 	commentTools,
 	pendingComment,

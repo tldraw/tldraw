@@ -68,6 +68,7 @@ import { ShapeUtil } from '@tldraw/editor';
 import { ShapeWithCrop } from '@tldraw/editor';
 import { SharedStyle } from '@tldraw/editor';
 import { SnapIndicator } from '@tldraw/editor';
+import { StarterKitOptions } from '@tiptap/starter-kit';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
@@ -780,6 +781,9 @@ export class CollaboratorShapeIndicatorOverlayUtil extends OverlayUtil<TLCollabo
 
 // @public (undocumented)
 export function ColorSchemeMenu(): JSX.Element;
+
+// @public
+export function CommentToolbarItem(): JSX.Element;
 
 // @public
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
@@ -2389,6 +2393,9 @@ export function getStrokePoints(rawInputPoints: VecLike[], options?: StrokeOptio
 
 // @public
 export function getSvgPathFromStrokePoints(points: StrokePoint[], closed?: boolean): string;
+
+// @public
+export function getTipTapDefaultExtensions(starterKitOptions?: Partial<StarterKitOptions>): Extensions;
 
 // @public
 export function getUncroppedSize(shapeSize: {
