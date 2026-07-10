@@ -38,7 +38,15 @@ function randomLeaves(n: number, seed: number, scale = 1000): LeafInput[] {
 /** The pipeline composed by hand — computeClusterTable must match it exactly. */
 function manualPipeline(
 	leaves: readonly LeafInput[],
-	opts: { Tc: number; Tu: number; eps: number; Dmax: number; minZoom: number; maxZoom: number }
+	opts: {
+		Tc: number
+		Tu: number
+		eps: number
+		Dmax: number
+		minZoom: number
+		maxZoom: number
+		maxSplitZoom?: number
+	}
 ): MergeEvent[] {
 	const raw = cappedReplay(leaves, mstEdges(leaves), { Tc: opts.Tc, Dmax: opts.Dmax })
 	return finalize(contract(raw, opts.eps), {
@@ -46,6 +54,7 @@ function manualPipeline(
 		Tu: opts.Tu,
 		minZoom: opts.minZoom,
 		maxZoom: opts.maxZoom,
+		maxSplitZoom: opts.maxSplitZoom ?? 6,
 	})
 }
 
@@ -101,6 +110,16 @@ describe('computeClusterTable composition', () => {
 			...ZOOM_BOUNDS,
 		})
 		expect(tableShapes(table)).toEqual(expected.map(eventShape))
+	})
+
+	it('caps coincident pairs at the default maxSplitZoom of 6 (600%)', () => {
+		// Two threads at the same point: raw merge zoom is Infinity (never split), but the
+		// default cap schedules them to merge at 4 and split at 6 like any ultra-tight pair.
+		const leaves = [leaf('a', 50, 50), leaf('b', 50, 50)]
+		const table = computeClusterTable(leaves, { ...ZOOM_BOUNDS })
+		expect(table.events).toHaveLength(1)
+		expect(table.events[0].zMerge).toBe(4)
+		expect(table.events[0].zSplit).toBe(6)
 	})
 
 	it('honors partial overrides without disturbing the other defaults', () => {

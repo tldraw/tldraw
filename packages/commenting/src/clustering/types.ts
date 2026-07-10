@@ -82,4 +82,11 @@ export interface ClusterOptions {
 	/** Camera zoom bounds — pass the editor's camera constraints. Required. */
 	minZoom: number
 	maxZoom: number
+	/**
+	 * Zoom by which every cluster has split, no matter how close its members are — including
+	 * coincident anchors, which otherwise never split. Merge thresholds are capped at
+	 * `maxSplitZoom / (Tu/Tc)` so the hysteresis band keeps its shape below the cap.
+	 * Default 6 (600%).
+	 */
+	maxSplitZoom?: number
 }

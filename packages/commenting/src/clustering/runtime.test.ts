@@ -256,7 +256,15 @@ function mulberry32(seed: number): () => number {
 	}
 }
 
-const PIPE_OPTS = { Tc: 40, Tu: 60, eps: 0.12, Dmax: 120, minZoom: 0.05, maxZoom: 8 }
+const PIPE_OPTS = {
+	Tc: 40,
+	Tu: 60,
+	eps: 0.12,
+	Dmax: 120,
+	minZoom: 0.05,
+	maxZoom: 8,
+	maxSplitZoom: 1e9,
+}
 
 function buildTable(leaves: LeafInput[]): ClusterTable {
 	const rawEvents = cappedReplay(leaves, mstEdges(leaves), {
@@ -268,6 +276,7 @@ function buildTable(leaves: LeafInput[]): ClusterTable {
 		Tu: PIPE_OPTS.Tu,
 		minZoom: PIPE_OPTS.minZoom,
 		maxZoom: PIPE_OPTS.maxZoom,
+		maxSplitZoom: PIPE_OPTS.maxSplitZoom,
 	})
 	const leafNodes: ClusterNode[] = leaves.map((l) => ({
 		id: l.id,
@@ -434,5 +443,154 @@ describe('createClusterRuntime properties (random tables, random zoom walks)', (
 			expect(seeded.k).toBe(walked.k)
 			expect(visibleIds(seeded)).toEqual(visibleIds(walked))
 		}
+	})
+})
+
+describe('createClusterRuntime seedFrom (carryover seeding)', () => {
+	it('band event merged in the previous partition stays merged', () => {
+		// zoom 5 is inside E0's band and above the geometric midpoint (≈4.899):
+		// a fresh seed would leave A/B/C split. History says merged — carryover keeps it.
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seedFrom(
+			5,
+			new Map([
+				[P.id, P],
+				[D.id, D],
+			])
+		)
+		expect(rt.k).toBe(1)
+		expect(visibleIds(rt)).toEqual(['cluster:3:a', 'd'])
+	})
+
+	it('band event unmerged in the previous partition stays unmerged (no snap-together)', () => {
+		// zoom 4.5 is inside E0's band and below the geometric midpoint: a fresh seed
+		// would merge A/B/C even though nothing changed for them. History says split.
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seedFrom(
+			4.5,
+			new Map([
+				[A.id, A],
+				[B.id, B],
+				[C.id, C],
+				[D.id, D],
+			])
+		)
+		expect(rt.k).toBe(0)
+		expect(visibleIds(rt)).toEqual(['a', 'b', 'c', 'd'])
+	})
+
+	it('thresholds override history in both directions', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		// zoom <= zMerge: mandatory merge, even though the previous partition was split
+		rt.seedFrom(
+			3,
+			new Map([
+				[A.id, A],
+				[B.id, B],
+				[C.id, C],
+				[D.id, D],
+			])
+		)
+		expect(rt.k).toBe(1)
+		// zoom >= zSplit: mandatory split, even though the previous partition was merged
+		rt.seedFrom(
+			7,
+			new Map([
+				[P.id, P],
+				[D.id, D],
+			])
+		)
+		expect(rt.k).toBe(0)
+	})
+
+	it('a band event with no counterpart in the previous partition stays inactive', () => {
+		// Empty history (or partial membership) → the rebuild introduced this merge; it
+		// defers to the next zoom-out rather than firing under a static camera.
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seedFrom(5, new Map())
+		expect(rt.k).toBe(0)
+		const partial = node(['a', 'b'], 5, 0)
+		rt.seedFrom(
+			5,
+			new Map([
+				[partial.id, partial],
+				[C.id, C],
+				[D.id, D],
+			])
+		)
+		expect(rt.k).toBe(0)
+	})
+
+	it('membership in a superset cluster counts as merged', () => {
+		// The previous partition holds all four in Q; E1 (band at zoom 1.2) inherits merged.
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seedFrom(1.2, new Map([[Q.id, Q]]))
+		expect(rt.k).toBe(2)
+		expect(visibleIds(rt)).toEqual(['cluster:4:a'])
+	})
+
+	it('classification stops at the first inactive event (prefix cut is conservative)', () => {
+		// Two independent band events at zoom 4.5. The first is split in history, the
+		// second merged — but active events must be a prefix, so the second resolves
+		// to split (conservative: never merges anything history did not sanction).
+		const AB = node(['a', 'b'], 5, 0)
+		const CD = node(['c', 'd'], 105, 0)
+		const table: ClusterTable = {
+			events: [mev(4, 6, [A, B], AB), mev(3, 5, [C, D], CD)],
+			leaves: [A, B, C, D],
+		}
+		const rt = createClusterRuntime(table)
+		rt.seedFrom(
+			4.5,
+			new Map([
+				[A.id, A],
+				[B.id, B],
+				[CD.id, CD],
+			])
+		)
+		expect(rt.k).toBe(0)
+		expect(visibleIds(rt)).toEqual(['a', 'b', 'c', 'd'])
+	})
+
+	it('seedFrom followed by onCamera at the same zoom is a no-op', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seedFrom(
+			5,
+			new Map([
+				[P.id, P],
+				[D.id, D],
+			])
+		)
+		const k = rt.k
+		const ids = visibleIds(rt)
+		rt.onCamera(5)
+		expect(rt.k).toBe(k)
+		expect(visibleIds(rt)).toEqual(ids)
+		expectPostconditions(rt, table, 5)
+	})
+
+	it('matches a fresh seed when the previous partition mirrors the geometric tiebreak', () => {
+		// Sanity: outside bands and with agreeing history, seedFrom degenerates to seed.
+		const table = microTraceTable()
+		for (const zoom of [0.5, 2, 8]) {
+			const fresh = createClusterRuntime(table)
+			fresh.seed(zoom)
+			const carried = createClusterRuntime(table)
+			carried.seedFrom(zoom, fresh.getVisible())
+			expect(carried.k).toBe(fresh.k)
+			expect(visibleIds(carried)).toEqual(visibleIds(fresh))
+		}
+	})
+
+	it('throws on non-positive or non-finite zoom', () => {
+		const rt = createClusterRuntime(microTraceTable())
+		expect(() => rt.seedFrom(0, new Map())).toThrow()
+		expect(() => rt.seedFrom(NaN, new Map())).toThrow()
 	})
 })

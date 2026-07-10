@@ -34,7 +34,7 @@ function randomLeaves(n: number, seed: number, scale = 1000): LeafInput[] {
 	return Array.from({ length: n }, (_, i) => leaf(`leaf-${i}`, rand() * scale, rand() * scale))
 }
 
-const OPTS = { Tc: 40, Tu: 60, eps: 0.12, Dmax: 120, minZoom: 0.05, maxZoom: 8 }
+const OPTS = { Tc: 40, Tu: 60, eps: 0.12, Dmax: 120, minZoom: 0.05, maxZoom: 8, maxSplitZoom: 1e9 }
 const R = OPTS.Tu / OPTS.Tc
 const SLACK = 1 + 1e-9
 
