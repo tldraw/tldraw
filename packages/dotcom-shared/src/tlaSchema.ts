@@ -270,7 +270,8 @@ const commentRelationships = relationships(comment, ({ one, many }) => ({
 		destSchema: comment_thread,
 	}),
 	// singular name despite many() cardinality (one row per user): every consumer scopes it to
-	// one user and calls .one(), yielding at most one row (see the comments query)
+	// one user and calls .one(), yielding at most one row (see the comments query). Always scope
+	// it to ctx.userId in synced queries — unscoped it replicates every user's receipts.
 	read: many({
 		sourceField: ['id'],
 		destField: ['commentId'],

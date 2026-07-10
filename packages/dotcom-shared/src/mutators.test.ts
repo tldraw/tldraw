@@ -1765,4 +1765,14 @@ describe('comment.markRead / comment.markUnread', () => {
 		expect(store.comment_read).toHaveLength(0)
 		await expectValid(() => mutators.comment.markUnread(tx, { commentId: 'c1' }))
 	})
+
+	it("markUnread only deletes the calling user's row", async () => {
+		const s = commentState()
+		s.comment_read.push({ userId: 'other1', commentId: 'c1', readAt: 5 })
+		const { tx, store } = createMockTx(s, { location: 'server' })
+		const mutators = createMutators('owner1')
+		await mutators.comment.markRead(tx, { commentId: 'c1', readAt: Date.now() })
+		await mutators.comment.markUnread(tx, { commentId: 'c1' })
+		expect(store.comment_read).toEqual([{ userId: 'other1', commentId: 'c1', readAt: 5 }])
+	})
 })
