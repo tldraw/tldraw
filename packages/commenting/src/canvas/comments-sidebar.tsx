@@ -25,8 +25,9 @@ export interface CanvasCommentsSidebarProps {
 	/** The signed-in user's id. Enables the "only your threads" filter when present. */
 	currentUserId?: string
 	/**
-	 * Whether the current user has read a comment. Enables the "only unread" filter when present.
-	 * Both ids are passed so hosts can track read status by comment or by author.
+	 * Whether a comment is unread for the current user (return true for unread). Enables the
+	 * "only unread" filter when present. Both ids are passed so hosts can track read status by
+	 * comment or by author.
 	 */
 	isCommentUnread?(commentId: TLCommentId, authorId: string): boolean
 	/** Render a thread's preview (its first comment). Defaults to the plaintext of the body. */
@@ -81,8 +82,13 @@ export function CanvasCommentsSidebar({
 		byThread.set(comment.threadId, list)
 	}
 
-	const items: CommentListItemProps[] = threads
-		.filter((thread) => !filters.onlyCurrentPage || thread.pageId === currentPageId)
+	// Page scoping is treated as scoping, not a filter: an empty page reads "no comments yet",
+	// while a list emptied by the toggles below reads "nothing matches your filters".
+	const pageThreads = threads.filter(
+		(thread) => !filters.onlyCurrentPage || thread.pageId === currentPageId
+	)
+
+	const items: CommentListItemProps[] = pageThreads
 		.filter((thread) => filters.showResolved || thread.resolved == null)
 		// "Only mine" is ignored without a known user — otherwise a persisted onlyMine=true would
 		// empty the list for a signed-out viewer, with the (hidden) toggle giving no way to clear it.
@@ -138,7 +144,11 @@ export function CanvasCommentsSidebar({
 						<CommentsOverflowMenu />
 					</div>
 				}
-				empty={empty ?? msg('comments.empty')}
+				empty={
+					items.length === 0 && pageThreads.length > 0
+						? msg('comments.empty-filtered')
+						: (empty ?? msg('comments.empty'))
+				}
 				resolvedLabel={msg('comments.resolved')}
 				onSelect={focus}
 			/>

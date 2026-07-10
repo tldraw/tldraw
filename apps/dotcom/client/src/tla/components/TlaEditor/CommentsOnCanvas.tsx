@@ -36,8 +36,10 @@ export function CommentsOnCanvas() {
 		},
 		[app]
 	)
-	// Comment ids with a read receipt in Zero. The sidebar's unread check treats own comments as
-	// read via the authorId argument, so absence here only matters for others' comments.
+	// Comment ids with a read receipt in Zero. Zero comment row ids are TLComment record ids
+	// verbatim (see commentRecordToRow in the sync-worker), so receipts map straight onto store
+	// records. Own comments never get a receipt; the isCommentUnread callback below treats them
+	// as read via its authorId argument.
 	const readCommentIds = useValue(
 		'read comment ids',
 		() => {
@@ -73,10 +75,16 @@ export function CommentsOnCanvas() {
 			authorId !== currentUserId && !readCommentIds.has(commentId),
 		[currentUserId, readCommentIds]
 	)
+	const onCommentRead = useCallback((commentId: string) => app?.markCommentRead(commentId), [app])
 
 	return (
 		<>
-			<CanvasComments currentUserId={currentUserId} resolveName={resolveName} />
+			<CanvasComments
+				currentUserId={currentUserId}
+				resolveName={resolveName}
+				isCommentUnread={app ? isCommentUnread : undefined}
+				onCommentRead={app ? onCommentRead : undefined}
+			/>
 			<CanvasCommentsSidebar
 				resolveName={resolveName}
 				currentUserId={currentUserId ?? undefined}

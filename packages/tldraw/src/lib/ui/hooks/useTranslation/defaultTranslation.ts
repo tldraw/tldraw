@@ -512,6 +512,7 @@ export const DEFAULT_TRANSLATION = {
 	'ui.unchecked': 'Unchecked',
 	'comments.title': 'Comments',
 	'comments.empty': 'No comments on this page yet.',
+	'comments.empty-filtered': 'No comments match your filters.',
 	'comments.thread-title': 'Comment',
 	'comments.resolved': 'Resolved',
 	'comments.filter': 'Filter comments',

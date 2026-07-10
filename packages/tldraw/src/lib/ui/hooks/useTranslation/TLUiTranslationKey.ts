@@ -502,6 +502,7 @@ export type TLUiTranslationKey =
 	| 'ui.unchecked'
 	| 'comments.title'
 	| 'comments.empty'
+	| 'comments.empty-filtered'
 	| 'comments.thread-title'
 	| 'comments.resolved'
 	| 'comments.filter'
