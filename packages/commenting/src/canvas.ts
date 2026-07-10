@@ -26,6 +26,7 @@ export {
 	usePendingComment,
 	useThreadComments,
 } from './canvas/hooks'
+export { useCommentingEnabled } from './canvas/license'
 export { richTextToPlaintext } from './canvas/rich-text'
 export {
 	DEFAULT_SIDEBAR_FILTERS,

@@ -41,6 +41,7 @@ import { CommentBody } from './comment-body'
 import { pendingComment, PendingComment } from './comment-tool'
 import { commentsHidden, toggleCommentsHidden } from './comments-visibility'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
+import { useCommentingEnabled } from './license'
 import { anchorPagePoint, openThreadId, shapeAnchorAt } from './thread-state'
 import './canvas.css'
 
@@ -115,6 +116,14 @@ function toCardProps(comment: TLComment, props: CanvasCommentsProps): CommentCar
 }
 
 export function CanvasComments(props: CanvasCommentsProps) {
+	// Gate the whole layer on the license before doing any work. The inner component holds all the
+	// other hooks, so mounting/unmounting it as the license resolves keeps hook order stable here.
+	const commentingEnabled = useCommentingEnabled()
+	if (!commentingEnabled) return null
+	return <CanvasCommentsLayer {...props} />
+}
+
+function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const editor = useEditor()
 	const container = useContainer()
 	const layerRef = useRef<HTMLDivElement>(null)

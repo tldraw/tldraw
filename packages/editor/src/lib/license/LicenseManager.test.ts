@@ -4,6 +4,7 @@ import { publishDates } from '../../version'
 import { str2ab } from '../utils/licensing'
 import {
 	FLAGS,
+	getEnabledFeatures,
 	getLicenseState,
 	LicenseManager,
 	PROPERTIES,
@@ -508,6 +509,62 @@ describe('LicenseManager', () => {
 			expect(result.isEvaluationLicense).toBe(true)
 			expect(result.isEvaluationLicenseExpired).toBe(true)
 		})
+
+		it('Checks for the commenting feature flag', async () => {
+			const commentingLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			commentingLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.FEAT_COMMENTING
+			const commentingLicenseKey = await generateLicenseKey(
+				JSON.stringify(commentingLicenseInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				commentingLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isCommentingEnabled).toBe(true)
+			expect(result.isCollaborationEnabled).toBe(false)
+		})
+
+		it('Checks for the collaboration feature flag', async () => {
+			const collaborationLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			collaborationLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.FEAT_COLLABORATION
+			const collaborationLicenseKey = await generateLicenseKey(
+				JSON.stringify(collaborationLicenseInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				collaborationLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isCollaborationEnabled).toBe(true)
+			// The collaboration umbrella grants the commenting sub-feature.
+			expect(result.isCommentingEnabled).toBe(true)
+		})
+
+		it('Leaves feature flags off when no feature bits are set', async () => {
+			const standardLicenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				standardLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isCollaborationEnabled).toBe(false)
+			expect(result.isCommentingEnabled).toBe(false)
+		})
+
+		it('Enables features synchronously in development, before validation resolves', () => {
+			process.env.NODE_ENV = 'development'
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('https://www.example.com')
+
+			try {
+				// No await: the feature flags should already reflect development (all enabled) rather
+				// than the fail-closed default, which only lifts once async validation resolves.
+				const devLicenseManager = new LicenseManager('', keyPair.publicKey)
+				expect(devLicenseManager.isFeatureEnabled('commenting')).toBe(true)
+				expect(devLicenseManager.isFeatureEnabled('collaboration')).toBe(true)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
 	})
 
 	describe('License expiry and grace period', () => {
@@ -723,6 +780,8 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isLicensedWithWatermark: false,
 		isEvaluationLicense: false,
 		isEvaluationLicenseExpired: false,
+		isCollaborationEnabled: false,
+		isCommentingEnabled: false,
 		daysSinceExpiry: 0,
 		// WatermarkManager does not check these fields, it relies on the calculated values like isAnnualLicenseExpired
 		license: {
@@ -1021,6 +1080,68 @@ describe('getLicenseState', () => {
 				'Your tldraw license has been expired for more than 30 days!',
 				'Please reach out to sales@tldraw.com to renew your license.',
 			])
+		})
+	})
+})
+
+describe('getEnabledFeatures', () => {
+	it('enables every feature in development regardless of flags', () => {
+		const result = getDefaultLicenseResult({
+			isCollaborationEnabled: false,
+			isCommentingEnabled: false,
+		})
+		expect(getEnabledFeatures(result, 'unlicensed', true)).toEqual({
+			collaboration: true,
+			commenting: true,
+		})
+	})
+
+	it('reflects the license flags for a valid licensed state', () => {
+		const result = getDefaultLicenseResult({
+			isCollaborationEnabled: false,
+			isCommentingEnabled: true,
+		})
+		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
+			collaboration: false,
+			commenting: true,
+		})
+	})
+
+	it('still grants features while showing a watermark', () => {
+		const result = getDefaultLicenseResult({
+			isCollaborationEnabled: true,
+			isCommentingEnabled: true,
+		})
+		expect(getEnabledFeatures(result, 'licensed-with-watermark', false)).toEqual({
+			collaboration: true,
+			commenting: true,
+		})
+	})
+
+	it.each(['unlicensed', 'unlicensed-production', 'expired', 'pending'] as const)(
+		'disables all features for the %s state in production',
+		(state) => {
+			const result = getDefaultLicenseResult({
+				isCollaborationEnabled: true,
+				isCommentingEnabled: true,
+			})
+			expect(getEnabledFeatures(result, state, false)).toEqual({
+				collaboration: false,
+				commenting: false,
+			})
+		}
+	)
+
+	it('disables all features when the license is not parseable', () => {
+		expect(
+			getEnabledFeatures(
+				{ isLicenseParseable: false, reason: 'no-key-provided' },
+				'licensed',
+				false
+			)
+		).toEqual({
+			collaboration: false,
+			commenting: false,
 		})
 	})
 })

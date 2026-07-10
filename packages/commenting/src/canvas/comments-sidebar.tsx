@@ -14,6 +14,7 @@ import { CommentListItemProps, CommentsList } from '../ui/comments-list'
 import { CommentsFilterMenu } from './comments-filter-menu'
 import { CommentsOverflowMenu } from './comments-overflow-menu'
 import { useComments, useCommentThreads } from './hooks'
+import { useCommentingEnabled } from './license'
 import { richTextToPlaintext } from './rich-text'
 import { sidebarFilters } from './sidebar-filters'
 import { focusThread, openThreadId } from './thread-state'
@@ -58,6 +59,7 @@ export function CanvasCommentsSidebar({
 }: CanvasCommentsSidebarProps) {
 	const editor = useEditor()
 	const container = useContainer()
+	const commentingEnabled = useCommentingEnabled()
 	const msg = useTranslation()
 	const threads = useCommentThreads(editor)
 	const comments = useComments(editor)
@@ -71,7 +73,7 @@ export function CanvasCommentsSidebar({
 		[editor]
 	)
 
-	if (!tools.includes(activeTool)) return null
+	if (!commentingEnabled || !tools.includes(activeTool)) return null
 
 	// Group comments by thread (they arrive oldest-first, so [0] is each thread's first comment).
 	const byThread = new Map<string, TLComment[]>()
