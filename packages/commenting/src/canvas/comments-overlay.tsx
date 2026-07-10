@@ -380,6 +380,10 @@ function ThreadPin({
 			if (target.closest('.cmt-canvas-popover')) return
 			const marker = markerRef.current
 			if (marker && marker.contains(target)) return
+			// A click inside a menu/popover layered above us (e.g. the sidebar's filter or overflow
+			// dropdown, portaled elsewhere) belongs to that layer — defer to its own dismissal
+			// instead of closing the thread out from under it.
+			if (target.closest('.tlui-menu, [data-radix-popper-content-wrapper]')) return
 			openThreadId.set(null)
 		}
 		document.addEventListener('pointerdown', onPointerDown, true)

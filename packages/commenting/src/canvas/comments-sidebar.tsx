@@ -77,7 +77,12 @@ export function CanvasCommentsSidebar({
 	const items: CommentListItemProps[] = threads
 		.filter((thread) => !filters.onlyCurrentPage || thread.pageId === currentPageId)
 		.filter((thread) => filters.showResolved || thread.resolved == null)
-		.filter((thread) => !filters.onlyMine || thread.createdBy === currentUserId)
+		// "Only mine" is ignored without a known user — otherwise a persisted onlyMine=true would
+		// empty the list for a signed-out viewer, with the (hidden) toggle giving no way to clear it.
+		.filter(
+			(thread) =>
+				!filters.onlyMine || currentUserId === undefined || thread.createdBy === currentUserId
+		)
 		.map((thread) => {
 			const threadComments = byThread.get(thread.id) ?? []
 			const first = threadComments[0]
