@@ -891,6 +891,14 @@ export class TldrawApp {
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: this.userId })
 	}
 
+	markCommentRead(commentId: string) {
+		this.z.mutate.comment.markRead({ commentId, readAt: Date.now() })
+	}
+
+	markCommentUnread(commentId: string) {
+		this.z.mutate.comment.markUnread({ commentId })
+	}
+
 	updateFile(fileId: string, partial: Partial<TlaFile>) {
 		this.z.mutate.file.update({ id: fileId, ...partial })
 	}
