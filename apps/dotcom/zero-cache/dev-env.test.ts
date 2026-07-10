@@ -23,7 +23,7 @@ describe('dotcom dev env', () => {
 
 		expect(env.composeProjectName).toBe('tldraw_dotcom_dev')
 		expect(env.postgresVolumeName).toBe('tldraw_dotcom_dev_tlapp_pgdata')
-		expect(env.zeroEnv).toMatchObject({
+		expect(env.zeroEnv).toEqual({
 			ZERO_REPLICA_FILE: '/tmp/tldraw-dotcom-zero-dev.db',
 			ZERO_NUM_SYNC_WORKERS: '1',
 			ZERO_CVR_MAX_CONNS: '6',
