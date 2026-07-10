@@ -604,7 +604,8 @@ export class TLFileDurableObject extends DurableObject {
 					.toArray()[0].maxSeq
 			)
 			const cleanup = this._objectPushQueue.push(async () => {
-				await this.db.deleteFrom('comment').where('fileId', '=', roomId).execute()
+				// comment.threadId is NOT NULL with an ON DELETE CASCADE FK, so deleting the
+				// file's threads provably deletes all its comments too
 				await this.db.deleteFrom('comment_thread').where('fileId', '=', roomId).execute()
 				this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', maxSeq)
 			})
