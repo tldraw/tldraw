@@ -1,4 +1,3 @@
-/* eslint-disable tldraw/jsx-no-literals */
 import {
 	type CSSProperties,
 	type PointerEvent as ReactPointerEvent,
@@ -21,6 +20,7 @@ import {
 	useEditor,
 	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { computeClusterTable } from '../clustering/computeClusterTable'
@@ -35,6 +35,7 @@ import { CountBadge } from '../ui/count-badge'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import { pendingComment, PendingComment } from './comment-tool'
+import { commentsHidden, toggleCommentsHidden } from './comments-visibility'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
 import { anchorPagePoint, openThreadId, shapeAnchorAt } from './thread-state'
 import './canvas.css'
@@ -138,6 +139,7 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		[threads]
 	)
 	const openThread = openId ? threadsById.get(openId) : null
+	const hidden = useValue('comments hidden', () => commentsHidden.get(), [])
 
 	// Reset the transient UI state (open thread, half-placed comment) when this unmounts.
 	useEffect(() => {
@@ -194,6 +196,24 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)
 	}, [])
+
+	// Shift+C toggles comment-pin visibility on the canvas (matching Figma). Skipped while typing so
+	// it never fires from inside a composer. Physical `KeyC` (layout-independent) with shift only.
+	useEffect(() => {
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.code !== 'KeyC' || !e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
+			const target = e.target as HTMLElement | null
+			if (target && target.closest('input, textarea, [contenteditable="true"]')) return
+			toggleCommentsHidden()
+			e.preventDefault()
+		}
+		document.addEventListener('keydown', onKeyDown, true)
+		return () => document.removeEventListener('keydown', onKeyDown, true)
+	}, [])
+
+	// Hidden: the whole canvas layer (pins, open popover, pending composer) is withheld. The signal
+	// is read above so this component stays mounted and its shortcut/Escape effects keep running.
+	if (hidden) return null
 
 	// Render into the container (above the panels' stacking context) so the pins and popovers
 	// live in the UI layer rather than being clipped by the canvas layer.
@@ -337,6 +357,7 @@ function ThreadPin({
 		props
 	const container = useContainer()
 	const comments = useThreadComments(editor, thread.id)
+	const msg = useTranslation()
 	// Only one thread's popover is open at a time — shared across pins via the atom.
 	const open = useValue('thread open', () => openThreadId.get() === thread.id, [thread.id])
 	const [reply, setReply] = useState<TLRichText>(EMPTY_COMMENT)
@@ -345,6 +366,29 @@ function ThreadPin({
 	// While dragging the marker, its page point overrides the anchor's; committed on drop.
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
 	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
+	const markerRef = useRef<HTMLDivElement>(null)
+
+	// Clicking outside the open popover (and off its own pin) closes the thread — mirrors the
+	// pending composer's dismiss. Capture phase + a class check rather than stopPropagation, since the
+	// popover portals elsewhere in the DOM. The pin marker is excluded so its own click-to-toggle
+	// handles it instead of this closing then the toggle reopening.
+	useEffect(() => {
+		if (!open) return
+		const onPointerDown = (e: PointerEvent) => {
+			const target = e.target as HTMLElement | null
+			if (!target) return
+			if (target.closest('.cmt-canvas-popover')) return
+			const marker = markerRef.current
+			if (marker && marker.contains(target)) return
+			// A click inside a menu/popover layered above us (e.g. the sidebar's filter or overflow
+			// dropdown, portaled elsewhere) belongs to that layer — defer to its own dismissal
+			// instead of closing the thread out from under it.
+			if (target.closest('.tlui-menu, [data-radix-popper-content-wrapper]')) return
+			openThreadId.set(null)
+		}
+		document.addEventListener('pointerdown', onPointerDown, true)
+		return () => document.removeEventListener('pointerdown', onPointerDown, true)
+	}, [open])
 
 	const point = useValue(
 		'pin point',
@@ -432,11 +476,11 @@ function ThreadPin({
 				>
 					<CommentComposer
 						author={card.author}
-						placeholder="Edit comment…"
+						placeholder={msg('comments.edit-placeholder')}
 						value={editText}
 						onChange={setEditText}
 						onSubmit={saveEdit}
-						sendLabel="Save"
+						sendLabel={msg('comments.save')}
 						disabled={isCommentEmpty(editText)}
 						autoFocus
 					/>
@@ -448,8 +492,12 @@ function ThreadPin({
 				{...card}
 				actions={
 					comment.authorId === currentUserId ? (
-						<button className="cmt-thread__action" title="Edit" onClick={() => startEdit(comment)}>
-							<TldrawUiIcon icon="dots-horizontal" label="Edit" small />
+						<button
+							className="cmt-thread__action"
+							title={msg('comments.edit')}
+							onClick={() => startEdit(comment)}
+						>
+							<TldrawUiIcon icon="dots-horizontal" label={msg('comments.edit')} small />
 						</button>
 					) : undefined
 				}
@@ -462,19 +510,31 @@ function ThreadPin({
 			{currentUserId && (
 				<button
 					className="cmt-thread__action"
-					title={thread.resolved ? 'Reopen' : 'Resolve'}
+					title={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
 					onClick={toggleResolve}
 				>
-					<TldrawUiIcon icon="check" label={thread.resolved ? 'Reopen' : 'Resolve'} small />
+					<TldrawUiIcon
+						icon="check"
+						label={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
+						small
+					/>
 				</button>
 			)}
 			{currentUserId && (
-				<button className="cmt-thread__action" title="Delete thread" onClick={deleteThread}>
-					<TldrawUiIcon icon="trash" label="Delete thread" small />
+				<button
+					className="cmt-thread__action"
+					title={msg('comments.delete')}
+					onClick={deleteThread}
+				>
+					<TldrawUiIcon icon="trash" label={msg('comments.delete')} small />
 				</button>
 			)}
-			<button className="cmt-thread__action" title="Dismiss" onClick={() => openThreadId.set(null)}>
-				<TldrawUiIcon icon="cross-2" label="Dismiss" small />
+			<button
+				className="cmt-thread__action"
+				title={msg('comments.dismiss')}
+				onClick={() => openThreadId.set(null)}
+			>
+				<TldrawUiIcon icon="cross-2" label={msg('comments.dismiss')} small />
 			</button>
 		</>
 	)
@@ -526,6 +586,7 @@ function ThreadPin({
 			style={{ left: renderPoint.x, top: renderPoint.y }}
 		>
 			<div
+				ref={markerRef}
 				className="cmt-canvas-pin__marker"
 				onPointerDown={startDrag}
 				onPointerMove={onDrag}
@@ -543,16 +604,21 @@ function ThreadPin({
 					style={{ left: renderPoint.x + 36, top: renderPoint.y - 28 }}
 				>
 					<CommentThread
-						header="Comment"
+						header={msg('comments.thread-title')}
 						headerActions={headerActions}
 						renderComment={renderComment}
 						comments={comments.map((c) => toCardProps(c, props))}
-						resolvedBy={thread.resolved ? resolveName(thread.resolved.by) : undefined}
+						resolvedBanner={
+							thread.resolved
+								? msg('comments.resolved-by').replace('{name}', resolveName(thread.resolved.by))
+								: undefined
+						}
 						composer={
 							currentUserId && !thread.resolved
 								? {
 										author: resolveName(currentUserId),
-										placeholder: 'Reply…',
+										placeholder: msg('comments.reply-placeholder'),
+										sendLabel: msg('comments.send'),
 										value: reply,
 										onChange: setReply,
 										onSubmit: postReply,
@@ -576,6 +642,7 @@ function PendingComposer({
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
 	const [text, setText] = useState<TLRichText>(EMPTY_COMMENT)
 	const ref = useRef<HTMLDivElement>(null)
+	const msg = useTranslation()
 	const container = useContainer()
 	// Over this floating panel, scroll and hover reach the canvas (except where it scrolls itself).
 	usePassThroughWheelEvents(ref)
@@ -633,7 +700,8 @@ function PendingComposer({
 		>
 			<CommentComposer
 				author={currentUserId ? resolveName(currentUserId) : ''}
-				placeholder="Add a comment…"
+				placeholder={msg('comments.add-placeholder')}
+				sendLabel={msg('comments.send')}
 				value={text}
 				onChange={setText}
 				onSubmit={submit}

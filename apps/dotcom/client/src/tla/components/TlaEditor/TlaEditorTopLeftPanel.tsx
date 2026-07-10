@@ -1,3 +1,4 @@
+import { CommentsMenuItem } from '@tldraw/commenting/canvas'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -31,7 +32,9 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuSubmenu,
-	ViewSubmenu,
+	ZoomTo100MenuItem,
+	ZoomToFitMenuItem,
+	ZoomToSelectionMenuItem,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
@@ -58,6 +61,25 @@ import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
+
+/** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group). Rebuilt here
+ *  because tldraw's `ViewSubmenu` is a fixed component with no slot to inject into. */
+function TlaViewSubmenu() {
+	return (
+		<TldrawUiMenuSubmenu id="view" label="menu.view">
+			<TldrawUiMenuGroup id="view-actions">
+				<TldrawUiMenuActionItem actionId="zoom-in" />
+				<TldrawUiMenuActionItem actionId="zoom-out" />
+				<ZoomTo100MenuItem />
+				<ZoomToFitMenuItem />
+				<ZoomToSelectionMenuItem />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="view-comments">
+				<CommentsMenuItem />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}
 
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
@@ -153,7 +175,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 						<TldrawUiMenuGroup id="basic">
 							<EditSubmenu />
-							<ViewSubmenu />
+							<TlaViewSubmenu />
 							<ExportFileContentSubMenu />
 							<ExtrasGroup />
 							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
@@ -277,7 +299,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 						/>
 					</TldrawUiMenuSubmenu>
 					<EditSubmenu />
-					<ViewSubmenu />
+					<TlaViewSubmenu />
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 				</TldrawUiMenuGroup>

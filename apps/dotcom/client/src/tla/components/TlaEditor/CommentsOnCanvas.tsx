@@ -41,7 +41,7 @@ export function CommentsOnCanvas() {
 	return (
 		<>
 			<CanvasComments currentUserId={currentUserId} resolveName={resolveName} />
-			<CanvasCommentsSidebar resolveName={resolveName} />
+			<CanvasCommentsSidebar resolveName={resolveName} currentUserId={currentUserId ?? undefined} />
 		</>
 	)
 }

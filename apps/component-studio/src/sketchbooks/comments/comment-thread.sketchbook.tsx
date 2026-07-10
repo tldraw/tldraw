@@ -37,5 +37,7 @@ export const Open: Sketch<Record<string, never>> = {
 }
 
 export const Resolved: Sketch<Record<string, never>> = {
-	render: () => <CommentThread comments={comments} header="Thread" resolvedBy="You" />,
+	render: () => (
+		<CommentThread comments={comments} header="Thread" resolvedBanner="Resolved by You" />
+	),
 }

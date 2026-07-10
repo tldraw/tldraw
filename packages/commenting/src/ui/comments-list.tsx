@@ -11,6 +11,8 @@ export interface CommentListItemProps {
 	/** ISO datetime of the thread's first comment. */
 	date: string
 	resolved?: boolean
+	/** Name of the page the thread lives on, shown as a small label. Omit to hide. */
+	page?: string
 	/** Total comments in the thread. */
 	count?: number
 	/** Whether this thread is the open one. */
@@ -23,8 +25,12 @@ export interface CommentsListProps {
 	onSelect?(id: string): void
 	/** Shown above the list (e.g. "Comments"). Omit for none. */
 	header?: ReactNode
+	/** Rendered at the right of the header row — e.g. a filter menu. */
+	headerAction?: ReactNode
 	/** Shown in place of the list when there are no threads. */
 	empty?: ReactNode
+	/** Label for a resolved thread's marker on its row. Defaults to "Resolved". */
+	resolvedLabel?: string
 	/** Override how each item renders. Defaults to `<CommentListItem>`. */
 	renderItem?(item: CommentListItemProps): ReactNode
 }
@@ -34,10 +40,23 @@ export interface CommentsListProps {
  * Presentational: you supply the items (already summarised) and an `onSelect` handler; the canvas
  * `CanvasCommentsSidebar` wires it to the store, but a consumer can build their own list from this.
  */
-export function CommentsList({ items, onSelect, header, empty, renderItem }: CommentsListProps) {
+export function CommentsList({
+	items,
+	onSelect,
+	header,
+	headerAction,
+	empty,
+	resolvedLabel,
+	renderItem,
+}: CommentsListProps) {
 	return (
 		<div className="cmt-list">
-			{header !== undefined && <div className="cmt-list__header">{header}</div>}
+			{(header !== undefined || headerAction) && (
+				<div className="cmt-list__header">
+					{header !== undefined && <span className="cmt-list__header-title">{header}</span>}
+					{headerAction}
+				</div>
+			)}
 			{items.length === 0 ? (
 				<div className="cmt-list__empty">{empty}</div>
 			) : (
@@ -46,7 +65,12 @@ export function CommentsList({ items, onSelect, header, empty, renderItem }: Com
 						renderItem ? (
 							renderItem(item)
 						) : (
-							<CommentListItem key={item.id} {...item} onSelect={onSelect} />
+							<CommentListItem
+								key={item.id}
+								{...item}
+								resolvedLabel={resolvedLabel}
+								onSelect={onSelect}
+							/>
 						)
 					)}
 				</div>
@@ -61,10 +85,12 @@ function CommentListItem({
 	preview,
 	date,
 	resolved,
+	page,
 	count,
 	selected,
+	resolvedLabel = 'Resolved',
 	onSelect,
-}: CommentListItemProps & { onSelect?(id: string): void }) {
+}: CommentListItemProps & { resolvedLabel?: string; onSelect?(id: string): void }) {
 	const handleClick = () => {
 		if (onSelect) onSelect(id)
 	}
@@ -79,8 +105,33 @@ function CommentListItem({
 			<div className="cmt-list__item-body">
 				<Byline author={author} date={date} />
 				<div className="cmt-list__item-preview">{preview}</div>
+				{(resolved || page !== undefined) && (
+					<div className="cmt-list__item-meta">
+						{resolved && (
+							<span className="cmt-list__item-resolved">
+								<CheckIcon />
+								{resolvedLabel}
+							</span>
+						)}
+						{page !== undefined && <span className="cmt-list__item-page">{page}</span>}
+					</div>
+				)}
 			</div>
 			{count !== undefined && count > 1 && <span className="cmt-list__item-count">{count}</span>}
 		</button>
+	)
+}
+
+function CheckIcon() {
+	return (
+		<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+			<path
+				d="M2.5 6.2 4.7 8.4 9.5 3.6"
+				stroke="currentColor"
+				strokeWidth="1.5"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+		</svg>
 	)
 }

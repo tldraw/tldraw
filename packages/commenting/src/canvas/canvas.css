@@ -68,13 +68,15 @@
 }
 
 /* The comments list panel — a right-side surface shown while the comment tool is active. Below
-   the popover layer, so an open thread still draws over it. */
+   the popover layer, so an open thread still draws over it. Sits under the top-right share panel
+   (top offset clears its ~48px height) and sizes to its content, scrolling past max-height rather
+   than stretching the full canvas height. */
 .cmt-canvas-sidebar {
 	position: absolute;
-	top: 8px;
+	top: 56px;
 	right: 8px;
-	bottom: 8px;
 	width: 280px;
+	max-height: calc(100% - 64px);
 	z-index: var(--tl-layer-panels);
 	pointer-events: auto;
 	display: flex;
