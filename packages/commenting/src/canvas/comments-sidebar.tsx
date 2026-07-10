@@ -1,4 +1,3 @@
-/* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -7,6 +6,7 @@ import {
 	useEditor,
 	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { CommentListItemProps, CommentsList } from '../ui/comments-list'
@@ -45,12 +45,13 @@ export function CanvasCommentsSidebar({
 	currentUserId,
 	renderPreview,
 	tools = ['comment'],
-	header = 'Comments',
-	empty = 'No comments on this page yet.',
+	header,
+	empty,
 	impreciseShapeAnchor,
 }: CanvasCommentsSidebarProps) {
 	const editor = useEditor()
 	const container = useContainer()
+	const msg = useTranslation()
 	const threads = useCommentThreads(editor)
 	const comments = useComments(editor)
 	const currentPageId = useValue('page id', () => editor.getCurrentPageId(), [editor])
@@ -108,14 +109,15 @@ export function CanvasCommentsSidebar({
 		<SidebarPanel container={container}>
 			<CommentsList
 				items={items}
-				header={header}
+				header={header ?? msg('comments.title')}
 				headerAction={
 					<div className="cmt-list__header-actions">
 						<CommentsFilterMenu canFilterByAuthor={currentUserId !== undefined} />
 						<CommentsOverflowMenu />
 					</div>
 				}
-				empty={empty}
+				empty={empty ?? msg('comments.empty')}
+				resolvedLabel={msg('comments.resolved')}
 				onSelect={focus}
 			/>
 		</SidebarPanel>

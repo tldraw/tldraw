@@ -1,10 +1,10 @@
-/* eslint-disable tldraw/jsx-no-literals */
 import {
 	TldrawUiDropdownMenuCheckboxItem,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { SidebarFilters, sidebarFilters } from './sidebar-filters'
@@ -16,6 +16,7 @@ export interface CommentsFilterMenuProps {
 
 /** The funnel dropdown in the sidebar header: toggles for which threads the list shows. */
 export function CommentsFilterMenu({ canFilterByAuthor }: CommentsFilterMenuProps) {
+	const msg = useTranslation()
 	const filters = useValue('sidebar filters', () => sidebarFilters.get(), [])
 	const toggle = (key: keyof SidebarFilters) =>
 		sidebarFilters.update((f) => ({ ...f, [key]: !f[key] }))
@@ -26,8 +27,8 @@ export function CommentsFilterMenu({ canFilterByAuthor }: CommentsFilterMenuProp
 				<button
 					type="button"
 					className="cmt-header-btn"
-					title="Filter comments"
-					aria-label="Filter comments"
+					title={msg('comments.filter')}
+					aria-label={msg('comments.filter')}
 				>
 					<FilterIcon />
 				</button>
@@ -35,27 +36,27 @@ export function CommentsFilterMenu({ canFilterByAuthor }: CommentsFilterMenuProp
 			<TldrawUiDropdownMenuContent side="bottom" align="end">
 				<TldrawUiDropdownMenuGroup>
 					<TldrawUiDropdownMenuCheckboxItem
-						title="Show resolved comments"
+						title={msg('comments.show-resolved')}
 						checked={filters.showResolved}
 						onSelect={() => toggle('showResolved')}
 					>
-						Show resolved comments
+						{msg('comments.show-resolved')}
 					</TldrawUiDropdownMenuCheckboxItem>
 					{canFilterByAuthor && (
 						<TldrawUiDropdownMenuCheckboxItem
-							title="Only your threads"
+							title={msg('comments.only-mine')}
 							checked={filters.onlyMine}
 							onSelect={() => toggle('onlyMine')}
 						>
-							Only your threads
+							{msg('comments.only-mine')}
 						</TldrawUiDropdownMenuCheckboxItem>
 					)}
 					<TldrawUiDropdownMenuCheckboxItem
-						title="Only current page"
+						title={msg('comments.only-current-page')}
 						checked={filters.onlyCurrentPage}
 						onSelect={() => toggle('onlyCurrentPage')}
 					>
-						Only current page
+						{msg('comments.only-current-page')}
 					</TldrawUiDropdownMenuCheckboxItem>
 				</TldrawUiDropdownMenuGroup>
 			</TldrawUiDropdownMenuContent>

@@ -1,4 +1,3 @@
-/* eslint-disable tldraw/jsx-no-literals */
 import {
 	type CSSProperties,
 	type PointerEvent as ReactPointerEvent,
@@ -21,6 +20,7 @@ import {
 	useEditor,
 	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { computeClusterTable } from '../clustering/computeClusterTable'
@@ -357,6 +357,7 @@ function ThreadPin({
 		props
 	const container = useContainer()
 	const comments = useThreadComments(editor, thread.id)
+	const msg = useTranslation()
 	// Only one thread's popover is open at a time — shared across pins via the atom.
 	const open = useValue('thread open', () => openThreadId.get() === thread.id, [thread.id])
 	const [reply, setReply] = useState<TLRichText>(EMPTY_COMMENT)
@@ -471,11 +472,11 @@ function ThreadPin({
 				>
 					<CommentComposer
 						author={card.author}
-						placeholder="Edit comment…"
+						placeholder={msg('comments.edit-placeholder')}
 						value={editText}
 						onChange={setEditText}
 						onSubmit={saveEdit}
-						sendLabel="Save"
+						sendLabel={msg('comments.save')}
 						disabled={isCommentEmpty(editText)}
 						autoFocus
 					/>
@@ -487,8 +488,12 @@ function ThreadPin({
 				{...card}
 				actions={
 					comment.authorId === currentUserId ? (
-						<button className="cmt-thread__action" title="Edit" onClick={() => startEdit(comment)}>
-							<TldrawUiIcon icon="dots-horizontal" label="Edit" small />
+						<button
+							className="cmt-thread__action"
+							title={msg('comments.edit')}
+							onClick={() => startEdit(comment)}
+						>
+							<TldrawUiIcon icon="dots-horizontal" label={msg('comments.edit')} small />
 						</button>
 					) : undefined
 				}
@@ -501,19 +506,31 @@ function ThreadPin({
 			{currentUserId && (
 				<button
 					className="cmt-thread__action"
-					title={thread.resolved ? 'Reopen' : 'Resolve'}
+					title={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
 					onClick={toggleResolve}
 				>
-					<TldrawUiIcon icon="check" label={thread.resolved ? 'Reopen' : 'Resolve'} small />
+					<TldrawUiIcon
+						icon="check"
+						label={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
+						small
+					/>
 				</button>
 			)}
 			{currentUserId && (
-				<button className="cmt-thread__action" title="Delete thread" onClick={deleteThread}>
-					<TldrawUiIcon icon="trash" label="Delete thread" small />
+				<button
+					className="cmt-thread__action"
+					title={msg('comments.delete')}
+					onClick={deleteThread}
+				>
+					<TldrawUiIcon icon="trash" label={msg('comments.delete')} small />
 				</button>
 			)}
-			<button className="cmt-thread__action" title="Dismiss" onClick={() => openThreadId.set(null)}>
-				<TldrawUiIcon icon="cross-2" label="Dismiss" small />
+			<button
+				className="cmt-thread__action"
+				title={msg('comments.dismiss')}
+				onClick={() => openThreadId.set(null)}
+			>
+				<TldrawUiIcon icon="cross-2" label={msg('comments.dismiss')} small />
 			</button>
 		</>
 	)
@@ -583,16 +600,21 @@ function ThreadPin({
 					style={{ left: renderPoint.x + 36, top: renderPoint.y - 28 }}
 				>
 					<CommentThread
-						header="Comment"
+						header={msg('comments.thread-title')}
 						headerActions={headerActions}
 						renderComment={renderComment}
 						comments={comments.map((c) => toCardProps(c, props))}
-						resolvedBy={thread.resolved ? resolveName(thread.resolved.by) : undefined}
+						resolvedBanner={
+							thread.resolved
+								? msg('comments.resolved-by').replace('{name}', resolveName(thread.resolved.by))
+								: undefined
+						}
 						composer={
 							currentUserId && !thread.resolved
 								? {
 										author: resolveName(currentUserId),
-										placeholder: 'Reply…',
+										placeholder: msg('comments.reply-placeholder'),
+										sendLabel: msg('comments.send'),
 										value: reply,
 										onChange: setReply,
 										onSubmit: postReply,
@@ -616,6 +638,7 @@ function PendingComposer({
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
 	const [text, setText] = useState<TLRichText>(EMPTY_COMMENT)
 	const ref = useRef<HTMLDivElement>(null)
+	const msg = useTranslation()
 	const container = useContainer()
 	// Over this floating panel, scroll and hover reach the canvas (except where it scrolls itself).
 	usePassThroughWheelEvents(ref)
@@ -673,7 +696,8 @@ function PendingComposer({
 		>
 			<CommentComposer
 				author={currentUserId ? resolveName(currentUserId) : ''}
-				placeholder="Add a comment…"
+				placeholder={msg('comments.add-placeholder')}
+				sendLabel={msg('comments.send')}
 				value={text}
 				onChange={setText}
 				onSubmit={submit}

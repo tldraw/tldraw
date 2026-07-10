@@ -12,7 +12,7 @@ export function CommentsMenuItem() {
 	return (
 		<TldrawUiMenuCheckboxItem
 			id="comments-visible"
-			label="Comments"
+			label="comments.title"
 			kbd="!c"
 			readonlyOk
 			checked={!hidden}

@@ -1,4 +1,3 @@
-/* eslint-disable tldraw/jsx-no-literals */
 import { ReactNode } from 'react'
 import { Avatar } from './avatar'
 import { Byline } from './byline'
@@ -30,6 +29,8 @@ export interface CommentsListProps {
 	headerAction?: ReactNode
 	/** Shown in place of the list when there are no threads. */
 	empty?: ReactNode
+	/** Label for a resolved thread's marker on its row. Defaults to "Resolved". */
+	resolvedLabel?: string
 	/** Override how each item renders. Defaults to `<CommentListItem>`. */
 	renderItem?(item: CommentListItemProps): ReactNode
 }
@@ -45,6 +46,7 @@ export function CommentsList({
 	header,
 	headerAction,
 	empty,
+	resolvedLabel,
 	renderItem,
 }: CommentsListProps) {
 	return (
@@ -63,7 +65,12 @@ export function CommentsList({
 						renderItem ? (
 							renderItem(item)
 						) : (
-							<CommentListItem key={item.id} {...item} onSelect={onSelect} />
+							<CommentListItem
+								key={item.id}
+								{...item}
+								resolvedLabel={resolvedLabel}
+								onSelect={onSelect}
+							/>
 						)
 					)}
 				</div>
@@ -81,8 +88,9 @@ function CommentListItem({
 	page,
 	count,
 	selected,
+	resolvedLabel = 'Resolved',
 	onSelect,
-}: CommentListItemProps & { onSelect?(id: string): void }) {
+}: CommentListItemProps & { resolvedLabel?: string; onSelect?(id: string): void }) {
 	const handleClick = () => {
 		if (onSelect) onSelect(id)
 	}
@@ -102,7 +110,7 @@ function CommentListItem({
 						{resolved && (
 							<span className="cmt-list__item-resolved">
 								<CheckIcon />
-								Resolved
+								{resolvedLabel}
 							</span>
 						)}
 						{page !== undefined && <span className="cmt-list__item-page">{page}</span>}
