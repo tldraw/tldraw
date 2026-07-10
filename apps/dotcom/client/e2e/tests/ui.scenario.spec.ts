@@ -63,6 +63,8 @@ test.describe('UI scenarios', () => {
 		// waitForMutationResolution doesn't cover it). expectShapesCount above only proves the shape
 		// rendered locally; give the push time to reach the server before duplicating, or the copy can
 		// race the still-in-flight change and silently omit the shape.
+		// TODO: replace with a condition-based wait — needs a __test__ route exposing the room DO's
+		// persisted doc state (no such signal exists today), a fixed timeout can still lose the race.
 		await owner.page.waitForTimeout(1000)
 
 		await owner.sidebar.renameFileByName(originalName, renamedName)
