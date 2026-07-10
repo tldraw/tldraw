@@ -6,10 +6,10 @@ import { useMaybeApp } from '../../hooks/useAppState'
 /**
  * dotcom's comments layer: a thin consumer of `@tldraw/commenting/canvas`'s `<CanvasComments>`.
  * All the flow (tool, pins, thread popovers, composer, rich-text bodies) lives in the toolkit;
- * dotcom only supplies the pieces that are its own — the signed-in user's id and a name resolver
+ * dotcom only supplies the pieces that are its own — the signed-in user's id, a name resolver
  * (current user from preferences, other authors from the Zero comments query's author join, with
  * live presence as a fallback for users who haven't committed a comment yet, e.g. a draft
- * composer's byline).
+ * composer's byline), and comment read status from Zero's read receipts.
  */
 export function CommentsOnCanvas() {
 	const editor = useEditor()
@@ -36,6 +36,21 @@ export function CommentsOnCanvas() {
 		},
 		[app]
 	)
+	// Ids of unread comments: others' comments with no read receipt in Zero. Zero comment row ids
+	// are TLComment record ids verbatim (see commentRecordToRow in the sync-worker), so these map
+	// straight onto store records. Own comments never get a receipt and never count as unread.
+	const unreadCommentIds = useValue(
+		'unread comment ids',
+		() => {
+			const ids = new Set<string>()
+			if (!app) return ids
+			for (const c of app.getComments()) {
+				if (c.authorId !== app.userId && !c.read) ids.add(c.id)
+			}
+			return ids
+		},
+		[app]
+	)
 	const presenceNames = useValue(
 		'presence names',
 		() => {
@@ -54,11 +69,25 @@ export function CommentsOnCanvas() {
 		},
 		[currentUserId, currentUserName, authorNames, presenceNames]
 	)
+	const isCommentUnread = useCallback(
+		(commentId: string) => unreadCommentIds.has(commentId),
+		[unreadCommentIds]
+	)
+	const onCommentRead = useCallback((commentId: string) => app?.markCommentRead(commentId), [app])
 
 	return (
 		<>
-			<CanvasComments currentUserId={currentUserId} resolveName={resolveName} />
-			<CanvasCommentsSidebar resolveName={resolveName} currentUserId={currentUserId ?? undefined} />
+			<CanvasComments
+				currentUserId={currentUserId}
+				resolveName={resolveName}
+				isCommentUnread={app ? isCommentUnread : undefined}
+				onCommentRead={app ? onCommentRead : undefined}
+			/>
+			<CanvasCommentsSidebar
+				resolveName={resolveName}
+				currentUserId={currentUserId ?? undefined}
+				isCommentUnread={app ? isCommentUnread : undefined}
+			/>
 		</>
 	)
 }

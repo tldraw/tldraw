@@ -2,6 +2,7 @@ import { ReactNode, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import {
 	TLComment,
+	TLCommentId,
 	useContainer,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -23,6 +24,11 @@ export interface CanvasCommentsSidebarProps {
 	resolveName(id: string): string
 	/** The signed-in user's id. Enables the "only your threads" filter when present. */
 	currentUserId?: string
+	/**
+	 * Whether a comment is unread for the current user (return true for unread). Enables the
+	 * "only unread" filter when present.
+	 */
+	isCommentUnread?(commentId: TLCommentId): boolean
 	/** Render a thread's preview (its first comment). Defaults to the plaintext of the body. */
 	renderPreview?(comment: TLComment): ReactNode
 	/** Tool ids that show the sidebar. Defaults to the comment tool. */
@@ -43,6 +49,7 @@ export interface CanvasCommentsSidebarProps {
 export function CanvasCommentsSidebar({
 	resolveName,
 	currentUserId,
+	isCommentUnread,
 	renderPreview,
 	tools = ['comment'],
 	header,
@@ -74,14 +81,26 @@ export function CanvasCommentsSidebar({
 		byThread.set(comment.threadId, list)
 	}
 
-	const items: CommentListItemProps[] = threads
-		.filter((thread) => !filters.onlyCurrentPage || thread.pageId === currentPageId)
+	// Page scoping is treated as scoping, not a filter: an empty page reads "no comments yet",
+	// while a list emptied by the toggles below reads "nothing matches your filters".
+	const pageThreads = threads.filter(
+		(thread) => !filters.onlyCurrentPage || thread.pageId === currentPageId
+	)
+
+	const items: CommentListItemProps[] = pageThreads
 		.filter((thread) => filters.showResolved || thread.resolved == null)
 		// "Only mine" is ignored without a known user — otherwise a persisted onlyMine=true would
 		// empty the list for a signed-out viewer, with the (hidden) toggle giving no way to clear it.
 		.filter(
 			(thread) =>
 				!filters.onlyMine || currentUserId === undefined || thread.createdBy === currentUserId
+		)
+		// "Only unread" is likewise ignored without a read-status source.
+		.filter(
+			(thread) =>
+				!filters.onlyUnread ||
+				isCommentUnread === undefined ||
+				(byThread.get(thread.id) ?? []).some((c) => isCommentUnread(c.id))
 		)
 		.map((thread) => {
 			const threadComments = byThread.get(thread.id) ?? []
@@ -117,11 +136,18 @@ export function CanvasCommentsSidebar({
 				header={header ?? msg('comments.title')}
 				headerAction={
 					<div className="cmt-list__header-actions">
-						<CommentsFilterMenu canFilterByAuthor={currentUserId !== undefined} />
+						<CommentsFilterMenu
+							canFilterByAuthor={currentUserId !== undefined}
+							canFilterByUnread={isCommentUnread !== undefined}
+						/>
 						<CommentsOverflowMenu />
 					</div>
 				}
-				empty={empty ?? msg('comments.empty')}
+				empty={
+					items.length === 0 && pageThreads.length > 0
+						? msg('comments.empty-filtered')
+						: (empty ?? msg('comments.empty'))
+				}
 				resolvedLabel={msg('comments.resolved')}
 				onSelect={focus}
 			/>
