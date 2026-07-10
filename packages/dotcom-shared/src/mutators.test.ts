@@ -1692,7 +1692,7 @@ describe('file creation security', () => {
 
 describe('comment.markRead / comment.markUnread', () => {
 	// owner1 owns file1; comment c1 by author-1 lives on file1
-	function commentState() {
+	function commentState(): TableStore {
 		return {
 			user: [makeUser({ id: 'owner1' }), makeUser({ id: 'other1' })],
 			file: [makeFile({ id: 'file1', ownerId: 'owner1' })],
