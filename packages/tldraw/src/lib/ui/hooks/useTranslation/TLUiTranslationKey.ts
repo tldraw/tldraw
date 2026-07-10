@@ -507,6 +507,7 @@ export type TLUiTranslationKey =
 	| 'comments.filter'
 	| 'comments.show-resolved'
 	| 'comments.only-mine'
+	| 'comments.only-unread'
 	| 'comments.only-current-page'
 	| 'comments.more-options'
 	| 'comments.hide'

@@ -36,6 +36,20 @@ export function CommentsOnCanvas() {
 		},
 		[app]
 	)
+	// Comment ids with a read receipt in Zero. The sidebar's unread check treats own comments as
+	// read via the authorId argument, so absence here only matters for others' comments.
+	const readCommentIds = useValue(
+		'read comment ids',
+		() => {
+			const ids = new Set<string>()
+			if (!app) return ids
+			for (const c of app.getComments()) {
+				if (c.read) ids.add(c.id)
+			}
+			return ids
+		},
+		[app]
+	)
 	const presenceNames = useValue(
 		'presence names',
 		() => {
@@ -54,11 +68,20 @@ export function CommentsOnCanvas() {
 		},
 		[currentUserId, currentUserName, authorNames, presenceNames]
 	)
+	const isCommentUnread = useCallback(
+		(commentId: string, authorId: string) =>
+			authorId !== currentUserId && !readCommentIds.has(commentId),
+		[currentUserId, readCommentIds]
+	)
 
 	return (
 		<>
 			<CanvasComments currentUserId={currentUserId} resolveName={resolveName} />
-			<CanvasCommentsSidebar resolveName={resolveName} currentUserId={currentUserId ?? undefined} />
+			<CanvasCommentsSidebar
+				resolveName={resolveName}
+				currentUserId={currentUserId ?? undefined}
+				isCommentUnread={app ? isCommentUnread : undefined}
+			/>
 		</>
 	)
 }

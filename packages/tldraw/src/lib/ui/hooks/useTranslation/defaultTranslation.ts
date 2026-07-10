@@ -517,6 +517,7 @@ export const DEFAULT_TRANSLATION = {
 	'comments.filter': 'Filter comments',
 	'comments.show-resolved': 'Show resolved comments',
 	'comments.only-mine': 'Only your threads',
+	'comments.only-unread': 'Only unread',
 	'comments.only-current-page': 'Only current page',
 	'comments.more-options': 'More options',
 	'comments.hide': 'Hide comments',

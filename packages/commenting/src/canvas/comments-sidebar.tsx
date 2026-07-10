@@ -2,6 +2,7 @@ import { ReactNode, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import {
 	TLComment,
+	TLCommentId,
 	useContainer,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -23,6 +24,11 @@ export interface CanvasCommentsSidebarProps {
 	resolveName(id: string): string
 	/** The signed-in user's id. Enables the "only your threads" filter when present. */
 	currentUserId?: string
+	/**
+	 * Whether the current user has read a comment. Enables the "only unread" filter when present.
+	 * Both ids are passed so hosts can track read status by comment or by author.
+	 */
+	isCommentUnread?(commentId: TLCommentId, authorId: string): boolean
 	/** Render a thread's preview (its first comment). Defaults to the plaintext of the body. */
 	renderPreview?(comment: TLComment): ReactNode
 	/** Tool ids that show the sidebar. Defaults to the comment tool. */
@@ -43,6 +49,7 @@ export interface CanvasCommentsSidebarProps {
 export function CanvasCommentsSidebar({
 	resolveName,
 	currentUserId,
+	isCommentUnread,
 	renderPreview,
 	tools = ['comment'],
 	header,
@@ -83,6 +90,13 @@ export function CanvasCommentsSidebar({
 			(thread) =>
 				!filters.onlyMine || currentUserId === undefined || thread.createdBy === currentUserId
 		)
+		// "Only unread" is likewise ignored without a read-status source.
+		.filter(
+			(thread) =>
+				!filters.onlyUnread ||
+				isCommentUnread === undefined ||
+				(byThread.get(thread.id) ?? []).some((c) => isCommentUnread(c.id, c.authorId))
+		)
 		.map((thread) => {
 			const threadComments = byThread.get(thread.id) ?? []
 			const first = threadComments[0]
@@ -117,7 +131,10 @@ export function CanvasCommentsSidebar({
 				header={header ?? msg('comments.title')}
 				headerAction={
 					<div className="cmt-list__header-actions">
-						<CommentsFilterMenu canFilterByAuthor={currentUserId !== undefined} />
+						<CommentsFilterMenu
+							canFilterByAuthor={currentUserId !== undefined}
+							canFilterByUnread={isCommentUnread !== undefined}
+						/>
 						<CommentsOverflowMenu />
 					</div>
 				}
