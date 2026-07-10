@@ -235,6 +235,31 @@ export function createMutators(userId: string) {
 			},
 		},
 
+		comment: {
+			/**
+			 * Mark a comment as read by the current user. Row present = read; readAt is stored so
+			 * an "edits reset unread" rule can later be added client-side without a migration.
+			 */
+			markRead: async (tx: Tx, { commentId, readAt }: { commentId: string; readAt: number }) => {
+				if (tx.location === 'server') {
+					// Verify the comment exists and the user can access its file
+					const comment = await tx.run(zql.comment.where('id', '=', commentId).one())
+					assert(comment, ZErrorCode.bad_request)
+					const file = await tx.run(zql.file.where('id', '=', comment.fileId).one())
+					await assertUserCanAccessFile(tx, userId, file!)
+				}
+				await tx.mutate.comment_read.upsert({
+					userId,
+					commentId,
+					readAt: ensureSensibleTimestamp(readAt),
+				})
+			},
+			/** Mark a comment as unread by deleting the current user's read row. Own-row-only by construction. */
+			markUnread: async (tx: Tx, { commentId }: { commentId: string }) => {
+				await tx.mutate.comment_read.delete({ userId, commentId })
+			},
+		},
+
 		/** @deprecated */
 		init: async (tx: Tx, { user, time }: { user: TlaUser; time: number }) => {
 			assert(user.id === userId, ZErrorCode.forbidden)
