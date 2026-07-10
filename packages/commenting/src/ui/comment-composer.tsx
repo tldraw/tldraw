@@ -78,6 +78,11 @@ export function CommentComposer({
 			extensions,
 			content: (value ?? EMPTY_COMMENT) as JSONContent,
 			editable: interactive,
+			// tldraw's default extensions add their own TextDirection extension (so it can be
+			// overridden), so disable TipTap's core one to avoid a duplicate-extension warning —
+			// mirrors RichTextArea's setup.
+			enableCoreExtensions: { textDirection: false },
+			textDirection: 'auto',
 			editorProps: { attributes: { class: 'cmt-input' } },
 			onUpdate: ({ editor }) => {
 				setIsEmpty(editor.isEmpty)
