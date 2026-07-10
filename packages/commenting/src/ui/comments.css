@@ -58,28 +58,38 @@
 	font-style: italic;
 }
 
-/* rendered markdown inside a comment body */
-.cmt-text .md-p {
+/* rendered rich text inside a comment body — bare tags emitted by the comment renderer
+   (paragraphs, lists, code, highlight, links), matching the limited comment extension set. */
+.cmt-text p {
 	margin: 0;
 }
 
-.cmt-text .md-p + .md-p,
-.cmt-text .md-p + .md-list,
-.cmt-text .md-list + .md-p {
+.cmt-text p + p,
+.cmt-text p + ul,
+.cmt-text p + ol,
+.cmt-text ul + p,
+.cmt-text ol + p {
 	margin-top: 6px;
 }
 
-.cmt-text .md-list {
+.cmt-text ul,
+.cmt-text ol {
 	margin: 0;
 	padding-left: 18px;
 }
 
-.cmt-text .md-code {
+.cmt-text code {
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 	font-size: 0.92em;
 	background: var(--tl-color-muted-2);
 	border-radius: 3px;
 	padding: 0 3px;
+}
+
+.cmt-text mark {
+	background: color-mix(in srgb, #ffeb3b 60%, transparent);
+	color: inherit;
+	border-radius: 2px;
 }
 
 .cmt-text a {
@@ -101,11 +111,12 @@
 	flex-shrink: 0;
 }
 
-/* composer — an avatar beside a rounded-rect field (input + send). The avatar matches the comment
-   row's, so the two line up; the field is squarer than a pill, like tldraw's own buttons. */
+/* composer — an avatar beside a rounded-rect field holding the rich-text input and the send button.
+   Formatting is applied via markdown and keyboard shortcuts (no toolbar). The avatar aligns to the
+   top so it stays put as the field grows to multiple lines. */
 .cmt-composer {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 10px;
 	padding: 4px 0 8px 4px;
 }
@@ -126,15 +137,51 @@
 	border-color: var(--tl-color-selected);
 }
 
-.cmt-input {
+/* the editable area, with the placeholder overlaid while it's empty */
+.cmt-composer__input-wrap {
+	position: relative;
 	flex: 1;
 	min-width: 0;
-	border: 0;
-	background: transparent;
+	padding: 3px 0;
+}
+
+.cmt-input {
 	font: inherit;
 	font-size: 13px;
+	line-height: 1.4;
 	color: var(--tl-color-text-1);
 	outline: none;
+	min-height: 20px;
+	max-height: 40vh;
+	overflow-y: auto;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.cmt-input p {
+	margin: 0;
+}
+
+.cmt-input p + p,
+.cmt-input p + ul,
+.cmt-input p + ol {
+	margin-top: 4px;
+}
+
+.cmt-input ul,
+.cmt-input ol {
+	margin: 0;
+	padding-left: 18px;
+}
+
+.cmt-input__placeholder {
+	position: absolute;
+	top: 3px;
+	left: 0;
+	font-size: 13px;
+	line-height: 1.4;
+	color: var(--tl-color-text-3);
+	pointer-events: none;
 }
 
 .cmt-send {
