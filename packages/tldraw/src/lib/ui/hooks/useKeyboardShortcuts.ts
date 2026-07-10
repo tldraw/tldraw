@@ -19,6 +19,7 @@ import {
 } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { useActions } from '../context/actions'
+import { useCommentingEnabled } from './useCommentingEnabled'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
@@ -38,6 +39,8 @@ export function useKeyboardShortcuts() {
 	const isReadonlyMode = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
+	// The comment tool's shortcut is gated by the same license as its toolbar button.
+	const commentingEnabled = useCommentingEnabled()
 	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
 	useEffect(() => {
 		if (!isFocused) return
@@ -70,6 +73,9 @@ export function useKeyboardShortcuts() {
 			}
 
 			if (SKIP_KBDS.includes(tool.id)) continue
+
+			// The comment tool is a licensed feature; skip its shortcut when commenting isn't enabled.
+			if (tool.id === 'comment' && !commentingEnabled) continue
 
 			register(getHotkeysStringFromKbd(tool.kbd), (event) => {
 				if (areShortcutsDisabled(editor)) return
@@ -201,7 +207,7 @@ export function useKeyboardShortcuts() {
 			body.removeEventListener('keydown', handleKeyDown)
 			body.removeEventListener('keyup', handleKeyUp)
 		}
-	}, [actions, tools, isReadonlyMode, editor, isFocused])
+	}, [actions, tools, isReadonlyMode, editor, isFocused, commentingEnabled])
 }
 
 export function areShortcutsDisabled(editor: Editor) {
