@@ -19,7 +19,6 @@ import {
 	TlaFileStatePartial,
 	TlaFlags,
 	TlaGroupFile,
-	TlaGroupUser,
 	TlaSchema,
 	TlaUser,
 	TlaUserPartial,
@@ -419,8 +418,6 @@ export function createMutators(userId: string) {
 			// If we get here, the user has legitimate access to the file
 			await tx.mutate.file_state.upsert({ fileId, userId, firstVisitAt: time })
 
-			const workspaceFileRows = await tx.run(zql.group_file.where('fileId', '=', fileId))
-			const userWorkspaceMemberships = await tx.run(zql.group_user.where('userId', '=', userId))
 			// Add a visited file to the user's home group so it shows as a "guest file" in the
 			// sidebar — unless it's already visible to the user somewhere else. A file is listed
 			// in a workspace only when that workspace actually OWNS it (getWorkspaceFilesSorted
@@ -433,21 +430,23 @@ export function createMutators(userId: string) {
 			// #9107/#9254, or a create-workspace-race mirror) points at a workspace that does
 			// not own the file, so it shows the file nowhere. Counting it here would skip the
 			// home link and make the file invisible in the sidebar entirely.
-			const owningGroupId = file?.owningGroupId
-			const ownedByOneOfMyWorkspaces =
-				owningGroupId != null &&
-				userWorkspaceMemberships.some((g: TlaGroupUser) => g.groupId === owningGroupId)
-			const alreadyLinkedInHome = workspaceFileRows.some(
-				(gf: TlaGroupFile) => gf.groupId === userId
+			const alreadyLinkedInHome = await tx.run(
+				zql.group_file.where('fileId', '=', fileId).where('groupId', '=', userId).one()
 			)
-			if (!ownedByOneOfMyWorkspaces && !alreadyLinkedInHome) {
-				await tx.mutate.group_file.insert({
-					fileId,
-					groupId: userId,
-					createdAt: time,
-					updatedAt: time,
-					index: null,
-				})
+			if (!alreadyLinkedInHome) {
+				// getRole returns null when the user isn't a member of the file's owning
+				// workspace (and for a null owningGroupId), so this is true only when the file
+				// is genuinely owned by a workspace the user belongs to.
+				const ownedByOneOfMyWorkspaces = (await getRole(tx, userId, file?.owningGroupId)) !== null
+				if (!ownedByOneOfMyWorkspaces) {
+					await tx.mutate.group_file.insert({
+						fileId,
+						groupId: userId,
+						createdAt: time,
+						updatedAt: time,
+						index: null,
+					})
+				}
 			}
 		},
 		createWorkspace: async (tx: Tx, { id, name }: { id: string; name: string }) => {
