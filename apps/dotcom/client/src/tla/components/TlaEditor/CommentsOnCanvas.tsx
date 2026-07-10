@@ -36,17 +36,16 @@ export function CommentsOnCanvas() {
 		},
 		[app]
 	)
-	// Comment ids with a read receipt in Zero. Zero comment row ids are TLComment record ids
-	// verbatim (see commentRecordToRow in the sync-worker), so receipts map straight onto store
-	// records. Own comments never get a receipt; the isCommentUnread callback below treats them
-	// as read via its authorId argument.
-	const readCommentIds = useValue(
-		'read comment ids',
+	// Ids of unread comments: others' comments with no read receipt in Zero. Zero comment row ids
+	// are TLComment record ids verbatim (see commentRecordToRow in the sync-worker), so these map
+	// straight onto store records. Own comments never get a receipt and never count as unread.
+	const unreadCommentIds = useValue(
+		'unread comment ids',
 		() => {
 			const ids = new Set<string>()
 			if (!app) return ids
 			for (const c of app.getComments()) {
-				if (c.read) ids.add(c.id)
+				if (c.authorId !== app.userId && !c.read) ids.add(c.id)
 			}
 			return ids
 		},
@@ -71,9 +70,8 @@ export function CommentsOnCanvas() {
 		[currentUserId, currentUserName, authorNames, presenceNames]
 	)
 	const isCommentUnread = useCallback(
-		(commentId: string, authorId: string) =>
-			authorId !== currentUserId && !readCommentIds.has(commentId),
-		[currentUserId, readCommentIds]
+		(commentId: string) => unreadCommentIds.has(commentId),
+		[unreadCommentIds]
 	)
 	const onCommentRead = useCallback((commentId: string) => app?.markCommentRead(commentId), [app])
 

@@ -26,10 +26,9 @@ export interface CanvasCommentsSidebarProps {
 	currentUserId?: string
 	/**
 	 * Whether a comment is unread for the current user (return true for unread). Enables the
-	 * "only unread" filter when present. Both ids are passed so hosts can track read status by
-	 * comment or by author.
+	 * "only unread" filter when present.
 	 */
-	isCommentUnread?(commentId: TLCommentId, authorId: string): boolean
+	isCommentUnread?(commentId: TLCommentId): boolean
 	/** Render a thread's preview (its first comment). Defaults to the plaintext of the body. */
 	renderPreview?(comment: TLComment): ReactNode
 	/** Tool ids that show the sidebar. Defaults to the comment tool. */
@@ -101,7 +100,7 @@ export function CanvasCommentsSidebar({
 			(thread) =>
 				!filters.onlyUnread ||
 				isCommentUnread === undefined ||
-				(byThread.get(thread.id) ?? []).some((c) => isCommentUnread(c.id, c.authorId))
+				(byThread.get(thread.id) ?? []).some((c) => isCommentUnread(c.id))
 		)
 		.map((thread) => {
 			const threadComments = byThread.get(thread.id) ?? []

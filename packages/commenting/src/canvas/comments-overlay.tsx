@@ -64,16 +64,13 @@ export interface CanvasCommentsProps {
 	renderPinContent?(thread: TLCommentThread, comments: TLComment[]): ReactNode
 	/** Called after any comment (a new thread's first comment, or a reply) is posted. */
 	onPostComment?(comment: TLComment): void
-	/**
-	 * Whether a comment is unread for the current user (return true for unread). Both ids are
-	 * passed so hosts can track read status by comment or by author.
-	 */
-	isCommentUnread?(commentId: TLCommentId, authorId: string): boolean
+	/** Whether a comment is unread for the current user (return true for unread). */
+	isCommentUnread?(commentId: TLCommentId): boolean
 	/**
 	 * Called for each unread comment shown to the user in an open thread popover, so hosts can
 	 * record a read receipt. Needs {@link isCommentUnread} to know what's unread.
 	 */
-	onCommentRead?(commentId: TLCommentId, authorId: string): void
+	onCommentRead?(commentId: TLCommentId): void
 	/** Where imprecise shape pins sit — a normalized (0–1) spot within the shape. Default top-right. */
 	impreciseShapeAnchor?: { x: number; y: number }
 }
@@ -722,8 +719,8 @@ const ThreadPin = memo(function ThreadPin({
 	useEffect(() => {
 		if (!open || !visible || !isCommentUnread || !onCommentRead) return
 		for (const comment of comments) {
-			if (isCommentUnread(comment.id, comment.authorId)) {
-				onCommentRead(comment.id, comment.authorId)
+			if (isCommentUnread(comment.id)) {
+				onCommentRead(comment.id)
 			}
 		}
 	}, [open, visible, comments, isCommentUnread, onCommentRead])
