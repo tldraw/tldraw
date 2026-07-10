@@ -2422,7 +2422,6 @@ export class LicenseManager {
     static className: string;
     // (undocumented)
     featureFlags: Atom<Record<LicenseFeatureName, boolean>, unknown>;
-    getFeatureFlags(): Record<LicenseFeatureName, boolean>;
     // (undocumented)
     getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult>;
     // (undocumented)

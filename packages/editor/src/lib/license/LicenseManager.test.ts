@@ -555,16 +555,15 @@ describe('LicenseManager', () => {
 			// @ts-ignore
 			window.location = new URL('https://www.example.com')
 
-			// No await: the feature flags should already reflect development (all enabled) rather than
-			// the fail-closed default, which only lifts once async validation resolves.
-			const devLicenseManager = new LicenseManager('', keyPair.publicKey)
-			expect(devLicenseManager.isFeatureEnabled('commenting')).toBe(true)
-			expect(devLicenseManager.getFeatureFlags()).toEqual({
-				collaboration: true,
-				commenting: true,
-			})
-
-			process.env.NODE_ENV = 'test'
+			try {
+				// No await: the feature flags should already reflect development (all enabled) rather
+				// than the fail-closed default, which only lifts once async validation resolves.
+				const devLicenseManager = new LicenseManager('', keyPair.publicKey)
+				expect(devLicenseManager.isFeatureEnabled('commenting')).toBe(true)
+				expect(devLicenseManager.isFeatureEnabled('collaboration')).toBe(true)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
 		})
 	})
 

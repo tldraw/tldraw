@@ -1,4 +1,4 @@
-import { atom } from '@tldraw/state'
+import { atom, transact } from '@tldraw/state'
 import { publishDates, version } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
@@ -152,21 +152,17 @@ export class LicenseManager {
 
 				this.maybeTrack(result, licenseState)
 
-				this.state.set(licenseState)
-				this.featureFlags.set(getEnabledFeatures(result, licenseState, this.isDevelopment))
+				// Update both atoms atomically so dependents never observe the license state and the
+				// feature flags out of sync mid-update.
+				transact(() => {
+					this.state.set(licenseState)
+					this.featureFlags.set(getEnabledFeatures(result, licenseState, this.isDevelopment))
+				})
 			})
 			.catch((error) => {
 				console.error('License validation failed:', error)
 				this.state.set('unlicensed')
 			})
-	}
-
-	/**
-	 * Returns the current map of licensable features to whether they're enabled. Reactive: reading
-	 * this inside a signal recomputes when license validation resolves.
-	 */
-	getFeatureFlags(): Record<LicenseFeatureName, boolean> {
-		return this.featureFlags.get()
 	}
 
 	/**
