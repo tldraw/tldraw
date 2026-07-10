@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	CommentOutboxEntry,
 	commentRecordToRow,
+	findEmptiedCommentThreads,
 	isCommentAuthorFkViolation,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
@@ -325,6 +326,75 @@ describe('planCommentDrain', () => {
 			commentDeletes: [],
 			unknownIds: ['shape:oops'],
 		})
+	})
+})
+
+describe('findEmptiedCommentThreads', () => {
+	function makeComment(threadId: ReturnType<typeof makeThread>['id']) {
+		return createComment({ threadId, pageId, authorId: 'user1', body, now: 1500 })
+	}
+
+	// mimics the prune transaction's read surface AFTER the pruned comments were deleted
+	function viewOf(...records: { id: string }[]) {
+		const map = new Map(records.map((r) => [r.id, r]))
+		return { keys: () => map.keys(), get: (id: string) => map.get(id) }
+	}
+
+	it('returns nothing (without scanning) when there are no candidate threads', () => {
+		const view = {
+			keys(): Iterable<string> {
+				throw new Error('should not scan')
+			},
+			get: () => undefined,
+		}
+		expect(findEmptiedCommentThreads(new Set(), view)).toEqual([])
+	})
+
+	it('returns a thread with no remaining comments', () => {
+		const thread = makeThread()
+		expect(findEmptiedCommentThreads(new Set([thread.id]), viewOf(thread))).toEqual([thread.id])
+	})
+
+	it('keeps a thread alive when a remaining comment references it', () => {
+		const emptied = makeThread()
+		const alive = makeThread()
+		const reply = makeComment(alive.id)
+		expect(
+			findEmptiedCommentThreads(new Set([emptied.id, alive.id]), viewOf(emptied, alive, reply))
+		).toEqual([emptied.id])
+	})
+
+	it('skips non-comment records without reading them', () => {
+		const thread = makeThread()
+		const view = {
+			keys: () => ['shape:box1', thread.id, 'document:document'],
+			get(id: string): unknown {
+				throw new Error(`should not read ${id}`)
+			},
+		}
+		expect(findEmptiedCommentThreads(new Set([thread.id]), view)).toEqual([thread.id])
+	})
+
+	it('stops scanning once every candidate thread is kept alive', () => {
+		const thread = makeThread()
+		const reply = makeComment(thread.id)
+		const straggler = makeComment(thread.id)
+		let yielded = 0
+		const map = new Map<string, { id: string }>([
+			[reply.id, reply],
+			[straggler.id, straggler],
+		])
+		const view = {
+			*keys() {
+				for (const id of map.keys()) {
+					yielded++
+					yield id
+				}
+			},
+			get: (id: string) => map.get(id),
+		}
+		expect(findEmptiedCommentThreads(new Set([thread.id]), view)).toEqual([])
+		expect(yielded).toBe(1)
 	})
 })
 

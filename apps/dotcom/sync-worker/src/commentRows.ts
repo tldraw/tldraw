@@ -221,6 +221,33 @@ export function outboxEntriesToClear(
 }
 
 /**
+ * Given the `threadId`s of comment records that were just pruned and a view of the records that
+ * remain (read AFTER the pruned comments were deleted), return the threadIds that no longer have
+ * any comments referencing them. The caller (see the author-FK prune in drainCommentOutbox)
+ * deletes those threads in the same transaction, mirroring the client-side invariant that
+ * deleting a thread's last comment deletes the thread.
+ *
+ * The view must be transaction-time (e.g. the prune transaction's own read surface), not an
+ * earlier lane snapshot: a reply committed between the snapshot and the transaction must keep its
+ * thread alive. The scan iterates `keys()` (an id-only scan; comment ids are typeName-prefixed so
+ * non-comment records are skipped without being read) and `get`s only comment records, stopping
+ * early once every candidate thread has been kept alive.
+ */
+export function findEmptiedCommentThreads(
+	candidateThreadIds: ReadonlySet<string>,
+	remaining: { keys(): Iterable<string>; get(id: string): unknown }
+): string[] {
+	if (candidateThreadIds.size === 0) return []
+	const emptied = new Set(candidateThreadIds)
+	for (const id of remaining.keys()) {
+		if (!isCommentId(id)) continue
+		const threadId = (remaining.get(id) as TLComment | undefined)?.threadId
+		if (threadId !== undefined && emptied.delete(threadId) && emptied.size === 0) break
+	}
+	return [...emptied]
+}
+
+/**
  * Merge rehydrated comment documents into a room snapshot, clamping the snapshot's clocks up to
  * the highest merged clock. Comments push to Postgres per-commit while the document snapshot
  * persists on a throttle, so after a storage loss the comment clocks can be ahead of the
