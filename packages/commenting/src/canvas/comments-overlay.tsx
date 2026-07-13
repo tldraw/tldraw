@@ -906,8 +906,9 @@ const ThreadPin = memo(function ThreadPin({
 		: initialOf(resolveName(thread.createdBy))
 
 	// Drag the marker to move the thread: its position is overridden locally while dragging, then
-	// re-anchored on drop (to a shape if dropped on one, else a point). A pointer that barely moves
-	// is a click — toggle the popover.
+	// re-anchored on drop. A point/shape thread re-anchors to whatever it's dropped on (a shape, else
+	// a point); a region thread translates, keeping its size. A pointer that barely moves is a click —
+	// toggle the popover.
 	const startDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		e.stopPropagation()
 		dragRef.current = { startX: e.clientX, startY: e.clientY, moved: false }
@@ -933,24 +934,34 @@ const ThreadPin = memo(function ThreadPin({
 		}
 		const pagePoint = editor.screenToPage({ x: e.clientX, y: e.clientY })
 		setDragPagePoint(null)
-		const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
-		const anchor = hit
-			? shapeAnchorAt(editor, hit.id, pagePoint, e.altKey)
-			: { type: 'point', x: pagePoint.x, y: pagePoint.y }
+		let anchor: TLCommentThread['anchor']
+		if (thread.anchor.type === 'region') {
+			// Translate so the pin (the region's top-right corner) lands at the drop; size unchanged.
+			anchor = { ...thread.anchor, x: pagePoint.x - thread.anchor.w, y: pagePoint.y }
+		} else {
+			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+			anchor = hit
+				? shapeAnchorAt(editor, hit.id, pagePoint, e.altKey)
+				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
+		}
 		editor.run(() => editor.store.put([{ ...thread, anchor } as any]), { history: 'ignore' })
 	}
 
 	const renderPoint = dragPagePoint ? editor.pageToViewport(dragPagePoint) : point
 
-	// The region's dashed box, shown while the thread is open or its pin is hovered.
-	const regionBox =
-		thread.anchor.type === 'region' && (open || hovered) ? (
-			<RegionBox editor={editor} box={thread.anchor} />
-		) : null
+	// A region's dashed box bounds: its stored anchor, or — while the pin is dragged — translated so
+	// the pin (the box's top-right corner) tracks the cursor. Undefined for non-region threads.
+	const regionAnchor = thread.anchor.type === 'region' ? thread.anchor : undefined
+	const regionBoxBounds =
+		regionAnchor && dragPagePoint
+			? { ...regionAnchor, x: dragPagePoint.x - regionAnchor.w, y: dragPagePoint.y }
+			: regionAnchor
 
 	return (
 		<>
-			{regionBox}
+			{regionBoxBounds && (dragPagePoint || open || hovered) && (
+				<RegionBox editor={editor} box={regionBoxBounds} />
+			)}
 			<div
 				className={open ? 'cmt-canvas-pin cmt-canvas-pin--open' : 'cmt-canvas-pin'}
 				style={{ left: renderPoint.x, top: renderPoint.y }}
