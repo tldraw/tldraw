@@ -1,35 +1,5 @@
 // The collaboration umbrella. For now it re-exports the commenting package; over time it
 // will re-export the other collaboration packages as well.
 
-export {
-	Avatar,
-	Byline,
-	CommentCard,
-	CommentComposer,
-	CommentPin,
-	CommentText,
-	CommentThread,
-	CommentsList,
-	CountBadge,
-	EmptyState,
-	Mention,
-	Reaction,
-	Reactions,
-	SendButton,
-	formatRelativeTime,
-	renderMarkdown,
-	type AvatarProps,
-	type BylineProps,
-	type CommentCardProps,
-	type CommentComposerProps,
-	type CommentListItemProps,
-	type CommentPinProps,
-	type CommentTextProps,
-	type CommentThreadProps,
-	type CommentsListProps,
-	type CountBadgeProps,
-	type EmptyStateProps,
-	type MentionProps,
-	type ReactionProps,
-	type SendButtonProps,
-} from '@tldraw/commenting'
+// eslint-disable-next-line tldraw/no-export-star
+export * from '@tldraw/commenting'
