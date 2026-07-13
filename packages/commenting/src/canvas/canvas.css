@@ -71,6 +71,19 @@
 	background: color-mix(in srgb, var(--tl-color-selected) 10%, transparent);
 }
 
+/* Corner resize handles on a region box (three corners; the top-right is the move pin). */
+.cmt-canvas-region-handle {
+	position: absolute;
+	width: 9px;
+	height: 9px;
+	transform: translate(-50%, -50%);
+	background: var(--tl-color-panel);
+	border: 1.5px solid var(--tl-color-selected);
+	border-radius: 2px;
+	pointer-events: auto;
+	touch-action: none;
+}
+
 /* Centre the pin marker on its anchor point. */
 .cmt-canvas-pin__marker {
 	width: max-content;

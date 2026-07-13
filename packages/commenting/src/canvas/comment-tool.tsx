@@ -18,8 +18,9 @@ export const pendingComment = atom<PendingComment | null>('pendingComment', null
  *  The tool writes it on each move; the overlay reads it to draw the live dashed box. */
 export const regionDraft = atom<BoxModel | null>('regionDraft', null)
 
-/** The page-space rectangle spanned by two points, normalized so w/h are non-negative. */
-function regionBetween(a: VecLike, b: VecLike): BoxModel {
+/** The page-space rectangle spanned by two points, normalized so w/h are non-negative. Shared by
+ *  region creation (pointer-down → cursor) and corner resize (fixed corner → cursor). */
+export function regionBetween(a: VecLike, b: VecLike): BoxModel {
 	return {
 		x: Math.min(a.x, b.x),
 		y: Math.min(a.y, b.y),

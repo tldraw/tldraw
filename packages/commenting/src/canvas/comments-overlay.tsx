@@ -40,7 +40,7 @@ import { CommentThread } from '../ui/comment-thread'
 import { CountBadge } from '../ui/count-badge'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
-import { pendingComment, PendingComment, regionDraft } from './comment-tool'
+import { pendingComment, PendingComment, regionBetween, regionDraft } from './comment-tool'
 import { commentsHidden, toggleCommentsHidden } from './comments-visibility'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
@@ -688,6 +688,77 @@ function RegionDraftBox({ editor }: { editor: Editor }) {
 	return <RegionBox editor={editor} box={box} />
 }
 
+// The three resizable corners (the top-right corner is the move pin, so it has no handle). `cx/cy`
+// place the handle within the box; `fx/fy` are its diagonally-opposite corner, which stays fixed.
+const REGION_HANDLES = [
+	{ key: 'tl', cx: 0, cy: 0, fx: 1, fy: 1, cursor: 'nwse-resize' },
+	{ key: 'bl', cx: 0, cy: 1, fx: 1, fy: 0, cursor: 'nesw-resize' },
+	{ key: 'br', cx: 1, cy: 1, fx: 0, fy: 0, cursor: 'nwse-resize' },
+] as const
+
+/** Draggable corner handles that resize a region: each spans a rectangle from its fixed opposite
+ *  corner (captured at pointer-down) to the cursor. Previews live, commits on release. */
+function RegionResizeHandles({
+	editor,
+	box,
+	onPreview,
+	onCommit,
+	onHoverChange,
+}: {
+	editor: Editor
+	box: BoxModel
+	onPreview(bounds: BoxModel | null): void
+	onCommit(bounds: BoxModel): void
+	onHoverChange(hovered: boolean): void
+}) {
+	// The fixed (opposite) corner in page coords, captured at pointer-down so the box prop reflowing
+	// mid-drag doesn't move it.
+	const fixedRef = useRef<{ x: number; y: number } | null>(null)
+	const corners = useValue(
+		'region handle points',
+		() =>
+			REGION_HANDLES.map((h) => {
+				const p = editor.pageToViewport({ x: box.x + h.cx * box.w, y: box.y + h.cy * box.h })
+				return { ...h, left: p.x, top: p.y }
+			}),
+		[editor, box.x, box.y, box.w, box.h]
+	)
+	const startResize =
+		(h: (typeof REGION_HANDLES)[number]) => (e: ReactPointerEvent<HTMLDivElement>) => {
+			e.stopPropagation()
+			fixedRef.current = { x: box.x + h.fx * box.w, y: box.y + h.fy * box.h }
+			e.currentTarget.setPointerCapture(e.pointerId)
+		}
+	const onResize = (e: ReactPointerEvent<HTMLDivElement>) => {
+		if (!fixedRef.current) return
+		onPreview(regionBetween(fixedRef.current, editor.screenToPage({ x: e.clientX, y: e.clientY })))
+	}
+	const endResize = (e: ReactPointerEvent<HTMLDivElement>) => {
+		const fixed = fixedRef.current
+		fixedRef.current = null
+		if (e.currentTarget.hasPointerCapture(e.pointerId))
+			e.currentTarget.releasePointerCapture(e.pointerId)
+		if (!fixed) return
+		onCommit(regionBetween(fixed, editor.screenToPage({ x: e.clientX, y: e.clientY })))
+	}
+	return (
+		<>
+			{corners.map((h) => (
+				<div
+					key={h.key}
+					className="cmt-canvas-region-handle"
+					style={{ left: h.left, top: h.top, cursor: h.cursor }}
+					onPointerDown={startResize(h)}
+					onPointerMove={onResize}
+					onPointerUp={endResize}
+					onPointerEnter={() => onHoverChange(true)}
+					onPointerLeave={() => onHoverChange(false)}
+				/>
+			))}
+		</>
+	)
+}
+
 const ThreadPin = memo(function ThreadPin({
 	editor,
 	thread,
@@ -714,6 +785,8 @@ const ThreadPin = memo(function ThreadPin({
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
 	// A region thread reveals its dashed box while hovered or while its thread is open.
 	const [hovered, setHovered] = useState(false)
+	// The live bounds while a corner handle is resizing the region, else null.
+	const [resizeBounds, setResizeBounds] = useState<BoxModel | null>(null)
 	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
 	const markerRef = useRef<HTMLDivElement>(null)
 
@@ -729,6 +802,8 @@ const ThreadPin = memo(function ThreadPin({
 			if (target.closest('.cmt-canvas-popover')) return
 			const marker = markerRef.current
 			if (marker && marker.contains(target)) return
+			// A press on a region resize handle edits this thread's anchor — it must not dismiss it.
+			if (target.closest('.cmt-canvas-region-handle')) return
 			// A click inside a menu/popover layered above us (e.g. the sidebar's filter or overflow
 			// dropdown, portaled elsewhere) belongs to that layer — defer to its own dismissal
 			// instead of closing the thread out from under it.
@@ -947,20 +1022,44 @@ const ThreadPin = memo(function ThreadPin({
 		editor.run(() => editor.store.put([{ ...thread, anchor } as any]), { history: 'ignore' })
 	}
 
-	const renderPoint = dragPagePoint ? editor.pageToViewport(dragPagePoint) : point
+	// The pin (and its popover) track the live edit: a resize moves it to the region's top-right
+	// corner, a move to the drag point; otherwise it sits at the stored anchor's viewport point.
+	const livePinPage = resizeBounds
+		? { x: resizeBounds.x + resizeBounds.w, y: resizeBounds.y }
+		: dragPagePoint
+	const renderPoint = livePinPage ? editor.pageToViewport(livePinPage) : point
 
-	// A region's dashed box bounds: its stored anchor, or — while the pin is dragged — translated so
-	// the pin (the box's top-right corner) tracks the cursor. Undefined for non-region threads.
+	// A region's live box bounds, by priority: a corner resize, else a pin-drag translation (top-right
+	// corner tracks the cursor), else the stored anchor. Undefined for non-region threads.
 	const regionAnchor = thread.anchor.type === 'region' ? thread.anchor : undefined
-	const regionBoxBounds =
+	const movedRegion =
 		regionAnchor && dragPagePoint
 			? { ...regionAnchor, x: dragPagePoint.x - regionAnchor.w, y: dragPagePoint.y }
 			: regionAnchor
+	const regionBoxBounds = resizeBounds ?? movedRegion
+	const commitResize = (bounds: BoxModel) => {
+		setResizeBounds(null)
+		editor.run(
+			() => editor.store.put([{ ...thread, anchor: { type: 'region', ...bounds } } as any]),
+			{
+				history: 'ignore',
+			}
+		)
+	}
 
 	return (
 		<>
-			{regionBoxBounds && (dragPagePoint || open || hovered) && (
+			{regionBoxBounds && (dragPagePoint || open || hovered || resizeBounds) && (
 				<RegionBox editor={editor} box={regionBoxBounds} />
+			)}
+			{regionBoxBounds && (open || hovered || resizeBounds) && !dragPagePoint && (
+				<RegionResizeHandles
+					editor={editor}
+					box={regionBoxBounds}
+					onPreview={setResizeBounds}
+					onCommit={commitResize}
+					onHoverChange={setHovered}
+				/>
 			)}
 			<div
 				className={open ? 'cmt-canvas-pin cmt-canvas-pin--open' : 'cmt-canvas-pin'}
