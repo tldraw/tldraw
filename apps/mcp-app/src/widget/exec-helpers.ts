@@ -229,18 +229,25 @@ ${code}
 
 	const moduleUrl = URL.createObjectURL(new Blob([moduleSource], { type: 'text/javascript' }))
 	try {
-		return (await import(/* @vite-ignore */ moduleUrl)).default as (args: {
-			editor: Editor
-			helpers: ExecHelpers
-		}) => Promise<unknown>
+		return (await import(/* @vite-ignore */ moduleUrl)).default as ExecModule
 	} finally {
 		URL.revokeObjectURL(moduleUrl)
 	}
 }
 
+type ExecModule = (args: { editor: Editor; helpers: ExecHelpers }) => Promise<unknown>
+
 export async function executeCode(
 	editor: Editor,
-	code: string
+	code: string,
+	options?: {
+		/**
+		 * Test seam: the Blob-URL module loader cannot run under vitest (Node
+		 * cannot import blob: URLs), so tests inject a compiler here. Production
+		 * callers never pass this.
+		 */
+		loadModule?(code: string): Promise<ExecModule>
+	}
 ): Promise<{ success: boolean; result?: unknown; error?: string }> {
 	const focusedEditor = createFocusedEditorProxy(editor, getRequiredEmbeddedMethodMap())
 	const helpers = createExecHelpers(editor)
@@ -249,7 +256,7 @@ export async function executeCode(
 	enterExecSandbox()
 
 	try {
-		const runExec = await loadExecModule(code)
+		const runExec = await (options?.loadModule ?? loadExecModule)(code)
 		const result = await Promise.race([
 			runExec({ editor: focusedEditor, helpers }),
 			new Promise((_, reject) =>
