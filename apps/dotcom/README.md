@@ -12,7 +12,7 @@ The dev stack is orchestrated by [process-compose](https://github.com/F1bonacc1/
 yarn dev-app
 ```
 
-This brings up the whole stack — postgres (in a container), zero-cache, the workers, and the client — as host processes. The ports are fixed, so only one dotcom dev stack can run at a time. The services and their startup order are defined in [`process-compose.yaml`](process-compose.yaml).
+This brings up the whole stack — postgres and pgbouncer (in containers), zero-cache, the workers, and the client — as host processes. The ports are fixed, so only one dotcom dev stack can run at a time. The services and their startup order are defined in [`process-compose.yaml`](process-compose.yaml).
 
 ### Working with the stack
 

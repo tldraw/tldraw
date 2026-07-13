@@ -5,7 +5,7 @@ version: '0.5'
 # Readiness = TCP connect (a portable node one-liner; wrangler's `/` 404s, so http_get won't do).
 
 processes:
-  # postgres — the one container (wal2json / logical replication)
+  # postgres + pgbouncer — the two containers (wal2json / logical replication)
   postgres:
     command: docker compose -f apps/dotcom/zero-cache/docker/docker-compose.yml up
     shutdown:
@@ -18,18 +18,6 @@ processes:
       # ~180s budget: the first run pulls the postgres image, which can take minutes.
       failure_threshold: 90
 
-  # zero needs .schema.js: build it once, then watch for changes
-  bundle-schema:
-    command: yarn workspace @tldraw/zero-cache bundle-schema
-    availability:
-      restart: 'no' # one-shot; completes
-
-  schema-watch:
-    command: yarn workspace @tldraw/zero-cache bundle-schema:watch
-    depends_on:
-      bundle-schema:
-        condition: process_completed_successfully
-
   # migrations — one-shot; gates zero-cache
   migrate:
     command: yarn workspace @tldraw/zero-cache migrate
@@ -39,15 +27,19 @@ processes:
     availability:
       restart: 'no'
 
-  # zero-cache — replicates from postgres; restarts on schema change
+  # zero-cache — replicates from postgres. Runs directly: nothing reads .schema.js, so there's no
+  # schema rebuild/restart watch.
   zero-cache:
-    command: yarn workspace @tldraw/zero-cache exec nodemon --watch ./.schema.js --exec zero-cache-dev --signal SIGINT
+    command: yarn workspace @tldraw/zero-cache exec zero-cache
     environment:
+      - NODE_ENV=development
       - ZERO_UPSTREAM_DB=postgresql://user:password@127.0.0.1:6543/postgres
       - ZERO_CVR_DB=postgresql://user:password@127.0.0.1:6543/postgres
       - ZERO_CHANGE_DB=postgresql://user:password@127.0.0.1:6543/postgres
       - ZERO_REPLICA_FILE=/tmp/tldraw-dotcom-zero-dev.db
       - ZERO_NUM_SYNC_WORKERS=1
+      - ZERO_CVR_MAX_CONNS=6
+      - ZERO_UPSTREAM_MAX_CONNS=6
       - ZERO_APP_PUBLICATIONS=zero_data
       - ZERO_MUTATE_URL=http://localhost:8787/app/zero/mutate
       - ZERO_QUERY_URL=http://localhost:8787/app/zero/query
@@ -57,8 +49,6 @@ processes:
       - DO_NOT_TRACK=1
     depends_on:
       migrate:
-        condition: process_completed_successfully
-      bundle-schema:
         condition: process_completed_successfully
     readiness_probe:
       exec:
@@ -96,7 +86,7 @@ processes:
       sync-worker:
         condition: process_healthy
 
-  # --- Client: Vite dev server. No readiness gating to hand-roll — depends_on does it. ---
+  # client — vite dev server
   client:
     command: yarn workspace dotcom dev
     depends_on:

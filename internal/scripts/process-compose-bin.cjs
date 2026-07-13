@@ -31,7 +31,16 @@ function releaseAsset() {
 				`Install it manually: https://f1bonacc1.github.io/process-compose/installation/`
 		)
 	}
-	const arch = osArch() === 'arm64' ? 'arm64' : 'amd64' // map node's "x64" -> release "amd64"
+	// Map node's arch names to process-compose's release names; throw on anything else rather than
+	// silently downloading a binary that won't run (e.g. 32-bit).
+	const nodeArch = osArch()
+	const arch = nodeArch === 'arm64' ? 'arm64' : nodeArch === 'x64' ? 'amd64' : null
+	if (!arch) {
+		throw new Error(
+			`process-compose auto-install only supports arm64 and x64 (got ${nodeArch}). ` +
+				`Install it manually: https://f1bonacc1.github.io/process-compose/installation/`
+		)
+	}
 	return `process-compose_${os}_${arch}.tar.gz`
 }
 
