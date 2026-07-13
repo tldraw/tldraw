@@ -226,25 +226,6 @@ jobs:
         id: version
         run: echo "value=$(jq -r .version ./packages/tldraw/package.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Generate tldraw-desktop token
-        if: steps.publish_mode.outputs.mode == 'next'
-        id: generate_desktop_token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ vars.HUPPY_APP_ID }}
-          private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
-          owner: tldraw
-          repositories: tldraw-desktop
-
-      - name: Notify tldraw-desktop
-        if: steps.publish_mode.outputs.mode == 'next'
-        run: |
-          curl -X POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "Authorization: Bearer ${{ steps.generate_desktop_token.outputs.token }}" \
-            https://api.github.com/repos/tldraw/tldraw-desktop/dispatches \
-            -d '{"event_type":"tldraw-release","client_payload":{"version":"${{ steps.version.outputs.value }}","tag":"next"}}'
-
       # Tell tldraw-internal to update its pinned SDK version. Fires only on a
       # `next` publish — the prerelease channel the internal monorepo tracks.
       # The tldraw-internal "Update tldraw" workflow listens for the
