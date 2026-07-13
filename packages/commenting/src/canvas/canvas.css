@@ -61,6 +61,16 @@
 	z-index: 1;
 }
 
+/* A region anchor's area: a dashed box under the pins, non-interactive so canvas events pass
+   through. Drawn for the live drag draft and for a region thread while hovered or open. */
+.cmt-canvas-region {
+	position: absolute;
+	pointer-events: none;
+	border: 2px dashed var(--tl-color-selected);
+	border-radius: 6px;
+	background: color-mix(in srgb, var(--tl-color-selected) 10%, transparent);
+}
+
 /* Centre the pin marker on its anchor point. */
 .cmt-canvas-pin__marker {
 	width: max-content;

@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import {
+	type BoxModel,
 	createComment,
 	createCommentThread,
 	Editor,
@@ -39,7 +40,7 @@ import { CommentThread } from '../ui/comment-thread'
 import { CountBadge } from '../ui/count-badge'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
-import { pendingComment, PendingComment } from './comment-tool'
+import { pendingComment, PendingComment, regionDraft } from './comment-tool'
 import { commentsHidden, toggleCommentsHidden } from './comments-visibility'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
@@ -383,6 +384,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			{openThread && (
 				<ThreadPin key={`open:${openThread.id}`} editor={editor} thread={openThread} {...props} />
 			)}
+			<RegionDraftBox editor={editor} />
 			{pending && props.currentUserId && (
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
@@ -663,6 +665,29 @@ function ThreadPopover({
 	)
 }
 
+/** A dashed rectangle over a region anchor's bounds, in viewport space. Sits in the canvas layer
+ *  as a sibling of the pins; `pointer-events` stays off so it never intercepts canvas interaction. */
+function RegionBox({ editor, box }: { editor: Editor; box: BoxModel }) {
+	const rect = useValue(
+		'region rect',
+		() => {
+			// Position from the page→viewport top-left; screen size scales with zoom, page size doesn't.
+			const topLeft = editor.pageToViewport({ x: box.x, y: box.y })
+			const zoom = editor.getZoomLevel()
+			return { left: topLeft.x, top: topLeft.y, width: box.w * zoom, height: box.h * zoom }
+		},
+		[editor, box.x, box.y, box.w, box.h]
+	)
+	return <div className="cmt-canvas-region" style={rect} />
+}
+
+/** The live region being dragged out by the comment tool, or nothing when not dragging. */
+function RegionDraftBox({ editor }: { editor: Editor }) {
+	const box = useValue('region draft', () => regionDraft.get(), [])
+	if (!box) return null
+	return <RegionBox editor={editor} box={box} />
+}
+
 const ThreadPin = memo(function ThreadPin({
 	editor,
 	thread,
@@ -687,6 +712,8 @@ const ThreadPin = memo(function ThreadPin({
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	// While dragging the marker, its page point overrides the anchor's; committed on drop.
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
+	// A region thread reveals its dashed box while hovered or while its thread is open.
+	const [hovered, setHovered] = useState(false)
 	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
 	const markerRef = useRef<HTMLDivElement>(null)
 
@@ -915,56 +942,67 @@ const ThreadPin = memo(function ThreadPin({
 
 	const renderPoint = dragPagePoint ? editor.pageToViewport(dragPagePoint) : point
 
+	// The region's dashed box, shown while the thread is open or its pin is hovered.
+	const regionBox =
+		thread.anchor.type === 'region' && (open || hovered) ? (
+			<RegionBox editor={editor} box={thread.anchor} />
+		) : null
+
 	return (
-		<div
-			className={open ? 'cmt-canvas-pin cmt-canvas-pin--open' : 'cmt-canvas-pin'}
-			style={{ left: renderPoint.x, top: renderPoint.y }}
-		>
+		<>
+			{regionBox}
 			<div
-				ref={markerRef}
-				className="cmt-canvas-pin__marker"
-				onPointerDown={startDrag}
-				onPointerMove={onDrag}
-				onPointerUp={endDrag}
+				className={open ? 'cmt-canvas-pin cmt-canvas-pin--open' : 'cmt-canvas-pin'}
+				style={{ left: renderPoint.x, top: renderPoint.y }}
 			>
-				<CommentPin resolved={thread.resolved != null} open={open}>
-					{pinContent}
-				</CommentPin>
-			</div>
-			{/* The popover portals up to the menus layer (above the UI panels) so it isn't clipped;
-			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
-			{open && (
-				<ThreadPopover
-					container={container}
-					style={{ left: renderPoint.x + 36, top: renderPoint.y - 28 }}
+				<div
+					ref={markerRef}
+					className="cmt-canvas-pin__marker"
+					onPointerDown={startDrag}
+					onPointerMove={onDrag}
+					onPointerUp={endDrag}
+					onPointerEnter={() => setHovered(true)}
+					onPointerLeave={() => setHovered(false)}
 				>
-					<CommentThread
-						header={msg('comments.thread-title')}
-						headerActions={headerActions}
-						renderComment={renderComment}
-						comments={comments.map((c) => toCardProps(c, props))}
-						resolvedBanner={
-							thread.resolved
-								? msg('comments.resolved-by').replace('{name}', resolveName(thread.resolved.by))
-								: undefined
-						}
-						composer={
-							currentUserId && !thread.resolved
-								? {
-										author: resolveName(currentUserId),
-										placeholder: msg('comments.reply-placeholder'),
-										sendLabel: msg('comments.send'),
-										value: reply,
-										onChange: setReply,
-										onSubmit: postReply,
-										disabled: isCommentEmpty(reply),
-									}
-								: undefined
-						}
-					/>
-				</ThreadPopover>
-			)}
-		</div>
+					<CommentPin resolved={thread.resolved != null} open={open}>
+						{pinContent}
+					</CommentPin>
+				</div>
+				{/* The popover portals up to the menus layer (above the UI panels) so it isn't clipped;
+			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
+				{open && (
+					<ThreadPopover
+						container={container}
+						style={{ left: renderPoint.x + 36, top: renderPoint.y - 28 }}
+					>
+						<CommentThread
+							header={msg('comments.thread-title')}
+							headerActions={headerActions}
+							renderComment={renderComment}
+							comments={comments.map((c) => toCardProps(c, props))}
+							resolvedBanner={
+								thread.resolved
+									? msg('comments.resolved-by').replace('{name}', resolveName(thread.resolved.by))
+									: undefined
+							}
+							composer={
+								currentUserId && !thread.resolved
+									? {
+											author: resolveName(currentUserId),
+											placeholder: msg('comments.reply-placeholder'),
+											sendLabel: msg('comments.send'),
+											value: reply,
+											onChange: setReply,
+											onSubmit: postReply,
+											disabled: isCommentEmpty(reply),
+										}
+									: undefined
+							}
+						/>
+					</ThreadPopover>
+				)}
+			</div>
+		</>
 	)
 })
 
