@@ -52,8 +52,8 @@ export function CommentComposer({
 
 	const [isEmpty, setIsEmpty] = useState(() => !value || isCommentEmpty(value))
 
-	// Only Cmd/Ctrl+Enter submits. Enter and Shift+Enter keep their default behavior — a new line
-	// (or a new list item inside a list) — so multi-line comments are easy to write.
+	// Enter submits the comment. Shift+Enter (and Cmd/Ctrl+Enter) keep their default behavior — a
+	// new line — for the occasional multi-line comment.
 	const submitExtension = useMemo(
 		() =>
 			Extension.create({
@@ -61,7 +61,7 @@ export function CommentComposer({
 				priority: 1000,
 				addKeyboardShortcuts() {
 					return {
-						'Mod-Enter': () => {
+						Enter: () => {
 							if (!disabledRef.current) onSubmitRef.current?.()
 							return true
 						},
