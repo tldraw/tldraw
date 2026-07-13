@@ -15,6 +15,7 @@ import { PageRecordType, TLPageId } from './records/TLPage'
 import { InstancePageStateRecordType, TLInstancePageStateId } from './records/TLPageState'
 import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
 import { TLRecord } from './records/TLRecord'
+import { isShapeId } from './records/TLShape'
 import { TLUser } from './records/TLUser'
 
 /**
@@ -462,6 +463,7 @@ function getDefaultPages() {
 export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): () => void {
 	const $pageIds = store.query.ids('page')
 	const $pageStates = store.query.records('instance_page_state')
+	const $shapes = store.query.records('shape')
 
 	const ensureStoreIsUsable = (): void => {
 		// make sure we have exactly one document
@@ -529,6 +531,20 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 
 		if (missingCameraIds.size > 0) {
 			store.put([...missingCameraIds].map((id) => CameraRecordType.create({ id })))
+		}
+
+		// remove any shape whose parent is another shape that no longer exists. This can happen
+		// when a change is undone that references a shape (e.g. a frame) which has since been
+		// deleted by another collaborator: the undo would otherwise leave a shape parented to a
+		// record that doesn't exist. Such a shape has no valid place in the hierarchy, so we
+		// discard it. Removing a shape can orphan its own children, which the re-run then handles.
+		const orphanedShapeIds = $shapes
+			.get()
+			.filter((shape) => isShapeId(shape.parentId) && !store.has(shape.parentId))
+			.map((shape) => shape.id)
+		if (orphanedShapeIds.length > 0) {
+			store.remove(orphanedShapeIds)
+			return ensureStoreIsUsable()
 		}
 
 		const pageStates = $pageStates.get()

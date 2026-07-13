@@ -130,3 +130,48 @@ describe('restoring bound arrows multiplayer', () => {
 		expect(bindings().end).toBeDefined()
 	})
 })
+
+describe('restoring shapes with a deleted parent (multiplayer)', () => {
+	it('removes an undone shape whose parent was deleted by another client', () => {
+		// client A creates a frame with two boxes inside it, one of them locked
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
+			{ id: ids.box1, type: 'geo', parentId: ids.frame1, x: 20, y: 20 },
+			{ id: ids.box2, type: 'geo', parentId: ids.frame1, x: 60, y: 60, isLocked: true },
+		])
+
+		// client A moves both boxes (the undoable change)
+		editor.markHistoryStoppingPoint('moving boxes')
+		editor.run(
+			() =>
+				editor.updateShapes([
+					{ id: ids.box1, type: 'geo', x: 100, y: 100 },
+					{ id: ids.box2, type: 'geo', x: 140, y: 140 },
+				]),
+			{ ignoreShapeLock: true }
+		)
+
+		// client B deletes the frame, which cascades to both children
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.remove([ids.frame1, ids.box1, ids.box2])
+		})
+
+		// undoing the move would restore the boxes parented to the deleted frame. Instead they
+		// are removed - a shape must never be left pointing at a parent that no longer exists,
+		// including the locked one. This holds across repeated undo/redo, since the history diffs
+		// still reference the deleted frame.
+		const expectBoxesRemoved = () => {
+			expect(editor.getShape(ids.box1)).toBeUndefined()
+			expect(editor.getShape(ids.box2)).toBeUndefined()
+		}
+
+		editor.undo()
+		expectBoxesRemoved()
+
+		editor.redo()
+		expectBoxesRemoved()
+
+		editor.undo()
+		expectBoxesRemoved()
+	})
+})
