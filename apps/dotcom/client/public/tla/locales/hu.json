@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Biztosan törölni szeretné ezt a munkaterületet? Ez a művelet nem vonható vissza."
-  },
   "0095a9fa74": {
     "translation": "Export"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Kérjen segítséget a Discordhoz"
   },
+  "454aad3b3c": {
+    "translation": "Biztosan törölni szeretnéd a(z) <strong>{fileName}</strong> fájlt?"
+  },
   "46137245cd": {
     "translation": "Köszönjük, hogy segít a tldraw fejlesztésében!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Fájl rögzítése"
-  },
-  "4908687e50": {
-    "translation": "Biztosan elfelejti ezt a fájlt?"
   },
   "49ee308734": {
     "translation": "Név"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Van hibád, problémád vagy ötleted a tldraw-val kapcsolatban? Tudasd velünk! Töltsd ki ezt az űrlapot, és szükség esetén e-mailben felvesszük veled a kapcsolatot. <discord>cseveghetsz velünk a Discordon</discord> vagy <github>beküldhetsz egy problémát a GitHubon</github>."
   },
+  "81666c6e4a": {
+    "translation": "Biztosan el szeretnéd felejteni a(z) <strong>{fileName}</strong> fájlt?"
+  },
   "858ba4765e": {
     "translation": "Tag"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Átnevezés"
+  },
+  "90646db02d": {
+    "translation": "Biztosan törölni szeretné a(z) <strong>{workspaceName}</strong> munkaterületet? Ez a művelet nem vonható vissza."
   },
   "95aacd4d4a": {
     "translation": "Bejelentkezés Google-fiókkal"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "További információ a megosztásról."
-  },
-  "c28aed8348": {
-    "translation": "Engedélyezd az <cookies>analytics</cookies> használatát a tldraw fejlesztéséhez."
   },
   "c303bd1095": {
     "translation": "Nem lehet közzétenni a fájlt."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Biztosan el szeretné hagyni ezt a munkaterületet?"
-  },
-  "fd1be3efcf": {
-    "translation": "Biztosan törli ezt a fájlt?"
   },
   "fed5ec05eb": {
     "translation": "Link másolva"

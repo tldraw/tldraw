@@ -372,14 +372,26 @@ export class LicenseManager {
 	}
 
 	private getExpirationDateWithoutGracePeriod(expiryDate: Date) {
-		return new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate())
+		// The named expiry date is the last day the license is fully usable, so the license
+		// expires at the end of that day, i.e. the start of the following day. We work in UTC
+		// (the expiry date is minted and parsed as a UTC date-only string) so the cutoff is a
+		// single predictable instant for every user regardless of their local timezone.
+		return new Date(
+			Date.UTC(
+				expiryDate.getUTCFullYear(),
+				expiryDate.getUTCMonth(),
+				expiryDate.getUTCDate() + 1 // Add 1 day so the named date is fully usable
+			)
+		)
 	}
 
 	private getExpirationDateWithGracePeriod(expiryDate: Date) {
 		return new Date(
-			expiryDate.getFullYear(),
-			expiryDate.getMonth(),
-			expiryDate.getDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
+			Date.UTC(
+				expiryDate.getUTCFullYear(),
+				expiryDate.getUTCMonth(),
+				expiryDate.getUTCDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
+			)
 		)
 	}
 

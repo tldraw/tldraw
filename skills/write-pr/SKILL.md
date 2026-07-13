@@ -7,6 +7,29 @@ description: Reference standards for writing pull request titles and description
 
 Standards for PR titles and descriptions in tldraw/tldraw.
 
+## Write for the reviewer (read this first)
+
+This is the governing rule; everything below serves it. Write the description for a reviewer who knows the codebase architecture but has **not** read your code or the diff. Their time is the scarce resource. The description's job is to give them the framing they can't get from the code, then get out of the way.
+
+**Default to short.** A few sentences of framing is the norm, not the exception. Match length to the change: a one-line fix needs a sentence; a new system needs the fuller treatment. A description that looks long and structured is not more valuable — often it's less, because it buries the framing under scaffolding. If a reviewer would need their own AI to interpret yours, it has failed.
+
+**Order it coarse to granular.** Structure the description as an inverted pyramid, most important first. A reader should be able to stop at any point and leave with a correct, coherent understanding: a skimmer gets the goal and motivation from the opening lines; someone weighing the approach reads into the design and decisions; a close reviewer continues to the specifics. Never make someone read to the end to find out what the PR is for.
+
+Cover the following, roughly in this order — each layer more detailed than the last, and each optional once the change no longer warrants it:
+
+- **Goal, motivation, and use case.** Why this change, why now, what it's for. What was wrong or missing before. This comes first, always.
+- **The higher-level change.** The shape of the solution — behavior and structure, not a line-by-line restatement of the diff.
+- **API design and decisions.** New or changed public surface, the approach you picked, what you ruled out and why, and anything you're unsure about. A decision you don't surface is one the reviewer can't catch.
+- **Example snippets and fine detail.** For anything touching an API, data shape, or usage pattern, a few lines of before/after say more than a paragraph. Keep them minimal.
+
+**Do not:**
+
+- Restate the diff. No file-by-file walkthrough, no narrating what a function does, no describing *how* the code works step by step. Reviewers can read code.
+- Generate tables or lists that mirror the code — a `Method | Description` table that just re-says the signatures, an inventory of every changed file, a term glossary of self-explanatory names.
+- Pad with ceremony. Structure that exists to look thorough is noise.
+
+**Never invent the *why*.** The motivation and trade-offs must come from real intent — the commits, the linked issue, or the author. If you don't know why a change was made or what was considered, **ask the user; do not guess.** A confident but fabricated rationale is worse than useless: it's misleading, and it's the thing reviewers most need to trust.
+
 ## PR title
 
 Use semantic PR titles (Conventional Commits format):
@@ -62,8 +85,11 @@ Use this template:
 
 ### Description paragraph
 
-Start with: "In order to X, this PR does Y."
+Start with: "In order to X, this PR does Y." Follow the reviewer-first rules at the top of this skill.
 
+- X is the **concrete situation that made this work necessary** — the real thing someone was trying to do — not a restatement of what Y does. "In order to let apps carry undo history across editor rebuilds, this adds an API to carry undo history across editor rebuilds" is circular: X just renames Y. Push X up a level to the actual goal, e.g. "so desktop can reload the editor without losing the user's place, the way HMR preserves component state across a code edit."
+- Name the real driving case, not a hypothetical. If you're inventing example scenarios to illustrate the why ("e.g. if someone toggled a plugin…"), you're reverse-engineering a justification from the finished code — you haven't written down the case that actually prompted it. Work forward from that case instead.
+- Beware abstract mechanism as a stand-in for motivation. A true technical fact about the SDK ("editor config is fixed at construction time") explains a constraint, not why anyone cares. Keep going until a reader can picture the specific thing that stopped working or became possible.
 - Keep it specific - avoid vague phrases like "improve user experience"
 - Link related issues in the first paragraph
 - Don't expect readers to also read the linked issue
@@ -85,9 +111,11 @@ Start with: "In order to X, this PR does Y."
 - Use imperative mood: "Add...", "Fix...", "Remove..."
 - Omit this section entirely for internal work (CI, tooling, tests, etc.) that has no user-facing impact
 
-## Concepts, examples, and FAQ (for large or feature-intensive PRs)
+## Concepts, examples, and FAQ (only when a reviewer genuinely needs them)
 
-When a PR introduces a new system, several new types/APIs, or otherwise has enough surface area that a reviewer would benefit from a glossary, include extra explanatory sections **above** the standard `### Change type` / `### Test plan` / `### Release notes` block. Skip these for small or focused PRs — they're for features and large refactors.
+Gate these on reviewer *need*, not PR size. A large PR is not a reason to add tables — a reviewer who needs shared vocabulary or a usage example to follow the change is. Most large PRs don't clear that bar. When they do, include the relevant sections **above** the standard `### Change type` / `### Test plan` / `### Release notes` block.
+
+Guardrail: a row only earns its place if it says something the code doesn't. A `Method | Description` table that restates signatures, or a Concepts row for a self-explanatory name, is diff-duplication — cut it. If in doubt, leave it out.
 
 Pull from this menu, in roughly this order, using only what fits:
 
@@ -116,6 +144,8 @@ Include when changes affect `api-report.md`:
 ```
 
 ## Code changes table
+
+This table is a deliberate exception to "don't restate the diff": it's a high-level index, not prose pretending to be insight. It lets a reviewer gauge scope at a glance — how much is core code vs tests vs generated vs tooling — and decide where to look. Always include it.
 
 Create a table that includes net LOC changes for each of the following sections. The sum of all rows must match the total PR diff. Omit rows with no changes.
 

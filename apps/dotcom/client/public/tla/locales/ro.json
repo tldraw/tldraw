@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Sigur doriți să ștergeți acest spațiu de lucru? Această acțiune nu poate fi anulată."
-  },
   "0095a9fa74": {
     "translation": "Export"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Obțineți ajutor pe Discord"
   },
+  "454aad3b3c": {
+    "translation": "Sigur vrei să ștergi <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Vă mulțumim că ne ajutați să îmbunătățim tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Fișier fixat"
-  },
-  "4908687e50": {
-    "translation": "Sigur vrei să uiți acest fișier?"
   },
   "49ee308734": {
     "translation": "Nume"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Aveți o eroare, o problemă sau o idee pentru tldraw? Anunțați-ne! Completați acest formular și vă vom contacta prin e-mail, dacă este necesar. De asemenea, puteți <discord>să discutați cu noi pe Discord</discord> sau <github>să trimiteți o problemă pe GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Sigur vrei să uiți <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Membru"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Redenumiți"
+  },
+  "90646db02d": {
+    "translation": "Sigur doriți să ștergeți <strong>{workspaceName}</strong>? Această acțiune nu poate fi anulată."
   },
   "95aacd4d4a": {
     "translation": "Conectați-vă cu Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Aflați mai multe despre partajare."
-  },
-  "c28aed8348": {
-    "translation": "Permiteți `<cookies>analytics</cookies>` să ne ajute să îmbunătățim tldraw."
   },
   "c303bd1095": {
     "translation": "Nu se poate publica fișierul."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Sigur vrei să părăsești acest spațiu de lucru?"
-  },
-  "fd1be3efcf": {
-    "translation": "Sigur doriți să ștergeți acest fișier?"
   },
   "fed5ec05eb": {
     "translation": "Link copiat"

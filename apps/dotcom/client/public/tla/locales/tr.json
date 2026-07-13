@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Bu çalışma alanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
-  },
   "0095a9fa74": {
     "translation": "Dışa aktar"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Discord'da yardım alın"
   },
+  "454aad3b3c": {
+    "translation": "<strong>{fileName}</strong> dosyasını silmek istediğinizden emin misiniz?"
+  },
   "46137245cd": {
     "translation": "Tldraw'ı geliştirmemize yardımcı olduğunuz için teşekkürler!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Pin dosyası"
-  },
-  "4908687e50": {
-    "translation": "Bu dosyayı unutmak istediğinizden emin misiniz?"
   },
   "49ee308734": {
     "translation": "İsim"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "tldraw için bir hata, sorun veya fikriniz mi var? Bize bildirin! Bu formu doldurun ve gerekirse e-posta yoluyla takip edeceğiz. Ayrıca <discord>Discord'da bizimle sohbet edebilir</discord> veya <github>GitHub'da bir sorun gönderebilirsiniz</github>."
   },
+  "81666c6e4a": {
+    "translation": "<strong>{fileName}</strong>'i unutmak istediğinizden emin misiniz?"
+  },
   "858ba4765e": {
     "translation": "Üye"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Yeniden Adlandır"
+  },
+  "90646db02d": {
+    "translation": "<strong>{workspaceName}</strong> öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
   },
   "95aacd4d4a": {
     "translation": "Google ile oturum açın"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Paylaşım hakkında daha fazla bilgi edinin."
-  },
-  "c28aed8348": {
-    "translation": "Tldraw'ı geliştirmemize yardımcı olması için <cookies>analytics</cookies>'e izin verin."
   },
   "c303bd1095": {
     "translation": "Bu dosya yayınlanamıyor."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Bu çalışma alanından ayrılmak istediğinizden emin misiniz?"
-  },
-  "fd1be3efcf": {
-    "translation": "Bu dosyayı silmek istediğinizden emin misiniz?"
   },
   "fed5ec05eb": {
     "translation": "Bağlantı kopyalandı"

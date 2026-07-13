@@ -9,11 +9,30 @@
 	padding: 0;
 }
 
+.legalContainer {
+	width: 360px;
+	max-width: calc(100vw - 32px);
+}
+
+.legalDialogHeader {
+	height: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
 .authBody {
 	display: flex;
 	flex-direction: column;
 	padding: 8px 20px 24px 20px;
 	gap: 24px;
+}
+
+.legalBody {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 24px;
+	padding: 32px 28px 28px 28px;
 }
 
 /* Logo */
@@ -46,12 +65,31 @@
 	margin-bottom: 12px;
 }
 
+.legalDescription {
+	max-width: 260px;
+	margin: 0 auto;
+	color: var(--tl-color-text-0);
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.5;
+	text-align: center;
+	text-wrap: balance;
+}
+
+.legalDescription a {
+	color: var(--tl-color-selected);
+}
+
 /* Cta button */
 .authCtaButton {
 	height: 36px;
 	width: 100%;
 	font-size: 12px;
 	font-weight: 500;
+}
+
+.legalCtaButton {
+	margin-left: 0;
 }
 
 /* The google logo in the cta button on the sign in dialog */
@@ -130,7 +168,15 @@
 	font-weight: 500;
 }
 
-.clerkCaptcha:not(:empty) {
+/*
+ * Pad the CAPTCHA only when there's a visible, interactive challenge. By
+ * default Clerk runs an invisible ("smart") Turnstile challenge that mounts an
+ * off-screen iframe and sets `max-height: 0` inline on the mount point; the
+ * `:not([style*='max-height: 0'])` guard skips padding for that case, which
+ * would otherwise briefly reserve 32px and make the dialog grow then shrink as
+ * the challenge resolves.
+ */
+.clerkCaptcha:not(:empty):not([style*='max-height: 0']) {
 	padding: var(--tl-space-8);
 	margin-top: calc(-1 * var(--tl-space-8));
 }

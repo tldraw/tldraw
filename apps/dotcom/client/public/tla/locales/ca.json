@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Esteu segur que voleu suprimir aquest espai de treball? Aquesta acció no es pot desfer."
-  },
   "0095a9fa74": {
     "translation": "Exporta"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Obteniu ajuda a Discord"
   },
+  "454aad3b3c": {
+    "translation": "Esteu segur que voleu suprimir <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Gràcies per ajudar-nos a millorar tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Fitxer fixat"
-  },
-  "4908687e50": {
-    "translation": "Esteu segur que voleu oblidar aquest fitxer?"
   },
   "49ee308734": {
     "translation": "Nom"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Tens algun error, problema o idea per a tldraw? Fes-nos-ho saber! Emplena aquest formulari i et contactarem per correu electrònic si cal. També pots <discord>xatejar amb nosaltres a Discord</discord> o <github>enviar un problema a GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Esteu segur que voleu oblidar <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Membre"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Canvia el nom"
+  },
+  "90646db02d": {
+    "translation": "Esteu segur que voleu suprimir <strong>{workspaceName}</strong>? Aquesta acció no es pot desfer."
   },
   "95aacd4d4a": {
     "translation": "Inicia la sessió amb Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Més informació sobre com compartir."
-  },
-  "c28aed8348": {
-    "translation": "Permet que <cookies>analytics</cookies> ens ajudi a millorar tldraw."
   },
   "c303bd1095": {
     "translation": "No es pot publicar el fitxer."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Esteu segur que voleu sortir d'aquest espai de treball?"
-  },
-  "fd1be3efcf": {
-    "translation": "Esteu segur que voleu suprimir aquest fitxer?"
   },
   "fed5ec05eb": {
     "translation": "Enllaç copiat"

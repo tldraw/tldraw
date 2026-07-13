@@ -11,8 +11,6 @@
 		"defaults"
 	],
 	"scripts": {
-		"bundle-schema": "esbuild --bundle --platform=node --format=esm --outfile=./.schema.js ../../../packages/dotcom-shared/src/tlaSchema.ts",
-		"bundle-schema:watch": "esbuild --bundle --watch --platform=node --format=esm --outfile=./.schema.js ../../../packages/dotcom-shared/src/tlaSchema.ts",
 		"migrate": "yarn tsx ./migrate.ts",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
 		"test": "yarn run -T vitest --passWithNoTests",
@@ -21,16 +19,14 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@rocicorp/zero": "1.6.1",
+		"@rocicorp/zero": "1.7.0",
 		"kysely": "^0.28.12",
-		"pg": "^8.13.1"
+		"pg": "^8.16.3"
 	},
 	"devDependencies": {
 		"concurrently": "^9.1.2",
 		"dotenv": "^16.4.7",
-		"esbuild": "^0.28.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"nodemon": "^3.1.9",
 		"tsx": "^4.19.2"
 	}
 }

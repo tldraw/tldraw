@@ -123,12 +123,6 @@
       "value": "Izvozi kot"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Ali ste prepričani, da želite izbrisati ta delovni prostor? Tega dejanja ni mogoče razveljaviti."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Poiščite pomoč pri Discordu"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Ali ste prepričani, da želite izbrisati datoteko "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "Pripni datoteko"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Ali ste prepričani, da želite pozabiti to datoteko?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Ali ste prepričani, da želite pozabiti "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -793,6 +821,26 @@
     {
       "type": 0,
       "value": "Preimenuj"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Ali ste prepričani, da želite izbrisati "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Tega dejanja ni mogoče razveljaviti."
     }
   ],
   "95aacd4d4a": [
@@ -1129,26 +1177,6 @@
       "value": "Preberite več o skupni rabi."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Dovoli "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": ", da nam pomaga izboljšati tldraw."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1459,12 +1487,6 @@
     {
       "type": 0,
       "value": "Ali ste prepričani, da želite zapustiti ta delovni prostor?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Ali ste prepričani, da želite izbrisati to datoteko?"
     }
   ],
   "fed5ec05eb": [

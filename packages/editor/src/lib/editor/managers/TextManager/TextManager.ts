@@ -183,6 +183,9 @@ export class TextManager extends EditorManager {
 			'font-weight': opts.fontWeight,
 			'font-size': opts.fontSize + 'px',
 			'line-height': `${resolveLineHeightPx(opts.fontSize, opts.lineHeight)}px`,
+			// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css),
+			// so heading measurement matches on-canvas rendering.
+			'--tl-rich-text-heading-line-height': `${opts.lineHeight}`,
 			padding: opts.padding,
 			'max-width': opts.maxWidth ? opts.maxWidth + 'px' : undefined,
 			'min-width': opts.minWidth ? opts.minWidth + 'px' : undefined,
