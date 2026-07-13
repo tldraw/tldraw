@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      issues: write
+      pull-requests: write
 
     steps:
       - name: Remove the publish-packages label
@@ -271,7 +271,7 @@ jobs:
 
     permissions:
       contents: read
-      issues: write
+      pull-requests: write
 
     steps:
       - name: Tell user released version
