@@ -140,10 +140,11 @@ export class MagicWandDrawing extends Drawing {
 	private morphRecognition: ShapeRecognitionResult | null = null
 	private didMorph = false
 
-	// The stroke's natural colour and fill, restored when the gesture stops being
-	// a lasso or scribble.
+	// The stroke's natural colour, fill, and opacity, restored when the gesture
+	// stops being a lasso or scribble (opacity: when the wet ink dries).
 	private inkColor: TLDefaultColorStyle = 'black'
 	private inkFill: TLDefaultFillStyle = 'none'
+	private inkOpacity = 1
 	// What the ink is currently previewing (drives its tint/fill).
 	private inkMode: InkMode = 'none'
 	// Pre-existing shapes the scribble has passed over (accumulated as it's drawn).
@@ -170,13 +171,15 @@ export class MagicWandDrawing extends Drawing {
 		// Enable the CSS colour transition for the in-progress stroke.
 		this.editor.getContainer().classList.add(MAGIC_WAND_INKING_CLASS)
 		super.onEnter(info)
-		// Show the in-progress stroke at half opacity (the "wet ink" look). This is
-		// purely a CSS effect — the shape's real opacity is left untouched so it
-		// stays correct through undo/redo, cancel, etc.
+		// Show the in-progress stroke at half opacity (the "wet ink" look). This
+		// lowers the shape's real opacity so collaborators see the translucency too;
+		// the write is history-ignored (and restored on dry/cancel), so undo/redo
+		// stay clean.
 		const inkShape = this.initialShape && this.editor.getShape<TLDrawShape>(this.initialShape.id)
 		if (inkShape) {
 			this.inkColor = inkShape.props.color
 			this.inkFill = inkShape.props.fill
+			this.inkOpacity = inkShape.opacity
 			this.wetInkIds = [inkShape.id]
 			setWetInk(this.editor, this.wetInkIds)
 		}
@@ -194,7 +197,7 @@ export class MagicWandDrawing extends Drawing {
 		// Drop the wet-ink translucency immediately unless we're mid dry-fade (a
 		// normal draw completion), e.g. on cancel, interrupt, or tool switch.
 		if (!this.isDryingInk) {
-			clearWetInk(this.editor)
+			clearWetInk(this.editor, this.wetInkIds, this.inkOpacity)
 		}
 		// Remove any delete overlays still showing (e.g. on cancel — a completed
 		// delete fades and clears them itself, so this only hits leftovers).
@@ -412,11 +415,11 @@ export class MagicWandDrawing extends Drawing {
 			return
 		}
 
-		// Draw gesture: keep the stroke and dry the ink (CSS-only) to solid.
+		// Draw gesture: keep the stroke and dry the ink back to its natural opacity.
 		const strokeIds = this.getGestureStrokeShapes().map((s) => s.id)
 		if (strokeIds.length) this.isDryingInk = true
 		super.complete()
-		if (strokeIds.length) dryWetInk(this.editor, strokeIds)
+		if (strokeIds.length) dryWetInk(this.editor, strokeIds, this.inkOpacity)
 	}
 
 	// --- Hold-to-morph -------------------------------------------------------

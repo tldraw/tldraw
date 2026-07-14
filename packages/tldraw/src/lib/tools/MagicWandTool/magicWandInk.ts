@@ -48,69 +48,73 @@ const DELETE_OVERLAY_FADE_IN_MS = 150
 /** How long the sketch→shape crossfade takes when a morph fires, in ms. */
 const MORPH_FADE_DURATION_MS = 250
 
-/** Class on the <style> element that holds the magic wand's per-stroke opacity rule. */
-export const INK_STYLE_ELEMENT_CLASS = 'tl-magic-wand-ink-style'
-
-// One style element per editor (keyed by instance, not a shared DOM id, so
-// multiple editors on a page don't collide).
-const inkStyleElements = new WeakMap<Editor, HTMLStyleElement>()
-
-function getInkStyleElement(editor: Editor): HTMLStyleElement {
-	let el = inkStyleElements.get(editor)
-	if (!el || !el.isConnected) {
-		const container = editor.getContainer()
-		el = container.ownerDocument.createElement('style')
-		el.className = INK_STYLE_ELEMENT_CLASS
-		container.appendChild(el)
-		inkStyleElements.set(editor, el)
-	}
-	return el
-}
-
-// A selector matching every given shape (the draw tool can split one long
-// stroke into several shapes, so the wet ink may cover more than one).
-function inkSelector(shapeIds: TLShapeId[]): string {
-	return shapeIds.map((id) => `.tl-shape[data-shape-id="${id}"]`).join(',')
-}
-
 /**
- * Shows the in-progress stroke at half opacity using CSS only, so the shape's
- * real `opacity` is left untouched (the translucency is purely a visual effect
- * and never leaks into undo/redo, cancel, etc). `!important` is needed to beat
- * the shape's inline opacity. No transition here, so the stroke appears
- * translucent immediately rather than fading in.
+ * Shows the in-progress stroke at half opacity by lowering the shape's real
+ * `opacity`. The write is history-ignored, so undo/redo never replay it, but it
+ * does reach the store — which is the point: collaborators receive the record,
+ * so they see the translucent "wet ink" too (a CSS-only effect would render as
+ * a solid stroke on other clients). The natural opacity is restored by
+ * {@link dryWetInk} or {@link clearWetInk}; strokes consumed by a gesture are
+ * bailed away entirely and need no restore. No fade-in here, so the stroke
+ * appears translucent immediately.
  */
 export function setWetInk(editor: Editor, shapeIds: TLShapeId[]) {
-	if (shapeIds.length === 0) {
-		clearWetInk(editor)
-		return
-	}
-	getInkStyleElement(editor).textContent =
-		`${inkSelector(shapeIds)}{opacity:${MAGIC_WAND_INK_OPACITY}!important}`
-}
-
-/**
- * Drops the translucency so the stroke eases back to its real opacity — a quick
- * "ink drying" effect, done entirely in CSS. Clears the rule once the transition
- * finishes (unless a newer stroke has since taken over the style element).
- */
-export function dryWetInk(editor: Editor, shapeIds: TLShapeId[]) {
 	if (shapeIds.length === 0) return
-	getInkStyleElement(editor).textContent =
-		`${inkSelector(shapeIds)}{transition:opacity ${INK_DRY_DURATION_MS}ms ease}`
-	editor.timers.setTimeout(() => clearWetInk(editor, shapeIds[0]), INK_DRY_DURATION_MS)
+	editor.run(
+		() => {
+			for (const id of shapeIds) {
+				const shape = editor.getShape(id)
+				if (!shape || shape.opacity === MAGIC_WAND_INK_OPACITY) continue
+				editor.updateShape({ id, type: shape.type, opacity: MAGIC_WAND_INK_OPACITY })
+			}
+		},
+		{ history: 'ignore' }
+	)
 }
 
 /**
- * Removes the wet-ink styling immediately. Pass `onlyForShapeId` to clear only if
- * the rule still targets that shape, so a pending dry-clear doesn't wipe a newer
- * stroke's styling.
+ * Eases the stroke back to its natural opacity — a quick "ink drying" effect —
+ * using the same history-ignored tween as the ghosts, so collaborators watch
+ * the ink dry as well.
+ *
+ * Called while the gesture's undo entry is still open. The natural opacity is
+ * first committed with a recorded write: the draw tool's own recorded updates
+ * squash the whole record (including the ignored wet opacity) into the entry,
+ * so without this a redo would resurrect the stroke translucent. The record is
+ * then dipped back down (ignored) in the same tick — no visible pop — and the
+ * tween carries it home.
  */
-export function clearWetInk(editor: Editor, onlyForShapeId?: TLShapeId) {
-	const el = inkStyleElements.get(editor)
-	if (!el) return
-	if (onlyForShapeId && !el.textContent?.includes(onlyForShapeId)) return
-	el.textContent = ''
+export function dryWetInk(editor: Editor, shapeIds: TLShapeId[], naturalOpacity: number) {
+	if (shapeIds.length === 0) return
+	editor.run(() => {
+		for (const id of shapeIds) {
+			const shape = editor.getShape(id)
+			if (!shape) continue
+			editor.updateShape({ id, type: shape.type, opacity: naturalOpacity })
+		}
+	})
+	setWetInk(editor, shapeIds)
+	for (const id of shapeIds) {
+		animateShapeOpacity(editor, id, MAGIC_WAND_INK_OPACITY, naturalOpacity, INK_DRY_DURATION_MS)
+	}
+}
+
+/**
+ * Restores the stroke's natural opacity immediately (e.g. on cancel or exit).
+ * Skips shapes that no longer exist — gesture strokes are usually bailed away
+ * before this runs.
+ */
+export function clearWetInk(editor: Editor, shapeIds: TLShapeId[], naturalOpacity: number) {
+	editor.run(
+		() => {
+			for (const id of shapeIds) {
+				const shape = editor.getShape(id)
+				if (!shape || shape.opacity === naturalOpacity) continue
+				editor.updateShape({ id, type: shape.type, opacity: naturalOpacity })
+			}
+		},
+		{ history: 'ignore' }
+	)
 }
 
 /**
