@@ -2,7 +2,6 @@ import type { Editor } from 'tldraw'
 import { describe, expect, it } from 'vitest'
 import { CommentTool } from './comment-tool'
 import { defaultCommentingOptions, getCommentingOptions, type CommentingOptions } from './options'
-import { matchesKbd } from './shortcuts'
 import { openThreadId, pendingComment, runComment } from './state'
 
 // The StateNode constructor doesn't call any editor methods, so a bare stub is enough to
@@ -114,22 +113,5 @@ describe('editor-scoped transient state', () => {
 		pendingComment.set(a, { anchor: { type: 'page' }, point: { x: 0, y: 0 } })
 		expect(pendingComment.get(a)).not.toBe(null)
 		expect(pendingComment.get(b)).toBe(null)
-	})
-})
-
-describe('matchesKbd', () => {
-	const ev = (init: Partial<KeyboardEvent>) => init as KeyboardEvent
-
-	it('matches shift+c against the physical KeyC', () => {
-		expect(matchesKbd('shift+c', ev({ code: 'KeyC', shiftKey: true }))).toBe(true)
-	})
-
-	it('requires the exact modifier set', () => {
-		expect(matchesKbd('shift+c', ev({ code: 'KeyC', shiftKey: false }))).toBe(false)
-		expect(matchesKbd('shift+c', ev({ code: 'KeyC', shiftKey: true, metaKey: true }))).toBe(false)
-	})
-
-	it('matches non-letter keys by event.key', () => {
-		expect(matchesKbd('escape', ev({ key: 'Escape', code: 'Escape' }))).toBe(true)
 	})
 })

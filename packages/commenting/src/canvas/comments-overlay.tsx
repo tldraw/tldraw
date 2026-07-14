@@ -48,7 +48,6 @@ import {
 	getCommentingOptions,
 	useCommentingOptions,
 } from './options'
-import { matchesKbd } from './shortcuts'
 import {
 	commentsHidden,
 	openThreadId,
@@ -373,14 +372,12 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		return () => document.removeEventListener('keydown', onKeyDown, true)
 	}, [editor, options.closeThreadOnEscape])
 
-	// The configured shortcut (Shift+C by default, matching Figma) toggles comment-pin visibility.
-	// Skipped while typing so it never fires from inside a composer, and disabled when the option is
-	// null.
+	// Shift+C toggles comment-pin visibility on the canvas (matching Figma). Skipped while typing so
+	// it never fires from inside a composer. Physical `KeyC` (layout-independent) with shift only.
 	useEffect(() => {
-		const kbd = options.toggleVisibilityKbd
-		if (!kbd) return
+		if (!options.enableVisibilityShortcut) return
 		const onKeyDown = (e: KeyboardEvent) => {
-			if (!matchesKbd(kbd, e)) return
+			if (e.code !== 'KeyC' || !e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
 			const target = e.target as HTMLElement | null
 			if (target && target.closest('input, textarea, [contenteditable="true"]')) return
 			toggleCommentsHidden(editor)
@@ -388,7 +385,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		}
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)
-	}, [editor, options.toggleVisibilityKbd])
+	}, [editor, options.enableVisibilityShortcut])
 
 	// Hidden: the whole canvas layer (pins, open popover, pending composer) is withheld. The signal
 	// is read above so this component stays mounted and its shortcut/Escape effects keep running.

@@ -87,8 +87,8 @@ export interface CommentingOptions {
 	readonly focusAnimationMs: number
 
 	// ── Shortcuts ────────────────────────────────────────────────────────────────────────────
-	/** Keyboard shortcut to toggle pin visibility, or `null` to disable. Default `'shift+c'`. */
-	readonly toggleVisibilityKbd: string | null
+	/** Whether Shift+C toggles comment-pin visibility (matching Figma). */
+	readonly enableVisibilityShortcut: boolean
 	/** Close the open thread on Escape. */
 	readonly closeThreadOnEscape: boolean
 
@@ -128,7 +128,7 @@ export const defaultCommentingOptions = {
 	clusterExpandZoomMs: 450,
 	clusterSplitZoomFactor: 1.05,
 	focusAnimationMs: 200,
-	toggleVisibilityKbd: 'shift+c',
+	enableVisibilityShortcut: true,
 	closeThreadOnEscape: true,
 	deepLinkParam: 'comment',
 	sidebarTools: ['comment'],
