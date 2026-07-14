@@ -9,11 +9,11 @@ export default sketchbook
 
 const desktop = { viewport: 'desktop' } as const
 
-/** The default region behaviour: bottom-right pin, reveal on pointer-in-region, move by pin, resize
- *  from corner handles. Drag out a rectangle to create one. */
+/** The creation flow, from an empty canvas: drag out a rectangle to make a region comment. Default
+ *  behaviour — bottom-right pin, reveal on pointer-in-region, move by pin, resize from corners. */
 export const Default: Sketch<RegionCommentsFlowProps> = {
 	parameters: desktop,
-	args: { regionOptions: {} },
+	args: { regionOptions: {}, seeded: false },
 }
 
 // — Pin/anchor corner —
