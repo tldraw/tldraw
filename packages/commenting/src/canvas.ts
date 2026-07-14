@@ -7,7 +7,6 @@ export {
 	CommentTool,
 	commentToolOverrides,
 	commentTools,
-	pendingComment,
 	type PendingComment,
 } from './canvas/comment-tool'
 export { collectClusterLeaves } from './canvas/cluster-input'
@@ -17,26 +16,34 @@ export type { ClusterNode, ClusterTable, LeafInput } from './clustering/types'
 export { CommentsFilterMenu, type CommentsFilterMenuProps } from './canvas/comments-filter-menu'
 export { CommentsMenuItem } from './canvas/comments-menu-item'
 export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-overlay'
+export {
+	type CommentingComponents,
+	type CommentingOptions,
+	defaultCommentingOptions,
+	getCommentingOptions,
+	useCommentingOptions,
+} from './canvas/options'
 export { CommentsOverflowMenu } from './canvas/comments-overflow-menu'
 export { CanvasCommentsSidebar, type CanvasCommentsSidebarProps } from './canvas/comments-sidebar'
-export { commentsHidden, toggleCommentsHidden } from './canvas/comments-visibility'
-export {
-	useComments,
-	useCommentThreads,
-	usePendingComment,
-	useThreadComments,
-} from './canvas/hooks'
+export { useComments, useCommentThreads, useThreadComments } from './canvas/hooks'
 export { useCommentingEnabled } from './canvas/license'
 export { richTextToPlaintext } from './canvas/rich-text'
+export { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './canvas/sidebar-filters'
 export {
-	DEFAULT_SIDEBAR_FILTERS,
-	type SidebarFilters,
+	commentsHidden,
+	openThreadId,
+	pendingComment,
+	runComment,
 	sidebarFilters,
-} from './canvas/sidebar-filters'
+	toggleCommentsHidden,
+	useCommentsHidden,
+	useOpenThreadId,
+	usePendingComment,
+	useSidebarFilters,
+} from './canvas/state'
 export {
 	anchorPagePoint,
 	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
 	focusThread,
-	openThreadId,
 	shapeAnchorAt,
 } from './canvas/thread-state'

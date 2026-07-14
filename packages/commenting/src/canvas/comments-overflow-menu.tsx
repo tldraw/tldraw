@@ -4,10 +4,11 @@ import {
 	TldrawUiDropdownMenuItem,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	useEditor,
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { commentsHidden, toggleCommentsHidden } from './comments-visibility'
+import { commentsHidden, toggleCommentsHidden } from './state'
 
 // A keyboard-shortcut glyph, not translatable copy — kept out of JSX as a constant.
 const HIDE_SHORTCUT = '⇧C'
@@ -15,8 +16,9 @@ const HIDE_SHORTCUT = '⇧C'
 /** The overflow (⋯) dropdown in the sidebar header. For now it holds the hide/show-comments
  *  toggle; it's the home for later comment-wide controls (notifications, mark all as read). */
 export function CommentsOverflowMenu() {
+	const editor = useEditor()
 	const msg = useTranslation()
-	const hidden = useValue('comments hidden', () => commentsHidden.get(), [])
+	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 
 	return (
 		<TldrawUiDropdownMenuRoot id="comments-overflow">
@@ -33,7 +35,11 @@ export function CommentsOverflowMenu() {
 			<TldrawUiDropdownMenuContent side="bottom" align="end">
 				<TldrawUiDropdownMenuGroup>
 					<TldrawUiDropdownMenuItem>
-						<button type="button" className="cmt-menu-item" onClick={toggleCommentsHidden}>
+						<button
+							type="button"
+							className="cmt-menu-item"
+							onClick={() => toggleCommentsHidden(editor)}
+						>
 							<span>{hidden ? msg('comments.show') : msg('comments.hide')}</span>
 							<span className="cmt-menu-item__shortcut">{HIDE_SHORTCUT}</span>
 						</button>

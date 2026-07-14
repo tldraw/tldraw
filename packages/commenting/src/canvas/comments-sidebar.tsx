@@ -15,9 +15,10 @@ import { CommentsFilterMenu } from './comments-filter-menu'
 import { CommentsOverflowMenu } from './comments-overflow-menu'
 import { useComments, useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
+import { useCommentingOptions } from './options'
 import { richTextToPlaintext } from './rich-text'
-import { sidebarFilters } from './sidebar-filters'
-import { focusThread, openThreadId } from './thread-state'
+import { openThreadId, sidebarFilters } from './state'
+import { focusThread } from './thread-state'
 import './canvas.css'
 
 export interface CanvasCommentsSidebarProps {
@@ -30,7 +31,11 @@ export interface CanvasCommentsSidebarProps {
 	 * "only unread" filter when present.
 	 */
 	isCommentUnread?(commentId: TLCommentId): boolean
-	/** Render a thread's preview (its first comment). Defaults to the plaintext of the body. */
+	/**
+	 * Render a thread's preview (its first comment). Defaults to the plaintext of the body.
+	 * @deprecated Configure the `ThreadPreview` slot via `CommentTool.configure({ components })`
+	 * instead.
+	 */
 	renderPreview?(comment: TLComment): ReactNode
 	/** Tool ids that show the sidebar. Defaults to the comment tool. */
 	tools?: string[]
@@ -47,17 +52,22 @@ export interface CanvasCommentsSidebarProps {
  * thread brings its pin into view and opens it. Batteries-included over the store (a sibling to
  * `CanvasComments`); `CommentsList` is exported for a differently-placed or always-on list.
  */
-export function CanvasCommentsSidebar({
-	resolveName,
-	currentUserId,
-	isCommentUnread,
-	renderPreview,
-	tools = ['comment'],
-	header,
-	empty,
-	impreciseShapeAnchor,
-}: CanvasCommentsSidebarProps) {
+export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
+	const {
+		resolveName,
+		currentUserId,
+		isCommentUnread,
+		tools,
+		header,
+		empty,
+		impreciseShapeAnchor,
+	} = props
+	// Back-compat: honor the deprecated `renderPreview` prop, read through a structural view so its
+	// deprecation doesn't flag every internal use here.
+	const renderPreview = (props as { renderPreview?(comment: TLComment): ReactNode }).renderPreview
 	const editor = useEditor()
+	const options = useCommentingOptions()
+	const sidebarTools = tools ?? options.sidebarTools
 	const container = useContainer()
 	const commentingEnabled = useCommentingEnabled()
 	const msg = useTranslation()
@@ -65,15 +75,15 @@ export function CanvasCommentsSidebar({
 	const comments = useComments(editor)
 	const currentPageId = useValue('page id', () => editor.getCurrentPageId(), [editor])
 	const activeTool = useValue('tool id', () => editor.getCurrentToolId(), [editor])
-	const openId = useValue('open thread', () => openThreadId.get(), [])
-	const filters = useValue('sidebar filters', () => sidebarFilters.get(), [])
+	const openId = useValue('open thread', () => openThreadId.get(editor), [editor])
+	const filters = useValue('sidebar filters', () => sidebarFilters.get(editor), [editor])
 	const pageNames = useValue(
 		'page names',
 		() => new Map(editor.getPages().map((page) => [page.id, page.name])),
 		[editor]
 	)
 
-	if (!commentingEnabled || !tools.includes(activeTool)) return null
+	if (!commentingEnabled || !sidebarTools.includes(activeTool)) return null
 
 	// Group comments by thread (they arrive oldest-first, so [0] is each thread's first comment).
 	const byThread = new Map<string, TLComment[]>()
@@ -108,7 +118,17 @@ export function CanvasCommentsSidebar({
 			const threadComments = byThread.get(thread.id) ?? []
 			const first = threadComments[0]
 			let preview: ReactNode = ''
-			if (first) preview = renderPreview ? renderPreview(first) : richTextToPlaintext(first.body)
+			// Precedence: legacy render prop > component slot > built-in plaintext default.
+			const ThreadPreview = options.components.ThreadPreview
+			if (first) {
+				preview = renderPreview ? (
+					renderPreview(first)
+				) : ThreadPreview ? (
+					<ThreadPreview comment={first} />
+				) : (
+					richTextToPlaintext(first.body)
+				)
+			}
 			return {
 				id: thread.id,
 				author: resolveName(thread.createdBy),

@@ -1,7 +1,5 @@
-import { atom, Editor, TLCommentAnchor, TLCommentThread, TLShapeId } from 'tldraw'
-
-/** The id of the one open thread (only one popover is open at a time), or null when all closed. */
-export const openThreadId = atom<string | null>('openThreadId', null)
+import { Editor, TLCommentAnchor, TLCommentThread, TLShapeId } from 'tldraw'
+import { openThreadId } from './state'
 
 /** Where an imprecise shape comment sits by default: the shape's top-right corner. Overridable. */
 export const DEFAULT_IMPRECISE_SHAPE_ANCHOR = { x: 1, y: 0 }
@@ -71,7 +69,7 @@ export function focusThread(
 	if (thread.pageId !== editor.getCurrentPageId()) {
 		editor.setCurrentPage(thread.pageId as any)
 	}
-	openThreadId.set(thread.id)
+	openThreadId.set(editor, thread.id)
 	const point = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
 	if (point) editor.centerOnPoint(point, { animation: { duration: 200 } })
 }

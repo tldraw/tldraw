@@ -1,0 +1,135 @@
+import type { Editor } from 'tldraw'
+import { describe, expect, it } from 'vitest'
+import { CommentTool } from './comment-tool'
+import { defaultCommentingOptions, getCommentingOptions, type CommentingOptions } from './options'
+import { matchesKbd } from './shortcuts'
+import { openThreadId, pendingComment, runComment } from './state'
+
+// The StateNode constructor doesn't call any editor methods, so a bare stub is enough to
+// instantiate a configured tool and read its merged options.
+function optionsOf(Tool: typeof CommentTool): CommentingOptions {
+	return new Tool({} as Editor).options
+}
+
+describe('CommentTool.configure', () => {
+	it('returns default options when unconfigured', () => {
+		expect(new CommentTool({} as Editor).options).toEqual(defaultCommentingOptions)
+	})
+
+	it('merges overrides over the defaults', () => {
+		const Tool = CommentTool.configure({ history: 'record', enableDelete: false })
+		expect(optionsOf(Tool)).toEqual({
+			...defaultCommentingOptions,
+			history: 'record',
+			enableDelete: false,
+		})
+	})
+
+	it('layers chained configure calls', () => {
+		const Tool = CommentTool.configure({ history: 'record' }).configure({ enableDelete: false })
+		expect(optionsOf(Tool)).toEqual({
+			...defaultCommentingOptions,
+			history: 'record',
+			enableDelete: false,
+		})
+	})
+
+	it('does not mutate the base tool or the defaults', () => {
+		CommentTool.configure({ history: 'record' })
+		expect(new CommentTool({} as Editor).options).toEqual(defaultCommentingOptions)
+		expect(defaultCommentingOptions.history).toBe('ignore')
+	})
+})
+
+// A minimal editor stub: getCommentingOptions reads the comment tool's `options` off
+// getStateDescendant, and runComment forwards to run().
+function stubEditor(options: CommentingOptions) {
+	const runCalls: Array<{ history: unknown }> = []
+	const editor = {
+		getStateDescendant: () => ({ options }),
+		run: (fn: () => void, opts: { history: unknown }) => {
+			runCalls.push(opts)
+			fn()
+			return editor
+		},
+	} as unknown as Editor
+	return { editor, runCalls }
+}
+
+describe('getCommentingOptions', () => {
+	it('reads the tool options off the editor', () => {
+		const options = { ...defaultCommentingOptions, history: 'record' } as CommentingOptions
+		const { editor } = stubEditor(options)
+		expect(getCommentingOptions(editor)).toBe(options)
+	})
+
+	it('falls back to defaults when the comment tool is absent', () => {
+		const editor = { getStateDescendant: () => undefined } as unknown as Editor
+		expect(getCommentingOptions(editor)).toBe(defaultCommentingOptions)
+	})
+})
+
+describe('runComment', () => {
+	it('uses options.history for a mutation and returns the callback result', () => {
+		const { editor, runCalls } = stubEditor({
+			...defaultCommentingOptions,
+			history: 'record',
+		} as CommentingOptions)
+		const result = runComment(editor, () => 42)
+		expect(result).toBe(42)
+		expect(runCalls).toEqual([{ history: 'record' }])
+	})
+
+	it('uses dragHistory for a drag, falling back to history when unset', () => {
+		const withDrag = stubEditor({
+			...defaultCommentingOptions,
+			history: 'ignore',
+			dragHistory: 'record',
+		} as CommentingOptions)
+		runComment(withDrag.editor, () => undefined, 'drag')
+		expect(withDrag.runCalls).toEqual([{ history: 'record' }])
+
+		const noDrag = stubEditor({
+			...defaultCommentingOptions,
+			history: 'ignore',
+			dragHistory: undefined,
+		} as CommentingOptions)
+		runComment(noDrag.editor, () => undefined, 'drag')
+		expect(noDrag.runCalls).toEqual([{ history: 'ignore' }])
+	})
+})
+
+describe('editor-scoped transient state', () => {
+	it('keeps open-thread state independent per editor (multi-editor guard)', () => {
+		const a = {} as Editor
+		const b = {} as Editor
+		openThreadId.set(a, 'thread:1')
+		expect(openThreadId.get(a)).toBe('thread:1')
+		expect(openThreadId.get(b)).toBe(null)
+	})
+
+	it('keeps pending-comment state independent per editor', () => {
+		const a = {} as Editor
+		const b = {} as Editor
+		pendingComment.set(a, { anchor: { type: 'page' }, point: { x: 0, y: 0 } })
+		expect(pendingComment.get(a)).not.toBe(null)
+		expect(pendingComment.get(b)).toBe(null)
+	})
+})
+
+describe('matchesKbd', () => {
+	const ev = (init: Partial<KeyboardEvent>) => init as KeyboardEvent
+
+	it('matches shift+c against the physical KeyC', () => {
+		expect(matchesKbd('shift+c', ev({ code: 'KeyC', shiftKey: true }))).toBe(true)
+	})
+
+	it('requires the exact modifier set', () => {
+		expect(matchesKbd('shift+c', ev({ code: 'KeyC', shiftKey: false }))).toBe(false)
+		expect(matchesKbd('shift+c', ev({ code: 'KeyC', shiftKey: true, metaKey: true }))).toBe(false)
+	})
+
+	it('matches non-letter keys by event.key', () => {
+		expect(matchesKbd('escape', ev({ key: 'Escape', code: 'Escape' }))).toBe(true)
+	})
+})
