@@ -236,14 +236,16 @@ html,
 	opacity: 1;
 }
 
-/* Mirrors the dotcom sidebar's .sidebarSearchClear. */
+/* Mirrors the dotcom sidebar's .sidebarSearchClear: pulled in only as far as
+   the row's edge so the button and its focus ring stay inside the search box
+   border instead of escaping it on the right. */
 .example__sidebar__search__clear {
 	padding: 0;
 	background: none;
 	border: none;
 	position: relative;
 	outline: none;
-	margin-inline-end: -10px;
+	margin-inline-end: -2px;
 	width: 36px;
 	height: 36px;
 	min-width: 0;
