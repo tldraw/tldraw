@@ -733,22 +733,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
-				id: 'align-center',
-				label: 'action.align-center',
-				onSelect(source) {
-					if (!canApplySelectionAction()) return
-					if (mustGoBackToSelectToolFirst()) return
-
-					trackEvent('align-shapes', { operation: 'center', source })
-					editor.markHistoryStoppingPoint('align center')
-					editor.run(() => {
-						const selectedShapeIds = editor.getSelectedShapeIds()
-						editor.alignShapes(selectedShapeIds, 'center')
-						kickoutOccludedShapes(editor, selectedShapeIds)
-					})
-				},
-			},
-			{
 				id: 'distribute-horizontal',
 				label: {
 					default: 'action.distribute-horizontal',

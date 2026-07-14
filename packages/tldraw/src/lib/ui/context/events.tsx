@@ -62,14 +62,7 @@ export interface TLUiEventMap {
 	'alt-text-start': null
 	'set-alt-text': null
 	'align-shapes': {
-		operation:
-			| 'left'
-			| 'center-horizontal'
-			| 'right'
-			| 'top'
-			| 'center-vertical'
-			| 'bottom'
-			| 'center'
+		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom'
 	}
 	'duplicate-shapes': null
 	'pack-shapes': null

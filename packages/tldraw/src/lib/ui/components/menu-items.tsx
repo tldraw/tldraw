@@ -373,7 +373,6 @@ export function ArrangeMenuSubmenu() {
 					<TldrawUiMenuActionItem actionId="align-top" />
 					<TldrawUiMenuActionItem actionId="align-center-vertical" />
 					<TldrawUiMenuActionItem actionId="align-bottom" />
-					<TldrawUiMenuActionItem actionId="align-center" />
 				</TldrawUiMenuGroup>
 			)}
 			<DistributeMenuGroup />
