@@ -7,9 +7,61 @@ const sketchbook: Sketchbook<RegionCommentsFlowProps> = {
 }
 export default sketchbook
 
+const desktop = { viewport: 'desktop' } as const
+
 /** The default region behaviour: bottom-right pin, reveal on pointer-in-region, move by pin, resize
  *  from corner handles. Drag out a rectangle to create one. */
 export const Default: Sketch<RegionCommentsFlowProps> = {
-	parameters: { viewport: 'desktop' },
+	parameters: desktop,
 	args: { regionOptions: {} },
+}
+
+// — Pin/anchor corner —
+
+/** Pin and composer on the top-right corner instead of bottom-right. */
+export const TopRightPin: Sketch<RegionCommentsFlowProps> = {
+	parameters: desktop,
+	args: { regionOptions: { pinCorner: { x: 1, y: 0 } } },
+}
+
+// — Reveal behaviour —
+
+/** Box and handles reveal only while the pin is hovered (note the gap reaching a far corner). */
+export const RevealOnPinHover: Sketch<RegionCommentsFlowProps> = {
+	parameters: desktop,
+	args: { regionOptions: { reveal: 'pin-hover' } },
+}
+
+/** Box and handles reveal only while the thread is open. */
+export const RevealWhenOpen: Sketch<RegionCommentsFlowProps> = {
+	parameters: desktop,
+	args: { regionOptions: { reveal: 'open' } },
+}
+
+// — Move interaction —
+
+/** Move by dragging the region body (the pin only toggles the thread). */
+export const MoveByBody: Sketch<RegionCommentsFlowProps> = {
+	parameters: desktop,
+	args: { regionOptions: { move: 'body' } },
+}
+
+/** Move by dragging either the pin or the body. */
+export const MoveByEither: Sketch<RegionCommentsFlowProps> = {
+	parameters: desktop,
+	args: { regionOptions: { move: 'both' } },
+}
+
+// — Resize affordance —
+
+/** Resize from side-midpoint edge handles (each locks the perpendicular axis). */
+export const ResizeFromEdges: Sketch<RegionCommentsFlowProps> = {
+	parameters: desktop,
+	args: { regionOptions: { resize: 'edges' } },
+}
+
+/** No resize affordance — the region keeps the size it was drawn at. */
+export const NoResize: Sketch<RegionCommentsFlowProps> = {
+	parameters: desktop,
+	args: { regionOptions: { resize: 'none' } },
 }
