@@ -156,6 +156,9 @@ export function getChangedKeys<T extends object>(obj1: T, obj2: T): (keyof T)[];
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
 // @public
+export function getFirstCharacter(str: string): string;
+
+// @public
 export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
 
 // @internal

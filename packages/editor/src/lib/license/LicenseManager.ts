@@ -1,4 +1,4 @@
-import { atom } from '@tldraw/state'
+import { atom, transact } from '@tldraw/state'
 import { publishDates, version } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
@@ -22,6 +22,12 @@ export const FLAGS = {
 	// Native means the license is for native apps which switches
 	// on special-case logic.
 	NATIVE_LICENSE: 1 << 5,
+
+	// -- FEATURE FLAGS --
+	// Collaboration is the umbrella flag for collaboration features; it grants all sub-features.
+	FEAT_COLLABORATION: 1 << 6,
+	// Commenting is the first sub-feature of collaboration.
+	FEAT_COMMENTING: 1 << 7,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -43,6 +49,23 @@ export interface LicenseInfo {
 	hosts: string[]
 	flags: number
 	expiryDate: string
+}
+
+/**
+ * Names of the licensable product features gated by the license. `collaboration` is an umbrella
+ * that also grants all of its sub-features (currently just `commenting`).
+ *
+ * @internal
+ */
+export type LicenseFeatureName = 'collaboration' | 'commenting'
+
+const NO_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
+	collaboration: false,
+	commenting: false,
+}
+const ALL_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
+	collaboration: true,
+	commenting: true,
 }
 
 /** @internal */
@@ -84,6 +107,8 @@ export interface ValidLicenseKeyResult {
 	isLicensedWithWatermark: boolean
 	isEvaluationLicense: boolean
 	isEvaluationLicenseExpired: boolean
+	isCollaborationEnabled: boolean
+	isCommentingEnabled: boolean
 	daysSinceExpiry: number
 }
 
@@ -98,6 +123,9 @@ export class LicenseManager {
 	public isTest: boolean
 	public isCryptoAvailable: boolean
 	state = atom<LicenseState>('license state', 'pending')
+	featureFlags = atom<Record<LicenseFeatureName, boolean>>('license feature flags', {
+		...NO_FEATURES,
+	})
 	public verbose = true
 
 	constructor(licenseKey: string | undefined, testPublicKey?: string) {
@@ -105,6 +133,14 @@ export class LicenseManager {
 		this.isDevelopment = this.getIsDevelopment()
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
+
+		// In development every feature is enabled (see `getEnabledFeatures`), and that doesn't depend
+		// on the async validation result. Reflect it eagerly so features aren't reported as disabled
+		// during the validation window — or left disabled if validation rejects (the `.catch` below
+		// never sets `featureFlags`). In production the fail-closed default stands until validation.
+		if (this.isDevelopment) {
+			this.featureFlags.set({ ...ALL_FEATURES })
+		}
 
 		this.getLicenseFromKey(licenseKey)
 			.then((result) => {
@@ -116,12 +152,25 @@ export class LicenseManager {
 
 				this.maybeTrack(result, licenseState)
 
-				this.state.set(licenseState)
+				// Update both atoms atomically so dependents never observe the license state and the
+				// feature flags out of sync mid-update.
+				transact(() => {
+					this.state.set(licenseState)
+					this.featureFlags.set(getEnabledFeatures(result, licenseState, this.isDevelopment))
+				})
 			})
 			.catch((error) => {
 				console.error('License validation failed:', error)
 				this.state.set('unlicensed')
 			})
+	}
+
+	/**
+	 * Returns whether a given licensable feature is enabled. Reactive: reading this inside a signal
+	 * recomputes when license validation resolves.
+	 */
+	isFeatureEnabled(feature: LicenseFeatureName): boolean {
+		return this.featureFlags.get()[feature]
 	}
 
 	private getIsDevelopment() {
@@ -286,6 +335,12 @@ export class LicenseManager {
 			const isPerpetualLicenseExpired =
 				isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate)
 
+			// The collaboration umbrella grants all of its sub-features, so commenting is enabled
+			// by either the commenting flag or the collaboration flag.
+			const isCollaborationEnabled = this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COLLABORATION)
+			const isCommentingEnabled =
+				isCollaborationEnabled || this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COMMENTING)
+
 			// For perpetual licenses, the calendar expiry date only gates access to future
 			// major/minor releases; it does not "expire" the license itself. While the user
 			// is still on a covered version we report `daysSinceExpiry` as 0 so consumers
@@ -309,6 +364,8 @@ export class LicenseManager {
 				isEvaluationLicense,
 				isEvaluationLicenseExpired:
 					isEvaluationLicense && this.isEvaluationLicenseExpired(expiryDate),
+				isCollaborationEnabled,
+				isCommentingEnabled,
 				daysSinceExpiry,
 			}
 			this.outputLicenseInfoIfNeeded(result)
@@ -469,6 +526,38 @@ export class LicenseManager {
 	}
 
 	static className = 'tl-watermark_SEE-LICENSE'
+}
+
+/**
+ * Derives which licensable features are enabled from the parse result and the derived license
+ * state. In development every feature is enabled so SDK developers can build against them; in
+ * production a feature requires both an active, valid license and the corresponding flag.
+ *
+ * @internal
+ */
+export function getEnabledFeatures(
+	result: LicenseFromKeyResult,
+	licenseState: LicenseState,
+	isDevelopment: boolean
+): Record<LicenseFeatureName, boolean> {
+	// Development gets all features so SDK developers can build against them.
+	if (isDevelopment) {
+		return { ...ALL_FEATURES }
+	}
+
+	// Features require an active, valid license. Both the 30-day grace-period 'licensed' state and
+	// the watermark state count as valid; unlicensed/expired/pending do not.
+	if (
+		!result.isLicenseParseable ||
+		(licenseState !== 'licensed' && licenseState !== 'licensed-with-watermark')
+	) {
+		return { ...NO_FEATURES }
+	}
+
+	return {
+		collaboration: result.isCollaborationEnabled,
+		commenting: result.isCommentingEnabled,
+	}
 }
 
 export function getLicenseState(

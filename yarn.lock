@@ -11763,6 +11763,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/collaboration@workspace:packages/collaboration":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/collaboration@workspace:packages/collaboration"
+  dependencies:
+    "@tldraw/commenting": "workspace:*"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+  peerDependencies:
+    react: ^18.2.0 || ^19.2.1
+    react-dom: ^18.2.0 || ^19.2.1
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/commenting@workspace:*, @tldraw/commenting@workspace:packages/commenting":
   version: 0.0.0-use.local
   resolution: "@tldraw/commenting@workspace:packages/commenting"

@@ -164,7 +164,7 @@ export const Resolved: Sketch<Record<string, never>> = {
 			header="Thread"
 			headerActions={threadActions}
 			comments={manyComments}
-			resolvedBy="Ada Lovelace"
+			resolvedBanner="Resolved by Ada Lovelace"
 		/>
 	),
 }
