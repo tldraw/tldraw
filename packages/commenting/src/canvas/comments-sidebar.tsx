@@ -67,7 +67,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 	const renderPreview = (props as { renderPreview?(comment: TLComment): ReactNode }).renderPreview
 	const editor = useEditor()
 	const options = useCommentingOptions()
-	const sidebarTools = tools ?? options.sidebarTools
+	const sidebarTools = tools ?? ['comment']
 	const container = useContainer()
 	const commentingEnabled = useCommentingEnabled()
 	const msg = useTranslation()

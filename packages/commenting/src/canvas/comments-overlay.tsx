@@ -50,9 +50,9 @@ import {
 } from './options'
 import {
 	commentsHidden,
+	commitCommentMutation,
 	openThreadId,
 	pendingComment,
-	runComment,
 	toggleCommentsHidden,
 	usePendingComment,
 } from './state'
@@ -99,6 +99,9 @@ export interface CanvasCommentsProps {
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
 const initialOf = (name: string): string => (getFirstCharacter(name.trim()) || '?').toUpperCase()
+const CLUSTER_FADE_MS = 150
+/** Duration of the click-a-badge zoom-to-split animation. */
+const CLUSTER_EXPAND_ZOOM_MS = 450
 
 /** The leading element for the placement composer — the comment pin's shape, but a pencil
  *  instead of an initial, marking an unsent draft. */
@@ -289,7 +292,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		)
 		return nodes
 	}, [clusterModel, clusterCursor])
-	const fadeNodes = useFadeVisibleNodes(visibleNodes, clusterModel, options.clusterFadeMs)
+	const fadeNodes = useFadeVisibleNodes(visibleNodes, clusterModel)
 	const threadsById = useMemo(
 		() => new Map<string, TLCommentThread>(threads.map((thread) => [thread.id, thread])),
 		[threads]
@@ -313,7 +316,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			deepLinkHandled.current = true
 			return
 		}
-		const id = new URLSearchParams(window.location.search).get(options.deepLinkParam)
+		const id = new URLSearchParams(window.location.search).get('comment')
 		if (!id) {
 			deepLinkHandled.current = true
 			return
@@ -350,7 +353,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 				clusterZoomBounds.minZoom,
 				clusterZoomBounds.maxZoom
 			)
-			centerOnPointAtZoom(editor, node.centroid, zoom, options.clusterExpandZoomMs)
+			centerOnPointAtZoom(editor, node.centroid, zoom, CLUSTER_EXPAND_ZOOM_MS)
 		},
 		[clusterModel, clusterZoomBounds, editor, options]
 	)
@@ -359,7 +362,6 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	// editor (which would otherwise cancel the current tool or clear the selection). If a comment is
 	// being edited, let its own Escape handler exit edit mode first, keeping the thread open.
 	useEffect(() => {
-		if (!options.closeThreadOnEscape) return
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.key !== 'Escape' || openThreadId.get(editor) === null) return
 			const target = e.target as HTMLElement | null
@@ -370,12 +372,11 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		}
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)
-	}, [editor, options.closeThreadOnEscape])
+	}, [editor])
 
 	// Shift+C toggles comment-pin visibility on the canvas (matching Figma). Skipped while typing so
 	// it never fires from inside a composer. Physical `KeyC` (layout-independent) with shift only.
 	useEffect(() => {
-		if (!options.enableVisibilityShortcut) return
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.code !== 'KeyC' || !e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
 			const target = e.target as HTMLElement | null
@@ -385,7 +386,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		}
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)
-	}, [editor, options.enableVisibilityShortcut])
+	}, [editor])
 
 	// Hidden: the whole canvas layer (pins, open popover, pending composer) is withheld. The signal
 	// is read above so this component stays mounted and its shortcut/Escape effects keep running.
@@ -448,8 +449,7 @@ interface ClusterFadeNode {
 
 function useFadeVisibleNodes(
 	nodes: readonly ClusterNode[],
-	resetKey: { runtime: ClusterRuntime; table: ClusterTable },
-	fadeMs: number
+	resetKey: { runtime: ClusterRuntime; table: ClusterTable }
 ): ClusterFadeNode[] {
 	const resetKeyRef = useRef(resetKey)
 	const didReset = resetKeyRef.current !== resetKey
@@ -488,9 +488,9 @@ function useFadeVisibleNodes(
 		if (!hasExiting) return
 		const timeout = window.setTimeout(() => {
 			setFadeNodes((previous) => previous.filter((item) => item.phase !== 'exiting'))
-		}, fadeMs)
+		}, CLUSTER_FADE_MS)
 		return () => window.clearTimeout(timeout)
-	}, [hasExiting, renderedNodes, fadeMs])
+	}, [hasExiting, renderedNodes])
 
 	return renderedNodes
 }
@@ -610,11 +610,11 @@ function revealDeepLinkedThread(
 			zoomBounds.minZoom,
 			zoomBounds.maxZoom
 		)
-		centerOnPointAtZoom(editor, point, zoom, options.focusAnimationMs)
+		centerOnPointAtZoom(editor, point, zoom)
 		return
 	}
 
-	editor.centerOnPoint(point, { animation: { duration: options.focusAnimationMs } })
+	editor.centerOnPoint(point, { animation: { duration: 200 } })
 }
 
 function findDirectParentEvent(table: ClusterTable, threadId: string): MergeEvent | undefined {
@@ -788,7 +788,7 @@ const ThreadPin = memo(function ThreadPin({
 
 	const postReply = () => {
 		if (isCommentEmpty(reply) || !currentUserId) return
-		runComment(editor, () => {
+		commitCommentMutation(editor, () => {
 			const comment = createComment({
 				threadId: thread.id,
 				pageId: thread.pageId,
@@ -803,7 +803,7 @@ const ThreadPin = memo(function ThreadPin({
 
 	const toggleResolve = () => {
 		if (!currentUserId) return
-		runComment(editor, () => {
+		commitCommentMutation(editor, () => {
 			editor.store.put([
 				{
 					...thread,
@@ -815,7 +815,9 @@ const ThreadPin = memo(function ThreadPin({
 
 	const deleteThread = () => {
 		openThreadId.set(editor, null)
-		runComment(editor, () => editor.store.remove([thread.id, ...comments.map((c) => c.id)] as any))
+		commitCommentMutation(editor, () =>
+			editor.store.remove([thread.id, ...comments.map((c) => c.id)] as any)
+		)
 	}
 
 	const startEdit = (comment: TLComment) => {
@@ -826,7 +828,7 @@ const ThreadPin = memo(function ThreadPin({
 	const saveEdit = () => {
 		const comment = comments.find((c) => c.id === editingId)
 		if (!comment || isCommentEmpty(editText)) return
-		runComment(editor, () => {
+		commitCommentMutation(editor, () => {
 			editor.store.put([{ ...comment, body: editText, editedAt: Date.now() } as any])
 		})
 		setEditingId(null)
@@ -864,7 +866,7 @@ const ThreadPin = memo(function ThreadPin({
 			<CommentCard
 				{...card}
 				actions={
-					options.enableEdit && comment.authorId === currentUserId ? (
+					comment.authorId === currentUserId ? (
 						<button
 							className="cmt-thread__action"
 							title={msg('comments.edit')}
@@ -880,7 +882,7 @@ const ThreadPin = memo(function ThreadPin({
 
 	const headerActions = (
 		<>
-			{currentUserId && options.enableResolve && (
+			{currentUserId && (
 				<button
 					className="cmt-thread__action"
 					title={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
@@ -893,7 +895,7 @@ const ThreadPin = memo(function ThreadPin({
 					/>
 				</button>
 			)}
-			{currentUserId && options.enableDelete && (
+			{currentUserId && (
 				<button
 					className="cmt-thread__action"
 					title={msg('comments.delete')}
@@ -937,13 +939,7 @@ const ThreadPin = memo(function ThreadPin({
 	const onDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
 		if (!drag) return
-		// Drag-to-move disabled: never promote to a move, so endDrag reads it as a click (toggle).
-		if (!options.enableDragToMove) return
-		if (
-			!drag.moved &&
-			Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < options.dragThreshold
-		)
-			return
+		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
 		drag.moved = true
 		setDragPagePoint(editor.screenToPage({ x: e.clientX, y: e.clientY }))
 	}
@@ -964,7 +960,7 @@ const ThreadPin = memo(function ThreadPin({
 		const anchor = hit
 			? shapeAnchorAt(editor, hit.id, pagePoint, e.altKey)
 			: { type: 'point', x: pagePoint.x, y: pagePoint.y }
-		runComment(editor, () => editor.store.put([{ ...thread, anchor } as any]), 'drag')
+		commitCommentMutation(editor, () => editor.store.put([{ ...thread, anchor } as any]), 'drag')
 	}
 
 	const renderPoint = dragPagePoint ? editor.pageToViewport(dragPagePoint) : point
@@ -1054,7 +1050,7 @@ function PendingComposer({
 
 	const submit = () => {
 		if (isCommentEmpty(text) || !currentUserId) return
-		runComment(editor, () => {
+		commitCommentMutation(editor, () => {
 			const pageId = editor.getCurrentPageId()
 			const thread = createCommentThread({
 				pageId,

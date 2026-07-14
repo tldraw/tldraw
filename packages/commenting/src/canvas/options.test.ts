@@ -2,7 +2,7 @@ import type { Editor } from 'tldraw'
 import { describe, expect, it } from 'vitest'
 import { CommentTool } from './comment-tool'
 import { defaultCommentingOptions, getCommentingOptions, type CommentingOptions } from './options'
-import { openThreadId, pendingComment, runComment } from './state'
+import { commitCommentMutation, openThreadId, pendingComment } from './state'
 
 // The StateNode constructor doesn't call any editor methods, so a bare stub is enough to
 // instantiate a configured tool and read its merged options.
@@ -16,20 +16,20 @@ describe('CommentTool.configure', () => {
 	})
 
 	it('merges overrides over the defaults', () => {
-		const Tool = CommentTool.configure({ history: 'record', enableDelete: false })
+		const Tool = CommentTool.configure({ history: 'record', enableClustering: false })
 		expect(optionsOf(Tool)).toEqual({
 			...defaultCommentingOptions,
 			history: 'record',
-			enableDelete: false,
+			enableClustering: false,
 		})
 	})
 
 	it('layers chained configure calls', () => {
-		const Tool = CommentTool.configure({ history: 'record' }).configure({ enableDelete: false })
+		const Tool = CommentTool.configure({ history: 'record' }).configure({ enableClustering: false })
 		expect(optionsOf(Tool)).toEqual({
 			...defaultCommentingOptions,
 			history: 'record',
-			enableDelete: false,
+			enableClustering: false,
 		})
 	})
 
@@ -41,7 +41,7 @@ describe('CommentTool.configure', () => {
 })
 
 // A minimal editor stub: getCommentingOptions reads the comment tool's `options` off
-// getStateDescendant, and runComment forwards to run().
+// getStateDescendant, and commitCommentMutation forwards to run().
 function stubEditor(options: CommentingOptions) {
 	const runCalls: Array<{ history: unknown }> = []
 	const editor = {
@@ -68,13 +68,13 @@ describe('getCommentingOptions', () => {
 	})
 })
 
-describe('runComment', () => {
+describe('commitCommentMutation', () => {
 	it('uses options.history for a mutation and returns the callback result', () => {
 		const { editor, runCalls } = stubEditor({
 			...defaultCommentingOptions,
 			history: 'record',
 		} as CommentingOptions)
-		const result = runComment(editor, () => 42)
+		const result = commitCommentMutation(editor, () => 42)
 		expect(result).toBe(42)
 		expect(runCalls).toEqual([{ history: 'record' }])
 	})
@@ -85,7 +85,7 @@ describe('runComment', () => {
 			history: 'ignore',
 			dragHistory: 'record',
 		} as CommentingOptions)
-		runComment(withDrag.editor, () => undefined, 'drag')
+		commitCommentMutation(withDrag.editor, () => undefined, 'drag')
 		expect(withDrag.runCalls).toEqual([{ history: 'record' }])
 
 		const noDrag = stubEditor({
@@ -93,7 +93,7 @@ describe('runComment', () => {
 			history: 'ignore',
 			dragHistory: undefined,
 		} as CommentingOptions)
-		runComment(noDrag.editor, () => undefined, 'drag')
+		commitCommentMutation(noDrag.editor, () => undefined, 'drag')
 		expect(noDrag.runCalls).toEqual([{ history: 'ignore' }])
 	})
 })

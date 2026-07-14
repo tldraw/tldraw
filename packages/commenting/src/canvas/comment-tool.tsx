@@ -28,7 +28,7 @@ export class CommentTool extends StateNode {
 	 *
 	 * @example
 	 * ```tsx
-	 * <Tldraw tools={[CommentTool.configure({ history: 'ignore', enableDelete: false })]} />
+	 * <Tldraw tools={[CommentTool.configure({ history: 'ignore', enableClustering: false })]} />
 	 * ```
 	 */
 	static configure<T extends TLStateNodeConstructor>(

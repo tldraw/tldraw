@@ -1,7 +1,7 @@
 import { EditorAtom, type Editor, type TLHistoryBatchOptions, useEditor, useValue } from 'tldraw'
 import type { PendingComment } from './comment-tool'
 import { getCommentingOptions } from './options'
-import type { SidebarFilters } from './sidebar-filters'
+import { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './sidebar-filters'
 
 /**
  * Transient commenting UI state, scoped per editor via {@link EditorAtom}. Editor-scoping (rather
@@ -18,17 +18,14 @@ export const pendingComment = new EditorAtom<PendingComment | null>('pendingComm
 
 /**
  * Whether comment pins are hidden on the canvas. Governs the on-canvas layer (pins + open popover)
- * only — the sidebar is unaffected. Seeded from `options.initiallyHidden`.
+ * only — the sidebar is unaffected.
  */
-export const commentsHidden = new EditorAtom<boolean>(
-	'commentsHidden',
-	(editor) => getCommentingOptions(editor).initiallyHidden
-)
+export const commentsHidden = new EditorAtom<boolean>('commentsHidden', () => false)
 
-/** Which threads the comments sidebar shows. Seeded from `options.defaultSidebarFilters`. */
+/** Which threads the comments sidebar shows. */
 export const sidebarFilters = new EditorAtom<SidebarFilters>(
 	'sidebarFilters',
-	(editor) => getCommentingOptions(editor).defaultSidebarFilters
+	() => DEFAULT_SIDEBAR_FILTERS
 )
 
 /** Toggle comment-pin visibility for an editor. */
@@ -61,11 +58,11 @@ export function useSidebarFilters(): SidebarFilters {
 }
 
 /**
- * Run a comment mutation with the configured undo/redo behavior. All comment writes go through
+ * Commit a comment mutation with the configured undo/redo behavior. All comment writes go through
  * here so the {@link CommentingOptions.history} option (and {@link CommentingOptions.dragHistory}
  * for pin re-anchors) governs whether they land on the undo stack. Defaults to `'ignore'`.
  */
-export function runComment<T>(
+export function commitCommentMutation<T>(
 	editor: Editor,
 	fn: () => T,
 	kind: 'mutation' | 'drag' = 'mutation'

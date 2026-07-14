@@ -31,9 +31,9 @@ export { richTextToPlaintext } from './canvas/rich-text'
 export { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './canvas/sidebar-filters'
 export {
 	commentsHidden,
+	commitCommentMutation,
 	openThreadId,
 	pendingComment,
-	runComment,
 	sidebarFilters,
 	toggleCommentsHidden,
 	useCommentsHidden,

@@ -6,7 +6,6 @@ import {
 	type TLHistoryBatchOptions,
 	useEditor,
 } from 'tldraw'
-import { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './sidebar-filters'
 
 /**
  * Component overrides for the batteries-included comments layer. Each slot replaces a built-in
@@ -33,7 +32,7 @@ export interface CommentingComponents {
  *
  * @example
  * ```tsx
- * <Tldraw tools={[CommentTool.configure({ history: 'ignore', enableDelete: false })]} />
+ * <Tldraw tools={[CommentTool.configure({ history: 'ignore', enableClustering: false })]} />
  * ```
  *
  * @public
@@ -55,14 +54,6 @@ export interface CommentingOptions {
 	readonly dragHistory: TLHistoryBatchOptions['history'] | undefined
 
 	// ── Feature toggles ──────────────────────────────────────────────────────────────────────
-	/** Show the resolve/reopen affordance in the thread header. */
-	readonly enableResolve: boolean
-	/** Show the delete-thread affordance. */
-	readonly enableDelete: boolean
-	/** Allow editing your own comments. */
-	readonly enableEdit: boolean
-	/** Allow dragging a pin to re-anchor its thread. */
-	readonly enableDragToMove: boolean
 	/** Fold nearby pins into count badges as the camera zooms out. */
 	readonly enableClustering: boolean
 	/** Open the thread named by a `?comment=<id>` deep link on mount. */
@@ -71,36 +62,12 @@ export interface CommentingOptions {
 	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
 	readonly impreciseShapeAnchor: { readonly x: number; readonly y: number }
-	/** Pixels a pin-drag must travel before it counts as a move rather than a click. */
-	readonly dragThreshold: number
 
-	// ── Clustering / animation tuning ─────────────────────────────────────────────────────────
+	// ── Clustering tuning ─────────────────────────────────────────────────────────────────────
 	/** Screen-pixel margin by which the viewport is inflated when culling cluster badges. */
 	readonly clusterCullMargin: number
-	/** Cross-fade duration (ms) when cluster nodes enter/exit. */
-	readonly clusterFadeMs: number
-	/** Duration (ms) of the click-a-badge zoom-to-split animation. */
-	readonly clusterExpandZoomMs: number
 	/** How far past a cluster's split zoom to land when expanding it (1.05 = 5% overshoot). */
 	readonly clusterSplitZoomFactor: number
-	/** Duration (ms) of the center-on-thread camera animation (focus, deep link). */
-	readonly focusAnimationMs: number
-
-	// ── Shortcuts ────────────────────────────────────────────────────────────────────────────
-	/** Whether Shift+C toggles comment-pin visibility (matching Figma). */
-	readonly enableVisibilityShortcut: boolean
-	/** Close the open thread on Escape. */
-	readonly closeThreadOnEscape: boolean
-
-	// ── Deep links / sidebar ──────────────────────────────────────────────────────────────────
-	/** URL search param read for deep links. Default `'comment'`. */
-	readonly deepLinkParam: string
-	/** Tool ids that reveal the comments sidebar. Default `['comment']`. */
-	readonly sidebarTools: readonly string[]
-	/** Initial sidebar filter state. */
-	readonly defaultSidebarFilters: SidebarFilters
-	/** Whether comment pins start hidden. */
-	readonly initiallyHidden: boolean
 
 	// ── Components ────────────────────────────────────────────────────────────────────────────
 	/** Component overrides. See {@link CommentingComponents}. */
@@ -115,25 +82,11 @@ export interface CommentingOptions {
 export const defaultCommentingOptions = {
 	history: 'ignore',
 	dragHistory: undefined,
-	enableResolve: true,
-	enableDelete: true,
-	enableEdit: true,
-	enableDragToMove: true,
 	enableClustering: true,
 	enableDeepLinks: true,
 	impreciseShapeAnchor: { x: 1, y: 0 },
-	dragThreshold: 4,
 	clusterCullMargin: 120,
-	clusterFadeMs: 150,
-	clusterExpandZoomMs: 450,
 	clusterSplitZoomFactor: 1.05,
-	focusAnimationMs: 200,
-	enableVisibilityShortcut: true,
-	closeThreadOnEscape: true,
-	deepLinkParam: 'comment',
-	sidebarTools: ['comment'],
-	defaultSidebarFilters: DEFAULT_SIDEBAR_FILTERS,
-	initiallyHidden: false,
 	components: {},
 } as const satisfies CommentingOptions
 
