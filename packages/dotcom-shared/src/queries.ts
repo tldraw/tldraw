@@ -41,15 +41,14 @@ export const queries = defineQueries({
 	),
 
 	/**
-	 * Comments on files the current user can access, for the app-level notifications feed. Access is
-	 * scoped to files the user has a file_state for (i.e. has opened/owns), mirroring the fileStates
-	 * query. The in-document view reads comments from the tldraw file room, not this query. (Group
-	 * files the user hasn't opened are out of scope for now.)
+	 * Recent comments across every file the current user can access, for the app-level notifications
+	 * feed. Access is scoped to files the user has a file_state for (i.e. has opened/owns), mirroring
+	 * the fileStates query.
 	 *
 	 * Bounded to the most recent {@link RECENT_COMMENTS_LIMIT} so the synced set stays finite as a
-	 * workspace ages, rather than growing without limit. The canvas comment layer also reads this
-	 * query for read receipts and author names, so a comment older than the window won't surface an
-	 * unread marker on the canvas — an acceptable trade for a bounded sync.
+	 * workspace ages, rather than growing without limit. This is a display feed — the canvas comment
+	 * layer reads {@link fileComments} instead, which is scoped to one file and unbounded so every
+	 * unread pin resolves regardless of age.
 	 */
 	comments: defineQuery(({ ctx }) =>
 		zql.comment
@@ -64,6 +63,22 @@ export const queries = defineQueries({
 			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
 			.orderBy('createdAt', 'desc')
 			.limit(RECENT_COMMENTS_LIMIT)
+	),
+
+	/**
+	 * Every comment on a single file, for the canvas comment layer's read receipts and author-name
+	 * resolution. Scoped to the file the user is viewing and access-checked against their file_state,
+	 * and deliberately unbounded — one file's comments are naturally finite, and the canvas must
+	 * resolve an unread pin for every comment however old. The cross-file feed uses {@link comments}.
+	 */
+	fileComments: defineQuery(({ ctx, args }: { ctx: ZeroContext; args: { fileId: string } }) =>
+		zql.comment
+			.where('fileId', '=', args.fileId)
+			.whereExists('file', (file) =>
+				file.whereExists('states', (s) => s.where('userId', '=', ctx.userId))
+			)
+			.related('author', (author) => author.one())
+			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
 	),
 })
 
