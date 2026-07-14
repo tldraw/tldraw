@@ -118,21 +118,24 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	const pending = usePendingComment()
 	const openId = useValue('open thread id', () => openThreadId.get(), [])
 	const { impreciseShapeAnchor } = props
-	// Threads whose anchor has moved (by any means — drag, nudge, align, undo, a collaborator)
-	// since the rendered clustering was built. They pop out of clustering and render as live pins,
-	// and only rejoin at the next zoom event, when everything re-clusters anyway.
-	const [movedThreadIds, setMovedThreadIds] = useState<ReadonlySet<string>>(EMPTY_SET)
+	// Threads held out of clustering, rendered as live pins until they rejoin on the next
+	// zoom-out. Two ways in: (1) the thread's anchor moved (drag, nudge, align, undo, a
+	// collaborator) while it was folded in a badge; (2) the thread was added in the same rebuild
+	// as a removal — removals adopt immediately (ghost prevention), and without holding the
+	// additions out they would ride that adoption and merge without any zoom. Remote edits are
+	// applied in coalesced batches, so mixed add+remove rebuilds are routine in multiplayer.
+	const [heldThreadIds, setHeldThreadIds] = useState<ReadonlySet<string>>(EMPTY_SET)
 	const adoptOnRebuild = useRef(false)
 	const clusterLeaves = useValue(
 		'comment cluster leaves',
 		() =>
 			collectClusterLeaves(
 				editor,
-				threads.filter((thread) => !movedThreadIds.has(thread.id)),
+				threads.filter((thread) => !heldThreadIds.has(thread.id)),
 				openThreadId.get(),
 				impreciseShapeAnchor
 			),
-		[editor, threads, impreciseShapeAnchor, movedThreadIds]
+		[editor, threads, impreciseShapeAnchor, heldThreadIds]
 	)
 	const clusterZoomBounds = useValue(
 		'comment cluster zoom bounds',
@@ -153,18 +156,48 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	// badge counts never linger.
 	const [renderedModel, setRenderedModel] = useState(latestModel)
 	let clusterModel = renderedModel
+	// adoptOnRebuild is set by the rejoin reaction below, outside React's render cycle, paired
+	// with clearing heldThreadIds. Only trust it once that pairing is actually visible here
+	// (heldThreadIds confirmed empty) — an unrelated re-render can land in the gap between the
+	// ref being set and the state update it was paired with being applied, and reading the ref
+	// on its own there would force-adopt (or wrongly discard the intent to force-adopt) before
+	// the rejoin it belongs to has actually happened.
+	const rejoinPending = heldThreadIds.size === 0 && adoptOnRebuild.current
 	if (
 		renderedModel !== latestModel &&
-		(adoptOnRebuild.current || hasRemovedLeaves(renderedModel.table, latestModel.table))
+		(rejoinPending || hasRemovedLeaves(renderedModel.table, latestModel.table))
 	) {
+		// A removal must adopt immediately, but additions must not ride along with it — a rebuild
+		// can contain both at once (a coalesced multiplayer batch, or a removal landing while an
+		// addition was still deferred), and adopting it whole would merge the additions with no
+		// zoom. Hold the added leaves out first: they render as live pins below, the input
+		// recomputes without them, and the next render adopts a rebuild that is removal-only.
+		// A rejoin adoption is the opposite case — it IS the zoom-out, so additions fold in.
+		const addedIds = rejoinPending ? [] : findAddedLeafIds(renderedModel.table, latestModel.table)
+		if (addedIds.length > 0) {
+			// eslint-disable-next-line no-console
+			console.debug(
+				`[comments] holding additions out of a removal adoption: ${addedIds.join(', ')}`
+			)
+			const next = new Set(heldThreadIds)
+			for (const id of addedIds) next.add(id)
+			setHeldThreadIds(next)
+		} else {
+			adoptOnRebuild.current = false
+			// Carryover seed: events inside their hysteresis band inherit the outgoing partition's
+			// merged/unmerged state instead of the geometric-mean tiebreak, so untouched pins never
+			// snap together (or apart) just because the model was swapped. Idempotent, so safe to
+			// run during render.
+			latestModel.runtime.seedFrom(editor.getZoomLevel(), renderedModel.runtime.getVisible())
+			setRenderedModel(latestModel)
+			clusterModel = latestModel
+		}
+	} else if (heldThreadIds.size === 0 && renderedModel === latestModel) {
+		// Nothing pending and nothing to adopt: any leftover force-adopt intent no longer applies
+		// to this (already-synced) model. Clear it so it can't survive to force-adopt a later,
+		// unrelated rebuild — this is the actual bug class: a stale true flag firing on some
+		// future comment add/move that has nothing to do with the zoom-out that set it.
 		adoptOnRebuild.current = false
-		// Carryover seed: events inside their hysteresis band inherit the outgoing partition's
-		// merged/unmerged state instead of the geometric-mean tiebreak, so untouched pins never
-		// snap together (or apart) just because the model was swapped. Idempotent, so safe to
-		// run during render.
-		latestModel.runtime.seedFrom(editor.getZoomLevel(), renderedModel.runtime.getVisible())
-		setRenderedModel(latestModel)
-		clusterModel = latestModel
 	}
 	// Pop-out detection: a leaf folded inside a badge can't follow its anchor (the badge position
 	// is baked into the model), so when its live position drifts from the baked one it ghosts.
@@ -174,15 +207,15 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	if (newlyMovedIds.length > 0) {
 		// eslint-disable-next-line no-console
 		console.debug(`[comments] pins popped out of clustering: ${newlyMovedIds.join(', ')}`)
-		const next = new Set(movedThreadIds)
+		const next = new Set(heldThreadIds)
 		for (const id of newlyMovedIds) next.add(id)
-		setMovedThreadIds(next)
+		setHeldThreadIds(next)
 	}
 	// Moved pins rejoin clustering on the next zoom-out motion: clear the set (so the rebuild
 	// includes them again) and adopt that rebuild immediately instead of deferring it. Zooming in
 	// never folds pins into clusters — merging is a zoom-out-only move, matching the runtime.
 	useEffect(() => {
-		if (movedThreadIds.size === 0) return
+		if (heldThreadIds.size === 0) return
 		let lastZoom = editor.getZoomLevel()
 		return react('rejoin moved comment pins on zoom out', () => {
 			const zoom = editor.getZoomLevel()
@@ -190,9 +223,9 @@ export function CanvasComments(props: CanvasCommentsProps) {
 			lastZoom = zoom
 			if (zoom >= prevZoom) return
 			adoptOnRebuild.current = true
-			setMovedThreadIds(EMPTY_SET)
+			setHeldThreadIds(EMPTY_SET)
 		})
-	}, [movedThreadIds, editor])
+	}, [heldThreadIds, editor])
 	// Adopt a pending rebuild only on zoom-out motion: folding deferred additions into clusters is
 	// a merge, and merging only happens while zooming out. While zooming in, the stale table still
 	// splits correctly on its own (split thresholds are direction-safe by the hysteresis invariant).
@@ -214,9 +247,9 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		const latestIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
 		return threads.filter((thread) => latestIds.has(thread.id) && !renderedIds.has(thread.id))
 	}, [clusterModel, latestModel, threads])
-	const movedThreads = useMemo(
-		() => threads.filter((thread) => movedThreadIds.has(thread.id) && thread.id !== openId),
-		[threads, movedThreadIds, openId]
+	const heldThreads = useMemo(
+		() => threads.filter((thread) => heldThreadIds.has(thread.id) && thread.id !== openId),
+		[threads, heldThreadIds, openId]
 	)
 	// Subscribe to the runtime cursor, not the raw zoom: onCamera runs on every zoom tick (two
 	// O(1) threshold checks against the event table) but returns the same integer until a merge
@@ -339,7 +372,7 @@ export function CanvasComments(props: CanvasCommentsProps) {
 			{orphanThreads.map((thread) => (
 				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
 			))}
-			{movedThreads.map((thread) => (
+			{heldThreads.map((thread) => (
 				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
 			))}
 			{openThread && (
@@ -488,6 +521,13 @@ function hasRemovedLeaves(rendered: ClusterTable, latest: ClusterTable): boolean
 	if (rendered.leaves.length === 0) return false
 	const latestIds = new Set(latest.leaves.map((leaf) => leaf.id))
 	return rendered.leaves.some((leaf) => !latestIds.has(leaf.id))
+}
+
+/** Leaves present in the latest table but not the rendered one — additions since the rendered
+ *  clustering was built (local or remote; the store applies both identically). */
+function findAddedLeafIds(rendered: ClusterTable, latest: ClusterTable): string[] {
+	const renderedIds = new Set(rendered.leaves.map((leaf) => leaf.id))
+	return latest.leaves.filter((leaf) => !renderedIds.has(leaf.id)).map((leaf) => leaf.id)
 }
 
 function getClusterZoomBounds(editor: Editor): { minZoom: number; maxZoom: number } {
