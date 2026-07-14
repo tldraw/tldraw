@@ -135,6 +135,21 @@ test.describe('Performance Tests', () => {
 
 		testOutput(await perfSuite.testCanvasZooming())
 	})
+
+	test('Text Shape Creation Performance', async ({
+		page,
+		context,
+		request,
+		browserName,
+		isMobile,
+	}) => {
+		if (isMobile) return
+
+		// The scenario creates its own text shapes, so no heavy board is needed.
+		const perfSuite = await setupPerformanceTest({ page, context, request }, browserName)
+
+		testOutput(await perfSuite.testTextShapeCreation())
+	})
 })
 
 test.describe('Baseline Management', () => {

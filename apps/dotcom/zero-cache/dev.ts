@@ -108,26 +108,6 @@ function spawnManaged(
 	return child
 }
 
-async function runOnce(name: string, command: string, args: string[]) {
-	console.log(`Running ${name}...`)
-	const child = spawn(command, args, {
-		cwd: env.zeroCacheDir,
-		env: childEnv,
-		stdio: 'inherit',
-	})
-
-	await new Promise<void>((resolve, reject) => {
-		child.once('error', reject)
-		child.once('exit', (code, signal) => {
-			if (code === 0) {
-				resolve()
-			} else {
-				reject(new Error(`${name} failed with ${statusFromExit(code, signal)}`))
-			}
-		})
-	})
-}
-
 /**
  * `docker compose up` binds fixed host ports (postgres, pgbouncer). Our own stack
  * (`tldraw_dotcom_dev`) is fine — compose just reattaches to it — but a stack from the old
@@ -271,23 +251,12 @@ async function main() {
 	)
 
 	await waitForPostgres()
-	await runOnce('schema bundle', 'yarn', ['bundle-schema'])
 
 	spawnManaged('migrations', 'yarn', ['migrate', '--signal-success'])
 	await waitForHttpOk(`http://localhost:${DOTCOM_DEV_PORTS.migrations}`, 'migrations')
 	migrationsReady = true
 
-	spawnManaged('schema watch', 'yarn', ['bundle-schema:watch'])
-	spawnManaged('Zero', 'yarn', [
-		'exec',
-		'nodemon',
-		'--watch',
-		'./.schema.js',
-		'--exec',
-		'zero-cache-dev',
-		'--signal',
-		'SIGINT',
-	])
+	spawnManaged('Zero', 'yarn', ['exec', 'zero-cache'])
 
 	await waitForHttpOk(`http://localhost:${DOTCOM_DEV_PORTS.zero}/`, 'Zero')
 	console.log(`Zero is ready at http://localhost:${DOTCOM_DEV_PORTS.zero}/`)

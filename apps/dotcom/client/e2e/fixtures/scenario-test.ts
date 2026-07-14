@@ -508,8 +508,8 @@ class DotcomScenario {
 			.slice(0, MAX_WORKSPACE_NAME_LENGTH)
 		const fileName = opts.fileName ?? this.name('workspace file')
 
-		await this.ensureGroupsReady(opts.owner)
-		await this.ensureGroupsReady(opts.member)
+		await this.goToAndOpenSidebar(opts.owner)
+		await this.goToAndOpenSidebar(opts.member)
 
 		if (!opts.member.email) throw new Error('Workspace member actor is not signed in')
 		const memberUserId = await this.database.getUserIdByEmail(opts.member.email)
@@ -596,10 +596,9 @@ class DotcomScenario {
 		)
 	}
 
-	async ensureGroupsReady(actor: DotcomActor) {
+	async goToAndOpenSidebar(actor: DotcomActor) {
 		if (!actor.email) throw new Error(`Actor ${actor.name} is not signed in`)
 
-		await this.database.ensureGroupsReadyByEmail(actor.email)
 		await actor.goto()
 		await actor.editor.ensureSidebarOpen()
 	}

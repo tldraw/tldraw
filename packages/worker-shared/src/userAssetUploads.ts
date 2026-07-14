@@ -2,11 +2,28 @@ import { retry } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { notFound } from './errors'
 
+export const MAX_R2_OBJECT_NAME_BYTES = 1024
+
 function isTransientWorkerError(error: unknown): boolean {
 	const msg = String(error)
 	return /internal error|connectivity|network connection lost|service temporarily unavailable|proxy request failed|unspecified error|connection (refused|reset|timed?\s?out)/i.test(
 		msg
 	)
+}
+
+function isInvalidObjectNameError(error: unknown): boolean {
+	const msg = String(error)
+	return msg.includes('The specified object name is not valid') || msg.includes('(10020)')
+}
+
+export function isValidR2ObjectName(objectName: string): boolean {
+	return (
+		objectName.length > 0 && new TextEncoder().encode(objectName).length <= MAX_R2_OBJECT_NAME_BYTES
+	)
+}
+
+function invalidObjectNameResponse() {
+	return Response.json({ error: 'Invalid object name' }, { status: 400 })
 }
 
 export const TRANSIENT_RETRY_OPTIONS = {
@@ -71,20 +88,27 @@ export async function handleUserAssetUpload({
 	body: ReadableStream | null
 	headers: Headers
 }): Promise<Response> {
-	const existing = await retry(() => bucket.head(objectName), TRANSIENT_RETRY_OPTIONS)
-	if (existing) {
-		return Response.json({ error: 'Asset already exists' }, { status: 409 })
+	if (!isValidR2ObjectName(objectName)) return invalidObjectNameResponse()
+
+	try {
+		const existing = await retry(() => bucket.head(objectName), TRANSIENT_RETRY_OPTIONS)
+		if (existing) {
+			return Response.json({ error: 'Asset already exists' }, { status: 409 })
+		}
+
+		// Buffer body so retries can re-send (ReadableStream is single-use)
+		const buffer = body ? await new Response(body).arrayBuffer() : null
+
+		const object = await retry(
+			() => bucket.put(objectName, buffer, { httpMetadata: headers }),
+			TRANSIENT_RETRY_OPTIONS
+		)
+
+		return Response.json({ object: objectName }, { headers: { etag: object.httpEtag } })
+	} catch (error) {
+		if (isInvalidObjectNameError(error)) return invalidObjectNameResponse()
+		throw error
 	}
-
-	// Buffer body so retries can re-send (ReadableStream is single-use)
-	const buffer = body ? await new Response(body).arrayBuffer() : null
-
-	const object = await retry(
-		() => bucket.put(objectName, buffer, { httpMetadata: headers }),
-		TRANSIENT_RETRY_OPTIONS
-	)
-
-	return Response.json({ object: objectName }, { headers: { etag: object.httpEtag } })
 }
 
 /**
@@ -127,6 +151,8 @@ export async function handleUserAssetGet({
 	objectName: string
 	context: ExecutionContext
 }): Promise<Response> {
+	if (!isValidR2ObjectName(objectName)) return invalidObjectNameResponse()
+
 	// this cache automatically handles range responses etc.
 	const cacheKey = new Request(request.url, { headers: request.headers })
 	const cachedResponse = await caches.default.match(cacheKey)
@@ -134,10 +160,16 @@ export async function handleUserAssetGet({
 		return cachedResponse
 	}
 
-	const object = await retry(
-		() => bucket.get(objectName, { range: request.headers, onlyIf: request.headers }),
-		TRANSIENT_RETRY_OPTIONS
-	)
+	let object
+	try {
+		object = await retry(
+			() => bucket.get(objectName, { range: request.headers, onlyIf: request.headers }),
+			TRANSIENT_RETRY_OPTIONS
+		)
+	} catch (error) {
+		if (isInvalidObjectNameError(error)) return invalidObjectNameResponse()
+		throw error
+	}
 
 	if (!object) {
 		return notFound()

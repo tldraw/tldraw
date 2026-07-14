@@ -3,13 +3,22 @@ import classNames from 'classnames'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { uniqueId, useDialogs, useGlobalMenuIsOpen, useMaybeEditor, useValue } from 'tldraw'
+import {
+	uniqueId,
+	useContainer,
+	useDialogs,
+	useGlobalMenuIsOpen,
+	useMaybeEditor,
+	useValue,
+} from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
+import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { defineMessages, useMsg } from '../../../utils/i18n'
 import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
+import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 
@@ -21,9 +30,9 @@ const messages = defineMessages({
 /**
  * The fixed top region of the sidebar: a dropdown for switching between the
  * home workspace and the user's other workspaces, followed by action rows for
- * the active workspace. Selecting a workspace opens its top file (first pinned
- * file, otherwise the most recent one), which makes it active (the active
- * workspace is derived from the open file).
+ * the active workspace. Selecting a workspace opens the file the user most
+ * recently had open in it (or its top file if they've visited none), which makes
+ * it active (the active workspace is derived from the open file).
  */
 export function TlaSidebarWorkspaceSwitcher() {
 	const app = useApp()
@@ -75,29 +84,12 @@ export function TlaSidebarWorkspaceSwitcher() {
 	const switchToWorkspace = useSwitchToWorkspace()
 	const handleCreateWorkspace = useCreateWorkspaceDialog()
 	const createWorkspaceLbl = useMsg(messages.createWorkspace)
+	const container = useContainer()
 
 	return (
 		<div className={styles.sidebarSection}>
-			{isOpen && (
-				<div
-					className={styles.sidebarWorkspaceSwitcherOverlay}
-					data-testid="tla-workspace-switcher-overlay"
-					onPointerDown={(e) => {
-						e.stopPropagation()
-					}}
-					onPointerUp={(e) => {
-						e.stopPropagation()
-					}}
-					onClick={(e) => {
-						e.preventDefault()
-						e.stopPropagation()
-						onOpenChange(false)
-					}}
-				/>
-			)}
 			<div className={styles.sidebarWorkspaceSwitcherRoot}>
-				{/* Modal doesn't really work for us here because other elements have explicit pointer-events on. Thus the switcher overlay.*/}
-				<_DropdownMenu.Root open={isOpen} onOpenChange={onOpenChange} modal>
+				<_DropdownMenu.Root open={isOpen} onOpenChange={onOpenChange}>
 					<_DropdownMenu.Trigger asChild>
 						<button
 							className={classNames(
@@ -116,50 +108,53 @@ export function TlaSidebarWorkspaceSwitcher() {
 							<TlaIcon icon="chevron-up-down" className={styles.sidebarWorkspaceSwitcherChevrons} />
 						</button>
 					</_DropdownMenu.Trigger>
-					<_DropdownMenu.Content
-						className={classNames('tlui-menu', styles.sidebarWorkspaceSwitcherMenu)}
-						side="bottom"
-						align="start"
-						sideOffset={4}
-						alignOffset={-4}
-						collisionPadding={8}
-						// Switching workspaces mounts a new canvas that steals focus as it loads.
-						// Ignore that focus shift while still allowing real outside pointer clicks
-						// (for example, clicking the canvas) to dismiss the switcher.
-						onFocusOutside={(e) => e.preventDefault()}
-					>
-						<WorkspaceSwitcherItem
-							isActive={isHome}
-							onSelect={() => switchToWorkspace(homeWorkspaceId)}
-							testId="tla-workspace-switcher-home"
+					<_DropdownMenu.Portal container={container}>
+						<_DropdownMenu.Content
+							className={classNames('tlui-menu', styles.sidebarWorkspaceSwitcherMenu)}
+							side="bottom"
+							align="start"
+							{...TLA_MENU_POSITION}
+							// When the switcher closes because another menu is opening (e.g. a file's
+							// "…" menu), don't restore focus to our trigger — that focus shift would
+							// dismiss the just-opened menu, making it flash. A plain Escape/outside
+							// close (no other menu open) still restores focus for keyboard users.
+							onCloseAutoFocus={(e) => {
+								if (editor?.menus.hasAnyOpenMenus()) e.preventDefault()
+							}}
 						>
-							{homeWorkspaceName ?? myWorkspaceLbl}
-						</WorkspaceSwitcherItem>
-						{workspaces.map((g) => (
 							<WorkspaceSwitcherItem
-								key={`workspace-${g.group.id}`}
-								isActive={g.group.id === activeWorkspaceId}
-								onSelect={() => switchToWorkspace(g.group.id)}
+								isActive={isHome}
+								onSelect={() => switchToWorkspace(homeWorkspaceId)}
+								testId="tla-workspace-switcher-home"
 							>
-								{g.group.name}
+								{homeWorkspaceName ?? myWorkspaceLbl}
 							</WorkspaceSwitcherItem>
-						))}
-						<_DropdownMenu.Separator className={styles.sidebarWorkspaceSwitcherSeparator} />
-						<_DropdownMenu.Item
-							className={classNames(
-								styles.sidebarWorkspaceSwitcherItem,
-								styles.sidebarWorkspaceSwitcherItemCreate,
-								'tla-text_ui__regular'
-							)}
-							onSelect={handleCreateWorkspace}
-							data-testid="tla-create-workspace-menu-item"
-						>
-							<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
-								<TlaIcon icon="plus" />
-								<span className={styles.sidebarTruncatedText}>{createWorkspaceLbl}</span>
-							</span>
-						</_DropdownMenu.Item>
-					</_DropdownMenu.Content>
+							{workspaces.map((g) => (
+								<WorkspaceSwitcherItem
+									key={`workspace-${g.group.id}`}
+									isActive={g.group.id === activeWorkspaceId}
+									onSelect={() => switchToWorkspace(g.group.id)}
+								>
+									{g.group.name}
+								</WorkspaceSwitcherItem>
+							))}
+							<_DropdownMenu.Separator className={styles.sidebarWorkspaceSwitcherSeparator} />
+							<_DropdownMenu.Item
+								className={classNames(
+									styles.sidebarWorkspaceSwitcherItem,
+									styles.sidebarWorkspaceSwitcherItemCreate,
+									'tla-text_ui__regular'
+								)}
+								onSelect={handleCreateWorkspace}
+								data-testid="tla-create-workspace-menu-item"
+							>
+								<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
+									<TlaIcon icon="plus" />
+									<span className={styles.sidebarTruncatedText}>{createWorkspaceLbl}</span>
+								</span>
+							</_DropdownMenu.Item>
+						</_DropdownMenu.Content>
+					</_DropdownMenu.Portal>
 				</_DropdownMenu.Root>
 			</div>
 		</div>
@@ -203,9 +198,10 @@ function useSwitchToWorkspace() {
 
 	return useCallback(
 		async (workspaceId: string) => {
-			const files = app.getWorkspaceFilesSorted(workspaceId)
-			if (files.length) {
-				navigate(routes.tlaFile(files[0]!.fileId))
+			// Open the file the user last had open here, not just the top of the pinned-first list.
+			const mostRecentFileId = app.getMostRecentFileId(workspaceId)
+			if (mostRecentFileId) {
+				navigate(routes.tlaFile(mostRecentFileId))
 				return
 			}
 			// A workspace created moments ago may still be seeding its welcome file: the
@@ -244,6 +240,7 @@ function useCreateWorkspaceDialog() {
 	const navigate = useNavigate()
 	const { addDialog } = useDialogs()
 	const switchToWorkspace = useSwitchToWorkspace()
+	const trackEvent = useTldrawAppUiEvents()
 
 	return useCallback(() => {
 		addDialog({
@@ -258,6 +255,7 @@ function useCreateWorkspaceDialog() {
 							app.showMutationRejectionToast((e as Error).message as ZErrorCode)
 							return
 						}
+						trackEvent('create-workspace', { source: 'sidebar' })
 						// Seed the workspace's welcome file once, here at creation, and open it
 						// directly (not via switchToWorkspace, whose empty-workspace path would
 						// otherwise create a blank file before the welcome file lands).
@@ -274,5 +272,5 @@ function useCreateWorkspaceDialog() {
 				/>
 			),
 		})
-	}, [app, addDialog, navigate, switchToWorkspace])
+	}, [app, addDialog, navigate, switchToWorkspace, trackEvent])
 }

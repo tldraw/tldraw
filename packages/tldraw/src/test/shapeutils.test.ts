@@ -611,3 +611,73 @@ describe('When interacting with a shape...', () => {
 		expect(calls).toEqual(['start', 'change', 'change', 'cancel'])
 	})
 })
+
+describe('onChildrenChange', () => {
+	it('fires when a shape is created with a parentId pointing at an existing shape', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+		const fn = vi.fn()
+		util.onChildrenChange = fn
+
+		editor.createShape({
+			id: createShapeId('newchild'),
+			type: 'geo',
+			parentId: ids.frame1,
+			x: 0,
+			y: 0,
+		})
+
+		expect(fn).toHaveBeenCalledTimes(1)
+		expect(fn).toHaveBeenCalledWith(editor.getShape(ids.frame1))
+	})
+
+	it('fires when a shape is reparented into an existing shape', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+		const fn = vi.fn()
+		util.onChildrenChange = fn
+
+		editor.reparentShapes([ids.box1], ids.frame1)
+
+		expect(fn).toHaveBeenCalled()
+		expect(fn).toHaveBeenCalledWith(editor.getShape(ids.frame1))
+	})
+
+	it('fires when a child shape is deleted', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+		const fn = vi.fn()
+		util.onChildrenChange = fn
+
+		editor.deleteShape(ids.box2)
+
+		expect(fn).toHaveBeenCalledTimes(1)
+		expect(fn).toHaveBeenCalledWith(editor.getShape(ids.frame1))
+	})
+
+	it('fires when a child shape is duplicated into the same parent', () => {
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
+		const fn = vi.fn()
+		util.onChildrenChange = fn
+
+		editor.duplicateShapes([ids.box2])
+
+		expect(fn).toHaveBeenCalled()
+		expect(fn).toHaveBeenCalledWith(editor.getShape(ids.frame1))
+	})
+
+	it('does not dissolve a group created together with its children in the same operation', () => {
+		const groupId = createShapeId('group1')
+		const childA = createShapeId('childA')
+		const childB = createShapeId('childB')
+
+		// A group dissolves itself via onChildrenChange when it has fewer than two
+		// children. Creating the group and its children in one operation must not
+		// trigger that, since the group is still being assembled.
+		editor.createShapes([
+			{ id: groupId, type: 'group', x: 0, y: 0 },
+			{ id: childA, type: 'geo', parentId: groupId, x: 0, y: 0 },
+			{ id: childB, type: 'geo', parentId: groupId, x: 50, y: 0 },
+		])
+
+		expect(editor.getShape(groupId)).toBeDefined()
+		expect(editor.getSortedChildIdsForParent(groupId)).toEqual([childA, childB])
+	})
+})

@@ -10,9 +10,7 @@ import { expect, test } from '../../fixtures/tla-test'
 // otherwise most recent (creating one if it's empty) — and creating a
 // workspace switches to it.
 test.describe('workspaces', () => {
-	test.beforeEach(async ({ database, editor }) => {
-		await database.migrateUser()
-		await database.enableGroupsFrontend()
+	test.beforeEach(async ({ editor }) => {
 		await editor.isLoaded()
 		await editor.ensureSidebarOpen()
 	})
@@ -63,7 +61,10 @@ test.describe('workspaces', () => {
 			await expect(homeItem).toBeVisible()
 		})
 
-		test('dismissing the switcher does not click a file underneath', async ({ page, sidebar }) => {
+		test('clicking a file while the switcher is open closes it and opens that file', async ({
+			page,
+			sidebar,
+		}) => {
 			const file1 = getRandomName()
 			const file2 = getRandomName()
 			const file3 = getRandomName()
@@ -74,93 +75,74 @@ test.describe('workspaces', () => {
 			await sidebar.expectFileActive(file3)
 
 			await sidebar.openWorkspaceSwitcher()
-			const overlay = page.getByTestId('tla-workspace-switcher-overlay')
-			await expect(overlay).toBeVisible()
+			const homeItem = page.getByTestId('tla-workspace-switcher-home')
+			await expect(homeItem).toBeVisible()
 
-			const target = await page.evaluate(() => {
-				const overlay = document.querySelector<HTMLElement>(
-					'[data-testid="tla-workspace-switcher-overlay"]'
-				)
-				if (!overlay) throw new Error('Missing workspace switcher overlay')
+			// Clicking a file link while the switcher is open should both dismiss the switcher
+			// and open that file — letting the click fall through to the sidebar is intended.
+			const menuBox = await page.locator('[role="menu"]').boundingBox()
+			if (!menuBox) throw new Error('Missing workspace switcher menu')
 
+			const target = await page.evaluate((menuBottom) => {
 				const links = Array.from(
 					document.querySelectorAll<HTMLElement>('[data-element="file-link"]')
 				)
-				for (const link of links.reverse()) {
+				for (const link of links) {
 					if (link.dataset.active === 'true') continue
-
 					const rect = link.getBoundingClientRect()
-					const x = rect.left + rect.width / 2
-					const y = rect.top + rect.height / 2
-					if (
-						!document
-							.elementFromPoint(x, y)
-							?.closest('[data-testid="tla-workspace-switcher-overlay"]')
-					) {
-						continue
-					}
-
+					// Pick a link below the open menu so the click lands on the link, not the menu.
+					if (rect.top < menuBottom) continue
 					return {
 						name: link.querySelector('[data-testid*="-name"]')?.textContent?.trim() ?? '',
-						x,
-						y,
+						x: rect.left + rect.width / 2,
+						y: rect.top + rect.height / 2,
 					}
 				}
 
-				throw new Error('Could not find a file link behind the workspace switcher overlay')
-			})
+				throw new Error('Could not find a non-active file link below the switcher menu')
+			}, menuBox.y + menuBox.height)
 
-			await page.evaluate(({ x, y }) => {
-				const overlay = document.querySelector<HTMLElement>(
-					'[data-testid="tla-workspace-switcher-overlay"]'
-				)
-				if (!overlay) throw new Error('Missing workspace switcher overlay')
+			await page.mouse.click(target.x, target.y)
 
-				overlay.dispatchEvent(
-					new PointerEvent('pointerdown', {
-						bubbles: true,
-						cancelable: true,
-						clientX: x,
-						clientY: y,
-						pointerId: 1,
-						pointerType: 'touch',
-						isPrimary: true,
-					})
-				)
-			}, target)
+			await expect(homeItem).toBeHidden()
+			await sidebar.expectFileActive(target.name)
+		})
 
-			await expect(overlay).toBeVisible()
+		test('closing the mobile sidebar closes open sidebar menus', async ({ page, sidebar }) => {
+			const fileName = getRandomName()
+			await sidebar.createNewDocument(fileName)
 
-			await page.evaluate(({ x, y }) => {
-				const target = document.elementFromPoint(x, y)
-				target?.dispatchEvent(
-					new PointerEvent('pointerup', {
-						bubbles: true,
-						cancelable: true,
-						clientX: x,
-						clientY: y,
-						pointerId: 1,
-						pointerType: 'touch',
-						isPrimary: true,
-					})
-				)
-				target?.dispatchEvent(
-					new MouseEvent('click', {
-						bubbles: true,
-						cancelable: true,
-						clientX: x,
-						clientY: y,
-					})
-				)
-			}, target)
+			await page.setViewportSize({ width: 390, height: 844 })
 
-			await expect(overlay).toBeHidden()
-			await sidebar.expectFileActive(file3)
-			await sidebar.expectFileNotActive(target.name)
+			const mobileToggle = page.getByTestId('tla-sidebar-toggle-mobile')
+			const mobileOverlay = page.getByTestId('tla-sidebar-overlay-mobile')
+			const closeMobileSidebar = async () => {
+				await mobileOverlay.click({ position: { x: 380, y: 422 } })
+				await expect(mobileOverlay).toBeHidden()
+			}
 
+			await expect(mobileToggle).toBeVisible()
+			await mobileToggle.click()
+			await expect(mobileOverlay).toBeVisible()
+
+			// The sidebar only CSS-hides (it doesn't unmount), so an open menu would otherwise
+			// stay open behind it. Closing the mobile sidebar must close the workspace switcher...
 			await sidebar.openWorkspaceSwitcher()
-			await page.getByTestId('tla-workspace-switcher').click()
+			await expect(page.getByTestId('tla-workspace-switcher-home')).toBeVisible()
+			await closeMobileSidebar()
 			await expect(page.getByTestId('tla-workspace-switcher-home')).toBeHidden()
+
+			// ...and a file's context menu.
+			await mobileToggle.click()
+			await expect(mobileOverlay).toBeVisible()
+
+			const fileLink = sidebar.getFileByName(fileName)
+			await fileLink.hover()
+			await fileLink.getByRole('button').click()
+			await expect(page.getByRole('menuitem', { name: 'Rename' })).toBeVisible()
+
+			await closeMobileSidebar()
+			await expect(page.getByRole('menuitem', { name: 'Rename' })).toBeHidden()
 		})
 
 		test('clicking the canvas closes the workspace switcher without reaching the canvas', async ({
@@ -194,41 +176,6 @@ test.describe('workspaces', () => {
 					return editor.getSelectedShapeIds()
 				})
 			).toEqual([shapeId])
-		})
-
-		test('closing the mobile sidebar closes open sidebar menus', async ({ page, sidebar }) => {
-			const fileName = getRandomName()
-			await sidebar.createNewDocument(fileName)
-
-			await page.setViewportSize({ width: 390, height: 844 })
-
-			const mobileToggle = page.getByTestId('tla-sidebar-toggle-mobile')
-			const mobileOverlay = page.getByTestId('tla-sidebar-overlay-mobile')
-			const closeMobileSidebar = async () => {
-				await mobileOverlay.click({ position: { x: 380, y: 422 } })
-				await expect(mobileOverlay).toBeHidden()
-			}
-
-			await expect(mobileToggle).toBeVisible()
-			await mobileToggle.click()
-			await expect(mobileOverlay).toBeVisible()
-
-			await sidebar.openWorkspaceSwitcher()
-			await expect(page.getByTestId('tla-workspace-switcher-home')).toBeVisible()
-
-			await closeMobileSidebar()
-			await expect(page.getByTestId('tla-workspace-switcher-home')).toBeHidden()
-
-			await mobileToggle.click()
-			await expect(mobileOverlay).toBeVisible()
-
-			const fileLink = sidebar.getFileByName(fileName)
-			await fileLink.hover()
-			await fileLink.getByRole('button').click()
-			await expect(page.getByRole('menuitem', { name: 'Rename' })).toBeVisible()
-
-			await closeMobileSidebar()
-			await expect(page.getByRole('menuitem', { name: 'Rename' })).toBeHidden()
 		})
 
 		test('create file button creates in the active workspace', async ({ sidebar }) => {
@@ -475,7 +422,7 @@ test.describe('workspaces', () => {
 			await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 		})
 
-		test('invite already member user to workspace', async ({ sidebar, browser, database }) => {
+		test('invite already member user to workspace', async ({ sidebar, browser }) => {
 			const workspaceName = getRandomName()
 			const fileName = getRandomName()
 			const homeFileName = getRandomName()
@@ -487,9 +434,6 @@ test.describe('workspaces', () => {
 			await sidebar.moveFileToWorkspace(fileName, workspaceName)
 
 			const inviteUrl = await sidebar.copyWorkspaceInviteLink(workspaceName)
-
-			// Migrate invitee to groups backend but not frontend (tests auto-enable)
-			await database.migrateUser(true)
 
 			const parallelIndex = test.info().parallelIndex
 			const { newSidebar, newEditor, newWorkspaceInviteDialog, newContext } = await openNewTab(
@@ -527,7 +471,6 @@ test.describe('workspaces', () => {
 		test('signing in through the invite dialog completes the workspace join', async ({
 			sidebar,
 			browser,
-			database,
 		}) => {
 			const workspaceName = getRandomName()
 			const fileName = getRandomName()
@@ -540,9 +483,6 @@ test.describe('workspaces', () => {
 			await sidebar.moveFileToWorkspace(fileName, workspaceName)
 
 			const inviteUrl = await sidebar.copyWorkspaceInviteLink(workspaceName)
-
-			// Migrate invitee to groups backend but not frontend (tests auto-enable)
-			await database.migrateUser(true)
 
 			const parallelIndex = test.info().parallelIndex
 			const { newPage, newSidebar, newEditor, newWorkspaceInviteDialog, newContext } =

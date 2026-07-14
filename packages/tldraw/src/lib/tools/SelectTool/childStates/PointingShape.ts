@@ -63,17 +63,24 @@ export class PointingShape extends StateNode {
 	override onPointerUp(info: TLPointerEventInfo) {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
-		const zoomLevel = this.editor.getZoomLevel()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 		const additiveSelectionKey = info.shiftKey || info.accelKey
 
 		const hitShape =
 			this.editor.getShapeAtPoint(currentPagePoint, {
-				margin: this.editor.options.hitTestMargin / zoomLevel,
+				margin: this.editor.getHitTestMargin(),
 				hitInside: true,
 				renderingOnly: true,
 			}) ?? this.hitShape
+
+		// The hit shape may have been deleted between pointer down and pointer up
+		// (e.g. by a remote user or an undo), in which case the fallback hitShape
+		// is stale. Bail to idle so we don't dereference a missing shape.
+		if (!this.editor.getShape(hitShape.id)) {
+			this.parent.transition('idle', info)
+			return
+		}
 
 		const selectingShape = hitShape
 			? this.editor.getOutermostSelectableShape(hitShape)

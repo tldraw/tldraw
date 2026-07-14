@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Ali ste prepričani, da želite izbrisati ta delovni prostor? Tega dejanja ni mogoče razveljaviti."
-  },
   "0095a9fa74": {
     "translation": "Izvozi"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Poiščite pomoč pri Discordu"
   },
+  "454aad3b3c": {
+    "translation": "Ali ste prepričani, da želite izbrisati datoteko <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Hvala, ker nam pomagate izboljšati tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Pripni datoteko"
-  },
-  "4908687e50": {
-    "translation": "Ali ste prepričani, da želite pozabiti to datoteko?"
   },
   "49ee308734": {
     "translation": "Ime"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Imate hrošča, težavo ali idejo za tldraw? Sporočite nam! Izpolnite ta obrazec in po potrebi se vam bomo oglasili po e-pošti. Lahko pa tudi <discord>klepetate z nami na Discordu</discord> ali <github>oddate težavo na GitHubu</github>."
   },
+  "81666c6e4a": {
+    "translation": "Ali ste prepričani, da želite pozabiti <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Član"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Preimenuj"
+  },
+  "90646db02d": {
+    "translation": "Ali ste prepričani, da želite izbrisati <strong>{workspaceName}</strong>? Tega dejanja ni mogoče razveljaviti."
   },
   "95aacd4d4a": {
     "translation": "Prijava z Googlom"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Preberite več o skupni rabi."
-  },
-  "c28aed8348": {
-    "translation": "Dovoli <cookies>analytics</cookies>, da nam pomaga izboljšati tldraw."
   },
   "c303bd1095": {
     "translation": "Datoteke ni mogoče objaviti."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Ali ste prepričani, da želite zapustiti ta delovni prostor?"
-  },
-  "fd1be3efcf": {
-    "translation": "Ali ste prepričani, da želite izbrisati to datoteko?"
   },
   "fed5ec05eb": {
     "translation": "Povezava kopirana"

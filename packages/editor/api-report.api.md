@@ -208,6 +208,8 @@ export abstract class BaseFrameLikeShapeUtil<Shape extends TLBaseBoxShape> exten
     onDragShapesOut(shape: Shape, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void;
     // (undocumented)
     providesBackgroundForChildren(): boolean;
+    // (undocumented)
+    shouldClipChild(child: TLShape): boolean;
 }
 
 // @public (undocumented)
@@ -722,6 +724,7 @@ export const defaultTldrawOptions: {
     readonly cameraSlideFriction: 0.09;
     readonly coarseDragDistanceSquared: 36;
     readonly coarseHandleRadius: 20;
+    readonly coarseHitTestMargin: 4;
     readonly coarsePointerWidth: 12;
     readonly collaboratorCheckIntervalMs: 1200;
     readonly collaboratorIdleTimeoutMs: 3000;
@@ -761,7 +764,7 @@ export const defaultTldrawOptions: {
         readonly step: 1;
     }];
     readonly handleRadius: 12;
-    readonly hitTestMargin: 8;
+    readonly hitTestMargin: 3;
     readonly laserDelayMs: 1200;
     readonly laserFadeoutMs: 500;
     readonly longPressDurationMs: 500;
@@ -1128,6 +1131,19 @@ export class Editor extends EventEmitter<TLEventMap> {
                 parentId: TLParentId;
                 props: any;
                 rotation: number;
+                type: "test-persistent";
+                typeName: "shape";
+                x: number;
+                y: number;
+            } | {
+                id: TLShapeId;
+                index: IndexKey;
+                isLocked: boolean;
+                meta: JsonObject;
+                opacity: number;
+                parentId: TLParentId;
+                props: any;
+                rotation: number;
                 type: "test-shape";
                 typeName: "shape";
                 x: number;
@@ -1319,6 +1335,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): IndexKey;
     getHintingShape(): NonNullable<TLShape | undefined>[];
     getHintingShapeIds(): TLShapeId[];
+    getHitTestMargin(): number;
     getHoveredShape(): TLShape | undefined;
     getHoveredShapeId(): null | TLShapeId;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
@@ -1326,6 +1343,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getInstanceState(): TLInstance;
     // (undocumented)
     getIsFocused(): boolean;
+    getIsMounted(): boolean;
     // (undocumented)
     getIsReadonly(): boolean;
     // @internal
@@ -1690,6 +1708,19 @@ export class EditorAtom<T> {
 
 // @public (undocumented)
 export const EditorContext: React_3.Context<Editor | null>;
+
+// @public
+export abstract class EditorManager {
+    constructor(editor: Editor);
+    protected addEditorEvent<E extends keyof TLEventMap>(event: E, fn: (...args: TLEventMap[E]) => void): void;
+    // (undocumented)
+    protected readonly disposables: Set<() => void>;
+    // @internal (undocumented)
+    dispose(): void;
+    // (undocumented)
+    protected readonly editor: Editor;
+    protected register(dispose: () => void): () => void;
+}
 
 // @public (undocumented)
 export function EditorProvider({ editor, children }: EditorProviderProps): JSX.Element;
@@ -2184,7 +2215,7 @@ export type HTMLContainerProps = React_2.HTMLAttributes<HTMLDivElement>;
 export const inlineBase64AssetStore: TLAssetStore;
 
 // @public (undocumented)
-export class InputsManager {
+export class InputsManager extends EditorManager {
     constructor(editor: Editor);
     // @deprecated (undocumented)
     get accelKey(): boolean;
@@ -2199,8 +2230,6 @@ export class InputsManager {
     get currentPagePoint(): Vec;
     // @deprecated (undocumented)
     get currentScreenPoint(): Vec;
-    // @internal (undocumented)
-    dispose(): void;
     getAccelKey(): boolean;
     getAltKey(): boolean;
     getCtrlKey(): boolean;
@@ -2597,6 +2626,9 @@ export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
 
 // @public
 export function MenuClickCapture(): false | JSX.Element;
+
+// @public
+export function moveElementInto(parent: HTMLElement, element: HTMLElement): void;
 
 // @internal
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
@@ -3010,6 +3042,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     editor: Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): Box | number;
+    getAppOwnedElement?(shape: Shape): HTMLElement | null;
     // (undocumented)
     getAriaDescriptor(shape: Shape): string | undefined;
     getBoundsSnapGeometry(shape: Shape): BoundsSnapGeometry;
@@ -3058,6 +3091,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     onHandleDragCancel?(current: Shape, info: TLHandleDragInfo<Shape>): void;
     onHandleDragEnd?(current: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void;
     onHandleDragStart?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void;
+    onReleaseAppOwnedElement?(shape: Shape, element: HTMLElement): void;
     onResize?(shape: Shape, info: TLResizeInfo<Shape>): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void;
     onResizeCancel?(initial: Shape, current: Shape): void;
     onResizeEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
@@ -3320,12 +3354,8 @@ export const Table: {
 };
 
 // @public (undocumented)
-export class TextManager {
+export class TextManager extends EditorManager {
     constructor(editor: Editor);
-    // (undocumented)
-    dispose(): void;
-    // (undocumented)
-    editor: Editor;
     measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
         shouldTruncateToFirstLine?: boolean;
     }): {
@@ -3366,14 +3396,12 @@ export class ThemeManager {
 }
 
 // @internal (undocumented)
-export class TickManager {
+export class TickManager extends EditorManager {
     constructor(editor: Editor);
     // (undocumented)
     cancelRaf?: (() => void) | null;
     // (undocumented)
     dispose(): void;
-    // (undocumented)
-    editor: Editor;
     // (undocumented)
     isPaused: boolean;
     // (undocumented)
@@ -3607,6 +3635,8 @@ export interface TLCropInfo<T extends TLShape> {
     // (undocumented)
     initialShape: T;
     // (undocumented)
+    isResizingFromCenter?: boolean;
+    // (undocumented)
     uncroppedSize: {
         h: number;
         w: number;
@@ -3753,6 +3783,8 @@ export interface TldrawOptions {
     readonly coarseDragDistanceSquared: number;
     // (undocumented)
     readonly coarseHandleRadius: number;
+    // (undocumented)
+    readonly coarseHitTestMargin: number;
     // (undocumented)
     readonly coarsePointerWidth: number;
     // (undocumented)
@@ -4082,6 +4114,8 @@ export interface TLEventMap {
     resize: [BoxModel];
     // (undocumented)
     tick: [number];
+    // (undocumented)
+    unmount: [];
     // (undocumented)
     update: [];
 }

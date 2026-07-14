@@ -140,12 +140,6 @@ jobs:
         if: env.DEPLOY_ZERO == 'flyio' || env.DEPLOY_ZERO == 'flyio-multinode'
         uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - name: Install PostgreSQL client
-        if: env.DEPLOY_ZERO == 'flyio' || env.DEPLOY_ZERO == 'flyio-multinode'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-
       - name: Deploy
         run: yarn tsx internal/scripts/deploy-dotcom.ts
         env:

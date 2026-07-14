@@ -22,7 +22,6 @@ import {
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
-import { useHasFlag } from '../../hooks/useHasFlag'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -30,6 +29,7 @@ import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
+import { TLA_MENU_POSITION } from '../tla-menu/tla-menu'
 import { editorMessages } from '../TlaEditor/editor-messages'
 import { downloadAppFile } from '../TlaEditor/useFileEditorOverrides'
 
@@ -83,7 +83,15 @@ export function TlaFileMenu({
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}-${id}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={-16} sideOffset={4}>
+				{/* Sidebar menus hang ~8px over the sidebar's right edge, so they keep the shared
+				    side/collision offsets but override alignOffset (the default is tuned for the
+				    share/select menus, which would leave these looking inset). */}
+				<TldrawUiDropdownMenuContent
+					side="bottom"
+					align="end"
+					{...TLA_MENU_POSITION}
+					alignOffset={-16}
+				>
 					{children ?? fileItemsWhenNoChildren}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
@@ -111,7 +119,6 @@ export function FileItems({
 	const copiedMsg = useMsg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
-	const workspacesEnabled = useHasFlag('groups_frontend')
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
@@ -241,7 +248,7 @@ export function FileItems({
 				)}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
-				{workspacesEnabled && hasAdminRights && (
+				{hasAdminRights && (
 					<TldrawUiMenuSubmenu id="move-to-workspace" label={'Move to'} size="small">
 						<TldrawUiMenuGroup id="workspaces">
 							<TldrawUiMenuCheckboxItem
@@ -291,6 +298,7 @@ export function FileItems({
 														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
 														return
 													}
+													trackEvent('create-workspace', { source })
 													try {
 														await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id })
 															.client

@@ -122,6 +122,44 @@ describe.skip('Edit on type', () => {
 	})
 })
 
+describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () => {
+	// Reproduces https://github.com/tldraw/tldraw/issues/8558: a remote user,
+	// undo, or other actor can delete the pointed-at shape between pointer down
+	// and pointer up. The tool should bail to idle instead of crashing.
+
+	it('does not crash on pointer up when an already-selected shape is deleted', () => {
+		// pre-selecting the shape means didSelectOnEnter is false, so pointer up
+		// runs the selection logic that dereferences the (now deleted) shape
+		editor.select(ids.box1)
+		const shape = editor.getShape(ids.box1)!
+
+		editor.pointerDown(shape.x + 10, shape.y + 10, { target: 'shape', shape })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+
+		expect(() => editor.pointerUp(shape.x + 10, shape.y + 10)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not crash on pointer up when a ctrl-clicked shape is deleted', () => {
+		// ctrl/accel on enter also leaves didSelectOnEnter false
+		const shape = editor.getShape(ids.box1)!
+
+		editor.pointerDown(shape.x + 10, shape.y + 10, {
+			target: 'shape',
+			shape,
+			accelKey: true,
+		})
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+
+		expect(() => editor.pointerUp(shape.x + 10, shape.y + 10)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+})
+
 describe('TLSelectTool.Translating', () => {
 	it('Enters from pointing and exits to idle', () => {
 		const shape = editor.getShape(ids.box1)

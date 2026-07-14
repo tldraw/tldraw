@@ -1,13 +1,8 @@
 /* eslint-disable no-console */
 import { spawnSync } from 'child_process'
-import { existsSync, statSync } from 'fs'
+import { existsSync } from 'fs'
 import { Socket } from 'net'
-import {
-	DOTCOM_DEV_PORTS,
-	getDotcomDevCleanTargets,
-	getDotcomDevEnv,
-	type DotcomDevEnv,
-} from './dev-env'
+import { DOTCOM_DEV_PORTS, getDotcomDevCleanTargets, getDotcomDevEnv } from './dev-env'
 
 const env = getDotcomDevEnv()
 const targets = getDotcomDevCleanTargets(env)
@@ -56,18 +51,6 @@ function checkDockerVolume(name: string) {
 	return { ok: result.status === 0, detail: result.status === 0 ? 'exists' : 'missing' }
 }
 
-function checkSchemaFreshness(devEnv: DotcomDevEnv) {
-	if (!existsSync(devEnv.schemaFile)) return { ok: false, detail: 'missing' }
-	if (!existsSync(devEnv.schemaSourceFile)) return { ok: false, detail: 'source missing' }
-
-	const schema = statSync(devEnv.schemaFile)
-	const source = statSync(devEnv.schemaSourceFile)
-	if (schema.mtimeMs >= source.mtimeMs) {
-		return { ok: true, detail: 'fresh' }
-	}
-	return { ok: false, detail: 'stale' }
-}
-
 async function main() {
 	const postgresPort = await checkPort(DOTCOM_DEV_PORTS.postgres)
 	const pgbouncerPort = await checkPort(DOTCOM_DEV_PORTS.pgbouncer)
@@ -75,7 +58,6 @@ async function main() {
 	const zero = await checkHttp(`http://localhost:${DOTCOM_DEV_PORTS.zero}/`, true)
 	const syncWorker = await checkHttp(`http://localhost:${DOTCOM_DEV_PORTS.syncWorker}/`, false)
 	const volume = checkDockerVolume(targets.postgresVolumeName)
-	const schema = checkSchemaFreshness(env)
 
 	console.log('Dotcom dev doctor')
 	console.log('')
@@ -89,7 +71,6 @@ async function main() {
 	console.log(
 		`Wrangler state: ${env.wranglerPersistDir} - ${existsSync(env.wranglerPersistDir) ? 'exists' : 'missing'}`
 	)
-	console.log(`Generated schema: ${env.schemaFile} - ${formatStatus(schema.ok, schema.detail)}`)
 	console.log('')
 	console.log('Ports and services')
 	console.log(`Postgres ${DOTCOM_DEV_PORTS.postgres}: ${formatStatus(postgresPort)}`)

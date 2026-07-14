@@ -149,6 +149,9 @@
   "46137245cd": {
     "translation": "Thanks for helping us improve tldraw!"
   },
+  "46de2de6bb": {
+    "translation": "Accept terms of use"
+  },
   "477df802ca": {
     "translation": "To continue editing please copy the file to your files."
   },
@@ -494,9 +497,6 @@
   },
   "c2276c9127": {
     "translation": "Learn more about sharing."
-  },
-  "c28aed8348": {
-    "translation": "Allow <cookies>analytics</cookies> to help us improve tldraw."
   },
   "c303bd1095": {
     "translation": "Unable to publish the file."

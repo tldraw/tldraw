@@ -104,6 +104,44 @@ describe('Editor.deleteShapes', () => {
 		expect(editor.getShape(ids.box4)).toBeUndefined()
 	})
 
+	it('cleans selected ids from page state once when deleting many selected shapes', () => {
+		const shapeIds = Array.from({ length: 32 }, (_, i) => createShapeId(`bulk-${i}`))
+		editor.createShapes(
+			shapeIds.map((id, i) => ({
+				id,
+				type: 'geo',
+				x: i * 10,
+				y: i * 10,
+				props: { w: 100, h: 100 },
+			}))
+		)
+
+		editor.setSelectedShapes(shapeIds)
+		editor.markHistoryStoppingPoint('before deleting')
+
+		const putSpy = vi.spyOn(editor.store, 'put')
+
+		editor.deleteShapes(editor.getSelectedShapeIds())
+
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(shapeIds.every((id) => !editor.getShape(id))).toBe(true)
+
+		const pageStatePutCalls = putSpy.mock.calls.filter(([records]) =>
+			records.some((record) => record.typeName === 'instance_page_state')
+		)
+		expect(pageStatePutCalls).toHaveLength(1)
+		expect(pageStatePutCalls[0][0]).toMatchObject([
+			{ typeName: 'instance_page_state', selectedShapeIds: [] },
+		])
+
+		putSpy.mockRestore()
+
+		editor.undo()
+
+		expect(shapeIds.every((id) => editor.getShape(id))).toBe(true)
+		expect(editor.getSelectedShapeIds()).toEqual(shapeIds)
+	})
+
 	it('does not crash when deleting a bent arrow and two adjacent bound shapes', () => {
 		const leftId = createShapeId('left')
 		const rightId = createShapeId('right')

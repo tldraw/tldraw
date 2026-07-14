@@ -42,6 +42,32 @@ test.describe('signed in user on own file', () => {
 		expect(await shareMenu.publishTabPage.isVisible()).toBe(true)
 	})
 
+	test('a select inside the menu closes without closing the menu', async ({ page, shareMenu }) => {
+		await shareMenu.open()
+		await shareMenu.exportTabButton.click()
+		await expect(shareMenu.exportTabPage).toBeVisible()
+
+		const themeSelect = page.locator('#tla-export-theme-select')
+
+		// Selecting an option closes the select but leaves the share menu open.
+		await themeSelect.click()
+		await expect(page.getByRole('listbox')).toBeVisible()
+		await page.getByRole('option').last().click()
+		await expect(page.getByRole('listbox')).toHaveCount(0)
+		await expect(shareMenu.exportTabPage).toBeVisible()
+
+		// Re-clicking the open select's trigger also closes only the select. The trigger
+		// is non-interactive while the select is open (Radix disables outside pointer
+		// events), so click its position directly rather than via the locator.
+		await themeSelect.click()
+		await expect(page.getByRole('listbox')).toBeVisible()
+		const box = await themeSelect.boundingBox()
+		if (!box) throw new Error('theme select not found')
+		await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+		await expect(page.getByRole('listbox')).toHaveCount(0)
+		await expect(shareMenu.exportTabPage).toBeVisible()
+	})
+
 	test('can unshare and reshare', async ({ page, browser, shareMenu }) => {
 		// Copy the link to the current file
 		await shareMenu.open()
@@ -57,7 +83,7 @@ test.describe('signed in user on own file', () => {
 
 		// The second page should have the share button and not the error
 		await expect(newShareMenu.shareButton).toBeVisible()
-		await expect(newPage.getByTestId('tla-error-icon')).not.toBeVisible()
+		await expect(newPage.getByTestId('tla-error')).not.toBeVisible()
 
 		// Now unshare it it...
 		await page.getByTestId('shared-link-shared-switch').click()
@@ -68,7 +94,7 @@ test.describe('signed in user on own file', () => {
 
 		// The second page should have an error and not the share button
 		await expect(newShareMenu.shareButton).not.toBeVisible()
-		await expect(newPage.getByTestId('tla-error-icon')).toBeVisible()
+		await expect(newPage.getByTestId('tla-error')).toBeVisible()
 
 		// Now reshare it...
 		await page.getByTestId('shared-link-shared-switch').click()
@@ -79,7 +105,7 @@ test.describe('signed in user on own file', () => {
 
 		// The second page should have the share button and not the error again
 		await expect(newShareMenu.shareButton).toBeVisible()
-		await expect(newPage.getByTestId('tla-error-icon')).not.toBeVisible()
+		await expect(newPage.getByTestId('tla-error')).not.toBeVisible()
 
 		await newContext.close()
 	})
