@@ -44,7 +44,13 @@ import { pendingComment, PendingComment, regionBetween, regionDraft } from './co
 import { commentsHidden, toggleCommentsHidden } from './comments-visibility'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
-import { anchorPagePoint, openThreadId, shapeAnchorAt } from './thread-state'
+import {
+	anchorPagePoint,
+	openThreadId,
+	REGION_PIN_CORNER,
+	regionPinPoint,
+	shapeAnchorAt,
+} from './thread-state'
 import './canvas.css'
 
 /**
@@ -691,13 +697,18 @@ function RegionDraftBox({ editor }: { editor: Editor }) {
 	return <RegionBox editor={editor} box={box} />
 }
 
-// The three resizable corners (the top-right corner is the move pin, so it has no handle). `cx/cy`
-// place the handle within the box; `fx/fy` are its diagonally-opposite corner, which stays fixed.
-const REGION_HANDLES = [
-	{ key: 'tl', cx: 0, cy: 0, fx: 1, fy: 1, cursor: 'nwse-resize' },
-	{ key: 'bl', cx: 0, cy: 1, fx: 1, fy: 0, cursor: 'nesw-resize' },
-	{ key: 'br', cx: 1, cy: 1, fx: 0, fy: 0, cursor: 'nwse-resize' },
+// A region's four corners as normalized 0–1 offsets; the cursor follows each corner's diagonal.
+const REGION_CORNERS = [
+	{ x: 0, y: 0, cursor: 'nwse-resize' },
+	{ x: 1, y: 0, cursor: 'nesw-resize' },
+	{ x: 0, y: 1, cursor: 'nesw-resize' },
+	{ x: 1, y: 1, cursor: 'nwse-resize' },
 ] as const
+
+// Resize handles are every corner except the pin corner, which is the move handle instead.
+const REGION_HANDLES = REGION_CORNERS.filter(
+	(c) => c.x !== REGION_PIN_CORNER.x || c.y !== REGION_PIN_CORNER.y
+)
 
 /** Draggable corner handles that resize a region: each spans a rectangle from its fixed opposite
  *  corner (captured at pointer-down) to the cursor. Previews live, commits on release. */
@@ -721,15 +732,16 @@ function RegionResizeHandles({
 		'region handle points',
 		() =>
 			REGION_HANDLES.map((h) => {
-				const p = editor.pageToViewport({ x: box.x + h.cx * box.w, y: box.y + h.cy * box.h })
-				return { ...h, left: p.x, top: p.y }
+				const p = editor.pageToViewport({ x: box.x + h.x * box.w, y: box.y + h.y * box.h })
+				return { ...h, key: `${h.x}-${h.y}`, left: p.x, top: p.y }
 			}),
 		[editor, box.x, box.y, box.w, box.h]
 	)
 	const startResize =
 		(h: (typeof REGION_HANDLES)[number]) => (e: ReactPointerEvent<HTMLDivElement>) => {
 			e.stopPropagation()
-			fixedRef.current = { x: box.x + h.fx * box.w, y: box.y + h.fy * box.h }
+			// The fixed corner is the pin corner's diagonal opposite: (1 - x, 1 - y) of this handle.
+			fixedRef.current = { x: box.x + (1 - h.x) * box.w, y: box.y + (1 - h.y) * box.h }
 			e.currentTarget.setPointerCapture(e.pointerId)
 		}
 	const onResize = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -1014,8 +1026,12 @@ const ThreadPin = memo(function ThreadPin({
 		setDragPagePoint(null)
 		let anchor: TLCommentThread['anchor']
 		if (thread.anchor.type === 'region') {
-			// Translate so the pin (the region's top-right corner) lands at the drop; size unchanged.
-			anchor = { ...thread.anchor, x: pagePoint.x - thread.anchor.w, y: pagePoint.y }
+			// Translate so the pin (the region's pin corner) lands at the drop; size unchanged.
+			anchor = {
+				...thread.anchor,
+				x: pagePoint.x - REGION_PIN_CORNER.x * thread.anchor.w,
+				y: pagePoint.y - REGION_PIN_CORNER.y * thread.anchor.h,
+			}
 		} else {
 			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
 			anchor = hit
@@ -1025,19 +1041,21 @@ const ThreadPin = memo(function ThreadPin({
 		editor.run(() => editor.store.put([{ ...thread, anchor } as any]), { history: 'ignore' })
 	}
 
-	// The pin (and its popover) track the live edit: a resize moves it to the region's top-right
-	// corner, a move to the drag point; otherwise it sits at the stored anchor's viewport point.
-	const livePinPage = resizeBounds
-		? { x: resizeBounds.x + resizeBounds.w, y: resizeBounds.y }
-		: dragPagePoint
+	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
+	// move to the drag point; otherwise it sits at the stored anchor's viewport point.
+	const livePinPage = resizeBounds ? regionPinPoint(resizeBounds) : dragPagePoint
 	const renderPoint = livePinPage ? editor.pageToViewport(livePinPage) : point
 
-	// A region's live box bounds, by priority: a corner resize, else a pin-drag translation (top-right
+	// A region's live box bounds, by priority: a corner resize, else a pin-drag translation (the pin
 	// corner tracks the cursor), else the stored anchor. Undefined for non-region threads.
 	const regionAnchor = thread.anchor.type === 'region' ? thread.anchor : undefined
 	const movedRegion =
 		regionAnchor && dragPagePoint
-			? { ...regionAnchor, x: dragPagePoint.x - regionAnchor.w, y: dragPagePoint.y }
+			? {
+					...regionAnchor,
+					x: dragPagePoint.x - REGION_PIN_CORNER.x * regionAnchor.w,
+					y: dragPagePoint.y - REGION_PIN_CORNER.y * regionAnchor.h,
+				}
 			: regionAnchor
 	const regionBoxBounds = resizeBounds ?? movedRegion
 	const commitResize = (bounds: BoxModel) => {

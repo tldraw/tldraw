@@ -1,12 +1,12 @@
 import { atom, BoxModel, StateNode, TLCommentAnchor, TLUiOverrides, VecLike } from 'tldraw'
-import { shapeAnchorAt } from './thread-state'
+import { regionPinPoint, shapeAnchorAt } from './thread-state'
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
  *  to. Shared between the tool (which sets it on click) and the overlay (which renders the
  *  composer). Null when nothing is being placed. */
 export interface PendingComment {
 	anchor: TLCommentAnchor
-	/** Page point where the composer opens (the click location, or a region's bottom-left). */
+	/** Page point where the composer opens (the click location, or a region's pin corner). */
 	point: VecLike
 }
 
@@ -93,7 +93,7 @@ class CommentDragging extends StateNode {
 		this.updateDraft()
 	}
 
-	// Commit the dragged rectangle as a region anchor; the composer opens at its bottom-left.
+	// Commit the dragged rectangle as a region anchor; the composer opens at its pin corner.
 	override onPointerUp() {
 		const { editor } = this
 		const region = regionBetween(
@@ -103,7 +103,7 @@ class CommentDragging extends StateNode {
 		regionDraft.set(null)
 		pendingComment.set({
 			anchor: { type: 'region', ...region },
-			point: { x: region.x, y: region.y + region.h },
+			point: regionPinPoint(region),
 		})
 		editor.setCurrentTool('select')
 	}
