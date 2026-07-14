@@ -175,10 +175,6 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		// A rejoin adoption is the opposite case — it IS the zoom-out, so additions fold in.
 		const addedIds = rejoinPending ? [] : findAddedLeafIds(renderedModel.table, latestModel.table)
 		if (addedIds.length > 0) {
-			// eslint-disable-next-line no-console
-			console.debug(
-				`[comments] holding additions out of a removal adoption: ${addedIds.join(', ')}`
-			)
 			const next = new Set(heldThreadIds)
 			for (const id of addedIds) next.add(id)
 			setHeldThreadIds(next)
@@ -205,8 +201,6 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	// re-clusters the rest of its pile immediately; the pin itself renders live below.
 	const newlyMovedIds = findMovedClusteredLeafIds(clusterModel, latestModel)
 	if (newlyMovedIds.length > 0) {
-		// eslint-disable-next-line no-console
-		console.debug(`[comments] pins popped out of clustering: ${newlyMovedIds.join(', ')}`)
 		const next = new Set(heldThreadIds)
 		for (const id of newlyMovedIds) next.add(id)
 		setHeldThreadIds(next)
@@ -264,12 +258,9 @@ export function CanvasComments(props: CanvasCommentsProps) {
 		[clusterModel, editor]
 	)
 	const visibleNodes = useMemo(() => {
-		const nodes = Array.from(clusterModel.runtime.getVisible().values())
-		// eslint-disable-next-line no-console
-		console.debug(
-			`[comments] cluster cursor k=${clusterCursor} → re-rendering ${nodes.length} visible nodes`
-		)
-		return nodes
+		return Array.from(clusterModel.runtime.getVisible().values())
+		// The runtime mutates its visible map in place; clusterCursor is its version stamp.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [clusterModel, clusterCursor])
 	const fadeNodes = useFadeVisibleNodes(visibleNodes, clusterModel)
 	const threadsById = useMemo(
