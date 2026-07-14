@@ -28,6 +28,7 @@ import {
 	usePassThroughWheelEvents,
 	useTranslation,
 	useValue,
+	VecLike,
 } from 'tldraw'
 import { computeClusterTable } from '../clustering/computeClusterTable'
 import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
@@ -49,13 +50,7 @@ import {
 	RegionCommentOptions,
 	setRegionCommentOptions,
 } from './region-options'
-import {
-	anchorPagePoint,
-	openThreadId,
-	REGION_PIN_CORNER,
-	regionPinPoint,
-	shapeAnchorAt,
-} from './thread-state'
+import { anchorPagePoint, openThreadId, regionPinPoint, shapeAnchorAt } from './thread-state'
 import './canvas.css'
 
 /**
@@ -386,7 +381,9 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 				if (node.count === 1) {
 					const thread = threadsById.get(node.id)
 					if (!thread) return null
-					content = <ThreadPin editor={editor} thread={thread} {...props} />
+					content = (
+						<ThreadPin editor={editor} thread={thread} {...props} regionOptions={regionOptions} />
+					)
 				} else {
 					content = <ClusterBadge editor={editor} node={node} onExpand={zoomToClusterSplit} />
 				}
@@ -397,13 +394,31 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 				)
 			})}
 			{orphanThreads.map((thread) => (
-				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
+				<ThreadPin
+					key={thread.id}
+					editor={editor}
+					thread={thread}
+					{...props}
+					regionOptions={regionOptions}
+				/>
 			))}
 			{movedThreads.map((thread) => (
-				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
+				<ThreadPin
+					key={thread.id}
+					editor={editor}
+					thread={thread}
+					{...props}
+					regionOptions={regionOptions}
+				/>
 			))}
 			{openThread && (
-				<ThreadPin key={`open:${openThread.id}`} editor={editor} thread={openThread} {...props} />
+				<ThreadPin
+					key={`open:${openThread.id}`}
+					editor={editor}
+					thread={openThread}
+					{...props}
+					regionOptions={regionOptions}
+				/>
 			)}
 			<RegionDraftBox editor={editor} />
 			{/* Keep the region visible while composing — the drag draft is gone by now, and no thread
@@ -720,25 +735,23 @@ const REGION_CORNERS = [
 	{ x: 1, y: 1, cursor: 'nwse-resize' },
 ] as const
 
-// Resize handles are every corner except the pin corner, which is the move handle instead.
-const REGION_HANDLES = REGION_CORNERS.filter(
-	(c) => c.x !== REGION_PIN_CORNER.x || c.y !== REGION_PIN_CORNER.y
-)
-
 // Screen-space slack around a region's bounds within which its box and handles stay revealed, so
 // the corner handles (which sit on the edge) are comfortably reachable.
 const REGION_HANDLE_MARGIN_PX = 12
 
 /** Draggable corner handles that resize a region: each spans a rectangle from its fixed opposite
- *  corner (captured at pointer-down) to the cursor. Previews live, commits on release. */
+ *  corner (captured at pointer-down) to the cursor. The pin corner has no handle (it's the move
+ *  handle). Previews live, commits on release. */
 function RegionResizeHandles({
 	editor,
 	box,
+	pinCorner,
 	onPreview,
 	onCommit,
 }: {
 	editor: Editor
 	box: BoxModel
+	pinCorner: VecLike
 	onPreview(bounds: BoxModel | null): void
 	onCommit(bounds: BoxModel): void
 }) {
@@ -748,14 +761,15 @@ function RegionResizeHandles({
 	const corners = useValue(
 		'region handle points',
 		() =>
-			REGION_HANDLES.map((h) => {
+			// Every corner except the pin corner, which is the move handle instead.
+			REGION_CORNERS.filter((h) => h.x !== pinCorner.x || h.y !== pinCorner.y).map((h) => {
 				const p = editor.pageToViewport({ x: box.x + h.x * box.w, y: box.y + h.y * box.h })
 				return { ...h, key: `${h.x}-${h.y}`, left: p.x, top: p.y }
 			}),
-		[editor, box.x, box.y, box.w, box.h]
+		[editor, box.x, box.y, box.w, box.h, pinCorner]
 	)
 	const startResize =
-		(h: (typeof REGION_HANDLES)[number]) => (e: ReactPointerEvent<HTMLDivElement>) => {
+		(h: (typeof REGION_CORNERS)[number]) => (e: ReactPointerEvent<HTMLDivElement>) => {
 			e.stopPropagation()
 			// The fixed corner is the pin corner's diagonal opposite: (1 - x, 1 - y) of this handle.
 			fixedRef.current = { x: box.x + (1 - h.x) * box.w, y: box.y + (1 - h.y) * box.h }
@@ -792,8 +806,13 @@ function RegionResizeHandles({
 const ThreadPin = memo(function ThreadPin({
 	editor,
 	thread,
+	regionOptions,
 	...props
-}: CanvasCommentsProps & { editor: Editor; thread: TLCommentThread }) {
+}: Omit<CanvasCommentsProps, 'regionOptions'> & {
+	editor: Editor
+	thread: TLCommentThread
+	regionOptions: RegionCommentOptions
+}) {
 	const {
 		currentUserId,
 		resolveName,
@@ -815,9 +834,11 @@ const ThreadPin = memo(function ThreadPin({
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
 	// The live bounds while a corner handle is resizing the region, else null.
 	const [resizeBounds, setResizeBounds] = useState<BoxModel | null>(null)
-	// A region reveals its box and corner handles while the pointer is within its bounds (plus a
-	// grab margin). Driven by pointer position, not DOM hover, so moving from anywhere in the region
-	// out to a corner handle never loses the affordance — the box stays `pointer-events: none`.
+	// Whether the pin marker is hovered — only consulted by the 'pin-hover' reveal mode.
+	const [pinHovered, setPinHovered] = useState(false)
+	// The 'pointer' reveal mode: is the pointer within the region's bounds (plus a grab margin)?
+	// Driven by pointer position, not DOM hover, so moving from anywhere in the region out to a corner
+	// handle never loses the affordance — the box stays `pointer-events: none`.
 	const pointerInRegion = useValue(
 		'pointer in region',
 		() => {
@@ -830,6 +851,13 @@ const ThreadPin = memo(function ThreadPin({
 		},
 		[editor, thread.anchor, thread.pageId]
 	)
+	// A region's box and handles are revealed while open or mid-resize, plus — per the reveal mode —
+	// while the pointer is within the region ('pointer') or the pin is hovered ('pin-hover').
+	const revealed =
+		open ||
+		resizeBounds != null ||
+		(regionOptions.reveal === 'pointer' && pointerInRegion) ||
+		(regionOptions.reveal === 'pin-hover' && pinHovered)
 	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
 	const markerRef = useRef<HTMLDivElement>(null)
 
@@ -1057,8 +1085,8 @@ const ThreadPin = memo(function ThreadPin({
 			// Translate so the pin (the region's pin corner) lands at the drop; size unchanged.
 			anchor = {
 				...thread.anchor,
-				x: pagePoint.x - REGION_PIN_CORNER.x * thread.anchor.w,
-				y: pagePoint.y - REGION_PIN_CORNER.y * thread.anchor.h,
+				x: pagePoint.x - regionOptions.pinCorner.x * thread.anchor.w,
+				y: pagePoint.y - regionOptions.pinCorner.y * thread.anchor.h,
 			}
 		} else {
 			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
@@ -1071,7 +1099,9 @@ const ThreadPin = memo(function ThreadPin({
 
 	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
 	// move to the drag point; otherwise it sits at the stored anchor's viewport point.
-	const livePinPage = resizeBounds ? regionPinPoint(resizeBounds) : dragPagePoint
+	const livePinPage = resizeBounds
+		? regionPinPoint(resizeBounds, regionOptions.pinCorner)
+		: dragPagePoint
 	const renderPoint = livePinPage ? editor.pageToViewport(livePinPage) : point
 
 	// A region's live box bounds, by priority: a corner resize, else a pin-drag translation (the pin
@@ -1081,8 +1111,8 @@ const ThreadPin = memo(function ThreadPin({
 		regionAnchor && dragPagePoint
 			? {
 					...regionAnchor,
-					x: dragPagePoint.x - REGION_PIN_CORNER.x * regionAnchor.w,
-					y: dragPagePoint.y - REGION_PIN_CORNER.y * regionAnchor.h,
+					x: dragPagePoint.x - regionOptions.pinCorner.x * regionAnchor.w,
+					y: dragPagePoint.y - regionOptions.pinCorner.y * regionAnchor.h,
 				}
 			: regionAnchor
 	const regionBoxBounds = resizeBounds ?? movedRegion
@@ -1098,13 +1128,14 @@ const ThreadPin = memo(function ThreadPin({
 
 	return (
 		<>
-			{regionBoxBounds && (dragPagePoint || open || pointerInRegion || resizeBounds) && (
+			{regionBoxBounds && (dragPagePoint || revealed) && (
 				<RegionBox editor={editor} box={regionBoxBounds} />
 			)}
-			{regionBoxBounds && (open || pointerInRegion || resizeBounds) && !dragPagePoint && (
+			{regionBoxBounds && revealed && !dragPagePoint && regionOptions.resize !== 'none' && (
 				<RegionResizeHandles
 					editor={editor}
 					box={regionBoxBounds}
+					pinCorner={regionOptions.pinCorner}
 					onPreview={setResizeBounds}
 					onCommit={commitResize}
 				/>
@@ -1119,6 +1150,8 @@ const ThreadPin = memo(function ThreadPin({
 					onPointerDown={startDrag}
 					onPointerMove={onDrag}
 					onPointerUp={endDrag}
+					onPointerEnter={() => setPinHovered(true)}
+					onPointerLeave={() => setPinHovered(false)}
 				>
 					<CommentPin resolved={thread.resolved != null} open={open}>
 						{pinContent}

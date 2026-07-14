@@ -7,6 +7,7 @@ import {
 	TLShapeId,
 	VecLike,
 } from 'tldraw'
+import { getRegionCommentOptions } from './region-options'
 
 /** The id of the one open thread (only one popover is open at a time), or null when all closed. */
 export const openThreadId = atom<string | null>('openThreadId', null)
@@ -53,7 +54,7 @@ export function anchorPagePoint(
 		case 'point':
 			return { x: anchor.x, y: anchor.y }
 		case 'region':
-			return regionPinPoint(anchor)
+			return regionPinPoint(anchor, getRegionCommentOptions(editor).pinCorner)
 		case 'page':
 			return null
 	}
