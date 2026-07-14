@@ -1,6 +1,12 @@
-import { preventDefault, useContainer, useEditor, useEditorComponents } from '@tldraw/editor'
+import {
+	preventDefault,
+	useContainer,
+	useEditor,
+	useEditorComponents,
+	useValue,
+} from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { ReactNode, memo, useCallback, useEffect } from 'react'
+import { ReactNode, memo, useCallback, useEffect, useRef } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
@@ -21,6 +27,23 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	const msg = useTranslation()
 
 	const { Canvas } = useEditorComponents()
+
+	// The context menu opens from a right-click in any tool, and from a touch
+	// long-press only in the select tool (where it acts on the selection). A
+	// right-click (fine pointer) is routed through the select tool by the editor; a
+	// long-press in any other tool belongs to that tool's gesture (creating, erasing,
+	// drawing, panning), so it opens nothing.
+	//
+	// The right-click case keys off the pointer type, not the tool, on purpose: a
+	// right-click switches to select synchronously within the same gesture, so gating
+	// it on the tool would race the React render and wrongly suppress the menu. The
+	// select-tool long-press case is safe to gate on the tool — a long-press never
+	// switches tools, so there is nothing to race.
+	const menuCanOpen = useValue(
+		'context menu can open',
+		() => !editor.getInstanceState().isCoarsePointer || editor.isIn('select'),
+		[editor]
+	)
 
 	// When hitting `Escape` while the context menu is open, we want to prevent
 	// the default behavior of losing focus on the shape. Otherwise,
@@ -44,6 +67,13 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 		}
 	}, [editor, preventEscapeFromLosingShapeFocus])
 
+	// On touch devices, the same touch that triggers Radix's long-press open is still
+	// down when the menu mounts. The release fires events the dismissable layer treats
+	// as an outside interaction and closes the menu. We swallow dismissals during a
+	// short grace window after open so the menu stays put until the user actually
+	// interacts again.
+	const suppressDismissUntilRef = useRef(0)
+
 	const cb = useCallback(
 		(isOpen: boolean) => {
 			const body = editor.getContainerDocument().body
@@ -64,8 +94,10 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 					capture: true,
 				})
 
-				// Weird route: selecting locked shapes on long press
 				if (editor.getInstanceState().isCoarsePointer) {
+					suppressDismissUntilRef.current = Date.now() + 500
+
+					// Weird route: selecting locked shapes on long press
 					const selectedShapes = editor.getSelectedShapes()
 					const currentPagePoint = editor.inputs.getCurrentPagePoint()
 
@@ -103,7 +135,14 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 
 	return (
 		<_ContextMenu.Root dir={dir} onOpenChange={handleOpenChange} modal={false}>
-			<_ContextMenu.Trigger onContextMenu={undefined} dir="ltr" disabled={disabled}>
+			<_ContextMenu.Trigger
+				// When suppressed, disabling the trigger stops Radix from opening the
+				// menu, but it also stops Radix from preventing the native contextmenu —
+				// so prevent the browser's own menu ourselves in that case.
+				onContextMenu={menuCanOpen ? undefined : preventDefault}
+				dir="ltr"
+				disabled={disabled || !menuCanOpen}
+			>
 				{Canvas ? <Canvas /> : null}
 			</_ContextMenu.Trigger>
 			{isOpen && (
@@ -115,6 +154,15 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 						alignOffset={-4}
 						collisionPadding={4}
 						onContextMenu={preventDefault}
+						onPointerDownOutside={(e) => {
+							if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
+						}}
+						onInteractOutside={(e) => {
+							if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
+						}}
+						onFocusOutside={(e) => {
+							if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
+						}}
 					>
 						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
 							{content}

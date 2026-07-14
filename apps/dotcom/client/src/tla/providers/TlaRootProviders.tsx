@@ -29,10 +29,11 @@ import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/a
 import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
-import { GroupInviteHandler } from '../components/GroupInviteHandler'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
+import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
+import { useUITheme } from '../hooks/useUITheme'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { hasNotAcceptedLegal } from '../utils/auth'
@@ -94,9 +95,10 @@ if (!PUBLISHABLE_KEY) {
 const CLERK_LOAD_TIMEOUT_MS = 10_000
 
 const CLERK_ERROR_MESSAGES = {
-	header: appMessages.clerkUnavailable.defaultMessage,
-	para1: appMessages.clerkUnavailablePara.defaultMessage,
-	cta: appMessages.refresh.defaultMessage,
+	header: 'Unable to connect',
+	para1:
+		"We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page.",
+	cta: 'Refresh',
 }
 
 export function Component() {
@@ -210,7 +212,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					<DefaultToasts />
 					<DefaultA11yAnnouncer />
 					<PutToastsInApp />
-					<GroupInviteHandler />
+					<WorkspaceInviteHandler />
 					{currentEditor && <TlaCookieConsent />}
 				</TldrawUiContextProvider>
 			</TldrawUiA11yProvider>
@@ -280,7 +282,7 @@ function SignedInProvider({
 						para1: intl.formatMessage(appMessages.clerkUnavailablePara),
 					}}
 					cta={
-						<button onClick={() => window.location.reload()}>
+						<button type="button" onClick={() => window.location.reload()}>
 							{intl.formatMessage(appMessages.refresh)}
 						</button>
 					}
@@ -366,6 +368,7 @@ function ThemeContainer({
 	onThemeChange(theme: 'light' | 'dark' | 'system'): void
 }) {
 	const theme = useValue('theme', () => getLocalSessionState().theme, [])
+	useUITheme()
 
 	useEffect(() => {
 		onThemeChange(theme)

@@ -1,3 +1,4 @@
+// oxlint-disable typescript/no-empty-object-type
 import {
 	BaseBoxShapeUtil,
 	Editor,
@@ -11,12 +12,15 @@ import {
 	SvgExportContext,
 	TLAsset,
 	TLAssetId,
+	TLImageAsset,
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
 	TLShapePartial,
 	Vec,
+	VecModel,
 	WeakCache,
+	createShapeId,
 	fetch,
 	getGlobalDocument,
 	imageShapeMigrations,
@@ -25,7 +29,6 @@ import {
 	modulate,
 	resizeBox,
 	structuredClone,
-	toDomPrecision,
 	useEditor,
 	useUniqueSafeId,
 	useValue,
@@ -34,6 +37,7 @@ import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { getUncroppedSize } from '../shared/crop'
+import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
@@ -49,15 +53,34 @@ async function getDataURIFromURL(url: string): Promise<string> {
 const imageSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
 
 /** @public */
+export interface ImageShapeUtilDisplayValues {}
+
+/** @public */
+export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLImageShape,
+	ImageShapeUtilDisplayValues
+> {}
+
+/** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override type = 'image' as const
 	static override props = imageShapeProps
 	static override migrations = imageShapeMigrations
+	static override handledAssetTypes = ['image'] as const
 
-	override isAspectRatioLocked() {
+	override options: ImageShapeOptions = {
+		getDefaultDisplayValues(): ImageShapeUtilDisplayValues {
+			return {}
+		},
+		getCustomDisplayValues(): Partial<ImageShapeUtilDisplayValues> {
+			return {}
+		},
+	}
+
+	override isAspectRatioLocked(shape: TLImageShape) {
 		return true
 	}
-	override canCrop() {
+	override canCrop(shape: TLImageShape) {
 		return true
 	}
 	override isExportBoundsContainer(): boolean {
@@ -75,6 +98,22 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			flipX: false,
 			flipY: false,
 			altText: '',
+		}
+	}
+
+	override createShapeForAsset(asset: TLAsset, position: VecModel): TLShapePartial | null {
+		const imageAsset = asset as TLImageAsset
+		return {
+			id: createShapeId(),
+			type: 'image',
+			x: position.x,
+			y: position.y,
+			opacity: 1,
+			props: {
+				assetId: imageAsset.id,
+				w: imageAsset.props.w,
+				h: imageAsset.props.h,
+			},
 		}
 	}
 
@@ -131,7 +170,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
 		let resized: TLImageShape = resizeBox(shape, info)
 		const { flipX, flipY } = info.initialShape.props
-		const { scaleX, scaleY, mode } = info
+		const { scaleX, scaleY } = info
 
 		resized = {
 			...resized,
@@ -143,16 +182,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 		if (!shape.props.crop) return resized
 
-		const flipCropHorizontally =
-			// We used the flip horizontally feature
-			(mode === 'scale_shape' && scaleX === -1) ||
-			// We resized the shape past it's bounds, so it flipped
-			(mode === 'resize_bounds' && flipX !== resized.props.flipX)
-		const flipCropVertically =
-			// We used the flip vertically feature
-			(mode === 'scale_shape' && scaleY === -1) ||
-			// We resized the shape past it's bounds, so it flipped
-			(mode === 'resize_bounds' && flipY !== resized.props.flipY)
+		// Mirror the crop whenever the shape is flipped along an axis. This happens both when
+		// using the flip command and when dragging a resize handle (including a group's handle)
+		// past the opposite edge. We can't check for an exact scale of -1 here because a group
+		// flip resizes its children by an arbitrary negative scale, not just -1.
+		const flipCropHorizontally = scaleX < 0
+		const flipCropVertically = scaleY < 0
 
 		const { topLeft, bottomRight } = shape.props.crop
 		resized.props.crop = {
@@ -171,28 +206,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 	component(shape: TLImageShape) {
 		return <ImageShape shape={shape} />
-	}
-
-	indicator(shape: TLImageShape) {
-		const isCropping = this.editor.getCroppingShapeId() === shape.id
-		if (isCropping) return null
-
-		if (shape.props.crop?.isCircle) {
-			return (
-				<ellipse
-					cx={toDomPrecision(shape.props.w / 2)}
-					cy={toDomPrecision(shape.props.h / 2)}
-					rx={toDomPrecision(shape.props.w / 2)}
-					ry={toDomPrecision(shape.props.h / 2)}
-				/>
-			)
-		}
-
-		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLImageShape): Path2D | undefined {

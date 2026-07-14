@@ -22,9 +22,9 @@
 		}
 	},
 	"scripts": {
-		"dev": "vite",
+		"dev": "vite --host",
 		"build": "tsc && vite build",
-		"lint": "cd ../.. && yarn run -T oxlint templates/sync-cloudflare",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"preview": "vite preview"
 	},
 	"dependencies": {
@@ -33,7 +33,6 @@
 		"@tldraw/tlschema": "workspace:*",
 		"cloudflare-workers-unfurl": "^0.0.8",
 		"itty-router": "^5.0.18",
-		"lodash.throttle": "^4.1.1",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-router-dom": "^6.28.2",
@@ -41,13 +40,12 @@
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "^1.29.1",
-		"@types/lodash.throttle": "^4.1.9",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.1",
 		"concurrently": "^9.1.2",
 		"typescript": "^5.8.3",
-		"vite": "^8.0.1",
+		"vite": "^8.0.16",
 		"wrangler": "^4.75.0"
 	}
 }

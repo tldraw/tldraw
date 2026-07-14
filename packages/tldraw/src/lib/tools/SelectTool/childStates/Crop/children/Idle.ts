@@ -7,6 +7,7 @@ import {
 	Vec,
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
+import { updateHoveredOverlayId } from '../../../../selection-logic/updateHoveredOverlayId'
 import { getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {
@@ -20,10 +21,16 @@ export class Idle extends StateNode {
 		if (onlySelectedShape) {
 			this.editor.setCroppingShape(onlySelectedShape.id)
 		}
+
+		updateHoveredOverlayId(this.editor)
 	}
 
 	override onExit() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
+	}
+
+	override onPointerMove() {
+		updateHoveredOverlayId(this.editor)
 	}
 
 	override onCancel() {
@@ -41,6 +48,28 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
+				// Check overlays first — if we hit a crop/resize handle, re-dispatch
+				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
+				const hitOverlay = this.editor.overlays.getOverlayAtPoint(
+					currentPagePoint,
+					this.editor.getHitTestMargin()
+				)
+				if (hitOverlay) {
+					const overlayType = hitOverlay.props.overlayType as string | undefined
+					if (
+						overlayType === 'resize_handle' ||
+						overlayType === 'rotate_handle' ||
+						overlayType === 'mobile_rotate'
+					) {
+						this.onPointerDown({
+							...info,
+							target: 'selection',
+							handle: hitOverlay.props.handle as any,
+						})
+						return
+					}
+				}
+
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
 				if (hitShape && !this.editor.isShapeOfType(hitShape, 'group')) {
 					this.onPointerDown({
@@ -110,9 +139,9 @@ export class Idle extends StateNode {
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		// Without this, the double click's "settle" would trigger the reset
+		// Without this, the double click's settle event would trigger the reset
 		// after the user double clicked the edge to begin cropping
-		if (this.editor.inputs.getShiftKey() || info.phase !== 'up') return
+		if (this.editor.inputs.getShiftKey() || info.phase !== 'down') return
 
 		const croppingShapeId = this.editor.getCroppingShapeId()
 		if (!croppingShapeId) return
@@ -121,6 +150,31 @@ export class Idle extends StateNode {
 
 		const util = this.editor.getShapeUtil(shape)
 		if (!util) return
+
+		// Check overlays first — if we hit a resize/rotate handle, re-dispatch
+		// as a selection event so onDoubleClickEdge fires.
+		if (info.target === 'canvas') {
+			const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
+			const hitOverlay = this.editor.overlays.getOverlayAtPoint(
+				currentPagePoint,
+				this.editor.getHitTestMargin()
+			)
+			if (hitOverlay) {
+				const overlayType = hitOverlay.props.overlayType as string | undefined
+				if (
+					overlayType === 'resize_handle' ||
+					overlayType === 'rotate_handle' ||
+					overlayType === 'mobile_rotate'
+				) {
+					this.onDoubleClick({
+						...info,
+						target: 'selection',
+						handle: hitOverlay.props.handle as any,
+					})
+					return
+				}
+			}
+		}
 
 		if (info.target === 'selection') {
 			util.onDoubleClickEdge?.(shape, info)

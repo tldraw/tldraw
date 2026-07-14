@@ -136,16 +136,16 @@ Since keys are validated client-side and are domain-restricted, exposing them in
 
 ## Data collection
 
-License behavior differs by type:
+Data collection differs by license type:
 
-| License type | Data sent                                             |
-| ------------ | ----------------------------------------------------- |
-| Commercial   | None                                                  |
-| Hobby        | None                                                  |
-| Trial        | License hash and domain (for analytics, no user data) |
-| Unlicensed   | Domain tracking for watermark display                 |
+| License type | Data sent                                  |
+| ------------ | ------------------------------------------ |
+| Commercial   | None                                       |
+| Hobby        | License ID, SDK version, and page URL      |
+| Trial        | License ID, SDK version, and page URL      |
+| Unlicensed   | SDK version and page URL (production only) |
 
-Trial licenses send a hashed version of the license key and deployment URL to tldraw's servers for analytics. No user data, canvas content, or personally identifiable information is collected.
+Trial and hobby licenses ping tldraw's servers with the license ID, SDK version, and deployment URL for analytics. No user data, canvas content, or personally identifiable information is collected. Nothing is sent from development environments.
 
 ## Troubleshooting
 

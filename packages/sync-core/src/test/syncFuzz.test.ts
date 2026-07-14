@@ -2,10 +2,12 @@ import {
 	Editor,
 	TLRecord,
 	TLStore,
+	UserRecordType,
 	computed,
 	createPresenceStateDerivation,
 	createTLSchema,
 	createTLStore,
+	createUserId,
 	isRecordsDiffEmpty,
 	mockUniqueId,
 	uniqueId,
@@ -83,12 +85,13 @@ class FuzzTestInstance extends RandomSource {
 				this.editor = new FuzzEditor(this.id, this.seed, this.store)
 			},
 			presence: createPresenceStateDerivation(
-				computed('', () => ({
-					id: this.id,
-					name: 'test',
-					color: 'red',
-					locale: 'en',
-				}))
+				computed('', () =>
+					UserRecordType.create({
+						id: createUserId(this.id),
+						name: 'test',
+						color: 'red',
+					})
+				)
 			)(this.store),
 		})
 
@@ -285,6 +288,10 @@ test('seed 6820615056006575 - undo/redo page integrity regression', () => {
 })
 test('seed 5279266392988747 - undo/redo page integrity regression', () => {
 	runTest(5279266392988747)
+})
+
+test('seed 8090628137862085 - duplicate index key regression', () => {
+	runTest(8090628137862085)
 })
 
 for (let i = 0; i < NUM_TESTS; i++) {

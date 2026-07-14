@@ -256,6 +256,7 @@ export function getAssetUrls(opts) {
 			'zh-tw': formatAssetUrl('./translations/zh-tw.json', opts),
 		},
 		embedIcons: {
+			canva: formatAssetUrl('./embed-icons/canva.png', opts),
 			codepen: formatAssetUrl('./embed-icons/codepen.png', opts),
 			codesandbox: formatAssetUrl('./embed-icons/codesandbox.png', opts),
 			desmos: formatAssetUrl('./embed-icons/desmos.png', opts),

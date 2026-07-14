@@ -21,16 +21,14 @@ notes: Reading preferences snippet only shows 6 of 15 available getters. Some pa
 User preferences store per-user settings that persist across sessions and synchronize across browser tabs. Access them through `editor.user`:
 
 ```tsx
-import { Tldraw, useEditor } from 'tldraw'
+import { Tldraw, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 function PreferencesPanel() {
 	const editor = useEditor()
 
-	// Read preferences
-	const isDark = editor.user.getIsDarkMode()
-	const animationSpeed = editor.user.getAnimationSpeed()
-	const locale = editor.user.getLocale()
+	// Read preferences reactively
+	const isDark = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
 
 	// Update preferences
 	const toggleDarkMode = () => {
@@ -55,7 +53,7 @@ Preferences fall into three categories: visual settings (color scheme, animation
 
 ## Reading preferences
 
-The `UserPreferencesManager` exposes each preference as a computed value. These are reactive: when you read them, your component automatically re-renders when the value changes.
+The `UserPreferencesManager` exposes each preference as a computed value. These are reactive [signals](/sdk-features/signals): read them inside `useValue` (or another reactive context) and your component re-renders when the value changes.
 
 ```tsx
 // Individual preferences
@@ -107,6 +105,7 @@ When `colorScheme` is `'system'`, the editor tracks the operating system's dark 
 | `edgeScrollSpeed`             | `number`                        | `1`     | Speed multiplier for edge scrolling during drag |
 | `areKeyboardShortcutsEnabled` | `boolean`                       | `true`  | Enable or disable keyboard shortcuts            |
 | `inputMode`                   | `'trackpad' \| 'mouse' \| null` | `null`  | Optimize behavior for input device              |
+| `isZoomDirectionInverted`     | `boolean`                       | `false` | Invert scroll-wheel zoom direction (mouse mode) |
 
 ### Identity properties
 
@@ -128,11 +127,7 @@ const isDark = editor.user.getIsDarkMode()
 // true if colorScheme is 'dark', or 'system' with OS in dark mode
 ```
 
-You can also use the `inferDarkMode` prop on the Tldraw component to automatically infer the initial theme from the user's system preference:
-
-```tsx
-<Tldraw inferDarkMode />
-```
+The editor-level `colorScheme` prop sets the default color scheme. When a user preference is set, it takes priority over the prop. See [Themes](/sdk-features/themes#color-mode) for more.
 
 ## Persistence and synchronization
 
@@ -150,5 +145,4 @@ Preferences are validated using `userTypeValidator` from `@tldraw/editor`. Inval
 
 ## Related examples
 
-- [Toggle dark mode](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/dark-mode-toggle) - Toggle between light and dark mode by changing `colorScheme`.
-- [Infer dark mode](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/infer-dark-mode) - Automatically infer the initial theme from the user's system preference.
+- [Toggle dark mode](/examples/ui/dark-mode-toggle) - Toggle between light and dark mode by changing `colorScheme`.

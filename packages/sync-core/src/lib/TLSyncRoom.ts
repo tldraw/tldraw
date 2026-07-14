@@ -379,8 +379,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		session.debounceTimer = null
 
 		if (session.outstandingDataMessages.length > 0) {
-			session.socket.sendMessage({ type: 'data', data: session.outstandingDataMessages })
-			session.outstandingDataMessages.length = 0
+			// hand the buffer over and start a fresh one, rather than truncating in
+			// place, so sockets that defer serialization don't see an emptied array
+			const data = session.outstandingDataMessages
+			session.outstandingDataMessages = []
+			session.socket.sendMessage({ type: 'data', data })
 		}
 	}
 
@@ -835,6 +838,28 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.broadcastPatch(diff)
 	}
 
+	/**
+	 * Work out whether a client we can't reconcile schemas with is running a newer or older SDK
+	 * than us.
+	 */
+	private getVersionMismatchReason(theirSchema: SerializedSchema) {
+		const ourSchema = this.serializedSchema
+
+		if (theirSchema.schemaVersion > ourSchema.schemaVersion) {
+			return TLSyncErrorCloseEventReason.SERVER_TOO_OLD
+		}
+
+		if (theirSchema.schemaVersion === 2 && ourSchema.schemaVersion === 2) {
+			for (const [sequenceId, theirVersion] of Object.entries(theirSchema.sequences)) {
+				const ourVersion = ourSchema.sequences[sequenceId]
+				if (ourVersion === undefined || theirVersion > ourVersion) {
+					return TLSyncErrorCloseEventReason.SERVER_TOO_OLD
+				}
+			}
+		}
+		return TLSyncErrorCloseEventReason.CLIENT_TOO_OLD
+	}
+
 	private handleConnectRequest(
 		session: RoomSession<R, SessionMeta>,
 		message: Extract<TLSocketClientSentEvent<R>, { type: 'connect' }>
@@ -871,8 +896,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			return
 		}
 		const migrations = this.schema.getMigrationsSince(message.schema)
-		// if the client's store is at a different version to ours, we can't support them
-		if (!migrations.ok || migrations.value.some((m) => m.scope !== 'record' || !m.down)) {
+		if (!migrations.ok) {
+			this.rejectSession(session.sessionId, this.getVersionMismatchReason(message.schema))
+			return
+		}
+		// The client's schema is older than ours, but we can't migrate our data down to their
+		// version (a migration isn't record-scoped or has no down migration), so they're too old.
+		if (migrations.value.some((m) => m.scope !== 'record' || !m.down)) {
 			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return
 		}
@@ -910,7 +940,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				sessionSchema,
 				requiresDownMigrations,
 				{
-					puts: Object.fromEntries([...this.presenceStore.values()].map((p) => [p.id, p])),
+					// Exclude the connecting session's own presence — it will push fresh
+					// data immediately after connecting. Sending the stale record back
+					// would leave an orphaned presence in the client's local store (the
+					// server never echoes a session's own updates back to it).
+					puts: Object.fromEntries(
+						[...this.presenceStore.values()]
+							.filter((p) => p.id !== session.presenceId)
+							.map((p) => [p.id, p])
+					),
 					deletes: [],
 				}
 			)

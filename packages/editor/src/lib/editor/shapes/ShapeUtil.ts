@@ -3,6 +3,7 @@ import { EMPTY_ARRAY } from '@tldraw/state'
 import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
 import {
 	RecordProps,
+	TLAsset,
 	TLHandle,
 	TLParentId,
 	TLPropsMigrations,
@@ -11,14 +12,15 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLUnknownShape,
+	VecModel,
 } from '@tldraw/tlschema'
+import { TLFontFace } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { ReactElement } from 'react'
 import { Box, SelectionHandle } from '../../primitives/Box'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Vec } from '../../primitives/Vec'
 import type { Editor } from '../Editor'
-import { TLFontFace } from '../managers/FontManager/FontManager'
 import { BoundsSnapGeometry } from '../managers/SnapManager/BoundsSnaps'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
 import { TLClickEventInfo } from '../types/event-types'
@@ -31,6 +33,7 @@ export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T
 	type: T['type']
 	props?: RecordProps<T>
 	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
+	handledAssetTypes?: readonly string[]
 }
 
 /**
@@ -169,6 +172,16 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	static type: string
 
 	/**
+	 * The asset types that this shape can be created from.
+	 * When a file is dropped on the canvas, the editor finds the shape util
+	 * whose `handledAssetTypes` includes the asset's type and calls
+	 * {@link ShapeUtil.createShapeForAsset} to produce the shape.
+	 *
+	 * @public
+	 */
+	static handledAssetTypes?: readonly string[]
+
+	/**
 	 * Get the default props for a shape.
 	 *
 	 * @public
@@ -185,6 +198,18 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	getShapeName(_shape: Shape): string | undefined {
 		return undefined
 	}
+
+	/**
+	 * Create a shape partial for placing an asset on the canvas.
+	 * Only called for shapes whose constructor declares matching
+	 * {@link ShapeUtil.handledAssetTypes | `handledAssetTypes`}.
+	 *
+	 * @param asset - The asset to create a shape for.
+	 * @param position - Where to place the shape.
+	 * @returns A shape partial, or null if this shape can't be created for the asset.
+	 * @public
+	 */
+	createShapeForAsset?(asset: TLAsset, position: VecModel): TLShapePartial | null
 
 	/**
 	 * Get the shape's geometry.
@@ -204,42 +229,32 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	abstract component(shape: Shape): any
 
 	/**
-	 * Get JSX describing the shape's indicator (as an SVG element).
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	abstract indicator(shape: Shape): any
-
-	/**
-	 * Whether to use the legacy React-based indicator rendering.
-	 *
-	 * Override this to return `false` if your shape implements {@link ShapeUtil.getIndicatorPath}
-	 * for canvas-based indicator rendering.
-	 *
-	 * @returns `true` to use SVG indicators (default), `false` to use canvas indicators.
-	 * @public
-	 */
-	useLegacyIndicator(): boolean {
-		return true
-	}
-
-	/**
-	 * Get a Path2D for rendering the shape's indicator on the canvas.
-	 *
-	 * When implemented, this is used instead of {@link ShapeUtil.indicator} for more
-	 * efficient canvas-based indicator rendering. Shapes that return `undefined` will
-	 * fall back to SVG-based rendering via {@link ShapeUtil.indicator}.
+	 * Get a Path2D (or a richer object with clip/additional paths) for rendering the
+	 * shape's indicator on the canvas. Shapes that return `undefined` will not render
+	 * an indicator.
 	 *
 	 * For complex indicators that need clipping (e.g., arrows with labels), return an
 	 * object with `path`, `clipPath`, and `additionalPaths` properties.
 	 *
 	 * @param shape - The shape.
-	 * @returns A Path2D to stroke, or an object with clipping info, or undefined to use SVG fallback.
+	 * @returns A Path2D to stroke, or an object with clipping info, or undefined to skip.
 	 * @public
 	 */
-	getIndicatorPath(shape: Shape): TLIndicatorPath | undefined {
-		return undefined
+	abstract getIndicatorPath(shape: Shape): TLIndicatorPath | undefined
+
+	/**
+	 * Get JSX describing the shape's indicator (as an SVG element).
+	 *
+	 * @deprecated SVG indicators are no longer rendered. Override
+	 * {@link ShapeUtil.getIndicatorPath} instead. This stub is retained so legacy
+	 * subclasses that still call `super.indicator()` keep type-checking; new shapes
+	 * should not implement it.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	indicator(_shape: Shape): any {
+		return null
 	}
 
 	/**
@@ -287,7 +302,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 *
 	 * @public
 	 */
-	canBind(_opts: TLShapeUtilCanBindOpts): boolean {
+	canBind(opts: TLShapeUtilCanBindOpts): boolean {
 		return true
 	}
 
@@ -479,6 +494,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	}
 
 	/**
+	 * Whether the shape behaves like a frame — a container that has child shapes,
+	 * requires full-brush selection, blocks erasure from inside, etc.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	isFrameLike(_shape: Shape): boolean {
+		return false
+	}
+
+	/**
 	 * By default, the bounds of an image export are the bounds of all the shapes it contains, plus
 	 * some padding. If an export includes a shape where `isExportBoundsContainer` is true, then the
 	 * padding is skipped _if the bounds of that shape contains all the other shapes_. This is
@@ -531,14 +557,32 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	getHandles?(shape: Shape): TLHandle[]
 
 	/**
-	 * Get whether the shape can receive children of a given type.
+	 * Get whether the shape can receive children of a given type. Used by the drag and drop system
+	 * to decide whether {@link ShapeUtil.onDragShapesIn} should fire when a shape of the given type
+	 * is dragged over this one.
 	 *
 	 * @param shape - The shape.
 	 * @param type - The shape type.
 	 * @public
 	 */
-	canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']) {
+	canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']) {
 		return false
+	}
+
+	/**
+	 * Get whether children of a given type can be removed from this shape. Used by the drag and
+	 * drop system to decide whether {@link ShapeUtil.onDragShapesOut} should fire when a child of
+	 * the given type is dragged out of this shape, and by `kickoutOccludedShapes` to decide
+	 * whether to auto-reparent a child of the given type when it has moved outside this shape's
+	 * geometry. Returning `false` therefore "pins" matching children — they stay parented to this
+	 * shape even when dragged or moved outside it. Defaults to `true`.
+	 *
+	 * @param shape - The shape.
+	 * @param type - The shape type.
+	 * @public
+	 */
+	canRemoveChildrenOfType(shape: Shape, type: TLShape['type']) {
+		return true
 	}
 
 	/**
@@ -599,6 +643,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 
 	getText(shape: Shape): string | undefined {
 		return undefined
+	}
+
+	/**
+	 * Return user IDs referenced in shape-specific props.
+	 * Used when copying shapes to include referenced users on the clipboard.
+	 * Override this if your shape stores user IDs in custom props.
+	 *
+	 * @public
+	 */
+	getReferencedUserIds(shape: Shape): string[] {
+		return EMPTY_ARRAY
 	}
 
 	getAriaDescriptor(shape: Shape): string | undefined {
@@ -938,6 +993,47 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @public
 	 */
 	onEditEnd?(shape: Shape): void
+
+	/**
+	 * Provide an app-owned element to be rendered inside the shape, alongside the output of
+	 * {@link ShapeUtil.component}. While the shape remains mounted, tldraw guarantees the
+	 * element keeps the same DOM position: it is never unmounted, recreated, or relocated by
+	 * reordering, reparenting, culling, or re-renders. When adopting the element, tldraw uses
+	 * `Node.moveBefore` where available so stateful content like cross-origin iframes keeps
+	 * its state across the move, falling back to `appendChild` elsewhere.
+	 *
+	 * Pair this with {@link ShapeUtil.onReleaseAppOwnedElement} to reclaim the element before
+	 * the shape or editor unmounts.
+	 *
+	 * This is called once per shape mount, not on every prop change, so the adopted element is
+	 * not refreshed when the shape's props change. If the element's content depends on props,
+	 * return a stable element and mutate it in place (for example from {@link ShapeUtil.component}
+	 * or an effect) rather than returning a different element.
+	 *
+	 * @param shape - The shape.
+	 * @returns The element to adopt, or null to render nothing.
+	 * @public
+	 */
+	getAppOwnedElement?(shape: Shape): HTMLElement | null
+
+	/**
+	 * A callback called before the shape's app-owned element slot is destroyed: when the shape
+	 * unmounts (for example when it is deleted or the current page changes) or when the whole
+	 * editor unmounts, including error teardown. The slot is still connected to the document
+	 * when this is called, so the app can move the element to another connected parent with
+	 * `Node.moveBefore` to preserve its state. An element left in the slot is destroyed along
+	 * with it.
+	 *
+	 * This is not only a "shape deleted" signal: it also fires on page changes, editor unmount,
+	 * and (in dev under React StrictMode) on the throwaway mount/unmount cycle while the shape
+	 * still exists. Make it safe to call when the shape is still present, and check the store
+	 * (`this.editor.getShape(shape.id)`) if you need to distinguish deletion from a remount.
+	 *
+	 * @param shape - The shape.
+	 * @param element - The element returned by {@link ShapeUtil.getAppOwnedElement}.
+	 * @public
+	 */
+	onReleaseAppOwnedElement?(shape: Shape, element: HTMLElement): void
 }
 
 /**
@@ -954,6 +1050,7 @@ export interface TLCropInfo<T extends TLShape> {
 	uncroppedSize: { w: number; h: number }
 	initialShape: T
 	aspectRatioLocked?: boolean
+	isResizingFromCenter?: boolean
 }
 
 /** @public */

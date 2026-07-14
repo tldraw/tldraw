@@ -54,8 +54,8 @@ jobs:
       - name: Run our setup
         uses: ./.github/actions/setup
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium chrome
+      - name: Set up Playwright
+        uses: ./.github/actions/setup-playwright
 
       - name: Build examples
         run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
@@ -71,6 +71,10 @@ jobs:
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
           git add -A
+          if git diff --cached --quiet; then
+            echo 'No snapshot changes to commit.'
+            exit 0
+          fi
           git commit --no-verify -m '[automated] update snapshots'
           git add -A && git reset --hard HEAD # we sometimes get a dirty tree because husky makes changes for some reason
           git pull --rebase

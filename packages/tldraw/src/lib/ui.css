@@ -12,9 +12,8 @@
 	 * (which creates its own stacking context at z-index 300), so their
 	 * z-indices are relative to the layout, not the container.
 	 *
-	 * cursor and following-indicator are rendered inside canvas-in-front
-	 * (stacking context at z-index 250), so their z-indices are relative
-	 * to that context.
+	 * cursor is rendered inside canvas-in-front (stacking context at
+	 * z-index 250), so their z-indices are relative to that context.
 	 */
 	--tl-layer-above: 1;
 	--tl-layer-focused-input: 10;
@@ -24,7 +23,6 @@
 	--tl-layer-toasts: 650;
 	--tl-layer-cursor: 700;
 	--tl-layer-header-footer: 999;
-	--tl-layer-following-indicator: 1000;
 }
 
 /* Button */
@@ -54,14 +52,14 @@
 
 .tlui-button:disabled,
 .tlui-button[data-disabled] {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-disabled);
 	text-shadow: none;
 	cursor: default;
 }
 
 .tlui-button:disabled .tlui-kbd,
 .tlui-button[data-disabled] .tlui-kbd {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-disabled);
 }
 
 .tlui-button > * {
@@ -73,6 +71,10 @@
 	font-size: 12px;
 	flex-grow: 2;
 	text-align: start;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 /*
@@ -324,6 +326,11 @@
 	text-align: center;
 }
 
+.tlui-zoom-menu__button[data-state='open']::after {
+	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
+}
+
 /* --------------------- Layout --------------------- */
 
 .tlui-layout {
@@ -419,6 +426,11 @@
 .tlui-icon__small {
 	width: 15px;
 	height: 15px;
+}
+
+.tlui-icon__tiny {
+	width: 12px;
+	height: 12px;
 }
 
 /* --------------------- Slider --------------------- */
@@ -776,237 +788,250 @@
 /* ------------------- Page Select ------------------ */
 
 .tlui-page-menu__wrapper {
-	position: relative;
 	display: flex;
 	flex-direction: column;
-	width: 260px;
-	height: fit-content;
-	max-height: 50vh;
+	width: 220px;
 }
 
 .tlui-page-menu__trigger {
 	width: auto;
 }
 
-.tlui-page-menu__header {
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	width: 100%;
-	height: 40px;
-	padding-inline-start: var(--tl-space-4);
-	border-bottom: 1px solid var(--tl-color-divider);
-}
-
-.tlui-page-menu__header > .tlui-button:nth-of-type(1) {
-	margin-right: -4px;
-}
-
-.tlui-page-menu__header__title {
-	color: var(--tl-color-text);
-	font-size: 12px;
-	flex-grow: 2;
-}
-
-.tlui-page-menu__name {
-	flex-grow: 2;
-	text-align: start;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.tlui-page-menu__list {
-	position: relative;
-	touch-action: auto;
-	flex-direction: column;
-	max-height: 100%;
-	overflow-x: hidden;
-	overflow-y: auto;
-	touch-action: auto;
-}
-
-.tlui-page-menu__item {
-	position: relative;
-}
-
-.tlui-page_menu__item__submenu[data-isediting='true'] > .tlui-button[data-state='open'] {
+.tlui-page-menu__trigger[data-state='open']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 	opacity: 1;
 }
 
-@media (hover: hover) {
-	.tlui-page-menu__item:hover > .tlui-page_menu__item__submenu > .tlui-button {
-		opacity: 1;
-	}
+.tlui-page-menu__list {
+	flex: 0 0 auto;
+	overflow-x: hidden;
+	overflow-y: auto;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
 }
 
-.tlui-page-menu__item:nth-of-type(n + 2) {
-	margin-top: -4px;
+.tlui-page-menu__list::-webkit-scrollbar {
+	display: none;
+}
+
+.tlui-page-menu__list__content {
+	position: relative;
+	overflow: hidden;
+}
+
+.tlui-page-menu__resize-handle {
+	flex: 0 0 auto;
+	position: relative;
+	height: 1px;
+	cursor: ns-resize;
+	touch-action: none;
+	background: var(--tl-color-divider);
+	transition: background-color ease-in-out 150ms 80ms;
+	z-index: 999;
+}
+
+/* Hit test area */
+.tlui-page-menu__resize-handle::after {
+	content: '';
+	position: absolute;
+	inset: -4px 0;
+	background: none;
+	z-index: 2000;
+	pointer-events: all;
+}
+
+/* Thick blue indicator */
+.tlui-page-menu__resize-handle::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1.5px;
+	background: transparent;
+	pointer-events: none;
+	z-index: 2001;
+}
+
+.tlui-page-menu__resize-handle[data-resizing='true']::before {
+	background: var(--tl-color-selected);
+	transition: none;
+}
+
+.tlui-page-menu__create-button {
+	flex: 0 0 auto;
+	margin: 0;
 }
 
 .tlui-page-menu__item__button {
-	width: 100%;
+	flex: 1 1 auto;
+	min-width: 0px;
 }
 
-.tlui-page-menu__item__button:not(:only-child) {
-	flex-grow: 2;
-	margin-inline-end: -2px;
+.tlui-page-menu__item__button::after,
+.tlui-page-menu__item__drag-handle::after {
+	content: none;
 }
 
-.tlui-page-menu__item__button > span {
-	display: block;
-	flex-grow: 2;
-	text-align: start;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.tlui-page-menu__item__button > span {
+.tlui-page-menu__item__button > .tlui-button__label {
 	padding-inline-end: calc(40px - 12px);
 }
 
-@media (hover: hover) {
-	.tlui-page-menu__item__button > span {
-		padding-inline-end: 0px;
-	}
-
-	.tlui-page-menu__item:hover > .tlui-page-menu__item__button > span {
-		padding-inline-end: calc(40px - 12px);
-	}
-}
-
-.tlui-page-menu__item__button__checkbox {
-	padding-inline-start: 35px;
-}
-
-.tlui-page-menu__item__button__check {
-	position: absolute;
-	inset-inline-start: 0px;
-	width: 24px;
-	padding-inline-start: 10px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--tl-color-text);
-}
-
-.tlui-page_menu__item__sortable {
+.tlui-page-menu__item {
 	position: absolute;
 	top: 0px;
 	inset-inline-start: 0px;
 	width: 100%;
-	height: fit-content;
+	height: 40px;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	overflow: hidden;
+	transition: transform 0.08s ease-out;
+}
+
+.tlui-page-menu__item::before {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-muted-2);
+	opacity: 0;
+	pointer-events: none;
+}
+
+.tlui-page-menu__item > * {
+	position: relative;
 	z-index: var(--tl-layer-above);
 }
 
-.tlui-page_menu__item__sortable__title {
-	flex: 1;
+.tlui-page-menu__item[data-iscurrent='true']:not([data-editing='true'])::before {
+	background: var(--tl-color-hint);
+	opacity: 1;
 }
 
-.tlui-page_menu__item__sortable__title > .tlui-input__wrapper {
+.tlui-page-menu__item__title {
+	flex: 1;
+	height: 40px;
+	position: relative;
+}
+
+.tlui-page-menu__item__title::before {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	border-radius: var(--tl-radius-2);
+	border: 1px solid var(--tl-color-primary);
+	pointer-events: none;
+}
+
+.tlui-page-menu__item__title > .tlui-input__wrapper {
 	height: 100%;
 }
 
-.tlui-page_menu__item__sortable:focus-visible {
-	z-index: var(--tl-layer-focused-input);
-}
-
-.tlui-page_menu__item__sortable__handle {
-	touch-action: none;
-	width: 32px;
-	min-width: 0px;
-	height: 40px;
-	cursor: grab;
-	color: var(--tl-color-text-3);
-	flex-shrink: 0;
-	margin-inline-end: -9px;
-}
-
-.tlui-page_menu__item__sortable__handle:active {
+.tlui-page-menu__item[data-dragging='true'],
+.tlui-page-menu__item[data-dragging='true'] .tlui-page-menu__item__button,
+.tlui-page-menu__item[data-dragging='true'] .tlui-page-menu__item__drag-handle {
 	cursor: grabbing;
+	transition: none;
+}
+
+.tlui-page-menu__item[data-dragging='true'] {
+	background: var(--tl-color-panel);
+	opacity: 1;
+}
+
+.tlui-page-menu__item__drag-handle {
+	flex: 0 0 32px;
+	min-width: 32px;
+	padding: 0px;
+	color: var(--tl-color-text-3);
+	cursor: grab;
+	touch-action: none;
+}
+
+.tlui-page-menu__item__drag-handle > .tlui-icon {
+	position: relative;
+	inset-inline-start: 1px;
+}
+
+.tlui-page-menu__item__drag-handle + .tlui-page-menu__item__button {
+	padding-inline-start: 0px;
 }
 
 .tlui-page-menu__item__input {
 	margin-inline-start: 12px;
-	height: 100%;
 }
 
-/* The more menu has complex CSS here: */
-/* If the user can hover, then visible but opacity zero until hover */
-/* If the user cannot hover, then not displayed unless editing, and then opacity 1 */
-
-.tlui-page_menu__item__submenu {
-	pointer-events: all;
+.tlui-page-menu__item__submenu {
 	position: absolute;
 	inset-inline-end: 0px;
 	top: 0px;
 	height: 100%;
-	cursor: pointer;
-	margin: 0px;
-	margin-inline-start: -2px;
 	z-index: 10;
 }
 
-.tlui-page_menu__item__submenu > .tlui-button {
+.tlui-page-menu__item__submenu > .tlui-button {
+	opacity: 0;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-page-menu__item__submenu > .tlui-button::after {
+	content: none;
+}
+
+.tlui-page-menu__item:has(.tlui-button:focus-visible)
+	> .tlui-page-menu__item__submenu
+	> .tlui-button,
+.tlui-page-menu__item__submenu > .tlui-button[data-state='open'],
+.tlui-page-menu__item__submenu > .tlui-button:focus-visible {
+	opacity: 1;
+}
+
+/* Hide the kebab while any row is being dragged: :hover sticks during pointer */
+/* capture, which would otherwise leave the kebab visible mid-drag. */
+.tlui-page-menu__list__content[data-dragging='true']
+	.tlui-page-menu__item
+	> .tlui-page-menu__item__submenu
+	> .tlui-button {
 	opacity: 0;
 }
 
-.tlui-page_menu__item__sortable:focus-visible > .tlui-page_menu__item__submenu > .tlui-button,
-.tlui-page_menu__item__submenu[data-isediting='true'],
-.tlui-page_menu__item__submenu > .tlui-button[data-state='open'],
-.tlui-page_menu__item__submenu > .tlui-button:focus-visible {
+.tl-container[data-coarse='true'] .tlui-page-menu__item__submenu > .tlui-button {
 	opacity: 1;
 }
 
-.tlui-page_menu__item__submenu > .tlui-button[data-state='open']::after {
-	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
-	opacity: 1;
-}
-
-.tl-container[dir='rtl'] .tlui-page_menu__item__submenu > .tlui-button[data-state='open']::after {
-	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+.tl-container[data-coarse='true'] .tlui-page-menu__item__button > .tlui-button__label {
+	padding-inline-end: calc(40px - 12px);
 }
 
 @media (hover: hover) {
-	.tlui-page_menu__item__submenu > .tlui-button[data-state='open']:not(:hover)::after {
-		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	.tlui-page-menu__resize-handle:hover::before {
+		background: var(--tl-color-selected);
+		height: 2px;
+		transition: background-color 150ms 80ms;
+	}
+
+	.tlui-page-menu__item:not([data-editing='true']):hover::before {
 		opacity: 1;
 	}
 
-	.tl-container[dir='rtl']
-		.tlui-page_menu__item__submenu
-		> .tlui-button[data-state='open']:not(:hover)::after {
-		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
-	}
-}
-
-.tl-container[data-coarse='true'] .tlui-page_menu__item__submenu > .tlui-button {
-	opacity: 1;
-}
-
-.tlui-button__icon {
-	padding: 0px;
-}
-
-.tlui-page-menu__item__button .tlui-button__icon {
-	margin-inline-end: 4px;
-}
-
-@media (hover: hover) {
-	.tlui-page_menu__item__submenu[data-isediting='true'] > .tlui-button {
-		opacity: 0;
-	}
-
-	.tlui-page_menu__item__submenu:hover > .tlui-button {
+	.tlui-page-menu__item:hover > .tlui-page-menu__item__submenu > .tlui-button {
 		opacity: 1;
 	}
-}
 
+	.tlui-page-menu__item__button > .tlui-button__label {
+		padding-inline-end: 0px;
+	}
+
+	.tlui-page-menu__item:hover > .tlui-page-menu__item__button > .tlui-button__label {
+		padding-inline-end: calc(40px - 12px);
+	}
+
+	.tlui-page-menu__item__submenu > .tlui-button:hover {
+		color: var(--tl-color-text);
+	}
+}
 /* -------------- Skip to main content -------------- */
 
 .tl-skip-to-main-content {
@@ -1019,6 +1044,14 @@
 
 .tl-skip-to-main-content:focus {
 	left: 8px;
+}
+
+/*
+ * focusing skip-to-main-content hide top ui buttons to make sure we avoid
+ * z-index clashes on hover (see issue #8328)
+ */
+.tl-skip-to-main-content:focus + .tlui-layout__top .tlui-helper-buttons {
+	display: none;
 }
 
 /* ---------------- Offline indicator --------------- */
@@ -1129,6 +1162,12 @@ tldraw? probably.
 .tlui-style-panel__section__common:not(:only-child) {
 	margin-bottom: 7px;
 	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+.tlui-toolbar-toggle-group-item,
+.tlui-style-panel__dropdown-picker > .tlui-button__icon {
+	width: 40px;
+	padding: 0;
 }
 
 .tlui-style-panel__dropdown-picker:only-child {
@@ -1410,20 +1449,20 @@ tldraw? probably.
 	display: none;
 }
 .tlui-row.tlui-main-toolbar__group:not(:nth-last-child(-n + 1 of [data-toolbar-visible='true'])) {
-	border-right: 1px solid var(--color-divider);
+	border-right: 1px solid var(--tl-color-divider);
 	margin-right: 2px;
 }
 .tlui-column.tlui-main-toolbar__group:not(
 		:nth-last-child(-n + 1 of [data-toolbar-visible='true'])
 	) {
-	border-bottom: 1px solid var(--color-divider);
+	border-bottom: 1px solid var(--tl-color-divider);
 	margin-bottom: 2px;
 }
 .tlui-grid.tlui-main-toolbar__group {
 	grid-column: 1 / span 4;
 }
 .tlui-grid.tlui-main-toolbar__group:not(:nth-last-child(-n + 1 of [data-toolbar-visible='true'])) {
-	border-bottom: 1px solid var(--color-divider);
+	border-bottom: 1px solid var(--tl-color-divider);
 	margin-bottom: 2px;
 }
 
@@ -1565,6 +1604,7 @@ tldraw? probably.
 .tlui-toast__main {
 	flex-grow: 2;
 	max-width: 280px;
+	min-width: 0;
 }
 
 .tlui-toast__content {
@@ -1573,6 +1613,7 @@ tldraw? probably.
 	line-height: 1.4;
 	flex-direction: column;
 	gap: var(--tl-space-3);
+	min-width: 0;
 }
 
 .tlui-toast__main[data-actions='true'] .tlui-toast__content {
@@ -1584,6 +1625,7 @@ tldraw? probably.
 	color: var(--tl-color-text-1);
 	/* this makes the default toast look better */
 	line-height: 16px;
+	overflow-wrap: anywhere;
 }
 
 .tlui-toast__description {
@@ -1591,6 +1633,7 @@ tldraw? probably.
 	padding: var(--tl-space-3);
 	margin: 0px;
 	padding: 0px;
+	overflow-wrap: anywhere;
 }
 
 .tlui-toast__icon + .tlui-toast__main > .tlui-toast__actions {
@@ -1654,8 +1697,17 @@ tldraw? probably.
 	height: 100%;
 	z-index: var(--tl-layer-canvas-overlays);
 	background-color: var(--tl-color-overlay);
-	pointer-events: all;
 	animation: tl-fade-in 0.12s ease-out;
+}
+
+.tlui-dialog__positioner {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: var(--tl-layer-canvas-overlays);
+	pointer-events: all;
 	display: grid;
 	place-items: center;
 	overflow-y: auto;
@@ -1708,6 +1760,7 @@ tldraw? probably.
 	color: var(--tl-color-text-1);
 	user-select: all;
 	-webkit-user-select: text;
+	overflow-wrap: anywhere;
 }
 .tlui-dialog__body a {
 	color: var(--tl-color-selected);
@@ -2145,7 +2198,6 @@ tldraw? probably.
 	inset: 0px;
 	border-width: 2px;
 	border-style: solid;
-	z-index: var(--tl-layer-following-indicator);
 	pointer-events: none;
 }
 

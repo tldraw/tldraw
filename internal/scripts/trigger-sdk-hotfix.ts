@@ -58,6 +58,7 @@ async function main() {
 		webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 		totalSteps: 3,
 		shouldNotify: true,
+		secretValues: Object.values(env),
 	})
 	await discord.message(`Triggering ${triggerType} hotfix...`)
 
@@ -97,7 +98,7 @@ async function main() {
 			await exec('yarn', ['install'])
 			await exec('yarn', ['refresh-assets', '--force'])
 
-			const diff = await getAnyPackageDiff()
+			const diff = await getAnyPackageDiff(version.format())
 			if (diff) {
 				let message = kleur.red().bold(`・ERROR・`)
 				message += `\nCannot cherry-pick docs changes from PR '${kleur.cyan().bold(pr.title)}' https://github.com/tldraw/tldraw/pulls/${pr}`
@@ -139,10 +140,12 @@ async function main() {
 main().catch(async (e: Error) => {
 	console.error(e)
 
+	const env = getEnv()
 	const discord = new Discord({
-		webhookUrl: process.env.DISCORD_DEPLOY_WEBHOOK_URL!,
+		webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 		totalSteps: 8,
 		shouldNotify: true,
+		secretValues: Object.values(env),
 	})
 
 	await discord

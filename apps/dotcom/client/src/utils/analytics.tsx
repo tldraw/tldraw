@@ -1,3 +1,4 @@
+import { FEATURE_FLAG_KEYS } from '@tldraw/dotcom-shared'
 import posthog, { PostHogConfig, Properties } from 'posthog-js'
 import 'posthog-js/dist/web-vitals'
 import { useEffect } from 'react'
@@ -5,6 +6,8 @@ import ReactGA from 'react-ga4'
 import { useLocation } from 'react-router-dom'
 import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce } from 'tldraw'
 import { useApp } from '../tla/hooks/useAppState'
+import { useSignUpTracking } from '../tla/hooks/useSignUpTracking'
+import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/FeatureFlagPoller'
 
 // Local storage key for cookie consent
 export const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
@@ -39,7 +42,7 @@ export function useAnalyticsConsentValue(): boolean | null {
 	])
 }
 
-export type AnalyticsOptions =
+type AnalyticsOptions =
 	| {
 			optedIn: true
 			user:
@@ -80,6 +83,21 @@ function filterProperties(value: { [key: string]: any }) {
 		} else {
 			acc[key] = value
 		}
+		return acc
+	}, {})
+}
+
+/**
+ * App feature flags for PostHog event properties; null until `/api/app/feature-flags` has settled once.
+ * Only used for signed-in users — percentage flags are not evaluated for anonymous requests on the server.
+ * We attach here (not via setPersonProperties) so each event reflects the latest values when flags
+ * change mid-session from polling. Person-level cohorts from flags alone would need extra sync.
+ */
+function getAppFeatureFlagEventProperties(): Record<string, boolean> | null {
+	if (!hasResolvedFlagsOnce()) return null
+	const flags = getCurrentFlags()
+	return FEATURE_FLAG_KEYS.reduce<Record<string, boolean>>((acc, key) => {
+		acc[`ff_${key}`] = !!flags[key]?.enabled
 		return acc
 	}, {})
 }
@@ -147,9 +165,16 @@ function configurePosthog(options: AnalyticsOptions) {
 		disable_surveys: true,
 		before_send: (payload) => {
 			if (!payload) return null
-			payload.properties.is_signed_in = !!options.user
+			const props = payload.properties || {}
+			payload.properties = props
+			props.is_signed_in = !!options.user
 
-			const redactedProperties = filterProperties(payload.properties || {})
+			const flagProps = options.user ? getAppFeatureFlagEventProperties() : null
+			if (flagProps) {
+				Object.assign(props, flagProps)
+			}
+
+			const redactedProperties = filterProperties(props)
 			payload.properties = redactedProperties
 
 			// $set
@@ -287,6 +312,13 @@ export function trackEvent(name: string, data?: { [key: string]: any }) {
 		getGA4()?.event('page_view', data)
 	}
 
+	// Track new-account sign-ups in GA4 as well as PostHog. This is the conversion
+	// used to measure paid traffic (e.g. Google Ads) landing on tldraw.com. It is
+	// fired once per new account by useSignUpTracking, not on every login.
+	if (name === 'sign_up') {
+		getGA4()?.event('sign_up', data)
+	}
+
 	// Track watermark clicks in GA4
 	if (name === 'click-watermark' && data?.url) {
 		if (getGA4()) {
@@ -372,6 +404,7 @@ export function SignedInAnalytics() {
 	}, [user.allowAnalyticsCookie, user.email, user.id, user.name, app, storedConsent])
 
 	useTrackPageViews()
+	useSignUpTracking()
 
 	return null
 }

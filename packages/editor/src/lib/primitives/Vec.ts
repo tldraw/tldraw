@@ -1,5 +1,8 @@
 import { VecModel } from '@tldraw/tlschema'
 import { EASINGS } from './easings'
+
+const { easeInQuad, easeInOutQuad } = EASINGS
+
 function clamp(n: number, min: number, max?: number): number {
 	return Math.max(min, typeof max !== 'undefined' ? Math.min(n, max) : n)
 }
@@ -634,13 +637,13 @@ export class Vec {
 	 * @param steps - The number of points to return.
 	 * @param ease - The easing to use.
 	 */
-	static PointsBetween(A: VecModel, B: VecModel, steps = 6, ease = EASINGS.easeInQuad): Vec[] {
+	static PointsBetween(A: VecModel, B: VecModel, steps = 6, ease = easeInQuad): Vec[] {
 		const results: Vec[] = []
 
 		for (let i = 0; i < steps; i++) {
 			const t = ease(i / (steps - 1))
 			const point = Vec.Lrp(A, B, t)
-			point.z = Math.min(1, 0.5 + Math.abs(0.5 - EASINGS.easeInOutQuad(t)) * 0.65)
+			point.z = Math.min(1, 0.5 + Math.abs(0.5 - easeInOutQuad(t)) * 0.65)
 			results.push(point)
 		}
 

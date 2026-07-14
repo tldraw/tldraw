@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "4.5.3",
+	"version": "5.2.4",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -46,7 +46,7 @@
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "cd ../.. && yarn run -T oxlint packages/tldraw",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"i18n:extract": "formatjs extract 'src/**/*.ts*' --out-file ../../assets/i18n/en.json --id-interpolation-pattern '[sha512:contenthash:base64:6]'",
 		"i18n:compile": "formatjs compile ../../assets/i18n/en.json --out-file ../../assets/i18n-compiled/en.json"
 	},
@@ -66,7 +66,6 @@
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"classnames": "^2.5.1",
-		"hotkeys-js": "^3.13.9",
 		"idb": "^7.1.1",
 		"lz-string": "^1.5.0",
 		"radix-ui": "^1.4.2"
@@ -89,6 +88,9 @@
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"resize-observer-polyfill": "^1.5.1",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

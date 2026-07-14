@@ -90,7 +90,9 @@ export function objectMatchesQuery<T extends object>(query: QueryExpression<T>, 
 		// matching logic
 		if (isQueryValueMatcher(matcher)) {
 			if ('eq' in matcher && value !== matcher.eq) return false
-			if ('neq' in matcher && value === matcher.neq) return false
+			// undefined values must not match neq: the indexes executeQuery reads only
+			// track defined values, and the two matching strategies have to agree
+			if ('neq' in matcher && (value === matcher.neq || value === undefined)) return false
 			if ('gt' in matcher && (typeof value !== 'number' || value <= matcher.gt)) return false
 			continue
 		}

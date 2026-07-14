@@ -4,11 +4,11 @@ import type {
 	FlowSubGraph,
 	FlowVertex,
 } from 'mermaid/dist/diagrams/flowchart/types.js'
-import { TLArrowShapeArrowheadStyle, TLDefaultDashStyle, TLGeoShape } from 'tldraw'
+import { TLArrowShapeArrowheadStyle, TLDefaultDashStyle } from 'tldraw'
 import type {
 	DiagramMermaidBlueprint,
 	MermaidBlueprintEdge,
-	MermaidBlueprintGeoNode,
+	MermaidBlueprintNode,
 } from './blueprint'
 import { buildClassDefColorMap, parseCssStyles, parseNodeInlineColor } from './colors'
 import {
@@ -30,35 +30,6 @@ function mapEdgeTypeToArrowhead(type: string | undefined): TLArrowShapeArrowhead
 	if (type.includes('open')) return 'none'
 
 	return 'arrow'
-}
-
-function mapFlowShapeTypeToGeo(type: string | undefined): TLGeoShape['props']['geo'] {
-	switch (type) {
-		case 'diamond':
-			return 'diamond'
-		case 'ellipse':
-		case 'circle':
-		case 'doublecircle':
-		case 'stadium':
-		case 'cylinder':
-			return 'ellipse'
-		case 'hexagon':
-			return 'hexagon'
-		case 'trapezoid':
-		// TODO: implement inv_trapezoid in SDK
-		case 'inv_trapezoid':
-			return 'trapezoid'
-		case 'lean_right':
-			return 'rhombus'
-		case 'lean_left':
-			return 'rhombus-2'
-		case 'square':
-		case 'rect':
-		case 'round':
-		case 'subroutine':
-		default:
-			return 'rectangle'
-	}
 }
 
 function mapEdgeStrokeToDash(stroke: string | undefined): TLDefaultDashStyle {
@@ -87,13 +58,18 @@ function buildHierarchy(subGraphs: FlowSubGraph[]) {
 
 /** Parse flowchart-specific SVG layout data for use by {@link flowchartToBlueprint}. */
 export function parseFlowchartLayout(root: Element): ParsedDiagramLayout {
+	// Mermaid 11.15 prefixes node and cluster dom ids with the diagram id (e.g.
+	// `mermaid-0-flowchart-s1-0` instead of `flowchart-s1-0`), so tolerate that
+	// optional `mermaid-<n>-` prefix when reading the clean id.
 	const nodes = parseNodesFromSvg(root, '.node', (domId) => {
-		const match = domId.match(/^flowchart-(.+)-\d+$/)
+		const match = domId.match(/^(?:mermaid-\d+-)?flowchart-(.+)-\d+$/)
 		return match ? match[1] : domId
 	})
-	const clusters = parseClustersFromSvg(root, '.cluster')
+	const clusters = parseClustersFromSvg(root, '.cluster', (domId) =>
+		domId.replace(/^mermaid-\d+-/, '')
+	)
 	const edges = parseAllEdgePointsFromSvg(root, (dataId) => {
-		const match = dataId.match(/^L_(.+)_([^_]+)_\d+$/)
+		const match = dataId.match(/(?:^|-)L_(.+)_([^_]+)_\d+$/)
 		return match ? { start: match[1], end: match[2] } : null
 	})
 	scaleLayout(nodes, clusters, edges, LAYOUT_SCALE)
@@ -115,7 +91,7 @@ export function flowchartToBlueprint(
 	const allSubGraphs = subGraphs || []
 	const { nodeToSubGraph, subGraphParent } = buildHierarchy(allSubGraphs)
 
-	const nodes: MermaidBlueprintGeoNode[] = []
+	const nodes: MermaidBlueprintNode[] = []
 	const blueprintEdges: MermaidBlueprintEdge[] = []
 
 	// Frames for subgraphs
@@ -127,13 +103,15 @@ export function flowchartToBlueprint(
 		const cluster = svgClusters.get(subGraph.id)
 		if (!cluster) continue
 
+		const id = subGraph.id
+		const kind = 'subgraph'
 		nodes.push({
-			id: subGraph.id,
+			id,
+			kind,
 			x: cluster.topLeft.x,
 			y: cluster.topLeft.y - FRAME_TOP_PAD,
 			w: cluster.width,
 			h: cluster.height + FRAME_TOP_PAD,
-			geo: 'rectangle',
 			parentId: subGraphParent.get(subGraph.id),
 			label: subGraph.title || subGraph.id,
 			fill: 'semi',
@@ -150,7 +128,7 @@ export function flowchartToBlueprint(
 		const svgNode = svgNodes.get(id)
 		if (!svgNode) continue
 
-		const geo = mapFlowShapeTypeToGeo(vertex.type)
+		const kind = vertex.type ?? 'rect'
 		const colors = nodeColorMap.get(id) ?? parseNodeInlineColor(vertex.styles)
 
 		let { width: w, height: h } = svgNode
@@ -160,11 +138,11 @@ export function flowchartToBlueprint(
 
 		nodes.push({
 			id,
+			kind,
 			x: svgNode.center.x - w / 2,
 			y: svgNode.center.y - h / 2,
 			w,
 			h,
-			geo,
 			parentId: nodeToSubGraph.get(id),
 			label: vertex.text || undefined,
 			...(colors?.fillColor && { fill: 'solid' as const }),
@@ -172,7 +150,7 @@ export function flowchartToBlueprint(
 			align: 'middle',
 			verticalAlign: 'middle',
 			size: 'm',
-		} satisfies MermaidBlueprintGeoNode)
+		})
 	}
 
 	// Edges: match DB edges to SVG edges by proximity, compute bends
@@ -228,5 +206,5 @@ export function flowchartToBlueprint(
 	const validEdges = blueprintEdges.filter(
 		(e) => nodeIds.has(e.startNodeId) && nodeIds.has(e.endNodeId)
 	)
-	return { nodes, edges: validEdges }
+	return { diagramKind: 'flowchart', nodes, edges: validEdges }
 }

@@ -19,7 +19,7 @@ accuracy: 10
 notes: ''
 ---
 
-The styles system manages visual properties like color, size, font, fill, and dash patterns across shapes. Style properties differ from regular shape properties in two key ways: they apply consistently across multiple shapes at once, and the editor remembers the last-used value to automatically apply it to newly created shapes. This creates a coherent visual experience where users can set a color once and have it persist across their work.
+The styles system manages visual properties like color, size, font, fill, and dash patterns across shapes. Style properties differ from regular shape properties in two key ways: they apply consistently across multiple shapes at once, and the editor remembers the last-used value to automatically apply it to newly created shapes.
 
 Styles are defined using [StyleProp](?) instances that specify valid values and defaults. The editor tracks "shared styles" across the current selection—computing whether all selected shapes share the same value or have different values—to drive the UI and enable batch updates.
 
@@ -122,7 +122,7 @@ When no shapes are selected, `getSharedStyles` returns the styles for the curren
 When you set a style on selected shapes, the editor saves that value as the "style for next shapes." The next shape you create will automatically have the same style value.
 
 ```typescript
-// Set color for selected shapes - also saves it for next shapes ([Editor#setStyleForSelectedShapes](?))
+// Set color for selected shapes - also saves it for next shapes
 editor.setStyleForSelectedShapes(DefaultColorStyle, 'blue')
 
 // Create a new shape - it will be blue because 'blue' was saved
@@ -139,15 +139,14 @@ editor.setStyleForNextShapes(DefaultColorStyle, 'green')
 
 The `@tldraw/tlschema` package provides a set of default style properties that the built-in shapes use. These styles cover the most common visual properties and integrate with tldraw's theme system for consistent appearance.
 
-**Color styles** control the visual color of shapes and their labels. Colors reference theme values rather than raw hex codes, allowing shapes to adapt to light and dark modes.
+**Color styles** control the visual color of shapes and their labels. Colors reference theme values rather than raw hex codes, so shapes adapt to light and dark modes.
 
 - [DefaultColorStyle](?) - Primary shape color (black, red, blue, green, etc.)
-- [DefaultLabelColorStyle](?) - Label text color for shapes
 
 **Appearance styles** affect how shapes are drawn and filled. These work together to create the hand-drawn aesthetic that defines tldraw's visual style.
 
 - [DefaultFillStyle](?) - Fill pattern (none, semi, solid, pattern, fill, lined-fill)
-- [DefaultDashStyle](?) - Stroke style (draw, solid, dashed, dotted)
+- [DefaultDashStyle](?) - Stroke style (draw, solid, dashed, dotted, none)
 - [DefaultSizeStyle](?) - Relative size scale (s, m, l, xl)
 
 **Text styles** control typography for text shapes and labels. The alignment styles handle both the text itself and how content positions within shape bounds.
@@ -267,5 +266,4 @@ The editor automatically recognizes `StyleProp` instances in your props and hand
 - **[Custom shape with tldraw styles](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/shape-with-tldraw-styles)** - Use tldraw's default styles in your custom shapes and integrate with the style panel.
 - **[Change default styles](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/changing-default-style)** - Change the default value for a style property (e.g., setting size to small by default).
 - **[Change default colors](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/changing-default-colors)** - Customize the color values in the tldraw theme.
-- **[Custom stroke and font sizes](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/configuration/custom-stroke-and-font-sizes)** - Override the default stroke and font size values.
 - **[Easter egg styles](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/editor-api/easter-egg-styles)** - Access hidden styles like white color, special fill variants, and label colors programmatically.

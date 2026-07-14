@@ -21,10 +21,10 @@
 		}
 	},
 	"scripts": {
-		"dev": "next dev",
+		"dev": "next dev -H 0.0.0.0",
 		"build": "next build",
 		"start": "next start",
-		"lint": "cd ../.. && yarn run -T oxlint templates/chat"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^2.0.14",
@@ -34,7 +34,7 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"ai": "^5.0.63",
-		"next": "^15.5.14",
+		"next": "^15.5.16",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"react-markdown": "^10.1.0",

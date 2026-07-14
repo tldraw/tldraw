@@ -179,15 +179,16 @@ class YShapeUtil extends ShapeUtil<YShape> {
 		)
 	}
 
-	indicator(shape: YShape) {
+	getIndicatorPath(shape: YShape) {
 		const { center, armTop, armLeft, armRight } = shape.props
-		return (
-			<>
-				<line x1={center.x} y1={center.y} x2={armTop.x} y2={armTop.y} />
-				<line x1={center.x} y1={center.y} x2={armLeft.x} y2={armLeft.y} />
-				<line x1={center.x} y1={center.y} x2={armRight.x} y2={armRight.y} />
-			</>
-		)
+		const path = new Path2D()
+		path.moveTo(center.x, center.y)
+		path.lineTo(armTop.x, armTop.y)
+		path.moveTo(center.x, center.y)
+		path.lineTo(armLeft.x, armLeft.y)
+		path.moveTo(center.x, center.y)
+		path.lineTo(armRight.x, armRight.y)
+		return path
 	}
 }
 

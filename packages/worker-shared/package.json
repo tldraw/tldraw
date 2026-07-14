@@ -19,12 +19,15 @@
 		"@cloudflare/workers-types": "^4.20260302.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^5.8.3",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
 	},
 	"scripts": {
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
-		"lint": "cd ../.. && yarn run -T oxlint packages/worker-shared",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

@@ -5,6 +5,12 @@
       "value": "Dhoofinta"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Aqbal martiqaadka"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,6 +25,18 @@
     {
       "type": 1,
       "value": "GetHelpLink"
+    }
+  ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Ku martiqaad asxaabta kooxda"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Waxaad gaartay tirada ugu badan ee goobaha shaqada. Waxaad u baahan tahay inaad tirtirto goobaha shaqada ee hore ka hor intaadan abuurin kuwo cusub."
     }
   ],
   "06b9281e39": [
@@ -63,10 +81,28 @@
       "value": "Liiska faylka"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Wax baa qaldamay soo rarista martiqaadkan. Fadlan isku day mar kale."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Soo dir jawaab celin"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Ka saar"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Nuqul u dir goobta shaqada ee shaqsiga ah"
     }
   ],
   "110a4b01be": [
@@ -75,40 +111,16 @@
       "value": "Daabac"
     }
   ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Ka tag kooxda"
-    }
-  ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Furaha faylka"
     }
   ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Isku day tldraw SDK"
-    }
-  ],
   "13ddd375ad": [
     {
       "type": 0,
       "value": "Dhoofinta sida"
-    }
-  ],
-  "146ffe2fd9": [
-    {
-      "type": 0,
-      "value": "Wax badan muuji"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Kooxda tirtir"
     }
   ],
   "181b90f889": [
@@ -129,10 +141,36 @@
       "value": "Maanta"
     }
   ],
-  "2445e5e347": [
+  "1ffd709937": [
     {
       "type": 0,
-      "value": "Abuur koox"
+      "value": "Goobta shaqadu waa inay ugu yaraan hal milkiile haysataa. Marka hore qof kale ka dhig mulkiile."
+    }
+  ],
+  "21f66c9c00": [
+    {
+      "type": 0,
+      "value": "Magaca goobta shaqada"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Waxaa laguugu martiqaaday inaad ku biirto "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Samee akoon bilaash ah si aad u sii wadato."
     }
   ],
   "250ddea65c": [
@@ -147,10 +185,34 @@
       "value": "Soo dejintu waa fashilantay"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Galalkayga"
+      "value": "Ku soo dhawoow goobtaada shaqada"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Raadi..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Dib-u-soo-nooleyntu waxay ku beddelaysaa xiriiriyaha casuumaadda ee hadda jira mid cusub. Qof kasta oo isticmaala xiriirkii hore wuxuu u baahan doonaa kan cusub si uu ugu biiro."
+    }
+  ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Ku dar xiriirinta faylka hadda jira"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Dib u soo celi xiriirka casuumaadda"
     }
   ],
   "31246941ad": [
@@ -163,12 +225,6 @@
     {
       "type": 0,
       "value": "i18n: Iftiimin Maqan"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Kudar xiriiriyaha"
     }
   ],
   "324a0f3182": [
@@ -187,6 +243,18 @@
     {
       "type": 0,
       "value": "Tafatire"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Maamul"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Ka saar xubinta"
     }
   ],
   "3bc7d6ea2f": [
@@ -219,6 +287,12 @@
       "value": "Jaantuska aan la taageerin ee Mermaid"
     }
   ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Mawduuca midabka"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -229,6 +303,26 @@
     {
       "type": 0,
       "value": "Caawimo ka hel Discord"
+    }
+  ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Ma hubtaa inaad rabto inaad tirtirto "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "46137245cd": [
@@ -255,18 +349,6 @@
       "value": "Gal gal"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "Ku dheji URL faylka tldraw..."
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Ma hubtaa inaad rabto inaad ilowdo faylkan?"
-    }
-  ],
   "49ee308734": [
     {
       "type": 0,
@@ -285,24 +367,6 @@
       "value": "Dib u soo deji"
     }
   ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Tirtir kooxda…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Xulasho badan"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Ma hubtaa inaad doonayso inaad tirtirto kooxdan? Tallaabadan lama noqon karo."
-    }
-  ],
   "5097d89907": [
     {
       "type": 0,
@@ -313,6 +377,12 @@
     {
       "type": 0,
       "value": "Lama daabici karo faylka"
+    }
+  ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Kani waa goobtaada shaqada gaarka ah. Samee goob shaqo oo cusub si aad ugu martiqaado asxaabtaada."
     }
   ],
   "517bb809d9": [
@@ -355,6 +425,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Samee goob shaqo"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -365,40 +441,6 @@
     {
       "type": 0,
       "value": "Siyaasada gaarka ah"
-    }
-  ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Halkan ku soo jiid faylasha, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "abuur fayl"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": ", ama "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "koobiyi xidhiidhka martiqaadka"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " si aad u bilowdo."
     }
   ],
   "5a95a425f7": [
@@ -413,10 +455,10 @@
       "value": "browser hore waa la helay Fadlan cusboonaysii biraawsarkaaga si aad u isticmaasho abkan."
     }
   ],
-  "5c6fe42bc2": [
+  "5bff3c9c88": [
     {
       "type": 0,
-      "value": "Ka noqo xiriirkan oo samee mid cusub."
+      "value": "Goobta shaqadayda"
     }
   ],
   "5d04a002ea": [
@@ -429,12 +471,6 @@
     {
       "type": 0,
       "value": "Waanu ku guuldareysanay inaan soo rarno qayb ka mid ah macluumaadka aad abuurtay ka hor inta aanad soo galin"
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Waxaa lagugu martiqaaday inaad ku biirto kooxda:"
     }
   ],
   "5f3c333678": [
@@ -485,10 +521,22 @@
       "value": "Nooc cusub oo tldraw ah ayaa diyaar ah. Fadlan dib u soo deji bogga si aad u sii waddo."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Faylka cusub"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Geli ciwaanka iimaylkaaga"
+    }
+  ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Tirtir goobta shaqada"
     }
   ],
   "6a26f54883": [
@@ -507,12 +555,6 @@
     {
       "type": 0,
       "value": "Raac tillaabooyinkan si aad gacanta ugu soo dejiso waxa ku jira:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Dejinta kooxda"
     }
   ],
   "70a6facb9d": [
@@ -537,6 +579,12 @@
     {
       "type": 0,
       "value": "Fadlan dib u soo deji bogga"
+    }
+  ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Faylal lama helin"
     }
   ],
   "752b79f137": [
@@ -569,12 +617,6 @@
       "value": "Fadlan dib u soo deji"
     }
   ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw waa sabuur cad oo online ah oo bilaash ah. Samee akoon si aad u kaydsato faylashaada oo ula shaqeyso asxaabtaada."
-    }
-  ],
   "777f9e90cf": [
     {
       "type": 0,
@@ -597,6 +639,12 @@
     {
       "type": 0,
       "value": "Ku soo gudbi arrin GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Caadiga ah"
     }
   ],
   "7b1329f5ca": [
@@ -623,12 +671,6 @@
       "value": "Iska ilow"
     }
   ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Ka bax kooxda…"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -645,6 +687,12 @@
     {
       "type": 0,
       "value": "Download"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Goobta shaqada cusub"
     }
   ],
   "815e116a2e": [
@@ -681,6 +729,32 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Ma hubtaa inaad rabto inaad illowdo "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Xubin"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -707,10 +781,16 @@
       "value": "Magaca beddelo faylka"
     }
   ],
-  "8ad4303b83": [
+  "87fdb09de6": [
     {
       "type": 0,
-      "value": "Maya mahadsanid"
+      "value": "Waxaad horey xubin uga ahayd goobta shaqadan"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Xiriirintan martiqaadku way dhacday"
     }
   ],
   "8c2d3d730c": [
@@ -743,22 +823,24 @@
       "value": "Magacaabista"
     }
   ],
-  "91e49bb0eb": [
+  "90646db02d": [
     {
       "type": 0,
-      "value": "Ku koobbi faylalkayga"
-    }
-  ],
-  "930390d222": [
+      "value": "Ma hubtaa inaad rabto inaad tirtirto "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
     {
       "type": 0,
-      "value": "Xiriirinta martiqaadka oo la guuriyay"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Horay ayaad xubin uga ahayd kooxdan"
+      "value": "? Ficilkan lama celin karo."
     }
   ],
   "95aacd4d4a": [
@@ -785,16 +867,16 @@
       "value": "Shuruudaha Isticmaalka"
     }
   ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Kudar xiriirinta faylka"
-    }
-  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Iftiin"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Nadiifi raadinta"
     }
   ],
   "9b33f5c63c": [
@@ -847,6 +929,26 @@
       "value": "Ka bax"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Waxaa laguugu martiqaaday inaad ku biirto "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -889,6 +991,12 @@
       "value": "Gudbi"
     }
   ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Bax"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -911,6 +1019,12 @@
     {
       "type": 0,
       "value": "Asalkii hore"
+    }
+  ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Samee goobta shaqada"
     }
   ],
   "ab0df9ba36": [
@@ -937,6 +1051,12 @@
       "value": "Isticmaalaha martida"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Dib u soo noolee"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -949,10 +1069,10 @@
       "value": "Ciwaanka iimaylka"
     }
   ],
-  "b3d2db69fe": [
+  "b48becc771": [
     {
       "type": 0,
-      "value": "URL faylka"
+      "value": "Daar martiqaadyada"
     }
   ],
   "b6d4223e60": [
@@ -979,10 +1099,10 @@
       "value": "Saxiix si aad ula wadaagto"
     }
   ],
-  "bb93a7590f": [
+  "bbaaf8b6bf": [
     {
       "type": 0,
-      "value": "Aqbal oo ku biir kooxda"
+      "value": "Martiqaadyada waa la joojiyay"
     }
   ],
   "bbbcefd7ce": [
@@ -1037,30 +1157,16 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Maaree goobta shaqada"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Wax badan ka baro wadaagga"
-    }
-  ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Oggolow "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " inay naga caawiyaan horumarinta tldraw."
     }
   ],
   "c303bd1095": [
@@ -1075,12 +1181,6 @@
       "value": "Kukiyada muhiimka ah"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Magaca kooxda"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1093,10 +1193,10 @@
       "value": "martiqaad"
     }
   ],
-  "c74ea6dbff": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Muuji wax yar"
+      "value": "Nuqul u dir goobta shaqadayda"
     }
   ],
   "c87aacf567": [
@@ -1109,12 +1209,6 @@
     {
       "type": 0,
       "value": "Iska dhaaf"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Badbaadin"
     }
   ],
   "cceaefbc20": [
@@ -1217,22 +1311,16 @@
       "value": "Tag halkan si aad u aragto waxa ku jira"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Waxaad gaadhay tirada ugu badan ee kooxaha Waxaad u baahan tahay inaad tirtirto kooxihii hore ka hor inta aanad abuurin kuwa cusub."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "martiqaad kaliya"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "URL faylka tldraw aan sax ahayn"
+      "value": "Ka bax goobta shaqada"
     }
   ],
   "dfdb78a4e4": [
@@ -1241,10 +1329,10 @@
       "value": "Calaamadaha cilladaha abka"
     }
   ],
-  "e0c88179b3": [
+  "e0aa021e21": [
     {
       "type": 0,
-      "value": "martiqaad xubnaha"
+      "value": "Hagaag"
     }
   ],
   "e2198d6228": [
@@ -1259,12 +1347,6 @@
       "value": "Soo koobid sharci ah"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Admin"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
@@ -1277,16 +1359,16 @@
       "value": "ama"
     }
   ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Aagga khatarta ah"
-    }
-  ],
   "ea4788705e": [
     {
       "type": 0,
       "value": "Jooji"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Weydii milkiilaha goobta shaqada mid cusub."
     }
   ],
   "ebfe9ce86e": [
@@ -1377,12 +1459,6 @@
       "value": "Dejinta"
     }
   ],
-  "f714e36843": [
-    {
-      "type": 0,
-      "value": "Ma hubtaa inaad doonayso inaad ka baxdo kooxdan?"
-    }
-  ],
   "fa2ead697d": [
     {
       "type": 0,
@@ -1395,10 +1471,10 @@
       "value": "Daawade"
     }
   ],
-  "fd1be3efcf": [
+  "fc9d47046b": [
     {
       "type": 0,
-      "value": "Ma hubtaa inaad rabto inaad tirtirto faylkan?"
+      "value": "Ma hubtaa inaad rabto inaad ka baxdo goobta shaqada?"
     }
   ],
   "fed5ec05eb": [
@@ -1407,10 +1483,24 @@
       "value": "Xiriirinta la guuriyay"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Kudar xiriirinta faylka…"
+      "value": "Ma hubtaa inaad rabto inaad ka saarto "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " goobta shaqada?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Samee akoon bilaash ah si aad u kaydiso faylashaada oo aad ula wadaagto asxaabtaada."
     }
   ],
   "ffcd73e997": [

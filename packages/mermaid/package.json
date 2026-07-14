@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/mermaid",
 	"description": "Mermaid diagram to tldraw shape conversion.",
-	"version": "4.4.0",
+	"version": "5.2.4",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -37,12 +37,12 @@
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "cd ../.. && yarn run -T oxlint packages/mermaid"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"mermaid": "11.12.2"
+		"mermaid": "11.15.0"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.2.1",
@@ -51,6 +51,9 @@
 	},
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

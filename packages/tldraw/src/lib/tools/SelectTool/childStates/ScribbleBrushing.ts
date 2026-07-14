@@ -11,6 +11,7 @@ import {
 
 export class ScribbleBrushing extends StateNode {
 	static override id = 'scribble_brushing'
+	static override trackPerformance = true
 
 	hits = new Set<TLShapeId>()
 
@@ -122,20 +123,21 @@ export class ScribbleBrushing extends StateNode {
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]
 
-			// If the shape is a group or is already selected or locked, don't select it
+			// If the shape is a group or is already selected, don't select it.
+			// Also skip locked shapes unless the selectLockedShapes option is enabled.
 			if (
 				editor.isShapeOfType(shape, 'group') ||
 				newlySelectedShapeIds.has(shape.id) ||
-				editor.isShapeOrAncestorLocked(shape)
+				(!editor.options.selectLockedShapes && editor.isShapeOrAncestorLocked(shape))
 			) {
 				continue
 			}
 
 			geometry = editor.getShapeGeometry(shape)
 
-			// If the scribble started inside of the frame, don't select it
+			// If the scribble started inside of a frame-like shape, don't select it
 			if (
-				editor.isShapeOfType(shape, 'frame') &&
+				editor.isShapeFrameLike(shape) &&
 				geometry.bounds.containsPoint(editor.getPointInShapeSpace(shape, originPagePoint))
 			) {
 				continue

@@ -8,6 +8,7 @@ import {
 	resizeBox,
 	StateNode,
 	T,
+	TLArrowShape,
 	TLEventHandlers,
 	TLGeoShape,
 	TLResizeInfo,
@@ -92,16 +93,14 @@ export class CircleClipShapeUtil extends BaseBoxShapeUtil<CircleClipShape> {
 		return isClippingEnabled$.get()
 	}
 
-	override component(_shape: CircleClipShape) {
+	override component(shape: CircleClipShape) {
 		// For testing purposes, we'll just return null
 		// In a real implementation, this would return JSX
 		return null as any
 	}
 
-	override indicator(_shape: CircleClipShape) {
-		// For testing purposes, we'll just return null
-		// In a real implementation, this would return JSX
-		return null as any
+	override getIndicatorPath() {
+		return undefined
 	}
 
 	override onResize(shape: CircleClipShape, info: TLResizeInfo<CircleClipShape>) {
@@ -142,6 +141,7 @@ afterEach(() => {
 const ids = {
 	circleClip1: createShapeId('circleClip1'),
 	circleClip2: createShapeId('circleClip2'),
+	arrow1: createShapeId('arrow1'),
 	text1: createShapeId('text1'),
 	geo1: createShapeId('geo1'),
 	geo2: createShapeId('geo2'),
@@ -320,6 +320,53 @@ describe('CircleClipShapeUtil', () => {
 })
 
 describe('Integration tests', () => {
+	it('can grab a selected clipped arrow where it extends outside its clipping parent', () => {
+		editor.createShape({
+			id: ids.circleClip1,
+			type: CIRCLE_CLIP_TYPE,
+			x: 100,
+			y: 100,
+			props: {
+				w: 200,
+				h: 200,
+			},
+		})
+
+		editor.createShape({
+			id: ids.arrow1,
+			type: 'arrow',
+			x: 50,
+			y: 190,
+			parentId: ids.circleClip1,
+			props: {
+				start: { x: 0, y: 0 },
+				end: { x: 100, y: 0 },
+				bend: 60,
+			},
+		})
+
+		expect(editor.getShapeClipPath(ids.arrow1)).toBeDefined()
+
+		const transform = editor.getShapePageTransform(ids.arrow1)
+		const clippedPoint = transform
+			.applyToPoints(editor.getShapeGeometry(ids.arrow1).vertices)
+			.reduce((lowest, point) => (point.y > lowest.y ? point : lowest))
+
+		expect(editor.getShapeAtPoint(clippedPoint, { hitInside: true, margin: 0 })).toBeUndefined()
+
+		editor.setCurrentTool('select')
+		editor.select(ids.arrow1)
+		expect(editor.getSelectedShapeAtPoint(clippedPoint)?.id).toBe(ids.arrow1)
+
+		editor.pointerDown(clippedPoint.x, clippedPoint.y)
+		editor.pointerMove(clippedPoint.x, clippedPoint.y + 40)
+		editor.expectToBeIn('select.translating')
+		editor.pointerUp()
+
+		const arrow = editor.getShape<TLArrowShape>(ids.arrow1)!
+		expect(arrow.y).not.toBe(190)
+	})
+
 	it('should create and manage circle clip shapes with children', () => {
 		// Create circle clip shape
 		editor.createShape({

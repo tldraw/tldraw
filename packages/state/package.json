@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/state",
 	"description": "tldraw infinite canvas SDK (state).",
-	"version": "4.5.3",
+	"version": "5.2.4",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -40,12 +40,12 @@
 		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "cd ../.. && yarn run -T oxlint packages/state"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"devDependencies": {
 		"@types/lodash": "^4.17.14",
 		"lodash": "^4.17.21",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"
@@ -55,5 +55,8 @@
 		"entryPoint": "./src/index.ts",
 		"displayName": "@tldraw/state",
 		"tsconfig": "./tsconfig.json"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

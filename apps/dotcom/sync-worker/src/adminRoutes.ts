@@ -1,8 +1,7 @@
 import { FeatureFlagKey, TlaFile } from '@tldraw/dotcom-shared'
-import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
+import { assert, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
-import { sql } from 'kysely'
 import { createPostgresConnectionPool } from './postgres'
 import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
@@ -53,91 +52,6 @@ export const adminRoutes = createRouter<Environment>()
 		const user = getUserDurableObject(env, userRow.id)
 		await user.admin_forceHardReboot(userRow.id)
 		return new Response('Rebooted', { status: 200 })
-	})
-	.post('/app/admin/user/migrate', async (res, env) => {
-		const q = res.query['q']
-		if (typeof q !== 'string') {
-			return new Response('Missing query param', { status: 400 })
-		}
-		const userRow = await requireUser(env, q)
-		const user = getUserDurableObject(env, userRow.id)
-		const result = await user.admin_migrateToGroups(userRow.id, uniqueId())
-		return json(result)
-	})
-	.get('/app/admin/unmigrated_users_count', async (_res, env) => {
-		const pg = createPostgresConnectionPool(env, '/app/admin/unmigrated_users_count')
-		return json({ count: await getNumUnmigratedUsers(pg) })
-	})
-	.get('/app/admin/migrate_users_batch', async (res, env) => {
-		let stopRequested = false
-
-		// Parse query parameters for batch configuration
-		const sleepMs = parseInt((res.query['sleepMs'] as string) || '100')
-
-		return new Response(
-			new ReadableStream({
-				async start(controller) {
-					try {
-						// Helper function to send progress events
-						const sendProgress = (step: string, message: string, details?: any) => {
-							const event = {
-								type: 'progress',
-								step,
-								message,
-								timestamp: Date.now(),
-								details,
-							}
-							controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`))
-						}
-
-						const shouldStop = () => stopRequested
-
-						sendProgress('starting', 'Beginning batch user migration process...')
-
-						const hasMore = await startUserMigration(env, sendProgress, shouldStop, sleepMs)
-
-						// Send completion event
-						const completionEvent = {
-							type: 'complete',
-							step: 'finished',
-							message: stopRequested
-								? 'Batch migration stopped by user'
-								: 'Batch migration completed successfully',
-							timestamp: Date.now(),
-							hasMore,
-						}
-						controller.enqueue(
-							new TextEncoder().encode(`data: ${JSON.stringify(completionEvent)}\n\n`)
-						)
-					} catch (error) {
-						// Send error event
-						const errorEvent = {
-							type: 'error',
-							step: 'error',
-							message: error instanceof Error ? error.message : 'Unknown error occurred',
-							timestamp: Date.now(),
-							details: { error: error instanceof Error ? error.stack : String(error) },
-						}
-						controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errorEvent)}\n\n`))
-					} finally {
-						controller.close()
-					}
-				},
-				cancel() {
-					// Called when client closes the EventSource connection
-					stopRequested = true
-				},
-			}),
-			{
-				headers: {
-					'Content-Type': 'text/event-stream',
-					'Cache-Control': 'no-cache',
-					Connection: 'keep-alive',
-					'Access-Control-Allow-Origin': '*',
-					'Access-Control-Allow-Headers': 'Cache-Control',
-				},
-			}
-		)
 	})
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
@@ -273,6 +187,61 @@ export const adminRoutes = createRouter<Environment>()
 		const fileSlug = res.params.fileSlug
 		assert(typeof fileSlug === 'string', 'fileSlug is required')
 		return await returnFileSnapshot(env, fileSlug, false)
+	})
+	// The current welcome template (the file new workspaces fork their first file from), or
+	// null when none is set and the committed default is used. Also reports whether the marked
+	// file is still live and published: the resolver silently falls back to the default if it
+	// isn't, so the admin needs to see a stale pointer rather than assume it's working. See
+	// resolveWelcomeSnapshot.
+	.get('/app/admin/welcome-template', async (_res, env) => {
+		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
+		const row = await pg.selectFrom('welcome_template').selectAll().executeTakeFirst()
+		if (!row) return json(null)
+		const file = await pg
+			.selectFrom('file')
+			.where('id', '=', row.fileId)
+			.select(['published', 'isDeleted'])
+			.executeTakeFirst()
+		const live = !!file && !file.isDeleted && file.published
+		return json({ ...row, live })
+	})
+	// Mark a published file as the welcome template. We store its publishedSlug, so the file
+	// must be published first; new workspaces then fork its published snapshot.
+	.post('/app/admin/welcome-template', async (req, env) => {
+		const { fileId } = (await req.json()) as { fileId?: unknown }
+		assert(typeof fileId === 'string' && fileId.length > 0, 'fileId (string) is required')
+
+		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
+		const file = await pg
+			.selectFrom('file')
+			.where('id', '=', fileId)
+			.select(['id', 'published', 'publishedSlug', 'isDeleted'])
+			.executeTakeFirst()
+		if (!file) throw new StatusError(404, `File not found: ${fileId}`)
+		if (!file.published) {
+			throw new StatusError(400, 'File must be published before it can be the welcome template')
+		}
+
+		const updatedAt = Date.now()
+		await pg
+			.insertInto('welcome_template')
+			.values({ id: true, fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
+			.onConflict((oc) =>
+				oc
+					.column('id')
+					.doUpdateSet({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
+			)
+			.execute()
+		// Return the same shape as GET, including `live`, so the admin UI doesn't flash the
+		// "not published" warning right after a successful set.
+		const live = !file.isDeleted && file.published
+		return json({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt, live })
+	})
+	// Clear the welcome template, reverting new workspaces to the committed default snapshot.
+	.post('/app/admin/welcome-template/clear', async (_res, env) => {
+		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
+		await pg.deleteFrom('welcome_template').execute()
+		return json({ cleared: true })
 	})
 
 async function maybeHardDeleteLegacyFile({ id, env }: { id: string; env: Environment }) {
@@ -473,139 +442,4 @@ async function performUserDeletion(
 	// Clean up user durable object state and R2 data
 	const user = getUserDurableObject(env, userRow.id)
 	await user.admin_delete(userRow.id)
-}
-
-async function getNextUnmigratedUser(pg: ReturnType<typeof createPostgresConnectionPool>) {
-	return await pg
-		.selectFrom('user')
-		.where((eb) => eb.or([eb('flags', 'not like', '%groups_backend%'), eb('flags', 'is', null)]))
-		.select(['id', 'email', 'name'])
-		.limit(1)
-		.executeTakeFirst()
-}
-
-async function getNumUnmigratedUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
-	const res = await sql<{
-		count: number
-	}>`select count(*) from public.user where flags not like '%groups_backend%' or flags is null`.execute(
-		pg
-	)
-	return res.rows[0].count
-}
-async function getTotalUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
-	const res = await sql<{ count: number }>`select count(*) from public.user`.execute(pg)
-	return res.rows[0].count
-}
-
-async function startUserMigration(
-	env: Environment,
-	sendProgress: (step: string, message: string, details?: any) => void,
-	shouldStop: () => boolean,
-	sleepTime: number = 100
-): Promise<boolean> {
-	const batchSize = 50
-	const pg = createPostgresConnectionPool(env, '/app/admin/migrate_users_batch')
-
-	sendProgress('query', 'Fetching users without groups_backend flag...')
-
-	const usersToMigrate = await getNumUnmigratedUsers(pg)
-	const totalUsers = await getTotalUsers(pg)
-	let successCount = 0
-	let failureCount = 0
-
-	function getStats() {
-		return {
-			totalUsers,
-			usersToMigrate,
-			successCount,
-			failureCount,
-			progress: successCount / usersToMigrate,
-		}
-	}
-
-	sendProgress('query', `${usersToMigrate}/${totalUsers} users left to migrate`, getStats())
-
-	if (usersToMigrate === 0) {
-		sendProgress('complete', 'No users to migrate')
-		return false
-	}
-
-	const failures: Array<{ userId: string; email: string; error: string }> = []
-	let processedCount = 0
-
-	// Process users in batches
-	while (processedCount < batchSize) {
-		const userRow = await getNextUnmigratedUser(pg)
-		if (!userRow) {
-			break
-		}
-
-		// Check if we should stop
-		if (shouldStop()) {
-			sendProgress('stopped', 'Migration stopped by user', getStats())
-			break
-		}
-
-		sendProgress('migrating', `Migrating user ${userRow.email}`, {
-			userId: userRow.id,
-			email: userRow.email,
-			...getStats(),
-		})
-
-		try {
-			await retry(async () => {
-				const user = getUserDurableObject(env, userRow.id)
-
-				const result = await sql<{
-					files_migrated: number
-					pinned_files_migrated: number
-					flag_added: boolean
-				}>`SELECT * FROM migrate_user_to_groups(${userRow.id}, ${uniqueId()})`.execute(pg)
-				await user.admin_forceHardReboot(userRow.id)
-
-				successCount++
-				sendProgress('success', `Successfully migrated user ${userRow.email}`, {
-					userId: userRow.id,
-					email: userRow.email,
-					result: result.rows[0],
-					...getStats(),
-				})
-			})
-		} catch (error) {
-			failureCount++
-			const errorMessage = error instanceof Error ? error.message : String(error)
-			failures.push({
-				userId: userRow.id,
-				email: userRow.email,
-				error: errorMessage,
-			})
-
-			// Send failure event to client so it can be stored in the log
-			sendProgress('failure', `Failed to migrate ${userRow.email}`, {
-				userId: userRow.id,
-				email: userRow.email,
-				error: errorMessage,
-				...getStats(),
-			})
-
-			// Stop processing immediately after reporting the failure
-			sendProgress('summary', 'Migration stopped due to failure', {
-				failures: failures.length > 0 ? failures : undefined,
-			})
-			return false
-		}
-
-		processedCount++
-
-		// Brief pause between migrations to avoid overwhelming the system
-		await sleep(sleepTime)
-	}
-
-	sendProgress('summary', 'Migration batch complete', {
-		failures: failures.length > 0 ? failures : undefined,
-	})
-
-	// Check if there are more users to migrate
-	const remainingUsers = await getNumUnmigratedUsers(pg)
-	return remainingUsers > 0
 }

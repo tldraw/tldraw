@@ -2,15 +2,19 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FeatureFlags } from './FeatureFlagPoller'
 
 const mockFetch = vi.fn()
+let mockLocalStorage: Record<string, string> = {}
 vi.mock('tldraw', () => {
-	return { fetch: (...args: any[]) => mockFetch(...args) }
+	return {
+		fetch: (...args: any[]) => mockFetch(...args),
+		getFromLocalStorage: (key: string) => mockLocalStorage[key] ?? null,
+	}
 })
 
 function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 	return {
-		sqlite_file_storage: { enabled: false },
 		zero_enabled: { enabled: false },
 		zero_kill_switch: { enabled: false },
+		rum_enabled: { enabled: false },
 		...overrides,
 	}
 }
@@ -34,17 +38,40 @@ describe('shouldReloadForFlagChange', () => {
 	})
 
 	describe('zero_kill_switch transitions', () => {
-		it('reloads when kill switch goes false → true', () => {
-			const prev = makeFlags({ zero_kill_switch: { enabled: false } })
+		it('reloads when kill switch goes false → true and user had zero enabled', () => {
+			const prev = makeFlags({
+				zero_kill_switch: { enabled: false },
+				zero_enabled: { enabled: true },
+			})
 			const next = makeFlags({ zero_kill_switch: { enabled: true } })
 			expect(shouldReloadForFlagChange(prev, next)).toBe(true)
 		})
 
-		it('reloads when kill switch goes undefined → true', () => {
-			const prev = makeFlags()
+		it('reloads when kill switch goes undefined → true and user had zero enabled', () => {
+			const prev = makeFlags({ zero_enabled: { enabled: true } })
 			delete (prev as any).zero_kill_switch
 			const next = makeFlags({ zero_kill_switch: { enabled: true } })
 			expect(shouldReloadForFlagChange(prev, next)).toBe(true)
+		})
+
+		it('does NOT reload when kill switch activates but user did not have zero enabled', () => {
+			const prev = makeFlags({
+				zero_kill_switch: { enabled: false },
+				zero_enabled: { enabled: false },
+			})
+			const next = makeFlags({ zero_kill_switch: { enabled: true } })
+			expect(shouldReloadForFlagChange(prev, next)).toBe(false)
+		})
+
+		it('reloads when kill switch activates and user has localStorage override', () => {
+			mockLocalStorage = { useProperZero: 'true' }
+			const prev = makeFlags({
+				zero_kill_switch: { enabled: false },
+				zero_enabled: { enabled: false },
+			})
+			const next = makeFlags({ zero_kill_switch: { enabled: true } })
+			expect(shouldReloadForFlagChange(prev, next)).toBe(true)
+			mockLocalStorage = {}
 		})
 
 		it('does NOT reload when kill switch stays true → true', () => {
@@ -116,6 +143,9 @@ describe('fetchFeatureFlags', () => {
 		mockFetch.mockReset()
 		// Module-level fetchFeatureFlags() fires on import. Use an unauthenticated
 		// response so the promise cache is cleared and each test starts fresh.
+		// Two responses needed: one for the module-level call, one for the explicit await
+		// (the unauthenticated response clears the cache, so the second call refetches).
+		mockFetchResponse(makeFlags(), false)
 		mockFetchResponse(makeFlags(), false)
 		const mod = await import('./FeatureFlagPoller')
 		fetchFeatureFlags = mod.fetchFeatureFlags
@@ -153,17 +183,21 @@ describe('fetchFeatureFlags', () => {
 	})
 
 	it('returns default flags on fetch error', async () => {
+		const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		mockFetch.mockRejectedValueOnce(new Error('network down'))
 		const flags = await fetchFeatureFlags()
 		expect(flags.zero_kill_switch.enabled).toBe(false)
 		expect(flags.zero_enabled.enabled).toBe(false)
 		expect(wasAuthenticated()).toBe(false)
+		spy.mockRestore()
 	})
 
 	it('returns default flags on non-ok response', async () => {
+		const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		mockFetch.mockResolvedValueOnce({ ok: false, status: 500 })
 		const flags = await fetchFeatureFlags()
 		expect(flags.zero_kill_switch.enabled).toBe(false)
 		expect(flags.zero_enabled.enabled).toBe(false)
+		spy.mockRestore()
 	})
 })

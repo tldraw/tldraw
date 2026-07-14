@@ -14,62 +14,20 @@ export * from '@tldraw/utils'
 export * from '@tldraw/validate'
 
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
-export { DefaultBrush, type TLBrushProps } from './lib/components/default-components/DefaultBrush'
 export {
 	DefaultCanvas,
 	type TLCanvasComponentProps,
 } from './lib/components/default-components/DefaultCanvas'
 export {
-	DefaultCollaboratorHint,
-	type TLCollaboratorHintProps,
-} from './lib/components/default-components/DefaultCollaboratorHint'
-export {
-	DefaultCursor,
-	type TLCursorProps,
-} from './lib/components/default-components/DefaultCursor'
-export {
 	DefaultErrorFallback,
 	type TLErrorFallbackComponent,
 } from './lib/components/default-components/DefaultErrorFallback'
 export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
-export {
-	DefaultHandle,
-	type TLHandleProps,
-} from './lib/components/default-components/DefaultHandle'
-export {
-	DefaultHandles,
-	type TLHandlesProps,
-} from './lib/components/default-components/DefaultHandles'
-export {
-	DefaultScribble,
-	type TLScribbleProps,
-} from './lib/components/default-components/DefaultScribble'
-export {
-	DefaultSelectionBackground,
-	type TLSelectionBackgroundProps,
-} from './lib/components/default-components/DefaultSelectionBackground'
-export {
-	DefaultSelectionForeground,
-	type TLSelectionForegroundProps,
-} from './lib/components/default-components/DefaultSelectionForeground'
 export { type TLShapeErrorFallbackComponent } from './lib/components/default-components/DefaultShapeErrorFallback'
-export {
-	DefaultShapeIndicator,
-	type TLShapeIndicatorProps,
-} from './lib/components/default-components/DefaultShapeIndicator'
-export { type TLShapeIndicatorErrorFallbackComponent } from './lib/components/default-components/DefaultShapeIndicatorErrorFallback'
-export {
-	DefaultShapeIndicators,
-	type TLShapeIndicatorsProps,
-} from './lib/components/default-components/DefaultShapeIndicators'
 export {
 	DefaultShapeWrapper,
 	type TLShapeWrapperProps,
 } from './lib/components/default-components/DefaultShapeWrapper'
-export {
-	DefaultSnapIndicator,
-	type TLSnapIndicatorProps,
-} from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
 export {
@@ -81,15 +39,21 @@ export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLCon
 export { MenuClickCapture } from './lib/components/MenuClickCapture'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export {
+	createTLCurrentUser,
+	useTldrawCurrentUser,
+	type TLCurrentUser,
+} from './lib/config/createTLCurrentUser'
+export {
 	createTLSchemaFromUtils,
 	createTLStore,
+	defaultUserStore,
 	inlineBase64AssetStore,
 	type TLStoreBaseOptions,
 	type TLStoreEventInfo,
 	type TLStoreOptions,
 	type TLStoreSchemaOptions,
 } from './lib/config/createTLStore'
-export { createTLUser, useTldrawUser, type TLUser } from './lib/config/createTLUser'
+export { type TLAnyAssetUtilConstructor } from './lib/config/defaultAssets'
 export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
 export {
@@ -117,6 +81,7 @@ export {
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
 export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'
+export { AssetUtil, type TLAssetUtilConstructor } from './lib/editor/assets/AssetUtil'
 export {
 	BindingUtil,
 	type BindingOnChangeOptions,
@@ -136,12 +101,9 @@ export {
 } from './lib/editor/Editor'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager/ClickManager'
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager/EdgeScrollManager'
-export {
-	FontManager,
-	type TLFontFace,
-	type TLFontFaceSource,
-} from './lib/editor/managers/FontManager/FontManager'
+export { FontManager } from './lib/editor/managers/FontManager/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
+export { EditorManager } from './lib/editor/managers/EditorManager'
 export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
 export {
 	ScribbleManager,
@@ -164,14 +126,34 @@ export {
 export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
 export {
 	TextManager,
+	resolveLineHeightPx,
 	type BatchMeasurementRequest,
 	type TLMeasuredTextSize,
 	type TLMeasureTextOpts,
 	type TLMeasureTextSpanOpts,
 } from './lib/editor/managers/TextManager/TextManager'
+export { DEFAULT_THEME } from './lib/editor/managers/ThemeManager/defaultThemes'
+export { ThemeManager, resolveThemes } from './lib/editor/managers/ThemeManager/ThemeManager'
 export { TickManager } from './lib/editor/managers/TickManager/TickManager'
+export { CollaboratorsManager } from './lib/editor/managers/CollaboratorsManager/CollaboratorsManager'
+export { PerformanceApiAdapter } from './lib/editor/managers/PerformanceManager/PerformanceApiAdapter'
+export { PerformanceManager } from './lib/editor/managers/PerformanceManager/PerformanceManager'
+export {
+	type TLCameraEndPerfEvent,
+	type TLCameraStartPerfEvent,
+	type TLFramePerfEvent,
+	type TLInteractionEndPerfEvent,
+	type TLInteractionStartPerfEvent,
+	type TLPerfEventMap,
+	type TLPerfFrameTimeStats,
+	type TLPerfLongAnimationFrame,
+	type TLPerfLongAnimationFrameScript,
+	type TLShapeOperationPerfEvent,
+	type TLUndoRedoPerfEvent,
+} from './lib/editor/managers/PerformanceManager/perf-types'
 export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesManager/UserPreferencesManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
+export { BaseFrameLikeShapeUtil } from './lib/editor/shapes/BaseFrameLikeShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export {
 	ShapeUtil,
@@ -191,6 +173,18 @@ export {
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
 } from './lib/editor/shapes/ShapeUtil'
+export {
+	getOverlayDisplayValues,
+	type OverlayOptionsWithDisplayValues,
+} from './lib/editor/overlays/getOverlayDisplayValues'
+export { OverlayManager, type TLOverlayEntry } from './lib/editor/overlays/OverlayManager'
+export {
+	OverlayUtil,
+	type TLAnyOverlayUtilConstructor,
+	type TLOverlay,
+	type TLOverlayUtilConstructor,
+} from './lib/editor/overlays/OverlayUtil'
+export { strokeShapeIndicators } from './lib/editor/overlays/strokeShapeIndicators'
 export {
 	getPerfectDashProps,
 	type PerfectDashTerminal,
@@ -296,6 +290,7 @@ export {
 	useContainerIfExists,
 	type ContainerProviderProps,
 } from './lib/hooks/useContainer'
+export { useColorMode } from './lib/hooks/useColorMode'
 export { getCursor } from './lib/hooks/useCursor'
 export {
 	EditorContext,
@@ -310,7 +305,6 @@ export { useEvent, useReactiveEvent } from './lib/hooks/useEvent'
 export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
-export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
 export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePassThroughMouseOverEvents } from './lib/hooks/usePassThroughMouseOverEvents'
@@ -325,9 +319,7 @@ export {
 	useUniqueSafeId,
 	type SafeId,
 } from './lib/hooks/useSafeId'
-export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
-export { useTransform } from './lib/hooks/useTransform'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
 	LicenseManager,
@@ -460,6 +452,7 @@ export {
 	getGlobalDocument,
 	getGlobalWindow,
 	loopToHtmlElement,
+	moveElementInto,
 	preventDefault,
 	releasePointerCapture,
 	setPointerCapture,
@@ -508,3 +501,5 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_VERSION,
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
+
+export { getColorValue } from './lib/editor/managers/ThemeManager/defaultThemes'

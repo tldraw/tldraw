@@ -304,6 +304,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'zh-tw': formatAssetUrl(new URL('./translations/zh-tw.json', import.meta.url).href, opts),
 		},
 		embedIcons: {
+			canva: formatAssetUrl(new URL('./embed-icons/canva.png', import.meta.url).href, opts),
 			codepen: formatAssetUrl(new URL('./embed-icons/codepen.png', import.meta.url).href, opts),
 			codesandbox: formatAssetUrl(
 				new URL('./embed-icons/codesandbox.png', import.meta.url).href,

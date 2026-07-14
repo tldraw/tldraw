@@ -12,7 +12,6 @@ import {
 	exhaustiveSwitchError,
 	isEqual,
 	objectMapEntries,
-	structuredClone,
 	uniqueId,
 } from '@tldraw/utils'
 import {
@@ -826,6 +825,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.disposables.forEach((dispose) => dispose())
 		this.sendUnsentChanges.cancel?.()
 		this.scheduleRebase.cancel?.()
+		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
+			delete (window as any).tlsync
+		}
 	}
 
 	private lastPushedPresenceState: R | null = null
@@ -850,10 +852,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		// in offline mode, we only accumulate in speculativeChanges
 		if (!this.isConnectedToRoom) return
 		if (!this.unsentChanges.nextDiff) {
-			this.unsentChanges.nextDiff = structuredClone(change)
-		} else {
-			squashRecordDiffsMutable(this.unsentChanges.nextDiff, [change])
+			this.unsentChanges.nextDiff = { added: {} as any, updated: {} as any, removed: {} as any }
 		}
+		// records are immutable, so sharing their references with `change` is fine — the
+		// squash gives nextDiff its own containers and tuples without deep-cloning records
+		squashRecordDiffsMutable(this.unsentChanges.nextDiff, [change])
 		this.sendUnsentChanges()
 	}
 

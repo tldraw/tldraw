@@ -23,9 +23,9 @@
 	},
 	"scripts": {
 		"build": "vite build",
-		"dev": "vite",
+		"dev": "vite --host",
 		"preview": "vite preview",
-		"lint": "cd ../.. && yarn run -T oxlint templates/agent"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"@ai-sdk/anthropic": "^2.0.2",
@@ -51,6 +51,6 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.1",
 		"typescript": "^5.8.3",
-		"vite": "^8.0.1"
+		"vite": "^8.0.16"
 	}
 }

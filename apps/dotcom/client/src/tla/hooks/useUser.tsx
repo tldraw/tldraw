@@ -1,10 +1,10 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import type { UserResource } from '@clerk/types'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
-import { DefaultSpinner, LoadingScreen, assert, useShallowObjectIdentity } from 'tldraw'
+import { assert, useShallowObjectIdentity } from 'tldraw'
 import { useMaybeApp } from './useAppState'
 
-export interface TldrawUser {
+interface TldrawUser {
 	id: string
 	clerkUser: UserResource
 	isTldraw: boolean
@@ -45,24 +45,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
 	}, [getToken, isSignedIn, user, app])
 
 	if (!isLoaded || !isAuthLoaded || !app) {
-		return (
-			<div className="tldraw__editor">
-				<LoadingScreen>
-					<DefaultSpinner />
-				</LoadingScreen>
-			</div>
-		)
+		// Render a blank editor surface while auth loads, with no spinner or fade.
+		return <div className="tldraw__editor" />
 	}
 
 	return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }
 
-export function useTldrawUser() {
+export function useTldrawCurrentUser() {
 	return useContext(UserContext)
 }
 
 export function useLoggedInUser() {
-	const user = useTldrawUser()
+	const user = useTldrawCurrentUser()
 	if (!user) throw new Error('User not signed in')
 	return user
 }

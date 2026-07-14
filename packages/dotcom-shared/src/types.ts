@@ -85,8 +85,8 @@ export type UnpublishFileResponseBody =
 export type GetInviteInfoResponseBody =
 	| {
 			error: false
-			groupId: string
-			groupName: string
+			workspaceId: string
+			workspaceName: string
 			isValid: true
 			inviteSecret: string
 	  }
@@ -99,15 +99,15 @@ export type AcceptInviteResponseBody =
 	| {
 			error: false
 			message: string
-			groupId: string
-			groupName: string
+			workspaceId: string
+			workspaceName: string
 			success: true
 	  }
 	| {
 			error: false
 			message: string
-			groupId: string
-			groupName: string
+			workspaceId: string
+			workspaceName: string
 			alreadyMember: true
 	  }
 	| {
@@ -152,7 +152,7 @@ export const ZErrorCode = stringEnum(
 	'forbidden',
 	'bad_request',
 	'rate_limit_exceeded',
-	'max_groups_reached',
+	'max_workspaces_reached',
 	'max_files_reached'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
@@ -219,11 +219,7 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Feature Flags ---------------------- */
 
-export const FEATURE_FLAG_KEYS = [
-	'sqlite_file_storage',
-	'zero_enabled',
-	'zero_kill_switch',
-] as const
+export const FEATURE_FLAG_KEYS = ['zero_enabled', 'zero_kill_switch', 'rum_enabled'] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
 export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag

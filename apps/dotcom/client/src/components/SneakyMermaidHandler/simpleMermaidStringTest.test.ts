@@ -1,7 +1,7 @@
-import { simpleMermaidStringTest } from './simpleMermaidStringTest'
+import { simpleMermaidStringTest, stripMarkdownMermaidFence } from './simpleMermaidStringTest'
 
 describe('simpleMermaidStringTest', () => {
-	describe('bare keywords', () => {
+	describe('diagram keywords with content', () => {
 		const keywords = [
 			['flowchart', 'flowchart TD\n  A --> B'],
 			['graph', 'graph LR\n  A --> B'],
@@ -18,19 +18,19 @@ describe('simpleMermaidStringTest', () => {
 			['sankey', 'sankey-beta'],
 			['xychart', 'xychart-beta'],
 			['block', 'block-beta'],
-			['quadrantChart', 'quadrantChart'],
-			['requirement', 'requirement test_req'],
+			['quadrantChart', 'quadrantChart\n  title Reach vs Engagement'],
+			['requirement', 'requirement\n  test_req {\n    id: 1\n  }'],
 			['C4Context', 'C4Context\n  Person(user, "User")'],
-			['C4Container', 'C4Container'],
-			['C4Component', 'C4Component'],
-			['C4Dynamic', 'C4Dynamic'],
-			['C4Deployment', 'C4Deployment'],
+			['C4Container', 'C4Container\n  Container(web, "Web")'],
+			['C4Component', 'C4Component\n  Component(c, "Component")'],
+			['C4Dynamic', 'C4Dynamic\n  rel(a, b, "uses")'],
+			['C4Deployment', 'C4Deployment\n  Node(n, "Node")'],
 			['packet', 'packet-beta'],
-			['kanban', 'kanban'],
+			['kanban', 'kanban\n  todo[Todo]'],
 			['architecture', 'architecture-beta'],
 			['treemap', 'treemap-beta'],
 			['radar', 'radar-beta'],
-			['info', 'info'],
+			['info', 'info\n  showInfo'],
 		] as const
 
 		for (const [keyword, input] of keywords) {
@@ -75,6 +75,49 @@ describe('simpleMermaidStringTest', () => {
 		})
 	})
 
+	describe('markdown code fences', () => {
+		it('detects mermaid inside ```mermaid fence', () => {
+			const text = '```mermaid\nflowchart TD\n  A --> B\n```'
+			expect(simpleMermaidStringTest(text)).toBe(true)
+		})
+
+		it('detects mermaid inside fence with extra backticks', () => {
+			const text = '````mermaid\nsequenceDiagram\n  Alice->>Bob: Hi\n````'
+			expect(simpleMermaidStringTest(text)).toBe(true)
+		})
+
+		it('detects mermaid inside fence with leading whitespace', () => {
+			const text = '  ```mermaid\ngantt\n  title Plan\n  ```'
+			expect(simpleMermaidStringTest(text)).toBe(true)
+		})
+
+		it('strips fence and preserves inner boilerplate', () => {
+			const text = '```mermaid\n%%{init: {"theme":"dark"}}%%\nflowchart LR\n  A --> B\n```'
+			expect(simpleMermaidStringTest(text)).toBe(true)
+		})
+
+		it('does not consume later non-mermaid fences in the same paste', () => {
+			const text = [
+				'```mermaid',
+				'flowchart TD',
+				'  A --> B',
+				'```',
+				'',
+				'```javascript',
+				'const x = 1',
+				'```',
+			].join('\n')
+			expect(simpleMermaidStringTest(text)).toBe(true)
+		})
+
+		it('detects a bare keyword inside an explicit mermaid fence', () => {
+			// Inside a ```mermaid fence the user has declared intent, so a bare
+			// keyword that would otherwise be rejected is still treated as mermaid.
+			expect(simpleMermaidStringTest('```mermaid\ntimeline\n```')).toBe(true)
+			expect(simpleMermaidStringTest('```mermaid\nkanban\n```')).toBe(true)
+		})
+	})
+
 	describe('negative cases', () => {
 		it('rejects plain English text', () => {
 			expect(simpleMermaidStringTest('Hello world')).toBe(false)
@@ -101,9 +144,128 @@ describe('simpleMermaidStringTest', () => {
 			expect(simpleMermaidStringTest('<div class="flowchart">content</div>')).toBe(false)
 		})
 
-		it('rejects a markdown code block wrapping mermaid', () => {
-			const text = '```mermaid\nflowchart TD\n  A --> B\n```'
+		it('rejects a non-mermaid markdown code block', () => {
+			const text = '```javascript\nconst x = 1\n```'
 			expect(simpleMermaidStringTest(text)).toBe(false)
 		})
+
+		it('rejects a fence label that is not lowercase mermaid', () => {
+			const text = '```MERMAID\npie\n  "A" : 1\n```'
+			expect(simpleMermaidStringTest(text)).toBe(false)
+		})
+
+		it('rejects a bare keyword that is also a common word', () => {
+			for (const word of [
+				'timeline',
+				'graph',
+				'pie',
+				'block',
+				'info',
+				'kanban',
+				'journey',
+				'requirement',
+				'mindmap',
+			]) {
+				expect(simpleMermaidStringTest(word)).toBe(false)
+			}
+		})
+
+		it('rejects a bare keyword with trailing whitespace', () => {
+			expect(simpleMermaidStringTest('  timeline  ')).toBe(false)
+			expect(simpleMermaidStringTest('graph\n')).toBe(false)
+		})
+
+		it('rejects hyphenated words that start with a keyword', () => {
+			for (const word of [
+				'kanban-board',
+				'gantt-chart',
+				'timeline-view',
+				'graph-paper',
+				'block-party',
+			]) {
+				expect(simpleMermaidStringTest(word)).toBe(false)
+			}
+		})
+
+		it('rejects words that merely start with a keyword', () => {
+			expect(simpleMermaidStringTest('information about the project')).toBe(false)
+			expect(simpleMermaidStringTest('graphql query')).toBe(false)
+			expect(simpleMermaidStringTest('pier review')).toBe(false)
+		})
+
+		it('rejects single-line prose that starts with a keyword', () => {
+			for (const phrase of [
+				'graph paper is nice',
+				'pie in the sky',
+				'block party',
+				'journey home',
+				'info about the release',
+			]) {
+				expect(simpleMermaidStringTest(phrase)).toBe(false)
+			}
+		})
+
+		it('rejects multi-line prose that starts with a keyword', () => {
+			for (const phrase of [
+				'journey home\nto my heart',
+				'pie in\nthe sky',
+				'graph paper\nis nice to draw on',
+				'block party\nthis weekend',
+			]) {
+				expect(simpleMermaidStringTest(phrase)).toBe(false)
+			}
+		})
+	})
+})
+
+describe('stripMarkdownMermaidFence', () => {
+	it('extracts content from a mermaid fence', () => {
+		const text = '```mermaid\nflowchart TD\n  A --> B\n```'
+		expect(stripMarkdownMermaidFence(text)).toBe('flowchart TD\n  A --> B')
+	})
+
+	it('returns non-fenced text unchanged', () => {
+		const text = 'flowchart TD\n  A --> B'
+		expect(stripMarkdownMermaidFence(text)).toBe(text)
+	})
+
+	it('returns non-mermaid fenced text unchanged', () => {
+		const text = '```javascript\nconst x = 1\n```'
+		expect(stripMarkdownMermaidFence(text)).toBe(text)
+	})
+
+	it('handles extra backticks', () => {
+		const text = '````mermaid\ngantt\n  title Plan\n````'
+		expect(stripMarkdownMermaidFence(text)).toBe('gantt\n  title Plan')
+	})
+
+	it('stops at the first closing fence when more blocks follow', () => {
+		const text = [
+			'```mermaid',
+			'flowchart TD',
+			'  A --> B',
+			'```',
+			'',
+			'# More',
+			'',
+			'```js',
+			'x',
+			'```',
+		].join('\n')
+		expect(stripMarkdownMermaidFence(text)).toBe('flowchart TD\n  A --> B')
+	})
+
+	it('does not close on a shorter inner fence than the opening run', () => {
+		const text = ['````mermaid', 'flowchart TD', '  A --> B', '```', '  note text', '````'].join(
+			'\n'
+		)
+		expect(stripMarkdownMermaidFence(text)).toBe(
+			['flowchart TD', '  A --> B', '```', '  note text'].join('\n')
+		)
+	})
+
+	it('handles CRLF line endings in the fence', () => {
+		const text = '```mermaid\r\nflowchart TD\r\n  A --> B\r\n```'
+		expect(stripMarkdownMermaidFence(text)).toBe('flowchart TD\r\n  A --> B')
 	})
 })

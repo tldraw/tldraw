@@ -21,22 +21,31 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.head.repo.fork == false }}
     outputs:
-      relevant: ${{ steps.filter.outputs.relevant }}
+      relevant: ${{ steps.includes.outputs.match == 'true' && steps.nondocs.outputs.match == 'true' }}
     steps:
       - name: Check out code
         uses: actions/checkout@v6
 
-      - name: Check for relevant changes
+      - name: Check for changes to relevant paths
         uses: dorny/paths-filter@v3
-        id: filter
+        id: includes
         with:
           filters: |
-            relevant:
+            match:
               - 'packages/**'
               - 'apps/dotcom/**'
               - '.github/workflows/playwright-dotcom.yml'
               - '.github/actions/**'
               - 'yarn.lock'
+
+      - name: Check for any non-doc changes
+        uses: dorny/paths-filter@v3
+        id: nondocs
+        with:
+          predicate-quantifier: 'every'
+          filters: |
+            match:
+              - '**'
               - '!**/*.md'
               - '!**/*.mdx'
 
@@ -55,24 +64,8 @@ jobs:
       - name: Run our setup
         uses: ./.github/actions/setup
 
-      - name: Get installed Playwright version
-        id: playwright-version
-        run: |
-          yarn info @playwright/test --json > playwright.json
-          echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
-        working-directory: 'apps/dotcom/client'
-
-      - uses: actions/cache@v5
-        name: Check for Playwright browsers cache
-        id: playwright-cache
-        with:
-          path: |
-            ~/.cache/ms-playwright
-          key: ${{ runner.os }}-${{ runner.arch }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium chrome
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+      - name: Set up Playwright
+        uses: ./.github/actions/setup-playwright
 
       - name: Build dotcom client
         run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && yarn run -T lazy run build-i18n && cd apps/dotcom/client && yarn build

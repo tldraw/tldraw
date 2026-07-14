@@ -150,12 +150,6 @@ describe('getFeatureFlagValue', () => {
 		expect(value).toMatchObject({ type: 'boolean', enabled: false })
 	})
 
-	it('returns defaults with enabled=true in development', async () => {
-		const env = makeEnv({}, 'development')
-		const value = await getFeatureFlagValue(env as any, 'sqlite_file_storage')
-		expect(value.enabled).toBe(true)
-	})
-
 	it('merges KV value over defaults', async () => {
 		const env = makeEnv({
 			zero_enabled: JSON.stringify({ enabled: true, percentage: 25 }),
@@ -171,12 +165,14 @@ describe('getFeatureFlagValue', () => {
 	})
 
 	it('returns defaults on KV error', async () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const env = makeEnv()
 		env.FEATURE_FLAGS.get = vi.fn(async () => {
 			throw new Error('KV down')
 		})
 		const value = await getFeatureFlagValue(env as any, 'zero_kill_switch')
 		expect(value).toMatchObject({ type: 'boolean', enabled: false })
+		consoleSpy.mockRestore()
 	})
 })
 
@@ -287,8 +283,6 @@ describe('getFeatureFlagsAdmin (route handler)', () => {
 		const response = await getFeatureFlagsAdmin({} as any, env as any)
 		const body: any = await response.json()
 
-		expect(Object.keys(body).sort()).toEqual(
-			['sqlite_file_storage', 'zero_enabled', 'zero_kill_switch'].sort()
-		)
+		expect(Object.keys(body).sort()).toEqual(['rum_enabled', 'zero_enabled', 'zero_kill_switch'])
 	})
 })

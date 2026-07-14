@@ -8,6 +8,7 @@ import { TLInstancePageState } from './TLPageState'
 import { TLPointer } from './TLPointer'
 import { TLInstancePresence } from './TLPresence'
 import { TLShape } from './TLShape'
+import { TLUser } from './TLUser'
 
 /**
  * Interface for extending tldraw with custom record types via TypeScript module augmentation.
@@ -63,6 +64,7 @@ export type TLDefaultRecord =
 	| TLShape
 	| TLInstancePresence
 	| TLPointer
+	| TLUser
 
 /**
  * Index type that maps custom record type names to their record types.
