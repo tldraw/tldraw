@@ -312,10 +312,6 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	// currently inside a cluster, zoom to the first split that reveals it before opening.
 	useEffect(() => {
 		if (deepLinkHandled.current) return
-		if (!options.enableDeepLinks) {
-			deepLinkHandled.current = true
-			return
-		}
 		const id = new URLSearchParams(window.location.search).get('comment')
 		if (!id) {
 			deepLinkHandled.current = true

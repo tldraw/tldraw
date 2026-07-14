@@ -56,8 +56,6 @@ export interface CommentingOptions {
 	// ── Feature toggles ──────────────────────────────────────────────────────────────────────
 	/** Fold nearby pins into count badges as the camera zooms out. */
 	readonly enableClustering: boolean
-	/** Open the thread named by a `?comment=<id>` deep link on mount. */
-	readonly enableDeepLinks: boolean
 
 	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
@@ -83,7 +81,6 @@ export const defaultCommentingOptions = {
 	history: 'ignore',
 	dragHistory: undefined,
 	enableClustering: true,
-	enableDeepLinks: true,
 	impreciseShapeAnchor: { x: 1, y: 0 },
 	clusterCullMargin: 120,
 	clusterSplitZoomFactor: 1.05,
