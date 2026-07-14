@@ -710,6 +710,10 @@ const REGION_HANDLES = REGION_CORNERS.filter(
 	(c) => c.x !== REGION_PIN_CORNER.x || c.y !== REGION_PIN_CORNER.y
 )
 
+// Screen-space slack around a region's bounds within which its box and handles stay revealed, so
+// the corner handles (which sit on the edge) are comfortably reachable.
+const REGION_HANDLE_MARGIN_PX = 12
+
 /** Draggable corner handles that resize a region: each spans a rectangle from its fixed opposite
  *  corner (captured at pointer-down) to the cursor. Previews live, commits on release. */
 function RegionResizeHandles({
@@ -717,13 +721,11 @@ function RegionResizeHandles({
 	box,
 	onPreview,
 	onCommit,
-	onHoverChange,
 }: {
 	editor: Editor
 	box: BoxModel
 	onPreview(bounds: BoxModel | null): void
 	onCommit(bounds: BoxModel): void
-	onHoverChange(hovered: boolean): void
 }) {
 	// The fixed (opposite) corner in page coords, captured at pointer-down so the box prop reflowing
 	// mid-drag doesn't move it.
@@ -766,8 +768,6 @@ function RegionResizeHandles({
 					onPointerDown={startResize(h)}
 					onPointerMove={onResize}
 					onPointerUp={endResize}
-					onPointerEnter={() => onHoverChange(true)}
-					onPointerLeave={() => onHoverChange(false)}
 				/>
 			))}
 		</>
@@ -798,10 +798,23 @@ const ThreadPin = memo(function ThreadPin({
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	// While dragging the marker, its page point overrides the anchor's; committed on drop.
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
-	// A region thread reveals its dashed box while hovered or while its thread is open.
-	const [hovered, setHovered] = useState(false)
 	// The live bounds while a corner handle is resizing the region, else null.
 	const [resizeBounds, setResizeBounds] = useState<BoxModel | null>(null)
+	// A region reveals its box and corner handles while the pointer is within its bounds (plus a
+	// grab margin). Driven by pointer position, not DOM hover, so moving from anywhere in the region
+	// out to a corner handle never loses the affordance — the box stays `pointer-events: none`.
+	const pointerInRegion = useValue(
+		'pointer in region',
+		() => {
+			if (thread.anchor.type !== 'region' || thread.pageId !== editor.getCurrentPageId())
+				return false
+			const m = REGION_HANDLE_MARGIN_PX / editor.getZoomLevel()
+			const p = editor.inputs.getCurrentPagePoint()
+			const a = thread.anchor
+			return p.x >= a.x - m && p.x <= a.x + a.w + m && p.y >= a.y - m && p.y <= a.y + a.h + m
+		},
+		[editor, thread.anchor, thread.pageId]
+	)
 	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
 	const markerRef = useRef<HTMLDivElement>(null)
 
@@ -1070,16 +1083,15 @@ const ThreadPin = memo(function ThreadPin({
 
 	return (
 		<>
-			{regionBoxBounds && (dragPagePoint || open || hovered || resizeBounds) && (
+			{regionBoxBounds && (dragPagePoint || open || pointerInRegion || resizeBounds) && (
 				<RegionBox editor={editor} box={regionBoxBounds} />
 			)}
-			{regionBoxBounds && (open || hovered || resizeBounds) && !dragPagePoint && (
+			{regionBoxBounds && (open || pointerInRegion || resizeBounds) && !dragPagePoint && (
 				<RegionResizeHandles
 					editor={editor}
 					box={regionBoxBounds}
 					onPreview={setResizeBounds}
 					onCommit={commitResize}
-					onHoverChange={setHovered}
 				/>
 			)}
 			<div
@@ -1092,8 +1104,6 @@ const ThreadPin = memo(function ThreadPin({
 					onPointerDown={startDrag}
 					onPointerMove={onDrag}
 					onPointerUp={endDrag}
-					onPointerEnter={() => setHovered(true)}
-					onPointerLeave={() => setHovered(false)}
 				>
 					<CommentPin resolved={thread.resolved != null} open={open}>
 						{pinContent}
