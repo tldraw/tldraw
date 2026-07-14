@@ -1,4 +1,12 @@
-import { atom, BoxModel, Editor, TLCommentAnchor, TLCommentThread, TLShapeId } from 'tldraw'
+import {
+	atom,
+	BoxModel,
+	Editor,
+	TLCommentAnchor,
+	TLCommentThread,
+	TLShapeId,
+	VecLike,
+} from 'tldraw'
 
 /** The id of the one open thread (only one popover is open at a time), or null when all closed. */
 export const openThreadId = atom<string | null>('openThreadId', null)
@@ -6,16 +14,16 @@ export const openThreadId = atom<string | null>('openThreadId', null)
 /** Where an imprecise shape comment sits by default: the shape's top-right corner. Overridable. */
 export const DEFAULT_IMPRECISE_SHAPE_ANCHOR = { x: 1, y: 0 }
 
-/** Which corner of a region its pin and composer sit on, as a normalized 0–1 offset (bottom-right).
- *  The single source for the corner: pin position, composer placement, region move, and which
- *  corner has no resize handle all derive from it. */
-export const REGION_PIN_CORNER = { x: 1, y: 1 }
+/** The default corner a region's pin and composer sit on, as a normalized 0–1 offset (bottom-right).
+ *  Overridable per editor via region options; pin position, composer placement, region move, and
+ *  which corner has no resize handle all derive from the chosen corner. */
+export const REGION_PIN_CORNER: VecLike = { x: 1, y: 1 }
 
 /** The page point of a region's pin corner. */
-export function regionPinPoint(region: BoxModel): { x: number; y: number } {
+export function regionPinPoint(region: BoxModel, corner: VecLike = REGION_PIN_CORNER): VecLike {
 	return {
-		x: region.x + REGION_PIN_CORNER.x * region.w,
-		y: region.y + REGION_PIN_CORNER.y * region.h,
+		x: region.x + corner.x * region.w,
+		y: region.y + corner.y * region.h,
 	}
 }
 

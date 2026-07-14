@@ -45,6 +45,11 @@ import { commentsHidden, toggleCommentsHidden } from './comments-visibility'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
 import {
+	DEFAULT_REGION_COMMENT_OPTIONS,
+	RegionCommentOptions,
+	setRegionCommentOptions,
+} from './region-options'
+import {
 	anchorPagePoint,
 	openThreadId,
 	REGION_PIN_CORNER,
@@ -82,6 +87,9 @@ export interface CanvasCommentsProps {
 	onCommentRead?(commentId: TLCommentId): void
 	/** Where imprecise shape pins sit — a normalized (0–1) spot within the shape. Default top-right. */
 	impreciseShapeAnchor?: { x: number; y: number }
+	/** Region comment behaviour. Region is off by default — omit this for click-only point/shape
+	 *  comments. Anything unset falls back to {@link DEFAULT_REGION_COMMENT_OPTIONS}. */
+	regionOptions?: Partial<RegionCommentOptions>
 }
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
@@ -134,6 +142,13 @@ export function CanvasComments(props: CanvasCommentsProps) {
 function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const editor = useEditor()
 	const container = useContainer()
+	// Merge the consumer's region options over the disabled defaults and publish them for this editor,
+	// so the comment tool (which has no props) reads the same per-instance config.
+	const regionOptions = useMemo(
+		() => ({ ...DEFAULT_REGION_COMMENT_OPTIONS, ...props.regionOptions }),
+		[props.regionOptions]
+	)
+	useEffect(() => setRegionCommentOptions(editor, regionOptions), [editor, regionOptions])
 	const layerRef = useRef<HTMLDivElement>(null)
 	// Over the pins and cluster badges, wheel and hover pass through to the canvas beneath (these
 	// events bubble up from the pointer-interactive markers to this layer root).

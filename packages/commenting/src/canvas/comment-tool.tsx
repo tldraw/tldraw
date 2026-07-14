@@ -1,4 +1,5 @@
 import { atom, BoxModel, StateNode, TLCommentAnchor, TLUiOverrides, VecLike } from 'tldraw'
+import { getRegionCommentOptions } from './region-options'
 import { regionPinPoint, shapeAnchorAt } from './thread-state'
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
@@ -62,9 +63,10 @@ class CommentIdle extends StateNode {
 class CommentPointing extends StateNode {
 	static override id = 'pointing'
 
-	// Once the pointer passes the editor's drag threshold this is a region, not a click.
+	// Once the pointer passes the editor's drag threshold this is a region, not a click — but only
+	// when region comments are enabled; otherwise a drag is treated as a click (point/shape).
 	override onPointerMove() {
-		if (this.editor.inputs.getIsDragging()) {
+		if (getRegionCommentOptions(this.editor).enabled && this.editor.inputs.getIsDragging()) {
 			this.parent.transition('dragging')
 		}
 	}
@@ -103,7 +105,7 @@ class CommentDragging extends StateNode {
 		regionDraft.set(null)
 		pendingComment.set({
 			anchor: { type: 'region', ...region },
-			point: regionPinPoint(region),
+			point: regionPinPoint(region, getRegionCommentOptions(editor).pinCorner),
 		})
 		editor.setCurrentTool('select')
 	}
