@@ -1,0 +1,24 @@
+.add-connected-button {
+	position: absolute;
+	top: -14px;
+	left: -14px;
+	width: 28px;
+	height: 28px;
+	border: none;
+	border-radius: 50%;
+	background: var(--tl-color-selection-stroke);
+	color: var(--tl-color-selected-contrast);
+	font-size: 18px;
+	line-height: 1;
+	cursor: pointer;
+	pointer-events: all;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-shadow: var(--tl-shadow-1);
+	opacity: 0.8;
+}
+
+.add-connected-button:hover {
+	opacity: 1;
+}
