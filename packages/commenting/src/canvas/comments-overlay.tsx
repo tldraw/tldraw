@@ -385,6 +385,9 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 				<ThreadPin key={`open:${openThread.id}`} editor={editor} thread={openThread} {...props} />
 			)}
 			<RegionDraftBox editor={editor} />
+			{/* Keep the region visible while composing — the drag draft is gone by now, and no thread
+			    exists yet, so the pending anchor is what shows the area under the open composer. */}
+			{pending?.anchor.type === 'region' && <RegionBox editor={editor} box={pending.anchor} />}
 			{pending && props.currentUserId && (
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
