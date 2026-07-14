@@ -2,6 +2,7 @@ import { act, fireEvent, screen } from '@testing-library/react'
 import { createShapeId, tlenvReactive } from '@tldraw/editor'
 import { TLComponents, Tldraw } from '../../lib/Tldraw'
 import { DefaultContextMenu } from '../../lib/ui/components/ContextMenu/DefaultContextMenu'
+import { TLUiOverrides } from '../../lib/ui/overrides'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
@@ -192,4 +193,65 @@ it('tunnels context menu', async () => {
 	await screen.findByTestId('context-menu')
 	const elm = await screen.findByTestId('abc123')
 	expect(elm).toBeDefined()
+})
+
+describe('conversions submenus gate on their actions', () => {
+	async function openContextMenu(overrides?: TLUiOverrides) {
+		await renderTldrawComponent(
+			<Tldraw
+				overrides={overrides}
+				onMount={(editor) => {
+					editor.createShape({ id: createShapeId(), type: 'geo' })
+				}}
+			/>,
+			{ waitForPatterns: false }
+		)
+		const canvas = await screen.findByTestId('canvas')
+		fireEvent.contextMenu(canvas)
+		await screen.findByTestId('context-menu')
+		// wait for the menu to fully render before making absence assertions
+		await screen.findByTestId('context-menu.select-all')
+	}
+
+	it('shows the export-as and copy-as submenus by default', async () => {
+		await openContextMenu()
+		expect(screen.queryByTestId('context-menu-sub.export-as-button')).not.toBeNull()
+		expect(screen.queryByTestId('context-menu-sub.copy-as-button')).not.toBeNull()
+	})
+
+	it('hides the export-as submenu when all export actions are removed', async () => {
+		await openContextMenu({
+			actions(_editor, actions) {
+				delete actions['export-as-svg']
+				delete actions['export-as-png']
+				return actions
+			},
+		})
+		// regression for #9133: the submenu should not linger once its actions are gone
+		expect(screen.queryByTestId('context-menu-sub.export-as-button')).toBeNull()
+		// unrelated submenus are unaffected
+		expect(screen.queryByTestId('context-menu-sub.copy-as-button')).not.toBeNull()
+	})
+
+	it('hides the copy-as submenu when all copy actions are removed', async () => {
+		await openContextMenu({
+			actions(_editor, actions) {
+				delete actions['copy-as-svg']
+				delete actions['copy-as-png']
+				return actions
+			},
+		})
+		expect(screen.queryByTestId('context-menu-sub.copy-as-button')).toBeNull()
+		expect(screen.queryByTestId('context-menu-sub.export-as-button')).not.toBeNull()
+	})
+
+	it('keeps the export-as submenu when at least one export action remains', async () => {
+		await openContextMenu({
+			actions(_editor, actions) {
+				delete actions['export-as-svg']
+				return actions
+			},
+		})
+		expect(screen.queryByTestId('context-menu-sub.export-as-button')).not.toBeNull()
+	})
 })
