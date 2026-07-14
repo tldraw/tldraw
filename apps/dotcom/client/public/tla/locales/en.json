@@ -164,6 +164,9 @@
   "49ee308734": {
     "translation": "Name"
   },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> commented"
+  },
   "4d0d3ddec9": {
     "translation": "This site uses cookies to make the app work and to collect analytics."
   },
@@ -187,6 +190,9 @@
   },
   "54286b1d01": {
     "translation": "Collaborator limit reached"
+  },
+  "545241e7dd": {
+    "translation": "{count} unread"
   },
   "554a05155c": {
     "translation": "Still having trouble? <a>Report a problem</a>"
@@ -277,6 +283,9 @@
   },
   "752b79f137": {
     "translation": "You have reached the maximum number of files. You need to delete old files before creating new ones."
+  },
+  "7542d62aac": {
+    "translation": "Mark all as read"
   },
   "7573b8110a": {
     "translation": "No access"
@@ -371,6 +380,9 @@
   "90646db02d": {
     "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
   },
+  "92fa5a9042": {
+    "translation": "You're all caught up."
+  },
   "95aacd4d4a": {
     "translation": "Sign in with Google"
   },
@@ -424,6 +436,9 @@
   },
   "a239905023": {
     "translation": "Export image"
+  },
+  "a274f4d467": {
+    "translation": "Notifications"
   },
   "a3debabee7": {
     "translation": "Cookie policy"

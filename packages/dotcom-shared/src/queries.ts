@@ -14,6 +14,9 @@ const defineQuery = defineQueryWithType<TlaSchema, ZeroContext>()
 /** Typed defineQueries with schema */
 const defineQueries = defineQueriesWithType<TlaSchema>()
 
+/** Upper bound on the comments notifications feed, so the synced set stays finite as files accrue. */
+const RECENT_COMMENTS_LIMIT = 50
+
 /**
  * Synced Queries with permission logic.
  * These replace the old definePermissions API.
@@ -38,10 +41,15 @@ export const queries = defineQueries({
 	),
 
 	/**
-	 * Comments on files the current user can access, for the app-level /comments view. Access is
+	 * Comments on files the current user can access, for the app-level notifications feed. Access is
 	 * scoped to files the user has a file_state for (i.e. has opened/owns), mirroring the fileStates
 	 * query. The in-document view reads comments from the tldraw file room, not this query. (Group
 	 * files the user hasn't opened are out of scope for now.)
+	 *
+	 * Bounded to the most recent {@link RECENT_COMMENTS_LIMIT} so the synced set stays finite as a
+	 * workspace ages, rather than growing without limit. The canvas comment layer also reads this
+	 * query for read receipts and author names, so a comment older than the window won't surface an
+	 * unread marker on the canvas — an acceptable trade for a bounded sync.
 	 */
 	comments: defineQuery(({ ctx }) =>
 		zql.comment
@@ -54,6 +62,8 @@ export const queries = defineQueries({
 			// the caller's read receipt (at most one row: PK is (userId, commentId) and we filter
 			// on userId); absent (for others' comments) = unread
 			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
+			.orderBy('createdAt', 'desc')
+			.limit(RECENT_COMMENTS_LIMIT)
 	),
 })
 
