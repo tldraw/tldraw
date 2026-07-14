@@ -71,7 +71,14 @@
 	background: color-mix(in srgb, var(--tl-color-selected) 10%, transparent);
 }
 
-/* Corner resize handles on a region box (three corners; the top-right is the move pin). */
+/* A movable region body (the 'body'/'both' move modes): draggable to translate the whole region.
+   Interactive, so it captures the interior while shown — the tradeoff of dragging the body. */
+.cmt-canvas-region--movable {
+	pointer-events: auto;
+	cursor: move;
+}
+
+/* Corner resize handles on a region box (three corners; the pin corner is the move handle). */
 .cmt-canvas-region-handle {
 	position: absolute;
 	width: 9px;
