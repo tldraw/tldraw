@@ -11,7 +11,7 @@ import styles from './notifications.module.css'
 const messages = defineMessages({
 	title: { defaultMessage: 'Notifications' },
 	markAllRead: { defaultMessage: 'Mark all as read' },
-	empty: { defaultMessage: "You're all caught up." },
+	empty: { defaultMessage: 'You’re all caught up.' },
 })
 
 /**
