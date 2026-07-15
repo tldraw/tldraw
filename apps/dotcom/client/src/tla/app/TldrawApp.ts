@@ -303,9 +303,22 @@ export class TldrawApp {
 		return queries.comments()
 	}
 
-	/** All comments on files the current user can access, for the /comments view. */
+	/** Recent comments across the user's files, for the notifications feed (bounded, cross-file). */
 	getComments() {
 		return this.comments$.get()
+	}
+
+	/**
+	 * Materialize an ad-hoc Zero query into a live view the caller owns and must `destroy()`. For
+	 * parameterized, component-scoped queries (e.g. one file's comments) that shouldn't be
+	 * app-lifetime signals like {@link comments$}.
+	 */
+	materializeQuery<TReturn>(query: unknown) {
+		return this.z.materialize(query as any) as unknown as {
+			readonly data: TReturn
+			addListener(cb: (data: TReturn) => void): () => void
+			destroy(): void
+		}
 	}
 
 	async preload() {
