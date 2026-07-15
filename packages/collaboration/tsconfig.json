@@ -1,7 +1,24 @@
 {
 	"extends": "../../internal/config/tsconfig.base.json",
-	"include": ["src"],
-	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*"],
-	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
-	"references": [{ "path": "../commenting" }]
+	"include": [
+		"src"
+	],
+	"exclude": [
+		"node_modules",
+		"dist",
+		"**/*.css",
+		".tsbuild*"
+	],
+	"compilerOptions": {
+		"outDir": "./.tsbuild",
+		"rootDir": "src"
+	},
+	"references": [
+		{
+			"path": "../commenting"
+		},
+		{
+			"path": "../utils"
+		}
+	]
 }

@@ -1,6 +1,5 @@
 import { QueryResultType } from '@rocicorp/zero'
-import { filterMentionMembers } from '@tldraw/commenting'
-import { CanvasComments, CanvasCommentsSidebar } from '@tldraw/commenting/canvas'
+import { CanvasComments, CanvasCommentsSidebar, filterMentionMembers } from '@tldraw/commenting'
 import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useEditor, useValue } from 'tldraw'
@@ -9,7 +8,7 @@ import { useMaybeApp } from '../../hooks/useAppState'
 type FileComments = QueryResultType<typeof queries.fileComments>
 
 /**
- * dotcom's comments layer: a thin consumer of `@tldraw/commenting/canvas`'s `<CanvasComments>`.
+ * dotcom's comments layer: a thin consumer of `@tldraw/commenting`'s `<CanvasComments>`.
  * All the flow (tool, pins, thread popovers, composer, rich-text bodies) lives in the toolkit;
  * dotcom only supplies the pieces that are its own — the signed-in user's id, a name resolver
  * (current user from preferences, other authors from the Zero comments query's author join, with

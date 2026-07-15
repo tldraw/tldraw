@@ -17,10 +17,12 @@ import { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './sidebar-filters'
  * and the comment tool (`this.editor`).
  */
 
-/** The id of the one open thread (only one popover is open at a time), or null when all closed. */
+/** The id of the one open thread (only one popover is open at a time), or null when all closed.
+ * @public */
 export const openThreadId = new EditorAtom<string | null>('openThreadId', () => null)
 
-/** The comment currently being placed (composer open, not yet posted), or null. */
+/** The comment currently being placed (composer open, not yet posted), or null.
+ * @public */
 export const pendingComment = new EditorAtom<PendingComment | null>('pendingComment', () => null)
 
 /** The region rectangle being dragged out right now (page coords), or null when not dragging. The
@@ -30,39 +32,46 @@ export const regionDraft = new EditorAtom<BoxModel | null>('regionDraft', () => 
 /**
  * Whether comment pins are hidden on the canvas. Governs the on-canvas layer (pins + open popover)
  * only — the sidebar is unaffected.
+ * @public
  */
 export const commentsHidden = new EditorAtom<boolean>('commentsHidden', () => false)
 
-/** Which threads the comments sidebar shows. */
+/** Which threads the comments sidebar shows.
+ * @public */
 export const sidebarFilters = new EditorAtom<SidebarFilters>(
 	'sidebarFilters',
 	() => DEFAULT_SIDEBAR_FILTERS
 )
 
-/** Toggle comment-pin visibility for an editor. */
+/** Toggle comment-pin visibility for an editor.
+ * @public */
 export function toggleCommentsHidden(editor: Editor): void {
 	commentsHidden.update(editor, (hidden) => !hidden)
 }
 
-/** React hook for the open thread id. */
+/** React hook for the open thread id.
+ * @public */
 export function useOpenThreadId(): string | null {
 	const editor = useEditor()
 	return useValue('open thread id', () => openThreadId.get(editor), [editor])
 }
 
-/** React hook for the pending (being-placed) comment. */
+/** React hook for the pending (being-placed) comment.
+ * @public */
 export function usePendingComment(): PendingComment | null {
 	const editor = useEditor()
 	return useValue('pending comment', () => pendingComment.get(editor), [editor])
 }
 
-/** React hook for whether comment pins are hidden. */
+/** React hook for whether comment pins are hidden.
+ * @public */
 export function useCommentsHidden(): boolean {
 	const editor = useEditor()
 	return useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 }
 
-/** React hook for the current sidebar filters. */
+/** React hook for the current sidebar filters.
+ * @public */
 export function useSidebarFilters(): SidebarFilters {
 	const editor = useEditor()
 	return useValue('sidebar filters', () => sidebarFilters.get(editor), [editor])
@@ -72,6 +81,7 @@ export function useSidebarFilters(): SidebarFilters {
  * Commit a comment mutation with the configured undo/redo behavior. All comment writes go through
  * here so the {@link CommentingOptions.history} option (and {@link CommentingOptions.dragHistory}
  * for pin re-anchors) governs whether they land on the undo stack. Defaults to `'ignore'`.
+ * @public
  */
 export function commitCommentMutation<T>(
 	editor: Editor,

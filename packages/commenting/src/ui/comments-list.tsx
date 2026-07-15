@@ -1,8 +1,8 @@
 import { ReactNode } from 'react'
 import { Avatar } from './avatar'
 import { Byline } from './byline'
-import './comments.css'
 
+/** @public */
 export interface CommentListItemProps {
 	id: string
 	author: string
@@ -19,6 +19,7 @@ export interface CommentListItemProps {
 	selected?: boolean
 }
 
+/** @public */
 export interface CommentsListProps {
 	items: CommentListItemProps[]
 	/** Called with a thread id when an item is chosen. */
@@ -39,6 +40,7 @@ export interface CommentsListProps {
  * A scrollable list of comment threads — each an avatar, byline, and a one-line preview.
  * Presentational: you supply the items (already summarised) and an `onSelect` handler; the canvas
  * `CanvasCommentsSidebar` wires it to the store, but a consumer can build their own list from this.
+ * @public @react
  */
 export function CommentsList({
 	items,

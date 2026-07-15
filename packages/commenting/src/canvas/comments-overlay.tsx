@@ -69,7 +69,6 @@ import {
 	usePendingComment,
 } from './state'
 import { anchorPagePoint, regionPinPoint, shapeAnchorAt } from './thread-state'
-import './canvas.css'
 
 /**
  * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
@@ -80,6 +79,7 @@ import './canvas.css'
  * and `PinContent` slots on `CommentTool.configure({ components })`), and the pieces it composes
  * (`CommentPin`, `CommentThread`, `CommentComposer`, the hooks, the tool) are all exported, so a
  * consumer can rebuild this from parts instead.
+ * @public
  */
 export interface CanvasCommentsProps {
 	/** The signed-in user's id, or null for a read-only viewer. Only a signed-in user composes. */
@@ -92,7 +92,7 @@ export interface CanvasCommentsProps {
 	isCommentUnread?(commentId: TLCommentId): boolean
 	/**
 	 * Called for each unread comment shown to the user in an open thread popover, so hosts can
-	 * record a read receipt. Needs {@link isCommentUnread} to know what's unread.
+	 * record a read receipt. Needs `isCommentUnread` to know what's unread.
 	 */
 	onCommentRead?(commentId: TLCommentId): void
 	/** Resolve the members matching an `@`-query in the composers (sync or async). */
@@ -156,6 +156,7 @@ function toCardProps(
 	}
 }
 
+/** @public @react */
 export function CanvasComments(props: CanvasCommentsProps) {
 	// Gate the whole layer on the license before doing any work. The inner component holds all the
 	// other hooks, so mounting/unmounting it as the license resolves keeps hook order stable here.

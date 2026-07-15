@@ -14,7 +14,8 @@ import { commentsHidden, toggleCommentsHidden } from './state'
 const HIDE_SHORTCUT = '⇧C'
 
 /** The overflow (⋯) dropdown in the sidebar header. For now it holds the hide/show-comments
- *  toggle; it's the home for later comment-wide controls (notifications, mark all as read). */
+ *  toggle; it's the home for later comment-wide controls (notifications, mark all as read).
+ * @public @react */
 export function CommentsOverflowMenu() {
 	const editor = useEditor()
 	const msg = useTranslation()

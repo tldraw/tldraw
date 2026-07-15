@@ -69,7 +69,8 @@ const MentionPopup = forwardRef<MentionPopupHandle, MentionPopupProps>(function 
 
 const MAX_SUGGESTIONS = 8
 
-/** Members whose name contains the query (case-insensitive), capped to the popup's length. */
+/** Members whose name contains the query (case-insensitive), capped to the popup's length.
+ * @public */
 export function filterMentionMembers(members: MentionMember[], query: string): MentionMember[] {
 	const q = query.toLowerCase()
 	return members.filter((m) => m.name.toLowerCase().includes(q)).slice(0, MAX_SUGGESTIONS)
@@ -89,6 +90,7 @@ export function isMentionPickerOpen(): boolean {
 	return mentionPickerOpen.get()
 }
 
+/** @public */
 export interface MentionSuggestionOptions {
 	/** Override a member row's content in the picker. Defaults to avatar + name (+ secondary). */
 	renderMember?(member: MentionMember): ReactNode
@@ -100,11 +102,12 @@ export interface MentionSuggestionOptions {
 }
 
 /**
- * Build the TipTap `suggestion` config for the comment @-picker. `getSuggestions(query)` is the
+ * Build the TipTap `suggestion` config for the comment \@-picker. `getSuggestions(query)` is the
  * host's resolver — it returns the members matching the query (sync or async); the SDK owns neither
  * the roster nor the filtering. The plugin runs outside React, so `render` mounts `MentionPopup` via
  * a `ReactRenderer`, forwards navigation keys through the popup's imperative handle, and lets it call
  * `command` to insert.
+ * @public
  */
 export function createMentionSuggestion(
 	getSuggestions: (query: string) => MentionMember[] | Promise<MentionMember[]>,

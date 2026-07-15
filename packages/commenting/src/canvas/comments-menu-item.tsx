@@ -6,6 +6,7 @@ import { commentsHidden, toggleCommentsHidden } from './state'
  * when comments are visible, like tldraw's own grid/snap toggles. Reads and toggles the shared
  * {@link commentsHidden} signal, so it stays in sync with the Shift+C shortcut and the sidebar
  * control. Drop it into whichever menu your app owns.
+ * @public @react
  */
 export function CommentsMenuItem() {
 	const editor = useEditor()

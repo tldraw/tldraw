@@ -8,6 +8,7 @@ import { useLicenseContext, useLicenseFeatureFlag } from 'tldraw'
  *
  * The built-in commenting components (`CanvasComments`, `CanvasCommentsSidebar`, and the comment
  * tool's toolbar button) gate on this. Use it to gate any custom commenting UI the same way.
+ * @public
  */
 export function useCommentingEnabled(): boolean {
 	return useLicenseFeatureFlag(useLicenseContext(), 'commenting')

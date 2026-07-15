@@ -14,7 +14,8 @@ import { regionPinPoint, shapeAnchorAt } from './thread-state'
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
  *  to. Shared between the tool (which sets it on click) and the overlay (which renders the
  *  composer). Null when nothing is being placed. The atom itself lives in `./state`
- *  ({@link pendingComment}), scoped per editor. */
+ *  ({@link pendingComment}), scoped per editor.
+ * @public */
 export interface PendingComment {
 	anchor: TLCommentAnchor
 	/** Page point where the composer opens (the click location, or a region's pin corner). */
@@ -52,11 +53,12 @@ export function regionBetween(a: VecLike, b: VecLike): BoxModel {
  * The comment tool. A click starts a point/shape thread (the pin tracks the shape it lands on);
  * dragging out a rectangle starts a region thread anchored to that area. Placement only opens a
  * composer (via `pendingComment`); the records are created when the comment is posted.
+ * @public
  */
 export class CommentTool extends StateNode {
 	static override id = 'comment'
 	static override initial = 'idle'
-	static override children() {
+	static override children(): TLStateNodeConstructor[] {
 		return [CommentIdle, CommentPointing, CommentDragging]
 	}
 
@@ -178,10 +180,12 @@ class CommentDragging extends StateNode {
 	}
 }
 
+/** @public */
 export const commentTools = [CommentTool]
 
 /** Registers the comment tool in the UI (icon, label, shortcut). Compose into your overrides.
- *  Once registered, tldraw's `DefaultToolbarContent` shows the comment button next to the eraser. */
+ *  Once registered, tldraw's `DefaultToolbarContent` shows the comment button next to the eraser.
+ * @public */
 export const commentToolOverrides: TLUiOverrides = {
 	tools(editor, tools) {
 		tools.comment = {

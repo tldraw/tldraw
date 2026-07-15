@@ -1,10 +1,6 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { CommentPin, CountBadge } from '@tldraw/commenting'
-import {
-	computeClusterTable,
-	createClusterRuntime,
-	type LeafInput,
-} from '@tldraw/commenting/canvas'
+import { computeClusterTable, createClusterRuntime, type LeafInput } from '@tldraw/commenting'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Editor, Tldraw } from 'tldraw'
 import './cluster-motion.css'

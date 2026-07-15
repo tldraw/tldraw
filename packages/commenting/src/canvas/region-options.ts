@@ -4,6 +4,7 @@ import { atom, Atom, Editor, VecLike } from 'tldraw'
  * The configurable dimensions of region comments — a design surface for prototyping the interaction
  * before settling it. Region is **off by default**, so a consumer that leaves it unset keeps plain
  * click-only point/shape commenting. Set it per editor through `<CanvasComments regionOptions>`.
+ * @public
  */
 export interface RegionCommentOptions {
 	/** Whether dragging the comment tool out creates a region anchor. Off → click-only. */
@@ -20,7 +21,8 @@ export interface RegionCommentOptions {
 }
 
 /** The out-of-the-box region config: disabled, and — when a consumer enables it — the current
- *  bottom-right / pointer-reveal / pin-move / corner-resize behaviour. */
+ *  bottom-right / pointer-reveal / pin-move / corner-resize behaviour.
+ * @public */
 export const DEFAULT_REGION_COMMENT_OPTIONS: RegionCommentOptions = {
 	enabled: false,
 	pinCorner: { x: 1, y: 1 },

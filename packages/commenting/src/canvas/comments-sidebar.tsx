@@ -19,8 +19,8 @@ import { useCommentingOptions } from './options'
 import { richTextToPlaintext } from './rich-text'
 import { openThreadId, sidebarFilters } from './state'
 import { focusThread } from './thread-state'
-import './canvas.css'
 
+/** @public */
 export interface CanvasCommentsSidebarProps {
 	/** Map an author id to a display name, or `undefined` when the id can't be named. */
 	resolveName(id: string): string | undefined
@@ -45,6 +45,7 @@ export interface CanvasCommentsSidebarProps {
  * A comments list panel for the current page, shown while the comment tool is active. Clicking a
  * thread brings its pin into view and opens it. Batteries-included over the store (a sibling to
  * `CanvasComments`); `CommentsList` is exported for a differently-placed or always-on list.
+ * @public @react
  */
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 	const {

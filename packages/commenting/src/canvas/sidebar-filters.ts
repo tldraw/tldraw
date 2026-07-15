@@ -1,8 +1,9 @@
 /**
  * Which threads the comments sidebar shows. Held as an editor-scoped signal (the `sidebarFilters`
- * {@link EditorAtom} in `./state`) rather than component state so it survives the sidebar
+ * `EditorAtom` in `./state`) rather than component state so it survives the sidebar
  * unmounting when the comment tool deactivates — a user's "hide resolved" choice shouldn't reset
  * every time they leave the tool.
+ * @public
  */
 export interface SidebarFilters {
 	/** Include resolved threads. */
@@ -15,6 +16,7 @@ export interface SidebarFilters {
 	onlyCurrentPage: boolean
 }
 
+/** @public */
 export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters = {
 	showResolved: true,
 	onlyMine: false,
