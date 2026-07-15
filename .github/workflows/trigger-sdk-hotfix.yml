@@ -8,10 +8,13 @@ name: Trigger sdk hotfix
 # labels), and `labeled` allows re-triggering a hotfix by re-adding the label to an
 # already-merged PR. Secrets exposure is safe here: the job only runs for merged PRs
 # carrying a maintainer-applied hotfix label, checkout uses the trusted base branch,
-# and the script only cherry-picks the PR's already-merged commit from main.
+# and the only PR-derived code the script builds is the PR's already-merged commit
+# from main.
 on:
   pull_request_target:
     types: [closed, labeled]
+    branches:
+      - main
 
 defaults:
   run:
