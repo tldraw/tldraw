@@ -168,6 +168,18 @@ export const comment_read = table('comment_read')
 	})
 	.primaryKey('userId', 'commentId')
 
+// One row per (comment, @-mentioned user), extracted from the comment's rich-text body by the
+// file's Durable Object when it drains comment records to Postgres (mentions live inside the
+// body JSON, which ZQL can't reach — this table is what lets the notifications query filter
+// "comments that mention me" server-side). Server-written only, like comment/comment_thread;
+// rows are reconciled on every comment upsert and cascade away with their comment.
+export const comment_mention = table('comment_mention')
+	.columns({
+		commentId: string(),
+		userId: string(),
+	})
+	.primaryKey('commentId', 'userId')
+
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
 		sourceField: ['ownerId'],
@@ -277,13 +289,27 @@ const commentRelationships = relationships(comment, ({ one, many }) => ({
 		destField: ['commentId'],
 		destSchema: comment_read,
 	}),
+	// the users this comment @-mentions; used with whereExists in the comments query, never
+	// synced as a related row set
+	mentions: many({
+		sourceField: ['id'],
+		destField: ['commentId'],
+		destSchema: comment_mention,
+	}),
 }))
 
-const commentThreadRelationships = relationships(comment_thread, ({ one }) => ({
+const commentThreadRelationships = relationships(comment_thread, ({ one, many }) => ({
 	file: one({
 		sourceField: ['fileId'],
 		destField: ['id'],
 		destSchema: file,
+	}),
+	// the thread's messages; used with whereExists for "threads the user has commented in" in
+	// the comments query, never synced as a related row set
+	comments: many({
+		sourceField: ['id'],
+		destField: ['threadId'],
+		destSchema: comment,
 	}),
 }))
 
@@ -326,6 +352,11 @@ export type TlaCommentReadPartial = Partial<TlaCommentRead> & {
 	commentId: TlaCommentRead['commentId']
 }
 
+export type TlaCommentMentionPartial = Partial<TlaCommentMention> & {
+	commentId: TlaCommentMention['commentId']
+	userId: TlaCommentMention['userId']
+}
+
 export type TlaRow =
 	| TlaFile
 	| TlaFileState
@@ -336,6 +367,7 @@ export type TlaRow =
 	| TlaComment
 	| TlaCommentThread
 	| TlaCommentRead
+	| TlaCommentMention
 export type TlaRowPartial =
 	| TlaFilePartial
 	| TlaFileStatePartial
@@ -346,6 +378,7 @@ export type TlaRowPartial =
 	| TlaCommentPartial
 	| TlaCommentThreadPartial
 	| TlaCommentReadPartial
+	| TlaCommentMentionPartial
 export interface TlaUserMutationNumber {
 	userId: string
 	mutationNumber: number
@@ -420,6 +453,7 @@ export interface DB {
 	comment: TlaComment & CommentPersistenceColumns
 	comment_thread: TlaCommentThread & CommentThreadPersistenceColumns
 	comment_read: TlaCommentRead
+	comment_mention: TlaCommentMention
 }
 
 export const schema = createSchema({
@@ -433,6 +467,7 @@ export const schema = createSchema({
 		comment,
 		comment_thread,
 		comment_read,
+		comment_mention,
 	],
 	relationships: [
 		fileRelationships,
@@ -455,6 +490,7 @@ export type TlaGroupFile = Row<typeof schema.tables.group_file>
 export type TlaComment = Row<typeof schema.tables.comment>
 export type TlaCommentThread = Row<typeof schema.tables.comment_thread>
 export type TlaCommentRead = Row<typeof schema.tables.comment_read>
+export type TlaCommentMention = Row<typeof schema.tables.comment_mention>
 
 // Permissions are now handled via Synced Queries in queries.ts
 

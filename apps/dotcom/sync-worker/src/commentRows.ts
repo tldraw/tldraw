@@ -1,4 +1,4 @@
-import { DB } from '@tldraw/dotcom-shared'
+import { DB, extractMentionIds } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	TLComment,
@@ -37,6 +37,44 @@ export function isCommentAuthorFkViolation(error: unknown): boolean {
 	if (typeof error !== 'object' || error === null) return false
 	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
 	return code === '23503' && constraint === 'comment_author_id_fkey'
+}
+
+/**
+ * True when `error` is Postgres rejecting a `comment_mention` insert on either of its foreign
+ * keys (code 23503): the mentioned user's row no longer exists (deleted account, or a client
+ * supplied an id that never was a user), or the comment itself was deleted between its upsert
+ * and the mention write (e.g. a version restore's fileId-wide wipe). In both cases the mention
+ * row is genuinely unwanted — retrying can't help — so the caller skips the row instead of
+ * failing the drain. Same error-shape contract as {@link isCommentAuthorFkViolation}.
+ */
+export function isCommentMentionFkViolation(error: unknown): boolean {
+	if (typeof error !== 'object' || error === null) return false
+	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
+	return (
+		code === '23503' &&
+		(constraint === 'comment_mention_user_id_fkey' ||
+			constraint === 'comment_mention_comment_id_fkey')
+	)
+}
+
+/** One comment's desired `comment_mention` rows: the full set its body currently mentions. */
+export interface CommentMentionReconcile {
+	commentId: string
+	userIds: string[]
+}
+
+/**
+ * The desired end state of the `comment_mention` table for a drain's successfully upserted
+ * comment rows: for each comment, the user ids its body currently `@`-mentions (deduped by
+ * {@link extractMentionIds}). The caller reconciles Postgres to this — delete rows not in the
+ * set, insert the rest with ON CONFLICT DO NOTHING — so the write is idempotent: an
+ * at-least-once replay deletes nothing and inserts nothing, producing no WAL churn for Zero.
+ */
+export function planMentionReconciles(commentRows: DB['comment'][]): CommentMentionReconcile[] {
+	return commentRows.map((row) => ({
+		commentId: row.id,
+		userIds: extractMentionIds(row.body),
+	}))
 }
 
 export function threadRecordToRow(

@@ -61,9 +61,11 @@ import { Kysely, PostgresDialect } from 'kysely'
 import {
 	findEmptiedCommentThreads,
 	isCommentAuthorFkViolation,
+	isCommentMentionFkViolation,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
+	planMentionReconciles,
 	rowsToSnapshotDocuments,
 } from './commentRows'
 import { PERSIST_INTERVAL_MS } from './config'
@@ -1809,6 +1811,64 @@ export class TLFileDurableObject extends DurableObject {
 				}
 				if (threadDeletes.length > 0) {
 					await this.db.deleteFrom('comment_thread').where('id', 'in', threadDeletes).execute()
+				}
+
+				// Reconcile @-mention rows for every comment row that made it to Postgres, so the
+				// notifications query can filter "comments that mention me" server-side (mentions
+				// live inside the body JSON, out of ZQL's reach). The write is idempotent — delete
+				// rows the body no longer mentions, insert the rest with ON CONFLICT DO NOTHING —
+				// so clock-guarded no-op replays cause no WAL churn. A mention insert failing its
+				// user FK (mentioned account deleted, or a bogus id) is skipped for good; any other
+				// failure marks the comment failed so its outbox entry stays queued and the next
+				// drain retries the reconcile. Comment deletes need no handling here: the FK
+				// cascades their mention rows away.
+				const mentionReconciles = planMentionReconciles(
+					commentUpserts.filter(
+						(row) => !failedIds.has(row.id) && !commentResult.prunedIds.includes(row.id)
+					)
+				)
+				for (const { commentId, userIds } of mentionReconciles) {
+					try {
+						let deleteStale = this.db
+							.deleteFrom('comment_mention')
+							.where('commentId', '=', commentId)
+						if (userIds.length > 0) {
+							deleteStale = deleteStale.where('userId', 'not in', userIds)
+						}
+						await deleteStale.execute()
+						if (userIds.length === 0) continue
+						const rows = userIds.map((userId) => ({ commentId, userId }))
+						try {
+							await this.db
+								.insertInto('comment_mention')
+								.values(rows)
+								.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
+								.execute()
+						} catch (batchError) {
+							if (!isCommentMentionFkViolation(batchError)) throw batchError
+							// One row's FK failure aborts the whole batch insert; retry row-by-row so
+							// the valid mentions land and only the FK-violating ones are skipped.
+							for (const row of rows) {
+								try {
+									await this.db
+										.insertInto('comment_mention')
+										.values(row)
+										.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
+										.execute()
+								} catch (rowError) {
+									if (!isCommentMentionFkViolation(rowError)) throw rowError
+								}
+							}
+						}
+					} catch (error) {
+						failedIds.add(commentId)
+						this.logEvent({
+							type: 'room',
+							roomId: fileId,
+							name: 'failed_persist_comments_to_db',
+						})
+						this.reportError(error)
+					}
 				}
 
 				let didPruneThreads = false

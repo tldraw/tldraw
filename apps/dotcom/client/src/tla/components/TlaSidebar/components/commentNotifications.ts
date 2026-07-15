@@ -1,5 +1,4 @@
-import { TLRichText } from 'tldraw'
-import { getMentionedMemberIds } from '../../../utils/richText'
+import { extractMentionIds } from '@tldraw/dotcom-shared'
 
 /**
  * Why a comment shows up in a user's notifications feed:
@@ -28,14 +27,14 @@ export interface CommentNotificationInput {
 	threadId: string
 	createdAt: number
 	// Comment body, as rich text JSON. Typed `unknown` so the real Zero row (whose `body` is a wide
-	// `ReadonlyJSONValue`) still satisfies this constraint; narrowed to TLRichText where read.
+	// `ReadonlyJSONValue`) still satisfies this constraint; extractMentionIds accepts unknown.
 	body: unknown
 	read?: unknown
 	file?: { ownerId?: string | null } | null
 	thread?: { createdBy?: string | null } | null
 }
 
-/** A comment that belongs in the notifications feed, tagged with why. */
+/** A comment in the notifications feed, tagged with why it's there. */
 export interface CommentNotification<
 	T extends CommentNotificationInput = CommentNotificationInput,
 > {
@@ -47,15 +46,17 @@ export interface CommentNotification<
 }
 
 /**
- * Narrows a raw cross-file comment feed to the notifications a user actually cares about, tagging
- * each with why it's there. A comment qualifies when it isn't the user's own and matches at least
- * one of: it's on a board they own, it's in a thread they're a part of, or it `@`-mentions them.
+ * Tags each comment in the notifications feed with why it's there, newest first. The `comments`
+ * synced query already filters to the three categories server-side — comments on boards the user
+ * owns, replies in threads they're a part of, and `@`-mentions of them — so this derives labels,
+ * not membership: nothing the server sent is dropped (except the user's own comments, which the
+ * server also excludes; the local re-check is just defense in depth).
  *
- * Thread participation is derived (there's no stored participant list): a user is "part of" a thread
- * if they created it (`thread.createdBy`) or authored any comment in it within `comments`. Since the
- * feed is capped upstream, participation is best-effort over the fetched window.
- *
- * Returns newest-first.
+ * Two of the three reasons re-derive exactly from synced data (`file.ownerId`; mention ids in the
+ * body). Thread participation can't always be re-derived: the evidence — the user's own earlier
+ * comment in the thread — may be older than the feed's bounded window. A comment with no locally
+ * derivable reason is therefore labeled `reply`, the only category the client can fail to see
+ * evidence for.
  */
 export function categorizeCommentNotifications<T extends CommentNotificationInput>(
 	comments: readonly T[],
@@ -77,10 +78,12 @@ export function categorizeCommentNotifications<T extends CommentNotificationInpu
 		if (comment.authorId === userId) continue
 
 		const reasons: CommentNotificationReason[] = []
-		if (getMentionedMemberIds(comment.body as TLRichText).includes(userId)) reasons.push('mention')
+		if (extractMentionIds(comment.body).includes(userId)) reasons.push('mention')
 		if (participantThreadIds.has(comment.threadId)) reasons.push('reply')
 		if (comment.file?.ownerId === userId) reasons.push('owned-board')
-		if (reasons.length === 0) continue
+		// The server only syncs in-category comments; when no reason is derivable locally, the
+		// participation evidence is outside the synced window — so it's a reply (see docs above).
+		if (reasons.length === 0) reasons.push('reply')
 
 		const primaryReason = REASON_PRIORITY.find((r) => reasons.includes(r))!
 		notifications.push({ comment, reasons, primaryReason })

@@ -17,21 +17,3 @@ export function richTextToPlaintext(body: TLRichText): string {
 	visit(body)
 	return parts.join('').trimEnd()
 }
-
-/**
- * Collects the member ids `@`-mentioned in a comment body. Mentions are TipTap `mention` nodes
- * embedded in the rich text JSON — `{ type: 'mention', attrs: { id, label } }` — where `attrs.id`
- * is the member id (the same id space as `app.userId`). Walks the body the same way
- * {@link richTextToPlaintext} does.
- */
-export function getMentionedMemberIds(body: TLRichText): string[] {
-	const ids: string[] = []
-	const visit = (node: any) => {
-		if (node?.type === 'mention' && typeof node?.attrs?.id === 'string') ids.push(node.attrs.id)
-		if (Array.isArray(node?.content)) {
-			for (const child of node.content) visit(child)
-		}
-	}
-	visit(body)
-	return ids
-}

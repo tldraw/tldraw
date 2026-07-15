@@ -42,12 +42,13 @@ function ReasonByline({
 }
 
 /**
- * Comments surfaced as notifications, narrowed to the three that concern the user — comments on
- * boards they own, replies in threads they're a part of, and `@`-mentions of them (see
- * {@link categorizeCommentNotifications}) — newest first, each tagged with why it's there. Also
- * returns the caller's unread count over that set (a notification is unread when it has no read
- * receipt; the categorization already excludes the caller's own comments). Shared by the trigger
- * button (for its badge) and the panel (for its list).
+ * Comments surfaced as notifications. The `comments` synced query already filters to the three
+ * categories that concern the user server-side — comments on boards they own, replies in threads
+ * they're a part of, and `@`-mentions of them — so out-of-category comments never reach the
+ * client; {@link categorizeCommentNotifications} tags each synced comment with why it's there,
+ * newest first. Also returns the caller's unread count over that set (a notification is unread
+ * when it has no read receipt). Shared by the trigger button (for its badge) and the panel (for
+ * its list).
  */
 export function useCommentNotifications() {
 	const app = useMaybeApp()

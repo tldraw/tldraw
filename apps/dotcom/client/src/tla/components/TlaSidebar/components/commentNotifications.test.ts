@@ -1,6 +1,5 @@
 import { TLRichText } from 'tldraw'
 import { describe, expect, it } from 'vitest'
-import { getMentionedMemberIds } from '../../../utils/richText'
 import { categorizeCommentNotifications, CommentNotificationInput } from './commentNotifications'
 
 const ME = 'user_me'
@@ -37,22 +36,12 @@ function comment(overrides: Partial<CommentNotificationInput> = {}): CommentNoti
 	}
 }
 
-describe('getMentionedMemberIds', () => {
-	it('collects mention node ids from the body', () => {
-		expect(getMentionedMemberIds(body('hi ', [ME, OTHER]))).toEqual([ME, OTHER])
-	})
-
-	it('returns an empty array when there are no mentions', () => {
-		expect(getMentionedMemberIds(body('just text'))).toEqual([])
-	})
-})
-
 describe('categorizeCommentNotifications', () => {
 	it('returns nothing when there is no user id', () => {
 		expect(categorizeCommentNotifications([comment()], undefined)).toEqual([])
 	})
 
-	it("includes another user's comment on a board I own, as owned-board", () => {
+	it("labels another user's comment on a board I own as owned-board", () => {
 		const result = categorizeCommentNotifications(
 			[comment({ file: { ownerId: ME }, thread: { createdBy: OTHER } })],
 			ME
@@ -70,7 +59,7 @@ describe('categorizeCommentNotifications', () => {
 		expect(result).toEqual([])
 	})
 
-	it('includes a reply in a thread I started, as reply', () => {
+	it('labels a reply in a thread I started as reply', () => {
 		const result = categorizeCommentNotifications(
 			[comment({ thread: { createdBy: ME }, file: { ownerId: THIRD } })],
 			ME
@@ -78,7 +67,7 @@ describe('categorizeCommentNotifications', () => {
 		expect(result.map((n) => n.primaryReason)).toEqual(['reply'])
 	})
 
-	it("includes a reply in a thread I've commented in, as reply", () => {
+	it("labels a reply in a thread I've commented in as reply", () => {
 		const mine = comment({
 			id: 'comment:mine',
 			authorId: ME,
@@ -100,7 +89,7 @@ describe('categorizeCommentNotifications', () => {
 		expect(result[0].primaryReason).toBe('reply')
 	})
 
-	it('includes a comment that @-mentions me, as mention', () => {
+	it('labels a comment that @-mentions me as mention', () => {
 		const result = categorizeCommentNotifications(
 			[
 				comment({
@@ -114,32 +103,23 @@ describe('categorizeCommentNotifications', () => {
 		expect(result.map((n) => n.primaryReason)).toEqual(['mention'])
 	})
 
-	it('excludes a comment that only mentions someone else', () => {
+	it('falls back to reply when no reason is derivable from the synced window', () => {
+		// The server only syncs in-category comments, so a comment with no locally visible
+		// evidence (not my board, no mention of me, my thread participation older than the
+		// window) must be a reply — it is labeled, not dropped.
 		const result = categorizeCommentNotifications(
 			[
 				comment({
+					file: { ownerId: THIRD },
+					thread: { createdBy: OTHER },
 					body: body('hey ', [THIRD]),
-					file: { ownerId: THIRD },
-					thread: { createdBy: OTHER },
 				}),
 			],
 			ME
 		)
-		expect(result).toEqual([])
-	})
-
-	it('excludes a comment matching none of the three categories', () => {
-		const result = categorizeCommentNotifications(
-			[
-				comment({
-					file: { ownerId: THIRD },
-					thread: { createdBy: OTHER },
-					body: body('unrelated'),
-				}),
-			],
-			ME
-		)
-		expect(result).toEqual([])
+		expect(result).toHaveLength(1)
+		expect(result[0].reasons).toEqual(['reply'])
+		expect(result[0].primaryReason).toBe('reply')
 	})
 
 	it('tags multiple reasons with mention > reply > owned-board precedence', () => {
