@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import {
+	type BoxModel,
 	createComment,
 	createCommentThread,
 	Editor,
@@ -27,6 +28,7 @@ import {
 	usePassThroughWheelEvents,
 	useTranslation,
 	useValue,
+	VecLike,
 } from 'tldraw'
 import { computeClusterTable } from '../clustering/computeClusterTable'
 import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
@@ -39,11 +41,16 @@ import { CommentThread } from '../ui/comment-thread'
 import { CountBadge } from '../ui/count-badge'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
-import { pendingComment, PendingComment } from './comment-tool'
+import { pendingComment, PendingComment, regionDraft } from './comment-tool'
 import { commentsHidden, toggleCommentsHidden } from './comments-visibility'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
-import { anchorPagePoint, openThreadId, shapeAnchorAt } from './thread-state'
+import {
+	DEFAULT_REGION_COMMENT_OPTIONS,
+	RegionCommentOptions,
+	setRegionCommentOptions,
+} from './region-options'
+import { anchorPagePoint, openThreadId, regionPinPoint, shapeAnchorAt } from './thread-state'
 import './canvas.css'
 
 /**
@@ -75,6 +82,9 @@ export interface CanvasCommentsProps {
 	onCommentRead?(commentId: TLCommentId): void
 	/** Where imprecise shape pins sit — a normalized (0–1) spot within the shape. Default top-right. */
 	impreciseShapeAnchor?: { x: number; y: number }
+	/** Region comment behaviour. Region is off by default — omit this for click-only point/shape
+	 *  comments. Anything unset falls back to {@link DEFAULT_REGION_COMMENT_OPTIONS}. */
+	regionOptions?: Partial<RegionCommentOptions>
 }
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
@@ -127,6 +137,13 @@ export function CanvasComments(props: CanvasCommentsProps) {
 function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const editor = useEditor()
 	const container = useContainer()
+	// Merge the consumer's region options over the disabled defaults and publish them for this editor,
+	// so the comment tool (which has no props) reads the same per-instance config.
+	const regionOptions = useMemo(
+		() => ({ ...DEFAULT_REGION_COMMENT_OPTIONS, ...props.regionOptions }),
+		[props.regionOptions]
+	)
+	useEffect(() => setRegionCommentOptions(editor, regionOptions), [editor, regionOptions])
 	const layerRef = useRef<HTMLDivElement>(null)
 	// Over the pins and cluster badges, wheel and hover pass through to the canvas beneath (these
 	// events bubble up from the pointer-interactive markers to this layer root).
@@ -364,7 +381,9 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 				if (node.count === 1) {
 					const thread = threadsById.get(node.id)
 					if (!thread) return null
-					content = <ThreadPin editor={editor} thread={thread} {...props} />
+					content = (
+						<ThreadPin editor={editor} thread={thread} {...props} regionOptions={regionOptions} />
+					)
 				} else {
 					content = <ClusterBadge editor={editor} node={node} onExpand={zoomToClusterSplit} />
 				}
@@ -375,14 +394,36 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 				)
 			})}
 			{orphanThreads.map((thread) => (
-				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
+				<ThreadPin
+					key={thread.id}
+					editor={editor}
+					thread={thread}
+					{...props}
+					regionOptions={regionOptions}
+				/>
 			))}
 			{movedThreads.map((thread) => (
-				<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
+				<ThreadPin
+					key={thread.id}
+					editor={editor}
+					thread={thread}
+					{...props}
+					regionOptions={regionOptions}
+				/>
 			))}
 			{openThread && (
-				<ThreadPin key={`open:${openThread.id}`} editor={editor} thread={openThread} {...props} />
+				<ThreadPin
+					key={`open:${openThread.id}`}
+					editor={editor}
+					thread={openThread}
+					{...props}
+					regionOptions={regionOptions}
+				/>
 			)}
+			<RegionDraftBox editor={editor} />
+			{/* Keep the region visible while composing — the drag draft is gone by now, and no thread
+			    exists yet, so the pending anchor is what shows the area under the open composer. */}
+			{pending?.anchor.type === 'region' && <RegionBox editor={editor} box={pending.anchor} />}
 			{pending && props.currentUserId && (
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
@@ -663,11 +704,187 @@ function ThreadPopover({
 	)
 }
 
+/** A dashed rectangle over a region anchor's bounds, in viewport space. Sits in the canvas layer as
+ *  a sibling of the pins. `pointer-events` stays off (canvas interaction passes through) unless
+ *  `movable`, in which case dragging the body translates the region — previews live, commits on drop. */
+function RegionBox({
+	editor,
+	box,
+	movable,
+	onPreview,
+	onCommit,
+}: {
+	editor: Editor
+	box: BoxModel
+	movable?: boolean
+	onPreview?(bounds: BoxModel | null): void
+	onCommit?(bounds: BoxModel): void
+}) {
+	const rect = useValue(
+		'region rect',
+		() => {
+			// Position from the page→viewport top-left; screen size scales with zoom, page size doesn't.
+			const topLeft = editor.pageToViewport({ x: box.x, y: box.y })
+			const zoom = editor.getZoomLevel()
+			return { left: topLeft.x, top: topLeft.y, width: box.w * zoom, height: box.h * zoom }
+		},
+		[editor, box.x, box.y, box.w, box.h]
+	)
+	// The grab point and the box at grab time, captured so the drag translates by a stable delta even
+	// as the box prop reflows under the live preview.
+	const grabRef = useRef<{ page: VecLike; box: BoxModel } | null>(null)
+	const translated = (e: ReactPointerEvent<HTMLDivElement>): BoxModel => {
+		const g = grabRef.current!
+		const p = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		return { ...g.box, x: g.box.x + (p.x - g.page.x), y: g.box.y + (p.y - g.page.y) }
+	}
+	const startMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+		e.stopPropagation()
+		grabRef.current = { page: editor.screenToPage({ x: e.clientX, y: e.clientY }), box }
+		e.currentTarget.setPointerCapture(e.pointerId)
+	}
+	const onMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+		if (grabRef.current) onPreview?.(translated(e))
+	}
+	const endMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+		if (!grabRef.current) return
+		const bounds = translated(e)
+		grabRef.current = null
+		if (e.currentTarget.hasPointerCapture(e.pointerId))
+			e.currentTarget.releasePointerCapture(e.pointerId)
+		onCommit?.(bounds)
+	}
+	return (
+		<div
+			className={movable ? 'cmt-canvas-region cmt-canvas-region--movable' : 'cmt-canvas-region'}
+			style={rect}
+			onPointerDown={movable ? startMove : undefined}
+			onPointerMove={movable ? onMove : undefined}
+			onPointerUp={movable ? endMove : undefined}
+		/>
+	)
+}
+
+/** The live region being dragged out by the comment tool, or nothing when not dragging. */
+function RegionDraftBox({ editor }: { editor: Editor }) {
+	const box = useValue('region draft', () => regionDraft.get(), [])
+	if (!box) return null
+	return <RegionBox editor={editor} box={box} />
+}
+
+// A resize handle's normalized 0–1 spot on the box, and its cursor. An axis at 0.5 (a side midpoint)
+// is *not* controlled by that handle: corners resize both axes, edges resize only their own.
+interface RegionHandle {
+	x: number
+	y: number
+	cursor: string
+}
+
+// The four corners (both axes) and the four side midpoints (one axis each).
+const REGION_CORNERS: readonly RegionHandle[] = [
+	{ x: 0, y: 0, cursor: 'nwse-resize' },
+	{ x: 1, y: 0, cursor: 'nesw-resize' },
+	{ x: 0, y: 1, cursor: 'nesw-resize' },
+	{ x: 1, y: 1, cursor: 'nwse-resize' },
+]
+const REGION_EDGES: readonly RegionHandle[] = [
+	{ x: 0.5, y: 0, cursor: 'ns-resize' },
+	{ x: 1, y: 0.5, cursor: 'ew-resize' },
+	{ x: 0.5, y: 1, cursor: 'ns-resize' },
+	{ x: 0, y: 0.5, cursor: 'ew-resize' },
+]
+
+// Screen-space slack around a region's bounds within which its box and handles stay revealed, so
+// the handles (which sit on the edge) are comfortably reachable.
+const REGION_HANDLE_MARGIN_PX = 12
+
+/** Resize `box` by dragging `handle` to `cursor` (page coords). Each controlled axis spans from the
+ *  handle's fixed opposite edge to the cursor (normalized, so dragging past it flips); an axis the
+ *  handle doesn't control (a midpoint, at 0.5) keeps its original position and size. */
+function resizeRegion(box: BoxModel, handle: RegionHandle, cursor: VecLike): BoxModel {
+	const controlsX = handle.x !== 0.5
+	const controlsY = handle.y !== 0.5
+	const fixedX = box.x + (1 - handle.x) * box.w
+	const fixedY = box.y + (1 - handle.y) * box.h
+	return {
+		x: controlsX ? Math.min(fixedX, cursor.x) : box.x,
+		y: controlsY ? Math.min(fixedY, cursor.y) : box.y,
+		w: controlsX ? Math.abs(cursor.x - fixedX) : box.w,
+		h: controlsY ? Math.abs(cursor.y - fixedY) : box.h,
+	}
+}
+
+/** Draggable handles that resize a region — corners (both axes) or edges (one axis), per the resize
+ *  option. Previews live, commits on release. */
+function RegionResizeHandles({
+	editor,
+	box,
+	handles,
+	onPreview,
+	onCommit,
+}: {
+	editor: Editor
+	box: BoxModel
+	handles: readonly RegionHandle[]
+	onPreview(bounds: BoxModel | null): void
+	onCommit(bounds: BoxModel): void
+}) {
+	// The box at pointer-down, captured so the box prop reflowing under the live preview doesn't move
+	// the fixed edges mid-drag.
+	const boxRef = useRef<BoxModel | null>(null)
+	const points = useValue(
+		'region handle points',
+		() =>
+			handles.map((h) => {
+				const p = editor.pageToViewport({ x: box.x + h.x * box.w, y: box.y + h.y * box.h })
+				return { ...h, key: `${h.x}-${h.y}`, left: p.x, top: p.y }
+			}),
+		[editor, box.x, box.y, box.w, box.h, handles]
+	)
+	const startResize = (e: ReactPointerEvent<HTMLDivElement>) => {
+		e.stopPropagation()
+		boxRef.current = box
+		e.currentTarget.setPointerCapture(e.pointerId)
+	}
+	const resizedTo = (h: RegionHandle, e: ReactPointerEvent<HTMLDivElement>): BoxModel =>
+		resizeRegion(boxRef.current!, h, editor.screenToPage({ x: e.clientX, y: e.clientY }))
+	const onResize = (h: RegionHandle) => (e: ReactPointerEvent<HTMLDivElement>) => {
+		if (boxRef.current) onPreview(resizedTo(h, e))
+	}
+	const endResize = (h: RegionHandle) => (e: ReactPointerEvent<HTMLDivElement>) => {
+		if (!boxRef.current) return
+		const bounds = resizedTo(h, e)
+		boxRef.current = null
+		if (e.currentTarget.hasPointerCapture(e.pointerId))
+			e.currentTarget.releasePointerCapture(e.pointerId)
+		onCommit(bounds)
+	}
+	return (
+		<>
+			{points.map((h) => (
+				<div
+					key={h.key}
+					className="cmt-canvas-region-handle"
+					style={{ left: h.left, top: h.top, cursor: h.cursor }}
+					onPointerDown={startResize}
+					onPointerMove={onResize(h)}
+					onPointerUp={endResize(h)}
+				/>
+			))}
+		</>
+	)
+}
+
 const ThreadPin = memo(function ThreadPin({
 	editor,
 	thread,
+	regionOptions,
 	...props
-}: CanvasCommentsProps & { editor: Editor; thread: TLCommentThread }) {
+}: Omit<CanvasCommentsProps, 'regionOptions'> & {
+	editor: Editor
+	thread: TLCommentThread
+	regionOptions: RegionCommentOptions
+}) {
 	const {
 		currentUserId,
 		resolveName,
@@ -687,6 +904,42 @@ const ThreadPin = memo(function ThreadPin({
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	// While dragging the marker, its page point overrides the anchor's; committed on drop.
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
+	// The live bounds while a corner handle is resizing the region, else null.
+	const [resizeBounds, setResizeBounds] = useState<BoxModel | null>(null)
+	// Whether the pin marker is hovered — only consulted by the 'pin-hover' reveal mode.
+	const [pinHovered, setPinHovered] = useState(false)
+	// The 'pointer' reveal mode: is the pointer within the region's bounds (plus a grab margin)?
+	// Driven by pointer position, not DOM hover, so moving from anywhere in the region out to a corner
+	// handle never loses the affordance — the box stays `pointer-events: none`.
+	const pointerInRegion = useValue(
+		'pointer in region',
+		() => {
+			if (thread.anchor.type !== 'region' || thread.pageId !== editor.getCurrentPageId())
+				return false
+			const m = REGION_HANDLE_MARGIN_PX / editor.getZoomLevel()
+			const p = editor.inputs.getCurrentPagePoint()
+			const a = thread.anchor
+			return p.x >= a.x - m && p.x <= a.x + a.w + m && p.y >= a.y - m && p.y <= a.y + a.h + m
+		},
+		[editor, thread.anchor, thread.pageId]
+	)
+	// A region's box and handles are revealed while open or mid-resize, plus — per the reveal mode —
+	// while the pointer is within the region ('pointer') or the pin is hovered ('pin-hover').
+	const revealed =
+		open ||
+		resizeBounds != null ||
+		(regionOptions.reveal === 'pointer' && pointerInRegion) ||
+		(regionOptions.reveal === 'pin-hover' && pinHovered)
+	// The resize handles: side midpoints ('edges'), or the corners other than the pin's ('corners').
+	const resizeHandles = useMemo(
+		() =>
+			regionOptions.resize === 'edges'
+				? REGION_EDGES
+				: REGION_CORNERS.filter(
+						(c) => c.x !== regionOptions.pinCorner.x || c.y !== regionOptions.pinCorner.y
+					),
+		[regionOptions.resize, regionOptions.pinCorner]
+	)
 	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
 	const markerRef = useRef<HTMLDivElement>(null)
 
@@ -702,6 +955,8 @@ const ThreadPin = memo(function ThreadPin({
 			if (target.closest('.cmt-canvas-popover')) return
 			const marker = markerRef.current
 			if (marker && marker.contains(target)) return
+			// A press on a region's resize handle or movable body edits this thread — don't dismiss it.
+			if (target.closest('.cmt-canvas-region-handle, .cmt-canvas-region--movable')) return
 			// A click inside a menu/popover layered above us (e.g. the sidebar's filter or overflow
 			// dropdown, portaled elsewhere) belongs to that layer — defer to its own dismissal
 			// instead of closing the thread out from under it.
@@ -879,8 +1134,13 @@ const ThreadPin = memo(function ThreadPin({
 		: initialOf(resolveName(thread.createdBy))
 
 	// Drag the marker to move the thread: its position is overridden locally while dragging, then
-	// re-anchored on drop (to a shape if dropped on one, else a point). A pointer that barely moves
-	// is a click — toggle the popover.
+	// re-anchored on drop. A point/shape thread re-anchors to whatever it's dropped on (a shape, else
+	// a point); a region thread translates, keeping its size. A pointer that barely moves is a click —
+	// toggle the popover.
+	// Which affordances move a region, per the option: 'pin' → pin only, 'body' → body only, 'both'.
+	const isRegion = thread.anchor.type === 'region'
+	const pinMovable = regionOptions.move !== 'body'
+	const bodyMovable = regionOptions.move !== 'pin'
 	const startDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		e.stopPropagation()
 		dragRef.current = { startX: e.clientX, startY: e.clientY, moved: false }
@@ -889,6 +1149,8 @@ const ThreadPin = memo(function ThreadPin({
 	const onDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
 		if (!drag) return
+		// A region that moves by its body ignores pin drags (the pin only toggles the thread).
+		if (isRegion && !pinMovable) return
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
 		drag.moved = true
 		setDragPagePoint(editor.screenToPage({ x: e.clientX, y: e.clientY }))
@@ -906,65 +1168,124 @@ const ThreadPin = memo(function ThreadPin({
 		}
 		const pagePoint = editor.screenToPage({ x: e.clientX, y: e.clientY })
 		setDragPagePoint(null)
-		const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
-		const anchor = hit
-			? shapeAnchorAt(editor, hit.id, pagePoint, e.altKey)
-			: { type: 'point', x: pagePoint.x, y: pagePoint.y }
+		let anchor: TLCommentThread['anchor']
+		if (thread.anchor.type === 'region') {
+			// Translate so the pin (the region's pin corner) lands at the drop; size unchanged.
+			anchor = {
+				...thread.anchor,
+				x: pagePoint.x - regionOptions.pinCorner.x * thread.anchor.w,
+				y: pagePoint.y - regionOptions.pinCorner.y * thread.anchor.h,
+			}
+		} else {
+			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+			anchor = hit
+				? shapeAnchorAt(editor, hit.id, pagePoint, e.altKey)
+				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
+		}
 		editor.run(() => editor.store.put([{ ...thread, anchor } as any]), { history: 'ignore' })
 	}
 
-	const renderPoint = dragPagePoint ? editor.pageToViewport(dragPagePoint) : point
+	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
+	// move to the drag point; otherwise it sits at the stored anchor's viewport point.
+	const livePinPage = resizeBounds
+		? regionPinPoint(resizeBounds, regionOptions.pinCorner)
+		: dragPagePoint
+	const renderPoint = livePinPage ? editor.pageToViewport(livePinPage) : point
+
+	// A region's live box bounds, by priority: a corner resize, else a pin-drag translation (the pin
+	// corner tracks the cursor), else the stored anchor. Undefined for non-region threads.
+	const regionAnchor = thread.anchor.type === 'region' ? thread.anchor : undefined
+	const movedRegion =
+		regionAnchor && dragPagePoint
+			? {
+					...regionAnchor,
+					x: dragPagePoint.x - regionOptions.pinCorner.x * regionAnchor.w,
+					y: dragPagePoint.y - regionOptions.pinCorner.y * regionAnchor.h,
+				}
+			: regionAnchor
+	const regionBoxBounds = resizeBounds ?? movedRegion
+	const commitResize = (bounds: BoxModel) => {
+		setResizeBounds(null)
+		editor.run(
+			() => editor.store.put([{ ...thread, anchor: { type: 'region', ...bounds } } as any]),
+			{
+				history: 'ignore',
+			}
+		)
+	}
 
 	return (
-		<div
-			className={open ? 'cmt-canvas-pin cmt-canvas-pin--open' : 'cmt-canvas-pin'}
-			style={{ left: renderPoint.x, top: renderPoint.y }}
-		>
-			<div
-				ref={markerRef}
-				className="cmt-canvas-pin__marker"
-				onPointerDown={startDrag}
-				onPointerMove={onDrag}
-				onPointerUp={endDrag}
-			>
-				<CommentPin resolved={thread.resolved != null} open={open}>
-					{pinContent}
-				</CommentPin>
-			</div>
-			{/* The popover portals up to the menus layer (above the UI panels) so it isn't clipped;
-			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
-			{open && (
-				<ThreadPopover
-					container={container}
-					style={{ left: renderPoint.x + 36, top: renderPoint.y - 28 }}
-				>
-					<CommentThread
-						header={msg('comments.thread-title')}
-						headerActions={headerActions}
-						renderComment={renderComment}
-						comments={comments.map((c) => toCardProps(c, props))}
-						resolvedBanner={
-							thread.resolved
-								? msg('comments.resolved-by').replace('{name}', resolveName(thread.resolved.by))
-								: undefined
-						}
-						composer={
-							currentUserId && !thread.resolved
-								? {
-										author: resolveName(currentUserId),
-										placeholder: msg('comments.reply-placeholder'),
-										sendLabel: msg('comments.send'),
-										value: reply,
-										onChange: setReply,
-										onSubmit: postReply,
-										disabled: isCommentEmpty(reply),
-									}
-								: undefined
-						}
-					/>
-				</ThreadPopover>
+		<>
+			{regionBoxBounds && (dragPagePoint || revealed) && (
+				<RegionBox
+					editor={editor}
+					box={regionBoxBounds}
+					movable={bodyMovable && !dragPagePoint}
+					onPreview={setResizeBounds}
+					onCommit={commitResize}
+				/>
 			)}
-		</div>
+			{regionBoxBounds && revealed && !dragPagePoint && regionOptions.resize !== 'none' && (
+				<RegionResizeHandles
+					editor={editor}
+					box={regionBoxBounds}
+					handles={resizeHandles}
+					onPreview={setResizeBounds}
+					onCommit={commitResize}
+				/>
+			)}
+			<div
+				className={open ? 'cmt-canvas-pin cmt-canvas-pin--open' : 'cmt-canvas-pin'}
+				style={{ left: renderPoint.x, top: renderPoint.y }}
+			>
+				<div
+					ref={markerRef}
+					className="cmt-canvas-pin__marker"
+					onPointerDown={startDrag}
+					onPointerMove={onDrag}
+					onPointerUp={endDrag}
+					onPointerEnter={() => setPinHovered(true)}
+					onPointerLeave={() => setPinHovered(false)}
+				>
+					<CommentPin resolved={thread.resolved != null} open={open}>
+						{pinContent}
+					</CommentPin>
+				</div>
+				{/* The popover portals up to the menus layer (above the UI panels) so it isn't clipped;
+			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
+				{open && (
+					<ThreadPopover
+						container={container}
+						style={{ left: renderPoint.x + 36, top: renderPoint.y - 28 }}
+					>
+						<CommentThread
+							header={msg('comments.thread-title')}
+							headerActions={headerActions}
+							renderComment={renderComment}
+							comments={comments.map((c) => toCardProps(c, props))}
+							resolvedBanner={
+								thread.resolved
+									? msg('comments.resolved-by').replace('{name}', resolveName(thread.resolved.by))
+									: undefined
+							}
+							composer={
+								currentUserId && !thread.resolved
+									? {
+											author: resolveName(currentUserId),
+											placeholder: msg('comments.reply-placeholder'),
+											sendLabel: msg('comments.send'),
+											value: reply,
+											onChange: setReply,
+											onSubmit: postReply,
+											disabled: isCommentEmpty(reply),
+										}
+									: undefined
+							}
+						/>
+					</ThreadPopover>
+				)}
+			</div>
+		</>
 	)
 })
 
