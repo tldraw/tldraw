@@ -1,4 +1,4 @@
-import { Editor, VecLike } from 'tldraw'
+import { atom, Atom, Editor, VecLike } from 'tldraw'
 
 /**
  * The configurable dimensions of region comments — a design surface for prototyping the interaction
@@ -31,14 +31,25 @@ export const DEFAULT_REGION_COMMENT_OPTIONS: RegionCommentOptions = {
 
 // Per-editor region config. The overlay publishes its merged `regionOptions` here so the comment
 // tool — which has no props of its own — can read the same per-instance config at interaction time.
-const byEditor = new WeakMap<Editor, RegionCommentOptions>()
+// Held in an atom so reactive readers (e.g. `anchorPagePoint`, called inside `useValue`) recompute
+// when the config changes; a plain map read wouldn't, leaving the pin at the stale default corner.
+const byEditor = new WeakMap<Editor, Atom<RegionCommentOptions>>()
+
+function getEditorAtom(editor: Editor): Atom<RegionCommentOptions> {
+	let a = byEditor.get(editor)
+	if (!a) {
+		a = atom('regionCommentOptions', DEFAULT_REGION_COMMENT_OPTIONS)
+		byEditor.set(editor, a)
+	}
+	return a
+}
 
 /** Publish an editor's region config (called by the overlay from its `regionOptions` prop). */
 export function setRegionCommentOptions(editor: Editor, options: RegionCommentOptions): void {
-	byEditor.set(editor, options)
+	getEditorAtom(editor).set(options)
 }
 
 /** The editor's region config, or the disabled default when none was set. */
 export function getRegionCommentOptions(editor: Editor): RegionCommentOptions {
-	return byEditor.get(editor) ?? DEFAULT_REGION_COMMENT_OPTIONS
+	return getEditorAtom(editor).get()
 }
