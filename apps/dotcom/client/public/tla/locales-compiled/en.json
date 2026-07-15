@@ -33,6 +33,22 @@
       "value": "Invite teammates"
     }
   ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " mentioned you"
+    }
+  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -177,6 +193,22 @@
     {
       "type": 0,
       "value": "About tldraw"
+    }
+  ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " commented on your board"
     }
   ],
   "299cb00a7a": [
@@ -359,22 +391,6 @@
     {
       "type": 0,
       "value": "Name"
-    }
-  ],
-  "4a95fa0c08": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " commented"
     }
   ],
   "4d0d3ddec9": [
@@ -1099,6 +1115,22 @@
     {
       "type": 0,
       "value": "Guest user"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " replied"
     }
   ],
   "b2326c3a34": [
