@@ -1,4 +1,4 @@
-import { track, useEditor, usePresence } from '@tldraw/editor'
+import { TLUserId, track, useEditor, usePresence } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -9,7 +9,7 @@ import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 
 /** @public */
 export interface TLUiPeopleMenuItemProps {
-	userId: string
+	userId: TLUserId
 }
 
 /** @public @react */
@@ -32,7 +32,7 @@ export const DefaultPeopleMenuItem = track(function DefaultPeopleMenuItem({
 		}
 	}, [editor, userId, trackEvent])
 
-	const theyAreFollowingYou = presence?.followingUserId === editor.user.getId()
+	const theyAreFollowingYou = presence?.followingUserId === editor.user.getRecordId()
 	const youAreFollowingThem = editor.getInstanceState().followingUserId === userId
 
 	if (!presence) return null

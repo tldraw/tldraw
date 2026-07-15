@@ -8,6 +8,7 @@ vi.useFakeTimers()
 let editor: TestEditor
 
 afterEach(() => {
+	vi.restoreAllMocks()
 	editor?.dispose()
 })
 
@@ -85,6 +86,8 @@ beforeEach(() => {
 
 describe('When in the select.idle state', () => {
 	it('double clicking an image should transition to select.crop', () => {
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
 		editor.select(ids.boxA)
 
 		editor.expectToBeIn('select.idle')
@@ -130,6 +133,10 @@ describe('When in the select.idle state', () => {
 		expect(editor.getOnlySelectedShape()!.props).toMatchObject({
 			crop: { topLeft: { x: 0.1, y: 0.1 }, bottomRight: { x: 0.9, y: 0.9 } },
 		})
+		expect(consoleErrorSpy).not.toHaveBeenCalledWith(
+			'Could not find mark to squash to: ',
+			expect.any(String)
+		)
 	})
 
 	it('when ONLY ONE image is selected double clicking a selection handle should transition to select.crop', () => {
@@ -1129,5 +1136,107 @@ describe('When cropping...', () => {
 					h: imageHeight - moveY,
 				},
 			})
+	})
+})
+
+describe('When cropping with modifiers and snapping...', () => {
+	const cropId = createShapeId('cropModifiersImage')
+	const snapTargetId = createShapeId('cropSnapTarget')
+
+	const fullCrop = { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } }
+
+	beforeEach(() => {
+		// User preferences are global, so reset snap mode for deterministic gating.
+		editor.user.updateUserPreferences({ isSnapMode: false })
+		editor.createShapes([
+			{
+				id: cropId,
+				type: 'image',
+				x: 0,
+				y: 0,
+				props: { ...imageProps, w: 400, h: 400, crop: fullCrop },
+			},
+			// A thin box whose left edge sits at x = 300, used as a snap target.
+			{
+				id: snapTargetId,
+				type: 'geo',
+				x: 300,
+				y: 0,
+				props: { w: 10, h: 400 },
+			},
+		])
+	})
+
+	function enterCropAndPointHandle(handle: 'left' | 'right', x: number, y: number) {
+		editor
+			.select(cropId)
+			.keyDown('Enter')
+			.keyUp('Enter')
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(x, y, { target: 'selection', handle })
+			.expectToBeIn('select.crop.pointing_crop_handle')
+	}
+
+	it('resizes the crop symmetrically from the center when holding alt', () => {
+		enterCropAndPointHandle('left', 0, 200)
+		editor.pointerMove(40, 200, { altKey: true }).expectToBeIn('select.crop.cropping')
+
+		const shape = editor.getShape<TLImageShape>(cropId)!
+		// Both the left and right edges move in by 40, keeping the frame centered on x = 200.
+		expect(shape.props.w).toBeCloseTo(320)
+		expect(shape.x + shape.props.w / 2).toBeCloseTo(200)
+		expect(shape.props.crop).toMatchObject({
+			topLeft: { x: 0.1, y: 0 },
+			bottomRight: { x: 0.9, y: 1 },
+		})
+	})
+
+	it('snaps a crop edge to another shape when snapping is enabled', () => {
+		enterCropAndPointHandle('right', 400, 200)
+		// Holding the accel key enables snapping (snap mode is off by default).
+		editor.pointerMove(298, 200, { ctrlKey: true }).expectToBeIn('select.crop.cropping')
+
+		const shape = editor.getShape<TLImageShape>(cropId)!
+		// The right edge snaps from x≈298 to the target's left edge at x = 300.
+		expect(shape.props.w).toBeCloseTo(300)
+		expect(shape.props.crop!.bottomRight.x).toBeCloseTo(0.75)
+		expect(editor.snaps.getIndicators().length).toBeGreaterThan(0)
+	})
+
+	it('does not snap when snapping is disabled', () => {
+		enterCropAndPointHandle('right', 400, 200)
+		editor.pointerMove(298, 200).expectToBeIn('select.crop.cropping')
+
+		const shape = editor.getShape<TLImageShape>(cropId)!
+		expect(shape.props.w).toBeCloseTo(298)
+		expect(editor.snaps.getIndicators().length).toBe(0)
+	})
+
+	it('lets the accel key invert snapping (snap mode on + accel = no snap)', () => {
+		editor.user.updateUserPreferences({ isSnapMode: true })
+		enterCropAndPointHandle('right', 400, 200)
+		editor.pointerMove(298, 200, { ctrlKey: true }).expectToBeIn('select.crop.cropping')
+
+		const shape = editor.getShape<TLImageShape>(cropId)!
+		expect(shape.props.w).toBeCloseTo(298)
+		expect(editor.snaps.getIndicators().length).toBe(0)
+	})
+
+	it('skips snapping while the image is rotated', () => {
+		editor.updateShape({ id: cropId, type: 'image', rotation: 0.5 })
+		enterCropAndPointHandle('right', 400, 200)
+		editor.pointerMove(298, 200, { ctrlKey: true }).expectToBeIn('select.crop.cropping')
+
+		// Snapping is gated to axis-aligned selections, so no snap line appears.
+		expect(editor.snaps.getIndicators().length).toBe(0)
+	})
+
+	it('clears snap indicators when the crop ends', () => {
+		enterCropAndPointHandle('right', 400, 200)
+		editor.pointerMove(298, 200, { ctrlKey: true }).expectToBeIn('select.crop.cropping')
+		expect(editor.snaps.getIndicators().length).toBeGreaterThan(0)
+
+		editor.pointerUp()
+		expect(editor.snaps.getIndicators().length).toBe(0)
 	})
 })

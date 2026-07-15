@@ -1,6 +1,5 @@
 import classNames from 'classnames'
-import React, { PropsWithChildren, useCallback, useContext, useEffect } from 'react'
-import { Spinner } from 'tldraw'
+import React, { PropsWithChildren, useCallback, useContext } from 'react'
 import styles from './useIsReady.module.css'
 
 /*
@@ -22,18 +21,10 @@ export function useSetIsReady() {
 export function ReadyWrapper({ children }: PropsWithChildren) {
 	const parent = useContext(ReadyContext)
 	const [isReady, _setIsReady] = React.useState(false)
-	const [showSpinner, setShowSpinner] = React.useState(false)
 	const setIsReady = useCallback(async () => {
 		_setIsReady(true)
 	}, [])
-	useEffect(() => {
-		const timeout = setTimeout(() => {
-			setShowSpinner(true)
-		}, 500)
-		return () => {
-			clearTimeout(timeout)
-		}
-	}, [])
+
 	if (!parent.isRoot) {
 		// already wrapped at a higher level
 		return children
@@ -42,14 +33,12 @@ export function ReadyWrapper({ children }: PropsWithChildren) {
 	return (
 		<ReadyContext.Provider value={{ isReady, setIsReady, isRoot: false }}>
 			<div className={classNames(styles.container, isReady && styles.isReady)}>
-				<div className={classNames(styles.innerContainer, isReady && styles.isReady)}>
+				<div
+					className={classNames(styles.innerContainer, isReady && styles.isReady)}
+					inert={!isReady}
+				>
 					{children}
 				</div>
-				{!isReady && (
-					<div className={classNames(styles.spinner, showSpinner && styles.showSpinner)}>
-						<Spinner />
-					</div>
-				)}
 			</div>
 		</ReadyContext.Provider>
 	)

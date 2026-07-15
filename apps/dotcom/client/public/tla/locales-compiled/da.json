@@ -5,6 +5,12 @@
       "value": "Eksportere"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Accepter invitationen"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,6 +25,18 @@
     {
       "type": 1,
       "value": "GetHelpLink"
+    }
+  ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Inviter holdkammerater"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Du har nået det maksimale antal arbejdsområder. Du skal slette gamle arbejdsområder, før du opretter nye."
     }
   ],
   "06b9281e39": [
@@ -63,10 +81,28 @@
       "value": "Fil menu"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Noget gik galt under indlæsning af denne invitation. Prøv igen."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Send feedback"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Fjerne"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopiér til personligt arbejdsområde"
     }
   ],
   "110a4b01be": [
@@ -75,40 +111,16 @@
       "value": "Offentliggøre"
     }
   ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Forlad gruppen"
-    }
-  ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Frigør fil"
     }
   ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Prøv tldraw SDK'et"
-    }
-  ],
   "13ddd375ad": [
     {
       "type": 0,
       "value": "Eksporter som"
-    }
-  ],
-  "146ffe2fd9": [
-    {
-      "type": 0,
-      "value": "Vis mere"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Slet gruppe"
     }
   ],
   "181b90f889": [
@@ -129,10 +141,36 @@
       "value": "I dag"
     }
   ],
-  "2445e5e347": [
+  "1ffd709937": [
     {
       "type": 0,
-      "value": "Opret gruppe"
+      "value": "Et arbejdsområde skal have mindst én ejer. Gør først en anden til ejer."
+    }
+  ],
+  "21f66c9c00": [
+    {
+      "type": 0,
+      "value": "Arbejdsområdenavn"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Du er blevet inviteret til at deltage i "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Opret en gratis konto for at fortsætte."
     }
   ],
   "250ddea65c": [
@@ -147,16 +185,34 @@
       "value": "Upload mislykkedes"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Mine filer"
+      "value": "Velkommen til din arbejdsplads"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Søge..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Regenerering erstatter det nuværende invitationslink med et nyt. Alle, der bruger det gamle link, skal bruge det nye for at deltage."
     }
   ],
   "2e2b3c700b": [
     {
       "type": 0,
       "value": "Inkluder link til den aktuelle fil"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Genskab invitationslink"
     }
   ],
   "31246941ad": [
@@ -169,12 +225,6 @@
     {
       "type": 0,
       "value": "i18n: Fremhæv mangler"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Tilføj link"
     }
   ],
   "324a0f3182": [
@@ -193,6 +243,18 @@
     {
       "type": 0,
       "value": "Redaktør"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Styre"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Fjern medlem"
     }
   ],
   "3bc7d6ea2f": [
@@ -243,6 +305,26 @@
       "value": "Få hjælp til Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Er du sikker på, at du vil slette "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -267,18 +349,6 @@
       "value": "Fastgør fil"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "Indsæt tldraw-filens URL..."
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Er du sikker på, at du vil glemme denne fil?"
-    }
-  ],
   "49ee308734": [
     {
       "type": 0,
@@ -297,24 +367,6 @@
       "value": "Genindlæs"
     }
   ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Slet gruppe…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Flere muligheder"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Er du sikker på, at du vil slette denne gruppe? Denne handling kan ikke fortrydes."
-    }
-  ],
   "5097d89907": [
     {
       "type": 0,
@@ -325,6 +377,12 @@
     {
       "type": 0,
       "value": "Filen kunne ikke fjernes."
+    }
+  ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Dette er dit private arbejdsområde. Opret et nyt arbejdsområde for at invitere teammedlemmer."
     }
   ],
   "517bb809d9": [
@@ -367,6 +425,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Opret et arbejdsområde"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -377,40 +441,6 @@
     {
       "type": 0,
       "value": "Privatlivspolitik"
-    }
-  ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Træk filer hertil, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "opret en fil"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": ", eller "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "kopiér invitationslinket"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " for at komme i gang."
     }
   ],
   "5a95a425f7": [
@@ -425,10 +455,10 @@
       "value": "Gammel browser fundet. Opdater venligst din browser for at bruge denne app."
     }
   ],
-  "5c6fe42bc2": [
+  "5bff3c9c88": [
     {
       "type": 0,
-      "value": "Tilbagekald dette link og opret et nyt."
+      "value": "Mit arbejdsområde"
     }
   ],
   "5d04a002ea": [
@@ -441,12 +471,6 @@
     {
       "type": 0,
       "value": "Vi kunne ikke uploade noget af det indhold, du oprettede, før du loggede ind."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Du er blevet inviteret til at deltage i gruppen:"
     }
   ],
   "5f3c333678": [
@@ -497,10 +521,22 @@
       "value": "En ny version af tldraw er tilgængelig. Genindlæs siden for at fortsætte."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Ny fil"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Indtast din e-mailadresse"
+    }
+  ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Slet arbejdsområde"
     }
   ],
   "6a26f54883": [
@@ -519,12 +555,6 @@
     {
       "type": 0,
       "value": "Følg disse trin for at importere indholdet manuelt:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Gruppeindstillinger"
     }
   ],
   "70a6facb9d": [
@@ -549,6 +579,12 @@
     {
       "type": 0,
       "value": "Genindlæs venligst siden"
+    }
+  ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Ingen filer fundet"
     }
   ],
   "752b79f137": [
@@ -579,12 +615,6 @@
     {
       "type": 0,
       "value": "Genindlæs venligst"
-    }
-  ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw er et gratis online whiteboard. Opret en konto for at gemme dine filer og arbejde med dine venner."
     }
   ],
   "777f9e90cf": [
@@ -641,12 +671,6 @@
       "value": "Glemme"
     }
   ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Forlad gruppen…"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -663,6 +687,12 @@
     {
       "type": 0,
       "value": "Download"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Ny arbejdsplads"
     }
   ],
   "815e116a2e": [
@@ -699,6 +729,32 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Er du sikker på, at du vil glemme "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Medlem"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -725,10 +781,16 @@
       "value": "Omdøb fil"
     }
   ],
-  "8ad4303b83": [
+  "87fdb09de6": [
     {
       "type": 0,
-      "value": "Nej tak"
+      "value": "Du er allerede medlem af dette arbejdsområde"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Dette invitationslink er udløbet"
     }
   ],
   "8c2d3d730c": [
@@ -761,22 +823,24 @@
       "value": "Omdøb"
     }
   ],
-  "91e49bb0eb": [
+  "90646db02d": [
     {
       "type": 0,
-      "value": "Kopier til mine filer"
-    }
-  ],
-  "930390d222": [
+      "value": "Er du sikker på, at du vil slette "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
     {
       "type": 0,
-      "value": "Kopieret invitationslink"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Du er allerede medlem af denne gruppe"
+      "value": "? Denne handling kan ikke fortrydes."
     }
   ],
   "95aacd4d4a": [
@@ -803,16 +867,16 @@
       "value": "Brugsbetingelser"
     }
   ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Tilføj fillink"
-    }
-  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Lys"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Ryd søgning"
     }
   ],
   "9b33f5c63c": [
@@ -865,6 +929,26 @@
       "value": "Fravælg"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Du er blevet inviteret til at deltage i "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -907,6 +991,12 @@
       "value": "Indsend"
     }
   ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Forlade"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -929,6 +1019,12 @@
     {
       "type": 0,
       "value": "Baggrund"
+    }
+  ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Opret arbejdsområde"
     }
   ],
   "ab0df9ba36": [
@@ -955,6 +1051,12 @@
       "value": "Gæstebruger"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regenerer"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -967,10 +1069,10 @@
       "value": "E-mailadresse"
     }
   ],
-  "b3d2db69fe": [
+  "b48becc771": [
     {
       "type": 0,
-      "value": "Fil-URL"
+      "value": "Aktivér invitationer"
     }
   ],
   "b6d4223e60": [
@@ -997,10 +1099,10 @@
       "value": "Log ind for at dele"
     }
   ],
-  "bb93a7590f": [
+  "bbaaf8b6bf": [
     {
       "type": 0,
-      "value": "Accepter og bliv medlem af gruppen"
+      "value": "Invitationer er deaktiveret"
     }
   ],
   "bbbcefd7ce": [
@@ -1055,30 +1157,16 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Administrer arbejdsområde"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Få mere at vide om deling."
-    }
-  ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Tillad "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analyse"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " for at hjælpe os med at forbedre tldraw."
     }
   ],
   "c303bd1095": [
@@ -1093,12 +1181,6 @@
       "value": "Vigtige cookies"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Gruppenavn"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1111,10 +1193,10 @@
       "value": "Invitere"
     }
   ],
-  "c74ea6dbff": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Vis mindre"
+      "value": "Kopiér til mit arbejdsområde"
     }
   ],
   "c87aacf567": [
@@ -1127,12 +1209,6 @@
     {
       "type": 0,
       "value": "Luk"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Spare"
     }
   ],
   "cceaefbc20": [
@@ -1235,22 +1311,16 @@
       "value": "Gå her for at se indholdet"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Du har nået det maksimale antal grupper. Du skal slette gamle grupper, før du opretter nye."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Kun invitation"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "Ugyldig URL til tldraw-fil"
+      "value": "Forlad arbejdsområdet"
     }
   ],
   "dfdb78a4e4": [
@@ -1259,10 +1329,10 @@
       "value": "App debug flag"
     }
   ],
-  "e0c88179b3": [
+  "e0aa021e21": [
     {
       "type": 0,
-      "value": "Inviter medlemmer"
+      "value": "Okay"
     }
   ],
   "e2198d6228": [
@@ -1277,12 +1347,6 @@
       "value": "Juridisk resumé"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Admin"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
@@ -1295,16 +1359,16 @@
       "value": "eller"
     }
   ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Farezone"
-    }
-  ],
   "ea4788705e": [
     {
       "type": 0,
       "value": "Ophæve"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Bed ejeren af ​​arbejdsområdet om en ny."
     }
   ],
   "ebfe9ce86e": [
@@ -1399,12 +1463,6 @@
       "value": "Indstillinger"
     }
   ],
-  "f714e36843": [
-    {
-      "type": 0,
-      "value": "Er du sikker på, at du vil forlade denne gruppe?"
-    }
-  ],
   "fa2ead697d": [
     {
       "type": 0,
@@ -1417,10 +1475,10 @@
       "value": "Seer"
     }
   ],
-  "fd1be3efcf": [
+  "fc9d47046b": [
     {
       "type": 0,
-      "value": "Er du sikker på, at du vil slette denne fil?"
+      "value": "Er du sikker på, at du vil forlade dette arbejdsområde?"
     }
   ],
   "fed5ec05eb": [
@@ -1429,10 +1487,24 @@
       "value": "Kopieret link"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Tilføj fillink…"
+      "value": "Er du sikker på, at du vil fjerne "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " fra dette arbejdsområde?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Opret en gratis konto for at gemme dine filer og tldraw med dine holdkammerater."
     }
   ],
   "ffcd73e997": [

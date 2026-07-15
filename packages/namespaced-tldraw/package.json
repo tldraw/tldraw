@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "5.0.1",
+	"version": "5.2.4",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -60,5 +60,8 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

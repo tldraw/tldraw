@@ -458,13 +458,8 @@ async function main() {
 
 function getZeroUrl() {
 	switch (env.TLDRAW_ENV) {
-		case 'preview': {
-			if (deployZero === 'flyio') {
-				return `https://${flyioAppName}.fly.dev/`
-			} else {
-				return 'https://zero-backend-not-deployed.tldraw.com'
-			}
-		}
+		case 'preview':
+			return `https://${flyioAppName}.fly.dev/`
 		case 'staging':
 			if (deployZero === 'flyio-multinode') {
 				return `https://${flyioAppName}.fly.dev/`
@@ -911,9 +906,16 @@ async function deploySpa(): Promise<{ deploymentUrl: string; inspectUrl: string 
 	// both 'staging' and 'production' are deployed to vercel as 'production' deploys
 	// in separate 'projects'
 	const prod = env.TLDRAW_ENV !== 'preview'
-	const out = await vercelCli('deploy', ['--yes', '--prebuilt', ...(prod ? ['--prod'] : [])], {
-		pwd: dotcom,
-	})
+	// Upload the prebuilt output as a single tarball. We serve the .js.map files rather than
+	// stripping them, which pushes the deploy past Vercel's 15,000-individual-file upload limit;
+	// archiving sidesteps that limit.
+	const out = await vercelCli(
+		'deploy',
+		['--yes', '--prebuilt', '--archive=tgz', ...(prod ? ['--prod'] : [])],
+		{
+			pwd: dotcom,
+		}
+	)
 
 	const previewURL = out.match(/Preview: (https:\/\/\S*)/)?.[1]
 	const inspectUrl = out.match(/Inspect: (https:\/\/\S*)/)?.[1]

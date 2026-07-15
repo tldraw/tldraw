@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/driver",
 	"description": "Imperative API for driving the tldraw editor programmatically.",
-	"version": "5.0.1",
+	"version": "5.2.4",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -43,6 +43,9 @@
 	},
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27",
-		"vitest": "^3.2.4"
+		"vitest": "^4.1.7"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

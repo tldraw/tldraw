@@ -11,6 +11,7 @@ import {
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	VecLike,
+	b64Vecs,
 	drawShapeMigrations,
 	drawShapeProps,
 	getColorValue,
@@ -272,11 +273,12 @@ function getDot(point: VecLike, sw: number) {
 }
 
 function getIsDot(shape: TLDrawShape) {
-	// First point is 16 base64 chars (3 Float32s = 12 bytes)
-	// Each delta point is 8 base64 chars (3 Float16s = 6 bytes)
-	// 1 point = 16 chars, 2 points = 24 chars
-	// Check if we have less than 2 points without decoding
-	return shape.props.segments.length === 1 && shape.props.segments[0].path.length < 24
+	// A dot is a single-point segment. isSinglePoint knows the per-encoding length
+	// (and takes the segment's dim), so this stays correct for both 2D and 3D paths.
+	// A bare length threshold can't: a 2-point 2D path is the same length as a 1-point
+	// 3D path, so only the dim disambiguates them.
+	const segment = shape.props.segments[0]
+	return shape.props.segments.length === 1 && b64Vecs.isSinglePoint(segment.path, segment.dim)
 }
 
 function DrawShapeSvg({
@@ -368,11 +370,11 @@ function DrawShapeSvg({
 
 	const strokePoints = getStrokePoints(allPointsFromSegments, options)
 	const isDot = strokePoints.length < 2
+	const fill = isDot || shape.props.isClosed ? shape.props.fill : 'none'
+
 	const solidStrokePath = isDot
 		? getDot(allPointsFromSegments[0], 0)
-		: getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
-
-	const fill = isDot || shape.props.isClosed ? shape.props.fill : 'none'
+		: getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed && fill !== 'none')
 
 	return (
 		<>

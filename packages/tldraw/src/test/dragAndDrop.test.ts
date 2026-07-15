@@ -158,6 +158,28 @@ describe('canRemoveChildrenOfType for non-frame containers', () => {
 	})
 })
 
+describe('dragging starts over a frame', () => {
+	it('reparents the shape', () => {
+		// Grid at (100, 100) covers (100, 100) to (600, 300)
+		editor.createShape({ id: ids.grid, type: GRID_TYPE, x: 100, y: 100 })
+
+		// Counter created on the page outside the grid, then moved over the grid without
+		// re-evaluating its parent. It's positioned inside the grid but still parented to the page.
+		editor.createShape({ id: ids.counter, type: COUNTER_TYPE, x: 700, y: 100 })
+		editor.updateShape({ id: ids.counter, type: COUNTER_TYPE, x: 200, y: 150 })
+		expect(editor.getShape(ids.counter)!.parentId).toBe(editor.getCurrentPageId())
+
+		// Start dragging from a point already over the grid and keep it over the grid the whole
+		// time, never passing over the empty page. It should still reparent into the grid.
+		editor.setCurrentTool('select')
+		editor.pointerDown(225, 175, ids.counter).pointerMove(275, 225)
+		vi.advanceTimersByTime(300)
+		editor.pointerUp(275, 225)
+
+		expect(editor.getShape(ids.counter)!.parentId).toBe(ids.grid)
+	})
+})
+
 describe('kickoutOccludedShapes respects canRemoveChildrenOfType', () => {
 	it('keeps a pinned child parented when it no longer overlaps its parent', () => {
 		// Grid covers (100, 100) to (600, 300)

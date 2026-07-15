@@ -122,7 +122,7 @@ export const richText = {
 		{
 			type: 'heading',
 			attrs: { dir: 'auto', level: 3 },
-			content: [{ type: 'text', text: 'Headers for things' }],
+			content: [{ type: 'text', text: 'Headers for things that wrap across multiple lines' }],
 		},
 		{
 			type: 'bulletList',

@@ -24,7 +24,7 @@ export type TLPointerEventName =
 	| 'middle_click'
 
 /** @public */
-export type TLCLickEventName = 'double_click' | 'triple_click' | 'quadruple_click'
+export type TLCLickEventName = 'double_click'
 
 /** @public */
 export type TLPinchEventName = 'pinch_start' | 'pinch' | 'pinch_end'
@@ -63,6 +63,13 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
 	pointerId: number
 	button: number
 	isPen: boolean
+	/**
+	 * Whether this pen event appears to be direct manipulation on the display (e.g. Apple Pencil on
+	 * an iPad or a Surface Pen on a touchscreen) rather than indirect input from a desktop graphics
+	 * tablet (e.g. a Wacom Intuos). Only direct-display pens should auto-enable pen mode. Drawing and
+	 * pressure behavior is driven by `isPen` and applies to all pens regardless of this flag.
+	 */
+	isPenDirect?: boolean
 } & TLPointerEventTarget
 
 /** @public */
@@ -72,7 +79,7 @@ export type TLClickEventInfo = TLBaseEventInfo & {
 	point: VecLike
 	pointerId: number
 	button: number
-	phase: 'down' | 'up' | 'settle'
+	phase: 'down' | 'up' | 'settle-down' | 'settle-up'
 } & TLPointerEventTarget
 
 /** @public */
@@ -173,8 +180,6 @@ export interface TLEventHandlers {
 	onLongPress: TLPointerEvent
 	onRightClick: TLPointerEvent
 	onDoubleClick: TLClickEvent
-	onTripleClick: TLClickEvent
-	onQuadrupleClick: TLClickEvent
 	onMiddleClick: TLPointerEvent
 	onPointerUp: TLPointerEvent
 	onKeyDown: TLKeyboardEvent
@@ -206,7 +211,5 @@ export const EVENT_NAME_MAP: Record<
 	complete: 'onComplete',
 	interrupt: 'onInterrupt',
 	double_click: 'onDoubleClick',
-	triple_click: 'onTripleClick',
-	quadruple_click: 'onQuadrupleClick',
 	tick: 'onTick',
 }

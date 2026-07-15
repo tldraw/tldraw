@@ -123,6 +123,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		Toasts,
 		Dialogs,
 		A11y,
+		FollowingIndicator,
 	} = useTldrawUiComponents()
 
 	useEditorEvents()
@@ -184,6 +185,12 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			className={classNames('tlui-layout', {
 				'tlui-layout__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 			})}
+			// The outer editor container has role="application" so that desktop screen readers treat
+			// the canvas as an interactive surface. Mark the UI layer as role="document" so that the
+			// toolbar, menus, and dialogs stay navigable to assistive tech — especially mobile screen
+			// readers like VoiceOver and TalkBack that do not announce role="application". See
+			// https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/application_role
+			role="document"
 			// When the virtual keyboard is opening we want it to hide immediately.
 			// But when the virtual keyboard is closing we want to wait a bit before showing it again.
 			data-iseditinganything={hideToolbarWhileEditing}
@@ -229,6 +236,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					</div>
 				</>
 			)}
+			{FollowingIndicator && <FollowingIndicator />}
 			{Toasts && <Toasts />}
 			{Dialogs && <Dialogs />}
 		</div>
@@ -237,15 +245,13 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 
 /** @public @react */
 export function TldrawUiInFrontOfTheCanvas() {
-	const { RichTextToolbar, ImageToolbar, VideoToolbar, CursorChatBubble, FollowingIndicator } =
-		useTldrawUiComponents()
+	const { RichTextToolbar, ImageToolbar, VideoToolbar, CursorChatBubble } = useTldrawUiComponents()
 
 	return (
 		<>
 			{RichTextToolbar && <RichTextToolbar />}
 			{ImageToolbar && <ImageToolbar />}
 			{VideoToolbar && <VideoToolbar />}
-			{FollowingIndicator && <FollowingIndicator />}
 			{CursorChatBubble && <CursorChatBubble />}
 		</>
 	)

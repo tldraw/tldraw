@@ -28,8 +28,13 @@ export interface StylePanelDropdownPickerProps<T extends string> {
 	onValueChange?(style: StyleProp<T>, value: T): void
 	/** Override the test ID prefix. Defaults to uiType. */
 	testIdType?: string
-	/** Distance to push the popover left of the trigger so it lands flush with the style panel. */
+	/**
+	 * Distance to push the popover left of the trigger so it lands flush with the style panel.
+	 * Defaults to the standard popover gap so standalone dropdowns don't sit flush against the panel.
+	 */
 	sideOffset?: number
+	/** Is the dropdown an overflow of a different radio group? If so, show active when the group's active item is inside of the dropdown.*/
+	isOverflow?: boolean
 }
 
 function StylePanelDropdownPickerInner<T extends string>(props: StylePanelDropdownPickerProps<T>) {
@@ -53,13 +58,14 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 		label,
 		uiType,
 		stylePanelType,
+		isOverflow,
 		style,
 		items,
 		type,
 		value,
 		onValueChange = ctx.onValueChange,
 		testIdType = uiType,
-		sideOffset = 0,
+		sideOffset = 8,
 	} = props
 	const msg = useTranslation()
 	const editor = useEditor()
@@ -73,10 +79,17 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 
 	const stylePanelName = msg(`style-panel.${stylePanelType}` as TLUiTranslationKey)
 
+	// The current value isn't always present in this dropdown's items (for example the fill
+	// dropdown only holds the "extra" fills, so a "solid" selection lives elsewhere). When the
+	// selected value isn't one of these items, describe what the dropdown opens rather than a
+	// value it can't show.
+	const valueInItems = value.type !== 'mixed' && items.some((item) => item.value === value.value)
 	const titleStr =
 		value.type === 'mixed'
 			? msg('style-panel.mixed')
-			: stylePanelName + ' — ' + msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
+			: valueInItems
+				? stylePanelName + ' — ' + msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
+				: stylePanelName
 	const labelStr = label ? msg(label) : ''
 
 	const popoverId = `style panel ${id}`
@@ -92,6 +105,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 					type={type}
 					data-testid={`style.${testIdType}`}
 					data-direction="left"
+					isActive={isOverflow && valueInItems}
 					title={titleStr}
 				>
 					{labelStr && <TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>}
@@ -112,7 +126,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 										' — ' +
 										msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
 									}
-									isActive={icon === item.icon}
+									isActive={valueInItems && icon === item.icon}
 									onClick={() => {
 										ctx.onHistoryMark('select style dropdown item')
 										onValueChange(style, item.value)

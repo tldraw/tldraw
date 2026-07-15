@@ -2,11 +2,20 @@
   "0095a9fa74": {
     "translation": "Export"
   },
+  "00b177e080": {
+    "translation": "Acceptă invitația"
+  },
   "03b3e13197": {
     "translation": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul utilizatorului."
   },
   "043973ec1f": {
     "translation": "Mai ai probleme? {GetHelpLink}"
+  },
+  "04a2dd56d6": {
+    "translation": "Invită coechipieri"
+  },
+  "05f43078e9": {
+    "translation": "Ați atins numărul maxim de spații de lucru. Trebuie să ștergeți spațiile de lucru vechi înainte de a crea altele noi."
   },
   "06b9281e39": {
     "translation": "Auto"
@@ -29,29 +38,26 @@
   "0b9a4cde72": {
     "translation": "meniul Fișier"
   },
+  "0c4383617a": {
+    "translation": "Ceva nu a funcționat la încărcarea acestei invitații. Vă rugăm să încercați din nou."
+  },
   "0d1f2bb523": {
     "translation": "Trimite feedback"
+  },
+  "1063e38cb5": {
+    "translation": "Elimina"
+  },
+  "10fb1df194": {
+    "translation": "Copiază în spațiul de lucru personal"
   },
   "110a4b01be": {
     "translation": "Publica"
   },
-  "129b9e34ea": {
-    "translation": "Părăsește grupul"
-  },
   "12a6766ba1": {
     "translation": "Anulează fixarea fișierului"
   },
-  "12c8a9838c": {
-    "translation": "Încercați SDK-ul tldraw"
-  },
   "13ddd375ad": {
     "translation": "Exportați ca"
-  },
-  "146ffe2fd9": {
-    "translation": "Afișează mai multe"
-  },
-  "14d65465b7": {
-    "translation": "Ștergeți grupul"
   },
   "181b90f889": {
     "translation": "Creați fișier"
@@ -62,8 +68,14 @@
   "1dd1c5fb7f": {
     "translation": "Astăzi"
   },
-  "2445e5e347": {
-    "translation": "Creați un grup"
+  "1ffd709937": {
+    "translation": "Un spațiu de lucru trebuie să aibă cel puțin un proprietar. Mai întâi, setează pe altcineva drept proprietar."
+  },
+  "21f66c9c00": {
+    "translation": "Numele spațiului de lucru"
+  },
+  "23dcace54a": {
+    "translation": "Ai fost invitat să te alături la <strong>{workspaceName}</strong>. Creează un cont gratuit pentru a continua."
   },
   "250ddea65c": {
     "translation": "Despre tldraw"
@@ -71,20 +83,26 @@
   "299cb00a7a": {
     "translation": "Încărcarea nu a reușit"
   },
-  "2c3ef76333": {
-    "translation": "Fișierele mele"
+  "2a1167f869": {
+    "translation": "Bine ați venit în spațiul dvs. de lucru"
+  },
+  "2a37324bb4": {
+    "translation": "Căutare..."
+  },
+  "2de510be71": {
+    "translation": "Regenerarea înlocuiește linkul de invitație actual cu unul nou. Oricine folosește linkul vechi va avea nevoie de cel nou pentru a se alătura."
   },
   "2e2b3c700b": {
     "translation": "Includeți linkul către fișierul curent"
+  },
+  "2e9856a31e": {
+    "translation": "Regenerați linkul de invitație"
   },
   "31246941ad": {
     "translation": "Trebuie să vă conectați pentru a vedea acest fișier."
   },
   "31418ce4ad": {
     "translation": "i18n: Evidențiați Lipsă"
-  },
-  "32210b37e4": {
-    "translation": "Adăugați link"
   },
   "324a0f3182": {
     "translation": "Înapoi la tldraw"
@@ -94,6 +112,12 @@
   },
   "344a7f427f": {
     "translation": "Editor"
+  },
+  "34e34c43ec": {
+    "translation": "Gestionează"
+  },
+  "375396d6e5": {
+    "translation": "Eliminați membrul"
   },
   "3bc7d6ea2f": {
     "translation": "Continuă cu e-mailul"
@@ -119,6 +143,9 @@
   "44db318ee5": {
     "translation": "Obțineți ajutor pe Discord"
   },
+  "454aad3b3c": {
+    "translation": "Sigur vrei să ștergi <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Vă mulțumim că ne ajutați să îmbunătățim tldraw!"
   },
@@ -131,12 +158,6 @@
   "47f493a590": {
     "translation": "Fișier fixat"
   },
-  "49049467ff": {
-    "translation": "Lipiți adresa URL a fișierului tldraw..."
-  },
-  "4908687e50": {
-    "translation": "Sigur vrei să uiți acest fișier?"
-  },
   "49ee308734": {
     "translation": "Nume"
   },
@@ -146,20 +167,14 @@
   "4d1c8263ba": {
     "translation": "Reîncărcați"
   },
-  "4da5988a2e": {
-    "translation": "Ștergeți grupul…"
-  },
-  "4dab36ac83": {
-    "translation": "Mai multe opțiuni"
-  },
-  "4e6fbf032b": {
-    "translation": "Sigur doriți să ștergeți acest grup? Această acțiune nu poate fi anulată."
-  },
   "5097d89907": {
     "translation": "Diagramă neacceptată, se va genera SVG în schimb"
   },
   "50db1b7e1e": {
     "translation": "Nu se poate anula publicarea fișierului."
+  },
+  "51317dcad5": {
+    "translation": "Acesta este spațiul tău de lucru privat. Creează un spațiu de lucru nou pentru a invita colegi de echipă."
   },
   "517bb809d9": {
     "translation": "Meniul paginii"
@@ -176,14 +191,14 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5638176be5": {
+    "translation": "Creați un spațiu de lucru"
+  },
   "5677e381d2": {
     "translation": "Folosim cookie-uri analitice pentru a îmbunătăți tldraw."
   },
   "56c34c6410": {
     "translation": "Politica de confidențialitate"
-  },
-  "5a86b22fa0": {
-    "translation": "Trageți fișierele aici, <create>creați un fișier</create> sau <invite>copiați linkul de invitație</invite> pentru a începe."
   },
   "5a95a425f7": {
     "translation": "Distribuie"
@@ -191,17 +206,14 @@
   "5bec508475": {
     "translation": "Browser vechi detectat. Vă rugăm să actualizați browserul pentru a utiliza această aplicație."
   },
-  "5c6fe42bc2": {
-    "translation": "Revocați acest link și creați unul nou."
+  "5bff3c9c88": {
+    "translation": "Spațiul meu de lucru"
   },
   "5d04a002ea": {
     "translation": "Nu se poate conecta"
   },
   "5d26ae7550": {
     "translation": "Nu am reușit să încărcăm o parte din conținutul pe care l-ați creat înainte de a vă conecta."
-  },
-  "5ea8bb44be": {
-    "translation": "Ai fost invitat să te alături grupului:"
   },
   "5f3c333678": {
     "translation": "Feedback trimis"
@@ -227,8 +239,14 @@
   "6637a98151": {
     "translation": "Este disponibilă o nouă versiune de tldraw. Vă rugăm să reîncărcați pagina pentru a continua."
   },
+  "681e10aecb": {
+    "translation": "Fișier nou"
+  },
   "6832ac5936": {
     "translation": "Introdu adresa ta de e-mail"
+  },
+  "694f82ed9d": {
+    "translation": "Șterge spațiul de lucru"
   },
   "6a26f54883": {
     "translation": "Ajutor"
@@ -238,9 +256,6 @@
   },
   "6dfc62f621": {
     "translation": "Urmați acești pași pentru a importa manual conținutul:"
-  },
-  "70222abcfc": {
-    "translation": "Setări de grup"
   },
   "70a6facb9d": {
     "translation": "În această săptămână"
@@ -253,6 +268,9 @@
   },
   "7408cf0d7b": {
     "translation": "Vă rugăm să reîncărcați pagina"
+  },
+  "74ff4bad28": {
+    "translation": "Nu s-au găsit fișiere"
   },
   "752b79f137": {
     "translation": "Ați atins numărul maxim de fișiere. Trebuie să ștergeți fișierele vechi înainte de a crea altele noi."
@@ -268,9 +286,6 @@
   },
   "764671e008": {
     "translation": "Discutați cu noi pe Discord"
-  },
-  "76dea3c9ca": {
-    "translation": "tldraw este o tablă albă online gratuită. Creează-ți un cont pentru a salva fișierele și a lucra cu prietenii tăi."
   },
   "777f9e90cf": {
     "translation": "Solicitare nevalidă."
@@ -299,9 +314,6 @@
   "7cb5f8b4a5": {
     "translation": "Uita"
   },
-  "7cfe6c43dc": {
-    "translation": "Părăsește grupul…"
-  },
   "7daeced9ff": {
     "translation": "Publicați modificările"
   },
@@ -311,8 +323,17 @@
   "801ab24683": {
     "translation": "Descărcare"
   },
+  "8030793ce3": {
+    "translation": "Spațiu de lucru nou"
+  },
   "815e116a2e": {
     "translation": "Aveți o eroare, o problemă sau o idee pentru tldraw? Anunțați-ne! Completați acest formular și vă vom contacta prin e-mail, dacă este necesar. De asemenea, puteți <discord>să discutați cu noi pe Discord</discord> sau <github>să trimiteți o problemă pe GitHub</github>."
+  },
+  "81666c6e4a": {
+    "translation": "Sigur vrei să uiți <strong>{fileName}</strong>?"
+  },
+  "858ba4765e": {
+    "translation": "Membru"
   },
   "85a082de1b": {
     "translation": "Vă rugăm să reîmprospătați pagina pentru a obține cea mai recentă versiune de tldraw."
@@ -323,8 +344,11 @@
   "86c66437fd": {
     "translation": "Redenumiți fișierul"
   },
-  "8ad4303b83": {
-    "translation": "Nu, mulțumesc"
+  "87fdb09de6": {
+    "translation": "Ești deja membru al acestui spațiu de lucru"
+  },
+  "88bf6ab42c": {
+    "translation": "Acest link de invitație a expirat"
   },
   "8c2d3d730c": {
     "translation": "Verifică-ți e-mailul pentru un cod de verificare."
@@ -341,14 +365,8 @@
   "904a830405": {
     "translation": "Redenumiți"
   },
-  "91e49bb0eb": {
-    "translation": "Copiați în fișierele mele"
-  },
-  "930390d222": {
-    "translation": "Link de invitație copiat"
-  },
-  "9489b2f82a": {
-    "translation": "Ești deja membru al acestui grup"
+  "90646db02d": {
+    "translation": "Sigur doriți să ștergeți <strong>{workspaceName}</strong>? Această acțiune nu poate fi anulată."
   },
   "95aacd4d4a": {
     "translation": "Conectați-vă cu Google"
@@ -362,11 +380,11 @@
   "985a4b720f": {
     "translation": "Termeni de utilizare"
   },
-  "98c997a27e": {
-    "translation": "Adăugați linkul fișierului"
-  },
   "9914a0ce04": {
     "translation": "Aprinde"
+  },
+  "9983381c21": {
+    "translation": "Șterge căutarea"
   },
   "9b33f5c63c": {
     "translation": "Nu ați primit un cod? <resend>Retrimiteți</resend>."
@@ -385,6 +403,9 @@
   },
   "9e93c98d88": {
     "translation": "A renunța"
+  },
+  "a078644c42": {
+    "translation": "Ai fost invitat(ă) să te alături la <strong>{workspaceName}</strong>."
   },
   "a0da245992": {
     "translation": "Exportați conținutul ca fișier .tldr: Selectați „Descărcare” în meniul din stânga sus."
@@ -407,6 +428,9 @@
   "a4d3b161ce": {
     "translation": "Trimiteți"
   },
+  "a52945dbe2": {
+    "translation": "Părăsește"
+  },
   "a6cc403d56": {
     "translation": "Oricine are linkul"
   },
@@ -419,6 +443,9 @@
   "a9ded1e5ce": {
     "translation": "Fundal"
   },
+  "aac449eef6": {
+    "translation": "Creați spațiu de lucru"
+  },
   "ab0df9ba36": {
     "translation": "Limita de fișiere a fost atinsă"
   },
@@ -429,14 +456,17 @@
   "b028909917": {
     "translation": "Utilizator invitat"
   },
+  "b2326c3a34": {
+    "translation": "Regenera"
+  },
   "b2c3c2e30c": {
     "translation": "Fișierul este plin"
   },
   "b357b524e7": {
     "translation": "Adresa de e-mail"
   },
-  "b3d2db69fe": {
-    "translation": "URL-ul fișierului"
+  "b48becc771": {
+    "translation": "Activează invitațiile"
   },
   "b6d4223e60": {
     "translation": "Conectare"
@@ -450,8 +480,8 @@
   "ba0318cb81": {
     "translation": "Conectați-vă pentru a partaja"
   },
-  "bb93a7590f": {
-    "translation": "Acceptă și alătură-te grupului"
+  "bbaaf8b6bf": {
+    "translation": "Invitațiile sunt dezactivate"
   },
   "bbbcefd7ce": {
     "translation": "{total, plural, one {Se încarcă fișierul .tldr...} few {} other {Se încarcă {uploaded} din {total} fișiere .tldr...}}"
@@ -459,11 +489,11 @@
   "bc88b0e89e": {
     "translation": "Distribuit de {ownerName}"
   },
+  "c17466812d": {
+    "translation": "Gestionați spațiul de lucru"
+  },
   "c2276c9127": {
     "translation": "Aflați mai multe despre partajare."
-  },
-  "c28aed8348": {
-    "translation": "Permiteți `<cookies>analytics</cookies>` să ne ajute să îmbunătățim tldraw."
   },
   "c303bd1095": {
     "translation": "Nu se poate publica fișierul."
@@ -471,26 +501,20 @@
   "c4b39a1cc3": {
     "translation": "Cookie-uri esențiale"
   },
-  "c6155aaecc": {
-    "translation": "Numele grupului"
-  },
   "c655b27b1e": {
     "translation": "i18n: șir lung"
   },
   "c6a00f137b": {
     "translation": "Invita"
   },
-  "c74ea6dbff": {
-    "translation": "Afișează mai puțin"
+  "c6f16003f2": {
+    "translation": "Copiază în spațiul meu de lucru"
   },
   "c87aacf567": {
     "translation": "Sign out"
   },
   "c8a59e7135": {
     "translation": "Închide"
-  },
-  "c9cc8cce24": {
-    "translation": "Salva"
   },
   "cceaefbc20": {
     "translation": "Distribuiți acest fișier"
@@ -528,20 +552,17 @@
   "d9100f3e10": {
     "translation": "Intră aici pentru a vedea conținutul"
   },
-  "d9e35d0f55": {
-    "translation": "Ați atins numărul maxim de grupuri. Trebuie să ștergeți grupurile vechi înainte de a crea altele noi."
-  },
   "dbbebf3c03": {
     "translation": "Numai cu invitație"
   },
-  "dcdaa754fe": {
-    "translation": "Adresă URL fișier tldraw nevalidă"
+  "dbf9b24193": {
+    "translation": "Părăsiți spațiul de lucru"
   },
   "dfdb78a4e4": {
     "translation": "Indicatori de depanare a aplicației"
   },
-  "e0c88179b3": {
-    "translation": "Invită membri"
+  "e0aa021e21": {
+    "translation": "Bine"
   },
   "e2198d6228": {
     "translation": "Copiați linkul de invitație"
@@ -549,20 +570,17 @@
   "e2ae80a510": {
     "translation": "Rezumat juridic"
   },
-  "e3afed0047": {
-    "translation": "Administrator"
-  },
   "e404559826": {
     "translation": "Termeni și condiții"
   },
   "e81c4e4f2b": {
     "translation": "sau"
   },
-  "ea0626ac5a": {
-    "translation": "Zonă periculoasă"
-  },
   "ea4788705e": {
     "translation": "Anula"
+  },
+  "eb1e2b0542": {
+    "translation": "Cereți proprietarului spațiului de lucru unul nou."
   },
   "ebfe9ce86e": {
     "translation": "Ieri"
@@ -603,23 +621,23 @@
   "f4f70727dc": {
     "translation": "Setări"
   },
-  "f714e36843": {
-    "translation": "Sigur vrei să părăsești acest grup?"
-  },
   "fa2ead697d": {
     "translation": "Politica de confidențialitate"
   },
   "fb15c53f22": {
     "translation": "Vizualizator"
   },
-  "fd1be3efcf": {
-    "translation": "Sigur doriți să ștergeți acest fișier?"
+  "fc9d47046b": {
+    "translation": "Sigur vrei să părăsești acest spațiu de lucru?"
   },
   "fed5ec05eb": {
     "translation": "Link copiat"
   },
-  "ff7a814974": {
-    "translation": "Adăugați linkul fișierului…"
+  "ff2fefd3c6": {
+    "translation": "Sigur vrei să elimini {name} din acest spațiu de lucru?"
+  },
+  "ff52811b98": {
+    "translation": "Creează-ți un cont gratuit pentru a salva fișierele și a desena cu tldraw alături de coechipierii tăi."
   },
   "ffcd73e997": {
     "translation": "Importați fișierul…"

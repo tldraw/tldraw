@@ -2,26 +2,8 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 05/06/2026
+date: 07/01/2026
 order: 0
 status: published
-last_version: v5.0.1
+last_version: v5.2.0
 ---
-
-This release redesigns the page menu around inline interaction, adds a `selectLockedShapes` option for inspecting locked shapes, and fixes a misleading "expired" banner for perpetual licenses, along with other UI and licensing bug fixes.
-
-## What's new
-
-### Page menu redesign ([#8836](https://github.com/tldraw/tldraw/pull/8836))
-
-The page menu no longer has an explicit edit mode. Reorder pages by dragging a row directly, rename inline by double-clicking the label or pressing Enter, and drag the new resize handle at the bottom of the popover to adjust the list height — the height is persisted across sessions and a double-click on the handle resets it to the default. The current page is now indicated by a subtle background pill, the row submenu trigger reveals on hover, and the "Create new page" button is pinned to the footer of the popover.
-
-## API changes
-
-- Add a `selectLockedShapes` option to `TldrawOptions`. When enabled, locked shapes can be selected by left click or by brush/scribble selection while remaining protected from edits, moves, and deletes. ([#8860](https://github.com/tldraw/tldraw/pull/8860))
-
-## Bug fixes
-
-- Fix a misleading "license expired" console warning for perpetual licenses on covered versions. ([#8791](https://github.com/tldraw/tldraw/pull/8791))
-- Fix inconsistent tooltip behavior on the video toolbar by using `TldrawUiToolbarButton` for the replace and download buttons. ([#8794](https://github.com/tldraw/tldraw/pull/8794))
-- Fix the missing open-state hint on the page menu and zoom menu triggers when rendered outside the main toolbar. ([#8813](https://github.com/tldraw/tldraw/pull/8813))

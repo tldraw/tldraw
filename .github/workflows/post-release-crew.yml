@@ -1,0 +1,54 @@
+name: Post release crew to Discord
+
+# Every Wednesday at 09:30 UTC, post to #development naming the people whose critical
+# fixes / significant features are in this week's dotcom release.
+# GitHub cron is UTC-only. We use a single fixed UTC time (no BST/GMT adjustment) so
+# the job never fires twice: 09:30 UTC is 09:30 in London during winter (GMT) and
+# 10:30 during summer (BST). To change the day, edit the day-of-week field
+# (`3` = Wednesday) in the cron line.
+
+on:
+  schedule:
+    - cron: '30 9 * * 3' # Wednesday 09:30 UTC
+  workflow_dispatch: # allow manual runs
+
+concurrency:
+  group: post-release-crew
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  post-release-crew:
+    name: Post release crew to Discord
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Fail fast if the Discord webhook is not configured
+        run: |
+          if [ -z "$DISCORD_RELEASE_WEBHOOK_URL" ]; then
+            echo "::error::DISCORD_RELEASE_WEBHOOK_URL secret is not set — the release crew message cannot be posted."
+            exit 1
+          fi
+        env:
+          DISCORD_RELEASE_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK_URL }}
+
+      - name: Install Claude Code
+        run: npm install -g @anthropic-ai/claude-code@2.1.206
+
+      - name: Run dotcom-release-crew skill
+        run: claude --dangerously-skip-permissions --print "/dotcom-release-crew"
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          DISCORD_RELEASE_WEBHOOK_URL: ${{ secrets.DISCORD_RELEASE_WEBHOOK_URL }}

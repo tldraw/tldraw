@@ -12,9 +12,8 @@
 	 * (which creates its own stacking context at z-index 300), so their
 	 * z-indices are relative to the layout, not the container.
 	 *
-	 * cursor and following-indicator are rendered inside canvas-in-front
-	 * (stacking context at z-index 250), so their z-indices are relative
-	 * to that context.
+	 * cursor is rendered inside canvas-in-front (stacking context at
+	 * z-index 250), so their z-indices are relative to that context.
 	 */
 	--tl-layer-above: 1;
 	--tl-layer-focused-input: 10;
@@ -24,7 +23,6 @@
 	--tl-layer-toasts: 650;
 	--tl-layer-cursor: 700;
 	--tl-layer-header-footer: 999;
-	--tl-layer-following-indicator: 1000;
 }
 
 /* Button */
@@ -54,14 +52,14 @@
 
 .tlui-button:disabled,
 .tlui-button[data-disabled] {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-disabled);
 	text-shadow: none;
 	cursor: default;
 }
 
 .tlui-button:disabled .tlui-kbd,
 .tlui-button[data-disabled] .tlui-kbd {
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-disabled);
 }
 
 .tlui-button > * {
@@ -428,6 +426,11 @@
 .tlui-icon__small {
 	width: 15px;
 	height: 15px;
+}
+
+.tlui-icon__tiny {
+	width: 12px;
+	height: 12px;
 }
 
 /* --------------------- Slider --------------------- */
@@ -813,27 +816,41 @@
 
 .tlui-page-menu__list__content {
 	position: relative;
+	overflow: hidden;
 }
 
 .tlui-page-menu__resize-handle {
 	flex: 0 0 auto;
 	position: relative;
-	height: 7px;
-	margin-bottom: -3px;
+	height: 1px;
 	cursor: ns-resize;
 	touch-action: none;
+	background: var(--tl-color-divider);
+	transition: background-color ease-in-out 150ms 80ms;
 	z-index: 999;
 }
 
+/* Hit test area */
+.tlui-page-menu__resize-handle::after {
+	content: '';
+	position: absolute;
+	inset: -4px 0;
+	background: none;
+	z-index: 2000;
+	pointer-events: all;
+}
+
+/* Thick blue indicator */
 .tlui-page-menu__resize-handle::before {
 	content: '';
 	position: absolute;
-	top: 3px;
+	top: 0;
 	left: 0;
 	right: 0;
-	height: 1px;
-	background: var(--tl-color-divider);
-	transition: background-color 100ms;
+	height: 1.5px;
+	background: transparent;
+	pointer-events: none;
+	z-index: 2001;
 }
 
 .tlui-page-menu__resize-handle[data-resizing='true']::before {
@@ -1029,7 +1046,7 @@
 	left: 8px;
 }
 
-/* 
+/*
  * focusing skip-to-main-content hide top ui buttons to make sure we avoid
  * z-index clashes on hover (see issue #8328)
  */
@@ -1587,6 +1604,7 @@ tldraw? probably.
 .tlui-toast__main {
 	flex-grow: 2;
 	max-width: 280px;
+	min-width: 0;
 }
 
 .tlui-toast__content {
@@ -1595,6 +1613,7 @@ tldraw? probably.
 	line-height: 1.4;
 	flex-direction: column;
 	gap: var(--tl-space-3);
+	min-width: 0;
 }
 
 .tlui-toast__main[data-actions='true'] .tlui-toast__content {
@@ -1606,6 +1625,7 @@ tldraw? probably.
 	color: var(--tl-color-text-1);
 	/* this makes the default toast look better */
 	line-height: 16px;
+	overflow-wrap: anywhere;
 }
 
 .tlui-toast__description {
@@ -1613,6 +1633,7 @@ tldraw? probably.
 	padding: var(--tl-space-3);
 	margin: 0px;
 	padding: 0px;
+	overflow-wrap: anywhere;
 }
 
 .tlui-toast__icon + .tlui-toast__main > .tlui-toast__actions {
@@ -1676,8 +1697,17 @@ tldraw? probably.
 	height: 100%;
 	z-index: var(--tl-layer-canvas-overlays);
 	background-color: var(--tl-color-overlay);
-	pointer-events: all;
 	animation: tl-fade-in 0.12s ease-out;
+}
+
+.tlui-dialog__positioner {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: var(--tl-layer-canvas-overlays);
+	pointer-events: all;
 	display: grid;
 	place-items: center;
 	overflow-y: auto;
@@ -1730,6 +1760,7 @@ tldraw? probably.
 	color: var(--tl-color-text-1);
 	user-select: all;
 	-webkit-user-select: text;
+	overflow-wrap: anywhere;
 }
 .tlui-dialog__body a {
 	color: var(--tl-color-selected);
@@ -2167,7 +2198,6 @@ tldraw? probably.
 	inset: 0px;
 	border-width: 2px;
 	border-style: solid;
-	z-index: var(--tl-layer-following-indicator);
 	pointer-events: none;
 }
 

@@ -1157,6 +1157,22 @@ describe("when a group's children are deleted", () => {
 		expect(editor.getShape(groupCId)).toBeUndefined()
 		expect(editor.getShape(groupAId)).not.toBeUndefined()
 	})
+
+	it('preserves the collapsed group z-index when reparenting the last child', () => {
+		// Page contains: groupC (lower) then boxX (on top). Deleting boxA collapses
+		// groupA inside groupC, so boxB should take groupA's z-index in groupC and
+		// stay below groupB instead of jumping to the top of groupC's children.
+		editor.createShapes([box(ids.boxX, 80, 0)])
+
+		const pageId = editor.getCurrentPageId()
+		expect(editor.getSortedChildIdsForParent(pageId)).toEqual([groupCId, ids.boxX])
+		expect(editor.getSortedChildIdsForParent(groupCId)).toEqual([groupAId, groupBId])
+
+		editor.deleteShapes([ids.boxA])
+
+		expect(editor.getShape(groupAId)).toBeUndefined()
+		expect(editor.getSortedChildIdsForParent(groupCId)).toEqual([ids.boxB, groupBId])
+	})
 })
 
 describe('creating new shapes', () => {
@@ -1568,7 +1584,8 @@ describe('erasing', () => {
 		expect(editor.getCurrentPageState().erasingShapeIds.length).toBe(1)
 		expect(editor.getCurrentPageState().erasingShapeIds[0]).toBe(ids.boxE)
 
-		// move to group B
+		// move across box B (inside the focus layer) and into group B (outside it)
+		editor.pointerMove(25, 5)
 		editor.pointerMove(65, 5)
 
 		expect(editor.getErasingShapeIds().length).toBe(3)

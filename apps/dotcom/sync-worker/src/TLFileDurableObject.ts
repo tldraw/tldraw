@@ -16,6 +16,8 @@ import {
 	SNAPSHOT_PREFIX,
 	TLCustomServerEvent,
 	TlaFile,
+	WELCOME_CREATE_SOURCE,
+	can,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -47,7 +49,7 @@ import {
 	retry,
 	uniqueId,
 } from '@tldraw/utils'
-import { createSentry } from '@tldraw/worker-shared'
+import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
@@ -68,7 +70,9 @@ import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
+import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
+import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
 const MAX_CONNECTIONS = 50
 
@@ -639,18 +643,13 @@ export class TLFileDurableObject extends DurableObject {
 				if (file.ownerId && file.ownerId === auth?.userId) {
 					hasOwnerAccess = true
 				} else if (file.owningGroupId && auth?.userId) {
-					// Check if user is a member of the owning group
+					// Check the user can access the owning group's files
 					const groupCheckTimer = this.timer()
-					const groupMember = await this.db
-						.selectFrom('group_user')
-						.where('groupId', '=', file.owningGroupId)
-						.where('userId', '=', auth.userId)
-						.executeTakeFirst()
-					groupCheckTimer.report('on_request_group_check')
-
-					if (groupMember) {
+					const role = await getRole(this.db, auth.userId, file.owningGroupId)
+					if (can(role, 'accessFiles')) {
 						hasOwnerAccess = true
 					}
+					groupCheckTimer.report('on_request_group_check')
 				}
 
 				if (!hasOwnerAccess) {
@@ -759,12 +758,10 @@ export class TLFileDurableObject extends DurableObject {
 		if (file.ownerId && file.ownerId === auth?.userId) {
 			hasOwnerAccess = true
 		} else if (file.owningGroupId && auth?.userId) {
-			const groupMember = await this.db
-				.selectFrom('group_user')
-				.where('groupId', '=', file.owningGroupId)
-				.where('userId', '=', auth.userId)
-				.executeTakeFirst()
-			if (groupMember) hasOwnerAccess = true
+			const role = await getRole(this.db, auth.userId, file.owningGroupId)
+			if (can(role, 'accessFiles')) {
+				hasOwnerAccess = true
+			}
 		}
 		if (!hasOwnerAccess && !file.shared) {
 			return new Response('Forbidden', { status: 403 })
@@ -810,7 +807,11 @@ export class TLFileDurableObject extends DurableObject {
 							!assetSrc.startsWith('data:')
 						) {
 							const objectName = new URL(assetSrc).pathname.split('/').pop()
-							if (objectName && assetObjectNames.has(objectName)) {
+							if (
+								objectName &&
+								assetObjectNames.has(objectName) &&
+								isValidR2ObjectName(objectName)
+							) {
 								const blob = await env.UPLOADS.get(objectName)
 								if (blob) {
 									const ab = await blob.arrayBuffer()
@@ -899,47 +900,9 @@ export class TLFileDurableObject extends DurableObject {
 
 	async handleFileCreateFromSource(): Promise<DBLoadResult> {
 		assert(this._fileRecordCache, 'we need to have a file record to create a file from source')
-		const split = this._fileRecordCache.createSource?.split('/')
-		if (!split || split?.length !== 2) {
-			throw ROOM_NOT_FOUND
-		}
 
-		let data: RoomSnapshot | string | null | undefined = undefined
-		const [prefix, id] = split
 		const fetchTimer = this.timer()
-		switch (prefix) {
-			case FILE_PREFIX: {
-				const awaitPersistTimer = this.timer()
-				await getRoomDurableObject(this.env, id).awaitPersist()
-				awaitPersistTimer.report('create_from_source_await_persist')
-
-				const r2FetchTimer = this.timer()
-				data = await this.r2.rooms
-					.get(getR2KeyForRoom({ slug: id, isApp: true }))
-					.then((r) => r?.text())
-				r2FetchTimer.report('create_from_source_r2_fetch')
-				break
-			}
-			case ROOM_PREFIX:
-				data = await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_WRITE)
-				break
-			case READ_ONLY_PREFIX:
-				data = await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY)
-				break
-			case READ_ONLY_LEGACY_PREFIX:
-				data = await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
-				break
-			case SNAPSHOT_PREFIX:
-				data = await getLegacyRoomData(this.env, id, 'snapshot')
-				break
-			case PUBLISH_PREFIX:
-				data = await getPublishedRoomSnapshot(this.env, id)
-				break
-			case LOCAL_FILE_PREFIX:
-				// create empty room, the client will populate it
-				data = DEFAULT_INITIAL_SNAPSHOT
-				break
-		}
+		const data = await this.loadCreateSourceData(this._fileRecordCache.createSource)
 		fetchTimer.report('create_from_source_fetch_total')
 
 		if (!data) {
@@ -957,6 +920,58 @@ export class TLFileDurableObject extends DurableObject {
 		return {
 			snapshot,
 			roomSizeMB: roomObject ? roomObject.size / MB : 0,
+		}
+	}
+
+	/**
+	 * Resolve the seed content for a file's `createSource`, as a RoomSnapshot or its serialized
+	 * string. Returns undefined for an unknown source, which the caller turns into ROOM_NOT_FOUND.
+	 */
+	private async loadCreateSourceData(
+		createSource: string | null | undefined
+	): Promise<RoomSnapshot | string | null | undefined> {
+		// A new workspace's first file: a fixed marker (no prefix/id) the worker resolves to the
+		// welcome template's content, or a committed default — see resolveWelcomeSnapshot.
+		if (createSource === WELCOME_CREATE_SOURCE) {
+			return await resolveWelcomeSnapshot(this.env, (e) => this.reportError(e))
+		}
+
+		const split = createSource?.split('/')
+		if (!split || split.length !== 2) {
+			throw ROOM_NOT_FOUND
+		}
+		const [prefix, id] = split
+		switch (prefix) {
+			case FILE_PREFIX: {
+				// The source file's content is copied verbatim into this (user-owned) room. Read
+				// access to the source `id` is authorized upstream when the file record is created
+				// (see the `createFile` mutator), since that is where the user's identity is known.
+				const awaitPersistTimer = this.timer()
+				await getRoomDurableObject(this.env, id).awaitPersist()
+				awaitPersistTimer.report('create_from_source_await_persist')
+
+				const r2FetchTimer = this.timer()
+				const text = await this.r2.rooms
+					.get(getR2KeyForRoom({ slug: id, isApp: true }))
+					.then((r) => r?.text())
+				r2FetchTimer.report('create_from_source_r2_fetch')
+				return text
+			}
+			case ROOM_PREFIX:
+				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_WRITE)
+			case READ_ONLY_PREFIX:
+				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY)
+			case READ_ONLY_LEGACY_PREFIX:
+				return await getLegacyRoomData(this.env, id, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
+			case SNAPSHOT_PREFIX:
+				return await getLegacyRoomData(this.env, id, 'snapshot')
+			case PUBLISH_PREFIX:
+				return await getPublishedRoomSnapshot(this.env, id)
+			case LOCAL_FILE_PREFIX:
+				// create empty room, the client will populate it
+				return DEFAULT_INITIAL_SNAPSHOT
+			default:
+				return undefined
 		}
 	}
 
@@ -1145,6 +1160,8 @@ export class TLFileDurableObject extends DurableObject {
 		await Promise.allSettled(
 			assetsToReplace.map(async (asset) => {
 				try {
+					if (!isValidR2ObjectName(asset.objectName)) return
+
 					const currentAsset = await this.env.UPLOADS.get(asset.objectName)
 					if (!currentAsset) return
 					await this.env.UPLOADS.put(asset.newObjectName, currentAsset.body, {
@@ -1580,15 +1597,13 @@ export class TLFileDurableObject extends DurableObject {
 			// Check if user owns the file directly
 			if (file.ownerId && session.meta.userId === file.ownerId) continue
 
-			const isGroupMember = async () =>
-				!!(await this.db
-					.selectFrom('group_user')
-					.where('groupId', '=', file.owningGroupId)
-					.where('userId', '=', session.meta.userId)
-					.executeTakeFirst())
+			const canAccessFiles = async () => {
+				const role = await getRole(this.db, session.meta.userId, file.owningGroupId)
+				return can(role, 'accessFiles')
+			}
 
 			if (!file.shared) {
-				if (!(await isGroupMember())) {
+				if (!(await canAccessFiles())) {
 					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
 				}
 			} else if (
@@ -1596,7 +1611,7 @@ export class TLFileDurableObject extends DurableObject {
 				(session.isReadonly && !roomIsReadOnlyForGuests) ||
 				(!session.isReadonly && roomIsReadOnlyForGuests)
 			) {
-				if (!(await isGroupMember())) {
+				if (!(await canAccessFiles())) {
 					// not passing a reason means they will try to reconnect
 					room.closeSession(session.sessionId)
 				}

@@ -65,7 +65,7 @@ When a PR is reverted, also remove the original PR's entry from `next.mdx` if it
 
 ## Team members (do not credit)
 
-angrycaptain19, AniKrisn, ds300, kostyafarber, max-dra, mimecuvalo, MitjaBezensek, profdl, Siobhantldraw, steveruizok, tldrawdaniel, huppy-bot, github-actions, Somehats, todepond, Taha-Hassan-Git, alex-mckenna-1, max-drake
+angrycaptain19, AniKrisn, ds300, kaneel, kostyafarber, max-dra, mimecuvalo, MitjaBezensek, profdl, Siobhantldraw, steveruizok, tldrawdaniel, danieljamesross, jsscclr, frolic, huppy-bot, github-actions, Somehats, todepond, Taha-Hassan-Git, alex-mckenna-1, max-drake, m31-galaxy
 
 Credit community contributors with:
 

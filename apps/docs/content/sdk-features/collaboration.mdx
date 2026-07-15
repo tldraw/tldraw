@@ -117,7 +117,7 @@ See the [Assets](/docs/assets) documentation for more on implementing asset stor
 
 ## User identity
 
-By default, users get a random name and color from localStorage. To customize this, pass a `users` store whose methods return reactive `Signal` values:
+By default, users get a default name and a random color, stored in localStorage. To customize this, pass a `users` store whose methods return reactive `Signal` values:
 
 ```tsx
 import { computed, UserRecordType, createUserId } from 'tldraw'
@@ -469,7 +469,8 @@ editor.store.listen(
 Here's a minimal example using a WebSocket for broadcast sync (no conflict resolution):
 
 ```tsx
-import { Tldraw, createTLStore, defaultShapeUtils, TLRecord } from 'tldraw'
+import { useEffect, useRef, useState } from 'react'
+import { Tldraw, createTLStore, defaultShapeUtils } from 'tldraw'
 
 function App() {
 	const [store] = useState(() => createTLStore({ shapeUtils: defaultShapeUtils }))

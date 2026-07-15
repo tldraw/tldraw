@@ -97,6 +97,10 @@ export {
 	type TLShapeHandleOverlay,
 } from './lib/overlays/ShapeHandleOverlayUtil'
 export {
+	ShapeIndicatorOverlayUtil,
+	type TLShapeIndicatorOverlay,
+} from './lib/overlays/ShapeIndicatorOverlayUtil'
+export {
 	SelectionForegroundOverlayUtil,
 	type TLSelectionForegroundOverlay,
 } from './lib/overlays/SelectionForegroundOverlayUtil'
@@ -112,8 +116,10 @@ export {
 	embedShapePermissionDefaults,
 	unknownEmbedShapePermissionOverrides,
 	type CustomEmbedDefinition,
+	type DefaultEmbedConfig,
 	type DefaultEmbedDefinitionType,
 	type EmbedDefinition,
+	type GoogleMapsEmbedConfig,
 	type TLEmbedDefinition,
 	type TLEmbedShapePermissions,
 } from './lib/defaultEmbedDefinitions'
@@ -259,7 +265,6 @@ export {
 export { getStroke } from './lib/shapes/shared/freehand/getStroke'
 export { getStrokeOutlinePoints } from './lib/shapes/shared/freehand/getStrokeOutlinePoints'
 export { getStrokePoints } from './lib/shapes/shared/freehand/getStrokePoints'
-export { setStrokePointRadii } from './lib/shapes/shared/freehand/setStrokePointRadii'
 export { getSvgPathFromStrokePoints } from './lib/shapes/shared/freehand/svg'
 export { type StrokeOptions, type StrokePoint } from './lib/shapes/shared/freehand/types'
 export {
@@ -722,7 +727,11 @@ export {
 	type TLUiActionItem,
 	type TLUiActionsContextType,
 } from './lib/ui/context/actions'
-export { AssetUrlsProvider, useAssetUrls } from './lib/ui/context/asset-urls'
+export {
+	AssetUrlsProvider,
+	useAssetUrls,
+	type AssetUrlsProviderProps,
+} from './lib/ui/context/asset-urls'
 export {
 	BreakPointProvider,
 	useBreakpoint,

@@ -23,7 +23,7 @@ The SDK handles bookkeeping for you: when you delete a shape, its bindings are c
 
 ## How it works
 
-When you create a binding, the editor stores it as a record with `fromId` and `toId` fields pointing to shape IDs. The editor maintains an index of all bindings touching each shape, making queries efficient. When either shape changes position, transforms, or gets deleted, the binding's `BindingUtil` receives callbacks that can update the bound shapes accordingly.
+When you create a binding, the editor stores it as a record with `fromId` and `toId` fields pointing to shape IDs. The editor maintains an index of all bindings touching each shape. When either shape changes position, transforms, or gets deleted, the binding's [BindingUtil](?) receives callbacks that can update the bound shapes accordingly.
 
 The system handles several scenarios automatically:
 
@@ -32,7 +32,7 @@ The system handles several scenarios automatically:
 - When shapes are moved to different pages, cross-page bindings are automatically removed
 - When bound shapes are transformed together, the binding maintains their relationship
 
-The bindings index is a computed value that updates incrementally as bindings change, providing fast lookups without scanning all records.
+The bindings index is a computed value that updates incrementally as bindings change. Lookups are fast and never scan all records.
 
 ## Key concepts
 
@@ -84,7 +84,7 @@ Use isolation callbacks for consistency updates that should happen whenever shap
 
 ### Creating bindings
 
-Create bindings using `editor.createBinding()` or `editor.createBindings()`. You must provide the binding type, fromId, and toId. The BindingUtil supplies default props.
+Create bindings using [Editor#createBinding](?) or [Editor#createBindings](?). You must provide the binding type, fromId, and toId. The BindingUtil supplies default props.
 
 ```typescript
 editor.createBinding({
@@ -138,7 +138,7 @@ editor.deleteBinding(binding.id, { isolateShapes: true })
 
 ### Controlling which shapes can bind
 
-Shapes control whether they accept bindings by implementing `canBind()` in their ShapeUtil:
+Shapes control whether they accept bindings by implementing [ShapeUtil#canBind](?):
 
 ```typescript
 class MyShapeUtil extends ShapeUtil<MyShape> {

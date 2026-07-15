@@ -182,6 +182,7 @@
 	--tl-color-text-0: hsl(0, 0%, 11%);
 	--tl-color-text-1: hsl(0, 0%, 18%);
 	--tl-color-text-3: hsl(204, 4%, 45%);
+	--tl-color-text-disabled: hsl(204, 4%, 55%);
 	--tl-color-text-shadow: hsl(0, 0%, 100%);
 	--tl-color-text-highlight: hsl(52, 100%, 50%);
 	--tl-color-text-highlight-p3: color(display-p3 0.972 0.8205 0.05);
@@ -236,6 +237,7 @@
 	--tl-color-text-0: hsl(0, 9%, 94%);
 	--tl-color-text-1: hsl(0, 0%, 85%);
 	--tl-color-text-3: hsl(204, 4%, 75%);
+	--tl-color-text-disabled: hsl(204, 4%, 50%);
 	--tl-color-text-shadow: hsl(210, 13%, 18%);
 	--tl-color-text-highlight: hsl(52, 100%, 41%);
 	--tl-color-text-highlight-p3: color(display-p3 0.8078 0.6225 0.0312);
@@ -762,17 +764,17 @@ input,
 .tl-rich-text ol {
 	text-align: left;
 	margin: 0;
-	padding-left: 3.25ch;
+	padding-left: 1.625ch;
 	/* Some resets, like Tailwind, nix the list styling. */
 	list-style: revert;
 }
 
 .tl-rich-text ol:has(> li:nth-child(10)) {
-	padding-left: 4.25ch;
+	padding-left: 2.625ch;
 }
 
 .tl-rich-text ol:has(> li:nth-child(100)) {
-	padding-left: 5.25ch;
+	padding-left: 3.625ch;
 }
 
 .tl-rich-text h1,
@@ -783,6 +785,16 @@ input,
 .tl-rich-text h6 {
 	margin-top: 5px;
 	margin-bottom: 10px;
+	/**
+	 * Headings render at a larger font-size than the body text (via the browser's
+	 * default h1–h6 sizing), so they can't inherit the container's resolved
+	 * whole-pixel line-height — that value is derived from the base font size and
+	 * would cram the taller lines together. Instead, scale line-height with each
+	 * heading's own font-size using tldraw's unitless line-height multiplier, which
+	 * the rich-text render/measure paths expose here. The 1.35 fallback mirrors the
+	 * default theme line-height (see defaultThemes.ts).
+	 */
+	line-height: var(--tl-rich-text-heading-line-height, 1.35);
 }
 
 .tl-rich-text a {
@@ -811,6 +823,7 @@ input,
 .tl-theme__dark .tl-rich-text mark {
 	background-color: var(--tl-color-text-highlight);
 	color: currentColor;
+	text-shadow: none;
 }
 
 @supports (color: color(display-p3 1 1 1)) {
@@ -981,6 +994,15 @@ input,
 	/* content-visibility: auto; */
 	transform-origin: top left;
 	color: var(--tl-color-text-1);
+}
+
+.tl-content-slot {
+	position: absolute;
+	inset: 0px;
+	height: 100%;
+	width: 100%;
+	pointer-events: none;
+	transform-origin: top left;
 }
 
 /* -------------------- Group shape ------------------ */

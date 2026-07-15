@@ -82,20 +82,22 @@ const mockEditor = {
 	getContainerDocument: vi.fn(() => mockDocument),
 } as unknown as Editor
 
-global.Range = vi.fn(() => ({
-	setStart: vi.fn(),
-	setEnd: vi.fn(),
-	getClientRects: vi.fn(() => [
-		{
-			width: 10,
-			height: 16,
-			left: 0,
-			top: 0,
-			right: 10,
-			bottom: 16,
-		},
-	]),
-})) as any
+global.Range = vi.fn(function () {
+	return {
+		setStart: vi.fn(),
+		setEnd: vi.fn(),
+		getClientRects: vi.fn(() => [
+			{
+				width: 10,
+				height: 16,
+				left: 0,
+				top: 0,
+				right: 10,
+				bottom: 16,
+			},
+		]),
+	}
+}) as any
 
 describe('TextManager', () => {
 	let textManager: TextManager
@@ -108,7 +110,6 @@ describe('TextManager', () => {
 	describe('constructor', () => {
 		it('should create a TextManager instance', () => {
 			expect(textManager).toBeInstanceOf(TextManager)
-			expect(textManager.editor).toBe(mockEditor)
 		})
 	})
 
@@ -243,6 +244,67 @@ describe('TextManager', () => {
 
 			expect(result.didTruncate).toBe(false)
 			expect(result.spans).toHaveLength(0)
+		})
+
+		it('should skip characters that produce no layout rectangles', () => {
+			const RangeMock = global.Range as unknown as ReturnType<typeof vi.fn>
+			RangeMock.mockImplementationOnce(function () {
+				return {
+					setStart: vi.fn(),
+					setEnd: vi.fn(),
+					// simulate a browser returning no rects for a measured character,
+					// which previously crashed with "Cannot read properties of
+					// undefined (reading 'top')". See issue #9112.
+					getClientRects: vi.fn(() => []),
+				}
+			})
+
+			const mockTextNode = {
+				nodeType: 3, // TEXT_NODE
+				textContent: 'Hello',
+			}
+
+			const mockElementWithText = {
+				childNodes: [mockTextNode],
+				getBoundingClientRect: () => ({ left: 0, top: 0 }),
+			}
+
+			let result
+			expect(() => {
+				result = textManager.measureElementTextNodeSpans(mockElementWithText as any)
+			}).not.toThrow()
+
+			expect(result!.spans).toHaveLength(0)
+			expect(result!.didTruncate).toBe(false)
+		})
+
+		it('should measure grapheme clusters as a single unit', () => {
+			const startOffsets: number[] = []
+			const RangeMock = global.Range as unknown as ReturnType<typeof vi.fn>
+			RangeMock.mockImplementationOnce(function () {
+				return {
+					setStart: vi.fn((_node: any, offset: number) => startOffsets.push(offset)),
+					setEnd: vi.fn(),
+					getClientRects: vi.fn(() => [
+						{ width: 10, height: 16, left: 0, top: 0, right: 10, bottom: 16 },
+					]),
+				}
+			})
+
+			// 👨‍👩‍👧 is 5 code points (8 UTF-16 units) joined by zero-width joiners
+			const family = '\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}'
+			const mockTextNode = { nodeType: 3, textContent: `a${family}b` }
+			const mockElementWithText = {
+				childNodes: [mockTextNode],
+				getBoundingClientRect: () => ({ left: 0, top: 0 }),
+			}
+
+			const result = textManager.measureElementTextNodeSpans(mockElementWithText as any)
+
+			// the emoji is measured as one grapheme, so the index jumps over all 8 units
+			expect(startOffsets).toEqual([0, 1, 9])
+			// and its code points are kept together in the span text
+			expect(result.spans[0].text).toBe(`a${family}b`)
 		})
 
 		it('should handle truncation option', () => {

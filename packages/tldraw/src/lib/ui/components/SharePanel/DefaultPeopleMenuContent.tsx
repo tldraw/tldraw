@@ -1,8 +1,9 @@
+import { TLUserId } from '@tldraw/editor'
 import { useTldrawUiComponents } from '../../context/components'
 
 /** @public */
 export interface DefaultPeopleMenuContentProps {
-	userIds: string[]
+	userIds: TLUserId[]
 }
 
 /** @public @react */

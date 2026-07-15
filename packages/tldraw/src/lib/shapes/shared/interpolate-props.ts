@@ -1,17 +1,21 @@
 import { TLDrawShapeSegment, VecModel, b64Vecs, lerp } from '@tldraw/editor'
 
 /** @public */
-export const interpolateSegments = (
+export function interpolateSegments(
 	startSegments: TLDrawShapeSegment[],
 	endSegments: TLDrawShapeSegment[],
 	progress: number
-): TLDrawShapeSegment[] => {
+): TLDrawShapeSegment[] {
 	const startPoints: VecModel[] = []
 	const endPoints: VecModel[] = []
 
 	// Extract all points from startSegments and endSegments
-	startSegments.forEach((segment) => startPoints.push(...b64Vecs.decodePoints(segment.path)))
-	endSegments.forEach((segment) => endPoints.push(...b64Vecs.decodePoints(segment.path)))
+	startSegments.forEach((segment) =>
+		startPoints.push(...b64Vecs.decodePoints(segment.path, segment.dim))
+	)
+	endSegments.forEach((segment) =>
+		endPoints.push(...b64Vecs.decodePoints(segment.path, segment.dim))
+	)
 
 	const maxLength = Math.max(startPoints.length, endPoints.length)
 	const pointsToUseStart: VecModel[] = []
