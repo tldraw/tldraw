@@ -460,6 +460,7 @@ describe('createClusterRuntime seedFrom (carryover seeding)', () => {
 			])
 		)
 		expect(rt.k).toBe(1)
+		expect(rt.getSuppressedCount()).toBe(0)
 		expect(visibleIds(rt)).toEqual(['cluster:3:a', 'd'])
 	})
 
@@ -477,7 +478,8 @@ describe('createClusterRuntime seedFrom (carryover seeding)', () => {
 				[D.id, D],
 			])
 		)
-		expect(rt.k).toBe(0)
+		expect(rt.k).toBe(1)
+		expect(rt.getSuppressedCount()).toBe(1)
 		expect(visibleIds(rt)).toEqual(['a', 'b', 'c', 'd'])
 	})
 
@@ -512,7 +514,9 @@ describe('createClusterRuntime seedFrom (carryover seeding)', () => {
 		const table = microTraceTable()
 		const rt = createClusterRuntime(table)
 		rt.seedFrom(5, new Map())
-		expect(rt.k).toBe(0)
+		expect(rt.k).toBe(1)
+		expect(rt.getSuppressedCount()).toBe(1)
+		expect(visibleIds(rt)).toEqual(['a', 'b', 'c', 'd'])
 		const partial = node(['a', 'b'], 5, 0)
 		rt.seedFrom(
 			5,
@@ -522,7 +526,9 @@ describe('createClusterRuntime seedFrom (carryover seeding)', () => {
 				[D.id, D],
 			])
 		)
-		expect(rt.k).toBe(0)
+		expect(rt.k).toBe(1)
+		expect(rt.getSuppressedCount()).toBe(1)
+		expect(visibleIds(rt)).toEqual(['a', 'b', 'c', 'd'])
 	})
 
 	it('membership in a superset cluster counts as merged', () => {
@@ -534,10 +540,10 @@ describe('createClusterRuntime seedFrom (carryover seeding)', () => {
 		expect(visibleIds(rt)).toEqual(['cluster:4:a'])
 	})
 
-	it('classification stops at the first inactive event (prefix cut is conservative)', () => {
-		// Two independent band events at zoom 4.5. The first is split in history, the
-		// second merged — but active events must be a prefix, so the second resolves
-		// to split (conservative: never merges anything history did not sanction).
+	it('carries over mixed band states exactly (split before merged in table order)', () => {
+		// Two independent band events at zoom 4.5: the earlier-sorted one split in history,
+		// the later one merged. The old prefix cut forced the second to split (the mass-split
+		// bug); with suppression the carryover is exact — each keeps its own state.
 		const AB = node(['a', 'b'], 5, 0)
 		const CD = node(['c', 'd'], 105, 0)
 		const table: ClusterTable = {
@@ -553,8 +559,66 @@ describe('createClusterRuntime seedFrom (carryover seeding)', () => {
 				[CD.id, CD],
 			])
 		)
-		expect(rt.k).toBe(0)
+		expect(rt.k).toBe(2)
+		expect(rt.getSuppressedCount()).toBe(1)
+		expect(visibleIds(rt)).toEqual(['a', 'b', 'cluster:2:c'])
+	})
+
+	it('a suppressed event merges (heals) when a zoom-out crosses its own zMerge', () => {
+		const AB = node(['a', 'b'], 5, 0)
+		const CD = node(['c', 'd'], 105, 0)
+		const table: ClusterTable = {
+			events: [mev(4, 6, [A, B], AB), mev(3, 5, [C, D], CD)],
+			leaves: [A, B, C, D],
+		}
+		const rt = createClusterRuntime(table)
+		rt.seedFrom(
+			4.5,
+			new Map([
+				[A.id, A],
+				[B.id, B],
+				[CD.id, CD],
+			])
+		)
+		const versionBefore = rt.version
+		rt.onCamera(4.4) // still inside AB's band: nothing happens
+		expect(rt.version).toBe(versionBefore)
+		rt.onCamera(3.9) // below AB's zMerge (4): the held-out merge fires at its own threshold
+		expect(rt.version).toBeGreaterThan(versionBefore)
+		expect(rt.k).toBe(2)
+		expect(rt.getSuppressedCount()).toBe(0)
+		expect(visibleIds(rt)).toEqual(['cluster:2:a', 'cluster:2:c'])
+		expectPostconditions(rt, table, 3.9)
+	})
+
+	it('the split walk retreats past a suppressed event without corrupting the partition', () => {
+		const AB = node(['a', 'b'], 5, 0)
+		const CD = node(['c', 'd'], 105, 0)
+		const table: ClusterTable = {
+			events: [mev(4, 6, [A, B], AB), mev(3, 5, [C, D], CD)],
+			leaves: [A, B, C, D],
+		}
+		const rt = createClusterRuntime(table)
+		rt.seedFrom(
+			4.5,
+			new Map([
+				[A.id, A],
+				[B.id, B],
+				[CD.id, CD],
+			])
+		)
+		rt.onCamera(5.5) // past CD's zSplit (5): CD splits; suppressed AB stays put
+		expect(rt.k).toBe(1)
+		expect(rt.getSuppressedCount()).toBe(1)
 		expect(visibleIds(rt)).toEqual(['a', 'b', 'c', 'd'])
+		rt.onCamera(6.5) // past AB's zSplit (6): retreat past the suppressed (never-applied) event
+		expect(rt.k).toBe(0)
+		expect(rt.getSuppressedCount()).toBe(0)
+		expect(visibleIds(rt)).toEqual(['a', 'b', 'c', 'd'])
+		rt.onCamera(3.9) // zoom back out: normal cursor walk from a clean state
+		expect(rt.k).toBe(1)
+		expect(visibleIds(rt)).toEqual(['c', 'cluster:2:a', 'd'])
+		expectPostconditions(rt, table, 3.9)
 	})
 
 	it('seedFrom followed by onCamera at the same zoom is a no-op', () => {
@@ -592,5 +656,117 @@ describe('createClusterRuntime seedFrom (carryover seeding)', () => {
 		const rt = createClusterRuntime(microTraceTable())
 		expect(() => rt.seedFrom(0, new Map())).toThrow()
 		expect(() => rt.seedFrom(NaN, new Map())).toThrow()
+	})
+})
+
+describe('createClusterRuntime detachLeaf (local partition edits)', () => {
+	it('shrinks the containing badge in place: members, count, centroid', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(4) // P = a+b+c visible, d separate
+		const versionBefore = rt.version
+		rt.detachLeaf('a')
+		expect(rt.version).toBeGreaterThan(versionBefore)
+		expect(rt.getDetachedCount()).toBe(1)
+		const patchedP = rt.getVisible().get(P.id)!
+		expect(patchedP.members).toEqual(['b', 'c'])
+		expect(patchedP.count).toBe(2)
+		// centroid recomputed from the remaining leaves: B (10,0), C (20,0)
+		expect(patchedP.centroid).toEqual({ x: 15, y: 0 })
+		// keeps the structural id so cursor events keep addressing it
+		expect(patchedP.id).toBe(P.id)
+		// everything else untouched
+		expect(rt.getVisible().get('d')).toEqual(D)
+		expect(rt.getVisible().size).toBe(2)
+	})
+
+	it('is idempotent and ignores unknown ids', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(4)
+		rt.detachLeaf('a')
+		const version = rt.version
+		rt.detachLeaf('a')
+		rt.detachLeaf('nonexistent')
+		expect(rt.version).toBe(version)
+		expect(rt.getDetachedCount()).toBe(1)
+	})
+
+	it('collapses a badge to its surviving leaf, and to nothing', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(4)
+		rt.detachLeaf('a')
+		rt.detachLeaf('b')
+		// P = {a,b,c} minus a,b → the leaf node c, keyed by its own id
+		expect(rt.getVisible().get('c')).toEqual(C)
+		expect(rt.getVisible().has(P.id)).toBe(false)
+		rt.detachLeaf('c')
+		expect(visibleIds(rt)).toEqual(['d'])
+	})
+
+	it('removes a leaf that is visible as its own pin', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(8) // everything split
+		rt.detachLeaf('a')
+		expect(visibleIds(rt)).toEqual(['b', 'c', 'd'])
+	})
+
+	it('zoom walks stay correct while patches are active (split)', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(4)
+		rt.detachLeaf('a')
+		rt.onCamera(6.5) // past P's zSplit (6): structural split of a+b+c
+		expect(rt.k).toBe(0)
+		// resolved view: a stays gone, b/c/d as pins — the split itself changed nothing for a
+		expect(visibleIds(rt)).toEqual(['b', 'c', 'd'])
+	})
+
+	it('zoom walks stay correct while patches are active (merge)', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(4)
+		rt.detachLeaf('a')
+		rt.onCamera(0.9) // below E1's zMerge (1): P+D merge into Q
+		expect(rt.k).toBe(2)
+		const patchedQ = rt.getVisible().get(Q.id)!
+		expect(patchedQ.members).toEqual(['b', 'c', 'd'])
+		expect(patchedQ.count).toBe(3)
+		// mean of B (10,0), C (20,0), D (100,0)
+		expect(patchedQ.centroid.x).toBeCloseTo(130 / 3)
+		expect(rt.getVisible().size).toBe(1)
+	})
+
+	it('seed and seedFrom clear detaches', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(4)
+		rt.detachLeaf('a')
+		rt.seed(4)
+		expect(rt.getDetachedCount()).toBe(0)
+		expect(rt.getVisible().get(P.id)).toEqual(P)
+		rt.detachLeaf('a')
+		rt.seedFrom(
+			4,
+			new Map([
+				[P.id, P],
+				[D.id, D],
+			])
+		)
+		expect(rt.getDetachedCount()).toBe(0)
+		expect(rt.getVisible().get(P.id)).toEqual(P)
+	})
+
+	it('getVisible returns a stable reference until the partition changes', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(4)
+		rt.detachLeaf('a')
+		const first = rt.getVisible()
+		expect(rt.getVisible()).toBe(first)
+		rt.detachLeaf('b')
+		expect(rt.getVisible()).not.toBe(first)
 	})
 })

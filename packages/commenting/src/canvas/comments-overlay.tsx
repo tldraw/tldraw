@@ -77,6 +77,29 @@ export interface CanvasCommentsProps {
 	impreciseShapeAnchor?: { x: number; y: number }
 }
 
+// TEMPORARY diagnostics for verifying the local-detach redesign in the app. Remove before merge.
+const DEBUG_CLUSTERING = true
+function debugPartitionDiff(
+	label: string,
+	before: ReadonlyMap<string, ClusterNode>,
+	after: ReadonlyMap<string, ClusterNode>
+) {
+	if (!DEBUG_CLUSTERING) return
+	const groupOf = (m: ReadonlyMap<string, ClusterNode>) => {
+		const g = new Map<string, string>()
+		for (const node of m.values()) for (const id of node.members) g.set(id, node.members.join('+'))
+		return g
+	}
+	const b = groupOf(before)
+	const a = groupOf(after)
+	const changes: string[] = []
+	for (const [id, group] of b)
+		if (a.get(id) !== group) changes.push(`${id}: [${group}] -> [${a.get(id) ?? 'GONE'}]`)
+	for (const id of a.keys()) if (!b.has(id)) changes.push(`${id}: NEW -> [${a.get(id)}]`)
+	// eslint-disable-next-line no-console
+	console.warn(`[cluster-debug] ${label}: ${changes.length} membership changes`, changes)
+}
+
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
 const initialOf = (name: string): string => (getFirstCharacter(name.trim()) || '?').toUpperCase()
@@ -137,12 +160,9 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const pending = usePendingComment()
 	const openId = useValue('open thread id', () => openThreadId.get(), [])
 	const { impreciseShapeAnchor } = props
-	// Threads held out of clustering, rendered as live pins until they rejoin on the next
-	// zoom-out. Two ways in: (1) the thread's anchor moved (drag, nudge, align, undo, a
-	// collaborator) while it was folded in a badge; (2) the thread was added in the same rebuild
-	// as a removal — removals adopt immediately (ghost prevention), and without holding the
-	// additions out they would ride that adoption and merge without any zoom. Remote edits are
-	// applied in coalesced batches, so mixed add+remove rebuilds are routine in multiplayer.
+	// Threads held out of clustering because their anchor moved while folded inside a badge
+	// (drag, nudge, align, undo, a collaborator — detected by position, not gesture). They render
+	// as live pins riding their anchor and rejoin clustering on the next zoom-out.
 	const [heldThreadIds, setHeldThreadIds] = useState<ReadonlySet<string>>(EMPTY_SET)
 	const adoptOnRebuild = useRef(false)
 	const clusterLeaves = useValue(
@@ -167,62 +187,74 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		runtime.seed(editor.getZoomLevel())
 		return { runtime, table }
 	}, [clusterLeaves, clusterZoomBounds, editor])
-	// Re-clustering only applies while zooming: a rebuilt model (thread added, moved, or closed)
-	// is held as `latestModel` and adopted on the next zoom change, so pins never re-flow into
-	// clusters under a static camera. Until adoption, threads the rendered model doesn't know
-	// about show as plain unclustered pins (`orphanThreads`). Exception: a rebuild that *removed*
-	// leaves (thread deleted or opened, page changed) is adopted immediately, so stale pins and
-	// badge counts never linger.
+	// The core invariant: the only thing that re-flows clustering doc-wide is zoom. Every rebuild
+	// (add / move / delete / open / pop-out) is computed immediately as `latestModel` — the MST
+	// stays correct — but the on-screen partition is `renderedModel`, and it only ever changes via
+	// (a) the cursor walking on zoom, (b) adoption of the pending rebuild on zoom-out, or
+	// (c) LOCAL detach patches: a leaf that left the input (deleted, opened, popped out) is
+	// detached from its own badge in place — count and centroid update for that badge alone,
+	// and nothing else on the canvas moves.
 	const [renderedModel, setRenderedModel] = useState(latestModel)
 	let clusterModel = renderedModel
+	// A page switch replaces the whole scene: hard-reset rather than detach the world.
+	const pageId = useValue('comment cluster page', () => editor.getCurrentPageId(), [editor])
+	const pageRef = useRef(pageId)
+	if (pageRef.current !== pageId) {
+		pageRef.current = pageId
+		adoptOnRebuild.current = false
+		latestModel.runtime.seed(editor.getZoomLevel())
+		if (heldThreadIds.size > 0) setHeldThreadIds(EMPTY_SET)
+		setRenderedModel(latestModel)
+		clusterModel = latestModel
+	}
 	// adoptOnRebuild is set by the rejoin reaction below, outside React's render cycle, paired
 	// with clearing heldThreadIds. Only trust it once that pairing is actually visible here
 	// (heldThreadIds confirmed empty) — an unrelated re-render can land in the gap between the
-	// ref being set and the state update it was paired with being applied, and reading the ref
-	// on its own there would force-adopt (or wrongly discard the intent to force-adopt) before
-	// the rejoin it belongs to has actually happened.
+	// ref being set and the state update it was paired with being applied.
 	const rejoinPending = heldThreadIds.size === 0 && adoptOnRebuild.current
-	if (
-		renderedModel !== latestModel &&
-		(rejoinPending || hasRemovedLeaves(renderedModel.table, latestModel.table))
-	) {
-		// A removal must adopt immediately, but additions must not ride along with it — a rebuild
-		// can contain both at once (a coalesced multiplayer batch, or a removal landing while an
-		// addition was still deferred), and adopting it whole would merge the additions with no
-		// zoom. Hold the added leaves out first: they render as live pins below, the input
-		// recomputes without them, and the next render adopts a rebuild that is removal-only.
-		// A rejoin adoption is the opposite case — it IS the zoom-out, so additions fold in.
-		const addedIds = rejoinPending ? [] : findAddedLeafIds(renderedModel.table, latestModel.table)
-		if (addedIds.length > 0) {
-			const next = new Set(heldThreadIds)
-			for (const id of addedIds) next.add(id)
-			setHeldThreadIds(next)
-		} else {
-			adoptOnRebuild.current = false
-			// Carryover seed: events inside their hysteresis band inherit the outgoing partition's
-			// merged/unmerged state instead of the geometric-mean tiebreak, so untouched pins never
-			// snap together (or apart) just because the model was swapped. Idempotent, so safe to
-			// run during render.
-			latestModel.runtime.seedFrom(editor.getZoomLevel(), renderedModel.runtime.getVisible())
-			setRenderedModel(latestModel)
-			clusterModel = latestModel
-		}
+	if (renderedModel !== latestModel && rejoinPending) {
+		adoptOnRebuild.current = false
+		// Carryover seed: band events inherit the outgoing partition's merged/unmerged state, so
+		// nothing changes state because of the swap alone. Idempotent, so safe during render.
+		latestModel.runtime.seedFrom(editor.getZoomLevel(), renderedModel.runtime.getVisible())
+		debugPartitionDiff(
+			'rejoin adoption',
+			renderedModel.runtime.getVisible(),
+			latestModel.runtime.getVisible()
+		)
+		setRenderedModel(latestModel)
+		clusterModel = latestModel
 	} else if (heldThreadIds.size === 0 && renderedModel === latestModel) {
-		// Nothing pending and nothing to adopt: any leftover force-adopt intent no longer applies
-		// to this (already-synced) model. Clear it so it can't survive to force-adopt a later,
-		// unrelated rebuild — this is the actual bug class: a stale true flag firing on some
-		// future comment add/move that has nothing to do with the zoom-out that set it.
+		// Nothing pending and nothing to adopt: clear any leftover force-adopt intent so it can't
+		// survive to force-adopt a later, unrelated rebuild.
 		adoptOnRebuild.current = false
 	}
 	// Pop-out detection: a leaf folded inside a badge can't follow its anchor (the badge position
-	// is baked into the model), so when its live position drifts from the baked one it ghosts.
-	// Marking it moved excludes it from the cluster input, which reads as a removal above and
-	// re-clusters the rest of its pile immediately; the pin itself renders live below.
+	// is baked into the model), so when its live position drifts from the baked one, hold it out.
+	// It renders as a live pin riding the anchor; the detach loop below shrinks its badge locally.
 	const newlyMovedIds = findMovedClusteredLeafIds(clusterModel, latestModel)
 	if (newlyMovedIds.length > 0) {
+		// eslint-disable-next-line no-console
+		if (DEBUG_CLUSTERING) console.warn('[cluster-debug] pop-out:', newlyMovedIds)
 		const next = new Set(heldThreadIds)
 		for (const id of newlyMovedIds) next.add(id)
 		setHeldThreadIds(next)
+	}
+	// Local partition maintenance — the only non-zoom visual change, and it is local by
+	// construction: any displayed leaf that has left the cluster input (deleted, thread opened,
+	// popped out above) is detached from its badge in place. The corrected rebuild is already
+	// sitting in latestModel awaiting the next zoom-out.
+	{
+		const latestLeafIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
+		for (const leaf of clusterModel.table.leaves) {
+			if (!latestLeafIds.has(leaf.id)) {
+				const before = clusterModel.runtime.getDetachedCount()
+				clusterModel.runtime.detachLeaf(leaf.id)
+				// eslint-disable-next-line no-console
+				if (DEBUG_CLUSTERING && clusterModel.runtime.getDetachedCount() > before)
+					console.warn('[cluster-debug] detached locally:', leaf.id)
+			}
+		}
 	}
 	// Moved pins rejoin clustering on the next zoom-out motion: clear the set (so the rebuild
 	// includes them again) and adopt that rebuild immediately instead of deferring it. Zooming in
@@ -235,6 +267,8 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			const prevZoom = lastZoom
 			lastZoom = zoom
 			if (zoom >= prevZoom) return
+			// eslint-disable-next-line no-console
+			if (DEBUG_CLUSTERING) console.warn('[cluster-debug] rejoin on zoom-out at', zoom.toFixed(3))
 			adoptOnRebuild.current = true
 			setHeldThreadIds(EMPTY_SET)
 		})
@@ -251,36 +285,52 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			lastZoom = zoom
 			if (zoom >= prevZoom) return
 			latestModel.runtime.seedFrom(zoom, clusterModel.runtime.getVisible())
+			debugPartitionDiff(
+				`zoom-out adoption at ${zoom.toFixed(3)}`,
+				clusterModel.runtime.getVisible(),
+				latestModel.runtime.getVisible()
+			)
 			setRenderedModel(latestModel)
 		})
 	}, [clusterModel, latestModel, editor])
+	// Threads in the current input that the displayed partition doesn't show anywhere (new
+	// comments, reopened threads, undone deletions): render as plain pins until the next
+	// zoom-out folds them in. Membership is judged against the *displayed* partition (with
+	// detaches applied), not the rendered table, so a detached-then-restored leaf reappears.
+	const partitionVersion = clusterModel.runtime.version
 	const orphanThreads = useMemo(() => {
 		if (clusterModel === latestModel) return []
-		const renderedIds = new Set(clusterModel.table.leaves.map((leaf) => leaf.id))
+		const displayed = new Set<string>()
+		for (const node of clusterModel.runtime.getVisible().values()) {
+			for (const member of node.members) displayed.add(member)
+		}
 		const latestIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
-		return threads.filter((thread) => latestIds.has(thread.id) && !renderedIds.has(thread.id))
-	}, [clusterModel, latestModel, threads])
+		return threads.filter((thread) => latestIds.has(thread.id) && !displayed.has(thread.id))
+		// The runtime mutates its partition in place; partitionVersion is its change stamp.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [clusterModel, latestModel, threads, partitionVersion])
 	const heldThreads = useMemo(
 		() => threads.filter((thread) => heldThreadIds.has(thread.id) && thread.id !== openId),
 		[threads, heldThreadIds, openId]
 	)
-	// Subscribe to the runtime cursor, not the raw zoom: onCamera runs on every zoom tick (two
-	// O(1) threshold checks against the event table) but returns the same integer until a merge
-	// or split event actually fires — so this component only re-renders on cluster changes, not
-	// on every camera frame.
-	const clusterCursor = useValue(
-		'comment cluster cursor',
+	// Subscribe to the runtime's partition version, not the raw zoom: onCamera runs on every zoom
+	// tick (O(1) threshold checks) but the version only moves when the partition actually changes
+	// — so this component only re-renders on cluster changes, not on every camera frame. The memo
+	// below keys on a fresh inline read of the version rather than the subscribed value, because
+	// render-time detaches (above) bump it after the subscription's computed already evaluated.
+	useValue(
+		'comment cluster version',
 		() => {
 			clusterModel.runtime.onCamera(editor.getZoomLevel())
-			return clusterModel.runtime.k
+			return clusterModel.runtime.version
 		},
 		[clusterModel, editor]
 	)
 	const visibleNodes = useMemo(() => {
 		return Array.from(clusterModel.runtime.getVisible().values())
-		// The runtime mutates its visible map in place; clusterCursor is its version stamp.
+		// The runtime mutates its partition in place; partitionVersion is its change stamp.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [clusterModel, clusterCursor])
+	}, [clusterModel, partitionVersion])
 	const fadeNodes = useFadeVisibleNodes(visibleNodes, clusterModel)
 	const threadsById = useMemo(
 		() => new Map<string, TLCommentThread>(threads.map((thread) => [thread.id, thread])),
@@ -544,19 +594,6 @@ function findMovedClusteredLeafIds(
 		}
 	}
 	return moved
-}
-
-function hasRemovedLeaves(rendered: ClusterTable, latest: ClusterTable): boolean {
-	if (rendered.leaves.length === 0) return false
-	const latestIds = new Set(latest.leaves.map((leaf) => leaf.id))
-	return rendered.leaves.some((leaf) => !latestIds.has(leaf.id))
-}
-
-/** Leaves present in the latest table but not the rendered one — additions since the rendered
- *  clustering was built (local or remote; the store applies both identically). */
-function findAddedLeafIds(rendered: ClusterTable, latest: ClusterTable): string[] {
-	const renderedIds = new Set(rendered.leaves.map((leaf) => leaf.id))
-	return latest.leaves.filter((leaf) => !renderedIds.has(leaf.id)).map((leaf) => leaf.id)
 }
 
 function getClusterZoomBounds(editor: Editor): { minZoom: number; maxZoom: number } {
