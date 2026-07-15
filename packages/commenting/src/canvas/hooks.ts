@@ -1,5 +1,4 @@
 import { Editor, TLComment, TLCommentThread, TLCommentThreadId, useValue } from 'tldraw'
-import { PendingComment, pendingComment } from './comment-tool'
 
 /** All comment threads in the store, reactively. (Comment records are opt-in, hence the casts.) */
 export function useCommentThreads(editor: Editor): TLCommentThread[] {
@@ -32,9 +31,4 @@ export function useComments(editor: Editor): TLComment[] {
 			),
 		[editor]
 	)
-}
-
-/** The comment currently being placed (before it's posted), or null. */
-export function usePendingComment(): PendingComment | null {
-	return useValue('pending comment', () => pendingComment.get(), [])
 }

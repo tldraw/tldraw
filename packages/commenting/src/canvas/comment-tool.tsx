@@ -1,23 +1,41 @@
-import { atom, BoxModel, StateNode, TLCommentAnchor, TLUiOverrides, VecLike } from 'tldraw'
+import {
+	BoxModel,
+	StateNode,
+	TLCommentAnchor,
+	TLStateNodeConstructor,
+	TLUiOverrides,
+	VecLike,
+} from 'tldraw'
+import { type CommentingOptions, defaultCommentingOptions } from './options'
 import { getRegionCommentOptions } from './region-options'
+import { pendingComment, regionDraft } from './state'
 import { regionPinPoint, shapeAnchorAt } from './thread-state'
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
  *  to. Shared between the tool (which sets it on click) and the overlay (which renders the
- *  composer). Null when nothing is being placed. */
+ *  composer). Null when nothing is being placed. The atom itself lives in `./state`
+ *  ({@link pendingComment}), scoped per editor. */
 export interface PendingComment {
 	anchor: TLCommentAnchor
 	/** Page point where the composer opens (the click location, or a region's pin corner). */
 	point: VecLike
 }
 
-/** The comment currently being placed, or null. Exposed so a consumer can drive placement
- *  itself (e.g. from a different gesture) instead of, or alongside, the comment tool. */
-export const pendingComment = atom<PendingComment | null>('pendingComment', null)
-
-/** The region rectangle being dragged out right now (page coords), or null when not dragging.
- *  The tool writes it on each move; the overlay reads it to draw the live dashed box. */
-export const regionDraft = atom<BoxModel | null>('regionDraft', null)
+/**
+ * Merge configure options over a base. Shallow for scalars; `components` is merged rather than
+ * replaced so chained `configure` calls layer their slots — a later `{ components: { PinContent } }`
+ * doesn't drop an earlier `{ components: { CommentBody } }`.
+ */
+function mergeCommentingOptions(
+	base: CommentingOptions,
+	overrides: Partial<CommentingOptions>
+): CommentingOptions {
+	return {
+		...base,
+		...overrides,
+		components: { ...base.components, ...overrides.components },
+	}
+}
 
 /** The page-space rectangle spanned by two points, normalized so w/h are non-negative. Shared by
  *  region creation (pointer-down → cursor) and corner resize (fixed corner → cursor). */
@@ -41,6 +59,33 @@ export class CommentTool extends StateNode {
 	static override children() {
 		return [CommentIdle, CommentPointing, CommentDragging]
 	}
+
+	/**
+	 * Configure this tool's {@link CommentTool.options | `options`}, returning a configured subclass
+	 * to register via `tools`. Mirrors `ShapeUtil.configure`. Layers over any prior `configure`, so
+	 * calls can be chained.
+	 *
+	 * @example
+	 * ```tsx
+	 * <Tldraw tools={[CommentTool.configure({ history: 'ignore', enableClustering: false })]} />
+	 * ```
+	 */
+	static configure<T extends TLStateNodeConstructor>(
+		this: T,
+		options: T extends new (...args: any[]) => { options: infer Options } ? Partial<Options> : never
+	): T {
+		// @ts-expect-error -- mirrors ShapeUtil.configure; extending `this` is sound at runtime.
+		return class extends this {
+			// @ts-expect-error
+			options = mergeCommentingOptions(this.options, options)
+		}
+	}
+
+	/**
+	 * The merged commenting options for this editor. Read from anywhere via
+	 * {@link getCommentingOptions}. Override with {@link CommentTool.configure}.
+	 */
+	options: CommentingOptions = defaultCommentingOptions
 
 	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
@@ -79,7 +124,8 @@ class CommentPointing extends StateNode {
 		const anchor: TLCommentAnchor = hit
 			? shapeAnchorAt(editor, hit.id, point, editor.inputs.getAltKey())
 			: { type: 'point', x: point.x, y: point.y }
-		pendingComment.set({ anchor, point: { x: point.x, y: point.y } })
+		pendingComment.set(editor, { anchor, point: { x: point.x, y: point.y } })
+		// Hand back to select; the open composer is now the focus.
 		editor.setCurrentTool('select')
 	}
 }
@@ -102,8 +148,8 @@ class CommentDragging extends StateNode {
 			editor.inputs.getOriginPagePoint(),
 			editor.inputs.getCurrentPagePoint()
 		)
-		regionDraft.set(null)
-		pendingComment.set({
+		regionDraft.set(editor, null)
+		pendingComment.set(editor, {
 			anchor: { type: 'region', ...region },
 			point: regionPinPoint(region, getRegionCommentOptions(editor).pinCorner),
 		})
@@ -121,12 +167,13 @@ class CommentDragging extends StateNode {
 	private updateDraft() {
 		const { editor } = this
 		regionDraft.set(
+			editor,
 			regionBetween(editor.inputs.getOriginPagePoint(), editor.inputs.getCurrentPagePoint())
 		)
 	}
 
 	private cancel() {
-		regionDraft.set(null)
+		regionDraft.set(this.editor, null)
 		this.editor.setCurrentTool('select')
 	}
 }

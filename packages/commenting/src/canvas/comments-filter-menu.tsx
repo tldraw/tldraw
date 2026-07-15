@@ -5,10 +5,12 @@ import {
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
+	useEditor,
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { SidebarFilters, sidebarFilters } from './sidebar-filters'
+import { SidebarFilters } from './sidebar-filters'
+import { sidebarFilters } from './state'
 
 export interface CommentsFilterMenuProps {
 	/** Whether to offer the "only your threads" toggle (needs a known current user). */
@@ -22,10 +24,11 @@ export function CommentsFilterMenu({
 	canFilterByAuthor,
 	canFilterByUnread,
 }: CommentsFilterMenuProps) {
+	const editor = useEditor()
 	const msg = useTranslation()
-	const filters = useValue('sidebar filters', () => sidebarFilters.get(), [])
+	const filters = useValue('sidebar filters', () => sidebarFilters.get(editor), [editor])
 	const toggle = (key: keyof SidebarFilters) => {
-		sidebarFilters.update((f) => ({ ...f, [key]: !f[key] }))
+		sidebarFilters.update(editor, (f) => ({ ...f, [key]: !f[key] }))
 	}
 
 	return (
