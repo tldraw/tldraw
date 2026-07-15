@@ -52,7 +52,6 @@ export type {
 	ClusterTable,
 	LeafInput,
 	MergeEvent,
-	Vec2,
 } from './clustering/types'
 export { CommentsFilterMenu, type CommentsFilterMenuProps } from './canvas/comments-filter-menu'
 export { CommentsMenuItem } from './canvas/comments-menu-item'

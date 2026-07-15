@@ -93,7 +93,7 @@ export interface CanvasCommentsSidebarProps {
 
 // @public
 export interface ClusterNode {
-    centroid: Vec2;
+    centroid: VecLike;
     count: number;
     id: string;
     members: string[];
@@ -396,7 +396,7 @@ export function getCommentThreads(editor: Editor): TLCommentThread[];
 // @public
 export interface LeafInput {
     id: string;
-    point: Vec2;
+    point: VecLike;
 }
 
 // @public
@@ -562,14 +562,6 @@ export function useSidebarFilters(): SidebarFilters;
 
 // @public
 export function useThreadComments(editor: Editor, threadId: TLCommentThreadId): TLComment[];
-
-// @public (undocumented)
-export interface Vec2 {
-    // (undocumented)
-    x: number;
-    // (undocumented)
-    y: number;
-}
 
 // (No @packageDocumentation comment for this package)
 

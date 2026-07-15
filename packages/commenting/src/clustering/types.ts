@@ -1,8 +1,4 @@
-/** @public */
-export interface Vec2 {
-	x: number
-	y: number
-}
+import type { VecLike } from 'tldraw'
 
 /**
  * One comment thread's pin, already resolved to a page-space anchor point.
@@ -12,7 +8,7 @@ export interface LeafInput {
 	/** Unique. Thread id. Uniqueness is a precondition — throw on duplicates. */
 	id: string
 	/** Page-space coordinates. Must be finite — throw on NaN/Infinity. */
-	point: Vec2
+	point: VecLike
 }
 
 /** An edge of the Euclidean MST over the leaf anchor points. */
@@ -33,7 +29,7 @@ export interface ClusterNode {
 	/** Leaves: the thread id verbatim. Merged nodes: `cluster:${count}:${minMemberId}`. */
 	id: string
 	/** Page space; count-weighted mean of all member leaf anchors. */
-	centroid: Vec2
+	centroid: VecLike
 	/** Number of member leaves. Leaves = 1. */
 	count: number
 	/** All member thread ids, sorted lexicographically ascending. */
