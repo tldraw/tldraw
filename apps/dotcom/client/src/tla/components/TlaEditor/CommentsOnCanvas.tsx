@@ -20,10 +20,22 @@ type FileComments = QueryResultType<typeof queries.fileComments>
  * notifications feed, which is bounded to recent comments), so every unread pin resolves however
  * old the comment is.
  */
-export function CommentsOnCanvas({ fileId }: { fileId: string }) {
+export function CommentsOnCanvas({
+	fileId,
+	canComment = true,
+}: {
+	fileId: string
+	/** Whether this session may write comments. When false the layer is read-only: existing
+	 *  comments show, but there's no composer (the server also rejects writes). */
+	canComment?: boolean
+}) {
 	const editor = useEditor()
 	const app = useMaybeApp()
 	const currentUserId = app?.userId ?? null
+	// The compose identity: a signed-in user who's allowed to comment. Null makes CanvasComments
+	// a read-only viewer (no composer/reply/resolve). Read status and name resolution below still
+	// use the real currentUserId regardless.
+	const composeUserId = canComment ? currentUserId : null
 
 	const currentUserName = useValue(
 		'current user name',
@@ -127,7 +139,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	return (
 		<>
 			<CanvasComments
-				currentUserId={currentUserId}
+				currentUserId={composeUserId}
 				resolveName={resolveName}
 				isCommentUnread={app ? isCommentUnread : undefined}
 				onCommentRead={app ? onCommentRead : undefined}
@@ -135,7 +147,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			/>
 			<CanvasCommentsSidebar
 				resolveName={resolveName}
-				currentUserId={currentUserId ?? undefined}
+				currentUserId={composeUserId ?? undefined}
 				isCommentUnread={app ? isCommentUnread : undefined}
 			/>
 		</>

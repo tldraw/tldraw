@@ -448,6 +448,18 @@ export const schema = createSchema({
 export type TlaSchema = typeof schema
 export type TlaUser = Row<typeof schema.tables.user>
 export type TlaFile = Row<typeof schema.tables.file>
+
+/**
+ * The access tier granted by a file's shared link. Stored in the plain-string
+ * `file.sharedLinkType` column (no schema enum), so use this type at call sites for
+ * exhaustiveness:
+ * - `edit` — full read/write of the canvas (and comments).
+ * - `comment` — read-only canvas, but can add/reply/resolve comments.
+ * - `view` — read-only canvas, no commenting.
+ */
+export const SHARED_LINK_TYPES = ['edit', 'comment', 'view'] as const
+export type TlaFileSharedLinkType = (typeof SHARED_LINK_TYPES)[number]
+
 export type TlaFileState = Row<typeof schema.tables.file_state>
 export type TlaGroup = Row<typeof schema.tables.group>
 export type TlaGroupUser = Row<typeof schema.tables.group_user>

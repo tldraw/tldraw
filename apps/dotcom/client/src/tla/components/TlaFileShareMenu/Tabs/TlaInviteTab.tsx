@@ -23,6 +23,7 @@ import { QrCode } from '../QrCode'
 
 const messages = defineMessages({
 	editor: { defaultMessage: 'Editor' },
+	commenter: { defaultMessage: 'Commenter' },
 	viewer: { defaultMessage: 'Viewer' },
 	noAccess: { defaultMessage: 'No access' },
 })
@@ -115,7 +116,13 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 		[app, fileId, trackEvent]
 	)
 
-	const label = useMsg(sharedLinkType === 'edit' ? messages.editor : messages.viewer)
+	const label = useMsg(
+		sharedLinkType === 'edit'
+			? messages.editor
+			: sharedLinkType === 'comment'
+				? messages.commenter
+				: messages.viewer
+	)
 
 	return (
 		<TlaMenuControl>
@@ -130,6 +137,7 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 				onChange={handleSelectChange}
 				options={[
 					{ value: 'edit', label: <F defaultMessage="Editor" /> },
+					{ value: 'comment', label: <F defaultMessage="Commenter" /> },
 					{ value: 'view', label: <F defaultMessage="Viewer" /> },
 				]}
 			/>

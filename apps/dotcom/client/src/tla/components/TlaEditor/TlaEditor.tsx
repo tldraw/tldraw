@@ -280,13 +280,18 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 
+	// Whether this session may write comments. The server grants object-lane (comment) write
+	// access per session based on the file's share tier (edit/comment allow it, view doesn't);
+	// a `view` guest sees comments but gets no comment tool or composer.
+	const canComment = store.status !== 'synced-remote' || store.objectAccess !== 'read'
+
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
-			InFrontOfTheCanvas: () => <CommentsOnCanvas fileId={fileId} />,
+			InFrontOfTheCanvas: () => <CommentsOnCanvas fileId={fileId} canComment={canComment} />,
 		}
-	}, [fileId])
+	}, [fileId, canComment])
 
 	return (
 		<TlaEditorWrapper>
@@ -296,7 +301,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
-				tools={commentTools}
+				tools={canComment ? commentTools : undefined}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
@@ -305,7 +310,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					actionShortcutsLocation: 'toolbar',
 					deepLinks: deepLinks ? true : undefined,
 				}}
-				overrides={[overrides, extraDragIconOverrides, commentToolOverrides]}
+				overrides={
+					canComment
+						? [overrides, extraDragIconOverrides, commentToolOverrides]
+						: [overrides, extraDragIconOverrides]
+				}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />

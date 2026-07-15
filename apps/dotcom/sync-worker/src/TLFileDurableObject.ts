@@ -67,6 +67,7 @@ import {
 	rowsToSnapshotDocuments,
 } from './commentRows'
 import { PERSIST_INTERVAL_MS } from './config'
+import { computeFileAccess } from './fileAccess'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
@@ -702,6 +703,10 @@ export class TLFileDurableObject extends DurableObject {
 		const auth = await getAuth(req, this.env)
 		authTimer.report('on_request_auth')
 
+		// Comment (object-lane) write access, decided per session alongside the canvas open mode.
+		// Defaults to read-only; legacy (non-app) rooms have no comment tier and keep this default.
+		let objectAccess: TLObjectStoreAccess = 'read'
+
 		if (this.documentInfo.isApp) {
 			openMode = ROOM_OPEN_MODE.READ_WRITE
 			const file = await this.getAppFileRecord()
@@ -759,14 +764,22 @@ export class TLFileDurableObject extends DurableObject {
 					groupCheckTimer.report('on_request_group_check')
 				}
 
-				if (!hasOwnerAccess) {
-					if (!file.shared) {
-						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
-					}
-					if (file.sharedLinkType === 'view') {
-						openMode = ROOM_OPEN_MODE.READ_ONLY
-					}
+				if (!hasOwnerAccess && !file.shared) {
+					return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 				}
+
+				// Map the file's tier to this session's two lanes: `edit` guests keep canvas
+				// write, `comment`/`view` guests are canvas read-only, and comments are gated
+				// separately by objectAccess (see computeFileAccess).
+				const access = computeFileAccess({
+					sharedLinkType: file.sharedLinkType,
+					hasOwnerAccess,
+					isAuthenticated: !!auth?.userId,
+				})
+				if (access.isReadonly) {
+					openMode = ROOM_OPEN_MODE.READ_ONLY
+				}
+				objectAccess = access.objectAccess
 			}
 		} else {
 			// Legacy rooms are now read-only
@@ -779,10 +792,6 @@ export class TLFileDurableObject extends DurableObject {
 				userId: auth?.userId ? auth.userId : null,
 			}
 			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
-			// Only authenticated users can write comments. Comment authors are stored in Postgres
-			// with a foreign key to the user table, so an anonymous author couldn't be represented
-			// there. Guests can still read comments.
-			const objectAccess: TLObjectStoreAccess = auth?.userId ? 'write' : 'read'
 			const attachment: SocketAttachment = {
 				sessionId,
 				meta,
@@ -2054,7 +2063,14 @@ export class TLFileDurableObject extends DurableObject {
 
 		// if the app file record updated, it might mean that the sharing state was updated
 		// in which case we should kick people out or change their permissions
-		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType === 'view'
+		//
+		// A guest's canvas is read-only unless the link is `edit`, and a guest can comment only
+		// when the link is `comment` (or `edit`) and they're signed in. Either can change on its
+		// own — e.g. `view`<->`comment` flips comment access without touching read-only — so we
+		// reconnect when the guest's *current* session lanes no longer match the new file state.
+		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType !== 'edit'
+		const guestCanComment =
+			file.shared && (file.sharedLinkType === 'edit' || file.sharedLinkType === 'comment')
 
 		for (const session of room.getSessions()) {
 			if (file.isDeleted) {
@@ -2070,14 +2086,18 @@ export class TLFileDurableObject extends DurableObject {
 				return can(role, 'accessFiles')
 			}
 
+			// A guest can only comment when they're signed in (comment authors need a user row).
+			const sessionCanComment = guestCanComment && !!session.meta.userId
+
 			if (!file.shared) {
 				if (!(await canAccessFiles())) {
 					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
 				}
 			} else if (
-				// if the file is still shared but the readonly state changed, make them reconnect
-				(session.isReadonly && !roomIsReadOnlyForGuests) ||
-				(!session.isReadonly && roomIsReadOnlyForGuests)
+				// if the file is still shared but the guest's read-only or comment access changed,
+				// make them reconnect so the new session lanes take effect
+				session.isReadonly !== roomIsReadOnlyForGuests ||
+				(session.objectAccess === 'write') !== sessionCanComment
 			) {
 				if (!(await canAccessFiles())) {
 					// not passing a reason means they will try to reconnect
