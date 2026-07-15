@@ -1,4 +1,12 @@
-import { TLNoteShape, TLTheme, createShapeId } from '@tldraw/editor'
+import {
+	TLNoteShape,
+	TLTextShape,
+	TLTheme,
+	computed,
+	createShapeId,
+	toRichText,
+} from '@tldraw/editor'
+import { vi } from 'vitest'
 import { ArrowShapeUtil } from '../lib/shapes/arrow/ArrowShapeUtil'
 import { DrawShapeUtil } from '../lib/shapes/draw/DrawShapeUtil'
 import { FrameShapeUtil } from '../lib/shapes/frame/FrameShapeUtil'
@@ -6,6 +14,7 @@ import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 import { HighlightShapeUtil } from '../lib/shapes/highlight/HighlightShapeUtil'
 import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
 import { getDisplayValues } from '../lib/shapes/shared/getDisplayValues'
+import { TextShapeUtil } from '../lib/shapes/text/TextShapeUtil'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -305,5 +314,99 @@ describe('theme changes flow to shapes', () => {
 		expect(dv2.labelFontSize).toBeGreaterThan(dv1.labelFontSize)
 		// But note background color should be the same
 		expect(dv2.noteBackgroundColor).toBe(originalBg)
+	})
+})
+
+describe('color mode reactivity', () => {
+	it('does not create a reactive dependency on color mode by default', () => {
+		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'black' } }])
+		const util = editor.getShapeUtil('note') as NoteShapeUtil
+		const shape = editor.getShape<TLNoteShape>(noteId)!
+
+		let computeCount = 0
+		const labelFontSize = computed('labelFontSize', () => {
+			computeCount++
+			return getDisplayValues(util, shape).labelFontSize
+		})
+
+		const before = labelFontSize.get()
+		editor.user.updateUserPreferences({ colorScheme: 'dark' })
+		expect(labelFontSize.get()).toBe(before)
+		expect(computeCount).toBe(1)
+	})
+
+	it('creates a reactive dependency when colorMode is passed from a reactive read', () => {
+		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'black' } }])
+		const util = editor.getShapeUtil('note') as NoteShapeUtil
+		const shape = editor.getShape<TLNoteShape>(noteId)!
+
+		let computeCount = 0
+		const backgroundColor = computed('backgroundColor', () => {
+			computeCount++
+			return getDisplayValues(util, shape, editor.getColorMode()).noteBackgroundColor
+		})
+
+		const lightBg = backgroundColor.get()
+		editor.user.updateUserPreferences({ colorScheme: 'dark' })
+		expect(backgroundColor.get()).not.toBe(lightBg)
+		expect(computeCount).toBe(2)
+	})
+
+	it('does not invalidate the text shape size cache when color mode toggles', () => {
+		const textId = createShapeId('text')
+		editor.createShapes([
+			{
+				id: textId,
+				type: 'text',
+				x: 0,
+				y: 0,
+				props: { richText: toRichText('hello world') },
+			},
+		])
+
+		// Prime the geometry cache and capture initial bounds.
+		const initialBounds = editor.getShapeGeometry(textId).bounds.clone()
+
+		// Spy on the underlying measurement call to detect cache misses.
+		const measureSpy = vi.spyOn(editor.textMeasure, 'measureHtml')
+		measureSpy.mockClear()
+
+		editor.user.updateUserPreferences({ colorScheme: 'dark' })
+
+		// Re-reading geometry must not trigger a new text measurement — only colors changed.
+		const afterToggleBounds = editor.getShapeGeometry(textId).bounds
+		expect(measureSpy).not.toHaveBeenCalled()
+		expect(afterToggleBounds.width).toBe(initialBounds.width)
+		expect(afterToggleBounds.height).toBe(initialBounds.height)
+
+		// And the shape util's min dimensions should be stable too.
+		const util = editor.getShapeUtil('text') as TextShapeUtil
+		const shape = editor.getShape<TLTextShape>(textId)!
+		const minDims = util.getMinDimensions(shape)
+		expect(minDims.width).toBe(initialBounds.width)
+		expect(minDims.height).toBe(initialBounds.height)
+		expect(measureSpy).not.toHaveBeenCalled()
+		measureSpy.mockRestore()
+	})
+
+	it('still updates dimensions when the theme definition changes font size', () => {
+		const textId = createShapeId('text')
+		editor.createShapes([
+			{
+				id: textId,
+				type: 'text',
+				x: 0,
+				y: 0,
+				props: { richText: toRichText('hello world') },
+			},
+		])
+
+		const initialBounds = editor.getShapeGeometry(textId).bounds.clone()
+
+		// Doubling the theme font size must invalidate the size cache.
+		editor.updateTheme({ ...editor.getTheme('default')!, fontSize: 32 })
+
+		const afterBounds = editor.getShapeGeometry(textId).bounds
+		expect(afterBounds.height).toBeGreaterThan(initialBounds.height)
 	})
 })
