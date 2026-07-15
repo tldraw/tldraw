@@ -54,7 +54,28 @@ Only go above 3 people in extraordinary weeks — for example a large migration 
 
 ### 3. Compose the message
 
-Keep it under 2000 characters (Discord's limit). One bullet per person; if someone has multiple notable changes, list them under one bullet. Use plain names — do not attempt Discord `@` mentions.
+Keep it under 2000 characters (Discord's limit). One bullet per person; if someone has multiple notable changes, list them under one bullet. Use plain names — do not attempt Discord `@` mentions (webhook mentions need numeric user IDs, which we don't have).
+
+For the name in parentheses, use the contributor's Discord username from the table below so people are recognizable in the channel. If a GitHub login is not in the table, fall back to the GitHub login.
+
+| GitHub login      | Name              | Discord username  |
+| ----------------- | ----------------- | ----------------- |
+| `angrycaptain19`  | Tim               | `trg1379`         |
+| `AniKrisn`        | Ani Krishnan      | `anikrisn`        |
+| `audrey17leo`     | Audrey            | `dreiiz`          |
+| `danieljamesross` | Dan Ross          | `djrdjrdjr`       |
+| `driev`           | Niall             | `driev_`          |
+| `frolic`          | Kevin Ingersoll   | `frolic`          |
+| `jsscclr`         | Jessica Edwards   | `jsscclr`         |
+| `kaneel`          | Guillaume Richard | `guillaumetldraw` |
+| `kostyafarber`    | Kostya Farber     | `kostyafarber`    |
+| `m31-galaxy`      | Andy (Andromeda)  | `m31_galaxy`      |
+| `max-drake`       | Max Drake         | `max__drake`      |
+| `meg-an31`        | Megan Walker      | `megelia`         |
+| `mimecuvalo`      | Mime Čuvalo       | `mimecuvalo`      |
+| `MitjaBezensek`   | Mitja Bezenšek    | `mitja_bezensek`  |
+| `nattofu`         | Leo               | `nattotofu`       |
+| `steveruizok`     | Steve Ruiz        | `steveruizok`     |
 
 Format:
 
