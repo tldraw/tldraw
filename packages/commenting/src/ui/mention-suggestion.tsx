@@ -2,7 +2,7 @@ import type { MentionNodeAttrs } from '@tiptap/extension-mention'
 import { ReactRenderer } from '@tiptap/react'
 import type { SuggestionKeyDownProps, SuggestionOptions } from '@tiptap/suggestion'
 import { type ReactNode, forwardRef, useImperativeHandle, useState } from 'react'
-import { tlmenus } from 'tldraw'
+import { type Editor as TldrawEditor, atom, react } from 'tldraw'
 import { MentionList, MentionMember } from './mention-list'
 
 /** The handle the suggestion plugin drives — it forwards navigation keys into the popup. */
@@ -46,8 +46,10 @@ const MentionPopup = forwardRef<MentionPopupHandle, MentionPopupProps>(function 
 				setActiveIndex((i) => (i + 1) % items.length)
 				return true
 			}
-			if (event.key === 'Enter') {
-				// Fall back to the top match so Enter never selects `undefined` and swallows the key.
+			// Enter and Tab both complete the highlighted member (falling back to the top match so a
+			// stale index never selects `undefined`). The empty-roster case is handled a level up, in
+			// the suggestion's onKeyDown, which cancels the picker.
+			if (event.key === 'Enter' || event.key === 'Tab') {
 				select(items[activeIndex] ?? items[0])
 				return true
 			}
@@ -73,21 +75,28 @@ export function filterMentionMembers(members: MentionMember[], query: string): M
 	return members.filter((m) => m.name.toLowerCase().includes(q)).slice(0, MAX_SUGGESTIONS)
 }
 
-// Registered in tldraw's open-menus registry while the picker shows, so it's tracked the same way
-// as any other menu (reactive, and visible to dismissal) rather than through a bespoke flag.
-const MENTION_PICKER_MENU_ID = 'comment-mention-picker'
+// A reactive flag for whether the @-picker is showing. Deliberately NOT tldraw's open-menu registry:
+// registering there mounts MenuClickCapture, which covers the canvas with a click-capture overlay to
+// make it inert while a menu is open. But the picker is an inline autocomplete, not a modal — the
+// canvas must stay pannable/zoomable beneath it — so we track "open" ourselves instead.
+const mentionPickerOpen = atom('isMentionPickerOpen', false)
 
 /**
  * Whether the @-mention picker is currently showing. Host dismissal (Escape, outside-click) checks
  * this so it can defer to the picker instead of tearing down the composer or thread beneath it.
  */
 export function isMentionPickerOpen(): boolean {
-	return tlmenus.getOpenMenus().includes(MENTION_PICKER_MENU_ID)
+	return mentionPickerOpen.get()
 }
 
 export interface MentionSuggestionOptions {
 	/** Override a member row's content in the picker. Defaults to avatar + name (+ secondary). */
 	renderMember?(member: MentionMember): ReactNode
+	/**
+	 * The tldraw editor the composer lives in. When provided, the popup re-anchors reactively as the
+	 * canvas camera moves (the composer rides it) instead of polling every frame. Omit off-canvas.
+	 */
+	editor?: TldrawEditor | null
 }
 
 /**
@@ -108,32 +117,62 @@ export function createMentionSuggestion(
 			let renderer: ReactRenderer<MentionPopupHandle, MentionPopupProps> | null = null
 			let container: HTMLElement | null = null
 			let editorEl: HTMLElement | null = null
-			let followFrame: number | null = null
+			let canvasEl: Element | null = null
+			let stopCameraReaction: (() => void) | null = null
+			// The composer field's top-left in page space, plus the popup's screen width. Captured on a
+			// fresh read so camera moves can re-derive the popup's screen position from the page anchor
+			// (see reposition) rather than the field's DOM rect.
+			let anchorPage: { x: number; y: number } | null = null
+			let popupWidth = 0
 
-			// Anchor the popup flush under the whole composer field (not the caret), matching its width.
+			const applyScreen = (left: number, top: number, width: number) => {
+				if (!container) return
+				container.style.left = `${left}px`
+				container.style.top = `${top + 4}px`
+				container.style.width = `${width}px`
+			}
+
+			// Fresh placement: read the field's real screen rect, position the popup flush under it (not
+			// the caret, matching its width), and remember the field's page-space anchor for reposition.
 			const place = () => {
 				if (!container || !editorEl || container.style.display === 'none') return
 				const field = editorEl.closest('.cmt-composer__field') ?? editorEl
 				const rect = field.getBoundingClientRect()
-				container.style.left = `${rect.left}px`
-				container.style.top = `${rect.bottom + 4}px`
-				container.style.width = `${rect.width}px`
+				popupWidth = rect.width
+				anchorPage = options.editor?.screenToPage({ x: rect.left, y: rect.bottom }) ?? null
+				applyScreen(rect.left, rect.bottom, rect.width)
+			}
+
+			// Re-derive the popup's screen position from the remembered page anchor — pure camera math,
+			// always current. Reading the field's DOM rect here instead would lag by a frame: the canvas
+			// composer re-positions itself on a React commit (a `useValue(pageToViewport(...))`), which
+			// lands after a camera reaction runs, so the rect is still last frame's during a pan.
+			const reposition = () => {
+				if (!anchorPage || !options.editor) return
+				const s = options.editor.pageToScreen(anchorPage)
+				applyScreen(s.x, s.y, popupWidth)
 			}
 
 			// The popup is `position: fixed`, but its anchor — a canvas composer — rides the camera:
-			// panning or zooming moves the composer with no scroll/resize event to hook. Re-anchor every
-			// frame while the popup is mounted so it tracks the composer instead of stranding at stale
-			// coordinates until the next keystroke.
+			// panning or zooming moves the composer with no scroll/resize event to hook. Re-anchor when
+			// the camera actually changes (via a tldraw reaction) rather than polling every frame, plus
+			// on window scroll/resize for the off-canvas case (which re-read the field directly).
 			const startFollowing = () => {
-				const tick = () => {
-					place()
-					followFrame = requestAnimationFrame(tick)
+				window.addEventListener('scroll', place, true)
+				window.addEventListener('resize', place)
+				if (options.editor) {
+					stopCameraReaction = react('anchor mention popup to camera', () => {
+						options.editor!.getCamera() // track the camera so this re-runs as it moves
+						reposition()
+					})
 				}
-				followFrame = requestAnimationFrame(tick)
 			}
 			const stopFollowing = () => {
-				if (followFrame !== null) cancelAnimationFrame(followFrame)
-				followFrame = null
+				window.removeEventListener('scroll', place, true)
+				window.removeEventListener('resize', place)
+				stopCameraReaction?.()
+				stopCameraReaction = null
+				anchorPage = null
 			}
 
 			// Dismiss the roster — on Escape, or when the composer loses focus — by hiding it and
@@ -142,7 +181,21 @@ export function createMentionSuggestion(
 			// re-shows the roster via onUpdate.
 			const hide = () => {
 				if (container) container.style.display = 'none'
-				tlmenus.deleteOpenMenu(MENTION_PICKER_MENU_ID)
+				mentionPickerOpen.set(false)
+			}
+
+			// Wheel/panning over the popup drives the canvas beneath it, so scrolling to pan or zoom
+			// isn't swallowed by the roster — the same passthrough the rest of the comments UI gets from
+			// `usePassThroughWheelEvents`. The list still scrolls itself when the roster overflows (we
+			// only redispatch when it can't). Done imperatively because the popup lives outside React.
+			const onWheel = (e: WheelEvent) => {
+				if ((e as any).isSpecialRedispatchedEvent || !canvasEl) return
+				const list = container?.querySelector('.cmt-mention-list')
+				if (list && list.scrollHeight > list.clientHeight) return
+				e.preventDefault()
+				const redispatched = new WheelEvent('wheel', e)
+				;(redispatched as any).isSpecialRedispatchedEvent = true
+				canvasEl.dispatchEvent(redispatched)
 			}
 
 			return {
@@ -167,9 +220,11 @@ export function createMentionSuggestion(
 					// (--tl-color-*); portaling to document.body would strip them and lose the panel.
 					const themed = editorEl.closest('.tl-container')
 					;(themed ?? document.body).appendChild(container)
+					canvasEl = themed?.querySelector('.tl-canvas') ?? null
+					container.addEventListener('wheel', onWheel, { passive: false })
 					place()
 					startFollowing()
-					tlmenus.addOpenMenu(MENTION_PICKER_MENU_ID)
+					mentionPickerOpen.set(true)
 				},
 				onUpdate: (props) => {
 					if (renderer)
@@ -180,7 +235,7 @@ export function createMentionSuggestion(
 						})
 					// Typing after an Escape re-shows the roster.
 					if (container) container.style.display = ''
-					tlmenus.addOpenMenu(MENTION_PICKER_MENU_ID)
+					mentionPickerOpen.set(true)
 					place()
 				},
 				onKeyDown: (props) => {
@@ -196,17 +251,30 @@ export function createMentionSuggestion(
 						props.event.stopPropagation()
 						return true
 					}
+					if (props.event.key === 'Enter' || props.event.key === 'Tab') {
+						// Complete the highlighted member if there is one to complete; if the roster is empty
+						// there's nothing to pick, so cancel the picker and swallow the key — the composer
+						// beneath neither submits (Enter) nor moves focus / indents (Tab).
+						const completed = renderer?.ref?.onKeyDown(props) ?? false
+						if (!completed) {
+							hide()
+							props.event.stopPropagation()
+						}
+						return true
+					}
 					if (renderer && renderer.ref) return renderer.ref.onKeyDown(props)
 					return false
 				},
 				onExit: () => {
 					stopFollowing()
 					if (editorEl) editorEl.removeEventListener('blur', hide)
+					if (container) container.removeEventListener('wheel', onWheel)
 					if (container) container.remove()
 					if (renderer) renderer.destroy()
 					renderer = null
 					container = null
-					tlmenus.deleteOpenMenu(MENTION_PICKER_MENU_ID)
+					canvasEl = null
+					mentionPickerOpen.set(false)
 				},
 			}
 		},
