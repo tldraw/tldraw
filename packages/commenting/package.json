@@ -51,8 +51,10 @@
 	},
 	"dependencies": {
 		"@tiptap/core": "^3.12.1",
+		"@tiptap/extension-mention": "3.13.0",
 		"@tiptap/pm": "^3.12.1",
 		"@tiptap/react": "^3.12.1",
+		"@tiptap/suggestion": "3.13.0",
 		"tldraw": "workspace:*"
 	}
 }
