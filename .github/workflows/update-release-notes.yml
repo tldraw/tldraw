@@ -104,7 +104,8 @@ jobs:
           EOF
           )" \
             --base main \
-            --head "${{ steps.branch.outputs.branch_name }}"
+            --head "${{ steps.branch.outputs.branch_name }}" \
+            --label "docs-hotfix-please"
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
