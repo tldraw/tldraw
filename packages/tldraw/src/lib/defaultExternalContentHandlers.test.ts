@@ -5,12 +5,14 @@ import {
 	T,
 	TLAsset,
 	TLAssetId,
+	TLTextShape,
 } from '@tldraw/editor'
 import { TestEditor } from '../test/TestEditor'
 import { defaultAssetUtils } from './defaultAssetUtils'
 import {
 	defaultHandleExternalUrlContent,
 	notifyIfFileNotAllowed,
+	registerDefaultExternalContentHandlers,
 } from './defaultExternalContentHandlers'
 
 // A custom asset type used only in this test. We avoid declaring it via
@@ -200,15 +202,18 @@ describe('defaultHandleExternalUrlContent', () => {
 		expect(addToast).not.toHaveBeenCalled()
 	})
 
-	it('ignores a url with an invalid protocol without crashing or toasting', async () => {
+	it('falls back to a text shape for a url with an invalid protocol', async () => {
 		// Regression test for #8097: dragging content from a browser tab in Chrome
 		// with an ad blocker active supplies a DataTransfer url rewritten to
 		// `about:blank#blocked`. That protocol is not valid for a bookmark shape's
-		// `url` prop (T.linkUrl), so creating one threw a ValidationError. These
-		// urls are never user-intended content, so we ignore them silently rather
-		// than crashing or showing a misleading "couldn't load link" toast.
+		// `url` prop (T.linkUrl), so creating one threw a ValidationError and
+		// crashed the editor. We now drop the raw string as a text shape instead,
+		// which keeps the content visible and never throws.
 		editor = new TestEditor()
 		const { opts, addToast } = makeOpts()
+		// The text fallback routes through putExternalContent({ type: 'text' }),
+		// so the default handlers need to be registered for it to create a shape.
+		registerDefaultExternalContentHandlers(editor, opts)
 
 		await expect(
 			defaultHandleExternalUrlContent(
@@ -218,9 +223,17 @@ describe('defaultHandleExternalUrlContent', () => {
 			)
 		).resolves.not.toThrow()
 
-		// No bookmark (or any shape) should be created for the invalid url, and no
-		// error toast should be shown.
-		expect(editor.getCurrentPageShapes()).toEqual([])
+		const shapes = editor.getCurrentPageShapes()
+		expect(shapes.length).toBe(1)
+		expect(shapes[0].type).toBe('text')
+		expect((shapes[0] as TLTextShape).props.richText).toMatchObject({
+			content: [
+				{
+					type: 'paragraph',
+					content: [{ type: 'text', text: 'about:blank#blocked' }],
+				},
+			],
+		})
 		expect(addToast).not.toHaveBeenCalled()
 	})
 })
