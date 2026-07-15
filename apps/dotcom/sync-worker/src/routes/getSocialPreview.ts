@@ -7,6 +7,7 @@ import {
 	ROOM_PREFIX,
 	RoomOpenMode,
 	SNAPSHOT_PREFIX,
+	SOCIAL_PREVIEW_BYPASS_PARAM,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
@@ -179,6 +180,13 @@ function cleanName(name: string | null | undefined): string | null {
 /**
  * Builds the social preview HTML for a board. When the board has a name we use `<name> •
  * tldraw.com` as the title, otherwise we fall back to `tldraw.com`.
+ *
+ * The body redirects to the board with the bypass param set: some in-app browsers used by real
+ * people carry a crawler token in their user-agent (WhatsApp, Pinterest), so they land here too.
+ * The crawlers we target don't run JavaScript, so they only see the metadata; humans get bounced
+ * straight back to the board. Deliberately a script rather than a meta refresh — several crawlers
+ * follow meta refresh redirects without running JavaScript, which would send them to the app shell
+ * and lose the board name.
  */
 export function renderSocialPreview(name: string | null): string {
 	const escapedTitle = escapeHtml(formatSocialTitle(name))
@@ -202,7 +210,16 @@ export function renderSocialPreview(name: string | null): string {
 		<meta name="twitter:image:alt" content="${escapeHtml(SOCIAL_PREVIEW_IMAGE_ALT)}" />
 		<meta name="twitter:creator" content="@tldraw" />
 	</head>
-	<body></body>
+	<body>
+		<a href="?${SOCIAL_PREVIEW_BYPASS_PARAM}=1">Open this board</a>
+		<script>
+			var url = new URL(location.href)
+			// the '1' is load-bearing: an empty value reads as "param absent" to Vercel's
+			// missing-matching and the redirect would loop. See SOCIAL_PREVIEW_BYPASS_PARAM.
+			url.searchParams.set(${JSON.stringify(SOCIAL_PREVIEW_BYPASS_PARAM)}, '1')
+			location.replace(url)
+		</script>
+	</body>
 </html>
 `
 }

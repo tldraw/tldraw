@@ -1,4 +1,5 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import { SOCIAL_PREVIEW_BYPASS_PARAM } from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
 import json5 from 'json5'
@@ -56,6 +57,10 @@ function socialPreviewRoute(multiplayerServerUrl: string) {
 	return {
 		src: `^/(${SOCIAL_PREVIEW_PREFIXES.join('|')})/([^/]+)/?$`,
 		has: [{ type: 'header' as const, key: 'user-agent', value: userAgent }],
+		// some in-app browsers used by real people carry a crawler token in their user-agent
+		// (WhatsApp, Pinterest). the stub page bounces those visitors back to the board with this
+		// param set, which makes this route not match so they fall through to the real app.
+		missing: [{ type: 'query' as const, key: SOCIAL_PREVIEW_BYPASS_PARAM }],
 		dest: `${multiplayerServerUrl}/app/social-preview/$1/$2`,
 	}
 }

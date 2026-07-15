@@ -44,7 +44,19 @@ describe('renderSocialPreview', () => {
 		expect(html).toContain(
 			'<meta property="og:title" content="&lt;script&gt;&quot;&amp; • tldraw.com" />'
 		)
-		expect(html).not.toContain('<script>')
+		expect(html).not.toContain('<script>"&')
+		// the only script in the page is our own bypass redirect
+		expect(html.match(/<script>/g)).toHaveLength(1)
+	})
+
+	test('redirects humans back to the board with the bypass param', () => {
+		// In-app browsers with a crawler token in their user-agent (WhatsApp, Pinterest) get routed
+		// here too. The script sends them back to the board; the param makes the Vercel crawler
+		// route not match on the second request.
+		const html = renderSocialPreview('My board')
+		expect(html).toContain(`url.searchParams.set("no_preview", '1')`)
+		expect(html).toContain('location.replace(url)')
+		expect(html).toContain('<a href="?no_preview=1">Open this board</a>')
 	})
 })
 
