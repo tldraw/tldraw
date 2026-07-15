@@ -64,7 +64,7 @@ jobs:
 
       - name: Run update-release-notes skill
         run: |
-          claude --skip-permissions --print "/update-release-notes"
+          claude --dangerously-skip-permissions --print "/update-release-notes"
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
