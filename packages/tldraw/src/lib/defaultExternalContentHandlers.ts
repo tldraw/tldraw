@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Editor,
+	T,
 	TLAsset,
 	TLAssetId,
 	TLBookmarkAsset,
@@ -577,6 +578,15 @@ export async function defaultHandleExternalUrlContent(
 	{ point, url }: { point?: VecLike; url: string },
 	{ toasts, msg }: TLDefaultExternalContentHandlerOpts
 ) {
+	// Ignore urls with a protocol we can't turn into a bookmark (bookmark shapes
+	// validate their `url` prop with T.linkUrl). Dropping content from a browser
+	// tab in Chrome with an ad blocker active supplies a url rewritten to
+	// `about:blank#blocked`; these are never user-intended content, so we ignore
+	// them silently rather than crashing on the validation error (#8097).
+	if (!T.linkUrl.isValid(url)) {
+		return
+	}
+
 	// try to paste as an embed first
 	const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
 	const embedInfo = embedUtil?.getEmbedDefinition(url)

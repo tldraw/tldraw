@@ -8,7 +8,10 @@ import {
 } from '@tldraw/editor'
 import { TestEditor } from '../test/TestEditor'
 import { defaultAssetUtils } from './defaultAssetUtils'
-import { notifyIfFileNotAllowed } from './defaultExternalContentHandlers'
+import {
+	defaultHandleExternalUrlContent,
+	notifyIfFileNotAllowed,
+} from './defaultExternalContentHandlers'
 
 // A custom asset type used only in this test. We avoid declaring it via
 // `TLGlobalAssetPropsMap` module augmentation because that would leak into
@@ -171,5 +174,53 @@ describe('notifyIfFileNotAllowed', () => {
 		expect(addToast).toHaveBeenCalledWith(
 			expect.objectContaining({ title: 'assets.files.size-too-big' })
 		)
+	})
+})
+
+describe('defaultHandleExternalUrlContent', () => {
+	let editor: TestEditor
+
+	afterEach(() => {
+		editor?.dispose()
+	})
+
+	it('creates a bookmark for a valid http(s) url', async () => {
+		editor = new TestEditor()
+		const { opts, addToast } = makeOpts()
+
+		await defaultHandleExternalUrlContent(
+			editor,
+			{ url: 'https://example.com', point: { x: 0, y: 0 } },
+			opts
+		)
+
+		const shapes = editor.getCurrentPageShapes()
+		expect(shapes.length).toBe(1)
+		expect(shapes[0].type).toBe('bookmark')
+		expect(addToast).not.toHaveBeenCalled()
+	})
+
+	it('ignores a url with an invalid protocol without crashing or toasting', async () => {
+		// Regression test for #8097: dragging content from a browser tab in Chrome
+		// with an ad blocker active supplies a DataTransfer url rewritten to
+		// `about:blank#blocked`. That protocol is not valid for a bookmark shape's
+		// `url` prop (T.linkUrl), so creating one threw a ValidationError. These
+		// urls are never user-intended content, so we ignore them silently rather
+		// than crashing or showing a misleading "couldn't load link" toast.
+		editor = new TestEditor()
+		const { opts, addToast } = makeOpts()
+
+		await expect(
+			defaultHandleExternalUrlContent(
+				editor,
+				{ url: 'about:blank#blocked', point: { x: 0, y: 0 } },
+				opts
+			)
+		).resolves.not.toThrow()
+
+		// No bookmark (or any shape) should be created for the invalid url, and no
+		// error toast should be shown.
+		expect(editor.getCurrentPageShapes()).toEqual([])
+		expect(addToast).not.toHaveBeenCalled()
 	})
 })
