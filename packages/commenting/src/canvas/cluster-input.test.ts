@@ -58,13 +58,13 @@ describe('collectClusterLeaves anchor resolution', () => {
 		expect(leaves).toEqual([{ id: 't1', point: { x: 12, y: 34 } }])
 	})
 
-	it('maps region anchors to their top-right corner (x + w, y)', () => {
+	it('maps region anchors to their bottom-right corner (x + w, y + h)', () => {
 		const leaves = collectClusterLeaves(
 			stubEditor(),
 			[thread('t1', { type: 'region', x: 10, y: 20, w: 30, h: 40 })],
 			null
 		)
-		expect(leaves).toEqual([{ id: 't1', point: { x: 40, y: 20 } }])
+		expect(leaves).toEqual([{ id: 't1', point: { x: 40, y: 60 } }])
 	})
 
 	it('maps shape and text-range anchors to the shape bounds top-right corner', () => {
