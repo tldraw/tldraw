@@ -44,16 +44,30 @@ import { isMentionPickerOpen } from '../ui/mention-suggestion'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import { UNKNOWN_AUTHOR } from './comment-render'
-import { pendingComment, PendingComment, regionDraft } from './comment-tool'
-import { commentsHidden, toggleCommentsHidden } from './comments-visibility'
-import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
+import { PendingComment } from './comment-tool'
+import { useCommentThreads, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
+import {
+	type CommentingComponents,
+	type CommentingOptions,
+	getCommentingOptions,
+	useCommentingOptions,
+} from './options'
 import {
 	DEFAULT_REGION_COMMENT_OPTIONS,
 	RegionCommentOptions,
 	setRegionCommentOptions,
 } from './region-options'
-import { anchorPagePoint, openThreadId, regionPinPoint, shapeAnchorAt } from './thread-state'
+import {
+	commentsHidden,
+	commitCommentMutation,
+	openThreadId,
+	pendingComment,
+	regionDraft,
+	toggleCommentsHidden,
+	usePendingComment,
+} from './state'
+import { anchorPagePoint, regionPinPoint, shapeAnchorAt } from './thread-state'
 import './canvas.css'
 
 /**
@@ -61,19 +75,16 @@ import './canvas.css'
  * thread popover (with a reply composer) on click, and shows a composer where the comment tool
  * placed a new thread. Reads/writes comment records straight from `editor.store`.
  *
- * It's meant as the batteries-included default — every visible piece is a lever (`renderBody`,
- * `renderPinContent`), and the pieces it composes (`CommentPin`, `CommentThread`, `CommentComposer`,
- * the hooks, the tool) are all exported, so a consumer can rebuild this from parts instead.
+ * It's meant as the batteries-included default — every visible piece is a lever (the `CommentBody`
+ * and `PinContent` slots on `CommentTool.configure({ components })`), and the pieces it composes
+ * (`CommentPin`, `CommentThread`, `CommentComposer`, the hooks, the tool) are all exported, so a
+ * consumer can rebuild this from parts instead.
  */
 export interface CanvasCommentsProps {
 	/** The signed-in user's id, or null for a read-only viewer. Only a signed-in user composes. */
 	currentUserId: string | null
 	/** Map an author id to a display name, or `undefined` when the id can't be named. */
 	resolveName(id: string): string | undefined
-	/** Render a comment's body. Defaults to the rich-text body (`<CommentBody>`). */
-	renderBody?(comment: TLComment): ReactNode
-	/** Render a pin's content. Defaults to the thread author's initial. */
-	renderPinContent?(thread: TLCommentThread, comments: TLComment[]): ReactNode
 	/** Called after any comment (a new thread's first comment, or a reply) is posted. */
 	onPostComment?(comment: TLComment): void
 	/** Whether a comment is unread for the current user (return true for unread). */
@@ -97,7 +108,6 @@ export interface CanvasCommentsProps {
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
 const initialOf = (name: string): string => (getFirstCharacter(name.trim()) || '?').toUpperCase()
-const CLUSTER_DMAX = 120
 const CLUSTER_FADE_MS = 150
 /** Duration of the click-a-badge zoom-to-split animation. */
 const CLUSTER_EXPAND_ZOOM_MS = 450
@@ -123,14 +133,22 @@ const draftAvatar = (
 	</CommentPin>
 )
 
-function toCardProps(comment: TLComment, props: CanvasCommentsProps): CommentCardProps {
+function toCardProps(
+	comment: TLComment,
+	props: CanvasCommentsProps,
+	components: CommentingComponents
+): CommentCardProps {
+	const Body = components.CommentBody
+	// The `CommentBody` component slot overrides the built-in rich-text default (which resolves
+	// mention ids to names).
+	const body = Body ? (
+		<Body comment={comment} />
+	) : (
+		<CommentBody richText={comment.body} resolveName={props.resolveName} />
+	)
 	return {
 		author: props.resolveName(comment.authorId) ?? UNKNOWN_AUTHOR,
-		body: props.renderBody ? (
-			props.renderBody(comment)
-		) : (
-			<CommentBody richText={comment.body} resolveName={props.resolveName} />
-		),
+		body,
 		date: new Date(comment.createdAt).toISOString(),
 		you: comment.authorId === props.currentUserId,
 		edited: comment.editedAt != null,
@@ -147,6 +165,7 @@ export function CanvasComments(props: CanvasCommentsProps) {
 
 function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const editor = useEditor()
+	const options = useCommentingOptions()
 	const container = useContainer()
 	// Merge the consumer's region options over the disabled defaults and publish them for this editor,
 	// so the comment tool (which has no props) reads the same per-instance config.
@@ -163,8 +182,8 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const deepLinkHandled = useRef(false)
 	const threads = useCommentThreads(editor)
 	const pending = usePendingComment()
-	const openId = useValue('open thread id', () => openThreadId.get(), [])
-	const { impreciseShapeAnchor } = props
+	const openId = useValue('open thread id', () => openThreadId.get(editor), [editor])
+	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
 	// Threads whose anchor has moved (by any means — drag, nudge, align, undo, a collaborator)
 	// since the rendered clustering was built. They pop out of clustering and render as live pins,
 	// and only rejoin at the next zoom event, when everything re-clusters anyway.
@@ -176,7 +195,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			collectClusterLeaves(
 				editor,
 				threads.filter((thread) => !movedThreadIds.has(thread.id)),
-				openThreadId.get(),
+				openThreadId.get(editor),
 				impreciseShapeAnchor
 			),
 		[editor, threads, impreciseShapeAnchor, movedThreadIds]
@@ -291,15 +310,15 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		[threads]
 	)
 	const openThread = openId ? threadsById.get(openId) : null
-	const hidden = useValue('comments hidden', () => commentsHidden.get(), [])
+	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 
 	// Reset the transient UI state (open thread, half-placed comment) when this unmounts.
 	useEffect(() => {
 		return () => {
-			openThreadId.set(null)
-			pendingComment.set(null)
+			openThreadId.set(editor, null)
+			pendingComment.set(editor, null)
 		}
-	}, [])
+	}, [editor])
 
 	// Open the thread named by a deep link (?comment=<thread or comment id>). If the thread is
 	// currently inside a cluster, zoom to the first split that reveals it before opening.
@@ -328,10 +347,11 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			thread,
 			clusterModel.table,
 			clusterZoomBounds,
+			options,
 			impreciseShapeAnchor
 		)
-		openThreadId.set(thread.id)
-	}, [clusterModel.table, clusterZoomBounds, editor, threadsById, impreciseShapeAnchor])
+		openThreadId.set(editor, thread.id)
+	}, [clusterModel.table, clusterZoomBounds, editor, threadsById, impreciseShapeAnchor, options])
 
 	// Clicking a badge zooms to just past the zoom at which that cluster first unclusters,
 	// centered on its centroid. The event that created a visible cluster is the event that splits
@@ -343,10 +363,14 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		(node: ClusterNode) => {
 			const event = clusterModel.table.events.find((e) => e.result.id === node.id)
 			if (!event || !Number.isFinite(event.zSplit)) return
-			const zoom = clamp(event.zSplit * 1.05, clusterZoomBounds.minZoom, clusterZoomBounds.maxZoom)
+			const zoom = clamp(
+				event.zSplit * options.clusterSplitZoomFactor,
+				clusterZoomBounds.minZoom,
+				clusterZoomBounds.maxZoom
+			)
 			centerOnPointAtZoom(editor, node.centroid, zoom, CLUSTER_EXPAND_ZOOM_MS)
 		},
-		[clusterModel, clusterZoomBounds, editor]
+		[clusterModel, clusterZoomBounds, editor, options]
 	)
 
 	// Escape collapses the open thread. Capture-phase + stopPropagation so it runs ahead of the
@@ -354,18 +378,18 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	// being edited, let its own Escape handler exit edit mode first, keeping the thread open.
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
-			if (e.key !== 'Escape' || openThreadId.get() === null) return
+			if (e.key !== 'Escape' || openThreadId.get(editor) === null) return
 			// The mention picker owns Escape while it's open — let it dismiss the roster alone.
 			if (isMentionPickerOpen()) return
 			const target = e.target as HTMLElement | null
 			if (target && target.closest('.cmt-editing')) return
-			openThreadId.set(null)
+			openThreadId.set(editor, null)
 			e.preventDefault()
 			e.stopPropagation()
 		}
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)
-	}, [])
+	}, [editor])
 
 	// Shift+C toggles comment-pin visibility on the canvas (matching Figma). Skipped while typing so
 	// it never fires from inside a composer. Physical `KeyC` (layout-independent) with shift only.
@@ -374,12 +398,12 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			if (e.code !== 'KeyC' || !e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
 			const target = e.target as HTMLElement | null
 			if (target && target.closest('input, textarea, [contenteditable="true"]')) return
-			toggleCommentsHidden()
+			toggleCommentsHidden(editor)
 			e.preventDefault()
 		}
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)
-	}, [])
+	}, [editor])
 
 	// Hidden: the whole canvas layer (pins, open popover, pending composer) is withheld. The signal
 	// is read above so this component stays mounted and its shortcut/Escape effects keep running.
@@ -389,41 +413,66 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	// live in the UI layer rather than being clipped by the canvas layer.
 	return createPortal(
 		<div ref={layerRef} className="cmt-canvas-layer">
-			{fadeNodes.map(({ node, phase }) => {
-				let content: ReactNode
-				if (node.count === 1) {
-					const thread = threadsById.get(node.id)
-					if (!thread) return null
-					content = (
-						<ThreadPin editor={editor} thread={thread} {...props} regionOptions={regionOptions} />
-					)
-				} else {
-					content = <ClusterBadge editor={editor} node={node} onExpand={zoomToClusterSplit} />
-				}
-				return (
-					<div key={`cluster-fade:${node.id}`} className={clusterFadeClassName(phase)}>
-						{content}
-					</div>
-				)
-			})}
-			{orphanThreads.map((thread) => (
-				<ThreadPin
-					key={thread.id}
-					editor={editor}
-					thread={thread}
-					{...props}
-					regionOptions={regionOptions}
-				/>
-			))}
-			{movedThreads.map((thread) => (
-				<ThreadPin
-					key={thread.id}
-					editor={editor}
-					thread={thread}
-					{...props}
-					regionOptions={regionOptions}
-				/>
-			))}
+			{options.enableClustering ? (
+				<>
+					{fadeNodes.map(({ node, phase }) => {
+						let content: ReactNode
+						if (node.count === 1) {
+							const thread = threadsById.get(node.id)
+							if (!thread) return null
+							content = (
+								<ThreadPin
+									editor={editor}
+									thread={thread}
+									{...props}
+									regionOptions={regionOptions}
+								/>
+							)
+						} else {
+							content = <ClusterBadge editor={editor} node={node} onExpand={zoomToClusterSplit} />
+						}
+						return (
+							<div key={`cluster-fade:${node.id}`} className={clusterFadeClassName(phase)}>
+								{content}
+							</div>
+						)
+					})}
+					{orphanThreads.map((thread) => (
+						<ThreadPin
+							key={thread.id}
+							editor={editor}
+							thread={thread}
+							{...props}
+							regionOptions={regionOptions}
+						/>
+					))}
+					{movedThreads.map((thread) => (
+						<ThreadPin
+							key={thread.id}
+							editor={editor}
+							thread={thread}
+							{...props}
+							regionOptions={regionOptions}
+						/>
+					))}
+				</>
+			) : (
+				// Clustering off: every thread renders as its own live pin (each returns null when it's
+				// not on the current page or its anchor is missing). The open thread is excluded here and
+				// rendered once below, mirroring how the clustering path keeps it out of the cluster leaves —
+				// otherwise it would mount a second, stacked pin.
+				threads
+					.filter((thread) => thread.id !== openId)
+					.map((thread) => (
+						<ThreadPin
+							key={thread.id}
+							editor={editor}
+							thread={thread}
+							{...props}
+							regionOptions={regionOptions}
+						/>
+					))
+			)}
 			{openThread && (
 				<ThreadPin
 					key={`open:${openThread.id}`}
@@ -597,24 +646,34 @@ function revealDeepLinkedThread(
 	thread: TLCommentThread,
 	table: ClusterTable,
 	zoomBounds: { minZoom: number; maxZoom: number },
-	impreciseShapeAnchor?: { x: number; y: number }
+	options: CommentingOptions,
+	impreciseShapeAnchor: { x: number; y: number }
 ) {
 	if (thread.pageId !== editor.getCurrentPageId()) {
 		editor.setCurrentPage(thread.pageId as any)
 	}
 
+	// Match where the rendered pin sits (resolved prop-or-option), so the camera centers on the pin.
 	const point = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
 	if (!point) return
 
-	const parentEvent = findDirectParentEvent(table, thread.id)
-	if (
-		parentEvent &&
-		Number.isFinite(parentEvent.zSplit) &&
-		parentEvent.zSplit <= zoomBounds.maxZoom
-	) {
-		const zoom = clamp(parentEvent.zSplit * 1.05, zoomBounds.minZoom, zoomBounds.maxZoom)
-		centerOnPointAtZoom(editor, point, zoom)
-		return
+	// With clustering off the pin always renders individually, so skip the zoom-to-split (its cluster
+	// badge never exists) and just center on the pin.
+	if (options.enableClustering) {
+		const parentEvent = findDirectParentEvent(table, thread.id)
+		if (
+			parentEvent &&
+			Number.isFinite(parentEvent.zSplit) &&
+			parentEvent.zSplit <= zoomBounds.maxZoom
+		) {
+			const zoom = clamp(
+				parentEvent.zSplit * options.clusterSplitZoomFactor,
+				zoomBounds.minZoom,
+				zoomBounds.maxZoom
+			)
+			centerOnPointAtZoom(editor, point, zoom)
+			return
+		}
 	}
 
 	editor.centerOnPoint(point, { animation: { duration: 200 } })
@@ -687,11 +746,12 @@ const ClusterBadge = memo(function ClusterBadge({
 
 function isInInflatedViewport(editor: Editor, point: { x: number; y: number }): boolean {
 	const viewport = editor.getViewportScreenBounds()
+	const margin = getCommentingOptions(editor).clusterCullMargin
 	return (
-		point.x >= -CLUSTER_DMAX &&
-		point.y >= -CLUSTER_DMAX &&
-		point.x <= viewport.w + CLUSTER_DMAX &&
-		point.y <= viewport.h + CLUSTER_DMAX
+		point.x >= -margin &&
+		point.y >= -margin &&
+		point.x <= viewport.w + margin &&
+		point.y <= viewport.h + margin
 	)
 }
 
@@ -780,7 +840,7 @@ function RegionBox({
 
 /** The live region being dragged out by the comment tool, or nothing when not dragging. */
 function RegionDraftBox({ editor }: { editor: Editor }) {
-	const box = useValue('region draft', () => regionDraft.get(), [])
+	const box = useValue('region draft', () => regionDraft.get(editor), [editor])
 	if (!box) return null
 	return <RegionBox editor={editor} box={box} />
 }
@@ -901,19 +961,22 @@ const ThreadPin = memo(function ThreadPin({
 	const {
 		currentUserId,
 		resolveName,
-		renderPinContent,
 		onPostComment,
 		isCommentUnread,
 		onCommentRead,
 		getMentionSuggestions,
 		renderMentionSuggestion,
-		impreciseShapeAnchor,
 	} = props
+	const options = useCommentingOptions()
+	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
 	const container = useContainer()
 	const comments = useThreadComments(editor, thread.id)
 	const msg = useTranslation()
 	// Only one thread's popover is open at a time — shared across pins via the atom.
-	const open = useValue('thread open', () => openThreadId.get() === thread.id, [thread.id])
+	const open = useValue('thread open', () => openThreadId.get(editor) === thread.id, [
+		editor,
+		thread.id,
+	])
 	const [reply, setReply] = useState<TLRichText>(EMPTY_COMMENT)
 	const [editingId, setEditingId] = useState<string | null>(null)
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
@@ -977,11 +1040,11 @@ const ThreadPin = memo(function ThreadPin({
 			// layer; defer to its own dismissal instead of closing the thread out from under it.
 			if (target.closest('.tlui-menu, [data-radix-popper-content-wrapper], .cmt-mention-popup'))
 				return
-			openThreadId.set(null)
+			openThreadId.set(editor, null)
 		}
 		document.addEventListener('pointerdown', onPointerDown, true)
 		return () => document.removeEventListener('pointerdown', onPointerDown, true)
-	}, [open])
+	}, [open, editor])
 
 	const point = useValue(
 		'pin point',
@@ -1010,42 +1073,36 @@ const ThreadPin = memo(function ThreadPin({
 
 	const postReply = () => {
 		if (isCommentEmpty(reply) || !currentUserId) return
-		editor.run(
-			() => {
-				const comment = createComment({
-					threadId: thread.id,
-					pageId: thread.pageId,
-					authorId: currentUserId,
-					body: reply,
-				})
-				editor.store.put([comment as any])
-				if (onPostComment) onPostComment(comment)
-			},
-			{ history: 'ignore' }
-		)
+		commitCommentMutation(editor, () => {
+			const comment = createComment({
+				threadId: thread.id,
+				pageId: thread.pageId,
+				authorId: currentUserId,
+				body: reply,
+			})
+			editor.store.put([comment as any])
+			if (onPostComment) onPostComment(comment)
+		})
 		setReply(EMPTY_COMMENT)
 	}
 
 	const toggleResolve = () => {
 		if (!currentUserId) return
-		editor.run(
-			() => {
-				editor.store.put([
-					{
-						...thread,
-						resolved: thread.resolved ? null : { at: Date.now(), by: currentUserId },
-					} as any,
-				])
-			},
-			{ history: 'ignore' }
-		)
+		commitCommentMutation(editor, () => {
+			editor.store.put([
+				{
+					...thread,
+					resolved: thread.resolved ? null : { at: Date.now(), by: currentUserId },
+				} as any,
+			])
+		})
 	}
 
 	const deleteThread = () => {
-		openThreadId.set(null)
-		editor.run(() => editor.store.remove([thread.id, ...comments.map((c) => c.id)] as any), {
-			history: 'ignore',
-		})
+		openThreadId.set(editor, null)
+		commitCommentMutation(editor, () =>
+			editor.store.remove([thread.id, ...comments.map((c) => c.id)] as any)
+		)
 	}
 
 	const startEdit = (comment: TLComment) => {
@@ -1056,12 +1113,9 @@ const ThreadPin = memo(function ThreadPin({
 	const saveEdit = () => {
 		const comment = comments.find((c) => c.id === editingId)
 		if (!comment || isCommentEmpty(editText)) return
-		editor.run(
-			() => {
-				editor.store.put([{ ...comment, body: editText, editedAt: Date.now() } as any])
-			},
-			{ history: 'ignore' }
-		)
+		commitCommentMutation(editor, () => {
+			editor.store.put([{ ...comment, body: editText, editedAt: Date.now() } as any])
+		})
 		setEditingId(null)
 	}
 
@@ -1140,16 +1194,20 @@ const ThreadPin = memo(function ThreadPin({
 			<button
 				className="cmt-thread__action"
 				title={msg('comments.dismiss')}
-				onClick={() => openThreadId.set(null)}
+				onClick={() => openThreadId.set(editor, null)}
 			>
 				<TldrawUiIcon icon="cross-2" label={msg('comments.dismiss')} small />
 			</button>
 		</>
 	)
 
-	const pinContent = renderPinContent
-		? renderPinContent(thread, comments)
-		: initialOf(resolveName(thread.createdBy) ?? UNKNOWN_AUTHOR)
+	const PinContent = options.components.PinContent
+	// The `PinContent` component slot overrides the built-in author-initial default.
+	const pinContent = PinContent ? (
+		<PinContent thread={thread} comments={comments} />
+	) : (
+		initialOf(resolveName(thread.createdBy) ?? UNKNOWN_AUTHOR)
+	)
 
 	// Drag the marker to move the thread: its position is overridden locally while dragging, then
 	// re-anchored on drop. A point/shape thread re-anchors to whatever it's dropped on (a shape, else
@@ -1181,7 +1239,7 @@ const ThreadPin = memo(function ThreadPin({
 		}
 		if (!drag) return
 		if (!drag.moved) {
-			openThreadId.set(openThreadId.get() === thread.id ? null : thread.id)
+			openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
 			return
 		}
 		const pagePoint = editor.screenToPage({ x: e.clientX, y: e.clientY })
@@ -1200,7 +1258,7 @@ const ThreadPin = memo(function ThreadPin({
 				? shapeAnchorAt(editor, hit.id, pagePoint, e.altKey)
 				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
 		}
-		editor.run(() => editor.store.put([{ ...thread, anchor } as any]), { history: 'ignore' })
+		commitCommentMutation(editor, () => editor.store.put([{ ...thread, anchor } as any]), 'drag')
 	}
 
 	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
@@ -1280,7 +1338,7 @@ const ThreadPin = memo(function ThreadPin({
 							header={msg('comments.thread-title')}
 							headerActions={headerActions}
 							renderComment={renderComment}
-							comments={comments.map((c) => toCardProps(c, props))}
+							comments={comments.map((c) => toCardProps(c, props, options.components))}
 							resolvedBanner={
 								thread.resolved
 									? msg('comments.resolved-by').replace(
@@ -1343,35 +1401,32 @@ function PendingComposer({
 			// A click in the composer, or in the mention picker it spawns (portaled elsewhere), is
 			// not "outside" — keep the draft open so the pick can insert.
 			if (el.contains(target) || target.closest('.cmt-mention-popup')) return
-			pendingComment.set(null)
+			pendingComment.set(editor, null)
 		}
 		document.addEventListener('pointerdown', onPointerDown, true)
 		return () => document.removeEventListener('pointerdown', onPointerDown, true)
-	}, [])
+	}, [editor])
 
 	const submit = () => {
 		if (isCommentEmpty(text) || !currentUserId) return
-		editor.run(
-			() => {
-				const pageId = editor.getCurrentPageId()
-				const thread = createCommentThread({
-					pageId,
-					anchor: pending.anchor,
-					createdBy: currentUserId,
-				})
-				const comment = createComment({
-					threadId: thread.id,
-					pageId,
-					authorId: currentUserId,
-					body: text,
-				})
-				editor.store.put([thread as any, comment as any])
-				if (onPostComment) onPostComment(comment)
-			},
-			{ history: 'ignore' }
-		)
+		commitCommentMutation(editor, () => {
+			const pageId = editor.getCurrentPageId()
+			const thread = createCommentThread({
+				pageId,
+				anchor: pending.anchor,
+				createdBy: currentUserId,
+			})
+			const comment = createComment({
+				threadId: thread.id,
+				pageId,
+				authorId: currentUserId,
+				body: text,
+			})
+			editor.store.put([thread as any, comment as any])
+			if (onPostComment) onPostComment(comment)
+		})
 		setText(EMPTY_COMMENT)
-		pendingComment.set(null)
+		pendingComment.set(editor, null)
 	}
 
 	return createPortal(
@@ -1381,7 +1436,7 @@ function PendingComposer({
 			style={{ left: point.x, top: point.y }}
 			onPointerDown={stop}
 			onKeyDown={(e) => {
-				if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(null)
+				if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(editor, null)
 			}}
 		>
 			<CommentComposer
