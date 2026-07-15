@@ -1,8 +1,12 @@
+import { QueryResultType } from '@rocicorp/zero'
 import { filterMentionMembers } from '@tldraw/commenting'
 import { CanvasComments, CanvasCommentsSidebar } from '@tldraw/commenting/canvas'
-import { useCallback, useMemo } from 'react'
+import { queries } from '@tldraw/dotcom-shared'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
+
+type FileComments = QueryResultType<typeof queries.fileComments>
 
 /**
  * dotcom's comments layer: a thin consumer of `@tldraw/commenting/canvas`'s `<CanvasComments>`.
@@ -11,6 +15,10 @@ import { useMaybeApp } from '../../hooks/useAppState'
  * (current user from preferences, other authors from the Zero comments query's author join, with
  * live presence as a fallback for users who haven't committed a comment yet, e.g. a draft
  * composer's byline), and comment read status from Zero's read receipts.
+ *
+ * Read status and author names come from a Zero query scoped to this one file (not the app-level
+ * notifications feed, which is bounded to recent comments), so every unread pin resolves however
+ * old the comment is.
  */
 export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	const editor = useEditor()
@@ -25,33 +33,40 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		},
 		[app]
 	)
-	const authorNames = useValue(
-		'comment author names',
-		() => {
-			const names = new Map<string, string>()
-			if (!app) return names
-			for (const c of app.getComments()) {
-				if (c.author?.name) names.set(c.authorId, c.author.name)
-			}
-			return names
-		},
-		[app]
-	)
+
+	// This file's comments (author joins + the caller's read receipts) from Zero. A live view we
+	// own — resubscribed when the file changes and destroyed on unmount.
+	const [fileComments, setFileComments] = useState<FileComments>([])
+	useEffect(() => {
+		if (!app) return
+		const view = app.materializeQuery<FileComments>(queries.fileComments({ fileId }))
+		setFileComments(view.data)
+		const unlisten = view.addListener((data) => setFileComments(data))
+		return () => {
+			unlisten()
+			view.destroy()
+		}
+	}, [app, fileId])
+
+	const authorNames = useMemo(() => {
+		const names = new Map<string, string>()
+		for (const c of fileComments) {
+			if (c.author?.name) names.set(c.authorId, c.author.name)
+		}
+		return names
+	}, [fileComments])
+
 	// Ids of unread comments: others' comments with no read receipt in Zero. Zero comment row ids
 	// are TLComment record ids verbatim (see commentRecordToRow in the sync-worker), so these map
 	// straight onto store records. Own comments never get a receipt and never count as unread.
-	const unreadCommentIds = useValue(
-		'unread comment ids',
-		() => {
-			const ids = new Set<string>()
-			if (!app) return ids
-			for (const c of app.getComments()) {
-				if (c.authorId !== app.userId && !c.read) ids.add(c.id)
-			}
-			return ids
-		},
-		[app]
-	)
+	const unreadCommentIds = useMemo(() => {
+		const ids = new Set<string>()
+		for (const c of fileComments) {
+			if (c.authorId !== currentUserId && !c.read) ids.add(c.id)
+		}
+		return ids
+	}, [fileComments, currentUserId])
+
 	const presenceNames = useValue(
 		'presence names',
 		() => {
