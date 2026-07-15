@@ -33,6 +33,16 @@ describe('CommentTool.configure', () => {
 		})
 	})
 
+	it('layers component slots across chained configure calls', () => {
+		const CommentBody = () => null
+		const PinContent = () => null
+		const Tool = CommentTool.configure({ components: { CommentBody } }).configure({
+			components: { PinContent },
+		})
+		// The second call's slot is added without dropping the first call's slot.
+		expect(optionsOf(Tool).components).toEqual({ CommentBody, PinContent })
+	})
+
 	it('does not mutate the base tool or the defaults', () => {
 		CommentTool.configure({ history: 'record' })
 		expect(new CommentTool({} as Editor).options).toEqual(defaultCommentingOptions)

@@ -64,25 +64,16 @@ import './canvas.css'
  * thread popover (with a reply composer) on click, and shows a composer where the comment tool
  * placed a new thread. Reads/writes comment records straight from `editor.store`.
  *
- * It's meant as the batteries-included default — every visible piece is a lever (`renderBody`,
- * `renderPinContent`), and the pieces it composes (`CommentPin`, `CommentThread`, `CommentComposer`,
- * the hooks, the tool) are all exported, so a consumer can rebuild this from parts instead.
+ * It's meant as the batteries-included default — every visible piece is a lever (the `CommentBody`
+ * and `PinContent` slots on `CommentTool.configure({ components })`), and the pieces it composes
+ * (`CommentPin`, `CommentThread`, `CommentComposer`, the hooks, the tool) are all exported, so a
+ * consumer can rebuild this from parts instead.
  */
 export interface CanvasCommentsProps {
 	/** The signed-in user's id, or null for a read-only viewer. Only a signed-in user composes. */
 	currentUserId: string | null
 	/** Map an author id to a display name. */
 	resolveName(id: string): string
-	/**
-	 * Render a comment's body. Defaults to the rich-text body (`<CommentBody>`).
-	 * @deprecated Configure the `CommentBody` slot via `CommentTool.configure({ components })` instead.
-	 */
-	renderBody?(comment: TLComment): ReactNode
-	/**
-	 * Render a pin's content. Defaults to the thread author's initial.
-	 * @deprecated Configure the `PinContent` slot via `CommentTool.configure({ components })` instead.
-	 */
-	renderPinContent?(thread: TLCommentThread, comments: TLComment[]): ReactNode
 	/** Called after any comment (a new thread's first comment, or a reply) is posted. */
 	onPostComment?(comment: TLComment): void
 	/** Whether a comment is unread for the current user (return true for unread). */
@@ -130,17 +121,8 @@ function toCardProps(
 	components: CommentingComponents
 ): CommentCardProps {
 	const Body = components.CommentBody
-	// Back-compat: honor the deprecated `renderBody` prop, read through a structural view so its
-	// deprecation doesn't flag every internal use here.
-	const renderBody = (props as { renderBody?(comment: TLComment): ReactNode }).renderBody
-	// Precedence: legacy render prop > component slot > built-in default.
-	const body = renderBody ? (
-		renderBody(comment)
-	) : Body ? (
-		<Body comment={comment} />
-	) : (
-		<CommentBody richText={comment.body} />
-	)
+	// The `CommentBody` component slot overrides the built-in rich-text default.
+	const body = Body ? <Body comment={comment} /> : <CommentBody richText={comment.body} />
 	return {
 		author: props.resolveName(comment.authorId),
 		body,
@@ -330,7 +312,14 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		if (!thread) return
 
 		deepLinkHandled.current = true
-		revealDeepLinkedThread(editor, thread, clusterModel.table, clusterZoomBounds, options)
+		revealDeepLinkedThread(
+			editor,
+			thread,
+			clusterModel.table,
+			clusterZoomBounds,
+			options,
+			impreciseShapeAnchor
+		)
 		openThreadId.set(editor, thread.id)
 	}, [clusterModel.table, clusterZoomBounds, editor, threadsById, impreciseShapeAnchor, options])
 
@@ -418,10 +407,12 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 				</>
 			) : (
 				// Clustering off: every thread renders as its own live pin (each returns null when it's
-				// not on the current page or its anchor is missing).
-				threads.map((thread) => (
-					<ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />
-				))
+				// not on the current page or its anchor is missing). The open thread is excluded here and
+				// rendered once below, mirroring how the clustering path keeps it out of the cluster leaves —
+				// otherwise it would mount a second, stacked pin.
+				threads
+					.filter((thread) => thread.id !== openId)
+					.map((thread) => <ThreadPin key={thread.id} editor={editor} thread={thread} {...props} />)
 			)}
 			{openThread && (
 				<ThreadPin key={`open:${openThread.id}`} editor={editor} thread={openThread} {...props} />
@@ -586,28 +577,34 @@ function revealDeepLinkedThread(
 	thread: TLCommentThread,
 	table: ClusterTable,
 	zoomBounds: { minZoom: number; maxZoom: number },
-	options: CommentingOptions
+	options: CommentingOptions,
+	impreciseShapeAnchor: { x: number; y: number }
 ) {
 	if (thread.pageId !== editor.getCurrentPageId()) {
 		editor.setCurrentPage(thread.pageId as any)
 	}
 
-	const point = anchorPagePoint(editor, thread.anchor, options.impreciseShapeAnchor)
+	// Match where the rendered pin sits (resolved prop-or-option), so the camera centers on the pin.
+	const point = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
 	if (!point) return
 
-	const parentEvent = findDirectParentEvent(table, thread.id)
-	if (
-		parentEvent &&
-		Number.isFinite(parentEvent.zSplit) &&
-		parentEvent.zSplit <= zoomBounds.maxZoom
-	) {
-		const zoom = clamp(
-			parentEvent.zSplit * options.clusterSplitZoomFactor,
-			zoomBounds.minZoom,
-			zoomBounds.maxZoom
-		)
-		centerOnPointAtZoom(editor, point, zoom)
-		return
+	// With clustering off the pin always renders individually, so skip the zoom-to-split (its cluster
+	// badge never exists) and just center on the pin.
+	if (options.enableClustering) {
+		const parentEvent = findDirectParentEvent(table, thread.id)
+		if (
+			parentEvent &&
+			Number.isFinite(parentEvent.zSplit) &&
+			parentEvent.zSplit <= zoomBounds.maxZoom
+		) {
+			const zoom = clamp(
+				parentEvent.zSplit * options.clusterSplitZoomFactor,
+				zoomBounds.minZoom,
+				zoomBounds.maxZoom
+			)
+			centerOnPointAtZoom(editor, point, zoom)
+			return
+		}
 	}
 
 	editor.centerOnPoint(point, { animation: { duration: 200 } })
@@ -911,14 +908,8 @@ const ThreadPin = memo(function ThreadPin({
 	)
 
 	const PinContent = options.components.PinContent
-	// Back-compat: honor the deprecated `renderPinContent` prop (structural view; see toCardProps).
-	const renderPinContent = (
-		props as { renderPinContent?(thread: TLCommentThread, comments: TLComment[]): ReactNode }
-	).renderPinContent
-	// Precedence: legacy render prop > component slot > built-in default (author initial).
-	const pinContent = renderPinContent ? (
-		renderPinContent(thread, comments)
-	) : PinContent ? (
+	// The `PinContent` component slot overrides the built-in author-initial default.
+	const pinContent = PinContent ? (
 		<PinContent thread={thread} comments={comments} />
 	) : (
 		initialOf(resolveName(thread.createdBy))

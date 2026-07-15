@@ -31,12 +31,6 @@ export interface CanvasCommentsSidebarProps {
 	 * "only unread" filter when present.
 	 */
 	isCommentUnread?(commentId: TLCommentId): boolean
-	/**
-	 * Render a thread's preview (its first comment). Defaults to the plaintext of the body.
-	 * @deprecated Configure the `ThreadPreview` slot via `CommentTool.configure({ components })`
-	 * instead.
-	 */
-	renderPreview?(comment: TLComment): ReactNode
 	/** Tool ids that show the sidebar. Defaults to the comment tool. */
 	tools?: string[]
 	/** Header above the list. */
@@ -62,9 +56,6 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		empty,
 		impreciseShapeAnchor,
 	} = props
-	// Back-compat: honor the deprecated `renderPreview` prop, read through a structural view so its
-	// deprecation doesn't flag every internal use here.
-	const renderPreview = (props as { renderPreview?(comment: TLComment): ReactNode }).renderPreview
 	const editor = useEditor()
 	const options = useCommentingOptions()
 	const sidebarTools = tools ?? ['comment']
@@ -118,12 +109,10 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 			const threadComments = byThread.get(thread.id) ?? []
 			const first = threadComments[0]
 			let preview: ReactNode = ''
-			// Precedence: legacy render prop > component slot > built-in plaintext default.
+			// The `ThreadPreview` component slot overrides the built-in plaintext default.
 			const ThreadPreview = options.components.ThreadPreview
 			if (first) {
-				preview = renderPreview ? (
-					renderPreview(first)
-				) : ThreadPreview ? (
+				preview = ThreadPreview ? (
 					<ThreadPreview comment={first} />
 				) : (
 					richTextToPlaintext(first.body)
@@ -148,7 +137,9 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 
 	const focus = (id: string) => {
 		const thread = threads.find((t) => t.id === id)
-		if (thread) focusThread(editor, thread, impreciseShapeAnchor)
+		// Resolve prop-or-option like the overlay pins do, so sidebar navigation centers on the same
+		// spot the pin renders at when the anchor is configured via `CommentTool.configure`.
+		if (thread) focusThread(editor, thread, impreciseShapeAnchor ?? options.impreciseShapeAnchor)
 	}
 
 	return (

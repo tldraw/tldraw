@@ -14,6 +14,22 @@ export interface PendingComment {
 }
 
 /**
+ * Merge configure options over a base. Shallow for scalars; `components` is merged rather than
+ * replaced so chained `configure` calls layer their slots — a later `{ components: { PinContent } }`
+ * doesn't drop an earlier `{ components: { CommentBody } }`.
+ */
+function mergeCommentingOptions(
+	base: CommentingOptions,
+	overrides: Partial<CommentingOptions>
+): CommentingOptions {
+	return {
+		...base,
+		...overrides,
+		components: { ...base.components, ...overrides.components },
+	}
+}
+
+/**
  * The comment tool. Clicking the canvas starts a thread: on a shape it anchors to that shape (so
  * the pin tracks it), on empty canvas it drops a point anchor. Placement only opens a composer
  * (via `pendingComment`); the records are created when the comment is posted.
@@ -38,7 +54,7 @@ export class CommentTool extends StateNode {
 		// @ts-expect-error -- mirrors ShapeUtil.configure; extending `this` is sound at runtime.
 		return class extends this {
 			// @ts-expect-error
-			options = { ...this.options, ...options }
+			options = mergeCommentingOptions(this.options, options)
 		}
 	}
 

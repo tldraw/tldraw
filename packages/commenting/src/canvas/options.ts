@@ -9,17 +9,16 @@ import {
 
 /**
  * Component overrides for the batteries-included comments layer. Each slot replaces a built-in
- * piece. Generalizes the older `renderBody` / `renderPinContent` / `renderPreview` render props
- * into one map — those props still win when both are provided, so this is additive.
+ * piece; leave a slot unset to keep its default.
  *
  * @public
  */
 export interface CommentingComponents {
-	/** A comment's body. Replaces the default rich-text `<CommentBody>`. Supersedes `renderBody`. */
+	/** A comment's body. Replaces the default rich-text `<CommentBody>`. */
 	CommentBody?: ComponentType<{ comment: TLComment }>
-	/** A pin's inner content. Replaces the author-initial default. Supersedes `renderPinContent`. */
+	/** A pin's inner content. Replaces the author-initial default. */
 	PinContent?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
-	/** A sidebar row's preview. Replaces the plaintext default. Supersedes `renderPreview`. */
+	/** A sidebar row's preview. Replaces the plaintext default. */
 	ThreadPreview?: ComponentType<{ comment: TLComment }>
 }
 
