@@ -15,7 +15,7 @@
 // the rest are packed consecutively, and every worktree's band is disjoint, so N stacks never collide.
 
 import { spawn, spawnSync } from 'child_process'
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import { homedir } from 'os'
 import { dirname, join, resolve } from 'path'
 import { fileURLToPath } from 'url'
@@ -50,18 +50,49 @@ const PORT_SLOTS = {
 // (Needing a persistent port-allocation registry is itself part of the cost.)
 const REGISTRY_FILE = join(homedir(), '.tldraw-dotcom-dev-ports.json')
 
-function allocateBlockIndex(worktree: string): number {
-	const registry: Record<string, number> = existsSync(REGISTRY_FILE)
-		? JSON.parse(readFileSync(REGISTRY_FILE, 'utf8'))
-		: {}
-	if (worktree in registry) return registry[worktree]
+// Guard the registry's read-modify-write with an atomic O_EXCL lock file so two worktrees starting
+// `yarn dev-app` at the same moment can't both read, pick the same free index, and write it back —
+// which would hand them the same ports, the collision this allocator exists to prevent.
+function withRegistryLock<T>(fn: () => T): T {
+	const lockFile = `${REGISTRY_FILE}.lock`
+	const deadline = Date.now() + 5000
+	for (;;) {
+		try {
+			closeSync(openSync(lockFile, 'wx')) // atomic create; throws EEXIST while another run holds it
+			break
+		} catch (e) {
+			if ((e as NodeJS.ErrnoException)?.code !== 'EEXIST') throw e
+			if (Date.now() > deadline) {
+				rmSync(lockFile, { force: true }) // stale lock from a crashed run — reclaim it
+				continue
+			}
+			const until = Date.now() + 25 // brief synchronous back-off before retrying
+			while (Date.now() < until) {
+				// busy-wait
+			}
+		}
+	}
+	try {
+		return fn()
+	} finally {
+		rmSync(lockFile, { force: true })
+	}
+}
 
-	const used = new Set(Object.values(registry))
-	let idx = 0
-	while (used.has(idx)) idx++
-	registry[worktree] = idx
-	writeFileSync(REGISTRY_FILE, JSON.stringify(registry, null, 2))
-	return idx
+function allocateBlockIndex(worktree: string): number {
+	return withRegistryLock(() => {
+		const registry: Record<string, number> = existsSync(REGISTRY_FILE)
+			? JSON.parse(readFileSync(REGISTRY_FILE, 'utf8'))
+			: {}
+		if (worktree in registry) return registry[worktree]
+
+		const used = new Set(Object.values(registry))
+		let idx = 0
+		while (used.has(idx)) idx++
+		registry[worktree] = idx
+		writeFileSync(REGISTRY_FILE, JSON.stringify(registry, null, 2))
+		return idx
+	})
 }
 
 function buildEnv(idx: number, worktree: string) {

@@ -1,3 +1,4 @@
+import fs from 'fs'
 import path from 'path'
 import { defineConfig, devices } from '@playwright/test'
 import dotenv from 'dotenv'
@@ -19,6 +20,22 @@ const CI_WEB_SERVER_TIMEOUT_MS = 180_000
  * https://github.com/motdotla/dotenv
  */
 dotenv.config({ path: path.resolve(__dirname, '.env.local') })
+
+// The parallel-dev wrapper runs each worktree's stack on its own port block and writes the block's env
+// to <repoRoot>/.dev-ports.json. Read the client port from it so playwright waits on — and only reuses
+// — this worktree's own server when it's on an offset block. Defaults to 3000 (the block-0 / CI port)
+// when the file isn't present.
+function devClientPort(): number {
+	try {
+		const env = JSON.parse(
+			fs.readFileSync(path.resolve(__dirname, '../../../.dev-ports.json'), 'utf8')
+		)
+		return Number(env.CLIENT_PORT) || 3000
+	} catch {
+		return 3000
+	}
+}
+const CLIENT_PORT = devClientPort()
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -126,7 +143,7 @@ export default defineConfig({
 		// block's ports are known, so a preview client would point the multiplayer ws at the wrong
 		// ports. vite dev reads the block env when it boots, so the baked URLs match the running stack.
 		command: 'yarn dev-app',
-		url: 'http://localhost:3000',
+		url: `http://localhost:${CLIENT_PORT}`,
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),
 		timeout: process.env.CI ? CI_WEB_SERVER_TIMEOUT_MS : 300_000,
