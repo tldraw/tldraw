@@ -11,6 +11,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { CommentListItemProps, CommentsList } from '../ui/comments-list'
+import { UNKNOWN_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
 import { CommentsOverflowMenu } from './comments-overflow-menu'
 import { useComments, useCommentThreads } from './hooks'
@@ -22,8 +23,8 @@ import { focusThread } from './thread-state'
 import './canvas.css'
 
 export interface CanvasCommentsSidebarProps {
-	/** Map an author id to a display name. */
-	resolveName(id: string): string
+	/** Map an author id to a display name, or `undefined` when the id can't be named. */
+	resolveName(id: string): string | undefined
 	/** The signed-in user's id. Enables the "only your threads" filter when present. */
 	currentUserId?: string
 	/**
@@ -115,12 +116,12 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				preview = ThreadPreview ? (
 					<ThreadPreview comment={first} />
 				) : (
-					richTextToPlaintext(first.body)
+					richTextToPlaintext(first.body, resolveName)
 				)
 			}
 			return {
 				id: thread.id,
-				author: resolveName(thread.createdBy),
+				author: resolveName(thread.createdBy) ?? UNKNOWN_AUTHOR,
 				preview,
 				date: new Date((first ?? thread).createdAt).toISOString(),
 				resolved: thread.resolved != null,

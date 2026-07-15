@@ -4,7 +4,9 @@ import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
+import { useCommentingEnabled } from '../../hooks/useCommentingEnabled'
 import { useReadonly } from '../../hooks/useReadonly'
+import { useTools } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { MobileStylePanel } from '../MobileStylePanel'
 import { TldrawUiOrientationProvider } from '../primitives/layout'
@@ -36,7 +38,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 	orientation = 'horizontal',
 	minItems = 4,
 	minSizePx = 310,
-	maxItems = 9,
+	maxItems,
 	maxSizePx = 470,
 }: DefaultToolbarProps) {
 	const editor = useEditor()
@@ -44,6 +46,13 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()
 	const activeToolId = useValue('current tool id', () => editor.getCurrentToolId(), [editor])
+
+	// The default toolbar content gains a ninth primary item when the comment tool renders — which
+	// only happens when commenting is licensed *and* the tool is registered. Without that slot, keep
+	// the original eight so the overflow breakpoint (and the mobile layout) is unchanged.
+	const tools = useTools()
+	const hasCommentTool = useCommentingEnabled() && !!tools.comment
+	const resolvedMaxItems = maxItems ?? (hasCommentTool ? 9 : 8)
 
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
@@ -87,7 +96,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 							orientation={orientation}
 							sizingParentClassName="tlui-main-toolbar"
 							minItems={minItems}
-							maxItems={maxItems}
+							maxItems={resolvedMaxItems}
 							minSizePx={minSizePx}
 							maxSizePx={maxSizePx}
 						>

@@ -284,9 +284,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
-			InFrontOfTheCanvas: CommentsOnCanvas,
+			InFrontOfTheCanvas: () => <CommentsOnCanvas fileId={fileId} />,
 		}
-	}, [])
+	}, [fileId])
 
 	return (
 		<TlaEditorWrapper>

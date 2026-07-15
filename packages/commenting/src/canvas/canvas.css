@@ -61,6 +61,36 @@
 	z-index: 1;
 }
 
+/* A region anchor's area: a dashed box under the pins, non-interactive so canvas events pass
+   through. Drawn for the live drag draft and for a region thread while hovered or open. */
+.cmt-canvas-region {
+	position: absolute;
+	pointer-events: none;
+	border: 2px dashed var(--tl-color-selected);
+	border-radius: 6px;
+	background: color-mix(in srgb, var(--tl-color-selected) 10%, transparent);
+}
+
+/* A movable region body (the 'body'/'both' move modes): draggable to translate the whole region.
+   Interactive, so it captures the interior while shown — the tradeoff of dragging the body. */
+.cmt-canvas-region--movable {
+	pointer-events: auto;
+	cursor: move;
+}
+
+/* Corner resize handles on a region box (three corners; the pin corner is the move handle). */
+.cmt-canvas-region-handle {
+	position: absolute;
+	width: 9px;
+	height: 9px;
+	transform: translate(-50%, -50%);
+	background: var(--tl-color-panel);
+	border: 1.5px solid var(--tl-color-selected);
+	border-radius: 2px;
+	pointer-events: auto;
+	touch-action: none;
+}
+
 /* Centre the pin marker on its anchor point. */
 .cmt-canvas-pin__marker {
 	width: max-content;

@@ -11554,6 +11554,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-mention@npm:3.13.0":
+  version: 3.13.0
+  resolution: "@tiptap/extension-mention@npm:3.13.0"
+  peerDependencies:
+    "@tiptap/core": ^3.13.0
+    "@tiptap/pm": ^3.13.0
+    "@tiptap/suggestion": ^3.13.0
+  checksum: 10/0862dddc12393cb6c7d7e4c371c6556fac6da9ec58aa0d17063b164ed1e1a9222e772d6504ebb0eed50dacc9fbb629523faeacd269746fdfec0165ace885ee22
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-ordered-list@npm:^3.13.0":
   version: 3.13.0
   resolution: "@tiptap/extension-ordered-list@npm:3.13.0"
@@ -11701,6 +11712,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/suggestion@npm:3.13.0":
+  version: 3.13.0
+  resolution: "@tiptap/suggestion@npm:3.13.0"
+  peerDependencies:
+    "@tiptap/core": ^3.13.0
+    "@tiptap/pm": ^3.13.0
+  checksum: 10/8c80cc771a707579e4b500a6419aaee42b35f1ee88a65a47f385023342f43a4abc51a9b2146d5bc80dbf9a53450bd2376b0ec237ff4efed846c042f6b7d14992
+  languageName: node
+  linkType: hard
+
 "@tldraw/analytics-worker@workspace:apps/analytics-worker":
   version: 0.0.0-use.local
   resolution: "@tldraw/analytics-worker@workspace:apps/analytics-worker"
@@ -11763,13 +11784,30 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/collaboration@workspace:packages/collaboration":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/collaboration@workspace:packages/collaboration"
+  dependencies:
+    "@tldraw/commenting": "workspace:*"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+  peerDependencies:
+    react: ^18.2.0 || ^19.2.1
+    react-dom: ^18.2.0 || ^19.2.1
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/commenting@workspace:*, @tldraw/commenting@workspace:packages/commenting":
   version: 0.0.0-use.local
   resolution: "@tldraw/commenting@workspace:packages/commenting"
   dependencies:
     "@tiptap/core": "npm:^3.12.1"
+    "@tiptap/extension-mention": "npm:3.13.0"
     "@tiptap/pm": "npm:^3.12.1"
     "@tiptap/react": "npm:^3.12.1"
+    "@tiptap/suggestion": "npm:3.13.0"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     react: "npm:^19.2.1"

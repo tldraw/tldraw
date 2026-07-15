@@ -10,6 +10,12 @@ export { CommentsList, type CommentListItemProps, type CommentsListProps } from 
 export { EmptyState, type EmptyStateProps } from './ui/empty-state'
 export { formatRelativeTime } from './ui/format-time'
 export { Mention, type MentionProps } from './ui/mention'
+export { MentionList, type MentionListProps, type MentionMember } from './ui/mention-list'
+export {
+	createMentionSuggestion,
+	filterMentionMembers,
+	type MentionSuggestionOptions,
+} from './ui/mention-suggestion'
 export { Reaction, type ReactionProps } from './ui/reaction'
 export { Reactions } from './ui/reactions'
 export { renderMarkdown } from './ui/render-markdown'

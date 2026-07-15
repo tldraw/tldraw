@@ -361,6 +361,22 @@
       "value": "Name"
     }
   ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " commented"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -407,6 +423,16 @@
     {
       "type": 0,
       "value": "Collaborator limit reached"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " unread"
     }
   ],
   "554a05155c": [
@@ -597,6 +623,12 @@
     {
       "type": 0,
       "value": "You have reached the maximum number of files. You need to delete old files before creating new ones."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Mark all as read"
     }
   ],
   "7573b8110a": [
@@ -849,6 +881,12 @@
       "value": "? This action cannot be undone."
     }
   ],
+  "92fa5a9042": [
+    {
+      "type": 0,
+      "value": "You're all caught up."
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -983,6 +1021,12 @@
     {
       "type": 0,
       "value": "Export image"
+    }
+  ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Notifications"
     }
   ],
   "a3debabee7": [

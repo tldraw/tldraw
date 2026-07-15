@@ -27,6 +27,7 @@ export { CommentsOverflowMenu } from './canvas/comments-overflow-menu'
 export { CanvasCommentsSidebar, type CanvasCommentsSidebarProps } from './canvas/comments-sidebar'
 export { useComments, useCommentThreads, useThreadComments } from './canvas/hooks'
 export { useCommentingEnabled } from './canvas/license'
+export { DEFAULT_REGION_COMMENT_OPTIONS, type RegionCommentOptions } from './canvas/region-options'
 export { richTextToPlaintext } from './canvas/rich-text'
 export { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './canvas/sidebar-filters'
 export {

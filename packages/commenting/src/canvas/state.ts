@@ -1,4 +1,11 @@
-import { EditorAtom, type Editor, type TLHistoryBatchOptions, useEditor, useValue } from 'tldraw'
+import {
+	EditorAtom,
+	type BoxModel,
+	type Editor,
+	type TLHistoryBatchOptions,
+	useEditor,
+	useValue,
+} from 'tldraw'
 import type { PendingComment } from './comment-tool'
 import { getCommentingOptions } from './options'
 import { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './sidebar-filters'
@@ -15,6 +22,10 @@ export const openThreadId = new EditorAtom<string | null>('openThreadId', () => 
 
 /** The comment currently being placed (composer open, not yet posted), or null. */
 export const pendingComment = new EditorAtom<PendingComment | null>('pendingComment', () => null)
+
+/** The region rectangle being dragged out right now (page coords), or null when not dragging. The
+ *  comment tool writes it on each move; the overlay reads it to draw the live dashed box. */
+export const regionDraft = new EditorAtom<BoxModel | null>('regionDraft', () => null)
 
 /**
  * Whether comment pins are hidden on the canvas. Governs the on-canvas layer (pins + open popover)

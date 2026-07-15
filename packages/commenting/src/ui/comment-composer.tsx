@@ -1,10 +1,13 @@
 import { Extension, JSONContent } from '@tiptap/core'
 import { EditorContent, useEditor } from '@tiptap/react'
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-import { isEqual, TLRichText } from 'tldraw'
+import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
 import { Avatar } from './avatar'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
+import { commentMention } from './comment-mention'
 import './comments.css'
+import { MentionMember } from './mention-list'
+import { createMentionSuggestion, isMentionPickerOpen } from './mention-suggestion'
 import { SendButton } from './send-button'
 
 export interface CommentComposerProps {
@@ -20,6 +23,10 @@ export interface CommentComposerProps {
 	autoFocus?: boolean
 	/** The leading element before the field. Defaults to the author's avatar. */
 	leading?: ReactNode
+	/** Resolve the members matching an `@`-query (sync or async). Provide to enable mentions. */
+	getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>
+	/** Override a picker row's content. Defaults to avatar + name (+ secondary). */
+	renderMentionSuggestion?(member: MentionMember): ReactNode
 }
 
 /**
@@ -38,8 +45,13 @@ export function CommentComposer({
 	disabled,
 	autoFocus,
 	leading,
+	getMentionSuggestions,
+	renderMentionSuggestion,
 }: CommentComposerProps) {
 	const interactive = !!onChange || !!onSubmit
+	// The canvas editor the composer lives in, if any — lets the mention popup track the camera. Null
+	// when the composer is used outside a tldraw editor (e.g. an isolated demo).
+	const tlEditor = useMaybeEditor()
 
 	// Callbacks are read through refs so the editor instance doesn't need to be recreated when they
 	// change identity between renders.
@@ -49,6 +61,10 @@ export function CommentComposer({
 	onSubmitRef.current = onSubmit
 	const disabledRef = useRef(disabled)
 	disabledRef.current = disabled
+	const getMentionSuggestionsRef = useRef(getMentionSuggestions)
+	getMentionSuggestionsRef.current = getMentionSuggestions
+	const renderMentionSuggestionRef = useRef(renderMentionSuggestion)
+	renderMentionSuggestionRef.current = renderMentionSuggestion
 
 	const [isEmpty, setIsEmpty] = useState(() => !value || isCommentEmpty(value))
 
@@ -62,6 +78,10 @@ export function CommentComposer({
 				addKeyboardShortcuts() {
 					return {
 						Enter: () => {
+							// While the @-mention picker is open, Enter selects the highlighted member.
+							// This extension outranks the mention plugin (priority 1000), so defer to the
+							// picker here or Enter would submit before the member could be inserted.
+							if (isMentionPickerOpen()) return false
 							if (!disabledRef.current) onSubmitRef.current?.()
 							return true
 						},
@@ -71,7 +91,37 @@ export function CommentComposer({
 		[]
 	)
 
-	const extensions = useMemo(() => [...commentTipTapExtensions, submitExtension], [submitExtension])
+	// The suggestion plugin is built once (the editor is recreated only on `interactive`) and runs
+	// outside React, so it must read the mention callbacks through refs — like onChange/onSubmit —
+	// or it queries the roster present at mount forever, never seeing a member who loads or joins
+	// later. Whether mentions (and a custom picker row) are wired at all is fixed at mount; only the
+	// callbacks themselves are live.
+	const mentionsEnabled = !!getMentionSuggestions
+	const hasCustomRow = !!renderMentionSuggestion
+	const extensions = useMemo(() => {
+		const list = [...commentTipTapExtensions, submitExtension]
+		// Always register the mention node so an existing body that contains a mention keeps it on
+		// edit (an unregistered node would be stripped by ProseMirror when the content loads). The `@`
+		// picker itself only turns on when the host provides a resolver; otherwise the node is present
+		// but its trigger is disabled.
+		if (mentionsEnabled) {
+			const resolveSuggestions = (query: string) => getMentionSuggestionsRef.current?.(query) ?? []
+			const renderRow = hasCustomRow
+				? (member: MentionMember) => renderMentionSuggestionRef.current?.(member)
+				: undefined
+			list.push(
+				commentMention({
+					suggestion: createMentionSuggestion(resolveSuggestions, {
+						renderMember: renderRow,
+						editor: tlEditor,
+					}),
+				})
+			)
+		} else {
+			list.push(commentMention({ suggestion: { char: '@', allow: () => false } }))
+		}
+		return list
+	}, [submitExtension, mentionsEnabled, hasCustomRow, tlEditor])
 
 	const editor = useEditor(
 		{
