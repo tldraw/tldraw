@@ -28,11 +28,7 @@ import {
 } from '../../utils/text/richText'
 import { FONT_SIZES, TEXT_PROPS, getFontFamily } from '../shared/default-shape-constants'
 import { getThemeFontFaces } from '../shared/defaultFonts'
-import {
-	ShapeOptionsWithDisplayValues,
-	getDimensionDisplayValues,
-	getDisplayValues,
-} from '../shared/getDisplayValues'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
 
 // Export-only slack (as a fraction of font size) added around a text shape's advance box in `toSvg`,
@@ -48,7 +44,7 @@ const sizeCache = createComputedCache(
 	(editor: Editor, shape: TLTextShape) => {
 		editor.fonts.trackFontsForShape(shape)
 		const util = editor.getShapeUtil(shape) as TextShapeUtil
-		const dv = getDimensionDisplayValues(util, shape)
+		const dv = getDisplayValues(util, shape)
 		return getTextSize(editor, shape.props, dv)
 	},
 	{ areRecordsEqual: (a, b) => a.props === b.props }

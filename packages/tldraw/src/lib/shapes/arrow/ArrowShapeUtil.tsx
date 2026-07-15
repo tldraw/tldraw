@@ -42,6 +42,7 @@ import {
 	toDomPrecision,
 	toRichText,
 	track,
+	useColorMode,
 	useEditor,
 	useIsEditing,
 	useSharedSafeId,
@@ -59,7 +60,7 @@ import {
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getThemeFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
-import { getDimensionDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
+import { getDisplayValues } from '../shared/getDisplayValues'
 import { PathBuilder } from '../shared/PathBuilder'
 import { PatternFill } from '../shared/PatternFill'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
@@ -820,7 +821,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	component(shape: TLArrowShape) {
 		const { editor } = this
-		const dv = getDisplayValues(this, shape)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 
 		const isSelected = useValue(
 			'is selected',
@@ -884,7 +886,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const info = getArrowInfo(this.editor, shape)
 		if (!info) return undefined
 
-		const dv = getDimensionDisplayValues(this, shape)
+		const dv = getDisplayValues(this, shape)
 
 		const isEditing = this.editor.getEditingShapeId() === shape.id
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape, info?.bindings)

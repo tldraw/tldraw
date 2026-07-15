@@ -22,18 +22,15 @@ import {
 } from '@tldraw/editor'
 import { isEmptyRichText, renderHtmlFromRichTextForMeasurement } from '../../utils/text/richText'
 import { LABEL_TO_ARROW_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { getDimensionDisplayValues } from '../shared/getDisplayValues'
+import { getDisplayValues } from '../shared/getDisplayValues'
 import type { ArrowShapeUtilDisplayValues } from './arrow-types'
 import { TLArrowInfo } from './arrow-types'
 import { getArrowInfo } from './getArrowInfo'
 
-function getArrowDimensionDisplayValues(
-	editor: Editor,
-	shape: TLArrowShape
-): ArrowShapeUtilDisplayValues {
+function getArrowDisplayValues(editor: Editor, shape: TLArrowShape): ArrowShapeUtilDisplayValues {
 	// We cast here because editor.getShapeUtil('arrow') returns ShapeUtil<TLArrowShape>
 	// with generic options, but the actual instance has ArrowShapeOptions with display values.
-	return getDimensionDisplayValues(editor.getShapeUtil('arrow') as any, shape)
+	return getDisplayValues(editor.getShapeUtil('arrow') as any, shape)
 }
 
 export function getArrowBodyGeometry(editor: Editor, shape: TLArrowShape) {
@@ -76,7 +73,7 @@ const labelSizeCache = createComputedCache(
 
 		const bodyBounds = bodyGeom.bounds
 
-		const dv = getArrowDimensionDisplayValues(editor, shape)
+		const dv = getArrowDisplayValues(editor, shape)
 		const fontSize = dv.labelFontSize * shape.props.scale
 
 		// First we measure the text with no constraints

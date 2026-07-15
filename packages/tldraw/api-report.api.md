@@ -2352,12 +2352,6 @@ export function getCropBox<T extends ShapeWithCrop>(shape: T, info: TLCropInfo<T
 export function getDefaultCrop(): TLShapeCrop;
 
 // @public
-export function getDimensionDisplayValues<Shape extends TLShape, DisplayValues extends object>(util: {
-    editor: Editor;
-    options: ShapeOptionsWithDisplayValues<Shape, DisplayValues>;
-}, shape: Shape): DisplayValues;
-
-// @public
 export function getDisplayValues<Shape extends TLShape, DisplayValues extends object>(util: {
     editor: Editor;
     options: ShapeOptionsWithDisplayValues<Shape, DisplayValues>;

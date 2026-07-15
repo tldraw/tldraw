@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Box,
 	Circle2d,
@@ -18,6 +19,7 @@ import {
 	last,
 	lerp,
 	rng,
+	useColorMode,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -27,11 +29,7 @@ import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyle
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
-import {
-	ShapeOptionsWithDisplayValues,
-	getDimensionDisplayValues,
-	getDisplayValues,
-} from '../shared/getDisplayValues'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
 import { PatternFill } from '../shared/PatternFill'
 import {
@@ -121,7 +119,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			shape.props.scaleY
 		)
 
-		const sw = (getDimensionDisplayValues(this, shape).strokeWidth + 1) * shape.props.scale
+		const sw = (getDisplayValues(this, shape).strokeWidth + 1) * shape.props.scale
 
 		// A dot
 		if (shape.props.segments.length === 1) {
@@ -165,7 +163,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	component(shape: TLDrawShape) {
-		const dv = getDisplayValues(this, shape)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 		return (
 			<SVGContainer>
 				<DrawShapeSvg
@@ -186,7 +185,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			shape.props.scaleY
 		)
 
-		let sw = (getDimensionDisplayValues(this, shape).strokeWidth + 1) * shape.props.scale
+		let sw = (getDisplayValues(this, shape).strokeWidth + 1) * shape.props.scale
 
 		const zoomLevel = this.editor.getEfficientZoomLevel()
 		const forceSolid = zoomLevel < 0.5 && zoomLevel < 1.5 / sw
@@ -248,9 +247,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
-		return (
-			((getDimensionDisplayValues(this, shape).strokeWidth * multiplier) / 2) * shape.props.scale
-		)
+		return ((getDisplayValues(this, shape).strokeWidth * multiplier) / 2) * shape.props.scale
 	}
 	override getInterpolatedProps(
 		startShape: TLDrawShape,

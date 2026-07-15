@@ -1,4 +1,11 @@
-import { TLNoteShape, TLTextShape, TLTheme, createShapeId, toRichText } from '@tldraw/editor'
+import {
+	TLNoteShape,
+	TLTextShape,
+	TLTheme,
+	computed,
+	createShapeId,
+	toRichText,
+} from '@tldraw/editor'
 import { vi } from 'vitest'
 import { ArrowShapeUtil } from '../lib/shapes/arrow/ArrowShapeUtil'
 import { DrawShapeUtil } from '../lib/shapes/draw/DrawShapeUtil'
@@ -6,7 +13,7 @@ import { FrameShapeUtil } from '../lib/shapes/frame/FrameShapeUtil'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 import { HighlightShapeUtil } from '../lib/shapes/highlight/HighlightShapeUtil'
 import { NoteShapeUtil } from '../lib/shapes/note/NoteShapeUtil'
-import { getDimensionDisplayValues, getDisplayValues } from '../lib/shapes/shared/getDisplayValues'
+import { getDisplayValues } from '../lib/shapes/shared/getDisplayValues'
 import { TextShapeUtil } from '../lib/shapes/text/TextShapeUtil'
 import { TestEditor } from './TestEditor'
 
@@ -310,30 +317,43 @@ describe('theme changes flow to shapes', () => {
 	})
 })
 
-describe('getDimensionDisplayValues', () => {
-	it('returns the same dimension values regardless of color mode', () => {
+describe('color mode reactivity', () => {
+	it('does not create a reactive dependency on color mode by default', () => {
 		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'black' } }])
 		const util = editor.getShapeUtil('note') as NoteShapeUtil
 		const shape = editor.getShape<TLNoteShape>(noteId)!
 
-		editor.user.updateUserPreferences({ colorScheme: 'light' })
-		const lightDv = getDimensionDisplayValues(util, shape)
-		const lightFontSize = lightDv.labelFontSize
-		const lightFontFamily = lightDv.labelFontFamily
-		const lightLineHeight = lightDv.labelLineHeight
-		const lightPadding = lightDv.labelPadding
+		let computeCount = 0
+		const labelFontSize = computed('labelFontSize', () => {
+			computeCount++
+			return getDisplayValues(util, shape).labelFontSize
+		})
 
+		const before = labelFontSize.get()
 		editor.user.updateUserPreferences({ colorScheme: 'dark' })
-		const darkDv = getDimensionDisplayValues(util, shape)
-		expect(darkDv.labelFontSize).toBe(lightFontSize)
-		expect(darkDv.labelFontFamily).toBe(lightFontFamily)
-		expect(darkDv.labelLineHeight).toBe(lightLineHeight)
-		expect(darkDv.labelPadding).toBe(lightPadding)
+		expect(labelFontSize.get()).toBe(before)
+		expect(computeCount).toBe(1)
 	})
 
-	it('does not invalidate text shape size cache when color mode toggles', () => {
+	it('creates a reactive dependency when colorMode is passed from a reactive read', () => {
+		editor.createShapes([{ id: noteId, type: 'note', x: 0, y: 0, props: { color: 'black' } }])
+		const util = editor.getShapeUtil('note') as NoteShapeUtil
+		const shape = editor.getShape<TLNoteShape>(noteId)!
+
+		let computeCount = 0
+		const backgroundColor = computed('backgroundColor', () => {
+			computeCount++
+			return getDisplayValues(util, shape, editor.getColorMode()).noteBackgroundColor
+		})
+
+		const lightBg = backgroundColor.get()
+		editor.user.updateUserPreferences({ colorScheme: 'dark' })
+		expect(backgroundColor.get()).not.toBe(lightBg)
+		expect(computeCount).toBe(2)
+	})
+
+	it('does not invalidate the text shape size cache when color mode toggles', () => {
 		const textId = createShapeId('text')
-		editor.user.updateUserPreferences({ colorScheme: 'light' })
 		editor.createShapes([
 			{
 				id: textId,
@@ -354,7 +374,7 @@ describe('getDimensionDisplayValues', () => {
 		editor.user.updateUserPreferences({ colorScheme: 'dark' })
 
 		// Re-reading geometry must not trigger a new text measurement — only colors changed.
-		const afterToggleBounds = editor.getShapeGeometry(textId).bounds.clone()
+		const afterToggleBounds = editor.getShapeGeometry(textId).bounds
 		expect(measureSpy).not.toHaveBeenCalled()
 		expect(afterToggleBounds.width).toBe(initialBounds.width)
 		expect(afterToggleBounds.height).toBe(initialBounds.height)
@@ -371,7 +391,6 @@ describe('getDimensionDisplayValues', () => {
 
 	it('still updates dimensions when the theme definition changes font size', () => {
 		const textId = createShapeId('text')
-		editor.user.updateUserPreferences({ colorScheme: 'light' })
 		editor.createShapes([
 			{
 				id: textId,
