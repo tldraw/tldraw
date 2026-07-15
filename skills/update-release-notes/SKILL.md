@@ -198,6 +198,8 @@ Then create the PR using the `../pr/SKILL.md` workflow and the standards in `../
 
 **Why `[skip ci]`**: pushing to `production` (and the `hotfixes` → `production` promotion) triggers `deploy-dotcom.yml`. A merge commit containing `[skip ci]` is skipped by GitHub Actions entirely, so the release-notes change can land on `production` — ready to ride the next SDK release, which pushes the `production` ref to `docs-production` — without deploying tldraw.com.
 
+`[skip ci]` does not interfere with the `docs-hotfix-please` label: `trigger-sdk-hotfix.yml` runs on `pull_request_target`, which GitHub's skip-ci markers do not affect. It fires when a labeled PR is merged; to re-trigger it later, remove and re-add the label on the merged PR.
+
 ## The `last_version` field
 
 The `next.mdx` frontmatter includes a `last_version` field that tracks the most recent published release. This determines which PRs are "new" and need to be added.

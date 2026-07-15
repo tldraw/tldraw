@@ -1,11 +1,17 @@
 name: Trigger sdk hotfix
 
+# pull_request_target rather than push/pull_request: hotfix PRs (e.g. the automated
+# release-notes updates) carry `[skip ci]` in their commit messages, which suppresses
+# push- and pull_request-triggered workflows entirely — the label had no effect.
+# GitHub's skip-ci markers do not apply to pull_request_target. The `closed` event
+# replaces the old push-to-main trigger (which ran on every merge just to check
+# labels), and `labeled` allows re-triggering a hotfix by re-adding the label to an
+# already-merged PR. Secrets exposure is safe here: the job only runs for merged PRs
+# carrying a maintainer-applied hotfix label, checkout uses the trusted base branch,
+# and the script only cherry-picks the PR's already-merged commit from main.
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types: [labeled]
+  pull_request_target:
+    types: [closed, labeled]
 
 defaults:
   run:
@@ -18,10 +24,12 @@ jobs:
     concurrency: npm-publish
     environment: npm deploy
     if: |
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' && 
-       github.event.pull_request.merged == true && 
-       (github.event.label.name == 'sdk-hotfix-please' || github.event.label.name == 'docs-hotfix-please'))
+      github.event.pull_request.merged == true &&
+      ((github.event.action == 'closed' &&
+        (contains(github.event.pull_request.labels.*.name, 'sdk-hotfix-please') ||
+         contains(github.event.pull_request.labels.*.name, 'docs-hotfix-please'))) ||
+       (github.event.action == 'labeled' &&
+        (github.event.label.name == 'sdk-hotfix-please' || github.event.label.name == 'docs-hotfix-please')))
 
     steps:
       - name: Generate a token
