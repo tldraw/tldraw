@@ -1,5 +1,6 @@
-# Pin the Compose project name so `docker compose up` (run by process-compose), its shutdown hook,
-# and `yarn dev-app:clean` all act on the same project, containers, and volumes.
+# Default Compose project name for a single stack. The parallel-dev wrapper overrides it per worktree
+# with `-p tldraw_dotcom_dev_<n>` (internal/scripts/dotcom-dev-parallel.ts) so parallel worktrees get
+# isolated containers + volumes; up, the shutdown hook, and `yarn dev-app:clean` all pass the same -p.
 name: tldraw_dotcom_dev
 
 services:
@@ -14,7 +15,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - 6543:5432
+      - ${PG_PORT:-6543}:5432
     environment:
       POSTGRES_USER: user
       POSTGRES_DB: postgres
@@ -38,7 +39,7 @@ services:
     image: edoburu/pgbouncer:latest
     restart: always
     ports:
-      - "6432:6432"
+      - '${PGBOUNCER_PORT:-6432}:6432'
     environment:
       DATABASE_URL: postgres://user:password@zstart_postgres:5432/postgres
     volumes:
