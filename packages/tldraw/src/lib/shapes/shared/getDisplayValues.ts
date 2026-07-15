@@ -31,8 +31,9 @@ const dvCache = new WeakMap<
  * dependency on it. Within a single theme, light and dark only differ in their color palette, so
  * dimension-affecting values (font family, font size, line height, padding, stroke width, etc.)
  * are safe to read from any reactive scope — computed caches that measure text or build geometry
- * won't be invalidated by a light/dark toggle. The returned colors still reflect the color mode at
- * call time, but without a subscription they can go stale.
+ * won't be invalidated by a light/dark toggle. (This assumes `getCustomDisplayValues` overrides
+ * don't derive dimension values from `colorMode`.) The returned colors still reflect the color
+ * mode at call time, but without a subscription they can go stale.
  *
  * Callers that render colors and need to update when the color mode changes must pass `colorMode`
  * explicitly from a reactive read: `useColorMode()` in components, `ctx.colorMode` in exports, or
