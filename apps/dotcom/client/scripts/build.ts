@@ -1,5 +1,13 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
-import { SOCIAL_PREVIEW_BYPASS_PARAM } from '@tldraw/dotcom-shared'
+import {
+	FILE_PREFIX,
+	PUBLISH_PREFIX,
+	READ_ONLY_LEGACY_PREFIX,
+	READ_ONLY_PREFIX,
+	ROOM_PREFIX,
+	SNAPSHOT_PREFIX,
+	SOCIAL_PREVIEW_BYPASS_PARAM,
+} from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
 import json5 from 'json5'
@@ -17,21 +25,27 @@ const commonSecurityHeaders = {
 	'Content-Security-Policy': csp,
 }
 
-// Social/link-unfurling crawlers that don't run JavaScript, so they never see the SPA's runtime
-// title updates. We route these to the multiplayer worker, which renders the board name into the
-// social preview metadata. Search-engine crawlers (Googlebot, bingbot) render JavaScript and are
-// intentionally excluded so they still index the real app.
+// Regex fragments matched against the user-agent of requests to board URLs. Matching requests are
+// routed to the multiplayer worker, which renders the board name into the social preview metadata
+// for link-unfurling crawlers that don't run JavaScript and so never see the SPA's runtime title
+// updates.
+//
+// The generic `[Bb]ot` token catches the long tail of unfurlers (Twitterbot, Discordbot, Slackbot,
+// TelegramBot, LinkedInBot, redditbot, ...) including tldraw's own link-unfurl service
+// (`tldraw-bot/x.y.z`), so pasting a board link into a tldraw canvas shows the board name in the
+// bookmark. The named entries are unfurlers that don't say "bot". LINE and KakaoTalk are covered
+// too: their unfurlers identify as `facebookexternalhit`.
+//
+// Search-engine crawlers (Googlebot, bingbot) also match the generic token, but robots.txt already
+// disallows all board routes, so compliant search engines never request these URLs; a bot that
+// ignores robots.txt gets the preview stub, which is fine. Real people whose browser carries a
+// matching token — in-app browsers (WhatsApp, Pinterest) or the odd device name containing "bot" —
+// are bounced back to the app by the stub via the bypass param.
 const SOCIAL_CRAWLER_USER_AGENTS = [
+	'[Bb]ot',
 	'facebookexternalhit',
-	'Facebot',
-	'Twitterbot',
-	'Slackbot',
 	'Slack-ImgProxy',
-	'Discordbot',
-	'LinkedInBot',
 	'WhatsApp',
-	'TelegramBot',
-	'redditbot',
 	'Pinterest',
 	'Embedly',
 	'Iframely',
@@ -40,14 +54,18 @@ const SOCIAL_CRAWLER_USER_AGENTS = [
 	'SkypeUriPreview',
 	'Mastodon',
 	'Bluesky',
-	// tldraw's own link-unfurl service (user-agent `tldraw-bot/x.y.z`), so pasting a board link
-	// into a tldraw canvas shows the board name in the bookmark.
-	'tldraw-bot',
 ]
 
 // The board routes whose social preview should include the board name. Only the bare board route is
 // matched (not sub-routes like `/f/:slug/history`).
-const SOCIAL_PREVIEW_PREFIXES = ['f', 'p', 's', 'r', 'ro', 'v']
+const SOCIAL_PREVIEW_PREFIXES = [
+	FILE_PREFIX,
+	PUBLISH_PREFIX,
+	SNAPSHOT_PREFIX,
+	ROOM_PREFIX,
+	READ_ONLY_PREFIX,
+	READ_ONLY_LEGACY_PREFIX,
+]
 
 function socialPreviewRoute(multiplayerServerUrl: string) {
 	// Vercel matches `has.value` as `^value$`, so a bare `a|b|c` join anchors the first token to the
