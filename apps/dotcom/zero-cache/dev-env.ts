@@ -47,10 +47,10 @@ export interface DotcomDevEnv {
 	postgresVolumeName: string
 	zeroReplicaFile: string
 	zeroEnv: Record<string, string>
-	schemaFile: string
-	schemaSourceFile: string
 	wranglerPersistDir: string
 	resetLocalStateUrl: string
+	// Only used by dev-clean, to delete stale bundles left by older dev setups.
+	schemaFile: string
 }
 
 export interface DotcomDevCleanTargets {
@@ -96,10 +96,13 @@ export function buildDotcomDevEnv({
 		zeroEnv: {
 			ZERO_REPLICA_FILE: DOTCOM_DEV_ZERO_REPLICA_FILE,
 			ZERO_NUM_SYNC_WORKERS: '1',
+			// Keep connection counts small for the local docker postgres.
+			ZERO_CVR_MAX_CONNS: '6',
+			ZERO_UPSTREAM_MAX_CONNS: '6',
+			NODE_ENV: 'development',
 		},
-		schemaFile: join(zeroCacheDir, '.schema.js'),
-		schemaSourceFile: join(repoRoot, 'packages/dotcom-shared/src/tlaSchema.ts'),
 		wranglerPersistDir: join(syncWorkerDir, '.wrangler', DOTCOM_DEV_WRANGLER_STATE_DIR),
+		schemaFile: join(zeroCacheDir, '.schema.js'),
 		resetLocalStateUrl: `http://localhost:${DOTCOM_DEV_PORTS.client}/dev/reset-local-state`,
 	}
 }

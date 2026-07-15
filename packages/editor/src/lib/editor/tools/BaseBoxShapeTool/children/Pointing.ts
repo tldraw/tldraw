@@ -4,7 +4,6 @@ import { Vec } from '../../../../primitives/Vec'
 import type { Editor } from '../../../Editor'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
 import { TLPointerEventInfo } from '../../../types/event-types'
-import { cancelShapeCreationOnLongPress } from '../../cancelShapeCreationOnLongPress'
 import { StateNode } from '../../StateNode'
 import type { BaseBoxShapeTool } from '../BaseBoxShapeTool'
 
@@ -67,7 +66,8 @@ export class Pointing extends StateNode {
 	}
 
 	override onLongPress() {
-		cancelShapeCreationOnLongPress(this.editor, () => this.cancel())
+		// On a touch (coarse pointer) long-press, cancel the pending shape so it leaves nothing behind.
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
 	}
 
 	override onCancel() {

@@ -123,12 +123,6 @@
       "value": "Exportați ca"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Sigur doriți să ștergeți acest spațiu de lucru? Această acțiune nu poate fi anulată."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Obțineți ajutor pe Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Sigur vrei să ștergi "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "Fișier fixat"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Sigur vrei să uiți acest fișier?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Sigur vrei să uiți "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -793,6 +821,26 @@
     {
       "type": 0,
       "value": "Redenumiți"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Sigur doriți să ștergeți "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Această acțiune nu poate fi anulată."
     }
   ],
   "95aacd4d4a": [
@@ -1125,26 +1173,6 @@
       "value": "Aflați mai multe despre partajare."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Permiteți `"
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": "` să ne ajute să îmbunătățim tldraw."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1455,12 +1483,6 @@
     {
       "type": 0,
       "value": "Sigur vrei să părăsești acest spațiu de lucru?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Sigur doriți să ștergeți acest fișier?"
     }
   ],
   "fed5ec05eb": [

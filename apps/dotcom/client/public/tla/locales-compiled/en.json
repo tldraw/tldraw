@@ -331,6 +331,12 @@
       "value": "Thanks for helping us improve tldraw!"
     }
   ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Accept terms of use"
+    }
+  ],
   "477df802ca": [
     {
       "type": 0,
@@ -1167,26 +1173,6 @@
     {
       "type": 0,
       "value": "Learn more about sharing."
-    }
-  ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Allow "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " to help us improve tldraw."
     }
   ],
   "c303bd1095": [

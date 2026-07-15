@@ -123,12 +123,6 @@
       "value": "Dışa aktarma formatı"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Bu çalışma alanını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -307,6 +301,22 @@
       "value": "Discord'da yardım alın"
     }
   ],
+  "454aad3b3c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " dosyasını silmek istediğinizden emin misiniz?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -329,12 +339,6 @@
     {
       "type": 0,
       "value": "Pin dosyası"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Bu dosyayı unutmak istediğinizden emin misiniz?"
     }
   ],
   "49ee308734": [
@@ -717,6 +721,22 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "'i unutmak istediğinizden emin misiniz?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -785,6 +805,22 @@
     {
       "type": 0,
       "value": "Yeniden Adlandır"
+    }
+  ],
+  "90646db02d": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
     }
   ],
   "95aacd4d4a": [
@@ -1105,26 +1141,6 @@
       "value": "Paylaşım hakkında daha fazla bilgi edinin."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Tldraw'ı geliştirmemize yardımcı olması için "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": "'e izin verin."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1435,12 +1451,6 @@
     {
       "type": 0,
       "value": "Bu çalışma alanından ayrılmak istediğinizden emin misiniz?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Bu dosyayı silmek istediğinizden emin misiniz?"
     }
   ],
   "fed5ec05eb": [

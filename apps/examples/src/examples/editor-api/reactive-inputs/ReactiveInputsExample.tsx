@@ -67,7 +67,7 @@ function ReactiveInputsPanel() {
 	const accelKey = useValue('accel key', () => editor.inputs.getAccelKey(), [editor])
 
 	return (
-		<div className="reactive-inputs-panel">
+		<div className="tlui-menu reactive-inputs-panel">
 			<div className="reactive-inputs-content">
 				{/* [5] */}
 				<div className="input-group">

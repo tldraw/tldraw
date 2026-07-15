@@ -1,21 +1,14 @@
 import { useUser } from '@clerk/clerk-react'
 import classNames from 'classnames'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { TldrawUiDialogBody, TldrawUiDialogHeader, TldrawUiDialogTitle } from 'tldraw'
-import { useAnalyticsConsent } from '../../hooks/useAnalyticsConsent'
 import { F } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
-import { TlaMenuSwitch } from '../tla-menu/tla-menu'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
-import { TlaLogo } from '../TlaLogo/TlaLogo'
 import styles from './auth.module.css'
 
 export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 	const { user } = useUser()
-	const [currentConsent, updateAnalyticsConsent] = useAnalyticsConsent()
-	const [analyticsOptIn, setAnalyticsOptIn] = useState(currentConsent)
-	const initialAnalyticsOptIn = useRef(analyticsOptIn)
-	const showAnalyticsToggle = initialAnalyticsOptIn.current !== true
 
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [error, setError] = useState<string | null>(null)
@@ -28,11 +21,6 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 
 		try {
 			if (!user) return
-
-			// Persist analytics choice before redirecting
-			if (analyticsOptIn !== null) {
-				updateAnalyticsConsent(analyticsOptIn)
-			}
 
 			// Store acceptance in user metadata
 			await user.update({
@@ -55,23 +43,17 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 		} finally {
 			setIsSubmitting(false)
 		}
-	}, [isSubmitting, onClose, analyticsOptIn, updateAnalyticsConsent, user])
+	}, [isSubmitting, onClose, user])
 
 	return (
-		<div className={styles.authContainer}>
-			<TldrawUiDialogHeader>
+		<div className={styles.legalContainer}>
+			<TldrawUiDialogHeader className={styles.legalDialogHeader}>
 				<TldrawUiDialogTitle>
-					<span />
+					<F defaultMessage="Accept terms of use" />
 				</TldrawUiDialogTitle>
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody className={styles.authBody}>
-				<div className={styles.authLogoWrapper}>
-					<div className={styles.authLogo}>
-						<TlaLogo />
-					</div>
-				</div>
-
-				<p className={styles.authDescription}>
+			<TldrawUiDialogBody className={styles.legalBody}>
+				<p className={styles.legalDescription}>
 					<F
 						defaultMessage="Before you start, please accept our <tos>terms of use</tos> and <privacy>privacy policy</privacy>."
 						values={{
@@ -81,30 +63,12 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 					/>
 				</p>
 
-				{showAnalyticsToggle && (
-					<label className={styles.authCheckboxLabel}>
-						<span>
-							<F
-								defaultMessage="Allow <cookies>analytics</cookies> to help us improve tldraw."
-								values={{
-									cookies: (chunks) => <ExternalLink to="/cookies.html">{chunks}</ExternalLink>,
-								}}
-							/>
-						</span>
-						<TlaMenuSwitch
-							id="tla-analytics-switch"
-							checked={!!analyticsOptIn}
-							onChange={(checked) => setAnalyticsOptIn(checked)}
-						/>
-					</label>
-				)}
-
 				{error && <div className={styles.authError}>{error}</div>}
 				<TlaCtaButton
 					data-testid="tla-accept-and-continue-button"
 					onClick={handleContinue}
 					disabled={isSubmitting}
-					className={classNames(styles.authCtaButton, styles.authTermsAcceptAndContinueButton)}
+					className={classNames(styles.authCtaButton, styles.legalCtaButton)}
 				>
 					<F defaultMessage="Accept and continue" />
 				</TlaCtaButton>

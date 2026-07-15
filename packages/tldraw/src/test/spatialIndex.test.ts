@@ -47,8 +47,8 @@ describe('SpatialIndexManager - bounds epoch', () => {
 	})
 
 	it('does not tick on a prop-only update with unchanged bounds', () => {
-		// Color change doesn't move bounds — step-1 must short-circuit
-		// the upsert and the epoch must stay still.
+		// Color change doesn't move bounds — the recheck must leave the
+		// mutation batch empty and the epoch must stay still.
 		const id = createShapeId('prop-only')
 		editor.createShapes([
 			{ id, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100, color: 'black' } },
@@ -62,8 +62,8 @@ describe('SpatialIndexManager - bounds epoch', () => {
 		tracker.stop()
 	})
 
-	it('skips the rbush upsert call on a prop-only diff', () => {
-		// Direct check on the headline optimization: `RBushIndex.upsert`
+	it('skips the rbush mutation batch on a prop-only diff', () => {
+		// Direct check on the headline optimization: `RBushIndex.applyBatch`
 		// must not be called when only props change.
 		const id = createShapeId('upsert-spy')
 		editor.createShapes([{ id, type: 'geo', x: 100, y: 100 }])
@@ -72,13 +72,13 @@ describe('SpatialIndexManager - bounds epoch', () => {
 		editor.getShapeIdsInsideBounds(editor.getViewportPageBounds())
 
 		const rbush = (editor as any)._spatialIndex.rbush
-		const spy = vi.spyOn(rbush, 'upsert')
+		const spy = vi.spyOn(rbush, 'applyBatch')
 
 		editor.updateShapes([{ id, type: 'geo', props: { color: 'red' } }])
 		editor.getShapeIdsInsideBounds(editor.getViewportPageBounds())
 		expect(spy).not.toHaveBeenCalled()
 
-		// Sanity: a real bounds change does call upsert.
+		// Sanity: a real bounds change does apply a batch.
 		editor.updateShapes([{ id, type: 'geo', x: 200, y: 200 }])
 		editor.getShapeIdsInsideBounds(editor.getViewportPageBounds())
 		expect(spy).toHaveBeenCalled()
@@ -352,6 +352,128 @@ describe('SpatialIndexManager - binding-only diffs', () => {
 		const probe = probeOnlyInAfter(boundsBefore, boundsAfter)
 		expect(editor.getShapeIdsInsideBounds(probe).has(arrowId)).toBe(true)
 		tracker.stop()
+	})
+
+	it('ticks the epoch and refreshes arrow bounds when a binding is deleted in its own transaction', () => {
+		// The mirror of binding creation: deleting a binding without touching
+		// the arrow record snaps its terminal back to the shape's own props,
+		// shrinking the bounds. Exercises step 1's binding-removed branch,
+		// which nothing else covers.
+		const boxAId = createShapeId('boxA')
+		const boxBId = createShapeId('boxB')
+		const arrowId = createShapeId('arrow')
+
+		editor.createShapes([
+			{ id: boxAId, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100, fill: 'none' } },
+			{ id: boxBId, type: 'geo', x: 500, y: 500, props: { w: 100, h: 100, fill: 'none' } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+			},
+		])
+		editor.createBindings([
+			{
+				type: 'arrow',
+				fromId: arrowId,
+				toId: boxAId,
+				props: {
+					terminal: 'start',
+					isExact: false,
+					isPrecise: true,
+					normalizedAnchor: { x: 0, y: 0 },
+				},
+			},
+			{
+				type: 'arrow',
+				fromId: arrowId,
+				toId: boxBId,
+				props: {
+					terminal: 'end',
+					isExact: false,
+					isPrecise: true,
+					normalizedAnchor: { x: 0, y: 0 },
+				},
+			},
+		])
+
+		const boundsBefore = editor.getShapePageBounds(arrowId)!
+		// The bound arrow reaches across to boxB.
+		expect(editor.getShapeIdsInsideBounds(new Box(490, 490, 120, 120)).has(arrowId)).toBe(true)
+
+		const tracker = trackSpatialIndexInvalidations(editor, boundsBefore.clone())
+
+		// Delete only the end binding; the arrow record itself is untouched, so
+		// this is a binding-only transaction.
+		const endBinding = editor
+			.getBindingsFromShape(arrowId, 'arrow')
+			.find((b) => b.props.terminal === 'end')!
+		editor.deleteBindings([endBinding])
+
+		const boundsAfter = editor.getShapePageBounds(arrowId)!
+		expect(boundsAfter.equals(boundsBefore)).toBe(false)
+		expect(tracker.delta).toBe(1)
+
+		// The index must drop the stale reach toward boxB and hold the new,
+		// smaller bounds.
+		expect(editor.getShapeIdsInsideBounds(new Box(490, 490, 120, 120)).has(arrowId)).toBe(false)
+		expect(editor.getShapeIdsInsideBounds(boundsAfter).has(arrowId)).toBe(true)
+		tracker.stop()
+	})
+
+	it('rechecks the old arrow when a binding is reassigned to a different arrow', () => {
+		// Defensive: no built-in flow changes a binding's fromId in place, but
+		// a custom binding util could. Reassigning the binding must recheck the
+		// old arrow, whose bounds revert now that it has lost the binding.
+		const boxId = createShapeId('box')
+		const arrow1Id = createShapeId('arrow1')
+		const arrow2Id = createShapeId('arrow2')
+
+		editor.createShapes([
+			{ id: boxId, type: 'geo', x: 1000, y: 0, props: { w: 100, h: 100, fill: 'none' } },
+			{
+				id: arrow1Id,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: { kind: 'arc', bend: 40, start: { x: 0, y: 0 }, end: { x: 50, y: 0 } },
+			},
+			{
+				id: arrow2Id,
+				type: 'arrow',
+				x: 0,
+				y: 500,
+				props: { start: { x: 0, y: 0 }, end: { x: 50, y: 0 } },
+			},
+		])
+		editor.createBindings([
+			{
+				type: 'arrow',
+				fromId: arrow1Id,
+				toId: boxId,
+				props: {
+					terminal: 'end',
+					isExact: false,
+					isPrecise: true,
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+			},
+		])
+
+		// arrow1 now reaches across to the box; arrow2 does not.
+		const boxRegion = new Box(930, -20, 220, 220)
+		expect(editor.getShapeIdsInsideBounds(boxRegion).has(arrow1Id)).toBe(true)
+		expect(editor.getShapeIdsInsideBounds(boxRegion).has(arrow2Id)).toBe(false)
+
+		// Reassign the binding from arrow1 to arrow2 in place (binding-only).
+		const binding = editor.getBindingsFromShape(arrow1Id, 'arrow')[0]
+		editor.updateBinding({ ...binding, fromId: arrow2Id })
+
+		// arrow2 inherits the reach toward the box; arrow1 must drop it.
+		expect(editor.getShapeIdsInsideBounds(boxRegion).has(arrow2Id)).toBe(true)
+		expect(editor.getShapeIdsInsideBounds(boxRegion).has(arrow1Id)).toBe(false)
 	})
 })
 

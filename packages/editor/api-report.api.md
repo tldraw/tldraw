@@ -208,6 +208,8 @@ export abstract class BaseFrameLikeShapeUtil<Shape extends TLBaseBoxShape> exten
     onDragShapesOut(shape: Shape, draggingShapes: TLShape[], info: TLDragShapesOutInfo): void;
     // (undocumented)
     providesBackgroundForChildren(): boolean;
+    // (undocumented)
+    shouldClipChild(child: TLShape): boolean;
 }
 
 // @public (undocumented)
@@ -456,9 +458,6 @@ export class Box {
 
 // @public (undocumented)
 export type BoxLike = Box | BoxModel;
-
-// @internal
-export function cancelShapeCreationOnLongPress(editor: Editor, cancelPendingCreation: () => void): void;
 
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
@@ -725,6 +724,7 @@ export const defaultTldrawOptions: {
     readonly cameraSlideFriction: 0.09;
     readonly coarseDragDistanceSquared: 36;
     readonly coarseHandleRadius: 20;
+    readonly coarseHitTestMargin: 4;
     readonly coarsePointerWidth: 12;
     readonly collaboratorCheckIntervalMs: 1200;
     readonly collaboratorIdleTimeoutMs: 3000;
@@ -764,7 +764,7 @@ export const defaultTldrawOptions: {
         readonly step: 1;
     }];
     readonly handleRadius: 12;
-    readonly hitTestMargin: 8;
+    readonly hitTestMargin: 3;
     readonly laserDelayMs: 1200;
     readonly laserFadeoutMs: 500;
     readonly longPressDurationMs: 500;
@@ -1335,6 +1335,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): IndexKey;
     getHintingShape(): NonNullable<TLShape | undefined>[];
     getHintingShapeIds(): TLShapeId[];
+    getHitTestMargin(): number;
     getHoveredShape(): TLShape | undefined;
     getHoveredShapeId(): null | TLShapeId;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
@@ -1342,6 +1343,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getInstanceState(): TLInstance;
     // (undocumented)
     getIsFocused(): boolean;
+    getIsMounted(): boolean;
     // (undocumented)
     getIsReadonly(): boolean;
     // @internal
@@ -3633,6 +3635,8 @@ export interface TLCropInfo<T extends TLShape> {
     // (undocumented)
     initialShape: T;
     // (undocumented)
+    isResizingFromCenter?: boolean;
+    // (undocumented)
     uncroppedSize: {
         h: number;
         w: number;
@@ -3779,6 +3783,8 @@ export interface TldrawOptions {
     readonly coarseDragDistanceSquared: number;
     // (undocumented)
     readonly coarseHandleRadius: number;
+    // (undocumented)
+    readonly coarseHitTestMargin: number;
     // (undocumented)
     readonly coarsePointerWidth: number;
     // (undocumented)
@@ -4108,6 +4114,8 @@ export interface TLEventMap {
     resize: [BoxModel];
     // (undocumented)
     tick: [number];
+    // (undocumented)
+    unmount: [];
     // (undocumented)
     update: [];
 }

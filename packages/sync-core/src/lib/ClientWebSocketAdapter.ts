@@ -216,7 +216,13 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 			try {
 				parsed = JSON.parse(ev.data.toString())
 			} catch {
-				warnOnce('Received malformed WebSocket message. Dropping message.')
+				// A malformed message means the connection delivered corrupt data, so we can't trust
+				// that we're still in sync. Dropping the message can silently desync the client (e.g. a
+				// missed 'patch' is applied as if it never happened), so instead we restart the
+				// connection. Reconnecting re-hydrates the store from the last known server clock and
+				// brings us fully back in sync.
+				warnOnce('Received malformed WebSocket message. Restarting the connection.')
+				this.restart()
 				return
 			}
 			this.messageListeners.forEach((cb) => cb(parsed))

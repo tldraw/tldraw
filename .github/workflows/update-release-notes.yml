@@ -1,6 +1,16 @@
 name: Update release notes
 
 on:
+  # Update release notes whenever production is updated, keeping next.mdx (and the
+  # draft GitHub release synced by the skill) in step with each dotcom release —
+  # the same production push that deploys dotcom and publishes the `next` package.
+  # Production only: a push to main must not trigger a notes run on every merge.
+  # Release-notes commits carry `[skip ci]`, so a notes-only push does not re-trigger
+  # this workflow, and the job only ever opens a PR against main (it never pushes to
+  # production), so there is no deploy loop.
+  push:
+    branches:
+      - production
   workflow_dispatch:
 
 concurrency:

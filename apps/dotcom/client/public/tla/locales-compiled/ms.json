@@ -123,12 +123,6 @@
       "value": "Eksport sebagai"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Adakah anda pasti mahu memadamkan ruang kerja ini? Tindakan ini tidak boleh dibuat asal."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Dapatkan bantuan tentang Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Adakah anda pasti mahu memadam "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "Pin fail"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Adakah anda pasti mahu melupakan fail ini?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Adakah anda pasti mahu melupakan "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -793,6 +821,26 @@
     {
       "type": 0,
       "value": "Namakan semula"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Adakah anda pasti mahu memadam "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Tindakan ini tidak boleh dibuat asal."
     }
   ],
   "95aacd4d4a": [
@@ -1113,26 +1161,6 @@
       "value": "Ketahui lebih lanjut tentang perkongsian."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Benarkan "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analitik"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " untuk membantu kami meningkatkan tldraw."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1443,12 +1471,6 @@
     {
       "type": 0,
       "value": "Adakah anda pasti mahu meninggalkan ruang kerja ini?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Adakah anda pasti mahu memadamkan fail ini?"
     }
   ],
   "fed5ec05eb": [

@@ -801,7 +801,16 @@ export function useOnMount(onMount?: TLOnMountHandler) {
 			{ history: 'ignore' }
 		)
 		window.tldrawReady = true
-		return teardown
+		return () => {
+			teardown?.()
+			// The editor's component can unmount without the editor being disposed (for example when
+			// the canvas is swapped for an error fallback), so emit `unmount` here rather than relying
+			// on disposal. If the editor is being disposed, `dispose()` emits `unmount` itself, so we
+			// only emit here when it's still mounted and alive.
+			if (editor.getIsMounted() && !editor.isDisposed) {
+				editor.run(() => editor.emit('unmount'), { history: 'ignore' })
+			}
+		}
 	})
 
 	React.useLayoutEffect(() => {

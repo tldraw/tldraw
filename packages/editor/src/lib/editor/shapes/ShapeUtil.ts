@@ -1039,6 +1039,7 @@ export interface TLCropInfo<T extends TLShape> {
 	uncroppedSize: { w: number; h: number }
 	initialShape: T
 	aspectRatioLocked?: boolean
+	isResizingFromCenter?: boolean
 }
 
 /** @public */

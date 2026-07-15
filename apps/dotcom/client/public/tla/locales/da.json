@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Er du sikker på, at du vil slette dette arbejdsområde? Denne handling kan ikke fortrydes."
-  },
   "0095a9fa74": {
     "translation": "Eksportere"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Få hjælp til Discord"
   },
+  "454aad3b3c": {
+    "translation": "Er du sikker på, at du vil slette <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Tak, fordi du hjælper os med at forbedre tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Fastgør fil"
-  },
-  "4908687e50": {
-    "translation": "Er du sikker på, at du vil glemme denne fil?"
   },
   "49ee308734": {
     "translation": "Navn"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Har du en fejl, et problem eller en idé til tldraw? Fortæl os det! Udfyld denne formular, så følger vi op via e-mail, hvis det er nødvendigt. Du kan også <discord>chatte med os på Discord</discord> eller <github>indsende et problem på GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Er du sikker på, at du vil glemme <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Medlem"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Omdøb"
+  },
+  "90646db02d": {
+    "translation": "Er du sikker på, at du vil slette <strong>{workspaceName}</strong>? Denne handling kan ikke fortrydes."
   },
   "95aacd4d4a": {
     "translation": "Log ind med Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Få mere at vide om deling."
-  },
-  "c28aed8348": {
-    "translation": "Tillad <cookies>analyse</cookies> for at hjælpe os med at forbedre tldraw."
   },
   "c303bd1095": {
     "translation": "Filen kunne ikke udgives."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Er du sikker på, at du vil forlade dette arbejdsområde?"
-  },
-  "fd1be3efcf": {
-    "translation": "Er du sikker på, at du vil slette denne fil?"
   },
   "fed5ec05eb": {
     "translation": "Kopieret link"

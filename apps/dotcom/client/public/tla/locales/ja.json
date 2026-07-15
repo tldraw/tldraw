@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "このワークスペースを削除してもよろしいですか？この操作は元に戻せません。"
-  },
   "0095a9fa74": {
     "translation": "エクスポート"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Discordで問い合わせる"
   },
+  "454aad3b3c": {
+    "translation": "<strong>{fileName}</strong>を削除してもよろしいですか？"
+  },
   "46137245cd": {
     "translation": "tldraw の改善にご協力いただきありがとうございます。"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "ピンファイル"
-  },
-  "4908687e50": {
-    "translation": "このファイルを無視しても本当によろしいですか？"
   },
   "49ee308734": {
     "translation": "名前"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "tldraw に関するバグ、問題、またはアイデアがありましたら、ぜひお知らせください。こちらのフォームにご記入いただければ、必要に応じてメールでご連絡いたします。また、<discord>Discord でチャット</discord>、<github>GitHub で問題を提出</github>することも可能です。"
   },
+  "81666c6e4a": {
+    "translation": "<strong>{fileName}</strong> を無視してもよろしいですか？"
+  },
   "858ba4765e": {
     "translation": "メンバー"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "名前を変更"
+  },
+  "90646db02d": {
+    "translation": "<strong>{workspaceName}</strong>を削除してもよろしいですか？この操作は元に戻せません。"
   },
   "95aacd4d4a": {
     "translation": "Googleでログイン"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "共有についてさらに詳しく。"
-  },
-  "c28aed8348": {
-    "translation": "tldraw を改善するために、<cookies>analytics</cookies> を許可します。"
   },
   "c303bd1095": {
     "translation": "ファイルを公開できません"
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "本当にこのワークスペースを離れますか？"
-  },
-  "fd1be3efcf": {
-    "translation": "このファイルを削除しても本当によろしいですか？"
   },
   "fed5ec05eb": {
     "translation": "コピーしたリンク"

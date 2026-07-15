@@ -1,10 +1,18 @@
 import { Editor, EditorAtom, useEditor, useQuickReactor } from '@tldraw/editor'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useActions } from '../../context/actions'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 
 const backToContentSuppressed = new EditorAtom('backToContentSuppressed', () => false)
 const suppressTimeout = new EditorAtom<number | null>('backToContentSuppressTimeout', () => null)
+
+/**
+ * How long all content must stay off-screen before the "back to content" button
+ * appears. Delaying the appearance stops the button from flickering during brief
+ * off-screen moments while panning or zooming.
+ * @internal
+ */
+export const BACK_TO_CONTENT_APPEAR_DELAY_MS = 1000
 
 /**
  * Hide the "back to content" helper button right away, regardless of where the
@@ -36,11 +44,11 @@ export function BackToContent() {
 
 	const [showBackToContent, setShowBackToContent] = useState(false)
 	const rIsShowing = useRef(false)
+	const rAppearTimeout = useRef<number | null>(null)
 
 	useQuickReactor(
 		'toggle showback to content',
 		() => {
-			const showBackToContentPrev = rIsShowing.current
 			let showBackToContentNow = false
 			if (!backToContentSuppressed.get(editor)) {
 				const shapeIds = editor.getCurrentPageShapeIds()
@@ -49,13 +57,49 @@ export function BackToContent() {
 				}
 			}
 
-			if (showBackToContentPrev !== showBackToContentNow) {
-				setShowBackToContent(showBackToContentNow)
-				rIsShowing.current = showBackToContentNow
+			if (showBackToContentNow === rIsShowing.current) {
+				// Already in the desired state. Cancel any pending appearance timer
+				// that's no longer needed (e.g. content came back into view before
+				// the delay elapsed).
+				if (rAppearTimeout.current !== null) {
+					clearTimeout(rAppearTimeout.current)
+					rAppearTimeout.current = null
+				}
+				return
+			}
+
+			if (showBackToContentNow) {
+				// Delay the appearance so the button doesn't flicker during brief
+				// off-screen moments. The timer cancels above if content returns.
+				if (rAppearTimeout.current === null) {
+					rAppearTimeout.current = editor.timers.setTimeout(() => {
+						rAppearTimeout.current = null
+						rIsShowing.current = true
+						setShowBackToContent(true)
+					}, BACK_TO_CONTENT_APPEAR_DELAY_MS)
+				}
+			} else {
+				// Hiding stays immediate.
+				if (rAppearTimeout.current !== null) {
+					clearTimeout(rAppearTimeout.current)
+					rAppearTimeout.current = null
+				}
+				rIsShowing.current = false
+				setShowBackToContent(false)
 			}
 		},
 		[editor]
 	)
+
+	// Clear any pending appearance timer if we unmount before it fires.
+	useEffect(() => {
+		return () => {
+			if (rAppearTimeout.current !== null) {
+				clearTimeout(rAppearTimeout.current)
+				rAppearTimeout.current = null
+			}
+		}
+	}, [])
 
 	if (!showBackToContent) return null
 

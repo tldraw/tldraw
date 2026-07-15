@@ -1,10 +1,4 @@
-import {
-	StateNode,
-	TLArrowShape,
-	createShapeId,
-	cancelShapeCreationOnLongPress,
-	maybeSnapToGrid,
-} from '@tldraw/editor'
+import { StateNode, TLArrowShape, createShapeId, maybeSnapToGrid } from '@tldraw/editor'
 import { ArrowShapeUtil } from '../ArrowShapeUtil'
 import { clearArrowTargetState, updateArrowTargetState } from '../arrowTargetState'
 
@@ -76,7 +70,8 @@ export class Pointing extends StateNode {
 	}
 
 	override onLongPress() {
-		cancelShapeCreationOnLongPress(this.editor, () => this.cancel())
+		// On a touch (coarse pointer) long-press, cancel the pending shape so it leaves nothing behind.
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
 	}
 
 	override onCancel() {

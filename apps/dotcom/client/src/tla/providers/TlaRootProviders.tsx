@@ -30,7 +30,6 @@ import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
-import { TlaButton } from '../components/TlaButton/TlaButton'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
@@ -283,9 +282,9 @@ function SignedInProvider({
 						para1: intl.formatMessage(appMessages.clerkUnavailablePara),
 					}}
 					cta={
-						<TlaButton variant="primary" onClick={() => window.location.reload()}>
+						<button type="button" onClick={() => window.location.reload()}>
 							{intl.formatMessage(appMessages.refresh)}
-						</TlaButton>
+						</button>
 					}
 				/>
 			)

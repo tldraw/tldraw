@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Seguro que queres eliminar este espazo de traballo? Esta acción non se pode desfacer."
-  },
   "0095a9fa74": {
     "translation": "Exportar"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Obtén axuda en Discord"
   },
+  "454aad3b3c": {
+    "translation": "Seguro que queres eliminar <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Grazas por axudarnos a mellorar tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Ficheiro fixado"
-  },
-  "4908687e50": {
-    "translation": "Estás seguro de que queres esquecer este ficheiro?"
   },
   "49ee308734": {
     "translation": "Nome"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Tes algún erro, problema ou idea para tldraw? Avísanos! Completa este formulario e poñerémonos en contacto connosco por correo electrónico se é necesario. Tamén podes <discord>chatear connosco en Discord</discord> ou <github>enviar un problema en GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Seguro que queres esquecer <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Membro"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Cambiar o nome"
+  },
+  "90646db02d": {
+    "translation": "Seguro que queres eliminar <strong>{workspaceName}</strong>? Esta acción non se pode desfacer."
   },
   "95aacd4d4a": {
     "translation": "Iniciar sesión con Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Obtén máis información sobre como compartir."
-  },
-  "c28aed8348": {
-    "translation": "Permite que as <cookies>analytics</cookies> nos axuden a mellorar tldraw."
   },
   "c303bd1095": {
     "translation": "Non se puido publicar o ficheiro."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Seguro que queres saír deste espazo de traballo?"
-  },
-  "fd1be3efcf": {
-    "translation": "Estás seguro de que queres eliminar este ficheiro?"
   },
   "fed5ec05eb": {
     "translation": "Ligazón copiada"

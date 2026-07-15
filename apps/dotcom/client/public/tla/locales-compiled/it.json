@@ -123,12 +123,6 @@
       "value": "Esporta come"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Sei sicuro di voler eliminare quest'area di lavoro? Quest'azione è irreversibile."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Chiedi aiuto su Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Sei sicuro di voler eliminare "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "File Pin"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Confermi di voler dimenticare questo file?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Sei sicuro di voler dimenticare "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -793,6 +821,26 @@
     {
       "type": 0,
       "value": "Rinomina"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Sei sicuro di voler eliminare "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Questa azione non può essere annullata."
     }
   ],
   "95aacd4d4a": [
@@ -1121,26 +1169,6 @@
       "value": "Maggiori informazioni sulla condivisione."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Consenti "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " per aiutarci a migliorare tldraw."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1451,12 +1479,6 @@
     {
       "type": 0,
       "value": "Sei sicuro di voler lasciare questo spazio di lavoro?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Confermi di voler eliminare questo file?"
     }
   ],
   "fed5ec05eb": [

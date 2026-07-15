@@ -1,12 +1,10 @@
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { ReactElement, useEffect } from 'react'
 import { TldrawUiButton, useDialogs } from 'tldraw'
-import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
 import { useSetIsReady } from '../../hooks/useIsReady'
 import { F } from '../../utils/i18n'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
-import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import styles from './TlaFileError.module.css'
 
 function DefaultError() {
@@ -104,12 +102,14 @@ function NotAuthenticatedError() {
 			header={<F defaultMessage="Sign in" />}
 			para1={<F defaultMessage="You need to sign in to view this file." />}
 			cta={
-				<TlaCtaButton
+				<button
+					type="button"
+					className={styles.link}
 					data-testid="tla-sign-in-button"
 					onClick={() => dialogs.addDialog({ component: TlaSignInDialog })}
 				>
 					<F defaultMessage="Sign in" />
-				</TlaCtaButton>
+				</button>
 			}
 		/>
 	)
@@ -127,8 +127,7 @@ function TlaFileErrorContent({
 	cta?: ReactElement
 }) {
 	return (
-		<div className={styles.container}>
-			{sadFaceIcon}
+		<div className={styles.container} data-testid="tla-error">
 			<div className={styles.content}>
 				<h1>{header}</h1>
 				<p>{para1}</p>

@@ -4,6 +4,7 @@ import {
 	getCroppedImageDataForAspectRatio,
 	getCroppedImageDataForReplacedImage,
 	getCroppedImageDataWhenZooming,
+	MIN_CROP_SIZE,
 } from '../lib/shapes/shared/crop'
 import { TestEditor } from './TestEditor'
 
@@ -921,6 +922,146 @@ describe('Resizing crop box when not aspect-ratio locked', () => {
 			expect(results3.props.crop.bottomRight.x).toBeLessThanOrEqual(1)
 			expect(results3.props.crop.bottomRight.y).toBeLessThanOrEqual(1)
 		}
+	})
+})
+
+describe('Resizing crop box from the center', () => {
+	// With isResizingFromCenter (alt/option), the crop center stays fixed and the
+	// opposite edge mirrors the dragged edge so the crop resizes symmetrically.
+
+	it('Resizes a single axis symmetrically when dragging an edge', () => {
+		const results = getCropBox(shape, {
+			handle: 'left',
+			change: new Vec(10, 0),
+			crop: initialCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			isResizingFromCenter: true,
+		})
+		// Both the left and right edges move in by 10, keeping the center fixed.
+		expect(results).toMatchObject({
+			x: 110,
+			y: 100,
+			props: {
+				w: 80,
+				h: 100,
+				crop: {
+					topLeft: { x: 0.1, y: 0 },
+					bottomRight: { x: 0.9, y: 1 },
+				},
+			},
+		})
+	})
+
+	it('Mirrors the dragged edge regardless of which side is dragged', () => {
+		const results = getCropBox(shape, {
+			handle: 'right',
+			change: new Vec(-10, 0),
+			crop: initialCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			isResizingFromCenter: true,
+		})
+		// Dragging the right edge in by 10 gives the same symmetric result as the left.
+		expect(results).toMatchObject({
+			x: 110,
+			y: 100,
+			props: {
+				w: 80,
+				h: 100,
+				crop: {
+					topLeft: { x: 0.1, y: 0 },
+					bottomRight: { x: 0.9, y: 1 },
+				},
+			},
+		})
+	})
+
+	it('Resizes both axes symmetrically when dragging a corner', () => {
+		const results = getCropBox(shape, {
+			handle: 'top_left',
+			change: new Vec(10, 20),
+			crop: initialCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			isResizingFromCenter: true,
+		})
+		expect(results).toMatchObject({
+			x: 110,
+			y: 120,
+			props: {
+				w: 80,
+				h: 60,
+				crop: {
+					topLeft: { x: 0.1, y: 0.2 },
+					bottomRight: { x: 0.9, y: 0.8 },
+				},
+			},
+		})
+	})
+
+	it('Keeps the aspect ratio while staying centered with aspectRatioLocked', () => {
+		const results = getCropBox(shape, {
+			handle: 'top_left',
+			change: new Vec(10, 20),
+			crop: initialCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			aspectRatioLocked: true,
+			isResizingFromCenter: true,
+		})
+		// The crop is square (ratio 1) so both half-extents collapse to the larger drag.
+		expect(results).toMatchObject({
+			x: 110,
+			y: 110,
+			props: {
+				w: 80,
+				h: 80,
+				crop: {
+					topLeft: { x: 0.1, y: 0.1 },
+					bottomRight: { x: 0.9, y: 0.9 },
+				},
+			},
+		})
+	})
+
+	it('Clamps to the minimum crop size while centered', () => {
+		const results = getCropBox(shape, {
+			handle: 'left',
+			change: new Vec(48, 0),
+			crop: initialCrop,
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			isResizingFromCenter: true,
+		})
+		expect(results).toMatchObject({
+			x: 146,
+			y: 100,
+			props: {
+				w: MIN_CROP_SIZE,
+				h: 100,
+				crop: {
+					topLeft: { x: 0.46, y: 0 },
+					bottomRight: { x: 0.54, y: 1 },
+				},
+			},
+		})
+	})
+
+	it('Preserves a circular crop while centered', () => {
+		const results = getCropBox(shape, {
+			handle: 'left',
+			change: new Vec(10, 0),
+			crop: { ...initialCrop, isCircle: true },
+			uncroppedSize: initialSize,
+			initialShape: shape,
+			isResizingFromCenter: true,
+		})
+		expect(results?.props.crop).toMatchObject({
+			topLeft: { x: 0.1, y: 0 },
+			bottomRight: { x: 0.9, y: 1 },
+			isCircle: true,
+		})
 	})
 })
 

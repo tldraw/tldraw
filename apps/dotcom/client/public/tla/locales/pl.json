@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Czy na pewno chcesz usunąć ten obszar roboczy? Tej czynności nie można cofnąć."
-  },
   "0095a9fa74": {
     "translation": "Eksportuj"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Uzyskaj pomoc na Discordzie"
   },
+  "454aad3b3c": {
+    "translation": "Czy na pewno chcesz usunąć <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Dziękujemy za pomoc w ulepszaniu tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Przypnij plik"
-  },
-  "4908687e50": {
-    "translation": "Czy na pewno chcesz zapomnieć ten plik?"
   },
   "49ee308734": {
     "translation": "Nazwa"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Masz błąd, problem lub pomysł na tldraw? Daj nam znać! Wypełnij ten formularz, a my skontaktujemy się z Tobą przez e-mail, jeśli będzie to konieczne. Możesz również <discord>porozmawiać z nami na Discordzie</discord> lub <github>zgłosić problem na GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Czy na pewno chcesz zapomnieć <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Członek"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Zmień nazwę"
+  },
+  "90646db02d": {
+    "translation": "Czy na pewno chcesz usunąć <strong>{workspaceName}</strong>? Tej czynności nie można cofnąć."
   },
   "95aacd4d4a": {
     "translation": "Zaloguj się za pomocą Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Dowiedz się więcej o udostępnianiu."
-  },
-  "c28aed8348": {
-    "translation": "Zezwól na <cookies>analytics</cookies>, aby pomóc nam ulepszyć tldraw."
   },
   "c303bd1095": {
     "translation": "Nie można opublikować pliku."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Czy na pewno chcesz opuścić tę przestrzeń roboczą?"
-  },
-  "fd1be3efcf": {
-    "translation": "Czy na pewno chcesz usunąć ten plik?"
   },
   "fed5ec05eb": {
     "translation": "Skopiowany link"

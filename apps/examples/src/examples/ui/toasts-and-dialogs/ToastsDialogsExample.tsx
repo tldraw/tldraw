@@ -26,7 +26,17 @@ function MyDialog({ onClose }: { onClose(): void }) {
 				<TldrawUiDialogTitle>Title</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>Description...</TldrawUiDialogBody>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+				<p>
+					This dialog body holds a few sentences of text so you can see how longer content behaves.
+					Regular prose wraps onto multiple lines within the dialog width.
+				</p>
+				<p>
+					Long unbroken strings, like
+					https://example.com/a/really/long/url/that/cannot/wrap/onto/the/next/line, also break
+					instead of overflowing or being clipped.
+				</p>
+			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={onClose}>
 					<TldrawUiButtonLabel>Cancel</TldrawUiButtonLabel>
@@ -150,6 +160,18 @@ const CustomSharePanel = () => {
 				}}
 			>
 				Show toast
+			</button>
+			<button
+				onClick={() => {
+					addToast({
+						title: 'This is a very long toast title that keeps going and going',
+						description:
+							'Long descriptions and unbroken strings like https://example.com/a/really/long/url/that/cannot/wrap/onto/the/next/line wrap within the toast instead of overflowing.',
+						severity: 'info',
+					})
+				}}
+			>
+				Show long toast
 			</button>
 			<button
 				data-testid="show-dialog"

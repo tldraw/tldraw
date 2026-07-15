@@ -123,12 +123,6 @@
       "value": "Exporta com a"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Esteu segur que voleu suprimir aquest espai de treball? Aquesta acció no es pot desfer."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Obteniu ajuda a Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Esteu segur que voleu suprimir "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "Fitxer fixat"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Esteu segur que voleu oblidar aquest fitxer?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Esteu segur que voleu oblidar "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -793,6 +821,26 @@
     {
       "type": 0,
       "value": "Canvia el nom"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Esteu segur que voleu suprimir "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Aquesta acció no es pot desfer."
     }
   ],
   "95aacd4d4a": [
@@ -1121,26 +1169,6 @@
       "value": "Més informació sobre com compartir."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Permet que "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " ens ajudi a millorar tldraw."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1451,12 +1479,6 @@
     {
       "type": 0,
       "value": "Esteu segur que voleu sortir d'aquest espai de treball?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Esteu segur que voleu suprimir aquest fitxer?"
     }
   ],
   "fed5ec05eb": [
