@@ -39,8 +39,11 @@ import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { CommentPin } from '../ui/comment-pin'
 import { CommentThread } from '../ui/comment-thread'
 import { CountBadge } from '../ui/count-badge'
+import { MentionMember } from '../ui/mention-list'
+import { isMentionPickerOpen } from '../ui/mention-suggestion'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
+import { UNKNOWN_AUTHOR } from './comment-render'
 import { pendingComment, PendingComment, regionDraft } from './comment-tool'
 import { commentsHidden, toggleCommentsHidden } from './comments-visibility'
 import { useCommentThreads, usePendingComment, useThreadComments } from './hooks'
@@ -65,8 +68,8 @@ import './canvas.css'
 export interface CanvasCommentsProps {
 	/** The signed-in user's id, or null for a read-only viewer. Only a signed-in user composes. */
 	currentUserId: string | null
-	/** Map an author id to a display name. */
-	resolveName(id: string): string
+	/** Map an author id to a display name, or `undefined` when the id can't be named. */
+	resolveName(id: string): string | undefined
 	/** Render a comment's body. Defaults to the rich-text body (`<CommentBody>`). */
 	renderBody?(comment: TLComment): ReactNode
 	/** Render a pin's content. Defaults to the thread author's initial. */
@@ -80,6 +83,10 @@ export interface CanvasCommentsProps {
 	 * record a read receipt. Needs {@link isCommentUnread} to know what's unread.
 	 */
 	onCommentRead?(commentId: TLCommentId): void
+	/** Resolve the members matching an `@`-query in the composers (sync or async). */
+	getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>
+	/** Override a mention-picker row's content. */
+	renderMentionSuggestion?(member: MentionMember): ReactNode
 	/** Where imprecise shape pins sit — a normalized (0–1) spot within the shape. Default top-right. */
 	impreciseShapeAnchor?: { x: number; y: number }
 	/** Region comment behaviour. Region is off by default — omit this for click-only point/shape
@@ -118,8 +125,12 @@ const draftAvatar = (
 
 function toCardProps(comment: TLComment, props: CanvasCommentsProps): CommentCardProps {
 	return {
-		author: props.resolveName(comment.authorId),
-		body: props.renderBody ? props.renderBody(comment) : <CommentBody richText={comment.body} />,
+		author: props.resolveName(comment.authorId) ?? UNKNOWN_AUTHOR,
+		body: props.renderBody ? (
+			props.renderBody(comment)
+		) : (
+			<CommentBody richText={comment.body} resolveName={props.resolveName} />
+		),
 		date: new Date(comment.createdAt).toISOString(),
 		you: comment.authorId === props.currentUserId,
 		edited: comment.editedAt != null,
@@ -344,6 +355,8 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.key !== 'Escape' || openThreadId.get() === null) return
+			// The mention picker owns Escape while it's open — let it dismiss the roster alone.
+			if (isMentionPickerOpen()) return
 			const target = e.target as HTMLElement | null
 			if (target && target.closest('.cmt-editing')) return
 			openThreadId.set(null)
@@ -892,6 +905,8 @@ const ThreadPin = memo(function ThreadPin({
 		onPostComment,
 		isCommentUnread,
 		onCommentRead,
+		getMentionSuggestions,
+		renderMentionSuggestion,
 		impreciseShapeAnchor,
 	} = props
 	const container = useContainer()
@@ -957,10 +972,11 @@ const ThreadPin = memo(function ThreadPin({
 			if (marker && marker.contains(target)) return
 			// A press on a region's resize handle or movable body edits this thread — don't dismiss it.
 			if (target.closest('.cmt-canvas-region-handle, .cmt-canvas-region--movable')) return
-			// A click inside a menu/popover layered above us (e.g. the sidebar's filter or overflow
-			// dropdown, portaled elsewhere) belongs to that layer — defer to its own dismissal
-			// instead of closing the thread out from under it.
-			if (target.closest('.tlui-menu, [data-radix-popper-content-wrapper]')) return
+			// A click inside a menu/popover layered above us (the sidebar's filter or overflow
+			// dropdown, or the composer's mention picker — all portaled elsewhere) belongs to that
+			// layer; defer to its own dismissal instead of closing the thread out from under it.
+			if (target.closest('.tlui-menu, [data-radix-popper-content-wrapper], .cmt-mention-popup'))
+				return
 			openThreadId.set(null)
 		}
 		document.addEventListener('pointerdown', onPointerDown, true)
@@ -1072,6 +1088,8 @@ const ThreadPin = memo(function ThreadPin({
 						onSubmit={saveEdit}
 						sendLabel={msg('comments.save')}
 						disabled={isCommentEmpty(editText)}
+						getMentionSuggestions={getMentionSuggestions}
+						renderMentionSuggestion={renderMentionSuggestion}
 						autoFocus
 					/>
 				</div>
@@ -1131,7 +1149,7 @@ const ThreadPin = memo(function ThreadPin({
 
 	const pinContent = renderPinContent
 		? renderPinContent(thread, comments)
-		: initialOf(resolveName(thread.createdBy))
+		: initialOf(resolveName(thread.createdBy) ?? UNKNOWN_AUTHOR)
 
 	// Drag the marker to move the thread: its position is overridden locally while dragging, then
 	// re-anchored on drop. A point/shape thread re-anchors to whatever it's dropped on (a shape, else
@@ -1265,19 +1283,24 @@ const ThreadPin = memo(function ThreadPin({
 							comments={comments.map((c) => toCardProps(c, props))}
 							resolvedBanner={
 								thread.resolved
-									? msg('comments.resolved-by').replace('{name}', resolveName(thread.resolved.by))
+									? msg('comments.resolved-by').replace(
+											'{name}',
+											resolveName(thread.resolved.by) ?? UNKNOWN_AUTHOR
+										)
 									: undefined
 							}
 							composer={
 								currentUserId && !thread.resolved
 									? {
-											author: resolveName(currentUserId),
+											author: resolveName(currentUserId) ?? UNKNOWN_AUTHOR,
 											placeholder: msg('comments.reply-placeholder'),
 											sendLabel: msg('comments.send'),
 											value: reply,
 											onChange: setReply,
 											onSubmit: postReply,
 											disabled: isCommentEmpty(reply),
+											getMentionSuggestions,
+											renderMentionSuggestion,
 										}
 									: undefined
 							}
@@ -1295,6 +1318,8 @@ function PendingComposer({
 	currentUserId,
 	resolveName,
 	onPostComment,
+	getMentionSuggestions,
+	renderMentionSuggestion,
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
 	const [text, setText] = useState<TLRichText>(EMPTY_COMMENT)
 	const ref = useRef<HTMLDivElement>(null)
@@ -1313,7 +1338,12 @@ function PendingComposer({
 	useEffect(() => {
 		const onPointerDown = (e: PointerEvent) => {
 			const el = ref.current
-			if (el && !el.contains(e.target as Node)) pendingComment.set(null)
+			const target = e.target as HTMLElement | null
+			if (!el || !target) return
+			// A click in the composer, or in the mention picker it spawns (portaled elsewhere), is
+			// not "outside" — keep the draft open so the pick can insert.
+			if (el.contains(target) || target.closest('.cmt-mention-popup')) return
+			pendingComment.set(null)
 		}
 		document.addEventListener('pointerdown', onPointerDown, true)
 		return () => document.removeEventListener('pointerdown', onPointerDown, true)
@@ -1351,17 +1381,19 @@ function PendingComposer({
 			style={{ left: point.x, top: point.y }}
 			onPointerDown={stop}
 			onKeyDown={(e) => {
-				if (e.key === 'Escape') pendingComment.set(null)
+				if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(null)
 			}}
 		>
 			<CommentComposer
-				author={currentUserId ? resolveName(currentUserId) : ''}
+				author={currentUserId ? (resolveName(currentUserId) ?? UNKNOWN_AUTHOR) : ''}
 				placeholder={msg('comments.add-placeholder')}
 				sendLabel={msg('comments.send')}
 				value={text}
 				onChange={setText}
 				onSubmit={submit}
 				disabled={isCommentEmpty(text)}
+				getMentionSuggestions={getMentionSuggestions}
+				renderMentionSuggestion={renderMentionSuggestion}
 				autoFocus
 				leading={draftAvatar}
 			/>
