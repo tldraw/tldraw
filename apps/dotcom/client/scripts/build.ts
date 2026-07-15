@@ -39,20 +39,25 @@ const SOCIAL_CRAWLER_USER_AGENTS = [
 	'SkypeUriPreview',
 	'Mastodon',
 	'Bluesky',
+	// tldraw's own link-unfurl service (user-agent `tldraw-bot/x.y.z`), so pasting a board link
+	// into a tldraw canvas shows the board name in the bookmark.
+	'tldraw-bot',
 ]
 
-// The board routes whose social preview should include the board name, mapped to the URL prefix the
-// worker uses to look the name up. Only the bare board route is matched (not sub-routes like
-// `/f/:slug/history`).
+// The board routes whose social preview should include the board name. Only the bare board route is
+// matched (not sub-routes like `/f/:slug/history`).
 const SOCIAL_PREVIEW_PREFIXES = ['f', 'p', 's', 'r', 'ro', 'v']
 
-function loadSocialPreviewRoutes(multiplayerServerUrl: string) {
-	const userAgent = SOCIAL_CRAWLER_USER_AGENTS.join('|')
-	return SOCIAL_PREVIEW_PREFIXES.map((prefix) => ({
-		src: `^/${prefix}/([^/]+)/?$`,
+function socialPreviewRoute(multiplayerServerUrl: string) {
+	// Vercel matches `has.value` as `^value$`, so a bare `a|b|c` join anchors the first token to the
+	// start of the user-agent and the last token to the end. Wrap the alternation so every token is
+	// a substring match.
+	const userAgent = `.*(?:${SOCIAL_CRAWLER_USER_AGENTS.join('|')}).*`
+	return {
+		src: `^/(${SOCIAL_PREVIEW_PREFIXES.join('|')})/([^/]+)/?$`,
 		has: [{ type: 'header' as const, key: 'user-agent', value: userAgent }],
-		dest: `${multiplayerServerUrl}/app/social-preview/${prefix}/$1`,
-	}))
+		dest: `${multiplayerServerUrl}/app/social-preview/$1/$2`,
+	}
 }
 
 // We load the list of routes that should be forwarded to our SPA's index.html here.
@@ -155,8 +160,11 @@ async function build() {
 						check: true,
 					},
 					// route social/link-unfurling crawlers to the worker so board link previews
-					// include the board name. must come before the SPA routes below.
-					...loadSocialPreviewRoutes(multiplayerServerUrl),
+					// include the board name. must come before the SPA routes below. set
+					// SOCIAL_PREVIEW_DISABLED=true to turn this off without a code change.
+					...(process.env.SOCIAL_PREVIEW_DISABLED === 'true'
+						? []
+						: [socialPreviewRoute(multiplayerServerUrl)]),
 					{
 						src: '^/assets/(.*)$',
 						// we need `continue: true` here because we also want to apply the headers

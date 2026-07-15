@@ -76,7 +76,8 @@ const router = createRouter<Environment>()
 	.get('/snapshot/:roomId', getRoomSnapshot)
 	// Social preview metadata for board links. Vercel routes social crawlers (by user-agent) here so
 	// the unfurled link preview includes the board's name. See apps/dotcom/client/scripts/build.ts.
-	.get('/app/social-preview/:prefix/:slug', getSocialPreview)
+	// Registered with .all because some crawlers probe with HEAD before (or instead of) GET.
+	.all('/app/social-preview/:prefix/:slug', getSocialPreview)
 	.get(`/${ROOM_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_WRITE)
 	)
