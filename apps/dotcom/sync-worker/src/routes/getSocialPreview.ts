@@ -214,10 +214,14 @@ export function renderSocialPreview(name: string | null): string {
 		<a href="?${SOCIAL_PREVIEW_BYPASS_PARAM}=1">Open this board</a>
 		<script>
 			var url = new URL(location.href)
-			// the '1' is load-bearing: an empty value reads as "param absent" to Vercel's
-			// missing-matching and the redirect would loop. See SOCIAL_PREVIEW_BYPASS_PARAM.
-			url.searchParams.set(${JSON.stringify(SOCIAL_PREVIEW_BYPASS_PARAM)}, '1')
-			location.replace(url)
+			// only redirect if the bypass param isn't already set, so a routing misconfiguration
+			// can't reload this page forever.
+			if (!url.searchParams.get(${JSON.stringify(SOCIAL_PREVIEW_BYPASS_PARAM)})) {
+				// the '1' is load-bearing: an empty value reads as "param absent" to Vercel's
+				// missing-matching and the redirect would loop. See SOCIAL_PREVIEW_BYPASS_PARAM.
+				url.searchParams.set(${JSON.stringify(SOCIAL_PREVIEW_BYPASS_PARAM)}, '1')
+				location.replace(url)
+			}
 		</script>
 	</body>
 </html>
@@ -236,7 +240,12 @@ function html(body: string): Response {
 	return new Response(body, {
 		headers: {
 			'content-type': 'text/html; charset=utf-8',
-			// Allow crawlers and CDNs to cache previews briefly without going stale for long.
+			// Allow crawlers to cache previews briefly. This means a board's name can be served for
+			// up to two minutes after it's unshared — accepted, because crawler-side preview caches
+			// (Facebook, Slack, Discord) independently retain unfurled names for days regardless of
+			// this header, so shortening it buys no real privacy. Vercel's edge does not cache these
+			// responses (plain max-age without s-maxage passes through), so this only affects the
+			// requesting client's own cache.
 			'cache-control': 'public, max-age=120',
 		},
 	})

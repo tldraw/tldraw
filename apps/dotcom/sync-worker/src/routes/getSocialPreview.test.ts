@@ -57,6 +57,9 @@ describe('renderSocialPreview', () => {
 		expect(html).toContain(`url.searchParams.set("no_preview", '1')`)
 		expect(html).toContain('location.replace(url)')
 		expect(html).toContain('<a href="?no_preview=1">Open this board</a>')
+		// the redirect is guarded so it can never reload this page forever, even if the
+		// routing layer serves the stub to a request that already carries the param
+		expect(html).toContain('if (!url.searchParams.get("no_preview"))')
 	})
 })
 
