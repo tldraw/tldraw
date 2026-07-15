@@ -524,3 +524,4 @@ export type TLUiTranslationKey =
 	| 'comments.dismiss'
 	| 'comments.send'
 	| 'comments.resolved-by'
+	| 'comments.mention-you'

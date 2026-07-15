@@ -6,6 +6,9 @@ import { renderCommentPlaintext } from './comment-render'
  * separating paragraphs and list items with newlines. A convenience for consumers rendering bodies
  * as plain text (e.g. the sidebar preview); richer rendering can read the `TLRichText` directly.
  */
-export function richTextToPlaintext(body: TLRichText): string {
-	return renderCommentPlaintext(body)
+export function richTextToPlaintext(
+	body: TLRichText,
+	resolveName?: (id: string) => string | undefined
+): string {
+	return renderCommentPlaintext(body, resolveName)
 }

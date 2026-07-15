@@ -9,6 +9,7 @@ const text = (value: string, marks?: any[]) => ({
 	text: value,
 	...(marks ? { marks } : {}),
 })
+const mention = (id: string, label?: string) => ({ type: 'mention', attrs: { id, label } })
 
 describe('renderCommentHtml', () => {
 	it('preserves bold, links, and lists from the limited set', () => {
@@ -33,6 +34,26 @@ describe('renderCommentHtml', () => {
 		expect(html).toContain('<p')
 		expect(html).toContain('Title')
 	})
+
+	it('renders a mention as a pill and resolves its id to the current name', () => {
+		const body = doc(para(text('hey '), mention('u1', 'Ada')))
+		const html = renderCommentHtml(body, (id) => (id === 'u1' ? 'Ada Lovelace' : '?'))
+		expect(html).toContain('cmt-mention')
+		// the live name from the resolver, not the label stored at insert time
+		expect(html).toContain('@Ada Lovelace')
+		expect(html).not.toContain('@Ada<')
+	})
+
+	it('falls back to the stored label when no resolver is given', () => {
+		const html = renderCommentHtml(doc(para(mention('u1', 'Ada'))))
+		expect(html).toContain('@Ada')
+	})
+
+	it('escapes a resolved name, so it can never inject markup', () => {
+		const html = renderCommentHtml(doc(para(mention('u1'))), () => '<img src=x onerror=alert(1)>')
+		expect(html).not.toContain('<img')
+		expect(html).toContain('&lt;img')
+	})
 })
 
 describe('renderCommentPlaintext', () => {
@@ -45,6 +66,14 @@ describe('renderCommentPlaintext', () => {
 
 	it('returns an empty string for an empty body', () => {
 		expect(renderCommentPlaintext(EMPTY_COMMENT)).toBe('')
+	})
+
+	it('renders a mention as @name, resolved to the current name', () => {
+		const result = renderCommentPlaintext(
+			doc(para(text('hi '), mention('u1', 'Ada'))),
+			() => 'Ada Lovelace'
+		)
+		expect(result).toBe('hi @Ada Lovelace')
 	})
 })
 
