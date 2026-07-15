@@ -10,14 +10,20 @@ const MAX_TRANSIENT_RETRIES = 2
 const RETRY_BACKOFF_MS = 400
 
 /**
- * How long to wait for a single fal request before giving up on it. LCM returns
- * in well under a second, so anything past this is a stall — most often the
- * Cloudflare Vite dev worker wedging on the outbound fetch to fal. Without this,
- * a wedged request never rejects and the panel sticks on "Generating…" forever.
- * On timeout we abort and retry (like a transient network error), then surface
- * an error so the user can just click Generate again.
+ * How long to wait for a single fal request before giving up on it. LCM itself
+ * returns in ~1s once the connection is warm, but the *first* request on a fresh
+ * `yarn dev` (or right after a hot-reload restarts the dev worker) stalls while
+ * the Cloudflare Vite dev worker establishes its outbound connection to fal —
+ * measured at ~20–35s on a real 512px sketch. This timeout has to outlast that
+ * cold window, or the first generation can never succeed: it aborts mid-handshake
+ * every time, and aborting *restarts* the stall, so retries don't help either.
+ *
+ * We deliberately do NOT retry on timeout. Aborting a request that is stalled on
+ * a cold connection throws away the handshake in progress; a single long wait
+ * rides it out, whereas abort-and-retry just re-triggers the cold start. Genuine
+ * network drops (fetch threw) are still retried below.
  */
-const REQUEST_TIMEOUT_MS = 15000
+const REQUEST_TIMEOUT_MS = 45000
 
 const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
 
@@ -70,6 +76,13 @@ interface FalResult {
 export interface RealtimeConnectionHandlers {
 	onResult(imageUrl: string): void
 	onError(error: unknown): void
+	/**
+	 * Called when a frame's fetch to fal is actually opened (i.e. we're now waiting
+	 * on the network), so the UI can show "connecting to fal" distinctly from the
+	 * local capture/describe work that precedes it. On a cold dev worker this is
+	 * where the multi-second stall lives — surfacing it keeps a long wait legible.
+	 */
+	onConnecting?(): void
 }
 
 /**
@@ -111,7 +124,7 @@ export function createRealtimeConnection(handlers: RealtimeConnectionHandlers): 
 
 		// Cancel any request that is still in flight — its result is now stale.
 		inFlight?.abort()
-		let controller = new AbortController()
+		const controller = new AbortController()
 		inFlight = controller
 
 		// This frame is still the current one (not superseded, aborted, or closed).
@@ -127,6 +140,8 @@ export function createRealtimeConnection(handlers: RealtimeConnectionHandlers): 
 			// worker otherwise leaves the fetch pending forever.
 			const timeoutId = setTimeout(() => controller.abort(new TimeoutError()), REQUEST_TIMEOUT_MS)
 			try {
+				// Signal that we're now waiting on the network (fal), not local work.
+				if (isCurrent()) handlers.onConnecting?.()
 				const response = await fetch(FAL_PROXY_URL, {
 					method: 'POST',
 					headers: {
@@ -150,19 +165,20 @@ export function createRealtimeConnection(handlers: RealtimeConnectionHandlers): 
 				if (url) handlers.onResult(url)
 				return
 			} catch (err) {
-				// A timeout fired: the request stalled. Treat it as transient and
-				// retry on a fresh controller, since the old one is now aborted.
+				// A timeout fired: the request stalled past REQUEST_TIMEOUT_MS. We do
+				// not retry — the timeout is tuned to outlast a cold-connection stall, so
+				// hitting it means something is genuinely wrong (not a cold start), and
+				// re-issuing would only restart the handshake. Surface it so the user can
+				// click Generate again.
 				if (isTimeout(err, controller)) {
 					if (closed || requestId !== latestRequestId) return
-					if (attempt < MAX_TRANSIENT_RETRIES) {
-						const next = new AbortController()
-						inFlight = next
-						controller = next
-						await delay(RETRY_BACKOFF_MS * (attempt + 1))
-						if (!isCurrent()) return
-						continue
-					}
-					handlers.onError(new Error('fal request timed out — try Generate again.'))
+					handlers.onError(
+						new Error(
+							`fal request timed out after ${Math.round(
+								REQUEST_TIMEOUT_MS / 1000
+							)}s — check the worker logs, then click Generate again.`
+						)
+					)
 					return
 				}
 				// Aborted / superseded requests are expected when the user keeps

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { PoseOverlay } from '../pose/PoseOverlay'
 import { PoseDebug } from '../pose/usePoseDebug'
 import { GenerationControls, GenerationStatus } from '../realtime/useRealtimeGeneration'
@@ -5,6 +6,7 @@ import { GenerationControls, GenerationStatus } from '../realtime/useRealtimeGen
 interface GenerationPanelProps {
 	resultUrl: string | null
 	status: GenerationStatus
+	startedAt: number | null
 	error: string | null
 	controls: GenerationControls
 	setControls(update: Partial<GenerationControls>): void
@@ -15,6 +17,67 @@ interface GenerationPanelProps {
 	poseDebug: PoseDebug
 }
 
+/** Human-readable label for each phase of a generation pass. */
+const STATUS_LABEL: Record<GenerationStatus, string | null> = {
+	idle: null,
+	capturing: 'Capturing your sketch…',
+	describing: 'Writing a prompt from your sketch…',
+	connecting: 'Connecting to fal…',
+	generating: 'Generating an image…',
+	error: null,
+}
+
+/**
+ * A live status line for the generation pass. Shows which phase we're in and,
+ * once we're waiting on the network, how long it's been — the first fal request
+ * on a cold dev worker can take ~20–35s, so a ticking counter is what tells you
+ * it's still working rather than frozen. On error it shows the message instead.
+ */
+function GenerationStatusBanner({
+	status,
+	startedAt,
+	error,
+}: {
+	status: GenerationStatus
+	startedAt: number | null
+	error: string | null
+}) {
+	// Re-render once a second while a pass is running so the elapsed timer ticks.
+	const [, force] = useState(0)
+	const running = status !== 'idle' && status !== 'error'
+	useEffect(() => {
+		if (!running) return
+		const id = setInterval(() => force((n) => n + 1), 1000)
+		return () => clearInterval(id)
+	}, [running])
+
+	if (status === 'error') {
+		return (
+			<div className="generation-status generation-status-error" role="alert">
+				{error ?? 'Generation failed.'}
+			</div>
+		)
+	}
+
+	const label = STATUS_LABEL[status]
+	if (!label) return null
+
+	// Only show elapsed time once we're actually waiting on fal — that's the phase
+	// that can stall. Capture/describe are quick and a counter there is just noise.
+	const showElapsed = (status === 'connecting' || status === 'generating') && startedAt !== null
+	const elapsedSec = showElapsed ? Math.floor((Date.now() - startedAt!) / 1000) : 0
+
+	return (
+		<div className="generation-status" aria-live="polite">
+			<span className="generation-status-spinner" aria-hidden="true" />
+			<span>{label}</span>
+			{showElapsed && elapsedSec >= 3 && (
+				<span className="generation-status-elapsed">{elapsedSec}s</span>
+			)}
+		</div>
+	)
+}
+
 /**
  * The panel beside the canvas. Clicking "Generate Pose" runs one generation of
  * the sketch and feeds the result to pose detection — no continuous loop, one
@@ -23,6 +86,7 @@ interface GenerationPanelProps {
 export function GenerationPanel({
 	resultUrl,
 	status,
+	startedAt,
 	error,
 	controls,
 	setControls,
@@ -43,6 +107,8 @@ export function GenerationPanel({
 				>
 					{isGenerating ? 'Generating…' : 'Generate Pose'}
 				</button>
+
+				<GenerationStatusBanner status={status} startedAt={startedAt} error={error} />
 
 				<label className="control">
 					<span className="control-label-row">

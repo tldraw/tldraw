@@ -14,12 +14,25 @@ export interface GenerationControls {
 	seed: number
 }
 
-export type GenerationStatus = 'idle' | 'describing' | 'generating' | 'error'
+export type GenerationStatus =
+	| 'idle'
+	| 'capturing'
+	| 'describing'
+	| 'connecting'
+	| 'generating'
+	| 'error'
 
 export interface RealtimeGeneration {
 	/** The most recent generated image, as a URL (data URL in sync mode). */
 	resultUrl: string | null
 	status: GenerationStatus
+	/**
+	 * `Date.now()` when the current generation pass began, or null when idle. The
+	 * panel uses it to show elapsed seconds while waiting — the first fal request on
+	 * a cold dev worker can take ~20–35s, and a ticking timer reads as "still
+	 * working" rather than "frozen".
+	 */
+	startedAt: number | null
 	error: string | null
 	controls: GenerationControls
 	setControls(update: Partial<GenerationControls>): void
@@ -56,6 +69,7 @@ export interface RealtimeGeneration {
 export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration {
 	const [resultUrl, setResultUrl] = useState<string | null>(null)
 	const [status, setStatus] = useState<GenerationStatus>('idle')
+	const [startedAt, setStartedAt] = useState<number | null>(null)
 	const [error, setError] = useState<string | null>(null)
 	// True only while a generation is in flight. Used both to disable the button
 	// and to drop a second `generate()` so two passes never overlap.
@@ -87,9 +101,15 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 		if (!editor) return
 
 		const connection = createRealtimeConnection({
+			onConnecting: () => {
+				// The fetch to fal is open; we're now waiting on the network. Distinct
+				// from the local capture/describe work that runs before this.
+				setStatus('connecting')
+			},
 			onResult: (url) => {
 				setResultUrl(url)
 				setStatus('idle')
+				setStartedAt(null)
 				setError(null)
 				// The image landed — this generation pass is done.
 				isGeneratingRef.current = false
@@ -98,6 +118,7 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 			onError: (err) => {
 				console.error('Realtime generation error:', err)
 				setStatus('error')
+				setStartedAt(null)
 				setError(err instanceof Error ? err.message : 'Generation failed')
 				isGeneratingRef.current = false
 				setIsGenerating(false)
@@ -123,9 +144,12 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 		if (isGeneratingRef.current) return
 		isGeneratingRef.current = true
 		setIsGenerating(true)
+		setStartedAt(Date.now())
+		setStatus('capturing')
 		const done = () => {
 			isGeneratingRef.current = false
 			setIsGenerating(false)
+			setStartedAt(null)
 		}
 		try {
 			const imageDataUrl = await captureSketch(editor)
@@ -222,6 +246,7 @@ export function useRealtimeGeneration(editor: Editor | null): RealtimeGeneration
 	return {
 		resultUrl,
 		status,
+		startedAt,
 		error,
 		controls,
 		setControls,

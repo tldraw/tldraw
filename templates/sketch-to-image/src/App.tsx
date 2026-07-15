@@ -23,6 +23,7 @@ function App() {
 	const {
 		resultUrl,
 		status,
+		startedAt,
 		error,
 		controls,
 		setControls,
@@ -55,6 +56,7 @@ function App() {
 				<GenerationPanel
 					resultUrl={resultUrl}
 					status={status}
+					startedAt={startedAt}
 					error={error}
 					controls={controls}
 					setControls={setControls}
