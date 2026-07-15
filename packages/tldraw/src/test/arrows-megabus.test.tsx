@@ -768,3 +768,85 @@ describe('Moving a bound arrow', () => {
 		expectBound('end', ids.box2)
 	})
 })
+
+describe('When the bound shape changes geometry', () => {
+	// the local point that a precise binding's anchor maps to within the bound shape's geometry
+	const getAnchorLocalPoint = (toId: TLShapeId, normalizedAnchor: { x: number; y: number }) => {
+		const geometry = editor.getShapeGeometry(editor.getShape(toId)!)
+		const { point, size } = geometry.bounds
+		return Vec.Add(point, Vec.MulV(normalizedAnchor, size))
+	}
+
+	const anchorHitsShape = (toId: TLShapeId, normalizedAnchor: { x: number; y: number }) => {
+		const geometry = editor.getShapeGeometry(editor.getShape(toId)!)
+		return geometry.hitTestPoint(getAnchorLocalPoint(toId, normalizedAnchor), 0, true)
+	}
+
+	beforeEach(() => {
+		editor.createShape({ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+		editor.createShape({
+			id: ids.arrow1,
+			type: 'arrow',
+			x: 200,
+			y: 50,
+			props: { start: { x: 0, y: 0 }, end: { x: -150, y: 0 } },
+		})
+	})
+
+	const bindArrowEnd = (normalizedAnchor: { x: number; y: number }, isPrecise = true) => {
+		editor.createBinding({
+			type: 'arrow',
+			fromId: ids.arrow1,
+			toId: ids.box1,
+			props: { terminal: 'end', isExact: false, isPrecise, normalizedAnchor, snap: 'none' },
+		})
+	}
+
+	const endBinding = () => getArrowBindings(editor, editor.getShape<TLArrowShape>(ids.arrow1)!).end!
+
+	it('re-snaps a precise anchor that ends up outside the new geometry', () => {
+		// anchor near the top-left corner: inside a rectangle, but outside a triangle
+		bindArrowEnd({ x: 0.05, y: 0.05 })
+		expect(anchorHitsShape(ids.box1, endBinding().props.normalizedAnchor)).toBe(true)
+
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { geo: 'triangle' } })
+
+		// the anchor should have moved...
+		expect(endBinding().props.normalizedAnchor).not.toMatchObject({ x: 0.05, y: 0.05 })
+		// ...to a point that lands on the new triangle geometry
+		expect(anchorHitsShape(ids.box1, endBinding().props.normalizedAnchor)).toBe(true)
+	})
+
+	it('leaves a precise anchor alone when it still hits the new geometry', () => {
+		// the center is inside both a rectangle and an ellipse
+		bindArrowEnd({ x: 0.5, y: 0.5 })
+
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { geo: 'ellipse' } })
+
+		expect(endBinding().props.normalizedAnchor).toMatchObject({ x: 0.5, y: 0.5 })
+	})
+
+	it('does not touch imprecise anchors', () => {
+		// imprecise bindings always point at the center and intersect the edge, so they never float
+		bindArrowEnd({ x: 0.05, y: 0.05 }, false)
+
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { geo: 'triangle' } })
+
+		expect(endBinding().props.normalizedAnchor).toMatchObject({ x: 0.05, y: 0.05 })
+	})
+
+	it('restores the original anchor on undo', () => {
+		bindArrowEnd({ x: 0.05, y: 0.05 })
+
+		editor.markHistoryStoppingPoint()
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { geo: 'triangle' } })
+		const resnapped = endBinding().props.normalizedAnchor
+		expect(resnapped).not.toMatchObject({ x: 0.05, y: 0.05 })
+
+		editor.undo()
+		expect(endBinding().props.normalizedAnchor).toMatchObject({ x: 0.05, y: 0.05 })
+
+		editor.redo()
+		expect(endBinding().props.normalizedAnchor).toMatchObject(resnapped)
+	})
+})
