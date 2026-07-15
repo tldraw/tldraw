@@ -25,7 +25,7 @@ export interface MentionListProps {
 	activeIndex?: number
 	/** Called when a member is chosen (click, or Enter on the active row). */
 	onSelect?(member: MentionMember): void
-	/** Shown when no member matches the query. */
+	/** Shown when no member matches the query. Defaults to a translated "No matches". */
 	emptyLabel?: string
 	/** Override a row's content (inside the selectable button). Defaults to avatar + name (+ secondary). */
 	renderMember?(member: MentionMember): ReactNode
@@ -41,7 +41,7 @@ function DefaultMemberRow({ member }: { member: MentionMember }) {
 				<span className="cmt-mention-list__name">
 					{member.name}
 					{member.you && (
-						<span className="cmt-mention-list__you">{msg('comments.mention-you')}</span>
+						<span className="cmt-mention-list__you">{`(${msg('comments.mention-you')})`}</span>
 					)}
 				</span>
 				{member.secondary && (
@@ -61,11 +61,16 @@ export function MentionList({
 	members,
 	activeIndex = 0,
 	onSelect,
-	emptyLabel = 'No matches',
+	emptyLabel,
 	renderMember,
 }: MentionListProps) {
+	const msg = useTranslation()
 	if (members.length === 0) {
-		return <div className="cmt-mention-list cmt-mention-list--empty">{emptyLabel}</div>
+		return (
+			<div className="cmt-mention-list cmt-mention-list--empty">
+				{emptyLabel ?? msg('comments.mention-no-matches')}
+			</div>
+		)
 	}
 	return (
 		<div className="cmt-mention-list" role="listbox">

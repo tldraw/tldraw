@@ -1,7 +1,7 @@
 import { Extension, JSONContent } from '@tiptap/core'
 import { EditorContent, useEditor } from '@tiptap/react'
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-import { isEqual, TLRichText } from 'tldraw'
+import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
 import { Avatar } from './avatar'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
 import { commentMention } from './comment-mention'
@@ -49,6 +49,9 @@ export function CommentComposer({
 	renderMentionSuggestion,
 }: CommentComposerProps) {
 	const interactive = !!onChange || !!onSubmit
+	// The canvas editor the composer lives in, if any — lets the mention popup track the camera. Null
+	// when the composer is used outside a tldraw editor (e.g. an isolated demo).
+	const tlEditor = useMaybeEditor()
 
 	// Callbacks are read through refs so the editor instance doesn't need to be recreated when they
 	// change identity between renders.
@@ -97,6 +100,10 @@ export function CommentComposer({
 	const hasCustomRow = !!renderMentionSuggestion
 	const extensions = useMemo(() => {
 		const list = [...commentTipTapExtensions, submitExtension]
+		// Always register the mention node so an existing body that contains a mention keeps it on
+		// edit (an unregistered node would be stripped by ProseMirror when the content loads). The `@`
+		// picker itself only turns on when the host provides a resolver; otherwise the node is present
+		// but its trigger is disabled.
 		if (mentionsEnabled) {
 			const resolveSuggestions = (query: string) => getMentionSuggestionsRef.current?.(query) ?? []
 			const renderRow = hasCustomRow
@@ -104,12 +111,17 @@ export function CommentComposer({
 				: undefined
 			list.push(
 				commentMention({
-					suggestion: createMentionSuggestion(resolveSuggestions, { renderMember: renderRow }),
+					suggestion: createMentionSuggestion(resolveSuggestions, {
+						renderMember: renderRow,
+						editor: tlEditor,
+					}),
 				})
 			)
+		} else {
+			list.push(commentMention({ suggestion: { char: '@', allow: () => false } }))
 		}
 		return list
-	}, [submitExtension, mentionsEnabled, hasCustomRow])
+	}, [submitExtension, mentionsEnabled, hasCustomRow, tlEditor])
 
 	const editor = useEditor(
 		{
