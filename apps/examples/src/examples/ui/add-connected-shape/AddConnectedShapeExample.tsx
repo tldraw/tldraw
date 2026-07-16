@@ -1,4 +1,14 @@
-import { Editor, TLComponents, Tldraw, TLShape, createShapeId, track, useEditor } from 'tldraw'
+import {
+	DefaultColorStyle,
+	Editor,
+	TLComponents,
+	TLDefaultColorStyle,
+	Tldraw,
+	TLShape,
+	createShapeId,
+	track,
+	useEditor,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import './add-connected-shape.css'
 
@@ -31,16 +41,23 @@ function addConnectedShape(editor: Editor, shape: TLShape, direction: Direction)
 			y: direction.dy * (bounds.height + GAP),
 		})
 
+		// If duplication did nothing (e.g. a locked shape), the original is
+		// still the only selected shape — don't connect it to itself.
 		const newShape = editor.getOnlySelectedShape()
-		if (!newShape) return
+		if (!newShape || newShape.id === shape.id) return
 
 		// [4]
+		const sourceColor = (shape.props as { color?: TLDefaultColorStyle }).color
+		const color =
+			sourceColor && DefaultColorStyle.values.includes(sourceColor) ? sourceColor : undefined
+
 		const arrowId = createShapeId()
 		editor.createShape({
 			id: arrowId,
 			type: 'arrow',
 			x: bounds.center.x,
 			y: bounds.center.y,
+			props: color ? { color } : {},
 		})
 
 		editor.createBindings([
@@ -157,6 +174,11 @@ at a page-space offset in the chosen direction, and selects the copy — so the
 user can keep tapping a plus button to grow the diagram.
 
 [4]
+The arrow's color is copied from the source shape when it uses one of the
+default color styles. Without this, `createShape` would fill the color from
+the editor's "next shape" styles — whatever color was last active in the
+style panel — which usually won't match the shapes it connects.
+
 To connect the two shapes we create an arrow shape and bind each terminal to a
 shape with `createBindings`. With `isPrecise: false` the arrow targets the
 center of each shape and gracefully stops at the shape's outline, so it always
