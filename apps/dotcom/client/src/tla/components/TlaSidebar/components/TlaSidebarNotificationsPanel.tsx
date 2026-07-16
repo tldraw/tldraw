@@ -24,9 +24,9 @@ export function useCommentNotifications() {
 	return useValue(
 		'comment notifications',
 		() => {
-			const comments = [...(app?.getComments() ?? [])].sort((a, b) => b.createdAt - a.createdAt)
-			const unreadCount = comments.filter((c) => c.authorId !== app?.userId && !c.read).length
-			return { comments, unreadCount }
+			// DIAGNOSTIC: neutralize the app-wide comments read to test whether it wedges the cold path.
+			void app
+			return { comments: [] as ReturnType<NonNullable<typeof app>['getComments']>, unreadCount: 0 }
 		},
 		[app]
 	)
