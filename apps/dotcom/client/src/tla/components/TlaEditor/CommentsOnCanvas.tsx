@@ -132,6 +132,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 				isCommentUnread={app ? isCommentUnread : undefined}
 				onCommentRead={app ? onCommentRead : undefined}
 				getMentionSuggestions={getMentionSuggestions}
+				regionOptions={{ enabled: true }}
 			/>
 			<CanvasCommentsSidebar
 				resolveName={resolveName}
