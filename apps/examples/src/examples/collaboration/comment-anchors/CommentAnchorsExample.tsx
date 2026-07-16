@@ -30,7 +30,7 @@ function seedThread(editor: Editor, anchor: TLCommentAnchor, text: string) {
 		authorId: 'ada',
 		body: toRichText(text),
 	})
-	editor.store.put([thread, comment])
+	editor.store.put([thread as any, comment as any])
 }
 
 export default function CommentAnchorsExample() {
