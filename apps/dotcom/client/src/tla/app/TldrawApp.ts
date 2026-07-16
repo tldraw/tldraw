@@ -284,7 +284,8 @@ export class TldrawApp {
 			'workspace memberships signal',
 			this.workspaceMembershipsQuery()
 		)
-		this.comments$ = this.signalizeQuery('comments signal', this.commentsQuery())
+		// DIAGNOSTIC: don't materialize the comments query at construction (test cold-path wedge).
+		this.comments$ = atom('comments signal', [] as QueryResultType<typeof queries.comments>)
 	}
 
 	private userQuery() {
