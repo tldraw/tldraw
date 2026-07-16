@@ -149,13 +149,13 @@ export function createAssetPropsMigrationSequence(migrations: TLPropsMigrations)
 
 // @internal
 export function createAssetRecordType(assets: Record<string, SchemaPropsInfo>): RecordType<    {
-id: TLAssetId;
 meta: JsonObject;
 props: {
 [x: string]: /*elided*/ any;
 };
+readonly id: TLAssetId;
+readonly typeName: "asset";
 type: string;
-typeName: "asset";
 }, "props" | "type">;
 
 // @public
@@ -163,7 +163,7 @@ export function createAssetValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 } | T.Validator<Props>, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseAsset<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseAsset<Type, Props>[P] | undefined; }>>;
+}): T.ObjectValidator<Expand<(TLBaseAsset<Type, Props> extends infer T extends object ? { [K in keyof T as Record<never, never> extends Pick<TLBaseAsset<Type, Props>, K> ? never : 0 extends 1 & TLBaseAsset<Type, Props>[K] ? K : undefined extends TLBaseAsset<Type, Props>[K] ? never : K]: T[K]; } : never) & (TLBaseAsset<Type, Props> extends infer T_1 extends object ? { [K in keyof T_1 as Record<never, never> extends Pick<TLBaseAsset<Type, Props>, K> ? K : 0 extends 1 & TLBaseAsset<Type, Props>[K] ? never : undefined extends TLBaseAsset<Type, Props>[K] ? K : never]?: T_1[K] | undefined; } : never)>>;
 
 // @public
 export function createBindingId(id?: string): TLBindingId;
@@ -181,7 +181,7 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in "fromId" | "id" | "meta" | "toId" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseBinding<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseBinding<Type, Props>[P] | undefined; }>>;
+}): T.ObjectValidator<Expand<(TLBaseBinding<Type, Props> extends infer T extends object ? { [K in keyof T as Record<never, never> extends Pick<TLBaseBinding<Type, Props>, K> ? never : 0 extends 1 & TLBaseBinding<Type, Props>[K] ? K : undefined extends TLBaseBinding<Type, Props>[K] ? never : K]: T[K]; } : never) & (TLBaseBinding<Type, Props> extends infer T_1 extends object ? { [K in keyof T_1 as Record<never, never> extends Pick<TLBaseBinding<Type, Props>, K> ? K : 0 extends 1 & TLBaseBinding<Type, Props>[K] ? never : undefined extends TLBaseBinding<Type, Props>[K] ? K : never]?: T_1[K] | undefined; } : never)>>;
 
 // @public
 export function createCachedUserResolve(resolveFn: (userId: string) => null | TLUser): (userId: string) => Signal<null | TLUser>;
@@ -222,7 +222,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
+}): T.ObjectValidator<Expand<(TLBaseShape<Type, Props> extends infer T extends object ? { [K in keyof T as Record<never, never> extends Pick<TLBaseShape<Type, Props>, K> ? never : 0 extends 1 & TLBaseShape<Type, Props>[K] ? K : undefined extends TLBaseShape<Type, Props>[K] ? never : K]: T[K]; } : never) & (TLBaseShape<Type, Props> extends infer T_1 extends object ? { [K in keyof T_1 as Record<never, never> extends Pick<TLBaseShape<Type, Props>, K> ? K : 0 extends 1 & TLBaseShape<Type, Props>[K] ? never : undefined extends TLBaseShape<Type, Props>[K] ? K : never]?: T_1[K] | undefined; } : never)>>;
 
 // @public
 export function createTLSchema({ shapes, bindings, assets, user, records, migrations }?: {
@@ -1594,7 +1594,14 @@ export interface TLRemovedDefaultThemeColors {
 }
 
 // @public
-export type TLRichText = T.TypeOf<typeof richTextValidator>;
+export interface TLRichText {
+    // (undocumented)
+    attrs?: any;
+    // (undocumented)
+    content: unknown[];
+    // (undocumented)
+    type: string;
+}
 
 // @public
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;

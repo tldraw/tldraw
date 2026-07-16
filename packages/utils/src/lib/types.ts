@@ -138,12 +138,30 @@ export type Required<T, K extends keyof T> = Expand<Omit<T, K> & { [P in K]-?: T
  * }
  * ```
  *
+ * Properties already declared optional stay optional. Properties typed as `any` are
+ * treated as required (unless already optional), since `any` technically includes
+ * `undefined` but is not intended to make a property optional on its own.
+ *
  * @public
  */
 export type MakeUndefinedOptional<T extends object> = Expand<
 	{
-		[P in { [K in keyof T]: undefined extends T[K] ? never : K }[keyof T]]: T[P]
+		// Required keys: not already optional, and either `any` or not undefined-able.
+		[K in keyof T as Record<never, never> extends Pick<T, K>
+			? never
+			: 0 extends 1 & T[K]
+				? K
+				: undefined extends T[K]
+					? never
+					: K]: T[K]
 	} & {
-		[P in { [K in keyof T]: undefined extends T[K] ? K : never }[keyof T]]?: T[P]
+		// Optional keys: already optional, or undefined-able (but not bare `any`).
+		[K in keyof T as Record<never, never> extends Pick<T, K>
+			? K
+			: 0 extends 1 & T[K]
+				? never
+				: undefined extends T[K]
+					? K
+					: never]?: T[K]
 	}
 >
