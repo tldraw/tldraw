@@ -9,6 +9,7 @@ import {
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
+	Vec,
 	VecLike,
 	atom,
 	track,
@@ -21,6 +22,7 @@ import './stamp-tool.css'
 // There's a guide at the bottom of this file!
 
 const STAMP_SIZE = 64
+const STAMP_SPACING = STAMP_SIZE
 const PNG_SIZE = 128
 
 // [1]
@@ -51,6 +53,8 @@ function getStampId(stamp: Stamp) {
 class StampTool extends StateNode {
 	static override id = 'stamp'
 
+	lastStampPoint = new Vec()
+
 	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
@@ -60,40 +64,52 @@ class StampTool extends StateNode {
 	}
 
 	override onPointerDown() {
-		stampAtPoint(this.editor, this.editor.inputs.getCurrentPagePoint(), currentStamp.get())
+		this.editor.markHistoryStoppingPoint('stamping')
+		this.stamp()
+	}
+
+	// [3]
+	override onPointerMove() {
+		if (!this.editor.inputs.getIsPointing()) return
+		const distance = Vec.Dist(this.editor.inputs.getCurrentPagePoint(), this.lastStampPoint)
+		if (distance < STAMP_SPACING) return
+		this.stamp()
 	}
 
 	override onCancel() {
 		this.editor.setCurrentTool('select')
 	}
+
+	private stamp() {
+		const point = this.editor.inputs.getCurrentPagePoint()
+		this.lastStampPoint = Vec.From(point)
+		stampAtPoint(this.editor, point, currentStamp.get())
+	}
 }
 
-// [3]
+function renderEmojiToPng(emoji: string) {
+	const canvas = document.createElement('canvas')
+	canvas.width = PNG_SIZE
+	canvas.height = PNG_SIZE
+	const ctx = canvas.getContext('2d')!
+	ctx.font = `${PNG_SIZE * 0.8}px sans-serif`
+	ctx.textAlign = 'center'
+	ctx.textBaseline = 'middle'
+	ctx.fillText(emoji, PNG_SIZE / 2, PNG_SIZE / 2 + PNG_SIZE * 0.05)
+	return {
+		src: canvas.toDataURL('image/png'),
+		w: PNG_SIZE,
+		h: PNG_SIZE,
+		mimeType: 'image/png',
+	}
+}
+
+// [4]
 function getStampAssetId(editor: Editor, stamp: Stamp): TLAssetId {
 	const assetId = AssetRecordType.createId(getStampId(stamp))
 	if (editor.getAsset(assetId)) return assetId
 
-	let src: string
-	let w: number
-	let h: number
-	let mimeType: string
-
-	if (stamp.type === 'emoji') {
-		const canvas = document.createElement('canvas')
-		canvas.width = PNG_SIZE
-		canvas.height = PNG_SIZE
-		const ctx = canvas.getContext('2d')!
-		ctx.font = `${PNG_SIZE * 0.8}px sans-serif`
-		ctx.textAlign = 'center'
-		ctx.textBaseline = 'middle'
-		ctx.fillText(stamp.emoji, PNG_SIZE / 2, PNG_SIZE / 2 + PNG_SIZE * 0.05)
-		src = canvas.toDataURL('image/png')
-		w = PNG_SIZE
-		h = PNG_SIZE
-		mimeType = 'image/png'
-	} else {
-		;({ src, w, h, mimeType } = stamp)
-	}
+	const { src, w, h, mimeType } = stamp.type === 'emoji' ? renderEmojiToPng(stamp.emoji) : stamp
 
 	editor.createAssets([
 		{
@@ -107,14 +123,17 @@ function getStampAssetId(editor: Editor, stamp: Stamp): TLAssetId {
 	return assetId
 }
 
-// [4]
+// [5]
 function stampAtPoint(editor: Editor, point: VecLike, stamp: Stamp) {
-	const scale = stamp.type === 'image' ? STAMP_SIZE / Math.max(stamp.w, stamp.h) : 1
-	const w = stamp.type === 'image' ? stamp.w * scale : STAMP_SIZE
-	const h = stamp.type === 'image' ? stamp.h * scale : STAMP_SIZE
+	let w = STAMP_SIZE
+	let h = STAMP_SIZE
+	if (stamp.type === 'image') {
+		const scale = STAMP_SIZE / Math.max(stamp.w, stamp.h)
+		w = stamp.w * scale
+		h = stamp.h * scale
+	}
 
 	editor.run(() => {
-		editor.markHistoryStoppingPoint('stamp')
 		const assetId = getStampAssetId(editor, stamp)
 		editor.createShape({
 			type: 'image',
@@ -125,7 +144,7 @@ function stampAtPoint(editor: Editor, point: VecLike, stamp: Stamp) {
 	})
 }
 
-// [5]
+// [6]
 function uploadStamp(editor: Editor) {
 	const input = document.createElement('input')
 	input.type = 'file'
@@ -145,7 +164,7 @@ function uploadStamp(editor: Editor) {
 	input.click()
 }
 
-// [6]
+// [7]
 const StampPanel = track(() => {
 	const editor = useEditor()
 	const isStampToolActive = editor.getCurrentToolId() === 'stamp'
@@ -199,25 +218,33 @@ export default function StampToolExample() {
 
 /*
 This example shows how to build a stamp tool: pick a stamp from a panel, then
-click the canvas to place it. Each stamp is placed as an image shape — emoji
-stamps are rendered to a PNG, and you can also upload your own image to use as
-a stamp.
+click the canvas to place it, or hold and drag to lay down a trail of stamps.
+Each stamp is placed as an image shape — emoji stamps are rendered to a PNG,
+and you can also upload your own image to use as a stamp.
 
 [1]
 Stamps are plain data held in an `atom` from tldraw's signals library: either
 an emoji, or an uploaded image with a data URL source. This is the extension
 point — to ship a new default stamp, add an entry to the array. Because the
 panel reads the atom inside a `track`ed component, stamps added at runtime
-(see [5]) show up automatically.
+(see [6]) show up automatically.
 
 [2]
 The stamp tool is a `StateNode`, the same state machine primitive tldraw's own
 tools are built from. It sets a crosshair cursor while active, and on pointer
 down it stamps at the click point (in page space, from `editor.inputs`). The
 tool stays active after stamping so you can stamp repeatedly; pressing Escape
-cancels back to the select tool.
+cancels back to the select tool. The history stopping point is marked once on
+pointer down, so a whole drag (see [3]) is a single undo step.
 
 [3]
+Holding the pointer down and dragging stamps a trail. On every pointer move
+while pointing (`editor.inputs.getIsPointing()`), the tool measures how far
+the pointer has travelled from the last stamp in page space, and places the
+next stamp once it exceeds the spacing. Using page-space distance keeps the
+trail density consistent with the stamp size at any zoom level.
+
+[4]
 Every stamp becomes a shared image asset, created once via
 `editor.createAssets`. Emoji are drawn to a 128px PNG using a canvas element —
 using a PNG instead of a text shape means stamps look identical in exports and
@@ -226,18 +253,18 @@ have an image source, so their data URL is stored on the asset directly. The
 asset id is derived from the stamp's id, so stamping the same stamp twice
 reuses one shared asset — image shapes only reference assets by id.
 
-[4]
-Stamping creates an image shape centered on the click point, linked to the
-asset. Uploaded images are scaled to fit the stamp size while keeping their
-aspect ratio. `markHistoryStoppingPoint` makes each stamp its own undo step.
-
 [5]
+Stamping creates an image shape centered on the pointer, linked to the asset.
+Uploaded images are scaled to fit the stamp size while keeping their aspect
+ratio.
+
+[6]
 The upload button opens a file picker. The chosen image is read as a data URL
 with `FileHelpers.blobToDataUrl`, measured with `MediaHelpers.getImageSize`,
 appended to the stamps atom, and selected as the current stamp with the tool
 activated — so you can stamp with your own image right away.
 
-[6]
+[7]
 The picker panel goes in the `TopPanel` component slot. Clicking a stamp sets
 the current stamp atom and switches to the stamp tool with
 `editor.setCurrentTool`. The active stamp is highlighted by checking
