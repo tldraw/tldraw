@@ -11,6 +11,14 @@ export {
 } from './canvas/comment-tool'
 export { collectClusterLeaves } from './canvas/cluster-input'
 export { computeClusterTable } from './clustering/computeClusterTable'
+export {
+	getCommentRecord,
+	getComments,
+	getCommentThreads,
+	putCommentRecords,
+	removeCommentRecords,
+	type TLCommentRecord,
+} from './canvas/comment-store'
 export { createClusterRuntime, type ClusterRuntime } from './clustering/runtime'
 export type { ClusterNode, ClusterTable, LeafInput } from './clustering/types'
 export { CommentsFilterMenu, type CommentsFilterMenuProps } from './canvas/comments-filter-menu'

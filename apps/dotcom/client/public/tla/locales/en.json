@@ -230,6 +230,9 @@
   "5fb63579fc": {
     "translation": "Copy"
   },
+  "608e9d366e": {
+    "translation": "You’re all caught up."
+  },
   "61057a0c84": {
     "translation": "Later"
   },
@@ -379,9 +382,6 @@
   },
   "90646db02d": {
     "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
-  },
-  "92fa5a9042": {
-    "translation": "You're all caught up."
   },
   "95aacd4d4a": {
     "translation": "Sign in with Google"

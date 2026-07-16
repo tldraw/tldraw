@@ -1,4 +1,9 @@
-import { CanvasComments, commentToolOverrides, commentTools } from '@tldraw/commenting/canvas'
+import {
+	CanvasComments,
+	commentToolOverrides,
+	commentTools,
+	putCommentRecords,
+} from '@tldraw/commenting/canvas'
 import { useMemo } from 'react'
 import {
 	commentSchemaRecords,
@@ -30,7 +35,7 @@ function seedThread(editor: Editor, anchor: TLCommentAnchor, text: string) {
 		authorId: 'ada',
 		body: toRichText(text),
 	})
-	editor.store.put([thread, comment])
+	putCommentRecords(editor, [thread, comment])
 }
 
 export default function CommentAnchorsExample() {
