@@ -1,4 +1,11 @@
-import { Editor, TLComment, TLCommentId, TLCommentThread, TLCommentThreadId } from 'tldraw'
+import {
+	Editor,
+	TLComment,
+	TLCommentId,
+	TLCommentThread,
+	TLCommentThreadId,
+	TLRecord,
+} from 'tldraw'
 
 /**
  * Typed access to comment records on the editor store.
@@ -6,8 +13,9 @@ import { Editor, TLComment, TLCommentId, TLCommentThread, TLCommentThreadId } fr
  * Comment threads and comments live on the editor's local store so the canvas can render them
  * reactively, but they are opt-in records that aren't part of the `TLRecord` union (they ride the
  * sync server's object-store lane on the wire — see `TLCommentThread`). `editor.store` is therefore
- * typed `Store<TLRecord>` and doesn't know about them. These helpers own the one unavoidable cast at
- * that boundary so every call site stays fully typed.
+ * statically typed `Store<TLRecord>` and doesn't know about them, so every access has to reinterpret
+ * the type. These helpers own that reinterpretation — an `unknown` hop to exactly the type the store
+ * expects, so the rest of each call stays checked — behind one boundary, and keep call sites typed.
  */
 
 /** A record that lives in a comment thread: the thread itself or one of its messages. */
@@ -15,7 +23,7 @@ export type TLCommentRecord = TLComment | TLCommentThread
 
 /** Write comment records to the store. */
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void {
-	editor.store.put(records as any)
+	editor.store.put(records as unknown as TLRecord[])
 }
 
 /** Remove comment records from the store by id. */
@@ -23,12 +31,12 @@ export function removeCommentRecords(
 	editor: Editor,
 	ids: (TLCommentId | TLCommentThreadId)[]
 ): void {
-	editor.store.remove(ids as any)
+	editor.store.remove(ids as unknown as TLRecord['id'][])
 }
 
 /** Read one comment record by id, or `undefined` if the id isn't a present comment record. */
 export function getCommentRecord(editor: Editor, id: string): TLCommentRecord | undefined {
-	const record = editor.store.get(id as any) as unknown as TLCommentRecord | undefined
+	const record = editor.store.get(id as TLRecord['id']) as unknown as TLCommentRecord | undefined
 	if (!record) return undefined
 	if (record.typeName === 'comment' || record.typeName === 'comment-thread') return record
 	return undefined
@@ -36,10 +44,12 @@ export function getCommentRecord(editor: Editor, id: string): TLCommentRecord | 
 
 /** All comment threads currently in the store (non-reactive; wrap in `useValue` to react). */
 export function getCommentThreads(editor: Editor): TLCommentThread[] {
-	return editor.store.query.records('comment-thread' as any).get() as unknown as TLCommentThread[]
+	const typeName = 'comment-thread' as TLRecord['typeName']
+	return editor.store.query.records(typeName).get() as unknown as TLCommentThread[]
 }
 
 /** All comments currently in the store (non-reactive; wrap in `useValue` to react). */
 export function getComments(editor: Editor): TLComment[] {
-	return editor.store.query.records('comment' as any).get() as unknown as TLComment[]
+	const typeName = 'comment' as TLRecord['typeName']
+	return editor.store.query.records(typeName).get() as unknown as TLComment[]
 }
