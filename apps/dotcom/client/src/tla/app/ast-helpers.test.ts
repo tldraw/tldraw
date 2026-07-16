@@ -1,5 +1,5 @@
 import type { AST } from '@rocicorp/zero'
-import { evaluateCondition, validateAST } from './ast-helpers'
+import { applyOrderBy, evaluateCondition, validateAST } from './ast-helpers'
 
 describe('validateAST', () => {
 	it('should pass for basic AST without unsupported features', () => {
@@ -21,14 +21,12 @@ describe('validateAST', () => {
 		expect(() => validateAST(ast)).not.toThrow()
 	})
 
-	it('should throw for AST with orderBy', () => {
+	it('should pass for AST with orderBy (supported)', () => {
 		const ast: AST = {
 			table: 'user',
 			orderBy: [['name', 'asc']],
 		}
-		expect(() => validateAST(ast)).toThrow(
-			'Unsupported AST feature: orderBy is not implemented in polyfill'
-		)
+		expect(() => validateAST(ast)).not.toThrow()
 	})
 
 	it('should throw for AST with start (pagination bounds)', () => {
@@ -39,6 +37,54 @@ describe('validateAST', () => {
 		expect(() => validateAST(ast)).toThrow(
 			'Unsupported AST feature: start (pagination bounds) is not implemented in polyfill'
 		)
+	})
+})
+
+describe('applyOrderBy', () => {
+	const rows = [
+		{ id: 'a', createdAt: 3 },
+		{ id: 'b', createdAt: 1 },
+		{ id: 'c', createdAt: 2 },
+	]
+
+	it('returns rows unchanged when there is no orderBy', () => {
+		expect(applyOrderBy(rows, undefined)).toEqual(rows)
+		expect(applyOrderBy(rows, [])).toEqual(rows)
+	})
+
+	it('sorts ascending and descending by a field', () => {
+		expect(applyOrderBy(rows, [['createdAt', 'asc']]).map((r) => r.id)).toEqual(['b', 'c', 'a'])
+		expect(applyOrderBy(rows, [['createdAt', 'desc']]).map((r) => r.id)).toEqual(['a', 'c', 'b'])
+	})
+
+	it('applies order parts in sequence for ties', () => {
+		const tied = [
+			{ id: 'a', group: 1, createdAt: 2 },
+			{ id: 'b', group: 1, createdAt: 1 },
+			{ id: 'c', group: 0, createdAt: 5 },
+		]
+		expect(
+			applyOrderBy(tied, [
+				['group', 'asc'],
+				['createdAt', 'desc'],
+			]).map((r) => r.id)
+		).toEqual(['c', 'a', 'b'])
+	})
+
+	it('sorts undefined values last regardless of direction', () => {
+		const withGaps = [{ id: 'a', createdAt: 2 }, { id: 'b' }, { id: 'c', createdAt: 1 }]
+		expect(applyOrderBy(withGaps, [['createdAt', 'asc']]).map((r) => r.id)).toEqual(['c', 'a', 'b'])
+		expect(applyOrderBy(withGaps, [['createdAt', 'desc']]).map((r) => r.id)).toEqual([
+			'a',
+			'c',
+			'b',
+		])
+	})
+
+	it('does not mutate the input array', () => {
+		const input = [...rows]
+		applyOrderBy(input, [['createdAt', 'asc']])
+		expect(input).toEqual(rows)
 	})
 })
 

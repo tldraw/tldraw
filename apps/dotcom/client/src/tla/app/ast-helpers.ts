@@ -5,14 +5,32 @@ import type { AST } from '@rocicorp/zero'
  * Throws descriptive errors for features not implemented in the polyfill.
  */
 export function validateAST(ast: AST): void {
-	if (ast.orderBy?.length) {
-		throw new Error(`Unsupported AST feature: orderBy is not implemented in polyfill`)
-	}
 	if (ast.start) {
 		throw new Error(
 			`Unsupported AST feature: start (pagination bounds) is not implemented in polyfill`
 		)
 	}
+}
+
+/**
+ * Sort rows by an AST `orderBy` (a list of `[field, 'asc' | 'desc']` parts, applied in order).
+ * Stable and top-level only — matching how the polyfill executes flat table queries.
+ */
+export function applyOrderBy<T>(rows: T[], orderBy: AST['orderBy']): T[] {
+	if (!orderBy?.length) return rows
+	return [...rows].sort((a, b) => {
+		for (const [field, direction] of orderBy) {
+			const av = (a as Record<string, unknown>)[field] as string | number | undefined
+			const bv = (b as Record<string, unknown>)[field] as string | number | undefined
+			if (av === bv) continue
+			// undefined sorts last regardless of direction
+			if (av === undefined) return 1
+			if (bv === undefined) return -1
+			const cmp = av < bv ? -1 : 1
+			return direction === 'desc' ? -cmp : cmp
+		}
+		return 0
+	})
 }
 
 /**
