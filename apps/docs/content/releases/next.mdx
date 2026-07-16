@@ -7,3 +7,42 @@ order: 0
 status: published
 last_version: v5.2.0
 ---
+
+This release adds snapping and symmetric resizing while cropping images, a reactive `Editor.getIsMounted()` with a new `unmount` event, and faster viewport culling on large pages. It also fixes a batch of crashes and interaction bugs across arrows, groups, and text.
+
+## What's new
+
+### Snapping and symmetric resize while cropping ([#9424](https://github.com/tldraw/tldraw/pull/9424))
+
+When cropping an image, crop edges now snap to other shapes and the grid, with the usual snapping guidelines. Holding option resizes the crop region symmetrically from its center.
+
+## API changes
+
+- Add an `unmount` event to `TLEventMap` and make `Editor.getIsMounted()` a reactive value that tracks whether the editor's component is currently mounted. ([#9472](https://github.com/tldraw/tldraw/pull/9472), [#9483](https://github.com/tldraw/tldraw/pull/9483))
+- Make the shape hit-test margin pointer-aware and add a `coarseHitTestMargin` option: fine pointers (mouse and trackpad) use a tighter 3px default, coarse pointers (touch and pen) use 4px. ([#9492](https://github.com/tldraw/tldraw/pull/9492))
+
+## Improvements
+
+- Improve viewport culling performance on large pages: the spatial index now rechecks only the shapes affected by a change instead of every shape on the page. Custom shapes whose geometry depends on unrelated shapes (outside parent/child and binding relationships) are no longer automatically rechecked for culling when those shapes change; built-in shapes and standard patterns are unaffected. ([#9093](https://github.com/tldraw/tldraw/pull/9093))
+- Improve performance when deleting many shapes at once by batching page state cleanup. ([#9456](https://github.com/tldraw/tldraw/pull/9456))
+- Make long toast and dialog content wrap instead of overflowing, so long strings like URLs stay within the toast or dialog. ([#9546](https://github.com/tldraw/tldraw/pull/9546))
+- Delay the appearance of the "back to content" button by about a second so it no longer flickers during normal panning and zooming. Hiding stays immediate. ([#9448](https://github.com/tldraw/tldraw/pull/9448))
+- Remove the unnecessary ellipsis from the "Keyboard shortcuts" menu item. ([#9570](https://github.com/tldraw/tldraw/pull/9570))
+
+## Bug fixes
+
+- Fix rich text headings (H1–H6) rendering with their line-height too tight, causing overlapping lines. ([#9543](https://github.com/tldraw/tldraw/pull/9543))
+- Fix the style panel not highlighting the active fill correctly when the current fill lives in the overflow dropdown. ([#9509](https://github.com/tldraw/tldraw/pull/9509)) (contributed by [@meg-an31](https://github.com/meg-an31))
+- Fix the style panel Shape, Line, and spline dropdown popovers so they open with the same gap as the other dropdowns. ([#9491](https://github.com/tldraw/tldraw/pull/9491))
+- Fix double-clicking a shape inside an unfocused group immediately editing it; a double-click now drills one level into the group. ([#9488](https://github.com/tldraw/tldraw/pull/9488))
+- Fix selected clipped arrows so they can be dragged when their geometry extends outside a clipping parent. ([#9479](https://github.com/tldraw/tldraw/pull/9479))
+- Fix arrows bound to frames so they duplicate and delete with the frame without being clipped. ([#9470](https://github.com/tldraw/tldraw/pull/9470))
+- Fix a shape dragged from the toolbar to a frame beneath the toolbar not being parented to the frame. ([#9458](https://github.com/tldraw/tldraw/pull/9458))
+- Fix a missing `onChildrenChange` call when creating a shape directly within a parent shape. ([#9455](https://github.com/tldraw/tldraw/pull/9455))
+- Fix the reactive Meta (Cmd) key state not clearing on keyup until a pointer event on macOS, which affected `getMetaKey()` and `getAccelKey()`. ([#9404](https://github.com/tldraw/tldraw/pull/9404))
+- Fix a crash when dragging a handle on a line whose point keys differed from their indices. ([#9299](https://github.com/tldraw/tldraw/pull/9299))
+- Fix arrow bindings floating outside a geo shape after changing its geo type; precise bindings now re-snap to the nearest point on the new shape. ([#9281](https://github.com/tldraw/tldraw/pull/9281))
+- Fix an occasional crash in text measurement by iterating over grapheme clusters instead of individual characters, keeping emoji, flags, and accented characters intact. ([#9266](https://github.com/tldraw/tldraw/pull/9266))
+- Fix a crash ("Shape not found") when dragging a tool from the toolbar in a read-only room. ([#9225](https://github.com/tldraw/tldraw/pull/9225))
+- Fix sync clients not recovering from a malformed WebSocket message; they now restart the connection so a corrupt frame can no longer silently leave the client out of sync. ([#9380](https://github.com/tldraw/tldraw/pull/9380))
+- Fix uploaded asset handling for invalid R2 object names. ([#9495](https://github.com/tldraw/tldraw/pull/9495))
