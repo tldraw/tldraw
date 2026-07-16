@@ -184,7 +184,7 @@ function redirectToDefaultOgImage(request: IRequest, env: Environment) {
 	})
 }
 
-function getPublicOrigin(request: IRequest, env: Environment) {
+export function getPublicOrigin(request: IRequest, env: Environment) {
 	const forwardedHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim()
 	const host = forwardedHost ?? request.headers.get('host')
 	const proto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim() ?? 'https'
