@@ -20037,6 +20037,7 @@ __metadata:
     "@tiptap/pm": "npm:^3.12.1"
     "@tiptap/starter-kit": "npm:^3.12.1"
     "@tldraw/assets": "workspace:*"
+    "@tldraw/commenting": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/driver": "workspace:*"
     "@tldraw/mermaid": "workspace:*"
