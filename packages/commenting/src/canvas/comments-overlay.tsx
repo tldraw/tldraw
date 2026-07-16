@@ -44,6 +44,7 @@ import { isMentionPickerOpen } from '../ui/mention-suggestion'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import { UNKNOWN_AUTHOR } from './comment-render'
+import { getCommentRecord, putCommentRecords, removeCommentRecords } from './comment-store'
 import { PendingComment } from './comment-tool'
 import { useCommentThreads, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
@@ -330,14 +331,14 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			return
 		}
 
-		const record = editor.store.get(id as any)
+		const record = getCommentRecord(editor, id)
 		if (!record) return
 
 		let thread: TLCommentThread | undefined
 		if (record.typeName === 'comment') {
-			thread = threadsById.get((record as TLComment).threadId)
-		} else if (record.typeName === 'comment-thread') {
-			thread = record as TLCommentThread
+			thread = threadsById.get(record.threadId)
+		} else {
+			thread = record
 		}
 		if (!thread) return
 
@@ -1080,7 +1081,7 @@ const ThreadPin = memo(function ThreadPin({
 				authorId: currentUserId,
 				body: reply,
 			})
-			editor.store.put([comment as any])
+			putCommentRecords(editor, [comment])
 			if (onPostComment) onPostComment(comment)
 		})
 		setReply(EMPTY_COMMENT)
@@ -1089,11 +1090,11 @@ const ThreadPin = memo(function ThreadPin({
 	const toggleResolve = () => {
 		if (!currentUserId) return
 		commitCommentMutation(editor, () => {
-			editor.store.put([
+			putCommentRecords(editor, [
 				{
 					...thread,
 					resolved: thread.resolved ? null : { at: Date.now(), by: currentUserId },
-				} as any,
+				},
 			])
 		})
 	}
@@ -1101,7 +1102,7 @@ const ThreadPin = memo(function ThreadPin({
 	const deleteThread = () => {
 		openThreadId.set(editor, null)
 		commitCommentMutation(editor, () =>
-			editor.store.remove([thread.id, ...comments.map((c) => c.id)] as any)
+			removeCommentRecords(editor, [thread.id, ...comments.map((c) => c.id)])
 		)
 	}
 
@@ -1114,7 +1115,7 @@ const ThreadPin = memo(function ThreadPin({
 		const comment = comments.find((c) => c.id === editingId)
 		if (!comment || isCommentEmpty(editText)) return
 		commitCommentMutation(editor, () => {
-			editor.store.put([{ ...comment, body: editText, editedAt: Date.now() } as any])
+			putCommentRecords(editor, [{ ...comment, body: editText, editedAt: Date.now() }])
 		})
 		setEditingId(null)
 	}
@@ -1258,7 +1259,7 @@ const ThreadPin = memo(function ThreadPin({
 				? shapeAnchorAt(editor, hit.id, pagePoint, e.altKey)
 				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
 		}
-		commitCommentMutation(editor, () => editor.store.put([{ ...thread, anchor } as any]), 'drag')
+		commitCommentMutation(editor, () => putCommentRecords(editor, [{ ...thread, anchor }]), 'drag')
 	}
 
 	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
@@ -1283,7 +1284,7 @@ const ThreadPin = memo(function ThreadPin({
 	const commitResize = (bounds: BoxModel) => {
 		setResizeBounds(null)
 		editor.run(
-			() => editor.store.put([{ ...thread, anchor: { type: 'region', ...bounds } } as any]),
+			() => putCommentRecords(editor, [{ ...thread, anchor: { type: 'region', ...bounds } }]),
 			{
 				history: 'ignore',
 			}
@@ -1422,7 +1423,7 @@ function PendingComposer({
 				authorId: currentUserId,
 				body: text,
 			})
-			editor.store.put([thread as any, comment as any])
+			putCommentRecords(editor, [thread, comment])
 			if (onPostComment) onPostComment(comment)
 		})
 		setText(EMPTY_COMMENT)

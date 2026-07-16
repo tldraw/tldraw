@@ -1,12 +1,9 @@
 import { Editor, TLComment, TLCommentThread, TLCommentThreadId, useValue } from 'tldraw'
+import { getComments, getCommentThreads } from './comment-store'
 
-/** All comment threads in the store, reactively. (Comment records are opt-in, hence the casts.) */
+/** All comment threads in the store, reactively. */
 export function useCommentThreads(editor: Editor): TLCommentThread[] {
-	return useValue(
-		'comment threads',
-		() => editor.store.query.records('comment-thread' as any).get() as unknown as TLCommentThread[],
-		[editor]
-	)
+	return useValue('comment threads', () => getCommentThreads(editor), [editor])
 }
 
 /** A thread's comments, oldest first, reactively. */
@@ -14,7 +11,7 @@ export function useThreadComments(editor: Editor, threadId: TLCommentThreadId): 
 	return useValue(
 		'thread comments',
 		() =>
-			(editor.store.query.records('comment' as any).get() as unknown as TLComment[])
+			getComments(editor)
 				.filter((c) => c.threadId === threadId)
 				.sort((a, b) => a.createdAt - b.createdAt),
 		[editor, threadId]
@@ -25,10 +22,7 @@ export function useThreadComments(editor: Editor, threadId: TLCommentThreadId): 
 export function useComments(editor: Editor): TLComment[] {
 	return useValue(
 		'all comments',
-		() =>
-			(editor.store.query.records('comment' as any).get() as unknown as TLComment[]).sort(
-				(a, b) => a.createdAt - b.createdAt
-			),
+		() => getComments(editor).sort((a, b) => a.createdAt - b.createdAt),
 		[editor]
 	)
 }
