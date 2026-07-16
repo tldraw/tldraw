@@ -116,7 +116,9 @@
 	position: absolute;
 	z-index: var(--tl-layer-menus);
 	pointer-events: auto;
-	transform: translateY(8px);
+	/* Centre the avatar on the anchor point: it is 34px wide and sits 4px into the row, so its
+	   centre is 4 + 34/2 = 21px from the composer's top-left corner. */
+	transform: translate(-21px, -21px);
 	/* The rich-text editor has no intrinsic width (unlike the old <input>), so give the floating
 	   placement composer a definite width or it collapses to nothing. */
 	width: 280px;
@@ -128,16 +130,16 @@
 	box-shadow: var(--tl-shadow-2);
 }
 
-/* The comments list panel — a right-side surface shown while the comment tool is active. Below
-   the popover layer, so an open thread still draws over it. Sits under the top-right share panel
-   (top offset clears its ~48px height) and sizes to its content, scrolling past max-height rather
-   than stretching the full canvas height. */
+/* The comments list panel — a right-side surface shown while the comments sidebar is open. Below
+   the popover layer, so an open thread still draws over it. Its top aligns flush with the style
+   panel (48px from the top, clearing the share panel) and it sizes to its content, scrolling past
+   max-height rather than stretching the full canvas height. */
 .tlui-cmt-canvas-sidebar {
 	position: absolute;
-	top: 56px;
+	top: 48px;
 	right: 8px;
 	width: 280px;
-	max-height: calc(100% - 64px);
+	max-height: calc(100% - 56px);
 	z-index: var(--tl-layer-panels);
 	pointer-events: auto;
 	display: flex;

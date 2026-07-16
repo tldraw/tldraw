@@ -39,7 +39,7 @@ export function TlaSidebarNotificationsButton() {
 					data-testid="tla-notifications-button"
 					title={label}
 				>
-					<TlaIcon icon="comment" />
+					<TlaIcon icon="notification" />
 					{unreadCount > 0 && <span className={notifications.badge} aria-label={unreadLabel} />}
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>

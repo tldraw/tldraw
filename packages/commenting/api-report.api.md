@@ -88,7 +88,6 @@ export interface CanvasCommentsSidebarProps {
     };
     isCommentUnread?(commentId: TLCommentId): boolean;
     resolveName(id: string): string | undefined;
-    tools?: string[];
 }
 
 // @public
@@ -273,6 +272,9 @@ export function CommentsMenuItem(): JSX.Element;
 export function CommentsOverflowMenu(): JSX.Element;
 
 // @public
+export const commentsSidebarOpen: EditorAtom<boolean>;
+
+// @public
 export function CommentText({ text }: CommentTextProps): JSX.Element;
 
 // @public (undocumented)
@@ -308,6 +310,8 @@ export class CommentTool extends StateNode {
     onCancel(): void;
     // (undocumented)
     onEnter(): void;
+    // (undocumented)
+    onExit(): void;
     options: CommentingOptions;
 }
 
@@ -541,6 +545,9 @@ export type TLCommentRecord = TLComment | TLCommentThread;
 export function toggleCommentsHidden(editor: Editor): void;
 
 // @public
+export function toggleCommentsSidebar(editor: Editor): void;
+
+// @public
 export function useCommentingEnabled(): boolean;
 
 // @public
@@ -551,6 +558,9 @@ export function useComments(editor: Editor): TLComment[];
 
 // @public
 export function useCommentsHidden(): boolean;
+
+// @public
+export function useCommentsSidebarOpen(): boolean;
 
 // @public
 export function useCommentThreads(editor: Editor): TLCommentThread[];

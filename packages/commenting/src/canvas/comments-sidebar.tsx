@@ -17,7 +17,7 @@ import { useComments, useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
 import { useCommentingOptions } from './options'
 import { richTextToPlaintext } from './rich-text'
-import { openThreadId, sidebarFilters } from './state'
+import { commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
 import { focusThread } from './thread-state'
 
 /** @public */
@@ -31,8 +31,6 @@ export interface CanvasCommentsSidebarProps {
 	 * "only unread" filter when present.
 	 */
 	isCommentUnread?(commentId: TLCommentId): boolean
-	/** Tool ids that show the sidebar. Defaults to the comment tool. */
-	tools?: string[]
 	/** Header above the list. */
 	header?: ReactNode
 	/** Shown when the page has no threads. */
@@ -42,31 +40,23 @@ export interface CanvasCommentsSidebarProps {
 }
 
 /**
- * A comments list panel for the current page, shown while the comment tool is active. Clicking a
- * thread brings its pin into view and opens it. Batteries-included over the store (a sibling to
- * `CanvasComments`); `CommentsList` is exported for a differently-placed or always-on list.
+ * A comments list panel for the current page, shown while {@link commentsSidebarOpen} is set (e.g.
+ * toggled by a button). Clicking a thread brings its pin into view and opens it. Batteries-included
+ * over the store (a sibling to `CanvasComments`); `CommentsList` is exported for a differently-placed
+ * or always-on list.
  * @public @react
  */
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
-	const {
-		resolveName,
-		currentUserId,
-		isCommentUnread,
-		tools,
-		header,
-		empty,
-		impreciseShapeAnchor,
-	} = props
+	const { resolveName, currentUserId, isCommentUnread, header, empty, impreciseShapeAnchor } = props
 	const editor = useEditor()
 	const options = useCommentingOptions()
-	const sidebarTools = tools ?? ['comment']
 	const container = useContainer()
 	const commentingEnabled = useCommentingEnabled()
 	const msg = useTranslation()
 	const threads = useCommentThreads(editor)
 	const comments = useComments(editor)
 	const currentPageId = useValue('page id', () => editor.getCurrentPageId(), [editor])
-	const activeTool = useValue('tool id', () => editor.getCurrentToolId(), [editor])
+	const open = useValue('sidebar open', () => commentsSidebarOpen.get(editor), [editor])
 	const openId = useValue('open thread', () => openThreadId.get(editor), [editor])
 	const filters = useValue('sidebar filters', () => sidebarFilters.get(editor), [editor])
 	const pageNames = useValue(
@@ -75,7 +65,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		[editor]
 	)
 
-	if (!commentingEnabled || !sidebarTools.includes(activeTool)) return null
+	if (!commentingEnabled || !open) return null
 
 	// Group comments by thread (they arrive oldest-first, so [0] is each thread's first comment).
 	const byThread = new Map<string, TLComment[]>()
