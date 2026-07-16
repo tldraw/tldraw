@@ -231,27 +231,23 @@ panel reads the atom inside a `track`ed component, stamps added at runtime
 
 [2]
 The stamp tool is a `StateNode`, the same state machine primitive tldraw's own
-tools are built from. It sets a crosshair cursor while active, and on pointer
-down it stamps at the click point (in page space, from `editor.inputs`). The
-tool stays active after stamping so you can stamp repeatedly; pressing Escape
-cancels back to the select tool. The history stopping point is marked once on
-pointer down, so a whole drag (see [3]) is a single undo step.
+tools are built from. It sets a crosshair cursor while active and stamps at
+the click point on pointer down. The tool stays active after stamping so you
+can stamp repeatedly; pressing Escape cancels back to the select tool.
 
 [3]
-Holding the pointer down and dragging stamps a trail. On every pointer move
-while pointing (`editor.inputs.getIsPointing()`), the tool measures how far
-the pointer has travelled from the last stamp in page space, and places the
-next stamp once it exceeds the spacing. Using page-space distance keeps the
-trail density consistent with the stamp size at any zoom level.
+Dragging stamps a trail: on each pointer move while pointing, the tool places
+the next stamp once the pointer has travelled far enough from the last one.
+Distance is measured in page space, so trail density stays consistent at any
+zoom level. The history stopping point is marked once on pointer down, so a
+whole drag is a single undo step.
 
 [4]
 Every stamp becomes a shared image asset, created once via
-`editor.createAssets`. Emoji are drawn to a 128px PNG using a canvas element —
-using a PNG instead of a text shape means stamps look identical in exports and
-for collaborators regardless of platform emoji fonts. Uploaded stamps already
-have an image source, so their data URL is stored on the asset directly. The
-asset id is derived from the stamp's id, so stamping the same stamp twice
-reuses one shared asset — image shapes only reference assets by id.
+`editor.createAssets`. Emoji are drawn to a PNG with a canvas element, so
+stamps look identical in exports and for collaborators regardless of platform
+emoji fonts. The asset id is derived from the stamp's id, so stamping the
+same stamp twice reuses one asset.
 
 [5]
 Stamping creates an image shape centered on the pointer, linked to the asset.
@@ -259,15 +255,12 @@ Uploaded images are scaled to fit the stamp size while keeping their aspect
 ratio.
 
 [6]
-The upload button opens a file picker. The chosen image is read as a data URL
-with `FileHelpers.blobToDataUrl`, measured with `MediaHelpers.getImageSize`,
-appended to the stamps atom, and selected as the current stamp with the tool
-activated — so you can stamp with your own image right away.
+The upload button opens a file picker and adds the chosen image as a new
+stamp option. The image is stored as a data URL so stamps survive in the
+document; the new stamp is selected and the tool activated right away.
 
 [7]
 The picker panel goes in the `TopPanel` component slot. Clicking a stamp sets
-the current stamp atom and switches to the stamp tool with
-`editor.setCurrentTool`. The active stamp is highlighted by checking
-`editor.getCurrentToolId()` — the `track` wrapper re-renders the panel when
-the tool or the atoms change.
+the current stamp atom and switches to the stamp tool. The active stamp is
+highlighted by checking `editor.getCurrentToolId()`.
 */
