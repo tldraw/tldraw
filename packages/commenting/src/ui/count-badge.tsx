@@ -1,9 +1,9 @@
-import './comments.css'
-
+/** @public */
 export interface CountBadgeProps {
 	count: number
 }
 
+/** @public @react */
 export function CountBadge({ count }: CountBadgeProps) {
 	return <div className="cmt-count-badge">{count}</div>
 }

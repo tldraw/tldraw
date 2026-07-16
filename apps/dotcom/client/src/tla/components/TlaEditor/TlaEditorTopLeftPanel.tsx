@@ -1,4 +1,4 @@
-import { CommentsMenuItem } from '@tldraw/commenting/canvas'
+import { CommentsMenuItem } from '@tldraw/commenting'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'

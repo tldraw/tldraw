@@ -1,4 +1,4 @@
-import { commentToolOverrides, commentTools } from '@tldraw/commenting/canvas'
+import { commentToolOverrides, commentTools } from '@tldraw/commenting'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'

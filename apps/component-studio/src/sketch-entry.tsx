@@ -1,4 +1,5 @@
 import 'tldraw/tldraw.css'
+import '@tldraw/commenting/commenting.css'
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Env, SET_STATE } from './channel'

@@ -11789,6 +11789,7 @@ __metadata:
   resolution: "@tldraw/collaboration@workspace:packages/collaboration"
   dependencies:
     "@tldraw/commenting": "workspace:*"
+    "@tldraw/utils": "workspace:*"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     react: "npm:^19.2.1"
@@ -11808,6 +11809,7 @@ __metadata:
     "@tiptap/pm": "npm:^3.12.1"
     "@tiptap/react": "npm:^3.12.1"
     "@tiptap/suggestion": "npm:3.13.0"
+    "@tldraw/utils": "workspace:*"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     react: "npm:^19.2.1"

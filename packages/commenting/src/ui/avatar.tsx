@@ -1,6 +1,6 @@
 import { getFirstCharacter } from 'tldraw'
-import './comments.css'
 
+/** @public */
 export interface AvatarProps {
 	name: string
 	/** Background colour, used when there's no `image`. Falls back to the default avatar tint. */
@@ -13,7 +13,8 @@ function initial(name: string) {
 	return (getFirstCharacter(name.trim()) || '?').toUpperCase()
 }
 
-/** A commenter's avatar — their image if provided, otherwise a single-initial coloured circle. */
+/** A commenter's avatar — their image if provided, otherwise a single-initial coloured circle.
+ * @public @react */
 export function Avatar({ name, color, image }: AvatarProps) {
 	if (image) {
 		return <img className="cmt-avatar cmt-avatar--image" src={image} alt="" aria-hidden="true" />

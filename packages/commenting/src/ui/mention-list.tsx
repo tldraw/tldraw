@@ -1,8 +1,8 @@
 import { ReactNode } from 'react'
 import { useTranslation } from 'tldraw'
 import { Avatar } from './avatar'
-import './comments.css'
 
+/** A person the composer's \@-mention picker can offer. @public */
 export interface MentionMember {
 	id: string
 	name: string
@@ -18,6 +18,7 @@ export interface MentionMember {
 	[key: string]: unknown
 }
 
+/** @public */
 export interface MentionListProps {
 	/** Members to choose from — already resolved for the current query by the host. */
 	members: MentionMember[]
@@ -53,9 +54,10 @@ function DefaultMemberRow({ member }: { member: MentionMember }) {
 }
 
 /**
- * The @-mention member picker: a popover list of people to mention, shown as the user types after
+ * The \@-mention member picker: a popover list of people to mention, shown as the user types after
  * `@`. Presentational — the composer's suggestion plugin owns resolution, keyboard navigation, and
  * placement, and drives this with the host-resolved `members` and the highlighted `activeIndex`.
+ * @public @react
  */
 export function MentionList({
 	members,

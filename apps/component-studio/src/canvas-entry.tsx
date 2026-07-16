@@ -1,4 +1,5 @@
 import 'tldraw/tldraw.css'
+import '@tldraw/commenting/commenting.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { CanvasStudio } from './canvas-studio'

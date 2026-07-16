@@ -5,11 +5,11 @@ import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
 import { Avatar } from './avatar'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
 import { commentMention } from './comment-mention'
-import './comments.css'
 import { MentionMember } from './mention-list'
 import { createMentionSuggestion, isMentionPickerOpen } from './mention-suggestion'
 import { SendButton } from './send-button'
 
+/** @public */
 export interface CommentComposerProps {
 	author: string
 	placeholder: string
@@ -34,6 +34,7 @@ export interface CommentComposerProps {
  * set (bold, italic, lists, links, code, highlight — no headings), with a Send button. Formatting
  * is applied through markdown and keyboard shortcuts (e.g. `**bold**`, `- `, Cmd+B); there's no
  * floating toolbar. Presentational by default; pass value/onChange/onSubmit to drive it as a form.
+ * @public @react
  */
 export function CommentComposer({
 	author,

@@ -1,5 +1,10 @@
-import { filterMentionMembers, MentionMember } from '@tldraw/commenting'
-import { CanvasComments, commentToolOverrides, commentTools } from '@tldraw/commenting/canvas'
+import {
+	CanvasComments,
+	commentToolOverrides,
+	commentTools,
+	filterMentionMembers,
+	MentionMember,
+} from '@tldraw/commenting'
 import { useMemo } from 'react'
 import { commentSchemaRecords, createTLSchema, createTLStore, TLComponents, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'

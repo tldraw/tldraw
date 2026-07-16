@@ -1,9 +1,10 @@
-import { CommentPin, CountBadge } from '@tldraw/commenting'
 import {
+	CommentPin,
 	computeClusterTable,
+	CountBadge,
 	createClusterRuntime,
 	type LeafInput,
-} from '@tldraw/commenting/canvas'
+} from '@tldraw/commenting'
 import { useMemo } from 'react'
 import { Editor, TLComponents, Tldraw, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'

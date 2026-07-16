@@ -2,7 +2,7 @@ import { BoxModel, Editor, TLCommentAnchor, TLCommentThread, TLShapeId, VecLike 
 import { getRegionCommentOptions } from './region-options'
 import { openThreadId } from './state'
 
-/** Where an imprecise shape comment sits by default: the shape's top-right corner. Overridable. */
+/** Where an imprecise shape comment sits by default: the shape's top-right corner. Overridable. @public */
 export const DEFAULT_IMPRECISE_SHAPE_ANCHOR = { x: 1, y: 0 }
 
 /** The default corner a region's pin and composer sit on, as a normalized 0–1 offset (bottom-right).
@@ -22,6 +22,7 @@ export function regionPinPoint(region: BoxModel, corner: VecLike = REGION_PIN_CO
  * Where a thread's pin sits on the page, for each anchor kind. Null hides the pin. For imprecise
  * shape anchors the pin uses `impreciseShapeAnchor` (a normalized 0–1 spot, top-right by default)
  * rather than the stored `x`/`y`.
+ * @public
  */
 export function anchorPagePoint(
 	editor: Editor,
@@ -54,6 +55,7 @@ export function anchorPagePoint(
  * A shape anchor for a page point. `x`/`y` are the point's normalized (0–1) offset within the
  * shape's page bounds, remembered either way. When `precise` (Alt held) the pin sits at exactly
  * `x`/`y`; otherwise it sits at the consumer's imprecise default (top-right out of the box).
+ * @public
  */
 export function shapeAnchorAt(
 	editor: Editor,
@@ -74,7 +76,7 @@ export function shapeAnchorAt(
 	}
 }
 
-/** Open a thread and bring it into view — switch to its page if needed, then center its pin. */
+/** Open a thread and bring it into view — switch to its page if needed, then center its pin. @public */
 export function focusThread(
 	editor: Editor,
 	thread: TLCommentThread,

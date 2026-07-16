@@ -1,5 +1,6 @@
 import type { ClusterNode, ClusterTable, MergeEvent } from './types'
 
+/** @public */
 export interface ClusterRuntime {
 	/** Events[0..k) are active. Exposed for tests and debugging. */
 	readonly k: number
@@ -8,7 +9,7 @@ export interface ClusterRuntime {
 	/**
 	 * Reset state for the given zoom, carrying hysteresis state over from a previous partition
 	 * (the visible map of the model being replaced). Threshold-forced events ignore history:
-	 * zoom <= zMerge is always active, zoom >= zSplit always inactive. An event inside its band
+	 * zoom \<= zMerge is always active, zoom \>= zSplit always inactive. An event inside its band
 	 * is active iff its members were merged together in `previous`; a band event with no history
 	 * (e.g. introduced by the rebuild) stays inactive until the next zoom-out crosses its zMerge.
 	 * Active events must form a prefix of the table, so classification stops at the first
@@ -21,6 +22,7 @@ export interface ClusterRuntime {
 	getVisible(): ReadonlyMap<string, ClusterNode>
 }
 
+/** @public */
 export function createClusterRuntime(table: ClusterTable): ClusterRuntime {
 	return new ClusterRuntimeImpl(table)
 }

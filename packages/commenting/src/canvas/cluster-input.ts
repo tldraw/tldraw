@@ -2,6 +2,7 @@ import type { Editor, TLCommentThread } from 'tldraw'
 import type { LeafInput } from '../clustering/types'
 import { anchorPagePoint } from './thread-state'
 
+/** @public */
 export function collectClusterLeaves(
 	editor: Editor,
 	threads: readonly TLCommentThread[],

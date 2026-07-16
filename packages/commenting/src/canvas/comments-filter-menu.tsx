@@ -12,6 +12,7 @@ import {
 import { SidebarFilters } from './sidebar-filters'
 import { sidebarFilters } from './state'
 
+/** @public */
 export interface CommentsFilterMenuProps {
 	/** Whether to offer the "only your threads" toggle (needs a known current user). */
 	canFilterByAuthor?: boolean
@@ -19,7 +20,8 @@ export interface CommentsFilterMenuProps {
 	canFilterByUnread?: boolean
 }
 
-/** The funnel dropdown in the sidebar header: toggles for which threads the list shows. */
+/** The funnel dropdown in the sidebar header: toggles for which threads the list shows.
+ * @public @react */
 export function CommentsFilterMenu({
 	canFilterByAuthor,
 	canFilterByUnread,

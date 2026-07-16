@@ -3,7 +3,7 @@ import {
 	commentToolOverrides,
 	commentTools,
 	RegionCommentOptions,
-} from '@tldraw/commenting/canvas'
+} from '@tldraw/commenting'
 import { useCallback, useMemo } from 'react'
 import {
 	commentSchemaRecords,

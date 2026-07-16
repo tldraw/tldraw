@@ -1,14 +1,14 @@
-export interface Vec2 {
-	x: number
-	y: number
-}
+import type { VecLike } from 'tldraw'
 
-/** One comment thread's pin, already resolved to a page-space anchor point. */
+/**
+ * One comment thread's pin, already resolved to a page-space anchor point.
+ * @public
+ */
 export interface LeafInput {
 	/** Unique. Thread id. Uniqueness is a precondition — throw on duplicates. */
 	id: string
 	/** Page-space coordinates. Must be finite — throw on NaN/Infinity. */
-	point: Vec2
+	point: VecLike
 }
 
 /** An edge of the Euclidean MST over the leaf anchor points. */
@@ -21,12 +21,15 @@ export interface MstEdge {
 	d: number
 }
 
-/** A cluster in the merge tree: a leaf (one thread) or a merged group. */
+/**
+ * A cluster in the merge tree: a leaf (one thread) or a merged group.
+ * @public
+ */
 export interface ClusterNode {
 	/** Leaves: the thread id verbatim. Merged nodes: `cluster:${count}:${minMemberId}`. */
 	id: string
 	/** Page space; count-weighted mean of all member leaf anchors. */
-	centroid: Vec2
+	centroid: VecLike
 	/** Number of member leaves. Leaves = 1. */
 	count: number
 	/** All member thread ids, sorted lexicographically ascending. */
@@ -53,16 +56,22 @@ export interface ContractedEvent {
 	result: ClusterNode
 }
 
-/** A finalized merge event, ready for the runtime. */
+/**
+ * A finalized merge event, ready for the runtime.
+ * @public
+ */
 export interface MergeEvent {
 	zMerge: number
-	/** Reverses (splits) when zoom >= zSplit. Always > zMerge. May be +Infinity. */
+	/** Reverses (splits) when zoom \>= zSplit. Always \> zMerge. May be +Infinity. */
 	zSplit: number
 	children: ClusterNode[]
 	result: ClusterNode
 }
 
-/** The precomputed clustering schedule for one page's comments. */
+/**
+ * The precomputed clustering schedule for one page's comments.
+ * @public
+ */
 export interface ClusterTable {
 	/** Sorted non-increasing by zMerge; satisfies the invariants of CLUSTERING.md §7.6. */
 	events: readonly MergeEvent[]
@@ -70,14 +79,15 @@ export interface ClusterTable {
 	leaves: readonly ClusterNode[]
 }
 
+/** @public */
 export interface ClusterOptions {
 	/** Cluster (merge) distance, screen px. Default 40. */
 	Tc?: number
-	/** Uncluster (split) distance, screen px. Must be > Tc. Default 1.5 · Tc. */
+	/** Uncluster (split) distance, screen px. Must be \> Tc. Default 1.5 · Tc. */
 	Tu?: number
 	/** Contraction window ratio. Default 0.12. */
 	eps?: number
-	/** Max cluster screen extent at birth, screen px. Must be >= Tc. Default 3 · Tc. */
+	/** Max cluster screen extent at birth, screen px. Must be \>= Tc. Default 3 · Tc. */
 	Dmax?: number
 	/** Camera zoom bounds — pass the editor's camera constraints. Required. */
 	minZoom: number
