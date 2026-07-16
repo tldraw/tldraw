@@ -6,7 +6,6 @@ import {
 	useContainer,
 	useEditor,
 	usePassThroughMouseOverEvents,
-	usePassThroughWheelEvents,
 	useTranslation,
 	useValue,
 } from 'tldraw'
@@ -169,11 +168,11 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 	)
 }
 
-/** The sidebar surface, portaled into the container. Over it, wheel and hover events pass through to
- *  the canvas (except where the list scrolls itself), matching tldraw's own panels. */
+/** The sidebar surface, portaled into the container. It scrolls its own list, so — unlike tldraw's
+ *  wheel-transparent panels — a wheel over it doesn't pan the canvas. Hover still passes through so
+ *  shapes beneath it stay interactive. */
 function SidebarPanel({ container, children }: { container: HTMLElement; children: ReactNode }) {
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref)
 	usePassThroughMouseOverEvents(ref)
 	return createPortal(
 		<div ref={ref} className="cmt-canvas-sidebar">
