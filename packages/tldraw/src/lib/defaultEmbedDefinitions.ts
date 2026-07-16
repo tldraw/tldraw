@@ -280,6 +280,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		},
 		isAspectRatioLocked: true,
 		embedOnPaste: true,
+		sizeToContentAspectRatio: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (!urlObj) return
@@ -539,6 +540,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		doesResize: true,
 		isAspectRatioLocked: true,
 		embedOnPaste: true,
+		sizeToContentAspectRatio: true,
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.hostname === 'vimeo.com') {
@@ -742,6 +744,14 @@ export interface EmbedDefinition<Config = never> {
 	readonly canEditWhileLocked?: boolean
 	// TODO: FIXME this is ugly be required because some embeds have their own border radius for example spotify embeds
 	readonly overrideOutlineRadius?: number
+	/**
+	 * When true, the embed shape corrects its size after creation to match the real aspect ratio of
+	 * its content, so fixed-aspect media (like video) isn't letterboxed inside the default box. The
+	 * dimensions are resolved from the URL's OpenGraph metadata via the editor's url asset handler
+	 * (the same "unfurl" path used for bookmarks), so it degrades gracefully when no metadata is
+	 * available.
+	 */
+	readonly sizeToContentAspectRatio?: boolean
 	// eslint-disable-next-line tldraw/method-signature-style
 	readonly toEmbedUrl: (url: string, config?: Config) => string | undefined
 	// eslint-disable-next-line tldraw/method-signature-style
