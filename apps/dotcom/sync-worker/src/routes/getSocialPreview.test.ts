@@ -37,6 +37,30 @@ describe('renderSocialPreview', () => {
 		const html = renderSocialPreview('My board')
 		expect(html).toContain('A free and instant collaborative whiteboarding tool.')
 		expect(html).toContain('https://www.tldraw.com/social-og.png')
+		expect(html).toContain('<meta name="twitter:card" content="summary" />')
+	})
+
+	test('uses the board og-image with a large card when a board image URL is given', () => {
+		const html = renderSocialPreview(
+			'My board',
+			'https://www.tldraw.com/api/app/og-image/f/board-slug'
+		)
+		expect(html).toContain(
+			'<meta property="og:image" content="https://www.tldraw.com/api/app/og-image/f/board-slug" />'
+		)
+		expect(html).toContain(
+			'<meta name="twitter:image" content="https://www.tldraw.com/api/app/og-image/f/board-slug" />'
+		)
+		expect(html).toContain('<meta name="twitter:card" content="summary_large_image" />')
+		expect(html).toContain('<meta property="og:image:width" content="1200" />')
+		expect(html).toContain('<meta property="og:image:height" content="630" />')
+		expect(html).not.toContain('https://www.tldraw.com/social-og.png')
+		expect(html).not.toContain('https://www.tldraw.com/social-twitter.png')
+	})
+
+	test('escapes the board image URL in the meta attributes', () => {
+		const html = renderSocialPreview('My board', 'https://example.com/og?a=1&b="2"')
+		expect(html).toContain('content="https://example.com/og?a=1&amp;b=&quot;2&quot;"')
 	})
 
 	test('escapes names so they cannot break out of the meta attributes', () => {

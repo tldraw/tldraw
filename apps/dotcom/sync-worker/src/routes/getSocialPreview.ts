@@ -18,7 +18,9 @@ import { createSupabaseClient } from '../utils/createSupabaseClient'
 import { getSnapshotsTable } from '../utils/getSnapshotsTable'
 import { getSlug } from '../utils/roomOpenMode'
 import { R2Snapshot } from './createRoomSnapshot'
+import { getPublicOrigin } from './tla/getOgImage'
 import { getPublishedRoomSnapshot } from './tla/getPublishedFile'
+import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from './tla/ogImageQueue'
 
 // These mirror the static social preview metadata in apps/dotcom/client/index.html. They are used
 // as fallbacks so that bot-rendered previews stay consistent with the rest of the site.
@@ -57,7 +59,21 @@ export async function getSocialPreview(request: IRequest, env: Environment): Pro
 		name = null
 	}
 
-	return html(renderSocialPreview(name))
+	return html(renderSocialPreview(name, getBoardOgImageUrl(request, env, prefix, slug)))
+}
+
+// Board kinds the og-image route can render (shared files and published boards) get a live
+// board thumbnail as their preview image. The route self-gates: private, deleted, or unknown
+// boards 302 to the default OG image, so it is safe to reference unconditionally, and the first
+// crawler hit enqueues the board's render.
+function getBoardOgImageUrl(
+	request: IRequest,
+	env: Environment,
+	prefix: string,
+	slug: string
+): string | null {
+	if (prefix !== FILE_PREFIX && prefix !== PUBLISH_PREFIX) return null
+	return `${getPublicOrigin(request, env)}/api/app/og-image/${prefix}/${encodeURIComponent(slug)}`
 }
 
 async function getBoardName(
@@ -179,7 +195,9 @@ function cleanName(name: string | null | undefined): string | null {
 
 /**
  * Builds the social preview HTML for a board. When the board has a name we use `<name> •
- * tldraw.com` as the title, otherwise we fall back to `tldraw.com`.
+ * tldraw.com` as the title, otherwise we fall back to `tldraw.com`. When the board kind supports
+ * rendered OG images (`boardImageUrl` is set) the preview uses the board's own thumbnail with a
+ * large image card; otherwise it keeps the static site-wide images.
  *
  * The body redirects to the board with the bypass param set: some in-app browsers used by real
  * people carry a crawler token in their user-agent (WhatsApp, Pinterest), so they land here too.
@@ -188,9 +206,20 @@ function cleanName(name: string | null | undefined): string | null {
  * follow meta refresh redirects without running JavaScript, which would send them to the app shell
  * and lose the board name.
  */
-export function renderSocialPreview(name: string | null): string {
+export function renderSocialPreview(
+	name: string | null,
+	boardImageUrl: string | null = null
+): string {
 	const escapedTitle = escapeHtml(formatSocialTitle(name))
 	const description = escapeHtml(SOCIAL_PREVIEW_DESCRIPTION)
+	const ogImage = escapeHtml(boardImageUrl ?? SOCIAL_PREVIEW_IMAGE)
+	const twitterImage = escapeHtml(boardImageUrl ?? SOCIAL_PREVIEW_TWITTER_IMAGE)
+	const twitterCard = boardImageUrl ? 'summary_large_image' : 'summary'
+	const ogImageDimensions = boardImageUrl
+		? `
+		<meta property="og:image:width" content="${OG_IMAGE_WIDTH}" />
+		<meta property="og:image:height" content="${OG_IMAGE_HEIGHT}" />`
+		: ''
 	return `<!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -201,12 +230,12 @@ export function renderSocialPreview(name: string | null): string {
 		<meta property="og:site_name" content="tldraw" />
 		<meta property="og:title" content="${escapedTitle}" />
 		<meta property="og:description" content="${description}" />
-		<meta property="og:image" content="${SOCIAL_PREVIEW_IMAGE}" />
+		<meta property="og:image" content="${ogImage}" />${ogImageDimensions}
 		<meta property="og:image:alt" content="${escapeHtml(SOCIAL_PREVIEW_IMAGE_ALT)}" />
-		<meta name="twitter:card" content="summary" />
+		<meta name="twitter:card" content="${twitterCard}" />
 		<meta name="twitter:title" content="${escapedTitle}" />
 		<meta name="twitter:description" content="${description}" />
-		<meta name="twitter:image" content="${SOCIAL_PREVIEW_TWITTER_IMAGE}" />
+		<meta name="twitter:image" content="${twitterImage}" />
 		<meta name="twitter:image:alt" content="${escapeHtml(SOCIAL_PREVIEW_IMAGE_ALT)}" />
 		<meta name="twitter:creator" content="@tldraw" />
 	</head>
