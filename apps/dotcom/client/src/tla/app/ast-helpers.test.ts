@@ -290,21 +290,68 @@ describe('evaluateCondition', () => {
 		})
 	})
 
-	describe('unsupported features', () => {
-		it('should throw for correlatedSubquery (EXISTS)', () => {
-			const condition = {
-				type: 'correlatedSubquery' as const,
-				related: {
-					correlation: { parentField: ['id'], childField: ['userId'] },
-					subquery: { table: 'file' },
+	describe('correlatedSubquery (EXISTS)', () => {
+		// comment(fileId) -> file(id), scoped to files the user has a state for
+		const existsCondition = {
+			type: 'correlatedSubquery' as const,
+			op: 'EXISTS' as const,
+			related: {
+				correlation: { parentField: ['fileId'], childField: ['id'] },
+				subquery: {
+					table: 'file',
+					where: {
+						type: 'correlatedSubquery' as const,
+						op: 'EXISTS' as const,
+						related: {
+							correlation: { parentField: ['id'], childField: ['fileId'] },
+							subquery: {
+								table: 'file_state',
+								where: {
+									type: 'simple' as const,
+									left: { type: 'column' as const, name: 'userId' },
+									op: '=' as const,
+									right: { type: 'literal' as const, value: 'u1' },
+								},
+							},
+						},
+					},
 				},
-				op: 'EXISTS' as const,
+			},
+		}
+
+		it('is true when a correlated child row exists and its nested EXISTS matches', () => {
+			const data = {
+				file: [{ id: 'f1' }],
+				file_state: [{ fileId: 'f1', userId: 'u1' }],
 			}
-			expect(() => evaluateCondition(condition as any, row)).toThrow(
-				'Unsupported condition type: correlatedSubquery (EXISTS/NOT EXISTS) is not implemented in polyfill'
-			)
+			expect(evaluateCondition(existsCondition as any, { fileId: 'f1' }, data)).toBe(true)
 		})
 
+		it('is false when the nested access subquery does not match', () => {
+			const data = {
+				file: [{ id: 'f1' }],
+				file_state: [{ fileId: 'f1', userId: 'someone-else' }],
+			}
+			expect(evaluateCondition(existsCondition as any, { fileId: 'f1' }, data)).toBe(false)
+		})
+
+		it('is false when no correlated child row exists', () => {
+			const data = { file: [{ id: 'other' }], file_state: [] }
+			expect(evaluateCondition(existsCondition as any, { fileId: 'f1' }, data)).toBe(false)
+		})
+
+		it('treats EXISTS as satisfied when no store data is provided', () => {
+			expect(evaluateCondition(existsCondition as any, { fileId: 'f1' })).toBe(true)
+		})
+
+		it('inverts for NOT EXISTS', () => {
+			const notExists = { ...existsCondition, op: 'NOT EXISTS' as const }
+			const data = { file: [{ id: 'f1' }], file_state: [{ fileId: 'f1', userId: 'u1' }] }
+			expect(evaluateCondition(notExists as any, { fileId: 'f1' }, data)).toBe(false)
+		})
+	})
+
+	describe('unsupported features', () => {
 		it('should evaluate IS operator', () => {
 			const condition = {
 				type: 'simple' as const,
