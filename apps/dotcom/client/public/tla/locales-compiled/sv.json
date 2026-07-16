@@ -123,12 +123,6 @@
       "value": "Exportera som"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Är du säker på att du vill ta bort den här arbetsytan? Den här åtgärden kan inte ångras."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Få hjälp med Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Är du säker på att du vill ta bort "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "Fäst fil"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Är du säker på att du vill glömma den här filen?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Är du säker på att du vill glömma "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -793,6 +821,26 @@
     {
       "type": 0,
       "value": "Döp om"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Är du säker på att du vill ta bort "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Den här åtgärden kan inte ångras."
     }
   ],
   "95aacd4d4a": [
@@ -1121,26 +1169,6 @@
       "value": "Läs mer om delning."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Tillåt "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " för att hjälpa oss att förbättra tldraw."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1451,12 +1479,6 @@
     {
       "type": 0,
       "value": "Är du säker på att du vill lämna den här arbetsytan?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Är du säker på att du vill ta bort den här filen?"
     }
   ],
   "fed5ec05eb": [

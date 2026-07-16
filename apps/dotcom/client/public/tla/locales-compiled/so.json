@@ -123,12 +123,6 @@
       "value": "Dhoofinta sida"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Ma hubtaa inaad rabto inaad tirtirto goobta shaqada? Tallaabadan lama celin karo."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Caawimo ka hel Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Ma hubtaa inaad rabto inaad tirtirto "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "Gal gal"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Ma hubtaa inaad rabto inaad ilowdo faylkan?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Ma hubtaa inaad rabto inaad illowdo "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -793,6 +821,26 @@
     {
       "type": 0,
       "value": "Magacaabista"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Ma hubtaa inaad rabto inaad tirtirto "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Ficilkan lama celin karo."
     }
   ],
   "95aacd4d4a": [
@@ -1121,26 +1169,6 @@
       "value": "Wax badan ka baro wadaagga"
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Oggolow "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " inay naga caawiyaan horumarinta tldraw."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1447,12 +1475,6 @@
     {
       "type": 0,
       "value": "Ma hubtaa inaad rabto inaad ka baxdo goobta shaqada?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Ma hubtaa inaad rabto inaad tirtirto faylkan?"
     }
   ],
   "fed5ec05eb": [

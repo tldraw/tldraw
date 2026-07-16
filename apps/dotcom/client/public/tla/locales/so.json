@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Ma hubtaa inaad rabto inaad tirtirto goobta shaqada? Tallaabadan lama celin karo."
-  },
   "0095a9fa74": {
     "translation": "Dhoofinta"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Caawimo ka hel Discord"
   },
+  "454aad3b3c": {
+    "translation": "Ma hubtaa inaad rabto inaad tirtirto <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Waad ku mahadsan tahay inaad naga caawisay horumarinta tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Gal gal"
-  },
-  "4908687e50": {
-    "translation": "Ma hubtaa inaad rabto inaad ilowdo faylkan?"
   },
   "49ee308734": {
     "translation": "Magaca"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Ma haysaa bug, arin, ama fikrad tldraw? Aan ogaano! Buuxi foomkan waxaanu kula socon doonaa iimaylka haddii loo baahdo. Waxa kale oo aad <discord>nagula sheekaysan kartaa Discord </discord>ama <github>gudbi arrin ku saabsan GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Ma hubtaa inaad rabto inaad illowdo <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Xubin"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Magacaabista"
+  },
+  "90646db02d": {
+    "translation": "Ma hubtaa inaad rabto inaad tirtirto <strong>{workspaceName}</strong>? Ficilkan lama celin karo."
   },
   "95aacd4d4a": {
     "translation": "Ku gal Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Wax badan ka baro wadaagga"
-  },
-  "c28aed8348": {
-    "translation": "Oggolow <cookies>analytics</cookies> inay naga caawiyaan horumarinta tldraw."
   },
   "c303bd1095": {
     "translation": "Aan awoodin in la daabaco faylka"
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Ma hubtaa inaad rabto inaad ka baxdo goobta shaqada?"
-  },
-  "fd1be3efcf": {
-    "translation": "Ma hubtaa inaad rabto inaad tirtirto faylkan?"
   },
   "fed5ec05eb": {
     "translation": "Xiriirinta la guuriyay"

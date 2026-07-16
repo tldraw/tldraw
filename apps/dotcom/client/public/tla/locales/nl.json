@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Weet je zeker dat je deze werkruimte wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
-  },
   "0095a9fa74": {
     "translation": "Exporteren"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Krijg hulp op Discord"
   },
+  "454aad3b3c": {
+    "translation": "Weet je zeker dat je <strong>{fileName}</strong> wilt verwijderen?"
+  },
   "46137245cd": {
     "translation": "Bedankt voor uw hulp bij het verbeteren van tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Pinbestand"
-  },
-  "4908687e50": {
-    "translation": "Weet u zeker dat u dit bestand wilt vergeten?"
   },
   "49ee308734": {
     "translation": "Naam"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Heb je een bug, probleem of idee voor tldraw? Laat het ons weten! Vul dit formulier in en we nemen indien nodig per e-mail contact met je op. Je kunt ook <discord>met ons chatten op Discord</discord> of <github>een probleem melden op GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Weet je zeker dat je <strong>{fileName}</strong> wilt vergeten?"
+  },
   "858ba4765e": {
     "translation": "Lid"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Hernoemen"
+  },
+  "90646db02d": {
+    "translation": "Weet je zeker dat je <strong>{workspaceName}</strong> wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
   },
   "95aacd4d4a": {
     "translation": "Aanmelden met Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Meer informatie over delen."
-  },
-  "c28aed8348": {
-    "translation": "Sta <cookies>analytics</cookies> toe om ons te helpen tldraw te verbeteren."
   },
   "c303bd1095": {
     "translation": "Het bestand kan niet worden gepubliceerd."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Weet je zeker dat je deze werkruimte wilt verlaten?"
-  },
-  "fd1be3efcf": {
-    "translation": "Weet u zeker dat u dit bestand wilt verwijderen?"
   },
   "fed5ec05eb": {
     "translation": "Gekopieerde link"

@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Sind Sie sicher, dass Sie diesen Arbeitsbereich löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
-  },
   "0095a9fa74": {
     "translation": "Exportieren"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Holen Sie sich Hilfe auf Discord"
   },
+  "454aad3b3c": {
+    "translation": "Möchten Sie wirklich <strong>{fileName}</strong> löschen?"
+  },
   "46137245cd": {
     "translation": "Danke, dass Sie uns helfen, tldraw zu verbessern!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Pin-Datei"
-  },
-  "4908687e50": {
-    "translation": "Möchten Sie diese Datei wirklich vergessen?"
   },
   "49ee308734": {
     "translation": "Name"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Haben Sie einen Fehler, ein Problem oder eine Idee für tldraw? Lassen Sie es uns wissen! Füllen Sie dieses Formular aus und wir melden uns bei Bedarf per E-Mail. Sie können auch <discord>mit uns auf Discord chatten</discord> oder <github>ein Problem auf GitHub melden</github>."
   },
+  "81666c6e4a": {
+    "translation": "Sind Sie sicher, dass Sie <strong>{fileName}</strong> vergessen möchten?"
+  },
   "858ba4765e": {
     "translation": "Mitglied"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Umbenennen"
+  },
+  "90646db02d": {
+    "translation": "Möchten Sie <strong>{workspaceName}</strong> wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
   },
   "95aacd4d4a": {
     "translation": "Mit Google anmelden"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Erfahren Sie mehr über das Teilen."
-  },
-  "c28aed8348": {
-    "translation": "Erlauben Sie uns, mithilfe von <cookies>analytics</cookies> tldraw zu verbessern."
   },
   "c303bd1095": {
     "translation": "Diese Datei kann nicht veröffentlicht werden."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Möchten Sie diesen Arbeitsbereich wirklich verlassen?"
-  },
-  "fd1be3efcf": {
-    "translation": "Möchten Sie diese Datei wirklich löschen?"
   },
   "fed5ec05eb": {
     "translation": "Link kopiert"

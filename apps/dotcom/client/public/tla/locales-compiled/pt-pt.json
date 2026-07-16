@@ -123,12 +123,6 @@
       "value": "Exportar como"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Tem certeza de que deseja excluir este espaço de trabalho? Esta ação não pode ser desfeita."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Obter ajuda no Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Tem certeza de que deseja excluir "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "Arquivo PIN"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Tem a certeza de que quer esquecer este ficheiro?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Tem certeza de que deseja esquecer "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -793,6 +821,26 @@
     {
       "type": 0,
       "value": "Mudar o nome"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Tem certeza de que deseja excluir "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Esta ação não pode ser desfeita."
     }
   ],
   "95aacd4d4a": [
@@ -1121,26 +1169,6 @@
       "value": "Saiba mais sobre partilha."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Permitir "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "análises"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " para nos ajudar a melhorar o tldraw."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1451,12 +1479,6 @@
     {
       "type": 0,
       "value": "Tem certeza de que deseja sair deste espaço de trabalho?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Tem a certeza de que quer eliminar este ficheiro?"
     }
   ],
   "fed5ec05eb": [

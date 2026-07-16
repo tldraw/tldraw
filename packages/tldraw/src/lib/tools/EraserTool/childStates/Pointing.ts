@@ -5,7 +5,6 @@ export class Pointing extends StateNode {
 
 	override onEnter(info: TLPointerEventInfo) {
 		const onlyEraseTopShape = info.accelKey
-		const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapesSorted = this.editor.getCurrentPageRenderingShapesSorted()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
@@ -22,7 +21,7 @@ export class Pointing extends StateNode {
 			if (
 				this.editor.isPointInShape(shape, currentPagePoint, {
 					hitInside: false,
-					margin: this.editor.options.hitTestMargin / zoomLevel,
+					margin: this.editor.getHitTestMargin(),
 				})
 			) {
 				const hitShape = this.editor.getOutermostSelectableShape(shape)

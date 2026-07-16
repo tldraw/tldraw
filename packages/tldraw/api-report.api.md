@@ -3670,6 +3670,7 @@ export const StylePanelDropdownPickerInline: <T extends string>(props: StylePane
 export interface StylePanelDropdownPickerProps<T extends string> {
     // (undocumented)
     id: string;
+    isOverflow?: boolean;
     // (undocumented)
     items: StyleValuesForUi<T>;
     // (undocumented)

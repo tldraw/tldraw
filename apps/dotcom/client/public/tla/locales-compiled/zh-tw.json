@@ -123,12 +123,6 @@
       "value": "匯出為"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "您確定要刪除此工作區嗎？此操作無法撤銷。"
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "在 Discord 上獲得協助"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "您確定要刪除"
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "嗎？"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "針文件"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "您確定要遺忘此檔案嗎？"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "。"
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "您確定要刪除"
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "嗎？"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -793,6 +821,26 @@
     {
       "type": 0,
       "value": "重新命名"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "您確定要刪除"
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "嗎？此操作無法撤銷。"
     }
   ],
   "95aacd4d4a": [
@@ -1117,26 +1165,6 @@
       "value": "瞭解有關共享的更多資訊。"
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "允許使用 "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " 來幫助我們改進 tldraw。"
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1447,12 +1475,6 @@
     {
       "type": 0,
       "value": "您確定要離開此工作區嗎？"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "您確定要刪除此檔案嗎？"
     }
   ],
   "fed5ec05eb": [

@@ -72,7 +72,7 @@ export class Idle extends StateNode {
 				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 				const hitOverlay = this.editor.overlays.getOverlayAtPoint(
 					currentPagePoint,
-					this.editor.options.hitTestMargin / this.editor.getZoomLevel()
+					this.editor.getHitTestMargin()
 				)
 				if (hitOverlay) {
 					this.onPointerDown({
@@ -275,7 +275,7 @@ export class Idle extends StateNode {
 				// onDoubleClickCorner fire.
 				const hitOverlay = this.editor.overlays.getOverlayAtPoint(
 					currentPagePoint,
-					this.editor.options.hitTestMargin / this.editor.getZoomLevel()
+					this.editor.getHitTestMargin()
 				)
 				if (hitOverlay) {
 					if (hitOverlay.type === 'shape_handle') {
@@ -319,7 +319,7 @@ export class Idle extends StateNode {
 						? hoveredShape
 						: (this.editor.getSelectedShapeAtPoint(currentPagePoint) ??
 							this.editor.getShapeAtPoint(currentPagePoint, {
-								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
+								margin: this.editor.getHitTestMargin(),
 								hitInside: false,
 							}))
 
@@ -512,7 +512,7 @@ export class Idle extends StateNode {
 					hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')
 						? hoveredShape
 						: this.editor.getShapeAtPoint(currentPagePoint, {
-								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
+								margin: this.editor.getHitTestMargin(),
 								hitInside: false,
 								hitLabels: true,
 								hitLocked: true,

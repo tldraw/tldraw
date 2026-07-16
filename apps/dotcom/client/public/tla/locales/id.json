@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Apakah Anda yakin ingin menghapus ruang kerja ini? Tindakan ini tidak dapat dibatalkan."
-  },
   "0095a9fa74": {
     "translation": "Ekspor"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Dapatkan bantuan di Discord"
   },
+  "454aad3b3c": {
+    "translation": "Apakah Anda yakin ingin menghapus <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Terima kasih telah membantu kami meningkatkan tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Berkas pin"
-  },
-  "4908687e50": {
-    "translation": "Yakin ingin mengabaikan file ini?"
   },
   "49ee308734": {
     "translation": "Nama"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Punya bug, masalah, atau ide untuk tldraw? Beri tahu kami! Isi formulir ini dan kami akan menindaklanjutinya melalui email jika diperlukan. Anda juga dapat <discord>mengobrol dengan kami di Discord</discord> atau <github>mengajukan masalah di GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Apakah Anda yakin ingin melupakan <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Anggota"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Ganti nama"
+  },
+  "90646db02d": {
+    "translation": "Apakah Anda yakin ingin menghapus <strong>{workspaceName}</strong>? Tindakan ini tidak dapat dibatalkan."
   },
   "95aacd4d4a": {
     "translation": "Masuk dengan Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Pelajari lebih lanjut tentang berbagi."
-  },
-  "c28aed8348": {
-    "translation": "Izinkan <cookies>analytics</cookies> membantu kami meningkatkan tldraw."
   },
   "c303bd1095": {
     "translation": "Tidak dapat menerbitkan file."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Apakah Anda yakin ingin meninggalkan ruang kerja ini?"
-  },
-  "fd1be3efcf": {
-    "translation": "Yakin ingin menghapus file ini?"
   },
   "fed5ec05eb": {
     "translation": "Tautan disalin"

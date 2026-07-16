@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "¿Seguro que quieres eliminar este espacio de trabajo? Esta acción no se puede deshacer."
-  },
   "0095a9fa74": {
     "translation": "Exportar"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Obtenga ayuda en Discord"
   },
+  "454aad3b3c": {
+    "translation": "¿Estás seguro de que quieres eliminar <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "¡Gracias por ayudarnos a mejorar tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Archivo de pines"
-  },
-  "4908687e50": {
-    "translation": "¿Seguro que quiere olvidar este archivo?"
   },
   "49ee308734": {
     "translation": "Nombre"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "¿Tienes algún error, problema o idea para tldraw? ¡Háznoslo saber! Completa este formulario y nos pondremos en contacto por correo electrónico si es necesario. También puedes <discord>chatear con nosotros en Discord</discord> o <github>enviar un problema en GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "¿Estás seguro de que quieres olvidar <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Miembro"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Renombrar"
+  },
+  "90646db02d": {
+    "translation": "¿Está seguro de que desea eliminar <strong>{workspaceName}</strong>? Esta acción no se puede deshacer."
   },
   "95aacd4d4a": {
     "translation": "Inicia sesión con Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Más información sobre el uso compartido."
-  },
-  "c28aed8348": {
-    "translation": "Permitir <cookies>analytics</cookies> para ayudarnos a mejorar tldraw."
   },
   "c303bd1095": {
     "translation": "No se ha podido publicar el archivo."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "¿Estás seguro de que quieres abandonar este espacio de trabajo?"
-  },
-  "fd1be3efcf": {
-    "translation": "¿Seguro que quiere eliminar este archivo?"
   },
   "fed5ec05eb": {
     "translation": "Enlace copiado"

@@ -123,12 +123,6 @@
       "value": "Exportar como"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "¿Seguro que quieres eliminar este espacio de trabajo? Esta acción no se puede deshacer."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Obtenga ayuda en Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "¿Estás seguro de que quieres eliminar "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "Archivo de pines"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "¿Seguro que quiere olvidar este archivo?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "¿Estás seguro de que quieres olvidar "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -793,6 +821,26 @@
     {
       "type": 0,
       "value": "Renombrar"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "¿Está seguro de que desea eliminar "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? Esta acción no se puede deshacer."
     }
   ],
   "95aacd4d4a": [
@@ -1121,26 +1169,6 @@
       "value": "Más información sobre el uso compartido."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Permitir "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " para ayudarnos a mejorar tldraw."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1451,12 +1479,6 @@
     {
       "type": 0,
       "value": "¿Estás seguro de que quieres abandonar este espacio de trabajo?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "¿Seguro que quiere eliminar este archivo?"
     }
   ],
   "fed5ec05eb": [

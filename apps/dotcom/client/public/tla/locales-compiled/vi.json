@@ -123,12 +123,6 @@
       "value": "Xuất dưới dạng"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Bạn có chắc chắn muốn xóa không gian làm việc này không? Thao tác này không thể hoàn tác."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Nhận trợ giúp trên Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Bạn có chắc chắn muốn xóa "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " không?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "Tệp ghim"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Bạn có chắc chắn muốn quên tệp này không?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Bạn có chắc chắn muốn quên "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " không?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -793,6 +821,26 @@
     {
       "type": 0,
       "value": "Đổi tên"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Bạn có chắc chắn muốn xóa "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " không? Hành động này không thể hoàn tác."
     }
   ],
   "95aacd4d4a": [
@@ -1113,26 +1161,6 @@
       "value": "Tìm hiểu thêm về chia sẻ."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Cho phép "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " giúp chúng tôi cải thiện tldraw."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1443,12 +1471,6 @@
     {
       "type": 0,
       "value": "Bạn có chắc chắn muốn rời khỏi không gian làm việc này không?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Bạn có chắc muốn xóa tệp này?"
     }
   ],
   "fed5ec05eb": [

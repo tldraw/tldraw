@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "您确定要删除此工作区吗？此操作无法撤销。"
-  },
   "0095a9fa74": {
     "translation": "导出"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "在Discord上寻求帮助"
   },
+  "454aad3b3c": {
+    "translation": "您确定要删除<strong>{fileName}</strong>吗？"
+  },
   "46137245cd": {
     "translation": "感谢您帮助我们改进 tldraw！"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "针文件"
-  },
-  "4908687e50": {
-    "translation": "确定要忘记该文件吗？"
   },
   "49ee308734": {
     "translation": "姓名"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "tldraw 有 bug、问题或想法吗？请告诉我们！填写此表单，如有需要，我们会通过电子邮件与您联系。您也可以<discord>在 Discord 上与我们聊天</discord>，或<github>在 GitHub 上提交问题</github>。"
   },
+  "81666c6e4a": {
+    "translation": "您确定要删除<strong>{fileName}</strong>吗？"
+  },
   "858ba4765e": {
     "translation": "成员"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "重命名"
+  },
+  "90646db02d": {
+    "translation": "您确定要删除<strong>{workspaceName}</strong>吗？此操作无法撤销。"
   },
   "95aacd4d4a": {
     "translation": "使用 Google 登录"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "详细了解分享。"
-  },
-  "c28aed8348": {
-    "translation": "允许使用 <cookies>analytics</cookies> 来帮助我们改进 tldraw。"
   },
   "c303bd1095": {
     "translation": "无法发布文件。"
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "您确定要离开此工作区吗？"
-  },
-  "fd1be3efcf": {
-    "translation": "确定要删除此文件吗？"
   },
   "fed5ec05eb": {
     "translation": "链接已复制"

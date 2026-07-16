@@ -123,12 +123,6 @@
       "value": "Exporteren als"
     }
   ],
-  "1764571547": [
-    {
-      "type": 0,
-      "value": "Weet je zeker dat je deze werkruimte wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
-    }
-  ],
   "181b90f889": [
     {
       "type": 0,
@@ -311,6 +305,26 @@
       "value": "Krijg hulp op Discord"
     }
   ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Weet je zeker dat je "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " wilt verwijderen?"
+    }
+  ],
   "46137245cd": [
     {
       "type": 0,
@@ -333,12 +347,6 @@
     {
       "type": 0,
       "value": "Pinbestand"
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Weet u zeker dat u dit bestand wilt vergeten?"
     }
   ],
   "49ee308734": [
@@ -721,6 +729,26 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Weet je zeker dat je "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " wilt vergeten?"
+    }
+  ],
   "858ba4765e": [
     {
       "type": 0,
@@ -789,6 +817,26 @@
     {
       "type": 0,
       "value": "Hernoemen"
+    }
+  ],
+  "90646db02d": [
+    {
+      "type": 0,
+      "value": "Weet je zeker dat je "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
     }
   ],
   "95aacd4d4a": [
@@ -1117,26 +1165,6 @@
       "value": "Meer informatie over delen."
     }
   ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Sta "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " toe om ons te helpen tldraw te verbeteren."
-    }
-  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1447,12 +1475,6 @@
     {
       "type": 0,
       "value": "Weet je zeker dat je deze werkruimte wilt verlaten?"
-    }
-  ],
-  "fd1be3efcf": [
-    {
-      "type": 0,
-      "value": "Weet u zeker dat u dit bestand wilt verwijderen?"
     }
   ],
   "fed5ec05eb": [

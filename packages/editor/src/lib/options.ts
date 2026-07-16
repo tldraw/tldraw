@@ -86,6 +86,7 @@ export interface TldrawOptions {
 	readonly collaboratorCheckIntervalMs: number
 	readonly cameraMovingTimeoutMs: number
 	readonly hitTestMargin: number
+	readonly coarseHitTestMargin: number
 	readonly edgeScrollDelay: number
 	readonly edgeScrollEaseDuration: number
 	readonly edgeScrollSpeed: number
@@ -312,7 +313,8 @@ export const defaultTldrawOptions = {
 	collaboratorIdleTimeoutMs: 3000,
 	collaboratorCheckIntervalMs: 1200,
 	cameraMovingTimeoutMs: 64,
-	hitTestMargin: 8,
+	hitTestMargin: 3,
+	coarseHitTestMargin: 4,
 	edgeScrollDelay: 200,
 	edgeScrollEaseDuration: 200,
 	edgeScrollSpeed: 25,

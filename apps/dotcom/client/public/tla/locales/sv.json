@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Är du säker på att du vill ta bort den här arbetsytan? Den här åtgärden kan inte ångras."
-  },
   "0095a9fa74": {
     "translation": "Exportera"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Få hjälp med Discord"
   },
+  "454aad3b3c": {
+    "translation": "Är du säker på att du vill ta bort <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Tack för att du hjälper oss att förbättra tldraw!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Fäst fil"
-  },
-  "4908687e50": {
-    "translation": "Är du säker på att du vill glömma den här filen?"
   },
   "49ee308734": {
     "translation": "Namn"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Har du en bugg, ett problem eller en idé för tldraw? Låt oss veta! Fyll i det här formuläret så återkommer vi via e-post om det behövs. Du kan också <discord>chatta med oss ​​på Discord</discord> eller <github>skicka in ett ärende på GitHub</github>."
   },
+  "81666c6e4a": {
+    "translation": "Är du säker på att du vill glömma <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Medlem"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Döp om"
+  },
+  "90646db02d": {
+    "translation": "Är du säker på att du vill ta bort <strong>{workspaceName}</strong>? Den här åtgärden kan inte ångras."
   },
   "95aacd4d4a": {
     "translation": "Logga in med Google"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Läs mer om delning."
-  },
-  "c28aed8348": {
-    "translation": "Tillåt <cookies>analytics</cookies> för att hjälpa oss att förbättra tldraw."
   },
   "c303bd1095": {
     "translation": "Det gick inte att publicera filen."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Är du säker på att du vill lämna den här arbetsytan?"
-  },
-  "fd1be3efcf": {
-    "translation": "Är du säker på att du vill ta bort den här filen?"
   },
   "fed5ec05eb": {
     "translation": "Länk kopierad"

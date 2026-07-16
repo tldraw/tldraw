@@ -18,6 +18,7 @@ import {
 import 'tldraw/tldraw.css'
 import './mcp-app.css'
 import tldrawLogoUrl from '../../plugins/tldraw-mcp/assets/logo.svg'
+import { computeExecKey } from '../shared/exec-key'
 import { primeEmbeddedMethodMap } from '../shared/generated-data'
 import {
 	MCP_SERVER_DESCRIPTION,
@@ -35,6 +36,7 @@ import { exportTldr } from './export-tldr'
 import { ImageDropGuard, uiOverrides } from './image-guard'
 import {
 	type CanvasSnapshot,
+	getCurrentCanvasId,
 	getEmbeddedBootstrap,
 	getLatestCheckpointSnapshot,
 	loadLocalSnapshot,
@@ -518,33 +520,29 @@ function TldrawCanvas({ app }: { app: App }) {
 					`Exec ${execResult.success ? 'succeeded' : 'failed'}: ${JSON.stringify(execResult.result ?? execResult.error)}`
 				)
 
-				// Call _exec_callback FIRST to get the server-assigned canvasId
-				const callbackArgs = execResult.success
-					? { channel: 'exec', result: { success: true, result: execResult.result } }
-					: { channel: 'exec', result: { success: false, error: execResult.error } }
+				// Resolve the waiting exec call. On same-session hosts this settles the
+				// server's in-memory pending request directly; otherwise the server
+				// forwards the result to the exec:<execKey> rendezvous DO, keyed by the
+				// same (canvasId, code) pair both sides derive, so it still reaches the
+				// waiting exec. `canvasId` here is the model-supplied input (undefined
+				// for a new canvas) — the server keys on that same value, so folding it
+				// in keeps same-code-different-canvas invocations from colliding.
+				//
+				// We also include the canvasId in the payload (when present) as a
+				// belt-and-braces cross-check: the waiting exec rejects a delivered
+				// result whose canvasId isn't the one it's editing. Omitted for new
+				// canvases because the server-generated id isn't known here yet, and
+				// sending a stale learned id would cause false mismatches.
+				const execKey = await computeExecKey(code, canvasId)
+				const resultPayload = execResult.success
+					? { success: true, result: execResult.result }
+					: { success: false, error: execResult.error }
+				if (canvasId) {
+					;(resultPayload as { canvasId?: string }).canvasId = canvasId
+				}
+				const callbackArgs = { channel: 'exec', execKey, result: resultPayload }
 				try {
-					const cbResponse = await app.callServerTool({
-						name: '_exec_callback',
-						arguments: callbackArgs,
-					})
-					const cbRes = cbResponse as any
-					let cbData: any = null
-					if (Array.isArray(cbRes?.content)) {
-						const textItem = cbRes.content.find(
-							(c: any) => c.type === 'text' && typeof c.text === 'string'
-						)
-						if (textItem) {
-							try {
-								cbData = JSON.parse(textItem.text)
-							} catch {
-								// not JSON
-							}
-						}
-					}
-					if (cbData?.canvasId) {
-						setCurrentCanvasId(cbData.canvasId)
-						logIfDevMode(`Exec: server canvasId=${cbData.canvasId}`)
-					}
+					await app.callServerTool({ name: '_exec_callback', arguments: callbackArgs })
 					logIfDevMode('Exec: _exec_callback succeeded')
 				} catch (err) {
 					logIfDevMode(`Exec: _exec_callback failed: ${err}`)
@@ -614,8 +612,34 @@ function TldrawCanvas({ app }: { app: App }) {
 
 		app.ontoolresult = async (result) => {
 			logIfDevMode('Exec: ontoolresult called')
+			// If the code already ran for this invocation (via toolinput/partial), a
+			// still-queued debounced run is a duplicate of it — cancel it before
+			// resetting the run guard. If nothing ran yet (hosts that deliver input
+			// and result together), keep the timer so the code still executes once.
+			if (hasExecRunRef.current && execPartialDebounceRef.current !== null) {
+				window.clearTimeout(execPartialDebounceRef.current)
+				execPartialDebounceRef.current = null
+			}
 			hasExecRunRef.current = false
 			markAiActivity()
+
+			// The tool result carries the server-assigned canvasId on every host,
+			// including those that route widget calls over a separate MCP session. Once
+			// learned, persist the canvas -> checkpoint mapping so future execs can
+			// restore this canvas.
+			const sc = (result as { structuredContent?: { canvasId?: unknown } }).structuredContent
+			if (sc && typeof sc.canvasId === 'string' && sc.canvasId) {
+				const hadCanvasId = getCurrentCanvasId() !== null
+				setCurrentCanvasId(sc.canvasId)
+				logIfDevMode(`Exec: canvasId from tool result: ${sc.canvasId}`)
+				if (!hadCanvasId) {
+					const editor = editorRef.current
+					const cpId = checkpointIdRef.current
+					if (editor && cpId) {
+						void saveCheckpointToServer(app, cpId, editor)
+					}
+				}
+			}
 
 			const checkpoint = parseCheckpointFromToolResult(result)
 			if (!checkpoint) return

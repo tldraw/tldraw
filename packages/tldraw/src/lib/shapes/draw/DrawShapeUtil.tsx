@@ -364,11 +364,11 @@ function DrawShapeSvg({
 
 	const strokePoints = getStrokePoints(allPointsFromSegments, options)
 	const isDot = strokePoints.length < 2
+	const fill = isDot || shape.props.isClosed ? shape.props.fill : 'none'
+
 	const solidStrokePath = isDot
 		? getDot(allPointsFromSegments[0], 0)
-		: getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
-
-	const fill = isDot || shape.props.isClosed ? shape.props.fill : 'none'
+		: getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed && fill !== 'none')
 
 	return (
 		<>

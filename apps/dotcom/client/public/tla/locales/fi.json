@@ -1,7 +1,4 @@
 {
-  "1764571547": {
-    "translation": "Haluatko varmasti poistaa tämän työtilan? Tätä toimintoa ei voi perua."
-  },
   "0095a9fa74": {
     "translation": "Viedä"
   },
@@ -146,6 +143,9 @@
   "44db318ee5": {
     "translation": "Hanki apua Discordissa"
   },
+  "454aad3b3c": {
+    "translation": "Haluatko varmasti poistaa tiedoston <strong>{fileName}</strong>?"
+  },
   "46137245cd": {
     "translation": "Kiitos, että autat meitä parantamaan tldraw:ta!"
   },
@@ -157,9 +157,6 @@
   },
   "47f493a590": {
     "translation": "Kiinnitä tiedosto"
-  },
-  "4908687e50": {
-    "translation": "Haluatko varmasti unohtaa tämän tiedoston?"
   },
   "49ee308734": {
     "translation": "Nimi"
@@ -332,6 +329,9 @@
   "815e116a2e": {
     "translation": "Onko sinulla bugi, ongelma tai idea tldraw'hun liittyen? Kerro meille! Täytä tämä lomake, niin otamme sinuun tarvittaessa yhteyttä sähköpostitse. Voit myös <discord>chattailla kanssamme Discordissa</discord> tai <github>lähettää ongelman GitHubissa</github>."
   },
+  "81666c6e4a": {
+    "translation": "Haluatko varmasti unohtaa tiedoston <strong>{fileName}</strong>?"
+  },
   "858ba4765e": {
     "translation": "Jäsen"
   },
@@ -364,6 +364,9 @@
   },
   "904a830405": {
     "translation": "Nimeä uudelleen"
+  },
+  "90646db02d": {
+    "translation": "Haluatko varmasti poistaa työtilan <strong>{workspaceName}</strong>? Tätä toimintoa ei voi perua."
   },
   "95aacd4d4a": {
     "translation": "Kirjaudu sisään Googlella"
@@ -491,9 +494,6 @@
   },
   "c2276c9127": {
     "translation": "Lisätietoja jakamisesta."
-  },
-  "c28aed8348": {
-    "translation": "Salli <cookies>analytics</cookies>-palvelun auttaa meitä parantamaan tldrawia."
   },
   "c303bd1095": {
     "translation": "Tiedostoa ei voi julkaista."
@@ -629,9 +629,6 @@
   },
   "fc9d47046b": {
     "translation": "Haluatko varmasti poistua tästä työtilasta?"
-  },
-  "fd1be3efcf": {
-    "translation": "Haluatko varmasti poistaa tämän tiedoston?"
   },
   "fed5ec05eb": {
     "translation": "Linkki kopioitu"

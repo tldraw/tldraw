@@ -52,7 +52,7 @@ export class Idle extends StateNode {
 				const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 				const hitOverlay = this.editor.overlays.getOverlayAtPoint(
 					currentPagePoint,
-					this.editor.options.hitTestMargin / this.editor.getZoomLevel()
+					this.editor.getHitTestMargin()
 				)
 				if (hitOverlay) {
 					const overlayType = hitOverlay.props.overlayType as string | undefined
@@ -157,7 +157,7 @@ export class Idle extends StateNode {
 			const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 			const hitOverlay = this.editor.overlays.getOverlayAtPoint(
 				currentPagePoint,
-				this.editor.options.hitTestMargin / this.editor.getZoomLevel()
+				this.editor.getHitTestMargin()
 			)
 			if (hitOverlay) {
 				const overlayType = hitOverlay.props.overlayType as string | undefined
