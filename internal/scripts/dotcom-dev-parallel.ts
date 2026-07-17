@@ -90,9 +90,16 @@ async function allocateStackIndex(): Promise<number> {
 	try {
 		const claims: Record<string, number> = JSON.parse(readFileSync(claimsFile, 'utf8'))
 		for (const [i, pid] of Object.entries(claims)) if (!isPidAlive(pid)) delete claims[i]
+		// Consecutive indices' port sets overlap (workers span 8786–8789, zero uses +0/+1/+2, inspectors
+		// 9449/9450 are adjacent), so reserve by the actual PORTS a live stack will use — not just its
+		// index number. Otherwise a second start could pick an overlapping index whose ports still look
+		// free during the probe→bind window and collide once both bind.
+		const reserved = new Set(Object.keys(claims).flatMap((i) => portsForIndex(Number(i))))
 		for (let idx = 0; idx <= MAX_STACK_INDEX; idx++) {
 			if (claims[idx] !== undefined) continue // reserved by a live run
-			const free = (await Promise.all(portsForIndex(idx).map(isPortFree))).every(Boolean)
+			const ports = portsForIndex(idx)
+			if (ports.some((p) => reserved.has(p))) continue // ports overlap a live reservation
+			const free = (await Promise.all(ports.map(isPortFree))).every(Boolean)
 			if (free) {
 				claims[idx] = process.pid
 				writeFileSync(claimsFile, JSON.stringify(claims, null, 2))
