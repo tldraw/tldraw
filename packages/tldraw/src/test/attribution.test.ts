@@ -16,17 +16,26 @@ import { TestEditor } from './TestEditor'
 function makeMultiUserEditor(currentUser: Atom<TLUser>) {
 	const alice = UserRecordType.create({ id: createUserId('user-1'), name: 'Alice' })
 	const bob = UserRecordType.create({ id: createUserId('user-2'), name: 'Bob' })
+
+	const resolveCache = new Map<string, ReturnType<typeof computed>>()
+	const resolve = (userId: string) => {
+		const cached = resolveCache.get(userId)
+		if (cached) return cached
+		const signal = computed('resolve-' + userId, () => {
+			if (userId === 'user-1') return alice
+			if (userId === 'user-2') return bob
+			return null
+		})
+		resolveCache.set(userId, signal)
+		return signal
+	}
+
 	return new TestEditor(
 		{},
 		{
 			users: {
 				currentUser,
-				resolve: (userId) =>
-					computed('resolve-' + userId, () => {
-						if (userId === 'user-1') return alice
-						if (userId === 'user-2') return bob
-						return null
-					}),
+				resolve,
 			},
 		}
 	)
