@@ -674,7 +674,9 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * ({@link Editor.duplicateShapes}) or by pasting/putting content onto the page
 	 * ({@link Editor.putContentOntoCurrentPage}). This provides a last chance to modify the copy
 	 * before it's created — for example, to re-stamp attribution so the copy is credited to the
-	 * current user rather than the original author.
+	 * current user rather than the original author. It is not called when content is put with
+	 * `preserveIds` (e.g. {@link Editor.moveShapesToPage}), since the shape keeps its identity
+	 * and no copy is made.
 	 *
 	 * @example
 	 *

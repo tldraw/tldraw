@@ -1,5 +1,6 @@
 import {
 	Atom,
+	PageRecordType,
 	TLNoteShape,
 	TLUser,
 	UserRecordType,
@@ -310,6 +311,33 @@ describe('note attribution on duplicate', () => {
 		expect(pastedId).not.toBe(ids.note1)
 		expect(customEditor.getShape<TLNoteShape>(pastedId)!.props.textLastEditedBy).toBe('user-1')
 		expect(customEditor.getShape<TLNoteShape>(ids.note1)!.props.textLastEditedBy).toBe('user-2')
+
+		customEditor.dispose()
+	})
+
+	it('keeps attribution when moving a note to another page', () => {
+		const alice = UserRecordType.create({ id: createUserId('user-1'), name: 'Alice' })
+		const bob = UserRecordType.create({ id: createUserId('user-2'), name: 'Bob' })
+		const currentUser = atom<TLUser>('currentUser', bob)
+		const customEditor = makeMultiUserEditor(currentUser)
+
+		// Bob authors the note
+		customEditor.createShapes([{ id: ids.note1, type: 'note', x: 0, y: 0 }])
+		customEditor.updateShape<TLNoteShape>({
+			id: ids.note1,
+			type: 'note',
+			props: { richText: toRichText('Hello') },
+		})
+
+		// Alice moves it to another page — it's the same note, so Bob stays the author
+		const page2Id = PageRecordType.createId('page2')
+		customEditor.createPage({ id: page2Id, name: 'Page 2' })
+		currentUser.set(alice)
+		customEditor.moveShapesToPage([ids.note1], page2Id)
+
+		expect(customEditor.getCurrentPageId()).toBe(page2Id)
+		const movedNote = customEditor.getShape<TLNoteShape>(ids.note1)!
+		expect(movedNote.props.textLastEditedBy).toBe('user-2')
 
 		customEditor.dispose()
 	})

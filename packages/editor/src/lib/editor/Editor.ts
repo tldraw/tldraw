@@ -10047,7 +10047,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Give the shape util a chance to modify the copy, e.g. to re-stamp note
 			// attribution to the current user so we don't forge the original author's identity.
-			newShape = this.getShapeUtil(newShape).onBeforeDuplicate?.(oldShape, newShape) ?? newShape
+			// When ids are preserved the shape keeps its identity (e.g. moveShapesToPage
+			// relocating it), so it's not a duplicate and the hook must not run.
+			if (!preserveIds) {
+				newShape = this.getShapeUtil(newShape).onBeforeDuplicate?.(oldShape, newShape) ?? newShape
+			}
 
 			if (rootShapeIds.includes(oldShape.id)) {
 				newShape.parentId = currentPageId
