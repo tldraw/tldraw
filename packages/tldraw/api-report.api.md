@@ -2893,6 +2893,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         y: number;
     } | undefined;
     // (undocumented)
+    onBeforeDuplicate(_source: TLNoteShape, duplicate: TLNoteShape): TLNoteShape | undefined;
+    // (undocumented)
     onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape): TLNoteShape | undefined;
     // (undocumented)
     onResize(shape: any, info: TLResizeInfo<any>): {
