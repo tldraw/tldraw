@@ -173,8 +173,13 @@ class TestInstance {
 
 	hasLoaded = false
 
-	constructor(snapshot?: RoomSnapshot, oldSchema = schemaV1, newSchema = schemaV2) {
-		this.server = new TestServer(newSchema, snapshot)
+	constructor(
+		snapshot?: RoomSnapshot,
+		oldSchema = schemaV1,
+		newSchema = schemaV2,
+		roomOpts?: ConstructorParameters<typeof TestServer<RV2>>[2]
+	) {
+		this.server = new TestServer(newSchema, snapshot, roomOpts)
 		this.oldSocketPair = new TestSocketPair('test_upgrade_old', this.server)
 		this.newSocketPair = new TestSocketPair('test_upgrade_new', this.server)
 
@@ -1230,5 +1235,95 @@ describe('when the client is the same version', () => {
 				},
 			],
 		} satisfies TLSocketServerSentEvent<RV2>)
+	})
+})
+
+describe('record authorizers see server-schema records', () => {
+	function makeInstance(authorizeUser: (args: any) => any) {
+		return new TestInstance(undefined, schemaV1, schemaV2, {
+			authorizeRecord: { user: authorizeUser },
+		})
+	}
+
+	it('a put from an old client reaches the authorizer up-migrated', () => {
+		const seen: any[] = []
+		const t = makeInstance((args: any) => {
+			seen.push(structuredClone({ type: args.type, prev: args.prev, next: args.next }))
+			return args.next
+		})
+		t.oldSocketPair.connect()
+		t.flush()
+
+		const user = UserV1.create({ name: 'bob', age: 10 })
+		t.oldClient.store.put([user])
+		t.flush()
+
+		expect(seen).toHaveLength(1)
+		expect(seen[0].type).toBe('create')
+		expect(seen[0].next).toMatchObject({ name: 'bob', birthdate: null })
+		expect(seen[0].next).not.toHaveProperty('age')
+	})
+
+	it('a stamp applied on create survives — no migration runs after the authorizer', () => {
+		const t = makeInstance((args: any) =>
+			args.type === 'create' ? { ...args.next, birthdate: '2001-02-03' } : args.next
+		)
+		t.oldSocketPair.connect()
+		t.flush()
+
+		const user = UserV1.create({ name: 'bob', age: 10 })
+		t.oldClient.store.put([user])
+		t.flush()
+
+		expect(t.server.storage.documents.get(user.id)?.state).toMatchObject({
+			name: 'bob',
+			birthdate: '2001-02-03',
+		})
+	})
+
+	it('a patch from an old client reaches the authorizer as the upgraded committed candidate', () => {
+		const seen: any[] = []
+		const t = makeInstance((args: any) => {
+			seen.push(structuredClone({ type: args.type, prev: args.prev, next: args.next }))
+			return args.next
+		})
+		t.oldSocketPair.connect()
+		t.newSocketPair.connect()
+		t.flush()
+
+		const user = UserV2.create({ name: 'bob', birthdate: '2022-01-09' })
+		t.newClient.store.put([user])
+		t.flush()
+		seen.length = 0
+
+		t.oldClient.store.update(user.id as any, (u: any) => ({ ...u, name: 'bobby' }))
+		t.flush()
+
+		expect(seen).toHaveLength(1)
+		expect(seen[0].type).toBe('update')
+		expect(seen[0].prev).toMatchObject({ name: 'bob', birthdate: '2022-01-09' })
+		// The down→patch→up round-trip through the lossy v1 schema resets birthdate to null.
+		// The authorizer must see exactly what will be committed — not a preview mixing the
+		// server record with the raw v1 diff (which would still show the old birthdate).
+		expect(seen[0].next).toMatchObject({ name: 'bobby', birthdate: null })
+		expect(seen[0].next).not.toHaveProperty('age')
+	})
+
+	it('vetoes based on the server-schema record', () => {
+		const t = makeInstance((args: any) =>
+			args.type === 'update' && args.next.name === 'forged' ? null : args.next
+		)
+		t.oldSocketPair.connect()
+		t.newSocketPair.connect()
+		t.flush()
+
+		const user = UserV2.create({ name: 'bob', birthdate: '2022-01-09' })
+		t.newClient.store.put([user])
+		t.flush()
+
+		t.oldClient.store.update(user.id as any, (u: any) => ({ ...u, name: 'forged' }))
+		t.flush()
+
+		expect(t.server.storage.documents.get(user.id)?.state).toMatchObject({ name: 'bob' })
 	})
 })

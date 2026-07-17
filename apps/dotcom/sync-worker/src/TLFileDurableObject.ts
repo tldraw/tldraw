@@ -58,6 +58,7 @@ import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
+import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 import {
 	findEmptiedCommentThreads,
 	isCommentAuthorFkViolation,
@@ -99,11 +100,6 @@ interface DocumentInfo {
 }
 
 export const ROOM_NOT_FOUND = Symbol('room_not_found')
-
-interface SessionMeta {
-	storeId: string
-	userId: string | null
-}
 
 interface SocketAttachment {
 	sessionId: string
@@ -298,6 +294,9 @@ export class TLFileDurableObject extends DurableObject {
 					onCommittedChanges: ({ diff }) => {
 						this.enqueueCommentChanges(diff)
 					},
+					// Guard attribution with the session's authenticated identity so a client can't
+					// post or edit in someone else's name.
+					authorizeRecord: authorizeFileRecord,
 				})
 
 				this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })

@@ -122,6 +122,67 @@ export interface RoomSnapshot {
 }
 
 /**
+ * Authorizes a single record write from a client: any per-record, per-session rule the host wants
+ * to enforce server-side — veto writes the session isn't allowed to make, or rewrite the record on
+ * create. The session's `meta` carries whatever the rule needs (identity, roles, …); for example,
+ * force a comment's `authorId` to the signed-in user so nobody can post in someone else's name.
+ *
+ * Called on **create**, **update**, and **delete** of records whose `typeName` it's registered for
+ * (see {@link TLRecordAuthorizers}), and only for client pushes — never for server-initiated writes.
+ *
+ * `prev` and `next` are always at the **server's** schema version: client writes are migrated
+ * before the authorizer runs, so guarding or stamping a field never requires knowing what older
+ * clients call it. On create, the record you return is what gets stored (after validation) — no
+ * migration runs afterwards, so stamped fields can't be clobbered.
+ *
+ * Return `null` to reject the write — it's skipped and the client self-corrects, exactly like the
+ * `objectAccess` gate. Otherwise the write is allowed, and:
+ *
+ * - on **create**, the record you return is what gets stored, so stamp identity fields here (e.g.
+ *   set `authorId` from `session.meta`);
+ * - on **update** and **delete**, only allow-vs-reject is used (the returned record's contents are
+ *   ignored), so use them to veto changes to immutable fields or unauthorized deletes — return
+ *   `next`/`prev` to allow, `null` to reject.
+ *
+ * ⚠︎ Runs synchronously inside the commit transaction, on the same path as every document edit — it
+ * must be fast and do **no** I/O. `next`/`prev` are client-controlled records, so treat their
+ * contents as untrusted; prefer returning `null` to reject over throwing, though a throw is
+ * caught, logged, and treated as a rejection (fail closed) rather than crashing the push. For
+ * expensive, async checks (e.g. resolving mentions against who can access a file), react after the
+ * fact via `onCommittedChanges`.
+ *
+ * @public
+ */
+export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
+	args: {
+		/** The session performing the write, including its host-provided `meta` (e.g. the authenticated user id). */
+		session: { sessionId: string; meta: SessionMeta }
+	} & (
+		| { type: 'create'; prev: null; next: Rec }
+		| { type: 'update'; prev: Rec; next: Rec }
+		| { type: 'delete'; prev: Rec; next: null }
+	)
+) => Rec | null
+
+/**
+ * A map from record `typeName` to a {@link TLRecordAuthorizer} for that record type. Only listed
+ * types are authorized; every other record writes through untouched, so this stays off the hot path
+ * for the vast majority of writes (shape drags etc.).
+ *
+ * Each authorizer is typed to its record — e.g. `next` in the `comment` entry is a `TLComment` — so
+ * renaming a field on the record makes the authorizer that reads it fail to compile, rather than
+ * silently stamp or guard the wrong field.
+ *
+ * Presence records are never authorized (presence is per-session and ephemeral); registering the
+ * presence typeName is a construction-time error.
+ *
+ * @public
+ */
+export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
+	[K in R['typeName']]?: TLRecordAuthorizer<Extract<R, { typeName: K }>, SessionMeta>
+}
+
+/**
  * A collaborative workspace that manages multiple client sessions and synchronizes
  * document changes between them. The room serves as the authoritative source for
  * all document state and handles conflict resolution, schema migrations, and
@@ -248,7 +309,32 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	public readonly schema: StoreSchema<R, any>
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
+	private readonly authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	private readonly sessionIdleTimeout: number
+
+	/**
+	 * The authorizer registered for a record type, widened to the room's record union. Each entry in
+	 * `authorizeRecord` is typed to its specific record; the cast here is the one place we can't
+	 * statically correlate a runtime `typeName` with its record type, so it lives in the library
+	 * rather than in every consumer.
+	 */
+	private authorizerFor(typeName: R['typeName']): TLRecordAuthorizer<R, SessionMeta> | undefined {
+		const authorize = this.authorizeRecord?.[typeName] as
+			| TLRecordAuthorizer<R, SessionMeta>
+			| undefined
+		if (!authorize) return undefined
+		// Fail closed: an authorizer that throws rejects the write (and is logged) rather than
+		// aborting the whole push. Authorizers are security-sensitive, so a bug must never let a
+		// write through.
+		return (args) => {
+			try {
+				return authorize(args)
+			} catch (e) {
+				this.log?.error?.('record authorizer threw; rejecting the write', e)
+				return null
+			}
+		}
+	}
 
 	constructor(opts: {
 		log?: TLSyncLog
@@ -267,6 +353,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * gated per session by `objectAccess` rather than `isReadonly`.
 		 */
 		objectTypes?: readonly string[]
+		/**
+		 * Per-type authorizers for client record writes (create, update, delete): veto or, on
+		 * create, rewrite. See {@link TLRecordAuthorizers}.
+		 */
+		authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
@@ -274,6 +365,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.log = opts.log
 		this.onPresenceChange = opts.onPresenceChange
 		this.onCommittedChanges = opts.onCommittedChanges
+		this.authorizeRecord = opts.authorizeRecord
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 
@@ -314,6 +406,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		this.presenceType = presenceTypes.values().next()?.value ?? null
+
+		// The presence lane never consults authorizers, so a presence key in `authorizeRecord`
+		// would be a silent no-op — fail loudly at construction instead.
+		if (this.presenceType && this.authorizeRecord) {
+			assert(
+				!getOwnProperty(this.authorizeRecord, this.presenceType.typeName),
+				`TLSyncRoom: authorizeRecord['${this.presenceType.typeName}'] is a presence type; presence records are not authorized`
+			)
+		}
 
 		const { documentClock } = this.storage.transaction((txn) => {
 			this.schema.migrateStorage(txn)
@@ -1079,7 +1180,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			storage: MinimalDocStore<R>,
 			changes: ActualChanges,
 			id: string,
-			_state: R
+			_state: R,
+			authorize?: (prev: R | null, next: R) => R | null
 		): Result<void, void> => {
 			const res = session
 				? this.schema.migratePersistedRecord(_state, session.serializedSchema, 'up')
@@ -1087,10 +1189,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (res.type === 'error') {
 				throw new TLSyncError(res.reason, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			}
-			const { value: state } = res
+			let { value: state } = res
 
 			// Get the existing document, if any
 			const doc = storage.get(id) as R | undefined
+
+			// Authorize on the up-migrated record; on create the authorizer's return is stored as-is,
+			// so no later migration can clobber stamped fields.
+			if (authorize) {
+				const result = authorize(doc ?? null, state)
+				if (!result) return Result.ok(undefined) // vetoed: skip the op, the client self-corrects
+				if (!doc) state = result // create: store the authorizer's (stamped) record
+			}
 
 			if (doc) {
 				// If there's an existing document, replace it with the new state
@@ -1118,7 +1228,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			storage: MinimalDocStore<R>,
 			changes: ActualChanges,
 			id: string,
-			patch: ObjectDiff
+			patch: ObjectDiff,
+			authorize?: (prev: R, next: R) => R | null
 		) => {
 			// if it was already deleted, there's no need to apply the patch
 			const doc = storage.get(id) as R | undefined
@@ -1138,6 +1249,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// If the versions are compatible, apply the patch and propagate the patch op
 				const diff = applyAndDiffRecord(doc, patch, recordType, legacyAppendMode)
 				if (diff) {
+					// Authorize on the committed candidate — the record that will actually be stored.
+					if (authorize && !authorize(doc, diff[1])) return
 					storage.set(id, diff[1])
 					propagateOp(changes, id, [RecordOpType.Patch, diff[0]], doc, diff[1])
 				}
@@ -1157,6 +1270,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// replace the state with the upgraded version and propagate the patch op
 				const diff = diffAndValidateRecord(doc, upgraded.value, recordType, legacyAppendMode)
 				if (diff) {
+					// Authorize on the committed candidate — the upgraded record, not a raw preview.
+					if (authorize && !authorize(doc, upgraded.value)) return
 					storage.set(id, upgraded.value)
 					propagateOp(changes, id, [RecordOpType.Patch, diff], doc, upgraded.value)
 				}
@@ -1227,7 +1342,60 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 										TLSyncErrorCloseEventReason.INVALID_RECORD
 									)
 								}
-								addDocument(txn, docChanges, id, op[1])
+								const record = op[1]
+								// Per-type authorizer: stamp/veto the write from the session's identity.
+								// Client pushes only; runs inside `addDocument`, on the up-migrated record.
+								let authorize: ((prev: R | null, next: R) => R | null) | undefined
+								if (session && this.authorizeRecord) {
+									const prev = (txn.get(id) as R | undefined) ?? null
+									// A put must not change the record's typeName: the authorizer lookup keys
+									// off the incoming typeName while the replace path validates against the
+									// stored one, so a swap would consult the wrong authorizer (or none).
+									// Skip it like a veto; the client self-corrects.
+									if (prev && prev.typeName !== record.typeName) {
+										this.log?.warn?.(
+											'skipping put that changes typeName',
+											`${prev.typeName} -> ${record.typeName}`,
+											id,
+											'session:',
+											session.sessionId
+										)
+										continue
+									}
+									const authorizePut = this.authorizerFor(record.typeName)
+									if (authorizePut) {
+										authorize = (prevRec, next) => {
+											const result = authorizePut(
+												prevRec
+													? {
+															session: { sessionId: session.sessionId, meta: session.meta },
+															type: 'update',
+															prev: prevRec,
+															next,
+														}
+													: {
+															session: { sessionId: session.sessionId, meta: session.meta },
+															type: 'create',
+															prev: null,
+															next,
+														}
+											)
+											if (!result) {
+												this.log?.warn?.(
+													'authorizer vetoed put',
+													record.typeName,
+													id,
+													'session:',
+													session.sessionId
+												)
+												return null
+											}
+											// create: store the stamped record; update: allow/veto only
+											return prevRec ? next : result
+										}
+									}
+								}
+								addDocument(txn, docChanges, id, record, authorize)
 								break
 							}
 							case RecordOpType.Patch: {
@@ -1235,17 +1403,61 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// if it was already deleted, there's no need to apply the patch
 								if (!doc) continue
 								if (!canWrite(doc.typeName)) continue
+								// Per-type authorizer (update, allow/veto only): runs inside `patchDocument`
+								// on the committed candidate, never on a raw client-version preview.
+								const authorizePatch = session && this.authorizerFor(doc.typeName)
+								const authorize = authorizePatch
+									? (prev: R, next: R) => {
+											const result = authorizePatch({
+												session: { sessionId: session.sessionId, meta: session.meta },
+												type: 'update',
+												prev,
+												next,
+											})
+											if (!result) {
+												this.log?.warn?.(
+													'authorizer vetoed patch',
+													doc.typeName,
+													id,
+													'session:',
+													session.sessionId
+												)
+											}
+											return result
+										}
+									: undefined
 								// Try to patch the document. If it fails, stop here.
-								patchDocument(txn, docChanges, id, op[1])
+								patchDocument(txn, docChanges, id, op[1], authorize)
 								break
 							}
 							case RecordOpType.Remove: {
-								const doc = txn.get(id)
+								const doc = txn.get(id) as R | undefined
 								if (!doc) {
 									// If the doc was already deleted, don't do anything, no need to propagate a delete op
 									continue
 								}
 								if (!canWrite(doc.typeName)) continue
+								// Per-type authorizer (delete): veto deletes the session isn't allowed to make,
+								// e.g. deleting someone else's comment. Allow/veto only.
+								const authorizeRemove = session && this.authorizerFor(doc.typeName)
+								if (
+									authorizeRemove &&
+									!authorizeRemove({
+										session: { sessionId: session.sessionId, meta: session.meta },
+										type: 'delete',
+										prev: doc,
+										next: null,
+									})
+								) {
+									this.log?.warn?.(
+										'authorizer vetoed delete',
+										doc.typeName,
+										id,
+										'session:',
+										session.sessionId
+									)
+									continue
+								}
 
 								// Delete the document and propagate the delete op
 								// delete automatically creates tombstones

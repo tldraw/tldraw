@@ -7,7 +7,7 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -145,6 +145,12 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	objectTypes?: readonly string[]
 	/**
+	 * Per-type authorizers for client record writes (create, update, delete): veto writes the
+	 * session isn't allowed to make, or rewrite the record on create — e.g. force a comment's
+	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
+	 */
+	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
 	 * Use for persisting snapshots to WebSocket attachments (e.g. Cloudflare hibernation).
@@ -271,6 +277,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
+			authorizeRecord: opts.authorizeRecord,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: opts.log,
 			storage,

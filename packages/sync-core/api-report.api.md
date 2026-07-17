@@ -444,6 +444,33 @@ export interface TLPushRequest<R extends UnknownRecord> {
 }
 
 // @public
+export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: {
+    session: {
+        meta: SessionMeta;
+        sessionId: string;
+    };
+} & ({
+    next: null;
+    prev: Rec;
+    type: 'delete';
+} | {
+    next: Rec;
+    prev: null;
+    type: 'create';
+} | {
+    next: Rec;
+    prev: Rec;
+    type: 'update';
+})) => null | Rec;
+
+// @public
+export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
+    [K in R['typeName']]?: TLRecordAuthorizer<Extract<R, {
+        typeName: K;
+    }>, SessionMeta>;
+};
+
+// @public
 export class TLRemoteSyncError extends Error {
     constructor(reason: string | TLSyncErrorCloseEventReason);
     // (undocumented)
@@ -516,6 +543,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
+    authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
     // (undocumented)
     clientTimeout?: number;
     // @deprecated (undocumented)
@@ -687,6 +715,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
             diff: TLSyncForwardDiff<R>;
             documentClock: number;
         }): void;
+        authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
         objectTypes?: readonly string[];
         clientTimeout?: number;
         log?: TLSyncLog;

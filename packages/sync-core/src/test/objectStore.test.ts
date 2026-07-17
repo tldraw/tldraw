@@ -83,6 +83,15 @@ function makeRoom(
 		snapshot?: RoomSnapshot
 		objectTypes?: readonly string[]
 		onCommittedChanges?(args: { diff: any; documentClock: number }): void
+		authorizeRecord?: {
+			[typeName: string]: (args: {
+				session: { sessionId: string; meta: any }
+				type: 'create' | 'update' | 'delete'
+				prev: any
+				next: any
+			}) => any
+		}
+		log?: any
 	} = {}
 ) {
 	const storage = new InMemorySyncStorage<R>({
@@ -100,6 +109,8 @@ function makeRoom(
 		storage,
 		objectTypes: opts.objectTypes,
 		onCommittedChanges: opts.onCommittedChanges,
+		authorizeRecord: opts.authorizeRecord,
+		log: opts.log,
 	})
 	disposables.push(() => room.close())
 	return { storage, room }
@@ -112,13 +123,14 @@ function connectSession(
 		isReadonly?: boolean
 		objectAccess?: 'read' | 'write'
 		clear?: boolean
+		meta?: any
 	} = {}
 ): MockSocket {
 	const socket = makeSocket()
 	room.handleNewSession({
 		sessionId,
 		socket,
-		meta: undefined,
+		meta: opts.meta,
 		isReadonly: opts.isReadonly ?? false,
 		objectAccess: opts.objectAccess,
 	})
@@ -382,6 +394,237 @@ describe('object store lane', () => {
 			await Promise.resolve()
 
 			expect(onCommittedChanges).not.toHaveBeenCalled()
+		})
+	})
+
+	describe('authorizeRecord', () => {
+		it('rejects a presence typeName key at construction', () => {
+			expect(() => makeRoom({ authorizeRecord: { presence: ({ next }: any) => next } })).toThrow(
+				/presence/
+			)
+		})
+
+		// A per-type authorizer like dotcom's: stamp the note's text from the session's user id on
+		// create, keep it immutable on update, allow deletes.
+		const authorizeNote = ({ session, type, prev, next }: any) => {
+			if (type === 'create') {
+				const userId = session.meta?.userId
+				if (!userId) return null
+				return { ...next, text: `by:${userId}` }
+			}
+			if (type === 'update') return next.text === prev.text ? next : null
+			return prev // delete allowed
+		}
+
+		function withNote(authorize: any, extra: any = {}) {
+			return makeRoom({ objectTypes: ['note'], authorizeRecord: { note: authorize }, ...extra })
+		}
+
+		function seededWithNote(authorize: any) {
+			const note = Note.create({ text: 'by:user-alice' })
+			const { room, storage } = withNote(authorize, {
+				snapshot: {
+					documents: [{ state: note, lastChangedClock: 0 }],
+					clock: 0,
+					documentClock: 0,
+					schema: schema.serialize(),
+				},
+			})
+			return { room, storage, note }
+		}
+
+		const storedNote = (storage: InMemorySyncStorage<R>, id: string) =>
+			storage.getObjectsSnapshot().find((d) => d.state.id === id)?.state as any
+
+		it('stamps a created record from the session, overriding the client value', () => {
+			const { room, storage } = withNote(authorizeNote)
+			const socket = connectSession(room, 'alice', { meta: { userId: 'user-alice' } })
+
+			const note = Note.create({ text: 'forged' })
+			push(room, 'alice', { [note.id]: [RecordOpType.Put, note] })
+
+			// the server rewrote the record, so it rebases the client onto the stamped value
+			expect(lastPushResult(socket)).toMatchObject({
+				action: {
+					rebaseWithDiff: { [note.id]: [RecordOpType.Put, { ...note, text: 'by:user-alice' }] },
+				},
+			})
+			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
+		})
+
+		it('rejects a create the authorizer denies (returns null)', () => {
+			const { room, storage } = withNote(authorizeNote)
+			const socket = connectSession(room, 'anon', { meta: { userId: null } })
+
+			const note = Note.create({ text: 'nope' })
+			push(room, 'anon', { [note.id]: [RecordOpType.Put, note] })
+
+			expect(socket.close).not.toHaveBeenCalled()
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedIds(storage)).toEqual([])
+		})
+
+		it('only runs for registered types — other records write through untouched', () => {
+			const seen: string[] = []
+			const { room, storage } = withNote(({ next }: any) => {
+				seen.push('note')
+				return next
+			})
+			connectSession(room, 'writer', { meta: { userId: 'u' } })
+
+			const doc = Doc.create({ title: 'hi' })
+			push(room, 'writer', { [doc.id]: [RecordOpType.Put, doc] })
+
+			expect(seen).toEqual([])
+			expect(storedIds(storage)).toEqual([doc.id])
+		})
+
+		it('authorizes document-lane record types', () => {
+			// authorize `doc`, a document-lane record
+			const { room, storage } = makeRoom({
+				objectTypes: ['note'],
+				authorizeRecord: {
+					doc: ({ type, next }: any) => (type === 'create' ? { ...next, title: 'stamped' } : next),
+				},
+			})
+			connectSession(room, 'writer', { meta: { userId: 'u' } })
+
+			const doc = Doc.create({ title: 'client' })
+			push(room, 'writer', { [doc.id]: [RecordOpType.Put, doc] })
+
+			const stored = storage.getSnapshot().documents.find((d) => d.state.id === doc.id)
+				?.state as any
+			expect(stored?.title).toBe('stamped')
+		})
+
+		it('vetoes an update that changes an immutable field (patch)', () => {
+			const { room, storage, note } = seededWithNote(authorizeNote)
+			const socket = connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })
+
+			push(room, 'mallory', {
+				[note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'tampered'] }],
+			})
+
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
+		})
+
+		it('allows an update the authorizer permits (patch)', () => {
+			const { room, storage, note } = seededWithNote(({ type, prev, next }: any) =>
+				type === 'delete' ? prev : next
+			)
+			connectSession(room, 'alice', { meta: { userId: 'u' } })
+
+			push(room, 'alice', {
+				[note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'edited'] }],
+			})
+
+			expect(storedNote(storage, note.id)?.text).toBe('edited')
+		})
+
+		it('does not consult the authorizer for a no-op patch', () => {
+			const authorize = vi.fn(({ type, prev, next }: any) => (type === 'delete' ? prev : next))
+			const { room, note } = seededWithNote(authorize)
+			connectSession(room, 'alice', { meta: { userId: 'u' } })
+			authorize.mockClear()
+
+			push(room, 'alice', {
+				[note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, note.text] }],
+			})
+
+			expect(authorize).not.toHaveBeenCalled()
+		})
+
+		it('vetoes a delete the authorizer rejects', () => {
+			const { room, storage, note } = seededWithNote(({ type, next }: any) =>
+				type === 'delete' ? null : next
+			)
+			const socket = connectSession(room, 'mallory', { meta: { userId: 'm' } })
+
+			push(room, 'mallory', { [note.id]: [RecordOpType.Remove] })
+
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedIds(storage)).toEqual([note.id])
+		})
+
+		it('vetoes a put that changes the typeName of an existing record', () => {
+			const { room, storage, note } = seededWithNote(authorizeNote)
+			const socket = connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })
+
+			// a `doc`-shaped record reusing the note's id: the authorizer lookup keys off the incoming
+			// typeName, so the swap would consult the doc authorizer (here: none) instead of note's
+			push(room, 'mallory', {
+				[note.id]: [RecordOpType.Put, { id: note.id, typeName: 'doc', title: 'swapped' } as any],
+			})
+
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedNote(storage, note.id)?.typeName).toBe('note')
+		})
+
+		it('vetoes a put over an existing record that changes an immutable field', () => {
+			const { room, storage, note } = seededWithNote(authorizeNote)
+			const socket = connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })
+
+			push(room, 'mallory', { [note.id]: [RecordOpType.Put, { ...note, text: 'tampered' }] })
+
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
+		})
+
+		it('ignores the record returned by an update authorizer (allow/veto only)', () => {
+			const { room, storage, note } = seededWithNote(({ type, prev, next }: any) => {
+				if (type === 'update') return { ...next, text: 'stamped-on-update' }
+				return type === 'delete' ? prev : next
+			})
+			connectSession(room, 'alice', { meta: { userId: 'u' } })
+
+			push(room, 'alice', { [note.id]: [RecordOpType.Put, { ...note, text: 'edited' }] })
+
+			expect(storedNote(storage, note.id)?.text).toBe('edited')
+		})
+
+		it('rejects the write (fail closed) when the authorizer throws, without crashing the push', () => {
+			const { room, storage } = withNote(() => {
+				throw new Error('boom')
+			})
+			const socket = connectSession(room, 'alice', { meta: { userId: 'u' } })
+			const note = Note.create({ text: 'x' })
+
+			expect(() => push(room, 'alice', { [note.id]: [RecordOpType.Put, note] })).not.toThrow()
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedIds(storage)).toEqual([])
+		})
+
+		it('passes the change type for create, update, and delete', () => {
+			const types: string[] = []
+			const note = Note.create({ text: 'x' })
+			const { room } = withNote(({ type, prev, next }: any) => {
+				types.push(type)
+				return type === 'delete' ? prev : next
+			})
+			connectSession(room, 'alice', { meta: { userId: 'u' } })
+
+			push(room, 'alice', { [note.id]: [RecordOpType.Put, note] }, 1)
+			push(room, 'alice', { [note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'y'] }] }, 2)
+			push(room, 'alice', { [note.id]: [RecordOpType.Remove] }, 3)
+
+			expect(types).toEqual(['create', 'update', 'delete'])
+		})
+
+		it('logs a warning when a write is vetoed', () => {
+			const warn = vi.fn()
+			const note = Note.create({ text: 'by:user-alice' })
+			const { room } = makeRoom({
+				objectTypes: ['note'],
+				authorizeRecord: { note: () => null },
+				log: { warn },
+			})
+			connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })
+
+			push(room, 'mallory', { [note.id]: [RecordOpType.Put, note] })
+
+			expect(warn).toHaveBeenCalledTimes(1)
+			expect(warn.mock.calls[0].join(' ')).toContain(note.id)
 		})
 	})
 })
