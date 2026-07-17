@@ -16,14 +16,18 @@
 // whether a system listener (e.g. macOS launchd) or another running stack, so stacks never collide.
 
 import { spawn, spawnSync } from 'child_process'
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import { createServer } from 'net'
+import { homedir } from 'os'
 import { dirname, join, resolve } from 'path'
 import { fileURLToPath } from 'url'
+import { lock } from 'proper-lockfile'
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 const composeFile = 'apps/dotcom/zero-cache/docker/docker-compose.yml'
 const devPortsFile = join(repoRoot, '.dev-ports.json')
+// Global index -> pid reservations, so concurrent `yarn dev-app` starts don't pick the same index.
+const claimsFile = join(homedir(), '.tldraw-dotcom-dev-claims.json')
 
 // Each service's natural dev port. Index 0 == a normal single-stack dev (unchanged); stack index N
 // adds N to every port. zero-cache also binds ZERO_PORT+1/+2 (change-streamer + litestream), so those
@@ -63,15 +67,55 @@ function isPortFree(port: number): Promise<boolean> {
 	})
 }
 
-// Lowest stack index whose whole port set is free. Index 0 is the natural single-stack ports; each
-// higher index shifts every service up by one. Indexes with any taken port — held by a system listener
-// or another running stack — are skipped, so parallel worktrees never bind the same port.
-async function allocateStackIndex(): Promise<number> {
-	for (let idx = 0; idx <= MAX_STACK_INDEX; idx++) {
-		const free = await Promise.all(portsForIndex(idx).map(isPortFree))
-		if (free.every(Boolean)) return idx
+function isPidAlive(pid: number): boolean {
+	try {
+		process.kill(pid, 0)
+		return true
+	} catch (e) {
+		return (e as NodeJS.ErrnoException).code === 'EPERM' // exists, just not ours to signal
 	}
-	throw new Error(`no free port band found within ${MAX_STACK_INDEX} of the default ports`)
+}
+
+// Lowest stack index whose whole port set is free AND not reserved by another live run. Index 0 is the
+// natural single-stack ports; each higher index shifts every service up by one. A bare port probe has a
+// race — two starts can both see an index free and later bind it, since process-compose only binds
+// after spawn (postgres can take minutes) — so the whole select+reserve runs under a lock and records
+// an index -> pid claim that the next start skips. Dead pids are pruned so crashed runs free their slot.
+async function allocateStackIndex(): Promise<number> {
+	if (!existsSync(claimsFile)) writeFileSync(claimsFile, '{}')
+	const release = await lock(claimsFile, {
+		retries: { retries: 20, minTimeout: 50, maxTimeout: 500 },
+		stale: 10_000,
+	})
+	try {
+		const claims: Record<string, number> = JSON.parse(readFileSync(claimsFile, 'utf8'))
+		for (const [i, pid] of Object.entries(claims)) if (!isPidAlive(pid)) delete claims[i]
+		for (let idx = 0; idx <= MAX_STACK_INDEX; idx++) {
+			if (claims[idx] !== undefined) continue // reserved by a live run
+			const free = (await Promise.all(portsForIndex(idx).map(isPortFree))).every(Boolean)
+			if (free) {
+				claims[idx] = process.pid
+				writeFileSync(claimsFile, JSON.stringify(claims, null, 2))
+				return idx
+			}
+		}
+		throw new Error(`no free port band found within ${MAX_STACK_INDEX} of the default ports`)
+	} finally {
+		await release()
+	}
+}
+
+// Best-effort release of this process's index reservation on exit (crashes are pruned via isPidAlive).
+function releaseClaim(idx: number) {
+	try {
+		const claims: Record<string, number> = JSON.parse(readFileSync(claimsFile, 'utf8'))
+		if (claims[idx] === process.pid) {
+			delete claims[idx]
+			writeFileSync(claimsFile, JSON.stringify(claims, null, 2))
+		}
+	} catch {
+		// nothing to release
+	}
 }
 
 function buildEnv(idx: number) {
@@ -149,12 +193,18 @@ async function main() {
 	// `--clean` tears down the running stack's postgres project + volumes + zero replica + state.
 	if (process.argv.includes('--clean')) {
 		const env = readPublishedEnv()
-		const project = env.COMPOSE_PROJECT_NAME ?? 'tldraw_dotcom_dev_0'
-		spawnSync('docker', ['compose', '-p', project, '-f', composeFile, 'down', '--volumes'], {
-			cwd: repoRoot,
-			env: { ...process.env, ...env },
-			stdio: 'inherit',
-		})
+		// Tear down this stack's project plus the pre-PR single-stack project (`tldraw_dotcom_dev`), in
+		// case one is left over holding the default ports and forcing new stacks onto an offset index.
+		const projects = [
+			...new Set([env.COMPOSE_PROJECT_NAME ?? 'tldraw_dotcom_dev_0', 'tldraw_dotcom_dev']),
+		]
+		for (const project of projects) {
+			spawnSync('docker', ['compose', '-p', project, '-f', composeFile, 'down', '--volumes'], {
+				cwd: repoRoot,
+				env: { ...process.env, ...env },
+				stdio: 'inherit',
+			})
+		}
 		const replica = env.ZERO_REPLICA_FILE ?? '/tmp/tldraw-dotcom-zero-0.db'
 		for (const f of [replica, `${replica}-shm`, `${replica}-wal`, devPortsFile]) {
 			rmSync(f, { force: true })
@@ -166,8 +216,9 @@ async function main() {
 		return
 	}
 
-	// up / --print: probe for the lowest free stack index.
+	// up / --print: probe for the lowest free stack index (reserved for this process until it exits).
 	const idx = await allocateStackIndex()
+	process.on('exit', () => releaseClaim(idx))
 	const env = buildEnv(idx)
 	const childEnv = { ...process.env, ...env }
 
