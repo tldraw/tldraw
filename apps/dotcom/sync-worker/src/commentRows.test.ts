@@ -17,6 +17,8 @@ import {
 	planCommentDrain,
 	rowsToSnapshotDocuments,
 	rowToCommentRecord,
+	isCommentMentionFkViolation,
+	planMentionReconciles,
 	rowToThreadRecord,
 	threadRecordToRow,
 } from './commentRows'
@@ -131,6 +133,97 @@ describe('isCommentAuthorFkViolation', () => {
 		expect(isCommentAuthorFkViolation(undefined)).toBe(false)
 		expect(isCommentAuthorFkViolation('23503')).toBe(false)
 		expect(isCommentAuthorFkViolation(new Error('connection refused'))).toBe(false)
+	})
+})
+
+describe('isCommentMentionFkViolation', () => {
+	it('matches a pg foreign key violation on either comment_mention fkey', () => {
+		expect(
+			isCommentMentionFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_mention_user_id_fkey' })
+			)
+		).toBe(true)
+		expect(
+			isCommentMentionFkViolation(
+				Object.assign(new Error(), {
+					code: '23503',
+					constraint: 'comment_mention_comment_id_fkey',
+				})
+			)
+		).toBe(true)
+	})
+
+	it('requires both the code and a comment_mention constraint to match', () => {
+		expect(
+			isCommentMentionFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentMentionFkViolation(
+				Object.assign(new Error(), { code: '23505', constraint: 'comment_mention_user_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentMentionFkViolation(null)).toBe(false)
+	})
+})
+
+describe('planMentionReconciles', () => {
+	function makeCommentRow(bodyJson: unknown) {
+		const thread = makeThread()
+		const comment = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'user1',
+			body: bodyJson as TLRichText,
+			now: 1000,
+		})
+		return commentRecordToRow(comment, 'file1', 1)
+	}
+
+	it("extracts each comment's mentioned user ids, deduped", () => {
+		const row = makeCommentRow({
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [
+						{ type: 'mention', attrs: { id: 'user_a', label: 'A' } },
+						{ type: 'text', text: ' and ' },
+						{ type: 'mention', attrs: { id: 'user_b', label: 'B' } },
+						{ type: 'mention', attrs: { id: 'user_a', label: 'A again' } },
+					],
+				},
+			],
+		})
+		expect(planMentionReconciles([row])).toEqual([
+			{ commentId: row.id, userIds: ['user_a', 'user_b'] },
+		])
+	})
+
+	it('plans an empty set for a body without mentions, so stale rows get deleted', () => {
+		const row = makeCommentRow({
+			type: 'doc',
+			content: [{ type: 'paragraph', content: [{ type: 'text', text: 'no mentions here' }] }],
+		})
+		expect(planMentionReconciles([row])).toEqual([{ commentId: row.id, userIds: [] }])
+	})
+
+	it('ignores mention nodes without a string id', () => {
+		const row = makeCommentRow({
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [{ type: 'mention', attrs: { id: 123 } }, { type: 'mention' }],
+				},
+			],
+		})
+		expect(planMentionReconciles([row])).toEqual([{ commentId: row.id, userIds: [] }])
+	})
+
+	it('returns one plan per row', () => {
+		expect(planMentionReconciles([])).toEqual([])
 	})
 })
 

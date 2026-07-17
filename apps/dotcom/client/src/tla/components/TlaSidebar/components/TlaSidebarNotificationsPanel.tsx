@@ -1,11 +1,12 @@
 import { CommentListItemProps, CommentsList, formatRelativeTime } from '@tldraw/commenting'
-import { useCallback } from 'react'
+import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createDeepLinkString, TLRichText, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { defineMessages, F, useMsg } from '../../../utils/i18n'
 import { richTextToPlaintext } from '../../../utils/richText'
+import { categorizeCommentNotifications, CommentNotificationReason } from './commentNotifications'
 import styles from './notifications.module.css'
 
 const messages = defineMessages({
@@ -14,19 +15,49 @@ const messages = defineMessages({
 	empty: { defaultMessage: 'You’re all caught up.' },
 })
 
+/** Byline for a notification row, phrased by why it's there. `<name>` wraps the author's name. */
+function ReasonByline({
+	reason,
+	author,
+	nameClassName,
+}: {
+	reason: CommentNotificationReason
+	author: string
+	nameClassName: string
+}) {
+	const name = (chunks: ReactNode) => <span className={nameClassName}>{chunks}</span>
+	switch (reason) {
+		case 'mention':
+			return <F defaultMessage="<name>{author}</name> mentioned you" values={{ author, name }} />
+		case 'reply':
+			return <F defaultMessage="<name>{author}</name> replied" values={{ author, name }} />
+		case 'owned-board':
+			return (
+				<F
+					defaultMessage="<name>{author}</name> commented on your board"
+					values={{ author, name }}
+				/>
+			)
+	}
+}
+
 /**
- * Comments surfaced as notifications: every comment on a file the user can access, newest first,
- * plus the caller's unread count (a comment is unread when it isn't the caller's own and has no
- * read receipt). Shared by the trigger button (for its badge) and the panel (for its list).
+ * Comments surfaced as notifications. The `comments` synced query already filters to the three
+ * categories that concern the user server-side — comments on boards they own, replies in threads
+ * they're a part of, and `@`-mentions of them — so out-of-category comments never reach the
+ * client; {@link categorizeCommentNotifications} tags each synced comment with why it's there,
+ * newest first. Also returns the caller's unread count over that set (a notification is unread
+ * when it has no read receipt). Shared by the trigger button (for its badge) and the panel (for
+ * its list).
  */
 export function useCommentNotifications() {
 	const app = useMaybeApp()
 	return useValue(
 		'comment notifications',
 		() => {
-			const comments = [...(app?.getComments() ?? [])].sort((a, b) => b.createdAt - a.createdAt)
-			const unreadCount = comments.filter((c) => c.authorId !== app?.userId && !c.read).length
-			return { comments, unreadCount }
+			const notifications = categorizeCommentNotifications(app?.getComments() ?? [], app?.userId)
+			const unreadCount = notifications.filter((n) => !n.comment.read).length
+			return { notifications, unreadCount }
 		},
 		[app]
 	)
@@ -48,12 +79,12 @@ function commentLink(fileId: string, shapeId: string | null | undefined, comment
 export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const app = useMaybeApp()
 	const navigate = useNavigate()
-	const { comments, unreadCount } = useCommentNotifications()
+	const { notifications, unreadCount } = useCommentNotifications()
 	const title = useMsg(messages.title)
 	const markAllReadLbl = useMsg(messages.markAllRead)
 	const empty = useMsg(messages.empty)
 
-	const items: CommentListItemProps[] = comments.map((c) => ({
+	const items: CommentListItemProps[] = notifications.map(({ comment: c }) => ({
 		id: c.id,
 		author: c.author?.name ?? c.authorId,
 		preview: richTextToPlaintext(c.body as TLRichText),
@@ -62,15 +93,19 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 		page: c.file?.name || c.fileId,
 	}))
 
+	// Row id → why it's a notification, so the byline can be phrased per reason.
+	const reasonById = new Map(notifications.map((n) => [n.comment.id, n.primaryReason]))
+
 	const handleSelect = useCallback(
 		(id: string) => {
-			const c = comments.find((c) => c.id === id)
-			if (!c) return
-			if (c.authorId !== app?.userId && !c.read) app?.markCommentRead(c.id)
+			const n = notifications.find((n) => n.comment.id === id)
+			if (!n) return
+			const c = n.comment
+			if (!c.read) app?.markCommentRead(c.id)
 			navigate(commentLink(c.fileId, c.thread?.shapeId, c.id))
 			onClose()
 		},
-		[comments, app, navigate, onClose]
+		[notifications, app, navigate, onClose]
 	)
 
 	return (
@@ -84,8 +119,8 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 						className={styles.markAll}
 						onClick={() => {
 							if (!app) return
-							for (const c of comments) {
-								if (c.authorId !== app.userId && !c.read) app.markCommentRead(c.id)
+							for (const { comment: c } of notifications) {
+								if (!c.read) app.markCommentRead(c.id)
 							}
 						}}
 						disabled={unreadCount === 0}
@@ -107,12 +142,10 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 								<span className={styles.time}>{formatRelativeTime(item.date)}</span>
 							</div>
 							<div className={styles.byline}>
-								<F
-									defaultMessage="<name>{author}</name> commented"
-									values={{
-										author: item.author,
-										name: (chunks) => <span className={styles.author}>{chunks}</span>,
-									}}
+								<ReasonByline
+									reason={reasonById.get(item.id) ?? 'owned-board'}
+									author={item.author}
+									nameClassName={styles.author}
 								/>
 							</div>
 							<div className={styles.preview}>{item.preview}</div>

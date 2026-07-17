@@ -14,6 +14,9 @@
   "04a2dd56d6": {
     "translation": "Invite teammates"
   },
+  "05b2656486": {
+    "translation": "<name>{author}</name> mentioned you"
+  },
   "05f43078e9": {
     "translation": "You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones."
   },
@@ -79,6 +82,9 @@
   },
   "250ddea65c": {
     "translation": "About tldraw"
+  },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> commented on your board"
   },
   "299cb00a7a": {
     "translation": "Upload failed"
@@ -163,9 +169,6 @@
   },
   "49ee308734": {
     "translation": "Name"
-  },
-  "4a95fa0c08": {
-    "translation": "<name>{author}</name> commented"
   },
   "4d0d3ddec9": {
     "translation": "This site uses cookies to make the app work and to collect analytics."
@@ -473,6 +476,9 @@
   },
   "b028909917": {
     "translation": "Guest user"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> replied"
   },
   "b2326c3a34": {
     "translation": "Regenerate"

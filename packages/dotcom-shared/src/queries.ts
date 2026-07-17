@@ -41,9 +41,21 @@ export const queries = defineQueries({
 	),
 
 	/**
-	 * Recent comments across every file the current user can access, for the app-level notifications
-	 * feed. Access is scoped to files the user has a file_state for (i.e. has opened/owns), mirroring
-	 * the fileStates query.
+	 * Recent comments that concern the current user, for the app-level notifications feed. A
+	 * comment qualifies when it isn't the user's own and matches at least one of three categories:
+	 *
+	 * - it's on a file the user owns
+	 * - it's in a thread the user is a part of (started, or has commented in) and on a file they
+	 *   can still access — a reply
+	 * - it `@`-mentions the user (via the `comment_mention` rows the file's Durable Object
+	 *   extracts from the body, since mentions live inside rich-text JSON that ZQL can't reach),
+	 *   provided the user can access the file: they have a file_state for it, or it belongs to a
+	 *   workspace they're a member of. Ownership carries its own access evidence; replies and
+	 *   mentions need an explicit current-access gate because historical thread participation can
+	 *   outlive access to the file.
+	 *
+	 * Filtering here (server-side) rather than on the client is what keeps out-of-category
+	 * comments off the wire entirely — the unread badge is a pure function of the synced set.
 	 *
 	 * Bounded to the most recent {@link RECENT_COMMENTS_LIMIT} so the synced set stays finite as a
 	 * workspace ages, rather than growing without limit. This is a display feed — the canvas comment
@@ -52,8 +64,48 @@ export const queries = defineQueries({
 	 */
 	comments: defineQuery(({ ctx }) =>
 		zql.comment
-			.whereExists('file', (file) =>
-				file.whereExists('states', (s) => s.where('userId', '=', ctx.userId))
+			.where('authorId', '!=', ctx.userId)
+			.where(({ and, or, exists }) =>
+				or(
+					// on a board the user owns
+					exists('file', (f) => f.where('ownerId', '=', ctx.userId)),
+					// a reply: in a thread the user started or has commented in, on a file they
+					// can still access
+					and(
+						exists('thread', (t) =>
+							t.where(({ cmp, or, exists }) =>
+								or(
+									cmp('createdBy', '=', ctx.userId),
+									exists('comments', (c) => c.where('authorId', '=', ctx.userId))
+								)
+							)
+						),
+						exists('file', (f) =>
+							f.where(({ or, exists }) =>
+								or(
+									exists('states', (s) => s.where('userId', '=', ctx.userId)),
+									exists('groupFiles', (gf) =>
+										gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
+									)
+								)
+							)
+						)
+					),
+					// @-mentions the user, on a file they can access (opened it, or workspace member)
+					and(
+						exists('mentions', (m) => m.where('userId', '=', ctx.userId)),
+						exists('file', (f) =>
+							f.where(({ or, exists }) =>
+								or(
+									exists('states', (s) => s.where('userId', '=', ctx.userId)),
+									exists('groupFiles', (gf) =>
+										gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
+									)
+								)
+							)
+						)
+					)
+				)
 			)
 			.related('author', (author) => author.one())
 			.related('file', (file) => file.one())
