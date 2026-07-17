@@ -205,11 +205,6 @@ const nextConfig = {
 				destination: 'https://discord.com/invite/s4FXZ6fppJ',
 				permanent: false,
 			},
-			{
-				source: '/offline',
-				destination: 'https://offline.tldraw.com',
-				permanent: false,
-			},
 		]
 	},
 	async rewrites() {
