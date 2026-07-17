@@ -303,6 +303,16 @@ export class TldrawApp {
 		return queries.comments()
 	}
 
+	/**
+	 * Whether this app is backed by real Zero (vs the {@link ZeroPolyfill} used under automated
+	 * tests and when Zero is disabled). Comments are a Zero feature — their queries (bounded feeds,
+	 * `whereExists` access scoping, live per-file views) need real Zero — so the comment UI gates on
+	 * this and stays hidden under the polyfill rather than driving a view it can't back.
+	 */
+	isUsingProperZero() {
+		return this.useProperZero
+	}
+
 	/** Recent comments across the user's files, for the notifications feed (bounded, cross-file). */
 	getComments() {
 		return this.comments$.get()
