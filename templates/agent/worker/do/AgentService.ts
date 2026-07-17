@@ -1,8 +1,17 @@
-import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
-import { createGoogleGenerativeAI, GoogleGenerativeAIProvider } from '@ai-sdk/google'
-import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
+import { AnthropicProvider, AnthropicProviderOptions, createAnthropic } from '@ai-sdk/anthropic'
+import {
+	createGoogleGenerativeAI,
+	GoogleGenerativeAIProvider,
+	GoogleGenerativeAIProviderOptions,
+} from '@ai-sdk/google'
+import { createOpenAI, OpenAIProvider, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
 import { LanguageModel, ModelMessage, streamText } from 'ai'
-import { AgentModelName, getAgentModelDefinition, isValidModelName } from '../../shared/models'
+import {
+	AgentModelDefinition,
+	AgentModelName,
+	getAgentModelDefinition,
+	isValidModelName,
+} from '../../shared/models'
 import { DebugPart } from '../../shared/schema/PromptPartDefinitions'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
@@ -94,36 +103,23 @@ export class AgentService {
 			}
 		}
 
-		// Add the assistant message to indicate the start of the actions
-		messages.push({
-			role: 'assistant',
-			content: '{"actions": [{"_type":',
-		})
-
-		// Configure thinking budgets based on model. We let models think using the think action, so we keep this as low as possible to minimize time to first token
-		// Gemini: 256 for thinking models, 0 otherwise
-		const geminiThinkingBudget = modelDefinition.thinking ? 256 : 0
-
-		// OpenAI: 'none' for non-reasoning models, 'minimal' otherwise
-		const openaiReasoningEffort = provider === 'openai.responses' ? 'none' : 'minimal'
+		// Prefill the assistant turn to force the JSON start, where the model allows it.
+		// Opus 4.7+ and Sonnet 4.6 reject last-assistant-turn prefills (400), so skip it there.
+		if (modelDefinition.supportsPrefill) {
+			messages.push({
+				role: 'assistant',
+				content: '{"actions": [{"_type":',
+			})
+		}
 
 		try {
 			const { textStream } = streamText({
 				model,
 				messages,
 				maxOutputTokens: 8192,
-				temperature: 0,
-				providerOptions: {
-					anthropic: {
-						thinking: { type: 'disabled' },
-					},
-					google: {
-						thinkingConfig: { thinkingBudget: geminiThinkingBudget },
-					},
-					openai: {
-						reasoningEffort: openaiReasoningEffort,
-					},
-				},
+				// Opus 4.7+ removed `temperature` (and top_p/top_k); sending it returns a 400.
+				...(modelDefinition.supportsTemperature ? { temperature: 0 } : {}),
+				providerOptions: getProviderOptions(modelDefinition),
 				onAbort() {
 					console.warn('Stream actions aborted')
 				},
@@ -134,7 +130,8 @@ export class AgentService {
 			})
 
 			const canForceResponseStart =
-				provider === 'anthropic.messages' || provider === 'google.generative-ai'
+				(provider === 'anthropic.messages' || provider === 'google.generative-ai') &&
+				modelDefinition.supportsPrefill
 			let buffer = canForceResponseStart ? '{"actions": [{"_type":' : ''
 			let cursor = 0
 			let maybeIncompleteAction: AgentAction | null = null
@@ -142,7 +139,6 @@ export class AgentService {
 			let startTime = Date.now()
 			for await (const text of textStream) {
 				buffer += text
-
 				const partialObject = closeAndParseJson(buffer)
 				if (!partialObject) continue
 
@@ -197,5 +193,36 @@ export class AgentService {
 			console.error('streamActions error:', error)
 			throw error
 		}
+	}
+}
+
+type StreamTextProviderOptions = NonNullable<Parameters<typeof streamText>[0]['providerOptions']>
+
+/**
+ * Map a model definition's reasoning preferences to AI SDK provider options.
+ * Only the matching provider's options are set; the SDK ignores the rest.
+ */
+function getProviderOptions(definition: AgentModelDefinition): StreamTextProviderOptions {
+	switch (definition.provider) {
+		case 'anthropic':
+			return {
+				anthropic: {
+					thinking:
+						definition.thinking === 'adaptive' ? { type: 'adaptive' } : { type: 'disabled' },
+					...(definition.effort ? { effort: definition.effort } : {}),
+				} satisfies AnthropicProviderOptions,
+			}
+		case 'google':
+			return {
+				google: {
+					thinkingConfig: { thinkingLevel: definition.thinkingLevel },
+				} satisfies GoogleGenerativeAIProviderOptions,
+			}
+		case 'openai':
+			return {
+				openai: {
+					reasoningEffort: definition.reasoningEffort,
+				} satisfies OpenAIResponsesProviderOptions,
+			}
 	}
 }
