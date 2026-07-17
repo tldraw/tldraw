@@ -45,12 +45,14 @@ export const queries = defineQueries({
 	 * comment qualifies when it isn't the user's own and matches at least one of three categories:
 	 *
 	 * - it's on a file the user owns
-	 * - it's in a thread the user is a part of (started, or has commented in) — a reply
+	 * - it's in a thread the user is a part of (started, or has commented in) and on a file they
+	 *   can still access — a reply
 	 * - it `@`-mentions the user (via the `comment_mention` rows the file's Durable Object
 	 *   extracts from the body, since mentions live inside rich-text JSON that ZQL can't reach),
 	 *   provided the user can access the file: they have a file_state for it, or it belongs to a
-	 *   workspace they're a member of. The other two categories carry their own access evidence
-	 *   (ownership; having commented), so only mentions need the explicit gate.
+	 *   workspace they're a member of. Ownership carries its own access evidence; replies and
+	 *   mentions need an explicit current-access gate because historical thread participation can
+	 *   outlive access to the file.
 	 *
 	 * Filtering here (server-side) rather than on the client is what keeps out-of-category
 	 * comments off the wire entirely — the unread badge is a pure function of the synced set.
@@ -67,12 +69,25 @@ export const queries = defineQueries({
 				or(
 					// on a board the user owns
 					exists('file', (f) => f.where('ownerId', '=', ctx.userId)),
-					// a reply: in a thread the user started or has commented in
-					exists('thread', (t) =>
-						t.where(({ cmp, or, exists }) =>
-							or(
-								cmp('createdBy', '=', ctx.userId),
-								exists('comments', (c) => c.where('authorId', '=', ctx.userId))
+					// a reply: in a thread the user started or has commented in, on a file they
+					// can still access
+					and(
+						exists('thread', (t) =>
+							t.where(({ cmp, or, exists }) =>
+								or(
+									cmp('createdBy', '=', ctx.userId),
+									exists('comments', (c) => c.where('authorId', '=', ctx.userId))
+								)
+							)
+						),
+						exists('file', (f) =>
+							f.where(({ or, exists }) =>
+								or(
+									exists('states', (s) => s.where('userId', '=', ctx.userId)),
+									exists('groupFiles', (gf) =>
+										gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
+									)
+								)
 							)
 						)
 					),
