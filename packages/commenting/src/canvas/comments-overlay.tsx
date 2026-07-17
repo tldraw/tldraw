@@ -106,29 +106,6 @@ export interface CanvasCommentsProps {
 	regionOptions?: Partial<RegionCommentOptions>
 }
 
-// TEMPORARY diagnostics for verifying the local-detach redesign in the app. Remove before merge.
-const DEBUG_CLUSTERING = true
-function debugPartitionDiff(
-	label: string,
-	before: ReadonlyMap<string, ClusterNode>,
-	after: ReadonlyMap<string, ClusterNode>
-) {
-	if (!DEBUG_CLUSTERING) return
-	const groupOf = (m: ReadonlyMap<string, ClusterNode>) => {
-		const g = new Map<string, string>()
-		for (const node of m.values()) for (const id of node.members) g.set(id, node.members.join('+'))
-		return g
-	}
-	const b = groupOf(before)
-	const a = groupOf(after)
-	const changes: string[] = []
-	for (const [id, group] of b)
-		if (a.get(id) !== group) changes.push(`${id}: [${group}] -> [${a.get(id) ?? 'GONE'}]`)
-	for (const id of a.keys()) if (!b.has(id)) changes.push(`${id}: NEW -> [${a.get(id)}]`)
-	// eslint-disable-next-line no-console
-	console.warn(`[cluster-debug] ${label}: ${changes.length} membership changes`, changes)
-}
-
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
 const initialOf = (name: string): string => (getFirstCharacter(name.trim()) || '?').toUpperCase()
@@ -266,11 +243,6 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		// Carryover seed: band events inherit the outgoing partition's merged/unmerged state, so
 		// nothing changes state because of the swap alone. Idempotent, so safe during render.
 		latestModel.runtime.seedFrom(editor.getZoomLevel(), renderedModel.runtime.getVisible())
-		debugPartitionDiff(
-			'rejoin adoption',
-			renderedModel.runtime.getVisible(),
-			latestModel.runtime.getVisible()
-		)
 		setRenderedModel(latestModel)
 		clusterModel = latestModel
 	} else if (heldThreadIds.size === 0 && renderedModel === latestModel) {
@@ -283,8 +255,6 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	// It renders as a live pin riding the anchor; the detach loop below shrinks its badge locally.
 	const newlyMovedIds = findMovedClusteredLeafIds(clusterModel, latestModel)
 	if (newlyMovedIds.length > 0) {
-		// eslint-disable-next-line no-console
-		if (DEBUG_CLUSTERING) console.warn('[cluster-debug] pop-out:', newlyMovedIds)
 		const next = new Set(heldThreadIds)
 		for (const id of newlyMovedIds) next.add(id)
 		setHeldThreadIds(next)
@@ -297,11 +267,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		const latestLeafIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
 		for (const leaf of clusterModel.table.leaves) {
 			if (!latestLeafIds.has(leaf.id)) {
-				const before = clusterModel.runtime.getDetachedCount()
 				clusterModel.runtime.detachLeaf(leaf.id)
-				// eslint-disable-next-line no-console
-				if (DEBUG_CLUSTERING && clusterModel.runtime.getDetachedCount() > before)
-					console.warn('[cluster-debug] detached locally:', leaf.id)
 			}
 		}
 	}
@@ -316,8 +282,6 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			const prevZoom = lastZoom
 			lastZoom = zoom
 			if (zoom >= prevZoom) return
-			// eslint-disable-next-line no-console
-			if (DEBUG_CLUSTERING) console.warn('[cluster-debug] rejoin on zoom-out at', zoom.toFixed(3))
 			adoptOnRebuild.current = true
 			setHeldThreadIds(EMPTY_SET)
 		})
@@ -334,11 +298,6 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			lastZoom = zoom
 			if (zoom >= prevZoom) return
 			latestModel.runtime.seedFrom(zoom, clusterModel.runtime.getVisible())
-			debugPartitionDiff(
-				`zoom-out adoption at ${zoom.toFixed(3)}`,
-				clusterModel.runtime.getVisible(),
-				latestModel.runtime.getVisible()
-			)
 			setRenderedModel(latestModel)
 		})
 	}, [clusterModel, latestModel, editor])
