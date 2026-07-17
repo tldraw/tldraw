@@ -1,5 +1,6 @@
 import {
 	Atom,
+	Computed,
 	PageRecordType,
 	TLNoteShape,
 	TLUser,
@@ -18,7 +19,7 @@ function makeMultiUserEditor(currentUser: Atom<TLUser>) {
 	const alice = UserRecordType.create({ id: createUserId('user-1'), name: 'Alice' })
 	const bob = UserRecordType.create({ id: createUserId('user-2'), name: 'Bob' })
 
-	const resolveCache = new Map<string, ReturnType<typeof computed>>()
+	const resolveCache = new Map<string, Computed<TLUser | null>>()
 	const resolve = (userId: string) => {
 		const cached = resolveCache.get(userId)
 		if (cached) return cached
