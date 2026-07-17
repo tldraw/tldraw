@@ -1256,6 +1256,8 @@ const ThreadPin = memo(function ThreadPin({
 			}
 		} else {
 			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+			// Re-anchoring by drag is an explicit "move this pin here" gesture, so it deliberately
+			// collapses to the single dropped-on shape even if the pin was multi-shape before.
 			anchor = hit
 				? shapeAnchorAt(editor, [hit.id], pagePoint, e.altKey)
 				: { type: 'point', x: pagePoint.x, y: pagePoint.y }

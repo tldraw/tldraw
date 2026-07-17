@@ -34,12 +34,23 @@ function thread(
 function stubEditor(
 	shapes: Record<string, { minX: number; minY: number; maxX: number; maxY: number }> = {}
 ): Editor {
+	const getShapePageBounds = (id: string) => {
+		const bounds = shapes[id]
+		if (!bounds) return undefined
+		return { ...bounds, w: bounds.maxX - bounds.minX, h: bounds.maxY - bounds.minY }
+	}
 	return {
 		getCurrentPageId: () => CURRENT_PAGE,
-		getShapePageBounds: (id: string) => {
-			const bounds = shapes[id]
-			if (!bounds) return undefined
-			return { ...bounds, w: bounds.maxX - bounds.minX, h: bounds.maxY - bounds.minY }
+		getShapePageBounds,
+		// Common bounds of the ids that resolve, mirroring Editor.getShapesPageBounds.
+		getShapesPageBounds: (ids: string[]) => {
+			const all = ids.map(getShapePageBounds).filter((b) => b !== undefined)
+			if (all.length === 0) return null
+			const minX = Math.min(...all.map((b) => b!.minX))
+			const minY = Math.min(...all.map((b) => b!.minY))
+			const maxX = Math.max(...all.map((b) => b!.maxX))
+			const maxY = Math.max(...all.map((b) => b!.maxY))
+			return { minX, minY, maxX, maxY, w: maxX - minX, h: maxY - minY }
 		},
 	} as unknown as Editor
 }

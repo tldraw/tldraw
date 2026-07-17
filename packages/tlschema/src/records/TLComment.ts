@@ -11,14 +11,15 @@ import { TLShapeId } from './TLShape'
  * Where a comment thread is anchored on the canvas. Modeled as a discriminated union so new
  * anchor kinds can be added without breaking existing threads:
  *
- * - `shape` — pinned to one or more shapes. `x`/`y` are normalized (0–1) within the common page
- *   bounds of the anchored shapes that still exist, so the pin keeps its spot as the shapes move
- *   and resize. With a single shape that's exactly its own page bounds; with several, note the
- *   common bounds reflow as the shapes move relative to each other, so a precise pin tracks the
- *   group approximately rather than any one shape exactly. `isPrecise` mirrors arrow bindings:
- *   when true the pin sits at exactly `x`/`y`; when false (the default) it sits at a
- *   consumer-defined spot (top-right out of the box), and `x`/`y` are the remembered precise
- *   position
+ * - `shape` — pinned to one or more shapes. `shapeIds[0]` is the primary shape (the one clicked,
+ *   and the one denormalized for app-level queries and deep links). `x`/`y` are normalized (0–1)
+ *   within the common page bounds of the anchored shapes that still exist, so the pin keeps its
+ *   spot as the shapes move and resize. With a single shape that's exactly its own page bounds;
+ *   with several, the common bounds reflow as the shapes move relative to each other, so a
+ *   precise pin tracks the group approximately rather than any one shape exactly. `isPrecise`
+ *   mirrors arrow bindings: when true the pin sits at exactly `x`/`y`; when false (the default)
+ *   it sits at a consumer-defined spot (top-right out of the box), and `x`/`y` are the
+ *   remembered precise position
  * - `point` — pinned to a fixed point on the page, in page coordinates
  * - `region` — pinned to a rectangular area of the page, in page coordinates
  * - `page` — a page-level thread with no spatial anchor

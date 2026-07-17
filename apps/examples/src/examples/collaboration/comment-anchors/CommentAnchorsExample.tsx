@@ -91,7 +91,7 @@ export default function CommentAnchorsExample() {
 			{ history: 'ignore' }
 		)
 
-		editor.zoomToBounds({ x: 60, y: 60, w: 600, h: 420 }, { immediate: true })
+		editor.zoomToBounds({ x: 60, y: 60, w: 880, h: 420 }, { immediate: true })
 	}
 
 	const components = useMemo<TLComponents>(

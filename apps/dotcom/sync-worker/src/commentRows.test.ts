@@ -199,6 +199,35 @@ describe('rehydration validation', () => {
 		expect(() => rowToThreadRecord(corrupt)).toThrow()
 	})
 
+	// Rows written by an older worker are validated against the current validator before the
+	// room's schema migrations run, so rehydration must normalize legacy shape anchors itself.
+	it('rowToThreadRecord normalizes a legacy single-shapeId anchor before validating', () => {
+		const row = threadRecordToRow(makeThread(), 'file1', 42)
+		const legacy = {
+			...row,
+			anchor: { type: 'shape', shapeId, x: 0.5, y: 0.5, isPrecise: true } as any,
+		}
+		expect(rowToThreadRecord(legacy).anchor).toEqual({
+			type: 'shape',
+			shapeIds: [shapeId],
+			x: 0.5,
+			y: 0.5,
+			isPrecise: true,
+		})
+	})
+
+	it('rowToThreadRecord normalizes a pre-x/y legacy shape anchor', () => {
+		const row = threadRecordToRow(makeThread(), 'file1', 42)
+		const legacy = { ...row, anchor: { type: 'shape', shapeId } as any }
+		expect(rowToThreadRecord(legacy).anchor).toEqual({
+			type: 'shape',
+			shapeIds: [shapeId],
+			x: 1,
+			y: 0,
+			isPrecise: false,
+		})
+	})
+
 	it('rowToCommentRecord throws on a mangled body', () => {
 		const thread = makeThread()
 		const comment = createComment({

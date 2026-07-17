@@ -1,4 +1,4 @@
-import { Box, BoxModel, Editor, TLCommentAnchor, TLCommentThread, TLShapeId, VecLike } from 'tldraw'
+import { BoxModel, Editor, TLCommentAnchor, TLCommentThread, TLShapeId, VecLike } from 'tldraw'
 import { getRegionCommentOptions } from './region-options'
 import { openThreadId } from './state'
 
@@ -31,7 +31,8 @@ export function anchorPagePoint(
 ): { x: number; y: number } | null {
 	switch (anchor.type) {
 		case 'shape': {
-			const bounds = commonShapePageBounds(editor, anchor.shapeIds as TLShapeId[])
+			// The common page bounds of the anchored shapes that still exist; null when none do.
+			const bounds = editor.getShapesPageBounds(anchor.shapeIds)
 			if (!bounds) return null
 			// Precise pins sit at their stored x/y; imprecise ones at the consumer's default spot.
 			const { x, y } = anchor.isPrecise ? anchor : impreciseShapeAnchor
@@ -52,29 +53,6 @@ export function anchorPagePoint(
 }
 
 /**
- * The common page bounds of the anchored shapes that still exist, or null when none do. With a
- * single shape this is exactly its own page bounds; with several it's their union, recomputed
- * live so the anchor tracks the group as it moves.
- * @public
- */
-export function commonShapePageBounds(editor: Editor, shapeIds: TLShapeId[]): Box | null {
-	let minX = Infinity
-	let minY = Infinity
-	let maxX = -Infinity
-	let maxY = -Infinity
-	for (const shapeId of shapeIds) {
-		const b = editor.getShapePageBounds(shapeId)
-		if (!b) continue
-		if (b.minX < minX) minX = b.minX
-		if (b.minY < minY) minY = b.minY
-		if (b.maxX > maxX) maxX = b.maxX
-		if (b.maxY > maxY) maxY = b.maxY
-	}
-	if (minX === Infinity) return null
-	return new Box(minX, minY, maxX - minX, maxY - minY)
-}
-
-/**
  * A shape anchor for a page point. `x`/`y` are the point's normalized (0–1) offset within the
  * common page bounds of `shapeIds`, remembered either way. When `precise` (Alt held) the pin sits
  * at exactly `x`/`y`; otherwise it sits at the consumer's imprecise default (top-right out of the
@@ -87,7 +65,7 @@ export function shapeAnchorAt(
 	page: { x: number; y: number },
 	precise: boolean
 ): TLCommentAnchor {
-	const bounds = commonShapePageBounds(editor, shapeIds)
+	const bounds = editor.getShapesPageBounds(shapeIds)
 	if (!bounds || bounds.w === 0 || bounds.h === 0) {
 		return { type: 'shape', shapeIds, x: 0.5, y: 0.5, isPrecise: precise }
 	}

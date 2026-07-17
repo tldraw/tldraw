@@ -124,15 +124,21 @@ class CommentPointing extends StateNode {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
 		const hit = editor.getShapeAtPoint(point, { hitInside: true })
-		const selectedIds = editor.getSelectedShapeIds()
-		const anchorShapeIds = hit
-			? selectedIds.length > 1 && selectedIds.includes(hit.id)
-				? selectedIds
-				: [hit.id]
-			: null
-		const anchor: TLCommentAnchor = anchorShapeIds
-			? shapeAnchorAt(editor, anchorShapeIds, point, editor.inputs.getAltKey())
-			: { type: 'point', x: point.x, y: point.y }
+		let anchor: TLCommentAnchor
+		if (hit) {
+			const selectedIds = editor.getSelectedShapeIds()
+			// The hit is never a group, so match the selection through the clicked shape's
+			// outermost selectable ancestor. The clicked shape goes first: `shapeIds[0]` is the
+			// anchor's primary shape (used for denormalized queries and deep links).
+			const clicked = editor.getOutermostSelectableShape(hit)
+			const ids =
+				selectedIds.length > 1 && selectedIds.includes(clicked.id)
+					? [clicked.id, ...selectedIds.filter((id) => id !== clicked.id)]
+					: [hit.id]
+			anchor = shapeAnchorAt(editor, ids, point, editor.inputs.getAltKey())
+		} else {
+			anchor = { type: 'point', x: point.x, y: point.y }
+		}
 		pendingComment.set(editor, { anchor, point: { x: point.x, y: point.y } })
 		// Hand back to select; the open composer is now the focus.
 		editor.setCurrentTool('select')

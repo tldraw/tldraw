@@ -82,12 +82,30 @@ export function commentRecordToRow(
 	}
 }
 
+/**
+ * Bring a persisted anchor up to the current shape-anchor form. Postgres rows are validated
+ * against the *current* record validator below, before the room's schema migrations ever run, so
+ * anchors written by an older worker must be normalized here or a legacy row would fail the room
+ * open. Mirrors the `com.tldraw.comment-thread/2` (x/y/isPrecise backfill) and `/3`
+ * (shapeId → shapeIds) up migrations.
+ */
+function normalizeLegacyShapeAnchor(anchor: any): TLCommentAnchor {
+	if (anchor?.type !== 'shape') return anchor
+	let next = anchor
+	if (next.x === undefined) next = { ...next, x: 1, y: 0, isPrecise: false }
+	if (next.shapeIds === undefined) {
+		const { shapeId, ...rest } = next
+		next = { ...rest, shapeIds: [shapeId] }
+	}
+	return next
+}
+
 export function rowToThreadRecord(row: DB['comment_thread']): TLCommentThread {
 	const record: TLCommentThread = {
 		id: row.id as TLCommentThread['id'],
 		typeName: 'comment-thread',
 		pageId: row.pageId as TLCommentThread['pageId'],
-		anchor: row.anchor as TLCommentAnchor,
+		anchor: normalizeLegacyShapeAnchor(row.anchor),
 		createdBy: row.createdBy,
 		createdAt: Number(row.createdAt),
 		resolved: row.resolvedAt != null ? { at: Number(row.resolvedAt), by: row.resolvedBy! } : null,
