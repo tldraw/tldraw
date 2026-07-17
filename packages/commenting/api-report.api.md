@@ -113,11 +113,15 @@ export interface ClusterOptions {
 
 // @public (undocumented)
 export interface ClusterRuntime {
+    detachLeaf(leafId: string): void;
+    getDetachedCount(): number;
+    getSuppressedCount(): number;
     getVisible(): ReadonlyMap<string, ClusterNode>;
     readonly k: number;
     onCamera(zoom: number): void;
     seed(zoom: number): void;
     seedFrom(zoom: number, previous: ReadonlyMap<string, ClusterNode>): void;
+    readonly version: number;
 }
 
 // @public
