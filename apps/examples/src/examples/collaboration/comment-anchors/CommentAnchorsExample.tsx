@@ -4,6 +4,7 @@ import {
 	commentTools,
 	putCommentRecords,
 } from '@tldraw/commenting'
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import {
 	commentSchemaRecords,
@@ -18,6 +19,7 @@ import {
 	Tldraw,
 	toRichText,
 } from 'tldraw'
+import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 
 const NAMES: Record<string, string> = { ada: 'Ada Lovelace', me: 'You' }
@@ -91,6 +93,9 @@ export default function CommentAnchorsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				// Commenting is a licensed feature. Every feature is enabled in local development, but a
+				// deployed app needs a license key that includes commenting — swap in your own key here.
+				licenseKey={getLicenseKey()}
 				store={store}
 				onMount={handleMount}
 				tools={commentTools}

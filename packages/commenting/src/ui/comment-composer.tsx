@@ -1,4 +1,4 @@
-import { Extension, JSONContent } from '@tiptap/core'
+import { JSONContent } from '@tiptap/core'
 import { EditorContent, useEditor } from '@tiptap/react'
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
@@ -69,28 +69,20 @@ export function CommentComposer({
 
 	const [isEmpty, setIsEmpty] = useState(() => !value || isCommentEmpty(value))
 
-	// Enter submits the comment. Shift+Enter (and Cmd/Ctrl+Enter) keep their default behavior — a
-	// new line — for the occasional multi-line comment.
-	const submitExtension = useMemo(
-		() =>
-			Extension.create({
-				name: 'commentComposerSubmit',
-				priority: 1000,
-				addKeyboardShortcuts() {
-					return {
-						Enter: () => {
-							// While the @-mention picker is open, Enter selects the highlighted member.
-							// This extension outranks the mention plugin (priority 1000), so defer to the
-							// picker here or Enter would submit before the member could be inserted.
-							if (isMentionPickerOpen()) return false
-							if (!disabledRef.current) onSubmitRef.current?.()
-							return true
-						},
-					}
-				},
-			}),
-		[]
-	)
+	// The editor instance, reachable from `handleKeyDown` (which is created before `useEditor`
+	// returns). Updated on every render so the ref never points at a stale editor.
+	const editorRef = useRef<ReturnType<typeof useEditor>>(null)
+
+	// Set while we replay Enter through the keymaps for a Shift+Enter newline: `commands.enter()`
+	// re-dispatches Enter through `handleKeyDown`, and without this guard our own handler would catch
+	// that synthetic Enter and submit instead.
+	const replayingEnter = useRef(false)
+
+	// Enter and Cmd/Ctrl+Enter submit the comment; Shift+Enter inserts a new line for the occasional
+	// multi-line comment. This is handled through `editorProps.handleKeyDown` (below) rather than a
+	// keyboard-shortcut extension: ProseMirror runs `handleKeyDown` before every keymap plugin, so it
+	// can tell Shift+Enter apart from Enter — an `Enter` keymap binding also fires on Shift/Cmd+Enter
+	// and would otherwise swallow the newline.
 
 	// The suggestion plugin is built once (the editor is recreated only on `interactive`) and runs
 	// outside React, so it must read the mention callbacks through refs — like onChange/onSubmit —
@@ -100,7 +92,7 @@ export function CommentComposer({
 	const mentionsEnabled = !!getMentionSuggestions
 	const hasCustomRow = !!renderMentionSuggestion
 	const extensions = useMemo(() => {
-		const list = [...commentTipTapExtensions, submitExtension]
+		const list = [...commentTipTapExtensions]
 		// Always register the mention node so an existing body that contains a mention keeps it on
 		// edit (an unregistered node would be stripped by ProseMirror when the content loads). The `@`
 		// picker itself only turns on when the host provides a resolver; otherwise the node is present
@@ -122,7 +114,7 @@ export function CommentComposer({
 			list.push(commentMention({ suggestion: { char: '@', allow: () => false } }))
 		}
 		return list
-	}, [submitExtension, mentionsEnabled, hasCustomRow, tlEditor])
+	}, [mentionsEnabled, hasCustomRow, tlEditor])
 
 	const editor = useEditor(
 		{
@@ -134,7 +126,33 @@ export function CommentComposer({
 			// mirrors RichTextArea's setup.
 			enableCoreExtensions: { textDirection: false },
 			textDirection: 'auto',
-			editorProps: { attributes: { class: 'cmt-input' } },
+			editorProps: {
+				attributes: { class: 'cmt-input' },
+				// Runs before every keymap plugin, so it can distinguish Shift+Enter from Enter — an
+				// `Enter` keymap binding also fires on Shift+Enter and would otherwise swallow it.
+				handleKeyDown: (_view, event) => {
+					// Let the keymaps handle the synthetic Enter we replay for a Shift+Enter newline.
+					if (replayingEnter.current) return false
+					if (event.key !== 'Enter' || event.isComposing) return false
+					// While the @-mention picker is open, Enter selects the highlighted member — defer.
+					if (isMentionPickerOpen()) return false
+					// Shift+Enter inserts a new line. Replay a plain Enter through the keymaps (guarded so
+					// we don't re-enter and submit) to reuse the editor's list-aware Enter handling — a new
+					// list item in a list, a new paragraph otherwise. tldraw doesn't do soft breaks.
+					if (event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
+						replayingEnter.current = true
+						try {
+							editorRef.current?.commands.enter()
+						} finally {
+							replayingEnter.current = false
+						}
+						return true
+					}
+					// Enter, Cmd+Enter, and Ctrl+Enter submit.
+					if (!disabledRef.current) onSubmitRef.current?.()
+					return true
+				},
+			},
 			onUpdate: ({ editor }) => {
 				setIsEmpty(editor.isEmpty)
 				onChangeRef.current?.(editor.getJSON() as TLRichText)
@@ -142,6 +160,7 @@ export function CommentComposer({
 		},
 		[interactive]
 	)
+	editorRef.current = editor
 
 	// Sync controlled resets (e.g. the parent clearing to EMPTY_COMMENT after posting) into the
 	// editor without echoing back the value the editor itself just emitted.

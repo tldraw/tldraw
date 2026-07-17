@@ -7,6 +7,7 @@ import {
 } from '@tldraw/commenting'
 import { useMemo } from 'react'
 import { Editor, TLComponents, Tldraw, useEditor, useValue } from 'tldraw'
+import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 import './comment-clustering.css'
 
