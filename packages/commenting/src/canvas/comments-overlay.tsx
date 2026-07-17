@@ -1257,7 +1257,7 @@ const ThreadPin = memo(function ThreadPin({
 		} else {
 			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
 			anchor = hit
-				? shapeAnchorAt(editor, hit.id, pagePoint, e.altKey)
+				? shapeAnchorAt(editor, [hit.id], pagePoint, e.altKey)
 				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
 		}
 		commitCommentMutation(editor, () => putCommentRecords(editor, [{ ...thread, anchor }]), 'drag')

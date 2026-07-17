@@ -49,7 +49,9 @@ export function threadRecordToRow(
 		fileId,
 		pageId: record.pageId,
 		anchor: record.anchor,
-		shapeId: record.anchor.type === 'shape' ? record.anchor.shapeId : null,
+		// A shape anchor can reference several shapes; the single-value column keeps the first
+		// (primary) one for app-level queries and notification deep links.
+		shapeId: record.anchor.type === 'shape' ? (record.anchor.shapeIds[0] ?? null) : null,
 		resolvedAt: record.resolved?.at ?? null,
 		resolvedBy: record.resolved?.by ?? null,
 		createdBy: record.createdBy,

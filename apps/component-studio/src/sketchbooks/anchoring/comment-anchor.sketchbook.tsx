@@ -11,7 +11,7 @@ const sketchbook: Sketchbook<CommentAnchorProps> = {
 			control: 'union',
 			discriminant: 'type',
 			variants: {
-				shape: { type: 'shape', shapeId: createShapeId('box'), x: 1, y: 0, isPrecise: false },
+				shape: { type: 'shape', shapeIds: [createShapeId('box')], x: 1, y: 0, isPrecise: false },
 				point: { type: 'point', x: 120, y: 90 },
 				region: { type: 'region', x: 60, y: 60, w: 180, h: 120 },
 				page: { type: 'page' },
@@ -27,13 +27,13 @@ export default sketchbook
 // moves and resizes, since x/y are normalized.
 export const ShapeImprecise: Sketch<CommentAnchorProps> = {
 	args: {
-		anchor: { type: 'shape', shapeId: createShapeId('box'), x: 1, y: 0, isPrecise: false },
+		anchor: { type: 'shape', shapeIds: [createShapeId('box')], x: 1, y: 0, isPrecise: false },
 		open: true,
 	},
 }
 export const ShapePrecise: Sketch<CommentAnchorProps> = {
 	args: {
-		anchor: { type: 'shape', shapeId: createShapeId('box'), x: 0.5, y: 0.62, isPrecise: true },
+		anchor: { type: 'shape', shapeIds: [createShapeId('box')], x: 0.5, y: 0.62, isPrecise: true },
 		open: true,
 	},
 }

@@ -119,12 +119,19 @@ class CommentPointing extends StateNode {
 	}
 
 	// A pointer up with no drag is a click: anchor to the shape under it, or drop a point.
+	// Clicking a shape that's part of a multi-shape selection anchors to the whole selection.
 	override onPointerUp() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
 		const hit = editor.getShapeAtPoint(point, { hitInside: true })
-		const anchor: TLCommentAnchor = hit
-			? shapeAnchorAt(editor, hit.id, point, editor.inputs.getAltKey())
+		const selectedIds = editor.getSelectedShapeIds()
+		const anchorShapeIds = hit
+			? selectedIds.length > 1 && selectedIds.includes(hit.id)
+				? selectedIds
+				: [hit.id]
+			: null
+		const anchor: TLCommentAnchor = anchorShapeIds
+			? shapeAnchorAt(editor, anchorShapeIds, point, editor.inputs.getAltKey())
 			: { type: 'point', x: point.x, y: point.y }
 		pendingComment.set(editor, { anchor, point: { x: point.x, y: point.y } })
 		// Hand back to select; the open composer is now the focus.

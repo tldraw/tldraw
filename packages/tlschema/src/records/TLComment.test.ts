@@ -20,7 +20,8 @@ const pageId = 'page:page1' as TLPageId
 const shapeId = 'shape:box1' as TLShapeId
 
 const anchors: TLCommentAnchor[] = [
-	{ type: 'shape', shapeId, x: 1, y: 0, isPrecise: false },
+	{ type: 'shape', shapeIds: [shapeId], x: 1, y: 0, isPrecise: false },
+	{ type: 'shape', shapeIds: [shapeId, 'shape:box2' as TLShapeId], x: 1, y: 0, isPrecise: false },
 	{ type: 'point', x: 100, y: 200 },
 	{ type: 'region', x: 0, y: 0, w: 300, h: 150 },
 	{ type: 'page' },
@@ -58,7 +59,7 @@ describe('TLCommentThread', () => {
 	it('rejects unknown anchor kinds and malformed anchors', () => {
 		const thread = createCommentThread({
 			pageId,
-			anchor: { type: 'shape', shapeId, x: 1, y: 0, isPrecise: false },
+			anchor: { type: 'shape', shapeIds: [shapeId], x: 1, y: 0, isPrecise: false },
 			createdBy: 'user1',
 			now: 1000,
 		})
@@ -71,8 +72,15 @@ describe('TLCommentThread', () => {
 		expect(() =>
 			commentThreadRecordConfig.validator.validate({
 				...thread,
-				// shape anchors must reference a shape id
-				anchor: { type: 'shape', shapeId: 'page:nope', x: 1, y: 0, isPrecise: false },
+				// shape anchors must reference shape ids
+				anchor: { type: 'shape', shapeIds: ['page:nope'], x: 1, y: 0, isPrecise: false },
+			})
+		).toThrow()
+		expect(() =>
+			commentThreadRecordConfig.validator.validate({
+				...thread,
+				// shape anchors must reference at least one shape
+				anchor: { type: 'shape', shapeIds: [], x: 1, y: 0, isPrecise: false },
 			})
 		).toThrow()
 	})
@@ -177,6 +185,46 @@ describe('comment-thread migrations', () => {
 			migration.down({ anchor: { type: 'shape', shapeId, x: 0.3, y: 0.4, isPrecise: true } })
 		).toEqual({
 			anchor: { type: 'shape', shapeId },
+		})
+	})
+})
+
+describe('comment-thread/3 migration (shapeId -> shapeIds)', () => {
+	const migration = (commentThreadRecordConfig.migrations as any).sequence.find(
+		(m: any) => m.id === 'com.tldraw.comment-thread/3'
+	) as { up(r: any): any; down(r: any): any }
+
+	it('up-migrates a single shapeId to a one-element shapeIds array', () => {
+		expect(
+			migration.up({ anchor: { type: 'shape', shapeId, x: 1, y: 0, isPrecise: false } })
+		).toEqual({
+			anchor: { type: 'shape', shapeIds: [shapeId], x: 1, y: 0, isPrecise: false },
+		})
+	})
+
+	it('leaves shape anchors that already have shapeIds unchanged', () => {
+		const anchor = { type: 'shape', shapeIds: [shapeId], x: 1, y: 0, isPrecise: false }
+		expect(migration.up({ anchor })).toEqual({ anchor })
+	})
+
+	it('leaves non-shape anchors untouched', () => {
+		const anchor = { type: 'text-range', shapeId, from: 1, to: 4 }
+		expect(migration.up({ anchor })).toEqual({ anchor })
+	})
+
+	it('down-migrates by keeping only the first (primary) shape', () => {
+		expect(
+			migration.down({
+				anchor: {
+					type: 'shape',
+					shapeIds: [shapeId, 'shape:box2'],
+					x: 0.3,
+					y: 0.4,
+					isPrecise: true,
+				},
+			})
+		).toEqual({
+			anchor: { type: 'shape', shapeId, x: 0.3, y: 0.4, isPrecise: true },
 		})
 	})
 })

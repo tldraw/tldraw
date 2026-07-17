@@ -26,7 +26,9 @@ const shapeId = 'shape:box1' as TLShapeId
 // minimal rich text doc; passes richTextValidator (which rowToCommentRecord now runs)
 const body = { type: 'doc', content: [] } as unknown as TLRichText
 
-function makeThread(anchor = { type: 'shape' as const, shapeId, x: 0.5, y: 0.5, isPrecise: true }) {
+function makeThread(
+	anchor = { type: 'shape' as const, shapeIds: [shapeId], x: 0.5, y: 0.5, isPrecise: true }
+) {
 	return createCommentThread({ pageId, anchor, createdBy: 'user1', now: 1000 })
 }
 
@@ -55,6 +57,18 @@ describe('threadRecordToRow', () => {
 		expect(row.shapeId).toBeNull()
 		expect(row.resolvedAt).toBeNull()
 		expect(row.resolvedBy).toBeNull()
+	})
+
+	it('multi-shape anchor: the first (primary) shape id is denormalized', () => {
+		const otherShapeId = 'shape:box2' as TLShapeId
+		const thread = makeThread({
+			type: 'shape' as const,
+			shapeIds: [shapeId, otherShapeId],
+			x: 0.5,
+			y: 0.5,
+			isPrecise: false,
+		})
+		expect(threadRecordToRow(thread, 'file1', 1).shapeId).toBe(shapeId)
 	})
 })
 

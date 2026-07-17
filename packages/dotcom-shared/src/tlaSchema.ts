@@ -148,7 +148,7 @@ export const comment_thread = table('comment_thread')
 		id: string(),
 		fileId: string(),
 		pageId: string(),
-		// only set for shape-anchored threads; other anchor kinds have no shape
+		// the first (primary) shape of a shape-anchored thread; other anchor kinds have no shape
 		shapeId: string().optional(),
 		resolvedAt: number().optional(),
 		createdBy: string(),

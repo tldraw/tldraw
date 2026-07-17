@@ -84,6 +84,7 @@ export {
 } from './canvas/state'
 export {
 	anchorPagePoint,
+	commonShapePageBounds,
 	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
 	focusThread,
 	shapeAnchorAt,

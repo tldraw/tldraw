@@ -74,7 +74,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 		const leaves = collectClusterLeaves(
 			editor,
 			[
-				thread('t1', { type: 'shape', shapeId: 'shape:a' as any, x: 0, y: 0, isPrecise: false }),
+				thread('t1', { type: 'shape', shapeIds: ['shape:a' as any], x: 0, y: 0, isPrecise: false }),
 				thread('t2', { type: 'text-range', shapeId: 'shape:a' as any, from: 0, to: 3 }),
 			],
 			null
@@ -92,14 +92,14 @@ describe('collectClusterLeaves anchor resolution', () => {
 		const threads = [
 			thread('imprecise', {
 				type: 'shape',
-				shapeId: 'shape:a' as any,
+				shapeIds: ['shape:a' as any],
 				x: 0,
 				y: 0,
 				isPrecise: false,
 			}),
 			thread('precise', {
 				type: 'shape',
-				shapeId: 'shape:a' as any,
+				shapeIds: ['shape:a' as any],
 				x: 0.5,
 				y: 0.5,
 				isPrecise: true,
@@ -119,7 +119,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 			[
 				thread('gone', {
 					type: 'shape',
-					shapeId: 'shape:deleted' as any,
+					shapeIds: ['shape:deleted' as any],
 					x: 0,
 					y: 0,
 					isPrecise: false,
@@ -193,14 +193,14 @@ describe('collectClusterLeaves filtering', () => {
 			thread('region', { type: 'region', x: 0, y: 0, w: 5, h: 5 }),
 			thread('onShape', {
 				type: 'shape',
-				shapeId: 'shape:live' as any,
+				shapeIds: ['shape:live' as any],
 				x: 0,
 				y: 0,
 				isPrecise: false,
 			}),
 			thread('orphaned', {
 				type: 'shape',
-				shapeId: 'shape:gone' as any,
+				shapeIds: ['shape:gone' as any],
 				x: 0,
 				y: 0,
 				isPrecise: false,

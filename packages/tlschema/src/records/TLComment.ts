@@ -11,10 +11,14 @@ import { TLShapeId } from './TLShape'
  * Where a comment thread is anchored on the canvas. Modeled as a discriminated union so new
  * anchor kinds can be added without breaking existing threads:
  *
- * - `shape` — pinned to a shape. `x`/`y` are normalized (0–1) within the shape's page bounds, so
- *   the pin keeps its spot as the shape moves and resizes. `isPrecise` mirrors arrow bindings: when
- *   true the pin sits at exactly `x`/`y`; when false (the default) it sits at a consumer-defined
- *   spot (top-right out of the box), and `x`/`y` are the remembered precise position
+ * - `shape` — pinned to one or more shapes. `x`/`y` are normalized (0–1) within the common page
+ *   bounds of the anchored shapes that still exist, so the pin keeps its spot as the shapes move
+ *   and resize. With a single shape that's exactly its own page bounds; with several, note the
+ *   common bounds reflow as the shapes move relative to each other, so a precise pin tracks the
+ *   group approximately rather than any one shape exactly. `isPrecise` mirrors arrow bindings:
+ *   when true the pin sits at exactly `x`/`y`; when false (the default) it sits at a
+ *   consumer-defined spot (top-right out of the box), and `x`/`y` are the remembered precise
+ *   position
  * - `point` — pinned to a fixed point on the page, in page coordinates
  * - `region` — pinned to a rectangular area of the page, in page coordinates
  * - `page` — a page-level thread with no spatial anchor
@@ -23,7 +27,7 @@ import { TLShapeId } from './TLShape'
  * @public
  */
 export type TLCommentAnchor =
-	| { type: 'shape'; shapeId: TLShapeId; x: number; y: number; isPrecise: boolean }
+	| { type: 'shape'; shapeIds: TLShapeId[]; x: number; y: number; isPrecise: boolean }
 	| { type: 'point'; x: number; y: number }
 	| { type: 'region'; x: number; y: number; w: number; h: number }
 	| { type: 'page' }
@@ -96,7 +100,7 @@ export type TLCommentId = RecordId<TLComment>
 const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
 	shape: T.object({
 		type: T.literal('shape'),
-		shapeId: idValidator<TLShapeId>('shape'),
+		shapeIds: T.arrayOf(idValidator<TLShapeId>('shape')).nonEmpty(),
 		x: T.number,
 		y: T.number,
 		isPrecise: T.boolean,
@@ -172,6 +176,27 @@ export const commentThreadRecordConfig: CustomRecordInfo = {
 				const anchor = (record as any).anchor
 				if (anchor?.type === 'shape') {
 					;(record as any).anchor = { type: 'shape', shapeId: anchor.shapeId }
+				}
+				return record
+			},
+		},
+		{
+			// Shape anchors generalized from a single `shapeId` to one-or-more `shapeIds`. Down is
+			// lossy for multi-shape anchors: older schemas keep only the first (primary) shape.
+			id: 'com.tldraw.comment-thread/3',
+			up: (record) => {
+				const anchor = (record as any).anchor
+				if (anchor?.type === 'shape' && anchor.shapeIds === undefined) {
+					const { shapeId, ...rest } = anchor
+					;(record as any).anchor = { ...rest, shapeIds: [shapeId] }
+				}
+				return record
+			},
+			down: (record) => {
+				const anchor = (record as any).anchor
+				if (anchor?.type === 'shape') {
+					const { shapeIds, ...rest } = anchor
+					;(record as any).anchor = { ...rest, shapeId: shapeIds[0] }
 				}
 				return record
 			},

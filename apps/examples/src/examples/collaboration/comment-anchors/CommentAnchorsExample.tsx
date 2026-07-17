@@ -57,14 +57,27 @@ export default function CommentAnchorsExample() {
 				// top-right badge spot. The anchor still tracks the shape as it moves and resizes.
 				seedThread(
 					editor,
-					{ type: 'shape', shapeId: boxId, x: 1, y: 0, isPrecise: false },
+					{ type: 'shape', shapeIds: [boxId], x: 1, y: 0, isPrecise: false },
 					'Anchored to this shape (imprecise — sits at the corner).'
 				)
 				// shape (precise): the pin sits exactly at the stored normalized spot inside the shape.
 				seedThread(
 					editor,
-					{ type: 'shape', shapeId: boxId, x: 0.5, y: 0.6, isPrecise: true },
+					{ type: 'shape', shapeIds: [boxId], x: 0.5, y: 0.6, isPrecise: true },
 					'Anchored to a precise spot inside the shape.'
+				)
+				// shape (multiple): anchored to several shapes at once. The pin sits on their common
+				// bounds and tracks the group as any of them move; if one is deleted the anchor
+				// keeps tracking the rest.
+				const pairIds = [createShapeId(), createShapeId()]
+				editor.createShapes([
+					{ id: pairIds[0], type: 'geo', x: 620, y: 100, props: { geo: 'ellipse', w: 100, h: 80 } },
+					{ id: pairIds[1], type: 'geo', x: 780, y: 200, props: { geo: 'ellipse', w: 100, h: 80 } },
+				])
+				seedThread(
+					editor,
+					{ type: 'shape', shapeIds: pairIds, x: 1, y: 0, isPrecise: false },
+					'Anchored to both ellipses — the pin tracks their common bounds.'
 				)
 				// point: a bare page coordinate, unattached to any shape.
 				seedThread(editor, { type: 'point', x: 200, y: 340 }, 'Anchored to a point on the page.')

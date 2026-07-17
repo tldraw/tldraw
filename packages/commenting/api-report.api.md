@@ -4,6 +4,7 @@
 
 ```ts
 
+import { Box } from 'tldraw';
 import { ComponentType } from 'react';
 import { Editor } from 'tldraw';
 import { EditorAtom } from 'tldraw';
@@ -316,6 +317,9 @@ export const commentTools: typeof CommentTool[];
 // @public
 export function commitCommentMutation<T>(editor: Editor, fn: () => T, kind?: 'drag' | 'mutation'): T;
 
+// @public
+export function commonShapePageBounds(editor: Editor, shapeIds: TLShapeId[]): Box | null;
+
 // @public (undocumented)
 export function computeClusterTable(leaves: readonly LeafInput[], options: ClusterOptions): ClusterTable;
 
@@ -514,7 +518,7 @@ export interface SendButtonProps {
 }
 
 // @public
-export function shapeAnchorAt(editor: Editor, shapeId: TLShapeId, page: {
+export function shapeAnchorAt(editor: Editor, shapeIds: TLShapeId[], page: {
     x: number;
     y: number;
 }, precise: boolean): TLCommentAnchor;

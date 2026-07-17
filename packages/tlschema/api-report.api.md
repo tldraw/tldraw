@@ -1109,7 +1109,7 @@ export type TLCommentAnchor = {
     y: number;
 } | {
     isPrecise: boolean;
-    shapeId: TLShapeId;
+    shapeIds: TLShapeId[];
     type: 'shape';
     x: number;
     y: number;
