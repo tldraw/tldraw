@@ -175,16 +175,31 @@ describe('authorizeFileRecord', () => {
 			return { ...note, id: createShapeId('geo1'), type: 'geo', props } as unknown as TLShape
 		}
 
-		it('passes creates through untouched, even with foreign attribution (duplication)', () => {
+		it('vetoes a create with foreign attribution (duplication now re-stamps the copy)', () => {
 			const next = makeNote('real-alice')
+			expect(
+				authorize({ session: session('real-bob'), type: 'create', prev: null, next })
+			).toBeNull()
+		})
+
+		it('allows a create attributed to the session user', () => {
+			const next = makeNote('real-bob')
 			expect(authorize({ session: session('real-bob'), type: 'create', prev: null, next })).toBe(
 				next
 			)
 		})
 
-		it('passes creates through for anonymous sessions', () => {
-			const next = makeNote('real-alice')
+		it('allows a create with no attribution (empty or anonymous note)', () => {
+			const next = makeNote(null)
+			expect(authorize({ session: session('real-bob'), type: 'create', prev: null, next })).toBe(
+				next
+			)
 			expect(authorize({ session: session(null), type: 'create', prev: null, next })).toBe(next)
+		})
+
+		it('vetoes an anonymous session creating a note with any attribution', () => {
+			const next = makeNote('real-alice')
+			expect(authorize({ session: session(null), type: 'create', prev: null, next })).toBeNull()
 		})
 
 		it('allows updates that do not touch attribution, from any user', () => {
@@ -229,6 +244,10 @@ describe('authorizeFileRecord', () => {
 			const prev = makeGeo()
 			const next = { ...prev, x: 50 }
 			expect(authorize({ session: session(null), type: 'update', prev, next })).toBe(next)
+			// creates of non-note shapes carry no attribution to enforce, so they pass through
+			expect(authorize({ session: session(null), type: 'create', prev: null, next: prev })).toBe(
+				prev
+			)
 		})
 
 		it('allows deletes', () => {
