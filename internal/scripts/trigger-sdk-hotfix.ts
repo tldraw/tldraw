@@ -88,6 +88,17 @@ async function main() {
 			await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
 			await exec('git', ['log', '-1', '--oneline'])
 			await exec('git', ['cherry-pick', commitSha])
+
+			// the push to the release branch below must trigger publish.yml, but some
+			// merge commits (e.g. release-notes updates) carry `[skip ci]`, which would
+			// suppress it. strip skip-ci markers from the cherry-picked commit message.
+			const message = (await exec('git', ['log', '-1', '--format=%B'])).trim()
+			const cleanedMessage = message
+				.replace(/ *\[(?:skip ci|ci skip|no ci|skip actions|actions skip)\]/gi, '')
+				.trim()
+			if (cleanedMessage !== message) {
+				await exec('git', ['commit', '--amend', '-m', cleanedMessage])
+			}
 		}
 	)
 

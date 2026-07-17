@@ -176,7 +176,7 @@ Run this after every `next.mdx` update, including the release-week runs. On the 
 
 ### 10. Push changes
 
-After editing `next.mdx` (and any archive files), commit and push from the tldraw clone. Use a single commit whose message ends with `[skip ci]` so merging the change does not trigger a dotcom deploy or other CI workflows (release-notes edits are docs-only):
+After editing `next.mdx` (and any archive files), commit and push from the tldraw clone. Use a single commit whose message ends with `[skip ci]` so merging the change does not trigger a dotcom deploy or other push- and pull_request-triggered workflows (release-notes edits are docs-only):
 
 ```bash
 cd /tmp/tldraw
@@ -197,6 +197,8 @@ Then create the PR using the `../pr/SKILL.md` workflow and the standards in `../
 - Include a **Code changes** table with a `Documentation` row
 
 **Why `[skip ci]`**: pushing to `production` (and the `hotfixes` → `production` promotion) triggers `deploy-dotcom.yml`. A merge commit containing `[skip ci]` is skipped by GitHub Actions entirely, so the release-notes change can land on `production` — ready to ride the next SDK release, which pushes the `production` ref to `docs-production` — without deploying tldraw.com.
+
+`[skip ci]` does not interfere with the `docs-hotfix-please` label: `trigger-sdk-hotfix.yml` runs on `pull_request_target`, which GitHub's skip-ci markers do not affect, and the hotfix script strips skip-ci markers from the cherry-picked commit so the release-branch push still triggers the publish workflow. The trigger fires when a labeled PR is merged; to re-trigger it later, remove and re-add the label on the merged PR.
 
 ## The `last_version` field
 
