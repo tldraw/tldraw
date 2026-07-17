@@ -18,6 +18,7 @@ import {
 	Tldraw,
 	toRichText,
 } from 'tldraw'
+import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 
 const NAMES: Record<string, string> = { ada: 'Ada Lovelace', me: 'You' }

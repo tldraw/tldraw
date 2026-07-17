@@ -7,6 +7,7 @@ import {
 } from '@tldraw/commenting'
 import { useMemo } from 'react'
 import { commentSchemaRecords, createTLSchema, createTLStore, TLComponents, Tldraw } from 'tldraw'
+import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 
 // The people who can be @-mentioned. A real app would pull this from its own roster; the composer

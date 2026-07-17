@@ -16,6 +16,6 @@ Every comment thread carries an `anchor` — a discriminated union that says whe
 - **point** — a bare page coordinate, unattached to any shape.
 - **region** — a rectangular area; the pin sits on a corner and the region box is drawn.
 
-Two more anchor kinds exist but the default overlay doesn't give them a distinct pin: **page** anchors attach a thread to the whole board (no pin — they surface in a comments list instead), and **text-range** anchors attach a thread to a character range within a text shape.
+Two more anchor kinds exist but the default overlay doesn't give them a distinct pin: **page** anchors attach a thread to the whole board (no pin — they surface in a comments list instead), and **text-range** anchors attach a thread to a character range within a text shape — the "Comment on a text range" example shows a full text-range flow.
 
 Drag the shape around to watch the shape-anchored pins follow it, or pick the comment tool and click to add your own thread anchored wherever you place it.
