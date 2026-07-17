@@ -105,16 +105,26 @@ async function allocateStackIndex(): Promise<number> {
 	}
 }
 
-// Best-effort release of this process's index reservation on exit (crashes are pruned via isPidAlive).
-function releaseClaim(idx: number) {
+// Release this process's index reservation. Takes the same lock as allocate (via proper-lockfile) so a
+// release can't clobber a concurrent allocate's fresh reservation with an unlocked write. Crashes that
+// skip this are pruned via isPidAlive on the next allocate.
+async function releaseClaim(idx: number): Promise<void> {
 	try {
-		const claims: Record<string, number> = JSON.parse(readFileSync(claimsFile, 'utf8'))
-		if (claims[idx] === process.pid) {
-			delete claims[idx]
-			writeFileSync(claimsFile, JSON.stringify(claims, null, 2))
+		const release = await lock(claimsFile, {
+			retries: { retries: 10, minTimeout: 50, maxTimeout: 500 },
+			stale: 10_000,
+		})
+		try {
+			const claims: Record<string, number> = JSON.parse(readFileSync(claimsFile, 'utf8'))
+			if (claims[idx] === process.pid) {
+				delete claims[idx]
+				writeFileSync(claimsFile, JSON.stringify(claims, null, 2))
+			}
+		} finally {
+			await release()
 		}
 	} catch {
-		// nothing to release
+		// couldn't take the lock or read the file — leave it; a live allocate prunes this pid
 	}
 }
 
@@ -218,7 +228,6 @@ async function main() {
 
 	// up / --print: probe for the lowest free stack index (reserved for this process until it exits).
 	const idx = await allocateStackIndex()
-	process.on('exit', () => releaseClaim(idx))
 	const env = buildEnv(idx)
 	const childEnv = { ...process.env, ...env }
 
@@ -227,6 +236,7 @@ async function main() {
 	// `--print` dumps the computed env (for tests / docs) without booting anything.
 	if (process.argv.includes('--print')) {
 		for (const [k, v] of Object.entries(env)) console.log(`${k}=${v}`)
+		await releaseClaim(idx)
 		return
 	}
 
@@ -241,7 +251,12 @@ async function main() {
 	const stop = (sig: NodeJS.Signals) => child.kill(sig)
 	process.on('SIGINT', () => stop('SIGINT'))
 	process.on('SIGTERM', () => stop('SIGTERM'))
-	child.once('exit', (code) => process.exit(code ?? 0))
+	// Release the reservation once process-compose is gone (an event-loop callback, so the locked
+	// release can await), then exit with its code.
+	child.once('exit', async (code) => {
+		await releaseClaim(idx)
+		process.exit(code ?? 0)
+	})
 }
 
 main().catch((error) => {
