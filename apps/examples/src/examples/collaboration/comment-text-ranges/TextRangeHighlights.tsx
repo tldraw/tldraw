@@ -91,19 +91,21 @@ function TextRangeHighlight({
 	to,
 	onSelect,
 }: TextRangeHighlightProps) {
-	// A token that changes whenever the range's on-screen position could have — camera, the shape's
-	// position/rotation/text, and the viewport size. Reading these subscribes the effect below.
+	// A token that changes whenever the range's on-screen position could have — the camera, the
+	// shape's page transform (which covers parent groups/frames too), and its props (size, text,
+	// font — anything that reflows the text). Reading these subscribes the effect below.
 	const token = useValue(
 		'text-range highlight token',
 		() => {
 			const cam = editor.getCamera()
 			const shape = editor.getShape(shapeId)
+			if (!shape) return null
+			const transform = editor.getShapePageTransform(shapeId)
 			const vsb = editor.getViewportScreenBounds()
 			// Editing state matters: the static `.tl-rich-text` we measure only mounts once the shape
 			// leaves edit mode, so re-measure when editing ends (e.g. the composer takes focus).
 			const editing = editor.getEditingShapeId() === shapeId
-			if (!shape) return null
-			return `${cam.x},${cam.y},${cam.z},${shape.x},${shape.y},${shape.rotation},${vsb.w},${vsb.h},${editing}`
+			return `${cam.x},${cam.y},${cam.z}|${transform.toCssString()}|${JSON.stringify(shape.props)}|${vsb.w},${vsb.h}|${editing}`
 		},
 		[editor, shapeId]
 	)

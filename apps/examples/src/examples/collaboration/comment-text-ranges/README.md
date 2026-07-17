@@ -1,7 +1,7 @@
 ---
 title: Comment on a text range
 component: ./CommentTextRangesExample.tsx
-priority: 5
+priority: 6
 keywords:
   [comments, commenting, text range, rich text, toolbar, selection, highlight, collaboration]
 ---
