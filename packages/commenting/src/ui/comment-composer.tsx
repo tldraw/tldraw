@@ -73,6 +73,11 @@ export function CommentComposer({
 	// returns). Updated on every render so the ref never points at a stale editor.
 	const editorRef = useRef<ReturnType<typeof useEditor>>(null)
 
+	// Set while we replay Enter through the keymaps for a Shift+Enter newline: `commands.enter()`
+	// re-dispatches Enter through `handleKeyDown`, and without this guard our own handler would catch
+	// that synthetic Enter and submit instead.
+	const replayingEnter = useRef(false)
+
 	// Enter and Cmd/Ctrl+Enter submit the comment; Shift+Enter inserts a new line for the occasional
 	// multi-line comment. This is handled through `editorProps.handleKeyDown` (below) rather than a
 	// keyboard-shortcut extension: ProseMirror runs `handleKeyDown` before every keymap plugin, so it
@@ -126,14 +131,21 @@ export function CommentComposer({
 				// Runs before every keymap plugin, so it can distinguish Shift+Enter from Enter — an
 				// `Enter` keymap binding also fires on Shift+Enter and would otherwise swallow it.
 				handleKeyDown: (_view, event) => {
+					// Let the keymaps handle the synthetic Enter we replay for a Shift+Enter newline.
+					if (replayingEnter.current) return false
 					if (event.key !== 'Enter' || event.isComposing) return false
 					// While the @-mention picker is open, Enter selects the highlighted member — defer.
 					if (isMentionPickerOpen()) return false
-					// Shift+Enter inserts a new line. Use the list-aware `enter` command (matching tldraw's
-					// KeyboardShiftEnterTweakExtension) so it splits list items correctly, not just blocks;
-					// tldraw doesn't do soft breaks, so there's no hard-break case to handle.
+					// Shift+Enter inserts a new line. Replay a plain Enter through the keymaps (guarded so
+					// we don't re-enter and submit) to reuse the editor's list-aware Enter handling — a new
+					// list item in a list, a new paragraph otherwise. tldraw doesn't do soft breaks.
 					if (event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
-						editorRef.current?.commands.enter()
+						replayingEnter.current = true
+						try {
+							editorRef.current?.commands.enter()
+						} finally {
+							replayingEnter.current = false
+						}
 						return true
 					}
 					// Enter, Cmd+Enter, and Ctrl+Enter submit.
