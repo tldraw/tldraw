@@ -1,4 +1,9 @@
-import { openThreadId, useCommentThreads, usePendingComment } from '@tldraw/commenting'
+import {
+	openThreadId,
+	useCommentsHidden,
+	useCommentThreads,
+	usePendingComment,
+} from '@tldraw/commenting'
 import { useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Editor, TLShapeId, useContainer, useEditor, useValue } from 'tldraw'
@@ -163,6 +168,11 @@ export function TextRangeHighlights() {
 	const container = useContainer()
 	const threads = useCommentThreads(editor)
 	const pending = usePendingComment()
+
+	// Respect the Shift+C "hide comments" toggle, matching CanvasComments — otherwise highlights
+	// would stay visible and clickable while the pins and popovers are hidden.
+	const commentsHidden = useCommentsHidden()
+	if (commentsHidden) return null
 
 	return createPortal(
 		<div className="comment-text-ranges-layer">

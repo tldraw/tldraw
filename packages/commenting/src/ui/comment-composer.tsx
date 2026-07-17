@@ -129,9 +129,11 @@ export function CommentComposer({
 					if (event.key !== 'Enter' || event.isComposing) return false
 					// While the @-mention picker is open, Enter selects the highlighted member — defer.
 					if (isMentionPickerOpen()) return false
-					// Shift+Enter inserts a new line (a paragraph split; tldraw doesn't do soft breaks).
+					// Shift+Enter inserts a new line. Use the list-aware `enter` command (matching tldraw's
+					// KeyboardShiftEnterTweakExtension) so it splits list items correctly, not just blocks;
+					// tldraw doesn't do soft breaks, so there's no hard-break case to handle.
 					if (event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
-						editorRef.current?.commands.splitBlock()
+						editorRef.current?.commands.enter()
 						return true
 					}
 					// Enter, Cmd+Enter, and Ctrl+Enter submit.
