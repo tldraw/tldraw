@@ -1,8 +1,9 @@
-import * as Fiber from '@react-three/fiber'
-import { Canvas } from '@react-three/fiber'
+import * as Babel from '@babel/standalone'
 import * as Drei from '@react-three/drei'
 import { Bounds, OrbitControls } from '@react-three/drei'
-import * as Babel from '@babel/standalone'
+/* oxlint-disable react/no-unknown-property, typescript/no-deprecated, tldraw/method-signature-style, tldraw/no-path2d-roundrect -- prototype; R3F elements use three.js props */
+import * as Fiber from '@react-three/fiber'
+import { Canvas } from '@react-three/fiber'
 import { Component, ReactNode, useEffect, useMemo, useState } from 'react'
 import * as React from 'react'
 import * as THREE from 'three'
@@ -79,7 +80,7 @@ function stripModuleSyntax() {
 	}
 }
 
-function compileScene(code: string): React.ComponentType {
+export function compileScene(code: string): React.ComponentType {
 	const transformed = Babel.transform(code, {
 		// classic runtime -> JSX compiles to React.createElement (React is in scope).
 		// The default automatic runtime emits `_jsx` + an import we strip, leaving it undefined.
@@ -242,7 +243,9 @@ export class Model3dShapeUtil extends BaseBoxShapeUtil<IModel3dShape> {
 					onPointerUp={stopEventPropagation}
 					onWheel={stopEventPropagation}
 				>
-					{status === 'empty' && <Hint>Select this shape plus some notes, then “Make 3D real”.</Hint>}
+					{status === 'empty' && (
+						<Hint>Select this shape plus some notes, then “Make 3D real”.</Hint>
+					)}
 					{status === 'loading' && !code && <Hint>Generating your 3D asset…</Hint>}
 					{code && <SceneCanvas code={code} />}
 				</div>
