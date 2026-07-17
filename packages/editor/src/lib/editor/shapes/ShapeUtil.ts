@@ -679,7 +679,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @example
 	 *
 	 * ```ts
-	 * onDuplicate = (source, duplicate) => {
+	 * onBeforeDuplicate = (source, duplicate) => {
 	 * 	return { ...duplicate, props: { ...duplicate.props, editedBy: this.editor.getAttributionUserId() } }
 	 * }
 	 * ```
@@ -689,7 +689,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * @returns The next shape or void.
 	 * @public
 	 */
-	onDuplicate?(source: Shape, duplicate: Shape): Shape | void
+	onBeforeDuplicate?(source: Shape, duplicate: Shape): Shape | void
 
 	/**
 	 * A callback called just before a shape is updated. This method provides a last chance to modify

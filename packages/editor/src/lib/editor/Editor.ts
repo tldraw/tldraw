@@ -7148,7 +7148,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shapesToCreate = shapesToCreateWithOriginals.map(({ shape, originalShape }) => {
 				// Give the shape util a chance to modify the duplicate, e.g. to re-stamp note
 				// attribution to the current user so we don't forge the original author's identity.
-				return this.getShapeUtil(shape).onDuplicate?.(originalShape, shape) ?? shape
+				return this.getShapeUtil(shape).onBeforeDuplicate?.(originalShape, shape) ?? shape
 			})
 
 			if (!this.canCreateShapes(shapesToCreate)) {
@@ -10047,7 +10047,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Give the shape util a chance to modify the copy, e.g. to re-stamp note
 			// attribution to the current user so we don't forge the original author's identity.
-			newShape = this.getShapeUtil(newShape).onDuplicate?.(oldShape, newShape) ?? newShape
+			newShape = this.getShapeUtil(newShape).onBeforeDuplicate?.(oldShape, newShape) ?? newShape
 
 			if (rootShapeIds.includes(oldShape.id)) {
 				newShape.parentId = currentPageId
