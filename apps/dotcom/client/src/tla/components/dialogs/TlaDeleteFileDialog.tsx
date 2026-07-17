@@ -8,6 +8,7 @@ import {
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
+	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useApp } from '../../hooks/useAppState'
@@ -30,6 +31,7 @@ export function TlaDeleteFileDialog({
 	const auth = useAuth()
 
 	const isOwner = useHasFileAdminRights(fileId)
+	const fileName = useValue('file name', () => app.getFileName(fileId), [fileId, app])
 
 	const handleDelete = async () => {
 		const token = await auth.getToken()
@@ -65,9 +67,15 @@ export function TlaDeleteFileDialog({
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
 				<>
 					{isOwner ? (
-						<F defaultMessage="Are you sure you want to delete this file?" />
+						<F
+							defaultMessage="Are you sure you want to delete <strong>{fileName}</strong>?"
+							values={{ fileName, strong: (chunks) => <strong>{chunks}</strong> }}
+						/>
 					) : (
-						<F defaultMessage="Are you sure you want to forget this file?" />
+						<F
+							defaultMessage="Are you sure you want to forget <strong>{fileName}</strong>?"
+							values={{ fileName, strong: (chunks) => <strong>{chunks}</strong> }}
+						/>
 					)}
 				</>
 			</TldrawUiDialogBody>

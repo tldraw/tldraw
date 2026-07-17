@@ -1,11 +1,11 @@
-import { generateKeyBetween, generateNKeysBetween } from 'jittered-fractional-indexing'
-
-const generateNKeysBetweenWithNoJitter = (a: string | null, b: string | null, n: number) => {
-	return generateNKeysBetween(a, b, n, { jitterBits: 0 })
-}
+import {
+	generateNJitteredKeysBetween,
+	generateNKeysBetween,
+	validateOrderKey,
+} from './fractionalIndexing'
 
 const generateKeysFn =
-	process.env.NODE_ENV === 'test' ? generateNKeysBetweenWithNoJitter : generateNKeysBetween
+	process.env.NODE_ENV === 'test' ? generateNKeysBetween : generateNJitteredKeysBetween
 
 /**
  * A string made up of an integer part followed by a fraction part. The fraction point consists of
@@ -30,7 +30,7 @@ export const ZERO_INDEX_KEY = 'a0' as IndexKey
  */
 export function validateIndexKey(index: string): asserts index is IndexKey {
 	try {
-		generateKeyBetween(index, null)
+		validateOrderKey(index)
 	} catch {
 		throw new Error('invalid index: ' + index)
 	}

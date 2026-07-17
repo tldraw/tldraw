@@ -41,10 +41,9 @@
 		"refresh-assets": "lazy refresh-assets",
 		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/bemo-worker' --filter='apps/dotcom/image-resize-worker'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
-		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/dotcom/*' --filter='packages/tldraw'",
-		"dev-app:clean": "yarn workspace @tldraw/zero-cache dev:clean",
-		"dev-app:clean:all": "yarn workspace @tldraw/zero-cache dev:clean:all",
-		"dev-app:doctor": "yarn workspace @tldraw/zero-cache dev:doctor",
+		"dev-app": "process-compose -f apps/dotcom/process-compose.yaml up",
+		"dev-app:clean": "docker compose -f apps/dotcom/zero-cache/docker/docker-compose.yml down --volumes && rm -f /tmp/tldraw-dotcom-zero-dev.db /tmp/tldraw-dotcom-zero-dev.db-shm /tmp/tldraw-dotcom-zero-dev.db-wal && rm -rf apps/dotcom/sync-worker/.wrangler/state-dev apps/dotcom/zero-cache/.schema.js",
+		"dev-app:doctor": "process-compose -f apps/dotcom/process-compose.yaml process list",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
 		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'internal/huppy'",
 		"dev-template": "./internal/scripts/dev-template.sh",
@@ -82,11 +81,12 @@
 		"i18n-check": "i18n-check",
 		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
 		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts",
+		"i18n-fix-strings": "tsx internal/scripts/i18n-fix-strings.ts",
 		"add-framer-rewrites": "tsx apps/docs/scripts/add-framer-rewrites.ts"
 	},
 	"engines": {
 		"npm": ">=7.0.0",
-		"node": "^20.0.0"
+		"node": ">=22.12.0"
 	},
 	"packageManager": "yarn@4.12.0",
 	"lint-staged": {
@@ -102,6 +102,7 @@
 		"@lingual/i18n-check": "^0.5.5",
 		"@microsoft/api-extractor": "^7.55.2",
 		"@swc/core": "^1.15.18",
+		"@tldraw/scripts": "workspace:*",
 		"@types/adm-zip": "^0.5.7",
 		"@types/aws-lambda": "8.10.148",
 		"@types/glob": "^8.1.0",
@@ -124,7 +125,7 @@
 		"open-cli": "^8.0.0",
 		"oxfmt": "^0.41.0",
 		"oxlint": "^1.66.0",
-		"oxlint-tsgolint": "^0.18.0",
+		"oxlint-tsgolint": "^0.23.0",
 		"rimraf": "^4.4.1",
 		"tsx": "^4.19.2",
 		"typescript": "^5.8.3",
@@ -137,13 +138,54 @@
 		"our examples app depenends on pdf.js which pulls in canvas as an optional dependency.",
 		"it slows down installs quite a bit though, so we replace it with an empty package."
 	],
-	"// dependenciesMeta.workerd": [
-		"workerd's postinstall script runs the native binary to self-check it, which fails on",
-		"CI images without GLIBC 2.35+ (e.g. Vercel, which builds the docs site). Skipping the",
-		"build script doesn't affect wrangler at dev time — wrangler still invokes the platform",
+	"// dependenciesMeta": [
+		"enableScripts is false in .yarnrc.yml, so dependency build/install scripts don't run",
+		"unless allowlisted here with built: true. Add an entry when introducing a native or",
+		"binary-downloading dependency — Yarn silently skips unlisted scripts, so a missing entry",
+		"surfaces as a runtime/build failure, not an install error. See AGENTS.md.",
+		"",
+		"workerd stays built: false: its postinstall runs the native binary to self-check it, which",
+		"fails on CI images without GLIBC 2.35+ (e.g. Vercel, which builds the docs site). Skipping",
+		"the build script doesn't affect wrangler at dev time — wrangler still invokes the platform",
 		"binary normally on developer machines."
 	],
 	"dependenciesMeta": {
+		"@rocicorp/zero-sqlite3": {
+			"built": true
+		},
+		"@sentry/cli": {
+			"built": true
+		},
+		"@swc/core": {
+			"built": true
+		},
+		"@typescript/native-preview": {
+			"built": true
+		},
+		"@vscode/vsce-sign": {
+			"built": true
+		},
+		"better-sqlite3": {
+			"built": true
+		},
+		"edgedriver": {
+			"built": true
+		},
+		"esbuild": {
+			"built": true
+		},
+		"geckodriver": {
+			"built": true
+		},
+		"keytar": {
+			"built": true
+		},
+		"sharp": {
+			"built": true
+		},
+		"sqlite3": {
+			"built": true
+		},
 		"workerd": {
 			"built": false
 		}
@@ -153,7 +195,15 @@
 		"canvas": "npm:empty-npm-package@1.0.0",
 		"@microsoft/tsdoc@npm:~0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",
 		"@microsoft/tsdoc@npm:0.15.1": "patch:@microsoft/tsdoc@npm%3A0.15.1#~/.yarn/patches/@microsoft-tsdoc-npm-0.15.1-e24295d9bd.patch",
-		"@types/node": "^22.15.31"
+		"@types/node": "^22.15.31",
+		"ws": "8.21.0",
+		"js-cookie": "3.0.7",
+		"postcss": "8.5.10",
+		"react-router": "6.30.4",
+		"@remix-run/router": "1.23.2",
+		"@octokit/plugin-paginate-rest@11.3.1": "11.4.1",
+		"undici@7.24.4": "7.28.0",
+		"ip-address@10.1.0": "10.2.0"
 	},
 	"dependencies": {
 		"@sentry/cli": "^2.41.1",

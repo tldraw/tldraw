@@ -166,6 +166,7 @@ export function WorkspaceInviteHandler() {
 				// dialog instead of stacking a second one if the effect re-fetches.
 				dialogs.addDialog({
 					id: 'workspace-invite-join',
+					preventBackgroundClose: true,
 					component: ({ onClose }) => <TlaInviteDialog inviteInfo={data} onClose={onClose} />,
 				})
 			})

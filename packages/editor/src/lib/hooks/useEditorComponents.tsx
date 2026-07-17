@@ -33,7 +33,6 @@ export function EditorComponentsProvider({
 			InFrontOfTheCanvas: null,
 			LoadingScreen: DefaultLoadingScreen,
 			OnTheCanvas: null,
-			SelectionBackground: null,
 			ShapeWrapper: DefaultShapeWrapper,
 			Spinner: DefaultSpinner,
 			SvgDefs: DefaultSvgDefs,

@@ -185,7 +185,8 @@ ${flagged(flags.hasUserViewportBoundsPart, "- Don't go out of your way to work i
 ${flagged(flags.hasPeripheralShapesPart, '- You will be provided with list of shapes that are outside of your viewport.')}
 ${flagged(
 	flags.hasSetMyView,
-	`- You can use the \`setMyView\` action to change your viewport to navigate to other areas of the canvas if needed. This will provide you with an updated view of the canvas. You can also use this to functionally zoom in or out.`
+	`- You can use the \`setMyView\` action to change your viewport to navigate to other areas of the canvas if needed. This will provide you with an updated view of the canvas. You can also use this to functionally zoom in or out.
+- The \`setMyView\` \`x\` and \`y\` values are the top-left corner of the area you want to see, not its center. To center your view on a point, subtract half of \`w\` from \`x\` and half of \`h\` from \`y\`.`
 )}
 `
 )}

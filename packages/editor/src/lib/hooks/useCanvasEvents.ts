@@ -8,7 +8,7 @@ import {
 	setPointerCapture,
 } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
-import { getPointerEventButton, isSecondaryClickEvent } from '../utils/pointer'
+import { getPointerEventButton, isDirectDisplayPen, isSecondaryClickEvent } from '../utils/pointer'
 import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
@@ -39,6 +39,10 @@ export function useCanvasEvents() {
 
 				if (button !== 0 && button !== 1 && button !== 2 && button !== 5) return
 
+				// Detect direct-display pen input (Apple Pencil, Surface Pen on a touchscreen) so we
+				// only auto-enable pen mode for it, not for an indirect desktop tablet stylus.
+				const isPenDirect = isDirectDisplayPen(e)
+
 				setPointerCapture(e.currentTarget, e)
 
 				editor.dispatch({
@@ -46,6 +50,7 @@ export function useCanvasEvents() {
 					target: 'canvas',
 					name: 'pointer_down',
 					...getPointerInfo(editor, e),
+					isPenDirect,
 				})
 			}
 

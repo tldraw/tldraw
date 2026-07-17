@@ -1,6 +1,7 @@
 /* eslint-disable tldraw/jsx-no-literals */
 import { memo } from 'react'
 import { ExampleDialog, TldrawUiMenuItem, useDialogs } from 'tldraw'
+import { ExternalLink } from '../ExternalLink/ExternalLink'
 
 export function A11yAudit() {
 	const { addDialog } = useDialogs()
@@ -74,11 +75,7 @@ export const A11yResultTable = memo(({ results }: { results: any }) => {
 								))}
 							</td>
 							<td>
-								{issue.helpUrl ? (
-									<a href={issue.helpUrl} target="_blank" rel="noopener noreferrer">
-										More info
-									</a>
-								) : null}
+								{issue.helpUrl ? <ExternalLink to={issue.helpUrl}>More info</ExternalLink> : null}
 							</td>
 						</tr>
 					))}

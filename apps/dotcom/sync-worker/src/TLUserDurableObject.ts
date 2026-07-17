@@ -17,7 +17,6 @@ import {
 	ZErrorCode,
 	ZServerSentPacket,
 	createMutators,
-	parseFlags,
 	schema,
 } from '@tldraw/dotcom-shared'
 import {
@@ -25,14 +24,7 @@ import {
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
-import {
-	ExecutionQueue,
-	IndexKey,
-	assert,
-	mapObjectMapValues,
-	sleep,
-	uniqueId,
-} from '@tldraw/utils'
+import { ExecutionQueue, IndexKey, assert, mapObjectMapValues, sleep } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -146,7 +138,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								exportPadding: true,
 								createdAt: now,
 								updatedAt: now,
-								flags: 'groups_backend',
+								// No feature flags on new users; the column is retained for future flags.
+								flags: '',
 							})
 							.execute()
 						await tx
@@ -731,7 +724,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await tx
 				.updateTable('user')
 				.set({
-					flags: 'groups_backend',
+					flags: '',
 					allowAnalyticsCookie: null,
 					enhancedA11yMode: null,
 					colorScheme: null,
@@ -790,105 +783,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		// instead of resurrecting deleted files and groups.
 		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
-	}
-
-	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
-		console.error('admin_migrateToGroups', userId, inviteSecret)
-		this.userId ??= userId
-
-		this.log.debug('migrating to groups', userId, inviteSecret)
-		// Call the Postgres migration function
-		const result = await sql<{
-			files_migrated: number
-			pinned_files_migrated: number
-			flag_added: boolean
-		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
-		console.error('admin_migrateToGroups result', result.rows)
-
-		this.log.debug('migration result', result.rows[0])
-
-		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
-		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
-
-		this.log.debug('migration complete, user rebooted')
-
-		return result.rows[0]
-	}
-
-	/**
-	 * Enroll a user in the groups feature so they can actually see and use it.
-	 * Ensures both flags:
-	 *   - groups_backend: migrate the user's data into the groups model if needed
-	 *     (the SQL function is idempotent and returns early if already migrated).
-	 *   - groups_frontend: the flag that shows the groups UI (otherwise only granted
-	 *     when a user accepts a group invite).
-	 * Then reboots the user so the new flags/data take effect.
-	 */
-	async admin_enrollInGroups(userId: string) {
-		this.userId ??= userId
-
-		// 1. Ensure the data model is migrated. The SQL function is idempotent:
-		// flag_added is false (and nothing changes) when the user is already migrated.
-		const { rows } = await sql<{
-			flag_added: boolean
-		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${uniqueId()})`.execute(this.db)
-		const backendMigrated = rows[0]?.flag_added ?? false
-
-		// 2. Ensure the groups UI flag is present (read flags after the migration,
-		// which may have just added groups_backend).
-		const row = await this.db
-			.selectFrom('user')
-			.where('id', '=', userId)
-			.select('flags')
-			.executeTakeFirst()
-		const flags = parseFlags(row?.flags)
-		let frontendGranted = false
-		if (!flags.includes('groups_frontend')) {
-			flags.push('groups_frontend')
-			await this.db
-				.updateTable('user')
-				.set({ flags: flags.join(',') })
-				.where('id', '=', userId)
-				.execute()
-			frontendGranted = true
-		}
-
-		// 3. Reboot so the user picks up the new flags and migrated data.
-		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
-		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
-
-		return { backendMigrated, frontendGranted }
-	}
-
-	/**
-	 * Unenroll a user from the groups UI by clearing the groups_frontend flag.
-	 * Leaves groups_backend (the data model) in place — this just hides the groups
-	 * UI again, which is handy for testing the enrollment flow. Reboots the user so
-	 * the change takes effect.
-	 */
-	async admin_unenrollFromGroups(userId: string) {
-		this.userId ??= userId
-
-		const row = await this.db
-			.selectFrom('user')
-			.where('id', '=', userId)
-			.select('flags')
-			.executeTakeFirst()
-		const flags = parseFlags(row?.flags)
-		const nextFlags = flags.filter((flag) => flag !== 'groups_frontend')
-		const frontendRemoved = nextFlags.length !== flags.length
-		if (frontendRemoved) {
-			await this.db
-				.updateTable('user')
-				.set({ flags: nextFlags.join(',') })
-				.where('id', '=', userId)
-				.execute()
-		}
-
-		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
-		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
-
-		return { frontendRemoved }
 	}
 
 	async admin_forceHardReboot(userId: string) {

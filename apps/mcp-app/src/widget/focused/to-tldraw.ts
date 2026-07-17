@@ -468,7 +468,7 @@ function convertNoteShapeToTldrawShape(
 				scale: defaultNoteShape.props?.scale ?? 1,
 				url: defaultNoteShape.props?.url ?? '',
 				verticalAlign: defaultNoteShape.props?.verticalAlign ?? 'middle',
-				textFirstEditedBy: defaultNoteShape.props?.textFirstEditedBy ?? null,
+				textLastEditedBy: defaultNoteShape.props?.textLastEditedBy ?? null,
 			},
 			meta: {
 				note: focusedShape.note ?? defaultNoteShape.meta?.note ?? '',

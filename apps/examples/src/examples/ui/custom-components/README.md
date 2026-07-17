@@ -10,7 +10,6 @@ keywords:
     Grid,
     Cursor,
     ShapeIndicator,
-    SelectionBackground,
     OnTheCanvas,
     InFrontOfTheCanvas,
     custom ui,

@@ -229,14 +229,21 @@ const FRAME_TOP = 54
 
 /** Parse state-diagram SVG layout data for use by {@link stateToBlueprint}. */
 export function parseStateDiagramLayout(root: Element): ParsedDiagramLayout {
+	// Mermaid 11.15 prefixes node and cluster dom ids with the diagram id (e.g.
+	// `mermaid-0-state-Foo-1` instead of `state-Foo-1`), so tolerate that
+	// optional `mermaid-<n>-` prefix when reading the clean id.
 	const nodes = parseNodesFromSvg(
 		root,
 		'.node',
-		(domId) => domId.match(/^state-(.+)-\d+$/)?.[1] ?? domId
+		(domId) => domId.match(/^(?:mermaid-\d+-)?state-(.+)-\d+$/)?.[1] ?? domId
 	)
-	const clusters = parseClustersFromSvg(root, '.statediagram-cluster')
+	const clusters = parseClustersFromSvg(
+		root,
+		'.statediagram-cluster',
+		(domId) => domId.match(/^(?:mermaid-\d+-)?state-(.+)-\d+$/)?.[1] ?? domId
+	)
 	const edges = parseAllEdgePointsFromSvg(root, (dataId) =>
-		/^edge\d+$/.test(dataId) ? { start: '', end: '' } : null
+		/(?:^|-)edge\d+$/.test(dataId) ? { start: '', end: '' } : null
 	)
 	scaleLayout(nodes, clusters, edges, LAYOUT_SCALE)
 	return { nodes, clusters, edges }

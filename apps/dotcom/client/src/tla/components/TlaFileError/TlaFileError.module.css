@@ -6,11 +6,41 @@
 	justify-content: center;
 	height: 100%;
 	text-align: center;
-	gap: 20px;
+	gap: 12px;
+	text-wrap: balance;
 }
 
 .content {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	max-width: 400px;
+}
+
+.content h1 {
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 1.6;
+	margin: 0 0 12px;
+	color: var(--tl-color-text-0);
+}
+
+.content p {
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.6;
+	margin: 0;
+	color: var(--tl-color-text-1);
+}
+
+.link {
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.6;
+	color: var(--tl-color-text-0);
+	text-decoration: underline;
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
 }

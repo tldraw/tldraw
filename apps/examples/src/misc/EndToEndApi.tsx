@@ -7,6 +7,7 @@ export interface EndToEndApi {
 	resetMockShapeIds(): void
 	createMermaidDiagram(definition: string): Promise<void>
 	toRichText(text: string): TLRichText
+	preloadFonts(): Promise<void>
 	markAllArrowBindings(): void
 	b64VecsEncodePoints(points: VecModel[]): string
 }

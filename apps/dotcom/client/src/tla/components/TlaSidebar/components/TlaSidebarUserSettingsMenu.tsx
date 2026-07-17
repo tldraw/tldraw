@@ -22,6 +22,7 @@ import {
 	ThemeSubmenu,
 	UserManualMenuItem,
 } from '../../menu-items/menu-items'
+import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 
@@ -55,6 +56,7 @@ export function TlaUserSettingsMenu() {
 							onMenuOpenChange(true)
 						}}
 					>
+						<TlaIcon icon="avatar" className={styles.sidebarUserSettingsAvatarIcon} />
 						<div
 							className={classNames(
 								styles.sidebarUserSettingsName,
@@ -65,11 +67,17 @@ export function TlaUserSettingsMenu() {
 							{user?.name || <F defaultMessage="Account" />}
 						</div>
 						<div className={styles.sidebarUserSettingsIcon}>
-							<TlaIcon icon="dots-vertical-strong" />
+							<TlaIcon icon="help-circle" />
 						</div>
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={-18} sideOffset={4}>
+				{/* Hang ~8px over the sidebar's right edge (see TlaFileMenu) rather than inset. */}
+				<TldrawUiDropdownMenuContent
+					side="bottom"
+					align="end"
+					{...TLA_MENU_POSITION}
+					alignOffset={-18}
+				>
 					{user && (
 						<>
 							<TldrawUiMenuGroup id="files">

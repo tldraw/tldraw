@@ -65,6 +65,11 @@ export class Pointing extends StateNode {
 		this.complete()
 	}
 
+	override onLongPress() {
+		// On a touch (coarse pointer) long-press, cancel the pending shape so it leaves nothing behind.
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
+	}
+
 	override onCancel() {
 		this.cancel()
 	}
@@ -75,10 +80,6 @@ export class Pointing extends StateNode {
 
 	override onInterrupt() {
 		this.cancel()
-	}
-
-	override onLongPress() {
-		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
 	}
 
 	complete() {

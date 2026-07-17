@@ -19,6 +19,6 @@ export default function CustomComponentsExample() {
 
 /*
 This example shows how to change the default components that tldraw uses on the canvas via the `components` prop.
-Components include things like the background, grid, cursor, selection background, and more.
+Components include things like the background, grid, and more.
 In this case we change the canvas background to a light blue color.
 */

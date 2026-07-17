@@ -17,7 +17,7 @@ export function TlaSidebarDotDevLink() {
 			data-testid="tla-sidebar-dotdev-link"
 			eventName="sidebar-dotdev-link-clicked"
 		>
-			<TldrawUiIcon icon="code" label={lbl} tiny />
+			<TldrawUiIcon icon="code" label={lbl} small />
 			<span className={styles.sidebarLinkButtonLabel}>{lbl}</span>
 		</ExternalLink>
 	)

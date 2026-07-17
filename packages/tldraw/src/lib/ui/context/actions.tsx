@@ -1994,7 +1994,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						hitInside: false,
 						hitLabels: false,
 						hitLocked: editor.options.selectLockedShapes,
-						margin: editor.options.hitTestMargin / editor.getZoomLevel(),
+						margin: editor.getHitTestMargin(),
 					})
 
 					const path = editor.getPath()

@@ -125,12 +125,18 @@ export class LicenseManager {
 	}
 
 	private getIsDevelopment() {
-		// If we are using https on a non-localhost domain we assume it's a production env and a development one otherwise
+		// If we are using https on a non-loopback domain we assume it's a production env and a development one otherwise
 		return (
 			!['https:', 'vscode-webview:'].includes(window.location.protocol) ||
-			window.location.hostname === 'localhost' ||
+			this.isLoopbackHost(window.location.hostname) ||
 			process.env.NODE_ENV !== 'production'
 		)
+	}
+
+	private isLoopbackHost(hostname: string) {
+		// localhost, IPv4 loopback (127.0.0.0/8) and IPv6 loopback (::1) are all local development hosts
+		const host = hostname.toLowerCase().replace(/^\[|\]$/g, '')
+		return host === 'localhost' || host === '::1' || /^127(?:\.\d{1,3}){3}$/.test(host)
 	}
 
 	private getTrackType(result: LicenseFromKeyResult, licenseState: LicenseState): TrackType {
@@ -366,14 +372,26 @@ export class LicenseManager {
 	}
 
 	private getExpirationDateWithoutGracePeriod(expiryDate: Date) {
-		return new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate())
+		// The named expiry date is the last day the license is fully usable, so the license
+		// expires at the end of that day, i.e. the start of the following day. We work in UTC
+		// (the expiry date is minted and parsed as a UTC date-only string) so the cutoff is a
+		// single predictable instant for every user regardless of their local timezone.
+		return new Date(
+			Date.UTC(
+				expiryDate.getUTCFullYear(),
+				expiryDate.getUTCMonth(),
+				expiryDate.getUTCDate() + 1 // Add 1 day so the named date is fully usable
+			)
+		)
 	}
 
 	private getExpirationDateWithGracePeriod(expiryDate: Date) {
 		return new Date(
-			expiryDate.getFullYear(),
-			expiryDate.getMonth(),
-			expiryDate.getDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
+			Date.UTC(
+				expiryDate.getUTCFullYear(),
+				expiryDate.getUTCMonth(),
+				expiryDate.getUTCDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
+			)
 		)
 	}
 

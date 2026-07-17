@@ -17,7 +17,7 @@ export class MinimapManager {
 
 	@bind
 	close() {
-		return this.disposables.forEach((d) => d())
+		this.disposables.forEach((d) => d())
 	}
 
 	private readonly ctx: CanvasRenderingContext2D
@@ -78,16 +78,6 @@ export class MinimapManager {
 			: viewportPageBounds
 	}
 
-	@computed
-	getContentScreenBounds() {
-		const contentPageBounds = this.getContentPageBounds()
-		const topLeft = this.editor.pageToScreen(contentPageBounds.point)
-		const bottomRight = this.editor.pageToScreen(
-			new Vec(contentPageBounds.maxX, contentPageBounds.maxY)
-		)
-		return new Box(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y)
-	}
-
 	private _getCanvasBoundingRect() {
 		const { x, y, width, height } = this.elem.getBoundingClientRect()
 		return new Box(x, y, width, height)
@@ -114,11 +104,6 @@ export class MinimapManager {
 		const rect = this.canvasBoundingClientRect.get()
 		const dpr = this.getDpr()
 		return new Vec(rect.width * dpr, rect.height * dpr)
-	}
-
-	@computed
-	getCanvasClientPosition() {
-		return this.canvasBoundingClientRect.get().point
 	}
 
 	originPagePoint = new Vec()
@@ -209,6 +194,29 @@ export class MinimapManager {
 		return new Vec(px, py)
 	}
 
+	// Shape geometry in page space, split into unselected/selected fills. Built
+	// from the per-shape rect cache and selection only, so it survives pan/zoom of
+	// the main canvas — those move the `ctx` transform, not the paths themselves.
+	@computed
+	private getShapePaths() {
+		const { editor } = this
+		const selectedIds = new Set<string>(editor.getSelectedShapeIds())
+		const ids = editor.getCurrentPageShapeIdsSorted()
+
+		const shapes = new Path2D()
+		const selected = new Path2D()
+
+		for (let i = 0, len = ids.length; i < len; i++) {
+			const shapeId = ids[i]
+			const bounds = this.shapeRectCache.get(shapeId)
+			if (!bounds) continue
+			const target = selectedIds.has(shapeId) ? selected : shapes
+			target.rect(bounds.x, bounds.y, bounds.w, bounds.h)
+		}
+
+		return { shapes, selected }
+	}
+
 	@bind
 	render() {
 		const { ctx, editor, elem } = this
@@ -234,21 +242,9 @@ export class MinimapManager {
 		ctx.scale(dpr * zoom, dpr * zoom)
 		ctx.translate(-canvasPageBounds.minX, -canvasPageBounds.minY)
 
-		// Shapes — iterate sorted IDs and pull per-shape rects from the
-		// computed cache so only *changed* shapes re-derive between renders.
-		const selectedIds = new Set<string>(editor.getSelectedShapeIds())
-		const ids = editor.getCurrentPageShapeIdsSorted()
-
-		const shapesPath = new Path2D()
-		const selectedPath = new Path2D()
-
-		for (let i = 0, len = ids.length; i < len; i++) {
-			const shapeId = ids[i]
-			const bounds = this.shapeRectCache.get(shapeId)
-			if (!bounds) continue
-			const target = selectedIds.has(shapeId) ? selectedPath : shapesPath
-			target.rect(bounds.x, bounds.y, bounds.w, bounds.h)
-		}
+		// Shapes — page-space paths from a computed, so a pan/zoom that only moves
+		// the transform above reuses them instead of rebuilding per shape.
+		const { shapes: shapesPath, selected: selectedPath } = this.getShapePaths()
 
 		ctx.fillStyle = this.colors.shapeFill
 		ctx.fill(shapesPath)
@@ -256,13 +252,18 @@ export class MinimapManager {
 		ctx.fillStyle = this.colors.selectFill
 		ctx.fill(selectedPath)
 
-		// Viewport rounded rect
+		// Viewport indicator. roundRect is pricier than rect, so when the corner
+		// radius would be sub-pixel on screen (and thus invisible) fall back to a
+		// plain rect.
 		const viewport = editor.getViewportPageBounds()
 		const { minX: vx, minY: vy, width: vw, height: vh } = viewport
 		const r = Math.min(vw / 4, vh / 4, 4 / zoom)
 		ctx.beginPath()
-		roundedRect(ctx, vx, vy, vw, vh, r)
-		ctx.closePath()
+		if (r * zoom < 1) {
+			ctx.rect(vx, vy, vw, vh)
+		} else {
+			ctx.roundRect(vx, vy, vw, vh, r)
+		}
 		ctx.fillStyle = this.colors.viewportFill
 		ctx.fill()
 
@@ -275,27 +276,4 @@ export class MinimapManager {
 			ctx.restore()
 		}
 	}
-}
-
-function roundedRect(
-	ctx: CanvasRenderingContext2D | Path2D,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	r: number
-) {
-	if (r < 1) {
-		ctx.rect(x, y, w, h)
-		return
-	}
-	ctx.moveTo(x + r, y)
-	ctx.lineTo(x + w - r, y)
-	ctx.quadraticCurveTo(x + w, y, x + w, y + r)
-	ctx.lineTo(x + w, y + h - r)
-	ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
-	ctx.lineTo(x + r, y + h)
-	ctx.quadraticCurveTo(x, y + h, x, y + h - r)
-	ctx.lineTo(x, y + r)
-	ctx.quadraticCurveTo(x, y, x + r, y)
 }

@@ -1,4 +1,4 @@
-import { Zero } from '@rocicorp/zero'
+import { QueryResultType, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
@@ -13,9 +13,7 @@ import {
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
-	TlaGroup,
 	TlaGroupFile,
-	TlaGroupUser,
 	TlaMutators,
 	TlaSchema,
 	TlaUser,
@@ -44,7 +42,6 @@ import {
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
-import pick from 'lodash.pick'
 import { useNavigate } from 'react-router-dom'
 import {
 	Atom,
@@ -61,8 +58,6 @@ import {
 	dataUrlToFile,
 	defaultUserPreferences,
 	getUserPreferences,
-	objectMapFromEntries,
-	objectMapKeys,
 	parseTldrawJsonFile,
 	react,
 	transact,
@@ -112,6 +107,19 @@ window.zero = () => {
 	location.reload()
 }
 
+/** When the user last opened the file (visit, else edit, else first visit), or undefined if never. */
+export function getFileVisitDate(state: TlaFileState | undefined): number | undefined {
+	return state?.lastVisitAt ?? state?.lastEditAt ?? state?.firstVisitAt ?? undefined
+}
+
+/** Ranks a file for display: when it was last opened, else when it was created. */
+export function getFileRecencyDate(
+	state: TlaFileState | undefined,
+	file: TlaFile | undefined
+): number {
+	return getFileVisitDate(state) ?? file?.createdAt ?? 0
+}
+
 export class TldrawApp {
 	config = {
 		maxNumberOfFiles: MAX_NUMBER_OF_FILES,
@@ -122,13 +130,13 @@ export class TldrawApp {
 	readonly z: Zero<TlaSchema, TlaMutators, ZeroContext>
 
 	private readonly user$: Signal<TlaUser | undefined>
-	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
+	// These signal types are derived from the query definitions in dotcom-shared rather than
+	// hand-written, so the shape (and the nullability of `.one()` joins like `file`) stays in
+	// sync with the queries automatically. A previous hand-written annotation claimed `file` was
+	// always present, which hid a production crash when a `.one()` join resolved to undefined.
+	private readonly fileStates$: Signal<QueryResultType<typeof queries.fileStates>>
 	private readonly workspaceMemberships$: Signal<
-		(TlaGroupUser & {
-			group: TlaGroup
-			groupFiles: Array<TlaGroupFile & { file: TlaFile }>
-			groupMembers: Array<TlaGroupUser>
-		})[]
+		QueryResultType<typeof queries.workspaceMemberships>
 	>
 
 	private readonly useProperZero: boolean
@@ -404,17 +412,8 @@ export class TldrawApp {
 	}
 
 	/**
-	 * Check if the user has been migrated to the new workspaces-based data model.
-	 * Users with the 'groups_backend' flag use group_file for access control and pinning.
-	 * Users without the flag use the legacy file_state-based approach.
-	 */
-	isWorkspacesMigrated() {
-		return this.hasFlag('groups_backend')
-	}
-
-	/**
 	 * Get the user's home workspace ID.
-	 * For migrated users, this is used to store shared files and pinned files.
+	 * Used to store shared files and pinned files.
 	 * The home workspace ID is the same as the user ID.
 	 */
 	getHomeWorkspaceId() {
@@ -434,8 +433,30 @@ export class TldrawApp {
 		const membership = this.getWorkspaceMembership(workspaceId)
 		if (!membership) return []
 
-		const pinned = membership.groupFiles.filter((f) => f.index !== null)
-		const unpinned = membership.groupFiles.filter((f) => f.index === null)
+		// Decide which of the membership's group_file rows actually belong in this list.
+		// A file owned by this workspace always belongs. A non-home workspace lists only the
+		// files it owns. The home workspace additionally lists legacy files (no owning group)
+		// and "guest files" — shared files the user opened that are owned by a workspace they
+		// are NOT a member of. It must NOT list a file owned by a workspace the user IS a
+		// member of: that's a mislinked row (a guest file whose workspace was later joined, or
+		// a workspace's welcome file mirrored during the create-workspace race), and opening it
+		// from home would bounce the user into that workspace. Guarding here keeps such rows out
+		// of the list even before they're cleaned up.
+		const homeWorkspaceId = this.getHomeWorkspaceId()
+		const groupFiles = membership.groupFiles.filter((f): f is TlaGroupFile & { file: TlaFile } => {
+			// A group_file row can outlive (or arrive before) its file: the file may be deleted,
+			// not yet synced, or filtered out server-side because the user can no longer read it.
+			// The `file` relationship is a nullable Zero `.one()`, so guard before dereferencing.
+			// The type predicate narrows `file` to non-undefined for the rest of the function.
+			if (!f.file) return false
+			const owningGroupId = f.file.owningGroupId
+			if (owningGroupId === workspaceId) return true
+			if (workspaceId !== homeWorkspaceId) return false
+			return owningGroupId == null || !this.getWorkspaceMembership(owningGroupId)
+		})
+
+		const pinned = groupFiles.filter((f) => f.index !== null)
+		const unpinned = groupFiles.filter((f) => f.index === null)
 
 		const lastOrdering = this.lastWorkspaceFileOrderings.get(workspaceId)
 		const retainedOrdering =
@@ -452,7 +473,7 @@ export class TldrawApp {
 			const state = this.getFileState(file.fileId)
 			newOrdering.push({
 				fileId: file.fileId,
-				date: Math.max(state?.lastEditAt ?? state?.firstVisitAt ?? file.file.createdAt),
+				date: getFileRecencyDate(state, file.file),
 			})
 		}
 
@@ -478,7 +499,9 @@ export class TldrawApp {
 		userPreferences: computed('user prefs', () => {
 			const user = this.getUser()
 			return {
-				...(pick(user, UserPreferencesKeys) as TLUserPreferences),
+				...(Object.fromEntries(
+					UserPreferencesKeys.map((key) => [key, user[key]])
+				) as unknown as TLUserPreferences),
 				id: this.userId,
 			}
 		}),
@@ -509,12 +532,6 @@ export class TldrawApp {
 		return this.fileStates$.get()
 	}
 
-	lastRecentFileOrdering = null as null | Array<{
-		fileId: TlaFile['id']
-		isPinned: boolean
-		date: number
-	}>
-
 	// Store stable workspace file ordering for each workspace to prevent jumping when files are edited
 	lastWorkspaceFileOrderings = new Map<
 		string,
@@ -526,100 +543,50 @@ export class TldrawApp {
 
 	@computed({ isEqual })
 	getMyFiles() {
-		if (this.isWorkspacesMigrated()) {
-			return this.getWorkspaceFilesSorted(this.getHomeWorkspaceId())
-		}
-		const myFiles = objectMapFromEntries(this.getUserOwnFiles().map((f) => [f.id, f]))
-		const myStates = objectMapFromEntries(this.getUserFileStates().map((f) => [f.fileId, f]))
+		return this.getWorkspaceFilesSorted(this.getHomeWorkspaceId())
+	}
 
-		const myFileIds = new Set<string>([...objectMapKeys(myFiles), ...objectMapKeys(myStates)])
-		const myWorkspaceMemberships = this.getWorkspaceMemberships()
+	/**
+	 * The id of the user's most recently visited file, or null if they have none. Skips files the
+	 * user can no longer access — their `file` relation comes back null (moved/revoked) or flagged
+	 * deleted — so the next available file wins; falls back to the top of the in-scope list when
+	 * none have been visited. Recency comes from per-user `file_state`, so it follows the user
+	 * across devices.
+	 *
+	 * @param workspaceId - When provided, only files visible in that workspace are considered.
+	 */
+	getMostRecentFileId(workspaceId?: string): string | null {
+		// In-scope files, also used as the fallback when none have been visited.
+		const scopedFiles = workspaceId ? this.getWorkspaceFilesSorted(workspaceId) : this.getMyFiles()
+		const fileIdsInScope = workspaceId ? new Set(scopedFiles.map((f) => f.fileId)) : null
 
-		const nextRecentFileOrdering: {
-			fileId: TlaFile['id']
-			isPinned: boolean
-			date: number
-		}[] = []
-
-		for (const fileId of myFileIds) {
-			const file = myFiles[fileId]
-			let state: (typeof myStates)[string] | undefined = myStates[fileId]
-			if (!file) continue
-			if (file.isDeleted) continue
-
-			if (!state && !file.isDeleted && file.ownerId === this.userId) {
-				state = this.fileStates$.get().find((fs) => fs.fileId === fileId)
-			}
-			if (!state) {
-				// if the file is deleted, we don't want to show it in the recent files
-				continue
-			}
-
-			// if the file is in a workspace we have access to, we don't want to show it in my workspace
-			if (myWorkspaceMemberships.some((g) => g.groupFiles.some((gf) => gf.fileId === fileId))) {
-				continue
-			}
-
-			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
-			const isPinned = state.isPinned ?? false
-
-			if (existing && existing.isPinned === isPinned) {
-				// Preserve existing entry to maintain ordering
-				nextRecentFileOrdering.push(existing)
-				continue
-			}
-
-			// For new entries or pinned status changes
-			const newEntry = {
-				fileId,
-				isPinned,
-				date: state.lastEditAt ?? state.firstVisitAt ?? file.createdAt ?? 0,
-			}
-
-			// If this was previously unpinned and we have existing ordering,
-			// preserve its position in the unpinned section to avoid real-time reordering
-			if (!isPinned && existing && !existing.isPinned) {
-				// Keep the old date to preserve ordering in "My workspace"
-				newEntry.date = existing.date
-			}
-
-			nextRecentFileOrdering.push(newEntry)
+		let mostRecent: { fileId: string; date: number } | null = null
+		for (const state of this.getUserFileStates()) {
+			if (fileIdsInScope && !fileIdsInScope.has(state.fileId)) continue
+			if (!state.file || state.file.isDeleted) continue
+			// Rank by actual visits only. A created-but-never-opened file has null visit timestamps
+			// (its `createdAt` must not let it outrank a genuinely visited file); it defers to the
+			// `scopedFiles` fallback below.
+			const date = getFileVisitDate(state)
+			if (date === undefined) continue
+			if (!mostRecent || date > mostRecent.date) mostRecent = { fileId: state.fileId, date }
 		}
 
-		// separate pinned and unpinned files
-		const pinnedFiles = nextRecentFileOrdering.filter((f) => f.isPinned)
-		const unpinnedFiles = nextRecentFileOrdering.filter((f) => !f.isPinned)
-
-		// sort pinned files by their pinnedIndex
-		pinnedFiles.sort((a, b) => {
-			// If neither has an index, sort by date (fallback)
-			return b.date - a.date
-		})
-
-		// sort unpinned files by date with most recent first
-		unpinnedFiles.sort((a, b) => b.date - a.date)
-
-		// combine: pinned files first, then unpinned
-		const sortedFiles = [...pinnedFiles, ...unpinnedFiles]
-
-		// stash the ordering for next time
-		this.lastRecentFileOrdering = sortedFiles
-
-		return sortedFiles
+		return mostRecent?.fileId ?? scopedFiles[0]?.fileId ?? null
 	}
 
 	private canCreateNewFile(workspaceId: string) {
-		if (this.isWorkspacesMigrated()) {
-			// For migrated users, count non-deleted files in the home workspace
-			const membership = this.getWorkspaceMembership(workspaceId)
-			if (!membership) return true
-			const nonDeletedCount = membership.groupFiles.filter((gf) => !gf.file.isDeleted).length
-			return nonDeletedCount < this.config.maxNumberOfFiles
-		} else {
-			// For unmigrated users, count non-deleted files owned by the user
-			const nonDeletedCount = this.getUserOwnFiles().filter((f) => !f.isDeleted).length
-			return nonDeletedCount < this.config.maxNumberOfFiles
-		}
+		// Count only files the workspace actually owns — not guest files (shared files the
+		// user opened) or mislinked rows that getWorkspaceFilesSorted hides. Counting those
+		// would let the limit fire on files the user can neither see nor remove. createFile
+		// runs no server-side file-limit check, so this is the only gate; scoping it to owned
+		// files keeps it to what the user can actually manage.
+		const membership = this.getWorkspaceMembership(workspaceId)
+		if (!membership) return true
+		const nonDeletedCount = membership.groupFiles.filter(
+			(gf) => gf.file && !gf.file.isDeleted && gf.file.owningGroupId === workspaceId
+		).length
+		return nonDeletedCount < this.config.maxNumberOfFiles
 	}
 
 	private showMaxFilesToast() {
@@ -632,12 +599,7 @@ export class TldrawApp {
 	}
 
 	isPinned(fileId: string, workspaceId: string) {
-		if (this.isWorkspacesMigrated()) {
-			return this.getWorkspaceFilesSorted(workspaceId).some(
-				(f) => f.fileId === fileId && f.isPinned
-			)
-		}
-		return this.getFileState(fileId)?.isPinned ?? false
+		return this.getWorkspaceFilesSorted(workspaceId).some((f) => f.fileId === fileId && f.isPinned)
 	}
 
 	// A workspace's welcome file is seeded once, when the workspace is created. Its
@@ -833,14 +795,11 @@ export class TldrawApp {
 
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		if (this.isWorkspacesMigrated()) {
-			return (
-				this.getWorkspaceMemberships()
-					.find((g) => g.groupFiles.some((gf) => gf.fileId === fileId))
-					?.groupFiles.find((gf) => gf.fileId === fileId)?.file ?? null
-			)
-		}
-		return this.getUserOwnFiles().find((f) => f.id === fileId) ?? null
+		return (
+			this.getWorkspaceMemberships()
+				.find((g) => g.groupFiles.some((gf) => gf.fileId === fileId))
+				?.groupFiles.find((gf) => gf.fileId === fileId)?.file ?? null
+		)
 	}
 
 	canUpdateFile(fileId: string): boolean {
@@ -1201,10 +1160,10 @@ export class TldrawApp {
 	copyWorkspaceInvite(workspaceId: string, showToast = true): boolean {
 		// The home workspace can't be invited to.
 		if (workspaceId === this.getHomeWorkspaceId()) return false
-		const membership = this.getWorkspaceMembership(workspaceId)
-		if (!membership?.group.inviteSecret) return false
+		const group = this.getWorkspaceMembership(workspaceId)?.group
+		if (!group?.inviteSecret) return false
 
-		const inviteText = `${location.origin}/invite/${membership.group.inviteSecret}`
+		const inviteText = `${location.origin}/invite/${group.inviteSecret}`
 		navigator.clipboard.writeText(inviteText)
 
 		if (showToast) {

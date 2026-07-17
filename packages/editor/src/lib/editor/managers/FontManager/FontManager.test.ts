@@ -9,7 +9,7 @@ import {
 import { IndexKey } from '@tldraw/utils'
 import { Mock, Mocked, vi } from 'vitest'
 import { Editor } from '../../Editor'
-import { FontManager } from './FontManager'
+import { clearFontFaceCacheForTests, FontManager } from './FontManager'
 
 // Mock the Editor class
 vi.mock('../../Editor')
@@ -73,6 +73,7 @@ describe('FontManager', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
+		clearFontFaceCacheForTests()
 
 		mockAssetUrls = {
 			'test-font.woff2': 'https://example.com/fonts/test-font.woff2',
@@ -140,6 +141,72 @@ describe('FontManager', () => {
 			expect(secondPromise).not.toBe(firstPromise)
 
 			await secondPromise
+		})
+
+		it('ignores font load failures after disposal', async () => {
+			const font = createMockFont()
+			const error = new Error('Font load failed')
+			let rejectLoad: (err: Error) => void = () => {}
+			;(global.FontFace as Mock).mockImplementationOnce(function (family, src, descriptors) {
+				return {
+					family,
+					src,
+					...descriptors,
+					load: vi.fn(
+						() =>
+							new Promise<void>((_, reject) => {
+								rejectLoad = reject
+							})
+					),
+				}
+			})
+			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {})
+
+			const promise = fontManager.ensureFontIsLoaded(font)
+			fontManager.dispose()
+			rejectLoad(error)
+
+			await expect(promise).resolves.toBeUndefined()
+			expect(errorSpy).not.toHaveBeenCalled()
+			expect(debugSpy).toHaveBeenCalledWith(
+				`Font "${font.family}" load interrupted by editor dispose`,
+				error
+			)
+			errorSpy.mockRestore()
+			debugSpy.mockRestore()
+		})
+
+		it('ignores font loads that finish after disposal', async () => {
+			const font = createMockFont()
+			let resolveLoad: () => void = () => {}
+			;(global.FontFace as Mock).mockImplementationOnce(function (family, src, descriptors) {
+				return {
+					family,
+					src,
+					...descriptors,
+					load: vi.fn(
+						() =>
+							new Promise<void>((resolve) => {
+								resolveLoad = resolve
+							})
+					),
+				}
+			})
+			const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {})
+
+			const promise = fontManager.ensureFontIsLoaded(font)
+			fontManager.dispose()
+			resolveLoad()
+
+			await expect(promise).resolves.toBeUndefined()
+			// only the creation-time add from findOrCreateFontFace, not a second
+			// post-load add after dispose
+			expect(document.fonts.add).toHaveBeenCalledTimes(1)
+			expect(debugSpy).toHaveBeenCalledWith(
+				`Font "${font.family}" load interrupted by editor dispose`
+			)
+			debugSpy.mockRestore()
 		})
 	})
 
@@ -312,6 +379,28 @@ describe('FontManager', () => {
 			}
 
 			await expect(fontManager.ensureFontIsLoaded(minimalFont)).resolves.toBeUndefined()
+		})
+	})
+
+	describe('findOrCreateFontFace caching', () => {
+		it('reuses a font face across manager instances instead of recreating it on remount', async () => {
+			const font = createMockFont()
+			await fontManager.ensureFontIsLoaded(font)
+			expect(global.FontFace).toHaveBeenCalledTimes(1)
+
+			// A fresh manager on the same document simulates an editor remount.
+			const remounted = new FontManager(editor, mockAssetUrls)
+			await remounted.ensureFontIsLoaded(font)
+
+			// The per-document cache lets the second manager reuse the existing face
+			// rather than re-scanning document.fonts and creating a new one.
+			expect(global.FontFace).toHaveBeenCalledTimes(1)
+		})
+
+		it('creates separate font faces for fonts with different descriptors', async () => {
+			await fontManager.ensureFontIsLoaded(createMockFont({ weight: 'normal' }))
+			await fontManager.ensureFontIsLoaded(createMockFont({ weight: 'bold' }))
+			expect(global.FontFace).toHaveBeenCalledTimes(2)
 		})
 	})
 })

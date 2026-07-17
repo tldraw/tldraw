@@ -17,6 +17,10 @@ const tlenv = {
 	isWebview: false,
 	isDarwin: false,
 	hasCanvasSupport: false,
+	// Whether the device has a touch screen (an integrated coarse pointer, e.g. an iPad or a
+	// touchscreen laptop). Unlike `isCoarsePointer`, this reflects the device's hardware rather than
+	// the pointer currently in use, so it stays stable when a pen or mouse is used.
+	isTouchDevice: false,
 }
 
 let isForcedFinePointer = false
@@ -32,6 +36,9 @@ if (typeof window !== 'undefined') {
 	}
 	tlenv.hasCanvasSupport = 'Promise' in window && 'HTMLCanvasElement' in window
 	isForcedFinePointer = tlenv.isFirefox && !tlenv.isAndroid && !tlenv.isIos
+	tlenv.isTouchDevice =
+		('navigator' in window && window.navigator.maxTouchPoints > 0) ||
+		(typeof window.matchMedia === 'function' && window.matchMedia('(any-pointer: coarse)').matches)
 }
 
 /**

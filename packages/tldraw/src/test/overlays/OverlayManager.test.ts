@@ -101,7 +101,7 @@ describe('OverlayManager', () => {
 		it('hits the bounded edge handle hit area regardless of margin', () => {
 			editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
 			editor.select(ids.box1)
-			// Edge handles are filled polygons of half-thickness targetSizeY (~4.5px at zoom 1);
+			// Edge handles are filled polygons of half-thickness hitTargetSizeY (~4.5px at zoom 1);
 			// a point inside that band hits with margin 0, and a point outside misses.
 			const insideTopEdge = { x: 50, y: -3 }
 			const outsideTopEdge = { x: 50, y: -20 }

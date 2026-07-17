@@ -23,7 +23,6 @@ export class Sidebar {
 	public readonly sidebar: Locator
 	public readonly sidebarLogo: Locator
 	public readonly createFileButton: Locator
-	public readonly createWorkspaceButton: Locator
 	public readonly userSettingsMenu: Locator
 	public readonly helpMenu: Locator
 	public readonly themeButton: Locator
@@ -34,7 +33,6 @@ export class Sidebar {
 		this.sidebar = this.page.getByTestId('tla-sidebar')
 		this.sidebarLogo = this.page.getByTestId('tla-sidebar-logo-icon')
 		this.createFileButton = this.page.getByTestId('tla-create-file')
-		this.createWorkspaceButton = this.page.getByTestId('tla-create-workspace')
 		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
 		this.helpMenu = this.userSettingsMenu
 		this.themeButton = this.page.getByTestId('dialog-sub.theme-button')
@@ -321,14 +319,9 @@ export class Sidebar {
 	@step
 	async createWorkspace(name: string) {
 		name = clampWorkspaceName(name)
-		// The standalone button is only shown while the user has no workspaces;
-		// after that, creating happens from the workspace switcher dropdown.
-		if (await this.createWorkspaceButton.isVisible()) {
-			await this.createWorkspaceButton.click()
-		} else {
-			await this.openWorkspaceSwitcher()
-			await this.page.getByTestId('tla-create-workspace-menu-item').click()
-		}
+		// Creating a workspace happens from the workspace switcher dropdown.
+		await this.openWorkspaceSwitcher()
+		await this.page.getByTestId('tla-create-workspace-menu-item').click()
 
 		const input = this.page.getByPlaceholder('Workspace name')
 		await expect(input).toBeVisible()

@@ -8,7 +8,7 @@ import {
 	string,
 	table,
 } from '@rocicorp/zero'
-import { IndexKey, stringEnum } from '@tldraw/utils'
+import { IndexKey } from '@tldraw/utils'
 import { Role } from './roles'
 
 export interface ZColumn {
@@ -315,5 +315,7 @@ export type TlaGroupFile = Row<typeof schema.tables.group_file>
 
 // Permissions are now handled via Synced Queries in queries.ts
 
-export const TlaFlags = stringEnum('groups_backend', 'groups_frontend')
-export type TlaFlags = keyof typeof TlaFlags
+// No feature flags are currently defined. The user's `flags` column is kept as a
+// free-form, comma/space-separated string (see parseFlags/userHasFlag); to add a flag,
+// switch this back to a `stringEnum('flag_a', 'flag_b')` union.
+export type TlaFlags = string

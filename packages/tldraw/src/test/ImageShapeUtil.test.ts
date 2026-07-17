@@ -1,6 +1,44 @@
 import { createShapeId, Ellipse2d, Rectangle2d, TLImageShape } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
+const ids = {
+	image: createShapeId('image'),
+	box: createShapeId('box'),
+}
+
+function createCroppedImageWithSibling() {
+	editor.createShapes([
+		{
+			id: ids.image,
+			type: 'image',
+			x: 0,
+			y: 0,
+			props: {
+				w: 100,
+				h: 100,
+				assetId: null,
+				playing: true,
+				url: '',
+				// crop to the top-left quadrant of the source image
+				crop: {
+					topLeft: { x: 0, y: 0 },
+					bottomRight: { x: 0.5, y: 0.5 },
+				},
+				flipX: false,
+				flipY: false,
+				altText: '',
+			},
+		},
+		{
+			id: ids.box,
+			type: 'geo',
+			x: 300,
+			y: 0,
+			props: { w: 100, h: 100 },
+		},
+	])
+}
+
 let editor: TestEditor
 
 beforeEach(() => {
@@ -151,6 +189,56 @@ describe('ImageShapeUtil', () => {
 			expect(geometry.bounds.width).toBe(200)
 			expect(geometry.bounds.height).toBe(150)
 			expect(geometry.isFilled).toBe(true)
+		})
+	})
+
+	describe('flipping a cropped image when its group is resized', () => {
+		it('mirrors the crop when a grouped cropped image is flipped by drag resize', () => {
+			createCroppedImageWithSibling()
+			editor.select(ids.image, ids.box)
+			editor.groupShapes(editor.getSelectedShapeIds())
+
+			// Flip the group horizontally by dragging a corner handle past the
+			// opposite edge. The drag scale is not exactly -1, which is the case
+			// that previously left the crop un-mirrored.
+			editor.resizeSelection({ scaleX: -2, scaleY: 1 }, 'top_left')
+
+			const image = editor.getShape<TLImageShape>(ids.image)!
+			expect(image.props.flipX).toBe(true)
+			// The crop should be mirrored horizontally and unchanged vertically.
+			expect(image.props.crop).toMatchObject({
+				topLeft: { x: 0.5, y: 0 },
+				bottomRight: { x: 1, y: 0.5 },
+			})
+		})
+
+		it('mirrors the crop vertically when a grouped cropped image is flipped by drag resize', () => {
+			createCroppedImageWithSibling()
+			editor.select(ids.image, ids.box)
+			editor.groupShapes(editor.getSelectedShapeIds())
+
+			editor.resizeSelection({ scaleX: 1, scaleY: -2 }, 'top_left')
+
+			const image = editor.getShape<TLImageShape>(ids.image)!
+			expect(image.props.flipY).toBe(true)
+			expect(image.props.crop).toMatchObject({
+				topLeft: { x: 0, y: 0.5 },
+				bottomRight: { x: 0.5, y: 1 },
+			})
+		})
+
+		it('matches the flipShapes command result for a grouped cropped image', () => {
+			createCroppedImageWithSibling()
+			editor.select(ids.image, ids.box)
+			editor.groupShapes(editor.getSelectedShapeIds())
+			editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
+
+			const image = editor.getShape<TLImageShape>(ids.image)!
+			expect(image.props.flipX).toBe(true)
+			expect(image.props.crop).toMatchObject({
+				topLeft: { x: 0.5, y: 0 },
+				bottomRight: { x: 1, y: 0.5 },
+			})
 		})
 	})
 })

@@ -123,6 +123,11 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 		}
 
 		const handleButtonPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+			// Only apply on release if the scrub started in this picker. Otherwise
+			// releasing over a different style section selects that section's
+			// option, even though scrubbing can't cross sections. See #9223.
+			if (!rPointing.current) return
+
 			const { id } = e.currentTarget.dataset
 			if (value.type === 'shared' && value.value === id) return
 

@@ -282,7 +282,7 @@ function SignedInProvider({
 						para1: intl.formatMessage(appMessages.clerkUnavailablePara),
 					}}
 					cta={
-						<button onClick={() => window.location.reload()}>
+						<button type="button" onClick={() => window.location.reload()}>
 							{intl.formatMessage(appMessages.refresh)}
 						</button>
 					}

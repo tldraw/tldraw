@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"lib": ["DOM", "DOM.Iterable", "ESNext"],
+		"target": "esnext",
 		"allowJs": true,
 		"skipLibCheck": true,
 		"strict": true,
@@ -14,7 +15,6 @@
 		"jsx": "preserve",
 		"jsxImportSource": "react",
 		"incremental": true,
-		"downlevelIteration": true,
 		"experimentalDecorators": true,
 		"types": ["vitest/globals"]
 	},

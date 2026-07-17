@@ -60,7 +60,6 @@ export function TldrawUiMenuCheckboxItem<
 					dir={dir}
 					lang={lang}
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
-					title={labelStr}
 					onSelect={(e) => {
 						onSelect?.(sourceId)
 						preventDefault(e)
@@ -89,7 +88,6 @@ export function TldrawUiMenuCheckboxItem<
 					className="tlui-button tlui-button__menu tlui-button__checkbox"
 					dir={dir}
 					lang={lang}
-					title={labelStr}
 					onSelect={(e) => {
 						onSelect(sourceId)
 						preventDefault(e)

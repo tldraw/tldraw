@@ -12,6 +12,7 @@ import {
 	createShapeId,
 	createTLStore,
 	noop,
+	react,
 	toRichText,
 } from '@tldraw/editor'
 import { StrictMode } from 'react'
@@ -168,6 +169,31 @@ describe('<TldrawEditor />', () => {
 		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
 		expect(onMount.mock.lastCall![0].store).toBe(newStore)
+	})
+
+	it('reflects mount state via getIsMounted and the mount/unmount events', async () => {
+		const onUnmount = vi.fn()
+		const { editor, rendered } = await renderTldrawComponentWithEditor(
+			(onMount) => <TldrawEditor tools={defaultTools} initialState="select" onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+		editor.on('unmount', onUnmount)
+
+		// mounted after render:
+		expect(editor.getIsMounted()).toBe(true)
+
+		// getIsMounted is reactive:
+		const mountedValues: boolean[] = []
+		const stop = react('track mounted', () => mountedValues.push(editor.getIsMounted()))
+
+		act(() => rendered.unmount())
+
+		// the unmount event fired and the mounted state flipped back to false:
+		expect(onUnmount).toHaveBeenCalledTimes(1)
+		expect(editor.getIsMounted()).toBe(false)
+		expect(mountedValues).toEqual([true, false])
+
+		stop()
 	})
 
 	it('Renders the canvas and shapes', async () => {

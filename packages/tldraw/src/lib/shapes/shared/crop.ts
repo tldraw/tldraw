@@ -120,7 +120,7 @@ export function getCropBox<T extends ShapeWithCrop>(
 			props: ShapeWithCrop['props']
 	  }
 	| undefined {
-	const { handle, change, crop, aspectRatioLocked } = info
+	const { handle, change, crop, aspectRatioLocked, isResizingFromCenter } = info
 	const { w, h } = info.uncroppedSize
 	const { minWidth = MIN_CROP_SIZE, minHeight = MIN_CROP_SIZE } = opts
 
@@ -140,27 +140,86 @@ export function getCropBox<T extends ShapeWithCrop>(
 	const targetRatio = prevCropBox.aspectRatio
 	const tempBox = prevCropBox.clone()
 
-	// Basic resizing logic based on the handles
+	// Which axes does the dragged handle move?
+	const movesLeft = handle === 'top_left' || handle === 'bottom_left' || handle === 'left'
+	const movesRight = handle === 'top_right' || handle === 'bottom_right' || handle === 'right'
+	const movesTop = handle === 'top_left' || handle === 'top_right' || handle === 'top'
+	const movesBottom = handle === 'bottom_left' || handle === 'bottom_right' || handle === 'bottom'
 
-	if (handle === 'top_left' || handle === 'bottom_left' || handle === 'left') {
-		tempBox.x = clamp(tempBox.x + change.x, 0, prevCropBox.maxX - minWidth)
-		tempBox.w = prevCropBox.maxX - tempBox.x
-	} else if (handle === 'top_right' || handle === 'bottom_right' || handle === 'right') {
-		const tempRight = clamp(tempBox.maxX + change.x, prevCropBox.x + minWidth, w)
-		tempBox.w = tempRight - tempBox.x
-	}
+	if (isResizingFromCenter) {
+		// Resizing from the center (alt/option): the crop center stays fixed and the
+		// opposite edge mirrors the dragged edge, so the crop grows/shrinks symmetrically.
+		const cx = prevCropBox.midX
+		const cy = prevCropBox.midY
 
-	if (handle === 'top_left' || handle === 'top_right' || handle === 'top') {
-		tempBox.y = clamp(tempBox.y + change.y, 0, prevCropBox.maxY - minHeight)
-		tempBox.h = prevCropBox.maxY - tempBox.y
-	} else if (handle === 'bottom_left' || handle === 'bottom_right' || handle === 'bottom') {
-		const tempBottom = clamp(tempBox.maxY + change.y, prevCropBox.y + minHeight, h)
-		tempBox.h = tempBottom - tempBox.y
+		// Desired half-extents from the dragged edge. Undragged axes keep their size.
+		let halfW = prevCropBox.w / 2
+		let halfH = prevCropBox.h / 2
+		if (movesLeft) halfW = cx - (prevCropBox.x + change.x)
+		else if (movesRight) halfW = prevCropBox.maxX + change.x - cx
+		if (movesTop) halfH = cy - (prevCropBox.y + change.y)
+		else if (movesBottom) halfH = prevCropBox.maxY + change.y - cy
+
+		if (aspectRatioLocked) {
+			// Keep the aspect ratio while staying centered. Pick the driving dimension,
+			// derive the other from the ratio, then clamp both at once so the ratio holds.
+			const isCorner = (movesLeft || movesRight) && (movesTop || movesBottom)
+			let drivingHalfW: number
+			if (isCorner) {
+				drivingHalfW = halfW / halfH > targetRatio ? halfW : halfH * targetRatio
+			} else if (movesLeft || movesRight) {
+				drivingHalfW = halfW
+			} else {
+				drivingHalfW = halfH * targetRatio
+			}
+
+			const minHalfW = Math.max(minWidth / 2, (minHeight / 2) * targetRatio)
+			const maxHalfW = Math.min(cx, w - cx, cy * targetRatio, (h - cy) * targetRatio)
+			if (maxHalfW < minHalfW) return
+
+			halfW = clamp(drivingHalfW, minHalfW, maxHalfW)
+			halfH = halfW / targetRatio
+		} else {
+			// Clamp each dragged axis independently against the image bounds and min size.
+			if (movesLeft || movesRight) {
+				const maxHalfW = Math.min(cx, w - cx)
+				if (maxHalfW < minWidth / 2) return
+				halfW = clamp(halfW, minWidth / 2, maxHalfW)
+			}
+			if (movesTop || movesBottom) {
+				const maxHalfH = Math.min(cy, h - cy)
+				if (maxHalfH < minHeight / 2) return
+				halfH = clamp(halfH, minHeight / 2, maxHalfH)
+			}
+		}
+
+		tempBox.x = cx - halfW
+		tempBox.y = cy - halfH
+		tempBox.w = halfW * 2
+		tempBox.h = halfH * 2
+	} else {
+		// Basic resizing logic based on the handles
+
+		if (movesLeft) {
+			tempBox.x = clamp(tempBox.x + change.x, 0, prevCropBox.maxX - minWidth)
+			tempBox.w = prevCropBox.maxX - tempBox.x
+		} else if (movesRight) {
+			const tempRight = clamp(tempBox.maxX + change.x, prevCropBox.x + minWidth, w)
+			tempBox.w = tempRight - tempBox.x
+		}
+
+		if (movesTop) {
+			tempBox.y = clamp(tempBox.y + change.y, 0, prevCropBox.maxY - minHeight)
+			tempBox.h = prevCropBox.maxY - tempBox.y
+		} else if (movesBottom) {
+			const tempBottom = clamp(tempBox.maxY + change.y, prevCropBox.y + minHeight, h)
+			tempBox.h = tempBottom - tempBox.y
+		}
 	}
 
 	// Aspect ratio locked resizing logic
 
-	if (aspectRatioLocked) {
+	if (aspectRatioLocked && !isResizingFromCenter) {
 		const isXLimiting = tempBox.aspectRatio > targetRatio
 
 		if (isXLimiting) {

@@ -11,11 +11,18 @@ binding = "ASSETS"
 run_worker_first = true
 
 [durable_objects]
-bindings = [{ class_name = "TldrawMCP", name = "MCP_OBJECT" }]
+bindings = [
+	{ class_name = "TldrawMCP", name = "MCP_OBJECT" },
+	{ class_name = "CanvasStore", name = "CANVAS_STORE" },
+]
 
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["TldrawMCP"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["CanvasStore"]
 
 [vars]
 # Set this to the public URL of the worker. Used for constructing absolute image URLs.

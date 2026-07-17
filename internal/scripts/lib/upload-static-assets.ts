@@ -11,6 +11,9 @@ const R2_URL = 'https://c34edc4e76350954b63adebde86d5eb1.r2.cloudflarestorage.co
 const R2_BUCKET = 'cdn'
 const ASSETS_FOLDER = './packages/assets'
 
+// How many files to upload to the CDN at once.
+const UPLOAD_CONCURRENCY = 16
+
 const R2 = new S3Client({
 	region: 'auto',
 	endpoint: R2_URL,
@@ -31,24 +34,28 @@ async function uploadFile(key: string, fullPath: string) {
 		// these assets will never change, so we can cache them forever:
 		CacheControl: 'public, max-age=31536000, immutable',
 	}
-	process.stdout.write(`  • ${key}`)
 	await R2.send(new PutObjectCommand(uploadParams))
-	process.stdout.write(' ✔️\n')
+	process.stdout.write(`  • ${key} ✔️\n`)
 }
 
-async function uploadDirectory(prefix: string, directoryPath: string) {
-	const entries = fs.readdirSync(directoryPath, { withFileTypes: true })
+function collectFiles(
+	prefix: string,
+	directoryPath: string
+): Array<{ key: string; fullPath: string }> {
+	const files: Array<{ key: string; fullPath: string }> = []
 
-	for (const entry of entries) {
+	for (const entry of fs.readdirSync(directoryPath, { withFileTypes: true })) {
 		const fullPath = path.join(directoryPath, entry.name)
 		const key = path.join(prefix, entry.name)
 
 		if (entry.isDirectory()) {
-			await uploadDirectory(key, fullPath)
+			files.push(...collectFiles(key, fullPath))
 		} else if (entry.isFile()) {
-			await uploadFile(key, fullPath)
+			files.push({ key, fullPath })
 		}
 	}
+
+	return files
 }
 
 export async function uploadStaticAssets(version: string) {
@@ -57,16 +64,31 @@ export async function uploadStaticAssets(version: string) {
 
 		const entries = fs.readdirSync(ASSETS_FOLDER, { withFileTypes: true })
 
-		console.log('Uploading static assets to CDN...')
-
-		// Loop through all the folders in the assets folder and upload them.
+		// Gather every file across all asset folders up front so we can upload
+		// them with bounded concurrency instead of one at a time.
+		const files: Array<{ key: string; fullPath: string }> = []
 		for (const entry of entries) {
 			if (entry.name.startsWith('.')) continue
 			if (!entry.isDirectory()) continue
 
 			const folderName = entry.name
-			await uploadDirectory(`${version}/${folderName}`, `${ASSETS_FOLDER}/${folderName}`)
+			files.push(...collectFiles(`${version}/${folderName}`, `${ASSETS_FOLDER}/${folderName}`))
 		}
+
+		console.log(`Uploading ${files.length} static assets to CDN...`)
+
+		// Upload files in parallel, keeping at most UPLOAD_CONCURRENCY requests in
+		// flight at a time. Workers pull from a shared queue until it's empty.
+		let next = 0
+		async function worker() {
+			while (next < files.length) {
+				const { key, fullPath } = files[next++]
+				await uploadFile(key, fullPath)
+			}
+		}
+		await Promise.all(
+			Array.from({ length: Math.min(UPLOAD_CONCURRENCY, files.length) }, () => worker())
+		)
 
 		console.log('Uploaded!')
 	} catch (e) {

@@ -205,6 +205,47 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 })
 
+describe('minimum bend distance for shift-clicked handles is measured in screen space', () => {
+	// regression for #7661: minimum bend distance for shift-clicked handles is measured in screen space
+	// Creates a two-point line whose end handle sits at screen point (200, 200), the
+	// camera being static so the handle's screen position matches the pointer-up location.
+	function createTwoPointLine() {
+		editor
+			.setCurrentTool('line')
+			.pointerDown(100, 100, { target: 'canvas' })
+			.pointerMove(200, 200)
+			.pointerUp(200, 200)
+	}
+
+	beforeEach(() => {
+		editor.updateInstanceState({ isToolLocked: true })
+	})
+
+	it('adds a point when the click is more than 2 screen pixels away while zoomed in', () => {
+		editor.setCamera({ x: 0, y: 0, z: 4 })
+		createTwoPointLine()
+		// 4 screen pixels from the end handle: past the 2px screen threshold, but only 1
+		// page unit — under the old page-space threshold this would have merged.
+		editor.keyDown('Shift').pointerDown(204, 200, { target: 'canvas' }).pointerUp(204, 200)
+
+		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		assert(editor.isShapeOfType(line, 'line'))
+		expect(Object.keys(line.props.points).length).toBe(3)
+	})
+
+	it('merges the click when within 2 screen pixels while zoomed out', () => {
+		editor.setCamera({ x: 0, y: 0, z: 0.25 })
+		createTwoPointLine()
+		// 1 screen pixel from the end handle: within the 2px screen threshold, but 4 page
+		// units — under the old page-space threshold this would have added a point.
+		editor.keyDown('Shift').pointerDown(201, 200, { target: 'canvas' }).pointerUp(201, 200)
+
+		const line = editor.getCurrentPageShapes()[editor.getCurrentPageShapes().length - 1]
+		assert(editor.isShapeOfType(line, 'line'))
+		expect(Object.keys(line.props.points).length).toBe(2)
+	})
+})
+
 describe('tool lock bug', () => {
 	it('works as expected when tool lock is on but shift is off', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(0)

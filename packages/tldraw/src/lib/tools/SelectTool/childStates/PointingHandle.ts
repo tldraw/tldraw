@@ -23,9 +23,11 @@ export class PointingHandle extends StateNode {
 	didCtrlOnEnter = false
 
 	info = {} as TLPointerEventInfo & { target: 'handle' }
+	isDoubleClick = false
 
 	override onEnter(info: TLPointerEventInfo & { target: 'handle' }) {
 		this.info = info
+		this.isDoubleClick = false
 
 		this.didCtrlOnEnter = info.accelKey
 
@@ -59,6 +61,17 @@ export class PointingHandle extends StateNode {
 	override onPointerUp() {
 		const { shape, handle } = this.info
 
+		if (this.isDoubleClick) {
+			this.parent.transition('idle')
+			this.parent.getCurrent()?.handleEvent({
+				...this.info,
+				type: 'click',
+				name: 'double_click',
+				phase: 'down',
+			})
+			return
+		}
+
 		if (this.editor.isShapeOfType(shape, 'note')) {
 			const { editor } = this
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
@@ -81,8 +94,7 @@ export class PointingHandle extends StateNode {
 			return
 		}
 
-		this.parent.transition('idle')
-		this.parent.getCurrent()?.handleEvent(info)
+		this.isDoubleClick = true
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {

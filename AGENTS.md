@@ -38,7 +38,7 @@ Apps and examples:
 
 ## Setup
 
-Requires Node `^20.0.0`. Enable Corepack before installing dependencies:
+Requires Node `>=22.12.0`. Enable Corepack before installing dependencies:
 
 ```bash
 npm i -g corepack && yarn
@@ -114,6 +114,12 @@ Bindings:
 - Shape relationships use binding records and `BindingUtil` classes.
 - Arrows and other connected shapes should update through binding utilities, not ad hoc shape mutation.
 
+Managers:
+
+- Editor subsystems live in `packages/editor/src/lib/editor/managers/` as classes owned and disposed by the `Editor`.
+- A manager that subscribes to events or holds a resource should extend `EditorManager` and register its cleanup so it runs on `dispose()`: `addEditorEvent(event, fn)` for editor bus events, `register(fn)` for everything else (store side effects, reactions, DOM listeners, child resources). Use `editor.timers` for timeouts/intervals/frames and `editor.disposables` for cleanup on the editor itself.
+- Don't extend `EditorManager` for managers with no teardown. See the `EditorManager` doc comment for the full decision guide.
+
 Store and schema:
 
 - Store changes should respect migrations, validators, and schema versioning.
@@ -184,6 +190,7 @@ Dependencies:
 
 - Keep dependencies workspace-appropriate.
 - If changing dependency manifests or lockfiles, make sure the lockfile update is intentional and included.
+- Dependency install/build scripts are off by default (`enableScripts: false` in `.yarnrc.yml`), which closes the main supply-chain `postinstall` code-execution path. Packages that genuinely need to build (native/napi modules, binary downloaders) are allowlisted with `built: true` under `dependenciesMeta` in the root `package.json`. When adding a dependency that ships a native addon or downloads a platform binary, add an allowlist entry — Yarn silently skips unlisted scripts, so a missing entry shows up as a runtime or build failure, not an install error.
 
 ## Writing style
 

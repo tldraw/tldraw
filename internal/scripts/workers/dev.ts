@@ -6,6 +6,8 @@ import kleur from 'kleur'
 import { lock } from 'proper-lockfile'
 import stripAnsi from 'strip-ansi'
 import * as toml from 'toml'
+import { killProcessTree } from '../lib/kill-tree'
+import { WORKER_EXTERNAL_DEPS } from '../lib/worker-externals'
 
 const lockfileName = __dirname
 
@@ -78,14 +80,6 @@ class MiniflareMonitor {
 		}
 	}
 
-	/** Synchronously kill the wrangler process. Safe to call from signal and `exit` handlers. */
-	public dispose(signal: NodeJS.Signals = 'SIGTERM'): void {
-		if (this.process) {
-			this.process.kill(signal)
-			this.process = null
-		}
-	}
-
 	private _lockPromise?: Promise<() => Promise<void>>
 	private isLocked() {
 		return !!this._lockPromise
@@ -129,25 +123,9 @@ class SizeReporter {
 			'--bundle',
 			'--minify',
 			'--watch',
-			'--external:cloudflare:*',
 			// need to list out node packages that are used in the worker.
-			// otherwise, if we user platform=node, the bundle size is not reported correctly
-			'--external:os',
-			'--external:node:os',
-			'--external:node:timers',
-			'--external:crypto',
-			'--external:stream',
-			'--external:net',
-			'--external:fs',
-			'--external:perf_hooks',
-			'--external:tls',
-			'--external:path',
-			'--external:node:path',
-			'--external:node:process',
-			'--external:node:child_process',
-			'--external:node:events',
-			'--external:dns',
-			'--external:node:util',
+			// otherwise, if we use platform=node, the bundle size is not reported correctly
+			...WORKER_EXTERNAL_DEPS.map((dep) => '--external:' + dep),
 			'--target=esnext',
 			'--format=esm',
 		])
@@ -235,7 +213,7 @@ async function main() {
 	const port = getDevPort(process.argv.slice(2))
 	if (port != null) await ensurePortFreeOrExit(port)
 
-	const monitor = new MiniflareMonitor('wrangler', [
+	new MiniflareMonitor('wrangler', [
 		'dev',
 		'--env',
 		'dev',
@@ -245,26 +223,27 @@ async function main() {
 		'--var',
 		'IS_LOCAL:true',
 		...process.argv.slice(2),
-	])
-	monitor.start()
+	]).start()
 
 	new SizeReporter().start()
 
-	// Tear down wrangler (and its workerd child) when this process is asked to stop or exits. Without
-	// this the worker keeps holding its inspector/dev port after the parent goes away, blocking reruns.
+	// On shutdown, reap the whole subtree while it is still alive. wrangler spawns workerd as a child
+	// and the size reporter spawns esbuild through a `yarn run -T` wrapper, so just signalling our
+	// direct children would let those grandchildren reparent to launchd and keep holding the dev port.
+	// Walking by PID, deepest-first, crosses those wrapper and process boundaries. We do this in the
+	// signal handler (not on `exit`) so the tree is still enumerable.
 	let shuttingDown = false
 	const shutdown = () => {
 		if (shuttingDown) return
 		shuttingDown = true
-		monitor.dispose()
+		killProcessTree(process.pid)
 		process.exit(0)
 	}
 	process.on('SIGINT', shutdown)
 	process.on('SIGTERM', shutdown)
 	process.on('SIGHUP', shutdown)
-	// Last resort if we exit through a path that bypassed shutdown(): SIGKILL so wrangler can't catch
-	// it and linger holding its dev port. The graceful SIGTERM is only for the signal path above.
-	process.on('exit', () => monitor.dispose('SIGKILL'))
+	// Backstop for any exit path that bypassed the signal handler.
+	process.on('exit', () => killProcessTree(process.pid))
 }
 
 main()

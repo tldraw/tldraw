@@ -7,19 +7,16 @@ import { Vec } from '../../../primitives/Vec'
 import { isAccelKey } from '../../../utils/keyboard'
 import type { Editor } from '../../Editor'
 import { TLPinchEventInfo, TLPointerEventInfo, TLWheelEventInfo } from '../../types/event-types'
+import { EditorManager } from '../EditorManager'
 
 const POINTER_VELOCITY_REFERENCE_INTERVAL_MS = 16
 const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
 
 /** @public */
-export class InputsManager {
-	constructor(private readonly editor: Editor) {
-		this.editor.on('frame', this._onFrame)
-	}
-
-	/** @internal */
-	dispose() {
-		this.editor.off('frame', this._onFrame)
+export class InputsManager extends EditorManager {
+	constructor(editor: Editor) {
+		super(editor)
+		this.addEditorEvent('frame', this._onFrame)
 	}
 
 	@bind
@@ -472,7 +469,7 @@ export class InputsManager {
 	private _velocityPrevPoint = new Vec()
 
 	/**
-	 * Update the pointer velocity based on elapsed time. Called each frame.
+	 * Update the pointer velocity based on elapsed time. Called by the tick manager.
 	 * @param elapsed - The time elapsed since the last tick in milliseconds.
 	 * @internal
 	 */

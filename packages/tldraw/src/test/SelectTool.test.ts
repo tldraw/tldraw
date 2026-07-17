@@ -122,6 +122,44 @@ describe.skip('Edit on type', () => {
 	})
 })
 
+describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () => {
+	// Reproduces https://github.com/tldraw/tldraw/issues/8558: a remote user,
+	// undo, or other actor can delete the pointed-at shape between pointer down
+	// and pointer up. The tool should bail to idle instead of crashing.
+
+	it('does not crash on pointer up when an already-selected shape is deleted', () => {
+		// pre-selecting the shape means didSelectOnEnter is false, so pointer up
+		// runs the selection logic that dereferences the (now deleted) shape
+		editor.select(ids.box1)
+		const shape = editor.getShape(ids.box1)!
+
+		editor.pointerDown(shape.x + 10, shape.y + 10, { target: 'shape', shape })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+
+		expect(() => editor.pointerUp(shape.x + 10, shape.y + 10)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not crash on pointer up when a ctrl-clicked shape is deleted', () => {
+		// ctrl/accel on enter also leaves didSelectOnEnter false
+		const shape = editor.getShape(ids.box1)!
+
+		editor.pointerDown(shape.x + 10, shape.y + 10, {
+			target: 'shape',
+			shape,
+			accelKey: true,
+		})
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+
+		expect(() => editor.pointerUp(shape.x + 10, shape.y + 10)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+})
+
 describe('TLSelectTool.Translating', () => {
 	it('Enters from pointing and exits to idle', () => {
 		const shape = editor.getShape(ids.box1)
@@ -514,6 +552,34 @@ describe('When pressing enter on a selected shape', () => {
 			.select(id)
 			.keyPress('Enter')
 			.expectToBeIn('select.editing_shape')
+	})
+})
+
+describe('When undo/redo restores an invalid editing shape', () => {
+	// Regression: https://github.com/tldraw/tldraw/issues/9113
+	// Setting the editing shape is not recorded in history, but clearing it on delete is.
+	// When create + edit + delete of the same shape collapse into a single history entry,
+	// the shape's add/remove cancel out while the editingShapeId update survives. Undoing
+	// then restores editingShapeId pointing at a shape that no longer exists, which used to
+	// crash with "Entered editing state without an editing shape". The editor must never
+	// enter the editing state without a valid editing shape.
+	it('does not crash when undo restores editingShapeId for a deleted shape', () => {
+		const id = createShapeId()
+		editor.markHistoryStoppingPoint('start')
+		editor.createShape({ id, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+		editor.setEditingShape(id)
+		editor.deleteShapes([id])
+
+		expect(() => editor.undo()).not.toThrow()
+
+		editor.expectToBeIn('select.idle')
+		expect(editor.getEditingShapeId()).toBe(null)
+		expect(editor.getShape(id)).toBeUndefined()
+
+		// Redoing back through the same history entry must also stay safe.
+		expect(() => editor.redo()).not.toThrow()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getEditingShapeId()).toBe(null)
 	})
 })
 

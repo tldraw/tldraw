@@ -1,11 +1,11 @@
 import {
 	Box,
-	Circle2d,
 	Geometry2d,
 	HALF_PI,
 	Mat,
 	OverlayUtil,
 	Polygon2d,
+	Rectangle2d,
 	RotateCorner,
 	SelectionCorner,
 	SelectionEdge,
@@ -52,12 +52,17 @@ interface SelectionState {
 	rotation: number
 	width: number
 	height: number
-	size: number
-	targetSize: number
-	targetSizeX: number
-	targetSizeY: number
-	expandDx: number
-	expandDy: number
+	/** Visual side length of the rendered resize-handle squares. */
+	handleSize: number
+	/** Base half-extent of the interactive hit target for handles. */
+	hitTargetSize: number
+	/** Hit target half-extent along the x axis (narrower for small selections). */
+	hitTargetSizeX: number
+	/** Hit target half-extent along the y axis (narrower for small selections). */
+	hitTargetSizeY: number
+	/** Offset from the unexpanded bounds to the expanded selection outline. */
+	expandOffsetX: number
+	expandOffsetY: number
 	isSmallX: boolean
 	shouldDisplayControls: boolean
 	shouldDisplayBox: boolean
@@ -123,7 +128,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		const transform = Mat.Compose(
 			Mat.Translate(state.bounds.x, state.bounds.y),
 			Mat.Rotate(state.rotation),
-			Mat.Translate(state.expandDx, state.expandDy)
+			Mat.Translate(state.expandOffsetX, state.expandOffsetY)
 		)
 
 		const { overlayType, handle } = overlay.props
@@ -148,7 +153,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		ctx.save()
 		ctx.translate(state.bounds.x, state.bounds.y)
 		ctx.rotate(state.rotation)
-		ctx.translate(state.expandDx, state.expandDy)
+		ctx.translate(state.expandOffsetX, state.expandOffsetY)
 
 		const colors = this._getThemeColors()
 		this._renderSelectionBox(ctx, state, colors)
@@ -254,12 +259,19 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			})
 		}
 
-		const cp = this._getCornerLocalPoint(handle as SelectionCorner, state.width, state.height)
-		const s = Math.max(state.targetSizeX, state.targetSizeY) * 1.5
+		const cornerPoint = this._getCornerLocalPoint(
+			handle as SelectionCorner,
+			state.width,
+			state.height
+		)
+		const cornerHitHalfSize = Math.max(state.hitTargetSizeX, state.hitTargetSizeY) * 1.5
 		return new Polygon2d({
-			points: this._localRectToPoints(cp.x - s, cp.y - s, s * 2, s * 2).map((p) =>
-				Mat.applyToPoint(transform, p)
-			),
+			points: this._localRectToPoints(
+				cornerPoint.x - cornerHitHalfSize,
+				cornerPoint.y - cornerHitHalfSize,
+				cornerHitHalfSize * 2,
+				cornerHitHalfSize * 2
+			).map((p) => Mat.applyToPoint(transform, p)),
 			isFilled: true,
 		})
 	}
@@ -269,13 +281,14 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		state: SelectionState,
 		transform: Mat
 	): Geometry2d {
-		const cornerSize = Math.max(state.targetSizeX, state.targetSizeY) * 1.5
+		const cornerSize = Math.max(state.hitTargetSizeX, state.hitTargetSizeY) * 1.62
 		const center = this._getRotateHandleLocalCenter(handle, state.width, state.height, cornerSize)
 		const radius = cornerSize
-		return new Circle2d({
+		return new Rectangle2d({
 			x: center.x - radius,
 			y: center.y - radius,
-			radius,
+			width: radius * 2,
+			height: radius * 2,
 			isFilled: true,
 		}).transform(transform)
 	}
@@ -311,7 +324,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	) {
 		if (!state.showResizeHandles) return
 
-		const { size, width, height, hideAlternateCornerHandles, showOnlyOneHandle, zoom } = state
+		const { handleSize, width, height, hideAlternateCornerHandles, showOnlyOneHandle, zoom } = state
 
 		ctx.fillStyle = colors.bgColor
 		ctx.strokeStyle = colors.strokeColor
@@ -319,8 +332,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 		const drawCorner = (x: number, y: number, hidden: boolean) => {
 			if (hidden) return
-			ctx.fillRect(x - size / 2, y - size / 2, size, size)
-			ctx.strokeRect(x - size / 2, y - size / 2, size, size)
+			ctx.fillRect(x - handleSize / 2, y - handleSize / 2, handleSize, handleSize)
+			ctx.strokeRect(x - handleSize / 2, y - handleSize / 2, handleSize, handleSize)
 		}
 
 		drawCorner(0, 0, false) // top-left always shown
@@ -336,8 +349,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	) {
 		if (!state.showCropHandles) return
 
-		const { size, width, height, hideAlternateCropHandles } = state
-		const cropStrokeWidth = size / 3
+		const { handleSize, width, height, hideAlternateCropHandles } = state
+		const cropStrokeWidth = handleSize / 3
 		const offset = cropStrokeWidth / 2
 
 		ctx.beginPath()
@@ -347,41 +360,41 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		ctx.lineJoin = 'miter'
 
 		// top_left corner (always shown)
-		ctx.moveTo(-offset, size)
+		ctx.moveTo(-offset, handleSize)
 		ctx.lineTo(-offset, -offset)
-		ctx.lineTo(size, -offset)
+		ctx.lineTo(handleSize, -offset)
 
 		// bottom_right corner (always shown)
-		ctx.moveTo(width + offset, height - size)
+		ctx.moveTo(width + offset, height - handleSize)
 		ctx.lineTo(width + offset, height + offset)
-		ctx.lineTo(width - size, height + offset)
+		ctx.lineTo(width - handleSize, height + offset)
 
 		if (!hideAlternateCropHandles) {
 			// top_right corner
-			ctx.moveTo(width - size, -offset)
+			ctx.moveTo(width - handleSize, -offset)
 			ctx.lineTo(width + offset, -offset)
-			ctx.lineTo(width + offset, size)
+			ctx.lineTo(width + offset, handleSize)
 
 			// bottom_left corner
-			ctx.moveTo(size, height + offset)
+			ctx.moveTo(handleSize, height + offset)
 			ctx.lineTo(-offset, height + offset)
-			ctx.lineTo(-offset, height - size)
+			ctx.lineTo(-offset, height - handleSize)
 
 			// top edge
-			ctx.moveTo(width / 2 - size, -offset)
-			ctx.lineTo(width / 2 + size, -offset)
+			ctx.moveTo(width / 2 - handleSize, -offset)
+			ctx.lineTo(width / 2 + handleSize, -offset)
 
 			// right edge
-			ctx.moveTo(width + offset, height / 2 - size)
-			ctx.lineTo(width + offset, height / 2 + size)
+			ctx.moveTo(width + offset, height / 2 - handleSize)
+			ctx.lineTo(width + offset, height / 2 + handleSize)
 
 			// bottom edge
-			ctx.moveTo(width / 2 - size, height + offset)
-			ctx.lineTo(width / 2 + size, height + offset)
+			ctx.moveTo(width / 2 - handleSize, height + offset)
+			ctx.lineTo(width / 2 + handleSize, height + offset)
 
 			// left edge
-			ctx.moveTo(-offset, height / 2 - size)
-			ctx.lineTo(-offset, height / 2 + size)
+			ctx.moveTo(-offset, height / 2 - handleSize)
+			ctx.lineTo(-offset, height / 2 + handleSize)
 		}
 
 		ctx.stroke()
@@ -395,7 +408,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		if (!state.showMobileRotateHandle) return
 
 		const { cx, cy } = this._getMobileRotateCenter(state)
-		const fgRadius = state.size / SQUARE_ROOT_PI
+		const fgRadius = state.handleSize / SQUARE_ROOT_PI
 
 		ctx.fillStyle = colors.bgColor
 		ctx.strokeStyle = colors.strokeColor
@@ -418,18 +431,18 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			zoom,
 			width,
 			height,
-			size,
-			targetSizeY,
+			handleSize,
+			hitTargetSizeY,
 		} = state
 		if (!shouldDisplayControls || !isCoarsePointer || !onlyShape || onlyShape.type !== 'text') {
 			return
 		}
 
-		const textHandleHeight = Math.min(24 / zoom, height - targetSizeY * 3)
+		const textHandleHeight = Math.min(24 / zoom, height - hitTargetSizeY * 3)
 		if (textHandleHeight * zoom < 4) return
 
-		const hw = size / 2
-		const r = size / 4
+		const hw = handleSize / 2
+		const r = handleSize / 4
 
 		ctx.fillStyle = colors.strokeColor
 		ctx.beginPath()
@@ -475,21 +488,23 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 
 		const width = expandedBounds.width
 		const height = expandedBounds.height
-		const size = 8 / zoom
-		const isTinyX = width < size * 2
-		const isTinyY = height < size * 2
-		const isSmallX = width < size * 4
-		const isSmallY = height < size * 4
-		const isSmallCropX = width < size * 5
-		const isSmallCropY = height < size * 5
+		const handleSize = 8 / zoom
+		const isTinyX = width < handleSize * 2
+		const isTinyY = height < handleSize * 2
+		const isSmallX = width < handleSize * 4
+		const isSmallY = height < handleSize * 4
+		const isSmallCropX = width < handleSize * 5
+		const isSmallCropY = height < handleSize * 5
 
 		const mobileHandleMultiplier = isCoarsePointer ? 1.75 : 1
-		const targetSize = (6 / zoom) * mobileHandleMultiplier
-		const targetSizeX = (isSmallX ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
-		const targetSizeY = (isSmallY ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
+		const hitTargetSize = (6 / zoom) * mobileHandleMultiplier
+		const hitTargetSizeX =
+			(isSmallX ? hitTargetSize / 2 : hitTargetSize) * (mobileHandleMultiplier * 0.75)
+		const hitTargetSizeY =
+			(isSmallY ? hitTargetSize / 2 : hitTargetSize) * (mobileHandleMultiplier * 0.75)
 
-		const expandDx = expandedBounds.x - bounds.x
-		const expandDy = expandedBounds.y - bounds.y
+		const expandOffsetX = expandedBounds.x - bounds.x
+		const expandOffsetY = expandedBounds.y - bounds.y
 
 		const shouldDisplayControls =
 			editor.isInAny(
@@ -570,12 +585,12 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 			rotation,
 			width,
 			height,
-			size,
-			targetSize,
-			targetSizeX,
-			targetSizeY,
-			expandDx,
-			expandDy,
+			handleSize,
+			hitTargetSize,
+			hitTargetSizeX,
+			hitTargetSizeY,
+			expandOffsetX,
+			expandOffsetY,
 			isSmallX,
 			shouldDisplayControls,
 			shouldDisplayBox,
@@ -591,19 +606,19 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 	}
 
 	private _getMobileRotateCenter(state: SelectionState): { cx: number; cy: number } {
-		const { width, height, targetSize, isSmallX, onlyShape, rotation } = state
+		const { width, height, hitTargetSize, isSmallX, onlyShape, rotation } = state
 		const editor = this.editor
 		const isMediaShape =
 			!!onlyShape &&
 			(editor.isShapeOfType(onlyShape, 'image') || editor.isShapeOfType(onlyShape, 'video'))
 		const isShapeTooCloseToContextualToolbar = rotation / HALF_PI > 1.6 && rotation / HALF_PI < 2.4
 
-		const cx = isSmallX ? -targetSize * 1.5 : width / 2
+		const cx = isSmallX ? -hitTargetSize * 1.5 : width / 2
 		const cy = isSmallX
 			? height / 2
 			: isMediaShape && !isShapeTooCloseToContextualToolbar
-				? height + targetSize * 1.5
-				: -targetSize * 1.5
+				? height + hitTargetSize * 1.5
+				: -hitTargetSize * 1.5
 		return { cx, cy }
 	}
 
@@ -631,16 +646,16 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		edge: SelectionEdge,
 		state: SelectionState
 	): { x: number; y: number; w: number; h: number } {
-		const { width, height, targetSizeX, targetSizeY } = state
+		const { width, height, hitTargetSizeX, hitTargetSizeY } = state
 		switch (edge) {
 			case 'top':
-				return { x: 0, y: -targetSizeY, w: width, h: targetSizeY * 2 }
+				return { x: 0, y: -hitTargetSizeY, w: width, h: hitTargetSizeY * 2 }
 			case 'right':
-				return { x: width - targetSizeX, y: 0, w: targetSizeX * 2, h: height }
+				return { x: width - hitTargetSizeX, y: 0, w: hitTargetSizeX * 2, h: height }
 			case 'bottom':
-				return { x: 0, y: height - targetSizeY, w: width, h: targetSizeY * 2 }
+				return { x: 0, y: height - hitTargetSizeY, w: width, h: hitTargetSizeY * 2 }
 			case 'left':
-				return { x: -targetSizeX, y: 0, w: targetSizeX * 2, h: height }
+				return { x: -hitTargetSizeX, y: 0, w: hitTargetSizeX * 2, h: height }
 		}
 	}
 
