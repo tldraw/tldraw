@@ -2,8 +2,8 @@
 
 Issues:
 
-- https://github.com/tldraw/tldraw/issues/9502
-- https://github.com/tldraw/tldraw/issues/9497
+- <https://github.com/tldraw/tldraw/issues/9502>
+- <https://github.com/tldraw/tldraw/issues/9497>
 
 tldraw.com can capture PNG thumbnails of public boards by pointing Cloudflare Browser Run at a tldraw-owned render page. There are two consumers, both served by the sync worker:
 
@@ -18,7 +18,7 @@ The screenshot pipeline never hands Browser Run a user-provided URL. The worker 
 2. The sync worker validates the URL shape and host allowlist, then resolves the board by kind. Published boards resolve the slug through `SNAPSHOT_SLUG_TO_PARENT_SLUG` and the `file` row (`getPublishedFileInfo`) and must be published. Shared files resolve the slug directly as the `file.id` (`getSharedFileInfo`) and must pass the same anonymous-view gate the live file room enforces: the file exists, is not deleted, and is `shared` via link (`isFileAnonymouslyViewable`). `sharedLinkType` (`view` vs `edit`) is irrelevant to viewing; test-slug files are refused because they require admin auth the anonymous tool never has. Unknown, unpublished, or private boards fail without spending any Browser Run capacity.
 3. The worker builds an R2 cache key from board identity, a content version, viewport, dimensions, and theme. The version is the file's `lastPublished` for published boards and the persisted room snapshot's R2 etag for shared files, so republishing or editing rotates the key and thumbnails track the latest content. Cache hits in the `THUMBNAILS` bucket return immediately.
 4. On a miss, the worker mints an HMAC-signed render token (`renderTokens.ts`) containing the board identity and render parameters with a 5 minute expiry, and calls Browser Run's `/screenshot` Quick Action against `{MCP_SCREENSHOT_RENDER_ORIGIN}/__thumbnail-render?token=...`.
-5. The render page (`apps/dotcom/client/src/pages/thumbnail-render.tsx`) exchanges the token for snapshot data at `GET /api/app/thumbnail-snapshot`, which verifies the signature and expiry before returning records, schema, and render params. Published boards read a frozen R2 snapshot; shared files read the live persisted room snapshot from R2 (`env.ROOMS`) and re-check the share gate here, not just when the token was minted, so a board un-shared during the token's 5 minute window stops resolving. The page renders a hidden-UI, read-only editor and sets `data-thumbnail-ready` once fonts have settled, image assets have loaded, and the editor's `<img>` elements are stable. Browser Run waits on that selector.
+5. The render page (`apps/dotcom/client/src/pages/thumbnail-render.tsx`) exchanges the token for snapshot data at `GET /api/app/thumbnail-render/snapshot`, which verifies the signature and expiry before returning records, schema, and render params. Published boards read a frozen R2 snapshot; shared files read the live persisted room snapshot from R2 (`env.ROOMS`) and re-check the share gate here, not just when the token was minted, so a board un-shared during the token's 5 minute window stops resolving. The page renders a hidden-UI, read-only editor and sets `data-thumbnail-ready` once fonts have settled, image assets have loaded, and the editor's `<img>` elements are stable. Browser Run waits on that selector.
 6. The PNG is stored in the `THUMBNAILS` bucket and returned as an MCP image content item.
 
 ### OG images (queue-backed async rendering)
@@ -123,17 +123,17 @@ When tunnelling with Vite's host checks, start the client with:
 VITE_ALLOWED_HOSTS=your-tunnel-host.example yarn workspace dotcom exec vite dev --host 127.0.0.1 --port 3000 --strictPort
 ```
 
-The production path (`/__thumbnail-render` plus `/api/app/thumbnail-snapshot`) can be exercised locally against a locally published file: call `POST /app/mcp` on the local sync worker with `tools/call`; the returned render URL can be opened directly in a browser while the token is valid.
+The production path (`/__thumbnail-render` plus `/api/app/thumbnail-render/snapshot`) can be exercised locally against a locally published file: call `POST /app/mcp` on the local sync worker with `tools/call`; the returned render URL can be opened directly in a browser while the token is valid.
 
 ## MCP tool
 
 ```ts
 get_shared_board_screenshot({
-	url: string,
-	viewport: { x: number; y: number; z: number },
-	width?: number,
-	height?: number,
-	theme?: 'light' | 'dark',
+ url: string,
+ viewport: { x: number; y: number; z: number },
+ width?: number,
+ height?: number,
+ theme?: 'light' | 'dark',
 })
 ```
 
@@ -146,3 +146,45 @@ The screenshot layer lives in the dotcom sync worker rather than the interactive
 - Schedule `fetch-screenshot-metrics.ts --check` somewhere (cron CI job or an external monitor) and point a dashboard at the SQL queries above; the script and queries exist, the scheduling is an ops decision.
 - Shared files render the last persisted room snapshot from R2, which can lag in-memory edits by the persist debounce. If near-real-time accuracy is ever required, add a `getCurrentSnapshot` RPC on `TLFileDurableObject` (modeled on `onDownloadTldr`) instead of reading R2.
 - Keep private (unshared) files, board metadata, document structure, current-viewport screenshots, and selected-shape screenshots out of the MCP scope.
+
+## System map -- Proposal
+
+The pixels come from `editor.toImage` on the render page, not from a Browser Run screenshot: Browser Run's `/content` quick action only navigates the page and holds it open until the page signals success (`data-thumbnail-uploaded`) or failure (`data-thumbnail-error`). The page exports the image itself and uploads it to the R2 key signed into its render token.
+
+```mermaid
+flowchart TB
+    subgraph entry ["Entry points (sync worker)"]
+        MCP["POST /api/app/mcp<br/>get_shared_board_screenshot<br/>(synchronous, image in-band)"]
+        OGR["GET /api/app/og-image/:kind/:slug<br/>(serves R2 cache only, never waits)"]
+        SP["GET /app/social-preview/:prefix/:slug<br/>(crawler HTML: board name + og:image)"]
+        OGH["GET /app/og-html/:kind/:slug<br/>(duplicate crawler HTML — slated for removal)"]
+        QC["Queue consumer<br/>og-image-render (async refresh)"]
+    end
+
+    SP -->|og:image references| OGR
+    OGH -->|og:image references| OGR
+    OGR -->|stale / missing → enqueue| QC
+
+    MCP --> GATE["Resolve board + share gate<br/>(published or link-shared only)"]
+    QC --> GATE
+
+    GATE --> TOKEN["Mint HMAC render token<br/>(board identity, render params, uploadKey, 5 min expiry)"]
+    TOKEN --> BR["Browser Run /content quick action<br/>navigate + wait for uploaded/error selector"]
+
+    BR --> PAGE["/__thumbnail-render (client render page)"]
+    PAGE --> SNAP["GET /api/app/thumbnail-render/snapshot<br/>token → records + schema + render params"]
+    PAGE --> EXPORT["editor.toImage()<br/>viewport bounds · camera zoom · pixelRatio 1"]
+    EXPORT --> UPLOAD["PUT /api/app/thumbnail-render/result<br/>token-gated, writes only the signed uploadKey"]
+
+    UPLOAD --> R2[("THUMBNAILS R2 bucket<br/>mcp/… and og/… keys")]
+    R2 -->|read result| MCP
+    R2 -->|serve cached| OGR
+```
+
+### Planned consolidation
+
+- Rename `GET /app/og-image/:kind/:slug` to `GET /app/social-preview/:prefix/:slug/image`, so the crawler HTML and its image live under one route family.
+- Delete `GET /app/og-html/:kind/:slug` and its Vercel route: `getSocialPreview` supersedes it (board name in the title, human bounce-back). Removing the Vercel route also fixes a live bug — crawler-UA in-app browsers (WhatsApp, Pinterest) bounced back with the bypass param currently fall through to the og-html stub, which has no redirect, so real users never reach the board. It also makes `SOCIAL_PREVIEW_DISABLED` a complete kill switch; today it only disables the social-preview route while og-html keeps serving crawlers.
+- Drop the screenshot-era leftovers in `renderThumbnailWithBrowserRun`: the R2 read-back of the uploaded PNG (the og queue discards it; only the MCP path needs the bytes in-band, and it can fetch them itself) and the Browser Run `viewport`/`deviceScaleFactor` request options (the output size comes from the render page's fixed-size container and `editor.toImage`, not the browser window).
+- Move `useThumbnailPageSize` from `thumbnail-render.tsx` to the dev fixture page — only the dev capture script's browser-run mode still screenshots a viewport.
+- Consider moving the shared thumbnail dimension constants (default 1200x630, clamp 200-1600) into `@tldraw/dotcom-shared`; they are currently duplicated between `sharedBoardScreenshotMcp.ts` and `thumbnail-render.tsx`.
