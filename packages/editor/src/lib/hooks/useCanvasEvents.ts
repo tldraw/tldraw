@@ -1,6 +1,5 @@
 import { useValue } from '@tldraw/state-react'
 import React, { useEffect, useMemo } from 'react'
-import { RIGHT_MOUSE_BUTTON } from '../constants'
 import { tlenv } from '../globals/environment'
 import {
 	elementShouldCaptureKeys,
@@ -9,6 +8,7 @@ import {
 	setPointerCapture,
 } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
+import { getPointerEventButton, isDirectDisplayPen, isSecondaryClickEvent } from '../utils/pointer'
 import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
@@ -18,10 +18,16 @@ export function useCanvasEvents() {
 
 	const events = useMemo(
 		function canvasEvents() {
+			let isSecondaryClickPointerDown = false
+
 			function onPointerDown(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
+				const button = getPointerEventButton(e)
+				isSecondaryClickPointerDown = button === 2
 
-				if (e.button === RIGHT_MOUSE_BUTTON) {
+				// With right-click panning disabled, fire right_click on press and let the
+				// native contextmenu through so the menu opens at the pointer-down location.
+				if (button === 2 && !editor.options.rightClickPanning) {
 					editor.dispatch({
 						type: 'pointer',
 						target: 'canvas',
@@ -31,7 +37,11 @@ export function useCanvasEvents() {
 					return
 				}
 
-				if (e.button !== 0 && e.button !== 1 && e.button !== 5) return
+				if (button !== 0 && button !== 1 && button !== 2 && button !== 5) return
+
+				// Detect direct-display pen input (Apple Pencil, Surface Pen on a touchscreen) so we
+				// only auto-enable pen mode for it, not for an indirect desktop tablet stylus.
+				const isPenDirect = isDirectDisplayPen(e)
 
 				setPointerCapture(e.currentTarget, e)
 
@@ -40,12 +50,19 @@ export function useCanvasEvents() {
 					target: 'canvas',
 					name: 'pointer_down',
 					...getPointerInfo(editor, e),
+					isPenDirect,
 				})
 			}
 
 			function onPointerUp(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
-				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
+				const button = isSecondaryClickPointerDown ? 2 : getPointerEventButton(e)
+				if (button !== 0 && button !== 1 && button !== 2 && button !== 5) return
+
+				const rightClickPanning = editor.options.rightClickPanning
+				// Check before dispatch (which resets isPanning)
+				const wasRightClickPanning =
+					rightClickPanning && button === 2 && editor.inputs.getIsPanning()
 
 				releasePointerCapture(e.currentTarget, e)
 
@@ -54,7 +71,24 @@ export function useCanvasEvents() {
 					target: 'canvas',
 					name: 'pointer_up',
 					...getPointerInfo(editor, e),
+					button,
 				})
+
+				// Static right-click: fire contextmenu at the pointer-up location
+				if (rightClickPanning && button === 2 && !wasRightClickPanning) {
+					const contextMenuEvent = new PointerEvent('contextmenu', {
+						bubbles: true,
+						clientX: e.clientX,
+						clientY: e.clientY,
+						button: 2,
+						buttons: 0,
+						pointerId: e.pointerId,
+						pointerType: e.pointerType,
+						isPrimary: e.isPrimary,
+					})
+					e.currentTarget.dispatchEvent(contextMenuEvent)
+				}
+				isSecondaryClickPointerDown = false
 			}
 
 			function onPointerEnter(e: React.PointerEvent) {
@@ -143,6 +177,25 @@ export function useCanvasEvents() {
 				e.stopPropagation()
 			}
 
+			function onContextMenu(e: React.MouseEvent) {
+				// With right-click panning disabled, let the native contextmenu through so the
+				// menu opens on press.
+				if (!editor.options.rightClickPanning) return
+				// Synthetic events — our own dispatch from onPointerUp, or tests using
+				// fireEvent.contextMenu — pass through so Radix can open the menu.
+				if (!e.nativeEvent.isTrusted) return
+				// Only suppress the native browser contextmenu when it follows a
+				// secondary click. For those, our pointer handling has already
+				// decided what to do (either we'll dispatch a synthetic contextmenu on
+				// pointerup to open the menu at the release position, or we panned and
+				// don't want a menu at all).
+				//
+				// Other contextmenu sources must reach Radix so the menu opens:
+				// - long-press on touch devices (button=0, pointerType=touch)
+				if (!isSecondaryClickEvent(e)) return
+				preventDefault(e)
+			}
+
 			return {
 				onPointerDown,
 				onPointerUp,
@@ -153,6 +206,7 @@ export function useCanvasEvents() {
 				onTouchStart,
 				onTouchEnd,
 				onClick,
+				onContextMenu,
 			}
 		},
 		[editor]

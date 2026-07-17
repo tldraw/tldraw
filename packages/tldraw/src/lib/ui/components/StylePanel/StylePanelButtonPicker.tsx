@@ -6,9 +6,9 @@ import {
 	StyleProp,
 	TLDefaultColorStyle,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import { memo, useMemo, useRef } from 'react'
-import { useDefaultColorTheme } from '../../../shapes/shared/useDefaultColorTheme'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -61,8 +61,12 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 		onValueChange = ctx.onValueChange,
 		onHistoryMark = ctx.onHistoryMark,
 	} = props
-	const theme = useDefaultColorTheme()
 	const editor = useEditor()
+	const colors = useValue(
+		'style panel button picker colors',
+		() => editor.getCurrentTheme().colors[editor.getColorMode()],
+		[editor]
+	)
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
@@ -119,6 +123,11 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 		}
 
 		const handleButtonPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+			// Only apply on release if the scrub started in this picker. Otherwise
+			// releasing over a different style section selects that section's
+			// option, even though scrubbing can't cross sections. See #9223.
+			if (!rPointing.current) return
+
 			const { id } = e.currentTarget.dataset
 			if (value.type === 'shared' && value.value === id) return
 
@@ -165,7 +174,7 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 							title={label}
 							style={
 								style === (DefaultColorStyle as StyleProp<unknown>)
-									? { color: getColorValue(theme, item.value as TLDefaultColorStyle, 'solid') }
+									? { color: getColorValue(colors, item.value as TLDefaultColorStyle, 'solid') }
 									: undefined
 							}
 							onPointerEnter={handleButtonPointerEnter}

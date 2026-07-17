@@ -9,6 +9,7 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	can,
 	createMutators,
 	queries,
 	schema,
@@ -36,6 +37,7 @@ import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
+import { getSocialPreview } from './routes/getSocialPreview'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
@@ -49,11 +51,16 @@ import { Environment, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
-export { TLFileDurableObject } from './TLDrawDurableObject'
+import { getRole } from './utils/tla/getRole'
+export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLStatsDurableObject } from './TLStatsDurableObject'
 export { TLUserDurableObject } from './TLUserDurableObject'
+// no-op stub. wrangler.toml v1 created TLDrawDurableObject and v10 deletes it.
+// staging/prod still have it in their applied-migration history, so removing
+// this export breaks their deploys (see #8124). preview skips both v1 and v10,
+// so this export is just an unbound class on preview - harmless.
 export class TLDrawDurableObject {}
 
 const { preflight, corsify } = cors({
@@ -67,6 +74,10 @@ const router = createRouter<Environment>()
 	.all('*', blockUnknownOrigins)
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
+	// Social preview metadata for board links. Vercel routes social crawlers (by user-agent) here so
+	// the unfurled link preview includes the board's name. See apps/dotcom/client/scripts/build.ts.
+	// Registered with .all because some crawlers probe with HEAD before (or instead of) GET.
+	.all('/app/social-preview/:prefix/:slug', getSocialPreview)
 	.get(`/${ROOM_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_WRITE)
 	)
@@ -196,14 +207,15 @@ const router = createRouter<Environment>()
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
-		const result = await handleQueryRequest(
-			(name, args) => {
+		const result = await handleQueryRequest({
+			handler: (name, args) => {
 				const query = mustGetQuery(queries, name)
 				return query.fn({ args, ctx: { userId: auth.userId } })
 			},
 			schema,
-			req
-		)
+			request: req,
+			userID: auth.userId,
+		})
 		return json(result)
 	})
 	.all('*', notFound)
@@ -288,13 +300,10 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			} else if (isSharedEdit) {
 				// shared for editing
 			} else if (userId && file.owningGroupId) {
-				const member = await db
-					.selectFrom('group_user')
-					.select('role')
-					.where('groupId', '=', file.owningGroupId)
-					.where('userId', '=', userId)
-					.executeTakeFirst()
-				if (!member) return { ok: false, error: 'Forbidden' }
+				const role = await getRole(db, userId, file.owningGroupId)
+				if (!can(role, 'accessFiles')) {
+					return { ok: false, error: 'Forbidden' }
+				}
 			} else {
 				return { ok: false, error: 'Forbidden' }
 			}

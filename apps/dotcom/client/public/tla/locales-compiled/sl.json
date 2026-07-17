@@ -5,6 +5,12 @@
       "value": "Izvozi"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Sprejmi povabilo"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,6 +25,18 @@
     {
       "type": 1,
       "value": "GetHelpLink"
+    }
+  ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Povabi soigralce"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Dosegli ste največje dovoljeno število delovnih prostorov. Preden ustvarite nove, morate izbrisati stare delovne prostore."
     }
   ],
   "06b9281e39": [
@@ -63,10 +81,28 @@
       "value": "Meni datoteke"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Pri nalaganju tega povabila je prišlo do napake. Poskusite znova."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Pošlji povratne informacije"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Odstrani"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Kopiraj v osebni delovni prostor"
     }
   ],
   "110a4b01be": [
@@ -75,40 +111,16 @@
       "value": "Objavi"
     }
   ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Zapusti skupino"
-    }
-  ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Odpri datoteko"
     }
   ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Preizkusite SDK tldraw"
-    }
-  ],
   "13ddd375ad": [
     {
       "type": 0,
       "value": "Izvozi kot"
-    }
-  ],
-  "146ffe2fd9": [
-    {
-      "type": 0,
-      "value": "Prikaži več"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Izbriši skupino"
     }
   ],
   "181b90f889": [
@@ -129,10 +141,36 @@
       "value": "Danes"
     }
   ],
-  "2445e5e347": [
+  "1ffd709937": [
     {
       "type": 0,
-      "value": "Ustvari skupino"
+      "value": "Delovni prostor mora imeti vsaj enega lastnika. Najprej za lastnika določite nekoga drugega."
+    }
+  ],
+  "21f66c9c00": [
+    {
+      "type": 0,
+      "value": "Ime delovnega prostora"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Povabljeni ste bili, da se pridružite "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Za nadaljevanje ustvarite brezplačen račun."
     }
   ],
   "250ddea65c": [
@@ -147,10 +185,34 @@
       "value": "Nalaganje ni uspelo"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "Moje datoteke"
+      "value": "Dobrodošli v vašem delovnem prostoru"
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Iskanje ..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Z obnovo se trenutna povezava s povabilom nadomesti z novo. Vsakdo, ki uporablja staro povezavo, bo za pridružitev potreboval novo."
+    }
+  ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Vključi povezavo do trenutne datoteke"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Ponovno ustvari povezavo za povabilo"
     }
   ],
   "31246941ad": [
@@ -163,12 +225,6 @@
     {
       "type": 0,
       "value": "i18n: Oznaka manjka"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Dodaj povezavo"
     }
   ],
   "324a0f3182": [
@@ -187,6 +243,18 @@
     {
       "type": 0,
       "value": "Urednik"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Upravljanje"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Odstrani člana"
     }
   ],
   "3bc7d6ea2f": [
@@ -219,6 +287,12 @@
       "value": "Nepodprt diagram Mermaid"
     }
   ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Barvna tema"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -229,6 +303,26 @@
     {
       "type": 0,
       "value": "Poiščite pomoč pri Discordu"
+    }
+  ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Ali ste prepričani, da želite izbrisati datoteko "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "46137245cd": [
@@ -255,18 +349,6 @@
       "value": "Pripni datoteko"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "Prilepi URL datoteke tldraw ..."
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Ali ste prepričani, da želite pozabiti to datoteko?"
-    }
-  ],
   "49ee308734": [
     {
       "type": 0,
@@ -285,24 +367,6 @@
       "value": "Ponovno naloži"
     }
   ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Izbriši skupino …"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Več možnosti"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Ali ste prepričani, da želite izbrisati to skupino? Tega dejanja ni mogoče razveljaviti."
-    }
-  ],
   "5097d89907": [
     {
       "type": 0,
@@ -313,6 +377,12 @@
     {
       "type": 0,
       "value": "Ni mogoče preklicati objave datoteke."
+    }
+  ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "To je vaš zasebni delovni prostor. Ustvarite nov delovni prostor, da povabite soigralce."
     }
   ],
   "517bb809d9": [
@@ -355,6 +425,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Ustvarite delovni prostor"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -365,40 +441,6 @@
     {
       "type": 0,
       "value": "Politika zasebnosti"
-    }
-  ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Za začetek povlecite datoteke sem, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "ustvarite datoteko"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": " ali "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "kopirajte povezavo za povabilo"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": "."
     }
   ],
   "5a95a425f7": [
@@ -413,10 +455,10 @@
       "value": "Zaznan je bil star brskalnik. Za uporabo te aplikacije posodobite brskalnik."
     }
   ],
-  "5c6fe42bc2": [
+  "5bff3c9c88": [
     {
       "type": 0,
-      "value": "Prekliči to povezavo in ustvari novo."
+      "value": "Moj delovni prostor"
     }
   ],
   "5d04a002ea": [
@@ -429,12 +471,6 @@
     {
       "type": 0,
       "value": "Nekatere vsebine, ki ste jo ustvarili, preden ste se prijavili, nismo uspeli naložiti."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Povabljeni ste bili, da se pridružite skupini:"
     }
   ],
   "5f3c333678": [
@@ -485,10 +521,22 @@
       "value": "Na voljo je nova različica tldraw. Za nadaljevanje znova naložite stran."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Nova datoteka"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Vnesite svoj e-poštni naslov"
+    }
+  ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Izbriši delovni prostor"
     }
   ],
   "6a26f54883": [
@@ -507,12 +555,6 @@
     {
       "type": 0,
       "value": "Za ročni uvoz vsebine sledite tem korakom:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Nastavitve skupine"
     }
   ],
   "70a6facb9d": [
@@ -537,6 +579,12 @@
     {
       "type": 0,
       "value": "Ponovno naložite stran"
+    }
+  ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Ni najdenih datotek"
     }
   ],
   "752b79f137": [
@@ -569,12 +617,6 @@
       "value": "Ponovno naložite"
     }
   ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw je brezplačna spletna tabla. Ustvarite račun za shranjevanje datotek in sodelovanje s prijatelji."
-    }
-  ],
   "777f9e90cf": [
     {
       "type": 0,
@@ -597,6 +639,12 @@
     {
       "type": 0,
       "value": "Predložite težavo na GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Privzeto"
     }
   ],
   "7b1329f5ca": [
@@ -623,12 +671,6 @@
       "value": "Pozabi"
     }
   ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Zapusti skupino …"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -645,6 +687,12 @@
     {
       "type": 0,
       "value": "Prenesi"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Nov delovni prostor"
     }
   ],
   "815e116a2e": [
@@ -681,6 +729,32 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Ali ste prepričani, da želite pozabiti "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Član"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -707,10 +781,16 @@
       "value": "Preimenuj datoteko"
     }
   ],
-  "8ad4303b83": [
+  "87fdb09de6": [
     {
       "type": 0,
-      "value": "Ne, hvala."
+      "value": "Ste že član tega delovnega prostora"
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Ta povezava za povabilo je potekla"
     }
   ],
   "8c2d3d730c": [
@@ -743,22 +823,24 @@
       "value": "Preimenuj"
     }
   ],
-  "91e49bb0eb": [
+  "90646db02d": [
     {
       "type": 0,
-      "value": "Kopiraj v moje datoteke"
-    }
-  ],
-  "930390d222": [
+      "value": "Ali ste prepričani, da želite izbrisati "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
     {
       "type": 0,
-      "value": "Povezava za povabilo je bila kopirana"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Ste že član te skupine"
+      "value": "? Tega dejanja ni mogoče razveljaviti."
     }
   ],
   "95aacd4d4a": [
@@ -785,16 +867,16 @@
       "value": "Pogoji uporabe"
     }
   ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Dodaj povezavo do datoteke"
-    }
-  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Svetlo"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Počisti iskanje"
     }
   ],
   "9b33f5c63c": [
@@ -847,6 +929,26 @@
       "value": "Odjavi se"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Povabljeni ste bili, da se pridružite "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -889,6 +991,12 @@
       "value": "Predloži"
     }
   ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Odidi"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -911,6 +1019,12 @@
     {
       "type": 0,
       "value": "Ozadje"
+    }
+  ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Ustvari delovni prostor"
     }
   ],
   "ab0df9ba36": [
@@ -937,6 +1051,12 @@
       "value": "Gostujoči uporabnik"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Regeneriraj"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -949,10 +1069,10 @@
       "value": "E-poštni naslov"
     }
   ],
-  "b3d2db69fe": [
+  "b48becc771": [
     {
       "type": 0,
-      "value": "URL datoteke"
+      "value": "Omogoči povabila"
     }
   ],
   "b6d4223e60": [
@@ -979,10 +1099,10 @@
       "value": "Prijavite se za skupno rabo"
     }
   ],
-  "bb93a7590f": [
+  "bbaaf8b6bf": [
     {
       "type": 0,
-      "value": "Sprejmi in se pridruži skupini"
+      "value": "Povabila so onemogočena"
     }
   ],
   "bbbcefd7ce": [
@@ -1045,30 +1165,16 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Upravljanje delovnega prostora"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Preberite več o skupni rabi."
-    }
-  ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Dovoli "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": ", da nam pomaga izboljšati tldraw."
     }
   ],
   "c303bd1095": [
@@ -1083,12 +1189,6 @@
       "value": "Bistveni piškotki"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Ime skupine"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1101,10 +1201,10 @@
       "value": "Povabi"
     }
   ],
-  "c74ea6dbff": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Prikaži manj"
+      "value": "Kopiraj v moj delovni prostor"
     }
   ],
   "c87aacf567": [
@@ -1117,12 +1217,6 @@
     {
       "type": 0,
       "value": "Zavrzi"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Shrani"
     }
   ],
   "cceaefbc20": [
@@ -1225,22 +1319,16 @@
       "value": "Za ogled vsebine pojdite sem"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Dosegli ste največje dovoljeno število skupin. Preden ustvarite nove skupine, morate izbrisati stare."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Samo povabljeni"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "Neveljaven URL datoteke tldraw"
+      "value": "Zapustite delovni prostor"
     }
   ],
   "dfdb78a4e4": [
@@ -1249,10 +1337,10 @@
       "value": "Zastavice za odpravljanje napak v aplikaciji"
     }
   ],
-  "e0c88179b3": [
+  "e0aa021e21": [
     {
       "type": 0,
-      "value": "Povabi člane"
+      "value": "V redu"
     }
   ],
   "e2198d6228": [
@@ -1267,12 +1355,6 @@
       "value": "Pravni povzetek"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Skrbnik"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
@@ -1285,16 +1367,16 @@
       "value": "ali"
     }
   ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Nevarno območje"
-    }
-  ],
   "ea4788705e": [
     {
       "type": 0,
       "value": "Prekliči"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Prosite lastnika delovnega prostora za novega."
     }
   ],
   "ebfe9ce86e": [
@@ -1389,12 +1471,6 @@
       "value": "Nastavitve"
     }
   ],
-  "f714e36843": [
-    {
-      "type": 0,
-      "value": "Ali ste prepričani, da želite zapustiti to skupino?"
-    }
-  ],
   "fa2ead697d": [
     {
       "type": 0,
@@ -1407,10 +1483,10 @@
       "value": "Gledalec"
     }
   ],
-  "fd1be3efcf": [
+  "fc9d47046b": [
     {
       "type": 0,
-      "value": "Ali ste prepričani, da želite izbrisati to datoteko?"
+      "value": "Ali ste prepričani, da želite zapustiti ta delovni prostor?"
     }
   ],
   "fed5ec05eb": [
@@ -1419,10 +1495,24 @@
       "value": "Povezava kopirana"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Dodaj povezavo do datoteke …"
+      "value": "Ali ste prepričani, da želite odstraniti "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " iz tega delovnega prostora?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Ustvarite brezplačen račun za shranjevanje datotek in risanje s soigralci."
     }
   ],
   "ffcd73e997": [

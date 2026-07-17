@@ -1,10 +1,24 @@
 /** @type {import('next').NextConfig} */
 
-// Configurable domain for rewrites
-const REWRITE_DOMAIN = 'tldrawdotdev.framer.website'
+function resolveAssetOrigin() {
+	const explicit =
+		process.env.ASSET_PREFIX?.trim() ||
+		process.env.NEXT_PUBLIC_ASSET_PREFIX?.trim() ||
+		process.env.NEXT_PUBLIC_DOCS_ASSET_PREFIX?.trim()
+	if (explicit) return explicit.replace(/\/$/, '')
+
+	const vercelUrl = process.env.VERCEL_URL?.trim() || process.env.NEXT_PUBLIC_VERCEL_URL?.trim()
+	if (vercelUrl) {
+		const host = vercelUrl.replace(/^https?:\/\//, '')
+		return `https://${host}`
+	}
+
+	return undefined
+}
 
 const nextConfig = {
 	reactStrictMode: true,
+	assetPrefix: resolveAssetOrigin(),
 	experimental: {
 		scrollRestoration: true,
 	},
@@ -186,107 +200,24 @@ const nextConfig = {
 				destination: '/starter-kits/overview',
 				permanent: true,
 			},
+			{
+				source: '/discord',
+				destination: 'https://discord.com/invite/s4FXZ6fppJ',
+				permanent: false,
+			},
 		]
 	},
 	async rewrites() {
-		const rewrites = {
+		return {
+			// Canonical top-level URLs (/quick-start, …) are not in the content DB; articles
+			// live under /getting-started/*. Redirects send /getting-started/:id → /:id;
+			// these rewrites serve the article without a second hop (avoids /quick-start 404).
 			beforeFiles: [
-				{
-					source: '/',
-					destination: `https://${REWRITE_DOMAIN}/`,
-				},
-				{
-					source: '/404',
-					destination: `https://${REWRITE_DOMAIN}/404`,
-				},
-				{
-					source: '/accessibility',
-					destination: `https://${REWRITE_DOMAIN}/accessibility`,
-				},
-				{
-					source: '/blog/announcements',
-					destination: `https://${REWRITE_DOMAIN}/blog/category/announcements`,
-				},
-				{
-					source: '/blog/case-studies',
-					destination: `https://${REWRITE_DOMAIN}/blog/category/case-studies`,
-				},
-				{
-					source: '/blog/product',
-					destination: `https://${REWRITE_DOMAIN}/blog/category/product`,
-				},
-				{
-					source: '/blog/release-notes',
-					destination: `https://${REWRITE_DOMAIN}/blog/category/release-notes`,
-				},
-				{
-					source: '/blog',
-					destination: `https://${REWRITE_DOMAIN}/blog`,
-				},
-				{
-					source: '/blog/:path+',
-					destination: `https://${REWRITE_DOMAIN}/blog/:path*`,
-				},
-				{
-					source: '/careers',
-					destination: `https://${REWRITE_DOMAIN}/careers`,
-				},
-				{
-					source: '/company',
-					destination: `https://${REWRITE_DOMAIN}/company`,
-				},
-				{
-					source: '/events',
-					destination: `https://${REWRITE_DOMAIN}/events`,
-				},
-				{
-					source: '/faq',
-					destination: `https://${REWRITE_DOMAIN}/faq`,
-				},
-				{
-					source: '/features/:path*',
-					destination: `https://${REWRITE_DOMAIN}/features/:path*`,
-				},
-				{
-					source: '/get-a-license/:path*',
-					destination: `https://${REWRITE_DOMAIN}/get-a-license/:path*`,
-				},
-				{
-					source: '/legal/:path*',
-					destination: `https://${REWRITE_DOMAIN}/legal/:path*`,
-				},
-				{
-					source: '/partner',
-					destination: `https://${REWRITE_DOMAIN}/partner`,
-				},
-				{
-					source: '/pricing',
-					destination: `https://${REWRITE_DOMAIN}/pricing`,
-				},
-				{
-					source: '/showcase',
-					destination: `https://${REWRITE_DOMAIN}/showcase`,
-				},
-				{
-					source: '/thanks',
-					destination: `https://${REWRITE_DOMAIN}/thanks`,
-				},
-				{
-					source: '/releases',
-					destination: '/getting-started/releases',
-				},
-				{
-					source: '/quick-start',
-					destination: '/getting-started/quick-start',
-				},
-				{
-					source: '/installation',
-					destination: '/getting-started/installation',
-				},
+				{ source: '/quick-start', destination: '/getting-started/quick-start' },
+				{ source: '/installation', destination: '/getting-started/installation' },
+				{ source: '/releases', destination: '/getting-started/releases' },
 			],
 		}
-
-		return rewrites
 	},
 }
 

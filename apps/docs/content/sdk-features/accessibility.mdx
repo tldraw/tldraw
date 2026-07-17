@@ -106,7 +106,7 @@ editor.updateShapes([
 
 ### Custom shape descriptions
 
-Custom shapes can provide screen reader descriptions by overriding [ShapeUtil#getAriaDescriptor](?):
+Give custom shapes screen reader descriptions by overriding [ShapeUtil#getAriaDescriptor](?):
 
 ```tsx
 class CardShapeUtil extends ShapeUtil<CardShape> {
@@ -156,7 +156,7 @@ The hook returns `true` when:
 - The `animationSpeed` preference is 0 (the default when the OS prefers reduced motion)
 - When used outside an editor context, the operating system's reduced motion preference is enabled
 
-Users can toggle reduced motion through the accessibility menu under Help.
+Users can toggle reduced motion through the accessibility menu, found under Preferences in the main menu.
 
 > See the [reduced motion example](/examples/configuration/reduced-motion) for a custom shape that respects motion preferences.
 
@@ -174,7 +174,7 @@ editor.user.updateUserPreferences({
 
 ## Disabling keyboard shortcuts
 
-Some users prefer or require keyboard shortcuts to be disabled, particularly when using assistive technologies that have their own keyboard commands. The `areKeyboardShortcutsEnabled` preference controls this:
+Assistive technologies often have their own keyboard commands that conflict with tldraw's shortcuts. The `areKeyboardShortcutsEnabled` preference lets users turn tldraw's shortcuts off:
 
 ```tsx
 editor.user.updateUserPreferences({
@@ -186,7 +186,7 @@ When disabled, tldraw's keyboard shortcuts don't interfere with assistive techno
 
 ## Accessibility menu
 
-The default UI includes an accessibility submenu under Help with toggles for:
+The default UI includes an accessibility submenu under Preferences in the main menu, with toggles for:
 
 | Setting                     | Effect                                        |
 | --------------------------- | --------------------------------------------- |
@@ -227,7 +227,7 @@ For more on creating custom shapes, see [Custom shapes](/docs/shapes).
 Enable the `a11y` debug flag to log accessibility announcements to the console:
 
 ```tsx
-import { debugFlags } from '@tldraw/editor'
+import { debugFlags } from 'tldraw'
 
 debugFlags.a11y.set(true)
 ```

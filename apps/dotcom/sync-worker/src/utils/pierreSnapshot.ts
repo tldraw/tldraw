@@ -1,6 +1,6 @@
 import type { Repo } from '@pierre/storage'
 import type { RoomSnapshot } from '@tldraw/sync-core'
-import type { PierreMeta } from '../TLDrawDurableObject'
+import type { PierreMeta } from '../TLFileDurableObject'
 import { readTarStream } from './tarStreamReader'
 
 /** Actual format from Pierre: listFiles and getArchiveStream use repo-root paths with no prefix. */

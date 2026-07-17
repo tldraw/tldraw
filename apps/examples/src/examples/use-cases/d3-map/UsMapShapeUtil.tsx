@@ -71,10 +71,10 @@ export class UsMapShapeUtil extends ShapeUtil<UsMapShape> {
 		return { w: MAP_WIDTH, h: MAP_HEIGHT }
 	}
 
-	override canResize() {
+	override canResize(shape: UsMapShape) {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(shape: UsMapShape) {
 		return true
 	}
 
@@ -126,7 +126,9 @@ export class UsMapShapeUtil extends ShapeUtil<UsMapShape> {
 		)
 	}
 
-	indicator(shape: UsMapShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: UsMapShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }

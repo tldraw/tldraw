@@ -56,6 +56,12 @@ This will add a template entry for any workspace in the repo which has a `packag
 }
 ```
 
+## Documentation
+
+Documentation for the most recent release can be found on [tldraw.dev/docs](https://tldraw.dev/docs), including [reference docs](https://tldraw.dev/reference/editor/Editor). Our release notes can be found [here](https://tldraw.dev/releases).
+
+For more agent-friendly docs, see our [LLMs.txt](https://tldraw.dev/llms.txt).
+
 ## License
 
 This project is part of the tldraw SDK. It is provided under the [tldraw SDK license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).

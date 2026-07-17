@@ -32,12 +32,6 @@ export function Component({ error }: { error?: unknown }) {
 		}
 	}, [error, userId])
 
-	useEffect(() => {
-		if (app && fileSlug) {
-			app.ensureFileVisibleInSidebar(fileSlug)
-		}
-	}, [app, fileSlug])
-
 	if (!userId) {
 		return (
 			// Override TlaEditor's internal ReadyWrapper. This prevents the anon layout chrome from rendering

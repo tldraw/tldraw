@@ -16,7 +16,7 @@
 		}
 	},
 	"scripts": {
-		"dev": "vite",
+		"dev": "vite --host",
 		"build": "tsc && vite build",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"preview": "vite preview"
@@ -33,7 +33,7 @@
 		"@vitejs/plugin-react": "^6.0.1",
 		"@vitejs/plugin-vue": "^6.0.5",
 		"typescript": "^5.8.3",
-		"vite": "^8.0.1",
+		"vite": "^8.0.16",
 		"vite-plugin-vue-devtools": "^8.1.0",
 		"vue-tsc": "^3.0.1"
 	}

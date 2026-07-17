@@ -1,0 +1,66 @@
+.soft-clip-overlay {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+.soft-clip-overlay path {
+	fill: rgb(248, 249, 250);
+}
+
+.soft-clip-controls {
+	position: absolute;
+	bottom: 60px;
+	left: 50%;
+	transform: translateX(-50%);
+	pointer-events: all;
+	z-index: 300;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 8px;
+	padding: 10px 14px;
+	background: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 10px;
+	box-shadow: var(--tl-shadow-2);
+	color: var(--tl-color-text);
+	font-size: 13px;
+	min-width: 240px;
+}
+
+.soft-clip-slider {
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	align-items: center;
+	gap: 10px;
+}
+
+.soft-clip-slider input[type='range'] {
+	width: 100%;
+	accent-color: var(--tl-color-selected);
+}
+
+.soft-clip-slider-value {
+	font-variant-numeric: tabular-nums;
+	color: var(--tl-color-text-1);
+	min-width: 38px;
+	text-align: right;
+}
+
+.soft-clip-controls button {
+	background: var(--tl-color-low);
+	color: var(--tl-color-text);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 8px;
+	padding: 8px 14px;
+	font: inherit;
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.soft-clip-controls button:hover {
+	background: var(--tl-color-hint);
+}

@@ -1,4 +1,4 @@
-import { useEditor, usePresence, useValue } from '@tldraw/editor'
+import { TLUserId, useEditor, usePresence, useValue } from '@tldraw/editor'
 
 /** @public @react */
 export function DefaultFollowingIndicator() {
@@ -10,7 +10,7 @@ export function DefaultFollowingIndicator() {
 	return <FollowingIndicatorInner userId={followingUserId} />
 }
 
-function FollowingIndicatorInner({ userId }: { userId: string }) {
+function FollowingIndicatorInner({ userId }: { userId: TLUserId }) {
 	const presence = usePresence(userId)
 	if (!presence) return null
 	return <div className="tlui-following-indicator" style={{ borderColor: presence.color }} />

@@ -6,7 +6,7 @@ const simplifyNumber = (n: number) => {
 	}
 	return n
 }
-export const getSnapLines = (scene: Editor) => {
+export function getSnapLines(scene: Editor) {
 	const result = []
 	for (const snap of scene.snaps.getIndicators()) {
 		if (snap.type !== 'points') {

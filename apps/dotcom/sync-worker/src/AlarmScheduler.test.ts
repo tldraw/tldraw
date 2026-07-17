@@ -5,7 +5,7 @@ import { AlarmScheduler } from './AlarmScheduler'
 vi.useFakeTimers()
 
 function makeMockAlarmScheduler<Key extends string>(alarms: {
-	[K in Key]: ReturnType<typeof vi.fn>
+	[K in Key]: ReturnType<typeof vi.fn<(...args: any[]) => any>>
 }) {
 	const data = new Map<string, number>()
 	let scheduledAlarm: number | null = null

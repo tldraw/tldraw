@@ -41,6 +41,7 @@ export async function addContentToDb(
       date,
       sourceUrl,
 			componentCode,
+			componentCodeFilename,
 			componentCodeFiles,
       keywords,
 	  apiTags,
@@ -48,7 +49,7 @@ export async function addContentToDb(
 			path,
 			embed,
 			githubLink
-    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	)
 
 	for (let i = 0; i < content.sections.length; i++) {
@@ -112,6 +113,7 @@ export async function addContentToDb(
 				article.date,
 				article.sourceUrl,
 				article.componentCode,
+				article.componentCodeFilename,
 				article.componentCodeFiles,
 				article.keywords.join(', '),
 				article.apiTags,

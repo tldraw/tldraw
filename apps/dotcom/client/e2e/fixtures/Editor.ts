@@ -52,8 +52,8 @@ export class Editor {
 	}
 
 	@step
-	async expectShapesCount(expected: number) {
-		await expect(this.shapes).toHaveCount(expected)
+	async expectShapesCount(expected: number, timeout?: number) {
+		await expect(this.shapes).toHaveCount(expected, { timeout })
 	}
 
 	async getCurrentFileName() {

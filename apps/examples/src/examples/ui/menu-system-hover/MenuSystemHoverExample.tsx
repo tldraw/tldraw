@@ -67,11 +67,9 @@ function HoverControlledMenu() {
 export default function MenuSystemHoverExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				components={{
-					InFrontOfTheCanvas: HoverControlledMenu,
-				}}
-			/>
+			<Tldraw>
+				<HoverControlledMenu />
+			</Tldraw>
 		</div>
 	)
 }

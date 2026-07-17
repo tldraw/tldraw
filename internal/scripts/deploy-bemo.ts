@@ -33,6 +33,7 @@ const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 	shouldNotify: env.TLDRAW_ENV === 'production',
 	totalSteps: 3,
+	secretValues: Object.values(env),
 })
 
 const { previewId, sha } = getDeployInfo()

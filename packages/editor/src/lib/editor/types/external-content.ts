@@ -60,9 +60,8 @@ export interface TLFileReplaceExternalContent extends TLBaseExternalContent {
 	type: 'file-replace'
 	file: File
 	shapeId: TLShapeId
+	/** @deprecated This field is no longer used by the default handler. It may be removed in a future version. */
 	isImage: boolean
-	isVideo?: boolean
-	isAudio?: boolean
 }
 
 /** @public */

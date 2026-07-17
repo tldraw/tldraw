@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { useCallback, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import {
 	Box,
 	Editor,
@@ -39,19 +39,16 @@ export function TlaExportTab() {
 
 	const preferences = useValue('preferences', () => getExportPreferences(app), [app])
 
-	const onChange = useCallback(
-		<T extends keyof TldrawAppSessionState['exportSettings']>(
-			key: T,
-			value: TldrawAppSessionState['exportSettings'][T]
-		) => {
-			if (app) {
-				app.updateUserExportPreferences({ [key]: value })
-			} else {
-				updateLocalSessionState((s) => ({ exportSettings: { ...s.exportSettings, [key]: value } }))
-			}
-		},
-		[app]
-	)
+	const onChange = <T extends keyof TldrawAppSessionState['exportSettings']>(
+		key: T,
+		value: TldrawAppSessionState['exportSettings'][T]
+	) => {
+		if (app) {
+			app.updateUserExportPreferences({ [key]: value })
+		} else {
+			updateLocalSessionState((s) => ({ exportSettings: { ...s.exportSettings, [key]: value } }))
+		}
+	}
 
 	const { exportPadding, exportBackground, exportTheme, exportFormat } = preferences
 
@@ -81,11 +78,11 @@ function ExportPaddingToggle({
 }) {
 	const trackEvent = useTldrawAppUiEvents()
 
-	const handleChange = useCallback(() => {
+	const handleChange = () => {
 		const padding = !value
 		onChange('exportPadding', padding)
 		trackEvent('toggle-export-padding', { padding, source: 'file-share-menu' })
-	}, [trackEvent, value, onChange])
+	}
 
 	return (
 		<TlaMenuControl>
@@ -109,11 +106,11 @@ function ExportBackgroundToggle({
 }) {
 	const trackEvent = useTldrawAppUiEvents()
 
-	const handleChange = useCallback(() => {
+	const handleChange = () => {
 		const background = !value
 		onChange('exportBackground', background)
 		trackEvent('toggle-export-background', { background, source: 'file-share-menu' })
-	}, [value, onChange, trackEvent])
+	}
 
 	return (
 		<TlaMenuControl>
@@ -137,13 +134,10 @@ function ExportFormatSelect({
 }) {
 	const trackEvent = useTldrawAppUiEvents()
 
-	const handleChange = useCallback(
-		(value: TldrawAppSessionState['exportSettings']['exportFormat']) => {
-			onChange('exportFormat', value)
-			trackEvent('set-export-format', { format: value, source: 'file-share-menu' })
-		},
-		[onChange, trackEvent]
-	)
+	const handleChange = (value: TldrawAppSessionState['exportSettings']['exportFormat']) => {
+		onChange('exportFormat', value)
+		trackEvent('set-export-format', { format: value, source: 'file-share-menu' })
+	}
 
 	return (
 		<TlaMenuControl>
@@ -179,13 +173,10 @@ function ExportThemeSelect({
 }) {
 	const label = useMsg(messages[value as 'auto' | 'light' | 'dark'])
 	const trackEvent = useTldrawAppUiEvents()
-	const handleChange = useCallback(
-		(value: TldrawAppSessionState['exportSettings']['exportTheme']) => {
-			onChange('exportTheme', value)
-			trackEvent('set-export-theme', { theme: value, source: 'file-share-menu' })
-		},
-		[onChange, trackEvent]
-	)
+	const handleChange = (value: TldrawAppSessionState['exportSettings']['exportTheme']) => {
+		onChange('exportTheme', value)
+		trackEvent('set-export-theme', { theme: value, source: 'file-share-menu' })
+	}
 
 	return (
 		<TlaMenuControl>
@@ -213,7 +204,7 @@ function ExportImageButton() {
 
 	const [exported, setExported] = useState(false)
 
-	const handleClick = useCallback(() => {
+	const handleClick = () => {
 		if (exported) return
 
 		const editor = getCurrentEditor()
@@ -253,7 +244,7 @@ function ExportImageButton() {
 		return () => {
 			setExported(false)
 		}
-	}, [exported, trackEvent, app])
+	}
 
 	return (
 		<>

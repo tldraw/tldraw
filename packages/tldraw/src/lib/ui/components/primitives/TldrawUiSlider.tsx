@@ -13,7 +13,6 @@ export interface TLUiSliderProps {
 	label: string
 	title: string
 	onValueChange(value: number): void
-	onPointerUp?(): void
 	onHistoryMark?(id: string): void
 	'data-testid'?: string
 	ariaValueModifier?: number
@@ -29,7 +28,6 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 		value,
 		label,
 		onValueChange,
-		onPointerUp,
 		['data-testid']: testId,
 		ariaValueModifier = 1,
 	}: TLUiSliderProps,
@@ -58,10 +56,6 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 		hideAllTooltips()
 		onHistoryMark?.('click slider')
 	}, [onHistoryMark])
-
-	const handlePointerUp = useCallback(() => {
-		onPointerUp?.()
-	}, [onPointerUp])
 
 	// N.B. This is a bit silly. The Radix slider auto-focuses which
 	// triggers TldrawUiTooltip handleFocus when we dbl-click to edit an image,
@@ -100,7 +94,6 @@ export const TldrawUiSlider = React.forwardRef<HTMLDivElement, TLUiSliderProps>(
 					step={1}
 					value={value !== null ? [value] : undefined}
 					onPointerDown={handlePointerDown}
-					onPointerUp={handlePointerUp}
 					onValueChange={handleValueChange}
 					onKeyDownCapture={handleKeyEvent}
 					onKeyUpCapture={handleKeyEvent}

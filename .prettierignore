@@ -18,6 +18,9 @@ content.json
 apps/docs/utils/vector-db/index.json
 **/gen/**/*.md
 .github/pull_request_template.md
+skills
+.agents
+.cursor
 
 **/api-report.md
 **/api-report.api.md

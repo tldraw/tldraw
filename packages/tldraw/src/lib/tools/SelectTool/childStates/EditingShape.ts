@@ -10,7 +10,10 @@ import {
 import { getTextLabels } from '../../../utils/shapes/shapes'
 import { renderPlaintextFromRichText } from '../../../utils/text/richText'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
+import {
+	cancelUpdateHoveredShapeId,
+	updateHoveredShapeId,
+} from '../../selection-logic/updateHoveredShapeId'
 
 interface EditingShapeInfo {
 	isCreatingTextWhileToolLocked?: boolean
@@ -41,6 +44,7 @@ export class EditingShape extends StateNode {
 			this.parent.setCurrentToolIdMask('text')
 		}
 
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 		updateHoveredShapeId(this.editor)
 		this.editor.select(editingShape)
 	}
@@ -49,7 +53,7 @@ export class EditingShape extends StateNode {
 		const hadEditingShape = !!this.editor.getEditingShapeId()
 		this.editor.setEditingShape(null)
 
-		updateHoveredShapeId.cancel()
+		cancelUpdateHoveredShapeId(this.editor)
 
 		if (this.info.isCreatingTextWhileToolLocked && hadEditingShape) {
 			this.parent.setCurrentToolIdMask(undefined)
@@ -159,8 +163,8 @@ export class EditingShape extends StateNode {
 					}
 				} else {
 					if (selectingShape.id === editingShape.id) {
-						// If we clicked on a frame, while editing its heading, cancel editing
-						if (this.editor.isShapeOfType(selectingShape, 'frame')) {
+						// If we clicked on a frame-like shape while editing its heading, cancel editing
+						if (this.editor.isShapeFrameLike(selectingShape)) {
 							this.editor.setEditingShape(null)
 							this.parent.transition('idle', info)
 						}

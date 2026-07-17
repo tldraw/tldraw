@@ -120,7 +120,12 @@ export function generateSection(section: InputSection, articles: Articles, index
 				? sectionUncategorizedArticles
 				: sectionCategoryArticles[category.id]
 
-		categoryArticles.sort(sortArticles).forEach((article, i) => {
+		const sortedArticles =
+			sectionId === 'releases'
+				? sortReleaseArticles(categoryArticles)
+				: categoryArticles.sort(sortArticles)
+
+		sortedArticles.forEach((article, i) => {
 			article.categoryIndex = i
 			article.sectionIndex = articleSectionIndex
 			assignToArticles(getArticleKey(article), article)
@@ -148,6 +153,39 @@ const sortArticles = (articleA: Article, articleB: Article) => {
 	return categoryIndexA === categoryIndexB
 		? titleA.localeCompare(titleB)
 		: categoryIndexA - categoryIndexB
+}
+
+// Parse a release title like "v5.1.0" into a [major, minor, patch] tuple, or null
+// for non-version pages (the "Next release" and "Migration skill" articles).
+function getReleaseVersion(article: Article): [number, number, number] | null {
+	const match = /^v(\d+)\.(\d+)\.(\d+)$/.exec(article.title.trim())
+	if (!match) return null
+	return [Number(match[1]), Number(match[2]), Number(match[3])]
+}
+
+// The releases section can't rely on the generic title sort: version titles don't
+// compare correctly as strings (e.g. "v3.10.0" < "v3.2.0") and the "Next release"
+// and "Migration skill" pages need fixed positions. Order it explicitly so the
+// sidebar and prev/next nav read: Next release, the latest version, Migration skill,
+// then every other version newest-first.
+function sortReleaseArticles(articles: Article[]): Article[] {
+	const next = articles.find((a) => a.path === '/releases/next')
+	const migration = articles.find((a) => a.path === '/releases/migration-skill')
+
+	const versions = articles
+		.filter((a) => a !== next && a !== migration)
+		.sort((a, b) => {
+			const [majorA, minorA, patchA] = getReleaseVersion(a) ?? [0, 0, 0]
+			const [majorB, minorB, patchB] = getReleaseVersion(b) ?? [0, 0, 0]
+			return majorB - majorA || minorB - minorA || patchB - patchA || a.title.localeCompare(b.title)
+		})
+
+	const ordered: Article[] = []
+	if (next) ordered.push(next)
+	if (versions.length > 0) ordered.push(versions[0])
+	if (migration) ordered.push(migration)
+	ordered.push(...versions.slice(1))
+	return ordered
 }
 
 function getArticleData({

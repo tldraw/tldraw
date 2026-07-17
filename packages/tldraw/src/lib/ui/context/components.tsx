@@ -32,10 +32,23 @@ import {
 	DefaultQuickActions,
 	TLUiQuickActionsProps,
 } from '../components/QuickActions/DefaultQuickActions'
+import { DefaultPeopleMenu } from '../components/SharePanel/DefaultPeopleMenu'
+import {
+	DefaultPeopleMenuAvatar,
+	TLUiPeopleMenuAvatarProps,
+} from '../components/SharePanel/DefaultPeopleMenuAvatar'
+import {
+	TLUiPeopleMenuFacePileProps,
+	DefaultPeopleMenuFacePile,
+} from '../components/SharePanel/DefaultPeopleMenuFacePile'
+import {
+	DefaultPeopleMenuItem,
+	TLUiPeopleMenuItemProps,
+} from '../components/SharePanel/DefaultPeopleMenuItem'
 import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
+import { DefaultUserPresenceEditor } from '../components/SharePanel/DefaultUserPresenceEditor'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
 import { DefaultToasts } from '../components/Toasts'
-import { DefaultAudioToolbar } from '../components/Toolbar/DefaultAudioToolbar'
 import { DefaultImageToolbar } from '../components/Toolbar/DefaultImageToolbar'
 import {
 	DefaultRichTextToolbar,
@@ -61,7 +74,6 @@ export interface TLUiComponents {
 	RichTextToolbar?: ComponentType<TLUiRichTextToolbarProps> | null
 	ImageToolbar?: ComponentType | null
 	VideoToolbar?: ComponentType | null
-	AudioToolbar?: ComponentType | null
 	KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null
 	QuickActions?: ComponentType<TLUiQuickActionsProps> | null
 	HelperButtons?: ComponentType<TLUiHelperButtonsProps> | null
@@ -75,6 +87,11 @@ export interface TLUiComponents {
 	Toasts?: ComponentType | null
 	A11y?: ComponentType | null
 	FollowingIndicator?: ComponentType | null
+	PeopleMenu?: ComponentType | null
+	PeopleMenuAvatar?: ComponentType<TLUiPeopleMenuAvatarProps> | null
+	PeopleMenuItem?: ComponentType<TLUiPeopleMenuItemProps> | null
+	PeopleMenuFacePile?: ComponentType<TLUiPeopleMenuFacePileProps> | null
+	UserPresenceEditor?: ComponentType | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -108,9 +125,8 @@ export function TldrawUiComponentsProvider({
 					NavigationPanel: DefaultNavigationPanel,
 					Toolbar: DefaultToolbar,
 					RichTextToolbar: DefaultRichTextToolbar,
-				ImageToolbar: DefaultImageToolbar,
-				VideoToolbar: DefaultVideoToolbar,
-				AudioToolbar: DefaultAudioToolbar,
+					ImageToolbar: DefaultImageToolbar,
+					VideoToolbar: DefaultVideoToolbar,
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
 					QuickActions: DefaultQuickActions,
 					HelperButtons: DefaultHelperButtons,
@@ -124,6 +140,11 @@ export function TldrawUiComponentsProvider({
 					Toasts: DefaultToasts,
 					A11y: DefaultA11yAnnouncer,
 					FollowingIndicator: DefaultFollowingIndicator,
+					PeopleMenu: DefaultPeopleMenu,
+					PeopleMenuAvatar: DefaultPeopleMenuAvatar,
+					PeopleMenuItem: DefaultPeopleMenuItem,
+					PeopleMenuFacePile: DefaultPeopleMenuFacePile,
+					UserPresenceEditor: DefaultUserPresenceEditor,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]

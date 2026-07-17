@@ -19,11 +19,30 @@ accuracy: 9
 notes: Consider linking to an i18n example if one exists.
 ---
 
-Tldraw's UI supports 50 languages out of the box, including right-to-left languages like Arabic, Hebrew, Farsi, and Urdu. The translation system loads language files on demand, detects the user's browser language, and lets you override any translation string or add custom ones.
+Tldraw's UI supports 49 languages out of the box, including right-to-left languages like Arabic, Hebrew, Farsi, and Urdu. The translation system loads language files on demand, detects the user's browser language, and lets you override any translation string or add custom ones.
 
 ## Setting the locale
 
 The user's locale is stored in [user preferences](/sdk-features/user-preferences). By default, tldraw detects the browser's language and selects the closest match from supported languages.
+
+The simplest way to set the locale is with the `locale` prop on the `Tldraw` component:
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw locale="fr" />
+		</div>
+	)
+}
+```
+
+The `locale` prop takes priority over both the browser's language preferences and the user's locale preference. When set, your application controls the displayed language.
+
+You can also set the locale imperatively after the editor mounts:
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -164,18 +183,20 @@ The supported languages include: English, Spanish, French, German, Italian, Port
 
 ## Right-to-left support
 
-Languages like Arabic, Hebrew, Farsi, and Urdu automatically set `dir: 'rtl'` in the translation object. The tldraw UI respects this direction, mirroring layout and text alignment.
+Languages like Arabic, Hebrew, Farsi, and Urdu automatically set `dir: 'rtl'` in the translation object. The tldraw UI respects this direction. Layout and text alignment mirror automatically. The `dir` attribute is set on the editor's root container, and the built-in components use CSS logical properties (`margin-inline-start`, `inset-inline-end`, and so on) so they flip without per-component code.
 
-When building custom UI components, use the `dir` property from the translation context:
+When building custom UI components, use the `useDirection` hook to get the current text direction. It returns `'ltr'` or `'rtl'` from the active translation context — the same value you'd read from `useCurrentTranslation().dir`, but without pulling the rest of the translation object into the component:
 
 ```tsx
-import { useCurrentTranslation } from 'tldraw'
+import { useDirection } from 'tldraw'
 
 function CustomPanel() {
-	const { dir } = useCurrentTranslation()
+	const dir = useDirection()
 	return <aside dir={dir}>{/* Panel content */}</aside>
 }
 ```
+
+Use `useCurrentTranslation` instead when you also need the locale, label, or `messages` from the same render.
 
 ## Building a language picker
 
@@ -218,3 +239,7 @@ Translations load asynchronously when the locale changes. The system:
 4. Updates the translation context
 
 During loading, the UI uses the previous translations to avoid flicker. If loading fails, English remains as the fallback.
+
+## Related examples
+
+- **[Custom translations and overrides](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/ui/custom-language-translations)** — Override translation strings and use them in custom UI.

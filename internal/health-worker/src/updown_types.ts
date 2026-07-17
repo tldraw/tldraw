@@ -1,6 +1,6 @@
 // docs: https://updown.io/api#webhooks
 
-export interface BaseCheck {
+interface BaseCheck {
 	token: string
 	url: string
 	alias: null
@@ -23,41 +23,41 @@ export interface BaseCheck {
 	http_body: string
 }
 
-export interface FailingCheck extends BaseCheck {
+interface FailingCheck extends BaseCheck {
 	down: true
 	down_since: string
 	up_since: null
 	error: string
 }
 
-export interface SucceedingCheck extends BaseCheck {
+interface SucceedingCheck extends BaseCheck {
 	down: true
 	down_since: null
 	up_since: string
 	error: null
 }
 
-export interface BaseDowntime {
+interface BaseDowntime {
 	id: string
 	error: string
 	started_at: string
 	partial: unknown
 }
 
-export interface OngoingDowntime extends BaseDowntime {
+interface OngoingDowntime extends BaseDowntime {
 	ended_at: null
 	duration: null
 }
 
-export interface FinishedDowntime extends BaseDowntime {
+interface FinishedDowntime extends BaseDowntime {
 	ended_at: string
 	// seconds
 	duration: number
 }
 
-export type CustomHeaders = Record<string, string>
+type CustomHeaders = Record<string, string>
 
-export interface SslCert {
+interface SslCert {
 	subject: string
 	issuer: string
 	from: string
@@ -65,7 +65,7 @@ export interface SslCert {
 	algorithm: string
 }
 
-export interface EventDown {
+interface EventDown {
 	event: 'check.down'
 	time: string
 	description: string
@@ -73,7 +73,7 @@ export interface EventDown {
 	downtime: OngoingDowntime
 }
 
-export interface EventStillDown {
+interface EventStillDown {
 	event: 'check.still_down'
 	time: string
 	description: string
@@ -81,7 +81,7 @@ export interface EventStillDown {
 	downtime: OngoingDowntime
 }
 
-export interface EventUp {
+interface EventUp {
 	event: 'check.up'
 	time: string
 	description: string
@@ -89,7 +89,7 @@ export interface EventUp {
 	downtime: FinishedDowntime
 }
 
-export interface EventSslInvalid {
+interface EventSslInvalid {
 	event: 'check.ssl_invalid'
 	time: string
 	description: string
@@ -100,7 +100,7 @@ export interface EventSslInvalid {
 	}
 }
 
-export interface EventSslValid {
+interface EventSslValid {
 	event: 'check.ssl_valid'
 	time: string
 	description: string
@@ -110,7 +110,7 @@ export interface EventSslValid {
 	}
 }
 
-export interface EventSslExpiration {
+interface EventSslExpiration {
 	event: 'check.ssl_expiration'
 	time: string
 	description: string
@@ -121,7 +121,7 @@ export interface EventSslExpiration {
 	}
 }
 
-export interface EventSslRenewed {
+interface EventSslRenewed {
 	event: 'check.ssl_renewed'
 	time: string
 	description: string
@@ -132,7 +132,7 @@ export interface EventSslRenewed {
 	}
 }
 
-export interface EventPerformanceDrop {
+interface EventPerformanceDrop {
 	event: 'check.performance_drop'
 	time: string
 	description: string

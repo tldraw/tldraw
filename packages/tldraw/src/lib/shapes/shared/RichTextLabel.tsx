@@ -1,16 +1,12 @@
 import {
 	Box,
-	DefaultFontFamilies,
 	ExtractShapeByProps,
-	TLDefaultFillStyle,
-	TLDefaultFontStyle,
-	TLDefaultHorizontalAlignStyle,
-	TLDefaultVerticalAlignStyle,
 	TLEventInfo,
 	TLRichText,
 	TLShapeId,
 	openWindow,
 	preventDefault,
+	resolveLineHeightPx,
 	useEditor,
 	useReactor,
 	useValue,
@@ -19,7 +15,6 @@ import classNames from 'classnames'
 import React, { useMemo } from 'react'
 import { renderHtmlFromRichText } from '../../utils/text/richText'
 import { RichTextArea } from '../text/RichTextArea'
-import { TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
 import { useEditableRichText } from './useEditableRichText'
 
@@ -27,12 +22,11 @@ import { useEditableRichText } from './useEditableRichText'
 export interface RichTextLabelProps {
 	shapeId: TLShapeId
 	type: ExtractShapeByProps<{ richText: TLRichText }>['type']
-	font: TLDefaultFontStyle
+	fontFamily: string
 	fontSize: number
 	lineHeight: number
-	fill?: TLDefaultFillStyle
-	align: TLDefaultHorizontalAlignStyle
-	verticalAlign: TLDefaultVerticalAlignStyle
+	textAlign: 'start' | 'center' | 'end'
+	verticalAlign: 'start' | 'middle' | 'end'
 	wrap?: boolean
 	richText?: TLRichText
 	labelColor: string
@@ -60,10 +54,10 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 	type,
 	richText,
 	labelColor,
-	font,
+	fontFamily,
 	fontSize,
 	lineHeight,
-	align,
+	textAlign,
 	verticalAlign,
 	wrap,
 	isSelected,
@@ -78,6 +72,7 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 }: RichTextLabelProps) {
 	const editor = useEditor()
 	const isDragging = React.useRef(false)
+	const legacyAlign = isLegacyAlign(textAlign)
 	const { rInput, isEmpty, isEditing, isReadyForEditing, ...editableTextRest } =
 		useEditableRichText(shapeId, type, richText)
 
@@ -102,8 +97,6 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 		},
 		[editor]
 	)
-
-	const legacyAlign = isLegacyAlign(align)
 
 	const handlePointerDown = (e: React.MouseEvent<HTMLDivElement>) => {
 		const HTMLElementCtor = editor.getContainerWindow().HTMLElement
@@ -142,30 +135,44 @@ export const RichTextLabel = React.memo(function RichTextLabel({
 				showTextOutline ? 'tl-text__outline' : 'tl-text__no-outline'
 			)}
 			aria-hidden={!isEditing}
-			data-font={font}
-			data-align={align}
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
 			data-textwrap={!!wrap}
 			data-isselected={isSelected}
 			style={{
-				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
-				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+				fontFamily,
+				textAlign,
+				justifyContent:
+					textAlign === 'center' || legacyAlign
+						? 'center'
+						: textAlign === 'end'
+							? 'flex-end'
+							: 'flex-start',
+				alignItems:
+					verticalAlign === 'middle'
+						? 'center'
+						: verticalAlign === 'end'
+							? 'flex-end'
+							: 'flex-start',
 				padding,
 				...style,
 			}}
 		>
 			<div
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
-				style={{
-					fontSize,
-					lineHeight: lineHeight.toString(),
-					minHeight: Math.floor(fontSize * lineHeight) + 'px',
-					minWidth: Math.ceil(textWidth || 0),
-					color: labelColor,
-					width: textWidth ? Math.ceil(textWidth) : undefined,
-					height: textHeight ? Math.ceil(textHeight) : undefined,
-				}}
+				style={
+					{
+						fontSize,
+						lineHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
+						minHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
+						// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
+						'--tl-rich-text-heading-line-height': lineHeight,
+						minWidth: Math.ceil(textWidth || 0),
+						color: labelColor,
+						width: textWidth ? Math.ceil(textWidth) : undefined,
+						height: textHeight ? Math.ceil(textHeight) : undefined,
+					} as React.CSSProperties
+				}
 			>
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
 					{richText && (
@@ -201,9 +208,10 @@ export interface RichTextSVGProps {
 	bounds: Box
 	richText: TLRichText
 	fontSize: number
-	font: TLDefaultFontStyle
-	align: TLDefaultHorizontalAlignStyle
-	verticalAlign: TLDefaultVerticalAlignStyle
+	fontFamily: string
+	lineHeight: number
+	textAlign: 'start' | 'center' | 'end'
+	verticalAlign: 'start' | 'middle' | 'end'
 	wrap?: boolean
 	labelColor: string
 	padding: number
@@ -219,8 +227,9 @@ export function RichTextSVG({
 	bounds,
 	richText,
 	fontSize,
-	font,
-	align,
+	fontFamily,
+	lineHeight,
+	textAlign,
 	verticalAlign,
 	wrap,
 	labelColor,
@@ -229,23 +238,18 @@ export function RichTextSVG({
 }: RichTextSVGProps) {
 	const editor = useEditor()
 	const html = renderHtmlFromRichText(editor, richText)
-	const textAlign =
-		align === 'middle'
-			? ('center' as const)
-			: align === 'start'
-				? ('start' as const)
-				: ('end' as const)
+	const legacyAlign = isLegacyAlign(textAlign)
 	const justifyContent =
-		align === 'middle'
+		textAlign === 'center' || legacyAlign
 			? ('center' as const)
-			: align === 'start'
+			: textAlign === 'start'
 				? ('flex-start' as const)
 				: ('flex-end' as const)
 	const alignItems =
 		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
 	const wrapperStyle = {
 		display: 'flex',
-		fontFamily: DefaultFontFamilies[font],
+		fontFamily,
 		height: `100%`,
 		justifyContent,
 		alignItems,
@@ -255,7 +259,9 @@ export function RichTextSVG({
 		fontSize: `${fontSize}px`,
 		wrap: wrap ? 'wrap' : 'nowrap',
 		color: labelColor,
-		lineHeight: TEXT_PROPS.lineHeight,
+		lineHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
+		// Unitless multiplier consumed by the .tl-rich-text h1–h6 rule (see editor.css).
+		'--tl-rich-text-heading-line-height': lineHeight,
 		textAlign,
 		width: '100%',
 		wordWrap: 'break-word' as const,

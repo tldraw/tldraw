@@ -11,20 +11,15 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 			case TLSyncErrorCloseEventReason.CLIENT_TOO_OLD: {
 				return (
 					<ErrorPage
-						icon={
-							<img
-								width={36}
-								height={36}
-								src="/tldraw-white-on-black.svg"
-								loading="lazy"
-								role="presentation"
-							/>
-						}
 						messages={{
 							header: 'Refresh the page',
 							para1: 'You need to update to the latest version of tldraw to continue.',
 						}}
-						cta={<button onClick={() => window.location.reload()}>Refresh</button>}
+						cta={
+							<button type="button" onClick={() => window.location.reload()}>
+								Refresh
+							</button>
+						}
 					/>
 				)
 			}

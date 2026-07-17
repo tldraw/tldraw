@@ -1,4 +1,4 @@
 /** @public @react */
-export const DefaultSvgDefs = () => {
+export function DefaultSvgDefs() {
 	return null
 }

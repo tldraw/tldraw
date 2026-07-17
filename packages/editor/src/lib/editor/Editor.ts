@@ -10,10 +10,10 @@ import {
 import {
 	ComputedCache,
 	RecordType,
+	StoreSideEffects,
+	StoreSnapshot,
 	UnknownRecord,
 	reverseRecordsDiff,
-	StoreSnapshot,
-	StoreSideEffects,
 } from '@tldraw/store'
 import {
 	CameraRecordType,
@@ -37,7 +37,6 @@ import {
 	TLGroupShape,
 	TLHandle,
 	TLINSTANCE_ID,
-	TLAudioAsset,
 	TLImageAsset,
 	TLInstance,
 	TLInstancePageState,
@@ -51,6 +50,9 @@ import {
 	TLShapePartial,
 	TLStore,
 	TLStoreSnapshot,
+	TLTheme,
+	TLThemeId,
+	TLThemes,
 	TLUser,
 	TLUserId,
 	TLVideoAsset,
@@ -87,7 +89,6 @@ import {
 	hasOwnProperty,
 	last,
 	lerp,
-	maxBy,
 	minBy,
 	sortById,
 	sortByIndex,
@@ -150,17 +151,22 @@ import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager/ClickManager'
+import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
 import { FocusManager } from './managers/FocusManager/FocusManager'
 import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
+import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
+import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
+import { OverlayManager } from './overlays/OverlayManager'
+import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
 import {
 	ShapeUtil,
 	TLEditStartInfo,
@@ -221,14 +227,14 @@ export interface TLEditorOptions {
 	 */
 	assetUtils?: readonly TLAnyAssetUtilConstructor[]
 	/**
+	 * An array of overlay utils to use in the editor. These define canvas overlay UI elements
+	 * like selection handles, rotation corners, shape handles, etc.
+	 */
+	overlayUtils?: readonly TLAnyOverlayUtilConstructor[]
+	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
 	tools: readonly TLStateNodeConstructor[]
-	/**
-	 * Should return a containing html element which has all the styles applied to the editor. If not
-	 * given, the body element will be used.
-	 */
-	getContainer(): HTMLElement
 	/**
 	 * A user defined externally to replace the default user.
 	 */
@@ -241,25 +247,13 @@ export interface TLEditorOptions {
 	 * Whether to automatically focus the editor when it mounts.
 	 */
 	autoFocus?: boolean
-	/**
-	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
-	 */
-	inferDarkMode?: boolean
-	/**
-	 * Options for the editor's camera.
-	 *
-	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
-	 */
-	cameraOptions?: Partial<TLCameraOptions>
-	options?: Partial<TldrawOptions>
-	/**
-	 * Text options for the editor.
-	 *
-	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
-	 */
-	textOptions?: TLTextOptions
 	licenseKey?: string
 	fontAssetUrls?: { [key: string]: string | undefined }
+	/**
+	 * Should return a containing html element which has all the styles applied to the editor. If not
+	 * given, the body element will be used.
+	 */
+	getContainer(): HTMLElement
 	/**
 	 * Provides a way to hide shapes.
 	 *
@@ -279,6 +273,41 @@ export interface TLEditorOptions {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+	/**
+	 * Named theme definitions for the editor. Each theme contains shared
+	 * properties (font size, line height, stroke width) and color palettes
+	 * for both light and dark modes.
+	 */
+	themes?: Partial<TLThemes>
+	/**
+	 * The id of the initially active theme. Defaults to `'default'`.
+	 */
+	initialTheme?: TLThemeId
+	/**
+	 * The editor's color scheme preference, controls the default color mode. Defaults to `'light'`.
+	 *
+	 * - `'light'` - Always use light mode.
+	 * - `'dark'` - Always use dark mode.
+	 * - `'system'` - Follow the OS color scheme preference.
+	 */
+	colorScheme?: 'light' | 'dark' | 'system'
+	/**
+	 * Additional configuration options for the tldraw editor.
+	 */
+	options?: Partial<TldrawOptions>
+	// --- Deprecated ----
+	/**
+	 * Options for the editor's camera.
+	 *
+	 * @deprecated Use `options.cameraOptions` instead. This will be removed in a future release.
+	 */
+	cameraOptions?: Partial<TLCameraOptions>
+	/**
+	 * Text options for the editor.
+	 *
+	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
+	 */
+	textOptions?: TLTextOptions
 }
 
 /**
@@ -299,6 +328,8 @@ export interface TLRenderingShape {
 	opacity: number
 }
 
+const RENDERING_SHAPES_SORT_CACHE_THRESHOLD = 100
+
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
 	readonly id = uniqueId()
@@ -308,6 +339,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shapeUtils,
 		bindingUtils,
 		assetUtils: assetUtilConstructors,
+		overlayUtils: overlayUtilConstructors,
 		tools,
 		getContainer,
 		// needs to be here for backwards compatibility with TldrawEditor
@@ -315,13 +347,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		cameraOptions,
 		initialState,
 		autoFocus,
-		inferDarkMode,
 		options: _options,
 		// needs to be here for backwards compatibility with TldrawEditor
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
+		colorScheme,
 		fontAssetUrls,
+		themes,
+		initialTheme,
 	}: TLEditorOptions) {
 		super()
 
@@ -356,21 +390,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 			...options?.camera,
 		})
 
+		this.getContainer = getContainer
+
 		this._textOptions = atom('text options', options?.text ?? null)
 
-		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), inferDarkMode ?? false)
+		this.user = new UserPreferencesManager(user ?? createTLCurrentUser(), colorScheme ?? 'light')
 		this.disposables.add(() => this.user.dispose())
-
-		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
 		this.disposables.add(() => this.textMeasure.dispose())
 
-		this.fonts = new FontManager(this, fontAssetUrls)
+		this._themeManager = new ThemeManager(this, {
+			themes: resolveThemes(themes),
+			initial: initialTheme ?? 'default',
+		})
+		this.disposables.add(() => this._themeManager.dispose())
 
 		this._tickManager = new TickManager(this)
+		this.disposables.add(() => this._tickManager.dispose())
+		this.disposables.add(() => {
+			this._setCameraState('idle')
+		})
+
+		this.fonts = new FontManager(this, fontAssetUrls)
+		this.disposables.add(() => this.fonts.dispose())
 
 		this.inputs = new InputsManager(this)
+		this.disposables.add(() => this.inputs.dispose())
+		this.performance = new PerformanceManager(this)
+		this.disposables.add(() => this.performance.dispose())
+		this.collaborators = new CollaboratorsManager(this)
 
 		class NewRoot extends RootState {
 			static override initial = initialState ?? ''
@@ -408,6 +457,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.shapeUtils = _shapeUtils
 		this.styleProps = _styleProps
 
+		const _shapeUtilsByAssetType = {} as Record<string, ShapeUtil<any>>
+		for (const Util of allShapeUtils) {
+			const assetTypes = Util.handledAssetTypes
+			if (assetTypes) {
+				for (const assetType of assetTypes) {
+					_shapeUtilsByAssetType[assetType] = _shapeUtils[Util.type]
+				}
+			}
+		}
+		this._shapeUtilsByAssetType = _shapeUtilsByAssetType
+
 		const allBindingUtils = checkBindings(bindingUtils)
 		const _bindingUtils = {} as Record<string, BindingUtil<any>>
 		for (const Util of allBindingUtils) {
@@ -438,6 +498,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.scribbles = new ScribbleManager(this)
+
+		// Overlay utils
+		this.overlays = new OverlayManager(this)
+		this.disposables.add(() => this.overlays.dispose())
+		if (overlayUtilConstructors) {
+			for (const Util of overlayUtilConstructors) {
+				const util = new Util(this)
+				this.overlays.registerUtil(util)
+			}
+		}
 
 		// Cleanup
 
@@ -493,16 +563,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let deletedBindings = new Map<TLBindingId, BindingOnDeleteOptions<any>>()
 		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
+		const createdShapes = new Set<TLShapeId>()
 		let invalidBindingTypes = new Set<TLBinding['type']>()
 
 		this.disposables.add(
 			this.sideEffects.registerOperationCompleteHandler(() => {
 				// this needs to be cleared here because further effects may delete more shapes
 				// and we want the next invocation of this handler to handle those separately
+				const deletedIds = deletedShapeIds.size ? new Set(deletedShapeIds) : null
 				deletedShapeIds.clear()
+
+				if (deletedIds) {
+					const updates = compact(
+						this.getPageStates().map((pageState) => {
+							return cleanupInstancePageState(pageState, deletedIds)
+						})
+					)
+
+					if (updates.length) {
+						this.store.put(updates)
+					}
+				}
+
+				const justCreatedShapeIds = new Set(createdShapes)
+				createdShapes.clear()
 
 				for (const parentId of invalidParents) {
 					invalidParents.delete(parentId)
+					if (justCreatedShapeIds.has(parentId)) continue
 					const parent = this.getShape(parentId)
 					if (!parent) continue
 
@@ -538,6 +626,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(
 			this.sideEffects.register({
 				shape: {
+					afterCreate: (shape) => {
+						createdShapes.add(shape.id)
+						if (shape.parentId && isShapeId(shape.parentId)) {
+							invalidParents.add(shape.parentId)
+						}
+					},
 					afterChange: (shapeBefore, shapeAfter) => {
 						for (const binding of this.getBindingsInvolvingShape(shapeAfter)) {
 							invalidBindingTypes.add(binding.type)
@@ -642,17 +736,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (deleteBindingIds.length) {
 							this.deleteBindings(deleteBindingIds)
 						}
-
-						const deletedIds = new Set([shape.id])
-						const updates = compact(
-							this.getPageStates().map((pageState) => {
-								return cleanupInstancePageState(pageState, deletedIds)
-							})
-						)
-
-						if (updates.length) {
-							this.store.put(updates)
-						}
 					},
 				},
 				binding: {
@@ -739,6 +822,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 				instance_page_state: {
 					afterChange: (prev, next) => {
+						if (prev?.focusedGroupId !== next?.focusedGroupId) {
+							this.cancelDoubleClick()
+						}
+
 						if (prev?.selectedShapeIds !== next?.selectedShapeIds) {
 							// ensure that descendants and ancestors are not selected at the same time
 							const filtered = next.selectedShapeIds.filter((id) => {
@@ -821,13 +908,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.edgeScrollManager = new EdgeScrollManager(this)
 		this.focusManager = new FocusManager(this, autoFocus)
-		this.disposables.add(this.focusManager.dispose.bind(this.focusManager))
+		this.disposables.add(() => this.focusManager.dispose())
 
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
 		}
 
 		this.on('tick', this._flushEventsForTick)
+
+		this.on('mount', () => {
+			this._isMounted.set(true)
+		})
+
+		this.on('unmount', () => {
+			this._isMounted.set(false)
+		})
 
 		this.timers.requestAnimationFrame(() => {
 			this._tickManager.start()
@@ -941,6 +1036,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	isDisposed = false
 
+	private readonly _isMounted = atom('isMounted', false)
+
+	/**
+	 * Whether the editor is currently mounted. This is `true` while the editor's component is
+	 * mounted in the DOM (after the `mount` event) and `false` before mount and after `unmount`.
+	 *
+	 * Unlike disposal, mounting is not terminal: the editor's component can unmount and remount
+	 * (for example when the canvas is replaced by an error fallback and restored) without the
+	 * editor itself being disposed. To react to the transitions, listen to the editor's `mount`
+	 * and `unmount` events.
+	 *
+	 * @public
+	 */
+	@computed getIsMounted(): boolean {
+		return this._isMounted.get()
+	}
+
 	/**
 	 * A manager for the editor's tick events.
 	 *
@@ -961,6 +1073,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly snaps: SnapManager
 
+	/**
+	 * A manager for performance measurement hooks.
+	 *
+	 * @public
+	 */
+	readonly performance: PerformanceManager
+
+	/**
+	 * A manager for the spatial index, tracking where shapes exist on the canvas.
+	 *
+	 * @internal
+	 */
 	private readonly _spatialIndex: SpatialIndexManager
 
 	/**
@@ -972,11 +1096,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly timers = tltime.forContext(this.contextId)
 
 	/**
+	 * A manager for remote peer collaborators connected to this editor.
+	 *
+	 * @public
+	 */
+	readonly collaborators: CollaboratorsManager
+
+	/**
 	 * A manager for the user and their preferences.
 	 *
 	 * @public
 	 */
 	readonly user: UserPreferencesManager
+
+	/**
+	 * A manager for the editor's themes.
+	 *
+	 * @internal
+	 */
+	private readonly _themeManager: ThemeManager
 
 	/**
 	 * A helper for measuring text.
@@ -998,6 +1136,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly scribbles: ScribbleManager
+
+	/**
+	 * A manager for canvas overlay UI elements (selection handles, shape handles, etc.).
+	 *
+	 * @public
+	 */
+	readonly overlays: OverlayManager
 
 	/**
 	 * A manager for side effects and correct state enforcement. See {@link @tldraw/store#StoreSideEffects} for details.
@@ -1058,11 +1203,140 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	dispose() {
+		// If the editor is disposed while still mounted (for example when its component tree is
+		// unmounted all at once), emit `unmount` first — while listeners are still attached — so
+		// that `mount` is always balanced by an `unmount` and `getIsMounted()` reads `false`.
+		if (this._isMounted.get()) {
+			this.emit('unmount')
+		}
+
+		// Stop any in-progress camera animations and following before
+		// running disposables, so their cleanup listeners fire first
+		this.stopCameraAnimation()
+		if (this.getInstanceState().followingUserId) {
+			this.stopFollowingUser()
+		}
+
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
+
+		// Clear any open menus for this editor's context
+		this.menus.clearOpenMenus()
+
 		this.store.dispose()
 		this.isDisposed = true
 		this.emit('dispose')
+		this.removeAllListeners()
+	}
+
+	/* ------------------ Themes (shadowing the theme manager) ------------------ */
+
+	/**
+	 * Get the current color mode (`'light'` or `'dark'`), based on the user's dark mode preference.
+	 *
+	 * @public
+	 */
+	getColorMode(): 'light' | 'dark' {
+		return this._themeManager.getColorMode()
+	}
+
+	/**
+	 * Set the color mode. Note that this is a convenience method that passes the mode to
+	 * `user.updateUserPreferences`, which is the source of truth for the user's color mode preference.
+	 *
+	 * @public
+	 */
+	setColorMode(mode: 'light' | 'dark') {
+		this.user.updateUserPreferences({ colorScheme: mode })
+		return this
+	}
+
+	/**
+	 * Get the id of the current theme.
+	 *
+	 * @public
+	 */
+	getCurrentThemeId(): TLThemeId {
+		return this._themeManager.getCurrentThemeId()
+	}
+
+	/**
+	 * Get the current theme definition.
+	 *
+	 * @public
+	 */
+	getCurrentTheme(): TLTheme {
+		return this._themeManager.getCurrentTheme()
+	}
+
+	/**
+	 * Set the current theme by id.
+	 *
+	 * @public
+	 */
+	setCurrentTheme(id: TLThemeId) {
+		this._themeManager.setCurrentTheme(id)
+		return this
+	}
+
+	/**
+	 * Get all registered theme definitions.
+	 *
+	 * @public
+	 */
+	getThemes(): TLThemes {
+		return this._themeManager.getThemes()
+	}
+
+	/**
+	 * Get a single theme definition by id.
+	 *
+	 * @public
+	 */
+	getTheme(id: TLThemeId): TLTheme | undefined {
+		return this._themeManager.getTheme(id)
+	}
+
+	/**
+	 * Replace all theme definitions, or update them via a callback that receives a deep copy.
+	 * The `'default'` theme must always be present in the result.
+	 *
+	 * @example
+	 * ```ts
+	 * // Replace all themes
+	 * editor.updateThemes({ default: myDefaultTheme, ocean: myOceanTheme })
+	 *
+	 * // Update via callback
+	 * editor.updateThemes((themes) => {
+	 *   delete themes.ocean
+	 *   return themes
+	 * })
+	 * ```
+	 *
+	 * @public
+	 */
+	updateThemes(themes: TLThemes | ((themes: TLThemes) => TLThemes)) {
+		this._themeManager.updateThemes(themes)
+		return this
+	}
+
+	/**
+	 * Register or update a single theme definition. The theme is keyed by its `id` property.
+	 *
+	 * @example
+	 * ```ts
+	 * // Override a property on the default theme
+	 * editor.updateTheme({ ...editor.getTheme('default')!, fontSize: 24 })
+	 *
+	 * // Register a new theme
+	 * editor.updateTheme({ id: 'ocean', ...myOceanTheme })
+	 * ```
+	 *
+	 * @public
+	 */
+	updateTheme(theme: TLTheme) {
+		this._themeManager.updateTheme(theme)
+		return this
 	}
 
 	/* ------------------- Shape Utils ------------------ */
@@ -1073,6 +1347,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	shapeUtils: { readonly [K in string]?: ShapeUtil<TLShape> }
+
+	/** @internal */
+	private _shapeUtilsByAssetType: { readonly [K in string]?: ShapeUtil<TLShape> } = {}
 
 	styleProps: { [key: string]: Map<StyleProp<any>, string> }
 
@@ -1114,6 +1391,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	hasShapeUtil(arg: string | { type: string }): boolean {
 		const type = typeof arg === 'string' ? arg : arg.type
 		return hasOwnProperty(this.shapeUtils, type)
+	}
+
+	/**
+	 * Get the shape util that handles the given asset type.
+	 * Returns the shape util whose {@link ShapeUtil.handledAssetTypes} includes
+	 * the given asset type, or undefined if none matches.
+	 *
+	 * @param assetType - The asset type string.
+	 * @public
+	 */
+	getShapeUtilForAssetType(assetType: string): ShapeUtil | undefined {
+		return getOwnProperty(this._shapeUtilsByAssetType, assetType)
 	}
 
 	/* ------------------- Binding Utils ------------------ */
@@ -1224,6 +1513,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.undo()
+		this.performance._notifyUndoRedo('undo', this.history.getNumUndos(), this.history.getNumRedos())
 		return this
 	}
 
@@ -1254,6 +1544,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._flushEventsForTick(0)
 		this.complete()
 		this.history.redo()
+		this.performance._notifyUndoRedo('redo', this.history.getNumUndos(), this.history.getNumRedos())
 		return this
 	}
 
@@ -1306,6 +1597,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getMarkIdMatching(idSubstring: string) {
 		return this.history.getMarkIdMatching(idSubstring)
+	}
+
+	/**
+	 * Whether the editor is currently replaying history (i.e. an undo or redo is being applied).
+	 *
+	 * @internal
+	 */
+	isReplayingHistory(): boolean {
+		return this.history.isReplaying()
 	}
 
 	/**
@@ -1705,11 +2005,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Set the cursor.
 	 *
+	 * No-op when the partial wouldn't change the current cursor — `setCursor`
+	 * is called from pointer-move hot paths (see `updateHoveredOverlayId`,
+	 * various tool states) and skipping redundant writes avoids needlessly
+	 * dirtying instance state.
+	 *
 	 * @param cursor - The cursor to set.
 	 * @public
 	 */
 	setCursor(cursor: Partial<TLCursor>) {
-		this.updateInstanceState({ cursor: { ...this.getInstanceState().cursor, ...cursor } })
+		const current = this.getInstanceState().cursor
+		if (
+			(cursor.type === undefined || cursor.type === current.type) &&
+			(cursor.rotation === undefined || cursor.rotation === current.rotation)
+		) {
+			return this
+		}
+		this.updateInstanceState({ cursor: { ...current, ...cursor } })
 		return this
 	}
 
@@ -2813,8 +3125,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return baseCamera
 	}
 
-	private _getFollowingPresence(targetUserId: string | null) {
-		const visited = [this.user.getId()]
+	private _getFollowingPresence(targetUserId: TLUserId | null) {
+		const visited = [this.user.getRecordId()]
 		const collaborators = this.getCollaborators()
 		let leaderPresence = null as null | TLInstancePresence
 		while (targetUserId && !visited.includes(targetUserId)) {
@@ -3081,6 +3393,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let { x, y, z = currentCamera.z } = point
 
+		// `requested` kept the caller's focal point (e.g. the cursor) fixed at
+		// zoom `rz`. When `rz` gets clamped, keep that same focal point fixed at
+		// the clamped zoom `z` rather than snapping to the viewport center.
+		const preserveFocalPoint = (current: number, requested: number, rz: number, z: number) => {
+			const cz = currentCamera.z
+			if (rz === cz) return current
+			return current + ((requested - current) * (1 / z - 1 / cz)) / (1 / rz - 1 / cz)
+		}
+
 		// If force is true, then we'll set the camera to the point regardless of
 		// the camera options, so that we can handle gestures that permit elasticity
 		// or decay, or animations that occur while the camera is locked.
@@ -3123,17 +3444,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 
 				if (z < minZ || z > maxZ) {
-					// We're trying to zoom out past the minimum zoom level,
-					// or in past the maximum zoom level, so stop the camera
-					// but keep the current center
-					const { x: cx, y: cy, z: cz } = currentCamera
-					const cxA = -cx + vsb.w / cz / 2
-					const cyA = -cy + vsb.h / cz / 2
+					// We're trying to zoom out past the minimum zoom level, or in
+					// past the maximum zoom level, so clamp the zoom while keeping
+					// the caller's focal point fixed. Axis constraints below still
+					// apply on top of this.
+					const rz = z
 					z = clamp(z, minZ, maxZ)
-					const cxB = -cx + vsb.w / z / 2
-					const cyB = -cy + vsb.h / z / 2
-					x = cx + cxB - cxA
-					y = cy + cyB - cyA
+					x = preserveFocalPoint(currentCamera.x, x, rz, z)
+					y = preserveFocalPoint(currentCamera.y, y, rz, z)
 				}
 
 				// Calculate available space
@@ -3222,12 +3540,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 			} else {
-				// constrain the zoom, preserving the center
+				// constrain the zoom, keeping the caller's focal point fixed
 				if (z > zoomMax || z < zoomMin) {
-					const { x: cx, y: cy, z: cz } = currentCamera
+					const rz = z
 					z = clamp(z, zoomMin, zoomMax)
-					x = cx + (-cx + vsb.w / z / 2) - (-cx + vsb.w / cz / 2)
-					y = cy + (-cy + vsb.h / z / 2) - (-cy + vsb.h / cz / 2)
+					x = preserveFocalPoint(currentCamera.x, x, rz, z)
+					y = preserveFocalPoint(currentCamera.y, y, rz, z)
 				}
 			}
 		}
@@ -3768,16 +4086,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.once('stop-camera-animation', cancel)
 
+		const dirZ = direction.z ?? 0
+
 		const moveCamera = (elapsed: number) => {
 			const { x: cx, y: cy, z: cz } = this.getCamera()
-			const movementVec = Vec.Mul(direction, (currentSpeed * elapsed) / cz)
+
+			// Pan movement from x/y direction
+			const dx = (direction.x * (currentSpeed * elapsed)) / cz
+			const dy = (direction.y * (currentSpeed * elapsed)) / cz
+
+			let newCx = cx + dx
+			let newCy = cy + dy
+			let newCz = cz
+
+			// animate zoom if z direction is passed in
+			if (dirZ !== 0) {
+				newCz = cz * (1 + dirZ * currentSpeed * elapsed)
+				// Adjust x/y to keep the viewport center fixed while zooming
+				const center = this.getViewportScreenCenter()
+				newCx += center.x / newCz - center.x / cz
+				newCy += center.y / newCz - center.y / cz
+			}
 
 			// Apply friction
 			currentSpeed *= 1 - friction
 			if (currentSpeed < speedThreshold) {
 				cancel()
 			} else {
-				this._setCamera(new Vec(cx + movementVec.x, cy + movementVec.y, cz))
+				this._setCamera(new Vec(newCx, newCy, newCz))
 			}
 		}
 
@@ -3799,7 +4135,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - The camera move options.
 	 * @public
 	 */
-	zoomToUser(userId: string, opts: TLCameraMoveOptions = { animation: { duration: 500 } }): this {
+	zoomToUser(userId: TLUserId, opts: TLCameraMoveOptions = { animation: { duration: 500 } }): this {
 		const presence = this.getCollaborators().find((c) => c.userId === userId)
 
 		if (!presence) return this
@@ -3878,6 +4214,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		const doc = this.getContainerDocument()
+		// If the container's document has been torn down (e.g. an iframe being
+		// removed), its body is null and there's nothing meaningful to measure.
+		if (!doc.body) return this
+
 		const insets = [
 			// top
 			screenBounds.minY !== 0,
@@ -4015,43 +4355,55 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	// Collaborators
 
-	@computed
-	private _getCollaboratorsQuery() {
-		return this.store.query.records('instance_presence', () => ({
-			userId: { neq: this.user.getId() },
-		}))
-	}
-
 	/**
 	 * Returns a list of presence records for all peer collaborators.
 	 * This will return the latest presence record for each connected user.
 	 *
+	 * Convenience wrapper for {@link CollaboratorsManager.getCollaborators}.
+	 *
 	 * @public
 	 */
-	@computed
 	getCollaborators() {
-		const allPresenceRecords = this._getCollaboratorsQuery().get()
-		if (!allPresenceRecords.length) return EMPTY_ARRAY
-		const userIds = [...new Set(allPresenceRecords.map((c) => c.userId))].sort()
-		return userIds.map((id) => {
-			const latestPresence = maxBy(
-				allPresenceRecords.filter((c) => c.userId === id),
-				(p) => p.lastActivityTimestamp ?? 0
-			)
-			return latestPresence!
-		})
+		return this.collaborators.getCollaborators()
 	}
 
 	/**
 	 * Returns a list of presence records for all peer collaborators on the current page.
 	 * This will return the latest presence record for each connected user.
 	 *
+	 * Convenience wrapper for {@link CollaboratorsManager.getCollaboratorsOnCurrentPage}.
+	 *
 	 * @public
 	 */
-	@computed
 	getCollaboratorsOnCurrentPage() {
-		const currentPageId = this.getCurrentPageId()
-		return this.getCollaborators().filter((c) => c.currentPageId === currentPageId)
+		return this.collaborators.getCollaboratorsOnCurrentPage()
+	}
+
+	/**
+	 * Returns a list of presence records for peer collaborators who should currently be
+	 * shown in the UI. Filters {@link Editor.getCollaborators} by activity state
+	 * (active / idle / inactive) and visibility rules such as following and highlighted
+	 * users. Re-evaluates on the collaborator visibility clock, so callers don't need to
+	 * drive their own activity timer.
+	 *
+	 * Convenience wrapper for {@link CollaboratorsManager.getVisibleCollaborators}.
+	 *
+	 * @public
+	 */
+	getVisibleCollaborators() {
+		return this.collaborators.getVisibleCollaborators()
+	}
+
+	/**
+	 * Returns a list of presence records for peer collaborators who should currently be
+	 * shown in the UI, filtered to those on the current page.
+	 *
+	 * Convenience wrapper for {@link CollaboratorsManager.getVisibleCollaboratorsOnCurrentPage}.
+	 *
+	 * @public
+	 */
+	getVisibleCollaboratorsOnCurrentPage() {
+		return this.collaborators.getVisibleCollaboratorsOnCurrentPage()
 	}
 
 	// Attribution
@@ -4127,7 +4479,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Collect user IDs referenced by a set of shapes via shape-specific props
-	 * (e.g. `textFirstEditedBy` on notes).
+	 * (e.g. `textLastEditedBy` on notes).
 	 *
 	 * @internal
 	 */
@@ -4159,11 +4511,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	startFollowingUser(userId: string): this {
+	startFollowingUser(userId: TLUserId): this {
 		// if we were already following someone, stop following them
 		this.stopFollowingUser()
 
-		const thisUserId = this.user.getId()
+		const thisUserId = this.user.getExternalId()
 
 		if (!thisUserId) {
 			console.warn('You should set the userId for the current instance before following a user')
@@ -4467,8 +4819,46 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// drain. By always sorting by 'id' we keep the shapes always in the
 		// same order; but we later use index to set the element's 'z-index'
 		// to change the "rendered" position in z-space.
-		return renderingShapes.sort(sortById)
+
+		// For small N, native Array.sort is fast enough that the cache
+		// bookkeeping is a net loss. Only use the permutation cache when
+		// there are enough shapes for sort cost to matter.
+		if (renderingShapes.length <= RENDERING_SHAPES_SORT_CACHE_THRESHOLD) {
+			this._renderingShapesSortCache = null
+			return renderingShapes.sort(sortById)
+		}
+
+		// Sort permutation cache: when the set of ids on the page doesn't
+		// change (e.g. while drawing a stroke, only props change), we can
+		// reuse the previous sorted order and place each entry at its known
+		// sorted position in O(N) instead of running Array.sort O(N log N).
+		const cache = this._renderingShapesSortCache
+		if (cache !== null && cache.size === renderingShapes.length) {
+			const sorted = new Array<TLRenderingShape>(renderingShapes.length)
+			let allMatched = true
+			for (let i = 0; i < renderingShapes.length; i++) {
+				const entry = renderingShapes[i]
+				const pos = cache.get(entry.id)
+				if (pos === undefined) {
+					allMatched = false
+					break
+				}
+				sorted[pos] = entry
+			}
+			if (allMatched) return sorted
+		}
+
+		// Slow path: full sort, then cache the permutation by id.
+		renderingShapes.sort(sortById)
+		const positionById = new Map<TLShapeId, number>()
+		for (let i = 0; i < renderingShapes.length; i++) {
+			positionById.set(renderingShapes[i].id, i)
+		}
+		this._renderingShapesSortCache = positionById
+		return renderingShapes
 	}
+
+	private _renderingShapesSortCache: Map<TLShapeId, number> | null = null
 
 	/* --------------------- Pages ---------------------- */
 
@@ -4905,7 +5295,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
 		const steppedScreenScale = zoomStepFunction(screenScale)
 		const networkEffectiveType: string | null =
-			'connection' in navigator ? (navigator as any).connection.effectiveType : null
+			'connection' in navigator ? ((navigator as any).connection?.effectiveType ?? null) : null
 
 		return await this.store.props.assets.resolve(asset, {
 			screenScale: screenScale || 1,
@@ -5445,6 +5835,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get the hit-test margin in page space—the distance in page units within which a pointer is
+	 * considered to be touching a shape. This resolves to {@link TldrawOptions.hitTestMargin} (or
+	 * {@link TldrawOptions.coarseHitTestMargin} when using a coarse pointer) divided by the current
+	 * zoom level, so it stays a constant distance in screen space.
+	 *
+	 * @returns The hit-test margin in page space.
+	 *
+	 * @public
+	 */
+	@computed getHitTestMargin(): number {
+		const { hitTestMargin, coarseHitTestMargin } = this.options
+		const margin = this.getInstanceState().isCoarsePointer ? coarseHitTestMargin : hitTestMargin
+		return margin / this.getZoomLevel()
+	}
+
+	/**
 	 * Get the top-most selected shape at the given point, ignoring groups.
 	 *
 	 * @param point - The point to check.
@@ -5453,10 +5859,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
 		const selectedShapeIds = this.getSelectedShapeIds()
-		return this.getCurrentPageShapesSorted()
-			.filter((shape) => shape.type !== 'group' && selectedShapeIds.includes(shape.id))
-			.reverse() // find last
-			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
+		const margin = this.options.hitTestMargin / this.getZoomLevel()
+		const sortedShapes = this.getCurrentPageShapesSorted()
+
+		for (let i = sortedShapes.length - 1; i >= 0; i--) {
+			const shape = sortedShapes[i]
+			if (shape.type === 'group') continue
+			if (!selectedShapeIds.includes(shape.id)) continue
+			if (
+				this.getShapeGeometry(shape).hitTestPoint(
+					this.getPointInShapeSpace(shape, point),
+					margin,
+					true
+				)
+			) {
+				return shape
+			}
+		}
+
+		return undefined
 	}
 
 	/**
@@ -5468,7 +5889,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns The shape at the given point, or undefined if there is no shape at the point.
 	 */
 	getShapeAtPoint(point: VecLike, opts: TLGetShapeAtPointOptions = {}): TLShape | undefined {
-		const zoomLevel = this.getZoomLevel()
 		const viewportPageBounds = this.getViewportPageBounds()
 		const {
 			filter,
@@ -5488,7 +5908,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
 		// Use larger margin for spatial search to account for edge distance checks
-		const searchMargin = Math.max(innerMargin, outerMargin, this.options.hitTestMargin / zoomLevel)
+		const searchMargin = Math.max(innerMargin, outerMargin, this.getHitTestMargin())
 		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, searchMargin)
 
 		const shapesToCheck = (
@@ -5496,8 +5916,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? this.getCurrentPageRenderingShapesSorted()
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
-			// Frames have labels positioned above the shape (outside bounds), so always include them
-			if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+			// Frame-like shapes have labels positioned above the shape (outside bounds), so always include them
+			if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) return false
 
 			if (
 				(shape.isLocked && !hitLocked) ||
@@ -5519,12 +5939,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const pointInShapeSpace = this.getPointInShapeSpace(shape, point)
 
 			// Check labels first
+			const shapeUtil = this.getShapeUtil(shape)
+			const isShapeFrameLike = this.isShapeFrameLike(shape)
 			if (
-				this.isShapeOfType(shape, 'frame') ||
+				isShapeFrameLike ||
 				((this.isShapeOfType(shape, 'note') ||
 					this.isShapeOfType(shape, 'arrow') ||
 					(this.isShapeOfType(shape, 'geo') && shape.props.fill === 'none')) &&
-					this.getShapeUtil(shape).getText(shape)?.trim())
+					shapeUtil.getText(shape)?.trim())
 			) {
 				for (const childGeometry of (geometry as Group2d).children) {
 					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
@@ -5533,8 +5955,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			if (this.isShapeOfType(shape, 'frame')) {
-				// On the rare case that we've hit a frame (not its label), test again hitInside to be forced true;
+			if (isShapeFrameLike) {
+				// On the rare case that we've hit a frame-like shape (not its label), test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behind it.
 
 				// If the hit is within the frame's outer margin, then select the frame
@@ -5655,7 +6077,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// For open shapes (e.g. lines or draw shapes) always use the margin.
 				// If the distance is less than the margin, return the shape as the hit.
 				// Use the editor's configurable hit test margin.
-				if (distance < this.options.hitTestMargin / zoomLevel) {
+				if (distance < this.getHitTestMargin()) {
 					return shape
 				}
 			}
@@ -5693,11 +6115,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const candidateIds = this._spatialIndex.getShapeIdsAtPoint(point, margin)
 
 		// Get all page shapes in z-index order and filter to candidates that pass isPointInShape
-		// Frames are always checked because their labels can be outside their bounds
+		// Frame-like shapes are always checked because their labels can be outside their bounds
 		return this.getCurrentPageShapesSorted()
 			.filter((shape) => {
 				if (this.isShapeHidden(shape)) return false
-				if (!candidateIds.has(shape.id) && !this.isShapeOfType(shape, 'frame')) return false
+				if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) return false
 				return this.isPointInShape(shape, point, opts)
 			})
 			.reverse()
@@ -5870,6 +6292,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
 		if (!shape) return false
 		return shape.type === type
+	}
+
+	/**
+	 * Get whether a shape behaves like a frame — a container that has child
+	 * shapes, requires full-brush selection, blocks erasure from inside, etc.
+	 *
+	 * @example
+	 * ```ts
+	 * const isFrameLike = editor.isShapeFrameLike(someShape)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) to test.
+	 *
+	 * @public
+	 */
+	isShapeFrameLike(shape: TLShape | TLShapeId): boolean {
+		const _shape = typeof shape === 'string' ? this.getShape(shape) : shape
+		if (!_shape) return false
+		return this.getShapeUtil(_shape).isFrameLike(_shape)
 	}
 
 	/**
@@ -7752,32 +8193,53 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resizeShape(shape: TLShapeId | TLShape, scale: VecLike, opts: TLResizeShapeOptions = {}): this {
+		const partial = this.getResizeShapePartial(shape, scale, opts)
+		if (partial) this.updateShapes([partial])
+		return this
+	}
+
+	/**
+	 * Get the update for a resized shape without committing it to the store. Interactions that
+	 * resize many shapes at once use this to collect all of the updates and commit them in a
+	 * single batch. Returns null when there is nothing to update.
+	 *
+	 * Shapes that are rotated out of alignment with the scale axis cannot be resized with a
+	 * single update; those shapes are resized immediately (as `resizeShape` would do) and null
+	 * is returned.
+	 *
+	 * @internal
+	 */
+	getResizeShapePartial(
+		shape: TLShapeId | TLShape,
+		scale: VecLike,
+		opts: TLResizeShapeOptions = {}
+	): TLShapePartial | null {
 		const id = typeof shape === 'string' ? shape : shape.id
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return null
 
 		if (!Number.isFinite(scale.x)) scale = new Vec(1, scale.y)
 		if (!Number.isFinite(scale.y)) scale = new Vec(scale.x, 1)
 
 		const initialShape = opts.initialShape ?? this.getShape(id)
-		if (!initialShape) return this
+		if (!initialShape) return null
 
 		const scaleOrigin = opts.scaleOrigin ?? this.getShapePageBounds(id)?.center
-		if (!scaleOrigin) return this
+		if (!scaleOrigin) return null
 
 		const pageTransform = opts.initialPageTransform
 			? Mat.Cast(opts.initialPageTransform)
 			: this.getShapePageTransform(id)
-		if (!pageTransform) return this
+		if (!pageTransform) return null
 
 		const pageRotation = pageTransform.rotation()
 
-		if (pageRotation == null) return this
+		if (pageRotation == null) return null
 
 		const scaleAxisRotation = opts.scaleAxisRotation ?? pageRotation
 
 		const initialBounds = opts.initialBounds ?? this.getShapeGeometry(id).bounds
 
-		if (!initialBounds) return this
+		if (!initialBounds) return null
 
 		const isAspectRatioLocked =
 			opts.isAspectRatioLocked ?? this.getShapeUtil(initialShape).isAspectRatioLocked(initialShape)
@@ -7787,7 +8249,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// from whichever axis is being scaled the least, to avoid the shape getting bigger
 			// than the bounds of the selection
 			// const minScale = Math.min(Math.abs(scale.x), Math.abs(scale.y))
-			return this._resizeUnalignedShape(id, scale, {
+			this._resizeUnalignedShape(id, scale, {
 				...opts,
 				initialBounds,
 				scaleOrigin,
@@ -7796,6 +8258,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				isAspectRatioLocked,
 				initialShape,
 			})
+			return null
 		}
 
 		const util = this.getShapeUtil(initialShape)
@@ -7808,7 +8271,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		let didResize = false
+		let workingShape: TLShape | null = null
 
 		if (util.onResize && util.canResize(initialShape)) {
 			// get the model changes from the shape util
@@ -7840,7 +8303,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// need to adjust the shape's x and y points in case the parent has moved since start of resizing
 			const { x, y } = this.getPointInParentSpace(initialShape.id, initialPagePoint)
 
-			let workingShape = initialShape
+			workingShape = initialShape
 			if (!opts.skipStartAndEndCallbacks) {
 				workingShape = applyPartialToRecordWithProps(
 					initialShape,
@@ -7862,10 +8325,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			)
 
-			if (resizedShape) {
-				didResize = true
-			}
-
 			workingShape = applyPartialToRecordWithProps(workingShape, {
 				id,
 				type: initialShape.type as any,
@@ -7881,40 +8340,47 @@ export class Editor extends EventEmitter<TLEventMap> {
 				)
 			}
 
-			this.updateShapes([workingShape])
+			if (resizedShape) {
+				return workingShape
+			}
 		}
 
-		if (!didResize) {
-			// reposition shape (rather than resizing it) based on where its resized center would be
+		// the shape was not resized by its util, so reposition it (rather than resizing it)
+		// based on where its resized center would be
 
-			const initialPageCenter = Mat.applyToPoint(pageTransform, initialBounds.center)
-			// get the model changes from the shape util
-			const newPageCenter = this._scalePagePoint(
-				initialPageCenter,
-				scaleOrigin,
-				scale,
-				scaleAxisRotation
-			)
+		const initialPageCenter = Mat.applyToPoint(pageTransform, initialBounds.center)
+		// get the model changes from the shape util
+		const newPageCenter = this._scalePagePoint(
+			initialPageCenter,
+			scaleOrigin,
+			scale,
+			scaleAxisRotation
+		)
 
-			const initialPageCenterInParentSpace = this.getPointInParentSpace(
-				initialShape.id,
-				initialPageCenter
-			)
-			const newPageCenterInParentSpace = this.getPointInParentSpace(initialShape.id, newPageCenter)
+		const initialPageCenterInParentSpace = this.getPointInParentSpace(
+			initialShape.id,
+			initialPageCenter
+		)
+		const newPageCenterInParentSpace = this.getPointInParentSpace(initialShape.id, newPageCenter)
 
-			const delta = Vec.Sub(newPageCenterInParentSpace, initialPageCenterInParentSpace)
-			// apply the changes to the model
-			this.updateShapes([
-				{
-					id,
-					type: initialShape.type as any,
-					x: initialShape.x + delta.x,
-					y: initialShape.y + delta.y,
-				},
-			])
+		const delta = Vec.Sub(newPageCenterInParentSpace, initialPageCenterInParentSpace)
+
+		if (workingShape) {
+			// the util's onResize ran but returned no change; keep the working update (which may
+			// include changes from onResizeStart / onResizeEnd) and reposition the shape
+			return {
+				...workingShape,
+				x: initialShape.x + delta.x,
+				y: initialShape.y + delta.y,
+			}
 		}
 
-		return this
+		return {
+			id,
+			type: initialShape.type as any,
+			x: initialShape.x + delta.x,
+			y: initialShape.y + delta.y,
+		}
 	}
 
 	/** @internal */
@@ -9355,15 +9821,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		await Promise.allSettled(
 			content.assets.map(async (asset) => {
 				if (
-					(asset.type === 'image' || asset.type === 'video' || asset.type === 'audio') &&
+					(asset.type === 'image' || asset.type === 'video') &&
 					!asset.props.src?.startsWith('data:image') &&
 					!asset.props.src?.startsWith('data:video') &&
-					!asset.props.src?.startsWith('data:audio') &&
 					!asset.props.src?.startsWith('http')
 				) {
-					const assetWithDataUrl = structuredClone(
-						asset as TLImageAsset | TLVideoAsset | TLAudioAsset
-					)
+					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
 					const objectUrl = await this.store.props.assets.resolve(asset, {
 						screenScale: 1,
 						steppedScreenScale: 1,
@@ -9620,7 +10083,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const assetsToCreate: TLAsset[] = []
 
 		// These assets have base64 data that may need to be hosted
-		const assetsToUpdate: (TLImageAsset | TLVideoAsset | TLAudioAsset)[] = []
+		const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
 
 		for (const asset of assets) {
 			if (this.store.has(asset.id)) {
@@ -9630,15 +10093,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (
 				(asset.type === 'image' && asset.props.src?.startsWith('data:image')) ||
-				(asset.type === 'video' && asset.props.src?.startsWith('data:video')) ||
-				(asset.type === 'audio' && asset.props.src?.startsWith('data:audio'))
+				(asset.type === 'video' && asset.props.src?.startsWith('data:video'))
 			) {
-				// it's src is a base64 media asset; we need to create a new asset without the src,
+				// it's src is a base64 image or video; we need to create a new asset without the src,
 				// then create a new asset from the original src. So we save a copy of the original asset,
 				// then delete the src from the original asset.
-				assetsToUpdate.push(
-					structuredClone(asset as TLImageAsset | TLVideoAsset | TLAudioAsset)
-				)
+				assetsToUpdate.push(structuredClone(asset as TLImageAsset | TLVideoAsset))
 				asset.props.src = null
 			}
 
@@ -9648,7 +10108,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Start loading the new assets, order does not matter
 		Promise.allSettled(
-			(assetsToUpdate as (TLImageAsset | TLVideoAsset | TLAudioAsset)[]).map(async (asset) => {
+			(assetsToUpdate as (TLImageAsset | TLVideoAsset)[]).map(async (asset) => {
 				// Turn the data url into a file
 				const file = await dataUrlToFile(
 					asset.props.src!,
@@ -9799,6 +10259,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					: (shapes as TLShape[]).map((s) => s.id)
 
 		if (ids.length === 0) return undefined
+
+		// Text geometry is measured from the loaded font, so the export's bounds - and the
+		// layout of any text within it - depend on the right fonts having loaded. Wait for them
+		// before we measure; otherwise an export taken before fonts finish loading (e.g. right
+		// after the editor mounts) is sized and laid out with fallback-font metrics.
+		await this.fonts.loadRequiredFontsForCurrentPage(this.options.maxFontsToLoadBeforeRender)
 
 		return exportToSvg(this, ids, opts)
 	}
@@ -10052,11 +10518,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	blur({ blurContainer = true } = {}): this {
 		if (!this.getIsFocused()) return this
-		if (blurContainer) {
-			this.focusManager.blur()
-		} else {
-			this.complete() // stop any interaction
-		}
+		this.focusManager.blur({ blurContainer })
 		this.updateInstanceState({ isFocused: false })
 		return this
 	}
@@ -10452,6 +10914,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _selectedShapeIdsAtPointerDown: TLShapeId[] = []
 
+	/**
+	 * Whether `_selectedShapeIdsAtPointerDown` holds a pre-gesture selection
+	 * captured by a `pointer_down` (the touch path) that a following pinch
+	 * should restore. False when no pointer_down preceded the pinch (the
+	 * Safari trackpad path uses gesture events), in which case `pinch_start`
+	 * captures the live selection instead.
+	 * @internal
+	 */
+	private _didCaptureSelectionAtPointerDown = false
+
 	/** @internal */
 	private _longPressTimeout = -1 as any
 
@@ -10590,7 +11062,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
 		}
 
-		if (info.metaKey) {
+		if (info.metaKey && info.name !== 'key_up') {
+			// Unlike the other modifiers, the native metaKey property is still true on keyup.
+			// If we don't have this guard, then the metakey will be left true without the timeout.
 			clearTimeout(this._metaKeyTimeout)
 			this._metaKeyTimeout = -1
 			inputs.setMetaKey(true)
@@ -10617,16 +11091,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (inputs.getIsPinching()) return
 
 						if (!inputs.getIsEditing()) {
-							// Always capture the current selection when pinch starts.
-							// This ensures Safari (which uses gesture events instead of wheel)
-							// doesn't restore a stale selection from an earlier pointer_down.
-							this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
+							// If a pointer_down already captured the pre-gesture selection,
+							// keep it: on touch, the first finger's pointer_down can change
+							// the selection before the second finger starts the pinch, and we
+							// want to restore the selection from before that change. When no
+							// pointer_down preceded the pinch (Safari delivers trackpad pinches
+							// as gesture events), capture the live selection now.
+							if (!this._didCaptureSelectionAtPointerDown) {
+								this._selectedShapeIdsAtPointerDown = [...pageState.selectedShapeIds]
+							}
 
 							this._didPinch = true
 
 							inputs.setIsPinching(true)
 
 							this.interrupt()
+
+							// If the first finger changed the selection, roll it back now rather
+							// than waiting for the pinch to end, so the pre-gesture selection is
+							// what's shown during the pinch.
+							if (this._didCaptureSelectionAtPointerDown) {
+								this.setSelectedShapes(this._selectedShapeIdsAtPointerDown)
+							}
 						}
 
 						this.emit('event', info)
@@ -10664,6 +11150,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							{ immediate: true }
 						)
 
+						this.performance._notifyCameraOperation('zooming')
 						this.emit('event', info)
 						return // Stop here!
 					}
@@ -10677,6 +11164,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const { _selectedShapeIdsAtPointerDown: shapesToReselect } = this
 						this.setSelectedShapes(this._selectedShapeIdsAtPointerDown)
 						this._selectedShapeIdsAtPointerDown = []
+						this._didCaptureSelectionAtPointerDown = false
 
 						if (this._didPinch) {
 							this._didPinch = false
@@ -10756,6 +11244,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Zooming')
+							this.performance._notifyCameraOperation('zooming')
 							this.root.handleEvent(info)
 							this.emit('event', info)
 							return
@@ -10766,6 +11255,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
+							this.performance._notifyCameraOperation('panning')
 							this.root.handleEvent(info)
 							this.emit('event', info)
 							return
@@ -10803,8 +11293,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}, this.options.longPressDurationMs)
 						}
 
-						// Save the selected ids at pointer down
-						this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
+						// Save the selected ids at the start of an interaction so a pinch can
+						// restore the pre-gesture selection. Only capture on the first pointer:
+						// on touch, the second finger's pointer_down arrives after the first
+						// has already changed the selection, and we want the earlier snapshot.
+						// Cleared on pointer_up / pinch_end.
+						if (!this._didCaptureSelectionAtPointerDown) {
+							this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
+							this._didCaptureSelectionAtPointerDown = true
+						}
 
 						// Firefox bug fix...
 						// If it's a left-mouse-click, we store the pointer id for later user
@@ -10817,8 +11314,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.setIsPointing(true)
 						inputs.setIsDragging(false)
 
-						// If pen mode is off but we're not already in pen mode, turn that on
-						if (!isPenMode && isPen) this.updateInstanceState({ isPenMode: true })
+						// If pen mode is off, turn it on for direct-display pen input only (e.g. Apple
+						// Pencil on an iPad or a Surface Pen on a touchscreen). Indirect desktop tablet
+						// styluses still draw as pens, but should not auto-enable pen mode.
+						if (!isPenMode && info.isPenDirect) {
+							this.updateInstanceState({ isPenMode: true })
+							// Once pen mode is on, touch input is ignored, so we discard the
+							// in-progress touch interaction .
+							this.interrupt()
+						}
 
 						// On devices with erasers (like the Surface Pen or Wacom Pen), button 5 is the eraser
 						if (info.button === STYLUS_ERASER_BUTTON) {
@@ -10832,6 +11336,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 							this.inputs.setIsPanning(true)
 							clearTimeout(this._longPressTimeout)
+						} else if (info.button === RIGHT_MOUSE_BUTTON && this.options.rightClickPanning) {
+							this.inputs.setIsRightPointing(true)
+							clearTimeout(this._longPressTimeout)
+							return this
 						}
 
 						// We might be panning because we did a middle mouse click, or because we're holding spacebar and started a regular click
@@ -10850,9 +11358,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 
+						// Right-click pointing: waiting to see if this becomes a drag
+						if (this.inputs.getIsRightPointing() && !this.inputs.getIsPanning()) {
+							const currentScreenPoint = this.inputs.getCurrentScreenPoint()
+							const originScreenPoint = this.inputs.getOriginScreenPoint()
+							if (
+								Vec.Dist2(originScreenPoint, currentScreenPoint) > this.options.dragDistanceSquared
+							) {
+								// Passed the drag threshold—transition to panning
+								this._prevCursor = this.getInstanceState().cursor.type
+								this.inputs.setIsPanning(true)
+								this.setCursor({ type: 'grabbing', rotation: 0 })
+								this.stopCameraAnimation()
+								// Apply the initial delta from the pointer down origin
+								const offset = Vec.Sub(currentScreenPoint, originScreenPoint)
+								this.setCamera(new Vec(cx + offset.x / cz, cy + offset.y / cz, cz), {
+									immediate: true,
+								})
+								this.maybeTrackPerformance('Panning')
+							}
+							return
+						}
+
 						// If we've started panning, then clear any long press timeout
 						if (this.inputs.getIsPanning() && this.inputs.getIsPointing()) {
-							// Handle spacebar / middle mouse button panning
+							// Handle spacebar / middle mouse button / right-click panning
 							const currentScreenPoint = this.inputs.getCurrentScreenPoint()
 							const previousScreenPoint = this.inputs.getPreviousScreenPoint()
 							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
@@ -10860,6 +11390,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								immediate: true,
 							})
 							this.maybeTrackPerformance('Panning')
+							this.performance._notifyCameraOperation('panning')
 							return
 						}
 
@@ -10884,12 +11415,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.setIsDragging(false)
 						inputs.setIsPointing(false)
 						clearTimeout(this._longPressTimeout)
-
 						// Remove the button from the buttons set
 						inputs.buttons.delete(info.button)
 
 						// If we're in pen mode and we're not using a pen, stop here
 						if (instanceState.isPenMode && !isPen) return
+
+						// Right-click pointing ended without dragging—this is a static
+						// right-click, so let it through to the state chart as right_click.
+						// Check isPanning first: if we transitioned to panning, isRightPointing
+						// is still true but we want the panning cleanup path instead.
+						if (this.inputs.getIsRightPointing() && !this.inputs.getIsPanning()) {
+							this.inputs.setIsRightPointing(false)
+							this._selectedShapeIdsAtPointerDown = []
+							this._didCaptureSelectionAtPointerDown = false
+							break // fall through to state chart dispatch as right_click
+						}
+
+						this.inputs.setIsRightPointing(false)
 
 						// Firefox bug fix...
 						// If it's the same pointer that we stored earlier...
@@ -10913,16 +11456,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 									break
 								}
 								case MIDDLE_MOUSE_BUTTON: {
-									if (this.inputs.keys.has(' ')) {
+									if (this.inputs.keys.has('Space')) {
 										this.setCursor({ type: 'grab', rotation: 0 })
 									} else {
 										this.setCursor({ type: this._prevCursor, rotation: 0 })
 									}
+									break
+								}
+								case RIGHT_MOUSE_BUTTON: {
+									if (this.inputs.keys.has('Space')) {
+										this.setCursor({ type: 'grab', rotation: 0 })
+									} else {
+										this.setCursor({ type: this._prevCursor, rotation: 0 })
+									}
+									// Don't pass right-click panning events to the state chart
+									// as it causes unintended shape selection on release
+									if (slideSpeed > 0) {
+										this.slideCamera({
+											speed: slideSpeed,
+											direction: { x: slideDirection.x, y: slideDirection.y, z: 0 },
+										})
+									}
+									this._selectedShapeIdsAtPointerDown = []
+									this._didCaptureSelectionAtPointerDown = false
+									return this
 								}
 							}
 
 							if (slideSpeed > 0) {
-								this.slideCamera({ speed: slideSpeed, direction: slideDirection })
+								this.slideCamera({
+									speed: slideSpeed,
+									direction: { x: slideDirection.x, y: slideDirection.y, z: 0 },
+								})
 							}
 						} else {
 							if (info.button === STYLUS_ERASER_BUTTON) {
@@ -10935,6 +11500,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Clear the stashed selection so the next pinch captures fresh state.
 						// This fixes Safari pinch zoom restoring outdated selections.
 						this._selectedShapeIdsAtPointerDown = []
+						this._didCaptureSelectionAtPointerDown = false
 
 						break
 					}
@@ -11034,6 +11600,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 				info.name = 'middle_click'
 			} else if (info.button === RIGHT_MOUSE_BUTTON) {
 				info.name = 'right_click'
+			}
+
+			// The context menu is a select-tool surface: every item acts on the
+			// current selection. Route a right-click through the select tool before
+			// the event reaches the state chart, so the select tool's idle resolves
+			// the selection at the click point (select the shape under the pointer,
+			// or clear it) no matter which tool was active. Without this, opening the
+			// menu from another tool leaves a stale selection that doesn't match the
+			// click (#8828). Guarded on the select tool existing, since the bare
+			// editor can be configured without it.
+			if (
+				info.name === 'right_click' &&
+				this.getCurrentToolId() !== 'select' &&
+				this.getStateDescendant('select')
+			) {
+				this.setCurrentTool('select')
 			}
 
 			// If a left click pointer event, send the event to the click manager.

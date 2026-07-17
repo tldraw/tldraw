@@ -13,7 +13,7 @@ This release introduces several significant changes: a new pattern for defining 
 
 ---
 
-### New pattern for defining custom shape/binding types (breaking change) ([#7091](https://github.com/tldraw/tldraw/pull/7091))
+### 💥 New pattern for defining custom shape/binding types ([#7091](https://github.com/tldraw/tldraw/pull/7091))
 
 We've improved the developer experience of working with custom shape and binding types. There's now less boilerplate and fewer gotchas when using tldraw APIs in a type-safe manner.
 
@@ -61,7 +61,50 @@ editor.createShape({ type: 'my-shape', props: { w: 100, h: 100, text: 'Hello' } 
 editor.createShape({ type: 'my-shape', props: { w: 100, h: 100, text: 123 } })
 ```
 
-The same pattern applies to custom bindings. See the [Custom Shapes Guide](https://tldraw.dev/docs/shapes#custom-shapes) and the [Pin Bindings example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/pin-bindings) for details.
+The same pattern applies to custom bindings — augment `TLGlobalBindingPropsMap` and use `TLBinding<'binding-name'>`:
+
+```ts
+declare module 'tldraw' {
+	export interface TLGlobalBindingPropsMap {
+		'my-binding': { offset: number }
+	}
+}
+
+type MyBinding = TLBinding`<'my-binding'>`
+```
+
+See the [Custom Shapes Guide](https://tldraw.dev/docs/shapes#custom-shapes) and the [Pin Bindings example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/shapes/tools/pin-bindings) for details.
+
+**After registering, remove the `TLBaseShape` import** — it's no longer used and will trip lint rules that flag unused imports.
+
+**Shape type names are global.** `TLGlobalShapePropsMap` is a single shared registry, so two custom shapes that previously used the same type name in different files now collide. Pick a unique name for each, and remember the rename ripples beyond the type alias:
+
+- `static override type = '...'` on the `ShapeUtil` subclass
+- Every `editor.createShape({ type: '...' })` and `editor.updateShape({ type: '...' })` call site
+- The `TLGlobalShapePropsMap` entry itself
+- Any persisted snapshot or migration JSON that references the old name
+
+**Use `as const` on the static `type` field.** TypeScript may widen `static override type = 'my-shape'` to `string`, which fails the new constraint. Add `as const` to keep it a string literal:
+
+```ts
+class MyShapeUtil extends ShapeUtil`<MyShape>` {
+	static override type = 'my-shape' as const
+	// ...
+}
+```
+
+The same fix applies to `BaseBoxShapeTool` (and other tool) subclasses, which expose `static override shapeType = '...'`. If you see TS2416 on a tool's `shapeType`, add `as const` there too. The two fields are easy to confuse — check both.
+
+**Heterogeneous `createShapes`/`updateShapes` arrays may need a cast.** Because `TLShape` is now a discriminated union over the global props map, a mapped array of mixed shape types no longer narrows automatically. For homogeneous arrays where every item shares one shape type, `as const` on the `type` field in the mapped object literal is enough. For genuinely heterogeneous arrays, go straight to `as TLShapePartial[]` (or `as TLCreateShapePartial[]` for `createShapes`):
+
+```ts
+// Heterogeneous update — the union doesn't narrow
+editor.updateShapes(
+	shapes.map((s) => ({ id: s.id, type: s.type, x: s.x + 10 })) as TLShapePartial[]
+)
+```
+
+Don't reach for `satisfies TLShapePartial` here — `TLShapePartial` is distributive over the `TLShape` union, so `satisfies` enforces a literal-per-variant constraint that mapped-over heterogeneous shapes can't meet. The cast is the right tool for this specific shape of code.
 
 </details>
 

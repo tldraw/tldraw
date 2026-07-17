@@ -783,9 +783,6 @@ describe('snapping with multiple shapes', () => {
 })
 
 describe('Snap-between behavior', () => {
-	beforeEach(() => {
-		editor?.dispose()
-	})
 	it('snaps a shape horizontally between two others', () => {
 		// ┌─────┐               ┌─────┐
 		// │     │               │     │
@@ -1160,9 +1157,6 @@ describe('Snap-between behavior', () => {
 })
 
 describe('Snap-next-to behavior', () => {
-	beforeEach(() => {
-		editor?.dispose()
-	})
 	it('snaps a shape to the left of two others, matching the gap size', () => {
 		// ┌───┐
 		// │ X │

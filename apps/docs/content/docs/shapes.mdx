@@ -34,6 +34,8 @@ You can create your own shapes by defining a shape type and a ShapeUtil class.
 Register your shape's props using TypeScript module augmentation:
 
 ```ts
+import { TLShape } from 'tldraw'
+
 const CARD_TYPE = 'card'
 
 declare module 'tldraw' {
@@ -47,7 +49,7 @@ type CardShape = TLShape<typeof CARD_TYPE>
 
 ### Creating a ShapeUtil
 
-Implement the required methods: `getDefaultProps`, `getGeometry`, `component`, and `indicator`:
+Implement the required methods: `getDefaultProps`, `getGeometry`, `component`, and `getIndicatorPath`:
 
 ```tsx
 import { HTMLContainer, Rectangle2d, ShapeUtil } from 'tldraw'
@@ -71,8 +73,10 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 		return <HTMLContainer>Hello</HTMLContainer>
 	}
 
-	indicator(shape: CardShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: CardShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 ```

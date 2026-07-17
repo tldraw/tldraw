@@ -10,7 +10,6 @@ import { T } from '@tldraw/validate'
 import { SchemaPropsInfo } from '../createTLSchema'
 import { TLPropsMigrations } from '../recordsWithProps'
 import { TLArrowShape } from '../shapes/TLArrowShape'
-import { TLAudioShape } from '../shapes/TLAudioShape'
 import { TLBaseShape, createShapeValidator } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
@@ -47,7 +46,6 @@ import { TLPageId } from './TLPage'
  */
 export type TLDefaultShape =
 	| TLArrowShape
-	| TLAudioShape
 	| TLBookmarkShape
 	| TLDrawShape
 	| TLEmbedShape

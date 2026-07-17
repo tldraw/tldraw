@@ -4,7 +4,7 @@ import { Field, Label, Textarea } from '@headlessui/react'
 import { ArrowLongRightIcon, CheckCircleIcon, HandThumbDownIcon } from '@heroicons/react/20/solid'
 import { HandThumbUpIcon } from '@heroicons/react/24/solid'
 import { usePathname } from 'next/navigation'
-import { FormEventHandler, useCallback, useState } from 'react'
+import { FormEventHandler, useState } from 'react'
 import { track } from '@/app/analytics'
 import { cn } from '@/utils/cn'
 import { useLocalStorageState } from '@/utils/storage'
@@ -42,7 +42,7 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 		'idle' | 'thumbs-up' | 'thumbs-down' | 'loading' | 'success' | 'error'
 	>('idle')
 
-	const handleThumbsDown = useCallback(async () => {
+	const handleThumbsDown = async () => {
 		setState((s) => {
 			const next = s === 'thumbs-down' ? 'idle' : 'thumbs-down'
 			if (s === 'thumbs-down') {
@@ -50,9 +50,9 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 			}
 			return next
 		})
-	}, [pathname, sessionId])
+	}
 
-	const handleThumbsUp = useCallback(() => {
+	const handleThumbsUp = () => {
 		setState((s) => {
 			const next = s === 'thumbs-up' ? 'idle' : 'thumbs-up'
 			if (s === 'thumbs-up') {
@@ -60,31 +60,28 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 			}
 			return next
 		})
-	}, [pathname, sessionId])
+	}
 
-	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
-		async (e) => {
-			e.preventDefault()
-			if (state === 'loading') return
-			if (!sessionId) return
+	const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
+		e.preventDefault()
+		if (state === 'loading') return
+		if (!sessionId) return
 
-			try {
-				const form = e.currentTarget
-				const formData = new FormData(form)
-				const feedback = formData.get('feedback') as string
+		try {
+			const form = e.currentTarget
+			const formData = new FormData(form)
+			const feedback = formData.get('feedback') as string
 
-				setState('loading')
-				await submitFeedback(sessionId, pathname, state === 'thumbs-up' ? 1 : -1, feedback)
-				setState('success')
-				setTimeout(() => {
-					setDidSubmit(true)
-				}, 3000)
-			} catch {
-				setState('error')
-			}
-		},
-		[state, sessionId, pathname, setDidSubmit]
-	)
+			setState('loading')
+			await submitFeedback(sessionId, pathname, state === 'thumbs-up' ? 1 : -1, feedback)
+			setState('success')
+			setTimeout(() => {
+				setDidSubmit(true)
+			}, 3000)
+		} catch {
+			setState('error')
+		}
+	}
 
 	// todo, improve this so that thumbs ups and thumbs downs are also captured
 	if (didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) return null

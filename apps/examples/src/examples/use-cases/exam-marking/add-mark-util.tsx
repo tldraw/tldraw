@@ -31,7 +31,7 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 	}
 
 	// [1]
-	override canEdit(_shape: IExamMarkShape): boolean {
+	override canEdit(shape: IExamMarkShape): boolean {
 		return true
 	}
 
@@ -112,8 +112,10 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 		)
 	}
 
-	override indicator() {
-		return <rect width={EXAM_MARK_WIDTH} height={EXAM_MARK_HEIGHT} rx={4} />
+	override getIndicatorPath() {
+		const path = new Path2D()
+		path.rect(0, 0, EXAM_MARK_WIDTH, EXAM_MARK_HEIGHT)
+		return path
 	}
 
 	getGeometry() {
@@ -124,14 +126,14 @@ export class ExamMarkUtil extends ShapeUtil<IExamMarkShape> {
 		})
 	}
 
-	override hideSelectionBoundsBg() {
+	override hideSelectionBoundsBg(shape: IExamMarkShape) {
 		return true
 	}
-	override hideSelectionBoundsFg() {
+	override hideSelectionBoundsFg(shape: IExamMarkShape) {
 		return true
 	}
 
-	override canResize(_shape: IExamMarkShape): boolean {
+	override canResize(shape: IExamMarkShape): boolean {
 		return false
 	}
 }
@@ -146,7 +148,6 @@ A utility class for the exam mark shape. This is where you define the shape's be
  - [a] To control behavior, we need to know if the shape is being edited. We can access this using `editor.getEditingShapeId()`.
 
  - [b] The important part of this shape utility is how it handles the score input. We know we want the ExamScoreLabel component to be able to access the score of the shape, so we want the score to be a prop for the shape.
- Annoying: eslint sometimes thinks this is a class component, but it's not.
 
  - [c] When the shape is mounted, we set it to be in editing mode.
 

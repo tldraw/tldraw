@@ -19,7 +19,7 @@ accuracy: 10
 notes: ''
 ---
 
-The `@tldraw/tldraw` package exports a set of UI primitive components that you can use when building custom interfaces. These components match the look and feel of tldraw's default UI and integrate with the editor's theming, translations, and accessibility features.
+The `tldraw` package exports a set of UI primitive components that you can use when building custom interfaces. These components match the look and feel of tldraw's default UI and integrate with the editor's theming, translations, and accessibility features.
 
 Use these primitives when you want your custom UI to feel like a natural part of tldraw rather than something bolted on.
 
@@ -32,7 +32,7 @@ The button system consists of `TldrawUiButton` and its companion components for 
 The base button component with several visual variants:
 
 ```tsx
-import { TldrawUiButton, TldrawUiButtonLabel } from 'tldraw'
+import { TldrawUiButton, TldrawUiButtonIcon, TldrawUiButtonLabel } from 'tldraw'
 
 function MyButtons() {
 	return (
@@ -440,6 +440,7 @@ The `id` prop is required on `TldrawUiDropdownMenuRoot`. Each `TldrawUiDropdownM
 
 ## Related examples
 
+- **[UI primitives](/examples/ui/ui-primitives)** — A showcase of the UI primitive components
 - **[Custom menus](/examples/ui/custom-menus)** — Add items to tldraw's menus using menu primitives
 - **[Toasts and dialogs](/examples/ui/toasts-and-dialogs)** — Show toasts and custom dialogs
 - **[Custom UI](/examples/ui/custom-ui)** — Build a completely custom interface

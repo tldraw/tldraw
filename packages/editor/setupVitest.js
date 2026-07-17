@@ -24,10 +24,6 @@ document.fonts = {
 	[Symbol.iterator]: () => [][Symbol.iterator](),
 }
 
-// Text encoding/decoding polyfills
-global.TextEncoder = require('util').TextEncoder
-global.TextDecoder = require('util').TextDecoder
-
 // Window fetch mock for network requests
 window.fetch = async (input, init) => {
 	return {
@@ -49,44 +45,6 @@ window.matchMedia = (query) => ({
 	dispatchEvent: () => {},
 })
 
-// Enhanced DOM API mocking for CSSStyleDeclaration
-// This ensures all HTML elements have the required style methods
-if (typeof CSSStyleDeclaration !== 'undefined') {
-	if (!CSSStyleDeclaration.prototype.getPropertyValue) {
-		CSSStyleDeclaration.prototype.getPropertyValue = function (property) {
-			return this[property] || ''
-		}
-	}
-	if (!CSSStyleDeclaration.prototype.setProperty) {
-		CSSStyleDeclaration.prototype.setProperty = function (property, value) {
-			this[property] = value
-		}
-	}
-	if (!CSSStyleDeclaration.prototype.removeProperty) {
-		CSSStyleDeclaration.prototype.removeProperty = function (property) {
-			delete this[property]
-		}
-	}
-}
-
-// Mock PointerEvent for jsdom
-if (typeof window !== 'undefined' && !window.PointerEvent) {
-	global.PointerEvent = class PointerEvent extends Event {
-		pointerId = 1
-		pointerType = 'mouse'
-		clientX = 0
-		clientY = 0
-
-		constructor(type, options = {}) {
-			super(type, options)
-			this.pointerId = options.pointerId || 1
-			this.pointerType = options.pointerType || 'mouse'
-			this.clientX = options.clientX || 0
-			this.clientY = options.clientY || 0
-		}
-	}
-}
-
 // Mock DragEvent for jsdom
 if (typeof window !== 'undefined' && !window.DragEvent) {
 	global.DragEvent = class DragEvent extends Event {
@@ -103,18 +61,6 @@ if (typeof window !== 'undefined' && !window.DragEvent) {
 				setData: () => {},
 				files: [],
 			}
-		}
-	}
-}
-
-// Mock TouchEvent for jsdom
-if (typeof window !== 'undefined' && !window.TouchEvent) {
-	global.TouchEvent = class TouchEvent extends Event {
-		touches = []
-
-		constructor(type, options = {}) {
-			super(type, options)
-			this.touches = options.touches || []
 		}
 	}
 }

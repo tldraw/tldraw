@@ -4,9 +4,7 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLPropsMigrations,
-	TLShapePartial,
 	TLUnknownAsset,
-	VecModel,
 } from '@tldraw/tlschema'
 import type { Editor } from '../Editor'
 
@@ -25,8 +23,7 @@ export interface TLAssetUtilConstructor<
  * Abstract base class for defining asset-type-specific behavior.
  *
  * Each asset type (image, video, bookmark, etc.) has a corresponding AssetUtil that handles
- * type-specific operations like determining supported MIME types, creating assets from files,
- * and creating shapes from assets.
+ * type-specific operations like determining supported MIME types and creating assets from files.
  *
  * @public
  */
@@ -83,14 +80,6 @@ export abstract class AssetUtil<Asset extends TLAsset = TLAsset> {
 	 * Create an asset from a file. Return null if this asset type can't handle the file.
 	 */
 	async getAssetFromFile(_file: File, _assetId: TLAssetId): Promise<Asset | null> {
-		return null
-	}
-
-	/**
-	 * Create a shape partial for placing this asset on the canvas.
-	 * Return null if this asset type doesn't create shapes.
-	 */
-	createShape(_asset: Asset, _position: VecModel): TLShapePartial | null {
 		return null
 	}
 }

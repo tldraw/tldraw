@@ -111,12 +111,49 @@ export class StyleProp<Type> implements T.Validatable<Type> {
  */
 export class EnumStyleProp<T> extends StyleProp<T> {
 	/** @internal */
-	constructor(
-		id: string,
-		defaultValue: T,
-		readonly values: readonly T[]
-	) {
+	constructor(id: string, defaultValue: T, values: readonly T[]) {
 		super(id, defaultValue, T.literalEnum(...values))
+		this.values = [...values]
+	}
+
+	readonly values: T[]
+
+	/**
+	 * Add new values to this enum style prop at runtime. This is useful for extending
+	 * the built-in styles with custom values (e.g. adding custom colors). Be sure to
+	 * also modify the associated types.
+	 *
+	 * @param newValues - The new values to add.
+	 *
+	 * @public
+	 */
+	addValues(...newValues: T[]): void {
+		for (const v of newValues) {
+			if (!this.values.includes(v)) {
+				this.values.push(v)
+			}
+		}
+		// Rebuild the validator with the updated values
+		;(this as any).type = T.literalEnum(...this.values)
+	}
+
+	/**
+	 * Remove values from this enum style prop at runtime. This is useful for narrowing
+	 * the built-in styles with custom values (e.g. adding custom colors). Be sure to
+	 * also modify the associated types.
+	 *
+	 * @param valuesToRemove - The values to remove.
+	 *
+	 * @public
+	 */
+	removeValues(...valuesToRemove: T[]): void {
+		for (const v of valuesToRemove) {
+			if (this.values.includes(v)) {
+				this.values.splice(this.values.indexOf(v), 1)
+			}
+		}
+		// Rebuild the validator with the updated values
+		;(this as any).type = T.literalEnum(...this.values)
 	}
 }
 

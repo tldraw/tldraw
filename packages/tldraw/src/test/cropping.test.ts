@@ -1,13 +1,14 @@
 import { createShapeId, TLImageShape } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { MIN_CROP_SIZE } from '../lib/shapes/shared/crop'
-import { TestEditor } from './TestEditor'
+import { defaultHandleOverlays, TestEditor } from './TestEditor'
 
 vi.useFakeTimers()
 
 let editor: TestEditor
 
 afterEach(() => {
+	vi.restoreAllMocks()
 	editor?.dispose()
 })
 
@@ -29,7 +30,7 @@ const imageProps = {
 }
 
 beforeEach(() => {
-	editor = new TestEditor()
+	editor = new TestEditor({ overlayUtils: defaultHandleOverlays })
 
 	// this side effect is normally added via a hook
 	editor.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next) => {
@@ -85,6 +86,8 @@ beforeEach(() => {
 
 describe('When in the select.idle state', () => {
 	it('double clicking an image should transition to select.crop', () => {
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
 		editor.select(ids.boxA)
 
 		editor.expectToBeIn('select.idle')
@@ -130,6 +133,10 @@ describe('When in the select.idle state', () => {
 		expect(editor.getOnlySelectedShape()!.props).toMatchObject({
 			crop: { topLeft: { x: 0.1, y: 0.1 }, bottomRight: { x: 0.9, y: 0.9 } },
 		})
+		expect(consoleErrorSpy).not.toHaveBeenCalledWith(
+			'Could not find mark to squash to: ',
+			expect.any(String)
+		)
 	})
 
 	it('when ONLY ONE image is selected double clicking a selection handle should transition to select.crop', () => {
@@ -295,24 +302,53 @@ describe('When in the crop.idle state', () => {
 			.expectToBeIn('select.pointing_shape')
 	})
 
-	it('pointing a selection handle should enter the select.crop.pointing_crop_handle state', () => {
-		// corner
+	it('updates cursor when hovering crop handles', () => {
 		editor
 			.expectToBeIn('select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectToBeIn('select.crop.idle')
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: false })
+
+		// Hover top-left corner of the cropped image (at page point 500,500)
+		editor.pointerMove(500, 500)
+		expect(editor.getInstanceState().cursor.type).toBe('nwse-resize')
+
+		// Hover top-right corner (at 1100,500)
+		editor.pointerMove(1100, 500)
+		expect(editor.getInstanceState().cursor.type).toBe('nesw-resize')
+
+		// Hover top edge midpoint (at 800,500)
+		editor.pointerMove(800, 500)
+		expect(editor.getInstanceState().cursor.type).toBe('ns-resize')
+
+		// Hover left edge midpoint (at 500,700)
+		editor.pointerMove(500, 700)
+		expect(editor.getInstanceState().cursor.type).toBe('ew-resize')
+
+		// Move away from any handle, cursor should reset
+		editor.pointerMove(700, 700)
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+	})
+
+	it('clicking a crop handle via canvas event enters pointing_crop_handle state', () => {
+		// Click corner crop handle
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+			.pointerMove(500, 500)
+			.pointerDown()
 			.expectToBeIn('select.crop.pointing_crop_handle')
 
-		//reset
-		editor.cancel().cancel()
+		// reset
+		editor.cancel().cancel().cancel()
 
-		// edge
+		// Click edge crop handle
 		editor
 			.expectToBeIn('select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectToBeIn('select.crop.idle')
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom', ctrlKey: false })
+			.pointerMove(800, 500)
+			.pointerDown()
 			.expectToBeIn('select.crop.pointing_crop_handle')
 	})
 
@@ -349,6 +385,23 @@ describe('When in the crop.idle state', () => {
 			.expectToBeIn('select.pointing_rotate_handle')
 			.pointerMove(510, 590)
 			.expectToBeIn('select.rotating')
+			.pointerUp()
+			.expectToBeIn('select.crop.idle')
+	})
+
+	it('mobile rotate enters pointing_rotate_handle in crop mode on coarse pointers', () => {
+		editor.updateInstanceState({ isCoarsePointer: true })
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+
+		const p = editor.getSelectionHandlePagePoint('mobile_rotate')
+
+		editor
+			.pointerMove(p.x, p.y)
+			.pointerDown()
+			.expectToBeIn('select.pointing_rotate_handle')
 			.pointerUp()
 			.expectToBeIn('select.crop.idle')
 	})
@@ -1083,5 +1136,107 @@ describe('When cropping...', () => {
 					h: imageHeight - moveY,
 				},
 			})
+	})
+})
+
+describe('When cropping with modifiers and snapping...', () => {
+	const cropId = createShapeId('cropModifiersImage')
+	const snapTargetId = createShapeId('cropSnapTarget')
+
+	const fullCrop = { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } }
+
+	beforeEach(() => {
+		// User preferences are global, so reset snap mode for deterministic gating.
+		editor.user.updateUserPreferences({ isSnapMode: false })
+		editor.createShapes([
+			{
+				id: cropId,
+				type: 'image',
+				x: 0,
+				y: 0,
+				props: { ...imageProps, w: 400, h: 400, crop: fullCrop },
+			},
+			// A thin box whose left edge sits at x = 300, used as a snap target.
+			{
+				id: snapTargetId,
+				type: 'geo',
+				x: 300,
+				y: 0,
+				props: { w: 10, h: 400 },
+			},
+		])
+	})
+
+	function enterCropAndPointHandle(handle: 'left' | 'right', x: number, y: number) {
+		editor
+			.select(cropId)
+			.keyDown('Enter')
+			.keyUp('Enter')
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(x, y, { target: 'selection', handle })
+			.expectToBeIn('select.crop.pointing_crop_handle')
+	}
+
+	it('resizes the crop symmetrically from the center when holding alt', () => {
+		enterCropAndPointHandle('left', 0, 200)
+		editor.pointerMove(40, 200, { altKey: true }).expectToBeIn('select.crop.cropping')
+
+		const shape = editor.getShape<TLImageShape>(cropId)!
+		// Both the left and right edges move in by 40, keeping the frame centered on x = 200.
+		expect(shape.props.w).toBeCloseTo(320)
+		expect(shape.x + shape.props.w / 2).toBeCloseTo(200)
+		expect(shape.props.crop).toMatchObject({
+			topLeft: { x: 0.1, y: 0 },
+			bottomRight: { x: 0.9, y: 1 },
+		})
+	})
+
+	it('snaps a crop edge to another shape when snapping is enabled', () => {
+		enterCropAndPointHandle('right', 400, 200)
+		// Holding the accel key enables snapping (snap mode is off by default).
+		editor.pointerMove(298, 200, { ctrlKey: true }).expectToBeIn('select.crop.cropping')
+
+		const shape = editor.getShape<TLImageShape>(cropId)!
+		// The right edge snaps from x≈298 to the target's left edge at x = 300.
+		expect(shape.props.w).toBeCloseTo(300)
+		expect(shape.props.crop!.bottomRight.x).toBeCloseTo(0.75)
+		expect(editor.snaps.getIndicators().length).toBeGreaterThan(0)
+	})
+
+	it('does not snap when snapping is disabled', () => {
+		enterCropAndPointHandle('right', 400, 200)
+		editor.pointerMove(298, 200).expectToBeIn('select.crop.cropping')
+
+		const shape = editor.getShape<TLImageShape>(cropId)!
+		expect(shape.props.w).toBeCloseTo(298)
+		expect(editor.snaps.getIndicators().length).toBe(0)
+	})
+
+	it('lets the accel key invert snapping (snap mode on + accel = no snap)', () => {
+		editor.user.updateUserPreferences({ isSnapMode: true })
+		enterCropAndPointHandle('right', 400, 200)
+		editor.pointerMove(298, 200, { ctrlKey: true }).expectToBeIn('select.crop.cropping')
+
+		const shape = editor.getShape<TLImageShape>(cropId)!
+		expect(shape.props.w).toBeCloseTo(298)
+		expect(editor.snaps.getIndicators().length).toBe(0)
+	})
+
+	it('skips snapping while the image is rotated', () => {
+		editor.updateShape({ id: cropId, type: 'image', rotation: 0.5 })
+		enterCropAndPointHandle('right', 400, 200)
+		editor.pointerMove(298, 200, { ctrlKey: true }).expectToBeIn('select.crop.cropping')
+
+		// Snapping is gated to axis-aligned selections, so no snap line appears.
+		expect(editor.snaps.getIndicators().length).toBe(0)
+	})
+
+	it('clears snap indicators when the crop ends', () => {
+		enterCropAndPointHandle('right', 400, 200)
+		editor.pointerMove(298, 200, { ctrlKey: true }).expectToBeIn('select.crop.cropping')
+		expect(editor.snaps.getIndicators().length).toBeGreaterThan(0)
+
+		editor.pointerUp()
+		expect(editor.snaps.getIndicators().length).toBe(0)
 	})
 })

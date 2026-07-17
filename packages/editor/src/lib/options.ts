@@ -86,6 +86,7 @@ export interface TldrawOptions {
 	readonly collaboratorCheckIntervalMs: number
 	readonly cameraMovingTimeoutMs: number
 	readonly hitTestMargin: number
+	readonly coarseHitTestMargin: number
 	readonly edgeScrollDelay: number
 	readonly edgeScrollEaseDuration: number
 	readonly edgeScrollSpeed: number
@@ -155,6 +156,12 @@ export interface TldrawOptions {
 	 */
 	readonly spacebarPanning: boolean
 	/**
+	 * Whether to allow right-click + drag to pan the camera. When true, right-click + drag pans the
+	 * camera and a static right-click opens the context menu at the release position. When false,
+	 * right-click opens the context menu on press (no drag-to-pan).
+	 */
+	readonly rightClickPanning: boolean
+	/**
 	 * The default padding (in pixels) used when zooming to fit content in the viewport.
 	 * This affects methods like `zoomToFit()`, `zoomToSelection()`, and `zoomToBounds()`.
 	 * The actual padding used is the minimum of this value and 28% of the viewport width.
@@ -165,6 +172,13 @@ export interface TldrawOptions {
 	 * The distance (in screen pixels) at which shapes snap to guides and other shapes.
 	 */
 	readonly snapThreshold: number
+	/**
+	 * Whether locked shapes can be selected with a left click. When false (default), left-clicking
+	 * a locked shape is treated as a click on the canvas — only right-click selects it. When true,
+	 * locked shapes can be selected via left click and included in brush and scribble selections,
+	 * but the editor's lock guards still prevent moving, resizing, editing, or deleting them.
+	 */
+	readonly selectLockedShapes: boolean
 	/**
 	 * Options for the editor's camera. These are the initial camera options.
 	 * Use {@link Editor.setCameraOptions} to update camera options at runtime.
@@ -299,7 +313,8 @@ export const defaultTldrawOptions = {
 	collaboratorIdleTimeoutMs: 3000,
 	collaboratorCheckIntervalMs: 1200,
 	cameraMovingTimeoutMs: 64,
-	hitTestMargin: 8,
+	hitTestMargin: 3,
+	coarseHitTestMargin: 4,
 	edgeScrollDelay: 200,
 	edgeScrollEaseDuration: 200,
 	edgeScrollSpeed: 25,
@@ -326,8 +341,10 @@ export const defaultTldrawOptions = {
 	debouncedZoom: true,
 	debouncedZoomThreshold: 500,
 	spacebarPanning: true,
+	rightClickPanning: true,
 	zoomToFitPadding: 128,
 	snapThreshold: 8,
+	selectLockedShapes: false,
 	camera: DEFAULT_CAMERA_OPTIONS,
 	text: {},
 	deepLinks: undefined,

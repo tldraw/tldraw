@@ -40,8 +40,8 @@ export class ZoomQuick extends StateNode {
 		// We need each side to reach the common bounds edge.
 		const vsb = editor.getViewportScreenBounds()
 		const sp = editor.inputs.getCurrentScreenPoint()
-		const sx = sp.x - vsb.x
-		const sy = sp.y - vsb.y
+		const sx = sp.x
+		const sy = sp.y
 		const { x: px, y: py } = this.initialPp
 
 		const dLeft = px - commonBounds.minX
@@ -173,7 +173,7 @@ export class ZoomQuick extends StateNode {
 		// Normalize the offset on the current screen point within the current viewport screen bounds
 		const vsb = editor.getViewportScreenBounds()
 		const vsp = editor.inputs.getCurrentScreenPoint()
-		const { x: nx, y: ny } = new Vec((vsp.x - vsb.x) / vsb.w, (vsp.y - vsb.y) / vsb.h)
+		const { x: nx, y: ny } = new Vec(vsp.x / vsb.w, vsp.y / vsb.h)
 
 		return new Box(x - nx * w, y - ny * h, w, h)
 	}

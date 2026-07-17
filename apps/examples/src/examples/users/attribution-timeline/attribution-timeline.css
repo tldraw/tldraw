@@ -1,6 +1,17 @@
 .attribution-timeline-example {
+	--timeline-row-height: 32px;
+	--timeline-padding-y: 8px;
+	--timeline-all-extra: 8px;
+	--timeline-height: calc(
+		var(--timeline-row-count, 4) * var(--timeline-row-height) + 2 * var(--timeline-padding-y) +
+			var(--timeline-all-extra)
+	);
 	height: 100vh;
 	width: 100%;
+}
+
+.attribution-timeline-example .tlui-layout {
+	height: calc(100% - var(--timeline-height));
 }
 
 .attribution-timeline-controls {
@@ -9,9 +20,9 @@
 	left: 0;
 	right: 0;
 	display: flex;
-	align-items: center;
-	gap: 12px;
-	padding: 0 16px;
+	flex-direction: column;
+	gap: 0;
+	padding: var(--timeline-padding-y) 16px;
 	background: var(--color-panel);
 	border-top: 1px solid var(--color-muted-1);
 	font-size: 12px;
@@ -19,23 +30,56 @@
 	z-index: 300;
 }
 
-.attribution-timeline-filters {
+.attribution-timeline-row {
 	display: flex;
-	gap: 2px;
+	align-items: center;
+	gap: 12px;
+	height: var(--timeline-row-height);
+	opacity: 0.6;
+	transition: opacity 0.1s ease;
+}
+
+.attribution-timeline-row--active,
+.attribution-timeline-row--all {
+	opacity: 1;
+}
+
+.attribution-timeline-row--all {
+	border-bottom: 1px solid var(--color-muted-1);
+	padding-bottom: 8px;
+	height: calc(var(--timeline-row-height) + var(--timeline-all-extra));
+	font-weight: 600;
+}
+
+.attribution-timeline-user {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	width: 80px;
 	flex-shrink: 0;
+}
+
+.attribution-timeline-name {
+	font-weight: 500;
 }
 
 .attribution-timeline-info {
 	flex-shrink: 0;
 	font-variant: tabular-nums;
+	min-width: 60px;
+	text-align: right;
 }
 
 .attribution-timeline-controls .tlui-slider__container {
 	flex: 1;
 }
 
-.attribution-timeline-example .tlui-layout {
-	height: calc(100% - 44px);
+.attribution-timeline-reset {
+	height: 24px !important;
+	min-width: 0 !important;
+	padding: 0 8px !important;
+	font-size: 12px !important;
+	flex-shrink: 0;
 }
 
 .attribution-timeline-user-switcher {
@@ -50,5 +94,8 @@
 	width: 8px;
 	height: 8px;
 	border-radius: 50%;
+}
+
+.tlui-button .attribution-timeline-dot {
 	margin-right: 4px;
 }

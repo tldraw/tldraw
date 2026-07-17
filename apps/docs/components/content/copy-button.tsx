@@ -1,6 +1,6 @@
 'use client'
 
-import { RefObject, useCallback, useState } from 'react'
+import { RefObject, useState } from 'react'
 import { Button } from '../common/button'
 
 export function CopyButton({
@@ -11,7 +11,7 @@ export function CopyButton({
 	className?: string
 }) {
 	const [copied, setCopied] = useState<boolean>(false)
-	const handleClick = useCallback(() => {
+	const handleClick = () => {
 		const code: string = typeof copy === 'string' ? copy : (copy.current?.innerText ?? '')
 
 		navigator.clipboard.writeText(code)
@@ -25,7 +25,7 @@ export function CopyButton({
 
 		setCopied(true)
 		setTimeout(() => setCopied(false), 1500)
-	}, [copy])
+	}
 
 	return (
 		<Button

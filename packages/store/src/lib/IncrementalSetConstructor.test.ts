@@ -1,111 +1,106 @@
 import { describe, expect, it } from 'vitest'
 import { IncrementalSetConstructor } from './IncrementalSetConstructor'
 
-describe('IncrementalSetConstructor', () => {
-	describe('core functionality', () => {
-		it('should return undefined when no net changes occur', () => {
-			const originalSet = new Set(['a', 'b', 'c'])
-			const constructor = new IncrementalSetConstructor(originalSet)
+// Tests for SPEC.md §26 (IncrementalSetConstructor, internal).
+// Rule IDs like [ISC1] in test names refer to that document.
 
-			constructor.add('d')
-			constructor.remove('d')
+describe('IncrementalSetConstructor (ISC)', () => {
+	it('[ISC1] get returns undefined when nothing was done', () => {
+		const constructor = new IncrementalSetConstructor(new Set(['a', 'b', 'c']))
+		expect(constructor.get()).toBeUndefined()
+	})
 
-			const result = constructor.get()
-			expect(result).toBeUndefined()
+	it('[ISC1] adding already-present items is a no-op', () => {
+		const constructor = new IncrementalSetConstructor(new Set(['a', 'b', 'c']))
+		constructor.add('a')
+		constructor.add('b')
+		expect(constructor.get()).toBeUndefined()
+	})
+
+	it('[ISC1] removing absent items is a no-op', () => {
+		const constructor = new IncrementalSetConstructor(new Set(['a', 'b']))
+		constructor.remove('c')
+		constructor.remove('d')
+		expect(constructor.get()).toBeUndefined()
+	})
+
+	it('[ISC1] add/remove round trips cancel out', () => {
+		const constructor = new IncrementalSetConstructor(new Set(['a', 'b', 'c']))
+		constructor.add('d')
+		constructor.remove('d')
+		expect(constructor.get()).toBeUndefined()
+
+		const constructor2 = new IncrementalSetConstructor(new Set(['a', 'b', 'c']))
+		constructor2.remove('a')
+		constructor2.add('a')
+		expect(constructor2.get()).toBeUndefined()
+	})
+
+	it('[ISC2] additions produce the new set and an added diff', () => {
+		const original = new Set(['a', 'b'])
+		const constructor = new IncrementalSetConstructor(original)
+
+		constructor.add('c')
+		constructor.add('d')
+
+		expect(constructor.get()).toEqual({
+			value: new Set(['a', 'b', 'c', 'd']),
+			diff: { added: new Set(['c', 'd']) },
 		})
+		expect(original).toEqual(new Set(['a', 'b']))
+	})
 
-		it('should return correct result when items are added', () => {
-			const originalSet = new Set(['a', 'b'])
-			const constructor = new IncrementalSetConstructor(originalSet)
+	it('[ISC2] removals produce the new set and a removed diff', () => {
+		const original = new Set(['a', 'b', 'c', 'd'])
+		const constructor = new IncrementalSetConstructor(original)
 
-			constructor.add('c')
-			constructor.add('d')
+		constructor.remove('c')
+		constructor.remove('d')
 
-			const result = constructor.get()
-			expect(result).toBeDefined()
-			expect(result!.value).toEqual(new Set(['a', 'b', 'c', 'd']))
-			expect(result!.diff.added).toEqual(new Set(['c', 'd']))
-			expect(result!.diff.removed).toBeUndefined()
+		expect(constructor.get()).toEqual({
+			value: new Set(['a', 'b']),
+			diff: { removed: new Set(['c', 'd']) },
 		})
+		expect(original).toEqual(new Set(['a', 'b', 'c', 'd']))
+	})
 
-		it('should return correct result when items are removed', () => {
-			const originalSet = new Set(['a', 'b', 'c', 'd'])
-			const constructor = new IncrementalSetConstructor(originalSet)
+	it('[ISC2] mixed adds and removes report both sides of the diff', () => {
+		const constructor = new IncrementalSetConstructor(new Set(['a', 'b', 'c']))
 
-			constructor.remove('c')
-			constructor.remove('d')
+		constructor.remove('a')
+		constructor.add('d')
+		constructor.add('e')
 
-			const result = constructor.get()
-			expect(result).toBeDefined()
-			expect(result!.value).toEqual(new Set(['a', 'b']))
-			expect(result!.diff.removed).toEqual(new Set(['c', 'd']))
-			expect(result!.diff.added).toBeUndefined()
+		expect(constructor.get()).toEqual({
+			value: new Set(['b', 'c', 'd', 'e']),
+			diff: { added: new Set(['d', 'e']), removed: new Set(['a']) },
 		})
+	})
 
-		it('should handle mixed add and remove operations correctly', () => {
-			const originalSet = new Set(['a', 'b', 'c'])
-			const constructor = new IncrementalSetConstructor(originalSet)
+	it('[ISC3] re-adding a removed item restores it', () => {
+		const constructor = new IncrementalSetConstructor(new Set(['a', 'b', 'c']))
 
-			constructor.remove('a')
-			constructor.add('d')
-			constructor.add('e')
+		constructor.remove('a')
+		constructor.remove('b')
+		constructor.add('d')
+		constructor.add('a') // restore one removed item
 
-			const result = constructor.get()
-			expect(result).toBeDefined()
-			expect(result!.value).toEqual(new Set(['b', 'c', 'd', 'e']))
-			expect(result!.diff.added).toEqual(new Set(['d', 'e']))
-			expect(result!.diff.removed).toEqual(new Set(['a']))
+		expect(constructor.get()).toEqual({
+			value: new Set(['a', 'c', 'd']),
+			diff: { added: new Set(['d']), removed: new Set(['b']) },
 		})
+	})
 
-		it('should handle adding existing items as no-op', () => {
-			const originalSet = new Set(['a', 'b', 'c'])
-			const constructor = new IncrementalSetConstructor(originalSet)
+	it('[ISC3] removing an item added earlier cancels the add', () => {
+		const constructor = new IncrementalSetConstructor(new Set(['a', 'b']))
 
-			constructor.add('a')
-			constructor.add('b')
+		constructor.add('c')
+		constructor.add('d')
+		constructor.remove('c')
 
-			const result = constructor.get()
-			expect(result).toBeUndefined()
-		})
-
-		it('should handle complex restore and cancel scenarios', () => {
-			const originalSet = new Set(['a', 'b', 'c'])
-			const constructor = new IncrementalSetConstructor(originalSet)
-
-			constructor.remove('a')
-			constructor.remove('b')
-			constructor.add('d')
-			constructor.add('a') // Restore one removed item
-
-			const result = constructor.get()
-			expect(result!.value).toEqual(new Set(['a', 'c', 'd']))
-			expect(result!.diff.added).toEqual(new Set(['d']))
-			expect(result!.diff.removed).toEqual(new Set(['b']))
-		})
-
-		it('should handle removing non-existent items as no-op', () => {
-			const originalSet = new Set(['a', 'b'])
-			const constructor = new IncrementalSetConstructor(originalSet)
-
-			constructor.remove('c')
-			constructor.remove('d')
-
-			const result = constructor.get()
-			expect(result).toBeUndefined()
-		})
-
-		it('should remove recently added items correctly', () => {
-			const originalSet = new Set(['a', 'b'])
-			const constructor = new IncrementalSetConstructor(originalSet)
-
-			constructor.add('c')
-			constructor.add('d')
-			constructor.remove('c') // Remove recently added item
-
-			const result = constructor.get()
-			expect(result!.value).toEqual(new Set(['a', 'b', 'd']))
-			expect(result!.diff.added).toEqual(new Set(['d']))
-			expect(result!.diff.removed).toBeUndefined()
+		expect(constructor.get()).toEqual({
+			value: new Set(['a', 'b', 'd']),
+			diff: { added: new Set(['d']) },
 		})
 	})
 })

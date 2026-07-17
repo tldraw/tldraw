@@ -1,5 +1,5 @@
-import { T } from '@tldraw/validate'
 import { StyleProp } from './StyleProp'
+import { TLThemeFont, TLThemeFonts, TLThemes } from './TLTheme'
 
 /**
  * Default font style property used by tldraw shapes for text styling.
@@ -39,8 +39,8 @@ export const DefaultFontStyle = StyleProp.defineEnum('tldraw:font', {
 })
 
 /**
- * Type representing a default font style value.
- * This is a union type of all available font style options.
+ * The names of all available font styles, derived from {@link TLThemeFonts}.
+ * Extend {@link TLThemeFonts} to add custom font names.
  *
  * @example
  * ```ts
@@ -60,7 +60,7 @@ export const DefaultFontStyle = StyleProp.defineEnum('tldraw:font', {
  *
  * @public
  */
-export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>
+export type TLDefaultFontStyle = keyof TLThemeFonts & string
 
 /**
  * Mapping of font style names to their corresponding CSS font-family declarations.
@@ -85,4 +85,53 @@ export const DefaultFontFamilies = {
 	sans: "'tldraw_sans', sans-serif",
 	serif: "'tldraw_serif', serif",
 	mono: "'tldraw_mono', monospace",
+}
+
+/** @internal */
+export function isFontEntry(value: unknown): value is TLThemeFont {
+	return typeof value === 'object' && value !== null && 'fontFamily' in value
+}
+
+/**
+ * Scan theme definitions and sync font registrations to match.
+ * A font entry is any key in `TLThemeFonts` whose value is a {@link TLThemeFont}
+ * object (i.e. has a `fontFamily` property).
+ *
+ * Fonts present in themes but not yet registered will be added.
+ * Fonts currently registered but absent from all themes will be removed.
+ *
+ * @public
+ */
+export function registerFontsFromThemes(definitions: TLThemes): void {
+	const fontNames = new Set<string>()
+	for (const def of Object.values(definitions)) {
+		if (!def.fonts) continue
+		for (const [key, value] of Object.entries(def.fonts)) {
+			if (isFontEntry(value)) {
+				fontNames.add(key)
+			}
+		}
+	}
+
+	const toAdd = [...fontNames].filter((v) => !DefaultFontStyle.values.includes(v as any))
+	if (toAdd.length > 0) {
+		DefaultFontStyle.addValues(...(toAdd as any))
+	}
+
+	const toRemove = DefaultFontStyle.values.filter((v) => !fontNames.has(v as string))
+	if (toRemove.length > 0) {
+		DefaultFontStyle.removeValues(...toRemove)
+	}
+
+	if (process.env.NODE_ENV !== 'production') {
+		for (const def of Object.values(definitions)) {
+			for (const font of fontNames) {
+				if (!def.fonts || !(font in def.fonts)) {
+					console.warn(
+						`Theme '${def.id}' is missing font '${font}'. Shapes using this font won't render correctly in this theme.`
+					)
+				}
+			}
+		}
+	}
 }

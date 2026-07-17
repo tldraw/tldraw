@@ -106,6 +106,25 @@ it('Accepts a scale option', async () => {
 	expect(svg2.width).toBe(1128)
 })
 
+it.each([
+	{ darkMode: false, label: 'light mode' },
+	{ darkMode: true, label: 'dark mode' },
+])('emits matching pattern id and reference in $label export', async ({ darkMode }) => {
+	const result = parseSvg(await editor.getSvgString([ids.boxC], { darkMode }))
+
+	const patternIds = Array.from(result.querySelectorAll('pattern')).map((p) => p.id)
+	expect(patternIds.length).toBeGreaterThan(0)
+
+	const fillUrlIds = Array.from(result.querySelectorAll('path'))
+		.map((p) => p.getAttribute('fill')?.match(/^url\(#(.+)\)$/)?.[1])
+		.filter((id): id is string => Boolean(id))
+	expect(fillUrlIds.length).toBeGreaterThan(0)
+
+	for (const id of fillUrlIds) {
+		expect(patternIds).toContain(id)
+	}
+})
+
 it('Accepts a background option', async () => {
 	const svg1 = parseSvg(
 		await editor.getSvgString(editor.getSelectedShapeIds(), { background: true })
@@ -116,4 +135,34 @@ it('Accepts a background option', async () => {
 		await editor.getSvgString(editor.getSelectedShapeIds(), { background: false })
 	)
 	expect(svg2.style.backgroundColor).toBe('transparent')
+})
+
+// Note: this test exports, which bumps a module-level id counter that the snapshot tests
+// above are sensitive to - so keep it after them.
+it('waits for required fonts to load before measuring the export', async () => {
+	// Text geometry is measured from the loaded font, so the export must not be measured
+	// until the fonts it uses have loaded.
+	let resolveFonts!: () => void
+	const fontsLoaded = new Promise<void>((resolve) => {
+		resolveFonts = resolve
+	})
+	const loadFonts = vi
+		.spyOn(editor.fonts, 'loadRequiredFontsForCurrentPage')
+		.mockReturnValue(fontsLoaded)
+
+	let resolved = false
+	const exportPromise = editor.getSvgString(editor.getSelectedShapeIds()).then((result) => {
+		resolved = true
+		return result
+	})
+
+	// let the export run up to the font-loading await
+	await new Promise((resolve) => setTimeout(resolve, 0))
+	expect(loadFonts).toHaveBeenCalled()
+	expect(resolved).toBe(false)
+
+	resolveFonts()
+	const svg = await exportPromise
+	expect(resolved).toBe(true)
+	expect(svg!.svg).toMatch(/^<svg/)
 })

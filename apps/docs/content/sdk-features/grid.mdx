@@ -12,10 +12,118 @@ status: draft
 date: 1/31/2026
 ---
 
-TODO: Document the grid system including:
+The grid is a dotted background that helps users align shapes on the canvas. When grid mode is on, the editor renders the grid behind shapes and snaps shapes to grid positions as users create, move, and resize them.
 
-- Grid background rendering
-- Grid spacing configuration
-- Snap to grid behavior
-- Grid visibility controls
-- Customizing grid appearance
+## Enabling grid mode
+
+Grid mode is part of the editor's [instance state](/sdk-features/instance-state). Toggle it with [Editor#updateInstanceState](?):
+
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw
+				onMount={(editor) => {
+					editor.updateInstanceState({ isGridMode: true })
+				}}
+			/>
+		</div>
+	)
+}
+```
+
+Users can toggle the grid with Cmd+' (Ctrl+' on Windows) or from the Preferences submenu in the main menu. Grid mode is session state: it persists locally but doesn't sync to collaborators.
+
+```tsx
+// Read the current grid mode
+const isGridMode = editor.getInstanceState().isGridMode
+```
+
+## Grid size
+
+Grid spacing comes from the document's `gridSize` setting, which defaults to 10 page units. Change it with [Editor#updateDocumentSettings](?):
+
+```tsx
+editor.updateDocumentSettings({ gridSize: 20 })
+```
+
+Because `gridSize` lives on the [TLDocument](?) record, it saves with the document and syncs to collaborators.
+
+## Snap to grid
+
+When grid mode is on, the editor snaps positions to multiples of `gridSize` during these interactions:
+
+- Creating a shape by clicking or dragging with a box tool
+- Translating shapes with the select tool
+- Resizing shapes with the selection handles
+- Dropping external content (like images) onto the canvas
+
+Holding Cmd (Ctrl on Windows) while translating or resizing bypasses grid snapping. During translation, grid snapping also yields to [shape snapping](/sdk-features/snapping): if the selection has snapped to another shape's alignment guides, the grid is ignored.
+
+To snap your own values to the grid, use [Vec#snapToGrid](?):
+
+```tsx
+const gridSize = editor.getDocumentSettings().gridSize
+const point = editor.inputs.getCurrentPagePoint().clone().snapToGrid(gridSize)
+```
+
+## Grid rendering
+
+The [DefaultGrid](?) component draws the grid as SVG dot patterns. It renders one pattern per entry in the editor's `gridSteps` option. Each step describes a dot spacing (in multiples of `gridSize`) and the zoom range over which those dots fade in:
+
+| Field  | Description                                           |
+| ------ | ----------------------------------------------------- |
+| `step` | Dot spacing as a multiple of the document's grid size |
+| `min`  | Zoom level below which the dots are hidden            |
+| `mid`  | Zoom level at which the dots reach full opacity       |
+
+The defaults show fine dots when zoomed in and progressively coarser dots when zoomed out, so the grid stays readable at any zoom level. You can change the steps through the `options` prop:
+
+```tsx
+<Tldraw
+	options={{
+		gridSteps: [
+			{ min: -1, mid: 0.15, step: 64 },
+			{ min: 0.05, mid: 0.375, step: 16 },
+			{ min: 0.15, mid: 1, step: 4 },
+			{ min: 0.7, mid: 2.5, step: 1 },
+		],
+	}}
+/>
+```
+
+## Custom grid
+
+Replace the grid entirely by overriding the `Grid` component. Your component receives [TLGridProps](?): the camera position (`x`, `y`, `z`) and the document's grid `size`.
+
+```tsx
+import { TLComponents, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const components: TLComponents = {
+	Grid: ({ x, y, z, size }) => {
+		// Render your own grid using the camera position and grid size.
+		// The tl-grid class positions the element correctly on the canvas.
+		return <canvas className="tl-grid" />
+	},
+}
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw components={components} />
+		</div>
+	)
+}
+```
+
+The grid component only renders while grid mode is on. See the [custom grid example](/examples/ui/custom-grid) for a complete canvas-based grid with major and minor lines.
+
+## Related articles
+
+- [Snapping](/sdk-features/snapping) — Shape-to-shape snapping and alignment guides
+- [Instance state](/sdk-features/instance-state) — Session state including grid mode
+- [UI components](/sdk-features/ui-components) — Overriding canvas components like the grid

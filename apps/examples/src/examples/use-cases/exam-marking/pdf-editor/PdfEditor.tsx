@@ -28,7 +28,7 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 	const pdfEditorComponents = useMemo<TLComponents>(
 		() => ({
 			PageMenu: null,
-			Overlays: () => <PageOverlayScreen pdf={pdf} />,
+			OnTheCanvas: () => <PageOverlayScreen pdf={pdf} />,
 			SharePanel: () => (
 				<div
 					style={{

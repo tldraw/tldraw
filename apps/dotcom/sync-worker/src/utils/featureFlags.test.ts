@@ -165,12 +165,14 @@ describe('getFeatureFlagValue', () => {
 	})
 
 	it('returns defaults on KV error', async () => {
+		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const env = makeEnv()
 		env.FEATURE_FLAGS.get = vi.fn(async () => {
 			throw new Error('KV down')
 		})
 		const value = await getFeatureFlagValue(env as any, 'zero_kill_switch')
 		expect(value).toMatchObject({ type: 'boolean', enabled: false })
+		consoleSpy.mockRestore()
 	})
 })
 
@@ -281,6 +283,6 @@ describe('getFeatureFlagsAdmin (route handler)', () => {
 		const response = await getFeatureFlagsAdmin({} as any, env as any)
 		const body: any = await response.json()
 
-		expect(Object.keys(body).sort()).toEqual(['zero_enabled', 'zero_kill_switch'].sort())
+		expect(Object.keys(body).sort()).toEqual(['rum_enabled', 'zero_enabled', 'zero_kill_switch'])
 	})
 })

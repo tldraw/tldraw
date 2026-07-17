@@ -1,5 +1,8 @@
 import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
-import { updateHoveredShapeId } from '../../../tools/selection-logic/updateHoveredShapeId'
+import {
+	cancelUpdateHoveredShapeId,
+	updateHoveredShapeId,
+} from '../../../tools/selection-logic/updateHoveredShapeId'
 import { startEditingShapeWithRichText } from '../../../tools/SelectTool/selectHelpers'
 
 export class Idle extends StateNode {
@@ -23,7 +26,7 @@ export class Idle extends StateNode {
 	}
 
 	override onExit() {
-		updateHoveredShapeId.cancel()
+		cancelUpdateHoveredShapeId(this.editor)
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {

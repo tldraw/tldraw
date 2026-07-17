@@ -22,7 +22,7 @@
 		}
 	},
 	"scripts": {
-		"dev": "vite",
+		"dev": "vite --host",
 		"build": "tsc && vite build",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"preview": "vite preview"
@@ -39,6 +39,6 @@
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.1",
 		"typescript": "^5.8.3",
-		"vite": "^8.0.1"
+		"vite": "^8.0.16"
 	}
 }

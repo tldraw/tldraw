@@ -113,6 +113,17 @@ function trackStarterKitChoice(templateId: string, noTelemetry?: boolean) {
 	}).catch(() => {
 		// Silently ignore errors
 	})
+
+	// Fire and forget - don't block on this request
+	fetch('https://teamldraw.com/api/starter-kit-choice', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ id: templateId }),
+	}).catch(() => {
+		// Silently ignore errors
+	})
 }
 
 async function namePicker(argOption?: string) {

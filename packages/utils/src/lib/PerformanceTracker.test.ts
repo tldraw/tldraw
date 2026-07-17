@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest'
 import { PERFORMANCE_COLORS, PERFORMANCE_PREFIX_COLOR } from './perf'
 import { PerformanceTracker } from './PerformanceTracker'
 
@@ -7,7 +7,7 @@ describe('PerformanceTracker', () => {
 	let mockPerformanceNow: ReturnType<typeof vi.fn>
 	let mockRequestAnimationFrame: ReturnType<typeof vi.fn>
 	let mockCancelAnimationFrame: ReturnType<typeof vi.fn>
-	let mockConsoleDebug: ReturnType<typeof vi.fn>
+	let mockConsoleDebug: MockInstance<typeof console.debug>
 	let frameId = 1
 
 	beforeEach(() => {
@@ -24,8 +24,7 @@ describe('PerformanceTracker', () => {
 		vi.stubGlobal('cancelAnimationFrame', mockCancelAnimationFrame)
 
 		// Mock console.debug
-		mockConsoleDebug = vi.fn()
-		vi.spyOn(console, 'debug').mockImplementation(mockConsoleDebug)
+		mockConsoleDebug = vi.spyOn(console, 'debug').mockImplementation(() => {})
 	})
 
 	afterEach(() => {

@@ -5,13 +5,13 @@ import { OTHER_USERS, USERS } from '../consts'
 import { Database } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
 import { Editor } from './Editor'
-import { GroupInviteDialog } from './GroupInviteDialog'
 import { getStorageStateFileName } from './helpers'
 import { HomePage } from './HomePage'
 import { ImportHelper } from './ImportHelper'
 import { ShareMenu } from './ShareMenu'
 import { Sidebar } from './Sidebar'
 import { SignInDialog } from './SignInDialog'
+import { WorkspaceInviteDialog } from './WorkspaceInviteDialog'
 
 interface TlaFixtures {
 	homePage: HomePage
@@ -20,7 +20,7 @@ interface TlaFixtures {
 	shareMenu: ShareMenu
 	database: Database
 	deleteFileDialog: DeleteFileDialog
-	groupInviteDialog: GroupInviteDialog
+	workspaceInviteDialog: WorkspaceInviteDialog
 	signInDialog: SignInDialog
 	importHelper: ImportHelper
 	setupAndCleanup: void
@@ -50,8 +50,8 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 	deleteFileDialog: async ({ page }, testUse) => {
 		await testUse(new DeleteFileDialog(page))
 	},
-	groupInviteDialog: async ({ page }, testUse) => {
-		await testUse(new GroupInviteDialog(page))
+	workspaceInviteDialog: async ({ page }, testUse) => {
+		await testUse(new WorkspaceInviteDialog(page))
 	},
 	signInDialog: async ({ page }, testUse) => {
 		await testUse(new SignInDialog(page))

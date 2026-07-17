@@ -1,10 +1,11 @@
+import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
-	esbuild: {
-		jsx: 'automatic',
-		jsxImportSource: 'react',
-	},
+	// vite 8 / vitest 4 transform with oxc and ignore the deprecated `esbuild.jsx`
+	// option, and this app's tsconfig uses `jsx: preserve` for its real build. Use
+	// the react plugin so JSX in `.tsx` files is transformed for tests.
+	plugins: [react()],
 	test: {
 		environment: 'jsdom',
 		setupFiles: ['./setupTests.js'],

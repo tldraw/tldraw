@@ -213,12 +213,12 @@ Tracked components re-render when any signal accessed during render changes. Thi
 
 ### useAtom and useComputed
 
-Create component-local signals that persist across renders:
+Create component-local signals that persist across renders. Reading `.get()` during render only subscribes the component inside `track` (or `useValue`), so wrap the component:
 
 ```tsx
-import { useAtom, useComputed } from '@tldraw/state-react'
+import { track, useAtom, useComputed } from '@tldraw/state-react'
 
-function Counter() {
+const Counter = track(function Counter() {
 	const count = useAtom('count', 0)
 	const doubled = useComputed('doubled', () => count.get() * 2, [count])
 
@@ -229,7 +229,7 @@ function Counter() {
 			<div>Doubled: {doubled.get()}</div>
 		</div>
 	)
-}
+})
 ```
 
 ### useReactor and useQuickReactor
@@ -252,9 +252,9 @@ function SelectionLogger({ editor }) {
 
 	// Runs immediately — for critical state synchronization
 	useQuickReactor(
-		'sync data',
+		'sync selection',
 		() => {
-			syncToServer(editor.getDocumentState())
+			syncSelectionToServer(editor.getSelectedShapeIds())
 		},
 		[editor]
 	)

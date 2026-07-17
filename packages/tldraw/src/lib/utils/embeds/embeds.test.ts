@@ -1,5 +1,57 @@
-import { DEFAULT_EMBED_DEFINITIONS } from '../../defaultEmbedDefinitions'
+import {
+	DEFAULT_EMBED_DEFINITIONS,
+	embedShapePermissionDefaults,
+	unknownEmbedShapePermissionOverrides,
+} from '../../defaultEmbedDefinitions'
 import { getEmbedInfo, matchEmbedUrl, matchUrl } from './embeds'
+
+const GOOGLE_MAPS_API_KEY = 'test-google-maps-api-key'
+const TEST_EMBED_CONFIG = { google_maps: { apiKey: GOOGLE_MAPS_API_KEY } }
+
+describe('embed sandbox permissions', () => {
+	function getSandboxString(permissions: Record<string, boolean | undefined>): string {
+		return Object.entries(permissions)
+			.filter(([, isEnabled]) => isEnabled)
+			.map(([perm]) => perm)
+			.join(' ')
+	}
+
+	test('known embeds get default permissions including allow-same-origin', () => {
+		const sandbox = getSandboxString(embedShapePermissionDefaults)
+		expect(sandbox).toContain('allow-same-origin')
+		expect(sandbox).toContain('allow-scripts')
+		expect(sandbox).toContain('allow-forms')
+		expect(sandbox).toContain('allow-popups')
+	})
+
+	test('unknown embeds get restricted permissions without allow-same-origin', () => {
+		const sandbox = getSandboxString({
+			...embedShapePermissionDefaults,
+			...unknownEmbedShapePermissionOverrides,
+		})
+		expect(sandbox).not.toContain('allow-same-origin')
+		expect(sandbox).not.toContain('allow-forms')
+		expect(sandbox).not.toContain('allow-popups')
+		expect(sandbox).toContain('allow-scripts')
+	})
+
+	test('known embed overrides still apply on top of defaults', () => {
+		const youtubeEmbed = DEFAULT_EMBED_DEFINITIONS.find((d) => d.type === 'youtube')!
+		const sandbox = getSandboxString({
+			...embedShapePermissionDefaults,
+			...youtubeEmbed.overridePermissions,
+		})
+		expect(sandbox).toContain('allow-same-origin')
+		expect(sandbox).toContain('allow-presentation')
+		expect(sandbox).toContain('allow-popups-to-escape-sandbox')
+	})
+
+	test('unknownEmbedShapePermissionOverrides disables the dangerous permission combination', () => {
+		expect(unknownEmbedShapePermissionOverrides['allow-same-origin']).toBe(false)
+		expect(unknownEmbedShapePermissionOverrides['allow-forms']).toBe(false)
+		expect(unknownEmbedShapePermissionOverrides['allow-popups']).toBe(false)
+	})
+})
 
 interface MatchUrlTestMatchDef {
 	url: string
@@ -170,13 +222,38 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		url: 'https://www.figma.com/foobar',
 		match: false,
 	},
+	// canva
+	{
+		url: 'https://www.canva.com/design/DAFrLlkQu3Q/view',
+		match: true,
+		output: {
+			type: 'canva',
+			embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/view?embed=',
+		},
+	},
+	{
+		url: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug',
+		match: true,
+		output: {
+			type: 'canva',
+			embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug?embed=',
+		},
+	},
+	{
+		url: 'https://www.canva.com/design/DAFrLlkQu3Q',
+		match: false,
+	},
+	{
+		url: 'https://www.canva.com/templates',
+		match: false,
+	},
 	// google_maps
 	{
 		url: 'https://www.google.com/maps/@52.2449313,0.0813192,14z',
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
 		},
 	},
 	{
@@ -184,7 +261,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
+			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=roadmap`,
 		},
 	},
 	{
@@ -192,7 +269,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5041626,-0.2468738&zoom=14&maptype=roadmap`,
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=51.5041626,-0.2468738&zoom=14&maptype=roadmap`,
 		},
 	},
 	{
@@ -208,7 +285,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=17.313261121327326&maptype=satellite`,
+			embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=17.313261121327326&maptype=satellite`,
 		},
 	},
 	{
@@ -216,7 +293,7 @@ const MATCH_URL_TEST_URLS: (MatchUrlTestNoMatchDef | MatchUrlTestMatchDef)[] = [
 		match: true,
 		output: {
 			type: 'google_maps',
-			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5074,0.1278&zoom=16.984468114035085&maptype=satellite`,
+			embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=51.5074,0.1278&zoom=16.984468114035085&maptype=satellite`,
 		},
 	},
 	{
@@ -507,9 +584,30 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		embedUrl: 'https://www.figma.com/embed?foobar=baz',
 		match: false,
 	},
+	// canva
+	{
+		embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/view?embed=',
+		match: true,
+		output: {
+			type: 'canva',
+			url: 'https://www.canva.com/design/DAFrLlkQu3Q/view',
+		},
+	},
+	{
+		embedUrl: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug?embed=',
+		match: true,
+		output: {
+			type: 'canva',
+			url: 'https://www.canva.com/design/DAFrLlkQu3Q/some-slug',
+		},
+	},
+	{
+		embedUrl: 'https://www.canva.com/templates',
+		match: false,
+	},
 	// google_maps
 	{
-		embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14`,
+		embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14`,
 		match: true,
 		output: {
 			type: 'google_maps',
@@ -517,7 +615,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		},
 	},
 	{
-		embedUrl: `https://google.com/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=satellite`,
+		embedUrl: `https://google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=52.2449313,0.0813192&zoom=14&maptype=satellite`,
 		match: true,
 		output: {
 			type: 'google_maps',
@@ -525,7 +623,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		},
 	},
 	{
-		embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=51.5074,0.1278&zoom=12&maptype=roadmap`,
+		embedUrl: `https://google.co.uk/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=51.5074,0.1278&zoom=12&maptype=roadmap`,
 		match: true,
 		output: {
 			type: 'google_maps',
@@ -533,8 +631,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 		},
 	},
 	{
-		embedUrl:
-			'https://google.com/maps/embed?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=52.2449313,0.0813192&zoom=14',
+		embedUrl: 'https://google.com/maps/embed?key=KEY&center=52.2449313,0.0813192&zoom=14',
 		match: false,
 	},
 	// google_calendar
@@ -691,7 +788,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 
 for (const testDef of MATCH_URL_TEST_URLS) {
 	test(`matchUrl("${testDef.url}")`, () => {
-		const result = matchUrl(DEFAULT_EMBED_DEFINITIONS, testDef.url)
+		const result = matchUrl(DEFAULT_EMBED_DEFINITIONS, testDef.url, TEST_EMBED_CONFIG)
 		if (testDef.match) {
 			expect(result).toBeDefined()
 			expect(result?.definition.type).toBe(testDef.output.type)
@@ -702,7 +799,7 @@ for (const testDef of MATCH_URL_TEST_URLS) {
 	})
 
 	test(`getEmbedInfo("${testDef.url}")`, () => {
-		const result = getEmbedInfo(DEFAULT_EMBED_DEFINITIONS, testDef.url)
+		const result = getEmbedInfo(DEFAULT_EMBED_DEFINITIONS, testDef.url, TEST_EMBED_CONFIG)
 		if (testDef.match) {
 			expect(result).toBeDefined()
 			expect(result?.definition.type).toBe(testDef.output.type)

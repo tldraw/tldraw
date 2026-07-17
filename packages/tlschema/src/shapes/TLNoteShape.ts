@@ -31,7 +31,7 @@ import { TLBaseShape } from './TLBaseShape'
  *   labelColor: 'black',
  *   size: 'm',
  *   font: 'draw',
- *   fontSizeAdjustment: 0,
+ *   fontSizeAdjustment: null,
  *   align: 'middle',
  *   verticalAlign: 'middle',
  *   growY: 0,
@@ -50,8 +50,8 @@ export interface TLNoteShapeProps {
 	size: TLDefaultSizeStyle
 	/** Font family style for the note text */
 	font: TLDefaultFontStyle
-	/** Adjustment to the base font size (positive increases, negative decreases) */
-	fontSizeAdjustment: number
+	/** Ratio to scale the base font size when text needs to shrink to fit. Null means needs recomputation, 1 means no adjustment, and values less than 1 indicate shrinkage. */
+	fontSizeAdjustment: number | null
 	/** Horizontal alignment of text within the note */
 	align: TLDefaultHorizontalAlignStyle
 	/** Vertical alignment of text within the note */
@@ -64,8 +64,8 @@ export interface TLNoteShapeProps {
 	richText: TLRichText
 	/** Scale factor applied to the note shape for display */
 	scale: number
-	/** User ID of the person who first edited the note text */
-	textFirstEditedBy: string | null
+	/** User ID of the person who last edited the note text */
+	textLastEditedBy: string | null
 }
 
 /**
@@ -91,7 +91,7 @@ export interface TLNoteShapeProps {
  *     labelColor: 'black',
  *     size: 's',
  *     font: 'sans',
- *     fontSizeAdjustment: 2,
+ *     fontSizeAdjustment: 0.85,
  *     align: 'start',
  *     verticalAlign: 'start',
  *     growY: 50,
@@ -125,14 +125,14 @@ export const noteShapeProps: RecordProps<TLNoteShape> = {
 	labelColor: DefaultLabelColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,
-	fontSizeAdjustment: T.positiveNumber,
+	fontSizeAdjustment: T.positiveNumber.nullable(),
 	align: DefaultHorizontalAlignStyle,
 	verticalAlign: DefaultVerticalAlignStyle,
 	growY: T.positiveNumber,
 	url: T.linkUrl,
 	richText: richTextValidator,
 	scale: T.nonZeroNumber,
-	textFirstEditedBy: T.string.nullable(),
+	textLastEditedBy: T.string.nullable(),
 }
 
 const Versions = createShapePropsMigrationIds('note', {
@@ -147,6 +147,8 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddRichText: 9,
 	AddRichTextAttrs: 10,
 	AddFirstEditedBy: 11,
+	MakeFontSizeAdjustmentRatio: 12,
+	RenameFirstEditedByToLast: 13,
 })
 
 /**
@@ -276,6 +278,30 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.textFirstEditedBy
+			},
+		},
+		{
+			id: Versions.MakeFontSizeAdjustmentRatio,
+			up: (props) => {
+				// Old system stored 0 for "no adjustment" or an absolute pixel font size.
+				// New system stores a ratio (1 = no adjustment, <1 = shrunk).
+				// We can convert 0 → 1 (no adjustment), but non-zero values need
+				// recomputation (null) since we don't know the base font size here.
+				props.fontSizeAdjustment = props.fontSizeAdjustment === 0 ? 1 : null
+			},
+			down: (props) => {
+				props.fontSizeAdjustment = 0
+			},
+		},
+		{
+			id: Versions.RenameFirstEditedByToLast,
+			up: (props) => {
+				props.textLastEditedBy = props.textFirstEditedBy ?? null
+				delete props.textFirstEditedBy
+			},
+			down: (props) => {
+				props.textFirstEditedBy = props.textLastEditedBy ?? null
+				delete props.textLastEditedBy
 			},
 		},
 	],

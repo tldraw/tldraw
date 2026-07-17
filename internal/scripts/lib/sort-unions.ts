@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'fs'
 import path from 'path'
 import { namedTypes } from 'ast-types'
-import glob from 'glob'
+import { glob } from 'glob'
 import { parse, print, visit } from 'recast'
 
 export function sortUnions(tsbuildDir: string) {

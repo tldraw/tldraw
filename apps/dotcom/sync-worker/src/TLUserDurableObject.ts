@@ -138,14 +138,16 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								exportPadding: true,
 								createdAt: now,
 								updatedAt: now,
-								flags: 'groups_backend',
+								// No feature flags on new users; the column is retained for future flags.
+								flags: '',
 							})
 							.execute()
 						await tx
 							.insertInto('group')
 							.values({
 								id,
-								name: clerkUser.fullName ?? '',
+								// The home/private workspace defaults to "My workspace" and is renameable.
+								name: 'My workspace',
 								createdAt: now,
 								updatedAt: now,
 								isDeleted: false,
@@ -722,7 +724,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			await tx
 				.updateTable('user')
 				.set({
-					flags: 'groups_backend',
+					flags: '',
 					allowAnalyticsCookie: null,
 					enhancedA11yMode: null,
 					colorScheme: null,
@@ -753,7 +755,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				.insertInto('group')
 				.values({
 					id: userId,
-					name: '',
+					name: 'My workspace',
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 					isDeleted: false,
@@ -777,30 +779,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				.execute()
 		})
 
-		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
-	}
-
-	async admin_migrateToGroups(userId: string, inviteSecret: string | null = null) {
-		console.error('admin_migrateToGroups', userId, inviteSecret)
-		this.userId ??= userId
-
-		this.log.debug('migrating to groups', userId, inviteSecret)
-		// Call the Postgres migration function
-		const result = await sql<{
-			files_migrated: number
-			pinned_files_migrated: number
-			flag_added: boolean
-		}>`SELECT * FROM migrate_user_to_groups(${userId}, ${inviteSecret})`.execute(this.db)
-		console.error('admin_migrateToGroups result', result.rows)
-
-		this.log.debug('migration result', result.rows[0])
-
+		// Drop the stale user snapshot so the reboot pulls fresh post-reset state
+		// instead of resurrecting deleted files and groups.
 		await this.env.USER_DO_SNAPSHOTS.delete(getUserDoSnapshotKey(this.env, userId))
 		await this.cache?.reboot({ delay: false, source: 'admin', hard: true })
-
-		this.log.debug('migration complete, user rebooted')
-
-		return result.rows[0]
 	}
 
 	async admin_forceHardReboot(userId: string) {

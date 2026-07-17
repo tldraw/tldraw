@@ -77,7 +77,12 @@ describe('SnapManager', () => {
 			})),
 			getShapePageBounds: vi.fn(),
 			isShapeOfType: vi.fn(),
+			isShapeFrameLike: vi.fn(() => false),
 		} as any
+
+		editor.getShapeUtil.mockReturnValue({
+			canSnap: vi.fn(() => true),
+		} as any)
 
 		snapManager = new SnapManager(editor)
 	})
@@ -351,7 +356,10 @@ describe('SnapManager', () => {
 
 			editor.getSortedChildIdsForParent.mockReturnValue([frameId])
 			editor.getShape.mockReturnValue(frameShape)
-			editor.isShapeOfType.mockImplementation((_shape, type) => type === 'frame')
+			editor.getShapeUtil.mockReturnValue({
+				canSnap: vi.fn(() => true),
+			} as any)
+			editor.isShapeFrameLike.mockReturnValue(true)
 			editor.getShapePageBounds.mockReturnValue(new Box(10, 10, 50, 50))
 
 			const result = snapManager.getSnappableShapes()
@@ -401,7 +409,10 @@ describe('SnapManager', () => {
 				return undefined
 			})
 
-			editor.isShapeOfType.mockImplementation((shape: any, type: any) => type === 'frame')
+			editor.getShapeUtil.mockReturnValue({
+				canSnap: vi.fn(() => true),
+			} as any)
+			editor.isShapeFrameLike.mockReturnValue(true)
 			editor.getShapePageBounds.mockReturnValue(new Box(10, 10, 50, 50))
 
 			const result = snapManager.getSnappableShapes()

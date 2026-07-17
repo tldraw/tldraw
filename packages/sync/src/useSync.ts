@@ -20,12 +20,16 @@ import {
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
+	TLThemes,
 	TLUser,
 	TLUserStore,
 	UserRecordType,
 	computed,
 	createCachedUserResolve,
 	createPresenceStateDerivation,
+	registerColorsFromThemes,
+	registerFontsFromThemes,
+	resolveThemes,
 	createTLStore,
 	createUserId,
 	defaultUserPreferences,
@@ -177,6 +181,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
+		themes,
 		...schemaOpts
 	} = opts
 
@@ -185,6 +190,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	// is allowed to be unstable
 	const __never__: never = 0 as any as keyof Omit<typeof schemaOpts, keyof TLStoreSchemaOptions>
 
+	const resolvedThemes = resolveThemes(themes)
+	registerColorsFromThemes(resolvedThemes)
+	registerFontsFromThemes(resolvedThemes)
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
 	const getUserPresence = useReactiveEvent(
@@ -311,13 +319,17 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			getUserPresence,
 		})(store)
 
-		const otherUserPresences = store.query.ids('instance_presence', () => ({
-			userId: { neq: currentUser.get().id },
-		}))
+		// Every connected session — each tab, window, or device — pushes its
+		// presence on connect, so the store holds one instance_presence record per
+		// *other* session in the room, including the user's own other tabs. (The
+		// server never echoes a session its own record.) So an empty set means
+		// we're genuinely the only session and can throttle to solo; any other
+		// session — another user, or just another tab of our own — keeps us at the
+		// full sync rate so edits propagate without the solo-mode lag.
+		const otherSessions = store.query.ids('instance_presence')
 
 		const presenceMode = computed<TLPresenceMode>('presenceMode', () => {
-			if (otherUserPresences.get().size === 0) return 'solo'
-			return 'full'
+			return otherSessions.get().size === 0 ? 'solo' : 'full'
 		})
 
 		const client = new TLSyncClient<TLRecord, TLStore>({
@@ -431,6 +443,13 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  * @public
  */
 export interface UseSyncOptionsBase {
+	/**
+	 * Named theme definitions. When provided, custom color names are automatically
+	 * registered before the store is constructed so persisted data with those
+	 * colors passes validation on load.
+	 */
+	themes?: Partial<TLThemes>
+
 	/**
 	 * Asset store implementation for handling file uploads and storage.
 	 *

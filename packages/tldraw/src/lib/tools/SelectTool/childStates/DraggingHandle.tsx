@@ -28,6 +28,7 @@ export type DraggingHandleInfo = TLPointerEventInfo & {
 
 export class DraggingHandle extends StateNode {
 	static override id = 'dragging_handle'
+	static override trackPerformance = true
 
 	shapeId!: TLShapeId
 	initialHandle!: TLHandle

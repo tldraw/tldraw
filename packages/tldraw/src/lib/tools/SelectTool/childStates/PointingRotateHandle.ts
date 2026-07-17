@@ -1,4 +1,4 @@
-import { RotateCorner, StateNode, TLPointerEventInfo } from '@tldraw/editor'
+import { RotateCorner, StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 type PointingRotateHandleInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
@@ -47,6 +47,20 @@ export class PointingRotateHandle extends StateNode {
 
 	override onPointerUp() {
 		this.complete()
+	}
+
+	override onDoubleClick(info: TLClickEventInfo) {
+		if (
+			this.editor.inputs.getShiftKey() ||
+			info.phase !== 'down' ||
+			info.ctrlKey ||
+			info.shiftKey
+		) {
+			return
+		}
+
+		this.parent.transition('idle')
+		this.parent.getCurrent()?.handleEvent(info)
 	}
 
 	override onCancel() {

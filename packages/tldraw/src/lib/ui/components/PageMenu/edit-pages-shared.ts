@@ -8,13 +8,15 @@ import {
 } from '@tldraw/editor'
 import { TLUiEventContextType } from '../../context/events'
 
-export const onMovePage = (
+export function onMovePage(
 	editor: Editor,
 	id: TLPageId,
 	from: number,
 	to: number,
 	trackEvent: TLUiEventContextType
-) => {
+) {
+	if (from === to) return
+
 	let index: IndexKey
 
 	const pages = editor.getPages()

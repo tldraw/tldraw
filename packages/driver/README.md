@@ -114,6 +114,12 @@ These methods work in page coordinates and handle the screen-space conversion in
 | ----------- | -------------------------------------------- |
 | `dispose()` | Remove side-effect handlers. Call when done. |
 
+## Documentation
+
+Documentation for the most recent release can be found on [tldraw.dev/docs](https://tldraw.dev/docs), including [reference docs](https://tldraw.dev/reference/editor/Editor). Our release notes can be found [here](https://tldraw.dev/releases).
+
+For more agent-friendly docs, see our [LLMs.txt](https://tldraw.dev/llms.txt).
+
 ## License
 
 See [LICENSE.md](../../LICENSE.md).

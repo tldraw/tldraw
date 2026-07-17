@@ -68,7 +68,8 @@ export const assetIdValidator = idValidator<TLAssetId>('asset')
  * base properties (id, typeName, type, meta) and the type-specific props.
  *
  * @param type - The asset type identifier (e.g., 'image', 'video', 'bookmark')
- * @param props - The validator for the asset's type-specific properties
+ * @param props - A validator or per-key validator record for the asset's type-specific properties
+ * @param meta - An optional per-key validator record for the asset's meta properties
  * @returns A complete validator for the asset record type
  *
  * @example
@@ -83,26 +84,19 @@ export const assetIdValidator = idValidator<TLAssetId>('asset')
  *   description?: string
  * }>
  *
- * // Create validator for the custom asset
- * const customAssetValidator = createAssetValidator('custom', T.object({
+ * // Create validator using a per-key record (recommended)
+ * const customAssetValidator = createAssetValidator('custom', {
+ *   url: T.string,
+ *   title: T.string,
+ *   description: T.string.optional()
+ * })
+ *
+ * // Or using a T.object validator
+ * const customAssetValidator2 = createAssetValidator('custom', T.object({
  *   url: T.string,
  *   title: T.string,
  *   description: T.string.optional()
  * }))
- *
- * // Use the validator
- * const assetData = {
- *   id: 'asset:custom123',
- *   typeName: 'asset' as const,
- *   type: 'custom' as const,
- *   props: {
- *     url: 'https://example.com',
- *     title: 'My Custom Asset'
- *   },
- *   meta: {}
- * }
- *
- * const validatedAsset = customAssetValidator.validate(assetData)
  * ```
  *
  * @public

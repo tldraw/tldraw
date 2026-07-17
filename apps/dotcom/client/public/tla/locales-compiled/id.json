@@ -5,6 +5,12 @@
       "value": "Ekspor"
     }
   ],
+  "00b177e080": [
+    {
+      "type": 0,
+      "value": "Terima undangan"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -19,6 +25,18 @@
     {
       "type": 1,
       "value": "GetHelpLink"
+    }
+  ],
+  "04a2dd56d6": [
+    {
+      "type": 0,
+      "value": "Undang rekan satu tim"
+    }
+  ],
+  "05f43078e9": [
+    {
+      "type": 0,
+      "value": "Anda telah mencapai jumlah maksimum ruang kerja. Anda perlu menghapus ruang kerja lama sebelum membuat yang baru."
     }
   ],
   "06b9281e39": [
@@ -63,10 +81,28 @@
       "value": "Menu file"
     }
   ],
+  "0c4383617a": [
+    {
+      "type": 0,
+      "value": "Terjadi kesalahan saat memuat undangan ini. Silakan coba lagi."
+    }
+  ],
   "0d1f2bb523": [
     {
       "type": 0,
       "value": "Kirimkan masukan"
+    }
+  ],
+  "1063e38cb5": [
+    {
+      "type": 0,
+      "value": "Menghapus"
+    }
+  ],
+  "10fb1df194": [
+    {
+      "type": 0,
+      "value": "Salin ke ruang kerja pribadi"
     }
   ],
   "110a4b01be": [
@@ -75,40 +111,16 @@
       "value": "Terbitkan"
     }
   ],
-  "129b9e34ea": [
-    {
-      "type": 0,
-      "value": "Keluar dari grup"
-    }
-  ],
   "12a6766ba1": [
     {
       "type": 0,
       "value": "Lepaskan sematan file"
     }
   ],
-  "12c8a9838c": [
-    {
-      "type": 0,
-      "value": "Coba tldraw SDK"
-    }
-  ],
   "13ddd375ad": [
     {
       "type": 0,
       "value": "Ekspor sebagai"
-    }
-  ],
-  "146ffe2fd9": [
-    {
-      "type": 0,
-      "value": "Tampilkan lebih banyak"
-    }
-  ],
-  "14d65465b7": [
-    {
-      "type": 0,
-      "value": "Hapus grup"
     }
   ],
   "181b90f889": [
@@ -129,10 +141,36 @@
       "value": "Hari ini"
     }
   ],
-  "2445e5e347": [
+  "1ffd709937": [
     {
       "type": 0,
-      "value": "Buat grup"
+      "value": "Suatu ruang kerja harus memiliki setidaknya satu pemilik. Jadikan orang lain sebagai pemilik terlebih dahulu."
+    }
+  ],
+  "21f66c9c00": [
+    {
+      "type": 0,
+      "value": "Nama ruang kerja"
+    }
+  ],
+  "23dcace54a": [
+    {
+      "type": 0,
+      "value": "Anda telah diundang untuk bergabung dengan "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": ". Buat akun gratis untuk melanjutkan."
     }
   ],
   "250ddea65c": [
@@ -147,10 +185,34 @@
       "value": "Pengunggahan gagal"
     }
   ],
-  "2c3ef76333": [
+  "2a1167f869": [
     {
       "type": 0,
-      "value": "File saya"
+      "value": "Selamat datang di ruang kerja Anda."
+    }
+  ],
+  "2a37324bb4": [
+    {
+      "type": 0,
+      "value": "Mencari..."
+    }
+  ],
+  "2de510be71": [
+    {
+      "type": 0,
+      "value": "Proses pembuatan ulang tautan undangan akan menggantinya dengan yang baru. Siapa pun yang menggunakan tautan lama perlu menggunakan tautan baru untuk bergabung."
+    }
+  ],
+  "2e2b3c700b": [
+    {
+      "type": 0,
+      "value": "Sertakan tautan ke file saat ini"
+    }
+  ],
+  "2e9856a31e": [
+    {
+      "type": 0,
+      "value": "Buat ulang tautan undangan"
     }
   ],
   "31246941ad": [
@@ -163,12 +225,6 @@
     {
       "type": 0,
       "value": "i18n: Sorotan Tidak Ada"
-    }
-  ],
-  "32210b37e4": [
-    {
-      "type": 0,
-      "value": "Tambahkan tautan"
     }
   ],
   "324a0f3182": [
@@ -187,6 +243,18 @@
     {
       "type": 0,
       "value": "Editor"
+    }
+  ],
+  "34e34c43ec": [
+    {
+      "type": 0,
+      "value": "Mengelola"
+    }
+  ],
+  "375396d6e5": [
+    {
+      "type": 0,
+      "value": "Hapus anggota"
     }
   ],
   "3bc7d6ea2f": [
@@ -219,6 +287,12 @@
       "value": "Diagram Mermaid yang tidak didukung"
     }
   ],
+  "402bf0c47e": [
+    {
+      "type": 0,
+      "value": "Tema warna"
+    }
+  ],
   "42e53c47c1": [
     {
       "type": 0,
@@ -229,6 +303,26 @@
     {
       "type": 0,
       "value": "Dapatkan bantuan di Discord"
+    }
+  ],
+  "454aad3b3c": [
+    {
+      "type": 0,
+      "value": "Apakah Anda yakin ingin menghapus "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
     }
   ],
   "46137245cd": [
@@ -255,18 +349,6 @@
       "value": "Berkas pin"
     }
   ],
-  "49049467ff": [
-    {
-      "type": 0,
-      "value": "Tempel URL berkas tldraw..."
-    }
-  ],
-  "4908687e50": [
-    {
-      "type": 0,
-      "value": "Yakin ingin mengabaikan file ini?"
-    }
-  ],
   "49ee308734": [
     {
       "type": 0,
@@ -285,24 +367,6 @@
       "value": "Muat ulang"
     }
   ],
-  "4da5988a2e": [
-    {
-      "type": 0,
-      "value": "Hapus grup…"
-    }
-  ],
-  "4dab36ac83": [
-    {
-      "type": 0,
-      "value": "Opsi lainnya"
-    }
-  ],
-  "4e6fbf032b": [
-    {
-      "type": 0,
-      "value": "Yakin ingin menghapus grup ini? Tindakan ini tidak dapat dibatalkan."
-    }
-  ],
   "5097d89907": [
     {
       "type": 0,
@@ -313,6 +377,12 @@
     {
       "type": 0,
       "value": "Tidak dapat membatalkan penerbitan file."
+    }
+  ],
+  "51317dcad5": [
+    {
+      "type": 0,
+      "value": "Ini adalah ruang kerja pribadi Anda. Buat ruang kerja baru untuk mengundang rekan tim."
     }
   ],
   "517bb809d9": [
@@ -355,6 +425,12 @@
       "value": "PNG"
     }
   ],
+  "5638176be5": [
+    {
+      "type": 0,
+      "value": "Buat ruang kerja"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -365,40 +441,6 @@
     {
       "type": 0,
       "value": "Kebijakan privasi"
-    }
-  ],
-  "5a86b22fa0": [
-    {
-      "type": 0,
-      "value": "Seret file ke sini, "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "buat file"
-        }
-      ],
-      "type": 8,
-      "value": "create"
-    },
-    {
-      "type": 0,
-      "value": ",create atau "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "salin tautan undangan"
-        }
-      ],
-      "type": 8,
-      "value": "invite"
-    },
-    {
-      "type": 0,
-      "value": " untuk memulai."
     }
   ],
   "5a95a425f7": [
@@ -413,10 +455,10 @@
       "value": "Browser lama terdeteksi. Harap perbarui browser Anda untuk menggunakan aplikasi ini."
     }
   ],
-  "5c6fe42bc2": [
+  "5bff3c9c88": [
     {
       "type": 0,
-      "value": "Cabut tautan ini dan buat yang baru."
+      "value": "Ruang kerja saya"
     }
   ],
   "5d04a002ea": [
@@ -429,12 +471,6 @@
     {
       "type": 0,
       "value": "Kami gagal mengunggah beberapa konten yang Anda buat sebelum masuk."
-    }
-  ],
-  "5ea8bb44be": [
-    {
-      "type": 0,
-      "value": "Anda telah diundang untuk bergabung dengan grup:"
     }
   ],
   "5f3c333678": [
@@ -485,10 +521,22 @@
       "value": "Versi baru tldraw telah tersedia. Silakan muat ulang halaman untuk melanjutkan."
     }
   ],
+  "681e10aecb": [
+    {
+      "type": 0,
+      "value": "Berkas baru"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
       "value": "Masukkan alamat email Anda"
+    }
+  ],
+  "694f82ed9d": [
+    {
+      "type": 0,
+      "value": "Hapus ruang kerja"
     }
   ],
   "6a26f54883": [
@@ -507,12 +555,6 @@
     {
       "type": 0,
       "value": "Ikuti langkah berikut untuk mengimpor konten secara manual:"
-    }
-  ],
-  "70222abcfc": [
-    {
-      "type": 0,
-      "value": "Pengaturan grup"
     }
   ],
   "70a6facb9d": [
@@ -537,6 +579,12 @@
     {
       "type": 0,
       "value": "Muat ulang halaman"
+    }
+  ],
+  "74ff4bad28": [
+    {
+      "type": 0,
+      "value": "Tidak ada berkas yang ditemukan."
     }
   ],
   "752b79f137": [
@@ -569,12 +617,6 @@
       "value": "Silakan muat ulang"
     }
   ],
-  "76dea3c9ca": [
-    {
-      "type": 0,
-      "value": "tldraw adalah papan tulis online gratis. Buat akun untuk menyimpan berkas Anda dan bekerja dengan teman-teman Anda."
-    }
-  ],
   "777f9e90cf": [
     {
       "type": 0,
@@ -597,6 +639,12 @@
     {
       "type": 0,
       "value": "Kirimkan masalah di GitHub"
+    }
+  ],
+  "7a1920d611": [
+    {
+      "type": 0,
+      "value": "Bawaan"
     }
   ],
   "7b1329f5ca": [
@@ -623,12 +671,6 @@
       "value": "Abaikan"
     }
   ],
-  "7cfe6c43dc": [
-    {
-      "type": 0,
-      "value": "Keluar dari grup…"
-    }
-  ],
   "7daeced9ff": [
     {
       "type": 0,
@@ -645,6 +687,12 @@
     {
       "type": 0,
       "value": "Unduh"
+    }
+  ],
+  "8030793ce3": [
+    {
+      "type": 0,
+      "value": "Ruang kerja baru"
     }
   ],
   "815e116a2e": [
@@ -681,6 +729,32 @@
       "value": "."
     }
   ],
+  "81666c6e4a": [
+    {
+      "type": 0,
+      "value": "Apakah Anda yakin ingin melupakan "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "fileName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "?"
+    }
+  ],
+  "858ba4765e": [
+    {
+      "type": 0,
+      "value": "Anggota"
+    }
+  ],
   "85a082de1b": [
     {
       "type": 0,
@@ -707,10 +781,16 @@
       "value": "Ganti nama berkas"
     }
   ],
-  "8ad4303b83": [
+  "87fdb09de6": [
     {
       "type": 0,
-      "value": "Tidak, terima kasih"
+      "value": "Anda sudah menjadi anggota ruang kerja ini."
+    }
+  ],
+  "88bf6ab42c": [
+    {
+      "type": 0,
+      "value": "Tautan undangan ini telah kedaluwarsa."
     }
   ],
   "8c2d3d730c": [
@@ -743,22 +823,24 @@
       "value": "Ganti nama"
     }
   ],
-  "91e49bb0eb": [
+  "90646db02d": [
     {
       "type": 0,
-      "value": "Salin ke file saya"
-    }
-  ],
-  "930390d222": [
+      "value": "Apakah Anda yakin ingin menghapus "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
     {
       "type": 0,
-      "value": "Salin tautan undangan"
-    }
-  ],
-  "9489b2f82a": [
-    {
-      "type": 0,
-      "value": "Anda sudah menjadi anggota grup ini"
+      "value": "? Tindakan ini tidak dapat dibatalkan."
     }
   ],
   "95aacd4d4a": [
@@ -785,16 +867,16 @@
       "value": "Ketentuan Penggunaan"
     }
   ],
-  "98c997a27e": [
-    {
-      "type": 0,
-      "value": "Tambahkan tautan berkas"
-    }
-  ],
   "9914a0ce04": [
     {
       "type": 0,
       "value": "Cahaya"
+    }
+  ],
+  "9983381c21": [
+    {
+      "type": 0,
+      "value": "Hapus pencarian"
     }
   ],
   "9b33f5c63c": [
@@ -847,6 +929,26 @@
       "value": "Memilih keluar"
     }
   ],
+  "a078644c42": [
+    {
+      "type": 0,
+      "value": "Anda telah diundang untuk bergabung dengan "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "workspaceName"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -889,6 +991,12 @@
       "value": "Kirim"
     }
   ],
+  "a52945dbe2": [
+    {
+      "type": 0,
+      "value": "Meninggalkan"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -911,6 +1019,12 @@
     {
       "type": 0,
       "value": "Latar belakang"
+    }
+  ],
+  "aac449eef6": [
+    {
+      "type": 0,
+      "value": "Buat ruang kerja"
     }
   ],
   "ab0df9ba36": [
@@ -937,6 +1051,12 @@
       "value": "Pengguna tamu"
     }
   ],
+  "b2326c3a34": [
+    {
+      "type": 0,
+      "value": "Buat ulang"
+    }
+  ],
   "b2c3c2e30c": [
     {
       "type": 0,
@@ -949,10 +1069,10 @@
       "value": "Alamat email"
     }
   ],
-  "b3d2db69fe": [
+  "b48becc771": [
     {
       "type": 0,
-      "value": "URL berkas"
+      "value": "Aktifkan undangan"
     }
   ],
   "b6d4223e60": [
@@ -979,10 +1099,10 @@
       "value": "Masuk untuk berbagi"
     }
   ],
-  "bb93a7590f": [
+  "bbaaf8b6bf": [
     {
       "type": 0,
-      "value": "Terima dan bergabung dengan grup"
+      "value": "Undangan dinonaktifkan"
     }
   ],
   "bbbcefd7ce": [
@@ -1029,30 +1149,16 @@
       "value": "ownerName"
     }
   ],
+  "c17466812d": [
+    {
+      "type": 0,
+      "value": "Kelola ruang kerja"
+    }
+  ],
   "c2276c9127": [
     {
       "type": 0,
       "value": "Pelajari lebih lanjut tentang berbagi."
-    }
-  ],
-  "c28aed8348": [
-    {
-      "type": 0,
-      "value": "Izinkan "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "analytics"
-        }
-      ],
-      "type": 8,
-      "value": "cookies"
-    },
-    {
-      "type": 0,
-      "value": " membantu kami meningkatkan tldraw."
     }
   ],
   "c303bd1095": [
@@ -1067,12 +1173,6 @@
       "value": "Cookie penting"
     }
   ],
-  "c6155aaecc": [
-    {
-      "type": 0,
-      "value": "Nama grup"
-    }
-  ],
   "c655b27b1e": [
     {
       "type": 0,
@@ -1085,10 +1185,10 @@
       "value": "Undang"
     }
   ],
-  "c74ea6dbff": [
+  "c6f16003f2": [
     {
       "type": 0,
-      "value": "Tampilkan lebih sedikit"
+      "value": "Salin ke ruang kerja saya"
     }
   ],
   "c87aacf567": [
@@ -1101,12 +1201,6 @@
     {
       "type": 0,
       "value": "Tutup"
-    }
-  ],
-  "c9cc8cce24": [
-    {
-      "type": 0,
-      "value": "Menyimpan"
     }
   ],
   "cceaefbc20": [
@@ -1209,22 +1303,16 @@
       "value": "Klik di sini untuk melihat konten"
     }
   ],
-  "d9e35d0f55": [
-    {
-      "type": 0,
-      "value": "Anda telah mencapai jumlah grup maksimum. Anda perlu menghapus grup lama sebelum membuat grup baru."
-    }
-  ],
   "dbbebf3c03": [
     {
       "type": 0,
       "value": "Hanya mengundang"
     }
   ],
-  "dcdaa754fe": [
+  "dbf9b24193": [
     {
       "type": 0,
-      "value": "URL file tldraw tidak valid"
+      "value": "Tinggalkan ruang kerja"
     }
   ],
   "dfdb78a4e4": [
@@ -1233,10 +1321,10 @@
       "value": "Bendera debug aplikasi"
     }
   ],
-  "e0c88179b3": [
+  "e0aa021e21": [
     {
       "type": 0,
-      "value": "Undang anggota"
+      "value": "OKE"
     }
   ],
   "e2198d6228": [
@@ -1251,12 +1339,6 @@
       "value": "Ringkasan hukum"
     }
   ],
-  "e3afed0047": [
-    {
-      "type": 0,
-      "value": "Admin"
-    }
-  ],
   "e404559826": [
     {
       "type": 0,
@@ -1269,16 +1351,16 @@
       "value": "atau"
     }
   ],
-  "ea0626ac5a": [
-    {
-      "type": 0,
-      "value": "Zona bahaya"
-    }
-  ],
   "ea4788705e": [
     {
       "type": 0,
       "value": "Batal"
+    }
+  ],
+  "eb1e2b0542": [
+    {
+      "type": 0,
+      "value": "Mintalah yang baru kepada pemilik ruang kerja."
     }
   ],
   "ebfe9ce86e": [
@@ -1373,12 +1455,6 @@
       "value": "Pengaturan"
     }
   ],
-  "f714e36843": [
-    {
-      "type": 0,
-      "value": "Apakah Anda yakin ingin meninggalkan grup ini?"
-    }
-  ],
   "fa2ead697d": [
     {
       "type": 0,
@@ -1391,10 +1467,10 @@
       "value": "Audiens"
     }
   ],
-  "fd1be3efcf": [
+  "fc9d47046b": [
     {
       "type": 0,
-      "value": "Yakin ingin menghapus file ini?"
+      "value": "Apakah Anda yakin ingin meninggalkan ruang kerja ini?"
     }
   ],
   "fed5ec05eb": [
@@ -1403,10 +1479,24 @@
       "value": "Tautan disalin"
     }
   ],
-  "ff7a814974": [
+  "ff2fefd3c6": [
     {
       "type": 0,
-      "value": "Tambahkan tautan berkas…"
+      "value": "Apakah Anda yakin ingin menghapus "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " dari ruang kerja ini?"
+    }
+  ],
+  "ff52811b98": [
+    {
+      "type": 0,
+      "value": "Buat akun gratis untuk menyimpan file Anda dan menggambar bersama rekan tim Anda."
     }
   ],
   "ffcd73e997": [

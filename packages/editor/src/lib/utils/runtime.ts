@@ -1,3 +1,5 @@
+import { hardReset } from './sync/hardReset'
+
 /** @public */
 export const runtime: {
 	openWindow(url: string, target: string, allowReferrer?: boolean): void
@@ -11,7 +13,7 @@ export const runtime: {
 		window.location.reload()
 	},
 	async hardReset() {
-		return await (window as any).__tldraw__hardReset?.()
+		return await hardReset({ shouldReload: true })
 	},
 }
 

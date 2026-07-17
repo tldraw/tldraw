@@ -28,11 +28,13 @@ import {
 import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
+import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { isProductionEnv } from '../../../utils/env'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
@@ -42,6 +44,7 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
+import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
@@ -65,6 +68,9 @@ export const components: TLComponents = {
 	SharePanel: TlaEditorSharePanel,
 	Dialogs: null,
 	Toasts: null,
+	// No loading screen on tla editors: the editor only mounts once it's ready,
+	// so a spinner would only flash before the content appears.
+	LoadingScreen: null,
 }
 
 interface TlaEditorProps {
@@ -117,11 +123,13 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
+	const trackPerformance = usePerformanceTracking()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
+			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
 			// Register the editor globally
@@ -167,11 +175,21 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			}).then(setIsReady)
 
 			return () => {
+				cleanupPerf()
 				fileStateUpdater.dispose()
 				abortController.abort()
 			}
 		},
-		[addDialog, trackRoomLoaded, trackNewRoomCreation, app, fileId, remountImageShapes, setIsReady]
+		[
+			addDialog,
+			trackRoomLoaded,
+			trackNewRoomCreation,
+			trackPerformance,
+			app,
+			fileId,
+			remountImageShapes,
+			setIsReady,
+		]
 	)
 
 	const user = useTldrawCurrentUser()
@@ -270,11 +288,15 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				licenseKey={getLicenseKey()}
 				store={store}
 				assetUrls={assetUrls}
+				shapeUtils={embedShapeUtils}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={instanceComponents}
-				options={{ actionShortcutsLocation: 'toolbar', deepLinks: deepLinks ? true : undefined }}
+				options={{
+					actionShortcutsLocation: 'toolbar',
+					deepLinks: deepLinks ? true : undefined,
+				}}
 				overrides={[overrides, extraDragIconOverrides]}
 				getShapeVisibility={getShapeVisibility}
 			>
@@ -285,6 +307,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
+				<TlaAnonDotDevLink />
 			</Tldraw>
 		</TlaEditorWrapper>
 	)

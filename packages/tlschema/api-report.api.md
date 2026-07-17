@@ -74,10 +74,15 @@ export const AssetRecordType: RecordType<TLAsset<"bookmark" | "image" | "video">
 
 // @public
 export class b64Vecs {
-    static decodeFirstPoint(b64Points: string): null | VecModel;
-    static decodeLastPoint(b64Points: string): null | VecModel;
-    static decodePoints(base64: string): VecModel[];
-    static encodePoints(points: VecModel[]): string;
+    static decodeFirstPoint(b64Points: string, dim?: 2 | 3): null | VecModel;
+    static decodeFirstPoint2D(b64Points: string): null | VecModel;
+    static decodeLastPoint(b64Points: string, dim?: 2 | 3): null | VecModel;
+    static decodeLastPoint2D(b64Points: string): null | VecModel;
+    static decodePoints(base64: string, dim?: 2 | 3): VecModel[];
+    static decodePoints2D(base64: string): VecModel[];
+    static encodePoints(points: VecModel[], dim?: 2 | 3): string;
+    static encodePoints2D(points: VecModel[]): string;
+    static isSinglePoint(b64Points: string, dim?: 2 | 3): boolean;
     // @internal
     static _legacyDecodePoints(base64: string): VecModel[];
     // @internal
@@ -292,20 +297,11 @@ export const defaultBindingSchemas: {
     };
 };
 
-// @public
-export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white"];
+// @public (undocumented)
+export const DefaultColorStyle: EnumStyleProp<TLDefaultColorStyle>;
 
 // @public
-export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-
-// @public
-export const DefaultColorThemePalette: {
-    darkMode: TLDefaultColorTheme;
-    lightMode: TLDefaultColorTheme;
-};
-
-// @public
-export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
+export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "none" | "solid">;
 
 // @public
 export const DefaultFillStyle: EnumStyleProp<"fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid">;
@@ -323,9 +319,6 @@ export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">
 
 // @public
 export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-
-// @public
-export const DefaultLabelColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
 
 // @public
 export const defaultShapeSchemas: {
@@ -393,6 +386,12 @@ export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 
 // @public
+export const DIM_2D = 2;
+
+// @public
+export const DIM_3D = 3;
+
+// @public
 export const DocumentRecordType: RecordType<TLDocument, never>;
 
 // @public
@@ -417,8 +416,10 @@ export const embedShapeProps: RecordProps<TLEmbedShape>;
 export class EnumStyleProp<T> extends StyleProp<T> {
     // @internal
     constructor(id: string, defaultValue: T, values: readonly T[]);
+    addValues(...newValues: T[]): void;
+    removeValues(...valuesToRemove: T[]): void;
     // (undocumented)
-    readonly values: readonly T[];
+    readonly values: T[];
 }
 
 // @public
@@ -442,14 +443,6 @@ export const geoShapeMigrations: TLPropsMigrations;
 export const geoShapeProps: RecordProps<TLGeoShape>;
 
 // @public
-export function getColorValue(theme: TLDefaultColorTheme, color: TLDefaultColorStyle, variant: keyof TLDefaultColorThemeColor): string;
-
-// @public
-export function getDefaultColorTheme(opts: {
-    isDarkMode: boolean;
-}): TLDefaultColorTheme;
-
-// @public
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
 
 // @public
@@ -469,7 +462,7 @@ export function getDefaultUserPresence(store: TLStore, user: TLUser): {
         x: number;
         y: number;
     };
-    followingUserId: null | string;
+    followingUserId: TLUserId | null;
     lastActivityTimestamp: number;
     meta: {};
     screenBounds: BoxModel;
@@ -541,6 +534,9 @@ export function isCustomRecordId(typeName: string, id?: string): boolean;
 
 // @public
 export function isDocument(record?: UnknownRecord): record is TLDocument;
+
+// @internal (undocumented)
+export function isFontEntry(value: unknown): value is TLThemeFont;
 
 // @public
 export function isPageId(id: string): id is TLPageId;
@@ -748,6 +744,12 @@ export type RecordProps<R extends UnknownRecord & {
 export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> = MakeUndefinedOptional<{
     [K in keyof Config]: T.TypeOf<Config[K]>;
 }>;
+
+// @public
+export function registerColorsFromThemes(definitions: TLThemes): void;
+
+// @public
+export function registerFontsFromThemes(definitions: TLThemes): void;
 
 // @public
 export const richTextValidator: T.ObjectValidator<{
@@ -1063,18 +1065,7 @@ export type TLDefaultAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
 export type TLDefaultBinding = TLArrowBinding;
 
 // @public
-export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
-
-// @public
-export type TLDefaultColorTheme = Expand<{
-    background: string;
-    id: 'dark' | 'light';
-    solid: string;
-    text: string;
-} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>>;
-
-// @public
-export interface TLDefaultColorThemeColor {
+export interface TLDefaultColor {
     // (undocumented)
     fill: string;
     // (undocumented)
@@ -1106,13 +1097,18 @@ export interface TLDefaultColorThemeColor {
 }
 
 // @public
+export type TLDefaultColorStyle = {
+    [K in keyof TLThemeDefaultColors]: TLThemeDefaultColors[K] extends TLDefaultColor ? K : never;
+}[keyof TLThemeDefaultColors] & string;
+
+// @public
 export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
 
 // @public
 export type TLDefaultFillStyle = T.TypeOf<typeof DefaultFillStyle>;
 
 // @public
-export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
+export type TLDefaultFontStyle = keyof TLThemeFonts & string;
 
 // @public
 export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
@@ -1162,6 +1158,7 @@ export interface TLDrawShapeProps {
 
 // @public
 export interface TLDrawShapeSegment {
+    dim?: 2 | 3;
     path: string;
     type: 'free' | 'straight';
 }
@@ -1174,6 +1171,29 @@ export interface TLEmbedShapeProps {
     h: number;
     url: string;
     w: number;
+}
+
+// @public
+export interface TLFontFace {
+    readonly ascentOverride?: string;
+    readonly descentOverride?: string;
+    readonly family: string;
+    readonly featureSettings?: string;
+    readonly lineGapOverride?: string;
+    readonly src: TLFontFaceSource;
+    readonly stretch?: string;
+    readonly style?: string;
+    readonly unicodeRange?: string;
+    readonly weight?: string;
+}
+
+// @public
+export interface TLFontFaceSource {
+    // (undocumented)
+    format?: string;
+    // (undocumented)
+    tech?: string;
+    url: string;
 }
 
 // @public
@@ -1347,9 +1367,9 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     exportBackground: boolean;
     // (undocumented)
-    followingUserId: null | string;
+    followingUserId: null | TLUserId;
     // (undocumented)
-    highlightedUserIds: string[];
+    highlightedUserIds: TLUserId[];
     // (undocumented)
     insets: boolean[];
     // (undocumented)
@@ -1443,7 +1463,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         y: number;
     } | null;
     // (undocumented)
-    followingUserId: null | string;
+    followingUserId: null | TLUserId;
     // (undocumented)
     lastActivityTimestamp: null | number;
     // (undocumented)
@@ -1455,7 +1475,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     selectedShapeIds: TLShapeId[];
     // (undocumented)
-    userId: string;
+    userId: TLUserId;
     // (undocumented)
     userName: string;
 }
@@ -1498,13 +1518,13 @@ export interface TLNoteShapeProps {
     align: TLDefaultHorizontalAlignStyle;
     color: TLDefaultColorStyle;
     font: TLDefaultFontStyle;
-    fontSizeAdjustment: number;
+    fontSizeAdjustment: null | number;
     growY: number;
     labelColor: TLDefaultColorStyle;
     richText: TLRichText;
     scale: number;
     size: TLDefaultSizeStyle;
-    textFirstEditedBy: null | string;
+    textLastEditedBy: null | string;
     url: string;
     verticalAlign: TLDefaultVerticalAlignStyle;
 }
@@ -1568,6 +1588,10 @@ export interface TLPropsMigrations {
 
 // @public
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
+
+// @public
+export interface TLRemovedDefaultThemeColors {
+}
 
 // @public
 export type TLRichText = T.TypeOf<typeof richTextValidator>;
@@ -1658,6 +1682,103 @@ export interface TLTextShapeProps {
     // (undocumented)
     w: number;
 }
+
+// @public
+export interface TLTheme {
+    // (undocumented)
+    colors: {
+        dark: TLThemeColors;
+        light: TLThemeColors;
+    };
+    fonts: TLThemeFonts;
+    fontSize: number;
+    id: TLThemeId;
+    lineHeight: number;
+    strokeWidth: number;
+}
+
+// @public
+export type TLThemeColors = Pick<TLThemeDefaultColors, TLThemeUiColorKeys> & Omit<TLThemeDefaultColors, keyof TLRemovedDefaultThemeColors | TLThemeUiColorKeys>;
+
+// @public
+export interface TLThemeDefaultColors {
+    // (undocumented)
+    'light-blue': TLDefaultColor;
+    // (undocumented)
+    'light-green': TLDefaultColor;
+    // (undocumented)
+    'light-red': TLDefaultColor;
+    // (undocumented)
+    'light-violet': TLDefaultColor;
+    // (undocumented)
+    background: string;
+    // (undocumented)
+    black: TLDefaultColor;
+    // (undocumented)
+    blue: TLDefaultColor;
+    brushFill: string;
+    brushStroke: string;
+    // (undocumented)
+    cursor: string;
+    // (undocumented)
+    green: TLDefaultColor;
+    // (undocumented)
+    grey: TLDefaultColor;
+    laser: string;
+    // (undocumented)
+    negativeSpace: string;
+    // (undocumented)
+    noteBorder: string;
+    // (undocumented)
+    orange: TLDefaultColor;
+    // (undocumented)
+    red: TLDefaultColor;
+    selectedContrast: string;
+    selectionFill: string;
+    selectionStroke: string;
+    snap: string;
+    // (undocumented)
+    solid: string;
+    // (undocumented)
+    text: string;
+    // (undocumented)
+    violet: TLDefaultColor;
+    // (undocumented)
+    white: TLDefaultColor;
+    // (undocumented)
+    yellow: TLDefaultColor;
+}
+
+// @public
+export interface TLThemeFont {
+    faces?: TLFontFace[];
+    fontFamily: string;
+    icon?: unknown;
+}
+
+// @public
+export interface TLThemeFonts {
+    // (undocumented)
+    draw: TLThemeFont;
+    // (undocumented)
+    mono: TLThemeFont;
+    // (undocumented)
+    sans: TLThemeFont;
+    // (undocumented)
+    serif: TLThemeFont;
+}
+
+// @public (undocumented)
+export type TLThemeId = keyof TLThemes & string;
+
+// @public
+export interface TLThemes {
+    // (undocumented)
+    default: TLTheme;
+}
+
+// @public
+export type TLThemeUiColorKeys = 'background' | 'brushFill' | 'brushStroke' | 'cursor' | 'laser' | 'negativeSpace' | 'noteBorder' | 'selectedContrast' | 'selectionFill' | 'selectionStroke' | 'snap' | 'solid' | 'text';
 
 // @public
 export type TLUnknownAsset = TLBaseAsset<string, object>;

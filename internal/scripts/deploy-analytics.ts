@@ -31,6 +31,7 @@ const discord = new Discord({
 	shouldNotify: env.TLDRAW_ENV === 'production',
 	totalSteps: 2,
 	messagePrefix: '[ANALYTICS]',
+	secretValues: Object.values(env),
 })
 
 const { previewId, sha } = getDeployInfo()

@@ -47,13 +47,17 @@ const checkHostnames = (hostnames: readonly string[], targetHostname: string) =>
 }
 
 /** @public */
-export function matchUrl(definitions: readonly TLEmbedDefinition[], url: string) {
+export function matchUrl(
+	definitions: readonly TLEmbedDefinition[],
+	url: string,
+	embedConfig?: Record<string, unknown>
+) {
 	const parsed = safeParseUrl(url)
 	if (!parsed) return undefined
 	const host = parsed.host.replace('www.', '')
 	for (const localEmbedDef of definitions) {
 		if (checkHostnames(localEmbedDef.hostnames, host)) {
-			const embedUrl = localEmbedDef.toEmbedUrl(url)
+			const embedUrl = localEmbedDef.toEmbedUrl(url, embedConfig?.[localEmbedDef.type])
 
 			if (embedUrl) {
 				return {
@@ -81,14 +85,16 @@ export type TLEmbedResult =
  * return undefined.
  *
  * @param inputUrl - The URL to match
+ * @param embedConfig - Optional per-embed config, keyed by embed type, passed to `toEmbedUrl`
  * @public
  */
 export function getEmbedInfo(
 	definitions: readonly TLEmbedDefinition[],
-	inputUrl: string
+	inputUrl: string,
+	embedConfig?: Record<string, unknown>
 ): TLEmbedResult {
 	try {
-		return matchUrl(definitions, inputUrl) ?? matchEmbedUrl(definitions, inputUrl)
+		return matchUrl(definitions, inputUrl, embedConfig) ?? matchEmbedUrl(definitions, inputUrl)
 	} catch {
 		return undefined
 	}

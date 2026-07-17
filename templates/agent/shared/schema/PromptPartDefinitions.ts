@@ -1,4 +1,4 @@
-import { Box, BoxModel, JsonValue } from 'tldraw'
+import { BoxModel, JsonValue } from 'tldraw'
 import { BlurryShape } from '../format/BlurryShape'
 import { FocusedShape } from '../format/FocusedShape'
 import { PeripheralShapeCluster } from '../format/PeripheralShapesCluster'
@@ -495,8 +495,9 @@ export const UserViewportBoundsPartDefinition: PromptPartDefinition<UserViewport
 		if (!userBounds) {
 			return []
 		}
-		const userViewCenter = Box.From(userBounds).center
-		return [`The user's view is centered at (${userViewCenter.x}, ${userViewCenter.y}).`]
+		return [
+			`The bounds of the part of the canvas that the user can currently see are: ${JSON.stringify(userBounds)}`,
+		]
 	},
 }
 

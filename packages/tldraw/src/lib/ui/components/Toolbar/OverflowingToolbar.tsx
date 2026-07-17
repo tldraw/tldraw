@@ -237,11 +237,18 @@ export function OverflowingToolbar({
 		if (!mainToolsRef.current) return
 
 		const mutationObserver = new MutationObserver(onDomUpdate)
+		// Watch for structure changes plus only the attributes onDomUpdate actually reads.
+		// `aria-pressed` flips when the active tool/geo variant changes — important for cases where
+		// only individual ToolbarItem children re-render and OverflowingToolbar itself does not (see
+		// #8689). `data-value` identifies the tool slot. We deliberately exclude all other
+		// attributes (notably `data-state`, `aria-describedby`, `aria-expanded` from tooltip /
+		// popover wrappers, and our own `data-toolbar-visible` writes) to avoid hover- and
+		// self-triggered recomputes that caused ResizeObserver loop warnings (see #8528).
 		mutationObserver.observe(mainToolsRef.current, {
 			childList: true,
 			subtree: true,
 			attributes: true,
-			characterData: true,
+			attributeFilter: ['aria-pressed', 'data-value'],
 		})
 
 		const sizingParent = findParentWithClassName(mainToolsRef.current, sizingParentClassName)
@@ -342,11 +349,11 @@ export function OverflowingToolbar({
 	)
 }
 
-export const isActiveTLUiToolItem = (
+export function isActiveTLUiToolItem(
 	item: TLUiToolItem,
 	activeToolId: string | undefined,
 	geoState: string | null | undefined
-) => {
+) {
 	return item.meta?.geo
 		? activeToolId === 'geo' && geoState === item.meta?.geo
 		: activeToolId === item.id

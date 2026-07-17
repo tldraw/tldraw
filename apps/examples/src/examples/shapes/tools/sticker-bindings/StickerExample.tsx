@@ -49,19 +49,19 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		// stickers can bind to anything
 		return true
 	}
-	override canEdit() {
+	override canEdit(shape: StickerShape) {
 		return false
 	}
-	override canResize() {
+	override canResize(shape: StickerShape) {
 		return false
 	}
-	override canSnap() {
+	override canSnap(shape: StickerShape) {
 		return false
 	}
-	override hideRotateHandle() {
+	override hideRotateHandle(shape: StickerShape) {
 		return true
 	}
-	override isAspectRatioLocked() {
+	override isAspectRatioLocked(shape: StickerShape) {
 		return true
 	}
 
@@ -92,8 +92,10 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		)
 	}
 
-	override indicator() {
-		return <rect width={32} height={32} x={offsetX} y={offsetY} />
+	override getIndicatorPath() {
+		const path = new Path2D()
+		path.rect(offsetX, offsetY, 32, 32)
+		return path
 	}
 
 	override onTranslateStart(shape: StickerShape) {

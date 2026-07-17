@@ -4,7 +4,7 @@ sidebarTitle: Branching chat
 status: published
 author: tldraw
 date: 9/16/2024
-order: 5
+order: 6
 description: The Branching Chat Starter Kit demonstrates how to build visual conversation interfaces where users create branching chat trees with AI integration. It features interactive dialogue nodes that connect to form conversation flows, with real-time AI responses and context-aware message handling. You can use this foundation to create interactive chatbots, conversation design tools, or storytelling applications.
 embed: branching-chat
 githubLink: https://github.com/tldraw/tldraw/tree/main/templates/branching-chat
@@ -25,6 +25,12 @@ To build with a branching chat starter kit, run this command in your terminal:
 
 ```bash
 npm create tldraw@latest -- --template branching-chat
+```
+
+Then create a `.env` file in the project root with an API key from [Google AI Studio](https://aistudio.google.com/apikey):
+
+```
+GOOGLE_GENERATIVE_AI_API_KEY=<your key>
 ```
 
 ---
@@ -91,10 +97,10 @@ See `client/connection/ConnectionBindingUtil.tsx` as an example. This file demon
 
 ## Further reading
 
-- [Workflow Starter Kit](/starter-kits/workflow): Learn how to build visual programming interfaces with node-based workflows on infinite canvas.
-- [Shape Utilities](/docs/shapes#custom-shapes): Learn how to create custom shapes and extend tldraw's shape system with advanced geometry, rendering, and interaction patterns.
-- [Binding System](/sdk-features/bindings): Learn more about tldraw's binding system for creating relationships between shapes, automatic updates, and connection management.
-- [Editor State Management](/docs/editor): Learn how to work with tldraw's reactive state system, editor lifecycle, and event handling for complex canvas applications.
+- [Workflow starter kit](/starter-kits/workflow): Learn how to build visual programming interfaces with node-based workflows on infinite canvas.
+- [Shape utilities](/docs/shapes#custom-shapes): Learn how to create custom shapes and extend tldraw's shape system with advanced geometry, rendering, and interaction patterns.
+- [Binding system](/sdk-features/bindings): Learn more about tldraw's binding system for creating relationships between shapes, automatic updates, and connection management.
+- [Editor state management](/docs/editor): Learn how to work with tldraw's reactive state system, editor lifecycle, and event handling for complex canvas applications.
 
 ---
 

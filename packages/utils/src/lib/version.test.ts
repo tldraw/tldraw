@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearRegisteredVersionsForTests, registerTldrawLibraryVersion } from './version'
 
 describe('version utilities', () => {
-	let mockConsoleLog: ReturnType<typeof vi.fn>
+	let mockConsoleLog: ReturnType<typeof vi.fn<(...args: any[]) => any>>
 
 	beforeEach(() => {
 		mockConsoleLog = vi.fn()

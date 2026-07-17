@@ -43,6 +43,13 @@ export function getPerfectDashProps(
 		}
 	}
 
+	if (style === 'none') {
+		return {
+			strokeDasharray: 'none',
+			strokeDashoffset: 'none',
+		}
+	}
+
 	switch (style) {
 		case 'dashed': {
 			ratio = 1

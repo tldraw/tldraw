@@ -1,4 +1,3 @@
-import { objectMapEntries } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 
 /**
@@ -107,11 +106,16 @@ export function reverseRecordsDiff(diff: RecordsDiff<any>) {
  * @public
  */
 export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>) {
-	return (
-		Object.keys(diff.added).length === 0 &&
-		Object.keys(diff.updated).length === 0 &&
-		Object.keys(diff.removed).length === 0
-	)
+	return !hasAnyKey(diff.added) && !hasAnyKey(diff.updated) && !hasAnyKey(diff.removed)
+}
+
+// Cheaper than Object.keys().length, but note that for-in still pays an O(N)
+// key-collection prologue on dictionary-mode objects (which diffs become once keys
+// are deleted from them) — avoid calling this on large diffs in per-frame hot paths.
+/** @internal */
+export function hasAnyKey(obj: object) {
+	for (const _ in obj) return true
+	return false
 }
 
 /**
@@ -203,9 +207,22 @@ export function squashRecordDiffsMutable<T extends UnknownRecord>(
 	target: RecordsDiff<T>,
 	diffs: RecordsDiff<T>[]
 ): void {
+	// This runs on every history interceptor call — e.g. once per input tick while
+	// resizing N shapes, with N entries in diff.updated — so the updated loop must not
+	// allocate per entry. We use for-in instead of Object.entries, mutate the target's
+	// existing [from, to] tuples in place, and skip delete calls against collections we
+	// know are empty. In-place tuple mutation is safe because the target exclusively
+	// owns its updated tuples: they are always created here (never shared with a source
+	// diff), and sources are never mutated.
 	for (const diff of diffs) {
-		for (const [id, value] of objectMapEntries(diff.added)) {
-			if (target.removed[id]) {
+		// target.removed can only lose entries before the removed loop below, so a
+		// stale `true` is harmless (extra no-op deletes).
+		const targetHasRemoved = hasAnyKey(target.removed)
+
+		for (const _id in diff.added) {
+			const id = _id as IdOf<T>
+			const value = diff.added[id]
+			if (targetHasRemoved && target.removed[id]) {
 				const original = target.removed[id]
 				delete target.removed[id]
 				if (original !== value) {
@@ -216,24 +233,32 @@ export function squashRecordDiffsMutable<T extends UnknownRecord>(
 			}
 		}
 
-		for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
-			if (target.added[id]) {
+		// the added loop above may have inserted into target.added
+		const targetHasAdded = hasAnyKey(target.added)
+
+		for (const _id in diff.updated) {
+			const id = _id as IdOf<T>
+			const to = diff.updated[id][1]
+			if (targetHasAdded && target.added[id]) {
 				target.added[id] = to
 				delete target.updated[id]
-				delete target.removed[id]
+				if (targetHasRemoved) delete target.removed[id]
 				continue
 			}
-			if (target.updated[id]) {
-				target.updated[id] = [target.updated[id][0], to]
-				delete target.removed[id]
+			const existing = target.updated[id]
+			if (existing) {
+				existing[1] = to
+				if (targetHasRemoved) delete target.removed[id]
 				continue
 			}
 
-			target.updated[id] = diff.updated[id]
-			delete target.removed[id]
+			// copy the tuple so the target owns it and can mutate it in place later
+			target.updated[id] = [diff.updated[id][0], to]
+			if (targetHasRemoved) delete target.removed[id]
 		}
 
-		for (const [id, value] of objectMapEntries(diff.removed)) {
+		for (const _id in diff.removed) {
+			const id = _id as IdOf<T>
 			// the same record was added in this diff sequence, just drop it
 			if (target.added[id]) {
 				delete target.added[id]
@@ -241,7 +266,7 @@ export function squashRecordDiffsMutable<T extends UnknownRecord>(
 				target.removed[id] = target.updated[id][0]
 				delete target.updated[id]
 			} else {
-				target.removed[id] = value
+				target.removed[id] = diff.removed[id]
 			}
 		}
 	}

@@ -28,8 +28,8 @@ export const queries = defineQueries({
 		zql.file_state.where('userId', '=', ctx.userId).related('file', (file) => file.one())
 	),
 
-	/** User's group memberships with related group, files, and members */
-	groupUsers: defineQuery(({ ctx }) =>
+	/** User's workspace memberships with related group, files, and members */
+	workspaceMemberships: defineQuery(({ ctx }) =>
 		zql.group_user
 			.where('userId', '=', ctx.userId)
 			.related('group', (group) => group.one())

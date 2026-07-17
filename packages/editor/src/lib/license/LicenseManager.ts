@@ -6,7 +6,7 @@ import { importPublicKey, str2ab } from '../utils/licensing'
 const GRACE_PERIOD_DAYS = 30
 
 export const FLAGS = {
-	// -- MUTUALLY EXCLUSIVE FLAGS --
+	// -- MUTUALLY EXCLUSIVE FLAGS
 	// Annual means the license expires after a time period, usually 1 year.
 	ANNUAL_LICENSE: 1,
 	// Perpetual means the license never expires up to the max supported version.
@@ -125,12 +125,18 @@ export class LicenseManager {
 	}
 
 	private getIsDevelopment() {
-		// If we are using https on a non-localhost domain we assume it's a production env and a development one otherwise
+		// If we are using https on a non-loopback domain we assume it's a production env and a development one otherwise
 		return (
 			!['https:', 'vscode-webview:'].includes(window.location.protocol) ||
-			window.location.hostname === 'localhost' ||
+			this.isLoopbackHost(window.location.hostname) ||
 			process.env.NODE_ENV !== 'production'
 		)
+	}
+
+	private isLoopbackHost(hostname: string) {
+		// localhost, IPv4 loopback (127.0.0.0/8) and IPv6 loopback (::1) are all local development hosts
+		const host = hostname.toLowerCase().replace(/^\[|\]$/g, '')
+		return host === 'localhost' || host === '::1' || /^127(?:\.\d{1,3}){3}$/.test(host)
 	}
 
 	private getTrackType(result: LicenseFromKeyResult, licenseState: LicenseState): TrackType {
@@ -274,9 +280,18 @@ export class LicenseManager {
 			const expiryDate = new Date(licenseInfo.expiryDate)
 			const isAnnualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.ANNUAL_LICENSE)
 			const isPerpetualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.PERPETUAL_LICENSE)
-
 			const isEvaluationLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.EVALUATION_LICENSE)
-			const daysSinceExpiry = this.getDaysSinceExpiry(expiryDate)
+
+			const isAnnualLicenseExpired = isAnnualLicense && this.isAnnualLicenseExpired(expiryDate)
+			const isPerpetualLicenseExpired =
+				isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate)
+
+			// For perpetual licenses, the calendar expiry date only gates access to future
+			// major/minor releases; it does not "expire" the license itself. While the user
+			// is still on a covered version we report `daysSinceExpiry` as 0 so consumers
+			// (and the grace-period warning) don't treat them as past expiry.
+			const daysSinceExpiry =
+				isPerpetualLicense && !isPerpetualLicenseExpired ? 0 : this.getDaysSinceExpiry(expiryDate)
 
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
@@ -285,9 +300,9 @@ export class LicenseManager {
 				isDomainValid: this.isDomainValid(licenseInfo),
 				expiryDate,
 				isAnnualLicense,
-				isAnnualLicenseExpired: isAnnualLicense && this.isAnnualLicenseExpired(expiryDate),
+				isAnnualLicenseExpired,
 				isPerpetualLicense,
-				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
+				isPerpetualLicenseExpired,
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
 				isNativeLicense: this.isNativeLicense(licenseInfo),
 				isLicensedWithWatermark: this.isFlagEnabled(licenseInfo.flags, FLAGS.WITH_WATERMARK),
@@ -357,14 +372,26 @@ export class LicenseManager {
 	}
 
 	private getExpirationDateWithoutGracePeriod(expiryDate: Date) {
-		return new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate())
+		// The named expiry date is the last day the license is fully usable, so the license
+		// expires at the end of that day, i.e. the start of the following day. We work in UTC
+		// (the expiry date is minted and parsed as a UTC date-only string) so the cutoff is a
+		// single predictable instant for every user regardless of their local timezone.
+		return new Date(
+			Date.UTC(
+				expiryDate.getUTCFullYear(),
+				expiryDate.getUTCMonth(),
+				expiryDate.getUTCDate() + 1 // Add 1 day so the named date is fully usable
+			)
+		)
 	}
 
 	private getExpirationDateWithGracePeriod(expiryDate: Date) {
 		return new Date(
-			expiryDate.getFullYear(),
-			expiryDate.getMonth(),
-			expiryDate.getDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
+			Date.UTC(
+				expiryDate.getUTCFullYear(),
+				expiryDate.getUTCMonth(),
+				expiryDate.getUTCDate() + GRACE_PERIOD_DAYS + 1 // Add 1 day to include the expiration day
+			)
 		)
 	}
 

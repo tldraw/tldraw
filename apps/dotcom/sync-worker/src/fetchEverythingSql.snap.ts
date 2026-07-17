@@ -131,8 +131,8 @@ FROM group_file_ownership
 UNION ALL
 SELECT
   'group' as "table",
-  "isDeleted"::boolean as "0",
-  null::boolean as "1",
+  "inviteLinkEnabled"::boolean as "0",
+  "isDeleted"::boolean as "1",
   null::boolean as "2",
   null::boolean as "3",
   null::boolean as "4",
@@ -311,7 +311,8 @@ export const columnNamesByAlias = {
 		'16': 'index',
 	},
 	group: {
-		'0': 'isDeleted',
+		'0': 'inviteLinkEnabled',
+		'1': 'isDeleted',
 		'10': 'createdAt',
 		'11': 'updatedAt',
 		'14': 'id',

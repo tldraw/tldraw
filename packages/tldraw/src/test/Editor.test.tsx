@@ -325,6 +325,30 @@ describe('Editor.TickManager', () => {
 			y: 0.23437,
 		})
 	})
+
+	it('smooths pointer velocity consistently across frame rates', () => {
+		const getVelocityAfterMoving = (elapsed: number, frameCount: number) => {
+			const testEditor = new TestEditor({})
+			try {
+				for (let i = 1; i <= frameCount; i++) {
+					testEditor.pointerMove((10 * i) / frameCount, (10 * i) / frameCount)
+					testEditor.inputs.updatePointerVelocity(elapsed)
+				}
+				return testEditor.inputs.getPointerVelocity().toJson()
+			} finally {
+				testEditor.dispose()
+			}
+		}
+
+		expect(getVelocityAfterMoving(16, 1)).toCloselyMatchObject({
+			x: 0.3125,
+			y: 0.3125,
+		})
+		expect(getVelocityAfterMoving(8, 2)).toCloselyMatchObject({
+			x: 0.3125,
+			y: 0.3125,
+		})
+	})
 })
 
 describe("App's default tool", () => {
@@ -524,7 +548,7 @@ describe('getShapeUtil', () => {
 			component() {
 				throw new Error('Method not implemented.')
 			}
-			indicator() {
+			getIndicatorPath(): undefined {
 				throw new Error('Method not implemented.')
 			}
 		}
@@ -661,14 +685,6 @@ describe('when the user prefers dark UI', () => {
 		editor = new TestEditor({})
 		expect(editor.user.getIsDarkMode()).toBe(false)
 	})
-	it('isDarkMode should be false when inferDarkMode is false', () => {
-		editor = new TestEditor({ inferDarkMode: false })
-		expect(editor.user.getIsDarkMode()).toBe(false)
-	})
-	it('should be true if the editor was instantiated with inferDarkMode', () => {
-		editor = new TestEditor({ inferDarkMode: true })
-		expect(editor.user.getIsDarkMode()).toBe(true)
-	})
 })
 
 describe('when the user prefers light UI', () => {
@@ -686,14 +702,6 @@ describe('when the user prefers light UI', () => {
 	})
 	it('isDarkMode should be false by default', () => {
 		editor = new TestEditor({})
-		expect(editor.user.getIsDarkMode()).toBe(false)
-	})
-	it('isDarkMode should be false when inferDarkMode is false', () => {
-		editor = new TestEditor({ inferDarkMode: false })
-		expect(editor.user.getIsDarkMode()).toBe(false)
-	})
-	it('should be false if the editor was instantiated with inferDarkMode', () => {
-		editor = new TestEditor({ inferDarkMode: true })
 		expect(editor.user.getIsDarkMode()).toBe(false)
 	})
 })
@@ -938,7 +946,7 @@ describe('the geometry cache', () => {
 		component() {
 			throw new Error('Method not implemented.')
 		}
-		indicator() {
+		getIndicatorPath(): undefined {
 			throw new Error('Method not implemented.')
 		}
 	}

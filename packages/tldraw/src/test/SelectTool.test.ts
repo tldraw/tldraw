@@ -1,5 +1,14 @@
-import { IndexKey, createShapeId, toRichText } from '@tldraw/editor'
+import {
+	IndexKey,
+	ShapeUtil,
+	TLArrowShape,
+	TLFrameShape,
+	createShapeId,
+	toRichText,
+} from '@tldraw/editor'
 import { vi } from 'vitest'
+import { defaultHandleExternalTldrawContent } from '../lib/defaultExternalContentHandlers'
+import { defaultOverlayUtils } from '../lib/defaultOverlayUtils'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -110,6 +119,44 @@ describe.skip('Edit on type', () => {
 		// Simulate ctrlKey being pressed
 		editor.keyDown('a', { ctrlKey: true })
 		expect(editor.getEditingShapeId()).not.toBe(shape.id)
+	})
+})
+
+describe('TLSelectTool.PointingShape when the shape is deleted mid-click', () => {
+	// Reproduces https://github.com/tldraw/tldraw/issues/8558: a remote user,
+	// undo, or other actor can delete the pointed-at shape between pointer down
+	// and pointer up. The tool should bail to idle instead of crashing.
+
+	it('does not crash on pointer up when an already-selected shape is deleted', () => {
+		// pre-selecting the shape means didSelectOnEnter is false, so pointer up
+		// runs the selection logic that dereferences the (now deleted) shape
+		editor.select(ids.box1)
+		const shape = editor.getShape(ids.box1)!
+
+		editor.pointerDown(shape.x + 10, shape.y + 10, { target: 'shape', shape })
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+
+		expect(() => editor.pointerUp(shape.x + 10, shape.y + 10)).not.toThrow()
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('does not crash on pointer up when a ctrl-clicked shape is deleted', () => {
+		// ctrl/accel on enter also leaves didSelectOnEnter false
+		const shape = editor.getShape(ids.box1)!
+
+		editor.pointerDown(shape.x + 10, shape.y + 10, {
+			target: 'shape',
+			shape,
+			accelKey: true,
+		})
+		editor.expectToBeIn('select.pointing_shape')
+
+		editor.deleteShapes([ids.box1])
+
+		expect(() => editor.pointerUp(shape.x + 10, shape.y + 10)).not.toThrow()
+		editor.expectToBeIn('select.idle')
 	})
 })
 
@@ -260,6 +307,140 @@ describe('DraggingHandle', () => {
 	})
 })
 
+describe('Pasting during an interaction', () => {
+	// Regression for #8305: pasting tldraw content mid-interaction should not
+	// steal the selection from the shape being manipulated. The paste handler
+	// leaves the selection alone while dragging/translating/resizing/rotating,
+	// so the interacted shape stays selected (and an arrow's binding hint stays
+	// visible) without needing the tool to reselect on completion.
+
+	it('does not steal selection while dragging an arrow handle, keeping the binding hint visible', async () => {
+		const overlayEditor = new TestEditor({ overlayUtils: defaultOverlayUtils })
+		const arrowId = createShapeId('hintArrow')
+		const targetId = createShapeId('hintTarget')
+		const clipboardId = createShapeId('hintClipboard')
+		overlayEditor.createShapes([
+			{ id: targetId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+			{ id: clipboardId, type: 'geo', x: 400, y: 400, props: { w: 50, h: 50 } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 150,
+				y: 150,
+				props: { start: { x: 0, y: 0 }, end: { x: 120, y: 0 } },
+			},
+		])
+		// Bind the arrow's start to the target so a binding survives an end-handle drag.
+		overlayEditor.createBindings([
+			{
+				fromId: arrowId,
+				toId: targetId,
+				type: 'arrow',
+				props: {
+					terminal: 'start',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+					isPrecise: false,
+				},
+			},
+		])
+
+		// Snapshot a shape to paste through the real external-content path.
+		const content = overlayEditor.getContentFromCurrentPage([clipboardId])!
+
+		const hasBindingHint = () =>
+			overlayEditor.overlays.getCurrentOverlays().some((o) => o.type === 'arrow_binding_hint')
+
+		const arrow = overlayEditor.getShape(arrowId)!
+		const endHandle = overlayEditor.getShapeHandles(arrow)!.find((h) => h.id === 'end')!
+
+		overlayEditor.select(arrowId)
+		overlayEditor.pointerDown(arrow.x + endHandle.x, arrow.y + endHandle.y, {
+			target: 'handle',
+			shape: arrow,
+			handle: endHandle,
+		})
+		overlayEditor.pointerMove(arrow.x + endHandle.x + 20, arrow.y + endHandle.y)
+		overlayEditor.expectToBeIn('select.dragging_handle')
+		expect(hasBindingHint()).toBe(true)
+
+		// Paste a shape mid-drag.
+		const countBefore = overlayEditor.getCurrentPageShapes().length
+		await defaultHandleExternalTldrawContent(overlayEditor, { content })
+		expect(overlayEditor.getCurrentPageShapes().length).toBeGreaterThan(countBefore)
+
+		// Selection is left alone, so the arrow stays selected and the hint stays up.
+		expect(overlayEditor.getOnlySelectedShapeId()).toBe(arrowId)
+		expect(hasBindingHint()).toBe(true)
+
+		overlayEditor.pointerUp()
+		expect(overlayEditor.getSelectedShapeIds()).toEqual([arrowId])
+	})
+
+	it('does not steal selection while translating a shape', async () => {
+		const content = editor.getContentFromCurrentPage([ids.box1])!
+
+		editor.select(ids.box1)
+		editor.pointerDown(150, 150, { target: 'shape', shape: editor.getShape(ids.box1)! })
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.translating')
+
+		const countBefore = editor.getCurrentPageShapes().length
+		await defaultHandleExternalTldrawContent(editor, { content })
+		expect(editor.getCurrentPageShapes().length).toBeGreaterThan(countBefore)
+		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
+
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+	})
+
+	it('does not steal selection while resizing a shape', async () => {
+		const content = editor.getContentFromCurrentPage([ids.box1])!
+
+		editor.select(ids.box1)
+		editor.pointerDown(200, 200, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.resizing')
+
+		const countBefore = editor.getCurrentPageShapes().length
+		await defaultHandleExternalTldrawContent(editor, { content })
+		expect(editor.getCurrentPageShapes().length).toBeGreaterThan(countBefore)
+		expect(editor.getOnlySelectedShapeId()).toBe(ids.box1)
+
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+	})
+
+	it('does not flash the selection (isChangingStyle) while mid-interaction', async () => {
+		const content = editor.getContentFromCurrentPage([ids.box1])!
+
+		editor.select(ids.box1)
+		editor.pointerDown(150, 150, { target: 'shape', shape: editor.getShape(ids.box1)! })
+		editor.pointerMove(250, 250)
+		editor.expectToBeIn('select.translating')
+
+		// The paste flash's overlap check compares the selection bounds before
+		// and after paste. Mid-interaction we don't reselect, so those bounds
+		// are identical and the check would always pass — isChangingStyle must
+		// stay false.
+		await defaultHandleExternalTldrawContent(editor, { content })
+		expect(editor.getInstanceState().isChangingStyle).toBe(false)
+	})
+
+	it('still selects pasted content when not mid-interaction', async () => {
+		const content = editor.getContentFromCurrentPage([ids.box1])!
+
+		editor.selectNone()
+		editor.expectToBeIn('select.idle')
+
+		await defaultHandleExternalTldrawContent(editor, { content })
+
+		const selected = editor.getOnlySelectedShapeId()
+		expect(selected).not.toBeNull()
+		expect(selected).not.toBe(ids.box1)
+	})
+})
+
 describe('PointingLabel', () => {
 	it('Enters from pointing_arrow_label and exits to idle', () => {
 		editor.createShapes([
@@ -374,6 +555,34 @@ describe('When pressing enter on a selected shape', () => {
 	})
 })
 
+describe('When undo/redo restores an invalid editing shape', () => {
+	// Regression: https://github.com/tldraw/tldraw/issues/9113
+	// Setting the editing shape is not recorded in history, but clearing it on delete is.
+	// When create + edit + delete of the same shape collapse into a single history entry,
+	// the shape's add/remove cancel out while the editingShapeId update survives. Undoing
+	// then restores editingShapeId pointing at a shape that no longer exists, which used to
+	// crash with "Entered editing state without an editing shape". The editor must never
+	// enter the editing state without a valid editing shape.
+	it('does not crash when undo restores editingShapeId for a deleted shape', () => {
+		const id = createShapeId()
+		editor.markHistoryStoppingPoint('start')
+		editor.createShape({ id, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+		editor.setEditingShape(id)
+		editor.deleteShapes([id])
+
+		expect(() => editor.undo()).not.toThrow()
+
+		editor.expectToBeIn('select.idle')
+		expect(editor.getEditingShapeId()).toBe(null)
+		expect(editor.getShape(id)).toBeUndefined()
+
+		// Redoing back through the same history entry must also stay safe.
+		expect(() => editor.redo()).not.toThrow()
+		editor.expectToBeIn('select.idle')
+		expect(editor.getEditingShapeId()).toBe(null)
+	})
+})
+
 // it('selects the child of a group', () => {
 //   const id1 = createShapeId()
 //   const id2 = createShapeId()
@@ -442,6 +651,98 @@ describe('When double clicking the selection edge', () => {
 		editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })
 
 		expect(editor.getEditingShapeId()).toBe(id)
+	})
+
+	it('Resets the cursor to default when entering editing mode from a resize handle', () => {
+		const id = createShapeId()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.selectNone()
+			.createShapes([{ id, type: 'geo' }])
+			.select(id)
+
+		editor.setCursor({ type: 'ew-resize', rotation: 0 })
+		expect(editor.getInstanceState().cursor.type).toBe('ew-resize')
+
+		editor.doubleClick(100, 100, { target: 'selection', handle: 'left' })
+
+		expect(editor.getEditingShapeId()).toBe(id)
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+	})
+})
+
+describe('When double clicking a selection handle that registers as a canvas event', () => {
+	let overlayEditor: TestEditor
+	beforeEach(() => {
+		overlayEditor = new TestEditor({ overlayUtils: defaultOverlayUtils })
+	})
+
+	it('Routes a canvas-targeted double-click on a resize edge handle to onDoubleClickEdge', () => {
+		const id = createShapeId()
+		overlayEditor
+			.createShapes([{ id, type: 'frame', x: 100, y: 100, props: { w: 200, h: 200 } }])
+			.select(id)
+
+		const spy = vi.spyOn(
+			overlayEditor.getShapeUtil('frame') as Required<ShapeUtil<TLFrameShape>>,
+			'onDoubleClickEdge'
+		)
+		const bounds = overlayEditor.getSelectionPageBounds()!
+
+		// Double-click on the right edge handle without specifying target — defaults
+		// to target: 'canvas', the same payload a real DOM double-click produces when
+		// the press lands on the overlay layer rather than a shape.
+		overlayEditor.doubleClick(bounds.maxX, bounds.midY)
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		expect(spy.mock.calls[0][1]).toMatchObject({ target: 'selection', handle: 'right' })
+	})
+
+	it('Routes a canvas-targeted double-click on a resize corner handle to onDoubleClickCorner', () => {
+		const id = createShapeId()
+		overlayEditor
+			.createShapes([{ id, type: 'frame', x: 100, y: 100, props: { w: 200, h: 200 } }])
+			.select(id)
+
+		const spy = vi.spyOn(
+			overlayEditor.getShapeUtil('frame') as Required<ShapeUtil<TLFrameShape>>,
+			'onDoubleClickCorner'
+		)
+		const bounds = overlayEditor.getSelectionPageBounds()!
+
+		overlayEditor.doubleClick(bounds.maxX, bounds.maxY)
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		expect(spy.mock.calls[0][1]).toMatchObject({ target: 'selection', handle: 'bottom_right' })
+	})
+
+	it('Routes a canvas-targeted double-click on an arrow handle to onDoubleClickHandle', () => {
+		const id = createShapeId()
+		overlayEditor
+			.createShapes([
+				{
+					id,
+					type: 'arrow',
+					x: 100,
+					y: 100,
+					props: { start: { x: 0, y: 0 }, end: { x: 100, y: 100 } },
+				},
+			])
+			.select(id)
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
+
+		// Double-click on the end handle without specifying target — defaults to
+		// target: 'canvas', the payload a real DOM double-click produces when the
+		// press lands on the handle overlay. This should toggle the arrowhead.
+		overlayEditor.doubleClick(200, 200)
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('none')
+
+		overlayEditor.doubleClick(200, 200)
+
+		expect(overlayEditor.getShape<TLArrowShape>(id)!.props.arrowheadEnd).toBe('arrow')
 	})
 })
 

@@ -290,6 +290,10 @@ test('seed 5279266392988747 - undo/redo page integrity regression', () => {
 	runTest(5279266392988747)
 })
 
+test('seed 8090628137862085 - duplicate index key regression', () => {
+	runTest(8090628137862085)
+})
+
 for (let i = 0; i < NUM_TESTS; i++) {
 	const seed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
 	test(`seed ${seed}`, () => {

@@ -1,6 +1,67 @@
-import { expect } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
+import { type Editor } from 'tldraw'
 import test from '../fixtures/fixtures'
 import { setupOrReset, sleep } from '../shared-e2e'
+
+declare const editor: Editor
+
+const PAGE_MENU_ITEM_HEIGHT = 36
+// The list reserves a few pixels of breathing room below the last row; the
+// auto-fit and minimum heights both include it, so the e2e expectations must too.
+const LIST_BOTTOM_PADDING = 4
+const MIN_PAGE_MENU_LIST_HEIGHT = PAGE_MENU_ITEM_HEIGHT + LIST_BOTTOM_PADDING
+
+const isMobileProject = () => test.info().project.name.includes('Mobile')
+
+async function expectPageItemToBeCurrent(pageItem: Locator, isCurrent: boolean) {
+	await expect(pageItem).toHaveAttribute('data-iscurrent', isCurrent ? 'true' : 'false')
+}
+
+async function getPageMenuListHeight(pageList: Locator) {
+	return await pageList.evaluate((elm) => elm.getBoundingClientRect().height)
+}
+
+async function expectPageMenuListHeight(pageList: Locator, expectedHeight: number, tolerance = 1) {
+	await expect
+		.poll(async () => getPageMenuListHeight(pageList))
+		.toBeGreaterThanOrEqual(expectedHeight - tolerance)
+
+	await expect
+		.poll(async () => getPageMenuListHeight(pageList))
+		.toBeLessThanOrEqual(expectedHeight + tolerance)
+}
+
+async function dragPageMenuResizeHandle(page: Page, deltaY: number) {
+	const resizeHandle = page.locator('.tlui-page-menu__resize-handle')
+	const box = await resizeHandle.boundingBox()
+	if (!box) throw new Error('Could not find page menu resize handle')
+	const x = box.x + box.width / 2
+	const y = box.y + box.height / 2
+
+	await page.mouse.move(x, y)
+	await page.mouse.down()
+	await page.mouse.move(x, y + deltaY, { steps: 4 })
+	await page.mouse.up()
+}
+
+async function createPagesForReordering(page: Page) {
+	await page.evaluate(() => {
+		editor.createPage({ name: 'Page 2' })
+		editor.createPage({ name: 'Page 3' })
+	})
+}
+
+async function useCoarsePointer(page: Page) {
+	await page.evaluate(() => {
+		window.dispatchEvent(new PointerEvent('pointerdown', { pointerType: 'touch' }))
+		editor.updateInstanceState({ isCoarsePointer: true })
+	})
+	await expect.poll(() => page.evaluate(() => editor.getInstanceState().isCoarsePointer)).toBe(true)
+}
+
+async function getPageNames(page: Page) {
+	return await page.evaluate(() => editor.getPages().map((p) => p.name))
+}
 
 test.describe('page menu', () => {
 	test.beforeEach(setupOrReset)
@@ -19,6 +80,37 @@ test.describe('page menu', () => {
 		await expect(header).toBeVisible()
 		await pagemenuButton.click()
 		await expect(header).toBeHidden()
+	})
+
+	test('The page list height fits its rows when opened, resized, and reset', async ({
+		page,
+		pageMenu,
+	}) => {
+		test.skip(isMobileProject(), 'Desktop page menu resize behavior')
+
+		await page.evaluate(() => {
+			window.localStorage.removeItem('tldraw_page_menu_list_height')
+			editor.createPage({ name: 'Page 2' })
+			editor.createPage({ name: 'Page 3' })
+		})
+
+		await pageMenu.pagemenuButton.click()
+		await expect(pageMenu.pageItems).toHaveCount(3)
+
+		const autoFitHeight = PAGE_MENU_ITEM_HEIGHT * 3 + LIST_BOTTOM_PADDING
+		await expectPageMenuListHeight(pageMenu.pageList, autoFitHeight)
+
+		await dragPageMenuResizeHandle(page, 120)
+		await expect
+			.poll(async () => getPageMenuListHeight(pageMenu.pageList))
+			.toBeGreaterThan(autoFitHeight)
+
+		await dragPageMenuResizeHandle(page, -300)
+		await expectPageMenuListHeight(pageMenu.pageList, MIN_PAGE_MENU_LIST_HEIGHT)
+
+		await dragPageMenuResizeHandle(page, 120)
+		await page.locator('.tlui-page-menu__resize-handle').dblclick()
+		await expectPageMenuListHeight(pageMenu.pageList, autoFitHeight)
 	})
 
 	test('You can change pages', async ({ page, pageMenu }) => {
@@ -49,31 +141,19 @@ test.describe('page menu', () => {
 			await expect(firstPage).toBeVisible()
 			await expect(secondPage).toBeVisible()
 
-			await expect(
-				firstPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-			).toHaveAttribute('data-checked', 'false')
-			await expect(
-				secondPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-			).toHaveAttribute('data-checked', 'true')
+			await expectPageItemToBeCurrent(firstPage, false)
+			await expectPageItemToBeCurrent(secondPage, true)
 
 			// Click on second page
 			await secondPage.locator('button').first().click()
-			await expect(
-				firstPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-			).toHaveAttribute('data-checked', 'false')
-			await expect(
-				secondPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-			).toHaveAttribute('data-checked', 'true')
+			await expectPageItemToBeCurrent(firstPage, false)
+			await expectPageItemToBeCurrent(secondPage, true)
 
 			// Click on first page
 			await firstPage.locator('button').first().click()
 
-			await expect(
-				firstPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-			).toHaveAttribute('data-checked', 'true')
-			await expect(
-				secondPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-			).toHaveAttribute('data-checked', 'false')
+			await expectPageItemToBeCurrent(firstPage, true)
+			await expectPageItemToBeCurrent(secondPage, false)
 		})
 	})
 
@@ -98,6 +178,27 @@ test.describe('page menu', () => {
 		await test.step('confirm page creation with enter', async () => {
 			await page.keyboard.press('Enter')
 		})
+	})
+
+	test('On coarse pointers, canceling the new page prompt does not create a page', async ({
+		page,
+		pageMenu,
+	}) => {
+		test.skip(!isMobileProject(), 'Coarse-pointer page menu behavior')
+
+		const { pagemenuButton, createButton } = pageMenu
+
+		await pagemenuButton.click()
+		await useCoarsePointer(page)
+		expect(await getPageNames(page)).toEqual(['Page 1'])
+
+		page.once('dialog', async (dialog) => {
+			expect(dialog.type()).toBe('prompt')
+			await dialog.dismiss()
+		})
+		await createButton.tap()
+
+		expect(await getPageNames(page)).toEqual(['Page 1'])
 	})
 
 	test.describe('You can rename a page', () => {
@@ -246,16 +347,12 @@ test.describe('page menu', () => {
 
 				// The new page (last one) should be the active/focused page
 				const newPageItem = await pageMenu.getPageItem(initialCount)
-				await expect(
-					newPageItem.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-				).toHaveAttribute('data-checked', 'true')
+				await expectPageItemToBeCurrent(newPageItem, true)
 
 				// All other pages should not be active
 				for (let i = 0; i < initialCount; i++) {
 					const otherPageItem = await pageMenu.getPageItem(i)
-					await expect(
-						otherPageItem.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-					).toHaveAttribute('data-checked', 'false')
+					await expectPageItemToBeCurrent(otherPageItem, false)
 				}
 			})
 		})
@@ -289,9 +386,7 @@ test.describe('page menu', () => {
 				await expect(firstPage).toBeInViewport()
 
 				// Also verify it's marked as checked/active
-				await expect(
-					firstPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-				).toHaveAttribute('data-checked', 'true')
+				await expectPageItemToBeCurrent(firstPage, true)
 			})
 		})
 
@@ -322,59 +417,70 @@ test.describe('page menu', () => {
 				await pagemenuButton.click()
 
 				// Verify the middle page is marked as the current/focused page
-				await expect(
-					middlePage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-				).toHaveAttribute('data-checked', 'true')
+				await expectPageItemToBeCurrent(middlePage, true)
 
 				// Verify other pages are not focused
 				const firstPage = await pageMenu.getPageItem(0)
 				const lastPage = await pageMenu.getPageItem(2)
-				await expect(
-					firstPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-				).toHaveAttribute('data-checked', 'false')
-				await expect(
-					lastPage.locator('.tlui-page-menu__item__button > .tlui-button__icon')
-				).toHaveAttribute('data-checked', 'false')
+				await expectPageItemToBeCurrent(firstPage, false)
+				await expectPageItemToBeCurrent(lastPage, false)
 			})
 		})
 	})
 
 	test.describe('You can drag and drop pages to reorder them', () => {
-		test('You can enter drag and drop mode and drag a page to a new position', async ({
+		test('Pages can be reordered by dragging the row itself', async ({ page, pageMenu }) => {
+			test.skip(isMobileProject(), 'Mobile page rows can only be reordered from the drag handle')
+
+			const { pagemenuButton } = pageMenu
+
+			await test.step('create multiple pages for reordering', async () => {
+				await createPagesForReordering(page)
+			})
+
+			await test.step('drag page to new position by its row', async () => {
+				await pagemenuButton.click()
+				await expect(pageMenu.pageItems).toHaveCount(3)
+				const firstItem = await pageMenu.getPageItem(0)
+				const secondItem = await pageMenu.getPageItem(1)
+				const firstButton = firstItem.locator('.tlui-page-menu__item__button')
+
+				await firstButton.dragTo(secondItem)
+				await expect.poll(() => getPageNames(page)).toEqual(['Page 2', 'Page 1', 'Page 3'])
+			})
+		})
+
+		test('On coarse pointers, pages can only be reordered by dragging the handle', async ({
 			page,
 			pageMenu,
 		}) => {
-			const { pagemenuButton, editButton } = pageMenu
+			test.skip(!isMobileProject(), 'Coarse-pointer page menu behavior')
+
+			const { pagemenuButton } = pageMenu
 
 			await test.step('create multiple pages for reordering', async () => {
-				await pagemenuButton.click()
-				await pageMenu.createButton.click()
-				await sleep(100)
-				await page.keyboard.press('Enter')
-				await pageMenu.createButton.click()
-				await sleep(100)
-				await page.keyboard.press('Enter')
-				await page.keyboard.press('Escape')
+				await createPagesForReordering(page)
 			})
 
-			await test.step('enter edit mode', async () => {
+			await test.step('dragging the row itself does not reorder pages', async () => {
 				await pagemenuButton.click()
-				await editButton.click()
-				// Should see drag handles
-				await expect(page.locator('.tlui-page_menu__item__sortable__handle').first()).toBeVisible()
-			})
-
-			await test.step('drag page to new position', async () => {
-				const dragHandle = page.locator('.tlui-page_menu__item__sortable__handle').first()
+				await useCoarsePointer(page)
+				await expect(pageMenu.pageItems).toHaveCount(3)
+				const firstItem = await pageMenu.getPageItem(0)
 				const secondItem = await pageMenu.getPageItem(1)
 
-				// Perform drag operation
-				await dragHandle.dragTo(secondItem)
+				await expect(firstItem.getByTestId('page-menu.item-drag-handle')).toBeVisible()
+				await firstItem.locator('.tlui-page-menu__item__button').dragTo(secondItem)
+				expect(await getPageNames(page)).toEqual(['Page 1', 'Page 2', 'Page 3'])
 			})
 
-			await test.step('exit edit mode', async () => {
-				await editButton.click()
-				await expect(page.locator('.tlui-page_menu__item__sortable__handle').first()).toBeHidden()
+			await test.step('dragging the handle reorders pages', async () => {
+				await useCoarsePointer(page)
+				const firstItem = await pageMenu.getPageItem(0)
+				const secondItem = await pageMenu.getPageItem(1)
+
+				await firstItem.getByTestId('page-menu.item-drag-handle').dragTo(secondItem)
+				await expect.poll(() => getPageNames(page)).toEqual(['Page 2', 'Page 1', 'Page 3'])
 			})
 		})
 	})
@@ -399,7 +505,7 @@ test.describe('page menu', () => {
 
 			await test.step('access page submenu and delete', async () => {
 				const pageItem = await pageMenu.getPageItem(1)
-				const submenuButton = pageItem.locator('.tlui-page_menu__item__submenu button')
+				const submenuButton = pageItem.getByTestId('page-menu.item-submenu')
 				await submenuButton.click()
 
 				// Click delete option
@@ -414,6 +520,24 @@ test.describe('page menu', () => {
 	})
 
 	test.describe('You can use the page menu', () => {
+		test('Right clicking a page item opens its submenu without reordering pages', async ({
+			page,
+			pageMenu,
+		}) => {
+			test.skip(isMobileProject(), 'Mobile emulation does not simulate right-click')
+
+			await createPagesForReordering(page)
+			await pageMenu.pagemenuButton.click()
+			await expect(pageMenu.pageItems).toHaveCount(3)
+
+			const firstPageItem = await pageMenu.getPageItem(0)
+			await firstPageItem.locator('.tlui-page-menu__item__button').click({ button: 'right' })
+
+			await expect(page.getByRole('menuitem', { name: /duplicate/i })).toBeVisible()
+			await expect(firstPageItem).toHaveAttribute('data-dragging', 'false')
+			expect(await getPageNames(page)).toEqual(['Page 1', 'Page 2', 'Page 3'])
+		})
+
 		test('You can duplicate a page from the page menu', async ({ page, pageMenu }) => {
 			const { pagemenuButton, pageItems } = pageMenu
 
@@ -427,7 +551,7 @@ test.describe('page menu', () => {
 				const pageItem = await pageMenu.getPageItem(0)
 
 				// Click the submenu button (three dots)
-				const submenuButton = pageItem.locator('.tlui-page_menu__item__submenu button')
+				const submenuButton = pageItem.getByTestId('page-menu.item-submenu')
 				await submenuButton.click()
 
 				// Click duplicate option
@@ -459,7 +583,7 @@ test.describe('page menu', () => {
 				const pageItem = await pageMenu.getPageItem(1)
 
 				// Click the submenu button
-				const submenuButton = pageItem.locator('.tlui-page_menu__item__submenu button')
+				const submenuButton = pageItem.getByTestId('page-menu.item-submenu')
 				await submenuButton.click()
 
 				// Click delete option
@@ -495,7 +619,7 @@ test.describe('page menu', () => {
 				const lastPageItem = await pageMenu.getPageItem(2)
 
 				// Click the submenu button
-				const submenuButton = lastPageItem.locator('.tlui-page_menu__item__submenu button')
+				const submenuButton = lastPageItem.getByTestId('page-menu.item-submenu')
 				await submenuButton.click()
 
 				// Click move up option
@@ -538,7 +662,7 @@ test.describe('page menu', () => {
 				const firstPageItem = await pageMenu.getPageItem(0)
 
 				// Click the submenu button
-				const submenuButton = firstPageItem.locator('.tlui-page_menu__item__submenu button')
+				const submenuButton = firstPageItem.getByTestId('page-menu.item-submenu')
 				await submenuButton.click()
 
 				// Click move down option

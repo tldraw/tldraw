@@ -37,7 +37,7 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 	override canBind() {
 		return false
 	}
-	override hideRotateHandle() {
+	override hideRotateHandle(shape: SlideShape) {
 		return true
 	}
 
@@ -134,7 +134,9 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 		)
 	}
 
-	indicator(shape: SlideShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: SlideShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }

@@ -35,9 +35,9 @@ export { noop, omitFromStackTrace } from './lib/function'
 export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib/hash'
 export { mockUniqueId, restoreUniqueId, uniqueId } from './lib/id'
 export { getFirstFromIterable } from './lib/iterable'
+export { LruCache } from './lib/LruCache'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
 export {
-	DEFAULT_SUPPORT_AUDIO_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORTED_MEDIA_TYPE_LIST,

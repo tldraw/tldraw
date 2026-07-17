@@ -51,23 +51,23 @@ For complete documentation on geometric forms, label positioning, tool interacti
 
 Quick reference:
 
-| Property        | Type                            | Description                                     |
-| --------------- | ------------------------------- | ----------------------------------------------- |
-| `geo`           | `TLGeoShapeGeoStyle`            | The geometric form                              |
-| `w`             | `number`                        | Width in pixels                                 |
-| `h`             | `number`                        | Height in pixels                                |
-| `richText`      | `TLRichText`                    | Text label displayed inside the shape           |
-| `color`         | `TLDefaultColorStyle`           | Stroke/outline color                            |
-| `labelColor`    | `TLDefaultColorStyle`           | Text label color (separate from stroke)         |
-| `fill`          | `TLDefaultFillStyle`            | Fill style (`none`, `semi`, `solid`, `pattern`) |
-| `dash`          | `TLDefaultDashStyle`            | Stroke pattern                                  |
-| `size`          | `TLDefaultSizeStyle`            | Size preset affecting stroke width              |
-| `font`          | `TLDefaultFontStyle`            | Font family for the label                       |
-| `align`         | `TLDefaultHorizontalAlignStyle` | Horizontal text alignment                       |
-| `verticalAlign` | `TLDefaultVerticalAlignStyle`   | Vertical text alignment                         |
-| `growY`         | `number`                        | Additional vertical space for text overflow     |
-| `url`           | `string`                        | Optional hyperlink URL                          |
-| `scale`         | `number`                        | Scale factor applied to the shape               |
+| Property        | Type                            | Description                                 |
+| --------------- | ------------------------------- | ------------------------------------------- |
+| `geo`           | `TLGeoShapeGeoStyle`            | The geometric form                          |
+| `w`             | `number`                        | Width in pixels                             |
+| `h`             | `number`                        | Height in pixels                            |
+| `richText`      | `TLRichText`                    | Text label displayed inside the shape       |
+| `color`         | `TLDefaultColorStyle`           | Stroke/outline color                        |
+| `labelColor`    | `TLDefaultColorStyle`           | Text label color (separate from stroke)     |
+| `fill`          | `TLDefaultFillStyle`            | Fill style                                  |
+| `dash`          | `TLDefaultDashStyle`            | Stroke pattern                              |
+| `size`          | `TLDefaultSizeStyle`            | Size preset affecting stroke width          |
+| `font`          | `TLDefaultFontStyle`            | Font family for the label                   |
+| `align`         | `TLDefaultHorizontalAlignStyle` | Horizontal text alignment                   |
+| `verticalAlign` | `TLDefaultVerticalAlignStyle`   | Vertical text alignment                     |
+| `growY`         | `number`                        | Additional vertical space for text overflow |
+| `url`           | `string`                        | Optional hyperlink URL                      |
+| `scale`         | `number`                        | Scale factor applied to the shape           |
 
 ### Text
 
@@ -184,7 +184,7 @@ Properties:
 | `points` | `Record<string, TLLineShapePoint>` | Dictionary of control points with IDs, indices, and positions |
 | `scale`  | `number`                           | Scale factor applied to the shape                             |
 
-Line shapes don't have configuration options. The line tool's behavior is controlled through tool configuration rather than the shape utility.
+Line shapes don't have configuration options.
 
 ### Highlight
 
@@ -221,17 +221,18 @@ Properties:
 
 Configuration options:
 
-| Option              | Type     | Default | Description                                                                                     |
-| ------------------- | -------- | ------- | ----------------------------------------------------------------------------------------------- |
-| `maxPointsPerShape` | `number` | `600`   | Maximum points before starting a new shape. Same behavior as draw shapes.                       |
-| `underlayOpacity`   | `number` | `0.82`  | Opacity of the underlay (background layer). Combined with overlay creates the highlight effect. |
-| `overlayOpacity`    | `number` | `0.35`  | Opacity of the overlay (foreground layer). Lower values create a more subtle highlight.         |
+| Option              | Type     | Default | Description                                                               |
+| ------------------- | -------- | ------- | ------------------------------------------------------------------------- |
+| `maxPointsPerShape` | `number` | `600`   | Maximum points before starting a new shape. Same behavior as draw shapes. |
+
+The highlight's `underlayOpacity` (default `0.82`) and `overlayOpacity` (default `0.35`) are display values that can be overridden via `getCustomDisplayValues`:
 
 ```tsx
 const ConfiguredHighlightUtil = HighlightShapeUtil.configure({
 	maxPointsPerShape: 800,
-	underlayOpacity: 0.7,
-	overlayOpacity: 0.4,
+	getCustomDisplayValues() {
+		return { underlayOpacity: 0.7, overlayOpacity: 0.4 }
+	},
 })
 ```
 
@@ -424,6 +425,8 @@ const ConfiguredFrameUtil = FrameShapeUtil.configure({
 })
 ```
 
+To build your own container shape that behaves like a frame, extend `BaseFrameLikeShapeUtil` rather than re-implementing every behavior on `FrameShapeUtil`. The base class provides defaults for clipping children, full-brush selection, blocking erasure from inside, and drag-and-drop reparenting — see [Shapes](/sdk-features/shapes#frames) for details and the [portal shapes example](/examples/shapes/tools/portal-shapes) for a working implementation.
+
 ### Group
 
 The group shape logically combines multiple shapes without visual representation. Groups let you move and transform shapes together while preserving their relative positions. The group's geometry is computed as the union of all child shapes' geometries. Groups are created through the editor API rather than directly, and they delete themselves automatically when their last child is removed or ungrouped.
@@ -439,7 +442,7 @@ editor.ungroupShapes([groupId])
 const children = editor.getSortedChildIdsForParent(groupId)
 ```
 
-Groups have no visual properties; their `props` object is empty. All visual characteristics come from their child shapes. Their geometry is the union of all child geometries. Groups delete themselves automatically when the last child is removed, and arrows can't bind to them. Double-click a group to enter it and edit children directly.
+Groups have no visual properties; their `props` object is empty. All visual characteristics come from their child shapes. Arrows can't bind to groups. Double-click a group to enter it and edit its children directly.
 
 Group shapes don't have configuration options.
 
@@ -554,13 +557,13 @@ interface TLBaseShape {
 
 Most shapes also support common style properties through the style system:
 
-| Style   | Values                                | Description       |
-| ------- | ------------------------------------- | ----------------- |
-| `color` | `black`, `grey`, `light-violet`, etc. | Stroke/text color |
-| `fill`  | `none`, `semi`, `solid`, `pattern`    | Fill style        |
-| `dash`  | `solid`, `dashed`, `dotted`, `draw`   | Stroke pattern    |
-| `size`  | `s`, `m`, `l`, `xl`                   | Size preset       |
-| `font`  | `draw`, `sans`, `serif`, `mono`       | Font family       |
+| Style   | Values                                                   | Description       |
+| ------- | -------------------------------------------------------- | ----------------- |
+| `color` | `black`, `grey`, `light-violet`, etc.                    | Stroke/text color |
+| `fill`  | `none`, `semi`, `solid`, `pattern`, `fill`, `lined-fill` | Fill style        |
+| `dash`  | `draw`, `solid`, `dashed`, `dotted`, `none`              | Stroke pattern    |
+| `size`  | `s`, `m`, `l`, `xl`                                      | Size preset       |
+| `font`  | `draw`, `sans`, `serif`, `mono`                          | Font family       |
 
 ## Using configured shapes
 

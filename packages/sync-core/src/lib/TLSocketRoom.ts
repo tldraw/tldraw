@@ -427,7 +427,12 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 					}
 				}
 
-				this.room.handleMessage(sessionId, res.data as any)
+				// handleMessage is async but does not await internally; catch rejections
+				// so an error thrown while handling the message still rejects the session
+				this.room.handleMessage(sessionId, res.data as any).catch((error) => {
+					this.log?.error?.(error)
+					this.room.rejectSession(sessionId, TLSyncErrorCloseEventReason.UNKNOWN_ERROR)
+				})
 				this.room.pruneSessions()
 				this.scheduleDebouncedSnapshot(sessionId)
 			} else {

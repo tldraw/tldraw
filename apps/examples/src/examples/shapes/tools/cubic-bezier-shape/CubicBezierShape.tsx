@@ -331,9 +331,9 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		)
 	}
 
-	indicator(shape: MyBezierCurveShape) {
+	getIndicatorPath(shape: MyBezierCurveShape) {
 		const path = this.getGeometry(shape).getSvgPathData(true)
-		return <path d={path} />
+		return new Path2D(path)
 	}
 
 	private shouldShowControlLines(shape: MyBezierCurveShape) {

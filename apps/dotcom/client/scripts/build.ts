@@ -1,9 +1,16 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
+import {
+	FILE_PREFIX,
+	PUBLISH_PREFIX,
+	READ_ONLY_LEGACY_PREFIX,
+	READ_ONLY_PREFIX,
+	ROOM_PREFIX,
+	SNAPSHOT_PREFIX,
+	SOCIAL_PREVIEW_BYPASS_PARAM,
+} from '@tldraw/dotcom-shared'
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
-import glob from 'fast-glob'
 import json5 from 'json5'
-import _ from 'lodash'
 import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
@@ -16,6 +23,64 @@ const commonSecurityHeaders = {
 	'X-Content-Type-Options': 'nosniff',
 	'Referrer-Policy': 'no-referrer-when-downgrade',
 	'Content-Security-Policy': csp,
+}
+
+// Regex fragments matched against the user-agent of requests to board URLs. Matching requests are
+// routed to the multiplayer worker, which renders the board name into the social preview metadata
+// for link-unfurling crawlers that don't run JavaScript and so never see the SPA's runtime title
+// updates.
+//
+// The generic `[Bb]ot` token catches the long tail of unfurlers (Twitterbot, Discordbot, Slackbot,
+// TelegramBot, LinkedInBot, redditbot, ...) including tldraw's own link-unfurl service
+// (`tldraw-bot/x.y.z`), so pasting a board link into a tldraw canvas shows the board name in the
+// bookmark. The named entries are unfurlers that don't say "bot". LINE and KakaoTalk are covered
+// too: their unfurlers identify as `facebookexternalhit`.
+//
+// Search-engine crawlers (Googlebot, bingbot) also match the generic token, but robots.txt already
+// disallows all board routes, so compliant search engines never request these URLs; a bot that
+// ignores robots.txt gets the preview stub, which is fine. Real people whose browser carries a
+// matching token — in-app browsers (WhatsApp, Pinterest) or the odd device name containing "bot" —
+// are bounced back to the app by the stub via the bypass param.
+const SOCIAL_CRAWLER_USER_AGENTS = [
+	'[Bb]ot',
+	'facebookexternalhit',
+	'Slack-ImgProxy',
+	'WhatsApp',
+	'Pinterest',
+	'Embedly',
+	'Iframely',
+	'vkShare',
+	'W3C_Validator',
+	'SkypeUriPreview',
+	'Mastodon',
+	'Bluesky',
+]
+
+// The board routes whose social preview should include the board name. Only the bare board route is
+// matched (not sub-routes like `/f/:slug/history`).
+const SOCIAL_PREVIEW_PREFIXES = [
+	FILE_PREFIX,
+	PUBLISH_PREFIX,
+	SNAPSHOT_PREFIX,
+	ROOM_PREFIX,
+	READ_ONLY_PREFIX,
+	READ_ONLY_LEGACY_PREFIX,
+]
+
+function socialPreviewRoute(multiplayerServerUrl: string) {
+	// Vercel matches `has.value` as `^value$`, so a bare `a|b|c` join anchors the first token to the
+	// start of the user-agent and the last token to the end. Wrap the alternation so every token is
+	// a substring match.
+	const userAgent = `.*(?:${SOCIAL_CRAWLER_USER_AGENTS.join('|')}).*`
+	return {
+		src: `^/(${SOCIAL_PREVIEW_PREFIXES.join('|')})/([^/]+)/?$`,
+		has: [{ type: 'header' as const, key: 'user-agent', value: userAgent }],
+		// some in-app browsers used by real people carry a crawler token in their user-agent
+		// (WhatsApp, Pinterest). the stub page bounces those visitors back to the board with this
+		// param set, which makes this route not match so they fall through to the real app.
+		missing: [{ type: 'query' as const, key: SOCIAL_PREVIEW_BYPASS_PARAM }],
+		dest: `${multiplayerServerUrl}/app/social-preview/$1/$2`,
+	}
 }
 
 // We load the list of routes that should be forwarded to our SPA's index.html here.
@@ -54,7 +119,10 @@ async function build() {
 	await exec('rm', ['-rf', '.vercel/output'])
 	mkdirSync('.vercel/output', { recursive: true })
 	await exec('cp', ['-r', 'dist', '.vercel/output/static'])
-	await exec('rm', ['-rf', ...glob.sync('.vercel/output/static/**/*.js.map')])
+	// We serve the .js.map files publicly. The client source is open at tldraw/tldraw, so
+	// there's nothing to hide, and serving the maps lets anyone debugging a deployed build get
+	// real names and lines in devtools without going through Sentry. Sentry still gets its own
+	// copy via the upload step, which reads from dist/assets before this point.
 
 	// Add fonts to preload into index.html
 	const assetsList = readdirSync('dist/assets')
@@ -93,9 +161,14 @@ async function build() {
 
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
 
-	const assetsToCache = assetsList.filter((f) => !f.endsWith('.js.map')).map((f) => `/assets/${f}`)
+	// Includes the .js.map files: they're content-hashed like the chunks they describe, so they're
+	// safe to cache immutably, and we now serve them rather than stripping them from the deploy.
+	const assetsToCache = assetsList.map((f) => `/assets/${f}`)
 	// need to batch these because Vercel's route limit is 4096 characters
-	const assetsBatches = _.chunk(assetsToCache, 50)
+	const assetsBatches: string[][] = []
+	for (let i = 0; i < assetsToCache.length; i += 50) {
+		assetsBatches.push(assetsToCache.slice(i, i + 50))
+	}
 
 	writeFileSync(
 		'.vercel/output/config.json',
@@ -109,6 +182,12 @@ async function build() {
 						dest: `${multiplayerServerUrl}$1`,
 						check: true,
 					},
+					// route social/link-unfurling crawlers to the worker so board link previews
+					// include the board name. must come before the SPA routes below. set
+					// SOCIAL_PREVIEW_DISABLED=true to turn this off without a code change.
+					...(process.env.SOCIAL_PREVIEW_DISABLED === 'true'
+						? []
+						: [socialPreviewRoute(multiplayerServerUrl)]),
 					{
 						src: '^/assets/(.*)$',
 						// we need `continue: true` here because we also want to apply the headers

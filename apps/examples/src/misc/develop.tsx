@@ -5,6 +5,7 @@ import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
 	ExampleDialog,
+	PerformanceApiAdapter,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuActionCheckboxItem,
@@ -122,8 +123,12 @@ export default function Develop() {
 						'shape',
 						afterChangeHandler
 					)
+
+					const perfAdapter = new PerformanceApiAdapter(editor.performance)
+
 					return () => {
 						dispose()
+						perfAdapter.dispose()
 					}
 				}}
 				components={components}

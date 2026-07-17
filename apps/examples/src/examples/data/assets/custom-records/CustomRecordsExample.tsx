@@ -79,23 +79,6 @@ const MarkerOverlay = track(function MarkerOverlay() {
 		.allRecords()
 		.filter((r) => isCustomRecord(MARKER_TYPE, r)) as any as Marker[]
 
-	const addMarker = useCallback(() => {
-		const label = prompt('Marker label:')
-		if (!label) return
-		const center = editor.getViewportScreenCenter()
-		const point = editor.screenToPage(center)
-		editor.store.put([
-			{
-				id: createMarkerId(),
-				typeName: MARKER_TYPE,
-				x: point.x,
-				y: point.y,
-				label,
-				icon: ICONS[Math.floor(Math.random() * ICONS.length)],
-			} as any,
-		])
-	}, [editor])
-
 	return (
 		<>
 			{markers.map((marker) => {
@@ -141,26 +124,47 @@ const MarkerOverlay = track(function MarkerOverlay() {
 					</div>
 				)
 			})}
-			<button
-				onClick={addMarker}
-				style={{
-					position: 'absolute',
-					top: 50,
-					right: 10,
-					zIndex: 1000,
-					padding: '6px 12px',
-					borderRadius: 6,
-					border: '1px solid #ccc',
-					background: 'white',
-					cursor: 'pointer',
-					fontSize: 14,
-				}}
-			>
-				+ Add marker
-			</button>
 		</>
 	)
 })
+
+function AddMarkerButton() {
+	const editor = useEditor()
+
+	const addMarker = useCallback(() => {
+		const label = prompt('Marker label:')
+		if (!label) return
+		const center = editor.getViewportScreenCenter()
+		const point = editor.screenToPage(center)
+		editor.store.put([
+			{
+				id: createMarkerId(),
+				typeName: MARKER_TYPE,
+				x: point.x,
+				y: point.y,
+				label,
+				icon: ICONS[Math.floor(Math.random() * ICONS.length)],
+			} as any,
+		])
+	}, [editor])
+
+	return (
+		<button
+			onClick={addMarker}
+			style={{
+				padding: '6px 12px',
+				borderRadius: 6,
+				border: '1px solid #ccc',
+				background: 'white',
+				cursor: 'pointer',
+				fontSize: 14,
+				pointerEvents: 'all',
+			}}
+		>
+			+ Add marker
+		</button>
+	)
+}
 
 // [6]
 export default function CustomRecordsExample() {
@@ -178,6 +182,7 @@ export default function CustomRecordsExample() {
 				store={store}
 				components={{
 					InFrontOfTheCanvas: MarkerOverlay,
+					TopPanel: AddMarkerButton,
 				}}
 			/>
 		</div>

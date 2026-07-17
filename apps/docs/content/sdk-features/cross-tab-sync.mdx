@@ -12,10 +12,64 @@ status: draft
 date: 1/31/2026
 ---
 
-TODO: Document cross-tab synchronization including:
+Cross-tab sync keeps a document in sync across browser tabs. When two tabs use the same `persistenceKey`, changes made in one tab appear in the other immediately. No server is required.
 
-- How cross-tab sync works with BroadcastChannel
-- Enabling/disabling cross-tab sync
-- Use cases and limitations
-- Relationship with persistence
-- Configuration options
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw persistenceKey="my-document" />
+		</div>
+	)
+}
+```
+
+Open this app in two tabs and draw in one of them. The other tab shows the shapes as you draw. Both tabs also persist the document to the same IndexedDB database — see [Persistence](/docs/persistence) for how storage works.
+
+## How it works
+
+Each tab opens a [BroadcastChannel](https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API) named after the persistence key. When the user changes the document, the editor posts the change as a diff to the channel. Other tabs merge incoming diffs into their stores as remote changes, so they don't echo the same changes back.
+
+The channel only carries live updates. The document itself persists to IndexedDB on a throttle (about 350ms), so a tab opened later loads the latest saved state from the database, then stays current through the channel.
+
+## What syncs
+
+| Data                                               | Behavior               |
+| -------------------------------------------------- | ---------------------- |
+| Document records (shapes, pages, bindings, assets) | Synced across tabs     |
+| Session state (camera, selection, current page)    | Per tab                |
+| User preferences (name, color, color scheme)       | Synced across all tabs |
+
+Only document-scoped records sync between tabs. Each tab keeps its own camera position, selection, and other [instance state](/sdk-features/instance-state), so users can look at different parts of the same document in different tabs.
+
+tldraw's default user preferences sync across tabs on a separate channel, independent of the persistence key. If you manage preferences yourself through the `user` prop, syncing them is up to you — see [User preferences](/sdk-features/user-preferences).
+
+## Schema versions
+
+If you deploy a new version of your app while old tabs stay open, tabs can end up running different schema versions against the same document. Tabs announce their schema version on the channel and compare:
+
+- A tab with an older schema reloads itself to pick up the new code
+- A tab with a newer schema tells older tabs to reload, then re-persists the full document
+
+If a tab is still out of date right after reloading — for example, when a cached old version is being served — it stops with a schema mismatch error instead of reloading in a loop.
+
+## Limitations
+
+Cross-tab sync works within one browser on one origin. It doesn't sync between devices or users. For multiplayer collaboration, use [tldraw sync](/docs/sync) — see the [Collaboration](/sdk-features/collaboration) page.
+
+It also requires the `persistenceKey` prop. If you create your own store and pass it through the `store` prop, you won't get cross-tab sync or local persistence — you'll need to handle both yourself.
+
+There's no separate toggle: tabs that share a persistence key always sync. To keep tabs independent, give them different persistence keys.
+
+## Related articles
+
+- [Persistence](/docs/persistence) — Local storage with `persistenceKey`, snapshots, and migrations
+- [Collaboration](/sdk-features/collaboration) — Multiplayer sync between users with a server
+- [Instance state](/sdk-features/instance-state) — The per-tab state that doesn't sync
+
+## Related examples
+
+- [Persistence key](/examples/configuration/persistence-key) — Persist and sync the editor across tabs with a persistence key

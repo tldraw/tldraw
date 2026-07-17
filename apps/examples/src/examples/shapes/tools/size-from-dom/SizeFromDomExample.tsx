@@ -97,15 +97,15 @@ export class DynamicSizeShapeUtil extends ShapeUtil<DynamicSizeShape> {
 	}
 
 	// [c]
-	override canCull() {
+	override canCull(shape: DynamicSizeShape) {
 		return false
 	}
 
 	// [d]
-	override canEdit() {
+	override canEdit(shape: DynamicSizeShape) {
 		return false
 	}
-	override canResize() {
+	override canResize(shape: DynamicSizeShape) {
 		return false
 	}
 	override isAspectRatioLocked() {
@@ -160,10 +160,11 @@ export class DynamicSizeShapeUtil extends ShapeUtil<DynamicSizeShape> {
 	}
 
 	// [g]
-	indicator(shape: DynamicSizeShape) {
+	getIndicatorPath(shape: DynamicSizeShape) {
 		const { width, height } = this.editor.getShapeGeometry(shape).bounds
-
-		return <rect width={width} height={height} />
+		const path = new Path2D()
+		path.rect(0, 0, width, height)
+		return path
 	}
 }
 

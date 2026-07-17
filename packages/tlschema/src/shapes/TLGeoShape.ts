@@ -201,7 +201,7 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
  *
  * @public
  */
-export { geoShapeVersions as geoShapeVersions }
+export { geoShapeVersions }
 
 /**
  * Migration sequence for geo shape properties across different schema versions.

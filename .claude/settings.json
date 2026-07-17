@@ -34,9 +34,7 @@
 			"Bash(yarn test:*)",
 			"Bash(yarn lint:*)",
 			"Bash(yarn typecheck)",
-			"Bash(git add:*)",
-			"mcp__Context7__resolve-library-id",
-			"mcp__Context7__get-library-docs"
+			"Bash(git add:*)"
 		]
 	},
 	"hooks": {

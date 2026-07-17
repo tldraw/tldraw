@@ -24,7 +24,6 @@ export type TLUiEventSource =
 	| 'rich-text-menu'
 	| 'image-toolbar'
 	| 'video-toolbar'
-	| 'audio-toolbar'
 	| 'unknown'
 
 /** @public */
@@ -45,6 +44,7 @@ export interface TLUiEventMap {
 	'rename-document': null
 	'group-shapes': null
 	'ungroup-shapes': null
+	'frame-selection': null
 	'remove-frame': null
 	'fit-frame-to-content': null
 	'convert-to-embed': null
@@ -133,7 +133,6 @@ export interface TLUiEventMap {
 	'drag-tool': { id: string }
 	'image-replace': null
 	'video-replace': null
-	'audio-replace': null
 	'open-kbd-shortcuts': null
 	'rich-text': {
 		operation:
@@ -147,6 +146,7 @@ export interface TLUiEventMap {
 			| 'bulletList'
 	}
 	edit: null
+	'copy-hovered-styles': null
 }
 
 /** @public */

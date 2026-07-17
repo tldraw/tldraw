@@ -3,7 +3,6 @@ import {
 	Editor,
 	TLAsset,
 	TLAssetId,
-	TLAudioAsset,
 	TLBookmarkAsset,
 	TLBookmarkShape,
 	TLContent,
@@ -31,11 +30,11 @@ import { EmbedDefinition } from './defaultEmbedDefinitions'
 import { createBookmarkFromUrl } from './shapes/bookmark/bookmarks'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
+import { FONT_SIZES, TEXT_PROPS, getFontFamily } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
-import { renderRichTextFromHTML } from './utils/text/richText'
+import { renderHtmlFromRichTextForMeasurement, renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /**
@@ -62,13 +61,21 @@ export interface TLExternalContentProps {
 	 */
 	maxAssetSize?: number
 	/**
-	 * The mime types of images that are allowed to be handled. Defaults to
-	 * DEFAULT_SUPPORTED_IMAGE_TYPES.
+	 * The mime types of images that are allowed to be handled. When passed to
+	 * the `Tldraw` component, this also reconfigures the default `ImageAssetUtil`
+	 * to only accept files matching these types. If you only want to accept a
+	 * subset of image types and want to additionally block videos, pass
+	 * `acceptedVideoMimeTypes={[]}`. A file is accepted if its MIME type is in
+	 * this list, in `acceptedVideoMimeTypes`, or if any registered asset util
+	 * accepts it.
 	 */
 	acceptedImageMimeTypes?: readonly string[]
 	/**
-	 * The mime types of videos that are allowed to be handled. Defaults to
-	 * DEFAULT_SUPPORT_VIDEO_TYPES.
+	 * The mime types of videos that are allowed to be handled. When passed to
+	 * the `Tldraw` component, this also reconfigures the default `VideoAssetUtil`
+	 * to only accept files matching these types. A file is accepted if its MIME
+	 * type is in this list, in `acceptedImageMimeTypes`, or if any registered
+	 * asset util accepts it.
 	 */
 	acceptedVideoMimeTypes?: readonly string[]
 }
@@ -175,7 +182,6 @@ export async function defaultHandleExternalFileReplaceContent(
 	const assetInfoPartial = (await getAssetInfo(editor, sanitizedFile, assetId)) as
 		| TLImageAsset
 		| TLVideoAsset
-		| TLAudioAsset
 		| null
 	if (!assetInfoPartial) return
 	editor.createAssets([assetInfoPartial])
@@ -230,16 +236,6 @@ export async function defaultHandleExternalFileReplaceContent(
 					assetId: assetId,
 					w: assetInfoPartial.props.w,
 					h: assetInfoPartial.props.h,
-				},
-			},
-		])
-	} else if (shape.type === 'audio') {
-		editor.updateShapes([
-			{
-				id: shape.id,
-				type: shape.type,
-				props: {
-					assetId: assetId,
 				},
 			},
 		])
@@ -506,10 +502,8 @@ export async function defaultHandleExternalTextContent(
 	let autoSize: boolean
 	let align = 'middle' as TLTextShapeProps['textAlign']
 
-	const htmlToMeasure = html ?? cleanedUpPlaintext.replace(/\n/g, '<br>')
-	const isMultiLine = html
-		? richTextToPaste.content.length > 1
-		: cleanedUpPlaintext.split('\n').length > 1
+	const htmlToMeasure = renderHtmlFromRichTextForMeasurement(editor, richTextToPaste)
+	const isMultiLine = richTextToPaste.content.length > 1
 
 	// check whether the text contains the most common characters in RTL languages
 	const isRtl = isRightToLeftLanguage(cleanedUpPlaintext)
@@ -518,10 +512,13 @@ export async function defaultHandleExternalTextContent(
 		align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
 	}
 
+	const theme = editor.getCurrentTheme()
+
 	const rawSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[defaultProps.font],
-		fontSize: FONT_SIZES[defaultProps.size],
+		lineHeight: theme.lineHeight,
+		fontFamily: getFontFamily(theme, defaultProps.font),
+		fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
 		maxWidth: null,
 	})
 
@@ -533,8 +530,9 @@ export async function defaultHandleExternalTextContent(
 	if (rawSize.w > minWidth) {
 		const shrunkSize = editor.textMeasure.measureHtml(htmlToMeasure, {
 			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[defaultProps.font],
-			fontSize: FONT_SIZES[defaultProps.size],
+			lineHeight: theme.lineHeight,
+			fontFamily: getFontFamily(theme, defaultProps.font),
+			fontSize: theme.fontSize * FONT_SIZES[defaultProps.size],
 			maxWidth: minWidth,
 		})
 		w = shrunkSize.w
@@ -626,12 +624,31 @@ export async function defaultHandleExternalTldrawContent(
 			}
 		}
 
+		// While the user is mid-interaction (dragging a handle, translating,
+		// resizing, or rotating), selecting the pasted content would steal the
+		// selection from the shape being manipulated and interrupt the
+		// interaction — e.g. an arrow's in-progress binding hint disappears
+		// until the drag ends. Leave the selection alone in those cases.
+		const isMidInteraction = editor.isInAny(
+			'select.dragging_handle',
+			'select.translating',
+			'select.resizing',
+			'select.rotating'
+		)
+
 		editor.putContentOntoCurrentPage(content, {
 			point: point,
-			select: true,
+			select: !isMidInteraction,
 		})
 		const selectedBoundsAfter = editor.getSelectionPageBounds()
 		if (
+			// When mid-interaction we don't select the pasted content, so the
+			// selection is unchanged and the before/after bounds are identical —
+			// the overlap check would always pass. The selection flash below
+			// signals that the newly-selected pasted content landed on the old
+			// selection, which is meaningless when we didn't change the
+			// selection, so skip it.
+			!isMidInteraction &&
 			selectionBoundsBefore &&
 			selectedBoundsAfter &&
 			selectionBoundsBefore?.collides(selectedBoundsAfter)
@@ -679,12 +696,10 @@ export async function createShapesForAssets(
 
 	for (let i = 0; i < assets.length; i++) {
 		const asset = assets[i]
-		if (!editor.hasAssetUtil(asset)) continue
-		const assetUtil = editor.getAssetUtil(asset)
-		const partial = assetUtil.createShape(asset, currentPoint)
+		const shapeUtil = editor.getShapeUtilForAssetType(asset.type)
+		const partial = shapeUtil?.createShapeForAsset?.(asset, currentPoint) ?? null
 		if (partial) {
 			partials.push(partial)
-			// Advance x position based on asset width if available
 			if ('w' in asset.props && typeof asset.props.w === 'number') {
 				currentPoint.x += asset.props.w
 			}
@@ -815,6 +830,7 @@ async function maybeSanitizeSvgFile(file: File): Promise<File | null> {
 /**
  * Checks if a file is allowed to be uploaded. If it is not, it will show a toast explaining why to the user.
  *
+ * @param editor - The editor instance
  * @param file - The file to check
  * @param options - The options for the external content handler
  * @returns True if the file is allowed, false otherwise
@@ -825,11 +841,26 @@ export function notifyIfFileNotAllowed(
 	file: File,
 	options: TLDefaultExternalContentHandlerOpts
 ) {
-	const { maxAssetSize = DEFAULT_MAX_ASSET_SIZE, toasts, msg } = options
+	const {
+		maxAssetSize = DEFAULT_MAX_ASSET_SIZE,
+		acceptedImageMimeTypes,
+		acceptedVideoMimeTypes,
+		toasts,
+		msg,
+	} = options
 
-	// Check if any registered asset util accepts this file type
-	const assetUtil = editor.getAssetUtilForMimeType(file.type)
-	if (!assetUtil) {
+	// Allow if any registered asset util accepts the MIME type, or if it matches
+	// an explicit allow-list. The asset-util branch lets custom AssetUtils
+	// (e.g. for PDFs) extend the default media handling — without it, files
+	// registered via `assetUtils` would be rejected because <Tldraw> forwards
+	// `DEFAULT_SUPPORTED_IMAGE_TYPES` / `DEFAULT_SUPPORT_VIDEO_TYPES` here, and
+	// custom MIME types aren't in those lists. The explicit-list branch supports
+	// callers that pass these props directly to restrict allowed types.
+	const isFileTypeAllowed =
+		!!editor.getAssetUtilForMimeType(file.type) ||
+		(acceptedImageMimeTypes?.includes(file.type) ?? false) ||
+		(acceptedVideoMimeTypes?.includes(file.type) ?? false)
+	if (!isFileTypeAllowed) {
 		toasts.addToast({
 			title: msg('assets.files.type-not-allowed'),
 			severity: 'error',
@@ -876,8 +907,10 @@ export function notifyIfFileNotAllowed(
 
 /** @public */
 export async function getAssetInfo(editor: Editor, file: File, assetId?: TLAssetId) {
-	const hash = getHashForBuffer(await file.arrayBuffer())
-	assetId ??= AssetRecordType.createId(hash)
+	if (!assetId) {
+		const hash = getHashForBuffer(await file.arrayBuffer())
+		assetId = AssetRecordType.createId(hash)
+	}
 
 	const assetUtil = editor.getAssetUtilForMimeType(file.type)
 	if (!assetUtil) return null

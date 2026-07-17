@@ -1,9 +1,12 @@
 import { Editor } from '@tldraw/editor'
-import { updateHoveredShapeId } from './tools/selection-logic/updateHoveredShapeId'
+import {
+	cancelUpdateHoveredShapeId,
+	updateHoveredShapeId,
+} from './tools/selection-logic/updateHoveredShapeId'
 
 /** @public */
 export function registerDefaultSideEffects(editor: Editor) {
-	return editor.sideEffects.register({
+	const unsub = editor.sideEffects.register({
 		instance: {
 			afterChange: (prev, next) => {
 				if (prev.cameraState !== next.cameraState && next.cameraState === 'idle') {
@@ -62,4 +65,8 @@ export function registerDefaultSideEffects(editor: Editor) {
 			},
 		},
 	})
+	return () => {
+		unsub()
+		cancelUpdateHoveredShapeId(editor)
+	}
 }

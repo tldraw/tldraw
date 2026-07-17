@@ -113,23 +113,6 @@ window.fetch = async (input, init) => {
 	throw new Error(`Unhandled request: ${input}`)
 }
 
-// DOMRect polyfill for DOM rectangle calculations
-window.DOMRect = class DOMRect {
-	static fromRect(rect) {
-		return new DOMRect(rect.x, rect.y, rect.width, rect.height)
-	}
-	constructor(x, y, width, height) {
-		this.x = x
-		this.y = y
-		this.width = width
-		this.height = height
-	}
-}
-
-// Text encoding/decoding polyfills
-global.TextEncoder = require('util').TextEncoder
-global.TextDecoder = require('util').TextDecoder
-
 // Image API polyfills for jsdom - add decode method to HTMLImageElement prototype
 if (typeof HTMLImageElement !== 'undefined') {
 	if (!HTMLImageElement.prototype.decode) {
@@ -209,24 +192,3 @@ Object.defineProperty(window, 'getComputedStyle', {
 		return style
 	},
 })
-
-// Enhanced DOM API mocking for CSSStyleDeclaration
-// This ensures all HTML elements have the required style methods
-if (typeof CSSStyleDeclaration !== 'undefined') {
-	if (!CSSStyleDeclaration.prototype.getPropertyValue) {
-		CSSStyleDeclaration.prototype.getPropertyValue = function (property) {
-			return this[property] || ''
-		}
-	}
-	if (!CSSStyleDeclaration.prototype.setProperty) {
-		CSSStyleDeclaration.prototype.setProperty = function (property, value) {
-			this[property] = value
-		}
-	}
-	if (!CSSStyleDeclaration.prototype.removeProperty) {
-		CSSStyleDeclaration.prototype.removeProperty = function (property) {
-			delete this[property]
-			return ''
-		}
-	}
-}

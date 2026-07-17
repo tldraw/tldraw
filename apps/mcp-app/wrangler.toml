@@ -1,5 +1,6 @@
 name = "tldraw-mcp-app"
 main = "src/worker.ts"
+# Keep in sync with WORKER_COMPATIBILITY_DATE in src/shared/types.ts
 compatibility_date = "2025-03-10"
 compatibility_flags = ["nodejs_compat"]
 preview_urls = true
@@ -10,11 +11,18 @@ binding = "ASSETS"
 run_worker_first = true
 
 [durable_objects]
-bindings = [{ class_name = "TldrawMCP", name = "MCP_OBJECT" }]
+bindings = [
+	{ class_name = "TldrawMCP", name = "MCP_OBJECT" },
+	{ class_name = "CanvasStore", name = "CANVAS_STORE" },
+]
 
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["TldrawMCP"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["CanvasStore"]
 
 [vars]
 # Set this to the public URL of the worker. Used for constructing absolute image URLs.
@@ -27,6 +35,9 @@ MCP_IS_DEV = "false"
 [[analytics_engine_datasets]]
 binding = "MCP_ANALYTICS"
 dataset = "MCP_ANALYTICS"
+
+[[worker_loaders]]
+binding = "LOADER"
 
 #################### Rate limiting ####################
 [[ratelimits]]

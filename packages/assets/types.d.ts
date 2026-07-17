@@ -242,6 +242,7 @@ export type AssetUrls = {
 		'zh-tw': string
 	}
 	embedIcons: {
+		canva: string
 		codepen: string
 		codesandbox: string
 		desmos: string

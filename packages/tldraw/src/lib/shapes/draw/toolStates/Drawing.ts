@@ -8,6 +8,7 @@ import {
 	TLKeyboardEventInfo,
 	TLPointerEventInfo,
 	TLShapePartial,
+	DIM_2D,
 	Vec,
 	VecModel,
 	b64Vecs,
@@ -20,12 +21,14 @@ import {
 } from '@tldraw/editor'
 import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
+import { getDisplayValues } from '../../shared/getDisplayValues'
 import { DrawShapeUtil } from '../DrawShapeUtil'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
 
 export class Drawing extends StateNode {
 	static override id = 'drawing'
+	static override trackPerformance = true
 
 	info = {} as TLPointerEventInfo
 
@@ -37,6 +40,11 @@ export class Drawing extends StateNode {
 
 	isPen = false
 	isPenOrStylus = false
+
+	// Encoding dimension for segments created during this stroke. `2` drops the
+	// constant pressure value (non-pressure devices), `undefined` keeps full 3D.
+	// Decided once in startShape from the input device — see the note there.
+	segmentDim: 2 | undefined = undefined
 
 	segmentMode = 'free' as 'free' | 'straight' | 'starting_straight' | 'starting_free'
 
@@ -143,13 +151,21 @@ export class Drawing extends StateNode {
 		return this.shapeType !== 'highlight'
 	}
 
-	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle, scale: number) {
+	getIsClosed(
+		segments: TLDrawShapeSegment[],
+		size: TLDefaultSizeStyle,
+		scale: number,
+		strokeWidth?: number
+	) {
 		if (!this.canClose()) return false
 
-		const strokeWidth = STROKE_SIZES[size]
-		const firstPoint = b64Vecs.decodeFirstPoint(segments[0].path)
+		if (strokeWidth === undefined) {
+			const theme = this.editor.getCurrentTheme()
+			strokeWidth = theme.strokeWidth * STROKE_SIZES[size]
+		}
+		const firstPoint = b64Vecs.decodeFirstPoint(segments[0].path, segments[0].dim)
 		const lastSegment = segments[segments.length - 1]
-		const lastPoint = b64Vecs.decodeLastPoint(lastSegment.path)
+		const lastPoint = b64Vecs.decodeLastPoint(lastSegment.path, lastSegment.dim)
 
 		const isDynamicResizingEnabled = this.editor.user.getIsDynamicResizeMode()
 
@@ -168,6 +184,16 @@ export class Drawing extends StateNode {
 			this.currentLineLength > strokeWidth * 4 * scale &&
 			Vec.DistMin(firstPoint, lastPoint, threshold)
 		)
+	}
+
+	/**
+	 * Build a segment from points, encoding `path` at this stroke's `segmentDim` and
+	 * attaching `dim: 2` only when z was dropped. 3D segments omit `dim` so they
+	 * serialize byte-identically to pre-#8879 data.
+	 */
+	private makeSegment(type: TLDrawShapeSegment['type'], points: VecModel[]): TLDrawShapeSegment {
+		const path = b64Vecs.encodePoints(points, this.segmentDim)
+		return this.segmentDim === DIM_2D ? { type, path, dim: DIM_2D } : { type, path }
 	}
 
 	private startShape() {
@@ -189,6 +215,13 @@ export class Drawing extends StateNode {
 		// or a broken OS.
 		this.isPenOrStylus = (isPen && z !== 0) || (z > 0 && z < 0.5) || (z > 0.5 && z < 1)
 
+		// Decide the encoding dimension once, here, from the input device — not by
+		// scanning point data (content-driven). Device-driven keeps the encoded bytes
+		// deterministic and is O(1) at stroke start. Non-pressure devices report a
+		// constant z (0 / 0.5 / 1) that we normalize to 0.5 and omit entirely (2D);
+		// pen/stylus input keeps the full 3D encoding.
+		this.segmentDim = this.isPenOrStylus ? undefined : DIM_2D
+
 		const pressure = this.isPenOrStylus ? z * 1.25 : 0.5
 
 		this.segmentMode = this.editor.inputs.getShiftKey() ? 'straight' : 'free'
@@ -207,18 +240,15 @@ export class Drawing extends StateNode {
 
 				const prevSegment = last(shape.props.segments)
 				if (!prevSegment) throw Error('Expected a previous segment!')
-				const prevPoint = b64Vecs.decodeLastPoint(prevSegment.path)
+				const prevPoint = b64Vecs.decodeLastPoint(prevSegment.path, prevSegment.dim)
 				if (!prevPoint) throw Error('Expected a previous point!')
 
 				const { x, y } = this.editor.getPointInShapeSpace(shape, originPagePoint).toFixed()
 
-				const newSegment: TLDrawShapeSegment = {
-					type: this.segmentMode,
-					path: b64Vecs.encodePoints([
-						{ x: prevPoint.x, y: prevPoint.y, z: +pressure.toFixed(2) },
-						{ x, y, z: +pressure.toFixed(2) },
-					]),
-				}
+				const newSegment = this.makeSegment(this.segmentMode, [
+					{ x: prevPoint.x, y: prevPoint.y, z: +pressure.toFixed(2) },
+					{ x, y, z: +pressure.toFixed(2) },
+				])
 
 				// Convert prevPoint to page space
 				const prevPointPageSpace = Mat.applyToPoint(
@@ -229,7 +259,9 @@ export class Drawing extends StateNode {
 				this.pagePointWhereNextSegmentChanged = null
 				const segments = [...shape.props.segments, newSegment]
 
-				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+				const dvStrokeWidth = (getDisplayValues(this.util as any, shape) as { strokeWidth: number })
+					.strokeWidth
+				if (this.currentLineLength < dvStrokeWidth * 4) {
 					this.currentLineLength = this.getLineLength(segments)
 				}
 
@@ -273,12 +305,7 @@ export class Drawing extends StateNode {
 			props: {
 				isPen: this.isPenOrStylus,
 				scale: this.editor.getResizeScaleFactor(),
-				segments: [
-					{
-						type: this.segmentMode,
-						path: b64Vecs.encodePoints([initialPoint]),
-					},
-				],
+				segments: [this.makeSegment(this.segmentMode, [initialPoint])],
 			},
 		})
 		const shape = this.editor.getShape<DrawableShape>(id)
@@ -338,7 +365,7 @@ export class Drawing extends StateNode {
 					const prevSegment = last(segments)
 					if (!prevSegment) throw Error('Expected a previous segment!')
 
-					const prevLastPoint = b64Vecs.decodeLastPoint(prevSegment.path)
+					const prevLastPoint = b64Vecs.decodeLastPoint(prevSegment.path, prevSegment.dim)
 					if (!prevLastPoint) throw Error('Expected a previous last point!')
 
 					let newSegment: TLDrawShapeSegment
@@ -351,19 +378,13 @@ export class Drawing extends StateNode {
 					if (prevSegment.type === 'straight') {
 						this.currentLineLength += Vec.Dist(prevLastPoint, newLastPoint)
 
-						newSegment = {
-							type: 'straight',
-							path: b64Vecs.encodePoints([prevLastPoint, newLastPoint]),
-						}
+						newSegment = this.makeSegment('straight', [prevLastPoint, newLastPoint])
 
 						const transform = this.editor.getShapePageTransform(shape)!
 
 						this.pagePointWhereCurrentSegmentChanged = Mat.applyToPoint(transform, prevLastPoint)
 					} else {
-						newSegment = {
-							type: 'straight',
-							path: b64Vecs.encodePoints([newLastPoint, newPoint]),
-						}
+						newSegment = this.makeSegment('straight', [newLastPoint, newPoint])
 					}
 
 					const shapePartial: TLShapePartial<DrawableShape> = {
@@ -410,7 +431,10 @@ export class Drawing extends StateNode {
 
 					const newSegments = segments.slice()
 					const prevStraightSegment = newSegments[newSegments.length - 1]
-					const prevPoint = b64Vecs.decodeLastPoint(prevStraightSegment.path)
+					const prevPoint = b64Vecs.decodeLastPoint(
+						prevStraightSegment.path,
+						prevStraightSegment.dim
+					)
 
 					if (!prevPoint) {
 						throw Error('No previous point!')
@@ -424,14 +448,14 @@ export class Drawing extends StateNode {
 					// Initialize cache for the new free segment
 					this.currentSegmentPoints = interpolatedPoints
 
-					const newFreeSegment: TLDrawShapeSegment = {
-						type: 'free',
-						path: b64Vecs.encodePoints(interpolatedPoints),
-					}
+					const newFreeSegment = this.makeSegment('free', interpolatedPoints)
 
 					const finalSegments = [...newSegments, newFreeSegment]
 
-					if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+					const dvStrokeWidth = (
+						getDisplayValues(this.util as any, shape) as { strokeWidth: number }
+					).strokeWidth
+					if (this.currentLineLength < dvStrokeWidth * 4) {
 						this.currentLineLength = this.getLineLength(finalSegments)
 					}
 
@@ -501,8 +525,8 @@ export class Drawing extends StateNode {
 							if (!segment) break
 							if (segment.type === 'free') continue
 
-							const first = b64Vecs.decodeFirstPoint(segment.path)
-							const lastPoint = b64Vecs.decodeLastPoint(segment.path)
+							const first = b64Vecs.decodeFirstPoint(segment.path, segment.dim)
+							const lastPoint = b64Vecs.decodeLastPoint(segment.path, segment.dim)
 							if (!(first && lastPoint)) continue
 
 							// Snap to the nearest point on the segment, if it's closer than the previous snapped point
@@ -529,8 +553,8 @@ export class Drawing extends StateNode {
 
 				if (didSnap && snapSegment) {
 					const transform = this.editor.getShapePageTransform(shape)!
-					const first = b64Vecs.decodeFirstPoint(snapSegment.path)
-					const lastPoint = b64Vecs.decodeLastPoint(snapSegment.path)
+					const first = b64Vecs.decodeFirstPoint(snapSegment.path, snapSegment.dim)
+					const lastPoint = b64Vecs.decodeLastPoint(snapSegment.path, snapSegment.dim)
 					if (!first || !lastPoint) throw Error('Expected a last point!')
 
 					const A = Mat.applyToPoint(transform, first)
@@ -572,17 +596,20 @@ export class Drawing extends StateNode {
 				// without continuing the previous line. In this case, we want to remove the previous segment.
 
 				this.currentLineLength +=
-					newSegments.length && b64Vecs.decodeFirstPoint(newSegment.path)
-						? Vec.Dist(b64Vecs.decodeFirstPoint(newSegment.path)!, Vec.From(newPoint))
+					newSegments.length && b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)
+						? Vec.Dist(
+								b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)!,
+								Vec.From(newPoint)
+							)
 						: 0
 
 				newSegments[newSegments.length - 1] = {
 					...newSegment,
 					type: 'straight',
-					path: b64Vecs.encodePoints([
-						b64Vecs.decodeFirstPoint(newSegment.path)!,
-						Vec.From(newPoint),
-					]),
+					path: b64Vecs.encodePoints(
+						[b64Vecs.decodeFirstPoint(newSegment.path, newSegment.dim)!, Vec.From(newPoint)],
+						newSegment.dim
+					),
 				}
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
@@ -627,10 +654,12 @@ export class Drawing extends StateNode {
 				const newSegment = newSegments[newSegments.length - 1]
 				newSegments[newSegments.length - 1] = {
 					...newSegment,
-					path: b64Vecs.encodePoints(cachedPoints),
+					path: b64Vecs.encodePoints(cachedPoints, newSegment.dim),
 				}
 
-				if (this.currentLineLength < STROKE_SIZES[shape.props.size] * 4) {
+				const dvStrokeWidth = (getDisplayValues(this.util as any, shape) as { strokeWidth: number })
+					.strokeWidth
+				if (this.currentLineLength < dvStrokeWidth * 4) {
 					this.currentLineLength = this.getLineLength(newSegments)
 				}
 
@@ -675,12 +704,7 @@ export class Drawing extends StateNode {
 						props: {
 							isPen: this.isPenOrStylus,
 							scale: props.scale,
-							segments: [
-								{
-									type: 'free',
-									path: b64Vecs.encodePoints([initialPoint]),
-								},
-							],
+							segments: [this.makeSegment('free', [initialPoint])],
 						},
 					})
 
@@ -707,7 +731,7 @@ export class Drawing extends StateNode {
 		let length = 0
 
 		for (let j = 0; j < segments.length; j++) {
-			const points = b64Vecs.decodePoints(segments[j].path)
+			const points = b64Vecs.decodePoints(segments[j].path, segments[j].dim)
 			for (let i = 0; i < points.length - 1; i++) {
 				length += Vec.Dist2(points[i], points[i + 1])
 			}

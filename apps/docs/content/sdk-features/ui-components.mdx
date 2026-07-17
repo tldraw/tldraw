@@ -1,7 +1,7 @@
 ---
 title: UI components
 created_at: 12/17/2025
-updated_at: 12/29/2025
+updated_at: 3/25/2026
 keywords:
   - ui
   - components
@@ -9,7 +9,7 @@ keywords:
   - menu
   - customization
 status: published
-date: 12/29/2025
+date: 3/25/2026
 readability: 8
 voice: 8
 completeness: 9
@@ -17,7 +17,7 @@ accuracy: 10
 notes: ''
 ---
 
-The `@tldraw/tldraw` package includes a complete React-based UI. It provides the menus, toolbars, panels, and dialogs that users interact with when creating and editing content. The UI is composed of named component slots that you can selectively override or hide, so you can customize the interface while still benefiting from the editor's reactive state management.
+The `tldraw` package includes a complete React-based UI. It provides the menus, toolbars, panels, and dialogs that users interact with when creating and editing content. The UI is composed of named component slots that you can selectively override or hide, so you can customize the interface while still benefiting from the editor's reactive state management.
 
 The UI connects to the editor through React hooks and context providers. Components automatically update when editor state changes. You can replace individual parts of the interface without reimplementing the logic that connects UI actions to editor operations.
 
@@ -38,7 +38,7 @@ The UI divides the screen into distinct layout zones:
 └─────────────────────────────────────────────────────────┘
 ```
 
-The top zone contains the main menu, helper buttons (like "Back to content"), the top panel for collaboration features, and the share and style panels. The bottom zone houses navigation controls, the main toolbar with drawing tools, and the help menu. On desktop, the style panel appears in the top-right zone; on mobile it moves to a modal overlay.
+The top zone contains the main menu, helper buttons (like "Back to content"), an empty top panel slot, and the share and style panels. The bottom zone houses navigation controls, the main toolbar with drawing tools, and the help menu. On desktop, the style panel appears in the top-right zone; on mobile it moves to a modal overlay.
 
 Each zone can host multiple components. The toolbar includes the tool selector, tool-specific options, and the tool lock button. These components share context and coordinate through the editor's state.
 
@@ -62,19 +62,59 @@ The UI defines several component slots you can override or hide.
 
 The **Toolbar** contains the primary tool selector with buttons for each available tool (select, draw, shapes, etc.). On mobile, it hides automatically when editing text to make room for the virtual keyboard.
 
-The **TopPanel** displays the page name and collaboration indicators when multiplayer features are enabled. It's hidden in single-player mode.
+The **TopPanel** is an empty slot in the top-center of the screen. It has no default component, so use it for your own UI like a document title or sync status.
 
-The **StylePanel** shows style controls for selected shapes: color, fill, stroke, size, opacity. It appears in the top-right on desktop and as a modal on mobile.
+The **StylePanel** shows style controls for selected shapes: color, fill, dash, size, and opacity. It appears in the top-right on desktop and as a modal on mobile.
 
-The **MenuPanel** houses the main application menu with actions like export, print, and preferences. It's typically in the top-left corner.
+The **MenuPanel** sits in the top-left corner. It groups the main menu, the page menu, and quick actions.
 
-The **NavigationPanel** provides page navigation, zoom controls, and the minimap toggle. It sits in the bottom-left area.
+The **NavigationPanel** provides zoom controls and the minimap toggle. It sits in the bottom-left area.
 
 **HelperButtons** are context-sensitive buttons that appear based on editor state—"Back to content" when the camera is far from shapes, "Exit pen mode" on touch devices.
 
 **ActionsMenu**, **ContextMenu**, and **HelpMenu** provide access to actions and information through different interaction patterns.
 
 Each slot is optional. Pass `null` as an override to hide a component entirely, or provide your own React component to replace the default implementation.
+
+### Slot props
+
+The UI portion of the `components` prop is shaped by [TLUiComponents](?). Every key is optional: use `null` to hide that slot, or pass a React component. When a slot has a documented props type in the table below, import that type from `tldraw` and type your replacement as `React.ComponentType<…>` (or implement the matching props). When the props column says **none**, the SDK does not declare extra props for that slot beyond what a plain `ComponentType` allows.
+
+| Slot                      | Props (import from `tldraw`)                                                  |
+| ------------------------- | ----------------------------------------------------------------------------- |
+| `ContextMenu`             | [TLUiContextMenuProps](?)                                                     |
+| `ActionsMenu`             | [TLUiActionsMenuProps](?)                                                     |
+| `HelpMenu`                | [TLUiHelpMenuProps](?)                                                        |
+| `ZoomMenu`                | [TLUiZoomMenuProps](?)                                                        |
+| `MainMenu`                | [TLUiMainMenuProps](?)                                                        |
+| `Minimap`                 | none                                                                          |
+| `StylePanel`              | [TLUiStylePanelProps](?)                                                      |
+| `PageMenu`                | none                                                                          |
+| `NavigationPanel`         | none                                                                          |
+| `Toolbar`                 | none                                                                          |
+| `RichTextToolbar`         | [TLUiRichTextToolbarProps](?)                                                 |
+| `ImageToolbar`            | none                                                                          |
+| `VideoToolbar`            | none                                                                          |
+| `KeyboardShortcutsDialog` | [TLUiKeyboardShortcutsDialogProps](?)                                         |
+| `QuickActions`            | [TLUiQuickActionsProps](?)                                                    |
+| `HelperButtons`           | [TLUiHelperButtonsProps](?)                                                   |
+| `DebugPanel`              | none                                                                          |
+| `DebugMenu`               | none                                                                          |
+| `MenuPanel`               | none                                                                          |
+| `TopPanel`                | none                                                                          |
+| `SharePanel`              | none                                                                          |
+| `CursorChatBubble`        | none                                                                          |
+| `Dialogs`                 | none                                                                          |
+| `Toasts`                  | none                                                                          |
+| `A11y`                    | none                                                                          |
+| `FollowingIndicator`      | none                                                                          |
+| `PeopleMenu`              | none (default component: optional `children` via [DefaultPeopleMenuProps](?)) |
+| `PeopleMenuAvatar`        | [TLUiPeopleMenuAvatarProps](?)                                                |
+| `PeopleMenuFacePile`      | [TLUiPeopleMenuFacePileProps](?)                                              |
+| `PeopleMenuItem`          | [TLUiPeopleMenuItemProps](?)                                                  |
+| `UserPresenceEditor`      | none                                                                          |
+
+This table is an index; the authoritative list and types remain [TLUiComponents](?) in the API reference and in the package typings.
 
 ### UI hooks
 
@@ -283,13 +323,14 @@ Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShape
 ## Related articles
 
 - [UI primitives](/sdk-features/ui-primitives) - Use tldraw's button, menu, dialog, and other UI components in your custom interfaces
+- [Overlay utils](/sdk-features/overlay-utils) - Customize canvas overlays like brushes, indicators, snaps, scribbles, and collaborator cursors
 - [Internationalization](/sdk-features/internationalization) - Customize translations and add new languages
 - [Tools](/sdk-features/tools) - Learn how tools work and create your own
 
 ## Related examples
 
 - [Replace the entire UI](/examples/ui/custom-ui) - Build a completely custom toolbar UI while using the editor's functionality
-- [Custom canvas components](/examples/ui/custom-components) - Override individual canvas components like the brush selection box and scribble
+- [Custom canvas components](/examples/ui/custom-components) - Override individual canvas components like the background and grid
 - [Hide the entire UI](/examples/ui/hide-ui) - Use hideUi to hide the entire default interface
 - [Hide UI components](/examples/ui/ui-components-hidden) - Selectively hide specific UI components
 - [Changing menus](/examples/ui/custom-menus) - Create custom menus using tldraw's menu system

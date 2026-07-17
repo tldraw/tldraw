@@ -7,7 +7,6 @@ import {
 import { mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { createAssetValidator, TLBaseAsset } from '../assets/TLBaseAsset'
-import { TLAudioAsset } from '../assets/TLAudioAsset'
 import { TLBookmarkAsset } from '../assets/TLBookmarkAsset'
 import { TLImageAsset } from '../assets/TLImageAsset'
 import { TLVideoAsset } from '../assets/TLVideoAsset'
@@ -38,10 +37,7 @@ import { ExtractShapeByProps } from './TLShape'
  *
  * @public
  */
-/** @public */
-export type TLMediaAsset = TLImageAsset | TLVideoAsset | TLAudioAsset
-
-export type TLDefaultAsset = TLMediaAsset | TLBookmarkAsset
+export type TLDefaultAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 
 /**
  * A type for an asset that is available in the editor but whose type is
@@ -258,8 +254,9 @@ export type TLAssetShape = ExtractShapeByProps<{ assetId: TLAssetId }>
  * @example
  * ```ts
  * const migrations = createAssetPropsMigrationSequence({
- *   currentVersion: 1,
- *   migrators: {},
+ *   sequence: [
+ *     { id: 'com.myapp.asset.custom/1', up: (props) => { props.newField = '' } },
+ *   ],
  * })
  * ```
  *

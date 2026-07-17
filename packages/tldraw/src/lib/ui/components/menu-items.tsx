@@ -104,6 +104,14 @@ export function UngroupMenuItem() {
 }
 
 /** @public @react */
+export function FrameSelectionMenuItem() {
+	const shouldDisplay = useAllowGroup()
+	if (!shouldDisplay) return null
+
+	return <TldrawUiMenuActionItem actionId="frame-selection" />
+}
+
+/** @public @react */
 export function RemoveFrameMenuItem() {
 	const editor = useEditor()
 	const shouldDisplay = useValue(
@@ -111,7 +119,7 @@ export function RemoveFrameMenuItem() {
 		() => {
 			const selectedShapes = editor.getSelectedShapes()
 			if (selectedShapes.length === 0) return false
-			return selectedShapes.every((shape) => editor.isShapeOfType(shape, 'frame'))
+			return selectedShapes.every((shape) => editor.isShapeFrameLike(shape))
 		},
 		[editor]
 	)
@@ -129,7 +137,7 @@ export function FitFrameToContentMenuItem() {
 			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
 			return (
-				editor.isShapeOfType(onlySelectedShape, 'frame') &&
+				editor.isShapeFrameLike(onlySelectedShape) &&
 				editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
 			)
 		},
@@ -343,6 +351,7 @@ export function EditMenuSubmenu() {
 			<GroupMenuItem />
 			<UngroupMenuItem />
 			<FlattenMenuItem />
+			<FrameSelectionMenuItem />
 			<EditLinkMenuItem />
 			<FitFrameToContentMenuItem />
 			<RemoveFrameMenuItem />

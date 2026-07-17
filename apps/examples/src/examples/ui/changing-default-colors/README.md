@@ -20,6 +20,6 @@ Change the tldraw theme colors.
 
 ---
 
-While there's currently no way to add or remove our colors from our default shapes' colors, this example shows how you can adjust the values for the default color styles.
+Use `editor.updateTheme()` to override values in the default color palette.
 
-Note that this will change the colors for ALL instances of tldraw. For example, if you run this example locally, and then open another example, the changes will be present there too until you reload!
+To add or remove colors, or to register additional named themes, see the custom theme and multiple themes examples.

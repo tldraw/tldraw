@@ -163,14 +163,12 @@ export function PreferencesGroup() {
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
+					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
-					<ColorSchemeMenu />
 					<AccessibilityMenu />
 					<InputModeMenu />
-				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="debug">
-					<ToggleDebugModeItem />
+					<ColorSchemeMenu />
 				</TldrawUiMenuGroup>
 			</TldrawUiMenuSubmenu>
 			<LanguageMenu />

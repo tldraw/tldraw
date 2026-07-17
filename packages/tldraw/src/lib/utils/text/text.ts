@@ -81,6 +81,6 @@ export function cleanupText(text: string) {
 }
 
 /** @public */
-export const truncateStringWithEllipsis = (str: string, maxLength: number) => {
+export function truncateStringWithEllipsis(str: string, maxLength: number) {
 	return str.length <= maxLength ? str : str.substring(0, maxLength - 3) + '...'
 }

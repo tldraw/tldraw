@@ -12,7 +12,7 @@ export default function OnCreateShapeMetaExample() {
 					//[1]
 					editor.getInitialMetaForShape = (_shape) => {
 						return {
-							createdBy: editor.user.getId(),
+							createdBy: editor.user.getExternalId(),
 							createdAt: Date.now(),
 						}
 					}

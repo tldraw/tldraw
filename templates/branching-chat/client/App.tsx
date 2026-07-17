@@ -11,6 +11,7 @@ import {
 } from 'tldraw'
 import { overrides, WorkflowToolbar } from './components/WorkflowToolbar.tsx'
 import { ConnectionBindingUtil } from './connection/ConnectionBindingUtil.tsx'
+import { ConnectionCenterHandleOverlayUtil } from './connection/ConnectionCenterHandleOverlayUtil.tsx'
 import { ConnectionShapeUtil } from './connection/ConnectionShapeUtil.tsx'
 import { keepConnectionsAtBottom } from './connection/keepConnectionsAtBottom.tsx'
 import { disableTransparency } from './disableTransparency.tsx'
@@ -21,6 +22,8 @@ import { PointingPort } from './ports/PointingPort.tsx'
 const shapeUtils = [NodeShapeUtil, ConnectionShapeUtil]
 // Define binding utilities that handle relationships between shapes
 const bindingUtils = [ConnectionBindingUtil]
+// Canvas overlays — adds the "+" insert handle at the midpoint of each connection
+const overlayUtils = [ConnectionCenterHandleOverlayUtil]
 
 // Customize tldraw's UI components to add workflow-specific functionality
 const components: TLComponents = {
@@ -68,6 +71,7 @@ function App() {
 				overrides={overrides}
 				shapeUtils={shapeUtils}
 				bindingUtils={bindingUtils}
+				overlayUtils={overlayUtils}
 				components={components}
 				onMount={(editor) => {
 					;(window as any).editor = editor

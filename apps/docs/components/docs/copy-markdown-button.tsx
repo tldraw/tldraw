@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import { Button } from '../common/button'
 
 export function CopyMarkdownButton({
@@ -12,7 +12,7 @@ export function CopyMarkdownButton({
 }) {
 	const [copied, setCopied] = useState(false)
 
-	const handleClick = useCallback(() => {
+	const handleClick = () => {
 		navigator.clipboard.writeText(markdown)
 
 		if (window.tlanalytics?.trackCopyCode) {
@@ -24,7 +24,7 @@ export function CopyMarkdownButton({
 
 		setCopied(true)
 		setTimeout(() => setCopied(false), 1500)
-	}, [markdown])
+	}
 
 	return (
 		<Button

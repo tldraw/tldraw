@@ -11,6 +11,7 @@ import {
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	VecLike,
+	b64Vecs,
 	drawShapeMigrations,
 	drawShapeProps,
 	getColorValue,
@@ -21,13 +22,14 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
+import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
+import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { interpolateSegments } from '../shared/interpolate-props'
-import { ShapeFill } from '../shared/ShapeFill'
-import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { PatternFill } from '../shared/PatternFill'
 import {
 	getDrawShapeStrokeDashArray,
 	getFreehandOptions,
@@ -35,7 +37,18 @@ import {
 } from './getPath'
 
 /** @public */
-export interface DrawShapeOptions {
+export interface DrawShapeUtilDisplayValues {
+	strokeColor: string
+	strokeWidth: number
+	fillColor: string
+	patternFillFallbackColor: string
+}
+
+/** @public */
+export interface DrawShapeOptions extends ShapeOptionsWithDisplayValues<
+	TLDrawShape,
+	DrawShapeUtilDisplayValues
+> {
 	/**
 	 * The maximum number of points in a line before the draw tool will begin a new shape.
 	 * A higher number will lead to poor performance while drawing very long lines.
@@ -51,6 +64,24 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override options: DrawShapeOptions = {
 		maxPointsPerShape: 600,
+		getDefaultDisplayValues(_editor, shape, theme, colorMode): DrawShapeUtilDisplayValues {
+			const { color, fill, size } = shape.props
+			const colors = theme.colors[colorMode]
+			return {
+				strokeColor: getColorValue(colors, color, 'solid'),
+				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
+				fillColor:
+					fill === 'none'
+						? 'transparent'
+						: fill === 'semi'
+							? colors.solid
+							: getColorValue(colors, color, DEFAULT_FILL_COLOR_NAMES[fill]),
+				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
+			}
+		},
+		getCustomDisplayValues(): Partial<DrawShapeUtilDisplayValues> {
+			return {}
+		},
 	}
 
 	override hideResizeHandles(shape: TLDrawShape) {
@@ -86,7 +117,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			shape.props.scaleY
 		)
 
-		const sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+		const sw = (getDisplayValues(this, shape).strokeWidth + 1) * shape.props.scale
 
 		// A dot
 		if (shape.props.segments.length === 1) {
@@ -130,54 +161,18 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	component(shape: TLDrawShape) {
+		const dv = getDisplayValues(this, shape)
 		return (
 			<SVGContainer>
-				<DrawShapeSvg shape={shape} />
+				<DrawShapeSvg
+					shape={shape}
+					strokeColor={dv.strokeColor}
+					strokeWidth={dv.strokeWidth}
+					fillColor={dv.fillColor}
+					patternFillFallbackColor={dv.patternFillFallbackColor}
+				/>
 			</SVGContainer>
 		)
-	}
-
-	indicator(shape: TLDrawShape) {
-		const allPointsFromSegments = getPointsFromDrawSegments(
-			shape.props.segments,
-			shape.props.scaleX,
-			shape.props.scaleY
-		)
-
-		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
-
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const forceSolid = useValue(
-			'force solid',
-			() => {
-				const zoomLevel = this.editor.getEfficientZoomLevel()
-				return zoomLevel < 0.5 && zoomLevel < 1.5 / sw
-			},
-			[this.editor, sw]
-		)
-
-		if (
-			!forceSolid &&
-			!shape.props.isPen &&
-			shape.props.dash === 'draw' &&
-			allPointsFromSegments.length === 1
-		) {
-			sw += rng(shape.id)() * (sw / 6)
-		}
-
-		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
-		const options = getFreehandOptions(shape.props, sw, showAsComplete, true)
-		const strokePoints = getStrokePoints(allPointsFromSegments, options)
-		const solidStrokePath =
-			strokePoints.length > 1
-				? getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
-				: getDot(allPointsFromSegments[0], sw)
-
-		return <path d={solidStrokePath} />
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLDrawShape): Path2D {
@@ -187,7 +182,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			shape.props.scaleY
 		)
 
-		let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+		let sw = (getDisplayValues(this, shape).strokeWidth + 1) * shape.props.scale
 
 		const zoomLevel = this.editor.getEfficientZoomLevel()
 		const forceSolid = zoomLevel < 0.5 && zoomLevel < 1.5 / sw
@@ -214,10 +209,18 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
+		const dv = getDisplayValues(this, shape, ctx.colorMode)
 		const scaleFactor = 1 / shape.props.scale
 		return (
 			<g transform={`scale(${scaleFactor})`}>
-				<DrawShapeSvg shape={shape} zoomOverride={1} />
+				<DrawShapeSvg
+					shape={shape}
+					zoomOverride={1}
+					strokeColor={dv.strokeColor}
+					strokeWidth={dv.strokeWidth}
+					fillColor={dv.fillColor}
+					patternFillFallbackColor={dv.patternFillFallbackColor}
+				/>
 			</g>
 		)
 	}
@@ -241,7 +244,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
-		return ((STROKE_SIZES[shape.props.size] * multiplier) / 2) * shape.props.scale
+		return ((getDisplayValues(this, shape).strokeWidth * multiplier) / 2) * shape.props.scale
 	}
 	override getInterpolatedProps(
 		startShape: TLDrawShape,
@@ -264,15 +267,29 @@ function getDot(point: VecLike, sw: number) {
 }
 
 function getIsDot(shape: TLDrawShape) {
-	// First point is 16 base64 chars (3 Float32s = 12 bytes)
-	// Each delta point is 8 base64 chars (3 Float16s = 6 bytes)
-	// 1 point = 16 chars, 2 points = 24 chars
-	// Check if we have less than 2 points without decoding
-	return shape.props.segments.length === 1 && shape.props.segments[0].path.length < 24
+	// A dot is a single-point segment. isSinglePoint knows the per-encoding length
+	// (and takes the segment's dim), so this stays correct for both 2D and 3D paths.
+	// A bare length threshold can't: a 2-point 2D path is the same length as a 1-point
+	// 3D path, so only the dim disambiguates them.
+	const segment = shape.props.segments[0]
+	return shape.props.segments.length === 1 && b64Vecs.isSinglePoint(segment.path, segment.dim)
 }
 
-function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverride?: number }) {
-	const theme = useDefaultColorTheme()
+function DrawShapeSvg({
+	shape,
+	zoomOverride,
+	strokeColor,
+	strokeWidth: baseStrokeWidth,
+	fillColor,
+	patternFillFallbackColor,
+}: {
+	shape: TLDrawShape
+	zoomOverride?: number
+	strokeColor: string
+	strokeWidth: number
+	fillColor: string
+	patternFillFallbackColor: string
+}) {
 	const editor = useEditor()
 
 	const allPointsFromSegments = getPointsFromDrawSegments(
@@ -283,7 +300,7 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
-	let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
+	let sw = (baseStrokeWidth + 1) * shape.props.scale
 	const forceSolid = useValue(
 		'force solid',
 		() => {
@@ -318,51 +335,64 @@ function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverrid
 	if (!forceSolid && shape.props.dash === 'draw') {
 		return (
 			<>
-				{shape.props.isClosed && shape.props.fill && allPointsFromSegments.length > 1 ? (
-					<ShapeFill
-						d={getSvgPathFromStrokePoints(
-							getStrokePoints(allPointsFromSegments, options),
-							shape.props.isClosed
-						)}
-						theme={theme}
-						color={shape.props.color}
-						fill={shape.props.isClosed ? shape.props.fill : 'none'}
-						scale={shape.props.scale}
-					/>
-				) : null}
-				<path
-					d={svgInk(allPointsFromSegments, options)}
-					strokeLinecap="round"
-					fill={getColorValue(theme, shape.props.color, 'solid')}
-				/>
+				{shape.props.isClosed &&
+					shape.props.fill !== 'none' &&
+					allPointsFromSegments.length > 1 &&
+					(shape.props.fill === 'pattern' ? (
+						<PatternFill
+							d={getSvgPathFromStrokePoints(
+								getStrokePoints(allPointsFromSegments, options),
+								shape.props.isClosed
+							)}
+							fillColor={fillColor}
+							patternFillFallbackColor={patternFillFallbackColor}
+							scale={shape.props.scale}
+						/>
+					) : (
+						<path
+							fill={fillColor}
+							d={getSvgPathFromStrokePoints(
+								getStrokePoints(allPointsFromSegments, options),
+								shape.props.isClosed
+							)}
+						/>
+					))}
+				<path d={svgInk(allPointsFromSegments, options)} strokeLinecap="round" fill={strokeColor} />
 			</>
 		)
 	}
 
 	const strokePoints = getStrokePoints(allPointsFromSegments, options)
 	const isDot = strokePoints.length < 2
+	const fill = isDot || shape.props.isClosed ? shape.props.fill : 'none'
+
 	const solidStrokePath = isDot
 		? getDot(allPointsFromSegments[0], 0)
-		: getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
+		: getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed && fill !== 'none')
 
 	return (
 		<>
-			<ShapeFill
-				d={solidStrokePath}
-				theme={theme}
-				color={shape.props.color}
-				fill={isDot || shape.props.isClosed ? shape.props.fill : 'none'}
-				scale={shape.props.scale}
-			/>
-			<path
-				d={solidStrokePath}
-				strokeLinecap="round"
-				fill={isDot ? getColorValue(theme, shape.props.color, 'solid') : 'none'}
-				stroke={getColorValue(theme, shape.props.color, 'solid')}
-				strokeWidth={sw}
-				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, dotAdjustment)}
-				strokeDashoffset="0"
-			/>
+			{isDot || !shape.props.isClosed || fill === 'none' ? null : fill === 'pattern' ? (
+				<PatternFill
+					d={solidStrokePath}
+					fillColor={fillColor}
+					patternFillFallbackColor={patternFillFallbackColor}
+					scale={shape.props.scale}
+				/>
+			) : (
+				<path fill={fillColor} d={solidStrokePath} />
+			)}
+			{shape.props.dash !== 'none' && (
+				<path
+					d={solidStrokePath}
+					strokeLinecap="round"
+					fill={isDot ? strokeColor : 'none'}
+					stroke={strokeColor}
+					strokeWidth={sw}
+					strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, dotAdjustment)}
+					strokeDashoffset="0"
+				/>
+			)}
 		</>
 	)
 }

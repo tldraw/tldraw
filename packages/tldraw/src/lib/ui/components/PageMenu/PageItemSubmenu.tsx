@@ -29,7 +29,6 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 }: PageItemSubmenuProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const pages = editor.getPages()
 	const trackEvent = useUiEvents()
 
 	const onDuplicate = useCallback(() => {
@@ -60,11 +59,12 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 					type="icon"
 					tooltip={msg('page-menu.submenu.title')}
 					title={msg('page-menu.submenu.title')}
+					data-testid="page-menu.item-submenu"
 				>
 					<TldrawUiButtonIcon icon="dots-vertical" small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent alignOffset={0} side="right" sideOffset={-4}>
+			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="page-menu">
 					<TldrawUiMenuGroup id="modify">
 						{onRename && (
@@ -74,7 +74,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 							id="duplicate"
 							label="page-menu.submenu.duplicate-page"
 							onSelect={onDuplicate}
-							disabled={pages.length >= editor.options.maxPages}
+							disabled={listSize >= editor.options.maxPages}
 						/>
 						{index > 0 && (
 							<TldrawUiMenuItem

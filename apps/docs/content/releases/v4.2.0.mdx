@@ -19,9 +19,42 @@ This month's release includes many bug fixes and small API additions, along with
 
 ## What's new
 
-### TipTap v3 ([#5717](https://github.com/tldraw/tldraw/pull/5717))
+### 💥 TipTap v3 ([#5717](https://github.com/tldraw/tldraw/pull/5717))
 
 We've upgraded TipTap from v2 to v3. If you've done any customization to our standard TipTap kit, please refer to TipTap's guide [How to upgrade Tiptap v2 to v3](https://tiptap.dev/docs/guides/upgrade-tiptap-v2) for breaking changes you might experience.
+
+<details>
+<summary>Migration guide</summary>
+
+Starting in v4.2, tldraw bundles TipTap v3 as a transitive dependency. If your project pins `@tiptap/*` v2 packages directly, upgrade them to v3 *before* trying to fix any code-level errors — leaving v2 in place produces a dual install that surfaces as confusing type errors.
+
+**Dual-install symptom.** Deeply-nested errors like *"Property 'getCharacterCount' is missing in type 'Editor' but required in type 'Editor'"*, with the two `Editor` types resolving to different paths (one under `node_modules/@tiptap/core`, the other under `node_modules/@tldraw/editor/node_modules/@tiptap/core`), are not API changes — they are the v2/v3 dual install. The `Editor` classes are structurally similar but nominally different. Finishing the v3 upgrade collapses the duplicate and these errors disappear without code changes.
+
+**Code-level changes that affect tldraw users:**
+
+- **Default → named exports.** Several extensions changed from default to named exports:
+
+  ```ts
+  // Before
+  import StarterKit from '@tiptap/starter-kit'
+
+  // After
+  import { StarterKit } from '@tiptap/starter-kit'
+  ```
+
+- **`TextStyle` → `TextStyleKit`, and `FontFamily` moved.** The `FontFamily` extension is no longer in `@tiptap/extension-font-family`; it's part of `TextStyleKit` in `@tiptap/extension-text-style`. The `setFontFamily` and `setFontSize` chain commands only exist on `TextStyleKit`, not on bare `TextStyle`.
+
+- **Transaction handler types.** Inline parameter type annotations on TipTap event handlers no longer work. Import the proper event-map type:
+
+  ```ts
+  import { EditorEvents } from '@tiptap/core'
+  // ...
+  onTransaction: (props: EditorEvents['transaction']) => { /* ... */ }
+  ```
+
+- **Custom chained commands** still register via `declare module '@tiptap/core'` augmentation in v3 — the augmentation target is the same.
+
+</details>
 
 ## API changes
 

@@ -42,10 +42,17 @@ export function kickoutOccludedShapes(
 		} else {
 			const overlappingChildren = getOverlappingShapes(editor, parent.id, childIds)
 			if (overlappingChildren.length < childIds.length) {
-				parentsToLostChildren.set(
-					parent,
-					childIds.filter((id) => !overlappingChildren.includes(id))
-				)
+				const parentUtil = editor.getShapeUtil(parent)
+				const lostChildIds = childIds.filter((id) => {
+					if (overlappingChildren.includes(id)) return false
+					const child = editor.getShape(id)
+					if (!child) return false
+					// Respect the parent's removal gate: if it pins this child type, don't kick it out.
+					return parentUtil.canRemoveChildrenOfType(parent, child.type)
+				})
+				if (lostChildIds.length > 0) {
+					parentsToLostChildren.set(parent, lostChildIds)
+				}
 			}
 		}
 	}
@@ -103,9 +110,13 @@ export function kickoutOccludedShapes(
 					if (oldParentIndex > -1) {
 						// If the old parent is a direct child of the new parent, then we'll add them above the old parent but below the next sibling.
 						const siblingsIndexAbove = oldParentSiblingIds[oldParentIndex + 1]
-						const indexKeyAbove = siblingsIndexAbove
+						const siblingAboveIndex = siblingsIndexAbove
 							? editor.getShape(siblingsIndexAbove)!.index
-							: getIndexAbove(prevParent.index)
+							: undefined
+						const indexKeyAbove =
+							siblingAboveIndex && siblingAboveIndex > prevParent.index
+								? siblingAboveIndex
+								: getIndexAbove(prevParent.index)
 						insertIndexKey = getIndexBetween(prevParent.index, indexKeyAbove)
 					} else {
 						// If the old parent is not a direct child of the new parent, then we'll add them to the "top" of the new parent's children.
@@ -234,11 +245,17 @@ export function getDroppedShapesToNewParents(
 	const potentialParentShapes = editor
 		.getCurrentPageShapesSorted()
 		// filter out any shapes that aren't frames or that are included among the provided shapes
-		.filter(
-			(s) =>
-				editor.getShapeUtil(s).canReceiveNewChildrenOfType?.(s, s.type) &&
-				!remainingShapesToReparent.has(s)
-		)
+		.filter((parentShape) => {
+			if (remainingShapesToReparent.has(parentShape)) return false
+
+			const parentUtil = editor.getShapeUtil(parentShape)
+			for (const childShape of remainingShapesToReparent) {
+				if (parentUtil.canReceiveNewChildrenOfType(parentShape, childShape.type)) {
+					return true
+				}
+			}
+			return false
+		})
 
 	parentCheck: for (let i = potentialParentShapes.length - 1; i >= 0; i--) {
 		const parentShape = potentialParentShapes[i]

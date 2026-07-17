@@ -1,4 +1,4 @@
-import { objectMapValues, TLFontFace } from '@tldraw/editor'
+import { EMPTY_ARRAY, objectMapValues, TLFontFace, TLTheme } from '@tldraw/editor'
 
 /** @public */
 export interface TLDefaultFont {
@@ -145,3 +145,25 @@ export const DefaultFontFaces: TLDefaultFonts = {
 export const allDefaultFontFaces = objectMapValues(DefaultFontFaces).flatMap((font) =>
 	objectMapValues(font).flatMap((fontFace) => Object.values(fontFace))
 )
+
+/**
+ * Get the font faces for a given font style from the theme. For built-in fonts, returns
+ * undefined so callers can fall back to the rich-text-aware font scanning. For custom
+ * fonts (defined in the theme but not in DefaultFontFaces), returns the faces directly.
+ *
+ * @internal
+ */
+export function getThemeFontFaces(theme: TLTheme, font: string): TLFontFace[] | undefined {
+	const builtinFamily = `tldraw_${font}` as keyof TLDefaultFonts
+	if (builtinFamily in DefaultFontFaces) return undefined
+
+	const themeFont = theme.fonts[font as keyof typeof theme.fonts]
+	if (process.env.NODE_ENV !== 'production') {
+		if (!themeFont) {
+			console.warn(
+				`Font '${font}' is not defined in the current theme. Shapes using this font may not render correctly.`
+			)
+		}
+	}
+	return themeFont?.faces ?? EMPTY_ARRAY
+}
