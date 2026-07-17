@@ -34,10 +34,9 @@ import {
 	setMarkOnRichText,
 } from '../../utils/text/richText'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
-import { EditLinkDialog } from '../components/EditLinkDialog'
+import { EditLinkDialog, RichTextLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { DefaultKeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
-import { RichTextLinkDialog } from '../components/RichTextLinkDialog'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'

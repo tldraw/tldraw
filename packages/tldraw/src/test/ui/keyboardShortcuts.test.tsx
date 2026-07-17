@@ -333,6 +333,22 @@ describe('format shortcuts on selected shapes', () => {
 		expect(richTextHasMarkEverywhere(getRichText(editor, text), 'bold')).toBe(false)
 	})
 
+	it('ignores non-canonical empty rich text (content: []) so a fully bold selection can still toggle off', async () => {
+		const { editor } = await setupFocusedEditor()
+		const text = createTextShape(editor, 'hello')
+		// Programmatic authoring can produce an empty label encoded as an empty content array
+		// rather than the single-empty-paragraph form the interactive editor emits.
+		const geo = createShapeId()
+		editor.createShape({ id: geo, type: 'geo', props: { richText: { type: 'doc', content: [] } } })
+		editor.select(text, geo)
+
+		keydown(editor, { key: 'b', code: 'KeyB', metaKey: true })
+		expect(richTextHasMarkEverywhere(getRichText(editor, text), 'bold')).toBe(true)
+
+		keydown(editor, { key: 'b', code: 'KeyB', metaKey: true })
+		expect(richTextHasMarkEverywhere(getRichText(editor, text), 'bold')).toBe(false)
+	})
+
 	it('does not bold a locked shape', async () => {
 		const { editor } = await setupFocusedEditor()
 		const id = createTextShape(editor, 'hello')

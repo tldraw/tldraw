@@ -120,10 +120,10 @@ describe('format shortcuts on selected shapes', () => {
 
 		act(() => getActions()['format-link'].onSelect('kbd'))
 
-		const input = await rendered.findByTestId('rich-text-link-dialog.input')
+		const input = await rendered.findByTestId('edit-link-dialog.input')
 		fireEvent.change(input, { target: { value: 'https://example.com' } })
 		act(() => {
-			fireEvent.click(rendered.getByTestId('rich-text-link-dialog.save'))
+			fireEvent.click(rendered.getByTestId('edit-link-dialog.save'))
 		})
 
 		expect(richTextHasMarkEverywhere(getRichText(editor, id), 'link')).toBe(true)
@@ -135,6 +135,6 @@ describe('format shortcuts on selected shapes', () => {
 		editor.selectNone()
 
 		act(() => getActions()['format-link'].onSelect('kbd'))
-		expect(rendered.queryByTestId('rich-text-link-dialog.input')).toBeNull()
+		expect(rendered.queryByTestId('edit-link-dialog.input')).toBeNull()
 	})
 })
