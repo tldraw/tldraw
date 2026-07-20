@@ -177,6 +177,12 @@ async function build() {
 			{
 				version: 3,
 				routes: [
+					// redirect /offline to the offline version of tldraw
+					{
+						src: '^/offline/?$',
+						status: 307,
+						headers: { Location: 'https://offline.tldraw.com/' },
+					},
 					// rewrite api calls to the multiplayer server
 					{
 						src: '^/api(/(.*))?$',
