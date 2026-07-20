@@ -243,8 +243,8 @@ export function CopyAsMenuGroup() {
 	const atLeastOneShapeOnPage = useHasShapesOnPage()
 	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
 
-	// If a consumer has removed the copy actions via `overrides`, don't render an empty submenu.
-	if (!actions['copy-as-svg'] && !actions['copy-as-png']) return null
+	const showCopyAsJson = !!actions['copy-as-json'] && isDebugMode
+	if (!actions['copy-as-svg'] && !actions['copy-as-png'] && !showCopyAsJson) return null
 
 	return (
 		<TldrawUiMenuSubmenu
@@ -258,7 +258,7 @@ export function CopyAsMenuGroup() {
 				{Boolean(editor.getContainerWindow().navigator.clipboard?.write) && (
 					<TldrawUiMenuActionItem actionId="copy-as-png" />
 				)}
-				{isDebugMode && <TldrawUiMenuActionItem actionId="copy-as-json" />}
+				{showCopyAsJson && <TldrawUiMenuActionItem actionId="copy-as-json" />}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="copy-as-bg">
 				<ToggleTransparentBgMenuItem />

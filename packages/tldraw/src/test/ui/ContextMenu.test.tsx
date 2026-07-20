@@ -1,5 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react'
-import { createShapeId, tlenvReactive } from '@tldraw/editor'
+import { createShapeId, Editor, tlenvReactive } from '@tldraw/editor'
 import { TLComponents, Tldraw } from '../../lib/Tldraw'
 import { DefaultContextMenu } from '../../lib/ui/components/ContextMenu/DefaultContextMenu'
 import { TLUiOverrides } from '../../lib/ui/overrides'
@@ -196,12 +196,13 @@ it('tunnels context menu', async () => {
 })
 
 describe('conversions submenus gate on their actions', () => {
-	async function openContextMenu(overrides?: TLUiOverrides) {
+	async function openContextMenu(overrides?: TLUiOverrides, onMount?: (editor: Editor) => void) {
 		await renderTldrawComponent(
 			<Tldraw
 				overrides={overrides}
 				onMount={(editor) => {
 					editor.createShape({ id: createShapeId(), type: 'geo' })
+					onMount?.(editor)
 				}}
 			/>,
 			{ waitForPatterns: false }
@@ -253,5 +254,21 @@ describe('conversions submenus gate on their actions', () => {
 			},
 		})
 		expect(screen.queryByTestId('context-menu-sub.export-as-button')).not.toBeNull()
+	})
+
+	it('keeps the copy-as submenu for copy-as-json when debug mode is on', async () => {
+		// copy-as-json only renders in debug mode, so with the other formats removed the submenu
+		// should stay only when debug mode is enabled.
+		await openContextMenu(
+			{
+				actions(_editor, actions) {
+					delete actions['copy-as-svg']
+					delete actions['copy-as-png']
+					return actions
+				},
+			},
+			(editor) => editor.updateInstanceState({ isDebugMode: true })
+		)
+		expect(screen.queryByTestId('context-menu-sub.copy-as-button')).not.toBeNull()
 	})
 })
