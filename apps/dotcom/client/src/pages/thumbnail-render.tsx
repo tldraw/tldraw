@@ -327,10 +327,6 @@ export function ThumbnailExportSignal({
 		}
 	}, [editor, theme, width, height, camera, settleTimeoutMs, onImage])
 
-	useEffect(() => {
-		;(window as any).editor = editor
-	}, [editor])
-
 	return null
 }
 
