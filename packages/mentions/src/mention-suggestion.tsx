@@ -1,7 +1,9 @@
+import type { Editor as TiptapEditor } from '@tiptap/core'
 import type { MentionNodeAttrs } from '@tiptap/extension-mention'
 import { ReactRenderer } from '@tiptap/react'
 import type { SuggestionKeyDownProps, SuggestionOptions } from '@tiptap/suggestion'
-import { type ReactNode, forwardRef, useImperativeHandle, useState } from 'react'
+import { createElement, type ReactNode, forwardRef, useImperativeHandle, useState } from 'react'
+import { createRoot } from 'react-dom/client'
 import { type Editor as TldrawEditor, atom, react } from 'tldraw'
 import { MentionList, MentionMember } from './mention-list'
 
@@ -71,11 +73,70 @@ const MentionPopup = forwardRef<MentionPopupHandle, MentionPopupProps>(function 
 
 const MAX_SUGGESTIONS = 8
 
+// The popup matches its anchor's width — right for the wide comment composer field, but a shape's
+// text can be just a few characters, which would clip the member names. Never render it narrower
+// than this so the roster stays readable regardless of the anchor.
+const MIN_POPUP_WIDTH = 220
+
 /** Members whose name contains the query (case-insensitive), capped to the popup's length.
  * @public */
 export function filterMentionMembers(members: MentionMember[], query: string): MentionMember[] {
 	const q = query.toLowerCase()
 	return members.filter((m) => m.name.toLowerCase().includes(q)).slice(0, MAX_SUGGESTIONS)
+}
+
+/** A mounted popup: its DOM element, a way to push new props, its keyboard handle, and teardown. */
+interface PopupRenderer {
+	element: HTMLElement
+	update(props: MentionPopupProps): void
+	getHandle(): MentionPopupHandle | null
+	destroy(): void
+}
+
+/**
+ * Mount the popup component and return a handle to it.
+ *
+ * `@tiptap/react`'s `ReactRenderer` only renders the component when the editor has a
+ * `contentComponent` — the React bridge that `useEditor`/`EditorContent` install. The comment
+ * composer is built that way, so its popup renders (and keeps tldraw's UI context) through that
+ * bridge. But shape rich text builds its TipTap editor imperatively with `new Editor()` (see
+ * `RichTextArea`), so it has no `contentComponent` and `ReactRenderer` would append an empty node.
+ * There we render the popup with a standalone React root instead, which renders regardless of how
+ * the editor was created; `useTranslation` simply falls back to its default messages off-tree.
+ */
+function createPopupRenderer(editor: TiptapEditor, initialProps: MentionPopupProps): PopupRenderer {
+	if ((editor as { contentComponent?: unknown }).contentComponent) {
+		const rr = new ReactRenderer<MentionPopupHandle, MentionPopupProps>(MentionPopup, {
+			props: initialProps,
+			editor,
+		})
+		return {
+			element: rr.element as HTMLElement,
+			update: (props) => rr.updateProps(props),
+			getHandle: () => rr.ref ?? null,
+			destroy: () => rr.destroy(),
+		}
+	}
+	const element = document.createElement('div')
+	element.className = 'react-renderer'
+	const root = createRoot(element)
+	let handle: MentionPopupHandle | null = null
+	// A stable ref callback so re-renders don't detach/reattach (which would drop the handle mid-key).
+	const setHandle = (h: MentionPopupHandle | null) => {
+		handle = h
+	}
+	let props = initialProps
+	const render = () => root.render(createElement(MentionPopup, { ...props, ref: setHandle }))
+	render()
+	return {
+		element,
+		update: (next) => {
+			props = next
+			render()
+		},
+		getHandle: () => handle,
+		destroy: () => root.unmount(),
+	}
 }
 
 // A reactive flag for whether the @-picker is showing. Deliberately NOT tldraw's open-menu registry:
@@ -128,7 +189,7 @@ export function createMentionSuggestion(
 		items: ({ query }) => getSuggestions(query),
 		render: () => {
 			const selectOnTab = options.selectOnTab ?? true
-			let renderer: ReactRenderer<MentionPopupHandle, MentionPopupProps> | null = null
+			let renderer: PopupRenderer | null = null
 			let container: HTMLElement | null = null
 			let editorEl: HTMLElement | null = null
 			let canvasEl: Element | null = null
@@ -154,9 +215,9 @@ export function createMentionSuggestion(
 				if (!container || !editorEl || container.style.display === 'none') return
 				const field = editorEl.closest('.tlui-cmt-composer__field') ?? editorEl
 				const rect = field.getBoundingClientRect()
-				popupWidth = rect.width
+				popupWidth = Math.max(rect.width, MIN_POPUP_WIDTH)
 				anchorPage = options.editor?.screenToPage({ x: rect.left, y: rect.bottom }) ?? null
-				applyScreen(rect.left, rect.bottom, rect.width)
+				applyScreen(rect.left, rect.bottom, popupWidth)
 			}
 
 			// Re-derive the popup's screen position from the remembered page anchor — pure camera math,
@@ -216,14 +277,11 @@ export function createMentionSuggestion(
 
 			return {
 				onStart: (props) => {
-					renderer = new ReactRenderer(MentionPopup, {
-						props: {
-							items: props.items,
-							command: props.command,
-							renderMember: options.renderMember,
-							selectOnTab,
-						},
-						editor: props.editor,
+					renderer = createPopupRenderer(props.editor, {
+						items: props.items,
+						command: props.command,
+						renderMember: options.renderMember,
+						selectOnTab,
 					})
 					editorEl = props.editor.view.dom as HTMLElement
 					// The TipTap suggestion has no blur handling, so without this the picker would stay
@@ -245,7 +303,7 @@ export function createMentionSuggestion(
 				},
 				onUpdate: (props) => {
 					if (renderer)
-						renderer.updateProps({
+						renderer.update({
 							items: props.items,
 							command: props.command,
 							renderMember: options.renderMember,
@@ -273,14 +331,15 @@ export function createMentionSuggestion(
 						// Complete the highlighted member if there is one to complete; if the roster is empty
 						// there's nothing to pick, so cancel the picker and swallow the key — the composer
 						// beneath neither submits (Enter) nor moves focus / indents (Tab).
-						const completed = renderer?.ref?.onKeyDown(props) ?? false
+						const completed = renderer?.getHandle()?.onKeyDown(props) ?? false
 						if (!completed) {
 							hide()
 							props.event.stopPropagation()
 						}
 						return true
 					}
-					if (renderer && renderer.ref) return renderer.ref.onKeyDown(props)
+					const handle = renderer?.getHandle()
+					if (handle) return handle.onKeyDown(props)
 					return false
 				},
 				onExit: () => {
