@@ -128,6 +128,15 @@ export const DEFAULT_THUMBNAIL_HEIGHT = 630
 export const MIN_THUMBNAIL_DIMENSION = 200
 export const MAX_THUMBNAIL_DIMENSION = 1600
 
+// Browser Run screenshot deadlines, shared so the worker and the client render page stay in sync.
+// The worker's screenshot waits THUMBNAIL_RENDER_TIMEOUT_MS after navigation for the render page to
+// set `data-thumbnail-ready`. That whole window is the render page's budget; it must spend most of
+// it on the export itself (editor.toImage + base64 + paint), so it caps only the pre-export settle
+// wait (fonts/asset warmup) at the much smaller THUMBNAIL_SETTLE_TIMEOUT_MS. Keeping the two derived
+// from one place stops them drifting into a state where settle can starve the export of the window.
+export const THUMBNAIL_RENDER_TIMEOUT_MS = 45_000
+export const THUMBNAIL_SETTLE_TIMEOUT_MS = 10_000
+
 export interface ThumbnailRenderParams {
 	camera?: 'content'
 	/** The TLPageId of the single page to render. When omitted, the page the snapshot opens to. */

@@ -8,6 +8,7 @@ import {
 	getOgImageCacheKey,
 	handleOgImageRenderMessage,
 } from './ogImageQueue'
+import { resetRateLimitFallbackForTests } from './sharedBoardScreenshotMcp'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock('./getSharedFile', async (importOriginal) => ({
 afterEach(() => {
 	vi.unstubAllGlobals()
 	vi.clearAllMocks()
+	resetRateLimitFallbackForTests()
 })
 
 function makeFakeThumbnailsBucket() {
@@ -69,13 +71,13 @@ function makeFakeRoomsBucket(etag: string | null = 'room-etag-1') {
 	}
 }
 
-// The BROWSER binding's `.rest.screenshot` returns a Response whose body is the PNG bytes. [1,2,3]
-// base64-encodes to AQID. Pass a custom impl to simulate failures.
+// The BROWSER binding's `.quickAction('screenshot', body)` returns a Response whose body is the PNG
+// bytes. [1,2,3] base64-encodes to AQID. Pass a custom impl to simulate failures.
 function makeBrowserBinding(
 	screenshot: (body: any) => Promise<Response> = async () =>
 		new Response(new Uint8Array([1, 2, 3]), { status: 200 })
 ) {
-	return { fetch: vi.fn(), rest: { screenshot: vi.fn(screenshot) } }
+	return { quickAction: vi.fn((_action: string, body: any) => screenshot(body)) }
 }
 
 function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
@@ -102,12 +104,12 @@ function makeMessage(
 }
 
 function screenshotOf(env: Environment) {
-	return (env.BROWSER as any).rest.screenshot as ReturnType<typeof vi.fn>
+	return (env.BROWSER as any).quickAction as ReturnType<typeof vi.fn>
 }
 
-// The render URL (with its token) is the first arg to `.rest.screenshot`.
+// quickAction is called as quickAction('screenshot', body); the render URL rides in body (arg 1).
 function tokenFromScreenshot(env: Environment): string {
-	const body = screenshotOf(env).mock.calls[0]![0] as { url: string }
+	const body = screenshotOf(env).mock.calls[0]![1] as { url: string }
 	return new URL(body.url).searchParams.get('token')!
 }
 

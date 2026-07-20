@@ -3,6 +3,7 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_PAGES,
 	THUMBNAIL_RENDER_PATH,
+	THUMBNAIL_RENDER_TIMEOUT_MS,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
@@ -26,9 +27,10 @@ import { classifyScreenshotFailure, sha256 } from './thumbnailShared'
 const SCREENSHOT_TOOL_NAME = 'get_shared_board_screenshot'
 const BOARD_INFO_TOOL_NAME = 'get_board_info'
 const MCP_PROTOCOL_VERSION = '2024-11-05'
-// Bounds page navigation and the render-page settle+export wait inside the Browser Rendering
-// screenshot Quick Action.
-const RENDER_TIMEOUT_MS = 45_000
+// Bounds both navigation and the render-page settle+export wait inside the Browser Rendering
+// screenshot Quick Action. Shared with the render page (which sizes its own settle budget under this)
+// via @tldraw/dotcom-shared so the two deadlines can't drift.
+const RENDER_TIMEOUT_MS = THUMBNAIL_RENDER_TIMEOUT_MS
 // The render page sets this once its exported image has painted; the screenshot Quick Action waits
 // on it before capturing. A page that errors never sets it, so the capture times out (surfaced as a
 // render failure) rather than screenshotting a broken page.
@@ -37,12 +39,12 @@ const RENDER_READY_SELECTOR = '[data-thumbnail-ready="true"]'
 // Per-IP and per-board limits protect the endpoint and individual boards; the global limit caps
 // total Browser Rendering spend across all callers. The Cloudflare bindings in wrangler.toml enforce
 // these in deployments; the isolate-local fallback only covers local dev and tests.
-const PER_IP_RATE_LIMIT = 20
-const PER_BOARD_RATE_LIMIT = 20
+const PER_IP_RATE_LIMIT = 2
+const PER_BOARD_RATE_LIMIT = 2
 // The single limiter key every Browser Run-spending surface (this tool and the OG queue consumer)
 // passes, so they draw from one shared global cap instead of separate per-key buckets.
 export const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
-export const GLOBAL_BROWSER_RUN_RATE_LIMIT = 60
+export const GLOBAL_BROWSER_RUN_RATE_LIMIT = 6
 const RATE_LIMIT_WINDOW_MS = 60_000
 const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
 
@@ -537,7 +539,9 @@ export async function renderThumbnailScreenshot(
 	}
 
 	const startedAt = Date.now()
-	const response = await env.BROWSER.rest.screenshot(getScreenshotRequestBody(renderUrl))
+	// Browser Rendering `/screenshot` Quick Action, invoked straight through the binding (no
+	// puppeteer, no API token). Requires compatibility_date >= 2026-03-24 for `quickAction`.
+	const response = await env.BROWSER.quickAction('screenshot', getScreenshotRequestBody(renderUrl))
 	const durationMs = Date.now() - startedAt
 
 	if (!response.ok) {
@@ -602,6 +606,13 @@ export async function isRateLimited(
 	}
 	existing.count++
 	return existing.count > fallbackLimit
+}
+
+// The isolate-local fallback map is module state that persists across a test file's cases. Tests
+// that exercise rendering must reset it between cases, or accumulated counts (especially on the
+// shared `global` key) would trip the low limits and rate-limit later cases' happy paths.
+export function resetRateLimitFallbackForTests() {
+	RATE_LIMIT_FALLBACK.clear()
 }
 
 function getBoardInfoToolDefinition() {

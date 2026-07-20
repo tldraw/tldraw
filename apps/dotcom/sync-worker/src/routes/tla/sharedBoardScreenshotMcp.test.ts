@@ -9,6 +9,7 @@ import {
 	getThumbnailPageCacheKey,
 	parseBoardInfoInput,
 	parseSharedBoardScreenshotInput,
+	resetRateLimitFallbackForTests,
 	sharedBoardScreenshotMcp,
 } from './sharedBoardScreenshotMcp'
 
@@ -27,6 +28,7 @@ vi.mock('./getSharedFile', async (importOriginal) => ({
 
 afterEach(() => {
 	vi.clearAllMocks()
+	resetRateLimitFallbackForTests()
 })
 
 // Builds a room snapshot with the given pages and per-page shape counts. Shapes are parented
@@ -80,13 +82,13 @@ function makeFakeRoomsBucket(etag: string | null = 'room-etag-1') {
 	}
 }
 
-// The BROWSER binding's `.rest.screenshot` returns a Response whose body is the PNG bytes. [1,2,3]
-// base64-encodes to AQID. Pass a custom impl to simulate failures.
+// The BROWSER binding's `.quickAction('screenshot', body)` returns a Response whose body is the PNG
+// bytes. [1,2,3] base64-encodes to AQID. Pass a custom impl to simulate failures.
 function makeBrowserBinding(
 	screenshot: (body: any) => Promise<Response> = async () =>
 		new Response(new Uint8Array([1, 2, 3]), { status: 200 })
 ) {
-	return { fetch: vi.fn(), rest: { screenshot: vi.fn(screenshot) } }
+	return { quickAction: vi.fn((_action: string, body: any) => screenshot(body)) }
 }
 
 function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
@@ -100,11 +102,12 @@ function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 }
 
 function screenshotOf(env: Environment) {
-	return (env.BROWSER as any).rest.screenshot as ReturnType<typeof vi.fn>
+	return (env.BROWSER as any).quickAction as ReturnType<typeof vi.fn>
 }
 
 function tokenFromScreenshot(env: Environment): string {
-	const body = screenshotOf(env).mock.calls[0]![0] as { url: string }
+	// quickAction is called as quickAction('screenshot', body); the body (with the render URL) is arg 1.
+	const body = screenshotOf(env).mock.calls[0]![1] as { url: string }
 	return new URL(body.url).searchParams.get('token')!
 }
 
@@ -284,7 +287,7 @@ describe('get_shared_board_screenshot', () => {
 			{ type: 'image', data: 'AQID', mimeType: 'image/png' },
 		])
 		// the render token pins the first page and never carries the user's board URL
-		const body = screenshotOf(env).mock.calls[0]![0] as { url: string }
+		const body = screenshotOf(env).mock.calls[0]![1] as { url: string }
 		expect(body.url).not.toContain('www.tldraw.com')
 		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
 		expect(job).toMatchObject({

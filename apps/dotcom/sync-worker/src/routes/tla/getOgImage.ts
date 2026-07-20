@@ -21,7 +21,7 @@ import { sha256 } from './thumbnailShared'
 // cannot spend Browser Run capacity more than about once an hour no matter how often it changes
 // or is crawled.
 const OG_IMAGE_MIN_REFRESH_AGE_MS = 60 * 60_000
-const OG_IMAGE_BOARD_RATE_LIMIT = 20
+const OG_IMAGE_BOARD_RATE_LIMIT = 2
 const DEFAULT_OG_IMAGE_PATH = '/social-og.png'
 const FRESH_IMAGE_MAX_AGE_SECONDS = 60 * 60
 // Stale images and redirects use short TTLs so scrapers and browsers come back for the fresh

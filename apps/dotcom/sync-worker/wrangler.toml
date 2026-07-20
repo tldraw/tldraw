@@ -1,5 +1,6 @@
 main = "src/worker.ts"
-compatibility_date = "2025-06-05"
+# 2026-03-24 is the minimum for the Browser Rendering `env.BROWSER.quickAction` binding method.
+compatibility_date = "2026-03-24"
 workers_dev = true
 compatibility_flags = ["nodejs_compat"]
 
@@ -470,50 +471,50 @@ simple = { limit = 600, period = 60 }
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1005"
-simple = { limit = 20, period = 60 }
+simple = { limit = 2, period = 60 }
 
 [[env.preview.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1006"
-simple = { limit = 20, period = 60 }
+simple = { limit = 2, period = 60 }
 
 [[env.staging.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1007"
-simple = { limit = 20, period = 60 }
+simple = { limit = 2, period = 60 }
 
 [[env.production.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1008"
-simple = { limit = 20, period = 60 }
+simple = { limit = 2, period = 60 }
 
 # global cap on Browser Run invocations from MCP screenshots (keyed on a single shared key)
 [[env.dev.unsafe.bindings]]
 name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1009"
-simple = { limit = 60, period = 60 }
+simple = { limit = 6, period = 60 }
 
 [[env.preview.unsafe.bindings]]
 name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1010"
-simple = { limit = 60, period = 60 }
+simple = { limit = 6, period = 60 }
 
 [[env.staging.unsafe.bindings]]
 name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1011"
-simple = { limit = 60, period = 60 }
+simple = { limit = 6, period = 60 }
 
 [[env.production.unsafe.bindings]]
 name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1012"
-simple = { limit = 60, period = 60 }
+simple = { limit = 6, period = 60 }
 
 #################### Queues ####################
 [[env.dev.queues.producers]]

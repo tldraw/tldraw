@@ -4,6 +4,7 @@ import { getOgImage } from './getOgImage'
 import { getPublishedFileInfo } from './getPublishedFile'
 import { getSharedFileInfo } from './getSharedFile'
 import { getOgImageCacheKey } from './ogImageQueue'
+import { resetRateLimitFallbackForTests } from './sharedBoardScreenshotMcp'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -18,6 +19,7 @@ afterEach(() => {
 	vi.useRealTimers()
 	vi.unstubAllGlobals()
 	vi.clearAllMocks()
+	resetRateLimitFallbackForTests()
 })
 
 function makeFakeThumbnailsBucket() {

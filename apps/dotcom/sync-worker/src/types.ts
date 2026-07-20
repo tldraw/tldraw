@@ -8,16 +8,13 @@ import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { TLStatsDurableObject } from './TLStatsDurableObject'
 import type { TLUserDurableObject } from './TLUserDurableObject'
 
-// The Browser Rendering binding's REST Quick Actions accessor. Cloudflare exposes `env.BROWSER.rest`
-// so a Worker can call the Quick Actions endpoints (`/screenshot`, `/pdf`, …) straight through the
-// binding — no API token, no @cloudflare/puppeteer. Not in @cloudflare/workers-types yet, so the
-// small surface we use is declared here. Each method resolves to a standard `Response`.
-export interface BrowserRest {
-	screenshot(body: unknown): Promise<Response>
-}
+// The Browser Rendering binding's Quick Actions method. Cloudflare exposes `env.BROWSER.quickAction`
+// so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
+// binding — no API token, no @cloudflare/puppeteer. Requires compatibility_date >= 2026-03-24. Not
+// in @cloudflare/workers-types yet, so the small surface we use is declared here; it resolves to a
+// standard `Response` (PNG bytes for `screenshot`, with an `X-Browser-Ms-Used` header).
 export interface BrowserBinding {
-	fetch: typeof fetch
-	rest: BrowserRest
+	quickAction(action: 'screenshot', options: unknown): Promise<Response>
 }
 
 // This type isn't available in @cloudflare/workers-types yet

@@ -2,6 +2,7 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
 	MIN_THUMBNAIL_DIMENSION,
+	THUMBNAIL_SETTLE_TIMEOUT_MS,
 	ThumbnailRenderParams,
 	ThumbnailSnapshotResponseBody,
 	getLicenseKey,
@@ -23,7 +24,6 @@ import { defineLoader } from '../utils/defineLoader'
 import { embedShapeUtils } from '../utils/embedShapeUtil'
 
 const THUMBNAIL_SNAPSHOT_ENDPOINT = '/api/app/thumbnail-render/snapshot'
-const THUMBNAIL_READY_TIMEOUT_MS = 15_000
 
 type LoaderData =
 	| {
@@ -240,36 +240,43 @@ function getRepresentativeContentInset(width: number, height: number) {
 
 // Produces a thumbnail of the editor's current page with editor.toImage once the scene has settled
 // — fonts loaded, image assets warm, and the editor's <img> elements stable — and hands the PNG blob
-// to `onImage`. A deadline caps the settle wait so one broken asset degrades the export instead of
-// failing it outright. Export failures surface as data-thumbnail-error; the worker's screenshot wait
+// to `onImage`.
+//
+// `settleTimeoutMs` bounds ONLY the pre-export settle wait, and is deliberately a small fraction of
+// the worker's screenshot timeout (THUMBNAIL_RENDER_TIMEOUT_MS): the export itself
+// (editor.toImage + normalize + paint) is the expensive part on heavy boards, so it must keep the
+// bulk of that window. We intentionally do not put a tighter client-side deadline around the export
+// — the worker's waitForSelector wait is the real deadline, and a shorter client cap would abort
+// exports that would otherwise finish in time. A broken asset only burns the settle budget, then the
+// export runs anyway. Export failures surface as data-thumbnail-error; the worker's screenshot wait
 // never sees the ready selector and times out.
 export function ThumbnailExportSignal({
 	theme,
 	width,
 	height,
-	timeoutMs = THUMBNAIL_READY_TIMEOUT_MS,
+	settleTimeoutMs = THUMBNAIL_SETTLE_TIMEOUT_MS,
 	onImage,
 }: {
 	theme: 'light' | 'dark'
 	width: number
 	height: number
-	timeoutMs?: number
+	settleTimeoutMs?: number
 	onImage(blob: Blob): void | Promise<void>
 }) {
 	const editor = useEditor()
 
 	useEffect(() => {
 		let cancelled = false
-		const deadline = Date.now() + timeoutMs
+		const settleDeadline = Date.now() + settleTimeoutMs
 
 		;(async () => {
 			await Promise.race([
 				(async () => {
 					await waitForFonts()
-					await preloadImageAssets(editor, deadline)
-					await waitForEditorImages(editor, deadline)
+					await preloadImageAssets(editor, settleDeadline)
+					await waitForEditorImages(editor, settleDeadline)
 				})(),
-				sleep(timeoutMs),
+				sleep(settleTimeoutMs),
 			])
 			if (cancelled) return
 			const blob = await exportThumbnailImage(editor, theme, width, height)
@@ -285,7 +292,7 @@ export function ThumbnailExportSignal({
 		return () => {
 			cancelled = true
 		}
-	}, [editor, theme, width, height, timeoutMs, onImage])
+	}, [editor, theme, width, height, settleTimeoutMs, onImage])
 
 	useEffect(() => {
 		;(window as any).editor = editor
