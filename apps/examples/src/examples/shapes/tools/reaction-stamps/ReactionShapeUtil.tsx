@@ -7,6 +7,7 @@ import {
 	TLShapeUtilCanBindOpts,
 	VecModel,
 } from 'tldraw'
+import { bindReactionToShapeAtPoint } from './ReactionBindingUtil'
 
 // The emoji is a style prop, so it behaves like color does for the draw tool: the style
 // panel shows the options whenever the reaction tool is active or a reaction is selected,
@@ -64,6 +65,13 @@ export class ReactionShapeUtil extends BaseBoxShapeUtil<ReactionShape> {
 		return true
 	}
 
+	// Keep reactions out of the snap-alignment candidate list. Without this, dragging a
+	// shape snaps against its own bound reactions — which the binding then moves to follow
+	// the shape, so the snap target chases the drag and the movement jitters.
+	override canSnap() {
+		return false
+	}
+
 	// The one binding rule for reactions, enforced globally: a reaction can be the source of
 	// a `reaction` binding to a non-reaction shape, and nothing else. `canBindShapes` asks
 	// both shapes' utils, so this single override means arrows (or any other binding) skip
@@ -74,6 +82,20 @@ export class ReactionShapeUtil extends BaseBoxShapeUtil<ReactionShape> {
 		return (
 			bindingType === 'reaction' && fromShape.type === 'reaction' && toShape.type !== 'reaction'
 		)
+	}
+
+	// Picking a reaction up detaches it so it moves freely; dropping it re-attaches it to
+	// whatever bindable shape is under its center, or leaves it free on empty canvas.
+	// (Same gesture comments implement by overwriting their anchor field.)
+	override onTranslateStart(shape: ReactionShape) {
+		this.editor.deleteBindings(this.editor.getBindingsFromShape(shape, 'reaction'))
+	}
+
+	override onTranslateEnd(_initial: ReactionShape, shape: ReactionShape) {
+		const center = this.editor
+			.getShapePageTransform(shape)
+			.applyToPoint({ x: shape.props.w / 2, y: shape.props.h / 2 })
+		bindReactionToShapeAtPoint(this.editor, shape.id, center)
 	}
 
 	component(shape: ReactionShape) {

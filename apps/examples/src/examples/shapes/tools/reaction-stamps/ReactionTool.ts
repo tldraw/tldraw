@@ -1,4 +1,5 @@
-import { StateNode } from 'tldraw'
+import { StateNode, createShapeId } from 'tldraw'
+import { bindReactionToShapeAtPoint } from './ReactionBindingUtil'
 import { REACTION_SIZE } from './ReactionShapeUtil'
 
 // A stamp tool: every click drops a reaction at the pointer and the tool stays active for
@@ -40,12 +41,18 @@ export class ReactionTool extends StateNode {
 	override onPointerDown() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
-		// One stopping point per stamp, so undo removes stamps one at a time.
+		const id = createShapeId()
+		// One stopping point per stamp, so undo removes stamps one at a time (the binding is
+		// created before the next stopping point, so it undoes together with its stamp).
 		editor.markHistoryStoppingPoint()
 		editor.createShape({
+			id,
 			type: 'reaction',
 			x: point.x - REACTION_SIZE / 2,
 			y: point.y - REACTION_SIZE / 2,
 		})
+		// Stick the stamp to the shape it was placed on — the same hit test the hover hint
+		// uses, so a shape highlights exactly when stamping there will bind to it.
+		bindReactionToShapeAtPoint(editor, id, point)
 	}
 }

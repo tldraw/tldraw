@@ -39,6 +39,7 @@ import {
 	useRelevantStyles,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ReactionBindingUtil } from './ReactionBindingUtil'
 import { ReactionEmojiStyle, ReactionShapeUtil } from './ReactionShapeUtil'
 import { ReactionTool } from './ReactionTool'
 import './reaction-stamps.css'
@@ -148,6 +149,7 @@ export default function ReactionStampsExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				shapeUtils={[ReactionShapeUtil]}
+				bindingUtils={[ReactionBindingUtil]}
 				tools={[ReactionTool]}
 				overrides={overrides}
 				assetUrls={assetUrls}
@@ -196,4 +198,11 @@ it for the next stamp.
 Attribution: `getInitialMetaForShape` stamps who placed each reaction and when into the
 shape's meta. Hover a stamp to see it. In a real app the id would come from your auth
 system, and names would be resolved from ids at render time.
+
+[5]
+Binding: stamping on a shape creates a `reaction` binding (see ReactionBindingUtil.ts)
+that stores where on the shape the stamp sits, as percentages of the shape's bounds.
+When the shape moves, resizes, or rotates, the binding rewrites the reaction's position
+so it rides along. Deleting the shape deletes its reactions. Drag a reaction to detach
+it; drop it on another shape to re-attach.
 */
