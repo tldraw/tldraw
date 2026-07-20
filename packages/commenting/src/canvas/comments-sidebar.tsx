@@ -149,7 +149,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				items={items}
 				header={header ?? msg('comments.title')}
 				headerAction={
-					<div className="cmt-list__header-actions">
+					<div className="tlui-cmt-list__header-actions">
 						<CommentsFilterMenu
 							canFilterByAuthor={currentUserId !== undefined}
 							canFilterByUnread={isCommentUnread !== undefined}
@@ -176,7 +176,7 @@ function SidebarPanel({ container, children }: { container: HTMLElement; childre
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughMouseOverEvents(ref)
 	return createPortal(
-		<div ref={ref} className="cmt-canvas-sidebar">
+		<div ref={ref} className="tlui-cmt-canvas-sidebar">
 			{children}
 		</div>,
 		container

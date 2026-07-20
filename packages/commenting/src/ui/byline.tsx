@@ -12,11 +12,11 @@ export interface BylineProps {
 /** A comment's metadata line: author name, relative time, and an edited marker. @public @react */
 export function Byline({ author, date, edited }: BylineProps) {
 	return (
-		<div className="cmt-head">
-			<span className="cmt-author">{author}</span>
-			<span className="cmt-time">
+		<div className="tlui-cmt-head">
+			<span className="tlui-cmt-author">{author}</span>
+			<span className="tlui-cmt-time">
 				{formatRelativeTime(date)}
-				{edited && <span className="cmt-edited"> · edited</span>}
+				{edited && <span className="tlui-cmt-edited"> · edited</span>}
 			</span>
 		</div>
 	)

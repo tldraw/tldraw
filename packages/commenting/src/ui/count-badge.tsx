@@ -5,5 +5,5 @@ export interface CountBadgeProps {
 
 /** @public @react */
 export function CountBadge({ count }: CountBadgeProps) {
-	return <div className="cmt-count-badge">{count}</div>
+	return <div className="tlui-cmt-count-badge">{count}</div>
 }

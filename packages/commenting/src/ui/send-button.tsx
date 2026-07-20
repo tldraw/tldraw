@@ -8,7 +8,7 @@ export interface SendButtonProps {
 /** The button that posts a comment. @public @react */
 export function SendButton({ label, disabled, onClick }: SendButtonProps) {
 	return (
-		<button className="cmt-send" type="button" disabled={disabled} onClick={onClick}>
+		<button className="tlui-cmt-send" type="button" disabled={disabled} onClick={onClick}>
 			{label}
 		</button>
 	)

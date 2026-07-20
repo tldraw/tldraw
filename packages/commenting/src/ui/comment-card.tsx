@@ -20,13 +20,13 @@ export interface CommentCardProps {
 /** A single comment: Avatar, Byline, and a body slot the consumer renders. @public @react */
 export function CommentCard({ author, body, date, you, edited, actions }: CommentCardProps) {
 	return (
-		<div className={you ? 'cmt-card cmt-card--you' : 'cmt-card'}>
+		<div className={you ? 'tlui-cmt-card tlui-cmt-card--you' : 'tlui-cmt-card'}>
 			<Avatar name={author} />
-			<div className="cmt-body">
+			<div className="tlui-cmt-body">
 				<Byline author={author} date={date} edited={edited} />
 				{body}
 			</div>
-			{actions !== undefined && <div className="cmt-card__actions">{actions}</div>}
+			{actions !== undefined && <div className="tlui-cmt-card__actions">{actions}</div>}
 		</div>
 	)
 }

@@ -38,7 +38,7 @@ export function CommentsFilterMenu({
 			<TldrawUiDropdownMenuTrigger>
 				<button
 					type="button"
-					className="cmt-header-btn"
+					className="tlui-cmt-header-btn"
 					title={msg('comments.filter')}
 					aria-label={msg('comments.filter')}
 				>

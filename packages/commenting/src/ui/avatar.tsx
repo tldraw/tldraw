@@ -17,11 +17,18 @@ function initial(name: string) {
  * @public @react */
 export function Avatar({ name, color, image }: AvatarProps) {
 	if (image) {
-		return <img className="cmt-avatar cmt-avatar--image" src={image} alt="" aria-hidden="true" />
+		return (
+			<img
+				className="tlui-cmt-avatar tlui-cmt-avatar--image"
+				src={image}
+				alt=""
+				aria-hidden="true"
+			/>
+		)
 	}
 	return (
 		<div
-			className="cmt-avatar"
+			className="tlui-cmt-avatar"
 			aria-hidden="true"
 			style={color ? { backgroundColor: color } : undefined}
 		>

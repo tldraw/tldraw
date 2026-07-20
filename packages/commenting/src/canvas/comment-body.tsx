@@ -17,5 +17,5 @@ export interface CommentBodyProps {
  */
 export function CommentBody({ richText, resolveName }: CommentBodyProps) {
 	const html = useMemo(() => renderCommentHtml(richText, resolveName), [richText, resolveName])
-	return <div className="cmt-text" dangerouslySetInnerHTML={{ __html: html }} />
+	return <div className="tlui-cmt-text" dangerouslySetInnerHTML={{ __html: html }} />
 }

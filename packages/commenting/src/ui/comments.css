@@ -1,6 +1,6 @@
 /* Real comment UI components. Co-located so styles travel to any view (studio,
    canvas), and themed via tldraw's --tl-color tokens so they follow light/dark. */
-.cmt-card {
+.tlui-cmt-card {
 	position: relative;
 	display: flex;
 	gap: 10px;
@@ -12,7 +12,7 @@
 }
 
 /* hover-revealed controls (edit…) at the card's top-right */
-.cmt-card__actions {
+.tlui-cmt-card__actions {
 	position: absolute;
 	top: 6px;
 	right: 6px;
@@ -20,65 +20,65 @@
 	gap: 2px;
 	opacity: 0;
 }
-.cmt-card:hover .cmt-card__actions,
-.cmt-card:focus-within .cmt-card__actions {
+.tlui-cmt-card:hover .tlui-cmt-card__actions,
+.tlui-cmt-card:focus-within .tlui-cmt-card__actions {
 	opacity: 1;
 }
 
-.cmt-body {
+.tlui-cmt-body {
 	flex: 1;
 	min-width: 0;
 }
 
-.cmt-head {
+.tlui-cmt-head {
 	display: flex;
 	align-items: baseline;
 	gap: 6px;
 }
 
-.cmt-author {
+.tlui-cmt-author {
 	font-weight: 600;
 	font-size: 13px;
 	color: var(--tl-color-text-1);
 }
 
-.cmt-time {
+.tlui-cmt-time {
 	font-size: 11px;
 	color: var(--tl-color-text-3);
 }
 
-.cmt-text {
+.tlui-cmt-text {
 	margin: 3px 0 0;
 	font-size: 13px;
 	line-height: 1.4;
 	color: var(--tl-color-text-1);
 }
 
-.cmt-edited {
+.tlui-cmt-edited {
 	font-style: italic;
 }
 
 /* rendered rich text inside a comment body — bare tags emitted by the comment renderer
    (paragraphs, lists, code, highlight, links), matching the limited comment extension set. */
-.cmt-text p {
+.tlui-cmt-text p {
 	margin: 0;
 }
 
-.cmt-text p + p,
-.cmt-text p + ul,
-.cmt-text p + ol,
-.cmt-text ul + p,
-.cmt-text ol + p {
+.tlui-cmt-text p + p,
+.tlui-cmt-text p + ul,
+.tlui-cmt-text p + ol,
+.tlui-cmt-text ul + p,
+.tlui-cmt-text ol + p {
 	margin-top: 6px;
 }
 
-.cmt-text ul,
-.cmt-text ol {
+.tlui-cmt-text ul,
+.tlui-cmt-text ol {
 	margin: 0;
 	padding-left: 18px;
 }
 
-.cmt-text code {
+.tlui-cmt-text code {
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 	font-size: 0.92em;
 	background: var(--tl-color-muted-2);
@@ -86,18 +86,18 @@
 	padding: 0 3px;
 }
 
-.cmt-text mark {
+.tlui-cmt-text mark {
 	background: color-mix(in srgb, #ffeb3b 60%, transparent);
 	color: inherit;
 	border-radius: 2px;
 }
 
-.cmt-text a {
+.tlui-cmt-text a {
 	color: var(--tl-color-selected);
 	text-decoration: underline;
 }
 
-.cmt-avatar {
+.tlui-cmt-avatar {
 	width: 28px;
 	height: 28px;
 	border-radius: 50%;
@@ -111,7 +111,7 @@
 	flex-shrink: 0;
 }
 
-.cmt-avatar--image {
+.tlui-cmt-avatar--image {
 	object-fit: cover;
 	background: none;
 }
@@ -119,14 +119,14 @@
 /* composer — an avatar beside a rounded-rect field holding the rich-text input and the send button.
    Formatting is applied via markdown and keyboard shortcuts (no toolbar). The avatar aligns to the
    top so it stays put as the field grows to multiple lines. */
-.cmt-composer {
+.tlui-cmt-composer {
 	display: flex;
 	align-items: flex-start;
 	gap: 10px;
 	padding: 4px 0 8px 4px;
 }
 
-.cmt-composer__field {
+.tlui-cmt-composer__field {
 	flex: 1;
 	min-width: 0;
 	display: flex;
@@ -138,19 +138,19 @@
 	border-radius: var(--tl-radius-3);
 }
 
-.cmt-composer__field:focus-within {
+.tlui-cmt-composer__field:focus-within {
 	border-color: var(--tl-color-selected);
 }
 
 /* the editable area, with the placeholder overlaid while it's empty */
-.cmt-composer__input-wrap {
+.tlui-cmt-composer__input-wrap {
 	position: relative;
 	flex: 1;
 	min-width: 0;
 	padding: 3px 0;
 }
 
-.cmt-input {
+.tlui-cmt-input {
 	font: inherit;
 	font-size: 13px;
 	line-height: 1.4;
@@ -163,23 +163,23 @@
 	word-break: break-word;
 }
 
-.cmt-input p {
+.tlui-cmt-input p {
 	margin: 0;
 }
 
-.cmt-input p + p,
-.cmt-input p + ul,
-.cmt-input p + ol {
+.tlui-cmt-input p + p,
+.tlui-cmt-input p + ul,
+.tlui-cmt-input p + ol {
 	margin-top: 4px;
 }
 
-.cmt-input ul,
-.cmt-input ol {
+.tlui-cmt-input ul,
+.tlui-cmt-input ol {
 	margin: 0;
 	padding-left: 18px;
 }
 
-.cmt-input__placeholder {
+.tlui-cmt-input__placeholder {
 	position: absolute;
 	top: 3px;
 	left: 0;
@@ -189,7 +189,7 @@
 	pointer-events: none;
 }
 
-.cmt-send {
+.tlui-cmt-send {
 	border: 0;
 	border-radius: var(--tl-radius-2);
 	background: var(--tl-color-selected);
@@ -202,29 +202,29 @@
 	align-self: flex-end;
 }
 
-.cmt-send:hover,
-.pseudo-hover .cmt-send {
+.tlui-cmt-send:hover,
+.pseudo-hover .tlui-cmt-send {
 	background: color-mix(in srgb, var(--tl-color-selected) 88%, black);
 }
 
-.cmt-send:active,
-.pseudo-active .cmt-send {
+.tlui-cmt-send:active,
+.pseudo-active .tlui-cmt-send {
 	background: color-mix(in srgb, var(--tl-color-selected) 78%, black);
 }
 
-.cmt-send:focus-visible,
-.pseudo-focus-visible .cmt-send {
+.tlui-cmt-send:focus-visible,
+.pseudo-focus-visible .tlui-cmt-send {
 	outline: 2px solid var(--tl-color-selected);
 	outline-offset: 2px;
 }
 
-.cmt-send:disabled {
+.tlui-cmt-send:disabled {
 	opacity: 0.45;
 	cursor: not-allowed;
 }
 
 /* pin */
-.cmt-pin {
+.tlui-cmt-pin {
 	width: 34px;
 	height: 34px;
 	border-radius: 50% 50% 50% 3px;
@@ -242,14 +242,14 @@
 		box-shadow 0.08s ease;
 }
 
-.cmt-pin:hover,
-.pseudo-hover .cmt-pin {
+.tlui-cmt-pin:hover,
+.pseudo-hover .tlui-cmt-pin {
 	transform: scale(1.08);
 	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
 }
 
 /* open: the thread is showing — a selection ring marks the active pin */
-.cmt-pin--open {
+.tlui-cmt-pin--open {
 	box-shadow:
 		0 0 0 3px var(--tl-color-panel),
 		0 0 0 5px var(--tl-color-selected),
@@ -258,17 +258,17 @@
 
 /* resolved: a solid, muted grey (the default --tl-color-muted-1 is 10% black, so it goes
    translucent over the canvas). Dark mode gets its own grey — the token's dark value is near-black. */
-.cmt-pin--resolved {
+.tlui-cmt-pin--resolved {
 	background: #dfe0e1;
 	color: hsl(214, 8%, 42%);
 }
-.tl-theme__dark .cmt-pin--resolved {
+.tl-theme__dark .tlui-cmt-pin--resolved {
 	background: hsl(240, 5%, 30%);
 	color: hsl(0, 0%, 72%);
 }
 
 /* count badge */
-.cmt-count-badge {
+.tlui-cmt-count-badge {
 	width: 34px;
 	height: 34px;
 	border-radius: 50%;
@@ -284,14 +284,14 @@
 }
 
 /* thread */
-.cmt-thread {
+.tlui-cmt-thread {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 	width: 300px;
 }
 
-.cmt-thread__head {
+.tlui-cmt-thread__head {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -302,7 +302,7 @@
 	letter-spacing: 0.04em;
 }
 
-.cmt-badge {
+.tlui-cmt-badge {
 	font-size: 10px;
 	font-weight: 600;
 	text-transform: none;
@@ -314,12 +314,12 @@
 }
 
 /* reactions */
-.cmt-reactions {
+.tlui-cmt-reactions {
 	display: flex;
 	gap: 6px;
 }
 
-.cmt-reaction {
+.tlui-cmt-reaction {
 	display: inline-flex;
 	align-items: center;
 	gap: 5px;
@@ -333,27 +333,27 @@
 	cursor: pointer;
 }
 
-.cmt-reaction:hover,
-.pseudo-hover .cmt-reaction {
+.tlui-cmt-reaction:hover,
+.pseudo-hover .tlui-cmt-reaction {
 	border-color: var(--tl-color-selected);
 }
 
-.cmt-reaction--active {
+.tlui-cmt-reaction--active {
 	border-color: var(--tl-color-selected);
 	background: color-mix(in srgb, var(--tl-color-selected) 12%, var(--tl-color-panel));
 }
 
-.cmt-reaction__count {
+.tlui-cmt-reaction__count {
 	color: var(--tl-color-text-3);
 }
 
-.cmt-reaction--add {
+.tlui-cmt-reaction--add {
 	color: var(--tl-color-text-3);
 	font-weight: 600;
 }
 
 /* mention */
-.cmt-mention {
+.tlui-cmt-mention {
 	color: var(--tl-color-selected);
 	font-weight: 600;
 	background: color-mix(in srgb, var(--tl-color-selected) 12%, transparent);
@@ -362,7 +362,7 @@
 }
 
 /* mention picker */
-.cmt-mention-list {
+.tlui-cmt-mention-list {
 	display: flex;
 	flex-direction: column;
 	gap: 1px;
@@ -378,7 +378,7 @@
 	box-shadow: var(--tl-shadow-2, 0 2px 12px rgba(0, 0, 0, 0.14));
 }
 
-.cmt-mention-list__item {
+.tlui-cmt-mention-list__item {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -392,19 +392,19 @@
 	font: inherit;
 }
 
-.cmt-mention-list__item--active,
-.cmt-mention-list__item:hover {
+.tlui-cmt-mention-list__item--active,
+.tlui-cmt-mention-list__item:hover {
 	background: var(--tl-color-muted-2, rgba(0, 0, 0, 0.06));
 }
 
-.cmt-mention-list__text {
+.tlui-cmt-mention-list__text {
 	display: flex;
 	flex-direction: column;
 	min-width: 0;
 	line-height: 1.3;
 }
 
-.cmt-mention-list__name {
+.tlui-cmt-mention-list__name {
 	font-size: 13px;
 	font-weight: 500;
 	white-space: nowrap;
@@ -412,13 +412,13 @@
 	text-overflow: ellipsis;
 }
 
-.cmt-mention-list__you {
+.tlui-cmt-mention-list__you {
 	margin-left: 4px;
 	font-weight: 400;
 	color: var(--tl-color-text-3);
 }
 
-.cmt-mention-list__secondary {
+.tlui-cmt-mention-list__secondary {
 	font-size: 12px;
 	color: var(--tl-color-text-3);
 	white-space: nowrap;
@@ -426,7 +426,7 @@
 	text-overflow: ellipsis;
 }
 
-.cmt-mention-list--empty {
+.tlui-cmt-mention-list--empty {
 	padding: 8px 10px;
 	width: 100%;
 	box-sizing: border-box;
@@ -435,13 +435,13 @@
 }
 
 /* the @-picker popup — caret-anchored above the page, positioned by the suggestion plugin */
-.cmt-mention-popup {
+.tlui-cmt-mention-popup {
 	position: fixed;
 	z-index: var(--tl-layer-menus);
 }
 
 /* empty state */
-.cmt-empty {
+.tlui-cmt-empty {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -451,11 +451,11 @@
 	width: 240px;
 }
 
-.cmt-empty__icon {
+.tlui-cmt-empty__icon {
 	font-size: 28px;
 }
 
-.cmt-empty__message {
+.tlui-cmt-empty__message {
 	margin: 0;
 	color: var(--tl-color-text-3);
 	font-size: 13px;
@@ -464,7 +464,7 @@
 
 /* a comment thread: an elevated panel — the same surface treatment as the toolbar — holding a
    header, an optional resolved banner, the comments, and a reply composer */
-.cmt-thread {
+.tlui-cmt-thread {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
@@ -474,22 +474,22 @@
 	border-radius: var(--tl-radius-4);
 	box-shadow: var(--tl-shadow-2);
 }
-.cmt-thread__header {
+.tlui-cmt-thread__header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	padding: 2px 2px 2px 4px;
 }
-.cmt-thread__title {
+.tlui-cmt-thread__title {
 	font-size: 12px;
 	font-weight: 600;
 	color: var(--tl-color-text-1);
 }
-.cmt-thread__actions {
+.tlui-cmt-thread__actions {
 	display: flex;
 	gap: 2px;
 }
-.cmt-thread__action {
+.tlui-cmt-thread__action {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -504,25 +504,25 @@
 	line-height: 1;
 	cursor: pointer;
 }
-.cmt-thread__action:hover {
+.tlui-cmt-thread__action:hover {
 	background: var(--tl-color-muted-2);
 	color: var(--tl-color-text-1);
 }
-.cmt-thread__resolved {
+.tlui-cmt-thread__resolved {
 	padding: 6px 10px;
 	border-radius: 8px;
 	background: var(--tl-color-muted-2);
 	font-size: 12px;
 	color: var(--tl-color-text-3);
 }
-.cmt-thread__list {
+.tlui-cmt-thread__list {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
 }
 /* inside the panel, comments are plain content — no surrounding box; the composer's field carries
    its own surface. */
-.cmt-thread .cmt-card {
+.tlui-cmt-thread .tlui-cmt-card {
 	width: 100%;
 	padding: 6px 0 6px 4px;
 	background: transparent;
@@ -530,13 +530,13 @@
 }
 
 /* comments list — thread summaries, one per row (used by the canvas sidebar) */
-.cmt-list {
+.tlui-cmt-list {
 	display: flex;
 	flex-direction: column;
 	width: 100%;
 	min-height: 0;
 }
-.cmt-list__header {
+.tlui-cmt-list__header {
 	flex-shrink: 0;
 	display: flex;
 	align-items: center;
@@ -545,7 +545,7 @@
 	padding: 6px 6px 6px 14px;
 	border-bottom: 1px solid var(--tl-color-divider);
 }
-.cmt-list__header-title {
+.tlui-cmt-list__header-title {
 	font-size: 11px;
 	font-weight: 600;
 	letter-spacing: 0.06em;
@@ -554,7 +554,7 @@
 }
 
 /* a small square icon button in the sidebar header (filter funnel, overflow …) */
-.cmt-header-btn {
+.tlui-cmt-header-btn {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -567,19 +567,19 @@
 	color: var(--tl-color-text-2);
 	cursor: pointer;
 }
-.cmt-header-btn:hover,
-.cmt-header-btn[data-state='open'] {
+.tlui-cmt-header-btn:hover,
+.tlui-cmt-header-btn[data-state='open'] {
 	background: var(--tl-color-muted-2);
 	color: var(--tl-color-text-1);
 }
-.cmt-list__header-actions {
+.tlui-cmt-list__header-actions {
 	display: flex;
 	align-items: center;
 	gap: 2px;
 }
 
 /* a menu row with a label and a right-aligned shortcut hint (overflow menu) */
-.cmt-menu-item {
+.tlui-cmt-menu-item {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -594,24 +594,24 @@
 	color: var(--tl-color-text-1);
 	cursor: pointer;
 }
-.cmt-menu-item:hover {
+.tlui-cmt-menu-item:hover {
 	background: var(--tl-color-muted-2);
 }
-.cmt-menu-item__shortcut {
+.tlui-cmt-menu-item__shortcut {
 	color: var(--tl-color-text-3);
 	font-size: 12px;
 }
-.cmt-list__items {
+.tlui-cmt-list__items {
 	flex: 1;
 	min-height: 0;
 	overflow-y: auto;
 }
-.cmt-list__empty {
+.tlui-cmt-list__empty {
 	padding: 20px 14px;
 	color: var(--tl-color-text-3);
 	font-size: 13px;
 }
-.cmt-list__item {
+.tlui-cmt-list__item {
 	display: flex;
 	gap: 10px;
 	width: 100%;
@@ -623,22 +623,22 @@
 	text-align: left;
 	cursor: pointer;
 }
-.cmt-list__item:hover {
+.tlui-cmt-list__item:hover {
 	background: var(--tl-color-muted-2);
 }
-.cmt-list__item--selected {
+.tlui-cmt-list__item--selected {
 	background: var(--tl-color-muted-1);
 }
 /* resolved rows mute their content but keep the "Resolved" marker legible */
-.cmt-list__item[data-resolved] .cmt-head,
-.cmt-list__item[data-resolved] .cmt-list__item-preview {
+.tlui-cmt-list__item[data-resolved] .tlui-cmt-head,
+.tlui-cmt-list__item[data-resolved] .tlui-cmt-list__item-preview {
 	opacity: 0.55;
 }
-.cmt-list__item-body {
+.tlui-cmt-list__item-body {
 	flex: 1;
 	min-width: 0;
 }
-.cmt-list__item-preview {
+.tlui-cmt-list__item-preview {
 	margin-top: 2px;
 	font-size: 13px;
 	color: var(--tl-color-text-1);
@@ -649,7 +649,7 @@
 	-webkit-box-orient: vertical;
 }
 /* meta line under the preview: page label and/or a resolved marker */
-.cmt-list__item-meta {
+.tlui-cmt-list__item-meta {
 	display: flex;
 	align-items: center;
 	gap: 8px;
@@ -657,20 +657,20 @@
 	font-size: 11px;
 	color: var(--tl-color-text-3);
 }
-.cmt-list__item-resolved {
+.tlui-cmt-list__item-resolved {
 	display: inline-flex;
 	align-items: center;
 	gap: 3px;
 	font-weight: 600;
 }
-.cmt-list__item-page {
+.tlui-cmt-list__item-page {
 	display: inline-flex;
 	align-items: center;
 	padding: 1px 6px;
 	border-radius: 4px;
 	background: var(--tl-color-muted-2);
 }
-.cmt-list__item-count {
+.tlui-cmt-list__item-count {
 	flex-shrink: 0;
 	align-self: center;
 	font-size: 12px;

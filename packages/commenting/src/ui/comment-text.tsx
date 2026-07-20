@@ -8,5 +8,5 @@ export interface CommentTextProps {
 
 /** A comment's body, rendered as markdown (bold, italic, code, links, lists). @public @react */
 export function CommentText({ text }: CommentTextProps) {
-	return <div className="cmt-text">{renderMarkdown(text)}</div>
+	return <div className="tlui-cmt-text">{renderMarkdown(text)}</div>
 }

@@ -1,4 +1,4 @@
-/* Bounds the shared cmt-list inside the popover so its items scroll. */
+/* Bounds the shared tlui-cmt-list inside the popover so its items scroll. */
 .wrap {
 	display: flex;
 	flex-direction: column;

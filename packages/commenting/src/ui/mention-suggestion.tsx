@@ -139,7 +139,7 @@ export function createMentionSuggestion(
 			// the caret, matching its width), and remember the field's page-space anchor for reposition.
 			const place = () => {
 				if (!container || !editorEl || container.style.display === 'none') return
-				const field = editorEl.closest('.cmt-composer__field') ?? editorEl
+				const field = editorEl.closest('.tlui-cmt-composer__field') ?? editorEl
 				const rect = field.getBoundingClientRect()
 				popupWidth = rect.width
 				anchorPage = options.editor?.screenToPage({ x: rect.left, y: rect.bottom }) ?? null
@@ -193,7 +193,7 @@ export function createMentionSuggestion(
 			// only redispatch when it can't). Done imperatively because the popup lives outside React.
 			const onWheel = (e: WheelEvent) => {
 				if ((e as any).isSpecialRedispatchedEvent || !canvasEl) return
-				const list = container?.querySelector('.cmt-mention-list')
+				const list = container?.querySelector('.tlui-cmt-mention-list')
 				if (list && list.scrollHeight > list.clientHeight) return
 				e.preventDefault()
 				const redispatched = new WheelEvent('wheel', e)
@@ -217,7 +217,7 @@ export function createMentionSuggestion(
 					// composer — leaving Escape a no-op and the roster stuck on screen.
 					editorEl.addEventListener('blur', hide)
 					container = document.createElement('div')
-					container.className = 'cmt-mention-popup'
+					container.className = 'tlui-cmt-mention-popup'
 					container.appendChild(renderer.element)
 					// Mount inside the tldraw container so the popup inherits the theme variables
 					// (--tl-color-*); portaling to document.body would strip them and lose the panel.

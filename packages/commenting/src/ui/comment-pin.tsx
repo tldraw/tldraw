@@ -14,7 +14,11 @@ export interface CommentPinProps {
  * presentational — it reflects open/resolved state via CSS; wrap it to make it clickable.
  * @public @react */
 export function CommentPin({ children, resolved, open }: CommentPinProps) {
-	const className = ['cmt-pin', resolved && 'cmt-pin--resolved', open && 'cmt-pin--open']
+	const className = [
+		'tlui-cmt-pin',
+		resolved && 'tlui-cmt-pin--resolved',
+		open && 'tlui-cmt-pin--open',
+	]
 		.filter(Boolean)
 		.join(' ')
 	return <div className={className}>{resolved ? '✓' : children}</div>

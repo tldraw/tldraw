@@ -52,7 +52,7 @@
 	background: var(--tl-color-panel);
 }
 
-.scene__sidebar .cmt-list {
+.scene__sidebar .tlui-cmt-list {
 	height: 100%;
 }
 

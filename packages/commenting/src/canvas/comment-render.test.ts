@@ -38,7 +38,7 @@ describe('renderCommentHtml', () => {
 	it('renders a mention as a pill and resolves its id to the current name', () => {
 		const body = doc(para(text('hey '), mention('u1', 'Ada')))
 		const html = renderCommentHtml(body, (id) => (id === 'u1' ? 'Ada Lovelace' : '?'))
-		expect(html).toContain('cmt-mention')
+		expect(html).toContain('tlui-cmt-mention')
 		// the live name from the resolver, not the label stored at insert time
 		expect(html).toContain('@Ada Lovelace')
 		expect(html).not.toContain('@Ada<')
