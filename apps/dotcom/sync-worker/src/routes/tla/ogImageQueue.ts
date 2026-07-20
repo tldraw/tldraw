@@ -1,4 +1,5 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
+import { RoomSnapshot } from '@tldraw/sync-core'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment, OgImageRenderQueueMessage } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
@@ -14,8 +15,10 @@ import {
 	GLOBAL_BROWSER_RUN_RATE_LIMIT,
 	base64ToArrayBuffer,
 	buildThumbnailRenderUrl,
+	enumerateBoardPages,
 	getRenderOrigin,
 	isRateLimited,
+	loadBoardSnapshot,
 	renderThumbnailScreenshot,
 } from './sharedBoardScreenshotMcp'
 import { classifyScreenshotFailure, sha256 } from './thumbnailShared'
@@ -86,6 +89,15 @@ export async function resolveOgBoardInfo(
 		slug,
 		version: persisted.etag,
 	}
+}
+
+// OG images render a single page as the unfurl preview. Pick the first page (in board order) that
+// has content, so a board whose first page is empty still gets a meaningful image; fall back to the
+// first page when none have content (the render degrades to a blank, as it did before).
+function pickOgImagePageId(snapshot: RoomSnapshot): string | undefined {
+	const pages = enumerateBoardPages(snapshot)
+	if (pages.length === 0) return undefined
+	return (pages.find((page) => page.hasContent) ?? pages[0]).id
 }
 
 export function getOgImageCacheKey(board: Pick<ResolvedOgBoard, 'kind' | 'slug'>) {
@@ -184,12 +196,20 @@ export async function handleOgImageRenderMessage(
 			return
 		}
 
+		// Target the first page that has content so a board whose first page is empty still gets a
+		// meaningful unfurl image (the render page otherwise exports whichever page the snapshot opens
+		// to, typically the first). Falls back to no pageId when the snapshot can't be read, keeping
+		// the prior "render the page the snapshot opens to" behavior.
+		const snapshot = await loadBoardSnapshot(env, board)
+		const pageId = snapshot ? pickOgImagePageId(snapshot) : undefined
+
 		const job: ThumbnailRenderJob = {
 			v: 1,
 			kind,
 			slug,
 			version: board.version,
 			camera: 'content',
+			...(pageId ? { pageId } : null),
 			x: 0,
 			y: 0,
 			z: 1,
@@ -200,8 +220,8 @@ export async function handleOgImageRenderMessage(
 		}
 		const token = await mintThumbnailRenderToken(env, job)
 		const renderUrl = buildThumbnailRenderUrl(getRenderOrigin(env), token)
-		// The render page exports the board's current page; the worker screenshots it through the
-		// BROWSER binding and writes the PNG to the cache key the OG route reads.
+		// The render page exports the chosen page; the worker screenshots it through the BROWSER
+		// binding and writes the PNG to the cache key the OG route reads.
 		const render = await renderThumbnailScreenshot(renderUrl, env)
 		await env.THUMBNAILS.put(cacheKey, base64ToArrayBuffer(render.base64), {
 			httpMetadata: { contentType: 'image/png' },

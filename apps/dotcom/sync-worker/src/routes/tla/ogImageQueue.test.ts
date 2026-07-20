@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { OgImageRenderQueueMessage } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
-import { getPublishedFileInfo } from './getPublishedFile'
+import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo } from './getSharedFile'
 import {
 	enqueueOgImageRender,
@@ -21,11 +21,13 @@ import { resetRateLimitFallbackForTests } from './sharedBoardScreenshotMcp'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
+	getPublishedRoomSnapshot: vi.fn(),
 }))
 
 vi.mock('./getSharedFile', async (importOriginal) => ({
 	...(await importOriginal<typeof import('./getSharedFile')>()),
 	getSharedFileInfo: vi.fn(),
+	getSharedFileRoomSnapshot: vi.fn(),
 }))
 
 afterEach(() => {
@@ -44,6 +46,21 @@ function makeMessage(
 		ack: vi.fn(),
 		retry: vi.fn(),
 	} as any
+}
+
+// Builds a room snapshot with the given pages and per-page shape counts. Shapes are parented
+// directly to their page, which is what enumerateBoardPages checks for "has content".
+function makeSnapshot(pages: Array<{ id: string; index: string; shapes: number }>) {
+	const documents: Array<{ state: any }> = []
+	for (const page of pages) {
+		documents.push({ state: { typeName: 'page', id: page.id, index: page.index } })
+		for (let i = 0; i < page.shapes; i++) {
+			documents.push({
+				state: { typeName: 'shape', id: `shape:${page.id}-${i}`, parentId: page.id },
+			})
+		}
+	}
+	return { documents, schema: { schemaVersion: 2, sequences: {} } } as any
 }
 
 describe('enqueueOgImageRender', () => {
@@ -102,6 +119,45 @@ describe('handleOgImageRenderMessage', () => {
 			version: '1751234567890',
 			createdAt: expect.any(String),
 		})
+	})
+
+	it('targets the first page that has content when the first page is empty', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 42,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(
+			makeSnapshot([
+				{ id: 'page:empty', index: 'a1', shapes: 0 },
+				{ id: 'page:full', index: 'a2', shapes: 3 },
+			])
+		)
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+		const message = makeMessage({ kind: 'published', slug: 'board' })
+
+		await handleOgImageRenderMessage(env, message)
+
+		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
+		expect(job).toMatchObject({ pageId: 'page:full' })
+	})
+
+	it('omits pageId when the snapshot cannot be read, keeping the default page', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 42,
+		})
+		// clearAllMocks resets call history but not mockResolvedValue, so clear a snapshot another test
+		// may have set; an unreadable snapshot makes loadBoardSnapshot yield null and drop pageId.
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(undefined as any)
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+		const message = makeMessage({ kind: 'published', slug: 'board' })
+
+		await handleOgImageRenderMessage(env, message)
+
+		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
+		expect(job?.pageId).toBeUndefined()
 	})
 
 	it('renders shared files and keys their version on the room etag', async () => {

@@ -31,10 +31,17 @@ const MCP_PROTOCOL_VERSION = '2024-11-05'
 // screenshot Quick Action. Shared with the render page (which sizes its own settle budget under this)
 // via @tldraw/dotcom-shared so the two deadlines can't drift.
 const RENDER_TIMEOUT_MS = THUMBNAIL_RENDER_TIMEOUT_MS
-// The render page sets this once its exported image has painted; the screenshot Quick Action waits
-// on it before capturing. A page that errors never sets it, so the capture times out (surfaced as a
-// render failure) rather than screenshotting a broken page.
-const RENDER_READY_SELECTOR = '[data-thumbnail-ready="true"]'
+// The render page marks a terminal state on <body>/<html>: success sets data-thumbnail-ready once the
+// exported image has painted; any failure (bad token, snapshot load, export, or image decode) sets
+// data-thumbnail-error. The screenshot Quick Action waits for EITHER, so a failed render returns as
+// soon as it errors instead of burning the whole RENDER_TIMEOUT_MS holding scarce Browser Run
+// capacity.
+const RENDER_SETTLED_SELECTOR = '[data-thumbnail-ready="true"], [data-thumbnail-error]'
+// The element the Quick Action actually captures. It exists only on the success path, so when the
+// wait above resolves on a failure there is nothing to screenshot and the Quick Action returns an
+// error immediately (surfaced as a render failure) rather than capturing the error page. Scoped to
+// <body> so it resolves to a single element (both <html> and <body> carry the ready marker).
+const RENDER_CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
 
 // Per-IP and per-board limits protect the endpoint and individual boards; the global limit caps
 // total Browser Rendering spend across all callers. The Cloudflare bindings in wrangler.toml enforce
@@ -218,9 +225,9 @@ export async function resolveSharedBoardById(
 	return { ok: false, reason: 'not_found' }
 }
 
-async function loadBoardSnapshot(
+export async function loadBoardSnapshot(
 	env: Environment,
-	board: ResolvedBoard
+	board: { kind: 'published' | 'shared_file'; slug: string }
 ): Promise<RoomSnapshot | null> {
 	try {
 		const snapshot =
@@ -528,8 +535,9 @@ function decodeThumbnailPageName(value: string | undefined): string {
 // The thumbnail pixels come from editor.toImage on the render page: the page exports the target page
 // itself and displays it as a full-viewport image, and the Browser Rendering `/screenshot` Quick
 // Action (called straight through the BROWSER binding, no puppeteer, no API token) captures exactly
-// that. Chrome runs in Cloudflare's fleet, not in this isolate. A page that fails to export never
-// sets the ready selector, so the capture times out and surfaces as a render failure.
+// that. Chrome runs in Cloudflare's fleet, not in this isolate. A render that fails marks an error
+// state instead of the ready one, so the Quick Action returns quickly and surfaces as a render
+// failure (see RENDER_SETTLED_SELECTOR / RENDER_CAPTURE_SELECTOR) rather than burning the timeout.
 export async function renderThumbnailScreenshot(
 	renderUrl: string,
 	env: Environment
@@ -566,20 +574,26 @@ function getScreenshotRequestBody(renderUrl: string) {
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			deviceScaleFactor: 1,
 		},
-		// Waiting for the ready selector is the real completion signal; waiting for network idle is
+		// Waiting for a terminal selector is the real completion signal; waiting for network idle is
 		// fragile because background app requests (e.g. replicator-status polling) can keep the
 		// network busy indefinitely.
 		gotoOptions: {
 			waitUntil: 'load',
 			timeout: RENDER_TIMEOUT_MS,
 		},
+		// Resolve as soon as the render page reaches either terminal state (ready or error), so a
+		// failed render doesn't hold Browser Run capacity for the full timeout.
 		waitForSelector: {
-			selector: RENDER_READY_SELECTOR,
+			selector: RENDER_SETTLED_SELECTOR,
 			timeout: RENDER_TIMEOUT_MS,
 		},
+		// Capture the success-only element (it fills the viewport, so this matches the old full-viewport
+		// screenshot). On a failure it's absent, so the Quick Action errors out immediately instead of
+		// screenshotting the error page. `selector` targets an element without waiting (waitForSelector
+		// above is the wait), so a missing element fails fast rather than re-waiting the timeout.
+		selector: RENDER_CAPTURE_SELECTOR,
 		screenshotOptions: {
 			type: 'png',
-			fullPage: false,
 		},
 	}
 }

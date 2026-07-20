@@ -279,6 +279,28 @@ describe('get_shared_board_screenshot', () => {
 		expect(job).toMatchObject({ pageId: 'page:b' })
 	})
 
+	it('waits on either terminal selector and captures a success-only element so failed renders fail fast', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		await sharedBoardScreenshotMcp(
+			makeToolCall('203.0.113.18', 'get_shared_board_screenshot', { boardId: 'abc' }),
+			env
+		)
+
+		const body = screenshotOf(env).mock.calls[0]![1] as {
+			waitForSelector: { selector: string }
+			selector: string
+		}
+		// Waits on ready OR error, so an errored render returns instead of burning the full timeout.
+		expect(body.waitForSelector.selector).toBe(
+			'[data-thumbnail-ready="true"], [data-thumbnail-error]'
+		)
+		// Captures a success-only element, so a failed render has nothing to screenshot and the Quick
+		// Action errors out immediately rather than screenshotting the error page.
+		expect(body.selector).toBe('body[data-thumbnail-ready="true"]')
+	})
+
 	it('serves a cached page without screenshotting again', async () => {
 		mockPublishedBoard()
 		const bucket = makeFakeThumbnailsBucket()
