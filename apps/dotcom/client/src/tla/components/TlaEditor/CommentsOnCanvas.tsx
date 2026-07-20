@@ -104,14 +104,11 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		},
 		[app, fileId]
 	)
-	// Roster authors keyed by id. The workspace roster is the id→name source for a mentioned member
-	// who's committed no comment and isn't currently present — without it, they resolve to nothing
-	// and render as the byline default rather than their name.
+	// Roster authors keyed by id — a MentionMember is a CommentAuthor. The workspace roster is the
+	// id→name source for a mentioned member who's committed no comment and isn't currently present —
+	// without it, they resolve to nothing and render as the byline default rather than their name.
 	const memberAuthors = useMemo(
-		() =>
-			new Map<string, CommentAuthor>(
-				mentionMembers.map((m) => [m.id, { name: m.name, color: m.color }])
-			),
+		() => new Map<string, CommentAuthor>(mentionMembers.map((m) => [m.id, m])),
 		[mentionMembers]
 	)
 	// Resolve an id to current display info from the sources the client has: self, comment

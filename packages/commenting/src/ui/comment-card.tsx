@@ -24,7 +24,7 @@ export function CommentCard({ author, body, date, you, edited, actions }: Commen
 		<div className={you ? 'tlui-cmt-card tlui-cmt-card--you' : 'tlui-cmt-card'}>
 			<Avatar author={author} />
 			<div className="tlui-cmt-body">
-				<Byline author={author.name} date={date} edited={edited} />
+				<Byline author={author} date={date} edited={edited} />
 				{body}
 			</div>
 			{actions !== undefined && <div className="tlui-cmt-card__actions">{actions}</div>}

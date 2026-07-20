@@ -11,7 +11,7 @@ import {
 } from 'tldraw'
 import { CommentAuthor } from '../ui/comment-author'
 import { CommentListItemProps, CommentsList } from '../ui/comments-list'
-import { UNKNOWN_AUTHOR } from './comment-render'
+import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
 import { CommentsOverflowMenu } from './comments-overflow-menu'
 import { useComments, useCommentThreads } from './hooks'
@@ -124,7 +124,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 			}
 			return {
 				id: thread.id,
-				author: resolveAuthor(thread.createdBy) ?? { name: UNKNOWN_AUTHOR },
+				author: resolveAuthor(thread.createdBy) ?? UNKNOWN_COMMENT_AUTHOR,
 				preview,
 				date: new Date((first ?? thread).createdAt).toISOString(),
 				resolved: thread.resolved != null,

@@ -23,16 +23,14 @@ const ADA_AVATAR =
 // filters this list as you type after `@`. Ids match the author directory below.
 const MEMBERS: MentionMember[] = [
 	{ id: 'me', name: 'You', color: '#EC5E41', you: true },
-	{ id: 'ada', name: 'Ada Lovelace', color: '#0E9F6E', avatar: ADA_AVATAR },
+	{ id: 'ada', name: 'Ada Lovelace', color: '#0E9F6E', image: ADA_AVATAR },
 	{ id: 'grace', name: 'Grace Hopper', color: '#4465E9' },
 	{ id: 'alan', name: 'Alan Turing', color: '#9C1FBE' },
 ]
 
 // A tiny local user directory so the flow shows names, colors, and images instead of ids. A real
 // app would resolve these from its own identity system.
-const AUTHORS: Record<string, CommentAuthor> = Object.fromEntries(
-	MEMBERS.map((m) => [m.id, { name: m.name, color: m.color, image: m.avatar }])
-)
+const AUTHORS: Record<string, CommentAuthor> = Object.fromEntries(MEMBERS.map((m) => [m.id, m]))
 const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 
 // Region comments are off by default (click-only). Enable dragging out a rectangle to comment on an

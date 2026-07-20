@@ -108,7 +108,7 @@ function CommentListItem({
 		>
 			<Avatar author={author} />
 			<div className="tlui-cmt-list__item-body">
-				<Byline author={author.name} date={date} />
+				<Byline author={author} date={date} />
 				<div className="tlui-cmt-list__item-preview">{preview}</div>
 				{(resolved || page !== undefined) && (
 					<div className="tlui-cmt-list__item-meta">

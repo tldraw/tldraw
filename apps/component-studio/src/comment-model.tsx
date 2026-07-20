@@ -1,4 +1,4 @@
-import { CommentCardProps, CommentText } from '@tldraw/commenting'
+import { CommentAuthor, CommentCardProps, CommentText } from '@tldraw/commenting'
 import {
 	createComment,
 	createCommentThread,
@@ -14,18 +14,13 @@ import {
 // them onto the presentational commenting components through an adapter — the same boundary
 // the real editor will use. Rich-text bodies are authored here as markdown text.
 
-interface User {
-	id: string
-	name: string
+const USERS: Record<string, CommentAuthor> = {
+	ada: { name: 'Ada Lovelace' },
+	me: { name: 'You' },
 }
 
-const USERS: Record<string, User> = {
-	ada: { id: 'ada', name: 'Ada Lovelace' },
-	me: { id: 'me', name: 'You' },
-}
-
-function resolveUser(id: string): User {
-	return USERS[id] ?? { id, name: id }
+function resolveUser(id: string): CommentAuthor {
+	return USERS[id] ?? { name: id }
 }
 
 /** Flatten a rich-text body to its source string. `toRichText` puts each line in its own
@@ -40,7 +35,7 @@ function richTextToString(rich: TLRichText): string {
 /** Adapt a TLComment record to CommentCard props — the "components consume the model" boundary. */
 export function commentToCardProps(comment: TLComment): CommentCardProps {
 	return {
-		author: { name: resolveUser(comment.authorId).name },
+		author: resolveUser(comment.authorId),
 		body: <CommentText text={richTextToString(comment.body)} />,
 		date: new Date(comment.createdAt).toISOString(),
 		you: comment.authorId === 'me',

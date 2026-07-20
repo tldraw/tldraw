@@ -44,7 +44,7 @@ import { MentionMember } from '../ui/mention-list'
 import { isMentionPickerOpen } from '../ui/mention-suggestion'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
-import { UNKNOWN_AUTHOR } from './comment-render'
+import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { getCommentRecord, putCommentRecords, removeCommentRecords } from './comment-store'
 import { PendingComment } from './comment-tool'
 import { useCommentThreads, useThreadComments } from './hooks'
@@ -150,7 +150,7 @@ function toCardProps(
 		<CommentBody richText={comment.body} resolveName={resolveName} />
 	)
 	return {
-		author: props.resolveAuthor(comment.authorId) ?? { name: UNKNOWN_AUTHOR },
+		author: props.resolveAuthor(comment.authorId) ?? UNKNOWN_COMMENT_AUTHOR,
 		body,
 		date: new Date(comment.createdAt).toISOString(),
 		you: comment.authorId === props.currentUserId,
@@ -1392,7 +1392,7 @@ const ThreadPin = memo(function ThreadPin({
 							composer={
 								currentUserId && !thread.resolved
 									? {
-											author: me ?? { name: UNKNOWN_AUTHOR },
+											author: me ?? UNKNOWN_COMMENT_AUTHOR,
 											placeholder: msg('comments.reply-placeholder'),
 											sendLabel: msg('comments.send'),
 											value: reply,

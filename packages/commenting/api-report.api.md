@@ -49,7 +49,7 @@ export function Byline({ author, date, edited }: BylineProps): JSX.Element;
 // @public (undocumented)
 export interface BylineProps {
     // (undocumented)
-    author: string;
+    author: CommentAuthor;
     date: string;
     edited?: boolean;
 }
@@ -428,14 +428,10 @@ export interface MentionListProps {
 }
 
 // @public
-export interface MentionMember {
+export interface MentionMember extends CommentAuthor {
     [key: string]: unknown;
-    avatar?: string;
-    color?: string;
     // (undocumented)
     id: string;
-    // (undocumented)
-    name: string;
     secondary?: string;
     you?: boolean;
 }
