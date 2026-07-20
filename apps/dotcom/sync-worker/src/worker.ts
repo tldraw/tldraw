@@ -185,8 +185,9 @@ const router = createRouter<Environment>()
 	.post('/app/mcp', sharedBoardScreenshotMcp)
 	// The board's rendered social preview image, referenced by the og:image tags getSocialPreview
 	// emits. Lives under the social-preview route family so the crawler HTML and its image share one
-	// path prefix.
-	.get('/app/social-preview/:prefix/:slug/image', getOgImage)
+	// path prefix. Registered with .all (like the sibling HTML route) so HEAD probes are handled;
+	// getOgImage serves headers only and skips the render enqueue for anything but GET.
+	.all('/app/social-preview/:prefix/:slug/image', getOgImage)
 	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
 	// end app
 	.all('/ph/*', (req) => {

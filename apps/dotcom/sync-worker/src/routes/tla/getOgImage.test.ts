@@ -28,9 +28,9 @@ afterEach(() => {
 	resetRateLimitFallbackForTests()
 })
 
-function makeRequest(prefix: string, slug: string) {
+function makeRequest(prefix: string, slug: string, method = 'GET') {
 	return Object.assign(
-		new Request(`https://sync.tldraw.xyz/app/social-preview/${prefix}/${slug}/image`),
+		new Request(`https://sync.tldraw.xyz/app/social-preview/${prefix}/${slug}/image`, { method }),
 		{ params: { prefix, slug } }
 	) as any
 }
@@ -140,6 +140,48 @@ describe('getOgImage', () => {
 			kind: 'shared_file',
 			slug: 'shared-file',
 		})
+	})
+
+	it('answers HEAD probes with cache headers but no body and no render enqueue', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const bucket = makeFakeThumbnailsBucket()
+		await bucket.put(
+			getOgImageCacheKey({ kind: 'published', slug: 'cached-board' }),
+			new Uint8Array([1, 2, 3]).buffer,
+			{ customMetadata: { version: '1', createdAt: String(Date.now()) } }
+		)
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: queue })
+
+		const response = await getOgImage(makeRequest('p', 'cached-board', 'HEAD'), env)
+
+		// Same headers a GET would return, so crawlers see the cache status...
+		expect(response.status).toBe(200)
+		expect(response.headers.get('content-type')).toBe('image/png')
+		expect(response.headers.get('x-tldraw-og-cache')).toBe('hit')
+		// ...but no body is read, and no Browser Run is spent.
+		expect((await response.arrayBuffer()).byteLength).toBe(0)
+		expect(queue.send).not.toHaveBeenCalled()
+	})
+
+	it('does not enqueue a render for a HEAD probe on a cold cache', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1751234567890,
+		})
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
+
+		const response = await getOgImage(makeRequest('p', 'published-board', 'HEAD'), env)
+
+		expect(response.status).toBe(302)
+		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
+		expect(queue.send).not.toHaveBeenCalled()
 	})
 
 	it('redirects private or unknown boards to the default tldraw OG image without enqueueing', async () => {

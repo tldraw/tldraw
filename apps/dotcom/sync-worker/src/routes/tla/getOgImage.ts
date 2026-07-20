@@ -30,26 +30,35 @@ const STALE_IMAGE_MAX_AGE_SECONDS = 5 * 60
 const REDIRECT_MAX_AGE_SECONDS = 60
 
 export async function getOgImage(request: IRequest, env: Environment): Promise<Response> {
+	// Crawlers probe this URL with HEAD before (or instead of) GET, so the route is registered with
+	// .all and HEAD must still return the cache/redirect headers. But a HEAD must not spend Browser
+	// Run: only a real GET reads the R2 body and enqueues a render. Any non-GET method is treated
+	// like a probe (headers only, no enqueue).
+	const wantsBody = request.method === 'GET'
 	const board = await resolveOgBoard(request, env).catch(() => null)
 	if (!board) return redirectToDefaultOgImage(request, env)
 
 	const boardHash = await sha256(board.slug)
 	const cacheKey = getOgImageCacheKey(board)
-	const cached = await env.THUMBNAILS?.get(cacheKey)
+	const cached = wantsBody
+		? await env.THUMBNAILS?.get(cacheKey)
+		: await env.THUMBNAILS?.head(cacheKey)
 	const now = Date.now()
 	if (cached && shouldServeCachedOgImage(cached, board.version, now)) {
 		writeOgImageTelemetry(env, { source: 'og', boardHash, cacheStatus: 'hit' })
-		return imageResponse(await cached.arrayBuffer(), {
+		return imageResponse(wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null, {
 			cacheStatus: 'hit',
 			maxAgeSeconds: FRESH_IMAGE_MAX_AGE_SECONDS,
 			version: cached.customMetadata?.version,
 		})
 	}
 
-	// Stale or never rendered: kick off (at most) one background render, then return the best
-	// response we have right now. The per-board limit guards the queue against being flooded on a
-	// single board's behalf; enqueue failures degrade to the fallback response rather than a 500.
+	// Stale or never rendered: a GET kicks off (at most) one background render, then returns the best
+	// response we have right now. HEAD probes skip the enqueue so they never spend Browser Run. The
+	// per-board limit guards the queue against being flooded on a single board's behalf; enqueue
+	// failures degrade to the fallback response rather than a 500.
 	if (
+		wantsBody &&
 		!(await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `og-board:${board.kind}:${board.slug}`, {
 			fallbackLimit: OG_IMAGE_BOARD_RATE_LIMIT,
 		}))
@@ -59,7 +68,7 @@ export async function getOgImage(request: IRequest, env: Environment): Promise<R
 
 	if (cached) {
 		writeOgImageTelemetry(env, { source: 'og', boardHash, cacheStatus: 'stale' })
-		return imageResponse(await cached.arrayBuffer(), {
+		return imageResponse(wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null, {
 			cacheStatus: 'stale',
 			maxAgeSeconds: STALE_IMAGE_MAX_AGE_SECONDS,
 			version: cached.customMetadata?.version,
@@ -75,7 +84,7 @@ export async function getOgImage(request: IRequest, env: Environment): Promise<R
 	return redirectToDefaultOgImage(request, env)
 }
 
-function shouldServeCachedOgImage(cached: R2ObjectBody, version: string | number, now: number) {
+function shouldServeCachedOgImage(cached: R2Object, version: string | number, now: number) {
 	const cachedVersion = cached.customMetadata?.version
 	if (cachedVersion === String(version)) return true
 
@@ -104,7 +113,7 @@ function parseSlug(value: unknown) {
 }
 
 function imageResponse(
-	body: ArrayBuffer,
+	body: ArrayBuffer | null,
 	{
 		cacheStatus,
 		maxAgeSeconds,
