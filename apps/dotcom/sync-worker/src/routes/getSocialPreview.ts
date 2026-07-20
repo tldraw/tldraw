@@ -21,7 +21,12 @@ import { R2Snapshot } from './createRoomSnapshot'
 import { cleanName, getDocumentNameFromSnapshot } from './getDocumentNameFromSnapshot'
 import { getPublicOrigin } from './tla/getOgImage'
 import { getPublishedRoomSnapshot } from './tla/getPublishedFile'
-import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from './tla/ogImageQueue'
+import {
+	OG_IMAGE_HEIGHT,
+	OG_IMAGE_WIDTH,
+	OgBoardKind,
+	resolveOgBoardInfo,
+} from './tla/ogImageQueue'
 
 // These mirror the static social preview metadata in apps/dotcom/client/index.html. They are used
 // as fallbacks so that bot-rendered previews stay consistent with the rest of the site.
@@ -51,30 +56,42 @@ export async function getSocialPreview(request: IRequest, env: Environment): Pro
 		return html(renderSocialPreview(null))
 	}
 
-	let name: string | null = null
-	try {
-		name = await getBoardName(env, prefix, slug)
-	} catch {
-		// If anything goes wrong looking up the name, fall back to the generic preview rather than
-		// failing the request — a crawler should always get _something_.
-		name = null
-	}
+	// Look up the name and resolve the thumbnail URL in parallel. Both are best-effort: if either
+	// throws we fall back to the generic preview rather than failing the request — a crawler should
+	// always get _something_.
+	const [name, boardImageUrl] = await Promise.all([
+		getBoardName(env, prefix, slug).catch(() => null),
+		getBoardOgImageUrl(request, env, prefix, slug).catch(() => null),
+	])
 
-	return html(renderSocialPreview(name, getBoardOgImageUrl(request, env, prefix, slug)))
+	return html(renderSocialPreview(name, boardImageUrl))
 }
 
-// Board kinds the social-preview image route can render (shared files and published boards) get a
-// live board thumbnail as their preview image. The route self-gates: private, deleted, or unknown
-// boards 302 to the default OG image, so it is safe to reference unconditionally, and the first
-// crawler hit enqueues the board's render.
-function getBoardOgImageUrl(
+// Shared files (`/f/`) and published boards (`/p/`) get a live board thumbnail as their preview
+// image. We only emit the thumbnail URL when the board actually resolves to a public, renderable
+// board — the same gate the image route itself applies (resolveOgBoardInfo). For private, deleted,
+// or unpublished boards the image route only ever 302s to the default OG image, and crawlers that
+// don't follow og:image redirects (notably X/Twitter) would then show a broken card. Returning null
+// for those boards keeps the static, directly-fetchable site-wide preview image instead. A board
+// that is public but not yet rendered still resolves here; the route serves the default and enqueues
+// the render on the first crawler hit.
+async function getBoardOgImageUrl(
 	request: IRequest,
 	env: Environment,
 	prefix: string,
 	slug: string
-): string | null {
-	if (prefix !== FILE_PREFIX && prefix !== PUBLISH_PREFIX) return null
+): Promise<string | null> {
+	const kind = ogBoardKindForPrefix(prefix)
+	if (!kind) return null
+	const board = await resolveOgBoardInfo(env, kind, slug)
+	if (!board) return null
 	return `${getPublicOrigin(request, env)}/api/app/social-preview/${prefix}/${encodeURIComponent(slug)}/image`
+}
+
+function ogBoardKindForPrefix(prefix: string): OgBoardKind | null {
+	if (prefix === FILE_PREFIX) return 'shared_file'
+	if (prefix === PUBLISH_PREFIX) return 'published'
+	return null
 }
 
 async function getBoardName(
