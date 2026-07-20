@@ -1,0 +1,14 @@
+.reaction-emoji-row {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	padding: 4px;
+}
+
+.reaction-emoji-row .tlui-button {
+	font-size: 20px;
+}
+
+.reaction-emoji-row .tlui-button[data-active='true'] {
+	background: var(--color-muted-2);
+}
