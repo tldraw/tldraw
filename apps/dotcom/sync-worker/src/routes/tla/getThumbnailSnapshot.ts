@@ -33,6 +33,19 @@ export async function getThumbnailSnapshot(request: IRequest, env: Environment):
 		return json({ error: true, message: 'Board not found' }, 404)
 	}
 
+	// The token can target a specific page (the MCP tool labels its result with that page's name,
+	// resolved when the token was minted). Shared files reload a live snapshot that may have changed
+	// since then, so confirm the page still exists: if it was deleted meanwhile, the render page would
+	// silently fall back to whichever page the snapshot opens to and the tool would return a PNG
+	// mislabeled with the original page's name. Fail instead, so the capture surfaces as a retryable
+	// render error rather than a wrong image.
+	if (
+		job.pageId &&
+		!snapshot.documents.some((d) => (d.state as TLRecord | undefined)?.id === job.pageId)
+	) {
+		return json({ error: true, message: 'Page not found' }, 404)
+	}
+
 	return json({
 		error: false,
 		records: snapshot.documents.map((d) => d.state) as TLRecord[],

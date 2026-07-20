@@ -76,7 +76,13 @@ describe('getThumbnailSnapshot', () => {
 
 	it('passes the target pageId through to the render params', async () => {
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue({
-			documents: [{ state: { id: 'shape:1', typeName: 'shape' }, lastChangedClock: 0 }],
+			documents: [
+				{
+					state: { id: 'page:abc', typeName: 'page', name: 'A', index: 'a1' },
+					lastChangedClock: 0,
+				},
+				{ state: { id: 'shape:1', typeName: 'shape', parentId: 'page:abc' }, lastChangedClock: 0 },
+			],
 			schema: { schemaVersion: 2, sequences: {} },
 			clock: 0,
 		} as any)
@@ -89,6 +95,31 @@ describe('getThumbnailSnapshot', () => {
 		expect(response.status).toBe(200)
 		const body = (await response.json()) as any
 		expect(body.renderParams).toMatchObject({ camera: 'content', pageId: 'page:abc' })
+	})
+
+	it('returns 404 when the token targets a page that no longer exists in the snapshot', async () => {
+		// A shared file's live snapshot can lose the targeted page to a concurrent edit between the
+		// token being minted and the render reloading the snapshot. Rendering a different page would
+		// return a PNG mislabeled with the original page name, so the endpoint fails instead.
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue({
+			documents: [
+				{
+					state: { id: 'page:still-here', typeName: 'page', name: 'A', index: 'a1' },
+					lastChangedClock: 0,
+				},
+			],
+			schema: { schemaVersion: 2, sequences: {} },
+			clock: 0,
+		} as any)
+
+		const response = await getThumbnailSnapshot(
+			makeRequest(
+				await mintToken({ kind: 'shared_file', slug: 'file-abc', pageId: 'page:deleted' })
+			),
+			env
+		)
+
+		expect(response.status).toBe(404)
 	})
 
 	it('rejects requests without a token', async () => {
