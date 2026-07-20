@@ -36,6 +36,7 @@ import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelp
 import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
+	hasActiveTextSuggestion,
 	isEditingRichTextList,
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -693,6 +694,12 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 			const isTab = e.key === 'Tab'
 			const isCmdEnter = (e.metaKey || e.ctrlKey) && e.key === 'Enter'
+
+			// While an inline suggestion (e.g. an @-mention picker) is open, it owns Tab/Enter to
+			// complete the highlighted item — defer to it rather than creating or moving between notes.
+			// Returning without preventDefault lets the suggestion plugin (which runs after this) take
+			// the key.
+			if ((isTab || isCmdEnter) && hasActiveTextSuggestion(editor)) return
 
 			if (isTab && isEditingRichTextList(editor)) {
 				// In a list, let the rich text editor indent the item instead of
