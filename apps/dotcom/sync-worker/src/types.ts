@@ -224,6 +224,12 @@ export interface OgImageRenderQueueMessage {
 	type: 'og-image-render'
 	kind: 'published' | 'shared_file'
 	slug: string
+	// How many times this job has been re-enqueued because the shared global Browser Run cap was busy
+	// (see requeueForRateLimit). Bounds the rate-limit backoff loop: each rate-limited delivery still
+	// spends one slot of the shared limiter just to discover it can't render, so an unbounded requeue
+	// chain would let the OG queue's own capacity checks saturate the limiter and starve every render
+	// surface. Absent on the initial enqueue.
+	rateLimitRequeues?: number
 }
 
 export type QueueMessage = AssetUploadQueueMessage | OgImageRenderQueueMessage

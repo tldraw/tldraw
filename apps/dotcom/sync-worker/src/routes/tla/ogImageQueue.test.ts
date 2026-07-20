@@ -7,6 +7,7 @@ import {
 	enqueueOgImageRender,
 	getOgImageCacheKey,
 	handleOgImageRenderMessage,
+	MAX_RATE_LIMIT_REQUEUES,
 } from './ogImageQueue'
 import {
 	makeBrowserBinding,
@@ -211,7 +212,8 @@ describe('handleOgImageRenderMessage', () => {
 		})
 
 		// Even on the final delivery, backpressure must re-enqueue rather than drop: the render never
-		// happened, so it should not count against the render-failure budget.
+		// happened, so it should not count against the render-failure budget. The requeue carries an
+		// incremented rate-limit counter so the backoff chain is bounded.
 		const message = makeMessage({ kind: 'published', slug: 'board' }, 3)
 		await handleOgImageRenderMessage(env, message)
 
@@ -219,8 +221,83 @@ describe('handleOgImageRenderMessage', () => {
 		expect(message.retry).not.toHaveBeenCalled()
 		expect(message.ack).toHaveBeenCalledTimes(1)
 		expect(queue.send).toHaveBeenCalledExactlyOnceWith(
-			{ type: 'og-image-render', kind: 'published', slug: 'board' },
+			{ type: 'og-image-render', kind: 'published', slug: 'board', rateLimitRequeues: 1 },
 			{ delaySeconds: 30 }
 		)
+	})
+
+	it('backs off exponentially as rate-limit requeues accumulate', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const queue = { send: vi.fn(async () => undefined) }
+		const env = makeEnv({
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+			QUEUE: queue,
+			MCP_SCREENSHOT_BROWSER_RATE_LIMITER: { limit: vi.fn(async () => ({ success: false })) },
+		})
+
+		// Already re-enqueued twice: this delivery is requeue #3, so the delay is min(30 * 2^2, 120).
+		const message = makeMessage({ kind: 'published', slug: 'board', rateLimitRequeues: 2 })
+		await handleOgImageRenderMessage(env, message)
+
+		expect(queue.send).toHaveBeenCalledExactlyOnceWith(
+			{ type: 'og-image-render', kind: 'published', slug: 'board', rateLimitRequeues: 3 },
+			{ delaySeconds: 120 }
+		)
+	})
+
+	it('stops requeueing once the rate-limit backoff budget is exhausted', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const queue = { send: vi.fn(async () => undefined) }
+		const env = makeEnv({
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+			QUEUE: queue,
+			MCP_SCREENSHOT_BROWSER_RATE_LIMITER: { limit: vi.fn(async () => ({ success: false })) },
+		})
+
+		// At the cap already: this delivery would be one requeue past the limit, so it gives up rather
+		// than looping forever and keeping the shared limiter saturated.
+		const message = makeMessage({
+			kind: 'published',
+			slug: 'board',
+			rateLimitRequeues: MAX_RATE_LIMIT_REQUEUES,
+		})
+		await handleOgImageRenderMessage(env, message)
+
+		expect(queue.send).not.toHaveBeenCalled()
+		expect(message.retry).not.toHaveBeenCalled()
+		expect(message.ack).toHaveBeenCalledTimes(1)
+	})
+
+	it('refreshes the pending marker on requeue so concurrent crawler hits coalesce', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const bucket = makeFakeThumbnailsBucket()
+		const queue = { send: vi.fn(async () => undefined) }
+		const env = makeEnv({
+			THUMBNAILS: bucket,
+			QUEUE: queue,
+			MCP_SCREENSHOT_BROWSER_RATE_LIMITER: { limit: vi.fn(async () => ({ success: false })) },
+		})
+
+		const message = makeMessage({ kind: 'published', slug: 'board' })
+		await handleOgImageRenderMessage(env, message)
+
+		// The requeue wrote a fresh pending marker, so a concurrent crawler enqueue dedupes onto this
+		// chain instead of spawning a second one.
+		queue.send.mockClear()
+		const result = await enqueueOgImageRender(env, { kind: 'published', slug: 'board' })
+		expect(result).toBe('already_pending')
+		expect(queue.send).not.toHaveBeenCalled()
 	})
 })

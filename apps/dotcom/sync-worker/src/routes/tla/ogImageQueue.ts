@@ -39,6 +39,15 @@ const PENDING_MARKER_TTL_MS = 2 * 60_000
 const MAX_RENDER_ATTEMPTS = 3
 const RETRY_DELAY_SECONDS = 30
 
+// Rate-limit backpressure gets its own bounded retry budget, kept separate from the render-failure
+// budget above. Each rate-limited delivery still spends one slot of the shared global Browser Run
+// limiter just to learn it can't render, so an unbounded requeue chain would let the OG queue's own
+// capacity checks keep the limiter saturated and starve every render surface (OG and MCP alike). Cap
+// the chain and back off so that check rate stays low; after the cap we give up and let the next
+// crawler hit re-enqueue once capacity has recovered (the OG route serves stale/default meanwhile).
+export const MAX_RATE_LIMIT_REQUEUES = 12
+const MAX_REQUEUE_DELAY_SECONDS = 120
+
 export type OgBoardKind = 'published' | 'shared_file'
 
 export interface ResolvedOgBoard {
@@ -235,25 +244,64 @@ function retryOrDrop(
 	message.ack()
 }
 
-// Global Browser Run capacity is busy. Re-enqueue a fresh copy of the job (which resets the
-// delivery's attempt counter) and ack this delivery, so capacity backpressure never counts against
-// the failure-retry budget in retryOrDrop. The render still hasn't happened, so no Browser Run
-// capacity was spent; the consumer's version check coalesces the eventual retry with any newer
-// enqueues, so a fast-changing board still captures only its latest content.
+// Global Browser Run capacity is busy. Re-enqueue this job (on its own bounded rate-limit budget, so
+// backpressure never counts against the failure-retry budget in retryOrDrop) and ack this delivery.
+// The render still hasn't happened, so no Browser Run capacity was spent on a screenshot; the
+// consumer's version check coalesces the eventual retry with any newer enqueues, so a fast-changing
+// board still captures only its latest content.
+//
+// Two things keep this from turning into the runaway it used to be: the requeue counter bounds the
+// chain (an un-counted `message.body` reset the attempt count and looped forever), and the pending
+// marker is refreshed each time so concurrent crawler hits coalesce onto this one chain instead of
+// spawning a fresh parallel chain every time the marker's TTL lapsed.
 async function requeueForRateLimit(
 	env: Environment,
 	message: Message<OgImageRenderQueueMessage>,
 	boardHash: string
 ) {
+	const requeues = (message.body.rateLimitRequeues ?? 0) + 1
+
 	writeOgImageTelemetry(env, {
 		source: 'queue',
 		boardHash,
 		cacheStatus: 'miss',
 		rateLimitAllowed: false,
-		failureReason: 'rate_limited_global',
+		failureReason:
+			requeues > MAX_RATE_LIMIT_REQUEUES ? 'rate_limited_global_exhausted' : 'rate_limited_global',
 	})
-	await env.QUEUE.send(message.body, { delaySeconds: RETRY_DELAY_SECONDS })
+
+	if (requeues > MAX_RATE_LIMIT_REQUEUES) {
+		// Sustained global backpressure. Stop looping so this chain's capacity checks can't keep the
+		// shared limiter saturated; the pending marker is left to expire and the next crawler hit
+		// re-enqueues once capacity has recovered.
+		message.ack()
+		return
+	}
+
+	// Exponential backoff (capped) cuts how often a waiting job re-checks the shared limiter, so the OG
+	// queue's own checks stop crowding out real renders.
+	const delaySeconds = Math.min(
+		RETRY_DELAY_SECONDS * 2 ** (requeues - 1),
+		MAX_REQUEUE_DELAY_SECONDS
+	)
+	await refreshOgImagePendingMarker(env, message.body, delaySeconds)
+	await env.QUEUE.send({ ...message.body, rateLimitRequeues: requeues }, { delaySeconds })
 	message.ack()
+}
+
+// Extends the pending marker so it outlives the scheduled redelivery. While a rate-limited job backs
+// off, its marker must keep suppressing duplicate enqueues (enqueueOgImageRender), or each TTL lapse
+// would let another parallel requeue chain spawn.
+async function refreshOgImagePendingMarker(
+	env: Environment,
+	board: { kind: 'published' | 'shared_file'; slug: string },
+	delaySeconds: number
+) {
+	if (!env.THUMBNAILS) return
+	const expiresAt = Date.now() + delaySeconds * 1000 + PENDING_MARKER_TTL_MS
+	await env.THUMBNAILS.put(getOgImagePendingKey(board), new Uint8Array(), {
+		customMetadata: { expiresAt: String(expiresAt) },
+	}).catch(() => {})
 }
 
 // Written to the same dataset and blob layout as the MCP tool's telemetry
