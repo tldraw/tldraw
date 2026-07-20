@@ -90,15 +90,21 @@ function ThumbnailPreview({
 		}
 	}, [dataUrl])
 
+	const signalReady = () => {
+		document.body.dataset.thumbnailReady = 'true'
+		document.documentElement.dataset.thumbnailReady = 'true'
+	}
 	return (
 		<img
+			// A data-URL <img> can decode before onLoad attaches, so also signal from a ref once the
+			// image is already complete.
+			ref={(img) => {
+				if (img?.complete && img.naturalWidth > 0) signalReady()
+			}}
 			src={dataUrl}
 			alt=""
 			style={{ display: 'block', width, height }}
-			onLoad={() => {
-				document.body.dataset.thumbnailReady = 'true'
-				document.documentElement.dataset.thumbnailReady = 'true'
-			}}
+			onLoad={signalReady}
 		/>
 	)
 }

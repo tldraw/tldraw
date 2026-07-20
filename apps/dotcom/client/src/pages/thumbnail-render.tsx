@@ -135,16 +135,7 @@ function ThumbnailRenderPage({
 						editor.setCurrentPage(renderParams.pageId as TLPageId)
 					}
 					if (renderParams.camera === 'content') {
-						const bounds = editor.getCurrentPageBounds()
-						if (bounds) {
-							editor.zoomToBounds(bounds, {
-								immediate: true,
-								force: true,
-								inset: getRepresentativeContentInset(width, height),
-							})
-						} else {
-							editor.setCamera({ x: 0, y: 0, z: 1 }, { immediate: true })
-						}
+						fitContentCamera(editor, width, height)
 					} else {
 						editor.setCamera(
 							{ x: renderParams.x, y: renderParams.y, z: renderParams.z },
@@ -153,7 +144,13 @@ function ThumbnailRenderPage({
 					}
 				}}
 			>
-				<ThumbnailExportSignal theme={theme} width={width} height={height} onImage={handleImage} />
+				<ThumbnailExportSignal
+					theme={theme}
+					width={width}
+					height={height}
+					camera={renderParams.camera}
+					onImage={handleImage}
+				/>
 			</Tldraw>
 		</div>
 	)
@@ -174,15 +171,30 @@ function ThumbnailImage({
 }) {
 	return (
 		<img
+			ref={signalThumbnailReadyIfComplete}
 			src={dataUrl}
 			alt=""
 			style={{ display: 'block', width, height }}
-			onLoad={() => {
-				document.body.dataset.thumbnailReady = 'true'
-				document.documentElement.dataset.thumbnailReady = 'true'
+			onLoad={signalThumbnailReady}
+			onError={() => {
+				const message = 'thumbnail image failed to load'
+				document.body.dataset.thumbnailError = message
+				document.documentElement.dataset.thumbnailError = message
 			}}
 		/>
 	)
+}
+
+function signalThumbnailReady() {
+	document.body.dataset.thumbnailReady = 'true'
+	document.documentElement.dataset.thumbnailReady = 'true'
+}
+
+// A data-URL <img> can finish decoding before React attaches the onLoad handler, in which case
+// onLoad never fires. The ref runs after React has set `src`, so if the image is already complete we
+// signal readiness directly; otherwise onLoad handles it once decoding finishes.
+function signalThumbnailReadyIfComplete(img: HTMLImageElement | null) {
+	if (img?.complete && img.naturalWidth > 0) signalThumbnailReady()
 }
 
 function ThumbnailRenderError({ message }: { message: string }) {
@@ -238,6 +250,22 @@ function getRepresentativeContentInset(width: number, height: number) {
 	return Math.max(48, Math.min(160, width * 0.12, height * 0.18))
 }
 
+// Fits the current page's content into the viewport with representative margins. Run both on mount
+// and again right before export (see ThumbnailExportSignal), because autosized text re-measures once
+// web fonts load and shifts the page bounds — a fit computed before fonts settle would clip content.
+function fitContentCamera(editor: Editor, width: number, height: number) {
+	const bounds = editor.getCurrentPageBounds()
+	if (bounds) {
+		editor.zoomToBounds(bounds, {
+			immediate: true,
+			force: true,
+			inset: getRepresentativeContentInset(width, height),
+		})
+	} else {
+		editor.setCamera({ x: 0, y: 0, z: 1 }, { immediate: true })
+	}
+}
+
 // Produces a thumbnail of the editor's current page with editor.toImage once the scene has settled
 // — fonts loaded, image assets warm, and the editor's <img> elements stable — and hands the PNG blob
 // to `onImage`.
@@ -254,12 +282,14 @@ export function ThumbnailExportSignal({
 	theme,
 	width,
 	height,
+	camera,
 	settleTimeoutMs = THUMBNAIL_SETTLE_TIMEOUT_MS,
 	onImage,
 }: {
 	theme: 'light' | 'dark'
 	width: number
 	height: number
+	camera?: 'content'
 	settleTimeoutMs?: number
 	onImage(blob: Blob): void | Promise<void>
 }) {
@@ -279,6 +309,9 @@ export function ThumbnailExportSignal({
 				sleep(settleTimeoutMs),
 			])
 			if (cancelled) return
+			// Re-fit content now that fonts and assets have settled: autosized text re-measures after
+			// the web font loads, so the fit computed in onMount (before fonts) is stale and would clip.
+			if (camera === 'content') fitContentCamera(editor, width, height)
 			const blob = await exportThumbnailImage(editor, theme, width, height)
 			if (cancelled) return
 			await onImage(blob)
@@ -292,7 +325,7 @@ export function ThumbnailExportSignal({
 		return () => {
 			cancelled = true
 		}
-	}, [editor, theme, width, height, settleTimeoutMs, onImage])
+	}, [editor, theme, width, height, camera, settleTimeoutMs, onImage])
 
 	useEffect(() => {
 		;(window as any).editor = editor
