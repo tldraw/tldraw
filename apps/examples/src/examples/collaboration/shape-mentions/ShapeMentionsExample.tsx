@@ -33,8 +33,7 @@ const resolveName = (id: string): string | undefined => NAMES[id]
 export default function ShapeMentionsExample() {
 	// The suggestion plugin reads `editor` lazily when the picker opens, so we can build the extension
 	// before the editor exists and hand the editor in on mount (which lets the popup track the camera).
-	// Tab already indents in shape text, so the picker completes on Enter/click only, not Tab.
-	const suggestionOptions = useRef<MentionSuggestionOptions>({ editor: null, selectOnTab: false })
+	const suggestionOptions = useRef<MentionSuggestionOptions>({ editor: null })
 
 	// Add the mention node to tldraw's default rich-text extensions and pass the result as the text
 	// options. Providing `extensions` replaces the default set, so spread the defaults back in.

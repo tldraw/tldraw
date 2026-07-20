@@ -1,3 +1,4 @@
+import { EditorState } from '@tiptap/pm/state'
 import { EditorView } from '@tiptap/pm/view'
 import {
 	EditorEvents,
@@ -167,7 +168,11 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			},
 			editorProps: {
 				handleKeyDown: (view: EditorView, event: KeyboardEvent) => {
-					if (!hasCustomTabBehavior && event.key === 'Tab') {
+					// Defer Tab to an active inline suggestion (e.g. an @-mention picker), whose own keydown
+					// handler runs as a plugin — after these editor props — and completes on Tab. Without
+					// this, our indentation would insert a tab behind the open popup before the picker could
+					// claim the key.
+					if (!hasCustomTabBehavior && event.key === 'Tab' && !hasActiveSuggestion(view.state)) {
 						handleTab(editor, view, event)
 					}
 
@@ -257,6 +262,32 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 		</div>
 	)
 })
+
+// Whether a TipTap suggestion (e.g. an @-mention picker) is currently open in this editor. A
+// suggestion plugin keeps `{ active, range, query }` in its state while the popup is showing; when
+// it is, the plugin owns navigation keys like Tab, so our built-in handlers should stand down. This
+// is deliberately generic — it matches any suggestion-shaped plugin state, not one specific
+// extension — so the editor cooperates with whatever suggestion a consumer wires up.
+function hasActiveSuggestion(state: EditorState): boolean {
+	for (const plugin of state.plugins) {
+		let pluginState: unknown
+		try {
+			pluginState = plugin.getState?.(state)
+		} catch {
+			continue
+		}
+		if (
+			pluginState &&
+			typeof pluginState === 'object' &&
+			(pluginState as { active?: unknown }).active === true &&
+			'range' in pluginState &&
+			'query' in pluginState
+		) {
+			return true
+		}
+	}
+	return false
+}
 
 // Prevent exiting the editor when hitting Tab.
 // Also, insert a tab character at the front of the line if the shift key isn't pressed,

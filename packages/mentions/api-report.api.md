@@ -79,7 +79,6 @@ export interface MentionProps {
 export interface MentionSuggestionOptions {
     editor?: null | Editor;
     renderMember?(member: MentionMember): ReactNode;
-    selectOnTab?: boolean;
 }
 
 // (No @packageDocumentation comment for this package)

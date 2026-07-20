@@ -38,11 +38,7 @@ export function useShapeMentions(): {
 	const getSuggestionsRef = useRef<((query: string) => MentionMember[]) | undefined>(undefined)
 	// A stable options object the suggestion plugin reads lazily when the picker opens (always after
 	// mount), so setting `.editor` in onEditorMount is enough to give the popup camera tracking.
-	// Tab already indents in shape text, so the picker completes on Enter/click only, not Tab.
-	const suggestionOptionsRef = useRef<MentionSuggestionOptions>({
-		editor: null,
-		selectOnTab: false,
-	})
+	const suggestionOptionsRef = useRef<MentionSuggestionOptions>({ editor: null })
 
 	const textOptions = useMemo<TLTextOptions>(() => {
 		const mention = createMentionExtension({

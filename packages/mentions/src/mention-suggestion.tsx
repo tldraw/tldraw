@@ -16,13 +16,11 @@ interface MentionPopupProps {
 	items: MentionMember[]
 	command(attrs: MentionNodeAttrs): void
 	renderMember?(member: MentionMember): ReactNode
-	/** Whether Tab completes the highlighted member (in addition to Enter). */
-	selectOnTab: boolean
 }
 
 /** The live @-picker popup: owns the highlighted index and keyboard, renders the presentational list. */
 const MentionPopup = forwardRef<MentionPopupHandle, MentionPopupProps>(function MentionPopup(
-	{ items, command, renderMember, selectOnTab },
+	{ items, command, renderMember },
 	ref
 ) {
 	const [activeIndex, setActiveIndex] = useState(0)
@@ -50,10 +48,10 @@ const MentionPopup = forwardRef<MentionPopupHandle, MentionPopupProps>(function 
 				setActiveIndex((i) => (i + 1) % items.length)
 				return true
 			}
-			// Enter (and, when enabled, Tab) complete the highlighted member — falling back to the top
-			// match so a stale index never selects `undefined`. The empty-roster case is handled a level
-			// up, in the suggestion's onKeyDown, which cancels the picker.
-			if (event.key === 'Enter' || (selectOnTab && event.key === 'Tab')) {
+			// Enter and Tab both complete the highlighted member (falling back to the top match so a
+			// stale index never selects `undefined`). The empty-roster case is handled a level up, in
+			// the suggestion's onKeyDown, which cancels the picker.
+			if (event.key === 'Enter' || event.key === 'Tab') {
 				select(items[activeIndex] ?? items[0])
 				return true
 			}
@@ -164,12 +162,6 @@ export interface MentionSuggestionOptions {
 	 * canvas camera moves (the composer rides it) instead of polling every frame. Omit off-canvas.
 	 */
 	editor?: TldrawEditor | null
-	/**
-	 * Whether Tab completes the highlighted member (in addition to Enter and click). Defaults to true.
-	 * Set false where Tab already has a meaning in the host editor — e.g. shape rich text, where Tab
-	 * indents — so the picker doesn't fight the host for the key.
-	 */
-	selectOnTab?: boolean
 }
 
 /**
@@ -188,7 +180,6 @@ export function createMentionSuggestion(
 		char: '@',
 		items: ({ query }) => getSuggestions(query),
 		render: () => {
-			const selectOnTab = options.selectOnTab ?? true
 			let renderer: PopupRenderer | null = null
 			let container: HTMLElement | null = null
 			let editorEl: HTMLElement | null = null
@@ -281,7 +272,6 @@ export function createMentionSuggestion(
 						items: props.items,
 						command: props.command,
 						renderMember: options.renderMember,
-						selectOnTab,
 					})
 					editorEl = props.editor.view.dom as HTMLElement
 					// The TipTap suggestion has no blur handling, so without this the picker would stay
@@ -307,7 +297,6 @@ export function createMentionSuggestion(
 							items: props.items,
 							command: props.command,
 							renderMember: options.renderMember,
-							selectOnTab,
 						})
 					// Typing after an Escape re-shows the roster.
 					if (container) container.style.display = ''
@@ -327,7 +316,7 @@ export function createMentionSuggestion(
 						props.event.stopPropagation()
 						return true
 					}
-					if (props.event.key === 'Enter' || (selectOnTab && props.event.key === 'Tab')) {
+					if (props.event.key === 'Enter' || props.event.key === 'Tab') {
 						// Complete the highlighted member if there is one to complete; if the roster is empty
 						// there's nothing to pick, so cancel the picker and swallow the key — the composer
 						// beneath neither submits (Enter) nor moves focus / indents (Tab).
