@@ -136,10 +136,7 @@ const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
  * rejected with CLIENT_TOO_OLD (prompting a refresh) instead of being sent record types their
  * store cannot represent.
  */
-function createCommentGuardMigrations(
-	typeName: 'comment' | 'comment-thread',
-	extra: Parameters<typeof createRecordMigrationSequence>[0]['sequence'] = []
-) {
+function createCommentGuardMigrations(typeName: 'comment' | 'comment-thread') {
 	return createRecordMigrationSequence({
 		sequenceId: `com.tldraw.${typeName}`,
 		recordType: typeName,
@@ -149,7 +146,6 @@ function createCommentGuardMigrations(
 				id: `com.tldraw.${typeName}/1`,
 				up: (record) => record,
 			},
-			...extra,
 		],
 	})
 }
@@ -162,47 +158,7 @@ function createCommentGuardMigrations(
  */
 export const commentThreadRecordConfig: CustomRecordInfo = {
 	scope: 'document',
-	migrations: createCommentGuardMigrations('comment-thread', [
-		{
-			// Shape anchors gained normalized x/y + isPrecise; existing ones were imprecise (top-right).
-			id: 'com.tldraw.comment-thread/2',
-			up: (record) => {
-				const anchor = (record as any).anchor
-				if (anchor?.type === 'shape' && anchor.x === undefined) {
-					;(record as any).anchor = { ...anchor, x: 1, y: 0, isPrecise: false }
-				}
-				return record
-			},
-			down: (record) => {
-				const anchor = (record as any).anchor
-				if (anchor?.type === 'shape') {
-					;(record as any).anchor = { type: 'shape', shapeId: anchor.shapeId }
-				}
-				return record
-			},
-		},
-		{
-			// Shape anchors generalized from a single `shapeId` to one-or-more `shapeIds`. Down is
-			// lossy for multi-shape anchors: older schemas keep only the first (primary) shape.
-			id: 'com.tldraw.comment-thread/3',
-			up: (record) => {
-				const anchor = (record as any).anchor
-				if (anchor?.type === 'shape' && anchor.shapeIds === undefined) {
-					const { shapeId, ...rest } = anchor
-					;(record as any).anchor = { ...rest, shapeIds: [shapeId] }
-				}
-				return record
-			},
-			down: (record) => {
-				const anchor = (record as any).anchor
-				if (anchor?.type === 'shape') {
-					const { shapeIds, ...rest } = anchor
-					;(record as any).anchor = { ...rest, shapeId: shapeIds[0] }
-				}
-				return record
-			},
-		},
-	]),
+	migrations: createCommentGuardMigrations('comment-thread'),
 	validator: T.object({
 		id: idValidator<TLCommentThreadId>('comment-thread'),
 		typeName: T.literal('comment-thread'),

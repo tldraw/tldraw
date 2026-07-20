@@ -160,71 +160,8 @@ describe('isCommentThreadId / isCommentId', () => {
 })
 
 describe('comment-thread migrations', () => {
-	const migration = (commentThreadRecordConfig.migrations as any).sequence.find(
-		(m: any) => m.id === 'com.tldraw.comment-thread/2'
-	) as { up(r: any): any; down(r: any): any }
-
-	it('stamps existing shape anchors with the top-right position (x:1, y:0)', () => {
-		expect(migration.up({ anchor: { type: 'shape', shapeId } })).toEqual({
-			anchor: { type: 'shape', shapeId, x: 1, y: 0, isPrecise: false },
-		})
-	})
-
-	it('leaves shape anchors that already have x/y unchanged', () => {
-		const anchor = { type: 'shape', shapeId, x: 0.25, y: 0.75, isPrecise: true }
-		expect(migration.up({ anchor })).toEqual({ anchor })
-	})
-
-	it('leaves non-shape anchors untouched', () => {
-		const anchor = { type: 'point', x: 5, y: 6 }
-		expect(migration.up({ anchor })).toEqual({ anchor })
-	})
-
-	it('down-migrates by dropping x/y', () => {
-		expect(
-			migration.down({ anchor: { type: 'shape', shapeId, x: 0.3, y: 0.4, isPrecise: true } })
-		).toEqual({
-			anchor: { type: 'shape', shapeId },
-		})
-	})
-})
-
-describe('comment-thread/3 migration (shapeId -> shapeIds)', () => {
-	const migration = (commentThreadRecordConfig.migrations as any).sequence.find(
-		(m: any) => m.id === 'com.tldraw.comment-thread/3'
-	) as { up(r: any): any; down(r: any): any }
-
-	it('up-migrates a single shapeId to a one-element shapeIds array', () => {
-		expect(
-			migration.up({ anchor: { type: 'shape', shapeId, x: 1, y: 0, isPrecise: false } })
-		).toEqual({
-			anchor: { type: 'shape', shapeIds: [shapeId], x: 1, y: 0, isPrecise: false },
-		})
-	})
-
-	it('leaves shape anchors that already have shapeIds unchanged', () => {
-		const anchor = { type: 'shape', shapeIds: [shapeId], x: 1, y: 0, isPrecise: false }
-		expect(migration.up({ anchor })).toEqual({ anchor })
-	})
-
-	it('leaves non-shape anchors untouched', () => {
-		const anchor = { type: 'text-range', shapeId, from: 1, to: 4 }
-		expect(migration.up({ anchor })).toEqual({ anchor })
-	})
-
-	it('down-migrates by keeping only the first (primary) shape', () => {
-		expect(
-			migration.down({
-				anchor: {
-					type: 'shape',
-					shapeIds: [shapeId, 'shape:box2'],
-					x: 0.3,
-					y: 0.4,
-					isPrecise: true,
-				},
-			})
-		).toEqual({
-			anchor: { type: 'shape', shapeId, x: 0.3, y: 0.4, isPrecise: true },
-		})
+	it('has only the identity guard migration (the feature has never shipped, so no data migrations)', () => {
+		const ids = (commentThreadRecordConfig.migrations as any).sequence.map((m: any) => m.id)
+		expect(ids).toEqual(['com.tldraw.comment-thread/1'])
 	})
 })
