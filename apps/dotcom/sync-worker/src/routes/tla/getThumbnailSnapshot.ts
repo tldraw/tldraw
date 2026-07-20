@@ -27,7 +27,9 @@ export async function getThumbnailSnapshot(request: IRequest, env: Environment):
 			? getPublishedRoomSnapshot(env, job.slug)
 			: getSharedFileRoomSnapshot(env, job.slug)
 	).catch(() => undefined)
-	if (!snapshot?.schema) {
+	// A corrupt or partial R2 payload can carry schema metadata without a documents array; guard it
+	// so it returns a controlled 404 rather than throwing on the .map below and 500ing the render.
+	if (!snapshot?.schema || !snapshot.documents) {
 		return json({ error: true, message: 'Board not found' }, 404)
 	}
 

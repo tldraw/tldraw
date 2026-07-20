@@ -114,6 +114,16 @@ describe('getThumbnailSnapshot', () => {
 		expect(response.status).toBe(404)
 	})
 
+	it('returns 404 rather than throwing on a partial snapshot with no documents', async () => {
+		// A corrupt R2 payload can have schema metadata but no documents array.
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue({
+			schema: { schemaVersion: 2, sequences: {} },
+			clock: 0,
+		} as any)
+		const response = await getThumbnailSnapshot(makeRequest(await mintToken()), env)
+		expect(response.status).toBe(404)
+	})
+
 	it('resolves shared-file tokens through the shared-file snapshot source', async () => {
 		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue({
 			documents: [{ state: { id: 'shape:1', typeName: 'shape' }, lastChangedClock: 0 }],
