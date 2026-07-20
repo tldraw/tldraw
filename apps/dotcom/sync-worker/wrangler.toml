@@ -96,6 +96,12 @@ binding = "MEASURE"
 # dev should never actually get deployed anywhere
 [env.dev]
 name = "dev-tldraw-multiplayer"
+# The top-level compatibility_date (2026-03-24, required for the Browser Rendering `quickAction`
+# binding on deployed environments) is newer than the workerd bundled with our pinned wrangler, so
+# `wrangler dev` — and the process-compose e2e stack that runs it — would refuse to start. Local dev
+# doesn't drive real Browser Run (the `quickAction` binding is remote-only), so pin dev to a date the
+# local workerd supports. Bump this once the pinned wrangler ships a workerd that supports 2026-03-24.
+compatibility_date = "2025-06-05"
 
 [env.dev.vars]
 BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/postgres"
@@ -339,13 +345,13 @@ bucket_name = "thumbnails"
 #################### Browser Rendering binding ####################
 # Drives the thumbnail render page through a Cloudflare-hosted headless browser (see
 # sharedBoardScreenshotMcp.ts). Chrome runs in Cloudflare's Browser Rendering fleet, not in this
-# worker's isolate. In dev the binding is marked `remote` so `wrangler dev` keeps the whole worker
-# (and every other binding) local while BROWSER proxies to the real remote service — the render path
-# works locally for anyone who supplies Cloudflare credentials, without `--remote`. Without
-# credentials the binding is undefined and the render path fails closed with a config error.
+# worker's isolate. The dev binding is intentionally NOT marked `remote`: a remote binding makes
+# `wrangler dev` require a CLOUDFLARE_API_TOKEN, which the credential-free process-compose e2e stack
+# does not have, so it would fail to boot. Local dev therefore gets a non-functional local BROWSER
+# binding (the render path fails closed); to exercise real Browser Run locally, run `wrangler dev
+# --remote` with Cloudflare credentials, or use a preview deploy.
 [env.dev.browser]
 binding = "BROWSER"
-remote = true
 
 [env.preview.browser]
 binding = "BROWSER"
