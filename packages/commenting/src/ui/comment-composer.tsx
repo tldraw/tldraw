@@ -1,12 +1,15 @@
 import { JSONContent } from '@tiptap/core'
 import { EditorContent, useEditor } from '@tiptap/react'
+import {
+	Avatar,
+	createMentionExtension,
+	createMentionSuggestion,
+	isMentionPickerOpen,
+	MentionMember,
+} from '@tldraw/mentions'
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
-import { Avatar } from './avatar'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
-import { commentMention } from './comment-mention'
-import { MentionMember } from './mention-list'
-import { createMentionSuggestion, isMentionPickerOpen } from './mention-suggestion'
 import { SendButton } from './send-button'
 
 /** @public */
@@ -103,7 +106,7 @@ export function CommentComposer({
 				? (member: MentionMember) => renderMentionSuggestionRef.current?.(member)
 				: undefined
 			list.push(
-				commentMention({
+				createMentionExtension({
 					suggestion: createMentionSuggestion(resolveSuggestions, {
 						renderMember: renderRow,
 						editor: tlEditor,
@@ -111,7 +114,7 @@ export function CommentComposer({
 				})
 			)
 		} else {
-			list.push(commentMention({ suggestion: { char: '@', allow: () => false } }))
+			list.push(createMentionExtension({ suggestion: { char: '@', allow: () => false } }))
 		}
 		return list
 	}, [mentionsEnabled, hasCustomRow, tlEditor])

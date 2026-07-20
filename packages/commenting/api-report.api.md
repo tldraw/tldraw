@@ -4,14 +4,22 @@
 
 ```ts
 
+import { Avatar } from '@tldraw/mentions';
+import { AvatarProps } from '@tldraw/mentions';
 import { ComponentType } from 'react';
+import { createMentionSuggestion } from '@tldraw/mentions';
 import { Editor } from 'tldraw';
 import { EditorAtom } from 'tldraw';
+import { filterMentionMembers } from '@tldraw/mentions';
 import { JSX } from 'react/jsx-runtime';
-import type { MentionNodeAttrs } from '@tiptap/extension-mention';
+import { Mention } from '@tldraw/mentions';
+import { MentionList } from '@tldraw/mentions';
+import { MentionListProps } from '@tldraw/mentions';
+import { MentionMember } from '@tldraw/mentions';
+import { MentionProps } from '@tldraw/mentions';
+import { MentionSuggestionOptions } from '@tldraw/mentions';
 import { ReactNode } from 'react';
 import { StateNode } from 'tldraw';
-import type { SuggestionOptions } from '@tiptap/suggestion';
 import { TLComment } from 'tldraw';
 import { TLCommentAnchor } from 'tldraw';
 import { TLCommentId } from 'tldraw';
@@ -33,16 +41,9 @@ export function anchorPagePoint(editor: Editor, anchor: TLCommentAnchor, impreci
     y: number;
 } | null;
 
-// @public
-export function Avatar({ name, color, image }: AvatarProps): JSX.Element;
+export { Avatar }
 
-// @public (undocumented)
-export interface AvatarProps {
-    color?: string;
-    image?: string;
-    // (undocumented)
-    name: string;
-}
+export { AvatarProps }
 
 // @public
 export function Byline({ author, date, edited }: BylineProps): JSX.Element;
@@ -335,8 +336,7 @@ export interface CountBadgeProps {
 // @public (undocumented)
 export function createClusterRuntime(table: ClusterTable): ClusterRuntime;
 
-// @public
-export function createMentionSuggestion(getSuggestions: (query: string) => MentionMember[] | Promise<MentionMember[]>, options?: MentionSuggestionOptions): Omit<SuggestionOptions<MentionMember, MentionNodeAttrs>, 'editor'>;
+export { createMentionSuggestion }
 
 // @public
 export const DEFAULT_IMPRECISE_SHAPE_ANCHOR: {
@@ -373,8 +373,7 @@ export interface EmptyStateProps {
     message: string;
 }
 
-// @public
-export function filterMentionMembers(members: MentionMember[], query: string): MentionMember[];
+export { filterMentionMembers }
 
 // @public
 export function focusThread(editor: Editor, thread: TLCommentThread, impreciseShapeAnchor?: {
@@ -403,45 +402,17 @@ export interface LeafInput {
     point: VecLike;
 }
 
-// @public
-export function Mention({ name }: MentionProps): JSX.Element;
+export { Mention }
 
-// @public
-export function MentionList({ members, activeIndex, onSelect, emptyLabel, renderMember }: MentionListProps): JSX.Element;
+export { MentionList }
 
-// @public (undocumented)
-export interface MentionListProps {
-    activeIndex?: number;
-    emptyLabel?: string;
-    members: MentionMember[];
-    onSelect?(member: MentionMember): void;
-    renderMember?(member: MentionMember): ReactNode;
-}
+export { MentionListProps }
 
-// @public
-export interface MentionMember {
-    [key: string]: unknown;
-    avatar?: string;
-    color?: string;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    name: string;
-    secondary?: string;
-    you?: boolean;
-}
+export { MentionMember }
 
-// @public (undocumented)
-export interface MentionProps {
-    // (undocumented)
-    name: string;
-}
+export { MentionProps }
 
-// @public (undocumented)
-export interface MentionSuggestionOptions {
-    editor?: null | Editor;
-    renderMember?(member: MentionMember): ReactNode;
-}
+export { MentionSuggestionOptions }
 
 // @public
 export interface MergeEvent {

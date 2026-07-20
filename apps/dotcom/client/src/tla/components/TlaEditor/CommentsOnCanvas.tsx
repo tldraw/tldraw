@@ -4,6 +4,7 @@ import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { ShapeMentionBridge } from './useShapeMentions'
 
 type FileComments = QueryResultType<typeof queries.fileComments>
 
@@ -19,7 +20,13 @@ type FileComments = QueryResultType<typeof queries.fileComments>
  * notifications feed, which is bounded to recent comments), so every unread pin resolves however
  * old the comment is.
  */
-export function CommentsOnCanvas({ fileId }: { fileId: string }) {
+export function CommentsOnCanvas({
+	fileId,
+	mentionBridge,
+}: {
+	fileId: string
+	mentionBridge?: ShapeMentionBridge
+}) {
 	const editor = useEditor()
 	const app = useMaybeApp()
 	const currentUserId = app?.userId ?? null
@@ -123,6 +130,13 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		(query: string) => filterMentionMembers(mentionMembers, query),
 		[mentionMembers]
 	)
+
+	// Feed the same roster and name resolver used by the comment composer into the shape rich-text
+	// mention extension, so @-mentions work identically when editing shape text.
+	useEffect(() => {
+		mentionBridge?.setResolveName(resolveName)
+		mentionBridge?.setGetSuggestions(getMentionSuggestions)
+	}, [mentionBridge, resolveName, getMentionSuggestions])
 
 	// Comments are a Zero feature; hide the layer entirely when Zero isn't available (polyfill).
 	if (!app?.isUsingProperZero()) return null

@@ -62,6 +62,7 @@ import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+import { useShapeMentions } from './useShapeMentions'
 
 /** @internal */
 export const components: TLComponents = {
@@ -100,6 +101,10 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const fileId = fileSlug
 
+	// @-mentions in shape rich text. The extension is built here (above the editor) for `options.text`;
+	// CommentsOnCanvas supplies the live roster/resolver through the bridge.
+	const shapeMentions = useShapeMentions()
+
 	const setIsReady = useSetIsReady()
 
 	const dialogs = useDialogs()
@@ -130,6 +135,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
+			shapeMentions.onEditorMount(editor)
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
 			const cleanupPerf = trackPerformance(editor)
@@ -192,6 +198,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			fileId,
 			remountImageShapes,
 			setIsReady,
+			shapeMentions,
 		]
 	)
 
@@ -284,9 +291,11 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
-			InFrontOfTheCanvas: () => <CommentsOnCanvas fileId={fileId} />,
+			InFrontOfTheCanvas: () => (
+				<CommentsOnCanvas fileId={fileId} mentionBridge={shapeMentions.bridge} />
+			),
 		}
-	}, [fileId])
+	}, [fileId, shapeMentions.bridge])
 
 	return (
 		<TlaEditorWrapper>
@@ -304,6 +313,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				options={{
 					actionShortcutsLocation: 'toolbar',
 					deepLinks: deepLinks ? true : undefined,
+					text: shapeMentions.textOptions,
 				}}
 				overrides={[overrides, extraDragIconOverrides, commentToolOverrides]}
 				getShapeVisibility={getShapeVisibility}

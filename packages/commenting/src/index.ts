@@ -1,8 +1,20 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 
 // Presentational commenting components. These are tldraw-independent and can be used to build
-// custom commenting UI.
-export { Avatar, type AvatarProps } from './ui/avatar'
+// custom commenting UI. The mention picker, pill, and avatar are re-exported from @tldraw/mentions
+// so the commenting public API is unchanged.
+export {
+	Avatar,
+	type AvatarProps,
+	createMentionSuggestion,
+	filterMentionMembers,
+	Mention,
+	MentionList,
+	type MentionListProps,
+	type MentionMember,
+	type MentionProps,
+	type MentionSuggestionOptions,
+} from '@tldraw/mentions'
 export { Byline, type BylineProps } from './ui/byline'
 export { CommentCard, type CommentCardProps } from './ui/comment-card'
 export { CommentComposer, type CommentComposerProps } from './ui/comment-composer'
@@ -13,13 +25,6 @@ export { CommentThread, type CommentThreadProps } from './ui/comment-thread'
 export { CommentsList, type CommentListItemProps, type CommentsListProps } from './ui/comments-list'
 export { EmptyState, type EmptyStateProps } from './ui/empty-state'
 export { formatRelativeTime } from './ui/format-time'
-export { Mention, type MentionProps } from './ui/mention'
-export { MentionList, type MentionListProps, type MentionMember } from './ui/mention-list'
-export {
-	createMentionSuggestion,
-	filterMentionMembers,
-	type MentionSuggestionOptions,
-} from './ui/mention-suggestion'
 export { Reaction, type ReactionProps } from './ui/reaction'
 export { Reactions } from './ui/reactions'
 export { renderMarkdown } from './ui/render-markdown'

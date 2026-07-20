@@ -14,11 +14,13 @@ interface MentionPopupProps {
 	items: MentionMember[]
 	command(attrs: MentionNodeAttrs): void
 	renderMember?(member: MentionMember): ReactNode
+	/** Whether Tab completes the highlighted member (in addition to Enter). */
+	selectOnTab: boolean
 }
 
 /** The live @-picker popup: owns the highlighted index and keyboard, renders the presentational list. */
 const MentionPopup = forwardRef<MentionPopupHandle, MentionPopupProps>(function MentionPopup(
-	{ items, command, renderMember },
+	{ items, command, renderMember, selectOnTab },
 	ref
 ) {
 	const [activeIndex, setActiveIndex] = useState(0)
@@ -46,10 +48,10 @@ const MentionPopup = forwardRef<MentionPopupHandle, MentionPopupProps>(function 
 				setActiveIndex((i) => (i + 1) % items.length)
 				return true
 			}
-			// Enter and Tab both complete the highlighted member (falling back to the top match so a
-			// stale index never selects `undefined`). The empty-roster case is handled a level up, in
-			// the suggestion's onKeyDown, which cancels the picker.
-			if (event.key === 'Enter' || event.key === 'Tab') {
+			// Enter (and, when enabled, Tab) complete the highlighted member — falling back to the top
+			// match so a stale index never selects `undefined`. The empty-roster case is handled a level
+			// up, in the suggestion's onKeyDown, which cancels the picker.
+			if (event.key === 'Enter' || (selectOnTab && event.key === 'Tab')) {
 				select(items[activeIndex] ?? items[0])
 				return true
 			}
@@ -83,8 +85,10 @@ export function filterMentionMembers(members: MentionMember[], query: string): M
 const mentionPickerOpen = atom('isMentionPickerOpen', false)
 
 /**
- * Whether the @-mention picker is currently showing. Host dismissal (Escape, outside-click) checks
- * this so it can defer to the picker instead of tearing down the composer or thread beneath it.
+ * Whether the \@-mention picker is currently showing. Host dismissal (Escape, outside-click) checks
+ * this so it can defer to the picker instead of tearing down the composer, thread, or editing shape
+ * beneath it.
+ * @public
  */
 export function isMentionPickerOpen(): boolean {
 	return mentionPickerOpen.get()
@@ -99,13 +103,19 @@ export interface MentionSuggestionOptions {
 	 * canvas camera moves (the composer rides it) instead of polling every frame. Omit off-canvas.
 	 */
 	editor?: TldrawEditor | null
+	/**
+	 * Whether Tab completes the highlighted member (in addition to Enter and click). Defaults to true.
+	 * Set false where Tab already has a meaning in the host editor — e.g. shape rich text, where Tab
+	 * indents — so the picker doesn't fight the host for the key.
+	 */
+	selectOnTab?: boolean
 }
 
 /**
- * Build the TipTap `suggestion` config for the comment \@-picker. `getSuggestions(query)` is the
- * host's resolver — it returns the members matching the query (sync or async); the SDK owns neither
- * the roster nor the filtering. The plugin runs outside React, so `render` mounts `MentionPopup` via
- * a `ReactRenderer`, forwards navigation keys through the popup's imperative handle, and lets it call
+ * Build the TipTap `suggestion` config for the \@-picker. `getSuggestions(query)` is the host's
+ * resolver — it returns the members matching the query (sync or async); the SDK owns neither the
+ * roster nor the filtering. The plugin runs outside React, so `render` mounts `MentionPopup` via a
+ * `ReactRenderer`, forwards navigation keys through the popup's imperative handle, and lets it call
  * `command` to insert.
  * @public
  */
@@ -117,6 +127,7 @@ export function createMentionSuggestion(
 		char: '@',
 		items: ({ query }) => getSuggestions(query),
 		render: () => {
+			const selectOnTab = options.selectOnTab ?? true
 			let renderer: ReactRenderer<MentionPopupHandle, MentionPopupProps> | null = null
 			let container: HTMLElement | null = null
 			let editorEl: HTMLElement | null = null
@@ -137,6 +148,8 @@ export function createMentionSuggestion(
 
 			// Fresh placement: read the field's real screen rect, position the popup flush under it (not
 			// the caret, matching its width), and remember the field's page-space anchor for reposition.
+			// Off the comment composer (e.g. a shape's rich-text editor) there's no `.tlui-cmt-composer__field`,
+			// so it falls back to the editor's own DOM element and anchors under that.
 			const place = () => {
 				if (!container || !editorEl || container.style.display === 'none') return
 				const field = editorEl.closest('.tlui-cmt-composer__field') ?? editorEl
@@ -156,10 +169,10 @@ export function createMentionSuggestion(
 				applyScreen(s.x, s.y, popupWidth)
 			}
 
-			// The popup is `position: fixed`, but its anchor — a canvas composer — rides the camera:
-			// panning or zooming moves the composer with no scroll/resize event to hook. Re-anchor when
-			// the camera actually changes (via a tldraw reaction) rather than polling every frame, plus
-			// on window scroll/resize for the off-canvas case (which re-read the field directly).
+			// The popup is `position: fixed`, but its anchor — a canvas composer or an editing shape —
+			// rides the camera: panning or zooming moves it with no scroll/resize event to hook.
+			// Re-anchor when the camera actually changes (via a tldraw reaction) rather than polling every
+			// frame, plus on window scroll/resize for the off-canvas case (which re-read the field directly).
 			const startFollowing = () => {
 				window.addEventListener('scroll', place, true)
 				window.addEventListener('resize', place)
@@ -208,6 +221,7 @@ export function createMentionSuggestion(
 							items: props.items,
 							command: props.command,
 							renderMember: options.renderMember,
+							selectOnTab,
 						},
 						editor: props.editor,
 					})
@@ -235,6 +249,7 @@ export function createMentionSuggestion(
 							items: props.items,
 							command: props.command,
 							renderMember: options.renderMember,
+							selectOnTab,
 						})
 					// Typing after an Escape re-shows the roster.
 					if (container) container.style.display = ''
@@ -254,7 +269,7 @@ export function createMentionSuggestion(
 						props.event.stopPropagation()
 						return true
 					}
-					if (props.event.key === 'Enter' || props.event.key === 'Tab') {
+					if (props.event.key === 'Enter' || (selectOnTab && props.event.key === 'Tab')) {
 						// Complete the highlighted member if there is one to complete; if the roster is empty
 						// there's nothing to pick, so cancel the picker and swallow the key — the composer
 						// beneath neither submits (Enter) nor moves focus / indents (Tab).

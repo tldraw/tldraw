@@ -1,3 +1,4 @@
+import { isMentionPickerOpen, MentionMember } from '@tldraw/mentions'
 import {
 	memo,
 	type CSSProperties,
@@ -39,8 +40,6 @@ import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { CommentPin } from '../ui/comment-pin'
 import { CommentThread } from '../ui/comment-thread'
 import { CountBadge } from '../ui/count-badge'
-import { MentionMember } from '../ui/mention-list'
-import { isMentionPickerOpen } from '../ui/mention-suggestion'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import { UNKNOWN_AUTHOR } from './comment-render'

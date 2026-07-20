@@ -1,7 +1,7 @@
 {
-	"name": "@tldraw/commenting",
-	"description": "tldraw commenting UI components.",
-	"version": "5.2.3",
+	"name": "@tldraw/mentions",
+	"description": "tldraw @-mention picker and TipTap node, shared by commenting and shape rich text.",
+	"version": "5.2.5",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -17,17 +17,17 @@
 	},
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
-	"style": "./commenting.css",
+	"style": "./mentions.css",
 	"type": "module",
 	"files": [
-		"commenting.css"
+		"mentions.css"
 	],
 	"scripts": {
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"predev": "node ./scripts/copy-css-files.mjs",
-		"dev": "chokidar '../mentions/src/mention.css' 'src/ui/comments.css' 'src/canvas/canvas.css' -c 'node ./scripts/copy-css-files.mjs'",
+		"dev": "chokidar 'src/mention.css' -c 'node ./scripts/copy-css-files.mjs'",
 		"prebuild": "node ./scripts/copy-css-files.mjs",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
@@ -51,9 +51,10 @@
 	},
 	"dependencies": {
 		"@tiptap/core": "^3.12.1",
+		"@tiptap/extension-mention": "3.13.0",
 		"@tiptap/pm": "^3.12.1",
 		"@tiptap/react": "^3.12.1",
-		"@tldraw/mentions": "workspace:*",
+		"@tiptap/suggestion": "3.13.0",
 		"@tldraw/utils": "workspace:*",
 		"tldraw": "workspace:*"
 	}

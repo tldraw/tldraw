@@ -1,5 +1,5 @@
+import { Avatar } from '@tldraw/mentions'
 import { ReactNode } from 'react'
-import { Avatar } from './avatar'
 import { Byline } from './byline'
 
 /** @public */
