@@ -44,7 +44,7 @@ import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
-import { getOgHtml, getOgImage } from './routes/tla/getOgImage'
+import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
@@ -183,8 +183,10 @@ const router = createRouter<Environment>()
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
 	.post('/app/mcp', sharedBoardScreenshotMcp)
-	.get('/app/og-html/:kind/:slug', getOgHtml)
-	.get('/app/og-image/:kind/:slug', getOgImage)
+	// The board's rendered social preview image, referenced by the og:image tags getSocialPreview
+	// emits. Lives under the social-preview route family so the crawler HTML and its image share one
+	// path prefix.
+	.get('/app/social-preview/:prefix/:slug/image', getOgImage)
 	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
 	// end app
 	.all('/ph/*', (req) => {

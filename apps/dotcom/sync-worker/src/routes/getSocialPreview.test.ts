@@ -44,13 +44,13 @@ describe('renderSocialPreview', () => {
 	test('uses the board og-image with a large card when a board image URL is given', () => {
 		const html = renderSocialPreview(
 			'My board',
-			'https://www.tldraw.com/api/app/og-image/f/board-slug'
+			'https://www.tldraw.com/api/app/social-preview/f/board-slug/image'
 		)
 		expect(html).toContain(
-			'<meta property="og:image" content="https://www.tldraw.com/api/app/og-image/f/board-slug" />'
+			'<meta property="og:image" content="https://www.tldraw.com/api/app/social-preview/f/board-slug/image" />'
 		)
 		expect(html).toContain(
-			'<meta name="twitter:image" content="https://www.tldraw.com/api/app/og-image/f/board-slug" />'
+			'<meta name="twitter:image" content="https://www.tldraw.com/api/app/social-preview/f/board-slug/image" />'
 		)
 		expect(html).toContain('<meta name="twitter:card" content="summary_large_image" />')
 		expect(html).toContain('<meta property="og:image:width" content="1200" />')

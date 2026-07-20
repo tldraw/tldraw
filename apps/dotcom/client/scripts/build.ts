@@ -212,14 +212,6 @@ async function build() {
 							'Cache-Control': 'public, max-age=31536000, immutable',
 						},
 					})),
-					// Social crawlers do not run the SPA, so serve a tiny metadata document for public
-					// board URLs. Normal browsers keep using the static index.html route below.
-					{
-						src: '^/([fp])/([^/]+)/?$',
-						dest: `${multiplayerServerUrl}/app/og-html/$1/$2`,
-						methods: ['GET'],
-						has: [{ type: 'header', key: 'user-agent', value: userAgent }],
-					},
 					// server up index.html specifically because we want to include
 					// security headers. otherwise, it goes to the handle: 'miss'
 					// part below (and _not_ to the spaRoutes as maybe expected!)

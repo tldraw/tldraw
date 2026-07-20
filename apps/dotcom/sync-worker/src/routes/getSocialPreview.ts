@@ -63,8 +63,8 @@ export async function getSocialPreview(request: IRequest, env: Environment): Pro
 	return html(renderSocialPreview(name, getBoardOgImageUrl(request, env, prefix, slug)))
 }
 
-// Board kinds the og-image route can render (shared files and published boards) get a live
-// board thumbnail as their preview image. The route self-gates: private, deleted, or unknown
+// Board kinds the social-preview image route can render (shared files and published boards) get a
+// live board thumbnail as their preview image. The route self-gates: private, deleted, or unknown
 // boards 302 to the default OG image, so it is safe to reference unconditionally, and the first
 // crawler hit enqueues the board's render.
 function getBoardOgImageUrl(
@@ -74,7 +74,7 @@ function getBoardOgImageUrl(
 	slug: string
 ): string | null {
 	if (prefix !== FILE_PREFIX && prefix !== PUBLISH_PREFIX) return null
-	return `${getPublicOrigin(request, env)}/api/app/og-image/${prefix}/${encodeURIComponent(slug)}`
+	return `${getPublicOrigin(request, env)}/api/app/social-preview/${prefix}/${encodeURIComponent(slug)}/image`
 }
 
 async function getBoardName(

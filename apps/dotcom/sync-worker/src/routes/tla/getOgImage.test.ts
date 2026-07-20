@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
-import { getOgHtml, getOgImage } from './getOgImage'
+import { getOgImage } from './getOgImage'
 import { getPublishedFileInfo } from './getPublishedFile'
 import { getSharedFileInfo } from './getSharedFile'
 import { getOgImageCacheKey } from './ogImageQueue'
@@ -81,10 +81,11 @@ function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	} as unknown as Environment
 }
 
-function makeRequest(kind: string, slug: string) {
-	return Object.assign(new Request(`https://sync.tldraw.xyz/app/og-image/${kind}/${slug}`), {
-		params: { kind, slug },
-	}) as any
+function makeRequest(prefix: string, slug: string) {
+	return Object.assign(
+		new Request(`https://sync.tldraw.xyz/app/social-preview/${prefix}/${slug}/image`),
+		{ params: { prefix, slug } }
+	) as any
 }
 
 describe('getOgImage', () => {
@@ -213,29 +214,5 @@ describe('getOgImage', () => {
 		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
 		expect(fetch).not.toHaveBeenCalled()
 		expect(queue.send).not.toHaveBeenCalled()
-	})
-})
-
-describe('getOgHtml', () => {
-	it('returns crawler metadata pointing at the board-specific OG image endpoint', async () => {
-		const response = await getOgHtml(
-			Object.assign(
-				new Request('https://sync.tldraw.xyz/app/og-html/p/abc', {
-					headers: {
-						'x-forwarded-host': 'www.tldraw.com',
-						'x-forwarded-proto': 'https',
-					},
-				}),
-				{ params: { kind: 'p', slug: 'abc' } }
-			) as any,
-			makeEnv()
-		)
-
-		expect(response.status).toBe(200)
-		const html = await response.text()
-		expect(html).toContain(
-			'property="og:image" content="https://www.tldraw.com/api/app/og-image/p/abc"'
-		)
-		expect(html).toContain('property="og:url" content="https://www.tldraw.com/p/abc"')
 	})
 })

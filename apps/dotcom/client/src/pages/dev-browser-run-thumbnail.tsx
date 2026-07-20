@@ -1,11 +1,10 @@
+import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useState } from 'react'
 import { TLEditorSnapshot, TLStoreSnapshot, Tldraw, defaultShapeUtils } from 'tldraw'
 import 'tldraw/tldraw.css'
 import snapshotExampleSnapshot from '../../../../examples/src/examples/editor-api/snapshots/snapshot.json'
 import layerPanelSnapshot from '../../../../examples/src/examples/ui/layer-panel/snapshot.json'
 import {
-	DEFAULT_THUMBNAIL_HEIGHT,
-	DEFAULT_THUMBNAIL_WIDTH,
 	ThumbnailExportSignal,
 	clampThumbnailDimension,
 	useThumbnailPageSize,

@@ -1,4 +1,7 @@
 import {
+	DEFAULT_THUMBNAIL_WIDTH,
+	MAX_THUMBNAIL_DIMENSION,
+	MIN_THUMBNAIL_DIMENSION,
 	ThumbnailRenderParams,
 	ThumbnailSnapshotResponseBody,
 	getLicenseKey,
@@ -18,11 +21,6 @@ import 'tldraw/tldraw.css'
 import { assetUrls } from '../utils/assetUrls'
 import { defineLoader } from '../utils/defineLoader'
 import { embedShapeUtils } from '../utils/embedShapeUtil'
-
-export const DEFAULT_THUMBNAIL_WIDTH = 1200
-export const DEFAULT_THUMBNAIL_HEIGHT = 630
-export const MIN_THUMBNAIL_DIMENSION = 200
-export const MAX_THUMBNAIL_DIMENSION = 1600
 
 const THUMBNAIL_SNAPSHOT_ENDPOINT = '/api/app/thumbnail-render/snapshot'
 const THUMBNAIL_READY_TIMEOUT_MS = 15_000

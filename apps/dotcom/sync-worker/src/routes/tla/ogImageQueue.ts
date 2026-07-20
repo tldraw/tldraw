@@ -1,3 +1,4 @@
+import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment, OgImageRenderQueueMessage } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
@@ -9,8 +10,6 @@ import {
 import { getPublishedFileInfo } from './getPublishedFile'
 import { getSharedFileInfo, isFileAnonymouslyViewable } from './getSharedFile'
 import {
-	DEFAULT_THUMBNAIL_HEIGHT,
-	DEFAULT_THUMBNAIL_WIDTH,
 	GLOBAL_BROWSER_RATE_LIMIT_KEY,
 	GLOBAL_BROWSER_RUN_RATE_LIMIT,
 	base64ToArrayBuffer,
@@ -19,7 +18,7 @@ import {
 	isRateLimited,
 	renderThumbnailScreenshot,
 } from './sharedBoardScreenshotMcp'
-import { sha256 } from './thumbnailShared'
+import { classifyScreenshotFailure, sha256 } from './thumbnailShared'
 
 // Queue-backed async OG image generation. The GET og-image route never blocks a request on
 // Browser Run: it serves whatever is cached (fresh or stale) or redirects to the default OG image,
@@ -217,7 +216,8 @@ export async function handleOgImageRenderMessage(
 		})
 		message.ack()
 	} catch (error) {
-		retryOrDrop(env, message, boardHash, error instanceof Error ? error.message : String(error))
+		// Bounded reason code only — raw error.message would blow up the failure blob's cardinality.
+		retryOrDrop(env, message, boardHash, classifyScreenshotFailure(error))
 	}
 }
 

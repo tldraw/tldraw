@@ -8,7 +8,7 @@ Issues:
 tldraw.com can capture PNG thumbnails of public boards by taking a Cloudflare Browser Rendering `/screenshot` of a tldraw-owned render page, called straight through the `BROWSER` binding's `.rest` Quick Actions accessor — no `@cloudflare/puppeteer` and no API token. There are two consumers, both served by the sync worker:
 
 - an MCP server at `POST /api/app/mcp` exposing two tools: `get_board_info` lists a board's pages (name, 0-based index, and whether each has content), and `get_shared_board_screenshot` returns a content-fit PNG of a single page. Each screenshot renders exactly one page, so an agent lists pages first and then requests the ones it wants; and
-- a board OG image endpoint, `GET /api/app/og-image/:kind/:slug`, built for high-traffic paths (link unfurls, crawlers): it serves only from the R2 cache and delegates rendering to a queue consumer, so a request never waits on Browser Run.
+- a board OG image endpoint, `GET /api/app/social-preview/:prefix/:slug/image`, built for high-traffic paths (link unfurls, crawlers): it serves only from the R2 cache and delegates rendering to a queue consumer, so a request never waits on Browser Run. It lives under the `social-preview` route family alongside the crawler HTML that references it.
 
 Rendering runs through the Browser Rendering `/screenshot` Quick Action, invoked from the worker via the `BROWSER` binding's `.rest` accessor (`env.BROWSER.rest.screenshot`). Chrome runs in Cloudflare's Browser Rendering fleet, not in the worker isolate. The pipeline never hands the browser a user-provided URL: the worker resolves the board, verifies it is publicly viewable (a published board, or a file shared via link), mints a short-lived signed render job, and the screenshot only ever targets the internal render page with that token. The MCP surface exposes page metadata (names, counts) and page screenshots only: no document structure, shape listing, arbitrary selectors, arbitrary URLs, or access to files that are not publicly shared.
 
@@ -23,12 +23,12 @@ Rendering runs through the Browser Rendering `/screenshot` Quick Action, invoked
 
 ### OG images (queue-backed async rendering)
 
-`GET /api/app/og-image/:kind/:slug` (`:kind` is `p` for published boards or `f` for shared files) serves a 1200x630 light-theme, content-fit PNG for use in `og:image` tags; `GET /api/app/og-html/:kind/:slug` serves crawler metadata pointing at it. The request path never invokes Browser Run:
+`GET /api/app/social-preview/:prefix/:slug/image` (`:prefix` is `p` for published boards or `f` for shared files) serves a 1200x630 light-theme, content-fit PNG for use in `og:image` tags. The crawler HTML that references it is the existing `GET /app/social-preview/:prefix/:slug` (`getSocialPreview`), which puts the board name in the title and bounces human visitors back to the board. The request path never invokes Browser Run:
 
 1. The board is resolved through the same gates as the MCP tool. Private, deleted, unpublished, or unknown boards redirect (302) to the default tldraw OG image.
 2. If the cached image in R2 matches the board's current content version - or is younger than one hour, which caps one board's Browser Run spend at roughly one render per hour no matter how often it changes or is crawled - it is served as a hit with `max-age=3600`.
 3. Otherwise the worker enqueues an `og-image-render` job on the existing sync-worker queue (guarded by a per-board rate limit and a two-minute pending marker in R2 that dedupes concurrent enqueues) and serves the previous image marked stale with `max-age=300`, or the default-image redirect with `max-age=60` if the board has never been rendered. Scrapers pick up the fresh render on their next visit.
-4. The queue consumer (`ogImageQueue.ts`, dispatched from the worker's `queue()` handler) re-resolves the board at render time: a board un-shared while queued is dropped and its cached OG image deleted, and the version is re-read so bursts of enqueues coalesce into one capture of the newest content. It checks the shared global Browser Rendering rate limit (requeueing when capacity is busy), mints a render token with `camera: 'content'` and no `pageId` (so the render page uses whichever page the snapshot opens to), screenshots it through the same `env.BROWSER.rest.screenshot` path as the MCP tool, and writes the PNG to the cache key the route reads. Transient failures retry up to three times with backoff, then drop.
+4. The queue consumer (`ogImageQueue.ts`, dispatched from the worker's `queue()` handler) re-resolves the board at render time: a board un-shared while queued is dropped and its cached OG image deleted, and the version is re-read so bursts of enqueues coalesce into one capture of the newest content. It checks the shared global Browser Rendering rate limit (the same `global` limiter key the MCP tool uses, so both surfaces draw from one cap), mints a render token with `camera: 'content'` and no `pageId` (so the render page uses whichever page the snapshot opens to), screenshots it through the same `env.BROWSER.rest.screenshot` path as the MCP tool, and writes the PNG to the cache key the route reads. When capacity is busy the job is re-enqueued as a fresh message (indefinitely, with backpressure) rather than dropped — this deliberately does not consume the failure-retry budget. Genuine transient failures retry up to three times with backoff, then drop.
 
 ### Request limits
 
@@ -40,9 +40,9 @@ The Cloudflare rate limit bindings are declared in `wrangler.toml` for every env
 
 ### Telemetry and monitoring
 
-All three surfaces write `mcp_shared_board_screenshot` events with the same blob layout, so one dashboard covers everything; the source blob distinguishes `mcp` (the tool), `og` (the OG image route), and `queue` (the async consumer). Events record hashed IP, hashed board slug, cache hit/stale/miss, render duration (wall-clock around the browser session), output dimensions, failure reason (including which rate limit blocked a request), and rate-limit decisions. Column layout in the Analytics Engine dataset (`MEASURE`): `blob1` event name, `blob2` worker name, `blob3` source, `blob4` cache status, `blob5` failure reason, `blob6` rate-limit decision, `blob7` hashed IP, `double3` render duration ms, `double4` browser ms used, `index1` hashed board slug. (The `BROWSER` binding does not surface a per-render billed-ms figure the way the old REST `X-Browser-Ms-Used` header did, so `double4` is now always -1.)
+All three surfaces write `mcp_shared_board_screenshot` events with the same blob layout, so one dashboard covers everything; the source blob distinguishes `mcp` (the tool), `og` (the OG image route), and `queue` (the async consumer). Events record hashed board slug, cache hit/stale/miss, render duration (wall-clock around the browser session), output dimensions, failure reason, rate-limit decisions, and a hashed IP. Two dimensions are deliberately kept low-cardinality: the failure reason is always a bounded reason code (`not_found`, `board_empty`, `page_out_of_range`, `rate_limited_ip`/`board`/`global`, `browser_failed`, `browser_timeout`, `empty_render`, `not_configured`, `render_error`, `invalid_input`, …), never raw `error.message` text; and the hashed IP is written only on failed or rate-limited events (where it's useful for abuse analysis) — successful events carry `ip:none`, so the per-client IP dimension never lands on the common success path. Column layout in the Analytics Engine dataset (`MEASURE`): `blob1` event name, `blob2` worker name, `blob3` source, `blob4` cache status, `blob5` failure reason, `blob6` rate-limit decision, `blob7` hashed IP (or `none`), `double3` render duration ms, `double4` browser ms used, `index1` hashed board slug. (The `BROWSER` binding does not surface a per-render billed-ms figure the way the old REST `X-Browser-Ms-Used` header did, so `double4` is now always -1.)
 
-`internal/scripts/fetch-screenshot-metrics.ts` queries the Analytics Engine SQL API and reports request volume, failure rate, timeout rate, cache hit rate, rate-limit blocks, and Browser Run spend per source:
+`internal/scripts/fetch-screenshot-metrics.ts` queries the Analytics Engine SQL API and reports request volume, failure rate, timeout rate, cache hit rate, rate-limit blocks, and Browser Run render time per source (wall-clock `double3`, summed over rows that actually rendered — `double4` billed ms is unavailable, always -1):
 
 ```bash
 CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_ANALYTICS_API_TOKEN=... \
@@ -53,7 +53,7 @@ For alerting, run it with `--check` on a schedule (cron CI job or any monitor th
 
 ```bash
 npx tsx internal/scripts/fetch-screenshot-metrics.ts --last 1h --check \
-  --max-failure-rate 0.2 --max-timeout-rate 0.1 --max-browser-minutes 60
+  --max-failure-rate 0.2 --max-timeout-rate 0.1 --max-render-minutes 60
 ```
 
 The API token only needs the "Account Analytics: Read" permission. Ad-hoc dashboard queries can use the same SQL API, e.g. failure breakdown over the last day:
@@ -163,14 +163,12 @@ flowchart TB
     subgraph entry ["Entry points (sync worker)"]
         BI["get_board_info<br/>(POST /api/app/mcp — no browser)"]
         MCP["get_shared_board_screenshot<br/>(POST /api/app/mcp — one page per call)"]
-        OGR["GET /api/app/og-image/:kind/:slug<br/>(serves R2 cache only, never waits)"]
+        OGR["GET /api/app/social-preview/:prefix/:slug/image<br/>(serves R2 cache only, never waits)"]
         SP["GET /app/social-preview/:prefix/:slug<br/>(crawler HTML: board name + og:image)"]
-        OGH["GET /app/og-html/:kind/:slug<br/>(duplicate crawler HTML — slated for removal)"]
         QC["Queue consumer<br/>og-image-render (async refresh)"]
     end
 
     SP -->|og:image references| OGR
-    OGH -->|og:image references| OGR
     OGR -->|stale / missing → enqueue| QC
 
     BI --> GATE["Resolve board + share gate<br/>(published or link-shared only)"]
@@ -196,9 +194,12 @@ flowchart TB
 
 ### Follow-up work
 
-The MCP/OG rework and the Browser Rendering binding migration described above are implemented. Still outstanding:
+The MCP/OG rework and the Browser Rendering binding migration described above are implemented. Since then:
 
-- Rename `GET /app/og-image/:kind/:slug` to `GET /app/social-preview/:prefix/:slug/image`, so the crawler HTML and its image live under one route family.
-- Delete `GET /app/og-html/:kind/:slug` and its Vercel route: `getSocialPreview` supersedes it (board name in the title, human bounce-back). Removing the Vercel route also fixes a live bug — crawler-UA in-app browsers (WhatsApp, Pinterest) bounced back with the bypass param currently fall through to the og-html stub, which has no redirect, so real users never reach the board. It also makes `SOCIAL_PREVIEW_DISABLED` a complete kill switch; today it only disables the social-preview route while og-html keeps serving crawlers.
-- Move `useThumbnailPageSize` from `thumbnail-render.tsx` to the dev fixture page — only the dev capture script's local Playwright mode still screenshots a viewport.
-- Consider moving the shared thumbnail dimension constants (default 1200x630, clamp 200-1600) into `@tldraw/dotcom-shared`; they are currently duplicated between `sharedBoardScreenshotMcp.ts` and `thumbnail-render.tsx`.
+- Done: the board image endpoint is `GET /app/social-preview/:prefix/:slug/image`, so the crawler HTML and its image share one route family.
+- Done: `GET /app/og-html/:kind/:slug` and its Vercel route are removed. `getSocialPreview` supersedes it (board name in the title, human bounce-back), which also fixed the live bug where crawler-UA in-app browsers (WhatsApp, Pinterest) bounced back with the bypass param fell through the og-html stub (no redirect) and never reached the board, and made `SOCIAL_PREVIEW_DISABLED` a complete kill switch.
+- Done: the shared thumbnail dimension constants (default 1200x630, clamp 200-1600) live in `@tldraw/dotcom-shared`; the worker and the client render page both import them.
+
+Not doing:
+
+- `useThumbnailPageSize` stays in `thumbnail-render.tsx`. It is load-bearing for the production render page, not dev-only: the render page displays the export as a full-viewport `<img>` and Browser Run takes a viewport screenshot of it, and the dotcom client has no global `body { margin: 0 }` reset (only `#root { width/height: 100% }` in `index.html`), so without the hook's `margin: 0` the browser's default 8px body margin would offset the image and the screenshot would show a white border and clip the bottom-right of every thumbnail.

@@ -1,4 +1,9 @@
-import { MAX_THUMBNAIL_PAGES, THUMBNAIL_RENDER_PATH } from '@tldraw/dotcom-shared'
+import {
+	DEFAULT_THUMBNAIL_HEIGHT,
+	DEFAULT_THUMBNAIL_WIDTH,
+	MAX_THUMBNAIL_PAGES,
+	THUMBNAIL_RENDER_PATH,
+} from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../../r2'
@@ -16,13 +21,11 @@ import {
 	getSharedFileRoomSnapshot,
 	isFileAnonymouslyViewable,
 } from './getSharedFile'
-import { sha256 } from './thumbnailShared'
+import { classifyScreenshotFailure, sha256 } from './thumbnailShared'
 
 const SCREENSHOT_TOOL_NAME = 'get_shared_board_screenshot'
 const BOARD_INFO_TOOL_NAME = 'get_board_info'
 const MCP_PROTOCOL_VERSION = '2024-11-05'
-export const DEFAULT_THUMBNAIL_WIDTH = 1200
-export const DEFAULT_THUMBNAIL_HEIGHT = 630
 // Bounds page navigation and the render-page settle+export wait inside the Browser Rendering
 // screenshot Quick Action.
 const RENDER_TIMEOUT_MS = 45_000
@@ -322,15 +325,15 @@ async function callSharedBoardScreenshotTool(
 	try {
 		input = parseSharedBoardScreenshotInput(argumentsValue)
 	} catch (error) {
-		const failureReason = error instanceof Error ? error.message : String(error)
+		// Telemetry gets a bounded reason code; the caller gets the specific validation message.
 		writeMcpScreenshotTelemetry(env, {
 			boardHash: 'unresolved',
 			ipHash,
 			cacheStatus: 'miss',
 			rateLimitAllowed: true,
-			failureReason,
+			failureReason: 'invalid_input',
 		})
-		return toolError(failureReason)
+		return toolError(error instanceof Error ? error.message : String(error))
 	}
 
 	const boardHash = await sha256(input.boardId)
@@ -461,9 +464,10 @@ async function callSharedBoardScreenshotTool(
 		telemetry({ cacheStatus: 'miss', browserRunDurationMs: render.durationMs })
 		return toolPageResult(targetPage.name, render.base64)
 	} catch (error) {
-		const failureReason = error instanceof Error ? error.message : String(error)
-		telemetry({ cacheStatus: 'miss', failureReason })
-		return toolError(`Screenshot failed: ${failureReason}`)
+		// The bounded reason code goes to telemetry (blob5); the full message only to the caller, so
+		// unbounded error strings never inflate the failure dimension's cardinality.
+		telemetry({ cacheStatus: 'miss', failureReason: classifyScreenshotFailure(error) })
+		return toolError(`Screenshot failed: ${error instanceof Error ? error.message : String(error)}`)
 	}
 }
 
@@ -721,13 +725,17 @@ function writeMcpScreenshotTelemetry(
 		rateLimitAllowed: boolean
 	}
 ) {
+	// Record the hashed IP only on failed or rate-limited events, where it's useful for abuse
+	// analysis. Successful calls are the common case, and a per-IP blob there is one distinct
+	// dimension value per client on every request — a large cardinality cost for no query benefit.
+	const isFailure = data.failureReason !== undefined || !data.rateLimitAllowed
 	writeDataPoint(undefined, env.MEASURE, env, 'mcp_shared_board_screenshot', {
 		blobs: [
 			'source:mcp',
 			`cache:${data.cacheStatus}`,
 			`failure:${data.failureReason ?? 'none'}`,
 			`rate_limit:${data.rateLimitAllowed ? 'allowed' : 'blocked'}`,
-			`ip:${data.ipHash}`,
+			`ip:${isFailure ? data.ipHash : 'none'}`,
 		],
 		indexes: [data.boardHash],
 		doubles: [

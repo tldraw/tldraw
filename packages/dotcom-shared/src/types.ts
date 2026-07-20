@@ -121,6 +121,13 @@ export type AcceptInviteResponseBody =
  */
 export const MAX_THUMBNAIL_PAGES = 40
 
+// Thumbnail output dimensions, shared by the worker (cache keys, render tokens) and the client
+// render page (page sizing, clamping) so both sides agree on the size and bounds.
+export const DEFAULT_THUMBNAIL_WIDTH = 1200
+export const DEFAULT_THUMBNAIL_HEIGHT = 630
+export const MIN_THUMBNAIL_DIMENSION = 200
+export const MAX_THUMBNAIL_DIMENSION = 1600
+
 export interface ThumbnailRenderParams {
 	camera?: 'content'
 	/** The TLPageId of the single page to render. When omitted, the page the snapshot opens to. */

@@ -1,8 +1,6 @@
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import {
-	OG_IMAGE_HEIGHT,
-	OG_IMAGE_WIDTH,
 	OgBoardKind,
 	ResolvedOgBoard,
 	enqueueOgImageRender,
@@ -25,7 +23,6 @@ import { sha256 } from './thumbnailShared'
 const OG_IMAGE_MIN_REFRESH_AGE_MS = 60 * 60_000
 const OG_IMAGE_BOARD_RATE_LIMIT = 20
 const DEFAULT_OG_IMAGE_PATH = '/social-og.png'
-const DEFAULT_OG_IMAGE_MAX_AGE_SECONDS = 60 * 60
 const FRESH_IMAGE_MAX_AGE_SECONDS = 60 * 60
 // Stale images and redirects use short TTLs so scrapers and browsers come back for the fresh
 // render soon after the queued job completes.
@@ -78,52 +75,6 @@ export async function getOgImage(request: IRequest, env: Environment): Promise<R
 	return redirectToDefaultOgImage(request, env)
 }
 
-export async function getOgHtml(request: IRequest, env: Environment): Promise<Response> {
-	const kind = parseOgKind(request.params.kind)
-	const slug = parseSlug(request.params.slug)
-	const origin = getPublicOrigin(request, env)
-	const canonicalUrl =
-		kind && slug ? `${origin}/${kind === 'published' ? 'p' : 'f'}/${slug}` : origin
-	const imageUrl =
-		kind && slug
-			? `${origin}/api/app/og-image/${kind === 'published' ? 'p' : 'f'}/${slug}`
-			: `${origin}${DEFAULT_OG_IMAGE_PATH}`
-
-	return new Response(
-		`<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>tldraw</title>
-<link rel="canonical" href="${escapeHtml(canonicalUrl)}">
-<meta name="description" content="A free and instant collaborative whiteboarding tool.">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="tldraw">
-<meta name="twitter:description" content="A free and instant collaborative whiteboarding tool.">
-<meta name="twitter:image" content="${escapeHtml(imageUrl)}">
-<meta name="twitter:image:alt" content="A collaborative whiteboarding tool interface">
-<meta property="og:type" content="website">
-<meta property="og:title" content="tldraw">
-<meta property="og:description" content="A free and instant collaborative whiteboarding tool.">
-<meta property="og:site_name" content="tldraw">
-<meta property="og:url" content="${escapeHtml(canonicalUrl)}">
-<meta property="og:image" content="${escapeHtml(imageUrl)}">
-<meta property="og:image:width" content="${OG_IMAGE_WIDTH}">
-<meta property="og:image:height" content="${OG_IMAGE_HEIGHT}">
-<meta property="og:image:alt" content="A collaborative whiteboarding tool interface">
-</head>
-<body><a href="${escapeHtml(canonicalUrl)}">Open in tldraw</a></body>
-</html>`,
-		{
-			headers: {
-				'content-type': 'text/html; charset=utf-8',
-				'cache-control': `public, max-age=${DEFAULT_OG_IMAGE_MAX_AGE_SECONDS}`,
-			},
-		}
-	)
-}
-
 function shouldServeCachedOgImage(cached: R2ObjectBody, version: string | number, now: number) {
 	const cachedVersion = cached.customMetadata?.version
 	if (cachedVersion === String(version)) return true
@@ -136,7 +87,7 @@ async function resolveOgBoard(
 	request: IRequest,
 	env: Environment
 ): Promise<ResolvedOgBoard | null> {
-	const kind = parseOgKind(request.params.kind)
+	const kind = parseOgKind(request.params.prefix)
 	const slug = parseSlug(request.params.slug)
 	if (!kind || !slug) return null
 	return resolveOgBoardInfo(env, kind, slug)
@@ -193,21 +144,4 @@ export function getPublicOrigin(request: IRequest, env: Environment) {
 	}
 	if (env.MCP_SCREENSHOT_RENDER_ORIGIN) return env.MCP_SCREENSHOT_RENDER_ORIGIN
 	return new URL(request.url).origin
-}
-
-function escapeHtml(value: string) {
-	return value.replace(/[&<>"']/g, (char) => {
-		switch (char) {
-			case '&':
-				return '&amp;'
-			case '<':
-				return '&lt;'
-			case '>':
-				return '&gt;'
-			case '"':
-				return '&quot;'
-			default:
-				return '&#39;'
-		}
-	})
 }

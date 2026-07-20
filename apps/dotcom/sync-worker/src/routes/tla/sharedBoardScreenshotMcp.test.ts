@@ -255,6 +255,10 @@ describe('get_board_info', () => {
 
 describe('get_shared_board_screenshot', () => {
 	function mockPublishedBoard() {
+		// clearAllMocks (afterEach) resets call history but not mockResolvedValue, so a shared-file
+		// result set by an earlier test would leak in and make this published board resolve as a
+		// shared file (then hit env.ROOMS). Explicitly clear it: a published board has no shared row.
+		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
@@ -396,7 +400,11 @@ describe('get_shared_board_screenshot', () => {
 			)
 		)
 		expect(result.isError).toBe(true)
+		// The caller sees the specific message, but telemetry gets a bounded reason code — the raw
+		// error string never reaches the failure blob (which would blow up its cardinality).
 		expect(result.content[0].text).toContain('Screenshot failed')
+		expect(failureBlobsOf(env)).toContain('failure:browser_failed')
+		expect(failureBlobsOf(env).some((b) => b.includes('(500)'))).toBe(false)
 	})
 
 	it('enforces the per-IP rate limit', async () => {
@@ -414,5 +422,40 @@ describe('get_shared_board_screenshot', () => {
 		}
 		expect(lastResult.isError).toBe(true)
 		expect(lastResult.content[0].text).toContain('Rate limited')
+	})
+
+	// Pulls the `<prefix>:…` telemetry blob out of every writeDataPoint call, so tests can assert on
+	// the low-cardinality dimensions (failure reason codes, and IP only on failures).
+	function blobsWithPrefix(env: Environment, prefix: string): string[] {
+		return (env.MEASURE as any).writeDataPoint.mock.calls
+			.map((call: any[]) => (call[0].blobs as string[]).find((b) => b.startsWith(prefix)))
+			.filter(Boolean)
+	}
+	function ipBlobsOf(env: Environment) {
+		return blobsWithPrefix(env, 'ip:')
+	}
+	function failureBlobsOf(env: Environment) {
+		return blobsWithPrefix(env, 'failure:')
+	}
+
+	it('records the hashed ip only on failures, not on successful screenshots', async () => {
+		mockPublishedBoard()
+		const successEnv = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+		await sharedBoardScreenshotMcp(
+			makeToolCall('203.0.113.30', 'get_shared_board_screenshot', { boardId: 'abc' }),
+			successEnv
+		)
+		expect(ipBlobsOf(successEnv)).toEqual(['ip:none'])
+
+		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
+		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
+		const failEnv = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+		await sharedBoardScreenshotMcp(
+			makeToolCall('203.0.113.31', 'get_shared_board_screenshot', { boardId: 'missing' }),
+			failEnv
+		)
+		const ipBlobs = ipBlobsOf(failEnv)
+		expect(ipBlobs).toHaveLength(1)
+		expect(ipBlobs[0]).toMatch(/^ip:[0-9a-f]{64}$/)
 	})
 })
