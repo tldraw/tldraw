@@ -336,7 +336,14 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
 		for (const message of batch.messages) {
 			if (message.body.type === 'og-image-render') {
-				await handleOgImageRenderMessage(this.env, message as Message<OgImageRenderQueueMessage>)
+				try {
+					await handleOgImageRenderMessage(this.env, message as Message<OgImageRenderQueueMessage>)
+				} catch (_e) {
+					// handleOgImageRenderMessage settles the message itself; this guards the batch loop
+					// against an unexpected throw escaping it, so one bad message can't abort processing
+					// of the rest of the batch. Retry is a no-op if the handler already settled.
+					message.retry()
+				}
 				continue
 			}
 			const { objectName, fileId, userId } = message.body
