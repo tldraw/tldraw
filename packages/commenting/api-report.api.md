@@ -35,14 +35,12 @@ export function anchorPagePoint(editor: Editor, anchor: TLCommentAnchor, impreci
 } | null;
 
 // @public
-export function Avatar({ name, color, image }: AvatarProps): JSX.Element;
+export function Avatar({ author }: AvatarProps): JSX.Element;
 
 // @public (undocumented)
 export interface AvatarProps {
-    color?: string;
-    image?: string;
     // (undocumented)
-    name: string;
+    author: CommentAuthor;
 }
 
 // @public
@@ -140,6 +138,7 @@ export function collectClusterLeaves(editor: Editor, threads: readonly TLComment
 // @public
 export interface CommentAuthor {
     color?: string;
+    image?: string;
     meta?: JsonObject;
     // (undocumented)
     name: string;

@@ -106,7 +106,7 @@ function CommentListItem({
 			data-resolved={resolved || undefined}
 			onClick={handleClick}
 		>
-			<Avatar name={author.name} color={author.color} />
+			<Avatar author={author} />
 			<div className="tlui-cmt-list__item-body">
 				<Byline author={author.name} date={date} />
 				<div className="tlui-cmt-list__item-preview">{preview}</div>

@@ -7,6 +7,9 @@ export interface CommentAuthor {
 	/** The author's color (any CSS color) — colors their avatar and pins.
 	 *  Omit for the default tint. */
 	color?: string
-	/** User-defined metadata for the author, never read by the toolkit (cf. a shape's `meta`). */
+	/** Avatar image URL. When set, avatars show the image instead of the colored initial;
+	 *  the canvas pin keeps the initial-on-color. */
+	image?: string
+	/** User-defined metadata for the author, never read by the toolkit (like a shape's `meta`). */
 	meta?: JsonObject
 }

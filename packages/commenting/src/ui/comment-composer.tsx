@@ -182,7 +182,7 @@ export function CommentComposer({
 
 	return (
 		<div className="tlui-cmt-composer">
-			{leading ?? <Avatar name={author.name} color={author.color} />}
+			{leading ?? <Avatar author={author} />}
 			<div className="tlui-cmt-composer__field">
 				<div className="tlui-cmt-composer__input-wrap">
 					<EditorContent editor={editor} />

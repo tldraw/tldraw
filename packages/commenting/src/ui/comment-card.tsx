@@ -22,7 +22,7 @@ export interface CommentCardProps {
 export function CommentCard({ author, body, date, you, edited, actions }: CommentCardProps) {
 	return (
 		<div className={you ? 'tlui-cmt-card tlui-cmt-card--you' : 'tlui-cmt-card'}>
-			<Avatar name={author.name} color={author.color} />
+			<Avatar author={author} />
 			<div className="tlui-cmt-body">
 				<Byline author={author.name} date={date} edited={edited} />
 				{body}

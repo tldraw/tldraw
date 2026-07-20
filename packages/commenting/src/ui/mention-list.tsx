@@ -37,7 +37,7 @@ function DefaultMemberRow({ member }: { member: MentionMember }) {
 	const msg = useTranslation()
 	return (
 		<>
-			<Avatar name={member.name} color={member.color} image={member.avatar} />
+			<Avatar author={{ name: member.name, color: member.color, image: member.avatar }} />
 			<span className="tlui-cmt-mention-list__text">
 				<span className="tlui-cmt-mention-list__name">
 					{member.name}
