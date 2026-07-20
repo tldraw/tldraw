@@ -417,7 +417,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			// The mention picker owns Escape while it's open — let it dismiss the roster alone.
 			if (isMentionPickerOpen()) return
 			const target = e.target as HTMLElement | null
-			if (target && target.closest('.cmt-editing')) return
+			if (target && target.closest('.tlui-cmt-editing')) return
 			openThreadId.set(editor, null)
 			e.preventDefault()
 			e.stopPropagation()
@@ -447,7 +447,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	// Render into the container (above the panels' stacking context) so the pins and popovers
 	// live in the UI layer rather than being clipped by the canvas layer.
 	return createPortal(
-		<div ref={layerRef} className="cmt-canvas-layer">
+		<div ref={layerRef} className="tlui-cmt-canvas-layer">
 			{options.enableClustering ? (
 				<>
 					{fadeNodes.map(({ node, phase }) => {
@@ -630,7 +630,7 @@ function cancelClusterFadeFrame(frame: number) {
 }
 
 function clusterFadeClassName(phase: ClusterFadePhase): string {
-	return `cmt-cluster-fade cmt-cluster-fade--${phase}`
+	return `tlui-cmt-cluster-fade tlui-cmt-cluster-fade--${phase}`
 }
 
 /**
@@ -760,7 +760,7 @@ const ClusterBadge = memo(function ClusterBadge({
 
 	return (
 		<div
-			className="cmt-canvas-cluster"
+			className="tlui-cmt-canvas-cluster"
 			style={{ left: point.x, top: point.y }}
 			onPointerDown={stop}
 			onClick={(e) => {
@@ -799,7 +799,7 @@ function ThreadPopover({
 	usePassThroughWheelEvents(ref)
 	usePassThroughMouseOverEvents(ref)
 	return createPortal(
-		<div ref={ref} className="cmt-canvas-popover" style={style} onPointerDown={stop}>
+		<div ref={ref} className="tlui-cmt-canvas-popover" style={style} onPointerDown={stop}>
 			{children}
 		</div>,
 		container
@@ -858,7 +858,11 @@ function RegionBox({
 	}
 	return (
 		<div
-			className={movable ? 'cmt-canvas-region cmt-canvas-region--movable' : 'cmt-canvas-region'}
+			className={
+				movable
+					? 'tlui-cmt-canvas-region tlui-cmt-canvas-region--movable'
+					: 'tlui-cmt-canvas-region'
+			}
 			style={rect}
 			onPointerDown={movable ? startMove : undefined}
 			onPointerMove={movable ? onMove : undefined}
@@ -966,7 +970,7 @@ function RegionResizeHandles({
 			{points.map((h) => (
 				<div
 					key={h.key}
-					className="cmt-canvas-region-handle"
+					className="tlui-cmt-canvas-region-handle"
 					style={{ left: h.left, top: h.top, cursor: h.cursor }}
 					onPointerDown={startResize}
 					onPointerMove={onResize(h)}
@@ -1059,15 +1063,17 @@ const ThreadPin = memo(function ThreadPin({
 		const onPointerDown = (e: PointerEvent) => {
 			const target = e.target as HTMLElement | null
 			if (!target) return
-			if (target.closest('.cmt-canvas-popover')) return
+			if (target.closest('.tlui-cmt-canvas-popover')) return
 			const marker = markerRef.current
 			if (marker && marker.contains(target)) return
 			// A press on a region's resize handle or movable body edits this thread — don't dismiss it.
-			if (target.closest('.cmt-canvas-region-handle, .cmt-canvas-region--movable')) return
+			if (target.closest('.tlui-cmt-canvas-region-handle, .tlui-cmt-canvas-region--movable')) return
 			// A click inside a menu/popover layered above us (the sidebar's filter or overflow
 			// dropdown, or the composer's mention picker — all portaled elsewhere) belongs to that
 			// layer; defer to its own dismissal instead of closing the thread out from under it.
-			if (target.closest('.tlui-menu, [data-radix-popper-content-wrapper], .cmt-mention-popup'))
+			if (
+				target.closest('.tlui-menu, [data-radix-popper-content-wrapper], .tlui-cmt-mention-popup')
+			)
 				return
 			openThreadId.set(editor, null)
 		}
@@ -1155,7 +1161,7 @@ const ThreadPin = memo(function ThreadPin({
 		if (editingId === comment.id) {
 			return (
 				<div
-					className="cmt-editing"
+					className="tlui-cmt-editing"
 					onKeyDown={(e) => {
 						if (e.key === 'Escape') {
 							setEditingId(null)
@@ -1184,7 +1190,7 @@ const ThreadPin = memo(function ThreadPin({
 				actions={
 					comment.authorId === currentUserId ? (
 						<button
-							className="cmt-thread__action"
+							className="tlui-cmt-thread__action"
 							title={msg('comments.edit')}
 							onClick={() => startEdit(comment)}
 						>
@@ -1200,7 +1206,7 @@ const ThreadPin = memo(function ThreadPin({
 		<>
 			{currentUserId && (
 				<button
-					className="cmt-thread__action"
+					className="tlui-cmt-thread__action"
 					title={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
 					onClick={toggleResolve}
 				>
@@ -1213,7 +1219,7 @@ const ThreadPin = memo(function ThreadPin({
 			)}
 			{currentUserId && (
 				<button
-					className="cmt-thread__action"
+					className="tlui-cmt-thread__action"
 					title={msg('comments.delete')}
 					onClick={deleteThread}
 				>
@@ -1221,7 +1227,7 @@ const ThreadPin = memo(function ThreadPin({
 				</button>
 			)}
 			<button
-				className="cmt-thread__action"
+				className="tlui-cmt-thread__action"
 				title={msg('comments.dismiss')}
 				onClick={() => openThreadId.set(editor, null)}
 			>
@@ -1340,12 +1346,12 @@ const ThreadPin = memo(function ThreadPin({
 				/>
 			)}
 			<div
-				className={open ? 'cmt-canvas-pin cmt-canvas-pin--open' : 'cmt-canvas-pin'}
+				className={open ? 'tlui-cmt-canvas-pin tlui-cmt-canvas-pin--open' : 'tlui-cmt-canvas-pin'}
 				style={{ left: renderPoint.x, top: renderPoint.y }}
 			>
 				<div
 					ref={markerRef}
-					className="cmt-canvas-pin__marker"
+					className="tlui-cmt-canvas-pin__marker"
 					onPointerDown={startDrag}
 					onPointerMove={onDrag}
 					onPointerUp={endDrag}
@@ -1429,7 +1435,7 @@ function PendingComposer({
 			if (!el || !target) return
 			// A click in the composer, or in the mention picker it spawns (portaled elsewhere), is
 			// not "outside" — keep the draft open so the pick can insert.
-			if (el.contains(target) || target.closest('.cmt-mention-popup')) return
+			if (el.contains(target) || target.closest('.tlui-cmt-mention-popup')) return
 			pendingComment.set(editor, null)
 		}
 		document.addEventListener('pointerdown', onPointerDown, true)
@@ -1461,7 +1467,7 @@ function PendingComposer({
 	return createPortal(
 		<div
 			ref={ref}
-			className="cmt-canvas-composer"
+			className="tlui-cmt-canvas-composer"
 			style={{ left: point.x, top: point.y }}
 			onPointerDown={stop}
 			onKeyDown={(e) => {

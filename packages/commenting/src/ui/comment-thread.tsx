@@ -33,17 +33,19 @@ export function CommentThread({
 	renderComment,
 }: CommentThreadProps) {
 	return (
-		<div className="cmt-thread">
+		<div className="tlui-cmt-thread">
 			{(header !== undefined || headerActions !== undefined) && (
-				<div className="cmt-thread__header">
-					<span className="cmt-thread__title">{header}</span>
+				<div className="tlui-cmt-thread__header">
+					<span className="tlui-cmt-thread__title">{header}</span>
 					{headerActions !== undefined && (
-						<div className="cmt-thread__actions">{headerActions}</div>
+						<div className="tlui-cmt-thread__actions">{headerActions}</div>
 					)}
 				</div>
 			)}
-			{resolvedBanner !== undefined && <div className="cmt-thread__resolved">{resolvedBanner}</div>}
-			<div className="cmt-thread__list">
+			{resolvedBanner !== undefined && (
+				<div className="tlui-cmt-thread__resolved">{resolvedBanner}</div>
+			)}
+			<div className="tlui-cmt-thread__list">
 				{comments.map((comment, i) => (
 					<div key={i}>
 						{renderComment ? renderComment(comment, i) : <CommentCard {...comment} />}

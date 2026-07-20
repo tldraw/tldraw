@@ -26,7 +26,7 @@ export interface CommentMentionOptions {
 }
 
 /**
- * The comment @-mention node — TipTap's `Mention` configured to render as a `.cmt-mention` pill.
+ * The comment @-mention node — TipTap's `Mention` configured to render as a `.tlui-cmt-mention` pill.
  *
  * A factory rather than a shared constant because it's configured differently per context: the
  * read-only render paths pass `resolveName` (so the stored `{ id }` node always shows the member's
@@ -35,7 +35,7 @@ export interface CommentMentionOptions {
  */
 export function commentMention({ resolveName, suggestion }: CommentMentionOptions = {}) {
 	return Mention.configure({
-		HTMLAttributes: { class: 'cmt-mention' },
+		HTMLAttributes: { class: 'tlui-cmt-mention' },
 		renderText: ({ node }) => `@${mentionName(node.attrs as MentionNodeAttrs, resolveName)}`,
 		renderHTML: ({ node, options }) => [
 			'span',

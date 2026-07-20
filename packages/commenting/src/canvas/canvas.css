@@ -1,69 +1,69 @@
 /* The comments layer is portaled into the editor container. Pins live in the canvas-in-front layer
    (beneath the UI panels at z-index 300), so the toolbar and style panel draw over them; the open
-   thread's popover portals up to the menus layer separately (`.cmt-canvas-popover`) so it isn't
+   thread's popover portals up to the menus layer separately (`.tlui-cmt-canvas-popover`) so it isn't
    clipped. Click-through except on its own children. */
-.cmt-canvas-layer {
+.tlui-cmt-canvas-layer {
 	position: absolute;
 	inset: 0;
 	z-index: var(--tl-layer-canvas-in-front);
 	pointer-events: none;
 }
 
-.cmt-canvas-pin,
-.cmt-canvas-cluster,
-.cmt-canvas-composer {
+.tlui-cmt-canvas-pin,
+.tlui-cmt-canvas-cluster,
+.tlui-cmt-canvas-composer {
 	position: absolute;
 }
 
-.cmt-canvas-pin,
-.cmt-canvas-composer {
+.tlui-cmt-canvas-pin,
+.tlui-cmt-canvas-composer {
 	pointer-events: auto;
 }
 
 /* Badges are clickable (zoom to the cluster's first split). */
-.cmt-canvas-cluster {
+.tlui-cmt-canvas-cluster {
 	transform: translate(-50%, -50%);
 	pointer-events: auto;
 	cursor: pointer;
 }
 
-.cmt-cluster-fade {
+.tlui-cmt-cluster-fade {
 	opacity: 1;
 	transition: opacity 150ms ease;
 }
 
-.cmt-cluster-fade--entering {
+.tlui-cmt-cluster-fade--entering {
 	opacity: 0;
 }
 
-.cmt-cluster-fade--present {
+.tlui-cmt-cluster-fade--present {
 	opacity: 1;
 }
 
-.cmt-cluster-fade--exiting {
+.tlui-cmt-cluster-fade--exiting {
 	opacity: 0;
 }
 
-.cmt-cluster-fade--entering *,
-.cmt-cluster-fade--exiting * {
+.tlui-cmt-cluster-fade--entering *,
+.tlui-cmt-cluster-fade--exiting * {
 	pointer-events: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.cmt-cluster-fade {
+	.tlui-cmt-cluster-fade {
 		transition: none;
 	}
 }
 
 /* The open thread (its pin + popover) sits above the other pins, so nearby markers don't
    overlap its popover — they tuck behind it. */
-.cmt-canvas-pin--open {
+.tlui-cmt-canvas-pin--open {
 	z-index: 1;
 }
 
 /* A region anchor's area: a dashed box under the pins, non-interactive so canvas events pass
    through. Drawn for the live drag draft and for a region thread while hovered or open. */
-.cmt-canvas-region {
+.tlui-cmt-canvas-region {
 	position: absolute;
 	pointer-events: none;
 	border: 2px dashed var(--tl-color-selected);
@@ -73,13 +73,13 @@
 
 /* A movable region body (the 'body'/'both' move modes): draggable to translate the whole region.
    Interactive, so it captures the interior while shown — the tradeoff of dragging the body. */
-.cmt-canvas-region--movable {
+.tlui-cmt-canvas-region--movable {
 	pointer-events: auto;
 	cursor: move;
 }
 
 /* Corner resize handles on a region box (three corners; the pin corner is the move handle). */
-.cmt-canvas-region-handle {
+.tlui-cmt-canvas-region-handle {
 	position: absolute;
 	width: 9px;
 	height: 9px;
@@ -92,18 +92,18 @@
 }
 
 /* Centre the pin marker on its anchor point. */
-.cmt-canvas-pin__marker {
+.tlui-cmt-canvas-pin__marker {
 	width: max-content;
 	transform: translate(-50%, -50%);
 	cursor: grab;
 	touch-action: none;
 }
-.cmt-canvas-pin__marker:active {
+.tlui-cmt-canvas-pin__marker:active {
 	cursor: grabbing;
 }
 
 /* The open thread's popover — portaled to the menus layer (above the UI), positioned at the pin. */
-.cmt-canvas-popover {
+.tlui-cmt-canvas-popover {
 	position: absolute;
 	z-index: var(--tl-layer-menus);
 	pointer-events: auto;
@@ -112,7 +112,7 @@
 /* The placement composer — a distinct floating view (portaled to the menus layer, below the click
    point): a pencil "draft" avatar beside a pill field that is itself the surface (no wrapping
    panel). Scoped here so the in-thread reply composer keeps its own squarer look. */
-.cmt-canvas-composer {
+.tlui-cmt-canvas-composer {
 	position: absolute;
 	z-index: var(--tl-layer-menus);
 	pointer-events: auto;
@@ -121,7 +121,7 @@
 	   placement composer a definite width or it collapses to nothing. */
 	width: 280px;
 }
-.cmt-canvas-composer .cmt-composer__field {
+.tlui-cmt-canvas-composer .tlui-cmt-composer__field {
 	background: var(--tl-color-panel);
 	border-color: transparent;
 	border-radius: var(--tl-radius-4);
@@ -132,7 +132,7 @@
    the popover layer, so an open thread still draws over it. Sits under the top-right share panel
    (top offset clears its ~48px height) and sizes to its content, scrolling past max-height rather
    than stretching the full canvas height. */
-.cmt-canvas-sidebar {
+.tlui-cmt-canvas-sidebar {
 	position: absolute;
 	top: 56px;
 	right: 8px;

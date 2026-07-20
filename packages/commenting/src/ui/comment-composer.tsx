@@ -127,7 +127,7 @@ export function CommentComposer({
 			enableCoreExtensions: { textDirection: false },
 			textDirection: 'auto',
 			editorProps: {
-				attributes: { class: 'cmt-input' },
+				attributes: { class: 'tlui-cmt-input' },
 				// Runs before every keymap plugin, so it can distinguish Shift+Enter from Enter — an
 				// `Enter` keymap binding also fires on Shift+Enter and would otherwise swallow it.
 				handleKeyDown: (_view, event) => {
@@ -180,13 +180,13 @@ export function CommentComposer({
 	}, [autoFocus, editor])
 
 	return (
-		<div className="cmt-composer">
+		<div className="tlui-cmt-composer">
 			{leading ?? <Avatar name={author} />}
-			<div className="cmt-composer__field">
-				<div className="cmt-composer__input-wrap">
+			<div className="tlui-cmt-composer__field">
+				<div className="tlui-cmt-composer__input-wrap">
 					<EditorContent editor={editor} />
 					{isEmpty && (
-						<div className="cmt-input__placeholder" aria-hidden="true">
+						<div className="tlui-cmt-input__placeholder" aria-hidden="true">
 							{placeholder}
 						</div>
 					)}

@@ -1,11 +1,11 @@
 /* an anchored comment: pin + its thread popover */
-.cmt-anchored {
+.tlui-cmt-anchored {
 	display: flex;
 	align-items: flex-start;
 	gap: 10px;
 }
 
-.cmt-thread-popover {
+.tlui-cmt-thread-popover {
 	width: 280px;
 	display: flex;
 	flex-direction: column;
@@ -17,7 +17,7 @@
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
-.cmt-resolved-banner {
+.tlui-cmt-resolved-banner {
 	font-size: 12px;
 	color: var(--tl-color-text-3);
 	background: var(--tl-color-muted-2);

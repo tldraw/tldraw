@@ -52,17 +52,17 @@ export function CommentsList({
 	renderItem,
 }: CommentsListProps) {
 	return (
-		<div className="cmt-list">
+		<div className="tlui-cmt-list">
 			{(header !== undefined || headerAction) && (
-				<div className="cmt-list__header">
-					{header !== undefined && <span className="cmt-list__header-title">{header}</span>}
+				<div className="tlui-cmt-list__header">
+					{header !== undefined && <span className="tlui-cmt-list__header-title">{header}</span>}
 					{headerAction}
 				</div>
 			)}
 			{items.length === 0 ? (
-				<div className="cmt-list__empty">{empty}</div>
+				<div className="tlui-cmt-list__empty">{empty}</div>
 			) : (
-				<div className="cmt-list__items">
+				<div className="tlui-cmt-list__items">
 					{items.map((item) =>
 						renderItem ? (
 							renderItem(item)
@@ -99,27 +99,31 @@ function CommentListItem({
 	return (
 		<button
 			type="button"
-			className={selected ? 'cmt-list__item cmt-list__item--selected' : 'cmt-list__item'}
+			className={
+				selected ? 'tlui-cmt-list__item tlui-cmt-list__item--selected' : 'tlui-cmt-list__item'
+			}
 			data-resolved={resolved || undefined}
 			onClick={handleClick}
 		>
 			<Avatar name={author} />
-			<div className="cmt-list__item-body">
+			<div className="tlui-cmt-list__item-body">
 				<Byline author={author} date={date} />
-				<div className="cmt-list__item-preview">{preview}</div>
+				<div className="tlui-cmt-list__item-preview">{preview}</div>
 				{(resolved || page !== undefined) && (
-					<div className="cmt-list__item-meta">
+					<div className="tlui-cmt-list__item-meta">
 						{resolved && (
-							<span className="cmt-list__item-resolved">
+							<span className="tlui-cmt-list__item-resolved">
 								<CheckIcon />
 								{resolvedLabel}
 							</span>
 						)}
-						{page !== undefined && <span className="cmt-list__item-page">{page}</span>}
+						{page !== undefined && <span className="tlui-cmt-list__item-page">{page}</span>}
 					</div>
 				)}
 			</div>
-			{count !== undefined && count > 1 && <span className="cmt-list__item-count">{count}</span>}
+			{count !== undefined && count > 1 && (
+				<span className="tlui-cmt-list__item-count">{count}</span>
+			)}
 		</button>
 	)
 }

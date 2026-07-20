@@ -20,14 +20,16 @@ export function AnchoredComment({ thread, comments, open }: AnchoredCommentProps
 	const resolved = thread.resolved !== null
 	const resolver = resolvedByName(thread)
 	return (
-		<div className="cmt-anchored">
+		<div className="tlui-cmt-anchored">
 			<CommentPin resolved={resolved} open={open}>
 				{comments.length}
 			</CommentPin>
 			{open && (
-				<div className="cmt-thread-popover">
+				<div className="tlui-cmt-thread-popover">
 					{resolved && (
-						<div className="cmt-resolved-banner">Resolved{resolver ? ` by ${resolver}` : ''}</div>
+						<div className="tlui-cmt-resolved-banner">
+							Resolved{resolver ? ` by ${resolver}` : ''}
+						</div>
 					)}
 					{comments.map((comment) => (
 						<CommentCard key={comment.id} {...commentToCardProps(comment)} />

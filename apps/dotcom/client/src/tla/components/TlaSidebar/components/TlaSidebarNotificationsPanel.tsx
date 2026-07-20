@@ -133,10 +133,10 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 					<button
 						key={item.id}
 						type="button"
-						className="cmt-list__item"
+						className="tlui-cmt-list__item"
 						onClick={() => handleSelect(item.id)}
 					>
-						<div className="cmt-list__item-body">
+						<div className="tlui-cmt-list__item-body">
 							<div className={styles.head}>
 								<span className={styles.docTitle}>{item.page}</span>
 								<span className={styles.time}>{formatRelativeTime(item.date)}</span>

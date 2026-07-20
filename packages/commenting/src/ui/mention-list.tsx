@@ -38,15 +38,15 @@ function DefaultMemberRow({ member }: { member: MentionMember }) {
 	return (
 		<>
 			<Avatar name={member.name} color={member.color} image={member.avatar} />
-			<span className="cmt-mention-list__text">
-				<span className="cmt-mention-list__name">
+			<span className="tlui-cmt-mention-list__text">
+				<span className="tlui-cmt-mention-list__name">
 					{member.name}
 					{member.you && (
-						<span className="cmt-mention-list__you">{`(${msg('comments.mention-you')})`}</span>
+						<span className="tlui-cmt-mention-list__you">{`(${msg('comments.mention-you')})`}</span>
 					)}
 				</span>
 				{member.secondary && (
-					<span className="cmt-mention-list__secondary">{member.secondary}</span>
+					<span className="tlui-cmt-mention-list__secondary">{member.secondary}</span>
 				)}
 			</span>
 		</>
@@ -69,13 +69,13 @@ export function MentionList({
 	const msg = useTranslation()
 	if (members.length === 0) {
 		return (
-			<div className="cmt-mention-list cmt-mention-list--empty">
+			<div className="tlui-cmt-mention-list tlui-cmt-mention-list--empty">
 				{emptyLabel ?? msg('comments.mention-no-matches')}
 			</div>
 		)
 	}
 	return (
-		<div className="cmt-mention-list" role="listbox">
+		<div className="tlui-cmt-mention-list" role="listbox">
 			{members.map((member, i) => {
 				const active = i === activeIndex
 				return (
@@ -86,8 +86,8 @@ export function MentionList({
 						aria-selected={active}
 						className={
 							active
-								? 'cmt-mention-list__item cmt-mention-list__item--active'
-								: 'cmt-mention-list__item'
+								? 'tlui-cmt-mention-list__item tlui-cmt-mention-list__item--active'
+								: 'tlui-cmt-mention-list__item'
 						}
 						// Keep the composer focused on a row press: it's portaled outside the editor, so a
 						// bare mousedown would blur the composer — which now dismisses the picker — before

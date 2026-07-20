@@ -16,20 +16,20 @@ const ago = (ms: number) => new Date(NOW - ms).toISOString()
 // The thread header's controls, shown static here (the wiring lives in the canvas overlay).
 const threadActions = (
 	<>
-		<button className="cmt-thread__action" title="Resolve">
+		<button className="tlui-cmt-thread__action" title="Resolve">
 			<TldrawUiIcon icon="check" label="Resolve" small />
 		</button>
-		<button className="cmt-thread__action" title="Delete thread">
+		<button className="tlui-cmt-thread__action" title="Delete thread">
 			<TldrawUiIcon icon="trash" label="Delete thread" small />
 		</button>
-		<button className="cmt-thread__action" title="Dismiss">
+		<button className="tlui-cmt-thread__action" title="Dismiss">
 			<TldrawUiIcon icon="cross-2" label="Dismiss" small />
 		</button>
 	</>
 )
 
 const dismissOnly = (
-	<button className="cmt-thread__action" title="Dismiss">
+	<button className="tlui-cmt-thread__action" title="Dismiss">
 		<TldrawUiIcon icon="cross-2" label="Dismiss" small />
 	</button>
 )
