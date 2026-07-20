@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useState } from 'react'
 import { TLEditorSnapshot, TLStoreSnapshot, Tldraw, defaultShapeUtils } from 'tldraw'
 import 'tldraw/tldraw.css'
 import snapshotExampleSnapshot from '../../../../examples/src/examples/editor-api/snapshots/snapshot.json'
@@ -5,7 +6,7 @@ import layerPanelSnapshot from '../../../../examples/src/examples/ui/layer-panel
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
-	ThumbnailReadySignal,
+	ThumbnailExportSignal,
 	clampThumbnailDimension,
 	useThumbnailPageSize,
 } from './thumbnail-render'
@@ -25,7 +26,9 @@ type FixtureName = keyof typeof fixtures
 
 // Dev-only fixture variant of the production thumbnail render page. It renders allowlisted
 // example snapshots from plain query params so render behavior can be iterated on locally
-// without a sync worker, published file, or signed render token.
+// without a sync worker, published file, or signed render token. There is no worker to upload
+// to here, so the editor.toImage output is shown as a full-viewport <img> (making a screenshot
+// of this page pixel-identical to the export) and exposed as a data URL for the capture script.
 export function Component() {
 	const params = new URLSearchParams(location.search)
 	const fixtureName = getFixtureName(params.get('fixture'))
@@ -35,6 +38,15 @@ export function Component() {
 	const theme = params.get('theme') === 'dark' ? 'dark' : 'light'
 
 	useThumbnailPageSize(width, height)
+
+	const [dataUrl, setDataUrl] = useState<string | null>(null)
+	const handleImage = useCallback(async (blob: Blob) => {
+		setDataUrl(await blobToDataUrl(blob))
+	}, [])
+
+	if (dataUrl) {
+		return <ThumbnailPreview dataUrl={dataUrl} width={width} height={height} />
+	}
 
 	return (
 		<div
@@ -55,10 +67,50 @@ export function Component() {
 					editor.setCamera(getCamera(params, fixture.camera), { immediate: true })
 				}}
 			>
-				<ThumbnailReadySignal />
+				<ThumbnailExportSignal theme={theme} width={width} height={height} onImage={handleImage} />
 			</Tldraw>
 		</div>
 	)
+}
+
+// Signals readiness only once the exported image has painted, so a screenshot taken on the
+// data-thumbnail-ready selector captures the editor.toImage pixels rather than the live editor.
+function ThumbnailPreview({
+	dataUrl,
+	width,
+	height,
+}: {
+	dataUrl: string
+	width: number
+	height: number
+}) {
+	useEffect(() => {
+		;(window as any).__tldrawThumbnailDataUrl = dataUrl
+		return () => {
+			delete (window as any).__tldrawThumbnailDataUrl
+		}
+	}, [dataUrl])
+
+	return (
+		<img
+			src={dataUrl}
+			alt=""
+			style={{ display: 'block', width, height }}
+			onLoad={() => {
+				document.body.dataset.thumbnailReady = 'true'
+				document.documentElement.dataset.thumbnailReady = 'true'
+			}}
+		/>
+	)
+}
+
+function blobToDataUrl(blob: Blob) {
+	return new Promise<string>((resolve, reject) => {
+		const reader = new FileReader()
+		reader.onload = () => resolve(reader.result as string)
+		reader.onerror = () => reject(reader.error ?? new Error('Could not read thumbnail blob'))
+		reader.readAsDataURL(blob)
+	})
 }
 
 function getFixtureName(value: string | null): FixtureName {

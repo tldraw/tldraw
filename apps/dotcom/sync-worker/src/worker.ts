@@ -185,7 +185,7 @@ const router = createRouter<Environment>()
 	.post('/app/mcp', sharedBoardScreenshotMcp)
 	.get('/app/og-html/:kind/:slug', getOgHtml)
 	.get('/app/og-image/:kind/:slug', getOgImage)
-	.get('/app/thumbnail-snapshot', getThumbnailSnapshot)
+	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)

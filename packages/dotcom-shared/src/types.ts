@@ -115,8 +115,16 @@ export type AcceptInviteResponseBody =
 			message: string
 	  }
 
+/**
+ * The most pages the board-info tool will enumerate for a board. Bounds the page list the MCP
+ * server returns and the valid page-ordinal range for screenshots.
+ */
+export const MAX_THUMBNAIL_PAGES = 40
+
 export interface ThumbnailRenderParams {
 	camera?: 'content'
+	/** The TLPageId of the single page to render. When omitted, the page the snapshot opens to. */
+	pageId?: string
 	x: number
 	y: number
 	z: number

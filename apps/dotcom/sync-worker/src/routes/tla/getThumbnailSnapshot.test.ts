@@ -42,7 +42,7 @@ function makeJob(overrides: Partial<ThumbnailRenderJob> = {}): ThumbnailRenderJo
 }
 
 function makeRequest(token: string | null) {
-	const url = new URL('https://sync.tldraw.xyz/app/thumbnail-snapshot')
+	const url = new URL('https://sync.tldraw.xyz/app/thumbnail-render/snapshot')
 	if (token !== null) url.searchParams.set('token', token)
 	return new Request(url) as any
 }
@@ -73,6 +73,23 @@ describe('getThumbnailSnapshot', () => {
 			},
 		})
 		expect(vi.mocked(getPublishedRoomSnapshot)).toHaveBeenCalledWith(env, 'my-board')
+	})
+
+	it('passes the target pageId through to the render params', async () => {
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue({
+			documents: [{ state: { id: 'shape:1', typeName: 'shape' }, lastChangedClock: 0 }],
+			schema: { schemaVersion: 2, sequences: {} },
+			clock: 0,
+		} as any)
+
+		const response = await getThumbnailSnapshot(
+			makeRequest(await mintToken({ camera: 'content', pageId: 'page:abc' })),
+			env
+		)
+
+		expect(response.status).toBe(200)
+		const body = (await response.json()) as any
+		expect(body.renderParams).toMatchObject({ camera: 'content', pageId: 'page:abc' })
 	})
 
 	it('rejects requests without a token', async () => {

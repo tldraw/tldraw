@@ -18,6 +18,7 @@ import { createSupabaseClient } from '../utils/createSupabaseClient'
 import { getSnapshotsTable } from '../utils/getSnapshotsTable'
 import { getSlug } from '../utils/roomOpenMode'
 import { R2Snapshot } from './createRoomSnapshot'
+import { cleanName, getDocumentNameFromSnapshot } from './getDocumentNameFromSnapshot'
 import { getPublicOrigin } from './tla/getOgImage'
 import { getPublishedRoomSnapshot } from './tla/getPublishedFile'
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from './tla/ogImageQueue'
@@ -170,27 +171,6 @@ async function getLegacyRoomName(
 	if (!object) return null
 	const data = (await object.json()) as RoomSnapshot
 	return getDocumentNameFromSnapshot(data)
-}
-
-/**
- * Reads the board name from a room snapshot's `document` record, returning null if there's no
- * usable name.
- */
-export function getDocumentNameFromSnapshot(
-	snapshot: RoomSnapshot | undefined | null
-): string | null {
-	if (!snapshot?.documents) return null
-	for (const { state } of snapshot.documents) {
-		if (state && (state as any).typeName === 'document') {
-			return cleanName((state as any).name)
-		}
-	}
-	return null
-}
-
-function cleanName(name: string | null | undefined): string | null {
-	const trimmed = name?.trim()
-	return trimmed ? trimmed : null
 }
 
 /**

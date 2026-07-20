@@ -1,43 +1,73 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
-import { getPublishedFileInfo } from './getPublishedFile'
-import { getSharedFileInfo } from './getSharedFile'
+import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
+import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import {
 	buildThumbnailRenderUrl,
-	getThumbnailCacheKey,
+	enumerateBoardPages,
+	getThumbnailPageCacheKey,
+	parseBoardInfoInput,
 	parseSharedBoardScreenshotInput,
-	resolveSharedBoardUrl,
 	sharedBoardScreenshotMcp,
 } from './sharedBoardScreenshotMcp'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
+	getPublishedRoomSnapshot: vi.fn(),
 }))
 
 // Keep the real isFileAnonymouslyViewable so the route's share gate is exercised for real; only the
-// DB lookup is mocked.
+// DB/R2 lookups are mocked.
 vi.mock('./getSharedFile', async (importOriginal) => ({
 	...(await importOriginal<typeof import('./getSharedFile')>()),
 	getSharedFileInfo: vi.fn(),
+	getSharedFileRoomSnapshot: vi.fn(),
 }))
 
 afterEach(() => {
-	vi.unstubAllGlobals()
 	vi.clearAllMocks()
 })
 
+// Builds a room snapshot with the given pages and per-page shape counts. Shapes are parented
+// directly to their page, which is what enumerateBoardPages checks for "has content".
+function makeSnapshot(
+	pages: Array<{ id: string; name: string; index: string; shapes: number }>,
+	boardName: string | null = 'My Board'
+) {
+	const documents: Array<{ state: any }> = [
+		{ state: { typeName: 'document', id: 'document:document', name: boardName ?? '' } },
+	]
+	for (const p of pages) {
+		documents.push({ state: { typeName: 'page', id: p.id, name: p.name, index: p.index } })
+		for (let i = 0; i < p.shapes; i++) {
+			documents.push({ state: { typeName: 'shape', id: `shape:${p.id}-${i}`, parentId: p.id } })
+		}
+	}
+	return { documents, schema: { schemaVersion: 2, sequences: {} } } as any
+}
+
+const THREE_PAGES = [
+	{ id: 'page:a', name: 'Cover', index: 'a1', shapes: 2 },
+	{ id: 'page:b', name: 'Ideas', index: 'a2', shapes: 1 },
+	{ id: 'page:c', name: 'Blank', index: 'a3', shapes: 0 },
+]
+
 function makeFakeThumbnailsBucket() {
-	const store = new Map<string, ArrayBuffer>()
+	const store = new Map<string, { body: ArrayBuffer; customMetadata?: Record<string, string> }>()
 	return {
 		store,
 		async get(key: string) {
 			const value = store.get(key)
 			if (!value) return null
-			return { arrayBuffer: async () => value }
+			return { customMetadata: value.customMetadata, arrayBuffer: async () => value.body }
 		},
-		async put(key: string, value: ArrayBuffer) {
-			store.set(key, value)
+		async put(
+			key: string,
+			body: ArrayBuffer,
+			options?: { customMetadata?: Record<string, string> }
+		) {
+			store.set(key, { body, customMetadata: options?.customMetadata })
 		},
 	}
 }
@@ -50,10 +80,18 @@ function makeFakeRoomsBucket(etag: string | null = 'room-etag-1') {
 	}
 }
 
+// The BROWSER binding's `.rest.screenshot` returns a Response whose body is the PNG bytes. [1,2,3]
+// base64-encodes to AQID. Pass a custom impl to simulate failures.
+function makeBrowserBinding(
+	screenshot: (body: any) => Promise<Response> = async () =>
+		new Response(new Uint8Array([1, 2, 3]), { status: 200 })
+) {
+	return { fetch: vi.fn(), rest: { screenshot: vi.fn(screenshot) } }
+}
+
 function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
-		CLOUDFLARE_ACCOUNT_ID: 'account-id',
-		BROWSER_RENDERING_API_TOKEN: 'api-token',
+		BROWSER: makeBrowserBinding(),
 		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://render.example',
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },
@@ -61,7 +99,16 @@ function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	} as unknown as Environment
 }
 
-function makeToolCallRequest(ip: string, url = 'https://www.tldraw.com/p/abc') {
+function screenshotOf(env: Environment) {
+	return (env.BROWSER as any).rest.screenshot as ReturnType<typeof vi.fn>
+}
+
+function tokenFromScreenshot(env: Environment): string {
+	const body = screenshotOf(env).mock.calls[0]![0] as { url: string }
+	return new URL(body.url).searchParams.get('token')!
+}
+
+function makeToolCall(ip: string, name: string, args: object) {
 	return new Request('https://sync.tldraw.xyz/app/mcp', {
 		method: 'POST',
 		headers: { 'cf-connecting-ip': ip },
@@ -69,343 +116,303 @@ function makeToolCallRequest(ip: string, url = 'https://www.tldraw.com/p/abc') {
 			jsonrpc: '2.0',
 			id: 1,
 			method: 'tools/call',
-			params: {
-				name: 'get_shared_board_screenshot',
-				arguments: {
-					url,
-					viewport: { x: 10, y: 20, z: 0.75 },
-				},
-			},
+			params: { name, arguments: args },
 		}),
 	}) as any
 }
 
-function stubBrowserRunFetch() {
-	const fetch = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => {
-		return new Response(new Uint8Array([1, 2, 3]), {
-			headers: {
-				'content-type': 'image/png',
-				'X-Browser-Ms-Used': '123',
-			},
-		})
-	})
-	vi.stubGlobal('fetch', fetch)
-	return fetch
+async function resultOf(response: Response) {
+	return ((await response.json()) as any).result
 }
 
 describe('parseSharedBoardScreenshotInput', () => {
-	it('defaults dimensions and theme', () => {
-		expect(
-			parseSharedBoardScreenshotInput({
-				url: 'https://www.tldraw.com/p/abc',
-				viewport: { x: 1, y: 2, z: 0.5 },
-			})
-		).toEqual({
-			url: 'https://www.tldraw.com/p/abc',
-			viewport: { x: 1, y: 2, z: 0.5 },
-			width: 1200,
-			height: 630,
+	it('defaults page to 0 and theme to light', () => {
+		expect(parseSharedBoardScreenshotInput({ boardId: 'abc' })).toEqual({
+			boardId: 'abc',
+			page: 0,
 			theme: 'light',
 		})
-	})
-
-	it('clamps dimensions to the allowed bounds', () => {
-		expect(
-			parseSharedBoardScreenshotInput({
-				url: 'https://www.tldraw.com/p/abc',
-				viewport: { x: 1, y: 2, z: 0.5 },
-				width: 10_000,
-				height: 1,
-				theme: 'dark',
-			})
-		).toMatchObject({
-			width: 1600,
-			height: 200,
+		expect(parseSharedBoardScreenshotInput({ boardId: 'abc', page: 2, theme: 'dark' })).toEqual({
+			boardId: 'abc',
+			page: 2,
 			theme: 'dark',
 		})
 	})
+
+	it('rejects missing board ids, URLs, and bad page ordinals', () => {
+		expect(() => parseSharedBoardScreenshotInput({})).toThrow('boardId is required')
+		expect(() => parseSharedBoardScreenshotInput({ boardId: 'https://x/f/a' })).toThrow('not a URL')
+		expect(() => parseSharedBoardScreenshotInput({ boardId: 'a', page: -1 })).toThrow(
+			'page must be'
+		)
+		expect(() => parseSharedBoardScreenshotInput({ boardId: 'a', page: 1.5 })).toThrow(
+			'page must be'
+		)
+	})
 })
 
-describe('resolveSharedBoardUrl', () => {
-	it('accepts published tldraw.com URLs', () => {
-		expect(resolveSharedBoardUrl('https://www.tldraw.com/p/abc')).toEqual({
-			kind: 'published',
-			slug: 'abc',
-		})
+describe('parseBoardInfoInput', () => {
+	it('accepts a board id and rejects missing/URL ids', () => {
+		expect(parseBoardInfoInput({ boardId: 'abc' })).toEqual({ boardId: 'abc' })
+		expect(() => parseBoardInfoInput({})).toThrow('boardId is required')
+		expect(() => parseBoardInfoInput({ boardId: 'https://x/p/a' })).toThrow('not a URL')
 	})
+})
 
-	it('accepts shared file tldraw.com URLs', () => {
-		expect(resolveSharedBoardUrl('https://www.tldraw.com/f/abc')).toEqual({
-			kind: 'shared_file',
-			slug: 'abc',
-		})
-	})
-
-	it('rejects arbitrary external URLs', () => {
-		expect(() => resolveSharedBoardUrl('https://example.com/f/abc')).toThrow(
-			'Only tldraw.com board URLs are accepted'
-		)
-	})
-
-	it('rejects invite-only URLs and unsupported route shapes', () => {
-		expect(() => resolveSharedBoardUrl('https://www.tldraw.com/invite/token')).toThrow(
-			'Invite-only'
-		)
-		expect(() => resolveSharedBoardUrl('https://www.tldraw.com/q/abc')).toThrow(
-			'Only published or shared'
-		)
-	})
-
-	it("accepts board URLs on the deployment's own render-origin host (e.g. a preview)", () => {
+describe('getThumbnailPageCacheKey', () => {
+	it('includes board identity, version, fixed dimensions, theme, and page ordinal', () => {
 		expect(
-			resolveSharedBoardUrl(
-				'https://pr-9503-preview-deploy.tldraw.com/f/abc',
-				'pr-9503-preview-deploy.tldraw.com'
+			getThumbnailPageCacheKey(
+				{ kind: 'published', slug: 'abc', version: 1751234567890 },
+				'dark',
+				2
 			)
-		).toEqual({ kind: 'shared_file', slug: 'abc' })
-	})
-
-	it('rejects a preview host when it is not this deployment’s render origin', () => {
-		expect(() => resolveSharedBoardUrl('https://pr-9503-preview-deploy.tldraw.com/f/abc')).toThrow(
-			'Only tldraw.com board URLs are accepted'
-		)
+		).toBe('mcp/published/abc/1751234567890/1200x630/dark/page-2.png')
 	})
 })
 
-describe('getThumbnailCacheKey', () => {
-	it('includes board identity, published version, dimensions, theme, and viewport', () => {
-		expect(
-			getThumbnailCacheKey({
-				kind: 'published',
-				slug: 'abc',
-				fileId: 'file-1',
-				version: 1751234567890,
-				x: 10,
-				y: 20,
-				z: 0.75,
-				width: 1200,
-				height: 630,
-				theme: 'dark',
-			})
-		).toBe('mcp/published/abc/1751234567890/1200x630/dark/10_20_0.75.png')
+describe('enumerateBoardPages', () => {
+	it('lists pages in fractional-index order with names and content flags', () => {
+		const pages = enumerateBoardPages(
+			makeSnapshot([
+				{ id: 'page:b', name: 'Ideas', index: 'a2', shapes: 1 },
+				{ id: 'page:a', name: 'Cover', index: 'a1', shapes: 2 },
+				{ id: 'page:c', name: '', index: 'a3', shapes: 0 },
+			])
+		)
+		expect(pages).toEqual([
+			{ index: 0, id: 'page:a', name: 'Cover', hasContent: true },
+			{ index: 1, id: 'page:b', name: 'Ideas', hasContent: true },
+			{ index: 2, id: 'page:c', name: 'Page 3', hasContent: false },
+		])
 	})
 })
 
 describe('buildThumbnailRenderUrl', () => {
 	it('builds the render page URL with the token', () => {
 		const url = new URL(buildThumbnailRenderUrl('https://render.example', 'the-token'))
-		expect(url.origin).toBe('https://render.example')
 		expect(url.pathname).toBe('/__thumbnail-render')
 		expect(url.searchParams.get('token')).toBe('the-token')
 	})
 })
 
-describe('sharedBoardScreenshotMcp', () => {
-	it('captures a published board through a signed render job, not the user URL', async () => {
+describe('get_board_info', () => {
+	it('returns the board name, page count, and per-page info for a published board', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 1751234567890,
 		})
-		const fetch = stubBrowserRunFetch()
-		const env = makeEnv()
-
-		const response = await sharedBoardScreenshotMcp(makeToolCallRequest('203.0.113.1'), env)
-
-		const body = (await response.json()) as any
-		expect(body.result.content).toEqual([
-			{
-				type: 'image',
-				data: 'AQID',
-				mimeType: 'image/png',
-			},
-		])
-
-		const browserRunRequest = JSON.parse(fetch.mock.calls[0]![1]!.body as string)
-		const renderUrl = new URL(browserRunRequest.url)
-		expect(renderUrl.origin).toBe('https://render.example')
-		expect(renderUrl.pathname).toBe('/__thumbnail-render')
-		expect(browserRunRequest.url).not.toContain('www.tldraw.com')
-
-		// the render token round-trips to the resolved board and requested render params
-		const job = await verifyThumbnailRenderToken(env, renderUrl.searchParams.get('token')!)
-		expect(job).toMatchObject({
-			kind: 'published',
-			slug: 'abc',
-			fileId: 'file-1',
-			version: 1751234567890,
-			x: 10,
-			y: 20,
-			z: 0.75,
-			width: 1200,
-			height: 630,
-			theme: 'light',
-		})
-
-		expect(browserRunRequest.viewport).toEqual({
-			width: 1200,
-			height: 630,
-			deviceScaleFactor: 1,
-		})
-	})
-
-	it('serves repeat requests from the thumbnail cache without invoking Browser Run again', async () => {
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1751234567890,
-		})
-		const fetch = stubBrowserRunFetch()
-		const bucket = makeFakeThumbnailsBucket()
-		const env = makeEnv({ THUMBNAILS: bucket })
-
-		const first = await sharedBoardScreenshotMcp(
-			makeToolCallRequest('203.0.113.10', 'https://www.tldraw.com/p/cached-board'),
-			env
-		)
-		const second = await sharedBoardScreenshotMcp(
-			makeToolCallRequest('203.0.113.11', 'https://www.tldraw.com/p/cached-board'),
-			env
-		)
-
-		const firstBody = (await first.json()) as any
-		const secondBody = (await second.json()) as any
-		expect(firstBody.result.content[0].type).toBe('image')
-		expect(secondBody.result.content).toEqual(firstBody.result.content)
-		expect(fetch).toHaveBeenCalledTimes(1)
-		expect(bucket.store.size).toBe(1)
-		expect([...bucket.store.keys()][0]).toContain('mcp/published/cached-board/')
-	})
-
-	it('returns a tool error for boards that are not published', async () => {
-		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
-		const fetch = vi.fn()
-		vi.stubGlobal('fetch', fetch)
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeSnapshot(THREE_PAGES, 'My Board'))
 
 		const response = await sharedBoardScreenshotMcp(
-			makeToolCallRequest('203.0.113.20', 'https://www.tldraw.com/p/missing'),
+			makeToolCall('203.0.113.1', 'get_board_info', { boardId: 'abc' }),
 			makeEnv()
 		)
 
-		const body = (await response.json()) as any
-		expect(body.result.isError).toBe(true)
-		expect(body.result.content[0].text).toContain('No published board')
-		expect(fetch).not.toHaveBeenCalled()
+		const result = await resultOf(response)
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			name: 'My Board',
+			pageCount: 3,
+			pages: [
+				{ index: 0, name: 'Cover', hasContent: true },
+				{ index: 1, name: 'Ideas', hasContent: true },
+				{ index: 2, name: 'Blank', hasContent: false },
+			],
+		})
 	})
 
-	it('returns a JSON-RPC tool error instead of crashing when the render origin is not configured', async () => {
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1751234567890,
-		})
-		const fetch = vi.fn()
-		vi.stubGlobal('fetch', fetch)
+	it('resolves a shared file id and never spends browser capacity', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f1', shared: true, isDeleted: false })
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(THREE_PAGES))
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
 
 		const response = await sharedBoardScreenshotMcp(
-			makeToolCallRequest('203.0.113.30'),
-			makeEnv({ MCP_SCREENSHOT_RENDER_ORIGIN: undefined })
-		)
-
-		expect(response.status).toBe(200)
-		const body = (await response.json()) as any
-		expect(body.result.isError).toBe(true)
-		expect(body.result.content[0].text).toContain('MCP_SCREENSHOT_RENDER_ORIGIN')
-		expect(fetch).not.toHaveBeenCalled()
-	})
-
-	it('captures an anonymously-shared file, keying the cache on the room etag', async () => {
-		vi.mocked(getSharedFileInfo).mockResolvedValue({
-			id: 'shared-abc',
-			shared: true,
-			isDeleted: false,
-		})
-		const fetch = stubBrowserRunFetch()
-		const bucket = makeFakeThumbnailsBucket()
-		const env = makeEnv({ THUMBNAILS: bucket, ROOMS: makeFakeRoomsBucket('room-etag-1') })
-
-		const response = await sharedBoardScreenshotMcp(
-			makeToolCallRequest('203.0.113.50', 'https://www.tldraw.com/f/shared-abc'),
+			makeToolCall('203.0.113.2', 'get_board_info', { boardId: 'f1' }),
 			env
 		)
 
-		const body = (await response.json()) as any
-		expect(body.result.content[0].type).toBe('image')
-
-		const browserRunRequest = JSON.parse(fetch.mock.calls[0]![1]!.body as string)
-		const renderUrl = new URL(browserRunRequest.url)
-		expect(browserRunRequest.url).not.toContain('www.tldraw.com')
-
-		const job = await verifyThumbnailRenderToken(env, renderUrl.searchParams.get('token')!)
-		expect(job).toMatchObject({
-			kind: 'shared_file',
-			slug: 'shared-abc',
-			fileId: 'shared-abc',
-			version: 'room-etag-1',
-		})
-		// the etag rides the cache key so republished content rotates it
-		expect([...bucket.store.keys()][0]).toContain('mcp/shared_file/shared-abc/room-etag-1/')
+		const result = await resultOf(response)
+		expect(JSON.parse(result.content[0].text).pageCount).toBe(3)
+		expect(getPublishedFileInfo).not.toHaveBeenCalled()
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 
-	it('returns a tool error for private (unshared) files without spending Browser Run', async () => {
-		vi.mocked(getSharedFileInfo).mockResolvedValue({
-			id: 'private-abc',
-			shared: false,
-			isDeleted: false,
-		})
-		const fetch = vi.fn()
-		vi.stubGlobal('fetch', fetch)
+	it('errors when no public board exists', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
+		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 
-		const response = await sharedBoardScreenshotMcp(
-			makeToolCallRequest('203.0.113.51', 'https://www.tldraw.com/f/private-abc'),
-			makeEnv({ ROOMS: makeFakeRoomsBucket() })
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.3', 'get_board_info', { boardId: 'missing' }),
+				makeEnv()
+			)
 		)
-
-		const body = (await response.json()) as any
-		expect(body.result.isError).toBe(true)
-		expect(body.result.content[0].text).toContain('No shared board')
-		expect(fetch).not.toHaveBeenCalled()
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('No public board')
 	})
+})
 
-	it('returns a tool error for a shared file with no saved content yet', async () => {
-		vi.mocked(getSharedFileInfo).mockResolvedValue({
-			id: 'empty-abc',
-			shared: true,
-			isDeleted: false,
-		})
-		const fetch = vi.fn()
-		vi.stubGlobal('fetch', fetch)
-
-		const response = await sharedBoardScreenshotMcp(
-			makeToolCallRequest('203.0.113.52', 'https://www.tldraw.com/f/empty-abc'),
-			makeEnv({ ROOMS: makeFakeRoomsBucket(null) })
-		)
-
-		const body = (await response.json()) as any
-		expect(body.result.isError).toBe(true)
-		expect(body.result.content[0].text).toContain('no saved content')
-		expect(fetch).not.toHaveBeenCalled()
-	})
-
-	it('enforces the per-IP rate limit', async () => {
+describe('get_shared_board_screenshot', () => {
+	function mockPublishedBoard() {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 1751234567890,
 		})
-		stubBrowserRunFetch()
-		const env = makeEnv()
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeSnapshot(THREE_PAGES))
+	}
 
-		let lastBody: any
-		for (let i = 0; i < 21; i++) {
-			const response = await sharedBoardScreenshotMcp(
-				makeToolCallRequest('203.0.113.40', `https://www.tldraw.com/p/board-${i}`),
+	it('screenshots the first page by default and caches it', async () => {
+		mockPublishedBoard()
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.10', 'get_shared_board_screenshot', { boardId: 'abc' }),
 				env
 			)
-			lastBody = await response.json()
-		}
+		)
 
-		expect(lastBody.result.isError).toBe(true)
-		expect(lastBody.result.content[0].text).toContain('Rate limited')
+		expect(result.content).toEqual([
+			{ type: 'text', text: 'Cover' },
+			{ type: 'image', data: 'AQID', mimeType: 'image/png' },
+		])
+		// the render token pins the first page and never carries the user's board URL
+		const body = screenshotOf(env).mock.calls[0]![0] as { url: string }
+		expect(body.url).not.toContain('www.tldraw.com')
+		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
+		expect(job).toMatchObject({
+			kind: 'published',
+			slug: 'abc',
+			camera: 'content',
+			pageId: 'page:a',
+		})
+		// cached under the page-0 key
+		expect([...bucket.store.keys()]).toEqual([
+			'mcp/published/abc/1751234567890/1200x630/light/page-0.png',
+		])
+	})
+
+	it('screenshots the requested page ordinal', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.11', 'get_shared_board_screenshot', { boardId: 'abc', page: 1 }),
+				env
+			)
+		)
+
+		expect(result.content[0]).toEqual({ type: 'text', text: 'Ideas' })
+		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
+		expect(job).toMatchObject({ pageId: 'page:b' })
+	})
+
+	it('serves a cached page without screenshotting again', async () => {
+		mockPublishedBoard()
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+
+		await sharedBoardScreenshotMcp(
+			makeToolCall('203.0.113.12', 'get_shared_board_screenshot', { boardId: 'abc' }),
+			env
+		)
+		const second = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.13', 'get_shared_board_screenshot', { boardId: 'abc' }),
+				env
+			)
+		)
+
+		expect(second.content).toEqual([
+			{ type: 'text', text: 'Cover' },
+			{ type: 'image', data: 'AQID', mimeType: 'image/png' },
+		])
+		expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
+	})
+
+	it('errors when the page ordinal is out of range, without screenshotting', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.14', 'get_shared_board_screenshot', { boardId: 'abc', page: 9 }),
+				env
+			)
+		)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('out of range')
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+	})
+
+	it('errors for a private (unshared) file without screenshotting', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'p', shared: false, isDeleted: false })
+		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(), THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.15', 'get_shared_board_screenshot', { boardId: 'p' }),
+				env
+			)
+		)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('No public board')
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+	})
+
+	it('errors for a shared file with no saved content', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'e', shared: true, isDeleted: false })
+		const env = makeEnv({
+			ROOMS: makeFakeRoomsBucket(null),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.16', 'get_shared_board_screenshot', { boardId: 'e' }),
+				env
+			)
+		)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('no saved content')
+	})
+
+	it('surfaces a render failure when the screenshot call fails', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+			BROWSER: makeBrowserBinding(async () => new Response('nope', { status: 500 })),
+		})
+
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.17', 'get_shared_board_screenshot', { boardId: 'abc' }),
+				env
+			)
+		)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('Screenshot failed')
+	})
+
+	it('enforces the per-IP rate limit', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		let lastResult: any
+		for (let i = 0; i < 21; i++) {
+			lastResult = await resultOf(
+				await sharedBoardScreenshotMcp(
+					makeToolCall('203.0.113.20', 'get_shared_board_screenshot', { boardId: `board-${i}` }),
+					env
+				)
+			)
+		}
+		expect(lastResult.isError).toBe(true)
+		expect(lastResult.content[0].text).toContain('Rate limited')
 	})
 })

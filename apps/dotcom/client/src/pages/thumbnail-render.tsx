@@ -3,8 +3,17 @@ import {
 	ThumbnailSnapshotResponseBody,
 	getLicenseKey,
 } from '@tldraw/dotcom-shared'
-import { useEffect, useMemo } from 'react'
-import { Editor, Image, SerializedSchema, TLRecord, Tldraw, fetch, useEditor } from 'tldraw'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+	Editor,
+	Image,
+	SerializedSchema,
+	TLPageId,
+	TLRecord,
+	Tldraw,
+	fetch,
+	useEditor,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 import { assetUrls } from '../utils/assetUrls'
 import { defineLoader } from '../utils/defineLoader'
@@ -15,12 +24,13 @@ export const DEFAULT_THUMBNAIL_HEIGHT = 630
 export const MIN_THUMBNAIL_DIMENSION = 200
 export const MAX_THUMBNAIL_DIMENSION = 1600
 
-const THUMBNAIL_SNAPSHOT_ENDPOINT = '/api/app/thumbnail-snapshot'
+const THUMBNAIL_SNAPSHOT_ENDPOINT = '/api/app/thumbnail-render/snapshot'
 const THUMBNAIL_READY_TIMEOUT_MS = 15_000
 
 type LoaderData =
 	| {
 			ok: true
+			token: string
 			records: TLRecord[]
 			schema: SerializedSchema
 			renderParams: ThumbnailRenderParams
@@ -50,6 +60,7 @@ const { loader, useData } = defineLoader(async (args): Promise<LoaderData> => {
 
 	return {
 		ok: true,
+		token,
 		records: data.records,
 		schema: data.schema,
 		renderParams: data.renderParams,
@@ -93,6 +104,15 @@ function ThumbnailRenderPage({
 		[schema, records]
 	)
 
+	// Once the export is ready it's shown as a full-viewport <img>, so the worker's Browser Rendering
+	// screenshot captures the exact editor.toImage output rather than the live editor canvas.
+	const [dataUrl, setDataUrl] = useState<string | null>(null)
+	const handleImage = useCallback(async (blob: Blob) => {
+		setDataUrl(await blobToDataUrl(blob))
+	}, [])
+
+	if (dataUrl) return <ThumbnailImage dataUrl={dataUrl} width={width} height={height} />
+
 	return (
 		<div
 			style={{
@@ -111,6 +131,11 @@ function ThumbnailRenderPage({
 				onMount={(editor) => {
 					editor.user.updateUserPreferences({ colorScheme: theme })
 					editor.updateInstanceState({ isReadonly: true })
+					// Render the specific page the token asked for; without one, keep the page the
+					// snapshot opens to (used by OG images).
+					if (renderParams.pageId && editor.getPage(renderParams.pageId as TLPageId)) {
+						editor.setCurrentPage(renderParams.pageId as TLPageId)
+					}
 					if (renderParams.camera === 'content') {
 						const bounds = editor.getCurrentPageBounds()
 						if (bounds) {
@@ -130,9 +155,35 @@ function ThumbnailRenderPage({
 					}
 				}}
 			>
-				<ThumbnailReadySignal />
+				<ThumbnailExportSignal theme={theme} width={width} height={height} onImage={handleImage} />
 			</Tldraw>
 		</div>
+	)
+}
+
+// Displays the exported PNG at the exact output size and signals readiness once it has painted, so
+// the worker's screenshot (which waits on data-thumbnail-ready) captures the export pixel-for-pixel.
+// The editor DOM is gone by now — React swaps it out in the same commit that renders this — so the
+// page is quiescent when the screenshot is taken.
+function ThumbnailImage({
+	dataUrl,
+	width,
+	height,
+}: {
+	dataUrl: string
+	width: number
+	height: number
+}) {
+	return (
+		<img
+			src={dataUrl}
+			alt=""
+			style={{ display: 'block', width, height }}
+			onLoad={() => {
+				document.body.dataset.thumbnailReady = 'true'
+				document.documentElement.dataset.thumbnailReady = 'true'
+			}}
+		/>
 	)
 }
 
@@ -189,52 +240,144 @@ function getRepresentativeContentInset(width: number, height: number) {
 	return Math.max(48, Math.min(160, width * 0.12, height * 0.18))
 }
 
-// Signals capture readiness by setting data-thumbnail-ready once fonts have settled, image assets
-// have loaded, and the editor's <img> elements are stable. Browser Run waits on this selector. A
-// deadline caps the wait so one broken asset degrades the capture instead of failing it outright.
-export function ThumbnailReadySignal({
+// Produces a thumbnail of the editor's current page with editor.toImage once the scene has settled
+// — fonts loaded, image assets warm, and the editor's <img> elements stable — and hands the PNG blob
+// to `onImage`. A deadline caps the settle wait so one broken asset degrades the export instead of
+// failing it outright. Export failures surface as data-thumbnail-error; the worker's screenshot wait
+// never sees the ready selector and times out.
+export function ThumbnailExportSignal({
+	theme,
+	width,
+	height,
 	timeoutMs = THUMBNAIL_READY_TIMEOUT_MS,
+	onImage,
 }: {
+	theme: 'light' | 'dark'
+	width: number
+	height: number
 	timeoutMs?: number
+	onImage(blob: Blob): void | Promise<void>
 }) {
 	const editor = useEditor()
 
 	useEffect(() => {
 		let cancelled = false
-
-		const signalReady = () => {
-			if (cancelled) return
-			;(window as any).__tldrawThumbnailReady = true
-			document.body.dataset.thumbnailReady = 'true'
-			document.documentElement.dataset.thumbnailReady = 'true'
-		}
-
 		const deadline = Date.now() + timeoutMs
 
-		Promise.race([
-			(async () => {
-				await waitForFonts()
-				await preloadImageAssets(editor, deadline)
-				await waitForEditorImages(editor, deadline)
-			})(),
-			sleep(timeoutMs),
-		]).then(() => {
-			// two frames so the canvas paints the settled state before the selector resolves
-			requestAnimationFrame(() => {
-				requestAnimationFrame(signalReady)
-			})
+		;(async () => {
+			await Promise.race([
+				(async () => {
+					await waitForFonts()
+					await preloadImageAssets(editor, deadline)
+					await waitForEditorImages(editor, deadline)
+				})(),
+				sleep(timeoutMs),
+			])
+			if (cancelled) return
+			const blob = await exportThumbnailImage(editor, theme, width, height)
+			if (cancelled) return
+			await onImage(blob)
+		})().catch((error) => {
+			if (cancelled) return
+			const message = error instanceof Error ? error.message : String(error)
+			document.body.dataset.thumbnailError = message
+			document.documentElement.dataset.thumbnailError = message
 		})
 
 		return () => {
 			cancelled = true
 		}
-	}, [editor, timeoutMs])
+	}, [editor, theme, width, height, timeoutMs, onImage])
 
 	useEffect(() => {
 		;(window as any).editor = editor
 	}, [editor])
 
 	return null
+}
+
+// Exports the exact viewport rectangle through editor.toImage: bounds are the viewport in page
+// space, scale is the camera zoom (so bounds.width * z lands back on the requested pixel width),
+// and pixelRatio 1 keeps the bitmap at CSS-pixel size. Shapes culled at the current viewport
+// cannot appear in that rectangle, so they are excluded to keep the export cheap on large boards.
+async function exportThumbnailImage(
+	editor: Editor,
+	theme: 'light' | 'dark',
+	width: number,
+	height: number
+): Promise<Blob> {
+	const camera = editor.getCamera()
+	const bounds = editor.getViewportPageBounds().clone()
+	const culled = editor.getCulledShapes()
+	const shapeIds = [...editor.getCurrentPageShapeIds()].filter((id) => !culled.has(id))
+
+	if (shapeIds.length === 0) {
+		return makeBlankThumbnail(width, height, editor.getCurrentTheme().colors[theme].background)
+	}
+
+	const { blob } = await editor.toImage(shapeIds, {
+		format: 'png',
+		bounds,
+		scale: camera.z,
+		padding: 0,
+		background: true,
+		darkMode: theme === 'dark',
+		pixelRatio: 1,
+	})
+	return normalizeThumbnailSize(blob, width, height)
+}
+
+// The export's bitmap sizing floors fractional dimensions, so a fractional camera zoom can come
+// back a pixel short of the requested output (e.g. 500 / 0.82 * 0.82 = 499.99…). Redraw onto an
+// exactly-sized canvas when that happens; the sub-pixel stretch is invisible.
+async function normalizeThumbnailSize(blob: Blob, width: number, height: number): Promise<Blob> {
+	const bitmap = await createImageBitmap(blob)
+	try {
+		if (bitmap.width === width && bitmap.height === height) return blob
+
+		const canvas = document.createElement('canvas')
+		canvas.width = width
+		canvas.height = height
+		const context = canvas.getContext('2d')
+		if (!context) return blob
+		context.drawImage(bitmap, 0, 0, width, height)
+		return await new Promise<Blob>((resolve, reject) => {
+			canvas.toBlob(
+				(result) => (result ? resolve(result) : reject(new Error('Could not resize thumbnail'))),
+				'image/png'
+			)
+		})
+	} finally {
+		bitmap.close()
+	}
+}
+
+// toImage cannot export an empty shape list, so pages with no (visible) shapes fall back to a
+// plain background-colored PNG matching what the export would have shown.
+function makeBlankThumbnail(width: number, height: number, background: string): Promise<Blob> {
+	const canvas = document.createElement('canvas')
+	canvas.width = width
+	canvas.height = height
+	const context = canvas.getContext('2d')
+	if (context) {
+		context.fillStyle = background
+		context.fillRect(0, 0, width, height)
+	}
+	return new Promise((resolve, reject) => {
+		canvas.toBlob(
+			(blob) => (blob ? resolve(blob) : reject(new Error('Could not create blank thumbnail'))),
+			'image/png'
+		)
+	})
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader()
+		reader.onload = () => resolve(reader.result as string)
+		reader.onerror = () => reject(reader.error ?? new Error('Could not read thumbnail blob'))
+		reader.readAsDataURL(blob)
+	})
 }
 
 async function waitForFonts() {

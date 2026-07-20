@@ -1,8 +1,13 @@
 /**
  * Fetch board screenshot telemetry (the mcp_shared_board_screenshot dataset events) from the
  * Cloudflare Analytics Engine SQL API and report failure rate, timeout rate, cache hit rate, and
- * Browser Run spend per request source (mcp = MCP tool, og = GET og-image route, queue = async
+ * Browser Run render time per request source (mcp = MCP tool, og = GET og-image route, queue = async
  * render consumer).
+ *
+ * Render time is wall-clock time around each Browser Run capture (double3), not Cloudflare's billed
+ * browser milliseconds: the BROWSER binding does not surface a per-render billed-ms figure the way
+ * the old REST path did (double4 is always -1), so wall-clock render time is the available proxy for
+ * Browser Run spend.
  *
  * Usage:
  *   npx tsx internal/scripts/fetch-screenshot-metrics.ts [options]
@@ -10,7 +15,7 @@
  * Examples:
  *   npx tsx internal/scripts/fetch-screenshot-metrics.ts --last 24h
  *   npx tsx internal/scripts/fetch-screenshot-metrics.ts --worker main-tldraw-multiplayer --last 7d
- *   npx tsx internal/scripts/fetch-screenshot-metrics.ts --check --max-failure-rate 0.2 --max-browser-minutes 300
+ *   npx tsx internal/scripts/fetch-screenshot-metrics.ts --check --max-failure-rate 0.2 --max-render-minutes 300
  *
  * With --check the script exits non-zero when a threshold is breached, so it can back a scheduled
  * alert (cron CI job, uptime monitor, etc.) without any extra infrastructure.
@@ -30,7 +35,7 @@ interface Options {
 	maxFailureRate?: number
 	maxTimeoutRate?: number
 	minCacheHitRate?: number
-	maxBrowserMinutes?: number
+	maxRenderMinutes?: number
 }
 
 interface SourceMetrics {
@@ -43,7 +48,7 @@ interface SourceMetrics {
 	cacheStale: number
 	cacheMisses: number
 	captures: number
-	browserMs: number
+	renderMs: number
 }
 
 function parseArgs(): Options {
@@ -64,7 +69,9 @@ function parseArgs(): Options {
 		else if (arg === '--max-failure-rate') opts.maxFailureRate = Number(args[++i])
 		else if (arg === '--max-timeout-rate') opts.maxTimeoutRate = Number(args[++i])
 		else if (arg === '--min-cache-hit-rate') opts.minCacheHitRate = Number(args[++i])
-		else if (arg === '--max-browser-minutes') opts.maxBrowserMinutes = Number(args[++i])
+		// --max-browser-minutes is the former name; kept as an alias.
+		else if (arg === '--max-render-minutes' || arg === '--max-browser-minutes')
+			opts.maxRenderMinutes = Number(args[++i])
 		else if (arg === '--help' || arg === '-h') {
 			console.log(
 				[
@@ -79,7 +86,8 @@ function parseArgs(): Options {
 					'  --max-failure-rate      Threshold, 0-1 (default with --check: 0.2)',
 					'  --max-timeout-rate      Threshold, 0-1 (default with --check: 0.1)',
 					'  --min-cache-hit-rate    Threshold, 0-1 (no default)',
-					'  --max-browser-minutes   Browser Run minutes in the window (no default)',
+					'  --max-render-minutes    Browser Run render minutes in the window (no default)',
+					'                          (alias: --max-browser-minutes)',
 					'  --help, -h              Show this help',
 				].join('\n')
 			)
@@ -160,14 +168,16 @@ async function fetchMetrics(opts: Options): Promise<SourceMetrics[]> {
 		FORMAT JSON
 	`)
 
-	// double4 is X-Browser-Ms-Used, only positive on rows that actually invoked Browser Run.
+	// double3 is the wall-clock render duration, positive only on rows that actually invoked Browser
+	// Run (cache hits and pre-render failures leave it at -1). It replaces double4 (X-Browser-Ms-Used),
+	// which the BROWSER binding no longer surfaces and is always -1.
 	const spendRows = await queryAnalyticsEngine(`
 		SELECT
 			blob3 AS source,
 			SUM(_sample_interval) AS captures,
-			SUM(double4 * _sample_interval) AS browser_ms
+			SUM(double3 * _sample_interval) AS render_ms
 		FROM ${dataset}
-		WHERE ${where} AND double4 > 0
+		WHERE ${where} AND double3 > 0
 		GROUP BY source
 		FORMAT JSON
 	`)
@@ -186,7 +196,7 @@ async function fetchMetrics(opts: Options): Promise<SourceMetrics[]> {
 				cacheStale: 0,
 				cacheMisses: 0,
 				captures: 0,
-				browserMs: 0,
+				renderMs: 0,
 			}
 			bySource.set(source, metrics)
 		}
@@ -209,7 +219,7 @@ async function fetchMetrics(opts: Options): Promise<SourceMetrics[]> {
 	for (const row of spendRows) {
 		const metrics = getSource(String(row.source).replace(/^source:/, ''))
 		metrics.captures += Number(row.captures)
-		metrics.browserMs += Number(row.browser_ms)
+		metrics.renderMs += Number(row.render_ms)
 	}
 
 	return [...bySource.values()].sort((a, b) => a.source.localeCompare(b.source))
@@ -243,7 +253,7 @@ function main() {
 						`cache hit ${formatPercent(rate(m.cacheHits, m.cacheHits + m.cacheStale + m.cacheMisses))}`,
 						`rate-limited ${m.rateLimited}`,
 						`captures ${m.captures}`,
-						`browser ${(m.browserMs / 60_000).toFixed(1)}min`,
+						`render ${(m.renderMs / 60_000).toFixed(1)}min`,
 					].join('  ')
 				)
 			}
@@ -258,16 +268,16 @@ function main() {
 				timeouts: sum.timeouts + m.timeouts,
 				cacheHits: sum.cacheHits + m.cacheHits,
 				cacheLookups: sum.cacheLookups + m.cacheHits + m.cacheStale + m.cacheMisses,
-				browserMs: sum.browserMs + m.browserMs,
+				renderMs: sum.renderMs + m.renderMs,
 			}),
-			{ requests: 0, failures: 0, timeouts: 0, cacheHits: 0, cacheLookups: 0, browserMs: 0 }
+			{ requests: 0, failures: 0, timeouts: 0, cacheHits: 0, cacheLookups: 0, renderMs: 0 }
 		)
 
 		const breaches: string[] = []
 		const failureRate = rate(totals.failures, totals.requests)
 		const timeoutRate = rate(totals.timeouts, totals.requests)
 		const cacheHitRate = rate(totals.cacheHits, totals.cacheLookups)
-		const browserMinutes = totals.browserMs / 60_000
+		const renderMinutes = totals.renderMs / 60_000
 		if (opts.maxFailureRate !== undefined && failureRate > opts.maxFailureRate) {
 			breaches.push(
 				`failure rate ${formatPercent(failureRate)} > ${formatPercent(opts.maxFailureRate)}`
@@ -287,9 +297,9 @@ function main() {
 				`cache hit rate ${formatPercent(cacheHitRate)} < ${formatPercent(opts.minCacheHitRate)}`
 			)
 		}
-		if (opts.maxBrowserMinutes !== undefined && browserMinutes > opts.maxBrowserMinutes) {
+		if (opts.maxRenderMinutes !== undefined && renderMinutes > opts.maxRenderMinutes) {
 			breaches.push(
-				`Browser Run spend ${browserMinutes.toFixed(1)}min > ${opts.maxBrowserMinutes}min`
+				`Browser Run render time ${renderMinutes.toFixed(1)}min > ${opts.maxRenderMinutes}min`
 			)
 		}
 

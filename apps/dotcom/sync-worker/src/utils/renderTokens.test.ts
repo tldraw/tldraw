@@ -56,6 +56,17 @@ describe('thumbnail render tokens', () => {
 		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
 	})
 
+	it('round-trips a single-page (pageId) job', async () => {
+		const job = makeJob({ camera: 'content', pageId: 'page:abc123' })
+		const token = await mintThumbnailRenderToken(env, job)
+		expect(await verifyThumbnailRenderToken(env, token)).toEqual(job)
+	})
+
+	it('rejects tokens with a non-string pageId', async () => {
+		const token = await mintThumbnailRenderToken(env, makeJob({ pageId: 42 as any }))
+		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
+	})
+
 	it('rejects expired tokens', async () => {
 		const job = makeJob({ exp: Date.now() - 1 })
 		const token = await mintThumbnailRenderToken(env, job)

@@ -37,6 +37,7 @@ export async function getThumbnailSnapshot(request: IRequest, env: Environment):
 		schema: snapshot.schema,
 		renderParams: {
 			...(job.camera ? { camera: job.camera } : null),
+			...(job.pageId ? { pageId: job.pageId } : null),
 			x: job.x,
 			y: job.y,
 			z: job.z,

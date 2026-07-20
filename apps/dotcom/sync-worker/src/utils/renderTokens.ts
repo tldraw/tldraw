@@ -1,9 +1,10 @@
 import { Environment } from '../types'
 
-// Short-lived signed render jobs. The MCP screenshot route mints one of these per capture and
-// Browser Run only ever visits the tldraw-owned render page with this token; the render page
-// exchanges the token for snapshot data via /app/thumbnail-snapshot. Board identity and render
-// parameters ride inside the signed payload so they cannot be tampered with in transit.
+// Short-lived signed render jobs. The MCP screenshot route and OG queue mint one of these per
+// capture, and the worker's browser session only ever visits the tldraw-owned render page with this
+// token; the render page exchanges the token for snapshot data via /app/thumbnail-render/snapshot.
+// Board identity and render parameters ride inside the signed payload so they cannot be tampered
+// with in transit.
 export interface ThumbnailRenderJob {
 	v: 1
 	/**
@@ -26,6 +27,11 @@ export interface ThumbnailRenderJob {
 	 * board's current page content into the requested output size.
 	 */
 	camera?: 'content'
+	/**
+	 * The TLPageId of the single page to render. When omitted, the render page exports whichever page
+	 * the snapshot opens to (used by OG images). The worker takes one screenshot of the rendered page.
+	 */
+	pageId?: string
 	x: number
 	y: number
 	z: number
@@ -95,6 +101,7 @@ export async function verifyThumbnailRenderToken(
 		(job.kind !== 'published' && job.kind !== 'shared_file') ||
 		typeof job.slug !== 'string' ||
 		(job.camera !== undefined && job.camera !== 'content') ||
+		(job.pageId !== undefined && typeof job.pageId !== 'string') ||
 		typeof job.exp !== 'number'
 	) {
 		return null

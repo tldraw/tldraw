@@ -1,5 +1,6 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { getDocumentNameFromSnapshot, renderSocialPreview } from './getSocialPreview'
+import { getDocumentNameFromSnapshot } from './getDocumentNameFromSnapshot'
+import { renderSocialPreview } from './getSocialPreview'
 
 function snapshotWithDocumentName(name: string): RoomSnapshot {
 	return {

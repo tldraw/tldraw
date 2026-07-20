@@ -72,8 +72,7 @@ function makeFakeQueue() {
 
 function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
-		CLOUDFLARE_ACCOUNT_ID: 'account-id',
-		BROWSER_RENDERING_API_TOKEN: 'api-token',
+		BROWSER: {},
 		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://www.tldraw.com',
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },

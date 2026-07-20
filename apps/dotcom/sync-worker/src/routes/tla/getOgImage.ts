@@ -8,10 +8,10 @@ import {
 	enqueueOgImageRender,
 	getOgImageCacheKey,
 	resolveOgBoardInfo,
-	sha256,
 	writeOgImageTelemetry,
 } from './ogImageQueue'
 import { isRateLimited } from './sharedBoardScreenshotMcp'
+import { sha256 } from './thumbnailShared'
 
 // OG images are served entirely from the R2 cache; rendering happens asynchronously through the
 // og-image queue consumer (ogImageQueue.ts). A request never waits on Browser Run: it gets the

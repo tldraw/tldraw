@@ -58,7 +58,6 @@ const env = makeEnv([
 	'ANTHROPIC_API_KEY',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
-	'BROWSER_RENDERING_API_TOKEN',
 	'CLERK_SECRET_KEY',
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
@@ -600,8 +599,6 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			HEALTH_CHECK_BEARER_TOKEN: env.HEALTH_CHECK_BEARER_TOKEN,
 			ANALYTICS_API_URL: env.ANALYTICS_API_URL,
 			ANALYTICS_API_TOKEN: env.ANALYTICS_API_TOKEN,
-			CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
-			BROWSER_RENDERING_API_TOKEN: env.BROWSER_RENDERING_API_TOKEN,
 			MCP_SCREENSHOT_TOKEN_SECRET: env.MCP_SCREENSHOT_TOKEN_SECRET,
 			// Previews render thumbnails from their own client origin. Staging and production set
 			// MCP_SCREENSHOT_RENDER_ORIGIN in wrangler.toml; previews have no such entry, so inject

@@ -335,6 +335,26 @@ bucket_name = "thumbnails-preview"
 binding = "THUMBNAILS"
 bucket_name = "thumbnails"
 
+#################### Browser Rendering binding ####################
+# Drives the thumbnail render page through a Cloudflare-hosted headless browser (see
+# sharedBoardScreenshotMcp.ts). Chrome runs in Cloudflare's Browser Rendering fleet, not in this
+# worker's isolate. In dev the binding is marked `remote` so `wrangler dev` keeps the whole worker
+# (and every other binding) local while BROWSER proxies to the real remote service — the render path
+# works locally for anyone who supplies Cloudflare credentials, without `--remote`. Without
+# credentials the binding is undefined and the render path fails closed with a config error.
+[env.dev.browser]
+binding = "BROWSER"
+remote = true
+
+[env.preview.browser]
+binding = "BROWSER"
+
+[env.staging.browser]
+binding = "BROWSER"
+
+[env.production.browser]
+binding = "BROWSER"
+
 #################### Room snapshots parent slug KV store ####################
 [[env.dev.kv_namespaces]]
 binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"

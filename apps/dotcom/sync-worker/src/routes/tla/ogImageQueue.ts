@@ -11,11 +11,15 @@ import { getSharedFileInfo, isFileAnonymouslyViewable } from './getSharedFile'
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
+	GLOBAL_BROWSER_RATE_LIMIT_KEY,
+	GLOBAL_BROWSER_RUN_RATE_LIMIT,
+	base64ToArrayBuffer,
 	buildThumbnailRenderUrl,
-	captureWithBrowserRun,
 	getRenderOrigin,
 	isRateLimited,
+	renderThumbnailScreenshot,
 } from './sharedBoardScreenshotMcp'
+import { sha256 } from './thumbnailShared'
 
 // Queue-backed async OG image generation. The GET og-image route never blocks a request on
 // Browser Run: it serves whatever is cached (fresh or stale) or redirects to the default OG image,
@@ -26,12 +30,13 @@ import {
 export const OG_IMAGE_WIDTH = DEFAULT_THUMBNAIL_WIDTH
 export const OG_IMAGE_HEIGHT = DEFAULT_THUMBNAIL_HEIGHT
 
-const OG_IMAGE_BROWSER_RATE_LIMIT = 60
 // A pending marker suppresses duplicate enqueues while a render is queued or in flight. It is
 // advisory only: it expires on its own so a crashed consumer cannot wedge a board permanently.
 const PENDING_MARKER_TTL_MS = 2 * 60_000
 // Retries are also bounded by max_retries in wrangler.toml; this lower cap keeps OG jobs from
-// burning Browser Run capacity on a persistently failing board.
+// burning Browser Run capacity on a persistently failing board. It counts genuine render failures
+// only — global-capacity backpressure re-enqueues a fresh message instead (see requeueForRateLimit),
+// so a busy period never exhausts a board's failure budget.
 const MAX_RENDER_ATTEMPTS = 3
 const RETRY_DELAY_SECONDS = 30
 
@@ -157,18 +162,23 @@ export async function handleOgImageRenderMessage(
 			return
 		}
 
-		// Shares the global Browser Run budget with the synchronous surfaces. When capacity is busy,
-		// requeue rather than drop: the request path has already returned, so latency is free here.
+		if (!env.THUMBNAILS) {
+			throw new Error('THUMBNAILS bucket is not configured')
+		}
+
+		// Shares the global Browser Run budget with the synchronous surfaces by using the same limiter
+		// key (`GLOBAL_BROWSER_RATE_LIMIT_KEY`), so the MCP tool and this consumer draw from one cap
+		// rather than two independent buckets. When capacity is busy, requeue rather than drop: the
+		// request path has already returned, so latency is free here.
 		if (
-			await isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, 'og-global', {
-				fallbackLimit: OG_IMAGE_BROWSER_RATE_LIMIT,
+			await isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
+				fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
 			})
 		) {
-			retryOrDrop(env, message, boardHash, 'rate_limited_global')
+			await requeueForRateLimit(env, message, boardHash)
 			return
 		}
 
-		const now = Date.now()
 		const job: ThumbnailRenderJob = {
 			v: 1,
 			kind,
@@ -182,21 +192,18 @@ export async function handleOgImageRenderMessage(
 			width: OG_IMAGE_WIDTH,
 			height: OG_IMAGE_HEIGHT,
 			theme: 'light',
-			exp: now + THUMBNAIL_RENDER_TOKEN_TTL_MS,
+			exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 		}
 		const token = await mintThumbnailRenderToken(env, job)
 		const renderUrl = buildThumbnailRenderUrl(getRenderOrigin(env), token)
-		const browserRun = await captureWithBrowserRun(
-			renderUrl,
-			{ width: OG_IMAGE_WIDTH, height: OG_IMAGE_HEIGHT },
-			env
-		)
-
-		await env.THUMBNAILS?.put(cacheKey, browserRun.png, {
+		// The render page exports the board's current page; the worker screenshots it through the
+		// BROWSER binding and writes the PNG to the cache key the OG route reads.
+		const render = await renderThumbnailScreenshot(renderUrl, env)
+		await env.THUMBNAILS.put(cacheKey, base64ToArrayBuffer(render.base64), {
 			httpMetadata: { contentType: 'image/png' },
 			customMetadata: {
 				version: String(board.version),
-				createdAt: String(now),
+				createdAt: String(Date.now()),
 			},
 		})
 		await clearPending()
@@ -205,8 +212,8 @@ export async function handleOgImageRenderMessage(
 			source: 'queue',
 			boardHash,
 			cacheStatus: 'miss',
-			browserRunDurationMs: browserRun.durationMs,
-			browserMsUsed: browserRun.browserMsUsed,
+			browserRunDurationMs: render.durationMs,
+			browserMsUsed: null,
 		})
 		message.ack()
 	} catch (error) {
@@ -220,13 +227,36 @@ function retryOrDrop(
 	boardHash: string,
 	failureReason: string
 ) {
-	// attempts counts this delivery, so attempts >= MAX means this was the final try. The pending
-	// marker is left in place either way; it expires on its own and then requests re-enqueue.
+	// attempts counts this delivery, so attempts >= MAX means this was the final try. Only genuine
+	// render failures reach here (global-capacity backpressure re-enqueues instead), so attempts is a
+	// true failure count. The pending marker is left in place either way; it expires on its own and
+	// then requests re-enqueue.
 	if (message.attempts < MAX_RENDER_ATTEMPTS) {
 		message.retry({ delaySeconds: RETRY_DELAY_SECONDS * message.attempts })
 		return
 	}
 	writeOgImageTelemetry(env, { source: 'queue', boardHash, cacheStatus: 'miss', failureReason })
+	message.ack()
+}
+
+// Global Browser Run capacity is busy. Re-enqueue a fresh copy of the job (which resets the
+// delivery's attempt counter) and ack this delivery, so capacity backpressure never counts against
+// the failure-retry budget in retryOrDrop. The render still hasn't happened, so no Browser Run
+// capacity was spent; the consumer's version check coalesces the eventual retry with any newer
+// enqueues, so a fast-changing board still captures only its latest content.
+async function requeueForRateLimit(
+	env: Environment,
+	message: Message<OgImageRenderQueueMessage>,
+	boardHash: string
+) {
+	writeOgImageTelemetry(env, {
+		source: 'queue',
+		boardHash,
+		cacheStatus: 'miss',
+		rateLimitAllowed: false,
+		failureReason: 'rate_limited_global',
+	})
+	await env.QUEUE.send(message.body, { delaySeconds: RETRY_DELAY_SECONDS })
 	message.ack()
 }
 
@@ -263,10 +293,4 @@ export function writeOgImageTelemetry(
 			rateLimitAllowed ? 1 : 0,
 		],
 	})
-}
-
-export async function sha256(value: string) {
-	const bytes = new TextEncoder().encode(value)
-	const digest = await crypto.subtle.digest('SHA-256', bytes)
-	return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
 }

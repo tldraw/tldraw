@@ -185,7 +185,7 @@ function getBrowserRunRequestBody(renderUrl: string, options: Options) {
 			deviceScaleFactor: 1,
 		},
 		gotoOptions: {
-			waitUntil: 'networkidle0',
+			waitUntil: 'load',
 			timeout: 45_000,
 		},
 		waitForSelector: {
@@ -209,6 +209,8 @@ function getExtraHeaders(renderUrl: string) {
 	return null
 }
 
+// The fixture page produces the thumbnail itself with editor.toImage and exposes it as a data
+// URL, so the local path reads the exact export bytes instead of screenshotting the viewport.
 async function captureWithLocalPlaywright(renderUrl: string, options: Options) {
 	const { chromium } = await import('@playwright/test')
 	const browser = await chromium.launch()
@@ -217,9 +219,19 @@ async function captureWithLocalPlaywright(renderUrl: string, options: Options) {
 			viewport: { width: options.width, height: options.height },
 			deviceScaleFactor: 1,
 		})
-		await page.goto(renderUrl, { waitUntil: 'networkidle', timeout: 45_000 })
+		// The ready selector is the real completion signal; waiting for network idle is both
+		// unnecessary and fragile (background app requests like replicator-status polling can keep
+		// the network busy indefinitely).
+		await page.goto(renderUrl, { waitUntil: 'domcontentloaded', timeout: 45_000 })
 		await page.waitForSelector('[data-thumbnail-ready="true"]', { timeout: 45_000 })
-		return await page.screenshot({ type: 'png', fullPage: false })
+		const dataUrl = await page.evaluate(
+			() => (window as any).__tldrawThumbnailDataUrl as string | undefined
+		)
+		const prefix = 'data:image/png;base64,'
+		if (!dataUrl?.startsWith(prefix)) {
+			throw new Error('Fixture page did not produce a thumbnail data URL')
+		}
+		return Buffer.from(dataUrl.slice(prefix.length), 'base64')
 	} finally {
 		await browser.close()
 	}
@@ -274,7 +286,9 @@ Options:
   --z <number>          Camera zoom override
 
 Captures the dev-only /dev/browser-run-thumbnail fixture page for local iteration on render
-behavior. It does not accept arbitrary screenshot URLs.`)
+behavior. The fixture page produces the image with editor.toImage; local mode reads the exact
+export bytes, while browser-run mode screenshots the page after it has swapped to displaying
+the export. It does not accept arbitrary screenshot URLs.`)
 }
 
 function writeLine(message: string) {

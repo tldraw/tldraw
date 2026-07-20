@@ -69,10 +69,18 @@ function makeFakeRoomsBucket(etag: string | null = 'room-etag-1') {
 	}
 }
 
+// The BROWSER binding's `.rest.screenshot` returns a Response whose body is the PNG bytes. [1,2,3]
+// base64-encodes to AQID. Pass a custom impl to simulate failures.
+function makeBrowserBinding(
+	screenshot: (body: any) => Promise<Response> = async () =>
+		new Response(new Uint8Array([1, 2, 3]), { status: 200 })
+) {
+	return { fetch: vi.fn(), rest: { screenshot: vi.fn(screenshot) } }
+}
+
 function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
-		CLOUDFLARE_ACCOUNT_ID: 'account-id',
-		BROWSER_RENDERING_API_TOKEN: 'api-token',
+		BROWSER: makeBrowserBinding(),
 		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://www.tldraw.com',
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },
@@ -93,17 +101,14 @@ function makeMessage(
 	} as any
 }
 
-function stubBrowserRunFetch(bytes = [1, 2, 3]) {
-	const fetch = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => {
-		return new Response(new Uint8Array(bytes), {
-			headers: {
-				'content-type': 'image/png',
-				'X-Browser-Ms-Used': '123',
-			},
-		})
-	})
-	vi.stubGlobal('fetch', fetch)
-	return fetch
+function screenshotOf(env: Environment) {
+	return (env.BROWSER as any).rest.screenshot as ReturnType<typeof vi.fn>
+}
+
+// The render URL (with its token) is the first arg to `.rest.screenshot`.
+function tokenFromScreenshot(env: Environment): string {
+	const body = screenshotOf(env).mock.calls[0]![0] as { url: string }
+	return new URL(body.url).searchParams.get('token')!
 }
 
 describe('enqueueOgImageRender', () => {
@@ -138,7 +143,6 @@ describe('handleOgImageRenderMessage', () => {
 			published: true,
 			lastPublished: 1751234567890,
 		})
-		const fetch = stubBrowserRunFetch()
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ THUMBNAILS: bucket })
 		const message = makeMessage({ kind: 'published', slug: 'published-board' })
@@ -146,9 +150,7 @@ describe('handleOgImageRenderMessage', () => {
 		await handleOgImageRenderMessage(env, message)
 
 		expect(message.ack).toHaveBeenCalledTimes(1)
-		const browserRunRequest = JSON.parse(fetch.mock.calls[0]![1]!.body as string)
-		const renderUrl = new URL(browserRunRequest.url)
-		const job = await verifyThumbnailRenderToken(env, renderUrl.searchParams.get('token')!)
+		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
 		expect(job).toMatchObject({
 			kind: 'published',
 			slug: 'published-board',
@@ -158,6 +160,7 @@ describe('handleOgImageRenderMessage', () => {
 			width: 1200,
 			height: 630,
 		})
+		// the worker writes the rendered image to the cache key itself, stamping the version
 		expect(
 			bucket.store.get(getOgImageCacheKey({ kind: 'published', slug: 'published-board' }))
 				?.customMetadata
@@ -173,7 +176,6 @@ describe('handleOgImageRenderMessage', () => {
 			shared: true,
 			isDeleted: false,
 		})
-		const fetch = stubBrowserRunFetch()
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket('etag-1'), THUMBNAILS: bucket })
 		const message = makeMessage({ kind: 'shared_file', slug: 'shared-file' })
@@ -181,9 +183,7 @@ describe('handleOgImageRenderMessage', () => {
 		await handleOgImageRenderMessage(env, message)
 
 		expect(message.ack).toHaveBeenCalledTimes(1)
-		const browserRunRequest = JSON.parse(fetch.mock.calls[0]![1]!.body as string)
-		const renderUrl = new URL(browserRunRequest.url)
-		const job = await verifyThumbnailRenderToken(env, renderUrl.searchParams.get('token')!)
+		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
 		expect(job).toMatchObject({
 			kind: 'shared_file',
 			slug: 'shared-file',
@@ -203,8 +203,6 @@ describe('handleOgImageRenderMessage', () => {
 			published: true,
 			lastPublished: 7,
 		})
-		const fetch = vi.fn()
-		vi.stubGlobal('fetch', fetch)
 		const bucket = makeFakeThumbnailsBucket()
 		await bucket.put(
 			getOgImageCacheKey({ kind: 'published', slug: 'board' }),
@@ -216,7 +214,7 @@ describe('handleOgImageRenderMessage', () => {
 
 		await handleOgImageRenderMessage(env, message)
 
-		expect(fetch).not.toHaveBeenCalled()
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
 		expect(message.ack).toHaveBeenCalledTimes(1)
 	})
 
@@ -226,8 +224,6 @@ describe('handleOgImageRenderMessage', () => {
 			shared: false,
 			isDeleted: false,
 		})
-		const fetch = vi.fn()
-		vi.stubGlobal('fetch', fetch)
 		const bucket = makeFakeThumbnailsBucket()
 		const cacheKey = getOgImageCacheKey({ kind: 'shared_file', slug: 'unshared-file' })
 		await bucket.put(cacheKey, new Uint8Array([9]).buffer, {
@@ -238,7 +234,7 @@ describe('handleOgImageRenderMessage', () => {
 
 		await handleOgImageRenderMessage(env, message)
 
-		expect(fetch).not.toHaveBeenCalled()
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
 		expect(bucket.store.has(cacheKey)).toBe(false)
 		expect(message.ack).toHaveBeenCalledTimes(1)
 		expect(message.retry).not.toHaveBeenCalled()
@@ -250,11 +246,12 @@ describe('handleOgImageRenderMessage', () => {
 			published: true,
 			lastPublished: 1,
 		})
-		vi.stubGlobal(
-			'fetch',
-			vi.fn(async () => new Response('nope', { status: 500 }))
-		)
-		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => {
+				throw new Error('browser session failed')
+			}),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
 
 		const firstAttempt = makeMessage({ kind: 'published', slug: 'board' }, 1)
 		await handleOgImageRenderMessage(env, firstAttempt)
@@ -265,5 +262,33 @@ describe('handleOgImageRenderMessage', () => {
 		await handleOgImageRenderMessage(env, finalAttempt)
 		expect(finalAttempt.retry).not.toHaveBeenCalled()
 		expect(finalAttempt.ack).toHaveBeenCalledTimes(1)
+	})
+
+	it('re-enqueues a fresh job when global capacity is busy instead of spending a failure retry', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const queue = { send: vi.fn(async () => undefined) }
+		const env = makeEnv({
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+			QUEUE: queue,
+			// A busy global limiter: every check reports the request blocked.
+			MCP_SCREENSHOT_BROWSER_RATE_LIMITER: { limit: vi.fn(async () => ({ success: false })) },
+		})
+
+		// Even on the final delivery, backpressure must re-enqueue rather than drop: the render never
+		// happened, so it should not count against the render-failure budget.
+		const message = makeMessage({ kind: 'published', slug: 'board' }, 3)
+		await handleOgImageRenderMessage(env, message)
+
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+		expect(message.retry).not.toHaveBeenCalled()
+		expect(message.ack).toHaveBeenCalledTimes(1)
+		expect(queue.send).toHaveBeenCalledExactlyOnceWith(
+			{ type: 'og-image-render', kind: 'published', slug: 'board' },
+			{ delaySeconds: 30 }
+		)
 	})
 })

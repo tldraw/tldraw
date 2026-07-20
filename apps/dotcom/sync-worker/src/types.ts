@@ -8,6 +8,18 @@ import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { TLStatsDurableObject } from './TLStatsDurableObject'
 import type { TLUserDurableObject } from './TLUserDurableObject'
 
+// The Browser Rendering binding's REST Quick Actions accessor. Cloudflare exposes `env.BROWSER.rest`
+// so a Worker can call the Quick Actions endpoints (`/screenshot`, `/pdf`, …) straight through the
+// binding — no API token, no @cloudflare/puppeteer. Not in @cloudflare/workers-types yet, so the
+// small surface we use is declared here. Each method resolves to a standard `Response`.
+export interface BrowserRest {
+	screenshot(body: unknown): Promise<Response>
+}
+export interface BrowserBinding {
+	fetch: typeof fetch
+	rest: BrowserRest
+}
+
 // This type isn't available in @cloudflare/workers-types yet
 export interface Analytics {
 	writeDataPoint(data: {
@@ -88,15 +100,16 @@ export interface Environment {
 
 	QUEUE: Queue<QueueMessage>
 
-	// R2 cache for generated thumbnails, keyed on board identity, published version, viewport,
-	// dimensions, and theme. Optional so tests and unconfigured environments degrade to
-	// cacheless rendering.
+	// R2 cache for generated thumbnails, keyed on board identity, published version, and theme.
+	// Optional so tests and unconfigured environments degrade to cacheless rendering.
 	THUMBNAILS: R2Bucket | undefined
 
-	// Cloudflare account for Browser Run screenshot capture. The API token only needs the
-	// Browser Rendering - Edit permission; do not reuse the deploy token here.
-	CLOUDFLARE_ACCOUNT_ID: string | undefined
-	BROWSER_RENDERING_API_TOKEN: string | undefined
+	// Cloudflare Browser Rendering binding. The worker takes thumbnails by calling the binding's
+	// `.rest` Quick Actions (e.g. `/screenshot`) directly — no @cloudflare/puppeteer and no API
+	// token. Chrome runs in Cloudflare's fleet, not in this isolate. In dev the binding is marked
+	// `remote` so `wrangler dev` proxies it to the real service (given Cloudflare credentials);
+	// undefined without credentials and in tests, where the render path fails closed.
+	BROWSER: BrowserBinding | undefined
 	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
 	// environment in wrangler.toml.
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
