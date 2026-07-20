@@ -70,10 +70,6 @@ export interface SharedBoardScreenshotInput {
 interface ResolvedBoard {
 	kind: 'published' | 'shared_file'
 	slug: string
-	// Parent file id for published boards; the slug itself for shared files. Resolution already looks
-	// this up, so loadBoardSnapshot reuses it to read a published board's snapshot straight from R2
-	// without a second getPublishedFileInfo lookup.
-	fileId: string
 	version: string | number
 }
 
@@ -201,7 +197,7 @@ export async function resolveSharedBoardById(
 		if (persisted) {
 			return {
 				ok: true,
-				board: { kind: 'shared_file', slug: boardId, fileId: file.id, version: persisted.etag },
+				board: { kind: 'shared_file', slug: boardId, version: persisted.etag },
 			}
 		}
 		return { ok: false, reason: 'board_empty' }
@@ -214,7 +210,6 @@ export async function resolveSharedBoardById(
 			board: {
 				kind: 'published',
 				slug: boardId,
-				fileId: published.id,
 				version: published.lastPublished,
 			},
 		}
@@ -230,7 +225,7 @@ async function loadBoardSnapshot(
 	try {
 		const snapshot =
 			board.kind === 'published'
-				? await getPublishedRoomSnapshot(env, board.slug, board.fileId)
+				? await getPublishedRoomSnapshot(env, board.slug)
 				: await getSharedFileRoomSnapshot(env, board.slug)
 		return snapshot ?? null
 	} catch {
