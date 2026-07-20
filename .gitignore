@@ -59,6 +59,7 @@ api-md
 packages/tldraw/tldraw.css
 packages/namespaced-tldraw/tldraw.css
 packages/commenting/commenting.css
+packages/mentions/mentions.css
 packages/collaboration/collaboration.css
 
 packages/assets/embed-icons
