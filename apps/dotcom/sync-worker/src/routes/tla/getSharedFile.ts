@@ -16,13 +16,19 @@ export async function getSharedFileInfo(
 	env: Environment,
 	slug: string
 ): Promise<SharedFileInfo | null> {
-	const file = await createPostgresConnectionPool(env, 'getSharedFileInfo')
-		.selectFrom('file')
-		.select(['id', 'shared', 'isDeleted'])
-		.where('id', '=', slug)
-		.executeTakeFirst()
-
-	return file ?? null
+	// createPostgresConnectionPool news up a pg.Pool; destroy it so idle pools don't pile up in the
+	// isolate across MCP resolves, OG image requests, and queue re-resolves.
+	const db = createPostgresConnectionPool(env, 'getSharedFileInfo')
+	try {
+		const file = await db
+			.selectFrom('file')
+			.select(['id', 'shared', 'isDeleted'])
+			.where('id', '=', slug)
+			.executeTakeFirst()
+		return file ?? null
+	} finally {
+		await db.destroy()
+	}
 }
 
 /**

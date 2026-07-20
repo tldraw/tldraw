@@ -19,13 +19,19 @@ export async function getPublishedFileInfo(
 	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(publishedSlug)
 	if (!parentSlug) return null
 
-	const file = await createPostgresConnectionPool(env, 'getPublishedFileInfo')
-		.selectFrom('file')
-		.select(['id', 'published', 'lastPublished'])
-		.where('id', '=', parentSlug)
-		.executeTakeFirst()
-
-	return file ?? null
+	// createPostgresConnectionPool news up a pg.Pool; destroy it so idle pools don't pile up in the
+	// isolate across MCP resolves, OG image requests, and queue re-resolves.
+	const db = createPostgresConnectionPool(env, 'getPublishedFileInfo')
+	try {
+		const file = await db
+			.selectFrom('file')
+			.select(['id', 'published', 'lastPublished'])
+			.where('id', '=', parentSlug)
+			.executeTakeFirst()
+		return file ?? null
+	} finally {
+		await db.destroy()
+	}
 }
 
 export async function getPublishedRoomSnapshot(
