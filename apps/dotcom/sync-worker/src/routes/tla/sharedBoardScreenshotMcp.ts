@@ -279,8 +279,11 @@ async function callBoardInfoTool(argumentsValue: unknown, request: Request, env:
 		return toolError(error instanceof Error ? error.message : String(error))
 	}
 
+	// get_board_info spends no Browser Run, so it gets its own per-IP budget rather than sharing the
+	// screenshot one — otherwise the usual "list once, then screenshot pages" flow would exhaust the
+	// per-IP limit on the very first (free) call.
 	if (
-		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip:${clientIp ?? 'unknown'}`, {
+		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-info:${clientIp ?? 'unknown'}`, {
 			fallbackLimit: PER_IP_RATE_LIMIT,
 		})
 	) {
@@ -348,8 +351,10 @@ async function callSharedBoardScreenshotTool(
 		writeMcpScreenshotTelemetry(env, { boardHash, ipHash, rateLimitAllowed: true, ...data })
 	}
 
+	// Screenshots have their own per-IP budget (separate from get_board_info), sized to the ~2/min
+	// Browser Run cap: this is the throttle that actually bounds Browser Run spend per client.
 	if (
-		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip:${clientIp ?? 'unknown'}`, {
+		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-shot:${clientIp ?? 'unknown'}`, {
 			fallbackLimit: PER_IP_RATE_LIMIT,
 		})
 	) {
