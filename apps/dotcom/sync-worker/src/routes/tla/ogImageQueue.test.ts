@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Environment, OgImageRenderQueueMessage } from '../../types'
+import { OgImageRenderQueueMessage } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo } from './getPublishedFile'
 import { getSharedFileInfo } from './getSharedFile'
@@ -8,6 +8,14 @@ import {
 	getOgImageCacheKey,
 	handleOgImageRenderMessage,
 } from './ogImageQueue'
+import {
+	makeBrowserBinding,
+	makeFakeRoomsBucket,
+	makeFakeThumbnailsBucket,
+	makeScreenshotTestEnv as makeEnv,
+	screenshotOf,
+	tokenFromScreenshot,
+} from './screenshotTestHelpers'
 import { resetRateLimitFallbackForTests } from './sharedBoardScreenshotMcp'
 
 vi.mock('./getPublishedFile', () => ({
@@ -25,72 +33,6 @@ afterEach(() => {
 	resetRateLimitFallbackForTests()
 })
 
-function makeFakeThumbnailsBucket() {
-	const store = new Map<
-		string,
-		{ body: ArrayBuffer; customMetadata?: Record<string, string>; uploaded: Date }
-	>()
-	return {
-		store,
-		async get(key: string) {
-			const value = store.get(key)
-			if (!value) return null
-			return {
-				customMetadata: value.customMetadata,
-				uploaded: value.uploaded,
-				arrayBuffer: async () => value.body,
-			}
-		},
-		async head(key: string) {
-			const value = store.get(key)
-			if (!value) return null
-			return { customMetadata: value.customMetadata, uploaded: value.uploaded }
-		},
-		async put(
-			key: string,
-			body: ArrayBuffer,
-			options?: { customMetadata?: Record<string, string> }
-		) {
-			store.set(key, {
-				body,
-				customMetadata: options?.customMetadata,
-				uploaded: new Date(Date.now()),
-			})
-		},
-		async delete(key: string) {
-			store.delete(key)
-		},
-	}
-}
-
-function makeFakeRoomsBucket(etag: string | null = 'room-etag-1') {
-	return {
-		async head(_key: string) {
-			return etag === null ? null : { etag }
-		},
-	}
-}
-
-// The BROWSER binding's `.quickAction('screenshot', body)` returns a Response whose body is the PNG
-// bytes. [1,2,3] base64-encodes to AQID. Pass a custom impl to simulate failures.
-function makeBrowserBinding(
-	screenshot: (body: any) => Promise<Response> = async () =>
-		new Response(new Uint8Array([1, 2, 3]), { status: 200 })
-) {
-	return { quickAction: vi.fn((_action: string, body: any) => screenshot(body)) }
-}
-
-function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
-	return {
-		BROWSER: makeBrowserBinding(),
-		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://www.tldraw.com',
-		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
-		MEASURE: { writeDataPoint: vi.fn() },
-		QUEUE: { send: vi.fn(async () => undefined) },
-		...overrides,
-	} as unknown as Environment
-}
-
 function makeMessage(
 	body: Omit<OgImageRenderQueueMessage, 'type'>,
 	attempts = 1
@@ -101,16 +43,6 @@ function makeMessage(
 		ack: vi.fn(),
 		retry: vi.fn(),
 	} as any
-}
-
-function screenshotOf(env: Environment) {
-	return (env.BROWSER as any).quickAction as ReturnType<typeof vi.fn>
-}
-
-// quickAction is called as quickAction('screenshot', body); the render URL rides in body (arg 1).
-function tokenFromScreenshot(env: Environment): string {
-	const body = screenshotOf(env).mock.calls[0]![1] as { url: string }
-	return new URL(body.url).searchParams.get('token')!
 }
 
 describe('enqueueOgImageRender', () => {
@@ -156,7 +88,6 @@ describe('handleOgImageRenderMessage', () => {
 		expect(job).toMatchObject({
 			kind: 'published',
 			slug: 'published-board',
-			fileId: 'file-1',
 			version: 1751234567890,
 			camera: 'content',
 			width: 1200,
@@ -189,7 +120,6 @@ describe('handleOgImageRenderMessage', () => {
 		expect(job).toMatchObject({
 			kind: 'shared_file',
 			slug: 'shared-file',
-			fileId: 'shared-file',
 			version: 'etag-1',
 			camera: 'content',
 		})

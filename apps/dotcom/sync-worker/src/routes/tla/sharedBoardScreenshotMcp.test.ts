@@ -4,6 +4,14 @@ import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import {
+	makeBrowserBinding,
+	makeFakeRoomsBucket,
+	makeFakeThumbnailsBucket,
+	makeScreenshotTestEnv,
+	screenshotOf,
+	tokenFromScreenshot,
+} from './screenshotTestHelpers'
+import {
 	buildThumbnailRenderUrl,
 	enumerateBoardPages,
 	getThumbnailPageCacheKey,
@@ -55,60 +63,13 @@ const THREE_PAGES = [
 	{ id: 'page:c', name: 'Blank', index: 'a3', shapes: 0 },
 ]
 
-function makeFakeThumbnailsBucket() {
-	const store = new Map<string, { body: ArrayBuffer; customMetadata?: Record<string, string> }>()
-	return {
-		store,
-		async get(key: string) {
-			const value = store.get(key)
-			if (!value) return null
-			return { customMetadata: value.customMetadata, arrayBuffer: async () => value.body }
-		},
-		async put(
-			key: string,
-			body: ArrayBuffer,
-			options?: { customMetadata?: Record<string, string> }
-		) {
-			store.set(key, { body, customMetadata: options?.customMetadata })
-		},
-	}
-}
-
-function makeFakeRoomsBucket(etag: string | null = 'room-etag-1') {
-	return {
-		async head(_key: string) {
-			return etag === null ? null : { etag }
-		},
-	}
-}
-
-// The BROWSER binding's `.quickAction('screenshot', body)` returns a Response whose body is the PNG
-// bytes. [1,2,3] base64-encodes to AQID. Pass a custom impl to simulate failures.
-function makeBrowserBinding(
-	screenshot: (body: any) => Promise<Response> = async () =>
-		new Response(new Uint8Array([1, 2, 3]), { status: 200 })
-) {
-	return { quickAction: vi.fn((_action: string, body: any) => screenshot(body)) }
-}
-
+// The MCP tests assert the render URL against a render origin that is deliberately not the client's
+// real origin, so pin a distinct one here rather than using the shared default.
 function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
-	return {
-		BROWSER: makeBrowserBinding(),
+	return makeScreenshotTestEnv({
 		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://render.example',
-		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
-		MEASURE: { writeDataPoint: vi.fn() },
 		...overrides,
-	} as unknown as Environment
-}
-
-function screenshotOf(env: Environment) {
-	return (env.BROWSER as any).quickAction as ReturnType<typeof vi.fn>
-}
-
-function tokenFromScreenshot(env: Environment): string {
-	// quickAction is called as quickAction('screenshot', body); the body (with the render URL) is arg 1.
-	const body = screenshotOf(env).mock.calls[0]![1] as { url: string }
-	return new URL(body.url).searchParams.get('token')!
+	})
 }
 
 function makeToolCall(ip: string, name: string, args: object) {

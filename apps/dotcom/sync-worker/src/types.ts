@@ -102,10 +102,12 @@ export interface Environment {
 	THUMBNAILS: R2Bucket | undefined
 
 	// Cloudflare Browser Rendering binding. The worker takes thumbnails by calling the binding's
-	// `.rest` Quick Actions (e.g. `/screenshot`) directly — no @cloudflare/puppeteer and no API
-	// token. Chrome runs in Cloudflare's fleet, not in this isolate. In dev the binding is marked
-	// `remote` so `wrangler dev` proxies it to the real service (given Cloudflare credentials);
-	// undefined without credentials and in tests, where the render path fails closed.
+	// `quickAction` Quick Actions method (e.g. `screenshot`) directly — no @cloudflare/puppeteer and
+	// no API token. Chrome runs in Cloudflare's fleet, not in this isolate. The dev binding is
+	// deliberately NOT marked `remote` (that would make plain `wrangler dev` require a
+	// CLOUDFLARE_API_TOKEN, breaking the credential-free e2e stack), so under `wrangler dev` it is a
+	// non-functional local binding and the render path fails closed; real local captures need
+	// `wrangler dev --remote` with credentials or a preview deploy. Undefined in tests.
 	BROWSER: BrowserBinding | undefined
 	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
 	// environment in wrangler.toml.
@@ -216,8 +218,8 @@ export interface AssetUploadQueueMessage {
 }
 
 // Asks the queue consumer to render a board's OG image through Browser Run and refresh the R2
-// cache read by GET /app/og-image. Board state (share gate, content version) is deliberately not
-// carried in the message; the consumer re-resolves it at render time.
+// cache read by GET /app/social-preview/:prefix/:slug/image. Board state (share gate, content
+// version) is deliberately not carried in the message; the consumer re-resolves it at render time.
 export interface OgImageRenderQueueMessage {
 	type: 'og-image-render'
 	kind: 'published' | 'shared_file'

@@ -36,15 +36,24 @@ export async function getPublishedFileInfo(
 
 export async function getPublishedRoomSnapshot(
 	env: Environment,
-	roomId: string
+	roomId: string,
+	// When the caller has already resolved the board (e.g. the thumbnail tool, which looks the file
+	// up to build its cache key), it can pass the parent file id here to skip re-resolving the
+	// published slug. That resolution spins up and tears down a Postgres pool, so reusing a known id
+	// avoids a duplicate connection cycle per capture. Only pass an id for a board already known to
+	// be published — the lookup is what enforces the published gate when no id is supplied.
+	knownFileId?: string
 ): Promise<RoomSnapshot | undefined> {
-	const file = await getPublishedFileInfo(env, roomId)
-	if (!file) throw Error('not found')
-
-	if (!file.published) throw Error('not published')
+	let fileId = knownFileId
+	if (fileId === undefined) {
+		const file = await getPublishedFileInfo(env, roomId)
+		if (!file) throw Error('not found')
+		if (!file.published) throw Error('not published')
+		fileId = file.id
+	}
 
 	return (await env.ROOM_SNAPSHOTS.get(
-		getR2KeyForRoom({ slug: `${file.id}/${roomId}`, isApp: true })
+		getR2KeyForRoom({ slug: `${fileId}/${roomId}`, isApp: true })
 	).then((r) => r?.json())) as RoomSnapshot | undefined
 }
 

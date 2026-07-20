@@ -28,7 +28,6 @@ function makeJob(overrides: Partial<ThumbnailRenderJob> = {}): ThumbnailRenderJo
 		v: 1,
 		kind: 'published',
 		slug: 'my-board',
-		fileId: 'file-123',
 		version: 1751234567890,
 		x: 10,
 		y: 20,

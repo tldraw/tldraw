@@ -14,7 +14,6 @@ function makeJob(overrides: Partial<ThumbnailRenderJob> = {}): ThumbnailRenderJo
 		v: 1,
 		kind: 'published',
 		slug: 'my-board',
-		fileId: 'file-123',
 		version: 1751234567890,
 		x: 10,
 		y: 20,
@@ -35,7 +34,7 @@ describe('thumbnail render tokens', () => {
 	})
 
 	it('round-trips a shared-file job with a string version', async () => {
-		const job = makeJob({ kind: 'shared_file', fileId: 'my-board', version: 'etag-abc123' })
+		const job = makeJob({ kind: 'shared_file', version: 'etag-abc123' })
 		const token = await mintThumbnailRenderToken(env, job)
 		expect(await verifyThumbnailRenderToken(env, token)).toEqual(job)
 	})

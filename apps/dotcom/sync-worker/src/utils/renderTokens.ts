@@ -14,8 +14,6 @@ export interface ThumbnailRenderJob {
 	kind: 'published' | 'shared_file'
 	/** The board slug: the `:slug` in tldraw.com/p/:slug (published) or /f/:slug (shared file) */
 	slug: string
-	/** The file id. Equal to `slug` for shared files; the parent file id for published boards. */
-	fileId: string
 	/**
 	 * A version that rotates when the rendered content changes, so it can key the thumbnail cache.
 	 * Published boards use the file's `lastPublished` timestamp; shared files use the persisted

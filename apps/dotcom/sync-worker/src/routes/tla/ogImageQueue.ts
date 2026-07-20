@@ -44,7 +44,6 @@ export type OgBoardKind = 'published' | 'shared_file'
 export interface ResolvedOgBoard {
 	kind: OgBoardKind
 	slug: string
-	fileId: string
 	version: string | number
 }
 
@@ -63,7 +62,6 @@ export async function resolveOgBoardInfo(
 		return {
 			kind,
 			slug,
-			fileId: file.id,
 			version: file.lastPublished,
 		}
 	}
@@ -77,7 +75,6 @@ export async function resolveOgBoardInfo(
 	return {
 		kind,
 		slug,
-		fileId: file.id,
 		version: persisted.etag,
 	}
 }
@@ -182,7 +179,6 @@ export async function handleOgImageRenderMessage(
 			v: 1,
 			kind,
 			slug,
-			fileId: board.fileId,
 			version: board.version,
 			camera: 'content',
 			x: 0,

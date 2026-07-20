@@ -4,6 +4,12 @@ import { getOgImage, getPublicOrigin } from './getOgImage'
 import { getPublishedFileInfo } from './getPublishedFile'
 import { getSharedFileInfo } from './getSharedFile'
 import { getOgImageCacheKey } from './ogImageQueue'
+import {
+	makeFakeQueue,
+	makeFakeRoomsBucket,
+	makeFakeThumbnailsBucket,
+	makeScreenshotTestEnv as makeEnv,
+} from './screenshotTestHelpers'
 import { resetRateLimitFallbackForTests } from './sharedBoardScreenshotMcp'
 
 vi.mock('./getPublishedFile', () => ({
@@ -21,67 +27,6 @@ afterEach(() => {
 	vi.clearAllMocks()
 	resetRateLimitFallbackForTests()
 })
-
-function makeFakeThumbnailsBucket() {
-	const store = new Map<
-		string,
-		{ body: ArrayBuffer; customMetadata?: Record<string, string>; uploaded: Date }
-	>()
-	return {
-		store,
-		async get(key: string) {
-			const value = store.get(key)
-			if (!value) return null
-			return {
-				customMetadata: value.customMetadata,
-				uploaded: value.uploaded,
-				arrayBuffer: async () => value.body,
-			}
-		},
-		async head(key: string) {
-			const value = store.get(key)
-			if (!value) return null
-			return { customMetadata: value.customMetadata, uploaded: value.uploaded }
-		},
-		async put(
-			key: string,
-			body: ArrayBuffer,
-			options?: { customMetadata?: Record<string, string> }
-		) {
-			store.set(key, {
-				body,
-				customMetadata: options?.customMetadata,
-				uploaded: new Date(Date.now()),
-			})
-		},
-		async delete(key: string) {
-			store.delete(key)
-		},
-	}
-}
-
-function makeFakeRoomsBucket(etag: string | null = 'room-etag-1') {
-	return {
-		async head(_key: string) {
-			return etag === null ? null : { etag }
-		},
-	}
-}
-
-function makeFakeQueue() {
-	return { send: vi.fn(async (_message: unknown) => undefined) }
-}
-
-function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
-	return {
-		BROWSER: {},
-		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://www.tldraw.com',
-		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
-		MEASURE: { writeDataPoint: vi.fn() },
-		QUEUE: makeFakeQueue(),
-		...overrides,
-	} as unknown as Environment
-}
 
 function makeRequest(prefix: string, slug: string) {
 	return Object.assign(
