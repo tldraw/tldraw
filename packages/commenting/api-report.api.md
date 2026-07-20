@@ -7,6 +7,7 @@
 import { ComponentType } from 'react';
 import { Editor } from 'tldraw';
 import { EditorAtom } from 'tldraw';
+import { JsonObject } from 'tldraw';
 import { JSX } from 'react/jsx-runtime';
 import type { MentionNodeAttrs } from '@tiptap/extension-mention';
 import { ReactNode } from 'react';
@@ -71,7 +72,7 @@ export interface CanvasCommentsProps {
     onPostComment?(comment: TLComment): void;
     regionOptions?: Partial<RegionCommentOptions>;
     renderMentionSuggestion?(member: MentionMember): ReactNode;
-    resolveName(id: string): string | undefined;
+    resolveAuthor(id: string): CommentAuthor | undefined;
 }
 
 // @public
@@ -87,7 +88,7 @@ export interface CanvasCommentsSidebarProps {
         y: number;
     };
     isCommentUnread?(commentId: TLCommentId): boolean;
-    resolveName(id: string): string | undefined;
+    resolveAuthor(id: string): CommentAuthor | undefined;
     tools?: string[];
 }
 
@@ -137,6 +138,14 @@ export function collectClusterLeaves(editor: Editor, threads: readonly TLComment
 }): LeafInput[];
 
 // @public
+export interface CommentAuthor {
+    color?: string;
+    meta?: JsonObject;
+    // (undocumented)
+    name: string;
+}
+
+// @public
 export function CommentBody({ richText, resolveName }: CommentBodyProps): JSX.Element;
 
 // @public (undocumented)
@@ -153,7 +162,7 @@ export function CommentCard({ author, body, date, you, edited, actions }: Commen
 export interface CommentCardProps {
     actions?: ReactNode;
     // (undocumented)
-    author: string;
+    author: CommentAuthor;
     body: ReactNode;
     date: string;
     edited?: boolean;
@@ -167,7 +176,7 @@ export function CommentComposer({ author, placeholder, value, onChange, onSubmit
 // @public (undocumented)
 export interface CommentComposerProps {
     // (undocumented)
-    author: string;
+    author: CommentAuthor;
     // (undocumented)
     autoFocus?: boolean;
     // (undocumented)
@@ -216,7 +225,7 @@ export interface CommentingOptions {
 // @public (undocumented)
 export interface CommentListItemProps {
     // (undocumented)
-    author: string;
+    author: CommentAuthor;
     count?: number;
     date: string;
     // (undocumented)
@@ -229,11 +238,12 @@ export interface CommentListItemProps {
 }
 
 // @public
-export function CommentPin({ children, resolved, open }: CommentPinProps): JSX.Element;
+export function CommentPin({ children, resolved, open, color }: CommentPinProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentPinProps {
     children?: ReactNode;
+    color?: string;
     open?: boolean;
     // (undocumented)
     resolved?: boolean;

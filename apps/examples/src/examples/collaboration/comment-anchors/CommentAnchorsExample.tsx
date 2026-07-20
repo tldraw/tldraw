@@ -1,5 +1,6 @@
 import {
 	CanvasComments,
+	CommentAuthor,
 	commentToolOverrides,
 	commentTools,
 	putCommentRecords,
@@ -22,8 +23,11 @@ import {
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 
-const NAMES: Record<string, string> = { ada: 'Ada Lovelace', me: 'You' }
-const resolveName = (id: string): string => NAMES[id] ?? id
+const AUTHORS: Record<string, CommentAuthor> = {
+	ada: { name: 'Ada Lovelace', color: '#0E9F6E' },
+	me: { name: 'You', color: '#EC5E41' },
+}
+const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 
 // A thread plus its opening comment, anchored however the caller specifies. Every `TLCommentThread`
 // carries an `anchor` — a discriminated union — and `CanvasComments` renders each kind in the right
@@ -85,7 +89,7 @@ export default function CommentAnchorsExample() {
 
 	const components = useMemo<TLComponents>(
 		() => ({
-			InFrontOfTheCanvas: () => <CanvasComments currentUserId="me" resolveName={resolveName} />,
+			InFrontOfTheCanvas: () => <CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />,
 		}),
 		[]
 	)

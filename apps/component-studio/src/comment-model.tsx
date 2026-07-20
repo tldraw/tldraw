@@ -40,7 +40,7 @@ function richTextToString(rich: TLRichText): string {
 /** Adapt a TLComment record to CommentCard props — the "components consume the model" boundary. */
 export function commentToCardProps(comment: TLComment): CommentCardProps {
 	return {
-		author: resolveUser(comment.authorId).name,
+		author: { name: resolveUser(comment.authorId).name },
 		body: <CommentText text={richTextToString(comment.body)} />,
 		date: new Date(comment.createdAt).toISOString(),
 		you: comment.authorId === 'me',

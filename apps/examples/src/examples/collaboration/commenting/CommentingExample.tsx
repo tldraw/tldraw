@@ -1,5 +1,6 @@
 import {
 	CanvasComments,
+	CommentAuthor,
 	commentToolOverrides,
 	commentTools,
 	filterMentionMembers,
@@ -14,16 +15,18 @@ import 'tldraw/tldraw.css'
 // The people who can be @-mentioned. A real app would pull this from its own roster; the composer
 // filters this list as you type after `@`. Ids match the author directory below.
 const MEMBERS: MentionMember[] = [
-	{ id: 'me', name: 'You', you: true },
-	{ id: 'ada', name: 'Ada Lovelace' },
-	{ id: 'grace', name: 'Grace Hopper' },
-	{ id: 'alan', name: 'Alan Turing' },
+	{ id: 'me', name: 'You', color: '#EC5E41', you: true },
+	{ id: 'ada', name: 'Ada Lovelace', color: '#0E9F6E' },
+	{ id: 'grace', name: 'Grace Hopper', color: '#4465E9' },
+	{ id: 'alan', name: 'Alan Turing', color: '#9C1FBE' },
 ]
 
-// A tiny local user directory so the flow shows names instead of ids. A real app would resolve
-// these from its own identity system.
-const NAMES: Record<string, string> = Object.fromEntries(MEMBERS.map((m) => [m.id, m.name]))
-const resolveName = (id: string): string => NAMES[id] ?? id
+// A tiny local user directory so the flow shows names and colors instead of ids. A real app would
+// resolve these from its own identity system.
+const AUTHORS: Record<string, CommentAuthor> = Object.fromEntries(
+	MEMBERS.map((m) => [m.id, { name: m.name, color: m.color }])
+)
+const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 
 // Region comments are off by default (click-only). Enable dragging out a rectangle to comment on an
 // area. A module-level constant keeps the object identity stable across renders.
@@ -45,7 +48,7 @@ export default function CommentingExample() {
 			InFrontOfTheCanvas: () => (
 				<CanvasComments
 					currentUserId="me"
-					resolveName={resolveName}
+					resolveAuthor={resolveAuthor}
 					regionOptions={REGION_OPTIONS}
 					getMentionSuggestions={(query) => filterMentionMembers(MEMBERS, query)}
 				/>

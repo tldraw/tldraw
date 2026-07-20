@@ -1,11 +1,19 @@
-import { CanvasComments, commentToolOverrides, commentTools } from '@tldraw/commenting'
+import {
+	CanvasComments,
+	CommentAuthor,
+	commentToolOverrides,
+	commentTools,
+} from '@tldraw/commenting'
 import { useMemo } from 'react'
 import { commentSchemaRecords, createTLSchema, createTLStore, TLComponents, Tldraw } from 'tldraw'
 import './comment-flow.css'
 
-// A tiny local user directory so the flow shows names instead of ids.
-const NAMES: Record<string, string> = { me: 'You', ada: 'Ada Lovelace' }
-const resolveName = (id: string): string => NAMES[id] ?? id
+// A tiny local user directory so the flow shows names and colors instead of ids.
+const AUTHORS: Record<string, CommentAuthor> = {
+	me: { name: 'You', color: '#EC5E41' },
+	ada: { name: 'Ada Lovelace', color: '#0E9F6E' },
+}
+const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 
 /**
  * The whole commenting flow on a live editor: the comment tool in the toolbar, click-to-place a
@@ -20,7 +28,7 @@ export function CommentFlow() {
 	)
 	const components: TLComponents = useMemo(
 		() => ({
-			InFrontOfTheCanvas: () => <CanvasComments currentUserId="me" resolveName={resolveName} />,
+			InFrontOfTheCanvas: () => <CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />,
 		}),
 		[]
 	)

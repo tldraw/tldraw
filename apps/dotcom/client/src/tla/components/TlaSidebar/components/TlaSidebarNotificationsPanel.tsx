@@ -86,7 +86,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 
 	const items: CommentListItemProps[] = notifications.map(({ comment: c }) => ({
 		id: c.id,
-		author: c.author?.name ?? c.authorId,
+		author: { name: c.author?.name ?? c.authorId, color: c.author?.color },
 		preview: richTextToPlaintext(c.body as TLRichText),
 		date: new Date(c.createdAt).toISOString(),
 		// the document the comment lives on — the headline of the notification row
@@ -144,7 +144,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 							<div className={styles.byline}>
 								<ReasonByline
 									reason={reasonById.get(item.id) ?? 'owned-board'}
-									author={item.author}
+									author={item.author.name}
 									nameClassName={styles.author}
 								/>
 							</div>

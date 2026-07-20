@@ -33,6 +33,7 @@ import {
 import { computeClusterTable } from '../clustering/computeClusterTable'
 import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
+import { CommentAuthor } from '../ui/comment-author'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
 import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
@@ -84,8 +85,8 @@ import { anchorPagePoint, regionPinPoint, shapeAnchorAt } from './thread-state'
 export interface CanvasCommentsProps {
 	/** The signed-in user's id, or null for a read-only viewer. Only a signed-in user composes. */
 	currentUserId: string | null
-	/** Map an author id to a display name, or `undefined` when the id can't be named. */
-	resolveName(id: string): string | undefined
+	/** Map an author id to their display info, or `undefined` when the id can't be resolved. */
+	resolveAuthor(id: string): CommentAuthor | undefined
 	/** Called after any comment (a new thread's first comment, or a reply) is posted. */
 	onPostComment?(comment: TLComment): void
 	/** Whether a comment is unread for the current user (return true for unread). */
@@ -115,8 +116,8 @@ const CLUSTER_EXPAND_ZOOM_MS = 450
 
 /** The leading element for the placement composer — the comment pin's shape, but a pencil
  *  instead of an initial, marking an unsent draft. */
-const draftAvatar = (
-	<CommentPin>
+const draftAvatar = (color?: string) => (
+	<CommentPin color={color}>
 		<svg
 			viewBox="0 0 24 24"
 			width="15"
@@ -137,7 +138,8 @@ const draftAvatar = (
 function toCardProps(
 	comment: TLComment,
 	props: CanvasCommentsProps,
-	components: CommentingComponents
+	components: CommentingComponents,
+	resolveName: (id: string) => string | undefined
 ): CommentCardProps {
 	const Body = components.CommentBody
 	// The `CommentBody` component slot overrides the built-in rich-text default (which resolves
@@ -145,10 +147,10 @@ function toCardProps(
 	const body = Body ? (
 		<Body comment={comment} />
 	) : (
-		<CommentBody richText={comment.body} resolveName={props.resolveName} />
+		<CommentBody richText={comment.body} resolveName={resolveName} />
 	)
 	return {
-		author: props.resolveName(comment.authorId) ?? UNKNOWN_AUTHOR,
+		author: props.resolveAuthor(comment.authorId) ?? { name: UNKNOWN_AUTHOR },
 		body,
 		date: new Date(comment.createdAt).toISOString(),
 		you: comment.authorId === props.currentUserId,
@@ -993,13 +995,17 @@ const ThreadPin = memo(function ThreadPin({
 }) {
 	const {
 		currentUserId,
-		resolveName,
+		resolveAuthor,
 		onPostComment,
 		isCommentUnread,
 		onCommentRead,
 		getMentionSuggestions,
 		renderMentionSuggestion,
 	} = props
+	// Name-only view of the resolver, for the mention/rich-text paths (stable identity so
+	// CommentBody's memoized render doesn't recompute every render).
+	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
+	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	const options = useCommentingOptions()
 	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
 	const container = useContainer()
@@ -1238,10 +1244,11 @@ const ThreadPin = memo(function ThreadPin({
 
 	const PinContent = options.components.PinContent
 	// The `PinContent` component slot overrides the built-in author-initial default.
+	const threadAuthor = resolveAuthor(thread.createdBy)
 	const pinContent = PinContent ? (
 		<PinContent thread={thread} comments={comments} />
 	) : (
-		initialOf(resolveName(thread.createdBy) ?? UNKNOWN_AUTHOR)
+		initialOf(threadAuthor?.name ?? UNKNOWN_AUTHOR)
 	)
 
 	// Drag the marker to move the thread: its position is overridden locally while dragging, then
@@ -1358,7 +1365,7 @@ const ThreadPin = memo(function ThreadPin({
 					onPointerEnter={() => setPinHovered(true)}
 					onPointerLeave={() => setPinHovered(false)}
 				>
-					<CommentPin resolved={thread.resolved != null} open={open}>
+					<CommentPin resolved={thread.resolved != null} open={open} color={threadAuthor?.color}>
 						{pinContent}
 					</CommentPin>
 				</div>
@@ -1373,19 +1380,19 @@ const ThreadPin = memo(function ThreadPin({
 							header={msg('comments.thread-title')}
 							headerActions={headerActions}
 							renderComment={renderComment}
-							comments={comments.map((c) => toCardProps(c, props, options.components))}
+							comments={comments.map((c) => toCardProps(c, props, options.components, resolveName))}
 							resolvedBanner={
 								thread.resolved
 									? msg('comments.resolved-by').replace(
 											'{name}',
-											resolveName(thread.resolved.by) ?? UNKNOWN_AUTHOR
+											resolveAuthor(thread.resolved.by)?.name ?? UNKNOWN_AUTHOR
 										)
 									: undefined
 							}
 							composer={
 								currentUserId && !thread.resolved
 									? {
-											author: resolveName(currentUserId) ?? UNKNOWN_AUTHOR,
+											author: me ?? { name: UNKNOWN_AUTHOR },
 											placeholder: msg('comments.reply-placeholder'),
 											sendLabel: msg('comments.send'),
 											value: reply,
@@ -1409,11 +1416,12 @@ function PendingComposer({
 	editor,
 	pending,
 	currentUserId,
-	resolveName,
+	resolveAuthor,
 	onPostComment,
 	getMentionSuggestions,
 	renderMentionSuggestion,
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
+	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	const [text, setText] = useState<TLRichText>(EMPTY_COMMENT)
 	const ref = useRef<HTMLDivElement>(null)
 	const msg = useTranslation()
@@ -1475,7 +1483,7 @@ function PendingComposer({
 			}}
 		>
 			<CommentComposer
-				author={currentUserId ? (resolveName(currentUserId) ?? UNKNOWN_AUTHOR) : ''}
+				author={me ?? { name: currentUserId ? UNKNOWN_AUTHOR : '' }}
 				placeholder={msg('comments.add-placeholder')}
 				sendLabel={msg('comments.send')}
 				value={text}
@@ -1485,7 +1493,7 @@ function PendingComposer({
 				getMentionSuggestions={getMentionSuggestions}
 				renderMentionSuggestion={renderMentionSuggestion}
 				autoFocus
-				leading={draftAvatar}
+				leading={draftAvatar(me?.color)}
 			/>
 		</div>,
 		container

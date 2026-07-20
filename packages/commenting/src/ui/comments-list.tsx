@@ -1,11 +1,12 @@
 import { ReactNode } from 'react'
 import { Avatar } from './avatar'
 import { Byline } from './byline'
+import { CommentAuthor } from './comment-author'
 
 /** @public */
 export interface CommentListItemProps {
 	id: string
-	author: string
+	author: CommentAuthor
 	/** A short preview of the thread — e.g. the first comment's body. */
 	preview: ReactNode
 	/** ISO datetime of the thread's first comment. */
@@ -105,9 +106,9 @@ function CommentListItem({
 			data-resolved={resolved || undefined}
 			onClick={handleClick}
 		>
-			<Avatar name={author} />
+			<Avatar name={author.name} color={author.color} />
 			<div className="tlui-cmt-list__item-body">
-				<Byline author={author} date={date} />
+				<Byline author={author.name} date={date} />
 				<div className="tlui-cmt-list__item-preview">{preview}</div>
 				{(resolved || page !== undefined) && (
 					<div className="tlui-cmt-list__item-meta">

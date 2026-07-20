@@ -16,12 +16,12 @@ export default sketchbook
 
 /** Placing a new thread: the composer that opens at the click point. */
 export const Placement: Sketch<CommentComposerProps> = {
-	args: { author: 'You', placeholder: 'Add a comment…' },
+	args: { author: { name: 'You' }, placeholder: 'Add a comment…' },
 }
 
 /** Replying inside an open thread. */
 export const Reply: Sketch<CommentComposerProps> = {
-	args: { author: 'You', placeholder: 'Reply…' },
+	args: { author: { name: 'You' }, placeholder: 'Reply…' },
 }
 
 const members: MentionMember[] = [
@@ -35,7 +35,7 @@ function MentionDemo() {
 	const [value, setValue] = useState<TLRichText>(() => toRichText(''))
 	return (
 		<CommentComposer
-			author="You"
+			author={{ name: 'You' }}
 			placeholder="Add a comment… type @ to mention"
 			value={value}
 			onChange={setValue}

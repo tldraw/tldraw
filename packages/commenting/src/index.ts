@@ -4,6 +4,7 @@ import { registerTldrawLibraryVersion } from '@tldraw/utils'
 // custom commenting UI.
 export { Avatar, type AvatarProps } from './ui/avatar'
 export { Byline, type BylineProps } from './ui/byline'
+export { type CommentAuthor } from './ui/comment-author'
 export { CommentCard, type CommentCardProps } from './ui/comment-card'
 export { CommentComposer, type CommentComposerProps } from './ui/comment-composer'
 export { CountBadge, type CountBadgeProps } from './ui/count-badge'

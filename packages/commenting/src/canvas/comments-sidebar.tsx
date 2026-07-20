@@ -1,4 +1,4 @@
-import { ReactNode, useRef } from 'react'
+import { ReactNode, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import {
 	TLComment,
@@ -9,6 +9,7 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
+import { CommentAuthor } from '../ui/comment-author'
 import { CommentListItemProps, CommentsList } from '../ui/comments-list'
 import { UNKNOWN_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
@@ -22,8 +23,8 @@ import { focusThread } from './thread-state'
 
 /** @public */
 export interface CanvasCommentsSidebarProps {
-	/** Map an author id to a display name, or `undefined` when the id can't be named. */
-	resolveName(id: string): string | undefined
+	/** Map an author id to their display info, or `undefined` when the id can't be resolved. */
+	resolveAuthor(id: string): CommentAuthor | undefined
 	/** The signed-in user's id. Enables the "only your threads" filter when present. */
 	currentUserId?: string
 	/**
@@ -49,7 +50,7 @@ export interface CanvasCommentsSidebarProps {
  */
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 	const {
-		resolveName,
+		resolveAuthor,
 		currentUserId,
 		isCommentUnread,
 		tools,
@@ -57,6 +58,8 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		empty,
 		impreciseShapeAnchor,
 	} = props
+	// Name-only view of the resolver, for the mention/rich-text paths.
+	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const editor = useEditor()
 	const options = useCommentingOptions()
 	const sidebarTools = tools ?? ['comment']
@@ -121,7 +124,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 			}
 			return {
 				id: thread.id,
-				author: resolveName(thread.createdBy) ?? UNKNOWN_AUTHOR,
+				author: resolveAuthor(thread.createdBy) ?? { name: UNKNOWN_AUTHOR },
 				preview,
 				date: new Date((first ?? thread).createdAt).toISOString(),
 				resolved: thread.resolved != null,
