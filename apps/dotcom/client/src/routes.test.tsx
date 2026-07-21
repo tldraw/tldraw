@@ -108,7 +108,11 @@ function getSpaRoutes(routeObjects: RouteObject[]) {
 	)
 }
 
-const spaRoutes = getSpaRoutes(createAppRouter({ includeDevRoutes: false }))
+// Spike: include dev routes in the SPA manifest so the /dev/components gallery is
+// reachable on the PR preview deploy. The client still gates rendering on a
+// dev/preview hostname (getDefaultIncludeDevRoutes), so prod just serves the
+// not-found page for these paths.
+const spaRoutes = getSpaRoutes(createAppRouter({ includeDevRoutes: true }))
 const devSpaRoutes = getSpaRoutes(createAppRouter({ includeDevRoutes: true }))
 
 const allVercelRouterPatterns = spaRoutes.map((route) => route.vercelRouterPattern)
@@ -117,9 +121,9 @@ test('the_routes', () => {
 	expect(spaRoutes).toMatchSnapshot()
 })
 
-test('dev reset route exists only in development routing', () => {
+test('dev routes are included in the SPA routing (spike preview)', () => {
 	expect(devSpaRoutes.map((route) => route.reactRouterPattern)).toContain('/dev/reset-local-state')
-	expect(spaRoutes.map((route) => route.reactRouterPattern)).not.toContain('/dev/reset-local-state')
+	expect(spaRoutes.map((route) => route.reactRouterPattern)).toContain('/dev/components/buttons')
 })
 
 test('all React routes match', () => {
