@@ -21,7 +21,12 @@ import {
 	loadBoardSnapshot,
 	renderThumbnailScreenshot,
 } from './sharedBoardScreenshotMcp'
-import { classifyScreenshotFailure, reportThumbnailError, sha256 } from './thumbnailShared'
+import {
+	BoardNotViewableError,
+	classifyScreenshotFailure,
+	reportThumbnailError,
+	sha256,
+} from './thumbnailShared'
 
 // Queue-backed async OG image generation. The GET og-image route never blocks a request on
 // Browser Run: it serves whatever is cached (fresh or stale) or redirects to the default OG image,
@@ -153,21 +158,27 @@ export async function handleOgImageRenderMessage(
 	const clearPending = async () => {
 		await env.THUMBNAILS?.delete(getOgImagePendingKey({ kind, slug })).catch(() => {})
 	}
+	// The board went private, was deleted, or was unpublished. Terminal, not transient: drop the
+	// cached image so no-longer-public content does not linger in the OG cache, and ack rather than
+	// retry, since no number of retries will make the board public again. Reached either from the
+	// resolve below or from the gate the snapshot reader re-checks a few lines later, which can trip
+	// on a board that goes private in between.
+	const dropNoLongerViewable = async () => {
+		await env.THUMBNAILS?.delete(cacheKey).catch(() => {})
+		await clearPending()
+		writeOgImageTelemetry(env, {
+			source: 'queue',
+			boardHash,
+			cacheStatus: 'miss',
+			failureReason: 'board_not_viewable',
+		})
+		message.ack()
+	}
 
 	try {
 		const board = await resolveOgBoardInfo(env, kind, slug)
 		if (!board) {
-			// The board went private, was deleted, or was unpublished while the job was queued. Drop
-			// the cached image too so no-longer-public content does not linger in the OG cache.
-			await env.THUMBNAILS?.delete(cacheKey).catch(() => {})
-			await clearPending()
-			writeOgImageTelemetry(env, {
-				source: 'queue',
-				boardHash,
-				cacheStatus: 'miss',
-				failureReason: 'board_not_viewable',
-			})
-			message.ack()
+			await dropNoLongerViewable()
 			return
 		}
 
@@ -202,13 +213,13 @@ export async function handleOgImageRenderMessage(
 		// to, typically the first).
 		const snapshot = await loadBoardSnapshot(env, board)
 		if (!snapshot) {
-			// The render page loads the snapshot from the same sources through the same functions
-			// (getThumbnailSnapshot -> get{Published,SharedFile}RoomSnapshot), so a read that fails here
-			// fails there too: the page would 404, mark its error state, and come back as a render
-			// failure — after spending a Browser Run slot to discover what we already know. Fail now
-			// instead. retryOrDrop still backs off and retries, in case the read failed transiently; it
-			// just stops paying for a capture to find out. The MCP tool bails on a null snapshot for
-			// the same reason.
+			// The board has no persisted content. The render page loads the snapshot from the same
+			// sources through the same functions (getThumbnailSnapshot ->
+			// get{Published,SharedFile}RoomSnapshot), so it would 404, mark its error state, and come
+			// back as a render failure — after spending a Browser Run slot to discover what we already
+			// know. Fail now instead. retryOrDrop still backs off and retries, in case content lands
+			// shortly after the enqueue. A read that *fails* throws rather than landing here; the catch
+			// below reports it and retries the same way, so that path spends no Browser Run either.
 			retryOrDrop(env, message, boardHash, 'board_empty')
 			return
 		}
@@ -254,13 +265,21 @@ export async function handleOgImageRenderMessage(
 	} catch (error) {
 		// Bounded reason code only — raw error.message would blow up the failure blob's cardinality.
 		// Sentry gets the unbounded original, since the reason code alone can't explain why a board
-		// burned through its retries.
+		// burned through its retries (it skips BoardNotViewableError, which is a user action).
 		reportThumbnailError(error, {
 			ctx,
 			env,
 			surface: 'og_queue',
 			extras: { kind, slug, attempts: message.attempts },
 		})
+		if (error instanceof BoardNotViewableError) {
+			// The board went private between the resolve above and the snapshot read. Same terminal
+			// state the resolve handles, so handle it the same way instead of retrying a board that
+			// will keep failing the gate — each retry would also take a token from the shared global
+			// Browser Run budget before discovering that.
+			await dropNoLongerViewable()
+			return
+		}
 		retryOrDrop(env, message, boardHash, classifyScreenshotFailure(error))
 	}
 }

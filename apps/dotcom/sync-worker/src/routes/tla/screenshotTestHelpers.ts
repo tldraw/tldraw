@@ -84,6 +84,23 @@ export function screenshotOf(env: Environment) {
 	return (env.BROWSER as any).quickAction as ReturnType<typeof vi.fn>
 }
 
+// Pulls the `<prefix>:…` telemetry blob out of every writeDataPoint call, so tests can assert on the
+// low-cardinality dimensions (failure reason codes, and the IP recorded only on failures) without
+// depending on the order of the blobs array.
+export function blobsWithPrefix(env: Environment, prefix: string): string[] {
+	return (env.MEASURE as any).writeDataPoint.mock.calls
+		.map((call: any[]) => (call[0].blobs as string[]).find((blob) => blob.startsWith(prefix)))
+		.filter(Boolean)
+}
+
+export function failureBlobsOf(env: Environment) {
+	return blobsWithPrefix(env, 'failure:')
+}
+
+export function ipBlobsOf(env: Environment) {
+	return blobsWithPrefix(env, 'ip:')
+}
+
 // quickAction is called as quickAction('screenshot', body); the render URL rides in body (arg 1).
 export function tokenFromScreenshot(env: Environment): string {
 	const body = screenshotOf(env).mock.calls[0]![1] as { url: string }

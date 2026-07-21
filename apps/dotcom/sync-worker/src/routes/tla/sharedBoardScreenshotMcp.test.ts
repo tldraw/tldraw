@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import {
+	failureBlobsOf,
+	ipBlobsOf,
 	makeBrowserBinding,
 	makeFakeRoomsBucket,
 	makeFakeThumbnailsBucket,
@@ -20,6 +21,7 @@ import {
 	resetRateLimitFallbackForTests,
 	sharedBoardScreenshotMcp,
 } from './sharedBoardScreenshotMcp'
+import { BoardNotViewableError } from './thumbnailShared'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -228,6 +230,54 @@ describe('get_board_info', () => {
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('No public board')
 	})
+
+	// A board that resolves but whose snapshot read fails is not an empty board. Saying "no saved
+	// content" would tell the caller the board is fine and simply blank, and would leave the real
+	// failure with no trace. The caller hears that the read failed — but in bounded words: this is an
+	// anonymous endpoint, and pg errors carry the database host, port, and username.
+	it('surfaces a failed snapshot read without leaking the underlying error', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1751234567890,
+		})
+		// `Once` so the rejection can't leak into later tests (clearAllMocks resets call history, not
+		// implementations).
+		vi.mocked(getPublishedRoomSnapshot).mockRejectedValueOnce(
+			new Error('connect ECONNREFUSED 10.0.0.5:5432')
+		)
+
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.4', 'get_board_info', { boardId: 'abc' }),
+				makeEnv()
+			)
+		)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe(
+			"Could not read board info: the board's saved content could not be read."
+		)
+		expect(result.content[0].text).not.toContain('no saved content')
+	})
+
+	// A board un-shared between the resolve and the snapshot read is a user action, not a fault. The
+	// caller is told the board is no longer public rather than being handed a read error.
+	it('reports a board that goes private mid-request as no longer public', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f', shared: true, isDeleted: false })
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(
+			new BoardNotViewableError('not shared')
+		)
+
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.5', 'get_board_info', { boardId: 'f' }),
+				makeEnv({ ROOMS: makeFakeRoomsBucket() })
+			)
+		)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe('Could not read board info: the board is no longer public.')
+	})
 })
 
 describe('get_shared_board_screenshot', () => {
@@ -385,6 +435,61 @@ describe('get_shared_board_screenshot', () => {
 		expect(result.content[0].text).toContain('no saved content')
 	})
 
+	// The counterpart to the test above: a snapshot read that fails must not land in the same place
+	// an empty board does. Telemetry would otherwise record `board_empty` for a Postgres or R2
+	// outage, which reads as "this board is blank" and hides an infrastructure failure. It gets its
+	// own reason code rather than `render_error`, so a database outage is distinguishable from a
+	// browser one on the dashboard.
+	it('reports a failed snapshot read as a read failure, not an empty board or a render failure', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f', shared: true, isDeleted: false })
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(
+			new Error('R2 GET failed: internal-bucket.example')
+		)
+		const env = makeEnv({
+			ROOMS: makeFakeRoomsBucket(),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.18', 'get_shared_board_screenshot', { boardId: 'f' }),
+				env
+			)
+		)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe(
+			"Screenshot failed: the board's saved content could not be read."
+		)
+		// The anonymous caller must not learn anything about our infrastructure from a failure.
+		expect(result.content[0].text).not.toContain('internal-bucket')
+		expect(failureBlobsOf(env)).toEqual(['failure:snapshot_read_error'])
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+	})
+
+	// A board un-shared between the resolve and the snapshot read: an expected state change, so it
+	// gets the `board_not_viewable` code rather than being counted as a render failure.
+	it('reports a board that goes private mid-request as no longer public', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f', shared: true, isDeleted: false })
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(
+			new BoardNotViewableError('not shared')
+		)
+		const env = makeEnv({
+			ROOMS: makeFakeRoomsBucket(),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.19', 'get_shared_board_screenshot', { boardId: 'f' }),
+				env
+			)
+		)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe('Screenshot failed: the board is no longer public.')
+		expect(failureBlobsOf(env)).toEqual(['failure:board_not_viewable'])
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+	})
+
 	it('surfaces a render failure when the screenshot call fails', async () => {
 		mockPublishedBoard()
 		const env = makeEnv({
@@ -399,9 +504,10 @@ describe('get_shared_board_screenshot', () => {
 			)
 		)
 		expect(result.isError).toBe(true)
-		// The caller sees the specific message, but telemetry gets a bounded reason code — the raw
-		// error string never reaches the failure blob (which would blow up its cardinality).
-		expect(result.content[0].text).toContain('Screenshot failed')
+		// One bounded reason code drives both the caller's message and the telemetry blob, so the raw
+		// error string reaches neither: it would blow up the blob's cardinality, and this endpoint
+		// answers anonymous callers.
+		expect(result.content[0].text).toBe('Screenshot failed: the render failed.')
 		expect(failureBlobsOf(env)).toContain('failure:browser_failed')
 		expect(failureBlobsOf(env).some((b) => b.includes('(500)'))).toBe(false)
 	})
@@ -422,20 +528,6 @@ describe('get_shared_board_screenshot', () => {
 		expect(lastResult.isError).toBe(true)
 		expect(lastResult.content[0].text).toContain('Rate limited')
 	})
-
-	// Pulls the `<prefix>:…` telemetry blob out of every writeDataPoint call, so tests can assert on
-	// the low-cardinality dimensions (failure reason codes, and IP only on failures).
-	function blobsWithPrefix(env: Environment, prefix: string): string[] {
-		return (env.MEASURE as any).writeDataPoint.mock.calls
-			.map((call: any[]) => (call[0].blobs as string[]).find((b) => b.startsWith(prefix)))
-			.filter(Boolean)
-	}
-	function ipBlobsOf(env: Environment) {
-		return blobsWithPrefix(env, 'ip:')
-	}
-	function failureBlobsOf(env: Environment) {
-		return blobsWithPrefix(env, 'failure:')
-	}
 
 	it('records the hashed ip only on failures, not on successful screenshots', async () => {
 		mockPublishedBoard()

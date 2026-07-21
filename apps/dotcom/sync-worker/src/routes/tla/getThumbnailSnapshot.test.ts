@@ -8,6 +8,7 @@ import {
 import { getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileRoomSnapshot } from './getSharedFile'
 import { getThumbnailSnapshot } from './getThumbnailSnapshot'
+import { BoardNotViewableError } from './thumbnailShared'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedRoomSnapshot: vi.fn(),
@@ -140,9 +141,30 @@ describe('getThumbnailSnapshot', () => {
 	})
 
 	it('returns 404 when the board is no longer published', async () => {
-		vi.mocked(getPublishedRoomSnapshot).mockRejectedValue(new Error('not published'))
+		vi.mocked(getPublishedRoomSnapshot).mockRejectedValue(
+			new BoardNotViewableError('not published')
+		)
 		const response = await getThumbnailSnapshot(makeRequest(await mintToken()), env)
 		expect(response.status).toBe(404)
+	})
+
+	// A genuine read failure is reported, so a broken snapshot source can't hide behind the same 404
+	// an unpublished board answers with.
+	it('reports a failed read but not a board that is simply no longer public', async () => {
+		// No ctx is passed, so reportThumbnailError logs instead of reaching Sentry.
+		const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		vi.mocked(getPublishedRoomSnapshot).mockRejectedValue(
+			new BoardNotViewableError('not published')
+		)
+		expect((await getThumbnailSnapshot(makeRequest(await mintToken()), env)).status).toBe(404)
+		expect(logged).not.toHaveBeenCalled()
+
+		vi.mocked(getPublishedRoomSnapshot).mockRejectedValue(new Error('connection terminated'))
+		expect((await getThumbnailSnapshot(makeRequest(await mintToken()), env)).status).toBe(404)
+		expect(logged).toHaveBeenCalledTimes(1)
+
+		logged.mockRestore()
 	})
 
 	it('returns 404 rather than throwing on a partial snapshot with no documents', async () => {
@@ -173,7 +195,7 @@ describe('getThumbnailSnapshot', () => {
 	})
 
 	it('returns 404 when a shared file is un-shared during the token window', async () => {
-		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValue(new Error('not shared'))
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValue(new BoardNotViewableError('not shared'))
 		const response = await getThumbnailSnapshot(
 			makeRequest(await mintToken({ kind: 'shared_file', slug: 'file-abc', version: 'etag-1' })),
 			env

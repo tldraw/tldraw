@@ -22,7 +22,14 @@ import {
 	getSharedFileRoomSnapshot,
 	isFileAnonymouslyViewable,
 } from './getSharedFile'
-import { classifyScreenshotFailure, reportThumbnailError, sha256 } from './thumbnailShared'
+import {
+	BoardNotViewableError,
+	BoardSnapshotReadError,
+	classifyScreenshotFailure,
+	describeThumbnailFailure,
+	reportThumbnailError,
+	sha256,
+} from './thumbnailShared'
 
 const SCREENSHOT_TOOL_NAME = 'get_shared_board_screenshot'
 const BOARD_INFO_TOOL_NAME = 'get_board_info'
@@ -237,6 +244,12 @@ export async function resolveSharedBoardById(
 	return { ok: false, reason: 'not_found' }
 }
 
+// Reads a resolved board's snapshot, distinguishing the three outcomes callers need to tell apart.
+// `null` means one thing only: the board has no persisted room content, an empty board. The gates
+// these readers re-check throw BoardNotViewableError (the board went private mid-request — an
+// expected state change). Everything else is an infrastructure failure and is wrapped as a
+// BoardSnapshotReadError so telemetry can name it. Collapsing all three into null, as this used to,
+// filed database outages under "empty board" and left the real cause with no trace anywhere.
 export async function loadBoardSnapshot(
 	env: Environment,
 	board: { kind: 'published' | 'shared_file'; slug: string }
@@ -247,8 +260,14 @@ export async function loadBoardSnapshot(
 				? await getPublishedRoomSnapshot(env, board.slug)
 				: await getSharedFileRoomSnapshot(env, board.slug)
 		return snapshot ?? null
-	} catch {
-		return null
+	} catch (error) {
+		if (error instanceof BoardNotViewableError) throw error
+		// Keep the original message in the wrapper's own text as well as its `cause`, so the Sentry
+		// event title still names the real failure rather than reading as a generic read error.
+		throw new BoardSnapshotReadError(
+			`Could not read board snapshot: ${error instanceof Error ? error.message : String(error)}`,
+			{ cause: error }
+		)
 	}
 }
 
@@ -335,8 +354,9 @@ async function callBoardInfoTool(
 			pages: pages.map((p) => ({ index: p.index, name: p.name, hasContent: p.hasContent })),
 		})
 	} catch (error) {
-		// The caller gets the message, but nothing else records it: this tool writes no telemetry
-		// (it spends no Browser Run), so without a report a failing board lookup is invisible to us.
+		// The caller gets a bounded description, but nothing else records it: this tool writes no
+		// telemetry (it spends no Browser Run), so without a report a failing board lookup is
+		// invisible to us.
 		reportThumbnailError(error, {
 			ctx,
 			env,
@@ -345,7 +365,7 @@ async function callBoardInfoTool(
 			extras: { boardId: input.boardId },
 		})
 		return toolError(
-			`Could not read board: ${error instanceof Error ? error.message : String(error)}`
+			`Could not read board info: ${describeThumbnailFailure(classifyScreenshotFailure(error))}.`
 		)
 	}
 }
@@ -502,8 +522,9 @@ async function callSharedBoardScreenshotTool(
 		telemetry({ cacheStatus: 'miss', browserRunDurationMs: render.durationMs })
 		return toolPageResult(targetPage.name, render.base64)
 	} catch (error) {
-		// The bounded reason code goes to telemetry (blob5); the full message only to the caller, so
-		// unbounded error strings never inflate the failure dimension's cardinality. Sentry gets the
+		// One bounded reason code drives both the telemetry blob (so unbounded error strings never
+		// inflate that dimension's cardinality) and the caller's message (so internal Postgres/R2
+		// detail never reaches this anonymous, unauthenticated endpoint). Sentry gets the unbounded
 		// original: this is the surface that actually spends Browser Run, so a Quick Action failing or
 		// the render page erroring out is the thing we most need the stack for.
 		reportThumbnailError(error, {
@@ -513,8 +534,9 @@ async function callSharedBoardScreenshotTool(
 			surface: 'mcp_screenshot',
 			extras: { boardId: input.boardId, page: input.page, theme: input.theme },
 		})
-		telemetry({ cacheStatus: 'miss', failureReason: classifyScreenshotFailure(error) })
-		return toolError(`Screenshot failed: ${error instanceof Error ? error.message : String(error)}`)
+		const failureReason = classifyScreenshotFailure(error)
+		telemetry({ cacheStatus: 'miss', failureReason })
+		return toolError(`Screenshot failed: ${describeThumbnailFailure(failureReason)}.`)
 	}
 }
 

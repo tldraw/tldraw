@@ -10,6 +10,7 @@ import {
 	MAX_RATE_LIMIT_REQUEUES,
 } from './ogImageQueue'
 import {
+	failureBlobsOf,
 	makeBrowserBinding,
 	makeFakeRoomsBucket,
 	makeFakeThumbnailsBucket,
@@ -18,6 +19,7 @@ import {
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
 import { resetRateLimitFallbackForTests } from './sharedBoardScreenshotMcp'
+import { BoardNotViewableError } from './thumbnailShared'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -149,18 +151,18 @@ describe('handleOgImageRenderMessage', () => {
 		expect(job).toMatchObject({ pageId: 'page:full' })
 	})
 
-	// The render page reads the snapshot through the same functions, so a read that fails here would
-	// fail there too — the capture would 404 and come back as a render failure having spent a Browser
-	// Run slot to learn it. Fail before the render instead, and let the ordinary retry budget cover a
-	// read that failed transiently.
-	it('gives up without spending browser capacity when the snapshot cannot be read', async () => {
+	// The render page reads the snapshot through the same functions, so a board with no persisted
+	// content here has none there either — the capture would 404 and come back as a render failure
+	// having spent a Browser Run slot to learn it. Fail before the render instead, and let the
+	// ordinary retry budget cover content that lands shortly after the enqueue.
+	it('gives up without spending browser capacity when the board has no persisted content', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 42,
 		})
 		// clearAllMocks resets call history but not mockResolvedValue, so clear a snapshot another test
-		// may have set; an unreadable snapshot makes loadBoardSnapshot yield null.
+		// may have set; a board with nothing persisted makes loadBoardSnapshot yield null.
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(undefined as any)
 		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
 
@@ -176,6 +178,66 @@ describe('handleOgImageRenderMessage', () => {
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 		expect(finalAttempt.retry).not.toHaveBeenCalled()
 		expect(finalAttempt.ack).toHaveBeenCalledTimes(1)
+	})
+
+	// A read that fails is a different thing from a board with nothing in it. It still skips the
+	// render (the render page reads the same source and would fail the same way), but it must not be
+	// filed under `board_empty`: that reads as "this board is blank" and buries a Postgres or R2
+	// outage behind a reason code that invites no investigation. It retries, since the read may
+	// recover, and drops with its own reason code once the budget is spent.
+	it('retries a failed snapshot read and records it as a read failure, not an empty board', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 42,
+		})
+		// `Once` per delivery, so the rejection can't leak into later tests (clearAllMocks resets call
+		// history, not implementations).
+		vi.mocked(getPublishedRoomSnapshot).mockRejectedValueOnce(new Error('connection terminated'))
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		const firstAttempt = makeMessage({ kind: 'published', slug: 'board' }, 1)
+		await handleOgImageRenderMessage(env, firstAttempt)
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+		expect(firstAttempt.retry).toHaveBeenCalledExactlyOnceWith({ delaySeconds: 30 })
+		expect(firstAttempt.ack).not.toHaveBeenCalled()
+
+		// The final delivery, so the job drops and writes its reason code instead of only retrying.
+		vi.mocked(getPublishedRoomSnapshot).mockRejectedValueOnce(new Error('connection terminated'))
+		const finalAttempt = makeMessage({ kind: 'published', slug: 'board' }, 3)
+		await handleOgImageRenderMessage(env, finalAttempt)
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+		expect(finalAttempt.ack).toHaveBeenCalledTimes(1)
+		expect(failureBlobsOf(env)).toEqual(['failure:snapshot_read_error'])
+	})
+
+	// A board un-shared between the resolve and the snapshot read is terminal, not transient: no
+	// number of retries makes it public again, and each retry would take a token from the shared
+	// global Browser Run budget before finding that out. It ends the same way the resolve gate does.
+	it('drops a board that goes private mid-render without retrying', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({
+			id: 'shared-file',
+			shared: true,
+			isDeleted: false,
+		})
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(
+			new BoardNotViewableError('not shared')
+		)
+		const bucket = makeFakeThumbnailsBucket()
+		const cacheKey = getOgImageCacheKey({ kind: 'shared_file', slug: 'shared-file' })
+		bucket.store.set(cacheKey, { body: new ArrayBuffer(1), uploaded: new Date(0) })
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket('etag-1'), THUMBNAILS: bucket })
+
+		// The first delivery, which would otherwise have two retries left.
+		const message = makeMessage({ kind: 'shared_file', slug: 'shared-file' }, 1)
+		await handleOgImageRenderMessage(env, message)
+
+		expect(message.retry).not.toHaveBeenCalled()
+		expect(message.ack).toHaveBeenCalledTimes(1)
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+		// The cached image is dropped too, so no-longer-public content does not linger in the cache.
+		expect(bucket.store.has(cacheKey)).toBe(false)
+		expect(failureBlobsOf(env)).toEqual(['failure:board_not_viewable'])
 	})
 
 	it('renders shared files and keys their version on the room etag', async () => {
