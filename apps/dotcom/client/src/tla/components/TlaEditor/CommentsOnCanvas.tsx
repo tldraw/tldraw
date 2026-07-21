@@ -54,6 +54,8 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		}
 	}, [app, fileId])
 
+	// No `image` yet: users have avatars (Clerk), but comment authors resolve from the Zero
+	// comments query, which would need an avatar field alongside name/color to supply one.
 	const commentAuthors = useMemo(() => {
 		const authors = new Map<string, CommentAuthor>()
 		for (const c of fileComments) {

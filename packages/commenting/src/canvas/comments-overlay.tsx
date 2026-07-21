@@ -1483,7 +1483,7 @@ function PendingComposer({
 			}}
 		>
 			<CommentComposer
-				author={me ?? { name: currentUserId ? UNKNOWN_AUTHOR : '' }}
+				author={me ?? UNKNOWN_COMMENT_AUTHOR}
 				placeholder={msg('comments.add-placeholder')}
 				sendLabel={msg('comments.send')}
 				value={text}

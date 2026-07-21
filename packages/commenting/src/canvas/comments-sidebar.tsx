@@ -58,7 +58,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		empty,
 		impreciseShapeAnchor,
 	} = props
-	// Name-only view of the resolver, for the mention/rich-text paths.
+	// Name-only view of the resolver, for the plaintext previews (which resolve @-mentions).
 	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const editor = useEditor()
 	const options = useCommentingOptions()
