@@ -1,7 +1,7 @@
 /**
  * The emoji offered by the add-reaction picker out of the box. A short, opinionated set rather
  * than a full emoji keyboard: the picker is a quick affordance under a comment, and a searchable
- * keyboard is a much larger component. Pass `emoji` to `Reactions` to substitute your own.
+ * keyboard is a much larger component. Pass `emoji` to `ReactionPicker` to substitute your own.
  *
  * @public
  */
@@ -19,7 +19,7 @@ export interface EmojiPickerProps {
 
 /**
  * A grid of emoji to react with. Presentational and unpositioned — the host owns placement and
- * dismissal; `Reactions` renders it in a dropdown under the add-reaction button.
+ * dismissal; `ReactionPicker` renders it in a dropdown under the add-reaction button.
  * @public @react
  */
 export function EmojiPicker({

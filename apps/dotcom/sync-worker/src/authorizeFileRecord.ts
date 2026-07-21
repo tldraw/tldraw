@@ -73,8 +73,9 @@ const authorizeThread: TLRecordAuthorizer<TLCommentThread, SessionMeta> = (args)
 		// in someone else's name.
 		const { session, next } = args
 		if (next.resolved && next.resolved.by !== session.meta.userId) return null
-		const reactors = getChangedReactionUserIds(null, next.reactions)
-		if (reactors.size > 0 && (reactors.size > 1 || !reactors.has(session.meta.userId!))) return null
+		for (const userId of getChangedReactionUserIds(null, next.reactions)) {
+			if (userId !== session.meta.userId) return null
+		}
 	}
 	if (args.type === 'update') {
 		const { session, prev, next } = args

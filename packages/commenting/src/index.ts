@@ -38,7 +38,6 @@ export {
 	type CommentReactionsProps,
 	summarizeReactions,
 	toggleCommentReaction,
-	withoutCommentReactions,
 } from './canvas/comment-reactions'
 export {
 	CommentTool,

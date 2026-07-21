@@ -1,10 +1,6 @@
-import { TLCommentReactions, TLCommentThread } from 'tldraw'
+import { TLCommentReactions } from 'tldraw'
 import { describe, expect, it } from 'vitest'
-import {
-	nextThreadReactions,
-	summarizeReactions,
-	withoutCommentReactions,
-} from './comment-reactions'
+import { nextThreadReactions, summarizeReactions } from './comment-reactions'
 
 const COMMENT_A = 'comment:a'
 const COMMENT_B = 'comment:b'
@@ -137,33 +133,5 @@ describe('nextThreadReactions', () => {
 		}
 		nextThreadReactions(reactions, COMMENT_A, 'user2', '🎉', 500)
 		expect(reactions).toEqual({ [COMMENT_A]: { user1: { emoji: '👍', createdAt: 100 } } })
-	})
-})
-
-describe('withoutCommentReactions', () => {
-	const thread = (reactions: TLCommentReactions | null) =>
-		({ id: 'comment-thread:t', reactions }) as TLCommentThread
-
-	it('drops the deleted comment’s reactions', () => {
-		const before = thread({
-			[COMMENT_A]: { user1: { emoji: '👍', createdAt: 100 } },
-			[COMMENT_B]: { user2: { emoji: '👀', createdAt: 200 } },
-		})
-		expect(withoutCommentReactions(before, COMMENT_A).reactions).toEqual({
-			[COMMENT_B]: { user2: { emoji: '👀', createdAt: 200 } },
-		})
-	})
-
-	it('collapses to null when the last comment’s reactions go', () => {
-		const before = thread({ [COMMENT_A]: { user1: { emoji: '👍', createdAt: 100 } } })
-		expect(withoutCommentReactions(before, COMMENT_A).reactions).toBeNull()
-	})
-
-	// returning the same reference lets callers write unconditionally without churning the record
-	it('returns the thread unchanged when there was nothing to remove', () => {
-		const before = thread({ [COMMENT_B]: { user2: { emoji: '👀', createdAt: 200 } } })
-		expect(withoutCommentReactions(before, COMMENT_A)).toBe(before)
-		const noReactions = thread(null)
-		expect(withoutCommentReactions(noReactions, COMMENT_A)).toBe(noReactions)
 	})
 })

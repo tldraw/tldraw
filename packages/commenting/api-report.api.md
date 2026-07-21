@@ -641,9 +641,6 @@ export function useSidebarFilters(): SidebarFilters;
 // @public
 export function useThreadComments(editor: Editor, threadId: TLCommentThreadId): TLComment[];
 
-// @public
-export function withoutCommentReactions(thread: TLCommentThread, commentId: string): TLCommentThread;
-
 // (No @packageDocumentation comment for this package)
 
 ```

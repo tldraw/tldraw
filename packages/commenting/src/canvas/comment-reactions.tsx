@@ -74,23 +74,6 @@ export function nextThreadReactions(
 }
 
 /**
- * Drop a comment's reactions from its thread's map — for when the comment is deleted, so the map
- * doesn't accumulate entries for comments that no longer exist. Returns the thread unchanged when
- * there was nothing to remove, so callers can write unconditionally without churning the record.
- *
- * @public
- */
-export function withoutCommentReactions(
-	thread: TLCommentThread,
-	commentId: string
-): TLCommentThread {
-	if (!thread.reactions?.[commentId]) return thread
-	const next = { ...thread.reactions }
-	delete next[commentId]
-	return { ...thread, reactions: Object.keys(next).length > 0 ? next : null }
-}
-
-/**
  * Set or clear one user's reaction to a comment, writing the updated **thread** record.
  *
  * @public
