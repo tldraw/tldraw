@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { OgImageRenderQueueMessage } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
-import { getSharedFileInfo } from './getSharedFile'
+import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import {
 	enqueueOgImageRender,
 	getOgImageCacheKey,
@@ -63,6 +63,12 @@ function makeSnapshot(pages: Array<{ id: string; index: string; shapes: number }
 	return { documents, schema: { schemaVersion: 2, sequences: {} } } as any
 }
 
+// A minimal readable board. Rendering now requires a loadable snapshot, so tests that only care
+// about the surrounding behaviour still need one.
+function makeOnePageSnapshot() {
+	return makeSnapshot([{ id: 'page:main', index: 'a1', shapes: 1 }])
+}
+
 describe('enqueueOgImageRender', () => {
 	it('sends one queue message and dedupes repeat enqueues behind a pending marker', async () => {
 		const bucket = makeFakeThumbnailsBucket()
@@ -95,6 +101,7 @@ describe('handleOgImageRenderMessage', () => {
 			published: true,
 			lastPublished: 1751234567890,
 		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ THUMBNAILS: bucket })
 		const message = makeMessage({ kind: 'published', slug: 'published-board' })
@@ -142,22 +149,33 @@ describe('handleOgImageRenderMessage', () => {
 		expect(job).toMatchObject({ pageId: 'page:full' })
 	})
 
-	it('omits pageId when the snapshot cannot be read, keeping the default page', async () => {
+	// The render page reads the snapshot through the same functions, so a read that fails here would
+	// fail there too — the capture would 404 and come back as a render failure having spent a Browser
+	// Run slot to learn it. Fail before the render instead, and let the ordinary retry budget cover a
+	// read that failed transiently.
+	it('gives up without spending browser capacity when the snapshot cannot be read', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 42,
 		})
 		// clearAllMocks resets call history but not mockResolvedValue, so clear a snapshot another test
-		// may have set; an unreadable snapshot makes loadBoardSnapshot yield null and drop pageId.
+		// may have set; an unreadable snapshot makes loadBoardSnapshot yield null.
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(undefined as any)
 		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
-		const message = makeMessage({ kind: 'published', slug: 'board' })
 
-		await handleOgImageRenderMessage(env, message)
+		const firstAttempt = makeMessage({ kind: 'published', slug: 'board' }, 1)
+		await handleOgImageRenderMessage(env, firstAttempt)
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+		expect(firstAttempt.retry).toHaveBeenCalledExactlyOnceWith({ delaySeconds: 30 })
+		expect(firstAttempt.ack).not.toHaveBeenCalled()
 
-		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
-		expect(job?.pageId).toBeUndefined()
+		// Still no capture once the retry budget is spent; the job is dropped, not rendered.
+		const finalAttempt = makeMessage({ kind: 'published', slug: 'board' }, 3)
+		await handleOgImageRenderMessage(env, finalAttempt)
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+		expect(finalAttempt.retry).not.toHaveBeenCalled()
+		expect(finalAttempt.ack).toHaveBeenCalledTimes(1)
 	})
 
 	it('renders shared files and keys their version on the room etag', async () => {
@@ -166,6 +184,7 @@ describe('handleOgImageRenderMessage', () => {
 			shared: true,
 			isDeleted: false,
 		})
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket('etag-1'), THUMBNAILS: bucket })
 		const message = makeMessage({ kind: 'shared_file', slug: 'shared-file' })
@@ -235,6 +254,9 @@ describe('handleOgImageRenderMessage', () => {
 			published: true,
 			lastPublished: 1,
 		})
+		// A readable snapshot, so the failure under test is the browser call itself rather than the
+		// earlier snapshot bail.
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const env = makeEnv({
 			BROWSER: makeBrowserBinding(async () => {
 				throw new Error('browser session failed')

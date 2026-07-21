@@ -199,10 +199,20 @@ export async function handleOgImageRenderMessage(
 
 		// Target the first page that has content so a board whose first page is empty still gets a
 		// meaningful unfurl image (the render page otherwise exports whichever page the snapshot opens
-		// to, typically the first). Falls back to no pageId when the snapshot can't be read, keeping
-		// the prior "render the page the snapshot opens to" behavior.
+		// to, typically the first).
 		const snapshot = await loadBoardSnapshot(env, board)
-		const pageId = snapshot ? pickOgImagePageId(snapshot) : undefined
+		if (!snapshot) {
+			// The render page loads the snapshot from the same sources through the same functions
+			// (getThumbnailSnapshot -> get{Published,SharedFile}RoomSnapshot), so a read that fails here
+			// fails there too: the page would 404, mark its error state, and come back as a render
+			// failure — after spending a Browser Run slot to discover what we already know. Fail now
+			// instead. retryOrDrop still backs off and retries, in case the read failed transiently; it
+			// just stops paying for a capture to find out. The MCP tool bails on a null snapshot for
+			// the same reason.
+			retryOrDrop(env, message, boardHash, 'board_empty')
+			return
+		}
+		const pageId = pickOgImagePageId(snapshot)
 
 		const job: ThumbnailRenderJob = {
 			v: 1,
