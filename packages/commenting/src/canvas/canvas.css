@@ -90,6 +90,20 @@
 	cursor: pointer;
 }
 
+.tlui-cmt-stack-list__card:hover,
+.pseudo-hover.tlui-cmt-stack-list__card {
+	background: var(--tl-color-muted-2);
+}
+
+/* The wrapper is the card's surface — inside it the comment is plain content, mirroring how the
+   thread panel flattens its own cards. */
+.tlui-cmt-stack-list__card .tlui-cmt-card {
+	width: 100%;
+	padding: 6px 0 6px 4px;
+	background: transparent;
+	border: none;
+}
+
 /* A region anchor's area: a dashed box under the pins, non-interactive so canvas events pass
    through. Drawn for the live drag draft and for a region thread while hovered or open. */
 .tlui-cmt-canvas-region {
