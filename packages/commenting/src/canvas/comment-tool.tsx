@@ -8,7 +8,7 @@ import {
 } from 'tldraw'
 import { type CommentingOptions, defaultCommentingOptions } from './options'
 import { getRegionCommentOptions } from './region-options'
-import { pendingComment, regionDraft } from './state'
+import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
 import { regionPinPoint, shapeAnchorAt } from './thread-state'
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
@@ -50,9 +50,11 @@ export function regionBetween(a: VecLike, b: VecLike): BoxModel {
 }
 
 /**
- * The comment tool. A click starts a point/shape thread (the pin tracks the shape it lands on);
- * dragging out a rectangle starts a region thread anchored to that area. Placement only opens a
- * composer (via `pendingComment`); the records are created when the comment is posted.
+ * The comment tool. Pressing down opens the comment composer immediately at the pointer, and it
+ * follows the pointer until release — like placing a sticky note — settling on a point, or on a
+ * shape when released over one. (With region comments enabled, dragging past the threshold instead
+ * draws a region rectangle.) Placement only opens a composer (via `pendingComment`); the records
+ * are created when the comment is posted.
  * @public
  */
 export class CommentTool extends StateNode {
@@ -90,7 +92,16 @@ export class CommentTool extends StateNode {
 	options: CommentingOptions = defaultCommentingOptions
 
 	override onEnter() {
-		this.editor.setCursor({ type: 'cross', rotation: 0 })
+		this.editor.setCursor({ type: 'comment', rotation: 0 })
+		// Placing comments is canvas-focused — the thread list gets out of the way while the tool is
+		// active. Reopened via its own control (a button), never by leaving the tool.
+		commentsSidebarOpen.set(this.editor, false)
+	}
+
+	override onExit() {
+		// Drop the hover hint painted while pointing at shapes (see CommentIdle). The cursor resets
+		// when the next tool takes over.
+		this.editor.setHintingShapes([])
 	}
 
 	// Escape leaves the tool, like the built-in tools (the editor dispatches `cancel` on Escape).
@@ -102,23 +113,64 @@ export class CommentTool extends StateNode {
 class CommentIdle extends StateNode {
 	static override id = 'idle'
 
+	override onEnter() {
+		// Back to hovering: restore the pin cursor (a prior placing state may have hidden it).
+		this.editor.setCursor({ type: 'comment', rotation: 0 })
+		this.updateHint()
+	}
+
+	// Hint the shape a click would attach to, using the same hit-test as onPointerUp below. Hinting
+	// shapes render an indicator ungated by the active tool, so this shows the select-style outline
+	// while the comment tool — not select — is active.
+	override onPointerMove() {
+		this.updateHint()
+	}
+
 	override onPointerDown() {
 		this.parent.transition('pointing')
+	}
+
+	private updateHint() {
+		const { editor } = this
+		const hit = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), { hitInside: true })
+		editor.setHintingShapes(hit ? [hit.id] : [])
 	}
 }
 
 class CommentPointing extends StateNode {
 	static override id = 'pointing'
 
-	// Once the pointer passes the editor's drag threshold this is a region, not a click — but only
-	// when region comments are enabled; otherwise a drag is treated as a click (point/shape).
-	override onPointerMove() {
-		if (getRegionCommentOptions(this.editor).enabled && this.editor.inputs.getIsDragging()) {
-			this.parent.transition('dragging')
-		}
+	override onEnter() {
+		// Open the composer immediately at the press point so it's visible from pointer-down (not just
+		// on release), and let it trail the pointer while dragging — like placing a sticky note. The
+		// anchor is a bare point for now; it's resolved (shape or point) on pointer up. Drop the idle
+		// hover hint so a region drag doesn't leave a stale single-shape outline under the dashed box.
+		const { editor } = this
+		editor.setHintingShapes([])
+		// Hide the cursor while placing: the draft composer is the pointer's stand-in now, so the pin
+		// cursor sitting over it just reads as clutter.
+		editor.setCursor({ type: 'none', rotation: 0 })
+		const point = editor.inputs.getCurrentPagePoint()
+		pendingComment.set(editor, {
+			anchor: { type: 'point', x: point.x, y: point.y },
+			point: { x: point.x, y: point.y },
+		})
 	}
 
-	// A pointer up with no drag is a click: anchor to the shape under it, or drop a point.
+	override onPointerMove() {
+		const { editor } = this
+		// Once the pointer passes the drag threshold with region comments enabled, this is a region,
+		// not a follow — hand off to the region drag (which clears this composer and draws the box).
+		if (getRegionCommentOptions(editor).enabled && editor.inputs.getIsDragging()) {
+			this.parent.transition('dragging')
+			return
+		}
+		// Otherwise the composer trails the pointer.
+		const point = editor.inputs.getCurrentPagePoint()
+		pendingComment.update(editor, (p) => (p ? { ...p, point: { x: point.x, y: point.y } } : p))
+	}
+
+	// Settle where the pointer is released: anchor to the shape under it, or drop a point.
 	override onPointerUp() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
@@ -130,12 +182,31 @@ class CommentPointing extends StateNode {
 		// Hand back to select; the open composer is now the focus.
 		editor.setCurrentTool('select')
 	}
+
+	override onCancel() {
+		this.cancel()
+	}
+
+	override onInterrupt() {
+		this.cancel()
+	}
+
+	// Abandon the follow composer if placement is interrupted (Escape, focus loss, etc.).
+	private cancel() {
+		pendingComment.set(this.editor, null)
+		this.editor.setCurrentTool('select')
+	}
 }
 
 class CommentDragging extends StateNode {
 	static override id = 'dragging'
 
 	override onEnter() {
+		// A region drag supersedes the point-follow composer opened in `pointing`. Show a crosshair
+		// again — the composer no longer stands in for the pointer, so a hidden cursor would leave
+		// the drag with no pointer at all.
+		pendingComment.set(this.editor, null)
+		this.editor.setCursor({ type: 'cross', rotation: 0 })
 		this.updateDraft()
 	}
 

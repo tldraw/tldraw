@@ -52,6 +52,9 @@
 	font-size: 13px;
 	line-height: 1.4;
 	color: var(--tl-color-text-1);
+	/* Break long unbroken strings (URLs, keyboard-mashing) so they wrap inside the card instead of
+	   overflowing it. `anywhere` also lets the flex body shrink to the card width. */
+	overflow-wrap: anywhere;
 }
 
 .tlui-cmt-edited {
@@ -627,7 +630,7 @@
 	background: var(--tl-color-muted-2);
 }
 .tlui-cmt-list__item--selected {
-	background: var(--tl-color-muted-1);
+	background: var(--tl-color-muted-2);
 }
 /* resolved rows mute their content but keep the "Resolved" marker legible */
 .tlui-cmt-list__item[data-resolved] .tlui-cmt-head,

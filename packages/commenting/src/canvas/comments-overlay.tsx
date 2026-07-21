@@ -426,8 +426,8 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		return () => document.removeEventListener('keydown', onKeyDown, true)
 	}, [editor])
 
-	// Shift+C toggles comment-pin visibility on the canvas (matching Figma). Skipped while typing so
-	// it never fires from inside a composer. Physical `KeyC` (layout-independent) with shift only.
+	// Shift+C toggles comment-pin visibility on the canvas. Skipped while typing so it never fires
+	// from inside a composer. Physical `KeyC` (layout-independent) with shift only.
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.code !== 'KeyC' || !e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
