@@ -471,6 +471,70 @@ describe('MagicWandTool', () => {
 		editor.pointerUp()
 	})
 
+	it('keeps delete overlays of draw-shape targets out of the gesture ink', () => {
+		// A draw-shape target (like handwriting): its delete overlay is also a
+		// draw shape, created mid-gesture — it must not join the gesture's stroke,
+		// or its outline would pollute the recognition polygon and tint writes.
+		editor.setCurrentTool('draw')
+		editor.pointerDown(150, 150)
+		editor.pointerMove(160, 155)
+		editor.pointerMove(152, 160)
+		editor.pointerUp()
+		const targetId = editor.getCurrentPageShapes().at(-1)!.id
+
+		editor.setCurrentTool('magic-wand')
+		scribbleAcross(155, 155) // pen left down, in delete mode
+
+		const overlay = editor.getCurrentPageShapes().find((s) => s.meta?.magicWandGhost) as TLDrawShape
+		expect(overlay?.type).toBe('draw')
+
+		// Grey-box check of the contract Bugbot flagged: the gesture's stroke set
+		// contains only its own ink — no ghost overlays, no pre-existing shapes.
+		const drawing = editor.getStateDescendant('magic-wand.drawing') as any
+		const strokePieces = drawing.getGestureStrokeShapes() as TLDrawShape[]
+		expect(strokePieces.length).toBeGreaterThan(0)
+		expect(strokePieces.some((s) => s.meta?.magicWandGhost)).toBe(false)
+		expect(strokePieces.some((s) => s.id === targetId)).toBe(false)
+
+		editor.pointerUp()
+		expect(editor.getShape(targetId)).toBeUndefined() // delete still lands
+	})
+
+	it('ignores a collaborator stroke that appears mid-gesture', () => {
+		const boxId = createBox(130, 130)
+
+		// Build a genuine closed-loop draw record around the box, then remove it —
+		// it will "arrive" mid-gesture through the remote sync path.
+		editor.setCurrentTool('draw')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		editor.pointerMove(101, 101)
+		editor.pointerUp()
+		const loop = editor.getCurrentPageShapes().find((s) => s.type === 'draw') as TLDrawShape
+		editor.deleteShapes([loop.id])
+
+		// Draw a short open dab starting near the loop's endpoint; the peer's loop
+		// lands mid-gesture. (Near, so that if the loop wrongly joined the gesture
+		// polygon it would read as a closed loop — the worst case.)
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(108, 104)
+		editor.pointerMove(114, 108)
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.put([loop])
+		})
+		editor.pointerMove(120, 112)
+		editor.pointerUp(120, 112)
+
+		// The foreign closed loop must not be treated as this gesture's ink: no
+		// lasso fires, the box stays unselected, and both strokes survive.
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(editor.getShape(boxId)).toBeTruthy()
+		expect(editor.getShape(loop.id)).toBeTruthy()
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
 	it('removes the delete overlays when the scribble is cancelled', () => {
 		const boxId = createBox(130, 130)
 		scribbleAcross(150, 150)

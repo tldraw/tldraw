@@ -8,6 +8,8 @@ import {
 	TLGeoShape,
 	TLLineShape,
 	TLPointerEventInfo,
+	TLRecord,
+	TLShape,
 	TLShapeId,
 	Vec,
 	areArraysShallowEqual,
@@ -20,6 +22,7 @@ import { Drawing } from '../../shapes/draw/toolStates/Drawing'
 import { detectClosedLoop } from './loopClosure'
 import {
 	MAGIC_WAND_DELETE_COLOR,
+	MAGIC_WAND_GHOST_META_KEY,
 	MAGIC_WAND_INKING_CLASS,
 	MAGIC_WAND_LASSO_COLOR,
 	MAGIC_WAND_RESTORE_META_KEY,
@@ -132,6 +135,30 @@ export class MagicWandDrawing extends Drawing {
 	// the stroke shape(s) created during the gesture.
 	private shapeIdsBeforeGesture = new Set<TLShapeId>()
 
+	// The draw pieces that make up this gesture's own stroke, tracked positively
+	// as they're created (in creation order). "Every new draw shape since the
+	// gesture started" is not the same thing: ghost copies (delete overlays over
+	// draw shapes, a prior gesture's fading ink) and collaborators' concurrent
+	// strokes also appear mid-gesture, and must not join the gesture's ink.
+	private gestureStrokeIds = new Set<TLShapeId>()
+
+	// Unsubscribes the created-shapes listener attached for the current gesture.
+	private stopCollectingStrokePieces?: () => void
+
+	// Collects the gesture's own stroke pieces. 'created-shapes' fires only for
+	// local creations (remote changes merge into the store without it), so a
+	// collaborator's stroke never lands here; our own ghost shapes are excluded
+	// by their meta tag.
+	private collectCreatedStrokePieces(records: TLRecord[]) {
+		for (const record of records) {
+			if (record.typeName !== 'shape') continue
+			const shape = record as TLShape
+			if (shape.type !== 'draw') continue
+			if (shape.meta[MAGIC_WAND_GHOST_META_KEY]) continue
+			this.gestureStrokeIds.add(shape.id)
+		}
+	}
+
 	// Hold-to-morph state. We count time since the last significant move; holding
 	// still for MORPH_HOLD_MS with a recognized shape triggers the morph.
 	private morphAnchorPagePoint: Vec | null = null
@@ -162,6 +189,7 @@ export class MagicWandDrawing extends Drawing {
 
 	override onEnter(info: TLPointerEventInfo) {
 		this.shapeIdsBeforeGesture = new Set(this.editor.getCurrentPageShapeIds())
+		this.gestureStrokeIds = new Set()
 		this.inkMode = 'none'
 		this.scribbledShapeIds = new Set()
 		this.deleteOverlays = new Map()
@@ -171,6 +199,10 @@ export class MagicWandDrawing extends Drawing {
 		this.didMorph = false
 		// Enable the CSS colour transition for the in-progress stroke.
 		this.editor.getContainer().classList.add(MAGIC_WAND_INKING_CLASS)
+		// Attach before super.onEnter so the initial piece it creates is collected.
+		const onCreatedShapes = (records: TLRecord[]) => this.collectCreatedStrokePieces(records)
+		this.editor.on('created-shapes', onCreatedShapes)
+		this.stopCollectingStrokePieces = () => this.editor.off('created-shapes', onCreatedShapes)
 		super.onEnter(info)
 		// Show the in-progress stroke at half opacity (the "wet ink" look). This
 		// lowers the shape's real opacity so collaborators see the translucency too;
@@ -188,6 +220,8 @@ export class MagicWandDrawing extends Drawing {
 	}
 
 	override onExit() {
+		this.stopCollectingStrokePieces?.()
+		this.stopCollectingStrokePieces = undefined
 		this.editor.getContainer().classList.remove(MAGIC_WAND_INKING_CLASS)
 		this.clearMorphTimers()
 		// Clear the lasso preview hint (the selection happens in `complete`).
@@ -667,12 +701,16 @@ export class MagicWandDrawing extends Drawing {
 	/**
 	 * The draw shapes that make up the current gesture, in drawing order. The
 	 * draw tool splits a long stroke into multiple shapes, so a gesture can be
-	 * more than one shape.
+	 * more than one shape. Only positively-tracked pieces count (see
+	 * {@link gestureStrokeIds}) — never ghosts or collaborators' strokes.
 	 */
 	private getGestureStrokeShapes(): TLDrawShape[] {
-		return this.editor
-			.getCurrentPageShapesSorted()
-			.filter((s): s is TLDrawShape => s.type === 'draw' && !this.shapeIdsBeforeGesture.has(s.id))
+		const shapes: TLDrawShape[] = []
+		for (const id of this.gestureStrokeIds) {
+			const shape = this.editor.getShape<TLDrawShape>(id)
+			if (shape) shapes.push(shape)
+		}
+		return shapes
 	}
 
 	/**
