@@ -1125,6 +1125,16 @@ export type TLCommentAnchor = {
 export type TLCommentId = RecordId<TLComment>;
 
 // @public
+export interface TLCommentReaction {
+    // (undocumented)
+    createdAt: number;
+    emoji: string;
+}
+
+// @public
+export type TLCommentReactions = Record<string, Record<string, TLCommentReaction>>;
+
+// @public
 export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentThreadId> {
     anchor: TLCommentAnchor;
     // (undocumented)
@@ -1133,6 +1143,7 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
     // (undocumented)
     meta: JsonObject;
     pageId: TLPageId;
+    reactions: null | TLCommentReactions;
     resolved: {
         at: number;
         by: string;

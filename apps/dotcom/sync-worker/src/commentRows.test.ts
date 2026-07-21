@@ -46,6 +46,7 @@ describe('threadRecordToRow', () => {
 			resolvedBy: 'user2',
 			createdBy: 'user1',
 			createdAt: 1000,
+			reactions: null,
 			meta: thread.meta,
 			lastChangedClock: 42,
 		})
@@ -268,6 +269,28 @@ describe('round-trip: record -> row -> rowTo*Record', () => {
 		}
 		const row = commentRecordToRow(comment, 'file1', 44)
 		expect(rowToCommentRecord(row)).toEqual(comment)
+	})
+
+	it('thread with reactions from several people on several comments', () => {
+		const thread = {
+			...makeThread(),
+			reactions: {
+				'comment:a': {
+					user1: { emoji: '👍', createdAt: 1700 },
+					user2: { emoji: '🎉', createdAt: 1800 },
+				},
+				'comment:b': { user2: { emoji: '👀', createdAt: 1900 } },
+			},
+		}
+		const row = threadRecordToRow(thread, 'file1', 45)
+		expect(rowToThreadRecord(row)).toEqual(thread)
+	})
+
+	// pre-041 rows predate the reactions column, so Postgres reports it as null/undefined
+	it('row from before the reactions column rehydrates with null reactions', () => {
+		const row = threadRecordToRow(makeThread(), 'file1', 46)
+		delete (row as any).reactions
+		expect(rowToThreadRecord(row).reactions).toBeNull()
 	})
 })
 

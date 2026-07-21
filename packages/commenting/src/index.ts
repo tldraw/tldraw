@@ -20,8 +20,10 @@ export {
 	filterMentionMembers,
 	type MentionSuggestionOptions,
 } from './ui/mention-suggestion'
+export { DEFAULT_REACTION_EMOJI, EmojiPicker, type EmojiPickerProps } from './ui/emoji-picker'
 export { Reaction, type ReactionProps } from './ui/reaction'
-export { Reactions } from './ui/reactions'
+export { ReactionPicker, type ReactionPickerProps } from './ui/reaction-picker'
+export { Reactions, type ReactionsProps, type ReactionSummary } from './ui/reactions'
 export { renderMarkdown } from './ui/render-markdown'
 export { SendButton, type SendButtonProps } from './ui/send-button'
 
@@ -29,6 +31,15 @@ export { SendButton, type SendButtonProps } from './ui/send-button'
 // records, a rich-text body renderer, and a batteries-included <CanvasComments> overlay. Pairs
 // with the presentational components above.
 export { CommentBody, type CommentBodyProps } from './canvas/comment-body'
+export {
+	CommentReactionPicker,
+	type CommentReactionPickerProps,
+	CommentReactions,
+	type CommentReactionsProps,
+	summarizeReactions,
+	toggleCommentReaction,
+	withoutCommentReactions,
+} from './canvas/comment-reactions'
 export {
 	CommentTool,
 	commentToolOverrides,

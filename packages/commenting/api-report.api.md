@@ -15,6 +15,7 @@ import type { SuggestionOptions } from '@tiptap/suggestion';
 import { TLComment } from 'tldraw';
 import { TLCommentAnchor } from 'tldraw';
 import { TLCommentId } from 'tldraw';
+import { TLCommentReactions } from 'tldraw';
 import { TLCommentThread } from 'tldraw';
 import { TLCommentThreadId } from 'tldraw';
 import { TLHistoryBatchOptions } from 'tldraw';
@@ -147,7 +148,7 @@ export interface CommentBodyProps {
 }
 
 // @public
-export function CommentCard({ author, body, date, you, edited, actions }: CommentCardProps): JSX.Element;
+export function CommentCard({ author, body, date, you, edited, actions, footer }: CommentCardProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentCardProps {
@@ -157,6 +158,7 @@ export interface CommentCardProps {
     body: ReactNode;
     date: string;
     edited?: boolean;
+    footer?: ReactNode;
     // (undocumented)
     you: boolean;
 }
@@ -237,6 +239,31 @@ export interface CommentPinProps {
     open?: boolean;
     // (undocumented)
     resolved?: boolean;
+}
+
+// @public
+export function CommentReactionPicker({ thread, comment, currentUserId, emoji }: CommentReactionPickerProps): JSX.Element | null;
+
+// @public (undocumented)
+export interface CommentReactionPickerProps {
+    // (undocumented)
+    comment: TLComment;
+    currentUserId?: null | string;
+    emoji?: string[];
+    // (undocumented)
+    thread: TLCommentThread;
+}
+
+// @public
+export function CommentReactions({ thread, comment, currentUserId }: CommentReactionsProps): JSX.Element;
+
+// @public (undocumented)
+export interface CommentReactionsProps {
+    // (undocumented)
+    comment: TLComment;
+    currentUserId?: null | string;
+    // (undocumented)
+    thread: TLCommentThread;
 }
 
 // @public
@@ -345,6 +372,9 @@ export const DEFAULT_IMPRECISE_SHAPE_ANCHOR: {
 };
 
 // @public
+export const DEFAULT_REACTION_EMOJI: string[];
+
+// @public
 export const DEFAULT_REGION_COMMENT_OPTIONS: RegionCommentOptions;
 
 // @public (undocumented)
@@ -363,6 +393,16 @@ export const defaultCommentingOptions: {
         readonly y: 0;
     };
 };
+
+// @public
+export function EmojiPicker({ emoji, selected, onSelect }: EmojiPickerProps): JSX.Element;
+
+// @public (undocumented)
+export interface EmojiPickerProps {
+    emoji?: string[];
+    onSelect?(emoji: string): void;
+    selected?: string[];
+}
 
 // @public
 export function EmptyState({ message }: EmptyStateProps): JSX.Element;
@@ -471,7 +511,19 @@ export const pendingComment: EditorAtom<null | PendingComment>;
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;
 
 // @public
-export function Reaction({ emoji, count, active }: ReactionProps): JSX.Element;
+export function Reaction({ emoji, count, active, onClick }: ReactionProps): JSX.Element;
+
+// @public
+export function ReactionPicker({ emoji, selected, onSelect, menuId, className }: ReactionPickerProps): JSX.Element;
+
+// @public (undocumented)
+export interface ReactionPickerProps {
+    className?: string;
+    emoji?: string[];
+    menuId?: string;
+    onSelect?(emoji: string): void;
+    selected?: string[];
+}
 
 // @public (undocumented)
 export interface ReactionProps {
@@ -481,10 +533,26 @@ export interface ReactionProps {
     count: number;
     // (undocumented)
     emoji: string;
+    onClick?(): void;
 }
 
 // @public
-export function Reactions(): JSX.Element;
+export function Reactions({ reactions, onToggle, canReact }: ReactionsProps): JSX.Element | null;
+
+// @public (undocumented)
+export interface ReactionsProps {
+    canReact?: boolean;
+    onToggle?(emoji: string): void;
+    reactions: ReactionSummary[];
+}
+
+// @public
+export interface ReactionSummary {
+    active: boolean;
+    count: number;
+    // (undocumented)
+    emoji: string;
+}
 
 // @public
 export interface RegionCommentOptions {
@@ -535,7 +603,13 @@ export interface SidebarFilters {
 export const sidebarFilters: EditorAtom<SidebarFilters>;
 
 // @public
+export function summarizeReactions(reactions: null | TLCommentReactions, commentId: string, currentUserId?: null | string): ReactionSummary[];
+
+// @public
 export type TLCommentRecord = TLComment | TLCommentThread;
+
+// @public
+export function toggleCommentReaction(editor: Editor, thread: TLCommentThread, commentId: string, userId: string, emoji: string, now?: number): void;
 
 // @public
 export function toggleCommentsHidden(editor: Editor): void;
@@ -566,6 +640,9 @@ export function useSidebarFilters(): SidebarFilters;
 
 // @public
 export function useThreadComments(editor: Editor, threadId: TLCommentThreadId): TLComment[];
+
+// @public
+export function withoutCommentReactions(thread: TLCommentThread, commentId: string): TLCommentThread;
 
 // (No @packageDocumentation comment for this package)
 

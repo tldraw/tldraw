@@ -43,6 +43,7 @@ import { MentionMember } from '../ui/mention-list'
 import { isMentionPickerOpen } from '../ui/mention-suggestion'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
+import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR } from './comment-render'
 import { getCommentRecord, putCommentRecords, removeCommentRecords } from './comment-store'
 import { PendingComment } from './comment-tool'
@@ -1187,16 +1188,26 @@ const ThreadPin = memo(function ThreadPin({
 		return (
 			<CommentCard
 				{...card}
+				footer={
+					<CommentReactions thread={thread} comment={comment} currentUserId={currentUserId} />
+				}
 				actions={
-					comment.authorId === currentUserId ? (
-						<button
-							className="tlui-cmt-thread__action"
-							title={msg('comments.edit')}
-							onClick={() => startEdit(comment)}
-						>
-							<TldrawUiIcon icon="dots-horizontal" label={msg('comments.edit')} small />
-						</button>
-					) : undefined
+					<>
+						{comment.authorId === currentUserId && (
+							<button
+								className="tlui-cmt-thread__action"
+								title={msg('comments.edit')}
+								onClick={() => startEdit(comment)}
+							>
+								<TldrawUiIcon icon="dots-horizontal" label={msg('comments.edit')} small />
+							</button>
+						)}
+						<CommentReactionPicker
+							thread={thread}
+							comment={comment}
+							currentUserId={currentUserId}
+						/>
+					</>
 				}
 			/>
 		)

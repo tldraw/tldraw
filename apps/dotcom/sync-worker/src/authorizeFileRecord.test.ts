@@ -134,6 +134,120 @@ describe('authorizeFileRecord', () => {
 			}) as TLCommentThread
 			expect(result.resolved).toEqual({ at: 1, by: 'real-bob' })
 		})
+
+		// Reactions live on the thread precisely so non-authors can add them (comment records are
+		// owner-only), which makes the thread record writable by anyone with access — so every
+		// reaction write has to be checked against the session's own identity.
+		describe('reactions', () => {
+			const withReactions = (
+				base: TLCommentThread,
+				reactions: TLCommentThread['reactions']
+			): TLCommentThread => ({ ...base, reactions })
+
+			it('lets a non-creator react to a comment as themselves', () => {
+				const prev = makeThread('real-bob')
+				const next = withReactions(prev, {
+					'comment:a': { 'real-mallory': { emoji: '👍', createdAt: 1 } },
+				})
+				expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBe(
+					next
+				)
+			})
+
+			it('vetoes a reaction added in someone else’s name', () => {
+				const prev = makeThread('real-bob')
+				const next = withReactions(prev, {
+					'comment:a': { 'real-alice': { emoji: '👍', createdAt: 1 } },
+				})
+				expect(
+					authorize({ session: session('real-mallory'), type: 'update', prev, next })
+				).toBeNull()
+			})
+
+			it('vetoes removing someone else’s reaction', () => {
+				const prev = withReactions(makeThread('real-bob'), {
+					'comment:a': { 'real-alice': { emoji: '👍', createdAt: 1 } },
+				})
+				const next = withReactions(prev, {})
+				expect(
+					authorize({ session: session('real-mallory'), type: 'update', prev, next })
+				).toBeNull()
+			})
+
+			it('vetoes changing someone else’s emoji', () => {
+				const prev = withReactions(makeThread('real-bob'), {
+					'comment:a': { 'real-alice': { emoji: '👍', createdAt: 1 } },
+				})
+				const next = withReactions(prev, {
+					'comment:a': { 'real-alice': { emoji: '💩', createdAt: 1 } },
+				})
+				expect(
+					authorize({ session: session('real-mallory'), type: 'update', prev, next })
+				).toBeNull()
+			})
+
+			it('lets a user remove their own reaction, leaving others intact', () => {
+				const prev = withReactions(makeThread('real-bob'), {
+					'comment:a': {
+						'real-alice': { emoji: '👍', createdAt: 1 },
+						'real-mallory': { emoji: '🎉', createdAt: 2 },
+					},
+				})
+				const next = withReactions(prev, {
+					'comment:a': { 'real-alice': { emoji: '👍', createdAt: 1 } },
+				})
+				expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBe(
+					next
+				)
+			})
+
+			it('vetoes a write that touches own and others’ reactions together', () => {
+				const prev = withReactions(makeThread('real-bob'), {
+					'comment:a': { 'real-alice': { emoji: '👍', createdAt: 1 } },
+				})
+				const next = withReactions(prev, {
+					'comment:a': {
+						'real-alice': { emoji: '💩', createdAt: 1 },
+						'real-mallory': { emoji: '🎉', createdAt: 2 },
+					},
+				})
+				expect(
+					authorize({ session: session('real-mallory'), type: 'update', prev, next })
+				).toBeNull()
+			})
+
+			it('allows an update that leaves reactions untouched but rebuilt', () => {
+				const prev = withReactions(makeThread('real-bob'), {
+					'comment:a': { 'real-alice': { emoji: '👍', createdAt: 1 } },
+				})
+				// new object references, same values — must not read as a change
+				const next = withReactions(prev, {
+					'comment:a': { 'real-alice': { emoji: '👍', createdAt: 1 } },
+				})
+				expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBe(
+					next
+				)
+			})
+
+			// delete + re-put would otherwise smuggle in reactions forged in other people's names
+			it('vetoes a create carrying someone else’s reactions', () => {
+				const next = withReactions(makeThread('real-mallory'), {
+					'comment:a': { 'real-alice': { emoji: '👍', createdAt: 1 } },
+				})
+				expect(
+					authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
+				).toBeNull()
+			})
+
+			it('allows a create carrying only the creator’s own reaction', () => {
+				const next = withReactions(makeThread('real-bob'), {
+					'comment:a': { 'real-bob': { emoji: '👍', createdAt: 1 } },
+				})
+				expect(
+					authorize({ session: session('real-bob'), type: 'create', prev: null, next })
+				).not.toBeNull()
+			})
+		})
 	})
 
 	describe('shape', () => {

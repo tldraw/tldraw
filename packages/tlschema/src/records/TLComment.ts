@@ -59,11 +59,42 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
 	createdAt: number
 	/** Resolution state: when and by whom the thread was resolved, or null while open. */
 	resolved: { at: number; by: string } | null
+	/** Emoji reactions to this thread's comments, or null while nobody has reacted. */
+	reactions: TLCommentReactions | null
 	meta: JsonObject
 }
 
 /** @public */
 export type TLCommentThreadId = RecordId<TLCommentThread>
+
+/**
+ * One person's reaction to one comment. `createdAt` orders the emoji in the UI (by when each was
+ * first used), so the row doesn't reshuffle as later reactions land.
+ *
+ * @public
+ */
+export interface TLCommentReaction {
+	/** The emoji itself, as a string (e.g. `'👍'`), not a shortcode. */
+	emoji: string
+	createdAt: number
+}
+
+/**
+ * A thread's reactions, keyed by comment id and then by the reacting user's id.
+ *
+ * Reactions are per-comment but live on the **thread** record, for two reasons. Comment records
+ * are owner-only for updates (see the sync server's record authorizers), so reacting to someone
+ * else's comment could never be a write to their record; threads stay writable by anyone with
+ * access. And keying by user rather than holding a list makes concurrent reactions merge: sync
+ * diffs objects per key, so two people reacting at once patch different keys instead of racing to
+ * overwrite one field. The double keying also makes "one reaction per user per comment" a shape
+ * invariant rather than a rule the UI has to enforce.
+ *
+ * Keys for comments that no longer exist are ignored when rendering, so a stale entry is harmless.
+ *
+ * @public
+ */
+export type TLCommentReactions = Record<string, Record<string, TLCommentReaction>>
 
 /**
  * A single comment message within a thread. See `TLCommentThread` for the overall model and
@@ -92,6 +123,11 @@ export interface TLComment extends BaseRecord<'comment', TLCommentId> {
 
 /** @public */
 export type TLCommentId = RecordId<TLComment>
+
+const commentReactionsValidator: T.Validator<TLCommentReactions> = T.dict(
+	T.string,
+	T.dict(T.string, T.object({ emoji: T.string, createdAt: T.number }))
+)
 
 const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
 	shape: T.object({
@@ -176,6 +212,18 @@ export const commentThreadRecordConfig: CustomRecordInfo = {
 				return record
 			},
 		},
+		{
+			// Threads gained per-comment emoji reactions; existing ones have none.
+			id: 'com.tldraw.comment-thread/3',
+			up: (record) => {
+				;(record as any).reactions = null
+				return record
+			},
+			down: (record) => {
+				delete (record as any).reactions
+				return record
+			},
+		},
 	]),
 	validator: T.object({
 		id: idValidator<TLCommentThreadId>('comment-thread'),
@@ -185,6 +233,7 @@ export const commentThreadRecordConfig: CustomRecordInfo = {
 		createdBy: T.string,
 		createdAt: T.number,
 		resolved: T.object({ at: T.number, by: T.string }).nullable(),
+		reactions: commentReactionsValidator.nullable(),
 		meta: T.jsonValue,
 	}),
 }
@@ -274,6 +323,7 @@ export function createCommentThread(props: {
 		createdBy: props.createdBy,
 		createdAt: props.now ?? Date.now(),
 		resolved: null,
+		reactions: null,
 		meta: props.meta ?? {},
 	}
 }

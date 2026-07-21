@@ -153,6 +153,10 @@ export const comment_thread = table('comment_thread')
 		resolvedAt: number().optional(),
 		createdBy: string(),
 		createdAt: number(),
+		// the thread's TLCommentReactions, keyed by comment id then user id; absent while nobody has
+		// reacted. Client-visible rather than persistence-only so reactions travel with comments
+		// wherever they go, the same way `body` does.
+		reactions: json().optional(),
 	})
 	.primaryKey('id')
 

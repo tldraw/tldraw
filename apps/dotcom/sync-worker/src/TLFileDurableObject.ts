@@ -1710,6 +1710,7 @@ export class TLFileDurableObject extends DurableObject {
 									shapeId: eb.ref('excluded.shapeId'),
 									resolvedAt: eb.ref('excluded.resolvedAt'),
 									resolvedBy: eb.ref('excluded.resolvedBy'),
+									reactions: eb.ref('excluded.reactions'),
 									meta: eb.ref('excluded.meta'),
 									lastChangedClock: eb.ref('excluded.lastChangedClock'),
 								}))

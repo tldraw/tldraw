@@ -92,6 +92,9 @@ export function threadRecordToRow(
 		resolvedBy: record.resolved?.by ?? null,
 		createdBy: record.createdBy,
 		createdAt: record.createdAt,
+		// A plain object, so node-postgres JSON-encodes it for the JSONB column the same way it
+		// does `anchor` and `meta` — no manual serialization needed.
+		reactions: record.reactions as DB['comment_thread']['reactions'],
 		meta: record.meta,
 		lastChangedClock,
 	}
@@ -127,6 +130,8 @@ export function rowToThreadRecord(row: DB['comment_thread']): TLCommentThread {
 		createdBy: row.createdBy,
 		createdAt: Number(row.createdAt),
 		resolved: row.resolvedAt != null ? { at: Number(row.resolvedAt), by: row.resolvedBy! } : null,
+		// null column = nobody has reacted, the same state the record encodes as null
+		reactions: (row.reactions ?? null) as TLCommentThread['reactions'],
 		meta: (row.meta ?? {}) as JsonObject,
 	}
 	// The fields above are raw casts from the row; validate the finished record so a corrupt

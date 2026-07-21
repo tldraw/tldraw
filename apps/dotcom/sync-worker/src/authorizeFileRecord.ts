@@ -38,23 +38,52 @@ function authorizeAuthored<Rec extends UnknownRecord>(
 const authorizeThreadBase = authorizeAuthored<TLCommentThread>('createdBy')
 
 /**
- * Threads stay editable by anyone with access (resolve/reopen), but resolution is itself an
- * attribution: a non-null `resolved.by`, set at create or changed by update, must be the
- * session's own user.
+ * Every user id whose reaction entry differs between two thread reaction maps — added, removed, or
+ * changed — across every comment. Used to check that a write only touches the session's own
+ * reactions; anyone with access can write the thread record, so without this a client could add a
+ * reaction in someone else's name or clear everyone else's.
+ */
+function getChangedReactionUserIds(
+	prev: TLCommentThread['reactions'],
+	next: TLCommentThread['reactions']
+): Set<string> {
+	const changed = new Set<string>()
+	for (const commentId of new Set([...Object.keys(prev ?? {}), ...Object.keys(next ?? {})])) {
+		const before = prev?.[commentId] ?? {}
+		const after = next?.[commentId] ?? {}
+		for (const userId of new Set([...Object.keys(before), ...Object.keys(after)])) {
+			const a = before[userId]
+			const b = after[userId]
+			if (a?.emoji !== b?.emoji || a?.createdAt !== b?.createdAt) changed.add(userId)
+		}
+	}
+	return changed
+}
+
+/**
+ * Threads stay editable by anyone with access (resolve/reopen, and reacting to any comment in the
+ * thread), but the parts that carry attribution are guarded: a non-null `resolved.by` must be the
+ * session's own user, and a write may only add, change, or remove that user's own reactions.
  */
 const authorizeThread: TLRecordAuthorizer<TLCommentThread, SessionMeta> = (args) => {
 	const result = authorizeThreadBase(args)
 	if (!result) return null
 	if (args.type === 'create') {
-		// Delete + re-put could otherwise smuggle in a resolution forged in someone else's name.
+		// Delete + re-put could otherwise smuggle in a resolution — or a set of reactions — forged
+		// in someone else's name.
 		const { session, next } = args
 		if (next.resolved && next.resolved.by !== session.meta.userId) return null
+		const reactors = getChangedReactionUserIds(null, next.reactions)
+		if (reactors.size > 0 && (reactors.size > 1 || !reactors.has(session.meta.userId!))) return null
 	}
 	if (args.type === 'update') {
 		const { session, prev, next } = args
 		const changed =
 			prev.resolved?.at !== next.resolved?.at || prev.resolved?.by !== next.resolved?.by
 		if (changed && next.resolved && next.resolved.by !== session.meta.userId) return null
+		for (const userId of getChangedReactionUserIds(prev.reactions, next.reactions)) {
+			if (userId !== session.meta.userId) return null
+		}
 	}
 	return result
 }

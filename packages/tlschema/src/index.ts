@@ -129,6 +129,8 @@ export {
 	type TLComment,
 	type TLCommentAnchor,
 	type TLCommentId,
+	type TLCommentReaction,
+	type TLCommentReactions,
 	type TLCommentThread,
 	type TLCommentThreadId,
 } from './records/TLComment'

@@ -180,3 +180,22 @@ describe('comment-thread migrations', () => {
 		})
 	})
 })
+
+describe('comment-thread reaction migrations', () => {
+	const migration = (commentThreadRecordConfig.migrations as any).sequence.find(
+		(m: any) => m.id === 'com.tldraw.comment-thread/3'
+	) as { up(r: any): any; down(r: any): any }
+
+	it('gives existing threads a null reactions field', () => {
+		expect(migration.up({ createdBy: 'user1' })).toEqual({ createdBy: 'user1', reactions: null })
+	})
+
+	it('down-migrates by dropping reactions', () => {
+		expect(
+			migration.down({
+				createdBy: 'user1',
+				reactions: { 'comment:a': { user1: { emoji: '👍', createdAt: 1 } } },
+			})
+		).toEqual({ createdBy: 'user1' })
+	})
+})

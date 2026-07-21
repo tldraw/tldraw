@@ -11,17 +11,21 @@
 	border-radius: 12px;
 }
 
-/* hover-revealed controls (edit…) at the card's top-right */
+/* hover-revealed controls (edit, react…) stacked at the card's top-right */
 .tlui-cmt-card__actions {
 	position: absolute;
 	top: 6px;
 	right: 6px;
 	display: flex;
+	flex-direction: column;
 	gap: 2px;
 	opacity: 0;
 }
 .tlui-cmt-card:hover .tlui-cmt-card__actions,
-.tlui-cmt-card:focus-within .tlui-cmt-card__actions {
+.tlui-cmt-card:focus-within .tlui-cmt-card__actions,
+/* an open menu is portaled out of the card, so neither :hover nor :focus-within survives moving
+   the pointer into it — keep the controls up while their menu is open */
+.tlui-cmt-card__actions:has([data-state='open']) {
 	opacity: 1;
 }
 
@@ -316,7 +320,9 @@
 /* reactions */
 .tlui-cmt-reactions {
 	display: flex;
-	gap: 6px;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin-top: 6px;
 }
 
 .tlui-cmt-reaction {
@@ -338,18 +344,64 @@
 	border-color: var(--tl-color-selected);
 }
 
+/* your own reactions read as filled-in: a deeper wash of the selection colour than the hover
+   state, so "I reacted with this" is distinguishable from "my pointer is over this" */
 .tlui-cmt-reaction--active {
 	border-color: var(--tl-color-selected);
-	background: color-mix(in srgb, var(--tl-color-selected) 12%, var(--tl-color-panel));
+	background: color-mix(in srgb, var(--tl-color-selected) 28%, var(--tl-color-panel));
+}
+
+.tlui-cmt-reaction--active:hover,
+.pseudo-hover .tlui-cmt-reaction--active {
+	background: color-mix(in srgb, var(--tl-color-selected) 38%, var(--tl-color-panel));
+}
+
+/* the emoji carries the pill; the count stays at the pill's base size beside it */
+.tlui-cmt-reaction__emoji {
+	font-size: 15px;
+	line-height: 1;
 }
 
 .tlui-cmt-reaction__count {
 	color: var(--tl-color-text-3);
+	font-variant-numeric: tabular-nums;
 }
 
-.tlui-cmt-reaction--add {
-	color: var(--tl-color-text-3);
+.tlui-cmt-reaction--active .tlui-cmt-reaction__count {
+	color: var(--tl-color-text-1);
 	font-weight: 600;
+}
+
+/* emoji picker */
+.tlui-cmt-emoji-picker {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	gap: 2px;
+	padding: 4px;
+}
+
+.tlui-cmt-emoji-picker__item {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border: none;
+	border-radius: var(--radius-2);
+	background: none;
+	font: inherit;
+	font-size: 21px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.tlui-cmt-emoji-picker__item:hover,
+.pseudo-hover .tlui-cmt-emoji-picker__item {
+	background: var(--tl-color-muted-2);
+}
+
+.tlui-cmt-emoji-picker__item--active {
+	background: color-mix(in srgb, var(--tl-color-selected) 28%, var(--tl-color-panel));
 }
 
 /* mention */
