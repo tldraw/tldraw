@@ -512,6 +512,35 @@ describe('get_shared_board_screenshot', () => {
 		expect(failureBlobsOf(env).some((b) => b.includes('(500)'))).toBe(false)
 	})
 
+	// The cache write happens after the render, so a failure there means we are holding a PNG that
+	// already cost Browser Run capacity and a slot of the caller's rate-limit budget. Returning it is
+	// the only sensible outcome — the cache is an optimization, and the image is exactly what was
+	// asked for. This used to sit in the render's try block, so an R2 outage turned every successful
+	// screenshot into a tool error.
+	it('returns the screenshot even when the cache write fails', async () => {
+		mockPublishedBoard()
+		const bucket = makeFakeThumbnailsBucket()
+		bucket.put = async () => {
+			throw new Error('R2 PUT failed: internal-bucket.example')
+		}
+		const env = makeEnv({ THUMBNAILS: bucket })
+
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.32', 'get_shared_board_screenshot', { boardId: 'abc' }),
+				env
+			)
+		)
+
+		expect(result.isError).toBeUndefined()
+		expect(result.content).toEqual([
+			{ type: 'text', text: 'Cover' },
+			{ type: 'image', data: 'AQID', mimeType: 'image/png' },
+		])
+		// The render itself succeeded, so this is not recorded as a screenshot failure.
+		expect(failureBlobsOf(env)).toEqual(['failure:none'])
+	})
+
 	it('enforces the per-IP rate limit', async () => {
 		mockPublishedBoard()
 		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })

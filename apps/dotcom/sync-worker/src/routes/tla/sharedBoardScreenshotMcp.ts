@@ -511,13 +511,28 @@ async function callSharedBoardScreenshotTool(
 		const renderUrl = buildThumbnailRenderUrl(getRenderOrigin(env), token)
 		const render = await renderThumbnailScreenshot(renderUrl, env)
 
-		await writeThumbnailPage(
-			env.THUMBNAILS,
-			cacheKey,
-			targetPage.name,
-			render.base64,
-			board.version
-		)
+		// The render is already paid for in Browser Run capacity and the PNG in hand is exactly what the
+		// caller asked for, so a failed cache write must not throw it away — that would turn a working
+		// screenshot into a tool error and burn the caller's rate-limit budget for nothing. Report it
+		// instead: the caller can't act on it, but a cache that stops absorbing writes means every
+		// subsequent call re-renders, which we do need to see.
+		try {
+			await writeThumbnailPage(
+				env.THUMBNAILS,
+				cacheKey,
+				targetPage.name,
+				render.base64,
+				board.version
+			)
+		} catch (error) {
+			reportThumbnailError(error, {
+				ctx,
+				env,
+				request,
+				surface: 'mcp_screenshot_cache_write',
+				extras: { boardId: input.boardId, page: input.page, theme: input.theme },
+			})
+		}
 
 		telemetry({ cacheStatus: 'miss', browserRunDurationMs: render.durationMs })
 		return toolPageResult(targetPage.name, render.base64)

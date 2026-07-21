@@ -81,6 +81,10 @@ export type ThumbnailErrorSurface =
 	| 'thumbnail_snapshot'
 	| 'mcp_board_info'
 	| 'mcp_screenshot'
+	// Kept apart from 'mcp_screenshot': the render succeeded and the caller still got their PNG, so
+	// this never means "screenshots are broken" — it means the cache isn't absorbing them and every
+	// call is re-spending Browser Run.
+	| 'mcp_screenshot_cache_write'
 
 // Every thumbnail/OG surface deliberately swallows its own errors: the OG route falls back to the
 // default image, the render page's snapshot route 404s, the MCP tools return a tool error, and the
