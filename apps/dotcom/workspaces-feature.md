@@ -45,12 +45,14 @@ A file has exactly one owner:
 - Legacy files have `ownerId`.
 - Workspace files have `owningGroupId`.
 
-A workspace file also has a `group_file` row for the workspace that owns it. A `group_file` row can also represent a link to a shared file in another workspace. In that case, the file is listed in the workspace, but its `owningGroupId` remains somewhere else.
+A workspace file also has a `group_file` row for the workspace that owns it. The only other kind of `group_file` row is a home guest link: when a user opens a shared file that none of their workspaces own, the server adds a `group_file` row into their home workspace so it shows up as a "guest file". That row's `groupId` is the user's id, and the file's `owningGroupId` stays with its real owner.
+
+There is no way to link a shared file into a non-home workspace it doesn't own. An earlier drag-to-link feature (#9107) allowed this, but it was removed in #9254, and the `validate_group_file_association` trigger now rejects such rows.
 
 This distinction matters:
 
 - Moving an owned file transfers `owningGroupId` and moves the owning `group_file` row.
-- Removing a linked file removes the link, not the underlying file.
+- Removing a home guest link removes that link, not the underlying file.
 - Deleting/removing an owned workspace file marks the file deleted for everyone.
 
 ### File state
@@ -187,7 +189,7 @@ The move:
 
 The move does not change `shared` or `sharedLinkType`.
 
-The file menu's "Move to" action moves the owned file. Drag operations have extra logic for linked files: if the file listed in a workspace is only a link, the drag move can move the link instead of transferring file ownership.
+The file menu's "Move to" action moves the owned file. A file listed in a non-home workspace is always owned by that workspace, so moving it always transfers ownership.
 
 If the "Move to new workspace" flow creates a new workspace and then the move fails, the workspace remains created.
 
@@ -197,7 +199,7 @@ The delete/forget dialog calls `removeFileFromWorkspace`.
 
 If the workspace owns the file, removal marks the file deleted. Database cleanup then removes file states and group file rows for that file. Connected canvas sessions are closed with not found.
 
-If the workspace only links to the file, removal deletes the link and the actor's file state, but does not delete the file.
+If the file is only a home guest link (the actor's home workspace does not own it), removal deletes that link and the actor's file state, but does not delete the file.
 
 Because members have `removeFiles`, any member can delete a file owned by their workspace. In the UI this appears as "Delete" because file admin rights resolve to workspace file access.
 
@@ -286,7 +288,7 @@ If the current viewer does not belong to the destination workspace, the sidebar 
 
 If the file is owned by the current workspace, removal is a delete for everyone. Other members lose it from their lists, and active sessions in that file close with not found.
 
-If the file is only linked into the current workspace, removal removes that workspace's link. The file continues to exist in its owning workspace and anywhere else it is linked or shared.
+If the file is only a home guest link, removal removes that home link. The file continues to exist in its owning workspace and anywhere else it is shared.
 
 ## Multiplayer scenarios
 
@@ -348,12 +350,6 @@ If the file is owned by that workspace, deletion marks the file deleted. Databas
 
 The deleting user's client navigates to another file or creates a new one. Other users rely on sync and the closed file session. The current implementation does not present a workspace-specific "this file was deleted by another member" recovery flow in the workspace UI.
 
-### Another member removes a linked file from a workspace
-
-The linked `group_file` row is deleted for that workspace. Members of that workspace stop seeing the linked file there.
-
-The underlying file is not deleted. Users who are also members of the owning workspace, or who have shared-link access, can continue to access it through those paths.
-
 ### An owner removes the current user from a workspace
 
 The current user's `group_user` row is deleted. Their user durable object loses the workspace subscription and refetches the graph. The workspace disappears from the sidebar.
@@ -377,8 +373,6 @@ If another tab or device is open in a file from that workspace, it receives the 
 ### An owner deletes a workspace
 
 All members lose the workspace. Files owned by the workspace are marked deleted and connected sessions close with not found.
-
-Files merely linked into the workspace are not owned by it, but the workspace's links are removed when the workspace is deleted.
 
 ### An owner changes the current user's role
 
@@ -432,7 +426,7 @@ If the product expectation is "member can collaborate but not administer files,"
 
 For workspace-owned files, any member is treated as having file admin rights and sees "Delete." That action deletes the file for everyone.
 
-For linked files, removal is closer to "remove from this workspace" or "forget," because the underlying file remains.
+For a home guest link, removal is closer to "remove from home" or "forget," because the underlying file remains.
 
 The UI text is based on the user's file admin rights, not directly on whether the current workspace owns the file.
 
