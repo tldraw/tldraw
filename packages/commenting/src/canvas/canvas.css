@@ -95,11 +95,11 @@
 	cursor: pointer;
 }
 
-/* Opaque hover darkening (not a translucent muted token) — the card floats directly over the
-   canvas, so a translucent background would let shapes show through it. */
+/* Hover uses the opaque low-surface token, not a translucent muted one — the card floats
+   directly over the canvas, so a translucent background would let shapes show through it. */
 .tlui-cmt-stack-list__card:hover,
 .pseudo-hover.tlui-cmt-stack-list__card {
-	background: color-mix(in srgb, var(--tl-color-panel) 96%, black);
+	background: var(--tl-color-low);
 }
 
 /* The wrapper is the card's surface — inside it the comment is plain content, mirroring how the
