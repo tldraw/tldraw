@@ -578,14 +578,19 @@ export async function defaultHandleExternalUrlContent(
 	{ point, url }: { point?: VecLike; url: string },
 	{ toasts, msg }: TLDefaultExternalContentHandlerOpts
 ) {
-	// If the url isn't one we can turn into a bookmark (bookmark shapes validate
-	// their `url` prop with T.linkUrl), fall back to dropping the raw string as a
-	// text shape rather than crashing on the validation error (#8097). Chrome with
-	// an ad blocker active rewrites dragged content urls to `about:blank#blocked`,
-	// which isn't a valid bookmark protocol; the text fallback keeps the drop from
-	// throwing while leaving whatever was dropped visible.
+	// Bookmark shapes validate their `url` prop with T.linkUrl, so a url we can't
+	// turn into a bookmark would throw a ValidationError and crash the editor
+	// (#8097) — e.g. Chrome with an ad blocker active rewrites dragged content
+	// urls to `about:blank#blocked`. This is a known, handled condition rather
+	// than a bug, so we tell the user with a toast and warn (not error) with the
+	// offending url as a local debugging breadcrumb — deliberately not reported
+	// to error tracking, where it would just be non-actionable noise.
 	if (!T.linkUrl.isValid(url)) {
-		await editor.putExternalContent({ type: 'text', text: url, point })
+		console.warn(`Could not create a bookmark from an invalid url: ${JSON.stringify(url)}`)
+		toasts.addToast({
+			title: msg('assets.url.failed'),
+			severity: 'error',
+		})
 		return
 	}
 

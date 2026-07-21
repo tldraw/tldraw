@@ -5,7 +5,6 @@ import {
 	T,
 	TLAsset,
 	TLAssetId,
-	TLTextShape,
 } from '@tldraw/editor'
 import { TestEditor } from '../test/TestEditor'
 import { defaultAssetUtils } from './defaultAssetUtils'
@@ -202,18 +201,18 @@ describe('defaultHandleExternalUrlContent', () => {
 		expect(addToast).not.toHaveBeenCalled()
 	})
 
-	it('falls back to a text shape for a url with an invalid protocol', async () => {
+	it('shows a toast and logs the url for a url with an invalid protocol', async () => {
 		// Regression test for #8097: dragging content from a browser tab in Chrome
 		// with an ad blocker active supplies a DataTransfer url rewritten to
 		// `about:blank#blocked`. That protocol is not valid for a bookmark shape's
 		// `url` prop (T.linkUrl), so creating one threw a ValidationError and
-		// crashed the editor. We now drop the raw string as a text shape instead,
-		// which keeps the content visible and never throws.
+		// crashed the editor. We now surface a toast to the user and warn with the
+		// offending url for local debugging instead, and never throw or create a
+		// shape.
 		editor = new TestEditor()
 		const { opts, addToast } = makeOpts()
-		// The text fallback routes through putExternalContent({ type: 'text' }),
-		// so the default handlers need to be registered for it to create a shape.
 		registerDefaultExternalContentHandlers(editor, opts)
+		const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
 		await expect(
 			defaultHandleExternalUrlContent(
@@ -223,17 +222,12 @@ describe('defaultHandleExternalUrlContent', () => {
 			)
 		).resolves.not.toThrow()
 
-		const shapes = editor.getCurrentPageShapes()
-		expect(shapes.length).toBe(1)
-		expect(shapes[0].type).toBe('text')
-		expect((shapes[0] as TLTextShape).props.richText).toMatchObject({
-			content: [
-				{
-					type: 'paragraph',
-					content: [{ type: 'text', text: 'about:blank#blocked' }],
-				},
-			],
-		})
-		expect(addToast).not.toHaveBeenCalled()
+		expect(editor.getCurrentPageShapes()).toEqual([])
+		expect(addToast).toHaveBeenCalledWith(
+			expect.objectContaining({ title: 'assets.url.failed', severity: 'error' })
+		)
+		expect(consoleWarn).toHaveBeenCalledWith(expect.stringContaining('about:blank#blocked'))
+
+		consoleWarn.mockRestore()
 	})
 })
