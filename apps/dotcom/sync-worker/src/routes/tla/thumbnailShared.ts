@@ -26,13 +26,14 @@ export function classifyScreenshotFailure(error: unknown): string {
 	return 'render_error'
 }
 
-// Which swallowing surface an error came from. Set as a Sentry tag so the four can be filtered
-// apart, and kept a closed union so the tag's values stay a small, stable set.
+// Which swallowing surface an error came from. Set as a Sentry tag so they can be filtered apart,
+// and kept a closed union so the tag's values stay a small, stable set.
 export type ThumbnailErrorSurface =
 	| 'og_route'
 	| 'og_queue'
 	| 'thumbnail_snapshot'
 	| 'mcp_board_info'
+	| 'mcp_screenshot'
 
 // Every thumbnail/OG surface deliberately swallows its own errors: the OG route falls back to the
 // default image, the render page's snapshot route 404s, the MCP tools return a tool error, and the

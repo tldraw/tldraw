@@ -140,7 +140,7 @@ export async function sharedBoardScreenshotMcp(
 				case SCREENSHOT_TOOL_NAME:
 					return jsonRpcResult(
 						rpcRequest.id,
-						await callSharedBoardScreenshotTool(rpcRequest.params.arguments, request, env)
+						await callSharedBoardScreenshotTool(rpcRequest.params.arguments, request, env, ctx)
 					)
 				default:
 					return jsonRpcError(rpcRequest.id, -32602, `Unknown tool: ${rpcRequest.params?.name}`)
@@ -353,7 +353,8 @@ async function callBoardInfoTool(
 async function callSharedBoardScreenshotTool(
 	argumentsValue: unknown,
 	request: Request,
-	env: Environment
+	env: Environment,
+	ctx?: ExecutionContext
 ) {
 	const clientIp = getClientIp(request)
 	const ipHash = clientIp ? await sha256(clientIp) : 'unknown'
@@ -502,7 +503,16 @@ async function callSharedBoardScreenshotTool(
 		return toolPageResult(targetPage.name, render.base64)
 	} catch (error) {
 		// The bounded reason code goes to telemetry (blob5); the full message only to the caller, so
-		// unbounded error strings never inflate the failure dimension's cardinality.
+		// unbounded error strings never inflate the failure dimension's cardinality. Sentry gets the
+		// original: this is the surface that actually spends Browser Run, so a Quick Action failing or
+		// the render page erroring out is the thing we most need the stack for.
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			request,
+			surface: 'mcp_screenshot',
+			extras: { boardId: input.boardId, page: input.page, theme: input.theme },
+		})
 		telemetry({ cacheStatus: 'miss', failureReason: classifyScreenshotFailure(error) })
 		return toolError(`Screenshot failed: ${error instanceof Error ? error.message : String(error)}`)
 	}
