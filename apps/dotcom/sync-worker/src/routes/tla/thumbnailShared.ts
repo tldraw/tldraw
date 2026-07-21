@@ -6,18 +6,6 @@ import { Environment } from '../../types'
 // consumer). This module imports nothing from those route files so it can be depended on from any
 // of them without creating an import cycle.
 
-// The board is no longer public: un-shared, unpublished, or deleted. Thrown by the share/publish
-// gates the snapshot readers re-check at serve time. This is an expected state change rather than a
-// fault, so it is a distinct type: it must not be reported to Sentry, and the surfaces that can act
-// on it (the OG queue drops the job rather than retrying) need to recognize it without matching on
-// error message text.
-export class BoardNotViewableError extends Error {
-	constructor(message: string) {
-		super(message)
-		this.name = 'BoardNotViewableError'
-	}
-}
-
 // A board's snapshot could not be read: Postgres, R2, or a malformed payload. Distinct from a
 // render failure so telemetry can tell "the database is down" apart from "Chrome fell over" — the
 // two have entirely different causes and fixes, and previously landed on the same reason code.
@@ -39,11 +27,15 @@ export async function sha256(value: string) {
 // Maps an arbitrary render error to a bounded set of reason codes for the `failure` telemetry
 // blob. Raw `error.message` strings (Postgres/R2/network/browser errors) are unbounded and would
 // blow up that dimension's cardinality, so they must never be written to the dataset directly.
-// Keep this a small, stable vocabulary. The two typed cases are matched first and by type: a failed
-// snapshot read and a board that went private are not renders that failed, and filing them under a
-// render reason code sends whoever reads the dashboard looking at the wrong subsystem.
+// Keep this a small, stable vocabulary. The typed case is matched first and by type: a failed
+// snapshot read is not a render that failed, and filing it under a render reason code sends whoever
+// reads the dashboard looking at the wrong subsystem.
+//
+// A board un-shared or unpublished between a surface resolving it and reading its snapshot lands in
+// `snapshot_read_error` along with everything else the readers throw. That race is a few
+// milliseconds wide, so separating it out is not worth a dedicated error type threaded through
+// every reporting path.
 export function classifyScreenshotFailure(error: unknown): string {
-	if (error instanceof BoardNotViewableError) return 'board_not_viewable'
 	if (error instanceof BoardSnapshotReadError) return 'snapshot_read_error'
 	const message = error instanceof Error ? error.message : String(error)
 	if (/not configured/i.test(message)) return 'not_configured'
@@ -60,8 +52,6 @@ export function classifyScreenshotFailure(error: unknown): string {
 // original still reaches Sentry through reportThumbnailError, which is where it is useful.
 export function describeThumbnailFailure(reason: string): string {
 	switch (reason) {
-		case 'board_not_viewable':
-			return 'the board is no longer public'
 		case 'snapshot_read_error':
 			return "the board's saved content could not be read"
 		case 'not_configured':
@@ -95,12 +85,6 @@ export type ThumbnailErrorSurface =
 // `ctx` supplies the waitUntil that lets the report outlive the response — route handlers get one
 // from the router, the queue consumer from the worker entrypoint. Without one (unit tests) we log
 // instead, since createSentry throws when SENTRY_DSN and friends are unset.
-//
-// BoardNotViewableError is filtered out here rather than at each call site: a board being un-shared
-// or unpublished is a user action, and every one of these surfaces can hit it whenever a board
-// changes between resolving and reading. Reporting it would page us for someone toggling a switch,
-// and four separate surfaces each remembering to guard is four chances to forget. Telemetry still
-// records it as `board_not_viewable`.
 export function reportThumbnailError(
 	error: unknown,
 	{
@@ -117,7 +101,6 @@ export function reportThumbnailError(
 		extras?: Record<string, unknown>
 	}
 ) {
-	if (error instanceof BoardNotViewableError) return
 	try {
 		const sentry = ctx ? createSentry(ctx, env, request) : null
 		if (!sentry) {

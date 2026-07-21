@@ -3,7 +3,6 @@ import { IRequest } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
-import { BoardNotViewableError } from './thumbnailShared'
 
 export interface PublishedFileInfo {
 	id: string
@@ -44,8 +43,8 @@ export async function getPublishedRoomSnapshot(
 	// stop resolving even though its R2 snapshot lingers until the replicator deletes it (the DB
 	// `published` flag flips immediately; the R2 cleanup lags behind it).
 	const file = await getPublishedFileInfo(env, roomId)
-	if (!file) throw new BoardNotViewableError('not found')
-	if (!file.published) throw new BoardNotViewableError('not published')
+	if (!file) throw Error('not found')
+	if (!file.published) throw Error('not published')
 
 	return (await env.ROOM_SNAPSHOTS.get(
 		getR2KeyForRoom({ slug: `${file.id}/${roomId}`, isApp: true })

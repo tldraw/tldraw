@@ -19,7 +19,6 @@ import {
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
 import { resetRateLimitFallbackForTests } from './sharedBoardScreenshotMcp'
-import { BoardNotViewableError } from './thumbnailShared'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -211,29 +210,40 @@ describe('handleOgImageRenderMessage', () => {
 		expect(failureBlobsOf(env)).toEqual(['failure:snapshot_read_error'])
 	})
 
-	// A board un-shared between the resolve and the snapshot read is terminal, not transient: no
-	// number of retries makes it public again, and each retry would take a token from the shared
-	// global Browser Run budget before finding that out. It ends the same way the resolve gate does.
-	it('drops a board that goes private mid-render without retrying', async () => {
+	// A board un-shared between the resolve and the snapshot read looks like any other read failure
+	// from the catch, so this delivery retries rather than dropping. That costs one delivery, not one
+	// render: the retry re-resolves at the top of the handler, finds the board no longer viewable, and
+	// drops it there — neither pass spends any Browser Run.
+	it('retries a board that goes private mid-render, then drops it when the retry re-resolves', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'shared-file',
 			shared: true,
 			isDeleted: false,
 		})
-		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(
-			new BoardNotViewableError('not shared')
-		)
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('not shared'))
 		const bucket = makeFakeThumbnailsBucket()
 		const cacheKey = getOgImageCacheKey({ kind: 'shared_file', slug: 'shared-file' })
 		bucket.store.set(cacheKey, { body: new ArrayBuffer(1), uploaded: new Date(0) })
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket('etag-1'), THUMBNAILS: bucket })
 
-		// The first delivery, which would otherwise have two retries left.
-		const message = makeMessage({ kind: 'shared_file', slug: 'shared-file' }, 1)
-		await handleOgImageRenderMessage(env, message)
+		// The first delivery, which has two retries left.
+		const first = makeMessage({ kind: 'shared_file', slug: 'shared-file' }, 1)
+		await handleOgImageRenderMessage(env, first)
 
-		expect(message.retry).not.toHaveBeenCalled()
-		expect(message.ack).toHaveBeenCalledTimes(1)
+		expect(first.retry).toHaveBeenCalledExactlyOnceWith({ delaySeconds: 30 })
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+
+		// By the time the retry lands, the board is un-shared, so the resolve gate ends it.
+		vi.mocked(getSharedFileInfo).mockResolvedValue({
+			id: 'shared-file',
+			shared: false,
+			isDeleted: false,
+		})
+		const retry = makeMessage({ kind: 'shared_file', slug: 'shared-file' }, 2)
+		await handleOgImageRenderMessage(env, retry)
+
+		expect(retry.retry).not.toHaveBeenCalled()
+		expect(retry.ack).toHaveBeenCalledTimes(1)
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 		// The cached image is dropped too, so no-longer-public content does not linger in the cache.
 		expect(bucket.store.has(cacheKey)).toBe(false)

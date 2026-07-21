@@ -21,7 +21,6 @@ import {
 	resetRateLimitFallbackForTests,
 	sharedBoardScreenshotMcp,
 } from './sharedBoardScreenshotMcp'
-import { BoardNotViewableError } from './thumbnailShared'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -261,13 +260,13 @@ describe('get_board_info', () => {
 		expect(result.content[0].text).not.toContain('no saved content')
 	})
 
-	// A board un-shared between the resolve and the snapshot read is a user action, not a fault. The
-	// caller is told the board is no longer public rather than being handed a read error.
-	it('reports a board that goes private mid-request as no longer public', async () => {
+	// A board un-shared between the resolve and the snapshot read trips the gate the reader
+	// re-checks. That is not told apart from any other read failure here — the race is a few
+	// milliseconds wide — so the caller gets the same bounded read-failure message, and Sentry gets
+	// the original.
+	it('reports a board that goes private mid-request as a read failure', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f', shared: true, isDeleted: false })
-		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(
-			new BoardNotViewableError('not shared')
-		)
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('not shared'))
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
@@ -276,7 +275,9 @@ describe('get_board_info', () => {
 			)
 		)
 		expect(result.isError).toBe(true)
-		expect(result.content[0].text).toBe('Could not read board info: the board is no longer public.')
+		expect(result.content[0].text).toBe(
+			"Could not read board info: the board's saved content could not be read."
+		)
 	})
 })
 
@@ -466,13 +467,12 @@ describe('get_shared_board_screenshot', () => {
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 
-	// A board un-shared between the resolve and the snapshot read: an expected state change, so it
-	// gets the `board_not_viewable` code rather than being counted as a render failure.
-	it('reports a board that goes private mid-request as no longer public', async () => {
+	// A board un-shared between the resolve and the snapshot read trips the gate the reader
+	// re-checks, which is not told apart from any other read failure. What matters either way is that
+	// it fails before the render: no Browser Run is spent on a board that can't be served.
+	it('reports a board that goes private mid-request as a read failure, without screenshotting', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f', shared: true, isDeleted: false })
-		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(
-			new BoardNotViewableError('not shared')
-		)
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('not shared'))
 		const env = makeEnv({
 			ROOMS: makeFakeRoomsBucket(),
 			THUMBNAILS: makeFakeThumbnailsBucket(),
@@ -485,8 +485,10 @@ describe('get_shared_board_screenshot', () => {
 			)
 		)
 		expect(result.isError).toBe(true)
-		expect(result.content[0].text).toBe('Screenshot failed: the board is no longer public.')
-		expect(failureBlobsOf(env)).toEqual(['failure:board_not_viewable'])
+		expect(result.content[0].text).toBe(
+			"Screenshot failed: the board's saved content could not be read."
+		)
+		expect(failureBlobsOf(env)).toEqual(['failure:snapshot_read_error'])
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 

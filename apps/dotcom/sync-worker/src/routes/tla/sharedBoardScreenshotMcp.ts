@@ -23,7 +23,6 @@ import {
 	isFileAnonymouslyViewable,
 } from './getSharedFile'
 import {
-	BoardNotViewableError,
 	BoardSnapshotReadError,
 	classifyScreenshotFailure,
 	describeThumbnailFailure,
@@ -244,12 +243,12 @@ export async function resolveSharedBoardById(
 	return { ok: false, reason: 'not_found' }
 }
 
-// Reads a resolved board's snapshot, distinguishing the three outcomes callers need to tell apart.
-// `null` means one thing only: the board has no persisted room content, an empty board. The gates
-// these readers re-check throw BoardNotViewableError (the board went private mid-request — an
-// expected state change). Everything else is an infrastructure failure and is wrapped as a
-// BoardSnapshotReadError so telemetry can name it. Collapsing all three into null, as this used to,
-// filed database outages under "empty board" and left the real cause with no trace anywhere.
+// Reads a resolved board's snapshot, distinguishing the two outcomes callers need to tell apart.
+// `null` means one thing only: the board has no persisted room content, an empty board. Anything
+// the readers throw — Postgres, R2, a malformed payload, or the publish/share gate they re-check as
+// they read — is wrapped as a BoardSnapshotReadError so telemetry can name it. Collapsing both into
+// null, as this used to, filed database outages under "empty board" and left the real cause with no
+// trace anywhere.
 export async function loadBoardSnapshot(
 	env: Environment,
 	board: { kind: 'published' | 'shared_file'; slug: string }
@@ -261,7 +260,6 @@ export async function loadBoardSnapshot(
 				: await getSharedFileRoomSnapshot(env, board.slug)
 		return snapshot ?? null
 	} catch (error) {
-		if (error instanceof BoardNotViewableError) throw error
 		// Keep the original message in the wrapper's own text as well as its `cause`, so the Sentry
 		// event title still names the real failure rather than reading as a generic read error.
 		throw new BoardSnapshotReadError(

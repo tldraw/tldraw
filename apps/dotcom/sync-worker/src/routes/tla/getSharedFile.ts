@@ -3,7 +3,6 @@ import { createPostgresConnectionPool } from '../../postgres'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
 import { isTestFile } from '../../utils/tla/isTestFile'
-import { BoardNotViewableError } from './thumbnailShared'
 
 export interface SharedFileInfo {
 	id: string
@@ -50,7 +49,7 @@ export async function getSharedFileRoomSnapshot(
 	slug: string
 ): Promise<RoomSnapshot | undefined> {
 	const file = await getSharedFileInfo(env, slug)
-	if (!isFileAnonymouslyViewable(file)) throw new BoardNotViewableError('not shared')
+	if (!isFileAnonymouslyViewable(file)) throw Error('not shared')
 
 	return (await env.ROOMS.get(getR2KeyForRoom({ slug, isApp: true })).then((r) => r?.json())) as
 		| RoomSnapshot
