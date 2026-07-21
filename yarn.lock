@@ -9375,9 +9375,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:1.7.0":
-  version: 1.7.0
-  resolution: "@rocicorp/zero@npm:1.7.0"
+"@rocicorp/zero@npm:1.8.0":
+  version: 1.8.0
+  resolution: "@rocicorp/zero@npm:1.8.0"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
@@ -9460,7 +9460,7 @@ __metadata:
     zero-cache-dev: ./out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: ./out/zero/src/deploy-permissions.js
     zero-out: ./out/zero/src/zero-out.js
-  checksum: 10/3ae3325c51a82d43f83aa16ad8e37ca5567b20c14a80479c5dd209b63ac23d6a4ae80e09271f8dcb32d9764e21f515ca9ed4c448e69799a66eccb6bfa3b21299
+  checksum: 10/5134965f0e6efeb0ac3b4c29ed2940484a1764d06ca0788ca2babd25a4d8ddcce5c8ed6d0ce7559b9d0e27a96007dfd5da5143872a7863afd2bb204f1d3cdb78
   languageName: node
   linkType: hard
 
@@ -11796,7 +11796,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:1.7.0"
+    "@rocicorp/zero": "npm:1.8.0"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -11820,7 +11820,7 @@ __metadata:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20260302.0"
     "@pierre/storage": "npm:^1.1.0"
-    "@rocicorp/zero": "npm:1.7.0"
+    "@rocicorp/zero": "npm:1.8.0"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
@@ -12291,7 +12291,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:1.7.0"
+    "@rocicorp/zero": "npm:1.8.0"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     kysely: "npm:^0.28.12"
@@ -18615,7 +18615,7 @@ __metadata:
     "@formatjs/cli": "npm:^6.5.1"
     "@formatjs/unplugin": "npm:^1.1.0"
     "@playwright/test": "npm:^1.61.0"
-    "@rocicorp/zero": "npm:1.7.0"
+    "@rocicorp/zero": "npm:1.8.0"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
