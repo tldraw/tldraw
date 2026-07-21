@@ -1,28 +1,25 @@
 import type { Editor, TLCommentThread } from 'tldraw'
 import { anchorPagePoint } from './thread-state'
 
-/** How far each successive pin in a stack of coincident pins steps sideways, in screen pixels.
- * @public */
-export const PIN_STACK_STEP_PX = 12
-
 /** Two anchors within this page-space distance (per axis) share a stack. Identical imprecise
  *  anchors on one shape resolve to the same point exactly; the tolerance only absorbs float noise. */
 const PIN_STACK_QUANTUM = 0.1
 
 /**
- * Index each thread whose pin lands on the same page point as another thread's — coincident pins
- * (typically several imprecise comments on one shape) that zooming can never separate. The overlay
- * spreads a stack sideways by a fixed screen offset per index, oldest thread at the anchor.
+ * Group threads whose pins land on the same page point — coincident pins (typically several
+ * imprecise comments on one shape) that zooming can never separate. The overlay renders each
+ * group as a single count-badge pin that opens the threads as a list. Every member id maps to
+ * its group's ordered member ids (oldest first); threads without an entry pin individually.
  *
  * Keyed by page-space anchor point, not screen position, so the result only changes when threads
- * or their anchors move — never on camera moves. Threads without an entry render unshifted.
+ * or their anchors move — never on camera moves.
  * @public
  */
 export function computePinStacks(
 	editor: Editor,
 	threads: readonly TLCommentThread[],
 	impreciseShapeAnchor?: { x: number; y: number }
-): Map<string, number> {
+): Map<string, readonly string[]> {
 	const pageId = editor.getCurrentPageId()
 	const groups = new Map<string, TLCommentThread[]>()
 
@@ -39,13 +36,14 @@ export function computePinStacks(
 		}
 	}
 
-	const indexes = new Map<string, number>()
+	const stacks = new Map<string, readonly string[]>()
 	for (const group of groups.values()) {
 		if (group.length < 2) continue
 		group.sort((a, b) => a.createdAt - b.createdAt || (a.id < b.id ? -1 : 1))
-		for (let i = 0; i < group.length; i++) {
-			indexes.set(group[i].id, i)
+		const ids = group.map((thread) => thread.id)
+		for (const id of ids) {
+			stacks.set(id, ids)
 		}
 	}
-	return indexes
+	return stacks
 }

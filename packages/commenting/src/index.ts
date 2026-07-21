@@ -36,7 +36,7 @@ export {
 	type PendingComment,
 } from './canvas/comment-tool'
 export { collectClusterLeaves } from './canvas/cluster-input'
-export { computePinStacks, PIN_STACK_STEP_PX } from './canvas/pin-stacking'
+export { computePinStacks } from './canvas/pin-stacking'
 export { computeClusterTable } from './clustering/computeClusterTable'
 export {
 	getCommentRecord,
@@ -75,6 +75,7 @@ export {
 	commentsHidden,
 	commentsSidebarOpen,
 	commitCommentMutation,
+	openStackId,
 	openThreadId,
 	pendingComment,
 	sidebarFilters,

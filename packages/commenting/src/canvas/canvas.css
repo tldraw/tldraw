@@ -61,11 +61,33 @@
 	z-index: 1;
 }
 
-/* A hovered pin rises above everything nearby — in a fanned stack of coincident pins, the pin
-   being reached for must win over its later-stacked (higher-painted) siblings. */
-.tlui-cmt-canvas-pin:hover,
-.pseudo-hover.tlui-cmt-canvas-pin {
-	z-index: 2;
+/* The count badge standing in for a stack of coincident pins — same face as a cluster badge,
+   but clicking opens the stack's thread list rather than zooming (no zoom can separate them). */
+.tlui-cmt-canvas-stack-badge {
+	transform: translate(-50%, -50%);
+	width: max-content;
+	cursor: pointer;
+}
+
+/* The stack's popover content: one card per thread, the expanded thread inline among them. */
+.tlui-cmt-stack-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	max-height: 420px;
+	overflow-y: auto;
+}
+
+/* Collapsed entries match the expanded thread's surface (same width, panel, elevation) so the
+   list reads as one column of cards with one of them opened up. */
+.tlui-cmt-stack-list__card {
+	box-sizing: border-box;
+	width: 300px;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-4);
+	box-shadow: var(--tl-shadow-2);
+	padding: 8px;
+	cursor: pointer;
 }
 
 /* A region anchor's area: a dashed box under the pins, non-interactive so canvas events pass

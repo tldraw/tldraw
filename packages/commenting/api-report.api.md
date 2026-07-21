@@ -331,7 +331,7 @@ export function computeClusterTable(leaves: readonly LeafInput[], options: Clust
 export function computePinStacks(editor: Editor, threads: readonly TLCommentThread[], impreciseShapeAnchor?: {
     x: number;
     y: number;
-}): Map<string, number>;
+}): Map<string, readonly string[]>;
 
 // @public (undocumented)
 export function CountBadge({ count }: CountBadgeProps): JSX.Element;
@@ -465,6 +465,9 @@ export interface MergeEvent {
 }
 
 // @public
+export const openStackId: EditorAtom<null | string>;
+
+// @public
 export const openThreadId: EditorAtom<null | string>;
 
 // @public
@@ -476,9 +479,6 @@ export interface PendingComment {
 
 // @public
 export const pendingComment: EditorAtom<null | PendingComment>;
-
-// @public
-export const PIN_STACK_STEP_PX = 12;
 
 // @public
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;

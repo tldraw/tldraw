@@ -42,16 +42,16 @@ function impreciseAnchor(shapeId: string): TLCommentAnchor {
 }
 
 describe('computePinStacks', () => {
-	it('indexes coincident imprecise pins on one shape by creation order', () => {
+	it('groups coincident imprecise pins on one shape, oldest first', () => {
 		const stacks = computePinStacks(stubEditor(SHAPE), [
 			thread('t2', impreciseAnchor('shape:a'), { createdAt: 20 }),
 			thread('t1', impreciseAnchor('shape:a'), { createdAt: 10 }),
 		])
-		expect(stacks.get('t1')).toBe(0)
-		expect(stacks.get('t2')).toBe(1)
+		expect(stacks.get('t1')).toEqual(['t1', 't2'])
+		expect(stacks.get('t2')).toEqual(['t1', 't2'])
 	})
 
-	it('leaves separated pins unindexed', () => {
+	it('leaves separated pins ungrouped', () => {
 		const stacks = computePinStacks(stubEditor(), [
 			thread('t1', { type: 'point', x: 0, y: 0 }),
 			thread('t2', { type: 'point', x: 50, y: 0 }),
@@ -59,22 +59,21 @@ describe('computePinStacks', () => {
 		expect(stacks.size).toBe(0)
 	})
 
-	it('stacks coincident point anchors', () => {
+	it('groups coincident point anchors', () => {
 		const stacks = computePinStacks(stubEditor(), [
 			thread('t1', { type: 'point', x: 5, y: 5 }, { createdAt: 1 }),
 			thread('t2', { type: 'point', x: 5, y: 5 }, { createdAt: 2 }),
 			thread('t3', { type: 'point', x: 5, y: 5 }, { createdAt: 3 }),
 		])
-		expect([stacks.get('t1'), stacks.get('t2'), stacks.get('t3')]).toEqual([0, 1, 2])
+		expect(stacks.get('t2')).toEqual(['t1', 't2', 't3'])
 	})
 
-	it('breaks creation-time ties by id so indexes are deterministic', () => {
+	it('breaks creation-time ties by id so ordering is deterministic', () => {
 		const stacks = computePinStacks(stubEditor(), [
 			thread('t2', { type: 'point', x: 5, y: 5 }, { createdAt: 1 }),
 			thread('t1', { type: 'point', x: 5, y: 5 }, { createdAt: 1 }),
 		])
-		expect(stacks.get('t1')).toBe(0)
-		expect(stacks.get('t2')).toBe(1)
+		expect(stacks.get('t1')).toEqual(['t1', 't2'])
 	})
 
 	it('ignores threads on other pages and unresolvable anchors', () => {
@@ -86,7 +85,7 @@ describe('computePinStacks', () => {
 		expect(stacks.size).toBe(0)
 	})
 
-	it('does not stack a precise pin sitting away from a coincident pair', () => {
+	it('does not group a precise pin sitting away from a coincident pair', () => {
 		const precise: TLCommentAnchor = {
 			type: 'shape',
 			shapeId: 'shape:a',
@@ -99,8 +98,7 @@ describe('computePinStacks', () => {
 			thread('t2', impreciseAnchor('shape:a'), { createdAt: 2 }),
 			thread('t3', precise),
 		])
-		expect(stacks.get('t1')).toBe(0)
-		expect(stacks.get('t2')).toBe(1)
+		expect(stacks.get('t1')).toEqual(['t1', 't2'])
 		expect(stacks.has('t3')).toBe(false)
 	})
 })
