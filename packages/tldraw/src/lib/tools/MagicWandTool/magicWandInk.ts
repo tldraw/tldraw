@@ -49,23 +49,83 @@ const DELETE_OVERLAY_FADE_IN_MS = 150
 const MORPH_FADE_DURATION_MS = 250
 
 /**
+ * Meta key marking a shape as a throwaway magic wand visual (ghosts, delete
+ * overlays, morph previews). These are deleted and recreated freely at runtime;
+ * if one survives an abnormal end of a session (crash, tab close, disconnect),
+ * {@link sweepMagicWandTransients} deletes it on the next load.
+ */
+export const MAGIC_WAND_GHOST_META_KEY = 'magicWandGhost'
+
+/**
+ * Meta key carrying a real shape's natural values while the magic wand has
+ * temporarily overridden them (wet-ink opacity, preview tint/fill, forced
+ * `isClosed`, morph fade-in). The tag is the single source of truth for
+ * restoring the shape: the live restore paths apply it when the override ends,
+ * and because it rides the (synced, persisted) record, a session that ends
+ * abnormally leaves enough behind for {@link sweepMagicWandTransients} to heal
+ * the shape on the next load instead of freezing the transient look into the
+ * document.
+ */
+export const MAGIC_WAND_RESTORE_META_KEY = 'magicWandRestore'
+
+/** The natural values a tagged shape should be restored to. */
+export interface MagicWandRestoreState {
+	opacity: number
+	color?: TLDefaultColorStyle
+	fill?: string
+	isClosed?: boolean
+}
+
+/** Reads a shape's restore tag, or null if absent/malformed. */
+function getRestoreState(shape: TLShape): MagicWandRestoreState | null {
+	const raw = shape.meta[MAGIC_WAND_RESTORE_META_KEY]
+	if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+	if (typeof (raw as Record<string, unknown>).opacity !== 'number') return null
+	return raw as unknown as MagicWandRestoreState
+}
+
+/** The update that puts a tagged shape back to its natural state and untags it. */
+function buildRestorePartial(shape: TLShape, restore: MagicWandRestoreState): TLShapePartial {
+	const partial = {
+		id: shape.id,
+		type: shape.type,
+		opacity: restore.opacity,
+		// Meta merges per key, so clearing needs an explicit null (not undefined,
+		// which both the merge and JSON validation would drop).
+		meta: { [MAGIC_WAND_RESTORE_META_KEY]: null },
+	} as TLShapePartial
+	// Prop overrides are only ever tagged onto draw strokes; applied untyped.
+	const props: Record<string, unknown> = {}
+	if (restore.color !== undefined) props.color = restore.color
+	if (restore.fill !== undefined) props.fill = restore.fill
+	if (restore.isClosed !== undefined) props.isClosed = restore.isClosed
+	if (Object.keys(props).length > 0) (partial as { props?: object }).props = props
+	return partial
+}
+
+/**
  * Shows the in-progress stroke at half opacity by lowering the shape's real
  * `opacity`. The write is history-ignored, so undo/redo never replay it, but it
  * does reach the store — which is the point: collaborators receive the record,
  * so they see the translucent "wet ink" too (a CSS-only effect would render as
- * a solid stroke on other clients). The natural opacity is restored by
- * {@link dryWetInk} or {@link clearWetInk}; strokes consumed by a gesture are
- * bailed away entirely and need no restore. No fade-in here, so the stroke
- * appears translucent immediately.
+ * a solid stroke on other clients). Each piece is tagged with its natural
+ * opacity so {@link clearWetInk} and the load-time sweep can restore it; pieces
+ * already tagged are left alone (their tag may carry preview tint state too).
+ * No fade-in here, so the stroke appears translucent immediately.
  */
-export function setWetInk(editor: Editor, shapeIds: TLShapeId[]) {
+export function setWetInk(editor: Editor, shapeIds: TLShapeId[], naturalOpacity: number) {
 	if (shapeIds.length === 0) return
 	editor.run(
 		() => {
 			for (const id of shapeIds) {
 				const shape = editor.getShape(id)
-				if (!shape || shape.opacity === MAGIC_WAND_INK_OPACITY) continue
-				editor.updateShape({ id, type: shape.type, opacity: MAGIC_WAND_INK_OPACITY })
+				if (!shape || getRestoreState(shape)) continue
+				editor.updateShape({
+					id,
+					type: shape.type,
+					opacity: MAGIC_WAND_INK_OPACITY,
+					meta: { [MAGIC_WAND_RESTORE_META_KEY]: { opacity: naturalOpacity } },
+				})
 			}
 		},
 		{ history: 'ignore' }
@@ -77,43 +137,94 @@ export function setWetInk(editor: Editor, shapeIds: TLShapeId[]) {
  * using the same history-ignored tween as the ghosts, so collaborators watch
  * the ink dry as well.
  *
- * Called while the gesture's undo entry is still open. The natural opacity is
- * first committed with a recorded write: the draw tool's own recorded updates
- * squash the whole record (including the ignored wet opacity) into the entry,
- * so without this a redo would resurrect the stroke translucent. The record is
- * then dipped back down (ignored) in the same tick — no visible pop — and the
- * tween carries it home.
+ * Called while the gesture's undo entry is still open. The natural opacity and
+ * cleared tag are first committed with a recorded write: the draw tool's own
+ * recorded updates squash the whole record (including the ignored wet values)
+ * into the entry, so without this a redo would resurrect the stroke translucent
+ * and tagged. The record is then dipped back down (ignored) in the same tick —
+ * no visible pop — and the tween carries it home.
  */
-export function dryWetInk(editor: Editor, shapeIds: TLShapeId[], naturalOpacity: number) {
+export function dryWetInk(editor: Editor, shapeIds: TLShapeId[]) {
 	if (shapeIds.length === 0) return
+	const naturalOpacities = new Map<TLShapeId, number>()
 	editor.run(() => {
 		for (const id of shapeIds) {
 			const shape = editor.getShape(id)
 			if (!shape) continue
-			editor.updateShape({ id, type: shape.type, opacity: naturalOpacity })
+			const naturalOpacity = getRestoreState(shape)?.opacity ?? 1
+			naturalOpacities.set(id, naturalOpacity)
+			editor.updateShape({
+				id,
+				type: shape.type,
+				opacity: naturalOpacity,
+				meta: { [MAGIC_WAND_RESTORE_META_KEY]: null },
+			})
 		}
 	})
-	setWetInk(editor, shapeIds)
-	for (const id of shapeIds) {
+	editor.run(
+		() => {
+			for (const id of naturalOpacities.keys()) {
+				const shape = editor.getShape(id)
+				if (!shape) continue
+				editor.updateShape({ id, type: shape.type, opacity: MAGIC_WAND_INK_OPACITY })
+			}
+		},
+		{ history: 'ignore' }
+	)
+	for (const [id, naturalOpacity] of naturalOpacities) {
 		animateShapeOpacity(editor, id, MAGIC_WAND_INK_OPACITY, naturalOpacity, INK_DRY_DURATION_MS)
 	}
 }
 
 /**
- * Restores the stroke's natural opacity immediately (e.g. on cancel or exit).
- * Skips shapes that no longer exist — gesture strokes are usually bailed away
- * before this runs.
+ * Restores each stroke piece to the natural state carried by its restore tag —
+ * opacity, and any preview tint/fill/isClosed overrides — immediately (e.g. on
+ * cancel, or a tool switch mid-gesture). Skips shapes that no longer exist;
+ * gesture strokes are usually bailed away before this runs.
  */
-export function clearWetInk(editor: Editor, shapeIds: TLShapeId[], naturalOpacity: number) {
+export function clearWetInk(editor: Editor, shapeIds: TLShapeId[]) {
 	editor.run(
 		() => {
 			for (const id of shapeIds) {
 				const shape = editor.getShape(id)
-				if (!shape || shape.opacity === naturalOpacity) continue
-				editor.updateShape({ id, type: shape.type, opacity: naturalOpacity })
+				if (!shape) continue
+				const restore = getRestoreState(shape)
+				if (!restore) continue
+				editor.updateShape(buildRestorePartial(shape, restore))
 			}
 		},
 		{ history: 'ignore' }
+	)
+}
+
+/**
+ * Heals magic wand transients that an abnormally ended session (crash, tab
+ * close, disconnect) froze into the document: deletes surviving ghost shapes
+ * (fade-outs, delete overlays, morph previews — all locked visual effects) and
+ * restores any shape still carrying a restore tag to its natural state. Runs
+ * once per editor on mount; history-ignored, so it can't be undone into
+ * existence again.
+ */
+export function sweepMagicWandTransients(editor: Editor) {
+	const ghostIds: TLShapeId[] = []
+	const restores: TLShapePartial[] = []
+	for (const record of editor.store.allRecords()) {
+		if (record.typeName !== 'shape') continue
+		const shape = record as TLShape
+		if (shape.meta[MAGIC_WAND_GHOST_META_KEY]) {
+			ghostIds.push(shape.id)
+			continue
+		}
+		const restore = getRestoreState(shape)
+		if (restore) restores.push(buildRestorePartial(shape, restore))
+	}
+	if (ghostIds.length === 0 && restores.length === 0) return
+	editor.run(
+		() => {
+			if (ghostIds.length) editor.deleteShapes(ghostIds)
+			if (restores.length) editor.updateShapes(restores)
+		},
+		{ history: 'ignore', ignoreShapeLock: true }
 	)
 }
 
@@ -188,7 +299,7 @@ export function fadeOutInkGhost(
 					rotation: inkSnapshot.rotation,
 					opacity: MAGIC_WAND_INK_OPACITY,
 					props: { ...inkSnapshot.props, color, isComplete: true },
-					meta: { magicWandGhost: true },
+					meta: { [MAGIC_WAND_GHOST_META_KEY]: true },
 				})
 			},
 			{ history: 'ignore' }
@@ -223,7 +334,7 @@ export function showDeleteOverlay(editor: Editor, shape: TLShape): TLShapeId {
 				rotation: shape.rotation,
 				isLocked: true,
 				opacity: 0,
-				meta: { magicWandGhost: true },
+				meta: { [MAGIC_WAND_GHOST_META_KEY]: true },
 				props,
 			} as TLShapePartial)
 		},
@@ -276,7 +387,7 @@ export function showMorphPreview(
 				rotation: shape.rotation,
 				opacity: 0,
 				props: { geo: shape.geo, w: shape.w, h: shape.h, color: shape.color, fill: 'none' },
-				meta: { magicWandGhost: true },
+				meta: { [MAGIC_WAND_GHOST_META_KEY]: true },
 			})
 		},
 		{ history: 'ignore' }
@@ -317,7 +428,7 @@ export function showMorphLinePreview(
 						[endKey]: { id: endKey, index: endKey, x: end.x - start.x, y: end.y - start.y },
 					},
 				},
-				meta: { magicWandGhost: true },
+				meta: { [MAGIC_WAND_GHOST_META_KEY]: true },
 			})
 		},
 		{ history: 'ignore' }
@@ -334,8 +445,11 @@ export function removeMorphPreview(editor: Editor, ghostId: TLShapeId | null) {
 
 /**
  * Fades a freshly created shape in from transparent to solid using
- * history-ignored opacity updates (the shape's recorded opacity stays 1, so
- * undo/redo are unaffected). Used for the morph target rectangle.
+ * history-ignored opacity updates (the shape's recorded opacity stays at its
+ * natural value, so undo/redo are unaffected). Used for the morph target.
+ * While the fade runs, the shape carries a restore tag so a session that dies
+ * mid-fade doesn't freeze the shape semi-transparent — the next load's
+ * {@link sweepMagicWandTransients} finishes the job.
  */
 export function fadeInShape(
 	editor: Editor,
@@ -344,8 +458,28 @@ export function fadeInShape(
 ) {
 	const shape = editor.getShape(shapeId)
 	if (!shape) return
-	editor.run(() => editor.updateShape({ id: shapeId, type: shape.type, opacity: 0 }), {
-		history: 'ignore',
+	const naturalOpacity = shape.opacity
+	editor.run(
+		() =>
+			editor.updateShape({
+				id: shapeId,
+				type: shape.type,
+				opacity: 0,
+				meta: { [MAGIC_WAND_RESTORE_META_KEY]: { opacity: naturalOpacity } },
+			}),
+		{ history: 'ignore' }
+	)
+	animateShapeOpacity(editor, shapeId, 0, naturalOpacity, durationMs, () => {
+		const current = editor.getShape(shapeId)
+		if (!current) return
+		editor.run(
+			() =>
+				editor.updateShape({
+					id: shapeId,
+					type: current.type,
+					meta: { [MAGIC_WAND_RESTORE_META_KEY]: null },
+				}),
+			{ history: 'ignore' }
+		)
 	})
-	animateShapeOpacity(editor, shapeId, 0, 1, durationMs)
 }

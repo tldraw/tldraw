@@ -1,7 +1,8 @@
-import { StateNode, TLStateNodeConstructor, react } from '@tldraw/editor'
+import { Editor, StateNode, TLStateNodeConstructor, react } from '@tldraw/editor'
 import { Drawing } from '../../shapes/draw/toolStates/Drawing'
 import { Idle } from '../../shapes/draw/toolStates/Idle'
 import { MagicWandDrawing } from './MagicWandDrawing'
+import { sweepMagicWandTransients } from './magicWandInk'
 import { MagicWandLineTuning } from './MagicWandLineTuning'
 import { MagicWandMorphTuning } from './MagicWandMorphTuning'
 
@@ -27,6 +28,16 @@ export class MagicWandTool extends StateNode {
 	}
 
 	override shapeType = 'draw'
+
+	constructor(editor: Editor, parent?: StateNode) {
+		super(editor, parent)
+		// The wand's transient effects (wet ink, tint previews, ghost shapes) live
+		// on real records so they sync and persist; a session that ends abnormally
+		// (crash, tab close, disconnect) can strand them in the document. Heal any
+		// survivors once the document is loaded. 'mount' fires after the store is
+		// hydrated; headless editors never emit it and simply skip the sweep.
+		editor.once('mount', () => sweepMagicWandTransients(editor))
+	}
 
 	// Whether a lasso has handed off to a select session that the magic wand is
 	// masking over (see maskSelectAfterLasso).

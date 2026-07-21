@@ -2783,6 +2783,7 @@ export function LockGroup(): JSX.Element;
 
 // @public
 export class MagicWandTool extends StateNode {
+    constructor(editor: Editor, parent?: StateNode);
     // (undocumented)
     static children(): TLStateNodeConstructor[];
     // (undocumented)

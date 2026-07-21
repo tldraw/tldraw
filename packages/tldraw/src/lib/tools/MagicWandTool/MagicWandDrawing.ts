@@ -22,6 +22,7 @@ import {
 	MAGIC_WAND_DELETE_COLOR,
 	MAGIC_WAND_INKING_CLASS,
 	MAGIC_WAND_LASSO_COLOR,
+	MAGIC_WAND_RESTORE_META_KEY,
 	clearWetInk,
 	dryWetInk,
 	fadeInShape,
@@ -181,7 +182,7 @@ export class MagicWandDrawing extends Drawing {
 			this.inkFill = inkShape.props.fill
 			this.inkOpacity = inkShape.opacity
 			this.wetInkIds = [inkShape.id]
-			setWetInk(this.editor, this.wetInkIds)
+			setWetInk(this.editor, this.wetInkIds, this.inkOpacity)
 		}
 		this.armMorphTimers()
 	}
@@ -197,7 +198,7 @@ export class MagicWandDrawing extends Drawing {
 		// Drop the wet-ink translucency immediately unless we're mid dry-fade (a
 		// normal draw completion), e.g. on cancel, interrupt, or tool switch.
 		if (!this.isDryingInk) {
-			clearWetInk(this.editor, this.wetInkIds, this.inkOpacity)
+			clearWetInk(this.editor, this.wetInkIds)
 		}
 		// Remove any delete overlays still showing (e.g. on cancel — a completed
 		// delete fades and clears them itself, so this only hits leftovers).
@@ -244,7 +245,7 @@ export class MagicWandDrawing extends Drawing {
 		// tool may have split it), re-tinting any freshly split piece to match.
 		if (!areArraysShallowEqual(strokeIds, this.wetInkIds)) {
 			this.wetInkIds = strokeIds
-			setWetInk(this.editor, strokeIds)
+			setWetInk(this.editor, strokeIds, this.inkOpacity)
 			this.applyInkStyle(strokeShapes, this.inkMode)
 		}
 
@@ -277,7 +278,12 @@ export class MagicWandDrawing extends Drawing {
 		}
 	}
 
-	/** Sets the colour and fill of every stroke piece for the given preview mode. */
+	/**
+	 * Sets the colour and fill of every stroke piece for the given preview mode.
+	 * The restore tag is updated in the same write: while tinted it carries the
+	 * natural colour/fill so a crash (or tool switch) mid-preview can restore
+	 * them; back in plain mode it shrinks to just the wet opacity.
+	 */
 	private applyInkStyle(strokeShapes: TLDrawShape[], mode: InkMode) {
 		const color =
 			mode === 'delete'
@@ -286,10 +292,19 @@ export class MagicWandDrawing extends Drawing {
 					? MAGIC_WAND_LASSO_COLOR
 					: this.inkColor
 		const fill = mode === 'lasso' ? 'solid' : this.inkFill
+		const restore =
+			mode === 'none'
+				? { opacity: this.inkOpacity }
+				: { opacity: this.inkOpacity, color: this.inkColor, fill: this.inkFill }
 		this.editor.run(
 			() => {
 				for (const shape of strokeShapes) {
-					this.editor.updateShape({ id: shape.id, type: 'draw', props: { color, fill } })
+					this.editor.updateShape({
+						id: shape.id,
+						type: 'draw',
+						props: { color, fill },
+						meta: { [MAGIC_WAND_RESTORE_META_KEY]: restore },
+					})
 				}
 			},
 			{ history: 'ignore' }
@@ -359,10 +374,24 @@ export class MagicWandDrawing extends Drawing {
 	private keepLassoStrokeClosed(strokeIds: TLShapeId[]) {
 		const open = strokeIds.filter((id) => !this.editor.getShape<TLDrawShape>(id)?.props.isClosed)
 		if (open.length === 0) return
+		// The tag records that `isClosed` was forced (only for pieces that were
+		// genuinely open), so a crash mid-preview restores an open stroke. Pieces
+		// the draw tool itself closed are skipped above and keep their tag as-is.
+		const restore = {
+			opacity: this.inkOpacity,
+			color: this.inkColor,
+			fill: this.inkFill,
+			isClosed: false,
+		}
 		this.editor.run(
 			() => {
 				for (const id of open) {
-					this.editor.updateShape({ id, type: 'draw', props: { isClosed: true } })
+					this.editor.updateShape({
+						id,
+						type: 'draw',
+						props: { isClosed: true },
+						meta: { [MAGIC_WAND_RESTORE_META_KEY]: restore },
+					})
 				}
 			},
 			{ history: 'ignore' }
@@ -419,7 +448,7 @@ export class MagicWandDrawing extends Drawing {
 		const strokeIds = this.getGestureStrokeShapes().map((s) => s.id)
 		if (strokeIds.length) this.isDryingInk = true
 		super.complete()
-		if (strokeIds.length) dryWetInk(this.editor, strokeIds, this.inkOpacity)
+		if (strokeIds.length) dryWetInk(this.editor, strokeIds)
 	}
 
 	// --- Hold-to-morph -------------------------------------------------------

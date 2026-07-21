@@ -1,5 +1,6 @@
 import { TLDrawShape, TLGeoShape, TLLineShape, createShapeId, sortByIndex } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
+import { sweepMagicWandTransients } from './magicWandInk'
 
 let editor: TestEditor
 
@@ -53,6 +54,9 @@ describe('MagicWandTool', () => {
 		// The translucency is written to the shape record (history-ignored) so
 		// collaborators see the wet ink too, not just the local client.
 		expect(shape.opacity).toBe(0.5)
+		// While wet, the stroke carries its natural values so an abnormally ended
+		// session can be healed on the next load.
+		expect(shape.meta.magicWandRestore).toMatchObject({ opacity: 1 })
 	})
 
 	it('does not leave any shape at wet-ink opacity when cancelled', () => {
@@ -1131,12 +1135,143 @@ describe('MagicWandTool wet ink drying', () => {
 		// The dry tween runs on rAF; advance through the whole fade.
 		vi.advanceTimersByTime(1000)
 		expect(editor.getShape(strokeId)!.opacity).toBe(1)
+		expect(editor.getShape(strokeId)!.meta.magicWandRestore).toBeFalsy()
 
 		// The wet/dry writes are history-ignored: one undo removes the stroke, and
-		// redo restores it at its natural opacity, not the wet value.
+		// redo restores it at its natural opacity, not the wet value — and untagged.
 		editor.undo()
 		expect(editor.getShape(strokeId)).toBeUndefined()
 		editor.redo()
 		expect(editor.getShape(strokeId)!.opacity).toBe(1)
+		expect(editor.getShape(strokeId)!.meta.magicWandRestore).toBeFalsy()
+	})
+})
+
+describe('MagicWandTool abnormal-termination healing', () => {
+	function seedIgnored(fn: () => void) {
+		editor.run(fn, { history: 'ignore' })
+	}
+
+	it('sweep deletes stranded (locked) ghost shapes', () => {
+		const ghostId = createShapeId()
+		seedIgnored(() => {
+			editor.createShape<TLGeoShape>({
+				id: ghostId,
+				type: 'geo',
+				x: 10,
+				y: 10,
+				isLocked: true,
+				opacity: 0.3,
+				meta: { magicWandGhost: true },
+				props: { w: 40, h: 40 },
+			})
+		})
+
+		sweepMagicWandTransients(editor)
+		expect(editor.getShape(ghostId)).toBeUndefined()
+
+		// The sweep is history-ignored: undo cannot bring the ghost back.
+		editor.undo()
+		expect(editor.getShape(ghostId)).toBeUndefined()
+	})
+
+	it('sweep restores a stroke frozen mid lasso preview', () => {
+		const strokeId = createShapeId()
+		seedIgnored(() => {
+			editor.createShape<TLDrawShape>({
+				id: strokeId,
+				type: 'draw',
+				x: 0,
+				y: 0,
+				opacity: 0.5,
+				meta: {
+					magicWandRestore: { opacity: 1, color: 'black', fill: 'none', isClosed: false },
+				},
+				props: { color: 'blue', fill: 'solid', isClosed: true },
+			})
+		})
+
+		sweepMagicWandTransients(editor)
+		const healed = editor.getShape<TLDrawShape>(strokeId)!
+		expect(healed.opacity).toBe(1)
+		expect(healed.props.color).toBe('black')
+		expect(healed.props.fill).toBe('none')
+		expect(healed.props.isClosed).toBe(false)
+		expect(healed.meta.magicWandRestore).toBeFalsy()
+	})
+
+	it('sweep finishes a morph target frozen mid fade-in', () => {
+		const geoId = createShapeId()
+		seedIgnored(() => {
+			editor.createShape<TLGeoShape>({
+				id: geoId,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				opacity: 0.37,
+				meta: { magicWandRestore: { opacity: 1 } },
+				props: { w: 100, h: 60 },
+			})
+		})
+
+		sweepMagicWandTransients(editor)
+		const healed = editor.getShape<TLGeoShape>(geoId)!
+		expect(healed.opacity).toBe(1)
+		expect(healed.meta.magicWandRestore).toBeFalsy()
+	})
+
+	it('sweep leaves ordinary shapes alone', () => {
+		const boxId = createBox(10, 10)
+		editor.updateShape({ id: boxId, type: 'geo', opacity: 0.25 })
+
+		sweepMagicWandTransients(editor)
+		const box = editor.getShape(boxId)!
+		expect(box.opacity).toBe(0.25)
+	})
+
+	it('runs the sweep when the editor mounts', () => {
+		const ghostId = createShapeId()
+		seedIgnored(() => {
+			editor.createShape<TLGeoShape>({
+				id: ghostId,
+				type: 'geo',
+				x: 10,
+				y: 10,
+				meta: { magicWandGhost: true },
+				props: { w: 40, h: 40 },
+			})
+		})
+
+		editor.emit('mount')
+		expect(editor.getShape(ghostId)).toBeUndefined()
+	})
+
+	it('restores the natural ink when the tool is switched away mid lasso preview', () => {
+		createBox(130, 130)
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(100, 100)
+		editor.pointerMove(200, 100)
+		editor.pointerMove(200, 200)
+		editor.pointerMove(100, 200)
+		// End in the "close band": near enough for the lasso to read the loop as
+		// closed (tint + solid fill), but outside the draw tool's own smaller close
+		// threshold — so `isClosed` is forced by keepLassoStrokeClosed, not natural.
+		editor.pointerMove(112, 100)
+
+		const wet = editor.getShape<TLDrawShape>(
+			editor.getCurrentPageShapes().find((s) => s.type === 'draw')!.id
+		)!
+		expect(wet.props.color).toBe('blue')
+		expect(wet.props.isClosed).toBe(true)
+
+		// Switch tools with the pointer still down: the stroke is kept, and every
+		// transient override (opacity, tint, fill, forced isClosed) is restored.
+		editor.setCurrentTool('select')
+		const kept = editor.getShape<TLDrawShape>(wet.id)!
+		expect(kept.opacity).toBe(1)
+		expect(kept.props.color).toBe('black')
+		expect(kept.props.fill).toBe('none')
+		expect(kept.props.isClosed).toBe(false)
+		expect(kept.meta.magicWandRestore).toBeFalsy()
 	})
 })
