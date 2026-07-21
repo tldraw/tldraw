@@ -34,7 +34,11 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		(): CommentAuthor => {
 			if (!app) return { name: 'You' }
 			const prefs = app.tlUser.userPreferences.get()
-			return { name: prefs.name || 'You', color: prefs.color ?? undefined }
+			return {
+				name: prefs.name || 'You',
+				color: prefs.color ?? undefined,
+				image: app.getUser().avatar || undefined,
+			}
 		},
 		[app]
 	)
@@ -54,12 +58,16 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		}
 	}, [app, fileId])
 
-	// No `image` yet: users have avatars (Clerk), but comment authors resolve from the Zero
-	// comments query, which would need an avatar field alongside name/color to supply one.
 	const commentAuthors = useMemo(() => {
 		const authors = new Map<string, CommentAuthor>()
 		for (const c of fileComments) {
-			if (c.author?.name) authors.set(c.authorId, { name: c.author.name, color: c.author.color })
+			if (c.author?.name) {
+				authors.set(c.authorId, {
+					name: c.author.name,
+					color: c.author.color,
+					image: c.author.avatar || undefined,
+				})
+			}
 		}
 		return authors
 	}, [fileComments])
