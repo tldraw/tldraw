@@ -742,6 +742,8 @@ describe('onEnterFile', () => {
 			],
 			// mislinked row: workspaceB does not own the file (owningGroupId is ownerHome)
 			group_file: [makeGroupFile({ fileId, groupId: workspaceB })],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
