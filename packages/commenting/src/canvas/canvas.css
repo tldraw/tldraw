@@ -73,7 +73,7 @@
 .tlui-cmt-stack-list {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 10px;
 	max-height: 420px;
 	overflow-y: auto;
 }
@@ -84,9 +84,9 @@
 	box-sizing: border-box;
 	width: 300px;
 	background: var(--tl-color-panel);
-	border-radius: var(--tl-radius-4);
+	border-radius: 12px;
 	box-shadow: var(--tl-shadow-2);
-	padding: 8px;
+	padding: 10px 14px;
 	cursor: pointer;
 }
 
@@ -96,12 +96,14 @@
 }
 
 /* The wrapper is the card's surface — inside it the comment is plain content, mirroring how the
-   thread panel flattens its own cards. */
+   thread panel flattens its own cards. The avatar centers against the short two-line block so a
+   collapsed entry doesn't read as top-heavy. */
 .tlui-cmt-stack-list__card .tlui-cmt-card {
 	width: 100%;
-	padding: 6px 0 6px 4px;
+	padding: 0;
 	background: transparent;
 	border: none;
+	align-items: center;
 }
 
 /* A region anchor's area: a dashed box under the pins, non-interactive so canvas events pass
