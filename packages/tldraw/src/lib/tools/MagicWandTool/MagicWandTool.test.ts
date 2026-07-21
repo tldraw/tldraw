@@ -641,17 +641,21 @@ function realShapes() {
 }
 
 /** Draws a dense closed rectangle sketch (pen left down) from the given corners. */
-function drawRectSketch(corners: Array<[number, number]>, perEdge = 6) {
+function drawRectSketch(
+	corners: Array<[number, number]>,
+	perEdge = 6,
+	eventOpts?: { isPen: boolean }
+) {
 	editor.setCurrentTool('magic-wand')
 	const [sx, sy] = corners[0]
-	editor.pointerDown(sx, sy)
+	editor.pointerDown(sx, sy, eventOpts)
 	let [px, py] = [sx, sy]
 	// Walk the corners, then back to ~2px from the start so the loop is closed.
 	const path: Array<[number, number]> = [...corners.slice(1), [sx + 2, sy]]
 	for (const [cx, cy] of path) {
 		for (let j = 1; j <= perEdge; j++) {
 			const t = j / perEdge
-			editor.pointerMove(px + (cx - px) * t, py + (cy - py) * t)
+			editor.pointerMove(px + (cx - px) * t, py + (cy - py) * t, eventOpts)
 		}
 		;[px, py] = [cx, cy]
 	}
@@ -681,12 +685,19 @@ function drawEllipseSketch(cx: number, cy: number, rx: number, ry: number, steps
 }
 
 /** Draws a near-straight open stroke (pen left down) from (x1,y1) to (x2,y2). */
-function drawLineSketch(x1: number, y1: number, x2: number, y2: number, steps = 12) {
+function drawLineSketch(
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number,
+	steps = 12,
+	eventOpts?: { isPen: boolean }
+) {
 	editor.setCurrentTool('magic-wand')
-	editor.pointerDown(x1, y1)
+	editor.pointerDown(x1, y1, eventOpts)
 	for (let i = 1; i <= steps; i++) {
 		const t = i / steps
-		editor.pointerMove(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t)
+		editor.pointerMove(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t, eventOpts)
 	}
 }
 
@@ -1383,5 +1394,106 @@ describe('MagicWandTool abnormal-termination healing', () => {
 		expect(kept.props.fill).toBe('none')
 		expect(kept.props.isClosed).toBe(false)
 		expect(kept.meta.magicWandRestore).toBeFalsy()
+	})
+})
+
+describe('MagicWandTool pen tuning deadzone', () => {
+	beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }))
+	afterEach(() => vi.useRealTimers())
+
+	const square: Array<[number, number]> = [
+		[100, 100],
+		[200, 100],
+		[200, 200],
+		[100, 200],
+	]
+	// drawRectSketch ends the stroke (and so the deadzone origin) at (102, 100);
+	// the morphed square's center is ~(150, 150).
+
+	function geoState(id: ReturnType<typeof createShapeId>) {
+		const s = editor.getShape<TLGeoShape>(id)!
+		return { x: s.x, y: s.y, rotation: s.rotation, w: s.props.w, h: s.props.h }
+	}
+
+	function morphSquareWithPen() {
+		drawRectSketch(square, 6, { isPen: true })
+		vi.advanceTimersByTime(900)
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		expect(geo).toBeTruthy()
+		editor.expectToBeIn('magic-wand.morph-tuning')
+		return geo
+	}
+
+	it('pen wobble inside the deadzone does not tune, and release keeps the morph exact', () => {
+		const geo = morphSquareWithPen()
+		const before = geoState(geo.id)
+
+		editor.pointerMove(105, 103, { isPen: true }) // ~4px of wobble
+		editor.pointerMove(99, 102, { isPen: true })
+		expect(geoState(geo.id)).toEqual(before)
+
+		editor.pointerUp(99, 102, { isPen: true })
+		expect(geoState(geo.id)).toEqual(before)
+		editor.expectToBeIn('magic-wand.idle')
+	})
+
+	it('leaving the deadzone arms tuning for good, with no jump at the boundary', () => {
+		const geo = morphSquareWithPen()
+		const before = geoState(geo.id)
+
+		// Exit the deadzone (20px, away from the shape center): the reference is
+		// re-anchored here, so the exit move itself leaves the shape unchanged.
+		editor.pointerMove(82, 100, { isPen: true })
+		const atExit = geoState(geo.id)
+		expect(atExit.w).toBeCloseTo(before.w, 6)
+		expect(atExit.h).toBeCloseTo(before.h, 6)
+		expect(atExit.rotation).toBeCloseTo(before.rotation, 6)
+
+		// Further away from the center: the shape scales up — tuning is live.
+		editor.pointerMove(62, 100, { isPen: true })
+		expect(geoState(geo.id).w).toBeGreaterThan(before.w)
+
+		// Back to ~1px from the original deadzone origin: still tuning (the gate
+		// does not re-engage), now pulling the shape smaller.
+		editor.pointerMove(103, 101, { isPen: true })
+		expect(geoState(geo.id).w).toBeLessThan(before.w)
+
+		editor.pointerUp(103, 101, { isPen: true })
+	})
+
+	it('mouse input tunes immediately with no deadzone', () => {
+		drawRectSketch(square)
+		vi.advanceTimersByTime(900)
+		const geo = realShapes().find((s) => s.type === 'geo') as TLGeoShape
+		const before = geoState(geo.id)
+
+		editor.pointerMove(106, 100) // 4px — inside what would be the pen deadzone
+		expect(geoState(geo.id).w).toBeLessThan(before.w)
+		editor.pointerUp()
+	})
+
+	it('guards line tuning the same way', () => {
+		drawLineSketch(100, 100, 300, 120, 12, { isPen: true })
+		vi.advanceTimersByTime(900)
+		const line = realShapes().find((s) => s.type === 'line') as TLLineShape
+		editor.expectToBeIn('magic-wand.line-tuning')
+		const before = linePageEndpoints(line)
+
+		// Wobble inside the deadzone: the end vertex stays put.
+		editor.pointerMove(303, 122, { isPen: true })
+		expect(linePageEndpoints(editor.getShape<TLLineShape>(line.id)!)).toEqual(before)
+
+		// Exit 25px below: re-anchored, so the exit move doesn't drag the end.
+		editor.pointerMove(300, 145, { isPen: true })
+		const atExit = linePageEndpoints(editor.getShape<TLLineShape>(line.id)!)
+		expect(atExit.end.x).toBeCloseTo(before.end.x, 6)
+		expect(atExit.end.y).toBeCloseTo(before.end.y, 6)
+
+		// Further movement drags the end with the grip captured at the exit point.
+		editor.pointerMove(300, 175, { isPen: true })
+		const tuned = linePageEndpoints(editor.getShape<TLLineShape>(line.id)!)
+		expect(tuned.end.y).toBeCloseTo(before.end.y + 30, 4)
+
+		editor.pointerUp(300, 175, { isPen: true })
 	})
 })

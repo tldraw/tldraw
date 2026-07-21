@@ -3,6 +3,17 @@ import { StateNode, TLGeoShape, TLShapeId, Vec, snapAngle } from '@tldraw/editor
 /** Rotation snap increments while shift is held (24 segments = every 15°). */
 const ROTATION_SNAP_SEGMENTS = 24
 
+/**
+ * Screen-space radius around the pointer's position at morph time within which
+ * pen input doesn't tune the shape. A pen held "still" (e.g. an Apple Pencil)
+ * wobbles a few pixels, which made it nearly impossible to release a fresh
+ * morph without accidentally nudging it. Once the pen leaves the deadzone the
+ * gate lifts for good: the tuning reference is re-anchored at the exit point,
+ * so deliberate fine-tuning — including back inside the original radius —
+ * behaves exactly as without a deadzone, with no jump at the boundary.
+ */
+export const PEN_TUNING_DEADZONE = 8
+
 /** Info passed when transitioning into the morph-tuning state. */
 export interface MorphTuningInfo {
 	shapeId: TLShapeId
@@ -45,6 +56,10 @@ export class MagicWandMorphTuning extends StateNode {
 		w: number
 		h: number
 	} | null = null
+	// Where the pen was when tuning began; while set, moves within
+	// PEN_TUNING_DEADZONE don't tune (pen-wobble guard). Null for non-pen input,
+	// and null again once the pen has left the zone.
+	private deadzoneScreenOrigin: Vec | null = null
 
 	override onEnter(info: MorphTuningInfo) {
 		this.shapeId = info.shapeId
@@ -53,6 +68,9 @@ export class MagicWandMorphTuning extends StateNode {
 		this.originalW = info.originalW
 		this.originalH = info.originalH
 		this.morphMark = info.morphMark
+		this.deadzoneScreenOrigin = this.editor.inputs.getIsPen()
+			? this.editor.inputs.getCurrentScreenPoint().clone()
+			: null
 
 		const shape = this.editor.getShape<TLGeoShape>(info.shapeId)
 		if (shape) {
@@ -69,24 +87,50 @@ export class MagicWandMorphTuning extends StateNode {
 	override onExit() {
 		this.shapeId = null
 		this.initialMorphState = null
+		this.deadzoneScreenOrigin = null
+	}
+
+	/**
+	 * Whether pen input is still held inside the post-morph deadzone. On exit
+	 * the reference vector is re-anchored to the pointer's current position so
+	 * tuning starts from here as a no-op — no jump at the boundary — and the
+	 * gate never re-engages, so the pen can tune freely back inside the
+	 * original radius.
+	 */
+	private isHeldInDeadzone(): boolean {
+		if (!this.deadzoneScreenOrigin) return false
+		const screenPoint = this.editor.inputs.getCurrentScreenPoint()
+		if (Vec.Dist(screenPoint, this.deadzoneScreenOrigin) < PEN_TUNING_DEADZONE) return true
+		this.deadzoneScreenOrigin = null
+		this.initialPointerOffset = Vec.Sub(
+			this.editor.inputs.getCurrentPagePoint(),
+			this.centerPagePos
+		)
+		return false
 	}
 
 	override onPointerMove() {
+		if (this.isHeldInDeadzone()) return
 		this.applyTune(false)
 	}
 
 	// Pressing or releasing shift re-applies the tune so the rotation snap toggles
 	// without needing to move the pointer (matching the select tool's rotate).
 	override onKeyDown() {
+		if (this.isHeldInDeadzone()) return
 		this.applyTune(false)
 	}
 
 	override onKeyUp() {
+		if (this.isHeldInDeadzone()) return
 		this.applyTune(false)
 	}
 
 	override onPointerUp() {
-		this.applyTune(true)
+		// Releasing without ever leaving the deadzone keeps the morph untouched.
+		if (!this.isHeldInDeadzone()) {
+			this.applyTune(true)
+		}
 		this.parent.transition('idle')
 	}
 

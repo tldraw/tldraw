@@ -1,4 +1,5 @@
 import { StateNode, TLLineShape, TLShapeId, Vec, snapAngle } from '@tldraw/editor'
+import { PEN_TUNING_DEADZONE } from './MagicWandMorphTuning'
 
 /** Line angle snap increments while shift is held (24 segments = every 15°). */
 const LINE_ANGLE_SNAP_SEGMENTS = 24
@@ -35,6 +36,10 @@ export class MagicWandLineTuning extends StateNode {
 	// The end vertex's local coords at morph time; used to make the commit a single
 	// clean undo step (revert to here, then record the move to the final position).
 	private initialEnd: { x: number; y: number } | null = null
+	// Where the pen was when tuning began; while set, moves within
+	// PEN_TUNING_DEADZONE don't tune (pen-wobble guard). Null for non-pen input,
+	// and null again once the pen has left the zone.
+	private deadzoneScreenOrigin: Vec | null = null
 
 	override onEnter(info: LineTuningInfo) {
 		this.shapeId = info.shapeId
@@ -42,6 +47,9 @@ export class MagicWandLineTuning extends StateNode {
 		this.endPointKey = info.endPointKey
 		this.pointerToEndOffset = info.pointerToEndOffset.clone()
 		this.morphMark = info.morphMark
+		this.deadzoneScreenOrigin = this.editor.inputs.getIsPen()
+			? this.editor.inputs.getCurrentScreenPoint().clone()
+			: null
 
 		const endPoint = this.editor.getShape<TLLineShape>(info.shapeId)?.props.points[info.endPointKey]
 		if (endPoint) this.initialEnd = { x: endPoint.x, y: endPoint.y }
@@ -50,24 +58,53 @@ export class MagicWandLineTuning extends StateNode {
 	override onExit() {
 		this.shapeId = null
 		this.initialEnd = null
+		this.deadzoneScreenOrigin = null
+	}
+
+	/**
+	 * Whether pen input is still held inside the post-morph deadzone. On exit
+	 * the grip is re-anchored to the (still untouched) end vertex so tuning
+	 * starts from here as a no-op — no jump at the boundary — and the gate
+	 * never re-engages, so the pen can tune freely back inside the original
+	 * radius.
+	 */
+	private isHeldInDeadzone(): boolean {
+		if (!this.deadzoneScreenOrigin) return false
+		const screenPoint = this.editor.inputs.getCurrentScreenPoint()
+		if (Vec.Dist(screenPoint, this.deadzoneScreenOrigin) < PEN_TUNING_DEADZONE) return true
+		this.deadzoneScreenOrigin = null
+		const endPoint = this.shapeId
+			? this.editor.getShape<TLLineShape>(this.shapeId)?.props.points[this.endPointKey]
+			: undefined
+		if (endPoint) {
+			const endPagePos = Vec.Add(this.startPagePos, endPoint)
+			this.pointerToEndOffset = Vec.Sub(endPagePos, this.editor.inputs.getCurrentPagePoint())
+		}
+		return false
 	}
 
 	override onPointerMove() {
+		if (this.isHeldInDeadzone()) return
 		this.applyTune(false)
 	}
 
 	// Pressing or releasing shift re-applies the tune so the angle snap toggles
 	// without needing to move the pointer (matching the select/line tools).
 	override onKeyDown() {
+		if (this.isHeldInDeadzone()) return
 		this.applyTune(false)
 	}
 
 	override onKeyUp() {
+		if (this.isHeldInDeadzone()) return
 		this.applyTune(false)
 	}
 
 	override onPointerUp() {
-		this.applyTune(true)
+		// Releasing without ever leaving the deadzone keeps the morph untouched.
+		if (!this.isHeldInDeadzone()) {
+			this.applyTune(true)
+		}
 		this.parent.transition('idle')
 	}
 
