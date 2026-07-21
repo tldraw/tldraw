@@ -142,9 +142,6 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		[mentionMembers]
 	)
 
-	// Comments are a Zero feature; hide the layer entirely when Zero isn't available (polyfill).
-	if (!app?.isUsingProperZero()) return null
-
 	return (
 		<>
 			<CanvasComments
