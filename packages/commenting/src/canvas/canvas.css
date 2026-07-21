@@ -76,6 +76,11 @@
 	gap: 10px;
 	max-height: 420px;
 	overflow-y: auto;
+	/* A scroll container clips at its own box — including the cards' shadows (setting one overflow
+	   axis makes both non-visible). Pad the clip box outward and pull the list back into place so
+	   the shadows have room to paint. */
+	padding: 16px;
+	margin: -16px;
 }
 
 /* Collapsed entries match the expanded thread's surface (same width, panel, elevation) so the
