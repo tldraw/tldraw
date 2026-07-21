@@ -33,13 +33,9 @@ test('an empty page renamed to --- becomes a locked divider', async ({ page, edi
 		expect(dividerBox!.height).toBeLessThan(pageBox!.height * 0.6)
 	})
 
-	await test.step('hovering a divider does not highlight it', async () => {
-		const pillOpacity = (el: Element) => getComputedStyle(el, '::before').opacity
-		// Sanity-check the mechanism on a regular row first: its pill shows on hover.
-		await editor.pageMenuItems.nth(0).hover()
-		expect(await editor.pageMenuItems.nth(0).evaluate(pillOpacity)).toBe('1')
+	await test.step('hovering the divider does not highlight it', async () => {
 		await dividerRow.hover()
-		expect(await dividerRow.evaluate(pillOpacity)).toBe('0')
+		expect(await dividerRow.evaluate((el) => getComputedStyle(el, '::before').opacity)).toBe('0')
 	})
 
 	await test.step('clicking the divider does not change the current page', async () => {
@@ -97,6 +93,15 @@ test('pages can be drag-reordered across a divider', async ({ page, editor }) =>
 		await editor.createNewPageNamed('Other page')
 		await expect(editor.pageMenuItems).toHaveCount(3)
 		await expect(editor.pageMenuItems.nth(1)).toHaveAttribute('data-isdivider', 'true')
+	})
+
+	await test.step('hovering highlights a page row but not the divider', async () => {
+		const pillOpacity = (el: Element) => getComputedStyle(el, '::before').opacity
+		// "Page 1" is not the current page here, so its pill only shows on hover.
+		await editor.pageMenuItems.nth(0).hover()
+		expect(await editor.pageMenuItems.nth(0).evaluate(pillOpacity)).toBe('1')
+		await editor.pageMenuItems.nth(1).hover()
+		expect(await editor.pageMenuItems.nth(1).evaluate(pillOpacity)).toBe('0')
 	})
 
 	await test.step('drag the first page below the divider', async () => {

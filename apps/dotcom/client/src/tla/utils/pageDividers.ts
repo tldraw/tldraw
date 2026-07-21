@@ -38,6 +38,10 @@ export function isPageDivider(editor: Editor, page: TLPage): boolean {
 /**
  * The nearest page to `fromPageId` (by list order, preferring earlier pages)
  * that is not a divider, or undefined if every other page is a divider.
+ *
+ * Expects `fromPageId` to be the current page (both callers step off it):
+ * unlike `isPageDivider`, the current-page exemption is intentionally
+ * ignored here, since the page being stepped off is still current.
  */
 export function getNearestNonDividerPageId(
 	editor: Editor,

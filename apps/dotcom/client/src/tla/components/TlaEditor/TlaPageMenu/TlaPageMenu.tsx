@@ -26,6 +26,7 @@ import {
 	releasePointerCapture,
 	setPointerCapture,
 	useBreakpoint,
+	useComputed,
 	useEditor,
 	useMenuIsOpen,
 	useReadonly,
@@ -130,8 +131,10 @@ export const TlaPageMenu = memo(function TlaPageMenu() {
 	const currentPage = useValue('currentPage', () => editor.getCurrentPage(), [editor])
 
 	// Divider status is derived: a page is a divider while it is named `---`
-	// (or more hyphens), has no shapes, and is not the current page.
-	const dividerPageIds = useValue(
+	// (or more hyphens), has no shapes, and is not the current page. The
+	// custom equality keeps this always-mounted menu from rerendering on
+	// shape edits that don't change divider membership.
+	const dividerPageIds$ = useComputed(
 		'dividerPageIds',
 		() => {
 			const ids = new Set<TLPageId>()
@@ -140,16 +143,26 @@ export const TlaPageMenu = memo(function TlaPageMenu() {
 			}
 			return ids
 		},
+		{
+			isEqual: (a: Set<TLPageId>, b: Set<TLPageId>) =>
+				a.size === b.size && Array.from(a).every((id) => b.has(id)),
+		},
 		[editor]
 	)
+	const dividerPageIds = useValue(dividerPageIds$)
 
 	const isReadonlyMode = useReadonly()
 
 	// Row layout: dividers are half-height, so row positions come from prefix
 	// sums rather than index * item height. Kept in a ref so the pointer-drag
-	// handlers always read the current layout without re-binding.
+	// handlers always read the current layout without re-binding. The row
+	// being renamed always stays full height: renames apply live per
+	// keystroke, so typing `---` would otherwise collapse the row around the
+	// open input mid-edit.
 	const rowHeights = pages.map((page) =>
-		dividerPageIds.has(page.id) ? PAGE_MENU_DIVIDER_ITEM_HEIGHT : PAGE_MENU_ITEM_HEIGHT
+		dividerPageIds.has(page.id) && editingPageId !== page.id
+			? PAGE_MENU_DIVIDER_ITEM_HEIGHT
+			: PAGE_MENU_ITEM_HEIGHT
 	)
 	const rowOffsets: number[] = []
 	let contentHeight = 0
@@ -631,7 +644,10 @@ export const TlaPageMenu = memo(function TlaPageMenu() {
 								const isCurrentPage = page.id === currentPage.id
 								const isRenamingThisPage = editingPageId === page.id
 								const isDragging = dragState?.id === page.id
-								const isDivider = dividerPageIds.has(page.id)
+								// The renaming row renders the input at full height even
+								// when its live-renamed name already matches the divider
+								// convention; it converts when editing ends.
+								const isDivider = dividerPageIds.has(page.id) && !isRenamingThisPage
 
 								let y = rowOffsets[index]
 								if (dragState) {

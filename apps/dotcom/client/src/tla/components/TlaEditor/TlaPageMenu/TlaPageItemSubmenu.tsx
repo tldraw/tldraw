@@ -86,7 +86,7 @@ export const TlaPageItemSubmenu = track(function TlaPageItemSubmenu({
 			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="page-menu">
 					<TldrawUiMenuGroup id="modify">
-						{!isDivider && onRename && (
+						{onRename && (
 							<TldrawUiMenuItem id="rename" label="page-menu.submenu.rename" onSelect={onRename} />
 						)}
 						{!isDivider && (
