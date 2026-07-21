@@ -127,6 +127,52 @@ describe('MagicWandTool', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([boxId])
 	})
 
+	it('excludes a shape inside the lasso bounds but outside the loop', () => {
+		// A round loop: the corner of its bounding box is outside the loop itself.
+		// A shape tucked there sits in a uniform outside region (the boundary
+		// never passes through it) — the fast uniform-region path must say "out".
+		const cornerId = createBox(112, 112, 16, 16)
+		const centerId = createBox(190, 190, 20, 20)
+		editor.setCurrentTool('magic-wand')
+		editor.pointerDown(290, 200)
+		for (let i = 1; i <= 24; i++) {
+			const t = (i / 24) * Math.PI * 2
+			editor.pointerMove(200 + 90 * Math.cos(t), 200 + 90 * Math.sin(t))
+		}
+		editor.pointerUp()
+
+		expect(editor.getSelectedShapeIds()).toEqual([centerId])
+		expect(editor.getShape(cornerId)).toBeTruthy()
+	})
+
+	it('lassos a dense freehand scribble via its thinned outline', () => {
+		// Hundreds of vertices: coverage samples a thinned outline, not every point.
+		editor.setCurrentTool('draw')
+		editor.pointerDown(130, 140)
+		for (let i = 1; i <= 300; i++) {
+			editor.pointerMove(130 + (i % 2 ? 40 : 0) + (i % 3), 140 + i * 0.1)
+		}
+		editor.pointerUp()
+		const scribbleId = editor.getCurrentPageShapes().at(-1)!.id
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround()
+		expect(editor.getSelectedShapeIds()).toEqual([scribbleId])
+	})
+
+	it('does not lasso a dense scribble that is half outside the loop', () => {
+		editor.setCurrentTool('draw')
+		editor.pointerDown(150, 140)
+		for (let i = 1; i <= 300; i++) {
+			editor.pointerMove(150 + (i % 2 ? 100 : 0) + (i % 3), 140 + i * 0.1)
+		}
+		editor.pointerUp()
+
+		editor.setCurrentTool('magic-wand')
+		drawLoopAround() // loop spans 100–200; the scribble reaches to ~250
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
 	it('draws a normal stroke when the loop does not encircle anything', () => {
 		editor.setCurrentTool('magic-wand')
 		const before = editor.getCurrentPageShapes().length

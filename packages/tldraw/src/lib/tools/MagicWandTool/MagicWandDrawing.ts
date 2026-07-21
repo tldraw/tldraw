@@ -57,8 +57,12 @@ import {
 const LASSO_COVERAGE_MIN = 0.8
 /** Per-axis grid resolution for sampling a closed shape's interior area for coverage. */
 const LASSO_COVERAGE_GRID = 6
-/** Open outlines (e.g. lines, which have no area) are densified to ~this many points for coverage. */
-const LASSO_OUTLINE_MIN_SAMPLES = 24
+/**
+ * Open outlines are sampled to ~this many points for coverage — densified when
+ * sparse (e.g. a 2-point line) and thinned when dense (e.g. a scribble's
+ * hundreds of vertices), so per-shape coverage cost stays bounded.
+ */
+const LASSO_OUTLINE_SAMPLES = 32
 
 /** How long the pen must be held roughly still to morph the sketch into a shape. */
 const MORPH_HOLD_MS = 500
@@ -67,6 +71,16 @@ const MORPH_PREVIEW_DELAY_MS = 200
 /** Screen-space movement that resets the hold-to-morph timer ("held there"). */
 const MORPH_MOVE_TOLERANCE = 6
 
+/**
+ * Screen-space pointer travel that triggers a fresh enclosure check for the
+ * lasso preview. Coalesced pointer events arrive several times per frame less
+ * than a few px apart; refreshing the (relatively expensive) enclosure preview
+ * only after this much travel collapses those bursts to roughly one check per
+ * frame. Completion always recomputes exactly, so this only affects how soon
+ * the preview tint reacts — by less than half a stroke width.
+ */
+const ENCLOSURE_REFRESH_DISTANCE = 4
+
 /** Screen-space distance the stroke is resampled to before counting scribble reversals. */
 const SCRIBBLE_RESAMPLE_DISTANCE = 6
 /** How many sharp reversals mark the stroke as a deliberate scribble (vs a line over a shape). */
@@ -74,6 +88,86 @@ const SCRIBBLE_MIN_REVERSALS = 3
 
 /** What the in-progress ink currently previews: a plain draw, a lasso, or a delete. */
 type InkMode = 'none' | 'lasso' | 'delete'
+
+/** Cells per axis of the {@link LoopBoundaryGrid} over the lasso's bounds. */
+const LOOP_BOUNDARY_GRID_SIZE = 32
+
+/**
+ * A coarse occupancy grid over the lasso polygon's bounds, marking every cell
+ * the loop's boundary passes through. A box that touches no marked cell (and
+ * lies within the polygon's bounds) sits in a uniform region — entirely inside
+ * or entirely outside the loop — so a single point test decides its coverage.
+ * That replaces the per-sample polygon tests for every non-straddling shape,
+ * which is what makes lassoing many shapes at once affordable: cost per check
+ * becomes O(polygon) to build + O(1)-ish per shape, instead of
+ * O(samples × polygon) per shape.
+ *
+ * Marking is conservative: each edge marks every cell in its bounding cell
+ * range (a superset of the cells it actually crosses), so coarseness can only
+ * send extra shapes down the exact sampling path — never produce a wrong
+ * uniform-region verdict.
+ */
+class LoopBoundaryGrid {
+	private readonly cells = new Uint8Array(LOOP_BOUNDARY_GRID_SIZE * LOOP_BOUNDARY_GRID_SIZE)
+	private readonly degenerate: boolean
+
+	constructor(
+		polygon: Vec[],
+		private readonly bounds: Box
+	) {
+		// A zero-area polygon can't partition space; treat everything as straddling.
+		this.degenerate = bounds.width <= 0 || bounds.height <= 0
+		if (this.degenerate) return
+		const n = polygon.length
+		for (let i = 0; i < n; i++) {
+			const a = polygon[i]
+			const b = polygon[(i + 1) % n] // include the implicit closing edge
+			this.markCellRange(
+				Math.min(a.x, b.x),
+				Math.min(a.y, b.y),
+				Math.max(a.x, b.x),
+				Math.max(a.y, b.y)
+			)
+		}
+	}
+
+	private toCellX(x: number) {
+		const t = ((x - this.bounds.minX) / this.bounds.width) * LOOP_BOUNDARY_GRID_SIZE
+		return Math.min(LOOP_BOUNDARY_GRID_SIZE - 1, Math.max(0, Math.floor(t)))
+	}
+
+	private toCellY(y: number) {
+		const t = ((y - this.bounds.minY) / this.bounds.height) * LOOP_BOUNDARY_GRID_SIZE
+		return Math.min(LOOP_BOUNDARY_GRID_SIZE - 1, Math.max(0, Math.floor(t)))
+	}
+
+	private markCellRange(minX: number, minY: number, maxX: number, maxY: number) {
+		const x0 = this.toCellX(minX)
+		const x1 = this.toCellX(maxX)
+		const y0 = this.toCellY(minY)
+		const y1 = this.toCellY(maxY)
+		for (let y = y0; y <= y1; y++) {
+			for (let x = x0; x <= x1; x++) {
+				this.cells[y * LOOP_BOUNDARY_GRID_SIZE + x] = 1
+			}
+		}
+	}
+
+	/** Whether the loop's boundary passes through (or near) the given box. */
+	touchesBoundary(box: Box): boolean {
+		if (this.degenerate) return true
+		const x0 = this.toCellX(box.minX)
+		const x1 = this.toCellX(box.maxX)
+		const y0 = this.toCellY(box.minY)
+		const y1 = this.toCellY(box.maxY)
+		for (let y = y0; y <= y1; y++) {
+			for (let x = x0; x <= x1; x++) {
+				if (this.cells[y * LOOP_BOUNDARY_GRID_SIZE + x]) return true
+			}
+		}
+		return false
+	}
+}
 
 /**
  * Local-space points covering a closed shape's interior, as an N×N grid over its
@@ -100,12 +194,22 @@ function sampleFilledArea(geometry: Geometry2d, grid: number): Vec[] {
 
 /**
  * Local-space points along an open outline (e.g. a line, which has no area),
- * densified to ~`minSamples` so coverage isn't all-or-nothing on few vertices.
+ * resampled to ~`targetSamples`: densified so coverage isn't all-or-nothing on
+ * few vertices, and thinned so a dense freehand outline doesn't pay a polygon
+ * test per raw vertex.
  */
-function sampleOpenOutline(vertices: Vec[], minSamples: number): Vec[] {
+function sampleOpenOutline(vertices: Vec[], targetSamples: number): Vec[] {
 	const n = vertices.length
 	if (n < 2) return vertices
-	const subdivisions = Math.max(1, Math.ceil(minSamples / (n - 1)))
+	if (n > targetSamples) {
+		// Thin dense outlines: evenly spaced picks, keeping both endpoints.
+		const samples: Vec[] = []
+		for (let i = 0; i < targetSamples; i++) {
+			samples.push(vertices[Math.round((i * (n - 1)) / (targetSamples - 1))])
+		}
+		return samples
+	}
+	const subdivisions = Math.max(1, Math.ceil(targetSamples / (n - 1)))
 	if (subdivisions === 1) return vertices
 	const samples: Vec[] = []
 	for (let i = 0; i < n - 1; i++) {
@@ -184,6 +288,10 @@ export class MagicWandDrawing extends Drawing {
 	// The stroke pieces the wet-ink CSS currently covers (the draw tool may split
 	// one long stroke into several shapes).
 	private wetInkIds: TLShapeId[] = []
+	// The enclosure preview's cache: result of the last check and the screen
+	// point it ran at (refreshed after ENCLOSURE_REFRESH_DISTANCE of travel).
+	private cachedEnclosedShapeIds: TLShapeId[] = []
+	private lastEnclosureScreenPoint: Vec | null = null
 	// Whether the stroke is mid "ink drying" fade, so onExit shouldn't clear it.
 	private isDryingInk = false
 
@@ -195,6 +303,8 @@ export class MagicWandDrawing extends Drawing {
 		this.deleteOverlays = new Map()
 		this.hintedShapeIds = []
 		this.wetInkIds = []
+		this.cachedEnclosedShapeIds = []
+		this.lastEnclosureScreenPoint = null
 		this.isDryingInk = false
 		this.didMorph = false
 		// Enable the CSS colour transition for the in-progress stroke.
@@ -271,7 +381,21 @@ export class MagicWandDrawing extends Drawing {
 
 		const wouldDelete = this.scribbledShapeIds.size > 0 && this.isScribble()
 		// Suppress lasso while a morph preview is charging (morph wins on hold).
-		const enclosedShapeIds = wouldDelete ? [] : this.getEnclosedShapeIds()
+		// The enclosure check is the expensive part of the preview, so it only
+		// reruns after the pointer has travelled a little (coalesced events land
+		// several times per frame); `complete` recomputes exactly on release.
+		let enclosedShapeIds: TLShapeId[] = []
+		if (!wouldDelete) {
+			const screenPoint = this.editor.inputs.getCurrentScreenPoint()
+			if (
+				!this.lastEnclosureScreenPoint ||
+				Vec.Dist(screenPoint, this.lastEnclosureScreenPoint) >= ENCLOSURE_REFRESH_DISTANCE
+			) {
+				this.cachedEnclosedShapeIds = this.getEnclosedShapeIds()
+				this.lastEnclosureScreenPoint = screenPoint.clone()
+			}
+			enclosedShapeIds = this.cachedEnclosedShapeIds
+		}
 		const wouldLasso = enclosedShapeIds.length > 0 && !this.morphPreviewId
 		const mode: InkMode = wouldDelete ? 'delete' : wouldLasso ? 'lasso' : 'none'
 
@@ -739,6 +863,7 @@ export class MagicWandDrawing extends Drawing {
 
 		const currentPageId = this.editor.getCurrentPageId()
 		const polygonBounds = Box.FromPoints(polygon)
+		const boundaryGrid = new LoopBoundaryGrid(polygon, polygonBounds)
 		const enclosedShapeIds: TLShapeId[] = []
 
 		for (const id of this.shapeIdsBeforeGesture) {
@@ -753,10 +878,18 @@ export class MagicWandDrawing extends Drawing {
 			const bounds = this.editor.getShapePageBounds(id)
 			if (!bounds || !polygonBounds.collides(bounds)) continue
 
-			// Select the shape if most of its outline is inside the loop ("mostly
-			// enclosed"). This excludes a big container the loop is drawn inside (its
-			// outline is outside the loop) while still allowing a small bit to poke out.
-			if (this.getLassoCoverage(id, polygon) >= LASSO_COVERAGE_MIN) {
+			// A shape is selected when most of it is inside the loop ("mostly
+			// enclosed") — this excludes a big container the loop is drawn inside
+			// (its outline is outside the loop) while allowing a small bit to poke
+			// out. Shapes the boundary doesn't pass through sit entirely inside or
+			// outside the loop, so one point test replaces the sampled coverage.
+			let coverage: number
+			if (polygonBounds.contains(bounds) && !boundaryGrid.touchesBoundary(bounds)) {
+				coverage = pointInPolygon(bounds.center, polygon) ? 1 : 0
+			} else {
+				coverage = this.getLassoCoverage(id, polygon)
+			}
+			if (coverage >= LASSO_COVERAGE_MIN) {
 				enclosedShapeIds.push(id)
 			}
 		}
@@ -778,7 +911,7 @@ export class MagicWandDrawing extends Drawing {
 
 		const localSamples = geometry.isClosed
 			? sampleFilledArea(geometry, LASSO_COVERAGE_GRID)
-			: sampleOpenOutline(geometry.vertices, LASSO_OUTLINE_MIN_SAMPLES)
+			: sampleOpenOutline(geometry.vertices, LASSO_OUTLINE_SAMPLES)
 		if (localSamples.length === 0) return 0
 
 		let inside = 0
