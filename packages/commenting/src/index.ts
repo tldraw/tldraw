@@ -36,6 +36,7 @@ export {
 	type PendingComment,
 } from './canvas/comment-tool'
 export { collectClusterLeaves } from './canvas/cluster-input'
+export { computePinStacks, PIN_STACK_STEP_PX } from './canvas/pin-stacking'
 export { computeClusterTable } from './clustering/computeClusterTable'
 export {
 	getCommentRecord,

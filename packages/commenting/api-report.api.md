@@ -327,6 +327,12 @@ export function commitCommentMutation<T>(editor: Editor, fn: () => T, kind?: 'dr
 // @public (undocumented)
 export function computeClusterTable(leaves: readonly LeafInput[], options: ClusterOptions): ClusterTable;
 
+// @public
+export function computePinStacks(editor: Editor, threads: readonly TLCommentThread[], impreciseShapeAnchor?: {
+    x: number;
+    y: number;
+}): Map<string, number>;
+
 // @public (undocumented)
 export function CountBadge({ count }: CountBadgeProps): JSX.Element;
 
@@ -470,6 +476,9 @@ export interface PendingComment {
 
 // @public
 export const pendingComment: EditorAtom<null | PendingComment>;
+
+// @public
+export const PIN_STACK_STEP_PX = 12;
 
 // @public
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;

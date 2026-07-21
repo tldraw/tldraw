@@ -61,6 +61,13 @@
 	z-index: 1;
 }
 
+/* A hovered pin rises above everything nearby — in a fanned stack of coincident pins, the pin
+   being reached for must win over its later-stacked (higher-painted) siblings. */
+.tlui-cmt-canvas-pin:hover,
+.pseudo-hover.tlui-cmt-canvas-pin {
+	z-index: 2;
+}
+
 /* A region anchor's area: a dashed box under the pins, non-interactive so canvas events pass
    through. Drawn for the live drag draft and for a region thread while hovered or open. */
 .tlui-cmt-canvas-region {

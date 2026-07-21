@@ -54,6 +54,7 @@ import {
 	getCommentingOptions,
 	useCommentingOptions,
 } from './options'
+import { computePinStacks, PIN_STACK_STEP_PX } from './pin-stacking'
 import {
 	DEFAULT_REGION_COMMENT_OPTIONS,
 	RegionCommentOptions,
@@ -344,6 +345,14 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		() => new Map<string, TLCommentThread>(threads.map((thread) => [thread.id, thread])),
 		[threads]
 	)
+	// Zooming separates near pins, but pins with the *same* anchor point (several imprecise
+	// comments on one shape) coincide at every zoom — spread those sideways so each stays
+	// reachable. Keyed on page-space anchors, so camera moves never recompute this.
+	const pinStacks = useValue(
+		'comment pin stacks',
+		() => computePinStacks(editor, threads, impreciseShapeAnchor),
+		[editor, threads, impreciseShapeAnchor]
+	)
 	const openThread = openId ? threadsById.get(openId) : null
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 
@@ -459,6 +468,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 								<ThreadPin
 									editor={editor}
 									thread={thread}
+									stackIndex={pinStacks.get(thread.id) ?? 0}
 									{...props}
 									regionOptions={regionOptions}
 								/>
@@ -477,6 +487,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 							key={thread.id}
 							editor={editor}
 							thread={thread}
+							stackIndex={pinStacks.get(thread.id) ?? 0}
 							{...props}
 							regionOptions={regionOptions}
 						/>
@@ -486,6 +497,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 							key={thread.id}
 							editor={editor}
 							thread={thread}
+							stackIndex={pinStacks.get(thread.id) ?? 0}
 							{...props}
 							regionOptions={regionOptions}
 						/>
@@ -503,6 +515,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 							key={thread.id}
 							editor={editor}
 							thread={thread}
+							stackIndex={pinStacks.get(thread.id) ?? 0}
 							{...props}
 							regionOptions={regionOptions}
 						/>
@@ -513,6 +526,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 					key={`open:${openThread.id}`}
 					editor={editor}
 					thread={openThread}
+					stackIndex={pinStacks.get(openThread.id) ?? 0}
 					{...props}
 					regionOptions={regionOptions}
 				/>
@@ -985,11 +999,14 @@ const ThreadPin = memo(function ThreadPin({
 	editor,
 	thread,
 	regionOptions,
+	stackIndex,
 	...props
 }: Omit<CanvasCommentsProps, 'regionOptions'> & {
 	editor: Editor
 	thread: TLCommentThread
 	regionOptions: RegionCommentOptions
+	/** This pin's slot among pins sharing its exact anchor point — 0 sits at the anchor. */
+	stackIndex: number
 }) {
 	const {
 		currentUserId,
@@ -1297,11 +1314,15 @@ const ThreadPin = memo(function ThreadPin({
 	}
 
 	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
-	// move to the drag point; otherwise it sits at the stored anchor's viewport point.
+	// move to the drag point; otherwise it sits at the stored anchor's viewport point — stepped
+	// sideways by its stack slot when other pins share that exact point. The step is in screen
+	// pixels (not page space) so a stack stays fanned out at every zoom.
 	const livePinPage = resizeBounds
 		? regionPinPoint(resizeBounds, regionOptions.pinCorner)
 		: dragPagePoint
-	const renderPoint = livePinPage ? editor.pageToViewport(livePinPage) : point
+	const renderPoint = livePinPage
+		? editor.pageToViewport(livePinPage)
+		: { x: point.x + stackIndex * PIN_STACK_STEP_PX, y: point.y }
 
 	// A region's live box bounds, by priority: a corner resize, else a pin-drag translation (the pin
 	// corner tracks the cursor), else the stored anchor. Undefined for non-region threads.
