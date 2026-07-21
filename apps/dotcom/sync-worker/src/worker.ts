@@ -14,6 +14,7 @@ import {
 	queries,
 	schema,
 } from '@tldraw/dotcom-shared'
+import { exhaustiveSwitchError } from '@tldraw/utils'
 import {
 	blockUnknownOrigins,
 	createRouter,
@@ -335,30 +336,45 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		// batches should not open database connections they never use.
 		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
 		for (const message of batch.messages) {
-			if (message.body.type === 'og-image-render') {
-				try {
-					await handleOgImageRenderMessage(this.env, message as Message<OgImageRenderQueueMessage>)
-				} catch (_e) {
-					// handleOgImageRenderMessage settles the message itself; this guards the batch loop
-					// against an unexpected throw escaping it, so one bad message can't abort processing
-					// of the rest of the batch. Retry is a no-op if the handler already settled.
-					message.retry()
+			switch (message.body.type) {
+				case 'og-image-render':
+					try {
+						await handleOgImageRenderMessage(
+							this.env,
+							message as Message<OgImageRenderQueueMessage>,
+							this.ctx
+						)
+					} catch (_e) {
+						// handleOgImageRenderMessage settles the message itself; this guards the batch loop
+						// against an unexpected throw escaping it, so one bad message can't abort processing
+						// of the rest of the batch. Retry is a no-op if the handler already settled.
+						message.retry()
+					}
+					break
+				case 'asset-upload': {
+					const { objectName, fileId, userId } = message.body
+					try {
+						db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
+						await db
+							.insertInto('asset')
+							.values({ objectName, fileId, userId })
+							.onConflict((oc) => oc.column('objectName').doNothing())
+							.execute()
+						message.ack()
+					} catch (_e) {
+						message.retry({
+							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
+						})
+					}
+					break
 				}
-				continue
-			}
-			const { objectName, fileId, userId } = message.body
-			try {
-				db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
-				await db
-					.insertInto('asset')
-					.values({ objectName, fileId, userId })
-					.onConflict((oc) => oc.column('objectName').doNothing())
-					.execute()
-				message.ack()
-			} catch (_e) {
-				message.retry({
-					delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
-				})
+				default:
+					// One shared queue carries every message type, so a newly added type that nobody
+					// handles here would otherwise fall through to whichever branch happens to be last
+					// and be mis-parsed as that type. This makes it a compile error instead. At runtime
+					// it only fires on deploy skew (a producer ahead of this consumer), where throwing
+					// is what we want: the batch is redelivered once the new consumer is live.
+					exhaustiveSwitchError(message.body, 'type')
 			}
 		}
 	}

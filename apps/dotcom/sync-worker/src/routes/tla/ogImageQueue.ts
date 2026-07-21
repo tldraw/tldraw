@@ -21,7 +21,7 @@ import {
 	loadBoardSnapshot,
 	renderThumbnailScreenshot,
 } from './sharedBoardScreenshotMcp'
-import { classifyScreenshotFailure, sha256 } from './thumbnailShared'
+import { classifyScreenshotFailure, reportThumbnailError, sha256 } from './thumbnailShared'
 
 // Queue-backed async OG image generation. The GET og-image route never blocks a request on
 // Browser Run: it serves whatever is cached (fresh or stale) or redirects to the default OG image,
@@ -144,7 +144,8 @@ export async function enqueueOgImageRender(
 // newest content, coalescing bursts of enqueues for a fast-changing board into one capture.
 export async function handleOgImageRenderMessage(
 	env: Environment,
-	message: Message<OgImageRenderQueueMessage>
+	message: Message<OgImageRenderQueueMessage>,
+	ctx?: ExecutionContext
 ): Promise<void> {
 	const { kind, slug } = message.body
 	const boardHash = await sha256(slug)
@@ -242,6 +243,14 @@ export async function handleOgImageRenderMessage(
 		message.ack()
 	} catch (error) {
 		// Bounded reason code only — raw error.message would blow up the failure blob's cardinality.
+		// Sentry gets the unbounded original, since the reason code alone can't explain why a board
+		// burned through its retries.
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			surface: 'og_queue',
+			extras: { kind, slug, attempts: message.attempts },
+		})
 		retryOrDrop(env, message, boardHash, classifyScreenshotFailure(error))
 	}
 }

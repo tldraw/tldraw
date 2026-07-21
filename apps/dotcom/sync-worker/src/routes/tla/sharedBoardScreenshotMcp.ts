@@ -22,7 +22,7 @@ import {
 	getSharedFileRoomSnapshot,
 	isFileAnonymouslyViewable,
 } from './getSharedFile'
-import { classifyScreenshotFailure, sha256 } from './thumbnailShared'
+import { classifyScreenshotFailure, reportThumbnailError, sha256 } from './thumbnailShared'
 
 const SCREENSHOT_TOOL_NAME = 'get_shared_board_screenshot'
 const BOARD_INFO_TOOL_NAME = 'get_board_info'
@@ -95,7 +95,8 @@ interface EnumeratedPage {
 
 export async function sharedBoardScreenshotMcp(
 	request: IRequest,
-	env: Environment
+	env: Environment,
+	ctx?: ExecutionContext
 ): Promise<Response> {
 	if (request.method !== 'POST') {
 		return new Response('MCP screenshot server expects POST', { status: 405 })
@@ -134,7 +135,7 @@ export async function sharedBoardScreenshotMcp(
 				case BOARD_INFO_TOOL_NAME:
 					return jsonRpcResult(
 						rpcRequest.id,
-						await callBoardInfoTool(rpcRequest.params.arguments, request, env)
+						await callBoardInfoTool(rpcRequest.params.arguments, request, env, ctx)
 					)
 				case SCREENSHOT_TOOL_NAME:
 					return jsonRpcResult(
@@ -154,7 +155,7 @@ export function parseSharedBoardScreenshotInput(input: unknown): SharedBoardScre
 	return {
 		boardId: parseBoardId(value.boardId),
 		page: parsePageOrdinal(value.page),
-		theme: value.theme === 'dark' ? 'dark' : 'light',
+		theme: parseTheme(value.theme),
 	}
 }
 
@@ -176,6 +177,17 @@ function parseBoardId(value: unknown): string {
 	}
 	if (value.includes('/')) {
 		throw new Error('boardId must be a board id, not a URL')
+	}
+	return value
+}
+
+// Omitting the theme means light, but an unrecognized one is rejected rather than quietly treated
+// as light: a caller asking for `blue` gets a wrong-but-plausible image back and no signal that the
+// argument was ignored.
+function parseTheme(value: unknown): 'light' | 'dark' {
+	if (value === undefined || value === null) return 'light'
+	if (value !== 'light' && value !== 'dark') {
+		throw new Error(`theme must be 'light' or 'dark'`)
 	}
 	return value
 }
@@ -275,7 +287,12 @@ export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
 	return url.toString()
 }
 
-async function callBoardInfoTool(argumentsValue: unknown, request: Request, env: Environment) {
+async function callBoardInfoTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	ctx?: ExecutionContext
+) {
 	const clientIp = getClientIp(request)
 	let input: { boardId: string }
 	try {
@@ -318,6 +335,15 @@ async function callBoardInfoTool(argumentsValue: unknown, request: Request, env:
 			pages: pages.map((p) => ({ index: p.index, name: p.name, hasContent: p.hasContent })),
 		})
 	} catch (error) {
+		// The caller gets the message, but nothing else records it: this tool writes no telemetry
+		// (it spends no Browser Run), so without a report a failing board lookup is invisible to us.
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			request,
+			surface: 'mcp_board_info',
+			extras: { boardId: input.boardId },
+		})
 		return toolError(
 			`Could not read board: ${error instanceof Error ? error.message : String(error)}`
 		)

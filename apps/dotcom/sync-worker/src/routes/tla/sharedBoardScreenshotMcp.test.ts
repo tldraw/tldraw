@@ -113,6 +113,19 @@ describe('parseSharedBoardScreenshotInput', () => {
 			'page must be'
 		)
 	})
+
+	// An unrecognized theme is rejected rather than silently rendered as light, so a caller that
+	// asks for something the tool doesn't support hears about it instead of getting a plausible
+	// image back with its argument quietly dropped.
+	it('rejects an unrecognized theme', () => {
+		expect(() => parseSharedBoardScreenshotInput({ boardId: 'a', theme: 'blue' })).toThrow(
+			'theme must be'
+		)
+		expect(() => parseSharedBoardScreenshotInput({ boardId: 'a', theme: 1 })).toThrow(
+			'theme must be'
+		)
+		expect(parseSharedBoardScreenshotInput({ boardId: 'a', theme: null }).theme).toBe('light')
+	})
 })
 
 describe('parseBoardInfoInput', () => {

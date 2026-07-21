@@ -9,7 +9,7 @@ import {
 	writeOgImageTelemetry,
 } from './ogImageQueue'
 import { isRateLimited } from './sharedBoardScreenshotMcp'
-import { sha256 } from './thumbnailShared'
+import { reportThumbnailError, sha256 } from './thumbnailShared'
 
 // OG images are served entirely from the R2 cache; rendering happens asynchronously through the
 // og-image queue consumer (ogImageQueue.ts). A request never waits on Browser Run: it gets the
@@ -29,13 +29,29 @@ const FRESH_IMAGE_MAX_AGE_SECONDS = 60 * 60
 const STALE_IMAGE_MAX_AGE_SECONDS = 5 * 60
 const REDIRECT_MAX_AGE_SECONDS = 60
 
-export async function getOgImage(request: IRequest, env: Environment): Promise<Response> {
+export async function getOgImage(
+	request: IRequest,
+	env: Environment,
+	ctx?: ExecutionContext
+): Promise<Response> {
 	// Crawlers probe this URL with HEAD before (or instead of) GET, so the route is registered with
 	// .all and HEAD must still return the cache/redirect headers. But a HEAD must not spend Browser
 	// Run: only a real GET reads the R2 body and enqueues a render. Any non-GET method is treated
 	// like a probe (headers only, no enqueue).
 	const wantsBody = request.method === 'GET'
-	const board = await resolveOgBoard(request, env).catch(() => null)
+	const board = await resolveOgBoard(request, env).catch((error) => {
+		// Resolution reads Postgres and R2, so a throw here is infrastructure failing, not a board
+		// that isn't public — but both produce the same default-image redirect. Report it, or an
+		// outage is indistinguishable from a quiet day of unpublished boards.
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			request,
+			surface: 'og_route',
+			extras: { prefix: request.params.prefix, slug: request.params.slug },
+		})
+		return null
+	})
 	if (!board) return redirectToDefaultOgImage(request, env)
 
 	const boardHash = await sha256(board.slug)

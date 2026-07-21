@@ -5,11 +5,16 @@ import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileRoomSnapshot } from './getSharedFile'
+import { reportThumbnailError } from './thumbnailShared'
 
 // Serves snapshot data to the thumbnail render page. Only accepts short-lived render tokens
 // minted by this worker, so the render page cannot be pointed at arbitrary boards even though
 // published snapshot data is itself public.
-export async function getThumbnailSnapshot(request: IRequest, env: Environment): Promise<Response> {
+export async function getThumbnailSnapshot(
+	request: IRequest,
+	env: Environment,
+	ctx?: ExecutionContext
+): Promise<Response> {
 	const token = new URL(request.url).searchParams.get('token')
 	if (!token) {
 		return json({ error: true, message: 'token is required' }, 400)
@@ -26,7 +31,19 @@ export async function getThumbnailSnapshot(request: IRequest, env: Environment):
 		job.kind === 'published'
 			? getPublishedRoomSnapshot(env, job.slug)
 			: getSharedFileRoomSnapshot(env, job.slug)
-	).catch(() => undefined)
+	).catch((error) => {
+		// A load failure and a genuinely missing board both answer 404 here, which the render page
+		// turns into an error state and the capture surfaces as a generic render failure. Report the
+		// real cause so a broken snapshot read doesn't hide behind that.
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			request,
+			surface: 'thumbnail_snapshot',
+			extras: { kind: job.kind, slug: job.slug },
+		})
+		return undefined
+	})
 	// A corrupt or partial R2 payload can carry schema metadata without a documents array; guard it
 	// so it returns a controlled 404 rather than throwing on the .map below and 500ing the render.
 	if (!snapshot?.schema || !snapshot.documents) {
