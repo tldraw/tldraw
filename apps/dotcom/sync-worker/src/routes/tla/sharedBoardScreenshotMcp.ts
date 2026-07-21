@@ -645,11 +645,18 @@ function getScreenshotRequestBody(renderUrl: string) {
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			deviceScaleFactor: 1,
 		},
-		// Waiting for a terminal selector is the real completion signal; waiting for network idle is
-		// fragile because background app requests (e.g. replicator-status polling) can keep the
-		// network busy indefinitely.
+		// Waiting for a terminal selector is the real completion signal; waiting on network activity is
+		// fragile because background app requests (e.g. replicator-status polling) can keep the network
+		// busy indefinitely. `load` is a milder form of that same trap, so it stops here at
+		// domcontentloaded: `load` does not fire until every subresource settles, and one stalled image
+		// request is enough to hold it open until this timeout — at which point the quick action fails
+		// without ever reaching the waitForSelector below, even though the page had marked itself ready
+		// long before. A board whose bookmark preview image points back at that board's own OG image
+		// route does exactly this. Nothing is lost by not waiting for `load`: the render page's settle
+		// wait (THUMBNAIL_SETTLE_TIMEOUT_MS) and the SDK's asset-inlining delay (maxExportDelayMs) are
+		// separately bounded, so the page reaches a terminal state on its own schedule regardless.
 		gotoOptions: {
-			waitUntil: 'load',
+			waitUntil: 'domcontentloaded',
 			timeout: RENDER_TIMEOUT_MS,
 		},
 		// Resolve as soon as the render page reaches either terminal state (ready or error), so a

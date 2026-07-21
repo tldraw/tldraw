@@ -353,9 +353,15 @@ describe('get_shared_board_screenshot', () => {
 		)
 
 		const body = screenshotOf(env).mock.calls[0]![1] as {
+			gotoOptions: { waitUntil: string }
 			waitForSelector: { selector: string }
 			selector: string
 		}
+		// Navigation must not wait for `load`. It doesn't fire until every subresource settles, so one
+		// stalled image request holds it open for the whole timeout and the quick action fails before
+		// the selector wait below is reached — even though the page marked itself ready long earlier.
+		// The selector is the completion signal; navigation just has to get the page running.
+		expect(body.gotoOptions.waitUntil).toBe('domcontentloaded')
 		// Waits on ready OR error, so an errored render returns instead of burning the full timeout.
 		expect(body.waitForSelector.selector).toBe(
 			'[data-thumbnail-ready="true"], [data-thumbnail-error]'
