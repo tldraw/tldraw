@@ -1,3 +1,4 @@
+import { WeakCache } from '@tldraw/utils'
 import { Editor, TLCommentAnchor, TLCommentThread, TLPageId, TLShapeId, VecLike } from 'tldraw'
 import {
 	getCommentRecord,
@@ -10,6 +11,18 @@ import { commitCommentMutation } from './state'
 import { anchorPagePoint, DEFAULT_IMPRECISE_SHAPE_ANCHOR } from './thread-state'
 
 type ShapeAnchor = Extract<TLCommentAnchor, { type: 'shape' | 'text-range' }>
+
+/**
+ * Threads converted to point anchors because their shape was deleted, kept so the anchor can be
+ * restored if the shape comes back (page move re-create, undo of the delete). Owned by the
+ * editor, not the registration closure: the registering effect can re-run (a prop identity
+ * change, a remount), and an undo can arrive arbitrarily long after the delete — the memory has
+ * to outlive any one registration.
+ */
+const convertedByShapeCache = new WeakCache<
+	Editor,
+	Map<TLShapeId, { threadId: string; anchor: ShapeAnchor; point: VecLike }[]>
+>()
 
 function isAnchoredToShape(
 	thread: TLCommentThread,
@@ -62,12 +75,7 @@ export function registerCommentAnchorLifecycle(
 ): () => void {
 	// Captured during the current operation: shape id -> (thread id -> pin page point).
 	const pendingByShape = new Map<TLShapeId, Map<string, VecLike | null>>()
-	// Threads converted to point anchors because their shape was deleted, kept so the anchor can
-	// be restored if the shape comes back (page move re-create, undo of the delete).
-	const convertedByShape = new Map<
-		TLShapeId,
-		{ threadId: string; anchor: ShapeAnchor; point: VecLike }[]
-	>()
+	const convertedByShape = convertedByShapeCache.get(editor, () => new Map())
 
 	function rehomeThread(thread: TLCommentThread, pageId: TLPageId, updates: TLCommentRecord[]) {
 		updates.push({ ...thread, pageId })

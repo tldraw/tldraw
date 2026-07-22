@@ -154,6 +154,25 @@ describe('shape deletion', () => {
 		expect(updated.anchor).toEqual(thread.anchor)
 	})
 
+	it('re-attaches on undo even when the lifecycle was re-registered in between', () => {
+		const shapeId = makeShape(100, 100, 100, 50)
+		const { thread } = makeThread(shapeId, 0.5, 0.5, true)
+		editor.markHistoryStoppingPoint()
+
+		editor.deleteShape(shapeId)
+		expect((getCommentRecord(editor, thread.id) as typeof thread).anchor.type).toBe('point')
+
+		// The registering effect re-runs whenever its inputs change identity; conversion memory
+		// must not live and die with any one registration.
+		dispose()
+		dispose = registerCommentAnchorLifecycle(editor)
+
+		editor.undo()
+
+		const updated = getCommentRecord(editor, thread.id) as typeof thread
+		expect(updated.anchor).toEqual(thread.anchor)
+	})
+
 	it('does not re-attach on undo when the pin was moved after the conversion', () => {
 		const shapeId = makeShape(100, 100, 100, 50)
 		const { thread } = makeThread(shapeId, 0.5, 0.5, true)

@@ -242,9 +242,12 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const pending = usePendingComment()
 	const openId = useValue('open thread id', () => openThreadId.get(editor), [editor])
 	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
+	// Keyed by the anchor's values, not its identity — an inline `impreciseShapeAnchor` prop is a
+	// new object every render and would re-register the handlers each time.
+	const { x: impreciseX, y: impreciseY } = impreciseShapeAnchor
 	useEffect(
-		() => registerCommentAnchorLifecycle(editor, impreciseShapeAnchor),
-		[editor, impreciseShapeAnchor]
+		() => registerCommentAnchorLifecycle(editor, { x: impreciseX, y: impreciseY }),
+		[editor, impreciseX, impreciseY]
 	)
 	// Threads held out of clustering because their anchor moved while folded inside a badge
 	// (drag, nudge, align, undo, a collaborator — detected by position, not gesture). They render
