@@ -53,17 +53,19 @@ export function CommentsFilterMenu({
 				alignOffset={0}
 			>
 				<TldrawUiMenuContextProvider type="menu" sourceId="menu">
+					{/* Ordered by scope, broadest cut first: which pages, whose threads, then
+					    per-thread state (unread, resolved). The filter state keeps
+					    restrict-polarity fields (`onlyCurrentPage`, `onlyMine` — they read
+					    naturally in the filter pipeline), while the menu labels them with
+					    show-polarity copy, so those two checkboxes display the inverse of
+					    their field. */}
 					<TldrawUiMenuGroup id="comments-filter">
 						<TldrawUiMenuCheckboxItem
-							id="show-resolved"
-							label="comments.show-resolved"
-							checked={filters.showResolved}
-							onSelect={() => toggle('showResolved')}
+							id="show-all-pages"
+							label="comments.show-all-pages"
+							checked={!filters.onlyCurrentPage}
+							onSelect={() => toggle('onlyCurrentPage')}
 						/>
-						{/* The filter state keeps restrict-polarity fields (`onlyMine`,
-						    `onlyCurrentPage` — they read naturally in the filter pipeline), while
-						    the menu labels them with show-polarity copy, so these two checkboxes
-						    display the inverse of their field. */}
 						{canFilterByAuthor && (
 							<TldrawUiMenuCheckboxItem
 								id="show-all-threads"
@@ -81,10 +83,10 @@ export function CommentsFilterMenu({
 							/>
 						)}
 						<TldrawUiMenuCheckboxItem
-							id="show-all-pages"
-							label="comments.show-all-pages"
-							checked={!filters.onlyCurrentPage}
-							onSelect={() => toggle('onlyCurrentPage')}
+							id="show-resolved"
+							label="comments.show-resolved"
+							checked={filters.showResolved}
+							onSelect={() => toggle('showResolved')}
 						/>
 					</TldrawUiMenuGroup>
 				</TldrawUiMenuContextProvider>
