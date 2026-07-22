@@ -43,6 +43,13 @@ import { MentionMember } from '../ui/mention-list'
 import { isMentionPickerOpen } from '../ui/mention-suggestion'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
+import {
+	clearCommentDraft,
+	getCommentDraft,
+	NEW_COMMENT_DRAFT,
+	replyDraftSlot,
+	saveCommentDraft,
+} from './comment-drafts'
 import { UNKNOWN_AUTHOR } from './comment-render'
 import { getCommentRecord, putCommentRecords, removeCommentRecords } from './comment-store'
 import { PendingComment } from './comment-tool'
@@ -1049,7 +1056,11 @@ const ThreadPin = memo(function ThreadPin({
 		editor,
 		thread.id,
 	])
-	const [reply, setReply] = useState<TLRichText>(EMPTY_COMMENT)
+	// An unsent reply survives closing the thread (saved on every change, keyed by thread id) —
+	// the flip side of dismissing without a discard warning.
+	const [reply, setReply] = useState<TLRichText>(
+		() => getCommentDraft(replyDraftSlot(thread.id)) ?? EMPTY_COMMENT
+	)
 	const [editingId, setEditingId] = useState<string | null>(null)
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	// While dragging the marker, its page point overrides the anchor's; committed on drop.
@@ -1169,6 +1180,7 @@ const ThreadPin = memo(function ThreadPin({
 			if (onPostComment) onPostComment(comment)
 		})
 		setReply(EMPTY_COMMENT)
+		clearCommentDraft(replyDraftSlot(thread.id))
 	}
 
 	const toggleResolve = () => {
@@ -1458,7 +1470,10 @@ const ThreadPin = memo(function ThreadPin({
 											placeholder: msg('comments.reply-placeholder'),
 											sendLabel: msg('comments.send'),
 											value: reply,
-											onChange: setReply,
+											onChange: (value: TLRichText) => {
+												setReply(value)
+												saveCommentDraft(replyDraftSlot(thread.id), value)
+											},
 											onSubmit: postReply,
 											disabled: isCommentEmpty(reply),
 											getMentionSuggestions,
@@ -1483,7 +1498,11 @@ function PendingComposer({
 	getMentionSuggestions,
 	renderMentionSuggestion,
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
-	const [text, setText] = useState<TLRichText>(EMPTY_COMMENT)
+	// Click-away keeps the draft (saved on every change) and the next placement composer
+	// restores it — the flip side of dismissing without a discard warning.
+	const [text, setText] = useState<TLRichText>(
+		() => getCommentDraft(NEW_COMMENT_DRAFT) ?? EMPTY_COMMENT
+	)
 	const ref = useRef<HTMLDivElement>(null)
 	const msg = useTranslation()
 	const container = useContainer()
@@ -1530,6 +1549,7 @@ function PendingComposer({
 			if (onPostComment) onPostComment(comment)
 		})
 		setText(EMPTY_COMMENT)
+		clearCommentDraft(NEW_COMMENT_DRAFT)
 		pendingComment.set(editor, null)
 	}
 
@@ -1548,7 +1568,10 @@ function PendingComposer({
 				placeholder={msg('comments.add-placeholder')}
 				sendLabel={msg('comments.send')}
 				value={text}
-				onChange={setText}
+				onChange={(value) => {
+					setText(value)
+					saveCommentDraft(NEW_COMMENT_DRAFT, value)
+				}}
 				onSubmit={submit}
 				disabled={isCommentEmpty(text)}
 				getMentionSuggestions={getMentionSuggestions}
