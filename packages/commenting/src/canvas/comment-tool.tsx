@@ -217,14 +217,15 @@ class CommentDragging extends StateNode {
 	// Commit the dragged rectangle as a region anchor; the composer opens at its pin corner.
 	override onPointerUp() {
 		const { editor } = this
-		const region = regionBetween(
-			editor.inputs.getOriginPagePoint(),
-			editor.inputs.getCurrentPagePoint()
-		)
+		const origin = editor.inputs.getOriginPagePoint()
+		const current = editor.inputs.getCurrentPagePoint()
+		const region = regionBetween(origin, current)
+		// The pin lives on the corner the drag released on — drag up-left, pin top-left.
+		const pin = { x: current.x >= origin.x ? 1 : 0, y: current.y >= origin.y ? 1 : 0 }
 		regionDraft.set(editor, null)
 		pendingComment.set(editor, {
-			anchor: { type: 'region', ...region },
-			point: regionPinPoint(region, getRegionCommentOptions(editor).pinCorner),
+			anchor: { type: 'region', ...region, pinX: pin.x, pinY: pin.y },
+			point: regionPinPoint(region, pin),
 		})
 		editor.setCurrentTool('select')
 	}

@@ -80,7 +80,12 @@ import {
 	toggleCommentsHidden,
 	usePendingComment,
 } from './state'
-import { anchorPagePoint, regionPinPoint, shapeAnchorAt } from './thread-state'
+import {
+	anchorPagePoint,
+	regionAnchorPinCorner,
+	regionPinPoint,
+	shapeAnchorAt,
+} from './thread-state'
 
 /**
  * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
@@ -1122,15 +1127,19 @@ const ThreadPin = memo(function ThreadPin({
 		resizeBounds != null ||
 		(regionOptions.reveal === 'pointer' && pointerInRegion) ||
 		(regionOptions.reveal === 'pin-hover' && pinHovered)
+	// A region thread's pin corner is its own (the corner its creating drag released on), with
+	// the configured default as the fallback for older records.
+	const pinCorner =
+		thread.anchor.type === 'region'
+			? regionAnchorPinCorner(editor, thread.anchor)
+			: regionOptions.pinCorner
 	// The resize handles: side midpoints ('edges'), or the corners other than the pin's ('corners').
 	const resizeHandles = useMemo(
 		() =>
 			regionOptions.resize === 'edges'
 				? REGION_EDGES
-				: REGION_CORNERS.filter(
-						(c) => c.x !== regionOptions.pinCorner.x || c.y !== regionOptions.pinCorner.y
-					),
-		[regionOptions.resize, regionOptions.pinCorner]
+				: REGION_CORNERS.filter((c) => c.x !== pinCorner.x || c.y !== pinCorner.y),
+		[regionOptions.resize, pinCorner]
 	)
 	const dragRef = useRef<{
 		startX: number
@@ -1462,8 +1471,8 @@ const ThreadPin = memo(function ThreadPin({
 			// Translate so the pin (the region's pin corner) lands at the drop; size unchanged.
 			anchor = {
 				...thread.anchor,
-				x: pagePoint.x - regionOptions.pinCorner.x * thread.anchor.w,
-				y: pagePoint.y - regionOptions.pinCorner.y * thread.anchor.h,
+				x: pagePoint.x - pinCorner.x * thread.anchor.w,
+				y: pagePoint.y - pinCorner.y * thread.anchor.h,
 			}
 		} else {
 			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
@@ -1476,10 +1485,13 @@ const ThreadPin = memo(function ThreadPin({
 
 	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
 	// move to the drag point; otherwise it sits at the stored anchor's viewport point.
-	const livePinPage = resizeBounds
-		? regionPinPoint(resizeBounds, regionOptions.pinCorner)
-		: dragPagePoint
-	const renderPoint = livePinPage ? editor.pageToViewport(livePinPage) : point
+	const livePinPage = resizeBounds ? regionPinPoint(resizeBounds, pinCorner) : dragPagePoint
+	const renderPointBase = livePinPage ? editor.pageToViewport(livePinPage) : point
+	// A region's pin centres on its corner — overlapping the box — rather than hanging off it.
+	// The marker anchors bottom-left, so step half its 34px size left and down (screen px).
+	const renderPoint = isRegion
+		? { x: renderPointBase.x - 17, y: renderPointBase.y + 17 }
+		: renderPointBase
 
 	// A region's live box bounds, by priority: a corner resize, else a pin-drag translation (the pin
 	// corner tracks the cursor), else the stored anchor. Undefined for non-region threads.
@@ -1488,15 +1500,16 @@ const ThreadPin = memo(function ThreadPin({
 		regionAnchor && dragPagePoint
 			? {
 					...regionAnchor,
-					x: dragPagePoint.x - regionOptions.pinCorner.x * regionAnchor.w,
-					y: dragPagePoint.y - regionOptions.pinCorner.y * regionAnchor.h,
+					x: dragPagePoint.x - pinCorner.x * regionAnchor.w,
+					y: dragPagePoint.y - pinCorner.y * regionAnchor.h,
 				}
 			: regionAnchor
 	const regionBoxBounds = resizeBounds ?? movedRegion
 	const commitResize = (bounds: BoxModel) => {
 		setResizeBounds(null)
 		editor.run(
-			() => putCommentRecords(editor, [{ ...thread, anchor: { type: 'region', ...bounds } }]),
+			// Spread the existing anchor first so the region's pin corner survives a resize.
+			() => putCommentRecords(editor, [{ ...thread, anchor: { ...regionAnchor!, ...bounds } }]),
 			{
 				history: 'ignore',
 			}
@@ -1662,7 +1675,12 @@ function PendingComposer({
 	return createPortal(
 		<div
 			ref={ref}
-			className="tlui-cmt-canvas-composer"
+			className={[
+				'tlui-cmt-canvas-composer',
+				pending.anchor.type === 'region' && 'tlui-cmt-canvas-composer--region',
+			]
+				.filter(Boolean)
+				.join(' ')}
 			style={{ left: point.x, top: point.y }}
 			onPointerDown={stop}
 			onContextMenu={stop}

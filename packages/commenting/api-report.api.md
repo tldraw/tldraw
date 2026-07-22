@@ -491,6 +491,11 @@ export interface ReactionProps {
 export function Reactions(): JSX.Element;
 
 // @public
+export function regionAnchorPinCorner(editor: Editor, anchor: Extract<TLCommentAnchor, {
+    type: 'region';
+}>): VecLike;
+
+// @public
 export interface RegionCommentOptions {
     enabled: boolean;
     move: 'body' | 'both' | 'pin';
