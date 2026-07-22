@@ -1,4 +1,4 @@
-import { commentToolOverrides, commentTools } from '@tldraw/commenting'
+import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
@@ -47,7 +47,7 @@ import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracki
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
-import { CommentsOnCanvas } from './CommentsOnCanvas'
+import { CommentsOnCanvas, SignInToComment } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
@@ -62,6 +62,11 @@ import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+
+// Signed-out viewers get a sign-in prompt where the comment composers would be.
+const tlaCommentTools = [
+	CommentTool.configure({ components: { SignedOutComposer: SignInToComment } }),
+]
 
 /** @internal */
 export const components: TLComponents = {
@@ -296,7 +301,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
-				tools={commentTools}
+				tools={tlaCommentTools}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}

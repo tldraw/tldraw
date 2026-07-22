@@ -151,7 +151,6 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 				isCommentUnread={app ? isCommentUnread : undefined}
 				onCommentRead={app ? onCommentRead : undefined}
 				getMentionSuggestions={getMentionSuggestions}
-				signedOutComposer={app ? undefined : signInToComment}
 			/>
 			<CanvasCommentsSidebar
 				resolveAuthor={resolveAuthor}
@@ -166,8 +165,9 @@ const signInMessages = defineMessages({
 	signInToComment: { defaultMessage: 'Sign in to comment' },
 })
 
-/** Anon viewers read comments but don't compose — the composer slot holds this sign-in prompt. */
-function SignInToComment() {
+/** Anon viewers read comments but don't compose — the toolkit's `SignedOutComposer` slot holds
+ *  this sign-in prompt (registered via `CommentTool.configure` in `TlaEditor`). */
+export function SignInToComment() {
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
 	const ctaString = useMsg(signInMessages.signInToComment)
@@ -184,7 +184,3 @@ function SignInToComment() {
 		</TlaCtaButton>
 	)
 }
-
-// A stable element: an inline `<SignInToComment />` would change identity every render and defeat
-// the memo on the toolkit's thread pins (the slot rides into them via props).
-const signInToComment = <SignInToComment />

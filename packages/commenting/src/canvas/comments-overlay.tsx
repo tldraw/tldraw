@@ -113,10 +113,6 @@ export interface CanvasCommentsProps {
 	 * record a read receipt. Needs `isCommentUnread` to know what's unread.
 	 */
 	onCommentRead?(commentId: TLCommentId): void
-	/** Shown where a composer would sit when `currentUserId` is null (e.g. a sign-in prompt):
-	 *  at the bottom of an open thread, and in the placement popover the comment tool opens.
-	 *  Omit to show nothing — signed-out viewers just read. */
-	signedOutComposer?: ReactNode
 	/** Resolve the members matching an `@`-query in the composers (sync or async). */
 	getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>
 	/** Override a mention-picker row's content. */
@@ -579,7 +575,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			{/* Keep the region visible while composing — the drag draft is gone by now, and no thread
 			    exists yet, so the pending anchor is what shows the area under the open composer. */}
 			{pending?.anchor.type === 'region' && <RegionBox editor={editor} box={pending.anchor} />}
-			{pending && (props.currentUserId || props.signedOutComposer) && (
+			{pending && (props.currentUserId || options.components.SignedOutComposer) && (
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
 		</div>,
@@ -1085,7 +1081,6 @@ const ThreadPin = memo(function ThreadPin({
 		onPostComment,
 		isCommentUnread,
 		onCommentRead,
-		signedOutComposer,
 		getMentionSuggestions,
 		renderMentionSuggestion,
 	} = props
@@ -1411,6 +1406,7 @@ const ThreadPin = memo(function ThreadPin({
 	)
 
 	const PinContent = options.components.PinContent
+	const SignedOutComposer = options.components.SignedOutComposer
 	// The `PinContent` component slot overrides the built-in author-initial default.
 	const threadAuthor = resolveAuthor(thread.createdBy)
 	const pinContent = PinContent ? (
@@ -1612,7 +1608,11 @@ const ThreadPin = memo(function ThreadPin({
 										}
 									: undefined
 							}
-							footer={!currentUserId && !thread.resolved ? signedOutComposer : undefined}
+							footer={
+								!currentUserId && !thread.resolved && SignedOutComposer ? (
+									<SignedOutComposer />
+								) : undefined
+							}
 						/>
 					</ThreadPopover>
 				)}
@@ -1627,10 +1627,10 @@ function PendingComposer({
 	currentUserId,
 	resolveAuthor,
 	onPostComment,
-	signedOutComposer,
 	getMentionSuggestions,
 	renderMentionSuggestion,
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
+	const SignedOutComposer = useCommentingOptions().components.SignedOutComposer
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	// Click-away keeps the draft (saved on every change) and the next placement composer
 	// restores it — the flip side of dismissing without a discard warning.
@@ -1722,7 +1722,7 @@ function PendingComposer({
 					leading={draftAvatar(me?.color)}
 				/>
 			) : (
-				signedOutComposer
+				SignedOutComposer && <SignedOutComposer />
 			)}
 		</div>,
 		container

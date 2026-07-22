@@ -20,6 +20,10 @@ export interface CommentingComponents {
 	PinContent?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
 	/** A sidebar row's preview. Replaces the plaintext default. */
 	ThreadPreview?: ComponentType<{ comment: TLComment }>
+	/** Shown where a composer would sit when `currentUserId` is null (e.g. a sign-in prompt):
+	 *  the bottom of an open thread popover, and the placement popover the comment tool opens.
+	 *  Unset, signed-out viewers just read. */
+	SignedOutComposer?: ComponentType
 }
 
 /**

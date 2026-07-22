@@ -71,7 +71,6 @@ export interface CanvasCommentsProps {
     regionOptions?: Partial<RegionCommentOptions>;
     renderMentionSuggestion?(member: MentionMember): ReactNode;
     resolveAuthor(id: string): CommentAuthor | undefined;
-    signedOutComposer?: ReactNode;
 }
 
 // @public
@@ -202,6 +201,7 @@ export interface CommentingComponents {
         comments: TLComment[];
         thread: TLCommentThread;
     }>;
+    SignedOutComposer?: ComponentType;
     ThreadPreview?: ComponentType<{
         comment: TLComment;
     }>;
