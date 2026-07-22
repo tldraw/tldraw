@@ -250,38 +250,20 @@ function getRepresentativeContentInset(width: number, height: number) {
 	return Math.max(48, Math.min(160, width * 0.12, height * 0.18))
 }
 
-// Zoom floor for the content fit. The camera's zoom steps double as the clamp range for both
-// zoomToBounds and setCamera, and the default floor (0.05) is far too high here: at 1200x630 it
-// stops fitting at roughly 22k x 10k page units, so a bigger board quietly renders with its edges
-// cropped. Nothing on this page zooms interactively, so the floor exists only to bound the fit —
-// this one fits a board a thousand times the size of the viewport.
-const MIN_CONTENT_FIT_ZOOM = 0.001
-
 // Fits the current page's content into the viewport with representative margins. Run both on mount
 // and again right before export (see ThumbnailExportSignal), because autosized text re-measures once
 // web fonts load and shifts the page bounds — a fit computed before fonts settle would clip content.
 function fitContentCamera(editor: Editor, width: number, height: number) {
 	const bounds = editor.getCurrentPageBounds()
-	if (!bounds) {
+	if (bounds) {
+		editor.zoomToBounds(bounds, {
+			immediate: true,
+			force: true,
+			inset: getRepresentativeContentInset(width, height),
+		})
+	} else {
 		editor.setCamera({ x: 0, y: 0, z: 1 }, { immediate: true })
-		return
 	}
-
-	// Lower the zoom floor before fitting. `force` only bypasses the camera lock, not the fit's own
-	// clamp, so the steps themselves have to allow the zoom the fit needs — and lowering them here
-	// (rather than forcing a camera past them) also stops a later unforced setCamera from snapping the
-	// fit back up. Keep the existing ceiling so a page holding one small shape isn't magnified
-	// absurdly. Filtering rather than replacing keeps this idempotent across the two calls.
-	const { zoomSteps } = editor.getCameraOptions()
-	editor.setCameraOptions({
-		zoomSteps: [MIN_CONTENT_FIT_ZOOM, ...zoomSteps.filter((step) => step > MIN_CONTENT_FIT_ZOOM)],
-	})
-
-	editor.zoomToBounds(bounds, {
-		immediate: true,
-		force: true,
-		inset: getRepresentativeContentInset(width, height),
-	})
 }
 
 // Produces a thumbnail of the editor's current page with editor.toImage once the scene has settled
