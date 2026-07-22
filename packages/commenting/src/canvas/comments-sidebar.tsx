@@ -12,7 +12,7 @@ import {
 import { CommentListItemProps, CommentsList } from '../ui/comments-list'
 import { UNKNOWN_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
-import { CommentsOverflowMenu } from './comments-overflow-menu'
+import { CommentsVisibilityToggle } from './comments-visibility-toggle'
 import { useComments, useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
 import { useCommentingOptions } from './options'
@@ -145,7 +145,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 							canFilterByAuthor={currentUserId !== undefined}
 							canFilterByUnread={isCommentUnread !== undefined}
 						/>
-						<CommentsOverflowMenu />
+						<CommentsVisibilityToggle />
 					</div>
 				}
 				empty={

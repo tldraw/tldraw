@@ -275,6 +275,9 @@ export function CommentsOverflowMenu(): JSX.Element;
 export const commentsSidebarOpen: EditorAtom<boolean>;
 
 // @public
+export function CommentsVisibilityToggle(): JSX.Element;
+
+// @public
 export function CommentText({ text }: CommentTextProps): JSX.Element;
 
 // @public (undocumented)
