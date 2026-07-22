@@ -1261,7 +1261,7 @@ const ThreadPin = memo(function ThreadPin({
 							title={msg('comments.edit')}
 							onClick={() => startEdit(comment)}
 						>
-							<TldrawUiIcon icon="dots-horizontal" label={msg('comments.edit')} small />
+							<TldrawUiIcon icon="dots-vertical" label={msg('comments.edit')} small />
 						</button>
 					) : undefined
 				}
