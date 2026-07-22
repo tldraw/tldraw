@@ -62,6 +62,7 @@ export {
 	type CommentingOptions,
 	defaultCommentingOptions,
 	getCommentingOptions,
+	type ShapeCommentPrecisionContext,
 	useCommentingOptions,
 } from './canvas/options'
 export { CommentsOverflowMenu } from './canvas/comments-overflow-menu'

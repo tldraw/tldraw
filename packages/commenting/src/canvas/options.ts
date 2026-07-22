@@ -4,8 +4,23 @@ import {
 	type TLComment,
 	type TLCommentThread,
 	type TLHistoryBatchOptions,
+	type TLShapeId,
+	type VecLike,
 	useEditor,
 } from 'tldraw'
+
+/**
+ * The gesture that's creating a shape anchor, passed to
+ * {@link CommentingOptions.shouldBePrecise}: the target shape, the page point of the release, and
+ * whether Alt was held.
+ *
+ * @public
+ */
+export interface ShapeCommentPrecisionContext {
+	readonly shapeId: TLShapeId
+	readonly point: VecLike
+	readonly altKey: boolean
+}
 
 /**
  * Component overrides for the batteries-included comments layer. Each slot replaces a built-in
@@ -59,6 +74,16 @@ export interface CommentingOptions {
 	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
 	readonly impreciseShapeAnchor: { readonly x: number; readonly y: number }
+	/**
+	 * Whether a comment landing on a shape anchors precisely — pinned to the exact clicked spot
+	 * within the shape — or imprecisely — pinned to the shape as a whole, rendered at
+	 * `impreciseShapeAnchor`. Called wherever a shape anchor is created (placing with the comment
+	 * tool, dropping a dragged pin onto a shape). The default makes it the user's call per
+	 * placement: precise while Alt is held, imprecise otherwise. Return a constant to fix it either
+	 * way, or decide from the context — e.g. precise only inside frames. Governs new placements
+	 * only; existing anchors render as stored.
+	 */
+	shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean
 
 	// ── Clustering tuning ─────────────────────────────────────────────────────────────────────
 	/** Screen-pixel margin by which the viewport is inflated when culling cluster badges. */
@@ -81,6 +106,7 @@ export const defaultCommentingOptions = {
 	dragHistory: undefined,
 	enableClustering: true,
 	impreciseShapeAnchor: { x: 1, y: 0 },
+	shouldBePrecise: (_editor: Editor, context: ShapeCommentPrecisionContext) => context.altKey,
 	clusterCullMargin: 120,
 	clusterSplitZoomFactor: 1.05,
 	components: {},
