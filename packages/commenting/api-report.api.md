@@ -275,6 +275,9 @@ export function CommentsOverflowMenu(): JSX.Element;
 export const commentsSidebarOpen: EditorAtom<boolean>;
 
 // @public
+export function CommentsVisibilityToggle(): JSX.Element;
+
+// @public
 export function CommentText({ text }: CommentTextProps): JSX.Element;
 
 // @public (undocumented)
@@ -351,7 +354,7 @@ export const DEFAULT_IMPRECISE_SHAPE_ANCHOR: {
 // @public
 export const DEFAULT_REGION_COMMENT_OPTIONS: RegionCommentOptions;
 
-// @public (undocumented)
+// @public
 export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters;
 
 // @public

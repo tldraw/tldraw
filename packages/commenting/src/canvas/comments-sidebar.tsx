@@ -12,7 +12,7 @@ import {
 import { CommentListItemProps, CommentsList } from '../ui/comments-list'
 import { UNKNOWN_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
-import { CommentsOverflowMenu } from './comments-overflow-menu'
+import { CommentsVisibilityToggle } from './comments-visibility-toggle'
 import { useComments, useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
 import { useCommentingOptions } from './options'
@@ -115,7 +115,12 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				preview,
 				date: new Date((first ?? thread).createdAt).toISOString(),
 				resolved: thread.resolved != null,
-				page: pageNames.get(thread.pageId),
+				// The page label only earns its place when it adds information: multiple pages
+				// exist, and the thread is somewhere other than where you already are.
+				page:
+					pageNames.size > 1 && thread.pageId !== currentPageId
+						? pageNames.get(thread.pageId)
+						: undefined,
 				count: threadComments.length,
 				selected: openId === thread.id,
 			}
@@ -144,7 +149,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 							canFilterByAuthor={currentUserId !== undefined}
 							canFilterByUnread={isCommentUnread !== undefined}
 						/>
-						<CommentsOverflowMenu />
+						<CommentsVisibilityToggle />
 					</div>
 				}
 				empty={

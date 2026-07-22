@@ -64,6 +64,7 @@ export {
 	useCommentingOptions,
 } from './canvas/options'
 export { CommentsOverflowMenu } from './canvas/comments-overflow-menu'
+export { CommentsVisibilityToggle } from './canvas/comments-visibility-toggle'
 export { CanvasCommentsSidebar, type CanvasCommentsSidebarProps } from './canvas/comments-sidebar'
 export { useComments, useCommentThreads, useThreadComments } from './canvas/hooks'
 export { useCommentingEnabled } from './canvas/license'

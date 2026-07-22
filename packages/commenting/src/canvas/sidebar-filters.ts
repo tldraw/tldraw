@@ -16,10 +16,11 @@ export interface SidebarFilters {
 	onlyCurrentPage: boolean
 }
 
-/** @public */
+/** The out-of-the-box view: every page's threads, resolved ones hidden until asked for.
+ * @public */
 export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters = {
-	showResolved: true,
+	showResolved: false,
 	onlyMine: false,
 	onlyUnread: false,
-	onlyCurrentPage: true,
+	onlyCurrentPage: false,
 }
