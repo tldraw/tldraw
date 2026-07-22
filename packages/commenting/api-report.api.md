@@ -514,7 +514,7 @@ export const pendingComment: EditorAtom<null | PendingComment>;
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;
 
 // @public
-export function Reaction({ emoji, count, active, reactors, showSelf, onClick }: ReactionProps): JSX.Element;
+export function Reaction({ emoji, count, active, reactors, showSelf, enableHoverList, onClick }: ReactionProps): JSX.Element;
 
 // @public
 export function ReactionPicker({ emoji, selected, onSelect, menuId, className }: ReactionPickerProps): JSX.Element;
@@ -536,6 +536,7 @@ export interface ReactionProps {
     count: number;
     // (undocumented)
     emoji: string;
+    enableHoverList?: boolean;
     onClick?(): void;
     reactors: ReactionReactor[];
     showSelf?: boolean;
@@ -548,11 +549,12 @@ export interface ReactionReactor {
 }
 
 // @public
-export function Reactions({ reactions, onToggle, canReact, showSelf }: ReactionsProps): JSX.Element | null;
+export function Reactions({ reactions, onToggle, canReact, showSelf, enableHoverList }: ReactionsProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface ReactionsProps {
     canReact?: boolean;
+    enableHoverList?: boolean;
     onToggle?(emoji: string): void;
     reactions: ReactionSummary[];
     showSelf?: boolean;

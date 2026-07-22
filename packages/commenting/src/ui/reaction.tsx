@@ -13,16 +13,21 @@ export interface ReactionProps {
 	active: boolean
 	/** Who reacted with this emoji, in reaction order — shown when the pill is hovered. */
 	reactors: ReactionReactor[]
-	/** Whether the current user is listed among the reactors on hover. When false and the current
-	 *  user is the only reactor, no hover list is shown. Defaults to true. */
+	/** Whether the current user is listed among the reactors on hover. When false, the list shows
+	 *  only other people. Either way, a reaction only the current user made shows no list at all.
+	 *  Defaults to true. */
 	showSelf?: boolean
+	/** Whether hovering shows the reactor list. Pass false to suppress it — e.g. while another
+	 *  popup menu on the comment is open. Defaults to true. */
+	enableHoverList?: boolean
 	/** Called when the pill is pressed — toggles the current user's reaction. */
 	onClick?(): void
 }
 
 /**
  * A single emoji reaction pill with a count, highlighted when the user reacted. Hovering it lists
- * who reacted; the list is omitted when there'd be nobody to show (see `showSelf`).
+ * who reacted — but only when someone other than the current user reacted (a reaction only you made
+ * shows no list), and only when `enableHoverList` is set.
  * @public @react
  */
 export function Reaction({
@@ -31,9 +36,13 @@ export function Reaction({
 	active,
 	reactors,
 	showSelf = true,
+	enableHoverList = true,
 	onClick,
 }: ReactionProps) {
 	const msg = useTranslation()
+	// The list appears only when someone other than the current user reacted; `showSelf` then
+	// decides whether the current user is listed alongside them.
+	const hasOthers = reactors.some((reactor) => !reactor.you)
 	const shown = showSelf ? reactors : reactors.filter((reactor) => !reactor.you)
 
 	const pill = (
@@ -51,13 +60,18 @@ export function Reaction({
 		</button>
 	)
 
-	// Nobody to show (e.g. showSelf is off and only the current user reacted) — a bare pill, no card.
-	if (shown.length === 0) return pill
+	// A bare pill when there's no one else to list, or when hovering is suppressed.
+	if (!enableHoverList || !hasOthers) return pill
 
 	return (
-		<TldrawUiHoverCard>
+		// A short open delay so the reactor list feels responsive on hover, rather than the
+		// tooltip-length default.
+		<TldrawUiHoverCard openDelay={300}>
 			<TldrawUiHoverCardTrigger>{pill}</TldrawUiHoverCardTrigger>
-			<TldrawUiHoverCardContent side="top" className="tlui-cmt-reactors">
+			<TldrawUiHoverCardContent side="bottom" className="tlui-cmt-reactors">
+				<div className="tlui-cmt-reactors__title">
+					{msg('comments.reacted')} {emoji}:
+				</div>
 				<ul className="tlui-cmt-reactors__list" role="list">
 					{shown.map((reactor, i) => (
 						<li key={i} className="tlui-cmt-reactors__item">

@@ -139,11 +139,18 @@ export function CommentReactions({ comment, currentUserId, resolveName }: Commen
 		() => summarizeReactions(reactions, currentUserId, resolveName),
 		[reactions, currentUserId, resolveName]
 	)
+	// Suppress the hover list while any menu is open (the reaction picker, an overflow menu…) so it
+	// doesn't compete with the menu the user is actually working in. Edit mode already hides the
+	// pills entirely (the card becomes a composer), so it needs no special case here.
+	const anyMenuOpen = useValue('any menu open', () => editor.menus.getOpenMenus().length > 0, [
+		editor,
+	])
 	return (
 		<Reactions
 			reactions={summaries}
 			canReact={currentUserId != null}
 			showSelf={showSelfInReactionList}
+			enableHoverList={!anyMenuOpen}
 			onToggle={(value) => {
 				if (currentUserId == null) return
 				toggleCommentReaction(editor, comment, currentUserId, value)

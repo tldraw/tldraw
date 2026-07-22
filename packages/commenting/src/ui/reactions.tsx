@@ -31,6 +31,9 @@ export interface ReactionsProps {
 	/** Whether the current user appears in the hover list of reactors. When false, a reaction only
 	 *  the current user made shows no hover list. Defaults to true. */
 	showSelf?: boolean
+	/** Whether hovering a pill shows its reactor list. Pass false to suppress it — e.g. while
+	 *  another popup menu on the comment is open. Defaults to true. */
+	enableHoverList?: boolean
 }
 
 /**
@@ -47,6 +50,7 @@ export function Reactions({
 	onToggle,
 	canReact = true,
 	showSelf = true,
+	enableHoverList = true,
 }: ReactionsProps) {
 	if (reactions.length === 0) return null
 	return (
@@ -56,6 +60,7 @@ export function Reactions({
 					key={reaction.emoji}
 					{...reaction}
 					showSelf={showSelf}
+					enableHoverList={enableHoverList}
 					onClick={canReact ? () => onToggle?.(reaction.emoji) : undefined}
 				/>
 			))}
