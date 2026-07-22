@@ -59,11 +59,15 @@ export function CommentsFilterMenu({
 							checked={filters.showResolved}
 							onSelect={() => toggle('showResolved')}
 						/>
+						{/* The filter state keeps restrict-polarity fields (`onlyMine`,
+						    `onlyCurrentPage` — they read naturally in the filter pipeline), while
+						    the menu labels them with show-polarity copy, so these two checkboxes
+						    display the inverse of their field. */}
 						{canFilterByAuthor && (
 							<TldrawUiMenuCheckboxItem
-								id="only-mine"
-								label="comments.only-mine"
-								checked={filters.onlyMine}
+								id="show-all-threads"
+								label="comments.show-all-threads"
+								checked={!filters.onlyMine}
 								onSelect={() => toggle('onlyMine')}
 							/>
 						)}
@@ -76,9 +80,9 @@ export function CommentsFilterMenu({
 							/>
 						)}
 						<TldrawUiMenuCheckboxItem
-							id="only-current-page"
-							label="comments.only-current-page"
-							checked={filters.onlyCurrentPage}
+							id="show-all-pages"
+							label="comments.show-all-pages"
+							checked={!filters.onlyCurrentPage}
 							onSelect={() => toggle('onlyCurrentPage')}
 						/>
 					</TldrawUiMenuGroup>
