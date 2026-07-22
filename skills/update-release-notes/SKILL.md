@@ -189,6 +189,7 @@ git push -u origin "$BRANCH"
 
 Then create the PR using the `../pr/SKILL.md` workflow and the standards in `../write-pr/SKILL.md`:
 
+- **Label**: add `docs-hotfix-please` (`gh pr edit <number> --add-label docs-hotfix-please`, or `--label docs-hotfix-please` on `gh pr create`). Without it, merging to `main` never cherry-picks the notes onto the current release branch (`vX.Y.x`), so the update never reaches tldraw.dev — which is the whole point of the run.
 - **Title**: `docs(releases): update release notes [skip ci]` — the `[skip ci]` must be in the PR title because GitHub's squash-merge uses the PR title as the merge commit subject, and that merge commit is what needs to skip CI. **Squash-merge** the PR (do not rebase- or create-a-merge-commit) so exactly one `[skip ci]` commit lands on the base branch.
 - **Change type**: `other`
 - **Test plan**: Remove the numbered list (no manual testing steps). Untick both unit tests and end to end tests.
