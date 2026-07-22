@@ -4,12 +4,11 @@ import { useSearchParams } from 'react-router-dom'
 import { useEditor } from 'tldraw'
 
 /**
- * Routes a comment link into the comments overlay. A notification row navigates to the file route
- * with `?comment=<id>`, but the overlay only reads the URL once at mount — a same-file navigation
- * changes the query string without remounting anything, so the link would otherwise do nothing.
- * This watches the param through router state, hands the id to the overlay as a reveal request
- * (the overlay owns waiting for the records to sync in and the cluster-aware reveal), and strips
- * the consumed param so back/refresh doesn't re-open the thread.
+ * dotcom's comment deep-link handler: `?comment=<thread or comment id>` (a shared link, or a
+ * notification row's navigation) becomes a reveal request served by the comments overlay, which
+ * owns waiting for the records to sync in and the cluster-aware reveal. Watches router state, so
+ * it fires on same-file navigations too, and strips the consumed param so back/refresh doesn't
+ * re-open the thread.
  */
 export function SneakyCommentDeepLink() {
 	const editor = useEditor()

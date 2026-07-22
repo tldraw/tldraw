@@ -409,14 +409,6 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		}
 	}, [editor])
 
-	// Seed a reveal request from a deep link (?comment=<thread or comment id>) once at mount, so a
-	// plain shared link works with no consumer wiring. Requests after mount come from writers of
-	// {@link revealThreadRequest} — the URL is not watched for changes here.
-	useEffect(() => {
-		const id = new URLSearchParams(window.location.search).get('comment')
-		if (id) revealThreadRequest.set(editor, id)
-	}, [editor])
-
 	// The requested thread, once it (and, for a comment id, its parent thread) has synced into the
 	// store; null while records are still arriving or when no request is pending.
 	const requestedRevealThread = useValue(
@@ -441,7 +433,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		if (!requestedRevealThread) return
 		revealThreadRequest.set(editor, null)
 		commentsHidden.set(editor, false)
-		revealDeepLinkedThread(
+		revealThread(
 			editor,
 			requestedRevealThread,
 			clusterModel.table,
@@ -741,7 +733,7 @@ function getClusterZoomBounds(editor: Editor): { minZoom: number; maxZoom: numbe
 	}
 }
 
-function revealDeepLinkedThread(
+function revealThread(
 	editor: Editor,
 	thread: TLCommentThread,
 	table: ClusterTable,
