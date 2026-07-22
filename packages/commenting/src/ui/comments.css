@@ -30,8 +30,6 @@
 	min-width: 0;
 }
 
-/* Center-aligned, not baseline: the timestamp is small enough that sharing the name's baseline
-   drops its optical center visibly below the name's, reading as a downward slope. */
 .tlui-cmt-head {
 	display: flex;
 	align-items: center;
