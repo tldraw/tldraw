@@ -513,6 +513,12 @@ export interface RegionCommentOptions {
 }
 
 // @public
+export function registerCommentAnchorLifecycle(editor: Editor, impreciseShapeAnchor?: {
+    x: number;
+    y: number;
+}): () => void;
+
+// @public
 export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLCommentThreadId)[]): void;
 
 // @public

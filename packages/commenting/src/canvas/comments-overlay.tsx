@@ -48,6 +48,7 @@ import { CountBadge } from '../ui/count-badge'
 import { MentionMember } from '../ui/mention-list'
 import { isMentionPickerOpen } from '../ui/mention-suggestion'
 import { TooltipButton } from '../ui/tooltip-button'
+import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import {
@@ -241,6 +242,10 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const pending = usePendingComment()
 	const openId = useValue('open thread id', () => openThreadId.get(editor), [editor])
 	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
+	useEffect(
+		() => registerCommentAnchorLifecycle(editor, impreciseShapeAnchor),
+		[editor, impreciseShapeAnchor]
+	)
 	// Threads held out of clustering because their anchor moved while folded inside a badge
 	// (drag, nudge, align, undo, a collaborator — detected by position, not gesture). They render
 	// as live pins riding their anchor and rejoin clustering on the next zoom-out.
