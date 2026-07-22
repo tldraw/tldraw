@@ -14,6 +14,7 @@ import {
 	queries,
 	schema,
 } from '@tldraw/dotcom-shared'
+import { exhaustiveSwitchError } from '@tldraw/utils'
 import {
 	blockUnknownOrigins,
 	createRouter,
@@ -44,10 +45,14 @@ import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
+import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
+import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
+import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
+import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
-import { Environment, QueueMessage, isDebugLogging } from './types'
+import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
@@ -178,6 +183,13 @@ const router = createRouter<Environment>()
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
+	.post('/app/mcp', sharedBoardScreenshotMcp)
+	// The board's rendered social preview image, referenced by the og:image tags getSocialPreview
+	// emits. Lives under the social-preview route family so the crawler HTML and its image share one
+	// path prefix. Registered with .all (like the sibling HTML route) so HEAD probes are handled;
+	// getOgImage serves headers only and skips the render enqueue for anything but GET.
+	.all('/app/social-preview/:prefix/:slug/image', getOgImage)
+	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)
@@ -320,20 +332,49 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
-		const db = createPostgresConnectionPool(this.env, 'sync-worker-queue')
+		// The pool is only needed for asset-upload messages, so create it lazily: OG image render
+		// batches should not open database connections they never use.
+		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
 		for (const message of batch.messages) {
-			const { objectName, fileId, userId } = message.body
-			try {
-				await db
-					.insertInto('asset')
-					.values({ objectName, fileId, userId })
-					.onConflict((oc) => oc.column('objectName').doNothing())
-					.execute()
-				message.ack()
-			} catch (_e) {
-				message.retry({
-					delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
-				})
+			switch (message.body.type) {
+				case 'og-image-render':
+					try {
+						await handleOgImageRenderMessage(
+							this.env,
+							message as Message<OgImageRenderQueueMessage>,
+							this.ctx
+						)
+					} catch (_e) {
+						// handleOgImageRenderMessage settles the message itself; this guards the batch loop
+						// against an unexpected throw escaping it, so one bad message can't abort processing
+						// of the rest of the batch. Retry is a no-op if the handler already settled.
+						message.retry()
+					}
+					break
+				case 'asset-upload': {
+					const { objectName, fileId, userId } = message.body
+					try {
+						db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
+						await db
+							.insertInto('asset')
+							.values({ objectName, fileId, userId })
+							.onConflict((oc) => oc.column('objectName').doNothing())
+							.execute()
+						message.ack()
+					} catch (_e) {
+						message.retry({
+							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
+						})
+					}
+					break
+				}
+				default:
+					// One shared queue carries every message type, so a newly added type that nobody
+					// handles here would otherwise fall through to whichever branch happens to be last
+					// and be mis-parsed as that type. This makes it a compile error instead. At runtime
+					// it only fires on deploy skew (a producer ahead of this consumer), where throwing
+					// is what we want: the batch is redelivered once the new consumer is live.
+					exhaustiveSwitchError(message.body, 'type')
 			}
 		}
 	}
