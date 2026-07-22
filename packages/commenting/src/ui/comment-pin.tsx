@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { CSSProperties, ReactNode } from 'react'
 
 /** @public */
 export interface CommentPinProps {
@@ -41,8 +41,11 @@ export function CommentPin({ children, resolved, open, color }: CommentPinProps)
 	]
 		.filter(Boolean)
 		.join(' ')
+	// A custom property rather than backgroundColor, so the open ring follows the tint too.
+	const style =
+		color && !resolved ? ({ '--tlui-cmt-pin-color': color } as CSSProperties) : undefined
 	return (
-		<div className={className} style={color && !resolved ? { backgroundColor: color } : undefined}>
+		<div className={className} style={style}>
 			{resolved ? resolvedCheck : children}
 		</div>
 	)
