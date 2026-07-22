@@ -1494,7 +1494,7 @@ const ThreadPin = memo(function ThreadPin({
 						// Clear the bottom-left-anchored pin: it spans 34px right of and above the
 						// anchor, plus the open ring's 5px — the popover starts past that, opening
 						// above the pin's top.
-						style={{ left: renderPoint.x + 44, top: renderPoint.y - 54 }}
+						style={{ left: renderPoint.x + 48, top: renderPoint.y - 54 }}
 					>
 						<CommentThread
 							header={msg('comments.thread-title')}
