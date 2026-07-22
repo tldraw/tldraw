@@ -38,7 +38,9 @@ function isAnchoredToShape(
  * `beforeDelete` captures where each affected pin sits (every record is still in the store at
  * that point, so page bounds resolve even for children of a deleted frame); the
  * operation-complete pass converts threads whose shape is really gone, remembering the original
- * anchor; `afterCreate` restores that anchor when the shape id reappears. Undo/redo of a move
+ * anchor; `afterCreate` notes a reappeared shape id, and the operation-complete pass restores
+ * the anchor once the store has settled (creation order within an operation is arbitrary, so a
+ * fresh shape may not resolve an ancestor page mid-operation). Undo/redo of a move
  * replays as a `parentId` update (remove + add of one id squash to an update in the history
  * diff), so an `afterChange` handler re-homes threads on cross-page reparents — including
  * threads anchored to descendants, which move with their parent without change events of their
@@ -90,10 +92,18 @@ export function registerCommentAnchorLifecycle(
 		}
 	)
 
+	// Shape ids from `convertedByShape` re-created during the current operation. Restores are
+	// settled at operation complete rather than in `afterCreate` itself: creation order within an
+	// operation is arbitrary, so a shape can appear before its parent and not resolve an ancestor
+	// page yet — and the conversion memory must outlive any such partial state.
+	const returnedShapeIds = new Set<TLShapeId>()
+
 	const disposeOperationComplete = editor.sideEffects.registerOperationCompleteHandler(() => {
-		if (pendingByShape.size === 0) return
+		if (pendingByShape.size === 0 && returnedShapeIds.size === 0) return
 		const settled = [...pendingByShape.entries()]
 		pendingByShape.clear()
+		const returned = [...returnedShapeIds]
+		returnedShapeIds.clear()
 
 		const updates: TLCommentRecord[] = []
 		for (const [shapeId, threadPoints] of settled) {
@@ -113,22 +123,14 @@ export function registerCommentAnchorLifecycle(
 			}
 		}
 
-		if (updates.length > 0) {
-			commitCommentMutation(editor, () => putCommentRecords(editor, updates))
-		}
-	})
-
-	const disposeAfterCreate = editor.sideEffects.registerAfterCreateHandler(
-		'shape',
-		(shape, source) => {
-			if (source === 'remote') return
-			const converted = convertedByShape.get(shape.id)
-			if (!converted) return
-			convertedByShape.delete(shape.id)
+		for (const shapeId of returned) {
+			const shape = editor.getShape(shapeId)
+			if (!shape) continue
+			const converted = convertedByShape.get(shapeId)
+			if (!converted) continue
+			convertedByShape.delete(shapeId)
 
 			const pageId = editor.getAncestorPageId(shape)
-			if (!pageId) return
-			const updates: TLCommentRecord[] = []
 			for (const { threadId, anchor, point } of converted) {
 				const thread = getCommentRecord(editor, threadId)
 				if (!thread || thread.typeName !== 'comment-thread') continue
@@ -138,15 +140,24 @@ export function registerCommentAnchorLifecycle(
 				if (current.type !== 'point' || current.x !== point.x || current.y !== point.y) {
 					continue
 				}
-				if (thread.pageId === pageId) {
+				if (!pageId || thread.pageId === pageId) {
 					updates.push({ ...thread, anchor })
 				} else {
 					rehomeThread({ ...thread, anchor }, pageId, updates)
 				}
 			}
-			if (updates.length > 0) {
-				commitCommentMutation(editor, () => putCommentRecords(editor, updates))
-			}
+		}
+
+		if (updates.length > 0) {
+			commitCommentMutation(editor, () => putCommentRecords(editor, updates))
+		}
+	})
+
+	const disposeAfterCreate = editor.sideEffects.registerAfterCreateHandler(
+		'shape',
+		(shape, source) => {
+			if (source === 'remote') return
+			if (convertedByShape.has(shape.id)) returnedShapeIds.add(shape.id)
 		}
 	)
 

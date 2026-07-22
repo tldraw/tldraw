@@ -126,6 +126,34 @@ describe('shape deletion', () => {
 		expect(updated.anchor).toEqual(thread.anchor)
 	})
 
+	it('keeps the restore when a returning shape cannot resolve its page yet', () => {
+		const frameId = createShapeId()
+		editor.createShape({ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 400, h: 400 } })
+		const childId = createShapeId()
+		editor.createShape({
+			id: childId,
+			type: 'geo',
+			parentId: frameId,
+			x: 50,
+			y: 50,
+			props: { w: 100, h: 100 },
+		})
+		const { thread } = makeThread(childId, 0.5, 0.5, true)
+		const childRecord = editor.getShape(childId)!
+		const frameRecord = editor.getShape(frameId)!
+
+		editor.deleteShape(frameId)
+		expect((getCommentRecord(editor, thread.id) as typeof thread).anchor.type).toBe('point')
+
+		// The child returns in an earlier operation than its parent, so its ancestor page can't
+		// resolve when it first reappears.
+		editor.store.put([childRecord])
+		editor.store.put([frameRecord])
+
+		const updated = getCommentRecord(editor, thread.id) as typeof thread
+		expect(updated.anchor).toEqual(thread.anchor)
+	})
+
 	it('does not re-attach on undo when the pin was moved after the conversion', () => {
 		const shapeId = makeShape(100, 100, 100, 50)
 		const { thread } = makeThread(shapeId, 0.5, 0.5, true)
