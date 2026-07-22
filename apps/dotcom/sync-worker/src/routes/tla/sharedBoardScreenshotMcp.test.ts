@@ -16,6 +16,7 @@ import {
 	buildThumbnailRenderUrl,
 	enumerateBoardPages,
 	getThumbnailPageCacheKey,
+	isMcpScreenshotEnabled,
 	parseBoardInfoInput,
 	parseSharedBoardScreenshotInput,
 	resetRateLimitFallbackForTests,
@@ -171,6 +172,63 @@ describe('buildThumbnailRenderUrl', () => {
 		const url = new URL(buildThumbnailRenderUrl('https://render.example', 'the-token'))
 		expect(url.pathname).toBe('/__thumbnail-render')
 		expect(url.searchParams.get('token')).toBe('the-token')
+	})
+})
+
+describe('MCP_SCREENSHOT_ENABLED', () => {
+	// The switch is read per request rather than baked in at build time, so flipping the var takes
+	// the server down without a rebuild.
+	it('serves the server when unset or "true"', () => {
+		expect(isMcpScreenshotEnabled(makeEnv())).toBe(true)
+		expect(isMcpScreenshotEnabled(makeEnv({ MCP_SCREENSHOT_ENABLED: 'true' }))).toBe(true)
+		expect(isMcpScreenshotEnabled(makeEnv({ MCP_SCREENSHOT_ENABLED: ' TRUE ' }))).toBe(true)
+	})
+
+	// Anything unrecognized disables: someone reaching for the kill switch under pressure and typing
+	// `0` or `off` should get a disabled server, not a silently still-running one.
+	it('disables the server for "false" and for any unrecognized value', () => {
+		for (const value of ['false', '0', 'off', 'no', 'disabled']) {
+			expect(isMcpScreenshotEnabled(makeEnv({ MCP_SCREENSHOT_ENABLED: value }))).toBe(false)
+		}
+	})
+
+	it('answers every request with 404 while disabled, without touching the board', async () => {
+		// A board that would otherwise render, so the untouched screenshot binding below means the
+		// switch stopped the request rather than the board simply not resolving.
+		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1751234567890,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeSnapshot(THREE_PAGES))
+		const env = makeEnv({
+			MCP_SCREENSHOT_ENABLED: 'false',
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		const response = await sharedBoardScreenshotMcp(
+			makeToolCall('203.0.113.40', 'get_shared_board_screenshot', { boardId: 'abc' }),
+			env
+		)
+
+		expect(response.status).toBe(404)
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+		expect(getPublishedFileInfo).not.toHaveBeenCalled()
+	})
+
+	// Disabled means gone, not "here but empty": a client that can still initialize and list tools
+	// would advertise tools that every call then rejects.
+	it('hides the protocol handshake while disabled', async () => {
+		const response = await sharedBoardScreenshotMcp(
+			new Request('https://sync.tldraw.xyz/app/mcp', {
+				method: 'POST',
+				body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize' }),
+			}) as any,
+			makeEnv({ MCP_SCREENSHOT_ENABLED: 'false' })
+		)
+
+		expect(response.status).toBe(404)
 	})
 })
 

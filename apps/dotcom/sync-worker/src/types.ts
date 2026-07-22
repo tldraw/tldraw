@@ -109,6 +109,12 @@ export interface Environment {
 	// non-functional local binding and the render path fails closed; real local captures need
 	// `wrangler dev --remote` with credentials or a preview deploy. Undefined in tests.
 	BROWSER: BrowserBinding | undefined
+	// Kill switch for the MCP screenshot server (POST /app/mcp). Absent means enabled, so an
+	// environment that never configured it behaves as it did before the flag existed. Anything other
+	// than 'true' turns the endpoint off, so a typo fails in the safe direction. Editing this var in
+	// the Cloudflare dashboard takes the server down without a rebuild or a code deploy — but the
+	// next deploy restores the wrangler.toml value, so follow an emergency flip with a config change.
+	MCP_SCREENSHOT_ENABLED: string | undefined
 	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
 	// environment in wrangler.toml.
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined

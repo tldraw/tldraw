@@ -109,6 +109,10 @@ BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1
 TLDRAW_ENV = "development"
 MULTIPLAYER_SERVER = "http://localhost:3000"
 MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
+# Kill switch for the MCP screenshot server (POST /app/mcp). Read per request, so setting it to
+# anything but "true" — here or straight in the Cloudflare dashboard — takes the endpoint down
+# without a rebuild. A dashboard edit lasts until the next deploy overwrites it from this file.
+MCP_SCREENSHOT_ENABLED = "true"
 # local-only signing secret; deployments get a real one via deploy vars
 MCP_SCREENSHOT_TOKEN_SECRET = "local-dev-thumbnail-render-secret"
 
@@ -124,6 +128,7 @@ HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
+MCP_SCREENSHOT_ENABLED = "true"
 
 # production gets the proper name
 [env.production]
@@ -135,6 +140,7 @@ HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://www.tldraw.com"
+MCP_SCREENSHOT_ENABLED = "true"
 
 #################### Routing ####################
 # no custom routes for previews and development

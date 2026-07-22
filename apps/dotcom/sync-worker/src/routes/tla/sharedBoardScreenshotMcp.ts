@@ -99,11 +99,26 @@ interface EnumeratedPage {
 	hasContent: boolean
 }
 
+// Runtime kill switch for the whole MCP server, read per request so flipping MCP_SCREENSHOT_ENABLED
+// takes effect on the next request rather than the next build. An unset var means enabled, so
+// environments that never configure it (previews, local dev, tests) keep working; a var that is set
+// must say 'true', so a stray value disables rather than silently leaving the endpoint up.
+export function isMcpScreenshotEnabled(env: Environment) {
+	const value = env.MCP_SCREENSHOT_ENABLED?.trim().toLowerCase()
+	return value === undefined || value === '' || value === 'true'
+}
+
 export async function sharedBoardScreenshotMcp(
 	request: IRequest,
 	env: Environment,
 	ctx?: ExecutionContext
 ): Promise<Response> {
+	// Checked before anything else, including the method check, so a disabled server looks like it
+	// isn't there at all rather than like a route that exists but rejects everything.
+	if (!isMcpScreenshotEnabled(env)) {
+		return new Response('Not Found', { status: 404 })
+	}
+
 	if (request.method !== 'POST') {
 		return new Response('MCP screenshot server expects POST', { status: 405 })
 	}
