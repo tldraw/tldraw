@@ -124,9 +124,12 @@
 
 /* With the hit layer targeting the marker, the pin visual is never the hovered element itself
    (`:hover` matches the target and its ancestors, and the pin is the marker's child) — so the
-   canvas pin's hover styling keys off the marker. */
+   canvas pin's hover styling keys off the marker. The hover shadow is for closed pins only: an
+   open pin keeps its selection ring, which the shadow would otherwise override. */
 .tlui-cmt-canvas-pin__marker:hover .tlui-cmt-pin {
 	transform: scale(1.08);
+}
+.tlui-cmt-canvas-pin__marker:hover .tlui-cmt-pin:not(.tlui-cmt-pin--open) {
 	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
 }
 

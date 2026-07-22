@@ -248,6 +248,12 @@
 .tlui-cmt-pin:hover,
 .pseudo-hover .tlui-cmt-pin {
 	transform: scale(1.08);
+}
+
+/* The hover shadow is for closed pins only — an open pin keeps its selection ring, which this
+   box-shadow would otherwise override (the hover selector outranks the --open rule). */
+.tlui-cmt-pin:not(.tlui-cmt-pin--open):hover,
+.pseudo-hover .tlui-cmt-pin:not(.tlui-cmt-pin--open) {
 	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
 }
 
