@@ -15,9 +15,15 @@
 	position: absolute;
 }
 
-.tlui-cmt-canvas-pin,
 .tlui-cmt-canvas-composer {
 	pointer-events: auto;
+}
+
+/* The pin's only interactive surface is the square hit layer below — the wrapper itself is
+   inert. Its box sits at the anchor point, not over the (translated) visual, so letting it take
+   events would put a phantom hit zone beside the pin. */
+.tlui-cmt-canvas-pin {
+	pointer-events: none;
 }
 
 /* Badges are clickable (zoom to the cluster's first split). */
@@ -94,13 +100,34 @@
 /* Anchor the pin by its bottom-left corner, so the marker's one sharp corner (the pin shape's
    3px bottom-left) points at the exact anchor point. */
 .tlui-cmt-canvas-pin__marker {
+	position: relative;
 	width: max-content;
 	transform: translate(0, -100%);
 	cursor: grab;
 	touch-action: none;
+	pointer-events: none;
 }
 .tlui-cmt-canvas-pin__marker:active {
 	cursor: grabbing;
+}
+
+/* The predictable hit area: a fixed square over the marker's box, and the only part of the pin
+   that takes pointer events. Events over it target the marker (a pseudo-element's events report
+   its originating element), so the marker's handlers and :hover keep working — but the hit area
+   no longer stretches with pin content or scales with the hover transform. */
+.tlui-cmt-canvas-pin__marker::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	pointer-events: auto;
+}
+
+/* With the hit layer targeting the marker, the pin visual is never the hovered element itself
+   (`:hover` matches the target and its ancestors, and the pin is the marker's child) — so the
+   canvas pin's hover styling keys off the marker. */
+.tlui-cmt-canvas-pin__marker:hover .tlui-cmt-pin {
+	transform: scale(1.08);
+	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
 }
 
 /* The open thread's popover — portaled to the menus layer (above the UI), positioned at the pin. */
