@@ -21,6 +21,11 @@ import {
 	TLCommentId,
 	TLCommentThread,
 	TLRichText,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
 	useContainer,
 	useEditor,
@@ -1280,21 +1285,27 @@ const ThreadPin = memo(function ThreadPin({
 				</button>
 			)}
 			{currentUserId && (
-				<button
-					className="tlui-cmt-thread__action"
-					title={msg('comments.delete')}
-					onClick={deleteThread}
-				>
-					<TldrawUiIcon icon="trash" label={msg('comments.delete')} small />
-				</button>
+				<TldrawUiDropdownMenuRoot id={`comment-thread-actions-${thread.id}`}>
+					<TldrawUiDropdownMenuTrigger>
+						<button
+							type="button"
+							className="tlui-cmt-thread__action"
+							title={msg('comments.more-options')}
+						>
+							<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+						</button>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="bottom" align="end">
+						<TldrawUiDropdownMenuGroup>
+							<TldrawUiDropdownMenuItem>
+								<button type="button" className="tlui-cmt-menu-item" onClick={deleteThread}>
+									<span>{msg('comments.delete')}</span>
+								</button>
+							</TldrawUiDropdownMenuItem>
+						</TldrawUiDropdownMenuGroup>
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiDropdownMenuRoot>
 			)}
-			<button
-				className="tlui-cmt-thread__action"
-				title={msg('comments.dismiss')}
-				onClick={() => openThreadId.set(editor, null)}
-			>
-				<TldrawUiIcon icon="cross-2" label={msg('comments.dismiss')} small />
-			</button>
 		</>
 	)
 
@@ -1452,9 +1463,9 @@ const ThreadPin = memo(function ThreadPin({
 					<ThreadPopover
 						container={container}
 						// Clear the bottom-left-anchored pin: it spans 34px right of and above the
-						// anchor, plus the open ring's 5px — the popover starts past that, top-aligned
-						// with the pin.
-						style={{ left: renderPoint.x + 44, top: renderPoint.y - 34 }}
+						// anchor, plus the open ring's 5px — the popover starts past that, opening
+						// slightly above the pin's top.
+						style={{ left: renderPoint.x + 44, top: renderPoint.y - 44 }}
 					>
 						<CommentThread
 							header={msg('comments.thread-title')}
