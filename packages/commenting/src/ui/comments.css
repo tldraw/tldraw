@@ -568,7 +568,12 @@
 	margin-top: 2px;
 }
 
-/* The reply composer carries no avatar at all — the field spans the thread's full width. */
+/* The reply composer carries no avatar at all — the field spans the thread's full width. Its own
+   bottom and left padding go too: the thread panel already pads 8px, so keeping them would inset
+   the field deeper than the panel's other edges. */
+.tlui-cmt-thread .tlui-cmt-composer {
+	padding: 4px 0 0;
+}
 .tlui-cmt-thread .tlui-cmt-composer .tlui-cmt-avatar {
 	display: none;
 }
