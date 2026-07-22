@@ -1090,7 +1090,15 @@ const ThreadPin = memo(function ThreadPin({
 					),
 		[regionOptions.resize, regionOptions.pinCorner]
 	)
-	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
+	const dragRef = useRef<{
+		startX: number
+		startY: number
+		moved: boolean
+		// The anchor's page-space offset from the grab point, so a drag translates the pin by the
+		// cursor's delta (like RegionBox's move) instead of snapping the anchor to the cursor.
+		offsetX: number
+		offsetY: number
+	} | null>(null)
 	const markerRef = useRef<HTMLDivElement>(null)
 	// Wheel pass-through sits on the marker (which is never scrollable), not the layer root —
 	// see the note on the layer.
@@ -1302,7 +1310,15 @@ const ThreadPin = memo(function ThreadPin({
 			return
 		}
 		e.stopPropagation()
-		dragRef.current = { startX: e.clientX, startY: e.clientY, moved: false }
+		const grabPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		const anchorPage = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
+		dragRef.current = {
+			startX: e.clientX,
+			startY: e.clientY,
+			moved: false,
+			offsetX: anchorPage ? anchorPage.x - grabPage.x : 0,
+			offsetY: anchorPage ? anchorPage.y - grabPage.y : 0,
+		}
 		e.currentTarget.setPointerCapture(e.pointerId)
 	}
 	const onDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -1312,7 +1328,8 @@ const ThreadPin = memo(function ThreadPin({
 		if (isRegion && !pinMovable) return
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
 		drag.moved = true
-		setDragPagePoint(editor.screenToPage({ x: e.clientX, y: e.clientY }))
+		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		setDragPagePoint({ x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY })
 	}
 	const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
@@ -1325,7 +1342,8 @@ const ThreadPin = memo(function ThreadPin({
 			openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
 			return
 		}
-		const pagePoint = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		const pagePoint = { x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY }
 		setDragPagePoint(null)
 		let anchor: TLCommentThread['anchor']
 		if (thread.anchor.type === 'region') {
