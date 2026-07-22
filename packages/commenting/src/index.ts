@@ -69,6 +69,13 @@ export { useComments, useCommentThreads, useThreadComments } from './canvas/hook
 export { useCommentingEnabled } from './canvas/license'
 export { DEFAULT_REGION_COMMENT_OPTIONS, type RegionCommentOptions } from './canvas/region-options'
 export { richTextToPlaintext } from './canvas/rich-text'
+export {
+	diffText,
+	getShapePlaintext,
+	mapTextRange,
+	type TextEdit,
+	trackTextRangeAnchors,
+} from './canvas/text-range-tracking'
 export { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './canvas/sidebar-filters'
 export {
 	commentsHidden,

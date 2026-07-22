@@ -365,6 +365,9 @@ export const defaultCommentingOptions: {
 };
 
 // @public
+export function diffText(oldText: string, newText: string, attribute?: 'earliest' | 'latest'): null | TextEdit;
+
+// @public
 export function EmptyState({ message }: EmptyStateProps): JSX.Element;
 
 // @public (undocumented)
@@ -398,10 +401,22 @@ export function getComments(editor: Editor): TLComment[];
 export function getCommentThreads(editor: Editor): TLCommentThread[];
 
 // @public
+export function getShapePlaintext(richText: TLRichText): string;
+
+// @public
 export interface LeafInput {
     id: string;
     point: VecLike;
 }
+
+// @public
+export function mapTextRange(range: {
+    from: number;
+    to: number;
+}, oldText: string, newText: string): {
+    from: number;
+    to: number;
+};
 
 // @public
 export function Mention({ name }: MentionProps): JSX.Element;
@@ -535,10 +550,23 @@ export interface SidebarFilters {
 export const sidebarFilters: EditorAtom<SidebarFilters>;
 
 // @public
+export interface TextEdit {
+    // (undocumented)
+    newEnd: number;
+    // (undocumented)
+    oldEnd: number;
+    // (undocumented)
+    start: number;
+}
+
+// @public
 export type TLCommentRecord = TLComment | TLCommentThread;
 
 // @public
 export function toggleCommentsHidden(editor: Editor): void;
+
+// @public
+export function trackTextRangeAnchors(editor: Editor): () => void;
 
 // @public
 export function useCommentingEnabled(): boolean;

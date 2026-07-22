@@ -4,6 +4,7 @@ import {
 	commentTools,
 	pendingComment,
 	putCommentRecords,
+	trackTextRangeAnchors,
 } from '@tldraw/commenting'
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useEffect, useMemo, useState } from 'react'
@@ -28,7 +29,6 @@ import {
 } from 'tldraw'
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
-import { trackTextRangeAnchors } from './text-range-tracking'
 import './comment-text-ranges.css'
 import { TextRangeHighlights } from './TextRangeHighlights'
 
