@@ -1,5 +1,10 @@
 import { QueryResultType } from '@rocicorp/zero'
-import { CanvasComments, CanvasCommentsSidebar, filterMentionMembers } from '@tldraw/commenting'
+import {
+	CanvasComments,
+	CanvasCommentsSidebar,
+	CommentAuthor,
+	filterMentionMembers,
+} from '@tldraw/commenting'
 import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useEditor, useValue } from 'tldraw'
@@ -10,7 +15,7 @@ type FileComments = QueryResultType<typeof queries.fileComments>
 /**
  * dotcom's comments layer: a thin consumer of `@tldraw/commenting`'s `<CanvasComments>`.
  * All the flow (tool, pins, thread popovers, composer, rich-text bodies) lives in the toolkit;
- * dotcom only supplies the pieces that are its own — the signed-in user's id, a name resolver
+ * dotcom only supplies the pieces that are its own — the signed-in user's id, an author resolver
  * (current user from preferences, other authors from the Zero comments query's author join, with
  * live presence as a fallback for users who haven't committed a comment yet, e.g. a draft
  * composer's byline), and comment read status from Zero's read receipts.
@@ -24,11 +29,15 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	const app = useMaybeApp()
 	const currentUserId = app?.userId ?? null
 
-	const currentUserName = useValue(
-		'current user name',
-		() => {
-			if (!app) return 'You'
-			return app.tlUser.userPreferences.get().name || 'You'
+	const currentUser = useValue(
+		'current user',
+		(): CommentAuthor => {
+			if (!app) return { name: 'You' }
+			const prefs = app.tlUser.userPreferences.get()
+			return {
+				name: prefs.name || 'You',
+				color: prefs.color ?? undefined,
+			}
 		},
 		[app]
 	)
@@ -47,12 +56,17 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		}
 	}, [app, fileId])
 
-	const authorNames = useMemo(() => {
-		const names = new Map<string, string>()
+	const commentAuthors = useMemo(() => {
+		const authors = new Map<string, CommentAuthor>()
 		for (const c of fileComments) {
-			if (c.author?.name) names.set(c.authorId, c.author.name)
+			if (c.author?.name) {
+				authors.set(c.authorId, {
+					name: c.author.name,
+					color: c.author.color,
+				})
+			}
 		}
-		return names
+		return authors
 	}, [fileComments])
 
 	// Ids of unread comments: others' comments with no read receipt in Zero. Zero comment row ids
@@ -66,14 +80,16 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		return ids
 	}, [fileComments, currentUserId])
 
-	const presenceNames = useValue(
-		'presence names',
+	const presenceAuthors = useValue(
+		'presence authors',
 		() => {
-			const names = new Map<string, string>()
+			const authors = new Map<string, CommentAuthor>()
 			for (const p of editor.store.query.records('instance_presence').get()) {
-				if (p.userName) names.set(p.userId.replace(/^user:/, ''), p.userName)
+				if (p.userName) {
+					authors.set(p.userId.replace(/^user:/, ''), { name: p.userName, color: p.color })
+				}
 			}
-			return names
+			return authors
 		},
 		[editor]
 	)
@@ -95,23 +111,23 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		},
 		[app, fileId]
 	)
-	// Roster names keyed by id. The workspace roster is the id→name source for a mentioned member
-	// who's committed no comment and isn't currently present — without it, they resolve to nothing
-	// and render as the byline default rather than their name.
-	const memberNames = useMemo(
-		() => new Map(mentionMembers.map((m) => [m.id, m.name])),
+	// Roster authors keyed by id — a MentionMember is a CommentAuthor. The workspace roster is the
+	// id→name source for a mentioned member who's committed no comment and isn't currently present —
+	// without it, they resolve to nothing and render as the byline default rather than their name.
+	const memberAuthors = useMemo(
+		() => new Map<string, CommentAuthor>(mentionMembers.map((m) => [m.id, m])),
 		[mentionMembers]
 	)
-	// Resolve an id to a current display name from the sources the client has: self, comment
-	// authors, live presence, and the workspace roster. Returns undefined when none can name the id
-	// (e.g. a deleted account) — the client has no global user directory — so the toolkit falls back
-	// to a mention's stored label, or a generic byline default.
-	const resolveName = useCallback(
-		(id: string): string | undefined => {
-			if (id === currentUserId) return currentUserName
-			return authorNames.get(id) ?? presenceNames.get(id) ?? memberNames.get(id)
+	// Resolve an id to current display info from the sources the client has: self, comment
+	// authors, live presence, and the workspace roster. Returns undefined when none can resolve the
+	// id (e.g. a deleted account) — the client has no global user directory — so the toolkit falls
+	// back to a mention's stored label, or a generic byline default.
+	const resolveAuthor = useCallback(
+		(id: string): CommentAuthor | undefined => {
+			if (id === currentUserId) return currentUser
+			return commentAuthors.get(id) ?? presenceAuthors.get(id) ?? memberAuthors.get(id)
 		},
-		[currentUserId, currentUserName, authorNames, presenceNames, memberNames]
+		[currentUserId, currentUser, commentAuthors, presenceAuthors, memberAuthors]
 	)
 	const isCommentUnread = useCallback(
 		(commentId: string) => unreadCommentIds.has(commentId),
@@ -127,13 +143,13 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		<>
 			<CanvasComments
 				currentUserId={currentUserId}
-				resolveName={resolveName}
+				resolveAuthor={resolveAuthor}
 				isCommentUnread={app ? isCommentUnread : undefined}
 				onCommentRead={app ? onCommentRead : undefined}
 				getMentionSuggestions={getMentionSuggestions}
 			/>
 			<CanvasCommentsSidebar
-				resolveName={resolveName}
+				resolveAuthor={resolveAuthor}
 				currentUserId={currentUserId ?? undefined}
 				isCommentUnread={app ? isCommentUnread : undefined}
 			/>

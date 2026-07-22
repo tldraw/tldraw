@@ -259,7 +259,7 @@
 	width: 34px;
 	height: 34px;
 	border-radius: 50% 50% 50% 3px;
-	background: var(--tl-color-selected);
+	background: var(--tlui-cmt-pin-color, var(--tl-color-selected));
 	color: #fff;
 	display: flex;
 	align-items: center;
@@ -285,11 +285,11 @@
 	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
 }
 
-/* open: the thread is showing — a selection ring marks the active pin */
+/* open: the thread is showing — a selection ring marks the active pin (in the pin's own tint) */
 .tlui-cmt-pin--open {
 	box-shadow:
 		0 0 0 3px var(--tl-color-panel),
-		0 0 0 5px var(--tl-color-selected),
+		0 0 0 5px var(--tlui-cmt-pin-color, var(--tl-color-selected)),
 		0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
@@ -577,6 +577,14 @@
 	height: 14px;
 	font-size: 0;
 	margin-top: 2px;
+}
+
+/* The dot treatment is for colour-only identity — an image avatar stays full size. */
+.tlui-cmt-thread .tlui-cmt-avatar--image,
+.tlui-cmt-list .tlui-cmt-avatar--image {
+	width: 24px;
+	height: 24px;
+	margin-top: 0;
 }
 
 /* inside the panel, comments are plain content — no surrounding box; the composer's field carries

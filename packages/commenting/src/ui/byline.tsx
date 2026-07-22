@@ -1,8 +1,9 @@
+import { CommentAuthor } from './comment-author'
 import { formatRelativeTime } from './format-time'
 
 /** @public */
 export interface BylineProps {
-	author: string
+	author: CommentAuthor
 	/** ISO datetime; formatted to relative time by the component. */
 	date: string
 	/** Shows an "edited" marker when the comment has been edited. */
@@ -13,7 +14,7 @@ export interface BylineProps {
 export function Byline({ author, date, edited }: BylineProps) {
 	return (
 		<div className="tlui-cmt-head">
-			<span className="tlui-cmt-author">{author}</span>
+			<span className="tlui-cmt-author">{author.name}</span>
 			<span className="tlui-cmt-time">
 				{formatRelativeTime(date)}
 				{edited && <span className="tlui-cmt-edited"> · edited</span>}

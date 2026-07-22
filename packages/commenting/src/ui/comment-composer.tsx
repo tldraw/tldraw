@@ -3,6 +3,7 @@ import { EditorContent, useEditor } from '@tiptap/react'
 import { ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
 import { Avatar } from './avatar'
+import { CommentAuthor } from './comment-author'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
 import { commentMention } from './comment-mention'
 import { MentionMember } from './mention-list'
@@ -11,7 +12,7 @@ import { SendButton } from './send-button'
 
 /** @public */
 export interface CommentComposerProps {
-	author: string
+	author: CommentAuthor
 	placeholder: string
 	/** Controlled rich-text value. Omit for the presentational (display-only) composer. */
 	value?: TLRichText
@@ -238,7 +239,7 @@ export function CommentComposer({
 
 	return (
 		<div className="tlui-cmt-composer">
-			{leading ?? <Avatar name={author} />}
+			{leading ?? <Avatar author={author} />}
 			<div
 				className={[
 					'tlui-cmt-composer__field',

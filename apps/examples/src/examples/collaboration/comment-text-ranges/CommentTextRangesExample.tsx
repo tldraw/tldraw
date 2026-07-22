@@ -1,5 +1,6 @@
 import {
 	CanvasComments,
+	CommentAuthor,
 	commentToolOverrides,
 	commentTools,
 	pendingComment,
@@ -31,8 +32,11 @@ import 'tldraw/tldraw.css'
 import { TextRangeHighlights } from './TextRangeHighlights'
 import './comment-text-ranges.css'
 
-const NAMES: Record<string, string> = { ada: 'Ada Lovelace', me: 'You' }
-const resolveName = (id: string): string => NAMES[id] ?? id
+const AUTHORS: Record<string, CommentAuthor> = {
+	ada: { name: 'Ada Lovelace', color: '#0E9F6E' },
+	me: { name: 'You', color: '#EC5E41' },
+}
+const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 
 /**
  * Turn the current text selection into a pending `text-range` comment: read the tiptap selection
@@ -121,7 +125,7 @@ const components: TLComponents = {
 	InFrontOfTheCanvas: () => (
 		<>
 			<TextRangeHighlights />
-			<CanvasComments currentUserId="me" resolveName={resolveName} />
+			<CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />
 		</>
 	),
 }

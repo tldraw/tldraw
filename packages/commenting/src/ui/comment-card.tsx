@@ -1,10 +1,11 @@
 import { ReactNode } from 'react'
 import { Avatar } from './avatar'
 import { Byline } from './byline'
+import { CommentAuthor } from './comment-author'
 
 /** @public */
 export interface CommentCardProps {
-	author: string
+	author: CommentAuthor
 	/** The rendered comment body. The card doesn't dictate a format — pass a `<CommentText>`
 	 *  for markdown, a rich-text render, or any node. */
 	body: ReactNode
@@ -21,7 +22,7 @@ export interface CommentCardProps {
 export function CommentCard({ author, body, date, you, edited, actions }: CommentCardProps) {
 	return (
 		<div className={you ? 'tlui-cmt-card tlui-cmt-card--you' : 'tlui-cmt-card'}>
-			<Avatar name={author} />
+			<Avatar author={author} />
 			<div className="tlui-cmt-body">
 				<Byline author={author} date={date} edited={edited} />
 				{body}

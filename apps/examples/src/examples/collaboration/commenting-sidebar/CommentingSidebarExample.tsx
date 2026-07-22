@@ -1,6 +1,7 @@
 import {
 	CanvasComments,
 	CanvasCommentsSidebar,
+	CommentAuthor,
 	commentsSidebarOpen,
 	commentToolOverrides,
 	commentTools,
@@ -30,12 +31,12 @@ import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 
 // A tiny local user directory so the list shows names instead of ids.
-const NAMES: Record<string, string> = {
-	me: 'You',
-	ada: 'Ada Lovelace',
-	grace: 'Grace Hopper',
+const AUTHORS: Record<string, CommentAuthor> = {
+	me: { name: 'You', color: '#EC5E41' },
+	ada: { name: 'Ada Lovelace', color: '#0E9F6E' },
+	grace: { name: 'Grace Hopper', color: '#4465E9' },
 }
-const resolveName = (id: string): string => NAMES[id] ?? id
+const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 
 // Two pages with a thread each (so the sidebar's every-page default and page labels have
 // something to show) plus a resolved thread, hidden until "show resolved" is toggled on.
@@ -146,8 +147,8 @@ export default function CommentingSidebarExample() {
 		() => ({
 			InFrontOfTheCanvas: () => (
 				<>
-					<CanvasComments currentUserId="me" resolveName={resolveName} />
-					<CanvasCommentsSidebar currentUserId="me" resolveName={resolveName} />
+					<CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />
+					<CanvasCommentsSidebar currentUserId="me" resolveAuthor={resolveAuthor} />
 				</>
 			),
 			SharePanel: SidebarToggle,
