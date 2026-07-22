@@ -85,6 +85,13 @@ export function CommentComposer({
 		const mirror = mirrorRef.current
 		const editor = editorRef.current
 		if (!wrap || !mirror || !editor) return
+		// Empty always fits — and measuring before TipTap's DOM has laid out reads zero widths,
+		// which would flash the expanded layout for a frame on mount.
+		if (editor.isEmpty) {
+			if (expandedRef.current) setExpanded(false)
+			return
+		}
+		if (wrap.clientWidth === 0) return
 		const doc = editor.state.doc
 		const multiBlock =
 			doc.childCount > 1 || (doc.firstChild !== null && doc.firstChild.type.name !== 'paragraph')
