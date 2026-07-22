@@ -579,6 +579,14 @@
 	margin-top: 2px;
 }
 
+/* The dot treatment is for colour-only identity — an image avatar stays full size. */
+.tlui-cmt-thread .tlui-cmt-avatar--image,
+.tlui-cmt-list .tlui-cmt-avatar--image {
+	width: 24px;
+	height: 24px;
+	margin-top: 0;
+}
+
 /* inside the panel, comments are plain content — no surrounding box; the composer's field carries
    its own surface. */
 .tlui-cmt-thread .tlui-cmt-card {
