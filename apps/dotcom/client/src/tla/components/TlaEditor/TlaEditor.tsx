@@ -52,6 +52,7 @@ import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallba
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyCommentDeepLink } from './sneaky/SneakyCommentDeepLink'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
@@ -315,6 +316,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
+				<SneakyCommentDeepLink />
 				<TlaAnonDotDevLink />
 			</Tldraw>
 		</TlaEditorWrapper>
