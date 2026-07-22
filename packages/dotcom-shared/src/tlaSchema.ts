@@ -173,9 +173,18 @@ export const comment_read = table('comment_read')
 // body JSON, which ZQL can't reach — this table is what lets the notifications query filter
 // "comments that mention me" server-side). Server-written only, like comment/comment_thread;
 // rows are reconciled on every comment upsert and cascade away with their comment.
+export const comment_mention = table('comment_mention')
+	.columns({
+		commentId: string(),
+		userId: string(),
+	})
+	.primaryKey('commentId', 'userId')
+
 // One row per (comment, reacting user) — a user has at most one reaction per comment. Written by
 // the file's Durable Object from the room's comment-reaction records, like comment/comment_thread.
-// Client-visible so reactions travel with comments wherever they go, the same way `body` does.
+// The in-document reaction UI reads reactions over the sync object-lane, not from here; this table
+// mirrors comment_mention so a future app-level query (e.g. "reacted to your comment") can reach
+// reactions server-side without a schema change. Nothing consumes it yet.
 export const comment_reaction = table('comment_reaction')
 	.columns({
 		id: string(),
@@ -188,13 +197,6 @@ export const comment_reaction = table('comment_reaction')
 		createdAt: number(),
 	})
 	.primaryKey('id')
-
-export const comment_mention = table('comment_mention')
-	.columns({
-		commentId: string(),
-		userId: string(),
-	})
-	.primaryKey('commentId', 'userId')
 
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({

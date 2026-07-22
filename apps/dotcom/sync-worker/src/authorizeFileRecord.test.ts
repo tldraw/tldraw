@@ -8,6 +8,7 @@ import {
 	createComment,
 	createCommentId,
 	createCommentReaction,
+	createCommentReactionId,
 	createCommentThread,
 	createShapeId,
 	toRichText,
@@ -154,11 +155,14 @@ describe('authorizeFileRecord', () => {
 			})
 
 		it('stamps userId from the session on create, overriding the client value', () => {
+			// id is bob's canonical slot (so it passes the id check), but the userId field claims
+			// someone else — the server stamps it back to the session user
+			const next: TLCommentReaction = { ...makeReaction('real-bob'), userId: 'client-claims-alice' }
 			const result = authorize({
 				session: session('real-bob'),
 				type: 'create',
 				prev: null,
-				next: makeReaction('client-claims-alice'),
+				next,
 			}) as TLCommentReaction
 			expect(result.userId).toBe('real-bob')
 		})
@@ -190,6 +194,27 @@ describe('authorizeFileRecord', () => {
 			const prev = makeReaction('real-alice')
 			const next = { ...prev, emoji: '💩' }
 			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBeNull()
+		})
+
+		// The id is derived from (comment, user). A create must land at the session user's own slot,
+		// or a forger could occupy someone else's slot (locking them out) or split one pair across
+		// two ids (wedging the table's unique constraint at drain time).
+		it('vetoes a create whose id is not the session user’s canonical slot', () => {
+			// mallory forges a reaction at alice's id slot on the same comment
+			const next: TLCommentReaction = {
+				...makeReaction('real-mallory'),
+				id: createCommentReactionId(createCommentId('c1'), 'real-alice'),
+			}
+			expect(
+				authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
+			).toBeNull()
+		})
+
+		it('allows a create whose id is the session user’s canonical slot', () => {
+			const next = makeReaction('real-mallory')
+			expect(
+				authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
+			).not.toBeNull()
 		})
 	})
 

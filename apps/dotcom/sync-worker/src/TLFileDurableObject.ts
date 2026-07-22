@@ -1853,6 +1853,15 @@ export class TLFileDurableObject extends DurableObject {
 				for (const id of reactionResult.failedIds) {
 					failedIds.add(id)
 				}
+				// A reaction pruned by an FK violation (its comment/thread/user was deleted and
+				// Postgres cascaded the row away) must also leave the warm room's SQLite, or it
+				// lingers as a ghost the way an author-cascaded comment would (see the comment prune
+				// below). Reactions have no dependent records, so this needs no thread-emptying pass.
+				if (reactionResult.prunedIds.length > 0) {
+					storage.transaction((txn) => {
+						for (const id of reactionResult.prunedIds) txn.delete(id as TLRecord['id'])
+					})
+				}
 				if (reactionDeletes.length > 0) {
 					await this.db.deleteFrom('comment_reaction').where('id', 'in', reactionDeletes).execute()
 				}

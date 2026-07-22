@@ -22,6 +22,7 @@ import {
 	rowToReactionRecord,
 	reactionRecordToRow,
 	isCommentMentionFkViolation,
+	isCommentReactionFkViolation,
 	planMentionReconciles,
 	rowToThreadRecord,
 	threadRecordToRow,
@@ -169,6 +170,39 @@ describe('isCommentMentionFkViolation', () => {
 			)
 		).toBe(false)
 		expect(isCommentMentionFkViolation(null)).toBe(false)
+	})
+})
+
+describe('isCommentReactionFkViolation', () => {
+	it('matches a pg foreign key violation on any of the three comment_reaction fkeys', () => {
+		for (const constraint of [
+			'comment_reaction_comment_id_fkey',
+			'comment_reaction_thread_id_fkey',
+			'comment_reaction_user_id_fkey',
+		]) {
+			expect(
+				isCommentReactionFkViolation(Object.assign(new Error(), { code: '23503', constraint }))
+			).toBe(true)
+		}
+	})
+
+	it('requires both the code and a comment_reaction constraint to match', () => {
+		// the unique-constraint violation (23505) is deliberately NOT matched — a reaction can't
+		// insert twice for one (comment, user) once the authorizer pins the id to that pair
+		expect(
+			isCommentReactionFkViolation(
+				Object.assign(new Error(), {
+					code: '23505',
+					constraint: 'comment_reaction_comment_user_unique',
+				})
+			)
+		).toBe(false)
+		expect(
+			isCommentReactionFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentReactionFkViolation(null)).toBe(false)
 	})
 })
 
