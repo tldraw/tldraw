@@ -575,7 +575,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			{/* Keep the region visible while composing — the drag draft is gone by now, and no thread
 			    exists yet, so the pending anchor is what shows the area under the open composer. */}
 			{pending?.anchor.type === 'region' && <RegionBox editor={editor} box={pending.anchor} />}
-			{pending && (props.currentUserId || options.components.SignedOutComposer) && (
+			{pending && (props.currentUserId || options.components.ComposerFallback) && (
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
 		</div>,
@@ -1406,7 +1406,7 @@ const ThreadPin = memo(function ThreadPin({
 	)
 
 	const PinContent = options.components.PinContent
-	const SignedOutComposer = options.components.SignedOutComposer
+	const ComposerFallback = options.components.ComposerFallback
 	// The `PinContent` component slot overrides the built-in author-initial default.
 	const threadAuthor = resolveAuthor(thread.createdBy)
 	const pinContent = PinContent ? (
@@ -1609,8 +1609,8 @@ const ThreadPin = memo(function ThreadPin({
 									: undefined
 							}
 							footer={
-								!currentUserId && !thread.resolved && SignedOutComposer ? (
-									<SignedOutComposer />
+								!currentUserId && !thread.resolved && ComposerFallback ? (
+									<ComposerFallback reason="signed-out" />
 								) : undefined
 							}
 						/>
@@ -1630,7 +1630,7 @@ function PendingComposer({
 	getMentionSuggestions,
 	renderMentionSuggestion,
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
-	const SignedOutComposer = useCommentingOptions().components.SignedOutComposer
+	const ComposerFallback = useCommentingOptions().components.ComposerFallback
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	// Click-away keeps the draft (saved on every change) and the next placement composer
 	// restores it — the flip side of dismissing without a discard warning.
@@ -1693,7 +1693,7 @@ function PendingComposer({
 			className={[
 				'tlui-cmt-canvas-composer',
 				pending.anchor.type === 'region' && 'tlui-cmt-canvas-composer--region',
-				!currentUserId && 'tlui-cmt-canvas-composer--signed-out',
+				!currentUserId && 'tlui-cmt-canvas-composer--fallback',
 			]
 				.filter(Boolean)
 				.join(' ')}
@@ -1722,7 +1722,7 @@ function PendingComposer({
 					leading={draftAvatar(me?.color)}
 				/>
 			) : (
-				SignedOutComposer && <SignedOutComposer />
+				ComposerFallback && <ComposerFallback reason="signed-out" />
 			)}
 		</div>,
 		container

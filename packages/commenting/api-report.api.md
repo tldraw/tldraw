@@ -197,11 +197,13 @@ export interface CommentingComponents {
     CommentBody?: ComponentType<{
         comment: TLComment;
     }>;
+    ComposerFallback?: ComponentType<{
+        reason: ComposerFallbackReason;
+    }>;
     PinContent?: ComponentType<{
         comments: TLComment[];
         thread: TLCommentThread;
     }>;
-    SignedOutComposer?: ComponentType;
     ThreadPreview?: ComponentType<{
         comment: TLComment;
     }>;
@@ -337,6 +339,9 @@ export const commentTools: typeof CommentTool[];
 
 // @public
 export function commitCommentMutation<T>(editor: Editor, fn: () => T, kind?: 'drag' | 'mutation'): T;
+
+// @public
+export type ComposerFallbackReason = 'signed-out';
 
 // @public (undocumented)
 export function computeClusterTable(leaves: readonly LeafInput[], options: ClusterOptions): ClusterTable;

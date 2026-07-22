@@ -65,7 +65,7 @@ import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 // Signed-out viewers get a sign-in prompt where the comment composers would be.
 const tlaCommentTools = [
-	CommentTool.configure({ components: { SignedOutComposer: SignInToComment } }),
+	CommentTool.configure({ components: { ComposerFallback: SignInToComment } }),
 ]
 
 /** @internal */

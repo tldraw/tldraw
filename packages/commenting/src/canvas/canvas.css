@@ -165,9 +165,9 @@
 	transform: translate(-21px, -21px);
 }
 
-/* Signed-out placement: no draft avatar to anchor by, so no offset — a small panel hanging off
-   the click point, sized to its content (the host's sign-in prompt). */
-.tlui-cmt-canvas-composer--signed-out {
+/* Fallback placement (no composer to show): no draft avatar to anchor by, so no offset — a small
+   panel hanging off the click point, sized to its content (e.g. the host's sign-in prompt). */
+.tlui-cmt-canvas-composer--fallback {
 	transform: none;
 	width: auto;
 	display: flex;

@@ -8,6 +8,14 @@ import {
 } from 'tldraw'
 
 /**
+ * Why the composer is unavailable at a compose surface. `'signed-out'` is the only reason today;
+ * the union grows as more ways to be unable to compose exist (e.g. disabled commenting).
+ *
+ * @public
+ */
+export type ComposerFallbackReason = 'signed-out'
+
+/**
  * Component overrides for the batteries-included comments layer. Each slot replaces a built-in
  * piece; leave a slot unset to keep its default.
  *
@@ -20,10 +28,11 @@ export interface CommentingComponents {
 	PinContent?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
 	/** A sidebar row's preview. Replaces the plaintext default. */
 	ThreadPreview?: ComponentType<{ comment: TLComment }>
-	/** Shown where a composer would sit when `currentUserId` is null (e.g. a sign-in prompt):
-	 *  the bottom of an open thread popover, and the placement popover the comment tool opens.
-	 *  Unset, signed-out viewers just read. */
-	SignedOutComposer?: ComponentType
+	/** Shown where a composer would sit when composing is unavailable — a signed-out viewer
+	 *  today; disabled commenting (e.g. a viewer role, or a host that turns commenting off) as
+	 *  future reasons. Renders at the bottom of an open thread popover and in the placement
+	 *  popover the comment tool opens. Unset, those surfaces render nothing. */
+	ComposerFallback?: ComponentType<{ reason: ComposerFallbackReason }>
 }
 
 /**
