@@ -1450,7 +1450,14 @@ const ThreadPin = memo(function ThreadPin({
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
 		drag.moved = true
 		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
-		setDragPagePoint({ x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY })
+		const pagePoint = { x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY }
+		setDragPagePoint(pagePoint)
+		// Hint the shape the pin would re-anchor to on drop — the same hit-test endDrag resolves
+		// with. Regions translate rather than re-anchor, so they never hint.
+		if (!isRegion) {
+			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+			editor.setHintingShapes(hit ? [hit.id] : [])
+		}
 	}
 	const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
@@ -1459,6 +1466,7 @@ const ThreadPin = memo(function ThreadPin({
 			e.currentTarget.releasePointerCapture(e.pointerId)
 		}
 		if (!drag) return
+		editor.setHintingShapes([])
 		if (!drag.moved) {
 			openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
 			return
