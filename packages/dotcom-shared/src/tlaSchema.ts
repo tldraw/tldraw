@@ -133,10 +133,12 @@ export const comment = table('comment')
 		threadId: string(),
 		pageId: string(),
 		authorId: string(),
-		// Author display fields, denormalized by Postgres triggers (migration 038, same pattern
+		// Author display fields, denormalized by Postgres triggers (migration 040, same pattern
 		// as file.ownerName) — joining the user row would sync private fields to every reader.
 		authorName: string(),
 		authorColor: string(),
+		// Not shown anywhere yet: users can't change their avatar, so we don't render avatars
+		// until they can.
 		authorAvatar: string(),
 		body: json(),
 		createdAt: number(),

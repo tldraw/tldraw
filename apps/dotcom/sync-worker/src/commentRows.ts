@@ -108,7 +108,7 @@ export function commentRecordToRow(
 		threadId: record.threadId,
 		pageId: record.pageId,
 		authorId: record.authorId,
-		// placeholders — a Postgres trigger stamps the real values on insert (migration 038)
+		// placeholders — a Postgres trigger stamps the real values on insert (migration 040)
 		authorName: '',
 		authorColor: '',
 		authorAvatar: '',
