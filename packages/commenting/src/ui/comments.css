@@ -557,6 +557,20 @@
 	flex-direction: column;
 	gap: 6px;
 }
+/* Inside a thread, author identity is a small colour dot, no initial — the letter doesn't fit
+   at this size. */
+.tlui-cmt-thread .tlui-cmt-avatar {
+	width: 14px;
+	height: 14px;
+	font-size: 0;
+	margin-top: 2px;
+}
+
+/* The reply composer carries no avatar at all — the field spans the thread's full width. */
+.tlui-cmt-thread .tlui-cmt-composer .tlui-cmt-avatar {
+	display: none;
+}
+
 /* inside the panel, comments are plain content — no surrounding box; the composer's field carries
    its own surface. */
 .tlui-cmt-thread .tlui-cmt-card {
