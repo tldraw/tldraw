@@ -13,12 +13,12 @@ import { CommentAuthor } from '../ui/comment-author'
 import { CommentListItemProps, CommentsList } from '../ui/comments-list'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
-import { CommentsOverflowMenu } from './comments-overflow-menu'
+import { CommentsVisibilityToggle } from './comments-visibility-toggle'
 import { useComments, useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
 import { useCommentingOptions } from './options'
 import { richTextToPlaintext } from './rich-text'
-import { openThreadId, sidebarFilters } from './state'
+import { commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
 import { focusThread } from './thread-state'
 
 /** @public */
@@ -32,8 +32,6 @@ export interface CanvasCommentsSidebarProps {
 	 * "only unread" filter when present.
 	 */
 	isCommentUnread?(commentId: TLCommentId): boolean
-	/** Tool ids that show the sidebar. Defaults to the comment tool. */
-	tools?: string[]
 	/** Header above the list. */
 	header?: ReactNode
 	/** Shown when the page has no threads. */
@@ -43,33 +41,26 @@ export interface CanvasCommentsSidebarProps {
 }
 
 /**
- * A comments list panel for the current page, shown while the comment tool is active. Clicking a
- * thread brings its pin into view and opens it. Batteries-included over the store (a sibling to
- * `CanvasComments`); `CommentsList` is exported for a differently-placed or always-on list.
+ * A comments list panel for the current page, shown while {@link commentsSidebarOpen} is set (e.g.
+ * toggled by a button). Clicking a thread brings its pin into view and opens it. Batteries-included
+ * over the store (a sibling to `CanvasComments`); `CommentsList` is exported for a differently-placed
+ * or always-on list.
  * @public @react
  */
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
-	const {
-		resolveAuthor,
-		currentUserId,
-		isCommentUnread,
-		tools,
-		header,
-		empty,
-		impreciseShapeAnchor,
-	} = props
+	const { resolveAuthor, currentUserId, isCommentUnread, header, empty, impreciseShapeAnchor } =
+		props
 	// Name-only view of the resolver, for the plaintext previews (which resolve @-mentions).
 	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const editor = useEditor()
 	const options = useCommentingOptions()
-	const sidebarTools = tools ?? ['comment']
 	const container = useContainer()
 	const commentingEnabled = useCommentingEnabled()
 	const msg = useTranslation()
 	const threads = useCommentThreads(editor)
 	const comments = useComments(editor)
 	const currentPageId = useValue('page id', () => editor.getCurrentPageId(), [editor])
-	const activeTool = useValue('tool id', () => editor.getCurrentToolId(), [editor])
+	const open = useValue('sidebar open', () => commentsSidebarOpen.get(editor), [editor])
 	const openId = useValue('open thread', () => openThreadId.get(editor), [editor])
 	const filters = useValue('sidebar filters', () => sidebarFilters.get(editor), [editor])
 	const pageNames = useValue(
@@ -78,7 +69,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		[editor]
 	)
 
-	if (!commentingEnabled || !sidebarTools.includes(activeTool)) return null
+	if (!commentingEnabled || !open) return null
 
 	// Group comments by thread (they arrive oldest-first, so [0] is each thread's first comment).
 	const byThread = new Map<string, TLComment[]>()
@@ -128,7 +119,12 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				preview,
 				date: new Date((first ?? thread).createdAt).toISOString(),
 				resolved: thread.resolved != null,
-				page: pageNames.get(thread.pageId),
+				// The page label only earns its place when it adds information: multiple pages
+				// exist, and the thread is somewhere other than where you already are.
+				page:
+					pageNames.size > 1 && thread.pageId !== currentPageId
+						? pageNames.get(thread.pageId)
+						: undefined,
 				count: threadComments.length,
 				selected: openId === thread.id,
 			}
@@ -157,7 +153,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 							canFilterByAuthor={currentUserId !== undefined}
 							canFilterByUnread={isCommentUnread !== undefined}
 						/>
-						<CommentsOverflowMenu />
+						<CommentsVisibilityToggle />
 					</div>
 				}
 				empty={
@@ -179,7 +175,7 @@ function SidebarPanel({ container, children }: { container: HTMLElement; childre
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughMouseOverEvents(ref)
 	return createPortal(
-		<div ref={ref} className="tlui-cmt-canvas-sidebar">
+		<div ref={ref} className="tlui-cmt-canvas-sidebar" onContextMenu={(e) => e.stopPropagation()}>
 			{children}
 		</div>,
 		container

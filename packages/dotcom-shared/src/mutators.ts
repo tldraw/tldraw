@@ -19,7 +19,6 @@ import {
 	TlaFileStatePartial,
 	TlaFlags,
 	TlaGroupFile,
-	TlaGroupUser,
 	TlaSchema,
 	TlaUser,
 	TlaUserPartial,
@@ -434,34 +433,45 @@ export function createMutators(userId: string) {
 			assert(fileId, ZErrorCode.bad_request)
 			time = ensureSensibleTimestamp(time)
 
+			const file = await tx.run(zql.file.where('id', '=', fileId).one())
+
 			// Verify the user has permission to access this file
 			if (tx.location === 'server') {
-				const file = await tx.run(zql.file.where('id', '=', fileId).one())
 				await assertUserCanAccessFile(tx, userId, file!)
 			}
 
 			// If we get here, the user has legitimate access to the file
 			await tx.mutate.file_state.upsert({ fileId, userId, firstVisitAt: time })
 
-			const workspaceFileRows = await tx.run(zql.group_file.where('fileId', '=', fileId))
-			const userWorkspaceMemberships = await tx.run(zql.group_user.where('userId', '=', userId))
-			// Add a visited file to the user's home group unless it already belongs to one of
-			// their groups. This is what surfaces a shared file the user opened as a "guest
-			// file" in their sidebar. (Files owned by a workspace the user is a member of are
-			// not mirrored here — and the sidebar read path also filters out any that slip
-			// through, see getWorkspaceFilesSorted — so a workspace file never shows in home.)
-			if (
-				!userWorkspaceMemberships.some((g: TlaGroupUser) =>
-					workspaceFileRows.some((gf: TlaGroupFile) => gf.groupId === g.groupId)
-				)
-			) {
-				await tx.mutate.group_file.insert({
-					fileId,
-					groupId: userId,
-					createdAt: time,
-					updatedAt: time,
-					index: null,
-				})
+			// Add a visited file to the user's home group so it shows as a "guest file" in the
+			// sidebar — unless it's already visible to the user somewhere else. A file is listed
+			// in a workspace only when that workspace actually OWNS it (getWorkspaceFilesSorted
+			// lists a non-home workspace's file only when owningGroupId === workspaceId), so the
+			// only thing that should suppress the home link is the file being owned by a
+			// workspace the user belongs to.
+			//
+			// We deliberately do NOT key off "any group_file row in one of my groups": a
+			// stale/mislinked row (e.g. a leftover from the removed drag-to-link feature,
+			// #9107/#9254, or a create-workspace-race mirror) points at a workspace that does
+			// not own the file, so it shows the file nowhere. Counting it here would skip the
+			// home link and make the file invisible in the sidebar entirely.
+			const alreadyLinkedInHome = await tx.run(
+				zql.group_file.where('fileId', '=', fileId).where('groupId', '=', userId).one()
+			)
+			if (!alreadyLinkedInHome) {
+				// getRole returns null when the user isn't a member of the file's owning
+				// workspace (and for a null owningGroupId), so this is true only when the file
+				// is genuinely owned by a workspace the user belongs to.
+				const ownedByOneOfMyWorkspaces = (await getRole(tx, userId, file?.owningGroupId)) !== null
+				if (!ownedByOneOfMyWorkspaces) {
+					await tx.mutate.group_file.insert({
+						fileId,
+						groupId: userId,
+						createdAt: time,
+						updatedAt: time,
+						index: null,
+					})
+				}
 			}
 		},
 		createWorkspace: async (tx: Tx, { id, name }: { id: string; name: string }) => {

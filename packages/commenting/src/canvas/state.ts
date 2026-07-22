@@ -36,6 +36,15 @@ export const regionDraft = new EditorAtom<BoxModel | null>('regionDraft', () => 
  */
 export const commentsHidden = new EditorAtom<boolean>('commentsHidden', () => false)
 
+/**
+ * Whether the comments sidebar (the thread list) is open. Driven by an explicit control — a button
+ * next to Share on dotcom — rather than by which tool is active, so browsing threads is separate
+ * from placing them. The comment tool additionally closes it on enter, keeping placement
+ * canvas-focused.
+ * @public
+ */
+export const commentsSidebarOpen = new EditorAtom<boolean>('commentsSidebarOpen', () => false)
+
 /** Which threads the comments sidebar shows.
  * @public */
 export const sidebarFilters = new EditorAtom<SidebarFilters>(
@@ -47,6 +56,12 @@ export const sidebarFilters = new EditorAtom<SidebarFilters>(
  * @public */
 export function toggleCommentsHidden(editor: Editor): void {
 	commentsHidden.update(editor, (hidden) => !hidden)
+}
+
+/** Open or close the comments sidebar for an editor.
+ * @public */
+export function toggleCommentsSidebar(editor: Editor): void {
+	commentsSidebarOpen.update(editor, (open) => !open)
 }
 
 /** React hook for the open thread id.
@@ -68,6 +83,13 @@ export function usePendingComment(): PendingComment | null {
 export function useCommentsHidden(): boolean {
 	const editor = useEditor()
 	return useValue('comments hidden', () => commentsHidden.get(editor), [editor])
+}
+
+/** React hook for whether the comments sidebar is open.
+ * @public */
+export function useCommentsSidebarOpen(): boolean {
+	const editor = useEditor()
+	return useValue('comments sidebar open', () => commentsSidebarOpen.get(editor), [editor])
 }
 
 /** React hook for the current sidebar filters.

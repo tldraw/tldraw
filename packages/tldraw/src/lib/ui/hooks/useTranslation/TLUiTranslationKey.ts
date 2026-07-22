@@ -521,6 +521,8 @@ export type TLUiTranslationKey =
 	| 'comments.resolve'
 	| 'comments.reopen'
 	| 'comments.delete'
+	| 'comments.edit-comment'
+	| 'comments.delete-comment'
 	| 'comments.dismiss'
 	| 'comments.send'
 	| 'comments.resolved-by'

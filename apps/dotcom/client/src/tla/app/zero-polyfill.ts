@@ -278,7 +278,9 @@ export class Zero {
 		}
 
 		const tableName = ast.table as keyof typeof data
-		let rows = data[tableName] as unknown[]
+		// A table absent from the snapshot (the comment tables — see ZStoreData) reads as empty
+		// rather than crashing the reactive flush that evaluates this query.
+		let rows = (data[tableName] ?? []) as unknown[]
 
 		// Apply where conditions (pass the full store data so EXISTS subqueries can resolve)
 		if (ast.where) {

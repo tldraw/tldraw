@@ -65,6 +65,7 @@ export {
 	useCommentingOptions,
 } from './canvas/options'
 export { CommentsOverflowMenu } from './canvas/comments-overflow-menu'
+export { CommentsVisibilityToggle } from './canvas/comments-visibility-toggle'
 export { CanvasCommentsSidebar, type CanvasCommentsSidebarProps } from './canvas/comments-sidebar'
 export { useComments, useCommentThreads, useThreadComments } from './canvas/hooks'
 export { useCommentingEnabled } from './canvas/license'
@@ -73,12 +74,15 @@ export { richTextToPlaintext } from './canvas/rich-text'
 export { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './canvas/sidebar-filters'
 export {
 	commentsHidden,
+	commentsSidebarOpen,
 	commitCommentMutation,
 	openThreadId,
 	pendingComment,
 	sidebarFilters,
 	toggleCommentsHidden,
+	toggleCommentsSidebar,
 	useCommentsHidden,
+	useCommentsSidebarOpen,
 	useOpenThreadId,
 	usePendingComment,
 	useSidebarFilters,
@@ -87,6 +91,7 @@ export {
 	anchorPagePoint,
 	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
 	focusThread,
+	regionAnchorPinCorner,
 	shapeAnchorAt,
 } from './canvas/thread-state'
 
