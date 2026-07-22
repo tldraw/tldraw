@@ -641,13 +641,18 @@
 	border-radius: 6px;
 	background: transparent;
 	font: inherit;
-	font-size: 13px;
+	font-size: 12px;
 	color: var(--tl-color-text-1);
 	cursor: pointer;
 }
 .tlui-cmt-menu-item:hover {
 	background: var(--tl-color-muted-2);
 }
+/* Destructive menu entries (delete) — the same danger colour as tldraw's danger buttons. */
+.tlui-cmt-menu-item--danger {
+	color: var(--tl-color-danger);
+}
+
 .tlui-cmt-menu-item__shortcut {
 	color: var(--tl-color-text-3);
 	font-size: 12px;

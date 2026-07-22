@@ -1241,6 +1241,18 @@ const ThreadPin = memo(function ThreadPin({
 		setEditText(comment.body)
 	}
 
+	const deleteComment = (comment: TLComment) => {
+		commitCommentMutation(editor, () => {
+			// Deleting a thread's only comment deletes the thread — an empty thread has no surface.
+			if (comments.length === 1) {
+				openThreadId.set(editor, null)
+				removeCommentRecords(editor, [thread.id, comment.id])
+			} else {
+				removeCommentRecords(editor, [comment.id])
+			}
+		})
+	}
+
 	const saveEdit = () => {
 		const comment = comments.find((c) => c.id === editingId)
 		if (!comment || isCommentEmpty(editText)) return
@@ -1285,13 +1297,39 @@ const ThreadPin = memo(function ThreadPin({
 				{...card}
 				actions={
 					comment.authorId === currentUserId ? (
-						<button
-							className="tlui-cmt-thread__action"
-							title={msg('comments.edit')}
-							onClick={() => startEdit(comment)}
-						>
-							<TldrawUiIcon icon="dots-vertical" label={msg('comments.edit')} small />
-						</button>
+						<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
+							<TldrawUiDropdownMenuTrigger>
+								<button
+									type="button"
+									className="tlui-cmt-thread__action"
+									title={msg('comments.more-options')}
+								>
+									<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+								</button>
+							</TldrawUiDropdownMenuTrigger>
+							<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0}>
+								<TldrawUiDropdownMenuGroup>
+									<TldrawUiDropdownMenuItem>
+										<button
+											type="button"
+											className="tlui-cmt-menu-item"
+											onClick={() => startEdit(comment)}
+										>
+											<span>{msg('comments.edit-comment')}</span>
+										</button>
+									</TldrawUiDropdownMenuItem>
+									<TldrawUiDropdownMenuItem>
+										<button
+											type="button"
+											className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
+											onClick={() => deleteComment(comment)}
+										>
+											<span>{msg('comments.delete-comment')}</span>
+										</button>
+									</TldrawUiDropdownMenuItem>
+								</TldrawUiDropdownMenuGroup>
+							</TldrawUiDropdownMenuContent>
+						</TldrawUiDropdownMenuRoot>
 					) : undefined
 				}
 			/>
@@ -1324,10 +1362,14 @@ const ThreadPin = memo(function ThreadPin({
 							<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
 						</button>
 					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent side="bottom" align="end">
+					<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0}>
 						<TldrawUiDropdownMenuGroup>
 							<TldrawUiDropdownMenuItem>
-								<button type="button" className="tlui-cmt-menu-item" onClick={deleteThread}>
+								<button
+									type="button"
+									className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
+									onClick={deleteThread}
+								>
 									<span>{msg('comments.delete')}</span>
 								</button>
 							</TldrawUiDropdownMenuItem>
