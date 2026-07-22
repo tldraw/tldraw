@@ -4,6 +4,7 @@ import {
 	TldrawUiDropdownMenuItem,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiIcon,
 	useEditor,
 	useTranslation,
 	useValue,
@@ -30,10 +31,15 @@ export function CommentsOverflowMenu() {
 					title={msg('comments.more-options')}
 					aria-label={msg('comments.more-options')}
 				>
-					<MoreIcon />
+					<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
 				</button>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent side="bottom" align="end">
+			<TldrawUiDropdownMenuContent
+				className="tlui-cmt-menu"
+				side="bottom"
+				align="end"
+				alignOffset={0}
+			>
 				<TldrawUiDropdownMenuGroup>
 					<TldrawUiDropdownMenuItem>
 						<button
@@ -48,15 +54,5 @@ export function CommentsOverflowMenu() {
 				</TldrawUiDropdownMenuGroup>
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
-	)
-}
-
-function MoreIcon() {
-	return (
-		<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-			<circle cx="3" cy="8" r="1.4" />
-			<circle cx="8" cy="8" r="1.4" />
-			<circle cx="13" cy="8" r="1.4" />
-		</svg>
 	)
 }

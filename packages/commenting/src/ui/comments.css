@@ -597,11 +597,9 @@
 	border-bottom: 1px solid var(--tl-color-divider);
 }
 .tlui-cmt-list__header-title {
-	font-size: 11px;
+	font-size: 13px;
 	font-weight: 600;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-1);
 }
 
 /* a small square icon button in the sidebar header (filter funnel, overflow …) */
@@ -687,11 +685,16 @@
 .tlui-cmt-list__item:hover {
 	background: var(--tl-color-muted-2);
 }
-/* Selected sits a step above hover (muted-1 over muted-2) so the open thread's row stays
-   distinguishable while pointing at other rows. */
+/* Selected sits a step above hover so the open thread's row stays distinguishable while
+   pointing at other rows — but only a step: the muted-1 token (10%) reads too heavy here.
+   These rows sit on the opaque sidebar panel, so a translucent tint composes safely. */
 .tlui-cmt-list__item--selected,
 .tlui-cmt-list__item--selected:hover {
-	background: var(--tl-color-muted-1);
+	background: hsl(0, 0%, 0%, 6.5%);
+}
+.tl-theme__dark .tlui-cmt-list__item--selected,
+.tl-theme__dark .tlui-cmt-list__item--selected:hover {
+	background: hsl(0, 0%, 100%, 6.5%);
 }
 /* resolved rows mute their content but keep the "Resolved" marker legible */
 .tlui-cmt-list__item[data-resolved] .tlui-cmt-head,
