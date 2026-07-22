@@ -36,9 +36,6 @@ export function CommentsFilterMenu({
 
 	return (
 		<TldrawUiDropdownMenuRoot id="comments-filter">
-			{/* Tooltip outside the trigger: the dropdown trigger composes onto its child via asChild,
-			    and the tooltip doesn't forward injected props — nested the other way it would swallow
-			    the trigger's click handling. */}
 			<TldrawUiTooltip content={msg('comments.filter')}>
 				<TldrawUiDropdownMenuTrigger>
 					<button type="button" className="tlui-cmt-header-btn" aria-label={msg('comments.filter')}>
@@ -53,12 +50,6 @@ export function CommentsFilterMenu({
 				alignOffset={0}
 			>
 				<TldrawUiMenuContextProvider type="menu" sourceId="menu">
-					{/* Ordered by scope, broadest cut first: which pages, whose threads, then
-					    per-thread state (unread, resolved). The filter state keeps
-					    restrict-polarity fields (`onlyCurrentPage`, `onlyMine` — they read
-					    naturally in the filter pipeline), while the menu labels them with
-					    show-polarity copy, so those two checkboxes display the inverse of
-					    their field. */}
 					<TldrawUiMenuGroup id="comments-filter">
 						<TldrawUiMenuCheckboxItem
 							id="show-all-pages"

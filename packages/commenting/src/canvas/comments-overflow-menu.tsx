@@ -25,7 +25,6 @@ export function CommentsOverflowMenu() {
 
 	return (
 		<TldrawUiDropdownMenuRoot id="comments-overflow">
-			{/* Tooltip outside the trigger — see CommentsFilterMenu. */}
 			<TldrawUiTooltip content={msg('comments.more-options')}>
 				<TldrawUiDropdownMenuTrigger>
 					<button

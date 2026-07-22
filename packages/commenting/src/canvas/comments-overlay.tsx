@@ -1317,7 +1317,6 @@ const ThreadPin = memo(function ThreadPin({
 				actions={
 					comment.authorId === currentUserId ? (
 						<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
-							{/* Tooltip outside the trigger — see CommentsFilterMenu. */}
 							<TldrawUiTooltip content={msg('comments.more-options')}>
 								<TldrawUiDropdownMenuTrigger>
 									<button
@@ -1382,7 +1381,6 @@ const ThreadPin = memo(function ThreadPin({
 			)}
 			{currentUserId && (
 				<TldrawUiDropdownMenuRoot id={`comment-thread-actions-${thread.id}`}>
-					{/* Tooltip outside the trigger — see CommentsFilterMenu. */}
 					<TldrawUiTooltip content={msg('comments.more-options')}>
 						<TldrawUiDropdownMenuTrigger>
 							<button
