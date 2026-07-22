@@ -1,4 +1,5 @@
 import {
+	AdminFileAssetsResponseBody,
 	FILE_PREFIX,
 	FeatureFlagKey,
 	LOCAL_FILE_PREFIX,
@@ -202,7 +203,7 @@ export const adminRoutes = createRouter<Environment>()
 			.select(['id', 'name', 'ownerId', 'owningGroupId', 'isDeleted', 'createSource'])
 			.executeTakeFirst()
 
-		const snapshot = await getFileSnapshot(env, slug, !!file)
+		const snapshot = await getFileSnapshot(env, slug, true)
 		if (!snapshot) {
 			throw new StatusError(404, `No persisted snapshot for ${slug}`)
 		}
@@ -216,7 +217,7 @@ export const adminRoutes = createRouter<Environment>()
 			fileIdMeta: string | null
 			associated: boolean
 			oldFormatUrl: boolean
-			inBucket: boolean
+			inBucket: boolean | null
 		}> = []
 		for (const { state } of snapshot.documents) {
 			const record = state as any
@@ -238,7 +239,9 @@ export const adminRoutes = createRouter<Environment>()
 					src.startsWith('http') &&
 					!!userContentUrl &&
 					!src.startsWith(userContentUrl),
-				inBucket: false,
+				// null until the head check settles; a failed check stays null so R2 flakiness
+				// doesn't read as a confirmed-missing object
+				inBucket: null,
 			})
 		}
 
@@ -275,30 +278,32 @@ export const adminRoutes = createRouter<Environment>()
 		const dbFileIdByObjectName = new Map(dbRowsForReferenced.map((r) => [r.objectName, r.fileId]))
 		const orphaned = rowsForThisFile.filter((row) => !referencedSet.has(row.objectName)).length
 
-		// Mirrors loadCreateSourceData. Readonly and snapshot prefixes need slug translation to
-		// check, so they report null (not checked) rather than a misleading false.
+		// Mirrors loadCreateSourceData: exists means seeding from this source would find content.
+		// Readonly and snapshot prefixes need slug translation to check, so they report null (not
+		// checked), as does a failed check.
 		let source: { raw: string; exists: boolean | null } | null = null
 		if (file?.createSource) {
 			const raw = file.createSource
 			const [prefix, id] = raw.split('/')
 			let exists: boolean | null = null
-			if (raw === WELCOME_CREATE_SOURCE || prefix === LOCAL_FILE_PREFIX) {
-				exists = true
-			} else if (prefix === FILE_PREFIX && id) {
-				exists = !!(await pg
-					.selectFrom('file')
-					.where('id', '=', id)
-					.select('id')
-					.executeTakeFirst())
-			} else if (prefix === PUBLISH_PREFIX && id) {
-				exists = !!(await pg
-					.selectFrom('file')
-					.where('publishedSlug', '=', id)
-					.where('published', '=', true)
-					.select('id')
-					.executeTakeFirst())
-			} else if (prefix === ROOM_PREFIX && id) {
-				exists = !!(await env.ROOMS.head(getR2KeyForRoom({ slug: id, isApp: false })))
+			try {
+				if (raw === WELCOME_CREATE_SOURCE || prefix === LOCAL_FILE_PREFIX) {
+					exists = true
+				} else if (prefix === FILE_PREFIX && id) {
+					exists = !!(await env.ROOMS.head(getR2KeyForRoom({ slug: id, isApp: true })))
+				} else if (prefix === PUBLISH_PREFIX && id) {
+					exists = !!(await pg
+						.selectFrom('file')
+						.where('publishedSlug', '=', id)
+						.where('published', '=', true)
+						.select('id')
+						.executeTakeFirst())
+				} else if (prefix === ROOM_PREFIX && id) {
+					exists = !!(await env.ROOMS.head(getR2KeyForRoom({ slug: id, isApp: false })))
+				}
+			} catch (e) {
+				warnings.push(`createSource check failed for ${raw}: ${e}`)
+				exists = null
 			}
 			source = { raw, exists }
 		}
@@ -306,13 +311,15 @@ export const adminRoutes = createRouter<Environment>()
 		let associated = 0
 		let oldFormatUrls = 0
 		let missingInBucket = 0
+		let headFailures = 0
 		for (const a of assets) {
 			if (a.associated) associated++
 			if (a.oldFormatUrl) oldFormatUrls++
-			if (!a.inBucket) missingInBucket++
+			if (a.inBucket === false) missingInBucket++
+			if (a.inBucket === null) headFailures++
 		}
 
-		return json({
+		const report: AdminFileAssetsResponseBody = {
 			file: file ?? null,
 			source,
 			assets: {
@@ -321,8 +328,9 @@ export const adminRoutes = createRouter<Environment>()
 				pending: assets.length - associated,
 				oldFormatUrls,
 				missingInBucket,
+				headFailures,
 				problems: assets
-					.filter((a) => !a.associated || !a.inBucket)
+					.filter((a) => !a.associated || a.inBucket !== true)
 					.map((a) => ({
 						assetId: a.assetId,
 						objectName: a.objectName,
@@ -336,7 +344,8 @@ export const adminRoutes = createRouter<Environment>()
 			},
 			dbRows: { forThisFile: rowsForThisFile.length, orphaned },
 			warnings,
-		})
+		}
+		return json(report)
 	})
 	.get('/app/admin/download-tldr/:fileSlug', async (res, env) => {
 		const fileSlug = res.params.fileSlug

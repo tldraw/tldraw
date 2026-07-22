@@ -289,3 +289,35 @@ export interface PercentageFeatureFlag {
 export interface EvaluatedFeatureFlag {
 	enabled: boolean
 }
+
+/** One unassociated or unverifiable asset in an admin asset-diagnostics report. */
+export interface AdminFileAssetProblem {
+	assetId: string
+	objectName: string
+	src: string
+	fileIdMeta: string | null
+	/** null = the bucket head check failed, not a confirmed absence */
+	inBucket: boolean | null
+	dbRow: { fileId: string } | null
+}
+
+/** Response of the admin file-assets diagnostics endpoint. */
+export interface AdminFileAssetsResponseBody {
+	file: Pick<
+		TlaFile,
+		'id' | 'name' | 'ownerId' | 'owningGroupId' | 'isDeleted' | 'createSource'
+	> | null
+	/** null exists = not checked (prefix needs slug translation) or the check failed */
+	source: { raw: string; exists: boolean | null } | null
+	assets: {
+		total: number
+		associated: number
+		pending: number
+		oldFormatUrls: number
+		missingInBucket: number
+		headFailures: number
+		problems: AdminFileAssetProblem[]
+	}
+	dbRows: { forThisFile: number; orphaned: number }
+	warnings: string[]
+}
