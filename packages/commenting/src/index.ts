@@ -89,8 +89,12 @@ export {
 } from './canvas/state'
 export {
 	anchorPagePoint,
+	type CommentDropTarget,
+	commentTargetShape,
 	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
 	focusThread,
+	resolveCommentDrop,
+	type ResolveCommentDropOptions,
 	shapeAnchorAt,
 } from './canvas/thread-state'
 

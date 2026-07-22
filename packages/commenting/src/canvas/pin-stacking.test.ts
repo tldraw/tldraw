@@ -1,6 +1,7 @@
 import type { Editor, TLCommentAnchor, TLCommentThread } from 'tldraw'
 import { describe, expect, it } from 'vitest'
 import { computePinStacks } from './pin-stacking'
+import { createFakeEditor } from './test-editor'
 
 const CURRENT_PAGE = 'page:one'
 const OTHER_PAGE = 'page:two'
@@ -22,17 +23,20 @@ function thread(
 	} as unknown as TLCommentThread
 }
 
+/** Bounds are unrotated, so a shape's page box and its local geometry box coincide. */
 function stubEditor(
 	shapes: Record<string, { minX: number; minY: number; maxX: number; maxY: number }> = {}
 ): Editor {
-	return {
-		getCurrentPageId: () => CURRENT_PAGE,
-		getShapePageBounds: (id: string) => {
-			const bounds = shapes[id]
-			if (!bounds) return undefined
-			return { ...bounds, w: bounds.maxX - bounds.minX, h: bounds.maxY - bounds.minY }
-		},
-	} as unknown as Editor
+	return createFakeEditor({
+		pageId: CURRENT_PAGE,
+		shapes: Object.entries(shapes).map(([id, bounds]) => ({
+			id,
+			x: bounds.minX,
+			y: bounds.minY,
+			w: bounds.maxX - bounds.minX,
+			h: bounds.maxY - bounds.minY,
+		})),
+	})
 }
 
 const SHAPE = { 'shape:a': { minX: 0, minY: 0, maxX: 200, maxY: 100 } }

@@ -62,7 +62,7 @@ import {
 	usePendingComment,
 } from './state'
 import { ThreadStackPin } from './thread-stack'
-import { anchorPagePoint, regionPinPoint, shapeAnchorAt } from './thread-state'
+import { anchorPagePoint, regionPinPoint, resolveCommentDrop } from './thread-state'
 import { ThreadPopover, ThreadView } from './thread-view'
 
 /**
@@ -964,8 +964,11 @@ const ThreadPin = memo(function ThreadPin({
 		editor,
 		thread.id,
 	])
-	// While dragging the marker, its page point overrides the anchor's; committed on drop.
+	// While dragging a region's pin, its page point overrides the anchor's; committed on drop.
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
+	// While dragging a point/shape pin, the anchor the drop would produce. Held as an anchor rather
+	// than a raw point so the preview shows exactly what will be committed.
+	const [dragAnchor, setDragAnchor] = useState<TLCommentThread['anchor'] | null>(null)
 	// The live bounds while a corner handle is resizing the region, else null.
 	const [resizeBounds, setResizeBounds] = useState<BoxModel | null>(null)
 	// Whether the pin marker is hovered — only consulted by the 'pin-hover' reveal mode.
@@ -1032,6 +1035,14 @@ const ThreadPin = memo(function ThreadPin({
 		return () => document.removeEventListener('pointerdown', onPointerDown, true)
 	}, [open, editor])
 
+	// A drag cut short by this pin unmounting (page switch, a collaborator deleting the thread)
+	// would otherwise strand its highlight on the canvas.
+	useEffect(() => {
+		return () => {
+			if (dragRef.current) editor.setHintingShapes([])
+		}
+	}, [editor])
+
 	const point = useValue(
 		'pin point',
 		() => {
@@ -1064,6 +1075,14 @@ const ThreadPin = memo(function ThreadPin({
 		dragRef.current = { startX: e.clientX, startY: e.clientY, moved: false }
 		e.currentTarget.setPointerCapture(e.pointerId)
 	}
+	// Where a drop at this pointer position would land, plus the shape to highlight getting there.
+	// One call, so the outline can't advertise a target the release won't honour. Alt holds an
+	// already-attached comment on its shape and lets it roam that shape's whole box.
+	const dropAt = (e: ReactPointerEvent<HTMLDivElement>) =>
+		resolveCommentDrop(editor, editor.screenToPage({ x: e.clientX, y: e.clientY }), {
+			current: thread.anchor,
+			constrain: e.altKey,
+		})
 	const onDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
 		if (!drag) return
@@ -1071,7 +1090,17 @@ const ThreadPin = memo(function ThreadPin({
 		if (isRegion && !pinMovable) return
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
 		drag.moved = true
-		setDragPagePoint(editor.screenToPage({ x: e.clientX, y: e.clientY }))
+		if (isRegion) {
+			// A region translates rather than re-anchoring, so it tracks the raw pointer.
+			setDragPagePoint(editor.screenToPage({ x: e.clientX, y: e.clientY }))
+			return
+		}
+		// Preview the resolved anchor rather than the raw pointer: under Alt the anchor is clamped to
+		// the shape's box, and the pin has to stop at the edge with it instead of running off and
+		// snapping back on release.
+		const { anchor, highlightShapeId } = dropAt(e)
+		setDragAnchor(anchor)
+		editor.setHintingShapes(highlightShapeId ? [highlightShapeId] : [])
 	}
 	const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
@@ -1079,15 +1108,16 @@ const ThreadPin = memo(function ThreadPin({
 		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
 			e.currentTarget.releasePointerCapture(e.pointerId)
 		}
+		editor.setHintingShapes([])
 		if (!drag) return
 		if (!drag.moved) {
 			openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
 			return
 		}
-		const pagePoint = editor.screenToPage({ x: e.clientX, y: e.clientY })
-		setDragPagePoint(null)
 		let anchor: TLCommentThread['anchor']
 		if (thread.anchor.type === 'region') {
+			const pagePoint = editor.screenToPage({ x: e.clientX, y: e.clientY })
+			setDragPagePoint(null)
 			// Translate so the pin (the region's pin corner) lands at the drop; size unchanged.
 			anchor = {
 				...thread.anchor,
@@ -1095,19 +1125,20 @@ const ThreadPin = memo(function ThreadPin({
 				y: pagePoint.y - regionOptions.pinCorner.y * thread.anchor.h,
 			}
 		} else {
-			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
-			anchor = hit
-				? shapeAnchorAt(editor, hit.id, pagePoint, e.altKey)
-				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
+			anchor = dropAt(e).anchor
+			setDragAnchor(null)
 		}
 		commitCommentMutation(editor, () => putCommentRecords(editor, [{ ...thread, anchor }]), 'drag')
 	}
 
 	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
-	// move to the drag point; otherwise it sits at the stored anchor's viewport point.
+	// region move to the drag point, a point/shape drag to wherever its pending anchor resolves;
+	// otherwise it sits at the stored anchor's viewport point.
 	const livePinPage = resizeBounds
 		? regionPinPoint(resizeBounds, regionOptions.pinCorner)
-		: dragPagePoint
+		: dragAnchor
+			? anchorPagePoint(editor, dragAnchor, impreciseShapeAnchor)
+			: dragPagePoint
 	const renderPoint = livePinPage ? editor.pageToViewport(livePinPage) : point
 
 	// A region's live box bounds, by priority: a corner resize, else a pin-drag translation (the pin

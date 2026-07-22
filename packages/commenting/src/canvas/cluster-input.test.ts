@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 // intentional. Implement `cluster-input.ts` per CLUSTERING-STEPS.md step 6
 // until this suite passes, without modifying this file.
 import { collectClusterLeaves } from './cluster-input'
+import { createFakeEditor } from './test-editor'
 
 const CURRENT_PAGE = 'page:one'
 const OTHER_PAGE = 'page:two'
@@ -27,21 +28,24 @@ function thread(
 }
 
 /**
- * Stub editor: the filter's only editor dependencies are the current page id
- * and shape page bounds (via anchorPagePoint). `shapes` maps shape id → bounds
- * for shapes that exist; anything else resolves to undefined (deleted shape).
+ * Stub editor: the filter's only editor dependency is resolving a thread's anchor to a page point
+ * (via anchorPagePoint). `shapes` maps shape id → bounds for shapes that exist; anything else
+ * resolves to a deleted shape. Bounds are unrotated here, so a shape's page box and its local
+ * geometry box coincide and these expectations are unaffected by the coordinate space.
  */
 function stubEditor(
 	shapes: Record<string, { minX: number; minY: number; maxX: number; maxY: number }> = {}
 ): Editor {
-	return {
-		getCurrentPageId: () => CURRENT_PAGE,
-		getShapePageBounds: (id: string) => {
-			const bounds = shapes[id]
-			if (!bounds) return undefined
-			return { ...bounds, w: bounds.maxX - bounds.minX, h: bounds.maxY - bounds.minY }
-		},
-	} as unknown as Editor
+	return createFakeEditor({
+		pageId: CURRENT_PAGE,
+		shapes: Object.entries(shapes).map(([id, bounds]) => ({
+			id,
+			x: bounds.minX,
+			y: bounds.minY,
+			w: bounds.maxX - bounds.minX,
+			h: bounds.maxY - bounds.minY,
+		})),
+	})
 }
 
 function leafIds(leaves: { id: string }[]): string[] {

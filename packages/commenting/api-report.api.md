@@ -19,6 +19,7 @@ import { TLCommentThread } from 'tldraw';
 import { TLCommentThreadId } from 'tldraw';
 import { TLHistoryBatchOptions } from 'tldraw';
 import { TLRichText } from 'tldraw';
+import { TLShape } from 'tldraw';
 import { TLShapeId } from 'tldraw';
 import { TLStateNodeConstructor } from 'tldraw';
 import { TLUiOverrides } from 'tldraw';
@@ -185,6 +186,13 @@ export interface CommentComposerProps {
 }
 
 // @public
+export interface CommentDropTarget {
+    // (undocumented)
+    anchor: TLCommentAnchor;
+    highlightShapeId: null | TLShapeId;
+}
+
+// @public
 export interface CommentingComponents {
     CommentBody?: ComponentType<{
         comment: TLComment;
@@ -273,6 +281,9 @@ export function CommentsOverflowMenu(): JSX.Element;
 
 // @public
 export const commentsSidebarOpen: EditorAtom<boolean>;
+
+// @public
+export function commentTargetShape(editor: Editor, page: VecLike): TLShape | undefined;
 
 // @public
 export function CommentText({ text }: CommentTextProps): JSX.Element;
@@ -513,6 +524,15 @@ export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLComme
 
 // @public
 export function renderMarkdown(text: string): ReactNode;
+
+// @public
+export function resolveCommentDrop(editor: Editor, page: VecLike, { current, constrain }?: ResolveCommentDropOptions): CommentDropTarget;
+
+// @public (undocumented)
+export interface ResolveCommentDropOptions {
+    constrain?: boolean;
+    current?: TLCommentAnchor;
+}
 
 // @public
 export function richTextToPlaintext(body: TLRichText, resolveName?: (id: string) => string | undefined): string;
