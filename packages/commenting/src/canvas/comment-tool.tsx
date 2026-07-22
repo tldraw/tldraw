@@ -9,7 +9,7 @@ import {
 import { type CommentingOptions, defaultCommentingOptions } from './options'
 import { getRegionCommentOptions } from './region-options'
 import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
-import { regionPinPoint, shapeAnchorAt } from './thread-state'
+import { regionPinPoint, resolveShapeAnchorPrecision, shapeAnchorAt } from './thread-state'
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
  *  to. Shared between the tool (which sets it on click) and the overlay (which renders the
@@ -176,7 +176,12 @@ class CommentPointing extends StateNode {
 		const point = editor.inputs.getCurrentPagePoint()
 		const hit = editor.getShapeAtPoint(point, { hitInside: true })
 		const anchor: TLCommentAnchor = hit
-			? shapeAnchorAt(editor, hit.id, point, editor.inputs.getAltKey())
+			? shapeAnchorAt(
+					editor,
+					hit.id,
+					point,
+					resolveShapeAnchorPrecision(editor, editor.inputs.getAltKey())
+				)
 			: { type: 'point', x: point.x, y: point.y }
 		pendingComment.set(editor, { anchor, point: { x: point.x, y: point.y } })
 		// Hand back to select; the open composer is now the focus.

@@ -218,6 +218,7 @@ export interface CommentingOptions {
         readonly x: number;
         readonly y: number;
     };
+    readonly preciseShapeAnchors: 'alt' | 'always' | 'never';
 }
 
 // @public (undocumented)
@@ -378,6 +379,7 @@ export const defaultCommentingOptions: {
         readonly x: 1;
         readonly y: 0;
     };
+    readonly preciseShapeAnchors: "always";
 };
 
 // @public
@@ -517,6 +519,9 @@ export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLComme
 
 // @public
 export function renderMarkdown(text: string): ReactNode;
+
+// @public
+export function resolveShapeAnchorPrecision(editor: Editor, altKey: boolean): boolean;
 
 // @public
 export function richTextToPlaintext(body: TLRichText, resolveName?: (id: string) => string | undefined): string;

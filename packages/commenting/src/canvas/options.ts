@@ -59,6 +59,15 @@ export interface CommentingOptions {
 	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
 	readonly impreciseShapeAnchor: { readonly x: number; readonly y: number }
+	/**
+	 * When placing (or drag-re-anchoring) a comment on a shape, whether the anchor is precise —
+	 * pinned to the exact clicked spot within the shape — or imprecise — pinned to the shape as a
+	 * whole, rendered at `impreciseShapeAnchor`. `'always'` (the default) and `'never'` fix it
+	 * either way and ignore the modifier; `'alt'` makes it the user's call per placement:
+	 * imprecise normally, precise while Alt is held. Governs new placements only; existing anchors
+	 * render as stored.
+	 */
+	readonly preciseShapeAnchors: 'always' | 'never' | 'alt'
 
 	// ── Clustering tuning ─────────────────────────────────────────────────────────────────────
 	/** Screen-pixel margin by which the viewport is inflated when culling cluster badges. */
@@ -81,6 +90,7 @@ export const defaultCommentingOptions = {
 	dragHistory: undefined,
 	enableClustering: true,
 	impreciseShapeAnchor: { x: 1, y: 0 },
+	preciseShapeAnchors: 'always',
 	clusterCullMargin: 120,
 	clusterSplitZoomFactor: 1.05,
 	components: {},

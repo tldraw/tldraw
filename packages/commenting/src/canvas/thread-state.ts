@@ -1,4 +1,5 @@
 import { BoxModel, Editor, TLCommentAnchor, TLCommentThread, TLShapeId, VecLike } from 'tldraw'
+import { getCommentingOptions } from './options'
 import { getRegionCommentOptions } from './region-options'
 import { openThreadId } from './state'
 
@@ -64,9 +65,28 @@ export function anchorPagePoint(
 }
 
 /**
+ * Whether a shape placement lands precise, per the editor's `preciseShapeAnchors` option: fixed
+ * either way for `'always'` (the default) and `'never'`, or the Alt key's live state for `'alt'`.
+ * Both placement paths — the comment tool's pointer-up and a pin drag's re-anchor — resolve
+ * through this before building the anchor with {@link shapeAnchorAt}.
+ * @public
+ */
+export function resolveShapeAnchorPrecision(editor: Editor, altKey: boolean): boolean {
+	switch (getCommentingOptions(editor).preciseShapeAnchors) {
+		case 'always':
+			return true
+		case 'never':
+			return false
+		case 'alt':
+			return altKey
+	}
+}
+
+/**
  * A shape anchor for a page point. `x`/`y` are the point's normalized (0–1) offset within the
- * shape's page bounds, remembered either way. When `precise` (Alt held) the pin sits at exactly
- * `x`/`y`; otherwise it sits at the consumer's imprecise default (top-right out of the box).
+ * shape's page bounds, remembered either way. When `precise` the pin sits at exactly `x`/`y`;
+ * otherwise it sits at the consumer's imprecise default (top-right out of the box). Placement
+ * gestures get `precise` from {@link resolveShapeAnchorPrecision}.
  * @public
  */
 export function shapeAnchorAt(

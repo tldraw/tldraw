@@ -92,6 +92,7 @@ export {
 	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
 	focusThread,
 	regionAnchorPinCorner,
+	resolveShapeAnchorPrecision,
 	shapeAnchorAt,
 } from './canvas/thread-state'
 
