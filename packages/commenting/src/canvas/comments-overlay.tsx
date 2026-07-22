@@ -1424,7 +1424,13 @@ const ThreadPin = memo(function ThreadPin({
 				/>
 			)}
 			<div
-				className={open ? 'tlui-cmt-canvas-pin tlui-cmt-canvas-pin--open' : 'tlui-cmt-canvas-pin'}
+				className={[
+					'tlui-cmt-canvas-pin',
+					open && 'tlui-cmt-canvas-pin--open',
+					dragPagePoint && 'tlui-cmt-canvas-pin--dragging',
+				]
+					.filter(Boolean)
+					.join(' ')}
 				style={{ left: renderPoint.x, top: renderPoint.y }}
 			>
 				<div

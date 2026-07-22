@@ -103,11 +103,15 @@
 	position: relative;
 	width: max-content;
 	transform: translate(0, -100%);
-	/* Pointer, not grab/grabbing: dragging a pin matches dragging a shape, which shows no
-	   special drag cursor. */
-	cursor: pointer;
+	/* Default at rest, like hovering a shape; the editor's move cursor while dragging (below). */
+	cursor: var(--tl-cursor-default);
 	touch-action: none;
 	pointer-events: none;
+}
+
+/* Dragging a pin shows the same move cursor as dragging a shape. */
+.tlui-cmt-canvas-pin--dragging .tlui-cmt-canvas-pin__marker {
+	cursor: var(--tl-cursor-move);
 }
 
 /* The predictable hit area: a fixed square over the marker's box, and the only part of the pin
