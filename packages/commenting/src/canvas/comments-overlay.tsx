@@ -1307,7 +1307,12 @@ const ThreadPin = memo(function ThreadPin({
 									<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
 								</button>
 							</TldrawUiDropdownMenuTrigger>
-							<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0}>
+							<TldrawUiDropdownMenuContent
+								className="tlui-cmt-menu"
+								side="bottom"
+								align="end"
+								alignOffset={0}
+							>
 								<TldrawUiDropdownMenuGroup>
 									<TldrawUiDropdownMenuItem>
 										<button
@@ -1362,7 +1367,12 @@ const ThreadPin = memo(function ThreadPin({
 							<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
 						</button>
 					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0}>
+					<TldrawUiDropdownMenuContent
+						className="tlui-cmt-menu"
+						side="bottom"
+						align="end"
+						alignOffset={0}
+					>
 						<TldrawUiDropdownMenuGroup>
 							<TldrawUiDropdownMenuItem>
 								<button

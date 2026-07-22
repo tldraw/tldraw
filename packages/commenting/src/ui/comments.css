@@ -629,6 +629,11 @@
 	gap: 2px;
 }
 
+/* The commenting dropdowns' surface — a little air between the items and the menu edge. */
+.tlui-cmt-menu {
+	padding: 4px;
+}
+
 /* a menu row with a label and a right-aligned shortcut hint (overflow menu) */
 .tlui-cmt-menu-item {
 	display: flex;
