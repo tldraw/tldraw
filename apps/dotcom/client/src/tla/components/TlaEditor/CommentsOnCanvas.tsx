@@ -37,8 +37,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	// own — resubscribed when the file changes and destroyed on unmount.
 	const [fileComments, setFileComments] = useState<FileComments>([])
 	useEffect(() => {
-		// Comments need real Zero; under the polyfill (tests, Zero disabled) skip the live view.
-		if (!app || !app.isUsingProperZero()) return
+		if (!app) return
 		const view = app.materializeQuery<FileComments>(queries.fileComments({ fileId }))
 		setFileComments(view.data)
 		const unlisten = view.addListener((data) => setFileComments(data))
@@ -123,9 +122,6 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		(query: string) => filterMentionMembers(mentionMembers, query),
 		[mentionMembers]
 	)
-
-	// Comments are a Zero feature; hide the layer entirely when Zero isn't available (polyfill).
-	if (!app?.isUsingProperZero()) return null
 
 	return (
 		<>
