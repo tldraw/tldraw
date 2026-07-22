@@ -5,6 +5,7 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
+	TldrawUiTooltip,
 	useEditor,
 	useTranslation,
 	useValue,
@@ -24,16 +25,18 @@ export function CommentsOverflowMenu() {
 
 	return (
 		<TldrawUiDropdownMenuRoot id="comments-overflow">
-			<TldrawUiDropdownMenuTrigger>
-				<button
-					type="button"
-					className="tlui-cmt-header-btn"
-					title={msg('comments.more-options')}
-					aria-label={msg('comments.more-options')}
-				>
-					<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
-				</button>
-			</TldrawUiDropdownMenuTrigger>
+			{/* Tooltip outside the trigger — see CommentsFilterMenu. */}
+			<TldrawUiTooltip content={msg('comments.more-options')}>
+				<TldrawUiDropdownMenuTrigger>
+					<button
+						type="button"
+						className="tlui-cmt-header-btn"
+						aria-label={msg('comments.more-options')}
+					>
+						<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+					</button>
+				</TldrawUiDropdownMenuTrigger>
+			</TldrawUiTooltip>
 			<TldrawUiDropdownMenuContent
 				className="tlui-cmt-menu"
 				side="bottom"

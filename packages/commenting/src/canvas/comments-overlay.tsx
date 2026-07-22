@@ -27,6 +27,7 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
+	TldrawUiTooltip,
 	useContainer,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -1316,15 +1317,18 @@ const ThreadPin = memo(function ThreadPin({
 				actions={
 					comment.authorId === currentUserId ? (
 						<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
-							<TldrawUiDropdownMenuTrigger>
-								<button
-									type="button"
-									className="tlui-cmt-thread__action"
-									title={msg('comments.more-options')}
-								>
-									<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
-								</button>
-							</TldrawUiDropdownMenuTrigger>
+							{/* Tooltip outside the trigger — see CommentsFilterMenu. */}
+							<TldrawUiTooltip content={msg('comments.more-options')}>
+								<TldrawUiDropdownMenuTrigger>
+									<button
+										type="button"
+										className="tlui-cmt-thread__action"
+										aria-label={msg('comments.more-options')}
+									>
+										<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+									</button>
+								</TldrawUiDropdownMenuTrigger>
+							</TldrawUiTooltip>
 							<TldrawUiDropdownMenuContent
 								className="tlui-cmt-menu"
 								side="bottom"
@@ -1362,29 +1366,34 @@ const ThreadPin = memo(function ThreadPin({
 	const headerActions = (
 		<>
 			{currentUserId && (
-				<button
-					className="tlui-cmt-thread__action"
-					title={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
-					onClick={toggleResolve}
-				>
-					<TldrawUiIcon
-						icon="check"
-						label={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
-						small
-					/>
-				</button>
+				<TldrawUiTooltip content={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}>
+					<button
+						className="tlui-cmt-thread__action"
+						aria-label={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
+						onClick={toggleResolve}
+					>
+						<TldrawUiIcon
+							icon="check"
+							label={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
+							small
+						/>
+					</button>
+				</TldrawUiTooltip>
 			)}
 			{currentUserId && (
 				<TldrawUiDropdownMenuRoot id={`comment-thread-actions-${thread.id}`}>
-					<TldrawUiDropdownMenuTrigger>
-						<button
-							type="button"
-							className="tlui-cmt-thread__action"
-							title={msg('comments.more-options')}
-						>
-							<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
-						</button>
-					</TldrawUiDropdownMenuTrigger>
+					{/* Tooltip outside the trigger — see CommentsFilterMenu. */}
+					<TldrawUiTooltip content={msg('comments.more-options')}>
+						<TldrawUiDropdownMenuTrigger>
+							<button
+								type="button"
+								className="tlui-cmt-thread__action"
+								aria-label={msg('comments.more-options')}
+							>
+								<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+							</button>
+						</TldrawUiDropdownMenuTrigger>
+					</TldrawUiTooltip>
 					<TldrawUiDropdownMenuContent
 						className="tlui-cmt-menu"
 						side="bottom"

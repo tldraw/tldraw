@@ -5,6 +5,7 @@ import {
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
+	TldrawUiTooltip,
 	useEditor,
 	useTranslation,
 	useValue,
@@ -35,16 +36,16 @@ export function CommentsFilterMenu({
 
 	return (
 		<TldrawUiDropdownMenuRoot id="comments-filter">
-			<TldrawUiDropdownMenuTrigger>
-				<button
-					type="button"
-					className="tlui-cmt-header-btn"
-					title={msg('comments.filter')}
-					aria-label={msg('comments.filter')}
-				>
-					<FilterIcon />
-				</button>
-			</TldrawUiDropdownMenuTrigger>
+			{/* Tooltip outside the trigger: the dropdown trigger composes onto its child via asChild,
+			    and the tooltip doesn't forward injected props — nested the other way it would swallow
+			    the trigger's click handling. */}
+			<TldrawUiTooltip content={msg('comments.filter')}>
+				<TldrawUiDropdownMenuTrigger>
+					<button type="button" className="tlui-cmt-header-btn" aria-label={msg('comments.filter')}>
+						<FilterIcon />
+					</button>
+				</TldrawUiDropdownMenuTrigger>
+			</TldrawUiTooltip>
 			<TldrawUiDropdownMenuContent
 				className="tlui-cmt-menu"
 				side="bottom"
