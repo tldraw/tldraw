@@ -1155,6 +1155,15 @@ const ThreadPin = memo(function ThreadPin({
 	// see the note on the layer.
 	usePassThroughWheelEvents(markerRef)
 
+	// The drop-target hint is editor-global state with no automatic reset. If the pin unmounts
+	// mid-drag (e.g. Shift+C hides comments), no pointer event will ever reach the drag handlers —
+	// clear the hint here or it stays on the shape indefinitely.
+	useEffect(() => {
+		return () => {
+			if (dragRef.current) editor.setHintingShapes([])
+		}
+	}, [editor])
+
 	// Clicking outside the open popover (and off its own pin) closes the thread — mirrors the
 	// pending composer's dismiss. Capture phase + a class check rather than stopPropagation, since the
 	// popover portals elsewhere in the DOM. The pin marker is excluded so its own click-to-toggle
@@ -1459,6 +1468,18 @@ const ThreadPin = memo(function ThreadPin({
 			editor.setHintingShapes(hit ? [hit.id] : [])
 		}
 	}
+	// A cancelled pointer (touch gesture takeover, browser interruption) aborts the drag outright:
+	// no re-anchor commit, no click-toggle — the pin snaps back and the hint clears.
+	const cancelDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+		const drag = dragRef.current
+		dragRef.current = null
+		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+			e.currentTarget.releasePointerCapture(e.pointerId)
+		}
+		if (!drag) return
+		setDragPagePoint(null)
+		editor.setHintingShapes([])
+	}
 	const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
 		dragRef.current = null
@@ -1560,6 +1581,7 @@ const ThreadPin = memo(function ThreadPin({
 					onPointerDown={startDrag}
 					onPointerMove={onDrag}
 					onPointerUp={endDrag}
+					onPointerCancel={cancelDrag}
 					onPointerEnter={() => setPinHovered(true)}
 					onPointerLeave={() => setPinHovered(false)}
 				>
