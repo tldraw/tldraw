@@ -1,9 +1,19 @@
-import { FeatureFlagKey, TlaFile } from '@tldraw/dotcom-shared'
-import { assert, sleep, uniqueId } from '@tldraw/utils'
+import {
+	FILE_PREFIX,
+	FeatureFlagKey,
+	LOCAL_FILE_PREFIX,
+	PUBLISH_PREFIX,
+	ROOM_PREFIX,
+	TlaFile,
+	WELCOME_CREATE_SOURCE,
+} from '@tldraw/dotcom-shared'
+import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
+import PQueue from 'p-queue'
 import { createPostgresConnectionPool } from './postgres'
-import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
+import { getR2KeyForRoom } from './r2'
+import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
@@ -177,6 +187,163 @@ export const adminRoutes = createRouter<Environment>()
 				},
 			}
 		)
+	})
+	// Read-only asset health report for a file: does each asset record in the persisted snapshot
+	// still have its object in the uploads bucket, and is it associated with this file? Explains
+	// files stuck in a zero-progress association loop (repeated "R2 connection queue depth" alerts
+	// with an unchanging count), e.g. duplicates of a hard-deleted file whose objects were purged.
+	.get('/app/admin/file-assets/:slug', async (res, env) => {
+		const slug = res.params.slug
+		assert(typeof slug === 'string', 'slug is required')
+
+		const pg = createPostgresConnectionPool(env, '/app/admin/file-assets')
+		const file = await pg
+			.selectFrom('file')
+			.where('id', '=', slug)
+			.select(['id', 'name', 'ownerId', 'owningGroupId', 'isDeleted', 'createSource'])
+			.executeTakeFirst()
+
+		const snapshot = await getFileSnapshot(env, slug, !!file)
+		if (!snapshot) {
+			throw new StatusError(404, `No persisted snapshot for ${slug}`)
+		}
+
+		// Walk asset records, mirroring how the association pass parses them
+		// (TLFileDurableObject.associatePendingAssets): objectName is the last path segment of the
+		// src, meta.fileId marks association.
+		const userContentUrl = env.USER_CONTENT_URL
+		const assets: Array<{
+			assetId: string
+			objectName: string
+			src: string
+			fileIdMeta: string | null
+			associated: boolean
+			oldFormatUrl: boolean
+			inBucket: boolean
+		}> = []
+		for (const { state } of snapshot.documents) {
+			const record = state as any
+			if (record.typeName !== 'asset') continue
+			const src = record.props?.src
+			if (!src) continue
+			const objectName = src.split('/').pop()
+			if (!objectName) continue
+			const fileIdMeta = record.meta?.fileId ?? null
+			const associated = fileIdMeta === slug
+			assets.push({
+				assetId: record.id,
+				objectName,
+				src,
+				fileIdMeta,
+				associated,
+				oldFormatUrl:
+					associated &&
+					src.startsWith('http') &&
+					!!userContentUrl &&
+					!src.startsWith(userContentUrl),
+				inBucket: false,
+			})
+		}
+
+		// Head every referenced object with bounded concurrency so we stay well inside the worker's
+		// simultaneous connection budget. One retry per object; a persistent failure is reported as
+		// a warning rather than failing the whole report.
+		const warnings: string[] = []
+		const headQueue = new PQueue({ concurrency: 5 })
+		await headQueue.addAll(
+			assets.map((asset) => async () => {
+				try {
+					asset.inBucket = !!(await retry(() => env.UPLOADS.head(asset.objectName), {
+						attempts: 2,
+						waitDuration: 500,
+					}))
+				} catch (e) {
+					warnings.push(`head failed for ${asset.objectName}: ${e}`)
+				}
+			})
+		)
+
+		// Cross-check the asset table in both directions: which fileId the DB thinks owns each
+		// referenced object (objectName is the table's primary key), and rows claimed by this file
+		// whose objects the snapshot no longer references (leftover copies from passes that died
+		// before repointing records).
+		const referencedSet = new Set(assets.map((a) => a.objectName))
+		const [dbRowsForReferenced, rowsForThisFile] = await Promise.all([
+			referencedSet.size > 0
+				? pg
+						.selectFrom('asset')
+						.where('objectName', 'in', [...referencedSet])
+						.select(['objectName', 'fileId'])
+						.execute()
+				: [],
+			pg.selectFrom('asset').where('fileId', '=', slug).select(['objectName']).execute(),
+		])
+		const dbFileIdByObjectName = new Map(dbRowsForReferenced.map((r) => [r.objectName, r.fileId]))
+		const orphaned = rowsForThisFile.filter((row) => !referencedSet.has(row.objectName)).length
+
+		// Existence semantics mirror loadCreateSourceData: would seeding from this source find
+		// content? Readonly and snapshot prefixes need slug translation to check, so they report
+		// null (not checked) rather than a misleading false.
+		let source: { raw: string; exists: boolean | null } | null = null
+		if (file?.createSource) {
+			const raw = file.createSource
+			const [prefix, id] = raw.split('/')
+			let exists: boolean | null = null
+			if (raw === WELCOME_CREATE_SOURCE || prefix === LOCAL_FILE_PREFIX) {
+				exists = true
+			} else if (prefix === FILE_PREFIX && id) {
+				exists = !!(await pg
+					.selectFrom('file')
+					.where('id', '=', id)
+					.select('id')
+					.executeTakeFirst())
+			} else if (prefix === PUBLISH_PREFIX && id) {
+				exists = !!(await pg
+					.selectFrom('file')
+					.where('publishedSlug', '=', id)
+					.where('published', '=', true)
+					.select('id')
+					.executeTakeFirst())
+			} else if (prefix === ROOM_PREFIX && id) {
+				exists = !!(await env.ROOMS.head(getR2KeyForRoom({ slug: id, isApp: false })))
+			}
+			source = { raw, exists }
+		}
+
+		let associated = 0
+		let oldFormatUrls = 0
+		let missingInBucket = 0
+		for (const a of assets) {
+			if (a.associated) associated++
+			if (a.oldFormatUrl) oldFormatUrls++
+			if (!a.inBucket) missingInBucket++
+		}
+
+		return json({
+			file: file ?? null,
+			source,
+			assets: {
+				total: assets.length,
+				associated,
+				pending: assets.length - associated,
+				oldFormatUrls,
+				missingInBucket,
+				problems: assets
+					.filter((a) => !a.associated || !a.inBucket)
+					.map((a) => ({
+						assetId: a.assetId,
+						objectName: a.objectName,
+						src: a.src,
+						fileIdMeta: a.fileIdMeta,
+						inBucket: a.inBucket,
+						dbRow: dbFileIdByObjectName.has(a.objectName)
+							? { fileId: dbFileIdByObjectName.get(a.objectName)! }
+							: null,
+					})),
+			},
+			dbRows: { forThisFile: rowsForThisFile.length, orphaned },
+			warnings,
+		})
 	})
 	.get('/app/admin/download-tldr/:fileSlug', async (res, env) => {
 		const fileSlug = res.params.fileSlug

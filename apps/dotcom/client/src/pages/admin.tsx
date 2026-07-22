@@ -246,6 +246,7 @@ export function Component() {
 						<DownloadTldrFile legacy={false} />
 						<DownloadTldrFile legacy={true} />
 						<CreateLegacyFile />
+						<AssetDiagnostics />
 					</div>
 				</section>
 
@@ -768,6 +769,123 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 					Download
 				</TlaButton>
 			</div>
+		</div>
+	)
+}
+
+function AssetDiagnostics() {
+	const inputRef = useRef<HTMLInputElement>(null)
+	const [error, setError] = useState(null as string | null)
+	const [isLoading, setIsLoading] = useState(false)
+	const [report, setReport] = useState<any>(null)
+
+	const onCheck = useCallback(async () => {
+		const slug = inputRef.current?.value?.trim()
+		if (!slug) {
+			setError('Please enter a file slug')
+			return
+		}
+		setError(null)
+		setReport(null)
+		setIsLoading(true)
+		try {
+			const res = await fetch(`/api/app/admin/file-assets/${encodeURIComponent(slug)}`)
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setReport(await res.json())
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to check assets')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	return (
+		<div className={styles.fileOperation}>
+			<h4 className="tla-text_ui__medium">Asset diagnostics</h4>
+			<p className="tla-text_ui__regular">
+				Checks every asset in a file&apos;s last persisted snapshot: is its object still in the
+				uploads bucket, and is it associated with the file? Reads the persisted snapshot, which can
+				lag a live room by a persist tick.
+			</p>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			<div className={styles.searchContainer}>
+				<input
+					type="text"
+					placeholder="File slug"
+					ref={inputRef}
+					className={styles.searchInput}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter') onCheck()
+					}}
+				/>
+				<TlaButton onClick={onCheck} variant="primary" isLoading={isLoading}>
+					Check assets
+				</TlaButton>
+			</div>
+			{report && (
+				<>
+					<div className={styles.userSummary}>
+						<div className={styles.summaryGrid}>
+							{[
+								['Total assets', report.assets.total],
+								['Associated', report.assets.associated],
+								['Pending association', report.assets.pending],
+								['Missing in bucket', report.assets.missingInBucket],
+								['Old-format URLs', report.assets.oldFormatUrls],
+								[
+									'DB asset rows',
+									`${report.dbRows.forThisFile} (${report.dbRows.orphaned} orphaned)`,
+								],
+								[
+									'Create source',
+									report.source
+										? `${report.source.raw} ${
+												report.source.exists === null
+													? '(not checked)'
+													: report.source.exists
+														? '(exists)'
+														: '⚠️ (missing)'
+											}`
+										: 'none',
+								],
+							].map(([label, value]) => (
+								<div key={label} className={styles.summaryItem}>
+									<span className={styles.fieldLabel}>{label}:</span>
+									<span className={styles.fieldValue}>{value}</span>
+								</div>
+							))}
+						</div>
+					</div>
+					{report.assets.problems.length > 0 && (
+						<table className={styles.diagnosticsTable}>
+							<thead>
+								<tr>
+									<th>Asset</th>
+									<th>Object name</th>
+									<th>In bucket</th>
+									<th>Meta fileId</th>
+									<th>DB fileId</th>
+								</tr>
+							</thead>
+							<tbody>
+								{report.assets.problems.map((p: any) => (
+									<tr key={p.assetId}>
+										<td>{p.assetId}</td>
+										<td>{p.objectName}</td>
+										<td>{p.inBucket ? 'yes' : 'MISSING'}</td>
+										<td>{p.fileIdMeta ?? 'none'}</td>
+										<td>{p.dbRow?.fileId ?? 'none'}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					)}
+					<StructuredDataDisplay data={report} />
+				</>
+			)}
 		</div>
 	)
 }
