@@ -158,6 +158,12 @@
 	   placement composer a definite width or it collapses to nothing. */
 	width: 280px;
 }
+
+/* A region placement centres the draft avatar on the region's pin corner — the pin it becomes
+   straddles that corner. The avatar's centre sits 4 + 34/2 = 21px into the composer. */
+.tlui-cmt-canvas-composer--region {
+	transform: translate(-21px, -21px);
+}
 .tlui-cmt-canvas-composer .tlui-cmt-composer__field {
 	background: var(--tl-color-panel);
 	border-color: transparent;

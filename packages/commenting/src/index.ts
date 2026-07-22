@@ -90,6 +90,7 @@ export {
 	anchorPagePoint,
 	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
 	focusThread,
+	regionAnchorPinCorner,
 	shapeAnchorAt,
 } from './canvas/thread-state'
 

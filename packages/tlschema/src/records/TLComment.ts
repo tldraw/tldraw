@@ -25,7 +25,17 @@ import { TLShapeId } from './TLShape'
 export type TLCommentAnchor =
 	| { type: 'shape'; shapeId: TLShapeId; x: number; y: number; isPrecise: boolean }
 	| { type: 'point'; x: number; y: number }
-	| { type: 'region'; x: number; y: number; w: number; h: number }
+	| {
+			type: 'region'
+			x: number
+			y: number
+			w: number
+			h: number
+			/** The normalized (0–1) corner the pin sits on — where the creating drag was released.
+			 *  Absent on older records; consumers fall back to their configured corner. */
+			pinX?: number
+			pinY?: number
+	  }
 	| { type: 'page' }
 	| { type: 'text-range'; shapeId: TLShapeId; from: number; to: number }
 
@@ -112,6 +122,8 @@ const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
 		y: T.number,
 		w: T.number,
 		h: T.number,
+		pinX: T.number.optional(),
+		pinY: T.number.optional(),
 	}),
 	page: T.object({
 		type: T.literal('page'),
@@ -172,6 +184,19 @@ export const commentThreadRecordConfig: CustomRecordInfo = {
 				const anchor = (record as any).anchor
 				if (anchor?.type === 'shape') {
 					;(record as any).anchor = { type: 'shape', shapeId: anchor.shapeId }
+				}
+				return record
+			},
+		},
+		{
+			// Region anchors gained an optional pin corner (where the creating drag released).
+			id: 'com.tldraw.comment-thread/3',
+			up: (record) => record,
+			down: (record) => {
+				const anchor = (record as any).anchor
+				if (anchor?.type === 'region') {
+					const { pinX: _pinX, pinY: _pinY, ...rest } = anchor
+					;(record as any).anchor = rest
 				}
 				return record
 			},
