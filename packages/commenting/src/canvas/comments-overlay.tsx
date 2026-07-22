@@ -858,7 +858,15 @@ function ThreadPopover({
 	usePassThroughWheelEvents(ref)
 	usePassThroughMouseOverEvents(ref)
 	return createPortal(
-		<div ref={ref} className="tlui-cmt-canvas-popover" style={style} onPointerDown={stop}>
+		// contextmenu also stops here: portals bubble React events to the canvas's context-menu
+		// trigger (the layer mounts inside it), which would open the canvas menu over this panel.
+		<div
+			ref={ref}
+			className="tlui-cmt-canvas-popover"
+			style={style}
+			onPointerDown={stop}
+			onContextMenu={stop}
+		>
 			{children}
 		</div>,
 		container
@@ -1605,6 +1613,7 @@ function PendingComposer({
 			className="tlui-cmt-canvas-composer"
 			style={{ left: point.x, top: point.y }}
 			onPointerDown={stop}
+			onContextMenu={stop}
 			onKeyDown={(e) => {
 				if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(editor, null)
 			}}
