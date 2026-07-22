@@ -9,6 +9,7 @@ import {
 	createComment,
 	createCommentId,
 	createCommentReaction,
+	createCommentReactionId,
 	createCommentThread,
 	createCommentThreadId,
 	isCommentId,
@@ -215,5 +216,15 @@ describe('comment-reaction record', () => {
 			emoji: '👍',
 		})
 		expect(commentReactionRecordConfig.validator.validate(reaction)).toEqual(reaction)
+	})
+
+	it('createCommentReactionId is injective when a part contains a colon', () => {
+		// two different (comment, user) pairs that a naive slice+join would collapse onto one id:
+		// comment "foo" + user "bar:baz"  vs  comment "foo:bar" + user "baz"
+		const a = createCommentReactionId(createCommentId('foo'), 'bar:baz')
+		const b = createCommentReactionId(createCommentId('foo:bar'), 'baz')
+		expect(a).not.toBe(b)
+		expect(isCommentReactionId(a)).toBe(true)
+		expect(isCommentReactionId(b)).toBe(true)
 	})
 })

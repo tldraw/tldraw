@@ -296,8 +296,13 @@ export function createCommentId(id?: string): TLCommentId {
  * the same record: picking a different emoji overwrites their reaction instead of adding a second
  * one, and doing it from two tabs at once converges on one record rather than racing to create
  * duplicates. "At most one reaction per user per comment" is therefore a property of the id, not a
- * rule the UI has to keep. The comment id's `comment:` prefix is dropped so the result reads as
- * `comment-reaction:<comment>:<user>`.
+ * rule the UI has to keep — and the sync authorizer leans on that, so the derivation must be
+ * injective.
+ *
+ * Both parts are URI-encoded before joining, so a `:` in the comment id or (crucially) in an
+ * externally-supplied userId can't shift the boundary and collapse two different pairs onto one id.
+ * The id is only ever recomputed for comparison, never parsed back, so the encoding needs no
+ * inverse.
  *
  * @public
  */
@@ -307,7 +312,7 @@ export function createCommentReactionId(
 ): TLCommentReactionId {
 	return createCustomRecordId(
 		'comment-reaction',
-		`${commentId.slice('comment:'.length)}:${userId}`
+		`${encodeURIComponent(commentId)}:${encodeURIComponent(userId)}`
 	) as TLCommentReactionId
 }
 

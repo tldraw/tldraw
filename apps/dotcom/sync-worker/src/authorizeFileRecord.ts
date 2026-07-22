@@ -106,16 +106,21 @@ const authorizeReactionBase = authorizeAuthored<TLCommentReaction>('userId', {
 /**
  * A reaction's id is derived from its comment and user (see `createCommentReactionId`), which is
  * what makes "one reaction per user per comment" a fact rather than a hope. The base rule already
- * stamps `userId` from the session and lets only the owner change a reaction — but the id is
- * client-supplied, so on create we also require it to be the canonical id for `commentId` + the
- * session's user. Without this a forged client could:
+ * stamps `userId` from the session and lets only the owner change a reaction — but the id and the
+ * comment it points at are client-supplied, so this wrapper adds two things:
  *
- * - create a record at another user's id slot (their later reaction would be an owner-only update
- *   to a record they don't own, so it's rejected — locking them out of reacting to that comment); or
- * - push two distinct ids that both denote the same (comment, user) pair, which pass the room but
+ * - On **create**, the id must be the canonical id for `commentId` + the session's user. Without
+ *   this a forged client could create a record at another user's id slot (their later reaction
+ *   would be an owner-only update to a record they don't own, so it's rejected — locking them out
+ *   of reacting to that comment), or push two distinct ids for one (comment, user) pair that
  *   collide on the table's UNIQUE (commentId, userId) at drain time and wedge the outbox.
  *
- * Both close the moment the id must match the pair.
+ * - On **update**, the comment a reaction points at is immutable: `commentId` and its denormalized
+ *   `threadId`/`pageId` may not change. The id encodes `commentId` and can't change on update (it's
+ *   the record's identity), so moving the reaction to a different comment would leave the id
+ *   disagreeing with `commentId` — and the drain, which upserts these columns on id conflict, could
+ *   then land two rows on one (commentId, userId) and hit the same unhandled unique violation. Only
+ *   the emoji (and its `createdAt`) may change on a re-react.
  */
 const authorizeReaction: TLRecordAuthorizer<TLCommentReaction, SessionMeta> = (args) => {
 	const result = authorizeReactionBase(args)
@@ -124,6 +129,12 @@ const authorizeReaction: TLRecordAuthorizer<TLCommentReaction, SessionMeta> = (a
 		// userId is non-null here: the base rule rejects a create from a session with no identity.
 		const { session, next } = args
 		if (next.id !== createCommentReactionId(next.commentId, session.meta.userId!)) return null
+	}
+	if (args.type === 'update') {
+		const { prev, next } = args
+		if (next.commentId !== prev.commentId) return null
+		if (next.threadId !== prev.threadId) return null
+		if (next.pageId !== prev.pageId) return null
 	}
 	return result
 }

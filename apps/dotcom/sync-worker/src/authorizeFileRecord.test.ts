@@ -216,6 +216,43 @@ describe('authorizeFileRecord', () => {
 				authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
 			).not.toBeNull()
 		})
+
+		it('allows the owner to change their own emoji', () => {
+			const prev = makeReaction('real-bob', '👍')
+			const next = { ...prev, emoji: '🎉' }
+			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+		})
+
+		// the reaction's comment is fixed by its id; an update must not move it onto another comment,
+		// or the id would disagree with commentId and two rows could collide on (commentId, userId)
+		it('vetoes an update that moves the reaction to a different comment', () => {
+			const prev = makeReaction('real-bob')
+			const next = { ...prev, commentId: createCommentId('c2') }
+			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+		})
+
+		it('vetoes an update that changes the denormalized threadId or pageId', () => {
+			const prev = makeReaction('real-bob')
+			expect(
+				authorize({
+					session: session('real-bob'),
+					type: 'update',
+					prev,
+					next: {
+						...prev,
+						threadId: createCommentThread({ pageId, anchor: { type: 'page' }, createdBy: 'x' }).id,
+					},
+				})
+			).toBeNull()
+			expect(
+				authorize({
+					session: session('real-bob'),
+					type: 'update',
+					prev,
+					next: { ...prev, pageId: 'page:other' as typeof prev.pageId },
+				})
+			).toBeNull()
+		})
 	})
 
 	describe('shape', () => {
