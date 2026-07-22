@@ -1955,9 +1955,9 @@ export class TLFileDurableObject extends DurableObject {
 				// warm room still holds the records. Retrying can never succeed, so mirror the
 				// cascade into the room instead: prune the records below and let their outbox
 				// entries clear normally (the Postgres row being absent is already the desired end
-				// state). Threads the prune leaves without any comments are pruned too — the
-				// client-side invariant is that deleting a thread's last comment deletes the
-				// thread, so an author-cascade must not leave ghost pins behind. Thread rows in
+				// state). Threads the prune leaves without any comments are pruned too — an
+				// emptied thread never renders (clients hide threads with no comments), so an
+				// author-cascade must not leave ghost records behind. Thread rows in
 				// Postgres are NOT deleted here: comment_thread has no user FK (by design, so the
 				// cascade can't race the room), so the pruned thread ids are re-outboxed and a
 				// follow-up drain issues the Postgres delete through the normal at-least-once

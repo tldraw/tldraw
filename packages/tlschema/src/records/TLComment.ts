@@ -73,7 +73,7 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
 	 * Soft-deletion state: when and by whom the thread was deleted, or null while live. Threads
 	 * are never hard-deleted by clients — deleting one sets this flag and leaves the record (and
 	 * its comments) in place, hidden from rendering and dropped from future room loads
-	 * server-side. Only the thread's creator may set or clear it.
+	 * server-side. Write-once: only the thread's creator may set it, and it is never cleared.
 	 */
 	deleted: { at: number; by: string } | null
 	meta: JsonObject
