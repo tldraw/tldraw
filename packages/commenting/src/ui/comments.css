@@ -690,11 +690,11 @@
    These rows sit on the opaque sidebar panel, so a translucent tint composes safely. */
 .tlui-cmt-list__item--selected,
 .tlui-cmt-list__item--selected:hover {
-	background: hsl(0, 0%, 0%, 6.5%);
+	background: hsl(0, 0%, 0%, 5%);
 }
 .tl-theme__dark .tlui-cmt-list__item--selected,
 .tl-theme__dark .tlui-cmt-list__item--selected:hover {
-	background: hsl(0, 0%, 100%, 6.5%);
+	background: hsl(0, 0%, 100%, 5%);
 }
 /* resolved rows mute their content but keep the "Resolved" marker legible */
 .tlui-cmt-list__item[data-resolved] .tlui-cmt-head,
