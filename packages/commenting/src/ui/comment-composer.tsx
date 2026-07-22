@@ -1,6 +1,6 @@
 import { JSONContent } from '@tiptap/core'
 import { EditorContent, useEditor } from '@tiptap/react'
-import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
 import { Avatar } from './avatar'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
@@ -68,6 +68,47 @@ export function CommentComposer({
 	renderMentionSuggestionRef.current = renderMentionSuggestion
 
 	const [isEmpty, setIsEmpty] = useState(() => !value || isCommentEmpty(value))
+	// Whether the field has grown to two rows: input across the full width, send button below.
+	// Flips when the (single-line) content width reaches the space left beside the send button.
+	const [expanded, setExpanded] = useState(false)
+	const expandedRef = useRef(expanded)
+	expandedRef.current = expanded
+	const inputWrapRef = useRef<HTMLDivElement>(null)
+	const mirrorRef = useRef<HTMLDivElement>(null)
+
+	// Measure whether the content still fits on one line beside the send button. The mirror is a
+	// hidden, nowrap clone of the editor's rendered content, so marks and mention chips measure at
+	// their true width. A small dead zone between the expand and collapse thresholds keeps the
+	// layout from flapping while typing at the boundary.
+	const remeasure = () => {
+		const wrap = inputWrapRef.current
+		const mirror = mirrorRef.current
+		const editor = editorRef.current
+		if (!wrap || !mirror || !editor) return
+		const doc = editor.state.doc
+		const multiBlock =
+			doc.childCount > 1 || (doc.firstChild !== null && doc.firstChild.type.name !== 'paragraph')
+		if (multiBlock) {
+			if (!expandedRef.current) setExpanded(true)
+			return
+		}
+		const field = wrap.parentElement
+		const send = field ? field.querySelector<HTMLElement>('.tlui-cmt-send') : null
+		const input = wrap.querySelector('.tlui-cmt-input')
+		if (!send || !input) return
+		mirror.innerHTML = input.innerHTML
+		const textWidth = mirror.offsetWidth
+		// The single-line space the input has beside the send button: when already expanded the
+		// wrap spans the full field, so subtract the button (plus the field's 6px gap) back out.
+		const collapsedAvailable = wrap.clientWidth - (expandedRef.current ? send.offsetWidth + 6 : 0)
+		if (!expandedRef.current && textWidth > collapsedAvailable - 8) {
+			setExpanded(true)
+		} else if (expandedRef.current && textWidth < collapsedAvailable - 24) {
+			setExpanded(false)
+		}
+	}
+	const remeasureRef = useRef(remeasure)
+	remeasureRef.current = remeasure
 
 	// The editor instance, reachable from `handleKeyDown` (which is created before `useEditor`
 	// returns). Updated on every render so the ref never points at a stale editor.
@@ -155,6 +196,9 @@ export function CommentComposer({
 			},
 			onUpdate: ({ editor }) => {
 				setIsEmpty(editor.isEmpty)
+				// Same-value state sets don't re-render, so measure here — the editor's DOM is
+				// already updated when onUpdate fires.
+				remeasureRef.current()
 				onChangeRef.current?.(editor.getJSON() as TLRichText)
 			},
 		},
@@ -171,6 +215,12 @@ export function CommentComposer({
 		setIsEmpty(editor.isEmpty)
 	}, [editor, value])
 
+	// Measure once the editor's content is in the DOM, so a composer that mounts pre-filled (the
+	// edit-in-place composer) starts in the right layout.
+	useLayoutEffect(() => {
+		remeasureRef.current()
+	}, [editor, value])
+
 	// Focus on the next frame rather than via TipTap's autofocus: the composer often mounts from a
 	// canvas pointer event whose default focus handling would otherwise steal it back.
 	useEffect(() => {
@@ -182,14 +232,26 @@ export function CommentComposer({
 	return (
 		<div className="tlui-cmt-composer">
 			{leading ?? <Avatar name={author} />}
-			<div className="tlui-cmt-composer__field">
-				<div className="tlui-cmt-composer__input-wrap">
+			<div
+				className={[
+					'tlui-cmt-composer__field',
+					interactive && expanded && 'tlui-cmt-composer__field--expanded',
+				]
+					.filter(Boolean)
+					.join(' ')}
+			>
+				<div className="tlui-cmt-composer__input-wrap" ref={inputWrapRef}>
 					<EditorContent editor={editor} />
 					{isEmpty && (
 						<div className="tlui-cmt-input__placeholder" aria-hidden="true">
 							{placeholder}
 						</div>
 					)}
+					<div
+						className="tlui-cmt-composer__mirror tlui-cmt-input"
+						ref={mirrorRef}
+						aria-hidden="true"
+					/>
 				</div>
 				{interactive && <SendButton label={sendLabel} onClick={onSubmit} disabled={disabled} />}
 			</div>

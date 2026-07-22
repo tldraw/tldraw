@@ -166,7 +166,7 @@ function SidebarPanel({ container, children }: { container: HTMLElement; childre
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughMouseOverEvents(ref)
 	return createPortal(
-		<div ref={ref} className="tlui-cmt-canvas-sidebar">
+		<div ref={ref} className="tlui-cmt-canvas-sidebar" onContextMenu={(e) => e.stopPropagation()}>
 			{children}
 		</div>,
 		container

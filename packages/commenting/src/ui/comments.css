@@ -145,12 +145,40 @@
 	border-color: var(--tl-color-selected);
 }
 
+/* Expanded: the content no longer fits on one line beside the send button, so the input takes
+   the full width and the send button drops to its own row, right-aligned. */
+.tlui-cmt-composer__field--expanded {
+	flex-wrap: wrap;
+}
+.tlui-cmt-composer__field--expanded .tlui-cmt-composer__input-wrap {
+	flex-basis: 100%;
+	/* The field pads 12px left but only 3px right (the send button's inset). With the input
+	   spanning the full width, give the text the same 12px on the right. */
+	padding-right: 9px;
+}
+.tlui-cmt-composer__field--expanded .tlui-cmt-send {
+	margin-left: auto;
+}
+
 /* the editable area, with the placeholder overlaid while it's empty */
 .tlui-cmt-composer__input-wrap {
 	position: relative;
 	flex: 1;
 	min-width: 0;
 	padding: 3px 0;
+}
+
+/* The hidden single-line measuring clone of the editor's content (see CommentComposer). */
+.tlui-cmt-composer__mirror {
+	position: absolute;
+	top: 0;
+	left: 0;
+	visibility: hidden;
+	pointer-events: none;
+	white-space: nowrap;
+	width: max-content;
+	max-height: none;
+	overflow: visible;
 }
 
 .tlui-cmt-input {
@@ -248,6 +276,12 @@
 .tlui-cmt-pin:hover,
 .pseudo-hover .tlui-cmt-pin {
 	transform: scale(1.08);
+}
+
+/* The hover shadow is for closed pins only — an open pin keeps its selection ring, which this
+   box-shadow would otherwise override (the hover selector outranks the --open rule). */
+.tlui-cmt-pin:not(.tlui-cmt-pin--open):hover,
+.pseudo-hover .tlui-cmt-pin:not(.tlui-cmt-pin--open) {
 	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
 }
 
@@ -523,6 +557,20 @@
 	flex-direction: column;
 	gap: 6px;
 }
+/* Inside a thread, author identity is a small colour dot, no initial — the letter doesn't fit
+   at this size. */
+.tlui-cmt-thread .tlui-cmt-avatar {
+	width: 14px;
+	height: 14px;
+	font-size: 0;
+	margin-top: 2px;
+}
+
+/* The reply composer carries no avatar at all — the field spans the thread's full width. */
+.tlui-cmt-thread .tlui-cmt-composer .tlui-cmt-avatar {
+	display: none;
+}
+
 /* inside the panel, comments are plain content — no surrounding box; the composer's field carries
    its own surface. */
 .tlui-cmt-thread .tlui-cmt-card {
@@ -581,6 +629,11 @@
 	gap: 2px;
 }
 
+/* The commenting dropdowns' surface — a little air between the items and the menu edge. */
+.tlui-cmt-menu {
+	padding: 4px;
+}
+
 /* a menu row with a label and a right-aligned shortcut hint (overflow menu) */
 .tlui-cmt-menu-item {
 	display: flex;
@@ -593,13 +646,18 @@
 	border-radius: 6px;
 	background: transparent;
 	font: inherit;
-	font-size: 13px;
+	font-size: 12px;
 	color: var(--tl-color-text-1);
 	cursor: pointer;
 }
 .tlui-cmt-menu-item:hover {
 	background: var(--tl-color-muted-2);
 }
+/* Destructive menu entries (delete) — the same danger colour as tldraw's danger buttons. */
+.tlui-cmt-menu-item--danger {
+	color: var(--tl-color-danger);
+}
+
 .tlui-cmt-menu-item__shortcut {
 	color: var(--tl-color-text-3);
 	font-size: 12px;
