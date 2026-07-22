@@ -11,6 +11,7 @@ import {
 import { ReactionPicker } from '../ui/reaction-picker'
 import { Reactions, ReactionSummary } from '../ui/reactions'
 import { getCommentReactions, putCommentRecords, removeCommentRecords } from './comment-store'
+import { useCommentingOptions } from './options'
 import { commitCommentMutation } from './state'
 
 /**
@@ -35,29 +36,47 @@ export function useCommentReactions(
 /**
  * Tally a comment's reactions into an entry per emoji, ordered by when that emoji was first used
  * so the row stays stable as later reactions arrive. `active` marks the emoji the current user
- * reacted with — the pills render those highlighted.
+ * reacted with (the pills render those highlighted), and `reactors` lists who reacted with it, in
+ * reaction order, for the hover list. `resolveName` names each reactor; an id it can't name falls
+ * back to the id itself.
  *
  * @public
  */
 export function summarizeReactions(
 	reactions: TLCommentReaction[],
-	currentUserId?: string | null
+	currentUserId?: string | null,
+	resolveName?: (userId: string) => string | undefined
 ): ReactionSummary[] {
-	const groups = new Map<string, { count: number; active: boolean; firstAt: number }>()
+	const groups = new Map<
+		string,
+		{ count: number; active: boolean; firstAt: number; reactors: ReactionSummary['reactors'] }
+	>()
 	for (const reaction of reactions) {
 		const mine = currentUserId != null && reaction.userId === currentUserId
+		const reactor = { name: resolveName?.(reaction.userId) ?? reaction.userId, you: mine }
 		const group = groups.get(reaction.emoji)
 		if (group) {
 			group.count++
 			group.active ||= mine
 			group.firstAt = Math.min(group.firstAt, reaction.createdAt)
+			group.reactors.push(reactor)
 		} else {
-			groups.set(reaction.emoji, { count: 1, active: mine, firstAt: reaction.createdAt })
+			groups.set(reaction.emoji, {
+				count: 1,
+				active: mine,
+				firstAt: reaction.createdAt,
+				reactors: [reactor],
+			})
 		}
 	}
 	return [...groups]
 		.sort(([, a], [, b]) => a.firstAt - b.firstAt)
-		.map(([emoji, group]) => ({ emoji, count: group.count, active: group.active }))
+		.map(([emoji, group]) => ({
+			emoji,
+			count: group.count,
+			active: group.active,
+			reactors: group.reactors,
+		}))
 }
 
 /**
@@ -102,24 +121,29 @@ export interface CommentReactionsProps {
 	/** The reacting user. Null/omitted gives a read-only row (signed out): counts show, but the
 	 *  pills don't toggle. */
 	currentUserId?: string | null
+	/** Names a reactor id for the hover list. Ids it can't name fall back to the id. */
+	resolveName?(userId: string): string | undefined
 }
 
 /**
  * The tallied reaction row under one comment. Pair with `CommentReactionPicker`, which is what
- * adds a reaction.
+ * adds a reaction. Whether the current user shows up in a pill's hover list is read from the
+ * `showSelfInReactionList` commenting option.
  * @public @react
  */
-export function CommentReactions({ comment, currentUserId }: CommentReactionsProps) {
+export function CommentReactions({ comment, currentUserId, resolveName }: CommentReactionsProps) {
 	const editor = useEditor()
+	const { showSelfInReactionList } = useCommentingOptions()
 	const reactions = useCommentReactions(editor, comment.id)
 	const summaries = useMemo(
-		() => summarizeReactions(reactions, currentUserId),
-		[reactions, currentUserId]
+		() => summarizeReactions(reactions, currentUserId, resolveName),
+		[reactions, currentUserId, resolveName]
 	)
 	return (
 		<Reactions
 			reactions={summaries}
 			canReact={currentUserId != null}
+			showSelf={showSelfInReactionList}
 			onToggle={(value) => {
 				if (currentUserId == null) return
 				toggleCommentReaction(editor, comment, currentUserId, value)

@@ -24,15 +24,23 @@ describe('summarizeReactions', () => {
 		expect(summarizeReactions([], 'user1')).toEqual([])
 	})
 
-	it('counts each emoji and marks the current user’s as active', () => {
+	it('counts each emoji, marks the current user’s active, and lists reactors', () => {
 		expect(
 			summarizeReactions(
 				[reaction('user1', '👍', 100), reaction('user2', '👍', 200), reaction('user3', '🎉', 300)],
 				'user1'
 			)
 		).toEqual([
-			{ emoji: '👍', count: 2, active: true },
-			{ emoji: '🎉', count: 1, active: false },
+			{
+				emoji: '👍',
+				count: 2,
+				active: true,
+				reactors: [
+					{ name: 'user1', you: true },
+					{ name: 'user2', you: false },
+				],
+			},
+			{ emoji: '🎉', count: 1, active: false, reactors: [{ name: 'user3', you: false }] },
 		])
 	})
 
@@ -47,9 +55,32 @@ describe('summarizeReactions', () => {
 	})
 
 	it('marks nothing active when there is no current user', () => {
-		expect(summarizeReactions([reaction('user1', '👍', 100)], undefined)).toEqual([
-			{ emoji: '👍', count: 1, active: false },
+		expect(summarizeReactions([reaction('user1', '👍', 100)], undefined)[0].active).toBe(false)
+	})
+
+	it('names reactors via resolveName, falling back to the id', () => {
+		const resolveName = (id: string) => (id === 'user1' ? 'Ada' : undefined)
+		expect(
+			summarizeReactions(
+				[reaction('user1', '👍', 100), reaction('user2', '👍', 200)],
+				'user1',
+				resolveName
+			)[0].reactors
+		).toEqual([
+			{ name: 'Ada', you: true },
+			{ name: 'user2', you: false },
 		])
+	})
+
+	// reactors keep the order they're passed in (the caller sorts by reaction time), so the hover
+	// list is stable
+	it('lists reactors in input order', () => {
+		expect(
+			summarizeReactions(
+				[reaction('user2', '👍', 100), reaction('user1', '👍', 200)],
+				undefined
+			)[0].reactors.map((r) => r.name)
+		).toEqual(['user2', 'user1'])
 	})
 })
 
@@ -87,6 +118,8 @@ describe('reaction records', () => {
 		}
 		const all = [reaction('user1', '👍', 100), forOtherComment]
 		const mine = all.filter((r) => r.commentId === (COMMENT_A as TLComment['id']))
-		expect(summarizeReactions(mine, 'user1')).toEqual([{ emoji: '👍', count: 1, active: true }])
+		expect(summarizeReactions(mine, 'user1')).toEqual([
+			{ emoji: '👍', count: 1, active: true, reactors: [{ name: 'user1', you: true }] },
+		])
 	})
 })

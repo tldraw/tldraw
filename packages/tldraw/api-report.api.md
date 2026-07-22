@@ -4263,6 +4263,15 @@ export function TldrawUiEventsProvider({ onEvent, children }: EventsProviderProp
 // @public
 export const TldrawUiGrid: ForwardRefExoticComponent<TLUiLayoutProps & RefAttributes<HTMLDivElement>>;
 
+// @public
+export function TldrawUiHoverCard({ children, openDelay, closeDelay }: TLUiHoverCardProps): JSX.Element;
+
+// @public (undocumented)
+export function TldrawUiHoverCardContent({ children, className, side, align, sideOffset, alignOffset, collisionPadding }: TLUiHoverCardContentProps): JSX.Element;
+
+// @public (undocumented)
+export function TldrawUiHoverCardTrigger({ children }: TLUiHoverCardTriggerProps): JSX.Element;
+
 // @public (undocumented)
 export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
 
@@ -5235,6 +5244,38 @@ export interface TLUiHelperButtonsProps {
 export interface TLUiHelpMenuProps {
     // (undocumented)
     children?: ReactNode;
+}
+
+// @public (undocumented)
+export interface TLUiHoverCardContentProps {
+    // (undocumented)
+    align?: 'center' | 'end' | 'start';
+    // (undocumented)
+    alignOffset?: number;
+    // (undocumented)
+    children: React_3.ReactNode;
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    collisionPadding?: number;
+    // (undocumented)
+    side?: 'bottom' | 'left' | 'right' | 'top';
+    // (undocumented)
+    sideOffset?: number;
+}
+
+// @public (undocumented)
+export interface TLUiHoverCardProps {
+    // (undocumented)
+    children: React_3.ReactNode;
+    closeDelay?: number;
+    openDelay?: number;
+}
+
+// @public (undocumented)
+export interface TLUiHoverCardTriggerProps {
+    // (undocumented)
+    children?: React_3.ReactNode;
 }
 
 // @public (undocumented)

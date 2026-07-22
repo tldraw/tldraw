@@ -1200,7 +1200,13 @@ const ThreadPin = memo(function ThreadPin({
 		return (
 			<CommentCard
 				{...card}
-				footer={<CommentReactions comment={comment} currentUserId={currentUserId} />}
+				footer={
+					<CommentReactions
+						comment={comment}
+						currentUserId={currentUserId}
+						resolveName={resolveName}
+					/>
+				}
 				actions={
 					<>
 						{comment.authorId === currentUserId && (

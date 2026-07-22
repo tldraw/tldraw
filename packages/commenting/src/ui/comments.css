@@ -372,6 +372,34 @@
 	font-weight: 600;
 }
 
+/* reactors hover list */
+.tlui-cmt-reactors {
+	min-width: 120px;
+	max-width: 240px;
+}
+
+.tlui-cmt-reactors__list {
+	list-style: none;
+	margin: 0;
+	padding: 4px;
+	/* five rows tall; a sixth reactor makes the list scroll (28px per row + 8px padding) */
+	max-height: 148px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.tlui-cmt-reactors__item {
+	display: flex;
+	align-items: center;
+	height: 28px;
+	padding: 0 8px;
+	font-size: 12px;
+	color: var(--tl-color-text-1);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 /* emoji picker */
 .tlui-cmt-emoji-picker {
 	display: grid;

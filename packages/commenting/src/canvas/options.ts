@@ -55,6 +55,12 @@ export interface CommentingOptions {
 	// ── Feature toggles ──────────────────────────────────────────────────────────────────────
 	/** Fold nearby pins into count badges as the camera zooms out. */
 	readonly enableClustering: boolean
+	/**
+	 * Whether the current user appears in the hover list of who reacted with an emoji. When false,
+	 * that list shows only other people — so a reaction only you made shows no list at all.
+	 * Defaults to true.
+	 */
+	readonly showSelfInReactionList: boolean
 
 	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
@@ -80,6 +86,7 @@ export const defaultCommentingOptions = {
 	history: 'ignore',
 	dragHistory: undefined,
 	enableClustering: true,
+	showSelfInReactionList: true,
 	impreciseShapeAnchor: { x: 1, y: 0 },
 	clusterCullMargin: 120,
 	clusterSplitZoomFactor: 1.05,

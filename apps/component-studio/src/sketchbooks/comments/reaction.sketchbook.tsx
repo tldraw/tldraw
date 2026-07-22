@@ -7,5 +7,26 @@ const sketchbook: Sketchbook<ReactionProps> = {
 }
 export default sketchbook
 
-export const Reacted: Sketch<ReactionProps> = { args: { emoji: '👍', count: 3, active: true } }
-export const NotReacted: Sketch<ReactionProps> = { args: { emoji: '👀', count: 2, active: false } }
+export const Reacted: Sketch<ReactionProps> = {
+	args: {
+		emoji: '👍',
+		count: 3,
+		active: true,
+		reactors: [
+			{ name: 'You', you: true },
+			{ name: 'Bo', you: false },
+			{ name: 'Ada', you: false },
+		],
+	},
+}
+export const NotReacted: Sketch<ReactionProps> = {
+	args: {
+		emoji: '👀',
+		count: 2,
+		active: false,
+		reactors: [
+			{ name: 'Bo', you: false },
+			{ name: 'Cy', you: false },
+		],
+	},
+}

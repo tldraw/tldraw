@@ -23,7 +23,12 @@ export {
 export { DEFAULT_REACTION_EMOJI, EmojiPicker, type EmojiPickerProps } from './ui/emoji-picker'
 export { Reaction, type ReactionProps } from './ui/reaction'
 export { ReactionPicker, type ReactionPickerProps } from './ui/reaction-picker'
-export { Reactions, type ReactionsProps, type ReactionSummary } from './ui/reactions'
+export {
+	Reactions,
+	type ReactionReactor,
+	type ReactionsProps,
+	type ReactionSummary,
+} from './ui/reactions'
 export { renderMarkdown } from './ui/render-markdown'
 export { SendButton, type SendButtonProps } from './ui/send-button'
 

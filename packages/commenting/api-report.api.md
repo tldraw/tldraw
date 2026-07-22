@@ -214,6 +214,7 @@ export interface CommentingOptions {
         readonly x: number;
         readonly y: number;
     };
+    readonly showSelfInReactionList: boolean;
 }
 
 // @public (undocumented)
@@ -254,13 +255,14 @@ export interface CommentReactionPickerProps {
 }
 
 // @public
-export function CommentReactions({ comment, currentUserId }: CommentReactionsProps): JSX.Element;
+export function CommentReactions({ comment, currentUserId, resolveName }: CommentReactionsProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentReactionsProps {
     // (undocumented)
     comment: TLComment;
     currentUserId?: null | string;
+    resolveName?(userId: string): string | undefined;
 }
 
 // @public
@@ -389,6 +391,7 @@ export const defaultCommentingOptions: {
         readonly x: 1;
         readonly y: 0;
     };
+    readonly showSelfInReactionList: true;
 };
 
 // @public
@@ -511,7 +514,7 @@ export const pendingComment: EditorAtom<null | PendingComment>;
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;
 
 // @public
-export function Reaction({ emoji, count, active, onClick }: ReactionProps): JSX.Element;
+export function Reaction({ emoji, count, active, reactors, showSelf, onClick }: ReactionProps): JSX.Element;
 
 // @public
 export function ReactionPicker({ emoji, selected, onSelect, menuId, className }: ReactionPickerProps): JSX.Element;
@@ -534,16 +537,25 @@ export interface ReactionProps {
     // (undocumented)
     emoji: string;
     onClick?(): void;
+    reactors: ReactionReactor[];
+    showSelf?: boolean;
 }
 
 // @public
-export function Reactions({ reactions, onToggle, canReact }: ReactionsProps): JSX.Element | null;
+export interface ReactionReactor {
+    name: string;
+    you: boolean;
+}
+
+// @public
+export function Reactions({ reactions, onToggle, canReact, showSelf }: ReactionsProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface ReactionsProps {
     canReact?: boolean;
     onToggle?(emoji: string): void;
     reactions: ReactionSummary[];
+    showSelf?: boolean;
 }
 
 // @public
@@ -552,6 +564,7 @@ export interface ReactionSummary {
     count: number;
     // (undocumented)
     emoji: string;
+    reactors: ReactionReactor[];
 }
 
 // @public
@@ -603,7 +616,7 @@ export interface SidebarFilters {
 export const sidebarFilters: EditorAtom<SidebarFilters>;
 
 // @public
-export function summarizeReactions(reactions: TLCommentReaction[], currentUserId?: null | string): ReactionSummary[];
+export function summarizeReactions(reactions: TLCommentReaction[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined): ReactionSummary[];
 
 // @public
 export type TLCommentRecord = TLComment | TLCommentReaction | TLCommentThread;
