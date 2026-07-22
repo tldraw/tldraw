@@ -120,6 +120,24 @@ export interface CanvasCommentsProps {
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
+/** How far an imprecise shape pin steps inside the shape from its anchor spot, in screen px —
+ *  most of the marker sits within the shape, with a small overhang past the corner. */
+const IMPRECISE_PIN_INSET_PX = 20
+
+/** Imprecise shape pins tuck inside the shape rather than hanging off its edge: the marker
+ *  extends up-right of its anchor point, so step it toward the shape's centre. Screen px — the
+ *  pin is screen-fixed while the shape scales with zoom. Null for anchors that need no inset. */
+function impreciseShapePinInset(
+	anchor: TLCommentThread['anchor'],
+	spot: { x: number; y: number }
+): { x: number; y: number } | null {
+	if (anchor.type !== 'shape' || anchor.isPrecise) return null
+	return {
+		x: Math.sign(0.5 - spot.x) * IMPRECISE_PIN_INSET_PX,
+		y: Math.sign(0.5 - spot.y) * IMPRECISE_PIN_INSET_PX,
+	}
+}
+
 /** A pointer-down that belongs to the camera, not the comment UI: any non-primary button
  *  (middle/right-button pans), or a primary press with the spacebar pan key held. */
 const isCanvasPanGesture = (editor: Editor, e: ReactPointerEvent) =>
@@ -1152,7 +1170,10 @@ const ThreadPin = memo(function ThreadPin({
 		() => {
 			if (thread.pageId !== editor.getCurrentPageId()) return null
 			const pagePoint = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
-			return pagePoint ? editor.pageToViewport(pagePoint) : null
+			if (!pagePoint) return null
+			const viewportPoint = editor.pageToViewport(pagePoint)
+			const inset = impreciseShapePinInset(thread.anchor, impreciseShapeAnchor)
+			return inset ? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y } : viewportPoint
 		},
 		[editor, thread.anchor, thread.pageId, impreciseShapeAnchor]
 	)
@@ -1335,6 +1356,14 @@ const ThreadPin = memo(function ThreadPin({
 		e.stopPropagation()
 		const grabPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
 		const anchorPage = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
+		// The drag delta is taken from where the pin is drawn, which for an imprecise shape pin
+		// is inset from its anchor point — without this the pin jumps by the inset on drag start.
+		const inset = impreciseShapePinInset(thread.anchor, impreciseShapeAnchor)
+		if (anchorPage && inset) {
+			const zoom = editor.getZoomLevel()
+			anchorPage.x += inset.x / zoom
+			anchorPage.y += inset.y / zoom
+		}
 		dragRef.current = {
 			startX: e.clientX,
 			startY: e.clientY,
