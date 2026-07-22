@@ -1437,28 +1437,38 @@ describe('MagicWandTool pen tuning deadzone', () => {
 		editor.expectToBeIn('magic-wand.idle')
 	})
 
-	it('leaving the deadzone arms tuning for good, with no jump at the boundary', () => {
+	it('leaving the deadzone makes the shape catch up and tune as if it never existed', () => {
+		const geo = morphSquareWithPen()
+		const before = geoState(geo.id)
+		const cx = before.x + before.w / 2
+		const cy = before.y + before.h / 2
+		const gripLen = Math.hypot(102 - cx, 100 - cy) // pointer position at morph time
+
+		// Wobble inside the deadzone (discarded), then exit 20px away: the shape
+		// catches up to the pen, measured against the morph-time grip.
+		editor.pointerMove(99, 103, { isPen: true })
+		editor.pointerMove(82, 100, { isPen: true })
+		const expectedScale = Math.hypot(82 - cx, 100 - cy) / gripLen
+		expect(geoState(geo.id).w).toBeCloseTo(before.w * expectedScale, 1)
+
+		// Back at exactly the morph-time grip point, the shape returns to its
+		// morph size: the wobble left no lasting pen-to-shape offset.
+		editor.pointerMove(102, 100, { isPen: true })
+		expect(geoState(geo.id).w).toBeCloseTo(before.w, 3)
+		expect(geoState(geo.id).rotation).toBeCloseTo(before.rotation, 3)
+
+		editor.pointerUp(102, 100, { isPen: true })
+		expect(geoState(geo.id).w).toBeCloseTo(before.w, 3)
+	})
+
+	it('a release that exits the deadzone without a prior move keeps the morph exact', () => {
 		const geo = morphSquareWithPen()
 		const before = geoState(geo.id)
 
-		// Exit the deadzone (20px, away from the shape center): the reference is
-		// re-anchored here, so the exit move itself leaves the shape unchanged.
-		editor.pointerMove(82, 100, { isPen: true })
-		const atExit = geoState(geo.id)
-		expect(atExit.w).toBeCloseTo(before.w, 6)
-		expect(atExit.h).toBeCloseTo(before.h, 6)
-		expect(atExit.rotation).toBeCloseTo(before.rotation, 6)
-
-		// Further away from the center: the shape scales up — tuning is live.
-		editor.pointerMove(62, 100, { isPen: true })
-		expect(geoState(geo.id).w).toBeGreaterThan(before.w)
-
-		// Back to ~1px from the original deadzone origin: still tuning (the gate
-		// does not re-engage), now pulling the shape smaller.
-		editor.pointerMove(103, 101, { isPen: true })
-		expect(geoState(geo.id).w).toBeLessThan(before.w)
-
-		editor.pointerUp(103, 101, { isPen: true })
+		// The pen lifts with a flick that lands outside the zone — still no tune.
+		editor.pointerUp(120, 100, { isPen: true })
+		expect(geoState(geo.id)).toEqual(before)
+		editor.expectToBeIn('magic-wand.idle')
 	})
 
 	it('mouse input tunes immediately with no deadzone', () => {
@@ -1472,7 +1482,7 @@ describe('MagicWandTool pen tuning deadzone', () => {
 		editor.pointerUp()
 	})
 
-	it('guards line tuning the same way', () => {
+	it('guards line tuning, then puts the end exactly under the pen after exit', () => {
 		drawLineSketch(100, 100, 300, 120, 12, { isPen: true })
 		vi.advanceTimersByTime(900)
 		const line = realShapes().find((s) => s.type === 'line') as TLLineShape
@@ -1483,17 +1493,19 @@ describe('MagicWandTool pen tuning deadzone', () => {
 		editor.pointerMove(303, 122, { isPen: true })
 		expect(linePageEndpoints(editor.getShape<TLLineShape>(line.id)!)).toEqual(before)
 
-		// Exit 25px below: re-anchored, so the exit move doesn't drag the end.
+		// Exit 25px below: the end catches up to sit exactly under the pen tip —
+		// the wobble must not become a lasting pen-to-end offset.
 		editor.pointerMove(300, 145, { isPen: true })
-		const atExit = linePageEndpoints(editor.getShape<TLLineShape>(line.id)!)
-		expect(atExit.end.x).toBeCloseTo(before.end.x, 6)
-		expect(atExit.end.y).toBeCloseTo(before.end.y, 6)
+		let end = linePageEndpoints(editor.getShape<TLLineShape>(line.id)!).end
+		expect(end.x).toBeCloseTo(300, 4)
+		expect(end.y).toBeCloseTo(145, 4)
 
-		// Further movement drags the end with the grip captured at the exit point.
-		editor.pointerMove(300, 175, { isPen: true })
-		const tuned = linePageEndpoints(editor.getShape<TLLineShape>(line.id)!)
-		expect(tuned.end.y).toBeCloseTo(before.end.y + 30, 4)
+		// And it keeps tracking the pen tip exactly from then on.
+		editor.pointerMove(280, 175, { isPen: true })
+		end = linePageEndpoints(editor.getShape<TLLineShape>(line.id)!).end
+		expect(end.x).toBeCloseTo(280, 4)
+		expect(end.y).toBeCloseTo(175, 4)
 
-		editor.pointerUp(300, 175, { isPen: true })
+		editor.pointerUp(280, 175, { isPen: true })
 	})
 })

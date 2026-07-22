@@ -63,23 +63,17 @@ export class MagicWandLineTuning extends StateNode {
 
 	/**
 	 * Whether pen input is still held inside the post-morph deadzone. On exit
-	 * the grip is re-anchored to the (still untouched) end vertex so tuning
-	 * starts from here as a no-op — no jump at the boundary — and the gate
-	 * never re-engages, so the pen can tune freely back inside the original
-	 * radius.
+	 * the gate drops for good and the grip offset is zeroed: from then on the
+	 * end vertex sits exactly under the pen tip — a pen is direct input, so
+	 * after deliberately picking the end up, it should touch the pen rather
+	 * than trail it by the wobble accumulated inside the deadzone.
 	 */
 	private isHeldInDeadzone(): boolean {
 		if (!this.deadzoneScreenOrigin) return false
 		const screenPoint = this.editor.inputs.getCurrentScreenPoint()
 		if (Vec.Dist(screenPoint, this.deadzoneScreenOrigin) < PEN_TUNING_DEADZONE) return true
 		this.deadzoneScreenOrigin = null
-		const endPoint = this.shapeId
-			? this.editor.getShape<TLLineShape>(this.shapeId)?.props.points[this.endPointKey]
-			: undefined
-		if (endPoint) {
-			const endPagePos = Vec.Add(this.startPagePos, endPoint)
-			this.pointerToEndOffset = Vec.Sub(endPagePos, this.editor.inputs.getCurrentPagePoint())
-		}
+		this.pointerToEndOffset = new Vec(0, 0)
 		return false
 	}
 
@@ -101,8 +95,10 @@ export class MagicWandLineTuning extends StateNode {
 	}
 
 	override onPointerUp() {
-		// Releasing without ever leaving the deadzone keeps the morph untouched.
-		if (!this.isHeldInDeadzone()) {
+		// Releasing while the deadzone is still armed keeps the morph untouched —
+		// deliberately checked without disarming, so a lift-flick that only exits
+		// the zone on the release itself doesn't tune the line on the way out.
+		if (this.deadzoneScreenOrigin === null) {
 			this.applyTune(true)
 		}
 		this.parent.transition('idle')

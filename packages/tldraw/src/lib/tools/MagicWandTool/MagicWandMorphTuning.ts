@@ -8,9 +8,12 @@ const ROTATION_SNAP_SEGMENTS = 24
  * pen input doesn't tune the shape. A pen held "still" (e.g. an Apple Pencil)
  * wobbles a few pixels, which made it nearly impossible to release a fresh
  * morph without accidentally nudging it. Once the pen leaves the deadzone the
- * gate lifts for good: the tuning reference is re-anchored at the exit point,
- * so deliberate fine-tuning — including back inside the original radius —
- * behaves exactly as without a deadzone, with no jump at the boundary.
+ * gate lifts for good and the shape catches up to the pen: the tuning
+ * reference stays the one captured at morph time, so from the exit onward the
+ * grip behaves exactly as if the deadzone never existed — the wobble
+ * accumulated inside it is discarded rather than turned into a lasting offset
+ * between the pen and the shape. The catch-up is at most this radius and
+ * happens mid-movement, where it reads as the shape being picked up.
  */
 export const PEN_TUNING_DEADZONE = 8
 
@@ -92,20 +95,15 @@ export class MagicWandMorphTuning extends StateNode {
 
 	/**
 	 * Whether pen input is still held inside the post-morph deadzone. On exit
-	 * the reference vector is re-anchored to the pointer's current position so
-	 * tuning starts from here as a no-op — no jump at the boundary — and the
-	 * gate never re-engages, so the pen can tune freely back inside the
-	 * original radius.
+	 * the gate drops for good; the morph-time reference is kept, so the shape
+	 * catches up to the pen and tunes from then on exactly as if the deadzone
+	 * never existed (including back inside the original radius).
 	 */
 	private isHeldInDeadzone(): boolean {
 		if (!this.deadzoneScreenOrigin) return false
 		const screenPoint = this.editor.inputs.getCurrentScreenPoint()
 		if (Vec.Dist(screenPoint, this.deadzoneScreenOrigin) < PEN_TUNING_DEADZONE) return true
 		this.deadzoneScreenOrigin = null
-		this.initialPointerOffset = Vec.Sub(
-			this.editor.inputs.getCurrentPagePoint(),
-			this.centerPagePos
-		)
 		return false
 	}
 
@@ -127,8 +125,10 @@ export class MagicWandMorphTuning extends StateNode {
 	}
 
 	override onPointerUp() {
-		// Releasing without ever leaving the deadzone keeps the morph untouched.
-		if (!this.isHeldInDeadzone()) {
+		// Releasing while the deadzone is still armed keeps the morph untouched —
+		// deliberately checked without disarming, so a lift-flick that only exits
+		// the zone on the release itself doesn't tune the shape on the way out.
+		if (this.deadzoneScreenOrigin === null) {
 			this.applyTune(true)
 		}
 		this.parent.transition('idle')
