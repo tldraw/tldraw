@@ -108,6 +108,21 @@ export interface CanvasCommentsProps {
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
+/** A pointer-down that belongs to the camera, not the comment UI: any non-primary button
+ *  (middle/right-button pans), or a primary press with the spacebar pan key held. */
+const isCanvasPanGesture = (editor: Editor, e: ReactPointerEvent) =>
+	e.button !== 0 || editor.inputs.keys.has('Space')
+
+/** Hand a pointer event to the canvas beneath the comments layer, marked the same way the
+ *  pass-through wheel/hover hooks mark their re-dispatched events. */
+function forwardPointerEventToCanvas(container: HTMLElement, e: ReactPointerEvent) {
+	const cvs = container.querySelector('.tl-canvas')
+	if (!cvs) return
+	const newEvent = new PointerEvent(e.type, e.nativeEvent as any)
+	;(newEvent as any).isSpecialRedispatchedEvent = true
+	cvs.dispatchEvent(newEvent)
+}
+
 const initialOf = (name: string): string => (getFirstCharacter(name.trim()) || '?').toUpperCase()
 const CLUSTER_FADE_MS = 150
 /** Duration of the click-a-badge zoom-to-split animation. */
@@ -177,9 +192,11 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	)
 	useEffect(() => setRegionCommentOptions(editor, regionOptions), [editor, regionOptions])
 	const layerRef = useRef<HTMLDivElement>(null)
-	// Over the pins and cluster badges, wheel and hover pass through to the canvas beneath (these
-	// events bubble up from the pointer-interactive markers to this layer root).
-	usePassThroughWheelEvents(layerRef)
+	// Over the pins and cluster badges, hover passes through to the canvas beneath (these events
+	// bubble up from the pointer-interactive markers to this layer root). Wheel pass-through is
+	// NOT on this root: it lives on each interactive element instead. The root spans the whole
+	// canvas, so any pin past its bottom/right edge inflates the root's scrollHeight — which the
+	// wheel hook's is-this-scrollable guard reads as scrollable, silently disabling pass-through.
 	usePassThroughMouseOverEvents(layerRef)
 	const deepLinkHandled = useRef(false)
 	const threads = useCommentThreads(editor)
@@ -746,6 +763,11 @@ const ClusterBadge = memo(function ClusterBadge({
 	node: ClusterNode
 	onExpand(node: ClusterNode): void
 }) {
+	const container = useContainer()
+	const badgeRef = useRef<HTMLDivElement>(null)
+	// Wheel pass-through sits on the badge (never scrollable), not the layer root — see the
+	// note on the layer.
+	usePassThroughWheelEvents(badgeRef)
 	const point = useValue(
 		'cluster badge point',
 		() => {
@@ -760,9 +782,16 @@ const ClusterBadge = memo(function ClusterBadge({
 
 	return (
 		<div
+			ref={badgeRef}
 			className="tlui-cmt-canvas-cluster"
 			style={{ left: point.x, top: point.y }}
-			onPointerDown={stop}
+			onPointerDown={(e) => {
+				if (isCanvasPanGesture(editor, e)) {
+					forwardPointerEventToCanvas(container, e)
+					return
+				}
+				e.stopPropagation()
+			}}
 			onClick={(e) => {
 				e.stopPropagation()
 				onExpand(node)
@@ -835,12 +864,21 @@ function RegionBox({
 	// The grab point and the box at grab time, captured so the drag translates by a stable delta even
 	// as the box prop reflows under the live preview.
 	const grabRef = useRef<{ page: VecLike; box: BoxModel } | null>(null)
+	const container = useContainer()
+	const boxRef = useRef<HTMLDivElement>(null)
+	// A movable region body takes pointer events over its whole area — wheel pass-through sits
+	// here for the same reason as on the pin markers (see the note on the layer).
+	usePassThroughWheelEvents(boxRef)
 	const translated = (e: ReactPointerEvent<HTMLDivElement>): BoxModel => {
 		const g = grabRef.current!
 		const p = editor.screenToPage({ x: e.clientX, y: e.clientY })
 		return { ...g.box, x: g.box.x + (p.x - g.page.x), y: g.box.y + (p.y - g.page.y) }
 	}
 	const startMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+		if (isCanvasPanGesture(editor, e)) {
+			forwardPointerEventToCanvas(container, e)
+			return
+		}
 		e.stopPropagation()
 		grabRef.current = { page: editor.screenToPage({ x: e.clientX, y: e.clientY }), box }
 		e.currentTarget.setPointerCapture(e.pointerId)
@@ -858,6 +896,7 @@ function RegionBox({
 	}
 	return (
 		<div
+			ref={boxRef}
 			className={
 				movable
 					? 'tlui-cmt-canvas-region tlui-cmt-canvas-region--movable'
@@ -1053,6 +1092,9 @@ const ThreadPin = memo(function ThreadPin({
 	)
 	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
 	const markerRef = useRef<HTMLDivElement>(null)
+	// Wheel pass-through sits on the marker (which is never scrollable), not the layer root —
+	// see the note on the layer.
+	usePassThroughWheelEvents(markerRef)
 
 	// Clicking outside the open popover (and off its own pin) closes the thread — mirrors the
 	// pending composer's dismiss. Capture phase + a class check rather than stopPropagation, since the
@@ -1253,6 +1295,12 @@ const ThreadPin = memo(function ThreadPin({
 	const pinMovable = regionOptions.move !== 'body'
 	const bodyMovable = regionOptions.move !== 'pin'
 	const startDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+		// A middle/right-button or space-held press over a pin is a camera pan, not a pin drag —
+		// hand it to the canvas untouched.
+		if (isCanvasPanGesture(editor, e)) {
+			forwardPointerEventToCanvas(container, e)
+			return
+		}
 		e.stopPropagation()
 		dragRef.current = { startX: e.clientX, startY: e.clientY, moved: false }
 		e.currentTarget.setPointerCapture(e.pointerId)
