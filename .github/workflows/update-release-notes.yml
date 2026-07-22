@@ -32,7 +32,7 @@ jobs:
         uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
         with:
           app_id: ${{ secrets.HUPPY_APP_ID }}
-          private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
+          private_key: ${{ secrets.HUPPY_PRIVATE_KEY }}
 
       - name: Check out code
         uses: actions/checkout@v6
@@ -64,7 +64,7 @@ jobs:
 
       - name: Run update-release-notes skill
         run: |
-          claude --skip-permissions --print "/update-release-notes"
+          claude --dangerously-skip-permissions --print "/update-release-notes"
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
@@ -104,7 +104,8 @@ jobs:
           EOF
           )" \
             --base main \
-            --head "${{ steps.branch.outputs.branch_name }}"
+            --head "${{ steps.branch.outputs.branch_name }}" \
+            --label "docs-hotfix-please"
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
