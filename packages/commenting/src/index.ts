@@ -77,6 +77,7 @@ export {
 	commitCommentMutation,
 	openThreadId,
 	pendingComment,
+	revealThreadRequest,
 	sidebarFilters,
 	toggleCommentsHidden,
 	toggleCommentsSidebar,

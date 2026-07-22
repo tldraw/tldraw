@@ -25,6 +25,15 @@ export const openThreadId = new EditorAtom<string | null>('openThreadId', () => 
  * @public */
 export const pendingComment = new EditorAtom<PendingComment | null>('pendingComment', () => null)
 
+/**
+ * A pending request to reveal a thread: a thread or comment id to open and bring into view, or
+ * null when none is pending. Written by consumers outside the canvas layer (e.g. a notification
+ * link); served and cleared by `CanvasComments`, which owns the wait for the records to sync in
+ * and the cluster-aware reveal.
+ * @public
+ */
+export const revealThreadRequest = new EditorAtom<string | null>('revealThreadRequest', () => null)
+
 /** The region rectangle being dragged out right now (page coords), or null when not dragging. The
  *  comment tool writes it on each move; the overlay reads it to draw the live dashed box. */
 export const regionDraft = new EditorAtom<BoxModel | null>('regionDraft', () => null)

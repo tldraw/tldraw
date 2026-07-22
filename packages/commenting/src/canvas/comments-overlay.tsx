@@ -77,6 +77,7 @@ import {
 	openThreadId,
 	pendingComment,
 	regionDraft,
+	revealThreadRequest,
 	toggleCommentsHidden,
 	usePendingComment,
 } from './state'
@@ -233,7 +234,6 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	// canvas, so any pin past its bottom/right edge inflates the root's scrollHeight — which the
 	// wheel hook's is-this-scrollable guard reads as scrollable, silently disabling pass-through.
 	usePassThroughMouseOverEvents(layerRef)
-	const deepLinkHandled = useRef(false)
 	const threads = useCommentThreads(editor)
 	const pending = usePendingComment()
 	const openId = useValue('open thread id', () => openThreadId.get(editor), [editor])
@@ -399,46 +399,65 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const openThread = openId ? threadsById.get(openId) : null
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 
-	// Reset the transient UI state (open thread, half-placed comment) when this unmounts.
+	// Reset the transient UI state (open thread, half-placed comment, unserved reveal) when this
+	// unmounts.
 	useEffect(() => {
 		return () => {
 			openThreadId.set(editor, null)
 			pendingComment.set(editor, null)
+			revealThreadRequest.set(editor, null)
 		}
 	}, [editor])
 
-	// Open the thread named by a deep link (?comment=<thread or comment id>). If the thread is
-	// currently inside a cluster, zoom to the first split that reveals it before opening.
+	// Seed a reveal request from a deep link (?comment=<thread or comment id>) once at mount, so a
+	// plain shared link works with no consumer wiring. Requests after mount come from writers of
+	// {@link revealThreadRequest} — the URL is not watched for changes here.
 	useEffect(() => {
-		if (deepLinkHandled.current) return
 		const id = new URLSearchParams(window.location.search).get('comment')
-		if (!id) {
-			deepLinkHandled.current = true
-			return
-		}
+		if (id) revealThreadRequest.set(editor, id)
+	}, [editor])
 
-		const record = getCommentRecord(editor, id)
-		if (!record) return
+	// The requested thread, once it (and, for a comment id, its parent thread) has synced into the
+	// store; null while records are still arriving or when no request is pending.
+	const requestedRevealThread = useValue(
+		'requested reveal thread',
+		() => {
+			const id = revealThreadRequest.get(editor)
+			if (!id) return null
+			const record = getCommentRecord(editor, id)
+			if (!record) return null
+			const thread =
+				record.typeName === 'comment' ? getCommentRecord(editor, record.threadId) : record
+			return thread?.typeName === 'comment-thread' ? thread : null
+		},
+		[editor]
+	)
 
-		let thread: TLCommentThread | undefined
-		if (record.typeName === 'comment') {
-			thread = threadsById.get(record.threadId)
-		} else {
-			thread = record
-		}
-		if (!thread) return
-
-		deepLinkHandled.current = true
+	// Serve a pending reveal request: open the thread, zooming to the first cluster split that
+	// reveals its pin when it's currently folded into a badge. A reveal is an explicit ask to see
+	// the thread, so it also unhides pins — the popover opens on the on-canvas layer, which stays
+	// invisible while hidden.
+	useEffect(() => {
+		if (!requestedRevealThread) return
+		revealThreadRequest.set(editor, null)
+		commentsHidden.set(editor, false)
 		revealDeepLinkedThread(
 			editor,
-			thread,
+			requestedRevealThread,
 			clusterModel.table,
 			clusterZoomBounds,
 			options,
 			impreciseShapeAnchor
 		)
-		openThreadId.set(editor, thread.id)
-	}, [clusterModel.table, clusterZoomBounds, editor, threadsById, impreciseShapeAnchor, options])
+		openThreadId.set(editor, requestedRevealThread.id)
+	}, [
+		requestedRevealThread,
+		clusterModel.table,
+		clusterZoomBounds,
+		editor,
+		impreciseShapeAnchor,
+		options,
+	])
 
 	// Clicking a badge zooms to just past the zoom at which that cluster first unclusters,
 	// centered on its centroid. The event that created a visible cluster is the event that splits
