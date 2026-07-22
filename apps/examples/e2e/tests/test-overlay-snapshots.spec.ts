@@ -7,10 +7,10 @@ declare const editor: Editor
 
 // Screenshot-based regression tests for canvas overlay appearance.
 //
-// Overlays render to a single <canvas class="tl-canvas-overlays"> element, so
-// we screenshot the `.tl-canvas` region and let the image compare cover every
-// overlay kind (selection foreground, shape handles, brush, snap indicators,
-// scribble, etc.) at once.
+// Overlays render to a pair of stacked <canvas class="tl-canvas-overlays">
+// elements (the 'under' and 'over' bands), so we screenshot the `.tl-canvas`
+// region and let the image compare cover every overlay kind (selection
+// foreground, shape handles, brush, snap indicators, scribble, etc.) at once.
 //
 // Tests use direct editor state injection (brush/zoomBrush via
 // updateInstanceState, scribbles via ScribbleManager, snap indicators via

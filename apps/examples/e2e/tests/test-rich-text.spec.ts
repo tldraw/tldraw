@@ -35,7 +35,7 @@ test.describe('more rich text', () => {
 		)
 
 		// expect canvas overlays to be visible (indicators render there when editing)
-		const canvasIndicator = page.locator('.tl-canvas-overlays')
+		const canvasIndicator = page.locator('.tl-canvas-overlays-under')
 		await expect(canvasIndicator).toBeVisible()
 	})
 
@@ -59,7 +59,7 @@ test.describe('more rich text', () => {
 		)
 
 		// expect canvas overlays to be visible (indicators render there when editing)
-		const canvasIndicator = page.locator('.tl-canvas-overlays')
+		const canvasIndicator = page.locator('.tl-canvas-overlays-under')
 		await expect(canvasIndicator).toBeVisible()
 	})
 })

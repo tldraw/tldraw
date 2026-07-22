@@ -64,7 +64,13 @@ function getLabelFontFamily(editorContainer: HTMLElement, editorWindow: Window):
  */
 export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
 	static override type = 'collaborator_cursor'
-	override options = { zIndex: 1100, fontSize: 12, nameMaxWidth: 120, chatMaxWidth: 200 }
+	override options = {
+		zIndex: 1100,
+		band: 'over' as const,
+		fontSize: 12,
+		nameMaxWidth: 120,
+		chatMaxWidth: 200,
+	}
 
 	// Cache truncated text results to avoid repeated measureText loops.
 	// Key format: `${maxWidth}|${text}` with an upper bound on cache size.

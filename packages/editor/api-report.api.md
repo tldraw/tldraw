@@ -2704,6 +2704,7 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
     abstract isActive(): boolean;
     onPointerDown?(overlay: T, info: TLPointerEventInfo): boolean | void;
     options: {
+        band?: TLOverlayBand;
         zIndex?: number;
     };
     render(_ctx: CanvasRenderingContext2D, _overlays: T[]): void;
@@ -4423,6 +4424,9 @@ export interface TLOverlay<Props = Record<string, unknown>> {
     props: Props;
     type: string;
 }
+
+// @public
+export type TLOverlayBand = 'over' | 'under';
 
 // @public
 export interface TLOverlayEntry {
