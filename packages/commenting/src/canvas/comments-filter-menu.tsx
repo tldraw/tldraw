@@ -9,6 +9,7 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
+import { TooltipButton } from '../ui/tooltip-button'
 import { SidebarFilters } from './sidebar-filters'
 import { sidebarFilters } from './state'
 
@@ -36,14 +37,9 @@ export function CommentsFilterMenu({
 	return (
 		<TldrawUiDropdownMenuRoot id="comments-filter">
 			<TldrawUiDropdownMenuTrigger>
-				<button
-					type="button"
-					className="tlui-cmt-header-btn"
-					title={msg('comments.filter')}
-					aria-label={msg('comments.filter')}
-				>
+				<TooltipButton tooltip={msg('comments.filter')} className="tlui-cmt-header-btn">
 					<FilterIcon />
-				</button>
+				</TooltipButton>
 			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent
 				className="tlui-cmt-menu"
@@ -54,16 +50,16 @@ export function CommentsFilterMenu({
 				<TldrawUiMenuContextProvider type="menu" sourceId="menu">
 					<TldrawUiMenuGroup id="comments-filter">
 						<TldrawUiMenuCheckboxItem
-							id="show-resolved"
-							label="comments.show-resolved"
-							checked={filters.showResolved}
-							onSelect={() => toggle('showResolved')}
+							id="show-all-pages"
+							label="comments.show-all-pages"
+							checked={!filters.onlyCurrentPage}
+							onSelect={() => toggle('onlyCurrentPage')}
 						/>
 						{canFilterByAuthor && (
 							<TldrawUiMenuCheckboxItem
-								id="only-mine"
-								label="comments.only-mine"
-								checked={filters.onlyMine}
+								id="show-all-threads"
+								label="comments.show-all-threads"
+								checked={!filters.onlyMine}
 								onSelect={() => toggle('onlyMine')}
 							/>
 						)}
@@ -76,10 +72,10 @@ export function CommentsFilterMenu({
 							/>
 						)}
 						<TldrawUiMenuCheckboxItem
-							id="only-current-page"
-							label="comments.only-current-page"
-							checked={filters.onlyCurrentPage}
-							onSelect={() => toggle('onlyCurrentPage')}
+							id="show-resolved"
+							label="comments.show-resolved"
+							checked={filters.showResolved}
+							onSelect={() => toggle('showResolved')}
 						/>
 					</TldrawUiMenuGroup>
 				</TldrawUiMenuContextProvider>
