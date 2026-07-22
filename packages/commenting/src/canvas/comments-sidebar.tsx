@@ -115,8 +115,12 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				preview,
 				date: new Date((first ?? thread).createdAt).toISOString(),
 				resolved: thread.resolved != null,
-				// The page label only earns its place when there is more than one page.
-				page: pageNames.size > 1 ? pageNames.get(thread.pageId) : undefined,
+				// The page label only earns its place when it adds information: multiple pages
+				// exist, and the thread is somewhere other than where you already are.
+				page:
+					pageNames.size > 1 && thread.pageId !== currentPageId
+						? pageNames.get(thread.pageId)
+						: undefined,
 				count: threadComments.length,
 				selected: openId === thread.id,
 			}
