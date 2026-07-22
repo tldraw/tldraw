@@ -91,10 +91,11 @@
 	touch-action: none;
 }
 
-/* Centre the pin marker on its anchor point. */
+/* Anchor the pin by its bottom-left corner, so the marker's one sharp corner (the pin shape's
+   3px bottom-left) points at the exact anchor point. */
 .tlui-cmt-canvas-pin__marker {
 	width: max-content;
-	transform: translate(-50%, -50%);
+	transform: translate(0, -100%);
 	cursor: grab;
 	touch-action: none;
 }
@@ -116,9 +117,10 @@
 	position: absolute;
 	z-index: var(--tl-layer-menus);
 	pointer-events: auto;
-	/* Centre the avatar on the anchor point: it is 34px wide and sits 4px into the row, so its
-	   centre is 4 + 34/2 = 21px from the composer's top-left corner. */
-	transform: translate(-21px, -21px);
+	/* Anchor the draft avatar bottom-left like the pins it becomes: it is 34px wide and sits 4px
+	   into the row, so its bottom-left corner is 4px right of and 4 + 34 = 38px below the
+	   composer's top-left corner. */
+	transform: translate(-4px, -38px);
 	/* The rich-text editor has no intrinsic width (unlike the old <input>), so give the floating
 	   placement composer a definite width or it collapses to nothing. */
 	width: 280px;
