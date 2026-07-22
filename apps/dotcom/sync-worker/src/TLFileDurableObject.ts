@@ -38,6 +38,7 @@ import {
 import {
 	TLAsset,
 	TLAssetId,
+	TLComment,
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
@@ -61,14 +62,15 @@ import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 import {
+	CommentLoadResult,
 	findEmptiedCommentThreads,
 	isCommentAuthorFkViolation,
 	isCommentMentionFkViolation,
+	liveCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
 	planMentionReconciles,
-	rowsToSnapshotDocuments,
 } from './commentRows'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
@@ -1254,13 +1256,15 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	private async loadCommentsFromPostgres(): Promise<RoomSnapshot['documents']> {
+	private async loadCommentsFromPostgres(): Promise<CommentLoadResult> {
 		const fileId = this.documentInfo.slug
 		const [threadRows, commentRows] = await Promise.all([
 			this.db.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
 			this.db.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
 		])
-		return rowsToSnapshotDocuments(threadRows, commentRows)
+		// Soft-deleted threads and their comments never re-enter a room; their rows stay in
+		// Postgres only (see liveCommentDocuments).
+		return liveCommentDocuments(threadRows, commentRows)
 	}
 
 	timer() {
@@ -2083,6 +2087,42 @@ export class TLFileDurableObject extends DurableObject {
 						}
 						didPruneThreads = true
 					}
+				}
+
+				// Threads whose soft-delete flag just reached Postgres are pruned from the room's
+				// lane along with their comments. Postgres keeps the rows (recovery, and the Zero
+				// queries filter on deletedAt); the room and its clients drop the records for real
+				// — the warm DO SQLite outlives every reload, so without this prune a deleted
+				// thread would keep syncing to new sessions (hidden only by client-side filtering)
+				// until the SQLite is lost. Lane deletes here don't re-enqueue outbox entries
+				// (onCommittedChanges only fires for client pushes), so the Postgres rows survive.
+				// A crash before this prune just leaves the flagged records in the lane — harmless
+				// (clients hide them) and cleaned up by the next drain that touches the thread or
+				// the next cold load's filter.
+				const softDeletedThreadIds = threadUpserts
+					.filter((row) => row.deletedAt != null && !failedIds.has(row.id))
+					.map((row) => row.id)
+				if (softDeletedThreadIds.length > 0) {
+					this.logEvent({ type: 'room', roomId: fileId, name: 'comment_thread_soft_delete_prune' })
+					storage.transaction((txn) => {
+						const prunedThreadIds = new Set<string>()
+						for (const id of softDeletedThreadIds) {
+							if (txn.get(id as TLRecord['id']) === undefined) continue // already pruned
+							txn.delete(id as TLRecord['id'])
+							prunedThreadIds.add(id)
+						}
+						if (prunedThreadIds.size === 0) return
+						// Materialize the id scan before deleting: comment ids are typeName-prefixed,
+						// so non-comment records are skipped without being read.
+						for (const key of [...txn.keys()]) {
+							if (!isCommentId(key)) continue
+							const id = key as string as TLRecord['id']
+							const record = txn.get(id) as unknown as TLComment | undefined
+							if (record?.threadId !== undefined && prunedThreadIds.has(record.threadId)) {
+								txn.delete(id)
+							}
+						}
+					})
 				}
 
 				// Keep entries queued for any record that failed to push (they'll be retried on the

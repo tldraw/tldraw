@@ -90,6 +90,8 @@ export function threadRecordToRow(
 		shapeId: record.anchor.type === 'shape' ? record.anchor.shapeId : null,
 		resolvedAt: record.resolved?.at ?? null,
 		resolvedBy: record.resolved?.by ?? null,
+		deletedAt: record.deleted?.at ?? null,
+		deletedBy: record.deleted?.by ?? null,
 		createdBy: record.createdBy,
 		createdAt: record.createdAt,
 		meta: record.meta,
@@ -131,6 +133,7 @@ export function rowToThreadRecord(row: DB['comment_thread']): TLCommentThread {
 		createdBy: row.createdBy,
 		createdAt: Number(row.createdAt),
 		resolved: row.resolvedAt != null ? { at: Number(row.resolvedAt), by: row.resolvedBy! } : null,
+		deleted: row.deletedAt != null ? { at: Number(row.deletedAt), by: row.deletedBy! } : null,
 		meta: (row.meta ?? {}) as JsonObject,
 	}
 	// The fields above are raw casts from the row; validate the finished record so a corrupt
@@ -173,6 +176,37 @@ export function rowsToSnapshotDocuments(
 			lastChangedClock: Number(row.lastChangedClock),
 		})),
 	]
+}
+
+/** The room-seedable subset of a file's comment rows; see {@link liveCommentDocuments}. */
+export interface CommentLoadResult {
+	documents: RoomSnapshot['documents']
+	/**
+	 * The highest `lastChangedClock` across ALL of the file's comment rows, including the
+	 * soft-deleted ones whose records were dropped from `documents`. Merge clamping must use this
+	 * rather than the merged documents' own clocks: a dropped row can hold the file's highest
+	 * clock, and seeding the room's clock below it would let future edits emit clocks the drain's
+	 * lastChangedClock guard rejects.
+	 */
+	clockFloor: number
+}
+
+/**
+ * Build the room-seedable comment documents from a file's Postgres rows. Soft-deleted threads
+ * (`deletedAt` set — see TLCommentThread.deleted) and their comments are dropped: their rows
+ * stay in Postgres for recovery and Zero-side filtering, but they never re-enter a room.
+ */
+export function liveCommentDocuments(
+	threadRows: DB['comment_thread'][],
+	commentRows: DB['comment'][]
+): CommentLoadResult {
+	const liveThreadRows = threadRows.filter((row) => row.deletedAt == null)
+	const liveThreadIds = new Set(liveThreadRows.map((row) => row.id))
+	const liveCommentRows = commentRows.filter((row) => liveThreadIds.has(row.threadId))
+	let clockFloor = 0
+	for (const row of threadRows) clockFloor = Math.max(clockFloor, Number(row.lastChangedClock))
+	for (const row of commentRows) clockFloor = Math.max(clockFloor, Number(row.lastChangedClock))
+	return { documents: rowsToSnapshotDocuments(liveThreadRows, liveCommentRows), clockFloor }
 }
 
 /** A row of the DO's `comment_outbox` table: a monotonic sequence number and the touched record id. */
@@ -291,10 +325,12 @@ export function findEmptiedCommentThreads(
 
 /**
  * Merge rehydrated comment documents into a room snapshot, clamping the snapshot's clocks up to
- * the highest merged clock. Comments push to Postgres per-commit while the document snapshot
- * persists on a throttle, so after a storage loss the comment clocks can be ahead of the
- * snapshot's — seeding the room clock below them would make future edits emit clocks the drain's
- * lastChangedClock guard rejects, silently dropping those edits from Postgres.
+ * the load's `clockFloor` (the highest clock across all of the file's comment rows — including
+ * soft-deleted ones that contributed no document). Comments push to Postgres per-commit while
+ * the document snapshot persists on a throttle, so after a storage loss the comment clocks can
+ * be ahead of the snapshot's — seeding the room clock below them would make future edits emit
+ * clocks the drain's lastChangedClock guard rejects, silently dropping those edits from
+ * Postgres.
  *
  * `SQLiteSyncStorage` seeds its clock from `snapshot.documentClock ?? snapshot.clock ?? 0`, so we
  * clamp based on that effective value (setting `documentClock` when only a higher legacy `clock`
@@ -311,11 +347,14 @@ export function findEmptiedCommentThreads(
  */
 export function mergeCommentDocumentsIntoSnapshot(
 	snapshot: RoomSnapshot,
-	commentDocs: RoomSnapshot['documents']
+	load: CommentLoadResult
 ): void {
-	if (commentDocs.length === 0) return
-	snapshot.documents = [...snapshot.documents, ...commentDocs]
-	const maxClock = Math.max(...commentDocs.map((d) => d.lastChangedClock))
+	const { documents: commentDocs, clockFloor } = load
+	if (commentDocs.length === 0 && clockFloor === 0) return
+	if (commentDocs.length > 0) {
+		snapshot.documents = [...snapshot.documents, ...commentDocs]
+	}
+	const maxClock = Math.max(clockFloor, ...commentDocs.map((d) => d.lastChangedClock))
 	const effectiveClock = snapshot.documentClock ?? snapshot.clock ?? 0
 	if (effectiveClock >= maxClock) return
 	snapshot.documentClock = maxClock

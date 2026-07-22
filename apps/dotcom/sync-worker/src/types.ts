@@ -158,6 +158,7 @@ export type TLServerEvent =
 				| 'failed_persist_comments_to_db'
 				| 'comment_author_deleted_prune'
 				| 'comment_thread_emptied_prune'
+				| 'comment_thread_soft_delete_prune'
 				| 'room_empty'
 				| 'fail_persist'
 				| 'room_start'

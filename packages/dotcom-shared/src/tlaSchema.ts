@@ -158,6 +158,8 @@ export const comment_thread = table('comment_thread')
 		// only set for shape-anchored threads; other anchor kinds have no shape
 		shapeId: string().optional(),
 		resolvedAt: number().optional(),
+		// soft-deletion stamp; queries must filter deleted threads (and their comments) out
+		deletedAt: number().optional(),
 		createdBy: string(),
 		createdAt: number(),
 	})
@@ -435,6 +437,7 @@ export interface TlaWelcomeTemplate {
 export interface CommentThreadPersistenceColumns {
 	anchor: unknown
 	resolvedBy: string | null
+	deletedBy: string | null
 	meta: unknown
 	lastChangedClock: number
 }

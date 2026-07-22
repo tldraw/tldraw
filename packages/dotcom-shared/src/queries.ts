@@ -65,6 +65,9 @@ export const queries = defineQueries({
 	comments: defineQuery(({ ctx }) =>
 		zql.comment
 			.where('authorId', '!=', ctx.userId)
+			// comments of soft-deleted threads stay in Postgres (see TLCommentThread.deleted) but
+			// must never surface as notifications
+			.whereExists('thread', (t) => t.where('deletedAt', 'IS', null))
 			.where(({ and, or, exists }) =>
 				or(
 					// on a board the user owns
@@ -125,6 +128,8 @@ export const queries = defineQueries({
 	fileComments: defineQuery(({ ctx, args }: { ctx: ZeroContext; args: { fileId: string } }) =>
 		zql.comment
 			.where('fileId', '=', args.fileId)
+			// comments of soft-deleted threads stay in Postgres but never reach the canvas layer
+			.whereExists('thread', (t) => t.where('deletedAt', 'IS', null))
 			.whereExists('file', (file) =>
 				file.whereExists('states', (s) => s.where('userId', '=', ctx.userId))
 			)
