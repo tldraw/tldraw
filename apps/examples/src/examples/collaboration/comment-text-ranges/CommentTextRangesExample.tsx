@@ -28,8 +28,9 @@ import {
 } from 'tldraw'
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
-import { TextRangeHighlights } from './TextRangeHighlights'
+import { trackTextRangeAnchors } from './text-range-tracking'
 import './comment-text-ranges.css'
+import { TextRangeHighlights } from './TextRangeHighlights'
 
 const NAMES: Record<string, string> = { ada: 'Ada Lovelace', me: 'You' }
 const resolveName = (id: string): string => NAMES[id] ?? id
@@ -41,9 +42,9 @@ const resolveName = (id: string): string => NAMES[id] ?? id
  * and comment through the normal pending-comment flow — no extra records needed.
  *
  * A `text-range` anchor's `from`/`to` are plaintext offsets (not ProseMirror positions), so the
- * highlight overlay can walk the shape's rendered text nodes to measure the range. Note that plain
- * offsets don't re-track if the text is edited later — a production version would keep them in
- * sync with a tiptap mark or by mapping positions through document changes.
+ * highlight overlay can walk the shape's rendered text nodes to measure the range. Offsets alone
+ * would go stale as soon as the text changed, so `trackTextRangeAnchors` maps them through every
+ * subsequent edit to keep each anchor on the words it was written about.
  */
 function startTextRangeComment(editor: Editor) {
 	const textEditor = editor.getRichTextEditor()
@@ -172,6 +173,9 @@ export default function CommentTextRangesExample() {
 		)
 
 		editor.zoomToBounds({ x: 40, y: 60, w: 620, h: 320 }, { immediate: true })
+
+		// Keep every text-range anchor pointing at the same words as the text is edited.
+		return trackTextRangeAnchors(editor)
 	}
 
 	return (
