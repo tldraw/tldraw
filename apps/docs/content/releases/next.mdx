@@ -20,6 +20,7 @@ When cropping an image, crop edges now snap to other shapes and the grid, with t
 
 - Add an `unmount` event to `TLEventMap` and make `Editor.getIsMounted()` a reactive value that tracks whether the editor's component is currently mounted. ([#9472](https://github.com/tldraw/tldraw/pull/9472), [#9483](https://github.com/tldraw/tldraw/pull/9483))
 - Make the shape hit-test margin pointer-aware and add a `coarseHitTestMargin` option: fine pointers (mouse and trackpad) use a tighter 3px default, coarse pointers (touch and pen) use 4px. ([#9492](https://github.com/tldraw/tldraw/pull/9492))
+- Add a `ShapeUtil.onDuplicate(source, duplicate)` callback, invoked by `Editor.duplicateShapes` and `Editor.putContentOntoCurrentPage`, letting a shape adjust its props when it is copied. Sticky notes now use it to attribute duplicated or pasted text to the current user instead of carrying over the original author. ([#9566](https://github.com/tldraw/tldraw/pull/9566))
 
 ## Improvements
 
@@ -46,3 +47,5 @@ When cropping an image, crop edges now snap to other shapes and the grid, with t
 - Fix a crash ("Shape not found") when dragging a tool from the toolbar in a read-only room. ([#9225](https://github.com/tldraw/tldraw/pull/9225))
 - Fix sync clients not recovering from a malformed WebSocket message; they now restart the connection so a corrupt frame can no longer silently leave the client out of sync. ([#9380](https://github.com/tldraw/tldraw/pull/9380))
 - Fix uploaded asset handling for invalid R2 object names. ([#9495](https://github.com/tldraw/tldraw/pull/9495))
+- Fix a crash when a custom font failed to load after its editor had been disposed. ([#9494](https://github.com/tldraw/tldraw/pull/9494))
+- Fix license expiry being evaluated in local time, which could deactivate a license a calendar day early for users west of UTC; the expiry date is now treated as the last fully usable day in UTC. ([#9475](https://github.com/tldraw/tldraw/pull/9475))
