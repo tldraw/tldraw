@@ -1,6 +1,8 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	createComment,
+	createCommentId,
+	createCommentReaction,
 	createCommentThread,
 	TLPageId,
 	TLRichText,
@@ -17,6 +19,8 @@ import {
 	planCommentDrain,
 	rowsToSnapshotDocuments,
 	rowToCommentRecord,
+	rowToReactionRecord,
+	reactionRecordToRow,
 	isCommentMentionFkViolation,
 	planMentionReconciles,
 	rowToThreadRecord,
@@ -46,7 +50,6 @@ describe('threadRecordToRow', () => {
 			resolvedBy: 'user2',
 			createdBy: 'user1',
 			createdAt: 1000,
-			reactions: null,
 			meta: thread.meta,
 			lastChangedClock: 42,
 		})
@@ -271,26 +274,18 @@ describe('round-trip: record -> row -> rowTo*Record', () => {
 		expect(rowToCommentRecord(row)).toEqual(comment)
 	})
 
-	it('thread with reactions from several people on several comments', () => {
-		const thread = {
-			...makeThread(),
-			reactions: {
-				'comment:a': {
-					user1: { emoji: '👍', createdAt: 1700 },
-					user2: { emoji: '🎉', createdAt: 1800 },
-				},
-				'comment:b': { user2: { emoji: '👀', createdAt: 1900 } },
-			},
-		}
-		const row = threadRecordToRow(thread, 'file1', 45)
-		expect(rowToThreadRecord(row)).toEqual(thread)
-	})
-
-	// pre-041 rows predate the reactions column, so Postgres reports it as null/undefined
-	it('row from before the reactions column rehydrates with null reactions', () => {
-		const row = threadRecordToRow(makeThread(), 'file1', 46)
-		delete (row as any).reactions
-		expect(rowToThreadRecord(row).reactions).toBeNull()
+	it('reaction', () => {
+		const thread = makeThread()
+		const reaction = createCommentReaction({
+			commentId: createCommentId('c1'),
+			threadId: thread.id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: 1700,
+		})
+		const row = reactionRecordToRow(reaction, 'file1', 45)
+		expect(rowToReactionRecord(row)).toEqual(reaction)
 	})
 })
 
@@ -388,10 +383,37 @@ describe('planCommentDrain', () => {
 		expect(planCommentDrain(entriesOf(thread.id, comment.id), lane, 'file1')).toEqual({
 			threadUpserts: [threadRecordToRow(thread, 'file1', 42)],
 			commentUpserts: [commentRecordToRow(comment, 'file1', 43)],
+			reactionUpserts: [],
 			threadDeletes: [],
 			commentDeletes: [],
+			reactionDeletes: [],
 			unknownIds: [],
 		})
+	})
+
+	it('routes reaction ids to the reaction buckets', () => {
+		const thread = makeThread()
+		const comment = makeComment(thread.id)
+		const reaction = createCommentReaction({
+			commentId: comment.id,
+			threadId: thread.id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: 1700,
+		})
+		// present in the lane → upsert; absent → delete
+		const upsertPlan = planCommentDrain(
+			entriesOf(reaction.id),
+			laneOf({ state: reaction, lastChangedClock: 44 }),
+			'file1'
+		)
+		expect(upsertPlan.reactionUpserts).toEqual([reactionRecordToRow(reaction, 'file1', 44)])
+		expect(upsertPlan.reactionDeletes).toEqual([])
+
+		const deletePlan = planCommentDrain(entriesOf(reaction.id), new Map(), 'file1')
+		expect(deletePlan.reactionUpserts).toEqual([])
+		expect(deletePlan.reactionDeletes).toEqual([reaction.id])
 	})
 
 	it('coalesces duplicate entries for one id into a single write', () => {
@@ -412,8 +434,10 @@ describe('planCommentDrain', () => {
 		expect(plan).toEqual({
 			threadUpserts: [],
 			commentUpserts: [],
+			reactionUpserts: [],
 			threadDeletes: [thread.id],
 			commentDeletes: [comment.id],
+			reactionDeletes: [],
 			unknownIds: [],
 		})
 	})
@@ -438,8 +462,10 @@ describe('planCommentDrain', () => {
 		expect(plan).toEqual({
 			threadUpserts: [threadRecordToRow(thread, 'file1', 42)],
 			commentUpserts: [],
+			reactionUpserts: [],
 			threadDeletes: [],
 			commentDeletes: [],
+			reactionDeletes: [],
 			unknownIds: ['shape:oops'],
 		})
 	})

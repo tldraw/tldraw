@@ -38,6 +38,7 @@ export {
 	type CommentReactionsProps,
 	summarizeReactions,
 	toggleCommentReaction,
+	useCommentReactions,
 } from './canvas/comment-reactions'
 export {
 	CommentTool,
@@ -48,6 +49,7 @@ export {
 export { collectClusterLeaves } from './canvas/cluster-input'
 export { computeClusterTable } from './clustering/computeClusterTable'
 export {
+	getCommentReactions,
 	getCommentRecord,
 	getComments,
 	getCommentThreads,

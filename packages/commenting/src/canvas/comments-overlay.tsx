@@ -45,7 +45,12 @@ import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR } from './comment-render'
-import { getCommentRecord, putCommentRecords, removeCommentRecords } from './comment-store'
+import {
+	getCommentReactions,
+	getCommentRecord,
+	putCommentRecords,
+	removeCommentRecords,
+} from './comment-store'
 import { PendingComment } from './comment-tool'
 import { useCommentThreads, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
@@ -369,11 +374,13 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		const record = getCommentRecord(editor, id)
 		if (!record) return
 
+		// A deep link can name a thread or any record that belongs to one; resolve all of them to
+		// the thread the link should reveal.
 		let thread: TLCommentThread | undefined
-		if (record.typeName === 'comment') {
-			thread = threadsById.get(record.threadId)
-		} else {
+		if (record.typeName === 'comment-thread') {
 			thread = record
+		} else {
+			thread = threadsById.get(record.threadId)
 		}
 		if (!thread) return
 
@@ -1136,8 +1143,13 @@ const ThreadPin = memo(function ThreadPin({
 
 	const deleteThread = () => {
 		openThreadId.set(editor, null)
+		// Reactions are their own records, so they have to go with the thread. Postgres cascades
+		// them via the reaction's thread FK, but the room holds them until they're removed here.
+		const reactionIds = getCommentReactions(editor)
+			.filter((reaction) => reaction.threadId === thread.id)
+			.map((reaction) => reaction.id)
 		commitCommentMutation(editor, () =>
-			removeCommentRecords(editor, [thread.id, ...comments.map((c) => c.id)])
+			removeCommentRecords(editor, [thread.id, ...comments.map((c) => c.id), ...reactionIds])
 		)
 	}
 
@@ -1188,9 +1200,7 @@ const ThreadPin = memo(function ThreadPin({
 		return (
 			<CommentCard
 				{...card}
-				footer={
-					<CommentReactions thread={thread} comment={comment} currentUserId={currentUserId} />
-				}
+				footer={<CommentReactions comment={comment} currentUserId={currentUserId} />}
 				actions={
 					<>
 						{comment.authorId === currentUserId && (
@@ -1202,11 +1212,7 @@ const ThreadPin = memo(function ThreadPin({
 								<TldrawUiIcon icon="dots-horizontal" label={msg('comments.edit')} small />
 							</button>
 						)}
-						<CommentReactionPicker
-							thread={thread}
-							comment={comment}
-							currentUserId={currentUserId}
-						/>
+						<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
 					</>
 				}
 			/>

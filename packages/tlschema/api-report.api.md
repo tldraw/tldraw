@@ -134,10 +134,14 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
+export const commentReactionRecordConfig: CustomRecordInfo;
+
+// @public
 export const commentRecordConfig: CustomRecordInfo;
 
 // @public
 export const commentSchemaRecords: {
+    'comment-reaction': CustomRecordInfo;
     'comment-thread': CustomRecordInfo;
     comment: CustomRecordInfo;
 };
@@ -210,6 +214,20 @@ export function createComment(props: {
 
 // @public (undocumented)
 export function createCommentId(id?: string): TLCommentId;
+
+// @public
+export function createCommentReaction(props: {
+    commentId: TLCommentId;
+    emoji: string;
+    meta?: JsonObject;
+    now?: number;
+    pageId: TLPageId;
+    threadId: TLCommentThreadId;
+    userId: string;
+}): TLCommentReaction;
+
+// @public
+export function createCommentReactionId(commentId: TLCommentId, userId: string): TLCommentReactionId;
 
 // @public
 export function createCommentThread(props: {
@@ -565,6 +583,9 @@ export function isBindingId(id?: string): id is TLBindingId;
 
 // @public
 export function isCommentId(id: string): id is TLCommentId;
+
+// @public
+export function isCommentReactionId(id: string): id is TLCommentReactionId;
 
 // @public
 export function isCommentThreadId(id: string): id is TLCommentThreadId;
@@ -1125,14 +1146,20 @@ export type TLCommentAnchor = {
 export type TLCommentId = RecordId<TLComment>;
 
 // @public
-export interface TLCommentReaction {
+export interface TLCommentReaction extends BaseRecord<'comment-reaction', TLCommentReactionId> {
+    commentId: TLCommentId;
     // (undocumented)
     createdAt: number;
     emoji: string;
+    // (undocumented)
+    meta: JsonObject;
+    pageId: TLPageId;
+    threadId: TLCommentThreadId;
+    userId: string;
 }
 
-// @public
-export type TLCommentReactions = Record<string, Record<string, TLCommentReaction>>;
+// @public (undocumented)
+export type TLCommentReactionId = RecordId<TLCommentReaction>;
 
 // @public
 export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentThreadId> {
@@ -1143,7 +1170,6 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
     // (undocumented)
     meta: JsonObject;
     pageId: TLPageId;
-    reactions: null | TLCommentReactions;
     resolved: {
         at: number;
         by: string;

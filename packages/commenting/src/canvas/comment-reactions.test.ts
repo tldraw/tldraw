@@ -1,32 +1,36 @@
-import { TLCommentReactions } from 'tldraw'
+import { TLComment, TLCommentId, TLCommentReaction, createCommentReactionId } from 'tldraw'
 import { describe, expect, it } from 'vitest'
-import { nextThreadReactions, summarizeReactions } from './comment-reactions'
+import { summarizeReactions } from './comment-reactions'
 
-const COMMENT_A = 'comment:a'
-const COMMENT_B = 'comment:b'
+const COMMENT_A = 'comment:a' as TLCommentId
+const COMMENT_B = 'comment:b' as TLCommentId
+
+function reaction(userId: string, emoji: string, createdAt: number): TLCommentReaction {
+	return {
+		id: createCommentReactionId(COMMENT_A, userId),
+		typeName: 'comment-reaction',
+		commentId: COMMENT_A,
+		threadId: 'comment-thread:t' as TLCommentReaction['threadId'],
+		pageId: 'page:page' as TLCommentReaction['pageId'],
+		userId,
+		emoji,
+		createdAt,
+		meta: {},
+	}
+}
 
 describe('summarizeReactions', () => {
-	it('returns nothing when the thread has no reactions', () => {
-		expect(summarizeReactions(null, COMMENT_A, 'user1')).toEqual([])
-		expect(summarizeReactions({}, COMMENT_A, 'user1')).toEqual([])
-	})
-
-	it('returns nothing for a comment nobody has reacted to', () => {
-		const reactions: TLCommentReactions = {
-			[COMMENT_B]: { user1: { emoji: '👍', createdAt: 100 } },
-		}
-		expect(summarizeReactions(reactions, COMMENT_A, 'user1')).toEqual([])
+	it('returns nothing when there are no reactions', () => {
+		expect(summarizeReactions([], 'user1')).toEqual([])
 	})
 
 	it('counts each emoji and marks the current user’s as active', () => {
-		const reactions: TLCommentReactions = {
-			[COMMENT_A]: {
-				user1: { emoji: '👍', createdAt: 100 },
-				user2: { emoji: '👍', createdAt: 200 },
-				user3: { emoji: '🎉', createdAt: 300 },
-			},
-		}
-		expect(summarizeReactions(reactions, COMMENT_A, 'user1')).toEqual([
+		expect(
+			summarizeReactions(
+				[reaction('user1', '👍', 100), reaction('user2', '👍', 200), reaction('user3', '🎉', 300)],
+				'user1'
+			)
+		).toEqual([
 			{ emoji: '👍', count: 2, active: true },
 			{ emoji: '🎉', count: 1, active: false },
 		])
@@ -34,104 +38,55 @@ describe('summarizeReactions', () => {
 
 	// the row shouldn't reshuffle as later reactions land, so groups sort by first use
 	it('orders emoji by when each was first used', () => {
-		const reactions: TLCommentReactions = {
-			[COMMENT_A]: {
-				user1: { emoji: '🎉', createdAt: 300 },
-				user2: { emoji: '👍', createdAt: 100 },
-				user3: { emoji: '👍', createdAt: 200 },
-			},
-		}
-		expect(summarizeReactions(reactions, COMMENT_A, undefined).map((r) => r.emoji)).toEqual([
-			'👍',
-			'🎉',
-		])
+		expect(
+			summarizeReactions(
+				[reaction('user1', '🎉', 300), reaction('user2', '👍', 100), reaction('user3', '👍', 200)],
+				undefined
+			).map((r) => r.emoji)
+		).toEqual(['👍', '🎉'])
 	})
 
 	it('marks nothing active when there is no current user', () => {
-		const reactions: TLCommentReactions = {
-			[COMMENT_A]: { user1: { emoji: '👍', createdAt: 100 } },
-		}
-		expect(summarizeReactions(reactions, COMMENT_A, undefined)).toEqual([
+		expect(summarizeReactions([reaction('user1', '👍', 100)], undefined)).toEqual([
 			{ emoji: '👍', count: 1, active: false },
-		])
-	})
-
-	it('keeps each comment’s reactions separate', () => {
-		const reactions: TLCommentReactions = {
-			[COMMENT_A]: { user1: { emoji: '👍', createdAt: 100 } },
-			[COMMENT_B]: { user1: { emoji: '🎉', createdAt: 200 } },
-		}
-		expect(summarizeReactions(reactions, COMMENT_B, 'user1')).toEqual([
-			{ emoji: '🎉', count: 1, active: true },
 		])
 	})
 })
 
-describe('nextThreadReactions', () => {
-	it('adds a reaction when the thread has none', () => {
-		expect(nextThreadReactions(null, COMMENT_A, 'user1', '👍', 500)).toEqual({
-			[COMMENT_A]: { user1: { emoji: '👍', createdAt: 500 } },
-		})
+describe('createCommentReactionId', () => {
+	// the id is what makes "one reaction per user per comment" true: re-reacting addresses the
+	// same record, so it overwrites instead of adding a second one
+	it('is stable for the same comment and user', () => {
+		expect(createCommentReactionId(COMMENT_A, 'user1')).toBe(
+			createCommentReactionId(COMMENT_A, 'user1')
+		)
 	})
 
-	it('clears the reaction when the user picks the same emoji again', () => {
-		const reactions: TLCommentReactions = {
-			[COMMENT_A]: { user1: { emoji: '👍', createdAt: 100 } },
-		}
-		expect(nextThreadReactions(reactions, COMMENT_A, 'user1', '👍', 500)).toBeNull()
+	it('differs per user and per comment', () => {
+		expect(createCommentReactionId(COMMENT_A, 'user1')).not.toBe(
+			createCommentReactionId(COMMENT_A, 'user2')
+		)
+		expect(createCommentReactionId(COMMENT_A, 'user1')).not.toBe(
+			createCommentReactionId(COMMENT_B, 'user1')
+		)
 	})
 
-	// one reaction per user per comment is the shape, so a second pick moves theirs
-	it('replaces the user’s reaction when they pick a different emoji', () => {
-		const reactions: TLCommentReactions = {
-			[COMMENT_A]: { user1: { emoji: '👍', createdAt: 100 } },
-		}
-		expect(nextThreadReactions(reactions, COMMENT_A, 'user1', '🎉', 500)).toEqual({
-			[COMMENT_A]: { user1: { emoji: '🎉', createdAt: 500 } },
-		})
+	it('is a comment-reaction id, not a comment id', () => {
+		const id: string = createCommentReactionId(COMMENT_A, 'user1')
+		expect(id.startsWith('comment-reaction:')).toBe(true)
 	})
+})
 
-	it('leaves other people’s reactions alone', () => {
-		const reactions: TLCommentReactions = {
-			[COMMENT_A]: {
-				user1: { emoji: '👍', createdAt: 100 },
-				user2: { emoji: '👍', createdAt: 200 },
-			},
+describe('reaction records', () => {
+	// a comment's reactions are found by commentId, so a reaction to another comment must not
+	// leak into this one's tally
+	it('are scoped to one comment by commentId', () => {
+		const forOtherComment: TLCommentReaction = {
+			...reaction('user9', '💩', 400),
+			commentId: COMMENT_B,
 		}
-		expect(nextThreadReactions(reactions, COMMENT_A, 'user1', '🎉', 500)).toEqual({
-			[COMMENT_A]: {
-				user2: { emoji: '👍', createdAt: 200 },
-				user1: { emoji: '🎉', createdAt: 500 },
-			},
-		})
-	})
-
-	it('leaves other comments’ reactions alone', () => {
-		const reactions: TLCommentReactions = {
-			[COMMENT_B]: { user2: { emoji: '👀', createdAt: 200 } },
-		}
-		expect(nextThreadReactions(reactions, COMMENT_A, 'user1', '👍', 500)).toEqual({
-			[COMMENT_B]: { user2: { emoji: '👀', createdAt: 200 } },
-			[COMMENT_A]: { user1: { emoji: '👍', createdAt: 500 } },
-		})
-	})
-
-	// an emptied comment key shouldn't linger as `{}` — "nobody has reacted" is one state
-	it('prunes a comment’s entry when its last reaction goes', () => {
-		const reactions: TLCommentReactions = {
-			[COMMENT_A]: { user1: { emoji: '👍', createdAt: 100 } },
-			[COMMENT_B]: { user2: { emoji: '👀', createdAt: 200 } },
-		}
-		expect(nextThreadReactions(reactions, COMMENT_A, 'user1', '👍', 500)).toEqual({
-			[COMMENT_B]: { user2: { emoji: '👀', createdAt: 200 } },
-		})
-	})
-
-	it('does not mutate the reactions it was given', () => {
-		const reactions: TLCommentReactions = {
-			[COMMENT_A]: { user1: { emoji: '👍', createdAt: 100 } },
-		}
-		nextThreadReactions(reactions, COMMENT_A, 'user2', '🎉', 500)
-		expect(reactions).toEqual({ [COMMENT_A]: { user1: { emoji: '👍', createdAt: 100 } } })
+		const all = [reaction('user1', '👍', 100), forOtherComment]
+		const mine = all.filter((r) => r.commentId === (COMMENT_A as TLComment['id']))
+		expect(summarizeReactions(mine, 'user1')).toEqual([{ emoji: '👍', count: 1, active: true }])
 	})
 })

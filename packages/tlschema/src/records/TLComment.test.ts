@@ -2,14 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { createTLSchema } from '../createTLSchema'
 import { toRichText } from '../misc/TLRichText'
 import {
+	commentReactionRecordConfig,
 	commentRecordConfig,
 	commentSchemaRecords,
 	commentThreadRecordConfig,
 	createComment,
 	createCommentId,
+	createCommentReaction,
 	createCommentThread,
 	createCommentThreadId,
 	isCommentId,
+	isCommentReactionId,
 	isCommentThreadId,
 	TLCommentAnchor,
 } from './TLComment'
@@ -181,21 +184,36 @@ describe('comment-thread migrations', () => {
 	})
 })
 
-describe('comment-thread reaction migrations', () => {
-	const migration = (commentThreadRecordConfig.migrations as any).sequence.find(
-		(m: any) => m.id === 'com.tldraw.comment-thread/3'
-	) as { up(r: any): any; down(r: any): any }
-
-	it('gives existing threads a null reactions field', () => {
-		expect(migration.up({ createdBy: 'user1' })).toEqual({ createdBy: 'user1', reactions: null })
+describe('comment-reaction record', () => {
+	it('createCommentReaction derives a stable id from the comment and user', () => {
+		const commentId = createCommentId('c1')
+		const a = createCommentReaction({
+			commentId,
+			threadId: createCommentThreadId('t1'),
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+		})
+		const b = createCommentReaction({
+			commentId,
+			threadId: createCommentThreadId('t1'),
+			pageId,
+			userId: 'user1',
+			emoji: '🎉',
+		})
+		// same comment + user → same record id, so re-reacting overwrites rather than adding
+		expect(a.id).toBe(b.id)
+		expect(isCommentReactionId(a.id)).toBe(true)
 	})
 
-	it('down-migrates by dropping reactions', () => {
-		expect(
-			migration.down({
-				createdBy: 'user1',
-				reactions: { 'comment:a': { user1: { emoji: '👍', createdAt: 1 } } },
-			})
-		).toEqual({ createdBy: 'user1' })
+	it('validates a well-formed reaction record', () => {
+		const reaction = createCommentReaction({
+			commentId: createCommentId('c1'),
+			threadId: createCommentThreadId('t1'),
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+		})
+		expect(commentReactionRecordConfig.validator.validate(reaction)).toEqual(reaction)
 	})
 })

@@ -44,6 +44,7 @@ import {
 	commentSchemaRecords,
 	createTLSchema,
 	isCommentId,
+	isCommentReactionId,
 	isCommentThreadId,
 } from '@tldraw/tlschema'
 import {
@@ -63,6 +64,7 @@ import {
 	findEmptiedCommentThreads,
 	isCommentAuthorFkViolation,
 	isCommentMentionFkViolation,
+	isCommentReactionFkViolation,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
@@ -151,7 +153,7 @@ const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
 // Object-lane records sync over the same socket but are gated per session by `objectAccess`
 // (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in Postgres
 // rather than the R2 document blob.
-const OBJECT_TYPES = ['comment-thread', 'comment'] as const
+const OBJECT_TYPES = ['comment-thread', 'comment', 'comment-reaction'] as const
 
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
@@ -1222,11 +1224,12 @@ export class TLFileDurableObject extends DurableObject {
 
 	private async loadCommentsFromPostgres(): Promise<RoomSnapshot['documents']> {
 		const fileId = this.documentInfo.slug
-		const [threadRows, commentRows] = await Promise.all([
+		const [threadRows, commentRows, reactionRows] = await Promise.all([
 			this.db.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
 			this.db.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
+			this.db.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll().execute(),
 		])
-		return rowsToSnapshotDocuments(threadRows, commentRows)
+		return rowsToSnapshotDocuments(threadRows, commentRows, reactionRows)
 	}
 
 	timer() {
@@ -1610,7 +1613,7 @@ export class TLFileDurableObject extends DurableObject {
 	/**
 	 * Durable outbox for comment persistence. Postgres is the sole durable store for comment
 	 * records; the DO's SQLite is the room's working copy. Each committed diff appends the touched
-	 * comment/comment-thread record ids here (same-task with the commit, so the DO output gate
+	 * comment record ids (comment, thread, or reaction) here (same-task with the commit, so the output gate
 	 * flushes them together), and the drain pushes the records' current state to Postgres. The
 	 * drain itself also appends: when the author-cascade prune (below) empties a thread, the
 	 * pruned thread's id is outboxed so a follow-up drain deletes its Postgres row through this
@@ -1635,12 +1638,16 @@ export class TLFileDurableObject extends DurableObject {
 		const ids: string[] = []
 		for (const put of Object.values(diff.puts)) {
 			const record = (Array.isArray(put) ? put[1] : put) as { typeName: string; id: string }
-			if (record.typeName === 'comment' || record.typeName === 'comment-thread') {
+			if (
+				record.typeName === 'comment' ||
+				record.typeName === 'comment-thread' ||
+				record.typeName === 'comment-reaction'
+			) {
 				ids.push(record.id)
 			}
 		}
 		for (const id of diff.deletes) {
-			if (isCommentId(id) || isCommentThreadId(id)) {
+			if (isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)) {
 				ids.push(id)
 			}
 		}
@@ -1688,10 +1695,17 @@ export class TLFileDurableObject extends DurableObject {
 				)
 				const fileId = this.documentInfo.slug
 
-				const { threadUpserts, commentUpserts, threadDeletes, commentDeletes, unknownIds } =
-					planCommentDrain(entries, lane, fileId)
+				const {
+					threadUpserts,
+					commentUpserts,
+					reactionUpserts,
+					threadDeletes,
+					commentDeletes,
+					reactionDeletes,
+					unknownIds,
+				} = planCommentDrain(entries, lane, fileId)
 				for (const id of unknownIds) {
-					// enqueueCommentChanges only writes comment/comment-thread ids, so an unknown
+					// enqueueCommentChanges only writes comment record ids, so an unknown
 					// id means a bug or a corrupted outbox row. Skip it — its entry still clears
 					// below (retrying can't help) — and report for visibility.
 					this.reportError(new Error(`comment outbox: unknown record id ${JSON.stringify(id)}`))
@@ -1710,7 +1724,6 @@ export class TLFileDurableObject extends DurableObject {
 									shapeId: eb.ref('excluded.shapeId'),
 									resolvedAt: eb.ref('excluded.resolvedAt'),
 									resolvedBy: eb.ref('excluded.resolvedBy'),
-									reactions: eb.ref('excluded.reactions'),
 									meta: eb.ref('excluded.meta'),
 									lastChangedClock: eb.ref('excluded.lastChangedClock'),
 								}))
@@ -1734,6 +1747,28 @@ export class TLFileDurableObject extends DurableObject {
 									lastChangedClock: eb.ref('excluded.lastChangedClock'),
 								}))
 								.whereRef('comment.lastChangedClock', '<', 'excluded.lastChangedClock')
+						)
+						.execute()
+				// Re-reacting with a different emoji addresses the same record id (the id is derived
+				// from the comment + user pair), so it arrives here as a conflict on id — every
+				// mutable column has to be listed or the change would be silently dropped.
+				const insertReactionRows = (rows: DB['comment_reaction'][]) =>
+					this.db
+						.insertInto('comment_reaction')
+						.values(rows)
+						.onConflict((oc) =>
+							oc
+								.column('id')
+								.doUpdateSet((eb) => ({
+									commentId: eb.ref('excluded.commentId'),
+									threadId: eb.ref('excluded.threadId'),
+									pageId: eb.ref('excluded.pageId'),
+									emoji: eb.ref('excluded.emoji'),
+									createdAt: eb.ref('excluded.createdAt'),
+									meta: eb.ref('excluded.meta'),
+									lastChangedClock: eb.ref('excluded.lastChangedClock'),
+								}))
+								.whereRef('comment_reaction.lastChangedClock', '<', 'excluded.lastChangedClock')
 						)
 						.execute()
 
@@ -1805,6 +1840,21 @@ export class TLFileDurableObject extends DurableObject {
 				)
 				for (const id of commentResult.failedIds) {
 					failedIds.add(id)
+				}
+				// Reactions after comments (comment_reaction.commentId FK), and their deletes before
+				// the comment deletes they'd otherwise cascade with. A reaction whose comment or
+				// reacting user has since been deleted can never insert, so it prunes like an
+				// author-cascaded comment rather than retrying forever.
+				const reactionResult = await runBatchWithFallback(
+					reactionUpserts,
+					insertReactionRows,
+					isCommentReactionFkViolation
+				)
+				for (const id of reactionResult.failedIds) {
+					failedIds.add(id)
+				}
+				if (reactionDeletes.length > 0) {
+					await this.db.deleteFrom('comment_reaction').where('id', 'in', reactionDeletes).execute()
 				}
 				if (commentDeletes.length > 0) {
 					await this.db.deleteFrom('comment').where('id', 'in', commentDeletes).execute()

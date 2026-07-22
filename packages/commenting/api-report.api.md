@@ -15,7 +15,8 @@ import type { SuggestionOptions } from '@tiptap/suggestion';
 import { TLComment } from 'tldraw';
 import { TLCommentAnchor } from 'tldraw';
 import { TLCommentId } from 'tldraw';
-import { TLCommentReactions } from 'tldraw';
+import { TLCommentReaction } from 'tldraw';
+import { TLCommentReactionId } from 'tldraw';
 import { TLCommentThread } from 'tldraw';
 import { TLCommentThreadId } from 'tldraw';
 import { TLHistoryBatchOptions } from 'tldraw';
@@ -242,7 +243,7 @@ export interface CommentPinProps {
 }
 
 // @public
-export function CommentReactionPicker({ thread, comment, currentUserId, emoji }: CommentReactionPickerProps): JSX.Element | null;
+export function CommentReactionPicker({ comment, currentUserId, emoji }: CommentReactionPickerProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface CommentReactionPickerProps {
@@ -250,20 +251,16 @@ export interface CommentReactionPickerProps {
     comment: TLComment;
     currentUserId?: null | string;
     emoji?: string[];
-    // (undocumented)
-    thread: TLCommentThread;
 }
 
 // @public
-export function CommentReactions({ thread, comment, currentUserId }: CommentReactionsProps): JSX.Element;
+export function CommentReactions({ comment, currentUserId }: CommentReactionsProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentReactionsProps {
     // (undocumented)
     comment: TLComment;
     currentUserId?: null | string;
-    // (undocumented)
-    thread: TLCommentThread;
 }
 
 // @public
@@ -429,6 +426,9 @@ export function formatRelativeTime(iso: string, locale?: string): string;
 export function getCommentingOptions(editor: Editor): CommentingOptions;
 
 // @public
+export function getCommentReactions(editor: Editor): TLCommentReaction[];
+
+// @public
 export function getCommentRecord(editor: Editor, id: string): TLCommentRecord | undefined;
 
 // @public
@@ -564,7 +564,7 @@ export interface RegionCommentOptions {
 }
 
 // @public
-export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLCommentThreadId)[]): void;
+export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]): void;
 
 // @public
 export function renderMarkdown(text: string): ReactNode;
@@ -603,13 +603,13 @@ export interface SidebarFilters {
 export const sidebarFilters: EditorAtom<SidebarFilters>;
 
 // @public
-export function summarizeReactions(reactions: null | TLCommentReactions, commentId: string, currentUserId?: null | string): ReactionSummary[];
+export function summarizeReactions(reactions: TLCommentReaction[], currentUserId?: null | string): ReactionSummary[];
 
 // @public
-export type TLCommentRecord = TLComment | TLCommentThread;
+export type TLCommentRecord = TLComment | TLCommentReaction | TLCommentThread;
 
 // @public
-export function toggleCommentReaction(editor: Editor, thread: TLCommentThread, commentId: string, userId: string, emoji: string, now?: number): void;
+export function toggleCommentReaction(editor: Editor, comment: TLComment, userId: string, emoji: string, now?: number): void;
 
 // @public
 export function toggleCommentsHidden(editor: Editor): void;
@@ -619,6 +619,9 @@ export function useCommentingEnabled(): boolean;
 
 // @public
 export function useCommentingOptions(): CommentingOptions;
+
+// @public
+export function useCommentReactions(editor: Editor, commentId: TLComment['id']): TLCommentReaction[];
 
 // @public
 export function useComments(editor: Editor): TLComment[];

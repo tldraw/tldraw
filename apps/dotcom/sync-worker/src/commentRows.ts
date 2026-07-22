@@ -3,10 +3,13 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	TLComment,
 	TLCommentAnchor,
+	TLCommentReaction,
 	TLCommentThread,
+	commentReactionRecordConfig,
 	commentRecordConfig,
 	commentThreadRecordConfig,
 	isCommentId,
+	isCommentReactionId,
 	isCommentThreadId,
 } from '@tldraw/tlschema'
 import { JsonObject } from '@tldraw/utils'
@@ -57,6 +60,24 @@ export function isCommentMentionFkViolation(error: unknown): boolean {
 	)
 }
 
+/**
+ * True when `error` is Postgres rejecting a reaction upsert on one of its foreign keys (code
+ * 23503): the comment, thread, or reacting user's row is gone. Deleting any of them cascades the
+ * reaction rows away, so hitting this means a warm room still holds a reaction for something
+ * Postgres has already removed. Retrying can never succeed, so the caller prunes the record
+ * instead — the same contract as {@link isCommentAuthorFkViolation}.
+ */
+export function isCommentReactionFkViolation(error: unknown): boolean {
+	if (typeof error !== 'object' || error === null) return false
+	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
+	return (
+		code === '23503' &&
+		(constraint === 'comment_reaction_comment_id_fkey' ||
+			constraint === 'comment_reaction_thread_id_fkey' ||
+			constraint === 'comment_reaction_user_id_fkey')
+	)
+}
+
 /** One comment's desired `comment_mention` rows: the full set its body currently mentions. */
 export interface CommentMentionReconcile {
 	commentId: string
@@ -92,9 +113,25 @@ export function threadRecordToRow(
 		resolvedBy: record.resolved?.by ?? null,
 		createdBy: record.createdBy,
 		createdAt: record.createdAt,
-		// A plain object, so node-postgres JSON-encodes it for the JSONB column the same way it
-		// does `anchor` and `meta` — no manual serialization needed.
-		reactions: record.reactions as DB['comment_thread']['reactions'],
+		meta: record.meta,
+		lastChangedClock,
+	}
+}
+
+export function reactionRecordToRow(
+	record: TLCommentReaction,
+	fileId: string,
+	lastChangedClock: number
+): DB['comment_reaction'] {
+	return {
+		id: record.id,
+		fileId,
+		commentId: record.commentId,
+		threadId: record.threadId,
+		pageId: record.pageId,
+		userId: record.userId,
+		emoji: record.emoji,
+		createdAt: record.createdAt,
 		meta: record.meta,
 		lastChangedClock,
 	}
@@ -130,8 +167,6 @@ export function rowToThreadRecord(row: DB['comment_thread']): TLCommentThread {
 		createdBy: row.createdBy,
 		createdAt: Number(row.createdAt),
 		resolved: row.resolvedAt != null ? { at: Number(row.resolvedAt), by: row.resolvedBy! } : null,
-		// null column = nobody has reacted, the same state the record encodes as null
-		reactions: (row.reactions ?? null) as TLCommentThread['reactions'],
 		meta: (row.meta ?? {}) as JsonObject,
 	}
 	// The fields above are raw casts from the row; validate the finished record so a corrupt
@@ -156,13 +191,30 @@ export function rowToCommentRecord(row: DB['comment']): TLComment {
 	return commentRecordConfig.validator.validate(record) as TLComment
 }
 
+export function rowToReactionRecord(row: DB['comment_reaction']): TLCommentReaction {
+	const record: TLCommentReaction = {
+		id: row.id as TLCommentReaction['id'],
+		typeName: 'comment-reaction',
+		commentId: row.commentId as TLCommentReaction['commentId'],
+		threadId: row.threadId as TLCommentReaction['threadId'],
+		pageId: row.pageId as TLCommentReaction['pageId'],
+		userId: row.userId,
+		emoji: row.emoji,
+		createdAt: Number(row.createdAt),
+		meta: (row.meta ?? {}) as JsonObject,
+	}
+	// See rowToCommentRecord: validate the finished record so a corrupt row fails loudly.
+	return commentReactionRecordConfig.validator.validate(record) as TLCommentReaction
+}
+
 /**
  * Rebuild object-lane snapshot documents from Postgres rows, for merging into the room snapshot
  * on load.
  */
 export function rowsToSnapshotDocuments(
 	threadRows: DB['comment_thread'][],
-	commentRows: DB['comment'][]
+	commentRows: DB['comment'][],
+	reactionRows: DB['comment_reaction'][] = []
 ): RoomSnapshot['documents'] {
 	return [
 		...threadRows.map((row) => ({
@@ -171,6 +223,10 @@ export function rowsToSnapshotDocuments(
 		})),
 		...commentRows.map((row) => ({
 			state: rowToCommentRecord(row),
+			lastChangedClock: Number(row.lastChangedClock),
+		})),
+		...reactionRows.map((row) => ({
+			state: rowToReactionRecord(row),
 			lastChangedClock: Number(row.lastChangedClock),
 		})),
 	]
@@ -186,12 +242,14 @@ export interface CommentOutboxEntry {
 export interface CommentDrainPlan {
 	threadUpserts: DB['comment_thread'][]
 	commentUpserts: DB['comment'][]
+	reactionUpserts: DB['comment_reaction'][]
 	threadDeletes: string[]
 	commentDeletes: string[]
+	reactionDeletes: string[]
 	/**
-	 * Ids that are neither comment nor comment-thread ids. The outbox should only ever contain
-	 * those, so an unknown id means a bug or a corrupted outbox row; it is reported here instead
-	 * of being misfiled into an upsert/delete bucket, and the caller decides how to surface it.
+	 * Ids that are none of the comment record types. The outbox should only ever contain those, so
+	 * an unknown id means a bug or a corrupted outbox row; it is reported here instead of being
+	 * misfiled into an upsert/delete bucket, and the caller decides how to surface it.
 	 */
 	unknownIds: string[]
 }
@@ -213,8 +271,10 @@ export function planCommentDrain(
 	const plan: CommentDrainPlan = {
 		threadUpserts: [],
 		commentUpserts: [],
+		reactionUpserts: [],
 		threadDeletes: [],
 		commentDeletes: [],
+		reactionDeletes: [],
 		unknownIds: [],
 	}
 	const pendingIds = new Set(entries.map((e) => e.recordId))
@@ -227,6 +287,14 @@ export function planCommentDrain(
 				)
 			} else {
 				plan.threadDeletes.push(id)
+			}
+		} else if (isCommentReactionId(id)) {
+			if (doc) {
+				plan.reactionUpserts.push(
+					reactionRecordToRow(doc.state as TLCommentReaction, fileId, doc.lastChangedClock)
+				)
+			} else {
+				plan.reactionDeletes.push(id)
 			}
 		} else if (isCommentId(id)) {
 			if (doc) {

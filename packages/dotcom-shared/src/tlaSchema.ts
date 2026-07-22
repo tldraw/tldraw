@@ -153,10 +153,6 @@ export const comment_thread = table('comment_thread')
 		resolvedAt: number().optional(),
 		createdBy: string(),
 		createdAt: number(),
-		// the thread's TLCommentReactions, keyed by comment id then user id; absent while nobody has
-		// reacted. Client-visible rather than persistence-only so reactions travel with comments
-		// wherever they go, the same way `body` does.
-		reactions: json().optional(),
 	})
 	.primaryKey('id')
 
@@ -177,6 +173,22 @@ export const comment_read = table('comment_read')
 // body JSON, which ZQL can't reach — this table is what lets the notifications query filter
 // "comments that mention me" server-side). Server-written only, like comment/comment_thread;
 // rows are reconciled on every comment upsert and cascade away with their comment.
+// One row per (comment, reacting user) — a user has at most one reaction per comment. Written by
+// the file's Durable Object from the room's comment-reaction records, like comment/comment_thread.
+// Client-visible so reactions travel with comments wherever they go, the same way `body` does.
+export const comment_reaction = table('comment_reaction')
+	.columns({
+		id: string(),
+		fileId: string(),
+		commentId: string(),
+		threadId: string(),
+		pageId: string(),
+		userId: string(),
+		emoji: string(),
+		createdAt: number(),
+	})
+	.primaryKey('id')
+
 export const comment_mention = table('comment_mention')
 	.columns({
 		commentId: string(),
@@ -299,6 +311,12 @@ const commentRelationships = relationships(comment, ({ one, many }) => ({
 		sourceField: ['id'],
 		destField: ['commentId'],
 		destSchema: comment_mention,
+	}),
+	// every reaction to this comment, one row per reacting user
+	reactions: many({
+		sourceField: ['id'],
+		destField: ['commentId'],
+		destSchema: comment_reaction,
 	}),
 }))
 
@@ -443,6 +461,10 @@ export interface CommentPersistenceColumns {
 	meta: unknown
 	lastChangedClock: number
 }
+export interface CommentReactionPersistenceColumns {
+	meta: unknown
+	lastChangedClock: number
+}
 
 export interface DB {
 	file: TlaFile
@@ -458,6 +480,7 @@ export interface DB {
 	comment_thread: TlaCommentThread & CommentThreadPersistenceColumns
 	comment_read: TlaCommentRead
 	comment_mention: TlaCommentMention
+	comment_reaction: TlaCommentReaction & CommentReactionPersistenceColumns
 }
 
 export const schema = createSchema({
@@ -472,6 +495,7 @@ export const schema = createSchema({
 		comment_thread,
 		comment_read,
 		comment_mention,
+		comment_reaction,
 	],
 	relationships: [
 		fileRelationships,
@@ -495,6 +519,7 @@ export type TlaComment = Row<typeof schema.tables.comment>
 export type TlaCommentThread = Row<typeof schema.tables.comment_thread>
 export type TlaCommentRead = Row<typeof schema.tables.comment_read>
 export type TlaCommentMention = Row<typeof schema.tables.comment_mention>
+export type TlaCommentReaction = Row<typeof schema.tables.comment_reaction>
 
 // Permissions are now handled via Synced Queries in queries.ts
 

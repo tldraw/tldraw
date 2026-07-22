@@ -3,6 +3,7 @@ import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
 	TlaComment,
 	TlaCommentMention,
+	TlaCommentReaction,
 	TlaCommentRead,
 	TlaCommentThread,
 	TlaFile,
@@ -139,6 +140,9 @@ export interface ZStoreData {
 	// Same as comment: never populated by the legacy polyfill store, present only for the
 	// generic CRUD types.
 	comment_mention?: TlaCommentMention[]
+	// Same as comment: never populated by the legacy polyfill store, present only for the
+	// generic CRUD types.
+	comment_reaction?: TlaCommentReaction[]
 	lsn: string
 }
 
@@ -167,6 +171,7 @@ export type ZTable =
 	| 'comment_thread'
 	| 'comment_read'
 	| 'comment_mention'
+	| 'comment_reaction'
 
 export type ZEvent = 'insert' | 'update' | 'delete'
 
