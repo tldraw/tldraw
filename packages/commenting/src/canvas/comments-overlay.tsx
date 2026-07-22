@@ -50,7 +50,6 @@ import { isMentionPickerOpen } from '../ui/mention-suggestion'
 import { TooltipButton } from '../ui/tooltip-button'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
-import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import {
 	clearCommentDraft,
 	getCommentDraft,
@@ -58,6 +57,7 @@ import {
 	replyDraftSlot,
 	saveCommentDraft,
 } from './comment-drafts'
+import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import {
 	getCommentReactions,
