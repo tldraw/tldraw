@@ -6,6 +6,7 @@
 
 import { Avatar } from '@tldraw/mentions';
 import { AvatarProps } from '@tldraw/mentions';
+import { CommentAuthor } from '@tldraw/mentions';
 import { ComponentType } from 'react';
 import { createMentionSuggestion } from '@tldraw/mentions';
 import { Editor } from 'tldraw';
@@ -51,7 +52,7 @@ export function Byline({ author, date, edited }: BylineProps): JSX.Element;
 // @public (undocumented)
 export interface BylineProps {
     // (undocumented)
-    author: string;
+    author: CommentAuthor;
     date: string;
     edited?: boolean;
 }
@@ -72,7 +73,7 @@ export interface CanvasCommentsProps {
     onPostComment?(comment: TLComment): void;
     regionOptions?: Partial<RegionCommentOptions>;
     renderMentionSuggestion?(member: MentionMember): ReactNode;
-    resolveName(id: string): string | undefined;
+    resolveAuthor(id: string): CommentAuthor | undefined;
 }
 
 // @public
@@ -88,8 +89,7 @@ export interface CanvasCommentsSidebarProps {
         y: number;
     };
     isCommentUnread?(commentId: TLCommentId): boolean;
-    resolveName(id: string): string | undefined;
-    tools?: string[];
+    resolveAuthor(id: string): CommentAuthor | undefined;
 }
 
 // @public
@@ -137,6 +137,8 @@ export function collectClusterLeaves(editor: Editor, threads: readonly TLComment
     y: number;
 }): LeafInput[];
 
+export { CommentAuthor }
+
 // @public
 export function CommentBody({ richText, resolveName }: CommentBodyProps): JSX.Element;
 
@@ -154,7 +156,7 @@ export function CommentCard({ author, body, date, you, edited, actions }: Commen
 export interface CommentCardProps {
     actions?: ReactNode;
     // (undocumented)
-    author: string;
+    author: CommentAuthor;
     body: ReactNode;
     date: string;
     edited?: boolean;
@@ -168,7 +170,7 @@ export function CommentComposer({ author, placeholder, value, onChange, onSubmit
 // @public (undocumented)
 export interface CommentComposerProps {
     // (undocumented)
-    author: string;
+    author: CommentAuthor;
     // (undocumented)
     autoFocus?: boolean;
     // (undocumented)
@@ -217,7 +219,7 @@ export interface CommentingOptions {
 // @public (undocumented)
 export interface CommentListItemProps {
     // (undocumented)
-    author: string;
+    author: CommentAuthor;
     count?: number;
     date: string;
     // (undocumented)
@@ -230,11 +232,12 @@ export interface CommentListItemProps {
 }
 
 // @public
-export function CommentPin({ children, resolved, open }: CommentPinProps): JSX.Element;
+export function CommentPin({ children, resolved, open, color }: CommentPinProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentPinProps {
     children?: ReactNode;
+    color?: string;
     open?: boolean;
     // (undocumented)
     resolved?: boolean;
@@ -274,6 +277,12 @@ export function CommentsMenuItem(): JSX.Element;
 export function CommentsOverflowMenu(): JSX.Element;
 
 // @public
+export const commentsSidebarOpen: EditorAtom<boolean>;
+
+// @public
+export function CommentsVisibilityToggle(): JSX.Element;
+
+// @public
 export function CommentText({ text }: CommentTextProps): JSX.Element;
 
 // @public (undocumented)
@@ -309,6 +318,8 @@ export class CommentTool extends StateNode {
     onCancel(): void;
     // (undocumented)
     onEnter(): void;
+    // (undocumented)
+    onExit(): void;
     options: CommentingOptions;
 }
 
@@ -347,7 +358,7 @@ export const DEFAULT_IMPRECISE_SHAPE_ANCHOR: {
 // @public
 export const DEFAULT_REGION_COMMENT_OPTIONS: RegionCommentOptions;
 
-// @public (undocumented)
+// @public
 export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters;
 
 // @public
@@ -458,6 +469,11 @@ export interface ReactionProps {
 export function Reactions(): JSX.Element;
 
 // @public
+export function regionAnchorPinCorner(editor: Editor, anchor: Extract<TLCommentAnchor, {
+    type: 'region';
+}>): VecLike;
+
+// @public
 export interface RegionCommentOptions {
     enabled: boolean;
     move: 'body' | 'both' | 'pin';
@@ -512,6 +528,9 @@ export type TLCommentRecord = TLComment | TLCommentThread;
 export function toggleCommentsHidden(editor: Editor): void;
 
 // @public
+export function toggleCommentsSidebar(editor: Editor): void;
+
+// @public
 export function useCommentingEnabled(): boolean;
 
 // @public
@@ -522,6 +541,9 @@ export function useComments(editor: Editor): TLComment[];
 
 // @public
 export function useCommentsHidden(): boolean;
+
+// @public
+export function useCommentsSidebarOpen(): boolean;
 
 // @public
 export function useCommentThreads(editor: Editor): TLCommentThread[];

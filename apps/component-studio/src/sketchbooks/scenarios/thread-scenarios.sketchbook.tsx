@@ -36,7 +36,7 @@ const dismissOnly = (
 
 const oneComment = [
 	{
-		author: 'Jessica Edwards',
+		author: { name: 'Jessica Edwards' },
 		body: <CommentText text="my *cool* comment" />,
 		date: ago(2 * HOUR),
 		you: true,
@@ -45,7 +45,7 @@ const oneComment = [
 
 const manyComments = [
 	{
-		author: 'Ada Lovelace',
+		author: { name: 'Ada Lovelace' },
 		body: (
 			<CommentText text="Should this button be **primary**? See [the spec](https://tldraw.dev)." />
 		),
@@ -53,7 +53,7 @@ const manyComments = [
 		you: false,
 	},
 	{
-		author: 'You',
+		author: { name: 'You' },
 		body: (
 			<CommentText text="Good call — updating it now:\n\n- swap the `variant` prop\n- ship it" />
 		),
@@ -61,7 +61,7 @@ const manyComments = [
 		you: true,
 	},
 	{
-		author: 'Ada Lovelace',
+		author: { name: 'Ada Lovelace' },
 		body: <CommentText text="Thanks! One more thing — can we bump the radius too?" />,
 		date: ago(HOUR),
 		you: false,
@@ -83,7 +83,7 @@ function OverlapScene() {
 					header="Thread"
 					headerActions={threadActions}
 					comments={oneComment}
-					composer={{ author: 'You', placeholder: 'Reply…' }}
+					composer={{ author: { name: 'You' }, placeholder: 'Reply…' }}
 				/>
 			</div>
 			<div className="scenario__pin" style={{ top: 96, left: 330 }}>
@@ -117,7 +117,7 @@ function CrowdedScene() {
 					header="Thread"
 					headerActions={threadActions}
 					comments={oneComment}
-					composer={{ author: 'You', placeholder: 'Reply…' }}
+					composer={{ author: { name: 'You' }, placeholder: 'Reply…' }}
 				/>
 			</div>
 			<div className="scenario__pin" style={{ top: 252, left: 40 }}>
@@ -152,7 +152,7 @@ export const LongThread: Sketch<Record<string, never>> = {
 			header="Thread"
 			headerActions={threadActions}
 			comments={manyComments}
-			composer={{ author: 'You', placeholder: 'Reply…' }}
+			composer={{ author: { name: 'You' }, placeholder: 'Reply…' }}
 		/>
 	),
 }
@@ -171,7 +171,7 @@ export const Resolved: Sketch<Record<string, never>> = {
 
 const longBody = [
 	{
-		author: 'Ada Lovelace',
+		author: { name: 'Ada Lovelace' },
 		body: (
 			<CommentText text="I've been staring at this for a while and I think the whole hierarchy is off: the primary action competes with the secondary one, the spacing between the label and the control is inconsistent with the rest of the panel, and on smaller viewports the whole thing wraps in a way that pushes the send button below the fold. Can we take a pass at the tokens before we ship?" />
 		),
@@ -187,7 +187,7 @@ export const LongBody: Sketch<Record<string, never>> = {
 			header="Thread"
 			headerActions={threadActions}
 			comments={longBody}
-			composer={{ author: 'You', placeholder: 'Reply…' }}
+			composer={{ author: { name: 'You' }, placeholder: 'Reply…' }}
 		/>
 	),
 }

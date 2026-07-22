@@ -5,6 +5,7 @@
 ```ts
 
 import { Editor } from 'tldraw';
+import { JsonObject } from 'tldraw';
 import { JSX } from 'react/jsx-runtime';
 import { MentionNodeAttrs } from '@tiptap/extension-mention';
 import { MentionOptions } from '@tiptap/extension-mention';
@@ -13,12 +14,19 @@ import { ReactNode } from 'react';
 import type { SuggestionOptions } from '@tiptap/suggestion';
 
 // @public
-export function Avatar({ name, color, image }: AvatarProps): JSX.Element;
+export function Avatar({ author }: AvatarProps): JSX.Element;
 
 // @public (undocumented)
 export interface AvatarProps {
+    // (undocumented)
+    author: CommentAuthor;
+}
+
+// @public
+export interface CommentAuthor {
     color?: string;
     image?: string;
+    meta?: JsonObject;
     // (undocumented)
     name: string;
 }
@@ -57,14 +65,10 @@ export interface MentionListProps {
 }
 
 // @public
-export interface MentionMember {
+export interface MentionMember extends CommentAuthor {
     [key: string]: unknown;
-    avatar?: string;
-    color?: string;
     // (undocumented)
     id: string;
-    // (undocumented)
-    name: string;
     secondary?: string;
     you?: boolean;
 }

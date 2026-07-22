@@ -15,7 +15,7 @@ export default sketchbook
 export const FromThem: Sketch<Record<string, never>> = {
 	render: () => (
 		<CommentCard
-			author="Ada Lovelace"
+			author={{ name: 'Ada Lovelace' }}
 			body={<CommentText text="Should this button be primary?" />}
 			date={ago(2 * HOUR)}
 			you={false}
@@ -26,7 +26,7 @@ export const FromThem: Sketch<Record<string, never>> = {
 export const FromYou: Sketch<Record<string, never>> = {
 	render: () => (
 		<CommentCard
-			author="You"
+			author={{ name: 'You' }}
 			body={<CommentText text="Good call — updating it now." />}
 			date={ago(HOUR)}
 			you={true}

@@ -108,6 +108,10 @@ export function commentRecordToRow(
 		threadId: record.threadId,
 		pageId: record.pageId,
 		authorId: record.authorId,
+		// placeholders — a Postgres trigger stamps the real values on insert (migration 040)
+		authorName: '',
+		authorColor: '',
+		authorAvatar: '',
 		// TLRichText's content is unknown[], not structurally a zero ReadonlyJSONValue
 		body: record.body as DB['comment']['body'],
 		createdAt: record.createdAt,

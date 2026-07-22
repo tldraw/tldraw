@@ -16,12 +16,18 @@ const sketchbook: Sketchbook<BylineProps> = {
 }
 export default sketchbook
 
-export const JustNow: Sketch<BylineProps> = { args: { author: 'Ada Lovelace', date: ago(15_000) } }
+export const JustNow: Sketch<BylineProps> = {
+	args: { author: { name: 'Ada Lovelace' }, date: ago(15_000) },
+}
 export const MinutesAgo: Sketch<BylineProps> = {
-	args: { author: 'Ada Lovelace', date: ago(8 * MIN) },
+	args: { author: { name: 'Ada Lovelace' }, date: ago(8 * MIN) },
 }
-export const HourAgo: Sketch<BylineProps> = { args: { author: 'Ada Lovelace', date: ago(HOUR) } }
+export const HourAgo: Sketch<BylineProps> = {
+	args: { author: { name: 'Ada Lovelace' }, date: ago(HOUR) },
+}
 export const Yesterday: Sketch<BylineProps> = {
-	args: { author: 'Ada Lovelace', date: ago(DAY + 2 * HOUR) },
+	args: { author: { name: 'Ada Lovelace' }, date: ago(DAY + 2 * HOUR) },
 }
-export const LastWeek: Sketch<BylineProps> = { args: { author: 'Ada Lovelace', date: ago(WEEK) } }
+export const LastWeek: Sketch<BylineProps> = {
+	args: { author: { name: 'Ada Lovelace' }, date: ago(WEEK) },
+}

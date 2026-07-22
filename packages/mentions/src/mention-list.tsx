@@ -1,15 +1,12 @@
 import { ReactNode } from 'react'
 import { useTranslation } from 'tldraw'
 import { Avatar } from './avatar'
+import { CommentAuthor } from './comment-author'
 
-/** A person the composer's \@-mention picker can offer. @public */
-export interface MentionMember {
+/** A person the composer's \@-mention picker can offer: a {@link CommentAuthor} plus its id and
+ * picker-only display fields. @public */
+export interface MentionMember extends CommentAuthor {
 	id: string
-	name: string
-	/** Avatar image URL. Falls back to a coloured initial when omitted. */
-	avatar?: string
-	/** Avatar background colour, used when there's no `avatar` image. */
-	color?: string
 	/** A secondary line under the name — e.g. an email or handle. Omit for a single-line row. */
 	secondary?: string
 	/** Marks the current user; shown as a "(You)" suffix after the name. */
@@ -37,7 +34,7 @@ function DefaultMemberRow({ member }: { member: MentionMember }) {
 	const msg = useTranslation()
 	return (
 		<>
-			<Avatar name={member.name} color={member.color} image={member.avatar} />
+			<Avatar author={member} />
 			<span className="tlui-cmt-mention-list__text">
 				<span className="tlui-cmt-mention-list__name">
 					{member.name}

@@ -1,4 +1,9 @@
 import {
+	toggleCommentsSidebar,
+	useCommentingEnabled,
+	useCommentsSidebarOpen,
+} from '@tldraw/commenting'
+import {
 	PUBLISH_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,
@@ -31,6 +36,10 @@ const ctaMessages = defineMessages({
 	signInToShare: { defaultMessage: 'Sign in to share' },
 })
 
+const commentsMessages = defineMessages({
+	comments: { defaultMessage: 'Comments' },
+})
+
 export function TlaEditorTopRightPanel({
 	isAnonUser,
 	context,
@@ -49,6 +58,7 @@ export function TlaEditorTopRightPanel({
 		return (
 			<div ref={ref} className={styles.topRightPanel}>
 				<PeopleMenu />
+				<CommentsSidebarButton />
 				<SignedOutShareButton fileId={fileId} context={context} />
 				<TlaCtaButton
 					canvas
@@ -70,6 +80,7 @@ export function TlaEditorTopRightPanel({
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
 			<PeopleMenu />
+			<CommentsSidebarButton />
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
 				<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
@@ -83,6 +94,33 @@ export function TlaEditorTopRightPanel({
 				</TlaFileShareMenu>
 			)}
 		</div>
+	)
+}
+
+/**
+ * Toggles the comments sidebar (the thread list) open and closed. Lives next to Share as an opt-in
+ * entry point, decoupled from the comment tool: the tool places comments on the canvas, this button
+ * reveals the list. Hidden entirely when commenting isn't licensed for this editor.
+ */
+function CommentsSidebarButton() {
+	const editor = useEditor()
+	const commentingEnabled = useCommentingEnabled()
+	const open = useCommentsSidebarOpen()
+	const label = useMsg(commentsMessages.comments)
+
+	if (!commentingEnabled) return null
+
+	return (
+		<TldrawUiButton
+			type="icon"
+			data-testid="tla-comments-button"
+			aria-pressed={open}
+			tooltip={label}
+			title={label}
+			onClick={() => toggleCommentsSidebar(editor)}
+		>
+			<TlaIcon icon="comment" />
+		</TldrawUiButton>
 	)
 }
 

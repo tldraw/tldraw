@@ -3,6 +3,7 @@ import { registerTldrawLibraryVersion } from '@tldraw/utils'
 // Presentational mention components. These are tldraw-independent and can be used to build custom
 // mention UI.
 export { Avatar, type AvatarProps } from './avatar'
+export { type CommentAuthor } from './comment-author'
 export { Mention, type MentionProps } from './mention'
 export { MentionList, type MentionListProps, type MentionMember } from './mention-list'
 

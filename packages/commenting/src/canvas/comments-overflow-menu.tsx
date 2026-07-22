@@ -4,10 +4,12 @@ import {
 	TldrawUiDropdownMenuItem,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiIcon,
 	useEditor,
 	useTranslation,
 	useValue,
 } from 'tldraw'
+import { TooltipButton } from '../ui/tooltip-button'
 import { commentsHidden, toggleCommentsHidden } from './state'
 
 // A keyboard-shortcut glyph, not translatable copy — kept out of JSX as a constant.
@@ -24,16 +26,16 @@ export function CommentsOverflowMenu() {
 	return (
 		<TldrawUiDropdownMenuRoot id="comments-overflow">
 			<TldrawUiDropdownMenuTrigger>
-				<button
-					type="button"
-					className="tlui-cmt-header-btn"
-					title={msg('comments.more-options')}
-					aria-label={msg('comments.more-options')}
-				>
-					<MoreIcon />
-				</button>
+				<TooltipButton tooltip={msg('comments.more-options')} className="tlui-cmt-header-btn">
+					<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+				</TooltipButton>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent side="bottom" align="end">
+			<TldrawUiDropdownMenuContent
+				className="tlui-cmt-menu"
+				side="bottom"
+				align="end"
+				alignOffset={0}
+			>
 				<TldrawUiDropdownMenuGroup>
 					<TldrawUiDropdownMenuItem>
 						<button
@@ -48,15 +50,5 @@ export function CommentsOverflowMenu() {
 				</TldrawUiDropdownMenuGroup>
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
-	)
-}
-
-function MoreIcon() {
-	return (
-		<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-			<circle cx="3" cy="8" r="1.4" />
-			<circle cx="8" cy="8" r="1.4" />
-			<circle cx="13" cy="8" r="1.4" />
-		</svg>
 	)
 }

@@ -8,6 +8,15 @@ import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { TLStatsDurableObject } from './TLStatsDurableObject'
 import type { TLUserDurableObject } from './TLUserDurableObject'
 
+// The Browser Rendering binding's Quick Actions method. Cloudflare exposes `env.BROWSER.quickAction`
+// so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
+// binding — no API token, no @cloudflare/puppeteer. Requires compatibility_date >= 2026-03-24. Not
+// in @cloudflare/workers-types yet, so the small surface we use is declared here; it resolves to a
+// standard `Response` (PNG bytes for `screenshot`, with an `X-Browser-Ms-Used` header).
+export interface BrowserBinding {
+	quickAction(action: 'screenshot', options: unknown): Promise<Response>
+}
+
 // This type isn't available in @cloudflare/workers-types yet
 export interface Analytics {
 	writeDataPoint(data: {
@@ -78,8 +87,39 @@ export interface Environment {
 	PIERRE_KEY: string | undefined
 
 	RATE_LIMITER: RateLimit
+	// Rate limit bindings for the Browser Run-backed MCP screenshot tool, declared in
+	// wrangler.toml. MCP_SCREENSHOT_RATE_LIMITER guards per-IP and per-board request rates;
+	// MCP_SCREENSHOT_BROWSER_RATE_LIMITER caps total Browser Run invocations across all callers.
+	// The route falls back to an isolate-local guard when the bindings are absent (local dev,
+	// tests).
+	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
+	MCP_SCREENSHOT_BROWSER_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
+
+	// R2 cache for generated thumbnails, keyed on board identity, published version, and theme.
+	// Optional so tests and unconfigured environments degrade to cacheless rendering.
+	THUMBNAILS: R2Bucket | undefined
+
+	// Cloudflare Browser Rendering binding. The worker takes thumbnails by calling the binding's
+	// `quickAction` Quick Actions method (e.g. `screenshot`) directly — no @cloudflare/puppeteer and
+	// no API token. Chrome runs in Cloudflare's fleet, not in this isolate. The dev binding is
+	// deliberately NOT marked `remote` (that would make plain `wrangler dev` require a
+	// CLOUDFLARE_API_TOKEN, breaking the credential-free e2e stack), so under `wrangler dev` it is a
+	// non-functional local binding and the render path fails closed; real local captures need
+	// `wrangler dev --remote` with credentials or a preview deploy. Undefined in tests.
+	BROWSER: BrowserBinding | undefined
+	// Kill switch for the MCP screenshot server (POST /app/mcp). Absent means enabled, so an
+	// environment that never configured it behaves as it did before the flag existed. Anything other
+	// than 'true' turns the endpoint off, so a typo fails in the safe direction. Editing this var in
+	// the Cloudflare dashboard takes the server down without a rebuild or a code deploy — but the
+	// next deploy restores the wrangler.toml value, so follow an emergency flip with a config change.
+	MCP_SCREENSHOT_ENABLED: string | undefined
+	// Origin serving the client thumbnail render page (THUMBNAIL_RENDER_PATH). Set per
+	// environment in wrangler.toml.
+	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
+	// HMAC secret for short-lived thumbnail render job tokens.
+	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 }
 
 export function isDebugLogging(env: Environment) {
@@ -179,9 +219,26 @@ export type TLUserDurableObjectEvent =
 	| { type: 'reboot_duration'; id: string; duration: number }
 	| { type: 'cold_start_time'; id: string; duration: number }
 
-export interface QueueMessage {
+export interface AssetUploadQueueMessage {
 	type: 'asset-upload'
 	objectName: string
 	fileId: string
 	userId: string | null
 }
+
+// Asks the queue consumer to render a board's OG image through Browser Run and refresh the R2
+// cache read by GET /app/social-preview/:prefix/:slug/image. Board state (share gate, content
+// version) is deliberately not carried in the message; the consumer re-resolves it at render time.
+export interface OgImageRenderQueueMessage {
+	type: 'og-image-render'
+	kind: 'published' | 'shared_file'
+	slug: string
+	// How many times this job has been re-enqueued because the shared global Browser Run cap was busy
+	// (see requeueForRateLimit). Bounds the rate-limit backoff loop: each rate-limited delivery still
+	// spends one slot of the shared limiter just to discover it can't render, so an unbounded requeue
+	// chain would let the OG queue's own capacity checks saturate the limiter and starve every render
+	// surface. Absent on the initial enqueue.
+	rateLimitRequeues?: number
+}
+
+export type QueueMessage = AssetUploadQueueMessage | OgImageRenderQueueMessage

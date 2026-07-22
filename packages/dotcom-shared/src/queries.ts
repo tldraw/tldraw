@@ -107,7 +107,6 @@ export const queries = defineQueries({
 					)
 				)
 			)
-			.related('author', (author) => author.one())
 			.related('file', (file) => file.one())
 			.related('thread', (thread) => thread.one())
 			// the caller's read receipt (at most one row: PK is (userId, commentId) and we filter
@@ -129,7 +128,6 @@ export const queries = defineQueries({
 			.whereExists('file', (file) =>
 				file.whereExists('states', (s) => s.where('userId', '=', ctx.userId))
 			)
-			.related('author', (author) => author.one())
 			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
 	),
 })

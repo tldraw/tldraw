@@ -1,5 +1,6 @@
 main = "src/worker.ts"
-compatibility_date = "2025-06-05"
+# 2026-03-24 is the minimum for the Browser Rendering `env.BROWSER.quickAction` binding method.
+compatibility_date = "2026-03-24"
 workers_dev = true
 compatibility_flags = ["nodejs_compat"]
 
@@ -12,7 +13,7 @@ ip = "0.0.0.0"
 # IMPORTANT: when adding a new migration here, also add it to the [[env.preview.migrations]] block below
 # env-level migrations fully replace the top-level list, so preview won't inherit new entries.
 [[migrations]]
-tag = "v1"                            # Should be unique for each entry
+tag = "v1" # Should be unique for each entry
 new_classes = ["TLDrawDurableObject"]
 
 [[migrations]]
@@ -95,34 +96,51 @@ binding = "MEASURE"
 # dev should never actually get deployed anywhere
 [env.dev]
 name = "dev-tldraw-multiplayer"
+# The top-level compatibility_date (2026-03-24, required for the Browser Rendering `quickAction`
+# binding on deployed environments) is newer than the workerd bundled with our pinned wrangler, so
+# `wrangler dev` — and the process-compose e2e stack that runs it — would refuse to start. Local dev
+# doesn't drive real Browser Run (the `quickAction` binding is remote-only), so pin dev to a date the
+# local workerd supports. Bump this once the pinned wrangler ships a workerd that supports 2026-03-24.
+compatibility_date = "2025-06-05"
 
 [env.dev.vars]
 BOTCOM_POSTGRES_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6543/postgres"
 BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1:6432/postgres"
 TLDRAW_ENV = "development"
 MULTIPLAYER_SERVER = "http://localhost:3000"
+MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
+# Kill switch for the MCP screenshot server (POST /app/mcp). Read per request, so setting it to
+# anything but "true" — here or straight in the Cloudflare dashboard — takes the endpoint down
+# without a rebuild. A dashboard edit lasts until the next deploy overwrites it from this file.
+MCP_SCREENSHOT_ENABLED = "true"
+# local-only signing secret; deployments get a real one via deploy vars
+MCP_SCREENSHOT_TOKEN_SECRET = "local-dev-thumbnail-render-secret"
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
 
 # staging is the same as a preview on main:
 [env.staging]
 name = "main-tldraw-multiplayer"
-workers_dev = true               # todo: remove this once clients are updated
+workers_dev = true # todo: remove this once clients are updated
 
 [env.staging.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
+MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
+MCP_SCREENSHOT_ENABLED = "true"
 
 # production gets the proper name
 [env.production]
 name = "tldraw-multiplayer"
-workers_dev = true          # todo: remove this once clients are updated
+workers_dev = true # todo: remove this once clients are updated
 
 [env.production.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
+MCP_SCREENSHOT_RENDER_ORIGIN = "https://www.tldraw.com"
+MCP_SCREENSHOT_ENABLED = "true"
 
 #################### Routing ####################
 # no custom routes for previews and development
@@ -308,6 +326,48 @@ bucket_name = 'user-do-snapshots-staging'
 binding = "USER_DO_SNAPSHOTS"
 bucket_name = "user-do-snapshots"
 
+#################### Thumbnails R2 bucket ####################
+# cache for Browser Run-generated board thumbnails (MCP screenshots)
+# in dev, we write to the preview bucket and need a `preview_bucket_name`
+[[env.dev.r2_buckets]]
+binding = "THUMBNAILS"
+bucket_name = "thumbnails-preview"
+preview_bucket_name = "thumbnails-preview"
+
+# in preview and staging we write to the preview bucket
+[[env.preview.r2_buckets]]
+binding = "THUMBNAILS"
+bucket_name = "thumbnails-preview"
+
+[[env.staging.r2_buckets]]
+binding = "THUMBNAILS"
+bucket_name = "thumbnails-preview"
+
+# in production, we write to the main bucket
+[[env.production.r2_buckets]]
+binding = "THUMBNAILS"
+bucket_name = "thumbnails"
+
+#################### Browser Rendering binding ####################
+# Drives the thumbnail render page through a Cloudflare-hosted headless browser (see
+# sharedBoardScreenshotMcp.ts). Chrome runs in Cloudflare's Browser Rendering fleet, not in this
+# worker's isolate. The dev binding is intentionally NOT marked `remote`: a remote binding makes
+# `wrangler dev` require a CLOUDFLARE_API_TOKEN, which the credential-free process-compose e2e stack
+# does not have, so it would fail to boot. Local dev therefore gets a non-functional local BROWSER
+# binding (the render path fails closed); to exercise real Browser Run locally, run `wrangler dev
+# --remote` with Cloudflare credentials, or use a preview deploy.
+[env.dev.browser]
+binding = "BROWSER"
+
+[env.preview.browser]
+binding = "BROWSER"
+
+[env.staging.browser]
+binding = "BROWSER"
+
+[env.production.browser]
+binding = "BROWSER"
+
 #################### Room snapshots parent slug KV store ####################
 [[env.dev.kv_namespaces]]
 binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"
@@ -417,6 +477,56 @@ name = "RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1004"
 simple = { limit = 600, period = 60 }
+
+# MCP screenshot per-IP and per-board request guard
+[[env.dev.unsafe.bindings]]
+name = "MCP_SCREENSHOT_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1005"
+simple = { limit = 2, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SCREENSHOT_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1006"
+simple = { limit = 2, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SCREENSHOT_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1007"
+simple = { limit = 2, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SCREENSHOT_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1008"
+simple = { limit = 2, period = 60 }
+
+# global cap on Browser Run invocations from MCP screenshots (keyed on a single shared key)
+[[env.dev.unsafe.bindings]]
+name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1009"
+simple = { limit = 6, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1010"
+simple = { limit = 6, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1011"
+simple = { limit = 6, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1012"
+simple = { limit = 6, period = 60 }
 
 #################### Queues ####################
 [[env.dev.queues.producers]]
