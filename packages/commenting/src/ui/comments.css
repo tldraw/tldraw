@@ -152,6 +152,9 @@
 }
 .tlui-cmt-composer__field--expanded .tlui-cmt-composer__input-wrap {
 	flex-basis: 100%;
+	/* The field pads 12px left but only 3px right (the send button's inset). With the input
+	   spanning the full width, give the text the same 12px on the right. */
+	padding-right: 9px;
 }
 .tlui-cmt-composer__field--expanded .tlui-cmt-send {
 	margin-left: auto;
