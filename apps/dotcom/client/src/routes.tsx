@@ -1,4 +1,5 @@
 import { captureException } from '@sentry/react'
+import { THUMBNAIL_RENDER_PATH } from '@tldraw/dotcom-shared'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
@@ -74,7 +75,16 @@ export function createAppRouter({
 			}}
 		>
 			{includeDevRoutes && (
-				<Route path="/dev/reset-local-state" lazy={() => import('./pages/dev-reset-local-state')} />
+				<>
+					<Route
+						path="/dev/reset-local-state"
+						lazy={() => import('./pages/dev-reset-local-state')}
+					/>
+					<Route
+						path="/dev/browser-run-thumbnail"
+						lazy={() => import('./pages/dev-browser-run-thumbnail')}
+					/>
+				</>
 			)}
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 				<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
@@ -137,6 +147,8 @@ export function createAppRouter({
 				</Route>
 			</Route>
 			<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />
+			{/* Renders a board for Browser Run thumbnail capture from a signed render token */}
+			<Route path={THUMBNAIL_RENDER_PATH} lazy={() => import('./pages/thumbnail-render')} />
 			<Route path="*" lazy={() => import('./pages/not-found')} />
 		</Route>
 	)

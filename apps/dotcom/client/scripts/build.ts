@@ -67,11 +67,12 @@ const SOCIAL_PREVIEW_PREFIXES = [
 	READ_ONLY_LEGACY_PREFIX,
 ]
 
+const userAgent = `.*(?:${SOCIAL_CRAWLER_USER_AGENTS.join('|')}).*`
+
 function socialPreviewRoute(multiplayerServerUrl: string) {
 	// Vercel matches `has.value` as `^value$`, so a bare `a|b|c` join anchors the first token to the
 	// start of the user-agent and the last token to the end. Wrap the alternation so every token is
 	// a substring match.
-	const userAgent = `.*(?:${SOCIAL_CRAWLER_USER_AGENTS.join('|')}).*`
 	return {
 		src: `^/(${SOCIAL_PREVIEW_PREFIXES.join('|')})/([^/]+)/?$`,
 		has: [{ type: 'header' as const, key: 'user-agent', value: userAgent }],
