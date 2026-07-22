@@ -571,6 +571,14 @@
 	display: none;
 }
 
+/* The sidebar's rows use the same small colour dot as the thread view. */
+.tlui-cmt-list .tlui-cmt-avatar {
+	width: 14px;
+	height: 14px;
+	font-size: 0;
+	margin-top: 2px;
+}
+
 /* inside the panel, comments are plain content — no surrounding box; the composer's field carries
    its own surface. */
 .tlui-cmt-thread .tlui-cmt-card {
