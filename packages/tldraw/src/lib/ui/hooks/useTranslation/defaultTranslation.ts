@@ -531,6 +531,8 @@ export const DEFAULT_TRANSLATION = {
 	'comments.resolve': 'Resolve',
 	'comments.reopen': 'Reopen',
 	'comments.delete': 'Delete thread',
+	'comments.edit-comment': 'Edit comment',
+	'comments.delete-comment': 'Delete comment',
 	'comments.dismiss': 'Dismiss',
 	'comments.send': 'Send',
 	'comments.resolved-by': 'Resolved by {name}',
