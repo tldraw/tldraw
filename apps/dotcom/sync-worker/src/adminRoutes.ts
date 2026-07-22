@@ -188,10 +188,9 @@ export const adminRoutes = createRouter<Environment>()
 			}
 		)
 	})
-	// Read-only asset health report for a file: does each asset record in the persisted snapshot
-	// still have its object in the uploads bucket, and is it associated with this file? Explains
-	// files stuck in a zero-progress association loop (repeated "R2 connection queue depth" alerts
-	// with an unchanging count), e.g. duplicates of a hard-deleted file whose objects were purged.
+	// Read-only asset health report for a file: is each asset's object still in the uploads
+	// bucket, and is it associated with the file? Explains files stuck in a zero-progress
+	// association loop.
 	.get('/app/admin/file-assets/:slug', async (res, env) => {
 		const slug = res.params.slug
 		assert(typeof slug === 'string', 'slug is required')
@@ -208,9 +207,7 @@ export const adminRoutes = createRouter<Environment>()
 			throw new StatusError(404, `No persisted snapshot for ${slug}`)
 		}
 
-		// Walk asset records, mirroring how the association pass parses them
-		// (TLFileDurableObject.associatePendingAssets): objectName is the last path segment of the
-		// src, meta.fileId marks association.
+		// Mirrors how the association pass parses asset records (see associatePendingAssets)
 		const userContentUrl = env.USER_CONTENT_URL
 		const assets: Array<{
 			assetId: string
@@ -245,9 +242,8 @@ export const adminRoutes = createRouter<Environment>()
 			})
 		}
 
-		// Head every referenced object with bounded concurrency so we stay well inside the worker's
-		// simultaneous connection budget. One retry per object; a persistent failure is reported as
-		// a warning rather than failing the whole report.
+		// Bounded concurrency keeps us inside the worker's connection budget; persistent head
+		// failures become warnings rather than failing the report
 		const warnings: string[] = []
 		const headQueue = new PQueue({ concurrency: 5 })
 		await headQueue.addAll(
@@ -263,10 +259,8 @@ export const adminRoutes = createRouter<Environment>()
 			})
 		)
 
-		// Cross-check the asset table in both directions: which fileId the DB thinks owns each
-		// referenced object (objectName is the table's primary key), and rows claimed by this file
-		// whose objects the snapshot no longer references (leftover copies from passes that died
-		// before repointing records).
+		// Cross-check the asset table both ways: which fileId the DB thinks owns each referenced
+		// object, and rows claimed by this file whose objects the snapshot no longer references
 		const referencedSet = new Set(assets.map((a) => a.objectName))
 		const [dbRowsForReferenced, rowsForThisFile] = await Promise.all([
 			referencedSet.size > 0
@@ -281,9 +275,8 @@ export const adminRoutes = createRouter<Environment>()
 		const dbFileIdByObjectName = new Map(dbRowsForReferenced.map((r) => [r.objectName, r.fileId]))
 		const orphaned = rowsForThisFile.filter((row) => !referencedSet.has(row.objectName)).length
 
-		// Existence semantics mirror loadCreateSourceData: would seeding from this source find
-		// content? Readonly and snapshot prefixes need slug translation to check, so they report
-		// null (not checked) rather than a misleading false.
+		// Mirrors loadCreateSourceData. Readonly and snapshot prefixes need slug translation to
+		// check, so they report null (not checked) rather than a misleading false.
 		let source: { raw: string; exists: boolean | null } | null = null
 		if (file?.createSource) {
 			const raw = file.createSource

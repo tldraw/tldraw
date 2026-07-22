@@ -806,9 +806,8 @@ function AssetDiagnostics() {
 		<div className={styles.fileOperation}>
 			<h4 className="tla-text_ui__medium">Asset diagnostics</h4>
 			<p className="tla-text_ui__regular">
-				Checks every asset in a file&apos;s last persisted snapshot: is its object still in the
-				uploads bucket, and is it associated with the file? Reads the persisted snapshot, which can
-				lag a live room by a persist tick.
+				Checks whether each asset in the file&apos;s last persisted snapshot exists in the uploads
+				bucket and is associated with the file.
 			</p>
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			<div className={styles.searchContainer}>
