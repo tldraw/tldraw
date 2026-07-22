@@ -87,8 +87,8 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const items: CommentListItemProps[] = notifications.map(({ comment: c }) => ({
 		id: c.id,
 		author: {
-			name: c.author?.name ?? c.authorId,
-			color: c.author?.color,
+			name: c.authorName || c.authorId,
+			color: c.authorColor || undefined,
 		},
 		preview: richTextToPlaintext(c.body as TLRichText),
 		date: new Date(c.createdAt).toISOString(),
