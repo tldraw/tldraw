@@ -5,11 +5,35 @@ export const MAX_WORKSPACE_NAME_LENGTH = 100
 export const ROOM_SIZE_LIMIT_MB = 25
 
 /**
- * `createSource` value for a new workspace's first file. The sync worker resolves it to the
- * current welcome template's published snapshot (or a committed default if none is set),
- * forking that content into the new file. Unlike the other `createSource` prefixes this is a
- * fixed marker with no id — the worker decides which file is the welcome template — so the
- * client never needs to know the template's slug and an admin can retarget it without a
- * client change.
+ * `createSource` marker for a new workspace's first file. The sync worker resolves it to the
+ * committed default welcome snapshot, forking that content into the new file. Unlike the other
+ * `createSource` prefixes this carries no id — the worker owns the welcome content — and is
+ * optionally tagged with the creator's locale (`welcome:fr`) so the worker can seed the
+ * localized variant baked at build time. See {@link welcomeCreateSource}.
  */
 export const WELCOME_CREATE_SOURCE = 'welcome'
+
+/**
+ * Build the welcome `createSource`, tagged with the creating user's locale (e.g. `welcome:fr`) so
+ * the sync worker seeds localized welcome content. Untagged (`welcome`) when no locale is known.
+ * See {@link parseWelcomeCreateSource}.
+ */
+export function welcomeCreateSource(locale?: string): string {
+	return locale ? `${WELCOME_CREATE_SOURCE}:${locale}` : WELCOME_CREATE_SOURCE
+}
+
+/**
+ * Parse a `createSource`: returns `{ locale }` (locale possibly undefined) when it's a welcome
+ * marker, or `null` when it isn't. The locale is whatever the client tagged at creation time.
+ */
+export function parseWelcomeCreateSource(
+	createSource: string | null | undefined
+): { locale: string | undefined } | null {
+	if (!createSource) return null
+	if (createSource === WELCOME_CREATE_SOURCE) return { locale: undefined }
+	const prefix = `${WELCOME_CREATE_SOURCE}:`
+	if (createSource.startsWith(prefix)) {
+		return { locale: createSource.slice(prefix.length) || undefined }
+	}
+	return null
+}

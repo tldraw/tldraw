@@ -119,8 +119,18 @@ const config = {
 		'build-i18n': {
 			execution: 'independent',
 			cache: {
-				inputs: ['<rootDir>/apps/dotcom/client/public/tla/locales/*.json'],
-				outputs: ['<rootDir>/apps/dotcom/client/public/tla/locales-compiled/*.json'],
+				inputs: [
+					'<rootDir>/apps/dotcom/client/public/tla/locales/*.json',
+					// The welcome i18n step bakes the default snapshot's copy into per-locale variants.
+					'<rootDir>/apps/dotcom/client/scripts/welcome-i18n.ts',
+					'<rootDir>/apps/dotcom/sync-worker/src/welcome/defaultWelcomeSnapshot.ts',
+					'<rootDir>/apps/dotcom/sync-worker/src/welcome/welcomeCopy.ts',
+					'<rootDir>/apps/dotcom/sync-worker/src/welcome/welcomeMarkup.ts',
+				],
+				outputs: [
+					'<rootDir>/apps/dotcom/client/public/tla/locales-compiled/*.json',
+					'<rootDir>/apps/dotcom/sync-worker/src/welcome/localizedWelcomeCopy.json',
+				],
 			},
 		},
 		'api-check': {

@@ -1,42 +1,30 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { createPostgresConnectionPool } from '../postgres'
-import { getPublishedRoomSnapshot } from '../routes/tla/getPublishedFile'
-import { Environment } from '../types'
 import { defaultWelcomeSnapshotJson } from './defaultWelcomeSnapshot'
+import { injectWelcomeCopy } from './injectWelcomeCopy'
+import { localizedWelcomeCopy } from './localizedWelcomeCopy'
+
+/** Locale lookup order, lowercased to match the baked artifact's keys: 'pt-BR' → ['pt-br', 'pt']. */
+export function welcomeLocaleCandidates(locale: string): string[] {
+	const lower = locale.toLowerCase()
+	const base = lower.split('-')[0]
+	return base && base !== lower ? [lower, base] : [lower]
+}
 
 /**
- * The content a new workspace's first file is seeded with (createSource 'welcome'): the
- * published snapshot of the file currently marked as the welcome template, or a committed
- * default when none is marked or the marked one can't be loaded. Always resolves — the
- * default guarantees a usable file.
+ * The content a new workspace's first file is seeded with (createSource 'welcome'), in the creator's
+ * `locale`. The art is the committed default snapshot; its instructional copy is localized by baking
+ * — `localizedWelcomeCopy` holds the per-locale richText resolved at build time (see the welcome i18n
+ * build step) — so this is a pure, synchronous lookup with no database, catalog fetch, or network.
  *
- * Falling back is deliberate, but a template that is *set yet unreadable* (unpublished,
- * missing R2, transient DB error) is a misconfiguration, not the fresh-env no-template case,
- * so it is reported via `reportError` while still degrading to the default. `reportError` is
- * the calling Durable Object's error reporter; the no-template case is silent.
+ * Falls back to the baked English default when `locale` is absent, English, or has no baked welcome
+ * translations yet. Always resolves.
  */
-export async function resolveWelcomeSnapshot(
-	env: Environment,
-	reportError?: (e: unknown) => void
-): Promise<RoomSnapshot> {
-	// Runs inside a Durable Object, so destroy the pool to avoid an idle connection holding
-	// the DO awake (see TLPostgresPool in postgres.ts).
-	const pg = createPostgresConnectionPool(env, 'resolveWelcomeSnapshot')
-	try {
-		const row = await pg.selectFrom('welcome_template').select('publishedSlug').executeTakeFirst()
-		if (row?.publishedSlug) {
-			const published = await getPublishedRoomSnapshot(env, row.publishedSlug)
-			if (published) return published
-			// A template is configured but its published snapshot is gone — flag it, don't
-			// silently serve the default as if nothing were set.
-			reportError?.(new Error(`welcome template ${row.publishedSlug} has no published snapshot`))
-		}
-	} catch (e) {
-		// A configured template that fails to load, or a DB error reading the pointer — report
-		// it; only a genuinely-absent template should fall back silently.
-		reportError?.(e)
-	} finally {
-		await pg.destroy()
+export function resolveWelcomeSnapshot(locale?: string): RoomSnapshot {
+	const base = JSON.parse(defaultWelcomeSnapshotJson) as RoomSnapshot
+	if (!locale) return base
+	for (const candidate of welcomeLocaleCandidates(locale)) {
+		const table = localizedWelcomeCopy[candidate]
+		if (table) return injectWelcomeCopy(base, table)
 	}
-	return JSON.parse(defaultWelcomeSnapshotJson) as RoomSnapshot
+	return base
 }
