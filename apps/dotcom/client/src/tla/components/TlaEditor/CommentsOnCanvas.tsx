@@ -7,8 +7,12 @@ import {
 } from '@tldraw/commenting'
 import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useEditor, useValue } from 'tldraw'
+import { useDialogs, useEditor, useValue } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { defineMessages, F, useMsg } from '../../utils/i18n'
+import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
+import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 
 type FileComments = QueryResultType<typeof queries.fileComments>
 
@@ -147,6 +151,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 				isCommentUnread={app ? isCommentUnread : undefined}
 				onCommentRead={app ? onCommentRead : undefined}
 				getMentionSuggestions={getMentionSuggestions}
+				signedOutComposer={app ? undefined : signInToComment}
 			/>
 			<CanvasCommentsSidebar
 				resolveAuthor={resolveAuthor}
@@ -156,3 +161,30 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		</>
 	)
 }
+
+const signInMessages = defineMessages({
+	signInToComment: { defaultMessage: 'Sign in to comment' },
+})
+
+/** Anon viewers read comments but don't compose — the composer slot holds this sign-in prompt. */
+function SignInToComment() {
+	const { addDialog } = useDialogs()
+	const trackEvent = useTldrawAppUiEvents()
+	const ctaString = useMsg(signInMessages.signInToComment)
+	return (
+		<TlaCtaButton
+			canvas
+			data-testid="tla-sign-in-to-comment-button"
+			onClick={() => {
+				trackEvent('sign-up-clicked', { source: 'comments', ctaMessage: ctaString })
+				addDialog({ component: TlaSignInDialog })
+			}}
+		>
+			<F {...signInMessages.signInToComment} />
+		</TlaCtaButton>
+	)
+}
+
+// A stable element: an inline `<SignInToComment />` would change identity every render and defeat
+// the memo on the toolkit's thread pins (the slot rides into them via props).
+const signInToComment = <SignInToComment />

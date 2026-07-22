@@ -113,6 +113,10 @@ export interface CanvasCommentsProps {
 	 * record a read receipt. Needs `isCommentUnread` to know what's unread.
 	 */
 	onCommentRead?(commentId: TLCommentId): void
+	/** Shown where a composer would sit when `currentUserId` is null (e.g. a sign-in prompt):
+	 *  at the bottom of an open thread, and in the placement popover the comment tool opens.
+	 *  Omit to show nothing — signed-out viewers just read. */
+	signedOutComposer?: ReactNode
 	/** Resolve the members matching an `@`-query in the composers (sync or async). */
 	getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>
 	/** Override a mention-picker row's content. */
@@ -575,7 +579,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			{/* Keep the region visible while composing — the drag draft is gone by now, and no thread
 			    exists yet, so the pending anchor is what shows the area under the open composer. */}
 			{pending?.anchor.type === 'region' && <RegionBox editor={editor} box={pending.anchor} />}
-			{pending && props.currentUserId && (
+			{pending && (props.currentUserId || props.signedOutComposer) && (
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
 		</div>,
@@ -1081,6 +1085,7 @@ const ThreadPin = memo(function ThreadPin({
 		onPostComment,
 		isCommentUnread,
 		onCommentRead,
+		signedOutComposer,
 		getMentionSuggestions,
 		renderMentionSuggestion,
 	} = props
@@ -1607,6 +1612,7 @@ const ThreadPin = memo(function ThreadPin({
 										}
 									: undefined
 							}
+							footer={!currentUserId && !thread.resolved ? signedOutComposer : undefined}
 						/>
 					</ThreadPopover>
 				)}
@@ -1621,6 +1627,7 @@ function PendingComposer({
 	currentUserId,
 	resolveAuthor,
 	onPostComment,
+	signedOutComposer,
 	getMentionSuggestions,
 	renderMentionSuggestion,
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
@@ -1686,6 +1693,7 @@ function PendingComposer({
 			className={[
 				'tlui-cmt-canvas-composer',
 				pending.anchor.type === 'region' && 'tlui-cmt-canvas-composer--region',
+				!currentUserId && 'tlui-cmt-canvas-composer--signed-out',
 			]
 				.filter(Boolean)
 				.join(' ')}
@@ -1696,22 +1704,26 @@ function PendingComposer({
 				if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(editor, null)
 			}}
 		>
-			<CommentComposer
-				author={me ?? UNKNOWN_COMMENT_AUTHOR}
-				placeholder={msg('comments.add-placeholder')}
-				sendLabel={msg('comments.send')}
-				value={text}
-				onChange={(value) => {
-					setText(value)
-					saveCommentDraft(NEW_COMMENT_DRAFT, value)
-				}}
-				onSubmit={submit}
-				disabled={isCommentEmpty(text)}
-				getMentionSuggestions={getMentionSuggestions}
-				renderMentionSuggestion={renderMentionSuggestion}
-				autoFocus
-				leading={draftAvatar(me?.color)}
-			/>
+			{currentUserId ? (
+				<CommentComposer
+					author={me ?? UNKNOWN_COMMENT_AUTHOR}
+					placeholder={msg('comments.add-placeholder')}
+					sendLabel={msg('comments.send')}
+					value={text}
+					onChange={(value) => {
+						setText(value)
+						saveCommentDraft(NEW_COMMENT_DRAFT, value)
+					}}
+					onSubmit={submit}
+					disabled={isCommentEmpty(text)}
+					getMentionSuggestions={getMentionSuggestions}
+					renderMentionSuggestion={renderMentionSuggestion}
+					autoFocus
+					leading={draftAvatar(me?.color)}
+				/>
+			) : (
+				signedOutComposer
+			)}
 		</div>,
 		container
 	)

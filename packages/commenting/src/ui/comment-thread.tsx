@@ -14,6 +14,9 @@ export interface CommentThreadProps {
 	resolvedBanner?: ReactNode
 	/** Reply composer props. Omit for a read-only thread (no composer). */
 	composer?: CommentComposerProps
+	/** Shown at the bottom of the thread, where the composer sits (e.g. a sign-in prompt when
+	 *  there's no composer). */
+	footer?: ReactNode
 	/** Override how each comment renders. Defaults to `<CommentCard>`. */
 	renderComment?(comment: CommentCardProps, index: number): ReactNode
 }
@@ -30,6 +33,7 @@ export function CommentThread({
 	headerActions,
 	resolvedBanner,
 	composer,
+	footer,
 	renderComment,
 }: CommentThreadProps) {
 	return (
@@ -53,6 +57,7 @@ export function CommentThread({
 				))}
 			</div>
 			{composer !== undefined && <CommentComposer {...composer} />}
+			{footer !== undefined && <div className="tlui-cmt-thread__footer">{footer}</div>}
 		</div>
 	)
 }

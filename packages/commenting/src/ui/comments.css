@@ -557,6 +557,13 @@
 	flex-direction: column;
 	gap: 6px;
 }
+/* The footer slot sits where the composer would — its content (e.g. a sign-in prompt) sits at
+   the thread's trailing edge, like the composer's send button. */
+.tlui-cmt-thread__footer {
+	display: flex;
+	justify-content: flex-end;
+	padding: 4px 2px 2px;
+}
 /* Inside a thread, author identity is a small colour dot, no initial — the letter doesn't fit
    at this size. */
 .tlui-cmt-thread .tlui-cmt-avatar {

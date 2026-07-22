@@ -71,6 +71,7 @@ export interface CanvasCommentsProps {
     regionOptions?: Partial<RegionCommentOptions>;
     renderMentionSuggestion?(member: MentionMember): ReactNode;
     resolveAuthor(id: string): CommentAuthor | undefined;
+    signedOutComposer?: ReactNode;
 }
 
 // @public
@@ -295,12 +296,13 @@ export interface CommentTextProps {
 }
 
 // @public
-export function CommentThread({ comments, header, headerActions, resolvedBanner, composer, renderComment }: CommentThreadProps): JSX.Element;
+export function CommentThread({ comments, header, headerActions, resolvedBanner, composer, footer, renderComment }: CommentThreadProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentThreadProps {
     comments: CommentCardProps[];
     composer?: CommentComposerProps;
+    footer?: ReactNode;
     header?: ReactNode;
     headerActions?: ReactNode;
     renderComment?(comment: CommentCardProps, index: number): ReactNode;
