@@ -5,11 +5,11 @@ import {
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
-	TldrawUiTooltip,
 	useEditor,
 	useTranslation,
 	useValue,
 } from 'tldraw'
+import { TooltipButton } from '../ui/tooltip-button'
 import { SidebarFilters } from './sidebar-filters'
 import { sidebarFilters } from './state'
 
@@ -36,13 +36,11 @@ export function CommentsFilterMenu({
 
 	return (
 		<TldrawUiDropdownMenuRoot id="comments-filter">
-			<TldrawUiTooltip content={msg('comments.filter')}>
-				<TldrawUiDropdownMenuTrigger>
-					<button type="button" className="tlui-cmt-header-btn" aria-label={msg('comments.filter')}>
-						<FilterIcon />
-					</button>
-				</TldrawUiDropdownMenuTrigger>
-			</TldrawUiTooltip>
+			<TldrawUiDropdownMenuTrigger>
+				<TooltipButton tooltip={msg('comments.filter')} className="tlui-cmt-header-btn">
+					<FilterIcon />
+				</TooltipButton>
+			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent
 				className="tlui-cmt-menu"
 				side="bottom"

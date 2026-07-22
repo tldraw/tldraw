@@ -1,4 +1,5 @@
-import { TldrawUiTooltip, useEditor, useTranslation, useValue } from 'tldraw'
+import { useEditor, useTranslation, useValue } from 'tldraw'
+import { TooltipButton } from '../ui/tooltip-button'
 import { commentsHidden, toggleCommentsHidden } from './state'
 
 /** The sidebar header's show/hide toggle for comment pins — an eye that closes while comments
@@ -11,17 +12,14 @@ export function CommentsVisibilityToggle() {
 	const label = hidden ? msg('comments.show') : msg('comments.hide')
 
 	return (
-		<TldrawUiTooltip content={label}>
-			<button
-				type="button"
-				className="tlui-cmt-header-btn"
-				aria-label={label}
-				aria-pressed={hidden}
-				onClick={() => toggleCommentsHidden(editor)}
-			>
-				{hidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
-			</button>
-		</TldrawUiTooltip>
+		<TooltipButton
+			tooltip={label}
+			className="tlui-cmt-header-btn"
+			aria-pressed={hidden}
+			onClick={() => toggleCommentsHidden(editor)}
+		>
+			{hidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
+		</TooltipButton>
 	)
 }
 

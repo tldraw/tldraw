@@ -5,11 +5,11 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
-	TldrawUiTooltip,
 	useEditor,
 	useTranslation,
 	useValue,
 } from 'tldraw'
+import { TooltipButton } from '../ui/tooltip-button'
 import { commentsHidden, toggleCommentsHidden } from './state'
 
 // A keyboard-shortcut glyph, not translatable copy — kept out of JSX as a constant.
@@ -25,17 +25,11 @@ export function CommentsOverflowMenu() {
 
 	return (
 		<TldrawUiDropdownMenuRoot id="comments-overflow">
-			<TldrawUiTooltip content={msg('comments.more-options')}>
-				<TldrawUiDropdownMenuTrigger>
-					<button
-						type="button"
-						className="tlui-cmt-header-btn"
-						aria-label={msg('comments.more-options')}
-					>
-						<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
-					</button>
-				</TldrawUiDropdownMenuTrigger>
-			</TldrawUiTooltip>
+			<TldrawUiDropdownMenuTrigger>
+				<TooltipButton tooltip={msg('comments.more-options')} className="tlui-cmt-header-btn">
+					<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+				</TooltipButton>
+			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent
 				className="tlui-cmt-menu"
 				side="bottom"
