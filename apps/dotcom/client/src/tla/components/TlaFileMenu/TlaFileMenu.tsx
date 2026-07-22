@@ -161,14 +161,17 @@ export function FileItems({
 	}, [app, fileId, workspaceId])
 
 	const handleDuplicateClick = useCallback(async () => {
-		if (!workspaceId) return
+		// The sidebar passes the workspace the file is listed under; the file header doesn't, so
+		// fall back to the workspace the file already lives in.
+		const targetWorkspaceId = workspaceId ?? currentWorkspaceId
+		if (!targetWorkspaceId) return
 		const newFileId = uniqueId()
 		const file = app.getFile(fileId)
 		if (!file) return
 		trackEvent('duplicate-file', { source })
 		const res = await app.createFile({
 			fileId: newFileId,
-			workspaceId,
+			workspaceId: targetWorkspaceId,
 			name: getDuplicateName(file, app),
 			createSource: `${FILE_PREFIX}/${fileId}`,
 		})
@@ -180,11 +183,11 @@ export function FileItems({
 		if (res.ok) {
 			app.sidebarState.update((prev) => ({
 				...prev,
-				renameState: { fileId: newFileId, workspaceId },
+				renameState: { fileId: newFileId, workspaceId: targetWorkspaceId },
 			}))
 			navigate(routes.tlaFile(newFileId))
 		}
-	}, [app, fileId, workspaceId, navigate, trackEvent, source])
+	}, [app, fileId, workspaceId, currentWorkspaceId, navigate, trackEvent, source])
 
 	const handleDeleteClick = useCallback(() => {
 		if (!workspaceId) return
@@ -223,15 +226,12 @@ export function FileItems({
 					<TldrawUiMenuItem label={renameMsg} id="rename" readonlyOk onSelect={onRenameAction} />
 				)}
 				{/* todo: in published rooms, support duplication / forking */}
-				{/* todo: requires a non-trivial refactor, quick fix is to just remove this menu item, it's available elsewhere */}
-				{source !== 'file-header' && (
-					<TldrawUiMenuItem
-						label={duplicateMsg}
-						id="duplicate"
-						readonlyOk
-						onSelect={handleDuplicateClick}
-					/>
-				)}
+				<TldrawUiMenuItem
+					label={duplicateMsg}
+					id="duplicate"
+					readonlyOk
+					onSelect={handleDuplicateClick}
+				/>
 				<TldrawUiMenuItem
 					label={downloadFile}
 					id="download-file"
