@@ -145,12 +145,37 @@
 	border-color: var(--tl-color-selected);
 }
 
+/* Expanded: the content no longer fits on one line beside the send button, so the input takes
+   the full width and the send button drops to its own row, right-aligned. */
+.tlui-cmt-composer__field--expanded {
+	flex-wrap: wrap;
+}
+.tlui-cmt-composer__field--expanded .tlui-cmt-composer__input-wrap {
+	flex-basis: 100%;
+}
+.tlui-cmt-composer__field--expanded .tlui-cmt-send {
+	margin-left: auto;
+}
+
 /* the editable area, with the placeholder overlaid while it's empty */
 .tlui-cmt-composer__input-wrap {
 	position: relative;
 	flex: 1;
 	min-width: 0;
 	padding: 3px 0;
+}
+
+/* The hidden single-line measuring clone of the editor's content (see CommentComposer). */
+.tlui-cmt-composer__mirror {
+	position: absolute;
+	top: 0;
+	left: 0;
+	visibility: hidden;
+	pointer-events: none;
+	white-space: nowrap;
+	width: max-content;
+	max-height: none;
+	overflow: visible;
 }
 
 .tlui-cmt-input {
