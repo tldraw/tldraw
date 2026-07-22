@@ -21,6 +21,11 @@ import {
 	TLCommentId,
 	TLCommentThread,
 	TLRichText,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiDropdownMenuItem,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
 	useContainer,
 	useEditor,
@@ -33,6 +38,7 @@ import {
 import { computeClusterTable } from '../clustering/computeClusterTable'
 import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
+import { CommentAuthor } from '../ui/comment-author'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
 import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
@@ -41,10 +47,18 @@ import { CommentThread } from '../ui/comment-thread'
 import { CountBadge } from '../ui/count-badge'
 import { MentionMember } from '../ui/mention-list'
 import { isMentionPickerOpen } from '../ui/mention-suggestion'
+import { TooltipButton } from '../ui/tooltip-button'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import { CommentReactionPicker, CommentReactions } from './comment-reactions'
-import { UNKNOWN_AUTHOR } from './comment-render'
+import {
+	clearCommentDraft,
+	getCommentDraft,
+	NEW_COMMENT_DRAFT,
+	replyDraftSlot,
+	saveCommentDraft,
+} from './comment-drafts'
+import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import {
 	getCommentReactions,
 	getCommentRecord,
@@ -74,7 +88,12 @@ import {
 	toggleCommentsHidden,
 	usePendingComment,
 } from './state'
-import { anchorPagePoint, regionPinPoint, shapeAnchorAt } from './thread-state'
+import {
+	anchorPagePoint,
+	regionAnchorPinCorner,
+	regionPinPoint,
+	shapeAnchorAt,
+} from './thread-state'
 
 /**
  * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
@@ -90,8 +109,8 @@ import { anchorPagePoint, regionPinPoint, shapeAnchorAt } from './thread-state'
 export interface CanvasCommentsProps {
 	/** The signed-in user's id, or null for a read-only viewer. Only a signed-in user composes. */
 	currentUserId: string | null
-	/** Map an author id to a display name, or `undefined` when the id can't be named. */
-	resolveName(id: string): string | undefined
+	/** Map an author id to their display info, or `undefined` when the id can't be resolved. */
+	resolveAuthor(id: string): CommentAuthor | undefined
 	/** Called after any comment (a new thread's first comment, or a reply) is posted. */
 	onPostComment?(comment: TLComment): void
 	/** Whether a comment is unread for the current user (return true for unread). */
@@ -114,6 +133,39 @@ export interface CanvasCommentsProps {
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
+/** How far an imprecise shape pin steps inside the shape from its anchor spot, in screen px —
+ *  most of the marker sits within the shape, with a small overhang past the corner. */
+const IMPRECISE_PIN_INSET_PX = 20
+
+/** Imprecise shape pins tuck inside the shape rather than hanging off its edge: the marker
+ *  extends up-right of its anchor point, so step it toward the shape's centre. Screen px — the
+ *  pin is screen-fixed while the shape scales with zoom. Null for anchors that need no inset. */
+function impreciseShapePinInset(
+	anchor: TLCommentThread['anchor'],
+	spot: { x: number; y: number }
+): { x: number; y: number } | null {
+	if (anchor.type !== 'shape' || anchor.isPrecise) return null
+	return {
+		x: Math.sign(0.5 - spot.x) * IMPRECISE_PIN_INSET_PX,
+		y: Math.sign(0.5 - spot.y) * IMPRECISE_PIN_INSET_PX,
+	}
+}
+
+/** A pointer-down that belongs to the camera, not the comment UI: any non-primary button
+ *  (middle/right-button pans), or a primary press with the spacebar pan key held. */
+const isCanvasPanGesture = (editor: Editor, e: ReactPointerEvent) =>
+	e.button !== 0 || editor.inputs.keys.has('Space')
+
+/** Hand a pointer event to the canvas beneath the comments layer, marked the same way the
+ *  pass-through wheel/hover hooks mark their re-dispatched events. */
+function forwardPointerEventToCanvas(container: HTMLElement, e: ReactPointerEvent) {
+	const cvs = container.querySelector('.tl-canvas')
+	if (!cvs) return
+	const newEvent = new PointerEvent(e.type, e.nativeEvent as any)
+	;(newEvent as any).isSpecialRedispatchedEvent = true
+	cvs.dispatchEvent(newEvent)
+}
+
 const initialOf = (name: string): string => (getFirstCharacter(name.trim()) || '?').toUpperCase()
 const CLUSTER_FADE_MS = 150
 /** Duration of the click-a-badge zoom-to-split animation. */
@@ -121,8 +173,8 @@ const CLUSTER_EXPAND_ZOOM_MS = 450
 
 /** The leading element for the placement composer — the comment pin's shape, but a pencil
  *  instead of an initial, marking an unsent draft. */
-const draftAvatar = (
-	<CommentPin>
+const draftAvatar = (color?: string) => (
+	<CommentPin color={color}>
 		<svg
 			viewBox="0 0 24 24"
 			width="15"
@@ -143,7 +195,8 @@ const draftAvatar = (
 function toCardProps(
 	comment: TLComment,
 	props: CanvasCommentsProps,
-	components: CommentingComponents
+	components: CommentingComponents,
+	resolveName: (id: string) => string | undefined
 ): CommentCardProps {
 	const Body = components.CommentBody
 	// The `CommentBody` component slot overrides the built-in rich-text default (which resolves
@@ -151,10 +204,10 @@ function toCardProps(
 	const body = Body ? (
 		<Body comment={comment} />
 	) : (
-		<CommentBody richText={comment.body} resolveName={props.resolveName} />
+		<CommentBody richText={comment.body} resolveName={resolveName} />
 	)
 	return {
-		author: props.resolveName(comment.authorId) ?? UNKNOWN_AUTHOR,
+		author: props.resolveAuthor(comment.authorId) ?? UNKNOWN_COMMENT_AUTHOR,
 		body,
 		date: new Date(comment.createdAt).toISOString(),
 		you: comment.authorId === props.currentUserId,
@@ -183,9 +236,11 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	)
 	useEffect(() => setRegionCommentOptions(editor, regionOptions), [editor, regionOptions])
 	const layerRef = useRef<HTMLDivElement>(null)
-	// Over the pins and cluster badges, wheel and hover pass through to the canvas beneath (these
-	// events bubble up from the pointer-interactive markers to this layer root).
-	usePassThroughWheelEvents(layerRef)
+	// Over the pins and cluster badges, hover passes through to the canvas beneath (these events
+	// bubble up from the pointer-interactive markers to this layer root). Wheel pass-through is
+	// NOT on this root: it lives on each interactive element instead. The root spans the whole
+	// canvas, so any pin past its bottom/right edge inflates the root's scrollHeight — which the
+	// wheel hook's is-this-scrollable guard reads as scrollable, silently disabling pass-through.
 	usePassThroughMouseOverEvents(layerRef)
 	const deepLinkHandled = useRef(false)
 	const threads = useCommentThreads(editor)
@@ -434,8 +489,8 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		return () => document.removeEventListener('keydown', onKeyDown, true)
 	}, [editor])
 
-	// Shift+C toggles comment-pin visibility on the canvas (matching Figma). Skipped while typing so
-	// it never fires from inside a composer. Physical `KeyC` (layout-independent) with shift only.
+	// Shift+C toggles comment-pin visibility on the canvas. Skipped while typing so it never fires
+	// from inside a composer. Physical `KeyC` (layout-independent) with shift only.
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.code !== 'KeyC' || !e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
@@ -754,6 +809,11 @@ const ClusterBadge = memo(function ClusterBadge({
 	node: ClusterNode
 	onExpand(node: ClusterNode): void
 }) {
+	const container = useContainer()
+	const badgeRef = useRef<HTMLDivElement>(null)
+	// Wheel pass-through sits on the badge (never scrollable), not the layer root — see the
+	// note on the layer.
+	usePassThroughWheelEvents(badgeRef)
 	const point = useValue(
 		'cluster badge point',
 		() => {
@@ -768,9 +828,16 @@ const ClusterBadge = memo(function ClusterBadge({
 
 	return (
 		<div
+			ref={badgeRef}
 			className="tlui-cmt-canvas-cluster"
 			style={{ left: point.x, top: point.y }}
-			onPointerDown={stop}
+			onPointerDown={(e) => {
+				if (isCanvasPanGesture(editor, e)) {
+					forwardPointerEventToCanvas(container, e)
+					return
+				}
+				e.stopPropagation()
+			}}
 			onClick={(e) => {
 				e.stopPropagation()
 				onExpand(node)
@@ -807,7 +874,15 @@ function ThreadPopover({
 	usePassThroughWheelEvents(ref)
 	usePassThroughMouseOverEvents(ref)
 	return createPortal(
-		<div ref={ref} className="tlui-cmt-canvas-popover" style={style} onPointerDown={stop}>
+		// contextmenu also stops here: portals bubble React events to the canvas's context-menu
+		// trigger (the layer mounts inside it), which would open the canvas menu over this panel.
+		<div
+			ref={ref}
+			className="tlui-cmt-canvas-popover"
+			style={style}
+			onPointerDown={stop}
+			onContextMenu={stop}
+		>
 			{children}
 		</div>,
 		container
@@ -843,12 +918,21 @@ function RegionBox({
 	// The grab point and the box at grab time, captured so the drag translates by a stable delta even
 	// as the box prop reflows under the live preview.
 	const grabRef = useRef<{ page: VecLike; box: BoxModel } | null>(null)
+	const container = useContainer()
+	const boxRef = useRef<HTMLDivElement>(null)
+	// A movable region body takes pointer events over its whole area — wheel pass-through sits
+	// here for the same reason as on the pin markers (see the note on the layer).
+	usePassThroughWheelEvents(boxRef)
 	const translated = (e: ReactPointerEvent<HTMLDivElement>): BoxModel => {
 		const g = grabRef.current!
 		const p = editor.screenToPage({ x: e.clientX, y: e.clientY })
 		return { ...g.box, x: g.box.x + (p.x - g.page.x), y: g.box.y + (p.y - g.page.y) }
 	}
 	const startMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+		if (isCanvasPanGesture(editor, e)) {
+			forwardPointerEventToCanvas(container, e)
+			return
+		}
 		e.stopPropagation()
 		grabRef.current = { page: editor.screenToPage({ x: e.clientX, y: e.clientY }), box }
 		e.currentTarget.setPointerCapture(e.pointerId)
@@ -866,6 +950,7 @@ function RegionBox({
 	}
 	return (
 		<div
+			ref={boxRef}
 			className={
 				movable
 					? 'tlui-cmt-canvas-region tlui-cmt-canvas-region--movable'
@@ -1001,13 +1086,17 @@ const ThreadPin = memo(function ThreadPin({
 }) {
 	const {
 		currentUserId,
-		resolveName,
+		resolveAuthor,
 		onPostComment,
 		isCommentUnread,
 		onCommentRead,
 		getMentionSuggestions,
 		renderMentionSuggestion,
 	} = props
+	// Name-only view of the resolver, for the mention/rich-text paths (stable identity so
+	// CommentBody's memoized render doesn't recompute every render).
+	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
+	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	const options = useCommentingOptions()
 	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
 	const container = useContainer()
@@ -1018,7 +1107,11 @@ const ThreadPin = memo(function ThreadPin({
 		editor,
 		thread.id,
 	])
-	const [reply, setReply] = useState<TLRichText>(EMPTY_COMMENT)
+	// An unsent reply survives closing the thread (saved on every change, keyed by thread id) —
+	// the flip side of dismissing without a discard warning.
+	const [reply, setReply] = useState<TLRichText>(
+		() => getCommentDraft(replyDraftSlot(thread.id)) ?? EMPTY_COMMENT
+	)
 	const [editingId, setEditingId] = useState<string | null>(null)
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	// While dragging the marker, its page point overrides the anchor's; committed on drop.
@@ -1049,18 +1142,42 @@ const ThreadPin = memo(function ThreadPin({
 		resizeBounds != null ||
 		(regionOptions.reveal === 'pointer' && pointerInRegion) ||
 		(regionOptions.reveal === 'pin-hover' && pinHovered)
+	// A region thread's pin corner is its own (the corner its creating drag released on), with
+	// the configured default as the fallback for older records.
+	const pinCorner =
+		thread.anchor.type === 'region'
+			? regionAnchorPinCorner(editor, thread.anchor)
+			: regionOptions.pinCorner
 	// The resize handles: side midpoints ('edges'), or the corners other than the pin's ('corners').
 	const resizeHandles = useMemo(
 		() =>
 			regionOptions.resize === 'edges'
 				? REGION_EDGES
-				: REGION_CORNERS.filter(
-						(c) => c.x !== regionOptions.pinCorner.x || c.y !== regionOptions.pinCorner.y
-					),
-		[regionOptions.resize, regionOptions.pinCorner]
+				: REGION_CORNERS.filter((c) => c.x !== pinCorner.x || c.y !== pinCorner.y),
+		[regionOptions.resize, pinCorner]
 	)
-	const dragRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null)
+	const dragRef = useRef<{
+		startX: number
+		startY: number
+		moved: boolean
+		// The anchor's page-space offset from the grab point, so a drag translates the pin by the
+		// cursor's delta (like RegionBox's move) instead of snapping the anchor to the cursor.
+		offsetX: number
+		offsetY: number
+	} | null>(null)
 	const markerRef = useRef<HTMLDivElement>(null)
+	// Wheel pass-through sits on the marker (which is never scrollable), not the layer root —
+	// see the note on the layer.
+	usePassThroughWheelEvents(markerRef)
+
+	// The drop-target hint is editor-global state with no automatic reset. If the pin unmounts
+	// mid-drag (e.g. Shift+C hides comments), no pointer event will ever reach the drag handlers —
+	// clear the hint here or it stays on the shape indefinitely.
+	useEffect(() => {
+		return () => {
+			if (dragRef.current) editor.setHintingShapes([])
+		}
+	}, [editor])
 
 	// Clicking outside the open popover (and off its own pin) closes the thread — mirrors the
 	// pending composer's dismiss. Capture phase + a class check rather than stopPropagation, since the
@@ -1094,7 +1211,10 @@ const ThreadPin = memo(function ThreadPin({
 		() => {
 			if (thread.pageId !== editor.getCurrentPageId()) return null
 			const pagePoint = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
-			return pagePoint ? editor.pageToViewport(pagePoint) : null
+			if (!pagePoint) return null
+			const viewportPoint = editor.pageToViewport(pagePoint)
+			const inset = impreciseShapePinInset(thread.anchor, impreciseShapeAnchor)
+			return inset ? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y } : viewportPoint
 		},
 		[editor, thread.anchor, thread.pageId, impreciseShapeAnchor]
 	)
@@ -1127,6 +1247,7 @@ const ThreadPin = memo(function ThreadPin({
 			if (onPostComment) onPostComment(comment)
 		})
 		setReply(EMPTY_COMMENT)
+		clearCommentDraft(replyDraftSlot(thread.id))
 	}
 
 	const toggleResolve = () => {
@@ -1156,6 +1277,23 @@ const ThreadPin = memo(function ThreadPin({
 	const startEdit = (comment: TLComment) => {
 		setEditingId(comment.id)
 		setEditText(comment.body)
+	}
+
+	const deleteComment = (comment: TLComment) => {
+		commitCommentMutation(editor, () => {
+			// This comment's reactions are their own records, so they have to go with it (Postgres
+			// cascades them, but the room holds them until removed) — same as deleteThread.
+			const reactionIds = getCommentReactions(editor)
+				.filter((reaction) => reaction.commentId === comment.id)
+				.map((reaction) => reaction.id)
+			// Deleting a thread's only comment deletes the thread — an empty thread has no surface.
+			if (comments.length === 1) {
+				openThreadId.set(editor, null)
+				removeCommentRecords(editor, [thread.id, comment.id, ...reactionIds])
+			} else {
+				removeCommentRecords(editor, [comment.id, ...reactionIds])
+			}
+		})
 	}
 
 	const saveEdit = () => {
@@ -1210,13 +1348,43 @@ const ThreadPin = memo(function ThreadPin({
 				actions={
 					<>
 						{comment.authorId === currentUserId && (
-							<button
-								className="tlui-cmt-thread__action"
-								title={msg('comments.edit')}
-								onClick={() => startEdit(comment)}
-							>
-								<TldrawUiIcon icon="dots-horizontal" label={msg('comments.edit')} small />
-							</button>
+							<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
+								<TldrawUiDropdownMenuTrigger>
+									<TooltipButton
+										tooltip={msg('comments.more-options')}
+										className="tlui-cmt-thread__action"
+									>
+										<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+									</TooltipButton>
+								</TldrawUiDropdownMenuTrigger>
+								<TldrawUiDropdownMenuContent
+									className="tlui-cmt-menu"
+									side="bottom"
+									align="end"
+									alignOffset={0}
+								>
+									<TldrawUiDropdownMenuGroup>
+										<TldrawUiDropdownMenuItem>
+											<button
+												type="button"
+												className="tlui-cmt-menu-item"
+												onClick={() => startEdit(comment)}
+											>
+												<span>{msg('comments.edit-comment')}</span>
+											</button>
+										</TldrawUiDropdownMenuItem>
+										<TldrawUiDropdownMenuItem>
+											<button
+												type="button"
+												className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
+												onClick={() => deleteComment(comment)}
+											>
+												<span>{msg('comments.delete-comment')}</span>
+											</button>
+										</TldrawUiDropdownMenuItem>
+									</TldrawUiDropdownMenuGroup>
+								</TldrawUiDropdownMenuContent>
+							</TldrawUiDropdownMenuRoot>
 						)}
 						<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
 					</>
@@ -1228,9 +1396,9 @@ const ThreadPin = memo(function ThreadPin({
 	const headerActions = (
 		<>
 			{currentUserId && (
-				<button
+				<TooltipButton
+					tooltip={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
 					className="tlui-cmt-thread__action"
-					title={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
 					onClick={toggleResolve}
 				>
 					<TldrawUiIcon
@@ -1238,33 +1406,48 @@ const ThreadPin = memo(function ThreadPin({
 						label={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
 						small
 					/>
-				</button>
+				</TooltipButton>
 			)}
 			{currentUserId && (
-				<button
-					className="tlui-cmt-thread__action"
-					title={msg('comments.delete')}
-					onClick={deleteThread}
-				>
-					<TldrawUiIcon icon="trash" label={msg('comments.delete')} small />
-				</button>
+				<TldrawUiDropdownMenuRoot id={`comment-thread-actions-${thread.id}`}>
+					<TldrawUiDropdownMenuTrigger>
+						<TooltipButton
+							tooltip={msg('comments.more-options')}
+							className="tlui-cmt-thread__action"
+						>
+							<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+						</TooltipButton>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent
+						className="tlui-cmt-menu"
+						side="bottom"
+						align="end"
+						alignOffset={0}
+					>
+						<TldrawUiDropdownMenuGroup>
+							<TldrawUiDropdownMenuItem>
+								<button
+									type="button"
+									className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
+									onClick={deleteThread}
+								>
+									<span>{msg('comments.delete')}</span>
+								</button>
+							</TldrawUiDropdownMenuItem>
+						</TldrawUiDropdownMenuGroup>
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiDropdownMenuRoot>
 			)}
-			<button
-				className="tlui-cmt-thread__action"
-				title={msg('comments.dismiss')}
-				onClick={() => openThreadId.set(editor, null)}
-			>
-				<TldrawUiIcon icon="cross-2" label={msg('comments.dismiss')} small />
-			</button>
 		</>
 	)
 
 	const PinContent = options.components.PinContent
 	// The `PinContent` component slot overrides the built-in author-initial default.
+	const threadAuthor = resolveAuthor(thread.createdBy)
 	const pinContent = PinContent ? (
 		<PinContent thread={thread} comments={comments} />
 	) : (
-		initialOf(resolveName(thread.createdBy) ?? UNKNOWN_AUTHOR)
+		initialOf(threadAuthor?.name ?? UNKNOWN_AUTHOR)
 	)
 
 	// Drag the marker to move the thread: its position is overridden locally while dragging, then
@@ -1276,8 +1459,30 @@ const ThreadPin = memo(function ThreadPin({
 	const pinMovable = regionOptions.move !== 'body'
 	const bodyMovable = regionOptions.move !== 'pin'
 	const startDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+		// A middle/right-button or space-held press over a pin is a camera pan, not a pin drag —
+		// hand it to the canvas untouched.
+		if (isCanvasPanGesture(editor, e)) {
+			forwardPointerEventToCanvas(container, e)
+			return
+		}
 		e.stopPropagation()
-		dragRef.current = { startX: e.clientX, startY: e.clientY, moved: false }
+		const grabPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		const anchorPage = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
+		// The drag delta is taken from where the pin is drawn, which for an imprecise shape pin
+		// is inset from its anchor point — without this the pin jumps by the inset on drag start.
+		const inset = impreciseShapePinInset(thread.anchor, impreciseShapeAnchor)
+		if (anchorPage && inset) {
+			const zoom = editor.getZoomLevel()
+			anchorPage.x += inset.x / zoom
+			anchorPage.y += inset.y / zoom
+		}
+		dragRef.current = {
+			startX: e.clientX,
+			startY: e.clientY,
+			moved: false,
+			offsetX: anchorPage ? anchorPage.x - grabPage.x : 0,
+			offsetY: anchorPage ? anchorPage.y - grabPage.y : 0,
+		}
 		e.currentTarget.setPointerCapture(e.pointerId)
 	}
 	const onDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -1287,7 +1492,27 @@ const ThreadPin = memo(function ThreadPin({
 		if (isRegion && !pinMovable) return
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
 		drag.moved = true
-		setDragPagePoint(editor.screenToPage({ x: e.clientX, y: e.clientY }))
+		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		const pagePoint = { x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY }
+		setDragPagePoint(pagePoint)
+		// Hint the shape the pin would re-anchor to on drop — the same hit-test endDrag resolves
+		// with. Regions translate rather than re-anchor, so they never hint.
+		if (!isRegion) {
+			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+			editor.setHintingShapes(hit ? [hit.id] : [])
+		}
+	}
+	// A cancelled pointer (touch gesture takeover, browser interruption) aborts the drag outright:
+	// no re-anchor commit, no click-toggle — the pin snaps back and the hint clears.
+	const cancelDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+		const drag = dragRef.current
+		dragRef.current = null
+		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+			e.currentTarget.releasePointerCapture(e.pointerId)
+		}
+		if (!drag) return
+		setDragPagePoint(null)
+		editor.setHintingShapes([])
 	}
 	const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
@@ -1296,19 +1521,21 @@ const ThreadPin = memo(function ThreadPin({
 			e.currentTarget.releasePointerCapture(e.pointerId)
 		}
 		if (!drag) return
+		editor.setHintingShapes([])
 		if (!drag.moved) {
 			openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
 			return
 		}
-		const pagePoint = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		const pagePoint = { x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY }
 		setDragPagePoint(null)
 		let anchor: TLCommentThread['anchor']
 		if (thread.anchor.type === 'region') {
 			// Translate so the pin (the region's pin corner) lands at the drop; size unchanged.
 			anchor = {
 				...thread.anchor,
-				x: pagePoint.x - regionOptions.pinCorner.x * thread.anchor.w,
-				y: pagePoint.y - regionOptions.pinCorner.y * thread.anchor.h,
+				x: pagePoint.x - pinCorner.x * thread.anchor.w,
+				y: pagePoint.y - pinCorner.y * thread.anchor.h,
 			}
 		} else {
 			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
@@ -1321,10 +1548,13 @@ const ThreadPin = memo(function ThreadPin({
 
 	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
 	// move to the drag point; otherwise it sits at the stored anchor's viewport point.
-	const livePinPage = resizeBounds
-		? regionPinPoint(resizeBounds, regionOptions.pinCorner)
-		: dragPagePoint
-	const renderPoint = livePinPage ? editor.pageToViewport(livePinPage) : point
+	const livePinPage = resizeBounds ? regionPinPoint(resizeBounds, pinCorner) : dragPagePoint
+	const renderPointBase = livePinPage ? editor.pageToViewport(livePinPage) : point
+	// A region's pin centres on its corner — overlapping the box — rather than hanging off it.
+	// The marker anchors bottom-left, so step half its 34px size left and down (screen px).
+	const renderPoint = isRegion
+		? { x: renderPointBase.x - 17, y: renderPointBase.y + 17 }
+		: renderPointBase
 
 	// A region's live box bounds, by priority: a corner resize, else a pin-drag translation (the pin
 	// corner tracks the cursor), else the stored anchor. Undefined for non-region threads.
@@ -1333,15 +1563,16 @@ const ThreadPin = memo(function ThreadPin({
 		regionAnchor && dragPagePoint
 			? {
 					...regionAnchor,
-					x: dragPagePoint.x - regionOptions.pinCorner.x * regionAnchor.w,
-					y: dragPagePoint.y - regionOptions.pinCorner.y * regionAnchor.h,
+					x: dragPagePoint.x - pinCorner.x * regionAnchor.w,
+					y: dragPagePoint.y - pinCorner.y * regionAnchor.h,
 				}
 			: regionAnchor
 	const regionBoxBounds = resizeBounds ?? movedRegion
 	const commitResize = (bounds: BoxModel) => {
 		setResizeBounds(null)
 		editor.run(
-			() => putCommentRecords(editor, [{ ...thread, anchor: { type: 'region', ...bounds } }]),
+			// Spread the existing anchor first so the region's pin corner survives a resize.
+			() => putCommentRecords(editor, [{ ...thread, anchor: { ...regionAnchor!, ...bounds } }]),
 			{
 				history: 'ignore',
 			}
@@ -1369,7 +1600,13 @@ const ThreadPin = memo(function ThreadPin({
 				/>
 			)}
 			<div
-				className={open ? 'tlui-cmt-canvas-pin tlui-cmt-canvas-pin--open' : 'tlui-cmt-canvas-pin'}
+				className={[
+					'tlui-cmt-canvas-pin',
+					open && 'tlui-cmt-canvas-pin--open',
+					dragPagePoint && 'tlui-cmt-canvas-pin--dragging',
+				]
+					.filter(Boolean)
+					.join(' ')}
 				style={{ left: renderPoint.x, top: renderPoint.y }}
 			>
 				<div
@@ -1378,10 +1615,11 @@ const ThreadPin = memo(function ThreadPin({
 					onPointerDown={startDrag}
 					onPointerMove={onDrag}
 					onPointerUp={endDrag}
+					onPointerCancel={cancelDrag}
 					onPointerEnter={() => setPinHovered(true)}
 					onPointerLeave={() => setPinHovered(false)}
 				>
-					<CommentPin resolved={thread.resolved != null} open={open}>
+					<CommentPin resolved={thread.resolved != null} open={open} color={threadAuthor?.color}>
 						{pinContent}
 					</CommentPin>
 				</div>
@@ -1390,29 +1628,35 @@ const ThreadPin = memo(function ThreadPin({
 				{open && (
 					<ThreadPopover
 						container={container}
-						style={{ left: renderPoint.x + 36, top: renderPoint.y - 28 }}
+						// Clear the bottom-left-anchored pin: it spans 34px right of and above the
+						// anchor, plus the open ring's 5px — the popover starts past that, opening
+						// above the pin's top.
+						style={{ left: renderPoint.x + 48, top: renderPoint.y - 54 }}
 					>
 						<CommentThread
 							header={msg('comments.thread-title')}
 							headerActions={headerActions}
 							renderComment={renderComment}
-							comments={comments.map((c) => toCardProps(c, props, options.components))}
+							comments={comments.map((c) => toCardProps(c, props, options.components, resolveName))}
 							resolvedBanner={
 								thread.resolved
 									? msg('comments.resolved-by').replace(
 											'{name}',
-											resolveName(thread.resolved.by) ?? UNKNOWN_AUTHOR
+											resolveAuthor(thread.resolved.by)?.name ?? UNKNOWN_AUTHOR
 										)
 									: undefined
 							}
 							composer={
 								currentUserId && !thread.resolved
 									? {
-											author: resolveName(currentUserId) ?? UNKNOWN_AUTHOR,
+											author: me ?? UNKNOWN_COMMENT_AUTHOR,
 											placeholder: msg('comments.reply-placeholder'),
 											sendLabel: msg('comments.send'),
 											value: reply,
-											onChange: setReply,
+											onChange: (value: TLRichText) => {
+												setReply(value)
+												saveCommentDraft(replyDraftSlot(thread.id), value)
+											},
 											onSubmit: postReply,
 											disabled: isCommentEmpty(reply),
 											getMentionSuggestions,
@@ -1432,12 +1676,17 @@ function PendingComposer({
 	editor,
 	pending,
 	currentUserId,
-	resolveName,
+	resolveAuthor,
 	onPostComment,
 	getMentionSuggestions,
 	renderMentionSuggestion,
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
-	const [text, setText] = useState<TLRichText>(EMPTY_COMMENT)
+	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
+	// Click-away keeps the draft (saved on every change) and the next placement composer
+	// restores it — the flip side of dismissing without a discard warning.
+	const [text, setText] = useState<TLRichText>(
+		() => getCommentDraft(NEW_COMMENT_DRAFT) ?? EMPTY_COMMENT
+	)
 	const ref = useRef<HTMLDivElement>(null)
 	const msg = useTranslation()
 	const container = useContainer()
@@ -1484,31 +1733,41 @@ function PendingComposer({
 			if (onPostComment) onPostComment(comment)
 		})
 		setText(EMPTY_COMMENT)
+		clearCommentDraft(NEW_COMMENT_DRAFT)
 		pendingComment.set(editor, null)
 	}
 
 	return createPortal(
 		<div
 			ref={ref}
-			className="tlui-cmt-canvas-composer"
+			className={[
+				'tlui-cmt-canvas-composer',
+				pending.anchor.type === 'region' && 'tlui-cmt-canvas-composer--region',
+			]
+				.filter(Boolean)
+				.join(' ')}
 			style={{ left: point.x, top: point.y }}
 			onPointerDown={stop}
+			onContextMenu={stop}
 			onKeyDown={(e) => {
 				if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(editor, null)
 			}}
 		>
 			<CommentComposer
-				author={currentUserId ? (resolveName(currentUserId) ?? UNKNOWN_AUTHOR) : ''}
+				author={me ?? UNKNOWN_COMMENT_AUTHOR}
 				placeholder={msg('comments.add-placeholder')}
 				sendLabel={msg('comments.send')}
 				value={text}
-				onChange={setText}
+				onChange={(value) => {
+					setText(value)
+					saveCommentDraft(NEW_COMMENT_DRAFT, value)
+				}}
 				onSubmit={submit}
 				disabled={isCommentEmpty(text)}
 				getMentionSuggestions={getMentionSuggestions}
 				renderMentionSuggestion={renderMentionSuggestion}
 				autoFocus
-				leading={draftAvatar}
+				leading={draftAvatar(me?.color)}
 			/>
 		</div>,
 		container

@@ -10,6 +10,18 @@ export const DEFAULT_IMPRECISE_SHAPE_ANCHOR = { x: 1, y: 0 }
  *  which corner has no resize handle all derive from the chosen corner. */
 export const REGION_PIN_CORNER: VecLike = { x: 1, y: 1 }
 
+/** A region anchor's pin corner: the corner its creating drag released on, when recorded, else
+ *  the editor's configured default. @public */
+export function regionAnchorPinCorner(
+	editor: Editor,
+	anchor: Extract<TLCommentAnchor, { type: 'region' }>
+): VecLike {
+	if (anchor.pinX !== undefined && anchor.pinY !== undefined) {
+		return { x: anchor.pinX, y: anchor.pinY }
+	}
+	return getRegionCommentOptions(editor).pinCorner
+}
+
 /** The page point of a region's pin corner. */
 export function regionPinPoint(region: BoxModel, corner: VecLike = REGION_PIN_CORNER): VecLike {
 	return {
@@ -45,7 +57,7 @@ export function anchorPagePoint(
 		case 'point':
 			return { x: anchor.x, y: anchor.y }
 		case 'region':
-			return regionPinPoint(anchor, getRegionCommentOptions(editor).pinCorner)
+			return regionPinPoint(anchor, regionAnchorPinCorner(editor, anchor))
 		case 'page':
 			return null
 	}

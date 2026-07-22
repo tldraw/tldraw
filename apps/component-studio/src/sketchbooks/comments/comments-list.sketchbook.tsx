@@ -9,7 +9,7 @@ const ago = (ms: number) => new Date(NOW - ms).toISOString()
 const items: CommentListItemProps[] = [
 	{
 		id: '1',
-		author: 'Ada Lovelace',
+		author: { name: 'Ada Lovelace' },
 		preview: 'Should this button be primary? See the spec before we ship.',
 		date: ago(3 * HOUR),
 		count: 3,
@@ -17,13 +17,13 @@ const items: CommentListItemProps[] = [
 	},
 	{
 		id: '2',
-		author: 'Grace Hopper',
+		author: { name: 'Grace Hopper' },
 		preview: 'Spacing looks off on mobile — the send button wraps below the fold.',
 		date: ago(2 * HOUR),
 	},
 	{
 		id: '3',
-		author: 'Jessica Edwards',
+		author: { name: 'Jessica Edwards' },
 		preview: 'Fixed the radius.',
 		date: ago(HOUR),
 		resolved: true,

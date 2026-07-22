@@ -7,6 +7,7 @@
 import { ComponentType } from 'react';
 import { Editor } from 'tldraw';
 import { EditorAtom } from 'tldraw';
+import { JsonObject } from 'tldraw';
 import { JSX } from 'react/jsx-runtime';
 import type { MentionNodeAttrs } from '@tiptap/extension-mention';
 import { ReactNode } from 'react';
@@ -36,14 +37,12 @@ export function anchorPagePoint(editor: Editor, anchor: TLCommentAnchor, impreci
 } | null;
 
 // @public
-export function Avatar({ name, color, image }: AvatarProps): JSX.Element;
+export function Avatar({ author }: AvatarProps): JSX.Element;
 
 // @public (undocumented)
 export interface AvatarProps {
-    color?: string;
-    image?: string;
     // (undocumented)
-    name: string;
+    author: CommentAuthor;
 }
 
 // @public
@@ -52,7 +51,7 @@ export function Byline({ author, date, edited }: BylineProps): JSX.Element;
 // @public (undocumented)
 export interface BylineProps {
     // (undocumented)
-    author: string;
+    author: CommentAuthor;
     date: string;
     edited?: boolean;
 }
@@ -73,7 +72,7 @@ export interface CanvasCommentsProps {
     onPostComment?(comment: TLComment): void;
     regionOptions?: Partial<RegionCommentOptions>;
     renderMentionSuggestion?(member: MentionMember): ReactNode;
-    resolveName(id: string): string | undefined;
+    resolveAuthor(id: string): CommentAuthor | undefined;
 }
 
 // @public
@@ -89,8 +88,7 @@ export interface CanvasCommentsSidebarProps {
         y: number;
     };
     isCommentUnread?(commentId: TLCommentId): boolean;
-    resolveName(id: string): string | undefined;
-    tools?: string[];
+    resolveAuthor(id: string): CommentAuthor | undefined;
 }
 
 // @public
@@ -139,6 +137,15 @@ export function collectClusterLeaves(editor: Editor, threads: readonly TLComment
 }): LeafInput[];
 
 // @public
+export interface CommentAuthor {
+    color?: string;
+    image?: string;
+    meta?: JsonObject;
+    // (undocumented)
+    name: string;
+}
+
+// @public
 export function CommentBody({ richText, resolveName }: CommentBodyProps): JSX.Element;
 
 // @public (undocumented)
@@ -155,7 +162,7 @@ export function CommentCard({ author, body, date, you, edited, actions, footer }
 export interface CommentCardProps {
     actions?: ReactNode;
     // (undocumented)
-    author: string;
+    author: CommentAuthor;
     body: ReactNode;
     date: string;
     edited?: boolean;
@@ -170,7 +177,7 @@ export function CommentComposer({ author, placeholder, value, onChange, onSubmit
 // @public (undocumented)
 export interface CommentComposerProps {
     // (undocumented)
-    author: string;
+    author: CommentAuthor;
     // (undocumented)
     autoFocus?: boolean;
     // (undocumented)
@@ -220,7 +227,7 @@ export interface CommentingOptions {
 // @public (undocumented)
 export interface CommentListItemProps {
     // (undocumented)
-    author: string;
+    author: CommentAuthor;
     count?: number;
     date: string;
     // (undocumented)
@@ -233,11 +240,12 @@ export interface CommentListItemProps {
 }
 
 // @public
-export function CommentPin({ children, resolved, open }: CommentPinProps): JSX.Element;
+export function CommentPin({ children, resolved, open, color }: CommentPinProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentPinProps {
     children?: ReactNode;
+    color?: string;
     open?: boolean;
     // (undocumented)
     resolved?: boolean;
@@ -299,6 +307,12 @@ export function CommentsMenuItem(): JSX.Element;
 export function CommentsOverflowMenu(): JSX.Element;
 
 // @public
+export const commentsSidebarOpen: EditorAtom<boolean>;
+
+// @public
+export function CommentsVisibilityToggle(): JSX.Element;
+
+// @public
 export function CommentText({ text }: CommentTextProps): JSX.Element;
 
 // @public (undocumented)
@@ -334,6 +348,8 @@ export class CommentTool extends StateNode {
     onCancel(): void;
     // (undocumented)
     onEnter(): void;
+    // (undocumented)
+    onExit(): void;
     options: CommentingOptions;
 }
 
@@ -376,7 +392,7 @@ export const DEFAULT_REACTION_EMOJI: string[];
 // @public
 export const DEFAULT_REGION_COMMENT_OPTIONS: RegionCommentOptions;
 
-// @public (undocumented)
+// @public
 export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters;
 
 // @public
@@ -462,14 +478,10 @@ export interface MentionListProps {
 }
 
 // @public
-export interface MentionMember {
+export interface MentionMember extends CommentAuthor {
     [key: string]: unknown;
-    avatar?: string;
-    color?: string;
     // (undocumented)
     id: string;
-    // (undocumented)
-    name: string;
     secondary?: string;
     you?: boolean;
 }
@@ -570,6 +582,11 @@ export interface ReactionSummary {
 }
 
 // @public
+export function regionAnchorPinCorner(editor: Editor, anchor: Extract<TLCommentAnchor, {
+    type: 'region';
+}>): VecLike;
+
+// @public
 export interface RegionCommentOptions {
     enabled: boolean;
     move: 'body' | 'both' | 'pin';
@@ -630,6 +647,9 @@ export function toggleCommentReaction(editor: Editor, comment: TLComment, userId
 export function toggleCommentsHidden(editor: Editor): void;
 
 // @public
+export function toggleCommentsSidebar(editor: Editor): void;
+
+// @public
 export function useCommentingEnabled(): boolean;
 
 // @public
@@ -643,6 +663,9 @@ export function useComments(editor: Editor): TLComment[];
 
 // @public
 export function useCommentsHidden(): boolean;
+
+// @public
+export function useCommentsSidebarOpen(): boolean;
 
 // @public
 export function useCommentThreads(editor: Editor): TLCommentThread[];

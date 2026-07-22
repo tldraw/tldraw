@@ -7,13 +7,13 @@ const ago = (ms: number) => new Date(NOW - ms).toISOString()
 
 const comments = [
 	{
-		author: 'Ada Lovelace',
+		author: { name: 'Ada Lovelace' },
 		body: <CommentText text="Should this button be **primary**?" />,
 		date: ago(2 * HOUR),
 		you: false,
 	},
 	{
-		author: 'You',
+		author: { name: 'You' },
 		body: <CommentText text="Good call — updating it now." />,
 		date: ago(HOUR),
 		you: true,
@@ -31,7 +31,7 @@ export const Open: Sketch<Record<string, never>> = {
 		<CommentThread
 			comments={comments}
 			header="Thread"
-			composer={{ author: 'You', placeholder: 'Reply…' }}
+			composer={{ author: { name: 'You' }, placeholder: 'Reply…' }}
 		/>
 	),
 }

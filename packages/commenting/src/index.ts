@@ -4,6 +4,7 @@ import { registerTldrawLibraryVersion } from '@tldraw/utils'
 // custom commenting UI.
 export { Avatar, type AvatarProps } from './ui/avatar'
 export { Byline, type BylineProps } from './ui/byline'
+export { type CommentAuthor } from './ui/comment-author'
 export { CommentCard, type CommentCardProps } from './ui/comment-card'
 export { CommentComposer, type CommentComposerProps } from './ui/comment-composer'
 export { CountBadge, type CountBadgeProps } from './ui/count-badge'
@@ -81,6 +82,7 @@ export {
 	useCommentingOptions,
 } from './canvas/options'
 export { CommentsOverflowMenu } from './canvas/comments-overflow-menu'
+export { CommentsVisibilityToggle } from './canvas/comments-visibility-toggle'
 export { CanvasCommentsSidebar, type CanvasCommentsSidebarProps } from './canvas/comments-sidebar'
 export { useComments, useCommentThreads, useThreadComments } from './canvas/hooks'
 export { useCommentingEnabled } from './canvas/license'
@@ -89,12 +91,15 @@ export { richTextToPlaintext } from './canvas/rich-text'
 export { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './canvas/sidebar-filters'
 export {
 	commentsHidden,
+	commentsSidebarOpen,
 	commitCommentMutation,
 	openThreadId,
 	pendingComment,
 	sidebarFilters,
 	toggleCommentsHidden,
+	toggleCommentsSidebar,
 	useCommentsHidden,
+	useCommentsSidebarOpen,
 	useOpenThreadId,
 	usePendingComment,
 	useSidebarFilters,
@@ -103,6 +108,7 @@ export {
 	anchorPagePoint,
 	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
 	focusThread,
+	regionAnchorPinCorner,
 	shapeAnchorAt,
 } from './canvas/thread-state'
 

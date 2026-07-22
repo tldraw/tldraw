@@ -36,7 +36,7 @@
 
 .tlui-cmt-head {
 	display: flex;
-	align-items: baseline;
+	align-items: center;
 	gap: 6px;
 }
 
@@ -47,7 +47,7 @@
 }
 
 .tlui-cmt-time {
-	font-size: 11px;
+	font-size: 10px;
 	color: var(--tl-color-text-3);
 }
 
@@ -56,6 +56,9 @@
 	font-size: 13px;
 	line-height: 1.4;
 	color: var(--tl-color-text-1);
+	/* Break long unbroken strings (URLs, keyboard-mashing) so they wrap inside the card instead of
+	   overflowing it. `anywhere` also lets the flex body shrink to the card width. */
+	overflow-wrap: anywhere;
 }
 
 .tlui-cmt-edited {
@@ -146,12 +149,40 @@
 	border-color: var(--tl-color-selected);
 }
 
+/* Expanded: the content no longer fits on one line beside the send button, so the input takes
+   the full width and the send button drops to its own row, right-aligned. */
+.tlui-cmt-composer__field--expanded {
+	flex-wrap: wrap;
+}
+.tlui-cmt-composer__field--expanded .tlui-cmt-composer__input-wrap {
+	flex-basis: 100%;
+	/* The field pads 12px left but only 3px right (the send button's inset). With the input
+	   spanning the full width, give the text the same 12px on the right. */
+	padding-right: 9px;
+}
+.tlui-cmt-composer__field--expanded .tlui-cmt-send {
+	margin-left: auto;
+}
+
 /* the editable area, with the placeholder overlaid while it's empty */
 .tlui-cmt-composer__input-wrap {
 	position: relative;
 	flex: 1;
 	min-width: 0;
 	padding: 3px 0;
+}
+
+/* The hidden single-line measuring clone of the editor's content (see CommentComposer). */
+.tlui-cmt-composer__mirror {
+	position: absolute;
+	top: 0;
+	left: 0;
+	visibility: hidden;
+	pointer-events: none;
+	white-space: nowrap;
+	width: max-content;
+	max-height: none;
+	overflow: visible;
 }
 
 .tlui-cmt-input {
@@ -232,7 +263,7 @@
 	width: 34px;
 	height: 34px;
 	border-radius: 50% 50% 50% 3px;
-	background: var(--tl-color-selected);
+	background: var(--tlui-cmt-pin-color, var(--tl-color-selected));
 	color: #fff;
 	display: flex;
 	align-items: center;
@@ -249,14 +280,20 @@
 .tlui-cmt-pin:hover,
 .pseudo-hover .tlui-cmt-pin {
 	transform: scale(1.08);
+}
+
+/* The hover shadow is for closed pins only — an open pin keeps its selection ring, which this
+   box-shadow would otherwise override (the hover selector outranks the --open rule). */
+.tlui-cmt-pin:not(.tlui-cmt-pin--open):hover,
+.pseudo-hover .tlui-cmt-pin:not(.tlui-cmt-pin--open) {
 	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
 }
 
-/* open: the thread is showing — a selection ring marks the active pin */
+/* open: the thread is showing — a selection ring marks the active pin (in the pin's own tint) */
 .tlui-cmt-pin--open {
 	box-shadow:
 		0 0 0 3px var(--tl-color-panel),
-		0 0 0 5px var(--tl-color-selected),
+		0 0 0 5px var(--tlui-cmt-pin-color, var(--tl-color-selected)),
 		0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
@@ -607,6 +644,38 @@
 	flex-direction: column;
 	gap: 6px;
 }
+/* Inside a thread, author identity is a small colour dot, no initial — the letter doesn't fit
+   at this size. */
+.tlui-cmt-thread .tlui-cmt-avatar {
+	width: 14px;
+	height: 14px;
+	font-size: 0;
+	margin-top: 2px;
+}
+
+.tlui-cmt-thread .tlui-cmt-composer {
+	padding: 4px 0 0;
+}
+.tlui-cmt-thread .tlui-cmt-composer .tlui-cmt-avatar {
+	display: none;
+}
+
+/* The sidebar's rows use the same small colour dot as the thread view. */
+.tlui-cmt-list .tlui-cmt-avatar {
+	width: 14px;
+	height: 14px;
+	font-size: 0;
+	margin-top: 2px;
+}
+
+/* The dot treatment is for colour-only identity — an image avatar stays full size. */
+.tlui-cmt-thread .tlui-cmt-avatar--image,
+.tlui-cmt-list .tlui-cmt-avatar--image {
+	width: 24px;
+	height: 24px;
+	margin-top: 0;
+}
+
 /* inside the panel, comments are plain content — no surrounding box; the composer's field carries
    its own surface. */
 .tlui-cmt-thread .tlui-cmt-card {
@@ -633,11 +702,9 @@
 	border-bottom: 1px solid var(--tl-color-divider);
 }
 .tlui-cmt-list__header-title {
-	font-size: 11px;
+	font-size: 13px;
 	font-weight: 600;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
-	color: var(--tl-color-text-3);
+	color: var(--tl-color-text-1);
 }
 
 /* a small square icon button in the sidebar header (filter funnel, overflow …) */
@@ -665,6 +732,11 @@
 	gap: 2px;
 }
 
+/* The commenting dropdowns' surface — a little air between the items and the menu edge. */
+.tlui-cmt-menu {
+	padding: 4px;
+}
+
 /* a menu row with a label and a right-aligned shortcut hint (overflow menu) */
 .tlui-cmt-menu-item {
 	display: flex;
@@ -677,13 +749,18 @@
 	border-radius: 6px;
 	background: transparent;
 	font: inherit;
-	font-size: 13px;
+	font-size: 12px;
 	color: var(--tl-color-text-1);
 	cursor: pointer;
 }
 .tlui-cmt-menu-item:hover {
 	background: var(--tl-color-muted-2);
 }
+/* Destructive menu entries (delete) — the same danger colour as tldraw's danger buttons. */
+.tlui-cmt-menu-item--danger {
+	color: var(--tl-color-danger);
+}
+
 .tlui-cmt-menu-item__shortcut {
 	color: var(--tl-color-text-3);
 	font-size: 12px;
@@ -713,8 +790,16 @@
 .tlui-cmt-list__item:hover {
 	background: var(--tl-color-muted-2);
 }
-.tlui-cmt-list__item--selected {
-	background: var(--tl-color-muted-1);
+/* Selected sits a step above hover so the open thread's row stays distinguishable while
+   pointing at other rows — but only a step: the muted-1 token (10%) reads too heavy here.
+   These rows sit on the opaque sidebar panel, so a translucent tint composes safely. */
+.tlui-cmt-list__item--selected,
+.tlui-cmt-list__item--selected:hover {
+	background: hsl(0, 0%, 0%, 5%);
+}
+.tl-theme__dark .tlui-cmt-list__item--selected,
+.tl-theme__dark .tlui-cmt-list__item--selected:hover {
+	background: hsl(0, 0%, 100%, 5%);
 }
 /* resolved rows mute their content but keep the "Resolved" marker legible */
 .tlui-cmt-list__item[data-resolved] .tlui-cmt-head,
@@ -734,6 +819,9 @@
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
+	/* Long unbroken strings (URLs, mashed keys) wrap onto the clamped lines instead of clipping
+	   mid-string — same treatment as the card body. */
+	overflow-wrap: anywhere;
 }
 /* meta line under the preview: page label and/or a resolved marker */
 .tlui-cmt-list__item-meta {

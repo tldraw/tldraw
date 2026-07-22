@@ -22,7 +22,7 @@ export const InThread: Sketch<MentionProps> = {
 			header="Thread"
 			comments={[
 				{
-					author: 'Grace Hopper',
+					author: { name: 'Grace Hopper' },
 					body: (
 						<span>
 							Hey <Mention name="Ada Lovelace" />, can you take a look at this bug?
@@ -32,7 +32,7 @@ export const InThread: Sketch<MentionProps> = {
 					you: false,
 				},
 				{
-					author: 'You',
+					author: { name: 'You' },
 					body: (
 						<span>
 							On it — looping in <Mention name="Alan Turing" /> too.
@@ -42,7 +42,7 @@ export const InThread: Sketch<MentionProps> = {
 					you: true,
 				},
 			]}
-			composer={{ author: 'You', placeholder: 'Reply…' }}
+			composer={{ author: { name: 'You' }, placeholder: 'Reply…' }}
 		/>
 	),
 }

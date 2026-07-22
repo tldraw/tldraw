@@ -1,12 +1,9 @@
 import { getFirstCharacter } from 'tldraw'
+import { CommentAuthor } from './comment-author'
 
 /** @public */
 export interface AvatarProps {
-	name: string
-	/** Background colour, used when there's no `image`. Falls back to the default avatar tint. */
-	color?: string
-	/** Avatar image URL. When set, shows the image instead of the coloured initial. */
-	image?: string
+	author: CommentAuthor
 }
 
 function initial(name: string) {
@@ -15,12 +12,12 @@ function initial(name: string) {
 
 /** A commenter's avatar — their image if provided, otherwise a single-initial coloured circle.
  * @public @react */
-export function Avatar({ name, color, image }: AvatarProps) {
-	if (image) {
+export function Avatar({ author }: AvatarProps) {
+	if (author.image) {
 		return (
 			<img
 				className="tlui-cmt-avatar tlui-cmt-avatar--image"
-				src={image}
+				src={author.image}
 				alt=""
 				aria-hidden="true"
 			/>
@@ -30,9 +27,9 @@ export function Avatar({ name, color, image }: AvatarProps) {
 		<div
 			className="tlui-cmt-avatar"
 			aria-hidden="true"
-			style={color ? { backgroundColor: color } : undefined}
+			style={author.color ? { backgroundColor: author.color } : undefined}
 		>
-			{initial(name)}
+			{initial(author.name)}
 		</div>
 	)
 }

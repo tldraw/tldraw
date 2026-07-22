@@ -1,15 +1,20 @@
 import { generateHTML, generateText, JSONContent } from '@tiptap/core'
 import { TLRichText } from 'tldraw'
+import { CommentAuthor } from '../ui/comment-author'
 import { commentTipTapExtensions, isCommentEmpty } from '../ui/comment-extensions'
 import { commentMention } from '../ui/comment-mention'
 
 /**
  * The author name shown in a byline when no source can name an id (e.g. a deleted account, or a
  * member with no comment and no live presence). The toolkit's one generic default, applied where a
- * byline needs a name; hosts pre-empt it by returning a name from `resolveName`. Not a translation
- * key — a single English literal, matching the prior host-side default.
+ * byline needs a name; hosts pre-empt it by resolving the id from `resolveAuthor`. Not a
+ * translation key — a single English literal.
  */
 export const UNKNOWN_AUTHOR = 'Someone'
+
+/** The `CommentAuthor` fallback for an unresolvable id — just the name, no color or image.
+ *  Frozen: the one shared instance is handed to host render slots. */
+export const UNKNOWN_COMMENT_AUTHOR: CommentAuthor = Object.freeze({ name: UNKNOWN_AUTHOR })
 
 /**
  * The comment extension set has no heading node, so a body that nonetheless contains one (e.g. a

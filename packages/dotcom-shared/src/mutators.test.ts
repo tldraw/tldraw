@@ -52,6 +52,9 @@ function makeComment(overrides: Partial<TlaComment> & { id: string; fileId: stri
 		threadId: 'thread-1',
 		pageId: 'page:page',
 		authorId: 'author-1',
+		authorName: 'Author One',
+		authorColor: '#EC5E41',
+		authorAvatar: '',
 		body: {},
 		createdAt: 1,
 		updatedAt: 1,
@@ -718,6 +721,37 @@ describe('onEnterFile', () => {
 		const m = createMutators(userId)
 		await m.onEnterFile(tx, { fileId, time: Date.now() })
 		expect((s.group_file as TlaGroupFile[]).some((gf) => gf.groupId === userId)).toBe(false)
+	})
+
+	it('mirrors a shared file into home even when a mislinked group_file row points at one of my workspaces', async () => {
+		// Regression: a leftover "link" group_file row (from the removed drag-to-link feature)
+		// puts the file in a workspace the user belongs to WITHOUT that workspace owning it.
+		// The sidebar only lists a non-home workspace's file when it owns it, so this row shows
+		// the file nowhere. Entering the file must still create the home link so it's visible.
+		const ownerHome = 'user_fileowner1234567'
+		const workspaceB = 'group_workspaceB12345'
+		const s = {
+			user: [makeUser({ id: userId })],
+			file: [makeFile({ id: fileId, owningGroupId: ownerHome, shared: true })],
+			file_state: [],
+			group: [
+				makeGroup({ id: userId }),
+				makeGroup({ id: workspaceB }),
+				makeGroup({ id: ownerHome }),
+			],
+			group_user: [
+				makeGroupUser({ userId, groupId: userId, role: 'owner' }),
+				makeGroupUser({ userId, groupId: workspaceB, role: 'member' }),
+			],
+			// mislinked row: workspaceB does not own the file (owningGroupId is ownerHome)
+			group_file: [makeGroupFile({ fileId, groupId: workspaceB })],
+			comment: [],
+			comment_read: [],
+		}
+		const { tx } = createMockTx(s, { location: 'server' })
+		const m = createMutators(userId)
+		await m.onEnterFile(tx, { fileId, time: Date.now() })
+		expect((s.group_file as TlaGroupFile[]).some((gf) => gf.groupId === userId)).toBe(true)
 	})
 
 	it('mirrors a group-less (legacy) file into home so it stays findable', async () => {

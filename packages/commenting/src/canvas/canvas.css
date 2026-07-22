@@ -15,9 +15,15 @@
 	position: absolute;
 }
 
-.tlui-cmt-canvas-pin,
 .tlui-cmt-canvas-composer {
 	pointer-events: auto;
+}
+
+/* The pin's only interactive surface is the square hit layer below — the wrapper itself is
+   inert. Its box sits at the anchor point, not over the (translated) visual, so letting it take
+   events would put a phantom hit zone beside the pin. */
+.tlui-cmt-canvas-pin {
+	pointer-events: none;
 }
 
 /* Badges are clickable (zoom to the cluster's first split). */
@@ -91,15 +97,43 @@
 	touch-action: none;
 }
 
-/* Centre the pin marker on its anchor point. */
+/* Anchor the pin by its bottom-left corner, so the marker's one sharp corner (the pin shape's
+   3px bottom-left) points at the exact anchor point. */
 .tlui-cmt-canvas-pin__marker {
+	position: relative;
 	width: max-content;
-	transform: translate(-50%, -50%);
-	cursor: grab;
+	transform: translate(0, -100%);
+	/* Default at rest, like hovering a shape; the editor's move cursor while dragging (below). */
+	cursor: var(--tl-cursor-default);
 	touch-action: none;
+	pointer-events: none;
 }
-.tlui-cmt-canvas-pin__marker:active {
-	cursor: grabbing;
+
+/* Dragging a pin shows the same move cursor as dragging a shape. */
+.tlui-cmt-canvas-pin--dragging .tlui-cmt-canvas-pin__marker {
+	cursor: var(--tl-cursor-move);
+}
+
+/* The predictable hit area: a fixed square over the marker's box, and the only part of the pin
+   that takes pointer events. Events over it target the marker (a pseudo-element's events report
+   its originating element), so the marker's handlers and :hover keep working — but the hit area
+   no longer stretches with pin content or scales with the hover transform. */
+.tlui-cmt-canvas-pin__marker::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	pointer-events: auto;
+}
+
+/* With the hit layer targeting the marker, the pin visual is never the hovered element itself
+   (`:hover` matches the target and its ancestors, and the pin is the marker's child) — so the
+   canvas pin's hover styling keys off the marker. The hover shadow is for closed pins only: an
+   open pin keeps its selection ring, which the shadow would otherwise override. */
+.tlui-cmt-canvas-pin__marker:hover .tlui-cmt-pin {
+	transform: scale(1.08);
+}
+.tlui-cmt-canvas-pin__marker:hover .tlui-cmt-pin:not(.tlui-cmt-pin--open) {
+	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
 }
 
 /* The open thread's popover — portaled to the menus layer (above the UI), positioned at the pin. */
@@ -116,10 +150,19 @@
 	position: absolute;
 	z-index: var(--tl-layer-menus);
 	pointer-events: auto;
-	transform: translateY(8px);
+	/* Anchor the draft avatar bottom-left like the pins it becomes: it is 34px wide and sits 4px
+	   into the row, so its bottom-left corner is 4px right of and 4 + 34 = 38px below the
+	   composer's top-left corner. */
+	transform: translate(-4px, -38px);
 	/* The rich-text editor has no intrinsic width (unlike the old <input>), so give the floating
 	   placement composer a definite width or it collapses to nothing. */
 	width: 280px;
+}
+
+/* A region placement centres the draft avatar on the region's pin corner — the pin it becomes
+   straddles that corner. The avatar's centre sits 4 + 34/2 = 21px into the composer. */
+.tlui-cmt-canvas-composer--region {
+	transform: translate(-21px, -21px);
 }
 .tlui-cmt-canvas-composer .tlui-cmt-composer__field {
 	background: var(--tl-color-panel);
@@ -128,16 +171,16 @@
 	box-shadow: var(--tl-shadow-2);
 }
 
-/* The comments list panel — a right-side surface shown while the comment tool is active. Below
-   the popover layer, so an open thread still draws over it. Sits under the top-right share panel
-   (top offset clears its ~48px height) and sizes to its content, scrolling past max-height rather
-   than stretching the full canvas height. */
+/* The comments list panel — a right-side surface shown while the comments sidebar is open. Below
+   the popover layer, so an open thread still draws over it. Its top aligns flush with the style
+   panel (48px from the top, clearing the share panel) and it sizes to its content, scrolling past
+   max-height rather than stretching the full canvas height. */
 .tlui-cmt-canvas-sidebar {
 	position: absolute;
-	top: 56px;
+	top: 48px;
 	right: 8px;
 	width: 280px;
-	max-height: calc(100% - 64px);
+	max-height: calc(100% - 56px);
 	z-index: var(--tl-layer-panels);
 	pointer-events: auto;
 	display: flex;

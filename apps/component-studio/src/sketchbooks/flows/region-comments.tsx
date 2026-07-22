@@ -1,5 +1,6 @@
 import {
 	CanvasComments,
+	CommentAuthor,
 	commentToolOverrides,
 	commentTools,
 	RegionCommentOptions,
@@ -18,9 +19,12 @@ import {
 } from 'tldraw'
 import './region-comments.css'
 
-// A tiny local user directory so the flow shows names instead of ids.
-const NAMES: Record<string, string> = { me: 'You', ada: 'Ada Lovelace' }
-const resolveName = (id: string): string => NAMES[id] ?? id
+// A tiny local user directory so the flow shows names and colors instead of ids.
+const AUTHORS: Record<string, CommentAuthor> = {
+	me: { name: 'You', color: '#EC5E41' },
+	ada: { name: 'Ada Lovelace', color: '#0E9F6E' },
+}
+const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 
 export interface RegionCommentsFlowProps {
 	/** The region behaviour to showcase. Region is always enabled in this flow; each sketch overrides
@@ -46,7 +50,7 @@ export function RegionCommentsFlow({ regionOptions, seeded = true }: RegionComme
 			InFrontOfTheCanvas: () => (
 				<CanvasComments
 					currentUserId="me"
-					resolveName={resolveName}
+					resolveAuthor={resolveAuthor}
 					regionOptions={{ enabled: true, ...regionOptions }}
 				/>
 			),
