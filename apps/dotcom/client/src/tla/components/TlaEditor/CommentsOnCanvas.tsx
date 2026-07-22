@@ -37,7 +37,6 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			return {
 				name: prefs.name || 'You',
 				color: prefs.color ?? undefined,
-				image: app.getUser().avatar || undefined,
 			}
 		},
 		[app]
@@ -64,7 +63,6 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 				authors.set(c.authorId, {
 					name: c.author.name,
 					color: c.author.color,
-					image: c.author.avatar || undefined,
 				})
 			}
 		}

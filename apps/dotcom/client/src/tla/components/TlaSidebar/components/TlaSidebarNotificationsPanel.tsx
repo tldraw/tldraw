@@ -89,7 +89,6 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 		author: {
 			name: c.author?.name ?? c.authorId,
 			color: c.author?.color,
-			image: c.author?.avatar || undefined,
 		},
 		preview: richTextToPlaintext(c.body as TLRichText),
 		date: new Date(c.createdAt).toISOString(),
