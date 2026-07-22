@@ -687,8 +687,11 @@
 .tlui-cmt-list__item:hover {
 	background: var(--tl-color-muted-2);
 }
-.tlui-cmt-list__item--selected {
-	background: var(--tl-color-muted-2);
+/* Selected sits a step above hover (muted-1 over muted-2) so the open thread's row stays
+   distinguishable while pointing at other rows. */
+.tlui-cmt-list__item--selected,
+.tlui-cmt-list__item--selected:hover {
+	background: var(--tl-color-muted-1);
 }
 /* resolved rows mute their content but keep the "Resolved" marker legible */
 .tlui-cmt-list__item[data-resolved] .tlui-cmt-head,
@@ -708,6 +711,9 @@
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
+	/* Long unbroken strings (URLs, mashed keys) wrap onto the clamped lines instead of clipping
+	   mid-string — same treatment as the card body. */
+	overflow-wrap: anywhere;
 }
 /* meta line under the preview: page label and/or a resolved marker */
 .tlui-cmt-list__item-meta {

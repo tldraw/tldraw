@@ -351,7 +351,7 @@ export const DEFAULT_IMPRECISE_SHAPE_ANCHOR: {
 // @public
 export const DEFAULT_REGION_COMMENT_OPTIONS: RegionCommentOptions;
 
-// @public (undocumented)
+// @public
 export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters;
 
 // @public
