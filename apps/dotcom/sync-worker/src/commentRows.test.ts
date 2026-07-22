@@ -77,6 +77,10 @@ describe('commentRecordToRow', () => {
 			threadId: thread.id,
 			pageId,
 			authorId: 'user1',
+			// placeholders — a Postgres trigger stamps the real values on insert
+			authorName: '',
+			authorColor: '',
+			authorAvatar: '',
 			body: comment.body,
 			createdAt: 1500,
 			editedAt: null,

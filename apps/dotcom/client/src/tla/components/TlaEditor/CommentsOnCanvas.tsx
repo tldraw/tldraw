@@ -16,9 +16,9 @@ type FileComments = QueryResultType<typeof queries.fileComments>
  * dotcom's comments layer: a thin consumer of `@tldraw/commenting`'s `<CanvasComments>`.
  * All the flow (tool, pins, thread popovers, composer, rich-text bodies) lives in the toolkit;
  * dotcom only supplies the pieces that are its own — the signed-in user's id, an author resolver
- * (current user from preferences, other authors from the Zero comments query's author join, with
- * live presence as a fallback for users who haven't committed a comment yet, e.g. a draft
- * composer's byline), and comment read status from Zero's read receipts.
+ * (current user from preferences, other authors from the Zero comments query's denormalized
+ * author fields, with live presence as a fallback for users who haven't committed a comment yet,
+ * e.g. a draft composer's byline), and comment read status from Zero's read receipts.
  *
  * Read status and author names come from a Zero query scoped to this one file (not the app-level
  * notifications feed, which is bounded to recent comments), so every unread pin resolves however
@@ -42,8 +42,8 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		[app]
 	)
 
-	// This file's comments (author joins + the caller's read receipts) from Zero. A live view we
-	// own — resubscribed when the file changes and destroyed on unmount.
+	// This file's comments (denormalized author fields + the caller's read receipts) from Zero. A
+	// live view we own — resubscribed when the file changes and destroyed on unmount.
 	const [fileComments, setFileComments] = useState<FileComments>([])
 	useEffect(() => {
 		if (!app) return
@@ -59,10 +59,10 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	const commentAuthors = useMemo(() => {
 		const authors = new Map<string, CommentAuthor>()
 		for (const c of fileComments) {
-			if (c.author?.name) {
+			if (c.authorName) {
 				authors.set(c.authorId, {
-					name: c.author.name,
-					color: c.author.color,
+					name: c.authorName,
+					color: c.authorColor || undefined,
 				})
 			}
 		}

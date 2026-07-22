@@ -17,9 +17,9 @@ const REASON_PRIORITY: CommentNotificationReason[] = ['mention', 'reply', 'owned
 
 /**
  * The comment fields {@link categorizeCommentNotifications} needs. A structural subset of the
- * `app.getComments()` row (with its `author`/`file`/`thread`/`read` relationships) so the
- * categorization can be unit-tested without Zero types. `read` is the caller's read receipt — a
- * related row when present, absent (falsy) when unread.
+ * `app.getComments()` row (with its `file`/`thread`/`read` relationships) so the categorization
+ * can be unit-tested without Zero types. `read` is the caller's read receipt — a related row
+ * when present, absent (falsy) when unread.
  */
 export interface CommentNotificationInput {
 	id: string

@@ -133,6 +133,11 @@ export const comment = table('comment')
 		threadId: string(),
 		pageId: string(),
 		authorId: string(),
+		// Author display fields, denormalized by Postgres triggers (migration 038, same pattern
+		// as file.ownerName) — joining the user row would sync private fields to every reader.
+		authorName: string(),
+		authorColor: string(),
+		authorAvatar: string(),
 		body: json(),
 		createdAt: number(),
 		updatedAt: number(),
@@ -265,16 +270,13 @@ const groupFileRelationships = relationships(group_file, ({ one, many }) => ({
 	}),
 }))
 
+// No author relationship — author info comes from the denormalized authorName/authorColor/
+// authorAvatar columns (see the comment table definition).
 const commentRelationships = relationships(comment, ({ one, many }) => ({
 	file: one({
 		sourceField: ['fileId'],
 		destField: ['id'],
 		destSchema: file,
-	}),
-	author: one({
-		sourceField: ['authorId'],
-		destField: ['id'],
-		destSchema: user,
 	}),
 	thread: one({
 		sourceField: ['threadId'],
