@@ -103,12 +103,11 @@
 	position: relative;
 	width: max-content;
 	transform: translate(0, -100%);
-	cursor: grab;
+	/* Pointer, not grab/grabbing: dragging a pin matches dragging a shape, which shows no
+	   special drag cursor. */
+	cursor: pointer;
 	touch-action: none;
 	pointer-events: none;
-}
-.tlui-cmt-canvas-pin__marker:active {
-	cursor: grabbing;
 }
 
 /* The predictable hit area: a fixed square over the marker's box, and the only part of the pin
