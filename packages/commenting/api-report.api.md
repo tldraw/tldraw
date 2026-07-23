@@ -225,6 +225,7 @@ export interface CommentingOptions {
         readonly x: number;
         readonly y: number;
     };
+    shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean;
 }
 
 // @public (undocumented)
@@ -387,6 +388,7 @@ export const defaultCommentingOptions: {
         readonly x: 1;
         readonly y: 0;
     };
+    readonly shouldBePrecise: () => true;
 };
 
 // @public
@@ -551,6 +553,16 @@ export function shapeAnchorAt(editor: Editor, shapeId: TLShapeId, page: {
     x: number;
     y: number;
 }, precise: boolean): TLCommentAnchor;
+
+// @public
+export interface ShapeCommentPrecisionContext {
+    // (undocumented)
+    readonly altKey: boolean;
+    // (undocumented)
+    readonly point: VecLike;
+    // (undocumented)
+    readonly shapeId: TLShapeId;
+}
 
 // @public
 export interface SidebarFilters {

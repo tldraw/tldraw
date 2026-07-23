@@ -63,6 +63,7 @@ export {
 	defaultCommentingOptions,
 	getCanComment,
 	getCommentingOptions,
+	type ShapeCommentPrecisionContext,
 	useCanComment,
 	useCommentingOptions,
 } from './canvas/options'
