@@ -223,12 +223,19 @@ export interface AssetUploadQueueMessage {
 	userId: string | null
 }
 
+/**
+ * The two kinds of publicly viewable board the thumbnail/OG screenshot surfaces render:
+ * `published` is a frozen tldraw.com/p/:slug snapshot; `shared_file` is the live snapshot of an
+ * anonymously-shared tldraw.com/f/:slug file.
+ */
+export type ThumbnailBoardKind = 'published' | 'shared_file'
+
 // Asks the queue consumer to render a board's OG image through Browser Run and refresh the R2
 // cache read by GET /app/social-preview/:prefix/:slug/image. Board state (share gate, content
 // version) is deliberately not carried in the message; the consumer re-resolves it at render time.
 export interface OgImageRenderQueueMessage {
 	type: 'og-image-render'
-	kind: 'published' | 'shared_file'
+	kind: ThumbnailBoardKind
 	slug: string
 	// How many times this job has been re-enqueued because the shared global Browser Run cap was busy
 	// (see requeueForRateLimit). Bounds the rate-limit backoff loop: each rate-limited delivery still

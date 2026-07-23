@@ -1,9 +1,32 @@
 import { vi } from 'vitest'
 import { Environment } from '../../types'
 
-// Shared fakes for the Browser Run thumbnail / OG image tests (sharedBoardScreenshotMcp,
-// ogImageQueue, getOgImage). These were copy-pasted across those files; keep them here so the
-// R2/browser/queue fakes and token helpers stay in one place.
+// Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
+// sharedBoardScreenshotMcp, ogImageQueue, getOgImage). These were copy-pasted across those files;
+// keep them here so the R2/browser/queue fakes, snapshot builder, and token helpers stay in one
+// place.
+
+// Builds a room snapshot with the given pages and per-page shape counts. Shapes are parented
+// directly to their page, which is what enumerateBoardPages checks for "has content".
+export function makeSnapshot(
+	pages: Array<{ id: string; index: string; name?: string; shapes: number }>,
+	boardName: string | null = 'My Board'
+) {
+	const documents: Array<{ state: any }> = [
+		{ state: { typeName: 'document', id: 'document:document', name: boardName ?? '' } },
+	]
+	for (const page of pages) {
+		documents.push({
+			state: { typeName: 'page', id: page.id, name: page.name, index: page.index },
+		})
+		for (let i = 0; i < page.shapes; i++) {
+			documents.push({
+				state: { typeName: 'shape', id: `shape:${page.id}-${i}`, parentId: page.id },
+			})
+		}
+	}
+	return { documents, schema: { schemaVersion: 2, sequences: {} } } as any
+}
 
 // In-memory stand-in for the THUMBNAILS R2 bucket. Exposes `store` so tests can inspect or seed
 // entries directly. Covers get/head/put/delete; entries carry the customMetadata and upload time
