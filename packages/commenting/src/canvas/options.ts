@@ -23,9 +23,10 @@ export interface CommentingComponents {
 	ThreadPreview?: ComponentType<{ comment: TLComment }>
 	/** Shown where a composer would sit when the viewer can't compose (see
 	 *  {@link CommentingOptions.canComment} — a signed-out viewer, a viewer role, a host that
-	 *  turns commenting off). Renders at the bottom of an open thread popover and in the
-	 *  placement popover the comment tool opens. Unset, those surfaces render nothing. */
-	ComposerFallback?: ComponentType
+	 *  turns commenting off). `context` says which surface is rendering it: the bottom of an open
+	 *  thread popover (`'thread'`) or the placement popover the comment tool opens (`'pending'`).
+	 *  Unset, those surfaces render nothing. */
+	ComposerFallback?: ComponentType<{ context: 'pending' | 'thread' }>
 }
 
 /**

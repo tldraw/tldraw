@@ -1665,7 +1665,7 @@ const ThreadPin = memo(function ThreadPin({
 							}
 							footer={
 								!canComment && !thread.resolved && ComposerFallback ? (
-									<ComposerFallback />
+									<ComposerFallback context="thread" />
 								) : undefined
 							}
 						/>
@@ -1779,7 +1779,7 @@ function PendingComposer({
 					leading={draftAvatar(me?.color)}
 				/>
 			) : (
-				ComposerFallback && <ComposerFallback />
+				ComposerFallback && <ComposerFallback context="pending" />
 			)}
 		</div>,
 		container

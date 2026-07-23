@@ -197,7 +197,9 @@ export interface CommentingComponents {
     CommentBody?: ComponentType<{
         comment: TLComment;
     }>;
-    ComposerFallback?: ComponentType;
+    ComposerFallback?: ComponentType<{
+        context: 'pending' | 'thread';
+    }>;
     PinContent?: ComponentType<{
         comments: TLComment[];
         thread: TLCommentThread;
