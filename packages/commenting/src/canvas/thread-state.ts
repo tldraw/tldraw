@@ -1,5 +1,5 @@
 import { BoxModel, Editor, TLCommentAnchor, TLCommentThread, TLShapeId, VecLike } from 'tldraw'
-import { getRegionCommentOptions } from './region-options'
+import { getCommentingOptions } from './options'
 import { openThreadId } from './state'
 
 /** Where an imprecise shape comment sits by default: the shape's top-right corner. Overridable. @public */
@@ -24,8 +24,8 @@ export function impreciseShapePinInset(
 }
 
 /** The default corner a region's pin and composer sit on, as a normalized 0–1 offset (bottom-right).
- *  Overridable per editor via region options; pin position, composer placement, region move, and
- *  which corner has no resize handle all derive from the chosen corner. */
+ *  Overridable per editor via the `regionPinCorner` commenting option; pin position, composer
+ *  placement, region move, and which corner has no resize handle all derive from the chosen corner. */
 export const REGION_PIN_CORNER: VecLike = { x: 1, y: 1 }
 
 /** A region anchor's pin corner: the corner its creating drag released on, when recorded, else
@@ -37,7 +37,7 @@ export function regionAnchorPinCorner(
 	if (anchor.pinX !== undefined && anchor.pinY !== undefined) {
 		return { x: anchor.pinX, y: anchor.pinY }
 	}
-	return getRegionCommentOptions(editor).pinCorner
+	return getCommentingOptions(editor).regionPinCorner
 }
 
 /** The page point of a region's pin corner. */

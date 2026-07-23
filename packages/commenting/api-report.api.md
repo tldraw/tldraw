@@ -71,7 +71,6 @@ export interface CanvasCommentsProps {
     isCommentUnread?(commentId: TLCommentId): boolean;
     onCommentRead?(commentId: TLCommentId): void;
     onPostComment?(comment: TLComment): void;
-    regionOptions?: Partial<RegionCommentOptions>;
     renderMentionSuggestion?(member: MentionMember): ReactNode;
     resolveAuthor(id: string): CommentAuthor | undefined;
 }
@@ -216,11 +215,19 @@ export interface CommentingOptions {
     readonly components: CommentingComponents;
     readonly dragHistory: TLHistoryBatchOptions['history'] | undefined;
     readonly enableClustering: boolean;
+    readonly enableRegions: boolean;
     readonly history: TLHistoryBatchOptions['history'];
     readonly impreciseShapeAnchor: {
         readonly x: number;
         readonly y: number;
     };
+    readonly regionMove: 'body' | 'both' | 'pin';
+    readonly regionPinCorner: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly regionResize: 'corners' | 'edges' | 'none';
+    readonly regionReveal: 'open' | 'pin-hover' | 'pointer';
     shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean;
 }
 
@@ -365,9 +372,6 @@ export const DEFAULT_IMPRECISE_SHAPE_ANCHOR: {
 };
 
 // @public
-export const DEFAULT_REGION_COMMENT_OPTIONS: RegionCommentOptions;
-
-// @public
 export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters;
 
 // @public
@@ -378,11 +382,19 @@ export const defaultCommentingOptions: {
     readonly components: {};
     readonly dragHistory: undefined;
     readonly enableClustering: true;
+    readonly enableRegions: false;
     readonly history: "ignore";
     readonly impreciseShapeAnchor: {
         readonly x: 1;
         readonly y: 0;
     };
+    readonly regionMove: "pin";
+    readonly regionPinCorner: {
+        readonly x: 1;
+        readonly y: 1;
+    };
+    readonly regionResize: "corners";
+    readonly regionReveal: "pointer";
     readonly shouldBePrecise: () => true;
 };
 
@@ -486,15 +498,6 @@ export function Reactions(): JSX.Element;
 export function regionAnchorPinCorner(editor: Editor, anchor: Extract<TLCommentAnchor, {
     type: 'region';
 }>): VecLike;
-
-// @public
-export interface RegionCommentOptions {
-    enabled: boolean;
-    move: 'body' | 'both' | 'pin';
-    pinCorner: VecLike;
-    resize: 'corners' | 'edges' | 'none';
-    reveal: 'open' | 'pin-hover' | 'pointer';
-}
 
 // @public
 export function registerCommentAnchorLifecycle(editor: Editor, impreciseShapeAnchor?: {
