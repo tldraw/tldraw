@@ -159,8 +159,9 @@ function ThumbnailRenderPage({
 // Displays the exported PNG at the exact output size and signals readiness once it has painted, so
 // the worker's screenshot (which waits on data-thumbnail-ready) captures the export pixel-for-pixel.
 // The editor DOM is gone by now — React swaps it out in the same commit that renders this — so the
-// page is quiescent when the screenshot is taken.
-function ThumbnailImage({
+// page is quiescent when the screenshot is taken. Also used by the dev fixture page
+// (dev-browser-run-thumbnail.tsx), so its ready/error markers stay identical to production's.
+export function ThumbnailImage({
 	dataUrl,
 	width,
 	height,
@@ -176,11 +177,7 @@ function ThumbnailImage({
 			alt=""
 			style={{ display: 'block', width, height }}
 			onLoad={signalThumbnailReady}
-			onError={() => {
-				const message = 'thumbnail image failed to load'
-				document.body.dataset.thumbnailError = message
-				document.documentElement.dataset.thumbnailError = message
-			}}
+			onError={() => setThumbnailError('thumbnail image failed to load')}
 		/>
 	)
 }
@@ -188,6 +185,13 @@ function ThumbnailImage({
 function signalThumbnailReady() {
 	document.body.dataset.thumbnailReady = 'true'
 	document.documentElement.dataset.thumbnailReady = 'true'
+}
+
+// Marks the terminal failure state on both <html> and <body>: the worker's screenshot wait resolves
+// on either marker, and success marks both, so failure does too.
+function setThumbnailError(message: string) {
+	document.body.dataset.thumbnailError = message
+	document.documentElement.dataset.thumbnailError = message
 }
 
 // A data-URL <img> can finish decoding before React attaches the onLoad handler, in which case
@@ -199,9 +203,10 @@ function signalThumbnailReadyIfComplete(img: HTMLImageElement | null) {
 
 function ThumbnailRenderError({ message }: { message: string }) {
 	useEffect(() => {
-		document.body.dataset.thumbnailError = message
+		setThumbnailError(message)
 		return () => {
 			delete document.body.dataset.thumbnailError
+			delete document.documentElement.dataset.thumbnailError
 		}
 	}, [message])
 
@@ -317,9 +322,7 @@ export function ThumbnailExportSignal({
 			await onImage(blob)
 		})().catch((error) => {
 			if (cancelled) return
-			const message = error instanceof Error ? error.message : String(error)
-			document.body.dataset.thumbnailError = message
-			document.documentElement.dataset.thumbnailError = message
+			setThumbnailError(error instanceof Error ? error.message : String(error))
 		})
 
 		return () => {
@@ -405,7 +408,7 @@ function makeBlankThumbnail(width: number, height: number, background: string): 
 	})
 }
 
-function blobToDataUrl(blob: Blob): Promise<string> {
+export function blobToDataUrl(blob: Blob): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const reader = new FileReader()
 		reader.onload = () => resolve(reader.result as string)

@@ -1,16 +1,23 @@
 import { mkdir, writeFile } from 'fs/promises'
 import path from 'path'
 import { pathToFileURL } from 'url'
+import {
+	DEFAULT_THUMBNAIL_HEIGHT,
+	DEFAULT_THUMBNAIL_WIDTH,
+	MAX_THUMBNAIL_DIMENSION,
+	MIN_THUMBNAIL_DIMENSION,
+} from '@tldraw/dotcom-shared'
 
-const WIDTH = 1200
-const HEIGHT = 630
+// The fixture page owns the per-fixture snapshots and camera defaults; this script only names one.
+const FIXTURE_NAMES = ['snapshot-example', 'layer-panel'] as const
 
-const fixtureDefaults = {
-	'snapshot-example': { x: 310, y: 120, z: 0.55 },
-	'layer-panel': { x: 340, y: 120, z: 0.82 },
-} as const
+// The same terminal markers the production worker waits on: the page marks success with
+// data-thumbnail-ready once the export has painted, and any failure with data-thumbnail-error.
+const SETTLED_SELECTOR = '[data-thumbnail-ready="true"], [data-thumbnail-error]'
+const CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
+const CAPTURE_TIMEOUT_MS = 45_000
 
-type FixtureName = keyof typeof fixtureDefaults
+type FixtureName = (typeof FIXTURE_NAMES)[number]
 type Mode = 'auto' | 'browser-run' | 'local'
 
 interface Options {
@@ -49,11 +56,11 @@ function parseArgs(args: string[]): Options {
 	const options: Options = {
 		baseUrl: 'http://127.0.0.1:3000',
 		fixture: 'snapshot-example',
-		height: HEIGHT,
+		height: DEFAULT_THUMBNAIL_HEIGHT,
 		mode: 'auto',
 		output: 'tmp/browser-run-thumbnail/thumbnail.png',
 		theme: 'light',
-		width: WIDTH,
+		width: DEFAULT_THUMBNAIL_WIDTH,
 	}
 
 	for (let i = 0; i < args.length; i++) {
@@ -109,10 +116,11 @@ function buildRenderUrl(options: Options) {
 	const url = new URL('/dev/browser-run-thumbnail', options.baseUrl)
 	url.searchParams.set('fixture', options.fixture)
 
-	const defaults = fixtureDefaults[options.fixture]
-	url.searchParams.set('x', String(options.x ?? defaults.x))
-	url.searchParams.set('y', String(options.y ?? defaults.y))
-	url.searchParams.set('z', String(options.z ?? defaults.z))
+	// Camera params are only sent when explicitly overridden; the fixture page owns the per-fixture
+	// camera defaults.
+	if (options.x !== undefined) url.searchParams.set('x', String(options.x))
+	if (options.y !== undefined) url.searchParams.set('y', String(options.y))
+	if (options.z !== undefined) url.searchParams.set('z', String(options.z))
 	url.searchParams.set('width', String(options.width))
 	url.searchParams.set('height', String(options.height))
 	url.searchParams.set('theme', options.theme)
@@ -174,6 +182,11 @@ async function captureWithBrowserRun(renderUrl: string, options: Options) {
 	return Buffer.from(await response.arrayBuffer())
 }
 
+// Mirrors the production worker's screenshot request (see getScreenshotRequestBody in
+// apps/dotcom/sync-worker/src/routes/tla/thumbnailRender.ts): navigation stops at domcontentloaded
+// (waiting for `load` can stall on a single slow subresource even though the page marked itself
+// ready), the wait resolves on either terminal marker so failed renders fail fast, and the capture
+// targets a success-only element so an error page returns an error rather than a screenshot of it.
 function getBrowserRunRequestBody(renderUrl: string, options: Options) {
 	const headers = getExtraHeaders(renderUrl)
 	return {
@@ -185,13 +198,14 @@ function getBrowserRunRequestBody(renderUrl: string, options: Options) {
 			deviceScaleFactor: 1,
 		},
 		gotoOptions: {
-			waitUntil: 'load',
-			timeout: 45_000,
+			waitUntil: 'domcontentloaded',
+			timeout: CAPTURE_TIMEOUT_MS,
 		},
 		waitForSelector: {
-			selector: '[data-thumbnail-ready="true"]',
-			timeout: 45_000,
+			selector: SETTLED_SELECTOR,
+			timeout: CAPTURE_TIMEOUT_MS,
 		},
+		selector: CAPTURE_SELECTOR,
 		screenshotOptions: {
 			type: 'png',
 			fullPage: false,
@@ -219,11 +233,16 @@ async function captureWithLocalPlaywright(renderUrl: string, options: Options) {
 			viewport: { width: options.width, height: options.height },
 			deviceScaleFactor: 1,
 		})
-		// The ready selector is the real completion signal; waiting for network idle is both
+		// The terminal selectors are the real completion signal; waiting for network idle is both
 		// unnecessary and fragile (background app requests like replicator-status polling can keep
-		// the network busy indefinitely).
-		await page.goto(renderUrl, { waitUntil: 'domcontentloaded', timeout: 45_000 })
-		await page.waitForSelector('[data-thumbnail-ready="true"]', { timeout: 45_000 })
+		// the network busy indefinitely). Waiting on the error marker too makes a failed render fail
+		// immediately with the page's own message instead of timing out.
+		await page.goto(renderUrl, { waitUntil: 'domcontentloaded', timeout: CAPTURE_TIMEOUT_MS })
+		await page.waitForSelector(SETTLED_SELECTOR, { timeout: CAPTURE_TIMEOUT_MS })
+		const renderError = await page.evaluate(() => document.body.dataset.thumbnailError)
+		if (renderError !== undefined) {
+			throw new Error(`Fixture page failed to render: ${renderError}`)
+		}
 		const dataUrl = await page.evaluate(
 			() => (window as any).__tldrawThumbnailDataUrl as string | undefined
 		)
@@ -243,7 +262,7 @@ function requireValue(arg: string, value: string | undefined) {
 }
 
 function requireFixture(value: string): FixtureName {
-	if (value === 'snapshot-example' || value === 'layer-panel') return value
+	if ((FIXTURE_NAMES as readonly string[]).includes(value)) return value as FixtureName
 	throw new Error(`Unknown fixture: ${value}`)
 }
 
@@ -259,7 +278,11 @@ function requireTheme(value: string): 'light' | 'dark' {
 
 function requireDimension(arg: string, value: string | undefined) {
 	const number = Math.floor(requireNumber(arg, value))
-	if (number < 200 || number > 1600) throw new Error(`${arg} must be between 200 and 1600`)
+	if (number < MIN_THUMBNAIL_DIMENSION || number > MAX_THUMBNAIL_DIMENSION) {
+		throw new Error(
+			`${arg} must be between ${MIN_THUMBNAIL_DIMENSION} and ${MAX_THUMBNAIL_DIMENSION}`
+		)
+	}
 	return number
 }
 
@@ -275,15 +298,15 @@ function printHelp() {
 
 Options:
   --base-url <url>      Origin running the dotcom client. Default: http://127.0.0.1:3000
-  --fixture <name>      snapshot-example | layer-panel. Default: snapshot-example
+  --fixture <name>      ${FIXTURE_NAMES.join(' | ')}. Default: snapshot-example
   --mode <mode>         auto | browser-run | local. Default: auto
   --output <path>       PNG output path. Default: tmp/browser-run-thumbnail/thumbnail.png
   --theme <theme>       light | dark. Default: light
-  --width <number>      Output width, 200-1600. Default: 1200
-  --height <number>     Output height, 200-1600. Default: 630
-  --x <number>          Camera x override
-  --y <number>          Camera y override
-  --z <number>          Camera zoom override
+  --width <number>      Output width, ${MIN_THUMBNAIL_DIMENSION}-${MAX_THUMBNAIL_DIMENSION}. Default: ${DEFAULT_THUMBNAIL_WIDTH}
+  --height <number>     Output height, ${MIN_THUMBNAIL_DIMENSION}-${MAX_THUMBNAIL_DIMENSION}. Default: ${DEFAULT_THUMBNAIL_HEIGHT}
+  --x <number>          Camera x override (defaults to the fixture's own camera)
+  --y <number>          Camera y override (defaults to the fixture's own camera)
+  --z <number>          Camera zoom override (defaults to the fixture's own camera)
 
 Captures the dev-only /dev/browser-run-thumbnail fixture page for local iteration on render
 behavior. The fixture page produces the image with editor.toImage; local mode reads the exact
