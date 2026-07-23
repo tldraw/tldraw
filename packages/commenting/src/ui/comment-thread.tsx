@@ -14,8 +14,8 @@ export interface CommentThreadProps {
 	resolvedBanner?: ReactNode
 	/** Reply composer props. Omit for a read-only thread (no composer). */
 	composer?: CommentComposerProps
-	/** Shown at the bottom of the thread, where the composer sits (e.g. a sign-in prompt when
-	 *  there's no composer). */
+	/** Shown at the bottom of the thread (e.g. a sign-in prompt when there's no composer). When
+	 *  both are set, the footer renders after the composer. */
 	footer?: ReactNode
 	/** Override how each comment renders. Defaults to `<CommentCard>`. */
 	renderComment?(comment: CommentCardProps, index: number): ReactNode

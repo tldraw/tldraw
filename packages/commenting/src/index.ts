@@ -63,6 +63,7 @@ export {
 	defaultCommentingOptions,
 	getCanComment,
 	getCommentingOptions,
+	useCanComment,
 	useCommentingOptions,
 } from './canvas/options'
 export { CommentsOverflowMenu } from './canvas/comments-overflow-menu'

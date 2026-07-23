@@ -188,7 +188,7 @@ export function useAnonCommentToolOverrides(): TLUiOverrides {
 	}, [app, trackEvent, ctaString])
 }
 
-/** Anon viewers read comments but don't compose — the toolkit's `SignedOutComposer` slot holds
+/** Anon viewers read comments but don't compose — the toolkit's `ComposerFallback` slot holds
  *  this sign-in prompt (registered via `CommentTool.configure` in `TlaEditor`). */
 export function SignInToComment() {
 	const { addDialog } = useDialogs()

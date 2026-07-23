@@ -409,7 +409,7 @@ export function focusThread(editor: Editor, thread: TLCommentThread, impreciseSh
 export function formatRelativeTime(iso: string, locale?: string): string;
 
 // @public
-export function getCanComment(editor: Editor, currentUserId: null | string): boolean;
+export function getCanComment(editor: Editor, currentUserId: null | string | undefined): boolean;
 
 // @public
 export function getCommentingOptions(editor: Editor): CommentingOptions;
@@ -569,6 +569,9 @@ export function toggleCommentsHidden(editor: Editor): void;
 
 // @public
 export function toggleCommentsSidebar(editor: Editor): void;
+
+// @public
+export function useCanComment(currentUserId: null | string | undefined): boolean;
 
 // @public
 export function useCommentingEnabled(): boolean;

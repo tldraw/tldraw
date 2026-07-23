@@ -5,6 +5,7 @@ import {
 	type TLCommentThread,
 	type TLHistoryBatchOptions,
 	useEditor,
+	useValue,
 } from 'tldraw'
 
 /**
@@ -63,12 +64,17 @@ export interface CommentingOptions {
 
 	// ── Permissions ──────────────────────────────────────────────────────────────────────────
 	/**
-	 * Whether the viewer may compose comments (new threads and replies). Composers render when it
-	 * returns true; when it returns false, the {@link CommentingComponents.ComposerFallback} slot
-	 * renders in their place (or nothing, if that slot is unset). Unset, composing is allowed
-	 * exactly when `currentUserId` is set. Called during render — reactive reads (signals) are
-	 * tracked. Note posting still requires a `currentUserId` to author the records, so a callback
-	 * that returns true for a signed-out viewer yields a composer that can't submit.
+	 * Whether the viewer may participate in commenting: composing new threads and replies, editing
+	 * and deleting comments, resolving threads, and moving pins or regions. Composers render when
+	 * it returns true; when it returns false, the {@link CommentingComponents.ComposerFallback}
+	 * slot renders in their place (or nothing, if that slot is unset) and the action affordances
+	 * are hidden. Unset, participation is allowed exactly when `currentUserId` is set.
+	 *
+	 * Called during render via {@link useCanComment}, so reactive reads (signals) are tracked.
+	 * The comment tool itself stays registered and selectable — hosts that want its toolbar button
+	 * to do something else (e.g. open a sign-in dialog) can override the tool item's `onSelect`.
+	 * Note posting still requires a `currentUserId` to author the records, so a callback that
+	 * returns true for a signed-out viewer yields a composer whose send button stays disabled.
 	 */
 	readonly canComment:
 		| ((ctx: { editor: Editor; currentUserId: string | null }) => boolean)
@@ -130,13 +136,32 @@ export function useCommentingOptions(): CommentingOptions {
 }
 
 /**
- * Whether the viewer may compose comments, per {@link CommentingOptions.canComment} (defaulting
- * to `currentUserId !== null` when unset). Where this is false, composers give way to the
- * {@link CommentingComponents.ComposerFallback} slot.
+ * Whether the viewer may participate in commenting, per {@link CommentingOptions.canComment}
+ * (defaulting to `currentUserId != null` when unset). Where this is false, composers give way to
+ * the {@link CommentingComponents.ComposerFallback} slot and action affordances are hidden.
+ *
+ * This is a plain, untracked read — a `canComment` callback that reads signals is not observed.
+ * In React, use {@link useCanComment} instead.
  *
  * @public
  */
-export function getCanComment(editor: Editor, currentUserId: string | null): boolean {
+export function getCanComment(editor: Editor, currentUserId: string | null | undefined): boolean {
 	const { canComment } = getCommentingOptions(editor)
-	return canComment ? canComment({ editor, currentUserId }) : currentUserId !== null
+	return canComment
+		? canComment({ editor, currentUserId: currentUserId ?? null })
+		: currentUserId != null
+}
+
+/**
+ * Reactive React hook for {@link getCanComment}: a `canComment` callback that reads signals
+ * re-evaluates when they change.
+ *
+ * @public
+ */
+export function useCanComment(currentUserId: string | null | undefined): boolean {
+	const editor = useEditor()
+	return useValue('can comment', () => getCanComment(editor, currentUserId), [
+		editor,
+		currentUserId,
+	])
 }

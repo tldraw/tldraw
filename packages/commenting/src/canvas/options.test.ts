@@ -88,6 +88,20 @@ describe('getCanComment', () => {
 		const { editor } = stubEditor(defaultCommentingOptions)
 		expect(getCanComment(editor, 'alice')).toBe(true)
 		expect(getCanComment(editor, null)).toBe(false)
+		expect(getCanComment(editor, undefined)).toBe(false)
+	})
+
+	it('normalizes an undefined viewer to null for the callback', () => {
+		const calls: Array<string | null> = []
+		const { editor } = stubEditor({
+			...defaultCommentingOptions,
+			canComment: (ctx) => {
+				calls.push(ctx.currentUserId)
+				return false
+			},
+		})
+		getCanComment(editor, undefined)
+		expect(calls).toEqual([null])
 	})
 
 	it('delegates to the canComment callback, passing the editor and viewer', () => {

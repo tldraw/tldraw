@@ -64,8 +64,8 @@ import { useCommentingEnabled } from './license'
 import {
 	type CommentingComponents,
 	type CommentingOptions,
-	getCanComment,
 	getCommentingOptions,
+	useCanComment,
 	useCommentingOptions,
 } from './options'
 import {
@@ -209,15 +209,6 @@ function toCardProps(
 	}
 }
 
-/** Reactive view of {@link getCanComment}, tracked so a `canComment` callback that reads
- *  signals re-evaluates when they change. */
-function useCanComment(editor: Editor, currentUserId: string | null): boolean {
-	return useValue('can comment', () => getCanComment(editor, currentUserId), [
-		editor,
-		currentUserId,
-	])
-}
-
 /** @public @react */
 export function CanvasComments(props: CanvasCommentsProps) {
 	// Gate the whole layer on the license before doing any work. The inner component holds all the
@@ -248,7 +239,16 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const deepLinkHandled = useRef(false)
 	const threads = useCommentThreads(editor)
 	const pending = usePendingComment()
-	const canComment = useCanComment(editor, props.currentUserId)
+	const canComment = useCanComment(props.currentUserId)
+	// With composing blocked and no fallback slot there's nothing to render for a pending comment —
+	// and the dismiss handlers (Escape, click-away) live inside PendingComposer, which would never
+	// mount. Clear the atom instead of stranding it (a stale pending would pop a composer at the
+	// old click point if `canComment` later flips true).
+	const showPendingComposer =
+		pending != null && (canComment || options.components.ComposerFallback != null)
+	useEffect(() => {
+		if (pending && !showPendingComposer) pendingComment.set(editor, null)
+	}, [editor, pending, showPendingComposer])
 	const openId = useValue('open thread id', () => openThreadId.get(editor), [editor])
 	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
 	// Threads held out of clustering because their anchor moved while folded inside a badge
@@ -585,8 +585,10 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			<RegionDraftBox editor={editor} />
 			{/* Keep the region visible while composing — the drag draft is gone by now, and no thread
 			    exists yet, so the pending anchor is what shows the area under the open composer. */}
-			{pending?.anchor.type === 'region' && <RegionBox editor={editor} box={pending.anchor} />}
-			{pending && (canComment || options.components.ComposerFallback) && (
+			{pending?.anchor.type === 'region' && showPendingComposer && (
+				<RegionBox editor={editor} box={pending.anchor} />
+			)}
+			{pending && showPendingComposer && (
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
 		</div>,
@@ -1100,7 +1102,7 @@ const ThreadPin = memo(function ThreadPin({
 	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	const options = useCommentingOptions()
-	const canComment = useCanComment(editor, currentUserId)
+	const canComment = useCanComment(currentUserId)
 	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
 	const container = useContainer()
 	const comments = useThreadComments(editor, thread.id)
@@ -1323,7 +1325,7 @@ const ThreadPin = memo(function ThreadPin({
 			<CommentCard
 				{...card}
 				actions={
-					comment.authorId === currentUserId ? (
+					canComment && comment.authorId === currentUserId ? (
 						<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
 							<TldrawUiDropdownMenuTrigger>
 								<button
@@ -1368,9 +1370,11 @@ const ThreadPin = memo(function ThreadPin({
 		)
 	}
 
+	// Resolve and delete are commenting writes: behind `canComment`, plus the `currentUserId` a
+	// resolve stamps into `resolved.by`.
 	const headerActions = (
 		<>
-			{currentUserId && (
+			{canComment && currentUserId && (
 				<button
 					className="tlui-cmt-thread__action"
 					title={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
@@ -1383,7 +1387,7 @@ const ThreadPin = memo(function ThreadPin({
 					/>
 				</button>
 			)}
-			{currentUserId && (
+			{canComment && currentUserId && (
 				<TldrawUiDropdownMenuRoot id={`comment-thread-actions-${thread.id}`}>
 					<TldrawUiDropdownMenuTrigger>
 						<button
@@ -1434,7 +1438,8 @@ const ThreadPin = memo(function ThreadPin({
 	// Which affordances move a region, per the option: 'pin' → pin only, 'body' → body only, 'both'.
 	const isRegion = thread.anchor.type === 'region'
 	const pinMovable = regionOptions.move !== 'body'
-	const bodyMovable = regionOptions.move !== 'pin'
+	// Region move/resize rewrite the thread's anchor, so both sit behind the commenting permission.
+	const bodyMovable = canComment && regionOptions.move !== 'pin'
 	const startDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		// A middle/right-button or space-held press over a pin is a camera pan, not a pin drag —
 		// hand it to the canvas untouched.
@@ -1465,6 +1470,9 @@ const ThreadPin = memo(function ThreadPin({
 	const onDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
 		if (!drag) return
+		// Moving a pin re-anchors the thread record — a commenting write. Without the permission the
+		// press stays a click (`moved` never sets, so release toggles the popover and never commits).
+		if (!canComment) return
 		// A region that moves by its body ignores pin drags (the pin only toggles the thread).
 		if (isRegion && !pinMovable) return
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
@@ -1527,6 +1535,7 @@ const ThreadPin = memo(function ThreadPin({
 	const regionBoxBounds = resizeBounds ?? movedRegion
 	const commitResize = (bounds: BoxModel) => {
 		setResizeBounds(null)
+		if (!canComment) return
 		editor.run(
 			// Spread the existing anchor first so the region's pin corner survives a resize.
 			() => putCommentRecords(editor, [{ ...thread, anchor: { ...regionAnchor!, ...bounds } }]),
@@ -1547,15 +1556,19 @@ const ThreadPin = memo(function ThreadPin({
 					onCommit={commitResize}
 				/>
 			)}
-			{regionBoxBounds && revealed && !dragPagePoint && regionOptions.resize !== 'none' && (
-				<RegionResizeHandles
-					editor={editor}
-					box={regionBoxBounds}
-					handles={resizeHandles}
-					onPreview={setResizeBounds}
-					onCommit={commitResize}
-				/>
-			)}
+			{regionBoxBounds &&
+				revealed &&
+				!dragPagePoint &&
+				canComment &&
+				regionOptions.resize !== 'none' && (
+					<RegionResizeHandles
+						editor={editor}
+						box={regionBoxBounds}
+						handles={resizeHandles}
+						onPreview={setResizeBounds}
+						onCommit={commitResize}
+					/>
+				)}
 			<div
 				className={[
 					'tlui-cmt-canvas-pin',
@@ -1614,7 +1627,8 @@ const ThreadPin = memo(function ThreadPin({
 												saveCommentDraft(replyDraftSlot(thread.id), value)
 											},
 											onSubmit: postReply,
-											disabled: isCommentEmpty(reply),
+											// No user, no author for the record — dead send button.
+											disabled: isCommentEmpty(reply) || !currentUserId,
 											getMentionSuggestions,
 											renderMentionSuggestion,
 										}
@@ -1643,7 +1657,7 @@ function PendingComposer({
 	renderMentionSuggestion,
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
 	const ComposerFallback = useCommentingOptions().components.ComposerFallback
-	const canComment = useCanComment(editor, currentUserId)
+	const canComment = useCanComment(currentUserId)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	// Click-away keeps the draft (saved on every change) and the next placement composer
 	// restores it — the flip side of dismissing without a discard warning.
@@ -1728,7 +1742,8 @@ function PendingComposer({
 						saveCommentDraft(NEW_COMMENT_DRAFT, value)
 					}}
 					onSubmit={submit}
-					disabled={isCommentEmpty(text)}
+					// No user, no author for the record — dead send button.
+					disabled={isCommentEmpty(text) || !currentUserId}
 					getMentionSuggestions={getMentionSuggestions}
 					renderMentionSuggestion={renderMentionSuggestion}
 					autoFocus
