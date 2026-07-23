@@ -779,6 +779,12 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 	)
 }
 
+function formatBytes(bytes: number) {
+	if (bytes < 1024) return `${bytes} B`
+	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+	return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
 function AssetDiagnostics() {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [error, setError] = useState(null as string | null)
@@ -841,7 +847,22 @@ function AssetDiagnostics() {
 					<div className={styles.userSummary}>
 						<div className={styles.summaryGrid}>
 							{[
+								[
+									'Shapes',
+									`${report.shapes.total}${
+										report.shapes.total > 0
+											? ` (${Object.entries(report.shapes.byType)
+													.sort((a, b) => b[1] - a[1])
+													.map(([type, count]) => `${count} ${type}`)
+													.join(', ')})`
+											: ''
+									}`,
+								],
 								['Total assets', report.assets.total],
+								[
+									'Asset size',
+									`${formatBytes(report.assets.totalSizeBytes)} (largest ${formatBytes(report.assets.largestSizeBytes)})`,
+								],
 								['Associated', report.assets.associated],
 								['Pending association', report.assets.pending],
 								['Missing in bucket', report.assets.missingInBucket],

@@ -218,9 +218,17 @@ export const adminRoutes = createRouter<Environment>()
 			associated: boolean
 			oldFormatUrl: boolean
 			inBucket: boolean | null
+			sizeBytes: number | null
 		}> = []
+		let totalShapes = 0
+		const shapesByType: Record<string, number> = {}
 		for (const { state } of snapshot.documents) {
 			const record = state as any
+			if (record.typeName === 'shape') {
+				totalShapes++
+				shapesByType[record.type] = (shapesByType[record.type] ?? 0) + 1
+				continue
+			}
 			if (record.typeName !== 'asset') continue
 			const src = record.props?.src
 			if (!src) continue
@@ -242,6 +250,7 @@ export const adminRoutes = createRouter<Environment>()
 				// null until the head check settles; a failed check stays null so R2 flakiness
 				// doesn't read as a confirmed-missing object
 				inBucket: null,
+				sizeBytes: null,
 			})
 		}
 
@@ -252,10 +261,12 @@ export const adminRoutes = createRouter<Environment>()
 		await headQueue.addAll(
 			assets.map((asset) => async () => {
 				try {
-					asset.inBucket = !!(await retry(() => env.UPLOADS.head(asset.objectName), {
+					const head = await retry(() => env.UPLOADS.head(asset.objectName), {
 						attempts: 2,
 						waitDuration: 500,
-					}))
+					})
+					asset.inBucket = !!head
+					asset.sizeBytes = head?.size ?? null
 				} catch (e) {
 					warnings.push(`head failed for ${asset.objectName}: ${e}`)
 				}
@@ -312,16 +323,23 @@ export const adminRoutes = createRouter<Environment>()
 		let oldFormatUrls = 0
 		let missingInBucket = 0
 		let headFailures = 0
+		let totalSizeBytes = 0
+		let largestSizeBytes = 0
 		for (const a of assets) {
 			if (a.associated) associated++
 			if (a.oldFormatUrl) oldFormatUrls++
 			if (a.inBucket === false) missingInBucket++
 			if (a.inBucket === null) headFailures++
+			if (a.sizeBytes !== null) {
+				totalSizeBytes += a.sizeBytes
+				largestSizeBytes = Math.max(largestSizeBytes, a.sizeBytes)
+			}
 		}
 
 		const report: AdminFileAssetsResponseBody = {
 			file: file ?? null,
 			source,
+			shapes: { total: totalShapes, byType: shapesByType },
 			assets: {
 				total: assets.length,
 				associated,
@@ -329,6 +347,8 @@ export const adminRoutes = createRouter<Environment>()
 				oldFormatUrls,
 				missingInBucket,
 				headFailures,
+				totalSizeBytes,
+				largestSizeBytes,
 				problems: assets
 					.filter((a) => !a.associated || a.inBucket !== true)
 					.map((a) => ({

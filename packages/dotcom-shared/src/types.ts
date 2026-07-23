@@ -309,6 +309,10 @@ export interface AdminFileAssetsResponseBody {
 	> | null
 	/** null exists = not checked (prefix needs slug translation) or the check failed */
 	source: { raw: string; exists: boolean | null } | null
+	shapes: {
+		total: number
+		byType: Record<string, number>
+	}
 	assets: {
 		total: number
 		associated: number
@@ -316,6 +320,9 @@ export interface AdminFileAssetsResponseBody {
 		oldFormatUrls: number
 		missingInBucket: number
 		headFailures: number
+		/** Sums sizes of assets found in the uploads bucket; missing or failed heads contribute 0 */
+		totalSizeBytes: number
+		largestSizeBytes: number
 		problems: AdminFileAssetProblem[]
 	}
 	dbRows: { forThisFile: number; orphaned: number }
