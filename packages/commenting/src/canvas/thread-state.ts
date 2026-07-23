@@ -65,8 +65,9 @@ export function anchorPagePoint(
 
 /**
  * A shape anchor for a page point. `x`/`y` are the point's normalized (0–1) offset within the
- * shape's page bounds, remembered either way. When `precise` (Alt held) the pin sits at exactly
- * `x`/`y`; otherwise it sits at the consumer's imprecise default (top-right out of the box).
+ * shape's page bounds, remembered either way. When `precise` the pin sits at exactly `x`/`y`;
+ * otherwise it sits at the consumer's imprecise default (top-right out of the box). Placement
+ * gestures get `precise` from the `shouldBePrecise` commenting option (always precise, by default).
  * @public
  */
 export function shapeAnchorAt(
