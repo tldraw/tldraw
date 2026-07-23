@@ -35,8 +35,12 @@ const resolvedCheck = (
  * @public @react */
 export function CommentPin({ children, resolved, open, color }: CommentPinProps) {
 	const className = [
+		// `tlui-cmt-marker` carries the resting shadow, the hover lift, and the open ring — the same
+		// treatment a count badge wears, so the two markers behave alike.
+		'tlui-cmt-marker',
 		'tlui-cmt-pin',
 		resolved && 'tlui-cmt-pin--resolved',
+		open && 'tlui-cmt-marker--open',
 		open && 'tlui-cmt-pin--open',
 	]
 		.filter(Boolean)

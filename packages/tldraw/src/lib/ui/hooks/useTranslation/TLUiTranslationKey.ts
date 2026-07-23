@@ -528,3 +528,4 @@ export type TLUiTranslationKey =
 	| 'comments.resolved-by'
 	| 'comments.mention-you'
 	| 'comments.mention-no-matches'
+	| 'comments.preview-more'
