@@ -13,6 +13,7 @@ import {
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarDotDevLink } from './components/TlaSidebarDotDevLink'
 import { TlaSidebarFeedbackButton } from './components/TlaSidebarFeedbackButton'
+import { TlaSidebarNotificationsButton } from './components/TlaSidebarNotificationsButton'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
 import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
 import { TlaSidebarWorkspaceActions } from './components/TlaSidebarWorkspaceActions'
@@ -79,7 +80,10 @@ export const TlaSidebar = memo(function TlaSidebar() {
 			>
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
-					<TlaSidebarCreateFileButton />
+					<div style={{ display: 'flex', alignItems: 'center' }}>
+						<TlaSidebarNotificationsButton />
+						<TlaSidebarCreateFileButton />
+					</div>
 				</div>
 				{/* The workspace switcher is fixed; only the file list below it scrolls. */}
 				<TlaSidebarWorkspaceSwitcher />

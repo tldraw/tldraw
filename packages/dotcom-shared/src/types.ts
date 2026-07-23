@@ -1,6 +1,10 @@
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
+	TlaComment,
+	TlaCommentMention,
+	TlaCommentRead,
+	TlaCommentThread,
 	TlaFile,
 	TlaFileState,
 	TlaGroup,
@@ -168,6 +172,19 @@ export interface ZStoreData {
 	group: TlaGroup[]
 	group_user: TlaGroupUser[]
 	group_file: TlaGroupFile[]
+	// Optional: comments are served via the proper-Zero synced query, not the legacy polyfill store,
+	// so the polyfill never populates this. Present only so the CRUD types (generic over all schema
+	// tables) compile.
+	comment?: TlaComment[]
+	// Same as comment: never populated by the legacy polyfill store, present only for the
+	// generic CRUD types.
+	comment_thread?: TlaCommentThread[]
+	// Same as comment: never populated by the legacy polyfill store, present only for the
+	// generic CRUD types.
+	comment_read?: TlaCommentRead[]
+	// Same as comment: never populated by the legacy polyfill store, present only for the
+	// generic CRUD types.
+	comment_mention?: TlaCommentMention[]
 	lsn: string
 }
 
@@ -185,7 +202,17 @@ export interface ZRowDeleteOrUpdate {
 	event: 'update' | 'delete'
 }
 
-export type ZTable = 'file' | 'file_state' | 'user' | 'group' | 'group_user' | 'group_file'
+export type ZTable =
+	| 'file'
+	| 'file_state'
+	| 'user'
+	| 'group'
+	| 'group_user'
+	| 'group_file'
+	| 'comment'
+	| 'comment_thread'
+	| 'comment_read'
+	| 'comment_mention'
 
 export type ZEvent = 'insert' | 'update' | 'delete'
 

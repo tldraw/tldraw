@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { createMutators, parseFlags, userHasFlag } from './mutators'
 import { FILE_PREFIX, PUBLISH_PREFIX } from './routes'
 import {
+	TlaComment,
+	TlaCommentRead,
 	TlaFile,
 	TlaFileState,
 	TlaGroup,
@@ -41,6 +43,21 @@ function makeUser(overrides: Partial<TlaUser> & { id: string }): TlaUser {
 		enhancedA11yMode: null,
 		isZoomDirectionInverted: null,
 		allowAnalyticsCookie: null,
+		...overrides,
+	}
+}
+
+function makeComment(overrides: Partial<TlaComment> & { id: string; fileId: string }): TlaComment {
+	return {
+		threadId: 'thread-1',
+		pageId: 'page:page',
+		authorId: 'author-1',
+		authorName: 'Author One',
+		authorColor: '#EC5E41',
+		authorAvatar: '',
+		body: {},
+		createdAt: 1,
+		updatedAt: 1,
 		...overrides,
 	}
 }
@@ -126,6 +143,8 @@ interface TableStore {
 	group: TlaGroup[]
 	group_user: TlaGroupUser[]
 	group_file: TlaGroupFile[]
+	comment: TlaComment[]
+	comment_read: TlaCommentRead[]
 }
 
 const TABLE_PKS: Record<keyof TableStore, string[]> = {
@@ -135,6 +154,8 @@ const TABLE_PKS: Record<keyof TableStore, string[]> = {
 	group: ['id'],
 	group_user: ['userId', 'groupId'],
 	group_file: ['fileId', 'groupId'],
+	comment: ['id'],
+	comment_read: ['userId', 'commentId'],
 }
 
 /**
@@ -322,6 +343,8 @@ describe('user mutations', () => {
 			group: [],
 			group_user: [],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		})
 		const m = createMutators(userId)
 		await expectValid(() => m.user.update(tx, { id: userId, name: 'New Name' }))
@@ -336,6 +359,8 @@ describe('user mutations', () => {
 			group: [],
 			group_user: [],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		})
 		const m = createMutators(userId)
 		await expectForbidden(() => m.user.update(tx, { id: otherId, name: 'Hacked' }))
@@ -349,6 +374,8 @@ describe('user mutations', () => {
 			group: [],
 			group_user: [],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		})
 		const m = createMutators(userId)
 		await expectForbidden(() => m.user.update(tx, { id: userId, email: 'evil@evil.com' }))
@@ -362,6 +389,8 @@ describe('user mutations', () => {
 			group: [],
 			group_user: [],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		})
 		const m = createMutators(userId)
 		// flags is NOT in immutableColumns.user, so this should succeed
@@ -381,6 +410,8 @@ describe('file mutations', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
 			group_file: [] as TlaGroupFile[],
+			comment: [],
+			comment_read: [],
 		}
 	}
 
@@ -460,6 +491,8 @@ describe('file creation', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -483,6 +516,8 @@ describe('file creation', () => {
 			group: [makeGroup({ id: groupId }), makeGroup({ id: otherGroup })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -509,6 +544,8 @@ describe('file creation', () => {
 			group: [makeGroup({ id: userId })],
 			group_user: [], // no explicit home membership row
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -537,6 +574,8 @@ describe('file_state mutations', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -552,6 +591,8 @@ describe('file_state mutations', () => {
 			group: [],
 			group_user: [],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -573,6 +614,8 @@ describe('file_state mutations', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [], // userId NOT a member
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -595,6 +638,8 @@ describe('onEnterFile', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [makeGroupFile({ fileId, groupId })],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -611,6 +656,8 @@ describe('onEnterFile', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [], // not a member
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -625,6 +672,8 @@ describe('onEnterFile', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [makeGroupFile({ fileId, groupId })],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -644,6 +693,8 @@ describe('onEnterFile', () => {
 			group: [makeGroup({ id: userId }), makeGroup({ id: otherGroup })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })], // home only
 			group_file: [makeGroupFile({ fileId, groupId: otherGroup })],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -663,6 +714,8 @@ describe('onEnterFile', () => {
 				makeGroupUser({ userId, groupId: workspaceId, role: 'member' }),
 			],
 			group_file: [makeGroupFile({ fileId, groupId: workspaceId })],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -692,6 +745,8 @@ describe('onEnterFile', () => {
 			],
 			// mislinked row: workspaceB does not own the file (owningGroupId is ownerHome)
 			group_file: [makeGroupFile({ fileId, groupId: workspaceB })],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -707,6 +762,8 @@ describe('onEnterFile', () => {
 			group: [makeGroup({ id: userId })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -726,6 +783,8 @@ describe('workspace mutations', () => {
 			group: [],
 			group_user: [],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -744,6 +803,8 @@ describe('workspace mutations', () => {
 			group: [],
 			group_user: [],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -761,6 +822,8 @@ describe('workspace mutations', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -776,6 +839,8 @@ describe('workspace mutations', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -792,6 +857,8 @@ describe('workspace mutations', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
 			group_file: [makeGroupFile({ fileId, groupId })],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -810,6 +877,8 @@ describe('workspace mutations', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -833,6 +902,8 @@ describe('membership', () => {
 				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -855,6 +926,8 @@ describe('membership', () => {
 				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -874,6 +947,8 @@ describe('membership', () => {
 				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -890,6 +965,8 @@ describe('membership', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -907,6 +984,8 @@ describe('membership', () => {
 				makeGroupUser({ userId, groupId, role: 'member' }),
 			],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -925,6 +1004,8 @@ describe('membership', () => {
 				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -943,6 +1024,8 @@ describe('membership', () => {
 				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -962,6 +1045,8 @@ describe('membership', () => {
 				makeGroupUser({ userId: memberId, groupId, role: 'member' }),
 			],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -988,6 +1073,8 @@ describe('file operations across workspaces', () => {
 				makeGroupUser({ userId, groupId: groupB }),
 			],
 			group_file: [makeGroupFile({ fileId, groupId: groupA })],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1003,6 +1090,8 @@ describe('file operations across workspaces', () => {
 			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
 			group_user: [makeGroupUser({ userId, groupId: groupA })],
 			group_file: [makeGroupFile({ fileId, groupId: groupA })],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1017,6 +1106,8 @@ describe('file operations across workspaces', () => {
 			group: [makeGroup({ id: groupA }), makeGroup({ id: groupB })],
 			group_user: [makeGroupUser({ userId, groupId: groupB })],
 			group_file: [makeGroupFile({ fileId, groupId: groupA })],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1031,6 +1122,8 @@ describe('file operations across workspaces', () => {
 			group: [makeGroup({ id: groupA })],
 			group_user: [makeGroupUser({ userId, groupId: groupA, role: 'member' })],
 			group_file: [makeGroupFile({ fileId, groupId: groupA })],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1046,6 +1139,8 @@ describe('file operations across workspaces', () => {
 			group: [makeGroup({ id: groupA })],
 			group_user: [],
 			group_file: [makeGroupFile({ fileId, groupId: groupA })],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1065,6 +1160,8 @@ describe('file operations across workspaces', () => {
 				makeGroupFile({ fileId, groupId: groupA }),
 				makeGroupFile({ fileId, groupId: groupB }),
 			],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1098,6 +1195,8 @@ describe('file operations across workspaces', () => {
 				// influence (or collide with) the new pin's index
 				makeGroupFile({ fileId: homePinnedId, groupId: userId, index: 'a1' as IndexKey }),
 			],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1124,6 +1223,8 @@ describe('home workspace special case', () => {
 			group: [makeGroup({ id: userId })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1157,6 +1258,8 @@ describe('home workspace special case', () => {
 			group: [makeGroup({ id: userId })],
 			group_user,
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		} satisfies TableStore
 	}
 
@@ -1210,6 +1313,8 @@ describe('regenerateWorkspaceInviteSecret', () => {
 			group: [makeGroup({ id: groupId, inviteSecret: 'old_secret_1234567' })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -1226,6 +1331,8 @@ describe('regenerateWorkspaceInviteSecret', () => {
 			group: [makeGroup({ id: groupId, inviteSecret: 'old_secret_1234567' })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -1242,6 +1349,8 @@ describe('regenerateWorkspaceInviteSecret', () => {
 			// No group_user for nonMemberId — not a member at all
 			group_user: [],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(nonMemberId)
@@ -1261,6 +1370,8 @@ describe('setWorkspaceInviteLinkEnabled', () => {
 			group: [makeGroup({ id: groupId, inviteLinkEnabled: true })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'owner' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -1278,6 +1389,8 @@ describe('setWorkspaceInviteLinkEnabled', () => {
 			group: [makeGroup({ id: groupId, inviteLinkEnabled: true })],
 			group_user: [makeGroupUser({ userId, groupId, role: 'member' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -1299,6 +1412,8 @@ describe('immutable column bypass attempts', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1313,6 +1428,8 @@ describe('immutable column bypass attempts', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1329,6 +1446,8 @@ describe('immutable column bypass attempts', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1343,6 +1462,8 @@ describe('immutable column bypass attempts', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1359,6 +1480,8 @@ describe('immutable column bypass attempts', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [], // not a member
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -1375,6 +1498,8 @@ describe('immutable column bypass attempts', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s)
 		const m = createMutators(userId)
@@ -1401,6 +1526,8 @@ describe('file access control logic', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId: otherId, groupId })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -1416,6 +1543,8 @@ describe('file access control logic', () => {
 			group: [makeGroup({ id: groupId })],
 			group_user: [makeGroupUser({ userId, groupId })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -1439,6 +1568,8 @@ describe('file access control logic', () => {
 			group: [],
 			group_user: [],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -1461,6 +1592,8 @@ describe('cross-user isolation', () => {
 			group: [makeGroup({ id: groupA })],
 			group_user: [makeGroupUser({ userId: userA, groupId: groupA })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const mB = createMutators(userB)
@@ -1488,6 +1621,8 @@ describe('createFile from source (duplicate) access control', () => {
 			group: [makeGroup({ id: userId }), makeGroup({ id: otherGroup })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 	}
 
@@ -1535,6 +1670,8 @@ describe('createFile from source (duplicate) access control', () => {
 			group: [makeGroup({ id: userId })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -1549,6 +1686,8 @@ describe('createFile from source (duplicate) access control', () => {
 			group: [],
 			group_user: [],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -1565,6 +1704,8 @@ describe('createFile from source (duplicate) access control', () => {
 			group: [makeGroup({ id: userId })],
 			group_user: [makeGroupUser({ userId, groupId: userId, role: 'owner' })],
 			group_file: [],
+			comment: [],
+			comment_read: [],
 		}
 		const { tx } = createMockTx(s, { location: 'server' })
 		const m = createMutators(userId)
@@ -1580,5 +1721,92 @@ describe('file creation security', () => {
 		// arbitrary file row (with an attacker-controlled createSource) directly.
 		const m = createMutators(userId)
 		expect((m.file as Record<string, unknown>).insertWithFileState).toBeUndefined()
+	})
+})
+
+describe('comment.markRead / comment.markUnread', () => {
+	// owner1 owns file1; comment c1 by author-1 lives on file1
+	function commentState(): TableStore {
+		return {
+			user: [makeUser({ id: 'owner1' }), makeUser({ id: 'other1' })],
+			file: [makeFile({ id: 'file1', ownerId: 'owner1' })],
+			file_state: [],
+			group: [],
+			group_user: [],
+			group_file: [],
+			comment: [makeComment({ id: 'c1', fileId: 'file1' })],
+			comment_read: [],
+		}
+	}
+
+	it('markRead upserts a read row scoped to the calling user', async () => {
+		const { tx, store } = createMockTx(commentState(), { location: 'server' })
+		const mutators = createMutators('owner1')
+		await mutators.comment.markRead(tx, { commentId: 'c1', readAt: Date.now() })
+		expect(store.comment_read).toHaveLength(1)
+		expect(store.comment_read[0]).toMatchObject({ userId: 'owner1', commentId: 'c1' })
+	})
+
+	it('markRead is idempotent and updates readAt', async () => {
+		const { tx, store } = createMockTx(commentState(), { location: 'server' })
+		const mutators = createMutators('owner1')
+		const t1 = Date.now() - 1000
+		const t2 = Date.now()
+		await mutators.comment.markRead(tx, { commentId: 'c1', readAt: t1 })
+		await mutators.comment.markRead(tx, { commentId: 'c1', readAt: t2 })
+		expect(store.comment_read).toHaveLength(1)
+		expect(store.comment_read[0].readAt).toBe(t2)
+	})
+
+	it('markRead clamps unreasonable timestamps to server time', async () => {
+		const { tx, store } = createMockTx(commentState(), { location: 'server' })
+		const mutators = createMutators('owner1')
+		const before = Date.now()
+		await mutators.comment.markRead(tx, { commentId: 'c1', readAt: before + 60_000 })
+		expect(store.comment_read[0].readAt).toBeGreaterThanOrEqual(before)
+		expect(store.comment_read[0].readAt).toBeLessThanOrEqual(Date.now())
+	})
+
+	it('markRead rejects forbidden when the user cannot access the file', async () => {
+		const { tx } = createMockTx(commentState(), { location: 'server' })
+		const mutators = createMutators('other1')
+		await expectForbidden(() =>
+			mutators.comment.markRead(tx, { commentId: 'c1', readAt: Date.now() })
+		)
+	})
+
+	it('markRead rejects bad_request on a missing comment', async () => {
+		const { tx } = createMockTx(commentState(), { location: 'server' })
+		const mutators = createMutators('owner1')
+		await expectBadRequest(() =>
+			mutators.comment.markRead(tx, { commentId: 'nope', readAt: Date.now() })
+		)
+	})
+
+	it('markRead skips the access check on the client', async () => {
+		// optimistic client writes go through; the server re-run is authoritative
+		const { tx, store } = createMockTx(commentState(), { location: 'client' })
+		const mutators = createMutators('other1')
+		await mutators.comment.markRead(tx, { commentId: 'c1', readAt: Date.now() })
+		expect(store.comment_read).toHaveLength(1)
+	})
+
+	it('markUnread deletes the row and is a no-op when absent', async () => {
+		const { tx, store } = createMockTx(commentState(), { location: 'server' })
+		const mutators = createMutators('owner1')
+		await mutators.comment.markRead(tx, { commentId: 'c1', readAt: Date.now() })
+		await mutators.comment.markUnread(tx, { commentId: 'c1' })
+		expect(store.comment_read).toHaveLength(0)
+		await expectValid(() => mutators.comment.markUnread(tx, { commentId: 'c1' }))
+	})
+
+	it("markUnread only deletes the calling user's row", async () => {
+		const s = commentState()
+		s.comment_read.push({ userId: 'other1', commentId: 'c1', readAt: 5 })
+		const { tx, store } = createMockTx(s, { location: 'server' })
+		const mutators = createMutators('owner1')
+		await mutators.comment.markRead(tx, { commentId: 'c1', readAt: Date.now() })
+		await mutators.comment.markUnread(tx, { commentId: 'c1' })
+		expect(store.comment_read).toEqual([{ userId: 'other1', commentId: 'c1', readAt: 5 }])
 	})
 })

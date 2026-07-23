@@ -27,6 +27,7 @@ export const TL_CURSOR_TYPES = new Set([
 	'default',
 	'pointer',
 	'cross',
+	'comment',
 	'grab',
 	'rotate',
 	'grabbing',

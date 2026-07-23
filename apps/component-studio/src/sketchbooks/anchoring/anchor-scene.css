@@ -1,0 +1,39 @@
+.anchor-scene {
+	position: relative;
+	width: 560px;
+	height: 380px;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+/* the embedded tldraw editor fills the scene */
+.anchor-scene .tl-container {
+	position: absolute;
+	inset: 0;
+}
+
+/* the pin sits at the anchor's target; nudged to straddle it */
+.anchor-scene__pin {
+	position: absolute;
+	z-index: 101;
+	transform: translate(-8px, -10px);
+}
+
+/* text-range: the measured highlight over each line fragment */
+.anchor-scene__text-hl {
+	position: absolute;
+	z-index: 100;
+	pointer-events: none;
+	background: color-mix(in srgb, var(--tl-color-selected) 28%, transparent);
+	border-radius: 3px;
+}
+
+/* region: a rectangular area of the page */
+.anchor-scene__region {
+	position: absolute;
+	z-index: 100;
+	pointer-events: none;
+	border: 2px dashed var(--tl-color-selected);
+	border-radius: 6px;
+	background: color-mix(in srgb, var(--tl-color-selected) 10%, transparent);
+}

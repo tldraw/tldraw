@@ -117,6 +117,22 @@ export {
 } from './records/TLBinding'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
 export {
+	commentRecordConfig,
+	commentSchemaRecords,
+	commentThreadRecordConfig,
+	createComment,
+	createCommentId,
+	createCommentThread,
+	createCommentThreadId,
+	isCommentId,
+	isCommentThreadId,
+	type TLComment,
+	type TLCommentAnchor,
+	type TLCommentId,
+	type TLCommentThread,
+	type TLCommentThreadId,
+} from './records/TLComment'
+export {
 	createCustomRecordId,
 	createCustomRecordMigrationIds,
 	createCustomRecordMigrationSequence,

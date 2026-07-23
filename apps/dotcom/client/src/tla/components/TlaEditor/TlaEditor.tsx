@@ -1,3 +1,4 @@
+import { commentToolOverrides, commentTools } from '@tldraw/commenting'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
@@ -12,6 +13,7 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	UserRecordType,
+	commentSchemaRecords,
 	computed,
 	createSessionStateSnapshotSignal,
 	createUserId,
@@ -45,6 +47,7 @@ import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracki
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
+import { CommentsOnCanvas } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
@@ -227,6 +230,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		users,
+		// Register the opt-in `comment` record type so comment records sync through the file room.
+		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
+		records: commentSchemaRecords,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
 			trackEvent(message.type)
 		}, []),
@@ -278,8 +284,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
+			InFrontOfTheCanvas: () => <CommentsOnCanvas fileId={fileId} />,
 		}
-	}, [])
+	}, [fileId])
 
 	return (
 		<TlaEditorWrapper>
@@ -289,6 +296,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
+				tools={commentTools}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
@@ -297,7 +305,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					actionShortcutsLocation: 'toolbar',
 					deepLinks: deepLinks ? true : undefined,
 				}}
-				overrides={[overrides, extraDragIconOverrides]}
+				overrides={[overrides, extraDragIconOverrides, commentToolOverrides]}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />

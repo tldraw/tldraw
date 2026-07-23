@@ -1,0 +1,16 @@
+/** @public */
+export interface EmptyStateProps {
+	message: string
+}
+
+/** The empty state shown when a thread has no comments yet. @public @react */
+export function EmptyState({ message }: EmptyStateProps) {
+	return (
+		<div className="tlui-cmt-empty">
+			<div className="tlui-cmt-empty__icon" aria-hidden="true">
+				💬
+			</div>
+			<p className="tlui-cmt-empty__message">{message}</p>
+		</div>
+	)
+}

@@ -1,0 +1,34 @@
+{
+	"name": "component-studio",
+	"description": "A studio for developing tldraw UI components in isolation.",
+	"version": "0.0.0",
+	"private": true,
+	"license": "SEE LICENSE IN LICENSE.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"scripts": {
+		"dev": "node ../../packages/tldraw/scripts/copy-css-files.mjs && vite --host",
+		"preview": "vite preview --host",
+		"build": "node ../../packages/tldraw/scripts/copy-css-files.mjs && vite build",
+		"gen-controls": "node scripts/gen-controls.mjs",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"test": "yarn run -T vitest --passWithNoTests",
+		"test-ci": "yarn run -T vitest run --passWithNoTests",
+		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests"
+	},
+	"dependencies": {
+		"@tldraw/commenting": "workspace:*",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
+		"tldraw": "workspace:*",
+		"vite": "^8.0.16"
+	},
+	"devDependencies": {
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"@vitejs/plugin-react": "^6.0.1"
+	},
+	"type": "module"
+}

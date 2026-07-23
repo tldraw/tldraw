@@ -36,6 +36,7 @@ const STATIC_CURSORS = [
 	'default',
 	'pointer',
 	'cross',
+	'comment',
 	'move',
 	'grab',
 	'grabbing',

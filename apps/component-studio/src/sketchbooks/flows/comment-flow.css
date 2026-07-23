@@ -1,0 +1,6 @@
+/* the flow fills its scene cell; the editor fills the wrapper */
+.comment-flow {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}

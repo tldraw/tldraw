@@ -134,6 +134,18 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
+export const commentRecordConfig: CustomRecordInfo;
+
+// @public
+export const commentSchemaRecords: {
+    'comment-thread': CustomRecordInfo;
+    comment: CustomRecordInfo;
+};
+
+// @public
+export const commentThreadRecordConfig: CustomRecordInfo;
+
+// @public
 export function compressLegacySegments(segments: {
     points: VecModel[];
     type: 'free' | 'straight';
@@ -185,6 +197,31 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
 
 // @public
 export function createCachedUserResolve(resolveFn: (userId: string) => null | TLUser): (userId: string) => Signal<null | TLUser>;
+
+// @public
+export function createComment(props: {
+    authorId: string;
+    body: TLRichText;
+    meta?: JsonObject;
+    now?: number;
+    pageId: TLPageId;
+    threadId: TLCommentThreadId;
+}): TLComment;
+
+// @public (undocumented)
+export function createCommentId(id?: string): TLCommentId;
+
+// @public
+export function createCommentThread(props: {
+    anchor: TLCommentAnchor;
+    createdBy: string;
+    meta?: JsonObject;
+    now?: number;
+    pageId: TLPageId;
+}): TLCommentThread;
+
+// @public (undocumented)
+export function createCommentThreadId(id?: string): TLCommentThreadId;
 
 // @public
 export function createCustomRecordId<T extends string>(typeName: T, id?: string): RecordId<UnknownRecord> & `${T}:${string}`;
@@ -525,6 +562,12 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 
 // @public
 export function isBindingId(id?: string): id is TLBindingId;
+
+// @public
+export function isCommentId(id: string): id is TLCommentId;
+
+// @public
+export function isCommentThreadId(id: string): id is TLCommentThreadId;
 
 // @public
 export function isCustomRecord(typeName: string, record?: UnknownRecord): boolean;
@@ -1038,6 +1081,68 @@ export type TLCameraId = RecordId<TLCamera>;
 
 // @public
 export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
+
+// @public
+export interface TLComment extends BaseRecord<'comment', TLCommentId> {
+    authorId: string;
+    body: TLRichText;
+    // (undocumented)
+    createdAt: number;
+    editedAt: null | number;
+    // (undocumented)
+    meta: JsonObject;
+    pageId: TLPageId;
+    threadId: TLCommentThreadId;
+}
+
+// @public
+export type TLCommentAnchor = {
+    pinX?: number;
+    h: number;
+    pinY?: number;
+    type: 'region';
+    w: number;
+    x: number;
+    y: number;
+} | {
+    from: number;
+    shapeId: TLShapeId;
+    to: number;
+    type: 'text-range';
+} | {
+    isPrecise: boolean;
+    shapeId: TLShapeId;
+    type: 'shape';
+    x: number;
+    y: number;
+} | {
+    type: 'page';
+} | {
+    type: 'point';
+    x: number;
+    y: number;
+};
+
+// @public (undocumented)
+export type TLCommentId = RecordId<TLComment>;
+
+// @public
+export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentThreadId> {
+    anchor: TLCommentAnchor;
+    // (undocumented)
+    createdAt: number;
+    createdBy: string;
+    // (undocumented)
+    meta: JsonObject;
+    pageId: TLPageId;
+    resolved: {
+        at: number;
+        by: string;
+    } | null;
+}
+
+// @public (undocumented)
+export type TLCommentThreadId = RecordId<TLCommentThread>;
 
 // @public
 export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T ? {

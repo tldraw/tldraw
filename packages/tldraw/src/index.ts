@@ -660,6 +660,7 @@ export {
 	AssetToolbarItem,
 	CheckBoxToolbarItem,
 	CloudToolbarItem,
+	CommentToolbarItem,
 	DefaultToolbarContent,
 	DiamondToolbarItem,
 	DrawToolbarItem,
@@ -831,6 +832,7 @@ export {
 export { sanitizeSvg } from './lib/utils/svg/sanitizeSvg'
 export {
 	defaultAddFontsFromNode,
+	getTipTapDefaultExtensions,
 	KeyboardShiftEnterTweakExtension,
 	renderHtmlFromRichText,
 	renderHtmlFromRichTextForMeasurement,

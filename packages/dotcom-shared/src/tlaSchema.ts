@@ -2,6 +2,7 @@ import {
 	boolean,
 	createSchema,
 	enumeration,
+	json,
 	number,
 	relationships,
 	Row,
@@ -120,6 +121,72 @@ export const group_file = table('group_file')
 	})
 	.primaryKey('fileId', 'groupId')
 
+// Client-visible subset of the comment record; the full column set adds the persistence-only
+// columns (see CommentPersistenceColumns and DB below). Zero replicates this per user for the
+// app-level /comments view; the in-document view reads from the file room instead. Server-written
+// only. Thread anchor/resolution is read via the `thread` relationship rather than a denormalized
+// `shapeId` column here, since a thread can be re-anchored after the comment is created.
+export const comment = table('comment')
+	.columns({
+		id: string(),
+		fileId: string(),
+		threadId: string(),
+		pageId: string(),
+		authorId: string(),
+		// Author display fields, denormalized by Postgres triggers (migration 040, same pattern
+		// as file.ownerName) — joining the user row would sync private fields to every reader.
+		authorName: string(),
+		authorColor: string(),
+		// Not shown anywhere yet: users can't change their avatar, so we don't render avatars
+		// until they can.
+		authorAvatar: string(),
+		body: json(),
+		createdAt: number(),
+		updatedAt: number(),
+	})
+	.primaryKey('id')
+
+// The comment thread's anchor location and resolution state, for app-level Zero queries (e.g.
+// filtering resolved threads). Server-written only. Persistence-only columns
+// (CommentThreadPersistenceColumns: anchor/resolvedBy/meta/lastChangedClock) are deliberately
+// absent here so they never replicate to clients.
+export const comment_thread = table('comment_thread')
+	.columns({
+		id: string(),
+		fileId: string(),
+		pageId: string(),
+		// only set for shape-anchored threads; other anchor kinds have no shape
+		shapeId: string().optional(),
+		resolvedAt: number().optional(),
+		createdBy: string(),
+		createdAt: number(),
+	})
+	.primaryKey('id')
+
+// Per-user read receipts for comments, for the app-level /comments view. Row present = read;
+// marking unread deletes the row. Written via the comment.markRead/markUnread custom mutators
+// (client-written, unlike comment/comment_thread which are server-written by the file's DO).
+// Authors' own comments have no row: the client treats authorId === me as implicitly read.
+export const comment_read = table('comment_read')
+	.columns({
+		userId: string(),
+		commentId: string(),
+		readAt: number(),
+	})
+	.primaryKey('userId', 'commentId')
+
+// One row per (comment, @-mentioned user), extracted from the comment's rich-text body by the
+// file's Durable Object when it drains comment records to Postgres (mentions live inside the
+// body JSON, which ZQL can't reach — this table is what lets the notifications query filter
+// "comments that mention me" server-side). Server-written only, like comment/comment_thread;
+// rows are reconciled on every comment upsert and cascade away with their comment.
+export const comment_mention = table('comment_mention')
+	.columns({
+		commentId: string(),
+		userId: string(),
+	})
+	.primaryKey('commentId', 'userId')
+
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
 		sourceField: ['ownerId'],
@@ -205,6 +272,51 @@ const groupFileRelationships = relationships(group_file, ({ one, many }) => ({
 	}),
 }))
 
+// No author relationship — author info comes from the denormalized authorName/authorColor/
+// authorAvatar columns (see the comment table definition).
+const commentRelationships = relationships(comment, ({ one, many }) => ({
+	file: one({
+		sourceField: ['fileId'],
+		destField: ['id'],
+		destSchema: file,
+	}),
+	thread: one({
+		sourceField: ['threadId'],
+		destField: ['id'],
+		destSchema: comment_thread,
+	}),
+	// singular name despite many() cardinality (one row per user): every consumer scopes it to
+	// one user and calls .one(), yielding at most one row (see the comments query). Always scope
+	// it to ctx.userId in synced queries — unscoped it replicates every user's receipts.
+	read: many({
+		sourceField: ['id'],
+		destField: ['commentId'],
+		destSchema: comment_read,
+	}),
+	// the users this comment @-mentions; used with whereExists in the comments query, never
+	// synced as a related row set
+	mentions: many({
+		sourceField: ['id'],
+		destField: ['commentId'],
+		destSchema: comment_mention,
+	}),
+}))
+
+const commentThreadRelationships = relationships(comment_thread, ({ one, many }) => ({
+	file: one({
+		sourceField: ['fileId'],
+		destField: ['id'],
+		destSchema: file,
+	}),
+	// the thread's messages; used with whereExists for "threads the user has commented in" in
+	// the comments query, never synced as a related row set
+	comments: many({
+		sourceField: ['id'],
+		destField: ['threadId'],
+		destSchema: comment,
+	}),
+}))
+
 export type TlaFilePartial = Partial<TlaFile> & {
 	id: TlaFile['id']
 }
@@ -231,7 +343,35 @@ export type TlaGroupFilePartial = Partial<TlaGroupFile> & {
 	groupId: TlaGroupFile['groupId']
 }
 
-export type TlaRow = TlaFile | TlaFileState | TlaUser | TlaGroup | TlaGroupUser | TlaGroupFile
+export type TlaCommentPartial = Partial<TlaComment> & {
+	id: TlaComment['id']
+}
+
+export type TlaCommentThreadPartial = Partial<TlaCommentThread> & {
+	id: TlaCommentThread['id']
+}
+
+export type TlaCommentReadPartial = Partial<TlaCommentRead> & {
+	userId: TlaCommentRead['userId']
+	commentId: TlaCommentRead['commentId']
+}
+
+export type TlaCommentMentionPartial = Partial<TlaCommentMention> & {
+	commentId: TlaCommentMention['commentId']
+	userId: TlaCommentMention['userId']
+}
+
+export type TlaRow =
+	| TlaFile
+	| TlaFileState
+	| TlaUser
+	| TlaGroup
+	| TlaGroupUser
+	| TlaGroupFile
+	| TlaComment
+	| TlaCommentThread
+	| TlaCommentRead
+	| TlaCommentMention
 export type TlaRowPartial =
 	| TlaFilePartial
 	| TlaFileStatePartial
@@ -239,6 +379,10 @@ export type TlaRowPartial =
 	| TlaGroupPartial
 	| TlaGroupUserPartial
 	| TlaGroupFilePartial
+	| TlaCommentPartial
+	| TlaCommentThreadPartial
+	| TlaCommentReadPartial
+	| TlaCommentMentionPartial
 export interface TlaUserMutationNumber {
 	userId: string
 	mutationNumber: number
@@ -282,6 +426,24 @@ export interface TlaWelcomeTemplate {
 	updatedAt: number
 }
 
+/**
+ * Sync-worker-only persistence columns, absent from the Zero table definitions above so they
+ * never replicate to clients. Together with the Zero-visible columns they carry every field of
+ * the corresponding TLRecord, so the file's Durable Object can rebuild its room's comment
+ * records from rows alone (see commentRows.ts in sync-worker).
+ */
+export interface CommentThreadPersistenceColumns {
+	anchor: unknown
+	resolvedBy: string | null
+	meta: unknown
+	lastChangedClock: number
+}
+export interface CommentPersistenceColumns {
+	editedAt: number | null
+	meta: unknown
+	lastChangedClock: number
+}
+
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
@@ -292,16 +454,33 @@ export interface DB {
 	user_mutation_number: TlaUserMutationNumber
 	asset: TlaAsset
 	welcome_template: TlaWelcomeTemplate
+	comment: TlaComment & CommentPersistenceColumns
+	comment_thread: TlaCommentThread & CommentThreadPersistenceColumns
+	comment_read: TlaCommentRead
+	comment_mention: TlaCommentMention
 }
 
 export const schema = createSchema({
-	tables: [user, file, file_state, group, group_user, group_file],
+	tables: [
+		user,
+		file,
+		file_state,
+		group,
+		group_user,
+		group_file,
+		comment,
+		comment_thread,
+		comment_read,
+		comment_mention,
+	],
 	relationships: [
 		fileRelationships,
 		fileStateRelationships,
 		groupRelationships,
 		groupUserRelationships,
 		groupFileRelationships,
+		commentRelationships,
+		commentThreadRelationships,
 	],
 })
 
@@ -312,6 +491,10 @@ export type TlaFileState = Row<typeof schema.tables.file_state>
 export type TlaGroup = Row<typeof schema.tables.group>
 export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaGroupFile = Row<typeof schema.tables.group_file>
+export type TlaComment = Row<typeof schema.tables.comment>
+export type TlaCommentThread = Row<typeof schema.tables.comment_thread>
+export type TlaCommentRead = Row<typeof schema.tables.comment_read>
+export type TlaCommentMention = Row<typeof schema.tables.comment_mention>
 
 // Permissions are now handled via Synced Queries in queries.ts
 

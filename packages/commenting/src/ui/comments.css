@@ -1,0 +1,766 @@
+/* Real comment UI components. Co-located so styles travel to any view (studio,
+   canvas), and themed via tldraw's --tl-color tokens so they follow light/dark. */
+.tlui-cmt-card {
+	position: relative;
+	display: flex;
+	gap: 10px;
+	padding: 12px;
+	width: 260px;
+	background: var(--tl-color-panel);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: 12px;
+}
+
+/* hover-revealed controls (edit…) at the card's top-right */
+.tlui-cmt-card__actions {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	display: flex;
+	gap: 2px;
+	opacity: 0;
+}
+.tlui-cmt-card:hover .tlui-cmt-card__actions,
+.tlui-cmt-card:focus-within .tlui-cmt-card__actions {
+	opacity: 1;
+}
+
+.tlui-cmt-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.tlui-cmt-head {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.tlui-cmt-author {
+	font-weight: 600;
+	font-size: 13px;
+	color: var(--tl-color-text-1);
+}
+
+.tlui-cmt-time {
+	font-size: 10px;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-cmt-text {
+	margin: 3px 0 0;
+	font-size: 13px;
+	line-height: 1.4;
+	color: var(--tl-color-text-1);
+	/* Break long unbroken strings (URLs, keyboard-mashing) so they wrap inside the card instead of
+	   overflowing it. `anywhere` also lets the flex body shrink to the card width. */
+	overflow-wrap: anywhere;
+}
+
+.tlui-cmt-edited {
+	font-style: italic;
+}
+
+/* rendered rich text inside a comment body — bare tags emitted by the comment renderer
+   (paragraphs, lists, code, highlight, links), matching the limited comment extension set. */
+.tlui-cmt-text p {
+	margin: 0;
+}
+
+.tlui-cmt-text p + p,
+.tlui-cmt-text p + ul,
+.tlui-cmt-text p + ol,
+.tlui-cmt-text ul + p,
+.tlui-cmt-text ol + p {
+	margin-top: 6px;
+}
+
+.tlui-cmt-text ul,
+.tlui-cmt-text ol {
+	margin: 0;
+	padding-left: 18px;
+}
+
+.tlui-cmt-text code {
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 0.92em;
+	background: var(--tl-color-muted-2);
+	border-radius: 3px;
+	padding: 0 3px;
+}
+
+.tlui-cmt-text mark {
+	background: color-mix(in srgb, #ffeb3b 60%, transparent);
+	color: inherit;
+	border-radius: 2px;
+}
+
+.tlui-cmt-text a {
+	color: var(--tl-color-selected);
+	text-decoration: underline;
+}
+
+.tlui-cmt-avatar {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: var(--tl-color-selected);
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 11px;
+	font-weight: 600;
+	flex-shrink: 0;
+}
+
+.tlui-cmt-avatar--image {
+	object-fit: cover;
+	background: none;
+}
+
+/* composer — an avatar beside a rounded-rect field holding the rich-text input and the send button.
+   Formatting is applied via markdown and keyboard shortcuts (no toolbar). The avatar aligns to the
+   top so it stays put as the field grows to multiple lines. */
+.tlui-cmt-composer {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 4px 0 8px 4px;
+}
+
+.tlui-cmt-composer__field {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 3px 3px 12px;
+	background: var(--tl-color-muted-2);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+}
+
+.tlui-cmt-composer__field:focus-within {
+	border-color: var(--tl-color-selected);
+}
+
+/* Expanded: the content no longer fits on one line beside the send button, so the input takes
+   the full width and the send button drops to its own row, right-aligned. */
+.tlui-cmt-composer__field--expanded {
+	flex-wrap: wrap;
+}
+.tlui-cmt-composer__field--expanded .tlui-cmt-composer__input-wrap {
+	flex-basis: 100%;
+	/* The field pads 12px left but only 3px right (the send button's inset). With the input
+	   spanning the full width, give the text the same 12px on the right. */
+	padding-right: 9px;
+}
+.tlui-cmt-composer__field--expanded .tlui-cmt-send {
+	margin-left: auto;
+}
+
+/* the editable area, with the placeholder overlaid while it's empty */
+.tlui-cmt-composer__input-wrap {
+	position: relative;
+	flex: 1;
+	min-width: 0;
+	padding: 3px 0;
+}
+
+/* The hidden single-line measuring clone of the editor's content (see CommentComposer). */
+.tlui-cmt-composer__mirror {
+	position: absolute;
+	top: 0;
+	left: 0;
+	visibility: hidden;
+	pointer-events: none;
+	white-space: nowrap;
+	width: max-content;
+	max-height: none;
+	overflow: visible;
+}
+
+.tlui-cmt-input {
+	font: inherit;
+	font-size: 13px;
+	line-height: 1.4;
+	color: var(--tl-color-text-1);
+	outline: none;
+	min-height: 20px;
+	max-height: 40vh;
+	overflow-y: auto;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.tlui-cmt-input p {
+	margin: 0;
+}
+
+.tlui-cmt-input p + p,
+.tlui-cmt-input p + ul,
+.tlui-cmt-input p + ol {
+	margin-top: 4px;
+}
+
+.tlui-cmt-input ul,
+.tlui-cmt-input ol {
+	margin: 0;
+	padding-left: 18px;
+}
+
+.tlui-cmt-input__placeholder {
+	position: absolute;
+	top: 3px;
+	left: 0;
+	font-size: 13px;
+	line-height: 1.4;
+	color: var(--tl-color-text-3);
+	pointer-events: none;
+}
+
+.tlui-cmt-send {
+	border: 0;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-selected);
+	color: #fff;
+	font: inherit;
+	font-size: 12px;
+	font-weight: 600;
+	padding: 6px 12px;
+	cursor: pointer;
+	align-self: flex-end;
+}
+
+.tlui-cmt-send:hover,
+.pseudo-hover .tlui-cmt-send {
+	background: color-mix(in srgb, var(--tl-color-selected) 88%, black);
+}
+
+.tlui-cmt-send:active,
+.pseudo-active .tlui-cmt-send {
+	background: color-mix(in srgb, var(--tl-color-selected) 78%, black);
+}
+
+.tlui-cmt-send:focus-visible,
+.pseudo-focus-visible .tlui-cmt-send {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+}
+
+.tlui-cmt-send:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+/* pin */
+.tlui-cmt-pin {
+	width: 34px;
+	height: 34px;
+	border-radius: 50% 50% 50% 3px;
+	background: var(--tlui-cmt-pin-color, var(--tl-color-selected));
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+	font-weight: 600;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+	cursor: pointer;
+	transition:
+		transform 0.08s ease,
+		box-shadow 0.08s ease;
+}
+
+.tlui-cmt-pin:hover,
+.pseudo-hover .tlui-cmt-pin {
+	transform: scale(1.08);
+}
+
+/* The hover shadow is for closed pins only — an open pin keeps its selection ring, which this
+   box-shadow would otherwise override (the hover selector outranks the --open rule). */
+.tlui-cmt-pin:not(.tlui-cmt-pin--open):hover,
+.pseudo-hover .tlui-cmt-pin:not(.tlui-cmt-pin--open) {
+	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
+}
+
+/* open: the thread is showing — a selection ring marks the active pin (in the pin's own tint) */
+.tlui-cmt-pin--open {
+	box-shadow:
+		0 0 0 3px var(--tl-color-panel),
+		0 0 0 5px var(--tlui-cmt-pin-color, var(--tl-color-selected)),
+		0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* resolved: a solid, muted grey (the default --tl-color-muted-1 is 10% black, so it goes
+   translucent over the canvas). Dark mode gets its own grey — the token's dark value is near-black. */
+.tlui-cmt-pin--resolved {
+	background: #dfe0e1;
+	color: hsl(214, 8%, 42%);
+}
+.tl-theme__dark .tlui-cmt-pin--resolved {
+	background: hsl(240, 5%, 30%);
+	color: hsl(0, 0%, 72%);
+}
+
+/* count badge */
+.tlui-cmt-count-badge {
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--tl-color-text-1);
+	color: var(--tl-color-panel);
+	font-size: 13px;
+	font-weight: 700;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+	user-select: none;
+}
+
+/* thread */
+.tlui-cmt-thread {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 300px;
+}
+
+.tlui-cmt-thread__head {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--tl-color-text-3);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.tlui-cmt-badge {
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: none;
+	letter-spacing: 0;
+	color: #fff;
+	background: var(--tl-color-muted-1);
+	padding: 1px 6px;
+	border-radius: 999px;
+}
+
+/* reactions */
+.tlui-cmt-reactions {
+	display: flex;
+	gap: 6px;
+}
+
+.tlui-cmt-reaction {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	padding: 3px 9px;
+	border-radius: 999px;
+	border: 1px solid var(--tl-color-divider);
+	background: var(--tl-color-panel);
+	font: inherit;
+	font-size: 12px;
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+}
+
+.tlui-cmt-reaction:hover,
+.pseudo-hover .tlui-cmt-reaction {
+	border-color: var(--tl-color-selected);
+}
+
+.tlui-cmt-reaction--active {
+	border-color: var(--tl-color-selected);
+	background: color-mix(in srgb, var(--tl-color-selected) 12%, var(--tl-color-panel));
+}
+
+.tlui-cmt-reaction__count {
+	color: var(--tl-color-text-3);
+}
+
+.tlui-cmt-reaction--add {
+	color: var(--tl-color-text-3);
+	font-weight: 600;
+}
+
+/* mention */
+.tlui-cmt-mention {
+	color: var(--tl-color-selected);
+	font-weight: 600;
+	background: color-mix(in srgb, var(--tl-color-selected) 12%, transparent);
+	padding: 0 4px;
+	border-radius: 4px;
+}
+
+/* mention picker */
+.tlui-cmt-mention-list {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	padding: 4px;
+	width: 100%;
+	box-sizing: border-box;
+	max-height: 260px;
+	overflow-y: auto;
+	color: var(--tl-color-text-1, #1d1d1d);
+	background: var(--tl-color-panel, #fff);
+	border: 1px solid var(--tl-color-divider, rgba(0, 0, 0, 0.08));
+	border-radius: 10px;
+	box-shadow: var(--tl-shadow-2, 0 2px 12px rgba(0, 0, 0, 0.14));
+}
+
+.tlui-cmt-mention-list__item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 8px;
+	border: none;
+	background: transparent;
+	border-radius: 6px;
+	cursor: pointer;
+	text-align: left;
+	color: var(--tl-color-text-1);
+	font: inherit;
+}
+
+.tlui-cmt-mention-list__item--active,
+.tlui-cmt-mention-list__item:hover {
+	background: var(--tl-color-muted-2, rgba(0, 0, 0, 0.06));
+}
+
+.tlui-cmt-mention-list__text {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	line-height: 1.3;
+}
+
+.tlui-cmt-mention-list__name {
+	font-size: 13px;
+	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.tlui-cmt-mention-list__you {
+	margin-left: 4px;
+	font-weight: 400;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-cmt-mention-list__secondary {
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.tlui-cmt-mention-list--empty {
+	padding: 8px 10px;
+	width: 100%;
+	box-sizing: border-box;
+	color: var(--tl-color-text-3);
+	font-size: 13px;
+}
+
+/* the @-picker popup — caret-anchored above the page, positioned by the suggestion plugin */
+.tlui-cmt-mention-popup {
+	position: fixed;
+	z-index: var(--tl-layer-menus);
+}
+
+/* empty state */
+.tlui-cmt-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	padding: 24px;
+	text-align: center;
+	width: 240px;
+}
+
+.tlui-cmt-empty__icon {
+	font-size: 28px;
+}
+
+.tlui-cmt-empty__message {
+	margin: 0;
+	color: var(--tl-color-text-3);
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+/* a comment thread: an elevated panel — the same surface treatment as the toolbar — holding a
+   header, an optional resolved banner, the comments, and a reply composer */
+.tlui-cmt-thread {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	width: 300px;
+	padding: 8px;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-4);
+	box-shadow: var(--tl-shadow-2);
+}
+.tlui-cmt-thread__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 2px 2px 2px 4px;
+}
+.tlui-cmt-thread__title {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--tl-color-text-1);
+}
+.tlui-cmt-thread__actions {
+	display: flex;
+	gap: 2px;
+}
+.tlui-cmt-thread__action {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--tl-color-text-3);
+	font-size: 14px;
+	line-height: 1;
+	cursor: pointer;
+}
+.tlui-cmt-thread__action:hover {
+	background: var(--tl-color-muted-2);
+	color: var(--tl-color-text-1);
+}
+.tlui-cmt-thread__resolved {
+	padding: 6px 10px;
+	border-radius: 8px;
+	background: var(--tl-color-muted-2);
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+}
+.tlui-cmt-thread__list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+/* Inside a thread, author identity is a small colour dot, no initial — the letter doesn't fit
+   at this size. */
+.tlui-cmt-thread .tlui-cmt-avatar {
+	width: 14px;
+	height: 14px;
+	font-size: 0;
+	margin-top: 2px;
+}
+
+.tlui-cmt-thread .tlui-cmt-composer {
+	padding: 4px 0 0;
+}
+.tlui-cmt-thread .tlui-cmt-composer .tlui-cmt-avatar {
+	display: none;
+}
+
+/* The sidebar's rows use the same small colour dot as the thread view. */
+.tlui-cmt-list .tlui-cmt-avatar {
+	width: 14px;
+	height: 14px;
+	font-size: 0;
+	margin-top: 2px;
+}
+
+/* The dot treatment is for colour-only identity — an image avatar stays full size. */
+.tlui-cmt-thread .tlui-cmt-avatar--image,
+.tlui-cmt-list .tlui-cmt-avatar--image {
+	width: 24px;
+	height: 24px;
+	margin-top: 0;
+}
+
+/* inside the panel, comments are plain content — no surrounding box; the composer's field carries
+   its own surface. */
+.tlui-cmt-thread .tlui-cmt-card {
+	width: 100%;
+	padding: 6px 0 6px 4px;
+	background: transparent;
+	border: none;
+}
+
+/* comments list — thread summaries, one per row (used by the canvas sidebar) */
+.tlui-cmt-list {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	min-height: 0;
+}
+.tlui-cmt-list__header {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 6px 6px 6px 14px;
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+.tlui-cmt-list__header-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--tl-color-text-1);
+}
+
+/* a small square icon button in the sidebar header (filter funnel, overflow …) */
+.tlui-cmt-header-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 26px;
+	height: 26px;
+	padding: 0;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--tl-color-text-2);
+	cursor: pointer;
+}
+.tlui-cmt-header-btn:hover,
+.tlui-cmt-header-btn[data-state='open'] {
+	background: var(--tl-color-muted-2);
+	color: var(--tl-color-text-1);
+}
+.tlui-cmt-list__header-actions {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+}
+
+/* The commenting dropdowns' surface — a little air between the items and the menu edge. */
+.tlui-cmt-menu {
+	padding: 4px;
+}
+
+/* a menu row with a label and a right-aligned shortcut hint (overflow menu) */
+.tlui-cmt-menu-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	width: 100%;
+	padding: 6px 8px;
+	border: none;
+	border-radius: 6px;
+	background: transparent;
+	font: inherit;
+	font-size: 12px;
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+}
+.tlui-cmt-menu-item:hover {
+	background: var(--tl-color-muted-2);
+}
+/* Destructive menu entries (delete) — the same danger colour as tldraw's danger buttons. */
+.tlui-cmt-menu-item--danger {
+	color: var(--tl-color-danger);
+}
+
+.tlui-cmt-menu-item__shortcut {
+	color: var(--tl-color-text-3);
+	font-size: 12px;
+}
+.tlui-cmt-list__items {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+}
+.tlui-cmt-list__empty {
+	padding: 20px 14px;
+	color: var(--tl-color-text-3);
+	font-size: 13px;
+}
+.tlui-cmt-list__item {
+	display: flex;
+	gap: 10px;
+	width: 100%;
+	padding: 12px 14px;
+	border: none;
+	border-bottom: 1px solid var(--tl-color-divider);
+	background: transparent;
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+.tlui-cmt-list__item:hover {
+	background: var(--tl-color-muted-2);
+}
+/* Selected sits a step above hover so the open thread's row stays distinguishable while
+   pointing at other rows — but only a step: the muted-1 token (10%) reads too heavy here.
+   These rows sit on the opaque sidebar panel, so a translucent tint composes safely. */
+.tlui-cmt-list__item--selected,
+.tlui-cmt-list__item--selected:hover {
+	background: hsl(0, 0%, 0%, 5%);
+}
+.tl-theme__dark .tlui-cmt-list__item--selected,
+.tl-theme__dark .tlui-cmt-list__item--selected:hover {
+	background: hsl(0, 0%, 100%, 5%);
+}
+/* resolved rows mute their content but keep the "Resolved" marker legible */
+.tlui-cmt-list__item[data-resolved] .tlui-cmt-head,
+.tlui-cmt-list__item[data-resolved] .tlui-cmt-list__item-preview {
+	opacity: 0.55;
+}
+.tlui-cmt-list__item-body {
+	flex: 1;
+	min-width: 0;
+}
+.tlui-cmt-list__item-preview {
+	margin-top: 2px;
+	font-size: 13px;
+	color: var(--tl-color-text-1);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	/* Long unbroken strings (URLs, mashed keys) wrap onto the clamped lines instead of clipping
+	   mid-string — same treatment as the card body. */
+	overflow-wrap: anywhere;
+}
+/* meta line under the preview: page label and/or a resolved marker */
+.tlui-cmt-list__item-meta {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 5px;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+}
+.tlui-cmt-list__item-resolved {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	font-weight: 600;
+}
+.tlui-cmt-list__item-page {
+	display: inline-flex;
+	align-items: center;
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: var(--tl-color-muted-2);
+}
+.tlui-cmt-list__item-count {
+	flex-shrink: 0;
+	align-self: center;
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+}

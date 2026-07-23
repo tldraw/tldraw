@@ -1,0 +1,136 @@
+import { useMemo, type ComponentType } from 'react'
+import {
+	type Editor,
+	type TLComment,
+	type TLCommentThread,
+	type TLHistoryBatchOptions,
+	type TLShapeId,
+	type VecLike,
+	useEditor,
+} from 'tldraw'
+
+/**
+ * The gesture that's creating a shape anchor, passed to
+ * {@link CommentingOptions.shouldBePrecise}: the target shape, the page point of the release, and
+ * whether Alt was held.
+ *
+ * @public
+ */
+export interface ShapeCommentPrecisionContext {
+	readonly shapeId: TLShapeId
+	readonly point: VecLike
+	readonly altKey: boolean
+}
+
+/**
+ * Component overrides for the batteries-included comments layer. Each slot replaces a built-in
+ * piece; leave a slot unset to keep its default.
+ *
+ * @public
+ */
+export interface CommentingComponents {
+	/** A comment's body. Replaces the default rich-text `<CommentBody>`. */
+	CommentBody?: ComponentType<{ comment: TLComment }>
+	/** A pin's inner content. Replaces the author-initial default. */
+	PinContent?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
+	/** A sidebar row's preview. Replaces the plaintext default. */
+	ThreadPreview?: ComponentType<{ comment: TLComment }>
+}
+
+/**
+ * Configuration for the commenting layer. Static config only — pass it once via
+ * `CommentTool.configure({ ... })`, mirroring `ShapeUtil.configure`. Live, reactive values
+ * (`currentUserId`, `resolveName`, read-status callbacks) stay as props on `<CanvasComments>`.
+ *
+ * For defaults, see {@link defaultCommentingOptions}.
+ *
+ * @example
+ * ```tsx
+ * <Tldraw tools={[CommentTool.configure({ history: 'ignore', enableClustering: false })]} />
+ * ```
+ *
+ * @public
+ */
+export interface CommentingOptions {
+	// ── History / undo ───────────────────────────────────────────────────────────────────────
+	/**
+	 * How comment mutations (post, reply, edit, resolve, delete) interact with the editor undo
+	 * stack. Defaults to `'ignore'` — comments are deliberately not undoable (see `TLComment`).
+	 * `'record'` is a multiplayer footgun: undoing a delete resurrects a thread a collaborator
+	 * already removed, and undoing a resolve/edit reverts their newer state. Safe only single-player
+	 * or on a non-synced local comment store.
+	 */
+	readonly history: TLHistoryBatchOptions['history']
+	/**
+	 * History mode for the pin drag-to-move re-anchor specifically. Unlike posts/edits this is a
+	 * spatial edit that may reasonably be undoable alongside a shape move. Defaults to `history`.
+	 */
+	readonly dragHistory: TLHistoryBatchOptions['history'] | undefined
+
+	// ── Feature toggles ──────────────────────────────────────────────────────────────────────
+	/** Fold nearby pins into count badges as the camera zooms out. */
+	readonly enableClustering: boolean
+
+	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
+	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
+	readonly impreciseShapeAnchor: { readonly x: number; readonly y: number }
+	/**
+	 * Whether a comment landing on a shape anchors precisely — pinned to the exact clicked spot
+	 * within the shape — or imprecisely — pinned to the shape as a whole, rendered at
+	 * `impreciseShapeAnchor`. Called wherever a shape anchor is created (placing with the comment
+	 * tool, dropping a dragged pin onto a shape). Always precise by default. Return `false` for
+	 * shape-level anchoring, or decide from the context — the Alt key's state, or the shape itself,
+	 * e.g. precise only on notes. Governs new placements only; existing anchors render as stored.
+	 */
+	shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean
+
+	// ── Clustering tuning ─────────────────────────────────────────────────────────────────────
+	/** Screen-pixel margin by which the viewport is inflated when culling cluster badges. */
+	readonly clusterCullMargin: number
+	/** How far past a cluster's split zoom to land when expanding it (1.05 = 5% overshoot). */
+	readonly clusterSplitZoomFactor: number
+
+	// ── Components ────────────────────────────────────────────────────────────────────────────
+	/** Component overrides. See {@link CommentingComponents}. */
+	readonly components: CommentingComponents
+}
+
+/**
+ * The default {@link CommentingOptions}. Override via `CommentTool.configure({ ... })`.
+ *
+ * @public
+ */
+export const defaultCommentingOptions = {
+	history: 'ignore',
+	dragHistory: undefined,
+	enableClustering: true,
+	impreciseShapeAnchor: { x: 1, y: 0 },
+	shouldBePrecise: () => true,
+	clusterCullMargin: 120,
+	clusterSplitZoomFactor: 1.05,
+	components: {},
+} as const satisfies CommentingOptions
+
+/**
+ * The merged {@link CommentingOptions} for an editor, read off the registered comment tool (which
+ * carries them via `CommentTool.configure`). Falls back to {@link defaultCommentingOptions} when
+ * the comment tool isn't registered. Usable from anywhere with an `Editor` — including the tool's
+ * own state, which has no React context.
+ *
+ * @public
+ */
+export function getCommentingOptions(editor: Editor): CommentingOptions {
+	const tool = editor.getStateDescendant('comment') as { options?: CommentingOptions } | undefined
+	return tool?.options ?? defaultCommentingOptions
+}
+
+/**
+ * React hook for {@link getCommentingOptions}. Options are fixed per editor (set at tool
+ * registration), so this doesn't need to be reactive.
+ *
+ * @public
+ */
+export function useCommentingOptions(): CommentingOptions {
+	const editor = useEditor()
+	return useMemo(() => getCommentingOptions(editor), [editor])
+}

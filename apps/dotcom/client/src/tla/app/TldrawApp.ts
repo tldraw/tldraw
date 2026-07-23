@@ -138,6 +138,7 @@ export class TldrawApp {
 	private readonly workspaceMemberships$: Signal<
 		QueryResultType<typeof queries.workspaceMemberships>
 	>
+	private readonly comments$: Signal<QueryResultType<typeof queries.comments>>
 
 	private readonly useProperZero: boolean
 	private readonly abortController = new AbortController()
@@ -283,6 +284,7 @@ export class TldrawApp {
 			'workspace memberships signal',
 			this.workspaceMembershipsQuery()
 		)
+		this.comments$ = this.signalizeQuery('comments signal', this.commentsQuery())
 	}
 
 	private userQuery() {
@@ -295,6 +297,28 @@ export class TldrawApp {
 
 	private workspaceMembershipsQuery() {
 		return queries.workspaceMemberships()
+	}
+
+	private commentsQuery() {
+		return queries.comments()
+	}
+
+	/** Recent comments across the user's files, for the notifications feed (bounded, cross-file). */
+	getComments() {
+		return this.comments$.get()
+	}
+
+	/**
+	 * Materialize an ad-hoc Zero query into a live view the caller owns and must `destroy()`. For
+	 * parameterized, component-scoped queries (e.g. one file's comments) that shouldn't be
+	 * app-lifetime signals like {@link comments$}.
+	 */
+	materializeQuery<TReturn>(query: unknown) {
+		return this.z.materialize(query as any) as unknown as {
+			readonly data: TReturn
+			addListener(cb: (data: TReturn) => void): () => void
+			destroy(): void
+		}
 	}
 
 	async preload() {
@@ -878,6 +902,14 @@ export class TldrawApp {
 		const file = this.getFile(fileId)
 		if (!file || file.isDeleted) return
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: this.userId })
+	}
+
+	markCommentRead(commentId: string) {
+		this.z.mutate.comment.markRead({ commentId, readAt: Date.now() })
+	}
+
+	markCommentUnread(commentId: string) {
+		this.z.mutate.comment.markUnread({ commentId })
 	}
 
 	updateFile(fileId: string, partial: Partial<TlaFile>) {
