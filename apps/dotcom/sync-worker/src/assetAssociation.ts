@@ -14,11 +14,28 @@ export interface AssetToMigrate {
 }
 
 /**
- * Decides which asset records an association pass should act on. Assets that can never be
- * associated are skipped entirely so the pass doesn't re-attempt them on every run:
- * bookmark assets (their src is the bookmarked page URL, not an uploads object), non-http
- * srcs, object names R2 would reject, and `skipObjectNames` (objects a previous pass
- * already found missing from the uploads bucket).
+ * The uploads-bucket object name an asset's src points at, or null for assets the
+ * association pass can never act on: bookmark assets (their src is the bookmarked page URL,
+ * not an uploads object), non-http srcs, and object names R2 would reject. Shared with the
+ * admin asset diagnostics so its `external` count matches what the pass actually skips.
+ */
+export function getUploadObjectName(asset: {
+	type?: string
+	props?: { src?: string | null }
+}): string | null {
+	if (asset.type === 'bookmark') return null
+	const src = asset.props?.src
+	if (!src || !src.startsWith('http')) return null
+	const objectName = src.split('/').pop()
+	if (!objectName || !isValidR2ObjectName(objectName)) return null
+	return objectName
+}
+
+/**
+ * Decides which asset records an association pass should act on. Assets `getUploadObjectName`
+ * rejects are skipped entirely so the pass doesn't re-attempt them on every run; `skipObjectNames`
+ * (objects a previous pass already found missing from the uploads bucket) only gates the copy
+ * path — URL migration is a string rewrite and needs no R2 access.
  */
 export function collectAssetAssociationChanges(
 	records: Iterable<unknown>,
@@ -37,26 +54,21 @@ export function collectAssetAssociationChanges(
 	for (const record of records) {
 		if ((record as any).typeName !== 'asset') continue
 		const asset = record as any
-		if (asset.type === 'bookmark') continue
+		const objectName = getUploadObjectName(asset)
+		if (!objectName) continue
 		const meta = asset.meta
 		const src = asset.props.src
-		if (!src || !src.startsWith('http')) continue
 
 		// Migrate old-format HTTP URLs to tldrawusercontent.com (same R2 bucket, no copy needed)
 		if (meta?.fileId === slug && !src.startsWith(userContentUrl)) {
-			const objectName = src.split('/').pop()
-			if (objectName) {
-				assetsToMigrate.push({
-					assetId: asset.id,
-					newSrc: `${userContentUrl}/${objectName}`,
-				})
-			}
+			assetsToMigrate.push({
+				assetId: asset.id,
+				newSrc: `${userContentUrl}/${objectName}`,
+			})
 			continue
 		}
 
 		if (meta?.fileId === slug) continue
-		const objectName = src.split('/').pop()
-		if (!objectName || !isValidR2ObjectName(objectName)) continue
 		if (skipObjectNames?.has(objectName)) continue
 
 		const split = objectName.split('-')

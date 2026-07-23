@@ -89,6 +89,14 @@ describe('collectAssetAssociationChanges', () => {
 		expect(result).toEqual({ assetsToReplace: [], assetsToMigrate: [] })
 	})
 
+	it('does not migrate old-format urls whose object name R2 would reject', () => {
+		const longName = 'a'.repeat(2000)
+		const result = collect([
+			imageAsset({ src: `https://old-host.tldraw.com/uploads/${longName}`, fileId: SLUG }),
+		])
+		expect(result).toEqual({ assetsToReplace: [], assetsToMigrate: [] })
+	})
+
 	it('skips object names a previous pass found missing from the bucket', () => {
 		const { assetsToReplace } = collect(
 			[

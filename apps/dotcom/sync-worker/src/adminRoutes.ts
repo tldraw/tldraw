@@ -9,9 +9,10 @@ import {
 	WELCOME_CREATE_SOURCE,
 } from '@tldraw/dotcom-shared'
 import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
-import { createRouter, isValidR2ObjectName } from '@tldraw/worker-shared'
+import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import PQueue from 'p-queue'
+import { getUploadObjectName } from './assetAssociation'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
@@ -222,9 +223,8 @@ export const adminRoutes = createRouter<Environment>()
 		}> = []
 		let totalShapes = 0
 		const shapesByType: Record<string, number> = {}
-		// Assets the association pass can never act on (see collectAssetAssociationChanges):
-		// bookmarks (src is the bookmarked page URL), non-http srcs, R2-invalid object names.
-		// Counted instead of reported as missing uploads.
+		// Assets the association pass can never act on (bookmarks, non-http srcs, R2-invalid
+		// object names). Counted instead of reported as missing uploads.
 		let external = 0
 		for (const { state } of snapshot.documents) {
 			const record = state as any
@@ -236,12 +236,8 @@ export const adminRoutes = createRouter<Environment>()
 			if (record.typeName !== 'asset') continue
 			const src = record.props?.src
 			if (!src) continue
-			const objectName = src.split('/').pop()
-			if (record.type === 'bookmark' || !src.startsWith('http') || !objectName) {
-				external++
-				continue
-			}
-			if (!isValidR2ObjectName(objectName)) {
+			const objectName = getUploadObjectName(record)
+			if (!objectName) {
 				external++
 				continue
 			}
