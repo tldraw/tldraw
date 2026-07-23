@@ -1,11 +1,12 @@
-import { useId } from 'react'
+import { useId, type ComponentType } from 'react'
 import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	useTranslation,
 } from 'tldraw'
-import { EmojiPicker } from './emoji-picker'
+import { EmojiPicker, type EmojiPickerProps } from './emoji-picker'
+import { RenderReaction } from './reaction'
 
 /** @public */
 export interface ReactionPickerProps {
@@ -15,6 +16,14 @@ export interface ReactionPickerProps {
 	selected?: string[]
 	/** Called when an emoji is chosen. */
 	onSelect?(emoji: string): void
+	/** How to draw each emoji token. Defaults to the token string (OS emoji font). */
+	renderReaction?: RenderReaction
+	/**
+	 * What the button opens — the thing that produces a token. Defaults to `EmojiPicker`, the grid of
+	 * emoji. Swap it for any component taking the same props to offer something else entirely (see
+	 * `DrawingReactionPalette`); the props are passed straight through either way.
+	 */
+	palette?: ComponentType<EmojiPickerProps>
 	/**
 	 * Identifies the menu in tldraw's global menu registry, which keys open/closed state by id.
 	 * A thread renders one picker per comment, so this must differ per comment — sharing an id
@@ -37,6 +46,8 @@ export function ReactionPicker({
 	emoji,
 	selected,
 	onSelect,
+	renderReaction,
+	palette: Palette = EmojiPicker,
 	menuId,
 	className = 'tlui-cmt-thread__action',
 }: ReactionPickerProps) {
@@ -57,7 +68,12 @@ export function ReactionPicker({
 			</TldrawUiDropdownMenuTrigger>
 			{/* right-aligned under the trigger, so the grid hangs down the card's right edge */}
 			<TldrawUiDropdownMenuContent side="bottom" align="end">
-				<EmojiPicker emoji={emoji} selected={selected} onSelect={onSelect} />
+				<Palette
+					emoji={emoji}
+					selected={selected}
+					onSelect={onSelect}
+					renderReaction={renderReaction}
+				/>
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
 	)

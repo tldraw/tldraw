@@ -7,7 +7,7 @@ const COMMENT_B = 'comment:b' as TLCommentId
 
 function reaction(userId: string, emoji: string, createdAt: number): TLCommentReaction {
 	return {
-		id: createCommentReactionId(COMMENT_A, userId),
+		id: createCommentReactionId(COMMENT_A, userId, emoji),
 		typeName: 'comment-reaction',
 		commentId: COMMENT_A,
 		threadId: 'comment-thread:t' as TLCommentReaction['threadId'],
@@ -35,12 +35,13 @@ describe('summarizeReactions', () => {
 				emoji: '👍',
 				count: 2,
 				active: true,
+				// no resolveName here, so names fall back to the generic 'Someone'
 				reactors: [
-					{ name: 'user1', you: true },
-					{ name: 'user2', you: false },
+					{ name: 'Someone', you: true },
+					{ name: 'Someone', you: false },
 				],
 			},
-			{ emoji: '🎉', count: 1, active: false, reactors: [{ name: 'user3', you: false }] },
+			{ emoji: '🎉', count: 1, active: false, reactors: [{ name: 'Someone', you: false }] },
 		])
 	})
 
@@ -58,7 +59,7 @@ describe('summarizeReactions', () => {
 		expect(summarizeReactions([reaction('user1', '👍', 100)], undefined)[0].active).toBe(false)
 	})
 
-	it('names reactors via resolveName, falling back to the id', () => {
+	it('names reactors via resolveName, falling back to a generic name', () => {
 		const resolveName = (id: string) => (id === 'user1' ? 'Ada' : undefined)
 		expect(
 			summarizeReactions(
@@ -68,7 +69,8 @@ describe('summarizeReactions', () => {
 			)[0].reactors
 		).toEqual([
 			{ name: 'Ada', you: true },
-			{ name: 'user2', you: false },
+			// user2 can't be resolved — a generic name, never the raw id
+			{ name: 'Someone', you: false },
 		])
 	})
 
@@ -78,32 +80,37 @@ describe('summarizeReactions', () => {
 		expect(
 			summarizeReactions(
 				[reaction('user2', '👍', 100), reaction('user1', '👍', 200)],
-				undefined
+				undefined,
+				(id) => id.toUpperCase()
 			)[0].reactors.map((r) => r.name)
-		).toEqual(['user2', 'user1'])
+		).toEqual(['USER2', 'USER1'])
 	})
 })
 
 describe('createCommentReactionId', () => {
-	// the id is what makes "one reaction per user per comment" true: re-reacting addresses the
-	// same record, so it overwrites instead of adding a second one
-	it('is stable for the same comment and user', () => {
-		expect(createCommentReactionId(COMMENT_A, 'user1')).toBe(
-			createCommentReactionId(COMMENT_A, 'user1')
+	// the id is what makes reaction identity structural: re-picking the same emoji addresses the
+	// same record (toggle off), while a different emoji is its own record (independent)
+	it('is stable for the same comment, user, and emoji', () => {
+		expect(createCommentReactionId(COMMENT_A, 'user1', '👍')).toBe(
+			createCommentReactionId(COMMENT_A, 'user1', '👍')
 		)
 	})
 
-	it('differs per user and per comment', () => {
-		expect(createCommentReactionId(COMMENT_A, 'user1')).not.toBe(
-			createCommentReactionId(COMMENT_A, 'user2')
+	it('differs per user, per comment, and per emoji', () => {
+		expect(createCommentReactionId(COMMENT_A, 'user1', '👍')).not.toBe(
+			createCommentReactionId(COMMENT_A, 'user2', '👍')
 		)
-		expect(createCommentReactionId(COMMENT_A, 'user1')).not.toBe(
-			createCommentReactionId(COMMENT_B, 'user1')
+		expect(createCommentReactionId(COMMENT_A, 'user1', '👍')).not.toBe(
+			createCommentReactionId(COMMENT_B, 'user1', '👍')
+		)
+		// same user + comment, different emoji → a distinct record (this is what enables multi-react)
+		expect(createCommentReactionId(COMMENT_A, 'user1', '👍')).not.toBe(
+			createCommentReactionId(COMMENT_A, 'user1', '🎉')
 		)
 	})
 
 	it('is a comment-reaction id, not a comment id', () => {
-		const id: string = createCommentReactionId(COMMENT_A, 'user1')
+		const id: string = createCommentReactionId(COMMENT_A, 'user1', '👍')
 		expect(id.startsWith('comment-reaction:')).toBe(true)
 	})
 })
@@ -119,7 +126,7 @@ describe('reaction records', () => {
 		const all = [reaction('user1', '👍', 100), forOtherComment]
 		const mine = all.filter((r) => r.commentId === (COMMENT_A as TLComment['id']))
 		expect(summarizeReactions(mine, 'user1')).toEqual([
-			{ emoji: '👍', count: 1, active: true, reactors: [{ name: 'user1', you: true }] },
+			{ emoji: '👍', count: 1, active: true, reactors: [{ name: 'Someone', you: true }] },
 		])
 	})
 })

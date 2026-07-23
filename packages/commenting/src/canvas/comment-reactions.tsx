@@ -8,10 +8,12 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { RenderReaction } from '../ui/reaction'
 import { ReactionPicker } from '../ui/reaction-picker'
 import { Reactions, ReactionSummary } from '../ui/reactions'
+import { UNKNOWN_AUTHOR } from './comment-render'
 import { getCommentReactions, putCommentRecords, removeCommentRecords } from './comment-store'
-import { useCommentingOptions } from './options'
+import { getCommentingOptions, useCommentingOptions } from './options'
 import { commitCommentMutation } from './state'
 
 /**
@@ -53,7 +55,8 @@ export function summarizeReactions(
 	>()
 	for (const reaction of reactions) {
 		const mine = currentUserId != null && reaction.userId === currentUserId
-		const reactor = { name: resolveName?.(reaction.userId) ?? reaction.userId, you: mine }
+		// Fall back to a generic name, never the raw user id, when the id can't be resolved.
+		const reactor = { name: resolveName?.(reaction.userId) ?? UNKNOWN_AUTHOR, you: mine }
 		const group = groups.get(reaction.emoji)
 		if (group) {
 			group.count++
@@ -80,11 +83,16 @@ export function summarizeReactions(
 }
 
 /**
- * Set or clear one user's reaction to a comment.
+ * Toggle one user's reaction with a given emoji on a comment.
  *
- * The record id is derived from the comment and user, so this is always a write to that one user's
- * own record: picking a different emoji overwrites it, and picking the same one again removes it.
- * Nobody else's reaction is touched, which is why two people reacting at once don't conflict.
+ * Each reaction is its own record keyed by (comment, user, emoji), so this only ever touches that
+ * one user's own records — two people reacting at once never conflict. Behaviour depends on the
+ * `allowMultipleReactions` option:
+ *
+ * - **multiple** (default): the emoji toggles independently — add it if absent, remove it if
+ *   present, leaving the user's other reactions alone.
+ * - **single**: picking a new emoji first removes the user's existing reaction(s) on the comment,
+ *   then adds this one (a replace); picking the one they already have removes it.
  *
  * @public
  */
@@ -95,12 +103,26 @@ export function toggleCommentReaction(
 	emoji: string,
 	now = Date.now()
 ): void {
-	const id = createCommentReactionId(comment.id, userId)
-	const existing = getCommentReactions(editor).find((reaction) => reaction.id === id)
+	const { allowMultipleReactions, isAllowedReaction } = getCommentingOptions(editor)
+	const targetId = createCommentReactionId(comment.id, userId, emoji)
+	const mine = getCommentReactions(editor).filter(
+		(reaction) => reaction.commentId === comment.id && reaction.userId === userId
+	)
+	const removing = mine.some((reaction) => reaction.id === targetId)
+	// Only a token the configured palette allows may be added. Removals always go through — if a
+	// reaction somehow carries an off-palette token, the user must still be able to clear it.
+	if (!removing && !isAllowedReaction(emoji)) return
 	commitCommentMutation(editor, () => {
-		if (existing?.emoji === emoji) {
-			removeCommentRecords(editor, [id])
+		if (removing) {
+			removeCommentRecords(editor, [targetId])
 			return
+		}
+		// Single-select: a new emoji replaces the user's existing reaction(s) on this comment.
+		if (!allowMultipleReactions && mine.length > 0) {
+			removeCommentRecords(
+				editor,
+				mine.map((reaction) => reaction.id)
+			)
 		}
 		putCommentRecords(editor, [
 			createCommentReaction({
@@ -126,6 +148,20 @@ export interface CommentReactionsProps {
 }
 
 /**
+ * Adapts the `ReactionContent` component override (if any) into a `renderReaction` function for the
+ * presentational reaction components. Returns undefined when no override is set, so they fall back
+ * to the default (the token string, drawn by the OS emoji font).
+ */
+function useReactionRenderer(): RenderReaction | undefined {
+	const { components } = useCommentingOptions()
+	const ReactionContent = components.ReactionContent
+	return useMemo(
+		() => (ReactionContent ? (token: string) => <ReactionContent token={token} /> : undefined),
+		[ReactionContent]
+	)
+}
+
+/**
  * The tallied reaction row under one comment. Pair with `CommentReactionPicker`, which is what
  * adds a reaction. Whether the current user shows up in a pill's hover list is read from the
  * `showSelfInReactionList` commenting option.
@@ -134,6 +170,7 @@ export interface CommentReactionsProps {
 export function CommentReactions({ comment, currentUserId, resolveName }: CommentReactionsProps) {
 	const editor = useEditor()
 	const { showSelfInReactionList } = useCommentingOptions()
+	const renderReaction = useReactionRenderer()
 	const reactions = useCommentReactions(editor, comment.id)
 	const summaries = useMemo(
 		() => summarizeReactions(reactions, currentUserId, resolveName),
@@ -151,6 +188,7 @@ export function CommentReactions({ comment, currentUserId, resolveName }: Commen
 			canReact={currentUserId != null}
 			showSelf={showSelfInReactionList}
 			enableHoverList={!anyMenuOpen}
+			renderReaction={renderReaction}
 			onToggle={(value) => {
 				if (currentUserId == null) return
 				toggleCommentReaction(editor, comment, currentUserId, value)
@@ -180,6 +218,8 @@ export function CommentReactionPicker({
 	emoji,
 }: CommentReactionPickerProps) {
 	const editor = useEditor()
+	const { components } = useCommentingOptions()
+	const renderReaction = useReactionRenderer()
 	const reactions = useCommentReactions(editor, comment.id)
 	const selected = useMemo(
 		() =>
@@ -193,6 +233,8 @@ export function CommentReactionPicker({
 		<ReactionPicker
 			emoji={emoji}
 			selected={selected}
+			renderReaction={renderReaction}
+			palette={components.ReactionPalette}
 			menuId={`comment-reactions-${comment.id}`}
 			onSelect={(value) => toggleCommentReaction(editor, comment, currentUserId, value)}
 		/>

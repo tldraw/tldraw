@@ -186,25 +186,20 @@ describe('comment-thread migrations', () => {
 })
 
 describe('comment-reaction record', () => {
-	it('createCommentReaction derives a stable id from the comment and user', () => {
+	it('createCommentReaction derives its id from the comment, user, and emoji', () => {
 		const commentId = createCommentId('c1')
-		const a = createCommentReaction({
-			commentId,
-			threadId: createCommentThreadId('t1'),
-			pageId,
-			userId: 'user1',
-			emoji: '👍',
-		})
-		const b = createCommentReaction({
-			commentId,
-			threadId: createCommentThreadId('t1'),
-			pageId,
-			userId: 'user1',
-			emoji: '🎉',
-		})
-		// same comment + user → same record id, so re-reacting overwrites rather than adding
-		expect(a.id).toBe(b.id)
-		expect(isCommentReactionId(a.id)).toBe(true)
+		const make = (emoji: string) =>
+			createCommentReaction({
+				commentId,
+				threadId: createCommentThreadId('t1'),
+				pageId,
+				userId: 'user1',
+				emoji,
+			})
+		// same emoji → same record (re-picking toggles it); different emoji → its own record (multi)
+		expect(make('👍').id).toBe(make('👍').id)
+		expect(make('👍').id).not.toBe(make('🎉').id)
+		expect(isCommentReactionId(make('👍').id)).toBe(true)
 	})
 
 	it('validates a well-formed reaction record', () => {
@@ -219,10 +214,10 @@ describe('comment-reaction record', () => {
 	})
 
 	it('createCommentReactionId is injective when a part contains a colon', () => {
-		// two different (comment, user) pairs that a naive slice+join would collapse onto one id:
-		// comment "foo" + user "bar:baz"  vs  comment "foo:bar" + user "baz"
-		const a = createCommentReactionId(createCommentId('foo'), 'bar:baz')
-		const b = createCommentReactionId(createCommentId('foo:bar'), 'baz')
+		// two different triples that a naive slice+join would collapse onto one id:
+		// comment "foo" + user "bar:baz" + 👍   vs   comment "foo:bar" + user "baz" + 👍
+		const a = createCommentReactionId(createCommentId('foo'), 'bar:baz', '👍')
+		const b = createCommentReactionId(createCommentId('foo:bar'), 'baz', '👍')
 		expect(a).not.toBe(b)
 		expect(isCommentReactionId(a)).toBe(true)
 		expect(isCommentReactionId(b)).toBe(true)

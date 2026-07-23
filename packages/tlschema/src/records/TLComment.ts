@@ -315,29 +315,28 @@ export function createCommentId(id?: string): TLCommentId {
 }
 
 /**
- * The id of one user's reaction to one comment.
+ * The id of one user's reaction to one comment, derived from the (comment, user, emoji) triple
+ * rather than random. This is what makes reaction identity structural: the same triple always
+ * addresses the same record, so re-picking an emoji toggles that one record and two tabs converge
+ * instead of racing to create duplicates. A user can hold one record per emoji on a comment
+ * (multiple reactions); enforcing "at most one reaction total" is a client concern layered on top,
+ * not a property of the id. The sync authorizer leans on this derivation, so it must be injective.
  *
- * Derived from the pair rather than random, so a user reacting twice to the same comment addresses
- * the same record: picking a different emoji overwrites their reaction instead of adding a second
- * one, and doing it from two tabs at once converges on one record rather than racing to create
- * duplicates. "At most one reaction per user per comment" is therefore a property of the id, not a
- * rule the UI has to keep — and the sync authorizer leans on that, so the derivation must be
- * injective.
- *
- * Both parts are URI-encoded before joining, so a `:` in the comment id or (crucially) in an
- * externally-supplied userId can't shift the boundary and collapse two different pairs onto one id.
- * The id is only ever recomputed for comparison, never parsed back, so the encoding needs no
- * inverse.
+ * `emoji` here is the reaction's token — the emoji glyph for the default palette, or whatever
+ * opaque string a consumer's palette uses. All three parts are URI-encoded before joining, so a
+ * `:` in any of them can't shift the boundary and collapse two different triples onto one id. The
+ * id is only ever recomputed for comparison, never parsed back, so the encoding needs no inverse.
  *
  * @public
  */
 export function createCommentReactionId(
 	commentId: TLCommentId,
-	userId: string
+	userId: string,
+	emoji: string
 ): TLCommentReactionId {
 	return createCustomRecordId(
 		'comment-reaction',
-		`${encodeURIComponent(commentId)}:${encodeURIComponent(userId)}`
+		`${encodeURIComponent(commentId)}:${encodeURIComponent(userId)}:${encodeURIComponent(emoji)}`
 	) as TLCommentReactionId
 }
 
@@ -438,7 +437,7 @@ export function createCommentReaction(props: {
 	meta?: JsonObject
 }): TLCommentReaction {
 	return {
-		id: createCommentReactionId(props.commentId, props.userId),
+		id: createCommentReactionId(props.commentId, props.userId, props.emoji),
 		typeName: 'comment-reaction',
 		commentId: props.commentId,
 		threadId: props.threadId,

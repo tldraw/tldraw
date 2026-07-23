@@ -227,7 +227,7 @@ export function createCommentReaction(props: {
 }): TLCommentReaction;
 
 // @public
-export function createCommentReactionId(commentId: TLCommentId, userId: string): TLCommentReactionId;
+export function createCommentReactionId(commentId: TLCommentId, userId: string, emoji: string): TLCommentReactionId;
 
 // @public
 export function createCommentThread(props: {

@@ -28,9 +28,10 @@ CREATE TABLE comment_reaction (
   CONSTRAINT comment_reaction_thread_id_fkey FOREIGN KEY ("threadId") REFERENCES public."comment_thread"("id") ON DELETE CASCADE,
   -- deleting a user removes their reactions, never the comment they reacted to
   CONSTRAINT comment_reaction_user_id_fkey FOREIGN KEY ("userId") REFERENCES public."user"("id") ON DELETE CASCADE,
-  -- one reaction per user per comment. The record id is derived from the same pair
+  -- one record per (comment, user, emoji): a user may hold multiple reactions on a comment (one
+  -- per emoji), but not the same emoji twice. The record id is derived from the same triple
   -- (createCommentReactionId), so this backstops the invariant at the database.
-  CONSTRAINT comment_reaction_comment_user_unique UNIQUE ("commentId", "userId")
+  CONSTRAINT comment_reaction_comment_user_emoji_unique UNIQUE ("commentId", "userId", "emoji")
 );
 
 CREATE INDEX comment_reaction_file_id_idx ON comment_reaction("fileId");

@@ -1,3 +1,4 @@
+import { ReactNode } from 'react'
 import {
 	TldrawUiHoverCard,
 	TldrawUiHoverCardContent,
@@ -6,11 +7,21 @@ import {
 } from 'tldraw'
 import { ReactionReactor } from './reactions'
 
+/** Render a reaction token to its visual — the emoji glyph by default. @public */
+export type RenderReaction = (token: string) => ReactNode
+
+/** The default reaction renderer: emits the token string for the OS emoji font to draw. @public */
+export function defaultRenderReaction(token: string): ReactNode {
+	return token
+}
+
 /** @public */
 export interface ReactionProps {
 	emoji: string
 	count: number
 	active: boolean
+	/** How to draw the emoji token. Defaults to the token string (OS emoji font). */
+	renderReaction?: RenderReaction
 	/** Who reacted with this emoji, in reaction order — shown when the pill is hovered. */
 	reactors: ReactionReactor[]
 	/** Whether the current user is listed among the reactors on hover. When false, the list shows
@@ -37,6 +48,7 @@ export function Reaction({
 	reactors,
 	showSelf = true,
 	enableHoverList = true,
+	renderReaction = defaultRenderReaction,
 	onClick,
 }: ReactionProps) {
 	const msg = useTranslation()
@@ -55,7 +67,7 @@ export function Reaction({
 			aria-pressed={active}
 			onClick={onClick}
 		>
-			<span className="tlui-cmt-reaction__emoji">{emoji}</span>
+			<span className="tlui-cmt-reaction__emoji">{renderReaction(emoji)}</span>
 			<span className="tlui-cmt-reaction__count">{count}</span>
 		</button>
 	)
@@ -69,9 +81,6 @@ export function Reaction({
 		<TldrawUiHoverCard openDelay={300}>
 			<TldrawUiHoverCardTrigger>{pill}</TldrawUiHoverCardTrigger>
 			<TldrawUiHoverCardContent side="bottom" className="tlui-cmt-reactors">
-				<div className="tlui-cmt-reactors__title">
-					{msg('comments.reacted')} {emoji}:
-				</div>
 				<ul className="tlui-cmt-reactors__list" role="list">
 					{shown.map((reactor, i) => (
 						<li key={i} className="tlui-cmt-reactors__item">

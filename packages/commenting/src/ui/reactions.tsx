@@ -1,4 +1,4 @@
-import { Reaction } from './reaction'
+import { Reaction, RenderReaction } from './reaction'
 
 /** One person who reacted with a given emoji, for the hover list. @public */
 export interface ReactionReactor {
@@ -34,6 +34,8 @@ export interface ReactionsProps {
 	/** Whether hovering a pill shows its reactor list. Pass false to suppress it — e.g. while
 	 *  another popup menu on the comment is open. Defaults to true. */
 	enableHoverList?: boolean
+	/** How to draw each emoji token. Defaults to the token string (OS emoji font). */
+	renderReaction?: RenderReaction
 }
 
 /**
@@ -51,6 +53,7 @@ export function Reactions({
 	canReact = true,
 	showSelf = true,
 	enableHoverList = true,
+	renderReaction,
 }: ReactionsProps) {
 	if (reactions.length === 0) return null
 	return (
@@ -61,6 +64,7 @@ export function Reactions({
 					{...reaction}
 					showSelf={showSelf}
 					enableHoverList={enableHoverList}
+					renderReaction={renderReaction}
 					onClick={canReact ? () => onToggle?.(reaction.emoji) : undefined}
 				/>
 			))}

@@ -1,4 +1,4 @@
-import { commentToolOverrides, commentTools } from '@tldraw/commenting'
+import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
@@ -75,6 +75,8 @@ export const components: TLComponents = {
 	// so a spinner would only flash before the content appears.
 	LoadingScreen: null,
 }
+
+const commentTools = [CommentTool.configure({})]
 
 interface TlaEditorProps {
 	fileSlug: string

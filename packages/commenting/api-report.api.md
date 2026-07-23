@@ -204,6 +204,10 @@ export interface CommentingComponents {
         comments: TLComment[];
         thread: TLCommentThread;
     }>;
+    ReactionContent?: ComponentType<{
+        token: string;
+    }>;
+    ReactionPalette?: ComponentType<EmojiPickerProps>;
     ThreadPreview?: ComponentType<{
         comment: TLComment;
     }>;
@@ -211,6 +215,7 @@ export interface CommentingComponents {
 
 // @public
 export interface CommentingOptions {
+    readonly allowMultipleReactions: boolean;
     readonly clusterCullMargin: number;
     readonly clusterSplitZoomFactor: number;
     readonly components: CommentingComponents;
@@ -221,6 +226,7 @@ export interface CommentingOptions {
         readonly x: number;
         readonly y: number;
     };
+    isAllowedReaction(token: string): boolean;
     readonly showSelfInReactionList: boolean;
 }
 
@@ -397,6 +403,7 @@ export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters;
 
 // @public
 export const defaultCommentingOptions: {
+    readonly allowMultipleReactions: true;
     readonly clusterCullMargin: 120;
     readonly clusterSplitZoomFactor: 1.05;
     readonly components: {};
@@ -407,16 +414,61 @@ export const defaultCommentingOptions: {
         readonly x: 1;
         readonly y: 0;
     };
+    readonly isAllowedReaction: typeof isAllowedReactionEmoji;
     readonly showSelfInReactionList: true;
 };
 
 // @public
-export function EmojiPicker({ emoji, selected, onSelect }: EmojiPickerProps): JSX.Element;
+export function defaultRenderReaction(token: string): ReactNode;
+
+// @public
+export function DrawingReactionContent({ token }: {
+    token: string;
+}): JSX.Element;
+
+// @public (undocumented)
+export interface DrawingReactionExportOptions {
+    darkMode?: boolean;
+    format?: DrawingReactionFormat;
+    maxTokenLength?: number;
+    size?: number;
+}
+
+// @public
+export type DrawingReactionFormat = 'png' | 'svg';
+
+// @public
+export function DrawingReactionPalette({ emoji, selected, onSelect, renderReaction, size, exportOptions, licenseKey, submitLabel }: DrawingReactionPaletteProps): JSX.Element;
+
+// @public (undocumented)
+export interface DrawingReactionPaletteProps {
+    emoji?: string[];
+    exportOptions?: DrawingReactionExportOptions;
+    licenseKey?: string;
+    onSelect?(token: string): void;
+    renderReaction?: RenderReaction;
+    selected?: string[];
+    size?: number | string;
+    submitLabel?: string;
+}
+
+// @public
+export class DrawingReactionTooLargeError extends Error {
+    constructor(length: number, maxLength: number);
+    // (undocumented)
+    readonly length: number;
+    // (undocumented)
+    readonly maxLength: number;
+}
+
+// @public
+export function EmojiPicker({ emoji, selected, onSelect, renderReaction }: EmojiPickerProps): JSX.Element;
 
 // @public (undocumented)
 export interface EmojiPickerProps {
     emoji?: string[];
     onSelect?(emoji: string): void;
+    renderReaction?: RenderReaction;
     selected?: string[];
 }
 
@@ -428,6 +480,9 @@ export interface EmptyStateProps {
     // (undocumented)
     message: string;
 }
+
+// @public
+export function exportDrawingReactionToken(editor: Editor, opts?: DrawingReactionExportOptions): Promise<null | string>;
 
 // @public
 export function filterMentionMembers(members: MentionMember[], query: string): MentionMember[];
@@ -455,6 +510,12 @@ export function getComments(editor: Editor): TLComment[];
 
 // @public
 export function getCommentThreads(editor: Editor): TLCommentThread[];
+
+// @public
+export function isAllowedReactionEmoji(emoji: string, palette?: readonly string[]): boolean;
+
+// @public
+export function isDrawingReactionToken(token: string): boolean;
 
 // @public
 export interface LeafInput {
@@ -526,10 +587,10 @@ export const pendingComment: EditorAtom<null | PendingComment>;
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;
 
 // @public
-export function Reaction({ emoji, count, active, reactors, showSelf, enableHoverList, onClick }: ReactionProps): JSX.Element;
+export function Reaction({ emoji, count, active, reactors, showSelf, enableHoverList, renderReaction, onClick }: ReactionProps): JSX.Element;
 
 // @public
-export function ReactionPicker({ emoji, selected, onSelect, menuId, className }: ReactionPickerProps): JSX.Element;
+export function ReactionPicker({ emoji, selected, onSelect, renderReaction, palette: Palette, menuId, className }: ReactionPickerProps): JSX.Element;
 
 // @public (undocumented)
 export interface ReactionPickerProps {
@@ -537,6 +598,8 @@ export interface ReactionPickerProps {
     emoji?: string[];
     menuId?: string;
     onSelect?(emoji: string): void;
+    palette?: ComponentType<EmojiPickerProps>;
+    renderReaction?: RenderReaction;
     selected?: string[];
 }
 
@@ -551,6 +614,7 @@ export interface ReactionProps {
     enableHoverList?: boolean;
     onClick?(): void;
     reactors: ReactionReactor[];
+    renderReaction?: RenderReaction;
     showSelf?: boolean;
 }
 
@@ -561,7 +625,7 @@ export interface ReactionReactor {
 }
 
 // @public
-export function Reactions({ reactions, onToggle, canReact, showSelf, enableHoverList }: ReactionsProps): JSX.Element | null;
+export function Reactions({ reactions, onToggle, canReact, showSelf, enableHoverList, renderReaction }: ReactionsProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface ReactionsProps {
@@ -569,6 +633,7 @@ export interface ReactionsProps {
     enableHoverList?: boolean;
     onToggle?(emoji: string): void;
     reactions: ReactionSummary[];
+    renderReaction?: RenderReaction;
     showSelf?: boolean;
 }
 
@@ -599,7 +664,13 @@ export interface RegionCommentOptions {
 export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]): void;
 
 // @public
+export function renderDrawingReaction(token: string): ReactNode;
+
+// @public
 export function renderMarkdown(text: string): ReactNode;
+
+// @public
+export type RenderReaction = (token: string) => ReactNode;
 
 // @public
 export function richTextToPlaintext(body: TLRichText, resolveName?: (id: string) => string | undefined): string;

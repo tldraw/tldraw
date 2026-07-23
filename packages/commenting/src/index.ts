@@ -21,8 +21,18 @@ export {
 	filterMentionMembers,
 	type MentionSuggestionOptions,
 } from './ui/mention-suggestion'
-export { DEFAULT_REACTION_EMOJI, EmojiPicker, type EmojiPickerProps } from './ui/emoji-picker'
-export { Reaction, type ReactionProps } from './ui/reaction'
+export {
+	DEFAULT_REACTION_EMOJI,
+	EmojiPicker,
+	type EmojiPickerProps,
+	isAllowedReactionEmoji,
+} from './ui/emoji-picker'
+export {
+	Reaction,
+	type ReactionProps,
+	type RenderReaction,
+	defaultRenderReaction,
+} from './ui/reaction'
 export { ReactionPicker, type ReactionPickerProps } from './ui/reaction-picker'
 export {
 	Reactions,
@@ -46,6 +56,17 @@ export {
 	toggleCommentReaction,
 	useCommentReactions,
 } from './canvas/comment-reactions'
+export {
+	DrawingReactionContent,
+	DrawingReactionPalette,
+	type DrawingReactionPaletteProps,
+	type DrawingReactionExportOptions,
+	type DrawingReactionFormat,
+	DrawingReactionTooLargeError,
+	exportDrawingReactionToken,
+	isDrawingReactionToken,
+	renderDrawingReaction,
+} from './canvas/drawing-reactions'
 export {
 	CommentTool,
 	commentToolOverrides,

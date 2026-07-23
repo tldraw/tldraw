@@ -184,10 +184,12 @@ describe('authorizeFileRecord', () => {
 			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
-		it('lets a user change their own emoji', () => {
-			const prev = makeReaction('real-bob')
+		// emoji feeds the id now, so switching emoji is a delete+create, never an update — an update
+		// that changes emoji is rejected (its id would no longer match its emoji)
+		it('vetoes an update that changes the emoji', () => {
+			const prev = makeReaction('real-bob', '👍')
 			const next = { ...prev, emoji: '🎉' }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('vetoes changing someone else’s reaction', () => {
@@ -196,14 +198,26 @@ describe('authorizeFileRecord', () => {
 			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBeNull()
 		})
 
-		// The id is derived from (comment, user). A create must land at the session user's own slot,
-		// or a forger could occupy someone else's slot (locking them out) or split one pair across
-		// two ids (wedging the table's unique constraint at drain time).
+		// The id is derived from (comment, user, emoji). A create must land at the session user's own
+		// canonical slot, or a forger could occupy someone else's slot (locking them out) or push a
+		// mismatched id that wedges the table's unique constraint at drain time.
 		it('vetoes a create whose id is not the session user’s canonical slot', () => {
-			// mallory forges a reaction at alice's id slot on the same comment
+			// mallory forges a reaction at alice's id slot on the same comment + emoji
 			const next: TLCommentReaction = {
-				...makeReaction('real-mallory'),
-				id: createCommentReactionId(createCommentId('c1'), 'real-alice'),
+				...makeReaction('real-mallory', '👍'),
+				id: createCommentReactionId(createCommentId('c1'), 'real-alice', '👍'),
+			}
+			expect(
+				authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
+			).toBeNull()
+		})
+
+		// the id also encodes the emoji, so an id that doesn't match the record's own emoji field
+		// (e.g. id says 👍 but the field says 🎉) is a mismatch and rejected
+		it('vetoes a create whose id emoji disagrees with its emoji field', () => {
+			const next: TLCommentReaction = {
+				...makeReaction('real-mallory', '🎉'),
+				id: createCommentReactionId(createCommentId('c1'), 'real-mallory', '👍'),
 			}
 			expect(
 				authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
@@ -215,12 +229,6 @@ describe('authorizeFileRecord', () => {
 			expect(
 				authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
 			).not.toBeNull()
-		})
-
-		it('allows the owner to change their own emoji', () => {
-			const prev = makeReaction('real-bob', '👍')
-			const next = { ...prev, emoji: '🎉' }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
 		})
 
 		// the reaction's comment is fixed by its id; an update must not move it onto another comment,

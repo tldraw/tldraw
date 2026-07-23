@@ -415,13 +415,6 @@
 	max-width: 240px;
 }
 
-/* small muted header, matching the "x minutes ago" byline style (.tlui-cmt-time) */
-.tlui-cmt-reactors__title {
-	padding: 6px 12px 2px;
-	font-size: 11px;
-	color: var(--tl-color-text-3);
-}
-
 .tlui-cmt-reactors__list {
 	list-style: none;
 	margin: 0;

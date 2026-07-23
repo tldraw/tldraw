@@ -192,12 +192,12 @@ describe('isCommentReactionFkViolation', () => {
 
 	it('requires both the code and a comment_reaction constraint to match', () => {
 		// the unique-constraint violation (23505) is deliberately NOT matched — a reaction can't
-		// insert twice for one (comment, user) once the authorizer pins the id to that pair
+		// insert twice for one (comment, user, emoji) once the authorizer pins the id to that triple
 		expect(
 			isCommentReactionFkViolation(
 				Object.assign(new Error(), {
 					code: '23505',
-					constraint: 'comment_reaction_comment_user_unique',
+					constraint: 'comment_reaction_comment_user_emoji_unique',
 				})
 			)
 		).toBe(false)
