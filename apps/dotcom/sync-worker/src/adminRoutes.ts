@@ -348,7 +348,9 @@ export const adminRoutes = createRouter<Environment>()
 			source,
 			shapes: { total: totalShapes, byType: shapesByType },
 			assets: {
-				total: assets.length,
+				// Every asset record in the snapshot; the upload-oriented counts below exclude
+				// the `external` ones
+				total: assets.length + external,
 				associated,
 				pending: assets.length - associated,
 				external,

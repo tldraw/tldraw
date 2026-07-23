@@ -314,6 +314,7 @@ export interface AdminFileAssetsResponseBody {
 		byType: Record<string, number>
 	}
 	assets: {
+		/** Every asset record in the snapshot, including `external` ones */
 		total: number
 		associated: number
 		pending: number
