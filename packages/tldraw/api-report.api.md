@@ -797,7 +797,7 @@ export function ConvertToEmbedMenuItem(): JSX.Element | null;
 export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): Promise<void>;
 
 // @public (undocumented)
-export function CopyAsMenuGroup(): JSX.Element;
+export function CopyAsMenuGroup(): JSX.Element | null;
 
 // @public (undocumented)
 export interface CopyAsOptions extends Omit<TLImageExportOptions, 'format'> {
@@ -1933,13 +1933,16 @@ export interface ExampleDialogProps {
 export function exportAs(editor: Editor, ids: TLShapeId[], opts: ExportAsOptions): Promise<void>;
 
 // @public (undocumented)
+export function ExportAsMenuGroup(): JSX.Element | null;
+
+// @public (undocumented)
 export interface ExportAsOptions extends TLImageExportOptions {
     format: TLExportType;
     name?: string;
 }
 
 // @public (undocumented)
-export function ExportFileContentSubMenu(): JSX.Element;
+export function ExportFileContentSubMenu(): JSX.Element | null;
 
 // @public (undocumented)
 export function ExtrasGroup(): JSX.Element;
