@@ -101,13 +101,6 @@
 	cursor: pointer;
 }
 
-/* Hover uses the opaque low-surface token, not a translucent muted one — the card floats
-   directly over the canvas, so a translucent background would let shapes show through it. */
-.tlui-cmt-stack-list__card:hover,
-.pseudo-hover.tlui-cmt-stack-list__card {
-	background: var(--tl-color-low);
-}
-
 /* The wrapper is the card's surface — inside it the comment is plain content, mirroring how the
    thread panel flattens its own cards. The avatar centers against the short two-line block so a
    collapsed entry doesn't read as top-heavy. */
@@ -188,15 +181,6 @@
 	box-shadow: var(--tl-shadow-2);
 }
 
-/* The one comment is the whole panel, so the panel itself takes the hover tint — but only for a
-   pointer actually on it. Hovering the marker keeps the pin's own hover (its lift and shadow) and
-   nothing more. */
-.tlui-cmt-canvas-preview__panel--thread.tlui-cmt-canvas-preview__panel--selectable:hover,
-.pseudo-hover.tlui-cmt-canvas-preview__panel--thread {
-	background: var(--tl-color-low);
-	cursor: pointer;
-}
-
 /* Previewing a stack or cluster: one card per thread, matching the card list a click opens.
    Its first card sits flush with the popover's top, so no shift is needed. */
 .tlui-cmt-canvas-preview__panel--list {
@@ -218,11 +202,30 @@
 	cursor: pointer;
 }
 
-/* The same opaque low surface the stack list uses — the card floats over the canvas, so a
-   translucent token would let shapes show through the highlight. */
+/* Every card surface that tints on hover — a collapsed thread in a stack list, a preview card, and
+   the single-comment preview panel. One rule, because they're the same object to the eye.
+
+   The opaque low-surface token, not a translucent muted one: these float directly over the canvas,
+   where a translucent fill would let shapes show through.
+
+   The second line is why this isn't a one-liner. `--tl-shadow-2` ends with a 1px *inset* ring in
+   `--tl-color-panel-contrast` — pure white in light mode — and an inset shadow paints over the
+   background. At rest that's invisible (the panel is 99% white under a 100% white ring), but tint
+   the background to grey and the ring stays white, hugging the edge as a pale outline. Re-tinting
+   `--tl-color-panel-contrast` here wouldn't reach it: `--tl-shadow-2` is declared on the container,
+   so its var() was already substituted there and the white is baked into what we inherit. Instead
+   lay a ring of the new surface over the old one — first shadow in the list paints on top. */
+.tlui-cmt-stack-list__card:hover,
+.pseudo-hover.tlui-cmt-stack-list__card,
 .tlui-cmt-preview-card--selectable:hover,
-.pseudo-hover.tlui-cmt-preview-card--selectable {
+.pseudo-hover.tlui-cmt-preview-card--selectable,
+.tlui-cmt-canvas-preview__panel--thread.tlui-cmt-canvas-preview__panel--selectable:hover,
+.pseudo-hover.tlui-cmt-canvas-preview__panel--thread {
 	background: var(--tl-color-low);
+	box-shadow:
+		inset 0 0 0 1px var(--tl-color-low),
+		var(--tl-shadow-2);
+	cursor: pointer;
 }
 
 .tlui-cmt-preview-card .tlui-cmt-card {
