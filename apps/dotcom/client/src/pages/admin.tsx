@@ -1,4 +1,10 @@
-import { FeatureFlagValue, PercentageFeatureFlag, TlaFile, ZStoreData } from '@tldraw/dotcom-shared'
+import {
+	AdminFileAssetsResponseBody,
+	FeatureFlagValue,
+	PercentageFeatureFlag,
+	TlaFile,
+	ZStoreData,
+} from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { fetch } from 'tldraw'
@@ -8,7 +14,7 @@ import { useTldrawCurrentUser } from '../tla/hooks/useUser'
 import styles from './admin.module.css'
 
 // Helper component for structured data display.
-function StructuredDataDisplay({ data }: { data: ZStoreData }) {
+function StructuredDataDisplay({ data }: { data: object }) {
 	const [copied, setCopied] = useState(false)
 
 	const handleCopy = async () => {
@@ -246,6 +252,7 @@ export function Component() {
 						<DownloadTldrFile legacy={false} />
 						<DownloadTldrFile legacy={true} />
 						<CreateLegacyFile />
+						<AssetDiagnostics />
 					</div>
 				</section>
 
@@ -768,6 +775,150 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 					Download
 				</TlaButton>
 			</div>
+		</div>
+	)
+}
+
+function formatBytes(bytes: number) {
+	if (bytes < 1024) return `${bytes} B`
+	if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+	return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function AssetDiagnostics() {
+	const inputRef = useRef<HTMLInputElement>(null)
+	const [error, setError] = useState(null as string | null)
+	const [isLoading, setIsLoading] = useState(false)
+	const [report, setReport] = useState(null as AdminFileAssetsResponseBody | null)
+
+	const onCheck = useCallback(async () => {
+		const slug = inputRef.current?.value?.trim()
+		if (!slug) {
+			setError('Please enter a file slug')
+			return
+		}
+		setError(null)
+		setReport(null)
+		setIsLoading(true)
+		try {
+			const res = await fetch(`/api/app/admin/file-assets/${encodeURIComponent(slug)}`)
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setReport((await res.json()) as AdminFileAssetsResponseBody)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to check assets')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	return (
+		<div className={styles.fileOperation}>
+			<h4 className="tla-text_ui__medium">Asset diagnostics</h4>
+			<p className="tla-text_ui__regular">
+				Checks whether each asset in the file&apos;s last persisted snapshot exists in the uploads
+				bucket and is associated with the file.
+			</p>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			<div className={styles.searchContainer}>
+				<input
+					type="text"
+					placeholder="File slug"
+					ref={inputRef}
+					className={styles.searchInput}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter') onCheck()
+					}}
+				/>
+				<TlaButton onClick={onCheck} variant="primary" isLoading={isLoading}>
+					Check assets
+				</TlaButton>
+			</div>
+			{report && (
+				<>
+					{report.warnings.length > 0 && (
+						<div className={styles.errorMessage}>
+							{report.warnings.length} check(s) failed — counts below may be incomplete.{' '}
+							{report.warnings.slice(0, 3).join('; ')}
+						</div>
+					)}
+					<div className={styles.userSummary}>
+						<div className={styles.summaryGrid}>
+							{[
+								[
+									'Shapes',
+									`${report.shapes.total}${
+										report.shapes.total > 0
+											? ` (${Object.entries(report.shapes.byType)
+													.sort((a, b) => b[1] - a[1])
+													.map(([type, count]) => `${count} ${type}`)
+													.join(', ')})`
+											: ''
+									}`,
+								],
+								['Total assets', report.assets.total],
+								[
+									'Asset size',
+									`${formatBytes(report.assets.totalSizeBytes)} (largest ${formatBytes(report.assets.largestSizeBytes)})`,
+								],
+								['Associated', report.assets.associated],
+								['Pending association', report.assets.pending],
+								['Missing in bucket', report.assets.missingInBucket],
+								['Head check failures', report.assets.headFailures],
+								['Old-format URLs', report.assets.oldFormatUrls],
+								[
+									'DB asset rows',
+									`${report.dbRows.forThisFile} (${report.dbRows.orphaned} orphaned)`,
+								],
+								[
+									'Create source',
+									report.source
+										? `${report.source.raw} ${
+												report.source.exists === null
+													? '(not checked)'
+													: report.source.exists
+														? '(exists)'
+														: '⚠️ (missing)'
+											}`
+										: 'none',
+								],
+							].map(([label, value]) => (
+								<div key={label} className={styles.summaryItem}>
+									<span className={styles.fieldLabel}>{label}:</span>
+									<span className={styles.fieldValue}>{value}</span>
+								</div>
+							))}
+						</div>
+					</div>
+					{report.assets.problems.length > 0 && (
+						<table className={styles.diagnosticsTable}>
+							<thead>
+								<tr>
+									<th>Asset</th>
+									<th>Object name</th>
+									<th>In bucket</th>
+									<th>Meta fileId</th>
+									<th>DB fileId</th>
+								</tr>
+							</thead>
+							<tbody>
+								{report.assets.problems.map((p) => (
+									<tr key={p.assetId}>
+										<td>{p.assetId}</td>
+										<td>{p.objectName}</td>
+										<td>{p.inBucket === null ? 'check failed' : p.inBucket ? 'yes' : 'MISSING'}</td>
+										<td>{p.fileIdMeta ?? 'none'}</td>
+										<td>{p.dbRow?.fileId ?? 'none'}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					)}
+					<StructuredDataDisplay data={report} />
+				</>
+			)}
 		</div>
 	)
 }
