@@ -1076,6 +1076,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly height: 360;
     readonly hostnames: readonly ["vimeo.com", "player.vimeo.com"];
     readonly isAspectRatioLocked: true;
+    readonly sizeToContentAspectRatio: true;
     readonly title: "Vimeo";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "vimeo";
@@ -1786,6 +1787,7 @@ export interface EmbedDefinition<Config = never> {
     readonly overrideOutlineRadius?: number;
     // (undocumented)
     readonly overridePermissions?: TLEmbedShapePermissions;
+    readonly sizeToContentAspectRatio?: boolean;
     // (undocumented)
     readonly title: string;
     // (undocumented)
@@ -1860,6 +1862,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     options: EmbedShapeOptions;
     // (undocumented)
     static props: RecordProps<TLEmbedShape>;
+    resolveAspectRatio(shape: TLEmbedShape): Promise<void>;
     // @deprecated (undocumented)
     static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
     // (undocumented)
