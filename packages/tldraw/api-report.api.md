@@ -39,6 +39,7 @@ import { JSX } from 'react/jsx-runtime';
 import { JSX as JSX_2 } from 'react';
 import { JSXElementConstructor } from 'react';
 import { LANGUAGES } from '@tldraw/editor';
+import { MatLike } from '@tldraw/editor';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
@@ -2123,6 +2124,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
+            flipX: boolean;
+            flipY: boolean;
             font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
@@ -2158,6 +2161,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
+            flipX: boolean;
+            flipY: boolean;
             font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
@@ -2193,6 +2198,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
+            flipX: boolean;
+            flipY: boolean;
             font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
@@ -2248,6 +2255,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     onResize(shape: TLGeoShape, { handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>): {
         props: {
+            flipX: boolean;
+            flipY: boolean;
             growY: number;
             h: number;
             w: number;
@@ -3073,6 +3082,7 @@ export class PathBuilder {
     toPath2D(opts: PathBuilderOpts): Path2D;
     // (undocumented)
     toSvg(opts: PathBuilderOpts): JSX.Element | null;
+    transform(mat: MatLike): PathBuilder;
 }
 
 // @internal (undocumented)

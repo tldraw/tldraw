@@ -1219,6 +1219,8 @@ export interface TLGeoShapeProps {
     color: TLDefaultColorStyle;
     dash: TLDefaultDashStyle;
     fill: TLDefaultFillStyle;
+    flipX: boolean;
+    flipY: boolean;
     font: TLDefaultFontStyle;
     geo: TLGeoShapeGeoStyle;
     growY: number;
