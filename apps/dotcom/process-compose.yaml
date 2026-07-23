@@ -86,6 +86,18 @@ processes:
       sync-worker:
         condition: process_healthy
 
+  # css — tldraw.css / commenting.css are generated, not checked in. Each package's `predev` writes
+  # them once, then its `dev` watches the source css and re-copies. The client @imports both, so it
+  # waits for the files to exist.
+  css:
+    command: LAZYREPO_PRETTY_OUTPUT=0 yarn lazy run dev --filter='packages/tldraw' --filter='packages/commenting'
+    readiness_probe:
+      exec:
+        command: node -e "require('fs').accessSync('packages/tldraw/tldraw.css');require('fs').accessSync('packages/commenting/commenting.css')"
+      initial_delay_seconds: 2
+      period_seconds: 2
+      failure_threshold: 60
+
   # client — vite dev server
   client:
     command: yarn workspace dotcom dev
@@ -93,4 +105,6 @@ processes:
       sync-worker:
         condition: process_healthy
       zero-cache:
+        condition: process_healthy
+      css:
         condition: process_healthy

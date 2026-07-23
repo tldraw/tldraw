@@ -47,6 +47,7 @@ import { CommentThread } from '../ui/comment-thread'
 import { CountBadge } from '../ui/count-badge'
 import { MentionMember } from '../ui/mention-list'
 import { isMentionPickerOpen } from '../ui/mention-suggestion'
+import { TooltipButton } from '../ui/tooltip-button'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import {
@@ -1175,6 +1176,15 @@ const ThreadPin = memo(function ThreadPin({
 	// see the note on the layer.
 	usePassThroughWheelEvents(markerRef)
 
+	// The drop-target hint is editor-global state with no automatic reset. If the pin unmounts
+	// mid-drag (e.g. Shift+C hides comments), no pointer event will ever reach the drag handlers —
+	// clear the hint here or it stays on the shape indefinitely.
+	useEffect(() => {
+		return () => {
+			if (dragRef.current) editor.setHintingShapes([])
+		}
+	}, [editor])
+
 	// Clicking outside the open popover (and off its own pin) closes the thread — mirrors the
 	// pending composer's dismiss. Capture phase + a class check rather than stopPropagation, since the
 	// popover portals elsewhere in the DOM. The pin marker is excluded so its own click-to-toggle
@@ -1328,13 +1338,12 @@ const ThreadPin = memo(function ThreadPin({
 					canComment && comment.authorId === currentUserId ? (
 						<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
 							<TldrawUiDropdownMenuTrigger>
-								<button
-									type="button"
+								<TooltipButton
+									tooltip={msg('comments.more-options')}
 									className="tlui-cmt-thread__action"
-									title={msg('comments.more-options')}
 								>
 									<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
-								</button>
+								</TooltipButton>
 							</TldrawUiDropdownMenuTrigger>
 							<TldrawUiDropdownMenuContent
 								className="tlui-cmt-menu"
@@ -1375,9 +1384,9 @@ const ThreadPin = memo(function ThreadPin({
 	const headerActions = (
 		<>
 			{canComment && currentUserId && (
-				<button
+				<TooltipButton
+					tooltip={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
 					className="tlui-cmt-thread__action"
-					title={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
 					onClick={toggleResolve}
 				>
 					<TldrawUiIcon
@@ -1385,18 +1394,17 @@ const ThreadPin = memo(function ThreadPin({
 						label={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
 						small
 					/>
-				</button>
+				</TooltipButton>
 			)}
 			{canComment && currentUserId && (
 				<TldrawUiDropdownMenuRoot id={`comment-thread-actions-${thread.id}`}>
 					<TldrawUiDropdownMenuTrigger>
-						<button
-							type="button"
+						<TooltipButton
+							tooltip={msg('comments.more-options')}
 							className="tlui-cmt-thread__action"
-							title={msg('comments.more-options')}
 						>
 							<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
-						</button>
+						</TooltipButton>
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent
 						className="tlui-cmt-menu"
@@ -1478,7 +1486,26 @@ const ThreadPin = memo(function ThreadPin({
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
 		drag.moved = true
 		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
-		setDragPagePoint({ x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY })
+		const pagePoint = { x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY }
+		setDragPagePoint(pagePoint)
+		// Hint the shape the pin would re-anchor to on drop — the same hit-test endDrag resolves
+		// with. Regions translate rather than re-anchor, so they never hint.
+		if (!isRegion) {
+			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+			editor.setHintingShapes(hit ? [hit.id] : [])
+		}
+	}
+	// A cancelled pointer (touch gesture takeover, browser interruption) aborts the drag outright:
+	// no re-anchor commit, no click-toggle — the pin snaps back and the hint clears.
+	const cancelDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+		const drag = dragRef.current
+		dragRef.current = null
+		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+			e.currentTarget.releasePointerCapture(e.pointerId)
+		}
+		if (!drag) return
+		setDragPagePoint(null)
+		editor.setHintingShapes([])
 	}
 	const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
@@ -1487,6 +1514,7 @@ const ThreadPin = memo(function ThreadPin({
 			e.currentTarget.releasePointerCapture(e.pointerId)
 		}
 		if (!drag) return
+		editor.setHintingShapes([])
 		if (!drag.moved) {
 			openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
 			return
@@ -1585,6 +1613,7 @@ const ThreadPin = memo(function ThreadPin({
 					onPointerDown={startDrag}
 					onPointerMove={onDrag}
 					onPointerUp={endDrag}
+					onPointerCancel={cancelDrag}
 					onPointerEnter={() => setPinHovered(true)}
 					onPointerLeave={() => setPinHovered(false)}
 				>
