@@ -190,7 +190,8 @@ export function useOnlyFlippableShape() {
 					editor.isShapeOfType(shape, 'image') ||
 					editor.isShapeOfType(shape, 'arrow') ||
 					editor.isShapeOfType(shape, 'line') ||
-					editor.isShapeOfType(shape, 'draw'))
+					editor.isShapeOfType(shape, 'draw') ||
+					editor.isShapeOfType(shape, 'geo'))
 			)
 		},
 		[editor]

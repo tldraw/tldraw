@@ -37,6 +37,7 @@ import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { getUncroppedSize } from '../shared/crop'
+import { getFlipForResize } from '../shared/flip'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
@@ -169,15 +170,13 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
 		let resized: TLImageShape = resizeBox(shape, info)
-		const { flipX, flipY } = info.initialShape.props
 		const { scaleX, scaleY } = info
 
 		resized = {
 			...resized,
 			props: {
 				...resized.props,
-				flipX: scaleX < 0 !== flipX,
-				flipY: scaleY < 0 !== flipY,
+				...getFlipForResize(info.initialShape.props, info),
 			},
 		}
 		if (!shape.props.crop) return resized
