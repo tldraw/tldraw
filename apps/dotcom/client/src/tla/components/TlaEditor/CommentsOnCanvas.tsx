@@ -7,7 +7,7 @@ import {
 } from '@tldraw/commenting'
 import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useDialogs, useEditor, useValue } from 'tldraw'
+import { TLUiOverrides, useDialogs, useEditor, useValue } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
@@ -164,6 +164,29 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 const signInMessages = defineMessages({
 	signInToComment: { defaultMessage: 'Sign in to comment' },
 })
+
+/** For signed-out viewers, the comment tool button and its `c` shortcut open the sign-in dialog
+ *  instead of entering the tool. Compose after `commentToolOverrides`, which registers the tool. */
+export function useAnonCommentToolOverrides(): TLUiOverrides {
+	const app = useMaybeApp()
+	const trackEvent = useTldrawAppUiEvents()
+	const ctaString = useMsg(signInMessages.signInToComment)
+	return useMemo(() => {
+		if (app) return {}
+		return {
+			tools(_editor, tools, { addDialog }) {
+				const comment = tools.comment
+				if (comment) {
+					comment.onSelect = () => {
+						trackEvent('sign-up-clicked', { source: 'comments', ctaMessage: ctaString })
+						addDialog({ component: TlaSignInDialog })
+					}
+				}
+				return tools
+			},
+		}
+	}, [app, trackEvent, ctaString])
+}
 
 /** Anon viewers read comments but don't compose — the toolkit's `SignedOutComposer` slot holds
  *  this sign-in prompt (registered via `CommentTool.configure` in `TlaEditor`). */

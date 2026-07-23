@@ -60,8 +60,8 @@ export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-over
 export {
 	type CommentingComponents,
 	type CommentingOptions,
-	type ComposerFallbackReason,
 	defaultCommentingOptions,
+	getCanComment,
 	getCommentingOptions,
 	useCommentingOptions,
 } from './canvas/options'

@@ -197,9 +197,7 @@ export interface CommentingComponents {
     CommentBody?: ComponentType<{
         comment: TLComment;
     }>;
-    ComposerFallback?: ComponentType<{
-        reason: ComposerFallbackReason;
-    }>;
+    ComposerFallback?: ComponentType;
     PinContent?: ComponentType<{
         comments: TLComment[];
         thread: TLCommentThread;
@@ -211,6 +209,10 @@ export interface CommentingComponents {
 
 // @public
 export interface CommentingOptions {
+    readonly canComment: ((ctx: {
+        currentUserId: null | string;
+        editor: Editor;
+    }) => boolean) | undefined;
     readonly clusterCullMargin: number;
     readonly clusterSplitZoomFactor: number;
     readonly components: CommentingComponents;
@@ -340,9 +342,6 @@ export const commentTools: typeof CommentTool[];
 // @public
 export function commitCommentMutation<T>(editor: Editor, fn: () => T, kind?: 'drag' | 'mutation'): T;
 
-// @public
-export type ComposerFallbackReason = 'signed-out';
-
 // @public (undocumented)
 export function computeClusterTable(leaves: readonly LeafInput[], options: ClusterOptions): ClusterTable;
 
@@ -375,6 +374,7 @@ export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters;
 
 // @public
 export const defaultCommentingOptions: {
+    readonly canComment: undefined;
     readonly clusterCullMargin: 120;
     readonly clusterSplitZoomFactor: 1.05;
     readonly components: {};
@@ -407,6 +407,9 @@ export function focusThread(editor: Editor, thread: TLCommentThread, impreciseSh
 
 // @public
 export function formatRelativeTime(iso: string, locale?: string): string;
+
+// @public
+export function getCanComment(editor: Editor, currentUserId: null | string): boolean;
 
 // @public
 export function getCommentingOptions(editor: Editor): CommentingOptions;

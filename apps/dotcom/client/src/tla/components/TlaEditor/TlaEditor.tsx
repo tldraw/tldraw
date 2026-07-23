@@ -47,7 +47,7 @@ import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracki
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
-import { CommentsOnCanvas, SignInToComment } from './CommentsOnCanvas'
+import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
@@ -63,9 +63,12 @@ import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
-// Signed-out viewers get a sign-in prompt where the comment composers would be.
+// Signed-out viewers can't comment — they get a sign-in prompt where the composers would be.
 const tlaCommentTools = [
-	CommentTool.configure({ components: { ComposerFallback: SignInToComment } }),
+	CommentTool.configure({
+		canComment: ({ currentUserId }) => currentUserId !== null,
+		components: { ComposerFallback: SignInToComment },
+	}),
 ]
 
 /** @internal */
@@ -284,6 +287,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
+	const anonCommentToolOverrides = useAnonCommentToolOverrides()
 
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
@@ -310,7 +314,12 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					actionShortcutsLocation: 'toolbar',
 					deepLinks: deepLinks ? true : undefined,
 				}}
-				overrides={[overrides, extraDragIconOverrides, commentToolOverrides]}
+				overrides={[
+					overrides,
+					extraDragIconOverrides,
+					commentToolOverrides,
+					anonCommentToolOverrides,
+				]}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />

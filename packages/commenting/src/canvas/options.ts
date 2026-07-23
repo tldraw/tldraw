@@ -8,14 +8,6 @@ import {
 } from 'tldraw'
 
 /**
- * Why the composer is unavailable at a compose surface. `'signed-out'` is the only reason today;
- * the union grows as more ways to be unable to compose exist (e.g. disabled commenting).
- *
- * @public
- */
-export type ComposerFallbackReason = 'signed-out'
-
-/**
  * Component overrides for the batteries-included comments layer. Each slot replaces a built-in
  * piece; leave a slot unset to keep its default.
  *
@@ -28,11 +20,11 @@ export interface CommentingComponents {
 	PinContent?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
 	/** A sidebar row's preview. Replaces the plaintext default. */
 	ThreadPreview?: ComponentType<{ comment: TLComment }>
-	/** Shown where a composer would sit when composing is unavailable — a signed-out viewer
-	 *  today; disabled commenting (e.g. a viewer role, or a host that turns commenting off) as
-	 *  future reasons. Renders at the bottom of an open thread popover and in the placement
-	 *  popover the comment tool opens. Unset, those surfaces render nothing. */
-	ComposerFallback?: ComponentType<{ reason: ComposerFallbackReason }>
+	/** Shown where a composer would sit when the viewer can't compose (see
+	 *  {@link CommentingOptions.canComment} — a signed-out viewer, a viewer role, a host that
+	 *  turns commenting off). Renders at the bottom of an open thread popover and in the
+	 *  placement popover the comment tool opens. Unset, those surfaces render nothing. */
+	ComposerFallback?: ComponentType
 }
 
 /**
@@ -69,6 +61,19 @@ export interface CommentingOptions {
 	/** Fold nearby pins into count badges as the camera zooms out. */
 	readonly enableClustering: boolean
 
+	// ── Permissions ──────────────────────────────────────────────────────────────────────────
+	/**
+	 * Whether the viewer may compose comments (new threads and replies). Composers render when it
+	 * returns true; when it returns false, the {@link CommentingComponents.ComposerFallback} slot
+	 * renders in their place (or nothing, if that slot is unset). Unset, composing is allowed
+	 * exactly when `currentUserId` is set. Called during render — reactive reads (signals) are
+	 * tracked. Note posting still requires a `currentUserId` to author the records, so a callback
+	 * that returns true for a signed-out viewer yields a composer that can't submit.
+	 */
+	readonly canComment:
+		| ((ctx: { editor: Editor; currentUserId: string | null }) => boolean)
+		| undefined
+
 	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
 	readonly impreciseShapeAnchor: { readonly x: number; readonly y: number }
@@ -93,6 +98,7 @@ export const defaultCommentingOptions = {
 	history: 'ignore',
 	dragHistory: undefined,
 	enableClustering: true,
+	canComment: undefined,
 	impreciseShapeAnchor: { x: 1, y: 0 },
 	clusterCullMargin: 120,
 	clusterSplitZoomFactor: 1.05,
@@ -121,4 +127,16 @@ export function getCommentingOptions(editor: Editor): CommentingOptions {
 export function useCommentingOptions(): CommentingOptions {
 	const editor = useEditor()
 	return useMemo(() => getCommentingOptions(editor), [editor])
+}
+
+/**
+ * Whether the viewer may compose comments, per {@link CommentingOptions.canComment} (defaulting
+ * to `currentUserId !== null` when unset). Where this is false, composers give way to the
+ * {@link CommentingComponents.ComposerFallback} slot.
+ *
+ * @public
+ */
+export function getCanComment(editor: Editor, currentUserId: string | null): boolean {
+	const { canComment } = getCommentingOptions(editor)
+	return canComment ? canComment({ editor, currentUserId }) : currentUserId !== null
 }

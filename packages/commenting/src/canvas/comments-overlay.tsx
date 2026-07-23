@@ -64,6 +64,7 @@ import { useCommentingEnabled } from './license'
 import {
 	type CommentingComponents,
 	type CommentingOptions,
+	getCanComment,
 	getCommentingOptions,
 	useCommentingOptions,
 } from './options'
@@ -208,6 +209,15 @@ function toCardProps(
 	}
 }
 
+/** Reactive view of {@link getCanComment}, tracked so a `canComment` callback that reads
+ *  signals re-evaluates when they change. */
+function useCanComment(editor: Editor, currentUserId: string | null): boolean {
+	return useValue('can comment', () => getCanComment(editor, currentUserId), [
+		editor,
+		currentUserId,
+	])
+}
+
 /** @public @react */
 export function CanvasComments(props: CanvasCommentsProps) {
 	// Gate the whole layer on the license before doing any work. The inner component holds all the
@@ -238,6 +248,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const deepLinkHandled = useRef(false)
 	const threads = useCommentThreads(editor)
 	const pending = usePendingComment()
+	const canComment = useCanComment(editor, props.currentUserId)
 	const openId = useValue('open thread id', () => openThreadId.get(editor), [editor])
 	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
 	// Threads held out of clustering because their anchor moved while folded inside a badge
@@ -575,7 +586,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			{/* Keep the region visible while composing — the drag draft is gone by now, and no thread
 			    exists yet, so the pending anchor is what shows the area under the open composer. */}
 			{pending?.anchor.type === 'region' && <RegionBox editor={editor} box={pending.anchor} />}
-			{pending && (props.currentUserId || options.components.ComposerFallback) && (
+			{pending && (canComment || options.components.ComposerFallback) && (
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
 		</div>,
@@ -1089,6 +1100,7 @@ const ThreadPin = memo(function ThreadPin({
 	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	const options = useCommentingOptions()
+	const canComment = useCanComment(editor, currentUserId)
 	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
 	const container = useContainer()
 	const comments = useThreadComments(editor, thread.id)
@@ -1591,7 +1603,7 @@ const ThreadPin = memo(function ThreadPin({
 									: undefined
 							}
 							composer={
-								currentUserId && !thread.resolved
+								canComment && !thread.resolved
 									? {
 											author: me ?? UNKNOWN_COMMENT_AUTHOR,
 											placeholder: msg('comments.reply-placeholder'),
@@ -1609,8 +1621,8 @@ const ThreadPin = memo(function ThreadPin({
 									: undefined
 							}
 							footer={
-								!currentUserId && !thread.resolved && ComposerFallback ? (
-									<ComposerFallback reason="signed-out" />
+								!canComment && !thread.resolved && ComposerFallback ? (
+									<ComposerFallback />
 								) : undefined
 							}
 						/>
@@ -1631,6 +1643,7 @@ function PendingComposer({
 	renderMentionSuggestion,
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
 	const ComposerFallback = useCommentingOptions().components.ComposerFallback
+	const canComment = useCanComment(editor, currentUserId)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	// Click-away keeps the draft (saved on every change) and the next placement composer
 	// restores it — the flip side of dismissing without a discard warning.
@@ -1693,7 +1706,7 @@ function PendingComposer({
 			className={[
 				'tlui-cmt-canvas-composer',
 				pending.anchor.type === 'region' && 'tlui-cmt-canvas-composer--region',
-				!currentUserId && 'tlui-cmt-canvas-composer--fallback',
+				!canComment && 'tlui-cmt-canvas-composer--fallback',
 			]
 				.filter(Boolean)
 				.join(' ')}
@@ -1704,7 +1717,7 @@ function PendingComposer({
 				if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(editor, null)
 			}}
 		>
-			{currentUserId ? (
+			{canComment ? (
 				<CommentComposer
 					author={me ?? UNKNOWN_COMMENT_AUTHOR}
 					placeholder={msg('comments.add-placeholder')}
@@ -1722,7 +1735,7 @@ function PendingComposer({
 					leading={draftAvatar(me?.color)}
 				/>
 			) : (
-				ComposerFallback && <ComposerFallback reason="signed-out" />
+				ComposerFallback && <ComposerFallback />
 			)}
 		</div>,
 		container

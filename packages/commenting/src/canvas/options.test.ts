@@ -1,7 +1,12 @@
 import type { Editor } from 'tldraw'
 import { describe, expect, it } from 'vitest'
 import { CommentTool } from './comment-tool'
-import { defaultCommentingOptions, getCommentingOptions, type CommentingOptions } from './options'
+import {
+	defaultCommentingOptions,
+	getCanComment,
+	getCommentingOptions,
+	type CommentingOptions,
+} from './options'
 import { commitCommentMutation, openThreadId, pendingComment } from './state'
 
 // The StateNode constructor doesn't call any editor methods, so a bare stub is enough to
@@ -75,6 +80,36 @@ describe('getCommentingOptions', () => {
 	it('falls back to defaults when the comment tool is absent', () => {
 		const editor = { getStateDescendant: () => undefined } as unknown as Editor
 		expect(getCommentingOptions(editor)).toBe(defaultCommentingOptions)
+	})
+})
+
+describe('getCanComment', () => {
+	it('defaults to requiring a current user', () => {
+		const { editor } = stubEditor(defaultCommentingOptions)
+		expect(getCanComment(editor, 'alice')).toBe(true)
+		expect(getCanComment(editor, null)).toBe(false)
+	})
+
+	it('delegates to the canComment callback, passing the editor and viewer', () => {
+		const calls: Array<{ editor: Editor; currentUserId: string | null }> = []
+		const { editor } = stubEditor({
+			...defaultCommentingOptions,
+			canComment: (ctx) => {
+				calls.push(ctx)
+				return ctx.currentUserId === 'alice'
+			},
+		})
+		expect(getCanComment(editor, 'alice')).toBe(true)
+		expect(getCanComment(editor, 'bob')).toBe(false)
+		expect(calls).toEqual([
+			{ editor, currentUserId: 'alice' },
+			{ editor, currentUserId: 'bob' },
+		])
+	})
+
+	it('lets the callback fully replace the signed-in default', () => {
+		const { editor } = stubEditor({ ...defaultCommentingOptions, canComment: () => true })
+		expect(getCanComment(editor, null)).toBe(true)
 	})
 })
 
