@@ -227,6 +227,7 @@ export interface CommentingOptions {
         readonly y: number;
     };
     isAllowedReaction(token: string): boolean;
+    shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean;
     readonly showSelfInReactionList: boolean;
 }
 
@@ -415,6 +416,7 @@ export const defaultCommentingOptions: {
         readonly y: 0;
     };
     readonly isAllowedReaction: typeof isAllowedReactionEmoji;
+    readonly shouldBePrecise: () => true;
     readonly showSelfInReactionList: true;
 };
 
@@ -693,6 +695,16 @@ export function shapeAnchorAt(editor: Editor, shapeId: TLShapeId, page: {
     x: number;
     y: number;
 }, precise: boolean): TLCommentAnchor;
+
+// @public
+export interface ShapeCommentPrecisionContext {
+    // (undocumented)
+    readonly altKey: boolean;
+    // (undocumented)
+    readonly point: VecLike;
+    // (undocumented)
+    readonly shapeId: TLShapeId;
+}
 
 // @public
 export interface SidebarFilters {
