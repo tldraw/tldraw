@@ -9,7 +9,7 @@ import {
 	WELCOME_CREATE_SOURCE,
 } from '@tldraw/dotcom-shared'
 import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
-import { createRouter } from '@tldraw/worker-shared'
+import { createRouter, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import PQueue from 'p-queue'
 import { createPostgresConnectionPool } from './postgres'
@@ -222,6 +222,10 @@ export const adminRoutes = createRouter<Environment>()
 		}> = []
 		let totalShapes = 0
 		const shapesByType: Record<string, number> = {}
+		// Assets the association pass can never act on (see collectAssetAssociationChanges):
+		// bookmarks (src is the bookmarked page URL), non-http srcs, R2-invalid object names.
+		// Counted instead of reported as missing uploads.
+		let external = 0
 		for (const { state } of snapshot.documents) {
 			const record = state as any
 			if (record.typeName === 'shape') {
@@ -233,7 +237,14 @@ export const adminRoutes = createRouter<Environment>()
 			const src = record.props?.src
 			if (!src) continue
 			const objectName = src.split('/').pop()
-			if (!objectName) continue
+			if (record.type === 'bookmark' || !src.startsWith('http') || !objectName) {
+				external++
+				continue
+			}
+			if (!isValidR2ObjectName(objectName)) {
+				external++
+				continue
+			}
 			const fileIdMeta = record.meta?.fileId ?? null
 			const associated = fileIdMeta === slug
 			assets.push({
@@ -344,6 +355,7 @@ export const adminRoutes = createRouter<Environment>()
 				total: assets.length,
 				associated,
 				pending: assets.length - associated,
+				external,
 				oldFormatUrls,
 				missingInBucket,
 				headFailures,

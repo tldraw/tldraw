@@ -41,19 +41,13 @@ import {
 	TLRecord,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import {
-	ExecutionQueue,
-	assert,
-	assertExists,
-	exhaustiveSwitchError,
-	retry,
-	uniqueId,
-} from '@tldraw/utils'
+import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
+import { collectAssetAssociationChanges } from './assetAssociation'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
@@ -1120,6 +1114,11 @@ export class TLFileDurableObject extends DurableObject {
 
 	private readonly associateAssetsQueue = new ExecutionQueue()
 
+	// Source objects the association pass confirmed missing from the uploads bucket. Skipped on
+	// later passes so an asset pointing at a gone object doesn't re-attempt an R2 get on every
+	// persist tick. In-memory only: resets with the DO, never touches document data.
+	private readonly missingSourceObjects = new Set<string>()
+
 	// Shared connection budget for every R2 operation this durable object makes. Both asset copies and
 	// snapshot uploads draw from this queue so together they can't exceed Cloudflare's simultaneous-
 	// connection limit (see MAX_CONCURRENT_R2_OPERATIONS).
@@ -1227,53 +1226,13 @@ export class TLFileDurableObject extends DurableObject {
 
 		const {
 			result: { assetsToReplace, assetsToMigrate },
-		} = storage.transaction((txn) => {
-			const assetsToReplace: Array<{
-				objectName: string
-				newObjectName: string
-				newSrc: string
-				assetId: string
-			}> = []
-			const assetsToMigrate: Array<{
-				assetId: string
-				newSrc: string
-			}> = []
-			for (const record of txn.values()) {
-				if (record.typeName !== 'asset') continue
-				const asset = record as any
-				const meta = asset.meta
-				const src = asset.props.src
-				if (!src) continue
-
-				// Migrate old-format HTTP URLs to tldrawusercontent.com (same R2 bucket, no copy needed)
-				if (meta?.fileId === slug && src.startsWith('http') && !src.startsWith(userContentUrl)) {
-					const objectName = src.split('/').pop()
-					if (objectName) {
-						assetsToMigrate.push({
-							assetId: asset.id,
-							newSrc: `${userContentUrl}/${objectName}`,
-						})
-					}
-					continue
-				}
-
-				if (meta?.fileId === slug) continue
-				const objectName = src.split('/').pop()
-				if (!objectName) continue
-
-				const split = objectName.split('-')
-				const fileType = split.length > 1 ? split.pop() : null
-				const id = uniqueId()
-				const newObjectName = fileType ? `${id}-${fileType}` : id
-				assetsToReplace.push({
-					objectName,
-					newObjectName,
-					assetId: asset.id,
-					newSrc: `${userContentUrl}/${newObjectName}`,
-				})
-			}
-			return { assetsToReplace, assetsToMigrate }
-		})
+		} = storage.transaction((txn) =>
+			collectAssetAssociationChanges(txn.values(), {
+				slug,
+				userContentUrl,
+				skipObjectNames: this.missingSourceObjects,
+			})
+		)
 
 		// Apply URL migrations (no R2 copy needed — same bucket, same object)
 		if (assetsToMigrate.length > 0) {
@@ -1294,10 +1253,13 @@ export class TLFileDurableObject extends DurableObject {
 			assetsToReplace.map((asset) =>
 				this.addR2Operation('asset_copy', async () => {
 					try {
-						if (!isValidR2ObjectName(asset.objectName)) return
-
 						const currentAsset = await this.env.UPLOADS.get(asset.objectName)
-						if (!currentAsset) return
+						if (!currentAsset) {
+							// Only a confirmed null (object genuinely absent) goes in the cache — a
+							// thrown error (rate limit, subrequest budget) must stay retryable
+							this.missingSourceObjects.add(asset.objectName)
+							return
+						}
 						await this.env.UPLOADS.put(asset.newObjectName, currentAsset.body, {
 							httpMetadata: currentAsset.httpMetadata,
 						})
