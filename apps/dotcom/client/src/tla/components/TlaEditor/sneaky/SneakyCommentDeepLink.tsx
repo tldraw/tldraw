@@ -1,4 +1,4 @@
-import { revealThreadRequest } from '@tldraw/commenting'
+import { getCommentRecord, revealThreadRequest, useCommentingEnabled } from '@tldraw/commenting'
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useEditor, useToasts, useValue } from 'tldraw'
@@ -21,6 +21,7 @@ export function SneakyCommentDeepLink() {
 	const editor = useEditor()
 	const app = useMaybeApp()
 	const isReady = useIsReady()
+	const commentingEnabled = useCommentingEnabled()
 	const { addToast } = useToasts()
 	const [searchParams, setSearchParams] = useSearchParams()
 	const commentId = searchParams.get('comment')
@@ -38,25 +39,27 @@ export function SneakyCommentDeepLink() {
 		)
 	}, [editor, commentId, setSearchParams])
 
-	// A request that outlives the file load points at deleted records: comments arrive with the
-	// document snapshot, so once the file is ready (plus a short grace for ordering) an unserved
-	// request will never be served. Explain the dead end instead of doing nothing, and mark the
-	// comment's notification read so it doesn't keep dead-ending on every click.
+	// A request that stays unserved once the file is loaded, the overlay is serving (the license
+	// gate has resolved), and the comment records are absent almost certainly points at a deleted
+	// comment — explain the dead end instead of doing nothing, and mark the comment's notification
+	// read so it doesn't keep dead-ending on every click. "Absent" is still a heuristic (the sync
+	// layer has no records-settled signal), so the request is left pending: if the records are
+	// merely late, the overlay still serves them when they land, and an unserved request is inert.
 	const pendingRevealId = useValue('pending reveal', () => revealThreadRequest.get(editor), [
 		editor,
 	])
 	useEffect(() => {
-		if (!isReady || !pendingRevealId) return
+		if (!isReady || !commentingEnabled || !pendingRevealId) return
 		const timer = setTimeout(() => {
 			if (revealThreadRequest.get(editor) !== pendingRevealId) return
-			revealThreadRequest.set(editor, null)
+			if (getCommentRecord(editor, pendingRevealId)) return
 			addToast({ id: 'comment-deep-link-deleted', severity: 'info', title: deletedMsg })
 			if (app?.getComments().some((c) => c.id === pendingRevealId)) {
 				app.markCommentRead(pendingRevealId)
 			}
 		}, 2000)
 		return () => clearTimeout(timer)
-	}, [isReady, pendingRevealId, editor, app, addToast, deletedMsg])
+	}, [isReady, commentingEnabled, pendingRevealId, editor, app, addToast, deletedMsg])
 
 	return null
 }
