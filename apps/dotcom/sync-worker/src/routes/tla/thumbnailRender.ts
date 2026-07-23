@@ -4,6 +4,7 @@ import {
 	MAX_THUMBNAIL_PAGES,
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
+	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { getR2KeyForRoom } from '../../r2'
@@ -29,26 +30,11 @@ import { BoardSnapshotReadError } from './thumbnailShared'
 // Browser Rendering invocation, rate limiting, and the shared telemetry writer. The surfaces own
 // their own protocol handling, cache keys, and retry/backoff policies.
 
-// Bounds both navigation and the render-page settle+export wait inside the Browser Rendering
-// screenshot Quick Action. Shared with the render page (which sizes its own settle budget under this)
-// via @tldraw/dotcom-shared so the two deadlines can't drift.
-const RENDER_TIMEOUT_MS = THUMBNAIL_RENDER_TIMEOUT_MS
-// The render page marks a terminal state on <body>/<html>: success sets data-thumbnail-ready once the
-// exported image has painted; any failure (bad token, snapshot load, export, or image decode) sets
-// data-thumbnail-error. The screenshot Quick Action waits for EITHER, so a failed render returns as
-// soon as it errors instead of burning the whole RENDER_TIMEOUT_MS holding scarce Browser Run
-// capacity.
-const RENDER_SETTLED_SELECTOR = '[data-thumbnail-ready="true"], [data-thumbnail-error]'
-// The element the Quick Action actually captures. It exists only on the success path, so when the
-// wait above resolves on a failure there is nothing to screenshot and the Quick Action returns an
-// error immediately (surfaced as a render failure) rather than capturing the error page. Scoped to
-// <body> so it resolves to a single element (both <html> and <body> carry the ready marker).
-const RENDER_CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
-
 // The single limiter key every Browser Run-spending surface (the MCP tool and the OG queue
-// consumer) passes, so they draw from one shared global cap instead of separate per-key buckets.
-export const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
-export const GLOBAL_BROWSER_RUN_RATE_LIMIT = 6
+// consumer) checks via isGlobalBrowserRunRateLimited, so they draw from one shared global cap
+// instead of separate per-key buckets.
+const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
+const GLOBAL_BROWSER_RUN_RATE_LIMIT = 6
 const RATE_LIMIT_WINDOW_MS = 60_000
 const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
 
@@ -222,7 +208,15 @@ export async function renderThumbnailScreenshot(
 	const startedAt = Date.now()
 	// Browser Rendering `/screenshot` Quick Action, invoked straight through the binding (no
 	// puppeteer, no API token). Requires compatibility_date >= 2026-03-24 for `quickAction`.
-	const response = await env.BROWSER.quickAction('screenshot', getScreenshotRequestBody(renderUrl))
+	const response = await env.BROWSER.quickAction(
+		'screenshot',
+		getThumbnailScreenshotRequestBody({
+			renderUrl,
+			width: DEFAULT_THUMBNAIL_WIDTH,
+			height: DEFAULT_THUMBNAIL_HEIGHT,
+			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+		})
+	)
 	const durationMs = Date.now() - startedAt
 
 	if (!response.ok) {
@@ -233,57 +227,6 @@ export async function renderThumbnailScreenshot(
 		throw new Error('Render produced an empty screenshot')
 	}
 	return { base64: arrayBufferToBase64(buffer), durationMs }
-}
-
-function getScreenshotRequestBody(renderUrl: string) {
-	const headers = getExtraHeaders(renderUrl)
-	return {
-		url: renderUrl,
-		...(headers ? { setExtraHTTPHeaders: headers } : null),
-		viewport: {
-			width: DEFAULT_THUMBNAIL_WIDTH,
-			height: DEFAULT_THUMBNAIL_HEIGHT,
-			deviceScaleFactor: 1,
-		},
-		// Waiting for a terminal selector is the real completion signal; waiting on network activity is
-		// fragile because background app requests (e.g. replicator-status polling) can keep the network
-		// busy indefinitely. `load` is a milder form of that same trap, so it stops here at
-		// domcontentloaded: `load` does not fire until every subresource settles, and one stalled image
-		// request is enough to hold it open until this timeout — at which point the quick action fails
-		// without ever reaching the waitForSelector below, even though the page had marked itself ready
-		// long before. A board whose bookmark preview image points back at that board's own OG image
-		// route does exactly this. Nothing is lost by not waiting for `load`: the render page's settle
-		// wait (THUMBNAIL_SETTLE_TIMEOUT_MS) and the SDK's asset-inlining delay (maxExportDelayMs) are
-		// separately bounded, so the page reaches a terminal state on its own schedule regardless.
-		gotoOptions: {
-			waitUntil: 'domcontentloaded',
-			timeout: RENDER_TIMEOUT_MS,
-		},
-		// Resolve as soon as the render page reaches either terminal state (ready or error), so a
-		// failed render doesn't hold Browser Run capacity for the full timeout.
-		waitForSelector: {
-			selector: RENDER_SETTLED_SELECTOR,
-			timeout: RENDER_TIMEOUT_MS,
-		},
-		// Capture the success-only element (it fills the viewport, so this matches the old full-viewport
-		// screenshot). On a failure it's absent, so the Quick Action errors out immediately instead of
-		// screenshotting the error page. `selector` targets an element without waiting (waitForSelector
-		// above is the wait), so a missing element fails fast rather than re-waiting the timeout.
-		selector: RENDER_CAPTURE_SELECTOR,
-		screenshotOptions: {
-			type: 'png',
-		},
-	}
-}
-
-function getExtraHeaders(renderUrl: string) {
-	const { hostname } = new URL(renderUrl)
-	if (hostname.endsWith('.ngrok-free.dev')) {
-		return {
-			'ngrok-skip-browser-warning': 'true',
-		}
-	}
-	return null
 }
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
@@ -302,6 +245,15 @@ export async function putThumbnailPng(
 			createdAt: String(Date.now()),
 			...extraMetadata,
 		},
+	})
+}
+
+// The shared cap on total Browser Run spend. Every surface that spends Browser Run (the MCP
+// screenshot tool and the OG queue consumer) checks this, and all of them pass the same limiter key,
+// so they draw from one global bucket instead of separate per-surface budgets.
+export async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
+	return isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
+		fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
 	})
 }
 

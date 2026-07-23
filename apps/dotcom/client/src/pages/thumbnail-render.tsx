@@ -10,12 +10,14 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	Editor,
+	FileHelpers,
 	Image,
 	SerializedSchema,
 	TLPageId,
 	TLRecord,
 	Tldraw,
 	fetch,
+	sleep,
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -106,7 +108,7 @@ function ThumbnailRenderPage({
 	// screenshot captures the exact editor.toImage output rather than the live editor canvas.
 	const [dataUrl, setDataUrl] = useState<string | null>(null)
 	const handleImage = useCallback(async (blob: Blob) => {
-		setDataUrl(await blobToDataUrl(blob))
+		setDataUrl(await FileHelpers.blobToDataUrl(blob))
 	}, [])
 
 	if (dataUrl) return <ThumbnailImage dataUrl={dataUrl} width={width} height={height} />
@@ -408,15 +410,6 @@ function makeBlankThumbnail(width: number, height: number, background: string): 
 	})
 }
 
-export function blobToDataUrl(blob: Blob): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onload = () => resolve(reader.result as string)
-		reader.onerror = () => reject(reader.error ?? new Error('Could not read thumbnail blob'))
-		reader.readAsDataURL(blob)
-	})
-}
-
 async function waitForFonts() {
 	if (!('fonts' in document)) return
 	try {
@@ -472,8 +465,4 @@ async function waitForEditorImages(editor: Editor, deadline: number) {
 		lastCount = images.length
 		await sleep(100)
 	}
-}
-
-function sleep(ms: number) {
-	return new Promise<void>((resolve) => setTimeout(resolve, ms))
 }

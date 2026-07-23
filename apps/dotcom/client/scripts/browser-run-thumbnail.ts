@@ -6,16 +6,13 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
 	MIN_THUMBNAIL_DIMENSION,
+	THUMBNAIL_RENDER_TIMEOUT_MS,
+	THUMBNAIL_SETTLED_SELECTOR,
+	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
 
 // The fixture page owns the per-fixture snapshots and camera defaults; this script only names one.
 const FIXTURE_NAMES = ['snapshot-example', 'layer-panel'] as const
-
-// The same terminal markers the production worker waits on: the page marks success with
-// data-thumbnail-ready once the export has painted, and any failure with data-thumbnail-error.
-const SETTLED_SELECTOR = '[data-thumbnail-ready="true"], [data-thumbnail-error]'
-const CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
-const CAPTURE_TIMEOUT_MS = 45_000
 
 type FixtureName = (typeof FIXTURE_NAMES)[number]
 type Mode = 'auto' | 'browser-run' | 'local'
@@ -166,7 +163,16 @@ async function captureWithBrowserRun(renderUrl: string, options: Options) {
 				Authorization: `Bearer ${apiToken}`,
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify(getBrowserRunRequestBody(renderUrl, options)),
+			body: JSON.stringify(
+				// The exact request body the production worker sends its Quick Action, so this path
+				// exercises the same wait strategy, terminal selectors, and capture target.
+				getThumbnailScreenshotRequestBody({
+					renderUrl,
+					width: options.width,
+					height: options.height,
+					timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+				})
+			),
 		}
 	)
 
@@ -180,47 +186,6 @@ async function captureWithBrowserRun(renderUrl: string, options: Options) {
 	}
 
 	return Buffer.from(await response.arrayBuffer())
-}
-
-// Mirrors the production worker's screenshot request (see getScreenshotRequestBody in
-// apps/dotcom/sync-worker/src/routes/tla/thumbnailRender.ts): navigation stops at domcontentloaded
-// (waiting for `load` can stall on a single slow subresource even though the page marked itself
-// ready), the wait resolves on either terminal marker so failed renders fail fast, and the capture
-// targets a success-only element so an error page returns an error rather than a screenshot of it.
-function getBrowserRunRequestBody(renderUrl: string, options: Options) {
-	const headers = getExtraHeaders(renderUrl)
-	return {
-		url: renderUrl,
-		...(headers ? { setExtraHTTPHeaders: headers } : null),
-		viewport: {
-			width: options.width,
-			height: options.height,
-			deviceScaleFactor: 1,
-		},
-		gotoOptions: {
-			waitUntil: 'domcontentloaded',
-			timeout: CAPTURE_TIMEOUT_MS,
-		},
-		waitForSelector: {
-			selector: SETTLED_SELECTOR,
-			timeout: CAPTURE_TIMEOUT_MS,
-		},
-		selector: CAPTURE_SELECTOR,
-		screenshotOptions: {
-			type: 'png',
-			fullPage: false,
-		},
-	}
-}
-
-function getExtraHeaders(renderUrl: string) {
-	const { hostname } = new URL(renderUrl)
-	if (hostname.endsWith('.ngrok-free.dev')) {
-		return {
-			'ngrok-skip-browser-warning': 'true',
-		}
-	}
-	return null
 }
 
 // The fixture page produces the thumbnail itself with editor.toImage and exposes it as a data
@@ -237,8 +202,13 @@ async function captureWithLocalPlaywright(renderUrl: string, options: Options) {
 		// unnecessary and fragile (background app requests like replicator-status polling can keep
 		// the network busy indefinitely). Waiting on the error marker too makes a failed render fail
 		// immediately with the page's own message instead of timing out.
-		await page.goto(renderUrl, { waitUntil: 'domcontentloaded', timeout: CAPTURE_TIMEOUT_MS })
-		await page.waitForSelector(SETTLED_SELECTOR, { timeout: CAPTURE_TIMEOUT_MS })
+		await page.goto(renderUrl, {
+			waitUntil: 'domcontentloaded',
+			timeout: THUMBNAIL_RENDER_TIMEOUT_MS,
+		})
+		await page.waitForSelector(THUMBNAIL_SETTLED_SELECTOR, {
+			timeout: THUMBNAIL_RENDER_TIMEOUT_MS,
+		})
 		const renderError = await page.evaluate(() => document.body.dataset.thumbnailError)
 		if (renderError !== undefined) {
 			throw new Error(`Fixture page failed to render: ${renderError}`)

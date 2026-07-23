@@ -2,12 +2,10 @@ import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotco
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { Environment, OgImageRenderQueueMessage, ThumbnailBoardKind } from '../../types'
 import {
-	GLOBAL_BROWSER_RATE_LIMIT_KEY,
-	GLOBAL_BROWSER_RUN_RATE_LIMIT,
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
 	enumerateBoardPages,
-	isRateLimited,
+	isGlobalBrowserRunRateLimited,
 	loadBoardSnapshot,
 	putThumbnailPng,
 	resolveThumbnailBoard,
@@ -140,15 +138,10 @@ export async function handleOgImageRenderMessage(
 			throw new Error('THUMBNAILS bucket is not configured')
 		}
 
-		// Shares the global Browser Run budget with the synchronous surfaces by using the same limiter
-		// key (`GLOBAL_BROWSER_RATE_LIMIT_KEY`), so the MCP tool and this consumer draw from one cap
-		// rather than two independent buckets. When capacity is busy, requeue rather than drop: the
-		// request path has already returned, so latency is free here.
-		if (
-			await isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
-				fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
-			})
-		) {
+		// Shares the global Browser Run budget with the synchronous surfaces, so the MCP tool and this
+		// consumer draw from one cap rather than two independent buckets. When capacity is busy, requeue
+		// rather than drop: the request path has already returned, so latency is free here.
+		if (await isGlobalBrowserRunRateLimited(env)) {
 			await requeueForRateLimit(env, message, boardHash)
 			return
 		}

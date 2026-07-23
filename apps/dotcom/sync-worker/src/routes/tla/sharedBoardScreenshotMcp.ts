@@ -4,12 +4,11 @@ import { Environment } from '../../types'
 import { arrayBufferToBase64 } from '../../utils/base64'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 import {
-	GLOBAL_BROWSER_RATE_LIMIT_KEY,
-	GLOBAL_BROWSER_RUN_RATE_LIMIT,
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
 	enumerateBoardPages,
+	isGlobalBrowserRunRateLimited,
 	isRateLimited,
 	loadBoardSnapshot,
 	putThumbnailPng,
@@ -375,11 +374,7 @@ async function callSharedBoardScreenshotTool(
 			})
 			return toolError('Rate limited. This board is being screenshotted too frequently.')
 		}
-		if (
-			await isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
-				fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
-			})
-		) {
+		if (await isGlobalBrowserRunRateLimited(env)) {
 			telemetry({
 				cacheStatus: 'miss',
 				rateLimitAllowed: false,

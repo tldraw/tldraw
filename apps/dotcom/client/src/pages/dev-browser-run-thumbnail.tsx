@@ -1,13 +1,12 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useState } from 'react'
-import { TLEditorSnapshot, TLStoreSnapshot, Tldraw, defaultShapeUtils } from 'tldraw'
+import { FileHelpers, TLEditorSnapshot, TLStoreSnapshot, Tldraw, defaultShapeUtils } from 'tldraw'
 import 'tldraw/tldraw.css'
 import snapshotExampleSnapshot from '../../../../examples/src/examples/editor-api/snapshots/snapshot.json'
 import layerPanelSnapshot from '../../../../examples/src/examples/ui/layer-panel/snapshot.json'
 import {
 	ThumbnailExportSignal,
 	ThumbnailImage,
-	blobToDataUrl,
 	clampThumbnailDimension,
 	useThumbnailPageSize,
 } from './thumbnail-render'
@@ -42,7 +41,7 @@ export function Component() {
 
 	const [dataUrl, setDataUrl] = useState<string | null>(null)
 	const handleImage = useCallback(async (blob: Blob) => {
-		setDataUrl(await blobToDataUrl(blob))
+		setDataUrl(await FileHelpers.blobToDataUrl(blob))
 	}, [])
 
 	if (dataUrl) {
