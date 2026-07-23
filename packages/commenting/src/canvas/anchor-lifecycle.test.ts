@@ -82,14 +82,15 @@ describe('shape deletion', () => {
 		expect((updated as typeof thread).anchor).toEqual({ type: 'point', x: 150, y: 125 })
 	})
 
-	it('converts an imprecise shape anchor at the imprecise pin spot (top-right by default)', () => {
+	it('converts an imprecise shape anchor where the inset pin is drawn, not at the raw corner', () => {
 		const shapeId = makeShape(100, 100, 100, 50)
 		const { thread } = makeThread(shapeId, 0.2, 0.9, false)
 
 		editor.deleteShape(shapeId)
 
+		// Top-right corner (200, 100) plus the 20px screen inset toward the shape's centre.
 		const updated = getCommentRecord(editor, thread.id) as typeof thread
-		expect(updated.anchor).toEqual({ type: 'point', x: 200, y: 100 })
+		expect(updated.anchor).toEqual({ type: 'point', x: 180, y: 120 })
 	})
 
 	it('converts anchors on children when their frame is deleted with them', () => {

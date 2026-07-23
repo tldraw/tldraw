@@ -8,7 +8,11 @@ import {
 	TLCommentRecord,
 } from './comment-store'
 import { commitCommentMutation } from './state'
-import { anchorPagePoint, DEFAULT_IMPRECISE_SHAPE_ANCHOR } from './thread-state'
+import {
+	anchorPagePoint,
+	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
+	impreciseShapePinInset,
+} from './thread-state'
 
 type ShapeAnchor = Extract<TLCommentAnchor, { type: 'shape' | 'text-range' }>
 
@@ -95,7 +99,17 @@ export function registerCommentAnchorLifecycle(
 					captured = new Map()
 					pendingByShape.set(shape.id, captured)
 				}
-				captured.set(thread.id, anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor))
+				// Capture where the pin is drawn, not just the anchor point: imprecise shape pins
+				// render inset toward the shape's centre, and the converted point pin renders at
+				// its point exactly — without the inset the pin would jump on deletion. The inset
+				// is screen-fixed, so bake it in at the current zoom.
+				let point = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
+				const inset = impreciseShapePinInset(thread.anchor, impreciseShapeAnchor)
+				if (point && inset) {
+					const zoom = editor.getZoomLevel()
+					point = { x: point.x + inset.x / zoom, y: point.y + inset.y / zoom }
+				}
+				captured.set(thread.id, point)
 			}
 		}
 	)
