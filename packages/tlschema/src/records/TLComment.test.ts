@@ -2,14 +2,18 @@ import { describe, expect, it } from 'vitest'
 import { createTLSchema } from '../createTLSchema'
 import { toRichText } from '../misc/TLRichText'
 import {
+	commentReactionRecordConfig,
 	commentRecordConfig,
 	commentSchemaRecords,
 	commentThreadRecordConfig,
 	createComment,
 	createCommentId,
+	createCommentReaction,
+	createCommentReactionId,
 	createCommentThread,
 	createCommentThreadId,
 	isCommentId,
+	isCommentReactionId,
 	isCommentThreadId,
 	TLCommentAnchor,
 } from './TLComment'
@@ -178,5 +182,44 @@ describe('comment-thread migrations', () => {
 		).toEqual({
 			anchor: { type: 'shape', shapeId },
 		})
+	})
+})
+
+describe('comment-reaction record', () => {
+	it('createCommentReaction derives its id from the comment, user, and emoji', () => {
+		const commentId = createCommentId('c1')
+		const make = (emoji: string) =>
+			createCommentReaction({
+				commentId,
+				threadId: createCommentThreadId('t1'),
+				pageId,
+				userId: 'user1',
+				emoji,
+			})
+		// same emoji → same record (re-picking toggles it); different emoji → its own record (multi)
+		expect(make('👍').id).toBe(make('👍').id)
+		expect(make('👍').id).not.toBe(make('🎉').id)
+		expect(isCommentReactionId(make('👍').id)).toBe(true)
+	})
+
+	it('validates a well-formed reaction record', () => {
+		const reaction = createCommentReaction({
+			commentId: createCommentId('c1'),
+			threadId: createCommentThreadId('t1'),
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+		})
+		expect(commentReactionRecordConfig.validator.validate(reaction)).toEqual(reaction)
+	})
+
+	it('createCommentReactionId is injective when a part contains a colon', () => {
+		// two different triples that a naive slice+join would collapse onto one id:
+		// comment "foo" + user "bar:baz" + 👍   vs   comment "foo:bar" + user "baz" + 👍
+		const a = createCommentReactionId(createCommentId('foo'), 'bar:baz', '👍')
+		const b = createCommentReactionId(createCommentId('foo:bar'), 'baz', '👍')
+		expect(a).not.toBe(b)
+		expect(isCommentReactionId(a)).toBe(true)
+		expect(isCommentReactionId(b)).toBe(true)
 	})
 })

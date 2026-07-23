@@ -8,6 +8,7 @@ import {
 	type VecLike,
 	useEditor,
 } from 'tldraw'
+import { isAllowedReactionEmoji, type EmojiPickerProps } from '../ui/emoji-picker'
 
 /**
  * The gesture that's creating a shape anchor, passed to
@@ -35,6 +36,19 @@ export interface CommentingComponents {
 	PinContent?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
 	/** A sidebar row's preview. Replaces the plaintext default. */
 	ThreadPreview?: ComponentType<{ comment: TLComment }>
+	/**
+	 * A reaction's visual, given its token. The default renders the token string for the OS emoji
+	 * font to draw (so the token is the emoji glyph). Override this to render your own palette —
+	 * return an `<img>` for custom emoji, an SVG, or anything. The token is whatever your picker
+	 * emits and is what gets stored/synced; this only controls how it's drawn.
+	 */
+	ReactionContent?: ComponentType<{ token: string }>
+	/**
+	 * What the add-reaction button opens: the thing that produces a reaction token. Replaces the
+	 * default `<EmojiPicker>` grid. Pairs with `ReactionContent` (which draws whatever tokens this
+	 * emits) and with `isAllowedReaction` (which has to accept them).
+	 */
+	ReactionPalette?: ComponentType<EmojiPickerProps>
 }
 
 /**
@@ -70,6 +84,27 @@ export interface CommentingOptions {
 	// ── Feature toggles ──────────────────────────────────────────────────────────────────────
 	/** Fold nearby pins into count badges as the camera zooms out. */
 	readonly enableClustering: boolean
+	/**
+	 * Whether the current user appears in the hover list of who reacted with an emoji. When false,
+	 * that list shows only other people — so a reaction only you made shows no list at all.
+	 * Defaults to true.
+	 */
+	readonly showSelfInReactionList: boolean
+	/**
+	 * Whether a user may hold several emoji reactions on one comment. `true` (the default) is the
+	 * Slack model: each emoji toggles independently. `false` is single-select: picking a new emoji
+	 * replaces the user's existing reaction. Note this is enforced client-side; the server accepts
+	 * per-emoji records either way.
+	 */
+	readonly allowMultipleReactions: boolean
+	/**
+	 * Whether a token may be added as a reaction. Defaults to {@link isAllowedReactionEmoji} against
+	 * the built-in emoji palette, which is what keeps a scripted client from writing junk `emoji`
+	 * values the picker would never offer. Override it alongside a custom `ReactionPalette` so the
+	 * tokens that palette emits get through. Removals aren't checked — a reaction carrying an
+	 * off-palette token must still be clearable.
+	 */
+	isAllowedReaction(token: string): boolean
 
 	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
@@ -104,6 +139,9 @@ export const defaultCommentingOptions = {
 	history: 'ignore',
 	dragHistory: undefined,
 	enableClustering: true,
+	showSelfInReactionList: true,
+	allowMultipleReactions: true,
+	isAllowedReaction: isAllowedReactionEmoji,
 	impreciseShapeAnchor: { x: 1, y: 0 },
 	shouldBePrecise: () => true,
 	clusterCullMargin: 120,

@@ -187,6 +187,24 @@ export const comment_mention = table('comment_mention')
 	})
 	.primaryKey('commentId', 'userId')
 
+// One row per (comment, reacting user) — a user has at most one reaction per comment. Written by
+// the file's Durable Object from the room's comment-reaction records, like comment/comment_thread.
+// The in-document reaction UI reads reactions over the sync object-lane, not from here; this table
+// mirrors comment_mention so a future app-level query (e.g. "reacted to your comment") can reach
+// reactions server-side without a schema change. Nothing consumes it yet.
+export const comment_reaction = table('comment_reaction')
+	.columns({
+		id: string(),
+		fileId: string(),
+		commentId: string(),
+		threadId: string(),
+		pageId: string(),
+		userId: string(),
+		emoji: string(),
+		createdAt: number(),
+	})
+	.primaryKey('id')
+
 const fileRelationships = relationships(file, ({ one, many }) => ({
 	owner: one({
 		sourceField: ['ownerId'],
@@ -299,6 +317,12 @@ const commentRelationships = relationships(comment, ({ one, many }) => ({
 		sourceField: ['id'],
 		destField: ['commentId'],
 		destSchema: comment_mention,
+	}),
+	// every reaction to this comment, one row per reacting user
+	reactions: many({
+		sourceField: ['id'],
+		destField: ['commentId'],
+		destSchema: comment_reaction,
 	}),
 }))
 
@@ -443,6 +467,10 @@ export interface CommentPersistenceColumns {
 	meta: unknown
 	lastChangedClock: number
 }
+export interface CommentReactionPersistenceColumns {
+	meta: unknown
+	lastChangedClock: number
+}
 
 export interface DB {
 	file: TlaFile
@@ -458,6 +486,7 @@ export interface DB {
 	comment_thread: TlaCommentThread & CommentThreadPersistenceColumns
 	comment_read: TlaCommentRead
 	comment_mention: TlaCommentMention
+	comment_reaction: TlaCommentReaction & CommentReactionPersistenceColumns
 }
 
 export const schema = createSchema({
@@ -472,6 +501,7 @@ export const schema = createSchema({
 		comment_thread,
 		comment_read,
 		comment_mention,
+		comment_reaction,
 	],
 	relationships: [
 		fileRelationships,
@@ -495,6 +525,7 @@ export type TlaComment = Row<typeof schema.tables.comment>
 export type TlaCommentThread = Row<typeof schema.tables.comment_thread>
 export type TlaCommentRead = Row<typeof schema.tables.comment_read>
 export type TlaCommentMention = Row<typeof schema.tables.comment_mention>
+export type TlaCommentReaction = Row<typeof schema.tables.comment_reaction>
 
 // Permissions are now handled via Synced Queries in queries.ts
 

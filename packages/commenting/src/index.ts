@@ -21,8 +21,25 @@ export {
 	filterMentionMembers,
 	type MentionSuggestionOptions,
 } from './ui/mention-suggestion'
-export { Reaction, type ReactionProps } from './ui/reaction'
-export { Reactions } from './ui/reactions'
+export {
+	DEFAULT_REACTION_EMOJI,
+	EmojiPicker,
+	type EmojiPickerProps,
+	isAllowedReactionEmoji,
+} from './ui/emoji-picker'
+export {
+	Reaction,
+	type ReactionProps,
+	type RenderReaction,
+	defaultRenderReaction,
+} from './ui/reaction'
+export { ReactionPicker, type ReactionPickerProps } from './ui/reaction-picker'
+export {
+	Reactions,
+	type ReactionReactor,
+	type ReactionsProps,
+	type ReactionSummary,
+} from './ui/reactions'
 export { renderMarkdown } from './ui/render-markdown'
 export { SendButton, type SendButtonProps } from './ui/send-button'
 
@@ -30,6 +47,26 @@ export { SendButton, type SendButtonProps } from './ui/send-button'
 // records, a rich-text body renderer, and a batteries-included <CanvasComments> overlay. Pairs
 // with the presentational components above.
 export { CommentBody, type CommentBodyProps } from './canvas/comment-body'
+export {
+	CommentReactionPicker,
+	type CommentReactionPickerProps,
+	CommentReactions,
+	type CommentReactionsProps,
+	summarizeReactions,
+	toggleCommentReaction,
+	useCommentReactions,
+} from './canvas/comment-reactions'
+export {
+	DrawingReactionContent,
+	DrawingReactionPalette,
+	type DrawingReactionPaletteProps,
+	type DrawingReactionExportOptions,
+	type DrawingReactionFormat,
+	DrawingReactionTooLargeError,
+	exportDrawingReactionToken,
+	isDrawingReactionToken,
+	renderDrawingReaction,
+} from './canvas/drawing-reactions'
 export {
 	CommentTool,
 	commentToolOverrides,
@@ -39,6 +76,7 @@ export {
 export { collectClusterLeaves } from './canvas/cluster-input'
 export { computeClusterTable } from './clustering/computeClusterTable'
 export {
+	getCommentReactions,
 	getCommentRecord,
 	getComments,
 	getCommentThreads,

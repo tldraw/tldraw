@@ -103,6 +103,39 @@ export interface TLComment extends BaseRecord<'comment', TLCommentId> {
 /** @public */
 export type TLCommentId = RecordId<TLComment>
 
+/**
+ * One person's emoji reaction to one comment.
+ *
+ * A reaction is its own record rather than a field on the comment, for the same reason read
+ * receipts are their own row: it's one person's data about someone else's comment. Comment records
+ * are owner-only for updates, so a reaction could never be written onto them; and holding
+ * everyone's reactions in one shared field would mean each write carried the whole set, so two
+ * people reacting at once would race to overwrite each other. A record per person keeps every
+ * write to its own record, which is what lets concurrent reactions coexist.
+ *
+ * A user has at most one reaction per comment. That's enforced by the id: see
+ * `createCommentReactionId`.
+ *
+ * @public
+ */
+export interface TLCommentReaction extends BaseRecord<'comment-reaction', TLCommentReactionId> {
+	/** The comment being reacted to. */
+	commentId: TLCommentId
+	/** Denormalized from the comment, so a thread's reactions can be found without a join. */
+	threadId: TLCommentThreadId
+	/** Denormalized from the comment — see `TLComment.pageId`. */
+	pageId: TLPageId
+	/** Who reacted. See `TLCommentThread.createdBy` — same server-stamping caveat applies. */
+	userId: string
+	/** The emoji itself, as a string (e.g. `'👍'`), not a shortcode. */
+	emoji: string
+	createdAt: number
+	meta: JsonObject
+}
+
+/** @public */
+export type TLCommentReactionId = RecordId<TLCommentReaction>
+
 const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
 	shape: T.object({
 		type: T.literal('shape'),
@@ -144,7 +177,7 @@ const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
  * store cannot represent.
  */
 function createCommentGuardMigrations(
-	typeName: 'comment' | 'comment-thread',
+	typeName: 'comment' | 'comment-thread' | 'comment-reaction',
 	extra: Parameters<typeof createRecordMigrationSequence>[0]['sequence'] = []
 ) {
 	return createRecordMigrationSequence({
@@ -237,15 +270,38 @@ export const commentRecordConfig: CustomRecordInfo = {
 }
 
 /**
+ * Config for registering the `comment-reaction` record type in a tldraw schema. Pass via
+ * `commentSchemaRecords`; see `TLCommentReaction`.
+ *
+ * @public
+ */
+export const commentReactionRecordConfig: CustomRecordInfo = {
+	scope: 'document',
+	migrations: createCommentGuardMigrations('comment-reaction'),
+	validator: T.object({
+		id: idValidator<TLCommentReactionId>('comment-reaction'),
+		typeName: T.literal('comment-reaction'),
+		commentId: idValidator<TLCommentId>('comment'),
+		threadId: idValidator<TLCommentThreadId>('comment-thread'),
+		pageId: idValidator<TLPageId>('page'),
+		userId: T.string,
+		emoji: T.string,
+		createdAt: T.number,
+		meta: T.jsonValue,
+	}),
+}
+
+/**
  * The `records` map to pass to `createTLSchema` / the client `records` option so comment
- * threads and comments sync. Register both types together — a comment without its thread type
- * (or vice versa) will fail schema validation on one side of the connection.
+ * threads, comments, and reactions sync. Register the types together — one without the others
+ * will fail schema validation on one side of the connection.
  *
  * @public
  */
 export const commentSchemaRecords = {
 	'comment-thread': commentThreadRecordConfig,
 	comment: commentRecordConfig,
+	'comment-reaction': commentReactionRecordConfig,
 }
 
 /** @public */
@@ -256,6 +312,32 @@ export function createCommentThreadId(id?: string): TLCommentThreadId {
 /** @public */
 export function createCommentId(id?: string): TLCommentId {
 	return createCustomRecordId('comment', id) as TLCommentId
+}
+
+/**
+ * The id of one user's reaction to one comment, derived from the (comment, user, emoji) triple
+ * rather than random. This is what makes reaction identity structural: the same triple always
+ * addresses the same record, so re-picking an emoji toggles that one record and two tabs converge
+ * instead of racing to create duplicates. A user can hold one record per emoji on a comment
+ * (multiple reactions); enforcing "at most one reaction total" is a client concern layered on top,
+ * not a property of the id. The sync authorizer leans on this derivation, so it must be injective.
+ *
+ * `emoji` here is the reaction's token — the emoji glyph for the default palette, or whatever
+ * opaque string a consumer's palette uses. All three parts are URI-encoded before joining, so a
+ * `:` in any of them can't shift the boundary and collapse two different triples onto one id. The
+ * id is only ever recomputed for comparison, never parsed back, so the encoding needs no inverse.
+ *
+ * @public
+ */
+export function createCommentReactionId(
+	commentId: TLCommentId,
+	userId: string,
+	emoji: string
+): TLCommentReactionId {
+	return createCustomRecordId(
+		'comment-reaction',
+		`${encodeURIComponent(commentId)}:${encodeURIComponent(userId)}:${encodeURIComponent(emoji)}`
+	) as TLCommentReactionId
 }
 
 /**
@@ -277,6 +359,16 @@ export function isCommentThreadId(id: string): id is TLCommentThreadId {
  */
 export function isCommentId(id: string): id is TLCommentId {
 	return isCustomRecordId('comment', id)
+}
+
+/**
+ * Type guard for `TLCommentReactionId`. As with `isCommentThreadId`, the `comment-reaction:`
+ * prefix never overlaps `comment:` — the character after `comment` differs (`-` vs `:`).
+ *
+ * @public
+ */
+export function isCommentReactionId(id: string): id is TLCommentReactionId {
+	return isCustomRecordId('comment-reaction', id)
 }
 
 /**
@@ -325,6 +417,34 @@ export function createComment(props: {
 		createdAt: props.now ?? Date.now(),
 		editedAt: null,
 		body: props.body,
+		meta: props.meta ?? {},
+	}
+}
+
+/**
+ * Create a reaction record for one user's reaction to one comment. The id is derived from the
+ * comment and user (see `createCommentReactionId`), so re-reacting overwrites rather than adding.
+ *
+ * @public
+ */
+export function createCommentReaction(props: {
+	commentId: TLCommentId
+	threadId: TLCommentThreadId
+	pageId: TLPageId
+	userId: string
+	emoji: string
+	now?: number
+	meta?: JsonObject
+}): TLCommentReaction {
+	return {
+		id: createCommentReactionId(props.commentId, props.userId, props.emoji),
+		typeName: 'comment-reaction',
+		commentId: props.commentId,
+		threadId: props.threadId,
+		pageId: props.pageId,
+		userId: props.userId,
+		emoji: props.emoji,
+		createdAt: props.now ?? Date.now(),
 		meta: props.meta ?? {},
 	}
 }

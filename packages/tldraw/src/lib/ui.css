@@ -761,6 +761,16 @@
 	-ms-overflow-style: none;
 }
 
+.tlui-hover-card__content {
+	position: relative;
+	margin: 0px;
+	border: none;
+	border-radius: var(--tl-radius-3);
+	background-color: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-3);
+	z-index: var(--tl-layer-menus);
+}
+
 /* -------------------- Menu Zone ------------------- */
 
 .tlui-menu-zone {

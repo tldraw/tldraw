@@ -16,6 +16,8 @@ import type { SuggestionOptions } from '@tiptap/suggestion';
 import { TLComment } from 'tldraw';
 import { TLCommentAnchor } from 'tldraw';
 import { TLCommentId } from 'tldraw';
+import { TLCommentReaction } from 'tldraw';
+import { TLCommentReactionId } from 'tldraw';
 import { TLCommentThread } from 'tldraw';
 import { TLCommentThreadId } from 'tldraw';
 import { TLHistoryBatchOptions } from 'tldraw';
@@ -154,7 +156,7 @@ export interface CommentBodyProps {
 }
 
 // @public
-export function CommentCard({ author, body, date, you, edited, actions }: CommentCardProps): JSX.Element;
+export function CommentCard({ author, body, date, you, edited, actions, footer }: CommentCardProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentCardProps {
@@ -164,6 +166,7 @@ export interface CommentCardProps {
     body: ReactNode;
     date: string;
     edited?: boolean;
+    footer?: ReactNode;
     // (undocumented)
     you: boolean;
 }
@@ -201,6 +204,10 @@ export interface CommentingComponents {
         comments: TLComment[];
         thread: TLCommentThread;
     }>;
+    ReactionContent?: ComponentType<{
+        token: string;
+    }>;
+    ReactionPalette?: ComponentType<EmojiPickerProps>;
     ThreadPreview?: ComponentType<{
         comment: TLComment;
     }>;
@@ -208,6 +215,7 @@ export interface CommentingComponents {
 
 // @public
 export interface CommentingOptions {
+    readonly allowMultipleReactions: boolean;
     readonly clusterCullMargin: number;
     readonly clusterSplitZoomFactor: number;
     readonly components: CommentingComponents;
@@ -218,7 +226,9 @@ export interface CommentingOptions {
         readonly x: number;
         readonly y: number;
     };
+    isAllowedReaction(token: string): boolean;
     shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean;
+    readonly showSelfInReactionList: boolean;
 }
 
 // @public (undocumented)
@@ -246,6 +256,28 @@ export interface CommentPinProps {
     open?: boolean;
     // (undocumented)
     resolved?: boolean;
+}
+
+// @public
+export function CommentReactionPicker({ comment, currentUserId, emoji }: CommentReactionPickerProps): JSX.Element | null;
+
+// @public (undocumented)
+export interface CommentReactionPickerProps {
+    // (undocumented)
+    comment: TLComment;
+    currentUserId?: null | string;
+    emoji?: string[];
+}
+
+// @public
+export function CommentReactions({ comment, currentUserId, resolveName }: CommentReactionsProps): JSX.Element;
+
+// @public (undocumented)
+export interface CommentReactionsProps {
+    // (undocumented)
+    comment: TLComment;
+    currentUserId?: null | string;
+    resolveName?(userId: string): string | undefined;
 }
 
 // @public
@@ -362,6 +394,9 @@ export const DEFAULT_IMPRECISE_SHAPE_ANCHOR: {
 };
 
 // @public
+export const DEFAULT_REACTION_EMOJI: string[];
+
+// @public
 export const DEFAULT_REGION_COMMENT_OPTIONS: RegionCommentOptions;
 
 // @public
@@ -369,6 +404,7 @@ export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters;
 
 // @public
 export const defaultCommentingOptions: {
+    readonly allowMultipleReactions: true;
     readonly clusterCullMargin: 120;
     readonly clusterSplitZoomFactor: 1.05;
     readonly components: {};
@@ -379,8 +415,64 @@ export const defaultCommentingOptions: {
         readonly x: 1;
         readonly y: 0;
     };
+    readonly isAllowedReaction: typeof isAllowedReactionEmoji;
     readonly shouldBePrecise: () => true;
+    readonly showSelfInReactionList: true;
 };
+
+// @public
+export function defaultRenderReaction(token: string): ReactNode;
+
+// @public
+export function DrawingReactionContent({ token }: {
+    token: string;
+}): JSX.Element;
+
+// @public (undocumented)
+export interface DrawingReactionExportOptions {
+    darkMode?: boolean;
+    format?: DrawingReactionFormat;
+    maxTokenLength?: number;
+    size?: number;
+}
+
+// @public
+export type DrawingReactionFormat = 'png' | 'svg';
+
+// @public
+export function DrawingReactionPalette({ emoji, selected, onSelect, renderReaction, size, exportOptions, licenseKey, submitLabel }: DrawingReactionPaletteProps): JSX.Element;
+
+// @public (undocumented)
+export interface DrawingReactionPaletteProps {
+    emoji?: string[];
+    exportOptions?: DrawingReactionExportOptions;
+    licenseKey?: string;
+    onSelect?(token: string): void;
+    renderReaction?: RenderReaction;
+    selected?: string[];
+    size?: number | string;
+    submitLabel?: string;
+}
+
+// @public
+export class DrawingReactionTooLargeError extends Error {
+    constructor(length: number, maxLength: number);
+    // (undocumented)
+    readonly length: number;
+    // (undocumented)
+    readonly maxLength: number;
+}
+
+// @public
+export function EmojiPicker({ emoji, selected, onSelect, renderReaction }: EmojiPickerProps): JSX.Element;
+
+// @public (undocumented)
+export interface EmojiPickerProps {
+    emoji?: string[];
+    onSelect?(emoji: string): void;
+    renderReaction?: RenderReaction;
+    selected?: string[];
+}
 
 // @public
 export function EmptyState({ message }: EmptyStateProps): JSX.Element;
@@ -390,6 +482,9 @@ export interface EmptyStateProps {
     // (undocumented)
     message: string;
 }
+
+// @public
+export function exportDrawingReactionToken(editor: Editor, opts?: DrawingReactionExportOptions): Promise<null | string>;
 
 // @public
 export function filterMentionMembers(members: MentionMember[], query: string): MentionMember[];
@@ -407,6 +502,9 @@ export function formatRelativeTime(iso: string, locale?: string): string;
 export function getCommentingOptions(editor: Editor): CommentingOptions;
 
 // @public
+export function getCommentReactions(editor: Editor): TLCommentReaction[];
+
+// @public
 export function getCommentRecord(editor: Editor, id: string): TLCommentRecord | undefined;
 
 // @public
@@ -414,6 +512,12 @@ export function getComments(editor: Editor): TLComment[];
 
 // @public
 export function getCommentThreads(editor: Editor): TLCommentThread[];
+
+// @public
+export function isAllowedReactionEmoji(emoji: string, palette?: readonly string[]): boolean;
+
+// @public
+export function isDrawingReactionToken(token: string): boolean;
 
 // @public
 export interface LeafInput {
@@ -485,7 +589,21 @@ export const pendingComment: EditorAtom<null | PendingComment>;
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;
 
 // @public
-export function Reaction({ emoji, count, active }: ReactionProps): JSX.Element;
+export function Reaction({ emoji, count, active, reactors, showSelf, enableHoverList, renderReaction, onClick }: ReactionProps): JSX.Element;
+
+// @public
+export function ReactionPicker({ emoji, selected, onSelect, renderReaction, palette: Palette, menuId, className }: ReactionPickerProps): JSX.Element;
+
+// @public (undocumented)
+export interface ReactionPickerProps {
+    className?: string;
+    emoji?: string[];
+    menuId?: string;
+    onSelect?(emoji: string): void;
+    palette?: ComponentType<EmojiPickerProps>;
+    renderReaction?: RenderReaction;
+    selected?: string[];
+}
 
 // @public (undocumented)
 export interface ReactionProps {
@@ -495,10 +613,40 @@ export interface ReactionProps {
     count: number;
     // (undocumented)
     emoji: string;
+    enableHoverList?: boolean;
+    onClick?(): void;
+    reactors: ReactionReactor[];
+    renderReaction?: RenderReaction;
+    showSelf?: boolean;
 }
 
 // @public
-export function Reactions(): JSX.Element;
+export interface ReactionReactor {
+    name: string;
+    you: boolean;
+}
+
+// @public
+export function Reactions({ reactions, onToggle, canReact, showSelf, enableHoverList, renderReaction }: ReactionsProps): JSX.Element | null;
+
+// @public (undocumented)
+export interface ReactionsProps {
+    canReact?: boolean;
+    enableHoverList?: boolean;
+    onToggle?(emoji: string): void;
+    reactions: ReactionSummary[];
+    renderReaction?: RenderReaction;
+    showSelf?: boolean;
+}
+
+// @public
+export interface ReactionSummary {
+    active: boolean;
+    count: number;
+    // (undocumented)
+    emoji: string;
+    reactors: ReactionReactor[];
+}
 
 // @public
 export function regionAnchorPinCorner(editor: Editor, anchor: Extract<TLCommentAnchor, {
@@ -515,10 +663,16 @@ export interface RegionCommentOptions {
 }
 
 // @public
-export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLCommentThreadId)[]): void;
+export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]): void;
+
+// @public
+export function renderDrawingReaction(token: string): ReactNode;
 
 // @public
 export function renderMarkdown(text: string): ReactNode;
+
+// @public
+export type RenderReaction = (token: string) => ReactNode;
 
 // @public
 export function richTextToPlaintext(body: TLRichText, resolveName?: (id: string) => string | undefined): string;
@@ -564,7 +718,13 @@ export interface SidebarFilters {
 export const sidebarFilters: EditorAtom<SidebarFilters>;
 
 // @public
-export type TLCommentRecord = TLComment | TLCommentThread;
+export function summarizeReactions(reactions: TLCommentReaction[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined): ReactionSummary[];
+
+// @public
+export type TLCommentRecord = TLComment | TLCommentReaction | TLCommentThread;
+
+// @public
+export function toggleCommentReaction(editor: Editor, comment: TLComment, userId: string, emoji: string, now?: number): void;
 
 // @public
 export function toggleCommentsHidden(editor: Editor): void;
@@ -577,6 +737,9 @@ export function useCommentingEnabled(): boolean;
 
 // @public
 export function useCommentingOptions(): CommentingOptions;
+
+// @public
+export function useCommentReactions(editor: Editor, commentId: TLComment['id']): TLCommentReaction[];
 
 // @public
 export function useComments(editor: Editor): TLComment[];

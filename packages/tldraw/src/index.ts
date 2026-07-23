@@ -509,6 +509,14 @@ export {
 	type TLUiDropdownMenuTriggerProps,
 } from './lib/ui/components/primitives/TldrawUiDropdownMenu'
 export {
+	TldrawUiHoverCard,
+	TldrawUiHoverCardContent,
+	TldrawUiHoverCardTrigger,
+	type TLUiHoverCardContentProps,
+	type TLUiHoverCardProps,
+	type TLUiHoverCardTriggerProps,
+} from './lib/ui/components/primitives/TldrawUiHoverCard'
+export {
 	TldrawUiIcon,
 	type TLUiIconJsx,
 	type TLUiIconProps,

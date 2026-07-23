@@ -1,6 +1,14 @@
 import { UnknownRecord } from '@tldraw/store'
 import { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
-import { TLComment, TLCommentThread, TLNoteShape, TLRecord, TLShape } from '@tldraw/tlschema'
+import {
+	TLComment,
+	TLCommentReaction,
+	TLCommentThread,
+	TLNoteShape,
+	TLRecord,
+	TLShape,
+	createCommentReactionId,
+} from '@tldraw/tlschema'
 
 /** Per-session metadata attached to each socket: the local store id and the authenticated user (if any). */
 export interface SessionMeta {
@@ -10,7 +18,7 @@ export interface SessionMeta {
 
 // The file room's record union, widened to include the object-lane comment records so each
 // authorizer is typed to its record — renaming an attribution field fails to compile here.
-type FileRecord = TLRecord | TLComment | TLCommentThread
+type FileRecord = TLRecord | TLComment | TLCommentThread | TLCommentReaction
 
 /**
  * Authorize a record whose attribution lives in `field`: stamped from the session on create,
@@ -91,6 +99,46 @@ const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 	return next
 }
 
+const authorizeReactionBase = authorizeAuthored<TLCommentReaction>('userId', {
+	ownerOnlyUpdate: true,
+})
+
+/**
+ * A reaction's id is derived from its (comment, user, emoji) triple (see `createCommentReactionId`),
+ * which is what makes reaction identity structural. The base rule already stamps `userId` from the
+ * session and lets only the owner change a reaction — but the id, the comment it points at, and the
+ * emoji are all client-supplied, so this wrapper adds two things:
+ *
+ * - On **create**, the id must be the canonical id for `commentId` + the session's user +
+ *   `next.emoji`. Without this a forged client could create a record at another user's id slot
+ *   (locking them out of that reaction), or push a mismatched id that collides on the table's
+ *   UNIQUE constraint at drain time and wedges the outbox.
+ *
+ * - On **update**, everything identity-bearing is immutable: `commentId`, `threadId`, `pageId`, and
+ *   `emoji` all feed the id (directly or by denormalization), so a re-react is a create/delete, not
+ *   an update. The only thing an update may touch is `createdAt`/`meta`. This keeps the id and its
+ *   columns from drifting apart and landing two rows on one (comment, user, emoji).
+ */
+const authorizeReaction: TLRecordAuthorizer<TLCommentReaction, SessionMeta> = (args) => {
+	const result = authorizeReactionBase(args)
+	if (!result) return null
+	if (args.type === 'create') {
+		// userId is non-null here: the base rule rejects a create from a session with no identity.
+		const { session, next } = args
+		if (next.id !== createCommentReactionId(next.commentId, session.meta.userId!, next.emoji)) {
+			return null
+		}
+	}
+	if (args.type === 'update') {
+		const { prev, next } = args
+		if (next.commentId !== prev.commentId) return null
+		if (next.threadId !== prev.threadId) return null
+		if (next.pageId !== prev.pageId) return null
+		if (next.emoji !== prev.emoji) return null
+	}
+	return result
+}
+
 /**
  * Force comment and thread authorship from the session's identity, and guard note text
  * attribution, so nothing can be posted or pinned in someone else's name.
@@ -98,5 +146,9 @@ const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 export const authorizeFileRecord: TLRecordAuthorizers<FileRecord, SessionMeta> = {
 	comment: authorizeAuthored<TLComment>('authorId', { ownerOnlyUpdate: true }),
 	'comment-thread': authorizeThread,
+	// A reaction is one user's own record, so the standard attribution rules mostly cover it:
+	// `userId` is stamped from the session and only the reactor can change their reaction. The
+	// wrapper adds the id check that ties the record to its (comment, user) slot — see above.
+	'comment-reaction': authorizeReaction,
 	shape: authorizeShape,
 }
