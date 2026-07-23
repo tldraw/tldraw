@@ -339,13 +339,20 @@ export function commitCommentMutation<T>(editor: Editor, fn: () => T, kind?: 'dr
 // @public (undocumented)
 export function computeClusterTable(leaves: readonly LeafInput[], options: ClusterOptions): ClusterTable;
 
+// @public
+export function computePinStacks(editor: Editor, threads: readonly TLCommentThread[], impreciseShapeAnchor?: {
+    x: number;
+    y: number;
+}): Map<string, readonly string[]>;
+
 // @public (undocumented)
-export function CountBadge({ count }: CountBadgeProps): JSX.Element;
+export function CountBadge({ count, open }: CountBadgeProps): JSX.Element;
 
 // @public (undocumented)
 export interface CountBadgeProps {
     // (undocumented)
     count: number;
+    open?: boolean;
 }
 
 // @public (undocumented)
@@ -465,6 +472,9 @@ export interface MergeEvent {
     zMerge: number;
     zSplit: number;
 }
+
+// @public
+export const openStackId: EditorAtom<null | string>;
 
 // @public
 export const openThreadId: EditorAtom<null | string>;

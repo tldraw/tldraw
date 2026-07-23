@@ -67,6 +67,199 @@
 	z-index: 1;
 }
 
+/* The count badge standing in for a stack of coincident pins — same face as a cluster badge,
+   but clicking opens the stack's thread list rather than zooming (no zoom can separate them). */
+.tlui-cmt-canvas-stack-badge {
+	transform: translate(-50%, -50%);
+	width: max-content;
+	cursor: pointer;
+}
+
+/* The stack's popover content: one card per thread, the expanded thread inline among them. */
+.tlui-cmt-stack-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	max-height: 420px;
+	overflow-y: auto;
+	/* A scroll container clips at its own box — including the cards' shadows (setting one overflow
+	   axis makes both non-visible). Pad the clip box outward and pull the list back into place so
+	   the shadows have room to paint. */
+	padding: 16px;
+	margin: -16px;
+}
+
+/* Collapsed entries match the expanded thread's surface (same width, panel, elevation) so the
+   list reads as one column of cards with one of them opened up. */
+.tlui-cmt-stack-list__card {
+	box-sizing: border-box;
+	width: 300px;
+	background: var(--tl-color-panel);
+	border-radius: 12px;
+	box-shadow: var(--tl-shadow-2);
+	padding: 10px 14px;
+	cursor: pointer;
+}
+
+/* Hover uses the opaque low-surface token, not a translucent muted one — the card floats
+   directly over the canvas, so a translucent background would let shapes show through it. */
+.tlui-cmt-stack-list__card:hover,
+.pseudo-hover.tlui-cmt-stack-list__card {
+	background: var(--tl-color-low);
+}
+
+/* The wrapper is the card's surface — inside it the comment is plain content, mirroring how the
+   thread panel flattens its own cards. The avatar centers against the short two-line block so a
+   collapsed entry doesn't read as top-heavy. */
+.tlui-cmt-stack-list__card .tlui-cmt-card {
+	width: 100%;
+	padding: 0;
+	background: transparent;
+	border: none;
+	align-items: center;
+}
+
+/* The hover preview, shown for any marker — a pin, a coincident stack, or a cluster badge. Live,
+   not a tooltip: the pointer travels into it to hover and click the cards.
+
+   Two elements, deliberately: this root is the hover *region* (it reaches back over the marker via
+   the bridge below), and `__panel` inside it is the visible surface. A pseudo-element's hover
+   counts as its host's, so a surface on this root would light up whenever the pointer was on the
+   marker — the pin would appear pressed just for being hovered. */
+.tlui-cmt-canvas-preview {
+	position: absolute;
+	z-index: var(--tl-layer-menus);
+	pointer-events: auto;
+}
+
+/* The bridge over the gap between the marker and the panel. Moving right off the pin would
+   otherwise cross bare canvas, and that leave would retract the panel before the pointer arrived.
+   Invisible, part of the panel's hover region, and only present while the panel is.
+
+   It spans the gap and stops there. Reaching any further would put it over the marker itself, and
+   since it sits in the menus layer — above the pins — it would take the marker's hover and clicks:
+   the pin would go dead exactly where it looks most alive. The marker needs no covering anyway, as
+   it carries the same hover handlers.
+
+   The gap is the panel's own offset (`--tlui-cmt-preview-offset`, set from `POPOVER_OFFSET` so
+   there's one source) less however far the marker reaches toward it, per variant below. */
+.tlui-cmt-canvas-preview::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: 100%;
+	width: max(0px, var(--tlui-cmt-preview-bridge, 0px));
+}
+
+/* A pin is anchored at its bottom-left corner, so its full width lies between anchor and panel.
+
+   The vertical shift: a pin's preview and its popover are placed at the same origin, so the only
+   thing between their first comments is the header this one doesn't have. Shifting down by that
+   block puts the comment on the same pixel either way — derived from the panel's own metrics, so
+   retuning them keeps the two aligned. It sits on the root rather than the panel because a
+   transform doesn't move the layout box: shifting the panel would leave the root — and the bridge
+   measured against it — at the old spot. */
+.tlui-cmt-canvas-preview--thread {
+	--tlui-cmt-preview-bridge: calc(var(--tlui-cmt-preview-offset) - var(--tlui-cmt-marker-size));
+	transform: translateY(calc(var(--tlui-cmt-thread-header-height) + var(--tlui-cmt-thread-gap)));
+}
+
+/* A badge is centred on its anchor, so only half of it does. */
+.tlui-cmt-canvas-preview--list {
+	--tlui-cmt-preview-bridge: calc(var(--tlui-cmt-preview-offset) - var(--tlui-cmt-marker-size) / 2);
+}
+
+.tlui-cmt-canvas-preview__panel {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Previewing a single pin: the thread panel itself, minus the header — the same surface, width,
+   and flattened comment (see `.tlui-cmt-thread .tlui-cmt-card`), so the hover shows exactly what
+   the click opens. */
+.tlui-cmt-canvas-preview__panel--thread {
+	box-sizing: border-box;
+	width: 300px;
+	gap: var(--tlui-cmt-thread-gap);
+	padding: var(--tlui-cmt-thread-padding);
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-4);
+	box-shadow: var(--tl-shadow-2);
+}
+
+/* The one comment is the whole panel, so the panel itself takes the hover tint — but only for a
+   pointer actually on it. Hovering the marker keeps the pin's own hover (its lift and shadow) and
+   nothing more. */
+.tlui-cmt-canvas-preview__panel--thread.tlui-cmt-canvas-preview__panel--selectable:hover,
+.pseudo-hover.tlui-cmt-canvas-preview__panel--thread {
+	background: var(--tl-color-low);
+	cursor: pointer;
+}
+
+/* Previewing a stack or cluster: one card per thread, matching the card list a click opens.
+   Its first card sits flush with the popover's top, so no shift is needed. */
+.tlui-cmt-canvas-preview__panel--list {
+	gap: 8px;
+}
+
+/* Matches the stack list's card surface, so a preview and the list it previews read as the same
+   object seen twice — once on hover, once opened. */
+.tlui-cmt-preview-card {
+	box-sizing: border-box;
+	width: 300px;
+	background: var(--tl-color-panel);
+	border-radius: 12px;
+	box-shadow: var(--tl-shadow-2);
+	padding: 10px 14px;
+}
+
+.tlui-cmt-preview-card--selectable {
+	cursor: pointer;
+}
+
+/* The same opaque low surface the stack list uses — the card floats over the canvas, so a
+   translucent token would let shapes show through the highlight. */
+.tlui-cmt-preview-card--selectable:hover,
+.pseudo-hover.tlui-cmt-preview-card--selectable {
+	background: var(--tl-color-low);
+}
+
+.tlui-cmt-preview-card .tlui-cmt-card {
+	width: 100%;
+	padding: 0;
+	background: transparent;
+	border: none;
+	align-items: center;
+}
+
+/* A preview is a glance, not a list — past a few cards it says how many were left out rather than
+   growing to the height of the cluster. */
+.tlui-cmt-preview-more {
+	box-sizing: border-box;
+	width: 300px;
+	padding: 6px 14px;
+	border-radius: 12px;
+	background: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-2);
+	color: var(--tl-color-text-3);
+	font-size: 12px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.tlui-cmt-canvas-preview {
+		animation: tlui-cmt-preview-in 120ms ease;
+	}
+	@keyframes tlui-cmt-preview-in {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+}
+
 /* A region anchor's area: a dashed box under the pins, non-interactive so canvas events pass
    through. Drawn for the live drag draft and for a region thread while hovered or open. */
 .tlui-cmt-canvas-region {
@@ -127,13 +320,14 @@
 
 /* With the hit layer targeting the marker, the pin visual is never the hovered element itself
    (`:hover` matches the target and its ancestors, and the pin is the marker's child) — so the
-   canvas pin's hover styling keys off the marker. The hover shadow is for closed pins only: an
-   open pin keeps its selection ring, which the shadow would otherwise override. */
-.tlui-cmt-canvas-pin__marker:hover .tlui-cmt-pin {
-	transform: scale(1.08);
+   canvas pin's hover has to key off the hit layer instead of the marker's own `:hover`. Only the
+   selector differs: the values come from the same tokens the shared rule uses, so a pin on the
+   canvas and a badge (which is hovered directly) lift by exactly the same amount. */
+.tlui-cmt-canvas-pin__marker:hover .tlui-cmt-marker {
+	transform: scale(var(--tlui-cmt-marker-hover-scale));
 }
-.tlui-cmt-canvas-pin__marker:hover .tlui-cmt-pin:not(.tlui-cmt-pin--open) {
-	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
+.tlui-cmt-canvas-pin__marker:hover .tlui-cmt-marker:not(.tlui-cmt-marker--open) {
+	box-shadow: var(--tlui-cmt-marker-shadow-hover);
 }
 
 /* The open thread's popover — portaled to the menus layer (above the UI), positioned at the pin. */

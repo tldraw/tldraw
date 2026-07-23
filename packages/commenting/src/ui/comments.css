@@ -254,10 +254,44 @@
 	cursor: not-allowed;
 }
 
+/* The shared marker treatment. To the pointer a comment pin and a count badge are the same
+   object — a token sitting on the canvas — so they rest, lift, and ring identically. Only the tint
+   differs, which each marker supplies via `--tlui-cmt-marker-tint`; everything else lives here so
+   the two can't drift apart. */
+.tlui-cmt-marker {
+	box-shadow: var(--tlui-cmt-marker-shadow);
+	cursor: pointer;
+	transition:
+		transform var(--tlui-cmt-marker-transition),
+		box-shadow var(--tlui-cmt-marker-transition);
+}
+
+.tlui-cmt-marker:hover,
+.pseudo-hover .tlui-cmt-marker {
+	transform: scale(var(--tlui-cmt-marker-hover-scale));
+}
+
+/* The hover shadow is for closed markers only — an open one keeps its selection ring, which this
+   box-shadow would otherwise override (the hover selector outranks the --open rule). */
+.tlui-cmt-marker:not(.tlui-cmt-marker--open):hover,
+.pseudo-hover .tlui-cmt-marker:not(.tlui-cmt-marker--open) {
+	box-shadow: var(--tlui-cmt-marker-shadow-hover);
+}
+
+/* open: the thread (or a stack's list) is showing — a selection ring marks the active marker, in
+   that marker's own tint. */
+.tlui-cmt-marker--open {
+	box-shadow:
+		0 0 0 3px var(--tl-color-panel),
+		0 0 0 5px var(--tlui-cmt-marker-tint),
+		var(--tlui-cmt-marker-shadow);
+}
+
 /* pin */
 .tlui-cmt-pin {
-	width: 34px;
-	height: 34px;
+	--tlui-cmt-marker-tint: var(--tlui-cmt-pin-color, var(--tl-color-selected));
+	width: var(--tlui-cmt-marker-size);
+	height: var(--tlui-cmt-marker-size);
 	border-radius: 50% 50% 50% 3px;
 	background: var(--tlui-cmt-pin-color, var(--tl-color-selected));
 	color: #fff;
@@ -266,31 +300,6 @@
 	justify-content: center;
 	font-size: 14px;
 	font-weight: 600;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-	cursor: pointer;
-	transition:
-		transform 0.08s ease,
-		box-shadow 0.08s ease;
-}
-
-.tlui-cmt-pin:hover,
-.pseudo-hover .tlui-cmt-pin {
-	transform: scale(1.08);
-}
-
-/* The hover shadow is for closed pins only — an open pin keeps its selection ring, which this
-   box-shadow would otherwise override (the hover selector outranks the --open rule). */
-.tlui-cmt-pin:not(.tlui-cmt-pin--open):hover,
-.pseudo-hover .tlui-cmt-pin:not(.tlui-cmt-pin--open) {
-	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.32);
-}
-
-/* open: the thread is showing — a selection ring marks the active pin (in the pin's own tint) */
-.tlui-cmt-pin--open {
-	box-shadow:
-		0 0 0 3px var(--tl-color-panel),
-		0 0 0 5px var(--tlui-cmt-pin-color, var(--tl-color-selected)),
-		0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 /* resolved: a solid, muted grey (the default --tl-color-muted-1 is 10% black, so it goes
@@ -304,10 +313,12 @@
 	color: hsl(0, 0%, 72%);
 }
 
-/* count badge */
+/* count badge — the same marker as a pin, keeping its own colour as the tint so the ring matches
+   the face, exactly as the pin's does. */
 .tlui-cmt-count-badge {
-	width: 34px;
-	height: 34px;
+	--tlui-cmt-marker-tint: var(--tl-color-text-1);
+	width: var(--tlui-cmt-marker-size);
+	height: var(--tlui-cmt-marker-size);
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
@@ -316,7 +327,6 @@
 	color: var(--tl-color-panel);
 	font-size: 13px;
 	font-weight: 700;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 	user-select: none;
 }
 
@@ -501,12 +511,42 @@
 
 /* a comment thread: an elevated panel — the same surface treatment as the toolbar — holding a
    header, an optional resolved banner, the comments, and a reply composer */
+/* The thread panel's layout metrics live on the container because two separate portals need them:
+   the panel itself, and the canvas hover preview, which has to land its first comment on exactly
+   the pixel the panel would. Deriving the preview's offset from these means the two can't drift —
+   retune the padding or the header here and the preview follows. */
+.tl-container {
+	/* Every canvas marker — a comment pin, a cluster badge, a stack badge — is this square. The
+	   hover preview measures its bridge against it, so the bridge stops at the marker's edge
+	   instead of covering it. */
+	--tlui-cmt-marker-size: 34px;
+	/* How a marker sits, lifts, and rings. Shared so a pin and a badge respond identically. */
+	--tlui-cmt-marker-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+	--tlui-cmt-marker-shadow-hover: 0 3px 10px rgba(0, 0, 0, 0.32);
+	--tlui-cmt-marker-hover-scale: 1.08;
+	--tlui-cmt-marker-transition: 0.08s ease;
+	--tlui-cmt-thread-padding: 8px;
+	--tlui-cmt-thread-gap: 6px;
+	--tlui-cmt-thread-action-size: 22px;
+	--tlui-cmt-thread-header-padding: 2px;
+	/* Nothing in the header is taller than an action button, so the button plus the header's own
+	   padding is the header's height. */
+	--tlui-cmt-thread-header-height: calc(
+		var(--tlui-cmt-thread-action-size) + 2 * var(--tlui-cmt-thread-header-padding)
+	);
+	/* How far the first comment sits below the panel's top edge. */
+	--tlui-cmt-thread-first-comment-offset: calc(
+		var(--tlui-cmt-thread-padding) + var(--tlui-cmt-thread-header-height) +
+			var(--tlui-cmt-thread-gap)
+	);
+}
+
 .tlui-cmt-thread {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: var(--tlui-cmt-thread-gap);
 	width: 300px;
-	padding: 8px;
+	padding: var(--tlui-cmt-thread-padding);
 	background: var(--tl-color-panel);
 	border-radius: var(--tl-radius-4);
 	box-shadow: var(--tl-shadow-2);
@@ -515,7 +555,8 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 2px 2px 2px 4px;
+	padding: var(--tlui-cmt-thread-header-padding) var(--tlui-cmt-thread-header-padding)
+		var(--tlui-cmt-thread-header-padding) 4px;
 }
 .tlui-cmt-thread__title {
 	font-size: 12px;
@@ -530,8 +571,8 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	width: 22px;
-	height: 22px;
+	width: var(--tlui-cmt-thread-action-size);
+	height: var(--tlui-cmt-thread-action-size);
 	padding: 0;
 	border: none;
 	border-radius: 6px;
@@ -555,11 +596,12 @@
 .tlui-cmt-thread__list {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
+	gap: var(--tlui-cmt-thread-gap);
 }
 /* Inside a thread, author identity is a small colour dot, no initial — the letter doesn't fit
    at this size. */
-.tlui-cmt-thread .tlui-cmt-avatar {
+.tlui-cmt-thread .tlui-cmt-avatar,
+.tlui-cmt-canvas-preview--thread .tlui-cmt-avatar {
 	width: 14px;
 	height: 14px;
 	font-size: 0;
@@ -583,6 +625,7 @@
 
 /* The dot treatment is for colour-only identity — an image avatar stays full size. */
 .tlui-cmt-thread .tlui-cmt-avatar--image,
+.tlui-cmt-canvas-preview--thread .tlui-cmt-avatar--image,
 .tlui-cmt-list .tlui-cmt-avatar--image {
 	width: 24px;
 	height: 24px;
@@ -590,8 +633,10 @@
 }
 
 /* inside the panel, comments are plain content — no surrounding box; the composer's field carries
-   its own surface. */
-.tlui-cmt-thread .tlui-cmt-card {
+   its own surface. The hover preview is the same panel without a header, so its comment is laid
+   out by the same rule rather than a copy of it. */
+.tlui-cmt-thread .tlui-cmt-card,
+.tlui-cmt-canvas-preview--thread .tlui-cmt-card {
 	width: 100%;
 	padding: 6px 0 6px 4px;
 	background: transparent;
