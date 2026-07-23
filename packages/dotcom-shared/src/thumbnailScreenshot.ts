@@ -14,7 +14,7 @@ export const THUMBNAIL_SETTLED_SELECTOR = '[data-thumbnail-ready="true"], [data-
 // wait above resolves on a failure there is nothing to screenshot and the capture returns an error
 // immediately (surfaced as a render failure) rather than capturing the error page. Scoped to
 // <body> so it resolves to a single element (both <html> and <body> carry the ready marker).
-export const THUMBNAIL_CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
+const THUMBNAIL_CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
 
 // Builds the `/screenshot` request body. `timeoutMs` bounds both navigation and the settle+export
 // wait; the render page sizes its own settle budget under it (THUMBNAIL_SETTLE_TIMEOUT_MS), so pass

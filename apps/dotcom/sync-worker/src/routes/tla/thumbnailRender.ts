@@ -137,7 +137,7 @@ export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
 	return url.toString()
 }
 
-export function getRenderOrigin(env: Environment) {
+function getRenderOrigin(env: Environment) {
 	// Staging and production set this in wrangler.toml to their own client origin. Local dev sets it
 	// to the local client; previews configure it explicitly when they need to exercise this path.
 	if (!env.MCP_SCREENSHOT_RENDER_ORIGIN) {
@@ -186,7 +186,10 @@ export async function captureThumbnailScreenshot(
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	}
 	const token = await mintThumbnailRenderToken(env, job)
-	return renderThumbnailScreenshot(buildThumbnailRenderUrl(getRenderOrigin(env), token), env)
+	return renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
+		width,
+		height,
+	})
 }
 
 // The thumbnail pixels come from editor.toImage on the render page: the page exports the target page
@@ -194,10 +197,12 @@ export async function captureThumbnailScreenshot(
 // Action (called straight through the BROWSER binding, no puppeteer, no API token) captures exactly
 // that. Chrome runs in Cloudflare's fleet, not in this isolate. A render that fails marks an error
 // state instead of the ready one, so the Quick Action returns quickly and surfaces as a render
-// failure (see RENDER_SETTLED_SELECTOR / RENDER_CAPTURE_SELECTOR) rather than burning the timeout.
-export async function renderThumbnailScreenshot(
+// failure (see THUMBNAIL_SETTLED_SELECTOR / THUMBNAIL_CAPTURE_SELECTOR in @tldraw/dotcom-shared)
+// rather than burning the timeout.
+async function renderThumbnailScreenshot(
+	env: Environment,
 	renderUrl: string,
-	env: Environment
+	{ width, height }: { width: number; height: number }
 ): Promise<{ base64: string; durationMs: number }> {
 	if (!env.BROWSER) {
 		throw new Error(
@@ -212,8 +217,8 @@ export async function renderThumbnailScreenshot(
 		'screenshot',
 		getThumbnailScreenshotRequestBody({
 			renderUrl,
-			width: DEFAULT_THUMBNAIL_WIDTH,
-			height: DEFAULT_THUMBNAIL_HEIGHT,
+			width,
+			height,
 			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
 		})
 	)
@@ -262,6 +267,8 @@ export async function isRateLimited(
 	key: string,
 	{ fallbackLimit }: { fallbackLimit: number }
 ): Promise<boolean> {
+	// The mcp- prefix predates the OG surfaces sharing this limiter; it's kept (not renamed) so the
+	// deployed Cloudflare rate limit bindings and their configured buckets stay continuous.
 	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
 	if (limiter) {
 		const { success } = await limiter.limit({ key: rateLimitKey })
@@ -292,7 +299,8 @@ export function resetRateLimitFallbackForTests() {
 
 // One datapoint writer for every screenshot surface, so they share a dataset and blob/doubles
 // layout and one dashboard covers them all; the source blob distinguishes mcp (the tool), og (the
-// GET route), and queue (the OG render consumer).
+// GET route), and queue (the OG render consumer). The dataset name's mcp_ prefix predates the OG
+// surfaces; renaming it would split the dashboard's history, so it stays.
 export function writeScreenshotTelemetry(
 	env: Environment,
 	data: {

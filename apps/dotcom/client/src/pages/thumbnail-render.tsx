@@ -324,7 +324,13 @@ export function ThumbnailExportSignal({
 			await onImage(blob)
 		})().catch((error) => {
 			if (cancelled) return
-			setThumbnailError(error instanceof Error ? error.message : String(error))
+			// FileHelpers.blobToDataUrl rejects with the FileReader's ProgressEvent rather than an
+			// Error; don't let that stringify to "[object ProgressEvent]" in the error marker.
+			if (error instanceof Event) {
+				setThumbnailError('Could not read thumbnail blob')
+			} else {
+				setThumbnailError(error instanceof Error ? error.message : String(error))
+			}
 		})
 
 		return () => {
