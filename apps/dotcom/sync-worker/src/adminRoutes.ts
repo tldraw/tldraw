@@ -34,6 +34,14 @@ async function requireUser(env: Environment, q: string) {
 	return userRow
 }
 
+// A single worker invocation gets ~1000 subrequests and every R2 head costs one, so the
+// file-assets report can't head-check every asset of a large file. The budget is spent on
+// unassociated assets (the diagnostic targets) first; the rest report as not checked.
+const MAX_HEAD_CHECKS = 500
+// Response-size caps: a multi-thousand-asset file would otherwise return megabytes
+const MAX_PROBLEMS = 200
+const MAX_WARNINGS = 20
+
 export const adminRoutes = createRouter<Environment>()
 	.all('/app/admin/*', async (req, env) => {
 		const auth = await requireAuth(req, env)
@@ -191,7 +199,12 @@ export const adminRoutes = createRouter<Environment>()
 	})
 	// Read-only asset health report for a file: is each asset's object still in the uploads
 	// bucket, and is it associated with the file? Explains files stuck in a zero-progress
-	// association loop.
+	// association loop. See MAX_HEAD_CHECKS for why not every asset gets checked.
+	//
+	// Workers allow ~1000 subrequests per invocation and every R2 head is one, so files with
+	// thousands of assets can't have them all checked in one request. Head checks are capped,
+	// spending the budget on unassociated assets (the diagnostic targets) first; the rest
+	// report as not checked. Problems and warnings are capped too so the response stays small.
 	.get('/app/admin/file-assets/:slug', async (res, env) => {
 		const slug = res.params.slug
 		assert(typeof slug === 'string', 'slug is required')
@@ -217,6 +230,7 @@ export const adminRoutes = createRouter<Environment>()
 			fileIdMeta: string | null
 			associated: boolean
 			oldFormatUrl: boolean
+			checked: boolean
 			inBucket: boolean | null
 			sizeBytes: number | null
 		}> = []
@@ -247,8 +261,9 @@ export const adminRoutes = createRouter<Environment>()
 					src.startsWith('http') &&
 					!!userContentUrl &&
 					!src.startsWith(userContentUrl),
-				// null until the head check settles; a failed check stays null so R2 flakiness
-				// doesn't read as a confirmed-missing object
+				checked: false,
+				// null until the head check settles; a skipped or failed check stays null so R2
+				// flakiness doesn't read as a confirmed-missing object
 				inBucket: null,
 				sizeBytes: null,
 			})
@@ -258,12 +273,19 @@ export const adminRoutes = createRouter<Environment>()
 		// failures become warnings rather than failing the report
 		const warnings: string[] = []
 		const headQueue = new PQueue({ concurrency: 5 })
+		const toCheck = [...assets]
+			.sort((a, b) => Number(a.associated) - Number(b.associated))
+			.slice(0, MAX_HEAD_CHECKS)
 		await headQueue.addAll(
-			assets.map((asset) => async () => {
+			toCheck.map((asset) => async () => {
+				asset.checked = true
 				try {
 					const head = await retry(() => env.UPLOADS.head(asset.objectName), {
 						attempts: 2,
 						waitDuration: 500,
+						// Exceeding the invocation's subrequest budget is terminal: retrying only
+						// burns 500ms per asset on a request that can no longer make progress
+						matchError: (e) => !String(e).includes('Too many subrequests'),
 					})
 					asset.inBucket = !!head
 					asset.sizeBytes = head?.size ?? null
@@ -323,18 +345,25 @@ export const adminRoutes = createRouter<Environment>()
 		let oldFormatUrls = 0
 		let missingInBucket = 0
 		let headFailures = 0
+		let notChecked = 0
 		let totalSizeBytes = 0
 		let largestSizeBytes = 0
 		for (const a of assets) {
 			if (a.associated) associated++
 			if (a.oldFormatUrl) oldFormatUrls++
 			if (a.inBucket === false) missingInBucket++
-			if (a.inBucket === null) headFailures++
+			if (!a.checked) notChecked++
+			else if (a.inBucket === null) headFailures++
 			if (a.sizeBytes !== null) {
 				totalSizeBytes += a.sizeBytes
 				largestSizeBytes = Math.max(largestSizeBytes, a.sizeBytes)
 			}
 		}
+
+		// Skipped-but-associated assets aren't problems, just unchecked
+		const problemAssets = assets.filter(
+			(a) => !a.associated || a.inBucket === false || (a.checked && a.inBucket === null)
+		)
 
 		const report: AdminFileAssetsResponseBody = {
 			file: file ?? null,
@@ -347,23 +376,30 @@ export const adminRoutes = createRouter<Environment>()
 				oldFormatUrls,
 				missingInBucket,
 				headFailures,
+				notChecked,
 				totalSizeBytes,
 				largestSizeBytes,
-				problems: assets
-					.filter((a) => !a.associated || a.inBucket !== true)
-					.map((a) => ({
-						assetId: a.assetId,
-						objectName: a.objectName,
-						src: a.src,
-						fileIdMeta: a.fileIdMeta,
-						inBucket: a.inBucket,
-						dbRow: dbFileIdByObjectName.has(a.objectName)
-							? { fileId: dbFileIdByObjectName.get(a.objectName)! }
-							: null,
-					})),
+				problemsTotal: problemAssets.length,
+				problems: problemAssets.slice(0, MAX_PROBLEMS).map((a) => ({
+					assetId: a.assetId,
+					objectName: a.objectName,
+					src: a.src,
+					fileIdMeta: a.fileIdMeta,
+					checked: a.checked,
+					inBucket: a.inBucket,
+					dbRow: dbFileIdByObjectName.has(a.objectName)
+						? { fileId: dbFileIdByObjectName.get(a.objectName)! }
+						: null,
+				})),
 			},
 			dbRows: { forThisFile: rowsForThisFile.length, orphaned },
-			warnings,
+			warnings:
+				warnings.length > MAX_WARNINGS
+					? [
+							...warnings.slice(0, MAX_WARNINGS),
+							`…and ${warnings.length - MAX_WARNINGS} more warnings`,
+						]
+					: warnings,
 		}
 		return json(report)
 	})

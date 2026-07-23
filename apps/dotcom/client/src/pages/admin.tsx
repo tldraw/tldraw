@@ -867,6 +867,7 @@ function AssetDiagnostics() {
 								['Pending association', report.assets.pending],
 								['Missing in bucket', report.assets.missingInBucket],
 								['Head check failures', report.assets.headFailures],
+								['Not checked (over budget)', report.assets.notChecked],
 								['Old-format URLs', report.assets.oldFormatUrls],
 								[
 									'DB asset rows',
@@ -893,28 +894,43 @@ function AssetDiagnostics() {
 						</div>
 					</div>
 					{report.assets.problems.length > 0 && (
-						<table className={styles.diagnosticsTable}>
-							<thead>
-								<tr>
-									<th>Asset</th>
-									<th>Object name</th>
-									<th>In bucket</th>
-									<th>Meta fileId</th>
-									<th>DB fileId</th>
-								</tr>
-							</thead>
-							<tbody>
-								{report.assets.problems.map((p) => (
-									<tr key={p.assetId}>
-										<td>{p.assetId}</td>
-										<td>{p.objectName}</td>
-										<td>{p.inBucket === null ? 'check failed' : p.inBucket ? 'yes' : 'MISSING'}</td>
-										<td>{p.fileIdMeta ?? 'none'}</td>
-										<td>{p.dbRow?.fileId ?? 'none'}</td>
+						<>
+							{report.assets.problemsTotal > report.assets.problems.length && (
+								<p className="tla-text_ui__regular">
+									Showing {report.assets.problems.length} of {report.assets.problemsTotal} problems.
+								</p>
+							)}
+							<table className={styles.diagnosticsTable}>
+								<thead>
+									<tr>
+										<th>Asset</th>
+										<th>Object name</th>
+										<th>In bucket</th>
+										<th>Meta fileId</th>
+										<th>DB fileId</th>
 									</tr>
-								))}
-							</tbody>
-						</table>
+								</thead>
+								<tbody>
+									{report.assets.problems.map((p) => (
+										<tr key={p.assetId}>
+											<td>{p.assetId}</td>
+											<td>{p.objectName}</td>
+											<td>
+												{p.inBucket !== null
+													? p.inBucket
+														? 'yes'
+														: 'MISSING'
+													: p.checked
+														? 'check failed'
+														: 'not checked'}
+											</td>
+											<td>{p.fileIdMeta ?? 'none'}</td>
+											<td>{p.dbRow?.fileId ?? 'none'}</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</>
 					)}
 					<StructuredDataDisplay data={report} />
 				</>

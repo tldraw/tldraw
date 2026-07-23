@@ -296,7 +296,9 @@ export interface AdminFileAssetProblem {
 	objectName: string
 	src: string
 	fileIdMeta: string | null
-	/** null = the bucket head check failed, not a confirmed absence */
+	/** false = the head check was skipped (over the per-invocation budget), so inBucket is null */
+	checked: boolean
+	/** null = the bucket head check was skipped or failed, not a confirmed absence */
 	inBucket: boolean | null
 	dbRow: { fileId: string } | null
 }
@@ -320,9 +322,13 @@ export interface AdminFileAssetsResponseBody {
 		oldFormatUrls: number
 		missingInBucket: number
 		headFailures: number
-		/** Sums sizes of assets found in the uploads bucket; missing or failed heads contribute 0 */
+		/** Head checks skipped because the file has more assets than the per-invocation budget */
+		notChecked: number
+		/** Sums sizes of assets found in the uploads bucket; skipped, missing or failed heads contribute 0 */
 		totalSizeBytes: number
 		largestSizeBytes: number
+		/** Total problem count; `problems` is capped, so it may hold fewer entries than this */
+		problemsTotal: number
 		problems: AdminFileAssetProblem[]
 	}
 	dbRows: { forThisFile: number; orphaned: number }
