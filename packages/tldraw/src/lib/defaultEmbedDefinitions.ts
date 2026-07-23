@@ -280,7 +280,9 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		},
 		isAspectRatioLocked: true,
 		embedOnPaste: true,
-		sizeToContentAspectRatio: true,
+		// Not opted into `sizeToContentAspectRatio`: YouTube advertises the same 16:9 thumbnail
+		// dimensions for every video (it pads vertical videos into a 16:9 thumbnail), so unfurled
+		// dimensions can never reveal a non-16:9 ratio — the correction would always be a no-op.
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (!urlObj) return

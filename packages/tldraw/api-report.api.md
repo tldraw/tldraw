@@ -992,7 +992,6 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
         readonly 'allow-popups-to-escape-sandbox': true;
         readonly 'allow-presentation': true;
     };
-    readonly sizeToContentAspectRatio: true;
     readonly title: "YouTube";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "youtube";
