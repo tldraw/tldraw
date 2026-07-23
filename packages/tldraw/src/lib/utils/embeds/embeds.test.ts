@@ -3,7 +3,7 @@ import {
 	embedShapePermissionDefaults,
 	unknownEmbedShapePermissionOverrides,
 } from '../../defaultEmbedDefinitions'
-import { getEmbedInfo, matchEmbedUrl, matchUrl } from './embeds'
+import { getCorrectedEmbedSize, getEmbedInfo, matchEmbedUrl, matchUrl } from './embeds'
 
 const GOOGLE_MAPS_API_KEY = 'test-google-maps-api-key'
 const TEST_EMBED_CONFIG = { google_maps: { apiKey: GOOGLE_MAPS_API_KEY } }
@@ -50,6 +50,32 @@ describe('embed sandbox permissions', () => {
 		expect(unknownEmbedShapePermissionOverrides['allow-same-origin']).toBe(false)
 		expect(unknownEmbedShapePermissionOverrides['allow-forms']).toBe(false)
 		expect(unknownEmbedShapePermissionOverrides['allow-popups']).toBe(false)
+	})
+})
+
+describe('getCorrectedEmbedSize', () => {
+	test('corrects height to match the resolved ratio, keeping width', () => {
+		expect(getCorrectedEmbedSize({ w: 640, h: 360, resolvedRatio: 1.5 })).toEqual({
+			w: 640,
+			h: 640 / 1.5,
+		})
+	})
+
+	test('returns null when the resolved ratio already matches (within epsilon)', () => {
+		expect(getCorrectedEmbedSize({ w: 640, h: 360, resolvedRatio: 640 / 360 })).toBeNull()
+	})
+
+	test('applies a new ratio regardless of the current ratio (e.g. after a url change)', () => {
+		// shape was already auto-corrected to 3:2; a new video resolves to 1:1
+		expect(getCorrectedEmbedSize({ w: 640, h: 640 / 1.5, resolvedRatio: 1 })).toEqual({
+			w: 640,
+			h: 640,
+		})
+	})
+
+	test('returns null when there is no resolved ratio', () => {
+		expect(getCorrectedEmbedSize({ w: 640, h: 360, resolvedRatio: undefined })).toBeNull()
+		expect(getCorrectedEmbedSize({ w: 640, h: 360, resolvedRatio: 0 })).toBeNull()
 	})
 })
 

@@ -6,6 +6,20 @@ interface ResponseBody {
 	description?: string
 	image?: string
 	favicon?: string
+	imageWidth?: number
+	imageHeight?: number
+}
+
+// Pass the OpenGraph image dimensions through on the asset's meta so consumers (e.g. embeds) can
+// size content by its real aspect ratio. Kept off `props` to avoid a bookmark asset schema change.
+function getImageDimensionsMeta(meta: ResponseBody | null): {
+	imageWidth?: number
+	imageHeight?: number
+} {
+	const result: { imageWidth?: number; imageHeight?: number } = {}
+	if (typeof meta?.imageWidth === 'number') result.imageWidth = meta.imageWidth
+	if (typeof meta?.imageHeight === 'number') result.imageHeight = meta.imageHeight
+	return result
 }
 
 export async function createAssetFromUrl({ url }: { type: 'url'; url: string }): Promise<TLAsset> {
@@ -32,7 +46,7 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 				favicon: meta?.favicon ?? '',
 				title: meta?.title ?? '',
 			},
-			meta: {},
+			meta: getImageDimensionsMeta(meta),
 		}
 	} catch (error) {
 		// Otherwise, fallback to a blank bookmark
