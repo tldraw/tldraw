@@ -34,6 +34,7 @@ import {
 import { useCallback, useContext } from 'react'
 import { startEditingShapeWithRichText } from '../../tools/SelectTool/selectHelpers'
 import { TldrawUiTooltip } from '../../ui/components/primitives/TldrawUiTooltip'
+import { defineMessages } from '../../ui/context/i18n'
 import { TranslationsContext } from '../../ui/hooks/useTranslation/useTranslation'
 import {
 	isEditingRichTextList,
@@ -70,6 +71,10 @@ const NOTE_SHAPE_VERTICAL_ALIGNS = Object.freeze({
 	middle: 'middle',
 	end: 'end',
 } as const)
+
+const noteMessages = defineMessages({
+	shapeName: { id: 'note.shapeName', defaultMessage: 'Note' },
+})
 
 /** @public */
 export interface NoteShapeUtilDisplayValues {
@@ -137,6 +142,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		getCustomDisplayValues(): Partial<NoteShapeUtilDisplayValues> {
 			return {}
 		},
+	}
+
+	override getShapeName() {
+		return this.editor.i18n().translate(noteMessages.shapeName as any)
 	}
 
 	override canEdit(shape: TLNoteShape) {

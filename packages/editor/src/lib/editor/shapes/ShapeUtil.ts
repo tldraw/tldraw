@@ -189,6 +189,17 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	abstract getDefaultProps(): Shape['props']
 
 	/**
+	 * Get a translated name for this shape type. Used for accessibility announcements.
+	 * Return `undefined` to fall back to the default translation key lookup.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getShapeName(_shape: Shape): string | undefined {
+		return undefined
+	}
+
+	/**
 	 * Create a shape partial for placing an asset on the canvas.
 	 * Only called for shapes whose constructor declares matching
 	 * {@link ShapeUtil.handledAssetTypes | `handledAssetTypes`}.
