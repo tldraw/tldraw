@@ -48,6 +48,7 @@ import { CountBadge } from '../ui/count-badge'
 import { MentionMember } from '../ui/mention-list'
 import { isMentionPickerOpen } from '../ui/mention-suggestion'
 import { TooltipButton } from '../ui/tooltip-button'
+import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import {
@@ -86,6 +87,7 @@ import {
 } from './state'
 import {
 	anchorPagePoint,
+	impreciseShapePinInset,
 	regionAnchorPinCorner,
 	regionPinPoint,
 	shapeAnchorAt,
@@ -128,24 +130,6 @@ export interface CanvasCommentsProps {
 }
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
-
-/** How far an imprecise shape pin steps inside the shape from its anchor spot, in screen px —
- *  most of the marker sits within the shape, with a small overhang past the corner. */
-const IMPRECISE_PIN_INSET_PX = 20
-
-/** Imprecise shape pins tuck inside the shape rather than hanging off its edge: the marker
- *  extends up-right of its anchor point, so step it toward the shape's centre. Screen px — the
- *  pin is screen-fixed while the shape scales with zoom. Null for anchors that need no inset. */
-function impreciseShapePinInset(
-	anchor: TLCommentThread['anchor'],
-	spot: { x: number; y: number }
-): { x: number; y: number } | null {
-	if (anchor.type !== 'shape' || anchor.isPrecise) return null
-	return {
-		x: Math.sign(0.5 - spot.x) * IMPRECISE_PIN_INSET_PX,
-		y: Math.sign(0.5 - spot.y) * IMPRECISE_PIN_INSET_PX,
-	}
-}
 
 /** A pointer-down that belongs to the camera, not the comment UI: any non-primary button
  *  (middle/right-button pans), or a primary press with the spacebar pan key held. */
@@ -252,6 +236,13 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	}, [editor, pending, showPendingComposer])
 	const openId = useValue('open thread id', () => openThreadId.get(editor), [editor])
 	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
+	// Keyed by the anchor's values, not its identity — an inline `impreciseShapeAnchor` prop is a
+	// new object every render and would re-register the handlers each time.
+	const { x: impreciseX, y: impreciseY } = impreciseShapeAnchor
+	useEffect(
+		() => registerCommentAnchorLifecycle(editor, { x: impreciseX, y: impreciseY }),
+		[editor, impreciseX, impreciseY]
+	)
 	// Threads held out of clustering because their anchor moved while folded inside a badge
 	// (drag, nudge, align, undo, a collaborator — detected by position, not gesture). They render
 	// as live pins riding their anchor and rejoin clustering on the next zoom-out.

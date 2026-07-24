@@ -29,6 +29,7 @@ export { SendButton, type SendButtonProps } from './ui/send-button'
 // The tldraw-coupled commenting layer: the comment tool, reactive hooks over the comment
 // records, a rich-text body renderer, and a batteries-included <CanvasComments> overlay. Pairs
 // with the presentational components above.
+export { registerCommentAnchorLifecycle } from './canvas/anchor-lifecycle'
 export { CommentBody, type CommentBodyProps } from './canvas/comment-body'
 export {
 	CommentTool,
