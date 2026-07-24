@@ -96,7 +96,21 @@ describe('TLComment', () => {
 			pageId,
 			createdAt: 1000,
 			editedAt: null,
+			isDeleted: false,
 		})
+	})
+
+	it('validates soft-deletion state', () => {
+		const comment = createComment({
+			threadId,
+			pageId,
+			authorId: 'user1',
+			body: toRichText('hello'),
+			now: 1000,
+		})
+		const deleted = { ...comment, isDeleted: true }
+		expect(commentRecordConfig.validator.validate(deleted)).toEqual(deleted)
+		expect(() => commentRecordConfig.validator.validate({ ...comment, isDeleted: 'yes' })).toThrow()
 	})
 
 	it('accepts an editedAt timestamp after edits', () => {
