@@ -183,7 +183,8 @@ export class TLFileDurableObject extends DurableObject {
 		// getStorage under the hood which will only resolve once this function has returned.
 		this.setRoomStorageUsedPercentage(result.roomSizeMB)
 		// Samples the size distribution of rooms as they cold-load; 0 for rooms with no R2 snapshot.
-		this.metrics.write('room_size_mb', { blobs: [slug], doubles: [result.roomSizeMB] })
+		// No room identifier is attached — this is for distribution/percentile queries, not lookups.
+		this.metrics.write('room_size_mb', { doubles: [result.roomSizeMB] })
 		return storage
 	}
 
