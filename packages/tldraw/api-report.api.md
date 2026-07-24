@@ -706,12 +706,16 @@ export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrus
 
 // @public
 export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
+    constructor(editor: Editor);
+    // (undocumented)
+    dispose(): void;
     // (undocumented)
     getOverlays(): TLCollaboratorCursorOverlay[];
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
     options: {
+        smoothing: boolean;
         chatMaxWidth: number;
         fontSize: number;
         nameMaxWidth: number;
