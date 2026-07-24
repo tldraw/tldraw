@@ -1,7 +1,6 @@
 import { generateHTML, generateText, JSONContent } from '@tiptap/core'
-import { createMentionExtension } from '@tldraw/mentions'
+import { type CommentAuthor, createMentionExtension } from '@tldraw/mentions'
 import { TLRichText } from 'tldraw'
-import { CommentAuthor } from '../ui/comment-author'
 import { commentTipTapExtensions, isCommentEmpty } from '../ui/comment-extensions'
 
 /**

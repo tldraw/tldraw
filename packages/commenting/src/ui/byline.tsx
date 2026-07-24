@@ -1,4 +1,4 @@
-import { CommentAuthor } from './comment-author'
+import { type CommentAuthor } from '@tldraw/mentions'
 import { formatRelativeTime } from './format-time'
 
 /** @public */

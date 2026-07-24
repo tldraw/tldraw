@@ -2,6 +2,7 @@ import { JSONContent } from '@tiptap/core'
 import { EditorContent, useEditor } from '@tiptap/react'
 import {
 	Avatar,
+	type CommentAuthor,
 	createMentionExtension,
 	createMentionSuggestion,
 	isMentionPickerOpen,
@@ -9,7 +10,6 @@ import {
 } from '@tldraw/mentions'
 import { ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
-import { CommentAuthor } from './comment-author'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
 import { SendButton } from './send-button'
 

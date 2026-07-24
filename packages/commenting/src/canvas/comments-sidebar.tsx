@@ -1,3 +1,4 @@
+import { type CommentAuthor } from '@tldraw/mentions'
 import { ReactNode, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -9,7 +10,6 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { CommentAuthor } from '../ui/comment-author'
 import { CommentListItemProps, CommentsList } from '../ui/comments-list'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
