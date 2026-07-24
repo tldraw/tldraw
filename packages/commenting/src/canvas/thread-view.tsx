@@ -83,21 +83,45 @@ export function toCardProps(
 }
 
 /**
+ * The header block a thread popover carries and a header-less preview (a stack or cluster list)
+ * does not: an action-row-tall header plus the column gap beneath it. The single-pin preview's
+ * root is shifted down by exactly this in CSS (`--tlui-cmt-thread-header-height` +
+ * `--tlui-cmt-thread-gap`) so its comment lands where the opened popover's does; this JS copy lets
+ * the pin popover offset be derived from the list offset. Keep the two in sync — same pixels.
+ */
+const THREAD_HEADER_SHIFT = 32
+
+/** Every marker is this square (mirrors `--tlui-cmt-marker-size`). Needed because the two marker
+ *  kinds anchor at different points, and lining their previews up means correcting for that. */
+const MARKER_SIZE = 34
+
+/** A coincident stack's / cluster's card list, whose first card sits flush with the popover top. */
+const LIST_OFFSET = { x: 36, y: -28 } as const
+
+/**
  * Where a marker's popover sits relative to the marker's anchor point.
  *
  * The hover preview places itself at these same origins, so the two views of a thread differ only
  * by the header the popover has — which its own stylesheet then compensates for. Moving a popover
  * here moves its preview with it.
+ *
+ * The two marker kinds don't anchor alike, which the vertical offsets have to correct for. A
+ * badge is centred on its point (`translate(-50%, -50%)`), so `LIST_OFFSET.y` is measured from its
+ * middle. A pin hangs off its point (`translate(0, -100%)`), so its point is the pin's *bottom* —
+ * a full marker lower than a badge's. Measuring a raw offset from there would drop the pin's
+ * preview half a marker below a badge's; the terms below re-base it so the two previews' top cards
+ * land on the same line.
  */
 export const POPOVER_OFFSET = {
 	/**
-	 * A single pin's thread popover. Clears the bottom-left-anchored pin: it spans 34px right of
-	 * and above the anchor, plus the open ring's 5px — the popover starts past that, opening above
-	 * the pin's top.
+	 * A single pin's thread popover. Its preview should read level with a cluster/stack preview's
+	 * top card, so start from the list offset and re-base it to the pin's bottom anchor:
+	 * `- MARKER_SIZE / 2` accounts for the pin's point sitting half a marker below a badge's, and
+	 * `- THREAD_HEADER_SHIFT` cancels the downward shift the preview's own stylesheet applies to
+	 * make room for the missing header. The opened popover shares the offset and opens from there.
 	 */
-	thread: { x: 48, y: -54 },
-	/** A coincident stack's card list, whose first card sits flush with the popover's top. */
-	list: { x: 36, y: -28 },
+	thread: { x: 48, y: LIST_OFFSET.y - MARKER_SIZE / 2 - THREAD_HEADER_SHIFT },
+	list: LIST_OFFSET,
 } as const
 
 /** The open thread's popover container, portaled above the UI panels. Over it, wheel and hover
