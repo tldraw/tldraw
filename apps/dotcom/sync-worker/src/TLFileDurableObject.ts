@@ -1903,9 +1903,9 @@ export class TLFileDurableObject extends DurableObject {
 						)
 						.execute()
 
-				// Threads before comments (comment.threadId FK); comment deletes before thread
-				// deletes is not required (thread deletes cascade), but keep the batch → row-by-row
-				// fallback so one bad row doesn't drop the whole batch. Rows that fail both the
+				// Thread upserts before comment upserts (comment.threadId FK); comment deletes
+				// before thread deletes is not required (thread deletes cascade), but keep the
+				// batch → row-by-row fallback so one bad row doesn't drop the whole batch. Rows that fail both the
 				// batch insert and their individual retry are reported back (by record id) so the
 				// caller can keep their outbox entries queued instead of deleting them. Rows whose
 				// error matches `shouldPrune` are returned separately instead: they are not
@@ -1947,6 +1947,33 @@ export class TLFileDurableObject extends DurableObject {
 						return { failedIds, prunedIds }
 					}
 				}
+				// Comment deletes run before the thread upserts: a drain can carry both an author's
+				// delete of their comment and the creator's soft-delete of its thread, and if the
+				// upsert stamped `deletedAt` first, the guard below would suppress the legitimate
+				// delete and freeze the comment's row under the soft-deleted thread.
+				//
+				// The guard itself: lane-absence normally means "delete the Postgres row", but the
+				// soft-delete prune below also makes records lane-absent — an outbox entry past
+				// this drain's bound (a resolve, re-anchor, or reply pushed mid-drain) would then
+				// read as a hard delete on the next drain and destroy the recovery rows. Guard
+				// every hard delete on the thread not being soft-deleted; the author-cascade path
+				// is unaffected (its threads are never soft-deleted).
+				if (commentDeletes.length > 0) {
+					await this.db
+						.deleteFrom('comment')
+						.where('id', 'in', commentDeletes)
+						.where(({ not, exists, selectFrom }) =>
+							not(
+								exists(
+									selectFrom('comment_thread')
+										.select('comment_thread.id')
+										.whereRef('comment_thread.id', '=', 'comment.threadId')
+										.where('comment_thread.deletedAt', 'is not', null)
+								)
+							)
+						)
+						.execute()
+				}
 				const failedIds = new Set<string>()
 				const threadResult = await runBatchWithFallback(threadUpserts, insertThreadRows)
 				for (const id of threadResult.failedIds) {
@@ -1972,28 +1999,9 @@ export class TLFileDurableObject extends DurableObject {
 				for (const id of commentResult.failedIds) {
 					failedIds.add(id)
 				}
-				// Lane-absence normally means "delete the Postgres row", but the soft-delete prune
-				// below also makes records lane-absent — an outbox entry past this drain's bound
-				// (a resolve, re-anchor, or reply pushed mid-drain) would then read as a hard
-				// delete on the next drain and destroy the recovery rows. Guard every hard delete
-				// on the thread not being soft-deleted; the author-cascade path is unaffected
-				// (its threads are never soft-deleted).
-				if (commentDeletes.length > 0) {
-					await this.db
-						.deleteFrom('comment')
-						.where('id', 'in', commentDeletes)
-						.where(({ not, exists, selectFrom }) =>
-							not(
-								exists(
-									selectFrom('comment_thread')
-										.select('comment_thread.id')
-										.whereRef('comment_thread.id', '=', 'comment.threadId')
-										.where('comment_thread.deletedAt', 'is not', null)
-								)
-							)
-						)
-						.execute()
-				}
+				// Thread hard-deletes carry the same soft-delete guard as the comment deletes
+				// above. Order vs the upserts doesn't matter here: an id can't be planned as both
+				// an upsert (lane-present) and a delete (lane-absent) in one drain.
 				if (threadDeletes.length > 0) {
 					await this.db
 						.deleteFrom('comment_thread')
