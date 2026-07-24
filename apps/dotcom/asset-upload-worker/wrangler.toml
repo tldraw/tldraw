@@ -79,3 +79,14 @@ binding = "CF_VERSION_METADATA"
 
 [env.production.version_metadata]
 binding = "CF_VERSION_METADATA"
+
+#################### Observability ####################
+# preview-only for now; export Workers Logs/Traces to Grafana via the OTLP destinations
+# configured in the Cloudflare dashboard (destination names must match exactly)
+[env.preview.observability.logs]
+enabled = true
+destinations = ["grafana-logs"]
+
+[env.preview.observability.traces]
+enabled = true
+destinations = ["grafana-traces"]
