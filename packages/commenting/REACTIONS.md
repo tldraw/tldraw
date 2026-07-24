@@ -5,6 +5,24 @@ syncs, and hands back to a renderer. It never assumes the token is an emoji glyp
 the token _is_ the glyph (drawn by the OS emoji font), but you can swap the palette to make a
 reaction be anything: custom emoji images, SVGs, drawings, a fixed brand set, etc.
 
+## Overrides are opt-in
+
+Every extension point below — the palette, the renderer, the validator, and the reactor tooltip —
+is **opt-in**. Each is a slot on the comment tool that defaults to a built-in when you leave it
+unset. So an unconfigured tool gives you the full standard experience: OS-font emoji reactions, the
+default emoji picker, and the default hover tooltip.
+
+```tsx
+// All of these are equivalent — the built-in emoji reactions + default tooltip:
+const commentTools = [CommentTool]
+const commentTools = [CommentTool.configure({})]
+const commentTools = [CommentTool.configure({ components: {} })]
+```
+
+You only pass an override to change that specific slot; everything you don't pass stays the built-in.
+`configure({})` is not "turn reactions off" — it's "use every default." Reverting any customisation
+is just deleting the override, never adding config back.
+
 ## The model
 
 A reaction is one record per `(comment, user, token)` (see `TLCommentReaction` in `@tldraw/tlschema`).
@@ -128,6 +146,64 @@ const commentTools = [CommentTool.configure({})]
 ```
 
 That's the entire revert — no package changes, because the defaults _are_ the emoji palette.
+
+## The reactor tooltip
+
+Separate from the palette (which is about the tokens themselves), the **hover tooltip that names who
+reacted** is its own override. By default, hovering a reaction pill shows an inline sentence —
+`You reacted`, `You and Bo reacted`, `You, Bo and Ada reacted`, then `You, Bo, Ada and N others
+reacted` past three names.
+
+There are two levels of customisation, smallest first:
+
+1. **Reword it — translation, no code.** The sentence is built from the `comments.reacted-1`,
+   `comments.reacted-2`, `comments.reacted-3`, `comments.reacted-more`, and `comments.reacted-more-one`
+   strings (plus `comments.mention-you` for "You"). Override them through the standard tldraw
+   translation `overrides` to change the words or reorder the `{a}` / `{b}` / `{c}` / `{count}`
+   placeholders per locale. This is also how the grammar gets localised.
+
+2. **Replace it — `components.ReactionTooltip`.** To change more than the wording, replace the whole
+   affordance. The component receives the reactors **and the pill itself** (as `children`) and
+   returns the entire thing — so it owns the tooltip, its box, size, shape, and position, not just
+   the text inside. That's what lets it be anything: a different box, avatars, or a banner painted
+   anywhere on screen.
+
+   The default just hangs the built-in sentence in a standard tooltip. To keep that box but change
+   the contents, wrap `children` in `TldrawUiTooltip` yourself:
+
+   ```tsx
+   import { CommentTool, type ReactionTooltipProps } from '@tldraw/commenting'
+   import { TldrawUiTooltip } from 'tldraw'
+
+   function AvatarReactionTooltip({ reactors, children }: ReactionTooltipProps) {
+   	return (
+   		<TldrawUiTooltip
+   			side="bottom"
+   			content={reactors.map((r, i) => (
+   				<Avatar key={i} name={r.you ? 'You' : r.name} />
+   			))}
+   		>
+   			{children}
+   		</TldrawUiTooltip>
+   	)
+   }
+
+   const commentTools = [
+   	CommentTool.configure({ components: { ReactionTooltip: AvatarReactionTooltip } }),
+   ]
+   ```
+
+   To break out of the tooltip entirely — your own popover, a fixed banner, no box at all — don't
+   render `TldrawUiTooltip`; wrap `children` however you like and own the hover state yourself.
+
+   `ReactionTooltipProps` gives you `reactors: { name: string; you: boolean }[]` in reaction order,
+   plus `children` (the pill). Unset, it falls back to `DefaultReactionTooltip` (the default wrapper).
+   Two exports help you compose: `DefaultReactionTooltip` (the wrapper) and
+   `DefaultReactionTooltipContent` (just the inline sentence, to drop inside your own box). This is
+   the same override mechanism as `ReactionContent` / `ReactionPalette`, just for the reactor list.
+
+   > `enableHoverList` still applies upstream: when another menu on the comment is open the pill
+   > renders bare and your `ReactionTooltip` isn't mounted, so you never have to handle that case.
 
 ## Token gotchas
 

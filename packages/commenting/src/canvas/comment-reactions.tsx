@@ -169,6 +169,7 @@ function useReactionRenderer(): RenderReaction | undefined {
 export function CommentReactions({ comment, currentUserId, resolveName }: CommentReactionsProps) {
 	const editor = useEditor()
 	const renderReaction = useReactionRenderer()
+	const { components } = useCommentingOptions()
 	const reactions = useCommentReactions(editor, comment.id)
 	const summaries = useMemo(
 		() => summarizeReactions(reactions, currentUserId, resolveName),
@@ -186,6 +187,7 @@ export function CommentReactions({ comment, currentUserId, resolveName }: Commen
 			canReact={currentUserId != null}
 			enableHoverList={!anyMenuOpen}
 			renderReaction={renderReaction}
+			ReactionTooltip={components.ReactionTooltip}
 			onToggle={(value) => {
 				if (currentUserId == null) return
 				toggleCommentReaction(editor, comment, currentUserId, value)

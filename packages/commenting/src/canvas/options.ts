@@ -9,6 +9,7 @@ import {
 	useEditor,
 } from 'tldraw'
 import { isAllowedReactionEmoji, type EmojiPickerProps } from '../ui/emoji-picker'
+import { type ReactionTooltipProps } from '../ui/reaction'
 
 /**
  * The gesture that's creating a shape anchor, passed to
@@ -49,6 +50,14 @@ export interface CommentingComponents {
 	 * emits) and with `isAllowedReaction` (which has to accept them).
 	 */
 	ReactionPalette?: ComponentType<EmojiPickerProps>
+	/**
+	 * The hover affordance naming who reacted with an emoji. It receives the reactors and the pill
+	 * (as `children`) and returns the whole thing — so it owns the tooltip, its box, size, shape, and
+	 * position. Replaces the default (`DefaultReactionTooltip`). For a simple wording change, translate
+	 * the `comments.reacted-*` strings instead; reach for this to change the structure — a different
+	 * box, avatars, a banner anywhere on screen.
+	 */
+	ReactionTooltip?: ComponentType<ReactionTooltipProps>
 }
 
 /**

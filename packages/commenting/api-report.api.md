@@ -208,6 +208,7 @@ export interface CommentingComponents {
         token: string;
     }>;
     ReactionPalette?: ComponentType<EmojiPickerProps>;
+    ReactionTooltip?: ComponentType<ReactionTooltipProps>;
     ThreadPreview?: ComponentType<{
         comment: TLComment;
     }>;
@@ -419,6 +420,14 @@ export const defaultCommentingOptions: {
 };
 
 // @public
+export function DefaultReactionTooltip({ reactors, children }: ReactionTooltipProps): JSX.Element;
+
+// @public
+export function DefaultReactionTooltipContent({ reactors }: {
+    reactors: ReactionReactor[];
+}): JSX.Element | null;
+
+// @public
 export function defaultRenderReaction(token: string): ReactNode;
 
 // @public
@@ -587,7 +596,7 @@ export const pendingComment: EditorAtom<null | PendingComment>;
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;
 
 // @public
-export function Reaction({ emoji, count, active, reactors, enableHoverList, renderReaction, onClick }: ReactionProps): JSX.Element;
+export function Reaction({ emoji, count, active, reactors, enableHoverList, renderReaction, ReactionTooltip, onClick }: ReactionProps): JSX.Element;
 
 // @public
 export function ReactionPicker({ emoji, selected, onSelect, renderReaction, palette: Palette, menuId, className }: ReactionPickerProps): JSX.Element;
@@ -613,6 +622,7 @@ export interface ReactionProps {
     emoji: string;
     enableHoverList?: boolean;
     onClick?(): void;
+    ReactionTooltip?: ComponentType<ReactionTooltipProps>;
     reactors: ReactionReactor[];
     renderReaction?: RenderReaction;
 }
@@ -624,7 +634,7 @@ export interface ReactionReactor {
 }
 
 // @public
-export function Reactions({ reactions, onToggle, canReact, enableHoverList, renderReaction }: ReactionsProps): JSX.Element | null;
+export function Reactions({ reactions, onToggle, canReact, enableHoverList, renderReaction, ReactionTooltip }: ReactionsProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface ReactionsProps {
@@ -632,6 +642,7 @@ export interface ReactionsProps {
     enableHoverList?: boolean;
     onToggle?(emoji: string): void;
     reactions: ReactionSummary[];
+    ReactionTooltip?: ComponentType<ReactionTooltipProps>;
     renderReaction?: RenderReaction;
 }
 
@@ -641,6 +652,12 @@ export interface ReactionSummary {
     count: number;
     // (undocumented)
     emoji: string;
+    reactors: ReactionReactor[];
+}
+
+// @public (undocumented)
+export interface ReactionTooltipProps {
+    children: ReactNode;
     reactors: ReactionReactor[];
 }
 

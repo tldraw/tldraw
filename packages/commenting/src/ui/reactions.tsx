@@ -1,4 +1,5 @@
-import { Reaction, RenderReaction } from './reaction'
+import { ComponentType } from 'react'
+import { Reaction, ReactionTooltipProps, RenderReaction } from './reaction'
 
 /** One person who reacted with a given emoji, for the hover list. @public */
 export interface ReactionReactor {
@@ -33,6 +34,9 @@ export interface ReactionsProps {
 	enableHoverList?: boolean
 	/** How to draw each emoji token. Defaults to the token string (OS emoji font). */
 	renderReaction?: RenderReaction
+	/** The tooltip naming who reacted, shown when a pill is hovered. Defaults to an inline sentence
+	 *  (`DefaultReactionTooltip`). Swap it to render the reactor list however you like. */
+	ReactionTooltip?: ComponentType<ReactionTooltipProps>
 }
 
 /**
@@ -50,6 +54,7 @@ export function Reactions({
 	canReact = true,
 	enableHoverList = true,
 	renderReaction,
+	ReactionTooltip,
 }: ReactionsProps) {
 	if (reactions.length === 0) return null
 	return (
@@ -60,6 +65,7 @@ export function Reactions({
 					{...reaction}
 					enableHoverList={enableHoverList}
 					renderReaction={renderReaction}
+					ReactionTooltip={ReactionTooltip}
 					onClick={canReact ? () => onToggle?.(reaction.emoji) : undefined}
 				/>
 			))}

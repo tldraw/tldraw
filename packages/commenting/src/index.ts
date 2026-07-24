@@ -32,6 +32,9 @@ export {
 	type ReactionProps,
 	type RenderReaction,
 	defaultRenderReaction,
+	DefaultReactionTooltip,
+	DefaultReactionTooltipContent,
+	type ReactionTooltipProps,
 } from './ui/reaction'
 export { ReactionPicker, type ReactionPickerProps } from './ui/reaction-picker'
 export {
