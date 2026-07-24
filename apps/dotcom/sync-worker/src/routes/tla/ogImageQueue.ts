@@ -2,7 +2,7 @@ import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotco
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment, OgImageRenderQueueMessage } from '../../types'
-import { writeDataPoint } from '../../utils/analytics'
+import { getMetrics } from '../../utils/analytics'
 import {
 	THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	ThumbnailRenderJob,
@@ -369,7 +369,7 @@ export function writeOgImageTelemetry(
 	}
 ) {
 	const rateLimitAllowed = data.rateLimitAllowed ?? true
-	writeDataPoint(undefined, env.MEASURE, env, 'mcp_shared_board_screenshot', {
+	getMetrics(env).write('mcp_shared_board_screenshot', {
 		blobs: [
 			`source:${data.source}`,
 			`cache:${data.cacheStatus}`,

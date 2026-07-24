@@ -60,8 +60,8 @@ import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
-import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
-import { EventData, writeDataPoint } from './utils/analytics'
+import { DBLoadResult, Environment, TLServerEvent } from './types'
+import { Metrics, getMetrics } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -182,6 +182,8 @@ export class TLFileDurableObject extends DurableObject {
 		// We should not await on setRoomStorageUsedPercentage because it calls
 		// getStorage under the hood which will only resolve once this function has returned.
 		this.setRoomStorageUsedPercentage(result.roomSizeMB)
+		// Samples the size distribution of rooms as they cold-load; 0 for rooms with no R2 snapshot.
+		this.metrics.write('room_size_mb', { blobs: [slug], doubles: [result.roomSizeMB] })
 		return storage
 	}
 
@@ -306,7 +308,7 @@ export class TLFileDurableObject extends DurableObject {
 	pierreState: PierreState | null = null
 
 	// For analytics
-	measure: Analytics | undefined
+	private readonly metrics: Metrics
 
 	// For error tracking
 	sentryDSN: string | undefined
@@ -347,7 +349,7 @@ export class TLFileDurableObject extends DurableObject {
 		this.id = state.id
 		this.storage = state.storage
 		this.sentryDSN = env.SENTRY_DSN
-		this.measure = env.MEASURE
+		this.metrics = getMetrics(env)
 		this.sentry = createSentry(this.state, this.env)
 		this.log = new Logger(env, 'TLDrawDurableObject', this.sentry)
 		this.supabaseClient = createSupabaseClient(env)
@@ -565,7 +567,7 @@ export class TLFileDurableObject extends DurableObject {
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	_fileRecordCache: TlaFile | null = null
 	async getAppFileRecord(): Promise<TlaFile | null> {
-		const timer = this.timer()
+		const timer = this.metrics.timer()
 		try {
 			const result = await retry(
 				async () => {
@@ -600,7 +602,7 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	async onRequest(req: IRequest, openMode: RoomOpenMode) {
-		const requestTimer = this.timer()
+		const requestTimer = this.metrics.timer()
 
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
@@ -625,7 +627,7 @@ export class TLFileDurableObject extends DurableObject {
 			return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 		}
 
-		const authTimer = this.timer()
+		const authTimer = this.metrics.timer()
 		const auth = await getAuth(req, this.env)
 		authTimer.report('on_request_auth')
 
@@ -646,7 +648,7 @@ export class TLFileDurableObject extends DurableObject {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
 				}
 
-				const rateLimitTimer = this.timer()
+				const rateLimitTimer = this.metrics.timer()
 				if (auth?.userId) {
 					const rateLimited = await isRateLimited(this.env, auth.userId)
 					if (rateLimited) {
@@ -678,7 +680,7 @@ export class TLFileDurableObject extends DurableObject {
 					hasOwnerAccess = true
 				} else if (file.owningGroupId && auth?.userId) {
 					// Check the user can access the owning group's files
-					const groupCheckTimer = this.timer()
+					const groupCheckTimer = this.metrics.timer()
 					const role = await getRole(this.db, auth.userId, file.owningGroupId)
 					if (can(role, 'accessFiles')) {
 						hasOwnerAccess = true
@@ -714,7 +716,7 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			serverWebSocket.serializeAttachment(attachment)
 
-			const getRoomTimer = this.timer()
+			const getRoomTimer = this.metrics.timer()
 			const room = await this.getRoom()
 			getRoomTimer.report('on_request_get_room')
 
@@ -889,30 +891,26 @@ export class TLFileDurableObject extends DurableObject {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
 
-	private writeEvent(name: string, eventData: EventData) {
-		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
-	}
-
 	logEvent(event: TLServerEvent) {
 		switch (event.type) {
 			case 'persist_success': {
-				this.writeEvent(event.type, { doubles: [event.attempts] })
+				this.metrics.write(event.type, { doubles: [event.attempts, event.durationMs] })
 				break
 			}
 			case 'room': {
 				// we would add user/connection ids here if we could
-				this.writeEvent(event.name, { blobs: [event.roomId] })
+				this.metrics.write(event.name, { blobs: [event.roomId] })
 				break
 			}
 			case 'client': {
 				if (event.name === 'rate_limited') {
-					this.writeEvent(event.name, {
+					this.metrics.write(event.name, {
 						blobs: [event.userId ?? 'anon-user'],
 						indexes: [event.localClientId],
 					})
 				} else {
 					// we would add user/connection ids here if we could
-					this.writeEvent(event.name, {
+					this.metrics.write(event.name, {
 						blobs: [event.roomId, 'unused', event.instanceId],
 						indexes: [event.localClientId],
 					})
@@ -920,7 +918,7 @@ export class TLFileDurableObject extends DurableObject {
 				break
 			}
 			case 'send_message': {
-				this.writeEvent(event.type, {
+				this.metrics.write(event.type, {
 					blobs: [event.roomId, event.messageType],
 					doubles: [event.messageLength],
 				})
@@ -935,7 +933,7 @@ export class TLFileDurableObject extends DurableObject {
 	async handleFileCreateFromSource(): Promise<DBLoadResult> {
 		assert(this._fileRecordCache, 'we need to have a file record to create a file from source')
 
-		const fetchTimer = this.timer()
+		const fetchTimer = this.metrics.timer()
 		const data = await this.loadCreateSourceData(this._fileRecordCache.createSource)
 		fetchTimer.report('create_from_source_fetch_total')
 
@@ -946,7 +944,7 @@ export class TLFileDurableObject extends DurableObject {
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
 		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
 
-		const putTimer = this.timer()
+		const putTimer = this.metrics.timer()
 		const key = getR2KeyForRoom({ slug: this._fileRecordCache.id, isApp: true })
 		const roomObject = await this.r2.rooms.put(key, serialized)
 		putTimer.report('create_from_source_r2_put')
@@ -980,11 +978,11 @@ export class TLFileDurableObject extends DurableObject {
 				// The source file's content is copied verbatim into this (user-owned) room. Read
 				// access to the source `id` is authorized upstream when the file record is created
 				// (see the `createFile` mutator), since that is where the user's identity is known.
-				const awaitPersistTimer = this.timer()
+				const awaitPersistTimer = this.metrics.timer()
 				await getRoomDurableObject(this.env, id).awaitPersist()
 				awaitPersistTimer.report('create_from_source_await_persist')
 
-				const r2FetchTimer = this.timer()
+				const r2FetchTimer = this.metrics.timer()
 				const text = await this.r2.rooms
 					.get(getR2KeyForRoom({ slug: id, isApp: true }))
 					.then((r) => r?.text())
@@ -1011,12 +1009,12 @@ export class TLFileDurableObject extends DurableObject {
 
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
 	async loadFromDatabase(slug: string): Promise<DBLoadResult> {
-		const loadTimer = this.timer()
+		const loadTimer = this.metrics.timer()
 		try {
 			const key = getR2KeyForRoom({ slug, isApp: this.documentInfo.isApp })
 
 			// when loading, prefer to fetch documents from the bucket
-			const r2FetchTimer = this.timer()
+			const r2FetchTimer = this.metrics.timer()
 			const roomFromBucket = await this.r2.rooms.get(key)
 			r2FetchTimer.report('db_load_r2_fetch')
 
@@ -1031,7 +1029,7 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			if (this._fileRecordCache?.createSource) {
-				const createFromSourceTimer = this.timer()
+				const createFromSourceTimer = this.metrics.timer()
 				const res = await this.handleFileCreateFromSource()
 				createFromSourceTimer.report('db_load_create_from_source')
 
@@ -1060,7 +1058,7 @@ export class TLFileDurableObject extends DurableObject {
 				throw ROOM_NOT_FOUND
 			}
 
-			const supabaseFetchTimer = this.timer()
+			const supabaseFetchTimer = this.metrics.timer()
 			const { data, error } = await this.supabaseClient
 				.from(this.supabaseTable)
 				.select('*')
@@ -1096,17 +1094,6 @@ export class TLFileDurableObject extends DurableObject {
 
 			console.error('failed to fetch doc', slug, error)
 			throw error
-		}
-	}
-
-	timer() {
-		const start = Date.now()
-		return {
-			report: (name: string) => {
-				this.writeEvent(name, {
-					doubles: [Date.now() - start],
-				})
-			},
 		}
 	}
 
@@ -1149,7 +1136,7 @@ export class TLFileDurableObject extends DurableObject {
 				const total = totalDepth()
 				if (total < R2_QUEUE_DEPTH_METRIC_THRESHOLD) return
 				for (const [type, depth] of depthByType) {
-					this.writeEvent('r2_queue_depth', { blobs: [type], doubles: [total, depth] })
+					this.metrics.write('r2_queue_depth', { blobs: [type], doubles: [total, depth] })
 				}
 				if (total >= R2_QUEUE_DEPTH_ALERT_THRESHOLD && !alerted) {
 					alerted = true
@@ -1375,6 +1362,7 @@ export class TLFileDurableObject extends DurableObject {
 						if (this._lastPersistedClock === storage.getClock()) return
 						if (this._isRestoring) return
 
+						const persistStart = Date.now()
 						const snapshot = storage.getSnapshot()
 						assert(snapshot.documentClock !== undefined, 'documentClock must be present')
 						this.maybeAssociateFileAssets()
@@ -1383,7 +1371,11 @@ export class TLFileDurableObject extends DurableObject {
 						await this._uploadSnapshotToR2(snapshot, key)
 						await this.persistToPierre(storage, snapshot)
 
-						this.logEvent({ type: 'persist_success', attempts: attempt })
+						this.logEvent({
+							type: 'persist_success',
+							attempts: attempt,
+							durationMs: Date.now() - persistStart,
+						})
 						this._lastPersistedClock = snapshot.documentClock
 						// Store the clock in DO storage so we can compare against SQLite on next load.
 						if (this.persistenceBad) {
@@ -1677,7 +1669,7 @@ export class TLFileDurableObject extends DurableObject {
 					}
 					// Incremental commits only (not the first commit to an empty repo); combined JSON string lengths (meta + record payloads).
 					if (headSha && result) {
-						this.writeEvent('pierre_incremental_write_chars', {
+						this.metrics.write('pierre_incremental_write_chars', {
 							doubles: [incrementalCommitPayloadLength],
 						})
 					}
