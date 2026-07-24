@@ -8,6 +8,7 @@ const __dirname = dirname(__filename)
 const packageDir = join(__dirname, '..')
 
 const combinedContent = [
+	join(packageDir, '..', 'mentions', 'mentions.css'),
 	join(packageDir, 'src', 'ui', 'comments.css'),
 	join(packageDir, 'src', 'canvas', 'canvas.css'),
 ].reduce(

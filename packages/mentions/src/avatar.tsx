@@ -10,7 +10,7 @@ function initial(name: string) {
 	return (getFirstCharacter(name.trim()) || '?').toUpperCase()
 }
 
-/** A commenter's avatar — their image if provided, otherwise a single-initial coloured circle.
+/** A person's avatar — their image if provided, otherwise a single-initial coloured circle.
  * @public @react */
 export function Avatar({ author }: AvatarProps) {
 	if (author.image) {

@@ -83,8 +83,9 @@ export function filterMentionMembers(members: MentionMember[], query: string): M
 const mentionPickerOpen = atom('isMentionPickerOpen', false)
 
 /**
- * Whether the @-mention picker is currently showing. Host dismissal (Escape, outside-click) checks
+ * Whether the \@-mention picker is currently showing. Host dismissal (Escape, outside-click) checks
  * this so it can defer to the picker instead of tearing down the composer or thread beneath it.
+ * @public
  */
 export function isMentionPickerOpen(): boolean {
 	return mentionPickerOpen.get()
@@ -102,10 +103,10 @@ export interface MentionSuggestionOptions {
 }
 
 /**
- * Build the TipTap `suggestion` config for the comment \@-picker. `getSuggestions(query)` is the
- * host's resolver — it returns the members matching the query (sync or async); the SDK owns neither
- * the roster nor the filtering. The plugin runs outside React, so `render` mounts `MentionPopup` via
- * a `ReactRenderer`, forwards navigation keys through the popup's imperative handle, and lets it call
+ * Build the TipTap `suggestion` config for the \@-picker. `getSuggestions(query)` is the host's
+ * resolver — it returns the members matching the query (sync or async); the SDK owns neither the
+ * roster nor the filtering. The plugin runs outside React, so `render` mounts `MentionPopup` via a
+ * `ReactRenderer`, forwards navigation keys through the popup's imperative handle, and lets it call
  * `command` to insert.
  * @public
  */

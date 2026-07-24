@@ -11766,10 +11766,9 @@ __metadata:
   resolution: "@tldraw/commenting@workspace:packages/commenting"
   dependencies:
     "@tiptap/core": "npm:^3.12.1"
-    "@tiptap/extension-mention": "npm:3.13.0"
     "@tiptap/pm": "npm:^3.12.1"
     "@tiptap/react": "npm:^3.12.1"
-    "@tiptap/suggestion": "npm:3.13.0"
+    "@tldraw/mentions": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
@@ -11952,6 +11951,27 @@ __metadata:
     react-dom: "npm:^19.2.1"
     resize-observer-polyfill: "npm:^1.5.1"
     vitest: "npm:^4.1.7"
+  peerDependencies:
+    react: ^18.2.0 || ^19.2.1
+    react-dom: ^18.2.0 || ^19.2.1
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/mentions@workspace:*, @tldraw/mentions@workspace:packages/mentions":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/mentions@workspace:packages/mentions"
+  dependencies:
+    "@tiptap/core": "npm:^3.12.1"
+    "@tiptap/extension-mention": "npm:3.13.0"
+    "@tiptap/pm": "npm:^3.12.1"
+    "@tiptap/react": "npm:^3.12.1"
+    "@tiptap/suggestion": "npm:3.13.0"
+    "@tldraw/utils": "workspace:*"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    tldraw: "workspace:*"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1

@@ -100,24 +100,8 @@
 	text-decoration: underline;
 }
 
-.tlui-cmt-avatar {
-	width: 28px;
-	height: 28px;
-	border-radius: 50%;
-	background: var(--tl-color-selected);
-	color: #fff;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 11px;
-	font-weight: 600;
-	flex-shrink: 0;
-}
-
-.tlui-cmt-avatar--image {
-	object-fit: cover;
-	background: none;
-}
+/* Avatar and mention styles live in @tldraw/mentions (src/mention.css) and are bundled into
+   commenting.css by copy-css-files.mjs. */
 
 /* composer — an avatar beside a rounded-rect field holding the rich-text input and the send button.
    Formatting is applied via markdown and keyboard shortcuts (no toolbar). The avatar aligns to the
@@ -387,94 +371,6 @@
 .tlui-cmt-reaction--add {
 	color: var(--tl-color-text-3);
 	font-weight: 600;
-}
-
-/* mention */
-.tlui-cmt-mention {
-	color: var(--tl-color-selected);
-	font-weight: 600;
-	background: color-mix(in srgb, var(--tl-color-selected) 12%, transparent);
-	padding: 0 4px;
-	border-radius: 4px;
-}
-
-/* mention picker */
-.tlui-cmt-mention-list {
-	display: flex;
-	flex-direction: column;
-	gap: 1px;
-	padding: 4px;
-	width: 100%;
-	box-sizing: border-box;
-	max-height: 260px;
-	overflow-y: auto;
-	color: var(--tl-color-text-1, #1d1d1d);
-	background: var(--tl-color-panel, #fff);
-	border: 1px solid var(--tl-color-divider, rgba(0, 0, 0, 0.08));
-	border-radius: 10px;
-	box-shadow: var(--tl-shadow-2, 0 2px 12px rgba(0, 0, 0, 0.14));
-}
-
-.tlui-cmt-mention-list__item {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 6px 8px;
-	border: none;
-	background: transparent;
-	border-radius: 6px;
-	cursor: pointer;
-	text-align: left;
-	color: var(--tl-color-text-1);
-	font: inherit;
-}
-
-.tlui-cmt-mention-list__item--active,
-.tlui-cmt-mention-list__item:hover {
-	background: var(--tl-color-muted-2, rgba(0, 0, 0, 0.06));
-}
-
-.tlui-cmt-mention-list__text {
-	display: flex;
-	flex-direction: column;
-	min-width: 0;
-	line-height: 1.3;
-}
-
-.tlui-cmt-mention-list__name {
-	font-size: 13px;
-	font-weight: 500;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.tlui-cmt-mention-list__you {
-	margin-left: 4px;
-	font-weight: 400;
-	color: var(--tl-color-text-3);
-}
-
-.tlui-cmt-mention-list__secondary {
-	font-size: 12px;
-	color: var(--tl-color-text-3);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.tlui-cmt-mention-list--empty {
-	padding: 8px 10px;
-	width: 100%;
-	box-sizing: border-box;
-	color: var(--tl-color-text-3);
-	font-size: 13px;
-}
-
-/* the @-picker popup — caret-anchored above the page, positioned by the suggestion plugin */
-.tlui-cmt-mention-popup {
-	position: fixed;
-	z-index: var(--tl-layer-menus);
 }
 
 /* empty state */

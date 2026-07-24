@@ -15,25 +15,29 @@ function mentionName(
 	return resolved ?? attrs.label ?? attrs.id ?? ''
 }
 
-export interface CommentMentionOptions {
+/** @public */
+export interface MentionExtensionOptions {
 	/**
-	 * Resolve a member id to its current display name — for the read-only render paths. Returns
-	 * `undefined` when the id can't be resolved, so the render falls back to the mention's stored label.
+	 * Resolve a member id to its current display name — for the read-only render paths, and for the
+	 * editor while a mention is displayed. Returns `undefined` when the id can't be resolved, so the
+	 * render falls back to the mention's stored label.
 	 */
 	resolveName?(id: string): string | undefined
-	/** The `@`-picker suggestion config — for the composer (omit on the render paths). */
+	/** The `@`-picker suggestion config — for editing (omit on read-only render paths). */
 	suggestion?: MentionOptions['suggestion']
 }
 
 /**
- * The comment @-mention node — TipTap's `Mention` configured to render as a `.tlui-cmt-mention` pill.
+ * The \@-mention node — TipTap's `Mention` configured to render as a `.tlui-cmt-mention` pill.
  *
  * A factory rather than a shared constant because it's configured differently per context: the
  * read-only render paths pass `resolveName` (so the stored `{ id }` node always shows the member's
- * current name, not a copy frozen at insert time), while the composer passes a `suggestion` (the
- * `@` picker). The node schema is identical either way — only these two levers differ.
+ * current name, not a copy frozen at insert time), while an editor passes a `suggestion` (the `@`
+ * picker). Shape rich text passes both — the same extension both edits and renders. The node schema
+ * is identical either way — only these two levers differ.
+ * @public
  */
-export function commentMention({ resolveName, suggestion }: CommentMentionOptions = {}) {
+export function createMentionExtension({ resolveName, suggestion }: MentionExtensionOptions = {}) {
 	return Mention.configure({
 		HTMLAttributes: { class: 'tlui-cmt-mention' },
 		renderText: ({ node }) => `@${mentionName(node.attrs as MentionNodeAttrs, resolveName)}`,

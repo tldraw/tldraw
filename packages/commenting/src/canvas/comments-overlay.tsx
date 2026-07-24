@@ -1,3 +1,4 @@
+import { type CommentAuthor, isMentionPickerOpen, MentionMember } from '@tldraw/mentions'
 import {
 	memo,
 	type CSSProperties,
@@ -38,15 +39,12 @@ import {
 import { computeClusterTable } from '../clustering/computeClusterTable'
 import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
-import { CommentAuthor } from '../ui/comment-author'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
 import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { CommentPin } from '../ui/comment-pin'
 import { CommentThread } from '../ui/comment-thread'
 import { CountBadge } from '../ui/count-badge'
-import { MentionMember } from '../ui/mention-list'
-import { isMentionPickerOpen } from '../ui/mention-suggestion'
 import { TooltipButton } from '../ui/tooltip-button'
 import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
 import { collectClusterLeaves } from './cluster-input'
