@@ -306,6 +306,10 @@ export class Sidebar {
 	private async ensureWorkspaceSwitcherOpen() {
 		const home = this.page.getByTestId('tla-workspace-switcher-home')
 		if (!(await home.isVisible())) {
+			// Close any other open menu first: with the strict dismiss overlay a press on the switcher
+			// trigger while another menu is open only dismisses that menu (no click-through), so opening
+			// the switcher would otherwise need a second press.
+			await this.page.keyboard.press('Escape')
 			await this.page.getByTestId('tla-workspace-switcher').click()
 		}
 		await expect(home).toBeVisible({ timeout: 2000 })

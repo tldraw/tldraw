@@ -1,5 +1,6 @@
-import { memo, useCallback, useEffect } from 'react'
-import { tlmenus, useMaybeEditor } from 'tldraw'
+import { memo, useCallback, useEffect, useLayoutEffect } from 'react'
+import { tlmenus } from 'tldraw'
+import { globalEditor } from '../../../utils/globalEditor'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -24,7 +25,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	const isSidebarOpen = useIsSidebarOpen()
 	const isSidebarOpenMobile = useIsSidebarOpenMobile()
 	const trackEvent = useTldrawAppUiEvents()
-	const editor = useMaybeEditor()
 
 	useEffect(() => {
 		function handleKeyDown(e: KeyboardEvent) {
@@ -42,18 +42,30 @@ export const TlaSidebar = memo(function TlaSidebar() {
 		}
 	}, [trackEvent])
 
-	const handleOverlayClick = useCallback(() => {
-		// The sidebar only hides (CSS transform), it doesn't unmount, so its portaled menus
-		// (workspace switcher, file/user menus) would otherwise stay open over the canvas once the
-		// sidebar is closed. Close them — scoped to this editor's menus plus the global switcher id.
-		// The scope matters: open SDK dialogs register in the same tlmenus registry under the 'tla'
-		// context, and an arg-less clearOpenMenus() would evict them while they stay mounted, leaving
-		// the editor's menu-gated behavior (canvas click-capture, shortcuts, clipboard guards)
-		// thinking nothing is open.
+	// Dismiss the sidebar's open menus whenever it hides — they're rendered by the (still-mounted)
+	// sidebar, so they'd otherwise hang over the canvas. One effect per visibility flag covers every
+	// close path (the toggle button, Cmd+\, focus mode, the mobile overlay tap). Each runs only when
+	// its own flag changes, so opening a menu — which changes neither flag — never trips them. The
+	// clear is scoped like a manual dismiss so open SDK dialogs (which share the tlmenus registry
+	// under the 'tla' context) keep their entry.
+	const dismissSidebarMenus = useCallback(() => {
+		// Read the editor statically, not via a hook dep: a workspace switch remounts the editor, and a
+		// dep here would re-create this callback and re-fire the effects below mid-switch (on desktop
+		// the mobile branch is always "hidden"), dismissing the switcher the user just opened.
+		const editor = globalEditor.get()
 		if (editor) tlmenus.clearOpenMenus(editor.contextId)
 		tlmenus.deleteOpenMenu('sidebar-workspace-switcher')
+	}, [])
+	useLayoutEffect(() => {
+		if (!isSidebarOpen) dismissSidebarMenus()
+	}, [isSidebarOpen, dismissSidebarMenus])
+	useLayoutEffect(() => {
+		if (!isSidebarOpenMobile) dismissSidebarMenus()
+	}, [isSidebarOpenMobile, dismissSidebarMenus])
+
+	const handleOverlayClick = useCallback(() => {
 		updateLocalSessionState(() => ({ isSidebarOpenMobile: false }))
-	}, [editor])
+	}, [])
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 

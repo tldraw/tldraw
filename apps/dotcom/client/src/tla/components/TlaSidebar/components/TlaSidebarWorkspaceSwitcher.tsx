@@ -114,13 +114,6 @@ export function TlaSidebarWorkspaceSwitcher() {
 							side="bottom"
 							align="start"
 							{...TLA_MENU_POSITION}
-							// When the switcher closes because another menu is opening (e.g. a file's
-							// "…" menu), don't restore focus to our trigger — that focus shift would
-							// dismiss the just-opened menu, making it flash. A plain Escape/outside
-							// close (no other menu open) still restores focus for keyboard users.
-							onCloseAutoFocus={(e) => {
-								if (editor?.menus.hasAnyOpenMenus()) e.preventDefault()
-							}}
 						>
 							<WorkspaceSwitcherItem
 								isActive={isHome}

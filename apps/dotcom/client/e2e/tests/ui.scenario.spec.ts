@@ -181,6 +181,106 @@ test.describe('UI scenarios', () => {
 		await expect(visitor.page.getByTestId('tla-error')).toBeVisible()
 	})
 
+	test('pressing the canvas with a select open dismisses the menus without drawing', async ({
+		owner,
+		scenario,
+	}) => {
+		await scenario.createPersonalFile(owner, scenario.name('select audit file'))
+
+		await owner.shareMenu.open()
+		await owner.shareMenu.exportTabButton.click()
+		await expect(owner.shareMenu.exportTabPage).toBeVisible()
+
+		// Open the export-format select (Radix `Select` is always modal).
+		await owner.page.locator('#tla-export-format-select').click()
+		await expect(owner.page.getByRole('option', { name: 'PNG' })).toBeVisible()
+
+		// Press the canvas — outside both the select and the share menu. The whole stack dismisses
+		// (the canvas's MenuClickCapture clears open menus), and crucially the press does not click
+		// through to the canvas: no shape is drawn.
+		await owner.page.mouse.click(600, 300)
+		await expect(owner.page.getByRole('option', { name: 'PNG' })).toBeHidden()
+		await expect(owner.shareMenu.exportTabPage).toBeHidden()
+		await owner.editor.expectShapesCount(0)
+	})
+
+	test('a sidebar file press with a select open dismisses without navigating', async ({
+		owner,
+		scenario,
+	}) => {
+		const fileA = scenario.name('select-nav-a')
+		const fileB = scenario.name('select-nav-b')
+		await scenario.createPersonalFile(owner, fileA)
+		await scenario.createPersonalFile(owner, fileB)
+		await owner.sidebar.expectFileActive(fileB)
+
+		// Open the modal export-format select on file B.
+		await owner.shareMenu.open()
+		await owner.shareMenu.exportTabButton.click()
+		await expect(owner.shareMenu.exportTabPage).toBeVisible()
+		await owner.page.locator('#tla-export-format-select').click()
+		await expect(owner.page.getByRole('option', { name: 'PNG' })).toBeVisible()
+
+		// Press file A in the sidebar — outside the select. Even under a modal layer the press must
+		// only dismiss: no click-through to the file (we stay on file B).
+		const link = owner.sidebar.getFileByName(fileA)
+		const box = await link.boundingBox()
+		if (!box) throw new Error('missing sidebar file link')
+		await owner.page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+
+		await expect(owner.page.getByRole('option', { name: 'PNG' })).toBeHidden()
+		await owner.sidebar.expectFileActive(fileB)
+	})
+
+	test('a top-bar menu press with a select open dismisses without opening it', async ({
+		owner,
+		scenario,
+	}) => {
+		await scenario.createPersonalFile(owner, scenario.name('select-topbar'))
+
+		await owner.shareMenu.open()
+		await owner.shareMenu.exportTabButton.click()
+		await expect(owner.shareMenu.exportTabPage).toBeVisible()
+		await owner.page.locator('#tla-export-format-select').click()
+		await expect(owner.page.getByRole('option', { name: 'PNG' })).toBeVisible()
+
+		// Press the top-left main-menu trigger — outside the select. Only dismiss: the menu must not
+		// open (no click-through to the trigger).
+		const trigger = owner.page.getByTestId('tla-main-menu')
+		const box = await trigger.boundingBox()
+		if (!box) throw new Error('missing main menu trigger')
+		await owner.page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+
+		await expect(owner.page.getByRole('option', { name: 'PNG' })).toBeHidden()
+		await expect(owner.page.getByRole('menu')).toHaveCount(0)
+	})
+
+	test('pressing a top-bar button with a menu open only dismisses it', async ({
+		owner,
+		scenario,
+	}) => {
+		await scenario.createPersonalFile(owner, scenario.name('top-bar dismiss file'))
+
+		// Open the top-left main menu (a dropdown that registers in the menu registry).
+		await owner.page.getByTestId('tla-main-menu').click()
+		await expect(owner.page.getByRole('menu')).toHaveCount(1)
+
+		// Press the top-right share button while the menu is open. The global dismiss listener treats
+		// the share button as chrome, so the press must only dismiss the menu — the share menu must
+		// not open (and the click it would spawn is suppressed too).
+		const shareButton = owner.page.getByTestId('tla-share-button')
+		const box = await shareButton.boundingBox()
+		if (!box) throw new Error('Missing share button')
+		await owner.page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+
+		await expect(owner.page.getByRole('menu')).toHaveCount(0)
+		await expect(owner.page.getByTestId('tla-share-tab-page-share')).toBeHidden()
+
+		// With no menu open the listener is inert, so a second press opens the share menu normally.
+		await shareButton.click()
+		await expect(owner.page.getByTestId('tla-share-tab-page-share')).toBeVisible()
+	})
+
 	test('missing files show not-found UI to signed-in and signed-out users', async ({
 		owner,
 		visitor,
