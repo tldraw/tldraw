@@ -35,12 +35,6 @@ import { idValidator } from '../misc/id-validator'
 export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
 	x: number
 	y: number
-	/**
-	 * The pointer's velocity in page units per millisecond, sampled at the input
-	 * frame rate. Broadcast via presence so collaborators can smooth/extrapolate
-	 * cursor motion between the (throttled) position updates they receive.
-	 */
-	velocity: { x: number; y: number }
 	lastActivityTimestamp: number
 	meta: JsonObject
 }
@@ -86,7 +80,6 @@ export const pointerValidator: T.Validator<TLPointer> = T.model(
 		id: idValidator<TLPointerId>('pointer'),
 		x: T.number,
 		y: T.number,
-		velocity: T.object({ x: T.number, y: T.number }),
 		lastActivityTimestamp: T.number,
 		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
@@ -101,7 +94,6 @@ export const pointerValidator: T.Validator<TLPointer> = T.model(
  */
 export const pointerVersions = createMigrationIds('com.tldraw.pointer', {
 	AddMeta: 1,
-	AddVelocity: 2,
 })
 
 /**
@@ -125,12 +117,6 @@ export const pointerMigrations = createRecordMigrationSequence({
 			id: pointerVersions.AddMeta,
 			up: (record: any) => {
 				record.meta = {}
-			},
-		},
-		{
-			id: pointerVersions.AddVelocity,
-			up: (record: any) => {
-				record.velocity = { x: 0, y: 0 }
 			},
 		},
 	],
@@ -161,7 +147,6 @@ export const PointerRecordType = createRecordType<TLPointer>('pointer', {
 	(): Omit<TLPointer, 'id' | 'typeName'> => ({
 		x: 0,
 		y: 0,
-		velocity: { x: 0, y: 0 },
 		lastActivityTimestamp: 0,
 		meta: {},
 	})

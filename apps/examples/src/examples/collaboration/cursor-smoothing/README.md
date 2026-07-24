@@ -1,15 +1,13 @@
 ---
-title: Cursor smoothing with velocity
+title: Cursor smoothing
 component: ./CursorSmoothingExample.tsx
 keywords:
   [
     presence,
     cursors,
-    velocity,
     smoothing,
     interpolation,
-    extrapolation,
-    dead reckoning,
+    tween,
     collaboration cursors,
     InstancePresenceRecordType,
   ]
@@ -20,8 +18,6 @@ Smooth collaborator cursor motion between throttled presence updates.
 
 ---
 
-Collaborative cursor positions are broadcast at a throttled rate, so a naive renderer makes remote cursors jump from sample to sample. This example simulates a peer whose cursor is only updated every 120ms, but whose presence record also carries a velocity vector.
+Collaborative cursor positions are broadcast at a throttled rate, so a naive renderer makes remote cursors jump from sample to sample. This example simulates a peer whose cursor is only updated every 120ms.
 
-The collaborator cursor overlay eases toward each received position and dead-reckons along the broadcast velocity between samples, so the cursor glides instead of stepping. Toggle the checkbox to compare the smoothed motion against the raw, throttled updates.
-
-The velocity lives on `TLInstancePresence['cursor'].velocity` (page units per millisecond) and is populated from the local pointer's sampled velocity in the default presence derivation.
+The collaborator cursor overlay measures the interval between the updates it receives and tweens between the last two positions over that interval, so the cursor glides instead of stepping. Because it only ever interpolates between points that have actually arrived, it never overshoots or rubber-bands. Toggle **Smooth cursor** to compare against the raw, throttled updates, and **Stress test** to drive the peer with abrupt stops and direction reversals — the motion the naive renderer makes jumpiest, and the case a prediction-based approach would rubber-band on.

@@ -14,19 +14,43 @@ import 'tldraw/tldraw.css'
 // here to make the difference between raw and smoothed motion obvious.
 const BROADCAST_INTERVAL_MS = 120
 
-// A smooth wandering path (two out-of-phase sine pairs) in page space. Returns
-// the peer's "true" cursor position at a given time.
-function pathAt(ms: number) {
-	const t = ms / 1000
-	return {
-		x: 320 + 180 * Math.sin(t * 0.9) + 60 * Math.sin(t * 2.3),
-		y: 260 + 150 * Math.cos(t * 1.1) + 50 * Math.cos(t * 1.7),
+// The peer's "true" cursor position at a given time, in page space.
+// - smooth path: a wandering pair of sine waves.
+// - stress path: fast linear darts between corners with a dead stop at each one,
+//   so the motion has abrupt starts, stops, and direction reversals. This is the
+//   case that trips up prediction/extrapolation; interpolation just tweens
+//   between received points, so it should stay glitch-free.
+function pathAt(ms: number, stress: boolean) {
+	if (!stress) {
+		const t = ms / 1000
+		return {
+			x: 320 + 180 * Math.sin(t * 0.9) + 60 * Math.sin(t * 2.3),
+			y: 260 + 150 * Math.cos(t * 1.1) + 50 * Math.cos(t * 1.7),
+		}
 	}
+
+	const corners = [
+		{ x: 150, y: 260 },
+		{ x: 520, y: 260 },
+		{ x: 520, y: 430 },
+		{ x: 150, y: 430 },
+	]
+	const legMs = 900
+	const leg = Math.floor(ms / legMs)
+	const phase = (ms % legMs) / legMs
+	const a = corners[leg % corners.length]
+	const b = corners[(leg + 1) % corners.length]
+	// Move over the first 35% of the leg, then hold — abrupt start and stop.
+	const moveFrac = 0.35
+	const k = phase < moveFrac ? phase / moveFrac : 1
+	return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k }
 }
 
 export default function CursorSmoothingExample() {
 	const smoothingRef = useRef(true)
+	const stressRef = useRef(false)
 	const [smoothing, setSmoothing] = useState(true)
+	const [stress, setStress] = useState(false)
 
 	function onMount(editor: Editor) {
 		// The overlay util that draws collaborator cursors. We flip its
@@ -40,7 +64,7 @@ export default function CursorSmoothingExample() {
 			userId: createUserId('smoothing-peer'),
 			userName: 'Simulated peer',
 			color: '#e03131',
-			cursor: { x: 320, y: 260, velocity: { x: 0, y: 0 }, type: 'default', rotation: 0 },
+			cursor: { x: 320, y: 260, type: 'default', rotation: 0 },
 		})
 
 		let lastBroadcast = -Infinity
@@ -49,21 +73,14 @@ export default function CursorSmoothingExample() {
 			cursorUtil.options.smoothing = smoothingRef.current
 
 			// Only "broadcast" a new sample every BROADCAST_INTERVAL_MS, exactly
-			// like a network-throttled presence update.
+			// like a network-throttled presence update. No velocity — the receiver
+			// tweens between the samples it gets.
 			if (now - lastBroadcast >= BROADCAST_INTERVAL_MS) {
 				lastBroadcast = now
-				const pos = pathAt(now)
-
-				// Instantaneous velocity from the true path, in page units/ms — this
-				// is the vector the schema change lets us broadcast. The receiver
-				// dead-reckons along it between samples.
-				const ahead = pathAt(now + 8)
-				const behind = pathAt(now - 8)
-				const velocity = { x: (ahead.x - behind.x) / 16, y: (ahead.y - behind.y) / 16 }
-
+				const pos = pathAt(now, stressRef.current)
 				peer = {
 					...peer,
-					cursor: { ...peer.cursor!, x: pos.x, y: pos.y, velocity },
+					cursor: { ...peer.cursor!, x: pos.x, y: pos.y },
 					lastActivityTimestamp: Date.now(),
 				}
 				editor.store.mergeRemoteChanges(() => editor.store.put([peer]))
@@ -79,7 +96,7 @@ export default function CursorSmoothingExample() {
 	return (
 		<div style={{ position: 'absolute', inset: 0 }}>
 			<Tldraw persistenceKey="cursor-smoothing-example" onMount={onMount} />
-			<label
+			<div
 				style={{
 					position: 'absolute',
 					top: 8,
@@ -87,7 +104,7 @@ export default function CursorSmoothingExample() {
 					transform: 'translateX(-50%)',
 					zIndex: 1000,
 					display: 'flex',
-					gap: 8,
+					gap: 16,
 					alignItems: 'center',
 					padding: '6px 12px',
 					borderRadius: 8,
@@ -97,16 +114,29 @@ export default function CursorSmoothingExample() {
 					pointerEvents: 'all',
 				}}
 			>
-				<input
-					type="checkbox"
-					checked={smoothing}
-					onChange={(e) => {
-						smoothingRef.current = e.target.checked
-						setSmoothing(e.target.checked)
-					}}
-				/>
-				Smooth cursor (broadcasting velocity, updates every {BROADCAST_INTERVAL_MS}ms)
-			</label>
+				<label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+					<input
+						type="checkbox"
+						checked={smoothing}
+						onChange={(e) => {
+							smoothingRef.current = e.target.checked
+							setSmoothing(e.target.checked)
+						}}
+					/>
+					Smooth cursor (updates every {BROADCAST_INTERVAL_MS}ms)
+				</label>
+				<label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+					<input
+						type="checkbox"
+						checked={stress}
+						onChange={(e) => {
+							stressRef.current = e.target.checked
+							setStress(e.target.checked)
+						}}
+					/>
+					Stress test (abrupt stops &amp; reversals)
+				</label>
+			</div>
 		</div>
 	)
 }

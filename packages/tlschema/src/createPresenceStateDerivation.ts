@@ -143,7 +143,6 @@ export function getDefaultUserPresence(store: TLStore, user: TLUser) {
 		cursor: {
 			x: pointer.x,
 			y: pointer.y,
-			velocity: { x: pointer.velocity.x, y: pointer.velocity.y },
 			rotation: instance.cursor.rotation,
 			type: instance.cursor.type,
 		},

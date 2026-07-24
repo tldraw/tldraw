@@ -715,9 +715,7 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
     isActive(): boolean;
     // (undocumented)
     options: {
-        maxExtrapolationMs: number;
         smoothing: boolean;
-        smoothingTauMs: number;
         chatMaxWidth: number;
         fontSize: number;
         nameMaxWidth: number;

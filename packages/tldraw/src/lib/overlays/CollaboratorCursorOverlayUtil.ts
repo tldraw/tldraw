@@ -48,21 +48,44 @@ function getCursorPaths() {
 const TRUNCATE_CACHE_MAX = 200
 const DEFAULT_LABEL_FONT_FAMILY = "'tldraw_sans', sans-serif"
 
+// Cursor smoothing tween bounds. Collaborator cursor positions arrive throttled
+// (up to ~30fps, less on a slow link), so we tween between the last two received
+// positions over the measured send interval — pure interpolation, so a cursor
+// only ever moves between points it has actually received and never overshoots.
+const DEFAULT_TWEEN_MS = 1000 / 30
+// Clamp the measured interval: floor avoids a near-zero duration from same-frame
+// bursts; ceiling stops a very slow sender from making the cursor crawl.
+const MIN_TWEEN_MS = 1000 / 60
+const MAX_TWEEN_MS = 250
+// Smoothing factor for the measured send interval (higher = more responsive to
+// rate changes, lower = steadier).
+const INTERVAL_EMA_ALPHA = 0.2
+// Intervals longer than this are treated as the sender going idle rather than a
+// genuine send rate, so they don't poison the interval estimate.
+const IDLE_GAP_MS = 1000
+
 /**
- * Per-collaborator state used to smooth cursor motion between the throttled
- * presence updates we receive. Positions are page-space; velocity is page
- * units/ms (as broadcast in the presence record).
+ * Per-collaborator tween state for smoothing cursor motion between the throttled
+ * position samples we receive. All positions are page-space.
  */
-interface CursorSmoothingState {
-	/** Last received sample position. */
-	sx: number
-	sy: number
-	/** Velocity that came with the last sample. */
-	vx: number
-	vy: number
-	/** Milliseconds elapsed since the last sample arrived. */
-	ageMs: number
-	/** Currently displayed (eased) position. */
+interface CursorTweenState {
+	// The segment currently being tweened: from the rendered position when the
+	// latest sample landed, to that sample.
+	fromX: number
+	fromY: number
+	toX: number
+	toY: number
+	// Timeline (ms) when the current segment started, and how long to take.
+	segStartMs: number
+	segDurationMs: number
+	// Last received sample, to detect when a new one lands.
+	lastSampleX: number
+	lastSampleY: number
+	// Timeline (ms) the last distinct sample arrived, and the smoothed interval
+	// between samples (the tween duration tracks this).
+	lastArrivalMs: number
+	intervalEmaMs: number
+	// Current displayed position.
 	rx: number
 	ry: number
 }
@@ -89,28 +112,22 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		nameMaxWidth: 120,
 		chatMaxWidth: 200,
 		/**
-		 * When true, collaborator cursors ease toward each received position and
-		 * are dead-reckoned along the broadcast velocity vector, so they glide
-		 * between the throttled (≤30fps) presence updates instead of teleporting.
+		 * When true, collaborator cursors tween between the throttled position
+		 * updates they receive (over the measured send interval) instead of
+		 * jumping to each new sample. This is pure interpolation — cursors only
+		 * move between points that have actually arrived, so they never overshoot.
 		 * Set to false to render cursors at their raw received positions.
 		 */
 		smoothing: true,
-		/** Ease time-constant (ms): lower = snappier, higher = smoother/laggier. */
-		smoothingTauMs: 55,
-		/**
-		 * Cap (ms) on how far a sample is extrapolated along its velocity. Bounds
-		 * overshoot when the sender stops broadcasting mid-flick.
-		 */
-		maxExtrapolationMs: 120,
 	}
 
 	constructor(editor: Editor) {
 		super(editor)
-		// Drive per-frame easing/extrapolation off the editor tick loop. The
-		// overlay canvas only repaints when a reactive dep changes, so we bump a
-		// clock atom (read in `getOverlays`) whenever a displayed position moves.
-		// Pass `this` as the listener context so `_onTick` can be a method (the
-		// emitter is the editor, so the default context would be the editor).
+		// Advance the tweens off the editor tick loop. The overlay canvas only
+		// repaints on reactive change, so we bump a clock atom (read in
+		// `getOverlays`) whenever a displayed position moves. Pass `this` as the
+		// listener context so `_onTick` can be a method — the emitter is the
+		// editor, so the default context would otherwise be the editor.
 		this.editor.on('tick', this._onTick, this)
 	}
 
@@ -124,8 +141,10 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 	// each other's entries.
 	private _truncateCache = new Map<string, string>()
 
-	// Per-collaborator smoothing state, keyed by userId.
-	private _smoothing = new Map<string, CursorSmoothingState>()
+	// Per-collaborator tween state, keyed by userId.
+	private _tweens = new Map<string, CursorTweenState>()
+	// A monotonic timeline accumulated from tick deltas (avoids Date.now()).
+	private _nowMs = 0
 	// Bumped each frame a displayed cursor position changes, to re-run the
 	// (otherwise change-driven) overlay canvas render between presence updates.
 	private _clock = atom('collaboratorCursorClock', 0)
@@ -133,31 +152,33 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 	private _onTick(elapsedMs: number) {
 		if (!this.options.smoothing || elapsedMs <= 0) return
 
-		const { smoothingTauMs, maxExtrapolationMs } = this.options
-		const alpha = 1 - Math.exp(-elapsedMs / smoothingTauMs)
+		const collaborators = this.editor.getVisibleCollaboratorsOnCurrentPage()
+		// Nothing on screen and nothing settling — skip the per-frame work.
+		if (collaborators.length === 0 && this._tweens.size === 0) return
+
+		this._nowMs += elapsedMs
 		let changed = false
 		const seen = new Set<string>()
 
-		for (const presence of this.editor.getVisibleCollaboratorsOnCurrentPage()) {
+		for (const presence of collaborators) {
 			const { cursor, userId } = presence
 			if (!cursor) continue
 			seen.add(userId)
 
-			// `velocity` is optional on the presence record — custom
-			// `getUserPresence` implementations may omit it. Without it we still
-			// ease toward the position, just with no velocity feed-forward.
-			const vx = cursor.velocity?.x ?? 0
-			const vy = cursor.velocity?.y ?? 0
-
-			const st = this._smoothing.get(userId)
+			const st = this._tweens.get(userId)
 			if (!st) {
 				// First sight of this collaborator: start rendered exactly on sample.
-				this._smoothing.set(userId, {
-					sx: cursor.x,
-					sy: cursor.y,
-					vx,
-					vy,
-					ageMs: 0,
+				this._tweens.set(userId, {
+					fromX: cursor.x,
+					fromY: cursor.y,
+					toX: cursor.x,
+					toY: cursor.y,
+					segStartMs: this._nowMs,
+					segDurationMs: DEFAULT_TWEEN_MS,
+					lastSampleX: cursor.x,
+					lastSampleY: cursor.y,
+					lastArrivalMs: this._nowMs,
+					intervalEmaMs: DEFAULT_TWEEN_MS,
 					rx: cursor.x,
 					ry: cursor.y,
 				})
@@ -165,35 +186,39 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 				continue
 			}
 
-			// A changed position means a fresh sample landed; reset its age/velocity.
-			if (cursor.x !== st.sx || cursor.y !== st.sy) {
-				st.sx = cursor.x
-				st.sy = cursor.y
-				st.vx = vx
-				st.vy = vy
-				st.ageMs = 0
+			// A changed position means a fresh sample landed: measure the interval,
+			// then start a new tween from where we are now to the new sample.
+			if (cursor.x !== st.lastSampleX || cursor.y !== st.lastSampleY) {
+				const interval = this._nowMs - st.lastArrivalMs
+				if (interval > 0 && interval < IDLE_GAP_MS) {
+					st.intervalEmaMs += (interval - st.intervalEmaMs) * INTERVAL_EMA_ALPHA
+				}
+				st.lastArrivalMs = this._nowMs
+				st.lastSampleX = cursor.x
+				st.lastSampleY = cursor.y
+				st.fromX = st.rx
+				st.fromY = st.ry
+				st.toX = cursor.x
+				st.toY = cursor.y
+				st.segStartMs = this._nowMs
+				st.segDurationMs = Math.min(Math.max(st.intervalEmaMs, MIN_TWEEN_MS), MAX_TWEEN_MS)
 			}
-			st.ageMs = Math.min(st.ageMs + elapsedMs, maxExtrapolationMs)
 
-			// Dead-reckon along the sample's velocity, decaying the feed-forward to
-			// zero across the extrapolation window so a stale sample (sender went
-			// idle without a final zero-velocity update) settles on the true
-			// position instead of drifting off.
-			const decay = 1 - st.ageMs / maxExtrapolationMs
-			const targetX = st.sx + st.vx * st.ageMs * decay
-			const targetY = st.sy + st.vy * st.ageMs * decay
-
-			const nx = st.rx + (targetX - st.rx) * alpha
-			const ny = st.ry + (targetY - st.ry) * alpha
+			// Advance the tween. `t` is clamped to [0, 1], so the cursor eases from
+			// `from` to `to` and then holds — it never runs past a received point.
+			const t =
+				st.segDurationMs > 0 ? Math.min((this._nowMs - st.segStartMs) / st.segDurationMs, 1) : 1
+			const nx = st.fromX + (st.toX - st.fromX) * t
+			const ny = st.fromY + (st.toY - st.fromY) * t
 			if (Math.abs(nx - st.rx) > 1e-3 || Math.abs(ny - st.ry) > 1e-3) changed = true
 			st.rx = nx
 			st.ry = ny
 		}
 
 		// Forget collaborators who are no longer visible.
-		for (const userId of this._smoothing.keys()) {
+		for (const userId of this._tweens.keys()) {
 			if (!seen.has(userId)) {
-				this._smoothing.delete(userId)
+				this._tweens.delete(userId)
 				changed = true
 			}
 		}
@@ -209,7 +234,7 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		const overlays: TLCollaboratorCursorOverlay[] = []
 
 		// Establish a per-frame reactive dependency so the overlay canvas repaints
-		// as `_onTick` advances displayed positions between presence updates.
+		// as `_onTick` advances tweened positions between presence updates.
 		if (this.options.smoothing) this._clock.get()
 
 		// Visibility (activity state, following, highlighting) is handled by the
@@ -219,9 +244,9 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 			const { cursor, color, userName, chatMessage, userId } = presence
 			if (!cursor) continue
 
-			// Use the eased/extrapolated position when smoothing is on and we have
-			// state for this collaborator; otherwise fall back to the raw sample.
-			const st = this.options.smoothing ? this._smoothing.get(userId) : undefined
+			// Use the tweened position when smoothing is on and we have state for
+			// this collaborator; otherwise fall back to the raw sample.
+			const st = this.options.smoothing ? this._tweens.get(userId) : undefined
 
 			overlays.push({
 				id: `collaborator_cursor:${userId}`,

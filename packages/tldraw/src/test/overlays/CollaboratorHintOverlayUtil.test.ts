@@ -25,7 +25,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 					userId: createUserId('peer1'),
 					userName: 'Peer 1',
 					currentPageId: pageId,
-					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 100000, y: 100000, rotation: 0 },
+					cursor: { type: 'default', x: 100000, y: 100000, rotation: 0 },
 					lastActivityTimestamp: Date.now(),
 				}),
 			])
@@ -50,7 +50,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					color: '#c00',
-					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 100000, y: 100000, rotation: 0 },
+					cursor: { type: 'default', x: 100000, y: 100000, rotation: 0 },
 					lastActivityTimestamp: now,
 				}),
 				InstancePresenceRecordType.create({
@@ -59,13 +59,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 					userName: 'Peer 2',
 					currentPageId: pageId,
 					color: '#0c0',
-					cursor: {
-						type: 'default',
-						velocity: { x: 0, y: 0 },
-						x: -100000,
-						y: -100000,
-						rotation: 0,
-					},
+					cursor: { type: 'default', x: -100000, y: -100000, rotation: 0 },
 					lastActivityTimestamp: now,
 				}),
 			])
@@ -87,7 +81,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					color: '#c00',
-					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 100000, y: 100000, rotation: 0 },
+					cursor: { type: 'default', x: 100000, y: 100000, rotation: 0 },
 					lastActivityTimestamp: now - 10 * 60 * 1000,
 				}),
 			])
@@ -105,7 +99,7 @@ describe('CollaboratorHintOverlayUtil', () => {
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					color: '#c00',
-					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 100000, y: 100000, rotation: 0 },
+					cursor: { type: 'default', x: 100000, y: 100000, rotation: 0 },
 					lastActivityTimestamp: now - 5 * 1000,
 					followingUserId: editor.user.getRecordId(),
 				}),
