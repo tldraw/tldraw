@@ -2010,6 +2010,19 @@ export class TLFileDurableObject extends DurableObject {
 						.deleteFrom('comment_thread')
 						.where('id', 'in', threadDeletes)
 						.where('isDeleted', '=', false)
+						// A thread row with any comment rows left must survive: the emptiness that
+						// queued this delete was judged on the room's lane, which no longer holds
+						// soft-deleted comments — but their Postgres rows do exist, this row is
+						// their FK parent, and deleting it would cascade the recovery rows away.
+						.where(({ not, exists, selectFrom }) =>
+							not(
+								exists(
+									selectFrom('comment')
+										.select('comment.id')
+										.whereRef('comment.threadId', '=', 'comment_thread.id')
+								)
+							)
+						)
 						.execute()
 				}
 
