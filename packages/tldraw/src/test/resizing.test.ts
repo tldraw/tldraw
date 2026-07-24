@@ -4086,3 +4086,34 @@ describe('cancelling a resize operation', () => {
 		expect(editor.getShape(shape.id)).toBeUndefined()
 	})
 })
+
+describe('When resizing shapes are changed externally mid-resize...', () => {
+	it('keeps an external nudge applied during the resize', () => {
+		const id = createShapeId('lonelyBox')
+		editor.createShape(box(id, 0, 0, 100, 100))
+		editor.select(id)
+
+		editor
+			.pointerDownOnHandle('bottom_right')
+			.pointerMoveBy(100, 100)
+			.expectToBeIn('select.resizing')
+		expect(editor.getShapePageBounds(id)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
+
+		// Nudge the shape from outside the interaction, as a keyboard shortcut would
+		editor.nudgeShapes([id], { x: 0, y: 50 })
+		expect(editor.getShape(id)!.y).toBeCloseTo(50, 5)
+
+		// An update without pointer movement must not stomp the nudge
+		editor.pointerMoveBy(0, 0)
+		expect(editor.getShape(id)!.y).toBeCloseTo(50, 5)
+		expect(editor.getShapePageBounds(id)).toMatchObject({ x: 0, y: 50, w: 200, h: 200 })
+
+		// Continuing the resize grows from the nudged position
+		editor.pointerMoveBy(50, 50).pointerUp()
+		const bounds = editor.getShapePageBounds(id)!
+		expect(bounds.w).toBeGreaterThan(200)
+		expect(bounds.h).toBeGreaterThan(200)
+		expect(bounds.x).toBeCloseTo(0, 5)
+		expect(bounds.y).toBeCloseTo(50, 5)
+	})
+})

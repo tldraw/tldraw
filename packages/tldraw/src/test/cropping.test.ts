@@ -1240,3 +1240,58 @@ describe('When cropping with modifiers and snapping...', () => {
 		expect(editor.snaps.getIndicators().length).toBe(0)
 	})
 })
+
+describe('When the cropping shape is changed externally mid-crop...', () => {
+	it('keeps an external nudge applied while resizing the crop', () => {
+		editor
+			.expectToBeIn('select.idle')
+			.select(ids.imageA)
+			.pointerDown(100, 100, { target: 'selection', handle: 'top_left', ctrlKey: true })
+			.expectToBeIn('select.crop.pointing_crop_handle')
+			.pointerMove(150, 150)
+			.expectToBeIn('select.crop.cropping')
+
+		const afterCrop = editor.getShape<TLImageShape>(ids.imageA)!
+
+		// Nudge the shape from outside the interaction, as a remote edit would
+		editor.nudgeShapes([ids.imageA], { x: 0, y: 60 })
+		const nudged = editor.getShape<TLImageShape>(ids.imageA)!
+		expect(nudged.y).not.toBeCloseTo(afterCrop.y, 4)
+
+		// An update without pointer movement must not stomp the nudge
+		editor.pointerMove(150, 150)
+		const current = editor.getShape<TLImageShape>(ids.imageA)!
+		expect(current.x).toBeCloseTo(nudged.x, 4)
+		expect(current.y).toBeCloseTo(nudged.y, 4)
+		expect(current.props.crop).toMatchObject(nudged.props.crop!)
+
+		editor.pointerUp()
+	})
+
+	it('keeps an external crop change applied while translating the crop', () => {
+		editor
+			.expectToBeIn('select.idle')
+			.doubleClick(550, 550, ids.imageB)
+			.expectToBeIn('select.crop.idle')
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
+			.pointerMove(560, 560)
+			.expectToBeIn('select.crop.translating_crop')
+
+		// Change the crop from outside the interaction, as a remote edit would
+		editor.updateShape({
+			id: ids.imageB,
+			type: 'image',
+			props: {
+				crop: { topLeft: { x: 0.1, y: 0.1 }, bottomRight: { x: 0.6, y: 0.6 } },
+			},
+		})
+		const external = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+
+		// An update without pointer movement must not stomp the external crop
+		editor.pointerMove(560, 560)
+		const current = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
+		expect(current).toMatchObject(external)
+
+		editor.pointerUp()
+	})
+})
