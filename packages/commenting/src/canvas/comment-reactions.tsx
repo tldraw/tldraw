@@ -163,13 +163,11 @@ function useReactionRenderer(): RenderReaction | undefined {
 
 /**
  * The tallied reaction row under one comment. Pair with `CommentReactionPicker`, which is what
- * adds a reaction. Whether the current user shows up in a pill's hover list is read from the
- * `showSelfInReactionList` commenting option.
+ * adds a reaction.
  * @public @react
  */
 export function CommentReactions({ comment, currentUserId, resolveName }: CommentReactionsProps) {
 	const editor = useEditor()
-	const { showSelfInReactionList } = useCommentingOptions()
 	const renderReaction = useReactionRenderer()
 	const reactions = useCommentReactions(editor, comment.id)
 	const summaries = useMemo(
@@ -186,7 +184,6 @@ export function CommentReactions({ comment, currentUserId, resolveName }: Commen
 		<Reactions
 			reactions={summaries}
 			canReact={currentUserId != null}
-			showSelf={showSelfInReactionList}
 			enableHoverList={!anyMenuOpen}
 			renderReaction={renderReaction}
 			onToggle={(value) => {

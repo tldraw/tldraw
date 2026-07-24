@@ -24,7 +24,7 @@ export const Default: Sketch<ReactionsProps> = {
 	},
 }
 
-// hovering the 👀 pill scrolls: seven reactors, list caps at five rows
+// hovering the 👀 pill lists all seven reactors, the list capped at five rows
 export const ManyReactors: Sketch<ReactionsProps> = {
 	args: {
 		reactions: [
@@ -33,22 +33,6 @@ export const ManyReactors: Sketch<ReactionsProps> = {
 				count: 7,
 				active: false,
 				reactors: others('Ada', 'Bo', 'Cy', 'Deb', 'Eli', 'Fran', 'Gus'),
-			},
-		],
-	},
-}
-
-// with showSelf off, a reaction only you made shows no hover list
-export const HideSelf: Sketch<ReactionsProps> = {
-	args: {
-		showSelf: false,
-		reactions: [
-			{ emoji: '👍', count: 1, active: true, reactors: [{ name: 'You', you: true }] },
-			{
-				emoji: '🎉',
-				count: 2,
-				active: true,
-				reactors: [{ name: 'You', you: true }, ...others('Bo')],
 			},
 		],
 	},

@@ -85,12 +85,6 @@ export interface CommentingOptions {
 	/** Fold nearby pins into count badges as the camera zooms out. */
 	readonly enableClustering: boolean
 	/**
-	 * Whether the current user appears in the hover list of who reacted with an emoji. When false,
-	 * that list shows only other people — so a reaction only you made shows no list at all.
-	 * Defaults to true.
-	 */
-	readonly showSelfInReactionList: boolean
-	/**
 	 * Whether a user may hold several emoji reactions on one comment. `true` (the default) is the
 	 * Slack model: each emoji toggles independently. `false` is single-select: picking a new emoji
 	 * replaces the user's existing reaction. Note this is enforced client-side; the server accepts
@@ -139,7 +133,6 @@ export const defaultCommentingOptions = {
 	history: 'ignore',
 	dragHistory: undefined,
 	enableClustering: true,
-	showSelfInReactionList: true,
 	allowMultipleReactions: true,
 	isAllowedReaction: isAllowedReactionEmoji,
 	impreciseShapeAnchor: { x: 1, y: 0 },

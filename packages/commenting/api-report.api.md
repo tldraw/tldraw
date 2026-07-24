@@ -228,7 +228,6 @@ export interface CommentingOptions {
     };
     isAllowedReaction(token: string): boolean;
     shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean;
-    readonly showSelfInReactionList: boolean;
 }
 
 // @public (undocumented)
@@ -417,7 +416,6 @@ export const defaultCommentingOptions: {
     };
     readonly isAllowedReaction: typeof isAllowedReactionEmoji;
     readonly shouldBePrecise: () => true;
-    readonly showSelfInReactionList: true;
 };
 
 // @public
@@ -589,7 +587,7 @@ export const pendingComment: EditorAtom<null | PendingComment>;
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;
 
 // @public
-export function Reaction({ emoji, count, active, reactors, showSelf, enableHoverList, renderReaction, onClick }: ReactionProps): JSX.Element;
+export function Reaction({ emoji, count, active, reactors, enableHoverList, renderReaction, onClick }: ReactionProps): JSX.Element;
 
 // @public
 export function ReactionPicker({ emoji, selected, onSelect, renderReaction, palette: Palette, menuId, className }: ReactionPickerProps): JSX.Element;
@@ -617,7 +615,6 @@ export interface ReactionProps {
     onClick?(): void;
     reactors: ReactionReactor[];
     renderReaction?: RenderReaction;
-    showSelf?: boolean;
 }
 
 // @public
@@ -627,7 +624,7 @@ export interface ReactionReactor {
 }
 
 // @public
-export function Reactions({ reactions, onToggle, canReact, showSelf, enableHoverList, renderReaction }: ReactionsProps): JSX.Element | null;
+export function Reactions({ reactions, onToggle, canReact, enableHoverList, renderReaction }: ReactionsProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface ReactionsProps {
@@ -636,7 +633,6 @@ export interface ReactionsProps {
     onToggle?(emoji: string): void;
     reactions: ReactionSummary[];
     renderReaction?: RenderReaction;
-    showSelf?: boolean;
 }
 
 // @public

@@ -28,9 +28,6 @@ export interface ReactionsProps {
 	/** Whether the current user may react. False makes the pills inert (e.g. a signed-out
 	 *  viewer, or a read-only thread) while still showing counts. */
 	canReact?: boolean
-	/** Whether the current user appears in the hover list of reactors. When false, a reaction only
-	 *  the current user made shows no hover list. Defaults to true. */
-	showSelf?: boolean
 	/** Whether hovering a pill shows its reactor list. Pass false to suppress it — e.g. while
 	 *  another popup menu on the comment is open. Defaults to true. */
 	enableHoverList?: boolean
@@ -51,7 +48,6 @@ export function Reactions({
 	reactions,
 	onToggle,
 	canReact = true,
-	showSelf = true,
 	enableHoverList = true,
 	renderReaction,
 }: ReactionsProps) {
@@ -62,7 +58,6 @@ export function Reactions({
 				<Reaction
 					key={reaction.emoji}
 					{...reaction}
-					showSelf={showSelf}
 					enableHoverList={enableHoverList}
 					renderReaction={renderReaction}
 					onClick={canReact ? () => onToggle?.(reaction.emoji) : undefined}
