@@ -80,7 +80,11 @@ export const queries = defineQueries({
 							t.where(({ cmp, or, exists }) =>
 								or(
 									cmp('createdBy', '=', ctx.userId),
-									exists('comments', (c) => c.where('authorId', '=', ctx.userId))
+									// live comments only: soft-deleted rows persist, and deleting your
+									// last comment in a thread must end the reply subscription with it
+									exists('comments', (c) =>
+										c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
+									)
 								)
 							)
 						),
