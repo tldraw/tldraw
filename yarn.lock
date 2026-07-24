@@ -11761,6 +11761,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/commenting-core@workspace:*, @tldraw/commenting-core@workspace:packages/commenting-core":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/commenting-core@workspace:packages/commenting-core"
+  dependencies:
+    "@tldraw/store": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/commenting@workspace:*, @tldraw/commenting@workspace:packages/commenting":
   version: 0.0.0-use.local
   resolution: "@tldraw/commenting@workspace:packages/commenting"
@@ -11881,6 +11892,7 @@ __metadata:
     "@rocicorp/zero": "npm:1.8.0"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
+    "@tldraw/commenting-core": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
