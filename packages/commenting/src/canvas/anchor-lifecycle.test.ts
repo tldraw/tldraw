@@ -21,7 +21,7 @@ import { commitCommentMutation } from './state'
 
 /**
  * These tests need a real editor: the behavior under test is the interplay between store
- * side effects (beforeDelete capture, operation-complete settlement) and real editor
+ * side effects (the beforeDelete snapshot, operation-complete settlement) and real editor
  * operations like `deleteShapes` and `moveShapesToPage` — exactly what a stub can't model.
  */
 

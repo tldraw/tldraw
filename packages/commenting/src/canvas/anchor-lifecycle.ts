@@ -49,7 +49,7 @@ function isAnchoredToShape(
  * A page move is `deleteShapes` + re-create with preserved ids inside one `editor.run`, but each
  * store write is its own operation — so at no single moment does "this shape is being moved"
  * exist as an observable event. The handlers therefore cooperate across operations:
- * `beforeDelete` captures where each affected pin sits (every record is still in the store at
+ * `beforeDelete` snapshots where each affected pin sits (every record is still in the store at
  * that point, so page bounds resolve even for children of a deleted frame); the
  * operation-complete pass converts threads whose shape is really gone, remembering the original
  * anchor; `afterCreate` notes a reappeared shape id, and the operation-complete pass restores
@@ -74,7 +74,8 @@ export function registerCommentAnchorLifecycle(
 	editor: Editor,
 	impreciseShapeAnchor?: { x: number; y: number }
 ): () => void {
-	// Captured during the current operation: shape id -> (thread id -> pin page point).
+	// Pin positions snapshotted during the current operation: shape id -> (thread id -> pin page
+	// point).
 	const pendingByShape = new Map<TLShapeId, Map<string, VecLike | null>>()
 	const convertedByShape = convertedByShapeCache.get(editor, () => new Map())
 
@@ -91,12 +92,12 @@ export function registerCommentAnchorLifecycle(
 			if (source === 'remote') return
 			for (const thread of getCommentThreads(editor)) {
 				if (!isAnchoredToShape(thread, shape.id)) continue
-				let captured = pendingByShape.get(shape.id)
-				if (!captured) {
-					captured = new Map()
-					pendingByShape.set(shape.id, captured)
+				let snapshot = pendingByShape.get(shape.id)
+				if (!snapshot) {
+					snapshot = new Map()
+					pendingByShape.set(shape.id, snapshot)
 				}
-				// Capture where the pin is drawn, not just the anchor point: imprecise shape pins
+				// Snapshot where the pin is drawn, not just the anchor point: imprecise shape pins
 				// render inset toward the shape's centre, and the converted point pin renders at
 				// its point exactly — without the inset the pin would jump on deletion. The inset
 				// is screen-fixed, so bake it in at the current zoom. The imprecise spot resolves
@@ -109,7 +110,7 @@ export function registerCommentAnchorLifecycle(
 					const zoom = editor.getZoomLevel()
 					point = { x: point.x + inset.x / zoom, y: point.y + inset.y / zoom }
 				}
-				captured.set(thread.id, point)
+				snapshot.set(thread.id, point)
 			}
 		}
 	)
