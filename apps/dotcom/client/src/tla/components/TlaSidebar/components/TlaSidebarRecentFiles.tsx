@@ -1,3 +1,5 @@
+import classNames from 'classnames'
+import { useCallback } from 'react'
 import { useValue } from 'tldraw'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
@@ -61,6 +63,10 @@ export function TlaSidebarRecentFiles() {
 		[app]
 	)
 	const hasResults = Object.values(results).some((group) => group.length > 0)
+
+	const handleClearSearch = useCallback(() => {
+		app.sidebarState.update((prev) => ({ ...prev, searchQuery: '' }))
+	}, [app])
 
 	return (
 		<div
@@ -149,6 +155,28 @@ export function TlaSidebarRecentFiles() {
 				<div className={styles.sidebarSearchEmpty} data-testid="tla-sidebar-search-empty">
 					<F defaultMessage="No files found" />
 				</div>
+			) : null}
+			{isSearching ? (
+				<>
+					{/* The same section wrapper as the workspace action rows, so the
+					    button gets the same full width and vertical rhythm. The gap
+					    above comes from the file sections' own bottom margin. */}
+					<div className={styles.sidebarSection}>
+						<button
+							className={classNames(
+								styles.sidebarActionButton,
+								styles.hoverable,
+								'tla-text_ui__regular'
+							)}
+							onClick={handleClearSearch}
+							data-testid="tla-sidebar-search-clear-button"
+						>
+							<span className={styles.sidebarActionButtonLabel}>
+								<F defaultMessage="Clear search" />
+							</span>
+						</button>
+					</div>
+				</>
 			) : null}
 		</div>
 	)

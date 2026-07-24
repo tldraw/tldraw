@@ -1,6 +1,6 @@
 import classNames from 'classnames'
-import { useCallback, useRef, useState } from 'react'
-import { TldrawUiButton, TldrawUiInput } from 'tldraw'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { TldrawUiButton, TldrawUiInput, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { defineMessages, useMsg } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
@@ -64,6 +64,20 @@ export function TlaSidebarSearch() {
 		},
 		[handleClose]
 	)
+
+	// The search can also be cleared from outside this component (the "Clear
+	// search" button at the bottom of the file list). When that happens the shared
+	// query empties while our input still shows its text, so reset the input and
+	// collapse back to the search action row, matching what the X button does.
+	const searchQuery = useValue('sidebar search query', () => app.sidebarState.get().searchQuery, [
+		app,
+	])
+	useEffect(() => {
+		if (searchQuery === '' && query !== '') {
+			if (inputRef.current) inputRef.current.value = ''
+			handleClose()
+		}
+	}, [searchQuery, query, handleClose])
 
 	if (!isSearching) {
 		return (

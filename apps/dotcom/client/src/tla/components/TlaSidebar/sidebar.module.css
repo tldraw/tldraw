@@ -697,7 +697,7 @@
 	gap: 6px;
 	height: 36px;
 	flex: 0 0 auto;
-	/* Match the file rows below so the clear button lines up with their menu triggers. */
+	/* Match the file rows below. */
 	padding: 0px 4px 0px 8px;
 	color: var(--tl-color-text-0);
 }
@@ -741,14 +741,16 @@
 	z-index: 1;
 }
 
-/* Identical to the file item menu trigger, but with an X icon. */
+/* Like the file item menu trigger, but with an X icon, and pulled in only as
+   far as the row's edge so the button and its focus ring stay inside the
+   search box border instead of escaping it on the right. */
 .sidebarSearchClear {
 	padding: 0px;
 	background: none;
 	border: none;
 	position: relative;
 	outline: none;
-	margin-inline-end: -10px;
+	margin-inline-end: -6px;
 	width: 36px;
 	height: 36px;
 	min-width: 0;
@@ -790,6 +792,19 @@
 	width: 100%;
 	height: 1px;
 	background-color: var(--tl-color-divider);
+}
+
+/* The scroll content's own padding already provides the 12px inset, so the
+   "Clear search" section keeps only the vertical rhythm. */
+.sidebarContent .sidebarSection {
+	padding-left: 0;
+	padding-right: 0;
+}
+
+/* Halve the 28px section gap between the last file section and "Clear search";
+   the full inter-section gap reads as too detached for a related control. */
+.sidebarContent .sidebarFileSectionWrapper + .sidebarSection {
+	margin-top: -14px;
 }
 
 .sidebarFileSectionTitlePadding span[role='img'] {
