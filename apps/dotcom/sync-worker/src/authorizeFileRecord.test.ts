@@ -63,23 +63,47 @@ describe('authorizeFileRecord', () => {
 			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
-		it('allows the author to delete their own comment', () => {
+		it('vetoes every client hard-delete, even from the author (deletion is soft)', () => {
 			const prev = comment('real-bob')
-			expect(authorize({ session: session('real-bob'), type: 'delete', prev, next: null })).toBe(
-				prev
-			)
-		})
-
-		it('vetoes a delete from someone who is not the author', () => {
-			const prev = comment('real-bob')
+			expect(
+				authorize({ session: session('real-bob'), type: 'delete', prev, next: null })
+			).toBeNull()
 			expect(
 				authorize({ session: session('real-mallory'), type: 'delete', prev, next: null })
 			).toBeNull()
+			expect(authorize({ session: session(null), type: 'delete', prev, next: null })).toBeNull()
 		})
 
-		it('vetoes a delete from an anonymous session', () => {
+		it('lets the author soft-delete their own comment', () => {
 			const prev = comment('real-bob')
-			expect(authorize({ session: session(null), type: 'delete', prev, next: null })).toBeNull()
+			const next = { ...prev, isDeleted: true }
+			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+		})
+
+		it('vetoes a non-author soft-deleting the comment', () => {
+			const prev = comment('real-bob')
+			const next = { ...prev, isDeleted: true }
+			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ session: session(null), type: 'update', prev, next })).toBeNull()
+		})
+
+		it('vetoes clearing a soft-delete, even by the author (write-once)', () => {
+			const prev = { ...comment('real-bob'), isDeleted: true }
+			const next = { ...prev, isDeleted: false }
+			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+		})
+
+		it('allows an update that leaves an existing soft-delete untouched', () => {
+			const prev = { ...comment('real-bob'), isDeleted: true }
+			const next = { ...prev, body: toRichText('edited') }
+			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+		})
+
+		it('vetoes a create with the soft-delete flag already set', () => {
+			const next = { ...comment('real-bob'), isDeleted: true }
+			expect(
+				authorize({ session: session('real-bob'), type: 'create', prev: null, next })
+			).toBeNull()
 		})
 	})
 
@@ -157,45 +181,33 @@ describe('authorizeFileRecord', () => {
 			).toBeNull()
 		})
 
-		it('lets the creator soft-delete their own thread as themselves', () => {
+		it('lets the creator soft-delete their own thread', () => {
 			const prev = makeThread('real-bob')
-			const next = { ...prev, deleted: { at: 1, by: 'real-bob' } }
+			const next = { ...prev, isDeleted: true }
 			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('vetoes a non-creator soft-deleting the thread', () => {
 			const prev = makeThread('real-bob')
-			const next = { ...prev, deleted: { at: 1, by: 'real-mallory' } }
+			const next = { ...prev, isDeleted: true }
 			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBeNull()
-		})
-
-		it('vetoes a soft-delete attributed to someone else', () => {
-			const prev = makeThread('real-bob')
-			const next = { ...prev, deleted: { at: 1, by: 'real-alice' } }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ session: session(null), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('vetoes clearing a soft-delete, even by the creator (write-once)', () => {
-			const prev = { ...makeThread('real-bob'), deleted: { at: 1, by: 'real-bob' } }
-			const next = { ...prev, deleted: null }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
-		})
-
-		it('vetoes restamping an existing soft-delete', () => {
-			const prev = { ...makeThread('real-bob'), deleted: { at: 1, by: 'real-bob' } }
-			const next = { ...prev, deleted: { at: 2, by: 'real-bob' } }
+			const prev = { ...makeThread('real-bob'), isDeleted: true }
+			const next = { ...prev, isDeleted: false }
 			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('allows an update that leaves an existing soft-delete untouched', () => {
-			const prev = { ...makeThread('real-bob'), deleted: { at: 1, by: 'real-bob' } }
-			// new object reference, same value — must not be treated as a change
-			const next = { ...prev, deleted: { ...prev.deleted } }
+			const prev = { ...makeThread('real-bob'), isDeleted: true }
+			const next = { ...prev, resolved: { at: 2, by: 'real-mallory' } }
 			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBe(next)
 		})
 
-		it('vetoes a create with a soft-delete already set', () => {
-			const next = { ...makeThread('real-bob'), deleted: { at: 1, by: 'real-bob' } }
+		it('vetoes a create with the soft-delete flag already set', () => {
+			const next = { ...makeThread('real-bob'), isDeleted: true }
 			expect(
 				authorize({ session: session('real-bob'), type: 'create', prev: null, next })
 			).toBeNull()

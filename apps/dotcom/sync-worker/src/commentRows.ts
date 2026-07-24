@@ -90,8 +90,7 @@ export function threadRecordToRow(
 		shapeId: record.anchor.type === 'shape' ? record.anchor.shapeId : null,
 		resolvedAt: record.resolved?.at ?? null,
 		resolvedBy: record.resolved?.by ?? null,
-		deletedAt: record.deleted?.at ?? null,
-		deletedBy: record.deleted?.by ?? null,
+		isDeleted: record.isDeleted,
 		createdBy: record.createdBy,
 		createdAt: record.createdAt,
 		meta: record.meta,
@@ -118,6 +117,7 @@ export function commentRecordToRow(
 		body: record.body as DB['comment']['body'],
 		createdAt: record.createdAt,
 		editedAt: record.editedAt,
+		isDeleted: record.isDeleted,
 		updatedAt: record.editedAt ?? record.createdAt,
 		meta: record.meta,
 		lastChangedClock,
@@ -133,7 +133,7 @@ export function rowToThreadRecord(row: DB['comment_thread']): TLCommentThread {
 		createdBy: row.createdBy,
 		createdAt: Number(row.createdAt),
 		resolved: row.resolvedAt != null ? { at: Number(row.resolvedAt), by: row.resolvedBy! } : null,
-		deleted: row.deletedAt != null ? { at: Number(row.deletedAt), by: row.deletedBy! } : null,
+		isDeleted: row.isDeleted,
 		meta: (row.meta ?? {}) as JsonObject,
 	}
 	// The fields above are raw casts from the row; validate the finished record so a corrupt
@@ -151,6 +151,7 @@ export function rowToCommentRecord(row: DB['comment']): TLComment {
 		createdAt: Number(row.createdAt),
 		editedAt: row.editedAt != null ? Number(row.editedAt) : null,
 		body: row.body as TLComment['body'],
+		isDeleted: row.isDeleted,
 		meta: (row.meta ?? {}) as JsonObject,
 	}
 	// The fields above are raw casts from the row; validate the finished record so a corrupt
@@ -193,16 +194,19 @@ export interface CommentLoadResult {
 
 /**
  * Build the room-seedable comment documents from a file's Postgres rows. Soft-deleted threads
- * (`deletedAt` set — see TLCommentThread.deleted) and their comments are dropped: their rows
- * stay in Postgres for recovery and Zero-side filtering, but they never re-enter a room.
+ * (`isDeleted` — see TLCommentThread.isDeleted) and their comments are dropped, as are
+ * soft-deleted comments of live threads: their rows stay in Postgres for recovery and Zero-side
+ * filtering, but they never re-enter a room.
  */
 export function liveCommentDocuments(
 	threadRows: DB['comment_thread'][],
 	commentRows: DB['comment'][]
 ): CommentLoadResult {
-	const liveThreadRows = threadRows.filter((row) => row.deletedAt == null)
+	const liveThreadRows = threadRows.filter((row) => !row.isDeleted)
 	const liveThreadIds = new Set(liveThreadRows.map((row) => row.id))
-	const liveCommentRows = commentRows.filter((row) => liveThreadIds.has(row.threadId))
+	const liveCommentRows = commentRows.filter(
+		(row) => !row.isDeleted && liveThreadIds.has(row.threadId)
+	)
 	let clockFloor = 0
 	for (const row of threadRows) clockFloor = Math.max(clockFloor, Number(row.lastChangedClock))
 	for (const row of commentRows) clockFloor = Math.max(clockFloor, Number(row.lastChangedClock))

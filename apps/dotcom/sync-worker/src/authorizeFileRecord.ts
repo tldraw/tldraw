@@ -14,12 +14,11 @@ type FileRecord = TLRecord | TLComment | TLCommentThread
 
 /**
  * Authorize a record whose attribution lives in `field`: stamped from the session on create,
- * immutable on update. With `ownerOnlyUpdate`, only the author may update it at all; with
- * `ownerOnlyDelete`, only the author may delete it.
+ * immutable on update. With `ownerOnlyUpdate`, only the author may update it at all.
  */
 function authorizeAuthored<Rec extends UnknownRecord>(
 	field: keyof Rec & string,
-	{ ownerOnlyUpdate = false, ownerOnlyDelete = false } = {}
+	{ ownerOnlyUpdate = false } = {}
 ): TLRecordAuthorizer<Rec, SessionMeta> {
 	return ({ session, type, prev, next }) => {
 		if (type === 'create') {
@@ -31,49 +30,69 @@ function authorizeAuthored<Rec extends UnknownRecord>(
 			if (ownerOnlyUpdate && session.meta.userId !== prev[field]) return null // only the author edits
 			return next
 		}
-		if (ownerOnlyDelete && session.meta.userId !== prev[field]) return null // only the author deletes
 		return prev
 	}
 }
 
-const authorizeThreadBase = authorizeAuthored<TLCommentThread>('createdBy')
+/**
+ * Police a soft-deleted record type on top of `base`: deletion is a write-once `isDeleted`
+ * flag — set exactly once, never cleared, only by the record's owner (`ownerOf`), never on
+ * create — and clients never hard-delete these records at all. Record removals are server-side
+ * only (author-cascade and soft-delete prunes, which don't run authorizers), so once the flag
+ * is drained there is no un-delete.
+ */
+function authorizeSoftDeleted<Rec extends UnknownRecord & { isDeleted: boolean }>(
+	ownerOf: (rec: Rec) => string,
+	base: TLRecordAuthorizer<Rec, SessionMeta>
+): TLRecordAuthorizer<Rec, SessionMeta> {
+	return (args) => {
+		if (args.type === 'delete') return null
+		const result = base(args)
+		if (!result) return null
+		// A record can't be born deleted — that would smuggle a deletion past the update checks.
+		if (args.type === 'create' && args.next.isDeleted) return null
+		if (args.type === 'update') {
+			const { session, prev, next } = args
+			if (prev.isDeleted !== next.isDeleted) {
+				if (prev.isDeleted) return null // write-once: never cleared
+				if (session.meta.userId !== ownerOf(prev)) return null // only the owner deletes
+			}
+		}
+		return result
+	}
+}
 
 /**
  * Threads stay editable by anyone with access (resolve/reopen), but resolution is itself an
  * attribution: a non-null `resolved.by`, set at create or changed by update, must be the
  * session's own user.
- *
- * Thread deletion is soft: clients set `deleted` (creator-only, self-attributed, write-once —
- * once drained, the server prunes the records, so there is no un-delete) and never remove
- * thread records; record removals are server-side only (author-cascade and soft-delete prunes,
- * which don't run authorizers).
  */
-const authorizeThread: TLRecordAuthorizer<TLCommentThread, SessionMeta> = (args) => {
-	if (args.type === 'delete') return null
-	const result = authorizeThreadBase(args)
+const authorizeThreadResolution: TLRecordAuthorizer<TLCommentThread, SessionMeta> = (args) => {
+	const result = authorizeAuthored<TLCommentThread>('createdBy')(args)
 	if (!result) return null
 	if (args.type === 'create') {
 		// Delete + re-put could otherwise smuggle in a resolution forged in someone else's name.
 		const { session, next } = args
 		if (next.resolved && next.resolved.by !== session.meta.userId) return null
-		// A thread can't be born deleted — that would smuggle a deletion past the update checks.
-		if (next.deleted) return null
 	}
 	if (args.type === 'update') {
 		const { session, prev, next } = args
 		const changed =
 			prev.resolved?.at !== next.resolved?.at || prev.resolved?.by !== next.resolved?.by
 		if (changed && next.resolved && next.resolved.by !== session.meta.userId) return null
-		const deletedChanged =
-			prev.deleted?.at !== next.deleted?.at || prev.deleted?.by !== next.deleted?.by
-		if (deletedChanged) {
-			if (prev.deleted || !next.deleted) return null // write-once: set exactly once, never cleared
-			if (session.meta.userId !== prev.createdBy) return null // only the thread's creator deletes
-			if (next.deleted.by !== session.meta.userId) return null // and attributes it to themselves
-		}
 	}
 	return result
 }
+
+const authorizeThread = authorizeSoftDeleted<TLCommentThread>(
+	(thread) => thread.createdBy,
+	authorizeThreadResolution
+)
+
+const authorizeComment = authorizeSoftDeleted<TLComment>(
+	(comment) => comment.authorId,
+	authorizeAuthored<TLComment>('authorId', { ownerOnlyUpdate: true })
+)
 
 /**
  * A note's text attribution, or `undefined` when the shape isn't carrying one (non-note shapes).
@@ -112,10 +131,7 @@ const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
  * attribution, so nothing can be posted or pinned in someone else's name.
  */
 export const authorizeFileRecord: TLRecordAuthorizers<FileRecord, SessionMeta> = {
-	comment: authorizeAuthored<TLComment>('authorId', {
-		ownerOnlyUpdate: true,
-		ownerOnlyDelete: true,
-	}),
+	comment: authorizeComment,
 	'comment-thread': authorizeThread,
 	shape: authorizeShape,
 }

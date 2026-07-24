@@ -17,12 +17,10 @@ CREATE TABLE comment_thread (
   "shapeId" VARCHAR,
   "resolvedAt" BIGINT,
   "resolvedBy" VARCHAR,
-  -- soft-deletion stamp (see TLCommentThread.deleted): threads are never hard-deleted by
+  -- soft-deletion flag (see TLCommentThread.isDeleted): threads are never hard-deleted by
   -- clients, so the row (and its comments) stays for recovery while room loads and Zero
-  -- queries filter it out. deletedAt is Zero-visible for query filtering; deletedBy is a
-  -- persistence-only rehydration column like resolvedBy
-  "deletedAt" BIGINT,
-  "deletedBy" VARCHAR,
+  -- queries filter it out
+  "isDeleted" BOOLEAN DEFAULT FALSE NOT NULL,
   -- no FK to "user": deleting a user must not cascade-delete threads (and thereby other
   -- authors' comments); the comment table's authorId FK handles per-author cleanup
   "createdBy" VARCHAR NOT NULL,
@@ -33,10 +31,7 @@ CREATE TABLE comment_thread (
   -- resolvedAt/resolvedBy encode one nullable `resolved` record field, so they must be set or
   -- null together; rehydration (rowToThreadRecord) relies on resolvedBy being non-null whenever
   -- resolvedAt is
-  CONSTRAINT comment_thread_resolved_check CHECK (("resolvedAt" IS NULL) = ("resolvedBy" IS NULL)),
-  -- same pairing rule as resolvedAt/resolvedBy: rowToThreadRecord relies on deletedBy being
-  -- non-null whenever deletedAt is
-  CONSTRAINT comment_thread_deleted_check CHECK (("deletedAt" IS NULL) = ("deletedBy" IS NULL))
+  CONSTRAINT comment_thread_resolved_check CHECK (("resolvedAt" IS NULL) = ("resolvedBy" IS NULL))
 );
 
 CREATE INDEX comment_thread_file_id_idx ON comment_thread("fileId");
@@ -56,6 +51,9 @@ CREATE TABLE comment (
   "createdAt" BIGINT NOT NULL,
   -- null until first edited (exact record field; updatedAt below is the derived sort key)
   "editedAt" BIGINT,
+  -- soft-deletion flag (see TLComment.isDeleted): same model as the thread's — the row stays
+  -- for recovery while room loads and Zero queries filter it out
+  "isDeleted" BOOLEAN DEFAULT FALSE NOT NULL,
   "updatedAt" BIGINT NOT NULL,
   "meta" JSONB NOT NULL,
   "lastChangedClock" BIGINT NOT NULL,

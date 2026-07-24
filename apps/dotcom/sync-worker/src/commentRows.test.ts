@@ -46,8 +46,7 @@ describe('threadRecordToRow', () => {
 			shapeId,
 			resolvedAt: 2000,
 			resolvedBy: 'user2',
-			deletedAt: null,
-			deletedBy: null,
+			isDeleted: false,
 			createdBy: 'user1',
 			createdAt: 1000,
 			meta: thread.meta,
@@ -63,11 +62,10 @@ describe('threadRecordToRow', () => {
 		expect(row.resolvedBy).toBeNull()
 	})
 
-	it('soft-deleted thread: deletedAt/deletedBy set from the deleted stamp', () => {
-		const thread = { ...makeThread(), deleted: { at: 3000, by: 'user1' } }
+	it('soft-deleted thread: isDeleted carried onto the row', () => {
+		const thread = { ...makeThread(), isDeleted: true }
 		const row = threadRecordToRow(thread, 'file1', 42)
-		expect(row.deletedAt).toBe(3000)
-		expect(row.deletedBy).toBe('user1')
+		expect(row.isDeleted).toBe(true)
 	})
 })
 
@@ -95,6 +93,7 @@ describe('commentRecordToRow', () => {
 			body: comment.body,
 			createdAt: 1500,
 			editedAt: null,
+			isDeleted: false,
 			updatedAt: 1500,
 			meta: comment.meta,
 			lastChangedClock: 43,
@@ -256,9 +255,19 @@ describe('round-trip: record -> row -> rowTo*Record', () => {
 	})
 
 	it('soft-deleted thread', () => {
-		const thread = { ...makeThread(), deleted: { at: 3000, by: 'user1' } }
+		const thread = { ...makeThread(), isDeleted: true }
 		const row = threadRecordToRow(thread, 'file1', 42)
 		expect(rowToThreadRecord(row)).toEqual(thread)
+	})
+
+	it('soft-deleted comment', () => {
+		const thread = makeThread()
+		const comment = {
+			...createComment({ threadId: thread.id, pageId, authorId: 'user1', body, now: 1500 }),
+			isDeleted: true,
+		}
+		const row = commentRecordToRow(comment, 'file1', 43)
+		expect(rowToCommentRecord(row)).toEqual(comment)
 	})
 
 	it('unedited comment', () => {
@@ -656,7 +665,7 @@ describe('liveCommentDocuments', () => {
 
 	it('drops soft-deleted threads and their comments, keeping live ones', () => {
 		const live = makeThread()
-		const dead = { ...makeThread(), deleted: { at: 3000, by: 'user1' } }
+		const dead = { ...makeThread(), isDeleted: true }
 		const liveComment = makeComment(live.id, 1500)
 		const deadComment = makeComment(dead.id, 1600)
 		const { documents } = liveCommentDocuments(
@@ -666,10 +675,21 @@ describe('liveCommentDocuments', () => {
 		expect(documents.map((d) => d.state.id).sort()).toEqual([liveComment.id, live.id].sort())
 	})
 
+	it('drops soft-deleted comments of live threads, keeping the thread', () => {
+		const thread = makeThread()
+		const liveComment = makeComment(thread.id, 1500)
+		const deadComment = { ...makeComment(thread.id, 1600), isDeleted: true }
+		const { documents } = liveCommentDocuments(
+			[threadRecordToRow(thread, 'file1', 1)],
+			[commentRecordToRow(liveComment, 'file1', 2), commentRecordToRow(deadComment, 'file1', 3)]
+		)
+		expect(documents.map((d) => d.state.id).sort()).toEqual([liveComment.id, thread.id].sort())
+	})
+
 	it('clockFloor spans all rows, including dropped ones', () => {
 		const live = makeThread()
-		const dead = { ...makeThread(), deleted: { at: 3000, by: 'user1' } }
-		const deadComment = makeComment(dead.id, 1600)
+		const dead = { ...makeThread(), isDeleted: true }
+		const deadComment = { ...makeComment(dead.id, 1600), isDeleted: true }
 		const result = liveCommentDocuments(
 			[threadRecordToRow(live, 'file1', 7), threadRecordToRow(dead, 'file1', 42)],
 			[commentRecordToRow(deadComment, 'file1', 9)]

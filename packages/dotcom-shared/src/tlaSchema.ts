@@ -142,6 +142,8 @@ export const comment = table('comment')
 		authorAvatar: string(),
 		body: json(),
 		createdAt: number(),
+		// soft-deletion flag; queries must filter deleted comments out
+		isDeleted: boolean(),
 		updatedAt: number(),
 	})
 	.primaryKey('id')
@@ -158,8 +160,8 @@ export const comment_thread = table('comment_thread')
 		// only set for shape-anchored threads; other anchor kinds have no shape
 		shapeId: string().optional(),
 		resolvedAt: number().optional(),
-		// soft-deletion stamp; queries must filter deleted threads (and their comments) out
-		deletedAt: number().optional(),
+		// soft-deletion flag; queries must filter deleted threads (and their comments) out
+		isDeleted: boolean(),
 		createdBy: string(),
 		createdAt: number(),
 	})
@@ -437,7 +439,6 @@ export interface TlaWelcomeTemplate {
 export interface CommentThreadPersistenceColumns {
 	anchor: unknown
 	resolvedBy: string | null
-	deletedBy: string | null
 	meta: unknown
 	lastChangedClock: number
 }

@@ -57,6 +57,7 @@ function makeComment(overrides: Partial<TlaComment> & { id: string; fileId: stri
 		authorAvatar: '',
 		body: {},
 		createdAt: 1,
+		isDeleted: false,
 		updatedAt: 1,
 		...overrides,
 	}
