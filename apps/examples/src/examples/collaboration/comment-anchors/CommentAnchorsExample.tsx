@@ -38,7 +38,7 @@ const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 
 // A thread plus its opening comment, anchored however the caller specifies. Every `TLCommentThread`
 // carries an `anchor` — a discriminated union — and `CanvasComments` renders each kind in the right
-// place: shape/text-range pins track the shape, point/region pins sit at fixed page coordinates.
+// place: shape pins track the shape, point/region pins sit at fixed page coordinates.
 function seedThread(editor: Editor, anchor: TLCommentAnchor, text: string) {
 	const pageId = editor.getCurrentPageId()
 	const thread = createCommentThread({ pageId, anchor, createdBy: 'ada' })
