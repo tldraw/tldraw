@@ -2145,15 +2145,30 @@ export class TLFileDurableObject extends DurableObject {
 					.map((row) => row.id)
 				if (softDeletedThreadIds.length > 0 || softDeletedCommentIds.length > 0) {
 					this.logEvent({ type: 'room', roomId: fileId, name: 'comment_soft_delete_prune' })
+					// Records this drain has NOT accounted for must survive the cascade sweep: a
+					// reply committed after this drain's bound (during the awaits above) has an
+					// outbox entry a later drain owns, and its row may not be in Postgres yet.
+					// Sweeping it from the lane would turn that entry into a no-op stamp of a row
+					// that was never inserted, losing the reply's recovery row. Left in the lane,
+					// the next drain upserts it — the stamped thread row still exists as its FK
+					// parent — and the cold load's thread filter keeps it out of future rooms.
+					const inFlightIds = new Set(
+						this.ctx.storage.sql
+							.exec('SELECT DISTINCT recordId FROM comment_outbox WHERE seq > ?', drainBound)
+							.toArray()
+							.map((row) => row.recordId as string)
+					)
 					storage.transaction((txn) => {
 						const prunedThreadIds = new Set<string>()
 						for (const id of softDeletedThreadIds) {
 							if (txn.get(id as TLRecord['id']) === undefined) continue // already pruned
+							if (inFlightIds.has(id)) continue // updated mid-drain; the next drain re-prunes
 							txn.delete(id as TLRecord['id'])
 							prunedThreadIds.add(id)
 						}
 						for (const id of softDeletedCommentIds) {
 							if (txn.get(id as TLRecord['id']) === undefined) continue // already pruned
+							if (inFlightIds.has(id)) continue // updated mid-drain; the next drain re-prunes
 							txn.delete(id as TLRecord['id'])
 						}
 						if (prunedThreadIds.size === 0) return
@@ -2161,6 +2176,7 @@ export class TLFileDurableObject extends DurableObject {
 						// so non-comment records are skipped without being read.
 						for (const key of [...txn.keys()]) {
 							if (!isCommentId(key)) continue
+							if (inFlightIds.has(key)) continue // committed mid-drain; a later drain owns it
 							const id = key as string as TLRecord['id']
 							const record = txn.get(id) as unknown as TLComment | undefined
 							if (record?.threadId !== undefined && prunedThreadIds.has(record.threadId)) {
