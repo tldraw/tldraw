@@ -1,4 +1,5 @@
-import { Environment } from '../types'
+import { Environment, ThumbnailBoardKind } from '../types'
+import { base64UrlDecode, base64UrlEncode } from './base64'
 
 // Short-lived signed render jobs. The MCP screenshot route and OG queue mint one of these per
 // capture, and the worker's browser session only ever visits the tldraw-owned render page with this
@@ -11,7 +12,7 @@ export interface ThumbnailRenderJob {
 	 * `published` renders a frozen tldraw.com/p/:slug snapshot; `shared_file` renders the live
 	 * snapshot of an anonymously-shared tldraw.com/f/:slug file.
 	 */
-	kind: 'published' | 'shared_file'
+	kind: ThumbnailBoardKind
 	/** The board slug: the `:slug` in tldraw.com/p/:slug (published) or /f/:slug (shared file) */
 	slug: string
 	/**
@@ -117,22 +118,4 @@ async function getHmacKey(secret: string) {
 		false,
 		['sign', 'verify']
 	)
-}
-
-function base64UrlEncode(bytes: Uint8Array) {
-	let binary = ''
-	for (let i = 0; i < bytes.length; i += 0x8000) {
-		binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
-	}
-	return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-}
-
-function base64UrlDecode(value: string): Uint8Array<ArrayBuffer> {
-	const base64 = value.replace(/-/g, '+').replace(/_/g, '/')
-	const binary = atob(base64)
-	const bytes = new Uint8Array(new ArrayBuffer(binary.length))
-	for (let i = 0; i < binary.length; i++) {
-		bytes[i] = binary.charCodeAt(i)
-	}
-	return bytes
 }

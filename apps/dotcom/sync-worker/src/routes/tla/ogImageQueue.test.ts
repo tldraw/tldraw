@@ -15,10 +15,11 @@ import {
 	makeFakeRoomsBucket,
 	makeFakeThumbnailsBucket,
 	makeScreenshotTestEnv as makeEnv,
+	makeSnapshot,
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
-import { resetRateLimitFallbackForTests } from './sharedBoardScreenshotMcp'
+import { resetRateLimitFallbackForTests } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -47,21 +48,6 @@ function makeMessage(
 		ack: vi.fn(),
 		retry: vi.fn(),
 	} as any
-}
-
-// Builds a room snapshot with the given pages and per-page shape counts. Shapes are parented
-// directly to their page, which is what enumerateBoardPages checks for "has content".
-function makeSnapshot(pages: Array<{ id: string; index: string; shapes: number }>) {
-	const documents: Array<{ state: any }> = []
-	for (const page of pages) {
-		documents.push({ state: { typeName: 'page', id: page.id, index: page.index } })
-		for (let i = 0; i < page.shapes; i++) {
-			documents.push({
-				state: { typeName: 'shape', id: `shape:${page.id}-${i}`, parentId: page.id },
-			})
-		}
-	}
-	return { documents, schema: { schemaVersion: 2, sequences: {} } } as any
 }
 
 // A minimal readable board. Rendering now requires a loadable snapshot, so tests that only care

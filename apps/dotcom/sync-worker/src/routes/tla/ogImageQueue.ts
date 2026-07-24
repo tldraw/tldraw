@@ -1,26 +1,16 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { getR2KeyForRoom } from '../../r2'
-import { Environment, OgImageRenderQueueMessage } from '../../types'
-import { writeDataPoint } from '../../utils/analytics'
+import { Environment, OgImageRenderQueueMessage, ThumbnailBoardKind } from '../../types'
 import {
-	THUMBNAIL_RENDER_TOKEN_TTL_MS,
-	ThumbnailRenderJob,
-	mintThumbnailRenderToken,
-} from '../../utils/renderTokens'
-import { getPublishedFileInfo } from './getPublishedFile'
-import { getSharedFileInfo, isFileAnonymouslyViewable } from './getSharedFile'
-import {
-	GLOBAL_BROWSER_RATE_LIMIT_KEY,
-	GLOBAL_BROWSER_RUN_RATE_LIMIT,
-	base64ToArrayBuffer,
-	buildThumbnailRenderUrl,
+	ResolvedThumbnailBoard,
+	captureThumbnailScreenshot,
 	enumerateBoardPages,
-	getRenderOrigin,
-	isRateLimited,
+	isGlobalBrowserRunRateLimited,
 	loadBoardSnapshot,
-	renderThumbnailScreenshot,
-} from './sharedBoardScreenshotMcp'
+	putThumbnailPng,
+	resolveThumbnailBoard,
+	writeScreenshotTelemetry,
+} from './thumbnailRender'
 import { classifyScreenshotFailure, reportThumbnailError, sha256 } from './thumbnailShared'
 
 // Queue-backed async OG image generation. The GET og-image route never blocks a request on
@@ -28,9 +18,6 @@ import { classifyScreenshotFailure, reportThumbnailError, sha256 } from './thumb
 // and enqueues a render job here. This consumer performs the capture out of band and refreshes the
 // R2 cache the route reads. The synchronous MCP tool does not use this path: it must return the
 // image in-band, so it captures inline and caches under its own `mcp/` keys.
-
-export const OG_IMAGE_WIDTH = DEFAULT_THUMBNAIL_WIDTH
-export const OG_IMAGE_HEIGHT = DEFAULT_THUMBNAIL_HEIGHT
 
 // A pending marker suppresses duplicate enqueues while a render is queued or in flight. It is
 // advisory only: it expires on its own so a crashed consumer cannot wedge a board permanently.
@@ -51,46 +38,6 @@ const RETRY_DELAY_SECONDS = 30
 export const MAX_RATE_LIMIT_REQUEUES = 12
 const MAX_REQUEUE_DELAY_SECONDS = 120
 
-export type OgBoardKind = 'published' | 'shared_file'
-
-export interface ResolvedOgBoard {
-	kind: OgBoardKind
-	slug: string
-	version: string | number
-}
-
-// Mirrors the resolution + anonymous-view gates of the MCP tool: published boards must be
-// published, shared files must currently be shared via link, and the content version keys the
-// cache (lastPublished for published boards, the persisted room snapshot's R2 etag for shared
-// files).
-export async function resolveOgBoardInfo(
-	env: Environment,
-	kind: OgBoardKind,
-	slug: string
-): Promise<ResolvedOgBoard | null> {
-	if (kind === 'published') {
-		const file = await getPublishedFileInfo(env, slug)
-		if (!file?.published) return null
-		return {
-			kind,
-			slug,
-			version: file.lastPublished,
-		}
-	}
-
-	const file = await getSharedFileInfo(env, slug)
-	if (!isFileAnonymouslyViewable(file)) return null
-
-	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
-	if (!persisted) return null
-
-	return {
-		kind,
-		slug,
-		version: persisted.etag,
-	}
-}
-
 // OG images render a single page as the unfurl preview. Pick the first page (in board order) that
 // has content, so a board whose first page is empty still gets a meaningful image; fall back to the
 // first page when none have content (the render degrades to a blank, as it did before).
@@ -100,19 +47,19 @@ function pickOgImagePageId(snapshot: RoomSnapshot): string | undefined {
 	return (pages.find((page) => page.hasContent) ?? pages[0]).id
 }
 
-export function getOgImageCacheKey(board: Pick<ResolvedOgBoard, 'kind' | 'slug'>) {
-	return `og/${board.kind}/${board.slug}/${OG_IMAGE_WIDTH}x${OG_IMAGE_HEIGHT}/light.png`
+export function getOgImageCacheKey(board: Pick<ResolvedThumbnailBoard, 'kind' | 'slug'>) {
+	return `og/${board.kind}/${board.slug}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/light.png`
 }
 
 export type EnqueueOgImageResult = 'enqueued' | 'already_pending' | 'unavailable'
 
-function getOgImagePendingKey(board: { kind: 'published' | 'shared_file'; slug: string }) {
-	return `og/${board.kind}/${board.slug}/${OG_IMAGE_WIDTH}x${OG_IMAGE_HEIGHT}/light.pending`
+function getOgImagePendingKey(board: { kind: ThumbnailBoardKind; slug: string }) {
+	return getOgImageCacheKey(board).replace(/\.png$/, '.pending')
 }
 
 export async function enqueueOgImageRender(
 	env: Environment,
-	board: { kind: 'published' | 'shared_file'; slug: string }
+	board: { kind: ThumbnailBoardKind; slug: string }
 ): Promise<EnqueueOgImageResult> {
 	if (!env.THUMBNAILS || !env.QUEUE) return 'unavailable'
 
@@ -153,15 +100,15 @@ export async function handleOgImageRenderMessage(
 	const clearPending = async () => {
 		await env.THUMBNAILS?.delete(getOgImagePendingKey({ kind, slug })).catch(() => {})
 	}
-	// The board went private, was deleted, or was unpublished. Terminal, not transient: drop the
-	// cached image so no-longer-public content does not linger in the OG cache, and ack rather than
-	// retry, since no number of retries will make the board public again. Reached from the resolve
-	// below — a board that goes private after that point fails its snapshot read instead, and the
-	// retry lands back here on the next delivery.
+	// The board went private, was deleted, was unpublished, or has no persisted content. Terminal,
+	// not transient: drop the cached image so no-longer-public content does not linger in the OG
+	// cache, and ack rather than retry, since no number of retries will make the board public again.
+	// Reached from the resolve below — a board that goes private after that point fails its snapshot
+	// read instead, and the retry lands back here on the next delivery.
 	const dropNoLongerViewable = async () => {
 		await env.THUMBNAILS?.delete(cacheKey).catch(() => {})
 		await clearPending()
-		writeOgImageTelemetry(env, {
+		writeScreenshotTelemetry(env, {
 			source: 'queue',
 			boardHash,
 			cacheStatus: 'miss',
@@ -171,17 +118,18 @@ export async function handleOgImageRenderMessage(
 	}
 
 	try {
-		const board = await resolveOgBoardInfo(env, kind, slug)
-		if (!board) {
+		const resolved = await resolveThumbnailBoard(env, kind, slug)
+		if (!resolved.ok) {
 			await dropNoLongerViewable()
 			return
 		}
+		const board = resolved.board
 
 		// Another consumer (or an earlier retry) may already have rendered this version.
 		const cached = await env.THUMBNAILS?.head(cacheKey)
 		if (cached?.customMetadata?.version === String(board.version)) {
 			await clearPending()
-			writeOgImageTelemetry(env, { source: 'queue', boardHash, cacheStatus: 'hit' })
+			writeScreenshotTelemetry(env, { source: 'queue', boardHash, cacheStatus: 'hit' })
 			message.ack()
 			return
 		}
@@ -190,15 +138,10 @@ export async function handleOgImageRenderMessage(
 			throw new Error('THUMBNAILS bucket is not configured')
 		}
 
-		// Shares the global Browser Run budget with the synchronous surfaces by using the same limiter
-		// key (`GLOBAL_BROWSER_RATE_LIMIT_KEY`), so the MCP tool and this consumer draw from one cap
-		// rather than two independent buckets. When capacity is busy, requeue rather than drop: the
-		// request path has already returned, so latency is free here.
-		if (
-			await isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
-				fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
-			})
-		) {
+		// Shares the global Browser Run budget with the synchronous surfaces, so the MCP tool and this
+		// consumer draw from one cap rather than two independent buckets. When capacity is busy, requeue
+		// rather than drop: the request path has already returned, so latency is free here.
+		if (await isGlobalBrowserRunRateLimited(env)) {
 			await requeueForRateLimit(env, message, boardHash)
 			return
 		}
@@ -218,38 +161,19 @@ export async function handleOgImageRenderMessage(
 			retryOrDrop(env, message, boardHash, 'board_empty')
 			return
 		}
-		const pageId = pickOgImagePageId(snapshot)
 
-		const job: ThumbnailRenderJob = {
-			v: 1,
-			kind,
-			slug,
-			version: board.version,
-			camera: 'content',
-			...(pageId ? { pageId } : null),
-			x: 0,
-			y: 0,
-			z: 1,
-			width: OG_IMAGE_WIDTH,
-			height: OG_IMAGE_HEIGHT,
-			theme: 'light',
-			exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
-		}
-		const token = await mintThumbnailRenderToken(env, job)
-		const renderUrl = buildThumbnailRenderUrl(getRenderOrigin(env), token)
 		// The render page exports the chosen page; the worker screenshots it through the BROWSER
 		// binding and writes the PNG to the cache key the OG route reads.
-		const render = await renderThumbnailScreenshot(renderUrl, env)
-		await env.THUMBNAILS.put(cacheKey, base64ToArrayBuffer(render.base64), {
-			httpMetadata: { contentType: 'image/png' },
-			customMetadata: {
-				version: String(board.version),
-				createdAt: String(Date.now()),
-			},
+		const render = await captureThumbnailScreenshot(env, board, {
+			pageId: pickOgImagePageId(snapshot),
+			theme: 'light',
+			width: DEFAULT_THUMBNAIL_WIDTH,
+			height: DEFAULT_THUMBNAIL_HEIGHT,
 		})
+		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
 		await clearPending()
 
-		writeOgImageTelemetry(env, {
+		writeScreenshotTelemetry(env, {
 			source: 'queue',
 			boardHash,
 			cacheStatus: 'miss',
@@ -289,7 +213,7 @@ function retryOrDrop(
 		message.retry({ delaySeconds: RETRY_DELAY_SECONDS * message.attempts })
 		return
 	}
-	writeOgImageTelemetry(env, { source: 'queue', boardHash, cacheStatus: 'miss', failureReason })
+	writeScreenshotTelemetry(env, { source: 'queue', boardHash, cacheStatus: 'miss', failureReason })
 	message.ack()
 }
 
@@ -310,7 +234,7 @@ async function requeueForRateLimit(
 ) {
 	const requeues = (message.body.rateLimitRequeues ?? 0) + 1
 
-	writeOgImageTelemetry(env, {
+	writeScreenshotTelemetry(env, {
 		source: 'queue',
 		boardHash,
 		cacheStatus: 'miss',
@@ -343,7 +267,7 @@ async function requeueForRateLimit(
 // would let another parallel requeue chain spawn.
 async function refreshOgImagePendingMarker(
 	env: Environment,
-	board: { kind: 'published' | 'shared_file'; slug: string },
+	board: { kind: ThumbnailBoardKind; slug: string },
 	delaySeconds: number
 ) {
 	if (!env.THUMBNAILS) return
@@ -351,39 +275,4 @@ async function refreshOgImagePendingMarker(
 	await env.THUMBNAILS.put(getOgImagePendingKey(board), new Uint8Array(), {
 		customMetadata: { expiresAt: String(expiresAt) },
 	}).catch(() => {})
-}
-
-// Written to the same dataset and blob layout as the MCP tool's telemetry
-// (mcp_shared_board_screenshot) so one dashboard covers every screenshot surface; the source blob
-// distinguishes mcp (the tool), og (the GET route), and queue (this consumer).
-export function writeOgImageTelemetry(
-	env: Environment,
-	data: {
-		source: 'og' | 'queue'
-		boardHash: string
-		cacheStatus: 'hit' | 'stale' | 'miss'
-		browserRunDurationMs?: number
-		browserMsUsed?: number | null
-		failureReason?: string
-		rateLimitAllowed?: boolean
-	}
-) {
-	const rateLimitAllowed = data.rateLimitAllowed ?? true
-	writeDataPoint(undefined, env.MEASURE, env, 'mcp_shared_board_screenshot', {
-		blobs: [
-			`source:${data.source}`,
-			`cache:${data.cacheStatus}`,
-			`failure:${data.failureReason ?? 'none'}`,
-			`rate_limit:${rateLimitAllowed ? 'allowed' : 'blocked'}`,
-			'ip:none',
-		],
-		indexes: [data.boardHash],
-		doubles: [
-			OG_IMAGE_WIDTH,
-			OG_IMAGE_HEIGHT,
-			data.browserRunDurationMs ?? -1,
-			data.browserMsUsed ?? -1,
-			rateLimitAllowed ? 1 : 0,
-		],
-	})
 }

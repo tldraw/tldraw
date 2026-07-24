@@ -1,11 +1,12 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useState } from 'react'
-import { TLEditorSnapshot, TLStoreSnapshot, Tldraw, defaultShapeUtils } from 'tldraw'
+import { FileHelpers, TLEditorSnapshot, TLStoreSnapshot, Tldraw, defaultShapeUtils } from 'tldraw'
 import 'tldraw/tldraw.css'
 import snapshotExampleSnapshot from '../../../../examples/src/examples/editor-api/snapshots/snapshot.json'
 import layerPanelSnapshot from '../../../../examples/src/examples/ui/layer-panel/snapshot.json'
 import {
 	ThumbnailExportSignal,
+	ThumbnailImage,
 	clampThumbnailDimension,
 	useThumbnailPageSize,
 } from './thumbnail-render'
@@ -40,7 +41,7 @@ export function Component() {
 
 	const [dataUrl, setDataUrl] = useState<string | null>(null)
 	const handleImage = useCallback(async (blob: Blob) => {
-		setDataUrl(await blobToDataUrl(blob))
+		setDataUrl(await FileHelpers.blobToDataUrl(blob))
 	}, [])
 
 	if (dataUrl) {
@@ -72,8 +73,9 @@ export function Component() {
 	)
 }
 
-// Signals readiness only once the exported image has painted, so a screenshot taken on the
-// data-thumbnail-ready selector captures the editor.toImage pixels rather than the live editor.
+// The production ThumbnailImage signals data-thumbnail-ready/-error exactly as the render page
+// does; this wrapper additionally exposes the data URL for the capture script's local mode, which
+// reads the exact export bytes instead of screenshotting the viewport.
 function ThumbnailPreview({
 	dataUrl,
 	width,
@@ -90,32 +92,7 @@ function ThumbnailPreview({
 		}
 	}, [dataUrl])
 
-	const signalReady = () => {
-		document.body.dataset.thumbnailReady = 'true'
-		document.documentElement.dataset.thumbnailReady = 'true'
-	}
-	return (
-		<img
-			// A data-URL <img> can decode before onLoad attaches, so also signal from a ref once the
-			// image is already complete.
-			ref={(img) => {
-				if (img?.complete && img.naturalWidth > 0) signalReady()
-			}}
-			src={dataUrl}
-			alt=""
-			style={{ display: 'block', width, height }}
-			onLoad={signalReady}
-		/>
-	)
-}
-
-function blobToDataUrl(blob: Blob) {
-	return new Promise<string>((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onload = () => resolve(reader.result as string)
-		reader.onerror = () => reject(reader.error ?? new Error('Could not read thumbnail blob'))
-		reader.readAsDataURL(blob)
-	})
+	return <ThumbnailImage dataUrl={dataUrl} width={width} height={height} />
 }
 
 function getFixtureName(value: string | null): FixtureName {

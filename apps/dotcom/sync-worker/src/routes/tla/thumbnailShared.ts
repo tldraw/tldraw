@@ -2,9 +2,9 @@ import { createSentry } from '@tldraw/worker-shared'
 import { Environment } from '../../types'
 
 // Leaf helpers shared by the board-reading and thumbnail/OG-image surfaces
-// (get{Published,SharedFile}, sharedBoardScreenshotMcp.ts, the OG route, and the OG queue
-// consumer). This module imports nothing from those route files so it can be depended on from any
-// of them without creating an import cycle.
+// (get{Published,SharedFile}, the render core in thumbnailRender.ts, sharedBoardScreenshotMcp.ts,
+// the OG route, and the OG queue consumer). This module imports nothing from those files so it can
+// be depended on from any of them without creating an import cycle.
 
 // A board's snapshot could not be read: Postgres, R2, or a malformed payload. Distinct from a
 // render failure so telemetry can tell "the database is down" apart from "Chrome fell over" — the
