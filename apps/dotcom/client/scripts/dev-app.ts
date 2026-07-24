@@ -3,7 +3,8 @@ import { createServer } from 'net'
 import { pathToFileURL } from 'url'
 import { killProcessTree } from '../../../../internal/scripts/lib/kill-tree'
 
-const CLIENT_PORT = 3000
+// Offset per worktree by the parallel-dev wrapper (internal/scripts/dotcom-dev-parallel.ts).
+const CLIENT_PORT = Number(process.env.CLIENT_PORT) || 3000
 const SKIPPABLE_PROBE_ERROR_CODES = new Set(['EADDRNOTAVAIL', 'EAFNOSUPPORT'])
 
 type PortProbe = (port: number, host: string) => Promise<void>
