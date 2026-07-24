@@ -147,8 +147,12 @@ export const authorizeFileRecord: TLRecordAuthorizers<FileRecord, SessionMeta> =
 	comment: authorizeAuthored<TLComment>('authorId', { ownerOnlyUpdate: true }),
 	'comment-thread': authorizeThread,
 	// A reaction is one user's own record, so the standard attribution rules mostly cover it:
-	// `userId` is stamped from the session and only the reactor can change their reaction. The
-	// wrapper adds the id check that ties the record to its (comment, user) slot — see above.
+	// `userId` is stamped from the session and only the reactor can change their reaction, and the
+	// wrapper's id check ties the record to its (comment, user, emoji) slot — so no one can forge or
+	// hijack another user's reaction. Deletion, though, is deliberately open: anyone with file access
+	// may hard-delete any reaction. Reactions have no soft-delete / `isDeleted` flag (unlike comments)
+	// on purpose — a reaction is a toggle, so removing one is a plain record delete, and the
+	// comment/thread delete-cascade needs to sweep every reactor's records, not just the caller's own.
 	'comment-reaction': authorizeReaction,
 	shape: authorizeShape,
 }
