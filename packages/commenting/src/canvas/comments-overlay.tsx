@@ -245,8 +245,8 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	// and the dismiss handlers (Escape, click-away) live inside PendingComposer, which would never
 	// mount. Clear the atom instead of stranding it (a stale pending would pop a composer at the
 	// old click point if `canComment` later flips true).
-	const showPendingComposer =
-		pending != null && (canComment || options.components.ComposerFallback != null)
+	const canRenderComposer = canComment || options.components.ComposerFallback != null
+	const showPendingComposer = pending != null && canRenderComposer
 	useEffect(() => {
 		if (pending && !showPendingComposer) pendingComment.set(editor, null)
 	}, [editor, pending, showPendingComposer])
