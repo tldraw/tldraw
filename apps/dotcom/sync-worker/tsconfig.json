@@ -8,6 +8,7 @@
 		"moduleResolution": "bundler"
 	},
 	"references": [
+		{ "path": "../../../packages/commenting-core" },
 		{ "path": "../../../packages/dotcom-shared" },
 		{ "path": "../../../packages/state" },
 		{ "path": "../../../packages/store" },

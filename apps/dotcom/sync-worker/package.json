@@ -27,6 +27,7 @@
 		"@rocicorp/zero": "1.8.0",
 		"@supabase/auth-helpers-remix": "^0.2.6",
 		"@supabase/supabase-js": "^2.48.1",
+		"@tldraw/commenting-core": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
