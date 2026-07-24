@@ -120,7 +120,11 @@ export function registerCommentAnchorLifecycle(
 	// page yet — and the conversion memory must outlive any such partial state.
 	const returnedShapeIds = new Set<TLShapeId>()
 
-	const disposeOperationComplete = editor.sideEffects.registerOperationCompleteHandler(() => {
+	const disposeOperationComplete = editor.sideEffects.registerOperationCompleteHandler((source) => {
+		// Only user-sourced handlers populate the maps and only local operations should settle
+		// them; a remote operation completing leaves any (impossible-in-practice) leftovers for
+		// the next local settle rather than judging them against remote state.
+		if (source === 'remote') return
 		if (pendingByShape.size === 0 && returnedShapeIds.size === 0) return
 		const settled = [...pendingByShape.entries()]
 		pendingByShape.clear()
