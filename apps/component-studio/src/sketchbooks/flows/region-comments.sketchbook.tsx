@@ -13,7 +13,7 @@ const desktop = { viewport: 'desktop' } as const
  *  behaviour — bottom-right pin, reveal on pointer-in-region, move by pin, resize from corners. */
 export const Default: Sketch<RegionCommentsFlowProps> = {
 	parameters: desktop,
-	args: { regionOptions: {}, seeded: false },
+	args: { options: {}, seeded: false },
 }
 
 // — Pin/anchor corner —
@@ -21,7 +21,7 @@ export const Default: Sketch<RegionCommentsFlowProps> = {
 /** Pin and composer on the top-right corner instead of bottom-right. */
 export const TopRightPin: Sketch<RegionCommentsFlowProps> = {
 	parameters: desktop,
-	args: { regionOptions: { pinCorner: { x: 1, y: 0 } } },
+	args: { options: { regionPinCorner: { x: 1, y: 0 } } },
 }
 
 // — Reveal behaviour —
@@ -29,13 +29,13 @@ export const TopRightPin: Sketch<RegionCommentsFlowProps> = {
 /** Box and handles reveal only while the pin is hovered (note the gap reaching a far corner). */
 export const RevealOnPinHover: Sketch<RegionCommentsFlowProps> = {
 	parameters: desktop,
-	args: { regionOptions: { reveal: 'pin-hover' } },
+	args: { options: { regionReveal: 'pin-hover' } },
 }
 
 /** Box and handles reveal only while the thread is open. */
 export const RevealWhenOpen: Sketch<RegionCommentsFlowProps> = {
 	parameters: desktop,
-	args: { regionOptions: { reveal: 'open' } },
+	args: { options: { regionReveal: 'open' } },
 }
 
 // — Move interaction —
@@ -43,13 +43,13 @@ export const RevealWhenOpen: Sketch<RegionCommentsFlowProps> = {
 /** Move by dragging the region body (the pin only toggles the thread). */
 export const MoveByBody: Sketch<RegionCommentsFlowProps> = {
 	parameters: desktop,
-	args: { regionOptions: { move: 'body' } },
+	args: { options: { regionMove: 'body' } },
 }
 
 /** Move by dragging either the pin or the body. */
 export const MoveByEither: Sketch<RegionCommentsFlowProps> = {
 	parameters: desktop,
-	args: { regionOptions: { move: 'both' } },
+	args: { options: { regionMove: 'both' } },
 }
 
 // — Resize affordance —
@@ -57,11 +57,11 @@ export const MoveByEither: Sketch<RegionCommentsFlowProps> = {
 /** Resize from side-midpoint edge handles (each locks the perpendicular axis). */
 export const ResizeFromEdges: Sketch<RegionCommentsFlowProps> = {
 	parameters: desktop,
-	args: { regionOptions: { resize: 'edges' } },
+	args: { options: { regionResize: 'edges' } },
 }
 
 /** No resize affordance — the region keeps the size it was drawn at. */
 export const NoResize: Sketch<RegionCommentsFlowProps> = {
 	parameters: desktop,
-	args: { regionOptions: { resize: 'none' } },
+	args: { options: { regionResize: 'none' } },
 }

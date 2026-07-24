@@ -27,15 +27,17 @@ function thread(
 }
 
 /**
- * Stub editor: the filter's only editor dependencies are the current page id
- * and shape page bounds (via anchorPagePoint). `shapes` maps shape id → bounds
- * for shapes that exist; anything else resolves to undefined (deleted shape).
+ * Stub editor: the filter's editor dependencies are the current page id, shape
+ * page bounds, and the commenting options (via anchorPagePoint; no registered
+ * comment tool → the defaults). `shapes` maps shape id → bounds for shapes that
+ * exist; anything else resolves to undefined (deleted shape).
  */
 function stubEditor(
 	shapes: Record<string, { minX: number; minY: number; maxX: number; maxY: number }> = {}
 ): Editor {
 	return {
 		getCurrentPageId: () => CURRENT_PAGE,
+		getStateDescendant: () => undefined,
 		getShapePageBounds: (id: string) => {
 			const bounds = shapes[id]
 			if (!bounds) return undefined
