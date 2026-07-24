@@ -70,10 +70,11 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
 	/** Resolution state: when and by whom the thread was resolved, or null while open. */
 	resolved: { at: number; by: string } | null
 	/**
-	 * Soft-deletion state: when and by whom the thread was deleted, or null while live. Threads
-	 * are never hard-deleted by clients — deleting one sets this flag and leaves the record (and
-	 * its comments) in place, hidden from rendering and dropped from future room loads
-	 * server-side. Write-once: only the thread's creator may set it, and it is never cleared.
+	 * Soft-deletion state: when and by whom the thread was deleted, or null while live. Clients
+	 * delete a thread by setting this flag and leaving the record (and its comments) in place,
+	 * hidden from rendering. Sync servers are expected to enforce the stamp as write-once and
+	 * creator-only, reject hard deletes from clients, and drop flagged threads from future room
+	 * loads.
 	 */
 	deleted: { at: number; by: string } | null
 	meta: JsonObject

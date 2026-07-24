@@ -1274,8 +1274,12 @@ const ThreadPin = memo(function ThreadPin({
 		// Soft delete: set the flag rather than removing records — the server prunes the thread
 		// and its comments once the flag is persisted, so no client ever deletes records it
 		// doesn't own. Creator-only; the server vetoes anyone else (and any hard delete).
-		commitCommentMutation(editor, () =>
-			putCommentRecords(editor, [{ ...thread, deleted: { at: Date.now(), by: currentUserId } }])
+		// Never on the undo stack, even with `history: 'record'`: the stamp is write-once
+		// server-side, so an undo restoring `deleted: null` would always be vetoed and rebased.
+		editor.run(
+			() =>
+				putCommentRecords(editor, [{ ...thread, deleted: { at: Date.now(), by: currentUserId } }]),
+			{ history: 'ignore' }
 		)
 	}
 

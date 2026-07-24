@@ -552,7 +552,7 @@ describe('mergeCommentDocumentsIntoSnapshot', () => {
 		return { documentClock: 10, documents: makeDocs(10), ...overrides }
 	}
 
-	// clockFloor 0 = "no dropped rows outran the documents", the pre-soft-delete behavior
+	// clockFloor 0 = "no dropped rows outran the documents"
 	function load(documents: RoomSnapshot['documents'], clockFloor = 0): CommentLoadResult {
 		return { documents, clockFloor }
 	}

@@ -1875,6 +1875,8 @@ export class TLFileDurableObject extends DurableObject {
 									shapeId: eb.ref('excluded.shapeId'),
 									resolvedAt: eb.ref('excluded.resolvedAt'),
 									resolvedBy: eb.ref('excluded.resolvedBy'),
+									deletedAt: eb.ref('excluded.deletedAt'),
+									deletedBy: eb.ref('excluded.deletedBy'),
 									meta: eb.ref('excluded.meta'),
 									lastChangedClock: eb.ref('excluded.lastChangedClock'),
 								}))
@@ -1970,11 +1972,34 @@ export class TLFileDurableObject extends DurableObject {
 				for (const id of commentResult.failedIds) {
 					failedIds.add(id)
 				}
+				// Lane-absence normally means "delete the Postgres row", but the soft-delete prune
+				// below also makes records lane-absent — an outbox entry past this drain's bound
+				// (a resolve, re-anchor, or reply pushed mid-drain) would then read as a hard
+				// delete on the next drain and destroy the recovery rows. Guard every hard delete
+				// on the thread not being soft-deleted; the author-cascade path is unaffected
+				// (its threads are never soft-deleted).
 				if (commentDeletes.length > 0) {
-					await this.db.deleteFrom('comment').where('id', 'in', commentDeletes).execute()
+					await this.db
+						.deleteFrom('comment')
+						.where('id', 'in', commentDeletes)
+						.where(({ not, exists, selectFrom }) =>
+							not(
+								exists(
+									selectFrom('comment_thread')
+										.select('comment_thread.id')
+										.whereRef('comment_thread.id', '=', 'comment.threadId')
+										.where('comment_thread.deletedAt', 'is not', null)
+								)
+							)
+						)
+						.execute()
 				}
 				if (threadDeletes.length > 0) {
-					await this.db.deleteFrom('comment_thread').where('id', 'in', threadDeletes).execute()
+					await this.db
+						.deleteFrom('comment_thread')
+						.where('id', 'in', threadDeletes)
+						.where('deletedAt', 'is', null)
+						.execute()
 				}
 
 				// Reconcile @-mention rows for every comment row that made it to Postgres, so the
