@@ -169,6 +169,8 @@ export type TLServerEvent =
 	| {
 			type: 'persist_success'
 			attempts: number
+			/** How long the successful attempt took; retries show up in `attempts`, not here. */
+			durationMs: number
 	  }
 
 export type TLPostgresReplicatorRebootSource =

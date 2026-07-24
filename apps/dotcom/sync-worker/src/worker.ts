@@ -53,6 +53,7 @@ import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
+import { getMetrics } from './utils/analytics'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
@@ -332,6 +333,20 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
+		const metrics = getMetrics(this.env)
+		// One datapoint per delivery: message type, outcome, delivery attempt, and queue lag (ms
+		// between enqueue and this delivery). The og-image-render handler settles its own messages
+		// and writes render telemetry itself, so its 'handled' outcome only means the handler
+		// didn't throw.
+		const logDelivery = (
+			message: Message<QueueMessage>,
+			outcome: 'ack' | 'retry' | 'handled' | 'error'
+		) => {
+			metrics.write('queue_message', {
+				blobs: [message.body.type, outcome],
+				doubles: [message.attempts, Date.now() - message.timestamp.getTime()],
+			})
+		}
 		// The pool is only needed for asset-upload messages, so create it lazily: OG image render
 		// batches should not open database connections they never use.
 		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
@@ -344,10 +359,12 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 							message as Message<OgImageRenderQueueMessage>,
 							this.ctx
 						)
+						logDelivery(message, 'handled')
 					} catch (_e) {
 						// handleOgImageRenderMessage settles the message itself; this guards the batch loop
 						// against an unexpected throw escaping it, so one bad message can't abort processing
 						// of the rest of the batch. Retry is a no-op if the handler already settled.
+						logDelivery(message, 'error')
 						message.retry()
 					}
 					break
@@ -361,7 +378,9 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 							.onConflict((oc) => oc.column('objectName').doNothing())
 							.execute()
 						message.ack()
+						logDelivery(message, 'ack')
 					} catch (_e) {
+						logDelivery(message, 'retry')
 						message.retry({
 							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
 						})
