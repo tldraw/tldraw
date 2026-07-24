@@ -9,6 +9,12 @@ const MAX_ZOOM_STEP = 10
  * @internal */
 export function normalizeWheel(event: WheelEvent | React.WheelEvent<HTMLElement>) {
 	let { deltaY, deltaX } = event
+
+	// Coerce non-finite deltas to no movement so they can't propagate into the camera and
+	// crash validation. Also covers deltaZ below, which is derived from deltaY.
+	if (!Number.isFinite(deltaX)) deltaX = 0
+	if (!Number.isFinite(deltaY)) deltaY = 0
+
 	let deltaZ = 0
 
 	// wheeling
