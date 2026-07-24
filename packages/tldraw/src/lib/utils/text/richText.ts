@@ -147,38 +147,6 @@ export function isEditingRichTextList(editor: Editor) {
 }
 
 /**
- * Whether an inline TipTap suggestion (e.g. an \@-mention picker) is open in the editor's active
- * rich text. A suggestion plugin keeps `{ active, range, query }` in its state while its popup is
- * showing; when it is, that plugin owns navigation keys like Tab (it completes the highlighted item
- * on them), so a shape's own key handlers — indentation, note-to-note navigation — should stand
- * down rather than fight it. Deliberately generic: it matches any suggestion-shaped plugin state,
- * not one specific extension, so the editor cooperates with whatever suggestion a consumer wires up.
- * @internal
- */
-export function hasActiveTextSuggestion(editor: Editor) {
-	const state = editor.getRichTextEditor()?.view.state
-	if (!state) return false
-	for (const plugin of state.plugins) {
-		let pluginState: unknown
-		try {
-			pluginState = plugin.getState?.(state)
-		} catch {
-			continue
-		}
-		if (
-			pluginState &&
-			typeof pluginState === 'object' &&
-			(pluginState as { active?: unknown }).active === true &&
-			'range' in pluginState &&
-			'query' in pluginState
-		) {
-			return true
-		}
-	}
-	return false
-}
-
-/**
  * Renders plaintext from a rich text string.
  * @param editor - The editor instance.
  * @param richText - The rich text content.

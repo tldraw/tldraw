@@ -16,7 +16,7 @@ import {
 	useUniqueSafeId,
 } from '@tldraw/editor'
 import React, { useLayoutEffect, useRef } from 'react'
-import { hasActiveTextSuggestion, isEditingRichTextList } from '../../utils/text/richText'
+import { isEditingRichTextList } from '../../utils/text/richText'
 
 /** @public */
 export interface TextAreaProps {
@@ -167,11 +167,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			},
 			editorProps: {
 				handleKeyDown: (view: EditorView, event: KeyboardEvent) => {
-					// Defer Tab to an active inline suggestion (e.g. an @-mention picker), whose own keydown
-					// handler runs as a plugin — after these editor props — and completes on Tab. Without
-					// this, our indentation would insert a tab behind the open popup before the picker could
-					// claim the key.
-					if (!hasCustomTabBehavior && event.key === 'Tab' && !hasActiveTextSuggestion(editor)) {
+					if (!hasCustomTabBehavior && event.key === 'Tab') {
 						handleTab(editor, view, event)
 					}
 

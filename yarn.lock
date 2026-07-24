@@ -20049,7 +20049,6 @@ __metadata:
     "@tldraw/commenting": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/driver": "workspace:*"
-    "@tldraw/mentions": "workspace:*"
     "@tldraw/mermaid": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
