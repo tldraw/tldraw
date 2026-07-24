@@ -118,6 +118,11 @@ export interface RoomSnapshot {
 	 * Serialized schema used when creating this snapshot (optional)
 	 */
 	schema?: SerializedSchema
+	/**
+	 * Ephemeral presence records for users active at the time of the snapshot.
+	 * Not restored on load — captured for archival/analytics only.
+	 */
+	presence?: UnknownRecord[]
 }
 
 /**
