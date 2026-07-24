@@ -181,7 +181,7 @@ import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPointerEventInfo } from './types/event-types'
 import { TLExternalAsset, TLExternalContent } from './types/external-content'
-import { TLHistoryBatchOptions } from './types/history-types'
+import { TLHistoryBatchOptions, TLHistorySnapshot } from './types/history-types'
 import {
 	OptionalKeys,
 	RequiredKeys,
@@ -1563,6 +1563,56 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	clearHistory() {
 		this.history.clear()
+		return this
+	}
+
+	/**
+	 * Get a serializable snapshot of the editor's undo/redo history, including any changes
+	 * that have not yet been committed to the undo stack. Capturing a snapshot does not
+	 * modify the history.
+	 *
+	 * Use this with {@link Editor.loadHistorySnapshot} to carry the undo/redo history across
+	 * editor instances, for example when rebuilding the editor on the same document.
+	 *
+	 * History entries contain full record values, so a snapshot can only be loaded into an
+	 * editor whose store schema matches the schema it was captured under (for example, the
+	 * same shape types with the same versions). If you change the schema, discard any
+	 * history snapshots captured under the old one.
+	 *
+	 * @example
+	 * ```ts
+	 * const history = editor.getHistorySnapshot()
+	 * // ...dispose the editor, then rebuild it on the same document...
+	 * newEditor.loadHistorySnapshot(history)
+	 * ```
+	 *
+	 * @public
+	 */
+	getHistorySnapshot(): TLHistorySnapshot {
+		return this.history.getSnapshot()
+	}
+
+	/**
+	 * Load a history snapshot captured with {@link Editor.getHistorySnapshot}, replacing the
+	 * editor's current undo/redo history. This does not change the document: it only
+	 * restores what undo and redo will do.
+	 *
+	 * If the snapshot was captured under a different store schema, or is invalid, it is
+	 * ignored with a warning.
+	 *
+	 * @example
+	 * ```ts
+	 * const history = editor.getHistorySnapshot()
+	 * // ...dispose the editor, then rebuild it on the same document...
+	 * newEditor.loadHistorySnapshot(history)
+	 * ```
+	 *
+	 * @param snapshot - The history snapshot to load.
+	 *
+	 * @public
+	 */
+	loadHistorySnapshot(snapshot: TLHistorySnapshot): this {
+		this.history.loadSnapshot(snapshot)
 		return this
 	}
 

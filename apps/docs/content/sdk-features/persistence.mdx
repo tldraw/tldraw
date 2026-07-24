@@ -140,6 +140,20 @@ export default function App() {
 }
 ```
 
+### History snapshots
+
+Document and session snapshots don't include the editor's undo/redo history. If you rebuild the editor on the same document — for example, after changing which shape utils or tools are passed to it — you can carry the history across with [Editor#getHistorySnapshot](?) and [Editor#loadHistorySnapshot](?):
+
+```ts
+const history = editor.getHistorySnapshot()
+
+// ...rebuild the editor on the same document...
+
+newEditor.loadHistorySnapshot(history)
+```
+
+History entries contain full record values, so a history snapshot can only be loaded into an editor whose store schema matches the schema it was captured under. If the schemas differ — for example, a shape type was added, removed, or migrated — the snapshot is ignored with a warning. Unlike document snapshots, history snapshots are never migrated: discard them when your schema changes.
+
 ## Custom persistence with store
 
 For more control, create your own store and pass it to the editor. This lets you load data before mounting and implement custom sync logic.

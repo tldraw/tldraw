@@ -715,6 +715,215 @@ describe('HistoryManager getters and utilities', () => {
 	})
 })
 
+describe('history snapshots', () => {
+	let store: Store<TestRecord>
+	let manager: HistoryManager<TestRecord>
+
+	beforeEach(() => {
+		store = new Store({ schema: testSchema, props: null })
+		store.put([
+			testSchema.types.test.create({ id: ids.a, value: 0 }),
+			testSchema.types.test.create({ id: ids.b, value: 0 }),
+		])
+		manager = new HistoryManager<TestRecord>({ store })
+	})
+
+	function setA(n: number) {
+		store.update(ids.a, (r) => ({ ...r, value: n }))
+	}
+	function setB(n: number) {
+		store.update(ids.b, (r) => ({ ...r, value: n }))
+	}
+	function getState(s: Store<TestRecord>) {
+		return { a: s.get(ids.a)!.value, b: s.get(ids.b)!.value }
+	}
+
+	// mimics a host rebuilding the editor on the same document: a new store with the same
+	// records and a fresh manager, with the history restored from the snapshot
+	function restoreIntoNewManager(snapshot = manager.getSnapshot()) {
+		const newStore = new Store<TestRecord>({ schema: testSchema, props: null })
+		newStore.put(store.allRecords())
+		const newManager = new HistoryManager<TestRecord>({ store: newStore })
+		newManager.loadSnapshot(snapshot)
+		return { newStore, newManager }
+	}
+
+	it('produces a JSON-serializable snapshot', () => {
+		setA(1)
+		manager._mark('one')
+		setB(1)
+
+		const snapshot = manager.getSnapshot()
+
+		expect(JSON.parse(JSON.stringify(snapshot))).toEqual(snapshot)
+	})
+
+	it('restores undo/redo behavior in a new manager', () => {
+		setA(1)
+		manager._mark('one')
+		setA(2)
+		manager._mark('two')
+		setB(1)
+		manager.undo() // move the b change onto the redo stack
+
+		expect(getState(store)).toEqual({ a: 2, b: 0 })
+
+		const snapshot = JSON.parse(JSON.stringify(manager.getSnapshot()))
+		const { newStore, newManager } = restoreIntoNewManager(snapshot)
+
+		expect(newManager.getNumUndos()).toBe(manager.getNumUndos())
+		expect(newManager.getNumRedos()).toBe(manager.getNumRedos())
+
+		// from here on, both managers should behave identically
+		for (const method of ['redo', 'undo', 'undo', 'undo', 'redo'] as const) {
+			manager[method]()
+			newManager[method]()
+			expect(getState(newStore)).toEqual(getState(store))
+		}
+	})
+
+	it('includes uncommitted changes without modifying the live history', () => {
+		manager._mark('start')
+		setA(1) // not yet committed to the undo stack
+
+		const numUndosBefore = manager.getNumUndos()
+		const snapshot = manager.getSnapshot()
+		expect(manager.getNumUndos()).toBe(numUndosBefore)
+
+		const { newStore, newManager } = restoreIntoNewManager(snapshot)
+		expect(newManager.getNumUndos()).toBe(numUndosBefore)
+		newManager.undo()
+		expect(getState(newStore)).toEqual({ a: 0, b: 0 })
+
+		// the live manager still works as before
+		manager.undo()
+		expect(getState(store)).toEqual({ a: 0, b: 0 })
+	})
+
+	it('does not leak later changes into a captured snapshot', () => {
+		setA(1)
+		const recordsAtCapture = store.allRecords()
+		const snapshot = manager.getSnapshot()
+
+		// this squashes into the same uncommitted diff the snapshot captured
+		setA(2)
+
+		const newStore = new Store<TestRecord>({ schema: testSchema, props: null })
+		newStore.put(recordsAtCapture)
+		const newManager = new HistoryManager<TestRecord>({ store: newStore })
+		newManager.loadSnapshot(snapshot)
+
+		newManager.undo()
+		expect(newStore.get(ids.a)!.value).toBe(0)
+		newManager.redo()
+		expect(newStore.get(ids.a)!.value).toBe(1)
+	})
+
+	it('preserves marks so bailToMark keeps working', () => {
+		setA(1)
+		manager._mark('my-mark')
+		setB(1)
+		setB(2)
+
+		const { newStore, newManager } = restoreIntoNewManager()
+
+		newManager.bailToMark('my-mark')
+		expect(getState(newStore)).toEqual({ a: 1, b: 0 })
+	})
+
+	it('preserves marks so squashToMark keeps working', () => {
+		manager._mark('a')
+		setA(1)
+		manager._mark('b')
+		setB(1)
+		manager._mark('c')
+		setB(2)
+
+		const { newStore, newManager } = restoreIntoNewManager()
+
+		newManager.squashToMark('b')
+		newManager.undo()
+		expect(getState(newStore)).toEqual({ a: 1, b: 0 })
+	})
+
+	it('replaces existing history and discards uncommitted changes when loading', () => {
+		setA(1)
+		manager._mark('m')
+		const snapshot = manager.getSnapshot()
+
+		setB(1) // uncommitted change made after the capture
+		manager.loadSnapshot(snapshot)
+
+		expect(manager.getNumUndos()).toBe(2) // the a diff and the mark
+		expect(manager.getNumRedos()).toBe(0)
+
+		// the a change is undoable again, the b change is not
+		manager.undo()
+		expect(getState(store)).toEqual({ a: 0, b: 1 })
+	})
+
+	it('round-trips an empty history', () => {
+		const snapshot = manager.getSnapshot()
+		expect(snapshot.undos).toEqual([])
+		expect(snapshot.redos).toEqual([])
+
+		const { newManager } = restoreIntoNewManager(snapshot)
+		expect(newManager.getNumUndos()).toBe(0)
+		expect(newManager.getNumRedos()).toBe(0)
+	})
+
+	it('ignores snapshots captured under a different schema', () => {
+		setA(1)
+		const snapshot = manager.getSnapshot()
+		snapshot.schema = { schemaVersion: 2, sequences: { 'com.test.foo': 1 } }
+
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		try {
+			const newStore = new Store<TestRecord>({ schema: testSchema, props: null })
+			newStore.put(store.allRecords())
+			const newManager = new HistoryManager<TestRecord>({ store: newStore })
+			newManager.loadSnapshot(snapshot)
+
+			expect(warn).toHaveBeenCalled()
+			expect(newManager.getNumUndos()).toBe(0)
+			expect(newManager.getNumRedos()).toBe(0)
+		} finally {
+			warn.mockRestore()
+		}
+	})
+
+	it('ignores structurally invalid snapshots', () => {
+		setA(1)
+		manager._mark('m')
+		const numUndosBefore = manager.getNumUndos()
+
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		try {
+			manager.loadSnapshot(null as any)
+			manager.loadSnapshot({} as any)
+			manager.loadSnapshot({
+				version: 0,
+				schema: testSchema.serialize(),
+				undos: [{ type: 'bogus' }],
+				redos: [],
+			} as any)
+			manager.loadSnapshot({
+				version: 0,
+				schema: testSchema.serialize(),
+				undos: [
+					{ type: 'diff', diff: { added: {}, updated: { 'test:a': [{}, {}, {}] }, removed: {} } },
+				],
+				redos: [],
+			} as any)
+
+			expect(warn).toHaveBeenCalledTimes(4)
+			expect(manager.getNumUndos()).toBe(numUndosBefore)
+		} finally {
+			warn.mockRestore()
+		}
+	})
+})
+
 describe('HistoryManager error scenarios and edge cases', () => {
 	let manager: HistoryManager<TestRecord>
 	let store: Store<TestRecord>

@@ -668,6 +668,44 @@ describe('snapshots', () => {
 	})
 })
 
+describe('history snapshots', () => {
+	it('carries the undo/redo history across editor instances', () => {
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
+		editor.markHistoryStoppingPoint()
+		editor.updateShape({ id: ids.box1, type: 'geo', x: 100 })
+		expect(editor.getShape(ids.box1)!.x).toBe(100)
+
+		const snapshot = getSnapshot(editor.store)
+		const history = JSON.parse(JSON.stringify(editor.getHistorySnapshot()))
+
+		const newEditor = new TestEditor()
+		loadSnapshot(newEditor.store, snapshot)
+		newEditor.loadHistorySnapshot(history)
+
+		expect(newEditor.getCanUndo()).toBe(true)
+		newEditor.undo()
+		expect(newEditor.getShape(ids.box1)!.x).toBe(0)
+		newEditor.redo()
+		expect(newEditor.getShape(ids.box1)!.x).toBe(100)
+	})
+
+	it('preserves mark ids so bailToMark works across editor instances', () => {
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
+		const mark = editor.markHistoryStoppingPoint('before-move')
+		editor.updateShape({ id: ids.box1, type: 'geo', x: 100 })
+
+		const snapshot = getSnapshot(editor.store)
+		const history = editor.getHistorySnapshot()
+
+		const newEditor = new TestEditor()
+		loadSnapshot(newEditor.store, snapshot)
+		newEditor.loadHistorySnapshot(history)
+
+		newEditor.bailToMark(mark)
+		expect(newEditor.getShape(ids.box1)!.x).toBe(0)
+	})
+})
+
 describe('when the user prefers dark UI', () => {
 	beforeEach(() => {
 		window.matchMedia = vi.fn().mockImplementation((query) => {
