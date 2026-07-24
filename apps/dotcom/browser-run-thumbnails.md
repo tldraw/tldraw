@@ -228,6 +228,10 @@ Make the thumbnail exist before the first crawler arrives, and make every residu
 
 The existing on-miss enqueue and stale-serve behavior in `getOgImage` remains the universal backstop, unchanged.
 
+### Beyond OG images
+
+This isn't just a crawler fix. The result is a board thumbnail that's reliably current in R2 — kept fresh by publish and edit triggers rather than rendered synchronously per request — for every shared board, not only the ones a crawler happens to hit. That's the same primitive other surfaces need: board previews in a folder or workspace view, for instance, which today would otherwise need their own render-on-demand path or ship without a real thumbnail. Once this plan lands, those surfaces can just read the cached image.
+
 ### Phase 0 — measure (no code)
 
 Pull two numbers from existing telemetry (`mcp_shared_board_screenshot` dataset via `internal/scripts/fetch-screenshot-metrics.ts`; `room_empty`/persist log events):
