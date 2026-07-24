@@ -91,22 +91,9 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="distribute-vertical" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.text-formatting" id="text">
-				<TldrawUiMenuItem
-					id="text-bold"
-					label="tool.rich-text-bold"
-					kbd="cmd+b"
-					onSelect={() => {
-						/* do nothing */
-					}}
-				/>
-				<TldrawUiMenuItem
-					id="text-italic"
-					label="tool.rich-text-italic"
-					kbd="cmd+i"
-					onSelect={() => {
-						/* do nothing */
-					}}
-				/>
+				<TldrawUiMenuActionItem actionId="format-bold" />
+				<TldrawUiMenuActionItem actionId="format-italic" />
+				<TldrawUiMenuActionItem actionId="format-underline" />
 				<TldrawUiMenuItem
 					id="text-code"
 					label="tool.rich-text-code"
@@ -131,14 +118,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 						/* do nothing */
 					}}
 				/>
-				<TldrawUiMenuItem
-					id="text-link"
-					label="tool.rich-text-link"
-					kbd="cmd+shift+k"
-					onSelect={() => {
-						/* do nothing */
-					}}
-				/>
+				<TldrawUiMenuActionItem actionId="format-link" />
 				<TldrawUiMenuItem
 					id="text-header"
 					label="tool.rich-text-header"

@@ -282,6 +282,7 @@ export type TLUiTranslationKey =
 	| 'tool.media-alt-text-confirm'
 	| 'tool.rich-text-bold'
 	| 'tool.rich-text-italic'
+	| 'tool.rich-text-underline'
 	| 'tool.rich-text-code'
 	| 'tool.rich-text-highlight'
 	| 'tool.rich-text-strikethrough'

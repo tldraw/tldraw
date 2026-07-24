@@ -17,6 +17,7 @@ import {
 	RichTextFontVisitorState,
 	TLFontFace,
 	TLRichText,
+	TLShape,
 	WeakCache,
 } from '@tldraw/editor'
 import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
@@ -160,6 +161,107 @@ export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText
 	const tipTapExtensions =
 		editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
 	return generateJSON(html, tipTapExtensions) as TLRichText
+}
+
+/**
+ * Whether every text node in a rich text document has the given mark. Returns `false` if there are
+ * no text nodes. Useful for deciding whether toggling a mark should add or remove it.
+ *
+ * @param richText - The rich text content.
+ * @param markName - The mark type name, e.g. `'bold'` or `'italic'`.
+ *
+ * @public
+ */
+export function richTextHasMarkEverywhere(richText: TLRichText, markName: string): boolean {
+	let hasTextNode = false
+	let allMarked = true
+
+	const visit = (node: any) => {
+		if (!node || typeof node !== 'object') return
+		if (node.type === 'text') {
+			hasTextNode = true
+			const marks: any[] = Array.isArray(node.marks) ? node.marks : []
+			if (!marks.some((mark) => mark?.type === markName)) {
+				allMarked = false
+			}
+			return
+		}
+		if (Array.isArray(node.content)) {
+			for (const child of node.content) visit(child)
+		}
+	}
+
+	visit(richText)
+
+	return hasTextNode && allMarked
+}
+
+/**
+ * Returns a copy of the rich text content with the given mark added to or removed from every text
+ * node. Does not mutate the input.
+ *
+ * @param richText - The rich text content.
+ * @param markName - The mark type name, e.g. `'bold'` or `'italic'`.
+ * @param enabled - Whether the mark should be present (`true`) or absent (`false`) on every text node.
+ * @param attrs - Optional mark attributes, e.g. `{ href }` for a `'link'` mark. When provided, an
+ *   existing mark of the same type is replaced so its attributes are updated.
+ *
+ * @public
+ */
+export function setMarkOnRichText(
+	richText: TLRichText,
+	markName: string,
+	enabled: boolean,
+	attrs?: Record<string, unknown>
+): TLRichText {
+	const visit = (node: any): any => {
+		if (!node || typeof node !== 'object') return node
+
+		if (node.type === 'text') {
+			const marks: any[] = Array.isArray(node.marks) ? node.marks : []
+			let nextMarks: any[]
+			if (enabled) {
+				const mark = attrs ? { type: markName, attrs } : { type: markName }
+				// A plain mark that's already present can be left as-is, but a mark with attributes
+				// (e.g. a link's href) is always rewritten so its attributes update.
+				if (!attrs && marks.some((m) => m?.type === markName)) return node
+				nextMarks = [...marks.filter((m) => m?.type !== markName), mark]
+			} else {
+				if (!marks.some((mark) => mark?.type === markName)) return node
+				nextMarks = marks.filter((mark) => mark?.type !== markName)
+			}
+			return { ...node, marks: nextMarks }
+		}
+
+		if (Array.isArray(node.content)) {
+			return { ...node, content: node.content.map(visit) }
+		}
+
+		return node
+	}
+
+	return visit(richText) as TLRichText
+}
+
+/**
+ * The shapes in the editor's current selection that a "format the selection" action should apply
+ * to: shapes with a `richText` prop that holds actual text content and aren't locked. Shapes with
+ * an empty label (no text content) are skipped so they don't keep a fully-marked selection from
+ * toggling off, and locked shapes are left untouched.
+ *
+ * @internal
+ */
+export function getFormattableSelectedShapes(
+	editor: Editor
+): (TLShape & { props: { richText: TLRichText } })[] {
+	return editor
+		.getSelectedShapes()
+		.filter(
+			(shape): shape is TLShape & { props: { richText: TLRichText } } =>
+				'richText' in shape.props &&
+				!editor.isShapeOrAncestorLocked(shape.id) &&
+				!isEmptyRichText(shape.props.richText)
+		)
 }
 
 /** @public */

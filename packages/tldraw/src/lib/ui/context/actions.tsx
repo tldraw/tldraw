@@ -28,8 +28,13 @@ import { defaultHandleExternalTextContent } from '../../defaultExternalContentHa
 import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
+import {
+	getFormattableSelectedShapes,
+	richTextHasMarkEverywhere,
+	setMarkOnRichText,
+} from '../../utils/text/richText'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
-import { EditLinkDialog } from '../components/EditLinkDialog'
+import { EditLinkDialog, RichTextLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { DefaultKeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
@@ -152,6 +157,38 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			})
 		}
 
+		/**
+		 * Toggle a rich text mark (e.g. 'bold', 'italic', 'underline') on every text-bearing shape in
+		 * the selection, without entering text edit mode. If every selected shape is already fully
+		 * marked, the mark is removed from all of them; otherwise it is added to all of them.
+		 */
+		function toggleRichTextMarkOnSelection(
+			markName: 'bold' | 'italic' | 'underline',
+			source: TLUiEventSource
+		) {
+			if (!editor.isIn('select')) return
+
+			const shapes = getFormattableSelectedShapes(editor)
+			if (shapes.length === 0) return
+
+			trackEvent('rich-text', { operation: markName, source })
+			editor.markHistoryStoppingPoint(`format ${markName}`)
+			editor.run(() => {
+				const allMarked = shapes.every((shape) =>
+					richTextHasMarkEverywhere(shape.props.richText, markName)
+				)
+				editor.updateShapes(
+					shapes.map((shape) => ({
+						id: shape.id,
+						type: shape.type,
+						props: {
+							richText: setMarkOnRichText(shape.props.richText, markName, !allMarked),
+						},
+					})) as TLShapePartial[]
+				)
+			})
+		}
+
 		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
 			{
 				id: 'edit-link',
@@ -167,9 +204,49 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'format-bold',
+				label: 'tool.rich-text-bold',
+				icon: 'bold',
+				kbd: 'cmd+b,ctrl+b',
+				onSelect(source) {
+					toggleRichTextMarkOnSelection('bold', source)
+				},
+			},
+			{
+				id: 'format-italic',
+				label: 'tool.rich-text-italic',
+				icon: 'italic',
+				kbd: 'cmd+i,ctrl+i',
+				onSelect(source) {
+					toggleRichTextMarkOnSelection('italic', source)
+				},
+			},
+			{
+				id: 'format-underline',
+				label: 'tool.rich-text-underline',
+				icon: 'underline',
+				kbd: 'cmd+u,ctrl+u',
+				onSelect(source) {
+					toggleRichTextMarkOnSelection('underline', source)
+				},
+			},
+			{
+				id: 'format-link',
+				label: 'tool.rich-text-link',
+				icon: 'link',
+				kbd: 'cmd+shift+k,ctrl+shift+k',
+				onSelect(source) {
+					if (!editor.isIn('select')) return
+					if (getFormattableSelectedShapes(editor).length === 0) return
+
+					trackEvent('rich-text', { operation: 'link', source })
+					helpers.addDialog({ component: RichTextLinkDialog })
+				},
+			},
+			{
 				id: 'insert-embed',
 				label: 'action.insert-embed',
-				kbd: 'cmd+i,ctrl+i',
+				kbd: 'cmd+e,ctrl+e',
 				onSelect(source) {
 					trackEvent('insert-embed', { source })
 					helpers.addDialog({ component: EmbedDialog })
@@ -189,7 +266,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'insert-media',
 				label: 'action.insert-media',
-				kbd: 'cmd+u,ctrl+u',
+				kbd: 'cmd+shift+u,ctrl+shift+u',
 				onSelect(source) {
 					trackEvent('insert-media', { source })
 					helpers.insertMedia()
