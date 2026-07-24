@@ -24,7 +24,6 @@ const anchors: TLCommentAnchor[] = [
 	{ type: 'point', x: 100, y: 200 },
 	{ type: 'region', x: 0, y: 0, w: 300, h: 150 },
 	{ type: 'page' },
-	{ type: 'text-range', shapeId, from: 3, to: 12 },
 ]
 
 describe('TLCommentThread', () => {

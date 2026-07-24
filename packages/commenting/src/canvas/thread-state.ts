@@ -67,11 +67,6 @@ export function anchorPagePoint(
 			const { x, y } = anchor.isPrecise ? anchor : impreciseShapeAnchor
 			return { x: bounds.minX + x * bounds.w, y: bounds.minY + y * bounds.h }
 		}
-		case 'text-range': {
-			const bounds = editor.getShapePageBounds(anchor.shapeId as TLShapeId)
-			if (!bounds) return null
-			return { x: bounds.maxX, y: bounds.minY }
-		}
 		case 'point':
 			return { x: anchor.x, y: anchor.y }
 		case 'region':

@@ -15,7 +15,6 @@ const sketchbook: Sketchbook<CommentAnchorProps> = {
 				point: { type: 'point', x: 120, y: 90 },
 				region: { type: 'region', x: 60, y: 60, w: 180, h: 120 },
 				page: { type: 'page' },
-				'text-range': { type: 'text-range', shapeId: createShapeId('note'), from: 16, to: 30 },
 			},
 		},
 	},
@@ -45,10 +44,4 @@ export const Region: Sketch<CommentAnchorProps> = {
 }
 export const Page: Sketch<CommentAnchorProps> = {
 	args: { anchor: { type: 'page' }, open: true },
-}
-export const TextRange: Sketch<CommentAnchorProps> = {
-	args: {
-		anchor: { type: 'text-range', shapeId: createShapeId('note'), from: 16, to: 30 },
-		open: true,
-	},
 }

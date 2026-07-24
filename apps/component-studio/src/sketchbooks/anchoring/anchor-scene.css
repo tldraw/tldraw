@@ -19,15 +19,6 @@
 	transform: translate(-8px, -10px);
 }
 
-/* text-range: the measured highlight over each line fragment */
-.anchor-scene__text-hl {
-	position: absolute;
-	z-index: 100;
-	pointer-events: none;
-	background: color-mix(in srgb, var(--tl-color-selected) 28%, transparent);
-	border-radius: 3px;
-}
-
 /* region: a rectangular area of the page */
 .anchor-scene__region {
 	position: absolute;

@@ -18,7 +18,6 @@ import { TLShapeId } from './TLShape'
  * - `point` — pinned to a fixed point on the page, in page coordinates
  * - `region` — pinned to a rectangular area of the page, in page coordinates
  * - `page` — a page-level thread with no spatial anchor
- * - `text-range` — pinned to a character range inside a shape's text
  *
  * @public
  */
@@ -37,7 +36,6 @@ export type TLCommentAnchor =
 			pinY?: number
 	  }
 	| { type: 'page' }
-	| { type: 'text-range'; shapeId: TLShapeId; from: number; to: number }
 
 /**
  * A comment thread. The thread owns the anchor (where the conversation lives on the canvas) and
@@ -127,12 +125,6 @@ const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
 	}),
 	page: T.object({
 		type: T.literal('page'),
-	}),
-	'text-range': T.object({
-		type: T.literal('text-range'),
-		shapeId: idValidator<TLShapeId>('shape'),
-		from: T.number,
-		to: T.number,
 	}),
 })
 
