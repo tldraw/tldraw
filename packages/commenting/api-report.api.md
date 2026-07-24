@@ -533,6 +533,9 @@ export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLComme
 export function renderMarkdown(text: string): ReactNode;
 
 // @public
+export const revealThreadRequest: EditorAtom<null | string>;
+
+// @public
 export function richTextToPlaintext(body: TLRichText, resolveName?: (id: string) => string | undefined): string;
 
 // @public
