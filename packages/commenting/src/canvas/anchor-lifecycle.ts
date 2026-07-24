@@ -11,7 +11,7 @@ import { getCommentingOptions } from './options'
 import { commitCommentMutation } from './state'
 import { anchorPagePoint, impreciseShapePinInset } from './thread-state'
 
-type ShapeAnchor = Extract<TLCommentAnchor, { type: 'shape' | 'text-range' }>
+type ShapeAnchor = Extract<TLCommentAnchor, { type: 'shape' }>
 
 /**
  * Threads converted to point anchors because their shape was deleted, kept so the anchor can be
@@ -30,12 +30,11 @@ function isAnchoredToShape(
 	shapeId: TLShapeId
 ): thread is TLCommentThread & { anchor: ShapeAnchor } {
 	const anchor = thread.anchor
-	return (anchor.type === 'shape' || anchor.type === 'text-range') && anchor.shapeId === shapeId
+	return anchor.type === 'shape' && anchor.shapeId === shapeId
 }
 
 /**
- * Keep shape-anchored threads (`shape` and `text-range` anchors) alive across their shape's
- * lifecycle:
+ * Keep shape-anchored threads alive across their shape's lifecycle:
  *
  * - When the shape is deleted, the thread converts to a `point` anchor at the spot its pin last
  *   occupied, so the conversation outlives the shape instead of becoming invisible (a missing
@@ -200,7 +199,7 @@ export function registerCommentAnchorLifecycle(
 			const updates: TLCommentRecord[] = []
 			for (const thread of getCommentThreads(editor)) {
 				const anchor = thread.anchor
-				if (anchor.type !== 'shape' && anchor.type !== 'text-range') continue
+				if (anchor.type !== 'shape') continue
 				if (!movedIds.has(anchor.shapeId)) continue
 				if (thread.pageId === pageId) continue
 				rehomeThread(thread, pageId, updates)
