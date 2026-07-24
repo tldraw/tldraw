@@ -5,7 +5,7 @@ import { getComments, getCommentThreads } from './comment-store'
  * The comment threads that should render (pins, sidebar), reactively: live — not soft-deleted —
  * and still holding at least one comment. A soft-deleted thread is awaiting the server's prune;
  * an emptied one has no surface left (deleting a thread's last comment leaves the thread record
- * behind). Use `getCommentThreads` for the unfiltered set.
+ * behind until the server prunes it). Use `getCommentThreads` for the unfiltered set.
  *
  * @public
  */

@@ -1292,7 +1292,8 @@ const ThreadPin = memo(function ThreadPin({
 		commitCommentMutation(editor, () => {
 			// Deleting a thread's only comment hides the thread — an empty thread has no surface
 			// (see useCommentThreads). The thread record itself is left alone: the deleter
-			// may not be its creator, and only creators may delete threads.
+			// may not be its creator, and only creators may delete threads. The server prunes
+			// threads its drain observes emptied.
 			if (comments.length === 1) {
 				openThreadId.set(editor, null)
 			}
