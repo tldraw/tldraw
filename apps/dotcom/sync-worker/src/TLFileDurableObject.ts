@@ -1947,32 +1947,20 @@ export class TLFileDurableObject extends DurableObject {
 						return { failedIds, prunedIds }
 					}
 				}
-				// Clients never hard-delete comment records (deletion is the isDeleted flag), so a
-				// comment delete here is a stale outbox entry for a record the soft-delete prune
-				// below (or an author cascade) already made lane-absent. Lane-absence normally
-				// means "delete the Postgres row", but for soft-deleted records the row IS the
-				// desired end state — guard every hard delete on neither the comment nor its
-				// thread being soft-deleted, so a stale entry can't escalate a soft delete into
-				// destroying the recovery rows. The author-cascade path is unaffected (its records
-				// are never soft-deleted).
-				// The deleted rows' thread ids feed the emptied-thread prune below: a thread whose
-				// last comment was just hard-deleted has no surface left and must not linger.
+				// The drain never hard-deletes comment-lane rows — the only hard deletes are
+				// Postgres-side cascades (user-account deletion via /admin, file deletion, version
+				// restore). Clients never hard-delete either (deletion is the isDeleted flag), so
+				// a lane-absent comment here is a stale outbox entry for a record a prune already
+				// removed from the lane; stamp its row soft-deleted. Idempotent, so at-least-once
+				// replays and already-stamped rows are no-ops.
+				// The stamped rows' thread ids feed the emptied-thread prune below: a thread whose
+				// last comment just went has no surface left and must not linger in the lane.
 				let deletedCommentThreadIds = new Set<string>()
 				if (commentDeletes.length > 0) {
 					const deletedRows = await this.db
-						.deleteFrom('comment')
+						.updateTable('comment')
+						.set({ isDeleted: true })
 						.where('id', 'in', commentDeletes)
-						.where('isDeleted', '=', false)
-						.where(({ not, exists, selectFrom }) =>
-							not(
-								exists(
-									selectFrom('comment_thread')
-										.select('comment_thread.id')
-										.whereRef('comment_thread.id', '=', 'comment.threadId')
-										.where('comment_thread.isDeleted', '=', true)
-								)
-							)
-						)
 						.returning('threadId')
 						.execute()
 					deletedCommentThreadIds = new Set(deletedRows.map((row) => row.threadId))
@@ -1990,9 +1978,9 @@ export class TLFileDurableObject extends DurableObject {
 				// state). Threads the prune leaves without any comments are pruned too — an
 				// emptied thread never renders (clients hide threads with no comments), so an
 				// author-cascade must not leave ghost records behind. Thread rows in
-				// Postgres are NOT deleted here: comment_thread has no user FK (by design, so the
+				// Postgres are not touched here: comment_thread has no user FK (by design, so the
 				// cascade can't race the room), so the pruned thread ids are re-outboxed and a
-				// follow-up drain issues the Postgres delete through the normal at-least-once
+				// follow-up drain stamps the rows soft-deleted through the normal at-least-once
 				// acked path.
 				const commentResult = await runBatchWithFallback(
 					commentUpserts,
@@ -2002,27 +1990,16 @@ export class TLFileDurableObject extends DurableObject {
 				for (const id of commentResult.failedIds) {
 					failedIds.add(id)
 				}
-				// Thread hard-deletes carry the same soft-delete guard as the comment deletes
-				// above. Order vs the upserts doesn't matter here: an id can't be planned as both
-				// an upsert (lane-present) and a delete (lane-absent) in one drain.
+				// Lane-absent threads get the same treatment: stamp, never delete — a hard delete
+				// would FK-cascade any soft-deleted comment rows still hanging off the thread,
+				// destroying the recovery rows. Order vs the upserts doesn't matter here: an id
+				// can't be planned as both an upsert (lane-present) and a delete (lane-absent) in
+				// one drain.
 				if (threadDeletes.length > 0) {
 					await this.db
-						.deleteFrom('comment_thread')
+						.updateTable('comment_thread')
+						.set({ isDeleted: true })
 						.where('id', 'in', threadDeletes)
-						.where('isDeleted', '=', false)
-						// A thread row with any comment rows left must survive: the emptiness that
-						// queued this delete was judged on the room's lane, which no longer holds
-						// soft-deleted comments — but their Postgres rows do exist, this row is
-						// their FK parent, and deleting it would cascade the recovery rows away.
-						.where(({ not, exists, selectFrom }) =>
-							not(
-								exists(
-									selectFrom('comment')
-										.select('comment.id')
-										.whereRef('comment.threadId', '=', 'comment_thread.id')
-								)
-							)
-						)
 						.execute()
 				}
 
@@ -2033,8 +2010,8 @@ export class TLFileDurableObject extends DurableObject {
 				// so clock-guarded no-op replays cause no WAL churn. A mention insert failing its
 				// user FK (mentioned account deleted, or a bogus id) is skipped for good; any other
 				// failure marks the comment failed so its outbox entry stays queued and the next
-				// drain retries the reconcile. Comment deletes need no handling here: the FK
-				// cascades their mention rows away.
+				// drain retries the reconcile. Soft-deleted comments keep their mention rows; the
+				// rows are inert because every query filters the comment itself on isDeleted.
 				const mentionReconciles = planMentionReconciles(
 					commentUpserts.filter(
 						(row) => !failedIds.has(row.id) && !commentResult.prunedIds.includes(row.id)
@@ -2134,11 +2111,11 @@ export class TLFileDurableObject extends DurableObject {
 					}).result
 					if (prunedThreadIds.length > 0) {
 						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_thread_emptied_prune' })
-						// Outbox the pruned thread ids instead of deleting their Postgres rows
+						// Outbox the pruned thread ids instead of stamping their Postgres rows
 						// directly: the follow-up drain (kicked below, after this drain's
-						// bookkeeping) sees them lane-absent and issues the delete through the
-						// normal crash-safe at-least-once path. These inserts get seqs above this
-						// drain's bound, so the outbox clear below can't remove them.
+						// bookkeeping) sees them lane-absent and stamps them soft-deleted through
+						// the normal crash-safe at-least-once path. These inserts get seqs above
+						// this drain's bound, so the outbox clear below can't remove them.
 						for (const id of prunedThreadIds) {
 							this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
 						}

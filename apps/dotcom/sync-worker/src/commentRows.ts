@@ -219,7 +219,12 @@ export interface CommentOutboxEntry {
 	recordId: string
 }
 
-/** The pure output of `planCommentDrain`: Postgres writes grouped by table and operation. */
+/**
+ * The pure output of `planCommentDrain`: Postgres writes grouped by table and operation. The
+ * delete buckets carry lane-absent ids, and "delete" means stamping the row's `isDeleted` —
+ * the drain never hard-deletes comment-lane rows (the only hard deletes are Postgres-side
+ * cascades: user-account deletion, file deletion, version restore).
+ */
 export interface CommentDrainPlan {
 	threadUpserts: DB['comment_thread'][]
 	commentUpserts: DB['comment'][]
@@ -238,7 +243,7 @@ export interface CommentDrainPlan {
  * TLFileDurableObject). The outbox stores only ids; whether an id is an upsert or a delete is
  * decided by its presence in the object `lane` at plan time, so multiple entries for one record
  * coalesce into a single write (deduped by recordId, keeping first-occurrence order) and a
- * create-then-delete nets out to a delete. Only ids present in `entries` are considered — the
+ * create-then-prune nets out to a delete bucket entry. Only ids present in `entries` are considered — the
  * caller bounds the entries to its drain's high-water mark, and lane records outside that set
  * belong to a later drain.
  */
