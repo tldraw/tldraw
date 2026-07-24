@@ -7,12 +7,9 @@ import {
 	putCommentRecords,
 	TLCommentRecord,
 } from './comment-store'
+import { getCommentingOptions } from './options'
 import { commitCommentMutation } from './state'
-import {
-	anchorPagePoint,
-	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
-	impreciseShapePinInset,
-} from './thread-state'
+import { anchorPagePoint, impreciseShapePinInset } from './thread-state'
 
 type ShapeAnchor = Extract<TLCommentAnchor, { type: 'shape' | 'text-range' }>
 
@@ -75,7 +72,7 @@ function isAnchoredToShape(
  */
 export function registerCommentAnchorLifecycle(
 	editor: Editor,
-	impreciseShapeAnchor: { x: number; y: number } = DEFAULT_IMPRECISE_SHAPE_ANCHOR
+	impreciseShapeAnchor?: { x: number; y: number }
 ): () => void {
 	// Captured during the current operation: shape id -> (thread id -> pin page point).
 	const pendingByShape = new Map<TLShapeId, Map<string, VecLike | null>>()
@@ -102,9 +99,12 @@ export function registerCommentAnchorLifecycle(
 				// Capture where the pin is drawn, not just the anchor point: imprecise shape pins
 				// render inset toward the shape's centre, and the converted point pin renders at
 				// its point exactly — without the inset the pin would jump on deletion. The inset
-				// is screen-fixed, so bake it in at the current zoom.
-				let point = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
-				const inset = impreciseShapePinInset(thread.anchor, impreciseShapeAnchor)
+				// is screen-fixed, so bake it in at the current zoom. The imprecise spot resolves
+				// from the editor's commenting options unless the caller overrides it (the overlay
+				// passes its prop through).
+				const spot = impreciseShapeAnchor ?? getCommentingOptions(editor).impreciseShapeAnchor
+				let point = anchorPagePoint(editor, thread.anchor, spot)
+				const inset = impreciseShapePinInset(thread.anchor, spot)
 				if (point && inset) {
 					const zoom = editor.getZoomLevel()
 					point = { x: point.x + inset.x / zoom, y: point.y + inset.y / zoom }

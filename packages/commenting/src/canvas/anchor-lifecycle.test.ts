@@ -16,6 +16,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
 import { getCommentRecord, getComments, putCommentRecords } from './comment-store'
+import { CommentTool } from './comment-tool'
 import { commitCommentMutation } from './state'
 
 /**
@@ -91,6 +92,36 @@ describe('shape deletion', () => {
 		// Top-right corner (200, 100) plus the 20px screen inset toward the shape's centre.
 		const updated = getCommentRecord(editor, thread.id) as typeof thread
 		expect(updated.anchor).toEqual({ type: 'point', x: 180, y: 120 })
+	})
+
+	it('resolves the imprecise spot from the commenting options when no override is passed', () => {
+		const configured = new Editor({
+			store: createTLStore({ schema: createTLSchema({ records: commentSchemaRecords }) }),
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			tools: [...defaultTools, CommentTool.configure({ impreciseShapeAnchor: { x: 0, y: 1 } })],
+			getContainer: () => document.body,
+		})
+		const disposeConfigured = registerCommentAnchorLifecycle(configured)
+		try {
+			const shapeId = createShapeId()
+			configured.createShape({ id: shapeId, type: 'geo', x: 100, y: 100, props: { w: 100, h: 50 } })
+			const thread = createCommentThread({
+				pageId: configured.getCurrentPageId(),
+				anchor: { type: 'shape', shapeId, x: 0.5, y: 0.5, isPrecise: false },
+				createdBy: 'me',
+			})
+			putCommentRecords(configured, [thread])
+
+			configured.deleteShape(shapeId)
+
+			// Bottom-left corner (100, 150) plus the inset toward the shape's centre.
+			const updated = getCommentRecord(configured, thread.id) as typeof thread
+			expect(updated.anchor).toEqual({ type: 'point', x: 120, y: 130 })
+		} finally {
+			disposeConfigured()
+			configured.dispose()
+		}
 	})
 
 	it('converts anchors on children when their frame is deleted with them', () => {
