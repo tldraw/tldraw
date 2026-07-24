@@ -175,7 +175,7 @@ function measureAnchor(
 		case 'text-range': {
 			const richText = findRenderedText(editor)
 			if (!richText) return null
-			const range = rangeForOffsets(richText, anchor.from, anchor.to)
+			const range = rangeForOffsets(richText, anchor.source.from, anchor.source.to)
 			if (!range) return null
 			const frags = [...range.getClientRects()].map((r) => screenRectToFrac(c, r))
 			if (frags.length === 0) return null

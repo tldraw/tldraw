@@ -1,12 +1,23 @@
 import {
 	openThreadId,
+	resolveTextRangeAnchor,
 	useCommentsHidden,
 	useCommentThreads,
 	usePendingComment,
 } from '@tldraw/commenting'
 import { useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Editor, TLShapeId, useContainer, useEditor, useValue } from 'tldraw'
+import {
+	Editor,
+	TLCommentAnchor,
+	TLRichText,
+	TLShapeId,
+	useContainer,
+	useEditor,
+	useValue,
+} from 'tldraw'
+
+type TextRangeAnchor = Extract<TLCommentAnchor, { type: 'text-range' }>
 
 interface HighlightRect {
 	left: number
@@ -77,9 +88,7 @@ function measureRange(
 interface TextRangeHighlightProps {
 	editor: Editor
 	container: HTMLElement
-	shapeId: TLShapeId
-	from: number
-	to: number
+	anchor: TextRangeAnchor
 	/** A draft highlight (no thread yet) is non-interactive; a committed one opens its thread. */
 	onSelect?(): void
 }
@@ -88,31 +97,36 @@ interface TextRangeHighlightProps {
  * The highlight over a commented character range, kept aligned with the shape's rendered text as
  * the camera and shape move. `from`/`to` are plaintext offsets into the shape's text.
  */
-function TextRangeHighlight({
-	editor,
-	container,
-	shapeId,
-	from,
-	to,
-	onSelect,
-}: TextRangeHighlightProps) {
-	// A token that changes whenever the range's on-screen position could have — the camera, the
-	// shape's page transform (which covers parent groups/frames too), and its props (size, text,
+function TextRangeHighlight({ editor, container, anchor, onSelect }: TextRangeHighlightProps) {
+	const resolved = useValue(
+		'resolved text-range highlight',
+		() => {
+			const shape = editor.getShape(anchor.shapeId)
+			if (!shape) return null
+			const richText = (shape.props as { richText?: TLRichText }).richText
+			if (!richText) return null
+			return resolveTextRangeAnchor(anchor, richText)
+		},
+		[anchor, editor]
+	)
+
+	// A token that changes whenever the resolved range's on-screen position could have — the camera,
+	// the shape's page transform (which covers parent groups/frames too), and its props (size, text,
 	// font — anything that reflows the text). Reading these subscribes the effect below.
-	const token = useValue(
-		'text-range highlight token',
+	const layoutToken = useValue(
+		'text-range highlight layout token',
 		() => {
 			const cam = editor.getCamera()
-			const shape = editor.getShape(shapeId)
+			const shape = editor.getShape(anchor.shapeId)
 			if (!shape) return null
-			const transform = editor.getShapePageTransform(shapeId)
+			const transform = editor.getShapePageTransform(anchor.shapeId)
 			const vsb = editor.getViewportScreenBounds()
 			// Editing state matters: the static `.tl-rich-text` we measure only mounts once the shape
 			// leaves edit mode, so re-measure when editing ends (e.g. the composer takes focus).
-			const editing = editor.getEditingShapeId() === shapeId
+			const editing = editor.getEditingShapeId() === anchor.shapeId
 			return `${cam.x},${cam.y},${cam.z}|${transform.toCssString()}|${JSON.stringify(shape.props)}|${vsb.w},${vsb.h}|${editing}`
 		},
-		[editor, shapeId]
+		[anchor, editor]
 	)
 
 	const [rects, setRects] = useState<HighlightRect[]>([])
@@ -121,11 +135,12 @@ function TextRangeHighlight({
 	// to catch the canvas transform tldraw applies out of band during camera changes. Also re-measure
 	// when fonts finish loading — a font swap reflows the text without touching camera or shape.
 	useLayoutEffect(() => {
-		if (token === null) {
+		if (!resolved || resolved.status === 'collapsed') {
 			setRects([])
 			return
 		}
-		const measure = () => setRects(measureRange(container, shapeId, from, to))
+		const measure = () =>
+			setRects(measureRange(container, anchor.shapeId, resolved.from, resolved.to))
 		measure()
 		const raf = requestAnimationFrame(measure)
 		document.fonts.addEventListener('loadingdone', measure)
@@ -133,7 +148,7 @@ function TextRangeHighlight({
 			cancelAnimationFrame(raf)
 			document.fonts.removeEventListener('loadingdone', measure)
 		}
-	}, [container, shapeId, from, to, token])
+	}, [anchor.shapeId, container, layoutToken, resolved])
 
 	if (rects.length === 0) return null
 
@@ -144,6 +159,7 @@ function TextRangeHighlight({
 					key={i}
 					className="comment-text-range-highlight"
 					data-interactive={onSelect ? true : undefined}
+					data-range-status={resolved?.status}
 					style={{ left: r.left, top: r.top, width: r.width, height: r.height }}
 					onPointerDown={
 						onSelect
@@ -178,15 +194,12 @@ export function TextRangeHighlights() {
 		<div className="comment-text-ranges-layer">
 			{threads.map((thread) => {
 				if (thread.anchor.type !== 'text-range') return null
-				const { shapeId, from, to } = thread.anchor
 				return (
 					<TextRangeHighlight
 						key={thread.id}
 						editor={editor}
 						container={container}
-						shapeId={shapeId as TLShapeId}
-						from={from}
-						to={to}
+						anchor={thread.anchor}
 						onSelect={() => openThreadId.set(editor, thread.id)}
 					/>
 				)
@@ -196,9 +209,7 @@ export function TextRangeHighlights() {
 					key="pending"
 					editor={editor}
 					container={container}
-					shapeId={pending.anchor.shapeId as TLShapeId}
-					from={pending.anchor.from}
-					to={pending.anchor.to}
+					anchor={pending.anchor}
 				/>
 			)}
 		</div>,

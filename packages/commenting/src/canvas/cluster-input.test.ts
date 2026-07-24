@@ -1,4 +1,4 @@
-import type { Editor, TLCommentAnchor, TLCommentThread } from 'tldraw'
+import { toRichText, type Editor, type TLCommentAnchor, type TLCommentThread } from 'tldraw'
 import { describe, expect, it } from 'vitest'
 // This import is red until step 6's filter module is implemented — that is
 // intentional. Implement `cluster-input.ts` per CLUSTERING-STEPS.md step 6
@@ -75,7 +75,11 @@ describe('collectClusterLeaves anchor resolution', () => {
 			editor,
 			[
 				thread('t1', { type: 'shape', shapeId: 'shape:a' as any, x: 0, y: 0, isPrecise: false }),
-				thread('t2', { type: 'text-range', shapeId: 'shape:a' as any, from: 0, to: 3 }),
+				thread('t2', {
+					type: 'text-range',
+					shapeId: 'shape:a' as any,
+					source: { richText: toRichText('abc'), from: 0, to: 3 },
+				}),
 			],
 			null
 		)

@@ -1097,6 +1097,14 @@ export interface TLComment extends BaseRecord<'comment', TLCommentId> {
 
 // @public
 export type TLCommentAnchor = {
+    source: {
+        from: number;
+        richText: TLRichText;
+        to: number;
+    };
+    shapeId: TLShapeId;
+    type: 'text-range';
+} | {
     pinX?: number;
     h: number;
     pinY?: number;
@@ -1104,11 +1112,6 @@ export type TLCommentAnchor = {
     w: number;
     x: number;
     y: number;
-} | {
-    from: number;
-    shapeId: TLShapeId;
-    to: number;
-    type: 'text-range';
 } | {
     isPrecise: boolean;
     shapeId: TLShapeId;

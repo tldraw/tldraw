@@ -18,7 +18,7 @@ import { TLShapeId } from './TLShape'
  * - `point` — pinned to a fixed point on the page, in page coordinates
  * - `region` — pinned to a rectangular area of the page, in page coordinates
  * - `page` — a page-level thread with no spatial anchor
- * - `text-range` — pinned to a character range inside a shape's text
+ * - `text-range` — pinned to a character range in an immutable snapshot of a shape's text
  *
  * @public
  */
@@ -37,7 +37,20 @@ export type TLCommentAnchor =
 			pinY?: number
 	  }
 	| { type: 'page' }
-	| { type: 'text-range'; shapeId: TLShapeId; from: number; to: number }
+	| {
+			type: 'text-range'
+			shapeId: TLShapeId
+			/**
+			 * The rich text and plaintext offsets observed when the thread was created. Consumers
+			 * resolve this immutable source range against the shape's current rich text instead of
+			 * rewriting the anchor after every edit.
+			 */
+			source: {
+				richText: TLRichText
+				from: number
+				to: number
+			}
+	  }
 
 /**
  * A comment thread. The thread owns the anchor (where the conversation lives on the canvas) and
@@ -131,8 +144,11 @@ const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
 	'text-range': T.object({
 		type: T.literal('text-range'),
 		shapeId: idValidator<TLShapeId>('shape'),
-		from: T.number,
-		to: T.number,
+		source: T.object({
+			richText: richTextValidator,
+			from: T.number,
+			to: T.number,
+		}),
 	}),
 })
 

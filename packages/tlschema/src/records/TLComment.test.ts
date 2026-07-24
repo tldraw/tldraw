@@ -18,13 +18,18 @@ import { TLShapeId } from './TLShape'
 
 const pageId = 'page:page1' as TLPageId
 const shapeId = 'shape:box1' as TLShapeId
+const sourceRichText = toRichText('A commented range')
 
 const anchors: TLCommentAnchor[] = [
 	{ type: 'shape', shapeId, x: 1, y: 0, isPrecise: false },
 	{ type: 'point', x: 100, y: 200 },
 	{ type: 'region', x: 0, y: 0, w: 300, h: 150 },
 	{ type: 'page' },
-	{ type: 'text-range', shapeId, from: 3, to: 12 },
+	{
+		type: 'text-range',
+		shapeId,
+		source: { richText: sourceRichText, from: 2, to: 11 },
+	},
 ]
 
 describe('TLCommentThread', () => {
@@ -73,6 +78,12 @@ describe('TLCommentThread', () => {
 				...thread,
 				// shape anchors must reference a shape id
 				anchor: { type: 'shape', shapeId: 'page:nope', x: 1, y: 0, isPrecise: false },
+			})
+		).toThrow()
+		expect(() =>
+			commentThreadRecordConfig.validator.validate({
+				...thread,
+				anchor: { type: 'text-range', shapeId, from: 2, to: 11 },
 			})
 		).toThrow()
 	})

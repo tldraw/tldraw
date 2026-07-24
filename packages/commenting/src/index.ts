@@ -74,6 +74,12 @@ export { useComments, useCommentThreads, useThreadComments } from './canvas/hook
 export { useCommentingEnabled } from './canvas/license'
 export { DEFAULT_REGION_COMMENT_OPTIONS, type RegionCommentOptions } from './canvas/region-options'
 export { richTextToPlaintext } from './canvas/rich-text'
+export {
+	createTextRangeAnchor,
+	type ResolvedTextRange,
+	resolveTextRangeAnchor,
+	type TextRangeAnchor,
+} from './canvas/text-range-anchor'
 export { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './canvas/sidebar-filters'
 export {
 	commentsHidden,

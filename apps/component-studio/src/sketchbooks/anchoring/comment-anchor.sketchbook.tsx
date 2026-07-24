@@ -1,6 +1,16 @@
-import { createShapeId } from 'tldraw'
+import { createShapeId, toRichText } from 'tldraw'
 import { Sketch, Sketchbook } from '../../sketch'
 import { CommentAnchor, CommentAnchorProps } from './comment-anchor'
+
+const textRangeAnchor = {
+	type: 'text-range' as const,
+	shapeId: createShapeId('note'),
+	source: {
+		richText: toRichText('The quick brown fox jumps over the lazy dog.'),
+		from: 16,
+		to: 30,
+	},
+}
 
 // One sketch per TLCommentAnchor kind, so each way a comment can attach is showcased.
 const sketchbook: Sketchbook<CommentAnchorProps> = {
@@ -15,7 +25,7 @@ const sketchbook: Sketchbook<CommentAnchorProps> = {
 				point: { type: 'point', x: 120, y: 90 },
 				region: { type: 'region', x: 60, y: 60, w: 180, h: 120 },
 				page: { type: 'page' },
-				'text-range': { type: 'text-range', shapeId: createShapeId('note'), from: 16, to: 30 },
+				'text-range': textRangeAnchor,
 			},
 		},
 	},
@@ -48,7 +58,7 @@ export const Page: Sketch<CommentAnchorProps> = {
 }
 export const TextRange: Sketch<CommentAnchorProps> = {
 	args: {
-		anchor: { type: 'text-range', shapeId: createShapeId('note'), from: 16, to: 30 },
+		anchor: textRangeAnchor,
 		open: true,
 	},
 }

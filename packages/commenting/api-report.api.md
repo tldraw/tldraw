@@ -364,6 +364,12 @@ export function createClusterRuntime(table: ClusterTable): ClusterRuntime;
 export function createMentionSuggestion(getSuggestions: (query: string) => MentionMember[] | Promise<MentionMember[]>, options?: MentionSuggestionOptions): Omit<SuggestionOptions<MentionMember, MentionNodeAttrs>, 'editor'>;
 
 // @public
+export function createTextRangeAnchor(shapeId: TLShapeId, richText: TLRichText, range: {
+    from: number;
+    to: number;
+}): TextRangeAnchor;
+
+// @public
 export const DEFAULT_IMPRECISE_SHAPE_ANCHOR: {
     x: number;
     y: number;
@@ -533,6 +539,19 @@ export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLComme
 export function renderMarkdown(text: string): ReactNode;
 
 // @public
+export interface ResolvedTextRange {
+    // (undocumented)
+    from: number;
+    // (undocumented)
+    status: 'ambiguous' | 'attached' | 'collapsed';
+    // (undocumented)
+    to: number;
+}
+
+// @public
+export function resolveTextRangeAnchor(anchor: TextRangeAnchor, currentRichText: TLRichText): ResolvedTextRange;
+
+// @public
 export const revealThreadRequest: EditorAtom<null | string>;
 
 // @public
@@ -577,6 +596,11 @@ export interface SidebarFilters {
 
 // @public
 export const sidebarFilters: EditorAtom<SidebarFilters>;
+
+// @public
+export type TextRangeAnchor = Extract<TLCommentAnchor, {
+    type: 'text-range';
+}>;
 
 // @public
 export type TLCommentRecord = TLComment | TLCommentThread;

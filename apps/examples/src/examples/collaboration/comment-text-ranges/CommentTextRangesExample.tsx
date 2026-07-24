@@ -3,6 +3,7 @@ import {
 	CommentAuthor,
 	commentToolOverrides,
 	commentTools,
+	createTextRangeAnchor,
 	pendingComment,
 	putCommentRecords,
 } from '@tldraw/commenting'
@@ -13,6 +14,7 @@ import {
 	DefaultRichTextToolbarContent,
 	Editor,
 	TLComponents,
+	TLRichText,
 	Tldraw,
 	TldrawUiButtonIcon,
 	TldrawUiToolbarButton,
@@ -29,8 +31,8 @@ import {
 } from 'tldraw'
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
-import { TextRangeHighlights } from './TextRangeHighlights'
 import './comment-text-ranges.css'
+import { TextRangeHighlights } from './TextRangeHighlights'
 
 const AUTHORS: Record<string, CommentAuthor> = {
 	ada: { name: 'Ada Lovelace', color: '#0E9F6E' },
@@ -44,10 +46,9 @@ const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
  * open the comment composer anchored to that range. Posting from the composer creates the thread
  * and comment through the normal pending-comment flow — no extra records needed.
  *
- * A `text-range` anchor's `from`/`to` are plaintext offsets (not ProseMirror positions), so the
- * highlight overlay can walk the shape's rendered text nodes to measure the range. Note that plain
- * offsets don't re-track if the text is edited later — a production version would keep them in
- * sync with a tiptap mark or by mapping positions through document changes.
+ * A `text-range` anchor captures the shape's rich text plus the selection's plaintext offsets.
+ * The highlight overlay resolves that immutable source range against the shape's current rich text,
+ * so editing the shape never needs to rewrite the comment record.
  */
 function startTextRangeComment(editor: Editor) {
 	const textEditor = editor.getRichTextEditor()
@@ -63,6 +64,7 @@ function startTextRangeComment(editor: Editor) {
 	const anchorFrom = doc.textBetween(0, from).length
 	const anchorTo = doc.textBetween(0, to).length
 	if (anchorFrom === anchorTo) return
+	const sourceRichText = doc.toJSON() as TLRichText
 
 	// The composer opens at the shape's top-right corner, where the overlay pins text-range threads.
 	const bounds = editor.getShapePageBounds(shapeId)
@@ -73,7 +75,10 @@ function startTextRangeComment(editor: Editor) {
 	editor.setEditingShape(null)
 
 	pendingComment.set(editor, {
-		anchor: { type: 'text-range', shapeId, from: anchorFrom, to: anchorTo },
+		anchor: createTextRangeAnchor(shapeId, sourceRichText, {
+			from: anchorFrom,
+			to: anchorTo,
+		}),
 		point: { x: bounds.maxX, y: bounds.minY },
 	})
 }
@@ -143,6 +148,7 @@ export default function CommentTextRangesExample() {
 
 	const handleMount = (editor: Editor) => {
 		const textId = createShapeId()
+		const richText = toRichText(SEEDED_TEXT)
 		editor.run(
 			() => {
 				editor.createShapes([
@@ -151,7 +157,7 @@ export default function CommentTextRangesExample() {
 						type: 'text',
 						x: 120,
 						y: 160,
-						props: { richText: toRichText(SEEDED_TEXT), w: 440, autoSize: false },
+						props: { richText, w: 440, autoSize: false },
 					},
 				])
 
@@ -161,7 +167,7 @@ export default function CommentTextRangesExample() {
 				const pageId = editor.getCurrentPageId()
 				const thread = createCommentThread({
 					pageId,
-					anchor: { type: 'text-range', shapeId: textId, from, to },
+					anchor: createTextRangeAnchor(textId, richText, { from, to }),
 					createdBy: 'ada',
 				})
 				const comment = createComment({
