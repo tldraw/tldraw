@@ -540,15 +540,15 @@ export function registerStorageContractTests(factory: StorageContractFactory) {
 			})
 		})
 
-		describe('tombstone pruning', () => {
-			const makeTombstones = (count: number) => {
-				const tombstones: Record<string, number> = {}
-				for (let i = 0; i < count; i++) {
-					tombstones[`shape:doc${i}`] = i + 1
-				}
-				return tombstones
+		const makeTombstones = (count: number) => {
+			const tombstones: Record<string, number> = {}
+			for (let i = 0; i < count; i++) {
+				tombstones[`shape:doc${i}`] = i + 1
 			}
+			return tombstones
+		}
 
+		describe('tombstone pruning', () => {
 			const flushPrune = (storage: TLSyncStorage<TLRecord>) => {
 				const prune = (storage as any).pruneTombstones
 				prune()
@@ -612,6 +612,49 @@ export function registerStorageContractTests(factory: StorageContractFactory) {
 				const remaining = Object.values(storage.getSnapshot!().tombstones!)
 				expect(remaining.length).toBe(MAX_TOMBSTONES - TOMBSTONE_PRUNE_BUFFER_SIZE - overflow)
 				expect(remaining.every((clock) => clock === 2)).toBe(true)
+			})
+		})
+
+		describe('close', () => {
+			it('[SS19] close cancels a pending tombstone prune', () => {
+				vi.useFakeTimers()
+				try {
+					const total = MAX_TOMBSTONES + 500
+					const storage = create(
+						makeContractSnapshot(contractRecords, {
+							tombstones: makeTombstones(total),
+							documentClock: total + 1,
+							tombstoneHistoryStartsAtClock: 0,
+						})
+					)
+					// deleting a record schedules the throttled prune
+					storage.transaction((txn) => txn.delete(contractRecords[1].id))
+					storage.close!()
+					vi.advanceTimersByTime(2000)
+					// the prune never ran: the oversized tombstone set is untouched
+					// (the delete above added one more tombstone)
+					expect(Object.keys(storage.getSnapshot!().tombstones!).length).toBe(total + 1)
+					// flushing the throttle after close is a no-op too
+					;(storage as any).pruneTombstones.flush()
+					expect(Object.keys(storage.getSnapshot!().tombstones!).length).toBe(total + 1)
+				} finally {
+					vi.useRealTimers()
+				}
+			})
+
+			it('[SS19] close is idempotent and marks the storage closed', () => {
+				const storage = factory.create()
+				expect(storage.isClosed!()).toBe(false)
+				storage.close!()
+				expect(storage.isClosed!()).toBe(true)
+				expect(() => storage.close!()).not.toThrow()
+				expect(storage.isClosed!()).toBe(true)
+			})
+
+			it('[SS19] transactions throw after close', () => {
+				const storage = factory.create()
+				storage.close!()
+				expect(() => storage.transaction(() => {})).toThrow('Storage has been closed')
 			})
 		})
 	})
