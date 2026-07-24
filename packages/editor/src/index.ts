@@ -181,6 +181,7 @@ export {
 	OverlayUtil,
 	type TLAnyOverlayUtilConstructor,
 	type TLOverlay,
+	type TLOverlayBand,
 	type TLOverlayUtilConstructor,
 } from './lib/editor/overlays/OverlayUtil'
 export { strokeShapeIndicators } from './lib/editor/overlays/strokeShapeIndicators'

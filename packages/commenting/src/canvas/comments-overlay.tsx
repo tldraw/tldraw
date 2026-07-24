@@ -5,6 +5,7 @@ import {
 	ReactNode,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -230,6 +231,15 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		[props.regionOptions]
 	)
 	useEffect(() => setRegionCommentOptions(editor, regionOptions), [editor, regionOptions])
+	// The layer portals into the canvas element, not the container: collaborator cursors are drawn
+	// on a canvas inside `.tl-canvas`, and `contain: strict` flattens the whole canvas into one
+	// paint layer — a sibling layer can only sit entirely above or below it. Inside, the pins can
+	// stack above shapes but below the cursor overlays. Found after mount: sibling subtrees aren't
+	// in the DOM yet during this component's first render.
+	const [canvasElement, setCanvasElement] = useState<HTMLElement | null>(null)
+	useLayoutEffect(() => {
+		setCanvasElement(container.querySelector('.tl-canvas'))
+	}, [container])
 	const layerRef = useRef<HTMLDivElement>(null)
 	// Over the pins and cluster badges, hover passes through to the canvas beneath (these events
 	// bubble up from the pointer-interactive markers to this layer root). Wheel pass-through is
@@ -510,8 +520,8 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	// is read above so this component stays mounted and its shortcut/Escape effects keep running.
 	if (hidden) return null
 
-	// Render into the container (above the panels' stacking context) so the pins and popovers
-	// live in the UI layer rather than being clipped by the canvas layer.
+	if (!canvasElement) return null
+
 	return createPortal(
 		<div ref={layerRef} className="tlui-cmt-canvas-layer">
 			{options.enableClustering ? (
@@ -593,7 +603,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
 		</div>,
-		container
+		canvasElement
 	)
 }
 

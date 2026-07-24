@@ -1,11 +1,13 @@
-/* The comments layer is portaled into the editor container. Pins live in the canvas-in-front layer
-   (beneath the UI panels at z-index 300), so the toolbar and style panel draw over them; the open
-   thread's popover portals up to the menus layer separately (`.tlui-cmt-canvas-popover`) so it isn't
-   clipped. Click-through except on its own children. */
+/* The comments layer is portaled into `.tl-canvas`, so it stacks within the canvas: above the
+   shapes layer (300) but below the overlays canvas (500) where collaborator cursors are drawn —
+   cursors sweep over pins, pins sit over shapes, and the UI panels (siblings of the canvas) draw
+   over everything here. The open thread's popover and the pending composer portal up to the
+   container separately (`.tlui-cmt-canvas-popover`, `.tlui-cmt-canvas-composer`) so they keep
+   UI-layer stacking and aren't clipped. Click-through except on its own children. */
 .tlui-cmt-canvas-layer {
 	position: absolute;
 	inset: 0;
-	z-index: var(--tl-layer-canvas-in-front);
+	z-index: 400;
 	pointer-events: none;
 }
 

@@ -712,6 +712,7 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
     isActive(): boolean;
     // (undocumented)
     options: {
+        band: "over";
         chatMaxWidth: number;
         fontSize: number;
         nameMaxWidth: number;
@@ -733,6 +734,7 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
     isActive(): boolean;
     // (undocumented)
     options: {
+        band: "over";
         lineWidth: number;
         viewportPadding: number;
         zIndex: number;

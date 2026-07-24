@@ -32,6 +32,17 @@ export interface TLOverlayUtilConstructor<U extends OverlayUtil = OverlayUtil> {
 export type TLAnyOverlayUtilConstructor = TLOverlayUtilConstructor<any>
 
 /**
+ * Which of the two overlay canvases a util renders to. They straddle the DOM
+ * content that mounts inside the canvas (between the shapes layer and the
+ * canvas-in-front band): `'under'` paints beneath that content, `'over'`
+ * paints above it. Collaborator cursors are `'over'`; everything else
+ * defaults to `'under'`.
+ *
+ * @public
+ */
+export type TLOverlayBand = 'under' | 'over'
+
+/**
  * Base class for overlay utilities. Overlays are ephemeral UI elements rendered
  * on top of the canvas (selection handles, rotation corners, shape handles, etc.).
  *
@@ -57,9 +68,13 @@ export abstract class OverlayUtil<T extends TLOverlay = TLOverlay> {
 	 * Defaults to `0`; built-in utils use larger integers (100, 200, …) with
 	 * gaps so custom utils can slot between.
 	 *
+	 * `band` picks which of the two overlay canvases the util paints to (see
+	 * {@link TLOverlayBand}). Defaults to `'under'`. `zIndex` orders utils
+	 * within a band; the `'over'` band always paints above the `'under'` band.
+	 *
 	 * @public
 	 */
-	options: { zIndex?: number } = {}
+	options: { zIndex?: number; band?: TLOverlayBand } = {}
 
 	/**
 	 * Create a new overlay util class with the given options merged in.

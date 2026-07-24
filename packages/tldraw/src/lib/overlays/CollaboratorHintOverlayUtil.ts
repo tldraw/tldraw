@@ -30,7 +30,7 @@ function getArrowPath() {
  */
 export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintOverlay> {
 	static override type = 'collaborator_hint'
-	override options = { zIndex: 900, lineWidth: 3, viewportPadding: 5 }
+	override options = { zIndex: 900, band: 'over' as const, lineWidth: 3, viewportPadding: 5 }
 
 	override isActive(): boolean {
 		const viewport = this.editor.getViewportPageBounds()

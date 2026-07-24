@@ -17,7 +17,12 @@ interface RenderInputs {
 /** @internal @react */
 export const CanvasOverlays = memo(function CanvasOverlays() {
 	const editor = useEditor()
-	const canvasRef = useRef<HTMLCanvasElement>(null)
+	// Two stacked canvases straddling the DOM content that mounts inside the
+	// canvas (between the shapes layer and the canvas-in-front band): utils
+	// with band 'under' paint beneath it, 'over' utils (collaborator cursors)
+	// paint above it.
+	const underCanvasRef = useRef<HTMLCanvasElement>(null)
+	const overCanvasRef = useRef<HTMLCanvasElement>(null)
 
 	useEffect(() => {
 		// Bundle the primitive scalars the renderer needs into one computed so the
@@ -51,39 +56,46 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 		)
 
 		const scheduler = new EffectScheduler('canvas overlays render', () => {
-			const canvas = canvasRef.current
-			if (!canvas) return
+			const underCanvas = underCanvasRef.current
+			const overCanvas = overCanvasRef.current
+			if (!underCanvas || !overCanvas) return
 
-			const ctx = canvas.getContext('2d')
-			if (!ctx) return
+			const underCtx = underCanvas.getContext('2d')
+			const overCtx = overCanvas.getContext('2d')
+			if (!underCtx || !overCtx) return
 
 			const { dpr, w, h, cx, cy, zoom } = renderInputs$.get()
 
 			const canvasWidth = Math.ceil(w * dpr)
 			const canvasHeight = Math.ceil(h * dpr)
 
-			if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
-				canvas.width = canvasWidth
-				canvas.height = canvasHeight
-				canvas.style.width = `${w}px`
-				canvas.style.height = `${h}px`
+			for (const canvas of [underCanvas, overCanvas]) {
+				if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
+					canvas.width = canvasWidth
+					canvas.height = canvasHeight
+					canvas.style.width = `${w}px`
+					canvas.style.height = `${h}px`
+				}
 			}
-
-			ctx.setTransform(1, 0, 0, 1, 0, 0)
-			ctx.clearRect(0, 0, canvas.width, canvas.height)
 
 			// One setTransform = DPR scale * zoom scale * camera translate, into page space.
 			const s = dpr * zoom
-			ctx.setTransform(s, 0, 0, s, s * cx, s * cy)
+			for (const ctx of [underCtx, overCtx]) {
+				ctx.setTransform(1, 0, 0, 1, 0, 0)
+				ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+				ctx.setTransform(s, 0, 0, s, s * cx, s * cy)
+			}
 
-			// Render all active overlay utils in zIndex order (low to high).
+			// Render all active overlay utils in zIndex order (low to high), each
+			// into its band's canvas.
 			for (const { util, overlays } of editor.overlays.getActiveOverlayEntries()) {
+				const ctx = (util.options.band ?? 'under') === 'over' ? overCtx : underCtx
 				ctx.save()
 				util.render(ctx, overlays)
 				ctx.restore()
 			}
-
-			// Debug: draw all geometry
+			// Debug: draw all geometry (on the over canvas, above everything)
+			const ctx = overCtx
 			if (debugFlags.debugGeometry.get()) {
 				const currentPagePoint = editor.inputs.getCurrentPagePoint()
 
@@ -177,7 +189,12 @@ export const CanvasOverlays = memo(function CanvasOverlays() {
 		return () => scheduler.detach()
 	}, [editor])
 
-	return <canvas ref={canvasRef} className="tl-canvas-overlays" />
+	return (
+		<>
+			<canvas ref={underCanvasRef} className="tl-canvas-overlays tl-canvas-overlays-under" />
+			<canvas ref={overCanvasRef} className="tl-canvas-overlays tl-canvas-overlays-over" />
+		</>
+	)
 })
 
 function drawGeometryStroke(ctx: CanvasRenderingContext2D, geometry: Geometry2d) {
