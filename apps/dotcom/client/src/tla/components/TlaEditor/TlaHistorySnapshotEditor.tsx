@@ -17,6 +17,7 @@ import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLegacySetDocumentTitle } from './sneaky/SneakyLegacytSetDocumentTitle'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
+import { TlaPageMenu } from './TlaPageMenu/TlaPageMenu'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
 export function TlaHistorySnapshotEditor({
@@ -71,6 +72,7 @@ function TlaEditorInner({
 	const components = useMemo((): TLComponents => {
 		return {
 			ErrorFallback: TlaEditorErrorFallback,
+			PageMenu: TlaPageMenu,
 			SharePanel: () => (
 				<TlaCtaButton
 					canvas

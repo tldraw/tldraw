@@ -9,6 +9,8 @@ export class Editor {
 	private readonly fileName: Locator
 	private readonly shapes: Locator
 	private readonly pageMenu: Locator
+	public readonly pageMenuItems: Locator
+	public readonly pageMenuTriggerLabel: Locator
 
 	constructor(
 		public readonly page: Page,
@@ -18,6 +20,8 @@ export class Editor {
 		this.fileName = this.page.getByTestId('tla-file-name')
 		this.shapes = this.page.locator('.tl-shape')
 		this.pageMenu = this.page.getByTestId('tla-main-menu')
+		this.pageMenuItems = this.page.getByTestId('page-menu.item')
+		this.pageMenuTriggerLabel = this.page.getByTestId('page-menu.button')
 	}
 
 	async toggleSidebar() {
@@ -85,6 +89,26 @@ export class Editor {
 		await expect(this.page.getByTestId('page-menu.item')).toHaveCount(count + 1)
 		await this.page.keyboard.press('Enter')
 		await this.page.keyboard.press('Escape')
+	}
+
+	// Opens the pages popover in the top bar (not the file kebab menu).
+	@step
+	async openPagesPopover() {
+		await this.page.getByTestId('page-menu.button').click()
+		await expect(this.page.getByTestId('page-menu.list')).toBeVisible()
+	}
+
+	// Creates a new page with the given name and leaves the pages popover open.
+	// Assumes the pages popover is already open.
+	@step
+	async createNewPageNamed(name: string) {
+		const count = await this.pageMenuItems.count()
+		await this.page.getByTestId('page-menu.create').click()
+		await expect(this.pageMenuItems).toHaveCount(count + 1)
+		const renameInput = this.page.getByTestId('page-menu.list').locator('input')
+		await expect(renameInput).toBeVisible()
+		await renameInput.fill(name)
+		await this.page.keyboard.press('Enter')
 	}
 
 	@step
