@@ -136,7 +136,8 @@ import { TLParentId } from '@tldraw/tlschema';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLResizeInfo } from '@tldraw/editor';
-import { TLRichText } from '@tldraw/editor';
+import { TLRichText } from '@tldraw/tlschema';
+import { TLRichText as TLRichText_2 } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribble } from '@tldraw/editor';
 import { TLSelectionHandle } from '@tldraw/editor';
@@ -2134,11 +2135,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: TLDefaultColorStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             url: string;
@@ -2171,11 +2168,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: TLDefaultColorStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             url: string;
@@ -2208,11 +2201,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: TLDefaultColorStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             url: string;
@@ -2883,11 +2872,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             fontSizeAdjustment: number;
             growY: number;
             labelColor: TLDefaultColorStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             textLastEditedBy: null | string;
@@ -3273,16 +3258,16 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 export function RemoveFrameMenuItem(): JSX.Element | null;
 
 // @public
-export function renderHtmlFromRichText(editor: Editor, richText: TLRichText): string;
+export function renderHtmlFromRichText(editor: Editor, richText: TLRichText_2): string;
 
 // @public
-export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: TLRichText): string;
+export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: TLRichText_2): string;
 
 // @public
-export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText): string;
+export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText_2): string;
 
 // @public
-export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText;
+export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText_2;
 
 // @public (undocumented)
 export function ReorderMenuItems(): JSX.Element;
@@ -3322,7 +3307,7 @@ export interface RichTextLabelProps {
     // (undocumented)
     padding?: number;
     // (undocumented)
-    richText?: TLRichText;
+    richText?: TLRichText_2;
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
@@ -3337,7 +3322,7 @@ export interface RichTextLabelProps {
     textWidth?: number;
     // (undocumented)
     type: ExtractShapeByProps<{
-        richText: TLRichText;
+        richText: TLRichText_2;
     }>['type'];
     // (undocumented)
     verticalAlign: 'end' | 'middle' | 'start';
@@ -3363,7 +3348,7 @@ export interface RichTextSVGProps {
     // (undocumented)
     padding: number;
     // (undocumented)
-    richText: TLRichText;
+    richText: TLRichText_2;
     // (undocumented)
     showTextOutline?: boolean;
     // (undocumented)
@@ -3764,7 +3749,7 @@ export interface TextAreaProps {
     // (undocumented)
     handleChange(changeInfo: {
         plaintext?: string;
-        richText?: TLRichText;
+        richText?: TLRichText_2;
     }): void;
     // (undocumented)
     handleDoubleClick(e: any): any;
@@ -3781,7 +3766,7 @@ export interface TextAreaProps {
     // (undocumented)
     isEditing: boolean;
     // (undocumented)
-    richText?: TLRichText;
+    richText?: TLRichText_2;
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
@@ -3843,11 +3828,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             autoSize: boolean;
             color: TLDefaultColorStyle;
             font: TLDefaultFontStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             textAlign: "end" | "middle" | "start";
@@ -6460,15 +6441,11 @@ export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByPro
 
 // @public (undocumented)
 export function useEditableRichText(shapeId: TLShapeId, type: ExtractShapeByProps<{
-    richText: TLRichText;
-}>['type'], richText?: TLRichText): {
+    richText: TLRichText_2;
+}>['type'], richText?: TLRichText_2): {
     handleBlur: () => void;
     handleChange: ({ richText }: {
-        richText: {
-            attrs?: any;
-            content: unknown[];
-            type: string;
-        };
+        richText: TLRichText_2;
     }) => void;
     handleDoubleClick: (e: {
         nativeEvent: Event;

@@ -279,13 +279,9 @@ export class LruCache<K, V> {
 
 // @public
 export type MakeUndefinedOptional<T extends object> = Expand<{
-    [P in {
-        [K in keyof T]: undefined extends T[K] ? never : K;
-    }[keyof T]]: T[P];
+    [K in keyof T as Record<never, never> extends Pick<T, K> ? never : 0 extends 1 & T[K] ? K : undefined extends T[K] ? never : K]: T[K];
 } & {
-    [P in {
-        [K in keyof T]: undefined extends T[K] ? K : never;
-    }[keyof T]]?: T[P];
+    [K in keyof T as Record<never, never> extends Pick<T, K> ? K : 0 extends 1 & T[K] ? never : undefined extends T[K] ? K : never]?: T[K];
 }>;
 
 // @internal
