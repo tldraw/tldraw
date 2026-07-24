@@ -24,7 +24,7 @@ export default function UserPresenceExample() {
 						currentPageId: editor.getCurrentPageId(),
 						userId: createUserId('peer-1'),
 						userName: USER_NAME,
-						cursor: { x: 0, y: 0, type: 'default', rotation: 0 },
+						cursor: { x: 0, y: 0, velocity: { x: 0, y: 0 }, type: 'default', rotation: 0 },
 						chatMessage: CURSOR_CHAT_MESSAGE,
 					})
 

@@ -2280,6 +2280,44 @@ describe('TLPresence NullableCameraCursor', () => {
 	})
 })
 
+describe('TLPresence AddCursorVelocity', () => {
+	const { up, down } = getTestMigration(instancePresenceVersions.AddCursorVelocity)
+
+	test('up adds a zero velocity to a non-null cursor', () => {
+		expect(up({ cursor: { type: 'default', x: 1, y: 2, rotation: 3 } })).toEqual({
+			cursor: { type: 'default', x: 1, y: 2, rotation: 3, velocity: { x: 0, y: 0 } },
+		})
+	})
+
+	test('up leaves a null cursor untouched', () => {
+		expect(up({ cursor: null })).toEqual({ cursor: null })
+	})
+
+	test('down removes velocity from a non-null cursor', () => {
+		expect(
+			down({ cursor: { type: 'default', x: 1, y: 2, rotation: 3, velocity: { x: 4, y: 5 } } })
+		).toEqual({ cursor: { type: 'default', x: 1, y: 2, rotation: 3 } })
+	})
+
+	test('down leaves a null cursor untouched', () => {
+		expect(down({ cursor: null })).toEqual({ cursor: null })
+	})
+})
+
+describe('TLPointer AddVelocity', () => {
+	const { up } = getTestMigration(pointerVersions.AddVelocity)
+
+	test('up adds a zero velocity', () => {
+		expect(up({ x: 1, y: 2, lastActivityTimestamp: 3, meta: {} })).toEqual({
+			x: 1,
+			y: 2,
+			lastActivityTimestamp: 3,
+			meta: {},
+			velocity: { x: 0, y: 0 },
+		})
+	})
+})
+
 describe('Adding color to frame shapes', () => {
 	const { up, down } = getTestMigration(frameShapeVersions.AddColorProp)
 

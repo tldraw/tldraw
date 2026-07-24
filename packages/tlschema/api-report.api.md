@@ -459,6 +459,10 @@ export function getDefaultUserPresence(store: TLStore, user: TLUser): {
     cursor: {
         rotation: number;
         type: string;
+        velocity: {
+            x: number;
+            y: number;
+        };
         x: number;
         y: number;
     };
@@ -1459,6 +1463,10 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     currentPageId: TLPageId;
     // (undocumented)
     cursor: {
+        velocity?: {
+            x: number;
+            y: number;
+        };
         rotation: number;
         type: TLCursor['type'];
         x: number;
@@ -1556,6 +1564,10 @@ export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
     lastActivityTimestamp: number;
     // (undocumented)
     meta: JsonObject;
+    velocity: {
+        x: number;
+        y: number;
+    };
     // (undocumented)
     x: number;
     // (undocumented)

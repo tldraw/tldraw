@@ -54,6 +54,16 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	cursor: {
 		x: number
 		y: number
+		/**
+		 * Cursor velocity in page units per millisecond, sampled on the sender at
+		 * its input frame rate. Lets receivers extrapolate/smooth cursor motion
+		 * between the throttled position updates instead of hard-jumping.
+		 *
+		 * Optional: custom `getUserPresence` implementations may omit it, in which
+		 * case receivers fall back to easing toward the raw position without
+		 * velocity feed-forward.
+		 */
+		velocity?: { x: number; y: number }
 		type: TLCursor['type']
 		rotation: number
 	} | null
@@ -109,6 +119,7 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 		cursor: T.object({
 			x: T.number,
 			y: T.number,
+			velocity: T.object({ x: T.number, y: T.number }).optional(),
 			type: cursorTypeValidator,
 			rotation: T.number,
 		}).nullable(),
@@ -142,6 +153,7 @@ export const instancePresenceVersions = createMigrationIds('com.tldraw.instance_
 	AddMeta: 4,
 	RenameSelectedShapeIds: 5,
 	NullableCameraCursor: 6,
+	AddCursorVelocity: 7,
 } as const)
 
 /**
@@ -210,6 +222,19 @@ export const instancePresenceMigrations = createRecordMigrationSequence({
 				}
 				if (record.screenBounds === null) {
 					record.screenBounds = { x: 0, y: 0, w: 1, h: 1 }
+				}
+			},
+		},
+		{
+			id: instancePresenceVersions.AddCursorVelocity,
+			up: (record: any) => {
+				if (record.cursor) {
+					record.cursor.velocity = { x: 0, y: 0 }
+				}
+			},
+			down: (record: any) => {
+				if (record.cursor) {
+					delete record.cursor.velocity
 				}
 			},
 		},

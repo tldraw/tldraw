@@ -76,7 +76,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					userId: createUserId('peer1'),
 					userName: 'Peer 1',
 					currentPageId: pageId,
-					cursor: { type: 'default', x: 10, y: 10, rotation: 0 },
+					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 10, y: 10, rotation: 0 },
 					lastActivityTimestamp: Date.now(),
 				}),
 			])
@@ -102,7 +102,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					userName: 'Alice',
 					currentPageId: pageId,
 					color: '#a',
-					cursor: { type: 'default', x: 10, y: 10, rotation: 0 },
+					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 10, y: 10, rotation: 0 },
 					lastActivityTimestamp: Date.now(),
 				}),
 				InstancePresenceRecordType.create({
@@ -111,7 +111,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					userName: 'Bob',
 					currentPageId: pageId,
 					color: '#b',
-					cursor: { type: 'default', x: 20, y: 20, rotation: 0 },
+					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 20, y: 20, rotation: 0 },
 					lastActivityTimestamp: Date.now(),
 				}),
 			])
@@ -134,7 +134,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					userName: 'Carol',
 					currentPageId: pageId,
 					color: '#c',
-					cursor: { type: 'default', x: 999999, y: 999999, rotation: 0 },
+					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 999999, y: 999999, rotation: 0 },
 					lastActivityTimestamp: Date.now(),
 				}),
 			])
@@ -153,7 +153,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					userId: createUserId('p_inactive'),
 					userName: 'Inactive',
 					currentPageId: pageId,
-					cursor: { type: 'default', x: 10, y: 10, rotation: 0 },
+					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 10, y: 10, rotation: 0 },
 					lastActivityTimestamp: now - 10 * 60 * 1000,
 				}),
 				// idle (between thresholds) — shown
@@ -162,7 +162,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					userId: createUserId('p_idle'),
 					userName: 'Idle',
 					currentPageId: pageId,
-					cursor: { type: 'default', x: 15, y: 15, rotation: 0 },
+					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 15, y: 15, rotation: 0 },
 					lastActivityTimestamp: now - 5 * 1000,
 				}),
 				// active — shown
@@ -171,7 +171,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					userId: createUserId('p_active'),
 					userName: 'Active',
 					currentPageId: pageId,
-					cursor: { type: 'default', x: 20, y: 20, rotation: 0 },
+					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 20, y: 20, rotation: 0 },
 					lastActivityTimestamp: now,
 				}),
 			])
@@ -192,7 +192,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					userId: createUserId('peerF'),
 					userName: 'Followed',
 					currentPageId: pageId,
-					cursor: { type: 'default', x: 10, y: 10, rotation: 0 },
+					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 10, y: 10, rotation: 0 },
 					lastActivityTimestamp: now - 10 * 60 * 1000,
 				}),
 			])
@@ -212,7 +212,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					userId: createUserId('peerH'),
 					userName: 'Highlighted',
 					currentPageId: pageId,
-					cursor: { type: 'default', x: 20, y: 20, rotation: 0 },
+					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 20, y: 20, rotation: 0 },
 					lastActivityTimestamp: now - 10 * 60 * 1000,
 				}),
 			])
@@ -231,7 +231,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					userId: createUserId('peerFU'),
 					userName: 'Follower',
 					currentPageId: pageId,
-					cursor: { type: 'default', x: 30, y: 30, rotation: 0 },
+					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 30, y: 30, rotation: 0 },
 					lastActivityTimestamp: now - 5 * 1000,
 					followingUserId: editor.user.getRecordId(),
 				}),
@@ -251,7 +251,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					userId: createUserId('peerChat'),
 					userName: 'Follower Chat',
 					currentPageId: pageId,
-					cursor: { type: 'default', x: 40, y: 40, rotation: 0 },
+					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 40, y: 40, rotation: 0 },
 					lastActivityTimestamp: now - 5 * 1000,
 					followingUserId: editor.user.getRecordId(),
 					chatMessage: 'Hello',
@@ -271,7 +271,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 					userId: createUserId('peer4'),
 					userName: 'New User',
 					currentPageId: pageId,
-					cursor: { type: 'default', x: 10, y: 10, rotation: 0 },
+					cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 10, y: 10, rotation: 0 },
 					lastActivityTimestamp: Date.now(),
 				}),
 			])
@@ -293,7 +293,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 						userId: createUserId('peer_timed'),
 						userName: 'Timed Peer',
 						currentPageId: pageId,
-						cursor: { type: 'default', x: 10, y: 10, rotation: 0 },
+						cursor: { type: 'default', velocity: { x: 0, y: 0 }, x: 10, y: 10, rotation: 0 },
 						lastActivityTimestamp: now,
 					}),
 				])

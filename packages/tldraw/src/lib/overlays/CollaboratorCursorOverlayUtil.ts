@@ -1,4 +1,4 @@
-import { OverlayUtil, PI2, TLOverlay } from '@tldraw/editor'
+import { atom, Editor, OverlayUtil, PI2, TLOverlay } from '@tldraw/editor'
 
 /** @public */
 export interface TLCollaboratorCursorOverlay extends TLOverlay {
@@ -48,6 +48,25 @@ function getCursorPaths() {
 const TRUNCATE_CACHE_MAX = 200
 const DEFAULT_LABEL_FONT_FAMILY = "'tldraw_sans', sans-serif"
 
+/**
+ * Per-collaborator state used to smooth cursor motion between the throttled
+ * presence updates we receive. Positions are page-space; velocity is page
+ * units/ms (as broadcast in the presence record).
+ */
+interface CursorSmoothingState {
+	/** Last received sample position. */
+	sx: number
+	sy: number
+	/** Velocity that came with the last sample. */
+	vx: number
+	vy: number
+	/** Milliseconds elapsed since the last sample arrived. */
+	ageMs: number
+	/** Currently displayed (eased) position. */
+	rx: number
+	ry: number
+}
+
 function getLabelFontFamily(editorContainer: HTMLElement, editorWindow: Window): string {
 	const fontFamily = editorWindow
 		.getComputedStyle(editorContainer)
@@ -64,13 +83,123 @@ function getLabelFontFamily(editorContainer: HTMLElement, editorWindow: Window):
  */
 export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
 	static override type = 'collaborator_cursor'
-	override options = { zIndex: 1100, fontSize: 12, nameMaxWidth: 120, chatMaxWidth: 200 }
+	override options = {
+		zIndex: 1100,
+		fontSize: 12,
+		nameMaxWidth: 120,
+		chatMaxWidth: 200,
+		/**
+		 * When true, collaborator cursors ease toward each received position and
+		 * are dead-reckoned along the broadcast velocity vector, so they glide
+		 * between the throttled (≤30fps) presence updates instead of teleporting.
+		 * Set to false to render cursors at their raw received positions.
+		 */
+		smoothing: true,
+		/** Ease time-constant (ms): lower = snappier, higher = smoother/laggier. */
+		smoothingTauMs: 55,
+		/**
+		 * Cap (ms) on how far a sample is extrapolated along its velocity. Bounds
+		 * overshoot when the sender stops broadcasting mid-flick.
+		 */
+		maxExtrapolationMs: 120,
+	}
+
+	constructor(editor: Editor) {
+		super(editor)
+		// Drive per-frame easing/extrapolation off the editor tick loop. The
+		// overlay canvas only repaints when a reactive dep changes, so we bump a
+		// clock atom (read in `getOverlays`) whenever a displayed position moves.
+		// Pass `this` as the listener context so `_onTick` can be a method (the
+		// emitter is the editor, so the default context would be the editor).
+		this.editor.on('tick', this._onTick, this)
+	}
+
+	override dispose(): void {
+		this.editor.off('tick', this._onTick, this)
+	}
 
 	// Cache truncated text results to avoid repeated measureText loops.
 	// Key format: `${maxWidth}|${text}` with an upper bound on cache size.
 	// Per-editor so multiple <Tldraw /> instances on one page don't trample
 	// each other's entries.
 	private _truncateCache = new Map<string, string>()
+
+	// Per-collaborator smoothing state, keyed by userId.
+	private _smoothing = new Map<string, CursorSmoothingState>()
+	// Bumped each frame a displayed cursor position changes, to re-run the
+	// (otherwise change-driven) overlay canvas render between presence updates.
+	private _clock = atom('collaboratorCursorClock', 0)
+
+	private _onTick(elapsedMs: number) {
+		if (!this.options.smoothing || elapsedMs <= 0) return
+
+		const { smoothingTauMs, maxExtrapolationMs } = this.options
+		const alpha = 1 - Math.exp(-elapsedMs / smoothingTauMs)
+		let changed = false
+		const seen = new Set<string>()
+
+		for (const presence of this.editor.getVisibleCollaboratorsOnCurrentPage()) {
+			const { cursor, userId } = presence
+			if (!cursor) continue
+			seen.add(userId)
+
+			// `velocity` is optional on the presence record — custom
+			// `getUserPresence` implementations may omit it. Without it we still
+			// ease toward the position, just with no velocity feed-forward.
+			const vx = cursor.velocity?.x ?? 0
+			const vy = cursor.velocity?.y ?? 0
+
+			const st = this._smoothing.get(userId)
+			if (!st) {
+				// First sight of this collaborator: start rendered exactly on sample.
+				this._smoothing.set(userId, {
+					sx: cursor.x,
+					sy: cursor.y,
+					vx,
+					vy,
+					ageMs: 0,
+					rx: cursor.x,
+					ry: cursor.y,
+				})
+				changed = true
+				continue
+			}
+
+			// A changed position means a fresh sample landed; reset its age/velocity.
+			if (cursor.x !== st.sx || cursor.y !== st.sy) {
+				st.sx = cursor.x
+				st.sy = cursor.y
+				st.vx = vx
+				st.vy = vy
+				st.ageMs = 0
+			}
+			st.ageMs = Math.min(st.ageMs + elapsedMs, maxExtrapolationMs)
+
+			// Dead-reckon along the sample's velocity, decaying the feed-forward to
+			// zero across the extrapolation window so a stale sample (sender went
+			// idle without a final zero-velocity update) settles on the true
+			// position instead of drifting off.
+			const decay = 1 - st.ageMs / maxExtrapolationMs
+			const targetX = st.sx + st.vx * st.ageMs * decay
+			const targetY = st.sy + st.vy * st.ageMs * decay
+
+			const nx = st.rx + (targetX - st.rx) * alpha
+			const ny = st.ry + (targetY - st.ry) * alpha
+			if (Math.abs(nx - st.rx) > 1e-3 || Math.abs(ny - st.ry) > 1e-3) changed = true
+			st.rx = nx
+			st.ry = ny
+		}
+
+		// Forget collaborators who are no longer visible.
+		for (const userId of this._smoothing.keys()) {
+			if (!seen.has(userId)) {
+				this._smoothing.delete(userId)
+				changed = true
+			}
+		}
+
+		if (changed) this._clock.set(this._clock.get() + 1)
+	}
 
 	override isActive(): boolean {
 		return this.editor.getVisibleCollaboratorsOnCurrentPage().some((presence) => !!presence.cursor)
@@ -79,6 +208,10 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 	override getOverlays(): TLCollaboratorCursorOverlay[] {
 		const overlays: TLCollaboratorCursorOverlay[] = []
 
+		// Establish a per-frame reactive dependency so the overlay canvas repaints
+		// as `_onTick` advances displayed positions between presence updates.
+		if (this.options.smoothing) this._clock.get()
+
 		// Visibility (activity state, following, highlighting) is handled by the
 		// editor. The main-canvas viewport cull lives in `render` so off-screen
 		// cursors still show on the minimap via `renderMinimap`.
@@ -86,12 +219,16 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 			const { cursor, color, userName, chatMessage, userId } = presence
 			if (!cursor) continue
 
+			// Use the eased/extrapolated position when smoothing is on and we have
+			// state for this collaborator; otherwise fall back to the raw sample.
+			const st = this.options.smoothing ? this._smoothing.get(userId) : undefined
+
 			overlays.push({
 				id: `collaborator_cursor:${userId}`,
 				type: 'collaborator_cursor',
 				props: {
-					x: cursor.x,
-					y: cursor.y,
+					x: st ? st.rx : cursor.x,
+					y: st ? st.ry : cursor.y,
 					color,
 					name: userName !== 'New User' ? userName : null,
 					chatMessage: chatMessage ?? '',

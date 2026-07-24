@@ -547,12 +547,19 @@ export class InputsManager extends EditorManager {
 			this.editor.run(
 				() => {
 					const pagePoint = this._currentPagePoint.__unsafe__getWithoutCapture()
+					// `pointerVelocity` is smoothed screen-space pixels/ms; divide by
+					// zoom to express it in page units/ms so it stays consistent with
+					// the page-space cursor position that receivers extrapolate from.
+					const screenVelocity = this._pointerVelocity.__unsafe__getWithoutCapture()
+					const velocity =
+						cz !== 0 ? { x: screenVelocity.x / cz, y: screenVelocity.y / cz } : { x: 0, y: 0 }
 					this.editor.store.put([
 						{
 							id: TLPOINTER_ID,
 							typeName: 'pointer',
 							x: pagePoint.x,
 							y: pagePoint.y,
+							velocity,
 							lastActivityTimestamp:
 								// If our pointer moved only because we're following some other user, then don't
 								// update our last activity timestamp; otherwise, update it to the current timestamp.
