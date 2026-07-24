@@ -40,6 +40,7 @@ import { getUncroppedSize } from '../shared/crop'
 import { getFlipForResize } from '../shared/flip'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { getMediaBorderStyle, getMediaBorderSvg } from '../shared/mediaBorder'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 import { TRANSPARENT_IMAGE_MIMETYPES, getAlphaData, preloadAlphaData } from './ImageAlphaCache'
@@ -84,8 +85,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override canCrop(shape: TLImageShape) {
 		return true
 	}
-	override isExportBoundsContainer(): boolean {
-		return true
+	override isExportBoundsContainer(shape: TLImageShape): boolean {
+		// Opt out when there's a border: a tight container clips the ring/shadow that
+		// sits at or beyond the shape's edges. Without it, the export pads and trims.
+		return shape.props.border === 'none'
 	}
 
 	override getDefaultProps(): TLImageShape['props'] {
@@ -99,6 +102,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			flipX: false,
 			flipY: false,
 			altText: '',
+			border: 'none',
 		}
 	}
 
@@ -254,7 +258,22 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		if (!src) return null
 
-		return <SvgImage shape={shape} src={src} />
+		const { behind, front } = getMediaBorderSvg({
+			border: shape.props.border,
+			w: shape.props.w,
+			h: shape.props.h,
+			isCircle: !!shape.props.crop?.isCircle,
+			idBase: shape.id,
+			ctx,
+		})
+
+		return (
+			<>
+				{behind}
+				<SvgImage shape={shape} src={src} />
+				{front}
+			</>
+		)
 	}
 
 	override onDoubleClickEdge(shape: TLImageShape) {
@@ -375,6 +394,13 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 		[editor, shape.id]
 	)
 
+	// Used by the `shadow` border treatment so the shadow rotates with the shape.
+	const rotation = useValue(
+		'shape rotation',
+		() => editor.getShapePageTransform(shape.id)?.rotation() ?? 0,
+		[editor, shape.id]
+	)
+
 	// We only want to reduce motion for mimeTypes that have motion
 	const reduceMotion =
 		prefersReducedMotion && (asset?.props.mimeType?.includes('video') || isAnimated)
@@ -435,6 +461,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 					width: shape.props.w,
 					height: shape.props.h,
 					borderRadius: shape.props.crop?.isCircle ? '50%' : undefined,
+					...getMediaBorderStyle(shape.props.border, { rotation }),
 				}}
 			>
 				<div className={classNames('tl-image-container')} style={containerStyle}>

@@ -51,18 +51,18 @@ export const defaultWelcomeSnapshotJson = `{
 			"com.tldraw.asset.video": 5,
 			"com.tldraw.asset.bookmark": 2,
 			"com.tldraw.shape.arrow": 8,
-			"com.tldraw.shape.bookmark": 2,
+			"com.tldraw.shape.bookmark": 3,
 			"com.tldraw.shape.draw": 5,
-			"com.tldraw.shape.embed": 4,
+			"com.tldraw.shape.embed": 5,
 			"com.tldraw.shape.frame": 1,
 			"com.tldraw.shape.geo": 12,
 			"com.tldraw.shape.group": 0,
 			"com.tldraw.shape.highlight": 4,
-			"com.tldraw.shape.image": 5,
+			"com.tldraw.shape.image": 6,
 			"com.tldraw.shape.line": 5,
 			"com.tldraw.shape.note": 13,
 			"com.tldraw.shape.text": 4,
-			"com.tldraw.shape.video": 4,
+			"com.tldraw.shape.video": 5,
 			"com.tldraw.binding.arrow": 1
 		}
 	},
@@ -154,7 +154,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "shape:Xe4UktrGyB5MiqG7cTJvr",
 				"index": "aB3EJlTV",
@@ -558,7 +559,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "page:page",
 				"index": "agntMk8V",
@@ -681,7 +683,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "page:page",
 				"index": "b0dMYoSFV",
@@ -1900,7 +1903,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "page:page",
 				"index": "b00akFyPV",
@@ -2226,7 +2230,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "shape:Xe4UktrGyB5MiqG7cTJvr",
 				"index": "aAiKlM7V",
@@ -2871,7 +2876,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "page:page",
 				"index": "ahmXfiAV",
@@ -2966,7 +2972,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "page:page",
 				"index": "b0Ek5pgRQV",
@@ -3074,7 +3081,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "shape:Xe4UktrGyB5MiqG7cTJvr",
 				"index": "a9Y3wtAV",
@@ -3732,7 +3740,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "page:page",
 				"index": "b0nJRP5UG",
@@ -4400,7 +4409,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "shape:dgcWyk44ZTHFxW5gXZgFW",
 				"index": "a9zUJWCO",
@@ -4570,7 +4580,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "page:page",
 				"index": "b0GtrW4SV",
@@ -4985,7 +4996,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "shape:Xe4UktrGyB5MiqG7cTJvr",
 				"index": "a8Ui8yAl",
@@ -5216,7 +5228,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "shape:dgcWyk44ZTHFxW5gXZgFW",
 				"index": "aCMuJB8V",
@@ -5668,7 +5681,8 @@ export const defaultWelcomeSnapshotJson = `{
 					"crop": null,
 					"flipX": false,
 					"flipY": false,
-					"altText": ""
+					"altText": "",
+					"border": "none"
 				},
 				"parentId": "page:page",
 				"index": "azgAhNrV",

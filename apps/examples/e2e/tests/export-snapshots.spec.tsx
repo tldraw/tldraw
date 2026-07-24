@@ -349,6 +349,7 @@ const snapshots: Snapshots = {
 		'not rotated': {
 			full: (
 				<TL.bookmark
+					border="shadow"
 					url="https://www.tldraw.com"
 					assetId={
 						<TL.asset.bookmark
@@ -363,6 +364,7 @@ const snapshots: Snapshots = {
 			),
 			long: (
 				<TL.bookmark
+					border="shadow"
 					url="https://www.tldraw.com"
 					assetId={
 						<TL.asset.bookmark
@@ -377,6 +379,7 @@ const snapshots: Snapshots = {
 			),
 			'no image': (
 				<TL.bookmark
+					border="shadow"
 					url="https://www.tldraw.com"
 					assetId={
 						<TL.asset.bookmark
@@ -391,6 +394,7 @@ const snapshots: Snapshots = {
 			),
 			'no favicon': (
 				<TL.bookmark
+					border="shadow"
 					url="https://www.tldraw.com"
 					assetId={
 						<TL.asset.bookmark
@@ -405,6 +409,7 @@ const snapshots: Snapshots = {
 			),
 			'no meta': (
 				<TL.bookmark
+					border="shadow"
 					url="https://www.tldraw.com"
 					assetId={
 						<TL.asset.bookmark
@@ -419,6 +424,7 @@ const snapshots: Snapshots = {
 			),
 			empty: (
 				<TL.bookmark
+					border="shadow"
 					url="https://www.tldraw.com"
 					assetId={
 						<TL.asset.bookmark
@@ -435,6 +441,7 @@ const snapshots: Snapshots = {
 		'rotated (note shadow)': {
 			'30°': (
 				<TL.bookmark
+					border="shadow"
 					rotation={degreesToRadians(30)}
 					url="https://www.tldraw.com"
 					assetId={
@@ -450,6 +457,7 @@ const snapshots: Snapshots = {
 			),
 			'135°': (
 				<TL.bookmark
+					border="shadow"
 					rotation={degreesToRadians(135)}
 					url="https://www.tldraw.com"
 					assetId={
@@ -465,6 +473,7 @@ const snapshots: Snapshots = {
 			),
 			'255°': (
 				<TL.bookmark
+					border="shadow"
 					rotation={degreesToRadians(255)}
 					url="https://www.tldraw.com"
 					assetId={

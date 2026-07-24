@@ -192,6 +192,43 @@ describe('ImageShapeUtil', () => {
 		})
 	})
 
+	describe('isExportBoundsContainer', () => {
+		function makeImage(border: 'none' | 'lined' | 'shadow') {
+			const id = createShapeId()
+			editor.createShapes([
+				{
+					id,
+					type: 'image',
+					x: 0,
+					y: 0,
+					props: {
+						w: 100,
+						h: 100,
+						assetId: null,
+						playing: true,
+						url: '',
+						crop: null,
+						flipX: false,
+						flipY: false,
+						altText: '',
+						border,
+					},
+				},
+			])
+			const shape = editor.getShape<TLImageShape>(id)!
+			return editor.getShapeUtil(shape).isExportBoundsContainer(shape)
+		}
+
+		it('is a container with no border', () => {
+			expect(makeImage('none')).toBe(true)
+		})
+
+		it('is not a container when it has a border decoration, so exports leave room for it', () => {
+			expect(makeImage('lined')).toBe(false)
+			expect(makeImage('shadow')).toBe(false)
+		})
+	})
+
 	describe('flipping a cropped image when its group is resized', () => {
 		it('mirrors the crop when a grouped cropped image is flipped by drag resize', () => {
 			createCroppedImageWithSibling()

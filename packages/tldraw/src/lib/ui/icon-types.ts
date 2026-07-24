@@ -25,6 +25,9 @@ export type TLUiIconType =
 	| 'blob'
 	| 'bold'
 	| 'bookmark'
+	| 'border-lined'
+	| 'border-none'
+	| 'border-shadow'
 	| 'bring-forward'
 	| 'bring-to-front'
 	| 'broken'
@@ -190,6 +193,9 @@ export const iconTypes = [
 	'blob',
 	'bold',
 	'bookmark',
+	'border-lined',
+	'border-none',
+	'border-shadow',
 	'bring-forward',
 	'bring-to-front',
 	'broken',
