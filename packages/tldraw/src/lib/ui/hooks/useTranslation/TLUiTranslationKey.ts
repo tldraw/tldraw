@@ -245,6 +245,7 @@ export type TLUiTranslationKey =
 	| 'tool.hexagon'
 	| 'tool.highlight'
 	| 'tool.line'
+	| 'tool.magic-wand'
 	| 'tool.octagon'
 	| 'tool.oval'
 	| 'tool.pentagon'
