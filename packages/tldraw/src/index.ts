@@ -240,6 +240,11 @@ export {
 	type LineShapeOptions,
 	type LineShapeUtilDisplayValues,
 } from './lib/shapes/line/LineShapeUtil'
+export {
+	DefaultNoteShapeAttribution,
+	type TLNoteShapeAttributionComponent,
+	type TLNoteShapeAttributionProps,
+} from './lib/shapes/note/DefaultNoteShapeAttribution'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export {
 	NoteShapeUtil,
