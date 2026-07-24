@@ -57,6 +57,13 @@ test.describe('UI scenarios', () => {
 
 		await scenario.createPersonalFile(owner, originalName)
 		await scenario.createRectangle(owner)
+		// Duplicating below copies the room's server-side persisted content (see
+		// TLFileDurableObject.handleFileCreateFromSource), which only reflects shapes that have
+		// round-tripped over the room's own sync websocket (independent of Zero/app mutations, so
+		// waitForMutationResolution doesn't cover it). expectShapesCount above only proves the shape
+		// rendered locally; give the push time to reach the server before duplicating, or the copy can
+		// race the still-in-flight change and silently omit the shape.
+		await owner.page.waitForTimeout(1000)
 
 		await owner.sidebar.renameFileByName(originalName, renamedName)
 		await owner.sidebar.expectFileVisible(renamedName)

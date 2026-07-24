@@ -372,7 +372,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 		serverWebSocket.serializeAttachment(metadata)
 
-		if (protocolVersion < MIN_Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
+		if (protocolVersion < MIN_Z_PROTOCOL_VERSION) {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
@@ -688,19 +688,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 			default:
 				this.writeEvent({ blobs: [event.type, event.id] })
-		}
-	}
-
-	/** sneaky test stuff */
-	// this allows us to test the 'your client is out of date please refresh' flow
-	private __test__isForceDowngraded = false
-	async __test__downgradeClient(isDowngraded: boolean) {
-		if (this.env.IS_LOCAL !== 'true') {
-			return
-		}
-		this.__test__isForceDowngraded = isDowngraded
-		for (const socket of this.ctx.getWebSockets()) {
-			socket.close()
 		}
 	}
 

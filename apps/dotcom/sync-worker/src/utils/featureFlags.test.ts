@@ -38,7 +38,7 @@ describe('hashToPercentage', () => {
 	it('produces a reasonable spread across buckets', () => {
 		const buckets = new Set<number>()
 		for (let i = 0; i < 100; i++) {
-			buckets.add(hashToPercentage(`user-${i}`, 'zero_enabled'))
+			buckets.add(hashToPercentage(`user-${i}`, 'some_flag'))
 		}
 		expect(buckets.size).toBeGreaterThan(10)
 	})
@@ -87,7 +87,7 @@ describe('evaluateFlagForUser', () => {
 			expect(
 				evaluateFlagForUser(
 					{ type: 'percentage', enabled: true, percentage: 100, description: '' },
-					'zero_enabled',
+					'some_flag',
 					`user-${i}`
 				)
 			).toBe(true)
@@ -99,7 +99,7 @@ describe('evaluateFlagForUser', () => {
 			expect(
 				evaluateFlagForUser(
 					{ type: 'percentage', enabled: true, percentage: 0, description: '' },
-					'zero_enabled',
+					'some_flag',
 					`user-${i}`
 				)
 			).toBe(false)
@@ -113,7 +113,7 @@ describe('evaluateFlagForUser', () => {
 			if (
 				evaluateFlagForUser(
 					{ type: 'percentage', enabled: true, percentage: 50, description: '' },
-					'zero_enabled',
+					'some_flag',
 					`user-${i}`
 				)
 			) {
@@ -126,7 +126,7 @@ describe('evaluateFlagForUser', () => {
 	})
 
 	it('rollout is monotonic: increasing percentage never removes existing users', () => {
-		const flag = 'zero_enabled'
+		const flag = 'some_flag'
 		const users = Array.from({ length: 200 }, (_, i) => `user-${i}`)
 		const makeFlag = (pct: number) =>
 			({ type: 'percentage', enabled: true, percentage: pct, description: '' }) as const
@@ -146,15 +146,15 @@ describe('evaluateFlagForUser', () => {
 describe('getFeatureFlagValue', () => {
 	it('returns defaults when KV has no value', async () => {
 		const env = makeEnv()
-		const value = await getFeatureFlagValue(env as any, 'zero_kill_switch')
-		expect(value).toMatchObject({ type: 'boolean', enabled: false })
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(value).toMatchObject({ type: 'percentage', enabled: false, percentage: 0 })
 	})
 
 	it('merges KV value over defaults', async () => {
 		const env = makeEnv({
-			zero_enabled: JSON.stringify({ enabled: true, percentage: 25 }),
+			rum_enabled: JSON.stringify({ enabled: true, percentage: 25 }),
 		})
-		const value = await getFeatureFlagValue(env as any, 'zero_enabled')
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
 		expect(value).toMatchObject({
 			type: 'percentage',
 			enabled: true,
@@ -170,36 +170,28 @@ describe('getFeatureFlagValue', () => {
 		env.FEATURE_FLAGS.get = vi.fn(async () => {
 			throw new Error('KV down')
 		})
-		const value = await getFeatureFlagValue(env as any, 'zero_kill_switch')
-		expect(value).toMatchObject({ type: 'boolean', enabled: false })
+		const value = await getFeatureFlagValue(env as any, 'rum_enabled')
+		expect(value).toMatchObject({ type: 'percentage', enabled: false })
 		consoleSpy.mockRestore()
 	})
 })
 
 describe('setFeatureFlag', () => {
-	it('updates enabled on a boolean flag', async () => {
+	it('updates enabled', async () => {
 		const env = makeEnv()
-		await setFeatureFlag(env as any, 'zero_kill_switch', { enabled: true })
+		await setFeatureFlag(env as any, 'rum_enabled', { enabled: true })
 		expect(env.FEATURE_FLAGS.put).toHaveBeenCalledWith(
-			'zero_kill_switch',
+			'rum_enabled',
 			expect.stringContaining('"enabled":true')
 		)
 	})
 
-	it('updates percentage on a percentage flag', async () => {
+	it('updates percentage', async () => {
 		const env = makeEnv()
-		await setFeatureFlag(env as any, 'zero_enabled', { percentage: 42 })
+		await setFeatureFlag(env as any, 'rum_enabled', { percentage: 42 })
 		const putCall = env.FEATURE_FLAGS.put.mock.calls[0]
 		const stored = JSON.parse(putCall[1])
 		expect(stored.percentage).toBe(42)
-	})
-
-	it('ignores percentage on a boolean flag', async () => {
-		const env = makeEnv()
-		await setFeatureFlag(env as any, 'zero_kill_switch', { percentage: 50 })
-		const putCall = env.FEATURE_FLAGS.put.mock.calls[0]
-		const stored = JSON.parse(putCall[1])
-		expect(stored.percentage).toBeUndefined()
 	})
 })
 
@@ -214,14 +206,14 @@ describe('getFeatureFlags (route handler)', () => {
 		vi.mocked(getAuth).mockResolvedValue({ userId: 'user-abc' } as any)
 
 		const env = makeEnv({
-			zero_kill_switch: JSON.stringify({ enabled: true }),
+			rum_enabled: JSON.stringify({ enabled: true, percentage: 100 }),
 		})
 		const response = await getFeatureFlags({} as any, env as any)
 		const body: any = await response.json()
 
 		expect(response.headers.get('x-authenticated')).toBe('1')
-		// kill switch is a boolean flag, enabled=true → evaluates to true
-		expect(body.zero_kill_switch.enabled).toBe(true)
+		// percentage 100 includes every userId
+		expect(body.rum_enabled.enabled).toBe(true)
 	})
 
 	it('returns x-authenticated=0 for unauthenticated user', async () => {
@@ -239,43 +231,38 @@ describe('getFeatureFlags (route handler)', () => {
 		vi.mocked(getAuth).mockResolvedValue(null)
 
 		const env = makeEnv({
-			zero_enabled: JSON.stringify({ enabled: true, percentage: 100 }),
+			rum_enabled: JSON.stringify({ enabled: true, percentage: 100 }),
 		})
 		const response = await getFeatureFlags({} as any, env as any)
 		const body: any = await response.json()
 
 		// Percentage flags require a userId
-		expect(body.zero_enabled.enabled).toBe(false)
+		expect(body.rum_enabled.enabled).toBe(false)
 	})
 })
 
 describe('getFeatureFlagEnabled', () => {
-	it('returns the enabled field for a boolean flag', async () => {
-		const env = makeEnv({ zero_kill_switch: JSON.stringify({ enabled: true }) })
-		expect(await getFeatureFlagEnabled(env as any, 'zero_kill_switch')).toBe(true)
-	})
-
 	it('returns the master toggle for a percentage flag (ignores per-user rollout)', async () => {
 		const env = makeEnv({
-			zero_enabled: JSON.stringify({ enabled: true, percentage: 0 }),
+			rum_enabled: JSON.stringify({ enabled: true, percentage: 0 }),
 		})
 		// enabled=true even though percentage=0 would exclude all users
-		expect(await getFeatureFlagEnabled(env as any, 'zero_enabled')).toBe(true)
+		expect(await getFeatureFlagEnabled(env as any, 'rum_enabled')).toBe(true)
 	})
 })
 
 describe('getFeatureFlagsAdmin (route handler)', () => {
 	it('returns raw flag values including percentage and description', async () => {
 		const env = makeEnv({
-			zero_enabled: JSON.stringify({ enabled: true, percentage: 30 }),
+			rum_enabled: JSON.stringify({ enabled: true, percentage: 30 }),
 		})
 		const response = await getFeatureFlagsAdmin({} as any, env as any)
 		const body: any = await response.json()
 
-		expect(body.zero_enabled.percentage).toBe(30)
-		expect(body.zero_enabled.enabled).toBe(true)
-		expect(body.zero_enabled.type).toBe('percentage')
-		expect(body.zero_enabled.description).toBeTruthy()
+		expect(body.rum_enabled.percentage).toBe(30)
+		expect(body.rum_enabled.enabled).toBe(true)
+		expect(body.rum_enabled.type).toBe('percentage')
+		expect(body.rum_enabled.description).toBeTruthy()
 	})
 
 	it('returns all flags even when KV is empty', async () => {
@@ -283,6 +270,6 @@ describe('getFeatureFlagsAdmin (route handler)', () => {
 		const response = await getFeatureFlagsAdmin({} as any, env as any)
 		const body: any = await response.json()
 
-		expect(Object.keys(body).sort()).toEqual(['rum_enabled', 'zero_enabled', 'zero_kill_switch'])
+		expect(Object.keys(body).sort()).toEqual(['rum_enabled'])
 	})
 })
