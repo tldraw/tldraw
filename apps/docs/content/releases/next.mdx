@@ -18,6 +18,7 @@ When cropping an image, crop edges now snap to other shapes and the grid, with t
 
 ## API changes
 
+- 💥 Add a public `EditorManager` base class so editor-attached managers share one teardown contract. `InputsManager`, `TickManager`, `FocusManager`, and `TextManager` now extend it. As part of this, `TextManager`'s `editor` field is now protected and its `dispose()` method is internal. ([#9204](https://github.com/tldraw/tldraw/pull/9204))
 - Add an `unmount` event to `TLEventMap` and make `Editor.getIsMounted()` a reactive value that tracks whether the editor's component is currently mounted. ([#9472](https://github.com/tldraw/tldraw/pull/9472), [#9483](https://github.com/tldraw/tldraw/pull/9483))
 - Make the shape hit-test margin pointer-aware and add a `coarseHitTestMargin` option: fine pointers (mouse and trackpad) use a tighter 3px default, coarse pointers (touch and pen) use 4px. ([#9492](https://github.com/tldraw/tldraw/pull/9492))
 - Add a `ShapeUtil.onDuplicate(source, duplicate)` callback, invoked by `Editor.duplicateShapes` and `Editor.putContentOntoCurrentPage`, letting a shape adjust its props when it is copied. Sticky notes now use it to attribute duplicated or pasted text to the current user instead of carrying over the original author. ([#9566](https://github.com/tldraw/tldraw/pull/9566))
