@@ -163,22 +163,23 @@ class __Atom__<Value, Diff = unknown> implements Atom<Value, Diff> {
 			return this.current
 		}
 
-		// Tick forward the global epoch
+		// Tick forward the global epoch. This write belongs to that one epoch, so read it once and
+		// use it everywhere below — otherwise a `computeDiff` that touches other atoms could leave
+		// the history entry and `lastChangedEpoch` disagreeing.
 		advanceGlobalEpoch()
+		const epoch = getGlobalEpoch()
 
 		// Add the diff to the history buffer.
 		if (this.historyBuffer) {
 			this.historyBuffer.pushEntry(
 				this.lastChangedEpoch,
-				getGlobalEpoch(),
-				diff ??
-					this.computeDiff?.(this.current, value, this.lastChangedEpoch, getGlobalEpoch()) ??
-					RESET_VALUE
+				epoch,
+				diff ?? this.computeDiff?.(this.current, value, this.lastChangedEpoch, epoch) ?? RESET_VALUE
 			)
 		}
 
 		// Update the atom's record of the epoch when last changed.
-		this.lastChangedEpoch = getGlobalEpoch()
+		this.lastChangedEpoch = epoch
 
 		const oldValue = this.current
 		this.current = value
