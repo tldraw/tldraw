@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom'
 import {
 	TLComment,
 	TLCommentId,
-	TLCommentThread,
 	useContainer,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -88,12 +87,14 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 	)
 
 	// A thread sorts by its first comment's timestamp (the conversation's start), falling back to
-	// the thread's own for a thread whose comments haven't synced in yet. Paired with the thread id
-	// so `sortByCreatedAt` can break ties the same way on every peer.
-	const threadSortKey = (thread: TLCommentThread) => ({
-		id: thread.id,
-		createdAt: (byThread.get(thread.id)?.[0] ?? thread).createdAt,
-	})
+	// the thread's own for a thread whose comments haven't synced in yet. Keyed by thread id so
+	// `sortByCreatedAt` breaks ties the same way on every peer.
+	const sortKeys = new Map(
+		pageThreads.map((thread) => [
+			thread.id,
+			{ id: thread.id, createdAt: (byThread.get(thread.id)?.[0] ?? thread).createdAt },
+		])
+	)
 
 	const items: CommentListItemProps[] = pageThreads
 		.filter((thread) => filters.showResolved || thread.resolved == null)
@@ -113,7 +114,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		// unresolved first, then most-recent first
 		.sort((a, b) => {
 			if ((a.resolved != null) !== (b.resolved != null)) return a.resolved != null ? 1 : -1
-			return sortByCreatedAt(threadSortKey(b), threadSortKey(a))
+			return sortByCreatedAt(sortKeys.get(b.id)!, sortKeys.get(a.id)!)
 		})
 		.map((thread) => {
 			const threadComments = byThread.get(thread.id) ?? []

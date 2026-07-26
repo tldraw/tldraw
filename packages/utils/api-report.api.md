@@ -490,7 +490,7 @@ export function sleep(ms: number): Promise<void>;
 export function sortByCreatedAt<T extends {
     createdAt: number;
     id: any;
-}>(a: T, b: T): number;
+}>(a: T, b: T): -1 | 0 | 1;
 
 // @public
 export function sortById<T extends {

@@ -41,8 +41,7 @@ export function sortById<T extends { id: any }>(a: T, b: T) {
  *
  * @param a - First record to compare
  * @param b - Second record to compare
- * @returns A negative number if a sorts first, a positive number if b does, 0 only when both
- * `createdAt` and `id` match
+ * @returns -1 if a sorts first, 1 if b does, 0 only when both `createdAt` and `id` match
  *
  * @example
  * ```ts
@@ -59,7 +58,10 @@ export function sortById<T extends { id: any }>(a: T, b: T) {
  * @public
  */
 export function sortByCreatedAt<T extends { createdAt: number; id: any }>(a: T, b: T) {
-	if (a.createdAt !== b.createdAt) return a.createdAt - b.createdAt
+	// Relational comparisons rather than subtraction so a NaN timestamp falls through to the id
+	// instead of returning NaN, which would make the comparator non-total.
+	if (a.createdAt < b.createdAt) return -1
+	if (a.createdAt > b.createdAt) return 1
 	if (a.id === b.id) return 0
 	return a.id > b.id ? 1 : -1
 }

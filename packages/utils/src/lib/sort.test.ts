@@ -77,6 +77,40 @@ describe('sortByCreatedAt', () => {
 	it('returns 0 only when both fields match', () => {
 		expect(sortByCreatedAt({ id: 'a', createdAt: 1 }, { id: 'a', createdAt: 1 })).toBe(0)
 		expect(sortByCreatedAt({ id: 'a', createdAt: 1 }, { id: 'b', createdAt: 1 })).toBeLessThan(0)
+		expect(sortByCreatedAt({ id: 'b', createdAt: 1 }, { id: 'a', createdAt: 1 })).toBeGreaterThan(0)
 		expect(sortByCreatedAt({ id: 'b', createdAt: 1 }, { id: 'a', createdAt: 2 })).toBeLessThan(0)
+		expect(sortByCreatedAt({ id: 'a', createdAt: 2 }, { id: 'b', createdAt: 1 })).toBeGreaterThan(0)
+	})
+
+	it('reverses cleanly for newest-first, ties included', () => {
+		const items = [
+			{ id: 'b', createdAt: 100 },
+			{ id: 'c', createdAt: 200 },
+			{ id: 'a', createdAt: 100 },
+		]
+
+		expect([...items].sort((a, b) => sortByCreatedAt(b, a))).toEqual([
+			{ id: 'c', createdAt: 200 },
+			{ id: 'b', createdAt: 100 },
+			{ id: 'a', createdAt: 100 },
+		])
+	})
+
+	it('stays total when a timestamp is not a number', () => {
+		// A NaN timestamp makes every relational comparison false; the id has to carry the order,
+		// or the comparator returns NaN and the sort result becomes implementation-defined.
+		expect(sortByCreatedAt({ id: 'a', createdAt: NaN }, { id: 'b', createdAt: NaN })).toBeLessThan(
+			0
+		)
+		expect(
+			sortByCreatedAt({ id: 'b', createdAt: NaN }, { id: 'a', createdAt: NaN })
+		).toBeGreaterThan(0)
+
+		const tied = [
+			{ id: 'x', createdAt: NaN },
+			{ id: 'y', createdAt: NaN },
+			{ id: 'z', createdAt: NaN },
+		]
+		expect([...tied].sort(sortByCreatedAt)).toEqual([...tied].reverse().sort(sortByCreatedAt))
 	})
 })

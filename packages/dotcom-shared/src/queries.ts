@@ -113,10 +113,12 @@ export const queries = defineQueries({
 			// on userId); absent (for others' comments) = unread
 			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
 			.orderBy('createdAt', 'desc')
-			// Timestamps are client-supplied wall-clock, so ties are reachable. Without a second key
-			// the tied rows order arbitrarily — and at the LIMIT boundary that decides which of them
-			// syncs at all, so the same account could see a different feed on each refresh.
-			.orderBy('id', 'desc')
+			// Timestamps are client-supplied wall-clock, so ties are reachable, and a tie at the
+			// LIMIT boundary decides which rows sync at all. Real Zero already completes the ordering
+			// with the primary key, but the local polyfill sorts the raw AST `orderBy` (see
+			// applyOrderBy in tla/app/ast-helpers.ts) and would leave ties to input order. Stated
+			// explicitly, and `asc` to match what Zero appends, so both paths agree.
+			.orderBy('id', 'asc')
 			.limit(RECENT_COMMENTS_LIMIT)
 	),
 

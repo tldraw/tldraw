@@ -21,5 +21,7 @@ export function useThreadComments(editor: Editor, threadId: TLCommentThreadId): 
 
 /** Every comment in the store, oldest first, reactively. Group by `threadId` for per-thread lists. @public */
 export function useComments(editor: Editor): TLComment[] {
-	return useValue('all comments', () => getComments(editor).sort(sortByCreatedAt), [editor])
+	// Copy before sorting: `getComments` returns the store query's memoized array, and sorting it in
+	// place both reorders it for every other reader and defeats the query's shallow-equality check.
+	return useValue('all comments', () => [...getComments(editor)].sort(sortByCreatedAt), [editor])
 }
