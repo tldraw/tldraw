@@ -1,3 +1,4 @@
+import { objectMapValues } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 
 /**
@@ -78,7 +79,7 @@ export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R
  */
 export function reverseRecordsDiff(diff: RecordsDiff<any>) {
 	const result: RecordsDiff<any> = { added: diff.removed, removed: diff.added, updated: {} }
-	for (const [from, to] of Object.values(diff.updated)) {
+	for (const [from, to] of objectMapValues(diff.updated)) {
 		result.updated[from.id] = [to, from]
 	}
 	return result
@@ -159,11 +160,14 @@ export function squashRecordDiffs<T extends UnknownRecord>(
 		mutateFirstDiff?: boolean
 	}
 ): RecordsDiff<T> {
-	const result = options?.mutateFirstDiff
-		? diffs[0]
-		: ({ added: {}, removed: {}, updated: {} } as RecordsDiff<T>)
+	if (options?.mutateFirstDiff) {
+		const result = diffs[0]
+		squashRecordDiffsMutable(result, diffs, 1)
+		return result
+	}
 
-	squashRecordDiffsMutable(result, options?.mutateFirstDiff ? diffs.slice(1) : diffs)
+	const result = { added: {}, removed: {}, updated: {} } as RecordsDiff<T>
+	squashRecordDiffsMutable(result, diffs)
 	return result
 }
 
@@ -205,7 +209,8 @@ export function squashRecordDiffs<T extends UnknownRecord>(
  */
 export function squashRecordDiffsMutable<T extends UnknownRecord>(
 	target: RecordsDiff<T>,
-	diffs: RecordsDiff<T>[]
+	diffs: RecordsDiff<T>[],
+	fromIndex = 0
 ): void {
 	// This runs on every history interceptor call — e.g. once per input tick while
 	// resizing N shapes, with N entries in diff.updated — so the updated loop must not
@@ -214,7 +219,8 @@ export function squashRecordDiffsMutable<T extends UnknownRecord>(
 	// know are empty. In-place tuple mutation is safe because the target exclusively
 	// owns its updated tuples: they are always created here (never shared with a source
 	// diff), and sources are never mutated.
-	for (const diff of diffs) {
+	for (let i = fromIndex; i < diffs.length; i++) {
+		const diff = diffs[i]
 		// target.removed can only lose entries before the removed loop below, so a
 		// stale `true` is harmless (extra no-op deletes).
 		const targetHasRemoved = hasAnyKey(target.removed)
