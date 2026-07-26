@@ -11765,6 +11765,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/commenting@workspace:packages/commenting"
   dependencies:
+    "@testing-library/dom": "npm:^10.0.0"
     "@testing-library/react": "npm:^16.0.0"
     "@tiptap/core": "npm:^3.12.1"
     "@tiptap/pm": "npm:^3.12.1"
