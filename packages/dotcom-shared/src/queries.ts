@@ -113,6 +113,10 @@ export const queries = defineQueries({
 			// on userId); absent (for others' comments) = unread
 			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
 			.orderBy('createdAt', 'desc')
+			// Timestamps are client-supplied wall-clock, so ties are reachable. Without a second key
+			// the tied rows order arbitrarily — and at the LIMIT boundary that decides which of them
+			// syncs at all, so the same account could see a different feed on each refresh.
+			.orderBy('id', 'desc')
 			.limit(RECENT_COMMENTS_LIMIT)
 	),
 

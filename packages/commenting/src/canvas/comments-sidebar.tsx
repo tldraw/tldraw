@@ -1,9 +1,11 @@
 import { type CommentAuthor } from '@tldraw/mentions'
+import { sortByCreatedAt } from '@tldraw/utils'
 import { ReactNode, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import {
 	TLComment,
 	TLCommentId,
+	TLCommentThread,
 	useContainer,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -85,6 +87,14 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		(thread) => !filters.onlyCurrentPage || thread.pageId === currentPageId
 	)
 
+	// A thread sorts by its first comment's timestamp (the conversation's start), falling back to
+	// the thread's own for a thread whose comments haven't synced in yet. Paired with the thread id
+	// so `sortByCreatedAt` can break ties the same way on every peer.
+	const threadSortKey = (thread: TLCommentThread) => ({
+		id: thread.id,
+		createdAt: (byThread.get(thread.id)?.[0] ?? thread).createdAt,
+	})
+
 	const items: CommentListItemProps[] = pageThreads
 		.filter((thread) => filters.showResolved || thread.resolved == null)
 		// "Only mine" is ignored without a known user — otherwise a persisted onlyMine=true would
@@ -100,6 +110,11 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				isCommentUnread === undefined ||
 				(byThread.get(thread.id) ?? []).some((c) => isCommentUnread(c.id))
 		)
+		// unresolved first, then most-recent first
+		.sort((a, b) => {
+			if ((a.resolved != null) !== (b.resolved != null)) return a.resolved != null ? 1 : -1
+			return sortByCreatedAt(threadSortKey(b), threadSortKey(a))
+		})
 		.map((thread) => {
 			const threadComments = byThread.get(thread.id) ?? []
 			const first = threadComments[0]
@@ -128,11 +143,6 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				count: threadComments.length,
 				selected: openId === thread.id,
 			}
-		})
-		// unresolved first, then most-recent first
-		.sort((a, b) => {
-			if (!!a.resolved !== !!b.resolved) return a.resolved ? 1 : -1
-			return b.date.localeCompare(a.date)
 		})
 
 	const focus = (id: string) => {

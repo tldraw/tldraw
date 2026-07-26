@@ -487,6 +487,12 @@ export function setInSessionStorage(key: string, value: string): void;
 export function sleep(ms: number): Promise<void>;
 
 // @public
+export function sortByCreatedAt<T extends {
+    createdAt: number;
+    id: any;
+}>(a: T, b: T): number;
+
+// @public
 export function sortById<T extends {
     id: any;
 }>(a: T, b: T): -1 | 1;

@@ -1,4 +1,5 @@
 import { extractMentionIds } from '@tldraw/dotcom-shared'
+import { sortByCreatedAt } from '@tldraw/utils'
 
 /**
  * Why a comment shows up in a user's notifications feed:
@@ -89,5 +90,6 @@ export function categorizeCommentNotifications<T extends CommentNotificationInpu
 		notifications.push({ comment, reasons, primaryReason })
 	}
 
-	return notifications.sort((a, b) => b.comment.createdAt - a.comment.createdAt)
+	// Newest first, ties broken on comment id so the feed reads the same on every device.
+	return notifications.sort((a, b) => sortByCreatedAt(b.comment, a.comment))
 }
