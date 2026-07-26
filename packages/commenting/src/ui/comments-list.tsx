@@ -1,5 +1,6 @@
 import { Avatar, type CommentAuthor } from '@tldraw/mentions'
 import { ReactNode } from 'react'
+import { withCommentingLicense } from '../canvas/license'
 import { Byline } from './byline'
 
 /** @public */
@@ -42,7 +43,7 @@ export interface CommentsListProps {
  * `CanvasCommentsSidebar` wires it to the store, but a consumer can build their own list from this.
  * @public @react
  */
-export function CommentsList({
+export const CommentsList = withCommentingLicense(function CommentsList({
 	items,
 	onSelect,
 	header,
@@ -79,7 +80,7 @@ export function CommentsList({
 			)}
 		</div>
 	)
-}
+})
 
 function CommentListItem({
 	id,

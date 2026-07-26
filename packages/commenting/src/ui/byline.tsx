@@ -1,4 +1,5 @@
 import { type CommentAuthor } from '@tldraw/mentions'
+import { withCommentingLicense } from '../canvas/license'
 import { formatRelativeTime } from './format-time'
 
 /** @public */
@@ -11,7 +12,7 @@ export interface BylineProps {
 }
 
 /** A comment's metadata line: author name, relative time, and an edited marker. @public @react */
-export function Byline({ author, date, edited }: BylineProps) {
+export const Byline = withCommentingLicense(function Byline({ author, date, edited }: BylineProps) {
 	return (
 		<div className="tlui-cmt-head">
 			<span className="tlui-cmt-author">{author.name}</span>
@@ -21,4 +22,4 @@ export function Byline({ author, date, edited }: BylineProps) {
 			</span>
 		</div>
 	)
-}
+})

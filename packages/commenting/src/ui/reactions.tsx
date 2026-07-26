@@ -1,7 +1,8 @@
+import { withCommentingLicense } from '../canvas/license'
 import { Reaction } from './reaction'
 
 /** The row of reactions under a comment, plus an add-reaction button. @public @react */
-export function Reactions() {
+export const Reactions = withCommentingLicense(function Reactions() {
 	return (
 		<div className="tlui-cmt-reactions">
 			<Reaction emoji="👍" count={3} active={true} />
@@ -16,4 +17,4 @@ export function Reactions() {
 			</button>
 		</div>
 	)
-}
+})

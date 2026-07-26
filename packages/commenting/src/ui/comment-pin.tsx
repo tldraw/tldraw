@@ -1,4 +1,5 @@
 import { CSSProperties, ReactNode } from 'react'
+import { withCommentingLicense } from '../canvas/license'
 
 /** @public */
 export interface CommentPinProps {
@@ -33,7 +34,12 @@ const resolvedCheck = (
 /** A canvas comment marker: shows its `children` (or a check when resolved). Purely
  * presentational — it reflects open/resolved state via CSS; wrap it to make it clickable.
  * @public @react */
-export function CommentPin({ children, resolved, open, color }: CommentPinProps) {
+export const CommentPin = withCommentingLicense(function CommentPin({
+	children,
+	resolved,
+	open,
+	color,
+}: CommentPinProps) {
 	const className = [
 		'tlui-cmt-pin',
 		resolved && 'tlui-cmt-pin--resolved',
@@ -49,4 +55,4 @@ export function CommentPin({ children, resolved, open, color }: CommentPinProps)
 			{resolved ? resolvedCheck : children}
 		</div>
 	)
-}
+})

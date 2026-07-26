@@ -10,6 +10,7 @@ import {
 } from '@tldraw/mentions'
 import { ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
+import { withCommentingLicense } from '../canvas/license'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
 import { SendButton } from './send-button'
 
@@ -40,7 +41,7 @@ export interface CommentComposerProps {
  * floating toolbar. Presentational by default; pass value/onChange/onSubmit to drive it as a form.
  * @public @react
  */
-export function CommentComposer({
+export const CommentComposer = withCommentingLicense(function CommentComposer({
 	author,
 	placeholder,
 	value,
@@ -268,4 +269,4 @@ export function CommentComposer({
 			</div>
 		</div>
 	)
-}
+})

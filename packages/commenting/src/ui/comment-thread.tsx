@@ -1,4 +1,5 @@
 import { ReactNode } from 'react'
+import { withCommentingLicense } from '../canvas/license'
 import { CommentCard, CommentCardProps } from './comment-card'
 import { CommentComposer, CommentComposerProps } from './comment-composer'
 
@@ -27,7 +28,7 @@ export interface CommentThreadProps {
  * composer's handlers; how each comment renders is overridable via `renderComment`.
  * @public @react
  */
-export function CommentThread({
+export const CommentThread = withCommentingLicense(function CommentThread({
 	comments,
 	header,
 	headerActions,
@@ -60,4 +61,4 @@ export function CommentThread({
 			{footer !== undefined && <div className="tlui-cmt-thread__footer">{footer}</div>}
 		</div>
 	)
-}
+})

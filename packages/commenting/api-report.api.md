@@ -47,7 +47,7 @@ export { Avatar }
 export { AvatarProps }
 
 // @public
-export function Byline({ author, date, edited }: BylineProps): JSX.Element;
+export const Byline: (props: BylineProps) => ReactNode;
 
 // @public (undocumented)
 export interface BylineProps {
@@ -139,7 +139,7 @@ export function collectClusterLeaves(editor: Editor, threads: readonly TLComment
 export { CommentAuthor }
 
 // @public
-export function CommentBody({ richText, resolveName }: CommentBodyProps): JSX.Element;
+export const CommentBody: (props: CommentBodyProps) => ReactNode;
 
 // @public (undocumented)
 export interface CommentBodyProps {
@@ -149,7 +149,7 @@ export interface CommentBodyProps {
 }
 
 // @public
-export function CommentCard({ author, body, date, you, edited, actions }: CommentCardProps): JSX.Element;
+export const CommentCard: (props: CommentCardProps) => ReactNode;
 
 // @public (undocumented)
 export interface CommentCardProps {
@@ -164,7 +164,7 @@ export interface CommentCardProps {
 }
 
 // @public
-export function CommentComposer({ author, placeholder, value, onChange, onSubmit, sendLabel, disabled, autoFocus, leading, getMentionSuggestions, renderMentionSuggestion }: CommentComposerProps): JSX.Element;
+export const CommentComposer: (props: CommentComposerProps) => ReactNode;
 
 // @public (undocumented)
 export interface CommentComposerProps {
@@ -247,7 +247,7 @@ export interface CommentListItemProps {
 }
 
 // @public
-export function CommentPin({ children, resolved, open, color }: CommentPinProps): JSX.Element;
+export const CommentPin: (props: CommentPinProps) => ReactNode;
 
 // @public (undocumented)
 export interface CommentPinProps {
@@ -259,7 +259,7 @@ export interface CommentPinProps {
 }
 
 // @public
-export function CommentsFilterMenu({ canFilterByAuthor, canFilterByUnread }: CommentsFilterMenuProps): JSX.Element;
+export const CommentsFilterMenu: (props: CommentsFilterMenuProps) => ReactNode;
 
 // @public (undocumented)
 export interface CommentsFilterMenuProps {
@@ -271,7 +271,7 @@ export interface CommentsFilterMenuProps {
 export const commentsHidden: EditorAtom<boolean>;
 
 // @public
-export function CommentsList({ items, onSelect, header, headerAction, empty, resolvedLabel, renderItem }: CommentsListProps): JSX.Element;
+export const CommentsList: (props: CommentsListProps) => ReactNode;
 
 // @public (undocumented)
 export interface CommentsListProps {
@@ -286,19 +286,19 @@ export interface CommentsListProps {
 }
 
 // @public
-export function CommentsMenuItem(): JSX.Element;
+export const CommentsMenuItem: (props: object) => ReactNode;
 
 // @public
-export function CommentsOverflowMenu(): JSX.Element;
+export const CommentsOverflowMenu: (props: object) => ReactNode;
 
 // @public
 export const commentsSidebarOpen: EditorAtom<boolean>;
 
 // @public
-export function CommentsVisibilityToggle(): JSX.Element;
+export const CommentsVisibilityToggle: (props: object) => ReactNode;
 
 // @public
-export function CommentText({ text }: CommentTextProps): JSX.Element;
+export const CommentText: (props: CommentTextProps) => ReactNode;
 
 // @public (undocumented)
 export interface CommentTextProps {
@@ -306,7 +306,7 @@ export interface CommentTextProps {
 }
 
 // @public
-export function CommentThread({ comments, header, headerActions, resolvedBanner, composer, footer, renderComment }: CommentThreadProps): JSX.Element;
+export const CommentThread: (props: CommentThreadProps) => ReactNode;
 
 // @public (undocumented)
 export interface CommentThreadProps {
@@ -352,7 +352,7 @@ export function commitCommentMutation<T>(editor: Editor, fn: () => T, kind?: 'dr
 export function computeClusterTable(leaves: readonly LeafInput[], options: ClusterOptions): ClusterTable;
 
 // @public (undocumented)
-export function CountBadge({ count }: CountBadgeProps): JSX.Element;
+export const CountBadge: (props: CountBadgeProps) => ReactNode;
 
 // @public (undocumented)
 export interface CountBadgeProps {
@@ -399,7 +399,7 @@ export const defaultCommentingOptions: {
 };
 
 // @public
-export function EmptyState({ message }: EmptyStateProps): JSX.Element;
+export const EmptyState: (props: EmptyStateProps) => ReactNode;
 
 // @public (undocumented)
 export interface EmptyStateProps {
@@ -479,7 +479,7 @@ export const pendingComment: EditorAtom<null | PendingComment>;
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;
 
 // @public
-export function Reaction({ emoji, count, active }: ReactionProps): JSX.Element;
+export const Reaction: (props: ReactionProps) => ReactNode;
 
 // @public (undocumented)
 export interface ReactionProps {
@@ -492,7 +492,7 @@ export interface ReactionProps {
 }
 
 // @public
-export function Reactions(): JSX.Element;
+export const Reactions: (props: object) => ReactNode;
 
 // @public
 export function regionAnchorPinCorner(editor: Editor, anchor: Extract<TLCommentAnchor, {
@@ -518,7 +518,7 @@ export const revealThreadRequest: EditorAtom<null | string>;
 export function richTextToPlaintext(body: TLRichText, resolveName?: (id: string) => string | undefined): string;
 
 // @public
-export function SendButton({ label, disabled, onClick }: SendButtonProps): JSX.Element;
+export const SendButton: (props: SendButtonProps) => ReactNode;
 
 // @public (undocumented)
 export interface SendButtonProps {

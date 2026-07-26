@@ -1,4 +1,5 @@
 import { TldrawUiMenuCheckboxItem, useEditor, useValue } from 'tldraw'
+import { withCommentingLicense } from './license'
 import { commentsHidden, toggleCommentsHidden } from './state'
 
 /**
@@ -8,7 +9,7 @@ import { commentsHidden, toggleCommentsHidden } from './state'
  * control. Drop it into whichever menu your app owns.
  * @public @react
  */
-export function CommentsMenuItem() {
+export const CommentsMenuItem = withCommentingLicense(function CommentsMenuItem() {
 	const editor = useEditor()
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 	return (
@@ -21,4 +22,4 @@ export function CommentsMenuItem() {
 			onSelect={() => toggleCommentsHidden(editor)}
 		/>
 	)
-}
+})

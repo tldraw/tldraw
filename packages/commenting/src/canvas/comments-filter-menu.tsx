@@ -10,6 +10,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { TooltipButton } from '../ui/tooltip-button'
+import { withCommentingLicense } from './license'
 import { SidebarFilters } from './sidebar-filters'
 import { sidebarFilters } from './state'
 
@@ -23,7 +24,7 @@ export interface CommentsFilterMenuProps {
 
 /** The funnel dropdown in the sidebar header: toggles for which threads the list shows.
  * @public @react */
-export function CommentsFilterMenu({
+export const CommentsFilterMenu = withCommentingLicense(function CommentsFilterMenu({
 	canFilterByAuthor,
 	canFilterByUnread,
 }: CommentsFilterMenuProps) {
@@ -82,7 +83,7 @@ export function CommentsFilterMenu({
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
 	)
-}
+})
 
 function FilterIcon() {
 	return (

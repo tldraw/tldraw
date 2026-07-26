@@ -1,6 +1,28 @@
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Editor, Tldraw, TldrawUiContextProvider, TldrawUiTranslationProvider } from 'tldraw'
+import {
+	Editor,
+	LicenseContext,
+	LicenseManager,
+	Tldraw,
+	TldrawUiContextProvider,
+	TldrawUiTranslationProvider,
+} from 'tldraw'
 import { Env } from './channel'
+
+/**
+ * The commenting components gate on the license, so the studio has to look licensed or the comment
+ * sketches render nothing — including on the deployed studio, which is a production origin.
+ *
+ * This is a stub, not a license: it supplies the one method the gate calls rather than a real key.
+ * Fine for a devtool that renders components in isolation, and the studio is on its way out.
+ */
+function StudioLicense({ children }: { children: ReactNode }) {
+	return (
+		<LicenseContext.Provider value={{ isFeatureEnabled: () => true } as unknown as LicenseManager}>
+			{children}
+		</LicenseContext.Provider>
+	)
+}
 
 const PAD = 16
 
@@ -68,11 +90,13 @@ export function IsolatedHarness({
 			className={`isolated-harness${fill ? ' isolated-harness--fill' : ''} tl-container tl-theme__${env.theme}`}
 			data-color-mode={env.theme}
 		>
-			<TldrawUiContextProvider>
-				<TldrawUiTranslationProvider locale={env.locale}>
-					{fill ? children : <ScaledPreview>{children}</ScaledPreview>}
-				</TldrawUiTranslationProvider>
-			</TldrawUiContextProvider>
+			<StudioLicense>
+				<TldrawUiContextProvider>
+					<TldrawUiTranslationProvider locale={env.locale}>
+						{fill ? children : <ScaledPreview>{children}</ScaledPreview>}
+					</TldrawUiTranslationProvider>
+				</TldrawUiContextProvider>
+			</StudioLicense>
 		</div>
 	)
 }
@@ -95,7 +119,7 @@ export function EditorHarness({ env, children }: { env: Env; children: ReactNode
 	return (
 		<div className="editor-harness">
 			<Tldraw hideUi onMount={setEditor}>
-				{children}
+				<StudioLicense>{children}</StudioLicense>
 			</Tldraw>
 		</div>
 	)

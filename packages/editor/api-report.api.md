@@ -10,6 +10,7 @@ import { Awaitable } from '@tldraw/utils';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
+import { Context } from 'react';
 import { CustomRecordInfo } from '@tldraw/tlschema';
 import { Dispatch } from 'react';
 import { Editor as Editor_2 } from '@tiptap/core';
@@ -2396,6 +2397,9 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opt
 
 // @internal (undocumented)
 export const LICENSE_TIMEOUT = 5000;
+
+// @internal (undocumented)
+export const LicenseContext: Context<LicenseManager>;
 
 // @internal
 export type LicenseFeatureName = 'collaboration' | 'commenting';

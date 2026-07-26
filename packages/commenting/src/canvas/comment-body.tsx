@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { TLRichText } from 'tldraw'
 import { renderCommentHtml } from './comment-render'
+import { withCommentingLicense } from './license'
 
 /** @public */
 export interface CommentBodyProps {
@@ -15,7 +16,10 @@ export interface CommentBodyProps {
  * headings can never render. Use this as the `body` of a `CommentCard` on a canvas.
  * @public @react
  */
-export function CommentBody({ richText, resolveName }: CommentBodyProps) {
+export const CommentBody = withCommentingLicense(function CommentBody({
+	richText,
+	resolveName,
+}: CommentBodyProps) {
 	const html = useMemo(() => renderCommentHtml(richText, resolveName), [richText, resolveName])
 	return <div className="tlui-cmt-text" dangerouslySetInnerHTML={{ __html: html }} />
-}
+})

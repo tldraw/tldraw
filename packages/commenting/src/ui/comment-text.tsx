@@ -1,3 +1,4 @@
+import { withCommentingLicense } from '../canvas/license'
 import { renderMarkdown } from './render-markdown'
 
 /** @public */
@@ -7,6 +8,6 @@ export interface CommentTextProps {
 }
 
 /** A comment's body, rendered as markdown (bold, italic, code, links, lists). @public @react */
-export function CommentText({ text }: CommentTextProps) {
+export const CommentText = withCommentingLicense(function CommentText({ text }: CommentTextProps) {
 	return <div className="tlui-cmt-text">{renderMarkdown(text)}</div>
-}
+})

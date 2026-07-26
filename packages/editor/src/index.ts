@@ -330,7 +330,7 @@ export {
 	type LicenseState,
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
-export { LICENSE_TIMEOUT, useLicenseContext } from './lib/license/LicenseProvider'
+export { LICENSE_TIMEOUT, LicenseContext, useLicenseContext } from './lib/license/LicenseProvider'
 export { useLicenseFeatureFlag } from './lib/license/useLicenseManagerState'
 export {
 	defaultTldrawOptions,

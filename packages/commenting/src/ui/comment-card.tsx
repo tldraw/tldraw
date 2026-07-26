@@ -1,5 +1,6 @@
 import { Avatar, type CommentAuthor } from '@tldraw/mentions'
 import { ReactNode } from 'react'
+import { withCommentingLicense } from '../canvas/license'
 import { Byline } from './byline'
 
 /** @public */
@@ -18,7 +19,14 @@ export interface CommentCardProps {
 }
 
 /** A single comment: Avatar, Byline, and a body slot the consumer renders. @public @react */
-export function CommentCard({ author, body, date, you, edited, actions }: CommentCardProps) {
+export const CommentCard = withCommentingLicense(function CommentCard({
+	author,
+	body,
+	date,
+	you,
+	edited,
+	actions,
+}: CommentCardProps) {
 	return (
 		<div className={you ? 'tlui-cmt-card tlui-cmt-card--you' : 'tlui-cmt-card'}>
 			<Avatar author={author} />
@@ -29,4 +37,4 @@ export function CommentCard({ author, body, date, you, edited, actions }: Commen
 			{actions !== undefined && <div className="tlui-cmt-card__actions">{actions}</div>}
 		</div>
 	)
-}
+})

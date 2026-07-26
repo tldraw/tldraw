@@ -1,8 +1,10 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 
-// Presentational commenting components. These are tldraw-independent and can be used to build
-// custom commenting UI. The mention picker, pill, and avatar are re-exported from @tldraw/mentions
-// so the commenting public API is unchanged.
+// Presentational commenting components, for building custom commenting UI. They take no editor,
+// but like everything else this package exports they are gated on the commenting license and
+// render nothing without one — so they need a licensed `<Tldraw>`/`LicenseProvider` above them.
+// The mention picker, pill, and avatar are re-exported from @tldraw/mentions, which is shared with
+// shape rich text and so stays ungated.
 export {
 	Avatar,
 	type AvatarProps,

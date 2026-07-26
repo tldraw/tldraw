@@ -1,11 +1,12 @@
 import { useEditor, useTranslation, useValue } from 'tldraw'
 import { TooltipButton } from '../ui/tooltip-button'
+import { withCommentingLicense } from './license'
 import { commentsHidden, toggleCommentsHidden } from './state'
 
 /** The sidebar header's show/hide toggle for comment pins — an eye that closes while comments
  *  are hidden. The same state as the Shift+C shortcut.
  * @public @react */
-export function CommentsVisibilityToggle() {
+export const CommentsVisibilityToggle = withCommentingLicense(function CommentsVisibilityToggle() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
@@ -21,7 +22,7 @@ export function CommentsVisibilityToggle() {
 			{hidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
 		</TooltipButton>
 	)
-}
+})
 
 function EyeOpenIcon() {
 	return (

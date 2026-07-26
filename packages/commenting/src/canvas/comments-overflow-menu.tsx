@@ -10,6 +10,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { TooltipButton } from '../ui/tooltip-button'
+import { withCommentingLicense } from './license'
 import { commentsHidden, toggleCommentsHidden } from './state'
 
 // A keyboard-shortcut glyph, not translatable copy — kept out of JSX as a constant.
@@ -18,7 +19,7 @@ const HIDE_SHORTCUT = '⇧C'
 /** The overflow (⋯) dropdown in the sidebar header. For now it holds the hide/show-comments
  *  toggle; it's the home for later comment-wide controls (notifications, mark all as read).
  * @public @react */
-export function CommentsOverflowMenu() {
+export const CommentsOverflowMenu = withCommentingLicense(function CommentsOverflowMenu() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
@@ -51,4 +52,4 @@ export function CommentsOverflowMenu() {
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
 	)
-}
+})
