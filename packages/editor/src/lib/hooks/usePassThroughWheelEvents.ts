@@ -13,10 +13,16 @@ function isScrollableOverflow(overflow: string) {
 // `transform: scale()` inflates scrollHeight past clientHeight) never scrolls, so the wheel must
 // still pass through to the canvas.
 function isScrollable(elm: HTMLElement) {
+	// Cheap first: if nothing overflows, it can't scroll — skip the getComputedStyle read. This runs
+	// per ancestor on every wheel event, so avoid resolving styles for the common (non-overflowing) case.
+	const overflowsY = elm.scrollHeight > elm.clientHeight
+	const overflowsX = elm.scrollWidth > elm.clientWidth
+	if (!overflowsY && !overflowsX) return false
+
 	const style = getComputedStyle(elm)
 	return (
-		(elm.scrollHeight > elm.clientHeight && isScrollableOverflow(style.overflowY)) ||
-		(elm.scrollWidth > elm.clientWidth && isScrollableOverflow(style.overflowX))
+		(overflowsY && isScrollableOverflow(style.overflowY)) ||
+		(overflowsX && isScrollableOverflow(style.overflowX))
 	)
 }
 
