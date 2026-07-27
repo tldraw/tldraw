@@ -115,6 +115,7 @@ function CommentsSidebarButton() {
 	return (
 		<TldrawUiButton
 			type="icon"
+			className={styles.commentsSidebarButton}
 			data-testid="tla-comments-button"
 			aria-pressed={open}
 			tooltip={label}
