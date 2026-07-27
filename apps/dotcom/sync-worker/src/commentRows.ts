@@ -111,6 +111,7 @@ export function threadRecordToRow(
 		shapeId: record.anchor.type === 'shape' ? record.anchor.shapeId : null,
 		resolvedAt: record.resolved?.at ?? null,
 		resolvedBy: record.resolved?.by ?? null,
+		isDeleted: record.isDeleted,
 		createdBy: record.createdBy,
 		createdAt: record.createdAt,
 		meta: record.meta,
@@ -156,6 +157,7 @@ export function commentRecordToRow(
 		body: record.body as DB['comment']['body'],
 		createdAt: record.createdAt,
 		editedAt: record.editedAt,
+		isDeleted: record.isDeleted,
 		updatedAt: record.editedAt ?? record.createdAt,
 		meta: record.meta,
 		lastChangedClock,
@@ -171,6 +173,7 @@ export function rowToThreadRecord(row: DB['comment_thread']): TLCommentThread {
 		createdBy: row.createdBy,
 		createdAt: Number(row.createdAt),
 		resolved: row.resolvedAt != null ? { at: Number(row.resolvedAt), by: row.resolvedBy! } : null,
+		isDeleted: row.isDeleted,
 		meta: (row.meta ?? {}) as JsonObject,
 	}
 	// The fields above are raw casts from the row; validate the finished record so a corrupt
@@ -188,6 +191,7 @@ export function rowToCommentRecord(row: DB['comment']): TLComment {
 		createdAt: Number(row.createdAt),
 		editedAt: row.editedAt != null ? Number(row.editedAt) : null,
 		body: row.body as TLComment['body'],
+		isDeleted: row.isDeleted,
 		meta: (row.meta ?? {}) as JsonObject,
 	}
 	// The fields above are raw casts from the row; validate the finished record so a corrupt
@@ -236,13 +240,78 @@ export function rowsToSnapshotDocuments(
 	]
 }
 
+/** The room-seedable subset of a file's comment rows; see {@link liveCommentDocuments}. */
+export interface CommentLoadResult {
+	documents: RoomSnapshot['documents']
+	/**
+	 * The highest `lastChangedClock` across ALL of the file's comment rows, including the
+	 * soft-deleted ones whose records were dropped from `documents`. Merge clamping must use this
+	 * rather than the merged documents' own clocks: a dropped row can hold the file's highest
+	 * clock, and seeding the room's clock below it would let future edits emit clocks the drain's
+	 * lastChangedClock guard rejects.
+	 */
+	clockFloor: number
+}
+
+/**
+ * Build the room-seedable comment documents from a file's Postgres rows. Soft-deleted threads
+ * (`isDeleted` — see TLCommentThread.isDeleted) and their comments are dropped, as are
+ * soft-deleted comments of live threads: their rows stay in Postgres for recovery and Zero-side
+ * filtering, but they never re-enter a room.
+ *
+ * A live thread whose comment rows are all soft-deleted is dropped too. It's the durable
+ * backstop for the drain's emptied-thread prune: the thread's own isDeleted stamp rides a
+ * comment_outbox entry in DO SQLite between drains, so losing that storage in the window leaves
+ * the thread live in Postgres with nothing left to ever stamp it — this filter keeps it out of
+ * rooms regardless. A thread with no comment rows at all is kept: it's a brand-new thread whose
+ * first comment hasn't drained, not an emptied one.
+ *
+ * Reactions seed only when their comment does. A soft-deleted comment's reaction rows persist
+ * (the comment row still exists, so no cascade fired) — this filter is what keeps them out of
+ * rooms, mirroring the drain's orphan-reaction lane prune.
+ */
+export function liveCommentDocuments(
+	threadRows: DB['comment_thread'][],
+	commentRows: DB['comment'][],
+	reactionRows: DB['comment_reaction'][] = []
+): CommentLoadResult {
+	const threadIdsWithComments = new Set(commentRows.map((row) => row.threadId))
+	const threadIdsWithLiveComments = new Set(
+		commentRows.filter((row) => !row.isDeleted).map((row) => row.threadId)
+	)
+	const liveThreadRows = threadRows.filter(
+		(row) =>
+			!row.isDeleted &&
+			(!threadIdsWithComments.has(row.id) || threadIdsWithLiveComments.has(row.id))
+	)
+	const liveThreadIds = new Set(liveThreadRows.map((row) => row.id))
+	const liveCommentRows = commentRows.filter(
+		(row) => !row.isDeleted && liveThreadIds.has(row.threadId)
+	)
+	const liveCommentIds = new Set(liveCommentRows.map((row) => row.id))
+	const liveReactionRows = reactionRows.filter((row) => liveCommentIds.has(row.commentId))
+	let clockFloor = 0
+	for (const row of threadRows) clockFloor = Math.max(clockFloor, Number(row.lastChangedClock))
+	for (const row of commentRows) clockFloor = Math.max(clockFloor, Number(row.lastChangedClock))
+	for (const row of reactionRows) clockFloor = Math.max(clockFloor, Number(row.lastChangedClock))
+	return {
+		documents: rowsToSnapshotDocuments(liveThreadRows, liveCommentRows, liveReactionRows),
+		clockFloor,
+	}
+}
+
 /** A row of the DO's `comment_outbox` table: a monotonic sequence number and the touched record id. */
 export interface CommentOutboxEntry {
 	seq: number
 	recordId: string
 }
 
-/** The pure output of `planCommentDrain`: Postgres writes grouped by table and operation. */
+/**
+ * The pure output of `planCommentDrain`: Postgres writes grouped by table and operation. The
+ * delete buckets carry lane-absent ids, and "delete" means stamping the row's `isDeleted` —
+ * the drain never hard-deletes comment-lane rows (the only hard deletes are Postgres-side
+ * cascades: user-account deletion, file deletion, version restore).
+ */
 export interface CommentDrainPlan {
 	threadUpserts: DB['comment_thread'][]
 	commentUpserts: DB['comment'][]
@@ -263,7 +332,7 @@ export interface CommentDrainPlan {
  * TLFileDurableObject). The outbox stores only ids; whether an id is an upsert or a delete is
  * decided by its presence in the object `lane` at plan time, so multiple entries for one record
  * coalesce into a single write (deduped by recordId, keeping first-occurrence order) and a
- * create-then-delete nets out to a delete. Only ids present in `entries` are considered — the
+ * create-then-prune nets out to a delete bucket entry. Only ids present in `entries` are considered — the
  * caller bounds the entries to its drain's high-water mark, and lane records outside that set
  * belong to a later drain.
  */
@@ -338,9 +407,10 @@ export function outboxEntriesToClear(
 /**
  * Given the `threadId`s of comment records that were just pruned and a view of the records that
  * remain (read AFTER the pruned comments were deleted), return the threadIds that no longer have
- * any comments referencing them. The caller (see the author-FK prune in drainCommentOutbox)
- * deletes those threads in the same transaction, mirroring the client-side invariant that
- * deleting a thread's last comment deletes the thread.
+ * any comments referencing them. The callers (the author-FK prune and the soft-delete prune in
+ * drainCommentOutbox) delete those threads in the same transaction: an emptied thread never
+ * renders (clients hide threads with no comments), and no client may delete a thread it didn't
+ * create — the ordinary "delete the last comment" path relies on this server-side prune.
  *
  * The view must be transaction-time (e.g. the prune transaction's own read surface), not an
  * earlier lane snapshot: a reply committed between the snapshot and the transaction must keep its
@@ -390,10 +460,12 @@ export function findOrphanedReactions(
 
 /**
  * Merge rehydrated comment documents into a room snapshot, clamping the snapshot's clocks up to
- * the highest merged clock. Comments push to Postgres per-commit while the document snapshot
- * persists on a throttle, so after a storage loss the comment clocks can be ahead of the
- * snapshot's — seeding the room clock below them would make future edits emit clocks the drain's
- * lastChangedClock guard rejects, silently dropping those edits from Postgres.
+ * the load's `clockFloor` (the highest clock across all of the file's comment rows — including
+ * soft-deleted ones that contributed no document). Comments push to Postgres per-commit while
+ * the document snapshot persists on a throttle, so after a storage loss the comment clocks can
+ * be ahead of the snapshot's — seeding the room clock below them would make future edits emit
+ * clocks the drain's lastChangedClock guard rejects, silently dropping those edits from
+ * Postgres.
  *
  * `SQLiteSyncStorage` seeds its clock from `snapshot.documentClock ?? snapshot.clock ?? 0`, so we
  * clamp based on that effective value (setting `documentClock` when only a higher legacy `clock`
@@ -410,11 +482,14 @@ export function findOrphanedReactions(
  */
 export function mergeCommentDocumentsIntoSnapshot(
 	snapshot: RoomSnapshot,
-	commentDocs: RoomSnapshot['documents']
+	load: CommentLoadResult
 ): void {
-	if (commentDocs.length === 0) return
-	snapshot.documents = [...snapshot.documents, ...commentDocs]
-	const maxClock = Math.max(...commentDocs.map((d) => d.lastChangedClock))
+	const { documents: commentDocs, clockFloor } = load
+	if (commentDocs.length === 0 && clockFloor === 0) return
+	if (commentDocs.length > 0) {
+		snapshot.documents = [...snapshot.documents, ...commentDocs]
+	}
+	const maxClock = Math.max(clockFloor, ...commentDocs.map((d) => d.lastChangedClock))
 	const effectiveClock = snapshot.documentClock ?? snapshot.clock ?? 0
 	if (effectiveClock >= maxClock) return
 	snapshot.documentClock = maxClock

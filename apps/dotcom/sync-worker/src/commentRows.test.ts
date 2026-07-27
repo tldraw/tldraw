@@ -10,11 +10,13 @@ import {
 } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
+	CommentLoadResult,
 	CommentOutboxEntry,
 	commentRecordToRow,
 	findEmptiedCommentThreads,
 	findOrphanedReactions,
 	isCommentAuthorFkViolation,
+	liveCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
@@ -50,6 +52,7 @@ describe('threadRecordToRow', () => {
 			shapeId,
 			resolvedAt: 2000,
 			resolvedBy: 'user2',
+			isDeleted: false,
 			createdBy: 'user1',
 			createdAt: 1000,
 			meta: thread.meta,
@@ -63,6 +66,12 @@ describe('threadRecordToRow', () => {
 		expect(row.shapeId).toBeNull()
 		expect(row.resolvedAt).toBeNull()
 		expect(row.resolvedBy).toBeNull()
+	})
+
+	it('soft-deleted thread: isDeleted carried onto the row', () => {
+		const thread = { ...makeThread(), isDeleted: true }
+		const row = threadRecordToRow(thread, 'file1', 42)
+		expect(row.isDeleted).toBe(true)
 	})
 })
 
@@ -90,6 +99,7 @@ describe('commentRecordToRow', () => {
 			body: comment.body,
 			createdAt: 1500,
 			editedAt: null,
+			isDeleted: false,
 			updatedAt: 1500,
 			meta: comment.meta,
 			lastChangedClock: 43,
@@ -281,6 +291,22 @@ describe('round-trip: record -> row -> rowTo*Record', () => {
 		const thread = makeThread({ type: 'point', x: 10, y: 20 } as any)
 		const row = threadRecordToRow(thread, 'file1', 1)
 		expect(rowToThreadRecord(row)).toEqual(thread)
+	})
+
+	it('soft-deleted thread', () => {
+		const thread = { ...makeThread(), isDeleted: true }
+		const row = threadRecordToRow(thread, 'file1', 42)
+		expect(rowToThreadRecord(row)).toEqual(thread)
+	})
+
+	it('soft-deleted comment', () => {
+		const thread = makeThread()
+		const comment = {
+			...createComment({ threadId: thread.id, pageId, authorId: 'user1', body, now: 1500 }),
+			isDeleted: true,
+		}
+		const row = commentRecordToRow(comment, 'file1', 43)
+		expect(rowToCommentRecord(row)).toEqual(comment)
 	})
 
 	it('unedited comment', () => {
@@ -676,10 +702,15 @@ describe('mergeCommentDocumentsIntoSnapshot', () => {
 		return { documentClock: 10, documents: makeDocs(10), ...overrides }
 	}
 
+	// clockFloor 0 = "no dropped rows outran the documents"
+	function load(documents: RoomSnapshot['documents'], clockFloor = 0): CommentLoadResult {
+		return { documents, clockFloor }
+	}
+
 	it('merges docs and clamps documentClock up when a comment clock exceeds it', () => {
 		const snapshot = makeSnapshot({ documentClock: 10 })
 		const docs = makeDocs(5, 42)
-		mergeCommentDocumentsIntoSnapshot(snapshot, docs)
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(docs))
 		expect(snapshot.documentClock).toBe(42)
 		expect(snapshot.documents).toHaveLength(3)
 		expect(snapshot.documents.slice(1)).toEqual(docs)
@@ -687,7 +718,7 @@ describe('mergeCommentDocumentsIntoSnapshot', () => {
 
 	it('leaves documentClock alone when all comment clocks are at or below it', () => {
 		const snapshot = makeSnapshot({ documentClock: 10 })
-		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(3, 10))
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(3, 10)))
 		expect(snapshot.documentClock).toBe(10)
 		expect(snapshot.documents).toHaveLength(3)
 	})
@@ -695,14 +726,14 @@ describe('mergeCommentDocumentsIntoSnapshot', () => {
 	it('no-ops on empty comment docs', () => {
 		const snapshot = makeSnapshot({ documentClock: 10 })
 		const documents = snapshot.documents
-		mergeCommentDocumentsIntoSnapshot(snapshot, [])
+		mergeCommentDocumentsIntoSnapshot(snapshot, load([]))
 		expect(snapshot.documentClock).toBe(10)
 		expect(snapshot.documents).toBe(documents)
 	})
 
 	it('clamps both clocks when a legacy snapshot has clock and documentClock below', () => {
 		const snapshot = makeSnapshot({ clock: 12, documentClock: 10 })
-		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(42))
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(42)))
 		expect(snapshot.documentClock).toBe(42)
 		expect(snapshot.clock).toBe(42)
 	})
@@ -711,36 +742,171 @@ describe('mergeCommentDocumentsIntoSnapshot', () => {
 		// SQLiteSyncStorage seeds from documentClock ?? clock; introducing a lower documentClock
 		// here would shadow the higher legacy clock and regress the seed
 		const snapshot = makeSnapshot({ clock: 100, documentClock: undefined })
-		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(42))
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(42)))
 		expect(snapshot.documentClock).toBeUndefined()
 		expect(snapshot.clock).toBe(100)
 	})
 
 	it('clamps documentClock but not a clock already above the comments', () => {
 		const snapshot = makeSnapshot({ clock: 100, documentClock: 10 })
-		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(42))
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(42)))
 		expect(snapshot.documentClock).toBe(42)
 		expect(snapshot.clock).toBe(100)
 	})
 
 	it('raises tombstoneHistoryStartsAtClock to maxClock when the clamp fires and it was lower', () => {
 		const snapshot = makeSnapshot({ documentClock: 10, tombstoneHistoryStartsAtClock: 5 })
-		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(42))
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(42)))
 		expect(snapshot.documentClock).toBe(42)
 		expect(snapshot.tombstoneHistoryStartsAtClock).toBe(42)
 	})
 
 	it('sets tombstoneHistoryStartsAtClock to maxClock when the clamp fires and it was undefined', () => {
 		const snapshot = makeSnapshot({ documentClock: 10, tombstoneHistoryStartsAtClock: undefined })
-		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(42))
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(42)))
 		expect(snapshot.documentClock).toBe(42)
 		expect(snapshot.tombstoneHistoryStartsAtClock).toBe(42)
 	})
 
 	it('leaves tombstoneHistoryStartsAtClock untouched when the clamp does not fire', () => {
 		const snapshot = makeSnapshot({ documentClock: 10, tombstoneHistoryStartsAtClock: 5 })
-		mergeCommentDocumentsIntoSnapshot(snapshot, makeDocs(3, 10))
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(3, 10)))
 		expect(snapshot.documentClock).toBe(10)
 		expect(snapshot.tombstoneHistoryStartsAtClock).toBe(5)
+	})
+
+	it('clamps on clockFloor alone when a dropped row outran every merged document', () => {
+		// a soft-deleted thread held the file's highest clock; its record was dropped from the load
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		mergeCommentDocumentsIntoSnapshot(snapshot, load(makeDocs(5), 42))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.tombstoneHistoryStartsAtClock).toBe(42)
+	})
+
+	it('clamps on clockFloor even when the load has no documents at all', () => {
+		// every thread in the file was soft-deleted; the clocks still must not regress
+		const snapshot = makeSnapshot({ documentClock: 10 })
+		const documents = snapshot.documents
+		mergeCommentDocumentsIntoSnapshot(snapshot, load([], 42))
+		expect(snapshot.documentClock).toBe(42)
+		expect(snapshot.documents).toBe(documents)
+	})
+})
+
+describe('liveCommentDocuments', () => {
+	function makeComment(threadId: string, now: number) {
+		return createComment({
+			threadId: threadId as ReturnType<typeof makeThread>['id'],
+			pageId,
+			authorId: 'user1',
+			body,
+			now,
+		})
+	}
+
+	function makeReaction(comment: ReturnType<typeof makeComment>, now: number) {
+		return createCommentReaction({
+			commentId: comment.id,
+			threadId: comment.threadId,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now,
+		})
+	}
+
+	it('seeds reactions of seeded comments, drops the rest', () => {
+		const thread = makeThread()
+		const liveComment = makeComment(thread.id, 1500)
+		const deadComment = { ...makeComment(thread.id, 1600), isDeleted: true }
+		const keptReaction = makeReaction(liveComment, 1700)
+		// The dead comment's row persists (soft delete, no cascade), so its reaction rows do too —
+		// they must not re-enter the room ahead of a comment that never will.
+		const droppedReaction = makeReaction(deadComment, 1800)
+		const { documents } = liveCommentDocuments(
+			[threadRecordToRow(thread, 'file1', 1)],
+			[commentRecordToRow(liveComment, 'file1', 2), commentRecordToRow(deadComment, 'file1', 3)],
+			[
+				reactionRecordToRow(keptReaction, 'file1', 4),
+				reactionRecordToRow(droppedReaction, 'file1', 5),
+			]
+		)
+		expect(documents.map((d) => d.state.id).sort()).toEqual(
+			[thread.id, liveComment.id, keptReaction.id].sort()
+		)
+	})
+
+	it('clockFloor spans reaction rows, including dropped ones', () => {
+		const thread = { ...makeThread(), isDeleted: true }
+		const deadComment = { ...makeComment(thread.id, 1500), isDeleted: true }
+		const droppedReaction = makeReaction(deadComment, 1600)
+		const result = liveCommentDocuments(
+			[threadRecordToRow(thread, 'file1', 1)],
+			[commentRecordToRow(deadComment, 'file1', 2)],
+			[reactionRecordToRow(droppedReaction, 'file1', 99)]
+		)
+		expect(result.documents).toEqual([])
+		expect(result.clockFloor).toBe(99)
+	})
+
+	it('drops soft-deleted threads and their comments, keeping live ones', () => {
+		const live = makeThread()
+		const dead = { ...makeThread(), isDeleted: true }
+		const liveComment = makeComment(live.id, 1500)
+		const deadComment = makeComment(dead.id, 1600)
+		const { documents } = liveCommentDocuments(
+			[threadRecordToRow(live, 'file1', 1), threadRecordToRow(dead, 'file1', 2)],
+			[commentRecordToRow(liveComment, 'file1', 3), commentRecordToRow(deadComment, 'file1', 4)]
+		)
+		expect(documents.map((d) => d.state.id).sort()).toEqual([liveComment.id, live.id].sort())
+	})
+
+	it('drops soft-deleted comments of live threads, keeping the thread', () => {
+		const thread = makeThread()
+		const liveComment = makeComment(thread.id, 1500)
+		const deadComment = { ...makeComment(thread.id, 1600), isDeleted: true }
+		const { documents } = liveCommentDocuments(
+			[threadRecordToRow(thread, 'file1', 1)],
+			[commentRecordToRow(liveComment, 'file1', 2), commentRecordToRow(deadComment, 'file1', 3)]
+		)
+		expect(documents.map((d) => d.state.id).sort()).toEqual([liveComment.id, thread.id].sort())
+	})
+
+	it('drops a live thread whose comment rows are all soft-deleted', () => {
+		// The durable backstop for an emptied thread whose isDeleted stamp never landed (e.g. DO
+		// storage lost between the comment stamp and the follow-up drain): the thread row is still
+		// live in Postgres, but every comment it ever had is deleted — it must not re-seed rooms.
+		const emptied = makeThread()
+		const deadComment = { ...makeComment(emptied.id, 1500), isDeleted: true }
+		const result = liveCommentDocuments(
+			[threadRecordToRow(emptied, 'file1', 1)],
+			[commentRecordToRow(deadComment, 'file1', 2)]
+		)
+		expect(result.documents).toEqual([])
+		expect(result.clockFloor).toBe(2)
+	})
+
+	it('keeps a live thread with no comment rows at all', () => {
+		// A brand-new thread whose first comment hasn't drained yet has zero comment rows — it is
+		// not emptied, and dropping it would lose the thread the pending comment belongs to.
+		const fresh = makeThread()
+		const { documents } = liveCommentDocuments([threadRecordToRow(fresh, 'file1', 1)], [])
+		expect(documents.map((d) => d.state.id)).toEqual([fresh.id])
+	})
+
+	it('clockFloor spans all rows, including dropped ones', () => {
+		const live = makeThread()
+		const dead = { ...makeThread(), isDeleted: true }
+		const deadComment = { ...makeComment(dead.id, 1600), isDeleted: true }
+		const result = liveCommentDocuments(
+			[threadRecordToRow(live, 'file1', 7), threadRecordToRow(dead, 'file1', 42)],
+			[commentRecordToRow(deadComment, 'file1', 9)]
+		)
+		expect(result.clockFloor).toBe(42)
+		expect(result.documents.map((d) => d.state.id)).toEqual([live.id])
+	})
+
+	it('empty rows produce an empty, zero-floor load', () => {
+		expect(liveCommentDocuments([], [])).toEqual({ documents: [], clockFloor: 0 })
 	})
 })

@@ -1110,6 +1110,7 @@ export interface TLComment extends BaseRecord<'comment', TLCommentId> {
     // (undocumented)
     createdAt: number;
     editedAt: null | number;
+    isDeleted: boolean;
     // (undocumented)
     meta: JsonObject;
     pageId: TLPageId;
@@ -1164,6 +1165,7 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
     // (undocumented)
     createdAt: number;
     createdBy: string;
+    isDeleted: boolean;
     // (undocumented)
     meta: JsonObject;
     pageId: TLPageId;
