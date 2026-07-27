@@ -3,12 +3,9 @@ import { memo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { defaultHandleExternalFileContent, useEditor, useToasts, useTranslation } from 'tldraw'
 import { routes } from '../../../../routeDefs'
-import {
-	isTldrawOfflineFile,
-	useNotifyTldrawOfflineFiles,
-} from '../../../../utils/tldrawOfflineFiles'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { useCurrentFileId } from '../../../hooks/useCurrentFileId'
+import { useRejectTldrawOfflineFiles } from '../../../utils/tldrawOfflineFiles'
 
 export const SneakyTldrawFileDropHandler = memo(function SneakyTldrawFileDropHandler() {
 	const editor = useEditor()
@@ -18,13 +15,12 @@ export const SneakyTldrawFileDropHandler = memo(function SneakyTldrawFileDropHan
 	const msg = useTranslation()
 	const navigate = useNavigate()
 	const fileId = useCurrentFileId()
-	const notifyTldrawOfflineFiles = useNotifyTldrawOfflineFiles()
+	const rejectTldrawOfflineFiles = useRejectTldrawOfflineFiles()
 	useEffect(() => {
 		if (!auth) return
 		if (!app) return
 		editor.registerExternalContentHandler('files', async (content) => {
-			notifyTldrawOfflineFiles(content.files)
-			const files = content.files.filter((file) => !isTldrawOfflineFile(file))
+			const files = rejectTldrawOfflineFiles(content.files)
 			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
 			if (tldrawFiles.length > 0) {
 				const currentFile = fileId ? app.getFile(fileId) : null
@@ -40,6 +36,6 @@ export const SneakyTldrawFileDropHandler = memo(function SneakyTldrawFileDropHan
 				await defaultHandleExternalFileContent(editor, { ...content, files }, { toasts, msg })
 			}
 		})
-	}, [editor, app, auth, toasts, msg, navigate, fileId, notifyTldrawOfflineFiles])
+	}, [editor, app, auth, toasts, msg, navigate, fileId, rejectTldrawOfflineFiles])
 	return null
 })

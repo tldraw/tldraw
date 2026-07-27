@@ -21,11 +21,6 @@ import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
 import { signoutAnalytics } from '../../../utils/analytics'
 import { isDevelopmentEnv } from '../../../utils/env'
-import {
-	TLDRAW_OFFLINE_FILE_EXTENSION,
-	isTldrawOfflineFile,
-	useNotifyTldrawOfflineFiles,
-} from '../../../utils/tldrawOfflineFiles'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { UI_THEMES } from '../../themes/ui-themes'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -37,6 +32,10 @@ import {
 	setColorThemePreview,
 	updateLocalSessionState,
 } from '../../utils/local-session-state'
+import {
+	TLDRAW_OFFLINE_FILE_EXTENSION,
+	useRejectTldrawOfflineFiles,
+} from '../../utils/tldrawOfflineFiles'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
@@ -340,7 +339,7 @@ export function ImportFileActionItem() {
 	const navigate = useNavigate()
 
 	const importFileMsg = useMsg(messages.importFile)
-	const notifyTldrawOfflineFiles = useNotifyTldrawOfflineFiles()
+	const rejectTldrawOfflineFiles = useRejectTldrawOfflineFiles()
 
 	return (
 		<TldrawUiMenuItem
@@ -363,8 +362,7 @@ export function ImportFileActionItem() {
 						description: 'tldraw project',
 					})
 
-					notifyTldrawOfflineFiles(pickedFiles)
-					const tldrawFiles = pickedFiles.filter((file) => !isTldrawOfflineFile(file))
+					const tldrawFiles = rejectTldrawOfflineFiles(pickedFiles)
 					if (!tldrawFiles.length) return
 
 					app.uploadTldrFiles(tldrawFiles, (fileId) => {

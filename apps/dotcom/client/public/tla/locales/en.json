@@ -305,6 +305,9 @@
   "7a1920d611": {
     "translation": "Default"
   },
+  "7ad1b1ee23": {
+    "translation": "Can’t open .tldraw files yet"
+  },
   "7b1329f5ca": {
     "translation": "User manual"
   },
@@ -560,6 +563,9 @@
   },
   "dbf9b24193": {
     "translation": "Leave workspace"
+  },
+  "dc7830e74a": {
+    "translation": "We’re still working on support for files from tldraw offline."
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"

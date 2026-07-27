@@ -25,11 +25,11 @@ export class TldrawOfflineFileProvider implements vscode.CustomReadonlyEditorPro
 	}
 
 	resolveCustomEditor(_document: vscode.CustomDocument, webviewPanel: vscode.WebviewPanel): void {
-		webviewPanel.webview.html = this.getHtmlForWebview()
+		webviewPanel.webview.html = html
 	}
+}
 
-	getHtmlForWebview() {
-		return `
+const html = `
       <!DOCTYPE html>
       <html lang="en">
         <head>
@@ -72,5 +72,3 @@ export class TldrawOfflineFileProvider implements vscode.CustomReadonlyEditorPro
         </body>
       </html>
     `
-	}
-}

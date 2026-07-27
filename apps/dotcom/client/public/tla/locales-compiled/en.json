@@ -653,6 +653,12 @@
       "value": "Default"
     }
   ],
+  "7ad1b1ee23": [
+    {
+      "type": 0,
+      "value": "Can’t open .tldraw files yet"
+    }
+  ],
   "7b1329f5ca": [
     {
       "type": 0,
@@ -1327,6 +1333,12 @@
     {
       "type": 0,
       "value": "Leave workspace"
+    }
+  ],
+  "dc7830e74a": [
+    {
+      "type": 0,
+      "value": "We’re still working on support for files from tldraw offline."
     }
   ],
   "dfdb78a4e4": [
