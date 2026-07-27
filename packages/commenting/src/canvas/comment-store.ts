@@ -2,6 +2,8 @@ import {
 	Editor,
 	TLComment,
 	TLCommentId,
+	TLCommentReaction,
+	TLCommentReactionId,
 	TLCommentThread,
 	TLCommentThreadId,
 	TLRecord,
@@ -18,8 +20,12 @@ import {
  * expects, so the rest of each call stays checked — behind one boundary, and keep call sites typed.
  */
 
-/** A record that lives in a comment thread: the thread itself or one of its messages. @public */
-export type TLCommentRecord = TLComment | TLCommentThread
+/**
+ * A record that lives in a comment thread: the thread itself, one of its messages, or a reaction
+ * to one of those messages.
+ * @public
+ */
+export type TLCommentRecord = TLComment | TLCommentThread | TLCommentReaction
 
 /** Write comment records to the store. @public */
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void {
@@ -29,7 +35,7 @@ export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): v
 /** Remove comment records from the store by id. @public */
 export function removeCommentRecords(
 	editor: Editor,
-	ids: (TLCommentId | TLCommentThreadId)[]
+	ids: (TLCommentId | TLCommentThreadId | TLCommentReactionId)[]
 ): void {
 	editor.store.remove(ids as unknown as TLRecord['id'][])
 }
@@ -38,7 +44,13 @@ export function removeCommentRecords(
 export function getCommentRecord(editor: Editor, id: string): TLCommentRecord | undefined {
 	const record = editor.store.get(id as TLRecord['id']) as unknown as TLCommentRecord | undefined
 	if (!record) return undefined
-	if (record.typeName === 'comment' || record.typeName === 'comment-thread') return record
+	if (
+		record.typeName === 'comment' ||
+		record.typeName === 'comment-thread' ||
+		record.typeName === 'comment-reaction'
+	) {
+		return record
+	}
 	return undefined
 }
 
@@ -52,4 +64,10 @@ export function getCommentThreads(editor: Editor): TLCommentThread[] {
 export function getComments(editor: Editor): TLComment[] {
 	const typeName = 'comment' as TLRecord['typeName']
 	return editor.store.query.records(typeName).get() as unknown as TLComment[]
+}
+
+/** All comment reactions currently in the store (non-reactive; wrap in `useValue` to react). @public */
+export function getCommentReactions(editor: Editor): TLCommentReaction[] {
+	const typeName = 'comment-reaction' as TLRecord['typeName']
+	return editor.store.query.records(typeName).get() as unknown as TLCommentReaction[]
 }
