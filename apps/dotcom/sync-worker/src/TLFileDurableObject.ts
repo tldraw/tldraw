@@ -461,48 +461,65 @@ export class TLFileDurableObject extends DurableObject {
 		return ws.deserializeAttachment() as SocketAttachment | null
 	}
 
+	// The runtime discards whatever these handlers reject with, so anything that escapes them is
+	// invisible: getRoom() in particular can fail while loading the room from storage, which breaks
+	// the main sync path. Catch and report instead, the way TLUserDurableObject does.
 	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
-		const attachment = this.getSocketAttachment(ws)
-		if (!attachment?.sessionId) return
-		if (!this._documentInfo) return
+		try {
+			const attachment = this.getSocketAttachment(ws)
+			if (!attachment?.sessionId) return
+			if (!this._documentInfo) return
 
-		this.sessionIdToWs.set(attachment.sessionId, ws)
-		const room = await this.getRoom()
-		room.handleSocketMessage(attachment.sessionId, message)
+			this.sessionIdToWs.set(attachment.sessionId, ws)
+			const room = await this.getRoom()
+			room.handleSocketMessage(attachment.sessionId, message)
+		} catch (e) {
+			this.reportError(e, { source: 'webSocketMessage' })
+		}
 	}
 
 	override async webSocketClose(ws: WebSocket) {
-		this.handleWebSocketEnd(ws, 'handleSocketClose')
+		await this.handleWebSocketEnd(ws, 'handleSocketClose')
 	}
 
-	override async webSocketError(ws: WebSocket) {
-		this.handleWebSocketEnd(ws, 'handleSocketError')
+	override async webSocketError(ws: WebSocket, error: unknown) {
+		// The socket failed rather than closing cleanly. That error was previously dropped on the
+		// floor, so a client whose connection kept breaking left no trace here at all.
+		this.reportError(error, { source: 'webSocketError' })
+		await this.handleWebSocketEnd(ws, 'handleSocketError')
 	}
 
 	private async handleWebSocketEnd(
 		ws: WebSocket,
 		method: 'handleSocketClose' | 'handleSocketError'
 	) {
-		const attachment = this.getSocketAttachment(ws)
-		if (!attachment?.sessionId) return
+		try {
+			const attachment = this.getSocketAttachment(ws)
+			if (!attachment?.sessionId) return
 
-		this.sessionIdToWs.delete(attachment.sessionId)
-		if (!this._documentInfo) return
+			this.sessionIdToWs.delete(attachment.sessionId)
+			if (!this._documentInfo) return
 
-		const room = await this.getRoom()
+			const room = await this.getRoom()
 
-		// If the DO was hibernating, this session was never re-added to the room.
-		// Resume it briefly so the room can broadcast presence removal to other clients.
-		if (attachment.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
-			room.handleSocketResume({
-				sessionId: attachment.sessionId,
-				socket: ws,
-				snapshot: attachment.snapshot,
-				meta: attachment.meta,
-			})
+			// If the DO was hibernating, this session was never re-added to the room.
+			// Resume it briefly so the room can broadcast presence removal to other clients.
+			if (attachment.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
+				room.handleSocketResume({
+					sessionId: attachment.sessionId,
+					socket: ws,
+					snapshot: attachment.snapshot,
+					meta: attachment.meta,
+				})
+			}
+
+			room[method](attachment.sessionId)
+		} catch (e) {
+			// Both callers await this, so a failure here would otherwise reject their handler and
+			// vanish. Reported rather than rethrown: the socket is already gone either way, and the
+			// only thing lost is presence cleanup for other clients in the room.
+			this.reportError(e, { source: method })
 		}
-
-		room[method](attachment.sessionId)
 	}
 
 	_isRestoring = false
@@ -1660,9 +1677,13 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	protected reportError(e: unknown) {
+	protected reportError(e: unknown, extras?: Record<string, unknown>) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		this.sentry?.captureException(e)
+		this.sentry?.withScope((scope) => {
+			if (extras) scope.setExtras(extras)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry?.captureException(e)
+		})
 		console.error(e)
 	}
 

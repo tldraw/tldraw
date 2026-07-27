@@ -74,6 +74,11 @@ const { preflight, corsify } = cors({
 
 const QUEUE_BASE_DELAY = 2
 
+// wrangler.toml sets max_retries = 10 on the queue consumer, and Queues delivers a message
+// max_retries + 1 times before writing it to the dead letter queue. `attempts` starts at 1 and
+// counts the delivery in progress, so this is the number it carries on its final delivery.
+const QUEUE_FINAL_ATTEMPT = 11
+
 const router = createRouter<Environment>()
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
@@ -331,6 +336,27 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		await this.env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })
 	}
 
+	// Both branches of the queue loop swallow their errors so one bad message cannot abort the
+	// batch, which left a message that exhausted its retries arriving in the dead letter queue with
+	// no record of what went wrong. Report only on the final delivery: every earlier failure is
+	// retried, so capturing each one would file the same issue eleven times for a single message.
+	private reportQueueFailure(message: Message<QueueMessage>, error: unknown) {
+		if (message.attempts < QUEUE_FINAL_ATTEMPT) return
+
+		const sentry = createSentry(this.ctx, this.env)
+		if (!sentry) {
+			console.error(`[queue] gave up on ${message.body.type} message`, error)
+			return
+		}
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		sentry.withScope((scope) => {
+			scope.setTag('queue_message_type', message.body.type)
+			scope.setExtras({ messageId: message.id, attempts: message.attempts })
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			sentry.captureException(error)
+		})
+	}
+
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
 		// The pool is only needed for asset-upload messages, so create it lazily: OG image render
 		// batches should not open database connections they never use.
@@ -344,10 +370,15 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 							message as Message<OgImageRenderQueueMessage>,
 							this.ctx
 						)
-					} catch (_e) {
+					} catch (e) {
 						// handleOgImageRenderMessage settles the message itself; this guards the batch loop
 						// against an unexpected throw escaping it, so one bad message can't abort processing
 						// of the rest of the batch. Retry is a no-op if the handler already settled.
+						//
+						// A throw that gets here escaped the handler before its own retry budget could
+						// settle the message, so this retry is what keeps the message moving and it does
+						// run out the full max_retries — reaching the final-attempt report below.
+						this.reportQueueFailure(message, e)
 						message.retry()
 					}
 					break
@@ -361,7 +392,8 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 							.onConflict((oc) => oc.column('objectName').doNothing())
 							.execute()
 						message.ack()
-					} catch (_e) {
+					} catch (e) {
+						this.reportQueueFailure(message, e)
 						message.retry({
 							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
 						})
