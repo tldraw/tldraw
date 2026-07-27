@@ -308,9 +308,10 @@ export function outboxEntriesToClear(
 /**
  * Given the `threadId`s of comment records that were just pruned and a view of the records that
  * remain (read AFTER the pruned comments were deleted), return the threadIds that no longer have
- * any comments referencing them. The caller (see the author-FK prune in drainCommentOutbox)
- * deletes those threads in the same transaction: an emptied thread never renders (clients hide
- * threads with no comments), and after an author cascade there is no one left to speak for it.
+ * any comments referencing them. The callers (the author-FK prune and the soft-delete prune in
+ * drainCommentOutbox) delete those threads in the same transaction: an emptied thread never
+ * renders (clients hide threads with no comments), and no client may delete a thread it didn't
+ * create — the ordinary "delete the last comment" path relies on this server-side prune.
  *
  * The view must be transaction-time (e.g. the prune transaction's own read surface), not an
  * earlier lane snapshot: a reply committed between the snapshot and the transaction must keep its
