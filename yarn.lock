@@ -11768,6 +11768,7 @@ __metadata:
     "@tiptap/core": "npm:^3.12.1"
     "@tiptap/pm": "npm:^3.12.1"
     "@tiptap/react": "npm:^3.12.1"
+    "@tldraw/driver": "workspace:*"
     "@tldraw/mentions": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@types/react": "npm:^19.2.7"
