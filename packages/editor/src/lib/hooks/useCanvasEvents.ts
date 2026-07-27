@@ -228,14 +228,17 @@ export function useCanvasEvents() {
 			lastX = e.clientX
 			lastY = e.clientY
 
-			// A pan button released outside the window can lose its pointerup —
-			// no pointercancel or lostpointercapture fires either — leaving the
-			// pan stuck following the cursor. If the buttons bitmask says a
-			// tracked pan button is no longer down, end it through the normal
-			// pointer_up path before dispatching this move.
+			// A pan button released outside the window can lose its pointerup:
+			// even with pointer capture set on pointerdown, browsers don't
+			// reliably deliver the pointerup, pointercancel, or
+			// lostpointercapture that would end it (w3c/pointerevents#407),
+			// leaving the pan stuck following the cursor. If the buttons
+			// bitmask says a tracked pan button is no longer down, end it
+			// through the normal pointer_up path before dispatching this move.
 			if (
 				e.pointerType === 'mouse' &&
-				// synthetic/test events may omit buttons entirely; skip the check for those
+				// bare Event objects lack a buttons field entirely; skip the check
+				// for those (a real PointerEvent always has a numeric buttons)
 				typeof e.buttons === 'number' &&
 				editor.inputs.getIsPanning() &&
 				editor.inputs.getIsPointing()

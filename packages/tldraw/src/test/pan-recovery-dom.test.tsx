@@ -1,29 +1,14 @@
 import { act } from '@testing-library/react'
-import { Box, Vec } from '@tldraw/editor'
+import { Box, Vec, tlenv } from '@tldraw/editor'
 import { Tldraw } from '../lib/Tldraw'
 import { renderTldrawComponentWithEditor } from './testutils/renderTldrawComponent'
 
 // These tests drive the real DOM handlers in useCanvasEvents rather than
 // dispatching synthetic editor events: the stale-pan recovery lives in the
-// document-level pointermove listener, which TestEditor/Driver bypass. jsdom
-// is missing a few browser APIs those handlers rely on, so we polyfill them.
+// document-level pointermove listener, which TestEditor/Driver bypass.
 
-if (typeof (globalThis as any).PointerEvent === 'undefined') {
-	// jsdom has no PointerEvent; the canvas handlers do `e instanceof PointerEvent`.
-	;(globalThis as any).PointerEvent = class PointerEvent extends MouseEvent {
-		pointerId: number
-		pointerType: string
-		pressure: number
-		isPrimary: boolean
-		constructor(type: string, params: any = {}) {
-			super(type, params)
-			this.pointerId = params.pointerId ?? 0
-			this.pointerType = params.pointerType ?? ''
-			this.pressure = params.pressure ?? 0
-			this.isPrimary = params.isPrimary ?? false
-		}
-	}
-}
+// jsdom implements PointerEvent but not pointer capture, which the canvas
+// pointerdown handler calls.
 if (!Element.prototype.setPointerCapture) {
 	Element.prototype.setPointerCapture = () => {}
 	Element.prototype.releasePointerCapture = () => {}
@@ -32,9 +17,15 @@ if (!Element.prototype.setPointerCapture) {
 
 function pointerEvent(
 	type: 'pointerdown' | 'pointermove' | 'pointerup',
-	options: { clientX: number; clientY: number; button?: number; buttons: number }
+	options: {
+		clientX: number
+		clientY: number
+		button?: number
+		buttons: number
+		ctrlKey?: boolean
+	}
 ) {
-	return new (globalThis as any).PointerEvent(type, {
+	return new PointerEvent(type, {
 		bubbles: true,
 		cancelable: true,
 		pointerId: 1,
@@ -201,5 +192,57 @@ describe('stale pan recovery via real DOM events', () => {
 		expect(editor.inputs.getIsSpacebarPanning()).toBe(true)
 		// With no button down, moving the mouse must not pan.
 		expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
+	})
+
+	it('recovers a darwin ctrl+click pan only after the physical left button is released', async () => {
+		const prevIsDarwin = tlenv.isDarwin
+		tlenv.isDarwin = true
+		try {
+			const { editor, canvas } = await setup()
+
+			// On darwin, ctrl+left maps to button 2, so this starts a right-click
+			// pan while the physical buttons bit is 1 (left).
+			await fire(
+				editor,
+				canvas,
+				pointerEvent('pointerdown', {
+					clientX: 100,
+					clientY: 100,
+					button: 0,
+					buttons: 1,
+					ctrlKey: true,
+				})
+			)
+			await fire(
+				editor,
+				document.body,
+				pointerEvent('pointermove', { clientX: 200, clientY: 200, buttons: 1, ctrlKey: true })
+			)
+			expect(editor.inputs.getIsPanning()).toBe(true)
+			expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
+
+			// Bit 2 (right) is not set, but bit 1 (left) still is: the tracked
+			// button 2 must not count as stale, or mac ctrl+drag panning breaks.
+			await fire(
+				editor,
+				document.body,
+				pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 1, ctrlKey: true })
+			)
+			expect(editor.inputs.getIsPanning()).toBe(true)
+			expect(editor.getCamera()).toMatchObject({ x: 200, y: 200, z: 1 })
+
+			// Once the left button is really up, the missed pointerup must recover.
+			editor.inputs.setPointerVelocity(new Vec(0, 0))
+			await fire(
+				editor,
+				document.body,
+				pointerEvent('pointermove', { clientX: 400, clientY: 400, buttons: 0, ctrlKey: true })
+			)
+			expect(editor.inputs.getIsPanning()).toBe(false)
+			expect(editor.inputs.getIsPointing()).toBe(false)
+			expect(editor.getCamera()).toMatchObject({ x: 200, y: 200, z: 1 })
+		} finally {
+			tlenv.isDarwin = prevIsDarwin
+		}
 	})
 })
