@@ -475,6 +475,11 @@ input,
 	left: 13px;
 	width: fit-content;
 	height: fit-content;
+	/* Truncate like the name tag — long messages otherwise ride the cursor at full width.
+	   200px matches the canvas-era chatMaxWidth. */
+	max-width: 200px;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	color: var(--tl-color-selected-contrast);
 	white-space: nowrap;
 	position: absolute;
