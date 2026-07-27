@@ -64,6 +64,15 @@ export { CommentsFilterMenu, type CommentsFilterMenuProps } from './canvas/comme
 export { CommentsMenuItem } from './canvas/comments-menu-item'
 export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-overlay'
 export {
+	clusterExpandRequest,
+	commentPinDisplay,
+	type CommentPinDisplay,
+	type CommentPinDisplayBadge,
+	type CommentPinDisplayPin,
+	CommentPinOverlayUtil,
+	type TLCommentPinOverlay,
+} from './canvas/pin-overlay'
+export {
 	type CommentingComponents,
 	type CommentingOptions,
 	defaultCommentingOptions,

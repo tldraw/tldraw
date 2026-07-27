@@ -1,6 +1,7 @@
 import {
 	CanvasComments,
 	CommentAuthor,
+	CommentPinOverlayUtil,
 	CommentTool,
 	commentToolOverrides,
 	type CommentingOptions,
@@ -24,6 +25,8 @@ import {
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 import './comment-regions.css'
+
+const commentOverlayUtils = [CommentPinOverlayUtil]
 
 const AUTHORS: Record<string, CommentAuthor> = {
 	ada: { name: 'Ada Lovelace', color: '#0E9F6E' },
@@ -208,6 +211,8 @@ export default function CommentRegionsExample() {
 				// Commenting is a licensed feature. Every feature is enabled in local development, but a
 				// deployed app needs a license key that includes commenting — swap in your own key here.
 				licenseKey={getLicenseKey()}
+				// The pin markers are canvas-drawn; register their overlay util (defaults are kept).
+				overlayUtils={commentOverlayUtils}
 				store={store}
 				onMount={handleMount}
 				tools={tools}

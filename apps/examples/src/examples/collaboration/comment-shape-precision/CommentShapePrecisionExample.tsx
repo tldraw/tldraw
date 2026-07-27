@@ -1,6 +1,7 @@
 import {
 	CanvasComments,
 	CommentAuthor,
+	CommentPinOverlayUtil,
 	CommentTool,
 	commentToolOverrides,
 } from '@tldraw/commenting'
@@ -19,6 +20,8 @@ import {
 } from 'tldraw'
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
+
+const commentOverlayUtils = [CommentPinOverlayUtil]
 
 // One configured comment tool per mode, built once at module level so each array keeps a stable
 // identity. `shouldBePrecise` decides what commenting on a shape produces: a precise anchor
@@ -102,6 +105,8 @@ export default function CommentShapePrecisionExample() {
 				// Commenting is a licensed feature. Every feature is enabled in local development, but a
 				// deployed app needs a license key that includes commenting — swap in your own key here.
 				licenseKey={getLicenseKey()}
+				// The pin markers are canvas-drawn; register their overlay util (defaults are kept).
+				overlayUtils={commentOverlayUtils}
 				store={store}
 				onMount={handleMount}
 				tools={MODE_TOOLS[mode]}

@@ -2,6 +2,7 @@ import {
 	CanvasComments,
 	CanvasCommentsSidebar,
 	CommentAuthor,
+	CommentPinOverlayUtil,
 	commentsSidebarOpen,
 	commentToolOverrides,
 	commentTools,
@@ -29,6 +30,8 @@ import {
 } from 'tldraw'
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
+
+const commentOverlayUtils = [CommentPinOverlayUtil]
 
 // A tiny local user directory so the list shows names instead of ids.
 const AUTHORS: Record<string, CommentAuthor> = {
@@ -160,6 +163,8 @@ export default function CommentingSidebarExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				licenseKey={getLicenseKey()}
+				// The pin markers are canvas-drawn; register their overlay util (defaults are kept).
+				overlayUtils={commentOverlayUtils}
 				store={store}
 				tools={commentTools}
 				overrides={[commentToolOverrides]}

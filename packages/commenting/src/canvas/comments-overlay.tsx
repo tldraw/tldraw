@@ -44,7 +44,6 @@ import { CommentComposer } from '../ui/comment-composer'
 import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { CommentPin } from '../ui/comment-pin'
 import { CommentThread } from '../ui/comment-thread'
-import { CountBadge } from '../ui/count-badge'
 import { TooltipButton } from '../ui/tooltip-button'
 import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
 import { collectClusterLeaves } from './cluster-input'
@@ -64,10 +63,15 @@ import { useCommentingEnabled } from './license'
 import {
 	type CommentingComponents,
 	type CommentingOptions,
-	getCommentingOptions,
 	useCanComment,
 	useCommentingOptions,
 } from './options'
+import {
+	clusterExpandRequest,
+	commentPinDisplay,
+	type CommentPinDisplayBadge,
+	type CommentPinDisplayPin,
+} from './pin-overlay'
 import {
 	commentsHidden,
 	commitCommentMutation,
@@ -80,10 +84,10 @@ import {
 } from './state'
 import {
 	anchorPagePoint,
+	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
 	impreciseShapePinInset,
 	regionAnchorPinCorner,
 	regionPinPoint,
-	shapeAnchorAt,
 } from './thread-state'
 
 /**
@@ -147,7 +151,6 @@ function forwardPointerEventToCanvas(container: HTMLElement, e: ReactPointerEven
 }
 
 const initialOf = (name: string): string => (getFirstCharacter(name.trim()) || '?').toUpperCase()
-const CLUSTER_FADE_MS = 150
 /** Duration of the click-a-badge zoom-to-split animation. */
 const CLUSTER_EXPAND_ZOOM_MS = 450
 
@@ -401,7 +404,6 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		// The runtime mutates its partition in place; partitionVersion is its change stamp.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [clusterModel, partitionVersion])
-	const fadeNodes = useFadeVisibleNodes(visibleNodes, clusterModel)
 	const threadsById = useMemo(
 		() => new Map<string, TLCommentThread>(threads.map((thread) => [thread.id, thread])),
 		[threads]
@@ -409,13 +411,77 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const openThread = openId ? threadsById.get(openId) : null
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 
+	// Mirror the computed pin/badge list into the display atom the canvas overlay util renders.
+	// This layer stays the brain — clustering, holds, orphans, and the open thread are decided
+	// here — and the util is a renderer of the result. Entries carry anchors, not points: the
+	// util resolves each anchor's page point reactively at draw time, so pins ride shape moves
+	// and region edits without this mirror rewriting.
+	const { resolveAuthor } = props
+	useEffect(() => {
+		const pinFor = (thread: TLCommentThread): CommentPinDisplayPin => {
+			const author = resolveAuthor(thread.createdBy)
+			return {
+				threadId: thread.id,
+				anchor: thread.anchor,
+				color: author?.color,
+				label: initialOf(author?.name ?? UNKNOWN_AUTHOR),
+				resolved: thread.resolved != null,
+				// A region's pin centres on its corner — overlapping the box — rather than hanging
+				// off it: half the marker's 34px size left and down, in screen px.
+				screenOffset: thread.anchor.type === 'region' ? { x: -17, y: 17 } : null,
+			}
+		}
+		const pinsById = new Map<string, CommentPinDisplayPin>()
+		const badges: CommentPinDisplayBadge[] = []
+		if (options.enableClustering) {
+			for (const node of visibleNodes) {
+				if (node.count === 1) {
+					const thread = threadsById.get(node.id)
+					if (thread) pinsById.set(thread.id, pinFor(thread))
+				} else {
+					badges.push({ nodeId: node.id, point: node.centroid, count: node.count })
+				}
+			}
+			for (const thread of orphanThreads) pinsById.set(thread.id, pinFor(thread))
+			for (const thread of heldThreads) pinsById.set(thread.id, pinFor(thread))
+		} else {
+			for (const thread of threads) {
+				if (thread.id !== openId) pinsById.set(thread.id, pinFor(thread))
+			}
+		}
+		if (openThread) pinsById.set(openThread.id, pinFor(openThread))
+		commentPinDisplay.set(editor, {
+			pins: Array.from(pinsById.values()),
+			badges,
+			impreciseShapeAnchor,
+		})
+	}, [
+		editor,
+		options.enableClustering,
+		visibleNodes,
+		orphanThreads,
+		heldThreads,
+		threads,
+		openId,
+		openThread,
+		threadsById,
+		impreciseShapeAnchor,
+		resolveAuthor,
+	])
+
 	// Reset the transient UI state (open thread, half-placed comment, unserved reveal) when this
-	// unmounts.
+	// unmounts, and clear the mirrored pin display so the overlay util draws nothing.
 	useEffect(() => {
 		return () => {
 			openThreadId.set(editor, null)
 			pendingComment.set(editor, null)
 			revealThreadRequest.set(editor, null)
+			clusterExpandRequest.set(editor, null)
+			commentPinDisplay.set(editor, {
+				pins: [],
+				badges: [],
+				impreciseShapeAnchor: DEFAULT_IMPRECISE_SHAPE_ANCHOR,
+			})
 		}
 	}, [editor])
 
@@ -481,6 +547,21 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		[clusterModel, clusterZoomBounds, editor, options]
 	)
 
+	// Serve a badge click from the canvas overlay: the util can't reach the cluster table, so it
+	// requests the expand and this layer (which owns the table) runs the zoom — the same
+	// request/serve split as revealThreadRequest.
+	const expandRequestId = useValue(
+		'cluster expand request',
+		() => clusterExpandRequest.get(editor),
+		[editor]
+	)
+	useEffect(() => {
+		if (!expandRequestId) return
+		clusterExpandRequest.set(editor, null)
+		const node = clusterModel.runtime.getVisible().get(expandRequestId)
+		if (node) zoomToClusterSplit(node)
+	}, [expandRequestId, editor, clusterModel, zoomToClusterSplit])
+
 	// Escape collapses the open thread. Capture-phase + stopPropagation so it runs ahead of the
 	// editor (which would otherwise cancel the current tool or clear the selection). If a comment is
 	// being edited, let its own Escape handler exit edit mode first, keeping the thread open.
@@ -523,26 +604,21 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		<div ref={layerRef} className="tlui-cmt-canvas-layer">
 			{options.enableClustering ? (
 				<>
-					{fadeNodes.map(({ node, phase }) => {
-						let content: ReactNode
-						if (node.count === 1) {
-							const thread = threadsById.get(node.id)
-							if (!thread) return null
-							content = (
-								<ThreadPin
-									editor={editor}
-									thread={thread}
-									{...props}
-									regionOptions={regionOptions}
-								/>
-							)
-						} else {
-							content = <ClusterBadge editor={editor} node={node} onExpand={zoomToClusterSplit} />
-						}
+					{/* The pin and badge visuals are canvas-drawn by CommentPinOverlayUtil from the
+					    mirrored display atom. ThreadPin mounts here carry the DOM half only — the
+					    open thread's popover and a region thread's box and resize handles. */}
+					{visibleNodes.map((node) => {
+						if (node.count !== 1) return null
+						const thread = threadsById.get(node.id)
+						if (!thread) return null
 						return (
-							<div key={`cluster-fade:${node.id}`} className={clusterFadeClassName(phase)}>
-								{content}
-							</div>
+							<ThreadPin
+								key={node.id}
+								editor={editor}
+								thread={thread}
+								{...props}
+								regionOptions={regionOptions}
+							/>
 						)
 					})}
 					{orphanThreads.map((thread) => (
@@ -606,107 +682,6 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 
 const EMPTY_SET: ReadonlySet<string> = new Set()
 const MOVED_LEAF_EPSILON = 1e-6
-type ClusterFadePhase = 'entering' | 'present' | 'exiting'
-
-interface ClusterFadeNode {
-	node: ClusterNode
-	phase: ClusterFadePhase
-}
-
-function useFadeVisibleNodes(
-	nodes: readonly ClusterNode[],
-	resetKey: { runtime: ClusterRuntime; table: ClusterTable }
-): ClusterFadeNode[] {
-	const resetKeyRef = useRef(resetKey)
-	const didReset = resetKeyRef.current !== resetKey
-	if (didReset) {
-		resetKeyRef.current = resetKey
-	}
-
-	const [fadeNodes, setFadeNodes] = useState<ClusterFadeNode[]>(() => toPresentFadeNodes(nodes))
-	const renderedNodes = didReset ? toPresentFadeNodes(nodes) : fadeNodes
-
-	useEffect(() => {
-		setFadeNodes(toPresentFadeNodes(nodes))
-		// Resets only on a new model (resetKey); node-list changes within the same model are
-		// handled by the reconcile effect below, which fades entries in/out instead of snapping.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [resetKey])
-
-	useEffect(() => {
-		if (didReset) return
-		setFadeNodes((previous) => reconcileFadeNodes(previous, nodes))
-	}, [didReset, nodes])
-
-	const hasEntering = renderedNodes.some((item) => item.phase === 'entering')
-	useEffect(() => {
-		if (!hasEntering) return
-		const frame = requestClusterFadeFrame(() => {
-			setFadeNodes((previous) =>
-				previous.map((item) => (item.phase === 'entering' ? { ...item, phase: 'present' } : item))
-			)
-		})
-		return () => cancelClusterFadeFrame(frame)
-	}, [hasEntering, renderedNodes])
-
-	const hasExiting = renderedNodes.some((item) => item.phase === 'exiting')
-	useEffect(() => {
-		if (!hasExiting) return
-		const timeout = window.setTimeout(() => {
-			setFadeNodes((previous) => previous.filter((item) => item.phase !== 'exiting'))
-		}, CLUSTER_FADE_MS)
-		return () => window.clearTimeout(timeout)
-	}, [hasExiting, renderedNodes])
-
-	return renderedNodes
-}
-
-function toPresentFadeNodes(nodes: readonly ClusterNode[]): ClusterFadeNode[] {
-	return nodes.map((node) => ({ node, phase: 'present' }))
-}
-
-function reconcileFadeNodes(
-	previous: readonly ClusterFadeNode[],
-	nextNodes: readonly ClusterNode[]
-): ClusterFadeNode[] {
-	const previousById = new Map(previous.map((item) => [item.node.id, item]))
-	const nextIds = new Set(nextNodes.map((node) => node.id))
-	const next: ClusterFadeNode[] = []
-
-	for (const node of nextNodes) {
-		const previousItem = previousById.get(node.id)
-		next.push({
-			node,
-			phase:
-				previousItem && previousItem.phase !== 'exiting'
-					? previousItem.phase
-					: previousItem
-						? 'present'
-						: 'entering',
-		})
-	}
-
-	for (const item of previous) {
-		if (nextIds.has(item.node.id)) continue
-		next.push(item.phase === 'exiting' ? item : { ...item, phase: 'exiting' })
-	}
-
-	return next
-}
-
-function requestClusterFadeFrame(callback: FrameRequestCallback): number {
-	if (typeof requestAnimationFrame === 'function') return requestAnimationFrame(callback)
-	return window.setTimeout(() => callback(0), 16)
-}
-
-function cancelClusterFadeFrame(frame: number) {
-	if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
-	else window.clearTimeout(frame)
-}
-
-function clusterFadeClassName(phase: ClusterFadePhase): string {
-	return `tlui-cmt-cluster-fade tlui-cmt-cluster-fade--${phase}`
-}
 
 /**
  * Leaves folded inside a badge whose live anchor no longer matches the position the rendered
@@ -806,69 +781,6 @@ function centerOnPointAtZoom(
 
 function clamp(value: number, min: number, max: number): number {
 	return Math.max(min, Math.min(max, value))
-}
-
-// Memoized: cluster nodes and thread records are identity-stable while unchanged, so pins and
-// badges skip re-rendering when the parent re-renders for reasons that don't concern them
-// (leaf recomputes during shape drags, partition changes elsewhere). Camera tracking still
-// works — each component subscribes to its own viewport position via signals, not via props.
-const ClusterBadge = memo(function ClusterBadge({
-	editor,
-	node,
-	onExpand,
-}: {
-	editor: Editor
-	node: ClusterNode
-	onExpand(node: ClusterNode): void
-}) {
-	const container = useContainer()
-	const badgeRef = useRef<HTMLDivElement>(null)
-	// Wheel pass-through sits on the badge (never scrollable), not the layer root — see the
-	// note on the layer.
-	usePassThroughWheelEvents(badgeRef)
-	const point = useValue(
-		'cluster badge point',
-		() => {
-			const pagePoint = editor.pageToViewport(node.centroid)
-			if (!isInInflatedViewport(editor, pagePoint)) return null
-			return pagePoint
-		},
-		[editor, node]
-	)
-
-	if (!point) return null
-
-	return (
-		<div
-			ref={badgeRef}
-			className="tlui-cmt-canvas-cluster"
-			style={{ left: point.x, top: point.y }}
-			onPointerDown={(e) => {
-				if (isCanvasPanGesture(editor, e)) {
-					forwardPointerEventToCanvas(container, e)
-					return
-				}
-				e.stopPropagation()
-			}}
-			onClick={(e) => {
-				e.stopPropagation()
-				onExpand(node)
-			}}
-		>
-			<CountBadge count={node.count} />
-		</div>
-	)
-})
-
-function isInInflatedViewport(editor: Editor, point: { x: number; y: number }): boolean {
-	const viewport = editor.getViewportScreenBounds()
-	const margin = getCommentingOptions(editor).clusterCullMargin
-	return (
-		point.x >= -margin &&
-		point.y >= -margin &&
-		point.x <= viewport.w + margin &&
-		point.y <= viewport.h + margin
-	)
 }
 
 /** The open thread's popover, portaled above the UI panels. Over it, wheel and hover events pass
@@ -1127,12 +1039,15 @@ const ThreadPin = memo(function ThreadPin({
 	)
 	const [editingId, setEditingId] = useState<string | null>(null)
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
-	// While dragging the marker, its page point overrides the anchor's; committed on drop.
-	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
 	// The live bounds while a corner handle is resizing the region, else null.
 	const [resizeBounds, setResizeBounds] = useState<BoxModel | null>(null)
-	// Whether the pin marker is hovered — only consulted by the 'pin-hover' reveal mode.
-	const [pinHovered, setPinHovered] = useState(false)
+	// Whether the pin marker is hovered — only consulted by the 'pin-hover' reveal mode. The
+	// marker is canvas-drawn, so hover comes from the overlay manager's hit-test, not DOM.
+	const pinHovered = useValue(
+		'pin hovered',
+		() => editor.overlays.getHoveredOverlayId() === `comment_pin:${thread.id}`,
+		[editor, thread.id]
+	)
 	// The 'pointer' reveal mode: is the pointer within the region's bounds (plus a grab margin)?
 	// Driven by pointer position, not DOM hover, so moving from anywhere in the region out to a corner
 	// handle never loses the affordance — the box stays `pointer-events: none`.
@@ -1169,41 +1084,21 @@ const ThreadPin = memo(function ThreadPin({
 				: REGION_CORNERS.filter((c) => c.x !== pinCorner.x || c.y !== pinCorner.y),
 		[regionOptions.resize, pinCorner]
 	)
-	const dragRef = useRef<{
-		startX: number
-		startY: number
-		moved: boolean
-		// The anchor's page-space offset from the grab point, so a drag translates the pin by the
-		// cursor's delta (like RegionBox's move) instead of snapping the anchor to the cursor.
-		offsetX: number
-		offsetY: number
-	} | null>(null)
-	const markerRef = useRef<HTMLDivElement>(null)
-	// Wheel pass-through sits on the marker (which is never scrollable), not the layer root —
-	// see the note on the layer.
-	usePassThroughWheelEvents(markerRef)
-
-	// The drop-target hint is editor-global state with no automatic reset. If the pin unmounts
-	// mid-drag (e.g. Shift+C hides comments), no pointer event will ever reach the drag handlers —
-	// clear the hint here or it stays on the shape indefinitely.
-	useEffect(() => {
-		return () => {
-			if (dragRef.current) editor.setHintingShapes([])
-		}
-	}, [editor])
-
-	// Clicking outside the open popover (and off its own pin) closes the thread — mirrors the
+	// Clicking outside the open popover (and off any comment pin) closes the thread — mirrors the
 	// pending composer's dismiss. Capture phase + a class check rather than stopPropagation, since the
-	// popover portals elsewhere in the DOM. The pin marker is excluded so its own click-to-toggle
-	// handles it instead of this closing then the toggle reopening.
+	// popover portals elsewhere in the DOM. Presses landing on a canvas-drawn pin or badge are
+	// excluded so the overlay's own pointer handling runs against the unchanged open state —
+	// otherwise this would close first and the open pin's click-toggle would reopen it.
 	useEffect(() => {
 		if (!open) return
 		const onPointerDown = (e: PointerEvent) => {
 			const target = e.target as HTMLElement | null
 			if (!target) return
 			if (target.closest('.tlui-cmt-canvas-popover')) return
-			const marker = markerRef.current
-			if (marker && marker.contains(target)) return
+			const overlayHit = editor.overlays.getOverlayAtPoint(
+				editor.screenToPage({ x: e.clientX, y: e.clientY })
+			)
+			if (overlayHit && overlayHit.type === 'comment_pin') return
 			// A press on a region's resize handle or movable body edits this thread — don't dismiss it.
 			if (target.closest('.tlui-cmt-canvas-region-handle, .tlui-cmt-canvas-region--movable')) return
 			// A click inside a menu/popover layered above us (the sidebar's filter or overflow
@@ -1436,128 +1331,18 @@ const ThreadPin = memo(function ThreadPin({
 		</>
 	)
 
-	const PinContent = options.components.PinContent
 	const ComposerFallback = options.components.ComposerFallback
-	// The `PinContent` component slot overrides the built-in author-initial default.
-	const threadAuthor = resolveAuthor(thread.createdBy)
-	const pinContent = PinContent ? (
-		<PinContent thread={thread} comments={comments} />
-	) : (
-		initialOf(threadAuthor?.name ?? UNKNOWN_AUTHOR)
-	)
 
-	// Drag the marker to move the thread: its position is overridden locally while dragging, then
-	// re-anchored on drop. A point/shape thread re-anchors to whatever it's dropped on (a shape, else
-	// a point); a region thread translates, keeping its size. A pointer that barely moves is a click —
-	// toggle the popover.
-	// Which affordances move a region, per the option: 'pin' → pin only, 'body' → body only, 'both'.
+	// The marker is canvas-drawn (CommentPinOverlayUtil) and owns click-to-toggle there. Dragging
+	// the marker to re-anchor a thread is not carried over yet — it needs the overlay pointer
+	// routing (a `{ target: 'overlay' }` interaction in the comment tool) rather than DOM capture.
 	const isRegion = thread.anchor.type === 'region'
-	const pinMovable = regionOptions.move !== 'body'
 	// Region move/resize rewrite the thread's anchor, so both sit behind the commenting permission.
 	const bodyMovable = canComment && regionOptions.move !== 'pin'
-	const startDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
-		// A middle/right-button or space-held press over a pin is a camera pan, not a pin drag —
-		// hand it to the canvas untouched.
-		if (isCanvasPanGesture(editor, e)) {
-			forwardPointerEventToCanvas(container, e)
-			return
-		}
-		e.stopPropagation()
-		const grabPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
-		const anchorPage = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
-		// The drag delta is taken from where the pin is drawn, which for an imprecise shape pin
-		// is inset from its anchor point — without this the pin jumps by the inset on drag start.
-		const inset = impreciseShapePinInset(thread.anchor, impreciseShapeAnchor)
-		if (anchorPage && inset) {
-			const zoom = editor.getZoomLevel()
-			anchorPage.x += inset.x / zoom
-			anchorPage.y += inset.y / zoom
-		}
-		dragRef.current = {
-			startX: e.clientX,
-			startY: e.clientY,
-			moved: false,
-			offsetX: anchorPage ? anchorPage.x - grabPage.x : 0,
-			offsetY: anchorPage ? anchorPage.y - grabPage.y : 0,
-		}
-		e.currentTarget.setPointerCapture(e.pointerId)
-	}
-	const onDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
-		const drag = dragRef.current
-		if (!drag) return
-		// Moving a pin re-anchors the thread record — a commenting write. Without the permission the
-		// press stays a click (`moved` never sets, so release toggles the popover and never commits).
-		if (!canComment) return
-		// A region that moves by its body ignores pin drags (the pin only toggles the thread).
-		if (isRegion && !pinMovable) return
-		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
-		drag.moved = true
-		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
-		const pagePoint = { x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY }
-		setDragPagePoint(pagePoint)
-		// Hint the shape the pin would re-anchor to on drop — the same hit-test endDrag resolves
-		// with. Regions translate rather than re-anchor, so they never hint.
-		if (!isRegion) {
-			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
-			editor.setHintingShapes(hit ? [hit.id] : [])
-		}
-	}
-	// A cancelled pointer (touch gesture takeover, browser interruption) aborts the drag outright:
-	// no re-anchor commit, no click-toggle — the pin snaps back and the hint clears.
-	const cancelDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
-		const drag = dragRef.current
-		dragRef.current = null
-		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-			e.currentTarget.releasePointerCapture(e.pointerId)
-		}
-		if (!drag) return
-		setDragPagePoint(null)
-		editor.setHintingShapes([])
-	}
-	const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
-		const drag = dragRef.current
-		dragRef.current = null
-		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-			e.currentTarget.releasePointerCapture(e.pointerId)
-		}
-		if (!drag) return
-		editor.setHintingShapes([])
-		if (!drag.moved) {
-			openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
-			return
-		}
-		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
-		const pagePoint = { x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY }
-		setDragPagePoint(null)
-		let anchor: TLCommentThread['anchor']
-		if (thread.anchor.type === 'region') {
-			// Translate so the pin (the region's pin corner) lands at the drop; size unchanged.
-			anchor = {
-				...thread.anchor,
-				x: pagePoint.x - pinCorner.x * thread.anchor.w,
-				y: pagePoint.y - pinCorner.y * thread.anchor.h,
-			}
-		} else {
-			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
-			anchor = hit
-				? shapeAnchorAt(
-						editor,
-						hit.id,
-						pagePoint,
-						getCommentingOptions(editor).shouldBePrecise(editor, {
-							shapeId: hit.id,
-							point: pagePoint,
-							altKey: e.altKey,
-						})
-					)
-				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
-		}
-		commitCommentMutation(editor, () => putCommentRecords(editor, [{ ...thread, anchor }]), 'drag')
-	}
 
-	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
-	// move to the drag point; otherwise it sits at the stored anchor's viewport point.
-	const livePinPage = resizeBounds ? regionPinPoint(resizeBounds, pinCorner) : dragPagePoint
+	// The popover tracks the live edit: a resize moves it to the region's pin corner; otherwise it
+	// sits at the stored anchor's viewport point.
+	const livePinPage = resizeBounds ? regionPinPoint(resizeBounds, pinCorner) : null
 	const renderPointBase = livePinPage ? editor.pageToViewport(livePinPage) : point
 	// A region's pin centres on its corner — overlapping the box — rather than hanging off it.
 	// The marker anchors bottom-left, so step half its 34px size left and down (screen px).
@@ -1565,18 +1350,10 @@ const ThreadPin = memo(function ThreadPin({
 		? { x: renderPointBase.x - 17, y: renderPointBase.y + 17 }
 		: renderPointBase
 
-	// A region's live box bounds, by priority: a corner resize, else a pin-drag translation (the pin
-	// corner tracks the cursor), else the stored anchor. Undefined for non-region threads.
+	// A region's live box bounds: a corner resize in progress, else the stored anchor. Undefined
+	// for non-region threads.
 	const regionAnchor = thread.anchor.type === 'region' ? thread.anchor : undefined
-	const movedRegion =
-		regionAnchor && dragPagePoint
-			? {
-					...regionAnchor,
-					x: dragPagePoint.x - pinCorner.x * regionAnchor.w,
-					y: dragPagePoint.y - pinCorner.y * regionAnchor.h,
-				}
-			: regionAnchor
-	const regionBoxBounds = resizeBounds ?? movedRegion
+	const regionBoxBounds = resizeBounds ?? regionAnchor
 	const commitResize = (bounds: BoxModel) => {
 		setResizeBounds(null)
 		if (!canComment) return
@@ -1591,103 +1368,74 @@ const ThreadPin = memo(function ThreadPin({
 
 	return (
 		<>
-			{regionBoxBounds && (dragPagePoint || revealed) && (
+			{regionBoxBounds && revealed && (
 				<RegionBox
 					editor={editor}
 					box={regionBoxBounds}
-					movable={bodyMovable && !dragPagePoint}
+					movable={bodyMovable}
 					onPreview={setResizeBounds}
 					onCommit={commitResize}
 				/>
 			)}
-			{regionBoxBounds &&
-				revealed &&
-				!dragPagePoint &&
-				canComment &&
-				regionOptions.resize !== 'none' && (
-					<RegionResizeHandles
-						editor={editor}
-						box={regionBoxBounds}
-						handles={resizeHandles}
-						onPreview={setResizeBounds}
-						onCommit={commitResize}
-					/>
-				)}
-			<div
-				className={[
-					'tlui-cmt-canvas-pin',
-					open && 'tlui-cmt-canvas-pin--open',
-					dragPagePoint && 'tlui-cmt-canvas-pin--dragging',
-				]
-					.filter(Boolean)
-					.join(' ')}
-				style={{ left: renderPoint.x, top: renderPoint.y }}
-			>
-				<div
-					ref={markerRef}
-					className="tlui-cmt-canvas-pin__marker"
-					onPointerDown={startDrag}
-					onPointerMove={onDrag}
-					onPointerUp={endDrag}
-					onPointerCancel={cancelDrag}
-					onPointerEnter={() => setPinHovered(true)}
-					onPointerLeave={() => setPinHovered(false)}
+			{regionBoxBounds && revealed && canComment && regionOptions.resize !== 'none' && (
+				<RegionResizeHandles
+					editor={editor}
+					box={regionBoxBounds}
+					handles={resizeHandles}
+					onPreview={setResizeBounds}
+					onCommit={commitResize}
+				/>
+			)}
+			{/* The marker itself is canvas-drawn by CommentPinOverlayUtil; only the popover is DOM.
+			    It portals up to the menus layer (above the UI panels) so it isn't clipped. */}
+			{open && (
+				<ThreadPopover
+					container={container}
+					// Clear the bottom-left-anchored pin: it spans 34px right of and above the
+					// anchor, plus the open ring's 5px — the popover starts past that, opening
+					// above the pin's top.
+					style={{ left: renderPoint.x + 48, top: renderPoint.y - 54 }}
 				>
-					<CommentPin resolved={thread.resolved != null} open={open} color={threadAuthor?.color}>
-						{pinContent}
-					</CommentPin>
-				</div>
-				{/* The popover portals up to the menus layer (above the UI panels) so it isn't clipped;
-			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
-				{open && (
-					<ThreadPopover
-						container={container}
-						// Clear the bottom-left-anchored pin: it spans 34px right of and above the
-						// anchor, plus the open ring's 5px — the popover starts past that, opening
-						// above the pin's top.
-						style={{ left: renderPoint.x + 48, top: renderPoint.y - 54 }}
-					>
-						<CommentThread
-							header={msg('comments.thread-title')}
-							headerActions={headerActions}
-							renderComment={renderComment}
-							comments={comments.map((c) => toCardProps(c, props, options.components, resolveName))}
-							resolvedBanner={
-								thread.resolved
-									? msg('comments.resolved-by').replace(
-											'{name}',
-											resolveAuthor(thread.resolved.by)?.name ?? UNKNOWN_AUTHOR
-										)
-									: undefined
-							}
-							composer={
-								canComment && !thread.resolved
-									? {
-											author: me ?? UNKNOWN_COMMENT_AUTHOR,
-											placeholder: msg('comments.reply-placeholder'),
-											sendLabel: msg('comments.send'),
-											value: reply,
-											onChange: (value: TLRichText) => {
-												setReply(value)
-												saveCommentDraft(replyDraftSlot(thread.id), value)
-											},
-											onSubmit: postReply,
-											// No user, no author for the record — dead send button.
-											disabled: isCommentEmpty(reply) || !currentUserId,
-											getMentionSuggestions,
-											renderMentionSuggestion,
-										}
-									: undefined
-							}
-							footer={
-								!canComment && !thread.resolved && ComposerFallback ? (
-									<ComposerFallback context="thread" />
-								) : undefined
-							}
-						/>
-					</ThreadPopover>
-				)}
-			</div>
+					<CommentThread
+						header={msg('comments.thread-title')}
+						headerActions={headerActions}
+						renderComment={renderComment}
+						comments={comments.map((c) => toCardProps(c, props, options.components, resolveName))}
+						resolvedBanner={
+							thread.resolved
+								? msg('comments.resolved-by').replace(
+										'{name}',
+										resolveAuthor(thread.resolved.by)?.name ?? UNKNOWN_AUTHOR
+									)
+								: undefined
+						}
+						composer={
+							canComment && !thread.resolved
+								? {
+										author: me ?? UNKNOWN_COMMENT_AUTHOR,
+										placeholder: msg('comments.reply-placeholder'),
+										sendLabel: msg('comments.send'),
+										value: reply,
+										onChange: (value: TLRichText) => {
+											setReply(value)
+											saveCommentDraft(replyDraftSlot(thread.id), value)
+										},
+										onSubmit: postReply,
+										// No user, no author for the record — dead send button.
+										disabled: isCommentEmpty(reply) || !currentUserId,
+										getMentionSuggestions,
+										renderMentionSuggestion,
+									}
+								: undefined
+						}
+						footer={
+							!canComment && !thread.resolved && ComposerFallback ? (
+								<ComposerFallback context="thread" />
+							) : undefined
+						}
+					/>
+				</ThreadPopover>
+			)}
 		</>
 	)
 })

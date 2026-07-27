@@ -1,6 +1,7 @@
 import {
 	CanvasComments,
 	CommentAuthor,
+	CommentPinOverlayUtil,
 	commentToolOverrides,
 	commentTools,
 	putCommentRecords,
@@ -22,6 +23,8 @@ import {
 } from 'tldraw'
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
+
+const commentOverlayUtils = [CommentPinOverlayUtil]
 
 // A demo avatar image (inline SVG) so Ada's comments show an image instead of a colored initial.
 const ADA_AVATAR =
@@ -107,6 +110,8 @@ export default function CommentAnchorsExample() {
 				// Commenting is a licensed feature. Every feature is enabled in local development, but a
 				// deployed app needs a license key that includes commenting — swap in your own key here.
 				licenseKey={getLicenseKey()}
+				// The pin markers are canvas-drawn; register their overlay util (defaults are kept).
+				overlayUtils={commentOverlayUtils}
 				store={store}
 				onMount={handleMount}
 				tools={commentTools}

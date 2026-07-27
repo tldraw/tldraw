@@ -12,6 +12,7 @@ import { createMentionSuggestion } from '@tldraw/mentions';
 import { Editor } from 'tldraw';
 import { EditorAtom } from 'tldraw';
 import { filterMentionMembers } from '@tldraw/mentions';
+import { Geometry2d } from 'tldraw';
 import { JSX } from 'react/jsx-runtime';
 import { Mention } from '@tldraw/mentions';
 import { MentionList } from '@tldraw/mentions';
@@ -19,6 +20,7 @@ import { MentionListProps } from '@tldraw/mentions';
 import { MentionMember } from '@tldraw/mentions';
 import { MentionProps } from '@tldraw/mentions';
 import { MentionSuggestionOptions } from '@tldraw/mentions';
+import { OverlayUtil } from 'tldraw';
 import { ReactNode } from 'react';
 import { StateNode } from 'tldraw';
 import { TLComment } from 'tldraw';
@@ -26,7 +28,9 @@ import { TLCommentAnchor } from 'tldraw';
 import { TLCommentId } from 'tldraw';
 import { TLCommentThread } from 'tldraw';
 import { TLCommentThreadId } from 'tldraw';
+import { TLCursorType } from 'tldraw';
 import { TLHistoryBatchOptions } from 'tldraw';
+import { TLOverlay } from 'tldraw';
 import { TLRichText } from 'tldraw';
 import { TLShapeId } from 'tldraw';
 import { TLStateNodeConstructor } from 'tldraw';
@@ -90,6 +94,9 @@ export interface CanvasCommentsSidebarProps {
     isCommentUnread?(commentId: TLCommentId): boolean;
     resolveAuthor(id: string): CommentAuthor | undefined;
 }
+
+// @public
+export const clusterExpandRequest: EditorAtom<null | string>;
 
 // @public
 export interface ClusterNode {
@@ -248,6 +255,74 @@ export interface CommentListItemProps {
 
 // @public
 export function CommentPin({ children, resolved, open, color }: CommentPinProps): JSX.Element;
+
+// @public
+export interface CommentPinDisplay {
+    // (undocumented)
+    badges: CommentPinDisplayBadge[];
+    impreciseShapeAnchor: {
+        x: number;
+        y: number;
+    };
+    // (undocumented)
+    pins: CommentPinDisplayPin[];
+}
+
+// @public
+export const commentPinDisplay: EditorAtom<CommentPinDisplay>;
+
+// @public
+export interface CommentPinDisplayBadge {
+    // (undocumented)
+    count: number;
+    // (undocumented)
+    nodeId: string;
+    // (undocumented)
+    point: {
+        x: number;
+        y: number;
+    };
+}
+
+// @public
+export interface CommentPinDisplayPin {
+    // (undocumented)
+    anchor: TLCommentAnchor;
+    color: string | undefined;
+    label: string;
+    // (undocumented)
+    resolved: boolean;
+    screenOffset: {
+        x: number;
+        y: number;
+    } | null;
+    // (undocumented)
+    threadId: string;
+}
+
+// @public
+export class CommentPinOverlayUtil extends OverlayUtil<TLCommentPinOverlay> {
+    // (undocumented)
+    getCursor(overlay: TLCommentPinOverlay): TLCursorType;
+    // (undocumented)
+    getGeometry(overlay: TLCommentPinOverlay): Geometry2d;
+    // (undocumented)
+    getOverlays(): TLCommentPinOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    onPointerDown(overlay: TLCommentPinOverlay): boolean;
+    // (undocumented)
+    options: {
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCommentPinOverlay[]): void;
+    // (undocumented)
+    renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLCommentPinOverlay[], zoom: number): void;
+    // (undocumented)
+    static type: string;
+}
 
 // @public (undocumented)
 export interface CommentPinProps {
@@ -556,6 +631,28 @@ export interface SidebarFilters {
 
 // @public
 export const sidebarFilters: EditorAtom<SidebarFilters>;
+
+// @public
+export interface TLCommentPinOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        x: number;
+        hit: {
+            h: number;
+            w: number;
+            x: number;
+            y: number;
+        };
+        targetId: string;
+        color: string | undefined;
+        count: number;
+        kind: 'badge' | 'pin';
+        label: string;
+        open: boolean;
+        resolved: boolean;
+        y: number;
+    };
+}
 
 // @public
 export type TLCommentRecord = TLComment | TLCommentThread;
