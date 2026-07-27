@@ -63,17 +63,20 @@ export interface SentryEnvironment {
  *
  * @public
  */
+// Warn at most once per isolate. Durable objects call createSentry in their constructors and at
+// the top of fetch(), so warning per call would be a line per request on a misconfigured deploy.
+let hasWarnedAboutMissingConfig = false
+
 export function createSentry(ctx: Context, env: SentryEnvironment, request?: Request) {
 	const { SENTRY_DSN, WORKER_NAME, CF_VERSION_METADATA } = env
 
 	if (!SENTRY_DSN || !WORKER_NAME || !CF_VERSION_METADATA) {
-		// Every caller reaches this from a catch block or a durable object constructor, so throwing
-		// on missing config replaces the error we were asked to report with a config error. In
-		// handleApiRequest it was worse than that: the throw escaped the catch, discarding the 500
-		// that had already been built and crashing the worker instead. Degrade to null so callers
-		// fall back to console.error, and name the missing vars so the misconfiguration is still
-		// diagnosable from the logs.
-		if (env.TLDRAW_ENV !== 'development') {
+		// Callers reach this from catch blocks and durable object constructors, where throwing would
+		// replace the error we were asked to report with a config error. Degrade to null and let the
+		// caller fall back to console.error, naming the missing vars so the misconfiguration is
+		// still diagnosable.
+		if (env.TLDRAW_ENV !== 'development' && !hasWarnedAboutMissingConfig) {
+			hasWarnedAboutMissingConfig = true
 			const missing = [
 				!SENTRY_DSN && 'SENTRY_DSN',
 				!WORKER_NAME && 'WORKER_NAME',

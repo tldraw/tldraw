@@ -337,15 +337,11 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	}
 
 	// Both branches of the queue loop swallow their errors so one bad message cannot abort the
-	// batch, which left a message that exhausted its retries arriving in the dead letter queue with
-	// no record of what went wrong. Report only on the final delivery: every earlier failure is
-	// retried, so capturing each one would file the same issue eleven times for a single message.
+	// batch, which left their failures with no record anywhere.
 	private reportQueueFailure(message: Message<QueueMessage>, error: unknown) {
-		if (message.attempts < QUEUE_FINAL_ATTEMPT) return
-
 		const sentry = createSentry(this.ctx, this.env)
 		if (!sentry) {
-			console.error(`[queue] gave up on ${message.body.type} message`, error)
+			console.error(`[queue] ${message.body.type} message failed`, error)
 			return
 		}
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -355,6 +351,14 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			sentry.captureException(error)
 		})
+	}
+
+	// asset-upload retries the same failing insert on every delivery, so reporting each one would
+	// file the same issue eleven times for a single message. Wait for the last delivery, which is
+	// the one that lands it in the dead letter queue.
+	private reportQueueFailureOnFinalAttempt(message: Message<QueueMessage>, error: unknown) {
+		if (message.attempts < QUEUE_FINAL_ATTEMPT) return
+		this.reportQueueFailure(message, error)
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
@@ -375,9 +379,11 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 						// against an unexpected throw escaping it, so one bad message can't abort processing
 						// of the rest of the batch. Retry is a no-op if the handler already settled.
 						//
-						// A throw that gets here escaped the handler before its own retry budget could
-						// settle the message, so this retry is what keeps the message moving and it does
-						// run out the full max_retries — reaching the final-attempt report below.
+						// Reported on every delivery rather than on the last one. The handler already
+						// reports the render failures it catches, so anything reaching here escaped it
+						// entirely — a bug in the handler, not a failing render. Those are rare, and an
+						// escape that doesn't recur never reaches a final delivery anyway: the handler's
+						// own budget acks the message at attempts >= MAX_RENDER_ATTEMPTS.
 						this.reportQueueFailure(message, e)
 						message.retry()
 					}
@@ -393,7 +399,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 							.execute()
 						message.ack()
 					} catch (e) {
-						this.reportQueueFailure(message, e)
+						this.reportQueueFailureOnFinalAttempt(message, e)
 						message.retry({
 							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
 						})

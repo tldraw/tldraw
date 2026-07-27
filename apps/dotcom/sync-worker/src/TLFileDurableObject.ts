@@ -1678,12 +1678,17 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	protected reportError(e: unknown, extras?: Record<string, unknown>) {
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		this.sentry?.withScope((scope) => {
-			if (extras) scope.setExtras(extras)
+		try {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			this.sentry?.captureException(e)
-		})
+			this.sentry?.withScope((scope) => {
+				if (extras) scope.setExtras(extras)
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				this.sentry?.captureException(e)
+			})
+		} catch (_e) {
+			// Callers report from cleanup paths and from outside their own try blocks, so reporting
+			// must never be the thing that throws and skip the cleanup it was added to protect.
+		}
 		console.error(e)
 	}
 
