@@ -67,6 +67,13 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
 	createdAt: number
 	/** Resolution state: when and by whom the thread was resolved, or null while open. */
 	resolved: { at: number; by: string } | null
+	/**
+	 * Whether the thread is soft-deleted. Clients delete a thread by setting this flag and
+	 * leaving the record (and its comments) in place, hidden from rendering. Sync servers are
+	 * expected to enforce the flag as write-once and creator-only, reject hard deletes from
+	 * clients, and drop flagged threads from future room loads.
+	 */
+	isDeleted: boolean
 	meta: JsonObject
 }
 
@@ -95,6 +102,13 @@ export interface TLComment extends BaseRecord<'comment', TLCommentId> {
 	editedAt: number | null
 	/** Rich text body. Use `toRichText(...)` for plaintext input. */
 	body: TLRichText
+	/**
+	 * Whether the comment is soft-deleted. Same model as `TLCommentThread.isDeleted` — clients
+	 * delete a comment by setting this flag and leaving the record in place, hidden from
+	 * rendering. Sync servers are expected to enforce the flag as write-once and author-only,
+	 * reject hard deletes from clients, and drop flagged comments from future room loads.
+	 */
+	isDeleted: boolean
 	meta: JsonObject
 }
 
@@ -235,6 +249,7 @@ export const commentThreadRecordConfig: CustomRecordInfo = {
 		createdBy: T.string,
 		createdAt: T.number,
 		resolved: T.object({ at: T.number, by: T.string }).nullable(),
+		isDeleted: T.boolean,
 		meta: T.jsonValue,
 	}),
 }
@@ -257,6 +272,7 @@ export const commentRecordConfig: CustomRecordInfo = {
 		createdAt: T.number,
 		editedAt: T.number.nullable(),
 		body: richTextValidator,
+		isDeleted: T.boolean,
 		meta: T.jsonValue,
 	}),
 }
@@ -383,6 +399,7 @@ export function createCommentThread(props: {
 		createdBy: props.createdBy,
 		createdAt: props.now ?? Date.now(),
 		resolved: null,
+		isDeleted: false,
 		meta: props.meta ?? {},
 	}
 }
@@ -409,6 +426,7 @@ export function createComment(props: {
 		createdAt: props.now ?? Date.now(),
 		editedAt: null,
 		body: props.body,
+		isDeleted: false,
 		meta: props.meta ?? {},
 	}
 }

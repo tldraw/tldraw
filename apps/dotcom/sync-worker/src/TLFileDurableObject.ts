@@ -38,6 +38,7 @@ import {
 import {
 	TLAsset,
 	TLAssetId,
+	TLComment,
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
@@ -62,16 +63,17 @@ import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 import {
+	CommentLoadResult,
 	findEmptiedCommentThreads,
 	findOrphanedReactions,
 	isCommentAuthorFkViolation,
 	isCommentMentionFkViolation,
 	isCommentReactionFkViolation,
+	liveCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
 	planMentionReconciles,
-	rowsToSnapshotDocuments,
 } from './commentRows'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
@@ -1257,14 +1259,16 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	private async loadCommentsFromPostgres(): Promise<RoomSnapshot['documents']> {
+	private async loadCommentsFromPostgres(): Promise<CommentLoadResult> {
 		const fileId = this.documentInfo.slug
 		const [threadRows, commentRows, reactionRows] = await Promise.all([
 			this.db.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
 			this.db.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
 			this.db.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll().execute(),
 		])
-		return rowsToSnapshotDocuments(threadRows, commentRows, reactionRows)
+		// Soft-deleted threads and their comments never re-enter a room, and neither do reactions
+		// whose comment doesn't; their rows stay in Postgres only (see liveCommentDocuments).
+		return liveCommentDocuments(threadRows, commentRows, reactionRows)
 	}
 
 	timer() {
@@ -1886,6 +1890,7 @@ export class TLFileDurableObject extends DurableObject {
 									shapeId: eb.ref('excluded.shapeId'),
 									resolvedAt: eb.ref('excluded.resolvedAt'),
 									resolvedBy: eb.ref('excluded.resolvedBy'),
+									isDeleted: eb.ref('excluded.isDeleted'),
 									meta: eb.ref('excluded.meta'),
 									lastChangedClock: eb.ref('excluded.lastChangedClock'),
 								}))
@@ -1904,6 +1909,7 @@ export class TLFileDurableObject extends DurableObject {
 									pageId: eb.ref('excluded.pageId'),
 									body: eb.ref('excluded.body'),
 									editedAt: eb.ref('excluded.editedAt'),
+									isDeleted: eb.ref('excluded.isDeleted'),
 									updatedAt: eb.ref('excluded.updatedAt'),
 									meta: eb.ref('excluded.meta'),
 									lastChangedClock: eb.ref('excluded.lastChangedClock'),
@@ -1934,9 +1940,9 @@ export class TLFileDurableObject extends DurableObject {
 						)
 						.execute()
 
-				// Threads before comments (comment.threadId FK); comment deletes before thread
-				// deletes is not required (thread deletes cascade), but keep the batch → row-by-row
-				// fallback so one bad row doesn't drop the whole batch. Rows that fail both the
+				// Thread upserts before comment upserts (comment.threadId FK); comment deletes
+				// before thread deletes is not required (thread deletes cascade), but keep the
+				// batch → row-by-row fallback so one bad row doesn't drop the whole batch. Rows that fail both the
 				// batch insert and their individual retry are reported back (by record id) so the
 				// caller can keep their outbox entries queued instead of deleting them. Rows whose
 				// error matches `shouldPrune` are returned separately instead: they are not
@@ -1978,6 +1984,24 @@ export class TLFileDurableObject extends DurableObject {
 						return { failedIds, prunedIds }
 					}
 				}
+				// The drain never hard-deletes comment-lane rows — the only hard deletes are
+				// Postgres-side cascades (user-account deletion via /admin, file deletion, version
+				// restore). Clients never hard-delete either (deletion is the isDeleted flag), so
+				// a lane-absent comment here is a stale outbox entry for a record a prune already
+				// removed from the lane; stamp its row soft-deleted. Idempotent, so at-least-once
+				// replays and already-stamped rows are no-ops.
+				// The stamped rows' thread ids feed the emptied-thread prune below: a thread whose
+				// last comment just went has no surface left and must not linger in the lane.
+				let deletedCommentThreadIds = new Set<string>()
+				if (commentDeletes.length > 0) {
+					const deletedRows = await this.db
+						.updateTable('comment')
+						.set({ isDeleted: true })
+						.where('id', 'in', commentDeletes)
+						.returning('threadId')
+						.execute()
+					deletedCommentThreadIds = new Set(deletedRows.map((row) => row.threadId))
+				}
 				const failedIds = new Set<string>()
 				const threadResult = await runBatchWithFallback(threadUpserts, insertThreadRows)
 				for (const id of threadResult.failedIds) {
@@ -1988,12 +2012,12 @@ export class TLFileDurableObject extends DurableObject {
 				// warm room still holds the records. Retrying can never succeed, so mirror the
 				// cascade into the room instead: prune the records below and let their outbox
 				// entries clear normally (the Postgres row being absent is already the desired end
-				// state). Threads the prune leaves without any comments are pruned too — the
-				// client-side invariant is that deleting a thread's last comment deletes the
-				// thread, so an author-cascade must not leave ghost pins behind. Thread rows in
-				// Postgres are NOT deleted here: comment_thread has no user FK (by design, so the
+				// state). Threads the prune leaves without any comments are pruned too — an
+				// emptied thread never renders (clients hide threads with no comments), so an
+				// author-cascade must not leave ghost records behind. Thread rows in
+				// Postgres are not touched here: comment_thread has no user FK (by design, so the
 				// cascade can't race the room), so the pruned thread ids are re-outboxed and a
-				// follow-up drain issues the Postgres delete through the normal at-least-once
+				// follow-up drain stamps the rows soft-deleted through the normal at-least-once
 				// acked path.
 				const commentResult = await runBatchWithFallback(
 					commentUpserts,
@@ -2003,9 +2027,8 @@ export class TLFileDurableObject extends DurableObject {
 				for (const id of commentResult.failedIds) {
 					failedIds.add(id)
 				}
-				// Reactions after comments (comment_reaction.commentId FK), and their deletes before
-				// the comment deletes they'd otherwise cascade with. A reaction whose comment or
-				// reacting user has since been deleted can never insert, so it prunes like an
+				// Reactions after comments (comment_reaction.commentId FK). A reaction whose comment
+				// or reacting user has since been deleted can never insert, so it prunes like an
 				// author-cascaded comment rather than retrying forever.
 				const reactionResult = await runBatchWithFallback(
 					reactionUpserts,
@@ -2024,14 +2047,22 @@ export class TLFileDurableObject extends DurableObject {
 						for (const id of reactionResult.prunedIds) txn.delete(id as TLRecord['id'])
 					})
 				}
+				// Un-reacting removes the record, so a lane-absent reaction is a real delete — unlike
+				// comments and threads, reactions have no soft-delete recovery story of their own.
 				if (reactionDeletes.length > 0) {
 					await this.db.deleteFrom('comment_reaction').where('id', 'in', reactionDeletes).execute()
 				}
-				if (commentDeletes.length > 0) {
-					await this.db.deleteFrom('comment').where('id', 'in', commentDeletes).execute()
-				}
+				// Lane-absent threads get the stamp treatment: stamp, never delete — a hard delete
+				// would FK-cascade any soft-deleted comment rows still hanging off the thread,
+				// destroying the recovery rows. Order vs the upserts doesn't matter here: an id
+				// can't be planned as both an upsert (lane-present) and a delete (lane-absent) in
+				// one drain.
 				if (threadDeletes.length > 0) {
-					await this.db.deleteFrom('comment_thread').where('id', 'in', threadDeletes).execute()
+					await this.db
+						.updateTable('comment_thread')
+						.set({ isDeleted: true })
+						.where('id', 'in', threadDeletes)
+						.execute()
 				}
 
 				// Reconcile @-mention rows for every comment row that made it to Postgres, so the
@@ -2041,8 +2072,8 @@ export class TLFileDurableObject extends DurableObject {
 				// so clock-guarded no-op replays cause no WAL churn. A mention insert failing its
 				// user FK (mentioned account deleted, or a bogus id) is skipped for good; any other
 				// failure marks the comment failed so its outbox entry stays queued and the next
-				// drain retries the reconcile. Comment deletes need no handling here: the FK
-				// cascades their mention rows away.
+				// drain retries the reconcile. Soft-deleted comments keep their mention rows; the
+				// rows are inert because every query filters the comment itself on isDeleted.
 				const mentionReconciles = planMentionReconciles(
 					commentUpserts.filter(
 						(row) => !failedIds.has(row.id) && !commentResult.prunedIds.includes(row.id)
@@ -2095,23 +2126,29 @@ export class TLFileDurableObject extends DurableObject {
 				let didPruneThreads = false
 				if (commentResult.prunedIds.length > 0) {
 					this.logEvent({ type: 'room', roomId: fileId, name: 'comment_author_deleted_prune' })
-					// Remove the pruned records from the room's storage so it stops carrying rows
-					// Postgres already cascaded away. Deleting through the shared storage handle is
-					// the sanctioned server-side mutation path: a live room subscribes to
-					// storage.onChange and broadcasts external transactions to its sessions, so
-					// connected clients see the records disappear; a closed room needs no broadcast,
-					// but the prune must still run — the warm DO SQLite outlives the room, and
-					// loadStorage short-circuits Postgres rehydration when SQLite is already
-					// initialized, so skipping it would keep the deleted author's comments alive
-					// forever. The delete does not re-enqueue outbox entries (onCommittedChanges
-					// only fires for client pushes), so this can't loop; a crash between here and
-					// the outbox clear below just replays the prune on the next drain (the ids are
-					// then lane-absent, taking the no-op Postgres delete path).
+				}
+				if (commentResult.prunedIds.length > 0 || deletedCommentThreadIds.size > 0) {
+					// Remove the author-cascade-pruned records from the room's storage so it stops
+					// carrying rows Postgres already cascaded away. Deleting through the shared
+					// storage handle is the sanctioned server-side mutation path: a live room
+					// subscribes to storage.onChange and broadcasts external transactions to its
+					// sessions, so connected clients see the records disappear; a closed room needs
+					// no broadcast, but the prune must still run — the warm DO SQLite outlives the
+					// room, and loadStorage short-circuits Postgres rehydration when SQLite is
+					// already initialized, so skipping it would keep the deleted author's comments
+					// alive forever. The delete does not re-enqueue outbox entries
+					// (onCommittedChanges only fires for client pushes), so this can't loop; a
+					// crash between here and the outbox clear below just replays the prune on the
+					// next drain (the ids are then lane-absent, taking the no-op Postgres delete
+					// path).
 					const { prunedThreadIds, prunedReactionIds } = storage.transaction((txn) => {
-						// Collect each pruned comment's threadId (and the comment ids themselves) from
-						// the transaction's own reads before deleting it — prunedIds are comment ids,
-						// not thread ids.
-						const candidateThreadIds = new Set<string>()
+						// Emptied-thread candidates: threads whose comments this drain stamped
+						// deleted, plus each cascade-pruned comment's threadId (collected, with the
+						// comment ids themselves, from the transaction's own reads before deleting it
+						// — prunedIds are comment ids, not thread ids). Never all lane threads: a
+						// brand-new thread whose first comment hasn't been pushed yet is also
+						// comment-less, and must survive.
+						const candidateThreadIds = new Set<string>(deletedCommentThreadIds)
 						const prunedCommentIds = new Set<string>()
 						for (const id of commentResult.prunedIds) {
 							const record = txn.get(id as TLRecord['id'])
@@ -2121,14 +2158,15 @@ export class TLFileDurableObject extends DurableObject {
 							}
 							txn.delete(id as TLRecord['id'])
 						}
-						// Threads the deletes just emptied must go too (see the comment above the
-						// commentUpserts batch). The emptiness check runs on this transaction's own
-						// read surface, not the drain's earlier lane snapshot, so a reply committed
-						// after that snapshot keeps its thread alive.
+						// Threads left without any comments have no surface (clients hide them), so
+						// prune them rather than leaking a hidden record to every future session.
+						// The emptiness check runs on this transaction's own read surface, not the
+						// drain's earlier lane snapshot, so a reply committed after that snapshot
+						// keeps its thread alive.
 						const deletedThreadIds: string[] = []
 						for (const threadId of findEmptiedCommentThreads(candidateThreadIds, txn)) {
-							// A lane-absent thread was already deleted by a client; that delete's
-							// own outbox entry covers its Postgres row.
+							// A lane-absent thread was already pruned (soft-delete or an earlier
+							// drain); whatever pruned it owns its Postgres row.
 							if (txn.get(threadId as TLRecord['id']) === undefined) continue
 							txn.delete(threadId as TLRecord['id'])
 							deletedThreadIds.push(threadId)
@@ -2149,12 +2187,128 @@ export class TLFileDurableObject extends DurableObject {
 					}
 					if (prunedThreadIds.length > 0) {
 						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_thread_emptied_prune' })
-						// Outbox the pruned thread ids instead of deleting their Postgres rows
+						// Outbox the pruned thread ids instead of stamping their Postgres rows
 						// directly: the follow-up drain (kicked below, after this drain's
-						// bookkeeping) sees them lane-absent and issues the delete through the
-						// normal crash-safe at-least-once path. These inserts get seqs above this
-						// drain's bound, so the outbox clear below can't remove them.
+						// bookkeeping) sees them lane-absent and stamps them soft-deleted through
+						// the normal crash-safe at-least-once path. These inserts get seqs above
+						// this drain's bound, so the outbox clear below can't remove them.
 						for (const id of prunedThreadIds) {
+							this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
+						}
+						didPruneThreads = true
+					}
+				}
+
+				// Records whose soft-delete flag just reached Postgres are pruned from the room's
+				// lane: a thread takes its comments with it, a comment goes alone — and a thread
+				// left without any comments follows (see below). Postgres keeps the rows
+				// (recovery, and the Zero queries filter on isDeleted); the room and its clients
+				// drop the records for real — the warm DO SQLite outlives every reload, so without
+				// this prune a deleted record would keep syncing to new sessions (hidden only by
+				// client-side filtering) until the SQLite is lost. Lane deletes here don't
+				// re-enqueue outbox entries (onCommittedChanges only fires for client pushes), so
+				// the Postgres rows survive. A crash before this prune just leaves the flagged
+				// records in the lane — harmless (clients hide them) and cleaned up by the next
+				// drain that touches the record or the next cold load's filter.
+				const softDeletedThreadIds = threadUpserts
+					.filter((row) => row.isDeleted && !failedIds.has(row.id))
+					.map((row) => row.id)
+				const softDeletedCommentIds = commentUpserts
+					.filter(
+						(row) =>
+							row.isDeleted && !failedIds.has(row.id) && !commentResult.prunedIds.includes(row.id)
+					)
+					.map((row) => row.id)
+				if (softDeletedThreadIds.length > 0 || softDeletedCommentIds.length > 0) {
+					this.logEvent({ type: 'room', roomId: fileId, name: 'comment_soft_delete_prune' })
+					// Records this drain has NOT accounted for must survive the cascade sweep: a
+					// reply committed after this drain's bound (during the awaits above) has an
+					// outbox entry a later drain owns, and its row may not be in Postgres yet.
+					// Sweeping it from the lane would turn that entry into a no-op stamp of a row
+					// that was never inserted, losing the reply's recovery row. Left in the lane,
+					// the next drain upserts it — the stamped thread row still exists as its FK
+					// parent — and the cold load's thread filter keeps it out of future rooms.
+					const inFlightIds = new Set(
+						this.ctx.storage.sql
+							.exec('SELECT DISTINCT recordId FROM comment_outbox WHERE seq > ?', drainBound)
+							.toArray()
+							.map((row) => row.recordId as string)
+					)
+					const { emptiedThreadIds, orphanedReactionIds } = storage.transaction((txn) => {
+						const prunedThreadIds = new Set<string>()
+						for (const id of softDeletedThreadIds) {
+							if (txn.get(id as TLRecord['id']) === undefined) continue // already pruned
+							if (inFlightIds.has(id)) continue // updated mid-drain; the next drain re-prunes
+							txn.delete(id as TLRecord['id'])
+							prunedThreadIds.add(id)
+						}
+						// Each pruned comment's threadId (read before deleting it) is an
+						// emptied-thread candidate below. Candidates come only from threads that
+						// just lost a comment, so a brand-new thread awaiting its first comment is
+						// never touched — same protection as the author-cascade prune.
+						const candidateThreadIds = new Set<string>()
+						const prunedCommentIds = new Set<string>()
+						for (const id of softDeletedCommentIds) {
+							const record = txn.get(id as TLRecord['id']) as unknown as TLComment | undefined
+							if (record === undefined) continue // already pruned
+							if (inFlightIds.has(id)) continue // updated mid-drain; the next drain re-prunes
+							if (record.typeName === 'comment') {
+								candidateThreadIds.add(record.threadId)
+							}
+							txn.delete(id as TLRecord['id'])
+							prunedCommentIds.add(id)
+						}
+						if (prunedThreadIds.size > 0) {
+							// Materialize the id scan before deleting: comment ids are typeName-prefixed,
+							// so non-comment records are skipped without being read.
+							for (const key of [...txn.keys()]) {
+								if (!isCommentId(key)) continue
+								if (inFlightIds.has(key)) continue // committed mid-drain; a later drain owns it
+								const id = key as string as TLRecord['id']
+								const record = txn.get(id) as unknown as TLComment | undefined
+								if (record?.threadId !== undefined && prunedThreadIds.has(record.threadId)) {
+									txn.delete(id)
+									prunedCommentIds.add(id)
+								}
+							}
+						}
+						// A thread whose last live comment just stamped away has no surface left and
+						// nobody who could ever delete it (clients hide comment-less threads, menu
+						// included), so prune it here rather than leaking a hidden record to every
+						// future session. The emptiness check runs on this transaction's read
+						// surface: an in-flight reply, a failed upsert, or a stamped comment
+						// deferred above is still in the lane and keeps its thread alive — that
+						// drain re-prunes and re-checks, so the cleanup converges instead of racing.
+						const emptied: string[] = []
+						for (const threadId of findEmptiedCommentThreads(candidateThreadIds, txn)) {
+							// Lane-absent thread: already pruned (stamped above, or an earlier
+							// drain); whatever pruned it owns its Postgres row.
+							if (txn.get(threadId as TLRecord['id']) === undefined) continue
+							txn.delete(threadId as TLRecord['id'])
+							emptied.push(threadId)
+						}
+						// Reactions on a pruned comment leave the lane with it, or they ghost in the
+						// warm room pointing at a comment that's gone. Their Postgres rows stay put:
+						// the comment row still exists (soft-deleted, no cascade fired), the cold
+						// load only seeds reactions whose comment seeds, and if the comment is ever
+						// recovered its reactions come back with it.
+						const orphaned = findOrphanedReactions(prunedCommentIds, txn)
+						for (const id of orphaned) {
+							txn.delete(id as TLRecord['id'])
+						}
+						return { emptiedThreadIds: emptied, orphanedReactionIds: orphaned }
+					}).result
+					if (orphanedReactionIds.length > 0) {
+						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_reaction_orphan_prune' })
+					}
+					if (emptiedThreadIds.length > 0) {
+						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_thread_emptied_prune' })
+						// Re-outbox the emptied thread ids: the follow-up drain sees them lane-absent
+						// and stamps their rows soft-deleted through the normal crash-safe
+						// at-least-once path, so the rows stop re-seeding future rooms as live
+						// threads. These inserts get seqs above this drain's bound, so the outbox
+						// clear below can't remove them.
+						for (const id of emptiedThreadIds) {
 							this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
 						}
 						didPruneThreads = true

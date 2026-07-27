@@ -58,12 +58,7 @@ import {
 } from './comment-drafts'
 import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
-import {
-	getCommentReactions,
-	getCommentRecord,
-	putCommentRecords,
-	removeCommentRecords,
-} from './comment-store'
+import { getCommentRecord, putCommentRecords } from './comment-store'
 import { PendingComment } from './comment-tool'
 import { useCommentThreads, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
@@ -1282,15 +1277,17 @@ const ThreadPin = memo(function ThreadPin({
 	}
 
 	const deleteThread = () => {
+		if (!currentUserId) return
 		openThreadId.set(editor, null)
-		// Reactions are their own records, so they have to go with the thread. Postgres cascades
-		// them via the reaction's thread FK, but the room holds them until they're removed here.
-		const reactionIds = getCommentReactions(editor)
-			.filter((reaction) => reaction.threadId === thread.id)
-			.map((reaction) => reaction.id)
-		commitCommentMutation(editor, () =>
-			removeCommentRecords(editor, [thread.id, ...comments.map((c) => c.id), ...reactionIds])
-		)
+		// Soft delete: set the flag rather than removing records — the server prunes the thread,
+		// its comments, and their reactions once the flag is persisted, so no client ever deletes
+		// records it doesn't own (reactions belong to whoever reacted). Creator-only; the server
+		// vetoes anyone else (and any hard delete). Never on the undo stack, even with
+		// `history: 'record'`: the flag is write-once server-side, so an undo clearing it would
+		// always be vetoed and rebased.
+		editor.run(() => putCommentRecords(editor, [{ ...thread, isDeleted: true }]), {
+			history: 'ignore',
+		})
 	}
 
 	const startEdit = (comment: TLComment) => {
@@ -1299,20 +1296,23 @@ const ThreadPin = memo(function ThreadPin({
 	}
 
 	const deleteComment = (comment: TLComment) => {
-		commitCommentMutation(editor, () => {
-			// This comment's reactions are their own records, so they have to go with it (Postgres
-			// cascades them, but the room holds them until removed) — same as deleteThread.
-			const reactionIds = getCommentReactions(editor)
-				.filter((reaction) => reaction.commentId === comment.id)
-				.map((reaction) => reaction.id)
-			// Deleting a thread's only comment deletes the thread — an empty thread has no surface.
-			if (comments.length === 1) {
-				openThreadId.set(editor, null)
-				removeCommentRecords(editor, [thread.id, comment.id, ...reactionIds])
-			} else {
-				removeCommentRecords(editor, [comment.id, ...reactionIds])
-			}
-		})
+		// Soft delete, same model as threads: set the flag, the server prunes the record (and its
+		// reactions, which belong to whoever reacted) once it's persisted. Author-only; the
+		// server vetoes anyone else (and any hard delete). Never on the undo stack: the flag is
+		// write-once server-side, so an undo clearing it would always be vetoed and rebased.
+		editor.run(
+			() => {
+				// Deleting a thread's only comment hides the thread — an empty thread has no
+				// surface (see useCommentThreads). The thread record is left for the server: the
+				// deleter may not be its creator (only creators may delete threads), so the
+				// drain prunes a thread its last comment leaves emptied.
+				if (comments.length === 1) {
+					openThreadId.set(editor, null)
+				}
+				putCommentRecords(editor, [{ ...comment, isDeleted: true }])
+			},
+			{ history: 'ignore' }
+		)
 	}
 
 	const saveEdit = () => {
@@ -1431,7 +1431,8 @@ const ThreadPin = memo(function ThreadPin({
 					/>
 				</TooltipButton>
 			)}
-			{canComment && currentUserId && (
+			{/* Deleting a thread is creator-only (server-enforced), and it's the menu's only item. */}
+			{canComment && currentUserId && currentUserId === thread.createdBy && (
 				<TldrawUiDropdownMenuRoot id={`comment-thread-actions-${thread.id}`}>
 					<TldrawUiDropdownMenuTrigger>
 						<TooltipButton
