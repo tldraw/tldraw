@@ -428,7 +428,6 @@ export function ThreadView({
 
 	return (
 		<CommentThread
-			header={msg('comments.thread-title')}
 			headerActions={headerActions}
 			renderComment={renderComment}
 			comments={comments.map((c) => toCardProps(c, props, options.components, resolveName))}

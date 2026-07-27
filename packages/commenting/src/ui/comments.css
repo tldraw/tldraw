@@ -227,13 +227,13 @@
 	align-self: flex-end;
 }
 
-.tlui-cmt-send:hover,
-.pseudo-hover .tlui-cmt-send {
+.tlui-cmt-send:hover:not(:disabled),
+.pseudo-hover .tlui-cmt-send:not(:disabled) {
 	background: color-mix(in srgb, var(--tl-color-selected) 88%, black);
 }
 
-.tlui-cmt-send:active,
-.pseudo-active .tlui-cmt-send {
+.tlui-cmt-send:active:not(:disabled),
+.pseudo-active .tlui-cmt-send:not(:disabled) {
 	background: color-mix(in srgb, var(--tl-color-selected) 78%, black);
 }
 
@@ -243,8 +243,10 @@
 	outline-offset: 2px;
 }
 
+/* Disabled reads as grey, not a washed-out blue — "can't send yet" rather than "send, dimmed". */
 .tlui-cmt-send:disabled {
-	opacity: 0.45;
+	background: var(--tl-color-muted-1);
+	color: var(--tl-color-text-3);
 	cursor: not-allowed;
 }
 
@@ -281,14 +283,16 @@
 		var(--tlui-cmt-marker-shadow);
 }
 
-/* pin */
+/* pin — a plain panel-white marker. The author's identity color isn't shown here: the author
+   doesn't see their own color anywhere else, so a tinted pin reads as meaningless decoration.
+   Hosts can still tint via the `color` prop (`--tlui-cmt-pin-color`). */
 .tlui-cmt-pin {
 	--tlui-cmt-marker-tint: var(--tlui-cmt-pin-color, var(--tl-color-selected));
 	width: var(--tlui-cmt-marker-size);
 	height: var(--tlui-cmt-marker-size);
 	border-radius: 50% 50% 50% 3px;
-	background: var(--tlui-cmt-pin-color, var(--tl-color-selected));
-	color: #fff;
+	background: var(--tlui-cmt-pin-color, var(--tl-color-panel));
+	color: var(--tl-color-text-1);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -481,7 +485,7 @@
 	--tlui-cmt-marker-transition: 0.08s ease;
 	--tlui-cmt-thread-padding: 8px;
 	--tlui-cmt-thread-gap: 6px;
-	--tlui-cmt-thread-action-size: 22px;
+	--tlui-cmt-thread-action-size: 26px;
 	--tlui-cmt-thread-header-padding: 2px;
 	/* Nothing in the header is taller than an action button, so the button plus the header's own
 	   padding is the header's height. */
@@ -645,7 +649,7 @@
 }
 .tlui-cmt-list__header-title {
 	font-size: 13px;
-	font-weight: 600;
+	font-weight: 500;
 	color: var(--tl-color-text-1);
 }
 

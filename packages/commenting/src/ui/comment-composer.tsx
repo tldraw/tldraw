@@ -211,6 +211,9 @@ export function CommentComposer({
 					// we don't re-enter and submit) to reuse the editor's list-aware Enter handling — a new
 					// list item in a list, a new paragraph otherwise. tldraw doesn't do soft breaks.
 					if (event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
+						// An empty field has nothing to break onto — swallow the keypress so it doesn't
+						// open the comment with a stray leading blank line.
+						if (editorRef.current?.isEmpty) return true
 						replayingEnter.current = true
 						try {
 							editorRef.current?.commands.enter()
