@@ -686,6 +686,28 @@ describe('liveCommentDocuments', () => {
 		expect(documents.map((d) => d.state.id).sort()).toEqual([liveComment.id, thread.id].sort())
 	})
 
+	it('drops a live thread whose comment rows are all soft-deleted', () => {
+		// The durable backstop for an emptied thread whose isDeleted stamp never landed (e.g. DO
+		// storage lost between the comment stamp and the follow-up drain): the thread row is still
+		// live in Postgres, but every comment it ever had is deleted — it must not re-seed rooms.
+		const emptied = makeThread()
+		const deadComment = { ...makeComment(emptied.id, 1500), isDeleted: true }
+		const result = liveCommentDocuments(
+			[threadRecordToRow(emptied, 'file1', 1)],
+			[commentRecordToRow(deadComment, 'file1', 2)]
+		)
+		expect(result.documents).toEqual([])
+		expect(result.clockFloor).toBe(2)
+	})
+
+	it('keeps a live thread with no comment rows at all', () => {
+		// A brand-new thread whose first comment hasn't drained yet has zero comment rows — it is
+		// not emptied, and dropping it would lose the thread the pending comment belongs to.
+		const fresh = makeThread()
+		const { documents } = liveCommentDocuments([threadRecordToRow(fresh, 'file1', 1)], [])
+		expect(documents.map((d) => d.state.id)).toEqual([fresh.id])
+	})
+
 	it('clockFloor spans all rows, including dropped ones', () => {
 		const live = makeThread()
 		const dead = { ...makeThread(), isDeleted: true }

@@ -197,12 +197,27 @@ export interface CommentLoadResult {
  * (`isDeleted` — see TLCommentThread.isDeleted) and their comments are dropped, as are
  * soft-deleted comments of live threads: their rows stay in Postgres for recovery and Zero-side
  * filtering, but they never re-enter a room.
+ *
+ * A live thread whose comment rows are all soft-deleted is dropped too. It's the durable
+ * backstop for the drain's emptied-thread prune: the thread's own isDeleted stamp rides a
+ * comment_outbox entry in DO SQLite between drains, so losing that storage in the window leaves
+ * the thread live in Postgres with nothing left to ever stamp it — this filter keeps it out of
+ * rooms regardless. A thread with no comment rows at all is kept: it's a brand-new thread whose
+ * first comment hasn't drained, not an emptied one.
  */
 export function liveCommentDocuments(
 	threadRows: DB['comment_thread'][],
 	commentRows: DB['comment'][]
 ): CommentLoadResult {
-	const liveThreadRows = threadRows.filter((row) => !row.isDeleted)
+	const threadIdsWithComments = new Set(commentRows.map((row) => row.threadId))
+	const threadIdsWithLiveComments = new Set(
+		commentRows.filter((row) => !row.isDeleted).map((row) => row.threadId)
+	)
+	const liveThreadRows = threadRows.filter(
+		(row) =>
+			!row.isDeleted &&
+			(!threadIdsWithComments.has(row.id) || threadIdsWithLiveComments.has(row.id))
+	)
 	const liveThreadIds = new Set(liveThreadRows.map((row) => row.id))
 	const liveCommentRows = commentRows.filter(
 		(row) => !row.isDeleted && liveThreadIds.has(row.threadId)
