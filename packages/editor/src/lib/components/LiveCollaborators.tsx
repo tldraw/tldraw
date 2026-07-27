@@ -1,7 +1,7 @@
 import { track, useQuickReactor } from '@tldraw/state-react'
 import { TLInstancePresence } from '@tldraw/tlschema'
 import { modulate } from '@tldraw/utils'
-import { useCallback, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import type { Editor } from '../editor/Editor'
 import { useEditorComponents } from '../hooks/EditorComponentsContext'
 import { useEditor } from '../hooks/useEditor'
@@ -39,17 +39,16 @@ export const LiveCollaborators = track(function LiveCollaborators() {
 	// The inner layer carries the camera transform, so the cursor components position in page
 	// space exactly as canvas content does. Unlike the canvas's html layers this one unmounts
 	// while no collaborators are visible, so the transform is written at two moments: on every
-	// camera change (the reactor), and on (re)attach (the callback ref) — the reactor's last run
-	// hit a null ref while the layer was unmounted, and without the attach write a reappearing
-	// layer would keep an identity transform until the next camera move.
+	// camera change (the reactor), and after every render (the layout effect, like useTransform
+	// does per cursor) — the reactor's last run hit a null ref while the layer was unmounted,
+	// and without the render-time write a reappearing layer would keep an identity transform
+	// until the next camera move.
 	const rHtmlLayer = useRef<HTMLDivElement | null>(null)
-	const setHtmlLayer = useCallback(
-		(elm: HTMLDivElement | null) => {
-			rHtmlLayer.current = elm
-			if (elm) setStyleProperty(elm, 'transform', cameraLayerTransform(editor))
-		},
-		[editor]
-	)
+	useLayoutEffect(() => {
+		const elm = rHtmlLayer.current
+		if (!elm) return
+		setStyleProperty(elm, 'transform', cameraLayerTransform(editor))
+	})
 	useQuickReactor(
 		'position collaborators layer',
 		function positionCollaboratorsWhenCameraMoves() {
@@ -72,7 +71,7 @@ export const LiveCollaborators = track(function LiveCollaborators() {
 					<CursorDef />
 				</defs>
 			</svg>
-			<div ref={setHtmlLayer} className="tl-html-layer">
+			<div ref={rHtmlLayer} className="tl-html-layer">
 				{collaborators.map((presence) => (
 					<Collaborator key={presence.userId} latestPresence={presence} />
 				))}
