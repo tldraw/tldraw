@@ -520,9 +520,25 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	// once, owned by its first member that is actually on screen — members can arrive by different
 	// paths (a leaf via clustering while its open sibling renders via the open slot), so ownership
 	// can't be decided per-path.
+	// A cluster node that is exactly one coincident stack — every member shares a single pin-stack
+	// group, with no distinct-position comment mixed in. Such a node is a stack standing on its own
+	// (its neighbours have already split off as the view zoomed in), so it renders as the immediate
+	// cascading count-badge list rather than a zoom-to-split cluster badge. Returns the stack's full
+	// group — which can include an open or orphan member the node's own leaves omit — or null.
+	const stackGroupOf = (node: ClusterNode): readonly string[] | null => {
+		const group = pinStacks.get(node.members[0])
+		if (!group) return null
+		return node.members.every((id) => group.includes(id)) ? group : null
+	}
+
 	const renderedThreadIds = new Set<string>()
 	if (options.enableClustering) {
-		for (const { node } of fadeNodes) if (node.count === 1) renderedThreadIds.add(node.id)
+		for (const { node } of fadeNodes) {
+			if (node.count === 1) renderedThreadIds.add(node.id)
+			// A pure-stack node owns its members here (they aren't count-1 leaves), so register them so
+			// the owner logic can pick one — mirroring how count-1 leaves are added above.
+			else if (stackGroupOf(node)) for (const id of node.members) renderedThreadIds.add(id)
+		}
 		for (const thread of orphanThreads) renderedThreadIds.add(thread.id)
 		for (const thread of heldThreads) renderedThreadIds.add(thread.id)
 	} else {
@@ -560,10 +576,21 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 				<>
 					{fadeNodes.map(({ node, phase }) => {
 						let content: ReactNode
+						const stackGroup = node.count > 1 ? stackGroupOf(node) : null
 						if (node.count === 1) {
 							const thread = threadsById.get(node.id)
 							if (!thread) return null
 							content = renderThreadPin(thread)
+						} else if (stackGroup) {
+							// A coincident stack standing alone: draw the cascading count-badge list now
+							// instead of a zoom-to-split cluster badge. Route it through the stack's owner so
+							// the open/orphan/held slots stay deduped — when the owner is one of them, that
+							// slot draws the stack and this node draws nothing.
+							const owner = stackGroup.find((id) => renderedThreadIds.has(id))
+							content =
+								owner && node.members.includes(owner)
+									? renderThreadPin(threadsById.get(owner)!)
+									: null
 						} else {
 							content = (
 								<ClusterBadge

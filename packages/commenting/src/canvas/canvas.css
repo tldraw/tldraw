@@ -68,10 +68,14 @@
 }
 
 /* The count badge standing in for a stack of coincident pins — same face as a cluster badge,
-   but clicking opens the stack's thread list rather than zooming (no zoom can separate them). */
+   but clicking opens the stack's thread list rather than zooming (no zoom can separate them).
+   Re-enables pointer events: the badge lives inside `.tlui-cmt-canvas-pin`, which is inert
+   (`pointer-events: none`) so its box doesn't shadow the canvas — without this the badge renders
+   but can't be hovered or clicked, like the cluster badge's own `pointer-events: auto`. */
 .tlui-cmt-canvas-stack-badge {
 	transform: translate(-50%, -50%);
 	width: max-content;
+	pointer-events: auto;
 	cursor: pointer;
 }
 
