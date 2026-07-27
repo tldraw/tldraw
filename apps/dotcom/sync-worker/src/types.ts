@@ -136,11 +136,14 @@ export interface DBLoadResult {
 	roomSizeMB: number
 }
 
+// Events written by TLFileDurableObject. None of them carry a room id: the object serves exactly
+// one room, and its `writeEvent` stamps that room's hashed key onto every data point it writes
+// (see `_roomKey`). A roomId here would only ever restate what the object already knows, while
+// implying call sites can attribute an event to some other room.
 export type TLServerEvent =
 	| {
 			type: 'client'
 			name: 'room_create' | 'room_reopen' | 'enter' | 'leave' | 'last_out'
-			roomId: string
 			instanceId: string
 			localClientId: string
 	  }
@@ -158,11 +161,9 @@ export type TLServerEvent =
 				| 'room_empty'
 				| 'fail_persist'
 				| 'room_start'
-			roomId: string
 	  }
 	| {
 			type: 'send_message'
-			roomId: string
 			messageType: string
 			messageLength: number
 	  }
