@@ -56,7 +56,7 @@ import {
 	useCanComment,
 	useCommentingOptions,
 } from './options'
-import { computePinStacks } from './pin-stacking'
+import { computePinStacks, pinStackKey } from './pin-stacking'
 import {
 	commentsHidden,
 	commitCommentMutation,
@@ -398,16 +398,23 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		}
 	}, [editor])
 
-	// Clear a stale open-stack id. `openStackId` names a stack's oldest thread, and only the
-	// stack's own (mounted) handlers clear it — so deleting that thread, or collapsing the stack
-	// to a single pin, unmounts the `ThreadStackPin` and strands the id. A dangling `openStackId`
-	// is not harmless: `useMarkerPreview` treats any non-null value as "a stack is open" and
-	// suppresses every hover preview until it's cleared. A live stack keys each member in
-	// `pinStacks`, so an id that's no longer a key names a stack that's gone.
+	// Clear a stale open-stack key. `openStackId` is a stack's coincident point key, and only the
+	// stack's own (mounted) handlers clear it — so collapsing the stack to a single pin unmounts the
+	// `ThreadStackPin` and strands the key. A dangling `openStackId` is not harmless: `useMarkerPreview`
+	// treats any non-null value as "a stack is open" and suppresses every hover preview until it's
+	// cleared. Keep it while any live stack still sits at that key (so losing a member — even the
+	// oldest — keeps the list open under the survivors), and clear it once none does.
 	useEffect(() => {
-		const id = openStackId.get(editor)
-		if (id && !pinStacks.has(id)) openStackId.set(editor, null)
-	}, [editor, pinStacks])
+		const key = openStackId.get(editor)
+		if (!key) return
+		for (const id of pinStacks.keys()) {
+			const thread = threadsById.get(id)
+			if (!thread) continue
+			const point = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
+			if (point && pinStackKey(point) === key) return
+		}
+		openStackId.set(editor, null)
+	}, [editor, pinStacks, threadsById, impreciseShapeAnchor])
 
 	// The requested thread, once it (and, for a comment id, its parent thread) has synced into the
 	// store; null while records are still arriving or when no request is pending.

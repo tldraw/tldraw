@@ -1,12 +1,17 @@
 import { memo, useEffect, useRef } from 'react'
-import { Editor, TLCommentThread, useContainer, useValue } from 'tldraw'
+import { Editor, TLCommentThread, useContainer, usePassThroughWheelEvents, useValue } from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { CountBadge } from '../ui/count-badge'
 import { useThreadComments } from './hooks'
 import { useCommentingOptions } from './options'
+import { pinStackKey } from './pin-stacking'
 import { openStackId, openThreadId } from './state'
 import { ThreadPreview, useMarkerPreview } from './thread-preview'
-import { anchorPagePoint } from './thread-state'
+import {
+	anchorPagePoint,
+	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
+	impreciseShapePinInset,
+} from './thread-state'
 import {
 	POPOVER_OFFSET,
 	ThreadPopover,
@@ -35,13 +40,26 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 }) {
 	const container = useContainer()
 	const badgeRef = useRef<HTMLDivElement>(null)
+	// The badge takes pointer events (to open on click), so wheel input over it would otherwise be
+	// swallowed instead of zooming — pass it through to the canvas, as the pin and cluster badge do.
+	usePassThroughWheelEvents(badgeRef)
 	// Hovering the badge previews its threads; clicking still opens them as the interactive list.
 	// The preview is what makes the badge legible before you commit to opening it.
 	const { previewShown, previewHandlers } = useMarkerPreview(editor, `stack:${threads[0].id}`)
 	// The list stays open while a member thread is expanded, and on its own after the member
 	// collapses — so Escape steps back: expanded thread → card list → closed. Held in editor
 	// state (not component state) because this pin remounts as its owning render path changes.
-	const stackId = threads[0].id
+	// Keyed by the coincident page point, not a member id, so the open state survives losing a
+	// member (including the oldest): the survivors keep the same key. Falls back to a thread id
+	// only when the anchor can't resolve (off page), where the list isn't shown anyway.
+	const stackId = useValue(
+		'stack id',
+		() => {
+			const pagePoint = anchorPagePoint(editor, threads[0].anchor, impreciseShapeAnchor)
+			return pagePoint ? pinStackKey(pagePoint) : threads[0].id
+		},
+		[editor, threads, impreciseShapeAnchor]
+	)
 	const listOpen = useValue('stack list open', () => openStackId.get(editor) === stackId, [
 		editor,
 		stackId,
@@ -55,8 +73,14 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 		() => {
 			const first = threads[0]
 			if (first.pageId !== editor.getCurrentPageId()) return null
-			const pagePoint = anchorPagePoint(editor, first.anchor, impreciseShapeAnchor)
-			return pagePoint ? editor.pageToViewport(pagePoint) : null
+			const spot = impreciseShapeAnchor ?? DEFAULT_IMPRECISE_SHAPE_ANCHOR
+			const pagePoint = anchorPagePoint(editor, first.anchor, spot)
+			if (!pagePoint) return null
+			const viewportPoint = editor.pageToViewport(pagePoint)
+			// Match the single pin: an imprecise shape pin steps inside the shape from its anchor, so
+			// the badge sits where a lone pin would rather than jumping by the inset when it stacks.
+			const inset = impreciseShapePinInset(first.anchor, spot)
+			return inset ? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y } : viewportPoint
 		},
 		[editor, threads, impreciseShapeAnchor]
 	)

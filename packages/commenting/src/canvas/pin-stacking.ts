@@ -6,6 +6,15 @@ import { anchorPagePoint } from './thread-state'
 const PIN_STACK_QUANTUM = 0.1
 
 /**
+ * The key a page point stacks under. Threads sharing a key are coincident. Stable identity for a
+ * stack itself: it survives losing any member (the survivors keep the same key), unlike keying by
+ * a particular thread id, so open-stack state stays put when the stack's oldest thread is deleted.
+ */
+export function pinStackKey(point: { x: number; y: number }): string {
+	return `${Math.round(point.x / PIN_STACK_QUANTUM)}:${Math.round(point.y / PIN_STACK_QUANTUM)}`
+}
+
+/**
  * Group threads whose pins land on the same page point — coincident pins (typically several
  * imprecise comments on one shape) that zooming can never separate. The overlay renders each
  * group as a single count-badge pin that opens the threads as a list. Every member id maps to
@@ -27,7 +36,7 @@ export function computePinStacks(
 		if (thread.pageId !== pageId) continue
 		const point = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
 		if (!point) continue
-		const key = `${Math.round(point.x / PIN_STACK_QUANTUM)}:${Math.round(point.y / PIN_STACK_QUANTUM)}`
+		const key = pinStackKey(point)
 		const group = groups.get(key)
 		if (group) {
 			group.push(thread)
