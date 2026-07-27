@@ -2,20 +2,13 @@
 title: Comment anchors
 component: ./CommentAnchorsExample.tsx
 priority: 4
-keywords: [comments, commenting, anchors, shape, region, point, text range, collaboration]
+keywords: [comments, commenting, anchors, shape, region, point, collaboration]
 ---
 
-The five ways a comment can attach to the canvas.
+The ways a comment can attach to the canvas.
 
 ---
 
-Every comment thread carries an `anchor` — a discriminated union that says where on the page the thread lives. `CanvasComments` reads the anchor and draws each kind in the right place. This example seeds one thread of each kind, then lets the overlay position them:
+Every thread carries an `anchor` that says where on the page it lives: a `point`, a `shape` it tracks as that shape moves and resizes, or a `region` covering an area. A fourth kind, `page`, has no pin and surfaces in a list instead.
 
-- **shape (imprecise)** — attached to a shape, the pin sitting at its top-right badge spot. The stored `x`/`y` are normalized (0–1), so the pin tracks the shape as it moves and resizes.
-- **shape (precise)** — attached to an exact normalized spot inside a shape (what you get by holding `alt` while placing).
-- **point** — a bare page coordinate, unattached to any shape.
-- **region** — a rectangular area; the pin sits on a corner and the region box is drawn.
-
-One more anchor kind exists but the default overlay doesn't give it a distinct pin: **page** anchors attach a thread to the whole board (no pin — they surface in a comments list instead).
-
-Drag the shape around to watch the shape-anchored pins follow it, or pick the comment tool and click to add your own thread anchored wherever you place it.
+This example seeds one of each pinned kind, with a shape anchor shown both precise and imprecise. Drag the shape to watch its pins follow it.
