@@ -13,6 +13,7 @@ import {
 	CommentOutboxEntry,
 	commentRecordToRow,
 	findEmptiedCommentThreads,
+	findOrphanedReactions,
 	isCommentAuthorFkViolation,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
@@ -575,6 +576,63 @@ describe('findEmptiedCommentThreads', () => {
 		}
 		expect(findEmptiedCommentThreads(new Set([thread.id]), view)).toEqual([])
 		expect(yielded).toBe(1)
+	})
+})
+
+describe('findOrphanedReactions', () => {
+	const threadId = makeThread().id
+	function makeReaction(
+		commentId: ReturnType<typeof createCommentId>,
+		emoji: string,
+		userId = 'user1'
+	) {
+		return createCommentReaction({ commentId, threadId, pageId, userId, emoji, now: 1500 })
+	}
+
+	// mimics the prune transaction's read surface, holding whatever records remain
+	function viewOf(...records: { id: string }[]) {
+		const map = new Map(records.map((r) => [r.id, r]))
+		return { keys: () => map.keys(), get: (id: string) => map.get(id) }
+	}
+
+	it('returns nothing (without scanning) when no comments were pruned', () => {
+		const view = {
+			keys(): Iterable<string> {
+				throw new Error('should not scan')
+			},
+			get: () => undefined,
+		}
+		expect(findOrphanedReactions(new Set(), view)).toEqual([])
+	})
+
+	it('returns every reaction on a pruned comment', () => {
+		const pruned = createCommentId()
+		const r1 = makeReaction(pruned, '👍', 'user1')
+		const r2 = makeReaction(pruned, '🎉', 'user2')
+		expect(findOrphanedReactions(new Set([pruned]), viewOf(r1, r2)).sort()).toEqual(
+			[r1.id, r2.id].sort()
+		)
+	})
+
+	it('keeps reactions whose comment survived', () => {
+		const pruned = createCommentId()
+		const alive = createCommentId()
+		const orphan = makeReaction(pruned, '👍')
+		const kept = makeReaction(alive, '👍')
+		expect(findOrphanedReactions(new Set([pruned]), viewOf(orphan, kept))).toEqual([orphan.id])
+	})
+
+	it('skips non-reaction records without reading them', () => {
+		const pruned = createCommentId()
+		const orphan = makeReaction(pruned, '👍')
+		const view = {
+			keys: () => ['shape:box1', 'comment:c1', 'comment-thread:t1', orphan.id],
+			get(id: string): unknown {
+				if (id !== orphan.id) throw new Error(`should not read ${id}`)
+				return orphan
+			},
+		}
+		expect(findOrphanedReactions(new Set([pruned]), view)).toEqual([orphan.id])
 	})
 })
 

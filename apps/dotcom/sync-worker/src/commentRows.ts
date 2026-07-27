@@ -363,6 +363,32 @@ export function findEmptiedCommentThreads(
 }
 
 /**
+ * Given the ids of comments that were just pruned and a view of the records that remain, return the
+ * ids of reaction records whose `commentId` points at one of those pruned comments. The caller (see
+ * the author-FK prune in drainCommentOutbox) deletes those reactions from the room in the same
+ * transaction: `comment_reaction.commentId` is `ON DELETE CASCADE`, so Postgres already dropped the
+ * rows when the comment row went — this only catches the warm room's SQLite up, so orphan reactions
+ * don't linger pointing at a comment that no longer exists.
+ *
+ * Like {@link findEmptiedCommentThreads}, the scan iterates `keys()` (an id-only scan; reaction ids
+ * are typeName-prefixed so non-reaction records are skipped without being read) and `get`s only
+ * reaction records.
+ */
+export function findOrphanedReactions(
+	prunedCommentIds: ReadonlySet<string>,
+	remaining: { keys(): Iterable<string>; get(id: string): unknown }
+): string[] {
+	if (prunedCommentIds.size === 0) return []
+	const orphaned: string[] = []
+	for (const id of remaining.keys()) {
+		if (!isCommentReactionId(id)) continue
+		const commentId = (remaining.get(id) as TLCommentReaction | undefined)?.commentId
+		if (commentId !== undefined && prunedCommentIds.has(commentId)) orphaned.push(id)
+	}
+	return orphaned
+}
+
+/**
  * Merge rehydrated comment documents into a room snapshot, clamping the snapshot's clocks up to
  * the highest merged clock. Comments push to Postgres per-commit while the document snapshot
  * persists on a throttle, so after a storage loss the comment clocks can be ahead of the

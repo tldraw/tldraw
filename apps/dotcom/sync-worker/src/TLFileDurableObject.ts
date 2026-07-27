@@ -63,6 +63,7 @@ import PQueue from 'p-queue'
 import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 import {
 	findEmptiedCommentThreads,
+	findOrphanedReactions,
 	isCommentAuthorFkViolation,
 	isCommentMentionFkViolation,
 	isCommentReactionFkViolation,
@@ -2106,14 +2107,17 @@ export class TLFileDurableObject extends DurableObject {
 					// only fires for client pushes), so this can't loop; a crash between here and
 					// the outbox clear below just replays the prune on the next drain (the ids are
 					// then lane-absent, taking the no-op Postgres delete path).
-					const prunedThreadIds = storage.transaction((txn) => {
-						// Collect each pruned comment's threadId from the transaction's own reads
-						// before deleting it — prunedIds are comment ids, not thread ids.
+					const { prunedThreadIds, prunedReactionIds } = storage.transaction((txn) => {
+						// Collect each pruned comment's threadId (and the comment ids themselves) from
+						// the transaction's own reads before deleting it — prunedIds are comment ids,
+						// not thread ids.
 						const candidateThreadIds = new Set<string>()
+						const prunedCommentIds = new Set<string>()
 						for (const id of commentResult.prunedIds) {
 							const record = txn.get(id as TLRecord['id'])
 							if (record?.typeName === 'comment') {
 								candidateThreadIds.add(record.threadId)
+								prunedCommentIds.add(id)
 							}
 							txn.delete(id as TLRecord['id'])
 						}
@@ -2129,8 +2133,20 @@ export class TLFileDurableObject extends DurableObject {
 							txn.delete(threadId as TLRecord['id'])
 							deletedThreadIds.push(threadId)
 						}
-						return deletedThreadIds
+						// Reactions on a pruned comment must go too, or they ghost in the warm room
+						// pointing at a comment that no longer exists. Unlike threads we do NOT outbox
+						// these or issue a Postgres delete: comment_reaction.commentId is ON DELETE
+						// CASCADE, so Postgres already dropped the rows when the comment row went — this
+						// only catches the room's SQLite up.
+						const deletedReactionIds = findOrphanedReactions(prunedCommentIds, txn)
+						for (const id of deletedReactionIds) {
+							txn.delete(id as TLRecord['id'])
+						}
+						return { prunedThreadIds: deletedThreadIds, prunedReactionIds: deletedReactionIds }
 					}).result
+					if (prunedReactionIds.length > 0) {
+						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_reaction_orphan_prune' })
+					}
 					if (prunedThreadIds.length > 0) {
 						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_thread_emptied_prune' })
 						// Outbox the pruned thread ids instead of deleting their Postgres rows
