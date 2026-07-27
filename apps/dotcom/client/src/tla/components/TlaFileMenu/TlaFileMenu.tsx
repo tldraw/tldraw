@@ -21,6 +21,7 @@ import {
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
+import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
@@ -119,6 +120,7 @@ export function FileItems({
 	const copiedMsg = useMsg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
+	const activeWorkspaceId = useActiveWorkspaceId()
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 
@@ -162,8 +164,10 @@ export function FileItems({
 
 	const handleDuplicateClick = useCallback(async () => {
 		// The sidebar passes the workspace the file is listed under; the file header doesn't, so
-		// fall back to the workspace the file already lives in.
-		const targetWorkspaceId = workspaceId ?? currentWorkspaceId
+		// fall back to the user's active workspace. This matches the sidebar (and unlike the file's
+		// own owning workspace, it's always one the user can write to — e.g. a guest duplicating a
+		// shared file gets the copy in their home workspace, not the owner's).
+		const targetWorkspaceId = workspaceId ?? activeWorkspaceId
 		if (!targetWorkspaceId) return
 		const newFileId = uniqueId()
 		const file = app.getFile(fileId)
@@ -187,7 +191,7 @@ export function FileItems({
 			}))
 			navigate(routes.tlaFile(newFileId))
 		}
-	}, [app, fileId, workspaceId, currentWorkspaceId, navigate, trackEvent, source])
+	}, [app, fileId, workspaceId, activeWorkspaceId, navigate, trackEvent, source])
 
 	const handleDeleteClick = useCallback(() => {
 		if (!workspaceId) return
