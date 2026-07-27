@@ -544,4 +544,5 @@ export const DEFAULT_TRANSLATION = {
 	'comments.reacted-more-one': '{a}, {b}, {c} and 1 other reacted',
 	'comments.mention-you': 'You',
 	'comments.mention-no-matches': 'No matches',
+	'comments.preview-more': '{count} more',
 }

@@ -534,3 +534,4 @@ export type TLUiTranslationKey =
 	| 'comments.reacted-more-one'
 	| 'comments.mention-you'
 	| 'comments.mention-no-matches'
+	| 'comments.preview-more'

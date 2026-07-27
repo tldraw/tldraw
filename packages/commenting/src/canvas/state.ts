@@ -21,6 +21,12 @@ import { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './sidebar-filters'
  * @public */
 export const openThreadId = new EditorAtom<string | null>('openThreadId', () => null)
 
+/** The coincident-pin stack whose thread list is showing (keyed by its oldest member's thread
+ * id), or null. Editor state rather than component state: the stack pin remounts when its owning
+ * render path changes (e.g. a member thread opens), and the open list must survive that.
+ * @public */
+export const openStackId = new EditorAtom<string | null>('openStackId', () => null)
+
 /** The comment currently being placed (composer open, not yet posted), or null.
  * @public */
 export const pendingComment = new EditorAtom<PendingComment | null>('pendingComment', () => null)
