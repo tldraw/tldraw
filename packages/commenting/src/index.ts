@@ -26,8 +26,28 @@ export { CommentThread, type CommentThreadProps } from './ui/comment-thread'
 export { CommentsList, type CommentListItemProps, type CommentsListProps } from './ui/comments-list'
 export { EmptyState, type EmptyStateProps } from './ui/empty-state'
 export { formatRelativeTime } from './ui/format-time'
-export { Reaction, type ReactionProps } from './ui/reaction'
-export { Reactions } from './ui/reactions'
+export {
+	DEFAULT_REACTION_EMOJI,
+	EmojiPicker,
+	type EmojiPickerProps,
+	isAllowedReactionEmoji,
+} from './ui/emoji-picker'
+export {
+	Reaction,
+	type ReactionProps,
+	type RenderReaction,
+	defaultRenderReaction,
+	DefaultReactionTooltip,
+	DefaultReactionTooltipContent,
+	type ReactionTooltipProps,
+} from './ui/reaction'
+export { ReactionPicker, type ReactionPickerProps } from './ui/reaction-picker'
+export {
+	Reactions,
+	type ReactionReactor,
+	type ReactionsProps,
+	type ReactionSummary,
+} from './ui/reactions'
 export { renderMarkdown } from './ui/render-markdown'
 export { SendButton, type SendButtonProps } from './ui/send-button'
 
@@ -37,6 +57,26 @@ export { SendButton, type SendButtonProps } from './ui/send-button'
 export { registerCommentAnchorLifecycle } from './canvas/anchor-lifecycle'
 export { CommentBody, type CommentBodyProps } from './canvas/comment-body'
 export {
+	CommentReactionPicker,
+	type CommentReactionPickerProps,
+	CommentReactions,
+	type CommentReactionsProps,
+	summarizeReactions,
+	toggleCommentReaction,
+	useCommentReactions,
+} from './canvas/comment-reactions'
+export {
+	DrawingReactionContent,
+	DrawingReactionPalette,
+	type DrawingReactionPaletteProps,
+	type DrawingReactionExportOptions,
+	type DrawingReactionFormat,
+	DrawingReactionTooLargeError,
+	exportDrawingReactionToken,
+	isDrawingReactionToken,
+	renderDrawingReaction,
+} from './canvas/drawing-reactions'
+export {
 	CommentTool,
 	commentToolOverrides,
 	commentTools,
@@ -45,6 +85,7 @@ export {
 export { collectClusterLeaves } from './canvas/cluster-input'
 export { computeClusterTable } from './clustering/computeClusterTable'
 export {
+	getCommentReactions,
 	getCommentRecord,
 	getComments,
 	getCommentThreads,

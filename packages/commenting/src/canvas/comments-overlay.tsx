@@ -56,8 +56,14 @@ import {
 	replyDraftSlot,
 	saveCommentDraft,
 } from './comment-drafts'
+import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
-import { getCommentRecord, putCommentRecords, removeCommentRecords } from './comment-store'
+import {
+	getCommentReactions,
+	getCommentRecord,
+	putCommentRecords,
+	removeCommentRecords,
+} from './comment-store'
 import { PendingComment } from './comment-tool'
 import { useCommentThreads, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
@@ -1277,8 +1283,13 @@ const ThreadPin = memo(function ThreadPin({
 
 	const deleteThread = () => {
 		openThreadId.set(editor, null)
+		// Reactions are their own records, so they have to go with the thread. Postgres cascades
+		// them via the reaction's thread FK, but the room holds them until they're removed here.
+		const reactionIds = getCommentReactions(editor)
+			.filter((reaction) => reaction.threadId === thread.id)
+			.map((reaction) => reaction.id)
 		commitCommentMutation(editor, () =>
-			removeCommentRecords(editor, [thread.id, ...comments.map((c) => c.id)])
+			removeCommentRecords(editor, [thread.id, ...comments.map((c) => c.id), ...reactionIds])
 		)
 	}
 
@@ -1289,12 +1300,17 @@ const ThreadPin = memo(function ThreadPin({
 
 	const deleteComment = (comment: TLComment) => {
 		commitCommentMutation(editor, () => {
+			// This comment's reactions are their own records, so they have to go with it (Postgres
+			// cascades them, but the room holds them until removed) — same as deleteThread.
+			const reactionIds = getCommentReactions(editor)
+				.filter((reaction) => reaction.commentId === comment.id)
+				.map((reaction) => reaction.id)
 			// Deleting a thread's only comment deletes the thread — an empty thread has no surface.
 			if (comments.length === 1) {
 				openThreadId.set(editor, null)
-				removeCommentRecords(editor, [thread.id, comment.id])
+				removeCommentRecords(editor, [thread.id, comment.id, ...reactionIds])
 			} else {
-				removeCommentRecords(editor, [comment.id])
+				removeCommentRecords(editor, [comment.id, ...reactionIds])
 			}
 		})
 	}
@@ -1341,46 +1357,58 @@ const ThreadPin = memo(function ThreadPin({
 		return (
 			<CommentCard
 				{...card}
+				footer={
+					<CommentReactions
+						comment={comment}
+						currentUserId={currentUserId}
+						resolveName={resolveName}
+					/>
+				}
 				actions={
-					canComment && comment.authorId === currentUserId ? (
-						<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
-							<TldrawUiDropdownMenuTrigger>
-								<TooltipButton
-									tooltip={msg('comments.more-options')}
-									className="tlui-cmt-thread__action"
+					<>
+						{canComment && comment.authorId === currentUserId && (
+							<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
+								<TldrawUiDropdownMenuTrigger>
+									<TooltipButton
+										tooltip={msg('comments.more-options')}
+										className="tlui-cmt-thread__action"
+									>
+										<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+									</TooltipButton>
+								</TldrawUiDropdownMenuTrigger>
+								<TldrawUiDropdownMenuContent
+									className="tlui-cmt-menu"
+									side="bottom"
+									align="end"
+									alignOffset={0}
 								>
-									<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
-								</TooltipButton>
-							</TldrawUiDropdownMenuTrigger>
-							<TldrawUiDropdownMenuContent
-								className="tlui-cmt-menu"
-								side="bottom"
-								align="end"
-								alignOffset={0}
-							>
-								<TldrawUiDropdownMenuGroup>
-									<TldrawUiDropdownMenuItem>
-										<button
-											type="button"
-											className="tlui-cmt-menu-item"
-											onClick={() => startEdit(comment)}
-										>
-											<span>{msg('comments.edit-comment')}</span>
-										</button>
-									</TldrawUiDropdownMenuItem>
-									<TldrawUiDropdownMenuItem>
-										<button
-											type="button"
-											className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-											onClick={() => deleteComment(comment)}
-										>
-											<span>{msg('comments.delete-comment')}</span>
-										</button>
-									</TldrawUiDropdownMenuItem>
-								</TldrawUiDropdownMenuGroup>
-							</TldrawUiDropdownMenuContent>
-						</TldrawUiDropdownMenuRoot>
-					) : undefined
+									<TldrawUiDropdownMenuGroup>
+										<TldrawUiDropdownMenuItem>
+											<button
+												type="button"
+												className="tlui-cmt-menu-item"
+												onClick={() => startEdit(comment)}
+											>
+												<span>{msg('comments.edit-comment')}</span>
+											</button>
+										</TldrawUiDropdownMenuItem>
+										<TldrawUiDropdownMenuItem>
+											<button
+												type="button"
+												className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
+												onClick={() => deleteComment(comment)}
+											>
+												<span>{msg('comments.delete-comment')}</span>
+											</button>
+										</TldrawUiDropdownMenuItem>
+									</TldrawUiDropdownMenuGroup>
+								</TldrawUiDropdownMenuContent>
+							</TldrawUiDropdownMenuRoot>
+						)}
+						{canComment && (
+							<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
+						)}
+					</>
 				}
 			/>
 		)
