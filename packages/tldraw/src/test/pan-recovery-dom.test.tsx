@@ -125,4 +125,81 @@ describe('stale pan recovery via real DOM events', () => {
 		expect(editor.inputs.getIsPanning()).toBe(true)
 		expect(editor.getCamera()).toMatchObject({ x: 200, y: 200, z: 1 })
 	})
+
+	it('ends a middle-mouse pan when the pointerup was missed', async () => {
+		const { editor, canvas } = await setup()
+
+		// Middle-mouse down starts panning immediately (no drag threshold).
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 1, buttons: 4 })
+		)
+		expect(editor.inputs.getIsPanning()).toBe(true)
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 200, clientY: 200, buttons: 4 })
+		)
+		expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
+
+		editor.inputs.setPointerVelocity(new Vec(0, 0))
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 0 })
+		)
+		expect(editor.inputs.getIsPanning()).toBe(false)
+		expect(editor.inputs.getIsPointing()).toBe(false)
+		expect(editor.getInstanceState().cursor.type).not.toBe('grabbing')
+		expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
+	})
+
+	it('keeps a spacebar pan alive when a left-button pointerup was missed', async () => {
+		const { editor, canvas } = await setup()
+
+		// Hold space: activates panning (Editor key_down handling).
+		await act(async () => {
+			editor.dispatch({
+				type: 'keyboard',
+				name: 'key_down',
+				key: ' ',
+				code: 'Space',
+				shiftKey: false,
+				ctrlKey: false,
+				altKey: false,
+				metaKey: false,
+				accelKey: false,
+			})
+			editor.emit('tick', 16)
+		})
+		expect(editor.inputs.getIsPanning()).toBe(true)
+
+		// Left-button drag pans while space is held.
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 0, buttons: 1 })
+		)
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 200, clientY: 200, buttons: 1 })
+		)
+		expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
+
+		// The left button's pointerup is lost outside the window. Recovery must
+		// end the pointing state but keep panning active while space is held.
+		editor.inputs.setPointerVelocity(new Vec(0, 0))
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 0 })
+		)
+		expect(editor.inputs.getIsPointing()).toBe(false)
+		expect(editor.inputs.getIsPanning()).toBe(true)
+		expect(editor.inputs.getIsSpacebarPanning()).toBe(true)
+		// With no button down, moving the mouse must not pan.
+		expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
+	})
 })
