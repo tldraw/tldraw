@@ -13,11 +13,20 @@ export * from '@tldraw/utils'
 // eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/validate'
 
+export { LiveCollaborators } from './lib/components/LiveCollaborators'
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
 export {
 	DefaultCanvas,
 	type TLCanvasComponentProps,
 } from './lib/components/default-components/DefaultCanvas'
+export {
+	DefaultCollaboratorHint,
+	type TLCollaboratorHintProps,
+} from './lib/components/default-components/DefaultCollaboratorHint'
+export {
+	DefaultCursor,
+	type TLCursorProps,
+} from './lib/components/default-components/DefaultCursor'
 export {
 	DefaultErrorFallback,
 	type TLErrorFallbackComponent,
@@ -318,6 +327,7 @@ export {
 	useUniqueSafeId,
 	type SafeId,
 } from './lib/hooks/useSafeId'
+export { useTransform } from './lib/hooks/useTransform'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {

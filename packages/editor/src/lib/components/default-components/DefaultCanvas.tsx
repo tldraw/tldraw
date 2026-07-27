@@ -19,6 +19,7 @@ import { Box } from '../../primitives/Box'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
+import { LiveCollaborators } from '../LiveCollaborators'
 import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
 import { CanvasOverlays } from './CanvasOverlays'
@@ -166,6 +167,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				<MovingCameraHitTestBlocker />
 			</div>
 			<InFrontOfTheCanvasWrapper />
+			<LiveCollaborators />
 			<MenuClickCapture />
 		</>
 	)

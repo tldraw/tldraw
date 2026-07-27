@@ -29,16 +29,18 @@
 	 * background, grid, shapes, overlays, and blocker are all children of .tl-canvas,
 	 * so their z-indices are relative to the canvas, not the container.
 	 *
-	 * watermark and canvas-in-front are siblings of .tl-canvas (outside it),
-	 * so they compete with the UI layer (.tlui-layout at z-index 300).
+	 * watermark, canvas-in-front, and collaborators are siblings of .tl-canvas
+	 * (outside it), so they compete with the UI layer (.tlui-layout at z-index 300).
 	 * canvas-in-front must be below the UI layer (300) to sit between
-	 * the canvas and the UI.
+	 * the canvas and the UI; collaborator cursors sit above the in-front
+	 * content but still below the UI panels.
 	 */
 	--tl-layer-canvas-hidden: -999999;
 	--tl-layer-canvas-background: 100;
 	--tl-layer-canvas-grid: 150;
 	--tl-layer-watermark: 200;
 	--tl-layer-canvas-in-front: 250;
+	--tl-layer-collaborators: 260;
 	--tl-layer-canvas-shapes: 300;
 	--tl-layer-canvas-overlays: 500;
 	--tl-layer-canvas-blocker: 10000;
@@ -374,6 +376,38 @@ input,
 	width: 1px;
 	height: 1px;
 	contain: layout style size;
+}
+
+/* The collaborator cursor layer: a sibling of .tl-canvas, above all canvas content and the
+   in-front layer, below the UI panels (300). Display-only — pointer events pass through. */
+.tl-collaborators {
+	position: absolute;
+	inset: 0px;
+	z-index: var(--tl-layer-collaborators);
+	pointer-events: none;
+	overflow: clip;
+	contain: layout style size;
+}
+
+.tl-collaborators__item {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	overflow: visible;
+	pointer-events: none;
+	transform-origin: top left;
+}
+
+.tl-collaborator__cursor {
+	z-index: var(--tl-layer-overlays-collaborator-cursor);
+}
+
+.tl-collaborator__cursor-hint {
+	z-index: var(--tl-layer-overlays-collaborator-cursor-hint);
+}
+
+.tl-cursor {
+	overflow: visible;
 }
 
 /* --------------- Overlay Stack --------------- */

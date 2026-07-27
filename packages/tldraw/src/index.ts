@@ -81,14 +81,6 @@ export {
 	type TLCollaboratorScribbleOverlay,
 } from './lib/overlays/CollaboratorScribbleOverlayUtil'
 export {
-	CollaboratorHintOverlayUtil,
-	type TLCollaboratorHintOverlay,
-} from './lib/overlays/CollaboratorHintOverlayUtil'
-export {
-	CollaboratorCursorOverlayUtil,
-	type TLCollaboratorCursorOverlay,
-} from './lib/overlays/CollaboratorCursorOverlayUtil'
-export {
 	CollaboratorShapeIndicatorOverlayUtil,
 	type TLCollaboratorShapeIndicatorOverlay,
 } from './lib/overlays/CollaboratorShapeIndicatorOverlayUtil'

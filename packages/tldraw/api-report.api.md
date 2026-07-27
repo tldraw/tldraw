@@ -705,45 +705,6 @@ export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrus
 }
 
 // @public
-export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
-    // (undocumented)
-    getOverlays(): TLCollaboratorCursorOverlay[];
-    // (undocumented)
-    isActive(): boolean;
-    // (undocumented)
-    options: {
-        chatMaxWidth: number;
-        fontSize: number;
-        nameMaxWidth: number;
-        zIndex: number;
-    };
-    // (undocumented)
-    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[]): void;
-    // (undocumented)
-    renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[], zoom: number): void;
-    // (undocumented)
-    static type: string;
-}
-
-// @public
-export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintOverlay> {
-    // (undocumented)
-    getOverlays(): TLCollaboratorHintOverlay[];
-    // (undocumented)
-    isActive(): boolean;
-    // (undocumented)
-    options: {
-        lineWidth: number;
-        viewportPadding: number;
-        zIndex: number;
-    };
-    // (undocumented)
-    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorHintOverlay[]): void;
-    // (undocumented)
-    static type: string;
-}
-
-// @public
 export class CollaboratorScribbleOverlayUtil extends OverlayUtil<TLCollaboratorScribbleOverlay> {
     // (undocumented)
     getOverlays(): TLCollaboratorScribbleOverlay[];
@@ -1385,7 +1346,7 @@ export function DefaultMinimap(): JSX.Element;
 export const DefaultNavigationPanel: NamedExoticComponent<object>;
 
 // @public (undocumented)
-export const defaultOverlayUtils: readonly [typeof ArrowBindingHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof BrushOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorCursorOverlayUtil, typeof CollaboratorHintOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorShapeIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof ShapeIndicatorOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ZoomBrushOverlayUtil];
+export const defaultOverlayUtils: readonly [typeof ArrowBindingHintOverlayUtil, typeof ArrowHintOverlayUtil, typeof BrushOverlayUtil, typeof CollaboratorBrushOverlayUtil, typeof CollaboratorScribbleOverlayUtil, typeof CollaboratorShapeIndicatorOverlayUtil, typeof ScribbleOverlayUtil, typeof SelectionForegroundOverlayUtil, typeof ShapeHandleOverlayUtil, typeof ShapeIndicatorOverlayUtil, typeof SnapIndicatorOverlayUtil, typeof ZoomBrushOverlayUtil];
 
 // @public (undocumented)
 export const DefaultPageMenu: NamedExoticComponent<object>;
@@ -4026,29 +3987,6 @@ export interface TLCollaboratorBrushOverlay extends TLOverlay {
         h: number;
         w: number;
         x: number;
-        y: number;
-    };
-}
-
-// @public (undocumented)
-export interface TLCollaboratorCursorOverlay extends TLOverlay {
-    // (undocumented)
-    props: {
-        chatMessage: string;
-        color: string;
-        name: null | string;
-        x: number;
-        y: number;
-    };
-}
-
-// @public (undocumented)
-export interface TLCollaboratorHintOverlay extends TLOverlay {
-    // (undocumented)
-    props: {
-        x: number;
-        rotation: number;
-        color: string;
         y: number;
     };
 }

@@ -152,48 +152,47 @@ editor.user.updateUserPreferences({ color: '#FF802B' })
 
 ### Rendering collaborator cursors
 
-Remote cursors render through [CollaboratorCursorOverlayUtil](?), one of the default [overlay utils](/sdk-features/overlay-utils). It draws each collaborator's cursor directly to the canvas:
+Remote cursors render as DOM elements in a dedicated layer stacked above the canvas and below the UI panels. Each visible collaborator gets a cursor showing:
 
 - The cursor arrow in the user's color
 - The user's name as a label next to the cursor
 - Any active chat message in a bubble
 
-To customize the rendering, pass your own overlay util to the `overlayUtils` prop. An overlay util with the same static `type` replaces the default one:
+A collaborator whose cursor is outside your viewport shows as a small hint arrow clamped to the viewport edge, pointing toward them.
+
+To customize the rendering, pass your own components via the `components` prop. The `CollaboratorCursor` slot replaces the cursor (see [DefaultCursor](?) and [TLCursorProps](?)); the `CollaboratorHint` slot replaces the off-screen hint (see [DefaultCollaboratorHint](?) and [TLCollaboratorHintProps](?)):
 
 ```tsx
-import { CollaboratorCursorOverlayUtil, TLCollaboratorCursorOverlay, Tldraw } from 'tldraw'
+import { TLCursorProps, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-class CustomCollaboratorCursorOverlayUtil extends CollaboratorCursorOverlayUtil {
-	override render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[]) {
-		const zoom = this.editor.getZoomLevel()
-		for (const overlay of overlays) {
-			const { x, y, color, name } = overlay.props
-
-			// Draw a dot instead of the default arrow
-			ctx.beginPath()
-			ctx.arc(x, y, 8 / zoom, 0, Math.PI * 2)
-			ctx.fillStyle = color
-			ctx.fill()
-
-			if (name) {
-				ctx.font = `${12 / zoom}px sans-serif`
-				ctx.fillText(name, x + 12 / zoom, y + 4 / zoom)
-			}
-		}
-	}
+function CustomCollaboratorCursor({ point, color, name }: TLCursorProps) {
+	if (!point) return null
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				transform: `translate(${point.x}px, ${point.y}px)`,
+				pointerEvents: 'none',
+			}}
+		>
+			{/* A dot instead of the default arrow */}
+			<div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: color }} />
+			{name && <div style={{ color }}>{name}</div>}
+		</div>
+	)
 }
 
 export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw overlayUtils={[CustomCollaboratorCursorOverlayUtil]} />
+			<Tldraw components={{ CollaboratorCursor: CustomCollaboratorCursor }} />
 		</div>
 	)
 }
 ```
 
-The render context is transformed to page space, so divide screen-pixel sizes by the zoom level to keep them constant on screen. See [Overlay utils](/sdk-features/overlay-utils) for the full overlay API.
+Cursor components are positioned in page space inside a camera-transformed layer, so `point` can be used directly as a translation; sizes in screen pixels stay constant on screen by scaling with `1 / zoom` (the default components do this via their `zoom` prop).
 
 ### Cursor position in presence
 
