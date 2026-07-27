@@ -1126,11 +1126,6 @@ export type TLCommentAnchor = {
     x: number;
     y: number;
 } | {
-    from: number;
-    shapeId: TLShapeId;
-    to: number;
-    type: 'text-range';
-} | {
     isPrecise: boolean;
     shapeId: TLShapeId;
     type: 'shape';

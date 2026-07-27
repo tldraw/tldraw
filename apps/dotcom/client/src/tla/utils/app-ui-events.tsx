@@ -14,6 +14,7 @@ export type TLAppUiEventSource =
 	| 'file-header'
 	| 'anon-landing-page'
 	| 'anon-top-bar'
+	| 'comments'
 	| 'account-menu'
 	| 'top-bar'
 	| 'legacy-import-button'

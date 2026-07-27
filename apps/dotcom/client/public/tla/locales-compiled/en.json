@@ -539,6 +539,12 @@
       "value": "You’re all caught up."
     }
   ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Sign in to comment"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
@@ -1507,6 +1513,12 @@
     {
       "type": 0,
       "value": " to learn more."
+    }
+  ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "This comment was deleted."
     }
   ],
   "ef53538ae4": [

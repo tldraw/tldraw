@@ -236,6 +236,9 @@
   "608e9d366e": {
     "translation": "You’re all caught up."
   },
+  "60a68c29d6": {
+    "translation": "Sign in to comment"
+  },
   "61057a0c84": {
     "translation": "Later"
   },
@@ -626,6 +629,9 @@
   },
   "ede55d955f": {
     "translation": "Read our <a>cookie policy</a> to learn more."
+  },
+  "edec9387f9": {
+    "translation": "This comment was deleted."
   },
   "ef53538ae4": {
     "translation": "Members"

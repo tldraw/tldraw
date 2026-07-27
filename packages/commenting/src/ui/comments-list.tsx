@@ -1,7 +1,6 @@
+import { Avatar, type CommentAuthor } from '@tldraw/mentions'
 import { ReactNode } from 'react'
-import { Avatar } from './avatar'
 import { Byline } from './byline'
-import { CommentAuthor } from './comment-author'
 
 /** @public */
 export interface CommentListItemProps {

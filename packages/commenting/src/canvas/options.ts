@@ -7,6 +7,7 @@ import {
 	type TLShapeId,
 	type VecLike,
 	useEditor,
+	useValue,
 } from 'tldraw'
 import { isAllowedReactionEmoji, type EmojiPickerProps } from '../ui/emoji-picker'
 import { type ReactionTooltipProps } from '../ui/reaction'
@@ -58,6 +59,12 @@ export interface CommentingComponents {
 	 * box, avatars, a banner anywhere on screen.
 	 */
 	ReactionTooltip?: ComponentType<ReactionTooltipProps>
+	/** Shown where a composer would sit when the viewer can't compose (see
+	 *  {@link CommentingOptions.canComment} — a signed-out viewer, a viewer role, a host that
+	 *  turns commenting off). `context` says which surface is rendering it: the bottom of an open
+	 *  thread popover (`'thread'`) or the placement popover the comment tool opens (`'pending'`).
+	 *  Unset, those surfaces render nothing. */
+	ComposerFallback?: ComponentType<{ context: 'pending' | 'thread' }>
 }
 
 /**
@@ -108,6 +115,31 @@ export interface CommentingOptions {
 	 * off-palette token must still be clearable.
 	 */
 	isAllowedReaction(token: string): boolean
+	/**
+	 * Whether dragging the comment tool out creates a region anchor — a comment attached to a
+	 * rectangular area of the page, drawn as a dashed box with the thread's pin on one corner.
+	 * Off by default: comments attach to points and shapes only, and a drag just trails the
+	 * composer. The `region*` options below tune the interaction.
+	 */
+	readonly enableRegions: boolean
+
+	// ── Permissions ──────────────────────────────────────────────────────────────────────────
+	/**
+	 * Whether the viewer may participate in commenting: composing new threads and replies, editing
+	 * and deleting comments, resolving threads, and moving pins or regions. Composers render when
+	 * it returns true; when it returns false, the {@link CommentingComponents.ComposerFallback}
+	 * slot renders in their place (or nothing, if that slot is unset) and the action affordances
+	 * are hidden. Unset, participation is allowed exactly when `currentUserId` is set.
+	 *
+	 * Called during render via {@link useCanComment}, so reactive reads (signals) are tracked.
+	 * The comment tool itself stays registered and selectable — hosts that want its toolbar button
+	 * to do something else (e.g. open a sign-in dialog) can override the tool item's `onSelect`.
+	 * Note posting still requires a `currentUserId` to author the records, so a callback that
+	 * returns true for a signed-out viewer yields a composer whose send button stays disabled.
+	 */
+	readonly canComment:
+		| ((ctx: { editor: Editor; currentUserId: string | null }) => boolean)
+		| undefined
 
 	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
@@ -121,6 +153,18 @@ export interface CommentingOptions {
 	 * e.g. precise only on notes. Governs new placements only; existing anchors render as stored.
 	 */
 	shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean
+
+	// ── Region comments ───────────────────────────────────────────────────────────────────────
+	/** Which corner of a region its pin and composer sit on, as a normalized 0–1 offset within the
+	 *  region. Default bottom-right. */
+	readonly regionPinCorner: { readonly x: number; readonly y: number }
+	/** When a region's dashed box and resize handles reveal: while the pointer is within the
+	 *  region, while its pin is hovered, or only while its thread is open. */
+	readonly regionReveal: 'pointer' | 'pin-hover' | 'open'
+	/** How a region is moved to a new spot: dragging its pin, dragging its body, or either. */
+	readonly regionMove: 'pin' | 'body' | 'both'
+	/** A region's resize affordance: corner handles, edge handles, or none. */
+	readonly regionResize: 'corners' | 'edges' | 'none'
 
 	// ── Clustering tuning ─────────────────────────────────────────────────────────────────────
 	/** Screen-pixel margin by which the viewport is inflated when culling cluster badges. */
@@ -144,8 +188,14 @@ export const defaultCommentingOptions = {
 	enableClustering: true,
 	allowMultipleReactions: true,
 	isAllowedReaction: isAllowedReactionEmoji,
+	enableRegions: false,
+	canComment: undefined,
 	impreciseShapeAnchor: { x: 1, y: 0 },
 	shouldBePrecise: () => true,
+	regionPinCorner: { x: 1, y: 1 },
+	regionReveal: 'pointer',
+	regionMove: 'pin',
+	regionResize: 'corners',
 	clusterCullMargin: 120,
 	clusterSplitZoomFactor: 1.05,
 	components: {},
@@ -173,4 +223,35 @@ export function getCommentingOptions(editor: Editor): CommentingOptions {
 export function useCommentingOptions(): CommentingOptions {
 	const editor = useEditor()
 	return useMemo(() => getCommentingOptions(editor), [editor])
+}
+
+/**
+ * Whether the viewer may participate in commenting, per {@link CommentingOptions.canComment}
+ * (defaulting to `currentUserId != null` when unset). Where this is false, composers give way to
+ * the {@link CommentingComponents.ComposerFallback} slot and action affordances are hidden.
+ *
+ * This is a plain, untracked read — a `canComment` callback that reads signals is not observed.
+ * In React, use {@link useCanComment} instead.
+ *
+ * @public
+ */
+export function getCanComment(editor: Editor, currentUserId: string | null | undefined): boolean {
+	const { canComment } = getCommentingOptions(editor)
+	return canComment
+		? canComment({ editor, currentUserId: currentUserId ?? null })
+		: currentUserId != null
+}
+
+/**
+ * Reactive React hook for {@link getCanComment}: a `canComment` callback that reads signals
+ * re-evaluates when they change.
+ *
+ * @public
+ */
+export function useCanComment(currentUserId: string | null | undefined): boolean {
+	const editor = useEditor()
+	return useValue('can comment', () => getCanComment(editor, currentUserId), [
+		editor,
+		currentUserId,
+	])
 }

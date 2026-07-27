@@ -4,15 +4,23 @@
 
 ```ts
 
+import { Avatar } from '@tldraw/mentions';
+import { AvatarProps } from '@tldraw/mentions';
+import { CommentAuthor } from '@tldraw/mentions';
 import { ComponentType } from 'react';
+import { createMentionSuggestion } from '@tldraw/mentions';
 import { Editor } from 'tldraw';
 import { EditorAtom } from 'tldraw';
-import { JsonObject } from 'tldraw';
+import { filterMentionMembers } from '@tldraw/mentions';
 import { JSX } from 'react/jsx-runtime';
-import type { MentionNodeAttrs } from '@tiptap/extension-mention';
+import { Mention } from '@tldraw/mentions';
+import { MentionList } from '@tldraw/mentions';
+import { MentionListProps } from '@tldraw/mentions';
+import { MentionMember } from '@tldraw/mentions';
+import { MentionProps } from '@tldraw/mentions';
+import { MentionSuggestionOptions } from '@tldraw/mentions';
 import { ReactNode } from 'react';
 import { StateNode } from 'tldraw';
-import type { SuggestionOptions } from '@tiptap/suggestion';
 import { TLComment } from 'tldraw';
 import { TLCommentAnchor } from 'tldraw';
 import { TLCommentId } from 'tldraw';
@@ -36,14 +44,9 @@ export function anchorPagePoint(editor: Editor, anchor: TLCommentAnchor, impreci
     y: number;
 } | null;
 
-// @public
-export function Avatar({ author }: AvatarProps): JSX.Element;
+export { Avatar }
 
-// @public (undocumented)
-export interface AvatarProps {
-    // (undocumented)
-    author: CommentAuthor;
-}
+export { AvatarProps }
 
 // @public
 export function Byline({ author, date, edited }: BylineProps): JSX.Element;
@@ -70,7 +73,6 @@ export interface CanvasCommentsProps {
     isCommentUnread?(commentId: TLCommentId): boolean;
     onCommentRead?(commentId: TLCommentId): void;
     onPostComment?(comment: TLComment): void;
-    regionOptions?: Partial<RegionCommentOptions>;
     renderMentionSuggestion?(member: MentionMember): ReactNode;
     resolveAuthor(id: string): CommentAuthor | undefined;
 }
@@ -136,14 +138,7 @@ export function collectClusterLeaves(editor: Editor, threads: readonly TLComment
     y: number;
 }): LeafInput[];
 
-// @public
-export interface CommentAuthor {
-    color?: string;
-    image?: string;
-    meta?: JsonObject;
-    // (undocumented)
-    name: string;
-}
+export { CommentAuthor }
 
 // @public
 export function CommentBody({ richText, resolveName }: CommentBodyProps): JSX.Element;
@@ -200,6 +195,9 @@ export interface CommentingComponents {
     CommentBody?: ComponentType<{
         comment: TLComment;
     }>;
+    ComposerFallback?: ComponentType<{
+        context: 'pending' | 'thread';
+    }>;
     PinContent?: ComponentType<{
         comments: TLComment[];
         thread: TLCommentThread;
@@ -217,17 +215,29 @@ export interface CommentingComponents {
 // @public
 export interface CommentingOptions {
     readonly allowMultipleReactions: boolean;
+    readonly canComment: ((ctx: {
+        currentUserId: null | string;
+        editor: Editor;
+    }) => boolean) | undefined;
     readonly clusterCullMargin: number;
     readonly clusterSplitZoomFactor: number;
     readonly components: CommentingComponents;
     readonly dragHistory: TLHistoryBatchOptions['history'] | undefined;
     readonly enableClustering: boolean;
+    readonly enableRegions: boolean;
     readonly history: TLHistoryBatchOptions['history'];
     readonly impreciseShapeAnchor: {
         readonly x: number;
         readonly y: number;
     };
     isAllowedReaction(token: string): boolean;
+    readonly regionMove: 'body' | 'both' | 'pin';
+    readonly regionPinCorner: {
+        readonly x: number;
+        readonly y: number;
+    };
+    readonly regionResize: 'corners' | 'edges' | 'none';
+    readonly regionReveal: 'open' | 'pin-hover' | 'pointer';
     shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean;
 }
 
@@ -328,12 +338,13 @@ export interface CommentTextProps {
 }
 
 // @public
-export function CommentThread({ comments, header, headerActions, resolvedBanner, composer, renderComment }: CommentThreadProps): JSX.Element;
+export function CommentThread({ comments, header, headerActions, resolvedBanner, composer, footer, renderComment }: CommentThreadProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentThreadProps {
     comments: CommentCardProps[];
     composer?: CommentComposerProps;
+    footer?: ReactNode;
     header?: ReactNode;
     headerActions?: ReactNode;
     renderComment?(comment: CommentCardProps, index: number): ReactNode;
@@ -384,8 +395,7 @@ export interface CountBadgeProps {
 // @public (undocumented)
 export function createClusterRuntime(table: ClusterTable): ClusterRuntime;
 
-// @public
-export function createMentionSuggestion(getSuggestions: (query: string) => MentionMember[] | Promise<MentionMember[]>, options?: MentionSuggestionOptions): Omit<SuggestionOptions<MentionMember, MentionNodeAttrs>, 'editor'>;
+export { createMentionSuggestion }
 
 // @public
 export const DEFAULT_IMPRECISE_SHAPE_ANCHOR: {
@@ -397,25 +407,31 @@ export const DEFAULT_IMPRECISE_SHAPE_ANCHOR: {
 export const DEFAULT_REACTION_EMOJI: string[];
 
 // @public
-export const DEFAULT_REGION_COMMENT_OPTIONS: RegionCommentOptions;
-
-// @public
 export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters;
 
 // @public
 export const defaultCommentingOptions: {
     readonly allowMultipleReactions: true;
+    readonly canComment: undefined;
     readonly clusterCullMargin: 120;
     readonly clusterSplitZoomFactor: 1.05;
     readonly components: {};
     readonly dragHistory: undefined;
     readonly enableClustering: true;
+    readonly enableRegions: false;
     readonly history: "ignore";
     readonly impreciseShapeAnchor: {
         readonly x: 1;
         readonly y: 0;
     };
     readonly isAllowedReaction: typeof isAllowedReactionEmoji;
+    readonly regionMove: "pin";
+    readonly regionPinCorner: {
+        readonly x: 1;
+        readonly y: 1;
+    };
+    readonly regionResize: "corners";
+    readonly regionReveal: "pointer";
     readonly shouldBePrecise: () => true;
 };
 
@@ -493,8 +509,7 @@ export interface EmptyStateProps {
 // @public
 export function exportDrawingReactionToken(editor: Editor, opts?: DrawingReactionExportOptions): Promise<null | string>;
 
-// @public
-export function filterMentionMembers(members: MentionMember[], query: string): MentionMember[];
+export { filterMentionMembers }
 
 // @public
 export function focusThread(editor: Editor, thread: TLCommentThread, impreciseShapeAnchor?: {
@@ -504,6 +519,9 @@ export function focusThread(editor: Editor, thread: TLCommentThread, impreciseSh
 
 // @public
 export function formatRelativeTime(iso: string, locale?: string): string;
+
+// @public
+export function getCanComment(editor: Editor, currentUserId: null | string | undefined): boolean;
 
 // @public
 export function getCommentingOptions(editor: Editor): CommentingOptions;
@@ -532,41 +550,17 @@ export interface LeafInput {
     point: VecLike;
 }
 
-// @public
-export function Mention({ name }: MentionProps): JSX.Element;
+export { Mention }
 
-// @public
-export function MentionList({ members, activeIndex, onSelect, emptyLabel, renderMember }: MentionListProps): JSX.Element;
+export { MentionList }
 
-// @public (undocumented)
-export interface MentionListProps {
-    activeIndex?: number;
-    emptyLabel?: string;
-    members: MentionMember[];
-    onSelect?(member: MentionMember): void;
-    renderMember?(member: MentionMember): ReactNode;
-}
+export { MentionListProps }
 
-// @public
-export interface MentionMember extends CommentAuthor {
-    [key: string]: unknown;
-    // (undocumented)
-    id: string;
-    secondary?: string;
-    you?: boolean;
-}
+export { MentionMember }
 
-// @public (undocumented)
-export interface MentionProps {
-    // (undocumented)
-    name: string;
-}
+export { MentionProps }
 
-// @public (undocumented)
-export interface MentionSuggestionOptions {
-    editor?: null | Editor;
-    renderMember?(member: MentionMember): ReactNode;
-}
+export { MentionSuggestionOptions }
 
 // @public
 export interface MergeEvent {
@@ -667,13 +661,10 @@ export function regionAnchorPinCorner(editor: Editor, anchor: Extract<TLCommentA
 }>): VecLike;
 
 // @public
-export interface RegionCommentOptions {
-    enabled: boolean;
-    move: 'body' | 'both' | 'pin';
-    pinCorner: VecLike;
-    resize: 'corners' | 'edges' | 'none';
-    reveal: 'open' | 'pin-hover' | 'pointer';
-}
+export function registerCommentAnchorLifecycle(editor: Editor, impreciseShapeAnchor?: {
+    x: number;
+    y: number;
+}): () => void;
 
 // @public
 export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]): void;
@@ -686,6 +677,9 @@ export function renderMarkdown(text: string): ReactNode;
 
 // @public
 export type RenderReaction = (token: string) => ReactNode;
+
+// @public
+export const revealThreadRequest: EditorAtom<null | string>;
 
 // @public
 export function richTextToPlaintext(body: TLRichText, resolveName?: (id: string) => string | undefined): string;
@@ -744,6 +738,9 @@ export function toggleCommentsHidden(editor: Editor): void;
 
 // @public
 export function toggleCommentsSidebar(editor: Editor): void;
+
+// @public
+export function useCanComment(currentUserId: null | string | undefined): boolean;
 
 // @public
 export function useCommentingEnabled(): boolean;

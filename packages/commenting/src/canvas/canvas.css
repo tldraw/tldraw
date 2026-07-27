@@ -164,6 +164,19 @@
 .tlui-cmt-canvas-composer--region {
 	transform: translate(-21px, -21px);
 }
+
+/* Fallback placement (no composer to show): no draft avatar to anchor by, so no offset — a small
+   panel hanging off the click point, sized to its content (e.g. the host's sign-in prompt). */
+.tlui-cmt-canvas-composer--fallback {
+	transform: none;
+	width: auto;
+	display: flex;
+	flex-direction: column;
+	padding: 8px;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-4);
+	box-shadow: var(--tl-shadow-2);
+}
 .tlui-cmt-canvas-composer .tlui-cmt-composer__field {
 	background: var(--tl-color-panel);
 	border-color: transparent;

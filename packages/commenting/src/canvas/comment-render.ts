@@ -1,8 +1,7 @@
 import { generateHTML, generateText, JSONContent } from '@tiptap/core'
+import { type CommentAuthor, createMentionExtension } from '@tldraw/mentions'
 import { TLRichText } from 'tldraw'
-import { CommentAuthor } from '../ui/comment-author'
 import { commentTipTapExtensions, isCommentEmpty } from '../ui/comment-extensions'
-import { commentMention } from '../ui/comment-mention'
 
 /**
  * The author name shown in a byline when no source can name an id (e.g. a deleted account, or a
@@ -59,7 +58,7 @@ export function renderCommentHtml(
 		if (cached !== undefined) return cached
 	}
 	const extensions = mentions
-		? [...commentTipTapExtensions, commentMention({ resolveName })]
+		? [...commentTipTapExtensions, createMentionExtension({ resolveName })]
 		: commentTipTapExtensions
 	const html = generateHTML(demoteHeadings(richText as JSONContent), extensions).replaceAll(
 		'<p dir="auto"></p>',
@@ -87,7 +86,7 @@ export function renderCommentPlaintext(
 		if (cached !== undefined) return cached
 	}
 	const extensions = mentions
-		? [...commentTipTapExtensions, commentMention({ resolveName })]
+		? [...commentTipTapExtensions, createMentionExtension({ resolveName })]
 		: commentTipTapExtensions
 	const text = generateText(demoteHeadings(richText as JSONContent), extensions, {
 		blockSeparator: '\n',

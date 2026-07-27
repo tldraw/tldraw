@@ -47,11 +47,12 @@ import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracki
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
-import { CommentsOnCanvas } from './CommentsOnCanvas'
+import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyCommentDeepLink } from './sneaky/SneakyCommentDeepLink'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
@@ -62,6 +63,14 @@ import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+
+// Signed-out viewers can't comment — they get a sign-in prompt where the composers would be.
+const tlaCommentTools = [
+	CommentTool.configure({
+		canComment: ({ currentUserId }) => currentUserId !== null,
+		components: { ComposerFallback: SignInToComment },
+	}),
+]
 
 /** @internal */
 export const components: TLComponents = {
@@ -75,8 +84,6 @@ export const components: TLComponents = {
 	// so a spinner would only flash before the content appears.
 	LoadingScreen: null,
 }
-
-const commentTools = [CommentTool.configure({})]
 
 interface TlaEditorProps {
 	fileSlug: string
@@ -281,6 +288,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
+	const anonCommentToolOverrides = useAnonCommentToolOverrides()
 
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
@@ -298,7 +306,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
-				tools={commentTools}
+				tools={tlaCommentTools}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
@@ -307,7 +315,12 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					actionShortcutsLocation: 'toolbar',
 					deepLinks: deepLinks ? true : undefined,
 				}}
-				overrides={[overrides, extraDragIconOverrides, commentToolOverrides]}
+				overrides={[
+					overrides,
+					extraDragIconOverrides,
+					commentToolOverrides,
+					anonCommentToolOverrides,
+				]}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />
@@ -317,6 +330,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
+				<SneakyCommentDeepLink />
 				<TlaAnonDotDevLink />
 			</Tldraw>
 		</TlaEditorWrapper>
