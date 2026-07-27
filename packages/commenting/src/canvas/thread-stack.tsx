@@ -7,11 +7,7 @@ import { useCommentingOptions } from './options'
 import { pinStackKey } from './pin-stacking'
 import { openStackId, openThreadId } from './state'
 import { ThreadPreview, useMarkerPreview } from './thread-preview'
-import {
-	anchorPagePoint,
-	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
-	impreciseShapePinInset,
-} from './thread-state'
+import { anchorPagePoint } from './thread-state'
 import {
 	POPOVER_OFFSET,
 	ThreadPopover,
@@ -73,14 +69,12 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 		() => {
 			const first = threads[0]
 			if (first.pageId !== editor.getCurrentPageId()) return null
-			const spot = impreciseShapeAnchor ?? DEFAULT_IMPRECISE_SHAPE_ANCHOR
-			const pagePoint = anchorPagePoint(editor, first.anchor, spot)
-			if (!pagePoint) return null
-			const viewportPoint = editor.pageToViewport(pagePoint)
-			// Match the single pin: an imprecise shape pin steps inside the shape from its anchor, so
-			// the badge sits where a lone pin would rather than jumping by the inset when it stacks.
-			const inset = impreciseShapePinInset(first.anchor, spot)
-			return inset ? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y } : viewportPoint
+			// The badge is centered on its anchor point (transform: translate(-50%, -50%)), like the
+			// cluster badge — so it sits at the raw page point with no pin inset. The inset only
+			// compensates for the single pin's bottom-left anchoring; applying it here would offset
+			// the badge from where the cluster badge sits and make it hop as pins flip between them.
+			const pagePoint = anchorPagePoint(editor, first.anchor, impreciseShapeAnchor)
+			return pagePoint ? editor.pageToViewport(pagePoint) : null
 		},
 		[editor, threads, impreciseShapeAnchor]
 	)
