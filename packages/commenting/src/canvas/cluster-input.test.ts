@@ -27,15 +27,17 @@ function thread(
 }
 
 /**
- * Stub editor: the filter's only editor dependencies are the current page id
- * and shape page bounds (via anchorPagePoint). `shapes` maps shape id → bounds
- * for shapes that exist; anything else resolves to undefined (deleted shape).
+ * Stub editor: the filter's editor dependencies are the current page id, shape
+ * page bounds, and the commenting options (via anchorPagePoint; no registered
+ * comment tool → the defaults). `shapes` maps shape id → bounds for shapes that
+ * exist; anything else resolves to undefined (deleted shape).
  */
 function stubEditor(
 	shapes: Record<string, { minX: number; minY: number; maxX: number; maxY: number }> = {}
 ): Editor {
 	return {
 		getCurrentPageId: () => CURRENT_PAGE,
+		getStateDescendant: () => undefined,
 		getShapePageBounds: (id: string) => {
 			const bounds = shapes[id]
 			if (!bounds) return undefined
@@ -67,22 +69,16 @@ describe('collectClusterLeaves anchor resolution', () => {
 		expect(leaves).toEqual([{ id: 't1', point: { x: 40, y: 60 } }])
 	})
 
-	it('maps shape and text-range anchors to the shape bounds top-right corner', () => {
+	it('maps shape anchors to the shape bounds top-right corner', () => {
 		const editor = stubEditor({
 			'shape:a': { minX: 0, minY: 5, maxX: 100, maxY: 50 },
 		})
 		const leaves = collectClusterLeaves(
 			editor,
-			[
-				thread('t1', { type: 'shape', shapeId: 'shape:a' as any, x: 0, y: 0, isPrecise: false }),
-				thread('t2', { type: 'text-range', shapeId: 'shape:a' as any, from: 0, to: 3 }),
-			],
+			[thread('t1', { type: 'shape', shapeId: 'shape:a' as any, x: 0, y: 0, isPrecise: false })],
 			null
 		)
-		expect(leaves).toEqual([
-			{ id: 't1', point: { x: 100, y: 5 } },
-			{ id: 't2', point: { x: 100, y: 5 } },
-		])
+		expect(leaves).toEqual([{ id: 't1', point: { x: 100, y: 5 } }])
 	})
 
 	it('places imprecise shape leaves at a custom impreciseShapeAnchor, matching pin rendering', () => {

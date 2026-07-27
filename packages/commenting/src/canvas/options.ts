@@ -9,6 +9,8 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { isAllowedReactionEmoji, type EmojiPickerProps } from '../ui/emoji-picker'
+import { type ReactionTooltipProps } from '../ui/reaction'
 
 /**
  * The gesture that's creating a shape anchor, passed to
@@ -36,6 +38,27 @@ export interface CommentingComponents {
 	PinContent?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
 	/** A sidebar row's preview. Replaces the plaintext default. */
 	ThreadPreview?: ComponentType<{ comment: TLComment }>
+	/**
+	 * A reaction's visual, given its token. The default renders the token string for the OS emoji
+	 * font to draw (so the token is the emoji glyph). Override this to render your own palette —
+	 * return an `<img>` for custom emoji, an SVG, or anything. The token is whatever your picker
+	 * emits and is what gets stored/synced; this only controls how it's drawn.
+	 */
+	ReactionContent?: ComponentType<{ token: string }>
+	/**
+	 * What the add-reaction button opens: the thing that produces a reaction token. Replaces the
+	 * default `<EmojiPicker>` grid. Pairs with `ReactionContent` (which draws whatever tokens this
+	 * emits) and with `isAllowedReaction` (which has to accept them).
+	 */
+	ReactionPalette?: ComponentType<EmojiPickerProps>
+	/**
+	 * The hover affordance naming who reacted with an emoji. It receives the reactors and the pill
+	 * (as `children`) and returns the whole thing — so it owns the tooltip, its box, size, shape, and
+	 * position. Replaces the default (`DefaultReactionTooltip`). For a simple wording change, translate
+	 * the `comments.reacted-*` strings instead; reach for this to change the structure — a different
+	 * box, avatars, a banner anywhere on screen.
+	 */
+	ReactionTooltip?: ComponentType<ReactionTooltipProps>
 	/** Shown where a composer would sit when the viewer can't compose (see
 	 *  {@link CommentingOptions.canComment} — a signed-out viewer, a viewer role, a host that
 	 *  turns commenting off). `context` says which surface is rendering it: the bottom of an open
@@ -77,6 +100,28 @@ export interface CommentingOptions {
 	// ── Feature toggles ──────────────────────────────────────────────────────────────────────
 	/** Fold nearby pins into count badges as the camera zooms out. */
 	readonly enableClustering: boolean
+	/**
+	 * Whether a user may hold several emoji reactions on one comment. `true` (the default) is the
+	 * Slack model: each emoji toggles independently. `false` is single-select: picking a new emoji
+	 * replaces the user's existing reaction. Note this is enforced client-side; the server accepts
+	 * per-emoji records either way.
+	 */
+	readonly allowMultipleReactions: boolean
+	/**
+	 * Whether a token may be added as a reaction. Defaults to {@link isAllowedReactionEmoji} against
+	 * the built-in emoji palette, which is what keeps a scripted client from writing junk `emoji`
+	 * values the picker would never offer. Override it alongside a custom `ReactionPalette` so the
+	 * tokens that palette emits get through. Removals aren't checked — a reaction carrying an
+	 * off-palette token must still be clearable.
+	 */
+	isAllowedReaction(token: string): boolean
+	/**
+	 * Whether dragging the comment tool out creates a region anchor — a comment attached to a
+	 * rectangular area of the page, drawn as a dashed box with the thread's pin on one corner.
+	 * Off by default: comments attach to points and shapes only, and a drag just trails the
+	 * composer. The `region*` options below tune the interaction.
+	 */
+	readonly enableRegions: boolean
 
 	// ── Permissions ──────────────────────────────────────────────────────────────────────────
 	/**
@@ -109,6 +154,18 @@ export interface CommentingOptions {
 	 */
 	shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean
 
+	// ── Region comments ───────────────────────────────────────────────────────────────────────
+	/** Which corner of a region its pin and composer sit on, as a normalized 0–1 offset within the
+	 *  region. Default bottom-right. */
+	readonly regionPinCorner: { readonly x: number; readonly y: number }
+	/** When a region's dashed box and resize handles reveal: while the pointer is within the
+	 *  region, while its pin is hovered, or only while its thread is open. */
+	readonly regionReveal: 'pointer' | 'pin-hover' | 'open'
+	/** How a region is moved to a new spot: dragging its pin, dragging its body, or either. */
+	readonly regionMove: 'pin' | 'body' | 'both'
+	/** A region's resize affordance: corner handles, edge handles, or none. */
+	readonly regionResize: 'corners' | 'edges' | 'none'
+
 	// ── Clustering tuning ─────────────────────────────────────────────────────────────────────
 	/** Screen-pixel margin by which the viewport is inflated when culling cluster badges. */
 	readonly clusterCullMargin: number
@@ -129,9 +186,16 @@ export const defaultCommentingOptions = {
 	history: 'ignore',
 	dragHistory: undefined,
 	enableClustering: true,
+	allowMultipleReactions: true,
+	isAllowedReaction: isAllowedReactionEmoji,
+	enableRegions: false,
 	canComment: undefined,
 	impreciseShapeAnchor: { x: 1, y: 0 },
 	shouldBePrecise: () => true,
+	regionPinCorner: { x: 1, y: 1 },
+	regionReveal: 'pointer',
+	regionMove: 'pin',
+	regionResize: 'corners',
 	clusterCullMargin: 120,
 	clusterSplitZoomFactor: 1.05,
 	components: {},

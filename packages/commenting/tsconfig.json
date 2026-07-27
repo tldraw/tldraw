@@ -15,6 +15,9 @@
 	},
 	"references": [
 		{
+			"path": "../mentions"
+		},
+		{
 			"path": "../tldraw"
 		},
 		{

@@ -7,7 +7,6 @@ import {
 	VecLike,
 } from 'tldraw'
 import { type CommentingOptions, defaultCommentingOptions, getCommentingOptions } from './options'
-import { getRegionCommentOptions } from './region-options'
 import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
 import { regionPinPoint, shapeAnchorAt } from './thread-state'
 
@@ -161,7 +160,7 @@ class CommentPointing extends StateNode {
 		const { editor } = this
 		// Once the pointer passes the drag threshold with region comments enabled, this is a region,
 		// not a follow — hand off to the region drag (which clears this composer and draws the box).
-		if (getRegionCommentOptions(editor).enabled && editor.inputs.getIsDragging()) {
+		if (getCommentingOptions(editor).enableRegions && editor.inputs.getIsDragging()) {
 			this.parent.transition('dragging')
 			return
 		}

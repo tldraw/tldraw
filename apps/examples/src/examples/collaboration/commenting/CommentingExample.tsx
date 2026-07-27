@@ -1,8 +1,8 @@
 import {
 	CanvasComments,
 	CommentAuthor,
+	CommentTool,
 	commentToolOverrides,
-	commentTools,
 	filterMentionMembers,
 	MentionMember,
 } from '@tldraw/commenting'
@@ -33,9 +33,9 @@ const MEMBERS: MentionMember[] = [
 const AUTHORS: Record<string, CommentAuthor> = Object.fromEntries(MEMBERS.map((m) => [m.id, m]))
 const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 
-// Region comments are off by default (click-only). Enable dragging out a rectangle to comment on an
-// area. A module-level constant keeps the object identity stable across renders.
-const REGION_OPTIONS = { enabled: true }
+// Region comments are off by default (click-only). Configuring the tool with `enableRegions` lets
+// dragging the comment tool out create a comment anchored to a rectangular area.
+const COMMENT_TOOLS = [CommentTool.configure({ enableRegions: true })]
 
 export default function CommentingExample() {
 	// Comments are stored as `comment-thread` and `comment` records in the editor's own store.
@@ -54,7 +54,6 @@ export default function CommentingExample() {
 				<CanvasComments
 					currentUserId="me"
 					resolveAuthor={resolveAuthor}
-					regionOptions={REGION_OPTIONS}
 					getMentionSuggestions={(query) => filterMentionMembers(MEMBERS, query)}
 				/>
 			),
@@ -69,7 +68,7 @@ export default function CommentingExample() {
 				// deployed app needs a license key that includes commenting — swap in your own key here.
 				licenseKey={getLicenseKey()}
 				store={store}
-				tools={commentTools}
+				tools={COMMENT_TOOLS}
 				overrides={[commentToolOverrides]}
 				components={components}
 			/>

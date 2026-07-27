@@ -1,6 +1,8 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	createComment,
+	createCommentId,
+	createCommentReaction,
 	createCommentThread,
 	TLPageId,
 	TLRichText,
@@ -12,6 +14,7 @@ import {
 	CommentOutboxEntry,
 	commentRecordToRow,
 	findEmptiedCommentThreads,
+	findOrphanedReactions,
 	isCommentAuthorFkViolation,
 	liveCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
@@ -19,7 +22,10 @@ import {
 	planCommentDrain,
 	rowsToSnapshotDocuments,
 	rowToCommentRecord,
+	rowToReactionRecord,
+	reactionRecordToRow,
 	isCommentMentionFkViolation,
+	isCommentReactionFkViolation,
 	planMentionReconciles,
 	rowToThreadRecord,
 	threadRecordToRow,
@@ -182,6 +188,39 @@ describe('isCommentMentionFkViolation', () => {
 	})
 })
 
+describe('isCommentReactionFkViolation', () => {
+	it('matches a pg foreign key violation on any of the three comment_reaction fkeys', () => {
+		for (const constraint of [
+			'comment_reaction_comment_id_fkey',
+			'comment_reaction_thread_id_fkey',
+			'comment_reaction_user_id_fkey',
+		]) {
+			expect(
+				isCommentReactionFkViolation(Object.assign(new Error(), { code: '23503', constraint }))
+			).toBe(true)
+		}
+	})
+
+	it('requires both the code and a comment_reaction constraint to match', () => {
+		// the unique-constraint violation (23505) is deliberately NOT matched — a reaction can't
+		// insert twice for one (comment, user, emoji) once the authorizer pins the id to that triple
+		expect(
+			isCommentReactionFkViolation(
+				Object.assign(new Error(), {
+					code: '23505',
+					constraint: 'comment_reaction_comment_user_emoji_unique',
+				})
+			)
+		).toBe(false)
+		expect(
+			isCommentReactionFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentReactionFkViolation(null)).toBe(false)
+	})
+})
+
 describe('planMentionReconciles', () => {
 	function makeCommentRow(bodyJson: unknown) {
 		const thread = makeThread()
@@ -299,6 +338,20 @@ describe('round-trip: record -> row -> rowTo*Record', () => {
 		const row = commentRecordToRow(comment, 'file1', 44)
 		expect(rowToCommentRecord(row)).toEqual(comment)
 	})
+
+	it('reaction', () => {
+		const thread = makeThread()
+		const reaction = createCommentReaction({
+			commentId: createCommentId('c1'),
+			threadId: thread.id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: 1700,
+		})
+		const row = reactionRecordToRow(reaction, 'file1', 45)
+		expect(rowToReactionRecord(row)).toEqual(reaction)
+	})
 })
 
 describe('rehydration validation', () => {
@@ -395,10 +448,37 @@ describe('planCommentDrain', () => {
 		expect(planCommentDrain(entriesOf(thread.id, comment.id), lane, 'file1')).toEqual({
 			threadUpserts: [threadRecordToRow(thread, 'file1', 42)],
 			commentUpserts: [commentRecordToRow(comment, 'file1', 43)],
+			reactionUpserts: [],
 			threadDeletes: [],
 			commentDeletes: [],
+			reactionDeletes: [],
 			unknownIds: [],
 		})
+	})
+
+	it('routes reaction ids to the reaction buckets', () => {
+		const thread = makeThread()
+		const comment = makeComment(thread.id)
+		const reaction = createCommentReaction({
+			commentId: comment.id,
+			threadId: thread.id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: 1700,
+		})
+		// present in the lane → upsert; absent → delete
+		const upsertPlan = planCommentDrain(
+			entriesOf(reaction.id),
+			laneOf({ state: reaction, lastChangedClock: 44 }),
+			'file1'
+		)
+		expect(upsertPlan.reactionUpserts).toEqual([reactionRecordToRow(reaction, 'file1', 44)])
+		expect(upsertPlan.reactionDeletes).toEqual([])
+
+		const deletePlan = planCommentDrain(entriesOf(reaction.id), new Map(), 'file1')
+		expect(deletePlan.reactionUpserts).toEqual([])
+		expect(deletePlan.reactionDeletes).toEqual([reaction.id])
 	})
 
 	it('coalesces duplicate entries for one id into a single write', () => {
@@ -419,8 +499,10 @@ describe('planCommentDrain', () => {
 		expect(plan).toEqual({
 			threadUpserts: [],
 			commentUpserts: [],
+			reactionUpserts: [],
 			threadDeletes: [thread.id],
 			commentDeletes: [comment.id],
+			reactionDeletes: [],
 			unknownIds: [],
 		})
 	})
@@ -445,8 +527,10 @@ describe('planCommentDrain', () => {
 		expect(plan).toEqual({
 			threadUpserts: [threadRecordToRow(thread, 'file1', 42)],
 			commentUpserts: [],
+			reactionUpserts: [],
 			threadDeletes: [],
 			commentDeletes: [],
+			reactionDeletes: [],
 			unknownIds: ['shape:oops'],
 		})
 	})
@@ -518,6 +602,63 @@ describe('findEmptiedCommentThreads', () => {
 		}
 		expect(findEmptiedCommentThreads(new Set([thread.id]), view)).toEqual([])
 		expect(yielded).toBe(1)
+	})
+})
+
+describe('findOrphanedReactions', () => {
+	const threadId = makeThread().id
+	function makeReaction(
+		commentId: ReturnType<typeof createCommentId>,
+		emoji: string,
+		userId = 'user1'
+	) {
+		return createCommentReaction({ commentId, threadId, pageId, userId, emoji, now: 1500 })
+	}
+
+	// mimics the prune transaction's read surface, holding whatever records remain
+	function viewOf(...records: { id: string }[]) {
+		const map = new Map(records.map((r) => [r.id, r]))
+		return { keys: () => map.keys(), get: (id: string) => map.get(id) }
+	}
+
+	it('returns nothing (without scanning) when no comments were pruned', () => {
+		const view = {
+			keys(): Iterable<string> {
+				throw new Error('should not scan')
+			},
+			get: () => undefined,
+		}
+		expect(findOrphanedReactions(new Set(), view)).toEqual([])
+	})
+
+	it('returns every reaction on a pruned comment', () => {
+		const pruned = createCommentId()
+		const r1 = makeReaction(pruned, '👍', 'user1')
+		const r2 = makeReaction(pruned, '🎉', 'user2')
+		expect(findOrphanedReactions(new Set([pruned]), viewOf(r1, r2)).sort()).toEqual(
+			[r1.id, r2.id].sort()
+		)
+	})
+
+	it('keeps reactions whose comment survived', () => {
+		const pruned = createCommentId()
+		const alive = createCommentId()
+		const orphan = makeReaction(pruned, '👍')
+		const kept = makeReaction(alive, '👍')
+		expect(findOrphanedReactions(new Set([pruned]), viewOf(orphan, kept))).toEqual([orphan.id])
+	})
+
+	it('skips non-reaction records without reading them', () => {
+		const pruned = createCommentId()
+		const orphan = makeReaction(pruned, '👍')
+		const view = {
+			keys: () => ['shape:box1', 'comment:c1', 'comment-thread:t1', orphan.id],
+			get(id: string): unknown {
+				if (id !== orphan.id) throw new Error(`should not read ${id}`)
+				return orphan
+			},
+		}
+		expect(findOrphanedReactions(new Set([pruned]), view)).toEqual([orphan.id])
 	})
 })
 
@@ -662,6 +803,51 @@ describe('liveCommentDocuments', () => {
 			now,
 		})
 	}
+
+	function makeReaction(comment: ReturnType<typeof makeComment>, now: number) {
+		return createCommentReaction({
+			commentId: comment.id,
+			threadId: comment.threadId,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now,
+		})
+	}
+
+	it('seeds reactions of seeded comments, drops the rest', () => {
+		const thread = makeThread()
+		const liveComment = makeComment(thread.id, 1500)
+		const deadComment = { ...makeComment(thread.id, 1600), isDeleted: true }
+		const keptReaction = makeReaction(liveComment, 1700)
+		// The dead comment's row persists (soft delete, no cascade), so its reaction rows do too —
+		// they must not re-enter the room ahead of a comment that never will.
+		const droppedReaction = makeReaction(deadComment, 1800)
+		const { documents } = liveCommentDocuments(
+			[threadRecordToRow(thread, 'file1', 1)],
+			[commentRecordToRow(liveComment, 'file1', 2), commentRecordToRow(deadComment, 'file1', 3)],
+			[
+				reactionRecordToRow(keptReaction, 'file1', 4),
+				reactionRecordToRow(droppedReaction, 'file1', 5),
+			]
+		)
+		expect(documents.map((d) => d.state.id).sort()).toEqual(
+			[thread.id, liveComment.id, keptReaction.id].sort()
+		)
+	})
+
+	it('clockFloor spans reaction rows, including dropped ones', () => {
+		const thread = { ...makeThread(), isDeleted: true }
+		const deadComment = { ...makeComment(thread.id, 1500), isDeleted: true }
+		const droppedReaction = makeReaction(deadComment, 1600)
+		const result = liveCommentDocuments(
+			[threadRecordToRow(thread, 'file1', 1)],
+			[commentRecordToRow(deadComment, 'file1', 2)],
+			[reactionRecordToRow(droppedReaction, 'file1', 99)]
+		)
+		expect(result.documents).toEqual([])
+		expect(result.clockFloor).toBe(99)
+	})
 
 	it('drops soft-deleted threads and their comments, keeping live ones', () => {
 		const live = makeThread()

@@ -27,7 +27,7 @@
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-coverage": "yarn run -T vitest run --coverage --passWithNoTests",
 		"predev": "node ./scripts/copy-css-files.mjs",
-		"dev": "chokidar 'src/ui/comments.css' 'src/canvas/canvas.css' -c 'node ./scripts/copy-css-files.mjs'",
+		"dev": "chokidar '../mentions/mentions.css' 'src/ui/comments.css' 'src/canvas/canvas.css' -c 'node ./scripts/copy-css-files.mjs'",
 		"prebuild": "node ./scripts/copy-css-files.mjs",
 		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
@@ -51,10 +51,9 @@
 	},
 	"dependencies": {
 		"@tiptap/core": "^3.12.1",
-		"@tiptap/extension-mention": "3.13.0",
 		"@tiptap/pm": "^3.12.1",
 		"@tiptap/react": "^3.12.1",
-		"@tiptap/suggestion": "3.13.0",
+		"@tldraw/mentions": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"tldraw": "workspace:*"
 	}

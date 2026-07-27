@@ -1,3 +1,4 @@
+import { type CommentAuthor, isMentionPickerOpen, MentionMember } from '@tldraw/mentions'
 import {
 	memo,
 	type CSSProperties,
@@ -38,16 +39,14 @@ import {
 import { computeClusterTable } from '../clustering/computeClusterTable'
 import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
-import { CommentAuthor } from '../ui/comment-author'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
 import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { CommentPin } from '../ui/comment-pin'
 import { CommentThread } from '../ui/comment-thread'
 import { CountBadge } from '../ui/count-badge'
-import { MentionMember } from '../ui/mention-list'
-import { isMentionPickerOpen } from '../ui/mention-suggestion'
 import { TooltipButton } from '../ui/tooltip-button'
+import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
 import { collectClusterLeaves } from './cluster-input'
 import { CommentBody } from './comment-body'
 import {
@@ -57,6 +56,7 @@ import {
 	replyDraftSlot,
 	saveCommentDraft,
 } from './comment-drafts'
+import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { getCommentRecord, putCommentRecords } from './comment-store'
 import { PendingComment } from './comment-tool'
@@ -70,21 +70,18 @@ import {
 	useCommentingOptions,
 } from './options'
 import {
-	DEFAULT_REGION_COMMENT_OPTIONS,
-	RegionCommentOptions,
-	setRegionCommentOptions,
-} from './region-options'
-import {
 	commentsHidden,
 	commitCommentMutation,
 	openThreadId,
 	pendingComment,
 	regionDraft,
+	revealThreadRequest,
 	toggleCommentsHidden,
 	usePendingComment,
 } from './state'
 import {
 	anchorPagePoint,
+	impreciseShapePinInset,
 	regionAnchorPinCorner,
 	regionPinPoint,
 	shapeAnchorAt,
@@ -121,30 +118,19 @@ export interface CanvasCommentsProps {
 	renderMentionSuggestion?(member: MentionMember): ReactNode
 	/** Where imprecise shape pins sit — a normalized (0–1) spot within the shape. Default top-right. */
 	impreciseShapeAnchor?: { x: number; y: number }
-	/** Region comment behaviour. Region is off by default — omit this for click-only point/shape
-	 *  comments. Anything unset falls back to {@link DEFAULT_REGION_COMMENT_OPTIONS}. */
-	regionOptions?: Partial<RegionCommentOptions>
+}
+
+/** The region dimensions of {@link CommentingOptions}, gathered as one object for threading
+ *  through the region components below. */
+interface RegionCommentOptions {
+	enabled: CommentingOptions['enableRegions']
+	pinCorner: CommentingOptions['regionPinCorner']
+	reveal: CommentingOptions['regionReveal']
+	move: CommentingOptions['regionMove']
+	resize: CommentingOptions['regionResize']
 }
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
-
-/** How far an imprecise shape pin steps inside the shape from its anchor spot, in screen px —
- *  most of the marker sits within the shape, with a small overhang past the corner. */
-const IMPRECISE_PIN_INSET_PX = 20
-
-/** Imprecise shape pins tuck inside the shape rather than hanging off its edge: the marker
- *  extends up-right of its anchor point, so step it toward the shape's centre. Screen px — the
- *  pin is screen-fixed while the shape scales with zoom. Null for anchors that need no inset. */
-function impreciseShapePinInset(
-	anchor: TLCommentThread['anchor'],
-	spot: { x: number; y: number }
-): { x: number; y: number } | null {
-	if (anchor.type !== 'shape' || anchor.isPrecise) return null
-	return {
-		x: Math.sign(0.5 - spot.x) * IMPRECISE_PIN_INSET_PX,
-		y: Math.sign(0.5 - spot.y) * IMPRECISE_PIN_INSET_PX,
-	}
-}
 
 /** A pointer-down that belongs to the camera, not the comment UI: any non-primary button
  *  (middle/right-button pans), or a primary press with the spacebar pan key held. */
@@ -223,13 +209,18 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const editor = useEditor()
 	const options = useCommentingOptions()
 	const container = useContainer()
-	// Merge the consumer's region options over the disabled defaults and publish them for this editor,
-	// so the comment tool (which has no props) reads the same per-instance config.
+	// Gather the region dimensions of the commenting options into one object for threading through
+	// the region components below. Constant per editor — options are fixed at tool registration.
 	const regionOptions = useMemo(
-		() => ({ ...DEFAULT_REGION_COMMENT_OPTIONS, ...props.regionOptions }),
-		[props.regionOptions]
+		(): RegionCommentOptions => ({
+			enabled: options.enableRegions,
+			pinCorner: options.regionPinCorner,
+			reveal: options.regionReveal,
+			move: options.regionMove,
+			resize: options.regionResize,
+		}),
+		[options]
 	)
-	useEffect(() => setRegionCommentOptions(editor, regionOptions), [editor, regionOptions])
 	const layerRef = useRef<HTMLDivElement>(null)
 	// Over the pins and cluster badges, hover passes through to the canvas beneath (these events
 	// bubble up from the pointer-interactive markers to this layer root). Wheel pass-through is
@@ -237,7 +228,6 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	// canvas, so any pin past its bottom/right edge inflates the root's scrollHeight — which the
 	// wheel hook's is-this-scrollable guard reads as scrollable, silently disabling pass-through.
 	usePassThroughMouseOverEvents(layerRef)
-	const deepLinkHandled = useRef(false)
 	const threads = useCommentThreads(editor)
 	const pending = usePendingComment()
 	const canComment = useCanComment(props.currentUserId)
@@ -252,6 +242,13 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	}, [editor, pending, showPendingComposer])
 	const openId = useValue('open thread id', () => openThreadId.get(editor), [editor])
 	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
+	// Keyed by the anchor's values, not its identity — an inline `impreciseShapeAnchor` prop is a
+	// new object every render and would re-register the handlers each time.
+	const { x: impreciseX, y: impreciseY } = impreciseShapeAnchor
+	useEffect(
+		() => registerCommentAnchorLifecycle(editor, { x: impreciseX, y: impreciseY }),
+		[editor, impreciseX, impreciseY]
+	)
 	// Threads held out of clustering because their anchor moved while folded inside a badge
 	// (drag, nudge, align, undo, a collaborator — detected by position, not gesture). They render
 	// as live pins riding their anchor and rejoin clustering on the next zoom-out.
@@ -413,46 +410,57 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const openThread = openId ? threadsById.get(openId) : null
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 
-	// Reset the transient UI state (open thread, half-placed comment) when this unmounts.
+	// Reset the transient UI state (open thread, half-placed comment, unserved reveal) when this
+	// unmounts.
 	useEffect(() => {
 		return () => {
 			openThreadId.set(editor, null)
 			pendingComment.set(editor, null)
+			revealThreadRequest.set(editor, null)
 		}
 	}, [editor])
 
-	// Open the thread named by a deep link (?comment=<thread or comment id>). If the thread is
-	// currently inside a cluster, zoom to the first split that reveals it before opening.
+	// The requested thread, once it (and, for a comment id, its parent thread) has synced into the
+	// store; null while records are still arriving or when no request is pending.
+	const requestedRevealThread = useValue(
+		'requested reveal thread',
+		() => {
+			const id = revealThreadRequest.get(editor)
+			if (!id) return null
+			const record = getCommentRecord(editor, id)
+			if (!record) return null
+			const thread =
+				record.typeName === 'comment' ? getCommentRecord(editor, record.threadId) : record
+			return thread?.typeName === 'comment-thread' ? thread : null
+		},
+		[editor]
+	)
+
+	// Serve a pending reveal request: open the thread, zooming to the first cluster split that
+	// reveals its pin when it's currently folded into a badge. A reveal is an explicit ask to see
+	// the thread, so it also unhides pins — the popover opens on the on-canvas layer, which stays
+	// invisible while hidden.
 	useEffect(() => {
-		if (deepLinkHandled.current) return
-		const id = new URLSearchParams(window.location.search).get('comment')
-		if (!id) {
-			deepLinkHandled.current = true
-			return
-		}
-
-		const record = getCommentRecord(editor, id)
-		if (!record) return
-
-		let thread: TLCommentThread | undefined
-		if (record.typeName === 'comment') {
-			thread = threadsById.get(record.threadId)
-		} else {
-			thread = record
-		}
-		if (!thread) return
-
-		deepLinkHandled.current = true
-		revealDeepLinkedThread(
+		if (!requestedRevealThread) return
+		revealThreadRequest.set(editor, null)
+		commentsHidden.set(editor, false)
+		revealThread(
 			editor,
-			thread,
+			requestedRevealThread,
 			clusterModel.table,
 			clusterZoomBounds,
 			options,
 			impreciseShapeAnchor
 		)
-		openThreadId.set(editor, thread.id)
-	}, [clusterModel.table, clusterZoomBounds, editor, threadsById, impreciseShapeAnchor, options])
+		openThreadId.set(editor, requestedRevealThread.id)
+	}, [
+		requestedRevealThread,
+		clusterModel.table,
+		clusterZoomBounds,
+		editor,
+		impreciseShapeAnchor,
+		options,
+	])
 
 	// Clicking a badge zooms to just past the zoom at which that cluster first unclusters,
 	// centered on its centroid. The event that created a visible cluster is the event that splits
@@ -738,7 +746,7 @@ function getClusterZoomBounds(editor: Editor): { minZoom: number; maxZoom: numbe
 	}
 }
 
-function revealDeepLinkedThread(
+function revealThread(
 	editor: Editor,
 	thread: TLCommentThread,
 	table: ClusterTable,
@@ -1084,7 +1092,7 @@ const ThreadPin = memo(function ThreadPin({
 	thread,
 	regionOptions,
 	...props
-}: Omit<CanvasCommentsProps, 'regionOptions'> & {
+}: CanvasCommentsProps & {
 	editor: Editor
 	thread: TLCommentThread
 	regionOptions: RegionCommentOptions
@@ -1271,11 +1279,12 @@ const ThreadPin = memo(function ThreadPin({
 	const deleteThread = () => {
 		if (!currentUserId) return
 		openThreadId.set(editor, null)
-		// Soft delete: set the flag rather than removing records — the server prunes the thread
-		// and its comments once the flag is persisted, so no client ever deletes records it
-		// doesn't own. Creator-only; the server vetoes anyone else (and any hard delete).
-		// Never on the undo stack, even with `history: 'record'`: the flag is write-once
-		// server-side, so an undo clearing it would always be vetoed and rebased.
+		// Soft delete: set the flag rather than removing records — the server prunes the thread,
+		// its comments, and their reactions once the flag is persisted, so no client ever deletes
+		// records it doesn't own (reactions belong to whoever reacted). Creator-only; the server
+		// vetoes anyone else (and any hard delete). Never on the undo stack, even with
+		// `history: 'record'`: the flag is write-once server-side, so an undo clearing it would
+		// always be vetoed and rebased.
 		editor.run(() => putCommentRecords(editor, [{ ...thread, isDeleted: true }]), {
 			history: 'ignore',
 		})
@@ -1287,10 +1296,10 @@ const ThreadPin = memo(function ThreadPin({
 	}
 
 	const deleteComment = (comment: TLComment) => {
-		// Soft delete, same model as threads: set the flag, the server prunes the record once
-		// it's persisted. Author-only; the server vetoes anyone else (and any hard delete).
-		// Never on the undo stack: the flag is write-once server-side, so an undo clearing it
-		// would always be vetoed and rebased.
+		// Soft delete, same model as threads: set the flag, the server prunes the record (and its
+		// reactions, which belong to whoever reacted) once it's persisted. Author-only; the
+		// server vetoes anyone else (and any hard delete). Never on the undo stack: the flag is
+		// write-once server-side, so an undo clearing it would always be vetoed and rebased.
 		editor.run(
 			() => {
 				// Deleting a thread's only comment hides the thread — an empty thread has no
@@ -1348,46 +1357,58 @@ const ThreadPin = memo(function ThreadPin({
 		return (
 			<CommentCard
 				{...card}
+				footer={
+					<CommentReactions
+						comment={comment}
+						currentUserId={currentUserId}
+						resolveName={resolveName}
+					/>
+				}
 				actions={
-					canComment && comment.authorId === currentUserId ? (
-						<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
-							<TldrawUiDropdownMenuTrigger>
-								<TooltipButton
-									tooltip={msg('comments.more-options')}
-									className="tlui-cmt-thread__action"
+					<>
+						{canComment && comment.authorId === currentUserId && (
+							<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
+								<TldrawUiDropdownMenuTrigger>
+									<TooltipButton
+										tooltip={msg('comments.more-options')}
+										className="tlui-cmt-thread__action"
+									>
+										<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+									</TooltipButton>
+								</TldrawUiDropdownMenuTrigger>
+								<TldrawUiDropdownMenuContent
+									className="tlui-cmt-menu"
+									side="bottom"
+									align="end"
+									alignOffset={0}
 								>
-									<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
-								</TooltipButton>
-							</TldrawUiDropdownMenuTrigger>
-							<TldrawUiDropdownMenuContent
-								className="tlui-cmt-menu"
-								side="bottom"
-								align="end"
-								alignOffset={0}
-							>
-								<TldrawUiDropdownMenuGroup>
-									<TldrawUiDropdownMenuItem>
-										<button
-											type="button"
-											className="tlui-cmt-menu-item"
-											onClick={() => startEdit(comment)}
-										>
-											<span>{msg('comments.edit-comment')}</span>
-										</button>
-									</TldrawUiDropdownMenuItem>
-									<TldrawUiDropdownMenuItem>
-										<button
-											type="button"
-											className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-											onClick={() => deleteComment(comment)}
-										>
-											<span>{msg('comments.delete-comment')}</span>
-										</button>
-									</TldrawUiDropdownMenuItem>
-								</TldrawUiDropdownMenuGroup>
-							</TldrawUiDropdownMenuContent>
-						</TldrawUiDropdownMenuRoot>
-					) : undefined
+									<TldrawUiDropdownMenuGroup>
+										<TldrawUiDropdownMenuItem>
+											<button
+												type="button"
+												className="tlui-cmt-menu-item"
+												onClick={() => startEdit(comment)}
+											>
+												<span>{msg('comments.edit-comment')}</span>
+											</button>
+										</TldrawUiDropdownMenuItem>
+										<TldrawUiDropdownMenuItem>
+											<button
+												type="button"
+												className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
+												onClick={() => deleteComment(comment)}
+											>
+												<span>{msg('comments.delete-comment')}</span>
+											</button>
+										</TldrawUiDropdownMenuItem>
+									</TldrawUiDropdownMenuGroup>
+								</TldrawUiDropdownMenuContent>
+							</TldrawUiDropdownMenuRoot>
+						)}
+						{canComment && (
+							<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
+						)}
+					</>
 				}
 			/>
 		)

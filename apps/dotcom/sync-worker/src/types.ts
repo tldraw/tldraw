@@ -159,6 +159,7 @@ export type TLServerEvent =
 				| 'comment_author_deleted_prune'
 				| 'comment_thread_emptied_prune'
 				| 'comment_soft_delete_prune'
+				| 'comment_reaction_orphan_prune'
 				| 'room_empty'
 				| 'fail_persist'
 				| 'room_start'
