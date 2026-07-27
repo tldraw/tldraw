@@ -354,19 +354,19 @@
 	position: absolute;
 	z-index: var(--tl-layer-menus);
 	pointer-events: auto;
-	/* Anchor the draft avatar bottom-left like the pins it becomes: it is 34px wide and sits 4px
-	   into the row, so its bottom-left corner is 4px right of and 4 + 34 = 38px below the
+	/* Anchor the draft avatar bottom-left like the pins it becomes: it is 28px wide and sits 4px
+	   into the row, so its bottom-left corner is 4px right of and 4 + 28 = 32px below the
 	   composer's top-left corner. */
-	transform: translate(-4px, -38px);
+	transform: translate(-4px, -32px);
 	/* The rich-text editor has no intrinsic width (unlike the old <input>), so give the floating
 	   placement composer a definite width or it collapses to nothing. */
 	width: 280px;
 }
 
 /* A region placement centres the draft avatar on the region's pin corner — the pin it becomes
-   straddles that corner. The avatar's centre sits 4 + 34/2 = 21px into the composer. */
+   straddles that corner. The avatar's centre sits 4 + 28/2 = 18px into the composer. */
 .tlui-cmt-canvas-composer--region {
-	transform: translate(-21px, -21px);
+	transform: translate(-18px, -18px);
 }
 
 /* Fallback placement (no composer to show): no draft avatar to anchor by, so no offset — a small

@@ -288,6 +288,9 @@
    Hosts can still tint via the `color` prop (`--tlui-cmt-pin-color`). */
 .tlui-cmt-pin {
 	--tlui-cmt-marker-tint: var(--tlui-cmt-pin-color, var(--tl-color-selected));
+	/* Pin shrinks to 28px; the count badge keeps the 34px marker-size default (a cluster reads
+	   fine a touch bigger). */
+	--tlui-cmt-marker-size: 28px;
 	width: var(--tlui-cmt-marker-size);
 	height: var(--tlui-cmt-marker-size);
 	border-radius: 50% 50% 50% 3px;
