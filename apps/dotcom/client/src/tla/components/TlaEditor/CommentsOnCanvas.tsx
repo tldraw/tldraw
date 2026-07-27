@@ -4,6 +4,7 @@ import {
 	CanvasCommentsSidebar,
 	CommentAuthor,
 	filterMentionMembers,
+	MentionMember,
 } from '@tldraw/commenting'
 import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -115,6 +116,19 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		},
 		[app, fileId]
 	)
+	// The @-mention roster: workspace members plus anyone currently present on the board. Live
+	// presence is the "viewer" signal — people actually on the board right now — so you can mention a
+	// collaborator whose cursor you can see even if they aren't a workspace member. Presence already
+	// carries their name and color, and the server never echoes a session its own presence, so this
+	// set excludes the current user by construction. Members win on id collision: they carry role
+	// context and the current user's `you` flag, and their identity is authoritative.
+	const roster = useMemo(() => {
+		const byId = new Map<string, MentionMember>(mentionMembers.map((m) => [m.id, m]))
+		for (const [id, author] of presenceAuthors) {
+			if (!byId.has(id)) byId.set(id, { id, name: author.name, color: author.color })
+		}
+		return [...byId.values()]
+	}, [mentionMembers, presenceAuthors])
 	// Roster authors keyed by id — a MentionMember is a CommentAuthor. The workspace roster is the
 	// id→name source for a mentioned member who's committed no comment and isn't currently present —
 	// without it, they resolve to nothing and render as the byline default rather than their name.
@@ -139,8 +153,8 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	)
 	const onCommentRead = useCallback((commentId: string) => app?.markCommentRead(commentId), [app])
 	const getMentionSuggestions = useCallback(
-		(query: string) => filterMentionMembers(mentionMembers, query),
-		[mentionMembers]
+		(query: string) => filterMentionMembers(roster, query),
+		[roster]
 	)
 
 	return (
