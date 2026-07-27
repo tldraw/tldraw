@@ -59,7 +59,7 @@ import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
-import { maybeEnqueueSpeculativeOgRender } from './routes/tla/ogImageQueue'
+import { enqueueOgImageRenderForEdit } from './routes/tla/ogImageQueue'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -110,10 +110,6 @@ function isTransientConnectionError(error: unknown): boolean {
 	const message = error instanceof Error ? error.message : String(error)
 	return /network|connection|closed|reset|timeout/i.test(message)
 }
-
-// Durable storage key for the speculative OG render guard. Not part of documentInfo: it is a rate
-// guard rather than document identity, and it must not be reset when documentInfo's version bumps.
-const LAST_SPECULATIVE_OG_ENQUEUE_KEY = 'lastSpeculativeOgEnqueueAt'
 
 // increment this any time you make a change to this type
 const CURRENT_DOCUMENT_INFO_VERSION = 3
@@ -1390,11 +1386,11 @@ export class TLFileDurableObject extends DurableObject {
 
 						this.logEvent({ type: 'persist_success', attempts: attempt })
 						this._lastPersistedClock = snapshot.documentClock
-						// The board's content just changed, so its social preview image is out of date. Ask for
-						// a fresh one now rather than when a crawler eventually arrives and finds nothing
-						// cached. Fire-and-forget and swallowing its own errors: an OG image is never worth
-						// failing or delaying a persist over.
-						this.maybeRequestSpeculativeOgRender()
+						// The board's content just changed, so its thumbnail is out of date. Ask for a fresh
+						// one now rather than when a crawler eventually arrives and finds nothing cached.
+						// Fire-and-forget and swallowing its own errors: a thumbnail is never worth failing
+						// or delaying a persist over.
+						this.requestOgRenderForEdit()
 						// Store the clock in DO storage so we can compare against SQLite on next load.
 						if (this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })
@@ -1431,32 +1427,21 @@ export class TLFileDurableObject extends DurableObject {
 			})
 	}
 
-	// When this durable object last asked for a speculative OG render, or null if it never has.
-	// `undefined` means "not read from storage yet".
-	private _lastSpeculativeOgEnqueueAt: number | null | undefined = undefined
-
 	/**
-	 * Asks for this board's OG image to be rendered ahead of the first crawler, at most once per
-	 * staleness window.
+	 * Asks for this board's thumbnail to be re-rendered, because the content it depicts just changed.
 	 *
-	 * The window guard lives in durable storage rather than in memory because this durable object is
-	 * the only thing that can speculate about its own board and is single-threaded: writing the
-	 * timestamp before enqueueing gives exactly-once-per-window semantics that survive deploys,
-	 * evictions and crashes, so a restart can't duplicate speculative work. (The crawler path keeps its
-	 * advisory R2 marker instead, because any isolate can serve a crawler and none of them has this
-	 * authority.)
+	 * Unconditional: every persist that advanced the document clock asks. Deduplication is the queue's
+	 * job, not this object's — `enqueueOgImageRender`'s pending marker collapses the 8-second persist
+	 * cadence into roughly one render per marker TTL, and the consumer re-checks `(board, version)`
+	 * before spending a Browser Run slot, so a burst of asks costs one render of the newest content.
 	 */
-	private async maybeRequestSpeculativeOgRender() {
+	private async requestOgRenderForEdit() {
 		try {
-			// Only app files have per-board OG images; legacy rooms have no shareable board identity here.
+			// Only app files have per-board thumbnails; legacy rooms have no shareable board identity here.
 			if (!this.documentInfo.isApp || this.documentInfo.deleted) return
-			if (this._lastSpeculativeOgEnqueueAt === undefined) {
-				this._lastSpeculativeOgEnqueueAt =
-					(await this.storage.get<number>(LAST_SPECULATIVE_OG_ENQUEUE_KEY)) ?? null
-			}
 
 			const slug = this.documentInfo.slug
-			const result = await maybeEnqueueSpeculativeOgRender(
+			const result = await enqueueOgImageRenderForEdit(
 				this.env,
 				{ kind: 'shared_file', slug },
 				{
@@ -1464,14 +1449,9 @@ export class TLFileDurableObject extends DurableObject {
 					// rather than guessing private: the consumer re-resolves the board anyway and drops it if
 					// it isn't public.
 					isShared: this._fileRecordCache?.shared,
-					lastEnqueuedAt: this._lastSpeculativeOgEnqueueAt,
-					markEnqueued: async (at) => {
-						this._lastSpeculativeOgEnqueueAt = at
-						await this.storage.put(LAST_SPECULATIVE_OG_ENQUEUE_KEY, at)
-					},
 				}
 			)
-			this.log.debug('speculative og render', slug, result)
+			this.log.debug('og render for edit', slug, result)
 		} catch (e) {
 			// Reported, not thrown: this runs off the persist path and must never affect it.
 			this.reportError(e)

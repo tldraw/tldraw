@@ -11,62 +11,44 @@ import {
 import { getPublishedFileInfo } from './getPublishedFile'
 import { getSharedFileInfo, isFileAnonymouslyViewable } from './getSharedFile'
 import {
-	GLOBAL_BROWSER_RATE_LIMIT_KEY,
-	GLOBAL_BROWSER_RUN_RATE_LIMIT,
 	base64ToArrayBuffer,
 	buildThumbnailRenderUrl,
 	enumerateBoardPages,
 	getRenderOrigin,
-	isRateLimited,
 	loadBoardSnapshot,
 	renderThumbnailScreenshot,
 } from './sharedBoardScreenshotMcp'
 import { classifyScreenshotFailure, reportThumbnailError, sha256 } from './thumbnailShared'
 
-// Queue-backed async OG image generation. The GET og-image route never blocks a request on
-// Browser Run: it serves whatever is cached (fresh or stale) or redirects to the default OG image,
-// and enqueues a render job here. This consumer performs the capture out of band and refreshes the
-// R2 cache the route reads. The synchronous MCP tool does not use this path: it must return the
-// image in-band, so it captures inline and caches under its own `mcp/` keys.
+// Queue-backed async board thumbnail generation. The GET og-image route never blocks a request on
+// Browser Run: it serves whatever is cached (fresh or stale) or the default OG image, and enqueues a
+// render job here. This consumer performs the capture out of band and refreshes the R2 cache the
+// route reads. The synchronous MCP tool does not use this path: it must return the image in-band, so
+// it captures inline and caches under its own `mcp/` keys in a different bucket.
+//
+// Thumbnail rendering is deliberately uncapped. It is our own derived artifact, triggered by things
+// that already happened (a publish, an edit persisting, a crawler arriving) rather than by anything a
+// caller can drive, so a rate limiter here would only ever mean "serve a stale thumbnail to save a
+// render we intend to do anyway". The abuse surface is the public MCP endpoint, and that keeps its
+// per-IP, per-board and global caps — see sharedBoardScreenshotMcp.ts.
 
 export const OG_IMAGE_WIDTH = DEFAULT_THUMBNAIL_WIDTH
 export const OG_IMAGE_HEIGHT = DEFAULT_THUMBNAIL_HEIGHT
 
 // A pending marker suppresses duplicate enqueues while a render is queued or in flight. It is
 // advisory only: it expires on its own so a crashed consumer cannot wedge a board permanently.
+//
+// With no rate limiter left, this is the only thing bounding how often a board renders: a board being
+// drawn on persists every PERSIST_INTERVAL_MS (8s), and each persist asks for a thumbnail, so without
+// the marker one board would enqueue hundreds of messages an hour that all render near-identical
+// content. It is dedupe rather than a budget, but it does set the effective cadence — roughly one
+// render per board per marker TTL while editing is continuous. This is the knob to turn if that
+// cadence needs to change.
 const PENDING_MARKER_TTL_MS = 2 * 60_000
-// Retries are also bounded by max_retries in wrangler.toml; this lower cap keeps OG jobs from
-// burning Browser Run capacity on a persistently failing board. It counts genuine render failures
-// only — global-capacity backpressure re-enqueues a fresh message instead (see requeueForRateLimit),
-// so a busy period never exhausts a board's failure budget.
+// Retries are bounded by max_retries in wrangler.toml too; this lower cap keeps thumbnail jobs from
+// burning Browser Run capacity on a persistently failing board.
 const MAX_RENDER_ATTEMPTS = 3
 const RETRY_DELAY_SECONDS = 30
-
-// Rate-limit backpressure gets its own bounded retry budget, kept separate from the render-failure
-// budget above. Each rate-limited delivery still spends one slot of the shared global Browser Run
-// limiter just to learn it can't render, so an unbounded requeue chain would let the OG queue's own
-// capacity checks keep the limiter saturated and starve every render surface (OG and MCP alike). Cap
-// the chain and back off so that check rate stays low; after the cap we give up and let the next
-// crawler hit re-enqueue once capacity has recovered (the OG route serves stale/default meanwhile).
-export const MAX_RATE_LIMIT_REQUEUES = 12
-const MAX_REQUEUE_DELAY_SECONDS = 120
-
-// Speculative rendering: a board that is being edited will probably be shared, so render its OG image
-// before the first crawler asks for it rather than after. The whole cost model rests on the staleness
-// window: at most one speculative render per board per window, no matter how much editing happens
-// inside it. An infinite window would be one render per board lifetime; a zero window would be one per
-// editing session.
-export const SPECULATIVE_OG_STALENESS_WINDOW_MS = 12 * 60 * 60_000
-// The queue holds the message for this long, so the render captures the first few minutes of drawing
-// rather than the first shape. The jitter spreads the one wave that the DO-storage guard can't
-// prevent: the first rollout (and each sample-percentage increase), when every actively edited board
-// has no stored timestamp yet and fires on its next persist.
-export const SPECULATIVE_OG_BASE_DELAY_SECONDS = 180
-export const SPECULATIVE_OG_JITTER_SECONDS = 120
-// Speculation gets its own limiter key, below the shared global cap, and drops instead of requeueing
-// when that budget is spent. Guessing about a board must never delay a render someone is waiting for.
-export const GLOBAL_SPECULATIVE_BROWSER_RATE_LIMIT_KEY = 'global-speculative'
-export const GLOBAL_SPECULATIVE_BROWSER_RUN_RATE_LIMIT = 3
 
 export type OgBoardKind = 'published' | 'shared_file'
 
@@ -130,10 +112,10 @@ function getOgImagePendingKey(board: { kind: 'published' | 'shared_file'; slug: 
 export async function enqueueOgImageRender(
 	env: Environment,
 	board: { kind: 'published' | 'shared_file'; slug: string },
-	opts: { delaySeconds?: number; reason?: OgImageRenderReason } = {}
+	opts: { reason?: OgImageRenderReason } = {}
 ): Promise<EnqueueOgImageResult> {
 	if (!env.THUMBNAILS || !env.QUEUE) return 'unavailable'
-	const { delaySeconds = 0, reason = 'crawler' } = opts
+	const { reason = 'crawler' } = opts
 
 	const pendingKey = getOgImagePendingKey(board)
 	const existing = await env.THUMBNAILS.head(pendingKey)
@@ -144,12 +126,9 @@ export async function enqueueOgImageRender(
 		}
 	}
 
-	// The marker has to outlive the delay, not just the render: a delayed message that hasn't been
-	// delivered yet is still pending work, and a marker that expired first would let the next crawler
-	// miss enqueue a duplicate for the same board. Mirrors refreshOgImagePendingMarker.
 	await env.THUMBNAILS.put(pendingKey, new Uint8Array(), {
 		customMetadata: {
-			expiresAt: String(Date.now() + delaySeconds * 1000 + PENDING_MARKER_TTL_MS),
+			expiresAt: String(Date.now() + PENDING_MARKER_TTL_MS),
 		},
 	})
 
@@ -159,104 +138,34 @@ export async function enqueueOgImageRender(
 		slug: board.slug,
 		reason,
 	}
-	await env.QUEUE.send(message, delaySeconds > 0 ? { delaySeconds } : undefined)
+	await env.QUEUE.send(message)
 	return 'enqueued'
 }
 
-export type SpeculativeOgRenderOutcome =
-	| EnqueueOgImageResult
-	| 'skipped_not_sampled'
-	| 'skipped_not_shared'
-	| 'skipped_recent_enqueue'
-	| 'skipped_fresh_image'
-
 /**
- * Decides whether a board being edited should have its OG image rendered ahead of the first crawler,
- * and enqueues it if so. Called from the file durable object on a persist that advanced the document
- * clock; every input it can't derive itself is passed in, so the decision is testable without a DO.
+ * Asks for a board's thumbnail to be refreshed because its content just changed. Called from the file
+ * durable object on a persist that advanced the document clock.
  *
- * `lastEnqueuedAt` is the caller's durable record of when it last asked (not when a render last
- * succeeded, deliberately): a speculative render that fails or gets dropped for capacity does not
- * retry until the window elapses. The demand path — a crawler missing the cache — remains the retry
- * mechanism, and it has actual urgency behind it.
+ * There is no sampling, staleness window or budget check here on purpose: a persist means the board's
+ * saved content is genuinely different from what the cached thumbnail shows, which is exactly when a
+ * re-render is warranted. The duplicate-suppression that remains is `enqueueOgImageRender`'s pending
+ * marker (so an 8-second persist cadence doesn't become an 8-second render cadence) and the
+ * consumer's `(board, version)` check, which acks without rendering if the cache already matches.
  */
-export async function maybeEnqueueSpeculativeOgRender(
+export async function enqueueOgImageRenderForEdit(
 	env: Environment,
 	board: { kind: OgBoardKind; slug: string },
-	{
-		isShared,
-		lastEnqueuedAt,
-		markEnqueued,
-		now = Date.now(),
-		jitterSeconds = Math.floor(Math.random() * (SPECULATIVE_OG_JITTER_SECONDS + 1)),
-	}: {
-		// Whether the board is currently shared via link. `undefined` means the caller doesn't know: we
-		// go ahead and let the consumer's resolve drop the board, rather than skipping a board that may
-		// well be public.
-		isShared: boolean | undefined
-		lastEnqueuedAt: number | null
-		markEnqueued(at: number): Promise<void>
-		now?: number
-		jitterSeconds?: number
-	}
-): Promise<SpeculativeOgRenderOutcome> {
-	// Sampling is deterministic per board, so raising the percentage adds boards without reshuffling
-	// the ones already covered — coverage climbs monotonically and stays measurable.
-	if (!isSpeculativeOgRenderSampled(env, board.slug)) return 'skipped_not_sampled'
-
-	// The cheap, authoritative check: the caller's own record of the last ask.
-	if (lastEnqueuedAt !== null && now - lastEnqueuedAt < SPECULATIVE_OG_STALENESS_WINDOW_MS) {
-		return 'skipped_recent_enqueue'
-	}
+	{ isShared }: { isShared: boolean | undefined }
+): Promise<EnqueueOgImageResult | 'skipped_not_shared'> {
+	// `undefined` means the caller doesn't know: go ahead and let the consumer's resolve drop the
+	// board, rather than skipping one that may well be public.
 	if (isShared === false) return 'skipped_not_shared'
-
-	// A second staleness check, this time across every trigger source: a board a crawler-driven refresh
-	// rendered ten minutes ago doesn't need a speculative re-render now. Gated behind the check above,
-	// so it costs at most one R2 head per board per window rather than one per persist.
-	const cached = await env.THUMBNAILS?.head(getOgImageCacheKey(board))
-	if (cached && getOgImageAge(cached, now) < SPECULATIVE_OG_STALENESS_WINDOW_MS) {
-		return 'skipped_fresh_image'
-	}
-
-	// Stamped before the enqueue, so a failure between the two costs one missed render rather than an
-	// unbounded repeat.
-	await markEnqueued(now)
-	return enqueueOgImageRender(env, board, {
-		delaySeconds: SPECULATIVE_OG_BASE_DELAY_SECONDS + jitterSeconds,
-		reason: 'speculative',
-	})
+	return enqueueOgImageRender(env, board, { reason: 'edit' })
 }
 
 export function getOgImageAge(cached: R2Object, now: number) {
 	const createdAt = Number(cached.customMetadata?.createdAt ?? cached.uploaded?.getTime() ?? 0)
 	return Number.isFinite(createdAt) ? now - createdAt : Infinity
-}
-
-// Rollout dial and kill switch, read per event so it can be flipped in the Cloudflare dashboard
-// without a deploy (same pattern as MCP_SCREENSHOT_ENABLED). Unset means off: speculation spends real
-// Browser Run capacity, so an environment that never configured it should not start guessing.
-export function getSpeculativeOgSamplePct(env: Environment) {
-	const parsed = Number(env.OG_SPECULATIVE_SAMPLE_PCT)
-	if (!Number.isFinite(parsed)) return 0
-	return Math.min(100, Math.max(0, Math.floor(parsed)))
-}
-
-function isSpeculativeOgRenderSampled(env: Environment, slug: string) {
-	const pct = getSpeculativeOgSamplePct(env)
-	if (pct <= 0) return false
-	if (pct >= 100) return true
-	return hashToBucket(slug) < pct
-}
-
-// FNV-1a, folded into 0-99. Only needs to be stable and evenly spread, not cryptographic — the board
-// slug is not a secret being protected here, it's a bucket key.
-function hashToBucket(value: string) {
-	let hash = 2166136261
-	for (let i = 0; i < value.length; i++) {
-		hash ^= value.charCodeAt(i)
-		hash = Math.imul(hash, 16777619)
-	}
-	return (hash >>> 0) % 100
 }
 
 // Drops a board's cached OG image and any pending render marker. Called when a board stops being
@@ -327,38 +236,10 @@ export async function handleOgImageRenderMessage(
 			throw new Error('THUMBNAILS bucket is not configured')
 		}
 
-		// Speculative renders check their own smaller budget first, and drop rather than requeue on any
-		// busy signal. Nobody is waiting on a guess, and a speculative requeue chain would spend global
-		// capacity checks that crawler-miss and publish renders need — so speculation is strictly
-		// last in line and never enters the backoff chain.
-		if (reason === 'speculative') {
-			const speculativeBusy = await isRateLimited(
-				env.MCP_SCREENSHOT_SPECULATIVE_RATE_LIMITER,
-				GLOBAL_SPECULATIVE_BROWSER_RATE_LIMIT_KEY,
-				{ fallbackLimit: GLOBAL_SPECULATIVE_BROWSER_RUN_RATE_LIMIT }
-			)
-			if (speculativeBusy) {
-				await dropSpeculativeForRateLimit(env, message, boardHash, 'rate_limited_speculative')
-				return
-			}
-		}
-
-		// Shares the global Browser Run budget with the synchronous surfaces by using the same limiter
-		// key (`GLOBAL_BROWSER_RATE_LIMIT_KEY`), so the MCP tool and this consumer draw from one cap
-		// rather than two independent buckets. When capacity is busy, requeue rather than drop: the
-		// request path has already returned, so latency is free here.
-		if (
-			await isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
-				fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
-			})
-		) {
-			if (reason === 'speculative') {
-				await dropSpeculativeForRateLimit(env, message, boardHash, 'rate_limited_global')
-				return
-			}
-			await requeueForRateLimit(env, message, boardHash)
-			return
-		}
+		// No capacity check: thumbnail rendering is uncapped by design (see the note at the top of this
+		// file). The version check above is what stops redundant work — a burst of enqueues for one
+		// board coalesces into a single render of the newest content, and everything past this point is
+		// a board whose cached thumbnail genuinely no longer matches its saved content.
 
 		// Target the first page that has content so a board whose first page is empty still gets a
 		// meaningful unfurl image (the render page otherwise exports whichever page the snapshot opens
@@ -439,10 +320,8 @@ function retryOrDrop(
 	boardHash: string,
 	failureReason: string
 ) {
-	// attempts counts this delivery, so attempts >= MAX means this was the final try. Only genuine
-	// render failures reach here (global-capacity backpressure re-enqueues instead), so attempts is a
-	// true failure count. The pending marker is left in place either way; it expires on its own and
-	// then requests re-enqueue.
+	// attempts counts this delivery, so attempts >= MAX means this was the final try. The pending
+	// marker is left in place either way; it expires on its own and then requests re-enqueue.
 	if (message.attempts < MAX_RENDER_ATTEMPTS) {
 		message.retry({ delaySeconds: RETRY_DELAY_SECONDS * message.attempts })
 		return
@@ -455,89 +334,6 @@ function retryOrDrop(
 		failureReason,
 	})
 	message.ack()
-}
-
-// Speculative work gives up the moment capacity is contended, rather than backing off and retrying
-// like a crawler miss does. Nothing is waiting on it, and the next crawler hit re-enqueues on the
-// demand path if the board is actually being looked at. The pending marker is cleared so that hit
-// isn't deduped away by this abandoned job.
-async function dropSpeculativeForRateLimit(
-	env: Environment,
-	message: Message<OgImageRenderQueueMessage>,
-	boardHash: string,
-	failureReason: string
-) {
-	await env.THUMBNAILS?.delete(getOgImagePendingKey(message.body)).catch(() => {})
-	writeOgImageTelemetry(env, {
-		source: 'queue',
-		reason: 'speculative',
-		boardHash,
-		cacheStatus: 'miss',
-		rateLimitAllowed: false,
-		failureReason,
-	})
-	message.ack()
-}
-
-// Global Browser Run capacity is busy. Re-enqueue this job (on its own bounded rate-limit budget, so
-// backpressure never counts against the failure-retry budget in retryOrDrop) and ack this delivery.
-// The render still hasn't happened, so no Browser Run capacity was spent on a screenshot; the
-// consumer's version check coalesces the eventual retry with any newer enqueues, so a fast-changing
-// board still captures only its latest content.
-//
-// Two things keep this from turning into the runaway it used to be: the requeue counter bounds the
-// chain (an un-counted `message.body` reset the attempt count and looped forever), and the pending
-// marker is refreshed each time so concurrent crawler hits coalesce onto this one chain instead of
-// spawning a fresh parallel chain every time the marker's TTL lapsed.
-async function requeueForRateLimit(
-	env: Environment,
-	message: Message<OgImageRenderQueueMessage>,
-	boardHash: string
-) {
-	const requeues = (message.body.rateLimitRequeues ?? 0) + 1
-
-	writeOgImageTelemetry(env, {
-		source: 'queue',
-		reason: message.body.reason,
-		boardHash,
-		cacheStatus: 'miss',
-		rateLimitAllowed: false,
-		failureReason:
-			requeues > MAX_RATE_LIMIT_REQUEUES ? 'rate_limited_global_exhausted' : 'rate_limited_global',
-	})
-
-	if (requeues > MAX_RATE_LIMIT_REQUEUES) {
-		// Sustained global backpressure. Stop looping so this chain's capacity checks can't keep the
-		// shared limiter saturated; the pending marker is left to expire and the next crawler hit
-		// re-enqueues once capacity has recovered.
-		message.ack()
-		return
-	}
-
-	// Exponential backoff (capped) cuts how often a waiting job re-checks the shared limiter, so the OG
-	// queue's own checks stop crowding out real renders.
-	const delaySeconds = Math.min(
-		RETRY_DELAY_SECONDS * 2 ** (requeues - 1),
-		MAX_REQUEUE_DELAY_SECONDS
-	)
-	await refreshOgImagePendingMarker(env, message.body, delaySeconds)
-	await env.QUEUE.send({ ...message.body, rateLimitRequeues: requeues }, { delaySeconds })
-	message.ack()
-}
-
-// Extends the pending marker so it outlives the scheduled redelivery. While a rate-limited job backs
-// off, its marker must keep suppressing duplicate enqueues (enqueueOgImageRender), or each TTL lapse
-// would let another parallel requeue chain spawn.
-async function refreshOgImagePendingMarker(
-	env: Environment,
-	board: { kind: 'published' | 'shared_file'; slug: string },
-	delaySeconds: number
-) {
-	if (!env.THUMBNAILS) return
-	const expiresAt = Date.now() + delaySeconds * 1000 + PENDING_MARKER_TTL_MS
-	await env.THUMBNAILS.put(getOgImagePendingKey(board), new Uint8Array(), {
-		customMetadata: { expiresAt: String(expiresAt) },
-	}).catch(() => {})
 }
 
 // Written to the same dataset and blob layout as the MCP tool's telemetry

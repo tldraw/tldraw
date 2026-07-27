@@ -49,13 +49,15 @@ const RENDER_SETTLED_SELECTOR = '[data-thumbnail-ready="true"], [data-thumbnail-
 // <body> so it resolves to a single element (both <html> and <body> carry the ready marker).
 const RENDER_CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
 
-// Per-IP and per-board limits protect the endpoint and individual boards; the global limit caps
-// total Browser Rendering spend across all callers. The Cloudflare bindings in wrangler.toml enforce
-// these in deployments; the isolate-local fallback only covers local dev and tests.
+// These caps exist for this endpoint specifically. It is the one Browser Run-spending surface an
+// outside caller can drive directly, so a rogue or looping agent is the threat being bounded: per-IP
+// limits stop one caller monopolising it, per-board limits stop one board being hammered, and the
+// global limit bounds what the endpoint as a whole can spend. Board thumbnail rendering deliberately
+// has no equivalent cap — it is triggered by our own writes, not by callers (see ogImageQueue.ts).
+// The Cloudflare bindings in wrangler.toml enforce these in deployments; the isolate-local fallback
+// only covers local dev and tests.
 const PER_IP_RATE_LIMIT = 2
 const PER_BOARD_RATE_LIMIT = 2
-// The single limiter key every Browser Run-spending surface (this tool and the OG queue consumer)
-// passes, so they draw from one shared global cap instead of separate per-key buckets.
 export const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
 export const GLOBAL_BROWSER_RUN_RATE_LIMIT = 6
 const RATE_LIMIT_WINDOW_MS = 60_000
@@ -442,14 +444,14 @@ async function callSharedBoardScreenshotTool(
 			)
 		}
 		const board = resolved.board
-		if (!env.THUMBNAILS) {
-			throw new Error('THUMBNAILS bucket is not configured')
+		if (!env.MCP_SCREENSHOTS) {
+			throw new Error('MCP_SCREENSHOTS bucket is not configured')
 		}
 
 		// The cache key is derived from the requested ordinal alone, so a cache hit skips loading the
 		// board snapshot entirely; the page name rides in the cached object's metadata.
 		const cacheKey = getThumbnailPageCacheKey(board, input.theme, input.page)
-		const cached = await env.THUMBNAILS.get(cacheKey)
+		const cached = await env.MCP_SCREENSHOTS.get(cacheKey)
 		if (cached) {
 			telemetry({ cacheStatus: 'hit' })
 			return toolPageResult(
@@ -531,7 +533,7 @@ async function callSharedBoardScreenshotTool(
 		// subsequent call re-renders, which we do need to see.
 		try {
 			await writeThumbnailPage(
-				env.THUMBNAILS,
+				env.MCP_SCREENSHOTS,
 				cacheKey,
 				targetPage.name,
 				render.base64,

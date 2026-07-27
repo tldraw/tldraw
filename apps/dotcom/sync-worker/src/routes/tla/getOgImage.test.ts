@@ -72,15 +72,12 @@ describe('getOgImage', () => {
 		// The only fetch is for the static default image — never a Browser Run render, which happens in
 		// the queue consumer.
 		expect(fetch).toHaveBeenCalledExactlyOnceWith('https://www.tldraw.com/social-og.png')
-		expect(queue.send).toHaveBeenCalledExactlyOnceWith(
-			{
-				type: 'og-image-render',
-				kind: 'published',
-				slug: 'published-board',
-				reason: 'crawler',
-			},
-			undefined
-		)
+		expect(queue.send).toHaveBeenCalledExactlyOnceWith({
+			type: 'og-image-render',
+			kind: 'published',
+			slug: 'published-board',
+			reason: 'crawler',
+		})
 		expect(failureBlobsOf(env)).toEqual(['failure:served_fallback'])
 	})
 
@@ -196,8 +193,7 @@ describe('getOgImage', () => {
 		expect(stale.headers.get('x-tldraw-og-cache')).toBe('stale')
 		expect(await stale.arrayBuffer()).toEqual(new Uint8Array([1, 2, 3]).buffer)
 		expect(queue.send).toHaveBeenCalledExactlyOnceWith(
-			expect.objectContaining({ kind: 'published', slug: 'cached-board', reason: 'crawler' }),
-			undefined
+			expect.objectContaining({ kind: 'published', slug: 'cached-board', reason: 'crawler' })
 		)
 	})
 
@@ -219,8 +215,7 @@ describe('getOgImage', () => {
 
 		expect(response.status).toBe(200)
 		expect(queue.send).toHaveBeenCalledExactlyOnceWith(
-			expect.objectContaining({ kind: 'shared_file', slug: 'shared-file', reason: 'crawler' }),
-			undefined
+			expect.objectContaining({ kind: 'shared_file', slug: 'shared-file', reason: 'crawler' })
 		)
 	})
 

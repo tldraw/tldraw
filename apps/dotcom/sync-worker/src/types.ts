@@ -87,24 +87,33 @@ export interface Environment {
 	PIERRE_KEY: string | undefined
 
 	RATE_LIMITER: RateLimit
-	// Rate limit bindings for the Browser Run-backed MCP screenshot tool, declared in
-	// wrangler.toml. MCP_SCREENSHOT_RATE_LIMITER guards per-IP and per-board request rates;
-	// MCP_SCREENSHOT_BROWSER_RATE_LIMITER caps total Browser Run invocations across all callers.
-	// The route falls back to an isolate-local guard when the bindings are absent (local dev,
-	// tests).
+	// Rate limit bindings for the Browser Run-backed MCP screenshot tool, declared in wrangler.toml.
+	// MCP_SCREENSHOT_RATE_LIMITER guards per-IP and per-board request rates;
+	// MCP_SCREENSHOT_BROWSER_RATE_LIMITER caps total Browser Run invocations made by the tool. Both
+	// exist to bound what an agent calling the public MCP endpoint can spend — board thumbnail
+	// rendering is deliberately not subject to either, because it is our own derived artifact rather
+	// than caller-driven work. The route falls back to an isolate-local guard when the bindings are
+	// absent (local dev, tests).
 	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
 	MCP_SCREENSHOT_BROWSER_RATE_LIMITER: RateLimit | undefined
-	// A separate, smaller cap for speculative OG renders (Cloudflare rate limit bindings carry their
-	// limit in the binding, so a different limit needs a different binding). Speculation draws from
-	// this first and drops when it's spent, so guessing about boards can never crowd out a render
-	// something is actually waiting for.
-	MCP_SCREENSHOT_SPECULATIVE_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
-	// R2 cache for generated thumbnails, keyed on board identity, published version, and theme.
+	// R2 cache for board OG images (`og/…` keys) and their pending-render markers. The key has no
+	// version in it, so each render overwrites the same object in place and a board costs exactly one
+	// object forever; deleteOgImageCache removes it when a board stops being public. Nothing here
+	// accumulates, so this bucket has no expiration rule.
 	// Optional so tests and unconfigured environments degrade to cacheless rendering.
 	THUMBNAILS: R2Bucket | undefined
+
+	// R2 cache for MCP screenshots (`mcp/…` keys). Deliberately a different bucket from THUMBNAILS
+	// rather than a prefix in it, because the retention semantics are opposite: this key includes the
+	// board's content version, so every edit strands the previous object and the set grows without
+	// bound. The bucket carries an expiration lifecycle rule to age those out (see the ops setup in
+	// browser-run-thumbnails.md) — which would be actively wrong applied to the OG bucket, where the
+	// single per-board object is meant to live as long as the board does.
+	// Optional on the same terms as THUMBNAILS.
+	MCP_SCREENSHOTS: R2Bucket | undefined
 
 	// Cloudflare Browser Rendering binding. The worker takes thumbnails by calling the binding's
 	// `quickAction` Quick Actions method (e.g. `screenshot`) directly — no @cloudflare/puppeteer and
@@ -125,13 +134,6 @@ export interface Environment {
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
-	// Percentage of boards (0-100) eligible for speculative OG image rendering when they are edited, so
-	// a board's thumbnail exists before the first crawler asks for it. Read per event, so it doubles as
-	// a kill switch that can be flipped in the Cloudflare dashboard without a deploy. Unset or 0 means
-	// off: unlike MCP_SCREENSHOT_ENABLED, an unconfigured environment must not start spending Browser
-	// Run on renders nobody asked for. Sampling is per board, not per event, so raising the percentage
-	// adds boards rather than reshuffling which ones are covered.
-	OG_SPECULATIVE_SAMPLE_PCT: string | undefined
 }
 
 export function isDebugLogging(env: Environment) {
@@ -235,12 +237,11 @@ export interface AssetUploadQueueMessage {
 	userId: string | null
 }
 
-// What prompted an OG image render. Only `speculative` changes how the consumer behaves (it draws
-// from a smaller budget and drops rather than requeues when capacity is busy); the rest is telemetry,
-// so renders can be attributed to the trigger that asked for them.
-export type OgImageRenderReason = 'crawler' | 'publish' | 'speculative'
+// What prompted a board thumbnail render. Purely telemetry — every trigger is treated identically by
+// the consumer — so renders can be attributed to the thing that asked for them.
+export type OgImageRenderReason = 'crawler' | 'publish' | 'edit'
 
-// Asks the queue consumer to render a board's OG image through Browser Run and refresh the R2
+// Asks the queue consumer to render a board's thumbnail through Browser Run and refresh the R2
 // cache read by GET /app/social-preview/:prefix/:slug/image. Board state (share gate, content
 // version) is deliberately not carried in the message; the consumer re-resolves it at render time.
 export interface OgImageRenderQueueMessage {
@@ -249,12 +250,6 @@ export interface OgImageRenderQueueMessage {
 	slug: string
 	// Absent on messages enqueued before this field existed, which are all crawler misses.
 	reason?: OgImageRenderReason
-	// How many times this job has been re-enqueued because the shared global Browser Run cap was busy
-	// (see requeueForRateLimit). Bounds the rate-limit backoff loop: each rate-limited delivery still
-	// spends one slot of the shared limiter just to discover it can't render, so an unbounded requeue
-	// chain would let the OG queue's own capacity checks saturate the limiter and starve every render
-	// surface. Absent on the initial enqueue.
-	rateLimitRequeues?: number
 }
 
 export type QueueMessage = AssetUploadQueueMessage | OgImageRenderQueueMessage

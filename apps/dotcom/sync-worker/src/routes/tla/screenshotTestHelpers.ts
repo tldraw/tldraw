@@ -5,7 +5,8 @@ import { Environment } from '../../types'
 // ogImageQueue, getOgImage). These were copy-pasted across those files; keep them here so the
 // R2/browser/queue fakes and token helpers stay in one place.
 
-// In-memory stand-in for the THUMBNAILS R2 bucket. Exposes `store` so tests can inspect or seed
+// In-memory stand-in for an R2 bucket (THUMBNAILS or MCP_SCREENSHOTS, which have the same shape).
+// Exposes `store` so tests can inspect or seed
 // entries directly. Covers get/head/put/delete; entries carry the customMetadata and upload time
 // the routes read.
 export function makeFakeThumbnailsBucket() {
