@@ -11,7 +11,7 @@ export interface CommentAnchorProps {
 /**
  * A comment thread attached via each TLCommentAnchor kind, shown against a real tldraw
  * editor. The thread is the sample thread with its anchor swapped, so the same conversation
- * is shown attached five ways: shape, point, region, page, text-range.
+ * is shown attached four ways: shape, point, region, page.
  */
 export function CommentAnchor({ anchor, open }: CommentAnchorProps) {
 	const thread: TLCommentThread = { ...sampleThread, anchor }

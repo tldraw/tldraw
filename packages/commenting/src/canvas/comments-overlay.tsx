@@ -1,3 +1,4 @@
+import { type CommentAuthor, isMentionPickerOpen, MentionMember } from '@tldraw/mentions'
 import {
 	Fragment,
 	memo,
@@ -32,13 +33,11 @@ import {
 import { computeClusterTable } from '../clustering/computeClusterTable'
 import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
-import { CommentAuthor } from '../ui/comment-author'
 import { CommentComposer } from '../ui/comment-composer'
 import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { CommentPin } from '../ui/comment-pin'
 import { CountBadge } from '../ui/count-badge'
-import { MentionMember } from '../ui/mention-list'
-import { isMentionPickerOpen } from '../ui/mention-suggestion'
+import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
 import { collectClusterLeaves } from './cluster-input'
 import {
 	clearCommentDraft,
@@ -51,7 +50,12 @@ import { getCommentRecord, putCommentRecords } from './comment-store'
 import { PendingComment } from './comment-tool'
 import { useCommentThreads, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
-import { type CommentingOptions, getCommentingOptions, useCommentingOptions } from './options'
+import {
+	type CommentingOptions,
+	getCommentingOptions,
+	useCanComment,
+	useCommentingOptions,
+} from './options'
 import { computePinStacks } from './pin-stacking'
 import {
 	DEFAULT_REGION_COMMENT_OPTIONS,
@@ -65,6 +69,7 @@ import {
 	openThreadId,
 	pendingComment,
 	regionDraft,
+	revealThreadRequest,
 	toggleCommentsHidden,
 	usePendingComment,
 } from './state'
@@ -72,6 +77,7 @@ import { ThreadPreview, sortThreadsForPreview, useMarkerPreview } from './thread
 import { ThreadStackPin } from './thread-stack'
 import {
 	anchorPagePoint,
+	impreciseShapePinInset,
 	regionAnchorPinCorner,
 	regionPinPoint,
 	shapeAnchorAt,
@@ -115,24 +121,6 @@ export interface CanvasCommentsProps {
 }
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
-
-/** How far an imprecise shape pin steps inside the shape from its anchor spot, in screen px —
- *  most of the marker sits within the shape, with a small overhang past the corner. */
-const IMPRECISE_PIN_INSET_PX = 20
-
-/** Imprecise shape pins tuck inside the shape rather than hanging off its edge: the marker
- *  extends up-right of its anchor point, so step it toward the shape's centre. Screen px — the
- *  pin is screen-fixed while the shape scales with zoom. Null for anchors that need no inset. */
-function impreciseShapePinInset(
-	anchor: TLCommentThread['anchor'],
-	spot: { x: number; y: number }
-): { x: number; y: number } | null {
-	if (anchor.type !== 'shape' || anchor.isPrecise) return null
-	return {
-		x: Math.sign(0.5 - spot.x) * IMPRECISE_PIN_INSET_PX,
-		y: Math.sign(0.5 - spot.y) * IMPRECISE_PIN_INSET_PX,
-	}
-}
 
 /** A pointer-down that belongs to the camera, not the comment UI: any non-primary button
  *  (middle/right-button pans), or a primary press with the spacebar pan key held. */
@@ -202,11 +190,27 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	// canvas, so any pin past its bottom/right edge inflates the root's scrollHeight — which the
 	// wheel hook's is-this-scrollable guard reads as scrollable, silently disabling pass-through.
 	usePassThroughMouseOverEvents(layerRef)
-	const deepLinkHandled = useRef(false)
 	const threads = useCommentThreads(editor)
 	const pending = usePendingComment()
+	const canComment = useCanComment(props.currentUserId)
+	// With composing blocked and no fallback slot there's nothing to render for a pending comment —
+	// and the dismiss handlers (Escape, click-away) live inside PendingComposer, which would never
+	// mount. Clear the atom instead of stranding it (a stale pending would pop a composer at the
+	// old click point if `canComment` later flips true).
+	const canRenderComposer = canComment || options.components.ComposerFallback != null
+	const showPendingComposer = pending != null && canRenderComposer
+	useEffect(() => {
+		if (pending && !showPendingComposer) pendingComment.set(editor, null)
+	}, [editor, pending, showPendingComposer])
 	const openId = useValue('open thread id', () => openThreadId.get(editor), [editor])
 	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
+	// Keyed by the anchor's values, not its identity — an inline `impreciseShapeAnchor` prop is a
+	// new object every render and would re-register the handlers each time.
+	const { x: impreciseX, y: impreciseY } = impreciseShapeAnchor
+	useEffect(
+		() => registerCommentAnchorLifecycle(editor, { x: impreciseX, y: impreciseY }),
+		[editor, impreciseX, impreciseY]
+	)
 	// Threads held out of clustering because their anchor moved while folded inside a badge
 	// (drag, nudge, align, undo, a collaborator — detected by position, not gesture). They render
 	// as live pins riding their anchor and rejoin clustering on the next zoom-out.
@@ -376,47 +380,58 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const openThread = openId ? threadsById.get(openId) : null
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 
-	// Reset the transient UI state (open thread, open stack, half-placed comment) when this unmounts.
+	// Reset the transient UI state (open thread, open stack, half-placed comment, unserved reveal)
+	// when this unmounts.
 	useEffect(() => {
 		return () => {
 			openThreadId.set(editor, null)
 			openStackId.set(editor, null)
 			pendingComment.set(editor, null)
+			revealThreadRequest.set(editor, null)
 		}
 	}, [editor])
 
-	// Open the thread named by a deep link (?comment=<thread or comment id>). If the thread is
-	// currently inside a cluster, zoom to the first split that reveals it before opening.
+	// The requested thread, once it (and, for a comment id, its parent thread) has synced into the
+	// store; null while records are still arriving or when no request is pending.
+	const requestedRevealThread = useValue(
+		'requested reveal thread',
+		() => {
+			const id = revealThreadRequest.get(editor)
+			if (!id) return null
+			const record = getCommentRecord(editor, id)
+			if (!record) return null
+			const thread =
+				record.typeName === 'comment' ? getCommentRecord(editor, record.threadId) : record
+			return thread?.typeName === 'comment-thread' ? thread : null
+		},
+		[editor]
+	)
+
+	// Serve a pending reveal request: open the thread, zooming to the first cluster split that
+	// reveals its pin when it's currently folded into a badge. A reveal is an explicit ask to see
+	// the thread, so it also unhides pins — the popover opens on the on-canvas layer, which stays
+	// invisible while hidden.
 	useEffect(() => {
-		if (deepLinkHandled.current) return
-		const id = new URLSearchParams(window.location.search).get('comment')
-		if (!id) {
-			deepLinkHandled.current = true
-			return
-		}
-
-		const record = getCommentRecord(editor, id)
-		if (!record) return
-
-		let thread: TLCommentThread | undefined
-		if (record.typeName === 'comment') {
-			thread = threadsById.get(record.threadId)
-		} else {
-			thread = record
-		}
-		if (!thread) return
-
-		deepLinkHandled.current = true
+		if (!requestedRevealThread) return
+		revealThreadRequest.set(editor, null)
+		commentsHidden.set(editor, false)
 		revealThread(
 			editor,
-			thread,
+			requestedRevealThread,
 			clusterModel.table,
 			clusterZoomBounds,
 			options,
 			impreciseShapeAnchor
 		)
-		openThreadId.set(editor, thread.id)
-	}, [clusterModel.table, clusterZoomBounds, editor, threadsById, impreciseShapeAnchor, options])
+		openThreadId.set(editor, requestedRevealThread.id)
+	}, [
+		requestedRevealThread,
+		clusterModel.table,
+		clusterZoomBounds,
+		editor,
+		impreciseShapeAnchor,
+		options,
+	])
 
 	// Picking a thread out of a cluster's hover preview. Setting `openThreadId` alone would work —
 	// the thread leaves the cluster input and renders its own pin — but it would cut straight there
@@ -583,8 +598,10 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 			<RegionDraftBox editor={editor} />
 			{/* Keep the region visible while composing — the drag draft is gone by now, and no thread
 			    exists yet, so the pending anchor is what shows the area under the open composer. */}
-			{pending?.anchor.type === 'region' && <RegionBox editor={editor} box={pending.anchor} />}
-			{pending && props.currentUserId && (
+			{pending?.anchor.type === 'region' && showPendingComposer && (
+				<RegionBox editor={editor} box={pending.anchor} />
+			)}
+			{pending && showPendingComposer && (
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
 		</div>,
@@ -1090,6 +1107,7 @@ const ThreadPin = memo(function ThreadPin({
 }) {
 	const { resolveAuthor } = props
 	const options = useCommentingOptions()
+	const canComment = useCanComment(props.currentUserId)
 	const impreciseShapeAnchor = props.impreciseShapeAnchor ?? options.impreciseShapeAnchor
 	const container = useContainer()
 	const comments = useThreadComments(editor, thread.id)
@@ -1223,7 +1241,8 @@ const ThreadPin = memo(function ThreadPin({
 	// Which affordances move a region, per the option: 'pin' → pin only, 'body' → body only, 'both'.
 	const isRegion = thread.anchor.type === 'region'
 	const pinMovable = regionOptions.move !== 'body'
-	const bodyMovable = regionOptions.move !== 'pin'
+	// Region move/resize rewrite the thread's anchor, so both sit behind the commenting permission.
+	const bodyMovable = canComment && regionOptions.move !== 'pin'
 	const startDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		// A middle/right-button or space-held press over a pin is a camera pan, not a pin drag —
 		// hand it to the canvas untouched.
@@ -1254,6 +1273,9 @@ const ThreadPin = memo(function ThreadPin({
 	const onDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
 		if (!drag) return
+		// Moving a pin re-anchors the thread record — a commenting write. Without the permission the
+		// press stays a click (`moved` never sets, so release toggles the popover and never commits).
+		if (!canComment) return
 		// A region that moves by its body ignores pin drags (the pin only toggles the thread).
 		if (isRegion && !pinMovable) return
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
@@ -1306,7 +1328,16 @@ const ThreadPin = memo(function ThreadPin({
 		} else {
 			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
 			anchor = hit
-				? shapeAnchorAt(editor, hit.id, pagePoint, e.altKey)
+				? shapeAnchorAt(
+						editor,
+						hit.id,
+						pagePoint,
+						getCommentingOptions(editor).shouldBePrecise(editor, {
+							shapeId: hit.id,
+							point: pagePoint,
+							altKey: e.altKey,
+						})
+					)
 				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
 		}
 		commitCommentMutation(editor, () => putCommentRecords(editor, [{ ...thread, anchor }]), 'drag')
@@ -1336,6 +1367,7 @@ const ThreadPin = memo(function ThreadPin({
 	const regionBoxBounds = resizeBounds ?? movedRegion
 	const commitResize = (bounds: BoxModel) => {
 		setResizeBounds(null)
+		if (!canComment) return
 		editor.run(
 			// Spread the existing anchor first so the region's pin corner survives a resize.
 			() => putCommentRecords(editor, [{ ...thread, anchor: { ...regionAnchor!, ...bounds } }]),
@@ -1356,15 +1388,19 @@ const ThreadPin = memo(function ThreadPin({
 					onCommit={commitResize}
 				/>
 			)}
-			{regionBoxBounds && revealed && !dragPagePoint && regionOptions.resize !== 'none' && (
-				<RegionResizeHandles
-					editor={editor}
-					box={regionBoxBounds}
-					handles={resizeHandles}
-					onPreview={setResizeBounds}
-					onCommit={commitResize}
-				/>
-			)}
+			{regionBoxBounds &&
+				revealed &&
+				!dragPagePoint &&
+				canComment &&
+				regionOptions.resize !== 'none' && (
+					<RegionResizeHandles
+						editor={editor}
+						box={regionBoxBounds}
+						handles={resizeHandles}
+						onPreview={setResizeBounds}
+						onCommit={commitResize}
+					/>
+				)}
 			<div
 				className={[
 					'tlui-cmt-canvas-pin',
@@ -1437,6 +1473,8 @@ function PendingComposer({
 	getMentionSuggestions,
 	renderMentionSuggestion,
 }: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
+	const ComposerFallback = useCommentingOptions().components.ComposerFallback
+	const canComment = useCanComment(currentUserId)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	// Click-away keeps the draft (saved on every change) and the next placement composer
 	// restores it — the flip side of dismissing without a discard warning.
@@ -1499,6 +1537,7 @@ function PendingComposer({
 			className={[
 				'tlui-cmt-canvas-composer',
 				pending.anchor.type === 'region' && 'tlui-cmt-canvas-composer--region',
+				!canComment && 'tlui-cmt-canvas-composer--fallback',
 			]
 				.filter(Boolean)
 				.join(' ')}
@@ -1509,22 +1548,27 @@ function PendingComposer({
 				if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(editor, null)
 			}}
 		>
-			<CommentComposer
-				author={me ?? UNKNOWN_COMMENT_AUTHOR}
-				placeholder={msg('comments.add-placeholder')}
-				sendLabel={msg('comments.send')}
-				value={text}
-				onChange={(value) => {
-					setText(value)
-					saveCommentDraft(NEW_COMMENT_DRAFT, value)
-				}}
-				onSubmit={submit}
-				disabled={isCommentEmpty(text)}
-				getMentionSuggestions={getMentionSuggestions}
-				renderMentionSuggestion={renderMentionSuggestion}
-				autoFocus
-				leading={draftAvatar(me?.color)}
-			/>
+			{canComment ? (
+				<CommentComposer
+					author={me ?? UNKNOWN_COMMENT_AUTHOR}
+					placeholder={msg('comments.add-placeholder')}
+					sendLabel={msg('comments.send')}
+					value={text}
+					onChange={(value) => {
+						setText(value)
+						saveCommentDraft(NEW_COMMENT_DRAFT, value)
+					}}
+					onSubmit={submit}
+					// No user, no author for the record — dead send button.
+					disabled={isCommentEmpty(text) || !currentUserId}
+					getMentionSuggestions={getMentionSuggestions}
+					renderMentionSuggestion={renderMentionSuggestion}
+					autoFocus
+					leading={draftAvatar(me?.color)}
+				/>
+			) : (
+				ComposerFallback && <ComposerFallback context="pending" />
+			)}
 		</div>,
 		container
 	)

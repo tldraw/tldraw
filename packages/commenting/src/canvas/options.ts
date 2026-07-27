@@ -4,8 +4,24 @@ import {
 	type TLComment,
 	type TLCommentThread,
 	type TLHistoryBatchOptions,
+	type TLShapeId,
+	type VecLike,
 	useEditor,
+	useValue,
 } from 'tldraw'
+
+/**
+ * The gesture that's creating a shape anchor, passed to
+ * {@link CommentingOptions.shouldBePrecise}: the target shape, the page point of the release, and
+ * whether Alt was held.
+ *
+ * @public
+ */
+export interface ShapeCommentPrecisionContext {
+	readonly shapeId: TLShapeId
+	readonly point: VecLike
+	readonly altKey: boolean
+}
 
 /**
  * Component overrides for the batteries-included comments layer. Each slot replaces a built-in
@@ -20,6 +36,12 @@ export interface CommentingComponents {
 	PinContent?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
 	/** A sidebar row's preview. Replaces the plaintext default. */
 	ThreadPreview?: ComponentType<{ comment: TLComment }>
+	/** Shown where a composer would sit when the viewer can't compose (see
+	 *  {@link CommentingOptions.canComment} — a signed-out viewer, a viewer role, a host that
+	 *  turns commenting off). `context` says which surface is rendering it: the bottom of an open
+	 *  thread popover (`'thread'`) or the placement popover the comment tool opens (`'pending'`).
+	 *  Unset, those surfaces render nothing. */
+	ComposerFallback?: ComponentType<{ context: 'pending' | 'thread' }>
 }
 
 /**
@@ -56,9 +78,36 @@ export interface CommentingOptions {
 	/** Fold nearby pins into count badges as the camera zooms out. */
 	readonly enableClustering: boolean
 
+	// ── Permissions ──────────────────────────────────────────────────────────────────────────
+	/**
+	 * Whether the viewer may participate in commenting: composing new threads and replies, editing
+	 * and deleting comments, resolving threads, and moving pins or regions. Composers render when
+	 * it returns true; when it returns false, the {@link CommentingComponents.ComposerFallback}
+	 * slot renders in their place (or nothing, if that slot is unset) and the action affordances
+	 * are hidden. Unset, participation is allowed exactly when `currentUserId` is set.
+	 *
+	 * Called during render via {@link useCanComment}, so reactive reads (signals) are tracked.
+	 * The comment tool itself stays registered and selectable — hosts that want its toolbar button
+	 * to do something else (e.g. open a sign-in dialog) can override the tool item's `onSelect`.
+	 * Note posting still requires a `currentUserId` to author the records, so a callback that
+	 * returns true for a signed-out viewer yields a composer whose send button stays disabled.
+	 */
+	readonly canComment:
+		| ((ctx: { editor: Editor; currentUserId: string | null }) => boolean)
+		| undefined
+
 	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
 	readonly impreciseShapeAnchor: { readonly x: number; readonly y: number }
+	/**
+	 * Whether a comment landing on a shape anchors precisely — pinned to the exact clicked spot
+	 * within the shape — or imprecisely — pinned to the shape as a whole, rendered at
+	 * `impreciseShapeAnchor`. Called wherever a shape anchor is created (placing with the comment
+	 * tool, dropping a dragged pin onto a shape). Always precise by default. Return `false` for
+	 * shape-level anchoring, or decide from the context — the Alt key's state, or the shape itself,
+	 * e.g. precise only on notes. Governs new placements only; existing anchors render as stored.
+	 */
+	shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean
 
 	// ── Clustering tuning ─────────────────────────────────────────────────────────────────────
 	/** Screen-pixel margin by which the viewport is inflated when culling cluster badges. */
@@ -80,7 +129,9 @@ export const defaultCommentingOptions = {
 	history: 'ignore',
 	dragHistory: undefined,
 	enableClustering: true,
+	canComment: undefined,
 	impreciseShapeAnchor: { x: 1, y: 0 },
+	shouldBePrecise: () => true,
 	clusterCullMargin: 120,
 	clusterSplitZoomFactor: 1.05,
 	components: {},
@@ -108,4 +159,35 @@ export function getCommentingOptions(editor: Editor): CommentingOptions {
 export function useCommentingOptions(): CommentingOptions {
 	const editor = useEditor()
 	return useMemo(() => getCommentingOptions(editor), [editor])
+}
+
+/**
+ * Whether the viewer may participate in commenting, per {@link CommentingOptions.canComment}
+ * (defaulting to `currentUserId != null` when unset). Where this is false, composers give way to
+ * the {@link CommentingComponents.ComposerFallback} slot and action affordances are hidden.
+ *
+ * This is a plain, untracked read — a `canComment` callback that reads signals is not observed.
+ * In React, use {@link useCanComment} instead.
+ *
+ * @public
+ */
+export function getCanComment(editor: Editor, currentUserId: string | null | undefined): boolean {
+	const { canComment } = getCommentingOptions(editor)
+	return canComment
+		? canComment({ editor, currentUserId: currentUserId ?? null })
+		: currentUserId != null
+}
+
+/**
+ * Reactive React hook for {@link getCanComment}: a `canComment` callback that reads signals
+ * re-evaluates when they change.
+ *
+ * @public
+ */
+export function useCanComment(currentUserId: string | null | undefined): boolean {
+	const editor = useEditor()
+	return useValue('can comment', () => getCanComment(editor, currentUserId), [
+		editor,
+		currentUserId,
+	])
 }

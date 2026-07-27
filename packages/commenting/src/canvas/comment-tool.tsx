@@ -6,7 +6,7 @@ import {
 	TLUiOverrides,
 	VecLike,
 } from 'tldraw'
-import { type CommentingOptions, defaultCommentingOptions } from './options'
+import { type CommentingOptions, defaultCommentingOptions, getCommentingOptions } from './options'
 import { getRegionCommentOptions } from './region-options'
 import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
 import { regionPinPoint, shapeAnchorAt } from './thread-state'
@@ -176,7 +176,16 @@ class CommentPointing extends StateNode {
 		const point = editor.inputs.getCurrentPagePoint()
 		const hit = editor.getShapeAtPoint(point, { hitInside: true })
 		const anchor: TLCommentAnchor = hit
-			? shapeAnchorAt(editor, hit.id, point, editor.inputs.getAltKey())
+			? shapeAnchorAt(
+					editor,
+					hit.id,
+					point,
+					getCommentingOptions(editor).shouldBePrecise(editor, {
+						shapeId: hit.id,
+						point,
+						altKey: editor.inputs.getAltKey(),
+					})
+				)
 			: { type: 'point', x: point.x, y: point.y }
 		pendingComment.set(editor, { anchor, point: { x: point.x, y: point.y } })
 		// Hand back to select; the open composer is now the focus.

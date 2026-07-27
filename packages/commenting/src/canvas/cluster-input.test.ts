@@ -67,22 +67,16 @@ describe('collectClusterLeaves anchor resolution', () => {
 		expect(leaves).toEqual([{ id: 't1', point: { x: 40, y: 60 } }])
 	})
 
-	it('maps shape and text-range anchors to the shape bounds top-right corner', () => {
+	it('maps shape anchors to the shape bounds top-right corner', () => {
 		const editor = stubEditor({
 			'shape:a': { minX: 0, minY: 5, maxX: 100, maxY: 50 },
 		})
 		const leaves = collectClusterLeaves(
 			editor,
-			[
-				thread('t1', { type: 'shape', shapeId: 'shape:a' as any, x: 0, y: 0, isPrecise: false }),
-				thread('t2', { type: 'text-range', shapeId: 'shape:a' as any, from: 0, to: 3 }),
-			],
+			[thread('t1', { type: 'shape', shapeId: 'shape:a' as any, x: 0, y: 0, isPrecise: false })],
 			null
 		)
-		expect(leaves).toEqual([
-			{ id: 't1', point: { x: 100, y: 5 } },
-			{ id: 't2', point: { x: 100, y: 5 } },
-		])
+		expect(leaves).toEqual([{ id: 't1', point: { x: 100, y: 5 } }])
 	})
 
 	it('places imprecise shape leaves at a custom impreciseShapeAnchor, matching pin rendering', () => {

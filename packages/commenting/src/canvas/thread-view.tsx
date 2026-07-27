@@ -1,3 +1,4 @@
+import { type CommentAuthor, type MentionMember } from '@tldraw/mentions'
 import { ReactNode, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import {
@@ -17,12 +18,10 @@ import {
 	usePassThroughWheelEvents,
 	useTranslation,
 } from 'tldraw'
-import { CommentAuthor } from '../ui/comment-author'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
 import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { CommentThread } from '../ui/comment-thread'
-import { MentionMember } from '../ui/mention-list'
 import { TooltipButton } from '../ui/tooltip-button'
 import { CommentBody } from './comment-body'
 import {
@@ -34,7 +33,7 @@ import {
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { putCommentRecords, removeCommentRecords } from './comment-store'
 import { useThreadComments } from './hooks'
-import { type CommentingComponents, useCommentingOptions } from './options'
+import { type CommentingComponents, useCanComment, useCommentingOptions } from './options'
 import { commitCommentMutation, openThreadId } from './state'
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
@@ -179,6 +178,11 @@ export function ThreadView({
 	const msg = useTranslation()
 	const resolveName = useResolveName(resolveAuthor)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
+	// Composing, editing, deleting, and resolving are all commenting writes: gated on the viewer's
+	// permission. Where it's withheld the composer gives way to the ComposerFallback slot (a
+	// sign-in prompt, say) and the action affordances are hidden.
+	const canComment = useCanComment(currentUserId)
+	const ComposerFallback = options.components.ComposerFallback
 	// An unsent reply survives closing the thread (saved on every change, keyed by thread id) —
 	// the flip side of dismissing without a discard warning.
 	const [reply, setReply] = useState<TLRichText>(
@@ -294,7 +298,7 @@ export function ThreadView({
 			<CommentCard
 				{...card}
 				actions={
-					comment.authorId === currentUserId ? (
+					canComment && comment.authorId === currentUserId ? (
 						<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
 							<TldrawUiDropdownMenuTrigger>
 								<TooltipButton
@@ -338,9 +342,11 @@ export function ThreadView({
 		)
 	}
 
+	// Resolve and delete are commenting writes: behind `canComment`, plus the `currentUserId` a
+	// resolve stamps into `resolved.by`.
 	const headerActions = (
 		<>
-			{currentUserId && (
+			{canComment && currentUserId && (
 				<TooltipButton
 					tooltip={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
 					className="tlui-cmt-thread__action"
@@ -353,7 +359,7 @@ export function ThreadView({
 					/>
 				</TooltipButton>
 			)}
-			{currentUserId && (
+			{canComment && currentUserId && (
 				<TldrawUiDropdownMenuRoot id={`comment-thread-actions-${thread.id}`}>
 					<TldrawUiDropdownMenuTrigger>
 						<TooltipButton
@@ -401,7 +407,7 @@ export function ThreadView({
 					: undefined
 			}
 			composer={
-				currentUserId && !thread.resolved
+				canComment && !thread.resolved
 					? {
 							author: me ?? UNKNOWN_COMMENT_AUTHOR,
 							placeholder: msg('comments.reply-placeholder'),
@@ -412,11 +418,17 @@ export function ThreadView({
 								saveCommentDraft(replyDraftSlot(thread.id), value)
 							},
 							onSubmit: postReply,
-							disabled: isCommentEmpty(reply),
+							// No user, no author for the record — dead send button.
+							disabled: isCommentEmpty(reply) || !currentUserId,
 							getMentionSuggestions,
 							renderMentionSuggestion,
 						}
 					: undefined
+			}
+			footer={
+				!canComment && !thread.resolved && ComposerFallback ? (
+					<ComposerFallback context="thread" />
+				) : undefined
 			}
 		/>
 	)

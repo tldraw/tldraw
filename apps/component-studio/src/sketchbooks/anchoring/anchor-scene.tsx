@@ -7,12 +7,9 @@ import {
 	TLShapeId,
 	Tldraw,
 	createShapeId,
-	toRichText,
 } from 'tldraw'
 import { AnchoredComment } from '../comments/anchored-comment'
 import './anchor-scene.css'
-
-const SENTENCE = 'The quick brown fox jumps over the lazy dog.'
 
 interface Frac {
 	left: number
@@ -23,7 +20,6 @@ interface Frac {
 
 interface Target {
 	pin: { left: number; top: number }
-	textHighlights: Frac[]
 	region: Frac | null
 }
 
@@ -37,8 +33,8 @@ export interface AnchorSceneProps {
 /**
  * Renders a comment thread anchored via each TLCommentAnchor kind against a real tldraw
  * editor: `shape` creates a geo shape and reads its page bounds, `point`/`region` map page
- * coordinates through the camera, `text-range` measures a DOM range over the shape's text.
- * Every result becomes a fraction of the container so it survives the board's scale-to-fit.
+ * coordinates through the camera. Every result becomes a fraction of the container so it
+ * survives the board's scale-to-fit.
  */
 export function AnchorScene({ anchor, thread, comments, open }: AnchorSceneProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
@@ -88,9 +84,6 @@ export function AnchorScene({ anchor, thread, comments, open }: AnchorSceneProps
 		<div className="anchor-scene" ref={containerRef}>
 			<Tldraw hideUi onMount={handleMount} />
 			{target?.region && <div className="anchor-scene__region" style={fracStyle(target.region)} />}
-			{target?.textHighlights.map((f, i) => (
-				<div key={i} className="anchor-scene__text-hl" style={fracStyle(f)} />
-			))}
 			{target && (
 				<div
 					className="anchor-scene__pin"
@@ -126,17 +119,6 @@ function setupAnchor(editor: Editor, anchor: TLCommentAnchor): TLShapeId | null 
 		})
 		return id
 	}
-	if (anchor.type === 'text-range') {
-		const id = createShapeId()
-		editor.createShape({
-			id,
-			type: 'text',
-			x: 24,
-			y: 76,
-			props: { richText: toRichText(SENTENCE), w: 220, autoSize: false, size: 's' },
-		})
-		return id
-	}
 	return null
 }
 
@@ -158,34 +140,19 @@ function measureAnchor(
 			const { x, y } = anchor.isPrecise ? anchor : { x: 1, y: 0 }
 			return {
 				pin: { left: f.left + x * f.width, top: f.top + y * f.height },
-				textHighlights: [],
 				region: null,
 			}
 		}
 		case 'point': {
 			const f = pageBoxToFrac(editor, c, anchor.x, anchor.y, 0, 0)
-			return { pin: { left: f.left, top: f.top }, textHighlights: [], region: null }
+			return { pin: { left: f.left, top: f.top }, region: null }
 		}
 		case 'region': {
 			const f = pageBoxToFrac(editor, c, anchor.x, anchor.y, anchor.w, anchor.h)
-			return { pin: { left: f.left + f.width, top: f.top }, textHighlights: [], region: f }
+			return { pin: { left: f.left + f.width, top: f.top }, region: f }
 		}
 		case 'page':
-			return { pin: { left: 0.05, top: 0.06 }, textHighlights: [], region: null }
-		case 'text-range': {
-			const richText = findRenderedText(editor)
-			if (!richText) return null
-			const range = rangeForOffsets(richText, anchor.from, anchor.to)
-			if (!range) return null
-			const frags = [...range.getClientRects()].map((r) => screenRectToFrac(c, r))
-			if (frags.length === 0) return null
-			const last = frags[frags.length - 1]
-			return {
-				pin: { left: last.left + last.width, top: last.top },
-				textHighlights: frags,
-				region: null,
-			}
-		}
+			return { pin: { left: 0.05, top: 0.06 }, region: null }
 	}
 }
 
@@ -208,48 +175,4 @@ function pageBoxToFrac(
 		width: (br.x - tl.x) / c.width,
 		height: (br.y - tl.y) / c.height,
 	}
-}
-
-/** A window-absolute DOM rect to a container fraction. */
-function screenRectToFrac(c: DOMRect, r: DOMRect): Frac {
-	return {
-		left: (r.left - c.left) / c.width,
-		top: (r.top - c.top) / c.height,
-		width: r.width / c.width,
-		height: r.height / c.height,
-	}
-}
-
-/** The visible text shape's rich-text element, excluding the hidden `.tl-text-measure` copy. */
-function findRenderedText(editor: Editor): Element | null {
-	const nodes = [...editor.getContainer().querySelectorAll('.tl-rich-text')]
-	return (
-		nodes.find(
-			(el) => el.textContent?.includes('quick brown') && !el.closest('.tl-text-measure')
-		) ?? null
-	)
-}
-
-function rangeForOffsets(root: Element, from: number, to: number): Range | null {
-	const start = locate(root, from)
-	const end = locate(root, to)
-	if (!start || !end) return null
-	const range = document.createRange()
-	range.setStart(start.node, start.offset)
-	range.setEnd(end.node, end.offset)
-	return range
-}
-
-/** Map a character offset within `root` to the text node and in-node offset holding it. */
-function locate(root: Element, offset: number): { node: Node; offset: number } | null {
-	const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
-	let acc = 0
-	let node = walker.nextNode()
-	while (node) {
-		const len = node.textContent?.length ?? 0
-		if (acc + len >= offset) return { node, offset: offset - acc }
-		acc += len
-		node = walker.nextNode()
-	}
-	return null
 }
