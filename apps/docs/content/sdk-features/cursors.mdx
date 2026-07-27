@@ -166,13 +166,16 @@ To customize the cursor, pass your own component via the `components` prop's `Co
 import { TLCursorProps, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-function CustomCollaboratorCursor({ point, color, name }: TLCursorProps) {
+function CustomCollaboratorCursor({ point, color, name, zoom }: TLCursorProps) {
 	if (!point) return null
 	return (
 		<div
 			style={{
 				position: 'absolute',
-				transform: `translate(${point.x}px, ${point.y}px)`,
+				// The layer is scaled by the camera, so counter-scale by 1 / zoom to keep the
+				// cursor a constant on-screen size (the default components do the same).
+				transform: `translate(${point.x}px, ${point.y}px) scale(${1 / zoom})`,
+				transformOrigin: 'top left',
 				pointerEvents: 'none',
 			}}
 		>

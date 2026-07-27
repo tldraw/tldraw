@@ -13,7 +13,6 @@ export * from '@tldraw/utils'
 // eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/validate'
 
-export { LiveCollaborators } from './lib/components/LiveCollaborators'
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
 export {
 	DefaultCanvas,
@@ -324,6 +323,7 @@ export {
 	type SafeId,
 } from './lib/hooks/useSafeId'
 export { useTransform } from './lib/hooks/useTransform'
+export { isCursorInViewport } from './lib/utils/collaborators'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {

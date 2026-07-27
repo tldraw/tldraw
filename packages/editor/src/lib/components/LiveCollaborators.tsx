@@ -1,24 +1,12 @@
 import { track, useQuickReactor } from '@tldraw/state-react'
 import { TLInstancePresence } from '@tldraw/tlschema'
-import { modulate } from '@tldraw/utils'
 import { useLayoutEffect, useRef } from 'react'
-import type { Editor } from '../editor/Editor'
 import { useEditorComponents } from '../hooks/EditorComponentsContext'
 import { useEditor } from '../hooks/useEditor'
 import { useSharedSafeId } from '../hooks/useSafeId'
-import { toDomPrecision } from '../primitives/utils'
+import { isCursorInViewport } from '../utils/collaborators'
 import { setStyleProperty } from '../utils/dom'
-
-/** The camera transform for a 1px html layer — the same formula as the canvas's html layers,
- *  including the small offset that lines the 1px container up exactly when zoomed. */
-function cameraLayerTransform(editor: Editor): string {
-	const { x, y, z } = editor.getCamera()
-	const offset =
-		z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
-	return `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
-		x + offset
-	)}px,${toDomPrecision(y + offset)}px)`
-}
+import { getHtmlLayerTransform } from '../utils/getHtmlLayerTransform'
 
 /**
  * The collaborator cursor layer: a DOM layer stacked as a sibling of the canvas — above all canvas
@@ -47,13 +35,13 @@ export const LiveCollaborators = track(function LiveCollaborators() {
 	useLayoutEffect(() => {
 		const elm = rHtmlLayer.current
 		if (!elm) return
-		setStyleProperty(elm, 'transform', cameraLayerTransform(editor))
+		setStyleProperty(elm, 'transform', getHtmlLayerTransform(editor))
 	})
 	useQuickReactor(
 		'position collaborators layer',
 		function positionCollaboratorsWhenCameraMoves() {
 			// Reads the camera even while the layer is unmounted, keeping the subscription alive.
-			const transform = cameraLayerTransform(editor)
+			const transform = getHtmlLayerTransform(editor)
 			setStyleProperty(rHtmlLayer.current, 'transform', transform)
 		},
 		[editor]
@@ -94,18 +82,9 @@ const Collaborator = track(function Collaborator({
 
 	if (!cursor) return null
 
-	// Add a little padding to the top-left of the viewport
-	// so that the cursor doesn't get cut off
-	const isCursorInViewport = !(
-		cursor.x < viewportPageBounds.minX - 12 / zoomLevel ||
-		cursor.y < viewportPageBounds.minY - 16 / zoomLevel ||
-		cursor.x > viewportPageBounds.maxX - 12 / zoomLevel ||
-		cursor.y > viewportPageBounds.maxY - 16 / zoomLevel
-	)
-
 	// Off-viewport collaborators show as the canvas-drawn hint arrows
-	// (CollaboratorHintOverlayUtil) — only the cursor itself is DOM.
-	if (!isCursorInViewport) return null
+	// (CollaboratorHintOverlayUtil), which shares this predicate — only the cursor itself is DOM.
+	if (!isCursorInViewport(cursor, viewportPageBounds, zoomLevel)) return null
 	if (!CollaboratorCursor) return null
 	return (
 		<CollaboratorCursor

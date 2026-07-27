@@ -700,7 +700,7 @@ export function DefaultBackground(): JSX.Element;
 // @public (undocumented)
 export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Element;
 
-// @public (undocumented)
+// @public
 export const DefaultCursor: NamedExoticComponent<TLCursorProps>;
 
 // @public (undocumented)
@@ -2391,6 +2391,14 @@ export function isAccelKey(e: {
 }): boolean;
 
 // @public
+export function isCursorInViewport(cursor: VecLike, viewport: {
+    maxX: number;
+    maxY: number;
+    minX: number;
+    minY: number;
+}, zoom: number): boolean;
+
+// @public
 export function isSafeFloat(n: number): boolean;
 
 // @public
@@ -2446,9 +2454,6 @@ export type LicenseState = 'expired' | 'licensed-with-watermark' | 'licensed' | 
 
 // @public (undocumented)
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
-
-// @public
-export const LiveCollaborators: NamedExoticComponent<unknown>;
 
 // @public (undocumented)
 export function LoadingScreen({ children }: LoadingScreenProps): JSX.Element;

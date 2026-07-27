@@ -399,10 +399,6 @@ input,
 	transform-origin: top left;
 }
 
-.tl-collaborator__cursor {
-	z-index: var(--tl-layer-overlays-collaborator-cursor);
-}
-
 .tl-cursor {
 	overflow: visible;
 }

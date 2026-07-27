@@ -8,6 +8,7 @@ import {
 	bind,
 	clamp,
 	computed,
+	PI2,
 	react,
 	uniqueId,
 } from '@tldraw/editor'
@@ -282,7 +283,7 @@ export class MinimapManager {
 		for (const presence of editor.getVisibleCollaboratorsOnCurrentPage()) {
 			if (!presence.cursor) continue
 			ctx.beginPath()
-			ctx.arc(presence.cursor.x, presence.cursor.y, dotRadius, 0, Math.PI * 2)
+			ctx.arc(presence.cursor.x, presence.cursor.y, dotRadius, 0, PI2)
 			ctx.fillStyle = presence.color
 			ctx.fill()
 		}
