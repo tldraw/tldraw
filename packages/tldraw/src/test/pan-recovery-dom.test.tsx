@@ -1,0 +1,128 @@
+import { act } from '@testing-library/react'
+import { Box, Vec } from '@tldraw/editor'
+import { Tldraw } from '../lib/Tldraw'
+import { renderTldrawComponentWithEditor } from './testutils/renderTldrawComponent'
+
+// These tests drive the real DOM handlers in useCanvasEvents rather than
+// dispatching synthetic editor events: the stale-pan recovery lives in the
+// document-level pointermove listener, which TestEditor/Driver bypass. jsdom
+// is missing a few browser APIs those handlers rely on, so we polyfill them.
+
+if (typeof (globalThis as any).PointerEvent === 'undefined') {
+	// jsdom has no PointerEvent; the canvas handlers do `e instanceof PointerEvent`.
+	;(globalThis as any).PointerEvent = class PointerEvent extends MouseEvent {
+		pointerId: number
+		pointerType: string
+		pressure: number
+		isPrimary: boolean
+		constructor(type: string, params: any = {}) {
+			super(type, params)
+			this.pointerId = params.pointerId ?? 0
+			this.pointerType = params.pointerType ?? ''
+			this.pressure = params.pressure ?? 0
+			this.isPrimary = params.isPrimary ?? false
+		}
+	}
+}
+if (!Element.prototype.setPointerCapture) {
+	Element.prototype.setPointerCapture = () => {}
+	Element.prototype.releasePointerCapture = () => {}
+	Element.prototype.hasPointerCapture = () => false
+}
+
+function pointerEvent(
+	type: 'pointerdown' | 'pointermove' | 'pointerup',
+	options: { clientX: number; clientY: number; button?: number; buttons: number }
+) {
+	return new (globalThis as any).PointerEvent(type, {
+		bubbles: true,
+		cancelable: true,
+		pointerId: 1,
+		pointerType: 'mouse',
+		isPrimary: true,
+		button: 0,
+		...options,
+	})
+}
+
+async function setup() {
+	const { editor } = await renderTldrawComponentWithEditor(
+		(onMount) => <Tldraw onMount={onMount} />,
+		{ waitForPatterns: false }
+	)
+	const canvas = document.querySelector('[data-testid="canvas"]') as HTMLElement
+	await act(async () => {
+		editor.updateViewportScreenBounds(new Box(0, 0, 1000, 1000))
+	})
+	return { editor, canvas }
+}
+
+// Dispatch a DOM event and flush the editor's pending event queue.
+async function fire(editor: any, target: Element | HTMLElement, event: Event) {
+	await act(async () => {
+		target.dispatchEvent(event)
+		editor.emit('tick', 16)
+	})
+}
+
+describe('stale pan recovery via real DOM events', () => {
+	it('ends a right-click pan when the pointerup was missed', async () => {
+		const { editor, canvas } = await setup()
+
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 2, buttons: 2 })
+		)
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 200, clientY: 200, buttons: 2 })
+		)
+		expect(editor.inputs.getIsPanning()).toBe(true)
+		expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
+
+		// The mouse re-enters the window with no buttons held: the pointerup
+		// was eaten outside. The next move must end the pan, not continue it.
+		editor.inputs.setPointerVelocity(new Vec(0, 0))
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 0 })
+		)
+		expect(editor.inputs.getIsPanning()).toBe(false)
+		expect(editor.inputs.getIsPointing()).toBe(false)
+		expect(editor.getInstanceState().cursor.type).not.toBe('grabbing')
+		expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
+
+		// Further movement must not pan either.
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 450, clientY: 450, buttons: 0 })
+		)
+		expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
+	})
+
+	it('keeps panning while the right button is still held', async () => {
+		const { editor, canvas } = await setup()
+
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 2, buttons: 2 })
+		)
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 200, clientY: 200, buttons: 2 })
+		)
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 2 })
+		)
+		expect(editor.inputs.getIsPanning()).toBe(true)
+		expect(editor.getCamera()).toMatchObject({ x: 200, y: 200, z: 1 })
+	})
+})

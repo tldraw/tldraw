@@ -228,6 +228,43 @@ export function useCanvasEvents() {
 			lastX = e.clientX
 			lastY = e.clientY
 
+			// A pan button released outside the window can lose its pointerup —
+			// no pointercancel or lostpointercapture fires either — leaving the
+			// pan stuck following the cursor. If the buttons bitmask says a
+			// tracked pan button is no longer down, end it through the normal
+			// pointer_up path before dispatching this move.
+			if (
+				e.pointerType === 'mouse' &&
+				// synthetic/test events may omit buttons entirely; skip the check for those
+				typeof e.buttons === 'number' &&
+				editor.inputs.getIsPanning() &&
+				editor.inputs.getIsPointing()
+			) {
+				for (const button of Array.from(editor.inputs.buttons.keys())) {
+					// Button 0 (left) → bit 1, button 1 (middle) → bit 4, button 2
+					// (right) → bit 2. On darwin, ctrl+click maps to button 2 while
+					// the physical bit is 1 (left), so button 2 only counts as stale
+					// when neither bit is set.
+					const stale =
+						button === 0
+							? !(e.buttons & 1)
+							: button === 1
+								? !(e.buttons & 4)
+								: button === 2
+									? !(e.buttons & 2) && !(e.buttons & 1)
+									: false
+					if (stale) {
+						editor.dispatch({
+							type: 'pointer',
+							target: 'canvas',
+							name: 'pointer_up',
+							...getPointerInfo(editor, e),
+							button,
+						})
+					}
+				}
+			}
+
 			// For tools that benefit from a higher fidelity of events,
 			// we dispatch the coalesced events.
 			// N.B. Sometimes getCoalescedEvents isn't present on iOS, ugh.
