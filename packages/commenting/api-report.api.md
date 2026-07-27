@@ -167,7 +167,7 @@ export interface CommentCardProps {
 }
 
 // @public
-export function CommentComposer({ author, placeholder, value, onChange, onSubmit, sendLabel, disabled, autoFocus, leading, getMentionSuggestions, renderMentionSuggestion }: CommentComposerProps): JSX.Element;
+export function CommentComposer({ author, placeholder, value, onChange, onSubmit, sendLabel, onArrowUpWhenEmpty, disabled, autoFocus, leading, getMentionSuggestions, renderMentionSuggestion }: CommentComposerProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentComposerProps {
@@ -179,6 +179,7 @@ export interface CommentComposerProps {
     disabled?: boolean;
     getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
     leading?: ReactNode;
+    onArrowUpWhenEmpty?(): void;
     // (undocumented)
     onChange?(value: TLRichText): void;
     onSubmit?(): void;

@@ -44,6 +44,9 @@
 	position: absolute;
 	top: calc(100% + 4px);
 	left: 0;
+	/* above the card's ::after hover strip, which otherwise paints over the icons and eats
+	   their clicks */
+	z-index: 1;
 	display: flex;
 	align-items: center;
 	gap: 4px;
@@ -61,14 +64,23 @@
 	color: var(--tl-color-text-3);
 }
 .tlui-cmt-edit-row__link {
+	display: flex;
+	align-items: center;
 	padding: 0;
 	border: none;
 	background: none;
 	font: inherit;
-	color: var(--tl-color-selected);
+	color: var(--tl-color-text-3);
 	cursor: pointer;
 }
+.tlui-cmt-edit-row__link:hover {
+	color: var(--tl-color-selected);
+}
+/* the trash reads as red at rest, but softened toward the row's grey; full danger red on hover */
 .tlui-cmt-edit-row__link--danger {
+	color: color-mix(in srgb, var(--tl-color-danger) 60%, var(--tl-color-text-3));
+}
+.tlui-cmt-edit-row__link--danger:hover {
 	color: var(--tl-color-danger);
 }
 
@@ -631,9 +643,22 @@
 .tlui-cmt-thread .tlui-cmt-card,
 .tlui-cmt-canvas-preview--thread .tlui-cmt-card {
 	width: 100%;
-	padding: 6px 0 6px 4px;
+	/* extra bottom padding gives the hover edit/delete row room in the gap between comments */
+	padding: 6px 0 14px 4px;
 	background: transparent;
 	border: none;
+}
+/* hovering the blank strip below a comment — where the edit/delete row appears — counts as
+   hovering the comment itself, so the row reveals from there and stays reachable without a
+   dead zone between the card and its icons */
+.tlui-cmt-thread .tlui-cmt-card::after,
+.tlui-cmt-canvas-preview--thread .tlui-cmt-card::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	height: var(--tlui-cmt-thread-gap, 6px);
 }
 
 /* comments list — thread summaries, one per row (used by the canvas sidebar) */
