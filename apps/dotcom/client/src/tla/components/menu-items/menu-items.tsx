@@ -21,6 +21,11 @@ import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
 import { signoutAnalytics } from '../../../utils/analytics'
 import { isDevelopmentEnv } from '../../../utils/env'
+import {
+	TLDRAW_OFFLINE_FILE_EXTENSION,
+	isTldrawOfflineFile,
+	useNotifyTldrawOfflineFiles,
+} from '../../../utils/tldrawOfflineFiles'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { UI_THEMES } from '../../themes/ui-themes'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -335,6 +340,7 @@ export function ImportFileActionItem() {
 	const navigate = useNavigate()
 
 	const importFileMsg = useMsg(messages.importFile)
+	const notifyTldrawOfflineFiles = useNotifyTldrawOfflineFiles()
 
 	return (
 		<TldrawUiMenuItem
@@ -349,11 +355,17 @@ export function ImportFileActionItem() {
 				trackEvent('import-tldr-file', { source: 'account-menu' })
 
 				try {
-					const tldrawFiles = await fileOpen({
-						extensions: [TLDRAW_FILE_EXTENSION],
+					// tldraw offline files are selectable so that we can explain why we can't open them
+					// yet. Leaving them out of the picker would just grey them out with no explanation.
+					const pickedFiles = await fileOpen({
+						extensions: [TLDRAW_FILE_EXTENSION, TLDRAW_OFFLINE_FILE_EXTENSION],
 						multiple: true,
 						description: 'tldraw project',
 					})
+
+					notifyTldrawOfflineFiles(pickedFiles)
+					const tldrawFiles = pickedFiles.filter((file) => !isTldrawOfflineFile(file))
+					if (!tldrawFiles.length) return
 
 					app.uploadTldrFiles(tldrawFiles, (fileId) => {
 						navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
