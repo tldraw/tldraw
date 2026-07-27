@@ -34,8 +34,7 @@ function isAnchoredToShape(
 }
 
 /**
- * Keep shape-anchored threads (`shape` and `text-range` anchors) alive across their shape's
- * lifecycle:
+ * Keep shape-anchored threads alive across their shape's lifecycle:
  *
  * - When the shape is deleted, the thread converts to a `point` anchor at the spot its pin last
  *   occupied, so the conversation outlives the shape instead of becoming invisible (a missing

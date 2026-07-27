@@ -77,6 +77,13 @@ export interface CommentingOptions {
 	// ── Feature toggles ──────────────────────────────────────────────────────────────────────
 	/** Fold nearby pins into count badges as the camera zooms out. */
 	readonly enableClustering: boolean
+	/**
+	 * Whether dragging the comment tool out creates a region anchor — a comment attached to a
+	 * rectangular area of the page, drawn as a dashed box with the thread's pin on one corner.
+	 * Off by default: comments attach to points and shapes only, and a drag just trails the
+	 * composer. The `region*` options below tune the interaction.
+	 */
+	readonly enableRegions: boolean
 
 	// ── Permissions ──────────────────────────────────────────────────────────────────────────
 	/**
@@ -109,6 +116,18 @@ export interface CommentingOptions {
 	 */
 	shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean
 
+	// ── Region comments ───────────────────────────────────────────────────────────────────────
+	/** Which corner of a region its pin and composer sit on, as a normalized 0–1 offset within the
+	 *  region. Default bottom-right. */
+	readonly regionPinCorner: { readonly x: number; readonly y: number }
+	/** When a region's dashed box and resize handles reveal: while the pointer is within the
+	 *  region, while its pin is hovered, or only while its thread is open. */
+	readonly regionReveal: 'pointer' | 'pin-hover' | 'open'
+	/** How a region is moved to a new spot: dragging its pin, dragging its body, or either. */
+	readonly regionMove: 'pin' | 'body' | 'both'
+	/** A region's resize affordance: corner handles, edge handles, or none. */
+	readonly regionResize: 'corners' | 'edges' | 'none'
+
 	// ── Clustering tuning ─────────────────────────────────────────────────────────────────────
 	/** Screen-pixel margin by which the viewport is inflated when culling cluster badges. */
 	readonly clusterCullMargin: number
@@ -129,9 +148,14 @@ export const defaultCommentingOptions = {
 	history: 'ignore',
 	dragHistory: undefined,
 	enableClustering: true,
+	enableRegions: false,
 	canComment: undefined,
 	impreciseShapeAnchor: { x: 1, y: 0 },
 	shouldBePrecise: () => true,
+	regionPinCorner: { x: 1, y: 1 },
+	regionReveal: 'pointer',
+	regionMove: 'pin',
+	regionResize: 'corners',
 	clusterCullMargin: 120,
 	clusterSplitZoomFactor: 1.05,
 	components: {},

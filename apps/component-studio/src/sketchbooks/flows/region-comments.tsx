@@ -1,9 +1,9 @@
 import {
 	CanvasComments,
 	CommentAuthor,
+	CommentTool,
 	commentToolOverrides,
-	commentTools,
-	RegionCommentOptions,
+	type CommentingOptions,
 } from '@tldraw/commenting'
 import { useCallback, useMemo } from 'react'
 import {
@@ -27,35 +27,33 @@ const AUTHORS: Record<string, CommentAuthor> = {
 const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 
 export interface RegionCommentsFlowProps {
-	/** The region behaviour to showcase. Region is always enabled in this flow; each sketch overrides
-	 *  the dimension(s) it's demonstrating. */
-	regionOptions?: Partial<RegionCommentOptions>
+	/** The region behaviour to showcase, as commenting options layered over the flow's baseline
+	 *  (region enabled). Each sketch overrides the `region*` dimension(s) it's demonstrating. */
+	options?: Partial<CommentingOptions>
 	/** Seed a region comment so the variant can be exercised without drawing one first. Default true;
 	 *  the creation-flow sketch turns it off to start from an empty canvas. */
 	seeded?: boolean
 }
 
+const components: TLComponents = {
+	InFrontOfTheCanvas: () => <CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />,
+}
+
 /**
- * The region-comment flow on a live editor: the comment tool with region enabled (drag out an area),
- * plus the `CanvasComments` overlay driven by a chosen `RegionCommentOptions`. Runs on an in-memory
- * store, so each sketch is an isolated playground for one interaction variant.
+ * The region-comment flow on a live editor: the comment tool configured with region enabled (drag
+ * out an area), plus the `CanvasComments` overlay. Runs on an in-memory store, so each sketch is an
+ * isolated playground for one interaction variant.
  */
-export function RegionCommentsFlow({ regionOptions, seeded = true }: RegionCommentsFlowProps) {
+export function RegionCommentsFlow({ options, seeded = true }: RegionCommentsFlowProps) {
 	const store = useMemo(
 		() => createTLStore({ schema: createTLSchema({ records: commentSchemaRecords }) }),
 		[]
 	)
-	const components: TLComponents = useMemo(
-		() => ({
-			InFrontOfTheCanvas: () => (
-				<CanvasComments
-					currentUserId="me"
-					resolveAuthor={resolveAuthor}
-					regionOptions={{ enabled: true, ...regionOptions }}
-				/>
-			),
-		}),
-		[regionOptions]
+	// Options are fixed at tool registration, and each sketch is its own mount — so a configured
+	// tool per sketch is all a variant needs.
+	const tools = useMemo(
+		() => [CommentTool.configure({ enableRegions: true, ...options })],
+		[options]
 	)
 	// Seed one region comment so hover/move/resize variants have something to act on immediately.
 	const handleMount = useCallback(
@@ -88,7 +86,7 @@ export function RegionCommentsFlow({ regionOptions, seeded = true }: RegionComme
 		<div className="region-comments-flow">
 			<Tldraw
 				store={store}
-				tools={commentTools}
+				tools={tools}
 				overrides={[commentToolOverrides]}
 				components={components}
 				onMount={handleMount}

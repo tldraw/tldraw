@@ -1,0 +1,24 @@
+.comment-regions-controls {
+	position: absolute;
+	top: 8px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 1000;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 4px;
+	pointer-events: all;
+}
+
+.comment-regions-row {
+	display: flex;
+	align-items: center;
+}
+
+.comment-regions-label {
+	width: 88px;
+	padding-left: 8px;
+	font-size: 12px;
+	color: var(--color-text-1);
+}

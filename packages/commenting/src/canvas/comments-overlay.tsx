@@ -58,11 +58,6 @@ import {
 } from './options'
 import { computePinStacks } from './pin-stacking'
 import {
-	DEFAULT_REGION_COMMENT_OPTIONS,
-	RegionCommentOptions,
-	setRegionCommentOptions,
-} from './region-options'
-import {
 	commentsHidden,
 	commitCommentMutation,
 	openStackId,
@@ -115,9 +110,16 @@ export interface CanvasCommentsProps {
 	renderMentionSuggestion?(member: MentionMember): ReactNode
 	/** Where imprecise shape pins sit — a normalized (0–1) spot within the shape. Default top-right. */
 	impreciseShapeAnchor?: { x: number; y: number }
-	/** Region comment behaviour. Region is off by default — omit this for click-only point/shape
-	 *  comments. Anything unset falls back to {@link DEFAULT_REGION_COMMENT_OPTIONS}. */
-	regionOptions?: Partial<RegionCommentOptions>
+}
+
+/** The region dimensions of {@link CommentingOptions}, gathered as one object for threading
+ *  through the region components below. */
+interface RegionCommentOptions {
+	enabled: CommentingOptions['enableRegions']
+	pinCorner: CommentingOptions['regionPinCorner']
+	reveal: CommentingOptions['regionReveal']
+	move: CommentingOptions['regionMove']
+	resize: CommentingOptions['regionResize']
 }
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
@@ -176,13 +178,18 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const editor = useEditor()
 	const options = useCommentingOptions()
 	const container = useContainer()
-	// Merge the consumer's region options over the disabled defaults and publish them for this editor,
-	// so the comment tool (which has no props) reads the same per-instance config.
+	// Gather the region dimensions of the commenting options into one object for threading through
+	// the region components below. Constant per editor — options are fixed at tool registration.
 	const regionOptions = useMemo(
-		() => ({ ...DEFAULT_REGION_COMMENT_OPTIONS, ...props.regionOptions }),
-		[props.regionOptions]
+		(): RegionCommentOptions => ({
+			enabled: options.enableRegions,
+			pinCorner: options.regionPinCorner,
+			reveal: options.regionReveal,
+			move: options.regionMove,
+			resize: options.regionResize,
+		}),
+		[options]
 	)
-	useEffect(() => setRegionCommentOptions(editor, regionOptions), [editor, regionOptions])
 	const layerRef = useRef<HTMLDivElement>(null)
 	// Over the pins and cluster badges, hover passes through to the canvas beneath (these events
 	// bubble up from the pointer-interactive markers to this layer root). Wheel pass-through is
@@ -1100,7 +1107,7 @@ const ThreadPin = memo(function ThreadPin({
 	thread,
 	regionOptions,
 	...props
-}: Omit<CanvasCommentsProps, 'regionOptions'> & {
+}: CanvasCommentsProps & {
 	editor: Editor
 	thread: TLCommentThread
 	regionOptions: RegionCommentOptions
