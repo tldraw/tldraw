@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
-import { useToasts } from 'tldraw'
-import { defineMessages, useMsg } from './i18n'
+import { useDialogs } from 'tldraw'
+import { TlaTldrawOfflineFileDialog } from '../components/dialogs/TlaTldrawOfflineFileDialog'
 
 /**
  * The extension used by tldraw offline. Unlike a `.tldr` file, which is JSON, a `.tldraw` file is
@@ -9,23 +9,14 @@ import { defineMessages, useMsg } from './i18n'
  */
 export const TLDRAW_OFFLINE_FILE_EXTENSION = '.tldraw'
 
-const messages = defineMessages({
-	title: { defaultMessage: 'Can’t open .tldraw files yet' },
-	description: {
-		defaultMessage: 'We’re still working on support for files from tldraw offline.',
-	},
-})
-
 /**
  * Returns a function that drops any tldraw offline files from a list and tells the user why,
  * handing back the files we can actually handle. Filtering them out here keeps them away from the
  * default file handling, which would otherwise stack a generic "file type not allowed" toast on
- * top of this one.
+ * top of the dialog.
  */
 export function useRejectTldrawOfflineFiles() {
-	const { addToast } = useToasts()
-	const title = useMsg(messages.title)
-	const description = useMsg(messages.description)
+	const { addDialog } = useDialogs()
 
 	return useCallback(
 		(files: File[]) => {
@@ -35,15 +26,13 @@ export function useRejectTldrawOfflineFiles() {
 				(file) => !file.name.toLowerCase().endsWith(TLDRAW_OFFLINE_FILE_EXTENSION)
 			)
 			if (supported.length < files.length) {
-				addToast({
+				addDialog({
 					id: 'tldraw-offline-file-unsupported',
-					title,
-					description,
-					severity: 'warning',
+					component: TlaTldrawOfflineFileDialog,
 				})
 			}
 			return supported
 		},
-		[addToast, title, description]
+		[addDialog]
 	)
 }

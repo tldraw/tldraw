@@ -522,6 +522,9 @@
   "c8a59e7135": {
     "translation": "Dismiss"
   },
+  "c906ce5e3a": {
+    "translation": "For now, you can <a>export as a .tldr file</a> to use it here."
+  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -563,9 +566,6 @@
   },
   "dbf9b24193": {
     "translation": "Leave workspace"
-  },
-  "dc7830e74a": {
-    "translation": "We’re still working on support for files from tldraw offline."
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"
@@ -632,6 +632,9 @@
   },
   "fa2ead697d": {
     "translation": "Privacy Policy"
+  },
+  "fa7ab278f1": {
+    "translation": "We’re working on support for files from tldraw offline."
   },
   "fb15c53f22": {
     "translation": "Viewer"
