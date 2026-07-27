@@ -641,6 +641,26 @@
       "value": "Got it"
     }
   ],
+  "78fe018ff0": [
+    {
+      "type": 0,
+      "value": "We’re working on support for files from "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "tldraw offline"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "797799f35e": [
     {
       "type": 0,
@@ -1499,12 +1519,6 @@
     {
       "type": 0,
       "value": "Privacy Policy"
-    }
-  ],
-  "fa7ab278f1": [
-    {
-      "type": 0,
-      "value": "We’re working on support for files from tldraw offline."
     }
   ],
   "fb15c53f22": [

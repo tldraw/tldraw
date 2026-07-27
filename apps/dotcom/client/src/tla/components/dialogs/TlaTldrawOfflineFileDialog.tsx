@@ -10,6 +10,8 @@ import {
 import { F } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 
+const TLDRAW_OFFLINE_URL = 'https://offline.tldraw.com/'
+
 /** Anchors the "Export as .tldr" section of the tldraw offline user manual. */
 const TLDRAW_OFFLINE_EXPORT_URL =
 	'https://tldraw.notion.site/User-manual-tldraw-offline-39a3e4c324c080e7b2eacc5afd078e85#3aa3e4c324c080669967e2cc3ae2c789'
@@ -29,7 +31,16 @@ export function TlaTldrawOfflineFileDialog({ onClose }: { onClose(): void }) {
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
 				<p>
-					<F defaultMessage="We’re working on support for files from tldraw offline." />
+					<F
+						defaultMessage="We’re working on support for files from <a>tldraw offline</a>."
+						values={{
+							a: (chunks) => (
+								<ExternalLink to={TLDRAW_OFFLINE_URL} eventName="open-tldraw-offline">
+									{chunks}
+								</ExternalLink>
+							),
+						}}
+					/>
 				</p>
 				<p>
 					<F

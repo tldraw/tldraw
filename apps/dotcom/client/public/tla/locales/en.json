@@ -299,6 +299,9 @@
   "78e9815992": {
     "translation": "Got it"
   },
+  "78fe018ff0": {
+    "translation": "We’re working on support for files from <a>tldraw offline</a>."
+  },
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
   },
@@ -632,9 +635,6 @@
   },
   "fa2ead697d": {
     "translation": "Privacy Policy"
-  },
-  "fa7ab278f1": {
-    "translation": "We’re working on support for files from tldraw offline."
   },
   "fb15c53f22": {
     "translation": "Viewer"

@@ -67,7 +67,10 @@ const html = `
         <body>
           <div class="message">
             <h1>Can&rsquo;t open .tldraw files yet</h1>
-            <p>We&rsquo;re working on support for files from tldraw offline.</p>
+            <p>
+              We&rsquo;re working on support for files from
+              <a href="https://offline.tldraw.com/">tldraw offline</a>.
+            </p>
             <p>
               For now, you can
               <a href="https://tldraw.notion.site/User-manual-tldraw-offline-39a3e4c324c080e7b2eacc5afd078e85#3aa3e4c324c080669967e2cc3ae2c789">export as a .tldr file</a>
