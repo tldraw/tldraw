@@ -158,9 +158,9 @@ Remote cursors render as DOM elements in a dedicated layer stacked above the can
 - The user's name as a label next to the cursor
 - Any active chat message in a bubble
 
-A collaborator whose cursor is outside your viewport shows as a small hint arrow clamped to the viewport edge, pointing toward them.
+A collaborator whose cursor is outside your viewport shows as a small hint arrow clamped to the viewport edge, pointing toward them — the hints stay canvas-drawn ([CollaboratorHintOverlayUtil](?)), like the other drawing chrome.
 
-To customize the rendering, pass your own components via the `components` prop. The `CollaboratorCursor` slot replaces the cursor (see [DefaultCursor](?) and [TLCursorProps](?)); the `CollaboratorHint` slot replaces the off-screen hint (see [DefaultCollaboratorHint](?) and [TLCollaboratorHintProps](?)):
+To customize the cursor, pass your own component via the `components` prop's `CollaboratorCursor` slot (see [DefaultCursor](?) and [TLCursorProps](?)):
 
 ```tsx
 import { TLCursorProps, Tldraw } from 'tldraw'

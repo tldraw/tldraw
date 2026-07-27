@@ -1,6 +1,5 @@
 import { ComponentType, RefAttributes, createContext, useContext } from 'react'
 import type { TLCanvasComponentProps } from '../components/default-components/DefaultCanvas'
-import type { TLCollaboratorHintProps } from '../components/default-components/DefaultCollaboratorHint'
 import type { TLCursorProps } from '../components/default-components/DefaultCursor'
 import type { TLErrorFallbackComponent } from '../components/default-components/DefaultErrorFallback'
 import type { TLGridProps } from '../components/default-components/DefaultGrid'
@@ -12,7 +11,6 @@ export interface TLEditorComponents {
 	Background?: ComponentType | null
 	Canvas?: ComponentType<TLCanvasComponentProps> | null
 	CollaboratorCursor?: ComponentType<TLCursorProps> | null
-	CollaboratorHint?: ComponentType<TLCollaboratorHintProps> | null
 	Grid?: ComponentType<TLGridProps> | null
 	InFrontOfTheCanvas?: ComponentType | null
 	LoadingScreen?: ComponentType | null

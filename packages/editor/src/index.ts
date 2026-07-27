@@ -20,10 +20,6 @@ export {
 	type TLCanvasComponentProps,
 } from './lib/components/default-components/DefaultCanvas'
 export {
-	DefaultCollaboratorHint,
-	type TLCollaboratorHintProps,
-} from './lib/components/default-components/DefaultCollaboratorHint'
-export {
 	DefaultCursor,
 	type TLCursorProps,
 } from './lib/components/default-components/DefaultCursor'

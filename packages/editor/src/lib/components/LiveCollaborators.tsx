@@ -23,7 +23,8 @@ function cameraLayerTransform(editor: Editor): string {
 /**
  * The collaborator cursor layer: a DOM layer stacked as a sibling of the canvas — above all canvas
  * content, below the UI panels — hosting each visible collaborator's cursor (arrow, name tag, chat
- * message), or their off-screen hint at the viewport edge.
+ * message). Off-viewport collaborators are the canvas-drawn hint arrows' job
+ * (CollaboratorHintOverlayUtil), not this layer's.
  *
  * Cursors are DOM rather than canvas-drawn so their chrome styles and composes like the rest of
  * the UI; per-cursor positioning writes `transform` directly (see `useTransform`), so pointer- and
@@ -33,7 +34,7 @@ function cameraLayerTransform(editor: Editor): string {
  */
 export const LiveCollaborators = track(function LiveCollaborators() {
 	const editor = useEditor()
-	const { CollaboratorCursor, CollaboratorHint } = useEditorComponents()
+	const { CollaboratorCursor } = useEditorComponents()
 
 	// The inner layer carries the camera transform, so the cursor components position in page
 	// space exactly as canvas content does. Unlike the canvas's html layers this one unmounts
@@ -62,14 +63,13 @@ export const LiveCollaborators = track(function LiveCollaborators() {
 	// Visibility (activity state, following, highlighting) is handled by the editor.
 	const collaborators = editor.getVisibleCollaboratorsOnCurrentPage()
 	if (collaborators.length === 0) return null
-	if (!CollaboratorCursor && !CollaboratorHint) return null
+	if (!CollaboratorCursor) return null
 
 	return (
 		<div className="tl-collaborators">
 			<svg className="tl-svg-context" aria-hidden="true">
 				<defs>
 					<CursorDef />
-					<CollaboratorHintDef />
 				</defs>
 			</svg>
 			<div ref={setHtmlLayer} className="tl-html-layer">
@@ -87,7 +87,7 @@ const Collaborator = track(function Collaborator({
 	latestPresence: TLInstancePresence
 }) {
 	const editor = useEditor()
-	const { CollaboratorCursor, CollaboratorHint } = useEditorComponents()
+	const { CollaboratorCursor } = useEditorComponents()
 
 	const zoomLevel = editor.getZoomLevel()
 	const viewportPageBounds = editor.getViewportPageBounds()
@@ -104,29 +104,19 @@ const Collaborator = track(function Collaborator({
 		cursor.y > viewportPageBounds.maxY - 16 / zoomLevel
 	)
 
-	if (isCursorInViewport) {
-		if (!CollaboratorCursor) return null
-		return (
-			<CollaboratorCursor
-				className="tl-collaborator__cursor"
-				userId={userId}
-				point={cursor}
-				color={color}
-				zoom={zoomLevel}
-				name={userName !== 'New User' ? userName : null}
-				chatMessage={chatMessage ?? ''}
-			/>
-		)
-	}
-	if (!CollaboratorHint) return null
+	// Off-viewport collaborators show as the canvas-drawn hint arrows
+	// (CollaboratorHintOverlayUtil) — only the cursor itself is DOM.
+	if (!isCursorInViewport) return null
+	if (!CollaboratorCursor) return null
 	return (
-		<CollaboratorHint
-			className="tl-collaborator__cursor-hint"
+		<CollaboratorCursor
+			className="tl-collaborator__cursor"
 			userId={userId}
 			point={cursor}
 			color={color}
 			zoom={zoomLevel}
-			viewport={viewportPageBounds}
+			name={userName !== 'New User' ? userName : null}
+			chatMessage={chatMessage ?? ''}
 		/>
 	)
 })
@@ -148,8 +138,4 @@ function CursorDef() {
 			</g>
 		</g>
 	)
-}
-
-function CollaboratorHintDef() {
-	return <path id={useSharedSafeId('cursor_hint')} fill="currentColor" d="M -2,-5 2,0 -2,5 Z" />
 }

@@ -1,7 +1,6 @@
 import { ReactNode, useMemo } from 'react'
 import { DefaultBackground } from '../components/default-components/DefaultBackground'
 import { DefaultCanvas } from '../components/default-components/DefaultCanvas'
-import { DefaultCollaboratorHint } from '../components/default-components/DefaultCollaboratorHint'
 import { DefaultCursor } from '../components/default-components/DefaultCursor'
 import { DefaultErrorFallback } from '../components/default-components/DefaultErrorFallback'
 import { DefaultGrid } from '../components/default-components/DefaultGrid'
@@ -32,7 +31,6 @@ export function EditorComponentsProvider({
 			Background: DefaultBackground,
 			Canvas: DefaultCanvas,
 			CollaboratorCursor: DefaultCursor,
-			CollaboratorHint: DefaultCollaboratorHint,
 			Grid: DefaultGrid,
 			InFrontOfTheCanvas: null,
 			LoadingScreen: DefaultLoadingScreen,

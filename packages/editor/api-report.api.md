@@ -701,9 +701,6 @@ export function DefaultBackground(): JSX.Element;
 export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Element;
 
 // @public (undocumented)
-export function DefaultCollaboratorHint({ className, zoom, point, color, viewport, opacity }: TLCollaboratorHintProps): JSX.Element;
-
-// @public (undocumented)
 export const DefaultCursor: NamedExoticComponent<TLCursorProps>;
 
 // @public (undocumented)
@@ -3613,24 +3610,6 @@ export interface TLClipboardWriteInfo {
 }
 
 // @public (undocumented)
-export interface TLCollaboratorHintProps {
-    // (undocumented)
-    className?: string;
-    // (undocumented)
-    color: string;
-    // (undocumented)
-    opacity?: number;
-    // (undocumented)
-    point: VecModel;
-    // (undocumented)
-    userId: string;
-    // (undocumented)
-    viewport: Box;
-    // (undocumented)
-    zoom: number;
-}
-
-// @public (undocumented)
 export type TLCompleteEvent = (info: TLCompleteEventInfo) => void;
 
 // @public (undocumented)
@@ -3953,8 +3932,6 @@ export interface TLEditorComponents {
     Canvas?: ComponentType<TLCanvasComponentProps> | null;
     // (undocumented)
     CollaboratorCursor?: ComponentType<TLCursorProps> | null;
-    // (undocumented)
-    CollaboratorHint?: ComponentType<TLCollaboratorHintProps> | null;
     // (undocumented)
     ErrorFallback?: TLErrorFallbackComponent;
     // (undocumented)

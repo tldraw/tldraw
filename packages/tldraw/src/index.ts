@@ -73,6 +73,10 @@ export {
 export { ZoomBrushOverlayUtil, type TLZoomBrushOverlay } from './lib/overlays/ZoomBrushOverlayUtil'
 export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
 export {
+	CollaboratorHintOverlayUtil,
+	type TLCollaboratorHintOverlay,
+} from './lib/overlays/CollaboratorHintOverlayUtil'
+export {
 	CollaboratorBrushOverlayUtil,
 	type TLCollaboratorBrushOverlay,
 } from './lib/overlays/CollaboratorBrushOverlayUtil'

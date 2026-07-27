@@ -402,10 +402,6 @@ input,
 	z-index: var(--tl-layer-overlays-collaborator-cursor);
 }
 
-.tl-collaborator__cursor-hint {
-	z-index: var(--tl-layer-overlays-collaborator-cursor-hint);
-}
-
 .tl-cursor {
 	overflow: visible;
 }
