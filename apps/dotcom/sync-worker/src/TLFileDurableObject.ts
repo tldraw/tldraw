@@ -907,17 +907,13 @@ export class TLFileDurableObject extends DurableObject {
 				if (event.name === 'rate_limited') {
 					this.writeEvent(event.name, { blobs: [event.userId ?? 'anon-user'] })
 				} else {
-					// blob3 held the raw slug, which the durable object id in the index replaces. The
-					// empty placeholder keeps instanceId at blob5, so queries reading that column
-					// still resolve rather than silently shifting onto a neighbouring field.
-					this.writeEvent(event.name, { blobs: ['', 'unused', event.instanceId] })
+					this.writeEvent(event.name, { blobs: [event.instanceId] })
 				}
 				break
 			}
 			case 'send_message': {
-				// As above: the placeholder holds messageType at blob4.
 				this.writeEvent(event.type, {
-					blobs: ['', event.messageType],
+					blobs: [event.messageType],
 					doubles: [event.messageLength],
 				})
 				break
