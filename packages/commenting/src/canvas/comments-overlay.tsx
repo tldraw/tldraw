@@ -398,6 +398,17 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		}
 	}, [editor])
 
+	// Clear a stale open-stack id. `openStackId` names a stack's oldest thread, and only the
+	// stack's own (mounted) handlers clear it — so deleting that thread, or collapsing the stack
+	// to a single pin, unmounts the `ThreadStackPin` and strands the id. A dangling `openStackId`
+	// is not harmless: `useMarkerPreview` treats any non-null value as "a stack is open" and
+	// suppresses every hover preview until it's cleared. A live stack keys each member in
+	// `pinStacks`, so an id that's no longer a key names a stack that's gone.
+	useEffect(() => {
+		const id = openStackId.get(editor)
+		if (id && !pinStacks.has(id)) openStackId.set(editor, null)
+	}, [editor, pinStacks])
+
 	// The requested thread, once it (and, for a comment id, its parent thread) has synced into the
 	// store; null while records are still arriving or when no request is pending.
 	const requestedRevealThread = useValue(
