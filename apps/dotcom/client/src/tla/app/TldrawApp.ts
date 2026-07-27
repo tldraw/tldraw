@@ -100,6 +100,22 @@ export function shouldUseProperZero(
 	return { value: flagEnabled, reason: 'server feature flag' }
 }
 
+/**
+ * Whether commenting is available to this user. While commenting is being built out it's staff-only:
+ * anyone with a @tldraw.com email gets it, everyone else waits on the `commenting_enabled` flag
+ * (off by default, with a percentage rollout knob on the admin page). Signed-out viewers have no
+ * email and no flags, so they don't see comments at all.
+ */
+export function shouldEnableCommenting(
+	flags: FeatureFlags,
+	email?: string | null
+): { value: boolean; reason: string } {
+	if (email?.endsWith('@tldraw.com')) {
+		return { value: true, reason: '@tldraw.com email' }
+	}
+	return { value: flags.commenting_enabled?.enabled ?? false, reason: 'server feature flag' }
+}
+
 // @ts-expect-error — dev escape hatch, call window.zero() in console to toggle
 window.zero = () => {
 	const current = getFromLocalStorage('useProperZero') === 'true'
@@ -141,6 +157,8 @@ export class TldrawApp {
 	private readonly comments$: Signal<QueryResultType<typeof queries.comments>>
 
 	private readonly useProperZero: boolean
+	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
+	readonly isCommentingEnabled: boolean
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
 	private getToken: () => Promise<string | undefined>
@@ -201,6 +219,7 @@ export class TldrawApp {
 		const sessionId = uniqueId()
 		const { value: properZero, reason } = shouldUseProperZero(flags, email)
 		this.useProperZero = properZero
+		this.isCommentingEnabled = shouldEnableCommenting(flags, email).value
 		// eslint-disable-next-line no-console
 		console.log(`[Zero] Using ${properZero ? 'proper Zero' : 'ZeroPolyfill'} (${reason})`)
 		if (properZero) {

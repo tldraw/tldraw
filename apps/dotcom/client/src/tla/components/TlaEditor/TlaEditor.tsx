@@ -42,6 +42,7 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
@@ -289,14 +290,27 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 	const anonCommentToolOverrides = useAnonCommentToolOverrides()
+	const commentingEnabled = useIsCommentingEnabled()
 
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
-			InFrontOfTheCanvas: () => <CommentsOnCanvas fileId={fileId} />,
+			InFrontOfTheCanvas: commentingEnabled
+				? () => <CommentsOnCanvas fileId={fileId} />
+				: undefined,
 		}
-	}, [fileId])
+	}, [fileId, commentingEnabled])
+
+	// Without the tool and its overrides there's no comment button in the toolbar and no `c`
+	// shortcut, so commenting is fully absent for users the flag doesn't cover.
+	const editorOverrides = useMemo(
+		() =>
+			commentingEnabled
+				? [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides]
+				: [overrides, extraDragIconOverrides],
+		[commentingEnabled, overrides, extraDragIconOverrides, anonCommentToolOverrides]
+	)
 
 	return (
 		<TlaEditorWrapper>
@@ -306,7 +320,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
-				tools={tlaCommentTools}
+				tools={commentingEnabled ? tlaCommentTools : undefined}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
@@ -315,12 +329,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					actionShortcutsLocation: 'toolbar',
 					deepLinks: deepLinks ? true : undefined,
 				}}
-				overrides={[
-					overrides,
-					extraDragIconOverrides,
-					commentToolOverrides,
-					anonCommentToolOverrides,
-				]}
+				overrides={editorOverrides}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />
@@ -330,7 +339,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
-				<SneakyCommentDeepLink />
+				{commentingEnabled && <SneakyCommentDeepLink />}
 				<TlaAnonDotDevLink />
 			</Tldraw>
 		</TlaEditorWrapper>
