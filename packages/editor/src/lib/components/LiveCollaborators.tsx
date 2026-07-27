@@ -22,8 +22,8 @@ function cameraLayerTransform(editor: Editor): string {
 
 /**
  * The collaborator cursor layer: a DOM layer stacked as a sibling of the canvas — above all canvas
- * content, below the UI panels — hosting each visible collaborator's cursor (arrow, name tag, chat
- * message). Off-viewport collaborators are the canvas-drawn hint arrows' job
+ * content, below the in-front layer and the UI panels — hosting each visible collaborator's cursor
+ * (arrow, name tag, chat message). Off-viewport collaborators are the canvas-drawn hint arrows' job
  * (CollaboratorHintOverlayUtil), not this layer's.
  *
  * Cursors are DOM rather than canvas-drawn so their chrome styles and composes like the rest of
