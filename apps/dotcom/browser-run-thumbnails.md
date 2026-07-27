@@ -102,12 +102,14 @@ The sync worker needs:
 
 ### Why two buckets
 
-The two caches have opposite retention semantics, which is why they are separate buckets rather than two prefixes in one:
+Both key spaces used to live in `thumbnails`, separated only by prefix. They are now separate buckets for two reasons:
 
-- **`og/…`** keys carry no version, so each render overwrites the same object in place and a board costs exactly one object for as long as it exists. `deleteOgImageCache` removes it when the board stops being public. Nothing accumulates, and the current thumbnail must outlive any lifecycle window — so this bucket gets **no expiration rule**.
-- **`mcp/…`** keys include the board's content version (`mcp/{kind}/{slug}/{version}/{w}x{h}/{theme}/page-{n}.png`), so every edit strands the previous object and the set grows without bound. They are a pure regenerable cache, so this bucket gets an **expiration rule**.
+- **Domain.** `MCP_SCREENSHOTS` is where the MCP surface puts what it produces, and that won't stay limited to board thumbnails. Keying the bucket to the tool rather than to the artifact means the next MCP output type lands somewhere that already fits, instead of accreting inside a bucket named for something it isn't.
+- **Retention.** The two caches want opposite lifetimes:
+  - **`og/…`** keys carry no version, so each render overwrites the same object in place and a board costs exactly one object for as long as it exists. `deleteOgImageCache` removes it when the board stops being public. Nothing accumulates, and the current thumbnail must outlive any lifecycle window — so `THUMBNAILS` gets **no expiration rule**.
+  - **`mcp/…`** keys include the board's content version (`mcp/{kind}/{slug}/{version}/{w}x{h}/{theme}/page-{n}.png`), so every edit strands the previous object and the set grows without bound. A pure regenerable cache, so `MCP_SCREENSHOTS` gets an **expiration rule**.
 
-A prefix-scoped lifecycle rule on one bucket would work too, but a rule misapplied to `og/` would silently delete live thumbnails; separate buckets make that mistake impossible.
+A prefix-scoped lifecycle rule on a single bucket would also work (`wrangler r2 bucket lifecycle add` takes a prefix positionally), and has the nice property of ageing out the existing backlog in place. It was rejected because a future rule added without a prefix, or with a typo'd one, would silently delete every board's live thumbnail, and R2 expiration has no undo. Separate buckets make that mistake impossible.
 
 One-time ops setup before the first deploy of this feature:
 

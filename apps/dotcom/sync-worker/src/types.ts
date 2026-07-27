@@ -106,12 +106,18 @@ export interface Environment {
 	// Optional so tests and unconfigured environments degrade to cacheless rendering.
 	THUMBNAILS: R2Bucket | undefined
 
-	// R2 cache for MCP screenshots (`mcp/…` keys). Deliberately a different bucket from THUMBNAILS
-	// rather than a prefix in it, because the retention semantics are opposite: this key includes the
-	// board's content version, so every edit strands the previous object and the set grows without
-	// bound. The bucket carries an expiration lifecycle rule to age those out (see the ops setup in
-	// browser-run-thumbnails.md) — which would be actively wrong applied to the OG bucket, where the
-	// single per-board object is meant to live as long as the board does.
+	// R2 storage for MCP tool output (`mcp/…` keys today, which are screenshots). Its own bucket rather
+	// than a prefix inside THUMBNAILS for two reasons:
+	//
+	// - Domain. This is where the MCP surface puts what it produces, and that won't stay limited to
+	//   board thumbnails. Keying it to the tool rather than to the artifact means the next MCP output
+	//   type lands somewhere that already fits, instead of accreting inside a bucket named for
+	//   something it isn't.
+	// - Retention. These keys include the board's content version, so every edit strands the previous
+	//   object and the set grows without bound. The bucket carries an expiration lifecycle rule to age
+	//   them out (see the ops setup in browser-run-thumbnails.md), which would be actively wrong
+	//   applied to THUMBNAILS, where the single per-board object must live as long as the board does.
+	//
 	// Optional on the same terms as THUMBNAILS.
 	MCP_SCREENSHOTS: R2Bucket | undefined
 
