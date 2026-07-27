@@ -1,25 +1,35 @@
--- Denormalize the viewer's display name and color onto file_state, so the comment composer's
--- @-mention roster can offer everyone who has opened a board — not just its workspace members —
--- without joining (and thereby syncing) the private "user" row to every reader. Same pattern as
--- comment."authorName"/"authorColor" (migration 040) and group_user."userName"/"userColor".
+-- A shareable, per-file record of who has opened a board, so the comment composer can offer past
+-- viewers (not just workspace members) as @-mention targets. This is its OWN table rather than
+-- columns on file_state: file_state also carries private per-user data — lastSessionState (a user's
+-- camera position, current page, and selected shapes) and visit/edit timestamps — that must never
+-- sync to other users. Zero synced queries replicate whole rows, so exposing the viewer list from
+-- file_state would leak all of that. Every column here is safe to show to any file collaborator.
+-- Identity is denormalized (same reasoning as comment.authorName, migration 040): joining the user
+-- row would sync private user fields to every reader.
 
-ALTER TABLE file_state
-  ADD COLUMN "userName" VARCHAR DEFAULT '' NOT NULL,
-  ADD COLUMN "userColor" VARCHAR DEFAULT '' NOT NULL;
+CREATE TABLE file_visitor (
+  "userId" VARCHAR NOT NULL,
+  "fileId" VARCHAR NOT NULL,
+  "userName" VARCHAR DEFAULT '' NOT NULL,
+  "userColor" VARCHAR DEFAULT '' NOT NULL,
+  -- mirrored from file_state for most-recent-first ordering of the roster
+  "lastVisitAt" BIGINT,
+  PRIMARY KEY ("userId", "fileId")
+);
 
--- Backfill existing rows from the user table so viewers who opened a board before this migration
--- are still resolvable in the roster.
-UPDATE file_state fs
-SET "userName" = u."name",
-    "userColor" = u."color"
-FROM public."user" u
-WHERE u."id" = fs."userId";
+CREATE INDEX file_visitor_file_id_idx ON file_visitor("fileId");
 
--- Stamp viewer details on insert — onEnterFile upserts a file_state row keyed by (userId, fileId)
--- and only knows userId. BEFORE INSERT keeps it a single write with no extra WAL entry for Zero.
--- (userId is part of the primary key and never changes, so as with the comment author trigger the
--- UPDATE branch effectively never fires; renames are handled by the trigger below.)
-CREATE OR REPLACE FUNCTION set_file_state_user_details() RETURNS TRIGGER AS $$
+-- Backfill from existing visits. user.name/user.color are NOT NULL (000_seed.sql), so COALESCE only
+-- guards the (impossible here) missing-join case and keeps the NOT NULL columns satisfied.
+INSERT INTO file_visitor ("userId", "fileId", "userName", "userColor", "lastVisitAt")
+SELECT fs."userId", fs."fileId", COALESCE(u."name", ''), COALESCE(u."color", ''), fs."lastVisitAt"
+FROM file_state fs
+JOIN public."user" u ON u."id" = fs."userId"
+ON CONFLICT ("userId", "fileId") DO NOTHING;
+
+-- Mirror a visit (file_state insert, or a lastVisitAt refresh on exit) into file_visitor, stamping
+-- the visitor's current name/color. Keyed the same as file_state, so it's a natural upsert.
+CREATE OR REPLACE FUNCTION sync_file_visitor_on_file_state() RETURNS TRIGGER AS $$
 DECLARE
   visitor_name VARCHAR;
   visitor_color VARCHAR;
@@ -27,25 +37,41 @@ BEGIN
   SELECT u."name", u."color" INTO visitor_name, visitor_color
   FROM public."user" u
   WHERE u."id" = NEW."userId";
-  -- a missing user row keeps the '' defaults; the client filters nameless rows out of the roster
-  IF FOUND THEN
-    NEW."userName" := visitor_name;
-    NEW."userColor" := visitor_color;
-  END IF;
+  INSERT INTO file_visitor ("userId", "fileId", "userName", "userColor", "lastVisitAt")
+  VALUES (NEW."userId", NEW."fileId", COALESCE(visitor_name, ''), COALESCE(visitor_color, ''), NEW."lastVisitAt")
+  ON CONFLICT ("userId", "fileId") DO UPDATE SET
+    "userName" = COALESCE(visitor_name, file_visitor."userName"),
+    "userColor" = COALESCE(visitor_color, file_visitor."userColor"),
+    "lastVisitAt" = NEW."lastVisitAt";
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER "set_file_state_user_details_trigger"
-BEFORE INSERT OR UPDATE OF "userId" ON file_state
+CREATE TRIGGER "sync_file_visitor_on_file_state_trigger"
+AFTER INSERT OR UPDATE OF "lastVisitAt" ON file_state
 FOR EACH ROW
-EXECUTE FUNCTION set_file_state_user_details();
+EXECUTE FUNCTION sync_file_visitor_on_file_state();
 
--- Propagate user renames and recolors to their existing file_state rows, so the roster stays fresh
--- even for a viewer who never re-opens the board.
-CREATE OR REPLACE FUNCTION update_file_state_user_details() RETURNS TRIGGER AS $$
+-- Drop the roster entry when the visit is removed (e.g. un-sharing a file deletes non-owner
+-- file_state rows — see 034_fix_unshare_group_file_cleanup.sql), so a viewer who loses access also
+-- drops out of the mention roster.
+CREATE OR REPLACE FUNCTION delete_file_visitor_on_file_state() RETURNS TRIGGER AS $$
 BEGIN
-  UPDATE file_state
+  DELETE FROM file_visitor WHERE "userId" = OLD."userId" AND "fileId" = OLD."fileId";
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER "delete_file_visitor_on_file_state_trigger"
+AFTER DELETE ON file_state
+FOR EACH ROW
+EXECUTE FUNCTION delete_file_visitor_on_file_state();
+
+-- Propagate user renames and recolors to their existing roster entries, so the roster stays fresh
+-- even for a viewer who never re-opens the board (same pattern as update_comment_author_details).
+CREATE OR REPLACE FUNCTION update_file_visitor_user_details() RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE file_visitor
   SET "userName" = NEW."name",
       "userColor" = NEW."color"
   WHERE "userId" = NEW."id";
@@ -53,11 +79,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER "update_file_state_user_details_trigger"
+CREATE TRIGGER "update_file_visitor_user_details_trigger"
 AFTER UPDATE OF "name", "color" ON public."user"
 FOR EACH ROW
 WHEN (OLD."name" IS DISTINCT FROM NEW."name" OR OLD."color" IS DISTINCT FROM NEW."color")
-EXECUTE FUNCTION update_file_state_user_details();
+EXECUTE FUNCTION update_file_visitor_user_details();
 
--- No ALTER PUBLICATION: file_state is already replicated to Zero (the fileStates query), so it is
--- already a member of the zero_data publication.
+-- New table, so it must be added to the Zero replication publication (unlike file_state, which was
+-- already a member).
+ALTER PUBLICATION zero_data ADD TABLE file_visitor;

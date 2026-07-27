@@ -154,16 +154,19 @@ export const queries = defineQueries({
 	/**
 	 * Everyone (besides the caller) who has opened a single file, for the comment composer's
 	 * @-mention roster — so signed-in board viewers, not just workspace members, can be mentioned.
-	 * A file_state row exists only for an authenticated user, so this is inherently signed-in-only;
-	 * anonymous visitors have none and never appear. Identity (userName/userColor) is read from the
-	 * row's trigger-denormalized fields (migration 043), so no private user row is joined or synced.
+	 * Reads from file_visitor, a shareable projection of file_state maintained by Postgres triggers
+	 * (migration 043): a deliberately separate table, because file_state also holds private per-user
+	 * data (lastSessionState, visit timestamps) that whole-row sync would leak to every collaborator.
+	 * A file_visitor row exists only for an authenticated user who opened the file, so this is
+	 * inherently signed-in-only; anonymous visitors have none. Identity is denormalized onto the row,
+	 * so no private user row is joined or synced.
 	 *
 	 * Access-gated exactly like {@link fileComments}: the viewer list is exposed only to someone who
 	 * has themselves opened the file. Bounded to {@link MENTIONABLE_VISITORS_LIMIT} most-recent
 	 * viewers so the synced set stays finite on heavily-viewed public boards.
 	 */
 	fileVisitors: defineQuery(({ ctx, args }: { ctx: ZeroContext; args: { fileId: string } }) =>
-		zql.file_state
+		zql.file_visitor
 			.where('fileId', '=', args.fileId)
 			.where('userId', '!=', ctx.userId)
 			.whereExists('file', (file) =>

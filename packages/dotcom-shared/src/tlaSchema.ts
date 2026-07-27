@@ -57,14 +57,22 @@ export const file_state = table('file_state')
 		lastVisitAt: number().optional(),
 		isFileOwner: boolean().optional(),
 		isPinned: boolean().optional(),
-		// Viewer display fields, denormalized by Postgres triggers (migration 043, same pattern as
-		// comment.authorName / group_user.userName) — this makes a viewer's identity readable
-		// without joining, and thus syncing, the private user row, so board viewers can be
-		// @-mentioned in comments. Optional here (unlike comment.authorName) because file_state rows
-		// are written by client mutators that don't know the identity — the server trigger stamps it;
-		// the column is NOT NULL DEFAULT '' in Postgres, so reads always see a string.
-		userName: string().optional(),
-		userColor: string().optional(),
+	})
+	.primaryKey('userId', 'fileId')
+
+// A shareable, per-file record of everyone who has opened a board, denormalized from file_state by
+// Postgres triggers (migration 043). Its own table — not columns on file_state — because file_state
+// also carries private per-user data (lastSessionState = camera/selection, visit timestamps) that
+// must never sync to other users; every column here is safe to expose to any file collaborator, so
+// the comment composer can offer past viewers (not just workspace members) as @-mention targets.
+// Trigger-written only, so identity fields are non-optional (cf. comment.authorName).
+export const file_visitor = table('file_visitor')
+	.columns({
+		userId: string(),
+		fileId: string(),
+		userName: string(),
+		userColor: string(),
+		lastVisitAt: number().optional(),
 	})
 	.primaryKey('userId', 'fileId')
 
@@ -248,6 +256,14 @@ const fileStateRelationships = relationships(file_state, ({ one }) => ({
 	}),
 }))
 
+const fileVisitorRelationships = relationships(file_visitor, ({ one }) => ({
+	file: one({
+		sourceField: ['fileId'],
+		destField: ['id'],
+		destSchema: file,
+	}),
+}))
+
 const groupRelationships = relationships(group, ({ many }) => ({
 	groupMembers: many({
 		sourceField: ['id'],
@@ -400,6 +416,7 @@ export type TlaCommentMentionPartial = Partial<TlaCommentMention> & {
 export type TlaRow =
 	| TlaFile
 	| TlaFileState
+	| TlaFileVisitor
 	| TlaUser
 	| TlaGroup
 	| TlaGroupUser
@@ -487,6 +504,7 @@ export interface CommentReactionPersistenceColumns {
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
+	file_visitor: TlaFileVisitor
 	user: TlaUser
 	group: TlaGroup
 	group_user: TlaGroupUser
@@ -506,6 +524,7 @@ export const schema = createSchema({
 		user,
 		file,
 		file_state,
+		file_visitor,
 		group,
 		group_user,
 		group_file,
@@ -518,6 +537,7 @@ export const schema = createSchema({
 	relationships: [
 		fileRelationships,
 		fileStateRelationships,
+		fileVisitorRelationships,
 		groupRelationships,
 		groupUserRelationships,
 		groupFileRelationships,
@@ -530,6 +550,7 @@ export type TlaSchema = typeof schema
 export type TlaUser = Row<typeof schema.tables.user>
 export type TlaFile = Row<typeof schema.tables.file>
 export type TlaFileState = Row<typeof schema.tables.file_state>
+export type TlaFileVisitor = Row<typeof schema.tables.file_visitor>
 export type TlaGroup = Row<typeof schema.tables.group>
 export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaGroupFile = Row<typeof schema.tables.group_file>
