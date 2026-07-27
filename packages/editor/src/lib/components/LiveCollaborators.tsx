@@ -1,12 +1,24 @@
 import { track, useQuickReactor } from '@tldraw/state-react'
 import { TLInstancePresence } from '@tldraw/tlschema'
 import { modulate } from '@tldraw/utils'
-import { useRef } from 'react'
+import { useCallback, useRef } from 'react'
+import type { Editor } from '../editor/Editor'
 import { useEditorComponents } from '../hooks/EditorComponentsContext'
 import { useEditor } from '../hooks/useEditor'
 import { useSharedSafeId } from '../hooks/useSafeId'
 import { toDomPrecision } from '../primitives/utils'
 import { setStyleProperty } from '../utils/dom'
+
+/** The camera transform for a 1px html layer — the same formula as the canvas's html layers,
+ *  including the small offset that lines the 1px container up exactly when zoomed. */
+function cameraLayerTransform(editor: Editor): string {
+	const { x, y, z } = editor.getCamera()
+	const offset =
+		z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
+	return `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
+		x + offset
+	)}px,${toDomPrecision(y + offset)}px)`
+}
 
 /**
  * The collaborator cursor layer: a DOM layer stacked as a sibling of the canvas — above all canvas
@@ -23,24 +35,26 @@ export const LiveCollaborators = track(function LiveCollaborators() {
 	const editor = useEditor()
 	const { CollaboratorCursor, CollaboratorHint } = useEditorComponents()
 
-	// The inner layer carries the camera transform (same formula as the canvas's html layers), so
-	// the cursor components position in page space exactly as canvas content does.
-	const rHtmlLayer = useRef<HTMLDivElement>(null)
+	// The inner layer carries the camera transform, so the cursor components position in page
+	// space exactly as canvas content does. Unlike the canvas's html layers this one unmounts
+	// while no collaborators are visible, so the transform is written at two moments: on every
+	// camera change (the reactor), and on (re)attach (the callback ref) — the reactor's last run
+	// hit a null ref while the layer was unmounted, and without the attach write a reappearing
+	// layer would keep an identity transform until the next camera move.
+	const rHtmlLayer = useRef<HTMLDivElement | null>(null)
+	const setHtmlLayer = useCallback(
+		(elm: HTMLDivElement | null) => {
+			rHtmlLayer.current = elm
+			if (elm) setStyleProperty(elm, 'transform', cameraLayerTransform(editor))
+		},
+		[editor]
+	)
 	useQuickReactor(
 		'position collaborators layer',
 		function positionCollaboratorsWhenCameraMoves() {
-			const { x, y, z } = editor.getCamera()
-			// Because the html layer has a width/height of 1px, we need a small offset when zoomed
-			// to ensure it lines up exactly with the canvas layers.
-			const offset =
-				z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
-			setStyleProperty(
-				rHtmlLayer.current,
-				'transform',
-				`scale(${toDomPrecision(z)}) translate(${toDomPrecision(
-					x + offset
-				)}px,${toDomPrecision(y + offset)}px)`
-			)
+			// Reads the camera even while the layer is unmounted, keeping the subscription alive.
+			const transform = cameraLayerTransform(editor)
+			setStyleProperty(rHtmlLayer.current, 'transform', transform)
 		},
 		[editor]
 	)
@@ -58,7 +72,7 @@ export const LiveCollaborators = track(function LiveCollaborators() {
 					<CollaboratorHintDef />
 				</defs>
 			</svg>
-			<div ref={rHtmlLayer} className="tl-html-layer">
+			<div ref={setHtmlLayer} className="tl-html-layer">
 				{collaborators.map((presence) => (
 					<Collaborator key={presence.userId} latestPresence={presence} />
 				))}
