@@ -6,11 +6,20 @@ import {
 	OverlayUtil,
 	Rectangle2d,
 	TLCommentAnchor,
+	TLCommentThread,
 	TLCursorType,
 	TLOverlay,
+	TLPointerEventInfo,
 } from 'tldraw'
-import { commentsHidden, openThreadId } from './state'
-import { anchorPagePoint, impreciseShapePinInset } from './thread-state'
+import { getCommentRecord, putCommentRecords } from './comment-store'
+import { getCommentingOptions } from './options'
+import { commentsHidden, commitCommentMutation, openThreadId } from './state'
+import {
+	anchorPagePoint,
+	impreciseShapePinInset,
+	regionAnchorPinCorner,
+	shapeAnchorAt,
+} from './thread-state'
 
 /** The marker's screen size, matching the DOM pin (`.tlui-cmt-pin` is 34×34). */
 const PIN_SIZE = 34
@@ -21,6 +30,8 @@ const OPEN_RING_INNER = 3
 const OPEN_RING_OUTER = 5
 /** Screen-space cull margin around the viewport, so a marker straddling the edge still draws. */
 const CULL_MARGIN_PX = 60
+/** A press that moves less than this (screen px) is a click — toggle the popover, don't drag. */
+const DRAG_THRESHOLD_PX = 4
 const DEFAULT_FONT_FAMILY = "'tldraw_sans', sans-serif"
 
 /**
@@ -38,6 +49,9 @@ export interface CommentPinDisplayPin {
 	resolved: boolean
 	/** Extra screen-px offset: region pins center on their corner instead of hanging off it. */
 	screenOffset: { x: number; y: number } | null
+	/** Whether dragging the marker re-anchors the thread: the commenting permission, and for
+	 *  region threads the `regionMove` option ('body' regions ignore pin drags). */
+	movable: boolean
 }
 
 /** A cluster badge to draw: a baked page-space centroid and its member count. @public */
@@ -84,6 +98,18 @@ export const clusterExpandRequest = new EditorAtom<string | null>(
 	'clusterExpandRequest',
 	() => null
 )
+
+/**
+ * The pin drag in progress, or null. `pagePoint` tracks the marker's anchor-equivalent point (the
+ * grab offset is taken from where the pin is drawn, so the marker rides the cursor without
+ * jumping). The util renders the dragged pin at this point; `CanvasComments` reads it to translate
+ * a region's box preview and keep the open popover riding the marker.
+ * @public
+ */
+export const commentPinDrag = new EditorAtom<{
+	threadId: string
+	pagePoint: { x: number; y: number }
+} | null>('commentPinDrag', () => null)
 
 /** The overlay instances the pin util produces — one per pin, one per cluster badge.
  * @public */
@@ -133,6 +159,7 @@ export class CommentPinOverlayUtil extends OverlayUtil<TLCommentPinOverlay> {
 		const editor = this.editor
 		const display = commentPinDisplay.get(editor)
 		const openId = openThreadId.get(editor)
+		const drag = commentPinDrag.get(editor)
 		// Read zoom here so instances regenerate per camera change — the baked hit rects (and the
 		// manager's per-instance geometry cache) stay correct as the screen-fixed marker's page
 		// footprint scales.
@@ -141,11 +168,20 @@ export class CommentPinOverlayUtil extends OverlayUtil<TLCommentPinOverlay> {
 
 		const overlays: TLCommentPinOverlay[] = []
 		for (const pin of display.pins) {
-			const point = anchorPagePoint(editor, pin.anchor, display.impreciseShapeAnchor)
-			if (!point) continue
-			const inset = impreciseShapePinInset(pin.anchor, display.impreciseShapeAnchor)
-			const x = point.x + ((inset?.x ?? 0) + (pin.screenOffset?.x ?? 0)) / zoom
-			const y = point.y + ((inset?.y ?? 0) + (pin.screenOffset?.y ?? 0)) / zoom
+			let x: number
+			let y: number
+			if (drag && drag.threadId === pin.threadId) {
+				// A drag's pagePoint already accounts for the imprecise inset (it's baked into the
+				// grab offset); only the region centering still applies at draw time.
+				x = drag.pagePoint.x + (pin.screenOffset?.x ?? 0) / zoom
+				y = drag.pagePoint.y + (pin.screenOffset?.y ?? 0) / zoom
+			} else {
+				const point = anchorPagePoint(editor, pin.anchor, display.impreciseShapeAnchor)
+				if (!point) continue
+				const inset = impreciseShapePinInset(pin.anchor, display.impreciseShapeAnchor)
+				x = point.x + ((inset?.x ?? 0) + (pin.screenOffset?.x ?? 0)) / zoom
+				y = point.y + ((inset?.y ?? 0) + (pin.screenOffset?.y ?? 0)) / zoom
+			}
 			overlays.push({
 				id: `comment_pin:${pin.threadId}`,
 				type: 'comment_pin',
@@ -200,17 +236,138 @@ export class CommentPinOverlayUtil extends OverlayUtil<TLCommentPinOverlay> {
 		return overlay.props.kind === 'badge' ? 'pointer' : 'default'
 	}
 
-	override onPointerDown(overlay: TLCommentPinOverlay): boolean {
+	override onPointerDown(overlay: TLCommentPinOverlay, info: TLPointerEventInfo): boolean {
 		const editor = this.editor
 		const { kind, targetId } = overlay.props
+		// Non-primary presses aren't the pin's: middle/space pans never reach the state chart at
+		// all, and a right press keeps its default routing.
+		if (info.button !== 0) return false
 		if (kind === 'badge') {
 			clusterExpandRequest.set(editor, targetId)
-		} else {
-			// Toggle, matching the DOM marker's click: a second click on the open pin closes it.
-			openThreadId.update(editor, (current) => (current === targetId ? null : targetId))
+			return true
 		}
+		this._startDragSession(targetId, info)
 		// The pin owns this press — don't let it fall through and select the shape underneath.
 		return true
+	}
+
+	/**
+	 * A press on a pin starts a drag session owned by window listeners — the select tool stays in
+	 * `select.idle` after a consumed overlay press, so nothing else competes for the gesture. A
+	 * release within the drag threshold is a click and toggles the thread's popover; past it, the
+	 * marker rides the cursor (previewed via `commentPinDrag`) and re-anchors the thread on drop:
+	 * onto a shape (precise per the `shouldBePrecise` option), else to a point; a region thread
+	 * translates, keeping its size.
+	 */
+	private _startDragSession(threadId: string, info: TLPointerEventInfo) {
+		const editor = this.editor
+		const display = commentPinDisplay.get(editor)
+		const pin = display.pins.find((entry) => entry.threadId === threadId)
+		if (!pin) return
+
+		// The grab offset is taken from where the pin is drawn — anchor point plus the imprecise
+		// inset (in page units), but NOT the region centering, which stays a draw-time offset —
+		// so the marker translates by the cursor's delta instead of snapping to the cursor.
+		const grabPage = editor.screenToPage(info.point)
+		const anchorPage = anchorPagePoint(editor, pin.anchor, display.impreciseShapeAnchor)
+		if (!anchorPage) return
+		const inset = impreciseShapePinInset(pin.anchor, display.impreciseShapeAnchor)
+		if (inset) {
+			const zoom = editor.getZoomLevel()
+			anchorPage.x += inset.x / zoom
+			anchorPage.y += inset.y / zoom
+		}
+		const offset = { x: anchorPage.x - grabPage.x, y: anchorPage.y - grabPage.y }
+		const startClient = { x: info.point.x, y: info.point.y }
+		const isRegion = pin.anchor.type === 'region'
+		let moved = false
+
+		const win = editor.getContainerWindow()
+		const dragPointAt = (e: PointerEvent) => {
+			const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
+			return { x: cursorPage.x + offset.x, y: cursorPage.y + offset.y }
+		}
+		const cleanup = () => {
+			win.removeEventListener('pointermove', onMove)
+			win.removeEventListener('pointerup', onUp)
+			win.removeEventListener('pointercancel', onCancel)
+			commentPinDrag.set(editor, null)
+			editor.setHintingShapes([])
+			if (moved) editor.setCursor({ type: 'default', rotation: 0 })
+		}
+		const onMove = (e: PointerEvent) => {
+			// Without the permission (or for a body-moved region) the press stays a click: `moved`
+			// never sets, so release toggles the popover and never commits.
+			if (!pin.movable) return
+			if (
+				!moved &&
+				Math.hypot(e.clientX - startClient.x, e.clientY - startClient.y) < DRAG_THRESHOLD_PX
+			) {
+				return
+			}
+			if (!moved) {
+				moved = true
+				editor.setCursor({ type: 'move', rotation: 0 })
+			}
+			const pagePoint = dragPointAt(e)
+			commentPinDrag.set(editor, { threadId, pagePoint })
+			// Hint the shape the pin would re-anchor to on drop — the same hit-test the commit
+			// resolves with. Regions translate rather than re-anchor, so they never hint.
+			if (!isRegion) {
+				const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+				editor.setHintingShapes(hit ? [hit.id] : [])
+			}
+		}
+		const onUp = (e: PointerEvent) => {
+			const wasMoved = moved
+			const pagePoint = wasMoved ? dragPointAt(e) : null
+			cleanup()
+			if (!wasMoved || !pagePoint) {
+				// A click: toggle, matching the DOM marker — a second click on the open pin closes.
+				openThreadId.update(editor, (current) => (current === threadId ? null : threadId))
+				return
+			}
+			this._commitDrop(threadId, pagePoint, e.altKey)
+		}
+		// A cancelled pointer (touch gesture takeover, browser interruption) aborts the drag
+		// outright: no re-anchor commit, no click-toggle — the pin snaps back.
+		const onCancel = () => cleanup()
+
+		win.addEventListener('pointermove', onMove)
+		win.addEventListener('pointerup', onUp)
+		win.addEventListener('pointercancel', onCancel)
+	}
+
+	private _commitDrop(threadId: string, pagePoint: { x: number; y: number }, altKey: boolean) {
+		const editor = this.editor
+		const record = getCommentRecord(editor, threadId)
+		if (!record || record.typeName !== 'comment-thread') return
+		const thread: TLCommentThread = record
+		let anchor: TLCommentThread['anchor']
+		if (thread.anchor.type === 'region') {
+			// Translate so the pin (the region's pin corner) lands at the drop; size unchanged.
+			const corner = regionAnchorPinCorner(editor, thread.anchor)
+			anchor = {
+				...thread.anchor,
+				x: pagePoint.x - corner.x * thread.anchor.w,
+				y: pagePoint.y - corner.y * thread.anchor.h,
+			}
+		} else {
+			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+			anchor = hit
+				? shapeAnchorAt(
+						editor,
+						hit.id,
+						pagePoint,
+						getCommentingOptions(editor).shouldBePrecise(editor, {
+							shapeId: hit.id,
+							point: pagePoint,
+							altKey,
+						})
+					)
+				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
+		}
+		commitCommentMutation(editor, () => putCommentRecords(editor, [{ ...thread, anchor }]), 'drag')
 	}
 
 	override render(ctx: CanvasRenderingContext2D, overlays: TLCommentPinOverlay[]): void {

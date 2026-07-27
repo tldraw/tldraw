@@ -31,6 +31,7 @@ import { TLCommentThreadId } from 'tldraw';
 import { TLCursorType } from 'tldraw';
 import { TLHistoryBatchOptions } from 'tldraw';
 import { TLOverlay } from 'tldraw';
+import { TLPointerEventInfo } from 'tldraw';
 import { TLRichText } from 'tldraw';
 import { TLShapeId } from 'tldraw';
 import { TLStateNodeConstructor } from 'tldraw';
@@ -290,6 +291,7 @@ export interface CommentPinDisplayPin {
     anchor: TLCommentAnchor;
     color: string | undefined;
     label: string;
+    movable: boolean;
     // (undocumented)
     resolved: boolean;
     screenOffset: {
@@ -299,6 +301,15 @@ export interface CommentPinDisplayPin {
     // (undocumented)
     threadId: string;
 }
+
+// @public
+export const commentPinDrag: EditorAtom<{
+    pagePoint: {
+        x: number;
+        y: number;
+    };
+    threadId: string;
+} | null>;
 
 // @public
 export class CommentPinOverlayUtil extends OverlayUtil<TLCommentPinOverlay> {
@@ -311,7 +322,7 @@ export class CommentPinOverlayUtil extends OverlayUtil<TLCommentPinOverlay> {
     // (undocumented)
     isActive(): boolean;
     // (undocumented)
-    onPointerDown(overlay: TLCommentPinOverlay): boolean;
+    onPointerDown(overlay: TLCommentPinOverlay, info: TLPointerEventInfo): boolean;
     // (undocumented)
     options: {
         zIndex: number;

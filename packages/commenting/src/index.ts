@@ -66,6 +66,7 @@ export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-over
 export {
 	clusterExpandRequest,
 	commentPinDisplay,
+	commentPinDrag,
 	type CommentPinDisplay,
 	type CommentPinDisplayBadge,
 	type CommentPinDisplayPin,

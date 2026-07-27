@@ -69,6 +69,7 @@ import {
 import {
 	clusterExpandRequest,
 	commentPinDisplay,
+	commentPinDrag,
 	type CommentPinDisplayBadge,
 	type CommentPinDisplayPin,
 } from './pin-overlay'
@@ -429,6 +430,9 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 				// A region's pin centres on its corner — overlapping the box — rather than hanging
 				// off it: half the marker's 34px size left and down, in screen px.
 				screenOffset: thread.anchor.type === 'region' ? { x: -17, y: 17 } : null,
+				// Moving a pin re-anchors the thread record — a commenting write. A region that
+				// moves by its body ignores pin drags (the pin only toggles the thread).
+				movable: canComment && (thread.anchor.type !== 'region' || regionOptions.move !== 'body'),
 			}
 		}
 		const pinsById = new Map<string, CommentPinDisplayPin>()
@@ -467,6 +471,8 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 		threadsById,
 		impreciseShapeAnchor,
 		resolveAuthor,
+		canComment,
+		regionOptions.move,
 	])
 
 	// Reset the transient UI state (open thread, half-placed comment, unserved reveal) when this
@@ -1140,6 +1146,15 @@ const ThreadPin = memo(function ThreadPin({
 		}
 	}, [open, visible, comments, isCommentUnread, onCommentRead])
 
+	const dragPagePoint = useValue(
+		'pin drag point',
+		() => {
+			const drag = commentPinDrag.get(editor)
+			return drag && drag.threadId === thread.id ? drag.pagePoint : null
+		},
+		[editor, thread.id]
+	)
+
 	if (!point) return null
 
 	const postReply = () => {
@@ -1333,16 +1348,16 @@ const ThreadPin = memo(function ThreadPin({
 
 	const ComposerFallback = options.components.ComposerFallback
 
-	// The marker is canvas-drawn (CommentPinOverlayUtil) and owns click-to-toggle there. Dragging
-	// the marker to re-anchor a thread is not carried over yet — it needs the overlay pointer
-	// routing (a `{ target: 'overlay' }` interaction in the comment tool) rather than DOM capture.
+	// The marker is canvas-drawn (CommentPinOverlayUtil), which owns click-to-toggle and the drag
+	// gesture itself; this component follows the drag through the commentPinDrag atom to keep the
+	// popover and a region's box preview riding the marker.
 	const isRegion = thread.anchor.type === 'region'
 	// Region move/resize rewrite the thread's anchor, so both sit behind the commenting permission.
 	const bodyMovable = canComment && regionOptions.move !== 'pin'
 
-	// The popover tracks the live edit: a resize moves it to the region's pin corner; otherwise it
-	// sits at the stored anchor's viewport point.
-	const livePinPage = resizeBounds ? regionPinPoint(resizeBounds, pinCorner) : null
+	// The popover tracks the live edit: a resize moves it to the region's pin corner, a drag to
+	// the marker's drag point; otherwise it sits at the stored anchor's viewport point.
+	const livePinPage = resizeBounds ? regionPinPoint(resizeBounds, pinCorner) : dragPagePoint
 	const renderPointBase = livePinPage ? editor.pageToViewport(livePinPage) : point
 	// A region's pin centres on its corner — overlapping the box — rather than hanging off it.
 	// The marker anchors bottom-left, so step half its 34px size left and down (screen px).
@@ -1350,10 +1365,18 @@ const ThreadPin = memo(function ThreadPin({
 		? { x: renderPointBase.x - 17, y: renderPointBase.y + 17 }
 		: renderPointBase
 
-	// A region's live box bounds: a corner resize in progress, else the stored anchor. Undefined
-	// for non-region threads.
+	// A region's live box bounds, by priority: a corner resize, else a pin-drag translation (the
+	// pin corner tracks the cursor), else the stored anchor. Undefined for non-region threads.
 	const regionAnchor = thread.anchor.type === 'region' ? thread.anchor : undefined
-	const regionBoxBounds = resizeBounds ?? regionAnchor
+	const movedRegion =
+		regionAnchor && dragPagePoint
+			? {
+					...regionAnchor,
+					x: dragPagePoint.x - pinCorner.x * regionAnchor.w,
+					y: dragPagePoint.y - pinCorner.y * regionAnchor.h,
+				}
+			: regionAnchor
+	const regionBoxBounds = resizeBounds ?? movedRegion
 	const commitResize = (bounds: BoxModel) => {
 		setResizeBounds(null)
 		if (!canComment) return
@@ -1368,24 +1391,28 @@ const ThreadPin = memo(function ThreadPin({
 
 	return (
 		<>
-			{regionBoxBounds && revealed && (
+			{regionBoxBounds && (dragPagePoint || revealed) && (
 				<RegionBox
 					editor={editor}
 					box={regionBoxBounds}
-					movable={bodyMovable}
+					movable={bodyMovable && !dragPagePoint}
 					onPreview={setResizeBounds}
 					onCommit={commitResize}
 				/>
 			)}
-			{regionBoxBounds && revealed && canComment && regionOptions.resize !== 'none' && (
-				<RegionResizeHandles
-					editor={editor}
-					box={regionBoxBounds}
-					handles={resizeHandles}
-					onPreview={setResizeBounds}
-					onCommit={commitResize}
-				/>
-			)}
+			{regionBoxBounds &&
+				revealed &&
+				!dragPagePoint &&
+				canComment &&
+				regionOptions.resize !== 'none' && (
+					<RegionResizeHandles
+						editor={editor}
+						box={regionBoxBounds}
+						handles={resizeHandles}
+						onPreview={setResizeBounds}
+						onCommit={commitResize}
+					/>
+				)}
 			{/* The marker itself is canvas-drawn by CommentPinOverlayUtil; only the popover is DOM.
 			    It portals up to the menus layer (above the UI panels) so it isn't clipped. */}
 			{open && (
