@@ -25,22 +25,42 @@ Rendering runs through the Browser Rendering `/screenshot` Quick Action, invoked
 
 `GET /api/app/social-preview/:prefix/:slug/image` (`:prefix` is `p` for published boards or `f` for shared files) serves a 1200x630 light-theme, content-fit PNG for use in `og:image` tags. The crawler HTML that references it is the existing worker route `/app/social-preview/:prefix/:slug` (`getSocialPreview`, which Vercel routes crawler user-agents to), which puts the board name in the title and bounces human visitors back to the board. It only emits the board `og:image` (and `summary_large_image`) when the board resolves through the same gate the image route applies; for private, deleted, or unpublished boards it keeps the static site-wide preview image, because crawlers that don't follow `og:image` redirects (notably X) would otherwise render a broken card. The request path never invokes Browser Run:
 
-1. The board is resolved through the same gates as the MCP tool. Private, deleted, unpublished, or unknown boards redirect (302) to the default tldraw OG image.
+1. The board is resolved through the same gates as the MCP tool. Private, deleted, unpublished, or unknown boards get the default tldraw OG image (see the fallback below).
 2. If the cached image in R2 matches the board's current content version - or is younger than one hour, which caps one board's Browser Run spend at roughly one render per hour no matter how often it changes or is crawled - it is served as a hit with `max-age=3600`.
-3. Otherwise the worker enqueues an `og-image-render` job on the existing sync-worker queue (guarded by a per-board rate limit and a two-minute pending marker in R2 that dedupes concurrent enqueues) and serves the previous image marked stale with `max-age=300`, or the default-image redirect with `max-age=60` if the board has never been rendered. Scrapers pick up the fresh render on their next visit. The route is registered with `.all`, because crawlers probe with HEAD before (or instead of) GET: a HEAD gets the same cache/redirect headers from an R2 `head`, but never reads the body and never enqueues, so a probe can't spend Browser Run.
-4. The queue consumer (`ogImageQueue.ts`, dispatched from the worker's `queue()` handler) re-resolves the board at render time: a board un-shared while queued is dropped and its cached OG image deleted, and the version is re-read so bursts of enqueues coalesce into one capture of the newest content. It checks the shared global Browser Rendering rate limit (the same `global` limiter key the MCP tool uses, so both surfaces draw from one cap), loads the snapshot to pick the first page that _has content_ (so a board with an empty first page still unfurls with a meaningful image), mints a render token with `camera: 'content'` and that `pageId`, screenshots it through the same `env.BROWSER.quickAction` path as the MCP tool, and writes the PNG to the cache key the route reads. If the snapshot can't be read it fails there and then rather than paying for a capture that would fail on the render page for the same reason. Genuine transient failures retry up to three times with backoff, then drop. When global capacity is busy the job is instead re-enqueued as a fresh message on its own budget (so backpressure never consumes the failure-retry budget), with exponential backoff capped at two minutes and a maximum of 12 requeues — after that the chain gives up so its own capacity checks stop crowding the shared limiter, and the next crawler hit re-enqueues once capacity recovers.
+3. Otherwise the worker enqueues an `og-image-render` job on the existing sync-worker queue (guarded by a per-board rate limit and a pending marker in R2 that dedupes concurrent enqueues) and serves the previous image marked stale with `max-age=300`, or the default-image fallback with `max-age=60` if the board has never been rendered. Scrapers pick up the fresh render on their next visit. The route is registered with `.all`, because crawlers probe with HEAD before (or instead of) GET: a HEAD gets the same cache headers from an R2 `head`, but never reads the body and never enqueues, so a probe can't spend Browser Run.
+4. The queue consumer (`ogImageQueue.ts`, dispatched from the worker's `queue()` handler) re-resolves the board at render time: a board un-shared while queued is dropped and its cached OG image deleted, and the version is re-read so bursts of enqueues coalesce into one capture of the newest content. It checks the shared global Browser Rendering rate limit (the same `global` limiter key the MCP tool uses, so both surfaces draw from one cap), loads the snapshot to pick the first page that _has content_ (so a board with an empty first page still unfurls with a meaningful image), mints a render token with `camera: 'content'` and that `pageId`, screenshots it through the same `env.BROWSER.quickAction` path as the MCP tool, and writes the PNG to the cache key the route reads. If the snapshot can't be read it fails there and then rather than paying for a capture that would fail on the render page for the same reason. Genuine transient failures retry up to three times with backoff, then drop. When global capacity is busy the job is instead re-enqueued as a fresh message on its own budget (so backpressure never consumes the failure-retry budget), with exponential backoff capped at two minutes and a maximum of 12 requeues — after that the chain gives up so its own capacity checks stop crowding the shared limiter, and the next crawler hit re-enqueues once capacity recovers. Speculative jobs are the exception: they check their own smaller budget first and drop on any busy signal instead of requeueing (see "Keeping the thumbnail warm").
+
+#### Default-image fallback
+
+A board with no usable cached image is served the site-wide default (`/social-og.png`, 1200x630, the size the `og:image:width`/`height` meta advertises) as a **200 `image/png`**, not a redirect. Crawlers cache the first response they see for days, and X does not follow an `og:image` redirect at all, so a 302 on the first unfurl permanently poisons the card even though the queued render lands seconds later. The fallback carries `cache-control: public, max-age=60` with no `s-maxage` and no `stale-while-revalidate`, so nothing pins the default under a board's permanent image URL once the real render arrives. The bytes are fetched from the client origin once per isolate and memoized (failures aren't memoized, so a blip doesn't wedge an isolate); if that fetch fails the route falls back to the old 302 rather than erroring. Telemetry separates the two: `served_fallback` for the 200, `not_rendered_yet` for the residual redirect.
+
+### Keeping the thumbnail warm
+
+Rendering on crawler demand alone means the first share of a board is always the cold one. Three triggers ahead of the crawler close that gap, all of them enqueueing onto the same queue and consumer, and all of them subject to the same re-resolve, version check, and share gate at render time. Every queue message carries a `reason` (`crawler`, `publish`, `speculative`) that rides through to telemetry.
+
+- **Publish.** The `publish` effect in `TLPostgresReplicator` enqueues a render right after `publishSnapshot` writes the frozen R2 snapshot, so a published board's image is being made before its link is pasted anywhere. Publishing is explicit and low-volume, so this costs roughly one render per publish. `unpublish` deletes the cached image and pending marker instead, and a new `unshare` effect (`shared` true → false in `getEffects`) does the same for shared files — speculation renders many more boards than crawler demand did, so lingering images need a real cleanup path rather than waiting for a queue message to happen to process.
+- **Speculative, on edit.** `TLFileDurableObject.persistToDatabase` calls `maybeEnqueueSpeculativeOgRender` fire-and-forget on a persist that actually advanced the document clock. The gate: sampled in (`OG_SPECULATIVE_SAMPLE_PCT`, hashed per board so raising the percentage adds boards rather than reshuffling them) → not asked within the staleness window `W` (12h) → the file record says `shared` (an unknown record proceeds; the consumer's resolve will drop it) → no cached image younger than `W` from _any_ trigger. It then stamps `lastSpeculativeOgEnqueueAt` in DO storage and enqueues with `delaySeconds` of 180s plus 0-120s of jitter, so the render captures the first few minutes of drawing rather than the first shape.
+
+  The guard lives in durable storage rather than memory on purpose: the durable object is the only thing that can speculate about its own board and is single-threaded, so writing the timestamp before enqueueing gives exactly-once-per-window semantics that survive deploys, evictions, and crashes. (The crawler path keeps its advisory R2 pending marker precisely because any isolate can serve a crawler and none of them has that authority.) The guard is keyed on enqueue time, not render success — a speculative render that fails or gets dropped does not retry until `W` elapses; the crawler-miss path remains the retry mechanism, and it has actual urgency behind it. Anything that slips past every enqueue-time guard is still absorbed at consume time by the version check: the system's real idempotency key is `(board, version)`.
+
+  Speculation gets its own limiter (`MCP_SCREENSHOT_SPECULATIVE_RATE_LIMITER`, key `global-speculative`, ~3/min) checked _before_ the shared global cap, and drops (acks, clearing its pending marker) on either being busy rather than entering the requeue chain. Guessing about a board must never delay a render something is waiting for.
+
+- **Pending markers cover the delay.** `enqueueOgImageRender` takes `{ delaySeconds, reason }` and sizes the marker as `now + delaySeconds * 1000 + PENDING_MARKER_TTL_MS`, so a delayed message that hasn't been delivered yet still suppresses duplicate enqueues.
 
 ### Request limits
 
 - Per IP: ~2 calls per minute each for `get_board_info` (`ip-info:`) and `get_shared_board_screenshot` (`ip-shot:`), on separate keys of `MCP_SCREENSHOT_RATE_LIMITER`. They are separate because `get_board_info` spends no Browser Run, and sharing one budget would let the usual "list once, then screenshot pages" flow burn its allowance on the free call.
 - Per board: ~2 Browser Run captures per minute, applied only on cache misses. The OG route applies the same limit to its own key (`og-board:`) to bound queue enqueues per board.
 - Global: ~6 Browser Run captures per minute across all callers (`MCP_SCREENSHOT_BROWSER_RATE_LIMITER`), shared by the MCP tool and the OG queue consumer via the single `global` key.
+- Speculative: ~3 Browser Run captures per minute (`MCP_SCREENSHOT_SPECULATIVE_RATE_LIMITER`, key `global-speculative`), checked before the global cap and inside it. Cloudflare rate limit bindings carry their limit in the binding, so a second cap needs a second binding.
 
 The Cloudflare rate limit bindings are declared in `wrangler.toml` for every environment. When a binding is absent (local dev, tests) the route falls back to an isolate-local guard with the same limits.
 
+The global cap is the real spend ceiling and is deliberately unchanged by the speculative work, because speculation ships switched off (`OG_SPECULATIVE_SAMPLE_PCT = "0"`). Raising it is the gate on rolling speculation out, not a follow-up to it: at 6/min (~8.6k renders/day) speculation would spend most of its budget dropping. Sizing the new number needs (a) the daily count of boards with contentful edit sessions, (b) the account's Browser Rendering concurrent-session and new-session-per-minute limits — a render can hold a session for the full 45s `THUMBNAIL_RENDER_TIMEOUT_MS`, so a sustained N/min cap can demand up to ~0.75×N concurrent sessions — and (c) spend tolerance, since Browser Rendering bills by browser duration and the cap is therefore the cost ceiling. Changing it means moving the `MCP_SCREENSHOT_BROWSER_RATE_LIMITER` bindings in `wrangler.toml` (one per environment) and the isolate-local fallback constant `GLOBAL_BROWSER_RUN_RATE_LIMIT` in `sharedBoardScreenshotMcp.ts` together. The per-IP and per-board limits stay as they are: they guard abuse per client and per board, not total spend.
+
 ### Telemetry and monitoring
 
-All three surfaces write `mcp_shared_board_screenshot` events with the same blob layout, so one dashboard covers everything; the source blob distinguishes `mcp` (the tool), `og` (the OG image route), and `queue` (the async consumer). Events record hashed board slug, cache hit/stale/miss, render duration (wall-clock around the browser session), output dimensions, failure reason, rate-limit decisions, and a hashed IP. Two dimensions are deliberately kept low-cardinality: the failure reason is always a bounded reason code (`invalid_input`, `not_found`, `board_empty`, `no_pages`, `page_out_of_range`, `rate_limited_ip`/`board`/`global`, `rate_limited_global_exhausted`, `board_not_viewable`, `not_rendered_yet`, `browser_failed`, `browser_timeout`, `empty_render`, `not_configured`, `render_error`), never raw `error.message` text; and the hashed IP is written only on failed or rate-limited events (where it's useful for abuse analysis) — successful events carry `ip:none`, so the per-client IP dimension never lands on the common success path. Column layout in the Analytics Engine dataset (`MEASURE`): `blob1` event name, `blob2` worker name, `blob3` source, `blob4` cache status, `blob5` failure reason, `blob6` rate-limit decision, `blob7` hashed IP (or `none`), `double1`/`double2` output width/height, `double3` render duration ms, `double4` browser ms used, `double5` rate-limit allowed (1/0), `index1` hashed board slug. (The `quickAction` screenshot response includes an `X-Browser-Ms-Used` header, but the worker does not currently read it — telemetry uses wall-clock render duration in `double3` as the spend proxy and writes `double4` as -1. Wiring the header into `double4` is a possible follow-up.)
+All three surfaces write `mcp_shared_board_screenshot` events with the same blob layout, so one dashboard covers everything; the source blob distinguishes `mcp` (the tool), `og` (the OG image route), and `queue` (the async consumer). Events record hashed board slug, cache hit/stale/miss, render duration (wall-clock around the browser session), output dimensions, failure reason, rate-limit decisions, a hashed IP, and the trigger that asked for the render. Two dimensions are deliberately kept low-cardinality: the failure reason is always a bounded reason code (`invalid_input`, `not_found`, `board_empty`, `no_pages`, `page_out_of_range`, `rate_limited_ip`/`board`/`global`/`speculative`, `rate_limited_global_exhausted`, `board_not_viewable`, `served_fallback`, `not_rendered_yet`, `browser_failed`, `browser_timeout`, `empty_render`, `not_configured`, `render_error`), never raw `error.message` text; and the hashed IP is written only on failed or rate-limited events (where it's useful for abuse analysis) — successful events carry `ip:none`, so the per-client IP dimension never lands on the common success path. Column layout in the Analytics Engine dataset (`MEASURE`): `blob1` event name, `blob2` worker name, `blob3` source, `blob4` cache status, `blob5` failure reason, `blob6` rate-limit decision, `blob7` hashed IP (or `none`), `blob8` render trigger (`crawler`, `publish`, `speculative`, or `none` on the surfaces that have no trigger), `double1`/`double2` output width/height, `double3` render duration ms, `double4` browser ms used, `double5` rate-limit allowed (1/0), `index1` hashed board slug. (The `quickAction` screenshot response includes an `X-Browser-Ms-Used` header, but the worker does not currently read it — telemetry uses wall-clock render duration in `double3` as the spend proxy and writes `double4` as -1. Wiring the header into `double4` is a possible follow-up.)
 
 Bounded reason codes say _that_ a board stopped rendering, never _why_, and every one of these surfaces deliberately swallows its own errors (the OG route falls back to the default image, the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops). So each swallow point also reports the underlying error to Sentry through `reportThumbnailError` (`thumbnailShared.ts`), tagged `thumbnail_surface` with a closed set of values: `og_route`, `og_queue`, `thumbnail_snapshot`, `mcp_board_info`, `mcp_screenshot`. Reporting rides on the handler's `waitUntil` and is itself failure-proof — a missing Sentry env var must never turn a degraded-but-fine response into a 500.
 
@@ -75,6 +95,7 @@ The sync worker needs:
 - `BROWSER` binding - the Cloudflare Browser Rendering binding, declared per environment in `wrangler.toml` (`[env.<env>.browser]`). The worker calls its `quickAction` Quick Actions method (`env.BROWSER.quickAction('screenshot', …)`) directly — no `@cloudflare/puppeteer`, no API token. This requires `compatibility_date` `2026-03-24` or later, which the deployed envs use; `[env.dev]` pins an older date the local workerd supports (see Local development). The dev binding is deliberately not `remote`, so plain `wrangler dev` (and the credential-free e2e stack) boots without a `CLOUDFLARE_API_TOKEN`; the binding is then a non-functional local one and the render path fails closed. Real local captures need `wrangler dev --remote` with credentials, or a preview deploy.
 - `MCP_SCREENSHOT_ENABLED` - kill switch for the MCP server (`POST /app/mcp`), set to `"true"` in `wrangler.toml` for dev, staging, and production. The worker reads it per request, so setting it to anything else takes the endpoint down (it 404s, including the `initialize` handshake) without a rebuild or a code deploy — flip it in the Cloudflare dashboard under the worker's variables, and it applies to the next request. The next deploy overwrites the dashboard value from `wrangler.toml`, so follow an emergency flip with a config change. An unset var counts as enabled, so preview deploys (which don't set it) behave as they always have. Only the MCP server is gated: OG image rendering has its own path and keeps running.
 - `MCP_SCREENSHOT_TOKEN_SECRET` (deploy var, GitHub secret) - HMAC secret for render tokens. Local dev uses the placeholder in `[env.dev.vars]`.
+- `OG_SPECULATIVE_SAMPLE_PCT` - percentage of boards (0-100) eligible for speculative, edit-triggered OG rendering. Set to `"0"` in `wrangler.toml` for dev, staging, and production, and read per event, so it doubles as a runtime kill switch that can be flipped in the Cloudflare dashboard without a deploy — land the new value in `wrangler.toml` afterwards or the next deploy resets it. Unlike `MCP_SCREENSHOT_ENABLED`, an unset value counts as **off**: this path spends Browser Run on renders nobody asked for, so an environment that never configured it (previews, tests) must not start guessing.
 - `MCP_SCREENSHOT_RENDER_ORIGIN` - set in `wrangler.toml` for dev (`http://localhost:3000`), staging, and production. Preview deploys have no `wrangler.toml` entry, so `deploy-dotcom.ts` injects the preview's own client origin (`https://${previewId}-preview-deploy.tldraw.com`) as a deploy var.
 - `THUMBNAILS` R2 bucket binding - `thumbnails-preview` in dev/preview/staging and `thumbnails` in production.
 
@@ -171,8 +192,15 @@ flowchart TB
         QC["Queue consumer<br/>og-image-render (async refresh)"]
     end
 
+    subgraph warm ["Warming triggers (ahead of the first crawler)"]
+        PUB["publish effect<br/>(TLPostgresReplicator)"]
+        SPEC["speculative gate on persist<br/>(TLFileDurableObject, sampled,<br/>≤1 per board per window)"]
+    end
+
     SP -->|og:image references| OGR
     OGR -->|stale / missing → enqueue| QC
+    PUB -->|reason: publish| QC
+    SPEC -->|reason: speculative, delayed| QC
 
     BI --> GATE["Resolve board + share gate<br/>(published or link-shared only)"]
     MCP --> GATE
@@ -207,101 +235,41 @@ Not doing:
 
 - `useThumbnailPageSize` stays in `thumbnail-render.tsx`. It is load-bearing for the production render page, not dev-only: the render page displays the export as a full-viewport `<img>` and Browser Run takes a viewport screenshot of it, and the dotcom client has no global `body { margin: 0 }` reset (only `#root { width/height: 100% }` in `index.html`), so without the hook's `margin: 0` the browser's default 8px body margin would offset the image and the screenshot would show a white border and clip the bottom-right of every thumbnail.
 
-## Plan: real thumbnails on first share
+## Real thumbnails on first share
 
-Status: planned, not started.
+Status: phases 1, 2 and 3 are implemented, with speculation shipped **off** (`OG_SPECULATIVE_SAMPLE_PCT = "0"`). Turning speculation on is gated on phase 0 (measurement) and raising the global Browser Run cap; phase 4 is still conditional. The phase numbers are the layer numbers in the table below. The mechanics of what shipped are documented above — "Default-image fallback" under the OG images section, "Keeping the thumbnail warm" for the publish and speculative triggers, and the cap/limit details under "Request limits". This section keeps the rationale and the outstanding work.
 
 ### Problem
 
-The first crawler to unfurl a board hits a cold OG-image cache, gets the default image (a 302 to `/social-og.png`), and platforms cache that unfurl card on their side for days — so the first share is permanently wrong even though the queued render lands seconds later. X is the worst case: it does not follow the `og:image` 302 at all (the reason `getSocialPreview` currently withholds the per-board image URL for unrenderable boards), and it poison-caches whatever it sees first.
+The first crawler to unfurl a board hits a cold OG-image cache, gets the default image, and platforms cache that unfurl card on their side for days — so the first share is permanently wrong even though the queued render lands seconds later. X is the worst case: it does not follow an `og:image` redirect at all, and it poison-caches whatever it sees first. Serving the default as a 302 made this unavoidable; the fallback-200 removes it.
 
 ### Strategy
 
 Make the thumbnail exist before the first crawler arrives, and make every residual miss degrade gracefully. No synchronous rendering on crawler paths; all existing herd protection (pending marker, per-board and global rate limiters, the queue) stays load-bearing.
 
-| Layer                                                           | Covers                                                | Cost                                  |
-| --------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------- |
-| 1. Fallback-200 instead of 302                                  | every residual miss; fixes X broken cards             | ~zero                                 |
-| 2. Publish hook                                                 | explicit publish/republish, always fresh              | negligible                            |
-| 3. First-content-per-session trigger (delayed, staleness-gated) | the create → draw → share flow and revived old boards | ~1 render per edited board per window |
-| 4. Hop-1 warming (optional)                                     | immediate shares, never-edited-again boards           | negligible                            |
+| Layer                                                           | Covers                                                | Cost                                  | Status      |
+| --------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------- | ----------- |
+| 1. Fallback-200 instead of 302                                  | every residual miss; fixes X broken cards             | ~zero                                 | done        |
+| 2. Publish hook                                                 | explicit publish/republish, always fresh              | negligible                            | done        |
+| 3. First-content-per-session trigger (delayed, staleness-gated) | the create → draw → share flow and revived old boards | ~1 render per edited board per window | done, off   |
+| 4. Hop-1 warming (optional)                                     | immediate shares, never-edited-again boards           | negligible                            | not started |
 
 The existing on-miss enqueue and stale-serve behavior in `getOgImage` remains the universal backstop, unchanged.
 
 ### Beyond OG images
 
-This isn't just a crawler fix. The result is a board thumbnail that's reliably current in R2 — kept fresh by publish and edit triggers rather than rendered synchronously per request — for every shared board, not only the ones a crawler happens to hit. That's the same primitive other surfaces need: board previews in a folder or workspace view, for instance, which today would otherwise need their own render-on-demand path or ship without a real thumbnail. Once this plan lands, those surfaces can just read the cached image.
+This isn't just a crawler fix. The result is a board thumbnail that's reliably current in R2 — kept fresh by publish and edit triggers rather than rendered synchronously per request — for every shared board, not only the ones a crawler happens to hit. That's the same primitive other surfaces need: board previews in a folder or workspace view, for instance, which today would otherwise need their own render-on-demand path or ship without a real thumbnail. Those surfaces can just read the cached image.
 
-### Phase 0 — measure (no code)
+### Phase 0 — measure (still to do, gates turning speculation on)
 
 Pull two numbers from existing telemetry (`mcp_shared_board_screenshot` dataset via `internal/scripts/fetch-screenshot-metrics.ts`; `room_empty`/persist log events):
 
 - daily unique boards with contentful edit sessions
 - daily unique boards receiving og-image fetches
 
-This ratio sizes the staleness window `W`, the speculative budget cap, and the rollout sampling percentage. It also sizes the raised global Browser Run cap (see below — raising it is decided; the data picks the number).
+This ratio confirms the staleness window `W`, the speculative budget cap, the rollout sampling percentage, and — most importantly — the raised global Browser Run cap. At the current 6/min (~8.6k renders/day, almost certainly below the daily count of edited boards) speculation would spend most of its budget dropping, so **the cap must be raised before `OG_SPECULATIVE_SAMPLE_PCT` goes above 0**. See "Request limits" for the sizing constraints and the two places the cap lives.
 
-### Phase 1 — fallback-200 and publish hook
-
-Serve default bytes instead of redirecting (`getOgImage.ts`):
-
-- Replace `redirectToDefaultOgImage` with a 200 `image/png` response serving the default image bytes; `cache-control: public, max-age=60`, no `s-maxage`, so neither the crawler nor any edge pins the fallback under the stable per-board URL once the real image lands.
-- Bytes source: fetch `${publicOrigin}/social-og.png` once and memoize in isolate memory (no worker asset pipeline needed).
-- Verify `social-og.png` is 1200x630 to match the `og:image:width`/`height` meta `getSocialPreview` emits; if not, add a correctly sized variant.
-- No `getSocialPreview` change needed: the private-board gate stays (correct for never-renderable boards); public-but-cold boards already get the per-board URL and now receive a valid 200 instead of the 302 X chokes on.
-- Telemetry: distinguish `served_fallback` from the old redirect so the self-heal rate is measurable per platform.
-
-`delaySeconds` support in `enqueueOgImageRender` (`ogImageQueue.ts`):
-
-- Add `opts?: { delaySeconds?: number, reason?: OgRenderReason }`; pass `delaySeconds` to `QUEUE.send`; size the pending marker as `expiresAt = now + delaySeconds * 1000 + PENDING_MARKER_TTL_MS`, mirroring `refreshOgImagePendingMarker`. This closes the gap where a marker with the fixed two-minute TTL would expire before a five-minute-delayed message delivers, letting a crawler miss enqueue a duplicate.
-- `OgImageRenderQueueMessage` gains `reason: 'crawler' | 'publish' | 'speculative'` (default `'crawler'` for compatibility).
-
-Publish → render; unpublish/unshare → cleanup (replicator):
-
-- In the `publish` effect handler in `TLPostgresReplicator`, after `publishSnapshot` succeeds, call `enqueueOgImageRender(env, { kind: 'published', slug: file.publishedSlug }, { reason: 'publish' })`.
-- `unpublish` effect: also delete the `og/published/...` cache key and pending marker.
-- New `unshare` effect in `getEffects` (`ChangeCollator.ts`) on `shared` true → false: delete the `og/shared_file/...` cache key. Today an unshared board's image only gets deleted when a queue message happens to process for it; speculation renders many more boards, so lingering images need a real cleanup path.
-
-### Raising the global Browser Run cap
-
-Decided: the global ~6/min cap is too small for speculative rendering and will be raised; phase-0 data picks the value. 6/min is ~8.6k renders/day — almost certainly below the daily count of edited boards, so at the current cap speculation would spend its whole budget dropping.
-
-Mechanics: the cap lives in two places that must move together — the `MCP_SCREENSHOT_BROWSER_RATE_LIMITER` bindings in `wrangler.toml` (`simple = { limit = 6, period = 60 }`, one binding per environment) and the isolate-local fallback constant `GLOBAL_BROWSER_RUN_RATE_LIMIT` in `sharedBoardScreenshotMcp.ts` (dev/tests only).
-
-Sizing constraints on the new value:
-
-- Phase-0 demand: edited boards/day (speculative) plus crawler-miss and publish traffic, with headroom.
-- Cloudflare account-level Browser Rendering limits: concurrent browser sessions and new-sessions-per-minute must accommodate the cap. A render holds a session up to the 45s `THUMBNAIL_RENDER_TIMEOUT_MS` worst case, so a sustained N/min cap can demand up to ~0.75×N concurrent sessions when renders run long; check the account's limits (and request an increase if needed) before picking N.
-- Spend: Browser Rendering bills by browser duration, so the cap is also the cost ceiling — worst case N/min × 45s.
-
-The per-IP and per-board limits are unchanged: they guard abuse per client and per board, not total spend, and are already sized for that.
-
-### Phase 2 — speculative first-content trigger
-
-Trigger (`TLFileDurableObject` only; legacy rooms have no per-board OG images):
-
-- In `persistToDatabase`'s success path, only on a persist that actually advanced the document clock (the `_lastPersistedClock` check), run the gate fire-and-forget — never blocking or failing persistence.
-- The guard is `lastSpeculativeOgEnqueueAt` in DO storage, not an in-memory flag. The DO is the only possible speculative enqueuer for its board and is single-threaded with durable storage, so writing the timestamp before enqueueing gives exactly-once-per-window enqueue semantics that survive deploys, evictions, and crashes — a restart cannot cause duplicate speculative work. (Cloudflare Queues has no native idempotency keys; this is the application-level equivalent, and stronger than enqueue-time dedup on the queue could be, because the enqueuer itself is the per-board serialization point. The crawler path keeps its advisory R2 pending marker precisely because any isolate can serve a crawler — it has no equivalent authority.)
-- The gate, with the decision logic extracted as a testable helper in `ogImageQueue.ts` (e.g. `maybeEnqueueSpeculativeOgRender`, taking the stored timestamp as input):
-  1. Skip if `now - lastSpeculativeOgEnqueueAt < W` (read once per boot — the cheap, authoritative check).
-  2. Skip unless the DO's cached file record says `shared` (if the record is not in hand, let the consumer's resolve drop the board instead).
-  3. `THUMBNAILS.head` on the og cache key → if `createdAt` metadata is younger than `W`, skip. This second staleness check bounds renders across all trigger sources — a board a crawler-driven refresh just rendered doesn't get an immediate speculative re-render on its next edit. Gated behind the DO-storage check, it runs at most once per board per `W` rather than once per boot.
-  4. Write `lastSpeculativeOgEnqueueAt`, then `enqueueOgImageRender(env, board, { delaySeconds: D_BASE + jitter, reason: 'speculative' })`.
-- The guard is keyed on enqueue time, not render success — deliberately: a board whose speculative render fails or is dropped by the busy limiter does not retry until `W` elapses. The demand path (crawler miss) remains the retry mechanism with actual urgency behind it, and speculation stays strictly bounded. Anything that slips past every enqueue-time guard (at-least-once redelivery, marker races) is still absorbed at consume time by the version check — the system's real idempotency key is `(board, version)`, enforced where at-least-once delivery requires it.
-- Initial constants, tuned by phase-0 data:
-  - `W` (staleness window) = 12–24h — bounds spend at ≤1 speculative render per edited board per window. `W` is the cost dial: infinite `W` is a once-per-board-lifetime render; `W = 0` is once per session.
-  - `D_BASE` = 180s, jitter +0–120s. The queue holds the message; the consumer's render-time re-resolve means the render captures the first minutes of drawing rather than the first shape. With the guard in DO storage, ordinary deploys no longer synchronize firings; the wave that remains is first rollout (and each sample-percentage increase), when every actively edited board has no stored timestamp yet and fires on its next persist — the jitter spreads exactly that.
-
-Budget isolation (queue consumer):
-
-- `reason: 'speculative'` messages check a new lower-cap limiter key (e.g. `global-speculative`, roughly half the global cap) before the shared global key, and on any busy signal drop (ack) — never entering the `requeueForRateLimit` chain. Speculation must never starve crawler-miss or publish renders. New rate limit binding per environment in `wrangler.toml`.
-- Telemetry: a `reason` blob on queue datapoints.
-
-Kill switch and rollout:
-
-- `OG_SPECULATIVE_SAMPLE_PCT` env var read per event (same runtime-flip pattern as `MCP_SCREENSHOT_ENABLED`): `0` = off; roll 10 → 50 → 100 while watching the backfill wave drain. The wave is real: after rollout, every dormant-but-edited board without a fresh thumbnail fires once.
-
-The full path, from first edit to first-share cache hit:
+### Full path, from first edit to first-share cache hit
 
 ```mermaid
 flowchart TB
@@ -309,7 +277,8 @@ flowchart TB
     EDIT --> PERSIST["t≤8s — persist tick advances the<br/>document clock (persistToDatabase)"]
     PERSIST --> GATE{"Speculative gate<br/>(fire-and-forget, never<br/>blocks persistence)"}
 
-    GATE -->|"DO storage: asked &lt; W ago"| SKIP["skip"]
+    GATE -->|"not sampled in"| SKIP["skip"]
+    GATE -->|"DO storage: asked &lt; W ago"| SKIP
     GATE -->|"file record not shared"| SKIP
     GATE -->|"R2 createdAt: rendered &lt; W ago<br/>(by any trigger source)"| SKIP
     GATE -->|"all checks stale"| STAMP["write lastSpeculativeOgEnqueueAt<br/>(DO storage — restart-proof,<br/>exactly once per W)"]
@@ -320,17 +289,19 @@ flowchart TB
     QUEUE --> CONSUMER["t≈D — consumer delivery"]
     CONSUMER -->|"board no longer viewable"| DROPV["drop + delete cached image"]
     CONSUMER -->|"cached version already current"| ACK["ack without rendering<br/>((board, version) idempotency)"]
-    CONSUMER -->|"speculative or global<br/>limiter busy"| DROPB["drop (ack) — no requeue chain;<br/>crawler-miss path is the retry"]
+    CONSUMER -->|"speculative or global<br/>limiter busy"| DROPB["drop (ack) + clear marker;<br/>no requeue chain — crawler-miss<br/>path is the retry"]
     CONSUMER -->|"capacity free"| RENDER["re-resolve → render CURRENT content<br/>(the first ~D minutes of drawing,<br/>not the first shape)"]
 
     RENDER --> R2[("THUMBNAILS R2<br/>og/… key, version + createdAt")]
     R2 --> SHARE["first share: crawler og:image<br/>fetch is a cache hit"]
 ```
 
-### Phase 3 (conditional) — hop-1 warming
+Initial constants (`ogImageQueue.ts`, tune with phase-0 data): `W` = 12h (`SPECULATIVE_OG_STALENESS_WINDOW_MS`), `D_BASE` = 180s + 0–120s jitter (`SPECULATIVE_OG_BASE_DELAY_SECONDS` / `SPECULATIVE_OG_JITTER_SECONDS`), speculative cap 3/min (`GLOBAL_SPECULATIVE_BROWSER_RUN_RATE_LIMIT`). `W` is the cost dial: infinite `W` is a once-per-board-lifetime render; `W = 0` is once per session.
+
+### Phase 4 (conditional) — hop-1 warming
 
 - `getBoardOgImageUrl` in `getSocialPreview.ts` already resolves the board; add: if no fresh cached image (one R2 `head` plus version compare, extracted from `getOgImage`'s check), `ctx.waitUntil(enqueueOgImageRender(...))` guarded by the same per-board rate limit key `getOgImage` uses. Thread `ctx` into the route.
-- Ship only if phase-2 telemetry shows first-fetch misses are still meaningful (immediate sharers beating the delay, dormant never-edited boards).
+- Ship only if phase-3 telemetry shows first-fetch misses are still meaningful (immediate sharers beating the delay, dormant never-edited boards).
 
 ### Explicitly not doing
 
@@ -339,23 +310,15 @@ flowchart TB
 - An `isEmpty`-based trigger — the `file.isEmpty` column is vestigial (written `true` at creation, never flipped by client or server), so there is no replicator-visible first-content transition.
 - A DO-owned render single-flight — the advisory pending marker plus the consumer's version check is the accepted model and stays adequate at these volumes.
 
-### Success metrics
+### Success metrics (watch during rollout)
 
-- og-route cache hit rate on the first fetch per board (should climb toward phase-2 coverage)
+- og-route cache hit rate on the first fetch per board (should climb toward phase-3 coverage)
 - `served_fallback` rate (should fall)
-- renders/day by `reason` vs. budget; speculative drop rate
-- queue depth during rollout (the backfill wave)
+- renders/day by `reason` vs. budget; speculative drop rate (`rate_limited_speculative`)
+- queue depth during rollout (the backfill wave — after each sample-percentage bump, every dormant-but-edited board without a fresh thumbnail fires once)
 
 ### Open questions
 
-1. Initial `W` and `D` — proposed 12–24h and 3–5min; phase-0 share-latency data should confirm.
-2. The raised global cap's value — decided that it goes up; sized by phase-0 demand, Cloudflare's Browser Rendering session limits, and spend tolerance (see "Raising the global Browser Run cap"). Speculation still gets its own lower-cap key inside the raised cap.
-3. Is the unshare-cleanup effect in scope for phase 1 or its own follow-up?
-4. Rollout mechanics: is a percentage env var enough, or is a staging soak wanted first?
-
-### Suggested PR breakdown
-
-1. Fallback-200 (`getOgImage.ts` plus tests) — standalone, ship immediately.
-2. `delaySeconds`/`reason` in enqueue, publish hook, unpublish/unshare cleanup (queue, replicator, collator plus tests).
-3. Speculative trigger, budget isolation, kill switch (DO, consumer, `wrangler.toml` plus tests) — depends on 2.
-4. (Conditional) hop-1 warming.
+1. Initial `W` and `D` — currently 12h and 180s+jitter; phase-0 share-latency data should confirm.
+2. The raised global cap's value — sized by phase-0 demand, Cloudflare's Browser Rendering session limits, and spend tolerance (see "Request limits"). Speculation keeps its own lower-cap key inside the raised cap.
+3. Rollout mechanics: is the percentage env var enough, or is a staging soak wanted first before 10 → 50 → 100?

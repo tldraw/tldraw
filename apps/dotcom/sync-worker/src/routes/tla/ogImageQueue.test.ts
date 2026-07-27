@@ -4,12 +4,15 @@ import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import {
+	deleteOgImageCache,
 	enqueueOgImageRender,
 	getOgImageCacheKey,
 	handleOgImageRenderMessage,
 	MAX_RATE_LIMIT_REQUEUES,
+	maybeEnqueueSpeculativeOgRender,
 } from './ogImageQueue'
 import {
+	blobsWithPrefix,
 	failureBlobsOf,
 	makeBrowserBinding,
 	makeFakeRoomsBucket,
@@ -32,6 +35,7 @@ vi.mock('./getSharedFile', async (importOriginal) => ({
 }))
 
 afterEach(() => {
+	vi.useRealTimers()
 	vi.unstubAllGlobals()
 	vi.clearAllMocks()
 	resetRateLimitFallbackForTests()
@@ -80,11 +84,15 @@ describe('enqueueOgImageRender', () => {
 
 		expect(first).toBe('enqueued')
 		expect(second).toBe('already_pending')
-		expect((env as any).QUEUE.send).toHaveBeenCalledExactlyOnceWith({
-			type: 'og-image-render',
-			kind: 'published',
-			slug: 'board',
-		})
+		expect((env as any).QUEUE.send).toHaveBeenCalledExactlyOnceWith(
+			{
+				type: 'og-image-render',
+				kind: 'published',
+				slug: 'board',
+				reason: 'crawler',
+			},
+			undefined
+		)
 	})
 
 	it('reports unavailable when the thumbnails bucket is not configured', async () => {
@@ -92,6 +100,209 @@ describe('enqueueOgImageRender', () => {
 		expect(await enqueueOgImageRender(env, { kind: 'published', slug: 'board' })).toBe(
 			'unavailable'
 		)
+	})
+
+	it('tags the message with the trigger that asked for the render', async () => {
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		await enqueueOgImageRender(env, { kind: 'published', slug: 'board' }, { reason: 'publish' })
+
+		expect((env as any).QUEUE.send).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ reason: 'publish' }),
+			undefined
+		)
+	})
+
+	// A delayed message is still pending work while the queue holds it. If the marker expired first the
+	// next crawler miss would enqueue a duplicate for the same board, so the marker has to cover the
+	// delay as well as the render.
+	it('delays delivery and sizes the pending marker to outlive the delay', async () => {
+		vi.useFakeTimers()
+		vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+
+		await enqueueOgImageRender(
+			env,
+			{ kind: 'shared_file', slug: 'board' },
+			{ delaySeconds: 240, reason: 'speculative' }
+		)
+
+		expect((env as any).QUEUE.send).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ reason: 'speculative' }),
+			{ delaySeconds: 240 }
+		)
+		const marker = [...bucket.store.entries()].find(([key]) => key.endsWith('.pending'))!
+		const expiresAt = Number(marker[1].customMetadata!.expiresAt)
+		// 240s of delay plus the two-minute marker TTL.
+		expect(expiresAt).toBe(Date.parse('2026-01-01T00:04:00Z') + 2 * 60_000)
+
+		// Still pending four minutes later, when the delayed message is only just being delivered.
+		vi.setSystemTime(new Date('2026-01-01T00:04:00Z'))
+		expect(await enqueueOgImageRender(env, { kind: 'shared_file', slug: 'board' })).toBe(
+			'already_pending'
+		)
+	})
+})
+
+describe('maybeEnqueueSpeculativeOgRender', () => {
+	const board = { kind: 'shared_file', slug: 'board' } as const
+
+	function makeSpeculativeEnv(overrides: Partial<Record<string, unknown>> = {}) {
+		return makeEnv({
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+			OG_SPECULATIVE_SAMPLE_PCT: '100',
+			...overrides,
+		})
+	}
+
+	function makeGateOpts(overrides: Partial<Parameters<typeof maybeEnqueueSpeculativeOgRender>[2]>) {
+		return {
+			isShared: true,
+			lastEnqueuedAt: null,
+			markEnqueued: vi.fn(async () => {}),
+			jitterSeconds: 0,
+			...overrides,
+		}
+	}
+
+	it('enqueues a delayed speculative render and stamps the guard before enqueueing', async () => {
+		const env = makeSpeculativeEnv()
+		const opts = makeGateOpts({ now: 1_000_000 })
+
+		expect(await maybeEnqueueSpeculativeOgRender(env, board, opts)).toBe('enqueued')
+
+		expect(opts.markEnqueued).toHaveBeenCalledExactlyOnceWith(1_000_000)
+		expect((env as any).QUEUE.send).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ kind: 'shared_file', slug: 'board', reason: 'speculative' }),
+			{ delaySeconds: 180 }
+		)
+	})
+
+	// The window is the whole cost model: however much a board is edited, it can ask for at most one
+	// speculative render per window.
+	it('skips a board that already asked inside the staleness window', async () => {
+		const env = makeSpeculativeEnv()
+		const opts = makeGateOpts({ now: 1_000_000, lastEnqueuedAt: 1_000_000 - 60_000 })
+
+		expect(await maybeEnqueueSpeculativeOgRender(env, board, opts)).toBe('skipped_recent_enqueue')
+		expect(opts.markEnqueued).not.toHaveBeenCalled()
+		expect((env as any).QUEUE.send).not.toHaveBeenCalled()
+	})
+
+	it('asks again once the window has elapsed', async () => {
+		const env = makeSpeculativeEnv()
+		const opts = makeGateOpts({
+			now: 1_000_000,
+			lastEnqueuedAt: 1_000_000 - (12 * 60 * 60_000 + 1),
+		})
+
+		expect(await maybeEnqueueSpeculativeOgRender(env, board, opts)).toBe('enqueued')
+	})
+
+	it('skips a board that is not shared', async () => {
+		const env = makeSpeculativeEnv()
+
+		expect(
+			await maybeEnqueueSpeculativeOgRender(env, board, makeGateOpts({ isShared: false }))
+		).toBe('skipped_not_shared')
+		expect((env as any).QUEUE.send).not.toHaveBeenCalled()
+	})
+
+	// The durable object doesn't always have the file record in hand. Guessing "private" would silently
+	// drop coverage; the consumer re-resolves the board and drops it there if it isn't public.
+	it('goes ahead when the share state is unknown', async () => {
+		const env = makeSpeculativeEnv()
+
+		expect(
+			await maybeEnqueueSpeculativeOgRender(env, board, makeGateOpts({ isShared: undefined }))
+		).toBe('enqueued')
+	})
+
+	// Bounds renders across every trigger, not just this one: a board a crawler miss rendered minutes
+	// ago doesn't need a speculative re-render on its next edit.
+	it('skips a board whose cached image was rendered inside the window by any trigger', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeSpeculativeEnv({ THUMBNAILS: bucket })
+		await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer, {
+			customMetadata: { version: 'v1', createdAt: String(1_000_000 - 60_000) },
+		})
+
+		const opts = makeGateOpts({ now: 1_000_000 })
+		expect(await maybeEnqueueSpeculativeOgRender(env, board, opts)).toBe('skipped_fresh_image')
+		expect(opts.markEnqueued).not.toHaveBeenCalled()
+	})
+
+	it('renders again when the cached image is older than the window', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeSpeculativeEnv({ THUMBNAILS: bucket })
+		await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer, {
+			customMetadata: { version: 'v1', createdAt: String(1_000_000 - (12 * 60 * 60_000 + 1)) },
+		})
+
+		expect(
+			await maybeEnqueueSpeculativeOgRender(env, board, makeGateOpts({ now: 1_000_000 }))
+		).toBe('enqueued')
+	})
+
+	// Unset means off. Speculation spends real Browser Run, so an environment that never configured it
+	// must not start guessing.
+	it('does nothing when the sample percentage is unset or zero', async () => {
+		for (const pct of [undefined, '0', 'nonsense']) {
+			const env = makeSpeculativeEnv({ OG_SPECULATIVE_SAMPLE_PCT: pct })
+			expect(await maybeEnqueueSpeculativeOgRender(env, board, makeGateOpts({}))).toBe(
+				'skipped_not_sampled'
+			)
+			expect((env as any).QUEUE.send).not.toHaveBeenCalled()
+		}
+	})
+
+	// Sampling is per board rather than per event, so a board's participation doesn't flicker between
+	// edits, and raising the percentage only adds boards.
+	it('samples deterministically per board and widens as the percentage rises', async () => {
+		const slugs = Array.from({ length: 200 }, (_, i) => `board-${i}`)
+		const sampledAt = async (pct: string) => {
+			const env = makeSpeculativeEnv({ OG_SPECULATIVE_SAMPLE_PCT: pct })
+			const results = await Promise.all(
+				slugs.map(async (slug) =>
+					(await maybeEnqueueSpeculativeOgRender(
+						env,
+						{ kind: 'shared_file', slug },
+						makeGateOpts({})
+					)) === 'enqueued'
+						? slug
+						: null
+				)
+			)
+			return new Set(results.filter(Boolean))
+		}
+
+		const atTen = await sampledAt('10')
+		const atFifty = await sampledAt('50')
+		expect(atTen.size).toBeGreaterThan(0)
+		expect(atTen.size).toBeLessThan(atFifty.size)
+		// Every board covered at 10% is still covered at 50%.
+		expect([...atTen].every((slug) => atFifty.has(slug!))).toBe(true)
+		// Same board, same answer, every time.
+		expect(await sampledAt('10')).toEqual(atTen)
+	})
+})
+
+describe('deleteOgImageCache', () => {
+	it('drops the cached image and the pending marker so a reshare can render again', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+		await enqueueOgImageRender(env, { kind: 'shared_file', slug: 'board' })
+		await bucket.put(
+			getOgImageCacheKey({ kind: 'shared_file', slug: 'board' }),
+			new Uint8Array([1]).buffer
+		)
+
+		await deleteOgImageCache(env, { kind: 'shared_file', slug: 'board' })
+
+		expect([...bucket.store.keys()]).toEqual([])
+		// With the marker gone, the next enqueue is not deduped away.
+		expect(await enqueueOgImageRender(env, { kind: 'shared_file', slug: 'board' })).toBe('enqueued')
 	})
 })
 
@@ -424,6 +635,103 @@ describe('handleOgImageRenderMessage', () => {
 		expect(queue.send).not.toHaveBeenCalled()
 		expect(message.retry).not.toHaveBeenCalled()
 		expect(message.ack).toHaveBeenCalledTimes(1)
+	})
+
+	// Speculation is strictly last in line: nobody is waiting on a guess, and a speculative requeue
+	// chain would spend the global capacity checks that crawler-miss and publish renders need.
+	it('drops a speculative render when its own budget is spent, without requeueing', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const queue = { send: vi.fn(async () => undefined) }
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({
+			THUMBNAILS: bucket,
+			QUEUE: queue,
+			MCP_SCREENSHOT_SPECULATIVE_RATE_LIMITER: { limit: vi.fn(async () => ({ success: false })) },
+		})
+		await enqueueOgImageRender(env, { kind: 'published', slug: 'board' }, { reason: 'speculative' })
+		queue.send.mockClear()
+
+		const message = makeMessage({ kind: 'published', slug: 'board', reason: 'speculative' })
+		await handleOgImageRenderMessage(env, message)
+
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+		expect(queue.send).not.toHaveBeenCalled()
+		expect(message.retry).not.toHaveBeenCalled()
+		expect(message.ack).toHaveBeenCalledTimes(1)
+		expect(failureBlobsOf(env)).toEqual(['failure:rate_limited_speculative'])
+		// The abandoned job's marker is cleared, so a crawler miss on this board can still enqueue.
+		expect([...bucket.store.keys()]).toEqual([])
+	})
+
+	it('drops a speculative render when the shared global budget is busy', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const queue = { send: vi.fn(async () => undefined) }
+		const env = makeEnv({
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+			QUEUE: queue,
+			// Its own budget has room; the shared one does not.
+			MCP_SCREENSHOT_SPECULATIVE_RATE_LIMITER: { limit: vi.fn(async () => ({ success: true })) },
+			MCP_SCREENSHOT_BROWSER_RATE_LIMITER: { limit: vi.fn(async () => ({ success: false })) },
+		})
+
+		const message = makeMessage({ kind: 'published', slug: 'board', reason: 'speculative' })
+		await handleOgImageRenderMessage(env, message)
+
+		expect(queue.send).not.toHaveBeenCalled()
+		expect(message.ack).toHaveBeenCalledTimes(1)
+		expect(failureBlobsOf(env)).toEqual(['failure:rate_limited_global'])
+	})
+
+	// A crawler miss on a busy global cap still requeues — the speculative carve-out must not change
+	// the demand path's behaviour.
+	it('keeps requeueing non-speculative renders when the global budget is busy', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const queue = { send: vi.fn(async () => undefined) }
+		const env = makeEnv({
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+			QUEUE: queue,
+			MCP_SCREENSHOT_SPECULATIVE_RATE_LIMITER: { limit: vi.fn(async () => ({ success: false })) },
+			MCP_SCREENSHOT_BROWSER_RATE_LIMITER: { limit: vi.fn(async () => ({ success: false })) },
+		})
+
+		const message = makeMessage({ kind: 'published', slug: 'board', reason: 'publish' })
+		await handleOgImageRenderMessage(env, message)
+
+		// The speculative limiter is never consulted for a publish render.
+		expect((env.MCP_SCREENSHOT_SPECULATIVE_RATE_LIMITER as any).limit).not.toHaveBeenCalled()
+		expect(queue.send).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ reason: 'publish', rateLimitRequeues: 1 }),
+			{ delaySeconds: 30 }
+		)
+	})
+
+	it('records the trigger that asked for a completed render', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		await handleOgImageRenderMessage(
+			env,
+			makeMessage({ kind: 'published', slug: 'board', reason: 'publish' })
+		)
+
+		expect(blobsWithPrefix(env, 'reason:')).toEqual(['reason:publish'])
 	})
 
 	it('refreshes the pending marker on requeue so concurrent crawler hits coalesce', async () => {

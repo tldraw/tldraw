@@ -27,6 +27,7 @@ import {
 	parseTopicSubscriptionTree,
 	serializeSubscriptions,
 } from './replicator/Subscription'
+import { deleteOgImageCache, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
 	Analytics,
 	Environment,
@@ -468,6 +469,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 								return this.publishSnapshot(effect.file)
 							case 'unpublish':
 								return this.unpublishSnapshot(effect.file)
+							case 'unshare':
+								return deleteOgImageCache(this.env, {
+									kind: 'shared_file',
+									slug: effect.file.id,
+								}).catch((e) => this.log.debug('Error deleting shared file OG image', e))
 							case 'notify_file_durable_object':
 								switch (effect.command) {
 									case 'insert':
@@ -873,6 +879,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}|${currentTime}`, isApp: true }),
 				blob
 			)
+
+			// The published snapshot is now the content an unfurl would show, so render its OG image
+			// straight away rather than waiting for a crawler to arrive and find a cold cache. Publishing
+			// is an explicit, low-volume act, so this costs about one render per publish. Enqueue failures
+			// are swallowed with the rest of this handler: the crawler-miss path is still the backstop.
+			await enqueueOgImageRender(
+				this.env,
+				{ kind: 'published', slug: file.publishedSlug },
+				{ reason: 'publish' }
+			)
 		} catch (e) {
 			this.log.debug('Error publishing snapshot', e)
 		}
@@ -884,6 +900,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await this.env.ROOM_SNAPSHOTS.delete(
 				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
 			)
+			await deleteOgImageCache(this.env, { kind: 'published', slug: file.publishedSlug })
 		} catch (e) {
 			this.log.debug('Error unpublishing snapshot', e)
 		}

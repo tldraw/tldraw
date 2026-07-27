@@ -44,6 +44,12 @@ export type ReplicatorEffect =
 			file: TlaFile
 	  }
 	| {
+			// The file stopped being shared via link. Nothing about the room changes, but anything derived
+			// from the file's public content — its cached OG image — has to go.
+			type: 'unshare'
+			file: TlaFile
+	  }
+	| {
 			type: 'notify_file_durable_object'
 			command: 'insert' | 'update' | 'delete'
 			file: TlaFile

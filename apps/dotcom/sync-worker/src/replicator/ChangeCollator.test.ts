@@ -219,6 +219,72 @@ describe('ChangeCollator', () => {
 			})
 		})
 
+		it('should return unshare effect when file stops being shared via link', () => {
+			const previous = {
+				id: 'doc1',
+				ownerId: 'alice',
+				shared: true,
+			}
+
+			const change = createMockFileChangeV2('doc1', 'alice', 'update', {
+				shared: false,
+				previous,
+			})
+
+			const result = getEffects(change)
+
+			expect(result).toHaveLength(2)
+			expect(result![1]).toEqual({
+				type: 'unshare',
+				file: change.row,
+			})
+		})
+
+		it('should not return unshare effect when the file stays shared', () => {
+			const previous = {
+				id: 'doc1',
+				ownerId: 'alice',
+				shared: true,
+			}
+
+			const change = createMockFileChangeV2('doc1', 'alice', 'update', {
+				shared: true,
+				sharedLinkType: 'edit',
+				previous,
+			})
+
+			const result = getEffects(change)
+
+			expect(result).toHaveLength(1)
+		})
+
+		// A file can be published and link-shared at the same time, and each has its own cached OG
+		// image, so unpublishing and unsharing in one update has to clean up both.
+		it('should return both unpublish and unshare effects when a file loses both', () => {
+			const previous = {
+				id: 'doc1',
+				ownerId: 'alice',
+				published: true,
+				lastPublished: 100,
+				shared: true,
+			}
+
+			const change = createMockFileChangeV2('doc1', 'alice', 'update', {
+				published: false,
+				lastPublished: 100,
+				shared: false,
+				previous,
+			})
+
+			const result = getEffects(change)
+
+			expect(result!.map((effect) => effect.type)).toEqual([
+				'notify_file_durable_object',
+				'unpublish',
+				'unshare',
+			])
+		})
+
 		it('should handle edge case where previous is undefined for non-update commands', () => {
 			const change = createMockFileChangeV2('doc1', 'alice', 'insert', {
 				published: true,

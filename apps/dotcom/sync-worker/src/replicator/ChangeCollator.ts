@@ -87,6 +87,11 @@ export function getEffects(change: ChangeV2): ReplicatorEffect[] | null {
 		} else if (!file.published && previous.published) {
 			effects.push({ type: 'unpublish', file })
 		}
+		// Independent of publishing: a file can be link-shared and published at once, and each has its
+		// own cached OG image to clean up.
+		if (previous.shared && !file.shared) {
+			effects.push({ type: 'unshare', file })
+		}
 	}
 
 	return effects

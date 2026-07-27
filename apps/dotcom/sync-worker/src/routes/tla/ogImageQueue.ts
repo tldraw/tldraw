@@ -1,7 +1,7 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { getR2KeyForRoom } from '../../r2'
-import { Environment, OgImageRenderQueueMessage } from '../../types'
+import { Environment, OgImageRenderQueueMessage, OgImageRenderReason } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import {
 	THUMBNAIL_RENDER_TOKEN_TTL_MS,
@@ -50,6 +50,23 @@ const RETRY_DELAY_SECONDS = 30
 // crawler hit re-enqueue once capacity has recovered (the OG route serves stale/default meanwhile).
 export const MAX_RATE_LIMIT_REQUEUES = 12
 const MAX_REQUEUE_DELAY_SECONDS = 120
+
+// Speculative rendering: a board that is being edited will probably be shared, so render its OG image
+// before the first crawler asks for it rather than after. The whole cost model rests on the staleness
+// window: at most one speculative render per board per window, no matter how much editing happens
+// inside it. An infinite window would be one render per board lifetime; a zero window would be one per
+// editing session.
+export const SPECULATIVE_OG_STALENESS_WINDOW_MS = 12 * 60 * 60_000
+// The queue holds the message for this long, so the render captures the first few minutes of drawing
+// rather than the first shape. The jitter spreads the one wave that the DO-storage guard can't
+// prevent: the first rollout (and each sample-percentage increase), when every actively edited board
+// has no stored timestamp yet and fires on its next persist.
+export const SPECULATIVE_OG_BASE_DELAY_SECONDS = 180
+export const SPECULATIVE_OG_JITTER_SECONDS = 120
+// Speculation gets its own limiter key, below the shared global cap, and drops instead of requeueing
+// when that budget is spent. Guessing about a board must never delay a render someone is waiting for.
+export const GLOBAL_SPECULATIVE_BROWSER_RATE_LIMIT_KEY = 'global-speculative'
+export const GLOBAL_SPECULATIVE_BROWSER_RUN_RATE_LIMIT = 3
 
 export type OgBoardKind = 'published' | 'shared_file'
 
@@ -112,9 +129,11 @@ function getOgImagePendingKey(board: { kind: 'published' | 'shared_file'; slug: 
 
 export async function enqueueOgImageRender(
 	env: Environment,
-	board: { kind: 'published' | 'shared_file'; slug: string }
+	board: { kind: 'published' | 'shared_file'; slug: string },
+	opts: { delaySeconds?: number; reason?: OgImageRenderReason } = {}
 ): Promise<EnqueueOgImageResult> {
 	if (!env.THUMBNAILS || !env.QUEUE) return 'unavailable'
+	const { delaySeconds = 0, reason = 'crawler' } = opts
 
 	const pendingKey = getOgImagePendingKey(board)
 	const existing = await env.THUMBNAILS.head(pendingKey)
@@ -125,17 +144,133 @@ export async function enqueueOgImageRender(
 		}
 	}
 
+	// The marker has to outlive the delay, not just the render: a delayed message that hasn't been
+	// delivered yet is still pending work, and a marker that expired first would let the next crawler
+	// miss enqueue a duplicate for the same board. Mirrors refreshOgImagePendingMarker.
 	await env.THUMBNAILS.put(pendingKey, new Uint8Array(), {
-		customMetadata: { expiresAt: String(Date.now() + PENDING_MARKER_TTL_MS) },
+		customMetadata: {
+			expiresAt: String(Date.now() + delaySeconds * 1000 + PENDING_MARKER_TTL_MS),
+		},
 	})
 
 	const message: OgImageRenderQueueMessage = {
 		type: 'og-image-render',
 		kind: board.kind,
 		slug: board.slug,
+		reason,
 	}
-	await env.QUEUE.send(message)
+	await env.QUEUE.send(message, delaySeconds > 0 ? { delaySeconds } : undefined)
 	return 'enqueued'
+}
+
+export type SpeculativeOgRenderOutcome =
+	| EnqueueOgImageResult
+	| 'skipped_not_sampled'
+	| 'skipped_not_shared'
+	| 'skipped_recent_enqueue'
+	| 'skipped_fresh_image'
+
+/**
+ * Decides whether a board being edited should have its OG image rendered ahead of the first crawler,
+ * and enqueues it if so. Called from the file durable object on a persist that advanced the document
+ * clock; every input it can't derive itself is passed in, so the decision is testable without a DO.
+ *
+ * `lastEnqueuedAt` is the caller's durable record of when it last asked (not when a render last
+ * succeeded, deliberately): a speculative render that fails or gets dropped for capacity does not
+ * retry until the window elapses. The demand path — a crawler missing the cache — remains the retry
+ * mechanism, and it has actual urgency behind it.
+ */
+export async function maybeEnqueueSpeculativeOgRender(
+	env: Environment,
+	board: { kind: OgBoardKind; slug: string },
+	{
+		isShared,
+		lastEnqueuedAt,
+		markEnqueued,
+		now = Date.now(),
+		jitterSeconds = Math.floor(Math.random() * (SPECULATIVE_OG_JITTER_SECONDS + 1)),
+	}: {
+		// Whether the board is currently shared via link. `undefined` means the caller doesn't know: we
+		// go ahead and let the consumer's resolve drop the board, rather than skipping a board that may
+		// well be public.
+		isShared: boolean | undefined
+		lastEnqueuedAt: number | null
+		markEnqueued(at: number): Promise<void>
+		now?: number
+		jitterSeconds?: number
+	}
+): Promise<SpeculativeOgRenderOutcome> {
+	// Sampling is deterministic per board, so raising the percentage adds boards without reshuffling
+	// the ones already covered — coverage climbs monotonically and stays measurable.
+	if (!isSpeculativeOgRenderSampled(env, board.slug)) return 'skipped_not_sampled'
+
+	// The cheap, authoritative check: the caller's own record of the last ask.
+	if (lastEnqueuedAt !== null && now - lastEnqueuedAt < SPECULATIVE_OG_STALENESS_WINDOW_MS) {
+		return 'skipped_recent_enqueue'
+	}
+	if (isShared === false) return 'skipped_not_shared'
+
+	// A second staleness check, this time across every trigger source: a board a crawler-driven refresh
+	// rendered ten minutes ago doesn't need a speculative re-render now. Gated behind the check above,
+	// so it costs at most one R2 head per board per window rather than one per persist.
+	const cached = await env.THUMBNAILS?.head(getOgImageCacheKey(board))
+	if (cached && getOgImageAge(cached, now) < SPECULATIVE_OG_STALENESS_WINDOW_MS) {
+		return 'skipped_fresh_image'
+	}
+
+	// Stamped before the enqueue, so a failure between the two costs one missed render rather than an
+	// unbounded repeat.
+	await markEnqueued(now)
+	return enqueueOgImageRender(env, board, {
+		delaySeconds: SPECULATIVE_OG_BASE_DELAY_SECONDS + jitterSeconds,
+		reason: 'speculative',
+	})
+}
+
+export function getOgImageAge(cached: R2Object, now: number) {
+	const createdAt = Number(cached.customMetadata?.createdAt ?? cached.uploaded?.getTime() ?? 0)
+	return Number.isFinite(createdAt) ? now - createdAt : Infinity
+}
+
+// Rollout dial and kill switch, read per event so it can be flipped in the Cloudflare dashboard
+// without a deploy (same pattern as MCP_SCREENSHOT_ENABLED). Unset means off: speculation spends real
+// Browser Run capacity, so an environment that never configured it should not start guessing.
+export function getSpeculativeOgSamplePct(env: Environment) {
+	const parsed = Number(env.OG_SPECULATIVE_SAMPLE_PCT)
+	if (!Number.isFinite(parsed)) return 0
+	return Math.min(100, Math.max(0, Math.floor(parsed)))
+}
+
+function isSpeculativeOgRenderSampled(env: Environment, slug: string) {
+	const pct = getSpeculativeOgSamplePct(env)
+	if (pct <= 0) return false
+	if (pct >= 100) return true
+	return hashToBucket(slug) < pct
+}
+
+// FNV-1a, folded into 0-99. Only needs to be stable and evenly spread, not cryptographic — the board
+// slug is not a secret being protected here, it's a bucket key.
+function hashToBucket(value: string) {
+	let hash = 2166136261
+	for (let i = 0; i < value.length; i++) {
+		hash ^= value.charCodeAt(i)
+		hash = Math.imul(hash, 16777619)
+	}
+	return (hash >>> 0) % 100
+}
+
+// Drops a board's cached OG image and any pending render marker. Called when a board stops being
+// publicly viewable (unpublished or unshared): the image is a copy of content that is no longer
+// public, and the marker would otherwise suppress the next legitimate enqueue after it is reshared.
+export async function deleteOgImageCache(
+	env: Environment,
+	board: { kind: OgBoardKind; slug: string }
+): Promise<void> {
+	if (!env.THUMBNAILS) return
+	await Promise.all([
+		env.THUMBNAILS.delete(getOgImageCacheKey(board)).catch(() => {}),
+		env.THUMBNAILS.delete(getOgImagePendingKey(board)).catch(() => {}),
+	])
 }
 
 // Queue consumer. Re-resolves the board at render time rather than trusting the enqueued state:
@@ -148,6 +283,8 @@ export async function handleOgImageRenderMessage(
 	ctx?: ExecutionContext
 ): Promise<void> {
 	const { kind, slug } = message.body
+	// Messages enqueued before the field existed are all crawler misses.
+	const reason = message.body.reason ?? 'crawler'
 	const boardHash = await sha256(slug)
 	const cacheKey = getOgImageCacheKey({ kind, slug })
 	const clearPending = async () => {
@@ -159,10 +296,10 @@ export async function handleOgImageRenderMessage(
 	// below — a board that goes private after that point fails its snapshot read instead, and the
 	// retry lands back here on the next delivery.
 	const dropNoLongerViewable = async () => {
-		await env.THUMBNAILS?.delete(cacheKey).catch(() => {})
-		await clearPending()
+		await deleteOgImageCache(env, { kind, slug })
 		writeOgImageTelemetry(env, {
 			source: 'queue',
+			reason,
 			boardHash,
 			cacheStatus: 'miss',
 			failureReason: 'board_not_viewable',
@@ -181,13 +318,29 @@ export async function handleOgImageRenderMessage(
 		const cached = await env.THUMBNAILS?.head(cacheKey)
 		if (cached?.customMetadata?.version === String(board.version)) {
 			await clearPending()
-			writeOgImageTelemetry(env, { source: 'queue', boardHash, cacheStatus: 'hit' })
+			writeOgImageTelemetry(env, { source: 'queue', reason, boardHash, cacheStatus: 'hit' })
 			message.ack()
 			return
 		}
 
 		if (!env.THUMBNAILS) {
 			throw new Error('THUMBNAILS bucket is not configured')
+		}
+
+		// Speculative renders check their own smaller budget first, and drop rather than requeue on any
+		// busy signal. Nobody is waiting on a guess, and a speculative requeue chain would spend global
+		// capacity checks that crawler-miss and publish renders need — so speculation is strictly
+		// last in line and never enters the backoff chain.
+		if (reason === 'speculative') {
+			const speculativeBusy = await isRateLimited(
+				env.MCP_SCREENSHOT_SPECULATIVE_RATE_LIMITER,
+				GLOBAL_SPECULATIVE_BROWSER_RATE_LIMIT_KEY,
+				{ fallbackLimit: GLOBAL_SPECULATIVE_BROWSER_RUN_RATE_LIMIT }
+			)
+			if (speculativeBusy) {
+				await dropSpeculativeForRateLimit(env, message, boardHash, 'rate_limited_speculative')
+				return
+			}
 		}
 
 		// Shares the global Browser Run budget with the synchronous surfaces by using the same limiter
@@ -199,6 +352,10 @@ export async function handleOgImageRenderMessage(
 				fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
 			})
 		) {
+			if (reason === 'speculative') {
+				await dropSpeculativeForRateLimit(env, message, boardHash, 'rate_limited_global')
+				return
+			}
 			await requeueForRateLimit(env, message, boardHash)
 			return
 		}
@@ -251,6 +408,7 @@ export async function handleOgImageRenderMessage(
 
 		writeOgImageTelemetry(env, {
 			source: 'queue',
+			reason,
 			boardHash,
 			cacheStatus: 'miss',
 			browserRunDurationMs: render.durationMs,
@@ -289,7 +447,35 @@ function retryOrDrop(
 		message.retry({ delaySeconds: RETRY_DELAY_SECONDS * message.attempts })
 		return
 	}
-	writeOgImageTelemetry(env, { source: 'queue', boardHash, cacheStatus: 'miss', failureReason })
+	writeOgImageTelemetry(env, {
+		source: 'queue',
+		reason: message.body.reason,
+		boardHash,
+		cacheStatus: 'miss',
+		failureReason,
+	})
+	message.ack()
+}
+
+// Speculative work gives up the moment capacity is contended, rather than backing off and retrying
+// like a crawler miss does. Nothing is waiting on it, and the next crawler hit re-enqueues on the
+// demand path if the board is actually being looked at. The pending marker is cleared so that hit
+// isn't deduped away by this abandoned job.
+async function dropSpeculativeForRateLimit(
+	env: Environment,
+	message: Message<OgImageRenderQueueMessage>,
+	boardHash: string,
+	failureReason: string
+) {
+	await env.THUMBNAILS?.delete(getOgImagePendingKey(message.body)).catch(() => {})
+	writeOgImageTelemetry(env, {
+		source: 'queue',
+		reason: 'speculative',
+		boardHash,
+		cacheStatus: 'miss',
+		rateLimitAllowed: false,
+		failureReason,
+	})
 	message.ack()
 }
 
@@ -312,6 +498,7 @@ async function requeueForRateLimit(
 
 	writeOgImageTelemetry(env, {
 		source: 'queue',
+		reason: message.body.reason,
 		boardHash,
 		cacheStatus: 'miss',
 		rateLimitAllowed: false,
@@ -360,6 +547,9 @@ export function writeOgImageTelemetry(
 	env: Environment,
 	data: {
 		source: 'og' | 'queue'
+		// Which trigger asked for this render. Only meaningful on queue datapoints; the request path has
+		// no trigger of its own, so it records `none`.
+		reason?: OgImageRenderReason
 		boardHash: string
 		cacheStatus: 'hit' | 'stale' | 'miss'
 		browserRunDurationMs?: number
@@ -376,6 +566,7 @@ export function writeOgImageTelemetry(
 			`failure:${data.failureReason ?? 'none'}`,
 			`rate_limit:${rateLimitAllowed ? 'allowed' : 'blocked'}`,
 			'ip:none',
+			`reason:${data.reason ?? 'none'}`,
 		],
 		indexes: [data.boardHash],
 		doubles: [

@@ -856,6 +856,9 @@ function writeMcpScreenshotTelemetry(
 			`failure:${data.failureReason ?? 'none'}`,
 			`rate_limit:${data.rateLimitAllowed ? 'allowed' : 'blocked'}`,
 			`ip:${isFailure ? data.ipHash : 'none'}`,
+			// This surface renders on demand rather than being triggered, but the blob is written anyway so
+			// every screenshot datapoint has the same column layout.
+			'reason:none',
 		],
 		indexes: [data.boardHash],
 		doubles: [

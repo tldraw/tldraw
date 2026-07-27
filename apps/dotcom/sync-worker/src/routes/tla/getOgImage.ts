@@ -4,6 +4,7 @@ import {
 	OgBoardKind,
 	ResolvedOgBoard,
 	enqueueOgImageRender,
+	getOgImageAge,
 	getOgImageCacheKey,
 	resolveOgBoardInfo,
 	writeOgImageTelemetry,
@@ -13,9 +14,9 @@ import { reportThumbnailError, sha256 } from './thumbnailShared'
 
 // OG images are served entirely from the R2 cache; rendering happens asynchronously through the
 // og-image queue consumer (ogImageQueue.ts). A request never waits on Browser Run: it gets the
-// cached image (fresh or stale, while a refresh job runs in the background) or a redirect to the
-// default tldraw OG image until the first render lands. This is what makes the endpoint safe on
-// high-traffic paths like link unfurls.
+// cached image (fresh or stale, while a refresh job runs in the background) or the default tldraw
+// OG image until the first render lands. This is what makes the endpoint safe on high-traffic paths
+// like link unfurls.
 
 // A stale-but-recent image is still served as fresh without enqueueing a refresh, so one board
 // cannot spend Browser Run capacity more than about once an hour no matter how often it changes
@@ -24,10 +25,10 @@ const OG_IMAGE_MIN_REFRESH_AGE_MS = 60 * 60_000
 const OG_IMAGE_BOARD_RATE_LIMIT = 2
 const DEFAULT_OG_IMAGE_PATH = '/social-og.png'
 const FRESH_IMAGE_MAX_AGE_SECONDS = 60 * 60
-// Stale images and redirects use short TTLs so scrapers and browsers come back for the fresh
+// Stale images and fallbacks use short TTLs so scrapers and browsers come back for the fresh
 // render soon after the queued job completes.
 const STALE_IMAGE_MAX_AGE_SECONDS = 5 * 60
-const REDIRECT_MAX_AGE_SECONDS = 60
+const FALLBACK_MAX_AGE_SECONDS = 60
 
 export async function getOgImage(
 	request: IRequest,
@@ -52,7 +53,7 @@ export async function getOgImage(
 		})
 		return null
 	})
-	if (!board) return redirectToDefaultOgImage(request, env)
+	if (!board) return (await defaultOgImageFallback(request, env, wantsBody)).response
 
 	const boardHash = await sha256(board.slug)
 	const cacheKey = getOgImageCacheKey(board)
@@ -91,21 +92,29 @@ export async function getOgImage(
 		})
 	}
 
+	// Never rendered. The default image is served as a 200 under this board's own stable URL rather
+	// than redirected to, because the crawlers this endpoint exists for cache the first response they
+	// see for days — and X does not follow an og:image redirect at all, so a 302 here shows a broken
+	// card that no later render can fix. A 200 with the default bytes is a valid card now, and the
+	// short max-age (deliberately no s-maxage) lets the real image take over as soon as it lands.
+	const fallback = await defaultOgImageFallback(request, env, wantsBody)
 	writeOgImageTelemetry(env, {
 		source: 'og',
 		boardHash,
 		cacheStatus: 'miss',
-		failureReason: 'not_rendered_yet',
+		// Two distinct outcomes, both of which look like "no image yet" from the outside: the board got
+		// a usable default card (served_fallback, the self-healing case worth measuring per platform),
+		// or the default bytes were unreachable and it got the old redirect (not_rendered_yet).
+		failureReason: fallback.servedBytes ? 'served_fallback' : 'not_rendered_yet',
 	})
-	return redirectToDefaultOgImage(request, env)
+	return fallback.response
 }
 
 function shouldServeCachedOgImage(cached: R2Object, version: string | number, now: number) {
 	const cachedVersion = cached.customMetadata?.version
 	if (cachedVersion === String(version)) return true
 
-	const createdAt = Number(cached.customMetadata?.createdAt ?? cached.uploaded?.getTime() ?? 0)
-	return Number.isFinite(createdAt) && now - createdAt < OG_IMAGE_MIN_REFRESH_AGE_MS
+	return getOgImageAge(cached, now) < OG_IMAGE_MIN_REFRESH_AGE_MS
 }
 
 async function resolveOgBoard(
@@ -150,12 +159,84 @@ function imageResponse(
 	})
 }
 
-function redirectToDefaultOgImage(request: IRequest, env: Environment) {
+// The response for a board with no usable cached image: the site-wide default OG image, served as a
+// 200 under the board's own URL. `servedBytes` says whether that worked, because the caller reports
+// the two outcomes as different telemetry reasons.
+async function defaultOgImageFallback(
+	request: IRequest,
+	env: Environment,
+	wantsBody: boolean
+): Promise<{ response: Response; servedBytes: boolean }> {
+	const imageUrl = `${getPublicOrigin(request, env)}${DEFAULT_OG_IMAGE_PATH}`
+	const bytes = await loadDefaultOgImageBytes(imageUrl)
+	if (!bytes) {
+		// The default image itself is unreachable. A redirect is worse for the crawlers that don't
+		// follow one, but it is what we have, and it degrades no further than the behaviour this
+		// fallback replaced.
+		return { response: redirectToDefaultOgImage(imageUrl), servedBytes: false }
+	}
+
+	return {
+		response: new Response(wantsBody ? bytes : null, {
+			headers: {
+				'content-type': 'image/png',
+				// No `s-maxage` and no `stale-while-revalidate`: this URL is a board's permanent OG image
+				// address, so an edge must not pin the default under it once the real render lands.
+				'cache-control': `public, max-age=${FALLBACK_MAX_AGE_SECONDS}`,
+				'x-tldraw-og-cache': 'fallback',
+			},
+		}),
+		servedBytes: true,
+	}
+}
+
+// The default image is a small static asset on the client origin, identical for every board and
+// every request, so it is fetched once per isolate and held in memory rather than re-fetched on each
+// cold-cache unfurl. Failures are not memoized (only successes land in the cache), so a transient
+// blip doesn't leave an isolate permanently unable to serve the fallback.
+const DEFAULT_OG_IMAGE_BYTES = new Map<string, ArrayBuffer>()
+const DEFAULT_OG_IMAGE_FETCHES = new Map<string, Promise<ArrayBuffer | null>>()
+
+async function loadDefaultOgImageBytes(imageUrl: string): Promise<ArrayBuffer | null> {
+	const cached = DEFAULT_OG_IMAGE_BYTES.get(imageUrl)
+	if (cached) return cached
+
+	// Concurrent cold-cache requests share one fetch instead of each issuing their own subrequest.
+	let pending = DEFAULT_OG_IMAGE_FETCHES.get(imageUrl)
+	if (!pending) {
+		pending = fetchDefaultOgImageBytes(imageUrl).finally(() => {
+			DEFAULT_OG_IMAGE_FETCHES.delete(imageUrl)
+		})
+		DEFAULT_OG_IMAGE_FETCHES.set(imageUrl, pending)
+	}
+	return pending
+}
+
+async function fetchDefaultOgImageBytes(imageUrl: string): Promise<ArrayBuffer | null> {
+	try {
+		const response = await fetch(imageUrl)
+		if (!response.ok) return null
+		const bytes = await response.arrayBuffer()
+		if (bytes.byteLength === 0) return null
+		DEFAULT_OG_IMAGE_BYTES.set(imageUrl, bytes)
+		return bytes
+	} catch {
+		return null
+	}
+}
+
+// Test seam: the memoized bytes are module state that would otherwise leak between test cases.
+export function resetDefaultOgImageCacheForTests() {
+	DEFAULT_OG_IMAGE_BYTES.clear()
+	DEFAULT_OG_IMAGE_FETCHES.clear()
+}
+
+function redirectToDefaultOgImage(imageUrl: string) {
 	return new Response(null, {
 		status: 302,
 		headers: {
-			location: `${getPublicOrigin(request, env)}${DEFAULT_OG_IMAGE_PATH}`,
-			'cache-control': `public, max-age=${REDIRECT_MAX_AGE_SECONDS}`,
+			location: imageUrl,
+			'cache-control': `public, max-age=${FALLBACK_MAX_AGE_SECONDS}`,
 		},
 	})
 }

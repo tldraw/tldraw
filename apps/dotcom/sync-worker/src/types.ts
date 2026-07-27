@@ -94,6 +94,11 @@ export interface Environment {
 	// tests).
 	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
 	MCP_SCREENSHOT_BROWSER_RATE_LIMITER: RateLimit | undefined
+	// A separate, smaller cap for speculative OG renders (Cloudflare rate limit bindings carry their
+	// limit in the binding, so a different limit needs a different binding). Speculation draws from
+	// this first and drops when it's spent, so guessing about boards can never crowd out a render
+	// something is actually waiting for.
+	MCP_SCREENSHOT_SPECULATIVE_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
@@ -120,6 +125,13 @@ export interface Environment {
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
+	// Percentage of boards (0-100) eligible for speculative OG image rendering when they are edited, so
+	// a board's thumbnail exists before the first crawler asks for it. Read per event, so it doubles as
+	// a kill switch that can be flipped in the Cloudflare dashboard without a deploy. Unset or 0 means
+	// off: unlike MCP_SCREENSHOT_ENABLED, an unconfigured environment must not start spending Browser
+	// Run on renders nobody asked for. Sampling is per board, not per event, so raising the percentage
+	// adds boards rather than reshuffling which ones are covered.
+	OG_SPECULATIVE_SAMPLE_PCT: string | undefined
 }
 
 export function isDebugLogging(env: Environment) {
@@ -223,6 +235,11 @@ export interface AssetUploadQueueMessage {
 	userId: string | null
 }
 
+// What prompted an OG image render. Only `speculative` changes how the consumer behaves (it draws
+// from a smaller budget and drops rather than requeues when capacity is busy); the rest is telemetry,
+// so renders can be attributed to the trigger that asked for them.
+export type OgImageRenderReason = 'crawler' | 'publish' | 'speculative'
+
 // Asks the queue consumer to render a board's OG image through Browser Run and refresh the R2
 // cache read by GET /app/social-preview/:prefix/:slug/image. Board state (share gate, content
 // version) is deliberately not carried in the message; the consumer re-resolves it at render time.
@@ -230,6 +247,8 @@ export interface OgImageRenderQueueMessage {
 	type: 'og-image-render'
 	kind: 'published' | 'shared_file'
 	slug: string
+	// Absent on messages enqueued before this field existed, which are all crawler misses.
+	reason?: OgImageRenderReason
 	// How many times this job has been re-enqueued because the shared global Browser Run cap was busy
 	// (see requeueForRateLimit). Bounds the rate-limit backoff loop: each rate-limited delivery still
 	// spends one slot of the shared limiter just to discover it can't render, so an unbounded requeue
