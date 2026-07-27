@@ -30,8 +30,46 @@
 }
 
 .tlui-cmt-body {
+	/* positioned so the edit/delete row can hang below it without affecting flow */
+	position: relative;
 	flex: 1;
 	min-width: 0;
+}
+
+/* "Edit | Delete" on your own comments: revealed by the same hover/focus logic as the card
+   actions, but hung below the body into the gap between comments — absolutely positioned so
+   showing it never shifts the cards around it. Hidden while editing (the card is swapped for
+   a composer). */
+.tlui-cmt-edit-row {
+	position: absolute;
+	top: calc(100% + 4px);
+	left: 0;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 11px;
+	line-height: 1;
+	opacity: 0;
+	pointer-events: none;
+}
+.tlui-cmt-card:hover .tlui-cmt-edit-row,
+.tlui-cmt-card:focus-within .tlui-cmt-edit-row {
+	opacity: 1;
+	pointer-events: auto;
+}
+.tlui-cmt-edit-row__sep {
+	color: var(--tl-color-text-3);
+}
+.tlui-cmt-edit-row__link {
+	padding: 0;
+	border: none;
+	background: none;
+	font: inherit;
+	color: var(--tl-color-selected);
+	cursor: pointer;
+}
+.tlui-cmt-edit-row__link--danger {
+	color: var(--tl-color-danger);
 }
 
 .tlui-cmt-head {

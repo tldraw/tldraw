@@ -314,57 +314,35 @@ export function ThreadView({
 			<CommentCard
 				{...card}
 				footer={
-					<CommentReactions
-						comment={comment}
-						currentUserId={currentUserId}
-						resolveName={resolveName}
-					/>
-				}
-				actions={
 					<>
+						<CommentReactions
+							comment={comment}
+							currentUserId={currentUserId}
+							resolveName={resolveName}
+						/>
 						{canComment && comment.authorId === currentUserId && (
-							<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
-								<TldrawUiDropdownMenuTrigger>
-									<TooltipButton
-										tooltip={msg('comments.more-options')}
-										className="tlui-cmt-thread__action"
-									>
-										<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
-									</TooltipButton>
-								</TldrawUiDropdownMenuTrigger>
-								<TldrawUiDropdownMenuContent
-									className="tlui-cmt-menu"
-									side="bottom"
-									align="end"
-									alignOffset={0}
+							<div className="tlui-cmt-edit-row">
+								<button
+									type="button"
+									className="tlui-cmt-edit-row__link"
+									onClick={() => startEdit(comment)}
 								>
-									<TldrawUiDropdownMenuGroup>
-										<TldrawUiDropdownMenuItem>
-											<button
-												type="button"
-												className="tlui-cmt-menu-item"
-												onClick={() => startEdit(comment)}
-											>
-												<span>{msg('comments.edit-comment')}</span>
-											</button>
-										</TldrawUiDropdownMenuItem>
-										<TldrawUiDropdownMenuItem>
-											<button
-												type="button"
-												className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-												onClick={() => deleteComment(comment)}
-											>
-												<span>{msg('comments.delete-comment')}</span>
-											</button>
-										</TldrawUiDropdownMenuItem>
-									</TldrawUiDropdownMenuGroup>
-								</TldrawUiDropdownMenuContent>
-							</TldrawUiDropdownMenuRoot>
-						)}
-						{canComment && (
-							<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
+									{msg('comments.edit')}
+								</button>
+								<span className="tlui-cmt-edit-row__sep">|</span>
+								<button
+									type="button"
+									className="tlui-cmt-edit-row__link tlui-cmt-edit-row__link--danger"
+									onClick={() => deleteComment(comment)}
+								>
+									{msg('action.delete')}
+								</button>
+							</div>
 						)}
 					</>
+				}
+				actions={
+					canComment && <CommentReactionPicker comment={comment} currentUserId={currentUserId} />
 				}
 			/>
 		)
