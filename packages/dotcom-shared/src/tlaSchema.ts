@@ -57,6 +57,14 @@ export const file_state = table('file_state')
 		lastVisitAt: number().optional(),
 		isFileOwner: boolean().optional(),
 		isPinned: boolean().optional(),
+		// Viewer display fields, denormalized by Postgres triggers (migration 043, same pattern as
+		// comment.authorName / group_user.userName) — this makes a viewer's identity readable
+		// without joining, and thus syncing, the private user row, so board viewers can be
+		// @-mentioned in comments. Optional here (unlike comment.authorName) because file_state rows
+		// are written by client mutators that don't know the identity — the server trigger stamps it;
+		// the column is NOT NULL DEFAULT '' in Postgres, so reads always see a string.
+		userName: string().optional(),
+		userColor: string().optional(),
 	})
 	.primaryKey('userId', 'fileId')
 

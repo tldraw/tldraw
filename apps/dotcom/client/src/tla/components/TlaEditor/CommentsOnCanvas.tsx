@@ -4,6 +4,7 @@ import {
 	CanvasCommentsSidebar,
 	CommentAuthor,
 	filterMentionMembers,
+	MentionMember,
 } from '@tldraw/commenting'
 import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -15,6 +16,7 @@ import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 
 type FileComments = QueryResultType<typeof queries.fileComments>
+type FileVisitors = QueryResultType<typeof queries.fileVisitors>
 
 /**
  * dotcom's comments layer: a thin consumer of `@tldraw/commenting`'s `<CanvasComments>`.
@@ -54,6 +56,20 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		const view = app.materializeQuery<FileComments>(queries.fileComments({ fileId }))
 		setFileComments(view.data)
 		const unlisten = view.addListener((data) => setFileComments(data))
+		return () => {
+			unlisten()
+			view.destroy()
+		}
+	}, [app, fileId])
+
+	// Everyone who has opened this file (identity denormalized onto their file_state row), so past
+	// viewers — not just workspace members — can be @-mentioned. Same live-view lifecycle as above.
+	const [fileVisitors, setFileVisitors] = useState<FileVisitors>([])
+	useEffect(() => {
+		if (!app) return
+		const view = app.materializeQuery<FileVisitors>(queries.fileVisitors({ fileId }))
+		setFileVisitors(view.data)
+		const unlisten = view.addListener((data) => setFileVisitors(data))
 		return () => {
 			unlisten()
 			view.destroy()
@@ -115,17 +131,37 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		},
 		[app, fileId]
 	)
-	// Roster authors keyed by id — a MentionMember is a CommentAuthor. The workspace roster is the
-	// id→name source for a mentioned member who's committed no comment and isn't currently present —
+	// The past-viewer half of the roster: everyone who has opened this file. A row with no userName
+	// is an unresolvable/deleted account, so drop it rather than offer a nameless suggestion. The
+	// query already excludes the current user, so `you` is never set here.
+	const viewerMembers = useMemo(
+		() =>
+			fileVisitors
+				.filter((v) => !!v.userName)
+				.map((v) => ({ id: v.userId, name: v.userName ?? '', color: v.userColor || undefined })),
+		[fileVisitors]
+	)
+	// The full @-mention roster: workspace members plus any past viewer who isn't already a member.
+	// Members win on id collision — group_user identity is kept in sync, whereas a viewer's
+	// file_state identity is a point-in-time copy stamped when they last entered.
+	const roster = useMemo(() => {
+		const byId = new Map<string, MentionMember>(mentionMembers.map((m) => [m.id, m]))
+		for (const v of viewerMembers) {
+			if (!byId.has(v.id)) byId.set(v.id, v)
+		}
+		return [...byId.values()]
+	}, [mentionMembers, viewerMembers])
+	// Roster authors keyed by id — a MentionMember is a CommentAuthor. The roster is the id→name
+	// source for a mentioned member or viewer who's committed no comment and isn't currently present —
 	// without it, they resolve to nothing and render as the byline default rather than their name.
 	const memberAuthors = useMemo(
-		() => new Map<string, CommentAuthor>(mentionMembers.map((m) => [m.id, m])),
-		[mentionMembers]
+		() => new Map<string, CommentAuthor>(roster.map((m) => [m.id, m])),
+		[roster]
 	)
 	// Resolve an id to current display info from the sources the client has: self, comment
-	// authors, live presence, and the workspace roster. Returns undefined when none can resolve the
-	// id (e.g. a deleted account) — the client has no global user directory — so the toolkit falls
-	// back to a mention's stored label, or a generic byline default.
+	// authors, live presence, and the mention roster (workspace members and past viewers). Returns
+	// undefined when none can resolve the id (e.g. a deleted account) — the client has no global user
+	// directory — so the toolkit falls back to a mention's stored label, or a generic byline default.
 	const resolveAuthor = useCallback(
 		(id: string): CommentAuthor | undefined => {
 			if (id === currentUserId) return currentUser
@@ -139,8 +175,8 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	)
 	const onCommentRead = useCallback((commentId: string) => app?.markCommentRead(commentId), [app])
 	const getMentionSuggestions = useCallback(
-		(query: string) => filterMentionMembers(mentionMembers, query),
-		[mentionMembers]
+		(query: string) => filterMentionMembers(roster, query),
+		[roster]
 	)
 
 	return (

@@ -18,6 +18,14 @@ const defineQueries = defineQueriesWithType<TlaSchema>()
 const RECENT_COMMENTS_LIMIT = 50
 
 /**
+ * Upper bound on the per-file @-mention roster of past viewers, so a heavily-viewed public board
+ * doesn't stream an unbounded set to every collaborator. The composer's autocomplete only ever
+ * shows a handful (see filterMentionMembers / MAX_SUGGESTIONS); this caps what reaches the client,
+ * most-recent viewers first.
+ */
+const MENTIONABLE_VISITORS_LIMIT = 100
+
+/**
  * Synced Queries with permission logic.
  * These replace the old definePermissions API.
  * Permissions are enforced via ctx.userId which is set server-side.
@@ -141,6 +149,28 @@ export const queries = defineQueries({
 				file.whereExists('states', (s) => s.where('userId', '=', ctx.userId))
 			)
 			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
+	),
+
+	/**
+	 * Everyone (besides the caller) who has opened a single file, for the comment composer's
+	 * @-mention roster — so signed-in board viewers, not just workspace members, can be mentioned.
+	 * A file_state row exists only for an authenticated user, so this is inherently signed-in-only;
+	 * anonymous visitors have none and never appear. Identity (userName/userColor) is read from the
+	 * row's trigger-denormalized fields (migration 043), so no private user row is joined or synced.
+	 *
+	 * Access-gated exactly like {@link fileComments}: the viewer list is exposed only to someone who
+	 * has themselves opened the file. Bounded to {@link MENTIONABLE_VISITORS_LIMIT} most-recent
+	 * viewers so the synced set stays finite on heavily-viewed public boards.
+	 */
+	fileVisitors: defineQuery(({ ctx, args }: { ctx: ZeroContext; args: { fileId: string } }) =>
+		zql.file_state
+			.where('fileId', '=', args.fileId)
+			.where('userId', '!=', ctx.userId)
+			.whereExists('file', (file) =>
+				file.whereExists('states', (s) => s.where('userId', '=', ctx.userId))
+			)
+			.orderBy('lastVisitAt', 'desc')
+			.limit(MENTIONABLE_VISITORS_LIMIT)
 	),
 })
 
