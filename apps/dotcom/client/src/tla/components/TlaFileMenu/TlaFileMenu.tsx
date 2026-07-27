@@ -132,10 +132,12 @@ export function FileItems({
 	)
 
 	// A file lives in exactly one workspace. The "Move to" menu is a checklist of every
-	// destination — the home workspace plus each non-home workspace — with the file's current
+	// destination — the home workspace plus each non-home workspace — with the file's own
 	// workspace checked. The home workspace is rendered separately (it's always the first item),
 	// labelled with its own name like any other workspace.
-	const currentWorkspaceId = file?.owningGroupId ?? app.getHomeWorkspaceId()
+	// (This is the workspace the file belongs to, which is not necessarily one the current user
+	// can write to — for that, see activeWorkspaceId above.)
+	const fileWorkspaceId = file?.owningGroupId ?? app.getHomeWorkspaceId()
 	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === app.getHomeWorkspaceId())
 		?.group?.name
 	const moveToWorkspaces = workspaceMemberships.filter(
@@ -260,9 +262,9 @@ export function FileItems({
 								label={homeWorkspaceName ?? myWorkspaceMsg}
 								id="my-files"
 								readonlyOk
-								checked={currentWorkspaceId === app.getHomeWorkspaceId()}
+								checked={fileWorkspaceId === app.getHomeWorkspaceId()}
 								onSelect={() => {
-									if (currentWorkspaceId === app.getHomeWorkspaceId()) return
+									if (fileWorkspaceId === app.getHomeWorkspaceId()) return
 									app.z.mutate.moveFileToWorkspace({
 										fileId,
 										workspaceId: app.getHomeWorkspaceId(),
@@ -275,9 +277,9 @@ export function FileItems({
 									label={membership.group.name}
 									id={`workspace-${membership.groupId}`}
 									readonlyOk
-									checked={membership.groupId === currentWorkspaceId}
+									checked={membership.groupId === fileWorkspaceId}
 									onSelect={() => {
-										if (membership.groupId === currentWorkspaceId) return
+										if (membership.groupId === fileWorkspaceId) return
 										app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: membership.groupId })
 									}}
 								/>
