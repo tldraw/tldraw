@@ -53,10 +53,9 @@ import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
-import { sha256 } from './routes/tla/thumbnailShared'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
-import { EventData, UNKNOWN_ROOM_KEY, withRoomKey, writeDataPoint } from './utils/analytics'
+import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -232,7 +231,6 @@ export class TLFileDurableObject extends DurableObject {
 							type: 'client',
 							name: 'leave',
 							instanceId: args.sessionId,
-							localClientId: args.meta.storeId,
 						})
 
 						if (args.numSessionsRemaining > 0) return
@@ -241,7 +239,6 @@ export class TLFileDurableObject extends DurableObject {
 							type: 'client',
 							name: 'last_out',
 							instanceId: args.sessionId,
-							localClientId: args.meta.storeId,
 						})
 						try {
 							await this.persistToDatabase()
@@ -361,11 +358,6 @@ export class TLFileDurableObject extends DurableObject {
 				this._documentInfo = null
 			} else {
 				this._documentInfo = existingDocumentInfo
-				// An object woken from hibernation restores documentInfo here rather than through
-				// setDocumentInfo, so the room key has to be resolved on this path as well —
-				// otherwise every event a resumed session writes before the next setDocumentInfo
-				// call (which for a resumed room may be never) would be unattributed.
-				await this.resolveRoomKey(existingDocumentInfo.slug)
 			}
 		})
 	}
@@ -417,31 +409,10 @@ export class TLFileDurableObject extends DurableObject {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
-	async setDocumentInfo(info: DocumentInfo) {
+	setDocumentInfo(info: DocumentInfo) {
 		this._documentInfo = info
 		this.storage.put('documentInfo', info)
-		await this.resolveRoomKey(info.slug)
 	}
-
-	/**
-	 * How this room is identified in analytics: a hex SHA-256 of the slug, never the slug itself.
-	 * For an app file the slug is the file id, which is the entire authority of a share link
-	 * (`tldraw.com/f/<id>`), so writing it to a dataset that is readable account-wide and exported
-	 * to Grafana would put working capabilities in telemetry. The hash keeps every per-room query
-	 * answerable, matches the key the thumbnail and OG surfaces already index on (`sha256` in
-	 * `thumbnailShared.ts`), and stays computable from a slug you already hold when you need to
-	 * look up one specific board.
-	 *
-	 * Memoized against the slug because a durable object serves exactly one room for its whole
-	 * life, while `writeEvent` is synchronous and runs per message on the `send_message` path.
-	 */
-	private _roomKey: { slug: string; hash: string } | null = null
-
-	private async resolveRoomKey(slug: string) {
-		if (this._roomKey?.slug === slug) return
-		this._roomKey = { slug, hash: await sha256(slug) }
-	}
-
 	async extractDocumentInfoFromRequest(req: IRequest, roomOpenMode: RoomOpenMode) {
 		const slug = assertExists(
 			await getSlug(this.env, req.params.roomId, roomOpenMode),
@@ -452,7 +423,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
 		} else {
-			await this.setDocumentInfo({
+			this.setDocumentInfo({
 				version: CURRENT_DOCUMENT_INFO_VERSION,
 				slug,
 				isApp,
@@ -670,7 +641,6 @@ export class TLFileDurableObject extends DurableObject {
 						this.logEvent({
 							type: 'client',
 							userId: auth.userId,
-							localClientId: storeId,
 							name: 'rate_limited',
 						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
@@ -681,7 +651,6 @@ export class TLFileDurableObject extends DurableObject {
 						this.logEvent({
 							type: 'client',
 							userId: auth?.userId,
-							localClientId: storeId,
 							name: 'rate_limited',
 						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
@@ -752,14 +721,12 @@ export class TLFileDurableObject extends DurableObject {
 					type: 'client',
 					name: 'room_reopen',
 					instanceId: sessionId,
-					localClientId: storeId,
 				})
 			}
 			this.logEvent({
 				type: 'client',
 				name: 'enter',
 				instanceId: sessionId,
-				localClientId: storeId,
 			})
 
 			requestTimer.report('on_request_total')
@@ -904,13 +871,25 @@ export class TLFileDurableObject extends DurableObject {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
 
-	// Every data point this object writes carries its hashed room key, so per-room questions can be
-	// asked of any event rather than only the handful that happened to be given a roomId. Injected
-	// here rather than at each call site so a new event can't silently arrive without one.
+	/**
+	 * Indexes every data point on this object's durable object id, so any event can be grouped by
+	 * room rather than only the handful that were given a roomId. The id is the same one Cloudflare
+	 * keys its own telemetry on — `$workers.durableObjectId` in Workers Logs, and the per-object
+	 * filter on the namespace's metrics — so a room's analytics, logs, traces and CPU/storage
+	 * numbers all line up on one value.
+	 *
+	 * It also replaces the raw slug this object used to write. `idFromName` is one-way, so unlike
+	 * the slug (which for an app file is the whole authority of `tldraw.com/f/<id>`) an id read out
+	 * of the dataset does not open the board. Going the other way still works from a slug you
+	 * already hold: `env.TLDR_DOC.idFromName('/r/' + slug)`.
+	 *
+	 * Analytics Engine allows exactly one index, so this displaces `localClientId` — a per-mount
+	 * store id that turned over on every page load and was never queried.
+	 */
 	private writeEvent(name: string, eventData: EventData) {
 		writeDataPoint(this.sentry, this.measure, this.env, name, {
 			...eventData,
-			blobs: withRoomKey(eventData.blobs, this._roomKey?.hash ?? UNKNOWN_ROOM_KEY),
+			indexes: [this.id.toString()],
 		})
 	}
 
@@ -926,18 +905,12 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			case 'client': {
 				if (event.name === 'rate_limited') {
-					this.writeEvent(event.name, {
-						blobs: [event.userId ?? 'anon-user'],
-						indexes: [event.localClientId],
-					})
+					this.writeEvent(event.name, { blobs: [event.userId ?? 'anon-user'] })
 				} else {
-					// blob3 carried the raw slug until the hashed room key replaced it. The empty
-					// placeholder keeps instanceId at blob5, so queries reading that column still
-					// resolve rather than silently shifting onto a neighbouring field.
-					this.writeEvent(event.name, {
-						blobs: ['', 'unused', event.instanceId],
-						indexes: [event.localClientId],
-					})
+					// blob3 held the raw slug, which the durable object id in the index replaces. The
+					// empty placeholder keeps instanceId at blob5, so queries reading that column
+					// still resolve rather than silently shifting onto a neighbouring field.
+					this.writeEvent(event.name, { blobs: ['', 'unused', event.instanceId] })
 				}
 				break
 			}
@@ -1699,7 +1672,7 @@ export class TLFileDurableObject extends DurableObject {
 		this._fileRecordCache = file
 
 		if (!this._documentInfo) {
-			await this.setDocumentInfo({
+			this.setDocumentInfo({
 				version: CURRENT_DOCUMENT_INFO_VERSION,
 				slug: file.id,
 				isApp: true,
@@ -1716,7 +1689,7 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		this._fileRecordCache = file
 		if (!this._documentInfo) {
-			await this.setDocumentInfo({
+			this.setDocumentInfo({
 				version: CURRENT_DOCUMENT_INFO_VERSION,
 				slug: file.id,
 				isApp: true,
@@ -1779,7 +1752,7 @@ export class TLFileDurableObject extends DurableObject {
 		this._fileRecordCache = null
 
 		// prevent new connections while we clean everything up
-		await this.setDocumentInfo({
+		this.setDocumentInfo({
 			version: CURRENT_DOCUMENT_INFO_VERSION,
 			slug: this.documentInfo.slug,
 			isApp: true,
@@ -1837,7 +1810,7 @@ export class TLFileDurableObject extends DurableObject {
 
 	async __admin__hardDeleteIfLegacy() {
 		if (!this._documentInfo || this.documentInfo.deleted || this.documentInfo.isApp) return false
-		await this.setDocumentInfo({
+		this.setDocumentInfo({
 			version: CURRENT_DOCUMENT_INFO_VERSION,
 			slug: this.documentInfo.slug,
 			isApp: false,
@@ -1863,7 +1836,7 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	async __admin__createLegacyRoom(id: string) {
-		await this.setDocumentInfo({
+		this.setDocumentInfo({
 			version: CURRENT_DOCUMENT_INFO_VERSION,
 			slug: id,
 			isApp: false,
