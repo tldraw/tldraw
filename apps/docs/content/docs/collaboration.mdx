@@ -45,6 +45,42 @@ Any apps connecting to the same room ID will enter a shared collaboration sessio
 
 The demo server is great for prototyping, but data only lasts 24 hours and rooms are publicly accessible. For production, you'll need to self-host the tldraw sync server—see our full guide on [tldraw sync](/docs/sync).
 
+## Comments
+
+Collaborators can also leave anchored comments on the canvas. The `@tldraw/commenting` package provides a comment tool, pins that stick to points and shapes, thread popovers with replies, mentions, reactions, and resolve, and a sidebar list of threads.
+
+```tsx
+import { CanvasComments, commentToolOverrides, commentTools } from '@tldraw/commenting'
+import { useSync } from '@tldraw/sync'
+import { commentSchemaRecords, Tldraw } from 'tldraw'
+import '@tldraw/commenting/commenting.css'
+
+const components = {
+	InFrontOfTheCanvas: () => (
+		<CanvasComments currentUserId="user-123" resolveAuthor={(id) => AUTHORS[id]} />
+	),
+}
+
+function MyApp() {
+	const store = useSync({
+		uri: 'wss://your-server.com/sync/my-room',
+		assets: myAssetStore,
+		records: commentSchemaRecords,
+	})
+
+	return (
+		<Tldraw
+			store={store}
+			tools={commentTools}
+			overrides={[commentToolOverrides]}
+			components={components}
+		/>
+	)
+}
+```
+
+Comment records are opt-in, so register `commentSchemaRecords` on your server's schema too. Commenting is a licensed feature. See [Commenting](/docs/commenting) for an introduction, or the [full guide](/sdk-features/commenting) for anchors, options, and server setup.
+
 ## Using other backends
 
 While [tldraw sync](/docs/sync) is our recommended solution, the tldraw SDK works with any real-time data backend. For example, [Liveblocks offers a tldraw integration](https://liveblocks.io/examples/tldraw-whiteboard), and many teams have connected tldraw to their own infrastructure.
@@ -59,6 +95,7 @@ Collaboration involves three concerns:
 
 - [tldraw sync](/docs/sync) — Our recommended multiplayer solution
 - [Collaboration](/sdk-features/collaboration) — Deep dive on presence, sync hooks, and building custom sync
+- [Commenting](/docs/commenting) — Anchored comment threads on the canvas
 - [Cursors](/sdk-features/cursors) — Cursor types and collaborator cursor customization
 - [User following](/sdk-features/user-following) — Track collaborator viewports in real-time
 - [Store](/sdk-features/store) — Understanding the reactive store
