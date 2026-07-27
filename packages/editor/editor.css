@@ -29,18 +29,20 @@
 	 * background, grid, shapes, overlays, and blocker are all children of .tl-canvas,
 	 * so their z-indices are relative to the canvas, not the container.
 	 *
-	 * watermark, collaborators, and canvas-in-front are siblings of .tl-canvas
+	 * collaborators, watermark, and canvas-in-front are siblings of .tl-canvas
 	 * (outside it), so they compete with the UI layer (.tlui-layout at z-index 300).
 	 * canvas-in-front must be below the UI layer (300) to sit between
 	 * the canvas and the UI; collaborator cursors sit above canvas content
 	 * (and layers that anchor to it, like comment pins) but below the
-	 * in-front content and the UI panels.
+	 * in-front content and the UI panels. The watermark (a licensing element)
+	 * sits above that content so it can't be occluded, but still below the
+	 * in-front content and the UI.
 	 */
 	--tl-layer-canvas-hidden: -999999;
 	--tl-layer-canvas-background: 100;
 	--tl-layer-canvas-grid: 150;
-	--tl-layer-watermark: 200;
 	--tl-layer-collaborators: 245;
+	--tl-layer-watermark: 248;
 	--tl-layer-canvas-in-front: 250;
 	--tl-layer-canvas-shapes: 300;
 	--tl-layer-canvas-overlays: 500;
