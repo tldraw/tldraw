@@ -17,7 +17,6 @@
 	top: 6px;
 	right: 6px;
 	display: flex;
-	flex-direction: column;
 	gap: 2px;
 	opacity: 0;
 }
@@ -30,58 +29,8 @@
 }
 
 .tlui-cmt-body {
-	/* positioned so the edit/delete row can hang below it without affecting flow */
-	position: relative;
 	flex: 1;
 	min-width: 0;
-}
-
-/* "Edit | Delete" on your own comments: revealed by the same hover/focus logic as the card
-   actions, but hung below the body into the gap between comments — absolutely positioned so
-   showing it never shifts the cards around it. Hidden while editing (the card is swapped for
-   a composer). */
-.tlui-cmt-edit-row {
-	position: absolute;
-	top: calc(100% + 4px);
-	left: 0;
-	/* above the card's ::after hover strip, which otherwise paints over the icons and eats
-	   their clicks */
-	z-index: 1;
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	font-size: 11px;
-	line-height: 1;
-	opacity: 0;
-	pointer-events: none;
-}
-.tlui-cmt-card:hover .tlui-cmt-edit-row,
-.tlui-cmt-card:focus-within .tlui-cmt-edit-row {
-	opacity: 1;
-	pointer-events: auto;
-}
-.tlui-cmt-edit-row__sep {
-	color: var(--tl-color-text-3);
-}
-.tlui-cmt-edit-row__link {
-	display: flex;
-	align-items: center;
-	padding: 0;
-	border: none;
-	background: none;
-	font: inherit;
-	color: var(--tl-color-text-3);
-	cursor: pointer;
-}
-.tlui-cmt-edit-row__link:hover {
-	color: var(--tl-color-selected);
-}
-/* the trash reads as red at rest, but softened toward the row's grey; full danger red on hover */
-.tlui-cmt-edit-row__link--danger {
-	color: color-mix(in srgb, var(--tl-color-danger) 60%, var(--tl-color-text-3));
-}
-.tlui-cmt-edit-row__link--danger:hover {
-	color: var(--tl-color-danger);
 }
 
 .tlui-cmt-head {
@@ -94,11 +43,18 @@
 	font-weight: 600;
 	font-size: 13px;
 	color: var(--tl-color-text-1);
+	/* a long name ellipsizes rather than pushing the time out or running under the actions */
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .tlui-cmt-time {
 	font-size: 10px;
 	color: var(--tl-color-text-3);
+	flex-shrink: 0;
+	white-space: nowrap;
 }
 
 .tlui-cmt-text {
@@ -584,6 +540,13 @@
 	background: var(--tl-color-muted-2);
 	color: var(--tl-color-text-1);
 }
+/* the per-comment edit/delete buttons share the action-button treatment but color on hover */
+.tlui-cmt-thread__action--edit:hover {
+	color: var(--tl-color-selected);
+}
+.tlui-cmt-thread__action--danger:hover {
+	color: var(--tl-color-danger);
+}
 .tlui-cmt-thread__resolved {
 	padding: 6px 10px;
 	border-radius: 8px;
@@ -643,22 +606,25 @@
 .tlui-cmt-thread .tlui-cmt-card,
 .tlui-cmt-canvas-preview--thread .tlui-cmt-card {
 	width: 100%;
-	/* extra bottom padding gives the hover edit/delete row room in the gap between comments */
-	padding: 6px 0 14px 4px;
+	padding: 6px 0 6px 4px;
 	background: transparent;
 	border: none;
 }
-/* hovering the blank strip below a comment — where the edit/delete row appears — counts as
-   hovering the comment itself, so the row reveals from there and stays reachable without a
-   dead zone between the card and its icons */
-.tlui-cmt-thread .tlui-cmt-card::after,
-.tlui-cmt-canvas-preview--thread .tlui-cmt-card::after {
-	content: '';
-	position: absolute;
-	top: 100%;
-	left: 0;
-	right: 0;
-	height: var(--tlui-cmt-thread-gap, 6px);
+/* Centre the 22px action buttons on the byline's text line: the byline centres ~14px below the
+   card top (6px padding + half its ~16px line), so the buttons start at 14 − 11 = 3px. */
+.tlui-cmt-thread .tlui-cmt-card .tlui-cmt-card__actions,
+.tlui-cmt-canvas-preview--thread .tlui-cmt-card .tlui-cmt-card__actions {
+	top: 3px;
+}
+/* The hover actions overlay the byline's corner, so reserve their footprint — the byline can
+   never run underneath them, even mid-hover. Sized from the 22px action buttons + 2px gaps +
+   the cluster's 6px right inset: one button (react) on others' comments, three (edit, delete,
+   react) on your own. */
+.tlui-cmt-thread .tlui-cmt-card .tlui-cmt-head {
+	padding-right: 30px;
+}
+.tlui-cmt-thread .tlui-cmt-card--you .tlui-cmt-head {
+	padding-right: 78px;
 }
 
 /* comments list — thread summaries, one per row (used by the canvas sidebar) */
