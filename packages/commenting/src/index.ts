@@ -71,8 +71,16 @@ export {
 	type CommentPinDisplayBadge,
 	type CommentPinDisplayPin,
 	CommentPinOverlayUtil,
+	commentRegionEdit,
 	type TLCommentPinOverlay,
 } from './canvas/pin-overlay'
+export { CommentRegionOverlayUtil, type TLCommentRegionOverlay } from './canvas/region-overlay'
+export {
+	REGION_CORNERS,
+	REGION_EDGES,
+	type RegionHandle,
+	resizeRegion,
+} from './canvas/region-geometry'
 export {
 	type CommentingComponents,
 	type CommentingOptions,

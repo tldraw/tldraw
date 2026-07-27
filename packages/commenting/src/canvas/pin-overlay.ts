@@ -18,6 +18,7 @@ import {
 	anchorPagePoint,
 	impreciseShapePinInset,
 	regionAnchorPinCorner,
+	regionPinPoint,
 	shapeAnchorAt,
 } from './thread-state'
 
@@ -68,12 +69,15 @@ export interface CommentPinDisplay {
 	badges: CommentPinDisplayBadge[]
 	/** The imprecise shape-anchor spot the layer resolved from props/options. */
 	impreciseShapeAnchor: { x: number; y: number }
+	/** Whether the current user can write comments — gates region body-move and resize handles. */
+	canComment: boolean
 }
 
 const EMPTY_DISPLAY: CommentPinDisplay = {
 	pins: [],
 	badges: [],
 	impreciseShapeAnchor: { x: 1, y: 0 },
+	canComment: false,
 }
 
 /**
@@ -110,6 +114,18 @@ export const commentPinDrag = new EditorAtom<{
 	threadId: string
 	pagePoint: { x: number; y: number }
 } | null>('commentPinDrag', () => null)
+
+/**
+ * A region edit (body move or handle resize) in progress: the thread and its live bounds, or null.
+ * The region overlay renders the box at these bounds, the pin overlay moves the pin to the bounds'
+ * pin corner, and `CanvasComments` keeps the open popover riding along — all following the one
+ * preview. Committed to the thread record on release.
+ * @public
+ */
+export const commentRegionEdit = new EditorAtom<{
+	threadId: string
+	bounds: { x: number; y: number; w: number; h: number }
+} | null>('commentRegionEdit', () => null)
 
 /** The overlay instances the pin util produces — one per pin, one per cluster badge.
  * @public */
@@ -160,6 +176,7 @@ export class CommentPinOverlayUtil extends OverlayUtil<TLCommentPinOverlay> {
 		const display = commentPinDisplay.get(editor)
 		const openId = openThreadId.get(editor)
 		const drag = commentPinDrag.get(editor)
+		const regionEdit = commentRegionEdit.get(editor)
 		// Read zoom here so instances regenerate per camera change — the baked hit rects (and the
 		// manager's per-instance geometry cache) stay correct as the screen-fixed marker's page
 		// footprint scales.
@@ -170,7 +187,13 @@ export class CommentPinOverlayUtil extends OverlayUtil<TLCommentPinOverlay> {
 		for (const pin of display.pins) {
 			let x: number
 			let y: number
-			if (drag && drag.threadId === pin.threadId) {
+			if (regionEdit && regionEdit.threadId === pin.threadId && pin.anchor.type === 'region') {
+				// A live region edit moves the pin to the edited bounds' pin corner.
+				const corner = regionAnchorPinCorner(editor, pin.anchor)
+				const point = regionPinPoint(regionEdit.bounds, corner)
+				x = point.x + (pin.screenOffset?.x ?? 0) / zoom
+				y = point.y + (pin.screenOffset?.y ?? 0) / zoom
+			} else if (drag && drag.threadId === pin.threadId) {
 				// A drag's pagePoint already accounts for the imprecise inset (it's baked into the
 				// grab offset); only the region centering still applies at draw time.
 				x = drag.pagePoint.x + (pin.screenOffset?.x ?? 0) / zoom
@@ -519,7 +542,7 @@ function fillTeardrop(ctx: CanvasRenderingContext2D, grow: number, fill: string)
 	ctx.fill()
 }
 
-interface PinTheme {
+export interface PinTheme {
 	defaultFill: string
 	resolvedFill: string
 	resolvedContent: string
@@ -530,7 +553,7 @@ interface PinTheme {
 
 /** Resolve the pin's colors from the live theme: CSS variables where they exist, and the resolved
  *  greys hardcoded per color mode, matching `comments.css`. */
-function getPinTheme(editor: Editor): PinTheme {
+export function getPinTheme(editor: Editor): PinTheme {
 	const style = editor.getContainerWindow().getComputedStyle(editor.getContainer())
 	const dark = editor.user.getIsDarkMode()
 	const font = style.getPropertyValue('--tl-font-sans').trim()

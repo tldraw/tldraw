@@ -2,6 +2,7 @@ import {
 	CanvasComments,
 	CommentAuthor,
 	CommentPinOverlayUtil,
+	CommentRegionOverlayUtil,
 	CommentTool,
 	commentToolOverrides,
 	type CommentingOptions,
@@ -26,7 +27,7 @@ import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 import './comment-regions.css'
 
-const commentOverlayUtils = [CommentPinOverlayUtil]
+const commentOverlayUtils = [CommentPinOverlayUtil, CommentRegionOverlayUtil]
 
 const AUTHORS: Record<string, CommentAuthor> = {
 	ada: { name: 'Ada Lovelace', color: '#0E9F6E' },

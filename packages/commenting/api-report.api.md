@@ -6,6 +6,7 @@
 
 import { Avatar } from '@tldraw/mentions';
 import { AvatarProps } from '@tldraw/mentions';
+import { BoxModel } from 'tldraw';
 import { CommentAuthor } from '@tldraw/mentions';
 import { ComponentType } from 'react';
 import { createMentionSuggestion } from '@tldraw/mentions';
@@ -261,6 +262,7 @@ export function CommentPin({ children, resolved, open, color }: CommentPinProps)
 export interface CommentPinDisplay {
     // (undocumented)
     badges: CommentPinDisplayBadge[];
+    canComment: boolean;
     impreciseShapeAnchor: {
         x: number;
         y: number;
@@ -342,6 +344,39 @@ export interface CommentPinProps {
     open?: boolean;
     // (undocumented)
     resolved?: boolean;
+}
+
+// @public
+export const commentRegionEdit: EditorAtom<{
+    bounds: {
+        h: number;
+        w: number;
+        x: number;
+        y: number;
+    };
+    threadId: string;
+} | null>;
+
+// @public
+export class CommentRegionOverlayUtil extends OverlayUtil<TLCommentRegionOverlay> {
+    // (undocumented)
+    getCursor(overlay: TLCommentRegionOverlay): TLCursorType;
+    // (undocumented)
+    getGeometry(overlay: TLCommentRegionOverlay): Geometry2d | null;
+    // (undocumented)
+    getOverlays(): TLCommentRegionOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    onPointerDown(overlay: TLCommentRegionOverlay, info: TLPointerEventInfo): boolean;
+    // (undocumented)
+    options: {
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCommentRegionOverlay[]): void;
+    // (undocumented)
+    static type: string;
 }
 
 // @public
@@ -581,9 +616,25 @@ export interface ReactionProps {
 export function Reactions(): JSX.Element;
 
 // @public
+export const REGION_CORNERS: readonly RegionHandle[];
+
+// @public
+export const REGION_EDGES: readonly RegionHandle[];
+
+// @public
 export function regionAnchorPinCorner(editor: Editor, anchor: Extract<TLCommentAnchor, {
     type: 'region';
 }>): VecLike;
+
+// @public
+export interface RegionHandle {
+    // (undocumented)
+    cursor: 'ew-resize' | 'nesw-resize' | 'ns-resize' | 'nwse-resize';
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
 
 // @public
 export function registerCommentAnchorLifecycle(editor: Editor, impreciseShapeAnchor?: {
@@ -596,6 +647,9 @@ export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLComme
 
 // @public
 export function renderMarkdown(text: string): ReactNode;
+
+// @public
+export function resizeRegion(box: BoxModel, handle: RegionHandle, cursor: VecLike): BoxModel;
 
 // @public
 export const revealThreadRequest: EditorAtom<null | string>;
@@ -667,6 +721,23 @@ export interface TLCommentPinOverlay extends TLOverlay {
 
 // @public
 export type TLCommentRecord = TLComment | TLCommentThread;
+
+// @public
+export interface TLCommentRegionOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        hit: {
+            h: number;
+            w: number;
+            x: number;
+            y: number;
+        };
+        handle: RegionHandle | undefined;
+        bounds: BoxModel;
+        kind: 'body' | 'handle';
+        threadId: string;
+    };
+}
 
 // @public
 export function toggleCommentsHidden(editor: Editor): void;

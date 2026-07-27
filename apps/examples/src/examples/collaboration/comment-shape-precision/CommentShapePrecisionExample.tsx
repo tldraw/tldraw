@@ -2,6 +2,7 @@ import {
 	CanvasComments,
 	CommentAuthor,
 	CommentPinOverlayUtil,
+	CommentRegionOverlayUtil,
 	CommentTool,
 	commentToolOverrides,
 } from '@tldraw/commenting'
@@ -21,7 +22,7 @@ import {
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 
-const commentOverlayUtils = [CommentPinOverlayUtil]
+const commentOverlayUtils = [CommentPinOverlayUtil, CommentRegionOverlayUtil]
 
 // One configured comment tool per mode, built once at module level so each array keeps a stable
 // identity. `shouldBePrecise` decides what commenting on a shape produces: a precise anchor

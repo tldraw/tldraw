@@ -3,6 +3,7 @@ import {
 	CanvasCommentsSidebar,
 	CommentAuthor,
 	CommentPinOverlayUtil,
+	CommentRegionOverlayUtil,
 	commentsSidebarOpen,
 	commentToolOverrides,
 	commentTools,
@@ -31,7 +32,7 @@ import {
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 
-const commentOverlayUtils = [CommentPinOverlayUtil]
+const commentOverlayUtils = [CommentPinOverlayUtil, CommentRegionOverlayUtil]
 
 // A tiny local user directory so the list shows names instead of ids.
 const AUTHORS: Record<string, CommentAuthor> = {

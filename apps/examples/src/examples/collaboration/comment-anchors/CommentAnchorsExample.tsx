@@ -2,6 +2,7 @@ import {
 	CanvasComments,
 	CommentAuthor,
 	CommentPinOverlayUtil,
+	CommentRegionOverlayUtil,
 	commentToolOverrides,
 	commentTools,
 	putCommentRecords,
@@ -24,7 +25,7 @@ import {
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 
-const commentOverlayUtils = [CommentPinOverlayUtil]
+const commentOverlayUtils = [CommentPinOverlayUtil, CommentRegionOverlayUtil]
 
 // A demo avatar image (inline SVG) so Ada's comments show an image instead of a colored initial.
 const ADA_AVATAR =
