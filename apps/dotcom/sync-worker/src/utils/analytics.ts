@@ -13,12 +13,12 @@ export interface EventData {
  * element 0 is `blob3`).
  *
  * It goes in a fixed slot rather than being appended because call sites pass anywhere from zero to
- * five blobs: appending would put the room key in a different column per event and make it
+ * three blobs: appending would put the room key in a different column per event and make it
  * impossible to group by room across event names — the entire point of recording it. A high slot
- * avoids disturbing the columns events already use (the screenshot surfaces reach `blob8`), so
- * existing queries and the 90 days of history behind them keep their meaning. The padding this
- * implies is empty strings, which cost effectively nothing against Analytics Engine's per-data
- * point blob budget.
+ * avoids disturbing the columns events already use (the screenshot surfaces, which write to this
+ * same dataset, reach `blob8`), so existing queries and the 90 days of history behind them keep
+ * their meaning. The padding this implies is empty strings, which cost effectively nothing against
+ * Analytics Engine's per-data point blob budget.
  */
 export const ROOM_KEY_BLOB_INDEX = 7
 
@@ -28,7 +28,7 @@ export const UNKNOWN_ROOM_KEY = 'unknown'
 /**
  * Places `roomKey` at {@link ROOM_KEY_BLOB_INDEX}, padding any gap with empty strings so the
  * caller's own blobs keep the positions they had before. Call sites are nowhere near that index —
- * the largest passes five blobs — but a caller that did reach it would have its last blob
+ * the largest passes three blobs — but a caller that did reach it would have its last blob
  * overwritten rather than shifted, since silently moving a column is worse than losing one.
  */
 export function withRoomKey(blobs: string[] | undefined, roomKey: string): string[] {
