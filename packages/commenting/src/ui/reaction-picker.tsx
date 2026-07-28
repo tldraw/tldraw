@@ -1,8 +1,10 @@
-import { useId, type ComponentType } from 'react'
+import { useCallback, useId, type ComponentType } from 'react'
 import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	tlmenus,
+	useMaybeEditor,
 	useTranslation,
 } from 'tldraw'
 import { EmojiPicker, type EmojiPickerProps } from './emoji-picker'
@@ -41,6 +43,9 @@ export interface ReactionPickerProps {
  *
  * Anchored to its own button rather than to the reactions row, so the menu keeps its position as
  * reactions are added and the row reflows.
+ *
+ * Picking an emoji dismisses the grid — adding and removing alike, since either way the picker has
+ * done its job — and hands focus back to the trigger.
  * @public @react
  */
 export function ReactionPicker({
@@ -53,10 +58,24 @@ export function ReactionPicker({
 	className = 'tlui-cmt-thread__action',
 }: ReactionPickerProps) {
 	const msg = useTranslation()
+	const editor = useMaybeEditor()
 	// Unique per mounted picker unless the host supplies something stabler — see `menuId`.
 	const generatedId = useId()
+	const id = menuId ?? `comment-reactions-${generatedId}`
+
+	// The dropdown's open state lives in tldraw's global menu registry, so dropping the entry is
+	// what closes it. The palette's tokens are plain buttons — a swappable component, not radix
+	// menu items — so nothing dismisses the menu on its own.
+	const handleSelect = useCallback(
+		(value: string) => {
+			onSelect?.(value)
+			tlmenus.deleteOpenMenu(id, editor?.contextId)
+		},
+		[onSelect, id, editor]
+	)
+
 	return (
-		<TldrawUiDropdownMenuRoot id={menuId ?? `comment-reactions-${generatedId}`}>
+		<TldrawUiDropdownMenuRoot id={id}>
 			<TldrawUiDropdownMenuTrigger>
 				<TooltipButton tooltip={msg('comments.add-reaction')} className={className}>
 					<SmileyIcon />
@@ -67,7 +86,7 @@ export function ReactionPicker({
 				<Palette
 					emoji={emoji}
 					selected={selected}
-					onSelect={onSelect}
+					onSelect={handleSelect}
 					renderReaction={renderReaction}
 				/>
 			</TldrawUiDropdownMenuContent>
