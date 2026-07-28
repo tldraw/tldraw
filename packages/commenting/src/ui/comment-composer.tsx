@@ -10,7 +10,12 @@ import {
 } from '@tldraw/mentions'
 import { ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
-import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
+import {
+	commentTipTapExtensions,
+	EMPTY_COMMENT,
+	isCommentEmpty,
+	unwrapSingleBlockPaste,
+} from './comment-extensions'
 import { SendButton } from './send-button'
 
 /** @public */
@@ -184,8 +189,15 @@ export function CommentComposer({
 			// mirrors RichTextArea's setup.
 			enableCoreExtensions: { textDirection: false },
 			textDirection: 'auto',
+			coreExtensionOptions: {
+				// TipTap separates blocks with a blank line when it writes the plain-text flavor of the
+				// clipboard, so copying a multi-line comment into a plain-text field doubles every line
+				// break. Match RichTextArea and use a single newline.
+				clipboardTextSerializer: { blockSeparator: '\n' },
+			},
 			editorProps: {
 				attributes: { class: 'tlui-cmt-input' },
+				transformPasted: unwrapSingleBlockPaste,
 				// Runs before every keymap plugin, so it can distinguish Shift+Enter from Enter — an
 				// `Enter` keymap binding also fires on Shift+Enter and would otherwise swallow it.
 				handleKeyDown: (_view, event) => {

@@ -1,3 +1,4 @@
+import { Slice } from '@tiptap/pm/model'
 import { getTipTapDefaultExtensions, TLRichText, toRichText } from 'tldraw'
 
 /**
@@ -22,4 +23,19 @@ export function isCommentEmpty(richText: TLRichText): boolean {
 		if (!node.content || node.content.length === 0) return true
 	}
 	return false
+}
+
+/**
+ * Paste a whole-paragraph copy into the middle of a line without breaking the line in two.
+ * Copying a comment selected with Select all (rather than with shift+arrows) puts the paragraph on
+ * the clipboard as a closed block, and ProseMirror inserts a closed block as a paragraph of its
+ * own — so pasting it back mid-sentence splits the line around it. A comment field is a
+ * sentence-level input, so a single copied block pastes as its inline content instead. Slices with
+ * several blocks, or with list structure, are left alone: there the block structure is the point.
+ */
+export function unwrapSingleBlockPaste(slice: Slice): Slice {
+	if (slice.openStart !== 0 || slice.openEnd !== 0 || slice.content.childCount !== 1) return slice
+	const only = slice.content.firstChild
+	if (!only?.isTextblock) return slice
+	return new Slice(only.content, 0, 0)
 }
