@@ -99,3 +99,30 @@ export function getEmbedInfo(
 		return undefined
 	}
 }
+
+const ASPECT_RATIO_EPSILON = 0.001
+
+/**
+ * Given an embed shape's current size and a newly-resolved aspect ratio, return the size it should
+ * be corrected to (width preserved, height derived), or `null` when no change is needed — either
+ * because there's no resolved ratio or the shape is already at it.
+ *
+ * @param opts - The current `w`/`h` and the `resolvedRatio` (`width / height`) discovered at runtime.
+ * @internal
+ */
+export function getCorrectedEmbedSize({
+	w,
+	h,
+	resolvedRatio,
+}: {
+	w: number
+	h: number
+	resolvedRatio: number | undefined
+}): { w: number; h: number } | null {
+	if (!resolvedRatio || resolvedRatio <= 0) return null
+
+	// Already at the resolved ratio: nothing to do.
+	if (Math.abs(w / h - resolvedRatio) <= ASPECT_RATIO_EPSILON) return null
+
+	return { w, h: w / resolvedRatio }
+}

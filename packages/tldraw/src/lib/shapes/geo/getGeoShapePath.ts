@@ -14,6 +14,7 @@ import {
 	VecModel,
 	WeakCache,
 } from '@tldraw/editor'
+import { getFlipMatrix } from '../shared/flip'
 import { PathBuilder } from '../shared/PathBuilder'
 
 /**
@@ -375,7 +376,19 @@ function _getGeoPath(
 	if (!def) {
 		throw new Error(`Unknown geo type: ${shape.props.geo}`)
 	}
-	return def.getPath(w, h, shape, sw)
+
+	const path = def.getPath(w, h, shape, sw)
+
+	// Mirror the geometry when the shape is flipped. We flip the path itself (rather than only the
+	// rendered output) so that geometry, hit-testing, the selection indicator, and SVG export all
+	// stay consistent. The label lives in its own container and is intentionally left unflipped so
+	// text stays upright and readable.
+	const { flipX, flipY } = shape.props
+	if (flipX || flipY) {
+		return path.transform(getFlipMatrix({ flipX, flipY }, w, h))
+	}
+
+	return path
 }
 
 function getXBoxPath(

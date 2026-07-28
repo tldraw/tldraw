@@ -11,7 +11,7 @@
 	"dependencies": {
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
-		"cloudflare-workers-unfurl": "^0.0.8",
+		"cloudflare-workers-unfurl": "^0.0.9",
 		"itty-router": "^5.0.18",
 		"toucan-js": "^3.4.0"
 	},

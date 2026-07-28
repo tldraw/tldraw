@@ -1,4 +1,5 @@
-import { Editor } from '@tldraw/editor'
+import { Editor, TLEmbedShape } from '@tldraw/editor'
+import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import {
 	cancelUpdateHoveredShapeId,
 	updateHoveredShapeId,
@@ -6,7 +7,33 @@ import {
 
 /** @public */
 export function registerDefaultSideEffects(editor: Editor) {
+	const resolveEmbedAspectRatio = (shape: TLEmbedShape) => {
+		// Resolving the embed's real aspect ratio is a document mutation, so it belongs here as a
+		// store side effect rather than in the shape's render component — that way it runs once per
+		// create/url-change and never during rendering (e.g. SVG export).
+		;(editor.getShapeUtil('embed') as EmbedShapeUtil).resolveAspectRatio(shape)
+	}
+
 	const unsub = editor.sideEffects.register({
+		shape: {
+			afterCreate: (shape, source) => {
+				// Only for local user actions: remote peers and document loads already carry the
+				// resolved size, so we don't need to re-fetch.
+				if (source !== 'user') return
+				if (editor.isShapeOfType<TLEmbedShape>(shape, 'embed')) {
+					resolveEmbedAspectRatio(shape)
+				}
+			},
+			afterChange: (prev, next, source) => {
+				if (source !== 'user') return
+				if (
+					editor.isShapeOfType<TLEmbedShape>(next, 'embed') &&
+					(prev as TLEmbedShape).props.url !== next.props.url
+				) {
+					resolveEmbedAspectRatio(next)
+				}
+			},
+		},
 		instance: {
 			afterChange: (prev, next) => {
 				if (prev.cameraState !== next.cameraState && next.cameraState === 'idle') {

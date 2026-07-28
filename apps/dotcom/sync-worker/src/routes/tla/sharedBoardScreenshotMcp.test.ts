@@ -9,19 +9,18 @@ import {
 	makeFakeRoomsBucket,
 	makeFakeThumbnailsBucket,
 	makeScreenshotTestEnv,
+	makeSnapshot,
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
 import {
-	buildThumbnailRenderUrl,
-	enumerateBoardPages,
 	getThumbnailPageCacheKey,
 	isMcpScreenshotEnabled,
 	parseBoardInfoInput,
 	parseSharedBoardScreenshotInput,
-	resetRateLimitFallbackForTests,
 	sharedBoardScreenshotMcp,
 } from './sharedBoardScreenshotMcp'
+import { resetRateLimitFallbackForTests } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -40,24 +39,6 @@ afterEach(() => {
 	vi.clearAllMocks()
 	resetRateLimitFallbackForTests()
 })
-
-// Builds a room snapshot with the given pages and per-page shape counts. Shapes are parented
-// directly to their page, which is what enumerateBoardPages checks for "has content".
-function makeSnapshot(
-	pages: Array<{ id: string; name: string; index: string; shapes: number }>,
-	boardName: string | null = 'My Board'
-) {
-	const documents: Array<{ state: any }> = [
-		{ state: { typeName: 'document', id: 'document:document', name: boardName ?? '' } },
-	]
-	for (const p of pages) {
-		documents.push({ state: { typeName: 'page', id: p.id, name: p.name, index: p.index } })
-		for (let i = 0; i < p.shapes; i++) {
-			documents.push({ state: { typeName: 'shape', id: `shape:${p.id}-${i}`, parentId: p.id } })
-		}
-	}
-	return { documents, schema: { schemaVersion: 2, sequences: {} } } as any
-}
 
 const THREE_PAGES = [
 	{ id: 'page:a', name: 'Cover', index: 'a1', shapes: 2 },
@@ -147,31 +128,6 @@ describe('getThumbnailPageCacheKey', () => {
 				2
 			)
 		).toBe('mcp/published/abc/1751234567890/1200x630/dark/page-2.png')
-	})
-})
-
-describe('enumerateBoardPages', () => {
-	it('lists pages in fractional-index order with names and content flags', () => {
-		const pages = enumerateBoardPages(
-			makeSnapshot([
-				{ id: 'page:b', name: 'Ideas', index: 'a2', shapes: 1 },
-				{ id: 'page:a', name: 'Cover', index: 'a1', shapes: 2 },
-				{ id: 'page:c', name: '', index: 'a3', shapes: 0 },
-			])
-		)
-		expect(pages).toEqual([
-			{ index: 0, id: 'page:a', name: 'Cover', hasContent: true },
-			{ index: 1, id: 'page:b', name: 'Ideas', hasContent: true },
-			{ index: 2, id: 'page:c', name: 'Page 3', hasContent: false },
-		])
-	})
-})
-
-describe('buildThumbnailRenderUrl', () => {
-	it('builds the render page URL with the token', () => {
-		const url = new URL(buildThumbnailRenderUrl('https://render.example', 'the-token'))
-		expect(url.pathname).toBe('/__thumbnail-render')
-		expect(url.searchParams.get('token')).toBe('the-token')
 	})
 })
 

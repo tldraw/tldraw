@@ -10,12 +10,14 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	Editor,
+	FileHelpers,
 	Image,
 	SerializedSchema,
 	TLPageId,
 	TLRecord,
 	Tldraw,
 	fetch,
+	sleep,
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -106,7 +108,7 @@ function ThumbnailRenderPage({
 	// screenshot captures the exact editor.toImage output rather than the live editor canvas.
 	const [dataUrl, setDataUrl] = useState<string | null>(null)
 	const handleImage = useCallback(async (blob: Blob) => {
-		setDataUrl(await blobToDataUrl(blob))
+		setDataUrl(await FileHelpers.blobToDataUrl(blob))
 	}, [])
 
 	if (dataUrl) return <ThumbnailImage dataUrl={dataUrl} width={width} height={height} />
@@ -159,8 +161,9 @@ function ThumbnailRenderPage({
 // Displays the exported PNG at the exact output size and signals readiness once it has painted, so
 // the worker's screenshot (which waits on data-thumbnail-ready) captures the export pixel-for-pixel.
 // The editor DOM is gone by now — React swaps it out in the same commit that renders this — so the
-// page is quiescent when the screenshot is taken.
-function ThumbnailImage({
+// page is quiescent when the screenshot is taken. Also used by the dev fixture page
+// (dev-browser-run-thumbnail.tsx), so its ready/error markers stay identical to production's.
+export function ThumbnailImage({
 	dataUrl,
 	width,
 	height,
@@ -176,11 +179,7 @@ function ThumbnailImage({
 			alt=""
 			style={{ display: 'block', width, height }}
 			onLoad={signalThumbnailReady}
-			onError={() => {
-				const message = 'thumbnail image failed to load'
-				document.body.dataset.thumbnailError = message
-				document.documentElement.dataset.thumbnailError = message
-			}}
+			onError={() => setThumbnailError('thumbnail image failed to load')}
 		/>
 	)
 }
@@ -188,6 +187,13 @@ function ThumbnailImage({
 function signalThumbnailReady() {
 	document.body.dataset.thumbnailReady = 'true'
 	document.documentElement.dataset.thumbnailReady = 'true'
+}
+
+// Marks the terminal failure state on both <html> and <body>: the worker's screenshot wait resolves
+// on either marker, and success marks both, so failure does too.
+function setThumbnailError(message: string) {
+	document.body.dataset.thumbnailError = message
+	document.documentElement.dataset.thumbnailError = message
 }
 
 // A data-URL <img> can finish decoding before React attaches the onLoad handler, in which case
@@ -199,9 +205,10 @@ function signalThumbnailReadyIfComplete(img: HTMLImageElement | null) {
 
 function ThumbnailRenderError({ message }: { message: string }) {
 	useEffect(() => {
-		document.body.dataset.thumbnailError = message
+		setThumbnailError(message)
 		return () => {
 			delete document.body.dataset.thumbnailError
+			delete document.documentElement.dataset.thumbnailError
 		}
 	}, [message])
 
@@ -250,38 +257,20 @@ function getRepresentativeContentInset(width: number, height: number) {
 	return Math.max(48, Math.min(160, width * 0.12, height * 0.18))
 }
 
-// Zoom floor for the content fit. The camera's zoom steps double as the clamp range for both
-// zoomToBounds and setCamera, and the default floor (0.05) is far too high here: at 1200x630 it
-// stops fitting at roughly 22k x 10k page units, so a bigger board quietly renders with its edges
-// cropped. Nothing on this page zooms interactively, so the floor exists only to bound the fit —
-// this one fits a board a thousand times the size of the viewport.
-const MIN_CONTENT_FIT_ZOOM = 0.001
-
 // Fits the current page's content into the viewport with representative margins. Run both on mount
 // and again right before export (see ThumbnailExportSignal), because autosized text re-measures once
 // web fonts load and shifts the page bounds — a fit computed before fonts settle would clip content.
 function fitContentCamera(editor: Editor, width: number, height: number) {
 	const bounds = editor.getCurrentPageBounds()
-	if (!bounds) {
+	if (bounds) {
+		editor.zoomToBounds(bounds, {
+			immediate: true,
+			force: true,
+			inset: getRepresentativeContentInset(width, height),
+		})
+	} else {
 		editor.setCamera({ x: 0, y: 0, z: 1 }, { immediate: true })
-		return
 	}
-
-	// Lower the zoom floor before fitting. `force` only bypasses the camera lock, not the fit's own
-	// clamp, so the steps themselves have to allow the zoom the fit needs — and lowering them here
-	// (rather than forcing a camera past them) also stops a later unforced setCamera from snapping the
-	// fit back up. Keep the existing ceiling so a page holding one small shape isn't magnified
-	// absurdly. Filtering rather than replacing keeps this idempotent across the two calls.
-	const { zoomSteps } = editor.getCameraOptions()
-	editor.setCameraOptions({
-		zoomSteps: [MIN_CONTENT_FIT_ZOOM, ...zoomSteps.filter((step) => step > MIN_CONTENT_FIT_ZOOM)],
-	})
-
-	editor.zoomToBounds(bounds, {
-		immediate: true,
-		force: true,
-		inset: getRepresentativeContentInset(width, height),
-	})
 }
 
 // Produces a thumbnail of the editor's current page with editor.toImage once the scene has settled
@@ -335,9 +324,13 @@ export function ThumbnailExportSignal({
 			await onImage(blob)
 		})().catch((error) => {
 			if (cancelled) return
-			const message = error instanceof Error ? error.message : String(error)
-			document.body.dataset.thumbnailError = message
-			document.documentElement.dataset.thumbnailError = message
+			// FileHelpers.blobToDataUrl rejects with the FileReader's ProgressEvent rather than an
+			// Error; don't let that stringify to "[object ProgressEvent]" in the error marker.
+			if (error instanceof Event) {
+				setThumbnailError('Could not read thumbnail blob')
+			} else {
+				setThumbnailError(error instanceof Error ? error.message : String(error))
+			}
 		})
 
 		return () => {
@@ -423,15 +416,6 @@ function makeBlankThumbnail(width: number, height: number, background: string): 
 	})
 }
 
-function blobToDataUrl(blob: Blob): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onload = () => resolve(reader.result as string)
-		reader.onerror = () => reject(reader.error ?? new Error('Could not read thumbnail blob'))
-		reader.readAsDataURL(blob)
-	})
-}
-
 async function waitForFonts() {
 	if (!('fonts' in document)) return
 	try {
@@ -487,8 +471,4 @@ async function waitForEditorImages(editor: Editor, deadline: number) {
 		lastCount = images.length
 		await sleep(100)
 	}
-}
-
-function sleep(ms: number) {
-	return new Promise<void>((resolve) => setTimeout(resolve, ms))
 }
