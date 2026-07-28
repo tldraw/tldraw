@@ -134,6 +134,29 @@ describe('createCommentAuthorizers', () => {
 				authorize({ session: session('real-bob'), type: 'create', prev: null, next })
 			).toBeNull()
 		})
+
+		// threadId ties a comment to its conversation (and downstream to a file), so re-parenting an
+		// existing comment must not be an update — even by its own author.
+		it('vetoes re-parenting a comment to another thread', () => {
+			const prev = comment('real-bob')
+			const next = { ...prev, threadId: 'comment-thread:other' as TLCommentThread['id'] }
+			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+		})
+
+		// createdAt orders threads and bounds the notification feed, so a mutable one lets a comment
+		// be re-sorted (or pinned to the top of the feed) after the fact.
+		it('vetoes back-dating a comment', () => {
+			const prev = comment('real-bob')
+			const next = { ...prev, createdAt: 1 }
+			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+		})
+
+		// the anchor lifecycle rewrites pageId on every comment when a thread moves pages
+		it('allows a pageId update (threads can move between pages)', () => {
+			const prev = comment('real-bob')
+			const next = { ...prev, pageId: 'page:other' as TLPageId }
+			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+		})
 	})
 
 	describe('comment-thread', () => {
@@ -299,6 +322,23 @@ describe('createCommentAuthorizers', () => {
 			const prev = makeReaction('real-alice')
 			const next = { ...prev, emoji: '💩' }
 			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBeNull()
+		})
+
+		it('lets the reactor remove their own reaction', () => {
+			const prev = makeReaction('real-bob')
+			expect(authorize({ session: session('real-bob'), type: 'delete', prev, next: null })).toBe(
+				prev
+			)
+		})
+
+		it('vetoes deleting someone else’s reaction', () => {
+			// cascades still sweep every reactor's records: server-initiated writes carry no session
+			// and skip authorizers entirely, so this doesn't need to be open to clients
+			const prev = makeReaction('real-alice')
+			expect(
+				authorize({ session: session('real-mallory'), type: 'delete', prev, next: null })
+			).toBeNull()
+			expect(authorize({ session: session(null), type: 'delete', prev, next: null })).toBeNull()
 		})
 
 		// The id is derived from (comment, user, emoji). A create must land at the session user's own

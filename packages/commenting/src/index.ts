@@ -21,7 +21,6 @@ export { CommentCard, type CommentCardProps } from './ui/comment-card'
 export { CommentComposer, type CommentComposerProps } from './ui/comment-composer'
 export { CountBadge, type CountBadgeProps } from './ui/count-badge'
 export { CommentPin, type CommentPinProps } from './ui/comment-pin'
-export { CommentText, type CommentTextProps } from './ui/comment-text'
 export { CommentThread, type CommentThreadProps } from './ui/comment-thread'
 export { CommentsList, type CommentListItemProps, type CommentsListProps } from './ui/comments-list'
 export { EmptyState, type EmptyStateProps } from './ui/empty-state'
@@ -48,7 +47,6 @@ export {
 	type ReactionsProps,
 	type ReactionSummary,
 } from './ui/reactions'
-export { renderMarkdown } from './ui/render-markdown'
 export { SendButton, type SendButtonProps } from './ui/send-button'
 
 // The tldraw-coupled commenting layer: the comment tool, reactive hooks over the comment

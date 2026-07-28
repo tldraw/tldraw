@@ -154,7 +154,12 @@ export class TldrawApp {
 	private readonly workspaceMemberships$: Signal<
 		QueryResultType<typeof queries.workspaceMemberships>
 	>
-	private readonly comments$: Signal<QueryResultType<typeof queries.comments>>
+	/**
+	 * Null when commenting is disabled for this user: the notifications feed is the most expensive
+	 * query in the schema (nested EXISTS over comment/thread/file/group), so a closed flag has to
+	 * keep it off the wire entirely, not just hide the UI that reads it.
+	 */
+	private readonly comments$: Signal<QueryResultType<typeof queries.comments>> | null
 
 	private readonly useProperZero: boolean
 	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
@@ -303,7 +308,9 @@ export class TldrawApp {
 			'workspace memberships signal',
 			this.workspaceMembershipsQuery()
 		)
-		this.comments$ = this.signalizeQuery('comments signal', this.commentsQuery())
+		this.comments$ = this.isCommentingEnabled
+			? this.signalizeQuery('comments signal', this.commentsQuery())
+			: null
 	}
 
 	private userQuery() {
@@ -322,9 +329,12 @@ export class TldrawApp {
 		return queries.comments()
 	}
 
-	/** Recent comments across the user's files, for the notifications feed (bounded, cross-file). */
-	getComments() {
-		return this.comments$.get()
+	/**
+	 * Recent comments across the user's files, for the notifications feed (bounded, cross-file).
+	 * Empty when commenting is disabled for this user — the query isn't subscribed at all.
+	 */
+	getComments(): QueryResultType<typeof queries.comments> {
+		return this.comments$?.get() ?? []
 	}
 
 	/**

@@ -1421,12 +1421,13 @@ const ThreadPin = memo(function ThreadPin({
 	const commitResize = (bounds: BoxModel) => {
 		setResizeBounds(null)
 		if (!canComment) return
-		editor.run(
+		// Same commit path as a pin drag, so the configured `dragHistory` governs both — going
+		// straight to `editor.run` here would make region resizes silently ignore the option.
+		commitCommentMutation(
+			editor,
 			// Spread the existing anchor first so the region's pin corner survives a resize.
 			() => putCommentRecords(editor, [{ ...thread, anchor: { ...regionAnchor!, ...bounds } }]),
-			{
-				history: 'ignore',
-			}
+			'drag'
 		)
 	}
 

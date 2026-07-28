@@ -126,8 +126,10 @@ export type TLCommentId = RecordId<TLComment>
  * people reacting at once would race to overwrite each other. A record per person keeps every
  * write to its own record, which is what lets concurrent reactions coexist.
  *
- * A user has at most one reaction per comment. That's enforced by the id: see
- * `createCommentReactionId`.
+ * A user holds at most one record per (comment, emoji) pair — so one user can react with several
+ * different emoji to the same comment. That's enforced by the id: see `createCommentReactionId`.
+ * Restricting a user to a single reaction overall is a client-side policy layered on top (see the
+ * commenting package's `reactionMode`), not a property of this record.
  *
  * @public
  */
@@ -148,6 +150,16 @@ export interface TLCommentReaction extends BaseRecord<'comment-reaction', TLComm
 
 /** @public */
 export type TLCommentReactionId = RecordId<TLCommentReaction>
+
+/**
+ * An emoji shortcode or literal. Bounded because reaction ids embed the emoji verbatim
+ * (see {@link createCommentReactionId}), so an unbounded value means an unbounded record id.
+ */
+const emojiValidator = T.string.check((value) => {
+	if (value.length === 0 || value.length > 64) {
+		throw new T.ValidationError(`Expected an emoji of 1-64 characters, got ${value.length}`)
+	}
+})
 
 const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
 	shape: T.object({
@@ -294,7 +306,7 @@ export const commentReactionRecordConfig: CustomRecordInfo = {
 		threadId: idValidator<TLCommentThreadId>('comment-thread'),
 		pageId: idValidator<TLPageId>('page'),
 		userId: T.string,
-		emoji: T.string,
+		emoji: emojiValidator,
 		createdAt: T.number,
 		meta: T.jsonValue,
 	}),

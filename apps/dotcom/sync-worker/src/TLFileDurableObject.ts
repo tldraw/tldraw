@@ -61,8 +61,11 @@ import {
 	findEmptiedCommentThreads,
 	findOrphanedReactions,
 	isCommentAuthorFkViolation,
+	isCommentFileFkViolation,
 	isCommentMentionFkViolation,
 	isCommentReactionFkViolation,
+	isCommentThreadFkViolation,
+	isCommentThreadIdFkViolation,
 	liveCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
@@ -1921,7 +1924,12 @@ export class TLFileDurableObject extends DurableObject {
 				const runBatchWithFallback = async <R extends { id: string }>(
 					rows: R[],
 					insert: (rows: R[]) => Promise<unknown>,
-					shouldPrune?: (error: unknown) => boolean
+					// Called with the offending row on the row-by-row pass, and without one for the
+					// batch error (where it only decides whether to report — the per-row pass
+					// attributes the failure properly). Taking the row lets a predicate that can't
+					// judge an error in isolation — see the comment thread-FK case — look at what
+					// was actually being written.
+					shouldPrune?: (error: unknown, row?: R) => boolean
 				): Promise<{ failedIds: string[]; prunedIds: string[] }> => {
 					const failedIds: string[] = []
 					const prunedIds: string[] = []
@@ -1939,7 +1947,7 @@ export class TLFileDurableObject extends DurableObject {
 							try {
 								await insert([row])
 							} catch (rowError) {
-								if (shouldPrune?.(rowError)) {
+								if (shouldPrune?.(rowError, row)) {
 									prunedIds.push(row.id)
 									continue
 								}
@@ -1974,7 +1982,14 @@ export class TLFileDurableObject extends DurableObject {
 					deletedCommentThreadIds = new Set(deletedRows.map((row) => row.threadId))
 				}
 				const failedIds = new Set<string>()
-				const threadResult = await runBatchWithFallback(threadUpserts, insertThreadRows)
+				// A thread upsert failing its file FK can never succeed on retry — the file is gone,
+				// or the room's slug was never a file row at all. Prune it like an author cascade
+				// rather than leaving the entry to fail on every drain for the life of the room.
+				const threadResult = await runBatchWithFallback(
+					threadUpserts,
+					insertThreadRows,
+					isCommentThreadFkViolation
+				)
 				for (const id of threadResult.failedIds) {
 					failedIds.add(id)
 				}
@@ -1990,10 +2005,28 @@ export class TLFileDurableObject extends DurableObject {
 				// cascade can't race the room), so the pruned thread ids are re-outboxed and a
 				// follow-up drain stamps the rows soft-deleted through the normal at-least-once
 				// acked path.
+				// Also prune a comment whose parent can never exist: its file is gone, or its thread
+				// was vetoed by the authorizer / forged by a client, so retrying is an unbounded
+				// loop rather than eventual consistency.
+				//
+				// A thread-FK failure alone doesn't prove that, though. Threads upsert before
+				// comments in this same drain, so a thread whose own upsert just failed
+				// transiently (timeout, serialization failure) also fails its comments' FK — and
+				// that thread is still queued to retry. Pruning there would delete a live comment
+				// moments before its parent lands, and the retry would then have nothing to attach.
+				// So only prune when the thread is absent from the room's lane, which is what
+				// "vetoed or never existed" actually looks like. `lane` is a snapshot taken at the
+				// top of the drain, so the later prunes below can't shift this decision.
 				const commentResult = await runBatchWithFallback(
 					commentUpserts,
 					insertCommentRows,
-					isCommentAuthorFkViolation
+					(error, row) => {
+						if (isCommentAuthorFkViolation(error) || isCommentFileFkViolation(error)) return true
+						if (!isCommentThreadIdFkViolation(error)) return false
+						// No row: the batch-level call, which only suppresses the duplicate report.
+						if (!row) return true
+						return !lane.has(row.threadId)
+					}
 				)
 				for (const id of commentResult.failedIds) {
 					failedIds.add(id)
@@ -2016,6 +2049,17 @@ export class TLFileDurableObject extends DurableObject {
 				if (reactionResult.prunedIds.length > 0) {
 					storage.transaction((txn) => {
 						for (const id of reactionResult.prunedIds) txn.delete(id as TLRecord['id'])
+					})
+				}
+				// Same for a thread pruned by its file FK: the file is gone, so Postgres has already
+				// cascaded the thread (and its comments) away. Without this the lane keeps records
+				// for a file that no longer exists, which is exactly the ghost state the reaction
+				// and comment prunes exist to avoid. Its comments fail `comment_file_id_fkey` in
+				// the same drain and prune through their own path, so no dependent sweep is needed
+				// here.
+				if (threadResult.prunedIds.length > 0) {
+					storage.transaction((txn) => {
+						for (const id of threadResult.prunedIds) txn.delete(id as TLRecord['id'])
 					})
 				}
 				// Un-reacting removes the record, so a lane-absent reaction is a real delete — unlike

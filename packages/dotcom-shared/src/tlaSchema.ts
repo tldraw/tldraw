@@ -209,7 +209,7 @@ export const comment_mention = table('comment_mention')
 	})
 	.primaryKey('commentId', 'userId')
 
-// One row per (comment, reacting user) — a user has at most one reaction per comment. Written by
+// One row per (comment, reacting user, emoji) — a user may react with several emoji. Written by
 // the file's Durable Object from the room's comment-reaction records, like comment/comment_thread.
 // The in-document reaction UI reads reactions over the sync object-lane, not from here; this table
 // mirrors comment_mention so a future app-level query (e.g. "reacted to your comment") can reach

@@ -1,4 +1,13 @@
-import { Editor, TLComment, TLCommentThread, TLCommentThreadId, useValue } from 'tldraw'
+import {
+	computed,
+	Computed,
+	Editor,
+	TLComment,
+	TLCommentThread,
+	TLCommentThreadId,
+	useValue,
+	WeakCache,
+} from 'tldraw'
 import { getComments, getCommentThreads } from './comment-store'
 
 /** The comments that should render: not soft-deleted. Deleted records await the server's prune. */
@@ -28,17 +37,42 @@ export function useCommentThreads(editor: Editor): TLCommentThread[] {
 	)
 }
 
+/**
+ * Every live comment grouped by thread, oldest first within each thread. One computed shared by
+ * every mounted thread: each `useThreadComments` would otherwise scan and sort the whole comment
+ * set, so N open threads did N full passes on every comment mutation. Cached per editor so the
+ * grouping survives re-renders and is rebuilt only when the comment set actually changes.
+ */
+const commentsByThread = new WeakCache<Editor, Computed<Map<TLCommentThreadId, TLComment[]>>>()
+
+function getCommentsByThread(editor: Editor) {
+	return commentsByThread.get(editor, () =>
+		computed('comments by thread', () => {
+			const byThread = new Map<TLCommentThreadId, TLComment[]>()
+			for (const comment of getLiveComments(editor)) {
+				const existing = byThread.get(comment.threadId)
+				if (existing) existing.push(comment)
+				else byThread.set(comment.threadId, [comment])
+			}
+			for (const comments of byThread.values()) {
+				comments.sort((a, b) => a.createdAt - b.createdAt)
+			}
+			return byThread
+		})
+	)
+}
+
 /** A thread's live comments, oldest first, reactively. @public */
 export function useThreadComments(editor: Editor, threadId: TLCommentThreadId): TLComment[] {
 	return useValue(
 		'thread comments',
-		() =>
-			getLiveComments(editor)
-				.filter((c) => c.threadId === threadId)
-				.sort((a, b) => a.createdAt - b.createdAt),
+		() => getCommentsByThread(editor).get().get(threadId) ?? EMPTY_COMMENTS,
 		[editor, threadId]
 	)
 }
+
+/** Shared empty result so a thread with no comments doesn't churn referential equality. */
+const EMPTY_COMMENTS: TLComment[] = []
 
 /** Every live comment in the store, oldest first, reactively. Group by `threadId` for per-thread lists. @public */
 export function useComments(editor: Editor): TLComment[] {
