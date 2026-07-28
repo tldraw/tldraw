@@ -505,20 +505,10 @@
 	--tlui-cmt-thread-padding: 8px;
 	--tlui-cmt-thread-gap: 6px;
 	--tlui-cmt-thread-action-size: 26px;
-	--tlui-cmt-thread-header-padding: 0px;
-	/* Nothing in the header is taller than an action button, so the button plus the header's own
-	   padding is the header's height. */
-	--tlui-cmt-thread-header-height: calc(
-		var(--tlui-cmt-thread-action-size) + 2 * var(--tlui-cmt-thread-header-padding)
-	);
-	/* How far the first comment sits below the panel's top edge. */
-	--tlui-cmt-thread-first-comment-offset: calc(
-		var(--tlui-cmt-thread-padding) + var(--tlui-cmt-thread-header-height) +
-			var(--tlui-cmt-thread-gap)
-	);
 }
 
 .tlui-cmt-thread {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	gap: var(--tlui-cmt-thread-gap);
@@ -528,12 +518,19 @@
 	border-radius: var(--tl-radius-4);
 	box-shadow: var(--tl-shadow-3);
 }
+/* A pill of its own, floating above the panel's top-right corner and overlapping its top edge. */
 .tlui-cmt-thread__header {
+	position: absolute;
+	right: 9px;
+	bottom: calc(100% - 15px);
 	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: var(--tlui-cmt-thread-header-padding) var(--tlui-cmt-thread-header-padding)
-		var(--tlui-cmt-thread-header-padding) 4px;
+	gap: 2px;
+	padding: 2px;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-3);
+	box-shadow:
+		0 0 0 1px hsl(0, 0%, 0%, 0.06),
+		0 1px 3px hsl(0, 0%, 0%, 0.05);
 }
 .tlui-cmt-thread__title {
 	font-size: 12px;
