@@ -142,4 +142,21 @@ describe('comment tool anchoring to frames', () => {
 		driver.pointerMove(470, 260)
 		expect(editor.getHintingShapeIds()).toEqual([frame])
 	})
+
+	it('keeps hinting a frame while the composer follows the pointer into it', () => {
+		// The click-drag path, not just idle hover: press away from the frame, then drag the follow
+		// composer into its body. The pointing state hints the anchor target too, so the frame stays
+		// hinted while dragging over it (regions are off by default, so this doesn't become a region).
+		const frame = makeFrame(300, 100, 200, 200)
+		editor.setCurrentTool('comment')
+		driver.pointerMove(50, 50)
+		driver.pointerDown(50, 50)
+		driver.pointerMove(400, 200)
+		expect(editor.isIn('comment.pointing')).toBe(true)
+		expect(editor.getHintingShapeIds()).toEqual([frame])
+
+		// ...and dragging back off the frame clears it.
+		driver.pointerMove(50, 400)
+		expect(editor.getHintingShapeIds()).toEqual([])
+	})
 })
