@@ -11,8 +11,9 @@ import { TLShapeId } from './TLShape'
  * Where a comment thread is anchored on the canvas. Modeled as a discriminated union so new
  * anchor kinds can be added without breaking existing threads:
  *
- * - `shape` — pinned to a shape. `x`/`y` are normalized (0–1) within the shape's page bounds, so
- *   the pin keeps its spot as the shape moves and resizes. `isPrecise` mirrors arrow bindings: when
+ * - `shape` — pinned to a shape. `x`/`y` are normalized (0–1) within the shape's own bounds and
+ *   resolved through the shape's page transform, so the pin keeps its spot as the shape moves,
+ *   resizes, and rotates. `isPrecise` mirrors arrow bindings: when
  *   true the pin sits at exactly `x`/`y`; when false (the default) it sits at a consumer-defined
  *   spot (top-right out of the box), and `x`/`y` are the remembered precise position
  * - `point` — pinned to a fixed point on the page, in page coordinates

@@ -1271,7 +1271,7 @@ const ThreadPin = memo(function ThreadPin({
 			const pagePoint = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
 			if (!pagePoint) return null
 			const viewportPoint = editor.pageToViewport(pagePoint)
-			const inset = impreciseShapePinInset(thread.anchor, impreciseShapeAnchor)
+			const inset = impreciseShapePinInset(editor, thread.anchor, impreciseShapeAnchor)
 			return inset ? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y } : viewportPoint
 		},
 		[editor, thread.anchor, thread.pageId, impreciseShapeAnchor]
@@ -1308,7 +1308,7 @@ const ThreadPin = memo(function ThreadPin({
 		const anchorPage = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
 		// The drag delta is taken from where the pin is drawn, which for an imprecise shape pin
 		// is inset from its anchor point — without this the pin jumps by the inset on drag start.
-		const inset = impreciseShapePinInset(thread.anchor, impreciseShapeAnchor)
+		const inset = impreciseShapePinInset(editor, thread.anchor, impreciseShapeAnchor)
 		if (anchorPage && inset) {
 			const zoom = editor.getZoomLevel()
 			anchorPage.x += inset.x / zoom
