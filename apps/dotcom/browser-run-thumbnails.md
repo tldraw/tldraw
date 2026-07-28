@@ -72,7 +72,7 @@ ORDER BY requests DESC
 
 The sync worker needs:
 
-- `BROWSER` binding - the Cloudflare Browser Rendering binding, declared per environment in `wrangler.toml` (`[env.<env>.browser]`). The worker calls its `quickAction` Quick Actions method (`env.BROWSER.quickAction('screenshot', …)`) directly — no `@cloudflare/puppeteer`, no API token. This requires `compatibility_date` `2026-03-24` or later, which the deployed envs use; `[env.dev]` pins an older date the local workerd supports (see Local development). The dev binding is deliberately not `remote`, so plain `wrangler dev` (and the credential-free e2e stack) boots without a `CLOUDFLARE_API_TOKEN`; the binding is then a non-functional local one and the render path fails closed. Adding `--remote` and credentials is not enough to change that: `--remote` still deploys with `[env.dev]`'s `compatibility_date`, which predates `quickAction`, and dev's `MCP_SCREENSHOT_RENDER_ORIGIN` points at `http://localhost:3000`, which Browser Run cannot reach. A preview deploy is the practical way to exercise the real Browser Run call; everything up to that call can be run locally (see Local development).
+- `BROWSER` binding - the Cloudflare Browser Rendering binding, declared per environment in `wrangler.toml` (`[env.<env>.browser]`). The worker calls its `quickAction` Quick Actions method (`env.BROWSER.quickAction('screenshot', …)`) directly — no `@cloudflare/puppeteer`, no API token. This requires `compatibility_date` `2026-03-24` or later, which the deployed envs use; `[env.dev]` pins an older date the local workerd supports (see Local development). The dev binding is deliberately not `remote`, so plain `wrangler dev` (and the credential-free e2e stack) boots without a `CLOUDFLARE_API_TOKEN`; the binding is then a non-functional local one and the render path fails closed. Adding `--remote` and credentials is not enough to change that, so a preview deploy is the practical way to exercise the real Browser Run call (see Local development for why, and for what can be run locally instead).
 - `MCP_SCREENSHOT_ENABLED` - kill switch for the MCP server (`POST /app/mcp`), set to `"true"` in `wrangler.toml` for dev, staging, and production. The worker reads it per request, so setting it to anything else takes the endpoint down (it 404s, including the `initialize` handshake) without a rebuild or a code deploy — flip it in the Cloudflare dashboard under the worker's variables, and it applies to the next request. The next deploy overwrites the dashboard value from `wrangler.toml`, so follow an emergency flip with a config change. An unset var counts as enabled, so preview deploys (which don't set it) behave as they always have. Only the MCP server is gated: OG image rendering has its own path and keeps running.
 - `MCP_SCREENSHOT_TOKEN_SECRET` (deploy var, GitHub secret) - HMAC secret for render tokens. Local dev uses the placeholder in `[env.dev.vars]`.
 - `MCP_SCREENSHOT_RENDER_ORIGIN` - set in `wrangler.toml` for dev (`http://localhost:3000`), staging, and production. Preview deploys have no `wrangler.toml` entry, so `deploy-dotcom.ts` injects the preview's own client origin (`https://${previewId}-preview-deploy.tldraw.com`) as a deploy var.
@@ -132,15 +132,15 @@ VITE_ALLOWED_HOSTS=your-tunnel-host.example yarn workspace dotcom exec vite dev 
 ```bash
 MCP_SCREENSHOT_TOKEN_SECRET=<the [env.dev.vars] placeholder> \
 yarn workspace dotcom browser-run-thumbnail \
-  --board http://localhost:3000/f/your-shared-file-slug \
+  --board /f/your-shared-file-slug \
   --output tmp/browser-run-thumbnail/board.png
 ```
 
-`--secret` takes the same value if you would rather pass it as a flag; against a preview deploy it is that environment's real secret, not the placeholder. A `/p/:slug` or `/f/:slug` URL also settles the board kind; pass `--kind published|shared_file` alongside a bare slug. `--page-id <TLPageId>` picks a page (the default renders whichever page the snapshot opens to).
+`--board` takes a whole board link too (`https://www.tldraw.com/f/:slug`), reading only its path — the capture still goes to `--base-url`. The `/p/` or `/f/` prefix is what says which kind of board it is. `--secret` takes the secret as a flag instead of the env var; against a preview deploy that is the environment's real secret, not the placeholder.
 
 This covers everything the MCP screenshot tool does except the Browser Run call itself. It cannot catch Browser Run-specific behavior — its viewport defaults, or font availability in Cloudflare's fleet — so a preview deploy is still the check for those.
 
-Calling `POST /app/mcp` on the local sync worker with `tools/call` is worth doing alongside it, but note the two tools differ locally: `get_board_info` needs no browser and works, while `get_shared_board_screenshot` always fails at the Browser Run call (see Configuration). The tool returns the page name and the PNG itself, never the render URL — the URL is internal to the worker, which is why `--board` mints its own token rather than reading one back.
+Calling `POST /app/mcp` on the local sync worker with `tools/call` is worth doing alongside it, but note the two tools differ locally: `get_board_info` needs no browser and works, while `get_shared_board_screenshot` always fails at the Browser Run call (see below). The tool returns the page name and the PNG itself, never the render URL, which stays internal to the worker.
 
 ### Why the worker cannot take a screenshot locally
 
@@ -149,7 +149,7 @@ The MCP tool and the OG queue both fail at the Browser Run call under `yarn dev-
 - `[env.dev.browser]` is deliberately NOT marked `remote = true`. A remote binding makes plain `wrangler dev` require a `CLOUDFLARE_API_TOKEN`, which the credential-free process-compose e2e stack does not have, so it would fail to boot. The binding is therefore a non-functional local one and the render path fails closed with a config error.
 - `[env.dev]` pins `compatibility_date` to `2025-06-05`. The deployed envs use `2026-03-24`, required for `quickAction`, but that is newer than the workerd bundled with our pinned wrangler, so `wrangler dev` could not boot with it.
 
-The second reason also applies with `--remote`, which deploys using the same `[env.dev]` config, and dev's `MCP_SCREENSHOT_RENDER_ORIGIN` (`http://localhost:3000`) is unreachable from Browser Run regardless. So a preview deploy is the way to exercise the real Browser Run call until the toolchain catches up. Use `--board` above to cover everything up to it.
+The second reason also applies with `--remote`, which deploys using the same `[env.dev]` config, and dev's `MCP_SCREENSHOT_RENDER_ORIGIN` (`http://localhost:3000`) is unreachable from Browser Run regardless. So a preview deploy is the way to exercise the real Browser Run call until the toolchain catches up.
 
 ## MCP tools
 

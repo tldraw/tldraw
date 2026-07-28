@@ -24,15 +24,18 @@ type FixtureName = (typeof FIXTURE_NAMES)[number]
 type Mode = 'auto' | 'browser-run' | 'local'
 type BoardKind = 'published' | 'shared_file'
 
+interface Board {
+	kind: BoardKind
+	slug: string
+}
+
 interface Options {
 	baseUrl: string
-	board?: string
+	board?: Board
 	fixture: FixtureName
 	height: number
-	kind: BoardKind
 	mode: Mode
 	output: string
-	pageId?: string
 	secret?: string
 	theme: 'light' | 'dark'
 	width: number
@@ -46,8 +49,9 @@ async function main() {
 	const renderUrl = buildRenderUrl(options)
 	const mode = chooseMode(options.mode, options.baseUrl)
 
-	// The board render URL carries a signed token, so log the page without it.
-	writeLine(`Rendering ${options.board ? `${options.kind} board ${options.board}` : renderUrl}`)
+	// The board render URL carries a signed token, so log the board rather than the URL.
+	const { board } = options
+	writeLine(`Rendering ${board ? `${board.kind} board ${board.slug}` : renderUrl}`)
 	writeLine(`Mode: ${mode}`)
 
 	const png =
@@ -66,14 +70,12 @@ function parseArgs(args: string[]): Options {
 		baseUrl: 'http://127.0.0.1:3000',
 		fixture: 'snapshot-example',
 		height: DEFAULT_THUMBNAIL_HEIGHT,
-		kind: 'published',
 		mode: 'auto',
 		output: 'tmp/browser-run-thumbnail/thumbnail.png',
-		secret: process.env.MCP_SCREENSHOT_TOKEN_SECRET,
+		secret: process.env[RENDER_TOKEN_SECRET_ENV],
 		theme: 'light',
 		width: DEFAULT_THUMBNAIL_WIDTH,
 	}
-	let kindWasSet = false
 
 	for (let i = 0; i < args.length; i++) {
 		const arg = args[i]
@@ -83,22 +85,8 @@ function parseArgs(args: string[]): Options {
 				options.baseUrl = requireValue(arg, next)
 				i++
 				break
-			case '--board': {
-				// Accepts a bare slug or a board URL; a /f/ or /p/ URL also settles --kind, which is
-				// how board links are usually to hand.
-				const board = parseBoard(requireValue(arg, next))
-				options.board = board.slug
-				if (board.kind && !kindWasSet) options.kind = board.kind
-				i++
-				break
-			}
-			case '--kind':
-				options.kind = requireKind(requireValue(arg, next))
-				kindWasSet = true
-				i++
-				break
-			case '--page-id':
-				options.pageId = requireValue(arg, next)
+			case '--board':
+				options.board = parseBoard(requireValue(arg, next))
 				i++
 				break
 			case '--secret':
@@ -143,25 +131,37 @@ function parseArgs(args: string[]): Options {
 		}
 	}
 
+	// A board always renders content-fit, so a camera override would be silently dropped.
+	if (options.board && (options.x ?? options.y ?? options.z) !== undefined) {
+		throw new Error('--x, --y and --z are fixture-only; --board always fits the board content.')
+	}
+
 	return options
 }
 
-// A board URL (https://www.tldraw.com/p/:slug or /f/:slug) or a bare slug. The path segment tells us
-// which kind of board it is; a bare slug leaves that to --kind.
-function parseBoard(value: string): { slug: string; kind?: BoardKind } {
-	if (!/^https?:\/\//.test(value)) return { slug: value }
-	const segments = new URL(value).pathname.split('/').filter(Boolean)
-	const slug = segments[1]
-	if (!slug) throw new Error(`Could not read a board slug from: ${value}`)
-	if (segments[0] === 'p') return { slug, kind: 'published' }
-	if (segments[0] === 'f') return { slug, kind: 'shared_file' }
-	return { slug }
+// A board URL (https://www.tldraw.com/p/:slug or /f/:slug) or just its path. The path prefix is what
+// says which kind of board it is, so taking the whole link avoids having to name the kind separately
+// — and refusing anything else means a room or snapshot link fails here rather than as a 404 later.
+// Only the path is read: the capture still goes to --base-url.
+function parseBoard(value: string): Board {
+	let pathname = value
+	if (/^https?:\/\//i.test(value)) {
+		try {
+			pathname = new URL(value).pathname
+		} catch {
+			throw new Error(`--board is not a valid URL: ${value}`)
+		}
+	}
+	const [prefix, slug] = pathname.split('/').filter(Boolean)
+	if (slug && prefix === 'p') return { kind: 'published', slug }
+	if (slug && prefix === 'f') return { kind: 'shared_file', slug }
+	throw new Error(`--board must be a /p/:slug or /f/:slug board link or path, got: ${value}`)
 }
 
 // The signed render job the sync-worker mints in thumbnailRender.ts, minted here so a local capture
 // can drive the real render page without Cloudflare credentials. `version` only rotates the worker's
 // R2 cache key and is not checked when the render page exchanges the token, so it is fixed here.
-function mintRenderToken(options: Options) {
+function mintRenderToken(options: Options, board: Board) {
 	const secret = options.secret
 	if (!secret) {
 		throw new Error(
@@ -170,11 +170,10 @@ function mintRenderToken(options: Options) {
 	}
 	const job = {
 		v: 1,
-		kind: options.kind,
-		slug: options.board,
+		kind: board.kind,
+		slug: board.slug,
 		version: 'local',
 		camera: 'content',
-		...(options.pageId ? { pageId: options.pageId } : null),
 		x: 0,
 		y: 0,
 		z: 1,
@@ -183,7 +182,7 @@ function mintRenderToken(options: Options) {
 		theme: options.theme,
 		exp: Date.now() + 5 * 60_000,
 	}
-	// Base64url (RFC 4648 §5) both sides: matches base64UrlEncode in the worker's utils/base64.ts.
+	// Matches base64UrlEncode in the worker's utils/base64.ts.
 	const payload = Buffer.from(JSON.stringify(job)).toString('base64url')
 	const signature = createHmac('sha256', secret).update(payload).digest('base64url')
 	return `${payload}.${signature}`
@@ -194,7 +193,7 @@ function buildRenderUrl(options: Options) {
 	// capture exercises real board resolution and the real render page rather than the fixture page.
 	if (options.board) {
 		const url = new URL(THUMBNAIL_RENDER_PATH, options.baseUrl)
-		url.searchParams.set('token', mintRenderToken(options))
+		url.searchParams.set('token', mintRenderToken(options, options.board))
 		return url.toString()
 	}
 
@@ -336,11 +335,6 @@ function requireMode(value: string): Mode {
 	throw new Error(`Unknown mode: ${value}`)
 }
 
-function requireKind(value: string): BoardKind {
-	if (value === 'published' || value === 'shared_file') return value
-	throw new Error(`Unknown board kind: ${value}`)
-}
-
 function requireTheme(value: string): 'light' | 'dark' {
 	if (value === 'light' || value === 'dark') return value
 	throw new Error(`Unknown theme: ${value}`)
@@ -368,11 +362,9 @@ function printHelp() {
 
 Options:
   --base-url <url>      Origin running the dotcom client. Default: http://127.0.0.1:3000
-  --board <slug|url>    Capture a real board through the production render page instead of a
-                        fixture. Takes a bare slug or a /p/:slug or /f/:slug board URL.
-  --kind <kind>         published | shared_file. Inferred from a /p/ or /f/ board URL.
-                        Default: published
-  --page-id <TLPageId>  Board page to render. Default: whichever page the snapshot opens to
+  --board <link>        Capture a real board through the production render page instead of a
+                        fixture. Takes a /p/:slug or /f/:slug board link or path; only the
+                        path is read, so the capture still goes to --base-url
   --secret <secret>     Render token secret, required by --board. Defaults to
                         MCP_SCREENSHOT_TOKEN_SECRET. Locally this is the placeholder in the
                         sync worker's [env.dev.vars]
@@ -382,9 +374,9 @@ Options:
   --theme <theme>       light | dark. Default: light
   --width <number>      Output width, ${MIN_THUMBNAIL_DIMENSION}-${MAX_THUMBNAIL_DIMENSION}. Default: ${DEFAULT_THUMBNAIL_WIDTH}
   --height <number>     Output height, ${MIN_THUMBNAIL_DIMENSION}-${MAX_THUMBNAIL_DIMENSION}. Default: ${DEFAULT_THUMBNAIL_HEIGHT}
-  --x <number>          Camera x override (defaults to the fixture's own camera)
-  --y <number>          Camera y override (defaults to the fixture's own camera)
-  --z <number>          Camera zoom override (defaults to the fixture's own camera)
+  --x <number>          Camera x override, fixture only (defaults to the fixture's own camera)
+  --y <number>          Camera y override, fixture only (defaults to the fixture's own camera)
+  --z <number>          Camera zoom override, fixture only (defaults to the fixture's camera)
 
 Captures the dev-only /dev/browser-run-thumbnail fixture page for local iteration on render
 behavior. The fixture page produces the image with editor.toImage; local mode reads the exact
