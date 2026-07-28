@@ -59,7 +59,6 @@ export function TlaEditorTopRightPanel({
 		return (
 			<div ref={ref} className={styles.topRightPanel}>
 				<PeopleMenu />
-				<CommentsSidebarButton />
 				<SignedOutShareButton fileId={fileId} context={context} />
 				<TlaCtaButton
 					canvas
