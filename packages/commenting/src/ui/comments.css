@@ -215,7 +215,8 @@
 }
 
 /* An up-arrow icon button, sized to sit inside the composer field's 3px inset (the field is
-   ~29px tall there). */
+   ~29px tall there). Centre it on the input's line rather than bottom-aligning (a leftover from
+   the old text "Send" button, which sat at the field's bottom as it grew to multiple lines). */
 .tlui-cmt-send {
 	flex-shrink: 0;
 	display: inline-flex;
@@ -228,7 +229,7 @@
 	background: var(--tl-color-selected);
 	color: #fff;
 	cursor: pointer;
-	align-self: flex-end;
+	align-self: center;
 }
 
 .tlui-cmt-send:hover:not(:disabled),
