@@ -535,6 +535,9 @@
 .tlui-cmt-thread__actions {
 	display: flex;
 	gap: 2px;
+	/* Right-align the actions whether or not the header has a title (it currently has none, so
+	   space-between alone would leave them at the left). */
+	margin-left: auto;
 }
 .tlui-cmt-thread__action {
 	position: relative;
