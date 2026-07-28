@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 import { config } from 'dotenv'
 import { defineConfig, Plugin } from 'vite'
 import { getMultiplayerServerURL } from './scripts/multiplayer-server-url'
+import { thumbnailScreenshotPlugin } from './scripts/vite-thumbnail-screenshot-plugin'
 import { zodLocalePlugin } from './scripts/vite-zod-locale-plugin.js'
 
 export { getMultiplayerServerURL }
@@ -59,6 +60,7 @@ function urlOrLocalFallback(mode: string, url: string | undefined, localFallback
 export default defineConfig((env) => ({
 	plugins: [
 		spaFallbackPlugin(),
+		thumbnailScreenshotPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
 		react(),
 		formatjs({
