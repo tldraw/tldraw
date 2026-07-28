@@ -518,7 +518,7 @@
 	padding: var(--tlui-cmt-thread-padding);
 	background: var(--tl-color-panel);
 	border-radius: var(--tl-radius-4);
-	box-shadow: var(--tl-shadow-1);
+	box-shadow: var(--tl-shadow-3);
 }
 .tlui-cmt-thread__header {
 	display: flex;
