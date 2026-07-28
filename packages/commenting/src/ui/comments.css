@@ -294,9 +294,9 @@
 		var(--tlui-cmt-marker-shadow);
 }
 
-/* pin — a plain panel-white marker. The author's identity color isn't shown here: the author
-   doesn't see their own color anywhere else, so a tinted pin reads as meaningless decoration.
-   Hosts can still tint via the `color` prop (`--tlui-cmt-pin-color`). */
+/* pin — a canvas marker tinted with the comment author's color (via the `color` prop →
+   `--tlui-cmt-pin-color`) so a thread is identifiable at a glance. The composer's draft avatar
+   overrides to panel-white while you're still editing (see canvas.css). */
 .tlui-cmt-pin {
 	--tlui-cmt-marker-tint: var(--tlui-cmt-pin-color, var(--tl-color-selected));
 	/* Pin shrinks to 28px; the count badge keeps the 34px marker-size default (a cluster reads
@@ -305,8 +305,8 @@
 	width: var(--tlui-cmt-marker-size);
 	height: var(--tlui-cmt-marker-size);
 	border-radius: 50% 50% 50% 3px;
-	background: var(--tlui-cmt-pin-color, var(--tl-color-panel));
-	color: var(--tl-color-text-1);
+	background: var(--tlui-cmt-pin-color, var(--tl-color-selected));
+	color: #fff;
 	display: flex;
 	align-items: center;
 	justify-content: center;

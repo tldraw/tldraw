@@ -1479,7 +1479,7 @@ const ThreadPin = memo(function ThreadPin({
 						previewHandlers.onPointerLeave()
 					}}
 				>
-					<CommentPin resolved={thread.resolved != null} open={open}>
+					<CommentPin resolved={thread.resolved != null} open={open} color={threadAuthor?.color}>
 						{pinContent}
 					</CommentPin>
 				</div>
