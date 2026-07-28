@@ -873,18 +873,17 @@ export class TLFileDurableObject extends DurableObject {
 
 	/**
 	 * Indexes every data point on this object's durable object id, so any event can be grouped by
-	 * room rather than only the handful that were given a roomId. The id is the same one Cloudflare
-	 * keys its own telemetry on — `$workers.durableObjectId` in Workers Logs, and the per-object
-	 * filter on the namespace's metrics — so a room's analytics, logs, traces and CPU/storage
-	 * numbers all line up on one value.
+	 * room. The id is the one Cloudflare keys its own telemetry on — `$workers.durableObjectId` in
+	 * Workers Logs, and the per-object filter on the namespace's metrics — so a room's analytics,
+	 * logs, traces and CPU/storage numbers all line up on a single value.
 	 *
-	 * It also replaces the raw slug this object used to write. `idFromName` is one-way, so unlike
-	 * the slug (which for an app file is the whole authority of `tldraw.com/f/<id>`) an id read out
-	 * of the dataset does not open the board. Going the other way still works from a slug you
-	 * already hold: `env.TLDR_DOC.idFromName('/r/' + slug)`.
+	 * Deliberately the id rather than the slug: `idFromName` is one-way, so an id read out of the
+	 * dataset does not open the board, where the slug for an app file is the whole authority of
+	 * `tldraw.com/f/<id>`. Resolving in the useful direction still works from a slug you already
+	 * hold, via `env.TLDR_DOC.idFromName('/r/' + slug)`.
 	 *
-	 * Analytics Engine allows exactly one index, so this displaces `localClientId` — a per-mount
-	 * store id that turned over on every page load and was never queried.
+	 * Analytics Engine allows exactly one index, so this is the only object-level dimension these
+	 * events carry.
 	 */
 	private writeEvent(name: string, eventData: EventData) {
 		writeDataPoint(this.sentry, this.measure, this.env, name, {
