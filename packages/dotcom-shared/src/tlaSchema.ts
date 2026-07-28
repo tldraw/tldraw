@@ -65,14 +65,16 @@ export const file_state = table('file_state')
 // also carries private per-user data (lastSessionState = camera/selection, visit timestamps) that
 // must never sync to other users; every column here is safe to expose to any file collaborator, so
 // the comment composer can offer past viewers (not just workspace members) as @-mention targets.
-// Trigger-written only, so identity fields are non-optional (cf. comment.authorName).
+// Trigger-written only, so identity fields are non-optional (cf. comment.authorName), and
+// lastVisitAt is always stamped (falling back to "now") so most-recent-first ordering never
+// meets a null.
 export const file_visitor = table('file_visitor')
 	.columns({
 		userId: string(),
 		fileId: string(),
 		userName: string(),
 		userColor: string(),
-		lastVisitAt: number().optional(),
+		lastVisitAt: number(),
 	})
 	.primaryKey('userId', 'fileId')
 

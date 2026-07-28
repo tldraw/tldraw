@@ -12,8 +12,10 @@ CREATE TABLE file_visitor (
   "fileId" VARCHAR NOT NULL,
   "userName" VARCHAR DEFAULT '' NOT NULL,
   "userColor" VARCHAR DEFAULT '' NOT NULL,
-  -- mirrored from file_state for most-recent-first ordering of the roster
-  "lastVisitAt" BIGINT,
+  -- mirrored from file_state for most-recent-first ordering of the roster. NOT NULL (falling back
+  -- to lastEditAt/firstVisitAt/now at write time) so the fileVisitors query's ORDER BY ... DESC is
+  -- deterministic — ZQL has no NULLS LAST, and Postgres DESC would sort nulls first.
+  "lastVisitAt" BIGINT NOT NULL,
   PRIMARY KEY ("userId", "fileId")
 );
 
@@ -22,7 +24,9 @@ CREATE INDEX file_visitor_file_id_idx ON file_visitor("fileId");
 -- Backfill from existing visits. user.name/user.color are NOT NULL (000_seed.sql), so COALESCE only
 -- guards the (impossible here) missing-join case and keeps the NOT NULL columns satisfied.
 INSERT INTO file_visitor ("userId", "fileId", "userName", "userColor", "lastVisitAt")
-SELECT fs."userId", fs."fileId", COALESCE(u."name", ''), COALESCE(u."color", ''), fs."lastVisitAt"
+SELECT fs."userId", fs."fileId", COALESCE(u."name", ''), COALESCE(u."color", ''),
+  -- same fallback chain as the client's getFileVisitDate, then "now" for rows with no visit data
+  COALESCE(fs."lastVisitAt", fs."lastEditAt", fs."firstVisitAt", (EXTRACT(EPOCH FROM now()) * 1000)::BIGINT)
 FROM file_state fs
 JOIN public."user" u ON u."id" = fs."userId"
 ON CONFLICT ("userId", "fileId") DO NOTHING;
@@ -38,11 +42,14 @@ BEGIN
   FROM public."user" u
   WHERE u."id" = NEW."userId";
   INSERT INTO file_visitor ("userId", "fileId", "userName", "userColor", "lastVisitAt")
-  VALUES (NEW."userId", NEW."fileId", COALESCE(visitor_name, ''), COALESCE(visitor_color, ''), NEW."lastVisitAt")
+  VALUES (NEW."userId", NEW."fileId", COALESCE(visitor_name, ''), COALESCE(visitor_color, ''),
+    -- a fresh file_state row (createFile / first onEnterFile) has no lastVisitAt yet; the visit is
+    -- happening right now, so stamp "now" rather than leave the roster entry unsortable
+    COALESCE(NEW."lastVisitAt", NEW."lastEditAt", NEW."firstVisitAt", (EXTRACT(EPOCH FROM now()) * 1000)::BIGINT))
   ON CONFLICT ("userId", "fileId") DO UPDATE SET
     "userName" = COALESCE(visitor_name, file_visitor."userName"),
     "userColor" = COALESCE(visitor_color, file_visitor."userColor"),
-    "lastVisitAt" = NEW."lastVisitAt";
+    "lastVisitAt" = COALESCE(NEW."lastVisitAt", file_visitor."lastVisitAt");
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
