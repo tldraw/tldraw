@@ -388,6 +388,10 @@
 	/* A lighter lift than the popover/sidebar (shadow-2) — the small placement composer reads
 	   too heavy at that depth. */
 	box-shadow: var(--tl-shadow-1);
+	/* Centre the field on the draft pin. Both are top-aligned (the pin is anchored by its
+	   bottom corner at the click point, so it can't move), but the pin is 28px to the field's
+	   ~34px — raise the field by half that difference so their centres line up. */
+	margin-top: -3px;
 }
 
 /* The comments list panel — a right-side surface shown while the comments sidebar is open. Below
