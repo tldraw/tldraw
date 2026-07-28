@@ -5,8 +5,8 @@ import { Byline } from './byline'
 /** @public */
 export interface CommentCardProps {
 	author: CommentAuthor
-	/** The rendered comment body. The card doesn't dictate a format — pass a `<CommentText>`
-	 *  for markdown, a rich-text render, or any node. */
+	/** The rendered comment body. The card doesn't dictate a format — pass a `<CommentBody>`
+	 *  for a comment's rich text, or any node of your own. */
 	body: ReactNode
 	/** ISO datetime; formatted to relative time by the component. */
 	date: string

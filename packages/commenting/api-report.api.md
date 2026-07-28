@@ -331,14 +331,6 @@ export const commentsSidebarOpen: EditorAtom<boolean>;
 export function CommentsVisibilityToggle(): JSX.Element;
 
 // @public
-export function CommentText({ text }: CommentTextProps): JSX.Element;
-
-// @public (undocumented)
-export interface CommentTextProps {
-    text: string;
-}
-
-// @public
 export function CommentThread({ comments, header, headerActions, resolvedBanner, composer, footer, renderComment }: CommentThreadProps): JSX.Element;
 
 // @public (undocumented)
@@ -682,9 +674,6 @@ export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLComme
 
 // @public
 export function renderDrawingReaction(token: string): ReactNode;
-
-// @public
-export function renderMarkdown(text: string): ReactNode;
 
 // @public
 export type RenderReaction = (token: string) => ReactNode;
