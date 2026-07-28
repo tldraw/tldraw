@@ -62,8 +62,9 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		}
 	}, [app, fileId])
 
-	// Everyone who has opened this file (identity denormalized onto their file_state row), so past
-	// viewers — not just workspace members — can be @-mentioned. Same live-view lifecycle as above.
+	// Everyone who has opened this file (identity denormalized onto their file_visitor row — see
+	// migration 044), so past viewers — not just workspace members — can be @-mentioned. Same
+	// live-view lifecycle as above.
 	const [fileVisitors, setFileVisitors] = useState<FileVisitors>([])
 	useEffect(() => {
 		if (!app) return
@@ -142,8 +143,8 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		[fileVisitors]
 	)
 	// The full @-mention roster: workspace members plus any past viewer who isn't already a member.
-	// Members win on id collision — group_user identity is kept in sync, whereas a viewer's
-	// file_state identity is a point-in-time copy stamped when they last entered.
+	// Members win on id collision: both sources are trigger-synced to the user row, but member
+	// entries carry the `you` flag, so they're the richer representation of the same identity.
 	const roster = useMemo(() => {
 		const byId = new Map<string, MentionMember>(mentionMembers.map((m) => [m.id, m]))
 		for (const v of viewerMembers) {
