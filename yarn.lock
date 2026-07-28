@@ -11883,6 +11883,7 @@ __metadata:
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/sync-collaboration": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
@@ -12212,6 +12213,17 @@ __metadata:
     vitest: "npm:^4.1.7"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/sync-collaboration@workspace:*, @tldraw/sync-collaboration@workspace:packages/sync-collaboration":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/sync-collaboration@workspace:packages/sync-collaboration"
+  dependencies:
+    "@tldraw/store": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/utils": "workspace:*"
   languageName: unknown
   linkType: soft
 

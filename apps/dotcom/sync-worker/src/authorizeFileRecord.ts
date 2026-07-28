@@ -1,4 +1,4 @@
-import { UnknownRecord } from '@tldraw/store'
+import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
 import { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
 import {
 	TLComment,
@@ -7,7 +7,6 @@ import {
 	TLNoteShape,
 	TLRecord,
 	TLShape,
-	createCommentReactionId,
 } from '@tldraw/tlschema'
 
 /** Per-session metadata attached to each socket: the local store id and the authenticated user (if any). */
@@ -19,88 +18,6 @@ export interface SessionMeta {
 // The file room's record union, widened to include the object-lane comment records so each
 // authorizer is typed to its record — renaming an attribution field fails to compile here.
 type FileRecord = TLRecord | TLComment | TLCommentThread | TLCommentReaction
-
-/**
- * Authorize a record whose attribution lives in `field`: stamped from the session on create,
- * immutable on update. With `ownerOnlyUpdate`, only the author may update it at all.
- */
-function authorizeAuthored<Rec extends UnknownRecord>(
-	field: keyof Rec & string,
-	{ ownerOnlyUpdate = false } = {}
-): TLRecordAuthorizer<Rec, SessionMeta> {
-	return ({ session, type, prev, next }) => {
-		if (type === 'create') {
-			if (!session.meta.userId) return null // no identity to attribute → reject
-			return { ...next, [field]: session.meta.userId } as Rec
-		}
-		if (type === 'update') {
-			if (next[field] !== prev[field]) return null // attribution is immutable
-			if (ownerOnlyUpdate && session.meta.userId !== prev[field]) return null // only the author edits
-			return next
-		}
-		return prev
-	}
-}
-
-/**
- * Police a soft-deleted record type on top of `base`: deletion is a write-once `isDeleted`
- * flag — set exactly once, never cleared, only by the record's owner (`ownerOf`), never on
- * create — and clients never hard-delete these records at all. Record removals are server-side
- * only (author-cascade and soft-delete prunes, which don't run authorizers), so once the flag
- * is drained there is no un-delete.
- */
-function authorizeSoftDeleted<Rec extends UnknownRecord & { isDeleted: boolean }>(
-	ownerOf: (rec: Rec) => string,
-	base: TLRecordAuthorizer<Rec, SessionMeta>
-): TLRecordAuthorizer<Rec, SessionMeta> {
-	return (args) => {
-		if (args.type === 'delete') return null
-		const result = base(args)
-		if (!result) return null
-		// A record can't be born deleted — that would smuggle a deletion past the update checks.
-		if (args.type === 'create' && args.next.isDeleted) return null
-		if (args.type === 'update') {
-			const { session, prev, next } = args
-			if (prev.isDeleted !== next.isDeleted) {
-				if (prev.isDeleted) return null // write-once: never cleared
-				if (session.meta.userId !== ownerOf(prev)) return null // only the owner deletes
-			}
-		}
-		return result
-	}
-}
-
-/**
- * Threads stay editable by anyone with access (resolve/reopen), but resolution is itself an
- * attribution: a non-null `resolved.by`, set at create or changed by update, must be the
- * session's own user.
- */
-const authorizeThreadResolution: TLRecordAuthorizer<TLCommentThread, SessionMeta> = (args) => {
-	const result = authorizeAuthored<TLCommentThread>('createdBy')(args)
-	if (!result) return null
-	if (args.type === 'create') {
-		// Delete + re-put could otherwise smuggle in a resolution forged in someone else's name.
-		const { session, next } = args
-		if (next.resolved && next.resolved.by !== session.meta.userId) return null
-	}
-	if (args.type === 'update') {
-		const { session, prev, next } = args
-		const changed =
-			prev.resolved?.at !== next.resolved?.at || prev.resolved?.by !== next.resolved?.by
-		if (changed && next.resolved && next.resolved.by !== session.meta.userId) return null
-	}
-	return result
-}
-
-const authorizeThread = authorizeSoftDeleted<TLCommentThread>(
-	(thread) => thread.createdBy,
-	authorizeThreadResolution
-)
-
-const authorizeComment = authorizeSoftDeleted<TLComment>(
-	(comment) => comment.authorId,
-	authorizeAuthored<TLComment>('authorId', { ownerOnlyUpdate: true })
-)
 
 /**
  * A note's text attribution, or `undefined` when the shape isn't carrying one (non-note shapes).
@@ -134,60 +51,12 @@ const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 	return next
 }
 
-const authorizeReactionBase = authorizeAuthored<TLCommentReaction>('userId', {
-	ownerOnlyUpdate: true,
-})
-
 /**
- * A reaction's id is derived from its (comment, user, emoji) triple (see `createCommentReactionId`),
- * which is what makes reaction identity structural. The base rule already stamps `userId` from the
- * session and lets only the owner change a reaction — but the id, the comment it points at, and the
- * emoji are all client-supplied, so this wrapper adds two things:
- *
- * - On **create**, the id must be the canonical id for `commentId` + the session's user +
- *   `next.emoji`. Without this a forged client could create a record at another user's id slot
- *   (locking them out of that reaction), or push a mismatched id that collides on the table's
- *   UNIQUE constraint at drain time and wedges the outbox.
- *
- * - On **update**, everything identity-bearing is immutable: `commentId`, `threadId`, `pageId`, and
- *   `emoji` all feed the id (directly or by denormalization), so a re-react is a create/delete, not
- *   an update. The only thing an update may touch is `createdAt`/`meta`. This keeps the id and its
- *   columns from drifting apart and landing two rows on one (comment, user, emoji).
- */
-const authorizeReaction: TLRecordAuthorizer<TLCommentReaction, SessionMeta> = (args) => {
-	const result = authorizeReactionBase(args)
-	if (!result) return null
-	if (args.type === 'create') {
-		// userId is non-null here: the base rule rejects a create from a session with no identity.
-		const { session, next } = args
-		if (next.id !== createCommentReactionId(next.commentId, session.meta.userId!, next.emoji)) {
-			return null
-		}
-	}
-	if (args.type === 'update') {
-		const { prev, next } = args
-		if (next.commentId !== prev.commentId) return null
-		if (next.threadId !== prev.threadId) return null
-		if (next.pageId !== prev.pageId) return null
-		if (next.emoji !== prev.emoji) return null
-	}
-	return result
-}
-
-/**
- * Force comment and thread authorship from the session's identity, and guard note text
- * attribution, so nothing can be posted or pinned in someone else's name.
+ * Force comment, thread, and reaction authorship from the session's identity (via the shared
+ * commenting authorizers), and guard note text attribution, so nothing can be posted, pinned,
+ * or reacted in someone else's name.
  */
 export const authorizeFileRecord: TLRecordAuthorizers<FileRecord, SessionMeta> = {
-	comment: authorizeComment,
-	'comment-thread': authorizeThread,
-	// A reaction is one user's own record, so the standard attribution rules mostly cover it:
-	// `userId` is stamped from the session and only the reactor can change their reaction, and the
-	// wrapper's id check ties the record to its (comment, user, emoji) slot — so no one can forge or
-	// hijack another user's reaction. Deletion, though, is deliberately open: anyone with file access
-	// may hard-delete any reaction. Reactions have no soft-delete / `isDeleted` flag (unlike comments)
-	// on purpose — a reaction is a toggle, so removing one is a plain record delete, and the
-	// comment/thread delete-cascade needs to sweep every reactor's records, not just the caller's own.
-	'comment-reaction': authorizeReaction,
+	...createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId }),
 	shape: authorizeShape,
 }
