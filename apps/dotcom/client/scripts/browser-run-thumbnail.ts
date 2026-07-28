@@ -1,3 +1,4 @@
+import { createHmac } from 'crypto'
 import { mkdir, writeFile } from 'fs/promises'
 import path from 'path'
 import { pathToFileURL } from 'url'
@@ -6,6 +7,7 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
 	MIN_THUMBNAIL_DIMENSION,
+	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
 	THUMBNAIL_SETTLED_SELECTOR,
 	getThumbnailScreenshotRequestBody,
@@ -14,15 +16,24 @@ import {
 // The fixture page owns the per-fixture snapshots and camera defaults; this script only names one.
 const FIXTURE_NAMES = ['snapshot-example', 'layer-panel'] as const
 
+// The render token secret is never hardcoded here: locally it is the placeholder in the sync
+// worker's `[env.dev.vars]`, and deployed environments have a real one.
+const RENDER_TOKEN_SECRET_ENV = 'MCP_SCREENSHOT_TOKEN_SECRET'
+
 type FixtureName = (typeof FIXTURE_NAMES)[number]
 type Mode = 'auto' | 'browser-run' | 'local'
+type BoardKind = 'published' | 'shared_file'
 
 interface Options {
 	baseUrl: string
+	board?: string
 	fixture: FixtureName
 	height: number
+	kind: BoardKind
 	mode: Mode
 	output: string
+	pageId?: string
+	secret?: string
 	theme: 'light' | 'dark'
 	width: number
 	x?: number
@@ -35,7 +46,8 @@ async function main() {
 	const renderUrl = buildRenderUrl(options)
 	const mode = chooseMode(options.mode, options.baseUrl)
 
-	writeLine(`Rendering ${renderUrl}`)
+	// The board render URL carries a signed token, so log the page without it.
+	writeLine(`Rendering ${options.board ? `${options.kind} board ${options.board}` : renderUrl}`)
 	writeLine(`Mode: ${mode}`)
 
 	const png =
@@ -54,11 +66,14 @@ function parseArgs(args: string[]): Options {
 		baseUrl: 'http://127.0.0.1:3000',
 		fixture: 'snapshot-example',
 		height: DEFAULT_THUMBNAIL_HEIGHT,
+		kind: 'published',
 		mode: 'auto',
 		output: 'tmp/browser-run-thumbnail/thumbnail.png',
+		secret: process.env.MCP_SCREENSHOT_TOKEN_SECRET,
 		theme: 'light',
 		width: DEFAULT_THUMBNAIL_WIDTH,
 	}
+	let kindWasSet = false
 
 	for (let i = 0; i < args.length; i++) {
 		const arg = args[i]
@@ -66,6 +81,28 @@ function parseArgs(args: string[]): Options {
 		switch (arg) {
 			case '--base-url':
 				options.baseUrl = requireValue(arg, next)
+				i++
+				break
+			case '--board': {
+				// Accepts a bare slug or a board URL; a /f/ or /p/ URL also settles --kind, which is
+				// how board links are usually to hand.
+				const board = parseBoard(requireValue(arg, next))
+				options.board = board.slug
+				if (board.kind && !kindWasSet) options.kind = board.kind
+				i++
+				break
+			}
+			case '--kind':
+				options.kind = requireKind(requireValue(arg, next))
+				kindWasSet = true
+				i++
+				break
+			case '--page-id':
+				options.pageId = requireValue(arg, next)
+				i++
+				break
+			case '--secret':
+				options.secret = requireValue(arg, next)
 				i++
 				break
 			case '--fixture':
@@ -109,7 +146,58 @@ function parseArgs(args: string[]): Options {
 	return options
 }
 
+// A board URL (https://www.tldraw.com/p/:slug or /f/:slug) or a bare slug. The path segment tells us
+// which kind of board it is; a bare slug leaves that to --kind.
+function parseBoard(value: string): { slug: string; kind?: BoardKind } {
+	if (!/^https?:\/\//.test(value)) return { slug: value }
+	const segments = new URL(value).pathname.split('/').filter(Boolean)
+	const slug = segments[1]
+	if (!slug) throw new Error(`Could not read a board slug from: ${value}`)
+	if (segments[0] === 'p') return { slug, kind: 'published' }
+	if (segments[0] === 'f') return { slug, kind: 'shared_file' }
+	return { slug }
+}
+
+// The signed render job the sync-worker mints in thumbnailRender.ts, minted here so a local capture
+// can drive the real render page without Cloudflare credentials. `version` only rotates the worker's
+// R2 cache key and is not checked when the render page exchanges the token, so it is fixed here.
+function mintRenderToken(options: Options) {
+	const secret = options.secret
+	if (!secret) {
+		throw new Error(
+			`--board needs the render token secret. Pass --secret, or set ${RENDER_TOKEN_SECRET_ENV} to the value from the sync worker's [env.dev.vars].`
+		)
+	}
+	const job = {
+		v: 1,
+		kind: options.kind,
+		slug: options.board,
+		version: 'local',
+		camera: 'content',
+		...(options.pageId ? { pageId: options.pageId } : null),
+		x: 0,
+		y: 0,
+		z: 1,
+		width: options.width,
+		height: options.height,
+		theme: options.theme,
+		exp: Date.now() + 5 * 60_000,
+	}
+	// Base64url (RFC 4648 §5) both sides: matches base64UrlEncode in the worker's utils/base64.ts.
+	const payload = Buffer.from(JSON.stringify(job)).toString('base64url')
+	const signature = createHmac('sha256', secret).update(payload).digest('base64url')
+	return `${payload}.${signature}`
+}
+
 function buildRenderUrl(options: Options) {
+	// A board renders through the same production render page that Browser Run visits, so a local
+	// capture exercises real board resolution and the real render page rather than the fixture page.
+	if (options.board) {
+		const url = new URL(THUMBNAIL_RENDER_PATH, options.baseUrl)
+		url.searchParams.set('token', mintRenderToken(options))
+		return url.toString()
+	}
+
 	const url = new URL('/dev/browser-run-thumbnail', options.baseUrl)
 	url.searchParams.set('fixture', options.fixture)
 
@@ -189,7 +277,9 @@ async function captureWithBrowserRun(renderUrl: string, options: Options) {
 }
 
 // The fixture page produces the thumbnail itself with editor.toImage and exposes it as a data
-// URL, so the local path reads the exact export bytes instead of screenshotting the viewport.
+// URL, so the local path reads the exact export bytes instead of screenshotting the viewport. The
+// production render page has no such affordance, so a board capture screenshots the viewport —
+// equivalent to Browser Run's THUMBNAIL_CAPTURE_SELECTOR, which targets a body that fills it.
 async function captureWithLocalPlaywright(renderUrl: string, options: Options) {
 	const { chromium } = await import('@playwright/test')
 	const browser = await chromium.launch()
@@ -211,7 +301,12 @@ async function captureWithLocalPlaywright(renderUrl: string, options: Options) {
 		})
 		const renderError = await page.evaluate(() => document.body.dataset.thumbnailError)
 		if (renderError !== undefined) {
-			throw new Error(`Fixture page failed to render: ${renderError}`)
+			throw new Error(
+				`${options.board ? 'Render' : 'Fixture'} page failed to render: ${renderError || '(no message)'}`
+			)
+		}
+		if (options.board) {
+			return await page.screenshot({ type: 'png' })
 		}
 		const dataUrl = await page.evaluate(
 			() => (window as any).__tldrawThumbnailDataUrl as string | undefined
@@ -241,6 +336,11 @@ function requireMode(value: string): Mode {
 	throw new Error(`Unknown mode: ${value}`)
 }
 
+function requireKind(value: string): BoardKind {
+	if (value === 'published' || value === 'shared_file') return value
+	throw new Error(`Unknown board kind: ${value}`)
+}
+
 function requireTheme(value: string): 'light' | 'dark' {
 	if (value === 'light' || value === 'dark') return value
 	throw new Error(`Unknown theme: ${value}`)
@@ -268,6 +368,14 @@ function printHelp() {
 
 Options:
   --base-url <url>      Origin running the dotcom client. Default: http://127.0.0.1:3000
+  --board <slug|url>    Capture a real board through the production render page instead of a
+                        fixture. Takes a bare slug or a /p/:slug or /f/:slug board URL.
+  --kind <kind>         published | shared_file. Inferred from a /p/ or /f/ board URL.
+                        Default: published
+  --page-id <TLPageId>  Board page to render. Default: whichever page the snapshot opens to
+  --secret <secret>     Render token secret, required by --board. Defaults to
+                        MCP_SCREENSHOT_TOKEN_SECRET. Locally this is the placeholder in the
+                        sync worker's [env.dev.vars]
   --fixture <name>      ${FIXTURE_NAMES.join(' | ')}. Default: snapshot-example
   --mode <mode>         auto | browser-run | local. Default: auto
   --output <path>       PNG output path. Default: tmp/browser-run-thumbnail/thumbnail.png
@@ -281,7 +389,12 @@ Options:
 Captures the dev-only /dev/browser-run-thumbnail fixture page for local iteration on render
 behavior. The fixture page produces the image with editor.toImage; local mode reads the exact
 export bytes, while browser-run mode screenshots the page after it has swapped to displaying
-the export. It does not accept arbitrary screenshot URLs.`)
+the export. It does not accept arbitrary screenshot URLs.
+
+With --board it instead renders the production ${THUMBNAIL_RENDER_PATH} page, signing its own
+render token, so a local capture exercises real board resolution and the real render page. That
+covers everything the MCP screenshot tool does except the Browser Run call itself, which local
+dev cannot make (the dev BROWSER binding is deliberately non-functional).`)
 }
 
 function writeLine(message: string) {
