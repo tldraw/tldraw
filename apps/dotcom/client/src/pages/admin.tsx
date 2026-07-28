@@ -865,6 +865,7 @@ function AssetDiagnostics() {
 								],
 								['Associated', report.assets.associated],
 								['Pending association', report.assets.pending],
+								['External (bookmarks etc.)', report.assets.external],
 								['Missing in bucket', report.assets.missingInBucket],
 								['Head check failures', report.assets.headFailures],
 								['Old-format URLs', report.assets.oldFormatUrls],

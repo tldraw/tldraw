@@ -12,6 +12,7 @@ import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import PQueue from 'p-queue'
+import { getUploadObjectName } from './assetAssociation'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
@@ -222,6 +223,9 @@ export const adminRoutes = createRouter<Environment>()
 		}> = []
 		let totalShapes = 0
 		const shapesByType: Record<string, number> = {}
+		// Assets the association pass can never act on (bookmarks, non-http srcs, R2-invalid
+		// object names). Counted instead of reported as missing uploads.
+		let external = 0
 		for (const { state } of snapshot.documents) {
 			const record = state as any
 			if (record.typeName === 'shape') {
@@ -232,8 +236,11 @@ export const adminRoutes = createRouter<Environment>()
 			if (record.typeName !== 'asset') continue
 			const src = record.props?.src
 			if (!src) continue
-			const objectName = src.split('/').pop()
-			if (!objectName) continue
+			const objectName = getUploadObjectName(record)
+			if (!objectName) {
+				external++
+				continue
+			}
 			const fileIdMeta = record.meta?.fileId ?? null
 			const associated = fileIdMeta === slug
 			assets.push({
@@ -341,9 +348,12 @@ export const adminRoutes = createRouter<Environment>()
 			source,
 			shapes: { total: totalShapes, byType: shapesByType },
 			assets: {
-				total: assets.length,
+				// Every asset record in the snapshot; the upload-oriented counts below exclude
+				// the `external` ones
+				total: assets.length + external,
 				associated,
 				pending: assets.length - associated,
+				external,
 				oldFormatUrls,
 				missingInBucket,
 				headFailures,

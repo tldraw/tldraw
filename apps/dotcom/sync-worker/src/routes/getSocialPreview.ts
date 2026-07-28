@@ -1,4 +1,6 @@
 import {
+	DEFAULT_THUMBNAIL_HEIGHT,
+	DEFAULT_THUMBNAIL_WIDTH,
 	FILE_PREFIX,
 	PUBLISH_PREFIX,
 	READ_ONLY_LEGACY_PREFIX,
@@ -13,20 +15,15 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
 import { createPostgresConnectionPool } from '../postgres'
 import { getR2KeyForRoom, getR2KeyForSnapshot } from '../r2'
-import { Environment } from '../types'
+import { Environment, ThumbnailBoardKind } from '../types'
 import { createSupabaseClient } from '../utils/createSupabaseClient'
+import { getPublicOrigin } from '../utils/getPublicOrigin'
 import { getSnapshotsTable } from '../utils/getSnapshotsTable'
 import { getSlug } from '../utils/roomOpenMode'
 import { R2Snapshot } from './createRoomSnapshot'
 import { cleanName, getDocumentNameFromSnapshot } from './getDocumentNameFromSnapshot'
-import { getPublicOrigin } from './tla/getOgImage'
 import { getPublishedRoomSnapshot } from './tla/getPublishedFile'
-import {
-	OG_IMAGE_HEIGHT,
-	OG_IMAGE_WIDTH,
-	OgBoardKind,
-	resolveOgBoardInfo,
-} from './tla/ogImageQueue'
+import { resolveThumbnailBoard } from './tla/thumbnailRender'
 
 // These mirror the static social preview metadata in apps/dotcom/client/index.html. They are used
 // as fallbacks so that bot-rendered previews stay consistent with the rest of the site.
@@ -69,7 +66,7 @@ export async function getSocialPreview(request: IRequest, env: Environment): Pro
 
 // Shared files (`/f/`) and published boards (`/p/`) get a live board thumbnail as their preview
 // image. We only emit the thumbnail URL when the board actually resolves to a public, renderable
-// board — the same gate the image route itself applies (resolveOgBoardInfo). For private, deleted,
+// board — the same gate the image route itself applies (resolveThumbnailBoard). For private, deleted,
 // or unpublished boards the image route only ever 302s to the default OG image, and crawlers that
 // don't follow og:image redirects (notably X/Twitter) would then show a broken card. Returning null
 // for those boards keeps the static, directly-fetchable site-wide preview image instead. A board
@@ -83,12 +80,12 @@ async function getBoardOgImageUrl(
 ): Promise<string | null> {
 	const kind = ogBoardKindForPrefix(prefix)
 	if (!kind) return null
-	const board = await resolveOgBoardInfo(env, kind, slug)
-	if (!board) return null
+	const resolved = await resolveThumbnailBoard(env, kind, slug)
+	if (!resolved.ok) return null
 	return `${getPublicOrigin(request, env)}/api/app/social-preview/${prefix}/${encodeURIComponent(slug)}/image`
 }
 
-function ogBoardKindForPrefix(prefix: string): OgBoardKind | null {
+function ogBoardKindForPrefix(prefix: string): ThumbnailBoardKind | null {
 	if (prefix === FILE_PREFIX) return 'shared_file'
 	if (prefix === PUBLISH_PREFIX) return 'published'
 	return null
@@ -214,8 +211,8 @@ export function renderSocialPreview(
 	const twitterCard = boardImageUrl ? 'summary_large_image' : 'summary'
 	const ogImageDimensions = boardImageUrl
 		? `
-		<meta property="og:image:width" content="${OG_IMAGE_WIDTH}" />
-		<meta property="og:image:height" content="${OG_IMAGE_HEIGHT}" />`
+		<meta property="og:image:width" content="${DEFAULT_THUMBNAIL_WIDTH}" />
+		<meta property="og:image:height" content="${DEFAULT_THUMBNAIL_HEIGHT}" />`
 		: ''
 	return `<!DOCTYPE html>
 <html lang="en">

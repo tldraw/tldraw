@@ -41,19 +41,13 @@ import {
 	TLRecord,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import {
-	ExecutionQueue,
-	assert,
-	assertExists,
-	exhaustiveSwitchError,
-	retry,
-	uniqueId,
-} from '@tldraw/utils'
+import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
+import { collectAssetAssociationChanges } from './assetAssociation'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
@@ -61,7 +55,7 @@ import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { DBLoadResult, Environment, TLServerEvent } from './types'
-import { Metrics, getMetrics } from './utils/analytics'
+import { EventData, Metrics, getMetrics } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -183,7 +177,8 @@ export class TLFileDurableObject extends DurableObject {
 		// getStorage under the hood which will only resolve once this function has returned.
 		this.setRoomStorageUsedPercentage(result.roomSizeMB)
 		// Samples the size distribution of rooms as they cold-load; 0 for rooms with no R2 snapshot.
-		// No room identifier is attached — this is for distribution/percentile queries, not lookups.
+		// No room identifier is attached — this is for distribution/percentile queries, not lookups —
+		// so it writes directly rather than through writeEvent's per-room index.
 		this.metrics.write('room_size_mb', { doubles: [result.roomSizeMB] })
 		return storage
 	}
@@ -223,7 +218,6 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this._documentInfo) {
 			throw new Error('documentInfo must be present when accessing room')
 		}
-		const slug = this._documentInfo.slug
 		if (!this._room) {
 			this._room = this.getStorage().then(async (storage) => {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
@@ -239,20 +233,16 @@ export class TLFileDurableObject extends DurableObject {
 					onSessionRemoved: async (room, args) => {
 						this.logEvent({
 							type: 'client',
-							roomId: slug,
 							name: 'leave',
 							instanceId: args.sessionId,
-							localClientId: args.meta.storeId,
 						})
 
 						if (args.numSessionsRemaining > 0) return
 						if (!this._room) return
 						this.logEvent({
 							type: 'client',
-							roomId: slug,
 							name: 'last_out',
 							instanceId: args.sessionId,
-							localClientId: args.meta.storeId,
 						})
 						try {
 							await this.persistToDatabase()
@@ -263,7 +253,7 @@ export class TLFileDurableObject extends DurableObject {
 						if (room.getNumActiveSessions() > 0) return
 						this._room = null
 						room.close()
-						this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
+						this.logEvent({ type: 'room', name: 'room_empty' })
 						await this._pool?.end()
 						this._pool = null
 						this._db = null
@@ -271,14 +261,13 @@ export class TLFileDurableObject extends DurableObject {
 					onBeforeSendMessage: ({ message, stringified }) => {
 						this.logEvent({
 							type: 'send_message',
-							roomId: slug,
 							messageType: message.type,
 							messageLength: stringified.length,
 						})
 					},
 				})
 
-				this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
+				this.logEvent({ type: 'room', name: 'room_start' })
 				// Resume any sessions that survived hibernation
 				for (const ws of this.state.getWebSockets()) {
 					const attachment = ws.deserializeAttachment() as SocketAttachment | null
@@ -568,7 +557,7 @@ export class TLFileDurableObject extends DurableObject {
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	_fileRecordCache: TlaFile | null = null
 	async getAppFileRecord(): Promise<TlaFile | null> {
-		const timer = this.metrics.timer()
+		const timer = this.timer()
 		try {
 			const result = await retry(
 				async () => {
@@ -603,7 +592,7 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	async onRequest(req: IRequest, openMode: RoomOpenMode) {
-		const requestTimer = this.metrics.timer()
+		const requestTimer = this.timer()
 
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
@@ -628,7 +617,7 @@ export class TLFileDurableObject extends DurableObject {
 			return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 		}
 
-		const authTimer = this.metrics.timer()
+		const authTimer = this.timer()
 		const auth = await getAuth(req, this.env)
 		authTimer.report('on_request_auth')
 
@@ -649,14 +638,13 @@ export class TLFileDurableObject extends DurableObject {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
 				}
 
-				const rateLimitTimer = this.metrics.timer()
+				const rateLimitTimer = this.timer()
 				if (auth?.userId) {
 					const rateLimited = await isRateLimited(this.env, auth.userId)
 					if (rateLimited) {
 						this.logEvent({
 							type: 'client',
 							userId: auth.userId,
-							localClientId: storeId,
 							name: 'rate_limited',
 						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
@@ -667,7 +655,6 @@ export class TLFileDurableObject extends DurableObject {
 						this.logEvent({
 							type: 'client',
 							userId: auth?.userId,
-							localClientId: storeId,
 							name: 'rate_limited',
 						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
@@ -681,7 +668,7 @@ export class TLFileDurableObject extends DurableObject {
 					hasOwnerAccess = true
 				} else if (file.owningGroupId && auth?.userId) {
 					// Check the user can access the owning group's files
-					const groupCheckTimer = this.metrics.timer()
+					const groupCheckTimer = this.timer()
 					const role = await getRole(this.db, auth.userId, file.owningGroupId)
 					if (can(role, 'accessFiles')) {
 						hasOwnerAccess = true
@@ -717,7 +704,7 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			serverWebSocket.serializeAttachment(attachment)
 
-			const getRoomTimer = this.metrics.timer()
+			const getRoomTimer = this.timer()
 			const room = await this.getRoom()
 			getRoomTimer.report('on_request_get_room')
 
@@ -736,18 +723,14 @@ export class TLFileDurableObject extends DurableObject {
 			if (isNewSession) {
 				this.logEvent({
 					type: 'client',
-					roomId: this.documentInfo.slug,
 					name: 'room_reopen',
 					instanceId: sessionId,
-					localClientId: storeId,
 				})
 			}
 			this.logEvent({
 				type: 'client',
-				roomId: this.documentInfo.slug,
 				name: 'enter',
 				instanceId: sessionId,
-				localClientId: storeId,
 			})
 
 			requestTimer.report('on_request_total')
@@ -892,35 +875,62 @@ export class TLFileDurableObject extends DurableObject {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
 
+	/**
+	 * Indexes every data point on this object's durable object id, so any event can be grouped by
+	 * room. The id is the one Cloudflare keys its own telemetry on — `$workers.durableObjectId` in
+	 * Workers Logs, and the per-object filter on the namespace's metrics — so a room's analytics,
+	 * logs, traces and CPU/storage numbers all line up on a single value.
+	 *
+	 * Deliberately the id rather than the slug: `idFromName` is one-way, so an id read out of the
+	 * dataset does not open the board, where the slug for an app file is the whole authority of
+	 * `tldraw.com/f/<id>`. Resolving in the useful direction still works from a slug you already
+	 * hold, via `env.TLDR_DOC.idFromName('/r/' + slug)`.
+	 *
+	 * Analytics Engine allows exactly one index, so this is the only object-level dimension these
+	 * events carry.
+	 */
+	private writeEvent(name: string, eventData: EventData) {
+		this.metrics.write(name, {
+			...eventData,
+			indexes: [this.id.toString()],
+		})
+	}
+
+	/**
+	 * Stopwatch variant of {@link writeEvent}: each `report` writes the elapsed milliseconds as the
+	 * last double, carrying this object's durable object id like every other event here. Rooms use
+	 * this rather than `Metrics.timer` so timing events stay groupable by room.
+	 */
+	private timer() {
+		const start = Date.now()
+		return {
+			report: (name: string, data?: EventData) => {
+				this.writeEvent(name, { ...data, doubles: [...(data?.doubles ?? []), Date.now() - start] })
+			},
+		}
+	}
+
 	logEvent(event: TLServerEvent) {
 		switch (event.type) {
 			case 'persist_success': {
-				this.metrics.write(event.type, { doubles: [event.attempts, event.durationMs] })
+				this.writeEvent(event.type, { doubles: [event.attempts, event.durationMs] })
 				break
 			}
 			case 'room': {
-				// we would add user/connection ids here if we could
-				this.metrics.write(event.name, { blobs: [event.roomId] })
+				this.writeEvent(event.name, {})
 				break
 			}
 			case 'client': {
 				if (event.name === 'rate_limited') {
-					this.metrics.write(event.name, {
-						blobs: [event.userId ?? 'anon-user'],
-						indexes: [event.localClientId],
-					})
+					this.writeEvent(event.name, { blobs: [event.userId ?? 'anon-user'] })
 				} else {
-					// we would add user/connection ids here if we could
-					this.metrics.write(event.name, {
-						blobs: [event.roomId, 'unused', event.instanceId],
-						indexes: [event.localClientId],
-					})
+					this.writeEvent(event.name, { blobs: [event.instanceId] })
 				}
 				break
 			}
 			case 'send_message': {
-				this.metrics.write(event.type, {
-					blobs: [event.roomId, event.messageType],
+				this.writeEvent(event.type, {
+					blobs: [event.messageType],
 					doubles: [event.messageLength],
 				})
 				break
@@ -934,7 +944,7 @@ export class TLFileDurableObject extends DurableObject {
 	async handleFileCreateFromSource(): Promise<DBLoadResult> {
 		assert(this._fileRecordCache, 'we need to have a file record to create a file from source')
 
-		const fetchTimer = this.metrics.timer()
+		const fetchTimer = this.timer()
 		const data = await this.loadCreateSourceData(this._fileRecordCache.createSource)
 		fetchTimer.report('create_from_source_fetch_total')
 
@@ -945,7 +955,7 @@ export class TLFileDurableObject extends DurableObject {
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
 		const snapshot = typeof data === 'string' ? JSON.parse(data) : data
 
-		const putTimer = this.metrics.timer()
+		const putTimer = this.timer()
 		const key = getR2KeyForRoom({ slug: this._fileRecordCache.id, isApp: true })
 		const roomObject = await this.r2.rooms.put(key, serialized)
 		putTimer.report('create_from_source_r2_put')
@@ -979,11 +989,11 @@ export class TLFileDurableObject extends DurableObject {
 				// The source file's content is copied verbatim into this (user-owned) room. Read
 				// access to the source `id` is authorized upstream when the file record is created
 				// (see the `createFile` mutator), since that is where the user's identity is known.
-				const awaitPersistTimer = this.metrics.timer()
+				const awaitPersistTimer = this.timer()
 				await getRoomDurableObject(this.env, id).awaitPersist()
 				awaitPersistTimer.report('create_from_source_await_persist')
 
-				const r2FetchTimer = this.metrics.timer()
+				const r2FetchTimer = this.timer()
 				const text = await this.r2.rooms
 					.get(getR2KeyForRoom({ slug: id, isApp: true }))
 					.then((r) => r?.text())
@@ -1010,12 +1020,12 @@ export class TLFileDurableObject extends DurableObject {
 
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
 	async loadFromDatabase(slug: string): Promise<DBLoadResult> {
-		const loadTimer = this.metrics.timer()
+		const loadTimer = this.timer()
 		try {
 			const key = getR2KeyForRoom({ slug, isApp: this.documentInfo.isApp })
 
 			// when loading, prefer to fetch documents from the bucket
-			const r2FetchTimer = this.metrics.timer()
+			const r2FetchTimer = this.timer()
 			const roomFromBucket = await this.r2.rooms.get(key)
 			r2FetchTimer.report('db_load_r2_fetch')
 
@@ -1030,7 +1040,7 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			if (this._fileRecordCache?.createSource) {
-				const createFromSourceTimer = this.metrics.timer()
+				const createFromSourceTimer = this.timer()
 				const res = await this.handleFileCreateFromSource()
 				createFromSourceTimer.report('db_load_create_from_source')
 
@@ -1059,7 +1069,7 @@ export class TLFileDurableObject extends DurableObject {
 				throw ROOM_NOT_FOUND
 			}
 
-			const supabaseFetchTimer = this.metrics.timer()
+			const supabaseFetchTimer = this.timer()
 			const { data, error } = await this.supabaseClient
 				.from(this.supabaseTable)
 				.select('*')
@@ -1068,7 +1078,7 @@ export class TLFileDurableObject extends DurableObject {
 			supabaseFetchTimer.report('db_load_supabase_fetch')
 
 			if (error) {
-				this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
+				this.logEvent({ type: 'room', name: 'failed_load_from_db' })
 
 				loadTimer.report('db_load_total')
 
@@ -1089,7 +1099,7 @@ export class TLFileDurableObject extends DurableObject {
 				roomSizeMB: 0,
 			}
 		} catch (error) {
-			this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
+			this.logEvent({ type: 'room', name: 'failed_load_from_db' })
 
 			loadTimer.report('db_load_total_error')
 
@@ -1107,6 +1117,11 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	private readonly associateAssetsQueue = new ExecutionQueue()
+
+	// Source objects the association pass confirmed missing from the uploads bucket. Skipped on
+	// later passes so an asset pointing at a gone object doesn't re-attempt an R2 get on every
+	// persist tick. In-memory only: resets with the DO, never touches document data.
+	private readonly missingSourceObjects = new Set<string>()
 
 	// Shared connection budget for every R2 operation this durable object makes. Both asset copies and
 	// snapshot uploads draw from this queue so together they can't exceed Cloudflare's simultaneous-
@@ -1137,7 +1152,7 @@ export class TLFileDurableObject extends DurableObject {
 				const total = totalDepth()
 				if (total < R2_QUEUE_DEPTH_METRIC_THRESHOLD) return
 				for (const [type, depth] of depthByType) {
-					this.metrics.write('r2_queue_depth', { blobs: [type], doubles: [total, depth] })
+					this.writeEvent('r2_queue_depth', { blobs: [type], doubles: [total, depth] })
 				}
 				if (total >= R2_QUEUE_DEPTH_ALERT_THRESHOLD && !alerted) {
 					alerted = true
@@ -1215,53 +1230,13 @@ export class TLFileDurableObject extends DurableObject {
 
 		const {
 			result: { assetsToReplace, assetsToMigrate },
-		} = storage.transaction((txn) => {
-			const assetsToReplace: Array<{
-				objectName: string
-				newObjectName: string
-				newSrc: string
-				assetId: string
-			}> = []
-			const assetsToMigrate: Array<{
-				assetId: string
-				newSrc: string
-			}> = []
-			for (const record of txn.values()) {
-				if (record.typeName !== 'asset') continue
-				const asset = record as any
-				const meta = asset.meta
-				const src = asset.props.src
-				if (!src) continue
-
-				// Migrate old-format HTTP URLs to tldrawusercontent.com (same R2 bucket, no copy needed)
-				if (meta?.fileId === slug && src.startsWith('http') && !src.startsWith(userContentUrl)) {
-					const objectName = src.split('/').pop()
-					if (objectName) {
-						assetsToMigrate.push({
-							assetId: asset.id,
-							newSrc: `${userContentUrl}/${objectName}`,
-						})
-					}
-					continue
-				}
-
-				if (meta?.fileId === slug) continue
-				const objectName = src.split('/').pop()
-				if (!objectName) continue
-
-				const split = objectName.split('-')
-				const fileType = split.length > 1 ? split.pop() : null
-				const id = uniqueId()
-				const newObjectName = fileType ? `${id}-${fileType}` : id
-				assetsToReplace.push({
-					objectName,
-					newObjectName,
-					assetId: asset.id,
-					newSrc: `${userContentUrl}/${newObjectName}`,
-				})
-			}
-			return { assetsToReplace, assetsToMigrate }
-		})
+		} = storage.transaction((txn) =>
+			collectAssetAssociationChanges(txn.values(), {
+				slug,
+				userContentUrl,
+				skipObjectNames: this.missingSourceObjects,
+			})
+		)
 
 		// Apply URL migrations (no R2 copy needed — same bucket, same object)
 		if (assetsToMigrate.length > 0) {
@@ -1282,10 +1257,13 @@ export class TLFileDurableObject extends DurableObject {
 			assetsToReplace.map((asset) =>
 				this.addR2Operation('asset_copy', async () => {
 					try {
-						if (!isValidR2ObjectName(asset.objectName)) return
-
 						const currentAsset = await this.env.UPLOADS.get(asset.objectName)
-						if (!currentAsset) return
+						if (!currentAsset) {
+							// Only a confirmed null (object genuinely absent) goes in the cache — a
+							// thrown error (rate limit, subrequest budget) must stay retryable
+							this.missingSourceObjects.add(asset.objectName)
+							return
+						}
 						await this.env.UPLOADS.put(asset.newObjectName, currentAsset.body, {
 							httpMetadata: currentAsset.httpMetadata,
 						})
@@ -1398,7 +1376,6 @@ export class TLFileDurableObject extends DurableObject {
 								.catch((e) => {
 									this.logEvent({
 										type: 'room',
-										roomId: this.documentInfo.slug,
 										name: 'failed_persist_to_db',
 									})
 									this.reportError(e)
@@ -1409,7 +1386,7 @@ export class TLFileDurableObject extends DurableObject {
 				)
 			})
 			.catch((e) => {
-				this.logEvent({ type: 'room', roomId: this.documentInfo.slug, name: 'fail_persist' })
+				this.logEvent({ type: 'room', name: 'fail_persist' })
 				this.reportError(e)
 			})
 	}
@@ -1670,7 +1647,7 @@ export class TLFileDurableObject extends DurableObject {
 					}
 					// Incremental commits only (not the first commit to an empty repo); combined JSON string lengths (meta + record payloads).
 					if (headSha && result) {
-						this.metrics.write('pierre_incremental_write_chars', {
+						this.writeEvent('pierre_incremental_write_chars', {
 							doubles: [incrementalCommitPayloadLength],
 						})
 					}
