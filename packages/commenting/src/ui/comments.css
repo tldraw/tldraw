@@ -18,6 +18,10 @@
 	right: 6px;
 	display: flex;
 	gap: 2px;
+	padding: 2px;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-3);
+	box-shadow: var(--tlui-cmt-pill-shadow);
 	opacity: 0;
 }
 .tlui-cmt-card:hover .tlui-cmt-card__actions,
@@ -505,6 +509,7 @@
 	--tlui-cmt-thread-padding: 8px;
 	--tlui-cmt-thread-gap: 6px;
 	--tlui-cmt-thread-action-size: 26px;
+	--tlui-cmt-pill-shadow: 0 0 0 1px hsl(0, 0%, 0%, 0.06), 0 1px 3px hsl(0, 0%, 0%, 0.05);
 }
 
 .tlui-cmt-thread {
@@ -521,16 +526,21 @@
 /* A pill of its own, floating above the panel's top-right corner and overlapping its top edge. */
 .tlui-cmt-thread__header {
 	position: absolute;
-	right: 9px;
+	right: 10px;
 	bottom: calc(100% - 15px);
 	display: flex;
 	gap: 2px;
 	padding: 2px;
 	background: var(--tl-color-panel);
 	border-radius: var(--tl-radius-3);
-	box-shadow:
-		0 0 0 1px hsl(0, 0%, 0%, 0.06),
-		0 1px 3px hsl(0, 0%, 0%, 0.05);
+	box-shadow: var(--tlui-cmt-pill-shadow);
+	transition: opacity 0.1s ease;
+}
+/* The first comment's hover actions surface right where the header pill sits, so hide the pill
+   while that comment is hovered — one pill in the corner, never two stacked. */
+.tlui-cmt-thread:has(.tlui-cmt-thread__list > :first-child:hover) .tlui-cmt-thread__header {
+	opacity: 0;
+	pointer-events: none;
 }
 .tlui-cmt-thread__title {
 	font-size: 12px;
@@ -638,8 +648,8 @@
    card top (6px padding + half its ~16px line), so the buttons start at 14 − 11 = 3px. */
 .tlui-cmt-thread .tlui-cmt-card .tlui-cmt-card__actions,
 .tlui-cmt-canvas-preview--thread .tlui-cmt-card .tlui-cmt-card__actions {
-	top: 3px;
-	right: 0;
+	top: -17px;
+	right: 2px;
 }
 /* The hover actions overlay the byline's corner, so reserve their footprint — the byline can
    never run underneath them, even mid-hover. Sized from the 22px action buttons + 2px gaps +
