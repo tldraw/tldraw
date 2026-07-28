@@ -686,17 +686,16 @@
 	background: transparent;
 	border: none;
 }
-/* Inside a panel the actions float as their own pill, riding the card's top edge rather than
-   sitting on the byline — the same pill the thread header is, in the same corner (which is why the
-   header hides while the first comment is hovered). Raised by half its own height so it straddles
-   the edge: the pill is an action button plus its 2px padding either side. */
+/* Inside a panel the actions float as their own pill — the same pill the thread header is, in the
+   same corner (which is why the header hides while the first comment is hovered). It sits just
+   above the card's top edge rather than on the byline. */
 .tlui-cmt-thread .tlui-cmt-card .tlui-cmt-card__actions,
 .tlui-cmt-canvas-preview--thread .tlui-cmt-card .tlui-cmt-card__actions {
-	top: calc(-2px - (var(--tlui-cmt-thread-action-size) + 4px) / 2);
+	top: -2px;
 	right: 2px;
 }
-/* The pill's lower half still overlays the byline's corner, so reserve its footprint — the byline
-   can never run underneath it, even mid-hover. Derived from the action size so it can't drift:
+/* The pill overlays the byline's corner, so reserve its footprint — the byline can never run
+   underneath it, even mid-hover. Derived from the action size so it can't drift:
    n buttons + (n−1) 2px gaps + the pill's 2px padding either side + its 2px right inset. One
    button (react) on others' comments, three (edit, delete, react) on your own. */
 .tlui-cmt-thread .tlui-cmt-card .tlui-cmt-head {
