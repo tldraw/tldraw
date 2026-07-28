@@ -17,7 +17,6 @@
 	top: 6px;
 	right: 6px;
 	display: flex;
-	flex-direction: column;
 	gap: 2px;
 	opacity: 0;
 }
@@ -44,11 +43,18 @@
 	font-weight: 600;
 	font-size: 13px;
 	color: var(--tl-color-text-1);
+	/* a long name ellipsizes rather than pushing the time out or running under the actions */
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .tlui-cmt-time {
 	font-size: 10px;
 	color: var(--tl-color-text-3);
+	flex-shrink: 0;
+	white-space: nowrap;
 }
 
 .tlui-cmt-text {
@@ -534,6 +540,13 @@
 	background: var(--tl-color-muted-2);
 	color: var(--tl-color-text-1);
 }
+/* the per-comment edit/delete buttons share the action-button treatment but color on hover */
+.tlui-cmt-thread__action--edit:hover {
+	color: var(--tl-color-selected);
+}
+.tlui-cmt-thread__action--danger:hover {
+	color: var(--tl-color-danger);
+}
 .tlui-cmt-thread__resolved {
 	padding: 6px 10px;
 	border-radius: 8px;
@@ -596,6 +609,22 @@
 	padding: 6px 0 6px 4px;
 	background: transparent;
 	border: none;
+}
+/* Centre the 22px action buttons on the byline's text line: the byline centres ~14px below the
+   card top (6px padding + half its ~16px line), so the buttons start at 14 − 11 = 3px. */
+.tlui-cmt-thread .tlui-cmt-card .tlui-cmt-card__actions,
+.tlui-cmt-canvas-preview--thread .tlui-cmt-card .tlui-cmt-card__actions {
+	top: 3px;
+}
+/* The hover actions overlay the byline's corner, so reserve their footprint — the byline can
+   never run underneath them, even mid-hover. Sized from the 22px action buttons + 2px gaps +
+   the cluster's 6px right inset: one button (react) on others' comments, three (edit, delete,
+   react) on your own. */
+.tlui-cmt-thread .tlui-cmt-card .tlui-cmt-head {
+	padding-right: 30px;
+}
+.tlui-cmt-thread .tlui-cmt-card--you .tlui-cmt-head {
+	padding-right: 78px;
 }
 
 /* comments list — thread summaries, one per row (used by the canvas sidebar) */

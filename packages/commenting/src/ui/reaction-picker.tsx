@@ -7,6 +7,7 @@ import {
 } from 'tldraw'
 import { EmojiPicker, type EmojiPickerProps } from './emoji-picker'
 import { RenderReaction } from './reaction'
+import { TooltipButton } from './tooltip-button'
 
 /** @public */
 export interface ReactionPickerProps {
@@ -57,14 +58,9 @@ export function ReactionPicker({
 	return (
 		<TldrawUiDropdownMenuRoot id={menuId ?? `comment-reactions-${generatedId}`}>
 			<TldrawUiDropdownMenuTrigger>
-				<button
-					type="button"
-					className={className}
-					title={msg('comments.add-reaction')}
-					aria-label={msg('comments.add-reaction')}
-				>
+				<TooltipButton tooltip={msg('comments.add-reaction')} className={className}>
 					<SmileyIcon />
-				</button>
+				</TooltipButton>
 			</TldrawUiDropdownMenuTrigger>
 			{/* right-aligned under the trigger, so the grid hangs down the card's right edge */}
 			<TldrawUiDropdownMenuContent side="bottom" align="end">

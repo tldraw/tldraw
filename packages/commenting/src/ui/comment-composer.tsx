@@ -23,6 +23,9 @@ export interface CommentComposerProps {
 	/** Called on Send click or Enter. When set, the composer is interactive. */
 	onSubmit?(): void
 	sendLabel?: string
+	/** Called when Up is pressed in an empty composer — e.g. to start editing the comment above,
+	 *  the way chat apps edit your last message. With content in the field, Up moves the cursor. */
+	onArrowUpWhenEmpty?(): void
 	disabled?: boolean
 	autoFocus?: boolean
 	/** The leading element before the field. Defaults to the author's avatar. */
@@ -47,6 +50,7 @@ export function CommentComposer({
 	onChange,
 	onSubmit,
 	sendLabel = 'Send',
+	onArrowUpWhenEmpty,
 	disabled,
 	autoFocus,
 	leading,
@@ -64,6 +68,8 @@ export function CommentComposer({
 	onChangeRef.current = onChange
 	const onSubmitRef = useRef(onSubmit)
 	onSubmitRef.current = onSubmit
+	const onArrowUpWhenEmptyRef = useRef(onArrowUpWhenEmpty)
+	onArrowUpWhenEmptyRef.current = onArrowUpWhenEmpty
 	const disabledRef = useRef(disabled)
 	disabledRef.current = disabled
 	const getMentionSuggestionsRef = useRef(getMentionSuggestions)
@@ -185,6 +191,19 @@ export function CommentComposer({
 				handleKeyDown: (_view, event) => {
 					// Let the keymaps handle the synthetic Enter we replay for a Shift+Enter newline.
 					if (replayingEnter.current) return false
+					// Up in an empty composer hands off to the host (edit the comment above). With
+					// content, Up stays cursor movement; with the mention picker open, it navigates it.
+					if (event.key === 'ArrowUp' && !event.isComposing) {
+						if (
+							onArrowUpWhenEmptyRef.current &&
+							editorRef.current?.isEmpty &&
+							!isMentionPickerOpen()
+						) {
+							onArrowUpWhenEmptyRef.current()
+							return true
+						}
+						return false
+					}
 					if (event.key !== 'Enter' || event.isComposing) return false
 					// While the @-mention picker is open, Enter selects the highlighted member — defer.
 					if (isMentionPickerOpen()) return false
