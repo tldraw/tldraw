@@ -32,7 +32,7 @@
 .tlui-cmt-mention-list {
 	display: flex;
 	flex-direction: column;
-	gap: 1px;
+	gap: 4px;
 	padding: 4px;
 	width: 100%;
 	box-sizing: border-box;
@@ -73,7 +73,7 @@
 }
 
 .tlui-cmt-mention-list__name {
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 500;
 	white-space: nowrap;
 	overflow: hidden;
