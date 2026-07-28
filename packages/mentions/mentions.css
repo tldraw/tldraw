@@ -40,9 +40,10 @@
 	overflow-y: auto;
 	color: var(--tl-color-text-1, #1d1d1d);
 	background: var(--tl-color-panel, #fff);
-	border: 1px solid var(--tl-color-divider, rgba(0, 0, 0, 0.08));
 	border-radius: 10px;
-	box-shadow: var(--tl-shadow-2, 0 2px 12px rgba(0, 0, 0, 0.14));
+	/* shadow-3 (like the context menu) already carries a 1px inset edge — a separate `border`
+	   on top of it double-outlines the popup. */
+	box-shadow: var(--tl-shadow-3, 0 2px 12px rgba(0, 0, 0, 0.14));
 }
 
 .tlui-cmt-mention-list__item {
