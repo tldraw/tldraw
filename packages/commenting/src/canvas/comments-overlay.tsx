@@ -72,6 +72,7 @@ import { ThreadPreview, sortThreadsForPreview, useMarkerPreview } from './thread
 import { ThreadStackPin } from './thread-stack'
 import {
 	anchorPagePoint,
+	commentTargetShapeAt,
 	impreciseShapePinInset,
 	regionAnchorPinCorner,
 	regionPinPoint,
@@ -1338,7 +1339,7 @@ const ThreadPin = memo(function ThreadPin({
 		// Hint the shape the pin would re-anchor to on drop — the same hit-test endDrag resolves
 		// with. Regions translate rather than re-anchor, so they never hint.
 		if (!isRegion) {
-			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+			const hit = commentTargetShapeAt(editor, pagePoint)
 			editor.setHintingShapes(hit ? [hit.id] : [])
 		}
 	}
@@ -1378,7 +1379,7 @@ const ThreadPin = memo(function ThreadPin({
 				y: pagePoint.y - pinCorner.y * thread.anchor.h,
 			}
 		} else {
-			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+			const hit = commentTargetShapeAt(editor, pagePoint)
 			anchor = hit
 				? shapeAnchorAt(
 						editor,
