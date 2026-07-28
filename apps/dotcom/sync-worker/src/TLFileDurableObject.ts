@@ -41,19 +41,13 @@ import {
 	TLRecord,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import {
-	ExecutionQueue,
-	assert,
-	assertExists,
-	exhaustiveSwitchError,
-	retry,
-	uniqueId,
-} from '@tldraw/utils'
+import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
+import { collectAssetAssociationChanges } from './assetAssociation'
 import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
@@ -222,7 +216,6 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this._documentInfo) {
 			throw new Error('documentInfo must be present when accessing room')
 		}
-		const slug = this._documentInfo.slug
 		if (!this._room) {
 			this._room = this.getStorage().then(async (storage) => {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
@@ -238,20 +231,16 @@ export class TLFileDurableObject extends DurableObject {
 					onSessionRemoved: async (room, args) => {
 						this.logEvent({
 							type: 'client',
-							roomId: slug,
 							name: 'leave',
 							instanceId: args.sessionId,
-							localClientId: args.meta.storeId,
 						})
 
 						if (args.numSessionsRemaining > 0) return
 						if (!this._room) return
 						this.logEvent({
 							type: 'client',
-							roomId: slug,
 							name: 'last_out',
 							instanceId: args.sessionId,
-							localClientId: args.meta.storeId,
 						})
 						try {
 							await this.persistToDatabase()
@@ -262,7 +251,7 @@ export class TLFileDurableObject extends DurableObject {
 						if (room.getNumActiveSessions() > 0) return
 						this._room = null
 						room.close()
-						this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
+						this.logEvent({ type: 'room', name: 'room_empty' })
 						await this._pool?.end()
 						this._pool = null
 						this._db = null
@@ -270,14 +259,13 @@ export class TLFileDurableObject extends DurableObject {
 					onBeforeSendMessage: ({ message, stringified }) => {
 						this.logEvent({
 							type: 'send_message',
-							roomId: slug,
 							messageType: message.type,
 							messageLength: stringified.length,
 						})
 					},
 				})
 
-				this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
+				this.logEvent({ type: 'room', name: 'room_start' })
 				// Resume any sessions that survived hibernation
 				for (const ws of this.state.getWebSockets()) {
 					const attachment = ws.deserializeAttachment() as SocketAttachment | null
@@ -655,7 +643,6 @@ export class TLFileDurableObject extends DurableObject {
 						this.logEvent({
 							type: 'client',
 							userId: auth.userId,
-							localClientId: storeId,
 							name: 'rate_limited',
 						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
@@ -666,7 +653,6 @@ export class TLFileDurableObject extends DurableObject {
 						this.logEvent({
 							type: 'client',
 							userId: auth?.userId,
-							localClientId: storeId,
 							name: 'rate_limited',
 						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
@@ -735,18 +721,14 @@ export class TLFileDurableObject extends DurableObject {
 			if (isNewSession) {
 				this.logEvent({
 					type: 'client',
-					roomId: this.documentInfo.slug,
 					name: 'room_reopen',
 					instanceId: sessionId,
-					localClientId: storeId,
 				})
 			}
 			this.logEvent({
 				type: 'client',
-				roomId: this.documentInfo.slug,
 				name: 'enter',
 				instanceId: sessionId,
-				localClientId: storeId,
 			})
 
 			requestTimer.report('on_request_total')
@@ -891,15 +873,6 @@ export class TLFileDurableObject extends DurableObject {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
 
-	// Thumbnail rendering is debounced, not throttled: every persist pushes the render further out, so
-	// a board renders once its editing settles rather than on a cadence while it is still being drawn
-	// on. OG_RENDER_MAX_WAIT_MS caps how long a board that never settles can go without one.
-	//
-	// `_ogRenderTargetAt` is the deadline we want; the durable alarm is how it gets enforced. They are
-	// allowed to disagree, and disagree safely: if this object is evicted the deadline is lost but the
-	// alarm survives, fires, finds no deadline, and renders. One extra render is the right way to be
-	// wrong — the alternative is silently dropping the last edits of a session, which is the exact
-	// staleness this trigger exists to fix.
 	// Mirrors the gate `requestOgRenderForEdit` applies, so the telemetry says which persists actually
 	// cost a thumbnail render rather than which boards happen to be shared.
 	private getSharedStateForTelemetry(): 'shared' | 'private' | 'unknown' | 'legacy' {
@@ -909,6 +882,15 @@ export class TLFileDurableObject extends DurableObject {
 		return shared ? 'shared' : 'private'
 	}
 
+	// Thumbnail rendering is debounced, not throttled: every persist pushes the render further out, so
+	// a board renders once its editing settles rather than on a cadence while it is still being drawn
+	// on. OG_RENDER_MAX_WAIT_MS caps how long a board that never settles can go without one.
+	//
+	// The debouncer holds the deadline we want; the durable alarm is how it gets enforced. They are
+	// allowed to disagree, and disagree safely: if this object is evicted the deadline is lost but the
+	// alarm survives, fires, finds no deadline, and renders. One extra render is the right way to be
+	// wrong — the alternative is silently dropping the last edits of a session, which is the exact
+	// staleness this trigger exists to fix.
 	private ogRenderDebouncer = new OgRenderDebouncer()
 
 	private scheduleOgRender() {
@@ -928,53 +910,57 @@ export class TLFileDurableObject extends DurableObject {
 		await this.requestOgRenderForEdit()
 	}
 
+	/**
+	 * Indexes every data point on this object's durable object id, so any event can be grouped by
+	 * room. The id is the one Cloudflare keys its own telemetry on — `$workers.durableObjectId` in
+	 * Workers Logs, and the per-object filter on the namespace's metrics — so a room's analytics,
+	 * logs, traces and CPU/storage numbers all line up on a single value.
+	 *
+	 * Deliberately the id rather than the slug: `idFromName` is one-way, so an id read out of the
+	 * dataset does not open the board, where the slug for an app file is the whole authority of
+	 * `tldraw.com/f/<id>`. Resolving in the useful direction still works from a slug you already
+	 * hold, via `env.TLDR_DOC.idFromName('/r/' + slug)`.
+	 *
+	 * Analytics Engine allows exactly one index, so this is the only object-level dimension these
+	 * events carry.
+	 */
 	private writeEvent(name: string, eventData: EventData) {
-		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, name, {
+			...eventData,
+			indexes: [this.id.toString()],
+		})
 	}
 
 	logEvent(event: TLServerEvent) {
 		switch (event.type) {
 			case 'persist_success': {
-				// These two fields exist to size thumbnail rendering, which is driven by exactly this event.
-				//
-				// The room id goes in the index rather than a blob because Analytics Engine samples by
-				// index, so each board keeps data points instead of quiet boards being sampled away inside
-				// the volume of busy ones. It has no aggregate for distinct counts, so the query is
-				// `GROUP BY index1` over a short window and count the rows. Raw rather than hashed, matching
-				// the existing `room` events.
-				//
-				// `sharedState` makes the shared fraction measurable here rather than in Postgres, which
-				// knows which files are shared but not which are being edited.
+				// This event drives thumbnail rendering, so it carries what sizing that costs needs.
+				// `writeEvent` already indexes it on the durable object id, which is what makes distinct
+				// boards countable (`GROUP BY index1` and count the rows — Analytics Engine has no
+				// aggregate for distinct values). `sharedState` supplies the other half: the id is
+				// deliberately one-way, so the shared fraction cannot be recovered by joining back to a
+				// file row and has to be recorded at write time.
 				this.writeEvent(event.type, {
 					blobs: [event.sharedState],
-					indexes: [event.roomId],
 					doubles: [event.attempts],
 				})
 				break
 			}
 			case 'room': {
-				// we would add user/connection ids here if we could
-				this.writeEvent(event.name, { blobs: [event.roomId] })
+				this.writeEvent(event.name, {})
 				break
 			}
 			case 'client': {
 				if (event.name === 'rate_limited') {
-					this.writeEvent(event.name, {
-						blobs: [event.userId ?? 'anon-user'],
-						indexes: [event.localClientId],
-					})
+					this.writeEvent(event.name, { blobs: [event.userId ?? 'anon-user'] })
 				} else {
-					// we would add user/connection ids here if we could
-					this.writeEvent(event.name, {
-						blobs: [event.roomId, 'unused', event.instanceId],
-						indexes: [event.localClientId],
-					})
+					this.writeEvent(event.name, { blobs: [event.instanceId] })
 				}
 				break
 			}
 			case 'send_message': {
 				this.writeEvent(event.type, {
-					blobs: [event.roomId, event.messageType],
+					blobs: [event.messageType],
 					doubles: [event.messageLength],
 				})
 				break
@@ -1122,7 +1108,7 @@ export class TLFileDurableObject extends DurableObject {
 			supabaseFetchTimer.report('db_load_supabase_fetch')
 
 			if (error) {
-				this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
+				this.logEvent({ type: 'room', name: 'failed_load_from_db' })
 
 				loadTimer.report('db_load_total')
 
@@ -1143,7 +1129,7 @@ export class TLFileDurableObject extends DurableObject {
 				roomSizeMB: 0,
 			}
 		} catch (error) {
-			this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
+			this.logEvent({ type: 'room', name: 'failed_load_from_db' })
 
 			loadTimer.report('db_load_total_error')
 
@@ -1172,6 +1158,11 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	private readonly associateAssetsQueue = new ExecutionQueue()
+
+	// Source objects the association pass confirmed missing from the uploads bucket. Skipped on
+	// later passes so an asset pointing at a gone object doesn't re-attempt an R2 get on every
+	// persist tick. In-memory only: resets with the DO, never touches document data.
+	private readonly missingSourceObjects = new Set<string>()
 
 	// Shared connection budget for every R2 operation this durable object makes. Both asset copies and
 	// snapshot uploads draw from this queue so together they can't exceed Cloudflare's simultaneous-
@@ -1280,53 +1271,13 @@ export class TLFileDurableObject extends DurableObject {
 
 		const {
 			result: { assetsToReplace, assetsToMigrate },
-		} = storage.transaction((txn) => {
-			const assetsToReplace: Array<{
-				objectName: string
-				newObjectName: string
-				newSrc: string
-				assetId: string
-			}> = []
-			const assetsToMigrate: Array<{
-				assetId: string
-				newSrc: string
-			}> = []
-			for (const record of txn.values()) {
-				if (record.typeName !== 'asset') continue
-				const asset = record as any
-				const meta = asset.meta
-				const src = asset.props.src
-				if (!src) continue
-
-				// Migrate old-format HTTP URLs to tldrawusercontent.com (same R2 bucket, no copy needed)
-				if (meta?.fileId === slug && src.startsWith('http') && !src.startsWith(userContentUrl)) {
-					const objectName = src.split('/').pop()
-					if (objectName) {
-						assetsToMigrate.push({
-							assetId: asset.id,
-							newSrc: `${userContentUrl}/${objectName}`,
-						})
-					}
-					continue
-				}
-
-				if (meta?.fileId === slug) continue
-				const objectName = src.split('/').pop()
-				if (!objectName) continue
-
-				const split = objectName.split('-')
-				const fileType = split.length > 1 ? split.pop() : null
-				const id = uniqueId()
-				const newObjectName = fileType ? `${id}-${fileType}` : id
-				assetsToReplace.push({
-					objectName,
-					newObjectName,
-					assetId: asset.id,
-					newSrc: `${userContentUrl}/${newObjectName}`,
-				})
-			}
-			return { assetsToReplace, assetsToMigrate }
-		})
+		} = storage.transaction((txn) =>
+			collectAssetAssociationChanges(txn.values(), {
+				slug,
+				userContentUrl,
+				skipObjectNames: this.missingSourceObjects,
+			})
+		)
 
 		// Apply URL migrations (no R2 copy needed — same bucket, same object)
 		if (assetsToMigrate.length > 0) {
@@ -1347,10 +1298,13 @@ export class TLFileDurableObject extends DurableObject {
 			assetsToReplace.map((asset) =>
 				this.addR2Operation('asset_copy', async () => {
 					try {
-						if (!isValidR2ObjectName(asset.objectName)) return
-
 						const currentAsset = await this.env.UPLOADS.get(asset.objectName)
-						if (!currentAsset) return
+						if (!currentAsset) {
+							// Only a confirmed null (object genuinely absent) goes in the cache — a
+							// thrown error (rate limit, subrequest budget) must stay retryable
+							this.missingSourceObjects.add(asset.objectName)
+							return
+						}
 						await this.env.UPLOADS.put(asset.newObjectName, currentAsset.body, {
 							httpMetadata: currentAsset.httpMetadata,
 						})
@@ -1439,7 +1393,6 @@ export class TLFileDurableObject extends DurableObject {
 						this.logEvent({
 							type: 'persist_success',
 							attempts: attempt,
-							roomId: slug,
 							sharedState: this.getSharedStateForTelemetry(),
 						})
 						this._lastPersistedClock = snapshot.documentClock
@@ -1469,7 +1422,6 @@ export class TLFileDurableObject extends DurableObject {
 								.catch((e) => {
 									this.logEvent({
 										type: 'room',
-										roomId: this.documentInfo.slug,
 										name: 'failed_persist_to_db',
 									})
 									this.reportError(e)
@@ -1480,7 +1432,7 @@ export class TLFileDurableObject extends DurableObject {
 				)
 			})
 			.catch((e) => {
-				this.logEvent({ type: 'room', roomId: this.documentInfo.slug, name: 'fail_persist' })
+				this.logEvent({ type: 'room', name: 'fail_persist' })
 				this.reportError(e)
 			})
 	}

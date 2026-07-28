@@ -1,23 +1,20 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { getR2KeyForRoom } from '../../r2'
-import { Environment, OgImageRenderQueueMessage, OgImageRenderReason } from '../../types'
-import { writeDataPoint } from '../../utils/analytics'
 import {
-	THUMBNAIL_RENDER_TOKEN_TTL_MS,
-	ThumbnailRenderJob,
-	mintThumbnailRenderToken,
-} from '../../utils/renderTokens'
-import { getPublishedFileInfo } from './getPublishedFile'
-import { getSharedFileInfo, isFileAnonymouslyViewable } from './getSharedFile'
+	Environment,
+	OgImageRenderQueueMessage,
+	OgImageRenderReason,
+	ThumbnailBoardKind,
+} from '../../types'
 import {
-	base64ToArrayBuffer,
-	buildThumbnailRenderUrl,
+	ResolvedThumbnailBoard,
+	captureThumbnailScreenshot,
 	enumerateBoardPages,
-	getRenderOrigin,
 	loadBoardSnapshot,
-	renderThumbnailScreenshot,
-} from './sharedBoardScreenshotMcp'
+	putThumbnailPng,
+	resolveThumbnailBoard,
+	writeScreenshotTelemetry,
+} from './thumbnailRender'
 import { classifyScreenshotFailure, reportThumbnailError, sha256 } from './thumbnailShared'
 
 // Queue-backed async board thumbnail generation. The GET og-image route never blocks a request on
@@ -37,9 +34,6 @@ import { classifyScreenshotFailure, reportThumbnailError, sha256 } from './thumb
 // pause for OG_RENDER_MAX_WAIT_MS. Total spend therefore scales with how many boards are edited at
 // once, and Browser Run's account limits are the real ceiling.
 
-export const OG_IMAGE_WIDTH = DEFAULT_THUMBNAIL_WIDTH
-export const OG_IMAGE_HEIGHT = DEFAULT_THUMBNAIL_HEIGHT
-
 // A pending marker suppresses duplicate enqueues while a render is queued or in flight. It is
 // advisory only: it expires on its own so a crashed consumer cannot wedge a board permanently.
 //
@@ -54,46 +48,6 @@ const PENDING_MARKER_TTL_MS = 2 * 60_000
 const MAX_RENDER_ATTEMPTS = 3
 const RETRY_DELAY_SECONDS = 30
 
-export type OgBoardKind = 'published' | 'shared_file'
-
-export interface ResolvedOgBoard {
-	kind: OgBoardKind
-	slug: string
-	version: string | number
-}
-
-// Mirrors the resolution + anonymous-view gates of the MCP tool: published boards must be
-// published, shared files must currently be shared via link, and the content version keys the
-// cache (lastPublished for published boards, the persisted room snapshot's R2 etag for shared
-// files).
-export async function resolveOgBoardInfo(
-	env: Environment,
-	kind: OgBoardKind,
-	slug: string
-): Promise<ResolvedOgBoard | null> {
-	if (kind === 'published') {
-		const file = await getPublishedFileInfo(env, slug)
-		if (!file?.published) return null
-		return {
-			kind,
-			slug,
-			version: file.lastPublished,
-		}
-	}
-
-	const file = await getSharedFileInfo(env, slug)
-	if (!isFileAnonymouslyViewable(file)) return null
-
-	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
-	if (!persisted) return null
-
-	return {
-		kind,
-		slug,
-		version: persisted.etag,
-	}
-}
-
 // OG images render a single page as the unfurl preview. Pick the first page (in board order) that
 // has content, so a board whose first page is empty still gets a meaningful image; fall back to the
 // first page when none have content (the render degrades to a blank, as it did before).
@@ -103,19 +57,19 @@ function pickOgImagePageId(snapshot: RoomSnapshot): string | undefined {
 	return (pages.find((page) => page.hasContent) ?? pages[0]).id
 }
 
-export function getOgImageCacheKey(board: Pick<ResolvedOgBoard, 'kind' | 'slug'>) {
-	return `og/${board.kind}/${board.slug}/${OG_IMAGE_WIDTH}x${OG_IMAGE_HEIGHT}/light.png`
+export function getOgImageCacheKey(board: Pick<ResolvedThumbnailBoard, 'kind' | 'slug'>) {
+	return `og/${board.kind}/${board.slug}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/light.png`
 }
 
 export type EnqueueOgImageResult = 'enqueued' | 'already_pending' | 'unavailable'
 
-function getOgImagePendingKey(board: { kind: 'published' | 'shared_file'; slug: string }) {
-	return `og/${board.kind}/${board.slug}/${OG_IMAGE_WIDTH}x${OG_IMAGE_HEIGHT}/light.pending`
+function getOgImagePendingKey(board: { kind: ThumbnailBoardKind; slug: string }) {
+	return getOgImageCacheKey(board).replace(/\.png$/, '.pending')
 }
 
 export async function enqueueOgImageRender(
 	env: Environment,
-	board: { kind: 'published' | 'shared_file'; slug: string },
+	board: { kind: ThumbnailBoardKind; slug: string },
 	opts: { reason?: OgImageRenderReason } = {}
 ): Promise<EnqueueOgImageResult> {
 	if (!env.THUMBNAILS || !env.QUEUE) return 'unavailable'
@@ -160,7 +114,7 @@ export async function enqueueOgImageRender(
  */
 export async function enqueueOgImageRenderForEdit(
 	env: Environment,
-	board: { kind: OgBoardKind; slug: string },
+	board: { kind: ThumbnailBoardKind; slug: string },
 	{ isShared }: { isShared: boolean | undefined }
 ): Promise<EnqueueOgImageResult | 'skipped_not_shared'> {
 	// `undefined` means the caller doesn't know: go ahead and let the consumer's resolve drop the
@@ -179,7 +133,7 @@ export function getOgImageAge(cached: R2Object, now: number) {
 // public, and the marker would otherwise suppress the next legitimate enqueue after it is reshared.
 export async function deleteOgImageCache(
 	env: Environment,
-	board: { kind: OgBoardKind; slug: string }
+	board: { kind: ThumbnailBoardKind; slug: string }
 ): Promise<void> {
 	if (!env.THUMBNAILS) return
 	await Promise.all([
@@ -205,14 +159,16 @@ export async function handleOgImageRenderMessage(
 	const clearPending = async () => {
 		await env.THUMBNAILS?.delete(getOgImagePendingKey({ kind, slug })).catch(() => {})
 	}
-	// The board went private, was deleted, or was unpublished. Terminal, not transient: drop the
-	// cached image so no-longer-public content does not linger in the OG cache, and ack rather than
-	// retry, since no number of retries will make the board public again. Reached from the resolve
-	// below — a board that goes private after that point fails its snapshot read instead, and the
-	// retry lands back here on the next delivery.
+	// The board went private, was deleted, was unpublished, or has no persisted content. Terminal,
+	// not transient: drop the cached image so no-longer-public content does not linger in the OG
+	// cache, and ack rather than retry, since no number of retries will make the board public again.
+	// Reached from the resolve below — a board that goes private after that point fails its snapshot
+	// read instead, and the retry lands back here on the next delivery.
 	const dropNoLongerViewable = async () => {
+		// Same two deletes main did inline, via the helper the replicator's unshare/unpublish effects
+		// also call, so every path that drops a board's image drops its pending marker too.
 		await deleteOgImageCache(env, { kind, slug })
-		writeOgImageTelemetry(env, {
+		writeScreenshotTelemetry(env, {
 			source: 'queue',
 			reason,
 			boardHash,
@@ -223,17 +179,18 @@ export async function handleOgImageRenderMessage(
 	}
 
 	try {
-		const board = await resolveOgBoardInfo(env, kind, slug)
-		if (!board) {
+		const resolved = await resolveThumbnailBoard(env, kind, slug)
+		if (!resolved.ok) {
 			await dropNoLongerViewable()
 			return
 		}
+		const board = resolved.board
 
 		// Another consumer (or an earlier retry) may already have rendered this version.
 		const cached = await env.THUMBNAILS?.head(cacheKey)
 		if (cached?.customMetadata?.version === String(board.version)) {
 			await clearPending()
-			writeOgImageTelemetry(env, { source: 'queue', reason, boardHash, cacheStatus: 'hit' })
+			writeScreenshotTelemetry(env, { source: 'queue', reason, boardHash, cacheStatus: 'hit' })
 			message.ack()
 			return
 		}
@@ -242,10 +199,13 @@ export async function handleOgImageRenderMessage(
 			throw new Error('THUMBNAILS bucket is not configured')
 		}
 
-		// No capacity check: thumbnail rendering is uncapped by design (see the note at the top of this
-		// file). The version check above is what stops redundant work — a burst of enqueues for one
-		// board coalesces into a single render of the newest content, and everything past this point is
-		// a board whose cached thumbnail genuinely no longer matches its saved content.
+		// No capacity check: thumbnail rendering has no global cap by design (see the note at the top of
+		// this file). This deliberately drops the shared-budget check and requeue chain that used to sit
+		// here — a global limiter on our own derived artifact only ever means "serve a stale thumbnail to
+		// save a render we intend to do anyway", and each rate-limited delivery spent a limiter slot just
+		// to learn it could not render. The version check above is what stops redundant work: a burst of
+		// enqueues for one board coalesces into a single render of the newest content, and everything
+		// past this point is a board whose cached thumbnail genuinely no longer matches its content.
 
 		// Target the first page that has content so a board whose first page is empty still gets a
 		// meaningful unfurl image (the render page otherwise exports whichever page the snapshot opens
@@ -262,38 +222,19 @@ export async function handleOgImageRenderMessage(
 			retryOrDrop(env, message, boardHash, 'board_empty')
 			return
 		}
-		const pageId = pickOgImagePageId(snapshot)
 
-		const job: ThumbnailRenderJob = {
-			v: 1,
-			kind,
-			slug,
-			version: board.version,
-			camera: 'content',
-			...(pageId ? { pageId } : null),
-			x: 0,
-			y: 0,
-			z: 1,
-			width: OG_IMAGE_WIDTH,
-			height: OG_IMAGE_HEIGHT,
-			theme: 'light',
-			exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
-		}
-		const token = await mintThumbnailRenderToken(env, job)
-		const renderUrl = buildThumbnailRenderUrl(getRenderOrigin(env), token)
 		// The render page exports the chosen page; the worker screenshots it through the BROWSER
 		// binding and writes the PNG to the cache key the OG route reads.
-		const render = await renderThumbnailScreenshot(renderUrl, env)
-		await env.THUMBNAILS.put(cacheKey, base64ToArrayBuffer(render.base64), {
-			httpMetadata: { contentType: 'image/png' },
-			customMetadata: {
-				version: String(board.version),
-				createdAt: String(Date.now()),
-			},
+		const render = await captureThumbnailScreenshot(env, board, {
+			pageId: pickOgImagePageId(snapshot),
+			theme: 'light',
+			width: DEFAULT_THUMBNAIL_WIDTH,
+			height: DEFAULT_THUMBNAIL_HEIGHT,
 		})
+		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
 		await clearPending()
 
-		writeOgImageTelemetry(env, {
+		writeScreenshotTelemetry(env, {
 			source: 'queue',
 			reason,
 			boardHash,
@@ -332,7 +273,7 @@ function retryOrDrop(
 		message.retry({ delaySeconds: RETRY_DELAY_SECONDS * message.attempts })
 		return
 	}
-	writeOgImageTelemetry(env, {
+	writeScreenshotTelemetry(env, {
 		source: 'queue',
 		reason: message.body.reason,
 		boardHash,
@@ -340,43 +281,4 @@ function retryOrDrop(
 		failureReason,
 	})
 	message.ack()
-}
-
-// Written to the same dataset and blob layout as the MCP tool's telemetry
-// (mcp_shared_board_screenshot) so one dashboard covers every screenshot surface; the source blob
-// distinguishes mcp (the tool), og (the GET route), and queue (this consumer).
-export function writeOgImageTelemetry(
-	env: Environment,
-	data: {
-		source: 'og' | 'queue'
-		// Which trigger asked for this render. Only meaningful on queue datapoints; the request path has
-		// no trigger of its own, so it records `none`.
-		reason?: OgImageRenderReason
-		boardHash: string
-		cacheStatus: 'hit' | 'stale' | 'miss'
-		browserRunDurationMs?: number
-		browserMsUsed?: number | null
-		failureReason?: string
-		rateLimitAllowed?: boolean
-	}
-) {
-	const rateLimitAllowed = data.rateLimitAllowed ?? true
-	writeDataPoint(undefined, env.MEASURE, env, 'mcp_shared_board_screenshot', {
-		blobs: [
-			`source:${data.source}`,
-			`cache:${data.cacheStatus}`,
-			`failure:${data.failureReason ?? 'none'}`,
-			`rate_limit:${rateLimitAllowed ? 'allowed' : 'blocked'}`,
-			'ip:none',
-			`reason:${data.reason ?? 'none'}`,
-		],
-		indexes: [data.boardHash],
-		doubles: [
-			OG_IMAGE_WIDTH,
-			OG_IMAGE_HEIGHT,
-			data.browserRunDurationMs ?? -1,
-			data.browserMsUsed ?? -1,
-			rateLimitAllowed ? 1 : 0,
-		],
-	})
 }

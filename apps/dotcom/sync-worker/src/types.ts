@@ -156,19 +156,20 @@ export interface DBLoadResult {
 	roomSizeMB: number
 }
 
+// Events written by TLFileDurableObject. None of them carry a room id: the object serves exactly
+// one room, and its `writeEvent` indexes every data point on that object's durable object id. A
+// roomId here would only ever restate what the object already knows, while implying call sites can
+// attribute an event to some other room.
 export type TLServerEvent =
 	| {
 			type: 'client'
 			name: 'room_create' | 'room_reopen' | 'enter' | 'leave' | 'last_out'
-			roomId: string
 			instanceId: string
-			localClientId: string
 	  }
 	| {
 			type: 'client'
 			name: 'rate_limited'
 			userId: string | undefined
-			localClientId: string
 	  }
 	| {
 			type: 'room'
@@ -178,23 +179,21 @@ export type TLServerEvent =
 				| 'room_empty'
 				| 'fail_persist'
 				| 'room_start'
-			roomId: string
 	  }
 	| {
 			type: 'send_message'
-			roomId: string
 			messageType: string
 			messageLength: number
 	  }
 	| {
 			type: 'persist_success'
 			attempts: number
-			roomId: string
 			/**
 			 * Whether this board is link-shared, and therefore whether editing it costs a thumbnail
-			 * render. Recorded here because the shared fraction of *actively edited* boards is what sizes
-			 * thumbnail spend, and it is not answerable from anywhere else: Postgres knows which files are
-			 * shared but not which are being edited, and asking it would mean scanning a hot table.
+			 * render. The shared fraction of *actively edited* boards is what sizes thumbnail spend, and
+			 * nothing else can answer it: Postgres knows which files are shared but not which are being
+			 * edited, and the durable object id this event is indexed on is deliberately one-way, so the
+			 * dataset cannot be joined back to a file row. Recording the flag here sidesteps both.
 			 *
 			 * `unknown` is an app file whose record has not loaded yet; `legacy` is a non-app room, which
 			 * has no shareable board identity and never renders a thumbnail. Both are kept distinct from
@@ -255,16 +254,23 @@ export interface AssetUploadQueueMessage {
 	userId: string | null
 }
 
+/**
+ * The two kinds of publicly viewable board the thumbnail/OG screenshot surfaces render:
+ * `published` is a frozen tldraw.com/p/:slug snapshot; `shared_file` is the live snapshot of an
+ * anonymously-shared tldraw.com/f/:slug file.
+ */
+export type ThumbnailBoardKind = 'published' | 'shared_file'
+
 // What prompted a board thumbnail render. Purely telemetry — every trigger is treated identically by
 // the consumer — so renders can be attributed to the thing that asked for them.
 export type OgImageRenderReason = 'crawler' | 'publish' | 'edit'
 
-// Asks the queue consumer to render a board's thumbnail through Browser Run and refresh the R2
+// Asks the queue consumer to render a board's OG image through Browser Run and refresh the R2
 // cache read by GET /app/social-preview/:prefix/:slug/image. Board state (share gate, content
 // version) is deliberately not carried in the message; the consumer re-resolves it at render time.
 export interface OgImageRenderQueueMessage {
 	type: 'og-image-render'
-	kind: 'published' | 'shared_file'
+	kind: ThumbnailBoardKind
 	slug: string
 	// Absent on messages enqueued before this field existed, which are all crawler misses.
 	reason?: OgImageRenderReason

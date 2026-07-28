@@ -86,9 +86,13 @@ The thing to watch instead of a cap is Browser Rendering's own account limits: a
 
 All three surfaces write `mcp_shared_board_screenshot` events with the same blob layout, so one dashboard covers everything; the source blob distinguishes `mcp` (the tool), `og` (the OG image route), and `queue` (the async consumer). Events record hashed board slug, cache hit/stale/miss, render duration (wall-clock around the browser session), output dimensions, failure reason, rate-limit decisions, a hashed IP, and the trigger that asked for the render. Two dimensions are deliberately kept low-cardinality: the failure reason is always a bounded reason code (`invalid_input`, `not_found`, `board_empty`, `no_pages`, `page_out_of_range`, `rate_limited_ip`/`board`/`global`, `board_not_viewable`, `served_fallback`, `not_rendered_yet`, `browser_failed`, `browser_timeout`, `empty_render`, `not_configured`, `render_error`), never raw `error.message` text; and the hashed IP is written only on failed or rate-limited events (where it's useful for abuse analysis) — successful events carry `ip:none`, so the per-client IP dimension never lands on the common success path. Column layout in the Analytics Engine dataset (`MEASURE`): `blob1` event name, `blob2` worker name, `blob3` source, `blob4` cache status, `blob5` failure reason, `blob6` rate-limit decision, `blob7` hashed IP (or `none`), `blob8` render trigger (`crawler`, `publish`, `edit`, or `none` on the surfaces that have no trigger), `double1`/`double2` output width/height, `double3` render duration ms, `double4` browser ms used, `double5` rate-limit allowed (1/0), `index1` hashed board slug. (The `quickAction` screenshot response includes an `X-Browser-Ms-Used` header, but the worker does not currently read it — telemetry uses wall-clock render duration in `double3` as the spend proxy and writes `double4` as -1. Wiring the header into `double4` is a possible follow-up.)
 
-One event outside that dataset matters for sizing: `persist_success` (same `MEASURE` dataset, written by `TLFileDurableObject.logEvent`). It fires on exactly the event that triggers a thumbnail render, so it carries what sizing that render needs: `index1` the raw room id, `blob3` the board's `sharedState` (`shared`, `private`, `unknown` for an app file whose record hasn't loaded, `legacy` for a non-app room), and `double1` the retry attempt count.
+One event outside that dataset matters for sizing: `persist_success` (same `MEASURE` dataset, written by `TLFileDurableObject.logEvent`). It fires on exactly the event that triggers a thumbnail render, so it carries what sizing that render needs: `index1` the **durable object id**, `blob3` the board's `sharedState` (`shared`, `private`, `unknown` for an app file whose record hasn't loaded, `legacy` for a non-app room), and `double1` the retry attempt count.
 
-The room id is the index rather than a blob because Analytics Engine samples by index, so a board that persists rarely keeps data points instead of being sampled away inside the volume of a busy one. Analytics Engine has no `uniq()`/`count(distinct)`, so distinct boards means `GROUP BY index1` and counting the returned rows. `sharedState` is recorded here rather than looked up in Postgres because Postgres knows which files are shared but not which are being edited — see "Open questions".
+The index is stamped centrally in `writeEvent` for every file DO event, not per call site. Analytics Engine samples by index, so a board that persists rarely keeps data points instead of being sampled away inside the volume of a busy one, and since it has no `uniq()`/`count(distinct)`, distinct boards means `GROUP BY index1` and counting the returned rows.
+
+It is the durable object id rather than the board slug on purpose: `idFromName` is one-way, and for an app file the slug _is_ the authority of `tldraw.com/f/<id>`, so writing it to an account-readable dataset exported to Grafana would put working capabilities in telemetry. Resolving in the useful direction still works from a slug you already hold, via `env.TLDR_DOC.idFromName('/r/' + slug)`.
+
+That one-way-ness is also why `sharedState` has to be recorded at write time rather than recovered later: the dataset cannot be joined back to a file row. Postgres could not answer it anyway — it knows which files are shared, not which are being edited. See "Open questions".
 
 Bounded reason codes say _that_ a board stopped rendering, never _why_, and every one of these surfaces deliberately swallows its own errors (the OG route falls back to the default image, the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops). So each swallow point also reports the underlying error to Sentry through `reportThumbnailError` (`thumbnailShared.ts`), tagged `thumbnail_surface` with a closed set of values: `og_route`, `og_queue`, `thumbnail_snapshot`, `mcp_board_info`, `mcp_screenshot`. Reporting rides on the handler's `waitUntil` and is itself failure-proof — a missing Sentry env var must never turn a degraded-but-fine response into a 500.
 
@@ -401,15 +405,16 @@ Deliberately not a Postgres question. Postgres knows which files are `shared`, b
    For the board-weighted figure instead — distinct shared boards rather than persists — group by `index1` with `blob3 = 'shared'` and count the returned rows.
 
    ```sql
-   -- Persists per board. No uniq()/count(distinct) exists in Analytics Engine, so GROUP BY and
-   -- count the rows. This is also the input to question 2.
-   SELECT index1 AS room_id, SUM(_sample_interval) AS persists
+   -- Persists per board, keyed on the durable object id (one-way, so it identifies a board without
+   -- being usable as a board URL). No uniq()/count(distinct) exists in Analytics Engine, so GROUP BY
+   -- and count the rows. This is also the input to question 2.
+   SELECT index1 AS durable_object_id, SUM(_sample_interval) AS persists
    FROM MEASURE
    WHERE blob1 = 'persist_success'
      AND blob2 = 'production-tldraw-multiplayer'
      AND blob3 = 'shared'
      AND timestamp > NOW() - INTERVAL '1' HOUR
-   GROUP BY room_id
+   GROUP BY durable_object_id
    ```
 
 2. **How many editing sessions start per minute?** With a debounce, this is the quantity that sets spend — not persists, and not wall-clock windows. A "session" here is a run of persists with no gap longer than `OG_RENDER_DEBOUNCE_MS`, and it costs one render, plus one more for every `OG_RENDER_MAX_WAIT_MS` it runs on for.
