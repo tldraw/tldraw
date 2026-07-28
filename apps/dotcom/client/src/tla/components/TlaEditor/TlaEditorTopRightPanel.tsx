@@ -24,6 +24,7 @@ import {
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
+import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
@@ -100,15 +101,17 @@ export function TlaEditorTopRightPanel({
 /**
  * Toggles the comments sidebar (the thread list) open and closed. Lives next to Share as an opt-in
  * entry point, decoupled from the comment tool: the tool places comments on the canvas, this button
- * reveals the list. Hidden entirely when commenting isn't licensed for this editor.
+ * reveals the list. Hidden entirely when commenting isn't licensed for this editor, or when the
+ * user isn't covered by dotcom's commenting flag.
  */
 function CommentsSidebarButton() {
 	const editor = useEditor()
 	const commentingEnabled = useCommentingEnabled()
+	const commentingEnabledForUser = useIsCommentingEnabled()
 	const open = useCommentsSidebarOpen()
 	const label = useMsg(commentsMessages.comments)
 
-	if (!commentingEnabled) return null
+	if (!commentingEnabled || !commentingEnabledForUser) return null
 
 	return (
 		<TldrawUiButton
