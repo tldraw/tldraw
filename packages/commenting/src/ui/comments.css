@@ -499,7 +499,7 @@
 	   shadow-3's depth without its `inset 1px panel-contrast` edge — that inset reads as a white
 	   border on a coloured pin (it's invisible on the panel-white menus shadow-3 is meant for). */
 	--tlui-cmt-marker-shadow: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%);
-	--tlui-cmt-marker-shadow-hover: 0 3px 10px rgba(0, 0, 0, 0.32);
+	--tlui-cmt-marker-shadow-hover: 0px 2px 4px hsl(0, 0%, 0%, 28%), 0px 3px 9px hsl(0, 0%, 0%, 14%);
 	--tlui-cmt-marker-hover-scale: 1.08;
 	--tlui-cmt-marker-transition: 0.08s ease;
 	--tlui-cmt-thread-padding: 8px;
