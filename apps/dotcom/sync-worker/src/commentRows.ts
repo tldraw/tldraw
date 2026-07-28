@@ -57,20 +57,38 @@ export function isCommentThreadFkViolation(error: unknown): boolean {
 }
 
 /**
- * True when `error` is Postgres rejecting a comment upsert because the thread or file it points
- * at doesn't exist (code 23503 on `comment_thread_id_fkey` / `comment_file_id_fkey`). A comment
- * can outlive its parent — the thread's own upsert may have been vetoed by the authorizer, or a
- * forged client may reference a thread id that never existed — and no amount of retrying
- * conjures the parent row. Distinct from {@link isCommentAuthorFkViolation} only in which
- * constraint fires; both prune. Same error-shape contract.
+ * True when `error` is Postgres rejecting a comment upsert because its file row doesn't exist
+ * (code 23503 on `comment_file_id_fkey`). The file is gone — deleting it cascades every comment
+ * row away — so retrying can never succeed and the caller prunes. Same error-shape contract as
+ * {@link isCommentAuthorFkViolation}.
  */
-export function isCommentParentFkViolation(error: unknown): boolean {
+export function isCommentFileFkViolation(error: unknown): boolean {
 	if (typeof error !== 'object' || error === null) return false
 	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
-	return (
-		code === '23503' &&
-		(constraint === 'comment_thread_id_fkey' || constraint === 'comment_file_id_fkey')
-	)
+	return code === '23503' && constraint === 'comment_file_id_fkey'
+}
+
+/**
+ * True when `error` is Postgres rejecting a comment upsert because the thread it points at doesn't
+ * exist (code 23503 on `comment_thread_id_fkey`).
+ *
+ * Unlike the other FK matchers this one is **not** on its own sufficient to prune. Threads are
+ * upserted before comments in the same drain, so this fires in two very different situations:
+ *
+ * - the thread genuinely doesn't exist (its create was vetoed by the authorizer, or a forged
+ *   client referenced a thread id that never was) — permanent, prune;
+ * - the thread exists in the room but its own upsert failed *this drain* for a transient reason
+ *   (a timeout, a serialization failure). Its outbox entry is still queued and will retry, so the
+ *   comment must wait for it — pruning here would destroy a live comment moments before its
+ *   parent lands.
+ *
+ * The caller tells them apart by looking the comment's `threadId` up in the room's lane: absent
+ * means permanent. See the prune predicate in `drainCommentOutbox`.
+ */
+export function isCommentThreadIdFkViolation(error: unknown): boolean {
+	if (typeof error !== 'object' || error === null) return false
+	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
+	return code === '23503' && constraint === 'comment_thread_id_fkey'
 }
 
 /**

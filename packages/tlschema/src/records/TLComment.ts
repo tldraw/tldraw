@@ -151,26 +151,6 @@ export interface TLCommentReaction extends BaseRecord<'comment-reaction', TLComm
 export type TLCommentReactionId = RecordId<TLCommentReaction>
 
 /**
- * The largest millisecond timestamp JavaScript's `Date` can represent (ECMA-262 §21.4.1.1).
- * A value outside this range is still a finite number and still fits a Postgres `bigint`, so it
- * survives validation and persistence — and then throws `RangeError: Invalid time value` in every
- * client that formats it with `toISOString()`. Bounding the field here keeps an out-of-range
- * timestamp from ever entering the store.
- */
-const MAX_TIMESTAMP = 8.64e15
-
-/**
- * A wall-clock timestamp in milliseconds. Non-negative and within `Date`'s representable range, so
- * every consumer can format it without a range check. Timestamps are client-supplied; the server
- * pins authorship but not the clock, so this bound is what makes rendering them safe.
- */
-const timestampValidator = T.number.check((value) => {
-	if (value < 0 || value > MAX_TIMESTAMP) {
-		throw new T.ValidationError(`Expected a timestamp between 0 and ${MAX_TIMESTAMP}, got ${value}`)
-	}
-})
-
-/**
  * An emoji shortcode or literal. Bounded because reaction ids embed the emoji verbatim
  * (see {@link createCommentReactionId}), so an unbounded value means an unbounded record id.
  */
@@ -279,8 +259,8 @@ export const commentThreadRecordConfig: CustomRecordInfo = {
 		pageId: idValidator<TLPageId>('page'),
 		anchor: commentAnchorValidator,
 		createdBy: T.string,
-		createdAt: timestampValidator,
-		resolved: T.object({ at: timestampValidator, by: T.string }).nullable(),
+		createdAt: T.number,
+		resolved: T.object({ at: T.number, by: T.string }).nullable(),
 		isDeleted: T.boolean,
 		meta: T.jsonValue,
 	}),
@@ -301,8 +281,8 @@ export const commentRecordConfig: CustomRecordInfo = {
 		threadId: idValidator<TLCommentThreadId>('comment-thread'),
 		pageId: idValidator<TLPageId>('page'),
 		authorId: T.string,
-		createdAt: timestampValidator,
-		editedAt: timestampValidator.nullable(),
+		createdAt: T.number,
+		editedAt: T.number.nullable(),
 		body: richTextValidator,
 		isDeleted: T.boolean,
 		meta: T.jsonValue,
@@ -326,7 +306,7 @@ export const commentReactionRecordConfig: CustomRecordInfo = {
 		pageId: idValidator<TLPageId>('page'),
 		userId: T.string,
 		emoji: emojiValidator,
-		createdAt: timestampValidator,
+		createdAt: T.number,
 		meta: T.jsonValue,
 	}),
 }

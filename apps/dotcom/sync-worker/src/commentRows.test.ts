@@ -16,7 +16,8 @@ import {
 	findEmptiedCommentThreads,
 	findOrphanedReactions,
 	isCommentAuthorFkViolation,
-	isCommentParentFkViolation,
+	isCommentFileFkViolation,
+	isCommentThreadIdFkViolation,
 	isCommentThreadFkViolation,
 	liveCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
@@ -182,32 +183,64 @@ describe('isCommentThreadFkViolation', () => {
 	})
 })
 
-describe('isCommentParentFkViolation', () => {
-	it('matches a pg foreign key violation on either of a comment’s parent fkeys', () => {
+describe('isCommentFileFkViolation', () => {
+	it('matches a pg foreign key violation on comment_file_id_fkey', () => {
 		expect(
-			isCommentParentFkViolation(
-				Object.assign(new Error(), { code: '23503', constraint: 'comment_thread_id_fkey' })
-			)
-		).toBe(true)
-		expect(
-			isCommentParentFkViolation(
+			isCommentFileFkViolation(
 				Object.assign(new Error(), { code: '23503', constraint: 'comment_file_id_fkey' })
 			)
 		).toBe(true)
 	})
 
-	it('does not match the author fkey, which has its own cascade semantics', () => {
+	it('does not match the thread or author fkeys, which have their own semantics', () => {
 		expect(
-			isCommentParentFkViolation(
+			isCommentFileFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_thread_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentFileFkViolation(
 				Object.assign(new Error(), { code: '23503', constraint: 'comment_author_id_fkey' })
 			)
 		).toBe(false)
 		expect(
-			isCommentParentFkViolation(
+			isCommentFileFkViolation(
+				Object.assign(new Error(), { code: '23505', constraint: 'comment_file_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentFileFkViolation(undefined)).toBe(false)
+	})
+})
+
+describe('isCommentThreadIdFkViolation', () => {
+	it('matches a pg foreign key violation on comment_thread_id_fkey', () => {
+		expect(
+			isCommentThreadIdFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_thread_id_fkey' })
+			)
+		).toBe(true)
+	})
+
+	// Deliberately narrow: this one isn't sufficient to prune on its own, because a thread whose
+	// own upsert failed transiently this drain produces the same error as a thread that never
+	// existed. The caller disambiguates with the room's lane.
+	it('does not match the file or author fkeys', () => {
+		expect(
+			isCommentThreadIdFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_file_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentThreadIdFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentThreadIdFkViolation(
 				Object.assign(new Error(), { code: '23505', constraint: 'comment_thread_id_fkey' })
 			)
 		).toBe(false)
-		expect(isCommentParentFkViolation(undefined)).toBe(false)
+		expect(isCommentThreadIdFkViolation(undefined)).toBe(false)
 	})
 })
 

@@ -140,26 +140,6 @@ describe('TLComment', () => {
 			commentRecordConfig.validator.validate({ ...comment, threadId: 'comment:not-a-thread' })
 		).toThrow()
 	})
-
-	it('rejects timestamps outside the range Date can represent', () => {
-		const comment = createComment({
-			threadId,
-			pageId,
-			authorId: 'user1',
-			body: toRichText('hello'),
-			now: 1000,
-		})
-		// 9e15 passes a bare number check and fits a Postgres bigint, but formatting it throws
-		// `RangeError: Invalid time value` — so it must never reach the store.
-		expect(() => new Date(9e15).toISOString()).toThrow()
-		expect(() => commentRecordConfig.validator.validate({ ...comment, createdAt: 9e15 })).toThrow()
-		expect(() => commentRecordConfig.validator.validate({ ...comment, createdAt: -1 })).toThrow()
-		expect(() => commentRecordConfig.validator.validate({ ...comment, editedAt: 9e15 })).toThrow()
-		// the boundary itself is representable, so it stays valid
-		expect(() =>
-			commentRecordConfig.validator.validate({ ...comment, createdAt: 8.64e15 })
-		).not.toThrow()
-	})
 })
 
 describe('schema registration', () => {

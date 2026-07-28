@@ -83,14 +83,29 @@ const SAFE_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:'])
  * does *not* block `javascript:` hrefs, so `[click me](javascript:…)` would otherwise render as a
  * working click-to-execute link. Relative and protocol-relative urls are allowed through — they
  * can't carry a scheme — and anything else must parse to an allow-listed protocol.
+ *
+ * The scheme check runs on a normalised copy, and it's the normalised value that gets linked.
+ * Browsers strip tab, newline and carriage return from a url outright and trim leading/trailing
+ * C0 controls before parsing it, so `java\nscript:alert(1)` is inert text to a naive regex but
+ * resolves to `javascript:alert(1)` at click time. Checking the raw string would therefore be
+ * checking something the browser never sees.
  */
 function safeHref(url: string): string | null {
-	const trimmed = url.trim()
-	if (!trimmed) return null
+	// what the browser will actually resolve: tab/LF/CR removed anywhere, C0 and space trimmed
+	const normalized = url
+		// eslint-disable-next-line no-control-regex
+		.replace(/[\t\n\r]/g, '')
+		// eslint-disable-next-line no-control-regex
+		.replace(/^[\x00-\x20]+|[\x00-\x20]+$/g, '')
+	if (!normalized) return null
+	// Any remaining control character is not something a legitimate url needs, and it's the raw
+	// material for the next parser-differential trick — refuse rather than guess.
+	// eslint-disable-next-line no-control-regex
+	if (/[\x00-\x1F\x7F]/.test(normalized)) return null
 	// no scheme possible: relative ("/x", "./x", "x/y") or protocol-relative ("//host")
-	if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return trimmed
+	if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(normalized)) return normalized
 	try {
-		return SAFE_PROTOCOLS.has(new URL(trimmed).protocol) ? trimmed : null
+		return SAFE_PROTOCOLS.has(new URL(normalized).protocol) ? normalized : null
 	} catch {
 		return null
 	}

@@ -47,4 +47,30 @@ describe('renderMarkdown', () => {
 			expect(out, url).toContain('x')
 		}
 	})
+
+	// Browsers strip tab/LF/CR from a url and trim leading control characters before parsing, so
+	// a scheme check on the raw string tests something the browser never resolves: `java\nscript:`
+	// is not a scheme to a regex, but is `javascript:` by the time it's clicked.
+	it('refuses a scheme smuggled past the check with control characters', () => {
+		const smuggled = [
+			'java\nscript:alert(1)',
+			'java\tscript:alert(1)',
+			'java\rscript:alert(1)',
+			'\x00javascript:alert(1)',
+			' \t javascript:alert(1)',
+			'java\x01script:alert(1)',
+		]
+		for (const url of smuggled) {
+			const out = html(`[x](${url})`)
+			// no anchor at all: either the tokenizer never saw a link (a newline splits the block
+			// before the link regex runs) or safeHref refused it. Either way there's nothing to
+			// click — the leftover "script:" is escaped text content, which is inert.
+			expect(out, JSON.stringify(url)).not.toContain('<a ')
+			expect(out, JSON.stringify(url)).not.toContain('href')
+		}
+	})
+
+	it('still links a normal url that merely has surrounding whitespace', () => {
+		expect(html('[a]( https://example.com )')).toContain('href="https://example.com"')
+	})
 })
