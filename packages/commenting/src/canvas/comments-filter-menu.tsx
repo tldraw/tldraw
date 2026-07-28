@@ -57,9 +57,9 @@ export function CommentsFilterMenu({
 						/>
 						{canFilterByAuthor && (
 							<TldrawUiMenuCheckboxItem
-								id="show-all-threads"
-								label="comments.show-all-threads"
-								checked={!filters.onlyMine}
+								id="only-my-comments"
+								label="comments.only-my-comments"
+								checked={filters.onlyMine}
 								onSelect={() => toggle('onlyMine')}
 							/>
 						)}
