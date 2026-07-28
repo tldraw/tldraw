@@ -41,7 +41,7 @@
 
 .tlui-cmt-author {
 	font-weight: 600;
-	font-size: 13px;
+	font-size: 12px;
 	color: var(--tl-color-text-1);
 	/* a long name ellipsizes rather than pushing the time out or running under the actions */
 	min-width: 0;
@@ -59,7 +59,7 @@
 
 .tlui-cmt-text {
 	margin: 3px 0 0;
-	font-size: 13px;
+	font-size: 12px;
 	line-height: 1.4;
 	color: var(--tl-color-text-1);
 	/* Break long unbroken strings (URLs, keyboard-mashing) so they wrap inside the card instead of
@@ -177,7 +177,7 @@
 
 .tlui-cmt-input {
 	font: inherit;
-	font-size: 13px;
+	font-size: 12px;
 	line-height: 1.4;
 	color: var(--tl-color-text-1);
 	outline: none;
@@ -211,7 +211,7 @@
 	position: absolute;
 	top: 3px;
 	left: 0;
-	font-size: 13px;
+	font-size: 12px;
 	line-height: 1.4;
 	color: var(--tl-color-text-3);
 	pointer-events: none;
@@ -334,7 +334,7 @@
 	justify-content: center;
 	background: var(--tl-color-text-1);
 	color: var(--tl-color-panel);
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 700;
 	user-select: none;
 }
@@ -474,7 +474,7 @@
 .tlui-cmt-empty__message {
 	margin: 0;
 	color: var(--tl-color-text-3);
-	font-size: 13px;
+	font-size: 12px;
 	line-height: 1.4;
 }
 
@@ -667,7 +667,7 @@
 	border-bottom: 1px solid var(--tl-color-divider);
 }
 .tlui-cmt-list__header-title {
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 500;
 	color: var(--tl-color-text-1);
 }
@@ -745,7 +745,7 @@
 .tlui-cmt-list__empty {
 	padding: 20px 14px;
 	color: var(--tl-color-text-3);
-	font-size: 13px;
+	font-size: 12px;
 }
 .tlui-cmt-list__item {
 	display: flex;
@@ -784,7 +784,7 @@
 }
 .tlui-cmt-list__item-preview {
 	margin-top: 2px;
-	font-size: 13px;
+	font-size: 12px;
 	color: var(--tl-color-text-1);
 	overflow: hidden;
 	text-overflow: ellipsis;
