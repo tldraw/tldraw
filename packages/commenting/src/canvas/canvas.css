@@ -391,9 +391,10 @@
 	margin-top: -3px;
 }
 /* The draft avatar shares the composer's lift so the pencil and its field match (on-canvas pins
-   keep their heavier marker shadow). */
+   keep their heavier marker shadow). It's not clickable, so it drops the pin's pointer cursor. */
 .tlui-cmt-canvas-composer .tlui-cmt-pin {
 	box-shadow: var(--tl-shadow-3);
+	cursor: default;
 }
 
 /* The comments list panel — a right-side surface shown while the comments sidebar is open. Below
