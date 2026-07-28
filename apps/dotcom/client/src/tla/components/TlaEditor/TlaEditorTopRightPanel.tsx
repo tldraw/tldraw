@@ -91,7 +91,9 @@ export function TlaEditorTopRightPanel({
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
 			<PeopleMenu />
-			<CommentsSidebarButton />
+			{/* Only file editors mount the comments sidebar (see CommentsOnCanvas); in legacy and
+			    published contexts the button would toggle state nothing reads. */}
+			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
 				<TlaFileShareMenu

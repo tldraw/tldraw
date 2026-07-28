@@ -16,6 +16,8 @@ import {
 	findEmptiedCommentThreads,
 	findOrphanedReactions,
 	isCommentAuthorFkViolation,
+	isCommentParentFkViolation,
+	isCommentThreadFkViolation,
 	liveCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
@@ -153,6 +155,59 @@ describe('isCommentAuthorFkViolation', () => {
 		expect(isCommentAuthorFkViolation(undefined)).toBe(false)
 		expect(isCommentAuthorFkViolation('23503')).toBe(false)
 		expect(isCommentAuthorFkViolation(new Error('connection refused'))).toBe(false)
+	})
+})
+
+describe('isCommentThreadFkViolation', () => {
+	it('matches a pg foreign key violation on comment_thread_file_id_fkey', () => {
+		expect(
+			isCommentThreadFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_thread_file_id_fkey' })
+			)
+		).toBe(true)
+	})
+
+	it('requires both the code and the constraint to match', () => {
+		expect(
+			isCommentThreadFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentThreadFkViolation(
+				Object.assign(new Error(), { code: '23505', constraint: 'comment_thread_file_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentThreadFkViolation(null)).toBe(false)
+	})
+})
+
+describe('isCommentParentFkViolation', () => {
+	it('matches a pg foreign key violation on either of a comment’s parent fkeys', () => {
+		expect(
+			isCommentParentFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_thread_id_fkey' })
+			)
+		).toBe(true)
+		expect(
+			isCommentParentFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_file_id_fkey' })
+			)
+		).toBe(true)
+	})
+
+	it('does not match the author fkey, which has its own cascade semantics', () => {
+		expect(
+			isCommentParentFkViolation(
+				Object.assign(new Error(), { code: '23503', constraint: 'comment_author_id_fkey' })
+			)
+		).toBe(false)
+		expect(
+			isCommentParentFkViolation(
+				Object.assign(new Error(), { code: '23505', constraint: 'comment_thread_id_fkey' })
+			)
+		).toBe(false)
+		expect(isCommentParentFkViolation(undefined)).toBe(false)
 	})
 })
 

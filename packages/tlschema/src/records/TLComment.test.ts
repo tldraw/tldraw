@@ -140,6 +140,26 @@ describe('TLComment', () => {
 			commentRecordConfig.validator.validate({ ...comment, threadId: 'comment:not-a-thread' })
 		).toThrow()
 	})
+
+	it('rejects timestamps outside the range Date can represent', () => {
+		const comment = createComment({
+			threadId,
+			pageId,
+			authorId: 'user1',
+			body: toRichText('hello'),
+			now: 1000,
+		})
+		// 9e15 passes a bare number check and fits a Postgres bigint, but formatting it throws
+		// `RangeError: Invalid time value` — so it must never reach the store.
+		expect(() => new Date(9e15).toISOString()).toThrow()
+		expect(() => commentRecordConfig.validator.validate({ ...comment, createdAt: 9e15 })).toThrow()
+		expect(() => commentRecordConfig.validator.validate({ ...comment, createdAt: -1 })).toThrow()
+		expect(() => commentRecordConfig.validator.validate({ ...comment, editedAt: 9e15 })).toThrow()
+		// the boundary itself is representable, so it stays valid
+		expect(() =>
+			commentRecordConfig.validator.validate({ ...comment, createdAt: 8.64e15 })
+		).not.toThrow()
+	})
 })
 
 describe('schema registration', () => {
@@ -224,6 +244,23 @@ describe('comment-reaction record', () => {
 			emoji: '👍',
 		})
 		expect(commentReactionRecordConfig.validator.validate(reaction)).toEqual(reaction)
+	})
+
+	it('rejects an empty or oversized emoji token', () => {
+		const reaction = createCommentReaction({
+			commentId: createCommentId('c1'),
+			threadId: createCommentThreadId('t1'),
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+		})
+		// the reaction id embeds the emoji verbatim, so an unbounded token means an unbounded id
+		expect(() =>
+			commentReactionRecordConfig.validator.validate({ ...reaction, emoji: '' })
+		).toThrow()
+		expect(() =>
+			commentReactionRecordConfig.validator.validate({ ...reaction, emoji: 'x'.repeat(65) })
+		).toThrow()
 	})
 
 	it('createCommentReactionId is injective when a part contains a colon', () => {

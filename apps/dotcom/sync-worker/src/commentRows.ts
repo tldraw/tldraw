@@ -43,6 +43,37 @@ export function isCommentAuthorFkViolation(error: unknown): boolean {
 }
 
 /**
+ * True when `error` is Postgres rejecting a thread upsert because its file row doesn't exist
+ * (code 23503 on `comment_thread_file_id_fkey`). Either the file was deleted while a warm room
+ * still held its threads, or a forged client pushed comment records into a room whose slug was
+ * never a `file` row. Neither can ever succeed on retry, so the caller prunes the record rather
+ * than leaving the outbox entry to fail on every drain forever. Same error-shape contract as
+ * {@link isCommentAuthorFkViolation}.
+ */
+export function isCommentThreadFkViolation(error: unknown): boolean {
+	if (typeof error !== 'object' || error === null) return false
+	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
+	return code === '23503' && constraint === 'comment_thread_file_id_fkey'
+}
+
+/**
+ * True when `error` is Postgres rejecting a comment upsert because the thread or file it points
+ * at doesn't exist (code 23503 on `comment_thread_id_fkey` / `comment_file_id_fkey`). A comment
+ * can outlive its parent — the thread's own upsert may have been vetoed by the authorizer, or a
+ * forged client may reference a thread id that never existed — and no amount of retrying
+ * conjures the parent row. Distinct from {@link isCommentAuthorFkViolation} only in which
+ * constraint fires; both prune. Same error-shape contract.
+ */
+export function isCommentParentFkViolation(error: unknown): boolean {
+	if (typeof error !== 'object' || error === null) return false
+	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
+	return (
+		code === '23503' &&
+		(constraint === 'comment_thread_id_fkey' || constraint === 'comment_file_id_fkey')
+	)
+}
+
+/**
  * True when `error` is Postgres rejecting a `comment_mention` insert on either of its foreign
  * keys (code 23503): the mentioned user's row no longer exists (deleted account, or a client
  * supplied an id that never was a user), or the comment itself was deleted between its upsert

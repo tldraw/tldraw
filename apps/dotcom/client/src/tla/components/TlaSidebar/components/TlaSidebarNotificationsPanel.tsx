@@ -1,11 +1,15 @@
-import { CommentListItemProps, CommentsList, formatRelativeTime } from '@tldraw/commenting'
+import {
+	CommentListItemProps,
+	CommentsList,
+	formatRelativeTime,
+	richTextToPlaintext,
+} from '@tldraw/commenting'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createDeepLinkString, TLRichText, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { defineMessages, F, useMsg } from '../../../utils/i18n'
-import { richTextToPlaintext } from '../../../utils/richText'
 import { categorizeCommentNotifications, CommentNotificationReason } from './commentNotifications'
 import styles from './notifications.module.css'
 
@@ -13,6 +17,8 @@ const messages = defineMessages({
 	title: { defaultMessage: 'Notifications' },
 	markAllRead: { defaultMessage: 'Mark all as read' },
 	empty: { defaultMessage: 'You’re all caught up.' },
+	unknownAuthor: { defaultMessage: 'Someone' },
+	untitledFile: { defaultMessage: 'Untitled file' },
 })
 
 /** Byline for a notification row, phrased by why it's there. `<name>` wraps the author's name. */
@@ -83,17 +89,21 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const title = useMsg(messages.title)
 	const markAllReadLbl = useMsg(messages.markAllRead)
 	const empty = useMsg(messages.empty)
+	const unknownAuthor = useMsg(messages.unknownAuthor)
+	const untitledFile = useMsg(messages.untitledFile)
 
 	const items: CommentListItemProps[] = notifications.map(({ comment: c }) => ({
 		id: c.id,
 		author: {
-			name: c.authorName || c.authorId,
+			// never fall back to the raw id: an opaque uuid as a byline reads as a bug, and the rest
+			// of the commenting UI says "Someone" for an unresolvable author
+			name: c.authorName || unknownAuthor,
 			color: c.authorColor || undefined,
 		},
 		preview: richTextToPlaintext(c.body as TLRichText),
 		date: new Date(c.createdAt).toISOString(),
 		// the document the comment lives on — the headline of the notification row
-		page: c.file?.name || c.fileId,
+		page: c.file?.name || untitledFile,
 	}))
 
 	// Row id → why it's a notification, so the byline can be phrased per reason.

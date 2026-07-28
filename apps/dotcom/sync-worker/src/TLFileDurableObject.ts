@@ -62,7 +62,9 @@ import {
 	findOrphanedReactions,
 	isCommentAuthorFkViolation,
 	isCommentMentionFkViolation,
+	isCommentParentFkViolation,
 	isCommentReactionFkViolation,
+	isCommentThreadFkViolation,
 	liveCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
@@ -816,7 +818,12 @@ export class TLFileDurableObject extends DurableObject {
 			// Only authenticated users can write comments. Comment authors are stored in Postgres
 			// with a foreign key to the user table, so an anonymous author couldn't be represented
 			// there. Guests can still read comments.
-			const objectAccess: TLObjectStoreAccess = auth?.userId ? 'write' : 'read'
+			//
+			// Legacy (non-app) rooms are read-only for comments too: their slug isn't a `file` row,
+			// so a comment written here would fail `comment_thread_file_id_fkey` on every drain
+			// forever. They have no comment UI either, so this only closes the forged-client path.
+			const objectAccess: TLObjectStoreAccess =
+				this.documentInfo.isApp && auth?.userId ? 'write' : 'read'
 			const attachment: SocketAttachment = {
 				sessionId,
 				meta,
@@ -1965,7 +1972,14 @@ export class TLFileDurableObject extends DurableObject {
 					deletedCommentThreadIds = new Set(deletedRows.map((row) => row.threadId))
 				}
 				const failedIds = new Set<string>()
-				const threadResult = await runBatchWithFallback(threadUpserts, insertThreadRows)
+				// A thread upsert failing its file FK can never succeed on retry — the file is gone,
+				// or the room's slug was never a file row at all. Prune it like an author cascade
+				// rather than leaving the entry to fail on every drain for the life of the room.
+				const threadResult = await runBatchWithFallback(
+					threadUpserts,
+					insertThreadRows,
+					isCommentThreadFkViolation
+				)
 				for (const id of threadResult.failedIds) {
 					failedIds.add(id)
 				}
@@ -1981,10 +1995,14 @@ export class TLFileDurableObject extends DurableObject {
 				// cascade can't race the room), so the pruned thread ids are re-outboxed and a
 				// follow-up drain stamps the rows soft-deleted through the normal at-least-once
 				// acked path.
+				// Also prune a comment whose parent thread or file is missing: the thread's own
+				// upsert may have been vetoed by the authorizer, or a forged client may have
+				// referenced a thread id that never existed. Either way the parent row will never
+				// appear, so retrying is an unbounded loop rather than eventual consistency.
 				const commentResult = await runBatchWithFallback(
 					commentUpserts,
 					insertCommentRows,
-					isCommentAuthorFkViolation
+					(error) => isCommentAuthorFkViolation(error) || isCommentParentFkViolation(error)
 				)
 				for (const id of commentResult.failedIds) {
 					failedIds.add(id)

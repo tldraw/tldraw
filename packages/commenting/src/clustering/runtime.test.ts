@@ -621,6 +621,40 @@ describe('createClusterRuntime seedFrom (carryover seeding)', () => {
 		expectPostconditions(rt, table, 3.9)
 	})
 
+	it('heals a suppressed event whose result a later event consumes, in one zoom-out jump', () => {
+		// E1 consumes E0's result, so a single jump past both thresholds must apply E0 first.
+		// Applying E1 first would no-op its delete of the never-applied ABC and then re-add ABC
+		// on top of ABCD, covering a, b and c twice.
+		const ABC = node(['a', 'b', 'c'], 10, 0)
+		const ABCD = node(['a', 'b', 'c', 'd'], 32.5, 0)
+		const table: ClusterTable = {
+			events: [mev(4, 6, [A, B, C], ABC), mev(1, 1.5, [ABC, D], ABCD)],
+			leaves: [A, B, C, D],
+		}
+		const rt = createClusterRuntime(table)
+		// previous partition: everything split apart, so E0 seeds suppressed inside its band
+		rt.seedFrom(
+			5,
+			new Map([
+				[A.id, A],
+				[B.id, B],
+				[C.id, C],
+				[D.id, D],
+			])
+		)
+		expect(rt.getSuppressedCount()).toBe(1)
+
+		rt.onCamera(0.9) // one jump past E0's zMerge (4) and E1's zMerge (1)
+
+		expect(rt.getSuppressedCount()).toBe(0)
+		expect(rt.k).toBe(2)
+		expect(visibleIds(rt)).toEqual(['cluster:4:a'])
+		// conservation: every leaf is covered exactly once
+		const members = [...rt.getVisible().values()].flatMap((n) => n.members)
+		expect(members.slice().sort()).toEqual(['a', 'b', 'c', 'd'])
+		expectPostconditions(rt, table, 0.9)
+	})
+
 	it('seedFrom followed by onCamera at the same zoom is a no-op', () => {
 		const table = microTraceTable()
 		const rt = createClusterRuntime(table)
