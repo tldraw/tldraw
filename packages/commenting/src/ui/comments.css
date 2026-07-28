@@ -642,6 +642,7 @@
 .tlui-cmt-thread .tlui-cmt-card .tlui-cmt-card__actions,
 .tlui-cmt-canvas-preview--thread .tlui-cmt-card .tlui-cmt-card__actions {
 	top: 3px;
+	right: 0;
 }
 /* The hover actions overlay the byline's corner, so reserve their footprint — the byline can
    never run underneath them, even mid-hover. Sized from the 22px action buttons + 2px gaps +
