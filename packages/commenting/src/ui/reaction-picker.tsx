@@ -63,7 +63,7 @@ export function ReactionPicker({
 				</TooltipButton>
 			</TldrawUiDropdownMenuTrigger>
 			{/* right-aligned under the trigger, so the grid hangs down the card's right edge */}
-			<TldrawUiDropdownMenuContent side="bottom" align="end">
+			<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0}>
 				<Palette
 					emoji={emoji}
 					selected={selected}

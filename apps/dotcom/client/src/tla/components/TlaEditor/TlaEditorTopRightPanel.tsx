@@ -1,4 +1,5 @@
 import {
+	commentsSidebarOpen,
 	toggleCommentsSidebar,
 	useCommentingEnabled,
 	useCommentsSidebarOpen,
@@ -54,6 +55,16 @@ export function TlaEditorTopRightPanel({
 	const fileId = useCurrentFileId()
 	const trackEvent = useTldrawAppUiEvents()
 	const { addDialog } = useDialogs()
+	const editor = useEditor()
+	// Share and the comments sidebar are mutually exclusive: opening share closes the sidebar.
+	// (The reverse is automatic — clicking the sidebar button dismisses the share popover as an
+	// outside interaction.)
+	const closeSidebarOnShareOpen = useCallback(
+		(isOpen: boolean) => {
+			if (isOpen) commentsSidebarOpen.set(editor, false)
+		},
+		[editor]
+	)
 
 	if (isAnonUser) {
 		return (
@@ -83,7 +94,12 @@ export function TlaEditorTopRightPanel({
 			<CommentsSidebarButton />
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
-				<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
+				<TlaFileShareMenu
+					fileId={fileId!}
+					source="file-header"
+					context={context}
+					onOpenChange={closeSidebarOnShareOpen}
+				>
 					<TlaCtaButton
 						canvas
 						data-testid="tla-share-button"
@@ -115,6 +131,7 @@ function CommentsSidebarButton() {
 	return (
 		<TldrawUiButton
 			type="icon"
+			className={styles.commentsSidebarButton}
 			data-testid="tla-comments-button"
 			aria-pressed={open}
 			tooltip={label}

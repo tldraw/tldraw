@@ -1,5 +1,6 @@
 import {
 	BoxModel,
+	Editor,
 	StateNode,
 	TLCommentAnchor,
 	TLStateNodeConstructor,
@@ -109,30 +110,37 @@ export class CommentTool extends StateNode {
 	}
 }
 
+/** Hit-test options shared by the hover hint and the release anchor, so a comment anchors to
+ *  exactly the shape that was hinted. `hitFrameInside` lets a click inside a frame's body anchor
+ *  to the frame — without it a frame is hit only on its edge/label (the select-tool convention),
+ *  so the frame's interior would fall through to a bare point. A child shape under the pointer
+ *  still wins (children sort above the frame), so only a frame's empty interior anchors the frame. */
+const COMMENT_HIT_OPTS = { hitInside: true, hitFrameInside: true } as const
+
+/** Hint the shape a comment placed at the pointer would anchor to, using the same hit-test as the
+ *  anchor resolution on release. Hinting shapes render an indicator ungated by the active tool, so
+ *  this shows the select-style outline while the comment tool — not select — is active. */
+function updateAnchorHint(editor: Editor) {
+	const hit = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), COMMENT_HIT_OPTS)
+	editor.setHintingShapes(hit ? [hit.id] : [])
+}
+
 class CommentIdle extends StateNode {
 	static override id = 'idle'
 
 	override onEnter() {
 		// Back to hovering: restore the pin cursor (a prior placing state may have hidden it).
 		this.editor.setCursor({ type: 'comment', rotation: 0 })
-		this.updateHint()
+		updateAnchorHint(this.editor)
 	}
 
-	// Hint the shape a click would attach to, using the same hit-test as onPointerUp below. Hinting
-	// shapes render an indicator ungated by the active tool, so this shows the select-style outline
-	// while the comment tool — not select — is active.
+	// Hint the shape a click would attach to.
 	override onPointerMove() {
-		this.updateHint()
+		updateAnchorHint(this.editor)
 	}
 
 	override onPointerDown() {
 		this.parent.transition('pointing')
-	}
-
-	private updateHint() {
-		const { editor } = this
-		const hit = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), { hitInside: true })
-		editor.setHintingShapes(hit ? [hit.id] : [])
 	}
 }
 
@@ -142,10 +150,8 @@ class CommentPointing extends StateNode {
 	override onEnter() {
 		// Open the composer immediately at the press point so it's visible from pointer-down (not just
 		// on release), and let it trail the pointer while dragging — like placing a sticky note. The
-		// anchor is a bare point for now; it's resolved (shape or point) on pointer up. Drop the idle
-		// hover hint so a region drag doesn't leave a stale single-shape outline under the dashed box.
+		// anchor is a bare point for now; it's resolved (shape or point) on pointer up.
 		const { editor } = this
-		editor.setHintingShapes([])
 		// Hide the cursor while placing: the draft composer is the pointer's stand-in now, so the pin
 		// cursor sitting over it just reads as clutter.
 		editor.setCursor({ type: 'none', rotation: 0 })
@@ -164,7 +170,9 @@ class CommentPointing extends StateNode {
 			this.parent.transition('dragging')
 			return
 		}
-		// Otherwise the composer trails the pointer.
+		// Otherwise the composer trails the pointer — keep hinting the shape a release here would
+		// anchor to, like the idle hover does.
+		updateAnchorHint(editor)
 		const point = editor.inputs.getCurrentPagePoint()
 		pendingComment.update(editor, (p) => (p ? { ...p, point: { x: point.x, y: point.y } } : p))
 	}
@@ -173,7 +181,7 @@ class CommentPointing extends StateNode {
 	override onPointerUp() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
-		const hit = editor.getShapeAtPoint(point, { hitInside: true })
+		const hit = editor.getShapeAtPoint(point, COMMENT_HIT_OPTS)
 		const anchor: TLCommentAnchor = hit
 			? shapeAnchorAt(
 					editor,
@@ -212,8 +220,10 @@ class CommentDragging extends StateNode {
 	override onEnter() {
 		// A region drag supersedes the point-follow composer opened in `pointing`. Show a crosshair
 		// again — the composer no longer stands in for the pointer, so a hidden cursor would leave
-		// the drag with no pointer at all.
+		// the drag with no pointer at all. Drop the placement hint too: a region anchors to its
+		// rectangle, so a single-shape outline under the dashed box would be stale.
 		pendingComment.set(this.editor, null)
+		this.editor.setHintingShapes([])
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 		this.updateDraft()
 	}
