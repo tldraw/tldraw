@@ -43,6 +43,12 @@ function makeShape(x = 100, y = 100, w = 100, h = 50): TLShapeId {
 	return id
 }
 
+function makeFrame(x = 300, y = 100, w = 200, h = 200): TLShapeId {
+	const id = createShapeId()
+	editor.createShape({ id, type: 'frame', x, y, props: { w, h } })
+	return id
+}
+
 describe('comment tool placement hints', () => {
 	let driver: Driver
 
@@ -106,5 +112,34 @@ describe('comment tool placement hints with regions enabled', () => {
 		driver.pointerMove(180, 140)
 		expect(editor.isIn('comment.dragging')).toBe(true)
 		expect(editor.getHintingShapeIds()).toEqual([])
+	})
+})
+
+describe('comment tool anchoring to frames', () => {
+	let driver: Driver
+
+	beforeEach(() => {
+		driver = makeEditor()
+	})
+
+	it('hints a frame when hovering its empty interior', () => {
+		// A frame is hit only on its edge/label by default; the comment tool passes hitFrameInside
+		// so a click in its body anchors the frame. (300,100)–(500,300): (400,200) is well inside,
+		// clear of the edges and the (above-frame) label.
+		const frame = makeFrame(300, 100, 200, 200)
+		editor.setCurrentTool('comment')
+		driver.pointerMove(400, 200)
+		expect(editor.getHintingShapeIds()).toEqual([frame])
+	})
+
+	it('a shape over the frame still wins the hit', () => {
+		const frame = makeFrame(300, 100, 200, 200)
+		const child = makeShape(340, 140, 60, 40) // sits inside the frame, drawn above it
+		editor.setCurrentTool('comment')
+		driver.pointerMove(370, 160)
+		expect(editor.getHintingShapeIds()).toEqual([child])
+		// ...and the frame's empty interior beside it still anchors the frame.
+		driver.pointerMove(470, 260)
+		expect(editor.getHintingShapeIds()).toEqual([frame])
 	})
 })
