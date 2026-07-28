@@ -9,7 +9,7 @@ import {
 } from 'tldraw'
 import { type CommentingOptions, defaultCommentingOptions, getCommentingOptions } from './options'
 import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
-import { regionPinPoint, shapeAnchorAt } from './thread-state'
+import { commentTargetShapeAt, regionPinPoint, shapeAnchorAt } from './thread-state'
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
  *  to. Shared between the tool (which sets it on click) and the overlay (which renders the
@@ -110,18 +110,11 @@ export class CommentTool extends StateNode {
 	}
 }
 
-/** Hit-test options shared by the hover hint and the release anchor, so a comment anchors to
- *  exactly the shape that was hinted. `hitFrameInside` lets a click inside a frame's body anchor
- *  to the frame — without it a frame is hit only on its edge/label (the select-tool convention),
- *  so the frame's interior would fall through to a bare point. A child shape under the pointer
- *  still wins (children sort above the frame), so only a frame's empty interior anchors the frame. */
-const COMMENT_HIT_OPTS = { hitInside: true, hitFrameInside: true } as const
-
 /** Hint the shape a comment placed at the pointer would anchor to, using the same hit-test as the
  *  anchor resolution on release. Hinting shapes render an indicator ungated by the active tool, so
  *  this shows the select-style outline while the comment tool — not select — is active. */
 function updateAnchorHint(editor: Editor) {
-	const hit = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), COMMENT_HIT_OPTS)
+	const hit = commentTargetShapeAt(editor, editor.inputs.getCurrentPagePoint())
 	editor.setHintingShapes(hit ? [hit.id] : [])
 }
 
@@ -181,7 +174,7 @@ class CommentPointing extends StateNode {
 	override onPointerUp() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
-		const hit = editor.getShapeAtPoint(point, COMMENT_HIT_OPTS)
+		const hit = commentTargetShapeAt(editor, point)
 		const anchor: TLCommentAnchor = hit
 			? shapeAnchorAt(
 					editor,

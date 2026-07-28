@@ -23,6 +23,7 @@ import { QrCode } from '../QrCode'
 
 const messages = defineMessages({
 	editor: { defaultMessage: 'Editor' },
+	// commenter: { defaultMessage: 'Commenter' },
 	viewer: { defaultMessage: 'Viewer' },
 	noAccess: { defaultMessage: 'No access' },
 })
@@ -115,7 +116,17 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 		[app, fileId, trackEvent]
 	)
 
+	// Comment-only mode ("Commenter": a read-only canvas that still allows comments) is implemented
+	// end to end but not shipped. To turn it on, restore the commented-out option and label below,
+	// along with the `comment` tier in the sync worker's `computeFileAccess`.
 	const label = useMsg(sharedLinkType === 'edit' ? messages.editor : messages.viewer)
+	// const label = useMsg(
+	// 	sharedLinkType === 'edit'
+	// 		? messages.editor
+	// 		: sharedLinkType === 'comment'
+	// 			? messages.commenter
+	// 			: messages.viewer
+	// )
 
 	return (
 		<TlaMenuControl>
@@ -130,6 +141,7 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 				onChange={handleSelectChange}
 				options={[
 					{ value: 'edit', label: <F defaultMessage="Editor" /> },
+					// { value: 'comment', label: <F defaultMessage="Commenter" /> },
 					{ value: 'view', label: <F defaultMessage="Viewer" /> },
 				]}
 			/>
