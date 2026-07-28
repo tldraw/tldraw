@@ -130,7 +130,7 @@
 	align-items: center;
 	gap: 6px;
 	padding: 3px 3px 3px 8px;
-	background: var(--tl-color-muted-2);
+	background: var(--tl-color-muted-0);
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-3);
 	/* The whole field reads as the text input — clicking its empty area focuses the editor
