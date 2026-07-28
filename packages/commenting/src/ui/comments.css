@@ -506,7 +506,7 @@
 	--tlui-cmt-thread-padding: 8px;
 	--tlui-cmt-thread-gap: 6px;
 	--tlui-cmt-thread-action-size: 26px;
-	--tlui-cmt-thread-header-padding: 2px;
+	--tlui-cmt-thread-header-padding: 0px;
 	/* Nothing in the header is taller than an action button, so the button plus the header's own
 	   padding is the header's height. */
 	--tlui-cmt-thread-header-height: calc(
