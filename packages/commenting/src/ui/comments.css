@@ -478,8 +478,8 @@
 	line-height: 1.4;
 }
 
-/* a comment thread: an elevated panel — the same surface treatment as the toolbar — holding a
-   header, an optional resolved banner, the comments, and a reply composer */
+/* a comment thread: an elevated panel holding a header, an optional resolved banner, the
+   comments, and a reply composer */
 /* The thread panel's layout metrics live on the container because two separate portals need them:
    the panel itself, and the canvas hover preview, which has to land its first comment on exactly
    the pixel the panel would. Deriving the preview's offset from these means the two can't drift —
@@ -518,7 +518,7 @@
 	padding: var(--tlui-cmt-thread-padding);
 	background: var(--tl-color-panel);
 	border-radius: var(--tl-radius-4);
-	box-shadow: var(--tl-shadow-2);
+	box-shadow: var(--tl-shadow-1);
 }
 .tlui-cmt-thread__header {
 	display: flex;

@@ -379,19 +379,21 @@
 	padding: 8px;
 	background: var(--tl-color-panel);
 	border-radius: var(--tl-radius-4);
-	box-shadow: var(--tl-shadow-2);
+	box-shadow: var(--tl-shadow-1);
 }
 .tlui-cmt-canvas-composer .tlui-cmt-composer__field {
 	background: var(--tl-color-panel);
 	border-color: transparent;
 	border-radius: var(--tl-radius-4);
-	/* A lighter lift than the popover/sidebar (shadow-2) — the small placement composer reads
-	   too heavy at that depth. */
 	box-shadow: var(--tl-shadow-1);
-	/* Centre the field on the draft pin. Both are top-aligned (the pin is anchored by its
-	   bottom corner at the click point, so it can't move), but the pin is 28px to the field's
-	   ~34px — raise the field by half that difference so their centres line up. */
+	/* The pin is anchored by its bottom corner at the click point and can't move; raise the
+	   taller field onto the shorter pin's centre instead. */
 	margin-top: -3px;
+}
+/* The draft avatar shares the composer's lift so the pencil and its field match (on-canvas pins
+   keep their heavier marker shadow). */
+.tlui-cmt-canvas-composer .tlui-cmt-pin {
+	box-shadow: var(--tl-shadow-1);
 }
 
 /* The comments list panel — a right-side surface shown while the comments sidebar is open. Below
@@ -409,6 +411,6 @@
 	display: flex;
 	background: var(--tl-color-panel);
 	border-radius: var(--tl-radius-4);
-	box-shadow: var(--tl-shadow-2);
+	box-shadow: var(--tl-shadow-1);
 	overflow: hidden;
 }
