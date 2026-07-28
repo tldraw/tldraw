@@ -93,6 +93,4 @@ export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintO
 			ctx.restore()
 		}
 	}
-
-	/** @internal */
 }
