@@ -262,6 +262,28 @@ export function CommentComposer({
 		return () => cancelAnimationFrame(raf)
 	}, [autoFocus, editor])
 
+	// tldraw's pass-through-wheel hook (on the floating composer's wrapper) forwards a wheel to the
+	// canvas unless ITS element is scrollable — but the scrollable element is this input, not that
+	// wrapper, so an overflowing input never scrolled: the wheel panned the canvas instead. Catch the
+	// wheel on the wrap first (a native listener here fires before the wrapper's, deeper in the tree)
+	// and stop it while the input can still scroll that way; at the scroll boundary let it through so
+	// the canvas still zooms.
+	useEffect(() => {
+		const wrap = inputWrapRef.current
+		if (!wrap) return
+		const onWheel = (e: WheelEvent) => {
+			const input = wrap.querySelector<HTMLElement>('.tlui-cmt-input')
+			if (!input || input.scrollHeight <= input.clientHeight) return
+			const atTop = input.scrollTop <= 0
+			const atBottom = input.scrollTop >= input.scrollHeight - input.clientHeight - 1
+			if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atBottom)) {
+				e.stopPropagation()
+			}
+		}
+		wrap.addEventListener('wheel', onWheel)
+		return () => wrap.removeEventListener('wheel', onWheel)
+	}, [])
+
 	return (
 		<div className="tlui-cmt-composer">
 			{leading ?? <Avatar author={author} />}
