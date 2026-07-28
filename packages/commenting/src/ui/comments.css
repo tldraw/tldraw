@@ -133,6 +133,9 @@
 	background: var(--tl-color-muted-2);
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-3);
+	/* The whole field reads as the text input — clicking its empty area focuses the editor
+	   (see CommentComposer). The send button restores its own pointer cursor. */
+	cursor: text;
 }
 
 .tlui-cmt-composer__field:focus-within {
@@ -493,8 +496,9 @@
 	   instead of covering it. */
 	--tlui-cmt-marker-size: 34px;
 	/* How a marker sits, lifts, and rings. Shared so a pin and a badge respond identically.
-	   Matches the context menu (shadow-3). */
-	--tlui-cmt-marker-shadow: var(--tl-shadow-3);
+	   shadow-3's depth without its `inset 1px panel-contrast` edge — that inset reads as a white
+	   border on a coloured pin (it's invisible on the panel-white menus shadow-3 is meant for). */
+	--tlui-cmt-marker-shadow: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%);
 	--tlui-cmt-marker-shadow-hover: 0 3px 10px rgba(0, 0, 0, 0.32);
 	--tlui-cmt-marker-hover-scale: 1.08;
 	--tlui-cmt-marker-transition: 0.08s ease;

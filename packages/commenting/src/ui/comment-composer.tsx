@@ -8,7 +8,15 @@ import {
 	isMentionPickerOpen,
 	MentionMember,
 } from '@tldraw/mentions'
-import { ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	type MouseEvent as ReactMouseEvent,
+	ReactNode,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
 import { SendButton } from './send-button'
@@ -284,6 +292,16 @@ export function CommentComposer({
 		return () => wrap.removeEventListener('wheel', onWheel)
 	}, [])
 
+	// The whole field behaves like the text input: clicking its empty area (the padding, or the
+	// space beside/below a short line) focuses the editor rather than only the text glyphs being
+	// clickable. The input (caret placement) and the send button keep their own click handling.
+	const focusEditorFromField = (e: ReactMouseEvent<HTMLDivElement>) => {
+		const target = e.target as HTMLElement
+		if (target.closest('.tlui-cmt-input') || target.closest('.tlui-cmt-send')) return
+		e.preventDefault()
+		editor?.commands.focus('end')
+	}
+
 	return (
 		<div className="tlui-cmt-composer">
 			{leading ?? <Avatar author={author} />}
@@ -294,6 +312,7 @@ export function CommentComposer({
 				]
 					.filter(Boolean)
 					.join(' ')}
+				onMouseDown={interactive ? focusEditorFromField : undefined}
 			>
 				<div className="tlui-cmt-composer__input-wrap" ref={inputWrapRef}>
 					<EditorContent editor={editor} />
