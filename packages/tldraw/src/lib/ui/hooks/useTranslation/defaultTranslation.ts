@@ -550,5 +550,4 @@ export const DEFAULT_TRANSLATION = {
 	'comments.cluster-label': '{count} comments here',
 	'comments.stack-label': '{count} comments at this spot',
 	'comments.composer-label': 'Comment',
-	'comments.reply-label': 'Reply',
 }

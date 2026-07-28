@@ -540,4 +540,3 @@ export type TLUiTranslationKey =
 	| 'comments.cluster-label'
 	| 'comments.stack-label'
 	| 'comments.composer-label'
-	| 'comments.reply-label'
