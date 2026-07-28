@@ -182,7 +182,10 @@
 	color: var(--tl-color-text-1);
 	outline: none;
 	min-height: 20px;
-	max-height: 40vh;
+	/* Long pastes scroll inside a compact box instead of growing the composer to fill the
+	   screen — ~9 lines, capped further on short viewports. Overflow scrolls (see the wheel
+	   handler in CommentComposer, which keeps a wheel here from panning the canvas). */
+	max-height: min(160px, 40vh);
 	overflow-y: auto;
 	white-space: pre-wrap;
 	word-break: break-word;
