@@ -1,5 +1,12 @@
 import { memo, useEffect, useRef } from 'react'
-import { Editor, TLCommentThread, useContainer, usePassThroughWheelEvents, useTranslation, useValue } from 'tldraw'
+import {
+	Editor,
+	TLCommentThread,
+	useContainer,
+	usePassThroughWheelEvents,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { CountBadge } from '../ui/count-badge'
 import { useThreadComments } from './hooks'

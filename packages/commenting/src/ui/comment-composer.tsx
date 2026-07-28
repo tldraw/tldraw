@@ -194,14 +194,14 @@ export function CommentComposer({
 			textDirection: 'auto',
 			editorProps: {
 				// The visible placeholder is `aria-hidden` (it's a styled overlay, not a real
-			// placeholder attribute), so without these the contenteditable is an unlabelled
-			// textbox — a screen reader lands on it and announces nothing.
-			attributes: {
-				class: 'tlui-cmt-input',
-				'aria-label': placeholder,
-				role: 'textbox',
-				'aria-multiline': 'true',
-			},
+				// placeholder attribute), so without these the contenteditable is an unlabelled
+				// textbox — a screen reader lands on it and announces nothing.
+				attributes: {
+					class: 'tlui-cmt-input',
+					'aria-label': placeholder,
+					role: 'textbox',
+					'aria-multiline': 'true',
+				},
 				// Runs before every keymap plugin, so it can distinguish Shift+Enter from Enter — an
 				// `Enter` keymap binding also fires on Shift+Enter and would otherwise swallow it.
 				handleKeyDown: (_view, event) => {
