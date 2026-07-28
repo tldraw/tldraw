@@ -25,6 +25,7 @@ import { JsonObject } from '@tldraw/utils';
 import { JSX } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
+import { NamedExoticComponent } from 'react';
 import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerformanceTracker } from '@tldraw/utils';
 import * as React_2 from 'react';
@@ -698,6 +699,9 @@ export function DefaultBackground(): JSX.Element;
 
 // @public (undocumented)
 export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Element;
+
+// @public
+export const DefaultCursor: NamedExoticComponent<TLCursorProps>;
 
 // @public (undocumented)
 export const DefaultErrorFallback: TLErrorFallbackComponent;
@@ -2387,6 +2391,14 @@ export function isAccelKey(e: {
 }): boolean;
 
 // @public
+export function isCursorInViewport(cursor: VecLike, viewport: {
+    maxX: number;
+    maxY: number;
+    minX: number;
+    minY: number;
+}, zoom: number): boolean;
+
+// @public
 export function isSafeFloat(n: number): boolean;
 
 // @public
@@ -3659,6 +3671,24 @@ export interface TLCurrentUser {
 }
 
 // @public (undocumented)
+export interface TLCursorProps {
+    // (undocumented)
+    chatMessage: string;
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    color?: string;
+    // (undocumented)
+    name: null | string;
+    // (undocumented)
+    point: null | VecModel;
+    // (undocumented)
+    userId: string;
+    // (undocumented)
+    zoom: number;
+}
+
+// @public (undocumented)
 export type TLDeepLink = {
     bounds: BoxModel;
     pageId?: TLPageId;
@@ -3905,6 +3935,8 @@ export interface TLEditorComponents {
     Background?: ComponentType | null;
     // (undocumented)
     Canvas?: ComponentType<TLCanvasComponentProps> | null;
+    // (undocumented)
+    CollaboratorCursor?: ComponentType<TLCursorProps> | null;
     // (undocumented)
     ErrorFallback?: TLErrorFallbackComponent;
     // (undocumented)
@@ -5175,6 +5207,9 @@ export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TL
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions): TLStore;
+
+// @public
+export function useTransform(ref: React.RefObject<HTMLElement | null | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
 
 // @public
 export function useUniqueSafeId(suffix?: string): SafeId;

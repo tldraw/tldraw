@@ -5,7 +5,10 @@
 .tlui-cmt-canvas-layer {
 	position: absolute;
 	inset: 0;
-	z-index: var(--tl-layer-canvas-in-front);
+	/* Just below the collaborator cursor layer, so cursors ride over the pins — and below the
+	   in-front content (250), so active tool UI covers both. Derived, not a literal, so the
+	   ordering can't silently drift if the cursor slot moves. */
+	z-index: calc(var(--tl-layer-collaborators) - 5);
 	pointer-events: none;
 }
 
