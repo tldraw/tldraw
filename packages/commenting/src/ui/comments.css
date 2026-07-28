@@ -129,7 +129,7 @@
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	padding: 3px 3px 3px 12px;
+	padding: 3px 3px 3px 8px;
 	background: var(--tl-color-muted-2);
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-3);
@@ -146,9 +146,9 @@
 }
 .tlui-cmt-composer__field--expanded .tlui-cmt-composer__input-wrap {
 	flex-basis: 100%;
-	/* The field pads 12px left but only 3px right (the send button's inset). With the input
-	   spanning the full width, give the text the same 12px on the right. */
-	padding-right: 9px;
+	/* The field pads 8px left but only 3px right (the send button's inset). With the input
+	   spanning the full width, give the text the same 8px on the right. */
+	padding-right: 5px;
 }
 .tlui-cmt-composer__field--expanded .tlui-cmt-send {
 	margin-left: auto;
