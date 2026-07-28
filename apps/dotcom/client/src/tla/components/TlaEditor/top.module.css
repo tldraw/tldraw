@@ -203,6 +203,13 @@ button.topLeftInputNameWidthSetter {
 
 /* ------------------- Top right ------------------ */
 
+/* Sit the comments toggle on a canvas-coloured chip like the other top-right canvas buttons, so
+   it reads as part of the same row rather than floating bare over the canvas. */
+.commentsSidebarButton {
+	background-color: var(--tl-color-background);
+	border-radius: 8px;
+}
+
 /* The comments sidebar toggle shows the same open wash as the main menu trigger while the
    sidebar it controls is open. */
 .commentsSidebarButton[aria-pressed='true']::after {
