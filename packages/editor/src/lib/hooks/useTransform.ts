@@ -14,6 +14,10 @@ export function useTransform(
 	rotate?: number,
 	additionalOffset?: VecLike
 ) {
+	// Read the offset into primitives so the effect can depend on them, not the object identity.
+	const additionalOffsetX = additionalOffset?.x
+	const additionalOffsetY = additionalOffset?.y
+
 	useLayoutEffect(() => {
 		const elm = ref.current
 		if (!elm) return
@@ -26,9 +30,9 @@ export function useTransform(
 		if (rotate !== undefined) {
 			trans += ` rotate(${rotate}rad)`
 		}
-		if (additionalOffset) {
-			trans += ` translate(${additionalOffset.x}px, ${additionalOffset.y}px)`
+		if (additionalOffsetX !== undefined && additionalOffsetY !== undefined) {
+			trans += ` translate(${additionalOffsetX}px, ${additionalOffsetY}px)`
 		}
 		elm.style.transform = trans
-	})
+	}, [additionalOffsetX, additionalOffsetY, ref, rotate, scale, x, y])
 }
