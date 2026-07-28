@@ -52,6 +52,7 @@ import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
 	CookieConsentMenuItem,
 	GiveUsFeedbackMenuItem,
+	ImportFileActionItem,
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
 	UIThemeSubmenu,
@@ -302,6 +303,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 							onRenameAction={handleRenameAction}
 							workspaceId={null}
 						/>
+						<ImportFileActionItem />
 					</TldrawUiMenuSubmenu>
 					<EditSubmenu />
 					<TlaViewSubmenu />
