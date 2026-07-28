@@ -499,7 +499,6 @@
 	   shadow-3's depth without its `inset 1px panel-contrast` edge — that inset reads as a white
 	   border on a coloured pin (it's invisible on the panel-white menus shadow-3 is meant for). */
 	--tlui-cmt-marker-shadow: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%);
-	/* Hover lifts by scale alone; the shadow holds so it stays as light as the composer and edit pin. */
 	--tlui-cmt-marker-shadow-hover: var(--tlui-cmt-marker-shadow);
 	--tlui-cmt-marker-hover-scale: 1.08;
 	--tlui-cmt-marker-transition: 0.08s ease;
@@ -574,13 +573,6 @@
 .tlui-cmt-thread__action:hover {
 	background: var(--tl-color-muted-2);
 	color: var(--tl-color-text-1);
-}
-/* the per-comment edit/delete buttons share the action-button treatment but color on hover */
-.tlui-cmt-thread__action--edit:hover {
-	color: var(--tl-color-selected);
-}
-.tlui-cmt-thread__action--danger:hover {
-	color: var(--tl-color-danger);
 }
 .tlui-cmt-thread__resolved {
 	padding: 6px 10px;
