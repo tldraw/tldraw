@@ -1,4 +1,12 @@
-import { BoxModel, Editor, TLCommentAnchor, TLCommentThread, TLShapeId, VecLike } from 'tldraw'
+import {
+	BoxModel,
+	Editor,
+	TLCommentAnchor,
+	TLCommentThread,
+	TLShape,
+	TLShapeId,
+	VecLike,
+} from 'tldraw'
 import { getCommentingOptions } from './options'
 import { openThreadId } from './state'
 
@@ -74,6 +82,20 @@ export function anchorPagePoint(
 		case 'page':
 			return null
 	}
+}
+
+/**
+ * The shape a comment placed at a page point should anchor to, or undefined for empty canvas.
+ *
+ * Uses the editor's hit-test margin, the same slack select and hover use. Without it, shapes whose
+ * geometry is an open path — arrows, lines, draw strokes — are unhittable in practice: their
+ * geometry reports a positive distance for every point off the stroke, so a zero margin only
+ * matches a pixel-perfect click right on the line.
+ *
+ * @internal
+ */
+export function commentTargetShapeAt(editor: Editor, page: VecLike): TLShape | undefined {
+	return editor.getShapeAtPoint(page, { hitInside: true, margin: editor.getHitTestMargin() })
 }
 
 /**

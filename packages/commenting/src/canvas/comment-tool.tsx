@@ -8,7 +8,7 @@ import {
 } from 'tldraw'
 import { type CommentingOptions, defaultCommentingOptions, getCommentingOptions } from './options'
 import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
-import { regionPinPoint, shapeAnchorAt } from './thread-state'
+import { commentTargetShapeAt, regionPinPoint, shapeAnchorAt } from './thread-state'
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
  *  to. Shared between the tool (which sets it on click) and the overlay (which renders the
@@ -131,7 +131,7 @@ class CommentIdle extends StateNode {
 
 	private updateHint() {
 		const { editor } = this
-		const hit = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), { hitInside: true })
+		const hit = commentTargetShapeAt(editor, editor.inputs.getCurrentPagePoint())
 		editor.setHintingShapes(hit ? [hit.id] : [])
 	}
 }
@@ -173,7 +173,7 @@ class CommentPointing extends StateNode {
 	override onPointerUp() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
-		const hit = editor.getShapeAtPoint(point, { hitInside: true })
+		const hit = commentTargetShapeAt(editor, point)
 		const anchor: TLCommentAnchor = hit
 			? shapeAnchorAt(
 					editor,
