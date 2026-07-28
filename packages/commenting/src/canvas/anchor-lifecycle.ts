@@ -104,7 +104,7 @@ export function registerCommentAnchorLifecycle(
 				// passes its prop through).
 				const spot = impreciseShapeAnchor ?? getCommentingOptions(editor).impreciseShapeAnchor
 				let point = anchorPagePoint(editor, thread.anchor, spot)
-				const inset = impreciseShapePinInset(thread.anchor, spot)
+				const inset = impreciseShapePinInset(editor, thread.anchor, spot)
 				if (point && inset) {
 					const zoom = editor.getZoomLevel()
 					point = { x: point.x + inset.x / zoom, y: point.y + inset.y / zoom }

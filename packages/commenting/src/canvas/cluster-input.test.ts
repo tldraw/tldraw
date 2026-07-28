@@ -1,4 +1,4 @@
-import type { Editor, TLCommentAnchor, TLCommentThread } from 'tldraw'
+import { Box, Mat, type Editor, type TLCommentAnchor, type TLCommentThread } from 'tldraw'
 import { describe, expect, it } from 'vitest'
 // This import is red until step 6's filter module is implemented — that is
 // intentional. Implement `cluster-input.ts` per CLUSTERING-STEPS.md step 6
@@ -28,20 +28,27 @@ function thread(
 
 /**
  * Stub editor: the filter's editor dependencies are the current page id, shape
- * page bounds, and the commenting options (via anchorPagePoint; no registered
- * comment tool → the defaults). `shapes` maps shape id → bounds for shapes that
- * exist; anything else resolves to undefined (deleted shape).
+ * geometry and page transform, and the commenting options (via anchorPagePoint;
+ * no registered comment tool → the defaults). `shapes` maps shape id → page
+ * bounds for unrotated shapes that exist, modeled as local geometry sized by the
+ * box plus a translate-only page transform; anything else resolves to undefined
+ * (deleted shape).
  */
 function stubEditor(
 	shapes: Record<string, { minX: number; minY: number; maxX: number; maxY: number }> = {}
 ): Editor {
+	const shapeId = (shape: string | { id: string }) => (typeof shape === 'string' ? shape : shape.id)
 	return {
 		getCurrentPageId: () => CURRENT_PAGE,
 		getStateDescendant: () => undefined,
-		getShapePageBounds: (id: string) => {
-			const bounds = shapes[id]
-			if (!bounds) return undefined
-			return { ...bounds, w: bounds.maxX - bounds.minX, h: bounds.maxY - bounds.minY }
+		getShape: (id: string) => (shapes[id] ? { id } : undefined),
+		getShapeGeometry: (shape: string | { id: string }) => {
+			const bounds = shapes[shapeId(shape)]
+			return { bounds: new Box(0, 0, bounds.maxX - bounds.minX, bounds.maxY - bounds.minY) }
+		},
+		getShapePageTransform: (shape: string | { id: string }) => {
+			const bounds = shapes[shapeId(shape)]
+			return bounds ? Mat.Translate(bounds.minX, bounds.minY) : undefined
 		},
 	} as unknown as Editor
 }
