@@ -530,6 +530,12 @@
 	"comments.reacted-more-one": "{a}, {b}, {c} and 1 other reacted",
 	"comments.mention-you": "You",
 	"comments.mention-no-matches": "No matches",
-	"comments.preview-more": "{count} more"
+	"comments.preview-more": "{count} more",
+	"comments.pin-label": "Comment by {name}",
+	"comments.pin-label-resolved": "Resolved comment by {name}",
+	"comments.cluster-label": "{count} comments here",
+	"comments.stack-label": "{count} comments at this spot",
+	"comments.composer-label": "Comment",
+	"comments.reply-label": "Reply"
 }
 

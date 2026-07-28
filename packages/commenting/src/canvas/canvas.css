@@ -29,11 +29,37 @@
 	pointer-events: none;
 }
 
-/* Badges are clickable (zoom to the cluster's first split). */
+/* Badges are clickable (zoom to the cluster's first split). A <button>, so the same UA-chrome
+   reset the pin marker needs applies here too. */
 .tlui-cmt-canvas-cluster {
 	transform: translate(-50%, -50%);
 	pointer-events: auto;
 	cursor: pointer;
+	appearance: none;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: none;
+	color: inherit;
+	font: inherit;
+}
+
+/* Keyboard focus has to be visible on the canvas, where there's no surrounding chrome to imply
+   it. The ring goes on the marker visual (the rounded pin/badge), not the button box, so it
+   traces the shape rather than a rectangle around it; the button's own outline is suppressed
+   because its box is offset from what you see. */
+.tlui-cmt-canvas-pin__marker:focus-visible,
+.tlui-cmt-canvas-cluster:focus-visible {
+	outline: none;
+}
+.tlui-cmt-canvas-pin__marker:focus-visible .tlui-cmt-marker,
+.tlui-cmt-canvas-cluster:focus-visible .tlui-cmt-marker {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+}
+/* Focus should read like hover, so the pin lifts the same way when tabbed to. */
+.tlui-cmt-canvas-pin__marker:focus-visible .tlui-cmt-marker {
+	transform: scale(var(--tlui-cmt-marker-hover-scale));
 }
 
 .tlui-cmt-cluster-fade {
@@ -80,6 +106,23 @@
 	width: max-content;
 	pointer-events: auto;
 	cursor: pointer;
+	/* A <button>, for focus and Enter/Space — strip the UA chrome so it still reads as a badge. */
+	appearance: none;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: none;
+	color: inherit;
+	font: inherit;
+}
+
+.tlui-cmt-canvas-stack-badge:focus-visible {
+	outline: none;
+}
+.tlui-cmt-canvas-stack-badge:focus-visible .tlui-cmt-marker {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+	transform: scale(var(--tlui-cmt-marker-hover-scale));
 }
 
 /* The stack's popover content: one card per thread, the expanded thread inline among them. */
@@ -106,6 +149,18 @@
 	box-shadow: var(--tl-shadow-3);
 	padding: 10px 14px;
 	cursor: pointer;
+	/* A <button>, so reset the UA chrome and restore the card's own left-aligned text flow. */
+	appearance: none;
+	border: none;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	display: block;
+}
+
+.tlui-cmt-stack-list__card:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
 }
 
 /* The wrapper is the card's surface — inside it the comment is plain content, mirroring how the
@@ -309,6 +364,15 @@
 	cursor: var(--tl-cursor-default);
 	touch-action: none;
 	pointer-events: none;
+	/* The marker is a <button> so it's focusable and Enter/Space-activatable; strip the UA chrome
+	   so it still looks like the pin it wraps. */
+	appearance: none;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: none;
+	color: inherit;
+	font: inherit;
 }
 
 /* Dragging a pin shows the same move cursor as dragging a shape. */

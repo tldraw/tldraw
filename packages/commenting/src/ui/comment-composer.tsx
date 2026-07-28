@@ -193,7 +193,15 @@ export function CommentComposer({
 			enableCoreExtensions: { textDirection: false },
 			textDirection: 'auto',
 			editorProps: {
-				attributes: { class: 'tlui-cmt-input' },
+				// The visible placeholder is `aria-hidden` (it's a styled overlay, not a real
+			// placeholder attribute), so without these the contenteditable is an unlabelled
+			// textbox — a screen reader lands on it and announces nothing.
+			attributes: {
+				class: 'tlui-cmt-input',
+				'aria-label': placeholder,
+				role: 'textbox',
+				'aria-multiline': 'true',
+			},
 				// Runs before every keymap plugin, so it can distinguish Shift+Enter from Enter — an
 				// `Enter` keymap binding also fires on Shift+Enter and would otherwise swallow it.
 				handleKeyDown: (_view, event) => {
@@ -243,7 +251,9 @@ export function CommentComposer({
 				onChangeRef.current?.(editor.getJSON() as TLRichText)
 			},
 		},
-		[interactive]
+		// `placeholder` is the editor's accessible name, so a locale change has to rebuild the
+		// config — otherwise the textbox keeps announcing the previous language's label.
+		[interactive, placeholder]
 	)
 	editorRef.current = editor
 

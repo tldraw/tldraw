@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef } from 'react'
-import { Editor, TLCommentThread, useContainer, usePassThroughWheelEvents, useValue } from 'tldraw'
+import { Editor, TLCommentThread, useContainer, usePassThroughWheelEvents, useTranslation, useValue } from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { CountBadge } from '../ui/count-badge'
 import { useThreadComments } from './hooks'
@@ -35,7 +35,8 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	impreciseShapeAnchor?: { x: number; y: number }
 }) {
 	const container = useContainer()
-	const badgeRef = useRef<HTMLDivElement>(null)
+	const msg = useTranslation()
+	const badgeRef = useRef<HTMLButtonElement>(null)
 	// The badge takes pointer events (to open on click), so wheel input over it would otherwise be
 	// swallowed instead of zooming — pass it through to the canvas, as the pin and cluster badge do.
 	usePassThroughWheelEvents(badgeRef)
@@ -129,18 +130,24 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	return (
 		<>
 			<div className="tlui-cmt-canvas-pin" style={{ left: point.x, top: point.y }}>
-				<div
+				<button
 					ref={badgeRef}
+					type="button"
 					className="tlui-cmt-canvas-stack-badge"
+					// Without a name the badge announces as a bare number.
+					aria-label={msg('comments.stack-label').replace('{count}', String(threads.length))}
+					aria-expanded={open}
 					onPointerDown={(e) => e.stopPropagation()}
 					onClick={(e) => {
 						e.stopPropagation()
 						toggle()
 					}}
 					{...previewHandlers}
+					onFocus={previewHandlers.onPointerEnter}
+					onBlur={previewHandlers.onPointerLeave}
 				>
 					<CountBadge count={threads.length} open={open} />
-				</div>
+				</button>
 			</div>
 			{previewShown && !open && (
 				<ThreadPreview
@@ -203,7 +210,10 @@ function StackThreadCard({
 	const first = comments[0]
 	if (!first) return null
 	return (
-		<div
+		// A card in the stack list opens its thread, so it's a control, not a div. The card's own
+		// text is the accessible name — no aria-label, or it would shadow the comment itself.
+		<button
+			type="button"
 			className="tlui-cmt-stack-list__card"
 			onClick={(e) => {
 				e.stopPropagation()
@@ -211,6 +221,6 @@ function StackThreadCard({
 			}}
 		>
 			<CommentCard {...toCardProps(first, props, options.components, resolveName)} />
-		</div>
+		</button>
 	)
 }
