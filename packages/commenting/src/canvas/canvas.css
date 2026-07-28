@@ -228,9 +228,14 @@
 .pseudo-hover.tlui-cmt-preview-card--selectable,
 .tlui-cmt-canvas-preview__panel--thread.tlui-cmt-canvas-preview__panel--selectable:hover,
 .pseudo-hover.tlui-cmt-canvas-preview__panel--thread {
-	background: var(--tl-color-low);
+	--tlui-cmt-preview-hover-surface: color-mix(
+		in srgb,
+		var(--tl-color-low) 50%,
+		var(--tl-color-panel)
+	);
+	background: var(--tlui-cmt-preview-hover-surface);
 	box-shadow:
-		inset 0 0 0 1px var(--tl-color-low),
+		inset 0 0 0 1px var(--tlui-cmt-preview-hover-surface),
 		var(--tl-shadow-3);
 	cursor: pointer;
 }
