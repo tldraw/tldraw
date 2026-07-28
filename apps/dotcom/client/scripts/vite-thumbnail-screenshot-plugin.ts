@@ -24,8 +24,30 @@ const RENDER_PATH = '/__thumbnail-render'
 
 export function thumbnailScreenshotPlugin(): Plugin {
 	// Chromium takes about a second to start, so it is launched once for the dev server's lifetime
-	// rather than per request. Held as the promise so concurrent first requests share one launch.
+	// rather than per request.
 	let browserPromise: Promise<Browser> | undefined
+
+	// Assigns the promise synchronously, so concurrent first requests share one launch instead of
+	// each starting a Chromium and orphaning all but the last. Anything that leaves the cached
+	// browser unusable — a failed launch, or a crash later on — clears it, so the next request
+	// starts a new one rather than every request failing until the dev server restarts.
+	function getBrowser() {
+		if (!browserPromise) {
+			browserPromise = import('@playwright/test')
+				.then(({ chromium }) => chromium.launch())
+				.then((browser) => {
+					browser.on('disconnected', () => {
+						browserPromise = undefined
+					})
+					return browser
+				})
+				.catch((error) => {
+					browserPromise = undefined
+					throw error
+				})
+		}
+		return browserPromise
+	}
 
 	return {
 		name: 'thumbnail-screenshot',
@@ -45,11 +67,7 @@ export function thumbnailScreenshotPlugin(): Plugin {
 				}
 				try {
 					const request = parseRequest(JSON.parse(await readBody(req)), req.headers.host)
-					if (!browserPromise) {
-						const { chromium } = await import('@playwright/test')
-						browserPromise = chromium.launch()
-					}
-					const png = await capture(await browserPromise, request)
+					const png = await capture(await getBrowser(), request)
 					res.statusCode = 200
 					res.setHeader('content-type', 'image/png')
 					res.end(png)
