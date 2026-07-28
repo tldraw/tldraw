@@ -18,9 +18,14 @@ import { reportThumbnailError, sha256 } from './thumbnailShared'
 // OG image until the first render lands. This is what makes the endpoint safe on high-traffic paths
 // like link unfurls.
 
-// A stale-but-recent image is still served as fresh without enqueueing a refresh, so one board
-// cannot spend Browser Run capacity more than about once an hour no matter how often it changes
-// or is crawled.
+// Only applies to a cached image whose version no longer matches the board's. A version *match* is
+// served as a hit indefinitely — the image depicts the current content, so there is nothing to
+// refresh however old it is or however often it is crawled (see shouldServeCachedOgImage).
+//
+// On a mismatch, an image younger than this is still served as a hit without enqueueing, which
+// bounds crawler-triggered rendering to about one render per board per hour. That is a bound on this
+// path only, not on the board: edit-triggered rendering does not come through here, and is bounded
+// instead by the durable object's render debounce (see "Request limits" in browser-run-thumbnails.md).
 const OG_IMAGE_MIN_REFRESH_AGE_MS = 60 * 60_000
 const OG_IMAGE_BOARD_RATE_LIMIT = 2
 const DEFAULT_OG_IMAGE_PATH = '/social-og.png'

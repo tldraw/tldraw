@@ -26,7 +26,7 @@ Rendering runs through the Browser Rendering `/screenshot` Quick Action, invoked
 `GET /api/app/social-preview/:prefix/:slug/image` (`:prefix` is `p` for published boards or `f` for shared files) serves a 1200x630 light-theme, content-fit PNG for use in `og:image` tags. The crawler HTML that references it is the existing worker route `/app/social-preview/:prefix/:slug` (`getSocialPreview`, which Vercel routes crawler user-agents to), which puts the board name in the title and bounces human visitors back to the board. It only emits the board `og:image` (and `summary_large_image`) when the board resolves through the same gate the image route applies; for private, deleted, or unpublished boards it keeps the static site-wide preview image, because crawlers that don't follow `og:image` redirects (notably X) would otherwise render a broken card. The request path never invokes Browser Run:
 
 1. The board is resolved through the same gates as the MCP tool. Private, deleted, unpublished, or unknown boards get the default tldraw OG image (see the fallback below).
-2. If the cached image in R2 matches the board's current content version - or is younger than one hour, which caps one board's Browser Run spend at roughly one render per hour no matter how often it changes or is crawled - it is served as a hit with `max-age=3600`.
+2. If the cached image in R2 matches the board's current content version it is served as a hit with `max-age=3600`, indefinitely — a matching version depicts the current content, so there is nothing to refresh however old the object is or however often it is crawled. If the version no longer matches but the image is younger than `OG_IMAGE_MIN_REFRESH_AGE_MS` (one hour) it is also served as a hit without enqueueing, which bounds _crawler-triggered_ rendering to roughly one render per board per hour. That is a bound on this path only: edit-triggered rendering does not pass through here (see "Request limits").
 3. Otherwise the worker enqueues an `og-image-render` job on the existing sync-worker queue (guarded by a per-board rate limit and a pending marker in R2 that dedupes concurrent enqueues) and serves the previous image marked stale with `max-age=300`, or the default-image fallback with `max-age=60` if the board has never been rendered. Scrapers pick up the fresh render on their next visit. The route is registered with `.all`, because crawlers probe with HEAD before (or instead of) GET: a HEAD gets the same cache headers from an R2 `head`, but never reads the body and never enqueues, so a probe can't spend Browser Run.
 4. The queue consumer (`ogImageQueue.ts`, dispatched from the worker's `queue()` handler) re-resolves the board at render time: a board un-shared while queued is dropped and its cached OG image deleted, and the version is re-read so bursts of enqueues coalesce into one capture of the newest content. It loads the snapshot to pick the first page that _has content_ (so a board with an empty first page still unfurls with a meaningful image), mints a render token with `camera: 'content'` and that `pageId`, screenshots it through the same `env.BROWSER.quickAction` path as the MCP tool, and writes the PNG to the cache key the route reads. If the snapshot can't be read it fails there and then rather than paying for a capture that would fail on the render page for the same reason. Genuine transient failures retry up to three times with backoff, then drop. There is no capacity check: thumbnail rendering is uncapped (see "Request limits").
 
@@ -39,15 +39,38 @@ A board with no usable cached image is served the site-wide default (`/social-og
 Rendering on crawler demand alone means the first share of a board is always the cold one. Three triggers ahead of the crawler close that gap, all of them enqueueing onto the same queue and consumer, and all of them subject to the same re-resolve, version check, and share gate at render time. Every queue message carries a `reason` (`crawler`, `publish`, `edit`) that rides through to telemetry.
 
 - **Publish.** The `publish` effect in `TLPostgresReplicator` enqueues a render right after `publishSnapshot` writes the frozen R2 snapshot, so a published board's image is being made before its link is pasted anywhere. `unpublish` deletes the cached image and pending marker instead, and a new `unshare` effect (`shared` true → false in `getEffects`) does the same for shared files — edit-triggered rendering covers many more boards than crawler demand did, so lingering images need a real cleanup path rather than waiting for a queue message to happen to process.
-- **On edit.** `TLFileDurableObject.persistToDatabase` calls `enqueueOgImageRenderForEdit` fire-and-forget on a persist that actually advanced the document clock. The only gate is the share check: the file record says `shared` (an unknown record proceeds; the consumer's resolve will drop it). There is no sampling and no staleness window — a persist means the board's saved content genuinely differs from what the cached thumbnail shows, which is exactly when a re-render is warranted.
+- **On edit.** `TLFileDurableObject.persistToDatabase` schedules a render on a persist that actually advanced the document clock. The only gate is the share check: the file record says `shared` (an unknown record proceeds; the consumer's resolve will drop it). There is no sampling and no staleness window — a persist means the board's saved content genuinely differs from what the cached thumbnail shows, which is exactly when a re-render is warranted.
 
-  Deduplication is the queue's job rather than the durable object's. `enqueueOgImageRender`'s pending marker collapses the 8-second persist cadence (`PERSIST_INTERVAL_MS`) into roughly one render per marker TTL, and anything that slips past it is absorbed at consume time by the version check: the system's real idempotency key is `(board, version)`.
+  **The ask is debounced, not throttled.** Each persist pushes the render deadline out by `OG_RENDER_DEBOUNCE_MS` (30s), so a board renders once its editing _settles_ rather than on a cadence while it is still being drawn on — which is what a thumbnail is for. `OG_RENDER_MAX_WAIT_MS` (5 minutes), measured from the first persist since the last render, stops a board that is never left alone from never rendering. The arithmetic lives in `utils/ogRenderDebounce.ts` so it is testable without standing up a durable object; the object supplies the clock and the alarm.
 
-- **Pending markers are the only throttle.** With no rate limiter on this path, `PENDING_MARKER_TTL_MS` (2 minutes) is what stops one continuously edited board enqueueing hundreds of messages an hour that would all render near-identical content. It is dedupe rather than a budget, but it does set the effective render cadence, and it is the knob to turn if that cadence needs to change.
+  The deadline is held in memory but enforced by the durable object's alarm, and the two are allowed to disagree: an eviction loses the deadline, the alarm survives, fires, finds nothing, and renders. One extra render is the right way to be wrong, since the alternative is silently dropping a session's last edits. The alarm is only written when none is outstanding — while one is pending, moving the deadline is a field assignment and the alarm re-arms itself when it fires — so a board persisting every 8s writes storage about once per debounce window rather than once per persist.
+
+- **The debounce is the rate control; the pending marker is not.** `PENDING_MARKER_TTL_MS` (2 minutes) reads like a render interval but isn't one — the consumer deletes the marker as soon as a render lands, so on a healthy board it never lives out its TTL. It is a single-flight that stops a second ask being queued while one is in flight, plus a crash ceiling. To change how often a board renders, change the debounce.
+
+#### Why a debounce and not a throttle
+
+This started as a 30s leading-and-trailing throttle. Measurement killed it. Production runs **~555 persists/min across ~359 boards active in a 10 minute window** — a mean gap between a given board's persists of roughly **39 seconds**, which is _longer_ than the 30s window. A throttle whose window is shorter than the gap between events suppresses almost nothing: its leading edge fired on nearly every persist, so render volume tracked persist volume rather than the interval it was nominally set to.
+
+The debounce is a better fit in shape as well as cost. Cost, for a board edited without pause (verified in `utils/ogRenderDebounce.test.ts`):
+
+| Mechanism                        | Renders per 10-minute editing session | Isolated burst |
+| -------------------------------- | ------------------------------------- | -------------- |
+| None                             | 76                                    | 1              |
+| 30s throttle                     | ~20                                   | 1–2            |
+| 1/min rate limit                 | 10                                    | 1              |
+| **30s debounce + 5min max wait** | **2**                                 | **1**          |
+
+Note the right-hand column: on a bursty board — which the 39s mean gap says is the common case — every mechanism costs the same one render. The debounce is not a saving there; it is a saving on the heavy tail of sustained editing, and it renders the _finished_ burst rather than its first stroke.
+
+Sizing what remains: Browser Run allows 60 new browser instances per minute per account. With a debounce, spend scales with **editing sessions**, not persists and not wall-clock windows, so the quantity to forecast is distinct shared boards starting an editing session per minute. `f` (the link-shared fraction) is answerable from Postgres today via `file.updatedAt`; session shape needs the room id that `persist_success` now carries as `index1`. See "Open questions".
 
 ### Request limits
 
-Thumbnail rendering is **uncapped**, deliberately. It is our own derived artifact, triggered by things that already happened (a publish, an edit persisting, a crawler arriving) rather than by anything a caller can drive, so a rate limiter there would only ever mean "serve a stale thumbnail to save a render we intend to do anyway". The queue consumer performs no capacity check at all.
+Thumbnail rendering has **no global cap**, deliberately. It is our own derived artifact, triggered by things that already happened (a publish, an edit persisting, a crawler arriving) rather than by anything a caller can drive, so a global rate limiter there would only ever mean "serve a stale thumbnail to save a render we intend to do anyway". The queue consumer performs no capacity check at all.
+
+What bounds it instead is per-board: the render debounce in front of the edit trigger (`OG_RENDER_DEBOUNCE_MS`, with `OG_RENDER_MAX_WAIT_MS` as its ceiling). That is a freshness rule rather than a budget — it does not know or care what the rest of the system is spending — so total thumbnail spend scales with the number of boards being edited at once. See "Keeping the thumbnail current" for how it is sized against Browser Run's account limits, which are now the real ceiling.
+
+Worth being explicit that **no per-board mechanism can cap total spend**, because total is `active boards × per-board rate`. Cloudflare's rate limit binding cannot close that gap either: limits are applied per Cloudflare location, so a single global key gives `limit × locations`, not `limit`. (The same caveat applies to the MCP global cap below — `GLOBAL_BROWSER_RUN_RATE_LIMIT = 6` is really 6/min per colo. It bounds a rogue caller, which is its job, but it is not an account-wide spend ceiling.) The levers that actually bound the total are Browser Run's own account limits and raising them.
 
 The limits below therefore exist for the **MCP endpoint** specifically — the one Browser Run-spending surface an outside caller can drive directly, where a rogue or looping agent is the threat being bounded:
 
@@ -62,6 +85,8 @@ The thing to watch instead of a cap is Browser Rendering's own account limits: a
 ### Telemetry and monitoring
 
 All three surfaces write `mcp_shared_board_screenshot` events with the same blob layout, so one dashboard covers everything; the source blob distinguishes `mcp` (the tool), `og` (the OG image route), and `queue` (the async consumer). Events record hashed board slug, cache hit/stale/miss, render duration (wall-clock around the browser session), output dimensions, failure reason, rate-limit decisions, a hashed IP, and the trigger that asked for the render. Two dimensions are deliberately kept low-cardinality: the failure reason is always a bounded reason code (`invalid_input`, `not_found`, `board_empty`, `no_pages`, `page_out_of_range`, `rate_limited_ip`/`board`/`global`, `board_not_viewable`, `served_fallback`, `not_rendered_yet`, `browser_failed`, `browser_timeout`, `empty_render`, `not_configured`, `render_error`), never raw `error.message` text; and the hashed IP is written only on failed or rate-limited events (where it's useful for abuse analysis) — successful events carry `ip:none`, so the per-client IP dimension never lands on the common success path. Column layout in the Analytics Engine dataset (`MEASURE`): `blob1` event name, `blob2` worker name, `blob3` source, `blob4` cache status, `blob5` failure reason, `blob6` rate-limit decision, `blob7` hashed IP (or `none`), `blob8` render trigger (`crawler`, `publish`, `edit`, or `none` on the surfaces that have no trigger), `double1`/`double2` output width/height, `double3` render duration ms, `double4` browser ms used, `double5` rate-limit allowed (1/0), `index1` hashed board slug. (The `quickAction` screenshot response includes an `X-Browser-Ms-Used` header, but the worker does not currently read it — telemetry uses wall-clock render duration in `double3` as the spend proxy and writes `double4` as -1. Wiring the header into `double4` is a possible follow-up.)
+
+One event outside that dataset matters for sizing: `persist_success` (same `MEASURE` dataset, written by `TLFileDurableObject.logEvent`) carries the room id in `index1` and the retry attempt count in `double1`. The room id is the index rather than a blob because Analytics Engine samples by index, so a board that persists rarely keeps data points instead of being sampled away inside the volume of a busy one — and it is raw rather than hashed, matching the existing `room` events, so it joins directly against `file.id` in Postgres. That join is what makes the shared fraction `f` measurable. Analytics Engine has no `uniq()`/`count(distinct)`, so distinct boards means `GROUP BY index1` and counting the returned rows.
 
 Bounded reason codes say _that_ a board stopped rendering, never _why_, and every one of these surfaces deliberately swallows its own errors (the OG route falls back to the default image, the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops). So each swallow point also reports the underlying error to Sentry through `reportThumbnailError` (`thumbnailShared.ts`), tagged `thumbnail_surface` with a closed set of values: `og_route`, `og_queue`, `thumbnail_snapshot`, `mcp_board_info`, `mcp_screenshot`. Reporting rides on the handler's `waitUntil` and is itself failure-proof — a missing Sentry env var must never turn a degraded-but-fine response into a 500.
 
@@ -225,7 +250,7 @@ flowchart TB
 
     subgraph warm ["Refresh triggers (ahead of the first crawler)"]
         PUB["publish effect<br/>(TLPostgresReplicator)"]
-        SPEC["persist on edit<br/>(TLFileDurableObject,<br/>every advancing clock)"]
+        SPEC["persist on edit<br/>(TLFileDurableObject,<br/>throttled to 30s per board)"]
     end
 
     SP -->|og:image references| OGR
@@ -278,12 +303,12 @@ The first crawler to unfurl a board hits a cold OG-image cache, gets the default
 
 Make the thumbnail exist before the first crawler arrives, and make every residual miss degrade gracefully. No synchronous rendering on crawler paths; the pending marker and the queue stay load-bearing as dedupe.
 
-| Layer                          | Covers                                                | Cost                                      | Status      |
-| ------------------------------ | ----------------------------------------------------- | ----------------------------------------- | ----------- |
-| 1. Fallback-200 instead of 302 | every residual miss; fixes X broken cards             | ~zero                                     | done        |
-| 2. Publish hook                | explicit publish/republish, always fresh              | negligible                                | done        |
-| 3. Render on every persist     | the create → draw → share flow and revived old boards | ~1 render per edited board per marker TTL | done        |
-| 4. Hop-1 warming (optional)    | immediate shares, never-edited-again boards           | negligible                                | not started |
+| Layer                          | Covers                                                | Cost                                                           | Status      |
+| ------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------- | ----------- |
+| 1. Fallback-200 instead of 302 | every residual miss; fixes X broken cards             | ~zero                                                          | done        |
+| 2. Publish hook                | explicit publish/republish, always fresh              | negligible                                                     | done        |
+| 3. Render on every persist     | the create → draw → share flow and revived old boards | ~1 render per editing session, +1 per 5min of unbroken editing | done        |
+| 4. Hop-1 warming (optional)    | immediate shares, never-edited-again boards           | negligible                                                     | not started |
 
 The existing on-miss enqueue and stale-serve behavior in `getOgImage` remains the universal backstop, unchanged.
 
@@ -306,12 +331,16 @@ This was originally the gate on turning edit-triggered rendering on, because it 
 flowchart TB
     EDIT["t=0 — a change lands<br/>in TLFileDurableObject"]
     EDIT --> PERSIST["t≤8s — persist tick advances the<br/>document clock (persistToDatabase)"]
-    PERSIST --> GATE{"enqueueOgImageRenderForEdit<br/>(fire-and-forget, never<br/>blocks persistence)"}
+    PERSIST --> DEBOUNCE{"scheduleOgRender<br/>(push deadline out 30s —<br/>THE rate control)"}
+
+    DEBOUNCE -->|"more edits arrive first"| WAIT["alarm fires, sees a newer<br/>deadline, re-arms (no render)"]
+    WAIT --> DEBOUNCE
+    DEBOUNCE -->|"editing settled, or<br/>5min max wait hit"| GATE{"enqueueOgImageRenderForEdit<br/>(fire-and-forget, never<br/>blocks persistence)"}
 
     GATE -->|"file record not shared"| SKIP["skip"]
-    GATE -->|"shared or unknown"| MARK{"pending marker<br/>set within last 2 min?"}
+    GATE -->|"shared or unknown"| MARK{"pending marker<br/>already set?"}
 
-    MARK -->|"yes"| DEDUPE["already_pending — no message<br/>(collapses the 8s persist cadence)"]
+    MARK -->|"yes"| DEDUPE["already_pending — no message<br/>(single-flight, not a rate limit)"]
     MARK -->|"no"| ENQ["write marker + enqueue<br/>reason: edit"]
 
     ENQ --> QUEUE[("queue")]
@@ -325,7 +354,7 @@ flowchart TB
     R2 --> SHARE["first share: crawler og:image<br/>fetch is a cache hit"]
 ```
 
-The one constant left to tune is `PENDING_MARKER_TTL_MS` (2 minutes, `ogImageQueue.ts`). It sets how fresh a continuously edited board's thumbnail stays, and — since it is the only thing collapsing the persist cadence — how much Browser Run a single actively edited board can consume.
+There are two constants to tune, both in `config.ts`. `OG_RENDER_DEBOUNCE_MS` (30 seconds) sets how long a board must go quiet before its thumbnail is rendered — lower it for fresher thumbnails after short bursts, raise it to absorb more of a session into one render. `OG_RENDER_MAX_WAIT_MS` (5 minutes) is the dominant cost term for busy boards and therefore the dial to turn if Browser Run spend needs to come down: raising it makes long editing sessions cheaper without touching the far more common short-burst case, which costs exactly one render either way. `PENDING_MARKER_TTL_MS` is not a dial: it is a single-flight guard and a crash ceiling, cleared as soon as a render lands.
 
 ### Phase 4 (conditional) — hop-1 warming
 
@@ -343,10 +372,57 @@ The one constant left to tune is `PENDING_MARKER_TTL_MS` (2 minutes, `ogImageQue
 
 - og-route cache hit rate on the first fetch per board (should be high — every shared, edited board should already have an image)
 - `served_fallback` rate (should fall to near-zero for edited boards)
-- renders/day by `reason`, and total Browser Run minutes — this is now the real spend signal, since nothing caps it
+- renders/day by `reason`, and total Browser Run minutes — the real spend signal, since the only bound is per-board and nothing caps the total
+- ratio of renders to `persist_success` events: the debounce's whole claim is that this stays well below 1, and it is the number that would show the max wait being hit more often than expected
 - queue depth, especially through the first days after deploy, when every actively edited board renders for the first time
 
 ### Open questions
 
-1. `PENDING_MARKER_TTL_MS` (2 min) is now the only dial on render frequency. Whether that is the right freshness/spend trade-off wants real numbers behind it.
-2. Whether Browser Rendering's account-level concurrent-session and new-session-per-minute limits become the practical ceiling under real edit volume — and what the failure mode looks like when they do, since there is no limiter absorbing it first.
+**These gate the deploy.** The sizing above rests on two unmeasured numbers, and the plausible range spans the account limit, so they want answering before this ships rather than after.
+
+1. **What fraction of actively edited boards are link-shared (`f`)?** This is the multiplier on every render estimate here; the current constants assume `f ≈ 30%`.
+
+   Answerable from Postgres alone, today, without deploying anything: `persistToDatabase` writes `file.updatedAt` on every persist for app files, so it is the same "actively edited" signal the render trigger fires on.
+
+   ```sql
+   -- f over the last hour. Widen the interval for a stabler number; narrow it for something
+   -- closer to "concurrently edited".
+   SELECT
+     count(*) FILTER (WHERE shared)                                          AS shared_boards,
+     count(*)                                                                AS edited_boards,
+     round(count(*) FILTER (WHERE shared)::numeric / NULLIF(count(*), 0), 4) AS f
+   FROM file
+   WHERE "updatedAt" > (EXTRACT(EPOCH FROM now()) * 1000)::bigint - 3600000
+     AND NOT "isDeleted"
+   ```
+
+   One caveat: this weights every board equally, while render cost is weighted by how much each board is edited. If shared boards are edited harder than private ones, the true multiplier is higher than this `f`. Correcting for that needs per-board persist volume, which is what the `index1` on `persist_success` provides once deployed:
+
+   ```sql
+   -- Analytics Engine: persists per board. No uniq()/count(distinct) exists here — GROUP BY
+   -- and count the returned rows for distinct boards. Join the ids against file.shared to get
+   -- a persist-weighted f.
+   SELECT index1 AS room_id, SUM(_sample_interval) AS persists
+   FROM MEASURE
+   WHERE blob1 = 'persist_success'
+     AND blob2 = 'production-tldraw-multiplayer'
+     AND timestamp > NOW() - INTERVAL '1' HOUR
+   GROUP BY room_id
+   ```
+
+2. **How many editing sessions start per minute?** With a debounce, this is the quantity that sets spend — not persists, and not wall-clock windows. A "session" here is a run of persists with no gap longer than `OG_RENDER_DEBOUNCE_MS`, and it costs one render, plus one more for every `OG_RENDER_MAX_WAIT_MS` it runs on for.
+
+   What is measured so far bounds it loosely. In a 10 minute window, production ran ~555 persists/min across ~359 boards with client traffic — a mean gap between a board's persists of ~39s, which is longer than the 30s debounce and therefore suggests most persists start their own session:
+
+   |                                                | Renders/min at `f ≈ 30%` |
+   | ---------------------------------------------- | ------------------------ |
+   | If persists concentrate into few long sessions | ~44                      |
+   | If most persists start their own short session | ~167                     |
+
+   Browser Run allows 60 new browsers/min, so the pessimistic end is ~2.8x over. The gap between those rows is entirely "how many distinct boards, and how clustered are their persists", which the `index1` on `persist_success` answers directly: bucket each board's persists by timestamp and count runs separated by more than the debounce.
+
+   Note the caveat on the 359: it counts boards with any client messages, and presence and cursor updates share the `data` message type with edits, so some of those boards never persist at all. If materially fewer persist, sessions are longer and the optimistic row gets closer.
+
+   If sessions turn out too numerous, the lever is `OG_RENDER_MAX_WAIT_MS` for long sessions, or a longer debounce to merge adjacent short ones — but note a longer debounce trades directly against thumbnail freshness after a quick edit, which is the case this feature exists to serve.
+
+3. Browser Run's account limits (120 concurrent browsers, 1 new browser/second) are the real ceiling now that nothing in this worker caps renders. New-browsers-per-minute is the binding one, not concurrency: even at 217 renders/min with ~8s renders that is only ~29 concurrent against a limit of 120. Worth confirming whether `quickAction` bills against those or against the separate REST quota, and watching the Browser Run dashboard's Runs tab through rollout — the failure mode is a render error and three retries (so, amplification rather than backpressure), not a clean 429.

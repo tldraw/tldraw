@@ -189,6 +189,7 @@ export type TLServerEvent =
 	| {
 			type: 'persist_success'
 			attempts: number
+			roomId: string
 	  }
 
 export type TLPostgresReplicatorRebootSource =

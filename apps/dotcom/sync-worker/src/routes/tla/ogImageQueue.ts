@@ -26,11 +26,16 @@ import { classifyScreenshotFailure, reportThumbnailError, sha256 } from './thumb
 // route reads. The synchronous MCP tool does not use this path: it must return the image in-band, so
 // it captures inline and caches under its own `mcp/` keys in a different bucket.
 //
-// Thumbnail rendering is deliberately uncapped. It is our own derived artifact, triggered by things
-// that already happened (a publish, an edit persisting, a crawler arriving) rather than by anything a
-// caller can drive, so a rate limiter here would only ever mean "serve a stale thumbnail to save a
-// render we intend to do anyway". The abuse surface is the public MCP endpoint, and that keeps its
-// per-IP, per-board and global caps — see sharedBoardScreenshotMcp.ts.
+// Thumbnail rendering has no global cap, deliberately. It is our own derived artifact, triggered by
+// things that already happened (a publish, an edit persisting, a crawler arriving) rather than by
+// anything a caller can drive, so a global rate limiter here would only ever mean "serve a stale
+// thumbnail to save a render we intend to do anyway". The abuse surface is the public MCP endpoint,
+// and that keeps its per-IP, per-board and global caps — see sharedBoardScreenshotMcp.ts.
+//
+// What bounds this path is per-board and lives upstream: TLFileDurableObject debounces the ask, so a
+// board renders once its editing settles (OG_RENDER_DEBOUNCE_MS) or once it has been editing without
+// pause for OG_RENDER_MAX_WAIT_MS. Total spend therefore scales with how many boards are edited at
+// once, and Browser Run's account limits are the real ceiling.
 
 export const OG_IMAGE_WIDTH = DEFAULT_THUMBNAIL_WIDTH
 export const OG_IMAGE_HEIGHT = DEFAULT_THUMBNAIL_HEIGHT
@@ -38,12 +43,11 @@ export const OG_IMAGE_HEIGHT = DEFAULT_THUMBNAIL_HEIGHT
 // A pending marker suppresses duplicate enqueues while a render is queued or in flight. It is
 // advisory only: it expires on its own so a crashed consumer cannot wedge a board permanently.
 //
-// With no rate limiter left, this is the only thing bounding how often a board renders: a board being
-// drawn on persists every PERSIST_INTERVAL_MS (8s), and each persist asks for a thumbnail, so without
-// the marker one board would enqueue hundreds of messages an hour that all render near-identical
-// content. It is dedupe rather than a budget, but it does set the effective cadence — roughly one
-// render per board per marker TTL while editing is continuous. This is the knob to turn if that
-// cadence needs to change.
+// This is a single-flight, NOT a rate limit, and the TTL is not a render interval: the consumer
+// deletes the marker as soon as a render lands, so on a healthy board it never lives out its TTL. The
+// TTL only covers the case where a consumer dies without clearing it. What actually bounds a board's
+// render rate is the debounce on the durable object's side of the enqueue (see
+// TLFileDurableObject.scheduleOgRender) — change that, not this, to change the cadence.
 const PENDING_MARKER_TTL_MS = 2 * 60_000
 // Retries are bounded by max_retries in wrangler.toml too; this lower cap keeps thumbnail jobs from
 // burning Browser Run capacity on a persistently failing board.
@@ -144,13 +148,15 @@ export async function enqueueOgImageRender(
 
 /**
  * Asks for a board's thumbnail to be refreshed because its content just changed. Called from the file
- * durable object on a persist that advanced the document clock.
+ * durable object once its render debounce expires, so this runs after a board's editing has settled
+ * rather than on every persist — which is what keeps an 8-second persist cadence from becoming an
+ * 8-second render cadence.
  *
- * There is no sampling, staleness window or budget check here on purpose: a persist means the board's
- * saved content is genuinely different from what the cached thumbnail shows, which is exactly when a
- * re-render is warranted. The duplicate-suppression that remains is `enqueueOgImageRender`'s pending
- * marker (so an 8-second persist cadence doesn't become an 8-second render cadence) and the
- * consumer's `(board, version)` check, which acks without rendering if the cache already matches.
+ * There is no sampling or staleness window here on purpose: a persist means the board's saved content
+ * is genuinely different from what the cached thumbnail shows, which is exactly when a re-render is
+ * warranted. Downstream, `enqueueOgImageRender`'s pending marker suppresses an ask that arrives while
+ * one is already in flight, and the consumer's `(board, version)` check acks without rendering if the
+ * cache already matches.
  */
 export async function enqueueOgImageRenderForEdit(
 	env: Environment,

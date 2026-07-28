@@ -66,6 +66,7 @@ import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
+import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
@@ -890,6 +891,34 @@ export class TLFileDurableObject extends DurableObject {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
 
+	// Thumbnail rendering is debounced, not throttled: every persist pushes the render further out, so
+	// a board renders once its editing settles rather than on a cadence while it is still being drawn
+	// on. OG_RENDER_MAX_WAIT_MS caps how long a board that never settles can go without one.
+	//
+	// `_ogRenderTargetAt` is the deadline we want; the durable alarm is how it gets enforced. They are
+	// allowed to disagree, and disagree safely: if this object is evicted the deadline is lost but the
+	// alarm survives, fires, finds no deadline, and renders. One extra render is the right way to be
+	// wrong — the alternative is silently dropping the last edits of a session, which is the exact
+	// staleness this trigger exists to fix.
+	private ogRenderDebouncer = new OgRenderDebouncer()
+
+	private scheduleOgRender() {
+		const setAlarmAt = this.ogRenderDebouncer.onPersist(Date.now())
+		// null means an alarm is already outstanding and will pick the new deadline up when it fires,
+		// so the common case costs no I/O at all.
+		if (setAlarmAt === null) return
+		this.ctx.storage.setAlarm(setAlarmAt).catch((e) => this.reportError(e))
+	}
+
+	override async alarm() {
+		const result = this.ogRenderDebouncer.onAlarm(Date.now())
+		if (!result.render) {
+			await this.ctx.storage.setAlarm(result.reArmAt)
+			return
+		}
+		await this.requestOgRenderForEdit()
+	}
+
 	private writeEvent(name: string, eventData: EventData) {
 		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
 	}
@@ -897,7 +926,14 @@ export class TLFileDurableObject extends DurableObject {
 	logEvent(event: TLServerEvent) {
 		switch (event.type) {
 			case 'persist_success': {
-				this.writeEvent(event.type, { doubles: [event.attempts] })
+				// The room id goes in the index rather than a blob so that distinct-boards-per-minute is
+				// measurable: Analytics Engine samples by index, so each board keeps data points instead of
+				// quiet boards being sampled away inside the volume of busy ones. It has no aggregate for
+				// distinct counts, so the query is `GROUP BY index1` over a short window and count the rows.
+				// Raw rather than hashed (as `room` events already write it) so it joins straight against
+				// `file.id` in Postgres — which is the point: it answers what fraction of actively edited
+				// boards are link-shared, and therefore what the thumbnail render debounce should be.
+				this.writeEvent(event.type, { indexes: [event.roomId], doubles: [event.attempts] })
 				break
 			}
 			case 'room': {
@@ -1384,13 +1420,14 @@ export class TLFileDurableObject extends DurableObject {
 						await this._uploadSnapshotToR2(snapshot, key)
 						await this.persistToPierre(storage, snapshot)
 
-						this.logEvent({ type: 'persist_success', attempts: attempt })
+						this.logEvent({ type: 'persist_success', attempts: attempt, roomId: slug })
 						this._lastPersistedClock = snapshot.documentClock
-						// The board's content just changed, so its thumbnail is out of date. Ask for a fresh
-						// one now rather than when a crawler eventually arrives and finds nothing cached.
-						// Fire-and-forget and swallowing its own errors: a thumbnail is never worth failing
-						// or delaying a persist over.
-						this.requestOgRenderForEdit()
+						// The board's content just changed, so its thumbnail is out of date. Push the render
+						// deadline out rather than rendering now: the useful thumbnail is of the settled
+						// board, and a persist mid-session says more edits are probably coming. Synchronous
+						// and allocation-free in the common case (see scheduleOgRender) so it cannot slow a
+						// persist down.
+						this.scheduleOgRender()
 						// Store the clock in DO storage so we can compare against SQLite on next load.
 						if (this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })
@@ -1430,10 +1467,16 @@ export class TLFileDurableObject extends DurableObject {
 	/**
 	 * Asks for this board's thumbnail to be re-rendered, because the content it depicts just changed.
 	 *
-	 * Unconditional: every persist that advanced the document clock asks. Deduplication is the queue's
-	 * job, not this object's — `enqueueOgImageRender`'s pending marker collapses the 8-second persist
-	 * cadence into roughly one render per marker TTL, and the consumer re-checks `(board, version)`
-	 * before spending a Browser Run slot, so a burst of asks costs one render of the newest content.
+	 * Called from `alarm()` once the debounce set up by `scheduleOgRender` expires — so this runs after
+	 * editing has settled for OG_RENDER_DEBOUNCE_MS, or after OG_RENDER_MAX_WAIT_MS of unbroken editing,
+	 * whichever comes first. That debounce is what bounds the render rate. Beyond it there is no
+	 * sampling or staleness gate: a persist means the board's saved content genuinely differs from what
+	 * the cached thumbnail shows, which is exactly when a re-render is warranted.
+	 *
+	 * Two further backstops sit downstream, but neither is a rate control: `enqueueOgImageRender`'s
+	 * pending marker suppresses a duplicate ask while one is already queued or rendering (it is cleared
+	 * as soon as the render lands, so it does not impose an interval of its own), and the consumer
+	 * re-checks `(board, version)` before spending a Browser Run slot.
 	 */
 	private async requestOgRenderForEdit() {
 		try {
