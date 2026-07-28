@@ -198,25 +198,42 @@ export function ThreadView({
 	// Tab from the canvas drops the caret in the reply box. Clicking a pin opens the thread but
 	// leaves focus on the editor container, so the first Tab would otherwise walk the app's own UI
 	// instead of the panel the click just opened. Capture phase, ahead of the editor's own handling.
-	// Once it has fired the listener comes off, so Tab inside the thread stays plain tab-through.
+	// Fires once per open thread, so Tab inside the thread stays plain tab-through.
 	const [focusReply, setFocusReply] = useState(false)
+	const tabTaken = useRef(false)
+	const swallowTabUp = useRef(false)
 	useEffect(() => {
-		if (!canReply || focusReply) return
+		if (!canReply) return
 		const doc = container.ownerDocument
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.key !== 'Tab' || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
-			if (e.defaultPrevented) return
+			if (e.defaultPrevented || tabTaken.current) return
 			// Focus rests on the container (or nothing at all) after a pin click. Anywhere else means
 			// it's already somewhere deliberate — the thread's own controls, the sidebar, a panel —
 			// and Tab belongs to whatever holds it.
 			if (e.target !== container && e.target !== doc.body) return
+			tabTaken.current = true
+			swallowTabUp.current = true
 			setFocusReply(true)
 			e.preventDefault()
 			e.stopPropagation()
 		}
+		// The select tool navigates shapes on Tab's *keyup*, and the composer isn't focused until the
+		// next frame — so a quick tap with shapes selected would both focus the reply and step the
+		// selection. Swallow the release of the press we took, and only that one.
+		const onKeyUp = (e: KeyboardEvent) => {
+			if (e.key !== 'Tab' || !swallowTabUp.current) return
+			swallowTabUp.current = false
+			e.preventDefault()
+			e.stopPropagation()
+		}
 		doc.addEventListener('keydown', onKeyDown, true)
-		return () => doc.removeEventListener('keydown', onKeyDown, true)
-	}, [canReply, container, focusReply])
+		doc.addEventListener('keyup', onKeyUp, true)
+		return () => {
+			doc.removeEventListener('keydown', onKeyDown, true)
+			doc.removeEventListener('keyup', onKeyUp, true)
+		}
+	}, [canReply, container])
 
 	// Every unread comment on display gets reported read — including replies that arrive while
 	// the view stays mounted, since the effect re-runs as `comments` changes. The host's receipt
