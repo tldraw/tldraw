@@ -231,7 +231,7 @@
 	width: 23px;
 	height: 23px;
 	border: 0;
-	border-radius: var(--tl-radius-2);
+	border-radius: 50%;
 	background: var(--tl-color-selected);
 	color: #fff;
 	cursor: pointer;
