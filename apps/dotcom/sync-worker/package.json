@@ -30,6 +30,7 @@
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
+		"@tldraw/sync-collaboration": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
