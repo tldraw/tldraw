@@ -537,6 +537,7 @@
 	gap: 2px;
 }
 .tlui-cmt-thread__action {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -550,6 +551,13 @@
 	font-size: 14px;
 	line-height: 1;
 	cursor: pointer;
+}
+/* Enlarge the click/tap target past the compact 26px visual — the button reads small but is
+   comfortable to hit. A transparent ::after, so nothing changes visually. */
+.tlui-cmt-thread__action::after {
+	content: '';
+	position: absolute;
+	inset: -6px;
 }
 .tlui-cmt-thread__action:hover {
 	background: var(--tl-color-muted-2);
@@ -666,6 +674,7 @@
 
 /* a small square icon button in the sidebar header (filter funnel, overflow …) */
 .tlui-cmt-header-btn {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -677,6 +686,12 @@
 	background: transparent;
 	color: var(--tl-color-text-2);
 	cursor: pointer;
+}
+/* Same hit-target expansion as the thread actions: compact visual, comfortable click area. */
+.tlui-cmt-header-btn::after {
+	content: '';
+	position: absolute;
+	inset: -6px;
 }
 .tlui-cmt-header-btn:hover,
 .tlui-cmt-header-btn[data-state='open'] {
