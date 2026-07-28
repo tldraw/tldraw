@@ -5,6 +5,15 @@ import { importPublicKey, str2ab } from '../utils/licensing'
 
 const GRACE_PERIOD_DAYS = 30
 
+// Collaboration features launched on this date. Licenses issued before it predate the feature
+// flags, so their holders are grandfathered into collaboration — see `isGrandfatheredLicense`.
+const COLLABORATION_LAUNCH_DATE = Date.UTC(2026, 7 /* August */, 5)
+// The longest term we issue, slightly more than a year.
+const MAX_LICENSE_TERM_DAYS = 370
+// A license expiring before this instant can only have been issued before the launch date.
+const GRANDFATHERED_EXPIRY_CUTOFF =
+	COLLABORATION_LAUNCH_DATE + MAX_LICENSE_TERM_DAYS * 24 * 60 * 60 * 1000
+
 export const FLAGS = {
 	// -- MUTUALLY EXCLUSIVE FLAGS
 	// Annual means the license expires after a time period, usually 1 year.
@@ -107,6 +116,7 @@ export interface ValidLicenseKeyResult {
 	isLicensedWithWatermark: boolean
 	isEvaluationLicense: boolean
 	isEvaluationLicenseExpired: boolean
+	isGrandfathered: boolean
 	isCollaborationEnabled: boolean
 	isCommentingEnabled: boolean
 	daysSinceExpiry: number
@@ -336,8 +346,11 @@ export class LicenseManager {
 				isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate)
 
 			// The collaboration umbrella grants all of its sub-features, so commenting is enabled
-			// by either the commenting flag or the collaboration flag.
-			const isCollaborationEnabled = this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COLLABORATION)
+			// by either the commenting flag or the collaboration flag. Licenses that predate the
+			// feature flags get the umbrella, and with it every sub-feature.
+			const isGrandfathered = this.isGrandfatheredLicense(licenseInfo, expiryDate)
+			const isCollaborationEnabled =
+				isGrandfathered || this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COLLABORATION)
 			const isCommentingEnabled =
 				isCollaborationEnabled || this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COMMENTING)
 
@@ -364,6 +377,7 @@ export class LicenseManager {
 				isEvaluationLicense,
 				isEvaluationLicenseExpired:
 					isEvaluationLicense && this.isEvaluationLicenseExpired(expiryDate),
+				isGrandfathered,
 				isCollaborationEnabled,
 				isCommentingEnabled,
 				daysSinceExpiry,
@@ -473,6 +487,25 @@ export class LicenseManager {
 		const diffTime = now.getTime() - expiration.getTime()
 		const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
 		return Math.max(0, diffDays)
+	}
+
+	/**
+	 * Whether a license was issued before collaboration launched, and so should be grandfathered
+	 * into the collaboration features it couldn't have been sold with.
+	 *
+	 * Licenses carry an expiry date but no issue date, so we infer issuance from expiry: we never
+	 * issue a term longer than `MAX_LICENSE_TERM_DAYS`, so a license expiring before that far past
+	 * the launch date must have been issued before it. Renewing past the cutoff moves the license
+	 * onto the flags, as does any license issued from the launch date onwards.
+	 *
+	 * Evaluation licenses are excluded. Their terms are weeks, so they'd stay under the cutoff long
+	 * after the launch and hand collaboration to every future trial; trials that should include it
+	 * can be minted with the feature flags set.
+	 */
+	private isGrandfatheredLicense(licenseInfo: LicenseInfo, expiryDate: Date) {
+		if (this.isFlagEnabled(licenseInfo.flags, FLAGS.EVALUATION_LICENSE)) return false
+		// An unparseable expiry date gives NaN here, which compares false: fail closed.
+		return expiryDate.getTime() < GRANDFATHERED_EXPIRY_CUTOFF
 	}
 
 	private isEvaluationLicenseExpired(expiryDate: Date): boolean {
