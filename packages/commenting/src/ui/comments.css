@@ -3,12 +3,12 @@
 .tlui-cmt-card {
 	position: relative;
 	display: flex;
-	gap: 10px;
-	padding: 12px;
+	gap: 8px;
+	padding: 8px;
 	width: 260px;
 	background: var(--tl-color-panel);
 	border: 1px solid var(--tl-color-divider);
-	border-radius: 12px;
+	border-radius: var(--tl-radius-3);
 }
 
 /* hover-revealed controls (edit, react…) stacked at the card's top-right */
