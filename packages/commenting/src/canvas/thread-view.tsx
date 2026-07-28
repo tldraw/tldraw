@@ -203,7 +203,13 @@ export function ThreadView({
 	const tabTaken = useRef(false)
 	const swallowTabUp = useRef(false)
 	useEffect(() => {
-		if (!canReply) return
+		if (!canReply) {
+			// Resolving unmounts the reply box under an open thread. Reopening it should feel like a
+			// freshly opened thread: no autoFocus left armed from the last Tab, and Tab available again.
+			setFocusReply(false)
+			tabTaken.current = false
+			return
+		}
 		const doc = container.ownerDocument
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.key !== 'Tab' || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
