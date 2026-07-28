@@ -60,6 +60,24 @@ export const file_state = table('file_state')
 	})
 	.primaryKey('userId', 'fileId')
 
+// A shareable, per-file record of everyone who has opened a board, denormalized from file_state by
+// Postgres triggers (migration 044). Its own table — not columns on file_state — because file_state
+// also carries private per-user data (lastSessionState = camera/selection, visit timestamps) that
+// must never sync to other users; every column here is safe to expose to any file collaborator, so
+// the comment composer can offer past viewers (not just workspace members) as @-mention targets.
+// Trigger-written only, so identity fields are non-optional (cf. comment.authorName), and
+// lastVisitAt is always stamped (falling back to "now") so most-recent-first ordering never
+// meets a null.
+export const file_visitor = table('file_visitor')
+	.columns({
+		userId: string(),
+		fileId: string(),
+		userName: string(),
+		userColor: string(),
+		lastVisitAt: number(),
+	})
+	.primaryKey('userId', 'fileId')
+
 export const file = table('file')
 	.columns({
 		id: string(),
@@ -240,6 +258,14 @@ const fileStateRelationships = relationships(file_state, ({ one }) => ({
 	}),
 }))
 
+const fileVisitorRelationships = relationships(file_visitor, ({ one }) => ({
+	file: one({
+		sourceField: ['fileId'],
+		destField: ['id'],
+		destSchema: file,
+	}),
+}))
+
 const groupRelationships = relationships(group, ({ many }) => ({
 	groupMembers: many({
 		sourceField: ['id'],
@@ -392,6 +418,7 @@ export type TlaCommentMentionPartial = Partial<TlaCommentMention> & {
 export type TlaRow =
 	| TlaFile
 	| TlaFileState
+	| TlaFileVisitor
 	| TlaUser
 	| TlaGroup
 	| TlaGroupUser
@@ -479,6 +506,7 @@ export interface CommentReactionPersistenceColumns {
 export interface DB {
 	file: TlaFile
 	file_state: TlaFileState
+	file_visitor: TlaFileVisitor
 	user: TlaUser
 	group: TlaGroup
 	group_user: TlaGroupUser
@@ -498,6 +526,7 @@ export const schema = createSchema({
 		user,
 		file,
 		file_state,
+		file_visitor,
 		group,
 		group_user,
 		group_file,
@@ -510,6 +539,7 @@ export const schema = createSchema({
 	relationships: [
 		fileRelationships,
 		fileStateRelationships,
+		fileVisitorRelationships,
 		groupRelationships,
 		groupUserRelationships,
 		groupFileRelationships,
@@ -522,6 +552,7 @@ export type TlaSchema = typeof schema
 export type TlaUser = Row<typeof schema.tables.user>
 export type TlaFile = Row<typeof schema.tables.file>
 export type TlaFileState = Row<typeof schema.tables.file_state>
+export type TlaFileVisitor = Row<typeof schema.tables.file_visitor>
 export type TlaGroup = Row<typeof schema.tables.group>
 export type TlaGroupUser = Row<typeof schema.tables.group_user>
 export type TlaGroupFile = Row<typeof schema.tables.group_file>

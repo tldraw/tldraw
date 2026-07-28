@@ -18,6 +18,14 @@ const defineQueries = defineQueriesWithType<TlaSchema>()
 const RECENT_COMMENTS_LIMIT = 50
 
 /**
+ * Upper bound on the per-file @-mention roster of past viewers, so a heavily-viewed public board
+ * doesn't stream an unbounded set to every collaborator. The composer's autocomplete only ever
+ * shows a handful (see filterMentionMembers / MAX_SUGGESTIONS); this caps what reaches the client,
+ * most-recent viewers first.
+ */
+const MENTIONABLE_VISITORS_LIMIT = 100
+
+/**
  * Synced Queries with permission logic.
  * These replace the old definePermissions API.
  * Permissions are enforced via ctx.userId which is set server-side.
@@ -141,6 +149,31 @@ export const queries = defineQueries({
 				file.whereExists('states', (s) => s.where('userId', '=', ctx.userId))
 			)
 			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
+	),
+
+	/**
+	 * Everyone (besides the caller) who has opened a single file, for the comment composer's
+	 * @-mention roster — so signed-in board viewers, not just workspace members, can be mentioned.
+	 * Reads from file_visitor, a shareable projection of file_state maintained by Postgres triggers
+	 * (migration 044): a deliberately separate table, because file_state also holds private per-user
+	 * data (lastSessionState, visit timestamps) that whole-row sync would leak to every collaborator.
+	 * A file_visitor row exists only for an authenticated user who opened the file, so this is
+	 * inherently signed-in-only; anonymous visitors have none. Identity is denormalized onto the row,
+	 * so no private user row is joined or synced.
+	 *
+	 * Access-gated exactly like {@link fileComments}: the viewer list is exposed only to someone who
+	 * has themselves opened the file. Bounded to {@link MENTIONABLE_VISITORS_LIMIT} most-recent
+	 * viewers so the synced set stays finite on heavily-viewed public boards.
+	 */
+	fileVisitors: defineQuery(({ ctx, args }: { ctx: ZeroContext; args: { fileId: string } }) =>
+		zql.file_visitor
+			.where('fileId', '=', args.fileId)
+			.where('userId', '!=', ctx.userId)
+			.whereExists('file', (file) =>
+				file.whereExists('states', (s) => s.where('userId', '=', ctx.userId))
+			)
+			.orderBy('lastVisitAt', 'desc')
+			.limit(MENTIONABLE_VISITORS_LIMIT)
 	),
 })
 
