@@ -159,7 +159,10 @@
 	position: relative;
 	flex: 1;
 	min-width: 0;
-	padding: 3px 0;
+	/* Frames the input's line height symmetrically so the text sits centred in the field. Paired
+	   with the input's min-height, which equals its line height (no gap for the text to top-align
+	   into). Keeps the field's overall height. */
+	padding: 4.5px 0;
 }
 
 /* The hidden single-line measuring clone of the editor's content (see CommentComposer). */
@@ -181,7 +184,7 @@
 	line-height: 1.4;
 	color: var(--tl-color-text-1);
 	outline: none;
-	min-height: 20px;
+	min-height: 17px;
 	/* Long pastes scroll inside a compact box instead of growing the composer to fill the
 	   screen — ~9 lines, capped further on short viewports. Overflow scrolls (see the wheel
 	   handler in CommentComposer, which keeps a wheel here from panning the canvas). */
@@ -209,7 +212,7 @@
 
 .tlui-cmt-input__placeholder {
 	position: absolute;
-	top: 3px;
+	top: 4.5px;
 	left: 0;
 	font-size: 12px;
 	line-height: 1.4;
