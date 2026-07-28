@@ -445,7 +445,7 @@
 	width: 34px;
 	height: 34px;
 	border: none;
-	border-radius: var(--radius-2);
+	border-radius: var(--tl-radius-2);
 	background: none;
 	font: inherit;
 	font-size: 21px;
