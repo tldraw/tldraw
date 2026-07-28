@@ -581,6 +581,9 @@
 	background: var(--tl-color-muted-2);
 	color: var(--tl-color-text-1);
 }
+.tlui-cmt-thread__action--danger:hover {
+	color: var(--tl-color-danger);
+}
 .tlui-cmt-thread__resolved {
 	padding: 6px 10px;
 	border-radius: 8px;
