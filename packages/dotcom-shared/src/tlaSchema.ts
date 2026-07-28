@@ -61,7 +61,7 @@ export const file_state = table('file_state')
 	.primaryKey('userId', 'fileId')
 
 // A shareable, per-file record of everyone who has opened a board, denormalized from file_state by
-// Postgres triggers (migration 043). Its own table — not columns on file_state — because file_state
+// Postgres triggers (migration 044). Its own table — not columns on file_state — because file_state
 // also carries private per-user data (lastSessionState = camera/selection, visit timestamps) that
 // must never sync to other users; every column here is safe to expose to any file collaborator, so
 // the comment composer can offer past viewers (not just workspace members) as @-mention targets.

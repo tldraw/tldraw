@@ -155,7 +155,7 @@ export const queries = defineQueries({
 	 * Everyone (besides the caller) who has opened a single file, for the comment composer's
 	 * @-mention roster — so signed-in board viewers, not just workspace members, can be mentioned.
 	 * Reads from file_visitor, a shareable projection of file_state maintained by Postgres triggers
-	 * (migration 043): a deliberately separate table, because file_state also holds private per-user
+	 * (migration 044): a deliberately separate table, because file_state also holds private per-user
 	 * data (lastSessionState, visit timestamps) that whole-row sync would leak to every collaborator.
 	 * A file_visitor row exists only for an authenticated user who opened the file, so this is
 	 * inherently signed-in-only; anonymous visitors have none. Identity is denormalized onto the row,
