@@ -292,24 +292,33 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const anonCommentToolOverrides = useAnonCommentToolOverrides()
 	const commentingEnabled = useIsCommentingEnabled()
 
+	// Whether this session may write comments. The server grants object-lane (comment) write access
+	// per session from the file's share tier: an `edit` link gets it, a view-only link doesn't. So a
+	// viewer still sees existing comments, but gets no comment tool, overrides, or composer — the
+	// server rejects any stray write as a backstop. Resolved before the editor mounts, since the
+	// store is already synced by then.
+	const canComment =
+		commentingEnabled && (store.status !== 'synced-remote' || store.objectAccess !== 'read')
+
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
 			InFrontOfTheCanvas: commentingEnabled
-				? () => <CommentsOnCanvas fileId={fileId} />
+				? () => <CommentsOnCanvas fileId={fileId} canComment={canComment} />
 				: undefined,
 		}
-	}, [fileId, commentingEnabled])
+	}, [fileId, commentingEnabled, canComment])
 
 	// Without the tool and its overrides there's no comment button in the toolbar and no `c`
-	// shortcut, so commenting is fully absent for users the flag doesn't cover.
+	// shortcut, so commenting is fully absent for users the flag doesn't cover and for viewers
+	// the file's share tier doesn't let comment.
 	const editorOverrides = useMemo(
 		() =>
-			commentingEnabled
+			canComment
 				? [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides]
 				: [overrides, extraDragIconOverrides],
-		[commentingEnabled, overrides, extraDragIconOverrides, anonCommentToolOverrides]
+		[canComment, overrides, extraDragIconOverrides, anonCommentToolOverrides]
 	)
 
 	return (
@@ -320,7 +329,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
-				tools={commentingEnabled ? tlaCommentTools : undefined}
+				tools={canComment ? tlaCommentTools : undefined}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
