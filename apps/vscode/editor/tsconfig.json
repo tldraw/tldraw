@@ -13,6 +13,8 @@
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
+		// bundlers, not tsc, resolve our side-effect imports of css and other assets
+		"noUncheckedSideEffectImports": false,
 		"noEmit": true,
 		"jsx": "react-jsx",
 		"incremental": true,

@@ -75,7 +75,6 @@ interface TldrawUiContentProps {
 const TldrawUiInner = React.memo(function TldrawUiInner({
 	children,
 	hideUi,
-	...rest
 }: TldrawUiContentProps & { children: ReactNode }) {
 	// The hideUi prop should prevent the UI from mounting.
 	// If we ever need want the UI to mount and preserve state, then
@@ -89,7 +88,7 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 	return (
 		<>
 			{children}
-			{hideUi ? null : <TldrawUiContent {...rest} />}
+			{hideUi ? null : <TldrawUiContent />}
 		</>
 	)
 })

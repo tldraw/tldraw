@@ -49,7 +49,7 @@
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",
-		"typescript": "^5.8.3",
+		"typescript": "^7.0.2",
 		"uuid-by-string": "^4.0.0",
 		"uuid-readable": "^0.0.2",
 		"vitest": "^4.1.7"
