@@ -900,6 +900,15 @@ export class TLFileDurableObject extends DurableObject {
 	// alarm survives, fires, finds no deadline, and renders. One extra render is the right way to be
 	// wrong — the alternative is silently dropping the last edits of a session, which is the exact
 	// staleness this trigger exists to fix.
+	// Mirrors the gate `requestOgRenderForEdit` applies, so the telemetry says which persists actually
+	// cost a thumbnail render rather than which boards happen to be shared.
+	private getSharedStateForTelemetry(): 'shared' | 'private' | 'unknown' | 'legacy' {
+		if (!this.documentInfo.isApp) return 'legacy'
+		const shared = this._fileRecordCache?.shared
+		if (shared === undefined) return 'unknown'
+		return shared ? 'shared' : 'private'
+	}
+
 	private ogRenderDebouncer = new OgRenderDebouncer()
 
 	private scheduleOgRender() {
@@ -926,14 +935,21 @@ export class TLFileDurableObject extends DurableObject {
 	logEvent(event: TLServerEvent) {
 		switch (event.type) {
 			case 'persist_success': {
-				// The room id goes in the index rather than a blob so that distinct-boards-per-minute is
-				// measurable: Analytics Engine samples by index, so each board keeps data points instead of
-				// quiet boards being sampled away inside the volume of busy ones. It has no aggregate for
-				// distinct counts, so the query is `GROUP BY index1` over a short window and count the rows.
-				// Raw rather than hashed (as `room` events already write it) so it joins straight against
-				// `file.id` in Postgres — which is the point: it answers what fraction of actively edited
-				// boards are link-shared, and therefore what the thumbnail render debounce should be.
-				this.writeEvent(event.type, { indexes: [event.roomId], doubles: [event.attempts] })
+				// These two fields exist to size thumbnail rendering, which is driven by exactly this event.
+				//
+				// The room id goes in the index rather than a blob because Analytics Engine samples by
+				// index, so each board keeps data points instead of quiet boards being sampled away inside
+				// the volume of busy ones. It has no aggregate for distinct counts, so the query is
+				// `GROUP BY index1` over a short window and count the rows. Raw rather than hashed, matching
+				// the existing `room` events.
+				//
+				// `sharedState` makes the shared fraction measurable here rather than in Postgres, which
+				// knows which files are shared but not which are being edited.
+				this.writeEvent(event.type, {
+					blobs: [event.sharedState],
+					indexes: [event.roomId],
+					doubles: [event.attempts],
+				})
 				break
 			}
 			case 'room': {
@@ -1420,7 +1436,12 @@ export class TLFileDurableObject extends DurableObject {
 						await this._uploadSnapshotToR2(snapshot, key)
 						await this.persistToPierre(storage, snapshot)
 
-						this.logEvent({ type: 'persist_success', attempts: attempt, roomId: slug })
+						this.logEvent({
+							type: 'persist_success',
+							attempts: attempt,
+							roomId: slug,
+							sharedState: this.getSharedStateForTelemetry(),
+						})
 						this._lastPersistedClock = snapshot.documentClock
 						// The board's content just changed, so its thumbnail is out of date. Push the render
 						// deadline out rather than rendering now: the useful thumbnail is of the settled

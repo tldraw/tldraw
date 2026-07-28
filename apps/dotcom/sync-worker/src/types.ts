@@ -190,6 +190,17 @@ export type TLServerEvent =
 			type: 'persist_success'
 			attempts: number
 			roomId: string
+			/**
+			 * Whether this board is link-shared, and therefore whether editing it costs a thumbnail
+			 * render. Recorded here because the shared fraction of *actively edited* boards is what sizes
+			 * thumbnail spend, and it is not answerable from anywhere else: Postgres knows which files are
+			 * shared but not which are being edited, and asking it would mean scanning a hot table.
+			 *
+			 * `unknown` is an app file whose record has not loaded yet; `legacy` is a non-app room, which
+			 * has no shareable board identity and never renders a thumbnail. Both are kept distinct from
+			 * `private` so the denominator stays honest.
+			 */
+			sharedState: 'shared' | 'private' | 'unknown' | 'legacy'
 	  }
 
 export type TLPostgresReplicatorRebootSource =

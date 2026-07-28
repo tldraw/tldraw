@@ -62,7 +62,7 @@ The debounce is a better fit in shape as well as cost. Cost, for a board edited 
 
 Note the right-hand column: on a bursty board — which the 39s mean gap says is the common case — every mechanism costs the same one render. The debounce is not a saving there; it is a saving on the heavy tail of sustained editing, and it renders the _finished_ burst rather than its first stroke.
 
-Sizing what remains: Browser Run allows 60 new browser instances per minute per account. With a debounce, spend scales with **editing sessions**, not persists and not wall-clock windows, so the quantity to forecast is distinct shared boards starting an editing session per minute. `f` (the link-shared fraction) is answerable from Postgres today via `file.updatedAt`; session shape needs the room id that `persist_success` now carries as `index1`. See "Open questions".
+Sizing what remains: Browser Run allows 60 new browser instances per minute per account. With a debounce, spend scales with **editing sessions**, not persists and not wall-clock windows, so the quantity to forecast is distinct shared boards starting an editing session per minute. Both inputs — the link-shared fraction `f` and the session shape — now ride on `persist_success` (`blob3` and `index1`), so they are Analytics Engine questions rather than database ones. See "Open questions".
 
 ### Request limits
 
@@ -86,7 +86,9 @@ The thing to watch instead of a cap is Browser Rendering's own account limits: a
 
 All three surfaces write `mcp_shared_board_screenshot` events with the same blob layout, so one dashboard covers everything; the source blob distinguishes `mcp` (the tool), `og` (the OG image route), and `queue` (the async consumer). Events record hashed board slug, cache hit/stale/miss, render duration (wall-clock around the browser session), output dimensions, failure reason, rate-limit decisions, a hashed IP, and the trigger that asked for the render. Two dimensions are deliberately kept low-cardinality: the failure reason is always a bounded reason code (`invalid_input`, `not_found`, `board_empty`, `no_pages`, `page_out_of_range`, `rate_limited_ip`/`board`/`global`, `board_not_viewable`, `served_fallback`, `not_rendered_yet`, `browser_failed`, `browser_timeout`, `empty_render`, `not_configured`, `render_error`), never raw `error.message` text; and the hashed IP is written only on failed or rate-limited events (where it's useful for abuse analysis) — successful events carry `ip:none`, so the per-client IP dimension never lands on the common success path. Column layout in the Analytics Engine dataset (`MEASURE`): `blob1` event name, `blob2` worker name, `blob3` source, `blob4` cache status, `blob5` failure reason, `blob6` rate-limit decision, `blob7` hashed IP (or `none`), `blob8` render trigger (`crawler`, `publish`, `edit`, or `none` on the surfaces that have no trigger), `double1`/`double2` output width/height, `double3` render duration ms, `double4` browser ms used, `double5` rate-limit allowed (1/0), `index1` hashed board slug. (The `quickAction` screenshot response includes an `X-Browser-Ms-Used` header, but the worker does not currently read it — telemetry uses wall-clock render duration in `double3` as the spend proxy and writes `double4` as -1. Wiring the header into `double4` is a possible follow-up.)
 
-One event outside that dataset matters for sizing: `persist_success` (same `MEASURE` dataset, written by `TLFileDurableObject.logEvent`) carries the room id in `index1` and the retry attempt count in `double1`. The room id is the index rather than a blob because Analytics Engine samples by index, so a board that persists rarely keeps data points instead of being sampled away inside the volume of a busy one — and it is raw rather than hashed, matching the existing `room` events, so it joins directly against `file.id` in Postgres. That join is what makes the shared fraction `f` measurable. Analytics Engine has no `uniq()`/`count(distinct)`, so distinct boards means `GROUP BY index1` and counting the returned rows.
+One event outside that dataset matters for sizing: `persist_success` (same `MEASURE` dataset, written by `TLFileDurableObject.logEvent`). It fires on exactly the event that triggers a thumbnail render, so it carries what sizing that render needs: `index1` the raw room id, `blob3` the board's `sharedState` (`shared`, `private`, `unknown` for an app file whose record hasn't loaded, `legacy` for a non-app room), and `double1` the retry attempt count.
+
+The room id is the index rather than a blob because Analytics Engine samples by index, so a board that persists rarely keeps data points instead of being sampled away inside the volume of a busy one. Analytics Engine has no `uniq()`/`count(distinct)`, so distinct boards means `GROUP BY index1` and counting the returned rows. `sharedState` is recorded here rather than looked up in Postgres because Postgres knows which files are shared but not which are being edited — see "Open questions".
 
 Bounded reason codes say _that_ a board stopped rendering, never _why_, and every one of these surfaces deliberately swallows its own errors (the OG route falls back to the default image, the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops). So each swallow point also reports the underlying error to Sentry through `reportThumbnailError` (`thumbnailShared.ts`), tagged `thumbnail_surface` with a closed set of values: `og_route`, `og_queue`, `thumbnail_snapshot`, `mcp_board_info`, `mcp_screenshot`. Reporting rides on the handler's `waitUntil` and is itself failure-proof — a missing Sentry env var must never turn a degraded-but-fine response into a 500.
 
@@ -378,34 +380,34 @@ There are two constants to tune, both in `config.ts`. `OG_RENDER_DEBOUNCE_MS` (3
 
 ### Open questions
 
-**These gate the deploy.** The sizing above rests on two unmeasured numbers, and the plausible range spans the account limit, so they want answering before this ships rather than after.
+**These gate the deploy.** The sizing above rests on two unmeasured numbers, and the plausible range spans the account limit, so they want answering before this ships rather than after. Both are answered by telemetry on `persist_success`, which needs a deploy of this branch but nothing else — in particular no query against the production database.
 
-1. **What fraction of actively edited boards are link-shared (`f`)?** This is the multiplier on every render estimate here; the current constants assume `f ≈ 30%`.
+Deliberately not a Postgres question. Postgres knows which files are `shared`, but not which are being _edited_, and the only way to approximate that there is a predicate on `file.updatedAt` — a sequential scan of a hot table to answer a capacity-planning question. `persist_success` fires on exactly the event that triggers a render, so it can carry both facts itself.
 
-   Answerable from Postgres alone, today, without deploying anything: `persistToDatabase` writes `file.updatedAt` on every persist for app files, so it is the same "actively edited" signal the render trigger fires on.
+1. **What fraction of actively edited boards are link-shared (`f`)?** This is the multiplier on every render estimate here; the current constants assume `f ≈ 30%`. `sharedState` (`blob3`) records it at persist time, from the same `_fileRecordCache.shared` the render trigger gates on, so it is persist-weighted — which is the weighting render cost actually has, unlike a per-file count.
 
    ```sql
-   -- f over the last hour. Widen the interval for a stabler number; narrow it for something
-   -- closer to "concurrently edited".
-   SELECT
-     count(*) FILTER (WHERE shared)                                          AS shared_boards,
-     count(*)                                                                AS edited_boards,
-     round(count(*) FILTER (WHERE shared)::numeric / NULLIF(count(*), 0), 4) AS f
-   FROM file
-   WHERE "updatedAt" > (EXTRACT(EPOCH FROM now()) * 1000)::bigint - 3600000
-     AND NOT "isDeleted"
+   -- f = shared / (shared + private). Check the `unknown` and `legacy` rows before trusting it:
+   -- `legacy` is non-app rooms, which never render; a large `unknown` means file records often
+   -- aren't loaded at persist time and the ratio is standing on a thin denominator.
+   SELECT blob3 AS shared_state, SUM(_sample_interval) AS persists
+   FROM MEASURE
+   WHERE blob1 = 'persist_success'
+     AND blob2 = 'production-tldraw-multiplayer'
+     AND timestamp > NOW() - INTERVAL '1' HOUR
+   GROUP BY shared_state
    ```
 
-   One caveat: this weights every board equally, while render cost is weighted by how much each board is edited. If shared boards are edited harder than private ones, the true multiplier is higher than this `f`. Correcting for that needs per-board persist volume, which is what the `index1` on `persist_success` provides once deployed:
+   For the board-weighted figure instead — distinct shared boards rather than persists — group by `index1` with `blob3 = 'shared'` and count the returned rows.
 
    ```sql
-   -- Analytics Engine: persists per board. No uniq()/count(distinct) exists here — GROUP BY
-   -- and count the returned rows for distinct boards. Join the ids against file.shared to get
-   -- a persist-weighted f.
+   -- Persists per board. No uniq()/count(distinct) exists in Analytics Engine, so GROUP BY and
+   -- count the rows. This is also the input to question 2.
    SELECT index1 AS room_id, SUM(_sample_interval) AS persists
    FROM MEASURE
    WHERE blob1 = 'persist_success'
      AND blob2 = 'production-tldraw-multiplayer'
+     AND blob3 = 'shared'
      AND timestamp > NOW() - INTERVAL '1' HOUR
    GROUP BY room_id
    ```
