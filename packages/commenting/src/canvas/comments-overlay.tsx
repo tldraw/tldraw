@@ -147,8 +147,8 @@ const CLUSTER_EXPAND_ZOOM_MS = 450
 
 /** The leading element for the placement composer — the comment pin's shape, but a pencil
  *  instead of an initial, marking an unsent draft. */
-const draftAvatar = (color?: string) => (
-	<CommentPin color={color}>
+const draftAvatar = (
+	<CommentPin>
 		<svg
 			viewBox="0 0 24 24"
 			width="15"
@@ -1617,7 +1617,7 @@ function PendingComposer({
 					getMentionSuggestions={getMentionSuggestions}
 					renderMentionSuggestion={renderMentionSuggestion}
 					autoFocus
-					leading={draftAvatar(me?.color)}
+					leading={draftAvatar}
 				/>
 			) : (
 				ComposerFallback && <ComposerFallback context="pending" />

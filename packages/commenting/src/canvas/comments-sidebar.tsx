@@ -85,7 +85,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		(thread) => !filters.onlyCurrentPage || thread.pageId === currentPageId
 	)
 
-	const items: CommentListItemProps[] = pageThreads
+	const rows: SidebarRow[] = pageThreads
 		.filter((thread) => filters.showResolved || thread.resolved == null)
 		// "Only mine" is ignored without a known user — otherwise a persisted onlyMine=true would
 		// empty the list for a signed-out viewer, with the (hidden) toggle giving no way to clear it.
@@ -103,6 +103,8 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		.map((thread) => {
 			const threadComments = byThread.get(thread.id) ?? []
 			const first = threadComments[0]
+			// Comments arrive oldest-first, so the last one is the thread's most recent activity.
+			const last = threadComments[threadComments.length - 1]
 			let preview: ReactNode = ''
 			// The `ThreadPreview` component slot overrides the built-in plaintext default.
 			const ThreadPreview = options.components.ThreadPreview
@@ -114,26 +116,26 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				)
 			}
 			return {
-				id: thread.id,
-				author: resolveAuthor(thread.createdBy) ?? UNKNOWN_COMMENT_AUTHOR,
-				preview,
-				date: new Date((first ?? thread).createdAt).toISOString(),
-				resolved: thread.resolved != null,
-				// The page label only earns its place when it adds information: multiple pages
-				// exist, and the thread is somewhere other than where you already are.
-				page:
-					pageNames.size > 1 && thread.pageId !== currentPageId
-						? pageNames.get(thread.pageId)
-						: undefined,
-				count: threadComments.length,
-				selected: openId === thread.id,
+				item: {
+					id: thread.id,
+					author: resolveAuthor(thread.createdBy) ?? UNKNOWN_COMMENT_AUTHOR,
+					preview,
+					date: new Date((first ?? thread).createdAt).toISOString(),
+					resolved: thread.resolved != null,
+					// The page label only earns its place when it adds information: multiple pages
+					// exist, and the thread is somewhere other than where you already are.
+					page:
+						pageNames.size > 1 && thread.pageId !== currentPageId
+							? pageNames.get(thread.pageId)
+							: undefined,
+					count: threadComments.length,
+					selected: openId === thread.id,
+				},
+				lastActivity: (last ?? thread).createdAt,
 			}
 		})
-		// unresolved first, then most-recent first
-		.sort((a, b) => {
-			if (!!a.resolved !== !!b.resolved) return a.resolved ? 1 : -1
-			return b.date.localeCompare(a.date)
-		})
+
+	const items = sortSidebarRows(rows).map((row) => row.item)
 
 	const focus = (id: string) => {
 		const thread = threads.find((t) => t.id === id)
@@ -165,6 +167,28 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				onSelect={focus}
 			/>
 		</SidebarPanel>
+	)
+}
+
+/** A list row paired with the sort key that isn't part of what the row displays. */
+interface SidebarRow {
+	item: CommentListItemProps
+	/** When the thread's most recent comment was posted — what the list orders by. */
+	lastActivity: number
+}
+
+/**
+ * Order the list: unresolved threads first, then by most recent activity, id as a stable tiebreak.
+ * Recency is the thread's *latest* comment, not its first, so a thread someone just replied to rises
+ * to the top instead of staying wherever it was started. (The row still shows the thread's opening
+ * comment and its date — that's what identifies the thread; only the ordering follows the replies.)
+ */
+export function sortSidebarRows(rows: readonly SidebarRow[]): readonly SidebarRow[] {
+	return [...rows].sort(
+		(a, b) =>
+			Number(!!a.item.resolved) - Number(!!b.item.resolved) ||
+			b.lastActivity - a.lastActivity ||
+			(a.item.id < b.item.id ? -1 : 1)
 	)
 }
 

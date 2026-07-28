@@ -92,10 +92,19 @@ export function anchorPagePoint(
  * geometry reports a positive distance for every point off the stroke, so a zero margin only
  * matches a pixel-perfect click right on the line.
  *
+ * `hitFrameInside` lets a click inside a frame's body anchor to the frame — without it a frame is
+ * hit only on its edge/label (the select-tool convention), so the frame's interior would fall
+ * through to a bare point. A child shape under the pointer still wins (children sort above the
+ * frame), so only a frame's empty interior anchors the frame.
+ *
  * @internal
  */
 export function commentTargetShapeAt(editor: Editor, page: VecLike): TLShape | undefined {
-	return editor.getShapeAtPoint(page, { hitInside: true, margin: editor.getHitTestMargin() })
+	return editor.getShapeAtPoint(page, {
+		hitInside: true,
+		hitFrameInside: true,
+		margin: editor.getHitTestMargin(),
+	})
 }
 
 /**

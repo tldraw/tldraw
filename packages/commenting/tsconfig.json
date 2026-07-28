@@ -15,6 +15,9 @@
 	},
 	"references": [
 		{
+			"path": "../driver"
+		},
+		{
 			"path": "../mentions"
 		},
 		{

@@ -702,7 +702,6 @@ export function SendButton({ label, disabled, onClick }: SendButtonProps): JSX.E
 export interface SendButtonProps {
     // (undocumented)
     disabled?: boolean;
-    // (undocumented)
     label: string;
     // (undocumented)
     onClick?(): void;

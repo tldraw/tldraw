@@ -82,15 +82,6 @@ export function toCardProps(
 	}
 }
 
-/**
- * The header block a thread popover carries and a header-less preview (a stack or cluster list)
- * does not: an action-row-tall header plus the column gap beneath it. The single-pin preview's
- * root is shifted down by exactly this in CSS (`--tlui-cmt-thread-header-height` +
- * `--tlui-cmt-thread-gap`) so its comment lands where the opened popover's does; this JS copy lets
- * the pin popover offset be derived from the list offset. Keep the two in sync — same pixels.
- */
-const THREAD_HEADER_SHIFT = 32
-
 /** Every marker is this square (mirrors `--tlui-cmt-marker-size`). Needed because the two marker
  *  kinds anchor at different points, and lining their previews up means correcting for that. */
 const MARKER_SIZE = 34
@@ -116,11 +107,10 @@ export const POPOVER_OFFSET = {
 	/**
 	 * A single pin's thread popover. Its preview should read level with a cluster/stack preview's
 	 * top card, so start from the list offset and re-base it to the pin's bottom anchor:
-	 * `- MARKER_SIZE / 2` accounts for the pin's point sitting half a marker below a badge's, and
-	 * `- THREAD_HEADER_SHIFT` cancels the downward shift the preview's own stylesheet applies to
-	 * make room for the missing header. The opened popover shares the offset and opens from there.
+	 * `- MARKER_SIZE / 2` accounts for the pin's point sitting half a marker below a badge's. The
+	 * opened popover shares the offset and opens from there.
 	 */
-	thread: { x: 48, y: LIST_OFFSET.y - MARKER_SIZE / 2 - THREAD_HEADER_SHIFT },
+	thread: { x: 48, y: LIST_OFFSET.y - MARKER_SIZE / 2 },
 	list: LIST_OFFSET,
 } as const
 
@@ -428,7 +418,6 @@ export function ThreadView({
 
 	return (
 		<CommentThread
-			header={msg('comments.thread-title')}
 			headerActions={headerActions}
 			renderComment={renderComment}
 			comments={comments.map((c) => toCardProps(c, props, options.components, resolveName))}
