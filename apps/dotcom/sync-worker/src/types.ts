@@ -120,6 +120,11 @@ export interface Environment {
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
+	// Development only: a local HTTP screenshot service to use instead of the BROWSER binding, which
+	// cannot reach Browser Run in local dev. Set in [env.dev.vars] to the client dev server's
+	// screenshot endpoint; unset everywhere else, which is what keeps deployed environments on
+	// Browser Run.
+	LOCAL_SCREENSHOT_SERVICE_URL: string | undefined
 }
 
 export function isDebugLogging(env: Environment) {

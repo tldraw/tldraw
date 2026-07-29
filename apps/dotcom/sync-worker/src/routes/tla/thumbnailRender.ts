@@ -204,6 +204,16 @@ async function renderThumbnailScreenshot(
 	renderUrl: string,
 	{ width, height }: { width: number; height: number }
 ): Promise<{ base64: string; durationMs: number }> {
+	// Local dev has no route to Browser Run, so it points this at a screenshot service instead (the
+	// client's dev server, which can drive Playwright). Selected on the var being set rather than on
+	// an environment name, so only an environment that configures one can take this path.
+	if (env.LOCAL_SCREENSHOT_SERVICE_URL) {
+		return renderViaLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, renderUrl, {
+			width,
+			height,
+		})
+	}
+
 	if (!env.BROWSER) {
 		throw new Error(
 			'Browser Rendering is not configured. Set the BROWSER binding (local dev needs Cloudflare credentials).'
@@ -226,6 +236,51 @@ async function renderThumbnailScreenshot(
 
 	if (!response.ok) {
 		throw new Error(`Browser Rendering screenshot failed (${response.status})`)
+	}
+	const buffer = await response.arrayBuffer()
+	if (buffer.byteLength === 0) {
+		throw new Error('Render produced an empty screenshot')
+	}
+	return { base64: arrayBufferToBase64(buffer), durationMs }
+}
+
+// Development stand-in for the Browser Rendering call above. It is sent the very same request body,
+// so the wait strategy, capture target, and timeout cannot drift between the two, and it returns the
+// same PNG bytes — everything either side of this call is the production path. The browser is a
+// local Playwright one though, not Browser Run, so a render that works here is not evidence that it
+// works in production.
+async function renderViaLocalScreenshotService(
+	serviceUrl: string,
+	renderUrl: string,
+	{ width, height }: { width: number; height: number }
+): Promise<{ base64: string; durationMs: number }> {
+	const startedAt = Date.now()
+	const response = await fetch(serviceUrl, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify(
+			getThumbnailScreenshotRequestBody({
+				renderUrl,
+				width,
+				height,
+				timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+			})
+		),
+	})
+	const durationMs = Date.now() - startedAt
+
+	if (!response.ok) {
+		throw new Error(
+			`Local screenshot service failed (${response.status}): ${await response.text()}`
+		)
+	}
+	// A dev server that has not loaded the screenshot plugin answers this path with the client's
+	// index.html — a 200 full of bytes that would otherwise be cached as if it were a thumbnail.
+	const contentType = response.headers.get('content-type') ?? ''
+	if (!contentType.includes('image/png')) {
+		throw new Error(
+			`Local screenshot service returned ${contentType || 'no content type'}, expected image/png. Is the client dev server running with the thumbnail screenshot plugin?`
+		)
 	}
 	const buffer = await response.arrayBuffer()
 	if (buffer.byteLength === 0) {

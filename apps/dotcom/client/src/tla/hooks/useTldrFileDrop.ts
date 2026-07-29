@@ -3,6 +3,7 @@ import { DragEvent, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tlmenus } from 'tldraw'
 import { routes } from '../../routeDefs'
+import { useRejectTldrawOfflineFiles } from '../utils/tldrawOfflineFiles'
 import { useApp } from './useAppState'
 
 export function useTldrFileDrop() {
@@ -10,6 +11,7 @@ export function useTldrFileDrop() {
 	const navigate = useNavigate()
 
 	const auth = useAuth()
+	const rejectTldrawOfflineFiles = useRejectTldrawOfflineFiles()
 
 	const onDrop = useCallback(
 		async (e: DragEvent) => {
@@ -19,7 +21,7 @@ export function useTldrFileDrop() {
 			}
 
 			if (!e.dataTransfer?.files?.length) return
-			const files = Array.from(e.dataTransfer.files)
+			const files = rejectTldrawOfflineFiles(Array.from(e.dataTransfer.files))
 			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
 			if (!tldrawFiles.length) {
 				return
@@ -28,7 +30,7 @@ export function useTldrFileDrop() {
 				navigate(routes.tlaFile(fileId))
 			})
 		},
-		[app, auth, navigate]
+		[app, auth, navigate, rejectTldrawOfflineFiles]
 	)
 
 	const onDragOver = useCallback((e: DragEvent) => {
