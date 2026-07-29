@@ -101,6 +101,7 @@ export { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './canvas/sidebar-f
 export {
 	commentsHidden,
 	commentsSidebarOpen,
+	getRevealThreadPending,
 	openThreadId,
 	revealThread,
 	sidebarFilters,

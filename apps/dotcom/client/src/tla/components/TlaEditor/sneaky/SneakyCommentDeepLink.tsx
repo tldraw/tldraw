@@ -1,5 +1,6 @@
 import {
 	getCommentRecord,
+	getRevealThreadPending,
 	revealThread,
 	useCommentingEnabled,
 	useRevealThreadPending,
@@ -54,6 +55,10 @@ export function SneakyCommentDeepLink() {
 	useEffect(() => {
 		if (!isReady || !commentingEnabled || !pendingRevealId) return
 		const timer = setTimeout(() => {
+			// Re-read rather than trusting the render we closed over: the request can clear inside the
+			// grace period — the overlay unmounting drops it without the records ever arriving — and
+			// this timer can still fire in the gap before React re-runs the effect and cancels it.
+			if (getRevealThreadPending(editor) !== pendingRevealId) return
 			if (getCommentRecord(editor, pendingRevealId)) return
 			addToast({ id: 'comment-deep-link-deleted', severity: 'info', title: deletedMsg })
 			if (app?.getComments().some((c) => c.id === pendingRevealId)) {

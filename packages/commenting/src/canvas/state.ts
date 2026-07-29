@@ -63,17 +63,33 @@ export function revealThread(editor: Editor, threadOrCommentId: string): void {
 
 /**
  * The id passed to the most recent {@link revealThread} call that `CanvasComments` hasn't served
- * yet, or null when there's nothing outstanding. It clears the moment the thread opens.
+ * yet, or null when there's nothing outstanding. A request also clears when `CanvasComments`
+ * unmounts, since nothing is left to serve it.
+ *
+ * This is a plain, untracked read. In React, use {@link useRevealThreadPending} — but reach for
+ * this one inside a timer or callback that needs the value as of *now* rather than as of the
+ * render it closed over.
+ *
+ * @public
+ */
+export function getRevealThreadPending(editor: Editor): string | null {
+	return revealThreadRequest.get(editor)
+}
+
+/**
+ * Reactive React hook for {@link getRevealThreadPending}.
  *
  * Use it to notice a reveal that never lands — most often a deep link to a comment that has since
  * been deleted. Give it a grace period before you act: a request also sits here while its records
- * are still syncing in, which is the normal case on a cold load.
+ * are still syncing in, which is the normal case on a cold load. Re-check with
+ * {@link getRevealThreadPending} when the grace period elapses, since the request can clear inside
+ * it without this hook's value having caught up yet.
  *
  * @public
  */
 export function useRevealThreadPending(): string | null {
 	const editor = useEditor()
-	return useValue('pending reveal thread', () => revealThreadRequest.get(editor), [editor])
+	return useValue('pending reveal thread', () => getRevealThreadPending(editor), [editor])
 }
 
 /** The region rectangle being dragged out right now (page coords), or null when not dragging. The

@@ -408,7 +408,7 @@ import { revealThread } from '@tldraw/commenting'
 revealThread(editor, commentId)
 ```
 
-An unserved request is inert, so it's safe to call before the records have synced in. `useRevealThreadPending` returns the id of a request that hasn't been served yet, which is how you notice a deep link to a comment that no longer exists — give it a grace period first, since a request also sits there while its records are still arriving.
+An unserved request is inert, so it's safe to call before the records have synced in. `useRevealThreadPending` returns the id of a request that hasn't been served yet, which is how you notice a deep link to a comment that no longer exists — give it a grace period first, since a request also sits there while its records are still arriving, and re-check with `getRevealThreadPending(editor)` when the grace period elapses so you don't act on a request that cleared inside it.
 
 For a thread you already hold, `focusThread(editor, thread)` centers and opens it directly.
 

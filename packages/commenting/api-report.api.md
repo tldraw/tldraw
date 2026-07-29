@@ -398,6 +398,9 @@ export function getComments(editor: Editor): TLComment[];
 export function getCommentThreads(editor: Editor): TLCommentThread[];
 
 // @public
+export function getRevealThreadPending(editor: Editor): null | string;
+
+// @public
 export function isAllowedReactionEmoji(emoji: string, palette?: readonly string[]): boolean;
 
 export { Mention }
