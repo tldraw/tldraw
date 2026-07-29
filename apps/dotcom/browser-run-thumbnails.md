@@ -114,6 +114,18 @@ That one-way-ness is also why `sharedState` has to be recorded at write time rat
 
 Bounded reason codes say _that_ a board stopped rendering, never _why_, and every one of these surfaces deliberately swallows its own errors (the OG route falls back to the default image, the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops). So each swallow point also reports the underlying error to Sentry through `reportThumbnailError` (`thumbnailShared.ts`), tagged `thumbnail_surface` with a closed set of values: `og_route`, `og_queue`, `thumbnail_snapshot`, `mcp_board_info`, `mcp_screenshot`. Reporting rides on the handler's `waitUntil` and is itself failure-proof — a missing Sentry env var must never turn a degraded-but-fine response into a 500.
 
+#### No board identifier leaves this pipeline
+
+A board appears in telemetry, in a log line, and in a Sentry event as **one thing only: its durable object id**, via `boardDurableObjectId`. `idFromName` is one-way, so it names a board without carrying the ability to open one. A raw identifier does: for a link-shared file the slug _is_ the file id, and `tldraw.com/f/<id>` is the capability to view a board somebody chose to share by link rather than publish. Resolution in the useful direction still works from an id you already hold (`env.TLDR_DOC.idFromName('/r/' + slug)`), so "is this the board that keeps failing?" stays answerable for a board in hand while the record alone names none.
+
+That covers three routes out, and the third was the sharp one:
+
+- **Telemetry** never had the problem — `index1` has always been the durable object id, derived from the file id.
+- **Sentry extras** carried raw `slug`/`boardId` at six call sites. They now carry `board`, the derived id, computed from the resolved `fileId` where there is one and from the request's identifier otherwise.
+- **The request object** is no longer handed to `createSentry` at all. It passes one straight to Toucan with `allowedSearchParams: /(.*)/`, which records the full URL and every query parameter — and on these routes the URL is the sensitive part. `/app/social-preview/f/<id>/image` carries a link-shared file's id in its path, and `/api/app/thumbnail-render/snapshot?token=…` carries a signed render token, which is a live capability to read that board's entire snapshot until it expires. `reportThumbnailError` now takes only the method and user agent from the request; the `thumbnail_surface` tag already says which endpoint it was.
+
+`TLFileDurableObject`'s render log had the same issue and now logs `this.ctx.id`, which is exactly what `getRoomDurableObjectId` derives — the joinable id without the slug.
+
 #### Reading a Browser Run failure
 
 `422 Unprocessable Entity` is the status to expect from a failed capture, and on its own it says almost nothing. Cloudflare answers 422 for [every "the page did not cooperate" outcome](https://developers.cloudflare.com/browser-run/faq/): a page that crashed, a render that exhausted the container's memory, and any of the [Quick Action timers](https://developers.cloudflare.com/browser-run/reference/timeouts/) expiring. Our own render page marking `data-thumbnail-error` arrives as one too, because the capture selector (`body[data-thumbnail-ready="true"]`) exists only on the success path — that is the design working, and it is indistinguishable by status from the cases that aren't.

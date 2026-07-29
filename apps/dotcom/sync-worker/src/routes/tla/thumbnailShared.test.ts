@@ -96,14 +96,14 @@ describe('reportThumbnailError', () => {
 			ctx: undefined,
 			env: {} as Environment,
 			surface: 'og_queue',
-			extras: { kind: 'published', slug: 'board' },
+			extras: { kind: 'published', board: 'do(/r/file-1)' },
 		})
 
 		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
 			'[thumbnails:og_queue]',
 			{
 				kind: 'published',
-				slug: 'board',
+				board: 'do(/r/file-1)',
 				browser_render_status: 422,
 				browser_render_detail: 'Navigation timeout of 45000 ms exceeded',
 				browser_render_duration_ms: 45_100,
@@ -129,6 +129,38 @@ describe('reportThumbnailError', () => {
 		})
 	})
 
+	// The request is used for its method and user agent and nothing else. It is deliberately never
+	// handed to createSentry, which passes one to Toucan with `allowedSearchParams: /(.*)/` — that
+	// would record the full URL and every query parameter, and on these routes the URL is the
+	// sensitive part: a link-shared file's id sits in the OG route's path, and a signed render token
+	// (a live capability to read the board's whole snapshot) sits in the snapshot route's query.
+	it('takes no URL or query parameter from the request', () => {
+		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const request = new Request(
+			'https://sync.tldraw.xyz/api/app/thumbnail-render/snapshot?token=super-secret-render-token',
+			{ headers: { 'user-agent': 'Twitterbot/1.0' } }
+		)
+
+		reportThumbnailError(new Error('nope'), {
+			ctx: undefined,
+			env: {} as Environment,
+			request,
+			surface: 'thumbnail_snapshot',
+			extras: { kind: 'shared_file' },
+		})
+
+		const context = consoleError.mock.calls[0]![1]
+		expect(context).toEqual({
+			kind: 'shared_file',
+			request_method: 'GET',
+			request_user_agent: 'Twitterbot/1.0',
+		})
+		const serialised = JSON.stringify(context)
+		expect(serialised).not.toContain('super-secret-render-token')
+		expect(serialised).not.toContain('thumbnail-render')
+		expect(serialised).not.toContain('sync.tldraw.xyz')
+	})
+
 	it('leaves errors that are not render failures alone', () => {
 		const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const error = new BoardSnapshotReadError('postgres is down')
@@ -137,12 +169,12 @@ describe('reportThumbnailError', () => {
 			ctx: undefined,
 			env: {} as Environment,
 			surface: 'og_queue',
-			extras: { slug: 'board' },
+			extras: { board: 'do(/r/file-1)' },
 		})
 
 		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
 			'[thumbnails:og_queue]',
-			{ slug: 'board' },
+			{ board: 'do(/r/file-1)' },
 			error
 		)
 	})

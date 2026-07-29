@@ -16,6 +16,7 @@ import {
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
 import {
+	boardDurableObjectId,
 	browserRunDurationOf,
 	classifyScreenshotFailure,
 	reportThumbnailError,
@@ -251,7 +252,11 @@ export async function handleOgImageRenderMessage(
 				ctx,
 				env,
 				surface: 'og_queue',
-				extras: { kind, slug, attempts: message.attempts },
+				extras: {
+					kind,
+					board: boardDurableObjectId(env, fileId ?? slug),
+					attempts: message.attempts,
+				},
 			})
 		}
 		// A board that went private between the resolve above and the snapshot read is retried rather

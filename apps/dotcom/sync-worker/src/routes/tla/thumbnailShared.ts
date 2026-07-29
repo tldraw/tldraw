@@ -1,5 +1,6 @@
 import { createSentry } from '@tldraw/worker-shared'
 import { Environment } from '../../types'
+import { getRoomDurableObjectId } from '../../utils/durableObjects'
 
 // Leaf helpers shared by the board-reading and thumbnail/OG-image surfaces
 // (get{Published,SharedFile}, the render core in thumbnailRender.ts, sharedBoardScreenshotMcp.ts,
@@ -48,9 +49,40 @@ export class BrowserRenderError extends Error {
 	}
 }
 
+/**
+ * A board's durable object id — the only form a board identifier may take in telemetry, in a log
+ * line, or in a Sentry event.
+ *
+ * `idFromName` is one-way, so this names a board without carrying the ability to open it, which a
+ * raw identifier does. For a link-shared file the slug *is* the file id and `tldraw.com/f/<id>` is
+ * the capability to view it, so writing one into an account-readable dataset or a log sink hands out
+ * working access to a board somebody chose to share by link rather than publish.
+ *
+ * It is also the value `TLFileDurableObject.writeEvent` stamps on its events, so a Sentry event and
+ * the `mcp_shared_board_screenshot` datapoints for the same board line up.
+ *
+ * Resolution in the useful direction still works from an id you already hold —
+ * `env.TLDR_DOC.idFromName('/r/' + slug)` — so "is this the board that keeps failing?" stays
+ * answerable for a board in hand, while the record alone names none.
+ *
+ * Prefer the **file** id where there is one: a published board's slug addresses no durable object,
+ * so passing one mints a well-formed id that joins to nothing. Passing it is still far better than
+ * recording it raw.
+ */
+export function boardDurableObjectId(env: Environment, id: string | undefined): string | undefined {
+	if (!id) return undefined
+	try {
+		return getRoomDurableObjectId(env, id).toString()
+	} catch {
+		// Never break a render path, or an error report, for the sake of an identifier. The binding is
+		// present in every deployed environment; this covers unconfigured ones.
+		return undefined
+	}
+}
+
 // Hex SHA-256 of a string. Used to hash client IPs before they reach telemetry, so a raw address is
 // never written to the analytics dataset. Boards are identified there by their durable object id
-// instead, which is already one-way (see boardIndexOf in thumbnailRender.ts).
+// instead, which is already one-way (see boardDurableObjectId above).
 export async function sha256(value: string) {
 	const bytes = new TextEncoder().encode(value)
 	const digest = await crypto.subtle.digest('SHA-256', bytes)
@@ -164,8 +196,20 @@ export function reportThumbnailError(
 	}
 ) {
 	try {
-		const context = { ...extras, ...browserRenderContextOf(error) }
-		const sentry = ctx ? createSentry(ctx, env, request) : null
+		const context = {
+			...extras,
+			...safeRequestContext(request),
+			...browserRenderContextOf(error),
+		}
+		// `request` is deliberately NOT handed to createSentry. It passes one straight to Toucan with
+		// `allowedSearchParams: /(.*)/`, which records the full URL and every query parameter — and on
+		// these routes the URL is the sensitive part. `/app/social-preview/f/<id>/image` carries a
+		// link-shared file's id in its path, and the render-snapshot route carries a signed render token
+		// in its query string, which is a live capability to read that board's entire contents until it
+		// expires. Neither belongs in an error tracker. What the request usefully contributes is taken
+		// by safeRequestContext instead, and the `thumbnail_surface` tag already says which endpoint
+		// this was.
+		const sentry = ctx ? createSentry(ctx, env) : null
 		if (!sentry) {
 			console.error(`[thumbnails:${surface}]`, context, error)
 			return
@@ -188,6 +232,19 @@ export function reportThumbnailError(
 // event as context rather than as a new issue per distinct detail string. Without these an event
 // says only "Browser Rendering screenshot failed (422)", which is true of a crashed page, an
 // out-of-memory render, and a timeout alike — everything that would tell them apart is here.
+// The parts of a request that are worth attaching and carry no board identity. The URL is excluded
+// on purpose (see the note at the call site); the user agent is kept because on the OG route it says
+// which crawler tripped over the board, and the method because a HEAD probe and a GET behave
+// differently there. The client IP is not taken: telemetry records a hash of it, and only on
+// failures, which is the one place it earns its keep.
+function safeRequestContext(request: Request | undefined): Record<string, unknown> | null {
+	if (!request) return null
+	return {
+		request_method: request.method,
+		request_user_agent: request.headers.get('user-agent') ?? 'none',
+	}
+}
+
 function browserRenderContextOf(error: unknown): Record<string, unknown> | null {
 	if (!(error instanceof BrowserRenderError)) return null
 	return {

@@ -14,6 +14,7 @@ import {
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
 import {
+	boardDurableObjectId,
 	browserRunDurationOf,
 	classifyScreenshotFailure,
 	describeThumbnailFailure,
@@ -317,7 +318,7 @@ async function callBoardInfoTool(
 			env,
 			request,
 			surface: 'mcp_board_info',
-			extras: { boardId: input.boardId },
+			extras: { board: boardDurableObjectId(env, input.boardId) },
 		})
 		return toolError(
 			`Could not read board info: ${describeThumbnailFailure(classifyScreenshotFailure(error))}.`
@@ -468,7 +469,11 @@ async function callSharedBoardScreenshotTool(
 				env,
 				request,
 				surface: 'mcp_screenshot_cache_write',
-				extras: { boardId: input.boardId, page: input.page, theme: input.theme },
+				extras: {
+					board: boardDurableObjectId(env, fileId ?? input.boardId),
+					page: input.page,
+					theme: input.theme,
+				},
 			})
 		}
 
@@ -485,7 +490,11 @@ async function callSharedBoardScreenshotTool(
 			env,
 			request,
 			surface: 'mcp_screenshot',
-			extras: { boardId: input.boardId, page: input.page, theme: input.theme },
+			extras: {
+				board: boardDurableObjectId(env, fileId ?? input.boardId),
+				page: input.page,
+				theme: input.theme,
+			},
 		})
 		const failureReason = classifyScreenshotFailure(error)
 		// A capture that failed still held a browser, so its duration belongs on the datapoint the same

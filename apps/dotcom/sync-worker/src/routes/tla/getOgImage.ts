@@ -7,7 +7,7 @@ import {
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
-import { reportThumbnailError } from './thumbnailShared'
+import { boardDurableObjectId, reportThumbnailError } from './thumbnailShared'
 
 // A pure read. Two questions and nothing else: is this board publicly viewable (published, or shared
 // via link), and does a thumbnail for it exist? Both yes, serve it. Anything else, serve the
@@ -49,7 +49,12 @@ export async function getOgImage(
 			env,
 			request,
 			surface: 'og_route',
-			extras: { prefix: request.params.prefix, slug: request.params.slug },
+			// The one-way durable object id, never the slug: for a link-shared file the slug is the
+			// file id, which is the capability to view the board.
+			extras: {
+				prefix: request.params.prefix,
+				board: boardDurableObjectId(env, request.params.slug),
+			},
 		})
 		return null
 	})
