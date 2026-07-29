@@ -1,7 +1,7 @@
 ---
 title: Commenting
-created_at: 07/27/2026
-updated_at: 07/27/2026
+created_at: 7/27/2026
+updated_at: 7/27/2026
 keywords:
   - comment
   - comments
@@ -14,7 +14,7 @@ keywords:
   - reaction
   - collaboration
 status: published
-date: 07/27/2026
+date: 7/27/2026
 ---
 
 In tldraw, a comment is a message pinned to a place on the canvas. Comments group into threads, one conversation per pin. Every comment records who wrote it and comments can mention other people.
@@ -59,7 +59,7 @@ export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
-				licenseKey={YOUR_LICENSE_KEY}
+				licenseKey="your-license-key"
 				store={store}
 				tools={commentTools}
 				overrides={[commentToolOverrides]}
@@ -77,9 +77,12 @@ Comments are records in the editor's store, exactly like shapes. `commentSchemaR
 Mount the layer through the `InFrontOfTheCanvas` component slot so it sits above the canvas but below the UI, and import `commenting.css` alongside `tldraw.css`.
 
 <Callout type="warning">
-	Without a license key that includes commenting, every commenting component renders nothing in
-	production. The feature is fully enabled in development, so a missing key shows up as a blank
-	canvas after you deploy. See [License key](/sdk-features/license-key).
+	Without a license key that includes commenting, the commenting UI disappears in production: the
+	toolbar button, the `C` and `Shift+C` shortcuts, and the comments layer all render nothing. The
+	rest of the editor is unaffected, so the symptom is a canvas you can draw on with no way to
+	comment on it. The feature is fully enabled in development, so this only shows up once you deploy.
+	To branch on it yourself — hiding your own commenting affordances to match — read
+	`useCommentingEnabled()`. See [License key](/sdk-features/license-key).
 </Callout>
 
 ## Placing comments
@@ -274,20 +277,20 @@ CommentTool.configure({
 
 `CanvasCommentsSidebar` lists comment threads in a panel beside the canvas. Clicking a row brings that thread's pin into view and opens it.
 
-Its open state is a signal you drive, so the toggle lives wherever your app wants it:
+Its open state is a signal you drive, so the toggle lives wherever your app wants it. `useCommentsSidebarOpen` reads it and `toggleCommentsSidebar` flips it; the underlying `commentsSidebarOpen` atom is exported too, for code that has an editor but no React context:
 
 ```tsx
 import {
 	CanvasComments,
 	CanvasCommentsSidebar,
-	commentsSidebarOpen,
 	toggleCommentsSidebar,
+	useCommentsSidebarOpen,
 } from '@tldraw/commenting'
-import { TldrawUiButton, TldrawUiButtonLabel, useEditor, useValue } from 'tldraw'
+import { TldrawUiButton, TldrawUiButtonLabel, useEditor } from 'tldraw'
 
 function SidebarToggle() {
 	const editor = useEditor()
-	const open = useValue('sidebar open', () => commentsSidebarOpen.get(editor), [editor])
+	const open = useCommentsSidebarOpen()
 	return (
 		<TldrawUiButton type="normal" onClick={() => toggleCommentsSidebar(editor)}>
 			<TldrawUiButtonLabel>{open ? 'Hide comments' : 'Comments'}</TldrawUiButtonLabel>
@@ -322,7 +325,7 @@ The layer doesn't track who has read what. That data lives in your app. Supply i
 />
 ```
 
-Unread state drives the pin badges and the sidebar's unread filter. Without `isCommentUnread`, both are hidden. `onPostComment` fires after any comment is posted, which is where notifications and mention emails belong.
+Unread state drives the pin badges and the sidebar's unread filter. Without `isCommentUnread`, both are hidden. `onPostComment` fires when this user posts a comment through one of the built-in composers — a new thread or a reply — which is where notifications and mention emails belong. It does not fire for comments arriving over sync, so the sender is the one who notifies.
 
 ## Custom components
 
@@ -504,10 +507,10 @@ Every option below is set with `CommentTool.configure()`. Anything you leave uns
 
 ### History
 
-| Option        | Default    | Description                                      |
-| ------------- | ---------- | ------------------------------------------------ |
-| `history`     | `'ignore'` | How comment writes interact with the undo stack. |
-| `dragHistory` | `history`  | History mode for pin drags specifically.         |
+| Option        | Default     | Description                                                             |
+| ------------- | ----------- | ----------------------------------------------------------------------- |
+| `history`     | `'ignore'`  | How comment writes interact with the undo stack.                        |
+| `dragHistory` | `undefined` | History mode for pin drags specifically. Unset, drags follow `history`. |
 
 ### Anchoring
 

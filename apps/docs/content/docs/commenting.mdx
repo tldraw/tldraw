@@ -1,7 +1,7 @@
 ---
 title: Commenting
 status: published
-date: 07/27/2026
+date: 7/27/2026
 order: 7
 keywords:
   - comment
@@ -18,25 +18,29 @@ In tldraw, a comment is a message pinned to a place on the canvas. Comments grou
 
 The `@tldraw/commenting` package works at two levels. `CanvasComments` is a comments layer you render in front of the canvas, and it handles the whole flow. Everything it's built from is exported too, so you can replace any part of it.
 
-Commenting is a licensed feature. It runs in development without a key. In production it needs a tldraw license that includes commenting.
+Commenting is a licensed feature. It runs in development without a key. In production it needs a tldraw license that includes commenting; without one the commenting UI disappears — the toolbar button, its shortcuts, and the layer itself. The rest of the editor is unaffected.
 
 ## Quick start
 
 Three pieces: register the comment record types, register the comment tool, and render the layer.
 
 ```tsx
-import { CanvasComments, commentTools, commentToolOverrides } from '@tldraw/commenting'
+import {
+	CanvasComments,
+	CommentAuthor,
+	commentToolOverrides,
+	commentTools,
+} from '@tldraw/commenting'
 import { useMemo } from 'react'
-import { commentSchemaRecords, createTLSchema, createTLStore, Tldraw } from 'tldraw'
+import { commentSchemaRecords, createTLSchema, createTLStore, TLComponents, Tldraw } from 'tldraw'
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 
-const AUTHORS = { me: { name: 'You', color: '#EC5E41' } }
+const AUTHORS: Record<string, CommentAuthor> = { me: { name: 'You', color: '#EC5E41' } }
+const resolveAuthor = (id: string) => AUTHORS[id]
 
-const components = {
-	InFrontOfTheCanvas: () => (
-		<CanvasComments currentUserId="me" resolveAuthor={(id) => AUTHORS[id]} />
-	),
+const components: TLComponents = {
+	InFrontOfTheCanvas: () => <CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />,
 }
 
 export default function App() {
@@ -48,7 +52,7 @@ export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
-				licenseKey={YOUR_LICENSE_KEY}
+				licenseKey="your-license-key"
 				store={store}
 				tools={commentTools}
 				overrides={[commentToolOverrides]}
@@ -110,6 +114,8 @@ Each of these has options, and each visible piece is a component slot you can re
 Commenting options live on the tool. `CommentTool.configure()` returns a configured subclass to register, mirroring `ShapeUtil.configure`:
 
 ```tsx
+import { CommentTool } from '@tldraw/commenting'
+
 const tools = [CommentTool.configure({ enableRegions: true })]
 ```
 

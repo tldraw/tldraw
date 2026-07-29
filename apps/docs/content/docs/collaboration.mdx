@@ -50,12 +50,22 @@ The demo server is great for prototyping, but data only lasts 24 hours and rooms
 Collaborators can also leave anchored comments on the canvas. The `@tldraw/commenting` package provides a comment tool, pins that stick to points and shapes, thread popovers with replies, mentions, reactions, and resolve, and a sidebar list of threads.
 
 ```tsx
-import { CanvasComments, commentToolOverrides, commentTools } from '@tldraw/commenting'
+import {
+	CanvasComments,
+	CommentAuthor,
+	commentToolOverrides,
+	commentTools,
+} from '@tldraw/commenting'
 import { useSync } from '@tldraw/sync'
-import { commentSchemaRecords, Tldraw } from 'tldraw'
+import { commentSchemaRecords, TLComponents, Tldraw } from 'tldraw'
 import '@tldraw/commenting/commenting.css'
 
-const components = {
+// Your app's user directory, however you already hold it.
+const AUTHORS: Record<string, CommentAuthor> = {
+	'user-123': { name: 'You', color: '#EC5E41' },
+}
+
+const components: TLComponents = {
 	InFrontOfTheCanvas: () => (
 		<CanvasComments currentUserId="user-123" resolveAuthor={(id) => AUTHORS[id]} />
 	),
