@@ -6,6 +6,13 @@ const ME = 'user_me'
 const OTHER = 'user_other'
 const THIRD = 'user_third'
 
+/**
+ * Event times, in minutes from an arbitrary epoch. The join gate tolerates a minute of clock skew
+ * between authors, so tests that turn on it space their events well past that — timestamps a few
+ * milliseconds apart would all land inside the tolerance and say nothing about the gate.
+ */
+const at = (minutes: number) => 1_700_000_000_000 + minutes * 60_000
+
 /** A comment body: paragraphs of plain text, with optional `@`-mentions (by member id) interleaved. */
 function body(text: string, mentionIds: string[] = []): TLRichText {
 	return {
@@ -27,7 +34,7 @@ function comment(overrides: Partial<CommentNotificationInput> = {}): CommentNoti
 		id: 'comment:1',
 		authorId: OTHER,
 		threadId: 'comment-thread:1',
-		createdAt: 1000,
+		createdAt: at(0),
 		body: body('hello'),
 		read: undefined,
 		file: { ownerId: THIRD },
@@ -71,8 +78,8 @@ describe('categorizeCommentNotifications', () => {
 		const theirReply = comment({
 			id: 'comment:theirs',
 			authorId: OTHER,
-			createdAt: 2000,
-			thread: { createdBy: OTHER, comments: [{ authorId: ME, createdAt: 1000 }] },
+			createdAt: at(10),
+			thread: { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(0) }] },
 			file: { ownerId: THIRD },
 		})
 		const result = categorizeCommentNotifications([theirReply], ME)
@@ -82,31 +89,41 @@ describe('categorizeCommentNotifications', () => {
 	})
 
 	it('drops comments written before I joined the thread', () => {
-		// other(1000), other(2000), me(3000)
-		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: 3000 }] }
-		const before1 = comment({ id: 'comment:b1', createdAt: 1000, thread, file: { ownerId: THIRD } })
-		const before2 = comment({ id: 'comment:b2', createdAt: 2000, thread, file: { ownerId: THIRD } })
+		// other(0m), other(10m), me(20m)
+		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(20) }] }
+		const before1 = comment({
+			id: 'comment:b1',
+			createdAt: at(0),
+			thread,
+			file: { ownerId: THIRD },
+		})
+		const before2 = comment({
+			id: 'comment:b2',
+			createdAt: at(10),
+			thread,
+			file: { ownerId: THIRD },
+		})
 		expect(categorizeCommentNotifications([before1, before2], ME)).toEqual([])
 	})
 
 	it('keeps replies from after I joined even once I have replied to them', () => {
-		// other(1000), me(2000), other(3000), me(4000): only the pre-join comment at 1000 drops
+		// other(0m), me(10m), other(20m), me(30m): only the pre-join comment at 0m drops
 		const thread = {
 			createdBy: OTHER,
 			comments: [
-				{ authorId: ME, createdAt: 2000 },
-				{ authorId: ME, createdAt: 4000 },
+				{ authorId: ME, createdAt: at(10) },
+				{ authorId: ME, createdAt: at(30) },
 			],
 		}
 		const preJoin = comment({
 			id: 'comment:pre',
-			createdAt: 1000,
+			createdAt: at(0),
 			thread,
 			file: { ownerId: THIRD },
 		})
 		const postJoin = comment({
 			id: 'comment:post',
-			createdAt: 3000,
+			createdAt: at(20),
 			thread,
 			file: { ownerId: THIRD },
 		})
@@ -115,16 +132,37 @@ describe('categorizeCommentNotifications', () => {
 		expect(result[0].primaryReason).toBe('reply')
 	})
 
-	it('drops a comment timestamped identically to my join', () => {
-		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: 1000 }] }
-		const tied = comment({ createdAt: 1000, thread, file: { ownerId: THIRD } })
-		expect(categorizeCommentNotifications([tied], ME)).toEqual([])
+	it('keeps a comment from just before my join, absorbing clock skew between authors', () => {
+		// createdAt is stamped by each author's own clock, so a reply that really did follow my
+		// join can carry an earlier timestamp than it. Inside the tolerance it still counts.
+		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] }
+		const tied = comment({
+			id: 'comment:tied',
+			createdAt: at(10),
+			thread,
+			file: { ownerId: THIRD },
+		})
+		const skewed = comment({
+			id: 'comment:skewed',
+			createdAt: at(10) - 30_000,
+			thread,
+			file: { ownerId: THIRD },
+		})
+		const result = categorizeCommentNotifications([tied, skewed], ME)
+		expect(result.map((n) => n.comment.id)).toEqual(['comment:tied', 'comment:skewed'])
+		expect(result.map((n) => n.primaryReason)).toEqual(['reply', 'reply'])
+	})
+
+	it('drops a comment older than my join by more than the skew tolerance', () => {
+		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] }
+		const stale = comment({ createdAt: at(10) - 90_000, thread, file: { ownerId: THIRD } })
+		expect(categorizeCommentNotifications([stale], ME)).toEqual([])
 	})
 
 	it("ignores others' comments in the thread relation when deriving my join time", () => {
 		// defense in depth: the query only syncs my own, but a foreign row must not count
-		const thread = { createdBy: OTHER, comments: [{ authorId: THIRD, createdAt: 500 }] }
-		const theirs = comment({ createdAt: 1000, thread, file: { ownerId: THIRD } })
+		const thread = { createdBy: OTHER, comments: [{ authorId: THIRD, createdAt: at(0) }] }
+		const theirs = comment({ createdAt: at(10), thread, file: { ownerId: THIRD } })
 		expect(categorizeCommentNotifications([theirs], ME)).toEqual([])
 	})
 
@@ -132,9 +170,9 @@ describe('categorizeCommentNotifications', () => {
 		const result = categorizeCommentNotifications(
 			[
 				comment({
-					createdAt: 1000,
+					createdAt: at(0),
 					body: body('hey ', [ME]),
-					thread: { createdBy: OTHER, comments: [{ authorId: ME, createdAt: 2000 }] },
+					thread: { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] },
 					file: { ownerId: THIRD },
 				}),
 			],
@@ -159,8 +197,8 @@ describe('categorizeCommentNotifications', () => {
 		const result = categorizeCommentNotifications(
 			[
 				comment({
-					createdAt: 1000,
-					thread: { createdBy: OTHER, comments: [{ authorId: ME, createdAt: 2000 }] },
+					createdAt: at(0),
+					thread: { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] },
 					file: { ownerId: ME },
 				}),
 			],
@@ -210,8 +248,8 @@ describe('categorizeCommentNotifications', () => {
 	})
 
 	it('sorts newest first', () => {
-		const older = comment({ id: 'comment:old', createdAt: 1000, file: { ownerId: ME } })
-		const newer = comment({ id: 'comment:new', createdAt: 2000, file: { ownerId: ME } })
+		const older = comment({ id: 'comment:old', createdAt: at(0), file: { ownerId: ME } })
+		const newer = comment({ id: 'comment:new', createdAt: at(10), file: { ownerId: ME } })
 		const result = categorizeCommentNotifications([older, newer], ME)
 		expect(result.map((n) => n.comment.id)).toEqual(['comment:new', 'comment:old'])
 	})
