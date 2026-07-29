@@ -1,4 +1,4 @@
-import { Environment } from '../types'
+import { Environment, TLDataPointName } from '../types'
 
 export interface EventData {
 	blobs?: string[]
@@ -16,7 +16,7 @@ export interface EventData {
  */
 export function writeDataPoint(
 	env: Environment,
-	name: string,
+	name: TLDataPointName,
 	{ blobs, indexes, doubles }: EventData
 ) {
 	try {

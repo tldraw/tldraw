@@ -54,7 +54,7 @@ import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
-import { DBLoadResult, Environment, TLServerEvent } from './types'
+import { DBLoadResult, Environment, TLDataPointName, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
@@ -887,7 +887,7 @@ export class TLFileDurableObject extends DurableObject {
 	 * Analytics Engine allows exactly one index, so this is the only object-level dimension these
 	 * events carry.
 	 */
-	private writeEvent(name: string, eventData: EventData) {
+	private writeEvent(name: TLDataPointName, eventData: EventData) {
 		writeDataPoint(this.env, name, {
 			...eventData,
 			indexes: [this.id.toString()],
@@ -902,7 +902,7 @@ export class TLFileDurableObject extends DurableObject {
 	private timer() {
 		const start = Date.now()
 		return {
-			report: (name: string, data?: EventData) => {
+			report: (name: TLDataPointName, data?: EventData) => {
 				this.writeEvent(name, { ...data, doubles: [...(data?.doubles ?? []), Date.now() - start] })
 			},
 		}

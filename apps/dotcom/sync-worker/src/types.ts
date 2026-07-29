@@ -222,6 +222,62 @@ export type TLUserDurableObjectEvent =
 	| { type: 'reboot_duration'; id: string; duration: number }
 	| { type: 'cold_start_time'; id: string; duration: number }
 
+/**
+ * Every datapoint this worker writes, as it appears in blob1. Grafana dashboards match on these
+ * values, so a name that has shipped is effectively permanent: add new ones freely, but renaming
+ * one breaks every panel querying it and splits its history in two.
+ *
+ * The names taken from {@link TLServerEvent} are listed here rather than derived from it, so this
+ * stays a readable inventory of what the worker emits. They cannot drift: adding an event name
+ * there without adding it here stops `TLFileDurableObject.logEvent` compiling.
+ */
+export type TLDataPointName =
+	// Room durable object lifecycle and client connections
+	| 'room_start'
+	| 'room_create'
+	| 'room_reopen'
+	| 'room_empty'
+	| 'enter'
+	| 'leave'
+	| 'last_out'
+	| 'rate_limited'
+	| 'send_message'
+	| 'persist_success'
+	| 'fail_persist'
+	| 'failed_persist_to_db'
+	| 'failed_load_from_db'
+	// Room durable object request timings
+	| 'on_request_auth'
+	| 'on_request_rate_limit'
+	| 'on_request_group_check'
+	| 'on_request_get_room'
+	| 'on_request_total'
+	| 'get_file_record'
+	| 'get_file_record_error'
+	// Room snapshot loads and persistence
+	| 'db_load_total'
+	| 'db_load_total_error'
+	| 'db_load_r2_fetch'
+	| 'db_load_supabase_fetch'
+	| 'db_load_create_from_source'
+	| 'create_from_source_fetch_total'
+	| 'create_from_source_r2_put'
+	| 'create_from_source_r2_fetch'
+	| 'create_from_source_await_persist'
+	| 'room_size_mb'
+	| 'r2_queue_depth'
+	| 'pierre_incremental_write_chars'
+	// Other durable objects
+	| 'user_durable_object'
+	| 'replicator'
+	// Postgres connection pool
+	| 'postgres_client_connect'
+	| 'postgres_client_end'
+	| 'postgres_client_error'
+	// Queue consumer and screenshot surfaces
+	| 'queue_message'
+	| 'mcp_shared_board_screenshot'
+
 export interface AssetUploadQueueMessage {
 	type: 'asset-upload'
 	objectName: string
