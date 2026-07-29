@@ -85,6 +85,7 @@ import { TLArrowShapeKind } from '@tldraw/editor';
 import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
+import { TLAssetStore } from '@tldraw/editor';
 import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
@@ -4147,6 +4148,7 @@ export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 
 // @public (undocumented)
 export interface TldrawImageProps extends TLImageExportOptions {
+    assets?: TLAssetStore;
     assetUrls?: TLUiAssetUrlOverrides;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     format?: 'png' | 'svg';
