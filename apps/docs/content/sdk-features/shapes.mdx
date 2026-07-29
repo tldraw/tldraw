@@ -26,6 +26,8 @@ Shapes support parent-child hierarchies for grouping and frames, participate in 
 
 A shape record is a plain object stored in the editor's reactive store. All shape types extend `TLBaseShape`, which defines the common properties every shape has: a unique identifier, position and rotation, z-ordering index, parent reference, lock state, opacity, and a `props` field for shape-specific properties. The `props` field contains data unique to each shape type. A geo shape stores its width, height, and geometry type. A text shape stores its text content and font size. Each shape type defines its own props structure.
 
+Shapes also have a `meta` field for your own application data, which tldraw stores but doesn't use itself. See [Meta](/docs/shapes#Meta) for how to set, type, and validate it.
+
 ### Shape types in tldraw
 
 The default tldraw installation includes these shape types:
