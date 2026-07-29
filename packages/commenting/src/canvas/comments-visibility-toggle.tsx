@@ -12,9 +12,6 @@ export function CommentsVisibilityToggle() {
 	const label = hidden ? msg('comments.show') : msg('comments.hide')
 
 	return (
-		// No `aria-pressed`: TooltipButton uses the tooltip as the accessible name, and that name
-		// already flips with the state, so a pressed state on top announces as the contradictory
-		// "Show comments, pressed" while comments are hidden.
 		<TooltipButton
 			tooltip={label}
 			className="tlui-cmt-header-btn"

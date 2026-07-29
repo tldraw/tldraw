@@ -921,9 +921,8 @@ const ClusterBadge = memo(function ClusterBadge({
 			<button
 				ref={badgeRef}
 				type="button"
-				className="tlui-cmt-canvas-cluster"
+				className="tlui-cmt-button tlui-cmt-canvas-cluster"
 				style={{ left: point.x, top: point.y }}
-				// The badge shows a bare number; without a name it announces as just "3".
 				aria-label={msg('comments.cluster-label').replace('{count}', String(node.count))}
 				onPointerDown={(e) => {
 					if (isCanvasPanGesture(editor, e)) {
@@ -1293,8 +1292,6 @@ const ThreadPin = memo(function ThreadPin({
 	) : (
 		initialOf(threadAuthor?.name ?? UNKNOWN_AUTHOR)
 	)
-	// The pin renders an initial or a check glyph, neither of which reads as anything useful, so the
-	// button carries the name a screen reader announces.
 	const pinLabel = msg(
 		thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label'
 	).replace('{name}', threadAuthor?.name ?? UNKNOWN_AUTHOR)
@@ -1479,9 +1476,7 @@ const ThreadPin = memo(function ThreadPin({
 				<button
 					ref={markerRef}
 					type="button"
-					className="tlui-cmt-canvas-pin__marker"
-					// The pin is the only way into a thread, so it has to be a real control: a button
-					// puts it in the tab order and gives Enter/Space activation for free.
+					className="tlui-cmt-button tlui-cmt-canvas-pin__marker"
 					aria-label={pinLabel}
 					aria-expanded={open}
 					onPointerDown={startDrag}

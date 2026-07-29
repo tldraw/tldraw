@@ -140,8 +140,7 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 				<button
 					ref={badgeRef}
 					type="button"
-					className="tlui-cmt-canvas-stack-badge"
-					// Without a name the badge announces as a bare number.
+					className="tlui-cmt-button tlui-cmt-canvas-stack-badge"
 					aria-label={msg('comments.stack-label').replace('{count}', String(threads.length))}
 					aria-expanded={open}
 					onPointerDown={(e) => e.stopPropagation()}
@@ -217,11 +216,9 @@ function StackThreadCard({
 	const first = comments[0]
 	if (!first) return null
 	return (
-		// A card in the stack list opens its thread, so it's a control, not a div. The card's own
-		// text is the accessible name — no aria-label, or it would shadow the comment itself.
 		<button
 			type="button"
-			className="tlui-cmt-stack-list__card"
+			className="tlui-cmt-button tlui-cmt-stack-list__card"
 			onClick={(e) => {
 				e.stopPropagation()
 				onOpen()

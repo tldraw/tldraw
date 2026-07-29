@@ -193,9 +193,6 @@ export function CommentComposer({
 			enableCoreExtensions: { textDirection: false },
 			textDirection: 'auto',
 			editorProps: {
-				// The visible placeholder is `aria-hidden` (it's a styled overlay, not a real
-				// placeholder attribute), so without these the contenteditable is an unlabelled
-				// textbox — a screen reader lands on it and announces nothing.
 				attributes: {
 					class: 'tlui-cmt-input',
 					'aria-label': placeholder,
@@ -251,8 +248,6 @@ export function CommentComposer({
 				onChangeRef.current?.(editor.getJSON() as TLRichText)
 			},
 		},
-		// `placeholder` is the editor's accessible name, so a locale change has to rebuild the
-		// config — otherwise the textbox keeps announcing the previous language's label.
 		[interactive, placeholder]
 	)
 	editorRef.current = editor
