@@ -1,4 +1,4 @@
-import { type CommentAuthor, isMentionPickerOpen, MentionMember } from '@tldraw/mentions'
+import { isMentionPickerOpen } from '@tldraw/mentions'
 import {
 	Fragment,
 	memo,
@@ -19,8 +19,6 @@ import {
 	Editor,
 	getFirstCharacter,
 	react,
-	TLComment,
-	TLCommentId,
 	TLCommentThread,
 	TLRichText,
 	useContainer,
@@ -50,6 +48,7 @@ import { commitCommentMutation, putCommentRecords } from './comment-mutations'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { getCommentRecord } from './comment-store'
 import { PendingComment } from './comment-tool'
+import { type CommentingContext } from './context'
 import { useCommentThreads, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
 import {
@@ -83,35 +82,12 @@ import {
 import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
 
 /**
- * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
- * thread popover (with a reply composer) on click, and shows a composer where the comment tool
- * placed a new thread. Reads/writes comment records straight from `editor.store`.
+ * The host wiring for {@link CanvasComments} — see {@link CommentingContext}, which the sidebar
+ * takes the same fields from.
  *
- * It's meant as the batteries-included default — every visible piece is a lever (the `CommentBody`
- * and `PinContent` slots on `CommentTool.configure({ components })`), and the pieces it composes
- * (`CommentPin`, `CommentThread`, `CommentComposer`, the hooks, the tool) are all exported, so a
- * consumer can rebuild this from parts instead.
  * @public
  */
-export interface CanvasCommentsProps {
-	/** The signed-in user's id, or null for a read-only viewer. Only a signed-in user composes. */
-	currentUserId: string | null
-	/** Map an author id to their display info, or `undefined` when the id can't be resolved. */
-	resolveAuthor(id: string): CommentAuthor | undefined
-	/** Called after any comment (a new thread's first comment, or a reply) is posted. */
-	onPostComment?(comment: TLComment): void
-	/** Whether a comment is unread for the current user (return true for unread). */
-	isCommentUnread?(commentId: TLCommentId): boolean
-	/**
-	 * Called for each unread comment shown to the user in an open thread popover, so hosts can
-	 * record a read receipt. Needs `isCommentUnread` to know what's unread.
-	 */
-	onCommentRead?(commentId: TLCommentId): void
-	/** Resolve the members matching an `@`-query in the composers (sync or async). */
-	getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>
-	/** Override a mention-picker row's content. */
-	renderMentionSuggestion?(member: MentionMember): ReactNode
-}
+export type CanvasCommentsProps = CommentingContext
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
@@ -162,7 +138,22 @@ const draftAvatar = (
 	</CommentPin>
 )
 
-/** @public @react */
+/**
+ * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
+ * thread popover (with a reply composer) on click, and shows a composer where the comment tool
+ * placed a new thread. Reads/writes comment records straight from `editor.store`.
+ *
+ * It's meant as the batteries-included default — every visible piece is a lever (the `CommentBody`
+ * and `PinContent` slots on `CommentTool.configure({ components })`), and the pieces it composes
+ * (`CommentPin`, `CommentThread`, `CommentComposer`, the hooks, the tool) are all exported, so a
+ * consumer can rebuild this from parts instead.
+ *
+ * The host wiring — who the viewer is, how ids become names, read status, mentions — is the
+ * {@link CommentingContext}, which `CanvasCommentsSidebar` takes too, so a host mounting both can
+ * build it once and spread it into each.
+ *
+ * @public @react
+ */
 export function CanvasComments(props: CanvasCommentsProps) {
 	// Gate the whole layer on the license before doing any work. The inner component holds all the
 	// other hooks, so mounting/unmounting it as the license resolves keeps hook order stable here.
@@ -202,7 +193,7 @@ function useTrailingPortalHost(container: HTMLElement) {
 	return host
 }
 
-function CanvasCommentsLayer(props: CanvasCommentsProps) {
+function CanvasCommentsLayer(props: CommentingContext) {
 	const editor = useEditor()
 	const options = useCommentingOptions()
 	const container = useContainer()
@@ -863,7 +854,7 @@ const ClusterBadge = memo(function ClusterBadge({
 	onSelectThread,
 	threadsById,
 	...props
-}: Pick<CanvasCommentsProps, 'currentUserId' | 'resolveAuthor'> & {
+}: Pick<CommentingContext, 'currentUserId' | 'resolveAuthor'> & {
 	editor: Editor
 	node: ClusterNode
 	onExpand(node: ClusterNode): void
@@ -1080,7 +1071,7 @@ const ThreadPin = memo(function ThreadPin({
 	editor,
 	thread,
 	...props
-}: CanvasCommentsProps & {
+}: CommentingContext & {
 	editor: Editor
 	thread: TLCommentThread
 }) {
@@ -1436,7 +1427,7 @@ function PendingComposer({
 	onPostComment,
 	getMentionSuggestions,
 	renderMentionSuggestion,
-}: CanvasCommentsProps & { editor: Editor; pending: PendingComment }) {
+}: CommentingContext & { editor: Editor; pending: PendingComment }) {
 	const ComposerFallback = useCommentingOptions().components.ComposerFallback
 	const canComment = useCanComment(currentUserId)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined

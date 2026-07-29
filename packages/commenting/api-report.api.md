@@ -56,30 +56,19 @@ export interface BylineProps {
     edited?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export function CanvasComments(props: CanvasCommentsProps): JSX.Element | null;
 
 // @public
-export interface CanvasCommentsProps {
-    currentUserId: null | string;
-    getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
-    isCommentUnread?(commentId: TLCommentId): boolean;
-    onCommentRead?(commentId: TLCommentId): void;
-    onPostComment?(comment: TLComment): void;
-    renderMentionSuggestion?(member: MentionMember): ReactNode;
-    resolveAuthor(id: string): CommentAuthor | undefined;
-}
+export type CanvasCommentsProps = CommentingContext;
 
 // @public
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps): JSX.Element | null;
 
-// @public (undocumented)
-export interface CanvasCommentsSidebarProps {
-    currentUserId?: string;
+// @public
+export interface CanvasCommentsSidebarProps extends Pick<CommentingContext, 'currentUserId' | 'isCommentUnread' | 'resolveAuthor'> {
     empty?: ReactNode;
     header?: ReactNode;
-    isCommentUnread?(commentId: TLCommentId): boolean;
-    resolveAuthor(id: string): CommentAuthor | undefined;
 }
 
 export { CommentAuthor }
@@ -155,6 +144,17 @@ export interface CommentingComponents {
     ThreadPreview?: ComponentType<{
         comment: TLComment;
     }>;
+}
+
+// @public
+export interface CommentingContext {
+    currentUserId: null | string;
+    getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
+    isCommentUnread?(commentId: TLCommentId): boolean;
+    onCommentRead?(commentId: TLCommentId): void;
+    onPostComment?(comment: TLComment): void;
+    renderMentionSuggestion?(member: MentionMember): ReactNode;
+    resolveAuthor(id: string): CommentAuthor | undefined;
 }
 
 // @public

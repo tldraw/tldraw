@@ -1,11 +1,9 @@
-import { type CommentAuthor, type MentionMember } from '@tldraw/mentions'
 import { ReactNode, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import {
 	createComment,
 	Editor,
 	TLComment,
-	TLCommentId,
 	TLCommentThread,
 	TLRichText,
 	TldrawUiDropdownMenuContent,
@@ -42,34 +40,23 @@ import {
 } from './comment-mutations'
 import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
+import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { type CommentingComponents, useCanComment, useCommentingOptions } from './options'
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
-/** The identity/callback props a thread view needs from the host — the same contract
- *  `CanvasComments` takes, minus the pin-placement concerns. */
-export interface ThreadViewHostProps {
-	currentUserId: string | null
-	resolveAuthor(id: string): CommentAuthor | undefined
-	onPostComment?(comment: TLComment): void
-	isCommentUnread?(commentId: TLCommentId): boolean
-	onCommentRead?(commentId: TLCommentId): void
-	getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>
-	renderMentionSuggestion?(member: MentionMember): ReactNode
-}
-
 /**
  * A name-only view of an author resolver, for the mention/rich-text paths. Stable identity, so
  * `CommentBody`'s memoized render doesn't recompute on every render of its host.
  */
-export function useResolveName(resolveAuthor: ThreadViewHostProps['resolveAuthor']) {
+export function useResolveName(resolveAuthor: CommentingContext['resolveAuthor']) {
 	return useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 }
 
 export function toCardProps(
 	comment: TLComment,
-	props: Pick<ThreadViewHostProps, 'currentUserId' | 'resolveAuthor'>,
+	props: Pick<CommentingContext, 'currentUserId' | 'resolveAuthor'>,
 	components: CommentingComponents,
 	resolveName: (id: string) => string | undefined
 ): CommentCardProps {
@@ -162,7 +149,7 @@ export function ThreadView({
 	editor,
 	thread,
 	...props
-}: ThreadViewHostProps & { editor: Editor; thread: TLCommentThread }) {
+}: CommentingContext & { editor: Editor; thread: TLCommentThread }) {
 	const {
 		currentUserId,
 		resolveAuthor,
