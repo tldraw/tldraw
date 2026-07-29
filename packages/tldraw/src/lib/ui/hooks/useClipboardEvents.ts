@@ -406,126 +406,128 @@ async function handleClipboardThings(
 					new Promise((r) => {
 						const thing = t as Exclude<ClipboardThing, { type: 'file' } | { type: 'blob' }>
 
-						thing.source.then((text) => {
-							// first, see if we can find tldraw content, which is JSON inside of an html comment
-							const tldrawHtmlComment = text.match(/<div data-tldraw[^>]*>(.*)<\/div>/)?.[1]
+						thing.source
+							.then((text) => {
+								// first, see if we can find tldraw content, which is JSON inside of an html comment
+								const tldrawHtmlComment = text.match(/<div data-tldraw[^>]*>(.*)<\/div>/)?.[1]
 
-							if (tldrawHtmlComment) {
-								try {
-									// First try parsing as plain JSON (version 2/3 formats)
-									let json
+								if (tldrawHtmlComment) {
 									try {
-										json = JSON.parse(tldrawHtmlComment)
-									} catch {
-										// Fall back to LZ decompression (legacy format)
-										const jsonComment = lz.decompressFromBase64(tldrawHtmlComment)
-										if (jsonComment === null) {
+										// First try parsing as plain JSON (version 2/3 formats)
+										let json
+										try {
+											json = JSON.parse(tldrawHtmlComment)
+										} catch {
+											// Fall back to LZ decompression (legacy format)
+											const jsonComment = lz.decompressFromBase64(tldrawHtmlComment)
+											if (jsonComment === null) {
+												r({
+													type: 'error',
+													data: null,
+													reason: `found tldraw data comment but could not parse`,
+												})
+												return
+											}
+											json = JSON.parse(jsonComment)
+										}
+
+										if (json.type !== 'application/tldraw') {
 											r({
 												type: 'error',
-												data: null,
-												reason: `found tldraw data comment but could not parse`,
+												data: json,
+												reason: `found tldraw data comment but JSON was of a different type: ${json.type}`,
 											})
 											return
 										}
-										json = JSON.parse(jsonComment)
-									}
 
-									if (json.type !== 'application/tldraw') {
+										// Handle versioned clipboard format
+										if (json.version === 3) {
+											// Version 3: Assets are plain, decompress only other data
+											try {
+												const otherData = JSON.parse(
+													lz.decompressFromBase64(json.data.otherCompressed) || '{}'
+												)
+												const reconstructedData = {
+													assets: json.data.assets || [],
+													...otherData,
+												}
+
+												r({ type: 'tldraw', data: reconstructedData })
+												return
+											} catch (error) {
+												r({
+													type: 'error',
+													data: json,
+													reason: `failed to decompress version 2 clipboard data: ${error}`,
+												})
+												return
+											}
+										}
+										if (json.version === 2) {
+											// Version 2: Everything is plain, this had issues with encoding... :-/
+											// TODO: nix this support after some time.
+											r({ type: 'tldraw', data: json.data })
+										} else {
+											// Version 1 or no version: Legacy format
+											if (typeof json.data === 'string') {
+												r({
+													type: 'error',
+													data: json,
+													reason:
+														'found tldraw json but data was a string instead of a TLClipboardModel object',
+												})
+												return
+											}
+
+											r({ type: 'tldraw', data: json.data })
+											return
+										}
+									} catch {
 										r({
 											type: 'error',
-											data: json,
-											reason: `found tldraw data comment but JSON was of a different type: ${json.type}`,
+											data: tldrawHtmlComment,
+											reason:
+												'found tldraw json but data was a string instead of a TLClipboardModel object',
 										})
 										return
 									}
-
-									// Handle versioned clipboard format
-									if (json.version === 3) {
-										// Version 3: Assets are plain, decompress only other data
-										try {
-											const otherData = JSON.parse(
-												lz.decompressFromBase64(json.data.otherCompressed) || '{}'
-											)
-											const reconstructedData = {
-												assets: json.data.assets || [],
-												...otherData,
-											}
-
-											r({ type: 'tldraw', data: reconstructedData })
-											return
-										} catch (error) {
-											r({
-												type: 'error',
-												data: json,
-												reason: `failed to decompress version 2 clipboard data: ${error}`,
-											})
-											return
-										}
+								} else {
+									if (thing.type === 'html') {
+										r({ type: 'text', data: text, subtype: 'html' })
+										return
 									}
-									if (json.version === 2) {
-										// Version 2: Everything is plain, this had issues with encoding... :-/
-										// TODO: nix this support after some time.
-										r({ type: 'tldraw', data: json.data })
-									} else {
-										// Version 1 or no version: Legacy format
-										if (typeof json.data === 'string') {
-											r({
-												type: 'error',
-												data: json,
-												reason:
-													'found tldraw json but data was a string instead of a TLClipboardModel object',
-											})
+
+									if (thing.type === 'url') {
+										r({ type: 'text', data: text, subtype: 'url' })
+										return
+									}
+
+									// if we have not found a tldraw comment, Otherwise, try to parse the text as JSON directly.
+									try {
+										const json = JSON.parse(text)
+										if (json.type === 'excalidraw/clipboard') {
+											// If the clipboard contains content copied from excalidraw, then paste that
+											r({ type: 'excalidraw', data: json })
+											return
+										} else {
+											r({ type: 'text', data: text, subtype: 'json' })
 											return
 										}
-
-										r({ type: 'tldraw', data: json.data })
+									} catch {
+										// If we could not parse the text as JSON, then it's just text
+										r({ type: 'text', data: text, subtype: 'text' })
 										return
 									}
-								} catch {
-									r({
-										type: 'error',
-										data: tldrawHtmlComment,
-										reason:
-											'found tldraw json but data was a string instead of a TLClipboardModel object',
-									})
-									return
-								}
-							} else {
-								if (thing.type === 'html') {
-									r({ type: 'text', data: text, subtype: 'html' })
-									return
 								}
 
-								if (thing.type === 'url') {
-									r({ type: 'text', data: text, subtype: 'url' })
-									return
-								}
-
-								// if we have not found a tldraw comment, Otherwise, try to parse the text as JSON directly.
-								try {
-									const json = JSON.parse(text)
-									if (json.type === 'excalidraw/clipboard') {
-										// If the clipboard contains content copied from excalidraw, then paste that
-										r({ type: 'excalidraw', data: json })
-										return
-									} else {
-										r({ type: 'text', data: text, subtype: 'json' })
-										return
-									}
-								} catch {
-									// If we could not parse the text as JSON, then it's just text
-									r({ type: 'text', data: text, subtype: 'text' })
-									return
-								}
-							}
-
-							r({ type: 'error', data: text, reason: 'unhandled case' })
-						}).catch((error) => {
-							// If we can't read one of the clipboard items (e.g. the browser
-							// rejects a getType call), resolve it to an error source rather
-							// than hanging the whole paste.
-							r({ type: 'error', data: null, reason: `error reading clipboard data: ${error}` })
-						})
+								r({ type: 'error', data: text, reason: 'unhandled case' })
+							})
+							.catch((error) => {
+								// If we can't read one of the clipboard items (e.g. the browser
+								// rejects a getType call), resolve it to an error source rather
+								// than hanging the whole paste.
+								r({ type: 'error', data: null, reason: `error reading clipboard data: ${error}` })
+							})
 					})
 			)
 	)

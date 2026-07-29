@@ -284,9 +284,7 @@ describe('pasting non-file content from the clipboard API', () => {
 
 		await handlePasteFromClipboardApi({
 			editor,
-			clipboardItems: [
-				makeClipboardItem({ 'text/html': TLDRAW_V2_HTML, 'text/plain': 'hello' }),
-			],
+			clipboardItems: [makeClipboardItem({ 'text/html': TLDRAW_V2_HTML, 'text/plain': 'hello' })],
 			clipboardPasteSource: 'clipboard-read',
 		})
 
@@ -322,9 +320,7 @@ describe('pasting non-file content from the clipboard API', () => {
 
 		await handlePasteFromClipboardApi({
 			editor,
-			clipboardItems: [
-				makeClipboardItem({ 'text/html': '<b>hello</b>', 'text/plain': 'hello' }),
-			],
+			clipboardItems: [makeClipboardItem({ 'text/html': '<b>hello</b>', 'text/plain': 'hello' })],
 			clipboardPasteSource: 'clipboard-read',
 		})
 
