@@ -15,7 +15,6 @@ import {
 } from 'tldraw'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
-	commitCommentMutation,
 	deleteComment,
 	deleteThread,
 	editComment,
@@ -198,24 +197,31 @@ describe('deleteThread', () => {
 })
 
 describe('history', () => {
-	it('does not put comment writes on the undo stack by default', () => {
+	// The shape gives the undo something recorded to rewind, so what's under test is that the edit
+	// isn't on the stack rather than that the stack is empty.
+	it('does not put an edit on the undo stack by default', () => {
 		const editor = makeEditor()
-		editor.markHistoryStoppingPoint()
 		const { comment } = makeThread(editor)
+		editor.markHistoryStoppingPoint()
+		const shapeId = createShapeId()
+		editor.createShape({ id: shapeId, type: 'geo', x: 0, y: 0 })
 
+		editComment(editor, comment, toRichText('changed'))
 		editor.undo()
 
-		expect(readComment(editor, comment)).toBeDefined()
+		expect(editor.getShape(shapeId)).toBeUndefined()
+		expect(readComment(editor, comment)!.body).toEqual(toRichText('changed'))
 	})
 
-	it('puts them on the undo stack when the history option asks for it', () => {
+	it('puts an edit on the undo stack when the history option asks for it', () => {
 		const editor = makeEditor(CommentTool.configure({ history: 'record' }))
-		editor.markHistoryStoppingPoint()
 		const { comment } = makeThread(editor)
+		editor.markHistoryStoppingPoint()
 
+		editComment(editor, comment, toRichText('changed'))
 		editor.undo()
 
-		expect(readComment(editor, comment)).toBeUndefined()
+		expect(readComment(editor, comment)!.body).toEqual(toRichText('hello'))
 	})
 
 	// The flag is write-once server-side, so an undo clearing it would be vetoed and rebased —
@@ -248,23 +254,6 @@ describe('history', () => {
 
 		expect(editor.getShape(shapeId)).toBeUndefined()
 		expect(readThread(editor, thread)).toMatchObject({ isDeleted: true })
-	})
-
-	// A host that wants pin drags undoable but posts and edits not gets both: the drag's mode has
-	// to survive the write helpers it calls, which set their own mode when used on their own.
-	it('keeps dragHistory in charge of a drag that writes through putCommentRecords', () => {
-		const editor = makeEditor(CommentTool.configure({ history: 'ignore', dragHistory: 'record' }))
-		const { thread } = makeThread(editor)
-		editor.markHistoryStoppingPoint()
-
-		commitCommentMutation(
-			editor,
-			() => putCommentRecords(editor, [{ ...thread, anchor: { type: 'point', x: 50, y: 50 } }]),
-			'drag'
-		)
-		editor.undo()
-
-		expect(readThread(editor, thread)!.anchor).toEqual({ type: 'point', x: 0, y: 0 })
 	})
 })
 

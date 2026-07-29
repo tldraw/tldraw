@@ -17,10 +17,11 @@ import { openThreadId } from './state'
  * Every write to a comment record, and the undo/redo policy governing them.
  *
  * This file layers bottom-up: {@link commitCommentMutation} resolves the history mode,
- * {@link putCommentRecords} and {@link removeCommentRecords} are the raw typed writes that run
- * under it, and the verbs below are those writes plus the one rule each carries — a timestamp to
- * stamp, a shape to put the `resolved` field in, or the soft-delete protocol. The built-in thread
- * view calls exactly these verbs, so a UI of your own behaves the same as the one in the box.
+ * {@link putCommentRecords} and {@link removeCommentRecords} are the raw typed writes, and the
+ * verbs below are those writes committed under a history mode plus the one rule each carries — a
+ * timestamp to stamp, a shape to put the `resolved` field in, or the soft-delete protocol. The
+ * built-in thread view calls exactly these verbs, so a UI of your own behaves the same as the one
+ * in the box.
  *
  * Posting carries no such rule, so it isn't a verb here: build the records with
  * `createCommentThread`/`createComment` and write them with {@link putCommentRecords}.
@@ -40,27 +41,9 @@ import { openThreadId } from './state'
 export type CommentMutationKind = 'delete' | 'drag' | 'mutation'
 
 /**
- * How deeply nested we are in {@link commitCommentMutation}, so that only the outermost commit
- * picks the history mode.
- *
- * This is needed because `editor.run`'s history option isn't additive: a nested run overwrites the
- * enclosing mode for its own scope. {@link putCommentRecords} opens a commit of its own, so that a
- * host calling it directly still gets the configured behavior — which means every internal write
- * already inside a commit would otherwise re-enter and overwrite the mode its caller chose. A pin
- * drag committed as `drag` under `dragHistory: 'record'` would land back on `history: 'ignore'` and
- * quietly stop being undoable.
- *
- * Module-global rather than per-editor because a commit is synchronous start to finish: only one
- * can ever be in flight.
- */
-let commitDepth = 0
-
-/**
- * Commit a comment mutation with the configured undo/redo behavior. All comment writes go through
- * here so the {@link CommentingOptions.history} option governs whether they land on the undo stack.
- * Defaults to `'ignore'`. See {@link CommentMutationKind} for what each kind resolves to.
- *
- * Nested calls run inside the outermost commit's history mode rather than opening their own.
+ * Commit a comment mutation with the configured undo/redo behavior, so the
+ * {@link CommentingOptions.history} option governs whether it lands on the undo stack. Defaults to
+ * `'ignore'`. See {@link CommentMutationKind} for what each kind resolves to.
  * @internal
  */
 export function commitCommentMutation<T>(
@@ -68,8 +51,6 @@ export function commitCommentMutation<T>(
 	fn: () => T,
 	kind: CommentMutationKind = 'mutation'
 ): T {
-	if (commitDepth > 0) return fn()
-
 	const options = getCommentingOptions(editor)
 	const history: TLHistoryBatchOptions['history'] =
 		kind === 'delete'
@@ -78,24 +59,17 @@ export function commitCommentMutation<T>(
 				? (options.dragHistory ?? options.history)
 				: options.history
 	let result: T
-	commitDepth++
-	try {
-		editor.run(
-			() => {
-				result = fn()
-			},
-			{ history }
-		)
-	} finally {
-		commitDepth--
-	}
+	editor.run(
+		() => {
+			result = fn()
+		},
+		{ history }
+	)
 	return result!
 }
 
 /**
- * Write comment records to the store, under the configured
- * {@link CommentingOptions.history} behavior — so a record you write lands on the undo stack (or
- * doesn't) exactly like one the built-in UI writes. Defaults to `'ignore'`.
+ * Write comment records to the store.
  *
  * Use it to seed or import threads, and to save an edit. To delete, prefer
  * {@link deleteComment} and {@link deleteThread} over {@link removeCommentRecords}: comments are
@@ -104,14 +78,11 @@ export function commitCommentMutation<T>(
  * @public
  */
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void {
-	commitCommentMutation(editor, () => {
-		editor.store.put(records as unknown as TLRecord[])
-	})
+	editor.store.put(records as unknown as TLRecord[])
 }
 
 /**
- * Remove comment records from the store by id, under the configured
- * {@link CommentingOptions.history} behavior.
+ * Remove comment records from the store by id.
  *
  * This is a hard delete, which is rarely what you want for a comment or a thread: the built-in UI
  * soft-deletes them ({@link deleteComment}, {@link deleteThread}) so the server can prune the
@@ -126,9 +97,7 @@ export function removeCommentRecords(
 	editor: Editor,
 	ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]
 ): void {
-	commitCommentMutation(editor, () => {
-		editor.store.remove(ids as unknown as TLRecord['id'][])
-	})
+	editor.store.remove(ids as unknown as TLRecord['id'][])
 }
 
 /**
@@ -146,7 +115,9 @@ export function removeCommentRecords(
  * @public
  */
 export function editComment(editor: Editor, comment: TLComment, body: TLRichText): void {
-	putCommentRecords(editor, [{ ...comment, body, editedAt: Date.now() }])
+	commitCommentMutation(editor, () =>
+		putCommentRecords(editor, [{ ...comment, body, editedAt: Date.now() }])
+	)
 }
 
 /**
@@ -156,7 +127,9 @@ export function editComment(editor: Editor, comment: TLComment, body: TLRichText
  * @public
  */
 export function resolveThread(editor: Editor, thread: TLCommentThread, userId: string): void {
-	putCommentRecords(editor, [{ ...thread, resolved: { at: Date.now(), by: userId } }])
+	commitCommentMutation(editor, () =>
+		putCommentRecords(editor, [{ ...thread, resolved: { at: Date.now(), by: userId } }])
+	)
 }
 
 /**
@@ -165,7 +138,7 @@ export function resolveThread(editor: Editor, thread: TLCommentThread, userId: s
  * @public
  */
 export function reopenThread(editor: Editor, thread: TLCommentThread): void {
-	putCommentRecords(editor, [{ ...thread, resolved: null }])
+	commitCommentMutation(editor, () => putCommentRecords(editor, [{ ...thread, resolved: null }]))
 }
 
 /**
