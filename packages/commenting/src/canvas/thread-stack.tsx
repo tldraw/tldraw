@@ -3,6 +3,7 @@ import { Editor, TLCommentThread, useContainer, usePassThroughWheelEvents, useVa
 import { CommentCard } from '../ui/comment-card'
 import { CountBadge } from '../ui/count-badge'
 import { useThreadComments } from './hooks'
+import { type CommentingIdentity } from './identity'
 import { useCommentingOptions } from './options'
 import { pinStackKey } from './pin-stacking'
 import { openStackId, openThreadId } from './state'
@@ -12,7 +13,6 @@ import {
 	POPOVER_OFFSET,
 	ThreadPopover,
 	ThreadView,
-	ThreadViewHostProps,
 	toCardProps,
 	useResolveName,
 } from './thread-view'
@@ -27,7 +27,7 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	editor,
 	threads,
 	...props
-}: ThreadViewHostProps & {
+}: CommentingIdentity & {
 	editor: Editor
 	/** The stack's threads, oldest first. All resolve to the same anchor point. */
 	threads: readonly TLCommentThread[]
@@ -194,7 +194,7 @@ function StackThreadCard({
 	thread,
 	onOpen,
 	...props
-}: ThreadViewHostProps & { editor: Editor; thread: TLCommentThread; onOpen(): void }) {
+}: CommentingIdentity & { editor: Editor; thread: TLCommentThread; onOpen(): void }) {
 	const options = useCommentingOptions()
 	const comments = useThreadComments(editor, thread.id)
 	const resolveName = useResolveName(props.resolveAuthor)

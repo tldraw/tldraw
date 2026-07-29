@@ -1,9 +1,7 @@
-import { type CommentAuthor } from '@tldraw/mentions'
 import { ReactNode, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import {
 	TLComment,
-	TLCommentId,
 	useContainer,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -15,23 +13,24 @@ import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
 import { CommentsVisibilityToggle } from './comments-visibility-toggle'
 import { useComments, useCommentThreads } from './hooks'
+import { type CommentingIdentity, useCommentingIdentity } from './identity'
 import { useCommentingEnabled } from './license'
 import { useCommentingOptions } from './options'
 import { richTextToPlaintext } from './rich-text'
 import { commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
 import { focusThread } from './thread-state'
 
-/** @public */
-export interface CanvasCommentsSidebarProps {
-	/** Map an author id to their display info, or `undefined` when the id can't be resolved. */
-	resolveAuthor(id: string): CommentAuthor | undefined
-	/** The signed-in user's id. Enables the "only your threads" filter when present. */
-	currentUserId?: string
-	/**
-	 * Whether a comment is unread for the current user (return true for unread). Enables the
-	 * "only unread" filter when present.
-	 */
-	isCommentUnread?(commentId: TLCommentId): boolean
+/**
+ * The host wiring for {@link CanvasCommentsSidebar}: the {@link CommentingIdentity} fields it
+ * reads, each falling back to the enclosing {@link CommentingProvider} when left unset, plus the
+ * panel's own slots. A known `currentUserId` enables the "only your threads" filter, and an
+ * `isCommentUnread` the "only unread" one.
+ *
+ * @public
+ */
+export interface CanvasCommentsSidebarProps extends Partial<
+	Pick<CommentingIdentity, 'currentUserId' | 'resolveAuthor' | 'isCommentUnread'>
+> {
 	/** Header above the list. */
 	header?: ReactNode
 	/** Shown when the page has no threads. */
@@ -45,8 +44,8 @@ export interface CanvasCommentsSidebarProps {
  * or always-on list.
  * @public @react
  */
-export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
-	const { resolveAuthor, currentUserId, isCommentUnread, header, empty } = props
+export function CanvasCommentsSidebar({ header, empty, ...hostProps }: CanvasCommentsSidebarProps) {
+	const { resolveAuthor, currentUserId, isCommentUnread } = useCommentingIdentity(hostProps)
 	// Name-only view of the resolver, for the plaintext previews (which resolve @-mentions).
 	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const editor = useEditor()
@@ -87,8 +86,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		// "Only mine" is ignored without a known user — otherwise a persisted onlyMine=true would
 		// empty the list for a signed-out viewer, with the (hidden) toggle giving no way to clear it.
 		.filter(
-			(thread) =>
-				!filters.onlyMine || currentUserId === undefined || thread.createdBy === currentUserId
+			(thread) => !filters.onlyMine || currentUserId === null || thread.createdBy === currentUserId
 		)
 		// "Only unread" is likewise ignored without a read-status source.
 		.filter(
@@ -147,7 +145,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				headerAction={
 					<div className="tlui-cmt-list__header-actions">
 						<CommentsFilterMenu
-							canFilterByAuthor={currentUserId !== undefined}
+							canFilterByAuthor={currentUserId !== null}
 							canFilterByUnread={isCommentUnread !== undefined}
 						/>
 						<CommentsVisibilityToggle />

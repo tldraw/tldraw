@@ -2,6 +2,7 @@ import {
 	CanvasComments,
 	CanvasCommentsSidebar,
 	CommentAuthor,
+	CommentingProvider,
 	commentsSidebarOpen,
 	commentToolOverrides,
 	commentTools,
@@ -145,11 +146,13 @@ export default function CommentingSidebarExample() {
 
 	const components = useMemo<TLComponents>(
 		() => ({
+			// Both surfaces need the same wiring — who you are, and how ids become names — so it's
+			// supplied once here rather than repeated on each of them.
 			InFrontOfTheCanvas: () => (
-				<>
-					<CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />
-					<CanvasCommentsSidebar currentUserId="me" resolveAuthor={resolveAuthor} />
-				</>
+				<CommentingProvider currentUserId="me" resolveAuthor={resolveAuthor}>
+					<CanvasComments />
+					<CanvasCommentsSidebar />
+				</CommentingProvider>
 			),
 			SharePanel: SidebarToggle,
 		}),

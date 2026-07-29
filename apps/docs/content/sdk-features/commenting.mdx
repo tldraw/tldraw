@@ -72,7 +72,7 @@ export default function App() {
 
 Comments are records in the editor's store, exactly like shapes. `commentSchemaRecords` registers the `comment-thread` and `comment` types, which aren't in the default schema. Once they're registered, comments persist and sync however your document already does: add a `persistenceKey` or a sync backend and they come along with it.
 
-`CanvasComments` needs two props, and both are about identity. `currentUserId` is the id of the person commenting, or `null` for a viewer who can read comments but not post them. `resolveAuthor` maps an author id to a `CommentAuthor`: a `name`, an optional `color` for their avatar and pin, and an optional `image`. Return `undefined` for an id you can't resolve and the layer falls back to an anonymous user.
+`CanvasComments` needs two things, and both are about identity. `currentUserId` is the id of the person commenting, or `null` for a viewer who can read comments but not post them. `resolveAuthor` maps an author id to a `CommentAuthor`: a `name`, an optional `color` for their avatar and pin, and an optional `image`. Return `undefined` for an id you can't resolve and the layer falls back to an anonymous user. Pass them as props, or, once you're mounting more than one commenting surface, supply them once with [`CommentingProvider`](#sharing-the-identity).
 
 Mount the layer through the `InFrontOfTheCanvas` component slot so it sits above the canvas but below the UI, and import `commenting.css` alongside `tldraw.css`.
 
@@ -129,7 +129,7 @@ function App() {
 }
 ```
 
-Options are fixed once the tool is registered, so this is static configuration only. Live values, like the current user and the author resolver, stay as props on `CanvasComments`. Calls to `configure` can be chained, and each one layers over the last.
+Options are fixed once the tool is registered, so this is static configuration only. Live values, like the current user and the author resolver, are the `CommentingIdentity` instead — props on a surface, or a `CommentingProvider` around them. Calls to `configure` can be chained, and each one layers over the last.
 
 The sections below introduce the relevant comment options, and [All options](#all-options) lists every one together.
 
@@ -275,6 +275,7 @@ Its open state is a signal you drive, so the toggle lives wherever your app want
 import {
 	CanvasComments,
 	CanvasCommentsSidebar,
+	CommentingProvider,
 	toggleCommentsSidebar,
 	useCommentsSidebarOpen,
 } from '@tldraw/commenting'
@@ -292,16 +293,31 @@ function SidebarToggle() {
 
 const components: TLComponents = {
 	InFrontOfTheCanvas: () => (
-		<>
-			<CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />
-			<CanvasCommentsSidebar currentUserId="me" resolveAuthor={resolveAuthor} />
-		</>
+		<CommentingProvider currentUserId="me" resolveAuthor={resolveAuthor}>
+			<CanvasComments />
+			<CanvasCommentsSidebar />
+		</CommentingProvider>
 	),
 	SharePanel: SidebarToggle,
 }
 ```
 
 The sidebar's filters cover resolved threads, only comments you made, only unread comments, and only the current page. They're held per editor, so a user's choices survive the panel closing. Pass `header` and `empty` to replace the chrome around the list.
+
+## Sharing the identity
+
+Every commenting surface reads the same host wiring — the `CommentingIdentity`: who the viewer is, how author ids become names, read status, and the mention roster. Pass it as props on a single surface, as above, or supply it once with `CommentingProvider` and let each surface beneath inherit it.
+
+A surface's own props still win over the provider, which is how one surface can differ from the rest. A session that may read comments but not write them passes `currentUserId={null}` to the layer to suppress composing, while the provider keeps the real id for the sidebar's "only your threads" filter:
+
+```tsx
+<CommentingProvider currentUserId={userId} resolveAuthor={resolveAuthor}>
+	<CanvasComments currentUserId={canComment ? userId : null} />
+	<CanvasCommentsSidebar />
+</CommentingProvider>
+```
+
+A field left unset inherits; `null` is a value, not an omission. `useCommentingIdentity` reads whatever is in force, for surfaces you build yourself out of the parts.
 
 ## Unread state
 

@@ -56,30 +56,19 @@ export interface BylineProps {
     edited?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export function CanvasComments(props: CanvasCommentsProps): JSX.Element | null;
 
 // @public
-export interface CanvasCommentsProps {
-    currentUserId: null | string;
-    getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
-    isCommentUnread?(commentId: TLCommentId): boolean;
-    onCommentRead?(commentId: TLCommentId): void;
-    onPostComment?(comment: TLComment): void;
-    renderMentionSuggestion?(member: MentionMember): ReactNode;
-    resolveAuthor(id: string): CommentAuthor | undefined;
-}
+export type CanvasCommentsProps = Partial<CommentingIdentity>;
 
 // @public
-export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps): JSX.Element | null;
+export function CanvasCommentsSidebar({ header, empty, ...hostProps }: CanvasCommentsSidebarProps): JSX.Element | null;
 
-// @public (undocumented)
-export interface CanvasCommentsSidebarProps {
-    currentUserId?: string;
+// @public
+export interface CanvasCommentsSidebarProps extends Partial<Pick<CommentingIdentity, 'currentUserId' | 'isCommentUnread' | 'resolveAuthor'>> {
     empty?: ReactNode;
     header?: ReactNode;
-    isCommentUnread?(commentId: TLCommentId): boolean;
-    resolveAuthor(id: string): CommentAuthor | undefined;
 }
 
 export { CommentAuthor }
@@ -158,6 +147,17 @@ export interface CommentingComponents {
 }
 
 // @public
+export interface CommentingIdentity {
+    currentUserId: null | string;
+    getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
+    isCommentUnread?(commentId: TLCommentId): boolean;
+    onCommentRead?(commentId: TLCommentId): void;
+    onPostComment?(comment: TLComment): void;
+    renderMentionSuggestion?(member: MentionMember): ReactNode;
+    resolveAuthor(id: string): CommentAuthor | undefined;
+}
+
+// @public
 export interface CommentingOptions {
     readonly allowMultipleReactions: boolean;
     readonly canComment: ((ctx: {
@@ -175,6 +175,15 @@ export interface CommentingOptions {
     };
     isAllowedReaction(token: string): boolean;
     shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean;
+}
+
+// @public
+export function CommentingProvider({ children, ...identity }: CommentingProviderProps): JSX.Element;
+
+// @public (undocumented)
+export interface CommentingProviderProps extends Partial<CommentingIdentity> {
+    // (undocumented)
+    children: ReactNode;
 }
 
 // @public (undocumented)
@@ -565,6 +574,9 @@ export function useCanComment(currentUserId: null | string | undefined): boolean
 
 // @public
 export function useCommentingEnabled(): boolean;
+
+// @public
+export function useCommentingIdentity(overrides?: Partial<CommentingIdentity>): CommentingIdentity;
 
 // @public
 export function useCommentingOptions(): CommentingOptions;
