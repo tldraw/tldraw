@@ -1,6 +1,6 @@
 import { WeakCache } from '@tldraw/utils'
 import { Editor, TLCommentAnchor, TLCommentThread, TLPageId, TLShapeId, VecLike } from 'tldraw'
-import { commitCommentMutation, putCommentRecords } from './comment-mutations'
+import { commitCommentMutation, putRecordsInCommit } from './comment-mutations'
 import { getCommentRecord, getComments, getCommentThreads, TLCommentRecord } from './comment-store'
 import { anchorPagePoint, impreciseShapePinInset } from './thread-state'
 
@@ -161,7 +161,7 @@ export function registerCommentAnchorLifecycle(editor: Editor): () => void {
 		}
 
 		if (updates.length > 0) {
-			commitCommentMutation(editor, () => putCommentRecords(editor, updates))
+			commitCommentMutation(editor, () => putRecordsInCommit(editor, updates))
 		}
 	})
 
@@ -191,7 +191,7 @@ export function registerCommentAnchorLifecycle(editor: Editor): () => void {
 				rehomeThread(thread, pageId, updates)
 			}
 			if (updates.length > 0) {
-				commitCommentMutation(editor, () => putCommentRecords(editor, updates))
+				commitCommentMutation(editor, () => putRecordsInCommit(editor, updates))
 			}
 		}
 	)

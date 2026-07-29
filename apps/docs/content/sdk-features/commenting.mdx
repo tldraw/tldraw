@@ -167,7 +167,7 @@ Return `() => false` for shape-level anchoring throughout, or `(editor, { altKey
 
 ## Comments and undo
 
-Comment writes are not undoable by default. The `history` option governs all of them, including posting, replying, editing and resolving, and it defaults to `'ignore'`.
+Comment writes are not undoable by default. The `history` option governs all of them, including posting, replying, editing and resolving, and it defaults to `'ignore'`. It covers your own writes too: a record you write with `putCommentRecords` lands on the undo stack, or doesn't, exactly like one the built-in UI writes.
 
 In a shared document an undoable delete resurrects a thread a collaborator already removed, and an undoable resolve reverts their newer state. `'record'` is safe single-player, or against a comment store that isn't synced.
 

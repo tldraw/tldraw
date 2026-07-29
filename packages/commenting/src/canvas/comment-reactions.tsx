@@ -11,7 +11,11 @@ import {
 import { RenderReaction } from '../ui/reaction'
 import { ReactionPicker } from '../ui/reaction-picker'
 import { Reactions, ReactionSummary } from '../ui/reactions'
-import { commitCommentMutation, putCommentRecords, removeCommentRecords } from './comment-mutations'
+import {
+	commitCommentMutation,
+	putRecordsInCommit,
+	removeRecordsInCommit,
+} from './comment-mutations'
 import { UNKNOWN_AUTHOR } from './comment-render'
 import { getCommentReactions } from './comment-store'
 import { getCommentingOptions, useCommentingOptions } from './options'
@@ -114,17 +118,17 @@ export function toggleCommentReaction(
 	if (!removing && !isAllowedReaction(emoji)) return
 	commitCommentMutation(editor, () => {
 		if (removing) {
-			removeCommentRecords(editor, [targetId])
+			removeRecordsInCommit(editor, [targetId])
 			return
 		}
 		// Single-select: a new emoji replaces the user's existing reaction(s) on this comment.
 		if (!allowMultipleReactions && mine.length > 0) {
-			removeCommentRecords(
+			removeRecordsInCommit(
 				editor,
 				mine.map((reaction) => reaction.id)
 			)
 		}
-		putCommentRecords(editor, [
+		putRecordsInCommit(editor, [
 			createCommentReaction({
 				commentId: comment.id,
 				threadId: comment.threadId,

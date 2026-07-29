@@ -34,7 +34,7 @@ import {
 	deleteComment,
 	deleteThread,
 	editComment,
-	putCommentRecords,
+	putRecordsInCommit,
 	reopenThread,
 	resolveThread,
 } from './comment-mutations'
@@ -264,7 +264,7 @@ export function ThreadView({
 				authorId: currentUserId,
 				body: reply,
 			})
-			putCommentRecords(editor, [comment])
+			putRecordsInCommit(editor, [comment])
 			if (onPostComment) onPostComment(comment)
 		})
 		setReply(EMPTY_COMMENT)

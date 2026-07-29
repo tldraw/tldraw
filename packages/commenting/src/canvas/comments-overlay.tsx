@@ -44,7 +44,7 @@ import {
 	NEW_COMMENT_DRAFT,
 	saveCommentDraft,
 } from './comment-drafts'
-import { commitCommentMutation, putCommentRecords } from './comment-mutations'
+import { commitCommentMutation, putRecordsInCommit } from './comment-mutations'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { getCommentRecord } from './comment-store'
 import { PendingComment } from './comment-tool'
@@ -1297,7 +1297,7 @@ const ThreadPin = memo(function ThreadPin({
 					)
 				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
 		}
-		commitCommentMutation(editor, () => putCommentRecords(editor, [{ ...thread, anchor }]), 'drag')
+		commitCommentMutation(editor, () => putRecordsInCommit(editor, [{ ...thread, anchor }]), 'drag')
 	}
 
 	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
@@ -1330,7 +1330,7 @@ const ThreadPin = memo(function ThreadPin({
 		commitCommentMutation(
 			editor,
 			// Spread the existing anchor first so the region's pin corner survives a resize.
-			() => putCommentRecords(editor, [{ ...thread, anchor: { ...regionAnchor!, ...bounds } }]),
+			() => putRecordsInCommit(editor, [{ ...thread, anchor: { ...regionAnchor!, ...bounds } }]),
 			'drag'
 		)
 	}
@@ -1478,7 +1478,7 @@ function PendingComposer({
 				authorId: currentUserId,
 				body: text,
 			})
-			putCommentRecords(editor, [thread, comment])
+			putRecordsInCommit(editor, [thread, comment])
 			if (onPostComment) onPostComment(comment)
 		})
 		setText(EMPTY_COMMENT)

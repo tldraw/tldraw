@@ -17,11 +17,10 @@ import { openThreadId } from './state'
  * Every write to a comment record, and the undo/redo policy governing them.
  *
  * This file layers bottom-up: {@link commitCommentMutation} resolves the history mode,
- * {@link putCommentRecords} and {@link removeCommentRecords} are the raw typed writes, and the
- * verbs below are those writes committed under a history mode plus the one rule each carries — a
- * timestamp to stamp, a shape to put the `resolved` field in, or the soft-delete protocol. The
- * built-in thread view calls exactly these verbs, so a UI of your own behaves the same as the one
- * in the box.
+ * {@link putCommentRecords} and {@link removeCommentRecords} are the typed writes that run under
+ * it, and the verbs below are those writes plus the one rule each carries — a timestamp to stamp, a
+ * shape to put the `resolved` field in, or the soft-delete protocol. The built-in thread view calls
+ * exactly these verbs, so a UI of your own behaves the same as the one in the box.
  *
  * Posting carries no such rule, so it isn't a verb here: build the records with
  * `createCommentThread`/`createComment` and write them with {@link putCommentRecords}.
@@ -78,7 +77,31 @@ export function commitCommentMutation<T>(
 }
 
 /**
- * Write comment records to the store.
+ * Write records without opening a commit, for call sites that already sit inside one.
+ *
+ * `editor.run`'s history option isn't additive — a nested run overwrites the enclosing mode for its
+ * own scope — so a {@link putCommentRecords} call inside a commit would discard the mode its caller
+ * chose. A pin drag committed as `drag` under `dragHistory: 'record'` would land back on
+ * `history: 'ignore'` and quietly stop being undoable. Inside a commit, write with this.
+ *
+ * @internal
+ */
+export function putRecordsInCommit(editor: Editor, records: TLCommentRecord[]): void {
+	editor.store.put(records as unknown as TLRecord[])
+}
+
+/** {@link putRecordsInCommit}'s counterpart for removals. @internal */
+export function removeRecordsInCommit(
+	editor: Editor,
+	ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]
+): void {
+	editor.store.remove(ids as unknown as TLRecord['id'][])
+}
+
+/**
+ * Write comment records to the store, under the configured
+ * {@link CommentingOptions.history} behavior — so a record you write lands on the undo stack (or
+ * doesn't) exactly like one the built-in UI writes. Defaults to `'ignore'`.
  *
  * Use it to seed or import threads, and to save an edit. To delete, prefer
  * {@link deleteComment} and {@link deleteThread} over {@link removeCommentRecords}: comments are
@@ -87,11 +110,12 @@ export function commitCommentMutation<T>(
  * @public
  */
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void {
-	editor.store.put(records as unknown as TLRecord[])
+	commitCommentMutation(editor, () => putRecordsInCommit(editor, records))
 }
 
 /**
- * Remove comment records from the store by id.
+ * Remove comment records from the store by id, under the configured
+ * {@link CommentingOptions.history} behavior.
  *
  * This is a hard delete, which is rarely what you want for a comment or a thread: the built-in UI
  * soft-deletes them ({@link deleteComment}, {@link deleteThread}) so the server can prune the
@@ -106,7 +130,7 @@ export function removeCommentRecords(
 	editor: Editor,
 	ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]
 ): void {
-	editor.store.remove(ids as unknown as TLRecord['id'][])
+	commitCommentMutation(editor, () => removeRecordsInCommit(editor, ids))
 }
 
 /**
@@ -124,9 +148,7 @@ export function removeCommentRecords(
  * @public
  */
 export function editComment(editor: Editor, comment: TLComment, body: TLRichText): void {
-	commitCommentMutation(editor, () =>
-		putCommentRecords(editor, [{ ...comment, body, editedAt: Date.now() }])
-	)
+	putCommentRecords(editor, [{ ...comment, body, editedAt: Date.now() }])
 }
 
 /**
@@ -136,9 +158,7 @@ export function editComment(editor: Editor, comment: TLComment, body: TLRichText
  * @public
  */
 export function resolveThread(editor: Editor, thread: TLCommentThread, userId: string): void {
-	commitCommentMutation(editor, () =>
-		putCommentRecords(editor, [{ ...thread, resolved: { at: Date.now(), by: userId } }])
-	)
+	putCommentRecords(editor, [{ ...thread, resolved: { at: Date.now(), by: userId } }])
 }
 
 /**
@@ -147,7 +167,7 @@ export function resolveThread(editor: Editor, thread: TLCommentThread, userId: s
  * @public
  */
 export function reopenThread(editor: Editor, thread: TLCommentThread): void {
-	commitCommentMutation(editor, () => putCommentRecords(editor, [{ ...thread, resolved: null }]))
+	putCommentRecords(editor, [{ ...thread, resolved: null }])
 }
 
 /**
@@ -178,7 +198,7 @@ export function deleteComment(editor: Editor, comment: TLComment): void {
 			if (isLastInThread && openThreadId.get(editor) === comment.threadId) {
 				openThreadId.set(editor, null)
 			}
-			putCommentRecords(editor, [{ ...comment, isDeleted: true }])
+			putRecordsInCommit(editor, [{ ...comment, isDeleted: true }])
 		},
 		'delete'
 	)
@@ -203,7 +223,7 @@ export function deleteThread(editor: Editor, thread: TLCommentThread): void {
 			if (openThreadId.get(editor) === thread.id) {
 				openThreadId.set(editor, null)
 			}
-			putCommentRecords(editor, [{ ...thread, isDeleted: true }])
+			putRecordsInCommit(editor, [{ ...thread, isDeleted: true }])
 		},
 		'delete'
 	)

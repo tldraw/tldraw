@@ -15,10 +15,12 @@ import {
 } from 'tldraw'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
+	commitCommentMutation,
 	deleteComment,
 	deleteThread,
 	editComment,
 	putCommentRecords,
+	putRecordsInCommit,
 	reopenThread,
 	resolveThread,
 } from './comment-mutations'
@@ -197,31 +199,24 @@ describe('deleteThread', () => {
 })
 
 describe('history', () => {
-	// The shape gives the undo something recorded to rewind, so what's under test is that the edit
-	// isn't on the stack rather than that the stack is empty.
-	it('does not put an edit on the undo stack by default', () => {
+	it('does not put comment writes on the undo stack by default', () => {
 		const editor = makeEditor()
-		const { comment } = makeThread(editor)
 		editor.markHistoryStoppingPoint()
-		const shapeId = createShapeId()
-		editor.createShape({ id: shapeId, type: 'geo', x: 0, y: 0 })
+		const { comment } = makeThread(editor)
 
-		editComment(editor, comment, toRichText('changed'))
 		editor.undo()
 
-		expect(editor.getShape(shapeId)).toBeUndefined()
-		expect(readComment(editor, comment)!.body).toEqual(toRichText('changed'))
+		expect(readComment(editor, comment)).toBeDefined()
 	})
 
-	it('puts an edit on the undo stack when the history option asks for it', () => {
+	it('puts them on the undo stack when the history option asks for it', () => {
 		const editor = makeEditor(CommentTool.configure({ history: 'record' }))
-		const { comment } = makeThread(editor)
 		editor.markHistoryStoppingPoint()
+		const { comment } = makeThread(editor)
 
-		editComment(editor, comment, toRichText('changed'))
 		editor.undo()
 
-		expect(readComment(editor, comment)!.body).toEqual(toRichText('hello'))
+		expect(readComment(editor, comment)).toBeUndefined()
 	})
 
 	// The flag is write-once server-side, so an undo clearing it would be vetoed and rebased —
@@ -254,6 +249,23 @@ describe('history', () => {
 
 		expect(editor.getShape(shapeId)).toBeUndefined()
 		expect(readThread(editor, thread)).toMatchObject({ isDeleted: true })
+	})
+
+	// A host can want pin drags undoable while posts and edits aren't. The drag owns its commit and
+	// writes inside it, which is what keeps `dragHistory` in charge of the mode.
+	it('lets dragHistory govern a drag on its own', () => {
+		const editor = makeEditor(CommentTool.configure({ history: 'ignore', dragHistory: 'record' }))
+		const { thread } = makeThread(editor)
+		editor.markHistoryStoppingPoint()
+
+		commitCommentMutation(
+			editor,
+			() => putRecordsInCommit(editor, [{ ...thread, anchor: { type: 'point', x: 50, y: 50 } }]),
+			'drag'
+		)
+		editor.undo()
+
+		expect(readThread(editor, thread)!.anchor).toEqual({ type: 'point', x: 0, y: 0 })
 	})
 })
 
