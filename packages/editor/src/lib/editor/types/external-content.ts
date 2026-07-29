@@ -37,6 +37,11 @@ export type TLExternalContentSource =
 
 /** @public */
 export interface TLBaseExternalContent {
+	/**
+	 * The other content sources found on the clipboard alongside this content. For example, when
+	 * pasting an image copied together with html and plain text, the files content will have text
+	 * sources for the html and plain text parts.
+	 */
 	sources?: TLExternalContentSource[]
 	point?: VecLike
 }
