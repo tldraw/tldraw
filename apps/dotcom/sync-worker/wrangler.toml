@@ -115,6 +115,10 @@ MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
 MCP_SCREENSHOT_ENABLED = "true"
 # local-only signing secret; deployments get a real one via deploy vars
 MCP_SCREENSHOT_TOKEN_SECRET = "local-dev-thumbnail-render-secret"
+# Browser Run is unreachable from local dev (see the BROWSER binding note below), so screenshots go
+# to the client dev server, which drives Playwright. Deployed environments leave this unset and use
+# the BROWSER binding.
+LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
 
