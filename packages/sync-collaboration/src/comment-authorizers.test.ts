@@ -1,3 +1,5 @@
+import type { UnknownRecord } from '@tldraw/store'
+import type { TLRecordAuthorizer, TLRecordAuthorizerArgs } from '@tldraw/sync-core'
 import {
 	TLComment,
 	TLCommentReaction,
@@ -20,6 +22,32 @@ interface TestMeta {
 const authorizers = createCommentAuthorizers<TestMeta>({
 	getUserId: (session) => session.meta.userId,
 })
+
+/** The `allow`/`deny` helpers the room hands to every authorizer. */
+const helpers = {
+	allow: (record?: any) =>
+		record ? { allowed: true as const, record } : { allowed: true as const },
+	deny: () => ({ allowed: false as const }),
+}
+
+/** The write to authorize, without the helpers the room supplies. */
+type Write<Rec extends UnknownRecord> = Omit<
+	TLRecordAuthorizerArgs<Rec, TestMeta>,
+	'allow' | 'deny'
+>
+
+/**
+ * Call an authorizer the way the room does, and flatten its verdict to the record that would be
+ * stored, or `null` when denied — so each test reads as one write in, one outcome out.
+ */
+function authorizing<Rec extends UnknownRecord>(authorize: TLRecordAuthorizer<Rec, TestMeta>) {
+	return (write: Write<Rec>): Rec | null => {
+		const result = authorize({ ...write, ...helpers } as TLRecordAuthorizerArgs<Rec, TestMeta>)
+		if (!result.allowed) return null
+		// create: the stamped record, if the authorizer passed one; update/delete: allow/veto only
+		return result.record ?? write.next ?? write.prev
+	}
+}
 
 const pageId = 'page:test' as TLPageId
 const thread = createCommentThread({
@@ -48,13 +76,36 @@ describe('createCommentAuthorizers', () => {
 		const prev = createCommentThread({ pageId, anchor: { type: 'page' }, createdBy: 'real-bob' })
 		const next = { ...prev, resolved: { at: 1, by: 'real-bob' }, isDeleted: true }
 		expect(
-			counted['comment-thread']!({ session: session('real-bob'), type: 'update', prev, next })
+			authorizing(counted['comment-thread']!)({
+				session: session('real-bob'),
+				type: 'update',
+				prev,
+				next,
+			})
 		).toBe(next)
 		expect(calls).toBe(1)
 	})
 
-	describe('comment', () => {
+	// The rest of the suite flattens verdicts through `authorizing`; this pins the shape itself, so
+	// a rule that returned a bare record (or nothing) would be caught here as well as by the compiler.
+	it('returns a discriminated verdict, carrying the stamped record on create', () => {
 		const authorize = authorizers.comment!
+		const next = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'client-claims-alice',
+			body: toRichText('hi'),
+		})
+		expect(
+			authorize({ ...helpers, session: session('real-bob'), type: 'create', prev: null, next })
+		).toEqual({ allowed: true, record: { ...next, authorId: 'real-bob' } })
+		expect(
+			authorize({ ...helpers, session: session(null), type: 'create', prev: null, next })
+		).toEqual({ allowed: false })
+	})
+
+	describe('comment', () => {
+		const authorize = authorizing(authorizers.comment!)
 		const comment = (authorId: string) =>
 			createComment({ threadId: thread.id, pageId, authorId, body: toRichText('hi') })
 
@@ -160,7 +211,7 @@ describe('createCommentAuthorizers', () => {
 	})
 
 	describe('comment-thread', () => {
-		const authorize = authorizers['comment-thread']!
+		const authorize = authorizing(authorizers['comment-thread']!)
 		const makeThread = (createdBy: string) =>
 			createCommentThread({ pageId, anchor: { type: 'page' }, createdBy })
 
@@ -270,7 +321,7 @@ describe('createCommentAuthorizers', () => {
 	// guards cover forging (userId is stamped from the session) and tampering (owner-only update).
 	// Crucially there is no shared field, so one person's write can't reach another's reaction.
 	describe('comment-reaction', () => {
-		const authorize = authorizers['comment-reaction']!
+		const authorize = authorizing(authorizers['comment-reaction']!)
 		const makeReaction = (userId: string, emoji = '👍') =>
 			createCommentReaction({
 				commentId: createCommentId('c1'),

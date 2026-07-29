@@ -1,5 +1,6 @@
+import type { UnknownRecord } from '@tldraw/store'
+import type { TLRecordAuthorizer, TLRecordAuthorizerArgs } from '@tldraw/sync-core'
 import {
-	TLComment,
 	TLNoteShape,
 	TLPageId,
 	TLShape,
@@ -15,6 +16,26 @@ const pageId = 'page:test' as TLPageId
 
 function session(userId: string | null): { sessionId: string; meta: SessionMeta } {
 	return { sessionId: 's1', meta: { storeId: 'store', userId } }
+}
+
+/** The `allow`/`deny` helpers the room hands to every authorizer. */
+const helpers = {
+	allow: (record?: any) =>
+		record ? { allowed: true as const, record } : { allowed: true as const },
+	deny: () => ({ allowed: false as const }),
+}
+
+/**
+ * Call an authorizer the way the room does, and flatten its verdict to the record that would be
+ * stored, or `null` when denied.
+ */
+function authorizing<Rec extends UnknownRecord>(authorize: TLRecordAuthorizer<Rec, SessionMeta>) {
+	type Write = Omit<TLRecordAuthorizerArgs<Rec, SessionMeta>, 'allow' | 'deny'>
+	return (write: Write): Rec | null => {
+		const result = authorize({ ...write, ...helpers } as TLRecordAuthorizerArgs<Rec, SessionMeta>)
+		if (!result.allowed) return null
+		return result.record ?? write.next ?? write.prev
+	}
 }
 
 describe('authorizeFileRecord', () => {
@@ -34,18 +55,18 @@ describe('authorizeFileRecord', () => {
 				authorId: 'client-claims-alice',
 				body: toRichText('hi'),
 			})
-			const result = authorizeFileRecord.comment!({
+			const result = authorizing(authorizeFileRecord.comment!)({
 				session: session('real-bob'),
 				type: 'create',
 				prev: null,
 				next,
-			}) as TLComment
-			expect(result.authorId).toBe('real-bob')
+			})
+			expect(result?.authorId).toBe('real-bob')
 		})
 
 		it('vetoes thread hard-deletes (deletion is soft)', () => {
 			expect(
-				authorizeFileRecord['comment-thread']!({
+				authorizing(authorizeFileRecord['comment-thread']!)({
 					session: session('real-bob'),
 					type: 'delete',
 					prev: thread,
@@ -56,7 +77,7 @@ describe('authorizeFileRecord', () => {
 	})
 
 	describe('shape', () => {
-		const authorize = authorizeFileRecord.shape!
+		const authorize = authorizing(authorizeFileRecord.shape!)
 
 		function makeNote(textLastEditedBy: string | null): TLNoteShape {
 			return {

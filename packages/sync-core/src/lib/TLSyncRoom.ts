@@ -122,6 +122,46 @@ export interface RoomSnapshot {
 }
 
 /**
+ * The verdict a {@link TLRecordAuthorizer} returns: allow the write (optionally rewriting the
+ * record on create) or deny it. Build one with the `allow` and `deny` helpers handed to the
+ * authorizer in {@link TLRecordAuthorizerArgs} rather than by hand.
+ *
+ * @public
+ */
+export type TLRecordAuthorizerResult<Rec extends UnknownRecord> =
+	| {
+			allowed: true
+			/**
+			 * The record to store, on **create** only. Omitted means "store the pushed record as-is";
+			 * on update and delete it is ignored (those are allow-vs-deny only).
+			 */
+			record?: Rec
+	  }
+	| { allowed: false }
+
+/**
+ * The argument a {@link TLRecordAuthorizer} is called with: the write being authorized, the session
+ * making it, and the `allow`/`deny` helpers for returning a verdict.
+ *
+ * @public
+ */
+export type TLRecordAuthorizerArgs<Rec extends UnknownRecord, SessionMeta> = {
+	/** The session performing the write, including its host-provided `meta` (e.g. the authenticated user id). */
+	session: { sessionId: string; meta: SessionMeta }
+	/**
+	 * Allow the write. On **create**, pass a record to store it instead of the pushed one — that's
+	 * where you stamp identity fields. On update and delete, call it with no argument.
+	 */
+	allow(record?: Rec): TLRecordAuthorizerResult<Rec>
+	/** Deny the write: it's skipped, and the client self-corrects. */
+	deny(): TLRecordAuthorizerResult<Rec>
+} & (
+	| { type: 'create'; prev: null; next: Rec }
+	| { type: 'update'; prev: Rec; next: Rec }
+	| { type: 'delete'; prev: Rec; next: null }
+)
+
+/**
  * Authorizes a single record write from a client: any per-record, per-session rule the host wants
  * to enforce server-side — veto writes the session isn't allowed to make, or rewrite the record on
  * create. The session's `meta` carries whatever the rule needs (identity, roles, …); for example,
@@ -132,37 +172,40 @@ export interface RoomSnapshot {
  *
  * `prev` and `next` are always at the **server's** schema version: client writes are migrated
  * before the authorizer runs, so guarding or stamping a field never requires knowing what older
- * clients call it. On create, the record you return is what gets stored (after validation) — no
+ * clients call it. On create, the record you allow is what gets stored (after validation) — no
  * migration runs afterwards, so stamped fields can't be clobbered.
  *
- * Return `null` to reject the write — it's skipped and the client self-corrects, exactly like the
- * `objectAccess` gate. Otherwise the write is allowed, and:
+ * Return `deny()` to reject the write — it's skipped and the client self-corrects, exactly like the
+ * `objectAccess` gate. Return `allow()` to let it through, and:
  *
- * - on **create**, the record you return is what gets stored, so stamp identity fields here (e.g.
- *   set `authorId` from `session.meta`);
- * - on **update** and **delete**, only allow-vs-reject is used (the returned record's contents are
- *   ignored), so use them to veto changes to immutable fields or unauthorized deletes — return
- *   `next`/`prev` to allow, `null` to reject.
+ * - on **create**, `allow(record)` stores `record` instead of the pushed one, so stamp identity
+ *   fields here (e.g. set `authorId` from `session.meta`); bare `allow()` stores the pushed record;
+ * - on **update** and **delete**, only allow-vs-deny is used (a record passed to `allow` is
+ *   ignored), so use them to veto changes to immutable fields or unauthorized deletes.
+ *
+ * @example
+ * ```ts
+ * const authorizeComment: TLRecordAuthorizer<TLComment, SessionMeta> = (args) => {
+ * 	const userId = args.session.meta.userId
+ * 	if (!userId) return args.deny()
+ * 	// stamp authorship on create, and keep it immutable afterwards
+ * 	if (args.type === 'create') return args.allow({ ...args.next, authorId: userId })
+ * 	return args.prev.authorId === userId ? args.allow() : args.deny()
+ * }
+ * ```
  *
  * ⚠︎ Runs synchronously inside the commit transaction, on the same path as every document edit — it
  * must be fast and do **no** I/O. `next`/`prev` are client-controlled records, so treat their
- * contents as untrusted; prefer returning `null` to reject over throwing, though a throw is
- * caught, logged, and treated as a rejection (fail closed) rather than crashing the push. For
- * expensive, async checks (e.g. resolving mentions against who can access a file), react after the
- * fact via `onCommittedChanges`.
+ * contents as untrusted; prefer returning `deny()` over throwing, though a throw is caught, logged,
+ * and treated as a denial (fail closed) rather than crashing the push — as is anything returned
+ * that isn't an explicit `allow()`. For expensive, async checks (e.g. resolving mentions against
+ * who can access a file), react after the fact via `onCommittedChanges`.
  *
  * @public
  */
 export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
-	args: {
-		/** The session performing the write, including its host-provided `meta` (e.g. the authenticated user id). */
-		session: { sessionId: string; meta: SessionMeta }
-	} & (
-		| { type: 'create'; prev: null; next: Rec }
-		| { type: 'update'; prev: Rec; next: Rec }
-		| { type: 'delete'; prev: Rec; next: null }
-	)
-) => Rec | null
+	args: TLRecordAuthorizerArgs<Rec, SessionMeta>
+) => TLRecordAuthorizerResult<Rec>
 
 /**
  * A map from record `typeName` to a {@link TLRecordAuthorizer} for that record type. Only listed
@@ -180,6 +223,24 @@ export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
  */
 export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
 	[K in R['typeName']]?: TLRecordAuthorizer<Extract<R, { typeName: K }>, SessionMeta>
+}
+
+// Frozen because they're handed out to (untrusted) host authorizers on every write: a verdict
+// mutated in place would leak into the next one, and these decide whether a write commits.
+const ALLOWED = Object.freeze({ allowed: true } as const)
+const DENIED = Object.freeze({ allowed: false } as const)
+
+/**
+ * The `allow`/`deny` helpers handed to every authorizer. Shared and stateless, so authorizing a
+ * write allocates a verdict only when the authorizer rewrites the record.
+ */
+const authorizerHelpers = {
+	allow<Rec extends UnknownRecord>(record?: Rec): TLRecordAuthorizerResult<Rec> {
+		return record ? { allowed: true, record } : ALLOWED
+	},
+	deny(): TLRecordAuthorizerResult<never> {
+		return DENIED
+	},
 }
 
 /**
@@ -328,10 +389,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// write through.
 		return (args) => {
 			try {
-				return authorize(args)
+				// Anything that isn't an explicit allow is a denial: a JS host that returns nothing
+				// (or something malformed) must not commit the write.
+				const result = authorize(args)
+				return result?.allowed ? result : DENIED
 			} catch (e) {
 				this.log?.error?.('record authorizer threw; rejecting the write', e)
-				return null
+				return DENIED
 			}
 		}
 	}
@@ -1369,22 +1433,25 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									const authorizePut = this.authorizerFor(record.typeName)
 									if (authorizePut) {
 										authorize = (prevRec, next) => {
+											const authorizedSession = { sessionId: session.sessionId, meta: session.meta }
 											const result = authorizePut(
 												prevRec
 													? {
-															session: { sessionId: session.sessionId, meta: session.meta },
+															...authorizerHelpers,
+															session: authorizedSession,
 															type: 'update',
 															prev: prevRec,
 															next,
 														}
 													: {
-															session: { sessionId: session.sessionId, meta: session.meta },
+															...authorizerHelpers,
+															session: authorizedSession,
 															type: 'create',
 															prev: null,
 															next,
 														}
 											)
-											if (!result) {
+											if (!result.allowed) {
 												this.log?.warn?.(
 													'authorizer vetoed put',
 													record.typeName,
@@ -1394,8 +1461,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 												)
 												return null
 											}
-											// create: store the stamped record; update: allow/veto only
-											return prevRec ? next : result
+											// create: store the record the authorizer allowed (stamped, if it passed
+											// one); update: allow/veto only
+											return prevRec ? next : (result.record ?? next)
 										}
 									}
 								}
@@ -1413,12 +1481,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const authorize = authorizePatch
 									? (prev: R, next: R) => {
 											const result = authorizePatch({
+												...authorizerHelpers,
 												session: { sessionId: session.sessionId, meta: session.meta },
 												type: 'update',
 												prev,
 												next,
 											})
-											if (!result) {
+											if (!result.allowed) {
 												this.log?.warn?.(
 													'authorizer vetoed patch',
 													doc.typeName,
@@ -1426,8 +1495,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 													'session:',
 													session.sessionId
 												)
+												return null
 											}
-											return result
+											return next
 										}
 									: undefined
 								// Try to patch the document. If it fails, stop here.
@@ -1447,11 +1517,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								if (
 									authorizeRemove &&
 									!authorizeRemove({
+										...authorizerHelpers,
 										session: { sessionId: session.sessionId, meta: session.meta },
 										type: 'delete',
 										prev: doc,
 										next: null,
-									})
+									}).allowed
 								) {
 									this.log?.warn?.(
 										'authorizer vetoed delete',

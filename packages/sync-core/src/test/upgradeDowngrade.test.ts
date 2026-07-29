@@ -1249,7 +1249,7 @@ describe('record authorizers see server-schema records', () => {
 		const seen: any[] = []
 		const t = makeInstance((args: any) => {
 			seen.push(structuredClone({ type: args.type, prev: args.prev, next: args.next }))
-			return args.next
+			return args.allow()
 		})
 		t.oldSocketPair.connect()
 		t.flush()
@@ -1266,7 +1266,7 @@ describe('record authorizers see server-schema records', () => {
 
 	it('a stamp applied on create survives — no migration runs after the authorizer', () => {
 		const t = makeInstance((args: any) =>
-			args.type === 'create' ? { ...args.next, birthdate: '2001-02-03' } : args.next
+			args.type === 'create' ? args.allow({ ...args.next, birthdate: '2001-02-03' }) : args.allow()
 		)
 		t.oldSocketPair.connect()
 		t.flush()
@@ -1285,7 +1285,7 @@ describe('record authorizers see server-schema records', () => {
 		const seen: any[] = []
 		const t = makeInstance((args: any) => {
 			seen.push(structuredClone({ type: args.type, prev: args.prev, next: args.next }))
-			return args.next
+			return args.allow()
 		})
 		t.oldSocketPair.connect()
 		t.newSocketPair.connect()
@@ -1311,7 +1311,7 @@ describe('record authorizers see server-schema records', () => {
 
 	it('vetoes based on the server-schema record', () => {
 		const t = makeInstance((args: any) =>
-			args.type === 'update' && args.next.name === 'forged' ? null : args.next
+			args.type === 'update' && args.next.name === 'forged' ? args.deny() : args.allow()
 		)
 		t.oldSocketPair.connect()
 		t.newSocketPair.connect()

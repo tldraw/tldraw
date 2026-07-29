@@ -42,13 +42,15 @@ const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 	type,
 	prev,
 	next,
+	allow,
+	deny,
 }) => {
-	if (type === 'delete') return prev
+	if (type === 'delete') return allow()
 	// On create there's no prior attribution; on update an unchanged attribution is always allowed.
 	const before = type === 'create' ? null : getNoteAttribution(prev)
 	const after = getNoteAttribution(next)
-	if (after !== before && after != null && after !== session.meta.userId) return null
-	return next
+	if (after !== before && after != null && after !== session.meta.userId) return deny()
+	return allow()
 }
 
 /**

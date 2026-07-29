@@ -89,6 +89,8 @@ function makeRoom(
 				type: 'create' | 'update' | 'delete'
 				prev: any
 				next: any
+				allow(record?: any): any
+				deny(): any
 			}) => any
 		}
 		log?: any
@@ -399,21 +401,21 @@ describe('object store lane', () => {
 
 	describe('authorizeRecord', () => {
 		it('rejects a presence typeName key at construction', () => {
-			expect(() => makeRoom({ authorizeRecord: { presence: ({ next }: any) => next } })).toThrow(
-				/presence/
-			)
+			expect(() =>
+				makeRoom({ authorizeRecord: { presence: ({ allow }: any) => allow() } })
+			).toThrow(/presence/)
 		})
 
 		// A per-type authorizer like dotcom's: stamp the note's text from the session's user id on
 		// create, keep it immutable on update, allow deletes.
-		const authorizeNote = ({ session, type, prev, next }: any) => {
+		const authorizeNote = ({ session, type, prev, next, allow, deny }: any) => {
 			if (type === 'create') {
 				const userId = session.meta?.userId
-				if (!userId) return null
-				return { ...next, text: `by:${userId}` }
+				if (!userId) return deny()
+				return allow({ ...next, text: `by:${userId}` })
 			}
-			if (type === 'update') return next.text === prev.text ? next : null
-			return prev // delete allowed
+			if (type === 'update') return next.text === prev.text ? allow() : deny()
+			return allow() // delete allowed
 		}
 
 		function withNote(authorize: any, extra: any = {}) {
@@ -452,7 +454,7 @@ describe('object store lane', () => {
 			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
 		})
 
-		it('rejects a create the authorizer denies (returns null)', () => {
+		it('rejects a create the authorizer denies', () => {
 			const { room, storage } = withNote(authorizeNote)
 			const socket = connectSession(room, 'anon', { meta: { userId: null } })
 
@@ -466,9 +468,9 @@ describe('object store lane', () => {
 
 		it('only runs for registered types — other records write through untouched', () => {
 			const seen: string[] = []
-			const { room, storage } = withNote(({ next }: any) => {
+			const { room, storage } = withNote(({ allow }: any) => {
 				seen.push('note')
-				return next
+				return allow()
 			})
 			connectSession(room, 'writer', { meta: { userId: 'u' } })
 
@@ -484,7 +486,8 @@ describe('object store lane', () => {
 			const { room, storage } = makeRoom({
 				objectTypes: ['note'],
 				authorizeRecord: {
-					doc: ({ type, next }: any) => (type === 'create' ? { ...next, title: 'stamped' } : next),
+					doc: ({ type, next, allow }: any) =>
+						type === 'create' ? allow({ ...next, title: 'stamped' }) : allow(),
 				},
 			})
 			connectSession(room, 'writer', { meta: { userId: 'u' } })
@@ -510,9 +513,7 @@ describe('object store lane', () => {
 		})
 
 		it('allows an update the authorizer permits (patch)', () => {
-			const { room, storage, note } = seededWithNote(({ type, prev, next }: any) =>
-				type === 'delete' ? prev : next
-			)
+			const { room, storage, note } = seededWithNote(({ allow }: any) => allow())
 			connectSession(room, 'alice', { meta: { userId: 'u' } })
 
 			push(room, 'alice', {
@@ -523,7 +524,7 @@ describe('object store lane', () => {
 		})
 
 		it('does not consult the authorizer for a no-op patch', () => {
-			const authorize = vi.fn(({ type, prev, next }: any) => (type === 'delete' ? prev : next))
+			const authorize = vi.fn(({ allow }: any) => allow())
 			const { room, note } = seededWithNote(authorize)
 			connectSession(room, 'alice', { meta: { userId: 'u' } })
 			authorize.mockClear()
@@ -536,8 +537,8 @@ describe('object store lane', () => {
 		})
 
 		it('vetoes a delete the authorizer rejects', () => {
-			const { room, storage, note } = seededWithNote(({ type, next }: any) =>
-				type === 'delete' ? null : next
+			const { room, storage, note } = seededWithNote(({ type, allow, deny }: any) =>
+				type === 'delete' ? deny() : allow()
 			)
 			const socket = connectSession(room, 'mallory', { meta: { userId: 'm' } })
 
@@ -600,16 +601,28 @@ describe('object store lane', () => {
 			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
 		})
 
-		it('ignores the record returned by an update authorizer (allow/veto only)', () => {
-			const { room, storage, note } = seededWithNote(({ type, prev, next }: any) => {
-				if (type === 'update') return { ...next, text: 'stamped-on-update' }
-				return type === 'delete' ? prev : next
+		it('ignores the record an update authorizer allows (allow/veto only)', () => {
+			const { room, storage, note } = seededWithNote(({ type, next, allow }: any) => {
+				if (type === 'update') return allow({ ...next, text: 'stamped-on-update' })
+				return allow()
 			})
 			connectSession(room, 'alice', { meta: { userId: 'u' } })
 
 			push(room, 'alice', { [note.id]: [RecordOpType.Put, { ...note, text: 'edited' }] })
 
 			expect(storedNote(storage, note.id)?.text).toBe('edited')
+		})
+
+		// A JS host can still return nothing (a forgotten return, which TypeScript would catch), so
+		// the room treats anything that isn't an explicit allow as a denial rather than crashing.
+		it('rejects the write (fail closed) when the authorizer returns no verdict', () => {
+			const { room, storage } = withNote(() => undefined)
+			const socket = connectSession(room, 'alice', { meta: { userId: 'u' } })
+			const note = Note.create({ text: 'x' })
+
+			expect(() => push(room, 'alice', { [note.id]: [RecordOpType.Put, note] })).not.toThrow()
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedIds(storage)).toEqual([])
 		})
 
 		it('rejects the write (fail closed) when the authorizer throws, without crashing the push', () => {
@@ -627,9 +640,9 @@ describe('object store lane', () => {
 		it('passes the change type for create, update, and delete', () => {
 			const types: string[] = []
 			const note = Note.create({ text: 'x' })
-			const { room } = withNote(({ type, prev, next }: any) => {
+			const { room } = withNote(({ type, allow }: any) => {
 				types.push(type)
-				return type === 'delete' ? prev : next
+				return allow()
 			})
 			connectSession(room, 'alice', { meta: { userId: 'u' } })
 
@@ -645,7 +658,7 @@ describe('object store lane', () => {
 			const note = Note.create({ text: 'by:user-alice' })
 			const { room } = makeRoom({
 				objectTypes: ['note'],
-				authorizeRecord: { note: () => null },
+				authorizeRecord: { note: ({ deny }: any) => deny() },
 				log: { warn },
 			})
 			connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })

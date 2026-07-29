@@ -71,6 +71,8 @@ export {
 	type PresenceStore,
 	type RoomSnapshot,
 	type TLRecordAuthorizer,
+	type TLRecordAuthorizerArgs,
+	type TLRecordAuthorizerResult,
 	type TLRecordAuthorizers,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'

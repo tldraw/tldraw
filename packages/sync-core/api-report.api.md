@@ -444,7 +444,12 @@ export interface TLPushRequest<R extends UnknownRecord> {
 }
 
 // @public
-export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: {
+export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: TLRecordAuthorizerArgs<Rec, SessionMeta>) => TLRecordAuthorizerResult<Rec>;
+
+// @public
+export type TLRecordAuthorizerArgs<Rec extends UnknownRecord, SessionMeta> = {
+    allow(record?: Rec): TLRecordAuthorizerResult<Rec>;
+    deny(): TLRecordAuthorizerResult<Rec>;
     session: {
         meta: SessionMeta;
         sessionId: string;
@@ -461,7 +466,15 @@ export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: 
     next: Rec;
     prev: Rec;
     type: 'update';
-})) => null | Rec;
+});
+
+// @public
+export type TLRecordAuthorizerResult<Rec extends UnknownRecord> = {
+    record?: Rec;
+    allowed: true;
+} | {
+    allowed: false;
+};
 
 // @public
 export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
