@@ -137,16 +137,15 @@ describe('shape anchors under a shape transform', () => {
 	it('turns an imprecise pin inset with the shape so it keeps stepping inward', () => {
 		const id = createSquare()
 		const anchor = shapeAnchorAt(editor, id, { x: 200, y: 100 }, false)
-		const spot = { x: 1, y: 0 }
-		// Top-right spot: step left and down, into the square.
-		expect(impreciseShapePinInset(editor, anchor, spot)).toMatchObject({
+		// The default top-right spot: step left and down, into the square.
+		expect(impreciseShapePinInset(editor, anchor)).toMatchObject({
 			x: -IMPRECISE_PIN_INSET_PX,
 			y: IMPRECISE_PIN_INSET_PX,
 		})
 
 		editor.rotateShapesBy([id], Math.PI / 2)
 		// The corner is now bottom-right, so stepping inward means left and up.
-		const inset = impreciseShapePinInset(editor, anchor, spot)!
+		const inset = impreciseShapePinInset(editor, anchor)!
 		expect(inset.x).toBeCloseTo(-IMPRECISE_PIN_INSET_PX)
 		expect(inset.y).toBeCloseTo(-IMPRECISE_PIN_INSET_PX)
 	})

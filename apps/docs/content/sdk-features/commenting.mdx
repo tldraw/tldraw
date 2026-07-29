@@ -260,15 +260,10 @@ CommentTool.configure({
 A region thread covers a rectangular area rather than a point. Regions are off by default, so the tool stays click-only until you turn them on:
 
 ```tsx
-CommentTool.configure({
-	enableRegions: true,
-	regionReveal: 'pin-hover',
-	regionMove: 'both',
-	regionResize: 'edges',
-})
+CommentTool.configure({ enableRegions: true })
 ```
 
-`regionReveal` decides when the dashed box and its handles show: while the pointer is inside the region, while its pin is hovered, or only while the thread is open. `regionMove` and `regionResize` decide how it's dragged and resized, and `regionPinCorner` sets which corner the pin sits on. A region anchor also remembers the corner where its creating drag was released.
+That's the whole configuration. A region reveals its dashed box and resize handles while the pointer is inside it, moves by its pin, and resizes from its corners. The pin sits on whichever corner the creating drag was released on, which the anchor remembers.
 
 ## The sidebar
 
@@ -404,16 +399,18 @@ putCommentRecords(editor, [thread, comment])
 
 ## Revealing a thread
 
-To open a thread from outside the canvas, whether from a notification, a shared link, or a list of your own, set `revealThreadRequest` to a thread or comment id. `CanvasComments` serves the request: it waits for the records to arrive, switches pages if it needs to, zooms in if the pin is inside a cluster, then opens the thread.
+To open a thread from outside the canvas, whether from a notification, a shared link, or a list of your own, call `revealThread` with a thread or comment id. `CanvasComments` serves the request: it waits for the records to arrive, switches pages if it needs to, zooms in if the pin is inside a cluster, then opens the thread.
 
 ```tsx
-import { revealThreadRequest } from '@tldraw/commenting'
+import { revealThread } from '@tldraw/commenting'
 
 // e.g. from a ?comment=<id> search param
-revealThreadRequest.set(editor, commentId)
+revealThread(editor, commentId)
 ```
 
-An unserved request is inert, so it's safe to set one before the records have synced in. For a thread you already hold, `focusThread(editor, thread)` centers and opens it directly.
+An unserved request is inert, so it's safe to call before the records have synced in. `useRevealThreadPending` returns the id of a request that hasn't been served yet, which is how you notice a deep link to a comment that no longer exists — give it a grace period first, since a request also sits there while its records are still arriving.
+
+For a thread you already hold, `focusThread(editor, thread)` centers and opens it directly.
 
 ## Pin clustering
 
@@ -421,7 +418,7 @@ Zoom out far enough and pins pile on top of each other. Clustering folds nearby 
 
 Clustering is on by default. Turn it off with `enableClustering: false`.
 
-The work is precomputed once per comment add, remove, or move, so per-frame camera changes cost a single walk over a sorted event table. If you're building your own pin layer, `computeClusterTable` and `createClusterRuntime` are exported. See the [comment clustering example](/examples/collaboration/comment-clustering).
+The work is precomputed once per comment add, remove, or move, so per-frame camera changes cost a single walk over a sorted event table. See the [comment clustering example](/examples/collaboration/comment-clustering).
 
 ## Syncing comments
 
@@ -531,21 +528,15 @@ Every option below is set with `CommentTool.configure()`. Anything you leave uns
 
 ### Regions
 
-| Option            | Default        | Description                                                         |
-| ----------------- | -------------- | ------------------------------------------------------------------- |
-| `enableRegions`   | `false`        | Whether dragging the comment tool creates a region anchor.          |
-| `regionPinCorner` | `{x: 1, y: 1}` | Which corner of a region its pin sits on.                           |
-| `regionReveal`    | `'pointer'`    | When a region's box shows: `'pointer'`, `'pin-hover'`, or `'open'`. |
-| `regionMove`      | `'pin'`        | How a region moves: by its `'pin'`, its `'body'`, or `'both'`.      |
-| `regionResize`    | `'corners'`    | A region's resize affordance: `'corners'`, `'edges'`, or `'none'`.  |
+| Option          | Default | Description                                                |
+| --------------- | ------- | ---------------------------------------------------------- |
+| `enableRegions` | `false` | Whether dragging the comment tool creates a region anchor. |
 
 ### Clustering
 
-| Option                   | Default | Description                                                                |
-| ------------------------ | ------- | -------------------------------------------------------------------------- |
-| `enableClustering`       | `true`  | Fold nearby pins into count badges as the camera zooms out.                |
-| `clusterCullMargin`      | `120`   | Screen-pixel margin by which the viewport is inflated when culling badges. |
-| `clusterSplitZoomFactor` | `1.05`  | How far past a cluster's split zoom to land when expanding it.             |
+| Option             | Default | Description                                                 |
+| ------------------ | ------- | ----------------------------------------------------------- |
+| `enableClustering` | `true`  | Fold nearby pins into count badges as the camera zooms out. |
 
 ### Components
 

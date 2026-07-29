@@ -1,6 +1,6 @@
+import { RenderReaction } from '@tldraw/commenting'
 import { ReactNode, useCallback, useInsertionEffect, useState } from 'react'
 import { Editor, TldrawOptions, TLUiOverrides, Tldraw, useEditor, useValue } from 'tldraw'
-import { RenderReaction } from '../ui/reaction'
 
 /**
  * Draw-your-own reactions.
@@ -21,12 +21,12 @@ import { RenderReaction } from '../ui/reaction'
  * just an `<img>`. Tokens that don't look like one fall through to the default rendering, so a
  * drawing palette and the stock emoji palette can coexist on the same comment.
  *
- * Nothing in this file is wired up yet — see the notes at the bottom for what wiring it takes.
+ * See `CommentDrawingReactionsExample.tsx` for the wiring.
  */
 
 // ── Tokens ───────────────────────────────────────────────────────────────────────────────────
 
-/** The image format a drawn reaction is exported as. @public */
+/** The image format a drawn reaction is exported as. */
 export type DrawingReactionFormat = 'svg' | 'png'
 
 /**
@@ -39,8 +39,6 @@ const TOKEN_PREFIXES = ['data:image/svg+xml,', 'data:image/svg+xml;', 'data:imag
 /**
  * Whether `token` is a drawn reaction (as opposed to a plain emoji glyph). Use it anywhere you need
  * to tell the two kinds apart — validation before a write, or picking a renderer.
- *
- * @public
  */
 export function isDrawingReactionToken(token: string): boolean {
 	return TOKEN_PREFIXES.some((prefix) => token.startsWith(prefix))
@@ -68,8 +66,6 @@ const drawingTokenImageStyle = {
  *
  * SVG tokens are rendered via `<img>`, never inlined — an `<img>`-hosted SVG can't run script or
  * reach out to the network, which matters because tokens arrive from other users over sync.
- *
- * @public
  */
 export function renderDrawingReaction(token: string): ReactNode {
 	if (!isDrawingReactionToken(token)) return token
@@ -79,8 +75,6 @@ export function renderDrawingReaction(token: string): ReactNode {
 /**
  * {@link renderDrawingReaction} as a component, for the `ReactionContent` slot of the commenting
  * options: `CommentTool.configure({ components: { ReactionContent: DrawingReactionContent } })`.
- *
- * @public @react
  */
 export function DrawingReactionContent({ token }: { token: string }) {
 	return <>{renderDrawingReaction(token)}</>
@@ -88,7 +82,6 @@ export function DrawingReactionContent({ token }: { token: string }) {
 
 // ── Export ───────────────────────────────────────────────────────────────────────────────────
 
-/** @public */
 export interface DrawingReactionExportOptions {
 	/**
 	 * `'svg'` (default) keeps the drawing crisp at any size and usually makes a smaller token for a
@@ -107,7 +100,7 @@ export interface DrawingReactionExportOptions {
 	darkMode?: boolean
 }
 
-/** Thrown by {@link exportDrawingReactionToken} when the drawing doesn't fit in a token. @public */
+/** Thrown by {@link exportDrawingReactionToken} when the drawing doesn't fit in a token. */
 export class DrawingReactionTooLargeError extends Error {
 	constructor(
 		readonly length: number,
@@ -124,8 +117,6 @@ export class DrawingReactionTooLargeError extends Error {
  *
  * Returns null when there's nothing drawn. Throws {@link DrawingReactionTooLargeError} when the
  * result exceeds `maxTokenLength`.
- *
- * @public
  */
 export async function exportDrawingReactionToken(
 	editor: Editor,
@@ -193,7 +184,6 @@ const DRAWING_EDITOR_OPTIONS: Partial<TldrawOptions> = {
 	maxPages: 1,
 }
 
-/** @public */
 export interface DrawingReactionPaletteProps {
 	/**
 	 * Tokens to offer for one-click reuse, above the canvas — typically the reactions already on the
@@ -228,8 +218,6 @@ export interface DrawingReactionPaletteProps {
  * Prop-compatible with `EmojiPicker`, so it drops into the same slot; unlike `EmojiPicker` it
  * renders its own editor, so it doesn't need an editor context of its own and can be staged
  * standalone.
- *
- * @public @react
  */
 export function DrawingReactionPalette({
 	emoji,
@@ -596,30 +584,3 @@ function useDrawingReactionStyles() {
 		document.head.appendChild(style)
 	}, [])
 }
-
-/**
- * ── Using it ─────────────────────────────────────────────────────────────────────────────────
- *
- * All three pieces are configured on the comment tool, and they have to agree: the palette emits
- * tokens, the renderer draws them, and the validation lets them through.
- *
- * ```tsx
- * <Tldraw
- *   tools={[
- *     CommentTool.configure({
- *       components: {
- *         ReactionPalette: DrawingReactionPalette,
- *         ReactionContent: DrawingReactionContent,
- *       },
- *       // keep emoji working too, so reactions posted before the swap still toggle
- *       isAllowedReaction: (token) =>
- *         isDrawingReactionToken(token) || isAllowedReactionEmoji(token),
- *     }),
- *   ]}
- * />
- * ```
- *
- * One thing still open: a drawn token is stored in full on the reaction record and replicated to
- * every client on the file. `maxTokenLength` caps it at the palette; the server-side reaction
- * validation wants a matching cap, or a small SVG becomes an upload channel.
- */

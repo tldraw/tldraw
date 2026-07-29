@@ -26,13 +26,11 @@ import {
 export const ThreadStackPin = memo(function ThreadStackPin({
 	editor,
 	threads,
-	impreciseShapeAnchor,
 	...props
 }: ThreadViewHostProps & {
 	editor: Editor
 	/** The stack's threads, oldest first. All resolve to the same anchor point. */
 	threads: readonly TLCommentThread[]
-	impreciseShapeAnchor?: { x: number; y: number }
 }) {
 	const container = useContainer()
 	const badgeRef = useRef<HTMLDivElement>(null)
@@ -51,10 +49,10 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	const stackId = useValue(
 		'stack id',
 		() => {
-			const pagePoint = anchorPagePoint(editor, threads[0].anchor, impreciseShapeAnchor)
+			const pagePoint = anchorPagePoint(editor, threads[0].anchor)
 			return pagePoint ? pinStackKey(pagePoint) : threads[0].id
 		},
-		[editor, threads, impreciseShapeAnchor]
+		[editor, threads]
 	)
 	const listOpen = useValue('stack list open', () => openStackId.get(editor) === stackId, [
 		editor,
@@ -73,10 +71,10 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 			// cluster badge — so it sits at the raw page point with no pin inset. The inset only
 			// compensates for the single pin's bottom-left anchoring; applying it here would offset
 			// the badge from where the cluster badge sits and make it hop as pins flip between them.
-			const pagePoint = anchorPagePoint(editor, first.anchor, impreciseShapeAnchor)
+			const pagePoint = anchorPagePoint(editor, first.anchor)
 			return pagePoint ? editor.pageToViewport(pagePoint) : null
 		},
-		[editor, threads, impreciseShapeAnchor]
+		[editor, threads]
 	)
 
 	// Clicking outside the popover (and off the badge) closes the whole stack — mirrors the

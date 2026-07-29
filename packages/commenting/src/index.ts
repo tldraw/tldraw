@@ -64,25 +64,11 @@ export {
 	useCommentReactions,
 } from './canvas/comment-reactions'
 export {
-	DrawingReactionContent,
-	DrawingReactionPalette,
-	type DrawingReactionPaletteProps,
-	type DrawingReactionExportOptions,
-	type DrawingReactionFormat,
-	DrawingReactionTooLargeError,
-	exportDrawingReactionToken,
-	isDrawingReactionToken,
-	renderDrawingReaction,
-} from './canvas/drawing-reactions'
-export {
 	CommentTool,
 	commentToolOverrides,
 	commentTools,
 	type PendingComment,
 } from './canvas/comment-tool'
-export { collectClusterLeaves } from './canvas/cluster-input'
-export { computePinStacks } from './canvas/pin-stacking'
-export { computeClusterTable } from './clustering/computeClusterTable'
 export {
 	getCommentReactions,
 	getCommentRecord,
@@ -92,14 +78,6 @@ export {
 	removeCommentRecords,
 	type TLCommentRecord,
 } from './canvas/comment-store'
-export { createClusterRuntime, type ClusterRuntime } from './clustering/runtime'
-export type {
-	ClusterNode,
-	ClusterOptions,
-	ClusterTable,
-	LeafInput,
-	MergeEvent,
-} from './clustering/types'
 export { CommentsFilterMenu, type CommentsFilterMenuProps } from './canvas/comments-filter-menu'
 export { CommentsMenuItem } from './canvas/comments-menu-item'
 export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-overlay'
@@ -123,27 +101,18 @@ export { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './canvas/sidebar-f
 export {
 	commentsHidden,
 	commentsSidebarOpen,
-	commitCommentMutation,
-	openStackId,
 	openThreadId,
-	pendingComment,
-	revealThreadRequest,
+	revealThread,
 	sidebarFilters,
 	toggleCommentsHidden,
 	toggleCommentsSidebar,
 	useCommentsHidden,
 	useCommentsSidebarOpen,
 	useOpenThreadId,
-	usePendingComment,
+	useRevealThreadPending,
 	useSidebarFilters,
 } from './canvas/state'
-export {
-	anchorPagePoint,
-	DEFAULT_IMPRECISE_SHAPE_ANCHOR,
-	focusThread,
-	regionAnchorPinCorner,
-	shapeAnchorAt,
-} from './canvas/thread-state'
+export { anchorPagePoint, focusThread, shapeAnchorAt } from './canvas/thread-state'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,
