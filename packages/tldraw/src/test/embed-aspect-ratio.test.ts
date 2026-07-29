@@ -62,15 +62,14 @@ describe('embed aspect ratio correction', () => {
 		await util.resolveAspectRatio(editor.getShape<TLEmbedShape>(id)!)
 
 		const shape = editor.getShape<TLEmbedShape>(id)!
-		const correctedH = 640 / 1.5
-		// the whole point: width is preserved and only the height changes, so the box actually takes
-		// on the resolved 3:2 ratio (not merged into a uniform scale by the aspect-ratio lock)
-		expect(shape.props.w).toBe(640)
-		expect(shape.props.h).toBeCloseTo(correctedH)
+		// the whole point: the box actually takes on the resolved 3:2 ratio (not merged into a uniform
+		// scale by the aspect-ratio lock), and it does so while preserving its area rather than
+		// stretching one dimension
 		expect(shape.props.w / shape.props.h).toBeCloseTo(1.5)
-		// width is unchanged so x stays put; the shape grows around its center vertically
-		expect(shape.x).toBe(100)
-		expect(shape.y).toBeCloseTo(200 - (correctedH - 360) / 2)
+		expect(shape.props.w * shape.props.h).toBeCloseTo(640 * 360)
+		// the resize scales around the page-space center, so the center stays put
+		expect(shape.x + shape.props.w / 2).toBeCloseTo(100 + 640 / 2)
+		expect(shape.y + shape.props.h / 2).toBeCloseTo(200 + 360 / 2)
 
 		// the correction must not be its own undo step: a single undo removes the whole creation,
 		// rather than first reverting the resize
@@ -96,7 +95,8 @@ describe('embed aspect ratio correction', () => {
 		await util.resolveAspectRatio(editor.getShape<TLEmbedShape>(id)!)
 
 		const shape = editor.getShape<TLEmbedShape>(id)!
-		expect(shape.props.h).toBeCloseTo(640 / 1.5)
+		expect(shape.props.w / shape.props.h).toBeCloseTo(1.5)
+		expect(shape.props.w * shape.props.h).toBeCloseTo(640 * 360)
 		const centerAfter = editor.getShapePageBounds(id)!.center
 		expect(centerAfter.x).toBeCloseTo(centerBefore.x)
 		expect(centerAfter.y).toBeCloseTo(centerBefore.y)
@@ -111,7 +111,9 @@ describe('embed aspect ratio correction', () => {
 		editor.createShape<TLEmbedShape>({ id, type: 'embed', props: { w: 640, h: 360, url: urlA } })
 
 		await util.resolveAspectRatio(editor.getShape<TLEmbedShape>(id)!)
-		expect(editor.getShape<TLEmbedShape>(id)!.props.h).toBeCloseTo(640 / 1.5)
+		expect(
+			editor.getShape<TLEmbedShape>(id)!.props.w / editor.getShape<TLEmbedShape>(id)!.props.h
+		).toBeCloseTo(1.5)
 
 		// change the url to a 1:1 video — the new ratio should be applied even though the shape is no
 		// longer at the definition's default 16:9 ratio
@@ -119,8 +121,8 @@ describe('embed aspect ratio correction', () => {
 		await util.resolveAspectRatio(editor.getShape<TLEmbedShape>(id)!)
 
 		const shape = editor.getShape<TLEmbedShape>(id)!
-		expect(shape.props.w).toBe(640)
-		expect(shape.props.h).toBeCloseTo(640)
+		expect(shape.props.w / shape.props.h).toBeCloseTo(1)
+		expect(shape.props.w * shape.props.h).toBeCloseTo(640 * 360)
 	})
 
 	it('ignores a stale resolution whose url no longer matches the shape', async () => {
@@ -136,11 +138,15 @@ describe('embed aspect ratio correction', () => {
 		// the url changes to B and B's resolution lands first
 		editor.updateShape<TLEmbedShape>({ id, type: 'embed', props: { url: urlB } })
 		await util.resolveAspectRatio(editor.getShape<TLEmbedShape>(id)!)
-		expect(editor.getShape<TLEmbedShape>(id)!.props.h).toBeCloseTo(640) // B's 1:1 ratio applied
+		const ratioAfterB =
+			editor.getShape<TLEmbedShape>(id)!.props.w / editor.getShape<TLEmbedShape>(id)!.props.h
+		expect(ratioAfterB).toBeCloseTo(1) // B's 1:1 ratio applied
 
 		// now the stale run for urlA completes — it must not clobber the shape with A's 3:2 ratio
 		await util.resolveAspectRatio(staleShapeA)
-		expect(editor.getShape<TLEmbedShape>(id)!.props.h).toBeCloseTo(640)
+		expect(
+			editor.getShape<TLEmbedShape>(id)!.props.w / editor.getShape<TLEmbedShape>(id)!.props.h
+		).toBeCloseTo(1)
 	})
 
 	it('resolves via a side effect when a user creates or re-points an embed', () => {
