@@ -89,6 +89,20 @@
       "value": "Account"
     }
   ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Can’t open "
+    },
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " files yet"
+    }
+  ],
   "0a91f7fa87": [
     {
       "type": 0,
@@ -679,12 +693,6 @@
       "value": "Default"
     }
   ],
-  "7ad1b1ee23": [
-    {
-      "type": 0,
-      "value": "Can’t open .tldraw files yet"
-    }
-  ],
   "7b1329f5ca": [
     {
       "type": 0,
@@ -1249,26 +1257,6 @@
       "value": "Dismiss"
     }
   ],
-  "c906ce5e3a": [
-    {
-      "type": 0,
-      "value": "For now, you can "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "export as a .tldr file"
-        }
-      ],
-      "type": 8,
-      "value": "a"
-    },
-    {
-      "type": 0,
-      "value": " to use it here."
-    }
-  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1519,6 +1507,34 @@
     {
       "type": 0,
       "value": "Settings"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "For now, you can "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "export as a "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        },
+        {
+          "type": 0,
+          "value": " file"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " to use it here."
     }
   ],
   "fa2ead697d": [

@@ -32,6 +32,9 @@
   "08bd40c754": {
     "translation": "Account"
   },
+  "093ac7483a": {
+    "translation": "Can’t open {extension} files yet"
+  },
   "0a91f7fa87": {
     "translation": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
   },
@@ -308,9 +311,6 @@
   "7a1920d611": {
     "translation": "Default"
   },
-  "7ad1b1ee23": {
-    "translation": "Can’t open .tldraw files yet"
-  },
   "7b1329f5ca": {
     "translation": "User manual"
   },
@@ -525,9 +525,6 @@
   "c8a59e7135": {
     "translation": "Dismiss"
   },
-  "c906ce5e3a": {
-    "translation": "For now, you can <a>export as a .tldr file</a> to use it here."
-  },
   "cceaefbc20": {
     "translation": "Share this file"
   },
@@ -632,6 +629,9 @@
   },
   "f4f70727dc": {
     "translation": "Settings"
+  },
+  "f5ddc8d9c1": {
+    "translation": "For now, you can <a>export as a {extension} file</a> to use it here."
   },
   "fa2ead697d": {
     "translation": "Privacy Policy"
