@@ -68,11 +68,8 @@ export async function getThumbnailSnapshot(
 		records: snapshot.documents.map((d) => d.state) as TLRecord[],
 		schema: snapshot.schema,
 		renderParams: {
-			...(job.camera ? { camera: job.camera } : null),
+			camera: job.camera,
 			...(job.pageId ? { pageId: job.pageId } : null),
-			x: job.x,
-			y: job.y,
-			z: job.z,
 			width: job.width,
 			height: job.height,
 			theme: job.theme,

@@ -53,7 +53,7 @@ import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
-import { enqueueOgImageRenderForEdit } from './routes/tla/ogImageQueue'
+import { enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -873,10 +873,17 @@ export class TLFileDurableObject extends DurableObject {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
 
-	// Mirrors the gate `requestOgRenderForEdit` applies, so the telemetry says which persists actually
-	// cost a thumbnail render rather than which boards happen to be shared.
-	private getSharedStateForTelemetry(): 'shared' | 'private' | 'unknown' | 'legacy' {
+	// Whether a persist on this board costs a thumbnail render, and why. The single source of truth
+	// for both the gate in `requestOgRenderForEdit` and the `sharedState` blob on `persist_success` —
+	// the telemetry only answers "what fraction of edited boards render?" if it is computed from the
+	// same facts as the decision, so the two must not be able to drift apart.
+	//
+	// `deleted` is its own state rather than folding into `private` or `unknown`: a deleted board
+	// never renders, and counting its persists as either would corrupt the ratio the deploy exists to
+	// measure (`unknown` doubles as the diagnostic for whether that ratio can be trusted at all).
+	private getBoardRenderState(): 'shared' | 'private' | 'unknown' | 'legacy' | 'deleted' {
 		if (!this.documentInfo.isApp) return 'legacy'
+		if (this.documentInfo.deleted) return 'deleted'
 		const shared = this._fileRecordCache?.shared
 		if (shared === undefined) return 'unknown'
 		return shared ? 'shared' : 'private'
@@ -1393,7 +1400,7 @@ export class TLFileDurableObject extends DurableObject {
 						this.logEvent({
 							type: 'persist_success',
 							attempts: attempt,
-							sharedState: this.getSharedStateForTelemetry(),
+							sharedState: this.getBoardRenderState(),
 						})
 						this._lastPersistedClock = snapshot.documentClock
 						// The board's content just changed, so its thumbnail is out of date. Push the render
@@ -1453,19 +1460,22 @@ export class TLFileDurableObject extends DurableObject {
 	 */
 	private async requestOgRenderForEdit() {
 		try {
-			// Only app files have per-board thumbnails; legacy rooms have no shareable board identity here.
-			if (!this.documentInfo.isApp || this.documentInfo.deleted) return
+			// The whole gate, from the same method that labels `persist_success`, so the telemetry can
+			// never disagree with the decision it is reporting on. Only `shared` and `unknown` render: a
+			// legacy room has no shareable board identity, a deleted one has nothing worth depicting, and
+			// a private one has no public image to refresh.
+			//
+			// `unknown` goes ahead rather than guessing private. The file record is read on connect so it
+			// is normally in hand; when it isn't, the consumer re-resolves the board and drops it there if
+			// it isn't public, which is a wasted queue message rather than a missing thumbnail.
+			const state = this.getBoardRenderState()
+			if (state !== 'shared' && state !== 'unknown') return
 
 			const slug = this.documentInfo.slug
-			const result = await enqueueOgImageRenderForEdit(
+			const result = await enqueueOgImageRender(
 				this.env,
 				{ kind: 'shared_file', slug },
-				{
-					// The record is read on connect, so it is normally in hand. When it isn't, pass undefined
-					// rather than guessing private: the consumer re-resolves the board anyway and drops it if
-					// it isn't public.
-					isShared: this._fileRecordCache?.shared,
-				}
+				{ reason: 'edit' }
 			)
 			this.log.debug('og render for edit', slug, result)
 		} catch (e) {

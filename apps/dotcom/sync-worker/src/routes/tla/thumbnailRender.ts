@@ -11,6 +11,7 @@ import { getR2KeyForRoom } from '../../r2'
 import { Environment, OgImageRenderReason, ThumbnailBoardKind } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
+import { getRoomDurableObjectId } from '../../utils/durableObjects'
 import {
 	THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	ThumbnailRenderJob,
@@ -22,7 +23,7 @@ import {
 	getSharedFileRoomSnapshot,
 	isFileAnonymouslyViewable,
 } from './getSharedFile'
-import { BoardSnapshotReadError } from './thumbnailShared'
+import { BoardSnapshotReadError, BrowserRenderError } from './thumbnailShared'
 
 // The render-and-cache core shared by every Browser Run screenshot surface: the MCP screenshot
 // tool (sharedBoardScreenshotMcp.ts), the OG image route (getOgImage.ts), and the OG render queue
@@ -46,6 +47,13 @@ const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>(
 export interface ResolvedThumbnailBoard {
 	kind: ThumbnailBoardKind
 	slug: string
+	/**
+	 * The underlying file's id, which is the room id its durable object is addressed by. For a shared
+	 * file this is the same string as `slug`; for a published board it is emphatically not — the slug
+	 * there is the published slug, and the file id is what it resolves to. Carried separately so
+	 * telemetry can key on the room without every caller having to know which kind it is holding.
+	 */
+	fileId: string
 	version: string | number
 }
 
@@ -65,7 +73,8 @@ export async function resolveThumbnailBoard(
 	if (kind === 'published') {
 		const file = await getPublishedFileInfo(env, slug)
 		if (!file?.published) return { ok: false, reason: 'not_found' }
-		return { ok: true, board: { kind, slug, version: file.lastPublished } }
+		// `slug` here is the published slug; `file.id` is the file behind it, which is the room.
+		return { ok: true, board: { kind, slug, fileId: file.id, version: file.lastPublished } }
 	}
 
 	const file = await getSharedFileInfo(env, slug)
@@ -76,7 +85,7 @@ export async function resolveThumbnailBoard(
 	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
 	if (!persisted) return { ok: false, reason: 'board_empty' }
 
-	return { ok: true, board: { kind, slug, version: persisted.etag } }
+	return { ok: true, board: { kind, slug, fileId: file.id, version: persisted.etag } }
 }
 
 // Reads a resolved board's snapshot, distinguishing the two outcomes callers need to tell apart.
@@ -179,9 +188,6 @@ export async function captureThumbnailScreenshot(
 		version: board.version,
 		camera: 'content',
 		...(pageId ? { pageId } : null),
-		x: 0,
-		y: 0,
-		z: 1,
 		width,
 		height,
 		theme,
@@ -227,13 +233,64 @@ async function renderThumbnailScreenshot(
 	const durationMs = Date.now() - startedAt
 
 	if (!response.ok) {
-		throw new Error(`Browser Rendering screenshot failed (${response.status})`)
+		throw new BrowserRenderError({
+			status: response.status,
+			detail: await readBrowserErrorDetail(response),
+			durationMs,
+			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
+		})
 	}
 	const buffer = await response.arrayBuffer()
 	if (buffer.byteLength === 0) {
 		throw new Error('Render produced an empty screenshot')
 	}
 	return { base64: arrayBufferToBase64(buffer), durationMs }
+}
+
+// How much of Cloudflare's error body to keep. It is a short JSON object in practice; the cap is
+// there so a proxy's HTML error page can't put a document into a Sentry event.
+const MAX_BROWSER_ERROR_DETAIL_LENGTH = 500
+
+// Reads why Browser Run refused. The status on its own is close to useless — 422 is what Cloudflare
+// answers for a page that crashed, a render that exhausted the container's memory, and every one of
+// its Quick Action timers expiring, and our own render page marking `data-thumbnail-error` arrives
+// as one too (the capture selector exists only on the success path). The body names which, and this
+// used to be dropped on the floor, leaving every one of those failures indistinguishable in Sentry.
+//
+// Failure-proof by construction: this runs on a path that is already failing, so a body that won't
+// read or won't parse must degrade to "no detail" rather than replace the status we do have with a
+// second error.
+async function readBrowserErrorDetail(response: Response): Promise<string | undefined> {
+	try {
+		const text = (await response.text()).trim()
+		if (!text) return undefined
+		return truncate(extractBrowserErrorMessages(text) ?? text)
+	} catch {
+		return undefined
+	}
+}
+
+// Cloudflare's error body is `{"success":false,"errors":[{"code":…,"message":"…"}]}`. Pull the
+// messages out when it parses, since that is the whole readable part; anything else (a proxy's HTML,
+// a plain string, a shape we don't recognise) falls back to the raw text, which is still better than
+// nothing.
+function extractBrowserErrorMessages(text: string): string | undefined {
+	try {
+		const body = JSON.parse(text)
+		if (!Array.isArray(body?.errors)) return undefined
+		const messages = body.errors
+			.map((error: unknown) => (error as { message?: unknown } | null)?.message)
+			.filter((message: unknown): message is string => typeof message === 'string' && !!message)
+		return messages.length > 0 ? messages.join('; ') : undefined
+	} catch {
+		return undefined
+	}
+}
+
+function truncate(text: string) {
+	return text.length > MAX_BROWSER_ERROR_DETAIL_LENGTH
+		? `${text.slice(0, MAX_BROWSER_ERROR_DETAIL_LENGTH)}…`
+		: text
 }
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
@@ -255,9 +312,9 @@ export async function putThumbnailPng(
 	})
 }
 
-// The shared cap on total Browser Run spend. Every surface that spends Browser Run (the MCP
-// screenshot tool and the OG queue consumer) checks this, and all of them pass the same limiter key,
-// so they draw from one global bucket instead of separate per-surface budgets.
+// The MCP screenshot tool's global cap, and only its own — see GLOBAL_BROWSER_RATE_LIMIT_KEY above
+// for why board thumbnail rendering deliberately checks nothing. It used to be shared with the OG
+// queue consumer, which is where the "global" in the name comes from; it now bounds one endpoint.
 export async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
 	return isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
 		fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
@@ -313,7 +370,11 @@ export function writeScreenshotTelemetry(
 		 * crawler demand, publishing, or editing.
 		 */
 		reason?: OgImageRenderReason
-		boardHash: string
+		/**
+		 * The board's file id, when the surface has one. Becomes the datapoint's index — see
+		 * `boardIndexOf`. Pass the file id, never a published slug.
+		 */
+		fileId?: string
 		cacheStatus: 'hit' | 'stale' | 'miss'
 		/** Hashed client IP, for surfaces that have one. Recorded only on failures — see below. */
 		ipHash?: string
@@ -339,7 +400,7 @@ export function writeScreenshotTelemetry(
 			// dashboard panels reading them) don't shift.
 			`reason:${data.reason ?? 'none'}`,
 		],
-		indexes: [data.boardHash],
+		indexes: boardIndexOf(env, data.fileId),
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,
 			DEFAULT_THUMBNAIL_HEIGHT,
@@ -348,4 +409,31 @@ export function writeScreenshotTelemetry(
 			rateLimitAllowed ? 1 : 0,
 		],
 	})
+}
+
+/**
+ * The datapoint's index: the board's durable object id, the same value `TLFileDurableObject.writeEvent`
+ * stamps on every event it writes. That is what makes a render joinable to the persists that caused
+ * it — renders-per-persist is otherwise two unrelated aggregate counts.
+ *
+ * Deliberately the durable object id rather than the board slug or a hash of it. `idFromName` is
+ * one-way, and for an app file the slug *is* the authority of `tldraw.com/f/<id>`, which has no
+ * business in a dataset that is account-readable and exported to Grafana. (These events previously
+ * carried a sha256 of the slug, which nothing queried.)
+ *
+ * Always computed from the **file** id: a published board's slug addresses no durable object, so
+ * indexing on it would mint a plausible-looking id that joins to nothing.
+ *
+ * Absent when the surface has no resolved board — a malformed MCP argument, or a board that failed
+ * its share gate. An index is optional, and no index is better than a wrong one.
+ */
+function boardIndexOf(env: Environment, fileId: string | undefined): [string] | undefined {
+	if (!fileId) return undefined
+	try {
+		return [getRoomDurableObjectId(env, fileId).toString()]
+	} catch {
+		// Telemetry must never break a render path. The binding is present in every deployed
+		// environment; this covers unconfigured ones.
+		return undefined
+	}
 }

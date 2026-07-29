@@ -84,17 +84,36 @@ The thing to watch instead of a cap is Browser Rendering's own account limits: a
 
 ### Telemetry and monitoring
 
-All three surfaces write `mcp_shared_board_screenshot` events with the same blob layout, so one dashboard covers everything; the source blob distinguishes `mcp` (the tool), `og` (the OG image route), and `queue` (the async consumer). Events record hashed board slug, cache hit/stale/miss, render duration (wall-clock around the browser session), output dimensions, failure reason, rate-limit decisions, a hashed IP, and the trigger that asked for the render. Two dimensions are deliberately kept low-cardinality: the failure reason is always a bounded reason code (`invalid_input`, `not_found`, `board_empty`, `no_pages`, `page_out_of_range`, `rate_limited_ip`/`board`/`global`, `board_not_viewable`, `served_fallback`, `not_rendered_yet`, `browser_failed`, `browser_timeout`, `empty_render`, `not_configured`, `render_error`), never raw `error.message` text; and the hashed IP is written only on failed or rate-limited events (where it's useful for abuse analysis) — successful events carry `ip:none`, so the per-client IP dimension never lands on the common success path. Column layout in the Analytics Engine dataset (`MEASURE`): `blob1` event name, `blob2` worker name, `blob3` source, `blob4` cache status, `blob5` failure reason, `blob6` rate-limit decision, `blob7` hashed IP (or `none`), `blob8` render trigger (`crawler`, `publish`, `edit`, or `none` on the surfaces that have no trigger), `double1`/`double2` output width/height, `double3` render duration ms, `double4` browser ms used, `double5` rate-limit allowed (1/0), `index1` hashed board slug. (The `quickAction` screenshot response includes an `X-Browser-Ms-Used` header, but the worker does not currently read it — telemetry uses wall-clock render duration in `double3` as the spend proxy and writes `double4` as -1. Wiring the header into `double4` is a possible follow-up.)
+All three surfaces write `mcp_shared_board_screenshot` events with the same blob layout, so one dashboard covers everything; the source blob distinguishes `mcp` (the tool), `og` (the OG image route), and `queue` (the async consumer). Events record cache hit/stale/miss, render duration (wall-clock around the browser session), output dimensions, failure reason, rate-limit decisions, a hashed IP, the trigger that asked for the render, and the board's **durable object id** as `index1` — the same value `persist_success` is indexed on, so renders join to the persists that caused them. Two dimensions are deliberately kept low-cardinality: the failure reason is always a bounded reason code (`invalid_input`, `not_found`, `board_empty`, `no_pages`, `page_out_of_range`, `rate_limited_ip`/`board`/`global`, `board_not_viewable`, `served_fallback`, `not_rendered_yet`, `browser_failed`, `browser_timeout`, `empty_render`, `not_configured`, `render_error`), never raw `error.message` text; and the hashed IP is written only on failed or rate-limited events (where it's useful for abuse analysis) — successful events carry `ip:none`, so the per-client IP dimension never lands on the common success path. Column layout in the Analytics Engine dataset (`MEASURE`): `blob1` event name, `blob2` worker name, `blob3` source, `blob4` cache status, `blob5` failure reason, `blob6` rate-limit decision, `blob7` hashed IP (or `none`), `blob8` render trigger (`crawler`, `publish`, `edit`, or `none` on the surfaces that have no trigger), `double1`/`double2` output width/height, `double3` render duration ms, `double4` browser ms used, `double5` rate-limit allowed (1/0), `index1` the board's durable object id (absent on datapoints written before a board resolves — a malformed MCP argument, or a board that failed its share gate). (The `quickAction` screenshot response includes an `X-Browser-Ms-Used` header, but the worker does not currently read it — telemetry uses wall-clock render duration in `double3` as the spend proxy and writes `double4` as -1. Wiring the header into `double4` is a possible follow-up.)
 
-One event outside that dataset matters for sizing: `persist_success` (same `MEASURE` dataset, written by `TLFileDurableObject.logEvent`). It fires on exactly the event that triggers a thumbnail render, so it carries what sizing that render needs: `index1` the **durable object id**, `blob3` the board's `sharedState` (`shared`, `private`, `unknown` for an app file whose record hasn't loaded, `legacy` for a non-app room), and `double1` the retry attempt count.
+One event outside that dataset matters for sizing: `persist_success` (same `MEASURE` dataset, written by `TLFileDurableObject.logEvent`). It fires on exactly the event that triggers a thumbnail render, so it carries what sizing that render needs: `index1` the **durable object id**, `blob3` the board's `sharedState` (`shared`, `private`, `unknown` for an app file whose record hasn't loaded, `legacy` for a non-app room, `deleted` for a deleted file), and `double1` the retry attempt count. It is written by `getBoardRenderState`, the same method that gates the render, so a board the trigger skips can never be counted as one it renders.
 
 The index is stamped centrally in `writeEvent` for every file DO event, not per call site. Analytics Engine samples by index, so a board that persists rarely keeps data points instead of being sampled away inside the volume of a busy one, and since it has no `uniq()`/`count(distinct)`, distinct boards means `GROUP BY index1` and counting the returned rows.
 
 It is the durable object id rather than the board slug on purpose: `idFromName` is one-way, and for an app file the slug _is_ the authority of `tldraw.com/f/<id>`, so writing it to an account-readable dataset exported to Grafana would put working capabilities in telemetry. Resolving in the useful direction still works from a slug you already hold, via `env.TLDR_DOC.idFromName('/r/' + slug)`.
 
+Both datasets index on that same id, which is what makes the two joinable — `mcp_shared_board_screenshot` rows for a board line up with its `persist_success` rows, so renders-per-persist is a real per-board number rather than two aggregate counts divided by each other. The screenshot surfaces compute it through `getRoomDurableObjectId`, the same helper `getRoomDurableObject` addresses the room with, so the two derivations cannot drift.
+
+The subtlety worth knowing when adding a surface: it must be computed from the **file id**, never from the slug the request came in on. For a shared file those are the same string, but a published board's slug is its _published_ slug, which addresses no durable object — `idFromName` would happily hash it into a well-formed id that joins to nothing. `ResolvedThumbnailBoard` carries `fileId` alongside `slug` for exactly this reason; pass that.
+
 That one-way-ness is also why `sharedState` has to be recorded at write time rather than recovered later: the dataset cannot be joined back to a file row. Postgres could not answer it anyway — it knows which files are shared, not which are being edited. See "Open questions".
 
 Bounded reason codes say _that_ a board stopped rendering, never _why_, and every one of these surfaces deliberately swallows its own errors (the OG route falls back to the default image, the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops). So each swallow point also reports the underlying error to Sentry through `reportThumbnailError` (`thumbnailShared.ts`), tagged `thumbnail_surface` with a closed set of values: `og_route`, `og_queue`, `thumbnail_snapshot`, `mcp_board_info`, `mcp_screenshot`. Reporting rides on the handler's `waitUntil` and is itself failure-proof — a missing Sentry env var must never turn a degraded-but-fine response into a 500.
+
+#### Reading a Browser Run failure
+
+`422 Unprocessable Entity` is the status to expect from a failed capture, and on its own it says almost nothing. Cloudflare answers 422 for [every "the page did not cooperate" outcome](https://developers.cloudflare.com/browser-run/faq/): a page that crashed, a render that exhausted the container's memory, and any of the [Quick Action timers](https://developers.cloudflare.com/browser-run/reference/timeouts/) expiring. Our own render page marking `data-thumbnail-error` arrives as one too, because the capture selector (`body[data-thumbnail-ready="true"]`) exists only on the success path — that is the design working, and it is indistinguishable by status from the cases that aren't.
+
+What separates them is the response body, so `renderThumbnailScreenshot` reads it and throws a `BrowserRenderError` carrying the status, Cloudflare's own message (its `errors[].message`, truncated), the wall-clock duration, and the timeout budget. Two things follow:
+
+- **`classifyScreenshotFailure` splits 422 into `browser_timeout` and `browser_failed`** from that body, falling back to "did the call spend essentially the whole budget" when the body names no timer. It used to classify on `error.message` alone, which for a Browser Run failure never contains the word "timeout" — so every timeout was filed as `browser_failed` and the dashboard's timeout rate was structurally always zero.
+- **The specifics reach Sentry as event context, not as the message.** Sentry groups on the message, so it stays exactly `Browser Rendering screenshot failed (<status>)` and the varying parts ride on `browser_render_status`, `browser_render_detail`, `browser_render_duration_ms`, `browser_render_timeout_ms`, and `browser_render_reason`. Putting the detail in the message would shatter one recurring issue into a stream of new ones.
+
+The queue consumer reports **once per job, on the delivery that gives up**, rather than once per delivery. A board that fails deterministically fails all `MAX_RENDER_ATTEMPTS` times, so per-delivery reporting filed three events for one problem. A failure that recovers on retry now reports nothing, which is correct — the render landed.
+
+Telemetry goes the other way on purpose: **one datapoint per delivery, and a failed capture records its duration in `double3` like a successful one.** The split is that telemetry counts spend and Sentry counts problems — three deliveries are three lots of Browser Run and one problem. This used to write nothing at all on the retried deliveries and `-1` for the duration on the final one, so a failing board's spend was invisible on a path that has no cap and is watched only by this dataset. A delivery that bails before the capture (an unreadable or empty snapshot) still records `-1`, because it genuinely spent nothing.
+
+If timeouts turn out to dominate, the knob Cloudflare points at is `actionTimeout` (default none, max 5 minutes), which bounds the capture itself rather than the page load; it is not currently set in `getThumbnailScreenshotRequestBody`.
 
 `internal/scripts/fetch-screenshot-metrics.ts` queries the Analytics Engine SQL API and reports request volume, failure rate, timeout rate, cache hit rate, rate-limit blocks, and Browser Run render time per source (wall-clock `double3`, summed over rows that actually rendered — `double4` billed ms is not currently recorded, always -1):
 
@@ -256,7 +275,7 @@ flowchart TB
 
     subgraph warm ["Refresh triggers (ahead of the first crawler)"]
         PUB["publish effect<br/>(TLPostgresReplicator)"]
-        SPEC["persist on edit<br/>(TLFileDurableObject,<br/>throttled to 30s per board)"]
+        SPEC["persist on edit<br/>(TLFileDurableObject,<br/>debounced 30s, 5min max wait)"]
     end
 
     SP -->|og:image references| OGR
@@ -341,7 +360,7 @@ flowchart TB
 
     DEBOUNCE -->|"more edits arrive first"| WAIT["alarm fires, sees a newer<br/>deadline, re-arms (no render)"]
     WAIT --> DEBOUNCE
-    DEBOUNCE -->|"editing settled, or<br/>5min max wait hit"| GATE{"enqueueOgImageRenderForEdit<br/>(fire-and-forget, never<br/>blocks persistence)"}
+    DEBOUNCE -->|"editing settled, or<br/>5min max wait hit"| GATE{"requestOgRenderForEdit<br/>(share gate; fire-and-forget,<br/>never blocks persistence)"}
 
     GATE -->|"file record not shared"| SKIP["skip"]
     GATE -->|"shared or unknown"| MARK{"pending marker<br/>already set?"}
@@ -376,10 +395,10 @@ There are two constants to tune, both in `config.ts`. `OG_RENDER_DEBOUNCE_MS` (3
 
 ### Metrics to watch
 
-- og-route cache hit rate on the first fetch per board (should be high — every shared, edited board should already have an image)
+- og-route cache hit rate on the first fetch per board (should be high — every shared, edited board should already have an image). Per board because these events index on the durable object id: `GROUP BY index1`, order by timestamp, and take each board's first row.
 - `served_fallback` rate (should fall to near-zero for edited boards)
 - renders/day by `reason`, and total Browser Run minutes — the real spend signal, since the only bound is per-board and nothing caps the total
-- ratio of renders to `persist_success` events: the debounce's whole claim is that this stays well below 1, and it is the number that would show the max wait being hit more often than expected
+- ratio of renders to `persist_success` events: the debounce's whole claim is that this stays well below 1, and it is the number that would show the max wait being hit more often than expected. Both datasets index on the durable object id, so this is a per-board join rather than two aggregate counts — a handful of pathological boards is a different problem from a uniformly high ratio, and only the join tells them apart
 - queue depth, especially through the first days after deploy, when every actively edited board renders for the first time
 
 ### Open questions
@@ -391,9 +410,9 @@ Deliberately not a Postgres question. Postgres knows which files are `shared`, b
 1. **What fraction of actively edited boards are link-shared (`f`)?** This is the multiplier on every render estimate here; the current constants assume `f ≈ 30%`. `sharedState` (`blob3`) records it at persist time, from the same `_fileRecordCache.shared` the render trigger gates on, so it is persist-weighted — which is the weighting render cost actually has, unlike a per-file count.
 
    ```sql
-   -- f = shared / (shared + private). Check the `unknown` and `legacy` rows before trusting it:
-   -- `legacy` is non-app rooms, which never render; a large `unknown` means file records often
-   -- aren't loaded at persist time and the ratio is standing on a thin denominator.
+   -- f = shared / (shared + private). Check the other rows before trusting it: `legacy` (non-app
+   -- rooms) and `deleted` never render and are correctly outside the ratio; a large `unknown` means
+   -- file records often aren't loaded at persist time and the ratio stands on a thin denominator.
    SELECT blob3 AS shared_state, SUM(_sample_interval) AS persists
    FROM MEASURE
    WHERE blob1 = 'persist_success'

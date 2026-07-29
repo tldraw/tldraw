@@ -100,6 +100,10 @@ export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },
 		QUEUE: makeFakeQueue(),
+		// Telemetry indexes on the board's durable object id. The real binding hashes the name; this
+		// stand-in keeps it legible so a test can assert which name was used, which is the part that can
+		// actually be wrong (a published board must index on its file id, not its published slug).
+		TLDR_DOC: { idFromName: (name: string) => ({ toString: () => `do(${name})` }) },
 		...overrides,
 	} as unknown as Environment
 }
@@ -123,6 +127,22 @@ export function failureBlobsOf(env: Environment) {
 
 export function ipBlobsOf(env: Environment) {
 	return blobsWithPrefix(env, 'ip:')
+}
+
+// The Browser Run duration (double3) of every datapoint written. -1 is the sentinel for "no browser
+// was spent", which is what separates a failure that never reached the capture from one that created
+// a browser and held it — a distinction the spend ledger would otherwise lose on every failed render.
+export function renderDurationsOf(env: Environment): number[] {
+	return (env.MEASURE as any).writeDataPoint.mock.calls.map(
+		(call: any[]) => (call[0].doubles as number[])[2]
+	)
+}
+
+// The index (index1) of every datapoint written, `undefined` where the surface had no resolved board.
+export function indexesOf(env: Environment): (string | undefined)[] {
+	return (env.MEASURE as any).writeDataPoint.mock.calls.map(
+		(call: any[]) => (call[0].indexes as [string] | undefined)?.[0]
+	)
 }
 
 // quickAction is called as quickAction('screenshot', body); the render URL rides in body (arg 1).

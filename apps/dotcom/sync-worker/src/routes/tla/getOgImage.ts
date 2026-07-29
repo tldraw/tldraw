@@ -8,7 +8,7 @@ import {
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
-import { reportThumbnailError, sha256 } from './thumbnailShared'
+import { reportThumbnailError } from './thumbnailShared'
 
 // OG images are served entirely from the R2 cache; rendering happens asynchronously through the
 // og-image queue consumer (ogImageQueue.ts). A request never waits on Browser Run: it gets the
@@ -58,14 +58,13 @@ export async function getOgImage(
 	})
 	if (!board) return (await defaultOgImageFallback(request, env, wantsBody)).response
 
-	const boardHash = await sha256(board.slug)
 	const cacheKey = getOgImageCacheKey(board)
 	const cached = wantsBody
 		? await env.THUMBNAILS?.get(cacheKey)
 		: await env.THUMBNAILS?.head(cacheKey)
 	const now = Date.now()
 	if (cached && shouldServeCachedOgImage(cached, board.version, now)) {
-		writeScreenshotTelemetry(env, { source: 'og', boardHash, cacheStatus: 'hit' })
+		writeScreenshotTelemetry(env, { source: 'og', fileId: board.fileId, cacheStatus: 'hit' })
 		return imageResponse(wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null, {
 			cacheStatus: 'hit',
 			maxAgeSeconds: FRESH_IMAGE_MAX_AGE_SECONDS,
@@ -87,7 +86,7 @@ export async function getOgImage(
 	}
 
 	if (cached) {
-		writeScreenshotTelemetry(env, { source: 'og', boardHash, cacheStatus: 'stale' })
+		writeScreenshotTelemetry(env, { source: 'og', fileId: board.fileId, cacheStatus: 'stale' })
 		return imageResponse(wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null, {
 			cacheStatus: 'stale',
 			maxAgeSeconds: STALE_IMAGE_MAX_AGE_SECONDS,
@@ -103,7 +102,7 @@ export async function getOgImage(
 	const fallback = await defaultOgImageFallback(request, env, wantsBody)
 	writeScreenshotTelemetry(env, {
 		source: 'og',
-		boardHash,
+		fileId: board.fileId,
 		cacheStatus: 'miss',
 		// Two distinct outcomes, both of which look like "no image yet" from the outside: the board got
 		// a usable default card (served_fallback, the self-healing case worth measuring per platform),

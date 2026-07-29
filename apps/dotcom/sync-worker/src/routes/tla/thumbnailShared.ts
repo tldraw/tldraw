@@ -16,8 +16,41 @@ export class BoardSnapshotReadError extends Error {
 	}
 }
 
-// Hex SHA-256 of a string. Used to hash IPs and board slugs before they reach telemetry, so raw
-// identifiers are never written to the analytics dataset.
+// A Browser Run `/screenshot` call that came back non-OK. The status alone says almost nothing:
+// Cloudflare answers 422 for every "the page did not cooperate" outcome — a page that crashed, one
+// that ran out of memory rendering, and any of the Quick Action timers expiring — and our own render
+// page marking `data-thumbnail-error` lands there too, because the capture selector only exists on
+// the success path. What separates them is the response body (which names the real cause) and how
+// much of the timeout budget the call spent, so both are carried here.
+//
+// `message` stays exactly `Browser Rendering screenshot failed (<status>)` and the specifics ride on
+// the fields: Sentry groups on the message, so putting a varying detail string in it would shatter
+// one recurring issue into a stream of new ones. `reportThumbnailError` lifts the fields into the
+// event's context instead, which is where they are readable without splitting the group.
+export class BrowserRenderError extends Error {
+	readonly status: number
+	readonly detail: string | undefined
+	readonly durationMs: number
+	readonly timeoutMs: number
+
+	constructor(options: {
+		status: number
+		detail: string | undefined
+		durationMs: number
+		timeoutMs: number
+	}) {
+		super(`Browser Rendering screenshot failed (${options.status})`)
+		this.name = 'BrowserRenderError'
+		this.status = options.status
+		this.detail = options.detail
+		this.durationMs = options.durationMs
+		this.timeoutMs = options.timeoutMs
+	}
+}
+
+// Hex SHA-256 of a string. Used to hash client IPs before they reach telemetry, so a raw address is
+// never written to the analytics dataset. Boards are identified there by their durable object id
+// instead, which is already one-way (see boardIndexOf in thumbnailRender.ts).
 export async function sha256(value: string) {
 	const bytes = new TextEncoder().encode(value)
 	const digest = await crypto.subtle.digest('SHA-256', bytes)
@@ -37,12 +70,41 @@ export async function sha256(value: string) {
 // every reporting path.
 export function classifyScreenshotFailure(error: unknown): string {
 	if (error instanceof BoardSnapshotReadError) return 'snapshot_read_error'
+	if (error instanceof BrowserRenderError) return classifyBrowserRenderFailure(error)
 	const message = error instanceof Error ? error.message : String(error)
 	if (/not configured/i.test(message)) return 'not_configured'
 	if (/timeout|timed out/i.test(message)) return 'browser_timeout'
 	if (/empty screenshot/i.test(message)) return 'empty_render'
 	if (/Browser Rendering screenshot failed/i.test(message)) return 'browser_failed'
 	return 'render_error'
+}
+
+// Splits a Browser Run failure into `browser_timeout` and `browser_failed`. The status can't do it —
+// 422 is Cloudflare's answer to a crashed page, an out-of-memory render, and every one of its timers
+// expiring alike — so this reads the response body it carries, which usually names the timer, and
+// falls back to how much of the budget the call spent when it doesn't. A call that came back having
+// used essentially the whole timeout waited a timer out; one that returned early failed for some
+// other reason.
+//
+// Getting this right matters beyond the label: the surfaces used to classify on `error.message`
+// alone, which for a Browser Run failure never contains the word "timeout", so every timeout was
+// filed as `browser_failed` and the dashboard's timeout rate was structurally always zero.
+const BROWSER_TIMEOUT_DURATION_FRACTION = 0.9
+function classifyBrowserRenderFailure(error: BrowserRenderError): string {
+	if (/timeout|timed out|timed-out/i.test(error.detail ?? '')) return 'browser_timeout'
+	if (error.durationMs >= error.timeoutMs * BROWSER_TIMEOUT_DURATION_FRACTION) {
+		return 'browser_timeout'
+	}
+	return 'browser_failed'
+}
+
+// The Browser Run time a failed capture still spent, for the surfaces' telemetry. A render that
+// throws has already created a browser and held it — often for the whole timeout — so leaving this
+// off the failure datapoint understated what an uncapped render path actually costs, which is the
+// one number the design relies on watching. Undefined for failures that never reached the capture
+// (an unreadable snapshot, an empty board): those spent nothing, and recording nothing is right.
+export function browserRunDurationOf(error: unknown): number | undefined {
+	return error instanceof BrowserRenderError ? error.durationMs : undefined
 }
 
 // Caller-facing explanation for a classified failure, as a clause to follow a tool's own prefix.
@@ -102,15 +164,16 @@ export function reportThumbnailError(
 	}
 ) {
 	try {
+		const context = { ...extras, ...browserRenderContextOf(error) }
 		const sentry = ctx ? createSentry(ctx, env, request) : null
 		if (!sentry) {
-			console.error(`[thumbnails:${surface}]`, extras ?? {}, error)
+			console.error(`[thumbnails:${surface}]`, context, error)
 			return
 		}
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		sentry.withScope((scope) => {
 			scope.setTag('thumbnail_surface', surface)
-			if (extras) scope.setExtras(extras)
+			scope.setExtras(context)
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			sentry.captureException(error)
 		})
@@ -118,5 +181,22 @@ export function reportThumbnailError(
 		// Reporting runs inside handlers whose whole point is to swallow failure, so it must never be
 		// the thing that throws: a missing Sentry env var would otherwise turn a degraded-but-fine
 		// response into a 500.
+	}
+}
+
+// The fields a BrowserRenderError deliberately keeps out of its message, so they reach the Sentry
+// event as context rather than as a new issue per distinct detail string. Without these an event
+// says only "Browser Rendering screenshot failed (422)", which is true of a crashed page, an
+// out-of-memory render, and a timeout alike — everything that would tell them apart is here.
+function browserRenderContextOf(error: unknown): Record<string, unknown> | null {
+	if (!(error instanceof BrowserRenderError)) return null
+	return {
+		browser_render_status: error.status,
+		// Cloudflare's own explanation of the failure, verbatim (truncated at the throw site). Absent
+		// when the response carried no body, which is itself worth being able to see.
+		browser_render_detail: error.detail ?? '(no response body)',
+		browser_render_duration_ms: error.durationMs,
+		browser_render_timeout_ms: error.timeoutMs,
+		browser_render_reason: classifyScreenshotFailure(error),
 	}
 }

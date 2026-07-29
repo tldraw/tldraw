@@ -114,7 +114,6 @@ describe('OgRenderDebouncer', () => {
 	it('renders when an alarm arrives with no deadline in memory', () => {
 		const debouncer = makeDebouncer()
 
-		expect(debouncer.hasPendingRender()).toBe(false)
 		expect(debouncer.onAlarm(123_456)).toEqual({ render: true })
 	})
 
@@ -123,9 +122,9 @@ describe('OgRenderDebouncer', () => {
 
 		debouncer.onPersist(0)
 		debouncer.onAlarm(30_000)
-		expect(debouncer.hasPendingRender()).toBe(false)
 
-		// A later persist schedules again rather than being swallowed by stale state.
+		// A later persist schedules again rather than being swallowed by stale state. A returned alarm
+		// time (rather than null) is itself the proof the cycle reset: null means one is outstanding.
 		expect(debouncer.onPersist(100_000)).toBe(130_000)
 	})
 

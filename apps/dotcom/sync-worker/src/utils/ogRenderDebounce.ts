@@ -54,13 +54,4 @@ export class OgRenderDebouncer {
 		this.pendingSince = null
 		return { render: true }
 	}
-
-	/**
-	 * Whether a render is currently scheduled. After an eviction this reads false even though a durable
-	 * alarm may still be pending — which is why `onAlarm` renders when it finds no deadline rather than
-	 * assuming the alarm was spurious.
-	 */
-	hasPendingRender() {
-		return this.targetAt !== null
-	}
 }

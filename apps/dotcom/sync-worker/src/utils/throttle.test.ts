@@ -9,9 +9,8 @@ afterEach(() => {
 // board writes its snapshot to R2: the leading edge persists the first change after a quiet spell
 // promptly, and the trailing edge guarantees the last change of a session is persisted at all.
 //
-// It briefly also backed thumbnail rendering. That now uses a debounce instead (utils/ogRenderDebounce.ts):
-// a throttle samples on a cadence *during* editing, which is the wrong shape for a thumbnail, and at
-// the measured ~39s mean gap between a board's persists it was suppressing almost nothing anyway.
+// It is not what schedules thumbnail renders. Those are debounced (utils/ogRenderDebounce.ts) — see
+// OG_RENDER_DEBOUNCE_MS in config.ts for why a throttle is the wrong shape there.
 describe('throttle', () => {
 	it('invokes immediately on the leading edge', () => {
 		vi.useFakeTimers()
@@ -50,14 +49,12 @@ describe('throttle', () => {
 		expect(fn).toHaveBeenCalledTimes(1)
 	})
 
-	// The guarantee the render budget is sized against: a continuous stream of asks costs a bounded
-	// number of invocations per window, no matter how fast the asks arrive. A board persisting every
-	// 8s cannot therefore request a render every 8s.
+	// The property persistence relies on: a board being edited continuously writes a bounded number of
+	// snapshots per window, no matter how fast changes arrive.
 	//
 	// Note the bound is TWO per window, not one — see the re-arm test below. The two are adjacent in
 	// time (a trailing call followed immediately by the next leading one) rather than spread across the
-	// window, so downstream they collapse: the second lands while the first render is still in flight
-	// and is suppressed by enqueueOgImageRender's pending marker.
+	// window.
 	it('bounds a continuous stream to two invocations per window', () => {
 		vi.useFakeTimers()
 		const fn = vi.fn()

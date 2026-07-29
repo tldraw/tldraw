@@ -171,6 +171,11 @@ async function fetchMetrics(opts: Options): Promise<SourceMetrics[]> {
 	// double3 is the wall-clock render duration, positive only on rows that actually invoked Browser
 	// Run (cache hits and pre-render failures leave it at -1). It replaces double4 (X-Browser-Ms-Used),
 	// which the BROWSER binding no longer surfaces and is always -1.
+	//
+	// Failed captures count here too, deliberately: a render that threw still created a browser and
+	// held it, often for the whole timeout, so excluding it would understate spend by exactly the
+	// renders most worth knowing the cost of. Queue rows are per delivery, so a job that retried
+	// three times contributes three captures — again, that is what it spent.
 	const spendRows = await queryAnalyticsEngine(`
 		SELECT
 			blob3 AS source,

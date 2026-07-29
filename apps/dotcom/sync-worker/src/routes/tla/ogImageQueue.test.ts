@@ -6,7 +6,6 @@ import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import {
 	deleteOgImageCache,
 	enqueueOgImageRender,
-	enqueueOgImageRenderForEdit,
 	getOgImageCacheKey,
 	handleOgImageRenderMessage,
 } from './ogImageQueue'
@@ -18,6 +17,7 @@ import {
 	makeFakeThumbnailsBucket,
 	makeScreenshotTestEnv as makeEnv,
 	makeSnapshot,
+	renderDurationsOf,
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
@@ -121,15 +121,16 @@ describe('enqueueOgImageRender', () => {
 	})
 })
 
-describe('enqueueOgImageRenderForEdit', () => {
+describe('enqueueOgImageRender for an edit', () => {
 	const board = { kind: 'shared_file', slug: 'board' } as const
 
 	// Unconditional by design: a persist means the saved content genuinely differs from what the
-	// cached thumbnail shows, so there is no sampling or staleness window to satisfy first.
+	// cached thumbnail shows, so there is no sampling or staleness window to satisfy first. The share
+	// gate lives in TLFileDurableObject.requestOgRenderForEdit, which decides before calling this.
 	it('enqueues on every edit, with no sampling or staleness gate', async () => {
 		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
 
-		expect(await enqueueOgImageRenderForEdit(env, board, { isShared: true })).toBe('enqueued')
+		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
 		expect((env as any).QUEUE.send).toHaveBeenCalledExactlyOnceWith(
 			expect.objectContaining({ kind: 'shared_file', slug: 'board', reason: 'edit' })
 		)
@@ -144,24 +145,7 @@ describe('enqueueOgImageRenderForEdit', () => {
 			customMetadata: { version: 'v1', createdAt: String(Date.now()) },
 		})
 
-		expect(await enqueueOgImageRenderForEdit(env, board, { isShared: true })).toBe('enqueued')
-	})
-
-	it('skips a board that is not shared', async () => {
-		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
-
-		expect(await enqueueOgImageRenderForEdit(env, board, { isShared: false })).toBe(
-			'skipped_not_shared'
-		)
-		expect((env as any).QUEUE.send).not.toHaveBeenCalled()
-	})
-
-	// The durable object doesn't always have the file record in hand. Guessing "private" would silently
-	// drop coverage; the consumer re-resolves the board and drops it there if it isn't public.
-	it('goes ahead when the share state is unknown', async () => {
-		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
-
-		expect(await enqueueOgImageRenderForEdit(env, board, { isShared: undefined })).toBe('enqueued')
+		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
 	})
 })
 
@@ -289,13 +273,19 @@ describe('handleOgImageRenderMessage', () => {
 		expect(firstAttempt.retry).toHaveBeenCalledExactlyOnceWith({ delaySeconds: 30 })
 		expect(firstAttempt.ack).not.toHaveBeenCalled()
 
-		// The final delivery, so the job drops and writes its reason code instead of only retrying.
+		// The final delivery, so the job drops rather than retrying again.
 		vi.mocked(getPublishedRoomSnapshot).mockRejectedValueOnce(new Error('connection terminated'))
 		const finalAttempt = makeMessage({ kind: 'published', slug: 'board' }, 3)
 		await handleOgImageRenderMessage(env, finalAttempt)
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 		expect(finalAttempt.ack).toHaveBeenCalledTimes(1)
-		expect(failureBlobsOf(env)).toEqual(['failure:snapshot_read_error'])
+		// One row per delivery, not per job: the dataset is the spend ledger, so a retried failure is
+		// two events, not one. Neither of these spent Browser Run, but a retried *render* would spend
+		// it twice, and only per-delivery rows can show that.
+		expect(failureBlobsOf(env)).toEqual([
+			'failure:snapshot_read_error',
+			'failure:snapshot_read_error',
+		])
 	})
 
 	// A board un-shared between the resolve and the snapshot read looks like any other read failure
@@ -335,7 +325,13 @@ describe('handleOgImageRenderMessage', () => {
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 		// The cached image is dropped too, so no-longer-public content does not linger in the cache.
 		expect(bucket.store.has(cacheKey)).toBe(false)
-		expect(failureBlobsOf(env)).toEqual(['failure:board_not_viewable'])
+		// Both deliveries are recorded, and they say different things: the first could not read the
+		// board, the second re-resolved and found it private. Collapsing to one row would lose the
+		// distinction along with the fact that the job cost two deliveries.
+		expect(failureBlobsOf(env)).toEqual([
+			'failure:snapshot_read_error',
+			'failure:board_not_viewable',
+		])
 	})
 
 	it('renders shared files and keys their version on the room etag', async () => {
@@ -433,6 +429,123 @@ describe('handleOgImageRenderMessage', () => {
 		await handleOgImageRenderMessage(env, finalAttempt)
 		expect(finalAttempt.retry).not.toHaveBeenCalled()
 		expect(finalAttempt.ack).toHaveBeenCalledTimes(1)
+	})
+
+	// A board that fails deterministically fails every attempt, so reporting each delivery filed three
+	// events for one problem. The delivery that gives up is the one worth seeing, and it is already the
+	// only one that reaches telemetry. Tests pass no ExecutionContext, so reporting logs instead.
+	it('reports a failing render once per job rather than once per delivery', async () => {
+		const reported = vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => {
+				throw new Error('browser session failed')
+			}),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 1))
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 2))
+		expect(reported).not.toHaveBeenCalled()
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
+		expect(reported).toHaveBeenCalledTimes(1)
+		expect(reported.mock.calls[0]![1]).toMatchObject({ slug: 'board', attempts: 3 })
+	})
+
+	// Browser Run answers 422 for a crashed page, an out-of-memory render and every one of its timers
+	// alike, so the reason code has to come from the response body. Before this the status was all the
+	// worker kept, every one of those failures was filed as `browser_failed`, and the dashboard's
+	// timeout rate was structurally always zero.
+	it('classifies a Browser Run timeout from the response body, not the status', async () => {
+		const reported = vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(
+				async () =>
+					new Response(
+						JSON.stringify({
+							success: false,
+							errors: [{ code: 500, message: 'Navigation timeout of 45000 ms exceeded' }],
+						}),
+						{ status: 422 }
+					)
+			),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
+
+		expect(failureBlobsOf(env)).toEqual(['failure:browser_timeout'])
+		// The unbounded original goes to Sentry, where the cardinality that keeps it out of the blob
+		// doesn't matter and it is the only thing that says what actually went wrong.
+		expect(reported.mock.calls[0]![1]).toMatchObject({
+			browser_render_status: 422,
+			browser_render_detail: 'Navigation timeout of 45000 ms exceeded',
+		})
+	})
+
+	// The same 422 with a different cause: the render page marked data-thumbnail-error, so the
+	// success-only capture selector was absent and the call came back early.
+	it('classifies an early 422 as a render failure', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(
+				async () =>
+					new Response('Element not found: body[data-thumbnail-ready="true"]', { status: 422 })
+			),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
+
+		expect(failureBlobsOf(env)).toEqual(['failure:browser_failed'])
+	})
+
+	// A failed capture created a browser and held it, sometimes for the whole 45s timeout. Recording
+	// -1 there — as every failure used to — understated what an uncapped render path costs, which is
+	// the one number the "no global cap" design leans on watching.
+	it('records the Browser Run time a failed render spent, and none where it spent none', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => new Response('boom', { status: 422 })),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
+		expect(renderDurationsOf(env)[0]).toBeGreaterThanOrEqual(0)
+
+		// An empty board never reaches the capture, so it keeps the "spent nothing" sentinel.
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(null as any)
+		const emptyBoardEnv = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+		await handleOgImageRenderMessage(
+			emptyBoardEnv,
+			makeMessage({ kind: 'published', slug: 'board' }, 3)
+		)
+		expect(failureBlobsOf(emptyBoardEnv)).toEqual(['failure:board_empty'])
+		expect(renderDurationsOf(emptyBoardEnv)).toEqual([-1])
 	})
 
 	// Thumbnail rendering is uncapped: the MCP endpoint's limiters exist to bound what an outside

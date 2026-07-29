@@ -20,10 +20,17 @@ export function getLogger(env: Environment) {
 	return env.TL_LOGGER.get(env.TL_LOGGER.idFromName('logger')) as any as TLLoggerDurableObject
 }
 
+/**
+ * The durable object id a room is addressed by. Split out from `getRoomDurableObject` because
+ * telemetry indexes on this value without wanting a stub — and because both must derive it the same
+ * way: an id computed from a different name is a different object, silently.
+ */
+export function getRoomDurableObjectId(env: Environment, roomId: string) {
+	return env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${roomId}`)
+}
+
 export function getRoomDurableObject(env: Environment, roomId: string) {
-	return env.TLDR_DOC.get(
-		env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${roomId}`)
-	) as any as TLFileDurableObject
+	return env.TLDR_DOC.get(getRoomDurableObjectId(env, roomId)) as any as TLFileDurableObject
 }
 
 function shouldRecordStats(env: Environment): boolean {

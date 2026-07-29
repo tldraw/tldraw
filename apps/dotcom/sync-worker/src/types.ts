@@ -196,10 +196,12 @@ export type TLServerEvent =
 			 * dataset cannot be joined back to a file row. Recording the flag here sidesteps both.
 			 *
 			 * `unknown` is an app file whose record has not loaded yet; `legacy` is a non-app room, which
-			 * has no shareable board identity and never renders a thumbnail. Both are kept distinct from
-			 * `private` so the denominator stays honest.
+			 * has no shareable board identity; `deleted` is an app file whose record has been deleted.
+			 * All three are kept distinct from `private` so the denominator stays honest — and the value
+			 * is computed by the same method that gates the render (`getBoardRenderState`), so a state
+			 * that never renders can never be reported as one that does.
 			 */
-			sharedState: 'shared' | 'private' | 'unknown' | 'legacy'
+			sharedState: 'shared' | 'private' | 'unknown' | 'legacy' | 'deleted'
 	  }
 
 export type TLPostgresReplicatorRebootSource =

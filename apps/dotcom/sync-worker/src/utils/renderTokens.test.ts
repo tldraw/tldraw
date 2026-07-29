@@ -15,9 +15,7 @@ function makeJob(overrides: Partial<ThumbnailRenderJob> = {}): ThumbnailRenderJo
 		kind: 'published',
 		slug: 'my-board',
 		version: 1751234567890,
-		x: 10,
-		y: 20,
-		z: 0.5,
+		camera: 'content',
 		width: 1200,
 		height: 630,
 		theme: 'light',
@@ -39,12 +37,6 @@ describe('thumbnail render tokens', () => {
 		expect(await verifyThumbnailRenderToken(env, token)).toEqual(job)
 	})
 
-	it('round-trips a content-fit camera job', async () => {
-		const job = makeJob({ camera: 'content' })
-		const token = await mintThumbnailRenderToken(env, job)
-		expect(await verifyThumbnailRenderToken(env, token)).toEqual(job)
-	})
-
 	it('rejects tokens with an unknown kind', async () => {
 		const token = await mintThumbnailRenderToken(env, makeJob({ kind: 'bogus' as any }))
 		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
@@ -55,8 +47,15 @@ describe('thumbnail render tokens', () => {
 		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
 	})
 
+	// `content` is the only mode, so it is required rather than defaulted: a job that reaches the
+	// verifier without one was not minted by any current call site.
+	it('rejects tokens with no camera mode', async () => {
+		const token = await mintThumbnailRenderToken(env, makeJob({ camera: undefined as any }))
+		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
+	})
+
 	it('round-trips a single-page (pageId) job', async () => {
-		const job = makeJob({ camera: 'content', pageId: 'page:abc123' })
+		const job = makeJob({ pageId: 'page:abc123' })
 		const token = await mintThumbnailRenderToken(env, job)
 		expect(await verifyThumbnailRenderToken(env, token)).toEqual(job)
 	})

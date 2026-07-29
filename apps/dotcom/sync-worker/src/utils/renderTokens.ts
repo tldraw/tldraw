@@ -22,18 +22,23 @@ export interface ThumbnailRenderJob {
 	 */
 	version: string | number
 	/**
-	 * When omitted, the render page uses x/y/z directly. `content` tells the render page to fit the
-	 * board's current page content into the requested output size.
+	 * Fit the board's current page content into the requested output size — the only mode there is.
+	 * An explicit viewport (x/y/z) rode along here for a while and was never once requested, so it
+	 * went rather than stay unreachable and untested.
+	 *
+	 * Real render params are worth adding when a surface needs them, designed against that surface
+	 * rather than guessed at here. Doing so is cheap: tokens live THUMBNAIL_RENDER_TOKEN_TTL_MS, so
+	 * this payload has no stored state and no migration — add the field, echo it from
+	 * `getThumbnailSnapshot`, handle it on the render page. The one ordering constraint is that the
+	 * client and worker deploy separately, so teach the render page to handle the param before the
+	 * worker starts sending it.
 	 */
-	camera?: 'content'
+	camera: 'content'
 	/**
 	 * The TLPageId of the single page to render. When omitted, the render page exports whichever page
 	 * the snapshot opens to (used by OG images). The worker takes one screenshot of the rendered page.
 	 */
 	pageId?: string
-	x: number
-	y: number
-	z: number
 	width: number
 	height: number
 	theme: 'light' | 'dark'
@@ -99,7 +104,7 @@ export async function verifyThumbnailRenderToken(
 		job.v !== 1 ||
 		(job.kind !== 'published' && job.kind !== 'shared_file') ||
 		typeof job.slug !== 'string' ||
-		(job.camera !== undefined && job.camera !== 'content') ||
+		job.camera !== 'content' ||
 		(job.pageId !== undefined && typeof job.pageId !== 'string') ||
 		typeof job.exp !== 'number'
 	) {

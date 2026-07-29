@@ -15,7 +15,11 @@ import {
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
-import { classifyScreenshotFailure, reportThumbnailError, sha256 } from './thumbnailShared'
+import {
+	browserRunDurationOf,
+	classifyScreenshotFailure,
+	reportThumbnailError,
+} from './thumbnailShared'
 
 // Queue-backed async board thumbnail generation. The GET og-image route never blocks a request on
 // Browser Run: it serves whatever is cached (fresh or stale) or the default OG image, and enqueues a
@@ -100,29 +104,6 @@ export async function enqueueOgImageRender(
 	return 'enqueued'
 }
 
-/**
- * Asks for a board's thumbnail to be refreshed because its content just changed. Called from the file
- * durable object once its render debounce expires, so this runs after a board's editing has settled
- * rather than on every persist — which is what keeps an 8-second persist cadence from becoming an
- * 8-second render cadence.
- *
- * There is no sampling or staleness window here on purpose: a persist means the board's saved content
- * is genuinely different from what the cached thumbnail shows, which is exactly when a re-render is
- * warranted. Downstream, `enqueueOgImageRender`'s pending marker suppresses an ask that arrives while
- * one is already in flight, and the consumer's `(board, version)` check acks without rendering if the
- * cache already matches.
- */
-export async function enqueueOgImageRenderForEdit(
-	env: Environment,
-	board: { kind: ThumbnailBoardKind; slug: string },
-	{ isShared }: { isShared: boolean | undefined }
-): Promise<EnqueueOgImageResult | 'skipped_not_shared'> {
-	// `undefined` means the caller doesn't know: go ahead and let the consumer's resolve drop the
-	// board, rather than skipping one that may well be public.
-	if (isShared === false) return 'skipped_not_shared'
-	return enqueueOgImageRender(env, board, { reason: 'edit' })
-}
-
 export function getOgImageAge(cached: R2Object, now: number) {
 	const createdAt = Number(cached.customMetadata?.createdAt ?? cached.uploaded?.getTime() ?? 0)
 	return Number.isFinite(createdAt) ? now - createdAt : Infinity
@@ -154,7 +135,10 @@ export async function handleOgImageRenderMessage(
 	const { kind, slug } = message.body
 	// Messages enqueued before the field existed are all crawler misses.
 	const reason = message.body.reason ?? 'crawler'
-	const boardHash = await sha256(slug)
+	// Indexes the telemetry on the board's room. A shared file's slug is its file id, so it is known
+	// up front; a published board's slug is not, and only resolves to one below — the telemetry for a
+	// published board that never resolves therefore carries no index, which beats carrying a wrong one.
+	let fileId = kind === 'shared_file' ? slug : undefined
 	const cacheKey = getOgImageCacheKey({ kind, slug })
 	const clearPending = async () => {
 		await env.THUMBNAILS?.delete(getOgImagePendingKey({ kind, slug })).catch(() => {})
@@ -171,7 +155,7 @@ export async function handleOgImageRenderMessage(
 		writeScreenshotTelemetry(env, {
 			source: 'queue',
 			reason,
-			boardHash,
+			fileId,
 			cacheStatus: 'miss',
 			failureReason: 'board_not_viewable',
 		})
@@ -185,12 +169,14 @@ export async function handleOgImageRenderMessage(
 			return
 		}
 		const board = resolved.board
+		// Now known for both kinds, so every telemetry write past this point is indexed.
+		fileId = board.fileId
 
 		// Another consumer (or an earlier retry) may already have rendered this version.
 		const cached = await env.THUMBNAILS?.head(cacheKey)
 		if (cached?.customMetadata?.version === String(board.version)) {
 			await clearPending()
-			writeScreenshotTelemetry(env, { source: 'queue', reason, boardHash, cacheStatus: 'hit' })
+			writeScreenshotTelemetry(env, { source: 'queue', reason, fileId, cacheStatus: 'hit' })
 			message.ack()
 			return
 		}
@@ -219,7 +205,7 @@ export async function handleOgImageRenderMessage(
 			// know. Fail now instead. retryOrDrop still backs off and retries, in case content lands
 			// shortly after the enqueue. A read that *fails* throws rather than landing here; the catch
 			// below reports it and retries the same way, so that path spends no Browser Run either.
-			retryOrDrop(env, message, boardHash, 'board_empty')
+			retryOrDrop(env, message, fileId, 'board_empty')
 			return
 		}
 
@@ -237,7 +223,7 @@ export async function handleOgImageRenderMessage(
 		writeScreenshotTelemetry(env, {
 			source: 'queue',
 			reason,
-			boardHash,
+			fileId,
 			cacheStatus: 'miss',
 			browserRunDurationMs: render.durationMs,
 			browserMsUsed: null,
@@ -247,38 +233,61 @@ export async function handleOgImageRenderMessage(
 		// Bounded reason code only — raw error.message would blow up the failure blob's cardinality.
 		// Sentry gets the unbounded original, since the reason code alone can't explain why a board
 		// burned through its retries.
-		reportThumbnailError(error, {
-			ctx,
-			env,
-			surface: 'og_queue',
-			extras: { kind, slug, attempts: message.attempts },
-		})
+		//
+		// Reported once per job rather than once per delivery. A board that fails deterministically —
+		// a render that always exhausts the browser's memory, an asset that never loads — fails all
+		// MAX_RENDER_ATTEMPTS times, and reporting each delivery tripled the event volume for a single
+		// underlying problem while the second and third events said nothing the first didn't. The
+		// attempt that gives up is the one worth seeing, and it is already the only one that reaches
+		// telemetry. A failure that recovers on retry now reports nothing at all, which is the point:
+		// the render landed. The cost is that a job whose attempts fail for *different* reasons shows
+		// only the last, which is a fair trade for a third of the noise.
+		if (message.attempts >= MAX_RENDER_ATTEMPTS) {
+			reportThumbnailError(error, {
+				ctx,
+				env,
+				surface: 'og_queue',
+				extras: { kind, slug, attempts: message.attempts },
+			})
+		}
 		// A board that went private between the resolve above and the snapshot read is retried rather
 		// than dropped here, because a plain read failure looks the same from this catch. That costs
 		// one extra delivery, not one extra render: the retry re-resolves at the top of the handler,
 		// finds the board no longer viewable, and drops it before spending any Browser Run.
-		retryOrDrop(env, message, boardHash, classifyScreenshotFailure(error))
+		retryOrDrop(env, message, fileId, classifyScreenshotFailure(error), browserRunDurationOf(error))
 	}
 }
 
 function retryOrDrop(
 	env: Environment,
 	message: Message<OgImageRenderQueueMessage>,
-	boardHash: string,
-	failureReason: string
+	fileId: string | undefined,
+	failureReason: string,
+	browserRunDurationMs?: number
 ) {
+	// One datapoint per delivery, not per job. This dataset is the Browser Run spend ledger, and it is
+	// the only thing watching a render path that is deliberately uncapped — so it has to count what was
+	// actually spent. Every delivery that reaches the capture creates a browser and can hold it for the
+	// full THUMBNAIL_RENDER_TIMEOUT_MS, whether or not it is the last attempt. Writing only on the final
+	// drop, as this used to, hid two thirds of a failing board's spend, and made queue rows count jobs
+	// while the `og` and `mcp` rows count requests. Sentry goes the other way deliberately (once per job,
+	// see the catch above): telemetry counts spend, Sentry counts problems, and three deliveries are
+	// three lots of spend but one problem.
+	writeScreenshotTelemetry(env, {
+		source: 'queue',
+		reason: message.body.reason,
+		fileId,
+		cacheStatus: 'miss',
+		failureReason,
+		// Present only when the capture itself failed. A delivery that bailed earlier (an unreadable or
+		// empty snapshot) spent no Browser Run and correctly records none.
+		browserRunDurationMs,
+	})
 	// attempts counts this delivery, so attempts >= MAX means this was the final try. The pending
 	// marker is left in place either way; it expires on its own and then requests re-enqueue.
 	if (message.attempts < MAX_RENDER_ATTEMPTS) {
 		message.retry({ delaySeconds: RETRY_DELAY_SECONDS * message.attempts })
 		return
 	}
-	writeScreenshotTelemetry(env, {
-		source: 'queue',
-		reason: message.body.reason,
-		boardHash,
-		cacheStatus: 'miss',
-		failureReason,
-	})
 	message.ack()
 }

@@ -136,14 +136,7 @@ function ThumbnailRenderPage({
 					if (renderParams.pageId && editor.getPage(renderParams.pageId as TLPageId)) {
 						editor.setCurrentPage(renderParams.pageId as TLPageId)
 					}
-					if (renderParams.camera === 'content') {
-						fitContentCamera(editor, width, height)
-					} else {
-						editor.setCamera(
-							{ x: renderParams.x, y: renderParams.y, z: renderParams.z },
-							{ immediate: true }
-						)
-					}
+					fitContentCamera(editor, width, height)
 				}}
 			>
 				<ThumbnailExportSignal

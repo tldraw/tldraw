@@ -16,6 +16,7 @@ import {
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
 import {
+	browserRunDurationOf,
 	classifyScreenshotFailure,
 	describeThumbnailFailure,
 	reportThumbnailError,
@@ -286,7 +287,6 @@ async function callSharedBoardScreenshotTool(
 		// Telemetry gets a bounded reason code; the caller gets the specific validation message.
 		writeScreenshotTelemetry(env, {
 			source: 'mcp',
-			boardHash: 'unresolved',
 			ipHash,
 			cacheStatus: 'miss',
 			failureReason: 'invalid_input',
@@ -294,14 +294,16 @@ async function callSharedBoardScreenshotTool(
 		return toolError(error instanceof Error ? error.message : String(error))
 	}
 
-	const boardHash = await sha256(input.boardId)
+	// Set once the board resolves below. The closure reads it at call time, not capture time, because
+	// the rate-limit rejections it also reports happen before there is a board to index on.
+	let fileId: string | undefined
 	const telemetry = (data: {
 		cacheStatus: 'hit' | 'miss'
 		browserRunDurationMs?: number
 		failureReason?: string
 		rateLimitAllowed?: boolean
 	}) => {
-		writeScreenshotTelemetry(env, { source: 'mcp', boardHash, ipHash, ...data })
+		writeScreenshotTelemetry(env, { source: 'mcp', fileId, ipHash, ...data })
 	}
 
 	// Screenshots have their own per-IP budget (separate from get_board_info), sized to the ~2/min
@@ -330,6 +332,7 @@ async function callSharedBoardScreenshotTool(
 			)
 		}
 		const board = resolved.board
+		fileId = board.fileId
 		if (!env.MCP_SCREENSHOTS) {
 			throw new Error('MCP_SCREENSHOTS bucket is not configured')
 		}
@@ -432,7 +435,13 @@ async function callSharedBoardScreenshotTool(
 			extras: { boardId: input.boardId, page: input.page, theme: input.theme },
 		})
 		const failureReason = classifyScreenshotFailure(error)
-		telemetry({ cacheStatus: 'miss', failureReason })
+		// A capture that failed still held a browser, so its duration belongs on the datapoint the same
+		// as a successful one's. Undefined when the failure came before the capture and spent nothing.
+		telemetry({
+			cacheStatus: 'miss',
+			failureReason,
+			browserRunDurationMs: browserRunDurationOf(error),
+		})
 		return toolError(`Screenshot failed: ${describeThumbnailFailure(failureReason)}.`)
 	}
 }
