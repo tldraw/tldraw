@@ -17,6 +17,21 @@ export type CommentNotificationReason = 'mention' | 'reply' | 'owned-board'
 const REASON_PRIORITY: CommentNotificationReason[] = ['mention', 'reply', 'owned-board']
 
 /**
+ * How far a comment may predate the user's join time and still count as a reply.
+ *
+ * `createdAt` is stamped by the authoring client's clock (`createComment` in tlschema defaults to
+ * `Date.now()`), so the join gate compares timestamps written by two different machines. A user
+ * whose clock runs fast stamps their own join late, and a reply that genuinely followed it reads
+ * as thread history — silently dropped, with nothing in the UI to hint at what's missing.
+ *
+ * The two failure directions aren't symmetric: too small a tolerance loses real notifications,
+ * too large lets a few already-seen comments through. So this errs permissive, at a minute — well
+ * past the drift of a roughly-synced clock, and short enough that it can't readmit a thread's
+ * history, which is what the gate exists to keep out.
+ */
+const JOIN_TIME_SKEW_TOLERANCE_MS = 60_000
+
+/**
  * The comment fields {@link categorizeCommentNotifications} needs. A structural subset of the
  * `app.getComments()` row (with its `file`/`thread`/`read` relationships) so the categorization
  * can be unit-tested without Zero types. `read` is the caller's read receipt — a related row
@@ -55,9 +70,10 @@ export interface CommentNotification<
  *
  * Stricter than the `comments` synced query, whose reply category has no timing condition (ZQL
  * can't compare `createdAt` across correlated rows): the reply reason only applies to comments
- * from after the user joined the thread — earlier ones are context they saw when joining, not
- * notifications. A comment with no reason left is dropped. Post-join replies stay in the feed
- * once responded to; read receipts, not membership, handle their unread state.
+ * from after the user joined the thread (within {@link JOIN_TIME_SKEW_TOLERANCE_MS}) — earlier
+ * ones are context they saw when joining, not notifications. A comment with no reason left is
+ * dropped. Post-join replies stay in the feed once responded to; read receipts, not membership,
+ * handle their unread state.
  */
 export function categorizeCommentNotifications<T extends CommentNotificationInput>(
 	comments: readonly T[],
@@ -72,7 +88,10 @@ export function categorizeCommentNotifications<T extends CommentNotificationInpu
 
 		const reasons: CommentNotificationReason[] = []
 		if (extractMentionIds(comment.body).includes(userId)) reasons.push('mention')
-		if (comment.createdAt > joinedThreadAt(comment.thread, userId)) reasons.push('reply')
+		// the two sides of this comparison come from different machines' clocks, hence the
+		// tolerance — see JOIN_TIME_SKEW_TOLERANCE_MS
+		const joinedAt = joinedThreadAt(comment.thread, userId)
+		if (comment.createdAt > joinedAt - JOIN_TIME_SKEW_TOLERANCE_MS) reasons.push('reply')
 		if (comment.file?.ownerId === userId) reasons.push('owned-board')
 		if (reasons.length === 0) continue
 
