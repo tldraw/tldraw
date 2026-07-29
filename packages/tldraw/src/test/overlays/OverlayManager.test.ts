@@ -52,13 +52,6 @@ describe('OverlayManager', () => {
 		})
 	})
 
-	describe('hasOverlayUtil', () => {
-		it('reports whether a util is registered for a type', () => {
-			expect(editor.overlays.hasOverlayUtil('brush')).toBe(true)
-			expect(editor.overlays.hasOverlayUtil('collaborator_cursor')).toBe(false)
-		})
-	})
-
 	describe('getCurrentOverlays', () => {
 		it('returns empty array when no overlays are active', () => {
 			expect(editor.overlays.getCurrentOverlays()).toEqual([])

@@ -197,17 +197,6 @@ export default function App() {
 
 Cursor components are positioned in page space inside a camera-transformed layer, so `point` can be used directly as a translation; sizes in screen pixels stay constant on screen by scaling with `1 / zoom` (the default components do this via their `zoom` prop).
 
-Cursors were previously drawn to the overlay canvas by [CollaboratorCursorOverlayUtil](?). That util is deprecated but still works: register it (or a subclass) through the `overlayUtils` prop and the DOM cursor layer stands down, so cursors are never drawn twice.
-
-```tsx
-import { CollaboratorCursorOverlayUtil, defaultOverlayUtils, Tldraw } from 'tldraw'
-
-export default function App() {
-	// Draws cursors to the canvas, as before
-	return <Tldraw overlayUtils={[...defaultOverlayUtils, CollaboratorCursorOverlayUtil]} />
-}
-```
-
 ### Cursor position in presence
 
 Collaborator cursor positions are stored in presence records ([TLInstancePresence](?)). The cursor field includes position, type, and rotation:

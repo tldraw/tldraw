@@ -1,6 +1,6 @@
 // This file implements the deprecated canvas cursor overlay, so it references its own deprecated types.
 // oxlint-disable typescript/no-deprecated
-import { isCursorInViewport, OverlayUtil, PI2, TLOverlay } from '@tldraw/editor'
+import { OverlayUtil, PI2, TLOverlay } from '@tldraw/editor'
 
 /**
  * @public
@@ -70,8 +70,8 @@ function getLabelFontFamily(editorContainer: HTMLElement, editorWindow: Window):
  * @deprecated Collaborator cursors are no longer drawn to the overlay canvas, so this util is no
  * longer part of `defaultOverlayUtils`. They render as DOM elements instead, customizable through
  * the `CollaboratorCursor` editor component. To keep drawing cursors to the canvas, pass this util
- * (or a subclass of it) to `overlayUtils`; the DOM layer stands down whenever a `collaborator_cursor`
- * util is registered, so cursors are never drawn twice.
+ * (or a subclass of it) to `overlayUtils` and set `components={{ CollaboratorCursor: null }}` so the
+ * DOM layer doesn't draw them a second time.
  */
 export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
 	static override type = 'collaborator_cursor'
@@ -116,6 +116,8 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 		const zoom = this.editor.getZoomLevel()
 		const scale = 1 / zoom
 		const viewport = this.editor.getViewportPageBounds()
+		const viewportMarginX = 12 / zoom
+		const viewportMarginY = 16 / zoom
 		const labelFontFamily = getLabelFontFamily(
 			this.editor.getContainer(),
 			this.editor.getContainerWindow()
@@ -128,7 +130,14 @@ export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCur
 			// Cull cursors outside the main viewport (with a small margin for
 			// the cursor glyph). Off-screen cursors still show on the minimap
 			// via `renderMinimap`.
-			if (!isCursorInViewport({ x, y }, viewport, zoom)) continue
+			if (
+				x < viewport.minX - viewportMarginX ||
+				y < viewport.minY - viewportMarginY ||
+				x > viewport.maxX - viewportMarginX ||
+				y > viewport.maxY - viewportMarginY
+			) {
+				continue
+			}
 
 			ctx.save()
 			ctx.translate(x, y)

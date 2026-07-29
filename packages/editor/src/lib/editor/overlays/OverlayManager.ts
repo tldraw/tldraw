@@ -45,23 +45,6 @@ export class OverlayManager {
 	}
 
 	/**
-	 * Whether an overlay util is registered for the given type. Use this to branch on optional
-	 * overlays rather than catching the error thrown by `getOverlayUtil`.
-	 *
-	 * @example
-	 * ```ts
-	 * if (editor.overlays.hasOverlayUtil('brush')) {
-	 * 	// ...
-	 * }
-	 * ```
-	 *
-	 * @public
-	 */
-	hasOverlayUtil(type: string): boolean {
-		return this._overlayUtils.has(type)
-	}
-
-	/**
 	 * Get an overlay util by type string, overlay instance, or by passing
 	 * a util class as a generic parameter for type-safe lookup.
 	 *

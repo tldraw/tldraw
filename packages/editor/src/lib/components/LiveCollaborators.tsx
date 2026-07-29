@@ -9,12 +9,6 @@ import { setStyleProperty } from '../utils/dom'
 import { getHtmlLayerTransform } from '../utils/getHtmlLayerTransform'
 
 /**
- * The `type` of the deprecated canvas-drawn collaborator cursor overlay util, which lives in the
- * `tldraw` package. Registering it opts back into canvas cursors and switches this layer off.
- */
-const COLLABORATOR_CURSOR_OVERLAY_TYPE = 'collaborator_cursor'
-
-/**
  * The collaborator cursor layer: a DOM layer stacked as a sibling of the canvas — above all canvas
  * content, below the in-front layer and the UI panels — hosting each visible collaborator's cursor
  * (arrow, name tag, chat message). Off-viewport collaborators are the canvas-drawn hint arrows' job
@@ -52,11 +46,6 @@ export const LiveCollaborators = track(function LiveCollaborators() {
 		},
 		[editor]
 	)
-
-	// Cursors used to be drawn to the overlay canvas by the deprecated `CollaboratorCursorOverlayUtil`.
-	// That util still works if you register it, so stand down when it (or a subclass) is present —
-	// otherwise every cursor would be drawn twice.
-	if (editor.overlays.hasOverlayUtil(COLLABORATOR_CURSOR_OVERLAY_TYPE)) return null
 
 	// Visibility (activity state, following, highlighting) is handled by the editor.
 	const collaborators = editor.getVisibleCollaboratorsOnCurrentPage()

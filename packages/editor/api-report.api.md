@@ -2685,7 +2685,6 @@ export class OverlayManager {
     // (undocumented)
     getOverlayUtil<O extends TLOverlay>(overlay: O): OverlayUtil<O>;
     getOverlayUtilsInZOrder(): OverlayUtil[];
-    hasOverlayUtil(type: string): boolean;
     // @internal (undocumented)
     readonly _overlayUtils: Map<string, OverlayUtil<TLOverlay<Record<string, unknown>>>>;
     // @internal
