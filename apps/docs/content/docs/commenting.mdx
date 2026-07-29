@@ -18,7 +18,7 @@ In tldraw, a comment is a message pinned to a place on the canvas. Comments grou
 
 The `@tldraw/commenting` package works at two levels. `CanvasComments` is a comments layer you render in front of the canvas, and it handles the whole flow. Everything it's built from is exported too, so you can replace any part of it.
 
-Commenting is a licensed feature. It runs in development without a key. In production it needs a tldraw license that includes commenting; without one the commenting UI disappears — the toolbar button, its shortcuts, and the layer itself. The rest of the editor is unaffected.
+Commenting is a licensed feature. It runs in development without a key. In production it needs a tldraw license that includes commenting.
 
 ## Quick start
 
@@ -52,7 +52,7 @@ export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
-				licenseKey="your-license-key"
+				licenseKey={YOUR_LICENSE_KEY}
 				store={store}
 				tools={commentTools}
 				overrides={[commentToolOverrides]}
@@ -114,8 +114,6 @@ Each of these has options, and each visible piece is a component slot you can re
 Commenting options live on the tool. `CommentTool.configure()` returns a configured subclass to register, mirroring `ShapeUtil.configure`:
 
 ```tsx
-import { CommentTool } from '@tldraw/commenting'
-
 const tools = [CommentTool.configure({ enableRegions: true })]
 ```
 

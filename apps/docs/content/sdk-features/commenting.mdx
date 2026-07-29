@@ -59,7 +59,7 @@ export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
-				licenseKey="your-license-key"
+				licenseKey={YOUR_LICENSE_KEY}
 				store={store}
 				tools={commentTools}
 				overrides={[commentToolOverrides]}
@@ -77,12 +77,9 @@ Comments are records in the editor's store, exactly like shapes. `commentSchemaR
 Mount the layer through the `InFrontOfTheCanvas` component slot so it sits above the canvas but below the UI, and import `commenting.css` alongside `tldraw.css`.
 
 <Callout type="warning">
-	Without a license key that includes commenting, the commenting UI disappears in production: the
-	toolbar button, the `C` and `Shift+C` shortcuts, and the comments layer all render nothing. The
-	rest of the editor is unaffected, so the symptom is a canvas you can draw on with no way to
-	comment on it. The feature is fully enabled in development, so this only shows up once you deploy.
-	To branch on it yourself — hiding your own commenting affordances to match — read
-	`useCommentingEnabled()`. See [License key](/sdk-features/license-key).
+	Without a license key that includes commenting, every commenting component renders nothing in
+	production. The feature is fully enabled in development, so a missing key shows up as a blank
+	canvas after you deploy. See [License key](/sdk-features/license-key).
 </Callout>
 
 ## Placing comments
