@@ -17,7 +17,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
+import { isEqual, tlenv, TLRichText, useMaybeEditor } from 'tldraw'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
 import { SendButton } from './send-button'
 
@@ -274,19 +274,39 @@ export function CommentComposer({
 	// deferred autofocus above focuses the input outside one, so the keyboard stays down — and taps
 	// on the already-focused input are then no-ops (no transition, no keyboard). Re-run the
 	// transition inside the tap itself: blur + refocus synchronously within touchend reads as
-	// user-initiated and brings the keyboard up. Touch-only by nature (touchend never fires for a
-	// mouse), and a no-op when the tap will focus the input normally.
+	// user-initiated and brings the keyboard up.
+	//
+	// Tightly gated, because the blur/refocus also wipes the tap's caret placement and any touch
+	// text selection: iOS only (elsewhere focus raises the keyboard reliably), stationary taps
+	// only (a selection-handle drag or scroll ending over the input must not blur it), and only
+	// while the keyboard is actually down (an ordinary editing tap keeps its caret) — read from
+	// the visual viewport's inset, the same signal the popover placement uses.
 	useEffect(() => {
 		const wrap = inputWrapRef.current
-		if (!wrap || !editor) return
-		const onTouchEnd = () => {
+		if (!wrap || !editor || !tlenv.isIos) return
+		let start: { x: number; y: number } | null = null
+		const onTouchStart = (e: TouchEvent) => {
+			const t = e.touches[0]
+			start = t ? { x: t.clientX, y: t.clientY } : null
+		}
+		const onTouchEnd = (e: TouchEvent) => {
 			const dom = editor.view?.dom
 			if (!dom || dom.ownerDocument.activeElement !== dom) return
+			const t = e.changedTouches[0]
+			if (!start || !t || Math.hypot(t.clientX - start.x, t.clientY - start.y) > 10) return
+			const win = dom.ownerDocument.defaultView ?? window
+			const vv = win.visualViewport
+			const keyboardUp = vv ? win.innerHeight - vv.height > 100 : false
+			if (keyboardUp) return
 			dom.blur()
 			editor.commands.focus()
 		}
+		wrap.addEventListener('touchstart', onTouchStart)
 		wrap.addEventListener('touchend', onTouchEnd)
-		return () => wrap.removeEventListener('touchend', onTouchEnd)
+		return () => {
+			wrap.removeEventListener('touchstart', onTouchStart)
+			wrap.removeEventListener('touchend', onTouchEnd)
+		}
 	}, [editor])
 
 	// tldraw's pass-through-wheel hook (on the floating composer's wrapper) forwards a wheel to the
