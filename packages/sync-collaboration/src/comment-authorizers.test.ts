@@ -28,8 +28,12 @@ const thread = createCommentThread({
 	createdBy: 'client-claims-alice',
 })
 
-function session(userId: string | null): { sessionId: string; meta: TestMeta } {
-	return { sessionId: 's1', meta: { userId } }
+function session(userId: string | null): {
+	sessionId: string
+	isReadonly: boolean
+	meta: TestMeta
+} {
+	return { sessionId: 's1', isReadonly: false, meta: { userId } }
 }
 
 describe('createCommentAuthorizers', () => {

@@ -13,8 +13,12 @@ import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 
 const pageId = 'page:test' as TLPageId
 
-function session(userId: string | null): { sessionId: string; meta: SessionMeta } {
-	return { sessionId: 's1', meta: { storeId: 'store', userId } }
+function session(userId: string | null): {
+	sessionId: string
+	isReadonly: boolean
+	meta: SessionMeta
+} {
+	return { sessionId: 's1', isReadonly: false, meta: { storeId: 'store', userId } }
 }
 
 describe('authorizeFileRecord', () => {

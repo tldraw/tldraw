@@ -155,8 +155,10 @@ export interface RoomSnapshot {
  */
 export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
 	args: {
-		/** The session performing the write, including its host-provided `meta` (e.g. the authenticated user id). */
-		session: { sessionId: string; meta: SessionMeta }
+		/** The session performing the write: its host-provided `meta` (e.g. the authenticated user
+		 *  id) and the canvas-lane `isReadonly` state, for hosts whose object-lane policy follows
+		 *  canvas access. */
+		session: { sessionId: string; isReadonly: boolean; meta: SessionMeta }
 	} & (
 		| { type: 'create'; prev: null; next: Rec }
 		| { type: 'update'; prev: Rec; next: Rec }
@@ -1372,13 +1374,21 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 											const result = authorizePut(
 												prevRec
 													? {
-															session: { sessionId: session.sessionId, meta: session.meta },
+															session: {
+																sessionId: session.sessionId,
+																isReadonly: session.isReadonly,
+																meta: session.meta,
+															},
 															type: 'update',
 															prev: prevRec,
 															next,
 														}
 													: {
-															session: { sessionId: session.sessionId, meta: session.meta },
+															session: {
+																sessionId: session.sessionId,
+																isReadonly: session.isReadonly,
+																meta: session.meta,
+															},
 															type: 'create',
 															prev: null,
 															next,
@@ -1413,7 +1423,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const authorize = authorizePatch
 									? (prev: R, next: R) => {
 											const result = authorizePatch({
-												session: { sessionId: session.sessionId, meta: session.meta },
+												session: {
+													sessionId: session.sessionId,
+													isReadonly: session.isReadonly,
+													meta: session.meta,
+												},
 												type: 'update',
 												prev,
 												next,
@@ -1447,7 +1461,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								if (
 									authorizeRemove &&
 									!authorizeRemove({
-										session: { sessionId: session.sessionId, meta: session.meta },
+										session: {
+											sessionId: session.sessionId,
+											isReadonly: session.isReadonly,
+											meta: session.meta,
+										},
 										type: 'delete',
 										prev: doc,
 										next: null,
