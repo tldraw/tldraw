@@ -181,6 +181,7 @@ export function getAssetUrls(opts) {
 			'tool-highlight': iconsIcon0MergedSvg + '#tool-highlight',
 			'tool-laser': iconsIcon0MergedSvg + '#tool-laser',
 			'tool-line': iconsIcon0MergedSvg + '#tool-line',
+			'tool-magic-wand': iconsIcon0MergedSvg + '#tool-magic-wand',
 			'tool-media': iconsIcon0MergedSvg + '#tool-media',
 			'tool-note': iconsIcon0MergedSvg + '#tool-note',
 			'tool-pencil': iconsIcon0MergedSvg + '#tool-pencil',

@@ -15,6 +15,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="insert-embed" />
 				<TldrawUiMenuToolItem toolId="select" />
 				<TldrawUiMenuToolItem toolId="draw" />
+				<TldrawUiMenuToolItem toolId="magic-wand" />
 				<TldrawUiMenuToolItem toolId="highlight" />
 				<TldrawUiMenuToolItem toolId="eraser" />
 				<TldrawUiMenuToolItem toolId="hand" />
