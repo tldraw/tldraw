@@ -33,7 +33,7 @@ import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { Environment, TLUserDurableObjectEvent, getUserDoSnapshotKey } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
-import { Metrics, getMetrics } from './utils/analytics'
+import { writeDataPoint } from './utils/analytics'
 import { isRateLimited } from './utils/rateLimit'
 import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 import { getClerkClient } from './utils/tla/getAuth'
@@ -64,7 +64,6 @@ const ALARM_INTERVAL_MS = 10 * 60 * 1000 // 10 minutes
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
-	private readonly metrics: Metrics
 
 	private readonly sentry
 	private captureException(exception: unknown, extras?: Record<string, unknown>) {
@@ -96,7 +95,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			dialect: new PostgresDialect({ pool: this.pool }),
 			log: ['error'],
 		})
-		this.metrics = getMetrics(env)
 	}
 
 	private userId: string | null = null
@@ -671,14 +669,14 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		switch (event.type) {
 			case 'reboot_duration':
 			case 'cold_start_time':
-				this.metrics.write('user_durable_object', {
+				writeDataPoint(this.env, 'user_durable_object', {
 					blobs: [event.type, event.id],
 					doubles: [event.duration],
 				})
 				break
 
 			default:
-				this.metrics.write('user_durable_object', { blobs: [event.type, event.id] })
+				writeDataPoint(this.env, 'user_durable_object', { blobs: [event.type, event.id] })
 		}
 	}
 

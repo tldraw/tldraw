@@ -9,7 +9,7 @@ import {
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment, ThumbnailBoardKind } from '../../types'
-import { getMetrics } from '../../utils/analytics'
+import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
 import {
 	THUMBNAIL_RENDER_TOKEN_TTL_MS,
@@ -375,7 +375,7 @@ export function writeScreenshotTelemetry(
 	// analysis. Successful calls are the common case, and a per-IP blob there is one distinct
 	// dimension value per client on every request — a large cardinality cost for no query benefit.
 	const isFailure = data.failureReason !== undefined || !rateLimitAllowed
-	getMetrics(env).write('mcp_shared_board_screenshot', {
+	writeDataPoint(env, 'mcp_shared_board_screenshot', {
 		blobs: [
 			`source:${data.source}`,
 			`cache:${data.cacheStatus}`,

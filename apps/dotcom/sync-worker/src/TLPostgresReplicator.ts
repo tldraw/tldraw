@@ -29,7 +29,7 @@ import {
 } from './replicator/Subscription'
 import { Environment, TLPostgresReplicatorEvent, TLPostgresReplicatorRebootSource } from './types'
 import { ZReplicationEventWithoutSequenceInfo } from './UserDataSyncer'
-import { Metrics, getMetrics } from './utils/analytics'
+import { writeDataPoint } from './utils/analytics'
 import {
 	getRoomDurableObject,
 	getStatsDurableObjct,
@@ -89,7 +89,6 @@ type BootState =
 export class TLPostgresReplicator extends DurableObject<Environment> {
 	private sqlite: SqlStorage
 	private state: BootState
-	private readonly metrics: Metrics
 	private postgresUpdates = 0
 	private lastPostgresMessageTime = Date.now()
 	private lastRpmLogTime = Date.now()
@@ -137,7 +136,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private readonly db: Kysely<DB>
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
-		this.metrics = getMetrics(env)
 		this.sentry = createSentry(ctx, env)
 		this.sqlite = this.ctx.storage.sql
 		this.state = {
@@ -802,7 +800,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	logEvent(event: TLPostgresReplicatorEvent) {
 		switch (event.type) {
 			case 'reboot':
-				this.metrics.write('replicator', { blobs: [event.type, event.source] })
+				writeDataPoint(this.env, 'replicator', { blobs: [event.type, event.source] })
 				break
 			case 'reboot_error':
 			case 'register_user':
@@ -811,25 +809,25 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			case 'prune':
 			case 'get_file_record':
 			case 'resume_sequence':
-				this.metrics.write('replicator', {
+				writeDataPoint(this.env, 'replicator', {
 					blobs: [event.type],
 				})
 				break
 
 			case 'reboot_duration':
-				this.metrics.write('replicator', {
+				writeDataPoint(this.env, 'replicator', {
 					blobs: [event.type],
 					doubles: [event.duration],
 				})
 				break
 			case 'rpm':
-				this.metrics.write('replicator', {
+				writeDataPoint(this.env, 'replicator', {
 					blobs: [event.type],
 					doubles: [event.rpm],
 				})
 				break
 			case 'active_users':
-				this.metrics.write('replicator', {
+				writeDataPoint(this.env, 'replicator', {
 					blobs: [event.type],
 					doubles: [event.count],
 				})

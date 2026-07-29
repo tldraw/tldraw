@@ -55,7 +55,7 @@ import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { DBLoadResult, Environment, TLServerEvent } from './types'
-import { EventData, Metrics, getMetrics } from './utils/analytics'
+import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -179,7 +179,7 @@ export class TLFileDurableObject extends DurableObject {
 		// Samples the size distribution of rooms as they cold-load; 0 for rooms with no R2 snapshot.
 		// No room identifier is attached — this is for distribution/percentile queries, not lookups —
 		// so it writes directly rather than through writeEvent's per-room index.
-		this.metrics.write('room_size_mb', { doubles: [result.roomSizeMB] })
+		writeDataPoint(this.env, 'room_size_mb', { doubles: [result.roomSizeMB] })
 		return storage
 	}
 
@@ -298,7 +298,6 @@ export class TLFileDurableObject extends DurableObject {
 	pierreState: PierreState | null = null
 
 	// For analytics
-	private readonly metrics: Metrics
 
 	// For error tracking
 	sentryDSN: string | undefined
@@ -339,7 +338,6 @@ export class TLFileDurableObject extends DurableObject {
 		this.id = state.id
 		this.storage = state.storage
 		this.sentryDSN = env.SENTRY_DSN
-		this.metrics = getMetrics(env)
 		this.sentry = createSentry(this.state, this.env)
 		this.log = new Logger(env, 'TLDrawDurableObject', this.sentry)
 		this.supabaseClient = createSupabaseClient(env)
@@ -890,7 +888,7 @@ export class TLFileDurableObject extends DurableObject {
 	 * events carry.
 	 */
 	private writeEvent(name: string, eventData: EventData) {
-		this.metrics.write(name, {
+		writeDataPoint(this.env, name, {
 			...eventData,
 			indexes: [this.id.toString()],
 		})
@@ -898,8 +896,8 @@ export class TLFileDurableObject extends DurableObject {
 
 	/**
 	 * Stopwatch variant of {@link writeEvent}: each `report` writes the elapsed milliseconds as the
-	 * last double, carrying this object's durable object id like every other event here. Rooms use
-	 * this rather than `Metrics.timer` so timing events stay groupable by room.
+	 * last double, so one timer can mark several checkpoints. Like every event here, the datapoints
+	 * carry this object's durable object id, so timings stay groupable by room.
 	 */
 	private timer() {
 		const start = Date.now()

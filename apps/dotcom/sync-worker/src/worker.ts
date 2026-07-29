@@ -53,7 +53,7 @@ import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
-import { getMetrics } from './utils/analytics'
+import { writeDataPoint } from './utils/analytics'
 import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
@@ -333,7 +333,6 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
-		const metrics = getMetrics(this.env)
 		// One datapoint per delivery: message type, outcome, delivery attempt, and queue lag (ms
 		// between enqueue and this delivery). The og-image-render handler settles its own messages
 		// and writes render telemetry itself, so its 'handled' outcome only means the handler
@@ -342,7 +341,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			message: Message<QueueMessage>,
 			outcome: 'ack' | 'retry' | 'handled' | 'error'
 		) => {
-			metrics.write('queue_message', {
+			writeDataPoint(this.env, 'queue_message', {
 				blobs: [message.body.type, outcome],
 				doubles: [message.attempts, Date.now() - message.timestamp.getTime()],
 			})
