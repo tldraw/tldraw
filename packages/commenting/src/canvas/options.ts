@@ -70,7 +70,8 @@ export interface CommentingComponents {
 /**
  * Configuration for the commenting layer. Static config only — pass it once via
  * `CommentTool.configure({ ... })`, mirroring `ShapeUtil.configure`. Live, reactive values
- * (`currentUserId`, `resolveName`, read-status callbacks) stay as props on `<CanvasComments>`.
+ * (`currentUserId`, author resolution, read-status callbacks) are the `CommentingContext`, passed as
+ * props to each commenting surface.
  *
  * For defaults, see {@link defaultCommentingOptions}.
  *

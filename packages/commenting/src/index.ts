@@ -78,6 +78,7 @@ export {
 	removeCommentRecords,
 	type TLCommentRecord,
 } from './canvas/comment-store'
+export { type CommentingContext } from './canvas/context'
 export { CommentsFilterMenu, type CommentsFilterMenuProps } from './canvas/comments-filter-menu'
 export { CommentsMenuItem } from './canvas/comments-menu-item'
 export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-overlay'

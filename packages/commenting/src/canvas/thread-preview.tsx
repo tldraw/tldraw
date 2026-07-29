@@ -10,10 +10,11 @@ import {
 	useValue,
 } from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
+import { type CommentingContext } from './context'
 import { useComments } from './hooks'
 import { useCommentingOptions } from './options'
 import { openStackId, openThreadId } from './state'
-import { POPOVER_OFFSET, ThreadViewHostProps, toCardProps, useResolveName } from './thread-view'
+import { POPOVER_OFFSET, toCardProps, useResolveName } from './thread-view'
 
 /**
  * Hover previews for every canvas marker — a single pin, a coincident stack, or a cluster badge.
@@ -166,7 +167,7 @@ export function ThreadPreview({
 	onPointerEnter,
 	onPointerLeave,
 	...props
-}: Pick<ThreadViewHostProps, 'currentUserId' | 'resolveAuthor'> & {
+}: Pick<CommentingContext, 'currentUserId' | 'resolveAuthor'> & {
 	editor: Editor
 	/** The marker's threads, in the order they should read (oldest first). */
 	threads: readonly TLCommentThread[]

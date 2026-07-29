@@ -72,7 +72,7 @@ export default function App() {
 
 Comments are records in the editor's store, exactly like shapes. `commentSchemaRecords` registers the `comment-thread` and `comment` types, which aren't in the default schema. Once they're registered, comments persist and sync however your document already does: add a `persistenceKey` or a sync backend and they come along with it.
 
-`CanvasComments` needs two props, and both are about identity. `currentUserId` is the id of the person commenting, or `null` for a viewer who can read comments but not post them. `resolveAuthor` maps an author id to a `CommentAuthor`: a `name`, an optional `color` for their avatar and pin, and an optional `image`. Return `undefined` for an id you can't resolve and the layer falls back to an anonymous user.
+`CanvasComments` needs two things, and both are about identity. `currentUserId` is the id of the person commenting, or `null` for a viewer who can read comments but not post them. `resolveAuthor` maps an author id to a `CommentAuthor`: a `name`, an optional `color` for their avatar and pin, and an optional `image`. Return `undefined` for an id you can't resolve and the layer falls back to an anonymous user. Together with the read-status and mention callbacks below they make up the `CommentingContext`, which the sidebar takes too — so a host mounting both surfaces builds one object and spreads it into each.
 
 Mount the layer through the `InFrontOfTheCanvas` component slot so it sits above the canvas but below the UI, and import `commenting.css` alongside `tldraw.css`.
 
@@ -129,7 +129,7 @@ function App() {
 }
 ```
 
-Options are fixed once the tool is registered, so this is static configuration only. Live values, like the current user and the author resolver, stay as props on `CanvasComments`. Calls to `configure` can be chained, and each one layers over the last.
+Options are fixed once the tool is registered, so this is static configuration only. Live values, like the current user and the author resolver, are the `CommentingContext` instead, passed as props to each surface. Calls to `configure` can be chained, and each one layers over the last.
 
 The sections below introduce the relevant comment options, and [All options](#all-options) lists every one together.
 
@@ -275,6 +275,7 @@ Its open state is a signal you drive, so the toggle lives wherever your app want
 import {
 	CanvasComments,
 	CanvasCommentsSidebar,
+	CommentingContext,
 	toggleCommentsSidebar,
 	useCommentsSidebarOpen,
 } from '@tldraw/commenting'
@@ -290,11 +291,14 @@ function SidebarToggle() {
 	)
 }
 
+// Both surfaces read the same context, so build it once and spread it into each.
+const commenting: CommentingContext = { currentUserId: 'me', resolveAuthor }
+
 const components: TLComponents = {
 	InFrontOfTheCanvas: () => (
 		<>
-			<CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />
-			<CanvasCommentsSidebar currentUserId="me" resolveAuthor={resolveAuthor} />
+			<CanvasComments {...commenting} />
+			<CanvasCommentsSidebar {...commenting} />
 		</>
 	),
 	SharePanel: SidebarToggle,
