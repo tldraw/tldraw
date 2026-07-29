@@ -18,7 +18,16 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 	 * `null` for anonymous sessions — they can't create comments or threads, and can't perform
 	 * any owner-only action. Called exactly once per authorized write.
 	 */
-	getUserId(session: { sessionId: string; meta: SessionMeta }): string | null
+	getUserId(session: { sessionId: string; isReadonly: boolean; meta: SessionMeta }): string | null
+
+	/**
+	 * Whether a session may write comment records at all — checked before the per-type rules on
+	 * every create, update, and delete. Defaults to `({ isReadonly }) => !isReadonly`: comment
+	 * writes follow canvas access, so read-only viewers can read threads but not post, edit,
+	 * resolve, or react. Override to decouple the lanes — `() => true` allows commenting on a
+	 * read-only canvas (comment-only setups) — or to enforce custom criteria from the session.
+	 */
+	canComment?(session: { sessionId: string; isReadonly: boolean; meta: SessionMeta }): boolean
 }
 
 /**
@@ -38,6 +47,9 @@ export interface CommentAuthorizerOptions<SessionMeta> {
  * - Deletion is soft for comments and threads: a write-once `isDeleted` flag that only the
  *   record's owner may set, never cleared, never set at create. Client hard-deletes are always
  *   rejected — record removals are server-side only.
+ * - `canComment` gates every create, update, and delete above, before the per-type rules run.
+ *   By default it mirrors the session's canvas access (`!isReadonly`), so read-only viewers can
+ *   read threads but not write to them; override it to decouple commenting from canvas access.
  *
  * Comment records ride alongside your document records, so widen the room's record union to
  * include them, then spread the result into the authorizer map alongside your own entries:
@@ -62,7 +74,7 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 export function createCommentAuthorizers<SessionMeta>(
 	opts: CommentAuthorizerOptions<SessionMeta>
 ): TLRecordAuthorizers<TLComment | TLCommentThread | TLCommentReaction, SessionMeta> {
-	const { getUserId } = opts
+	const { getUserId, canComment = ({ isReadonly }: { isReadonly: boolean }) => !isReadonly } = opts
 
 	/** A rule is an authorizer that receives the session's user id, resolved for it exactly once. */
 	type Rule<Rec extends UnknownRecord> = (
@@ -70,11 +82,17 @@ export function createCommentAuthorizers<SessionMeta>(
 		args: Parameters<TLRecordAuthorizer<Rec, SessionMeta>>[0]
 	) => Rec | null
 
-	/** Adapt a rule to the authorizer signature, resolving the session's user id exactly once. */
+	/**
+	 * Adapt a rule to the authorizer signature: gate on `canComment` first, then resolve the
+	 * session's user id exactly once.
+	 */
 	function withUserId<Rec extends UnknownRecord>(
 		rule: Rule<Rec>
 	): TLRecordAuthorizer<Rec, SessionMeta> {
-		return (args) => rule(getUserId(args.session), args)
+		return (args) => {
+			if (!canComment(args.session)) return null
+			return rule(getUserId(args.session), args)
+		}
 	}
 
 	/**

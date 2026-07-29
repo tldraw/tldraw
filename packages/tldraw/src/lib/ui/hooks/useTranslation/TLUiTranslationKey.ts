@@ -535,3 +535,7 @@ export type TLUiTranslationKey =
 	| 'comments.mention-you'
 	| 'comments.mention-no-matches'
 	| 'comments.preview-more'
+	| 'comments.pin-label'
+	| 'comments.pin-label-resolved'
+	| 'comments.cluster-label'
+	| 'comments.stack-label'

@@ -446,6 +446,7 @@ export interface TLPushRequest<R extends UnknownRecord> {
 // @public
 export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: {
     session: {
+        isReadonly: boolean;
         meta: SessionMeta;
         sessionId: string;
     };

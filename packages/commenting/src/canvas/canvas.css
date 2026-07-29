@@ -29,11 +29,38 @@
 	pointer-events: none;
 }
 
-/* Badges are clickable (zoom to the cluster's first split). */
+.tlui-cmt-button {
+	appearance: none;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: none;
+	color: inherit;
+	font: inherit;
+}
+
 .tlui-cmt-canvas-cluster {
 	transform: translate(-50%, -50%);
 	pointer-events: auto;
 	cursor: pointer;
+}
+
+/* Keyboard focus has to be visible on the canvas, where there's no surrounding chrome to imply
+   it. The ring goes on the marker visual (the rounded pin/badge), not the button box, so it
+   traces the shape rather than a rectangle around it; the button's own outline is suppressed
+   because its box is offset from what you see. */
+.tlui-cmt-canvas-pin__marker:focus-visible,
+.tlui-cmt-canvas-cluster:focus-visible {
+	outline: none;
+}
+.tlui-cmt-canvas-pin__marker:focus-visible .tlui-cmt-marker,
+.tlui-cmt-canvas-cluster:focus-visible .tlui-cmt-marker {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+}
+/* Focus should read like hover, so the pin lifts the same way when tabbed to. */
+.tlui-cmt-canvas-pin__marker:focus-visible .tlui-cmt-marker {
+	transform: scale(var(--tlui-cmt-marker-hover-scale));
 }
 
 .tlui-cmt-cluster-fade {
@@ -82,6 +109,15 @@
 	cursor: pointer;
 }
 
+.tlui-cmt-canvas-stack-badge:focus-visible {
+	outline: none;
+}
+.tlui-cmt-canvas-stack-badge:focus-visible .tlui-cmt-marker {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+	transform: scale(var(--tlui-cmt-marker-hover-scale));
+}
+
 /* The stack's popover content: one card per thread, the expanded thread inline among them. */
 .tlui-cmt-stack-list {
 	display: flex;
@@ -108,18 +144,39 @@
    list reads as one column of cards with one of them opened up. */
 .tlui-cmt-stack-list__card {
 	box-sizing: border-box;
+	position: relative;
 	width: 300px;
 	background: var(--tl-color-panel);
 	border-radius: 12px;
 	box-shadow: var(--tl-shadow-3);
 	padding: 10px 14px;
 	cursor: pointer;
+	text-align: left;
+	display: block;
+}
+
+/* The card's keyboard affordance, covering the whole surface so it's one target rather than a
+   control tucked in a corner. It's laid under the card's content instead of wrapping it: a comment
+   body renders its links as anchors, which can't be nested inside a button (see the note in
+   `StackThreadCard`). Pointer clicks anywhere still reach the card's own handler by bubbling. */
+.tlui-cmt-stack-list__card-action {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	cursor: pointer;
+}
+
+.tlui-cmt-stack-list__card-action:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
 }
 
 /* The wrapper is the card's surface — inside it the comment is plain content, mirroring how the
    thread panel flattens its own cards. The avatar centers against the short two-line block so a
-   collapsed entry doesn't read as top-heavy. */
+   collapsed entry doesn't read as top-heavy. Stacked above the action overlay so the body's links
+   stay clickable. */
 .tlui-cmt-stack-list__card .tlui-cmt-card {
+	position: relative;
 	width: 100%;
 	padding: 0;
 	background: transparent;
