@@ -1,9 +1,21 @@
 import { type CommentAuthor, type MentionMember } from '@tldraw/mentions'
-import { ReactNode, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+import {
+	ReactNode,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+	type CSSProperties,
+	type RefObject,
+} from 'react'
 import { createPortal } from 'react-dom'
 import {
 	createComment,
 	Editor,
+	PORTRAIT_BREAKPOINT,
+	useBreakpoint,
+	type VecLike,
 	TLComment,
 	TLCommentId,
 	TLCommentThread,
@@ -124,26 +136,139 @@ export const POPOVER_OFFSET = {
 	list: LIST_OFFSET,
 } as const
 
+/* Placement for the open-thread popover, active only in mobile mode (see the breakpoint gate in
+   `ThreadPopover`; desktop keeps the fixed legacy offset). The panel positions itself relative to
+   the pin — the camera never moves — preferring the legacy spot (offset right of the pin,
+   unchanged wherever it fits), then trying each side of the pin in turn: right, below, above,
+   left. A side qualifies when the whole panel fits on-screen there; along the free axis the panel
+   is centered on the pin, then slid inward as needed to stay fully visible. All bounds come from
+   the visual viewport, which shrinks when the software keyboard opens — so the panel rides up
+   rather than hiding behind the keyboard. */
+const POPOVER_VIEWPORT_MARGIN = 8
+/* Keep-clear distances from the anchor point per side, covering the pin marker's footprint (it
+   hangs up-and-right of the anchor point) with the legacy 48px gap on the right. */
+const POPOVER_CLEARANCE = { left: 12, right: 48, top: 46, bottom: 8 }
+
+export function useThreadPopoverPlacement(
+	container: HTMLElement,
+	ref: RefObject<HTMLDivElement | null>,
+	anchor: VecLike,
+	offset: { x: number; y: number },
+	enabled: boolean
+): CSSProperties {
+	const [style, setStyle] = useState<CSSProperties>(() => ({
+		left: anchor.x + offset.x,
+		top: anchor.y + offset.y,
+	}))
+
+	useLayoutEffect(() => {
+		if (!enabled) return
+		const el = ref.current
+		if (!el) return
+		const win = container.ownerDocument.defaultView ?? window
+
+		const update = () => {
+			// Frozen while the pending composer's collapse-into-pin animation runs.
+			if (el.dataset.collapsing) return
+			// Panel coordinates are container-relative; the visual viewport is window-relative.
+			const cRect = container.getBoundingClientRect()
+			const vv = win.visualViewport
+			const visTop = (vv ? vv.offsetTop : 0) - cRect.top + POPOVER_VIEWPORT_MARGIN
+			const visBottom =
+				(vv ? vv.offsetTop + vv.height : win.innerHeight) - cRect.top - POPOVER_VIEWPORT_MARGIN
+			const visLeft = (vv ? vv.offsetLeft : 0) - cRect.left + POPOVER_VIEWPORT_MARGIN
+			const visRight =
+				(vv ? vv.offsetLeft + vv.width : win.innerWidth) - cRect.left - POPOVER_VIEWPORT_MARGIN
+
+			// Cap the panel to the visible viewport *before* measuring, so a thread taller than
+			// the space above the software keyboard shrinks (its list scrolls, see canvas.css)
+			// instead of being clamped half off-screen. CSS alone can't do this: dvh tracks the
+			// layout viewport, which the keyboard doesn't shrink. Refreshes with this update on
+			// every visualViewport resize/scroll — i.e. when the keyboard opens and closes.
+			el.style.setProperty('--tlui-cmt-popover-max-h', `${Math.max(0, visBottom - visTop)}px`)
+			const w = el.offsetWidth
+			const h = el.offsetHeight
+
+			const clampX = (x: number) => Math.max(visLeft, Math.min(x, visRight - w))
+			const clampY = (y: number) => Math.max(visTop, Math.min(y, visBottom - h))
+			const fits = (c: { left: number; top: number }) =>
+				c.left >= visLeft && c.top >= visTop && c.left + w <= visRight && c.top + h <= visBottom
+
+			const candidates = [
+				// The legacy spot, so layouts with room (wide screens) render exactly as before.
+				{ left: anchor.x + offset.x, top: anchor.y + offset.y },
+				{ left: anchor.x + POPOVER_CLEARANCE.right, top: clampY(anchor.y - h / 2) }, // right
+				{ left: clampX(anchor.x - w / 2), top: anchor.y + POPOVER_CLEARANCE.bottom }, // below
+				{ left: clampX(anchor.x - w / 2), top: anchor.y - POPOVER_CLEARANCE.top - h }, // above
+				{ left: anchor.x - POPOVER_CLEARANCE.left - w, top: clampY(anchor.y - h / 2) }, // left
+			]
+			const placed = candidates.find(fits) ?? {
+				// Nothing fits whole (panel bigger than the visible screen): clamp both axes; the top
+				// edge wins over the bottom so the panel's header stays reachable.
+				left: clampX(anchor.x - w / 2),
+				top: clampY(anchor.y + offset.y),
+			}
+
+			setStyle((prev) => (prev.left === placed.left && prev.top === placed.top ? prev : placed))
+		}
+
+		update()
+		// Re-place when the panel itself grows (replies, edits), when the visual viewport changes
+		// (software keyboard, pinch-zoom), or when the window resizes.
+		const ro = new ResizeObserver(update)
+		ro.observe(el)
+		const vv = win.visualViewport
+		vv?.addEventListener('resize', update)
+		vv?.addEventListener('scroll', update)
+		win.addEventListener('resize', update)
+		return () => {
+			ro.disconnect()
+			vv?.removeEventListener('resize', update)
+			vv?.removeEventListener('scroll', update)
+			win.removeEventListener('resize', update)
+		}
+	}, [container, ref, anchor.x, anchor.y, offset.x, offset.y, enabled])
+
+	// Outside mobile mode the popover keeps its fixed legacy placement, computed fresh each render
+	// so it tracks the pin as the camera moves.
+	if (!enabled) {
+		return { left: anchor.x + offset.x, top: anchor.y + offset.y }
+	}
+	return style
+}
+
 /** The open thread's popover container, portaled above the UI panels. Over it, wheel and hover
- *  events pass through to the canvas (unless it scrolls its own content), like tldraw's panels. */
+ *  events pass through to the canvas (unless it scrolls its own content), like tldraw's panels.
+ *  Positions itself relative to the `anchor` (the pin, in container coordinates): the legacy
+ *  `offset` spot when the whole panel fits there, otherwise whichever side of the pin has room. */
 export function ThreadPopover({
 	container,
-	style,
+	anchor,
+	offset,
 	children,
 }: {
 	container: HTMLElement
-	style: CSSProperties
+	anchor: VecLike
+	offset: { x: number; y: number }
 	children: ReactNode
 }) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	usePassThroughMouseOverEvents(ref)
+	// "Mobile mode": the same gate as the mobile toolbar and style panel, driven by the UI
+	// breakpoint — which also honors the `forceMobile` prop on `<Tldraw>`.
+	const isMobile = useBreakpoint() < PORTRAIT_BREAKPOINT.TABLET_SM
+	const style = useThreadPopoverPlacement(container, ref, anchor, offset, isMobile)
 	return createPortal(
 		// contextmenu also stops here: portals bubble React events to the canvas's context-menu
 		// trigger (the layer mounts inside it), which would open the canvas menu over this panel.
 		<div
 			ref={ref}
-			className="tlui-cmt-canvas-popover"
+			className={
+				isMobile
+					? 'tlui-cmt-canvas-popover tlui-cmt-canvas-popover--mobile'
+					: 'tlui-cmt-canvas-popover'
+			}
 			style={style}
 			onPointerDown={stop}
 			onContextMenu={stop}

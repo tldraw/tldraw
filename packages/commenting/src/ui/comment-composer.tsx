@@ -240,6 +240,25 @@ export function CommentComposer({
 		return () => cancelAnimationFrame(raf)
 	}, [autoFocus, editor])
 
+	// iOS raises the software keyboard only on a focus *transition* inside a user gesture. The
+	// deferred autofocus above focuses the input outside one, so the keyboard stays down — and taps
+	// on the already-focused input are then no-ops (no transition, no keyboard). Re-run the
+	// transition inside the tap itself: blur + refocus synchronously within touchend reads as
+	// user-initiated and brings the keyboard up. Touch-only by nature (touchend never fires for a
+	// mouse), and a no-op when the tap will focus the input normally.
+	useEffect(() => {
+		const wrap = inputWrapRef.current
+		if (!wrap || !editor) return
+		const onTouchEnd = () => {
+			const dom = editor.view?.dom
+			if (!dom || dom.ownerDocument.activeElement !== dom) return
+			dom.blur()
+			editor.commands.focus()
+		}
+		wrap.addEventListener('touchend', onTouchEnd)
+		return () => wrap.removeEventListener('touchend', onTouchEnd)
+	}, [editor])
+
 	return (
 		<div className="tlui-cmt-composer">
 			{leading ?? <Avatar author={author} />}

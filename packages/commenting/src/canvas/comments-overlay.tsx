@@ -1,5 +1,6 @@
 import { type CommentAuthor, isMentionPickerOpen, MentionMember } from '@tldraw/mentions'
 import {
+	type CSSProperties,
 	Fragment,
 	memo,
 	type PointerEvent as ReactPointerEvent,
@@ -17,11 +18,13 @@ import {
 	createCommentThread,
 	Editor,
 	getFirstCharacter,
+	PORTRAIT_BREAKPOINT,
 	react,
 	TLComment,
 	TLCommentId,
 	TLCommentThread,
 	TLRichText,
+	useBreakpoint,
 	useContainer,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -77,7 +80,7 @@ import {
 	regionPinPoint,
 	shapeAnchorAt,
 } from './thread-state'
-import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
+import { POPOVER_OFFSET, ThreadPopover, ThreadView, useThreadPopoverPlacement } from './thread-view'
 
 /**
  * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
@@ -1486,13 +1489,7 @@ const ThreadPin = memo(function ThreadPin({
 				{/* The popover portals up to the menus layer (above the UI panels) so it isn't clipped;
 			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
 				{open && (
-					<ThreadPopover
-						container={container}
-						style={{
-							left: renderPoint.x + POPOVER_OFFSET.thread.x,
-							top: renderPoint.y + POPOVER_OFFSET.thread.y,
-						}}
-					>
+					<ThreadPopover container={container} anchor={renderPoint} offset={POPOVER_OFFSET.thread}>
 						<ThreadView editor={editor} thread={thread} {...props} />
 					</ThreadPopover>
 				)}
@@ -1515,6 +1512,16 @@ const ThreadPin = memo(function ThreadPin({
 		</>
 	)
 })
+
+// Mobile mode: in mobile mode the placement composer positions itself with
+// the exact same logic as the open thread popover (useThreadPopoverPlacement): the legacy attached
+// spot when it fits, otherwise whichever side of the pin has room, all bounded by the visual
+// viewport so it rides above the software keyboard. The pin itself never moves — when the composer
+// ends up away from its attached spot, a stationary draft-pin marker holds the tapped point, and
+// on send the composer collapses back into it.
+// The attached composer's offset from the anchor point, mirroring the CSS transform
+// translate(-4px, -38px) on .tlui-cmt-canvas-composer.
+const ATTACHED_OFFSET = { x: -4, y: -38 }
 
 function PendingComposer({
 	editor,
@@ -1545,6 +1552,19 @@ function PendingComposer({
 		pending.point,
 	])
 
+	// Mobile mode: mobile mode only — the same gate and placement logic as
+	// the thread popover. The pin never moves; if the composer lands away from its attached spot,
+	// a stationary marker holds the tapped point and the composer collapses into it on send.
+	const isMobile = useBreakpoint() < PORTRAIT_BREAKPOINT.TABLET_SM
+	const mobileEnabled = isMobile && pending.anchor.type !== 'region'
+	const placed = useThreadPopoverPlacement(container, ref, point, ATTACHED_OFFSET, mobileEnabled)
+	const mobilePlacement: CSSProperties | null = mobileEnabled
+		? { left: placed.left, top: placed.top, transform: 'none' }
+		: null
+	const detached =
+		mobileEnabled &&
+		(placed.left !== point.x + ATTACHED_OFFSET.x || placed.top !== point.y + ATTACHED_OFFSET.y)
+
 	// Dismiss on a click anywhere outside the composer (capture-phase, ahead of stopPropagation).
 	useEffect(() => {
 		const onPointerDown = (e: PointerEvent) => {
@@ -1562,6 +1582,30 @@ function PendingComposer({
 
 	const submit = () => {
 		if (isCommentEmpty(text) || !currentUserId) return
+		// Mobile mode: a detached composer collapses back into the pin before
+		// the records commit. Direct style mutation so React's render cycle doesn't fight the
+		// transition; `data-collapsing` freezes the placement hook meanwhile.
+		const el = ref.current
+		if (detached && el && !el.dataset.collapsing) {
+			el.dataset.collapsing = '1'
+			const r = el.getBoundingClientRect()
+			const cRect = editor.getContainer().getBoundingClientRect()
+			const dx = point.x + cRect.left - (r.left + r.width / 2)
+			const dy = point.y + cRect.top - (r.top + r.height / 2)
+			el.style.transition = 'transform 160ms ease-in, opacity 160ms ease-in'
+			el.style.transformOrigin = 'center'
+			el.style.transform = `translate(${dx}px, ${dy}px) scale(0.05)`
+			el.style.opacity = '0'
+			editor.timers.setTimeout(doSubmit, 160)
+			return
+		}
+		doSubmit()
+	}
+
+	const doSubmit = () => {
+		// Re-narrow for TypeScript: `submit` already guarded, but this closure runs later (after the
+		// collapse animation) where the guard isn't visible to the checker.
+		if (!currentUserId) return
 		commitCommentMutation(editor, () => {
 			const pageId = editor.getCurrentPageId()
 			const thread = createCommentThread({
@@ -1584,44 +1628,57 @@ function PendingComposer({
 	}
 
 	return createPortal(
-		<div
-			ref={ref}
-			className={[
-				'tlui-cmt-canvas-composer',
-				pending.anchor.type === 'region' && 'tlui-cmt-canvas-composer--region',
-				!canComment && 'tlui-cmt-canvas-composer--fallback',
-			]
-				.filter(Boolean)
-				.join(' ')}
-			style={{ left: point.x, top: point.y }}
-			onPointerDown={stop}
-			onContextMenu={stop}
-			onKeyDown={(e) => {
-				if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(editor, null)
-			}}
-		>
-			{canComment ? (
-				<CommentComposer
-					author={me ?? UNKNOWN_COMMENT_AUTHOR}
-					placeholder={msg('comments.add-placeholder')}
-					sendLabel={msg('comments.send')}
-					value={text}
-					onChange={(value) => {
-						setText(value)
-						saveCommentDraft(NEW_COMMENT_DRAFT, value)
-					}}
-					onSubmit={submit}
-					// No user, no author for the record — dead send button.
-					disabled={isCommentEmpty(text) || !currentUserId}
-					getMentionSuggestions={getMentionSuggestions}
-					renderMentionSuggestion={renderMentionSuggestion}
-					autoFocus
-					leading={draftAvatar(me?.color)}
-				/>
-			) : (
-				ComposerFallback && <ComposerFallback context="pending" />
+		<>
+			{/* Mobile mode: with the composer detached and floating, this
+			    marker holds the tapped spot — the pin the draft will become. */}
+			{detached && (
+				<div
+					className="tlui-cmt-canvas-pending-pin"
+					style={{ left: point.x, top: point.y }}
+					aria-hidden="true"
+				>
+					{draftAvatar(me?.color)}
+				</div>
 			)}
-		</div>,
+			<div
+				ref={ref}
+				className={[
+					'tlui-cmt-canvas-composer',
+					pending.anchor.type === 'region' && 'tlui-cmt-canvas-composer--region',
+					!canComment && 'tlui-cmt-canvas-composer--fallback',
+				]
+					.filter(Boolean)
+					.join(' ')}
+				style={mobilePlacement ?? { left: point.x, top: point.y }}
+				onPointerDown={stop}
+				onContextMenu={stop}
+				onKeyDown={(e) => {
+					if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(editor, null)
+				}}
+			>
+				{canComment ? (
+					<CommentComposer
+						author={me ?? UNKNOWN_COMMENT_AUTHOR}
+						placeholder={msg('comments.add-placeholder')}
+						sendLabel={msg('comments.send')}
+						value={text}
+						onChange={(value) => {
+							setText(value)
+							saveCommentDraft(NEW_COMMENT_DRAFT, value)
+						}}
+						onSubmit={submit}
+						// No user, no author for the record — dead send button.
+						disabled={isCommentEmpty(text) || !currentUserId}
+						getMentionSuggestions={getMentionSuggestions}
+						renderMentionSuggestion={renderMentionSuggestion}
+						autoFocus
+						leading={draftAvatar(me?.color)}
+					/>
+				) : (
+					ComposerFallback && <ComposerFallback context="pending" />
+				)}
+			</div>
+		</>,
 		container
 	)
 }

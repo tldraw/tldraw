@@ -163,10 +163,7 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 				/>
 			)}
 			{open && (
-				<ThreadPopover
-					container={container}
-					style={{ left: point.x + POPOVER_OFFSET.list.x, top: point.y + POPOVER_OFFSET.list.y }}
-				>
+				<ThreadPopover container={container} anchor={point} offset={POPOVER_OFFSET.list}>
 					<div className="tlui-cmt-stack-list">
 						{threads.map((thread) =>
 							thread.id === openId ? (

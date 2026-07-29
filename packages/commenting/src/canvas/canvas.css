@@ -344,6 +344,30 @@
 	pointer-events: auto;
 }
 
+/* Scrollable threads in mobile mode. The scroll mechanism is a copy of the comments sidebar's
+   (`.tlui-cmt-canvas-sidebar` + `.tlui-cmt-list__items`): the panel bounds its height and hides
+   overflow; the list inside flexes and scrolls its own content. The thread panel is already a
+   flex column, so the header and reply composer stay pinned while the comments scroll between
+   them. Height bound: the screen minus the top menu row (48px) and the bottom toolbar
+   (~64px + the device's bottom safe-area inset — read directly since the popover portals outside
+   .tlui-layout, where --tl-sab lives). */
+.tlui-cmt-canvas-popover--mobile .tlui-cmt-thread {
+	/* Two caps: the static one keeps the panel clear of the top menu row (48px) and bottom
+	   toolbar (~64px + safe-area inset); the dynamic one (--tlui-cmt-popover-max-h, set by
+	   useThreadPopoverPlacement from the visual viewport) shrinks it above the software
+	   keyboard, which dvh cannot see. Whichever is smaller wins. */
+	max-height: min(
+		calc(100dvh - 48px - 64px - env(safe-area-inset-bottom, 0px)),
+		var(--tlui-cmt-popover-max-h, 100dvh)
+	);
+	overflow: hidden;
+}
+.tlui-cmt-canvas-popover--mobile .tlui-cmt-thread__list {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+}
+
 /* The placement composer — a distinct floating view (portaled to the menus layer, below the click
    point): a pencil "draft" avatar beside a pill field that is itself the surface (no wrapping
    panel). Scoped here so the in-thread reply composer keeps its own squarer look. */
@@ -364,6 +388,16 @@
    straddles that corner. The avatar's centre sits 4 + 34/2 = 21px into the composer. */
 .tlui-cmt-canvas-composer--region {
 	transform: translate(-21px, -21px);
+}
+
+/* Mobile mode: the stationary draft pin left at the tapped point while the
+   composer floats detached above the keyboard. Anchored like the pin it becomes: bottom-left
+   corner on the point. */
+.tlui-cmt-canvas-pending-pin {
+	position: absolute;
+	transform: translate(0, -100%);
+	pointer-events: none;
+	z-index: var(--tl-layer-menus);
 }
 
 /* Fallback placement (no composer to show): no draft avatar to anchor by, so no offset — a small
