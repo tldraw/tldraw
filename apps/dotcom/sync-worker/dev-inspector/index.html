@@ -1,0 +1,1047 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Screenshot MCP inspector</title>
+		<style>
+			:root {
+				--bg: #14161a;
+				--panel: #1b1e24;
+				--panel-2: #21252c;
+				--border: #2e343d;
+				--text: #e6e9ee;
+				--dim: #939bab;
+				--accent: #6aa9ff;
+				--good: #57c98a;
+				--bad: #ff6b6b;
+				--warn: #ffc457;
+				--mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+				background: var(--bg);
+				color: var(--text);
+				font:
+					13px/1.5 system-ui,
+					-apple-system,
+					sans-serif;
+			}
+			button {
+				font: inherit;
+				color: var(--text);
+				background: var(--panel-2);
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				padding: 5px 11px;
+				cursor: pointer;
+			}
+			button:hover:not(:disabled) {
+				border-color: var(--accent);
+			}
+			button:disabled {
+				opacity: 0.45;
+				cursor: default;
+			}
+			button.primary {
+				background: var(--accent);
+				border-color: var(--accent);
+				color: #0d1117;
+				font-weight: 600;
+			}
+			input,
+			select,
+			textarea {
+				font: inherit;
+				color: var(--text);
+				background: #0f1115;
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				padding: 5px 8px;
+				width: 100%;
+			}
+			textarea {
+				font-family: var(--mono);
+				font-size: 12px;
+				resize: vertical;
+				min-height: 62px;
+			}
+			input:focus,
+			select:focus,
+			textarea:focus {
+				outline: none;
+				border-color: var(--accent);
+			}
+			pre {
+				font-family: var(--mono);
+				font-size: 12px;
+				background: #0f1115;
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				padding: 9px 11px;
+				margin: 0;
+				overflow-x: auto;
+				white-space: pre-wrap;
+				word-break: break-word;
+			}
+			code {
+				font-family: var(--mono);
+				font-size: 12px;
+			}
+			a {
+				color: var(--accent);
+			}
+
+			/* header */
+			header {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+				flex-wrap: wrap;
+				padding: 10px 14px;
+				background: var(--panel);
+				border-bottom: 1px solid var(--border);
+				position: sticky;
+				top: 0;
+				z-index: 5;
+			}
+			header .brand {
+				font-weight: 700;
+				letter-spacing: -0.01em;
+				margin-right: 4px;
+			}
+			header select {
+				width: auto;
+				min-width: 210px;
+			}
+			header input[type='text'] {
+				flex: 1 1 320px;
+				font-family: var(--mono);
+				font-size: 12px;
+			}
+			.pill {
+				padding: 3px 9px;
+				border-radius: 999px;
+				font-size: 11px;
+				font-weight: 600;
+				border: 1px solid var(--border);
+				color: var(--dim);
+				white-space: nowrap;
+			}
+			.pill.ok {
+				color: var(--good);
+				border-color: #2f5f45;
+				background: #14251c;
+			}
+			.pill.err {
+				color: var(--bad);
+				border-color: #6b3030;
+				background: #2a1717;
+			}
+
+			/* layout */
+			main {
+				display: grid;
+				grid-template-columns: 250px minmax(0, 1fr);
+				gap: 12px;
+				padding: 12px 14px 0;
+				align-items: start;
+			}
+			@media (max-width: 820px) {
+				main {
+					grid-template-columns: 1fr;
+				}
+			}
+			.panel {
+				background: var(--panel);
+				border: 1px solid var(--border);
+				border-radius: 9px;
+				overflow: hidden;
+			}
+			.panel > h2 {
+				margin: 0;
+				padding: 8px 12px;
+				font-size: 11px;
+				text-transform: uppercase;
+				letter-spacing: 0.06em;
+				color: var(--dim);
+				border-bottom: 1px solid var(--border);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				gap: 8px;
+			}
+			.panel > .body {
+				padding: 12px;
+			}
+
+			.tabs {
+				display: flex;
+				gap: 4px;
+			}
+			.tabs button {
+				padding: 2px 8px;
+				font-size: 11px;
+				border-radius: 5px;
+			}
+			.tabs button[aria-selected='true'] {
+				background: var(--accent);
+				border-color: var(--accent);
+				color: #0d1117;
+				font-weight: 600;
+			}
+
+			.list {
+				list-style: none;
+				margin: 0;
+				padding: 6px;
+				max-height: 62vh;
+				overflow-y: auto;
+			}
+			.list li + li {
+				margin-top: 2px;
+			}
+			.list button {
+				display: block;
+				width: 100%;
+				text-align: left;
+				background: transparent;
+				border: 1px solid transparent;
+				padding: 6px 8px;
+			}
+			.list button:hover {
+				background: var(--panel-2);
+			}
+			.list button[aria-current='true'] {
+				background: var(--panel-2);
+				border-color: var(--accent);
+			}
+			.list .name {
+				font-family: var(--mono);
+				font-size: 12px;
+			}
+			.list .sub {
+				color: var(--dim);
+				font-size: 11px;
+				margin-top: 1px;
+			}
+			/* forms */
+			.field {
+				margin-bottom: 12px;
+			}
+			.field > label {
+				display: block;
+				font-family: var(--mono);
+				font-size: 12px;
+				margin-bottom: 3px;
+			}
+			.field .req {
+				color: var(--bad);
+			}
+			.field .type {
+				color: var(--dim);
+				font-family: var(--mono);
+				font-size: 11px;
+				margin-left: 6px;
+			}
+			.field .carried {
+				margin-left: 6px;
+				font-size: 9.5px;
+				font-weight: 700;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+				padding: 1px 5px;
+				border-radius: 4px;
+				vertical-align: 1px;
+				background: #1c2c22;
+				color: var(--good);
+			}
+			.field .desc {
+				color: var(--dim);
+				font-size: 11.5px;
+				margin: 0 0 5px;
+			}
+			.row {
+				display: flex;
+				gap: 8px;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+			.muted {
+				color: var(--dim);
+			}
+			.err {
+				color: var(--bad);
+			}
+			details {
+				margin-top: 10px;
+			}
+			summary {
+				cursor: pointer;
+				color: var(--dim);
+				font-size: 11.5px;
+				user-select: none;
+			}
+			summary:hover {
+				color: var(--text);
+			}
+			details > *:not(summary) {
+				margin-top: 7px;
+			}
+			hr {
+				border: none;
+				border-top: 1px solid var(--border);
+				margin: 14px 0;
+			}
+			h3 {
+				font-size: 12px;
+				text-transform: uppercase;
+				letter-spacing: 0.06em;
+				color: var(--dim);
+				margin: 0 0 8px;
+			}
+			img.result {
+				max-width: 100%;
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				background: #fff;
+				display: block;
+			}
+
+			/* log */
+			#log-panel {
+				margin: 12px 14px;
+			}
+			.entry {
+				border-top: 1px solid var(--border);
+				padding: 7px 12px;
+			}
+			.entry:first-child {
+				border-top: none;
+			}
+			.entry summary {
+				color: var(--text);
+				font-family: var(--mono);
+				font-size: 12px;
+				display: flex;
+				gap: 8px;
+				align-items: baseline;
+			}
+			.entry .ms {
+				color: var(--dim);
+				font-size: 11px;
+				margin-left: auto;
+			}
+			.dot {
+				width: 7px;
+				height: 7px;
+				border-radius: 50%;
+				display: inline-block;
+				flex: none;
+			}
+			.dot.ok {
+				background: var(--good);
+			}
+			.dot.bad {
+				background: var(--bad);
+			}
+		</style>
+	</head>
+	<body>
+		<header>
+			<span class="brand">Screenshot MCP inspector</span>
+			<select id="preset" title="Endpoint presets"></select>
+			<input id="url" type="text" spellcheck="false" placeholder="http://127.0.0.1:8787/app/mcp" />
+			<button id="connect" class="primary">Connect</button>
+			<span id="status" class="pill">disconnected</span>
+		</header>
+
+		<main>
+			<div class="panel">
+				<h2>
+					<span id="list-title">Tools</span>
+					<span class="tabs">
+						<button data-tab="tools" aria-selected="true">Tools</button>
+						<button data-tab="raw" aria-selected="false">Raw</button>
+					</span>
+				</h2>
+				<ul id="list" class="list">
+					<li class="muted" style="padding: 6px 8px">Not connected.</li>
+				</ul>
+			</div>
+
+			<div class="panel">
+				<h2><span id="detail-title">Details</span></h2>
+				<div id="detail" class="body">
+					<p class="muted" style="margin: 0 0 10px">
+						Inspector for the shared-board screenshot MCP server
+						(<code>src/routes/tla/sharedBoardScreenshotMcp.ts</code>). Pick an endpoint and hit
+						<strong>Connect</strong> — it runs <code>initialize</code>, then lists each tool with
+						its schema and a form to call it.
+					</p>
+					<p class="muted" style="margin: 0">
+						Start with <code>get_board_info</code>, then use <code>get_page_info</code> to discover
+						clusters. Info and screenshot calls each have a tight per-IP budget; screenshot cache
+						misses also have per-board and global limits. Rate limits come back as normal tool
+						results with <code>isError</code> set.
+					</p>
+				</div>
+			</div>
+		</main>
+
+		<div id="log-panel" class="panel">
+			<h2>
+				<span>JSON-RPC log</span>
+				<button id="clear-log" style="padding: 2px 8px; font-size: 11px">Clear</button>
+			</h2>
+			<div id="log"></div>
+		</div>
+
+		<script>
+			const $ = (sel) => document.querySelector(sel)
+			const el = (tag, props = {}, kids = []) => {
+				const n = Object.assign(document.createElement(tag), props)
+				for (const k of [].concat(kids)) n.append(k)
+				return n
+			}
+			const MAX_TEXT = 20000
+
+			const state = {
+				sessionId: null,
+				protocolVersion: null,
+				connected: false,
+				tools: [],
+				tab: 'tools',
+				selected: null,
+				// argName -> last raw input text, shared across every tool. See buildFields.
+				argMemory: {},
+			}
+
+			// ---- transport ----------------------------------------------------
+
+			let rpcId = 0
+
+			async function rpc(method, params, { notification = false } = {}) {
+				const started = performance.now()
+				const req = {
+					jsonrpc: '2.0',
+					method,
+					...(params === undefined ? {} : { params }),
+					...(notification ? {} : { id: ++rpcId }),
+				}
+				let out
+				try {
+					const res = await fetch('/__rpc', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							url: $('#url').value.trim(),
+							sessionId: state.sessionId,
+							protocolVersion: state.protocolVersion,
+							request: req,
+						}),
+					})
+					out = await res.json()
+				} catch (e) {
+					out = { transportError: String(e && e.message ? e.message : e) }
+				}
+				logEntry(method, req, out, performance.now() - started)
+				if (out.transportError) throw new Error(out.transportError)
+				if (out.sessionId && out.sessionId !== state.sessionId) state.sessionId = out.sessionId
+				if (out.message && out.message.error) {
+					const err = new Error(out.message.error.message || 'RPC error')
+					err.code = out.message.error.code
+					err.data = out.message.error.data
+					throw err
+				}
+				if (!out.message && out.status >= 400) {
+					throw new Error(
+						'HTTP ' +
+							out.status +
+							': ' +
+							(out.raw || '').slice(0, 300) +
+							(out.hint ? '\n\n' + out.hint : '')
+					)
+				}
+				return out.message ? out.message.result : undefined
+			}
+
+			// ---- connect --------------------------------------------------------
+
+			async function connect() {
+				state.sessionId = null
+				state.protocolVersion = null
+				state.connected = false
+				state.tools = []
+				state.selected = null
+				setStatus('connecting…', '')
+				try {
+					const init = await rpc('initialize', {
+						protocolVersion: '2025-06-18',
+						capabilities: {},
+						clientInfo: { name: 'tldraw-mcp-inspector', version: '1.0.0' },
+					})
+					state.protocolVersion = (init && init.protocolVersion) || '2025-06-18'
+					// Servers built on the MCP SDK need this before they'll serve requests;
+					// the hand-rolled dotcom endpoint just 202s it.
+					await rpc('notifications/initialized', undefined, { notification: true }).catch(() => {})
+
+					state.connected = true
+					setStatus('connected' + (state.sessionId ? ' · session' : ''), 'ok')
+
+					const tools = await rpc('tools/list', {}).catch((e) => ({ _error: e.message }))
+					state.tools = (tools && tools.tools) || []
+					state.toolsError = tools && tools._error
+
+					renderServerInfo(init)
+					renderList()
+				} catch (e) {
+					// The pill only has room for the headline; the detail pane gets the
+					// full message including any diagnosis from the proxy.
+					setStatus(truncate(e.message.split('\n')[0], 70), 'err')
+					$('#detail').replaceChildren(el('pre', { className: 'err', textContent: e.message }))
+				}
+			}
+
+			function setStatus(text, cls) {
+				const s = $('#status')
+				s.textContent = text
+				s.className = 'pill' + (cls ? ' ' + cls : '')
+			}
+
+			function renderServerInfo(init) {
+				const info = (init && init.serverInfo) || {}
+				$('#detail-title').textContent = info.title || info.name || 'Server'
+				const body = el('div')
+				body.append(
+					el('h3', { textContent: 'Server' }),
+					el('pre', {
+						textContent: JSON.stringify(
+							{
+								name: info.name,
+								version: info.version,
+								protocolVersion: init && init.protocolVersion,
+								capabilities: init && init.capabilities,
+								sessionId: state.sessionId,
+							},
+							null,
+							2
+						),
+					})
+				)
+				if (init && init.instructions) {
+					body.append(
+						el('details', {}, [
+							el('summary', { textContent: 'Instructions' }),
+							el('pre', { textContent: init.instructions }),
+						])
+					)
+				}
+				body.append(
+					el('hr'),
+					el('p', { className: 'muted', textContent: 'Pick a tool or resource on the left.' })
+				)
+				$('#detail').replaceChildren(body)
+			}
+
+			// ---- list panel -----------------------------------------------------
+
+			function renderList() {
+				const list = $('#list')
+				list.replaceChildren()
+				$('#list-title').textContent = state.tab === 'tools' ? 'Tools' : 'Raw call'
+
+				if (state.tab === 'raw') {
+					list.append(
+						el('li', { className: 'muted', style: 'padding:6px 8px' }, 'Send any JSON-RPC method.')
+					)
+					renderRaw()
+					return
+				}
+				if (!state.connected) {
+					list.append(el('li', { className: 'muted', style: 'padding:6px 8px' }, 'Not connected.'))
+					return
+				}
+
+				const items = state.tools.map((t) => ({
+					key: 'tool:' + t.name,
+					name: t.name,
+					sub: t.title || t.description || '',
+					data: t,
+				}))
+
+				if (!items.length) {
+					list.append(
+						el(
+							'li',
+							{ className: state.toolsError ? 'err' : 'muted', style: 'padding:6px 8px' },
+							state.toolsError || 'None advertised.'
+						)
+					)
+					return
+				}
+
+				for (const item of items) {
+					const btn = el('button', { type: 'button' })
+					btn.setAttribute('aria-current', String(state.selected === item.key))
+					btn.append(el('div', { className: 'name' }, item.name))
+					if (item.sub)
+						btn.append(el('div', { className: 'sub', textContent: truncate(item.sub, 90) }))
+					btn.onclick = () => {
+						state.selected = item.key
+						renderList()
+						renderTool(item.data)
+					}
+					list.append(el('li', {}, btn))
+				}
+			}
+
+			// ---- tool detail ----------------------------------------------------
+
+			function renderTool(tool) {
+				$('#detail-title').textContent = tool.name
+				const body = el('div')
+
+				if (tool.title && tool.title !== tool.name)
+					body.append(el('p', { className: 'muted', textContent: tool.title }))
+				if (tool.description)
+					body.append(el('p', { style: 'margin:0 0 12px', textContent: tool.description }))
+				const schema = tool.inputSchema || { type: 'object', properties: {} }
+				const form = el('form')
+				const fields = buildFields(schema)
+				for (const f of fields) form.append(f.node)
+				if (!fields.length)
+					form.append(el('p', { className: 'muted', textContent: 'No parameters.' }))
+
+				const out = el('div', { style: 'margin-top:12px' })
+				const callBtn = el('button', {
+					type: 'submit',
+					className: 'primary',
+					textContent: 'Call tool',
+				})
+				const curlBtn = el('button', { type: 'button', textContent: 'Copy as curl' })
+				const errLine = el('div', { className: 'err', style: 'margin-top:8px' })
+
+				const collect = () => {
+					const args = {}
+					for (const f of fields) {
+						const v = f.read()
+						if (v !== undefined) args[f.name] = v
+					}
+					return args
+				}
+
+				curlBtn.onclick = () => {
+					let args
+					try {
+						args = collect()
+					} catch (e) {
+						errLine.textContent = e.message
+						return
+					}
+					const headers = [
+						"-H 'Content-Type: application/json'",
+						"-H 'Accept: application/json, text/event-stream'",
+					]
+					if (state.sessionId) headers.push("-H 'Mcp-Session-Id: " + state.sessionId + "'")
+					if (state.protocolVersion)
+						headers.push("-H 'MCP-Protocol-Version: " + state.protocolVersion + "'")
+					const payload = JSON.stringify({
+						jsonrpc: '2.0',
+						id: 1,
+						method: 'tools/call',
+						params: { name: tool.name, arguments: args },
+					})
+					const cmd =
+						'curl -sS -X POST ' +
+						$('#url').value.trim() +
+						' \\\n  ' +
+						headers.join(' \\\n  ') +
+						" \\\n  -d '" +
+						payload.replace(/'/g, `'\\''`) +
+						"'"
+					navigator.clipboard.writeText(cmd).then(
+						() => {
+							curlBtn.textContent = 'Copied'
+							setTimeout(() => (curlBtn.textContent = 'Copy as curl'), 1200)
+						},
+						() => (errLine.textContent = 'Clipboard blocked; see the log for the raw request.')
+					)
+				}
+
+				form.onsubmit = async (e) => {
+					e.preventDefault()
+					errLine.textContent = ''
+					let args
+					try {
+						args = collect()
+					} catch (err) {
+						errLine.textContent = err.message
+						return
+					}
+					callBtn.disabled = true
+					callBtn.textContent = 'Calling…'
+					out.replaceChildren(el('p', { className: 'muted', textContent: 'Waiting for response…' }))
+					try {
+						const result = await rpc('tools/call', { name: tool.name, arguments: args })
+						out.replaceChildren(renderToolResult(result))
+					} catch (err) {
+						out.replaceChildren(el('pre', { className: 'err', textContent: err.message }))
+					} finally {
+						callBtn.disabled = false
+						callBtn.textContent = 'Call tool'
+					}
+				}
+
+				const buttonRow = el('div', { className: 'row', style: 'margin-top:4px' }, [
+					callBtn,
+					curlBtn,
+				])
+
+				// Only offered once something is actually carried, so it stays out of the way until it
+				// means something. Re-renders the tool so cleared fields show their schema defaults.
+				const carriedCount = Object.values(state.argMemory).filter(Boolean).length
+				if (carriedCount > 0) {
+					const clearBtn = el('button', {
+						type: 'button',
+						textContent: `Clear ${carriedCount} carried arg${carriedCount === 1 ? '' : 's'}`,
+					})
+					clearBtn.onclick = () => {
+						state.argMemory = {}
+						renderTool(tool)
+					}
+					buttonRow.append(clearBtn)
+				}
+
+				form.append(buttonRow, errLine)
+				body.append(form, out)
+				body.append(
+					el('details', {}, [
+						el('summary', { textContent: 'Raw tool definition (schema + annotations)' }),
+						el('pre', { textContent: JSON.stringify(tool, null, 2) }),
+					])
+				)
+				$('#detail').replaceChildren(body)
+			}
+
+			function renderToolResult(result) {
+				const wrap = el('div')
+				if (!result) return el('p', { className: 'muted', textContent: 'Empty result.' })
+				wrap.append(
+					el(
+						'h3',
+						{},
+						result.isError
+							? el('span', { className: 'err', textContent: 'Result (isError)' })
+							: 'Result'
+					)
+				)
+				for (const part of result.content || []) {
+					if (part.type === 'image' && part.data) {
+						wrap.append(
+							el('img', {
+								className: 'result',
+								src: 'data:' + (part.mimeType || 'image/png') + ';base64,' + part.data,
+							})
+						)
+						wrap.append(
+							el('p', {
+								className: 'muted',
+								style: 'margin:4px 0 10px',
+								textContent:
+									part.mimeType + ' · ' + Math.round((part.data.length * 3) / 4 / 1024) + ' KB',
+							})
+						)
+					} else if (part.type === 'text') {
+						wrap.append(textBlock(part.text || '', result.isError ? 'err' : ''))
+					} else {
+						wrap.append(textBlock(JSON.stringify(part, null, 2)))
+					}
+				}
+				if (result.structuredContent) {
+					wrap.append(el('h3', { style: 'margin-top:12px', textContent: 'structuredContent' }))
+					wrap.append(textBlock(JSON.stringify(result.structuredContent, null, 2)))
+				}
+				if (result._meta) {
+					wrap.append(
+						el('details', {}, [
+							el('summary', { textContent: '_meta' }),
+							el('pre', { textContent: JSON.stringify(result._meta, null, 2) }),
+						])
+					)
+				}
+				return wrap
+			}
+
+			// Long payloads (the widget HTML is megabytes) get clipped with an opt-in expand.
+			function textBlock(text, cls) {
+				if (text.length <= MAX_TEXT) return el('pre', { className: cls || '', textContent: text })
+				const pre = el('pre', { className: cls || '', textContent: text.slice(0, MAX_TEXT) })
+				const btn = el('button', {
+					type: 'button',
+					style: 'margin-top:6px',
+					textContent: 'Show all ' + text.length.toLocaleString() + ' chars',
+				})
+				btn.onclick = () => {
+					pre.textContent = text
+					btn.remove()
+				}
+				return el('div', {}, [pre, btn])
+			}
+
+			// ---- schema -> form -------------------------------------------------
+
+			function unwrap(schema) {
+				if (!schema || typeof schema !== 'object') return { type: 'string' }
+				const branches = schema.anyOf || schema.oneOf
+				if (Array.isArray(branches)) {
+					const real = branches.filter((b) => b && b.type !== 'null')
+					if (real.length === 1)
+						return { ...real[0], description: schema.description || real[0].description }
+				}
+				return schema
+			}
+
+			function buildFields(schema, toolName) {
+				const props = (schema && schema.properties) || {}
+				const required = new Set((schema && schema.required) || [])
+				return Object.entries(props).map(([name, rawProp]) => {
+					const prop = unwrap(rawProp)
+					const isReq = required.has(name)
+					const types = (Array.isArray(prop.type) ? prop.type : [prop.type]).filter(
+						(t) => t !== 'null'
+					)
+					const type = types[0]
+					// A field taking either a number or a string — `page`, which accepts an ordinal or a
+					// page id — has to be text: a number input silently refuses "page:abc". The value is
+					// coerced back to a number on the way out when it looks like one.
+					const isNumberOrString = types.includes('number') && types.includes('string')
+					const wrap = el('div', { className: 'field' })
+					const label = el('label', {}, name)
+					if (isReq) label.append(el('span', { className: 'req', textContent: ' *' }))
+					label.append(
+						el('span', {
+							className: 'type',
+							textContent: isNumberOrString
+								? types.join(' | ')
+								: type || (prop.enum ? 'enum' : 'any'),
+						})
+					)
+					wrap.append(label)
+					if (prop.description)
+						wrap.append(el('p', { className: 'desc', textContent: prop.description }))
+
+					let input
+					let read
+
+					if (prop.enum) {
+						input = el('select')
+						if (!isReq) input.append(el('option', { value: '', textContent: '— omit —' }))
+						for (const v of prop.enum)
+							input.append(el('option', { value: String(v), textContent: String(v) }))
+						if (prop.default !== undefined) input.value = String(prop.default)
+						read = () => (input.value === '' ? undefined : input.value)
+					} else if (type === 'boolean') {
+						input = el('select')
+						if (!isReq) input.append(el('option', { value: '', textContent: '— omit —' }))
+						input.append(
+							el('option', { value: 'true', textContent: 'true' }),
+							el('option', { value: 'false', textContent: 'false' })
+						)
+						if (prop.default !== undefined) input.value = String(prop.default)
+						read = () => (input.value === '' ? undefined : input.value === 'true')
+					} else if (isNumberOrString) {
+						input = el('input', { type: 'text', spellcheck: false })
+						if (prop.default !== undefined) input.value = String(prop.default)
+						read = () => {
+							const raw = input.value.trim()
+							if (raw === '') return undefined
+							return /^-?\d+(\.\d+)?$/.test(raw) ? Number(raw) : raw
+						}
+					} else if (type === 'number' || type === 'integer') {
+						input = el('input', { type: 'number' })
+						if (prop.default !== undefined) input.value = String(prop.default)
+						read = () => {
+							if (input.value.trim() === '') return undefined
+							const n = Number(input.value)
+							if (Number.isNaN(n)) throw new Error(name + ' must be a number')
+							return n
+						}
+					} else if (type === 'object' || type === 'array') {
+						// An array of plain strings (shapeIds and friends) is the common case worth being
+						// forgiving about: pasting ids one per line or comma-separated is what anyone
+						// actually does, and demanding JSON brackets for it is pure friction. Anything
+						// starting with [ or { is still parsed as JSON, so structured input keeps working.
+						const isStringList = type === 'array' && prop.items?.type === 'string'
+						input = el('textarea', {
+							rows: 4,
+							placeholder: isStringList
+								? 'one per line, or comma-separated, or a JSON array'
+								: type === 'array'
+									? '[]'
+									: '{}',
+							value: prop.default !== undefined ? JSON.stringify(prop.default, null, 2) : '',
+						})
+						read = () => {
+							const raw = input.value.trim()
+							if (raw === '') return undefined
+							if (isStringList && !raw.startsWith('[')) {
+								return raw
+									.split(/[\n,]/)
+									.map((part) => part.trim())
+									.filter(Boolean)
+							}
+							try {
+								return JSON.parse(raw)
+							} catch (e) {
+								throw new Error(name + ' must be valid JSON: ' + e.message)
+							}
+						}
+					} else {
+						// Long-form strings (code bodies, JSON-in-a-string args) get a textarea.
+						const multiline =
+							/code|json|text|html|snippet|instructions/i.test(name) ||
+							(prop.description || '').length > 140
+						input = multiline
+							? el('textarea', { rows: name === 'code' ? 8 : 4 })
+							: el('input', { type: 'text', spellcheck: false })
+						if (prop.default !== undefined) input.value = String(prop.default)
+						read = () => (input.value === '' ? undefined : input.value)
+					}
+
+					// Carry a value typed into one tool's arg into every other tool taking an arg of the
+					// same name, so boardId and page are entered once and reused down the drill-down
+					// (get_board_info → get_page_info → get_cluster_info → get_cluster_screenshot). The
+					// raw input text is stored, so it round-trips every field type unchanged, and it wins
+					// over the schema default — a page you chose earlier beats the schema's 0.
+					const remembered = state.argMemory[name]
+					if (remembered !== undefined && remembered !== '') {
+						input.value = remembered
+						const marker = el('span', { className: 'carried', textContent: 'carried over' })
+						label.append(marker)
+						input.addEventListener('input', () => marker.remove(), { once: true })
+						input.addEventListener('change', () => marker.remove(), { once: true })
+					}
+					const remember = () => {
+						state.argMemory[name] = input.value
+					}
+					// `change` covers selects, `input` covers typing. Writing the same value twice is fine.
+					input.addEventListener('input', remember)
+					input.addEventListener('change', remember)
+
+					wrap.append(input)
+					return { name, node: wrap, read }
+				})
+			}
+
+			// ---- raw --------------------------------------------------------------
+
+			function renderRaw() {
+				$('#detail-title').textContent = 'Raw JSON-RPC'
+				const method = el('input', { type: 'text', spellcheck: false, value: 'ping' })
+				const params = el('textarea', { rows: 6, value: '{}' })
+				const out = el('div', { style: 'margin-top:12px' })
+				const btn = el('button', { className: 'primary', type: 'button', textContent: 'Send' })
+				btn.onclick = async () => {
+					out.replaceChildren()
+					let parsed
+					try {
+						parsed = params.value.trim() === '' ? undefined : JSON.parse(params.value)
+					} catch (e) {
+						out.replaceChildren(
+							el('pre', {
+								className: 'err',
+								textContent: 'params must be valid JSON: ' + e.message,
+							})
+						)
+						return
+					}
+					btn.disabled = true
+					try {
+						const result = await rpc(method.value.trim(), parsed)
+						out.replaceChildren(textBlock(JSON.stringify(result, null, 2)))
+					} catch (e) {
+						out.replaceChildren(el('pre', { className: 'err', textContent: e.message }))
+					} finally {
+						btn.disabled = false
+					}
+				}
+				$('#detail').replaceChildren(
+					el('div', {}, [
+						el('div', { className: 'field' }, [el('label', {}, 'method'), method]),
+						el('div', { className: 'field' }, [el('label', {}, 'params'), params]),
+						btn,
+						out,
+					])
+				)
+			}
+
+			// ---- log ----------------------------------------------------------------
+
+			function logEntry(method, req, out, ms) {
+				const failed = Boolean(
+					out.transportError ||
+					(out.message && out.message.error) ||
+					(out.status && out.status >= 400)
+				)
+				const d = el('details', { className: 'entry' })
+				const s = el('summary')
+				s.append(
+					el('span', { className: 'dot ' + (failed ? 'bad' : 'ok') }),
+					el('span', { textContent: method }),
+					el('span', { className: 'muted', textContent: out.status ? 'HTTP ' + out.status : '' }),
+					el('span', { className: 'ms', textContent: Math.round(ms) + ' ms' })
+				)
+				d.append(
+					s,
+					el('pre', {
+						textContent:
+							'→ ' +
+							JSON.stringify(req) +
+							'\n← ' +
+							(out.transportError
+								? 'transport error: ' + out.transportError
+								: truncate(JSON.stringify(out.message ?? out.raw ?? null), 6000)) +
+							(out.sessionId ? '\n   mcp-session-id: ' + out.sessionId : '') +
+							(out.contentType ? '\n   content-type: ' + out.contentType : ''),
+					})
+				)
+				$('#log').prepend(d)
+			}
+
+			const truncate = (s, n) =>
+				s && s.length > n ? s.slice(0, n) + ' … [' + s.length.toLocaleString() + ' chars]' : s
+
+			// ---- boot -----------------------------------------------------------------
+
+			fetch('/__presets')
+				.then((r) => r.json())
+				.then((presets) => {
+					const sel = $('#preset')
+					for (const p of presets) sel.append(el('option', { value: p.url, textContent: p.label }))
+					sel.onchange = () => {
+						$('#url').value = sel.value
+					}
+					$('#url').value = presets[0] ? presets[0].url : ''
+				})
+
+			$('#connect').onclick = connect
+			$('#url').addEventListener('keydown', (e) => {
+				if (e.key === 'Enter') connect()
+			})
+			$('#clear-log').onclick = () => $('#log').replaceChildren()
+			for (const b of document.querySelectorAll('.tabs button')) {
+				b.onclick = () => {
+					state.tab = b.dataset.tab
+					for (const o of document.querySelectorAll('.tabs button')) {
+						o.setAttribute('aria-selected', String(o === b))
+					}
+					renderList()
+				}
+			}
+		</script>
+	</body>
+</html>
