@@ -58,7 +58,6 @@ export function kbd(str: string) {
 /** @internal */
 export function splitKbd(key: string) {
 	if (!key) return []
-	key = key.replace(/\s/g, '')
 	const keys = key.split(',')
 	let index = keys.lastIndexOf('')
 

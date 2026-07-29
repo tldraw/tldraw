@@ -354,7 +354,7 @@ const PHYSICAL_KEY_MAP: Record<string, string> = {
  */
 export function parseKbd(kbd: string): ParsedKbd[] {
 	const out: ParsedKbd[] = []
-	for (const shortcut of splitKbd(kbd)) {
+	for (const shortcut of splitKbd(kbd.replace(/\s/g, ''))) {
 		const parsed = parseShortcut(shortcut)
 		if (parsed) out.push(parsed)
 	}
@@ -454,7 +454,7 @@ function shouldSkipEvent(e: KeyboardEvent): boolean {
  * @internal
  */
 export function getHotkeysStringFromKbd(kbd: string) {
-	return splitKbd(kbd)
+	return splitKbd(kbd.replace(/\s/g, ''))
 		.map((kbd) => {
 			let str = ''
 
