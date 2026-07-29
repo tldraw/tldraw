@@ -141,6 +141,24 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 		}
 
 		let changed = false
+		// Heal suppressed events at their own merge threshold BEFORE the merge walk: a zoom-out
+		// past zMerge merges a held-out band event exactly as if it had still been ahead of the
+		// cursor. Healing must precede the walk because a single zoom jump can cross both a
+		// suppressed event and an event that consumes its result; applying the consumer first
+		// would leave the unapplied producer's children in `visible` (its delete is a no-op) and
+		// then re-add the producer on top, double-counting those leaves. Threshold monotonicity
+		// guarantees a suppressed producer's zMerge is >= its consumer's, so anything the walk
+		// needs has already healed. Set iteration is insertion order (ascending index), so a
+		// healed event's suppressed children (larger zMerge, smaller index) heal before it.
+		if (this.suppressed.size > 0) {
+			for (const i of [...this.suppressed]) {
+				if (zoom <= this.table.events[i].zMerge) {
+					this.suppressed.delete(i)
+					applyEvent(this.visible, this.table.events[i])
+					changed = true
+				}
+			}
+		}
 		while (this.k < this.table.events.length && zoom <= this.table.events[this.k].zMerge) {
 			applyEvent(this.visible, this.table.events[this.k])
 			this.k++
@@ -152,19 +170,6 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 			if (!this.suppressed.delete(this.k)) {
 				unapplyEvent(this.visible, this.table.events[this.k])
 				changed = true
-			}
-		}
-		// Heal suppressed events at their own merge threshold: a zoom-out past zMerge merges a
-		// held-out band event exactly as if it had still been ahead of the cursor. Set iteration
-		// is insertion order (ascending index), so a healed event's suppressed children (larger
-		// zMerge, smaller index) always heal before it.
-		if (this.suppressed.size > 0) {
-			for (const i of [...this.suppressed]) {
-				if (zoom <= this.table.events[i].zMerge) {
-					this.suppressed.delete(i)
-					applyEvent(this.visible, this.table.events[i])
-					changed = true
-				}
 			}
 		}
 		if (changed) this.version++

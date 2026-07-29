@@ -136,19 +136,20 @@ export interface DBLoadResult {
 	roomSizeMB: number
 }
 
+// Events written by TLFileDurableObject. None of them carry a room id: the object serves exactly
+// one room, and its `writeEvent` indexes every data point on that object's durable object id. A
+// roomId here would only ever restate what the object already knows, while implying call sites can
+// attribute an event to some other room.
 export type TLServerEvent =
 	| {
 			type: 'client'
 			name: 'room_create' | 'room_reopen' | 'enter' | 'leave' | 'last_out'
-			roomId: string
 			instanceId: string
-			localClientId: string
 	  }
 	| {
 			type: 'client'
 			name: 'rate_limited'
 			userId: string | undefined
-			localClientId: string
 	  }
 	| {
 			type: 'room'
@@ -163,11 +164,9 @@ export type TLServerEvent =
 				| 'room_empty'
 				| 'fail_persist'
 				| 'room_start'
-			roomId: string
 	  }
 	| {
 			type: 'send_message'
-			roomId: string
 			messageType: string
 			messageLength: number
 	  }
@@ -228,12 +227,19 @@ export interface AssetUploadQueueMessage {
 	userId: string | null
 }
 
+/**
+ * The two kinds of publicly viewable board the thumbnail/OG screenshot surfaces render:
+ * `published` is a frozen tldraw.com/p/:slug snapshot; `shared_file` is the live snapshot of an
+ * anonymously-shared tldraw.com/f/:slug file.
+ */
+export type ThumbnailBoardKind = 'published' | 'shared_file'
+
 // Asks the queue consumer to render a board's OG image through Browser Run and refresh the R2
 // cache read by GET /app/social-preview/:prefix/:slug/image. Board state (share gate, content
 // version) is deliberately not carried in the message; the consumer re-resolves it at render time.
 export interface OgImageRenderQueueMessage {
 	type: 'og-image-render'
-	kind: 'published' | 'shared_file'
+	kind: ThumbnailBoardKind
 	slug: string
 	// How many times this job has been re-enqueued because the shared global Browser Run cap was busy
 	// (see requeueForRateLimit). Bounds the rate-limit backoff loop: each rate-limited delivery still

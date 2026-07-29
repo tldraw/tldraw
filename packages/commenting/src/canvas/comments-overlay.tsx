@@ -73,6 +73,7 @@ import { ThreadPreview, sortThreadsForPreview, useMarkerPreview } from './thread
 import { ThreadStackPin } from './thread-stack'
 import {
 	anchorPagePoint,
+	commentTargetShapeAt,
 	impreciseShapePinInset,
 	regionAnchorPinCorner,
 	regionPinPoint,
@@ -153,8 +154,8 @@ const CLUSTER_EXPAND_ZOOM_MS = 450
 
 /** The leading element for the placement composer — the comment pin's shape, but a pencil
  *  instead of an initial, marking an unsent draft. */
-const draftAvatar = (color?: string) => (
-	<CommentPin color={color}>
+const draftAvatar = (
+	<CommentPin>
 		<svg
 			viewBox="0 0 24 24"
 			width="15"
@@ -1277,7 +1278,7 @@ const ThreadPin = memo(function ThreadPin({
 			const pagePoint = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
 			if (!pagePoint) return null
 			const viewportPoint = editor.pageToViewport(pagePoint)
-			const inset = impreciseShapePinInset(thread.anchor, impreciseShapeAnchor)
+			const inset = impreciseShapePinInset(editor, thread.anchor, impreciseShapeAnchor)
 			return inset ? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y } : viewportPoint
 		},
 		[editor, thread.anchor, thread.pageId, impreciseShapeAnchor]
@@ -1314,7 +1315,7 @@ const ThreadPin = memo(function ThreadPin({
 		const anchorPage = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
 		// The drag delta is taken from where the pin is drawn, which for an imprecise shape pin
 		// is inset from its anchor point — without this the pin jumps by the inset on drag start.
-		const inset = impreciseShapePinInset(thread.anchor, impreciseShapeAnchor)
+		const inset = impreciseShapePinInset(editor, thread.anchor, impreciseShapeAnchor)
 		if (anchorPage && inset) {
 			const zoom = editor.getZoomLevel()
 			anchorPage.x += inset.x / zoom
@@ -1345,7 +1346,7 @@ const ThreadPin = memo(function ThreadPin({
 		// Hint the shape the pin would re-anchor to on drop — the same hit-test endDrag resolves
 		// with. Regions translate rather than re-anchor, so they never hint.
 		if (!isRegion) {
-			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+			const hit = commentTargetShapeAt(editor, pagePoint)
 			editor.setHintingShapes(hit ? [hit.id] : [])
 		}
 	}
@@ -1385,7 +1386,7 @@ const ThreadPin = memo(function ThreadPin({
 				y: pagePoint.y - pinCorner.y * thread.anchor.h,
 			}
 		} else {
-			const hit = editor.getShapeAtPoint(pagePoint, { hitInside: true })
+			const hit = commentTargetShapeAt(editor, pagePoint)
 			anchor = hit
 				? shapeAnchorAt(
 						editor,
@@ -1427,12 +1428,13 @@ const ThreadPin = memo(function ThreadPin({
 	const commitResize = (bounds: BoxModel) => {
 		setResizeBounds(null)
 		if (!canComment) return
-		editor.run(
+		// Same commit path as a pin drag, so the configured `dragHistory` governs both — going
+		// straight to `editor.run` here would make region resizes silently ignore the option.
+		commitCommentMutation(
+			editor,
 			// Spread the existing anchor first so the region's pin corner survives a resize.
 			() => putCommentRecords(editor, [{ ...thread, anchor: { ...regionAnchor!, ...bounds } }]),
-			{
-				history: 'ignore',
-			}
+			'drag'
 		)
 	}
 
@@ -1638,15 +1640,15 @@ function PendingComposer({
 
 	return createPortal(
 		<>
-			{/* Mobile mode: with the composer detached and floating, this
-			    marker holds the tapped spot — the pin the draft will become. */}
+			{/* Mobile mode: with the composer detached and floating, this marker holds the tapped
+			    spot — the pin the draft will become. */}
 			{detached && (
 				<div
 					className="tlui-cmt-canvas-pending-pin"
 					style={{ left: point.x, top: point.y }}
 					aria-hidden="true"
 				>
-					{draftAvatar(me?.color)}
+					{draftAvatar}
 				</div>
 			)}
 			<div
@@ -1681,7 +1683,7 @@ function PendingComposer({
 						getMentionSuggestions={getMentionSuggestions}
 						renderMentionSuggestion={renderMentionSuggestion}
 						autoFocus
-						leading={draftAvatar(me?.color)}
+						leading={draftAvatar}
 					/>
 				) : (
 					ComposerFallback && <ComposerFallback context="pending" />

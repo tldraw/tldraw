@@ -8,6 +8,7 @@ import {
 	TlaCommentThread,
 	TlaFile,
 	TlaFileState,
+	TlaFileVisitor,
 	TlaGroup,
 	TlaGroupFile,
 	TlaGroupUser,
@@ -189,6 +190,9 @@ export interface ZStoreData {
 	// Same as comment: never populated by the legacy polyfill store, present only for the
 	// generic CRUD types.
 	comment_reaction?: TlaCommentReaction[]
+	// Same as comment: the viewer roster is served via the proper-Zero synced query (fileVisitors),
+	// never populated by the legacy polyfill store; present only for the generic CRUD types.
+	file_visitor?: TlaFileVisitor[]
 	lsn: string
 }
 
@@ -209,6 +213,7 @@ export interface ZRowDeleteOrUpdate {
 export type ZTable =
 	| 'file'
 	| 'file_state'
+	| 'file_visitor'
 	| 'user'
 	| 'group'
 	| 'group_user'
@@ -297,7 +302,12 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Feature Flags ---------------------- */
 
-export const FEATURE_FLAG_KEYS = ['zero_enabled', 'zero_kill_switch', 'rum_enabled'] as const
+export const FEATURE_FLAG_KEYS = [
+	'zero_enabled',
+	'zero_kill_switch',
+	'rum_enabled',
+	'commenting_enabled',
+] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
 export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag
@@ -320,4 +330,46 @@ export interface PercentageFeatureFlag {
 /** Returned by the user-facing endpoint — just the evaluated result, no server internals. */
 export interface EvaluatedFeatureFlag {
 	enabled: boolean
+}
+
+/** One unassociated or unverifiable asset in an admin asset-diagnostics report. */
+export interface AdminFileAssetProblem {
+	assetId: string
+	objectName: string
+	src: string
+	fileIdMeta: string | null
+	/** null = the bucket head check failed, not a confirmed absence */
+	inBucket: boolean | null
+	dbRow: { fileId: string } | null
+}
+
+/** Response of the admin file-assets diagnostics endpoint. */
+export interface AdminFileAssetsResponseBody {
+	file: Pick<
+		TlaFile,
+		'id' | 'name' | 'ownerId' | 'owningGroupId' | 'isDeleted' | 'createSource'
+	> | null
+	/** null exists = not checked (prefix needs slug translation) or the check failed */
+	source: { raw: string; exists: boolean | null } | null
+	shapes: {
+		total: number
+		byType: Record<string, number>
+	}
+	assets: {
+		/** Every asset record in the snapshot, including `external` ones */
+		total: number
+		associated: number
+		pending: number
+		/** Assets the association pass can't act on: bookmarks, non-http srcs, R2-invalid names */
+		external: number
+		oldFormatUrls: number
+		missingInBucket: number
+		headFailures: number
+		/** Sums sizes of assets found in the uploads bucket; missing or failed heads contribute 0 */
+		totalSizeBytes: number
+		largestSizeBytes: number
+		problems: AdminFileAssetProblem[]
+	}
+	dbRows: { forThisFile: number; orphaned: number }
+	warnings: string[]
 }

@@ -73,6 +73,10 @@ export {
 export { ZoomBrushOverlayUtil, type TLZoomBrushOverlay } from './lib/overlays/ZoomBrushOverlayUtil'
 export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
 export {
+	CollaboratorHintOverlayUtil,
+	type TLCollaboratorHintOverlay,
+} from './lib/overlays/CollaboratorHintOverlayUtil'
+export {
 	CollaboratorBrushOverlayUtil,
 	type TLCollaboratorBrushOverlay,
 } from './lib/overlays/CollaboratorBrushOverlayUtil'
@@ -80,14 +84,6 @@ export {
 	CollaboratorScribbleOverlayUtil,
 	type TLCollaboratorScribbleOverlay,
 } from './lib/overlays/CollaboratorScribbleOverlayUtil'
-export {
-	CollaboratorHintOverlayUtil,
-	type TLCollaboratorHintOverlay,
-} from './lib/overlays/CollaboratorHintOverlayUtil'
-export {
-	CollaboratorCursorOverlayUtil,
-	type TLCollaboratorCursorOverlay,
-} from './lib/overlays/CollaboratorCursorOverlayUtil'
 export {
 	CollaboratorShapeIndicatorOverlayUtil,
 	type TLCollaboratorShapeIndicatorOverlay,
@@ -395,6 +391,7 @@ export {
 	DuplicateMenuItem,
 	EditLinkMenuItem,
 	EditMenuSubmenu,
+	ExportAsMenuGroup,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	MoveToPageMenu,

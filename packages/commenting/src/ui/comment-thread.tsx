@@ -40,7 +40,7 @@ export function CommentThread({
 		<div className="tlui-cmt-thread">
 			{(header !== undefined || headerActions !== undefined) && (
 				<div className="tlui-cmt-thread__header">
-					<span className="tlui-cmt-thread__title">{header}</span>
+					{header !== undefined && <span className="tlui-cmt-thread__title">{header}</span>}
 					{headerActions !== undefined && (
 						<div className="tlui-cmt-thread__actions">{headerActions}</div>
 					)}

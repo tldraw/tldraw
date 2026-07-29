@@ -561,6 +561,35 @@ describe('object store lane', () => {
 			expect(storedNote(storage, note.id)?.typeName).toBe('note')
 		})
 
+		// The typeName guard must not depend on authorizers being configured: the write gate keys
+		// off the *incoming* typeName, so relabeling an existing object-lane record as a document
+		// type would otherwise let an objectAccess:'read' session write through the document lane.
+		it('vetoes a typeName swap even with no authorizeRecord configured', () => {
+			const note = Note.create({ text: 'by:user-alice' })
+			const { room, storage } = makeRoom({
+				objectTypes: ['note'],
+				snapshot: {
+					documents: [{ state: note, lastChangedClock: 0 }],
+					clock: 0,
+					documentClock: 0,
+					schema: schema.serialize(),
+				},
+			})
+			// denied on the object lane, but allowed on the document lane
+			const socket = connectSession(room, 'mallory', {
+				objectAccess: 'read',
+				meta: { userId: 'user-mallory' },
+			})
+
+			push(room, 'mallory', {
+				[note.id]: [RecordOpType.Put, { id: note.id, typeName: 'doc', title: 'swapped' } as any],
+			})
+
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedNote(storage, note.id)?.typeName).toBe('note')
+			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
+		})
+
 		it('vetoes a put over an existing record that changes an immutable field', () => {
 			const { room, storage, note } = seededWithNote(authorizeNote)
 			const socket = connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })

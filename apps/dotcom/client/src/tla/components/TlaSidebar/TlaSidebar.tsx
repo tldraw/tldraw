@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect } from 'react'
 import { tlmenus, useMaybeEditor } from 'tldraw'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
+import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import {
@@ -59,6 +60,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	const { onDrop, onDragOver, onDragEnter, onDragLeave } = useTldrFileDrop()
 
 	const activeWorkspaceId = useActiveWorkspaceId()
+	const commentingEnabled = useIsCommentingEnabled()
 
 	return (
 		<nav aria-hidden={!isSidebarOpen} style={{ visibility: isSidebarOpen ? 'visible' : 'hidden' }}>
@@ -81,7 +83,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
 					<div style={{ display: 'flex', alignItems: 'center' }}>
-						<TlaSidebarNotificationsButton />
+						{commentingEnabled && <TlaSidebarNotificationsButton />}
 						<TlaSidebarCreateFileButton />
 					</div>
 				</div>

@@ -8,7 +8,15 @@ import {
 	isMentionPickerOpen,
 	MentionMember,
 } from '@tldraw/mentions'
-import { ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	type MouseEvent as ReactMouseEvent,
+	ReactNode,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
 import { SendButton } from './send-button'
@@ -23,6 +31,9 @@ export interface CommentComposerProps {
 	/** Called on Send click or Enter. When set, the composer is interactive. */
 	onSubmit?(): void
 	sendLabel?: string
+	/** Called when Up is pressed in an empty composer — e.g. to start editing the comment above,
+	 *  the way chat apps edit your last message. With content in the field, Up moves the cursor. */
+	onArrowUpWhenEmpty?(): void
 	disabled?: boolean
 	autoFocus?: boolean
 	/** The leading element before the field. Defaults to the author's avatar. */
@@ -47,6 +58,7 @@ export function CommentComposer({
 	onChange,
 	onSubmit,
 	sendLabel = 'Send',
+	onArrowUpWhenEmpty,
 	disabled,
 	autoFocus,
 	leading,
@@ -64,6 +76,8 @@ export function CommentComposer({
 	onChangeRef.current = onChange
 	const onSubmitRef = useRef(onSubmit)
 	onSubmitRef.current = onSubmit
+	const onArrowUpWhenEmptyRef = useRef(onArrowUpWhenEmpty)
+	onArrowUpWhenEmptyRef.current = onArrowUpWhenEmpty
 	const disabledRef = useRef(disabled)
 	disabledRef.current = disabled
 	const getMentionSuggestionsRef = useRef(getMentionSuggestions)
@@ -185,6 +199,19 @@ export function CommentComposer({
 				handleKeyDown: (_view, event) => {
 					// Let the keymaps handle the synthetic Enter we replay for a Shift+Enter newline.
 					if (replayingEnter.current) return false
+					// Up in an empty composer hands off to the host (edit the comment above). With
+					// content, Up stays cursor movement; with the mention picker open, it navigates it.
+					if (event.key === 'ArrowUp' && !event.isComposing) {
+						if (
+							onArrowUpWhenEmptyRef.current &&
+							editorRef.current?.isEmpty &&
+							!isMentionPickerOpen()
+						) {
+							onArrowUpWhenEmptyRef.current()
+							return true
+						}
+						return false
+					}
 					if (event.key !== 'Enter' || event.isComposing) return false
 					// While the @-mention picker is open, Enter selects the highlighted member — defer.
 					if (isMentionPickerOpen()) return false
@@ -192,6 +219,9 @@ export function CommentComposer({
 					// we don't re-enter and submit) to reuse the editor's list-aware Enter handling — a new
 					// list item in a list, a new paragraph otherwise. tldraw doesn't do soft breaks.
 					if (event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
+						// An empty field has nothing to break onto — swallow the keypress so it doesn't
+						// open the comment with a stray leading blank line.
+						if (editorRef.current?.isEmpty) return true
 						replayingEnter.current = true
 						try {
 							editorRef.current?.commands.enter()
@@ -259,6 +289,38 @@ export function CommentComposer({
 		return () => wrap.removeEventListener('touchend', onTouchEnd)
 	}, [editor])
 
+	// tldraw's pass-through-wheel hook (on the floating composer's wrapper) forwards a wheel to the
+	// canvas unless ITS element is scrollable — but the scrollable element is this input, not that
+	// wrapper, so an overflowing input never scrolled: the wheel panned the canvas instead. Catch the
+	// wheel on the wrap first (a native listener here fires before the wrapper's, deeper in the tree)
+	// and stop it while the input can still scroll that way; at the scroll boundary let it through so
+	// the canvas still zooms.
+	useEffect(() => {
+		const wrap = inputWrapRef.current
+		if (!wrap) return
+		const onWheel = (e: WheelEvent) => {
+			const input = wrap.querySelector<HTMLElement>('.tlui-cmt-input')
+			if (!input || input.scrollHeight <= input.clientHeight) return
+			const atTop = input.scrollTop <= 0
+			const atBottom = input.scrollTop >= input.scrollHeight - input.clientHeight - 1
+			if ((e.deltaY < 0 && !atTop) || (e.deltaY > 0 && !atBottom)) {
+				e.stopPropagation()
+			}
+		}
+		wrap.addEventListener('wheel', onWheel)
+		return () => wrap.removeEventListener('wheel', onWheel)
+	}, [])
+
+	// The whole field behaves like the text input: clicking its empty area (the padding, or the
+	// space beside/below a short line) focuses the editor rather than only the text glyphs being
+	// clickable. The input (caret placement) and the send button keep their own click handling.
+	const focusEditorFromField = (e: ReactMouseEvent<HTMLDivElement>) => {
+		const target = e.target as HTMLElement
+		if (target.closest('.tlui-cmt-input') || target.closest('.tlui-cmt-send')) return
+		e.preventDefault()
+		editor?.commands.focus('end')
+	}
+
 	return (
 		<div className="tlui-cmt-composer">
 			{leading ?? <Avatar author={author} />}
@@ -269,6 +331,7 @@ export function CommentComposer({
 				]
 					.filter(Boolean)
 					.join(' ')}
+				onMouseDown={interactive ? focusEditorFromField : undefined}
 			>
 				<div className="tlui-cmt-composer__input-wrap" ref={inputWrapRef}>
 					<EditorContent editor={editor} />

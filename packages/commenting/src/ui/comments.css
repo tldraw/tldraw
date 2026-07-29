@@ -3,12 +3,12 @@
 .tlui-cmt-card {
 	position: relative;
 	display: flex;
-	gap: 10px;
-	padding: 12px;
+	gap: 8px;
+	padding: 8px;
 	width: 260px;
 	background: var(--tl-color-panel);
 	border: 1px solid var(--tl-color-divider);
-	border-radius: 12px;
+	border-radius: var(--tl-radius-3);
 }
 
 /* hover-revealed controls (edit, react…) stacked at the card's top-right */
@@ -17,8 +17,11 @@
 	top: 6px;
 	right: 6px;
 	display: flex;
-	flex-direction: column;
 	gap: 2px;
+	padding: 2px;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-3);
+	box-shadow: var(--tlui-cmt-pill-shadow);
 	opacity: 0;
 }
 .tlui-cmt-card:hover .tlui-cmt-card__actions,
@@ -42,18 +45,25 @@
 
 .tlui-cmt-author {
 	font-weight: 600;
-	font-size: 13px;
+	font-size: 12px;
 	color: var(--tl-color-text-1);
+	/* a long name ellipsizes rather than pushing the time out or running under the actions */
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .tlui-cmt-time {
 	font-size: 10px;
 	color: var(--tl-color-text-3);
+	flex-shrink: 0;
+	white-space: nowrap;
 }
 
 .tlui-cmt-text {
 	margin: 3px 0 0;
-	font-size: 13px;
+	font-size: 12px;
 	line-height: 1.4;
 	color: var(--tl-color-text-1);
 	/* Break long unbroken strings (URLs, keyboard-mashing) so they wrap inside the card instead of
@@ -123,10 +133,13 @@
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	padding: 3px 3px 3px 12px;
-	background: var(--tl-color-muted-2);
+	padding: 3px 3px 3px 8px;
+	background: var(--tl-color-muted-0);
 	border: 1px solid var(--tl-color-divider);
 	border-radius: var(--tl-radius-3);
+	/* The whole field reads as the text input — clicking its empty area focuses the editor
+	   (see CommentComposer). The send button restores its own pointer cursor. */
+	cursor: text;
 }
 
 .tlui-cmt-composer__field:focus-within {
@@ -140,9 +153,9 @@
 }
 .tlui-cmt-composer__field--expanded .tlui-cmt-composer__input-wrap {
 	flex-basis: 100%;
-	/* The field pads 12px left but only 3px right (the send button's inset). With the input
-	   spanning the full width, give the text the same 12px on the right. */
-	padding-right: 9px;
+	/* The field pads 8px left but only 3px right (the send button's inset). With the input
+	   spanning the full width, give the text the same 8px on the right. */
+	padding-right: 5px;
 }
 .tlui-cmt-composer__field--expanded .tlui-cmt-send {
 	margin-left: auto;
@@ -153,7 +166,10 @@
 	position: relative;
 	flex: 1;
 	min-width: 0;
-	padding: 3px 0;
+	/* Frames the input's line height symmetrically so the text sits centred in the field. Paired
+	   with the input's min-height, which equals its line height (no gap for the text to top-align
+	   into). Keeps the field's overall height. */
+	padding: 4.5px 0;
 }
 
 /* The hidden single-line measuring clone of the editor's content (see CommentComposer). */
@@ -171,12 +187,15 @@
 
 .tlui-cmt-input {
 	font: inherit;
-	font-size: 13px;
+	font-size: 12px;
 	line-height: 1.4;
 	color: var(--tl-color-text-1);
 	outline: none;
-	min-height: 20px;
-	max-height: 40vh;
+	min-height: 17px;
+	/* Long pastes scroll inside a compact box instead of growing the composer to fill the
+	   screen — ~9 lines, capped further on short viewports. Overflow scrolls (see the wheel
+	   handler in CommentComposer, which keeps a wheel here from panning the canvas). */
+	max-height: min(160px, 40vh);
 	overflow-y: auto;
 	white-space: pre-wrap;
 	word-break: break-word;
@@ -200,34 +219,39 @@
 
 .tlui-cmt-input__placeholder {
 	position: absolute;
-	top: 3px;
+	top: 4.5px;
 	left: 0;
-	font-size: 13px;
+	font-size: 12px;
 	line-height: 1.4;
 	color: var(--tl-color-text-3);
 	pointer-events: none;
 }
 
+/* An up-arrow icon button, sized to sit inside the composer field's 3px inset (the field is
+   ~29px tall there). Centre it on the input's line rather than bottom-aligning (a leftover from
+   the old text "Send" button, which sat at the field's bottom as it grew to multiple lines). */
 .tlui-cmt-send {
+	flex-shrink: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 23px;
+	height: 23px;
 	border: 0;
-	border-radius: var(--tl-radius-2);
+	border-radius: 50%;
 	background: var(--tl-color-selected);
 	color: #fff;
-	font: inherit;
-	font-size: 12px;
-	font-weight: 600;
-	padding: 6px 12px;
 	cursor: pointer;
-	align-self: flex-end;
+	align-self: center;
 }
 
-.tlui-cmt-send:hover,
-.pseudo-hover .tlui-cmt-send {
+.tlui-cmt-send:hover:not(:disabled),
+.pseudo-hover .tlui-cmt-send:not(:disabled) {
 	background: color-mix(in srgb, var(--tl-color-selected) 88%, black);
 }
 
-.tlui-cmt-send:active,
-.pseudo-active .tlui-cmt-send {
+.tlui-cmt-send:active:not(:disabled),
+.pseudo-active .tlui-cmt-send:not(:disabled) {
 	background: color-mix(in srgb, var(--tl-color-selected) 78%, black);
 }
 
@@ -237,8 +261,10 @@
 	outline-offset: 2px;
 }
 
+/* Disabled reads as grey, not a washed-out blue — "can't send yet" rather than "send, dimmed". */
 .tlui-cmt-send:disabled {
-	opacity: 0.45;
+	background: var(--tl-color-muted-1);
+	color: var(--tl-color-text-3);
 	cursor: not-allowed;
 }
 
@@ -270,14 +296,18 @@
    that marker's own tint. */
 .tlui-cmt-marker--open {
 	box-shadow:
-		0 0 0 3px var(--tl-color-panel),
-		0 0 0 5px var(--tlui-cmt-marker-tint),
+		0 0 0 2px var(--tl-color-panel),
+		0 0 0 4px var(--tlui-cmt-marker-tint),
 		var(--tlui-cmt-marker-shadow);
 }
 
-/* pin */
+/* pin — a canvas marker tinted with the comment author's color (via the `color` prop →
+   `--tlui-cmt-pin-color`) so a thread is identifiable at a glance. The composer's draft avatar
+   overrides to panel-white while you're still editing (see canvas.css). */
 .tlui-cmt-pin {
 	--tlui-cmt-marker-tint: var(--tlui-cmt-pin-color, var(--tl-color-selected));
+	/* A pin is smaller than the count badge, which keeps the marker-size default. */
+	--tlui-cmt-marker-size: var(--tlui-cmt-pin-size);
 	width: var(--tlui-cmt-marker-size);
 	height: var(--tlui-cmt-marker-size);
 	border-radius: 50% 50% 50% 3px;
@@ -313,7 +343,7 @@
 	justify-content: center;
 	background: var(--tl-color-text-1);
 	color: var(--tl-color-panel);
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 700;
 	user-select: none;
 }
@@ -418,7 +448,7 @@
 	width: 34px;
 	height: 34px;
 	border: none;
-	border-radius: var(--radius-2);
+	border-radius: var(--tl-radius-2);
 	background: none;
 	font: inherit;
 	font-size: 21px;
@@ -453,43 +483,43 @@
 .tlui-cmt-empty__message {
 	margin: 0;
 	color: var(--tl-color-text-3);
-	font-size: 13px;
+	font-size: 12px;
 	line-height: 1.4;
 }
 
-/* a comment thread: an elevated panel — the same surface treatment as the toolbar — holding a
-   header, an optional resolved banner, the comments, and a reply composer */
+/* a comment thread: an elevated panel holding a header, an optional resolved banner, the
+   comments, and a reply composer */
 /* The thread panel's layout metrics live on the container because two separate portals need them:
    the panel itself, and the canvas hover preview, which has to land its first comment on exactly
    the pixel the panel would. Deriving the preview's offset from these means the two can't drift —
    retune the padding or the header here and the preview follows. */
 .tl-container {
-	/* Every canvas marker — a comment pin, a cluster badge, a stack badge — is this square. The
-	   hover preview measures its bridge against it, so the bridge stops at the marker's edge
-	   instead of covering it. */
+	/* A cluster badge and a stack badge are this square. The hover preview measures its bridge
+	   against it, so the bridge stops at the marker's edge instead of covering it. */
 	--tlui-cmt-marker-size: 34px;
-	/* How a marker sits, lifts, and rings. Shared so a pin and a badge respond identically. */
-	--tlui-cmt-marker-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-	--tlui-cmt-marker-shadow-hover: 0 3px 10px rgba(0, 0, 0, 0.32);
+	/* A pin is smaller than a badge (a cluster reads fine a touch bigger). Everything that has to
+	   line up against a pin — its preview's bridge, the draft composer's offsets, `PIN_SIZE` in
+	   thread-view.tsx — derives from this, so the pin's size stays one number. */
+	--tlui-cmt-pin-size: 28px;
+	/* How a marker sits, lifts, and rings. Shared so a pin and a badge respond identically.
+	   shadow-3's depth without its `inset 1px panel-contrast` edge — that inset reads as a white
+	   border on a coloured pin (it's invisible on the panel-white menus shadow-3 is meant for). */
+	--tlui-cmt-marker-shadow: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%);
+	--tlui-cmt-marker-shadow-hover: var(--tlui-cmt-marker-shadow);
 	--tlui-cmt-marker-hover-scale: 1.08;
 	--tlui-cmt-marker-transition: 0.08s ease;
 	--tlui-cmt-thread-padding: 8px;
 	--tlui-cmt-thread-gap: 6px;
-	--tlui-cmt-thread-action-size: 22px;
-	--tlui-cmt-thread-header-padding: 2px;
-	/* Nothing in the header is taller than an action button, so the button plus the header's own
-	   padding is the header's height. */
-	--tlui-cmt-thread-header-height: calc(
-		var(--tlui-cmt-thread-action-size) + 2 * var(--tlui-cmt-thread-header-padding)
-	);
-	/* How far the first comment sits below the panel's top edge. */
-	--tlui-cmt-thread-first-comment-offset: calc(
-		var(--tlui-cmt-thread-padding) + var(--tlui-cmt-thread-header-height) +
-			var(--tlui-cmt-thread-gap)
-	);
+	--tlui-cmt-thread-action-size: 26px;
+	/* A floating pill's edge — its hairline ring is the only thing separating it from the panel it
+	   overlaps, so the ring is a theme token rather than a literal black: a near-black hairline
+	   vanishes on a dark panel, where the divider token lightens instead. The drop below it stays
+	   literal; a soft dark blur reads on both themes. */
+	--tlui-cmt-pill-shadow: 0 0 0 1px var(--tl-color-divider), 0 1px 3px hsl(0, 0%, 0%, 0.05);
 }
 
 .tlui-cmt-thread {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	gap: var(--tlui-cmt-thread-gap);
@@ -497,14 +527,47 @@
 	padding: var(--tlui-cmt-thread-padding);
 	background: var(--tl-color-panel);
 	border-radius: var(--tl-radius-4);
-	box-shadow: var(--tl-shadow-2);
+	box-shadow: var(--tl-shadow-3);
 }
+/* A pill of its own, floating above the panel's top-right corner and overlapping its top edge. */
 .tlui-cmt-thread__header {
+	position: absolute;
+	right: 10px;
+	bottom: calc(100% - 15px);
 	display: flex;
+	gap: 2px;
+	padding: 2px;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-3);
+	box-shadow: var(--tlui-cmt-pill-shadow);
+	transition: opacity 0.1s ease;
+}
+/* The first comment's hover actions surface right where the header pill sits, so hide the pill
+   while that comment is hovered — one pill in the corner, never two stacked. */
+.tlui-cmt-thread:has(.tlui-cmt-thread__list > :first-child:hover)
+	.tlui-cmt-thread__header:not(:has(.tlui-cmt-thread__title)) {
+	opacity: 0;
+	pointer-events: none;
+}
+/* A title puts the header back in the panel, in flow. The pill above is tuned for the actions-only
+   case tldraw itself uses: right-anchored and only as wide as its buttons, so a title inside it
+   would grow leftwards off the panel's edge and float over whatever sits above. `header` is public
+   API (see `CommentThreadProps`), so it has to keep laying out sensibly for anyone passing one. */
+.tlui-cmt-thread__header:has(.tlui-cmt-thread__title) {
+	position: static;
 	align-items: center;
-	justify-content: space-between;
-	padding: var(--tlui-cmt-thread-header-padding) var(--tlui-cmt-thread-header-padding)
-		var(--tlui-cmt-thread-header-padding) 4px;
+	padding: 2px 2px 2px 4px;
+	background: none;
+	border-radius: 0;
+	box-shadow: none;
+}
+/* …and with a header occupying that corner, the first comment's actions stay inside their card
+   rather than floating up into it. */
+.tlui-cmt-thread:has(.tlui-cmt-thread__title)
+	.tlui-cmt-thread__list
+	> :first-child
+	.tlui-cmt-card__actions {
+	top: 3px;
 }
 .tlui-cmt-thread__title {
 	font-size: 12px;
@@ -514,8 +577,12 @@
 .tlui-cmt-thread__actions {
 	display: flex;
 	gap: 2px;
+	/* Right-align the actions whether or not the header has a title (it currently has none, so
+	   space-between alone would leave them at the left). */
+	margin-left: auto;
 }
 .tlui-cmt-thread__action {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -530,9 +597,31 @@
 	line-height: 1;
 	cursor: pointer;
 }
+/* Enlarge the click/tap target past the compact 26px visual — the button reads small but is
+   comfortable to hit. A transparent ::after, so nothing changes visually.
+
+   Sideways it stops at half the row's 2px gap, so neighbouring targets tile instead of overlapping.
+   Overlapping would be worse than no expansion at all: the targets are siblings with no z-index, so
+   the later one paints — and hits — on top, and a 6px reach across a 2px gap would put delete's
+   invisible target over the right edge of edit's *visible* button. The row's outer edges have no
+   neighbour to steal from, so they expand fully. */
+.tlui-cmt-thread__action::after {
+	content: '';
+	position: absolute;
+	inset: -6px -1px;
+}
+.tlui-cmt-thread__action:first-child::after {
+	left: -6px;
+}
+.tlui-cmt-thread__action:last-child::after {
+	right: -6px;
+}
 .tlui-cmt-thread__action:hover {
 	background: var(--tl-color-muted-2);
 	color: var(--tl-color-text-1);
+}
+.tlui-cmt-thread__action--danger:hover {
+	color: var(--tl-color-danger);
 }
 .tlui-cmt-thread__resolved {
 	padding: 6px 10px;
@@ -597,6 +686,24 @@
 	background: transparent;
 	border: none;
 }
+/* Inside a panel the actions float as their own pill — the same pill the thread header is, in the
+   same corner (which is why the header hides while the first comment is hovered). It sits just
+   above the card's top edge rather than on the byline. */
+.tlui-cmt-thread .tlui-cmt-card .tlui-cmt-card__actions,
+.tlui-cmt-canvas-preview--thread .tlui-cmt-card .tlui-cmt-card__actions {
+	top: -2px;
+	right: 2px;
+}
+/* The pill overlays the byline's corner, so reserve its footprint — the byline can never run
+   underneath it, even mid-hover. Derived from the action size so it can't drift:
+   n buttons + (n−1) 2px gaps + the pill's 2px padding either side + its 2px right inset. One
+   button (react) on others' comments, three (edit, delete, react) on your own. */
+.tlui-cmt-thread .tlui-cmt-card .tlui-cmt-head {
+	padding-right: calc(var(--tlui-cmt-thread-action-size) + 6px);
+}
+.tlui-cmt-thread .tlui-cmt-card--you .tlui-cmt-head {
+	padding-right: calc(3 * var(--tlui-cmt-thread-action-size) + 10px);
+}
 
 /* comments list — thread summaries, one per row (used by the canvas sidebar) */
 .tlui-cmt-list {
@@ -615,13 +722,14 @@
 	border-bottom: 1px solid var(--tl-color-divider);
 }
 .tlui-cmt-list__header-title {
-	font-size: 13px;
-	font-weight: 600;
+	font-size: 12px;
+	font-weight: 500;
 	color: var(--tl-color-text-1);
 }
 
 /* a small square icon button in the sidebar header (filter funnel, overflow …) */
 .tlui-cmt-header-btn {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -633,6 +741,19 @@
 	background: transparent;
 	color: var(--tl-color-text-2);
 	cursor: pointer;
+}
+/* Same hit-target expansion as the thread actions, tiled the same way — this row's gap is 2px too
+   (see `.tlui-cmt-list__header-actions`). */
+.tlui-cmt-header-btn::after {
+	content: '';
+	position: absolute;
+	inset: -6px -1px;
+}
+.tlui-cmt-header-btn:first-child::after {
+	left: -6px;
+}
+.tlui-cmt-header-btn:last-child::after {
+	right: -6px;
 }
 .tlui-cmt-header-btn:hover,
 .tlui-cmt-header-btn[data-state='open'] {
@@ -686,7 +807,7 @@
 .tlui-cmt-list__empty {
 	padding: 20px 14px;
 	color: var(--tl-color-text-3);
-	font-size: 13px;
+	font-size: 12px;
 }
 .tlui-cmt-list__item {
 	display: flex;
@@ -725,7 +846,7 @@
 }
 .tlui-cmt-list__item-preview {
 	margin-top: 2px;
-	font-size: 13px;
+	font-size: 12px;
 	color: var(--tl-color-text-1);
 	overflow: hidden;
 	text-overflow: ellipsis;

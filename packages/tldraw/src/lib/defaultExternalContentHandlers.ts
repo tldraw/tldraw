@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Editor,
+	T,
 	TLAsset,
 	TLAssetId,
 	TLBookmarkAsset,
@@ -577,6 +578,22 @@ export async function defaultHandleExternalUrlContent(
 	{ point, url }: { point?: VecLike; url: string },
 	{ toasts, msg }: TLDefaultExternalContentHandlerOpts
 ) {
+	// Bookmark shapes validate their `url` prop with T.linkUrl, so a url we can't
+	// turn into a bookmark would throw a ValidationError and crash the editor
+	// (#8097) — e.g. Chrome with an ad blocker active rewrites dragged content
+	// urls to `about:blank#blocked`. This is a known, handled condition rather
+	// than a bug, so we tell the user with a toast and warn (not error) with the
+	// offending url as a local debugging breadcrumb — deliberately not reported
+	// to error tracking, where it would just be non-actionable noise.
+	if (!T.linkUrl.isValid(url)) {
+		console.warn(`Could not create a bookmark from an invalid url: ${JSON.stringify(url)}`)
+		toasts.addToast({
+			title: msg('assets.url.failed'),
+			severity: 'error',
+		})
+		return
+	}
+
 	// try to paste as an embed first
 	const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
 	const embedInfo = embedUtil?.getEmbedDefinition(url)

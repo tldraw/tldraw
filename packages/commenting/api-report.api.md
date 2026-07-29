@@ -167,7 +167,7 @@ export interface CommentCardProps {
 }
 
 // @public
-export function CommentComposer({ author, placeholder, value, onChange, onSubmit, sendLabel, disabled, autoFocus, leading, getMentionSuggestions, renderMentionSuggestion }: CommentComposerProps): JSX.Element;
+export function CommentComposer({ author, placeholder, value, onChange, onSubmit, sendLabel, onArrowUpWhenEmpty, disabled, autoFocus, leading, getMentionSuggestions, renderMentionSuggestion }: CommentComposerProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentComposerProps {
@@ -179,6 +179,7 @@ export interface CommentComposerProps {
     disabled?: boolean;
     getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
     leading?: ReactNode;
+    onArrowUpWhenEmpty?(): void;
     // (undocumented)
     onChange?(value: TLRichText): void;
     onSubmit?(): void;
@@ -328,14 +329,6 @@ export const commentsSidebarOpen: EditorAtom<boolean>;
 
 // @public
 export function CommentsVisibilityToggle(): JSX.Element;
-
-// @public
-export function CommentText({ text }: CommentTextProps): JSX.Element;
-
-// @public (undocumented)
-export interface CommentTextProps {
-    text: string;
-}
 
 // @public
 export function CommentThread({ comments, header, headerActions, resolvedBanner, composer, footer, renderComment }: CommentThreadProps): JSX.Element;
@@ -683,9 +676,6 @@ export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLComme
 export function renderDrawingReaction(token: string): ReactNode;
 
 // @public
-export function renderMarkdown(text: string): ReactNode;
-
-// @public
 export type RenderReaction = (token: string) => ReactNode;
 
 // @public
@@ -701,7 +691,6 @@ export function SendButton({ label, disabled, onClick }: SendButtonProps): JSX.E
 export interface SendButtonProps {
     // (undocumented)
     disabled?: boolean;
-    // (undocumented)
     label: string;
     // (undocumented)
     onClick?(): void;

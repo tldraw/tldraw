@@ -25,6 +25,7 @@ import {
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
 	useBreakpoint,
+	useContainer,
 	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useTranslation,
@@ -94,18 +95,10 @@ export function toCardProps(
 	}
 }
 
-/**
- * The header block a thread popover carries and a header-less preview (a stack or cluster list)
- * does not: an action-row-tall header plus the column gap beneath it. The single-pin preview's
- * root is shifted down by exactly this in CSS (`--tlui-cmt-thread-header-height` +
- * `--tlui-cmt-thread-gap`) so its comment lands where the opened popover's does; this JS copy lets
- * the pin popover offset be derived from the list offset. Keep the two in sync — same pixels.
- */
-const THREAD_HEADER_SHIFT = 32
-
-/** Every marker is this square (mirrors `--tlui-cmt-marker-size`). Needed because the two marker
- *  kinds anchor at different points, and lining their previews up means correcting for that. */
-const MARKER_SIZE = 34
+/** A pin is this square (mirrors `--tlui-cmt-pin-size`). Needed because the two marker kinds are
+ *  different sizes *and* anchor at different points, and lining their previews up means
+ *  correcting for that. Keep in sync with the stylesheet. */
+const PIN_SIZE = 28
 
 /** A coincident stack's / cluster's card list, whose first card sits flush with the popover top. */
 const LIST_OFFSET = { x: 36, y: -28 } as const
@@ -119,20 +112,18 @@ const LIST_OFFSET = { x: 36, y: -28 } as const
  *
  * The two marker kinds don't anchor alike, which the vertical offsets have to correct for. A
  * badge is centred on its point (`translate(-50%, -50%)`), so `LIST_OFFSET.y` is measured from its
- * middle. A pin hangs off its point (`translate(0, -100%)`), so its point is the pin's *bottom* —
- * a full marker lower than a badge's. Measuring a raw offset from there would drop the pin's
- * preview half a marker below a badge's; the terms below re-base it so the two previews' top cards
- * land on the same line.
+ * middle. A pin hangs off its point (`translate(0, -100%)`), so its point is the pin's *bottom*.
+ * Measuring a raw offset from there would drop the pin's preview half a pin below a badge's; the
+ * terms below re-base it so the two previews' top cards land on the same line.
  */
 export const POPOVER_OFFSET = {
 	/**
 	 * A single pin's thread popover. Its preview should read level with a cluster/stack preview's
-	 * top card, so start from the list offset and re-base it to the pin's bottom anchor:
-	 * `- MARKER_SIZE / 2` accounts for the pin's point sitting half a marker below a badge's, and
-	 * `- THREAD_HEADER_SHIFT` cancels the downward shift the preview's own stylesheet applies to
-	 * make room for the missing header. The opened popover shares the offset and opens from there.
+	 * top card, so start from the list offset and re-base it from the pin's bottom anchor to the
+	 * pin's middle — where a badge measures from — with `- PIN_SIZE / 2`. The opened popover shares
+	 * the offset and opens from there.
 	 */
-	thread: { x: 48, y: LIST_OFFSET.y - MARKER_SIZE / 2 - THREAD_HEADER_SHIFT },
+	thread: { x: 48, y: LIST_OFFSET.y - PIN_SIZE / 2 },
 	list: LIST_OFFSET,
 } as const
 
@@ -336,6 +327,54 @@ export function ThreadView({
 	)
 	const [editingId, setEditingId] = useState<string | null>(null)
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
+	const canReply = canComment && !thread.resolved
+	const container = useContainer()
+
+	// Tab from the canvas drops the caret in the reply box. Clicking a pin opens the thread but
+	// leaves focus on the editor container, so the first Tab would otherwise walk the app's own UI
+	// instead of the panel the click just opened. Capture phase, ahead of the editor's own handling.
+	// Fires once per open thread, so Tab inside the thread stays plain tab-through.
+	const [focusReply, setFocusReply] = useState(false)
+	const tabTaken = useRef(false)
+	const swallowTabUp = useRef(false)
+	useEffect(() => {
+		if (!canReply) {
+			// Resolving unmounts the reply box under an open thread. Reopening it should feel like a
+			// freshly opened thread: no autoFocus left armed from the last Tab, and Tab available again.
+			setFocusReply(false)
+			tabTaken.current = false
+			return
+		}
+		const doc = container.ownerDocument
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key !== 'Tab' || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
+			if (e.defaultPrevented || tabTaken.current) return
+			// Focus rests on the container (or nothing at all) after a pin click. Anywhere else means
+			// it's already somewhere deliberate — the thread's own controls, the sidebar, a panel —
+			// and Tab belongs to whatever holds it.
+			if (e.target !== container && e.target !== doc.body) return
+			tabTaken.current = true
+			swallowTabUp.current = true
+			setFocusReply(true)
+			e.preventDefault()
+			e.stopPropagation()
+		}
+		// The select tool navigates shapes on Tab's *keyup*, and the composer isn't focused until the
+		// next frame — so a quick tap with shapes selected would both focus the reply and step the
+		// selection. Swallow the release of the press we took, and only that one.
+		const onKeyUp = (e: KeyboardEvent) => {
+			if (e.key !== 'Tab' || !swallowTabUp.current) return
+			swallowTabUp.current = false
+			e.preventDefault()
+			e.stopPropagation()
+		}
+		doc.addEventListener('keydown', onKeyDown, true)
+		doc.addEventListener('keyup', onKeyUp, true)
+		return () => {
+			doc.removeEventListener('keydown', onKeyDown, true)
+			doc.removeEventListener('keyup', onKeyUp, true)
+		}
+	}, [canReply, container])
 
 	// Every unread comment on display gets reported read — including replies that arrive while
 	// the view stays mounted, since the effect re-runs as `comments` changes. The host's receipt
@@ -466,50 +505,55 @@ export function ThreadView({
 					/>
 				}
 				actions={
-					<>
-						{canComment && comment.authorId === currentUserId && (
-							<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
-								<TldrawUiDropdownMenuTrigger>
+					canComment && (
+						<>
+							{comment.authorId === currentUserId && (
+								<>
 									<TooltipButton
-										tooltip={msg('comments.more-options')}
+										tooltip={msg('comments.edit')}
 										className="tlui-cmt-thread__action"
+										onClick={() => startEdit(comment)}
 									>
-										<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
+										<svg
+											width="15"
+											height="15"
+											viewBox="0 0 15 15"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M12.1464 1.14645C12.3417 0.951184 12.6583 0.951184 12.8535 1.14645L14.8535 3.14645C15.0488 3.34171 15.0488 3.65829 14.8535 3.85355L10.9109 7.79618C10.8349 7.87218 10.7471 7.93543 10.651 7.9835L6.72359 9.94721C6.53109 10.0435 6.29861 10.0057 6.14643 9.85355C5.99425 9.70137 5.95652 9.46889 6.05277 9.27639L8.01648 5.34897C8.06455 5.25283 8.1278 5.16507 8.2038 5.08907L12.1464 1.14645ZM12.5 2.20711L8.91091 5.79618L7.87266 7.87267L8.12731 8.12732L10.2038 7.08907L13.7929 3.5L12.5 2.20711ZM9.99998 2L8.99998 3H4.9C4.47171 3 4.18056 3.00039 3.95552 3.01877C3.73631 3.03668 3.62421 3.06915 3.54601 3.10899C3.35785 3.20487 3.20487 3.35785 3.10899 3.54601C3.06915 3.62421 3.03669 3.73631 3.01878 3.95552C3.00039 4.18056 3 4.47171 3 4.9V11.1C3 11.5283 3.00039 11.8194 3.01878 12.0445C3.03669 12.2637 3.06915 12.3758 3.10899 12.454C3.20487 12.6422 3.35785 12.7951 3.54601 12.891C3.62421 12.9309 3.73631 12.9633 3.95552 12.9812C4.18056 12.9996 4.47171 13 4.9 13H11.1C11.5283 13 11.8194 12.9996 12.0445 12.9812C12.2637 12.9633 12.3758 12.9309 12.454 12.891C12.6422 12.7951 12.7951 12.6422 12.891 12.454C12.9309 12.3758 12.9633 12.2637 12.9812 12.0445C12.9996 11.8194 13 11.5283 13 11.1V6.99998L14 5.99998V11.1V11.1207C14 11.5231 14 11.8553 13.9779 12.1259C13.9549 12.407 13.9057 12.6653 13.782 12.908C13.5903 13.2843 13.2843 13.5903 12.908 13.782C12.6653 13.9057 12.407 13.9549 12.1259 13.9779C11.8553 14 11.5231 14 11.1207 14H11.1H4.9H4.87934C4.47686 14 4.14468 14 3.87409 13.9779C3.59304 13.9549 3.33469 13.9057 3.09202 13.782C2.7157 13.5903 2.40973 13.2843 2.21799 12.908C2.09434 12.6653 2.04506 12.407 2.0221 12.1259C1.99999 11.8553 1.99999 11.5231 2 11.1207V11.1206V11.1V4.9V4.87935V4.87932V4.87931C1.99999 4.47685 1.99999 4.14468 2.0221 3.87409C2.04506 3.59304 2.09434 3.33469 2.21799 3.09202C2.40973 2.71569 2.7157 2.40973 3.09202 2.21799C3.33469 2.09434 3.59304 2.04506 3.87409 2.0221C4.14468 1.99999 4.47685 1.99999 4.87932 2H4.87935H4.9H9.99998Z"
+												fill="currentColor"
+												fillRule="evenodd"
+												clipRule="evenodd"
+											/>
+										</svg>
 									</TooltipButton>
-								</TldrawUiDropdownMenuTrigger>
-								<TldrawUiDropdownMenuContent
-									className="tlui-cmt-menu"
-									side="bottom"
-									align="end"
-									alignOffset={0}
-								>
-									<TldrawUiDropdownMenuGroup>
-										<TldrawUiDropdownMenuItem>
-											<button
-												type="button"
-												className="tlui-cmt-menu-item"
-												onClick={() => startEdit(comment)}
-											>
-												<span>{msg('comments.edit-comment')}</span>
-											</button>
-										</TldrawUiDropdownMenuItem>
-										<TldrawUiDropdownMenuItem>
-											<button
-												type="button"
-												className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-												onClick={() => deleteComment(comment)}
-											>
-												<span>{msg('comments.delete-comment')}</span>
-											</button>
-										</TldrawUiDropdownMenuItem>
-									</TldrawUiDropdownMenuGroup>
-								</TldrawUiDropdownMenuContent>
-							</TldrawUiDropdownMenuRoot>
-						)}
-						{canComment && (
+									<TooltipButton
+										tooltip={msg('action.delete')}
+										className="tlui-cmt-thread__action tlui-cmt-thread__action--danger"
+										onClick={() => deleteComment(comment)}
+									>
+										<svg
+											width="15"
+											height="15"
+											viewBox="0 0 15 15"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M5.5 1C5.22386 1 5 1.22386 5 1.5C5 1.77614 5.22386 2 5.5 2H9.5C9.77614 2 10 1.77614 10 1.5C10 1.22386 9.77614 1 9.5 1H5.5ZM3 3.5C3 3.22386 3.22386 3 3.5 3H5H10H11.5C11.7761 3 12 3.22386 12 3.5C12 3.77614 11.7761 4 11.5 4H11V12C11 12.5523 10.5523 13 10 13H5C4.44772 13 4 12.5523 4 12V4L3.5 4C3.22386 4 3 3.77614 3 3.5ZM5 4H10V12H5V4Z"
+												fill="currentColor"
+												fillRule="evenodd"
+												clipRule="evenodd"
+											/>
+										</svg>
+									</TooltipButton>
+								</>
+							)}
 							<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
-						)}
-					</>
+						</>
+					)
 				}
 			/>
 		)
@@ -568,7 +612,6 @@ export function ThreadView({
 
 	return (
 		<CommentThread
-			header={msg('comments.thread-title')}
 			headerActions={headerActions}
 			renderComment={renderComment}
 			comments={comments.map((c) => toCardProps(c, props, options.components, resolveName))}
@@ -581,7 +624,7 @@ export function ThreadView({
 					: undefined
 			}
 			composer={
-				canComment && !thread.resolved
+				canReply
 					? {
 							author: me ?? UNKNOWN_COMMENT_AUTHOR,
 							placeholder: msg('comments.reply-placeholder'),
@@ -592,10 +635,19 @@ export function ThreadView({
 								saveCommentDraft(replyDraftSlot(thread.id), value)
 							},
 							onSubmit: postReply,
+							// Up in the empty reply box edits the comment directly above it, chat-style —
+							// only when that comment is yours (the same gate as the Edit link).
+							onArrowUpWhenEmpty: () => {
+								const last = comments[comments.length - 1]
+								if (last && last.authorId === currentUserId) startEdit(last)
+							},
 							// No user, no author for the record — dead send button.
 							disabled: isCommentEmpty(reply) || !currentUserId,
 							getMentionSuggestions,
 							renderMentionSuggestion,
+							// Reuses the composer's own focus path, so the caret lands at the end of a
+							// restored draft rather than in front of it.
+							autoFocus: focusReply,
 						}
 					: undefined
 			}

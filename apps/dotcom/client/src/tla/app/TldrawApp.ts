@@ -100,6 +100,22 @@ export function shouldUseProperZero(
 	return { value: flagEnabled, reason: 'server feature flag' }
 }
 
+/**
+ * Whether commenting is available to this user. While commenting is being built out it's staff-only:
+ * anyone with a @tldraw.com email gets it, everyone else waits on the `commenting_enabled` flag
+ * (off by default, with a percentage rollout knob on the admin page). Signed-out viewers have no
+ * email and no flags, so they don't see comments at all.
+ */
+export function shouldEnableCommenting(
+	flags: FeatureFlags,
+	email?: string | null
+): { value: boolean; reason: string } {
+	if (email?.endsWith('@tldraw.com')) {
+		return { value: true, reason: '@tldraw.com email' }
+	}
+	return { value: flags.commenting_enabled?.enabled ?? false, reason: 'server feature flag' }
+}
+
 // @ts-expect-error — dev escape hatch, call window.zero() in console to toggle
 window.zero = () => {
 	const current = getFromLocalStorage('useProperZero') === 'true'
@@ -138,9 +154,16 @@ export class TldrawApp {
 	private readonly workspaceMemberships$: Signal<
 		QueryResultType<typeof queries.workspaceMemberships>
 	>
-	private readonly comments$: Signal<QueryResultType<typeof queries.comments>>
+	/**
+	 * Null when commenting is disabled for this user: the notifications feed is the most expensive
+	 * query in the schema (nested EXISTS over comment/thread/file/group), so a closed flag has to
+	 * keep it off the wire entirely, not just hide the UI that reads it.
+	 */
+	private readonly comments$: Signal<QueryResultType<typeof queries.comments>> | null
 
 	private readonly useProperZero: boolean
+	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
+	readonly isCommentingEnabled: boolean
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
 	private getToken: () => Promise<string | undefined>
@@ -201,6 +224,7 @@ export class TldrawApp {
 		const sessionId = uniqueId()
 		const { value: properZero, reason } = shouldUseProperZero(flags, email)
 		this.useProperZero = properZero
+		this.isCommentingEnabled = shouldEnableCommenting(flags, email).value
 		// eslint-disable-next-line no-console
 		console.log(`[Zero] Using ${properZero ? 'proper Zero' : 'ZeroPolyfill'} (${reason})`)
 		if (properZero) {
@@ -284,7 +308,9 @@ export class TldrawApp {
 			'workspace memberships signal',
 			this.workspaceMembershipsQuery()
 		)
-		this.comments$ = this.signalizeQuery('comments signal', this.commentsQuery())
+		this.comments$ = this.isCommentingEnabled
+			? this.signalizeQuery('comments signal', this.commentsQuery())
+			: null
 	}
 
 	private userQuery() {
@@ -303,9 +329,12 @@ export class TldrawApp {
 		return queries.comments()
 	}
 
-	/** Recent comments across the user's files, for the notifications feed (bounded, cross-file). */
-	getComments() {
-		return this.comments$.get()
+	/**
+	 * Recent comments across the user's files, for the notifications feed (bounded, cross-file).
+	 * Empty when commenting is disabled for this user — the query isn't subscribed at all.
+	 */
+	getComments(): QueryResultType<typeof queries.comments> {
+		return this.comments$?.get() ?? []
 	}
 
 	/**

@@ -11768,6 +11768,7 @@ __metadata:
     "@tiptap/core": "npm:^3.12.1"
     "@tiptap/pm": "npm:^3.12.1"
     "@tiptap/react": "npm:^3.12.1"
+    "@tldraw/driver": "workspace:*"
     "@tldraw/mentions": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@types/react": "npm:^19.2.7"
@@ -11883,6 +11884,7 @@ __metadata:
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/sync-collaboration": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
@@ -12215,6 +12217,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/sync-collaboration@workspace:*, @tldraw/sync-collaboration@workspace:packages/sync-collaboration":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/sync-collaboration@workspace:packages/sync-collaboration"
+  dependencies:
+    "@tldraw/store": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/sync-core@workspace:*, @tldraw/sync-core@workspace:packages/sync-core":
   version: 0.0.0-use.local
   resolution: "@tldraw/sync-core@workspace:packages/sync-core"
@@ -12357,7 +12370,7 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20260302.0"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
-    cloudflare-workers-unfurl: "npm:^0.0.8"
+    cloudflare-workers-unfurl: "npm:^0.0.9"
     itty-router: "npm:^5.0.18"
     lazyrepo: "npm:0.0.0-alpha.27"
     toucan-js: "npm:^3.4.0"
@@ -17117,10 +17130,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cloudflare-workers-unfurl@npm:^0.0.8":
-  version: 0.0.8
-  resolution: "cloudflare-workers-unfurl@npm:0.0.8"
-  checksum: 10/3f6354096c2f15a4a5766c8fa2620924f2e43a014aba69ec76419c6887a5d1ca6c399634959a3bb8223c248ee82d2a80cd4a8e9df7bd652e5362ded8d2ce4c58
+"cloudflare-workers-unfurl@npm:^0.0.9":
+  version: 0.0.9
+  resolution: "cloudflare-workers-unfurl@npm:0.0.9"
+  checksum: 10/88b2c169ee807602297771393fe43a6589ab174fa0e47eaab24ff4d78c97abd0f9ac77cdc3f7015c039dc0277dd61a3a9cf0404a11413e810510389e1ec6614d
   languageName: node
   linkType: hard
 
@@ -31670,7 +31683,7 @@ __metadata:
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react": "npm:^6.0.1"
-    cloudflare-workers-unfurl: "npm:^0.0.8"
+    cloudflare-workers-unfurl: "npm:^0.0.9"
     concurrently: "npm:^9.1.2"
     itty-router: "npm:^5.0.18"
     react: "npm:^19.2.1"

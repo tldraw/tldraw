@@ -9,8 +9,8 @@ Merge nearby comment pins into a count badge as you zoom out.
 
 ---
 
-When a board fills up with comments, pins that sit close together overlap and become unreadable at low zoom. The commenting toolkit solves this with clustering: nearby anchors merge into a single count badge as you zoom out, and split back into individual pins as you zoom in.
+When a board fills with comments, pins that sit close together overlap and become unreadable at low zoom. Clustering merges nearby anchors into a single count badge as you zoom out, and splits them back into pins as you zoom in. Splits happen at a wider spacing than merges, so pins don't flicker at the threshold.
 
-This example drives the clustering pipeline directly. `computeClusterTable` precomputes, across the whole zoom range, which anchors merge and at which zoom level — using a minimum-spanning-tree merge with hysteresis so pins don't flicker at the threshold. `createClusterRuntime` wraps that table so a camera move is just a lookup: on each zoom change it returns the currently-visible nodes, each either a single member (drawn as a `CommentPin`) or a merged group (drawn as a `CountBadge`).
+`CanvasComments` does this for you. This example instead drives the pipeline directly, as you would when building your own pin layer: `computeClusterTable` precomputes which anchors merge and at which zoom, and `createClusterRuntime` wraps that table so a camera move is a lookup returning the visible nodes — each either a single member (a `CommentPin`) or a merged group (a `CountBadge`).
 
 Zoom out with `⌘`/`ctrl`-scroll or a pinch gesture to watch the two groups collapse.

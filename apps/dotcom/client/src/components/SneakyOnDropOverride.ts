@@ -7,6 +7,7 @@ import {
 	useToasts,
 	useTranslation,
 } from 'tldraw'
+import { useRejectTldrawOfflineFiles } from '../tla/utils/tldrawOfflineFiles'
 import { shouldOverrideDocument } from '../utils/shouldOverrideDocument'
 
 export const SneakyOnDropOverride = memo(function SneakyOnDropOverride({
@@ -18,10 +19,11 @@ export const SneakyOnDropOverride = memo(function SneakyOnDropOverride({
 	const toasts = useToasts()
 	const dialogs = useDialogs()
 	const msg = useTranslation()
+	const rejectTldrawOfflineFiles = useRejectTldrawOfflineFiles()
 
 	useEffect(() => {
 		editor.registerExternalContentHandler('files', async (content) => {
-			const { files } = content
+			const files = rejectTldrawOfflineFiles(content.files)
 			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
 			if (tldrawFiles.length > 0) {
 				if (isMultiplayer) {
@@ -35,11 +37,11 @@ export const SneakyOnDropOverride = memo(function SneakyOnDropOverride({
 					if (!shouldOverride) return
 					await parseAndLoadDocument(editor, await tldrawFiles[0].text(), msg, toasts.addToast)
 				}
-			} else {
-				await defaultHandleExternalFileContent(editor, content, { toasts, msg })
+			} else if (files.length > 0) {
+				await defaultHandleExternalFileContent(editor, { ...content, files }, { toasts, msg })
 			}
 		})
-	}, [isMultiplayer, editor, toasts, msg, dialogs])
+	}, [isMultiplayer, editor, toasts, msg, dialogs, rejectTldrawOfflineFiles])
 
 	return null
 })

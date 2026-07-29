@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { Editor, EditorAtom, TLComment, TLCommentThread, useTranslation, useValue } from 'tldraw'
+import {
+	Editor,
+	EditorAtom,
+	TLComment,
+	TLCommentThread,
+	usePassThroughWheelEvents,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { useComments } from './hooks'
 import { useCommentingOptions } from './options'
@@ -178,6 +186,12 @@ export function ThreadPreview({
 	const comments = useComments(editor)
 	const resolveName = useResolveName(props.resolveAuthor)
 
+	// The panel floats over the canvas and scrolls nothing of its own, so a wheel on it should zoom
+	// and pan the canvas underneath — like every other tldraw panel, and like the popover it
+	// previews. Without this the canvas would freeze wherever the preview happened to be.
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
+
 	// Each thread's opening comment. `useComments` is oldest-first, so the first hit per thread is
 	// that thread's first comment. One pass over every comment beats a per-thread hook — the
 	// thread count here is driven by cluster size, which has no fixed bound.
@@ -218,6 +232,7 @@ export function ThreadPreview({
 		// inside it is the visible surface. Keeping them apart is what lets the surface light up on
 		// its own hover without the bridge (which reaches back over the marker) lighting it up too.
 		<div
+			ref={ref}
 			className={`tlui-cmt-canvas-preview tlui-cmt-canvas-preview--${variant}`}
 			style={
 				{
