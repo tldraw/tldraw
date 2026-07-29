@@ -47,7 +47,7 @@ import {
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { getCommentRecord, putCommentRecords } from './comment-store'
 import { PendingComment } from './comment-tool'
-import { type CommentingContext, useCommentingContext } from './context'
+import { type CommentingContext } from './context'
 import { useCommentThreads, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
 import {
@@ -82,12 +82,12 @@ import {
 import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
 
 /**
- * The host wiring for {@link CanvasComments}: the {@link CommentingContext} fields, each of which
- * falls back to the enclosing {@link CommentingProvider} when left unset.
+ * The host wiring for {@link CanvasComments} — see {@link CommentingContext}, which the sidebar
+ * takes the same fields from.
  *
  * @public
  */
-export type CanvasCommentsProps = Partial<CommentingContext>
+export type CanvasCommentsProps = CommentingContext
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
@@ -148,8 +148,9 @@ const draftAvatar = (
  * (`CommentPin`, `CommentThread`, `CommentComposer`, the hooks, the tool) are all exported, so a
  * consumer can rebuild this from parts instead.
  *
- * The host wiring — who the viewer is, how ids become names, read status, mentions — comes from
- * props, or from an enclosing {@link CommentingProvider} for whatever the props leave unset.
+ * The host wiring — who the viewer is, how ids become names, read status, mentions — is the
+ * {@link CommentingContext}, which `CanvasCommentsSidebar` takes too, so a host mounting both can
+ * build it once and spread it into each.
  *
  * @public @react
  */
@@ -157,9 +158,8 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	// Gate the whole layer on the license before doing any work. The inner component holds all the
 	// other hooks, so mounting/unmounting it as the license resolves keeps hook order stable here.
 	const commentingEnabled = useCommentingEnabled()
-	const context = useCommentingContext(props)
 	if (!commentingEnabled) return null
-	return <CanvasCommentsLayer {...context} />
+	return <CanvasCommentsLayer {...props} />
 }
 
 /**

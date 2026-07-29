@@ -60,13 +60,13 @@ export interface BylineProps {
 export function CanvasComments(props: CanvasCommentsProps): JSX.Element | null;
 
 // @public
-export type CanvasCommentsProps = Partial<CommentingContext>;
+export type CanvasCommentsProps = CommentingContext;
 
 // @public
-export function CanvasCommentsSidebar({ header, empty, ...contextProps }: CanvasCommentsSidebarProps): JSX.Element | null;
+export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps): JSX.Element | null;
 
 // @public
-export interface CanvasCommentsSidebarProps extends Partial<Pick<CommentingContext, 'currentUserId' | 'isCommentUnread' | 'resolveAuthor'>> {
+export interface CanvasCommentsSidebarProps extends Pick<CommentingContext, 'currentUserId' | 'isCommentUnread' | 'resolveAuthor'> {
     empty?: ReactNode;
     header?: ReactNode;
 }
@@ -175,15 +175,6 @@ export interface CommentingOptions {
     };
     isAllowedReaction(token: string): boolean;
     shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean;
-}
-
-// @public
-export function CommentingProvider({ children, ...identity }: CommentingProviderProps): JSX.Element;
-
-// @public (undocumented)
-export interface CommentingProviderProps extends Partial<CommentingContext> {
-    // (undocumented)
-    children: ReactNode;
 }
 
 // @public (undocumented)
@@ -574,9 +565,6 @@ export function toggleCommentsSidebar(editor: Editor): void;
 
 // @public
 export function useCanComment(currentUserId: null | string | undefined): boolean;
-
-// @public
-export function useCommentingContext(overrides?: Partial<CommentingContext>): CommentingContext;
 
 // @public
 export function useCommentingEnabled(): boolean;
