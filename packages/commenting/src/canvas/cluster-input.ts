@@ -2,12 +2,11 @@ import type { Editor, TLCommentThread } from 'tldraw'
 import type { LeafInput } from '../clustering/types'
 import { anchorPagePoint } from './thread-state'
 
-/** @public */
+/** The cluster leaves for the threads pinned on the current page. @internal */
 export function collectClusterLeaves(
 	editor: Editor,
 	threads: readonly TLCommentThread[],
-	openThreadId: string | null,
-	impreciseShapeAnchor?: { x: number; y: number }
+	openThreadId: string | null
 ): LeafInput[] {
 	const pageId = editor.getCurrentPageId()
 	const leaves: LeafInput[] = []
@@ -16,7 +15,7 @@ export function collectClusterLeaves(
 		if (thread.id === openThreadId) continue
 		if (thread.pageId !== pageId) continue
 
-		const point = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
+		const point = anchorPagePoint(editor, thread.anchor)
 		if (!point) continue
 
 		leaves.push({

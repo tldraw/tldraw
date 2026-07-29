@@ -36,8 +36,6 @@ export interface CanvasCommentsSidebarProps {
 	header?: ReactNode
 	/** Shown when the page has no threads. */
 	empty?: ReactNode
-	/** Where imprecise shape pins sit, so navigation centres on the same spot. Default top-right. */
-	impreciseShapeAnchor?: { x: number; y: number }
 }
 
 /**
@@ -48,8 +46,7 @@ export interface CanvasCommentsSidebarProps {
  * @public @react
  */
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
-	const { resolveAuthor, currentUserId, isCommentUnread, header, empty, impreciseShapeAnchor } =
-		props
+	const { resolveAuthor, currentUserId, isCommentUnread, header, empty } = props
 	// Name-only view of the resolver, for the plaintext previews (which resolve @-mentions).
 	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const editor = useEditor()
@@ -139,9 +136,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 
 	const focus = (id: string) => {
 		const thread = threads.find((t) => t.id === id)
-		// Resolve prop-or-option like the overlay pins do, so sidebar navigation centers on the same
-		// spot the pin renders at when the anchor is configured via `CommentTool.configure`.
-		if (thread) focusThread(editor, thread, impreciseShapeAnchor ?? options.impreciseShapeAnchor)
+		if (thread) focusThread(editor, thread)
 	}
 
 	return (

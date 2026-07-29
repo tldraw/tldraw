@@ -23,8 +23,9 @@ export interface ReactionPickerProps {
 	renderReaction?: RenderReaction
 	/**
 	 * What the button opens — the thing that produces a token. Defaults to `EmojiPicker`, the grid of
-	 * emoji. Swap it for any component taking the same props to offer something else entirely (see
-	 * `DrawingReactionPalette`); the props are passed straight through either way.
+	 * emoji. Swap it for any component taking the same props to offer something else entirely (the
+	 * drawn reactions example replaces it with a canvas you draw in); the props are passed straight
+	 * through either way.
 	 */
 	palette?: ComponentType<EmojiPickerProps>
 	/**

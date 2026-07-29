@@ -7,7 +7,6 @@ import {
 	putCommentRecords,
 	TLCommentRecord,
 } from './comment-store'
-import { getCommentingOptions } from './options'
 import { commitCommentMutation } from './state'
 import { anchorPagePoint, impreciseShapePinInset } from './thread-state'
 
@@ -60,19 +59,15 @@ function isAnchoredToShape(
  * own.
  *
  * Remote changes are ignored: the client that performed the operation runs this same
- * maintenance and syncs the resulting thread updates. Writes go through
- * {@link commitCommentMutation}, so the consumer's history option governs whether they're
- * undoable.
+ * maintenance and syncs the resulting thread updates. Writes honour the
+ * {@link CommentingOptions.history} option, so the consumer decides whether they're undoable.
  *
  * Registered by `CanvasComments` on mount; parts-built consumers can call this directly.
  * Returns a cleanup function that unregisters all handlers.
  *
  * @public
  */
-export function registerCommentAnchorLifecycle(
-	editor: Editor,
-	impreciseShapeAnchor?: { x: number; y: number }
-): () => void {
+export function registerCommentAnchorLifecycle(editor: Editor): () => void {
 	// Pin positions snapshotted during the current operation: shape id -> (thread id -> pin page
 	// point).
 	const pendingByShape = new Map<TLShapeId, Map<string, VecLike | null>>()
@@ -99,12 +94,9 @@ export function registerCommentAnchorLifecycle(
 				// Snapshot where the pin is drawn, not just the anchor point: imprecise shape pins
 				// render inset toward the shape's centre, and the converted point pin renders at
 				// its point exactly — without the inset the pin would jump on deletion. The inset
-				// is screen-fixed, so bake it in at the current zoom. The imprecise spot resolves
-				// from the editor's commenting options unless the caller overrides it (the overlay
-				// passes its prop through).
-				const spot = impreciseShapeAnchor ?? getCommentingOptions(editor).impreciseShapeAnchor
-				let point = anchorPagePoint(editor, thread.anchor, spot)
-				const inset = impreciseShapePinInset(editor, thread.anchor, spot)
+				// is screen-fixed, so bake it in at the current zoom.
+				let point = anchorPagePoint(editor, thread.anchor)
+				const inset = impreciseShapePinInset(editor, thread.anchor)
 				if (point && inset) {
 					const zoom = editor.getZoomLevel()
 					point = { x: point.x + inset.x / zoom, y: point.y + inset.y / zoom }
