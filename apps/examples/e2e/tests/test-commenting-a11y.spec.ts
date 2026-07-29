@@ -122,4 +122,42 @@ test.describe('commenting a11y', () => {
 		await page.keyboard.press('Tab')
 		await expect(page.locator('.tl-skip-to-main-content')).toBeFocused()
 	})
+
+	test('leaving the edit composer hands focus back to the control that opened it', async ({
+		page,
+		isMobile,
+	}) => {
+		if (isMobile) test.skip()
+
+		await page.locator('[data-testid="tools.comment"]').click()
+		await page.mouse.click(400, 300)
+		await page.keyboard.type('first')
+		await page.keyboard.press('Enter')
+		await page.keyboard.press('Escape')
+
+		// Open the thread and spend its one Tab-into-the-reply-box, so nothing is left to pull focus
+		// back into the panel on its own — the state the escape has to survive.
+		await page.locator('.tlui-cmt-canvas-pin__marker').click()
+		await page.locator('.tl-container').focus()
+		await page.keyboard.press('Tab')
+		const reply = page.locator('.tlui-cmt-canvas-popover [contenteditable="true"].tlui-cmt-input')
+		await expect(reply).toBeFocused()
+
+		// Edit from the card's own button: escaping should land back on it, not on the editor
+		// container, where Tab would walk the app's UI instead of the thread's own controls.
+		const editButton = page.locator('.tlui-cmt-canvas-popover .tlui-cmt-thread__action--edit')
+		await editButton.click()
+		await expect(page.locator('.tlui-cmt-editing [contenteditable="true"]')).toBeFocused()
+		await page.keyboard.press('Escape')
+		await expect(page.locator('.tlui-cmt-canvas-popover')).toBeVisible()
+		await expect(editButton).toBeFocused()
+
+		// Arrow-up-to-edit comes from the reply box, so that's where escaping returns.
+		await reply.focus()
+		await page.keyboard.press('ArrowUp')
+		await expect(page.locator('.tlui-cmt-editing [contenteditable="true"]')).toBeFocused()
+		await page.keyboard.press('Escape')
+		await expect(page.locator('.tlui-cmt-canvas-popover')).toBeVisible()
+		await expect(reply).toBeFocused()
+	})
 })
