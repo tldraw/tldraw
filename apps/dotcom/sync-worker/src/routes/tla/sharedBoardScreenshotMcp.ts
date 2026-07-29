@@ -1,65 +1,41 @@
-import {
-	DEFAULT_THUMBNAIL_HEIGHT,
-	DEFAULT_THUMBNAIL_WIDTH,
-	MAX_THUMBNAIL_PAGES,
-	THUMBNAIL_RENDER_PATH,
-	THUMBNAIL_RENDER_TIMEOUT_MS,
-} from '@tldraw/dotcom-shared'
-import { RoomSnapshot } from '@tldraw/sync-core'
+import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
-import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
-import { writeDataPoint } from '../../utils/analytics'
-import {
-	THUMBNAIL_RENDER_TOKEN_TTL_MS,
-	ThumbnailRenderJob,
-	mintThumbnailRenderToken,
-} from '../../utils/renderTokens'
+import { arrayBufferToBase64 } from '../../utils/base64'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
-import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import {
-	getSharedFileInfo,
-	getSharedFileRoomSnapshot,
-	isFileAnonymouslyViewable,
-} from './getSharedFile'
+	ResolveThumbnailBoardResult,
+	ResolvedThumbnailBoard,
+	captureThumbnailScreenshot,
+	enumerateBoardPages,
+	isGlobalBrowserRunRateLimited,
+	isRateLimited,
+	loadBoardSnapshot,
+	putThumbnailPng,
+	resolveThumbnailBoard,
+	writeScreenshotTelemetry,
+} from './thumbnailRender'
 import {
-	BoardSnapshotReadError,
 	classifyScreenshotFailure,
 	describeThumbnailFailure,
 	reportThumbnailError,
 	sha256,
 } from './thumbnailShared'
 
+// The MCP protocol surface over the shared render-and-cache core in thumbnailRender.ts: JSON-RPC
+// plumbing, tool definitions, input parsing, and the MCP tools' own per-IP/per-board rate limits
+// and `mcp/` cache keys.
+
 const SCREENSHOT_TOOL_NAME = 'get_shared_board_screenshot'
 const BOARD_INFO_TOOL_NAME = 'get_board_info'
 const MCP_PROTOCOL_VERSION = '2024-11-05'
-// Bounds both navigation and the render-page settle+export wait inside the Browser Rendering
-// screenshot Quick Action. Shared with the render page (which sizes its own settle budget under this)
-// via @tldraw/dotcom-shared so the two deadlines can't drift.
-const RENDER_TIMEOUT_MS = THUMBNAIL_RENDER_TIMEOUT_MS
-// The render page marks a terminal state on <body>/<html>: success sets data-thumbnail-ready once the
-// exported image has painted; any failure (bad token, snapshot load, export, or image decode) sets
-// data-thumbnail-error. The screenshot Quick Action waits for EITHER, so a failed render returns as
-// soon as it errors instead of burning the whole RENDER_TIMEOUT_MS holding scarce Browser Run
-// capacity.
-const RENDER_SETTLED_SELECTOR = '[data-thumbnail-ready="true"], [data-thumbnail-error]'
-// The element the Quick Action actually captures. It exists only on the success path, so when the
-// wait above resolves on a failure there is nothing to screenshot and the Quick Action returns an
-// error immediately (surfaced as a render failure) rather than capturing the error page. Scoped to
-// <body> so it resolves to a single element (both <html> and <body> carry the ready marker).
-const RENDER_CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
 
-// Per-IP and per-board limits protect the endpoint and individual boards; the global limit caps
-// total Browser Rendering spend across all callers. The Cloudflare bindings in wrangler.toml enforce
-// these in deployments; the isolate-local fallback only covers local dev and tests.
+// Per-IP and per-board limits protect the endpoint and individual boards; the global limit in
+// thumbnailRender.ts caps total Browser Rendering spend across all callers. The Cloudflare bindings
+// in wrangler.toml enforce these in deployments; the isolate-local fallback only covers local dev
+// and tests.
 const PER_IP_RATE_LIMIT = 2
 const PER_BOARD_RATE_LIMIT = 2
-// The single limiter key every Browser Run-spending surface (this tool and the OG queue consumer)
-// passes, so they draw from one shared global cap instead of separate per-key buckets.
-export const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
-export const GLOBAL_BROWSER_RUN_RATE_LIMIT = 6
-const RATE_LIMIT_WINDOW_MS = 60_000
-const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
 
 type JsonRpcId = string | number | null
 
@@ -78,25 +54,6 @@ export interface SharedBoardScreenshotInput {
 	// 0-based page ordinal to screenshot. Defaults to 0 (the first page).
 	page: number
 	theme: 'light' | 'dark'
-}
-
-interface ResolvedBoard {
-	kind: 'published' | 'shared_file'
-	slug: string
-	version: string | number
-}
-
-type ResolveBoardResult =
-	| { ok: true; board: ResolvedBoard }
-	| { ok: false; reason: 'not_found' | 'board_empty' }
-
-// A board page in stable board order. `index` is the 0-based ordinal callers pass to the screenshot
-// tool; `id` is the internal TLPageId used to drive the render page.
-interface EnumeratedPage {
-	index: number
-	id: string
-	name: string
-	hasContent: boolean
 }
 
 // Runtime kill switch for the whole MCP server, read per request so flipping MCP_SCREENSHOT_ENABLED
@@ -223,100 +180,25 @@ function parsePageOrdinal(value: unknown): number {
 
 // A board id is tried as a shared file id first (the /f/:slug namespace, where the slug is the
 // file id) and as a published-board slug (/p/:slug) second, so callers never need to know which
-// kind of board they hold. Both paths apply the same gates: shared files must currently be shared
-// via link and have persisted content, published boards must be published.
+// kind of board they hold. A shared file that resolves as empty is still the caller's board, so it
+// does not fall through to the published lookup and get misreported as not found.
 export async function resolveSharedBoardById(
 	env: Environment,
 	boardId: string
-): Promise<ResolveBoardResult> {
-	const file = await getSharedFileInfo(env, boardId)
-	if (file && isFileAnonymouslyViewable(file)) {
-		// The persisted room's R2 etag rotates when the board content changes, so it keys the
-		// thumbnail cache without a separate content-version field.
-		const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug: boardId, isApp: true }))
-		if (persisted) {
-			return {
-				ok: true,
-				board: { kind: 'shared_file', slug: boardId, version: persisted.etag },
-			}
-		}
-		return { ok: false, reason: 'board_empty' }
-	}
-
-	const published = await getPublishedFileInfo(env, boardId)
-	if (published?.published) {
-		return {
-			ok: true,
-			board: {
-				kind: 'published',
-				slug: boardId,
-				version: published.lastPublished,
-			},
-		}
-	}
-
-	return { ok: false, reason: 'not_found' }
-}
-
-// Reads a resolved board's snapshot, distinguishing the two outcomes callers need to tell apart.
-// `null` means one thing only: the board has no persisted room content, an empty board. Anything
-// the readers throw — Postgres, R2, a malformed payload, or the publish/share gate they re-check as
-// they read — is wrapped as a BoardSnapshotReadError so telemetry can name it. Collapsing both into
-// null, as this used to, filed database outages under "empty board" and left the real cause with no
-// trace anywhere.
-export async function loadBoardSnapshot(
-	env: Environment,
-	board: { kind: 'published' | 'shared_file'; slug: string }
-): Promise<RoomSnapshot | null> {
-	try {
-		const snapshot =
-			board.kind === 'published'
-				? await getPublishedRoomSnapshot(env, board.slug)
-				: await getSharedFileRoomSnapshot(env, board.slug)
-		return snapshot ?? null
-	} catch (error) {
-		// Keep the original message in the wrapper's own text as well as its `cause`, so the Sentry
-		// event title still names the real failure rather than reading as a generic read error.
-		throw new BoardSnapshotReadError(
-			`Could not read board snapshot: ${error instanceof Error ? error.message : String(error)}`,
-			{ cause: error }
-		)
-	}
-}
-
-// Lists a board's pages in the same order the editor shows them. tldraw page indexes are fractional
-// indexes that sort lexicographically, so a plain string sort matches the editor's ordering. A page
-// "has content" when at least one shape sits directly on it (nested shapes always have a top-level
-// ancestor on their page, so checking direct children is sufficient).
-export function enumerateBoardPages(snapshot: RoomSnapshot): EnumeratedPage[] {
-	const records = snapshot.documents.map((d) => d.state) as any[]
-	const pageRecords = records.filter((r) => r?.typeName === 'page')
-	pageRecords.sort((a, b) => (a.index < b.index ? -1 : a.index > b.index ? 1 : 0))
-	const parentIdsWithShapes = new Set(
-		records.filter((r) => r?.typeName === 'shape').map((s) => s.parentId)
-	)
-	return pageRecords.slice(0, MAX_THUMBNAIL_PAGES).map((p, index) => ({
-		index,
-		id: String(p.id),
-		name: typeof p.name === 'string' && p.name.length > 0 ? p.name : `Page ${index + 1}`,
-		hasContent: parentIdsWithShapes.has(p.id),
-	}))
+): Promise<ResolveThumbnailBoardResult> {
+	const shared = await resolveThumbnailBoard(env, 'shared_file', boardId)
+	if (shared.ok || shared.reason === 'board_empty') return shared
+	return resolveThumbnailBoard(env, 'published', boardId)
 }
 
 // One R2 cache key per page. The ordinal keys the object directly; the version and theme are in the
 // path, so republishing or editing rotates every page's key.
 export function getThumbnailPageCacheKey(
-	board: Pick<ResolvedBoard, 'kind' | 'slug' | 'version'>,
+	board: Pick<ResolvedThumbnailBoard, 'kind' | 'slug' | 'version'>,
 	theme: 'light' | 'dark',
 	page: number
 ) {
 	return `mcp/${board.kind}/${board.slug}/${board.version}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/${theme}/page-${page}.png`
-}
-
-export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
-	const url = new URL(THUMBNAIL_RENDER_PATH, renderOrigin)
-	url.searchParams.set('token', token)
-	return url.toString()
 }
 
 async function callBoardInfoTool(
@@ -396,11 +278,11 @@ async function callSharedBoardScreenshotTool(
 		input = parseSharedBoardScreenshotInput(argumentsValue)
 	} catch (error) {
 		// Telemetry gets a bounded reason code; the caller gets the specific validation message.
-		writeMcpScreenshotTelemetry(env, {
+		writeScreenshotTelemetry(env, {
+			source: 'mcp',
 			boardHash: 'unresolved',
 			ipHash,
 			cacheStatus: 'miss',
-			rateLimitAllowed: true,
 			failureReason: 'invalid_input',
 		})
 		return toolError(error instanceof Error ? error.message : String(error))
@@ -413,7 +295,7 @@ async function callSharedBoardScreenshotTool(
 		failureReason?: string
 		rateLimitAllowed?: boolean
 	}) => {
-		writeMcpScreenshotTelemetry(env, { boardHash, ipHash, rateLimitAllowed: true, ...data })
+		writeScreenshotTelemetry(env, { source: 'mcp', boardHash, ipHash, ...data })
 	}
 
 	// Screenshots have their own per-IP budget (separate from get_board_info), sized to the ~2/min
@@ -492,11 +374,7 @@ async function callSharedBoardScreenshotTool(
 			})
 			return toolError('Rate limited. This board is being screenshotted too frequently.')
 		}
-		if (
-			await isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
-				fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
-			})
-		) {
+		if (await isGlobalBrowserRunRateLimited(env)) {
 			telemetry({
 				cacheStatus: 'miss',
 				rateLimitAllowed: false,
@@ -505,38 +383,23 @@ async function callSharedBoardScreenshotTool(
 			return toolError('Rate limited. Screenshot capacity is busy, try again in a minute.')
 		}
 
-		const job: ThumbnailRenderJob = {
-			v: 1,
-			kind: board.kind,
-			slug: board.slug,
-			version: board.version,
-			camera: 'content',
+		const render = await captureThumbnailScreenshot(env, board, {
 			pageId: targetPage.id,
-			x: 0,
-			y: 0,
-			z: 1,
+			theme: input.theme,
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
-			theme: input.theme,
-			exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
-		}
-		const token = await mintThumbnailRenderToken(env, job)
-		const renderUrl = buildThumbnailRenderUrl(getRenderOrigin(env), token)
-		const render = await renderThumbnailScreenshot(renderUrl, env)
+		})
 
 		// The render is already paid for in Browser Run capacity and the PNG in hand is exactly what the
 		// caller asked for, so a failed cache write must not throw it away — that would turn a working
 		// screenshot into a tool error and burn the caller's rate-limit budget for nothing. Report it
 		// instead: the caller can't act on it, but a cache that stops absorbing writes means every
-		// subsequent call re-renders, which we do need to see.
+		// subsequent call re-renders, which we do need to see. The page name is URI-encoded into the
+		// object metadata (R2 custom metadata is not reliably unicode-safe).
 		try {
-			await writeThumbnailPage(
-				env.THUMBNAILS,
-				cacheKey,
-				targetPage.name,
-				render.base64,
-				board.version
-			)
+			await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version, {
+				pageName: encodeURIComponent(targetPage.name),
+			})
 		} catch (error) {
 			reportThumbnailError(error, {
 				ctx,
@@ -590,25 +453,6 @@ function toolJsonResult(value: unknown) {
 	}
 }
 
-// Writes one rendered page to the cache, stamping the content version (so a stale version can be
-// detected) and the URI-encoded page name (R2 custom metadata is not reliably unicode-safe).
-async function writeThumbnailPage(
-	bucket: R2Bucket,
-	key: string,
-	pageName: string,
-	base64: string,
-	version: string | number
-) {
-	await bucket.put(key, base64ToArrayBuffer(base64), {
-		httpMetadata: { contentType: 'image/png' },
-		customMetadata: {
-			version: String(version),
-			createdAt: String(Date.now()),
-			pageName: encodeURIComponent(pageName),
-		},
-	})
-}
-
 function decodeThumbnailPageName(value: string | undefined): string {
 	if (!value) return 'Page'
 	try {
@@ -616,112 +460,6 @@ function decodeThumbnailPageName(value: string | undefined): string {
 	} catch {
 		return value
 	}
-}
-
-// The thumbnail pixels come from editor.toImage on the render page: the page exports the target page
-// itself and displays it as a full-viewport image, and the Browser Rendering `/screenshot` Quick
-// Action (called straight through the BROWSER binding, no puppeteer, no API token) captures exactly
-// that. Chrome runs in Cloudflare's fleet, not in this isolate. A render that fails marks an error
-// state instead of the ready one, so the Quick Action returns quickly and surfaces as a render
-// failure (see RENDER_SETTLED_SELECTOR / RENDER_CAPTURE_SELECTOR) rather than burning the timeout.
-export async function renderThumbnailScreenshot(
-	renderUrl: string,
-	env: Environment
-): Promise<{ base64: string; durationMs: number }> {
-	if (!env.BROWSER) {
-		throw new Error(
-			'Browser Rendering is not configured. Set the BROWSER binding (local dev needs Cloudflare credentials).'
-		)
-	}
-
-	const startedAt = Date.now()
-	// Browser Rendering `/screenshot` Quick Action, invoked straight through the binding (no
-	// puppeteer, no API token). Requires compatibility_date >= 2026-03-24 for `quickAction`.
-	const response = await env.BROWSER.quickAction('screenshot', getScreenshotRequestBody(renderUrl))
-	const durationMs = Date.now() - startedAt
-
-	if (!response.ok) {
-		throw new Error(`Browser Rendering screenshot failed (${response.status})`)
-	}
-	const buffer = await response.arrayBuffer()
-	if (buffer.byteLength === 0) {
-		throw new Error('Render produced an empty screenshot')
-	}
-	return { base64: arrayBufferToBase64(buffer), durationMs }
-}
-
-function getScreenshotRequestBody(renderUrl: string) {
-	const headers = getExtraHeaders(renderUrl)
-	return {
-		url: renderUrl,
-		...(headers ? { setExtraHTTPHeaders: headers } : null),
-		viewport: {
-			width: DEFAULT_THUMBNAIL_WIDTH,
-			height: DEFAULT_THUMBNAIL_HEIGHT,
-			deviceScaleFactor: 1,
-		},
-		// Waiting for a terminal selector is the real completion signal; waiting on network activity is
-		// fragile because background app requests (e.g. replicator-status polling) can keep the network
-		// busy indefinitely. `load` is a milder form of that same trap, so it stops here at
-		// domcontentloaded: `load` does not fire until every subresource settles, and one stalled image
-		// request is enough to hold it open until this timeout — at which point the quick action fails
-		// without ever reaching the waitForSelector below, even though the page had marked itself ready
-		// long before. A board whose bookmark preview image points back at that board's own OG image
-		// route does exactly this. Nothing is lost by not waiting for `load`: the render page's settle
-		// wait (THUMBNAIL_SETTLE_TIMEOUT_MS) and the SDK's asset-inlining delay (maxExportDelayMs) are
-		// separately bounded, so the page reaches a terminal state on its own schedule regardless.
-		gotoOptions: {
-			waitUntil: 'domcontentloaded',
-			timeout: RENDER_TIMEOUT_MS,
-		},
-		// Resolve as soon as the render page reaches either terminal state (ready or error), so a
-		// failed render doesn't hold Browser Run capacity for the full timeout.
-		waitForSelector: {
-			selector: RENDER_SETTLED_SELECTOR,
-			timeout: RENDER_TIMEOUT_MS,
-		},
-		// Capture the success-only element (it fills the viewport, so this matches the old full-viewport
-		// screenshot). On a failure it's absent, so the Quick Action errors out immediately instead of
-		// screenshotting the error page. `selector` targets an element without waiting (waitForSelector
-		// above is the wait), so a missing element fails fast rather than re-waiting the timeout.
-		selector: RENDER_CAPTURE_SELECTOR,
-		screenshotOptions: {
-			type: 'png',
-		},
-	}
-}
-
-export async function isRateLimited(
-	limiter: RateLimit | undefined,
-	key: string,
-	{ fallbackLimit }: { fallbackLimit: number }
-): Promise<boolean> {
-	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
-	if (limiter) {
-		const { success } = await limiter.limit({ key: rateLimitKey })
-		return !success
-	}
-
-	// Isolate-local fallback for local dev and tests; deployments configure the Cloudflare rate
-	// limit bindings in wrangler.toml.
-	const now = Date.now()
-	const existing = RATE_LIMIT_FALLBACK.get(rateLimitKey)
-	if (!existing || existing.resetAt <= now) {
-		RATE_LIMIT_FALLBACK.set(rateLimitKey, {
-			count: 1,
-			resetAt: now + RATE_LIMIT_WINDOW_MS,
-		})
-		return false
-	}
-	existing.count++
-	return existing.count > fallbackLimit
-}
-
-// The isolate-local fallback map is module state that persists across a test file's cases. Tests
-// that exercise rendering must reset it between cases, or accumulated counts (especially on the
-// shared `global` key) would trip the low limits and rate-limit later cases' happy paths.
-export function resetRateLimitFallbackForTests() {
-	RATE_LIMIT_FALLBACK.clear()
 }
 
 function getBoardInfoToolDefinition() {
@@ -790,82 +528,9 @@ function getSharedBoardScreenshotToolDefinition() {
 	}
 }
 
-export function getRenderOrigin(env: Environment) {
-	// Staging and production set this in wrangler.toml to their own client origin. Local dev sets it
-	// to the local client; previews configure it explicitly when they need to exercise this path.
-	if (!env.MCP_SCREENSHOT_RENDER_ORIGIN) {
-		throw new Error(
-			`MCP_SCREENSHOT_RENDER_ORIGIN is not configured. It must point at an origin that serves the ${THUMBNAIL_RENDER_PATH} render page.`
-		)
-	}
-	return env.MCP_SCREENSHOT_RENDER_ORIGIN
-}
-
-function getExtraHeaders(renderUrl: string) {
-	const { hostname } = new URL(renderUrl)
-	if (hostname.endsWith('.ngrok-free.dev')) {
-		return {
-			'ngrok-skip-browser-warning': 'true',
-		}
-	}
-	return null
-}
-
 function getClientIp(request: Request) {
 	const forwardedFor = request.headers.get('x-forwarded-for')
 	return request.headers.get('cf-connecting-ip') ?? forwardedFor?.split(',')[0]?.trim() ?? null
-}
-
-function arrayBufferToBase64(buffer: ArrayBuffer) {
-	const bytes = new Uint8Array(buffer)
-	let binary = ''
-	for (let i = 0; i < bytes.length; i += 0x8000) {
-		binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
-	}
-	return btoa(binary)
-}
-
-export function base64ToArrayBuffer(base64: string): ArrayBuffer {
-	const binary = atob(base64)
-	const bytes = new Uint8Array(binary.length)
-	for (let i = 0; i < binary.length; i++) {
-		bytes[i] = binary.charCodeAt(i)
-	}
-	return bytes.buffer
-}
-
-function writeMcpScreenshotTelemetry(
-	env: Environment,
-	data: {
-		boardHash: string
-		ipHash: string
-		cacheStatus: 'hit' | 'miss'
-		browserRunDurationMs?: number
-		failureReason?: string
-		rateLimitAllowed: boolean
-	}
-) {
-	// Record the hashed IP only on failed or rate-limited events, where it's useful for abuse
-	// analysis. Successful calls are the common case, and a per-IP blob there is one distinct
-	// dimension value per client on every request — a large cardinality cost for no query benefit.
-	const isFailure = data.failureReason !== undefined || !data.rateLimitAllowed
-	writeDataPoint(undefined, env.MEASURE, env, 'mcp_shared_board_screenshot', {
-		blobs: [
-			'source:mcp',
-			`cache:${data.cacheStatus}`,
-			`failure:${data.failureReason ?? 'none'}`,
-			`rate_limit:${data.rateLimitAllowed ? 'allowed' : 'blocked'}`,
-			`ip:${isFailure ? data.ipHash : 'none'}`,
-		],
-		indexes: [data.boardHash],
-		doubles: [
-			DEFAULT_THUMBNAIL_WIDTH,
-			DEFAULT_THUMBNAIL_HEIGHT,
-			data.browserRunDurationMs ?? -1,
-			-1,
-			data.rateLimitAllowed ? 1 : 0,
-		],
-	})
 }
 
 async function readJsonRpcRequest(request: Request): Promise<JsonRpcRequest | null> {

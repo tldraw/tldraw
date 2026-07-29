@@ -54,28 +54,28 @@ Only go above 3 people in extraordinary weeks — for example a large migration 
 
 ### 3. Compose the message
 
-Keep it under 2000 characters (Discord's limit). One bullet per person; if someone has multiple notable changes, list them under one bullet. Use plain names — do not attempt Discord `@` mentions (webhook mentions need numeric user IDs, which we don't have).
+Keep it under 2000 characters (Discord's limit). One bullet per person; if someone has multiple notable changes, list them under one bullet.
 
-For the name in parentheses, use the contributor's Discord username from the table below so people are recognizable in the channel. If a GitHub login is not in the table, fall back to the GitHub login.
+Mention each person with their Discord user ID from the table below, written as `<@ID>` — Discord renders that as a real `@` mention and pings them. If a GitHub login is not in the table, fall back to the plain GitHub login (no `<@…>`), since a wrong ID would ping the wrong person.
 
-| GitHub login      | Name              | Discord username  |
-| ----------------- | ----------------- | ----------------- |
-| `angrycaptain19`  | Tim               | `trg1379`         |
-| `AniKrisn`        | Ani Krishnan      | `anikrisn`        |
-| `audrey17leo`     | Audrey            | `dreiiz`          |
-| `danieljamesross` | Dan Ross          | `djrdjrdjr`       |
-| `driev`           | Niall             | `driev_`          |
-| `frolic`          | Kevin Ingersoll   | `frolic`          |
-| `jsscclr`         | Jessica Edwards   | `jsscclr`         |
-| `kaneel`          | Guillaume Richard | `guillaumetldraw` |
-| `kostyafarber`    | Kostya Farber     | `kostyafarber`    |
-| `m31-galaxy`      | Andy (Andromeda)  | `m31_galaxy`      |
-| `max-drake`       | Max Drake         | `max__drake`      |
-| `meg-an31`        | Megan Walker      | `megelia`         |
-| `mimecuvalo`      | Mime Čuvalo       | `mimecuvalo`      |
-| `MitjaBezensek`   | Mitja Bezenšek    | `mitja_bezensek`  |
-| `nattofu`         | Leo               | `nattotofu`       |
-| `steveruizok`     | Steve Ruiz        | `steveruizok`     |
+| GitHub login      | Name              | Discord username  | Discord user ID       |
+| ----------------- | ----------------- | ----------------- | --------------------- |
+| `angrycaptain19`  | Tim               | `trg1379`         | `1197197068045910087` |
+| `AniKrisn`        | Ani Krishnan      | `anikrisn`        | `1348594738927767612` |
+| `audrey17leo`     | Audrey            | `dreiiz`          | `617346760385495060`  |
+| `danieljamesross` | Dan Ross          | `djrdjrdjr`       | `1494628009896837203` |
+| `driev`           | Niall             | `driev_`          | `1338934372992159786` |
+| `frolic`          | Kevin Ingersoll   | `frolic`          | `79416844720537600`   |
+| `jsscclr`         | Jessica Edwards   | `jsscclr`         | `1382308873276358766` |
+| `kaneel`          | Guillaume Richard | `guillaumetldraw` | `1519303217840656522` |
+| `kostyafarber`    | Kostya Farber     | `kostyafarber`    | `327278771541377034`  |
+| `m31-galaxy`      | Andy (Andromeda)  | `m31_galaxy`      | `650459420635168769`  |
+| `max-drake`       | Max Drake         | `max__drake`      | `177565795973464065`  |
+| `meg-an31`        | Megan Walker      | `megelia`         | `813347618083045393`  |
+| `mimecuvalo`      | Mime Čuvalo       | `mimecuvalo`      | `1193847824350199881` |
+| `MitjaBezensek`   | Mitja Bezenšek    | `mitja_bezensek`  | `559094482470174720`  |
+| `nattofu`         | Leo               | `nattotofu`       | `168686397941743617`  |
+| `steveruizok`     | Steve Ruiz        | `steveruizok`     | `414943707662385154`  |
 
 Format:
 
@@ -83,8 +83,8 @@ Format:
 🚀 **dotcom release — people to involve this week**
 Critical changes on production...main:
 
-• **Mime Čuvalo** (mimecuvalo) — fix(release): don't cut a new SDK version for docs-only patches
-• **Kevin Ingersoll** (frolic) — feat(editor): finer, coarse-pointer-aware hit-testing
+• **Mime Čuvalo** (<@1193847824350199881>) — fix(release): don't cut a new SDK version for docs-only patches
+• **Kevin Ingersoll** (<@79416844720537600>) — feat(editor): finer, coarse-pointer-aware hit-testing
 
 N critical changes from M contributors · https://github.com/tldraw/tldraw/compare/production...main
 ```
@@ -96,9 +96,11 @@ If nothing critical was selected but there were commits, say so briefly (e.g. "N
 Post the message as the webhook's `content`. Build the JSON safely (do not string-interpolate the message into the JSON by hand — use `jq` so newlines and quotes are escaped):
 
 ```bash
-jq -n --arg content "$MESSAGE" '{content: $content}' \
+jq -n --arg content "$MESSAGE" '{content: $content, allowed_mentions: {parse: ["users"]}}' \
   | curl -sS -X POST -H "Content-Type: application/json" -d @- "$DISCORD_RELEASE_WEBHOOK_URL"
 ```
+
+`allowed_mentions.parse: ["users"]` lets the `<@ID>` mentions actually ping people while making sure `@everyone`/`@here`/role mentions can never fire from this message.
 
 A successful post returns HTTP 204 with an empty body. Report to the user what was posted (or that the post failed, with the curl output).
 

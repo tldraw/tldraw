@@ -1,14 +1,13 @@
 import { IRequest } from 'itty-router'
-import { Environment } from '../../types'
+import { Environment, ThumbnailBoardKind } from '../../types'
+import { getPublicOrigin } from '../../utils/getPublicOrigin'
+import { enqueueOgImageRender, getOgImageCacheKey } from './ogImageQueue'
 import {
-	OgBoardKind,
-	ResolvedOgBoard,
-	enqueueOgImageRender,
-	getOgImageCacheKey,
-	resolveOgBoardInfo,
-	writeOgImageTelemetry,
-} from './ogImageQueue'
-import { isRateLimited } from './sharedBoardScreenshotMcp'
+	ResolvedThumbnailBoard,
+	isRateLimited,
+	resolveThumbnailBoard,
+	writeScreenshotTelemetry,
+} from './thumbnailRender'
 import { reportThumbnailError, sha256 } from './thumbnailShared'
 
 // OG images are served entirely from the R2 cache; rendering happens asynchronously through the
@@ -61,7 +60,7 @@ export async function getOgImage(
 		: await env.THUMBNAILS?.head(cacheKey)
 	const now = Date.now()
 	if (cached && shouldServeCachedOgImage(cached, board.version, now)) {
-		writeOgImageTelemetry(env, { source: 'og', boardHash, cacheStatus: 'hit' })
+		writeScreenshotTelemetry(env, { source: 'og', boardHash, cacheStatus: 'hit' })
 		return imageResponse(wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null, {
 			cacheStatus: 'hit',
 			maxAgeSeconds: FRESH_IMAGE_MAX_AGE_SECONDS,
@@ -83,7 +82,7 @@ export async function getOgImage(
 	}
 
 	if (cached) {
-		writeOgImageTelemetry(env, { source: 'og', boardHash, cacheStatus: 'stale' })
+		writeScreenshotTelemetry(env, { source: 'og', boardHash, cacheStatus: 'stale' })
 		return imageResponse(wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null, {
 			cacheStatus: 'stale',
 			maxAgeSeconds: STALE_IMAGE_MAX_AGE_SECONDS,
@@ -91,7 +90,7 @@ export async function getOgImage(
 		})
 	}
 
-	writeOgImageTelemetry(env, {
+	writeScreenshotTelemetry(env, {
 		source: 'og',
 		boardHash,
 		cacheStatus: 'miss',
@@ -111,14 +110,15 @@ function shouldServeCachedOgImage(cached: R2Object, version: string | number, no
 async function resolveOgBoard(
 	request: IRequest,
 	env: Environment
-): Promise<ResolvedOgBoard | null> {
+): Promise<ResolvedThumbnailBoard | null> {
 	const kind = parseOgKind(request.params.prefix)
 	const slug = parseSlug(request.params.slug)
 	if (!kind || !slug) return null
-	return resolveOgBoardInfo(env, kind, slug)
+	const resolved = await resolveThumbnailBoard(env, kind, slug)
+	return resolved.ok ? resolved.board : null
 }
 
-function parseOgKind(value: unknown): OgBoardKind | null {
+function parseOgKind(value: unknown): ThumbnailBoardKind | null {
 	if (value === 'p' || value === 'published') return 'published'
 	if (value === 'f' || value === 'shared_file') return 'shared_file'
 	return null
@@ -158,33 +158,4 @@ function redirectToDefaultOgImage(request: IRequest, env: Environment) {
 			'cache-control': `public, max-age=${REDIRECT_MAX_AGE_SECONDS}`,
 		},
 	})
-}
-
-// The origin used to build the URLs we emit into crawler HTML (og:image, canonical) and 302
-// redirect `Location`s. We prefer the configured, trusted client origin so a spoofed
-// `x-forwarded-host` / `Host` can't steer those URLs at an attacker origin (open redirect + unfurl
-// spoofing). Only when no origin is configured do we fall back to a request-derived host, and only
-// if that host is a recognized tldraw/localhost origin.
-export function getPublicOrigin(request: IRequest, env: Environment) {
-	if (env.MCP_SCREENSHOT_RENDER_ORIGIN) return env.MCP_SCREENSHOT_RENDER_ORIGIN
-
-	const forwardedHost = request.headers.get('x-forwarded-host')?.split(',').at(-1)?.trim()
-	const host = forwardedHost ?? request.headers.get('host') ?? undefined
-	const proto = request.headers.get('x-forwarded-proto')?.split(',').at(-1)?.trim() ?? 'https'
-	if (host && isTrustedPublicHost(host)) {
-		return `${proto}://${host}`
-	}
-	return new URL(request.url).origin
-}
-
-// Hosts we're willing to emit into public URLs. Anything else (a spoofed header, a *.workers.dev
-// direct hit) falls through to the request's own origin rather than being trusted.
-function isTrustedPublicHost(host: string) {
-	const hostname = host.split(':')[0].toLowerCase()
-	return (
-		hostname === 'tldraw.com' ||
-		hostname.endsWith('.tldraw.com') ||
-		hostname === 'localhost' ||
-		hostname === '127.0.0.1'
-	)
 }

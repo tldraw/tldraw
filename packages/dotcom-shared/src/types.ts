@@ -314,9 +314,12 @@ export interface AdminFileAssetsResponseBody {
 		byType: Record<string, number>
 	}
 	assets: {
+		/** Every asset record in the snapshot, including `external` ones */
 		total: number
 		associated: number
 		pending: number
+		/** Assets the association pass can't act on: bookmarks, non-http srcs, R2-invalid names */
+		external: number
 		oldFormatUrls: number
 		missingInBucket: number
 		headFailures: number

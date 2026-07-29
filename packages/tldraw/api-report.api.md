@@ -39,6 +39,7 @@ import { JSX } from 'react/jsx-runtime';
 import { JSX as JSX_2 } from 'react';
 import { JSXElementConstructor } from 'react';
 import { LANGUAGES } from '@tldraw/editor';
+import { MatLike } from '@tldraw/editor';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
@@ -83,6 +84,7 @@ import { TLArrowShapeKind } from '@tldraw/editor';
 import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
+import { TLAssetStore } from '@tldraw/editor';
 import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
@@ -797,7 +799,7 @@ export function ConvertToEmbedMenuItem(): JSX.Element | null;
 export function copyAs(editor: Editor, ids: TLShapeId[], opts: CopyAsOptions): Promise<void>;
 
 // @public (undocumented)
-export function CopyAsMenuGroup(): JSX.Element;
+export function CopyAsMenuGroup(): JSX.Element | null;
 
 // @public (undocumented)
 export interface CopyAsOptions extends Omit<TLImageExportOptions, 'format'> {
@@ -1075,6 +1077,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly height: 360;
     readonly hostnames: readonly ["vimeo.com", "player.vimeo.com"];
     readonly isAspectRatioLocked: true;
+    readonly sizeToContentAspectRatio: true;
     readonly title: "Vimeo";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly type: "vimeo";
@@ -1785,6 +1788,7 @@ export interface EmbedDefinition<Config = never> {
     readonly overrideOutlineRadius?: number;
     // (undocumented)
     readonly overridePermissions?: TLEmbedShapePermissions;
+    readonly sizeToContentAspectRatio?: boolean;
     // (undocumented)
     readonly title: string;
     // (undocumented)
@@ -1859,6 +1863,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     options: EmbedShapeOptions;
     // (undocumented)
     static props: RecordProps<TLEmbedShape>;
+    resolveAspectRatio(shape: TLEmbedShape): Promise<void>;
     // @deprecated (undocumented)
     static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
     // (undocumented)
@@ -1933,13 +1938,16 @@ export interface ExampleDialogProps {
 export function exportAs(editor: Editor, ids: TLShapeId[], opts: ExportAsOptions): Promise<void>;
 
 // @public (undocumented)
+export function ExportAsMenuGroup(): JSX.Element | null;
+
+// @public (undocumented)
 export interface ExportAsOptions extends TLImageExportOptions {
     format: TLExportType;
     name?: string;
 }
 
 // @public (undocumented)
-export function ExportFileContentSubMenu(): JSX.Element;
+export function ExportFileContentSubMenu(): JSX.Element | null;
 
 // @public (undocumented)
 export function ExtrasGroup(): JSX.Element;
@@ -2120,6 +2128,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
+            flipX: boolean;
+            flipY: boolean;
             font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
@@ -2155,6 +2165,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
+            flipX: boolean;
+            flipY: boolean;
             font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
@@ -2190,6 +2202,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             color: TLDefaultColorStyle;
             dash: "dashed" | "dotted" | "draw" | "none" | "solid";
             fill: "fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid";
+            flipX: boolean;
+            flipY: boolean;
             font: TLDefaultFontStyle;
             geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             growY: number;
@@ -2245,6 +2259,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     onResize(shape: TLGeoShape, { handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>): {
         props: {
+            flipX: boolean;
+            flipY: boolean;
             growY: number;
             h: number;
             w: number;
@@ -3070,6 +3086,7 @@ export class PathBuilder {
     toPath2D(opts: PathBuilderOpts): Path2D;
     // (undocumented)
     toSvg(opts: PathBuilderOpts): JSX.Element | null;
+    transform(mat: MatLike): PathBuilder;
 }
 
 // @internal (undocumented)
@@ -4157,6 +4174,7 @@ export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 
 // @public (undocumented)
 export interface TldrawImageProps extends TLImageExportOptions {
+    assets?: TLAssetStore;
     assetUrls?: TLUiAssetUrlOverrides;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     format?: 'png' | 'svg';
