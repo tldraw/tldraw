@@ -74,9 +74,14 @@ export async function getOgImage(
 	// failures degrade to the fallback response rather than a 500.
 	if (
 		wantsBody &&
-		!(await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `og-board:${board.kind}:${board.slug}`, {
-			fallbackLimit: OG_IMAGE_BOARD_RATE_LIMIT,
-		}))
+		!(await isRateLimited(
+			env,
+			env.MCP_SCREENSHOT_RATE_LIMITER,
+			`og-board:${board.kind}:${board.slug}`,
+			{
+				fallbackLimit: OG_IMAGE_BOARD_RATE_LIMIT,
+			}
+		))
 	) {
 		await enqueueOgImageRender(env, board).catch(() => {})
 	}

@@ -6,7 +6,9 @@ import {
 	THUMBNAIL_RENDER_TIMEOUT_MS,
 	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
+import { ClusterBounds } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { isShape, TLShape } from '@tldraw/tlschema'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment, ThumbnailBoardKind } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
@@ -156,6 +158,7 @@ export async function captureThumbnailScreenshot(
 	board: ResolvedThumbnailBoard,
 	{
 		pageId,
+		shapeIds,
 		theme,
 		width,
 		height,
@@ -165,6 +168,11 @@ export async function captureThumbnailScreenshot(
 		 * snapshot opens to (used by OG images).
 		 */
 		pageId?: string
+		/**
+		 * Restricts the export to these shapes rather than the whole page: the render page fits the
+		 * camera to their common bounds and draws only them.
+		 */
+		shapeIds?: string[]
 		theme: 'light' | 'dark'
 		width: number
 		height: number
@@ -177,6 +185,7 @@ export async function captureThumbnailScreenshot(
 		version: board.version,
 		camera: 'content',
 		...(pageId ? { pageId } : null),
+		...(shapeIds?.length ? { shapeIds } : null),
 		x: 0,
 		y: 0,
 		z: 1,
@@ -189,6 +198,22 @@ export async function captureThumbnailScreenshot(
 	return renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
 		width,
 		height,
+	})
+}
+
+// The shapes belonging to one page, in snapshot order. Nested shapes carry their ancestor's id as
+// `parentId`, so membership is resolved by walking up to a top-level shape whose parent is the page.
+export function getShapesOnPage(snapshot: RoomSnapshot, pageId: string): TLShape[] {
+	const shapes = snapshot.documents.map((d) => d.state).filter(isShape)
+	const byId = new Map(shapes.map((s) => [s.id, s]))
+	return shapes.filter((shape) => {
+		let current: TLShape | undefined = shape
+		// Bounded by the ancestor chain, and guarded against a cyclic parentId in a corrupt snapshot.
+		for (let depth = 0; current && depth < 100; depth++) {
+			if (current.parentId === pageId) return true
+			current = byId.get(current.parentId as TLShape['id'])
+		}
+		return false
 	})
 }
 
@@ -291,6 +316,80 @@ async function renderViaLocalScreenshotService(
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
 // can be detected) alongside any surface-specific metadata.
+// --- Measuring a page in a real editor ----------------------------------------------------------
+//
+// A Worker cannot size a shape: autosizing text needs font metrics, and several shapes store no size
+// at all. So when clustering needs geometry, the render page is driven in `measure` mode — it loads
+// the same snapshot, waits for fonts, reads editor.getShapePageBounds for every shape, and POSTs the
+// result back. Stashed under the job's own token and read once, so it is a rendezvous for a single
+// in-flight render rather than a cache with a lifetime to manage.
+
+/** What one shape's measure render produced: its page bounds, plus the text its ShapeUtil reported. */
+export interface ShapeMeasurement extends ClusterBounds {
+	text?: string
+}
+
+function getRenderResultKey(token: string) {
+	return `render-result/${encodeURIComponent(token)}.json`
+}
+
+export async function putRenderResult(
+	env: Environment,
+	token: string,
+	bounds: Record<string, ShapeMeasurement>
+) {
+	if (!env.THUMBNAILS) return
+	await env.THUMBNAILS.put(getRenderResultKey(token), JSON.stringify(bounds), {
+		httpMetadata: { contentType: 'application/json' },
+	})
+}
+
+/**
+ * Measures every shape on a page through a real editor, returning `shapeId -> bounds and text`.
+ *
+ * Costs one Browser Rendering session, the same as a screenshot — there is no cheaper way to get
+ * geometry the Worker cannot compute. Callers own the rate limiting that implies.
+ */
+export async function measurePageShapes(
+	env: Environment,
+	board: ResolvedThumbnailBoard,
+	pageId: string
+): Promise<Record<string, ShapeMeasurement>> {
+	const token = await mintThumbnailRenderToken(env, {
+		v: 1,
+		kind: board.kind,
+		slug: board.slug,
+		version: board.version,
+		mode: 'measure',
+		pageId,
+		x: 0,
+		y: 0,
+		z: 1,
+		// Nothing is exported, but the viewport still has to be a sane size: shapes are measured
+		// against a laid-out document, not a zero-sized one.
+		width: DEFAULT_THUMBNAIL_WIDTH,
+		height: DEFAULT_THUMBNAIL_HEIGHT,
+		theme: 'light',
+		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
+	})
+
+	// The screenshot is discarded — it is only how the browser session is driven, and how we know the
+	// page reached its terminal state. The answer arrives via the result endpoint.
+	await renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
+		width: DEFAULT_THUMBNAIL_WIDTH,
+		height: DEFAULT_THUMBNAIL_HEIGHT,
+	})
+
+	if (!env.THUMBNAILS) throw new Error('THUMBNAILS bucket is not configured')
+	const key = getRenderResultKey(token)
+	const stored = await env.THUMBNAILS.get(key)
+	if (!stored) throw new Error('The render page did not report any measurements')
+	const bounds = JSON.parse(await stored.text())
+	// Read once: the token is single-use, so leaving the object behind would only accumulate.
+	await env.THUMBNAILS.delete(key)
+	return bounds
+}
+
 export async function putThumbnailPng(
 	bucket: R2Bucket,
 	key: string,
@@ -312,16 +411,29 @@ export async function putThumbnailPng(
 // screenshot tool and the OG queue consumer) checks this, and all of them pass the same limiter key,
 // so they draw from one global bucket instead of separate per-surface budgets.
 export async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
-	return isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
-		fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
-	})
+	return isRateLimited(
+		env,
+		env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER,
+		GLOBAL_BROWSER_RATE_LIMIT_KEY,
+		{
+			fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
+		}
+	)
 }
 
 export async function isRateLimited(
+	env: Environment,
 	limiter: RateLimit | undefined,
 	key: string,
 	{ fallbackLimit }: { fallbackLimit: number }
 ): Promise<boolean> {
+	// Local dev opts out entirely. These limits exist to bound Browser Rendering spend and to protect
+	// a public, unauthenticated endpoint — a dev machine driving its own screenshot service is doing
+	// neither, and a ~2/min cap makes the tools unusable to iterate against. Selected on the var
+	// being set rather than on an environment name, so only an environment that configures one can
+	// take this path; every deployed environment leaves it unset and stays limited.
+	if (env.MCP_SCREENSHOT_RATE_LIMITS_DISABLED === 'true') return false
+
 	// The mcp- prefix predates the OG surfaces sharing this limiter; it's kept (not renamed) so the
 	// deployed Cloudflare rate limit bindings and their configured buckets stay continuous.
 	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
