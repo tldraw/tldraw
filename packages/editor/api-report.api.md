@@ -5240,8 +5240,6 @@ export interface ValidLicenseKeyResult {
     // (undocumented)
     isEvaluationLicenseExpired: boolean;
     // (undocumented)
-    isGrandfathered: boolean;
-    // (undocumented)
     isInternalLicense: boolean;
     // (undocumented)
     isLicensedWithWatermark: boolean;
