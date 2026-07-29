@@ -68,25 +68,106 @@ describe('categorizeCommentNotifications', () => {
 	})
 
 	it("labels a reply in a thread I've commented in as reply", () => {
-		const mine = comment({
-			id: 'comment:mine',
-			authorId: ME,
-			createdAt: 1000,
-			thread: { createdBy: OTHER },
-			file: { ownerId: THIRD },
-		})
 		const theirReply = comment({
 			id: 'comment:theirs',
 			authorId: OTHER,
 			createdAt: 2000,
-			thread: { createdBy: OTHER },
+			thread: { createdBy: OTHER, comments: [{ authorId: ME, createdAt: 1000 }] },
 			file: { ownerId: THIRD },
 		})
-		const result = categorizeCommentNotifications([mine, theirReply], ME)
-		// only their reply surfaces (mine is excluded), tagged reply
+		const result = categorizeCommentNotifications([theirReply], ME)
 		expect(result).toHaveLength(1)
 		expect(result[0].comment.id).toBe('comment:theirs')
 		expect(result[0].primaryReason).toBe('reply')
+	})
+
+	it('drops comments written before I joined the thread', () => {
+		// other(1000), other(2000), me(3000)
+		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: 3000 }] }
+		const before1 = comment({ id: 'comment:b1', createdAt: 1000, thread, file: { ownerId: THIRD } })
+		const before2 = comment({ id: 'comment:b2', createdAt: 2000, thread, file: { ownerId: THIRD } })
+		expect(categorizeCommentNotifications([before1, before2], ME)).toEqual([])
+	})
+
+	it('keeps replies from after I joined even once I have replied to them', () => {
+		// other(1000), me(2000), other(3000), me(4000): only the pre-join comment at 1000 drops
+		const thread = {
+			createdBy: OTHER,
+			comments: [
+				{ authorId: ME, createdAt: 2000 },
+				{ authorId: ME, createdAt: 4000 },
+			],
+		}
+		const preJoin = comment({
+			id: 'comment:pre',
+			createdAt: 1000,
+			thread,
+			file: { ownerId: THIRD },
+		})
+		const postJoin = comment({
+			id: 'comment:post',
+			createdAt: 3000,
+			thread,
+			file: { ownerId: THIRD },
+		})
+		const result = categorizeCommentNotifications([preJoin, postJoin], ME)
+		expect(result.map((n) => n.comment.id)).toEqual(['comment:post'])
+		expect(result[0].primaryReason).toBe('reply')
+	})
+
+	it('drops a comment timestamped identically to my join', () => {
+		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: 1000 }] }
+		const tied = comment({ createdAt: 1000, thread, file: { ownerId: THIRD } })
+		expect(categorizeCommentNotifications([tied], ME)).toEqual([])
+	})
+
+	it("ignores others' comments in the thread relation when deriving my join time", () => {
+		// defense in depth: the query only syncs my own, but a foreign row must not count
+		const thread = { createdBy: OTHER, comments: [{ authorId: THIRD, createdAt: 500 }] }
+		const theirs = comment({ createdAt: 1000, thread, file: { ownerId: THIRD } })
+		expect(categorizeCommentNotifications([theirs], ME)).toEqual([])
+	})
+
+	it('keeps a mention from before I joined the thread', () => {
+		const result = categorizeCommentNotifications(
+			[
+				comment({
+					createdAt: 1000,
+					body: body('hey ', [ME]),
+					thread: { createdBy: OTHER, comments: [{ authorId: ME, createdAt: 2000 }] },
+					file: { ownerId: THIRD },
+				}),
+			],
+			ME
+		)
+		expect(result).toHaveLength(1)
+		// reply must not leak in for a pre-join comment
+		expect(result[0].reasons).toEqual(['mention'])
+		expect(result[0].primaryReason).toBe('mention')
+	})
+
+	it('never labels reply when the thread relation is missing', () => {
+		const result = categorizeCommentNotifications(
+			[comment({ thread: null, file: { ownerId: ME } })],
+			ME
+		)
+		expect(result).toHaveLength(1)
+		expect(result[0].reasons).toEqual(['owned-board'])
+	})
+
+	it('keeps an owned-board comment from before I joined the thread', () => {
+		const result = categorizeCommentNotifications(
+			[
+				comment({
+					createdAt: 1000,
+					thread: { createdBy: OTHER, comments: [{ authorId: ME, createdAt: 2000 }] },
+					file: { ownerId: ME },
+				}),
+			],
+			ME
+		)
+		expect(result).toHaveLength(1)
+		expect(result[0].reasons).toEqual(['owned-board'])
 	})
 
 	it('labels a comment that @-mentions me as mention', () => {
@@ -103,10 +184,8 @@ describe('categorizeCommentNotifications', () => {
 		expect(result.map((n) => n.primaryReason)).toEqual(['mention'])
 	})
 
-	it('falls back to reply when no reason is derivable from the synced window', () => {
-		// The server only syncs in-category comments, so a comment with no locally visible
-		// evidence (not my board, no mention of me, my thread participation older than the
-		// window) must be a reply — it is labeled, not dropped.
+	it('drops a comment with no derivable reason', () => {
+		// not my board, no mention of me, no participation evidence
 		const result = categorizeCommentNotifications(
 			[
 				comment({
@@ -117,9 +196,7 @@ describe('categorizeCommentNotifications', () => {
 			],
 			ME
 		)
-		expect(result).toHaveLength(1)
-		expect(result[0].reasons).toEqual(['reply'])
-		expect(result[0].primaryReason).toBe('reply')
+		expect(result).toEqual([])
 	})
 
 	it('tags multiple reasons with mention > reply > owned-board precedence', () => {
