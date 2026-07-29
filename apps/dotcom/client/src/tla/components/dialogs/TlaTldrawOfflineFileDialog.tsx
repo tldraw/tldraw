@@ -10,6 +10,8 @@ import {
 import { F } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 
+/** Passed into the message as a value so the app's name doesn't get translated. */
+const TLDRAW_OFFLINE_NAME = 'tldraw offline'
 const TLDRAW_OFFLINE_URL = 'https://offline.tldraw.com/'
 
 /** Anchors the "Export as .tldr" section of the tldraw offline user manual. */
@@ -32,8 +34,10 @@ export function TlaTldrawOfflineFileDialog({ onClose }: { onClose(): void }) {
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
 				<p>
 					<F
-						defaultMessage="We’re working on support for files from <a>tldraw offline</a>."
+						defaultMessage="We’re working on support for files from <a><strong>{appName}</strong></a>."
 						values={{
+							appName: TLDRAW_OFFLINE_NAME,
+							strong: (chunks) => <strong>{chunks}</strong>,
 							a: (chunks) => (
 								<ExternalLink to={TLDRAW_OFFLINE_URL} eventName="open-tldraw-offline">
 									{chunks}

@@ -11,6 +11,32 @@
       "value": "Accept invitation"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "We’re working on support for files from "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -639,26 +665,6 @@
     {
       "type": 0,
       "value": "Got it"
-    }
-  ],
-  "78fe018ff0": [
-    {
-      "type": 0,
-      "value": "We’re working on support for files from "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "tldraw offline"
-        }
-      ],
-      "type": 8,
-      "value": "a"
-    },
-    {
-      "type": 0,
-      "value": "."
     }
   ],
   "797799f35e": [

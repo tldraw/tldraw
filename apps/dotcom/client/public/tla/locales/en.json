@@ -5,6 +5,9 @@
   "00b177e080": {
     "translation": "Accept invitation"
   },
+  "029f235f01": {
+    "translation": "We’re working on support for files from <a><strong>{appName}</strong></a>."
+  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -298,9 +301,6 @@
   },
   "78e9815992": {
     "translation": "Got it"
-  },
-  "78fe018ff0": {
-    "translation": "We’re working on support for files from <a>tldraw offline</a>."
   },
   "797799f35e": {
     "translation": "Submit an issue on GitHub"
