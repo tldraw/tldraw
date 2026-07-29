@@ -22,23 +22,26 @@ export interface ThumbnailRenderJob {
 	 */
 	version: string | number
 	/**
-	 * Fit the board's current page content into the requested output size — the only mode there is.
-	 * An explicit viewport (x/y/z) rode along here for a while and was never once requested, so it
-	 * went rather than stay unreachable and untested.
+	 * When omitted, the render page uses x/y/z directly. `content` tells the render page to fit the
+	 * board's current page content into the requested output size.
 	 *
-	 * Real render params are worth adding when a surface needs them, designed against that surface
-	 * rather than guessed at here. Doing so is cheap: tokens live THUMBNAIL_RENDER_TOKEN_TTL_MS, so
-	 * this payload has no stored state and no migration — add the field, echo it from
-	 * `getThumbnailSnapshot`, handle it on the render page. The one ordering constraint is that the
-	 * client and worker deploy separately, so teach the render page to handle the param before the
-	 * worker starts sending it.
+	 * Every surface mints `content` today, so the explicit-viewport path is not exercised in
+	 * production. It is kept deliberately rather than dropped as unreachable: the token payload is
+	 * short-lived (THUMBNAIL_RENDER_TOKEN_TTL_MS) and has no stored state, so removing it costs
+	 * nothing to undo on the worker side — but the render page and the worker deploy separately, so
+	 * bringing it back would mean landing the client's handling first and waiting for that deploy
+	 * before the worker could send it. Keeping it holds that door open.
 	 */
-	camera: 'content'
+	camera?: 'content'
 	/**
 	 * The TLPageId of the single page to render. When omitted, the render page exports whichever page
 	 * the snapshot opens to (used by OG images). The worker takes one screenshot of the rendered page.
 	 */
 	pageId?: string
+	/** The viewport the render page sets directly when `camera` is omitted. */
+	x: number
+	y: number
+	z: number
 	width: number
 	height: number
 	theme: 'light' | 'dark'
@@ -104,7 +107,7 @@ export async function verifyThumbnailRenderToken(
 		job.v !== 1 ||
 		(job.kind !== 'published' && job.kind !== 'shared_file') ||
 		typeof job.slug !== 'string' ||
-		job.camera !== 'content' ||
+		(job.camera !== undefined && job.camera !== 'content') ||
 		(job.pageId !== undefined && typeof job.pageId !== 'string') ||
 		typeof job.exp !== 'number'
 	) {

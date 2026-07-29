@@ -27,7 +27,7 @@ import {
 	parseTopicSubscriptionTree,
 	serializeSubscriptions,
 } from './replicator/Subscription'
-import { deleteOgImageCache, enqueueOgImageRender } from './routes/tla/ogImageQueue'
+import { clearOgImagePendingMarker, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
 	Analytics,
 	Environment,
@@ -470,10 +470,15 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 							case 'unpublish':
 								return this.unpublishSnapshot(effect.file)
 							case 'unshare':
-								return deleteOgImageCache(this.env, {
+								// The image itself is kept — the OG route re-checks the share gate on every
+								// request, so it stops being reachable the moment the file is unshared, and
+								// keeping it means a resharing board (or an owner-facing view behind authz)
+								// starts from the thumbnail it already had. Only the pending marker goes, so a
+								// reshare is not deduped away by a marker left over from before.
+								return clearOgImagePendingMarker(this.env, {
 									kind: 'shared_file',
 									slug: effect.file.id,
-								}).catch((e) => this.log.debug('Error deleting shared file OG image', e))
+								}).catch((e) => this.log.debug('Error clearing shared file OG marker', e))
 							case 'notify_file_durable_object':
 								switch (effect.command) {
 									case 'insert':
@@ -900,7 +905,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await this.env.ROOM_SNAPSHOTS.delete(
 				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
 			)
-			await deleteOgImageCache(this.env, { kind: 'published', slug: file.publishedSlug })
+			// The published snapshot goes, since that is the content itself. The rendered thumbnail stays:
+			// the OG route re-checks `published` on every request, so it is unreachable either way, and a
+			// republish under the same slug starts from the image it already had rather than the default.
+			await clearOgImagePendingMarker(this.env, { kind: 'published', slug: file.publishedSlug })
 		} catch (e) {
 			this.log.debug('Error unpublishing snapshot', e)
 		}

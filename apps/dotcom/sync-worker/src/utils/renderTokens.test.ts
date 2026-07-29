@@ -16,6 +16,9 @@ function makeJob(overrides: Partial<ThumbnailRenderJob> = {}): ThumbnailRenderJo
 		slug: 'my-board',
 		version: 1751234567890,
 		camera: 'content',
+		x: 0,
+		y: 0,
+		z: 1,
 		width: 1200,
 		height: 630,
 		theme: 'light',
@@ -47,11 +50,13 @@ describe('thumbnail render tokens', () => {
 		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
 	})
 
-	// `content` is the only mode, so it is required rather than defaulted: a job that reaches the
-	// verifier without one was not minted by any current call site.
-	it('rejects tokens with no camera mode', async () => {
-		const token = await mintThumbnailRenderToken(env, makeJob({ camera: undefined as any }))
-		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
+	// An absent camera is valid and means "use the explicit x/y/z viewport". No surface mints one
+	// today — they all ask for `content` — but the path is kept available, so the verifier has to
+	// accept it or the worker could not start sending one without a client deploy first.
+	it('accepts a token with no camera mode, carrying its viewport through', async () => {
+		const job = makeJob({ camera: undefined, x: 120, y: -40, z: 0.75 })
+		const token = await mintThumbnailRenderToken(env, job)
+		expect(await verifyThumbnailRenderToken(env, token)).toEqual(job)
 	})
 
 	it('round-trips a single-page (pageId) job', async () => {

@@ -4,7 +4,7 @@ import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import {
-	deleteOgImageCache,
+	clearOgImagePendingMarker,
 	enqueueOgImageRender,
 	getOgImageCacheKey,
 	handleOgImageRenderMessage,
@@ -21,7 +21,6 @@ import {
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
-import { resetRateLimitFallbackForTests } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -38,7 +37,6 @@ afterEach(() => {
 	vi.useRealTimers()
 	vi.unstubAllGlobals()
 	vi.clearAllMocks()
-	resetRateLimitFallbackForTests()
 })
 
 function makeMessage(
@@ -149,21 +147,23 @@ describe('enqueueOgImageRender for an edit', () => {
 	})
 })
 
-describe('deleteOgImageCache', () => {
-	it('drops the cached image and the pending marker so a reshare can render again', async () => {
+describe('clearOgImagePendingMarker', () => {
+	// The rendered image is deliberately kept when a board stops being public. It is unreachable
+	// either way — the OG route re-checks the share gate on every request — and keeping it means an
+	// owner-facing surface behind authz can use the thumbnail a board already has, instead of it
+	// having been thrown away the moment the board went private.
+	it('clears the pending marker so a reshare can render again, and keeps the image', async () => {
+		const board = { kind: 'shared_file', slug: 'board' } as const
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ THUMBNAILS: bucket })
-		await enqueueOgImageRender(env, { kind: 'shared_file', slug: 'board' })
-		await bucket.put(
-			getOgImageCacheKey({ kind: 'shared_file', slug: 'board' }),
-			new Uint8Array([1]).buffer
-		)
+		await enqueueOgImageRender(env, board)
+		await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer)
 
-		await deleteOgImageCache(env, { kind: 'shared_file', slug: 'board' })
+		await clearOgImagePendingMarker(env, board)
 
-		expect([...bucket.store.keys()]).toEqual([])
+		expect([...bucket.store.keys()]).toEqual([getOgImageCacheKey(board)])
 		// With the marker gone, the next enqueue is not deduped away.
-		expect(await enqueueOgImageRender(env, { kind: 'shared_file', slug: 'board' })).toBe('enqueued')
+		expect(await enqueueOgImageRender(env, board)).toBe('enqueued')
 	})
 })
 
@@ -323,8 +323,10 @@ describe('handleOgImageRenderMessage', () => {
 		expect(retry.retry).not.toHaveBeenCalled()
 		expect(retry.ack).toHaveBeenCalledTimes(1)
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
-		// The cached image is dropped too, so no-longer-public content does not linger in the cache.
-		expect(bucket.store.has(cacheKey)).toBe(false)
+		// The image survives the board going private. It is unreachable publicly either way — the OG
+		// route re-checks the gate per request — and an owner-facing surface behind authz can still use
+		// it. Only the pending marker is cleared, so a reshare is not deduped away.
+		expect(bucket.store.has(cacheKey)).toBe(true)
 		// Both deliveries are recorded, and they say different things: the first could not read the
 		// board, the second re-resolved and found it private. Collapsing to one row would lose the
 		// distinction along with the fact that the job cost two deliveries.
@@ -382,24 +384,32 @@ describe('handleOgImageRenderMessage', () => {
 		expect(message.ack).toHaveBeenCalledTimes(1)
 	})
 
-	it('drops the job and deletes the cached image when the board is no longer viewable', async () => {
+	// Terminal, not transient: no number of retries makes the board public again. The job is acked
+	// without spending Browser Run, and the image the board already has is kept — nothing deletes a
+	// rendered thumbnail any more, so an owner-facing view behind authz still has one to show.
+	it('drops the job without rendering when the board is no longer viewable, keeping its image', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'unshared-file',
 			shared: false,
 			isDeleted: false,
 		})
+		const board = { kind: 'shared_file', slug: 'unshared-file' } as const
 		const bucket = makeFakeThumbnailsBucket()
-		const cacheKey = getOgImageCacheKey({ kind: 'shared_file', slug: 'unshared-file' })
+		const cacheKey = getOgImageCacheKey(board)
 		await bucket.put(cacheKey, new Uint8Array([9]).buffer, {
 			customMetadata: { version: 'old', createdAt: String(Date.now()) },
 		})
+		// A marker from the enqueue that raced the unshare; it must not outlive the dropped job, or the
+		// next reshare's enqueue is deduped away against a render that never happened.
+		await enqueueOgImageRender(makeEnv({ THUMBNAILS: bucket }), board)
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(), THUMBNAILS: bucket })
-		const message = makeMessage({ kind: 'shared_file', slug: 'unshared-file' })
+		const message = makeMessage(board)
 
 		await handleOgImageRenderMessage(env, message)
 
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
-		expect(bucket.store.has(cacheKey)).toBe(false)
+		expect(bucket.store.has(cacheKey)).toBe(true)
+		expect([...bucket.store.keys()]).toEqual([cacheKey])
 		expect(message.ack).toHaveBeenCalledTimes(1)
 		expect(message.retry).not.toHaveBeenCalled()
 	})

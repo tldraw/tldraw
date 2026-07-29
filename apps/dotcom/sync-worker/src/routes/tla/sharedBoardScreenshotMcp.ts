@@ -8,8 +8,6 @@ import {
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
 	enumerateBoardPages,
-	isGlobalBrowserRunRateLimited,
-	isRateLimited,
 	loadBoardSnapshot,
 	putThumbnailPng,
 	resolveThumbnailBoard,
@@ -31,18 +29,82 @@ const SCREENSHOT_TOOL_NAME = 'get_shared_board_screenshot'
 const BOARD_INFO_TOOL_NAME = 'get_board_info'
 const MCP_PROTOCOL_VERSION = '2024-11-05'
 
-// These caps exist for this endpoint specifically. It is the one Browser Run-spending surface an
-// outside caller can drive directly, so a rogue or looping agent is the threat being bounded: per-IP
-// limits stop one caller monopolising it, per-board limits stop one board being hammered, and the
-// global limit in thumbnailRender.ts bounds what this endpoint as a whole can spend. Board thumbnail
-// rendering deliberately has no equivalent cap — it is triggered by our own writes, not by callers
-// (see ogImageQueue.ts). Note the global limit is per Cloudflare location, so it bounds a rogue
-// caller rather than being an account-wide ceiling.
+// The only rate limiting anywhere in the thumbnail pipeline, and it lives here rather than in the
+// shared render core (thumbnailRender.ts) so a new surface built on those helpers cannot pick one up
+// by accident. This is the one Browser Run-spending surface an outside caller can drive directly, so
+// a rogue or looping agent is the threat being bounded: per-IP limits stop one caller monopolising
+// it, per-board limits stop one board being hammered, and the global limit bounds what this endpoint
+// as a whole can spend.
 //
-// The Cloudflare bindings in wrangler.toml enforce these in deployments; the isolate-local fallback
-// only covers local dev and tests.
-const PER_IP_RATE_LIMIT = 2
+// Only the calls that actually spend Browser Run are limited. `get_board_info` is not: it resolves a
+// board and reads its snapshot, which is the same work the ordinary board routes already do for
+// anyone. Board thumbnail rendering (the OG route and the queue consumer) is not limited either — it
+// is triggered by our own writes rather than by callers, so a cap there would only ever mean serving
+// a stale thumbnail to save a render we intend to do anyway.
+//
+// Note the global limit is applied per Cloudflare location, so it bounds a rogue caller rather than
+// acting as an account-wide ceiling.
+//
+// These constants are only the isolate-local fallback, for local dev and tests. What enforces the
+// limits in every deployed environment is the Cloudflare rate limit bindings in wrangler.toml, so
+// changing a number here without changing the matching binding changes nothing in production. Each
+// budget has its own binding, and the pairs must move together:
+//
+//   PER_IP_RATE_LIMIT              ->  MCP_SCREENSHOT_RATE_LIMITER          (limit = 10)
+//   PER_BOARD_RATE_LIMIT           ->  MCP_SCREENSHOT_BOARD_RATE_LIMITER    (limit = 2)
+//   GLOBAL_BROWSER_RUN_RATE_LIMIT  ->  MCP_SCREENSHOT_BROWSER_RATE_LIMITER  (limit = 20)
+//
+// Three bindings rather than two because a binding carries a single `limit` applied per key: two
+// budgets wanting different numbers cannot share one, however distinct their keys are. Per-IP and
+// per-board did share MCP_SCREENSHOT_RATE_LIMITER while both were 2, which made them look separable
+// when they were not.
+const PER_IP_RATE_LIMIT = 10
+// Deliberately far below the per-IP limit: a caller gets 10 captures a minute, but no single board
+// may absorb more than 2 of them. Cache misses only, so the usual "screenshot several pages of one
+// board" flow is not what this bounds — a repeated capture of the same page is a cache hit.
 const PER_BOARD_RATE_LIMIT = 2
+const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
+const GLOBAL_BROWSER_RUN_RATE_LIMIT = 20
+const RATE_LIMIT_WINDOW_MS = 60_000
+const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
+
+async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
+	return isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
+		fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
+	})
+}
+
+async function isRateLimited(
+	limiter: RateLimit | undefined,
+	key: string,
+	{ fallbackLimit }: { fallbackLimit: number }
+): Promise<boolean> {
+	// The mcp- prefix is kept (not renamed) so the deployed Cloudflare rate limit bindings and their
+	// configured buckets stay continuous.
+	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
+	if (limiter) {
+		const { success } = await limiter.limit({ key: rateLimitKey })
+		return !success
+	}
+
+	// Isolate-local fallback for local dev and tests; deployments configure the Cloudflare rate
+	// limit bindings in wrangler.toml.
+	const now = Date.now()
+	const existing = RATE_LIMIT_FALLBACK.get(rateLimitKey)
+	if (!existing || existing.resetAt <= now) {
+		RATE_LIMIT_FALLBACK.set(rateLimitKey, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
+		return false
+	}
+	existing.count++
+	return existing.count > fallbackLimit
+}
+
+// The isolate-local fallback map is module state that persists across a test file's cases. Tests that
+// exercise the MCP tools must reset it between cases, or accumulated counts (especially on the shared
+// `global` key) would trip the low limits and rate-limit later cases' happy paths.
+export function resetRateLimitFallbackForTests() {
+	RATE_LIMIT_FALLBACK.clear()
+}
 
 type JsonRpcId = string | number | null
 
@@ -214,7 +276,6 @@ async function callBoardInfoTool(
 	env: Environment,
 	ctx?: ExecutionContext
 ) {
-	const clientIp = getClientIp(request)
 	let input: { boardId: string }
 	try {
 		input = parseBoardInfoInput(argumentsValue)
@@ -222,19 +283,11 @@ async function callBoardInfoTool(
 		return toolError(error instanceof Error ? error.message : String(error))
 	}
 
-	// get_board_info spends no Browser Run, so it gets its own per-IP budget rather than sharing the
-	// screenshot one — otherwise the usual "list once, then screenshot pages" flow would exhaust the
-	// per-IP limit on the very first (free) call.
-	if (
-		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-info:${clientIp ?? 'unknown'}`, {
-			fallbackLimit: PER_IP_RATE_LIMIT,
-		})
-	) {
-		return toolError(
-			`Rate limited. Requests are limited to about ${PER_IP_RATE_LIMIT} per minute per IP.`
-		)
-	}
-
+	// Deliberately not rate limited. The limiters here exist to bound Browser Run, and get_board_info
+	// spends none — it resolves the board and reads its snapshot, the same work the ordinary board
+	// routes do. It used to hold its own per-IP budget, separate from the screenshot one so the usual
+	// "list once, then screenshot pages" flow couldn't exhaust its allowance on the free call; that
+	// budget is now simply absent rather than separate.
 	try {
 		const resolved = await resolveSharedBoardById(env, input.boardId)
 		if (!resolved.ok) {
@@ -372,7 +425,7 @@ async function callSharedBoardScreenshotTool(
 		// Only cache misses spend Browser Rendering capacity, so the per-board and global guards sit
 		// here rather than at the top of the tool call.
 		if (
-			await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `board:${input.boardId}`, {
+			await isRateLimited(env.MCP_SCREENSHOT_BOARD_RATE_LIMITER, `board:${input.boardId}`, {
 				fallbackLimit: PER_BOARD_RATE_LIMIT,
 			})
 		) {

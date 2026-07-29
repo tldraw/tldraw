@@ -1,31 +1,29 @@
 import { IRequest } from 'itty-router'
 import { Environment, ThumbnailBoardKind } from '../../types'
 import { getPublicOrigin } from '../../utils/getPublicOrigin'
-import { enqueueOgImageRender, getOgImageAge, getOgImageCacheKey } from './ogImageQueue'
+import { getOgImageCacheKey } from './ogImageQueue'
 import {
 	ResolvedThumbnailBoard,
-	isRateLimited,
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
 import { reportThumbnailError } from './thumbnailShared'
 
-// OG images are served entirely from the R2 cache; rendering happens asynchronously through the
-// og-image queue consumer (ogImageQueue.ts). A request never waits on Browser Run: it gets the
-// cached image (fresh or stale, while a refresh job runs in the background) or the default tldraw
-// OG image until the first render lands. This is what makes the endpoint safe on high-traffic paths
-// like link unfurls.
-
-// Only applies to a cached image whose version no longer matches the board's. A version *match* is
-// served as a hit indefinitely — the image depicts the current content, so there is nothing to
-// refresh however old it is or however often it is crawled (see shouldServeCachedOgImage).
+// A pure read. Two questions and nothing else: is this board publicly viewable (published, or shared
+// via link), and does a thumbnail for it exist? Both yes, serve it. Anything else, serve the
+// site-wide default. No rendering, no enqueueing, no rate limiting, no waiting.
 //
-// On a mismatch, an image younger than this is still served as a hit without enqueueing, which
-// bounds crawler-triggered rendering to about one render per board per hour. That is a bound on this
-// path only, not on the board: edit-triggered rendering does not come through here, and is bounded
-// instead by the durable object's render debounce (see "Request limits" in browser-run-thumbnails.md).
-const OG_IMAGE_MIN_REFRESH_AGE_MS = 60 * 60_000
-const OG_IMAGE_BOARD_RATE_LIMIT = 2
+// This route used to enqueue a render on a cold miss, which was pointless in the way that matters.
+// Unfurl platforms resolve a URL's card once and reuse it for every repost, so the crawler that
+// triggered the render has already cached the default by the time the render lands — a viral link
+// can be fetched once and shown thousands of times, and none of those views come back here. The
+// render was real work whose result nobody fetched.
+//
+// A thumbnail exists when it was made *before* the board was ever shared, which is a job for the
+// triggers that fire on publishing and on editing (TLPostgresReplicator, TLFileDurableObject), not
+// for the request that discovers it missing. Rendering inline instead was also considered and
+// rejected: measured captures run 4-17s (p50-p90), far past any crawler's patience, so it would
+// trade a wrong card for no card. See browser-run-thumbnails.md.
 const DEFAULT_OG_IMAGE_PATH = '/social-og.png'
 const FRESH_IMAGE_MAX_AGE_SECONDS = 60 * 60
 // Stale images and fallbacks use short TTLs so scrapers and browsers come back for the fresh
@@ -39,9 +37,8 @@ export async function getOgImage(
 	ctx?: ExecutionContext
 ): Promise<Response> {
 	// Crawlers probe this URL with HEAD before (or instead of) GET, so the route is registered with
-	// .all and HEAD must still return the cache/redirect headers. But a HEAD must not spend Browser
-	// Run: only a real GET reads the R2 body and enqueues a render. Any non-GET method is treated
-	// like a probe (headers only, no enqueue).
+	// .all and HEAD must still return the same cache headers a GET would. Only a real GET reads the
+	// R2 body; any other method is treated as a probe and answers headers only.
 	const wantsBody = request.method === 'GET'
 	const board = await resolveOgBoard(request, env).catch((error) => {
 		// Resolution reads Postgres and R2, so a throw here is infrastructure failing, not a board
@@ -62,34 +59,21 @@ export async function getOgImage(
 	const cached = wantsBody
 		? await env.THUMBNAILS?.get(cacheKey)
 		: await env.THUMBNAILS?.head(cacheKey)
-	const now = Date.now()
-	if (cached && shouldServeCachedOgImage(cached, board.version, now)) {
-		writeScreenshotTelemetry(env, { source: 'og', fileId: board.fileId, cacheStatus: 'hit' })
-		return imageResponse(wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null, {
-			cacheStatus: 'hit',
-			maxAgeSeconds: FRESH_IMAGE_MAX_AGE_SECONDS,
-			version: cached.customMetadata?.version,
-		})
-	}
-
-	// Stale or never rendered: a GET kicks off (at most) one background render, then returns the best
-	// response we have right now. HEAD probes skip the enqueue so they never spend Browser Run. The
-	// per-board limit guards the queue against being flooded on a single board's behalf; enqueue
-	// failures degrade to the fallback response rather than a 500.
-	if (
-		wantsBody &&
-		!(await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `og-board:${board.kind}:${board.slug}`, {
-			fallbackLimit: OG_IMAGE_BOARD_RATE_LIMIT,
-		}))
-	) {
-		await enqueueOgImageRender(env, board).catch(() => {})
-	}
 
 	if (cached) {
-		writeScreenshotTelemetry(env, { source: 'og', fileId: board.fileId, cacheStatus: 'stale' })
+		// Whether the image still depicts the board's current content decides the cache lifetime and
+		// nothing else — both are served. A version match is good indefinitely; a mismatch gets a short
+		// TTL so crawlers and browsers come back for the newer render soon after a trigger lands it.
+		// There is no "too stale to serve": an old picture of this board beats the generic tldraw logo.
+		const isCurrent = cached.customMetadata?.version === String(board.version)
+		writeScreenshotTelemetry(env, {
+			source: 'og',
+			fileId: board.fileId,
+			cacheStatus: isCurrent ? 'hit' : 'stale',
+		})
 		return imageResponse(wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null, {
-			cacheStatus: 'stale',
-			maxAgeSeconds: STALE_IMAGE_MAX_AGE_SECONDS,
+			cacheStatus: isCurrent ? 'hit' : 'stale',
+			maxAgeSeconds: isCurrent ? FRESH_IMAGE_MAX_AGE_SECONDS : STALE_IMAGE_MAX_AGE_SECONDS,
 			version: cached.customMetadata?.version,
 		})
 	}
@@ -110,13 +94,6 @@ export async function getOgImage(
 		failureReason: fallback.servedBytes ? 'served_fallback' : 'not_rendered_yet',
 	})
 	return fallback.response
-}
-
-function shouldServeCachedOgImage(cached: R2Object, version: string | number, now: number) {
-	const cachedVersion = cached.customMetadata?.version
-	if (cachedVersion === String(version)) return true
-
-	return getOgImageAge(cached, now) < OG_IMAGE_MIN_REFRESH_AGE_MS
 }
 
 async function resolveOgBoard(

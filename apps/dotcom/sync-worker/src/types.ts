@@ -88,21 +88,28 @@ export interface Environment {
 
 	RATE_LIMITER: RateLimit
 	// Rate limit bindings for the Browser Run-backed MCP screenshot tool, declared in wrangler.toml.
-	// MCP_SCREENSHOT_RATE_LIMITER guards per-IP and per-board request rates;
-	// MCP_SCREENSHOT_BROWSER_RATE_LIMITER caps total Browser Run invocations made by the tool. Both
-	// exist to bound what an agent calling the public MCP endpoint can spend — board thumbnail
-	// rendering is deliberately not subject to either, because it is our own derived artifact rather
-	// than caller-driven work. The route falls back to an isolate-local guard when the bindings are
-	// absent (local dev, tests).
+	// All three exist to bound what an agent calling the public MCP endpoint can spend — board
+	// thumbnail rendering is deliberately not subject to any of them, because it is our own derived
+	// artifact rather than caller-driven work. The route falls back to an isolate-local guard when the
+	// bindings are absent (local dev, tests).
+	//
+	// There are three rather than two because a binding carries a single `limit` applied per key, so
+	// two budgets that want different numbers cannot share one however their keys differ. Per-IP and
+	// per-board did share MCP_SCREENSHOT_RATE_LIMITER while both were 2; they no longer are.
+	/** Per-IP `get_shared_board_screenshot` calls. */
 	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
+	/** Per-board Browser Run captures, applied only on cache misses. */
+	MCP_SCREENSHOT_BOARD_RATE_LIMITER: RateLimit | undefined
+	/** Total Browser Run invocations made by the tool, on one shared key. */
 	MCP_SCREENSHOT_BROWSER_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
 	// R2 cache for board OG images (`og/…` keys) and their pending-render markers. The key has no
 	// version in it, so each render overwrites the same object in place and a board costs exactly one
-	// object forever; deleteOgImageCache removes it when a board stops being public. Nothing here
-	// accumulates, so this bucket has no expiration rule.
+	// object forever. Nothing here accumulates and nothing deletes a rendered image — a board keeps its
+	// thumbnail even after it stops being public, so an owner-facing surface behind authz can use it,
+	// while the public OG route re-checks the share gate on every request. No expiration rule.
 	// Optional so tests and unconfigured environments degrade to cacheless rendering.
 	THUMBNAILS: R2Bucket | undefined
 

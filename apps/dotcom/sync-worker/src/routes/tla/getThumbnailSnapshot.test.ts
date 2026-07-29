@@ -30,6 +30,9 @@ function makeJob(overrides: Partial<ThumbnailRenderJob> = {}): ThumbnailRenderJo
 		slug: 'my-board',
 		version: 1751234567890,
 		camera: 'content',
+		x: 0,
+		y: 0,
+		z: 1,
 		width: 1200,
 		height: 630,
 		theme: 'dark',
@@ -62,6 +65,11 @@ describe('getThumbnailSnapshot', () => {
 			schema: { schemaVersion: 2, sequences: {} },
 			renderParams: {
 				camera: 'content',
+				// Echoed even though `content` makes the render page ignore them, so a job that omits
+				// `camera` has a viewport to fall back on without a second shape of response.
+				x: 0,
+				y: 0,
+				z: 1,
 				width: 1200,
 				height: 630,
 				theme: 'dark',

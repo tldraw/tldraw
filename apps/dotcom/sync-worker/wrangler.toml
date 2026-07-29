@@ -503,29 +503,57 @@ type = "ratelimit"
 namespace_id = "1004"
 simple = { limit = 600, period = 60 }
 
-# MCP screenshot per-IP and per-board request guard
+# MCP screenshot per-IP request guard.
+# A binding carries one `limit` applied per key, so per-IP and per-board need separate bindings to
+# hold different numbers — they shared this one while both were 2. `period` must be 10 or 60.
 [[env.dev.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1005"
-simple = { limit = 2, period = 60 }
+simple = { limit = 10, period = 60 }
 
 [[env.preview.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1006"
-simple = { limit = 2, period = 60 }
+simple = { limit = 10, period = 60 }
 
 [[env.staging.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1007"
-simple = { limit = 2, period = 60 }
+simple = { limit = 10, period = 60 }
 
 [[env.production.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1008"
+simple = { limit = 10, period = 60 }
+
+# MCP screenshot per-board capture guard, kept tighter than the per-IP one so no single board can
+# absorb a caller's whole allowance.
+[[env.dev.unsafe.bindings]]
+name = "MCP_SCREENSHOT_BOARD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1013"
+simple = { limit = 2, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SCREENSHOT_BOARD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1014"
+simple = { limit = 2, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SCREENSHOT_BOARD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1015"
+simple = { limit = 2, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SCREENSHOT_BOARD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1016"
 simple = { limit = 2, period = 60 }
 
 # global cap on Browser Run invocations from MCP screenshots (keyed on a single shared key)
@@ -533,25 +561,25 @@ simple = { limit = 2, period = 60 }
 name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1009"
-simple = { limit = 6, period = 60 }
+simple = { limit = 20, period = 60 }
 
 [[env.preview.unsafe.bindings]]
 name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1010"
-simple = { limit = 6, period = 60 }
+simple = { limit = 20, period = 60 }
 
 [[env.staging.unsafe.bindings]]
 name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1011"
-simple = { limit = 6, period = 60 }
+simple = { limit = 20, period = 60 }
 
 [[env.production.unsafe.bindings]]
 name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1012"
-simple = { limit = 6, period = 60 }
+simple = { limit = 20, period = 60 }
 
 #################### Queues ####################
 [[env.dev.queues.producers]]

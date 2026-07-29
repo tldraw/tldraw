@@ -28,18 +28,16 @@ import { BoardSnapshotReadError, BrowserRenderError } from './thumbnailShared'
 // The render-and-cache core shared by every Browser Run screenshot surface: the MCP screenshot
 // tool (sharedBoardScreenshotMcp.ts), the OG image route (getOgImage.ts), and the OG render queue
 // consumer (ogImageQueue.ts). Owns board resolution, snapshot loading, page enumeration, the
-// Browser Rendering invocation, rate limiting, and the shared telemetry writer. The surfaces own
-// their own protocol handling, cache keys, and retry/backoff policies.
-
-// The limiter key the MCP tool checks via isGlobalBrowserRunRateLimited. It is the only surface that
-// checks it: board thumbnail rendering is our own derived artifact, triggered by our own writes
-// rather than by callers, so capping it would only ever mean serving a stale thumbnail to save a
-// render we intend to do anyway (see ogImageQueue.ts). Note this bound is per Cloudflare location,
-// so it constrains a rogue caller rather than acting as an account-wide spend ceiling.
-const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
-const GLOBAL_BROWSER_RUN_RATE_LIMIT = 6
-const RATE_LIMIT_WINDOW_MS = 60_000
-const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
+// Browser Rendering invocation, and the shared telemetry writer. The surfaces own their own protocol
+// handling, cache keys, and retry/backoff policies.
+//
+// Deliberately owns no rate limiting. The only surface that limits anything is the MCP server, and
+// only on the calls there that actually spend Browser Run — it is the one Browser Run-spending
+// endpoint an outside caller can drive directly, so a rogue or looping agent is the threat being
+// bounded. Everything else here renders our own derived artifact in response to our own writes, where
+// a limiter would only ever mean serving a stale thumbnail to save a render we intend to do anyway.
+// The limiters therefore live in sharedBoardScreenshotMcp.ts rather than in this shared core, so a
+// new surface built on these helpers cannot pick one up by accident.
 
 // A publicly viewable board a screenshot surface has resolved. The version rotates when the
 // rendered content changes (lastPublished for published boards, the persisted room snapshot's R2
@@ -188,6 +186,11 @@ export async function captureThumbnailScreenshot(
 		version: board.version,
 		camera: 'content',
 		...(pageId ? { pageId } : null),
+		// Ignored while `camera` is 'content', which is what every surface mints; carried because the
+		// job type keeps the explicit-viewport path available (see ThumbnailRenderJob).
+		x: 0,
+		y: 0,
+		z: 1,
 		width,
 		height,
 		theme,
@@ -310,50 +313,6 @@ export async function putThumbnailPng(
 			...extraMetadata,
 		},
 	})
-}
-
-// The MCP screenshot tool's global cap, and only its own — see GLOBAL_BROWSER_RATE_LIMIT_KEY above
-// for why board thumbnail rendering deliberately checks nothing. It used to be shared with the OG
-// queue consumer, which is where the "global" in the name comes from; it now bounds one endpoint.
-export async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
-	return isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
-		fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
-	})
-}
-
-export async function isRateLimited(
-	limiter: RateLimit | undefined,
-	key: string,
-	{ fallbackLimit }: { fallbackLimit: number }
-): Promise<boolean> {
-	// The mcp- prefix predates the OG surfaces sharing this limiter; it's kept (not renamed) so the
-	// deployed Cloudflare rate limit bindings and their configured buckets stay continuous.
-	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
-	if (limiter) {
-		const { success } = await limiter.limit({ key: rateLimitKey })
-		return !success
-	}
-
-	// Isolate-local fallback for local dev and tests; deployments configure the Cloudflare rate
-	// limit bindings in wrangler.toml.
-	const now = Date.now()
-	const existing = RATE_LIMIT_FALLBACK.get(rateLimitKey)
-	if (!existing || existing.resetAt <= now) {
-		RATE_LIMIT_FALLBACK.set(rateLimitKey, {
-			count: 1,
-			resetAt: now + RATE_LIMIT_WINDOW_MS,
-		})
-		return false
-	}
-	existing.count++
-	return existing.count > fallbackLimit
-}
-
-// The isolate-local fallback map is module state that persists across a test file's cases. Tests
-// that exercise rendering must reset it between cases, or accumulated counts (especially on the
-// shared `global` key) would trip the low limits and rate-limit later cases' happy paths.
-export function resetRateLimitFallbackForTests() {
-	RATE_LIMIT_FALLBACK.clear()
 }
 
 // One datapoint writer for every screenshot surface, so they share a dataset and blob/doubles

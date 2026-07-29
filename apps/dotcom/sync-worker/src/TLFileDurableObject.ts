@@ -1468,6 +1468,15 @@ export class TLFileDurableObject extends DurableObject {
 			// `unknown` goes ahead rather than guessing private. The file record is read on connect so it
 			// is normally in hand; when it isn't, the consumer re-resolves the board and drops it there if
 			// it isn't public, which is a wasted queue message rather than a missing thumbnail.
+			//
+			// NOTE for an owner-facing thumbnail surface (a workspace or project view showing every
+			// board): this gate, and `resolveThumbnailBoard` in the consumer behind it, mean a board that
+			// has never been shared has never been rendered and so has no thumbnail at all. Nothing
+			// deletes rendered images any more, so every board that was *ever* public still has one — but
+			// "available for boards that were public" is not "available for all boards". Such a surface
+			// needs a render path whose gate is ownership rather than public viewability; it cannot just
+			// read these keys and expect a hit. Both gates exist because the render output is served
+			// unauthenticated today, so neither can simply be relaxed in place.
 			const state = this.getBoardRenderState()
 			if (state !== 'shared' && state !== 'unknown') return
 

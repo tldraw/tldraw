@@ -104,23 +104,26 @@ export async function enqueueOgImageRender(
 	return 'enqueued'
 }
 
-export function getOgImageAge(cached: R2Object, now: number) {
-	const createdAt = Number(cached.customMetadata?.createdAt ?? cached.uploaded?.getTime() ?? 0)
-	return Number.isFinite(createdAt) ? now - createdAt : Infinity
-}
-
-// Drops a board's cached OG image and any pending render marker. Called when a board stops being
-// publicly viewable (unpublished or unshared): the image is a copy of content that is no longer
-// public, and the marker would otherwise suppress the next legitimate enqueue after it is reshared.
-export async function deleteOgImageCache(
+// Clears a board's pending render marker. Called when a board stops being publicly viewable
+// (unpublished or unshared) and when the consumer drops a job, because a marker left behind would
+// suppress the next legitimate enqueue — after a reshare, or after the render that failed.
+//
+// The rendered image itself is deliberately NOT deleted. It used to be, on the reasoning that an
+// unshared board's thumbnail is a copy of content that is no longer public. But the thumbnail is not
+// public because it exists, it is public because a route serves it, and the only route that does
+// re-checks the share gate on every request (resolveThumbnailBoard in getOgImage) — so an unshared
+// board's image is already unreachable while it sits in R2. Keeping it means an owner-facing surface
+// behind authz (a workspace or project view showing every board's thumbnail) can read the image a
+// board already has instead of it having been thrown away the moment the board went private.
+//
+// Note the `og/…` keys carry no version, so each render overwrites in place and a board costs exactly
+// one object however often it is re-rendered. Retaining them does not accumulate.
+export async function clearOgImagePendingMarker(
 	env: Environment,
 	board: { kind: ThumbnailBoardKind; slug: string }
 ): Promise<void> {
 	if (!env.THUMBNAILS) return
-	await Promise.all([
-		env.THUMBNAILS.delete(getOgImageCacheKey(board)).catch(() => {}),
-		env.THUMBNAILS.delete(getOgImagePendingKey(board)).catch(() => {}),
-	])
+	await env.THUMBNAILS.delete(getOgImagePendingKey(board)).catch(() => {})
 }
 
 // Queue consumer. Re-resolves the board at render time rather than trusting the enqueued state:
@@ -143,15 +146,16 @@ export async function handleOgImageRenderMessage(
 	const clearPending = async () => {
 		await env.THUMBNAILS?.delete(getOgImagePendingKey({ kind, slug })).catch(() => {})
 	}
-	// The board went private, was deleted, was unpublished, or has no persisted content. Terminal,
-	// not transient: drop the cached image so no-longer-public content does not linger in the OG
-	// cache, and ack rather than retry, since no number of retries will make the board public again.
+	// The board went private, was deleted, was unpublished, or has no persisted content. Terminal, not
+	// transient: ack rather than retry, since no number of retries will make the board public again.
 	// Reached from the resolve below — a board that goes private after that point fails its snapshot
 	// read instead, and the retry lands back here on the next delivery.
+	//
+	// Any image the board already has is kept, not deleted: the public route re-checks the share gate
+	// on every request, so it is already unreachable, and an owner-facing surface behind authz can
+	// still use it (see clearOgImagePendingMarker).
 	const dropNoLongerViewable = async () => {
-		// Same two deletes main did inline, via the helper the replicator's unshare/unpublish effects
-		// also call, so every path that drops a board's image drops its pending marker too.
-		await deleteOgImageCache(env, { kind, slug })
+		await clearOgImagePendingMarker(env, { kind, slug })
 		writeScreenshotTelemetry(env, {
 			source: 'queue',
 			reason,

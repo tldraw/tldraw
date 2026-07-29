@@ -139,13 +139,16 @@ export const THUMBNAIL_SETTLE_TIMEOUT_MS = 10_000
 
 export interface ThumbnailRenderParams {
 	/**
-	 * Always `content`: the render page fits the page's content to the requested output size. Kept as
-	 * an explicit field rather than implied, because the render page's whole contract is what the
-	 * camera does, and a caller reading this should not have to infer it.
+	 * `content` fits the page's content to the requested output size. When omitted, the render page
+	 * sets the x/y/z viewport below directly. Every surface mints `content` today; the viewport path
+	 * is kept because the render page and the worker deploy separately (see ThumbnailRenderJob).
 	 */
-	camera: 'content'
+	camera?: 'content'
 	/** The TLPageId of the single page to render. When omitted, the page the snapshot opens to. */
 	pageId?: string
+	x: number
+	y: number
+	z: number
 	width: number
 	height: number
 	theme: 'light' | 'dark'

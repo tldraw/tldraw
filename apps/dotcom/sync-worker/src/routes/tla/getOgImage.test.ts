@@ -11,7 +11,6 @@ import {
 	makeFakeThumbnailsBucket,
 	makeScreenshotTestEnv as makeEnv,
 } from './screenshotTestHelpers'
-import { resetRateLimitFallbackForTests } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -26,7 +25,6 @@ afterEach(() => {
 	vi.useRealTimers()
 	vi.unstubAllGlobals()
 	vi.clearAllMocks()
-	resetRateLimitFallbackForTests()
 	resetDefaultOgImageCacheForTests()
 })
 
@@ -52,7 +50,7 @@ describe('getOgImage', () => {
 	// exists for cache the first response they see for days, and X doesn't follow an og:image redirect
 	// at all, so a 302 here would poison the card permanently even though the render lands seconds
 	// later.
-	it('enqueues a render and serves the default image bytes as a 200 on a cold cache', async () => {
+	it('serves the default image bytes as a 200 on a cold cache, and queues nothing', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
@@ -69,15 +67,13 @@ describe('getOgImage', () => {
 		expect(response.headers.get('content-type')).toBe('image/png')
 		expect(response.headers.get('x-tldraw-og-cache')).toBe('fallback')
 		expect(new Uint8Array(await response.arrayBuffer())).toEqual(DEFAULT_OG_IMAGE_BYTES)
-		// The only fetch is for the static default image — never a Browser Run render, which happens in
-		// the queue consumer.
+		// The only fetch is for the static default image.
 		expect(fetch).toHaveBeenCalledExactlyOnceWith('https://www.tldraw.com/social-og.png')
-		expect(queue.send).toHaveBeenCalledExactlyOnceWith({
-			type: 'og-image-render',
-			kind: 'published',
-			slug: 'published-board',
-			reason: 'crawler',
-		})
+		// This route no longer asks for a render on a miss. Unfurl platforms resolve a URL's card once
+		// and reuse it for every repost, so the crawler that triggered the render has already cached the
+		// default by the time it lands — the render was work whose result nobody came back for. Making
+		// the image exist before the share belongs to the publish and edit triggers.
+		expect(queue.send).not.toHaveBeenCalled()
 		expect(failureBlobsOf(env)).toEqual(['failure:served_fallback'])
 	})
 
@@ -141,7 +137,7 @@ describe('getOgImage', () => {
 		expect((await getOgImage(makeRequest('p', 'board'), env)).status).toBe(200)
 	})
 
-	it('serves fresh cache hits without enqueueing', async () => {
+	it('serves an image whose version matches as a fresh hit', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
@@ -165,7 +161,10 @@ describe('getOgImage', () => {
 		expect(queue.send).not.toHaveBeenCalled()
 	})
 
-	it('keeps serving a stale-but-recent image as a hit so one board cannot burn render capacity', async () => {
+	// There is no "too stale to serve". An old picture of this board beats the generic tldraw logo, so
+	// a version mismatch only shortens the cache lifetime — it never withholds the image or asks for a
+	// render. Age is not consulted at all now that nothing here refreshes.
+	it('serves a version-mismatched image as stale with a short TTL, however old it is', async () => {
 		vi.useFakeTimers()
 		vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
@@ -182,22 +181,23 @@ describe('getOgImage', () => {
 		const queue = makeFakeQueue()
 		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: queue })
 
-		vi.setSystemTime(new Date('2026-01-01T00:30:00Z'))
-		const staleButYoung = await getOgImage(makeRequest('p', 'cached-board'), env)
-		expect(staleButYoung.headers.get('x-tldraw-og-cache')).toBe('hit')
+		// Minutes old and a year old behave identically: both serve the bytes as stale.
+		for (const now of ['2026-01-01T00:30:00Z', '2027-01-01T00:00:00Z']) {
+			vi.setSystemTime(new Date(now))
+			const stale = await getOgImage(makeRequest('p', 'cached-board'), env)
+			expect(stale.status).toBe(200)
+			expect(stale.headers.get('x-tldraw-og-cache')).toBe('stale')
+			expect(stale.headers.get('cache-control')).toBe(
+				'public, max-age=300, stale-while-revalidate=86400'
+			)
+			expect(await stale.arrayBuffer()).toEqual(new Uint8Array([1, 2, 3]).buffer)
+		}
 		expect(queue.send).not.toHaveBeenCalled()
-
-		vi.setSystemTime(new Date('2026-01-01T01:01:00Z'))
-		const stale = await getOgImage(makeRequest('p', 'cached-board'), env)
-		expect(stale.status).toBe(200)
-		expect(stale.headers.get('x-tldraw-og-cache')).toBe('stale')
-		expect(await stale.arrayBuffer()).toEqual(new Uint8Array([1, 2, 3]).buffer)
-		expect(queue.send).toHaveBeenCalledExactlyOnceWith(
-			expect.objectContaining({ kind: 'published', slug: 'cached-board', reason: 'crawler' })
-		)
 	})
 
-	it('enqueues renders for shared files behind the share gate', async () => {
+	// The route's whole gate: viewable (published, or shared via link) and an image exists. A shared
+	// file with no image yet passes the first and fails the second, so it gets the default.
+	it('serves a shared file that passes its gate but has no image yet', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'shared-file',
 			shared: true,
@@ -214,12 +214,39 @@ describe('getOgImage', () => {
 		const response = await getOgImage(makeRequest('f', 'shared-file'), env)
 
 		expect(response.status).toBe(200)
-		expect(queue.send).toHaveBeenCalledExactlyOnceWith(
-			expect.objectContaining({ kind: 'shared_file', slug: 'shared-file', reason: 'crawler' })
-		)
+		expect(response.headers.get('x-tldraw-og-cache')).toBe('fallback')
+		expect(queue.send).not.toHaveBeenCalled()
 	})
 
-	it('answers HEAD probes with cache headers but no body and no render enqueue', async () => {
+	// An unshared board's thumbnail stays in R2 for owner-facing surfaces behind authz, so the gate is
+	// the only thing keeping it off the public internet. It has to be checked on every request rather
+	// than relied on having deleted the object at unshare time.
+	it('refuses a board that has an image but no longer passes its gate', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({
+			id: 'unshared-file',
+			shared: false,
+			isDeleted: false,
+		})
+		stubDefaultOgImageFetch()
+		const bucket = makeFakeThumbnailsBucket()
+		await bucket.put(
+			getOgImageCacheKey({ kind: 'shared_file', slug: 'unshared-file' }),
+			new Uint8Array([1, 2, 3]).buffer,
+			{ customMetadata: { version: 'etag-1', createdAt: String(Date.now()) } }
+		)
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket('etag-1'), THUMBNAILS: bucket })
+
+		const response = await getOgImage(makeRequest('f', 'unshared-file'), env)
+
+		expect(response.headers.get('x-tldraw-og-cache')).toBe('fallback')
+		expect(new Uint8Array(await response.arrayBuffer())).toEqual(DEFAULT_OG_IMAGE_BYTES)
+		// Still there, just unreachable from here.
+		expect(
+			bucket.store.has(getOgImageCacheKey({ kind: 'shared_file', slug: 'unshared-file' }))
+		).toBe(true)
+	})
+
+	it('answers HEAD probes with the same cache headers as a GET, but no body', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
@@ -240,12 +267,12 @@ describe('getOgImage', () => {
 		expect(response.status).toBe(200)
 		expect(response.headers.get('content-type')).toBe('image/png')
 		expect(response.headers.get('x-tldraw-og-cache')).toBe('hit')
-		// ...but no body is read, and no Browser Run is spent.
+		// ...but the R2 body is never read.
 		expect((await response.arrayBuffer()).byteLength).toBe(0)
 		expect(queue.send).not.toHaveBeenCalled()
 	})
 
-	it('answers a HEAD probe on a cold cache with the fallback headers, no body and no enqueue', async () => {
+	it('answers a HEAD probe on a cold cache with the fallback headers and no body', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
@@ -263,7 +290,7 @@ describe('getOgImage', () => {
 		expect(queue.send).not.toHaveBeenCalled()
 	})
 
-	it('serves private or unknown boards the default tldraw OG image without enqueueing', async () => {
+	it('serves private or unknown boards the default tldraw OG image', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'private-file',
 			shared: false,

@@ -18,9 +18,9 @@ import {
 	isMcpScreenshotEnabled,
 	parseBoardInfoInput,
 	parseSharedBoardScreenshotInput,
+	resetRateLimitFallbackForTests,
 	sharedBoardScreenshotMcp,
 } from './sharedBoardScreenshotMcp'
-import { resetRateLimitFallbackForTests } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -566,21 +566,73 @@ describe('get_shared_board_screenshot', () => {
 		expect(failureBlobsOf(env)).toEqual(['failure:none'])
 	})
 
-	it('enforces the per-IP rate limit', async () => {
+	// Pins the configured per-IP budget, not merely that some limit eventually fires. Each call uses a
+	// distinct board so the per-board limiter can never be what trips, and the run stops one call past
+	// the budget so it stays below the global cap — otherwise a passing test could not say which of the
+	// three limits it had actually exercised.
+	const PER_IP_RATE_LIMIT = 10
+	it(`allows ${PER_IP_RATE_LIMIT} screenshots per IP per minute, then rate limits`, async () => {
 		mockPublishedBoard()
 		const env = makeEnv({ MCP_SCREENSHOTS: makeFakeThumbnailsBucket() })
 
-		let lastResult: any
-		for (let i = 0; i < 21; i++) {
-			lastResult = await resultOf(
-				await sharedBoardScreenshotMcp(
-					makeToolCall('203.0.113.20', 'get_shared_board_screenshot', { boardId: `board-${i}` }),
-					env
+		const results = []
+		for (let i = 0; i <= PER_IP_RATE_LIMIT; i++) {
+			results.push(
+				await resultOf(
+					await sharedBoardScreenshotMcp(
+						makeToolCall('203.0.113.20', 'get_shared_board_screenshot', { boardId: `board-${i}` }),
+						env
+					)
 				)
 			)
 		}
-		expect(lastResult.isError).toBe(true)
-		expect(lastResult.content[0].text).toContain('Rate limited')
+
+		expect(results.slice(0, PER_IP_RATE_LIMIT).map((r) => r.isError)).toEqual(
+			Array(PER_IP_RATE_LIMIT).fill(undefined)
+		)
+		const blocked = results[PER_IP_RATE_LIMIT]
+		expect(blocked.isError).toBe(true)
+		// The per-IP message specifically, so this can't pass on the global cap firing instead.
+		expect(blocked.content[0].text).toContain('per minute per IP')
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_ip')
+	})
+
+	// Per-board is deliberately far tighter than per-IP: this blocks on the third capture of one board
+	// while the same IP still has plenty of budget left.
+	//
+	// Note what this can and cannot check. Tests run with no rate limit bindings, so both budgets take
+	// the isolate-local fallback and only the key and the fallback limit matter here — the part that
+	// makes different numbers possible in a *deployment* is per-board having its own Cloudflare binding
+	// (MCP_SCREENSHOT_BOARD_RATE_LIMITER), and no unit test can see that. wrangler.toml is the only
+	// place that goes wrong, and the only place to check it.
+	const PER_BOARD_RATE_LIMIT = 2
+	it(`allows ${PER_BOARD_RATE_LIMIT} captures per board per minute, well inside the per-IP budget`, async () => {
+		mockPublishedBoard()
+		const env = makeEnv({ MCP_SCREENSHOTS: makeFakeThumbnailsBucket() })
+
+		// Distinct pages of one board, so every call is a cache miss on the same board key.
+		const results = []
+		for (let page = 0; page <= PER_BOARD_RATE_LIMIT; page++) {
+			results.push(
+				await resultOf(
+					await sharedBoardScreenshotMcp(
+						makeToolCall('203.0.113.21', 'get_shared_board_screenshot', { boardId: 'abc', page }),
+						env
+					)
+				)
+			)
+		}
+
+		expect(results.slice(0, PER_BOARD_RATE_LIMIT).map((r) => r.isError)).toEqual(
+			Array(PER_BOARD_RATE_LIMIT).fill(undefined)
+		)
+		const blocked = results[PER_BOARD_RATE_LIMIT]
+		expect(blocked.isError).toBe(true)
+		expect(blocked.content[0].text).toContain('This board is being screenshotted too frequently')
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_board')
+		// Only 3 calls in, so neither the per-IP (10) nor the global (20) budget can be what fired.
+		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_ip')
+		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_global')
 	})
 
 	it('records the hashed ip only on failures, not on successful screenshots', async () => {
