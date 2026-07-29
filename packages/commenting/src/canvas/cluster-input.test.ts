@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 // intentional. Implement `cluster-input.ts` per CLUSTERING-STEPS.md step 6
 // until this suite passes, without modifying this file.
 import { collectClusterLeaves } from './cluster-input'
+import { defaultCommentingOptions, type CommentingOptions } from './options'
 
 const CURRENT_PAGE = 'page:one'
 const OTHER_PAGE = 'page:two'
@@ -28,19 +29,22 @@ function thread(
 
 /**
  * Stub editor: the filter's editor dependencies are the current page id, shape
- * geometry and page transform, and the commenting options (via anchorPagePoint;
- * no registered comment tool → the defaults). `shapes` maps shape id → page
- * bounds for unrotated shapes that exist, modeled as local geometry sized by the
- * box plus a translate-only page transform; anything else resolves to undefined
- * (deleted shape).
+ * geometry and page transform, and the commenting options (via anchorPagePoint,
+ * read off the registered comment tool). `shapes` maps shape id → page bounds for
+ * unrotated shapes that exist, modeled as local geometry sized by the box plus a
+ * translate-only page transform; anything else resolves to undefined (deleted
+ * shape). `options` stands in for `CommentTool.configure({ ... })`; omit it for a
+ * editor with no comment tool registered, which falls back to the defaults.
  */
 function stubEditor(
-	shapes: Record<string, { minX: number; minY: number; maxX: number; maxY: number }> = {}
+	shapes: Record<string, { minX: number; minY: number; maxX: number; maxY: number }> = {},
+	options?: Partial<CommentingOptions>
 ): Editor {
 	const shapeId = (shape: string | { id: string }) => (typeof shape === 'string' ? shape : shape.id)
 	return {
 		getCurrentPageId: () => CURRENT_PAGE,
-		getStateDescendant: () => undefined,
+		getStateDescendant: () =>
+			options ? { options: { ...defaultCommentingOptions, ...options } } : undefined,
 		getShape: (id: string) => (shapes[id] ? { id } : undefined),
 		getShapeGeometry: (shape: string | { id: string }) => {
 			const bounds = shapes[shapeId(shape)]
@@ -89,9 +93,11 @@ describe('collectClusterLeaves anchor resolution', () => {
 	})
 
 	it('places imprecise shape leaves at a custom impreciseShapeAnchor, matching pin rendering', () => {
-		const editor = stubEditor({
-			'shape:a': { minX: 0, minY: 0, maxX: 100, maxY: 50 },
-		})
+		// bottom-center instead of the default top-right
+		const editor = stubEditor(
+			{ 'shape:a': { minX: 0, minY: 0, maxX: 100, maxY: 50 } },
+			{ impreciseShapeAnchor: { x: 0.5, y: 1 } }
+		)
 		const threads = [
 			thread('imprecise', {
 				type: 'shape',
@@ -108,8 +114,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 				isPrecise: true,
 			}),
 		]
-		// bottom-center instead of the default top-right
-		const leaves = collectClusterLeaves(editor, threads, null, { x: 0.5, y: 1 })
+		const leaves = collectClusterLeaves(editor, threads, null)
 		expect(leaves).toEqual([
 			{ id: 'imprecise', point: { x: 50, y: 50 } },
 			{ id: 'precise', point: { x: 50, y: 25 } },

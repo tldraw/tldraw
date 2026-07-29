@@ -1,6 +1,6 @@
 import type { ClusterNode, ClusterTable, MergeEvent } from './types'
 
-/** @public */
+/** @internal */
 export interface ClusterRuntime {
 	/** Events[0..k) are in the cursor (applied unless suppressed). Exposed for tests/debugging. */
 	readonly k: number
@@ -42,7 +42,7 @@ export interface ClusterRuntime {
 	getVisible(): ReadonlyMap<string, ClusterNode>
 }
 
-/** @public */
+/** @internal */
 export function createClusterRuntime(table: ClusterTable): ClusterRuntime {
 	return new ClusterRuntimeImpl(table)
 }

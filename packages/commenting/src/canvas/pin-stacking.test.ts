@@ -22,13 +22,17 @@ function thread(
 	} as unknown as TLCommentThread
 }
 
-/** Unrotated shapes: local geometry sized by the box, placed by a translate-only page transform. */
+/**
+ * Unrotated shapes: local geometry sized by the box, placed by a translate-only page transform.
+ * No comment tool registered, so the commenting options `anchorPagePoint` reads are the defaults.
+ */
 function stubEditor(
 	shapes: Record<string, { minX: number; minY: number; maxX: number; maxY: number }> = {}
 ): Editor {
 	const shapeId = (shape: string | { id: string }) => (typeof shape === 'string' ? shape : shape.id)
 	return {
 		getCurrentPageId: () => CURRENT_PAGE,
+		getStateDescendant: () => undefined,
 		getShape: (id: string) => (shapes[id] ? { id } : undefined),
 		getShapeGeometry: (shape: string | { id: string }) => {
 			const bounds = shapes[shapeId(shape)]

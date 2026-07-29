@@ -13,7 +13,7 @@ interface ResolvedClusterOptions {
 	maxSplitZoom: number
 }
 
-/** @public */
+/** @internal */
 export function computeClusterTable(
 	leaves: readonly LeafInput[],
 	options: ClusterOptions

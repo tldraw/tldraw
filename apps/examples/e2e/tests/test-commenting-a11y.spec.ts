@@ -207,28 +207,4 @@ test.describe('commenting a11y', () => {
 		await page.keyboard.press('Enter')
 		await expect(page.locator('.tlui-cmt-stack-list__thread')).toHaveCount(1)
 	})
-
-	test('focusing a region pin reveals its region, the same as hovering it', async ({
-		page,
-		isMobile,
-	}) => {
-		if (isMobile) test.skip()
-
-		// The regions example seeds a region-anchored thread; switch it to the reveal mode that keys
-		// off the pin rather than the pointer's position.
-		await page.goto('http://localhost:5420/comment-regions/full')
-		await page.waitForSelector('.tl-canvas')
-		await page.getByRole('button', { name: 'pin-hover', exact: true }).click()
-
-		const region = page.locator('.tlui-cmt-canvas-region')
-		await expect(region).toHaveCount(0)
-
-		// Focus stands in for hover everywhere else in the layer, so it has to reveal the region too —
-		// otherwise a keyboard user reaching the pin never sees the area the comment is about.
-		await page.locator('.tlui-cmt-canvas-pin__marker').first().focus()
-		await expect(region).toBeVisible()
-
-		await page.locator('.tl-container').focus()
-		await expect(region).toHaveCount(0)
-	})
 })

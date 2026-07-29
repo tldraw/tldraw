@@ -2,7 +2,7 @@ import type { VecLike } from 'tldraw'
 
 /**
  * One comment thread's pin, already resolved to a page-space anchor point.
- * @public
+ * @internal
  */
 export interface LeafInput {
 	/** Unique. Thread id. Uniqueness is a precondition — throw on duplicates. */
@@ -23,7 +23,7 @@ export interface MstEdge {
 
 /**
  * A cluster in the merge tree: a leaf (one thread) or a merged group.
- * @public
+ * @internal
  */
 export interface ClusterNode {
 	/** Leaves: the thread id verbatim. Merged nodes: `cluster:${count}:${minMemberId}`. */
@@ -58,7 +58,7 @@ export interface ContractedEvent {
 
 /**
  * A finalized merge event, ready for the runtime.
- * @public
+ * @internal
  */
 export interface MergeEvent {
 	zMerge: number
@@ -70,7 +70,7 @@ export interface MergeEvent {
 
 /**
  * The precomputed clustering schedule for one page's comments.
- * @public
+ * @internal
  */
 export interface ClusterTable {
 	/** Sorted non-increasing by zMerge; satisfies the invariants of CLUSTERING.md §7.6. */
@@ -79,7 +79,7 @@ export interface ClusterTable {
 	leaves: readonly ClusterNode[]
 }
 
-/** @public */
+/** @internal */
 export interface ClusterOptions {
 	/** Cluster (merge) distance, screen px. Default 40. */
 	Tc?: number

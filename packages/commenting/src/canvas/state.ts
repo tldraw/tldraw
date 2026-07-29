@@ -24,21 +24,73 @@ export const openThreadId = new EditorAtom<string | null>('openThreadId', () => 
 /** The coincident-pin stack whose thread list is showing (keyed by its oldest member's thread
  * id), or null. Editor state rather than component state: the stack pin remounts when its owning
  * render path changes (e.g. a member thread opens), and the open list must survive that.
- * @public */
+ * @internal */
 export const openStackId = new EditorAtom<string | null>('openStackId', () => null)
 
 /** The comment currently being placed (composer open, not yet posted), or null.
- * @public */
+ * @internal */
 export const pendingComment = new EditorAtom<PendingComment | null>('pendingComment', () => null)
 
 /**
  * A pending request to reveal a thread: a thread or comment id to open and bring into view, or
- * null when none is pending. Written by consumers outside the canvas layer (e.g. a notification
- * link); served and cleared by `CanvasComments`, which owns the wait for the records to sync in
- * and the cluster-aware reveal.
- * @public
+ * null when none is pending. Written by {@link revealThread}; served and cleared by
+ * `CanvasComments`, which owns the wait for the records to sync in and the cluster-aware reveal.
+ * @internal
  */
 export const revealThreadRequest = new EditorAtom<string | null>('revealThreadRequest', () => null)
+
+/**
+ * Open a thread and bring it into view, given a thread id or the id of any comment in it. Use it
+ * to jump to a thread from outside the canvas — a notification, a deep link, your own list.
+ *
+ * The request is served by `CanvasComments`, so it works before the records have arrived: the
+ * layer waits for them to sync in, switches pages if it needs to, unhides pins, zooms in far
+ * enough to split the thread out of any cluster it's folded into, and then opens it. That also
+ * means nothing happens if `CanvasComments` isn't mounted.
+ *
+ * To open a thread you already hold and skip the wait, see {@link focusThread}.
+ *
+ * @example
+ * ```ts
+ * revealThread(editor, new URLSearchParams(location.search).get('comment')!)
+ * ```
+ *
+ * @public
+ */
+export function revealThread(editor: Editor, threadOrCommentId: string): void {
+	revealThreadRequest.set(editor, threadOrCommentId)
+}
+
+/**
+ * The id passed to the most recent {@link revealThread} call that `CanvasComments` hasn't served
+ * yet, or null when there's nothing outstanding. A request also clears when `CanvasComments`
+ * unmounts, since nothing is left to serve it.
+ *
+ * This is a plain, untracked read. In React, use {@link useRevealThreadPending} — but reach for
+ * this one inside a timer or callback that needs the value as of *now* rather than as of the
+ * render it closed over.
+ *
+ * @public
+ */
+export function getRevealThreadPending(editor: Editor): string | null {
+	return revealThreadRequest.get(editor)
+}
+
+/**
+ * Reactive React hook for {@link getRevealThreadPending}.
+ *
+ * Use it to notice a reveal that never lands — most often a deep link to a comment that has since
+ * been deleted. Give it a grace period before you act: a request also sits here while its records
+ * are still syncing in, which is the normal case on a cold load. Re-check with
+ * {@link getRevealThreadPending} when the grace period elapses, since the request can clear inside
+ * it without this hook's value having caught up yet.
+ *
+ * @public
+ */
+export function useRevealThreadPending(): string | null {
+	const editor = useEditor()
+	return useValue('pending reveal thread', () => getRevealThreadPending(editor), [editor])
+}
 
 /** The region rectangle being dragged out right now (page coords), or null when not dragging. The
  *  comment tool writes it on each move; the overlay reads it to draw the live dashed box. */
@@ -87,7 +139,7 @@ export function useOpenThreadId(): string | null {
 }
 
 /** React hook for the pending (being-placed) comment.
- * @public */
+ * @internal */
 export function usePendingComment(): PendingComment | null {
 	const editor = useEditor()
 	return useValue('pending comment', () => pendingComment.get(editor), [editor])
@@ -118,7 +170,7 @@ export function useSidebarFilters(): SidebarFilters {
  * Commit a comment mutation with the configured undo/redo behavior. All comment writes go through
  * here so the {@link CommentingOptions.history} option (and {@link CommentingOptions.dragHistory}
  * for pin re-anchors) governs whether they land on the undo stack. Defaults to `'ignore'`.
- * @public
+ * @internal
  */
 export function commitCommentMutation<T>(
 	editor: Editor,

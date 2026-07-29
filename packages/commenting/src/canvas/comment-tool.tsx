@@ -13,8 +13,7 @@ import { commentTargetShapeAt, regionPinPoint, shapeAnchorAt } from './thread-st
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
  *  to. Shared between the tool (which sets it on click) and the overlay (which renders the
- *  composer). Null when nothing is being placed. The atom itself lives in `./state`
- *  ({@link pendingComment}), scoped per editor.
+ *  composer).
  * @public */
 export interface PendingComment {
 	anchor: TLCommentAnchor
