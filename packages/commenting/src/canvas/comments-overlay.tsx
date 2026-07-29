@@ -659,9 +659,9 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 							)
 						}
 						return (
-							<ClusterFade key={`cluster-fade:${node.id}`} phase={phase}>
+							<div key={`cluster-fade:${node.id}`} className={clusterFadeClassName(phase)}>
 								{content}
-							</ClusterFade>
+							</div>
 						)
 					})}
 					{orphanThreads.map((thread) => (
@@ -799,29 +799,6 @@ function cancelClusterFadeFrame(frame: number) {
 
 function clusterFadeClassName(phase: ClusterFadePhase): string {
 	return `tlui-cmt-cluster-fade tlui-cmt-cluster-fade--${phase}`
-}
-
-/**
- * Wraps a cluster node while it fades in or out. The markers inside are real buttons, so a
- * mid-fade one would otherwise keep its tab stop and still fire on Enter/Space — expanding a
- * cluster leaves focus on the badge that's on its way out, and pressing Enter again would
- * re-trigger it. `inert` takes the whole subtree out of the tab order (and the accessibility
- * tree) for as long as it's animating; the pointer-events rule in CSS stays as the fallback for
- * browsers without `inert`. Set as a DOM property rather than a JSX attribute so it behaves the
- * same across the React versions this package supports.
- */
-function ClusterFade({ phase, children }: { phase: ClusterFadePhase; children: ReactNode }) {
-	const ref = useRef<HTMLDivElement>(null)
-	const inert = phase !== 'present'
-	useLayoutEffect(() => {
-		const el = ref.current
-		if (el) el.inert = inert
-	}, [inert])
-	return (
-		<div ref={ref} className={clusterFadeClassName(phase)}>
-			{children}
-		</div>
-	)
 }
 
 /**

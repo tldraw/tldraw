@@ -161,59 +161,6 @@ test.describe('commenting a11y', () => {
 		await expect(reply).toBeFocused()
 	})
 
-	test('a fading-out cluster badge drops out of the tab order', async ({ page, isMobile }) => {
-		if (isMobile) test.skip()
-
-		// Two comments far enough apart to be separate pins at this zoom.
-		await page.locator('[data-testid="tools.comment"]').click()
-		await page.mouse.click(300, 300)
-		await page.keyboard.type('first')
-		await page.keyboard.press('Enter')
-		await page.keyboard.press('Escape')
-		await page.locator('[data-testid="tools.comment"]').click()
-		await page.mouse.click(360, 320)
-		await page.keyboard.type('second')
-		await page.keyboard.press('Enter')
-		await page.keyboard.press('Escape')
-		await expect(page.locator('.tlui-cmt-canvas-pin__marker')).toHaveCount(2)
-
-		// Zoom out until they merge into one count badge.
-		const badge = page.locator('.tlui-cmt-canvas-cluster')
-		await expect(async () => {
-			await page.keyboard.press('Control+-')
-			await expect(badge).toHaveCount(1)
-		}).toPass()
-
-		// Markers are real buttons, so the CSS that drops pointer events for a fading node doesn't
-		// cover the keyboard: without more, a badge on its way out keeps its tab stop and still
-		// activates on Enter. The exiting phase only lasts the length of the transition, so catch it
-		// the moment it appears rather than polling for it afterwards.
-		const verdict = page.evaluate(
-			() =>
-				new Promise<string>((resolve) => {
-					const check = () => {
-						const wrapper = document.querySelector('.tlui-cmt-cluster-fade--exiting')
-						const button = wrapper?.querySelector('button') as HTMLElement | null
-						if (!button) return false
-						button.focus()
-						resolve(document.activeElement === button ? 'took focus' : 'refused focus')
-						return true
-					}
-					if (check()) return
-					const observer = new MutationObserver(() => {
-						if (check()) observer.disconnect()
-					})
-					observer.observe(document.body, { subtree: true, childList: true, attributes: true })
-					setTimeout(() => resolve('no badge ever faded out'), 5000)
-				})
-		)
-
-		// Expanding the cluster is what starts a badge fading.
-		await badge.focus()
-		await page.keyboard.press('Enter')
-		expect(await verdict).toBe('refused focus')
-	})
-
 	test('a stacked card is keyboard-openable without nesting its body links in a button', async ({
 		page,
 		isMobile,
