@@ -355,7 +355,9 @@ export function ThreadView({
 				footer={
 					<CommentReactions
 						comment={comment}
-						currentUserId={currentUserId}
+						// Reacting is a commenting write: without `canComment` the tally renders
+						// read-only (no identity → pills aren't clickable).
+						currentUserId={canComment ? currentUserId : null}
 						resolveName={resolveName}
 					/>
 				}
