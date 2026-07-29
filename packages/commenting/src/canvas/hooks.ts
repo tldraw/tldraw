@@ -8,33 +8,17 @@ import {
 	useValue,
 	WeakCache,
 } from 'tldraw'
-import { getComments, getCommentThreads } from './comment-store'
-
-/** The comments that should render: not soft-deleted. Deleted records await the server's prune. */
-function getLiveComments(editor: Editor): TLComment[] {
-	return getComments(editor).filter((c) => !c.isDeleted)
-}
+import { getLiveComments, getLiveCommentThreads } from './comment-store'
 
 /**
- * The comment threads that should render (pins, sidebar), reactively: live — not soft-deleted —
- * and still holding at least one live comment. A soft-deleted thread or comment is awaiting the
- * server's prune, as is a thread emptied by its last comment's delete — until the prune lands,
- * the emptied thread record lingers with no surface. Use `getCommentThreads` for the
- * unfiltered set.
+ * The comment threads that should render (pins, sidebar), reactively — the live set described by
+ * {@link getLiveCommentThreads}. Use `getCommentThreads` for the unfiltered set, including
+ * soft-deleted threads awaiting the server's prune.
  *
  * @public
  */
 export function useCommentThreads(editor: Editor): TLCommentThread[] {
-	return useValue(
-		'comment threads',
-		() => {
-			const threadIdsWithComments = new Set(getLiveComments(editor).map((c) => c.threadId))
-			return getCommentThreads(editor).filter(
-				(thread) => !thread.isDeleted && threadIdsWithComments.has(thread.id)
-			)
-		},
-		[editor]
-	)
+	return useValue('comment threads', () => getLiveCommentThreads(editor), [editor])
 }
 
 /**
@@ -74,7 +58,8 @@ export function useThreadComments(editor: Editor, threadId: TLCommentThreadId): 
 /** Shared empty result so a thread with no comments doesn't churn referential equality. */
 const EMPTY_COMMENTS: TLComment[] = []
 
-/** Every live comment in the store, oldest first, reactively. Group by `threadId` for per-thread lists. @public */
+/** Every live comment in the store ({@link getLiveComments}), oldest first, reactively. Group by
+ *  `threadId` for per-thread lists. @public */
 export function useComments(editor: Editor): TLComment[] {
 	return useValue(
 		'all comments',

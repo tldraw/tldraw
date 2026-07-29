@@ -167,9 +167,11 @@ Return `() => false` for shape-level anchoring throughout, or `(editor, { altKey
 
 ## Comments and undo
 
-Comment writes are not undoable by default. The `history` option governs all of them, including posting, replying, editing, resolving, and deleting, and it defaults to `'ignore'`.
+Comment writes are not undoable by default. The `history` option governs all of them, including posting, replying, editing and resolving, and it defaults to `'ignore'`. It covers your own writes too: a record you write with `putCommentRecords` lands on the undo stack, or doesn't, exactly like one the built-in UI writes.
 
 In a shared document an undoable delete resurrects a thread a collaborator already removed, and an undoable resolve reverts their newer state. `'record'` is safe single-player, or against a comment store that isn't synced.
+
+Deleting is the one write `history` doesn't reach. It's never undoable, for a reason particular to how deletes work — see [Deleting is a soft delete](#deleting-is-a-soft-delete).
 
 Pin drags are the exception worth configuring separately. Re-anchoring a comment is a spatial edit that may reasonably undo alongside the shape move that prompted it, so `dragHistory` overrides `history` for drags alone:
 
@@ -353,15 +355,19 @@ Both record types carry a `meta` field the layer never reads. Use it for priorit
 
 Comment records aren't part of the `TLRecord` union, so `editor.store` doesn't know their types statically. These helpers own that reinterpretation and keep your call sites typed.
 
-| Helper                 | Description                       |
-| ---------------------- | --------------------------------- |
-| `getCommentThreads`    | Every thread in the store.        |
-| `getComments`          | Every comment in the store.       |
-| `getCommentRecord`     | One record by id, or `undefined`. |
-| `putCommentRecords`    | Write threads and comments.       |
-| `removeCommentRecords` | Remove them by id.                |
+| Helper                  | Description                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| `getLiveCommentThreads` | The threads that render.                                                             |
+| `getLiveComments`       | The comments that render.                                                            |
+| `getCommentThreads`     | Every thread in the store, including deleted ones.                                   |
+| `getComments`           | Every comment in the store, including deleted ones.                                  |
+| `getCommentRecord`      | One record by id, or `undefined`.                                                    |
+| `putCommentRecords`     | Write threads and comments.                                                          |
+| `removeCommentRecords`  | Remove them by id. Rarely what you want — see [Writing comments](#writing-comments). |
 
-Those reads are non-reactive. In React use the hooks instead: `useCommentThreads`, `useComments`, and `useThreadComments` for one thread's replies, oldest first.
+Prefer the live reads. Deleting a comment doesn't remove its record — it flags it and lets the server prune it, as [Writing comments](#writing-comments) explains — so the unfiltered reads include records that nothing renders. `getLiveCommentThreads` also drops threads whose comments have all gone, which have no surface left.
+
+Those reads are non-reactive. In React use the hooks instead, which read the live set: `useCommentThreads`, `useComments`, and `useThreadComments` for one thread's replies, oldest first.
 
 ```tsx
 import { useCommentThreads } from '@tldraw/commenting'
@@ -375,7 +381,9 @@ function OpenThreadCount() {
 }
 ```
 
-To write a thread yourself, whether you're seeding a document with review notes or importing comments from another system, use the record helpers:
+## Writing comments
+
+To post a thread yourself, whether you're seeding a document with review notes or importing comments from another system, build the records and write them:
 
 ```tsx
 import { putCommentRecords } from '@tldraw/commenting'
@@ -396,6 +404,32 @@ const comment = createComment({
 
 putCommentRecords(editor, [thread, comment])
 ```
+
+The other writes each have a rule attached — a timestamp to stamp, or the delete protocol below — so they come as functions. The built-in thread view calls exactly these, so a UI of your own behaves like the one in the box.
+
+| Helper                          | Description                                            |
+| ------------------------------- | ------------------------------------------------------ |
+| `editComment`                   | Replace a comment's body and mark it edited.           |
+| `resolveThread`, `reopenThread` | Resolve a thread, stamping who and when, or reopen it. |
+| `deleteComment`                 | Delete a comment.                                      |
+| `deleteThread`                  | Delete a thread and its whole conversation.            |
+
+```tsx
+import { deleteComment, resolveThread } from '@tldraw/commenting'
+
+resolveThread(editor, thread, currentUserId)
+deleteComment(editor, comment)
+```
+
+### Deleting is a soft delete
+
+`deleteComment` and `deleteThread` don't remove records. They set an `isDeleted` flag and leave the pruning to the server, which then removes the thread, its comments, and their reactions.
+
+That indirection is what makes deleting safe in a shared document. A reaction belongs to whoever left it, not to whoever is deleting the comment underneath it, so no client should be removing it — and a server enforcing per-record permissions gets a write it can check against the session's identity rather than a deletion it can only refuse. `removeCommentRecords` is a hard delete, and against such a server it will simply be rejected. Reach for it on a local, unsynced comment store.
+
+The flag is write-once server-side, so deletes are never undoable, whatever `history` says: an undo clearing the flag would be vetoed and rebased rather than bring the comment back.
+
+Deleting a thread's last comment leaves the thread with nothing to render. The record stays for the server to prune, since whoever deleted the comment may not be the thread's creator.
 
 ## Revealing a thread
 
@@ -491,6 +525,7 @@ This is also where per-record permissions belong. The lane's write access is all
 | `Avatar`, `Mention`, `MentionList`       | Author avatars and the mention picker.                      |
 | `Reaction`, `Reactions`                  | A reaction pill and a comment's row of them.                |
 | `anchorPagePoint`, `shapeAnchorAt`       | Anchor math: page position from an anchor, and the reverse. |
+| `editComment`, `deleteComment`           | The write verbs. See [Writing comments](#writing-comments). |
 | `registerCommentAnchorLifecycle`         | Keeps shape-anchored threads alive across shape deletion.   |
 
 The presentational components take plain props and know nothing about the editor. The canvas layer, the tool, and the hooks build on them. `CanvasComments` registers the anchor lifecycle for you, so call `registerCommentAnchorLifecycle` yourself only if you're replacing the layer wholesale.
