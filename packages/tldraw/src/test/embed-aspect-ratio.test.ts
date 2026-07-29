@@ -77,6 +77,28 @@ describe('embed aspect ratio correction', () => {
 		expect(editor.getShape(id)).toBeUndefined()
 	})
 
+	it('preserves the ratio for a tall portrait video instead of clamping the width', async () => {
+		// A phone-tall 9:20 video: the area-preserving width falls below the resize floor
+		// (200 × 640/360 ≈ 356px) that onResize enforces for aspect-ratio-locked embeds. If we
+		// resized straight to the area-preserving box, onResize would clamp only the width and leave
+		// the height, re-letterboxing the content. The correction should scale up to clear the floor
+		// and keep the resolved ratio exact.
+		const url = 'https://vimeo.com/tall'
+		const ratio = 9 / 20
+		const util = stubVimeoDefinition(url, ratio)
+
+		const id = createShapeId()
+		editor.createShape<TLEmbedShape>({ id, type: 'embed', props: { w: 640, h: 360, url } })
+
+		await util.resolveAspectRatio(editor.getShape<TLEmbedShape>(id)!)
+
+		const shape = editor.getShape<TLEmbedShape>(id)!
+		expect(shape.props.w / shape.props.h).toBeCloseTo(ratio)
+		// neither axis is driven below the base minimum
+		expect(shape.props.w).toBeGreaterThanOrEqual(200)
+		expect(shape.props.h).toBeGreaterThanOrEqual(200)
+	})
+
 	it('keeps the page center fixed when the embed is rotated', async () => {
 		const url = 'https://vimeo.com/333'
 		const util = stubVimeoDefinition(url, 1.5)
