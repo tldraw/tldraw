@@ -539,6 +539,9 @@ export function isDocument(record?: UnknownRecord): record is TLDocument;
 export function isFontEntry(value: unknown): value is TLThemeFont;
 
 // @public
+export function isPage(record?: UnknownRecord): record is TLPage;
+
+// @public
 export function isPageId(id: string): id is TLPageId;
 
 // @public

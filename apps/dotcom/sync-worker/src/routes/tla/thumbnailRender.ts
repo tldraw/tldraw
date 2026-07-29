@@ -8,7 +8,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { ClusterBounds } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { isShape, TLShape } from '@tldraw/tlschema'
+import { TLShape, isPage, isShape } from '@tldraw/tlschema'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment, ThumbnailBoardKind } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
@@ -119,12 +119,10 @@ export interface EnumeratedPage {
 // "has content" when at least one shape sits directly on it (nested shapes always have a top-level
 // ancestor on their page, so checking direct children is sufficient).
 export function enumerateBoardPages(snapshot: RoomSnapshot): EnumeratedPage[] {
-	const records = snapshot.documents.map((d) => d.state) as any[]
-	const pageRecords = records.filter((r) => r?.typeName === 'page')
+	const records = snapshot.documents.map((d) => d.state)
+	const pageRecords = records.filter(isPage)
 	pageRecords.sort((a, b) => (a.index < b.index ? -1 : a.index > b.index ? 1 : 0))
-	const parentIdsWithShapes = new Set(
-		records.filter((r) => r?.typeName === 'shape').map((s) => s.parentId)
-	)
+	const parentIdsWithShapes = new Set(records.filter(isShape).map((s) => s.parentId))
 	return pageRecords.slice(0, MAX_THUMBNAIL_PAGES).map((p, index) => ({
 		index,
 		id: String(p.id),
