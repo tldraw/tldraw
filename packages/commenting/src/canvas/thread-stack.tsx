@@ -1,7 +1,15 @@
-import { memo, useEffect, useRef } from 'react'
-import { Editor, TLCommentThread, useContainer, usePassThroughWheelEvents, useValue } from 'tldraw'
+import { type MouseEvent as ReactMouseEvent, memo, useEffect, useRef } from 'react'
+import {
+	Editor,
+	TLCommentThread,
+	useContainer,
+	usePassThroughWheelEvents,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { CountBadge } from '../ui/count-badge'
+import { UNKNOWN_AUTHOR } from './comment-render'
 import { useThreadComments } from './hooks'
 import { useCommentingOptions } from './options'
 import { pinStackKey } from './pin-stacking'
@@ -33,7 +41,8 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	threads: readonly TLCommentThread[]
 }) {
 	const container = useContainer()
-	const badgeRef = useRef<HTMLDivElement>(null)
+	const msg = useTranslation()
+	const badgeRef = useRef<HTMLButtonElement>(null)
 	// The badge takes pointer events (to open on click), so wheel input over it would otherwise be
 	// swallowed instead of zooming — pass it through to the canvas, as the pin and cluster badge do.
 	usePassThroughWheelEvents(badgeRef)
@@ -127,18 +136,23 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	return (
 		<>
 			<div className="tlui-cmt-canvas-pin" style={{ left: point.x, top: point.y }}>
-				<div
+				<button
 					ref={badgeRef}
-					className="tlui-cmt-canvas-stack-badge"
+					type="button"
+					className="tlui-cmt-button tlui-cmt-canvas-stack-badge"
+					aria-label={msg('comments.stack-label').replace('{count}', String(threads.length))}
+					aria-expanded={open}
 					onPointerDown={(e) => e.stopPropagation()}
 					onClick={(e) => {
 						e.stopPropagation()
 						toggle()
 					}}
 					{...previewHandlers}
+					onFocus={previewHandlers.onPointerEnter}
+					onBlur={previewHandlers.onPointerLeave}
 				>
 					<CountBadge count={threads.length} open={open} />
-				</div>
+				</button>
 			</div>
 			{previewShown && !open && (
 				<ThreadPreview
@@ -195,19 +209,31 @@ function StackThreadCard({
 	onOpen,
 	...props
 }: ThreadViewHostProps & { editor: Editor; thread: TLCommentThread; onOpen(): void }) {
+	const msg = useTranslation()
 	const options = useCommentingOptions()
 	const comments = useThreadComments(editor, thread.id)
 	const resolveName = useResolveName(props.resolveAuthor)
 	const first = comments[0]
 	if (!first) return null
+	const open = (e: ReactMouseEvent) => {
+		e.stopPropagation()
+		onOpen()
+	}
 	return (
-		<div
-			className="tlui-cmt-stack-list__card"
-			onClick={(e) => {
-				e.stopPropagation()
-				onOpen()
-			}}
-		>
+		<div className="tlui-cmt-stack-list__card" onClick={open}>
+			{/* The card's keyboard affordance. A button *wrapping* the card would put the comment
+			    body inside it, and a body renders its links as real anchors — interactive content
+			    nested in a button, which is an invalid content model and reads to assistive tech as a
+			    broken control. So the button covers the card as a sibling instead, leaving the body's
+			    own links above it and still reachable. */}
+			<button
+				type="button"
+				className="tlui-cmt-button tlui-cmt-stack-list__card-action"
+				aria-label={msg(
+					thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label'
+				).replace('{name}', props.resolveAuthor(thread.createdBy)?.name ?? UNKNOWN_AUTHOR)}
+				onClick={open}
+			/>
 			<CommentCard {...toCardProps(first, props, options.components, resolveName)} />
 		</div>
 	)

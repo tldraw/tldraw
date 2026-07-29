@@ -6,6 +6,7 @@ import {
 	ReactNode,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -170,10 +171,42 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	return <CanvasCommentsLayer {...props} />
 }
 
+/**
+ * A mount point appended to the end of the editor container, for a portal that has to come last
+ * among the container's children.
+ *
+ * `createPortal(…, container)` doesn't get to say where its node lands: React places a portal
+ * during the same commit that mounts it, and a portal nested this deep in the tree is placed
+ * before the container's own, shallower children — so the layer ends up ahead of the UI and its
+ * "move focus to canvas" skip link. That link only works if nothing precedes it, and the pins are
+ * real buttons, so a single comment would take the first tab stop and leave no keyboard route to
+ * the canvas. A layout effect runs after the whole commit instead, by which point the container's
+ * children are all in place and appending is guaranteed to land at the end.
+ *
+ * Null until the effect has run, so the first render has nothing to portal into.
+ */
+function useTrailingPortalHost(container: HTMLElement) {
+	const [host, setHost] = useState<HTMLDivElement | null>(null)
+	useLayoutEffect(() => {
+		const elm = container.ownerDocument.createElement('div')
+		// The host is a position in the DOM, not a box — what it holds is positioned against the
+		// container, the same as it was when it hung off the container directly.
+		elm.style.display = 'contents'
+		container.appendChild(elm)
+		setHost(elm)
+		return () => {
+			elm.remove()
+			setHost(null)
+		}
+	}, [container])
+	return host
+}
+
 function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const editor = useEditor()
 	const options = useCommentingOptions()
 	const container = useContainer()
+	const portalHost = useTrailingPortalHost(container)
 	const layerRef = useRef<HTMLDivElement>(null)
 	// Over the pins and cluster badges, hover passes through to the canvas beneath (these events
 	// bubble up from the pointer-interactive markers to this layer root). Wheel pass-through is
@@ -540,7 +573,9 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	}
 
 	// Render into the container (above the panels' stacking context) so the pins and popovers
-	// live in the UI layer rather than being clipped by the canvas layer.
+	// live in the UI layer rather than being clipped by the canvas layer — but at the end of it,
+	// behind the editor's own children in the tab order. See `useTrailingPortalHost`.
+	if (!portalHost) return null
 	return createPortal(
 		<div ref={layerRef} className="tlui-cmt-canvas-layer">
 			{options.enableClustering ? (
@@ -610,7 +645,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
 		</div>,
-		container
+		portalHost
 	)
 }
 
@@ -836,7 +871,8 @@ const ClusterBadge = memo(function ClusterBadge({
 	threadsById: ReadonlyMap<string, TLCommentThread>
 }) {
 	const container = useContainer()
-	const badgeRef = useRef<HTMLDivElement>(null)
+	const msg = useTranslation()
+	const badgeRef = useRef<HTMLButtonElement>(null)
 	const { previewShown, previewHandlers } = useMarkerPreview(editor, `cluster:${node.id}`)
 	// Wheel pass-through sits on the badge (never scrollable), not the layer root — see the
 	// note on the layer.
@@ -867,10 +903,12 @@ const ClusterBadge = memo(function ClusterBadge({
 
 	return (
 		<>
-			<div
+			<button
 				ref={badgeRef}
-				className="tlui-cmt-canvas-cluster"
+				type="button"
+				className="tlui-cmt-button tlui-cmt-canvas-cluster"
 				style={{ left: point.x, top: point.y }}
+				aria-label={msg('comments.cluster-label').replace('{count}', String(node.count))}
 				onPointerDown={(e) => {
 					if (isCanvasPanGesture(editor, e)) {
 						forwardPointerEventToCanvas(container, e)
@@ -883,9 +921,11 @@ const ClusterBadge = memo(function ClusterBadge({
 					onExpand(node)
 				}}
 				{...previewHandlers}
+				onFocus={previewHandlers.onPointerEnter}
+				onBlur={previewHandlers.onPointerLeave}
 			>
 				<CountBadge count={node.count} />
-			</div>
+			</button>
 			{previewShown && previewThreads.length > 0 && (
 				<ThreadPreview
 					editor={editor}
@@ -1048,6 +1088,7 @@ const ThreadPin = memo(function ThreadPin({
 	const options = useCommentingOptions()
 	const canComment = useCanComment(props.currentUserId)
 	const container = useContainer()
+	const msg = useTranslation()
 	const comments = useThreadComments(editor, thread.id)
 	// Only one thread's popover is open at a time — shared across pins via the atom.
 	const open = useValue('thread open', () => openThreadId.get(editor) === thread.id, [
@@ -1097,7 +1138,7 @@ const ThreadPin = memo(function ThreadPin({
 		offsetX: number
 		offsetY: number
 	} | null>(null)
-	const markerRef = useRef<HTMLDivElement>(null)
+	const markerRef = useRef<HTMLButtonElement>(null)
 	// Wheel pass-through sits on the marker (which is never scrollable), not the layer root —
 	// see the note on the layer.
 	usePassThroughWheelEvents(markerRef)
@@ -1160,13 +1201,17 @@ const ThreadPin = memo(function ThreadPin({
 	) : (
 		initialOf(threadAuthor?.name ?? UNKNOWN_AUTHOR)
 	)
+	const pinLabel = msg(
+		thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label'
+	).replace('{name}', threadAuthor?.name ?? UNKNOWN_AUTHOR)
 
 	// Drag the marker to move the thread: its position is overridden locally while dragging, then
 	// re-anchored on drop. A point/shape thread re-anchors to whatever it's dropped on (a shape, else
 	// a point); a region thread translates, keeping its size. A pointer that barely moves is a click —
 	// toggle the popover.
 	const isRegion = thread.anchor.type === 'region'
-	const startDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+	// The marker is a button (so it's keyboard-reachable), so the drag handlers are typed to it.
+	const startDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
 		// A middle/right-button or space-held press over a pin is a camera pan, not a pin drag —
 		// hand it to the canvas untouched.
 		if (isCanvasPanGesture(editor, e)) {
@@ -1193,7 +1238,7 @@ const ThreadPin = memo(function ThreadPin({
 		}
 		e.currentTarget.setPointerCapture(e.pointerId)
 	}
-	const onDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+	const onDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
 		const drag = dragRef.current
 		if (!drag) return
 		// Moving a pin re-anchors the thread record — a commenting write. Without the permission the
@@ -1213,7 +1258,7 @@ const ThreadPin = memo(function ThreadPin({
 	}
 	// A cancelled pointer (touch gesture takeover, browser interruption) aborts the drag outright:
 	// no re-anchor commit, no click-toggle — the pin snaps back and the hint clears.
-	const cancelDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+	const cancelDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
 		const drag = dragRef.current
 		dragRef.current = null
 		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
@@ -1223,7 +1268,7 @@ const ThreadPin = memo(function ThreadPin({
 		setDragPagePoint(null)
 		editor.setHintingShapes([])
 	}
-	const endDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
+	const endDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
 		const drag = dragRef.current
 		dragRef.current = null
 		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
@@ -1323,20 +1368,33 @@ const ThreadPin = memo(function ThreadPin({
 					.join(' ')}
 				style={{ left: renderPoint.x, top: renderPoint.y }}
 			>
-				<div
+				<button
 					ref={markerRef}
-					className="tlui-cmt-canvas-pin__marker"
+					type="button"
+					className="tlui-cmt-button tlui-cmt-canvas-pin__marker"
+					aria-label={pinLabel}
+					aria-expanded={open}
 					onPointerDown={startDrag}
 					onPointerMove={onDrag}
 					onPointerUp={endDrag}
 					onPointerCancel={cancelDrag}
+					// Pointer activation is already handled by endDrag (which distinguishes a click
+					// from a drag), so only take keyboard-synthesised clicks here — those report
+					// `detail === 0` — or the thread would toggle twice per mouse click.
+					onClick={(e) => {
+						if (e.detail !== 0) return
+						openThreadId.set(editor, openThreadId.get(editor) === thread.id ? null : thread.id)
+					}}
 					onPointerEnter={previewHandlers.onPointerEnter}
 					onPointerLeave={previewHandlers.onPointerLeave}
+					// Focus stands in for hover, so tabbing to a marker gets the same preview.
+					onFocus={previewHandlers.onPointerEnter}
+					onBlur={previewHandlers.onPointerLeave}
 				>
 					<CommentPin resolved={thread.resolved != null} open={open} color={threadAuthor?.color}>
 						{pinContent}
 					</CommentPin>
-				</div>
+				</button>
 				{/* The popover portals up to the menus layer (above the UI panels) so it isn't clipped;
 			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
 				{open && (
