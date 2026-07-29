@@ -85,6 +85,7 @@ import { TLArrowShapeKind } from '@tldraw/editor';
 import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
+import { TLAssetStore } from '@tldraw/editor';
 import { TLBookmarkAsset } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLBookmarkShapeProps } from '@tldraw/editor';
@@ -701,6 +702,27 @@ export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrus
     render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorBrushOverlay[]): void;
     // (undocumented)
     renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorBrushOverlay[]): void;
+    // (undocumented)
+    static type: string;
+}
+
+// @public @deprecated
+export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
+    // (undocumented)
+    getOverlays(): TLCollaboratorCursorOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        chatMaxWidth: number;
+        fontSize: number;
+        nameMaxWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[]): void;
+    // (undocumented)
+    renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[], zoom: number): void;
     // (undocumented)
     static type: string;
 }
@@ -4025,6 +4047,18 @@ export interface TLCollaboratorBrushOverlay extends TLOverlay {
     };
 }
 
+// @public @deprecated (undocumented)
+export interface TLCollaboratorCursorOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        chatMessage: string;
+        color: string;
+        name: null | string;
+        x: number;
+        y: number;
+    };
+}
+
 // @public (undocumented)
 export interface TLCollaboratorHintOverlay extends TLOverlay {
     // (undocumented)
@@ -4147,6 +4181,7 @@ export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 
 // @public (undocumented)
 export interface TldrawImageProps extends TLImageExportOptions {
+    assets?: TLAssetStore;
     assetUrls?: TLUiAssetUrlOverrides;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     format?: 'png' | 'svg';

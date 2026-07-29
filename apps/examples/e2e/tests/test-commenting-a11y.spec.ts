@@ -145,7 +145,7 @@ test.describe('commenting a11y', () => {
 
 		// Edit from the card's own button: escaping should land back on it, not on the editor
 		// container, where Tab would walk the app's UI instead of the thread's own controls.
-		const editButton = page.locator('.tlui-cmt-canvas-popover .tlui-cmt-thread__action--edit')
+		const editButton = page.locator('.tlui-cmt-canvas-popover [data-cmt-edit-for]')
 		await editButton.click()
 		await expect(page.locator('.tlui-cmt-editing [contenteditable="true"]')).toBeFocused()
 		await page.keyboard.press('Escape')

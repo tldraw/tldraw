@@ -28,8 +28,15 @@ const thread = createCommentThread({
 	createdBy: 'client-claims-alice',
 })
 
-function session(userId: string | null): { sessionId: string; meta: TestMeta } {
-	return { sessionId: 's1', meta: { userId } }
+function session(
+	userId: string | null,
+	isReadonly = false
+): {
+	sessionId: string
+	isReadonly: boolean
+	meta: TestMeta
+} {
+	return { sessionId: 's1', isReadonly, meta: { userId } }
 }
 
 describe('createCommentAuthorizers', () => {
@@ -133,6 +140,29 @@ describe('createCommentAuthorizers', () => {
 			expect(
 				authorize({ session: session('real-bob'), type: 'create', prev: null, next })
 			).toBeNull()
+		})
+
+		// threadId ties a comment to its conversation (and downstream to a file), so re-parenting an
+		// existing comment must not be an update — even by its own author.
+		it('vetoes re-parenting a comment to another thread', () => {
+			const prev = comment('real-bob')
+			const next = { ...prev, threadId: 'comment-thread:other' as TLCommentThread['id'] }
+			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+		})
+
+		// createdAt orders threads and bounds the notification feed, so a mutable one lets a comment
+		// be re-sorted (or pinned to the top of the feed) after the fact.
+		it('vetoes back-dating a comment', () => {
+			const prev = comment('real-bob')
+			const next = { ...prev, createdAt: 1 }
+			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+		})
+
+		// the anchor lifecycle rewrites pageId on every comment when a thread moves pages
+		it('allows a pageId update (threads can move between pages)', () => {
+			const prev = comment('real-bob')
+			const next = { ...prev, pageId: 'page:other' as TLPageId }
+			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
 		})
 	})
 
@@ -301,6 +331,23 @@ describe('createCommentAuthorizers', () => {
 			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBeNull()
 		})
 
+		it('lets the reactor remove their own reaction', () => {
+			const prev = makeReaction('real-bob')
+			expect(authorize({ session: session('real-bob'), type: 'delete', prev, next: null })).toBe(
+				prev
+			)
+		})
+
+		it('vetoes deleting someone else’s reaction', () => {
+			// cascades still sweep every reactor's records: server-initiated writes carry no session
+			// and skip authorizers entirely, so this doesn't need to be open to clients
+			const prev = makeReaction('real-alice')
+			expect(
+				authorize({ session: session('real-mallory'), type: 'delete', prev, next: null })
+			).toBeNull()
+			expect(authorize({ session: session(null), type: 'delete', prev, next: null })).toBeNull()
+		})
+
 		// The id is derived from (comment, user, emoji). A create must land at the session user's own
 		// canonical slot, or a forger could occupy someone else's slot (locking them out) or push a
 		// mismatched id that wedges the table's unique constraint at drain time.
@@ -363,6 +410,156 @@ describe('createCommentAuthorizers', () => {
 					next: { ...prev, pageId: 'page:other' as typeof prev.pageId },
 				})
 			).toBeNull()
+		})
+	})
+
+	describe('canComment', () => {
+		const comment = (authorId: string) =>
+			createComment({ threadId: thread.id, pageId, authorId, body: toRichText('hi') })
+		const makeThread = (createdBy: string) =>
+			createCommentThread({ pageId, anchor: { type: 'page' }, createdBy })
+		const makeReaction = (userId: string, emoji = '👍') =>
+			createCommentReaction({
+				commentId: createCommentId('c1'),
+				threadId: thread.id,
+				pageId,
+				userId,
+				emoji,
+			})
+
+		it('blocks all comment-record writes from canvas read-only sessions by default', () => {
+			const readonly = session('real-bob', true)
+
+			const commentPrev = comment('real-bob')
+			expect(
+				authorizers.comment!({
+					session: readonly,
+					type: 'create',
+					prev: null,
+					next: comment('real-bob'),
+				})
+			).toBeNull()
+			expect(
+				authorizers.comment!({
+					session: readonly,
+					type: 'update',
+					prev: commentPrev,
+					next: { ...commentPrev, body: toRichText('edited') },
+				})
+			).toBeNull()
+			expect(
+				authorizers.comment!({ session: readonly, type: 'delete', prev: commentPrev, next: null })
+			).toBeNull()
+
+			const threadPrev = makeThread('real-bob')
+			expect(
+				authorizers['comment-thread']!({
+					session: readonly,
+					type: 'create',
+					prev: null,
+					next: makeThread('real-bob'),
+				})
+			).toBeNull()
+			expect(
+				authorizers['comment-thread']!({
+					session: readonly,
+					type: 'update',
+					prev: threadPrev,
+					next: { ...threadPrev, resolved: { at: 1, by: 'real-bob' } },
+				})
+			).toBeNull()
+			expect(
+				authorizers['comment-thread']!({
+					session: readonly,
+					type: 'delete',
+					prev: threadPrev,
+					next: null,
+				})
+			).toBeNull()
+
+			const reactionPrev = makeReaction('real-bob')
+			expect(
+				authorizers['comment-reaction']!({
+					session: readonly,
+					type: 'create',
+					prev: null,
+					next: makeReaction('real-bob'),
+				})
+			).toBeNull()
+			expect(
+				authorizers['comment-reaction']!({
+					session: readonly,
+					type: 'update',
+					prev: reactionPrev,
+					next: { ...reactionPrev, createdAt: reactionPrev.createdAt + 1 },
+				})
+			).toBeNull()
+			expect(
+				authorizers['comment-reaction']!({
+					session: readonly,
+					type: 'delete',
+					prev: reactionPrev,
+					next: null,
+				})
+			).toBeNull()
+		})
+
+		it('still applies the per-type rules to read-write sessions', () => {
+			const result = authorizers.comment!({
+				session: session('real-bob', false),
+				type: 'create',
+				prev: null,
+				next: comment('client-claims-alice'),
+			}) as TLComment
+			expect(result.authorId).toBe('real-bob')
+		})
+
+		it('lets a custom canComment allow read-only sessions (comment-only setups)', () => {
+			const commentOnly = createCommentAuthorizers<TestMeta>({
+				getUserId: (session) => session.meta.userId,
+				canComment: () => true,
+			})
+
+			const result = commentOnly.comment!({
+				session: session('real-bob', true),
+				type: 'create',
+				prev: null,
+				next: comment('client-claims-alice'),
+			}) as TLComment
+			expect(result.authorId).toBe('real-bob')
+
+			expect(
+				commentOnly.comment!({
+					session: session(null, true),
+					type: 'create',
+					prev: null,
+					next: comment('anon'),
+				})
+			).toBeNull()
+		})
+
+		it('lets a custom canComment block sessions on its own criteria', () => {
+			const bannable = createCommentAuthorizers<TestMeta>({
+				getUserId: (session) => session.meta.userId,
+				canComment: ({ meta }) => meta.userId !== 'banned',
+			})
+
+			expect(
+				bannable.comment!({
+					session: session('banned', false),
+					type: 'create',
+					prev: null,
+					next: comment('banned'),
+				})
+			).toBeNull()
+
+			const result = bannable.comment!({
+				session: session('real-bob', false),
+				type: 'create',
+				prev: null,
+				next: comment('client-claims-alice'),
+			}) as TLComment
+			expect(result.authorId).toBe('real-bob')
 		})
 	})
 })

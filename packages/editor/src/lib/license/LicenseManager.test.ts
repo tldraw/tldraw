@@ -32,24 +32,6 @@ const STANDARD_LICENSE_INFO = JSON.stringify([
 	expiryDate,
 ])
 
-// Collaboration launched on 2026-08-05, and a license expiring before that date plus the longest
-// term we issue (370 days, so 2027-08-10) is taken to predate the launch and grandfathered in.
-// These expiry dates are fixed rather than relative to the clock: which side of the cutoff a date
-// falls on is the whole point of these tests, so it can't be allowed to change as time passes.
-const GRANDFATHERED_EXPIRY_DATE = '2027-01-15'
-const LAST_GRANDFATHERED_EXPIRY_DATE = '2027-08-09'
-const FIRST_UNGRANDFATHERED_EXPIRY_DATE = '2027-08-10'
-const POST_GRANDFATHERING_EXPIRY_DATE = '2030-01-01'
-
-// A license issued once collaboration had launched: it expires past the grandfathering cutoff, so
-// it gets only the features its flags name.
-const POST_GRANDFATHERING_LICENSE_INFO = JSON.stringify([
-	'id',
-	['www.example.com'],
-	FLAGS.ANNUAL_LICENSE,
-	POST_GRANDFATHERING_EXPIRY_DATE,
-])
-
 describe('LicenseManager', () => {
 	let keyPair: { publicKey: string; privateKey: string }
 	let licenseManager: LicenseManager
@@ -529,7 +511,7 @@ describe('LicenseManager', () => {
 		})
 
 		it('Checks for the commenting feature flag', async () => {
-			const commentingLicenseInfo = JSON.parse(POST_GRANDFATHERING_LICENSE_INFO)
+			const commentingLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
 			commentingLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.FEAT_COMMENTING
 			const commentingLicenseKey = await generateLicenseKey(
 				JSON.stringify(commentingLicenseInfo),
@@ -543,7 +525,7 @@ describe('LicenseManager', () => {
 		})
 
 		it('Checks for the collaboration feature flag', async () => {
-			const collaborationLicenseInfo = JSON.parse(POST_GRANDFATHERING_LICENSE_INFO)
+			const collaborationLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
 			collaborationLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.FEAT_COLLABORATION
 			const collaborationLicenseKey = await generateLicenseKey(
 				JSON.stringify(collaborationLicenseInfo),
@@ -558,9 +540,10 @@ describe('LicenseManager', () => {
 		})
 
 		it('Leaves feature flags off when no feature bits are set', async () => {
-			const licenseKey = await generateLicenseKey(POST_GRANDFATHERING_LICENSE_INFO, keyPair)
-			const result = (await licenseManager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
-			expect(result.isGrandfathered).toBe(false)
+			const standardLicenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				standardLicenseKey
+			)) as ValidLicenseKeyResult
 			expect(result.isCollaborationEnabled).toBe(false)
 			expect(result.isCommentingEnabled).toBe(false)
 		})
@@ -581,64 +564,6 @@ describe('LicenseManager', () => {
 			} finally {
 				process.env.NODE_ENV = 'test'
 			}
-		})
-	})
-
-	describe('Grandfathered collaboration access', () => {
-		// Licenses sold before collaboration launched couldn't carry the feature flags, so their
-		// holders are let into the whole umbrella. We can't read an issue date off a license, so
-		// issuance is inferred from the expiry date: anything expiring before the launch date plus
-		// the longest term we issue (370 days) must have been issued before the launch.
-		async function getResultForExpiry(expiry: string, flags = FLAGS.ANNUAL_LICENSE) {
-			const licenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-			licenseInfo[PROPERTIES.FLAGS] = flags
-			licenseInfo[PROPERTIES.EXPIRY_DATE] = expiry
-			const licenseKey = await generateLicenseKey(JSON.stringify(licenseInfo), keyPair)
-			return (await licenseManager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
-		}
-
-		it('Grants the collaboration umbrella to a license issued before the launch', async () => {
-			const result = await getResultForExpiry(GRANDFATHERED_EXPIRY_DATE)
-			expect(result.isGrandfathered).toBe(true)
-			expect(result.isCollaborationEnabled).toBe(true)
-			expect(result.isCommentingEnabled).toBe(true)
-		})
-
-		it('Grandfathers a license expiring the day before the cutoff', async () => {
-			// The last day a license issued before 2026-08-05 can run to.
-			expect(await getResultForExpiry(LAST_GRANDFATHERED_EXPIRY_DATE)).toMatchObject({
-				isGrandfathered: true,
-				isCollaborationEnabled: true,
-				isCommentingEnabled: true,
-			})
-		})
-
-		it('Does not grandfather a license expiring on or after the cutoff', async () => {
-			// 2026-08-05 plus the longest term we issue: this license was issued from the launch
-			// date onwards, so it needs the feature flags.
-			expect(await getResultForExpiry(FIRST_UNGRANDFATHERED_EXPIRY_DATE)).toMatchObject({
-				isGrandfathered: false,
-				isCollaborationEnabled: false,
-				isCommentingEnabled: false,
-			})
-		})
-
-		it('Never grandfathers evaluation licenses', async () => {
-			// Evaluation terms are weeks long, so they'd stay under the cutoff long after the launch.
-			// This expiry would be grandfathered on any other license.
-			const result = await getResultForExpiry(GRANDFATHERED_EXPIRY_DATE, FLAGS.EVALUATION_LICENSE)
-			expect(result.isGrandfathered).toBe(false)
-			expect(result.isCollaborationEnabled).toBe(false)
-			expect(result.isCommentingEnabled).toBe(false)
-		})
-
-		it('Still honours the feature flags on an evaluation license', async () => {
-			const result = await getResultForExpiry(
-				GRANDFATHERED_EXPIRY_DATE,
-				FLAGS.EVALUATION_LICENSE | FLAGS.FEAT_COMMENTING
-			)
-			expect(result.isGrandfathered).toBe(false)
-			expect(result.isCommentingEnabled).toBe(true)
 		})
 	})
 
@@ -925,7 +850,6 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isLicensedWithWatermark: false,
 		isEvaluationLicense: false,
 		isEvaluationLicenseExpired: false,
-		isGrandfathered: false,
 		isCollaborationEnabled: false,
 		isCommentingEnabled: false,
 		daysSinceExpiry: 0,

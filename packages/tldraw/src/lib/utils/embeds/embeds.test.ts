@@ -54,11 +54,20 @@ describe('embed sandbox permissions', () => {
 })
 
 describe('getCorrectedEmbedSize', () => {
-	test('corrects height to match the resolved ratio, keeping width', () => {
-		expect(getCorrectedEmbedSize({ w: 640, h: 360, resolvedRatio: 1.5 })).toEqual({
-			w: 640,
-			h: 640 / 1.5,
-		})
+	test('corrects to the resolved ratio while preserving the box area', () => {
+		const corrected = getCorrectedEmbedSize({ w: 640, h: 360, resolvedRatio: 1.5 })!
+		expect(corrected.w / corrected.h).toBeCloseTo(1.5)
+		// area is unchanged, so the box takes the same footprint as the default 16:9 box
+		expect(corrected.w * corrected.h).toBeCloseTo(640 * 360)
+	})
+
+	test('does not balloon a portrait ratio: area is preserved, not the width', () => {
+		// a 9:16 video: width-preserving would give 640×1138; area-preserving keeps the footprint
+		const corrected = getCorrectedEmbedSize({ w: 640, h: 360, resolvedRatio: 9 / 16 })!
+		expect(corrected.w / corrected.h).toBeCloseTo(9 / 16)
+		expect(corrected.w * corrected.h).toBeCloseTo(640 * 360)
+		// far shorter than the 1138px a width-preserving correction would have produced
+		expect(corrected.h).toBeLessThan(640 / (9 / 16))
 	})
 
 	test('returns null when the resolved ratio already matches (within epsilon)', () => {
@@ -67,10 +76,9 @@ describe('getCorrectedEmbedSize', () => {
 
 	test('applies a new ratio regardless of the current ratio (e.g. after a url change)', () => {
 		// shape was already auto-corrected to 3:2; a new video resolves to 1:1
-		expect(getCorrectedEmbedSize({ w: 640, h: 640 / 1.5, resolvedRatio: 1 })).toEqual({
-			w: 640,
-			h: 640,
-		})
+		const corrected = getCorrectedEmbedSize({ w: 640, h: 640 / 1.5, resolvedRatio: 1 })!
+		expect(corrected.w / corrected.h).toBeCloseTo(1)
+		expect(corrected.w * corrected.h).toBeCloseTo(640 * (640 / 1.5))
 	})
 
 	test('returns null when there is no resolved ratio', () => {

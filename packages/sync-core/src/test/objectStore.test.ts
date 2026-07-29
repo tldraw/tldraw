@@ -85,7 +85,7 @@ function makeRoom(
 		onCommittedChanges?(args: { diff: any; documentClock: number }): void
 		authorizeRecord?: {
 			[typeName: string]: (args: {
-				session: { sessionId: string; meta: any }
+				session: { sessionId: string; isReadonly: boolean; meta: any }
 				type: 'create' | 'update' | 'delete'
 				prev: any
 				next: any
@@ -436,6 +436,26 @@ describe('object store lane', () => {
 		const storedNote = (storage: InMemorySyncStorage<R>, id: string) =>
 			storage.getObjectsSnapshot().find((d) => d.state.id === id)?.state as any
 
+		it('exposes the session isReadonly flag to the authorizer', () => {
+			const authorize = vi.fn(({ next }: any) => next)
+			const { room } = withNote(authorize)
+			// a canvas-readonly session can still write the object lane (objectAccess defaults to
+			// 'write'), which is exactly why authorizers need to see isReadonly independently
+			connectSession(room, 'reader', { isReadonly: true, meta: { userId: 'u' } })
+
+			const note = Note.create({ text: 'x' })
+			push(room, 'reader', { [note.id]: [RecordOpType.Put, note] })
+
+			expect(authorize.mock.calls[0][0].session.isReadonly).toBe(true)
+
+			authorize.mockClear()
+			connectSession(room, 'writer', { isReadonly: false, meta: { userId: 'u' } })
+			const note2 = Note.create({ text: 'y' })
+			push(room, 'writer', { [note2.id]: [RecordOpType.Put, note2] })
+
+			expect(authorize.mock.calls[0][0].session.isReadonly).toBe(false)
+		})
+
 		it('stamps a created record from the session, overriding the client value', () => {
 			const { room, storage } = withNote(authorizeNote)
 			const socket = connectSession(room, 'alice', { meta: { userId: 'user-alice' } })
@@ -559,6 +579,35 @@ describe('object store lane', () => {
 
 			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
 			expect(storedNote(storage, note.id)?.typeName).toBe('note')
+		})
+
+		// The typeName guard must not depend on authorizers being configured: the write gate keys
+		// off the *incoming* typeName, so relabeling an existing object-lane record as a document
+		// type would otherwise let an objectAccess:'read' session write through the document lane.
+		it('vetoes a typeName swap even with no authorizeRecord configured', () => {
+			const note = Note.create({ text: 'by:user-alice' })
+			const { room, storage } = makeRoom({
+				objectTypes: ['note'],
+				snapshot: {
+					documents: [{ state: note, lastChangedClock: 0 }],
+					clock: 0,
+					documentClock: 0,
+					schema: schema.serialize(),
+				},
+			})
+			// denied on the object lane, but allowed on the document lane
+			const socket = connectSession(room, 'mallory', {
+				objectAccess: 'read',
+				meta: { userId: 'user-mallory' },
+			})
+
+			push(room, 'mallory', {
+				[note.id]: [RecordOpType.Put, { id: note.id, typeName: 'doc', title: 'swapped' } as any],
+			})
+
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedNote(storage, note.id)?.typeName).toBe('note')
+			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
 		})
 
 		it('vetoes a put over an existing record that changes an immutable field', () => {

@@ -18,7 +18,16 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 	 * `null` for anonymous sessions — they can't create comments or threads, and can't perform
 	 * any owner-only action. Called exactly once per authorized write.
 	 */
-	getUserId(session: { sessionId: string; meta: SessionMeta }): string | null
+	getUserId(session: { sessionId: string; isReadonly: boolean; meta: SessionMeta }): string | null
+
+	/**
+	 * Whether a session may write comment records at all — checked before the per-type rules on
+	 * every create, update, and delete. Defaults to `({ isReadonly }) => !isReadonly`: comment
+	 * writes follow canvas access, so read-only viewers can read threads but not post, edit,
+	 * resolve, or react. Override to decouple the lanes — `() => true` allows commenting on a
+	 * read-only canvas (comment-only setups) — or to enforce custom criteria from the session.
+	 */
+	canComment?(session: { sessionId: string; isReadonly: boolean; meta: SessionMeta }): boolean
 }
 
 /**
@@ -28,16 +37,19 @@ export interface CommentAuthorizerOptions<SessionMeta> {
  * in someone else's name:
  *
  * - `comment`: `authorId` is stamped from the session on create (anonymous creates are
- *   rejected) and immutable afterwards; only the author may update.
- * - `comment-thread`: `createdBy` is stamped on create and immutable. Anyone with access may
- *   resolve/reopen, but a non-null `resolved.by` must be the session's own user.
+ *   rejected) and immutable afterwards; only the author may update. `threadId` and `createdAt`
+ *   are immutable too — a comment can't be re-parented or back-dated after the fact.
+ * - `comment-thread`: `createdBy` and `createdAt` are stamped/fixed on create. Anyone with access
+ *   may resolve/reopen, but a non-null `resolved.by` must be the session's own user.
  * - `comment-reaction`: `userId` is stamped on create and immutable; a create must land at the
- *   canonical id for its (comment, user, emoji) triple, and everything identity-bearing is
- *   immutable on update. Deletion is deliberately open — a reaction is a toggle, and cascades
- *   must sweep every reactor's records.
+ *   canonical id for its (comment, user, emoji) triple, everything identity-bearing is immutable
+ *   on update, and only the reactor may delete their own reaction.
  * - Deletion is soft for comments and threads: a write-once `isDeleted` flag that only the
  *   record's owner may set, never cleared, never set at create. Client hard-deletes are always
  *   rejected — record removals are server-side only.
+ * - `canComment` gates every create, update, and delete above, before the per-type rules run.
+ *   By default it mirrors the session's canvas access (`!isReadonly`), so read-only viewers can
+ *   read threads but not write to them; override it to decouple commenting from canvas access.
  *
  * Comment records ride alongside your document records, so widen the room's record union to
  * include them, then spread the result into the authorizer map alongside your own entries:
@@ -62,7 +74,7 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 export function createCommentAuthorizers<SessionMeta>(
 	opts: CommentAuthorizerOptions<SessionMeta>
 ): TLRecordAuthorizers<TLComment | TLCommentThread | TLCommentReaction, SessionMeta> {
-	const { getUserId } = opts
+	const { getUserId, canComment = ({ isReadonly }: { isReadonly: boolean }) => !isReadonly } = opts
 
 	/** A rule is an authorizer that receives the session's user id, resolved for it exactly once. */
 	type Rule<Rec extends UnknownRecord> = (
@@ -70,11 +82,17 @@ export function createCommentAuthorizers<SessionMeta>(
 		args: Parameters<TLRecordAuthorizer<Rec, SessionMeta>>[0]
 	) => Rec | null
 
-	/** Adapt a rule to the authorizer signature, resolving the session's user id exactly once. */
+	/**
+	 * Adapt a rule to the authorizer signature: gate on `canComment` first, then resolve the
+	 * session's user id exactly once.
+	 */
 	function withUserId<Rec extends UnknownRecord>(
 		rule: Rule<Rec>
 	): TLRecordAuthorizer<Rec, SessionMeta> {
-		return (args) => rule(getUserId(args.session), args)
+		return (args) => {
+			if (!canComment(args.session)) return null
+			return rule(getUserId(args.session), args)
+		}
 	}
 
 	/**
@@ -149,6 +167,29 @@ export function createCommentAuthorizers<SessionMeta>(
 		return result
 	}
 
+	/**
+	 * Reject an update that changes any of `fields`. Used for the structural fields an update must
+	 * never touch: a comment's parent thread and its creation time. `threadId` is what ties a
+	 * comment to its conversation (and, downstream, to a file), so letting an author re-parent an
+	 * existing comment would move it between threads — and, where threads span files, between
+	 * files. `createdAt` orders threads and bounds the notification feed, so a mutable one lets a
+	 * comment be re-sorted after the fact.
+	 */
+	function immutableFields<Rec extends UnknownRecord>(
+		fields: readonly (keyof Rec & string)[],
+		base: Rule<Rec>
+	): Rule<Rec> {
+		return (userId, args) => {
+			if (args.type === 'update') {
+				const { prev, next } = args
+				for (const field of fields) {
+					if (next[field] !== prev[field]) return null
+				}
+			}
+			return base(userId, args)
+		}
+	}
+
 	const authorizeReactionBase = authorizeAuthored<TLCommentReaction>('userId', {
 		ownerOnlyUpdate: true,
 	})
@@ -171,6 +212,12 @@ export function createCommentAuthorizers<SessionMeta>(
 	 *   So the id and the fields it is derived from can never drift apart.
 	 */
 	const authorizeReaction: Rule<TLCommentReaction> = (userId, args) => {
+		// Only the reactor may remove their own reaction. Cascades still sweep every reactor's
+		// records because server-initiated writes carry no session and so skip authorizers
+		// entirely — an open client delete was never what made the sweep work.
+		if (args.type === 'delete') {
+			return userId && userId === args.prev.userId ? args.prev : null
+		}
 		const result = authorizeReactionBase(userId, args)
 		if (!result) return null
 		if (args.type === 'create') {
@@ -195,11 +242,19 @@ export function createCommentAuthorizers<SessionMeta>(
 		comment: withUserId(
 			authorizeSoftDeleted<TLComment>(
 				(comment) => comment.authorId,
-				authorizeAuthored<TLComment>('authorId', { ownerOnlyUpdate: true })
+				// `pageId` stays mutable: it's denormalized from the thread, and moving an anchored
+				// thread between pages rewrites it on every comment in the thread.
+				immutableFields<TLComment>(
+					['threadId', 'createdAt'],
+					authorizeAuthored<TLComment>('authorId', { ownerOnlyUpdate: true })
+				)
 			)
 		),
 		'comment-thread': withUserId(
-			authorizeSoftDeleted<TLCommentThread>((thread) => thread.createdBy, authorizeThreadResolution)
+			authorizeSoftDeleted<TLCommentThread>(
+				(thread) => thread.createdBy,
+				immutableFields<TLCommentThread>(['createdAt'], authorizeThreadResolution)
+			)
 		),
 		// A reaction is one user's own record, so the standard attribution rules mostly cover it:
 		// `userId` is stamped from the session and only the reactor can change their reaction, and

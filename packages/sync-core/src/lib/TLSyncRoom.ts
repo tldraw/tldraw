@@ -155,8 +155,10 @@ export interface RoomSnapshot {
  */
 export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
 	args: {
-		/** The session performing the write, including its host-provided `meta` (e.g. the authenticated user id). */
-		session: { sessionId: string; meta: SessionMeta }
+		/** The session performing the write: its host-provided `meta` (e.g. the authenticated user
+		 *  id) and the canvas-lane `isReadonly` state, for hosts whose object-lane policy follows
+		 *  canvas access. */
+		session: { sessionId: string; isReadonly: boolean; meta: SessionMeta }
 	} & (
 		| { type: 'create'; prev: null; next: Rec }
 		| { type: 'update'; prev: Rec; next: Rec }
@@ -1343,38 +1345,50 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									)
 								}
 								const record = op[1]
+								// A put must not change the record's typeName. Two reasons, and the first
+								// applies whether or not authorizers are configured: the write gate above
+								// keyed off the *incoming* typeName, so a swap between lanes (document <->
+								// object) would let a session denied on one lane write through the other by
+								// relabeling an existing record. The second is that the authorizer lookup
+								// also keys off the incoming typeName while the replace path validates
+								// against the stored one, so a swap would consult the wrong authorizer (or
+								// none). Skip it like a veto; the client self-corrects.
+								const prevRecord = session ? ((txn.get(id) as R | undefined) ?? null) : null
+								if (session && prevRecord && prevRecord.typeName !== record.typeName) {
+									this.log?.warn?.(
+										'skipping put that changes typeName',
+										`${prevRecord.typeName} -> ${record.typeName}`,
+										id,
+										'session:',
+										session.sessionId
+									)
+									continue
+								}
 								// Per-type authorizer: stamp/veto the write from the session's identity.
 								// Client pushes only; runs inside `addDocument`, on the up-migrated record.
 								let authorize: ((prev: R | null, next: R) => R | null) | undefined
 								if (session && this.authorizeRecord) {
-									const prev = (txn.get(id) as R | undefined) ?? null
-									// A put must not change the record's typeName: the authorizer lookup keys
-									// off the incoming typeName while the replace path validates against the
-									// stored one, so a swap would consult the wrong authorizer (or none).
-									// Skip it like a veto; the client self-corrects.
-									if (prev && prev.typeName !== record.typeName) {
-										this.log?.warn?.(
-											'skipping put that changes typeName',
-											`${prev.typeName} -> ${record.typeName}`,
-											id,
-											'session:',
-											session.sessionId
-										)
-										continue
-									}
 									const authorizePut = this.authorizerFor(record.typeName)
 									if (authorizePut) {
 										authorize = (prevRec, next) => {
 											const result = authorizePut(
 												prevRec
 													? {
-															session: { sessionId: session.sessionId, meta: session.meta },
+															session: {
+																sessionId: session.sessionId,
+																isReadonly: session.isReadonly,
+																meta: session.meta,
+															},
 															type: 'update',
 															prev: prevRec,
 															next,
 														}
 													: {
-															session: { sessionId: session.sessionId, meta: session.meta },
+															session: {
+																sessionId: session.sessionId,
+																isReadonly: session.isReadonly,
+																meta: session.meta,
+															},
 															type: 'create',
 															prev: null,
 															next,
@@ -1409,7 +1423,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const authorize = authorizePatch
 									? (prev: R, next: R) => {
 											const result = authorizePatch({
-												session: { sessionId: session.sessionId, meta: session.meta },
+												session: {
+													sessionId: session.sessionId,
+													isReadonly: session.isReadonly,
+													meta: session.meta,
+												},
 												type: 'update',
 												prev,
 												next,
@@ -1443,7 +1461,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								if (
 									authorizeRemove &&
 									!authorizeRemove({
-										session: { sessionId: session.sessionId, meta: session.meta },
+										session: {
+											sessionId: session.sessionId,
+											isReadonly: session.isReadonly,
+											meta: session.meta,
+										},
 										type: 'delete',
 										prev: doc,
 										next: null,

@@ -5,6 +5,9 @@
   "00b177e080": {
     "translation": "Accept invitation"
   },
+  "029f235f01": {
+    "translation": "We’re working on support for files from <a><strong>{appName}</strong></a>."
+  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -31,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "Account"
+  },
+  "093ac7483a": {
+    "translation": "Can’t open {extension} files yet"
   },
   "0a91f7fa87": {
     "translation": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
@@ -473,6 +479,9 @@
   "aac449eef6": {
     "translation": "Create workspace"
   },
+  "aaec8f7cde": {
+    "translation": "Someone"
+  },
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
@@ -653,6 +662,9 @@
   },
   "f4f70727dc": {
     "translation": "Settings"
+  },
+  "f5ddc8d9c1": {
+    "translation": "For now, you can <a>export as a {extension} file</a> to use it here."
   },
   "fa2ead697d": {
     "translation": "Privacy Policy"

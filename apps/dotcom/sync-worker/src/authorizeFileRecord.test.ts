@@ -13,8 +13,15 @@ import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 
 const pageId = 'page:test' as TLPageId
 
-function session(userId: string | null): { sessionId: string; meta: SessionMeta } {
-	return { sessionId: 's1', meta: { storeId: 'store', userId } }
+function session(
+	userId: string | null,
+	isReadonly = false
+): {
+	sessionId: string
+	isReadonly: boolean
+	meta: SessionMeta
+} {
+	return { sessionId: 's1', isReadonly, meta: { storeId: 'store', userId } }
 }
 
 describe('authorizeFileRecord', () => {
@@ -50,6 +57,23 @@ describe('authorizeFileRecord', () => {
 					type: 'delete',
 					prev: thread,
 					next: null,
+				})
+			).toBeNull()
+		})
+
+		it('vetoes a comment create from a canvas read-only session', () => {
+			const next = createComment({
+				threadId: thread.id,
+				pageId,
+				authorId: 'real-bob',
+				body: toRichText('hi'),
+			})
+			expect(
+				authorizeFileRecord.comment!({
+					session: session('real-bob', true),
+					type: 'create',
+					prev: null,
+					next,
 				})
 			).toBeNull()
 		})
@@ -173,6 +197,14 @@ describe('authorizeFileRecord', () => {
 			const prev = makeNote('real-alice')
 			expect(authorize({ session: session('real-bob'), type: 'delete', prev, next: null })).toBe(
 				prev
+			)
+		})
+
+		it('allows a legal note update from a canvas read-only session (gated at the protocol level, not here)', () => {
+			const prev = makeNote('real-alice')
+			const next = { ...prev, x: 100 }
+			expect(authorize({ session: session('real-bob', true), type: 'update', prev, next })).toBe(
+				next
 			)
 		})
 	})

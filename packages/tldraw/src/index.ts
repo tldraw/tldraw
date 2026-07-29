@@ -76,6 +76,11 @@ export {
 	CollaboratorHintOverlayUtil,
 	type TLCollaboratorHintOverlay,
 } from './lib/overlays/CollaboratorHintOverlayUtil'
+// Deprecated, but still exported so apps that customized canvas-drawn cursors keep working.
+// oxlint-disable-next-line typescript/no-deprecated
+export { CollaboratorCursorOverlayUtil } from './lib/overlays/CollaboratorCursorOverlayUtil'
+// oxlint-disable-next-line typescript/no-deprecated
+export type { TLCollaboratorCursorOverlay } from './lib/overlays/CollaboratorCursorOverlayUtil'
 export {
 	CollaboratorBrushOverlayUtil,
 	type TLCollaboratorBrushOverlay,

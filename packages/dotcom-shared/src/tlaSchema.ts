@@ -209,7 +209,7 @@ export const comment_mention = table('comment_mention')
 	})
 	.primaryKey('commentId', 'userId')
 
-// One row per (comment, reacting user) — a user has at most one reaction per comment. Written by
+// One row per (comment, reacting user, emoji) — a user may react with several emoji. Written by
 // the file's Durable Object from the room's comment-reaction records, like comment/comment_thread.
 // The in-document reaction UI reads reactions over the sync object-lane, not from here; this table
 // mirrors comment_mention so a future app-level query (e.g. "reacted to your comment") can reach
@@ -362,8 +362,8 @@ const commentThreadRelationships = relationships(comment_thread, ({ one, many })
 		destField: ['id'],
 		destSchema: file,
 	}),
-	// the thread's messages; used with whereExists for "threads the user has commented in" in
-	// the comments query, never synced as a related row set
+	// the thread's messages; used with whereExists and as a related row set in the comments
+	// query. Always scope to ctx.userId when syncing — unscoped it replicates everyone's comments
 	comments: many({
 		sourceField: ['id'],
 		destField: ['threadId'],

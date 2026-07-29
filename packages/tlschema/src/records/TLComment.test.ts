@@ -226,6 +226,23 @@ describe('comment-reaction record', () => {
 		expect(commentReactionRecordConfig.validator.validate(reaction)).toEqual(reaction)
 	})
 
+	it('rejects an empty or oversized emoji token', () => {
+		const reaction = createCommentReaction({
+			commentId: createCommentId('c1'),
+			threadId: createCommentThreadId('t1'),
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+		})
+		// the reaction id embeds the emoji verbatim, so an unbounded token means an unbounded id
+		expect(() =>
+			commentReactionRecordConfig.validator.validate({ ...reaction, emoji: '' })
+		).toThrow()
+		expect(() =>
+			commentReactionRecordConfig.validator.validate({ ...reaction, emoji: 'x'.repeat(65) })
+		).toThrow()
+	})
+
 	it('createCommentReactionId is injective when a part contains a colon', () => {
 		// two different triples that a naive slice+join would collapse onto one id:
 		// comment "foo" + user "bar:baz" + 👍   vs   comment "foo:bar" + user "baz" + 👍

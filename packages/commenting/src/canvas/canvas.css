@@ -132,6 +132,14 @@
 	margin: -16px;
 }
 
+/* The expanded thread is the only entry with pills floating above its panel — its header actions,
+   and its first comment's hover actions. Those reach ~15px up, past the list's 10px gap, so give
+   this one entry extra room: without it the pills land on the card above, and against the scroll
+   box's clip edge. Collapsed cards keep their own actions inside, so they need none of this. */
+.tlui-cmt-stack-list__thread {
+	margin-top: 8px;
+}
+
 /* Collapsed entries match the expanded thread's surface (same width, panel, elevation) so the
    list reads as one column of cards with one of them opened up. */
 .tlui-cmt-stack-list__card {
@@ -213,7 +221,7 @@
    The popover and preview share a first-comment position now that the actions float outside the
    panel rather than reserving a header row, so no vertical shift is needed. */
 .tlui-cmt-canvas-preview--thread {
-	--tlui-cmt-preview-bridge: calc(var(--tlui-cmt-preview-offset) - var(--tlui-cmt-marker-size));
+	--tlui-cmt-preview-bridge: calc(var(--tlui-cmt-preview-offset) - var(--tlui-cmt-pin-size));
 }
 
 /* A badge is centred on its anchor, so only half of it does. */
@@ -410,19 +418,23 @@
 	position: absolute;
 	z-index: var(--tl-layer-menus);
 	pointer-events: auto;
-	/* Anchor the draft avatar bottom-left like the pins it becomes: it is 28px wide and sits 4px
-	   into the row, so its bottom-left corner is 4px right of and 4 + 28 = 32px below the
-	   composer's top-left corner. */
-	transform: translate(-4px, -32px);
+	/* Anchor the draft avatar bottom-left like the pins it becomes: it is a pin wide and sits 4px
+	   into the row, so its bottom-left corner is 4px right of and 4px + a pin below the composer's
+	   top-left corner. */
+	transform: translate(-4px, calc(-4px - var(--tlui-cmt-pin-size)));
 	/* The rich-text editor has no intrinsic width (unlike the old <input>), so give the floating
 	   placement composer a definite width or it collapses to nothing. */
 	width: 280px;
 }
 
 /* A region placement centres the draft avatar on the region's pin corner — the pin it becomes
-   straddles that corner. The avatar's centre sits 4 + 28/2 = 18px into the composer. */
+   straddles that corner. The avatar's centre sits 4px + half a pin into the composer. */
 .tlui-cmt-canvas-composer--region {
-	transform: translate(-18px, -18px);
+	--tlui-cmt-draft-avatar-centre: calc(4px + var(--tlui-cmt-pin-size) / 2);
+	transform: translate(
+		calc(-1 * var(--tlui-cmt-draft-avatar-centre)),
+		calc(-1 * var(--tlui-cmt-draft-avatar-centre))
+	);
 }
 
 /* Fallback placement (no composer to show): no draft avatar to anchor by, so no offset — a small

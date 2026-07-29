@@ -63,7 +63,9 @@ export const queries = defineQueries({
 	 *   outlive access to the file.
 	 *
 	 * Filtering here (server-side) rather than on the client is what keeps out-of-category
-	 * comments off the wire entirely — the unread badge is a pure function of the synced set.
+	 * comments off the wire entirely. One gate stays client-side: `categorizeCommentNotifications`
+	 * drops reply-category comments from before the user joined the thread (ZQL can't compare
+	 * createdAt across correlated rows).
 	 *
 	 * Bounded to the most recent {@link RECENT_COMMENTS_LIMIT} so the synced set stays finite as a
 	 * workspace ages, rather than growing without limit. This is a display feed — the canvas comment
@@ -77,6 +79,9 @@ export const queries = defineQueries({
 			// TLComment.isDeleted) but must never surface as notifications
 			.where('isDeleted', '=', false)
 			.whereExists('thread', (t) => t.where('isDeleted', '=', false))
+			// same for soft-deleted boards: their comment rows persist, but a notification would
+			// navigate to a file the user can no longer open
+			.whereExists('file', (f) => f.where('isDeleted', '=', false))
 			.where(({ and, or, exists }) =>
 				or(
 					// on a board the user owns
@@ -124,7 +129,16 @@ export const queries = defineQueries({
 				)
 			)
 			.related('file', (file) => file.one())
-			.related('thread', (thread) => thread.one())
+			// only the caller's own comments, so the client can tell when they joined the thread.
+			// The client gate depends on this relation — a client shipped without a worker that
+			// syncs it drops reply notifications for threads the user didn't start
+			.related('thread', (thread) =>
+				thread
+					.one()
+					.related('comments', (c) =>
+						c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
+					)
+			)
 			// the caller's read receipt (at most one row: PK is (userId, commentId) and we filter
 			// on userId); absent (for others' comments) = unread
 			.related('read', (read) => read.where('userId', '=', ctx.userId).one())

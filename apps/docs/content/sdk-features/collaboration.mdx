@@ -326,6 +326,26 @@ export default function App({ roomId }: { roomId: string }) {
 
 Pass the shape and binding utilities to both the sync hook (for schema registration) and the Tldraw component (for rendering). If they don't match, shapes may fail to sync or render correctly.
 
+## Comments
+
+Comment threads sync the same way, through record types you opt into with the `records` option:
+
+```tsx
+import { useSync } from '@tldraw/sync'
+import { commentSchemaRecords } from 'tldraw'
+
+const store = useSync({
+	uri: `wss://your-server.com/sync/${roomId}`,
+	assets: myAssetStore,
+	records: commentSchemaRecords,
+})
+```
+
+Your server's schema needs the same registration. On the server you can also serve comments through
+the room's object-store lane, which gates them by their own per-session permission—so a viewer who
+can't edit the document can still comment. See [Commenting](/sdk-features/commenting) for the tool,
+the canvas layer, and the server setup.
+
 ## Building custom sync
 
 The `@tldraw/sync` package handles many complexities: connection management, reconnection, conflict resolution, and protocol versioning. For most applications, it's the right choice. However, you might need custom sync when integrating with existing infrastructure, using a different transport (like WebRTC), or implementing specialized conflict resolution.

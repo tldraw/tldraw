@@ -61,8 +61,11 @@ import {
 	findEmptiedCommentThreads,
 	findOrphanedReactions,
 	isCommentAuthorFkViolation,
+	isCommentFileFkViolation,
 	isCommentMentionFkViolation,
 	isCommentReactionFkViolation,
+	isCommentThreadFkViolation,
+	isCommentThreadIdFkViolation,
 	liveCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
@@ -70,7 +73,6 @@ import {
 	planMentionReconciles,
 } from './commentRows'
 import { PERSIST_INTERVAL_MS } from './config'
-import { computeFileAccess } from './fileAccess'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
@@ -184,8 +186,13 @@ const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
 // Record types served through the room's object-store lane rather than the document lane.
 // Object-lane records sync over the same socket but are gated per session by `objectAccess`
 // (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in Postgres
-// rather than the R2 document blob.
-const OBJECT_TYPES = ['comment-thread', 'comment', 'comment-reaction'] as const
+// rather than the R2 document blob. Every entry must have an `authorizeFileRecord` authorizer —
+// that's where per-tier write policy lives (the `satisfies` enforces it).
+const OBJECT_TYPES = [
+	'comment-thread',
+	'comment',
+	'comment-reaction',
+] as const satisfies readonly (keyof typeof authorizeFileRecord)[]
 
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
@@ -263,7 +270,6 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this._documentInfo) {
 			throw new Error('documentInfo must be present when accessing room')
 		}
-		const slug = this._documentInfo.slug
 		if (!this._room) {
 			this._room = this.getStorage().then(async (storage) => {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
@@ -287,20 +293,16 @@ export class TLFileDurableObject extends DurableObject {
 					onSessionRemoved: async (room, args) => {
 						this.logEvent({
 							type: 'client',
-							roomId: slug,
 							name: 'leave',
 							instanceId: args.sessionId,
-							localClientId: args.meta.storeId,
 						})
 
 						if (args.numSessionsRemaining > 0) return
 						if (!this._room) return
 						this.logEvent({
 							type: 'client',
-							roomId: slug,
 							name: 'last_out',
 							instanceId: args.sessionId,
-							localClientId: args.meta.storeId,
 						})
 						try {
 							await this.persistToDatabase()
@@ -311,7 +313,7 @@ export class TLFileDurableObject extends DurableObject {
 						if (room.getNumActiveSessions() > 0) return
 						this._room = null
 						room.close()
-						this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
+						this.logEvent({ type: 'room', name: 'room_empty' })
 						await this._pool?.end()
 						this._pool = null
 						this._db = null
@@ -319,7 +321,6 @@ export class TLFileDurableObject extends DurableObject {
 					onBeforeSendMessage: ({ message, stringified }) => {
 						this.logEvent({
 							type: 'send_message',
-							roomId: slug,
 							messageType: message.type,
 							messageLength: stringified.length,
 						})
@@ -335,7 +336,7 @@ export class TLFileDurableObject extends DurableObject {
 					authorizeRecord: authorizeFileRecord,
 				})
 
-				this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
+				this.logEvent({ type: 'room', name: 'room_start' })
 				// Resume any sessions that survived hibernation
 				for (const ws of this.state.getWebSockets()) {
 					const attachment = ws.deserializeAttachment() as SocketAttachment | null
@@ -737,10 +738,6 @@ export class TLFileDurableObject extends DurableObject {
 		const auth = await getAuth(req, this.env)
 		authTimer.report('on_request_auth')
 
-		// Comment (object-lane) write access, decided per session alongside the canvas open mode.
-		// Defaults to read-only; legacy (non-app) rooms have no comment tier and keep this default.
-		let objectAccess: TLObjectStoreAccess = 'read'
-
 		if (this.documentInfo.isApp) {
 			openMode = ROOM_OPEN_MODE.READ_WRITE
 			const file = await this.getAppFileRecord()
@@ -765,7 +762,6 @@ export class TLFileDurableObject extends DurableObject {
 						this.logEvent({
 							type: 'client',
 							userId: auth.userId,
-							localClientId: storeId,
 							name: 'rate_limited',
 						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
@@ -776,7 +772,6 @@ export class TLFileDurableObject extends DurableObject {
 						this.logEvent({
 							type: 'client',
 							userId: auth?.userId,
-							localClientId: storeId,
 							name: 'rate_limited',
 						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
@@ -802,18 +797,11 @@ export class TLFileDurableObject extends DurableObject {
 					return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 				}
 
-				// Map the file's tier to this session's two lanes: `edit` guests keep canvas write,
-				// everyone else is canvas read-only, and comments are gated separately by
-				// objectAccess — a view-only guest reads comments but can't write them.
-				const access = computeFileAccess({
-					sharedLinkType: file.sharedLinkType,
-					hasOwnerAccess,
-					isAuthenticated: !!auth?.userId,
-				})
-				if (access.isReadonly) {
+				// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain
+				// string column with legacy values in it, so anything else fails closed.
+				if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
 					openMode = ROOM_OPEN_MODE.READ_ONLY
 				}
-				objectAccess = access.objectAccess
 			}
 		} else {
 			// Legacy rooms are now read-only
@@ -826,6 +814,11 @@ export class TLFileDurableObject extends DurableObject {
 				userId: auth?.userId ? auth.userId : null,
 			}
 			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
+			// Only authenticated users can write comments — authors are stored in Postgres with a
+			// foreign key to the user table, so an anonymous author can't be represented. Tier
+			// gating (view-only sessions) happens in `authorizeFileRecord` off the session's
+			// `isReadonly`.
+			const objectAccess: TLObjectStoreAccess = auth?.userId ? 'write' : 'read'
 			const attachment: SocketAttachment = {
 				sessionId,
 				meta,
@@ -855,18 +848,14 @@ export class TLFileDurableObject extends DurableObject {
 			if (isNewSession) {
 				this.logEvent({
 					type: 'client',
-					roomId: this.documentInfo.slug,
 					name: 'room_reopen',
 					instanceId: sessionId,
-					localClientId: storeId,
 				})
 			}
 			this.logEvent({
 				type: 'client',
-				roomId: this.documentInfo.slug,
 				name: 'enter',
 				instanceId: sessionId,
-				localClientId: storeId,
 			})
 
 			requestTimer.report('on_request_total')
@@ -1012,8 +1001,25 @@ export class TLFileDurableObject extends DurableObject {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
 
+	/**
+	 * Indexes every data point on this object's durable object id, so any event can be grouped by
+	 * room. The id is the one Cloudflare keys its own telemetry on — `$workers.durableObjectId` in
+	 * Workers Logs, and the per-object filter on the namespace's metrics — so a room's analytics,
+	 * logs, traces and CPU/storage numbers all line up on a single value.
+	 *
+	 * Deliberately the id rather than the slug: `idFromName` is one-way, so an id read out of the
+	 * dataset does not open the board, where the slug for an app file is the whole authority of
+	 * `tldraw.com/f/<id>`. Resolving in the useful direction still works from a slug you already
+	 * hold, via `env.TLDR_DOC.idFromName('/r/' + slug)`.
+	 *
+	 * Analytics Engine allows exactly one index, so this is the only object-level dimension these
+	 * events carry.
+	 */
 	private writeEvent(name: string, eventData: EventData) {
-		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, name, {
+			...eventData,
+			indexes: [this.id.toString()],
+		})
 	}
 
 	logEvent(event: TLServerEvent) {
@@ -1023,28 +1029,20 @@ export class TLFileDurableObject extends DurableObject {
 				break
 			}
 			case 'room': {
-				// we would add user/connection ids here if we could
-				this.writeEvent(event.name, { blobs: [event.roomId] })
+				this.writeEvent(event.name, {})
 				break
 			}
 			case 'client': {
 				if (event.name === 'rate_limited') {
-					this.writeEvent(event.name, {
-						blobs: [event.userId ?? 'anon-user'],
-						indexes: [event.localClientId],
-					})
+					this.writeEvent(event.name, { blobs: [event.userId ?? 'anon-user'] })
 				} else {
-					// we would add user/connection ids here if we could
-					this.writeEvent(event.name, {
-						blobs: [event.roomId, 'unused', event.instanceId],
-						indexes: [event.localClientId],
-					})
+					this.writeEvent(event.name, { blobs: [event.instanceId] })
 				}
 				break
 			}
 			case 'send_message': {
 				this.writeEvent(event.type, {
-					blobs: [event.roomId, event.messageType],
+					blobs: [event.messageType],
 					doubles: [event.messageLength],
 				})
 				break
@@ -1232,7 +1230,7 @@ export class TLFileDurableObject extends DurableObject {
 			supabaseFetchTimer.report('db_load_supabase_fetch')
 
 			if (error) {
-				this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
+				this.logEvent({ type: 'room', name: 'failed_load_from_db' })
 
 				loadTimer.report('db_load_total')
 
@@ -1253,7 +1251,7 @@ export class TLFileDurableObject extends DurableObject {
 				roomSizeMB: 0,
 			}
 		} catch (error) {
-			this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
+			this.logEvent({ type: 'room', name: 'failed_load_from_db' })
 
 			loadTimer.report('db_load_total_error')
 
@@ -1563,7 +1561,6 @@ export class TLFileDurableObject extends DurableObject {
 								.catch((e) => {
 									this.logEvent({
 										type: 'room',
-										roomId: this.documentInfo.slug,
 										name: 'failed_persist_to_db',
 									})
 									this.reportError(e)
@@ -1574,7 +1571,7 @@ export class TLFileDurableObject extends DurableObject {
 				)
 			})
 			.catch((e) => {
-				this.logEvent({ type: 'room', roomId: this.documentInfo.slug, name: 'fail_persist' })
+				this.logEvent({ type: 'room', name: 'fail_persist' })
 				this.reportError(e)
 			})
 	}
@@ -1921,7 +1918,12 @@ export class TLFileDurableObject extends DurableObject {
 				const runBatchWithFallback = async <R extends { id: string }>(
 					rows: R[],
 					insert: (rows: R[]) => Promise<unknown>,
-					shouldPrune?: (error: unknown) => boolean
+					// Called with the offending row on the row-by-row pass, and without one for the
+					// batch error (where it only decides whether to report — the per-row pass
+					// attributes the failure properly). Taking the row lets a predicate that can't
+					// judge an error in isolation — see the comment thread-FK case — look at what
+					// was actually being written.
+					shouldPrune?: (error: unknown, row?: R) => boolean
 				): Promise<{ failedIds: string[]; prunedIds: string[] }> => {
 					const failedIds: string[] = []
 					const prunedIds: string[] = []
@@ -1939,16 +1941,12 @@ export class TLFileDurableObject extends DurableObject {
 							try {
 								await insert([row])
 							} catch (rowError) {
-								if (shouldPrune?.(rowError)) {
+								if (shouldPrune?.(rowError, row)) {
 									prunedIds.push(row.id)
 									continue
 								}
 								failedIds.push(row.id)
-								this.logEvent({
-									type: 'room',
-									roomId: fileId,
-									name: 'failed_persist_comments_to_db',
-								})
+								this.logEvent({ type: 'room', name: 'failed_persist_comments_to_db' })
 								this.reportError(rowError)
 							}
 						}
@@ -1974,7 +1972,14 @@ export class TLFileDurableObject extends DurableObject {
 					deletedCommentThreadIds = new Set(deletedRows.map((row) => row.threadId))
 				}
 				const failedIds = new Set<string>()
-				const threadResult = await runBatchWithFallback(threadUpserts, insertThreadRows)
+				// A thread upsert failing its file FK can never succeed on retry — the file is gone,
+				// or the room's slug was never a file row at all. Prune it like an author cascade
+				// rather than leaving the entry to fail on every drain for the life of the room.
+				const threadResult = await runBatchWithFallback(
+					threadUpserts,
+					insertThreadRows,
+					isCommentThreadFkViolation
+				)
 				for (const id of threadResult.failedIds) {
 					failedIds.add(id)
 				}
@@ -1990,10 +1995,28 @@ export class TLFileDurableObject extends DurableObject {
 				// cascade can't race the room), so the pruned thread ids are re-outboxed and a
 				// follow-up drain stamps the rows soft-deleted through the normal at-least-once
 				// acked path.
+				// Also prune a comment whose parent can never exist: its file is gone, or its thread
+				// was vetoed by the authorizer / forged by a client, so retrying is an unbounded
+				// loop rather than eventual consistency.
+				//
+				// A thread-FK failure alone doesn't prove that, though. Threads upsert before
+				// comments in this same drain, so a thread whose own upsert just failed
+				// transiently (timeout, serialization failure) also fails its comments' FK — and
+				// that thread is still queued to retry. Pruning there would delete a live comment
+				// moments before its parent lands, and the retry would then have nothing to attach.
+				// So only prune when the thread is absent from the room's lane, which is what
+				// "vetoed or never existed" actually looks like. `lane` is a snapshot taken at the
+				// top of the drain, so the later prunes below can't shift this decision.
 				const commentResult = await runBatchWithFallback(
 					commentUpserts,
 					insertCommentRows,
-					isCommentAuthorFkViolation
+					(error, row) => {
+						if (isCommentAuthorFkViolation(error) || isCommentFileFkViolation(error)) return true
+						if (!isCommentThreadIdFkViolation(error)) return false
+						// No row: the batch-level call, which only suppresses the duplicate report.
+						if (!row) return true
+						return !lane.has(row.threadId)
+					}
 				)
 				for (const id of commentResult.failedIds) {
 					failedIds.add(id)
@@ -2016,6 +2039,17 @@ export class TLFileDurableObject extends DurableObject {
 				if (reactionResult.prunedIds.length > 0) {
 					storage.transaction((txn) => {
 						for (const id of reactionResult.prunedIds) txn.delete(id as TLRecord['id'])
+					})
+				}
+				// Same for a thread pruned by its file FK: the file is gone, so Postgres has already
+				// cascaded the thread (and its comments) away. Without this the lane keeps records
+				// for a file that no longer exists, which is exactly the ghost state the reaction
+				// and comment prunes exist to avoid. Its comments fail `comment_file_id_fkey` in
+				// the same drain and prune through their own path, so no dependent sweep is needed
+				// here.
+				if (threadResult.prunedIds.length > 0) {
+					storage.transaction((txn) => {
+						for (const id of threadResult.prunedIds) txn.delete(id as TLRecord['id'])
 					})
 				}
 				// Un-reacting removes the record, so a lane-absent reaction is a real delete — unlike
@@ -2085,18 +2119,14 @@ export class TLFileDurableObject extends DurableObject {
 						}
 					} catch (error) {
 						failedIds.add(commentId)
-						this.logEvent({
-							type: 'room',
-							roomId: fileId,
-							name: 'failed_persist_comments_to_db',
-						})
+						this.logEvent({ type: 'room', name: 'failed_persist_comments_to_db' })
 						this.reportError(error)
 					}
 				}
 
 				let didPruneThreads = false
 				if (commentResult.prunedIds.length > 0) {
-					this.logEvent({ type: 'room', roomId: fileId, name: 'comment_author_deleted_prune' })
+					this.logEvent({ type: 'room', name: 'comment_author_deleted_prune' })
 				}
 				if (commentResult.prunedIds.length > 0 || deletedCommentThreadIds.size > 0) {
 					// Remove the author-cascade-pruned records from the room's storage so it stops
@@ -2154,10 +2184,10 @@ export class TLFileDurableObject extends DurableObject {
 						return { prunedThreadIds: deletedThreadIds, prunedReactionIds: deletedReactionIds }
 					}).result
 					if (prunedReactionIds.length > 0) {
-						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_reaction_orphan_prune' })
+						this.logEvent({ type: 'room', name: 'comment_reaction_orphan_prune' })
 					}
 					if (prunedThreadIds.length > 0) {
-						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_thread_emptied_prune' })
+						this.logEvent({ type: 'room', name: 'comment_thread_emptied_prune' })
 						// Outbox the pruned thread ids instead of stamping their Postgres rows
 						// directly: the follow-up drain (kicked below, after this drain's
 						// bookkeeping) sees them lane-absent and stamps them soft-deleted through
@@ -2191,7 +2221,7 @@ export class TLFileDurableObject extends DurableObject {
 					)
 					.map((row) => row.id)
 				if (softDeletedThreadIds.length > 0 || softDeletedCommentIds.length > 0) {
-					this.logEvent({ type: 'room', roomId: fileId, name: 'comment_soft_delete_prune' })
+					this.logEvent({ type: 'room', name: 'comment_soft_delete_prune' })
 					// Records this drain has NOT accounted for must survive the cascade sweep: a
 					// reply committed after this drain's bound (during the awaits above) has an
 					// outbox entry a later drain owns, and its row may not be in Postgres yet.
@@ -2270,10 +2300,10 @@ export class TLFileDurableObject extends DurableObject {
 						return { emptiedThreadIds: emptied, orphanedReactionIds: orphaned }
 					}).result
 					if (orphanedReactionIds.length > 0) {
-						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_reaction_orphan_prune' })
+						this.logEvent({ type: 'room', name: 'comment_reaction_orphan_prune' })
 					}
 					if (emptiedThreadIds.length > 0) {
-						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_thread_emptied_prune' })
+						this.logEvent({ type: 'room', name: 'comment_thread_emptied_prune' })
 						// Re-outbox the emptied thread ids: the follow-up drain sees them lane-absent
 						// and stamps their rows soft-deleted through the normal crash-safe
 						// at-least-once path, so the rows stop re-seeding future rooms as live
@@ -2308,11 +2338,7 @@ export class TLFileDurableObject extends DurableObject {
 				}
 			})
 			.catch((e) => {
-				this.logEvent({
-					type: 'room',
-					roomId: this.documentInfo.slug,
-					name: 'failed_persist_comments_to_db',
-				})
+				this.logEvent({ type: 'room', name: 'failed_persist_comments_to_db' })
 				this.reportError(e)
 			})
 	}
@@ -2476,14 +2502,10 @@ export class TLFileDurableObject extends DurableObject {
 		// if the app file record updated, it might mean that the sharing state was updated
 		// in which case we should kick people out or change their permissions
 		//
-		// A guest's canvas is read-only unless the link is `edit`, and a guest can comment only
-		// when the link is `edit` and they're signed in. The two lanes are tracked separately so
-		// that a tier which changes one without the other (comment-only mode's `view`<->`comment`
-		// switch) still reconnects the sessions it affects.
+		// Only `edit` links grant guests canvas write; anything else fails closed. A tier change
+		// flips `isReadonly`, and the reconnect refreshes the session state the comment
+		// authorizers gate on — so comparing the readonly lane alone covers both.
 		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType !== 'edit'
-		const guestCanComment = file.shared && file.sharedLinkType === 'edit'
-		// const guestCanComment =
-		// 	file.shared && (file.sharedLinkType === 'edit' || file.sharedLinkType === 'comment')
 
 		for (const session of room.getSessions()) {
 			if (file.isDeleted) {
@@ -2499,19 +2521,11 @@ export class TLFileDurableObject extends DurableObject {
 				return can(role, 'accessFiles')
 			}
 
-			// A guest can only comment when they're signed in (comment authors need a user row).
-			const sessionCanComment = guestCanComment && !!session.meta.userId
-
 			if (!file.shared) {
 				if (!(await canAccessFiles())) {
 					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
 				}
-			} else if (
-				// if the file is still shared but the guest's read-only or comment access changed,
-				// make them reconnect so the new session lanes take effect
-				session.isReadonly !== roomIsReadOnlyForGuests ||
-				(session.objectAccess === 'write') !== sessionCanComment
-			) {
+			} else if (session.isReadonly !== roomIsReadOnlyForGuests) {
 				if (!(await canAccessFiles())) {
 					// not passing a reason means they will try to reconnect
 					room.closeSession(session.sessionId)

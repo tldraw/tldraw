@@ -83,9 +83,10 @@ export function toCardProps(
 	}
 }
 
-/** Every marker is this square (mirrors `--tlui-cmt-marker-size`). Needed because the two marker
- *  kinds anchor at different points, and lining their previews up means correcting for that. */
-const MARKER_SIZE = 34
+/** A pin is this square (mirrors `--tlui-cmt-pin-size`). Needed because the two marker kinds are
+ *  different sizes *and* anchor at different points, and lining their previews up means
+ *  correcting for that. Keep in sync with the stylesheet. */
+const PIN_SIZE = 28
 
 /** A coincident stack's / cluster's card list, whose first card sits flush with the popover top. */
 const LIST_OFFSET = { x: 36, y: -28 } as const
@@ -99,19 +100,18 @@ const LIST_OFFSET = { x: 36, y: -28 } as const
  *
  * The two marker kinds don't anchor alike, which the vertical offsets have to correct for. A
  * badge is centred on its point (`translate(-50%, -50%)`), so `LIST_OFFSET.y` is measured from its
- * middle. A pin hangs off its point (`translate(0, -100%)`), so its point is the pin's *bottom* —
- * a full marker lower than a badge's. Measuring a raw offset from there would drop the pin's
- * preview half a marker below a badge's; the terms below re-base it so the two previews' top cards
- * land on the same line.
+ * middle. A pin hangs off its point (`translate(0, -100%)`), so its point is the pin's *bottom*.
+ * Measuring a raw offset from there would drop the pin's preview half a pin below a badge's; the
+ * terms below re-base it so the two previews' top cards land on the same line.
  */
 export const POPOVER_OFFSET = {
 	/**
 	 * A single pin's thread popover. Its preview should read level with a cluster/stack preview's
-	 * top card, so start from the list offset and re-base it to the pin's bottom anchor:
-	 * `- MARKER_SIZE / 2` accounts for the pin's point sitting half a marker below a badge's. The
-	 * opened popover shares the offset and opens from there.
+	 * top card, so start from the list offset and re-base it from the pin's bottom anchor to the
+	 * pin's middle — where a badge measures from — with `- PIN_SIZE / 2`. The opened popover shares
+	 * the offset and opens from there.
 	 */
-	thread: { x: 48, y: LIST_OFFSET.y - MARKER_SIZE / 2 },
+	thread: { x: 48, y: LIST_OFFSET.y - PIN_SIZE / 2 },
 	list: LIST_OFFSET,
 } as const
 
@@ -384,7 +384,9 @@ export function ThreadView({
 				footer={
 					<CommentReactions
 						comment={comment}
-						currentUserId={currentUserId}
+						// Reacting is a commenting write: without `canComment` the tally renders
+						// read-only (no identity → pills aren't clickable).
+						currentUserId={canComment ? currentUserId : null}
 						resolveName={resolveName}
 					/>
 				}
@@ -395,7 +397,7 @@ export function ThreadView({
 								<>
 									<TooltipButton
 										tooltip={msg('comments.edit')}
-										className="tlui-cmt-thread__action tlui-cmt-thread__action--edit"
+										className="tlui-cmt-thread__action"
 										data-cmt-edit-for={comment.id}
 										onClick={() => startEdit(comment, { fromEditButton: true })}
 									>
