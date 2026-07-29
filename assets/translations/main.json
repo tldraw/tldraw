@@ -534,7 +534,6 @@
 	"comments.pin-label": "Comment by {name}",
 	"comments.pin-label-resolved": "Resolved comment by {name}",
 	"comments.cluster-label": "{count} comments here",
-	"comments.stack-label": "{count} comments at this spot",
-	"comments.composer-label": "Comment"
+	"comments.stack-label": "{count} comments at this spot"
 }
 

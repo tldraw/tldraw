@@ -549,5 +549,4 @@ export const DEFAULT_TRANSLATION = {
 	'comments.pin-label-resolved': 'Resolved comment by {name}',
 	'comments.cluster-label': '{count} comments here',
 	'comments.stack-label': '{count} comments at this spot',
-	'comments.composer-label': 'Comment',
 }

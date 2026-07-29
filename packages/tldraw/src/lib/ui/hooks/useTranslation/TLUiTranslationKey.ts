@@ -539,4 +539,3 @@ export type TLUiTranslationKey =
 	| 'comments.pin-label-resolved'
 	| 'comments.cluster-label'
 	| 'comments.stack-label'
-	| 'comments.composer-label'
