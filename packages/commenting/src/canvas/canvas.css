@@ -376,6 +376,13 @@
 	flex: 1;
 	min-height: 0;
 	overflow-y: auto;
+	/* Same clip-box trick as `.tlui-cmt-stack-list`: a scroll container surfaces its descendants'
+	   layout overflow, and the hover-action pill's buttons carry a few pixels of internal
+	   overflow that would otherwise grow a horizontal scrollbar (overflow-x can't stay `visible`
+	   on a scroll container). Pad the scrollport outward and pull the list back into place so
+	   those pixels — and the first card's hover pill reaching above the list — paint inside it. */
+	padding: 16px;
+	margin: -16px;
 }
 /* The coincident-stack popover needs the same dynamic cap: its fixed 420px bound can still
    exceed the space above the keyboard, leaving its lower cards unreachable. The variable is set
