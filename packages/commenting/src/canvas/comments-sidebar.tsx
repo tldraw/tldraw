@@ -12,8 +12,8 @@ import { CommentListItemProps, CommentsList } from '../ui/comments-list'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
 import { CommentsVisibilityToggle } from './comments-visibility-toggle'
+import { type CommentingContext, useCommentingContext } from './context'
 import { useComments, useCommentThreads } from './hooks'
-import { type CommentingIdentity, useCommentingIdentity } from './identity'
 import { useCommentingEnabled } from './license'
 import { useCommentingOptions } from './options'
 import { richTextToPlaintext } from './rich-text'
@@ -21,7 +21,7 @@ import { commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
 import { focusThread } from './thread-state'
 
 /**
- * The host wiring for {@link CanvasCommentsSidebar}: the {@link CommentingIdentity} fields it
+ * The host wiring for {@link CanvasCommentsSidebar}: the {@link CommentingContext} fields it
  * reads, each falling back to the enclosing {@link CommentingProvider} when left unset, plus the
  * panel's own slots. A known `currentUserId` enables the "only your threads" filter, and an
  * `isCommentUnread` the "only unread" one.
@@ -29,7 +29,7 @@ import { focusThread } from './thread-state'
  * @public
  */
 export interface CanvasCommentsSidebarProps extends Partial<
-	Pick<CommentingIdentity, 'currentUserId' | 'resolveAuthor' | 'isCommentUnread'>
+	Pick<CommentingContext, 'currentUserId' | 'resolveAuthor' | 'isCommentUnread'>
 > {
 	/** Header above the list. */
 	header?: ReactNode
@@ -44,8 +44,12 @@ export interface CanvasCommentsSidebarProps extends Partial<
  * or always-on list.
  * @public @react
  */
-export function CanvasCommentsSidebar({ header, empty, ...hostProps }: CanvasCommentsSidebarProps) {
-	const { resolveAuthor, currentUserId, isCommentUnread } = useCommentingIdentity(hostProps)
+export function CanvasCommentsSidebar({
+	header,
+	empty,
+	...contextProps
+}: CanvasCommentsSidebarProps) {
+	const { resolveAuthor, currentUserId, isCommentUnread } = useCommentingContext(contextProps)
 	// Name-only view of the resolver, for the plaintext previews (which resolve @-mentions).
 	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const editor = useEditor()

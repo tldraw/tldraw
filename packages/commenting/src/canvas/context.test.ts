@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import { type CommentingIdentity, mergeCommentingIdentity } from './identity'
+import { type CommentingContext, mergeCommentingContext } from './context'
 
 const resolveAda = () => ({ name: 'Ada' })
 const resolveGrace = () => ({ name: 'Grace' })
 
-const provided: CommentingIdentity = {
+const provided: CommentingContext = {
 	currentUserId: 'me',
 	resolveAuthor: resolveAda,
 	isCommentUnread: () => true,
 	onCommentRead: () => {},
 }
 
-describe('mergeCommentingIdentity', () => {
+describe('mergeCommentingContext', () => {
 	it('inherits every field a surface leaves unset', () => {
-		expect(mergeCommentingIdentity(provided, {})).toEqual({
+		expect(mergeCommentingContext(provided, {})).toEqual({
 			...provided,
 			onPostComment: undefined,
 			getMentionSuggestions: undefined,
@@ -22,7 +22,7 @@ describe('mergeCommentingIdentity', () => {
 	})
 
 	it('lets a surface override one field without disturbing the rest', () => {
-		const merged = mergeCommentingIdentity(provided, { resolveAuthor: resolveGrace })
+		const merged = mergeCommentingContext(provided, { resolveAuthor: resolveGrace })
 		expect(merged.resolveAuthor).toBe(resolveGrace)
 		expect(merged.currentUserId).toBe('me')
 		expect(merged.isCommentUnread).toBe(provided.isCommentUnread)
@@ -31,10 +31,10 @@ describe('mergeCommentingIdentity', () => {
 	// The distinction the whole thing turns on: a read-only surface passes null to switch composing
 	// off, while the provider keeps the real id for the surfaces that only read it.
 	it('treats a null currentUserId as an override, not an omission', () => {
-		expect(mergeCommentingIdentity(provided, { currentUserId: null }).currentUserId).toBe(null)
+		expect(mergeCommentingContext(provided, { currentUserId: null }).currentUserId).toBe(null)
 	})
 
 	it('treats an undefined currentUserId as an omission', () => {
-		expect(mergeCommentingIdentity(provided, { currentUserId: undefined }).currentUserId).toBe('me')
+		expect(mergeCommentingContext(provided, { currentUserId: undefined }).currentUserId).toBe('me')
 	})
 })

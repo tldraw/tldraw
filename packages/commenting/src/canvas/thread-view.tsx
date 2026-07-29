@@ -32,8 +32,8 @@ import {
 import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { putCommentRecords } from './comment-store'
+import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
-import { type CommentingIdentity } from './identity'
 import { type CommentingComponents, useCanComment, useCommentingOptions } from './options'
 import { commitCommentMutation, openThreadId } from './state'
 
@@ -43,13 +43,13 @@ const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
  * A name-only view of an author resolver, for the mention/rich-text paths. Stable identity, so
  * `CommentBody`'s memoized render doesn't recompute on every render of its host.
  */
-export function useResolveName(resolveAuthor: CommentingIdentity['resolveAuthor']) {
+export function useResolveName(resolveAuthor: CommentingContext['resolveAuthor']) {
 	return useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 }
 
 export function toCardProps(
 	comment: TLComment,
-	props: Pick<CommentingIdentity, 'currentUserId' | 'resolveAuthor'>,
+	props: Pick<CommentingContext, 'currentUserId' | 'resolveAuthor'>,
 	components: CommentingComponents,
 	resolveName: (id: string) => string | undefined
 ): CommentCardProps {
@@ -142,7 +142,7 @@ export function ThreadView({
 	editor,
 	thread,
 	...props
-}: CommentingIdentity & { editor: Editor; thread: TLCommentThread }) {
+}: CommentingContext & { editor: Editor; thread: TLCommentThread }) {
 	const {
 		currentUserId,
 		resolveAuthor,

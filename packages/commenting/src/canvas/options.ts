@@ -70,7 +70,7 @@ export interface CommentingComponents {
 /**
  * Configuration for the commenting layer. Static config only — pass it once via
  * `CommentTool.configure({ ... })`, mirroring `ShapeUtil.configure`. Live, reactive values
- * (`currentUserId`, author resolution, read-status callbacks) are the `CommentingIdentity`, supplied
+ * (`currentUserId`, author resolution, read-status callbacks) are the `CommentingContext`, supplied
  * as props on a surface or once for all of them via `CommentingProvider`.
  *
  * For defaults, see {@link defaultCommentingOptions}.

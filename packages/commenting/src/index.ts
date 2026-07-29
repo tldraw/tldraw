@@ -80,10 +80,10 @@ export {
 } from './canvas/comment-store'
 export {
 	CommentingProvider,
-	type CommentingIdentity,
+	type CommentingContext,
 	type CommentingProviderProps,
-	useCommentingIdentity,
-} from './canvas/identity'
+	useCommentingContext,
+} from './canvas/context'
 export { CommentsFilterMenu, type CommentsFilterMenuProps } from './canvas/comments-filter-menu'
 export { CommentsMenuItem } from './canvas/comments-menu-item'
 export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-overlay'

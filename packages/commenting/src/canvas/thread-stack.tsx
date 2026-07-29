@@ -2,8 +2,8 @@ import { memo, useEffect, useRef } from 'react'
 import { Editor, TLCommentThread, useContainer, usePassThroughWheelEvents, useValue } from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { CountBadge } from '../ui/count-badge'
+import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
-import { type CommentingIdentity } from './identity'
 import { useCommentingOptions } from './options'
 import { pinStackKey } from './pin-stacking'
 import { openStackId, openThreadId } from './state'
@@ -27,7 +27,7 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	editor,
 	threads,
 	...props
-}: CommentingIdentity & {
+}: CommentingContext & {
 	editor: Editor
 	/** The stack's threads, oldest first. All resolve to the same anchor point. */
 	threads: readonly TLCommentThread[]
@@ -194,7 +194,7 @@ function StackThreadCard({
 	thread,
 	onOpen,
 	...props
-}: CommentingIdentity & { editor: Editor; thread: TLCommentThread; onOpen(): void }) {
+}: CommentingContext & { editor: Editor; thread: TLCommentThread; onOpen(): void }) {
 	const options = useCommentingOptions()
 	const comments = useThreadComments(editor, thread.id)
 	const resolveName = useResolveName(props.resolveAuthor)

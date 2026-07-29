@@ -16,7 +16,7 @@ import { type TLComment, type TLCommentId } from 'tldraw'
  *
  * @public
  */
-export interface CommentingIdentity {
+export interface CommentingContext {
 	/** The signed-in user's id, or null for a read-only viewer. Only a signed-in user composes. */
 	currentUserId: string | null
 	/** Map an author id to their display info, or `undefined` when the id can't be resolved. */
@@ -39,20 +39,20 @@ export interface CommentingIdentity {
 /** No host wiring at all: a read-only viewer whose author ids resolve to nothing (bylines fall back
  *  to the unknown-author default). What a surface mounted outside a provider, with no props of its
  *  own, gets. */
-const DEFAULT_COMMENTING_IDENTITY: CommentingIdentity = {
+const DEFAULT_COMMENTING_CONTEXT: CommentingContext = {
 	currentUserId: null,
 	resolveAuthor: () => undefined,
 }
 
-const commentingIdentityContext = createContext<CommentingIdentity>(DEFAULT_COMMENTING_IDENTITY)
+const commentingContext = createContext<CommentingContext>(DEFAULT_COMMENTING_CONTEXT)
 
 /** @public */
-export interface CommentingProviderProps extends Partial<CommentingIdentity> {
+export interface CommentingProviderProps extends Partial<CommentingContext> {
 	children: ReactNode
 }
 
 /**
- * Supplies the {@link CommentingIdentity} to every commenting surface beneath it, so hosts wire the
+ * Supplies the {@link CommentingContext} to every commenting surface beneath it, so hosts wire the
  * viewer up once rather than per surface. Providers nest: an inner one inherits the fields it
  * doesn't set.
  *
@@ -67,28 +67,24 @@ export interface CommentingProviderProps extends Partial<CommentingIdentity> {
  * @public @react
  */
 export function CommentingProvider({ children, ...identity }: CommentingProviderProps) {
-	const value = useCommentingIdentity(identity)
-	return (
-		<commentingIdentityContext.Provider value={value}>
-			{children}
-		</commentingIdentityContext.Provider>
-	)
+	const value = useCommentingContext(identity)
+	return <commentingContext.Provider value={value}>{children}</commentingContext.Provider>
 }
 
 /**
- * The {@link CommentingIdentity} in force: `overrides` where given, the enclosing
+ * The {@link CommentingContext} in force: `overrides` where given, the enclosing
  * {@link CommentingProvider} where not, and read-only defaults where neither. Useful when building
  * a commenting surface of your own out of the parts.
  *
  * A field left `undefined` inherits; `currentUserId: null` is a value, not an omission, so a
- * surface can turn composing off without disturbing the identity the rest of the app sees.
+ * surface can turn composing off without disturbing what the rest of the app sees.
  *
  * @public
  */
-export function useCommentingIdentity(
-	overrides: Partial<CommentingIdentity> = {}
-): CommentingIdentity {
-	const inherited = useContext(commentingIdentityContext)
+export function useCommentingContext(
+	overrides: Partial<CommentingContext> = {}
+): CommentingContext {
+	const inherited = useContext(commentingContext)
 	const {
 		currentUserId,
 		resolveAuthor,
@@ -100,7 +96,7 @@ export function useCommentingIdentity(
 	} = overrides
 	return useMemo(
 		() =>
-			mergeCommentingIdentity(inherited, {
+			mergeCommentingContext(inherited, {
 				currentUserId,
 				resolveAuthor,
 				onPostComment,
@@ -109,7 +105,7 @@ export function useCommentingIdentity(
 				getMentionSuggestions,
 				renderMentionSuggestion,
 			}),
-		// Field by field, so an inline `{...}` prop object doesn't rebuild the identity every render.
+		// Field by field, so an inline `{...}` prop object doesn't rebuild the context every render.
 		[
 			inherited,
 			currentUserId,
@@ -128,10 +124,10 @@ export function useCommentingIdentity(
  * where `null` has to stay distinguishable from unset: null is a read-only viewer (an answer), while
  * undefined is "ask the provider" (no answer).
  */
-export function mergeCommentingIdentity(
-	inherited: CommentingIdentity,
-	overrides: Partial<CommentingIdentity>
-): CommentingIdentity {
+export function mergeCommentingContext(
+	inherited: CommentingContext,
+	overrides: Partial<CommentingContext>
+): CommentingContext {
 	return {
 		currentUserId:
 			overrides.currentUserId !== undefined ? overrides.currentUserId : inherited.currentUserId,

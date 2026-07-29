@@ -60,13 +60,13 @@ export interface BylineProps {
 export function CanvasComments(props: CanvasCommentsProps): JSX.Element | null;
 
 // @public
-export type CanvasCommentsProps = Partial<CommentingIdentity>;
+export type CanvasCommentsProps = Partial<CommentingContext>;
 
 // @public
-export function CanvasCommentsSidebar({ header, empty, ...hostProps }: CanvasCommentsSidebarProps): JSX.Element | null;
+export function CanvasCommentsSidebar({ header, empty, ...contextProps }: CanvasCommentsSidebarProps): JSX.Element | null;
 
 // @public
-export interface CanvasCommentsSidebarProps extends Partial<Pick<CommentingIdentity, 'currentUserId' | 'isCommentUnread' | 'resolveAuthor'>> {
+export interface CanvasCommentsSidebarProps extends Partial<Pick<CommentingContext, 'currentUserId' | 'isCommentUnread' | 'resolveAuthor'>> {
     empty?: ReactNode;
     header?: ReactNode;
 }
@@ -147,7 +147,7 @@ export interface CommentingComponents {
 }
 
 // @public
-export interface CommentingIdentity {
+export interface CommentingContext {
     currentUserId: null | string;
     getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
     isCommentUnread?(commentId: TLCommentId): boolean;
@@ -181,7 +181,7 @@ export interface CommentingOptions {
 export function CommentingProvider({ children, ...identity }: CommentingProviderProps): JSX.Element;
 
 // @public (undocumented)
-export interface CommentingProviderProps extends Partial<CommentingIdentity> {
+export interface CommentingProviderProps extends Partial<CommentingContext> {
     // (undocumented)
     children: ReactNode;
 }
@@ -573,10 +573,10 @@ export function toggleCommentsSidebar(editor: Editor): void;
 export function useCanComment(currentUserId: null | string | undefined): boolean;
 
 // @public
-export function useCommentingEnabled(): boolean;
+export function useCommentingContext(overrides?: Partial<CommentingContext>): CommentingContext;
 
 // @public
-export function useCommentingIdentity(overrides?: Partial<CommentingIdentity>): CommentingIdentity;
+export function useCommentingEnabled(): boolean;
 
 // @public
 export function useCommentingOptions(): CommentingOptions;

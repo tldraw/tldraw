@@ -194,9 +194,9 @@ export function CommentsOnCanvas({
 	)
 
 	return (
-		// Both surfaces read the same identity, so it's supplied once here. The overlay is the one
-		// exception: a session that may read but not write comments passes `currentUserId={null}` to
-		// suppress composing, while the sidebar keeps the real id for its "only your threads" filter.
+		// Both surfaces read the same commenting context, so it's supplied once here. The overlay is
+		// the one exception: a session that may read but not write comments passes `currentUserId={null}`
+		// to suppress composing, while the sidebar keeps the real id for its "only your threads" filter.
 		<CommentingProvider
 			currentUserId={currentUserId}
 			resolveAuthor={resolveAuthor}

@@ -46,8 +46,8 @@ import {
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { getCommentRecord, putCommentRecords } from './comment-store'
 import { PendingComment } from './comment-tool'
+import { type CommentingContext, useCommentingContext } from './context'
 import { useCommentThreads, useThreadComments } from './hooks'
-import { type CommentingIdentity, useCommentingIdentity } from './identity'
 import { useCommentingEnabled } from './license'
 import {
 	type CommentingOptions,
@@ -81,12 +81,12 @@ import {
 import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
 
 /**
- * The host wiring for {@link CanvasComments}: the {@link CommentingIdentity} fields, each of which
+ * The host wiring for {@link CanvasComments}: the {@link CommentingContext} fields, each of which
  * falls back to the enclosing {@link CommentingProvider} when left unset.
  *
  * @public
  */
-export type CanvasCommentsProps = Partial<CommentingIdentity>
+export type CanvasCommentsProps = Partial<CommentingContext>
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
@@ -156,12 +156,12 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	// Gate the whole layer on the license before doing any work. The inner component holds all the
 	// other hooks, so mounting/unmounting it as the license resolves keeps hook order stable here.
 	const commentingEnabled = useCommentingEnabled()
-	const identity = useCommentingIdentity(props)
+	const context = useCommentingContext(props)
 	if (!commentingEnabled) return null
-	return <CanvasCommentsLayer {...identity} />
+	return <CanvasCommentsLayer {...context} />
 }
 
-function CanvasCommentsLayer(props: CommentingIdentity) {
+function CanvasCommentsLayer(props: CommentingContext) {
 	const editor = useEditor()
 	const options = useCommentingOptions()
 	const container = useContainer()
@@ -819,7 +819,7 @@ const ClusterBadge = memo(function ClusterBadge({
 	onSelectThread,
 	threadsById,
 	...props
-}: Pick<CommentingIdentity, 'currentUserId' | 'resolveAuthor'> & {
+}: Pick<CommentingContext, 'currentUserId' | 'resolveAuthor'> & {
 	editor: Editor
 	node: ClusterNode
 	onExpand(node: ClusterNode): void
@@ -1031,7 +1031,7 @@ const ThreadPin = memo(function ThreadPin({
 	editor,
 	thread,
 	...props
-}: CommentingIdentity & {
+}: CommentingContext & {
 	editor: Editor
 	thread: TLCommentThread
 }) {
@@ -1369,7 +1369,7 @@ function PendingComposer({
 	onPostComment,
 	getMentionSuggestions,
 	renderMentionSuggestion,
-}: CommentingIdentity & { editor: Editor; pending: PendingComment }) {
+}: CommentingContext & { editor: Editor; pending: PendingComment }) {
 	const ComposerFallback = useCommentingOptions().components.ComposerFallback
 	const canComment = useCanComment(currentUserId)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
