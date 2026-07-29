@@ -1,0 +1,7 @@
+prompt,board_url,type,page,box,items,must_mention,rubric,reference
+"Describe what is on this board. Cover what it is about, the main things drawn on it, and how it is laid out.",https://www.tldraw.com/p/REPLACE_ME,,,,,,,
+"Find the login screen mockup and report exactly where it is.",https://www.tldraw.com/p/REPLACE_ME,,,,,,,
+"Compare the left and right halves of this board and list every difference between them.",https://www.tldraw.com/p/REPLACE_ME,,,,,,,
+"Find the red sticky note on this board and report exactly where it is.",https://www.tldraw.com/p/REPLACE_ME,locate,0,"0.62,0.18,0.74,0.31",,,,
+"List every arrow on this board that crosses between the two columns.",https://www.tldraw.com/p/REPLACE_ME,find-many,,,"signup to onboarding;signup arrow|checkout to payment|error state to retry",,,
+"Describe what is on this board.",https://www.tldraw.com/p/REPLACE_ME,describe,,,,"onboarding;sign up|checkout|error state","Identifies that this is a user-flow diagram rather than a freeform sketch.|Names the main flows rather than only describing shapes and colours.|Describes how the sections are arranged relative to each other.|Contains no claim that contradicts the reference description.","A user-flow diagram laid out in three vertical columns: signup on the left, checkout in the middle, and error states on the right, connected by arrows running left to right."

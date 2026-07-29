@@ -1,0 +1,23 @@
+{
+	"name": "mcp-evals",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"description": "Eval harness for the tldraw.com board MCP server.",
+	"scripts": {
+		"eval": "yarn run -T tsx src/run.ts",
+		"dry-run": "yarn run -T tsx src/run.ts --dry-run",
+		"fixtures": "yarn run -T tsx src/fixtures.ts",
+		"lint": "yarn run -T tsx ../scripts/lint.ts",
+		"test": "yarn run -T vitest",
+		"test-ci": "yarn run -T vitest run"
+	},
+	"dependencies": {
+		"@anthropic-ai/sdk": "0.112.4"
+	},
+	"devDependencies": {
+		"@types/node": "^22.15.31",
+		"tsx": "^4.19.2",
+		"typescript": "^5.8.3"
+	}
+}

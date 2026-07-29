@@ -1,0 +1,10 @@
+runs/
+fixtures/
+.cache/
+.env
+
+# Suites naming real boards. The committed default.csv documents the format with
+# placeholder slugs; anything holding an actual tldraw.com link stays local, since
+# a /f/ share URL grants access to whoever holds it and this is a public repo.
+suites/local.csv
+suites/*.local.csv
