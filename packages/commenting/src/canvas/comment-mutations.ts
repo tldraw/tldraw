@@ -10,7 +10,7 @@ import {
 	TLRichText,
 } from 'tldraw'
 import { getLiveComments, type TLCommentRecord } from './comment-store'
-import { getCommentingOptions } from './options'
+import { getCommentingOptions, type CommentingOptions } from './options'
 import { openThreadId } from './state'
 
 /**
@@ -40,6 +40,21 @@ import { openThreadId } from './state'
  */
 export type CommentMutationKind = 'delete' | 'drag' | 'mutation'
 
+/** The undo/redo mode a write of the given kind runs under. See {@link CommentMutationKind}. */
+function historyModeFor(
+	options: CommentingOptions,
+	kind: CommentMutationKind
+): TLHistoryBatchOptions['history'] {
+	switch (kind) {
+		case 'delete':
+			return 'ignore'
+		case 'drag':
+			return options.dragHistory ?? options.history
+		case 'mutation':
+			return options.history
+	}
+}
+
 /**
  * Commit a comment mutation with the configured undo/redo behavior, so the
  * {@link CommentingOptions.history} option governs whether it lands on the undo stack. Defaults to
@@ -51,13 +66,7 @@ export function commitCommentMutation<T>(
 	fn: () => T,
 	kind: CommentMutationKind = 'mutation'
 ): T {
-	const options = getCommentingOptions(editor)
-	const history: TLHistoryBatchOptions['history'] =
-		kind === 'delete'
-			? 'ignore'
-			: kind === 'drag'
-				? (options.dragHistory ?? options.history)
-				: options.history
+	const history = historyModeFor(getCommentingOptions(editor), kind)
 	let result: T
 	editor.run(
 		() => {
