@@ -1,7 +1,6 @@
 /*!
- * The kbd-string splitter (`getKeys`) and the form-input filter pattern in `shouldSkipEvent`
- * (including its list of non-text INPUT types) are adapted from hotkeys-js, which this hook
- * previously depended on.
+ * The form-input filter pattern in `shouldSkipEvent` (including its list of non-text INPUT
+ * types) is adapted from hotkeys-js, which this hook previously depended on.
  *
  * MIT License: https://github.com/jaywcjlove/hotkeys-js/blob/master/LICENSE
  * Copyright (c) 2015-present, Kenny Wong
@@ -19,6 +18,7 @@ import {
 } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { useActions } from '../context/actions'
+import { splitKbd } from '../kbd-utils'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
@@ -354,7 +354,7 @@ const PHYSICAL_KEY_MAP: Record<string, string> = {
  */
 export function parseKbd(kbd: string): ParsedKbd[] {
 	const out: ParsedKbd[] = []
-	for (const shortcut of getKeys(kbd)) {
+	for (const shortcut of splitKbd(kbd)) {
 		const parsed = parseShortcut(shortcut)
 		if (parsed) out.push(parsed)
 	}
@@ -454,7 +454,7 @@ function shouldSkipEvent(e: KeyboardEvent): boolean {
  * @internal
  */
 export function getHotkeysStringFromKbd(kbd: string) {
-	return getKeys(kbd)
+	return splitKbd(kbd)
 		.map((kbd) => {
 			let str = ''
 
@@ -486,22 +486,4 @@ export function getHotkeysStringFromKbd(kbd: string) {
 			return str
 		})
 		.join(',')
-}
-
-// Split a kbd string on commas, treating an empty entry produced by "x,," as a literal
-// trailing comma on the previous entry. Verbatim port of the splitter from hotkeys-js
-// (MIT, see top-of-file attribution).
-function getKeys(key: string) {
-	if (typeof key !== 'string') key = ''
-	key = key.replace(/\s/g, '')
-	const keys = key.split(',')
-	let index = keys.lastIndexOf('')
-
-	for (; index >= 0; ) {
-		keys[index - 1] += ','
-		keys.splice(index, 1)
-		index = keys.lastIndexOf('')
-	}
-
-	return keys
 }
