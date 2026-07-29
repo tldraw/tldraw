@@ -11,10 +11,10 @@ import {
 import { RenderReaction } from '../ui/reaction'
 import { ReactionPicker } from '../ui/reaction-picker'
 import { Reactions, ReactionSummary } from '../ui/reactions'
+import { commitCommentMutation, putCommentRecords, removeCommentRecords } from './comment-mutations'
 import { UNKNOWN_AUTHOR } from './comment-render'
-import { getCommentReactions, putCommentRecords, removeCommentRecords } from './comment-store'
+import { getCommentReactions } from './comment-store'
 import { getCommentingOptions, useCommentingOptions } from './options'
-import { commitCommentMutation } from './state'
 
 /**
  * One comment's reactions, oldest first, reactively.

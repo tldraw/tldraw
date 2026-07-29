@@ -1,13 +1,7 @@
 import { WeakCache } from '@tldraw/utils'
 import { Editor, TLCommentAnchor, TLCommentThread, TLPageId, TLShapeId, VecLike } from 'tldraw'
-import {
-	getCommentRecord,
-	getComments,
-	getCommentThreads,
-	putCommentRecords,
-	TLCommentRecord,
-} from './comment-store'
-import { commitCommentMutation } from './state'
+import { commitCommentMutation, putCommentRecords } from './comment-mutations'
+import { getCommentRecord, getComments, getCommentThreads, TLCommentRecord } from './comment-store'
 import { anchorPagePoint, impreciseShapePinInset } from './thread-state'
 
 type ShapeAnchor = Extract<TLCommentAnchor, { type: 'shape' }>

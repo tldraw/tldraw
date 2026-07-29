@@ -46,8 +46,9 @@ import {
 	NEW_COMMENT_DRAFT,
 	saveCommentDraft,
 } from './comment-drafts'
+import { commitCommentMutation, putCommentRecords } from './comment-mutations'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
-import { getCommentRecord, putCommentRecords } from './comment-store'
+import { getCommentRecord } from './comment-store'
 import { PendingComment } from './comment-tool'
 import { useCommentThreads, useThreadComments } from './hooks'
 import { useCommentingEnabled } from './license'
@@ -60,7 +61,6 @@ import {
 import { computePinStacks, pinStackKey } from './pin-stacking'
 import {
 	commentsHidden,
-	commitCommentMutation,
 	openStackId,
 	openThreadId,
 	pendingComment,

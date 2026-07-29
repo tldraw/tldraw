@@ -1,13 +1,5 @@
-import {
-	EditorAtom,
-	type BoxModel,
-	type Editor,
-	type TLHistoryBatchOptions,
-	useEditor,
-	useValue,
-} from 'tldraw'
+import { EditorAtom, type BoxModel, type Editor, useEditor, useValue } from 'tldraw'
 import type { PendingComment } from './comment-tool'
-import { getCommentingOptions } from './options'
 import { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './sidebar-filters'
 
 /**
@@ -164,64 +156,4 @@ export function useCommentsSidebarOpen(): boolean {
 export function useSidebarFilters(): SidebarFilters {
 	const editor = useEditor()
 	return useValue('sidebar filters', () => sidebarFilters.get(editor), [editor])
-}
-
-/**
- * Which history policy a comment write follows:
- *
- * - `mutation` — {@link CommentingOptions.history}: posts, replies, edits, resolves.
- * - `drag` — {@link CommentingOptions.dragHistory}, falling back to `history`: pin and region
- *   re-anchors, which are spatial edits a host may reasonably want undoable alongside a shape move.
- * - `delete` — always `'ignore'`, whatever the options say. A soft-delete flag is write-once
- *   server-side, so an undo clearing it would be vetoed and rebased rather than restore anything.
- *
- * @internal
- */
-export type CommentMutationKind = 'delete' | 'drag' | 'mutation'
-
-/**
- * How deeply nested we are in {@link commitCommentMutation}. The outermost commit owns the history
- * mode for everything it encloses: `putCommentRecords` wraps itself so a host calling it directly
- * still gets the configured behavior, and that self-wrap must not override the mode a surrounding
- * commit already chose (a `delete` commit writing through `putCommentRecords` would otherwise land
- * back on `history`). Module-global rather than per-editor because every commit is synchronous —
- * only one can be in flight.
- */
-let commitDepth = 0
-
-/**
- * Commit a comment mutation with the configured undo/redo behavior. All comment writes go through
- * here so the {@link CommentingOptions.history} option governs whether they land on the undo stack.
- * Defaults to `'ignore'`. See {@link CommentMutationKind} for what each kind resolves to.
- *
- * Nested calls run inside the outermost commit's history mode rather than opening their own.
- * @internal
- */
-export function commitCommentMutation<T>(
-	editor: Editor,
-	fn: () => T,
-	kind: CommentMutationKind = 'mutation'
-): T {
-	if (commitDepth > 0) return fn()
-
-	const options = getCommentingOptions(editor)
-	const history: TLHistoryBatchOptions['history'] =
-		kind === 'delete'
-			? 'ignore'
-			: kind === 'drag'
-				? (options.dragHistory ?? options.history)
-				: options.history
-	let result: T
-	commitDepth++
-	try {
-		editor.run(
-			() => {
-				result = fn()
-			},
-			{ history }
-		)
-	} finally {
-		commitDepth--
-	}
-	return result!
 }

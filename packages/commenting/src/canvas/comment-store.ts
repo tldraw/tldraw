@@ -1,17 +1,7 @@
-import {
-	Editor,
-	TLComment,
-	TLCommentId,
-	TLCommentReaction,
-	TLCommentReactionId,
-	TLCommentThread,
-	TLCommentThreadId,
-	TLRecord,
-} from 'tldraw'
-import { commitCommentMutation } from './state'
+import { Editor, TLComment, TLCommentReaction, TLCommentThread, TLRecord } from 'tldraw'
 
 /**
- * Typed access to comment records on the editor store.
+ * Typed reads of comment records on the editor store.
  *
  * Comment threads and comments live on the editor's local store so the canvas can render them
  * reactively, but they are opt-in records that aren't part of the `TLRecord` union (they ride the
@@ -19,6 +9,9 @@ import { commitCommentMutation } from './state'
  * statically typed `Store<TLRecord>` and doesn't know about them, so every access has to reinterpret
  * the type. These helpers own that reinterpretation — an `unknown` hop to exactly the type the store
  * expects, so the rest of each call stays checked — behind one boundary, and keep call sites typed.
+ *
+ * Writes do the same reinterpretation, but they also answer to the undo/redo policy, so they live
+ * with the rest of the write path in `comment-mutations.ts`.
  */
 
 /**
@@ -27,45 +20,6 @@ import { commitCommentMutation } from './state'
  * @public
  */
 export type TLCommentRecord = TLComment | TLCommentThread | TLCommentReaction
-
-/**
- * Write comment records to the store, under the configured
- * {@link CommentingOptions.history} behavior — so a record you write lands on the undo stack (or
- * doesn't) exactly like one the built-in UI writes. Defaults to `'ignore'`.
- *
- * Use it to seed or import threads, and to save an edit. To delete, prefer
- * {@link deleteComment} and {@link deleteThread} over {@link removeCommentRecords}: comments are
- * soft-deleted, and a synced server rejects the hard delete.
- *
- * @public
- */
-export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void {
-	commitCommentMutation(editor, () => {
-		editor.store.put(records as unknown as TLRecord[])
-	})
-}
-
-/**
- * Remove comment records from the store by id, under the configured
- * {@link CommentingOptions.history} behavior.
- *
- * This is a hard delete, which is rarely what you want for a comment or a thread: the built-in UI
- * soft-deletes them ({@link deleteComment}, {@link deleteThread}) so the server can prune the
- * records — including reactions, which belong to whoever left them rather than to the deleter. A
- * server that enforces per-record permissions will veto a hard delete outright. Reach for this on
- * a local, unsynced comment store, or to drop a reaction (which is a hard delete — see
- * {@link toggleCommentReaction}).
- *
- * @public
- */
-export function removeCommentRecords(
-	editor: Editor,
-	ids: (TLCommentId | TLCommentThreadId | TLCommentReactionId)[]
-): void {
-	commitCommentMutation(editor, () => {
-		editor.store.remove(ids as unknown as TLRecord['id'][])
-	})
-}
 
 /** Read one comment record by id, or `undefined` if the id isn't a present comment record. @public */
 export function getCommentRecord(editor: Editor, id: string): TLCommentRecord | undefined {

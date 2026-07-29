@@ -15,9 +15,11 @@ import {
 } from 'tldraw'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
+	commitCommentMutation,
 	deleteComment,
 	deleteThread,
 	editComment,
+	putCommentRecords,
 	reopenThread,
 	resolveThread,
 } from './comment-mutations'
@@ -27,10 +29,9 @@ import {
 	getCommentThreads,
 	getLiveComments,
 	getLiveCommentThreads,
-	putCommentRecords,
 } from './comment-store'
 import { CommentTool } from './comment-tool'
-import { commitCommentMutation, openThreadId } from './state'
+import { openThreadId } from './state'
 
 /**
  * These need a real editor: what's under test is how each write interacts with the store and the

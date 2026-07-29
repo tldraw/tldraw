@@ -58,6 +58,8 @@ export {
 	deleteComment,
 	deleteThread,
 	editComment,
+	putCommentRecords,
+	removeCommentRecords,
 	reopenThread,
 	resolveThread,
 } from './canvas/comment-mutations'
@@ -78,8 +80,6 @@ export {
 	getCommentThreads,
 	getLiveComments,
 	getLiveCommentThreads,
-	putCommentRecords,
-	removeCommentRecords,
 	type TLCommentRecord,
 } from './canvas/comment-store'
 export { CommentsFilterMenu, type CommentsFilterMenuProps } from './canvas/comments-filter-menu'

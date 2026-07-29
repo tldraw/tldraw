@@ -32,18 +32,18 @@ import {
 	saveCommentDraft,
 } from './comment-drafts'
 import {
+	commitCommentMutation,
 	deleteComment,
 	deleteThread,
 	editComment,
+	putCommentRecords,
 	reopenThread,
 	resolveThread,
 } from './comment-mutations'
 import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
-import { putCommentRecords } from './comment-store'
 import { useThreadComments } from './hooks'
 import { type CommentingComponents, useCanComment, useCommentingOptions } from './options'
-import { commitCommentMutation } from './state'
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 

@@ -1,16 +1,135 @@
-import { Editor, TLComment, TLCommentThread, TLRichText } from 'tldraw'
-import { getLiveComments, putCommentRecords } from './comment-store'
-import { commitCommentMutation, openThreadId } from './state'
+import {
+	Editor,
+	TLComment,
+	TLCommentId,
+	TLCommentReactionId,
+	TLCommentThread,
+	TLCommentThreadId,
+	TLHistoryBatchOptions,
+	TLRecord,
+	TLRichText,
+} from 'tldraw'
+import { getLiveComments, type TLCommentRecord } from './comment-store'
+import { getCommentingOptions } from './options'
+import { openThreadId } from './state'
 
 /**
- * The comment write verbs, as the built-in UI performs them.
+ * Every write to a comment record, and the undo/redo policy governing them.
  *
- * Each of these is a small write with a rule attached — a timestamp to stamp, a shape to put the
- * `resolved` field in, or the soft-delete protocol — and the built-in thread view calls exactly
- * these, so a UI of your own behaves the same as the one in the box. Posting has no such rule:
- * build the records with `createCommentThread`/`createComment` and write them with
- * `putCommentRecords`.
+ * This file layers bottom-up: {@link commitCommentMutation} resolves the history mode,
+ * {@link putCommentRecords} and {@link removeCommentRecords} are the raw typed writes that run
+ * under it, and the verbs below are those writes plus the one rule each carries — a timestamp to
+ * stamp, a shape to put the `resolved` field in, or the soft-delete protocol. The built-in thread
+ * view calls exactly these verbs, so a UI of your own behaves the same as the one in the box.
+ *
+ * Posting carries no such rule, so it isn't a verb here: build the records with
+ * `createCommentThread`/`createComment` and write them with {@link putCommentRecords}.
  */
+
+/**
+ * Which history policy a comment write follows:
+ *
+ * - `mutation` — {@link CommentingOptions.history}: posts, replies, edits, resolves.
+ * - `drag` — {@link CommentingOptions.dragHistory}, falling back to `history`: pin and region
+ *   re-anchors, which are spatial edits a host may reasonably want undoable alongside a shape move.
+ * - `delete` — always `'ignore'`, whatever the options say. A soft-delete flag is write-once
+ *   server-side, so an undo clearing it would be vetoed and rebased rather than restore anything.
+ *
+ * @internal
+ */
+export type CommentMutationKind = 'delete' | 'drag' | 'mutation'
+
+/**
+ * How deeply nested we are in {@link commitCommentMutation}, so that only the outermost commit
+ * picks the history mode.
+ *
+ * This is needed because `editor.run`'s history option isn't additive: a nested run overwrites the
+ * enclosing mode for its own scope. {@link putCommentRecords} opens a commit of its own, so that a
+ * host calling it directly still gets the configured behavior — which means every internal write
+ * already inside a commit would otherwise re-enter and overwrite the mode its caller chose. A pin
+ * drag committed as `drag` under `dragHistory: 'record'` would land back on `history: 'ignore'` and
+ * quietly stop being undoable.
+ *
+ * Module-global rather than per-editor because a commit is synchronous start to finish: only one
+ * can ever be in flight.
+ */
+let commitDepth = 0
+
+/**
+ * Commit a comment mutation with the configured undo/redo behavior. All comment writes go through
+ * here so the {@link CommentingOptions.history} option governs whether they land on the undo stack.
+ * Defaults to `'ignore'`. See {@link CommentMutationKind} for what each kind resolves to.
+ *
+ * Nested calls run inside the outermost commit's history mode rather than opening their own.
+ * @internal
+ */
+export function commitCommentMutation<T>(
+	editor: Editor,
+	fn: () => T,
+	kind: CommentMutationKind = 'mutation'
+): T {
+	if (commitDepth > 0) return fn()
+
+	const options = getCommentingOptions(editor)
+	const history: TLHistoryBatchOptions['history'] =
+		kind === 'delete'
+			? 'ignore'
+			: kind === 'drag'
+				? (options.dragHistory ?? options.history)
+				: options.history
+	let result: T
+	commitDepth++
+	try {
+		editor.run(
+			() => {
+				result = fn()
+			},
+			{ history }
+		)
+	} finally {
+		commitDepth--
+	}
+	return result!
+}
+
+/**
+ * Write comment records to the store, under the configured
+ * {@link CommentingOptions.history} behavior — so a record you write lands on the undo stack (or
+ * doesn't) exactly like one the built-in UI writes. Defaults to `'ignore'`.
+ *
+ * Use it to seed or import threads, and to save an edit. To delete, prefer
+ * {@link deleteComment} and {@link deleteThread} over {@link removeCommentRecords}: comments are
+ * soft-deleted, and a synced server rejects the hard delete.
+ *
+ * @public
+ */
+export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void {
+	commitCommentMutation(editor, () => {
+		editor.store.put(records as unknown as TLRecord[])
+	})
+}
+
+/**
+ * Remove comment records from the store by id, under the configured
+ * {@link CommentingOptions.history} behavior.
+ *
+ * This is a hard delete, which is rarely what you want for a comment or a thread: the built-in UI
+ * soft-deletes them ({@link deleteComment}, {@link deleteThread}) so the server can prune the
+ * records — including reactions, which belong to whoever left them rather than to the deleter. A
+ * server that enforces per-record permissions will veto a hard delete outright. Reach for this on
+ * a local, unsynced comment store, or to drop a reaction (which is a hard delete — see
+ * {@link toggleCommentReaction}).
+ *
+ * @public
+ */
+export function removeCommentRecords(
+	editor: Editor,
+	ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]
+): void {
+	commitCommentMutation(editor, () => {
+		editor.store.remove(ids as unknown as TLRecord['id'][])
+	})
+}
 
 /**
  * Replace a comment's body and stamp it as edited, which is what renders the "(edited)" marker on
