@@ -85,7 +85,7 @@ function makeRoom(
 		onCommittedChanges?(args: { diff: any; documentClock: number }): void
 		authorizeRecord?: {
 			[typeName: string]: (args: {
-				session: { sessionId: string; meta: any }
+				session: { sessionId: string; isReadonly: boolean; meta: any }
 				type: 'create' | 'update' | 'delete'
 				prev: any
 				next: any
@@ -435,6 +435,26 @@ describe('object store lane', () => {
 
 		const storedNote = (storage: InMemorySyncStorage<R>, id: string) =>
 			storage.getObjectsSnapshot().find((d) => d.state.id === id)?.state as any
+
+		it('exposes the session isReadonly flag to the authorizer', () => {
+			const authorize = vi.fn(({ next }: any) => next)
+			const { room } = withNote(authorize)
+			// a canvas-readonly session can still write the object lane (objectAccess defaults to
+			// 'write'), which is exactly why authorizers need to see isReadonly independently
+			connectSession(room, 'reader', { isReadonly: true, meta: { userId: 'u' } })
+
+			const note = Note.create({ text: 'x' })
+			push(room, 'reader', { [note.id]: [RecordOpType.Put, note] })
+
+			expect(authorize.mock.calls[0][0].session.isReadonly).toBe(true)
+
+			authorize.mockClear()
+			connectSession(room, 'writer', { isReadonly: false, meta: { userId: 'u' } })
+			const note2 = Note.create({ text: 'y' })
+			push(room, 'writer', { [note2.id]: [RecordOpType.Put, note2] })
+
+			expect(authorize.mock.calls[0][0].session.isReadonly).toBe(false)
+		})
 
 		it('stamps a created record from the session, overriding the client value', () => {
 			const { room, storage } = withNote(authorizeNote)

@@ -11,7 +11,13 @@ import type { TLRecordAuthorizers } from '@tldraw/sync-core';
 
 // @public
 export interface CommentAuthorizerOptions<SessionMeta> {
+    canComment?(session: {
+        isReadonly: boolean;
+        meta: SessionMeta;
+        sessionId: string;
+    }): boolean;
     getUserId(session: {
+        isReadonly: boolean;
         meta: SessionMeta;
         sessionId: string;
     }): null | string;

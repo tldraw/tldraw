@@ -56,7 +56,7 @@ const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
  * commenting authorizers), and guard note text attribution, so nothing can be posted, pinned,
  * or reacted in someone else's name.
  */
-export const authorizeFileRecord: TLRecordAuthorizers<FileRecord, SessionMeta> = {
+export const authorizeFileRecord = {
 	...createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId }),
 	shape: authorizeShape,
-}
+} satisfies TLRecordAuthorizers<FileRecord, SessionMeta>

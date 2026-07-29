@@ -31,22 +31,10 @@ type FileVisitors = QueryResultType<typeof queries.fileVisitors>
  * notifications feed, which is bounded to recent comments), so every unread pin resolves however
  * old the comment is.
  */
-export function CommentsOnCanvas({
-	fileId,
-	canComment = true,
-}: {
-	fileId: string
-	/** Whether this session may write comments. When false the layer is read-only: existing
-	 *  comments show, but there's no composer (the server also rejects writes). */
-	canComment?: boolean
-}) {
+export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	const editor = useEditor()
 	const app = useMaybeApp()
 	const currentUserId = app?.userId ?? null
-	// The compose identity: a signed-in user who's allowed to comment. Null makes CanvasComments a
-	// read-only viewer (no composer/reply/resolve). Everything read-only — read status, name
-	// resolution, the sidebar's "only mine" filter — still uses the real currentUserId.
-	const composeUserId = canComment ? currentUserId : null
 
 	const currentUser = useValue(
 		'current user',
@@ -194,9 +182,8 @@ export function CommentsOnCanvas({
 	)
 
 	return (
-		// Both surfaces read the same commenting context, so it's supplied once here. The overlay is
-		// the one exception: a session that may read but not write comments passes `currentUserId={null}`
-		// to suppress composing, while the sidebar keeps the real id for its "only your threads" filter.
+		// Both surfaces read the same commenting context — the signed-in user, the author resolver,
+		// and read status — so it's supplied once here rather than threaded through each of them.
 		<CommentingProvider
 			currentUserId={currentUserId}
 			resolveAuthor={resolveAuthor}
@@ -204,7 +191,7 @@ export function CommentsOnCanvas({
 			onCommentRead={app ? onCommentRead : undefined}
 			getMentionSuggestions={getMentionSuggestions}
 		>
-			<CanvasComments currentUserId={composeUserId} />
+			<CanvasComments />
 			<CanvasCommentsSidebar />
 		</CommentingProvider>
 	)
@@ -240,9 +227,15 @@ export function useAnonCommentToolOverrides(): TLUiOverrides {
 /** Anon viewers read comments but don't compose — the toolkit's `ComposerFallback` slot holds
  *  this sign-in prompt (registered via `CommentTool.configure` in `TlaEditor`). */
 export function SignInToComment() {
+	const editor = useEditor()
+	// Fallback slots render for every non-composing session; the CTA is only honest for a
+	// signed-out visitor on an editable canvas — signing in unlocks nothing on view-only.
+	const isReadonly = useValue('isReadonly', () => editor.getIsReadonly(), [editor])
+	const app = useMaybeApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
 	const ctaString = useMsg(signInMessages.signInToComment)
+	if (isReadonly || app) return null
 	return (
 		<TlaCtaButton
 			canvas

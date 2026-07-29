@@ -79,6 +79,9 @@ export const queries = defineQueries({
 			// TLComment.isDeleted) but must never surface as notifications
 			.where('isDeleted', '=', false)
 			.whereExists('thread', (t) => t.where('isDeleted', '=', false))
+			// same for soft-deleted boards: their comment rows persist, but a notification would
+			// navigate to a file the user can no longer open
+			.whereExists('file', (f) => f.where('isDeleted', '=', false))
 			.where(({ and, or, exists }) =>
 				or(
 					// on a board the user owns

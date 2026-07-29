@@ -171,6 +171,10 @@ export function ThreadView({
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	const canReply = canComment && !thread.resolved
 	const container = useContainer()
+	// Where focus goes when the edit composer closes, resolved at that moment rather than held as an
+	// element: the card (and its edit button with it) unmounts while the composer stands in its
+	// place, so the node captured on the way in is gone by the way out.
+	const editReturnFocus = useRef<(() => HTMLElement | null) | null>(null)
 
 	// Tab from the canvas drops the caret in the reply box. Clicking a pin opens the thread but
 	// leaves focus on the editor container, so the first Tab would otherwise walk the app's own UI
@@ -217,6 +221,20 @@ export function ThreadView({
 			doc.removeEventListener('keyup', onKeyUp, true)
 		}
 	}, [canReply, container])
+
+	// Leaving the edit composer — Escape, or a save — unmounts it while it holds focus, and the
+	// browser drops focus on the editor container. That's outside the thread, so a Tab from there
+	// walks the app's UI instead of carrying on from where the edit left off (the thread's one
+	// Tab-into-the-reply-box has usually been spent by then). Hand focus back to whatever opened the
+	// composer instead: the card's edit button, or the reply box when the edit came from arrow-up.
+	// The card's actions row reveals itself on `:focus-within`, so the button focus is visible.
+	useEffect(() => {
+		if (editingId !== null) return
+		const resolve = editReturnFocus.current
+		editReturnFocus.current = null
+		// Runs after React has swapped the card back in, so the target is mounted again by now.
+		resolve?.()?.focus()
+	}, [editingId])
 
 	// Every unread comment on display gets reported read — including replies that arrive while
 	// the view stays mounted, since the effect re-runs as `comments` changes. The host's receipt
@@ -272,7 +290,18 @@ export function ThreadView({
 		})
 	}
 
-	const startEdit = (comment: TLComment) => {
+	const startEdit = (comment: TLComment, { fromEditButton = false } = {}) => {
+		// The edit button is the thing to come back to when it opened the composer — looked up again
+		// on the way out, since this one is about to unmount with its card. Otherwise come back to
+		// whatever held focus: arrow-up-to-edit comes straight from the reply box, which stays put.
+		// The document body and the editor container are where focus falls when nothing holds it, so
+		// neither is somewhere to return anyone to.
+		const active = container.ownerDocument.activeElement
+		editReturnFocus.current = fromEditButton
+			? () => container.querySelector<HTMLElement>(`[data-cmt-edit-for="${comment.id}"]`)
+			: active instanceof HTMLElement && active !== container && active !== document.body
+				? () => (active.isConnected ? active : null)
+				: null
 		setEditingId(comment.id)
 		setEditText(comment.body)
 	}
@@ -342,7 +371,9 @@ export function ThreadView({
 				footer={
 					<CommentReactions
 						comment={comment}
-						currentUserId={currentUserId}
+						// Reacting is a commenting write: without `canComment` the tally renders
+						// read-only (no identity → pills aren't clickable).
+						currentUserId={canComment ? currentUserId : null}
 						resolveName={resolveName}
 					/>
 				}
@@ -354,7 +385,8 @@ export function ThreadView({
 									<TooltipButton
 										tooltip={msg('comments.edit')}
 										className="tlui-cmt-thread__action"
-										onClick={() => startEdit(comment)}
+										data-cmt-edit-for={comment.id}
+										onClick={() => startEdit(comment, { fromEditButton: true })}
 									>
 										<svg
 											width="15"
