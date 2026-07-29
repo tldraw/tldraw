@@ -11865,6 +11865,7 @@ __metadata:
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
+    vitest: "npm:^4.1.7"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
@@ -22894,7 +22895,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-diff@npm:30.4.1":
+"jest-diff@npm:30.4.1, jest-diff@npm:^30.4.1":
   version: 30.4.1
   resolution: "jest-diff@npm:30.4.1"
   dependencies:
@@ -31799,7 +31800,9 @@ __metadata:
     "@tiptap/starter-kit": "npm:^3.12.1"
     "@tldraw/driver": "workspace:*"
     "@tldraw/editor": "workspace:*"
+    "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
     "@types/classnames": "npm:^2.3.4"
     "@types/lz-string": "npm:^1.5.0"
     "@types/react": "npm:^19.2.7"
@@ -31807,6 +31810,7 @@ __metadata:
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.5.1"
     idb: "npm:^7.1.1"
+    jest-diff: "npm:^30.4.1"
     lazyrepo: "npm:0.0.0-alpha.27"
     lz-string: "npm:^1.5.0"
     radix-ui: "npm:^1.4.2"
