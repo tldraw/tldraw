@@ -6,6 +6,7 @@ import {
 	ReactNode,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -175,10 +176,42 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	return <CanvasCommentsLayer {...props} />
 }
 
+/**
+ * A mount point appended to the end of the editor container, for a portal that has to come last
+ * among the container's children.
+ *
+ * `createPortal(…, container)` doesn't get to say where its node lands: React places a portal
+ * during the same commit that mounts it, and a portal nested this deep in the tree is placed
+ * before the container's own, shallower children — so the layer ends up ahead of the UI and its
+ * "move focus to canvas" skip link. That link only works if nothing precedes it, and the pins are
+ * real buttons, so a single comment would take the first tab stop and leave no keyboard route to
+ * the canvas. A layout effect runs after the whole commit instead, by which point the container's
+ * children are all in place and appending is guaranteed to land at the end.
+ *
+ * Null until the effect has run, so the first render has nothing to portal into.
+ */
+function useTrailingPortalHost(container: HTMLElement) {
+	const [host, setHost] = useState<HTMLDivElement | null>(null)
+	useLayoutEffect(() => {
+		const elm = container.ownerDocument.createElement('div')
+		// The host is a position in the DOM, not a box — what it holds is positioned against the
+		// container, the same as it was when it hung off the container directly.
+		elm.style.display = 'contents'
+		container.appendChild(elm)
+		setHost(elm)
+		return () => {
+			elm.remove()
+			setHost(null)
+		}
+	}, [container])
+	return host
+}
+
 function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	const editor = useEditor()
 	const options = useCommentingOptions()
 	const container = useContainer()
+	const portalHost = useTrailingPortalHost(container)
 	// Gather the region dimensions of the commenting options into one object for threading through
 	// the region components below. Constant per editor — options are fixed at tool registration.
 	const regionOptions = useMemo(
@@ -588,7 +621,9 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 	}
 
 	// Render into the container (above the panels' stacking context) so the pins and popovers
-	// live in the UI layer rather than being clipped by the canvas layer.
+	// live in the UI layer rather than being clipped by the canvas layer — but at the end of it,
+	// behind the editor's own children in the tab order. See `useTrailingPortalHost`.
+	if (!portalHost) return null
 	return createPortal(
 		<div ref={layerRef} className="tlui-cmt-canvas-layer">
 			{options.enableClustering ? (
@@ -658,7 +693,7 @@ function CanvasCommentsLayer(props: CanvasCommentsProps) {
 				<PendingComposer editor={editor} pending={pending} {...props} />
 			)}
 		</div>,
-		container
+		portalHost
 	)
 }
 

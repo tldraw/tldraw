@@ -85,4 +85,41 @@ test.describe('commenting a11y', () => {
 			)
 			.toBe(true)
 	})
+
+	test('a pin comes after the UI, so "move focus to canvas" keeps the first tab stop', async ({
+		page,
+		isMobile,
+	}) => {
+		if (isMobile) test.skip()
+
+		await page.locator('[data-testid="tools.comment"]').click()
+		await page.mouse.click(400, 300)
+		await page.keyboard.type('first')
+		await page.keyboard.press('Enter')
+		await page.keyboard.press('Escape')
+		await expect(page.locator('.tlui-cmt-canvas-pin__marker')).toHaveCount(1)
+
+		// The comments layer is portalled into the editor container, and a pin is a real button. Left
+		// where React drops the portal it lands ahead of the UI, taking the first tab stop from the
+		// skip link — which is then unreachable, and with it the keyboard route onto the canvas.
+		const tabOrder = await page.evaluate(() => {
+			const focusable = document.querySelectorAll(
+				'a[href],button,input,select,textarea,[tabindex]:not([tabindex="-1"]),[contenteditable="true"]'
+			)
+			return {
+				firstIsSkipLink: focusable[0]?.classList.contains('tl-skip-to-main-content') ?? false,
+				pinIndex: [...focusable].findIndex((el) =>
+					el.classList.contains('tlui-cmt-canvas-pin__marker')
+				),
+				count: focusable.length,
+			}
+		})
+		expect(tabOrder.firstIsSkipLink).toBe(true)
+		expect(tabOrder.pinIndex).toBe(tabOrder.count - 1)
+
+		// And tabbing into the container really does land on the skip link first.
+		await page.locator('.tl-container').focus()
+		await page.keyboard.press('Tab')
+		await expect(page.locator('.tl-skip-to-main-content')).toBeFocused()
+	})
 })
