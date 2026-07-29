@@ -5,7 +5,7 @@ import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileRoomSnapshot } from './getSharedFile'
-import { boardDurableObjectId, reportThumbnailError } from './thumbnailShared'
+import { reportThumbnailError } from './thumbnailShared'
 
 // Serves snapshot data to the thumbnail render page. Only accepts short-lived render tokens
 // minted by this worker, so the render page cannot be pointed at arbitrary boards even though
@@ -40,7 +40,7 @@ export async function getThumbnailSnapshot(
 			env,
 			request,
 			surface: 'thumbnail_snapshot',
-			extras: { kind: job.kind, board: boardDurableObjectId(env, job.slug) },
+			extras: { kind: job.kind },
 		})
 		return undefined
 	})

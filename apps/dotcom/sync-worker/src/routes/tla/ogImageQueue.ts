@@ -16,7 +16,6 @@ import {
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
 import {
-	boardDurableObjectId,
 	browserRunDurationOf,
 	classifyScreenshotFailure,
 	reportThumbnailError,
@@ -139,10 +138,6 @@ export async function handleOgImageRenderMessage(
 	const { kind, slug } = message.body
 	// Messages enqueued before the field existed are all crawler misses.
 	const reason = message.body.reason ?? 'crawler'
-	// Indexes the telemetry on the board's room. A shared file's slug is its file id, so it is known
-	// up front; a published board's slug is not, and only resolves to one below — the telemetry for a
-	// published board that never resolves therefore carries no index, which beats carrying a wrong one.
-	let fileId = kind === 'shared_file' ? slug : undefined
 	const cacheKey = getOgImageCacheKey({ kind, slug })
 	const clearPending = async () => {
 		await env.THUMBNAILS?.delete(getOgImagePendingKey({ kind, slug })).catch(() => {})
@@ -160,7 +155,6 @@ export async function handleOgImageRenderMessage(
 		writeScreenshotTelemetry(env, {
 			source: 'queue',
 			reason,
-			fileId,
 			cacheStatus: 'miss',
 			failureReason: 'board_not_viewable',
 		})
@@ -174,14 +168,12 @@ export async function handleOgImageRenderMessage(
 			return
 		}
 		const board = resolved.board
-		// Now known for both kinds, so every telemetry write past this point is indexed.
-		fileId = board.fileId
 
 		// Another consumer (or an earlier retry) may already have rendered this version.
 		const cached = await env.THUMBNAILS?.head(cacheKey)
 		if (cached?.customMetadata?.version === String(board.version)) {
 			await clearPending()
-			writeScreenshotTelemetry(env, { source: 'queue', reason, fileId, cacheStatus: 'hit' })
+			writeScreenshotTelemetry(env, { source: 'queue', reason, cacheStatus: 'hit' })
 			message.ack()
 			return
 		}
@@ -210,7 +202,7 @@ export async function handleOgImageRenderMessage(
 			// know. Fail now instead. retryOrDrop still backs off and retries, in case content lands
 			// shortly after the enqueue. A read that *fails* throws rather than landing here; the catch
 			// below reports it and retries the same way, so that path spends no Browser Run either.
-			retryOrDrop(env, message, fileId, 'board_empty')
+			retryOrDrop(env, message, 'board_empty')
 			return
 		}
 
@@ -228,7 +220,6 @@ export async function handleOgImageRenderMessage(
 		writeScreenshotTelemetry(env, {
 			source: 'queue',
 			reason,
-			fileId,
 			cacheStatus: 'miss',
 			browserRunDurationMs: render.durationMs,
 			browserMsUsed: null,
@@ -252,25 +243,20 @@ export async function handleOgImageRenderMessage(
 				ctx,
 				env,
 				surface: 'og_queue',
-				extras: {
-					kind,
-					board: boardDurableObjectId(env, fileId ?? slug),
-					attempts: message.attempts,
-				},
+				extras: { kind, attempts: message.attempts },
 			})
 		}
 		// A board that went private between the resolve above and the snapshot read is retried rather
 		// than dropped here, because a plain read failure looks the same from this catch. That costs
 		// one extra delivery, not one extra render: the retry re-resolves at the top of the handler,
 		// finds the board no longer viewable, and drops it before spending any Browser Run.
-		retryOrDrop(env, message, fileId, classifyScreenshotFailure(error), browserRunDurationOf(error))
+		retryOrDrop(env, message, classifyScreenshotFailure(error), browserRunDurationOf(error))
 	}
 }
 
 function retryOrDrop(
 	env: Environment,
 	message: Message<OgImageRenderQueueMessage>,
-	fileId: string | undefined,
 	failureReason: string,
 	browserRunDurationMs?: number
 ) {
@@ -285,7 +271,6 @@ function retryOrDrop(
 	writeScreenshotTelemetry(env, {
 		source: 'queue',
 		reason: message.body.reason,
-		fileId,
 		cacheStatus: 'miss',
 		failureReason,
 		// Present only when the capture itself failed. A delivery that bailed earlier (an unreadable or

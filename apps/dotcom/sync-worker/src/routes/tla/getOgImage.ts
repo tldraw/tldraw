@@ -7,7 +7,7 @@ import {
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
-import { boardDurableObjectId, reportThumbnailError } from './thumbnailShared'
+import { reportThumbnailError } from './thumbnailShared'
 
 // A pure read. Two questions and nothing else: is this board publicly viewable (published, or shared
 // via link), and does a thumbnail for it exist? Both yes, serve it. Anything else, serve the
@@ -49,12 +49,9 @@ export async function getOgImage(
 			env,
 			request,
 			surface: 'og_route',
-			// The one-way durable object id, never the slug: for a link-shared file the slug is the
-			// file id, which is the capability to view the board.
-			extras: {
-				prefix: request.params.prefix,
-				board: boardDurableObjectId(env, request.params.slug),
-			},
+			// The route prefix only. No board identifier reaches an error report: for a link-shared file
+			// the slug is the file id, which is the capability to view the board.
+			extras: { prefix: request.params.prefix },
 		})
 		return null
 	})
@@ -71,11 +68,7 @@ export async function getOgImage(
 		// TTL so crawlers and browsers come back for the newer render soon after a trigger lands it.
 		// There is no "too stale to serve": an old picture of this board beats the generic tldraw logo.
 		const isCurrent = cached.customMetadata?.version === String(board.version)
-		writeScreenshotTelemetry(env, {
-			source: 'og',
-			fileId: board.fileId,
-			cacheStatus: isCurrent ? 'hit' : 'stale',
-		})
+		writeScreenshotTelemetry(env, { source: 'og', cacheStatus: isCurrent ? 'hit' : 'stale' })
 		return imageResponse(wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null, {
 			cacheStatus: isCurrent ? 'hit' : 'stale',
 			maxAgeSeconds: isCurrent ? FRESH_IMAGE_MAX_AGE_SECONDS : STALE_IMAGE_MAX_AGE_SECONDS,
@@ -91,7 +84,6 @@ export async function getOgImage(
 	const fallback = await defaultOgImageFallback(request, env, wantsBody)
 	writeScreenshotTelemetry(env, {
 		source: 'og',
-		fileId: board.fileId,
 		cacheStatus: 'miss',
 		// Two distinct outcomes, both of which look like "no image yet" from the outside: the board got
 		// a usable default card (served_fallback, the self-healing case worth measuring per platform),

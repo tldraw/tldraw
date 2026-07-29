@@ -14,7 +14,6 @@ import {
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
 import {
-	boardDurableObjectId,
 	browserRunDurationOf,
 	classifyScreenshotFailure,
 	describeThumbnailFailure,
@@ -318,7 +317,6 @@ async function callBoardInfoTool(
 			env,
 			request,
 			surface: 'mcp_board_info',
-			extras: { board: boardDurableObjectId(env, input.boardId) },
 		})
 		return toolError(
 			`Could not read board info: ${describeThumbnailFailure(classifyScreenshotFailure(error))}.`
@@ -348,16 +346,13 @@ async function callSharedBoardScreenshotTool(
 		return toolError(error instanceof Error ? error.message : String(error))
 	}
 
-	// Set once the board resolves below. The closure reads it at call time, not capture time, because
-	// the rate-limit rejections it also reports happen before there is a board to index on.
-	let fileId: string | undefined
 	const telemetry = (data: {
 		cacheStatus: 'hit' | 'miss'
 		browserRunDurationMs?: number
 		failureReason?: string
 		rateLimitAllowed?: boolean
 	}) => {
-		writeScreenshotTelemetry(env, { source: 'mcp', fileId, ipHash, ...data })
+		writeScreenshotTelemetry(env, { source: 'mcp', ipHash, ...data })
 	}
 
 	// Screenshots have their own per-IP budget (separate from get_board_info), sized to the ~2/min
@@ -386,7 +381,6 @@ async function callSharedBoardScreenshotTool(
 			)
 		}
 		const board = resolved.board
-		fileId = board.fileId
 		if (!env.MCP_SCREENSHOTS) {
 			throw new Error('MCP_SCREENSHOTS bucket is not configured')
 		}
@@ -469,11 +463,7 @@ async function callSharedBoardScreenshotTool(
 				env,
 				request,
 				surface: 'mcp_screenshot_cache_write',
-				extras: {
-					board: boardDurableObjectId(env, fileId ?? input.boardId),
-					page: input.page,
-					theme: input.theme,
-				},
+				extras: { page: input.page, theme: input.theme },
 			})
 		}
 
@@ -490,11 +480,7 @@ async function callSharedBoardScreenshotTool(
 			env,
 			request,
 			surface: 'mcp_screenshot',
-			extras: {
-				board: boardDurableObjectId(env, fileId ?? input.boardId),
-				page: input.page,
-				theme: input.theme,
-			},
+			extras: { page: input.page, theme: input.theme },
 		})
 		const failureReason = classifyScreenshotFailure(error)
 		// A capture that failed still held a browser, so its duration belongs on the datapoint the same

@@ -465,13 +465,11 @@ describe('handleOgImageRenderMessage', () => {
 
 		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
 		expect(reported).toHaveBeenCalledTimes(1)
-		// The board is named by its one-way durable object id, derived from the *file* id. A raw
-		// identifier must never reach an error report: for a link-shared file the slug is the file id,
-		// and tldraw.com/f/<id> is the capability to view the board.
+		// No board identity in the report at all — not the slug, not a derived id. For a link-shared
+		// file the slug is the file id, and tldraw.com/f/<id> is the capability to view the board.
 		const context = reported.mock.calls[0]![1]
-		expect(context).toMatchObject({ board: 'do(/r/file-1)', attempts: 3 })
-		expect(JSON.stringify(context)).not.toContain('"board-slug"')
-		expect(Object.keys(context)).not.toContain('slug')
+		expect(context).toEqual({ kind: 'published', attempts: 3 })
+		expect(JSON.stringify(context)).not.toContain('board')
 	})
 
 	// Browser Run answers 422 for a crashed page, an out-of-memory render and every one of its timers

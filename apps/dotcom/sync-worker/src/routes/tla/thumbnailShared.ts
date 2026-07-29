@@ -1,6 +1,5 @@
 import { createSentry } from '@tldraw/worker-shared'
 import { Environment } from '../../types'
-import { getRoomDurableObjectId } from '../../utils/durableObjects'
 
 // Leaf helpers shared by the board-reading and thumbnail/OG-image surfaces
 // (get{Published,SharedFile}, the render core in thumbnailRender.ts, sharedBoardScreenshotMcp.ts,
@@ -49,40 +48,9 @@ export class BrowserRenderError extends Error {
 	}
 }
 
-/**
- * A board's durable object id — the only form a board identifier may take in telemetry, in a log
- * line, or in a Sentry event.
- *
- * `idFromName` is one-way, so this names a board without carrying the ability to open it, which a
- * raw identifier does. For a link-shared file the slug *is* the file id and `tldraw.com/f/<id>` is
- * the capability to view it, so writing one into an account-readable dataset or a log sink hands out
- * working access to a board somebody chose to share by link rather than publish.
- *
- * It is also the value `TLFileDurableObject.writeEvent` stamps on its events, so a Sentry event and
- * the `mcp_shared_board_screenshot` datapoints for the same board line up.
- *
- * Resolution in the useful direction still works from an id you already hold —
- * `env.TLDR_DOC.idFromName('/r/' + slug)` — so "is this the board that keeps failing?" stays
- * answerable for a board in hand, while the record alone names none.
- *
- * Prefer the **file** id where there is one: a published board's slug addresses no durable object,
- * so passing one mints a well-formed id that joins to nothing. Passing it is still far better than
- * recording it raw.
- */
-export function boardDurableObjectId(env: Environment, id: string | undefined): string | undefined {
-	if (!id) return undefined
-	try {
-		return getRoomDurableObjectId(env, id).toString()
-	} catch {
-		// Never break a render path, or an error report, for the sake of an identifier. The binding is
-		// present in every deployed environment; this covers unconfigured ones.
-		return undefined
-	}
-}
-
 // Hex SHA-256 of a string. Used to hash client IPs before they reach telemetry, so a raw address is
-// never written to the analytics dataset. Boards are identified there by their durable object id
-// instead, which is already one-way (see boardDurableObjectId above).
+// never written to the analytics dataset. Boards are not identified there at all — see the note on
+// writeScreenshotTelemetry.
 export async function sha256(value: string) {
 	const bytes = new TextEncoder().encode(value)
 	const digest = await crypto.subtle.digest('SHA-256', bytes)

@@ -309,29 +309,18 @@ describe('getOgImage', () => {
 		expect(queue.send).not.toHaveBeenCalled()
 	})
 
-	// index1 is the board's durable object id, so a render can be joined to the persists that caused
-	// it. A published board's *slug* addresses no durable object — only the file behind it does — so
-	// indexing on the slug would mint an id that looks fine and joins to nothing.
-	it('indexes telemetry on the file behind a published slug, not the slug', async () => {
+	// These datapoints carry no board identity at all — no index, no slug, no hash, no derived id.
+	// The dataset answers aggregate spend and failure questions, and a board that resolves must be
+	// indistinguishable from one that doesn't, or the dimension is back by another name.
+	it('writes no board identity on any datapoint, resolved or not', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 1,
 		})
-		stubDefaultOgImageFetch()
-		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: makeFakeQueue() })
-
-		await getOgImage(makeRequest('p', 'published-slug'), env)
-
-		expect(indexesOf(env)).toEqual(['do(/r/file-1)'])
-	})
-
-	// A shared file's slug *is* its file id, so the two agree here — worth pinning alongside the
-	// published case, which is the one where they diverge.
-	it('indexes a shared file on its own slug', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
-			id: 'shared-file',
-			shared: true,
+			id: 'private-file',
+			shared: false,
 			isDeleted: false,
 		})
 		stubDefaultOgImageFetch()
@@ -341,24 +330,15 @@ describe('getOgImage', () => {
 			QUEUE: makeFakeQueue(),
 		})
 
-		await getOgImage(makeRequest('f', 'shared-file'), env)
-
-		expect(indexesOf(env)).toEqual(['do(/r/shared-file)'])
-	})
-
-	// A board that fails its gate never resolves to a file, so there is nothing to index on. No index
-	// is correct here; a placeholder would be a fake board in the dataset.
-	it('writes no index when the board does not resolve', async () => {
-		vi.mocked(getSharedFileInfo).mockResolvedValue({
-			id: 'private-file',
-			shared: false,
-			isDeleted: false,
-		})
-		stubDefaultOgImageFetch()
-		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(), QUEUE: makeFakeQueue() })
-
+		// A board that resolves, and one that fails its gate (which returns before writing anything).
+		await getOgImage(makeRequest('p', 'published-slug'), env)
 		await getOgImage(makeRequest('f', 'private-file'), env)
 
-		expect(indexesOf(env)).toEqual([])
+		expect(indexesOf(env)).toEqual([undefined])
+		// Nothing board-shaped anywhere in the blobs either.
+		const written = JSON.stringify((env.MEASURE as any).writeDataPoint.mock.calls)
+		expect(written).not.toContain('published-slug')
+		expect(written).not.toContain('file-1')
+		expect(written).not.toContain('private-file')
 	})
 })

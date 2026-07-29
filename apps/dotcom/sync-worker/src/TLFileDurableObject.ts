@@ -1486,9 +1486,9 @@ export class TLFileDurableObject extends DurableObject {
 				{ kind: 'shared_file', slug },
 				{ reason: 'edit' }
 			)
-			// this.ctx.id is exactly what getRoomDurableObjectId derives, so this is the joinable id
-			// without the slug — which for a shared file is the capability to view the board.
-			this.log.debug('og render for edit', this.ctx.id.toString(), result)
+			// No board identifier: the slug is a capability for a shared file, and a derived id is still
+			// a board identity in a log sink. The result alone is what this line is for.
+			this.log.debug('og render for edit', result)
 		} catch (e) {
 			// Reported, not thrown: this runs off the persist path and must never affect it.
 			this.reportError(e)

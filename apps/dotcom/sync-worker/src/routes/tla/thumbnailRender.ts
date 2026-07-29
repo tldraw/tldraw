@@ -11,7 +11,6 @@ import { getR2KeyForRoom } from '../../r2'
 import { Environment, OgImageRenderReason, ThumbnailBoardKind } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
-import { getRoomDurableObjectId } from '../../utils/durableObjects'
 import {
 	THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	ThumbnailRenderJob,
@@ -45,13 +44,6 @@ import { BoardSnapshotReadError, BrowserRenderError } from './thumbnailShared'
 export interface ResolvedThumbnailBoard {
 	kind: ThumbnailBoardKind
 	slug: string
-	/**
-	 * The underlying file's id, which is the room id its durable object is addressed by. For a shared
-	 * file this is the same string as `slug`; for a published board it is emphatically not — the slug
-	 * there is the published slug, and the file id is what it resolves to. Carried separately so
-	 * telemetry can key on the room without every caller having to know which kind it is holding.
-	 */
-	fileId: string
 	version: string | number
 }
 
@@ -71,8 +63,7 @@ export async function resolveThumbnailBoard(
 	if (kind === 'published') {
 		const file = await getPublishedFileInfo(env, slug)
 		if (!file?.published) return { ok: false, reason: 'not_found' }
-		// `slug` here is the published slug; `file.id` is the file behind it, which is the room.
-		return { ok: true, board: { kind, slug, fileId: file.id, version: file.lastPublished } }
+		return { ok: true, board: { kind, slug, version: file.lastPublished } }
 	}
 
 	const file = await getSharedFileInfo(env, slug)
@@ -83,7 +74,7 @@ export async function resolveThumbnailBoard(
 	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
 	if (!persisted) return { ok: false, reason: 'board_empty' }
 
-	return { ok: true, board: { kind, slug, fileId: file.id, version: persisted.etag } }
+	return { ok: true, board: { kind, slug, version: persisted.etag } }
 }
 
 // Reads a resolved board's snapshot, distinguishing the two outcomes callers need to tell apart.
@@ -370,6 +361,12 @@ export async function putThumbnailPng(
 	})
 }
 
+// Carries **no board identity**, deliberately — no index, no slug, no hash, no derived id. These
+// datapoints answer "how much are we spending and how often does it fail", which are aggregate
+// questions, and a per-board dimension is not needed to answer them. The cost is that the dataset
+// cannot say *which* board is failing, and cannot be joined to `persist_success`; that was traded
+// away on purpose rather than lost.
+//
 // One datapoint writer for every screenshot surface, so they share a dataset and blob/doubles
 // layout and one dashboard covers them all; the source blob distinguishes mcp (the tool), og (the
 // GET route), and queue (the OG render consumer). The dataset name's mcp_ prefix predates the OG
@@ -384,11 +381,6 @@ export function writeScreenshotTelemetry(
 		 * crawler demand, publishing, or editing.
 		 */
 		reason?: OgImageRenderReason
-		/**
-		 * The board's file id, when the surface has one. Becomes the datapoint's index — see
-		 * `boardIndexOf`. Pass the file id, never a published slug.
-		 */
-		fileId?: string
 		cacheStatus: 'hit' | 'stale' | 'miss'
 		/** Hashed client IP, for surfaces that have one. Recorded only on failures — see below. */
 		ipHash?: string
@@ -414,7 +406,6 @@ export function writeScreenshotTelemetry(
 			// dashboard panels reading them) don't shift.
 			`reason:${data.reason ?? 'none'}`,
 		],
-		indexes: boardIndexOf(env, data.fileId),
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,
 			DEFAULT_THUMBNAIL_HEIGHT,
@@ -423,31 +414,4 @@ export function writeScreenshotTelemetry(
 			rateLimitAllowed ? 1 : 0,
 		],
 	})
-}
-
-/**
- * The datapoint's index: the board's durable object id, the same value `TLFileDurableObject.writeEvent`
- * stamps on every event it writes. That is what makes a render joinable to the persists that caused
- * it — renders-per-persist is otherwise two unrelated aggregate counts.
- *
- * Deliberately the durable object id rather than the board slug or a hash of it. `idFromName` is
- * one-way, and for an app file the slug *is* the authority of `tldraw.com/f/<id>`, which has no
- * business in a dataset that is account-readable and exported to Grafana. (These events previously
- * carried a sha256 of the slug, which nothing queried.)
- *
- * Always computed from the **file** id: a published board's slug addresses no durable object, so
- * indexing on it would mint a plausible-looking id that joins to nothing.
- *
- * Absent when the surface has no resolved board — a malformed MCP argument, or a board that failed
- * its share gate. An index is optional, and no index is better than a wrong one.
- */
-function boardIndexOf(env: Environment, fileId: string | undefined): [string] | undefined {
-	if (!fileId) return undefined
-	try {
-		return [getRoomDurableObjectId(env, fileId).toString()]
-	} catch {
-		// Telemetry must never break a render path. The binding is present in every deployed
-		// environment; this covers unconfigured ones.
-		return undefined
-	}
 }

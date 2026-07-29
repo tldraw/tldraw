@@ -100,9 +100,9 @@ export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },
 		QUEUE: makeFakeQueue(),
-		// Telemetry indexes on the board's durable object id. The real binding hashes the name; this
-		// stand-in keeps it legible so a test can assert which name was used, which is the part that can
-		// actually be wrong (a published board must index on its file id, not its published slug).
+		// Nothing in the thumbnail pipeline derives a board id any more, so this exists only to make an
+		// accidental reintroduction visible: a legible `do(<name>)` would show up in an assertion rather
+		// than an opaque hash.
 		TLDR_DOC: { idFromName: (name: string) => ({ toString: () => `do(${name})` }) },
 		...overrides,
 	} as unknown as Environment
@@ -138,7 +138,8 @@ export function renderDurationsOf(env: Environment): number[] {
 	)
 }
 
-// The index (index1) of every datapoint written, `undefined` where the surface had no resolved board.
+// The index (index1) of every datapoint written. Always `undefined` now — the dataset carries no
+// board identity — so this exists to keep that pinned rather than to read a value out.
 export function indexesOf(env: Environment): (string | undefined)[] {
 	return (env.MEASURE as any).writeDataPoint.mock.calls.map(
 		(call: any[]) => (call[0].indexes as [string] | undefined)?.[0]

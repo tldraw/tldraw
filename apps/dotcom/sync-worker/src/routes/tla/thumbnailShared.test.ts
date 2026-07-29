@@ -96,14 +96,13 @@ describe('reportThumbnailError', () => {
 			ctx: undefined,
 			env: {} as Environment,
 			surface: 'og_queue',
-			extras: { kind: 'published', board: 'do(/r/file-1)' },
+			extras: { kind: 'published' },
 		})
 
 		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
 			'[thumbnails:og_queue]',
 			{
 				kind: 'published',
-				board: 'do(/r/file-1)',
 				browser_render_status: 422,
 				browser_render_detail: 'Navigation timeout of 45000 ms exceeded',
 				browser_render_duration_ms: 45_100,
@@ -169,12 +168,12 @@ describe('reportThumbnailError', () => {
 			ctx: undefined,
 			env: {} as Environment,
 			surface: 'og_queue',
-			extras: { board: 'do(/r/file-1)' },
+			extras: { kind: 'shared_file' },
 		})
 
 		expect(consoleError).toHaveBeenCalledExactlyOnceWith(
 			'[thumbnails:og_queue]',
-			{ board: 'do(/r/file-1)' },
+			{ kind: 'shared_file' },
 			error
 		)
 	})
