@@ -267,6 +267,45 @@ describe('history', () => {
 
 		expect(readThread(editor, thread)!.anchor).toEqual({ type: 'point', x: 0, y: 0 })
 	})
+
+	// The same drag, written the way a call site that forgets `putRecordsInCommit` would write it.
+	// The nested commit defers to the outermost one, so the drag's mode still stands.
+	it('keeps dragHistory in charge even when the drag writes through putCommentRecords', () => {
+		const editor = makeEditor(CommentTool.configure({ history: 'ignore', dragHistory: 'record' }))
+		const { thread } = makeThread(editor)
+		editor.markHistoryStoppingPoint()
+
+		commitCommentMutation(
+			editor,
+			() => putCommentRecords(editor, [{ ...thread, anchor: { type: 'point', x: 50, y: 50 } }]),
+			'drag'
+		)
+		editor.undo()
+
+		expect(readThread(editor, thread)!.anchor).toEqual({ type: 'point', x: 0, y: 0 })
+	})
+
+	// The guard is keyed per editor. A page can hold several, so a commit in flight on one must not
+	// make a write on another skip its own commit and pick up the ambient history state.
+	it('applies each editor’s own history mode when a commit on one writes to another', () => {
+		const recording = makeEditor(CommentTool.configure({ history: 'record' }))
+		const ignoring = makeEditor(CommentTool.configure({ history: 'ignore' }))
+		const { thread } = makeThread(ignoring)
+		recording.markHistoryStoppingPoint()
+		ignoring.markHistoryStoppingPoint()
+		const shapeId = createShapeId()
+		ignoring.createShape({ id: shapeId, type: 'geo', x: 0, y: 0 })
+
+		// A commit on `recording` that reaches over and writes to `ignoring`.
+		commitCommentMutation(recording, () => {
+			putCommentRecords(ignoring, [{ ...thread, resolved: { at: 1, by: 'ada' } }])
+		})
+		ignoring.undo()
+
+		// The write took `ignoring`'s own 'ignore', so the undo rewinds its shape and not the resolve.
+		expect(ignoring.getShape(shapeId)).toBeUndefined()
+		expect(readThread(ignoring, thread)!.resolved).toMatchObject({ by: 'ada' })
+	})
 })
 
 describe('getLiveComments and getLiveCommentThreads', () => {

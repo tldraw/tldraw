@@ -55,9 +55,27 @@ function historyModeFor(
 }
 
 /**
+ * How deeply nested an editor is in {@link commitCommentMutation}, so that only the outermost
+ * commit picks the history mode.
+ *
+ * `editor.run`'s history option isn't additive: a nested run overwrites the enclosing mode for its
+ * own scope. Call sites inside a commit are meant to use {@link putRecordsInCommit}, which doesn't
+ * open one — this is the backstop for when they don't, so reaching for {@link putCommentRecords}
+ * there costs nothing instead of quietly dropping a pin drag's `dragHistory: 'record'` back to
+ * `history: 'ignore'`.
+ *
+ * Keyed per editor, not module-global: a page can hold several editors, and a commit in flight on
+ * one must not make a write on another skip its own commit and inherit the ambient history state.
+ */
+const commitDepth = new WeakMap<Editor, number>()
+
+/**
  * Commit a comment mutation with the configured undo/redo behavior, so the
  * {@link CommentingOptions.history} option governs whether it lands on the undo stack. Defaults to
  * `'ignore'`. See {@link CommentMutationKind} for what each kind resolves to.
+ *
+ * Nested calls on the same editor run inside the outermost commit's history mode rather than
+ * opening their own.
  * @internal
  */
 export function commitCommentMutation<T>(
@@ -65,24 +83,31 @@ export function commitCommentMutation<T>(
 	fn: () => T,
 	kind: CommentMutationKind = 'mutation'
 ): T {
+	const depth = commitDepth.get(editor) ?? 0
+	if (depth > 0) return fn()
+
 	const history = historyModeFor(getCommentingOptions(editor), kind)
 	let result: T
-	editor.run(
-		() => {
-			result = fn()
-		},
-		{ history }
-	)
+	commitDepth.set(editor, depth + 1)
+	try {
+		editor.run(
+			() => {
+				result = fn()
+			},
+			{ history }
+		)
+	} finally {
+		commitDepth.set(editor, depth)
+	}
 	return result!
 }
 
 /**
  * Write records without opening a commit, for call sites that already sit inside one.
  *
- * `editor.run`'s history option isn't additive — a nested run overwrites the enclosing mode for its
- * own scope — so a {@link putCommentRecords} call inside a commit would discard the mode its caller
- * chose. A pin drag committed as `drag` under `dragHistory: 'record'` would land back on
- * `history: 'ignore'` and quietly stop being undoable. Inside a commit, write with this.
+ * Inside a commit, write with this. It says so at the call site, and it keeps the write to a single
+ * `editor.run` — `commitCommentMutation` also guards against nesting, so reaching for
+ * {@link putCommentRecords} here is safe, just less clear about what it's doing.
  *
  * @internal
  */
