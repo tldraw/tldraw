@@ -94,6 +94,39 @@ describe('pasting files from the clipboard API', () => {
 		])
 	})
 
+	it('passes text sources along with multiple pasted files', async () => {
+		const spy = mockPutExternalContent()
+
+		await handlePasteFromClipboardApi({
+			editor,
+			clipboardItems: [
+				makeClipboardItem({ 'image/png': pngBlob() }),
+				makeClipboardItem({ 'image/png': pngBlob(), 'text/plain': 'hello' }),
+			],
+			clipboardPasteSource: 'clipboard-read',
+		})
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		const content = spy.mock.calls[0][0] as TLFilesExternalContent
+		expect(content.type).toBe('files')
+		expect(content.files).toHaveLength(2)
+		expect(content.sources).toEqual([{ type: 'text', data: 'hello', subtype: 'text' }])
+	})
+
+	it('passes the paste point through with the files', async () => {
+		const spy = mockPutExternalContent()
+
+		await handlePasteFromClipboardApi({
+			editor,
+			clipboardItems: [makeClipboardItem({ 'image/png': pngBlob() })],
+			point: { x: 100, y: 200 },
+			clipboardPasteSource: 'clipboard-read',
+		})
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		expect(spy.mock.calls[0][0]).toMatchObject({ type: 'files', point: { x: 100, y: 200 } })
+	})
+
 	it('passes empty sources when only an image is on the clipboard', async () => {
 		const spy = mockPutExternalContent()
 
@@ -185,6 +218,23 @@ describe('pasting files from the clipboard API', () => {
 		expect(content.files[0].name).toBe('image.png')
 		// the text thing was just the file name, so it is not kept as a source
 		expect(content.sources).toEqual([])
+	})
+
+	it('uses fallback files when the clipboard API returns nothing for them', async () => {
+		// Files pasted in Safari from the file system have no clipboard item types at all
+		const spy = mockPutExternalContent()
+
+		await handlePasteFromClipboardApi({
+			editor,
+			clipboardItems: [makeClipboardItem({})],
+			fallbackFiles: [pngFile()],
+			clipboardPasteSource: 'native-event',
+		})
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		const content = spy.mock.calls[0][0] as TLFilesExternalContent
+		expect(content.type).toBe('files')
+		expect(content.files[0].name).toBe('image.png')
 	})
 
 	it('still pastes files when reading another clipboard type fails', async () => {

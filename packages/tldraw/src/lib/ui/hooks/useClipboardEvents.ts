@@ -406,11 +406,6 @@ async function handleClipboardThings(
 					new Promise((r) => {
 						const thing = t as Exclude<ClipboardThing, { type: 'file' } | { type: 'blob' }>
 
-						if (thing.type === 'file') {
-							r({ type: 'error', data: null, reason: 'unexpected file' })
-							return
-						}
-
 						thing.source.then((text) => {
 							// first, see if we can find tldraw content, which is JSON inside of an html comment
 							const tldrawHtmlComment = text.match(/<div data-tldraw[^>]*>(.*)<\/div>/)?.[1]
@@ -543,11 +538,12 @@ async function handleClipboardThings(
 	// on the clipboard next to an image) so that external content handlers
 	// can make use of them.
 
-	const files = things.filter(
-		(t) => (t.type === 'file' || t.type === 'blob') && t.source !== null
-	) as Extract<ClipboardThing, { type: 'file' } | { type: 'blob' }>[]
+	const files = things.filter((t) => t.type === 'file' || t.type === 'blob') as Extract<
+		ClipboardThing,
+		{ type: 'file' } | { type: 'blob' }
+	>[]
 
-	// Just paste the files, nothing else
+	// Paste the files, carrying the other sources along with them
 	if (files.length) {
 		if (files.length > editor.options.maxFilesAtOnce) {
 			throw Error('Too many files')
