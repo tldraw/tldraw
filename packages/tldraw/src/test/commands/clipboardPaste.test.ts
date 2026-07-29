@@ -19,12 +19,16 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-/** Build a fake ClipboardItem, as returned by navigator.clipboard.read(). */
-function makeClipboardItem(entries: Record<string, string | Blob>): ClipboardItem {
+/**
+ * Build a fake ClipboardItem, as returned by navigator.clipboard.read().
+ * An Error value makes getType reject for that type, like a failing browser read.
+ */
+function makeClipboardItem(entries: Record<string, string | Blob | Error>): ClipboardItem {
 	return {
 		types: Object.keys(entries),
 		getType: async (type: string) => {
 			const value = entries[type]
+			if (value instanceof Error) throw value
 			return value instanceof Blob ? value : new Blob([value], { type })
 		},
 	} as unknown as ClipboardItem
@@ -181,6 +185,26 @@ describe('pasting files from the clipboard API', () => {
 		expect(content.files[0].name).toBe('image.png')
 		// the text thing was just the file name, so it is not kept as a source
 		expect(content.sources).toEqual([])
+	})
+
+	it('still pastes files when reading another clipboard type fails', async () => {
+		const spy = mockPutExternalContent()
+
+		await handlePasteFromClipboardApi({
+			editor,
+			clipboardItems: [
+				makeClipboardItem({
+					'image/png': pngBlob(),
+					'text/html': new Error('boom'),
+				}),
+			],
+			clipboardPasteSource: 'clipboard-read',
+		})
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		const content = spy.mock.calls[0][0] as TLFilesExternalContent
+		expect(content.type).toBe('files')
+		expect(content.sources).toMatchObject([{ type: 'error' }])
 	})
 
 	it('throws when pasting more files than maxFilesAtOnce', async () => {

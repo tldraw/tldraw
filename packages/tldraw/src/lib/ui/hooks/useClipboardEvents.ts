@@ -525,6 +525,11 @@ async function handleClipboardThings(
 							}
 
 							r({ type: 'error', data: text, reason: 'unhandled case' })
+						}).catch((error) => {
+							// If we can't read one of the clipboard items (e.g. the browser
+							// rejects a getType call), resolve it to an error source rather
+							// than hanging the whole paste.
+							r({ type: 'error', data: null, reason: `error reading clipboard data: ${error}` })
 						})
 					})
 			)
