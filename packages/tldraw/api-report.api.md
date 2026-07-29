@@ -706,6 +706,27 @@ export class CollaboratorBrushOverlayUtil extends OverlayUtil<TLCollaboratorBrus
     static type: string;
 }
 
+// @public @deprecated
+export class CollaboratorCursorOverlayUtil extends OverlayUtil<TLCollaboratorCursorOverlay> {
+    // (undocumented)
+    getOverlays(): TLCollaboratorCursorOverlay[];
+    // (undocumented)
+    isActive(): boolean;
+    // (undocumented)
+    options: {
+        chatMaxWidth: number;
+        fontSize: number;
+        nameMaxWidth: number;
+        zIndex: number;
+    };
+    // (undocumented)
+    render(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[]): void;
+    // (undocumented)
+    renderMinimap(ctx: CanvasRenderingContext2D, overlays: TLCollaboratorCursorOverlay[], zoom: number): void;
+    // (undocumented)
+    static type: string;
+}
+
 // @public
 export class CollaboratorHintOverlayUtil extends OverlayUtil<TLCollaboratorHintOverlay> {
     // (undocumented)
@@ -4021,6 +4042,18 @@ export interface TLCollaboratorBrushOverlay extends TLOverlay {
         color: string;
         h: number;
         w: number;
+        x: number;
+        y: number;
+    };
+}
+
+// @public @deprecated (undocumented)
+export interface TLCollaboratorCursorOverlay extends TLOverlay {
+    // (undocumented)
+    props: {
+        chatMessage: string;
+        color: string;
+        name: null | string;
         x: number;
         y: number;
     };
