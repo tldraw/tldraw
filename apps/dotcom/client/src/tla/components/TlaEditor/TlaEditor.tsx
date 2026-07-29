@@ -65,10 +65,12 @@ import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
-// Signed-out viewers can't comment — they get a sign-in prompt where the composers would be.
+// Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
+// editable canvas get a sign-in prompt where the composers would be; view-only sessions
+// read threads without composers (the server rejects their writes in the authorizers).
 const tlaCommentTools = [
 	CommentTool.configure({
-		canComment: ({ currentUserId }) => currentUserId !== null,
+		canComment: ({ editor, currentUserId }) => currentUserId !== null && !editor.getIsReadonly(),
 		components: { ComposerFallback: SignInToComment },
 	}),
 ]
@@ -292,33 +294,26 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 	const anonCommentToolOverrides = useAnonCommentToolOverrides()
 	const commentingEnabled = useIsCommentingEnabled()
 
-	// Whether this session may write comments. The server grants object-lane (comment) write access
-	// per session from the file's share tier: an `edit` link gets it, a view-only link doesn't. So a
-	// viewer still sees existing comments, but gets no comment tool, overrides, or composer — the
-	// server rejects any stray write as a backstop. Resolved before the editor mounts, since the
-	// store is already synced by then.
-	const canComment =
-		commentingEnabled && (store.status !== 'synced-remote' || store.objectAccess !== 'read')
-
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
 			InFrontOfTheCanvas: commentingEnabled
-				? () => <CommentsOnCanvas fileId={fileId} canComment={canComment} />
+				? () => <CommentsOnCanvas fileId={fileId} />
 				: undefined,
 		}
-	}, [fileId, commentingEnabled, canComment])
+	}, [fileId, commentingEnabled])
 
 	// Without the tool and its overrides there's no comment button in the toolbar and no `c`
-	// shortcut, so commenting is fully absent for users the flag doesn't cover and for viewers
-	// the file's share tier doesn't let comment.
+	// shortcut, so commenting is fully absent for users the flag doesn't cover. On read-only
+	// canvases the button and shortcut hide via the UI's readonly handling, and composing is
+	// gated by the tool's `canComment`.
 	const editorOverrides = useMemo(
 		() =>
-			canComment
+			commentingEnabled
 				? [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides]
 				: [overrides, extraDragIconOverrides],
-		[canComment, overrides, extraDragIconOverrides, anonCommentToolOverrides]
+		[commentingEnabled, overrides, extraDragIconOverrides, anonCommentToolOverrides]
 	)
 
 	return (
@@ -329,7 +324,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
-				tools={canComment ? tlaCommentTools : undefined}
+				tools={commentingEnabled ? tlaCommentTools : undefined}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
