@@ -266,7 +266,6 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this._documentInfo) {
 			throw new Error('documentInfo must be present when accessing room')
 		}
-		const slug = this._documentInfo.slug
 		if (!this._room) {
 			this._room = this.getStorage().then(async (storage) => {
 				const room = new TLSocketRoom<TLRecord, SessionMeta>({
@@ -290,20 +289,16 @@ export class TLFileDurableObject extends DurableObject {
 					onSessionRemoved: async (room, args) => {
 						this.logEvent({
 							type: 'client',
-							roomId: slug,
 							name: 'leave',
 							instanceId: args.sessionId,
-							localClientId: args.meta.storeId,
 						})
 
 						if (args.numSessionsRemaining > 0) return
 						if (!this._room) return
 						this.logEvent({
 							type: 'client',
-							roomId: slug,
 							name: 'last_out',
 							instanceId: args.sessionId,
-							localClientId: args.meta.storeId,
 						})
 						try {
 							await this.persistToDatabase()
@@ -314,7 +309,7 @@ export class TLFileDurableObject extends DurableObject {
 						if (room.getNumActiveSessions() > 0) return
 						this._room = null
 						room.close()
-						this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
+						this.logEvent({ type: 'room', name: 'room_empty' })
 						await this._pool?.end()
 						this._pool = null
 						this._db = null
@@ -322,7 +317,6 @@ export class TLFileDurableObject extends DurableObject {
 					onBeforeSendMessage: ({ message, stringified }) => {
 						this.logEvent({
 							type: 'send_message',
-							roomId: slug,
 							messageType: message.type,
 							messageLength: stringified.length,
 						})
@@ -338,7 +332,7 @@ export class TLFileDurableObject extends DurableObject {
 					authorizeRecord: authorizeFileRecord,
 				})
 
-				this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
+				this.logEvent({ type: 'room', name: 'room_start' })
 				// Resume any sessions that survived hibernation
 				for (const ws of this.state.getWebSockets()) {
 					const attachment = ws.deserializeAttachment() as SocketAttachment | null
@@ -768,7 +762,6 @@ export class TLFileDurableObject extends DurableObject {
 						this.logEvent({
 							type: 'client',
 							userId: auth.userId,
-							localClientId: storeId,
 							name: 'rate_limited',
 						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
@@ -779,7 +772,6 @@ export class TLFileDurableObject extends DurableObject {
 						this.logEvent({
 							type: 'client',
 							userId: auth?.userId,
-							localClientId: storeId,
 							name: 'rate_limited',
 						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
@@ -858,18 +850,14 @@ export class TLFileDurableObject extends DurableObject {
 			if (isNewSession) {
 				this.logEvent({
 					type: 'client',
-					roomId: this.documentInfo.slug,
 					name: 'room_reopen',
 					instanceId: sessionId,
-					localClientId: storeId,
 				})
 			}
 			this.logEvent({
 				type: 'client',
-				roomId: this.documentInfo.slug,
 				name: 'enter',
 				instanceId: sessionId,
-				localClientId: storeId,
 			})
 
 			requestTimer.report('on_request_total')
@@ -1015,8 +1003,25 @@ export class TLFileDurableObject extends DurableObject {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
 
+	/**
+	 * Indexes every data point on this object's durable object id, so any event can be grouped by
+	 * room. The id is the one Cloudflare keys its own telemetry on — `$workers.durableObjectId` in
+	 * Workers Logs, and the per-object filter on the namespace's metrics — so a room's analytics,
+	 * logs, traces and CPU/storage numbers all line up on a single value.
+	 *
+	 * Deliberately the id rather than the slug: `idFromName` is one-way, so an id read out of the
+	 * dataset does not open the board, where the slug for an app file is the whole authority of
+	 * `tldraw.com/f/<id>`. Resolving in the useful direction still works from a slug you already
+	 * hold, via `env.TLDR_DOC.idFromName('/r/' + slug)`.
+	 *
+	 * Analytics Engine allows exactly one index, so this is the only object-level dimension these
+	 * events carry.
+	 */
 	private writeEvent(name: string, eventData: EventData) {
-		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
+		writeDataPoint(this.sentry, this.measure, this.env, name, {
+			...eventData,
+			indexes: [this.id.toString()],
+		})
 	}
 
 	logEvent(event: TLServerEvent) {
@@ -1026,28 +1031,20 @@ export class TLFileDurableObject extends DurableObject {
 				break
 			}
 			case 'room': {
-				// we would add user/connection ids here if we could
-				this.writeEvent(event.name, { blobs: [event.roomId] })
+				this.writeEvent(event.name, {})
 				break
 			}
 			case 'client': {
 				if (event.name === 'rate_limited') {
-					this.writeEvent(event.name, {
-						blobs: [event.userId ?? 'anon-user'],
-						indexes: [event.localClientId],
-					})
+					this.writeEvent(event.name, { blobs: [event.userId ?? 'anon-user'] })
 				} else {
-					// we would add user/connection ids here if we could
-					this.writeEvent(event.name, {
-						blobs: [event.roomId, 'unused', event.instanceId],
-						indexes: [event.localClientId],
-					})
+					this.writeEvent(event.name, { blobs: [event.instanceId] })
 				}
 				break
 			}
 			case 'send_message': {
 				this.writeEvent(event.type, {
-					blobs: [event.roomId, event.messageType],
+					blobs: [event.messageType],
 					doubles: [event.messageLength],
 				})
 				break
@@ -1235,7 +1232,7 @@ export class TLFileDurableObject extends DurableObject {
 			supabaseFetchTimer.report('db_load_supabase_fetch')
 
 			if (error) {
-				this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
+				this.logEvent({ type: 'room', name: 'failed_load_from_db' })
 
 				loadTimer.report('db_load_total')
 
@@ -1256,7 +1253,7 @@ export class TLFileDurableObject extends DurableObject {
 				roomSizeMB: 0,
 			}
 		} catch (error) {
-			this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
+			this.logEvent({ type: 'room', name: 'failed_load_from_db' })
 
 			loadTimer.report('db_load_total_error')
 
@@ -1566,7 +1563,6 @@ export class TLFileDurableObject extends DurableObject {
 								.catch((e) => {
 									this.logEvent({
 										type: 'room',
-										roomId: this.documentInfo.slug,
 										name: 'failed_persist_to_db',
 									})
 									this.reportError(e)
@@ -1577,7 +1573,7 @@ export class TLFileDurableObject extends DurableObject {
 				)
 			})
 			.catch((e) => {
-				this.logEvent({ type: 'room', roomId: this.documentInfo.slug, name: 'fail_persist' })
+				this.logEvent({ type: 'room', name: 'fail_persist' })
 				this.reportError(e)
 			})
 	}
@@ -1952,11 +1948,7 @@ export class TLFileDurableObject extends DurableObject {
 									continue
 								}
 								failedIds.push(row.id)
-								this.logEvent({
-									type: 'room',
-									roomId: fileId,
-									name: 'failed_persist_comments_to_db',
-								})
+								this.logEvent({ type: 'room', name: 'failed_persist_comments_to_db' })
 								this.reportError(rowError)
 							}
 						}
@@ -2129,18 +2121,14 @@ export class TLFileDurableObject extends DurableObject {
 						}
 					} catch (error) {
 						failedIds.add(commentId)
-						this.logEvent({
-							type: 'room',
-							roomId: fileId,
-							name: 'failed_persist_comments_to_db',
-						})
+						this.logEvent({ type: 'room', name: 'failed_persist_comments_to_db' })
 						this.reportError(error)
 					}
 				}
 
 				let didPruneThreads = false
 				if (commentResult.prunedIds.length > 0) {
-					this.logEvent({ type: 'room', roomId: fileId, name: 'comment_author_deleted_prune' })
+					this.logEvent({ type: 'room', name: 'comment_author_deleted_prune' })
 				}
 				if (commentResult.prunedIds.length > 0 || deletedCommentThreadIds.size > 0) {
 					// Remove the author-cascade-pruned records from the room's storage so it stops
@@ -2198,10 +2186,10 @@ export class TLFileDurableObject extends DurableObject {
 						return { prunedThreadIds: deletedThreadIds, prunedReactionIds: deletedReactionIds }
 					}).result
 					if (prunedReactionIds.length > 0) {
-						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_reaction_orphan_prune' })
+						this.logEvent({ type: 'room', name: 'comment_reaction_orphan_prune' })
 					}
 					if (prunedThreadIds.length > 0) {
-						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_thread_emptied_prune' })
+						this.logEvent({ type: 'room', name: 'comment_thread_emptied_prune' })
 						// Outbox the pruned thread ids instead of stamping their Postgres rows
 						// directly: the follow-up drain (kicked below, after this drain's
 						// bookkeeping) sees them lane-absent and stamps them soft-deleted through
@@ -2235,7 +2223,7 @@ export class TLFileDurableObject extends DurableObject {
 					)
 					.map((row) => row.id)
 				if (softDeletedThreadIds.length > 0 || softDeletedCommentIds.length > 0) {
-					this.logEvent({ type: 'room', roomId: fileId, name: 'comment_soft_delete_prune' })
+					this.logEvent({ type: 'room', name: 'comment_soft_delete_prune' })
 					// Records this drain has NOT accounted for must survive the cascade sweep: a
 					// reply committed after this drain's bound (during the awaits above) has an
 					// outbox entry a later drain owns, and its row may not be in Postgres yet.
@@ -2314,10 +2302,10 @@ export class TLFileDurableObject extends DurableObject {
 						return { emptiedThreadIds: emptied, orphanedReactionIds: orphaned }
 					}).result
 					if (orphanedReactionIds.length > 0) {
-						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_reaction_orphan_prune' })
+						this.logEvent({ type: 'room', name: 'comment_reaction_orphan_prune' })
 					}
 					if (emptiedThreadIds.length > 0) {
-						this.logEvent({ type: 'room', roomId: fileId, name: 'comment_thread_emptied_prune' })
+						this.logEvent({ type: 'room', name: 'comment_thread_emptied_prune' })
 						// Re-outbox the emptied thread ids: the follow-up drain sees them lane-absent
 						// and stamps their rows soft-deleted through the normal crash-safe
 						// at-least-once path, so the rows stop re-seeding future rooms as live
@@ -2352,11 +2340,7 @@ export class TLFileDurableObject extends DurableObject {
 				}
 			})
 			.catch((e) => {
-				this.logEvent({
-					type: 'room',
-					roomId: this.documentInfo.slug,
-					name: 'failed_persist_comments_to_db',
-				})
+				this.logEvent({ type: 'room', name: 'failed_persist_comments_to_db' })
 				this.reportError(e)
 			})
 	}
