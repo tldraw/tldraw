@@ -18,13 +18,11 @@ import {
 	createCommentThread,
 	Editor,
 	getFirstCharacter,
-	PORTRAIT_BREAKPOINT,
 	react,
 	TLComment,
 	TLCommentId,
 	TLCommentThread,
 	TLRichText,
-	useBreakpoint,
 	useContainer,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -80,7 +78,13 @@ import {
 	regionPinPoint,
 	shapeAnchorAt,
 } from './thread-state'
-import { POPOVER_OFFSET, ThreadPopover, ThreadView, useThreadPopoverPlacement } from './thread-view'
+import {
+	POPOVER_OFFSET,
+	ThreadPopover,
+	ThreadView,
+	useIsMobileCommenting,
+	useThreadPopoverPlacement,
+} from './thread-view'
 
 /**
  * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
@@ -1513,12 +1517,12 @@ const ThreadPin = memo(function ThreadPin({
 	)
 })
 
-// Mobile mode: in mobile mode the placement composer positions itself with
-// the exact same logic as the open thread popover (useThreadPopoverPlacement): the legacy attached
-// spot when it fits, otherwise whichever side of the pin has room, all bounded by the visual
-// viewport so it rides above the software keyboard. The pin itself never moves — when the composer
-// ends up away from its attached spot, a stationary draft-pin marker holds the tapped point, and
-// on send the composer collapses back into it.
+// In mobile mode the placement composer positions itself with the exact same logic as the open
+// thread popover (useThreadPopoverPlacement): the legacy attached spot when it fits, otherwise
+// whichever side of the pin has room, all bounded by the visual viewport so it rides above the
+// software keyboard. The pin itself never moves — when the composer ends up away from its
+// attached spot, a stationary draft-pin marker holds the tapped point, and on send the composer
+// collapses back into it.
 // The attached composer's offset from the anchor point, mirroring the CSS transform
 // translate(-4px, -38px) on .tlui-cmt-canvas-composer.
 const ATTACHED_OFFSET = { x: -4, y: -38 }
@@ -1552,11 +1556,13 @@ function PendingComposer({
 		pending.point,
 	])
 
-	// Mobile mode: mobile mode only — the same gate and placement logic as
-	// the thread popover. The pin never moves; if the composer lands away from its attached spot,
-	// a stationary marker holds the tapped point and the composer collapses into it on send.
-	const isMobile = useBreakpoint() < PORTRAIT_BREAKPOINT.TABLET_SM
-	const mobileEnabled = isMobile && pending.anchor.type !== 'region'
+	// Mobile mode only — the same gate and placement logic as the thread popover. The pin never
+	// moves; if the composer lands away from its attached spot, a stationary marker holds the
+	// tapped point and the composer collapses into it on send. The `!canComment` fallback panel is
+	// excluded: it anchors without the draft-avatar offset (see `--fallback` in canvas.css), so
+	// the attached-spot math here doesn't apply to it.
+	const isMobile = useIsMobileCommenting()
+	const mobileEnabled = isMobile && canComment && pending.anchor.type !== 'region'
 	const placed = useThreadPopoverPlacement(container, ref, point, ATTACHED_OFFSET, mobileEnabled)
 	const mobilePlacement: CSSProperties | null = mobileEnabled
 		? { left: placed.left, top: placed.top, transform: 'none' }
@@ -1582,11 +1588,14 @@ function PendingComposer({
 
 	const submit = () => {
 		if (isCommentEmpty(text) || !currentUserId) return
-		// Mobile mode: a detached composer collapses back into the pin before
-		// the records commit. Direct style mutation so React's render cycle doesn't fight the
-		// transition; `data-collapsing` freezes the placement hook meanwhile.
+		// A collapse is already in flight: its timer will commit exactly once — a second Enter or
+		// send tap during the animation must not commit again.
 		const el = ref.current
-		if (detached && el && !el.dataset.collapsing) {
+		if (el?.dataset.collapsing) return
+		// In mobile mode a detached composer collapses back into the pin before the records
+		// commit. Direct style mutation so React's render cycle doesn't fight the transition;
+		// `data-collapsing` freezes the placement hook meanwhile.
+		if (detached && el) {
 			el.dataset.collapsing = '1'
 			const r = el.getBoundingClientRect()
 			const cRect = editor.getContainer().getBoundingClientRect()

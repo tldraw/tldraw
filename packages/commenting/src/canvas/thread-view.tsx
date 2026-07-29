@@ -14,8 +14,6 @@ import {
 	createComment,
 	Editor,
 	PORTRAIT_BREAKPOINT,
-	useBreakpoint,
-	type VecLike,
 	TLComment,
 	TLCommentId,
 	TLCommentThread,
@@ -26,9 +24,11 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
+	useBreakpoint,
 	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useTranslation,
+	type VecLike,
 } from 'tldraw'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
@@ -136,9 +136,10 @@ export const POPOVER_OFFSET = {
 	list: LIST_OFFSET,
 } as const
 
-/* Placement for the open-thread popover, active only in mobile mode (see the breakpoint gate in
-   `ThreadPopover`; desktop keeps the fixed legacy offset). The panel positions itself relative to
-   the pin — the camera never moves — preferring the legacy spot (offset right of the pin,
+/* Placement for the open-thread popover and the pending composer, active only in mobile mode
+   (each caller gates on the UI breakpoint; desktop keeps the fixed legacy offset). The panel
+   positions itself relative to the pin — the camera never moves — preferring the legacy spot
+   (offset right of the pin,
    unchanged wherever it fits), then trying each side of the pin in turn: right, below, above,
    left. A side qualifies when the whole panel fits on-screen there; along the free axis the panel
    is centered on the pin, then slid inward as needed to stay fully visible. All bounds come from
@@ -148,6 +149,25 @@ const POPOVER_VIEWPORT_MARGIN = 8
 /* Keep-clear distances from the anchor point per side, covering the pin marker's footprint (it
    hangs up-and-right of the anchor point) with the legacy 48px gap on the right. */
 const POPOVER_CLEARANCE = { left: 12, right: 48, top: 46, bottom: 8 }
+
+/**
+ * Mobile mode for the commenting surfaces — the same gate as the mobile toolbar and style panel,
+ * driven by the UI breakpoint (which also honors the `forceMobile` prop on `<Tldraw>`). The
+ * commenting layer can mount without tldraw's default UI (`hideUi`, custom UI), where the
+ * breakpoint provider is absent and `useBreakpoint` throws; fall back to desktop behavior there —
+ * identical to the pre-mobile-placement rendering those hosts always had.
+ */
+export function useIsMobileCommenting(): boolean {
+	let breakpoint: number
+	try {
+		// The call is unconditional — the try only guards the provider's absence, not hook order.
+		// oxlint-disable-next-line react-hooks/rules-of-hooks
+		breakpoint = useBreakpoint()
+	} catch {
+		return false
+	}
+	return breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
+}
 
 export function useThreadPopoverPlacement(
 	container: HTMLElement,
@@ -255,9 +275,9 @@ export function ThreadPopover({
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	usePassThroughMouseOverEvents(ref)
-	// "Mobile mode": the same gate as the mobile toolbar and style panel, driven by the UI
-	// breakpoint — which also honors the `forceMobile` prop on `<Tldraw>`.
-	const isMobile = useBreakpoint() < PORTRAIT_BREAKPOINT.TABLET_SM
+	// "Mobile mode": the same gate as the mobile toolbar and style panel — see
+	// `useIsMobileCommenting`.
+	const isMobile = useIsMobileCommenting()
 	const style = useThreadPopoverPlacement(container, ref, anchor, offset, isMobile)
 	return createPortal(
 		// contextmenu also stops here: portals bubble React events to the canvas's context-menu
