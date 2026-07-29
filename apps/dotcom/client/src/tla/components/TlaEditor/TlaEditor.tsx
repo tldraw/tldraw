@@ -45,6 +45,8 @@ import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracki
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
+import { ClusteringOverlayUtil, clusteringOverlayVisible } from './clustering/ClusteringOverlayUtil'
+import { ClusteringPanel } from './clustering/ClusteringPanel'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
@@ -278,6 +280,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
+			InFrontOfTheCanvas: ClusteringPanel,
 		}
 	}, [])
 
@@ -289,6 +292,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
+				overlayUtils={[ClusteringOverlayUtil]}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
@@ -318,9 +322,18 @@ function CustomDebugMenu() {
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+	const isClusteringVisible = useValue(clusteringOverlayVisible)
 	return (
 		<DefaultDebugMenu>
 			<A11yAudit />
+			<TldrawUiMenuItem
+				id="toggle-clustering-overlay"
+				label={`${isClusteringVisible ? 'Hide' : 'Show'} MCP clustering`}
+				readonlyOk
+				onSelect={() => {
+					clusteringOverlayVisible.set(!isClusteringVisible)
+				}}
+			/>
 			{!isReadOnly && app && (
 				<>
 					<TldrawUiMenuItem
