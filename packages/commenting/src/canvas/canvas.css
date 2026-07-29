@@ -136,6 +136,7 @@
    list reads as one column of cards with one of them opened up. */
 .tlui-cmt-stack-list__card {
 	box-sizing: border-box;
+	position: relative;
 	width: 300px;
 	background: var(--tl-color-panel);
 	border-radius: 12px;
@@ -146,15 +147,28 @@
 	display: block;
 }
 
-.tlui-cmt-stack-list__card:focus-visible {
+/* The card's keyboard affordance, covering the whole surface so it's one target rather than a
+   control tucked in a corner. It's laid under the card's content instead of wrapping it: a comment
+   body renders its links as anchors, which can't be nested inside a button (see the note in
+   `StackThreadCard`). Pointer clicks anywhere still reach the card's own handler by bubbling. */
+.tlui-cmt-stack-list__card-action {
+	position: absolute;
+	inset: 0;
+	border-radius: inherit;
+	cursor: pointer;
+}
+
+.tlui-cmt-stack-list__card-action:focus-visible {
 	outline: 2px solid var(--tl-color-selected);
 	outline-offset: 2px;
 }
 
 /* The wrapper is the card's surface — inside it the comment is plain content, mirroring how the
    thread panel flattens its own cards. The avatar centers against the short two-line block so a
-   collapsed entry doesn't read as top-heavy. */
+   collapsed entry doesn't read as top-heavy. Stacked above the action overlay so the body's links
+   stay clickable. */
 .tlui-cmt-stack-list__card .tlui-cmt-card {
+	position: relative;
 	width: 100%;
 	padding: 0;
 	background: transparent;

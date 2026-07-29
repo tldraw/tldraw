@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef } from 'react'
+import { type MouseEvent as ReactMouseEvent, memo, useEffect, useRef } from 'react'
 import {
 	Editor,
 	TLCommentThread,
@@ -9,6 +9,7 @@ import {
 } from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { CountBadge } from '../ui/count-badge'
+import { UNKNOWN_AUTHOR } from './comment-render'
 import { useThreadComments } from './hooks'
 import { useCommentingOptions } from './options'
 import { pinStackKey } from './pin-stacking'
@@ -210,21 +211,32 @@ function StackThreadCard({
 	onOpen,
 	...props
 }: ThreadViewHostProps & { editor: Editor; thread: TLCommentThread; onOpen(): void }) {
+	const msg = useTranslation()
 	const options = useCommentingOptions()
 	const comments = useThreadComments(editor, thread.id)
 	const resolveName = useResolveName(props.resolveAuthor)
 	const first = comments[0]
 	if (!first) return null
+	const open = (e: ReactMouseEvent) => {
+		e.stopPropagation()
+		onOpen()
+	}
 	return (
-		<button
-			type="button"
-			className="tlui-cmt-button tlui-cmt-stack-list__card"
-			onClick={(e) => {
-				e.stopPropagation()
-				onOpen()
-			}}
-		>
+		<div className="tlui-cmt-stack-list__card" onClick={open}>
+			{/* The card's keyboard affordance. A button *wrapping* the card would put the comment
+			    body inside it, and a body renders its links as real anchors — interactive content
+			    nested in a button, which is an invalid content model and reads to assistive tech as a
+			    broken control. So the button covers the card as a sibling instead, leaving the body's
+			    own links above it and still reachable. */}
+			<button
+				type="button"
+				className="tlui-cmt-button tlui-cmt-stack-list__card-action"
+				aria-label={msg(
+					thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label'
+				).replace('{name}', props.resolveAuthor(thread.createdBy)?.name ?? UNKNOWN_AUTHOR)}
+				onClick={open}
+			/>
 			<CommentCard {...toCardProps(first, props, options.components, resolveName)} />
-		</button>
+		</div>
 	)
 }

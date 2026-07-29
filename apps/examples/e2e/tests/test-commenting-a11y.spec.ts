@@ -214,6 +214,53 @@ test.describe('commenting a11y', () => {
 		expect(await verdict).toBe('refused focus')
 	})
 
+	test('a stacked card is keyboard-openable without nesting its body links in a button', async ({
+		page,
+		isMobile,
+	}) => {
+		if (isMobile) test.skip()
+
+		// Two comments on the same point stack behind one badge. The first carries a link, which a
+		// comment body renders as a real anchor.
+		await page.locator('[data-testid="tools.comment"]').click()
+		await page.mouse.click(400, 300)
+		await page.keyboard.type('see https://tldraw.dev ')
+		await page.keyboard.press('Enter')
+		await page.keyboard.press('Escape')
+		await page.locator('[data-testid="tools.comment"]').click()
+		await page.mouse.click(400, 300)
+		await page.keyboard.type('second')
+		await page.keyboard.press('Enter')
+		await page.keyboard.press('Escape')
+
+		// Open the stack list from the keyboard.
+		const badge = page.locator('.tlui-cmt-canvas-stack-badge')
+		await expect(badge).toHaveCount(1)
+		await badge.focus()
+		await page.keyboard.press('Enter')
+		const card = page.locator('.tlui-cmt-stack-list__card').first()
+		await expect(card).toBeVisible()
+		await expect(card.locator('a[href]')).toHaveCount(1)
+
+		// A button can't contain interactive content, so the card's link must not sit inside one —
+		// otherwise activation is unreliable and the control tree assistive tech sees is broken.
+		expect(
+			await page.evaluate(
+				() =>
+					![...document.querySelectorAll('.tlui-cmt-stack-list__card a[href]')].some((a) =>
+						a.closest('button')
+					)
+			)
+		).toBe(true)
+
+		// The card is still openable by keyboard, through a named button covering its surface.
+		const action = card.locator('.tlui-cmt-stack-list__card-action')
+		await expect(action).toHaveAttribute('aria-label', /comment by/i)
+		await action.focus()
+		await page.keyboard.press('Enter')
+		await expect(page.locator('.tlui-cmt-stack-list__thread')).toHaveCount(1)
+	})
+
 	test('focusing a region pin reveals its region, the same as hovering it', async ({
 		page,
 		isMobile,
