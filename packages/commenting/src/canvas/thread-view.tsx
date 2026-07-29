@@ -98,7 +98,7 @@ export function toCardProps(
 /** A pin is this square (mirrors `--tlui-cmt-pin-size`). Needed because the two marker kinds are
  *  different sizes *and* anchor at different points, and lining their previews up means
  *  correcting for that. Keep in sync with the stylesheet. */
-const PIN_SIZE = 28
+export const PIN_SIZE = 28
 
 /** A coincident stack's / cluster's card list, whose first card sits flush with the popover top. */
 const LIST_OFFSET = { x: 36, y: -28 } as const

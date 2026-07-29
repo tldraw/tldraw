@@ -80,6 +80,7 @@ import {
 	shapeAnchorAt,
 } from './thread-state'
 import {
+	PIN_SIZE,
 	POPOVER_OFFSET,
 	ThreadPopover,
 	ThreadView,
@@ -1526,8 +1527,10 @@ const ThreadPin = memo(function ThreadPin({
 // attached spot, a stationary draft-pin marker holds the tapped point, and on send the composer
 // collapses back into it.
 // The attached composer's offset from the anchor point, mirroring the CSS transform
-// translate(-4px, -38px) on .tlui-cmt-canvas-composer.
-const ATTACHED_OFFSET = { x: -4, y: -38 }
+// `translate(-4px, calc(-4px - var(--tlui-cmt-pin-size)))` on .tlui-cmt-canvas-composer —
+// derived from the same PIN_SIZE that mirrors the stylesheet's pin size, so a pin resize can't
+// silently split the two.
+const ATTACHED_OFFSET = { x: -4, y: -4 - PIN_SIZE }
 
 function PendingComposer({
 	editor,

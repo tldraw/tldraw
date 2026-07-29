@@ -362,13 +362,15 @@
    (48px) and bottom toolbar (~64px + the device's safe-area inset, read via env() since the
    popover portals outside .tlui-layout, where --tl-sab lives); the dynamic one
    (--tlui-cmt-popover-max-h, set by useThreadPopoverPlacement from the visual viewport) shrinks
-   the panel above the software keyboard, which dvh cannot see. */
+   the panel above the software keyboard, which dvh cannot see. No `overflow: hidden` here,
+   deliberately: the action pill (`.tlui-cmt-thread__header`) floats above the panel's top edge
+   and would be clipped by it, and nothing in-flow can overflow — the list is the only child
+   that can exceed the cap, and it scrolls itself. */
 .tlui-cmt-canvas-popover--mobile .tlui-cmt-thread {
 	max-height: min(
 		calc(100dvh - 48px - 64px - env(safe-area-inset-bottom, 0px)),
 		var(--tlui-cmt-popover-max-h, 100dvh)
 	);
-	overflow: hidden;
 }
 .tlui-cmt-canvas-popover--mobile .tlui-cmt-thread__list {
 	flex: 1;
