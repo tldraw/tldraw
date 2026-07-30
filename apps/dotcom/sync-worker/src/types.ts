@@ -301,6 +301,12 @@ export interface OgImageRenderQueueMessage {
 	slug: string
 	// Optional only because a message may already be in the queue without one; every producer sets it.
 	reason?: OgImageRenderReason
+	/**
+	 * Set on a job the consumer enqueued for itself, having found the board changed while it was
+	 * capturing. A follow-up never spawns another: a board edited without pause would otherwise render
+	 * continuously instead of at the debounce's cadence.
+	 */
+	followUp?: boolean
 }
 
 export type QueueMessage = AssetUploadQueueMessage | OgImageRenderQueueMessage

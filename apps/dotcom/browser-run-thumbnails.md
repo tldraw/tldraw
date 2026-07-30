@@ -59,6 +59,12 @@ Nothing renders on crawler demand any more, so a board's thumbnail has to exist 
 
 - **The debounce is the rate control; the pending marker is not.** `PENDING_MARKER_TTL_MS` (2 minutes) reads like a render interval but isn't one — the consumer deletes the marker as soon as a render lands, so on a healthy board it never lives out its TTL. It is a single-flight that stops a second ask being queued while one is in flight, plus a crash ceiling. To change how often a board renders, change the debounce.
 
+  **The marker drops asks rather than deferring them,** which matters because nothing upstream retries one. The debouncer resets the moment it fires and neither caller reads the enqueue result, so an ask turned away is simply gone. A capture takes seconds, so an edit landing during one hits this: without help, the board would keep a thumbnail of its before-the-last-edits state until something happened to ask again.
+
+  Two things cover it. A **retry** needs nothing — every delivery re-resolves before capturing, so a later attempt picks up the newest content by itself. A **completed render** re-resolves afterwards and enqueues a follow-up if the version moved under it (`enqueueFollowUpIfBoardMoved`). A job that gives up permanently clears the marker rather than letting it lapse, so the next ask is acted on immediately.
+
+  Follow-ups deliberately **do not chain**: a board edited without pause is stale at the end of every capture, so chaining would render it continuously — the exact cost the debounce exists to avoid. The ceiling is one extra render per triggered render. The residue is narrow and known: if editing stops such that the final debounce fire lands inside a follow-up's capture window, that last ask is swallowed and nothing re-asks, so the board keeps a nearly-settled thumbnail until its next edit.
+
 #### Why a debounce and not a throttle
 
 This started as a 30s leading-and-trailing throttle. Measurement killed it. Production runs **~555 persists/min across ~359 boards active in a 10 minute window** — a mean gap between a given board's persists of roughly **39 seconds**, which is _longer_ than the 30s window. A throttle whose window is shorter than the gap between events suppresses almost nothing: its leading edge fired on nearly every persist, so render volume tracked persist volume rather than the interval it was nominally set to.

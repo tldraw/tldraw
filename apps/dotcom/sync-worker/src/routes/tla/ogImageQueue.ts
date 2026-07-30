@@ -7,6 +7,7 @@ import {
 	ThumbnailBoardRef,
 } from '../../types'
 import {
+	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
 	enumerateBoardPages,
 	loadBoardSnapshot,
@@ -76,9 +77,15 @@ function getOgImagePendingKey(board: ThumbnailBoardRef) {
 export async function enqueueOgImageRender(
 	env: Environment,
 	board: ThumbnailBoardRef,
-	// Required rather than defaulted: every trigger knows why it is asking, and a default would put
-	// whichever one forgot to say into some other trigger's telemetry bucket.
-	{ reason }: { reason: OgImageRenderReason }
+	{
+		reason,
+		followUp,
+	}: {
+		// Required rather than defaulted: every trigger knows why it is asking, and a default would put
+		// whichever one forgot to say into some other trigger's telemetry bucket.
+		reason: OgImageRenderReason
+		followUp?: boolean
+	}
 ): Promise<EnqueueOgImageResult> {
 	if (!env.THUMBNAILS || !env.QUEUE) return 'unavailable'
 
@@ -102,6 +109,7 @@ export async function enqueueOgImageRender(
 		kind: board.kind,
 		slug: board.slug,
 		reason,
+		...(followUp ? { followUp } : null),
 	}
 	await env.QUEUE.send(message)
 	return 'enqueued'
@@ -202,7 +210,7 @@ export async function handleOgImageRenderMessage(
 			// what we already know. Retry from here instead, in case content lands shortly after the
 			// enqueue. A read that *fails* throws rather than landing here, and the catch below retries it
 			// the same way, so neither path spends Browser Run.
-			retryOrDrop(env, message, { reason, failureReason: 'board_empty' })
+			await retryOrDrop(env, message, { reason, failureReason: 'board_empty', board: boardRef })
 			return
 		}
 
@@ -216,6 +224,7 @@ export async function handleOgImageRenderMessage(
 		})
 		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
 		await clearOgImagePendingMarker(env, boardRef)
+		await enqueueFollowUpIfBoardMoved(env, message, board, reason, ctx)
 
 		writeScreenshotTelemetry(env, {
 			source: 'queue',
@@ -241,21 +250,65 @@ export async function handleOgImageRenderMessage(
 		// A board deleted between the resolve above and the snapshot read is retried rather than dropped,
 		// because from here it looks like any other read failure. That costs one extra delivery, not one
 		// extra render: the retry re-resolves at the top and drops before spending any Browser Run.
-		retryOrDrop(env, message, {
+		await retryOrDrop(env, message, {
 			reason,
 			failureReason: classifyScreenshotFailure(error),
 			browserRunDurationMs: browserRunDurationOf(error),
+			board: boardRef,
 		})
 	}
 }
 
-function retryOrDrop(
+/**
+ * A capture takes seconds, and the board can change during one. An edit or publish landing in that
+ * window asks for a render, finds the pending marker this job set, and is turned away — the ask is
+ * *dropped*, not deferred, and nothing upstream retries it: the debouncer has already reset and
+ * neither caller reads the result. So the render we just wrote would be the last word, showing a
+ * board as it was before its final edits, until something happened to ask again.
+ *
+ * Re-resolving here is what closes that. A retry needs no such check, since every delivery re-resolves
+ * before capturing and so picks up the newest content by itself.
+ *
+ * Deliberately never chained. A board edited without pause would otherwise find itself stale on every
+ * follow-up and render continuously, which is the exact cost the debounce upstream exists to avoid.
+ * One extra render per triggered render is the ceiling.
+ *
+ * Best effort: the image is already written and the marker already cleared, so a failure here loses a
+ * refresh, not the render. It must not turn a completed job into a retry.
+ */
+async function enqueueFollowUpIfBoardMoved(
+	env: Environment,
+	message: Message<OgImageRenderQueueMessage>,
+	rendered: ResolvedThumbnailBoard,
+	reason: OgImageRenderReason,
+	ctx?: ExecutionContext
+) {
+	if (message.body.followUp) return
+	try {
+		const resolved = await resolveThumbnailBoard(env, rendered.kind, rendered.slug, {
+			access: 'render',
+		})
+		if (!resolved.ok) return
+		if (String(resolved.board.version) === String(rendered.version)) return
+		await enqueueOgImageRender(env, rendered, { reason, followUp: true })
+	} catch (error) {
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			surface: 'og_queue',
+			extras: { kind: rendered.kind, followUpCheck: true },
+		})
+	}
+}
+
+async function retryOrDrop(
 	env: Environment,
 	message: Message<OgImageRenderQueueMessage>,
 	{
 		reason,
 		failureReason,
 		browserRunDurationMs,
+		board,
 	}: {
 		/**
 		 * Passed in already resolved rather than read off the message here, so a delivery that fails is
@@ -266,6 +319,7 @@ function retryOrDrop(
 		reason: OgImageRenderReason
 		failureReason: string
 		browserRunDurationMs?: number
+		board: ThumbnailBoardRef
 	}
 ) {
 	// One datapoint per delivery, the opposite of the Sentry report above, because this dataset is the
@@ -281,11 +335,16 @@ function retryOrDrop(
 		// empty snapshot) spent no Browser Run and correctly records none.
 		browserRunDurationMs,
 	})
-	// attempts counts this delivery, so attempts >= MAX means this was the final try. The pending
-	// marker is left in place either way; it expires on its own, and the next edit or publish re-asks.
+	// attempts counts this delivery, so attempts >= MAX means this was the final try.
 	if (message.attempts < MAX_RENDER_ATTEMPTS) {
+		// Marker kept: a retry is still this job in flight, and the next delivery re-resolves anyway, so
+		// an ask turned away meanwhile costs nothing — it would have rendered the same content.
 		message.retry({ delaySeconds: RETRY_DELAY_SECONDS * message.attempts })
 		return
 	}
+	// Given up, so nothing is in flight and the marker has nothing left to single-flight. Clearing it
+	// rather than letting it lapse means the next ask is acted on immediately instead of being turned
+	// away for the rest of the TTL — which matters most here, since this board has no image at all.
+	await clearOgImagePendingMarker(env, board)
 	message.ack()
 }

@@ -14,6 +14,7 @@ import {
 	blobsWithPrefix,
 	failureBlobsOf,
 	makeBrowserBinding,
+	makeFakeQueue,
 	makeFakeRoomsBucket,
 	makeFakeThumbnailsBucket,
 	makeScreenshotTestEnv as makeEnv,
@@ -461,6 +462,91 @@ describe('handleOgImageRenderMessage', () => {
 		await handleOgImageRenderMessage(env, finalAttempt)
 		expect(finalAttempt.retry).not.toHaveBeenCalled()
 		expect(finalAttempt.ack).toHaveBeenCalledTimes(1)
+	})
+
+	// A capture takes seconds. An edit landing during one asks for a render, is turned away by this
+	// job's pending marker, and that ask is *dropped* — the debouncer has already reset and neither
+	// caller reads the result. Without this check the board would sit on a thumbnail of its
+	// before-the-last-edits state until something happened to ask again.
+	it('re-asks when the board changed while it was capturing', async () => {
+		vi.mocked(getPublishedFileInfo)
+			// resolved at the top of the delivery, and rendered
+			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 1 })
+			// the board moved under the capture
+			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 2 })
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }))
+
+		expect(queue.send).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ kind: 'published', slug: 'board', followUp: true })
+		)
+	})
+
+	it('does not re-ask when the board held still', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }))
+
+		expect(queue.send).not.toHaveBeenCalled()
+	})
+
+	// The ceiling on the above. A board edited without pause is stale at the end of every capture, so a
+	// chaining follow-up would render it continuously — exactly the cost the debounce upstream exists to
+	// avoid. One extra render per triggered render, never two.
+	it('never chains: a follow-up does not enqueue another', async () => {
+		vi.mocked(getPublishedFileInfo)
+			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 1 })
+			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 2 })
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
+
+		await handleOgImageRenderMessage(
+			env,
+			makeMessage({ kind: 'published', slug: 'board', followUp: true })
+		)
+
+		expect(queue.send).not.toHaveBeenCalled()
+	})
+
+	// Once a job gives up, nothing is in flight and the marker has nothing left to single-flight.
+	// Leaving it to lapse would turn away the next ask for the rest of its TTL, which bites hardest
+	// here: this board has no image at all.
+	it('clears the pending marker when a job gives up, but keeps it between retries', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const board = { kind: 'published', slug: 'board' } as const
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => {
+				throw new Error('browser session failed')
+			}),
+			THUMBNAILS: bucket,
+		})
+		const markerKey = getOgImageCacheKey(board).replace(/\.png$/, '.pending')
+
+		await enqueueOgImageRender(env, board, { reason: 'publish' })
+		expect(bucket.store.has(markerKey)).toBe(true)
+
+		await handleOgImageRenderMessage(env, makeMessage(board, 1))
+		expect(bucket.store.has(markerKey)).toBe(true)
+
+		await handleOgImageRenderMessage(env, makeMessage(board, 3))
+		expect(bucket.store.has(markerKey)).toBe(false)
 	})
 
 	// A board that fails deterministically fails every attempt, so reporting each delivery filed three
