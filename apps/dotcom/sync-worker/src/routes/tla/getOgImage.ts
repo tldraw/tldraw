@@ -10,7 +10,7 @@ import {
 import { reportThumbnailError } from './thumbnailShared'
 
 // A pure read. Two questions and nothing else: is this board publicly viewable (published, or shared
-// via link), and does a thumbnail for it exist? Both yes, serve it. Anything else, serve the
+// via link), and does a thumbnail for it exist? Both yes, serve it. Anything else, redirect to the
 // site-wide default. No rendering, no enqueueing, no rate limiting, no waiting.
 //
 // Making the thumbnail exist before the board is ever shared is the job of the publish and edit
@@ -34,6 +34,7 @@ export async function getOgImage(
 	// .all and HEAD must still return the same cache headers a GET would. Only a real GET reads the
 	// R2 body; any other method is treated as a probe and answers headers only.
 	const wantsBody = request.method === 'GET'
+	const imageUrl = `${getPublicOrigin(request, env)}${DEFAULT_OG_IMAGE_PATH}`
 	const board = await resolveOgBoard(request, env).catch((error) => {
 		// Resolution reads Postgres and R2, so a throw here is infrastructure failing, not a board
 		// that isn't public — but both produce the same default-image redirect. Report it, or an
@@ -49,7 +50,7 @@ export async function getOgImage(
 		})
 		return null
 	})
-	if (!board) return (await defaultOgImageFallback(request, env, wantsBody)).response
+	if (!board) return redirectToDefaultOgImage(imageUrl)
 
 	const cacheKey = getOgImageCacheKey(board)
 	const cached = wantsBody
@@ -69,18 +70,15 @@ export async function getOgImage(
 		})
 	}
 
-	// Never rendered. The default is served as a 200 under this board's own URL rather than redirected
-	// to: crawlers cache the first response they see for days, and X does not follow an og:image
-	// redirect at all, so a 302 here shows a broken card that no later render can fix.
-	const fallback = await defaultOgImageFallback(request, env, wantsBody)
+	// Never rendered, so the board has nothing of its own to show and the request is sent to the
+	// site-wide default instead. The short max-age is what lets the real image take over as soon as a
+	// publish or an edit lands it.
 	writeScreenshotTelemetry(env, {
 		source: 'og',
 		cacheStatus: 'miss',
-		// Both outcomes look like "no image yet" from outside, but only one is the self-healing case: the
-		// board got a usable default card, or the default bytes were unreachable and it got the redirect.
-		failureReason: fallback.servedBytes ? 'served_fallback' : 'not_rendered_yet',
+		failureReason: 'not_rendered_yet',
 	})
-	return fallback.response
+	return redirectToDefaultOgImage(imageUrl)
 }
 
 async function resolveOgBoard(
@@ -128,76 +126,9 @@ function imageResponse(
 	})
 }
 
-// The response for a board with no usable cached image: the site-wide default OG image, served as a
-// 200 under the board's own URL. `servedBytes` says whether that worked, because the caller reports
-// the two outcomes as different telemetry reasons.
-async function defaultOgImageFallback(
-	request: IRequest,
-	env: Environment,
-	wantsBody: boolean
-): Promise<{ response: Response; servedBytes: boolean }> {
-	const imageUrl = `${getPublicOrigin(request, env)}${DEFAULT_OG_IMAGE_PATH}`
-	const bytes = await loadDefaultOgImageBytes(imageUrl)
-	if (!bytes) {
-		// The default image itself is unreachable. A redirect is worse for the crawlers that don't follow
-		// one, but it is what's left.
-		return { response: redirectToDefaultOgImage(imageUrl), servedBytes: false }
-	}
-
-	return {
-		response: new Response(wantsBody ? bytes : null, {
-			headers: {
-				'content-type': 'image/png',
-				// No `s-maxage` and no `stale-while-revalidate`: this URL is a board's permanent OG image
-				// address, so an edge must not pin the default under it once the real render lands.
-				'cache-control': `public, max-age=${FALLBACK_MAX_AGE_SECONDS}`,
-				'x-tldraw-og-cache': 'fallback',
-			},
-		}),
-		servedBytes: true,
-	}
-}
-
-// The default image is a small static asset, identical for every board and request, so it is fetched
-// once per isolate and held rather than re-fetched on each cold-cache unfurl. Only successes are
-// memoized, so a transient blip can't leave an isolate permanently unable to serve the fallback.
-const DEFAULT_OG_IMAGE_BYTES = new Map<string, ArrayBuffer>()
-const DEFAULT_OG_IMAGE_FETCHES = new Map<string, Promise<ArrayBuffer | null>>()
-
-async function loadDefaultOgImageBytes(imageUrl: string): Promise<ArrayBuffer | null> {
-	const cached = DEFAULT_OG_IMAGE_BYTES.get(imageUrl)
-	if (cached) return cached
-
-	// Concurrent cold-cache requests share one fetch instead of each issuing their own subrequest.
-	let pending = DEFAULT_OG_IMAGE_FETCHES.get(imageUrl)
-	if (!pending) {
-		pending = fetchDefaultOgImageBytes(imageUrl).finally(() => {
-			DEFAULT_OG_IMAGE_FETCHES.delete(imageUrl)
-		})
-		DEFAULT_OG_IMAGE_FETCHES.set(imageUrl, pending)
-	}
-	return pending
-}
-
-async function fetchDefaultOgImageBytes(imageUrl: string): Promise<ArrayBuffer | null> {
-	try {
-		const response = await fetch(imageUrl)
-		if (!response.ok) return null
-		const bytes = await response.arrayBuffer()
-		if (bytes.byteLength === 0) return null
-		DEFAULT_OG_IMAGE_BYTES.set(imageUrl, bytes)
-		return bytes
-	} catch {
-		return null
-	}
-}
-
-// Test seam: the memoized bytes are module state that would otherwise leak between test cases.
-export function resetDefaultOgImageCacheForTests() {
-	DEFAULT_OG_IMAGE_BYTES.clear()
-	DEFAULT_OG_IMAGE_FETCHES.clear()
-}
-
+// Sends a request with no board image of its own to the site-wide default. The worker never serves
+// those bytes itself: the default is a static asset on the client origin, already cached at the edge,
+// and proxying it would put worker egress in front of every unfurl of an unrendered board.
 function redirectToDefaultOgImage(imageUrl: string) {
 	return new Response(null, {
 		status: 302,

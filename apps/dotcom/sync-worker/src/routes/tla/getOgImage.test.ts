@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { getOgImage, resetDefaultOgImageCacheForTests } from './getOgImage'
+import { getOgImage } from './getOgImage'
 import { getPublishedFileInfo } from './getPublishedFile'
 import { getSharedFileInfo } from './getSharedFile'
 import { getOgImageCacheKey } from './ogImageQueue'
@@ -23,9 +23,7 @@ vi.mock('./getSharedFile', async (importOriginal) => ({
 
 afterEach(() => {
 	vi.useRealTimers()
-	vi.unstubAllGlobals()
 	vi.clearAllMocks()
-	resetDefaultOgImageCacheForTests()
 })
 
 function makeRequest(prefix: string, slug: string, method = 'GET') {
@@ -35,106 +33,45 @@ function makeRequest(prefix: string, slug: string, method = 'GET') {
 	) as any
 }
 
-// The default OG image lives on the client origin as a static asset; the route fetches it to serve as
-// fallback bytes. Returns the stub so tests can count fetches and assert the URL.
-const DEFAULT_OG_IMAGE_BYTES = new Uint8Array([137, 80, 78, 71])
-
-function stubDefaultOgImageFetch() {
-	const fetch = vi.fn(async () => new Response(DEFAULT_OG_IMAGE_BYTES, { status: 200 }))
-	vi.stubGlobal('fetch', fetch)
-	return fetch
-}
-
 describe('getOgImage', () => {
-	// A cold cache must still answer with a valid image, not a redirect: the crawlers this endpoint
-	// exists for cache the first response they see for days, and X doesn't follow an og:image redirect
-	// at all, so a 302 here would poison the card permanently even though the render lands seconds
-	// later.
-	it('serves the default image bytes as a 200 on a cold cache, and queues nothing', async () => {
+	// A board with no image of its own is sent to the site-wide default rather than having the worker
+	// proxy those bytes: it is a static asset on the client origin, already cached at the edge.
+	it('redirects to the default image on a cold cache, and queues nothing', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 1751234567890,
 		})
-		const fetch = stubDefaultOgImageFetch()
 		const bucket = makeFakeThumbnailsBucket()
 		const queue = makeFakeQueue()
 		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: queue })
 
 		const response = await getOgImage(makeRequest('p', 'published-board'), env)
 
-		expect(response.status).toBe(200)
-		expect(response.headers.get('content-type')).toBe('image/png')
-		expect(response.headers.get('x-tldraw-og-cache')).toBe('fallback')
-		expect(new Uint8Array(await response.arrayBuffer())).toEqual(DEFAULT_OG_IMAGE_BYTES)
-		// The only fetch is for the static default image.
-		expect(fetch).toHaveBeenCalledExactlyOnceWith('https://www.tldraw.com/social-og.png')
+		expect(response.status).toBe(302)
+		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
 		// This route never asks for a render, even on a miss. Unfurl platforms resolve a URL's card once
 		// and reuse it for every repost, so a render triggered from here lands after the crawler has
 		// already cached the default — work whose result nobody comes back for. Making the image exist
 		// before the share belongs to the publish and edit triggers.
 		expect(queue.send).not.toHaveBeenCalled()
-		expect(failureBlobsOf(env)).toEqual(['failure:served_fallback'])
+		expect(failureBlobsOf(env)).toEqual(['failure:not_rendered_yet'])
 	})
 
-	// The fallback rides on a board's own permanent OG image URL, so nothing between here and the
-	// crawler may pin it: a shared cache holding the default under this URL would outlive the render it
-	// is standing in for.
-	it('serves the fallback with a short client-only TTL', async () => {
+	// The redirect sits on a board's own permanent OG image URL, so nothing between here and the
+	// crawler may pin it: a shared cache holding this redirect would outlive the render it stands in
+	// for, and keep sending crawlers to the default long after the board has a picture.
+	it('redirects with a short client-only TTL', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 1,
 		})
-		stubDefaultOgImageFetch()
 		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: makeFakeQueue() })
 
 		const response = await getOgImage(makeRequest('p', 'board'), env)
 
 		expect(response.headers.get('cache-control')).toBe('public, max-age=60')
-	})
-
-	it('fetches the default image once per isolate and reuses the bytes', async () => {
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		const fetch = stubDefaultOgImageFetch()
-		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: makeFakeQueue() })
-
-		const first = await getOgImage(makeRequest('p', 'board-a'), env)
-		const second = await getOgImage(makeRequest('p', 'board-b'), env)
-
-		expect(new Uint8Array(await first.arrayBuffer())).toEqual(DEFAULT_OG_IMAGE_BYTES)
-		expect(new Uint8Array(await second.arrayBuffer())).toEqual(DEFAULT_OG_IMAGE_BYTES)
-		expect(fetch).toHaveBeenCalledTimes(1)
-	})
-
-	// Falling back to the old redirect is worse for the crawlers that don't follow one, but it is
-	// strictly better than failing the request, and a fetch failure must not be memoized — the next
-	// request retries.
-	it('redirects when the default image itself cannot be fetched', async () => {
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		const fetch = vi.fn(async () => {
-			throw new Error('network down')
-		})
-		vi.stubGlobal('fetch', fetch)
-		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: makeFakeQueue() })
-
-		const response = await getOgImage(makeRequest('p', 'board'), env)
-
-		expect(response.status).toBe(302)
-		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
-		expect(failureBlobsOf(env)).toEqual(['failure:not_rendered_yet'])
-
-		// Not memoized: a recovered origin serves bytes again on the next request.
-		stubDefaultOgImageFetch()
-		expect((await getOgImage(makeRequest('p', 'board'), env)).status).toBe(200)
 	})
 
 	it('serves an image whose version matches as a fresh hit', async () => {
@@ -203,7 +140,6 @@ describe('getOgImage', () => {
 			shared: true,
 			isDeleted: false,
 		})
-		stubDefaultOgImageFetch()
 		const queue = makeFakeQueue()
 		const env = makeEnv({
 			ROOMS: makeFakeRoomsBucket('etag-1'),
@@ -213,8 +149,7 @@ describe('getOgImage', () => {
 
 		const response = await getOgImage(makeRequest('f', 'shared-file'), env)
 
-		expect(response.status).toBe(200)
-		expect(response.headers.get('x-tldraw-og-cache')).toBe('fallback')
+		expect(response.status).toBe(302)
 		expect(queue.send).not.toHaveBeenCalled()
 	})
 
@@ -227,7 +162,6 @@ describe('getOgImage', () => {
 			shared: false,
 			isDeleted: false,
 		})
-		stubDefaultOgImageFetch()
 		const bucket = makeFakeThumbnailsBucket()
 		await bucket.put(
 			getOgImageCacheKey({ kind: 'shared_file', slug: 'unshared-file' }),
@@ -238,8 +172,8 @@ describe('getOgImage', () => {
 
 		const response = await getOgImage(makeRequest('f', 'unshared-file'), env)
 
-		expect(response.headers.get('x-tldraw-og-cache')).toBe('fallback')
-		expect(new Uint8Array(await response.arrayBuffer())).toEqual(DEFAULT_OG_IMAGE_BYTES)
+		expect(response.status).toBe(302)
+		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
 		// Still there, just unreachable from here.
 		expect(
 			bucket.store.has(getOgImageCacheKey({ kind: 'shared_file', slug: 'unshared-file' }))
@@ -272,31 +206,28 @@ describe('getOgImage', () => {
 		expect(queue.send).not.toHaveBeenCalled()
 	})
 
-	it('answers a HEAD probe on a cold cache with the fallback headers and no body', async () => {
+	it('answers a HEAD probe on a cold cache with the same redirect a GET would get', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 1751234567890,
 		})
-		stubDefaultOgImageFetch()
 		const queue = makeFakeQueue()
 		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
 
 		const response = await getOgImage(makeRequest('p', 'published-board', 'HEAD'), env)
 
-		expect(response.status).toBe(200)
-		expect(response.headers.get('x-tldraw-og-cache')).toBe('fallback')
-		expect((await response.arrayBuffer()).byteLength).toBe(0)
+		expect(response.status).toBe(302)
+		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
 		expect(queue.send).not.toHaveBeenCalled()
 	})
 
-	it('serves private or unknown boards the default tldraw OG image', async () => {
+	it('sends private or unknown boards to the default tldraw OG image', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'private-file',
 			shared: false,
 			isDeleted: false,
 		})
-		stubDefaultOgImageFetch()
 		const queue = makeFakeQueue()
 
 		const response = await getOgImage(
@@ -304,8 +235,8 @@ describe('getOgImage', () => {
 			makeEnv({ ROOMS: makeFakeRoomsBucket(), QUEUE: queue })
 		)
 
-		expect(response.status).toBe(200)
-		expect(response.headers.get('x-tldraw-og-cache')).toBe('fallback')
+		expect(response.status).toBe(302)
+		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
 		expect(queue.send).not.toHaveBeenCalled()
 	})
 
@@ -323,7 +254,6 @@ describe('getOgImage', () => {
 			shared: false,
 			isDeleted: false,
 		})
-		stubDefaultOgImageFetch()
 		const env = makeEnv({
 			ROOMS: makeFakeRoomsBucket('etag-1'),
 			THUMBNAILS: makeFakeThumbnailsBucket(),

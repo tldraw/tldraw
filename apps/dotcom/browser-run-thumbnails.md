@@ -23,7 +23,7 @@ Rendering runs through the Browser Rendering `/screenshot` Quick Action, invoked
 
 ### OG images (queue-backed async rendering)
 
-`GET /api/app/social-preview/:prefix/:slug/image` (`:prefix` is `p` for published boards or `f` for shared files) serves a 1200x630 light-theme, content-fit PNG for use in `og:image` tags. The crawler HTML that references it is the existing worker route `/app/social-preview/:prefix/:slug` (`getSocialPreview`, which Vercel routes crawler user-agents to), which puts the board name in the title and bounces human visitors back to the board. It only emits the board `og:image` (and `summary_large_image`) when the board resolves through the same gate the image route applies; for private, deleted, or unpublished boards it keeps the static site-wide preview image, because crawlers that don't follow `og:image` redirects (notably X) would otherwise render a broken card. The request path never invokes Browser Run:
+`GET /api/app/social-preview/:prefix/:slug/image` (`:prefix` is `p` for published boards or `f` for shared files) serves a 1200x630 light-theme, content-fit PNG for use in `og:image` tags. The crawler HTML that references it is the existing worker route `/app/social-preview/:prefix/:slug` (`getSocialPreview`, which Vercel routes crawler user-agents to), which puts the board name in the title and bounces human visitors back to the board. It only emits the board `og:image` (and `summary_large_image`) when the board resolves through the same gate the image route applies; for private, deleted, or unpublished boards it names the static site-wide preview image directly, since pointing at a board image route that has nothing to serve would only cost the crawler a redirect to reach the same file. The request path never invokes Browser Run:
 
 The route is a **pure read** — two questions and nothing else:
 
@@ -38,7 +38,9 @@ The route is registered with `.all`, because crawlers probe with HEAD before (or
 
 #### Default-image fallback
 
-A board with no usable cached image is served the site-wide default (`/social-og.png`, 1200x630, the size the `og:image:width`/`height` meta advertises) as a **200 `image/png`**, not a redirect. Crawlers cache the first response they see for days, and X does not follow an `og:image` redirect at all, so a 302 on the first unfurl permanently poisons the card even though the queued render lands seconds later. The fallback carries `cache-control: public, max-age=60` with no `s-maxage` and no `stale-while-revalidate`, so nothing pins the default under a board's permanent image URL once the real render arrives. The bytes are fetched from the client origin once per isolate and memoized (failures aren't memoized, so a blip doesn't wedge an isolate); if that fetch fails the route falls back to the old 302 rather than erroring. Telemetry separates the two: `served_fallback` for the 200, `not_rendered_yet` for the residual redirect.
+A board with no usable cached image is sent to the site-wide default (`/social-og.png`, 1200x630, the size the `og:image:width`/`height` meta advertises) with a **302**. The worker does not proxy those bytes: the default is a static asset on the client origin and already cached at the edge, so serving it here would put worker egress in front of every unfurl of an unrendered board. The redirect carries `cache-control: public, max-age=60` with no `s-maxage` and no `stale-while-revalidate`, so nothing pins it under a board's permanent image URL once the real render arrives. Telemetry records it as `not_rendered_yet`.
+
+**The cost is a generic card, not a broken one.** The crawler follows the redirect and gets a valid image — the tldraw logo rather than the board — and then caches that card for days. So what matters is not how the empty case renders but how often it is reached, which is what the publish and edit triggers are for. What remains exposed is a board shared within the debounce window of its first edit, or one dormant since before this shipped.
 
 ### Keeping the thumbnail current
 
@@ -102,7 +104,7 @@ The thing to watch instead of a cap is Browser Rendering's own account limits: a
 
 ### Telemetry and monitoring
 
-All three surfaces write `mcp_shared_board_screenshot` events with the same blob layout, so one dashboard covers everything; the source blob distinguishes `mcp` (the tool), `og` (the OG image route), and `queue` (the async consumer). Events record cache hit/stale/miss, render duration (wall-clock around the browser session), output dimensions, failure reason, rate-limit decisions, a hashed IP, and the trigger that asked for the render. They carry **no board identity at all** — no index, no slug, no hash, no derived id (see below). Two dimensions are deliberately kept low-cardinality: the failure reason is always a bounded reason code (`invalid_input`, `not_found`, `board_empty`, `no_pages`, `page_out_of_range`, `rate_limited_ip`/`board`/`global`, `board_not_viewable`, `served_fallback`, `not_rendered_yet`, `browser_failed`, `browser_timeout`, `empty_render`, `not_configured`, `render_error`), never raw `error.message` text; and the hashed IP is written only on failed or rate-limited events (where it's useful for abuse analysis) — successful events carry `ip:none`, so the per-client IP dimension never lands on the common success path. Column layout in the Analytics Engine dataset (`MEASURE`): `blob1` event name, `blob2` worker name, `blob3` source, `blob4` cache status, `blob5` failure reason, `blob6` rate-limit decision, `blob7` hashed IP (or `none`), `blob8` render trigger (`crawler`, `publish`, `edit`, or `none` on the surfaces that have no trigger), `double1`/`double2` output width/height, `double3` render duration ms, `double4` browser ms used, `double5` rate-limit allowed (1/0), and no `index1`. (The `quickAction` screenshot response includes an `X-Browser-Ms-Used` header, but the worker does not currently read it — telemetry uses wall-clock render duration in `double3` as the spend proxy and writes `double4` as -1. Wiring the header into `double4` is a possible follow-up.)
+All three surfaces write `mcp_shared_board_screenshot` events with the same blob layout, so one dashboard covers everything; the source blob distinguishes `mcp` (the tool), `og` (the OG image route), and `queue` (the async consumer). Events record cache hit/stale/miss, render duration (wall-clock around the browser session), output dimensions, failure reason, rate-limit decisions, a hashed IP, and the trigger that asked for the render. They carry **no board identity at all** — no index, no slug, no hash, no derived id (see below). Two dimensions are deliberately kept low-cardinality: the failure reason is always a bounded reason code (`invalid_input`, `not_found`, `board_empty`, `no_pages`, `page_out_of_range`, `rate_limited_ip`/`board`/`global`, `board_not_viewable`, `not_rendered_yet`, `browser_failed`, `browser_timeout`, `empty_render`, `not_configured`, `render_error`), never raw `error.message` text; and the hashed IP is written only on failed or rate-limited events (where it's useful for abuse analysis) — successful events carry `ip:none`, so the per-client IP dimension never lands on the common success path. Column layout in the Analytics Engine dataset (`MEASURE`): `blob1` event name, `blob2` worker name, `blob3` source, `blob4` cache status, `blob5` failure reason, `blob6` rate-limit decision, `blob7` hashed IP (or `none`), `blob8` render trigger (`crawler`, `publish`, `edit`, or `none` on the surfaces that have no trigger), `double1`/`double2` output width/height, `double3` render duration ms, `double4` browser ms used, `double5` rate-limit allowed (1/0), and no `index1`. (The `quickAction` screenshot response includes an `X-Browser-Ms-Used` header, but the worker does not currently read it — telemetry uses wall-clock render duration in `double3` as the spend proxy and writes `double4` as -1. Wiring the header into `double4` is a possible follow-up.)
 
 One event outside that dataset matters for sizing: `persist_success` (same `MEASURE` dataset, written by `TLFileDurableObject.logEvent`). It fires on exactly the event that triggers a thumbnail render, so it carries what sizing that render needs: `index1` the **durable object id**, `blob3` the board's `sharedState` (`shared`, `private`, `unknown` for an app file whose record hasn't loaded, `legacy` for a non-app room, `deleted` for a deleted file), and `double1` the retry attempt count. It is written by `getBoardRenderState`, the same method that gates the render, so a board the trigger skips can never be counted as one it renders.
 
@@ -401,22 +403,25 @@ Not doing:
 
 ## Real thumbnails on first share
 
-Status: phases 1, 2 and 3 are implemented and on; phase 4 is still conditional. The phase numbers are the layer numbers in the table below. The mechanics of what shipped are documented above — "Default-image fallback" under the OG images section, "Keeping the thumbnail current" for the publish and edit triggers, and "Request limits" for why the render path is uncapped. This section keeps the rationale and the outstanding work.
+Status: phases 2 and 3 are implemented and on; phase 1 is not shipping and phase 4 is still conditional. The mechanics of what shipped are documented above — "Default-image fallback" under the OG images section, "Keeping the thumbnail current" for the publish and edit triggers, and "Request limits" for why the render path is uncapped. This section keeps the rationale and the outstanding work.
 
 ### Problem
 
-The first crawler to unfurl a board hits a cold OG-image cache, gets the default image, and platforms cache that unfurl card on their side for days — so the first share is permanently wrong even though the queued render lands seconds later. X is the worst case: it does not follow an `og:image` redirect at all, and it poison-caches whatever it sees first. Serving the default as a 302 made this unavoidable; the fallback-200 removes it.
+The first crawler to unfurl a board hits a cold OG-image cache and is sent to the generic tldraw image, and platforms cache that unfurl card on their side for days. So the first share of a board shows the logo rather than the board, and stays wrong long after the render lands seconds later.
+
+The card itself is valid — the crawler follows the redirect and gets a real image — so there is nothing to fix in how the miss is served. The only lever is how often a crawler finds nothing, which means making the thumbnail exist first.
 
 ### Strategy
 
-Make the thumbnail exist before the first crawler arrives, and make every residual miss degrade gracefully. No synchronous rendering on crawler paths; the pending marker and the queue stay load-bearing as dedupe.
+Make the thumbnail exist before the first crawler arrives. No synchronous rendering on crawler paths; the pending marker and the queue stay load-bearing as dedupe.
 
-| Layer                          | Covers                                                | Cost                                                           | Status      |
-| ------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------- | ----------- |
-| 1. Fallback-200 instead of 302 | every residual miss; fixes X broken cards             | ~zero                                                          | done        |
-| 2. Publish hook                | explicit publish/republish, always fresh              | negligible                                                     | done        |
-| 3. Render on every persist     | the create → draw → share flow and revived old boards | ~1 render per editing session, +1 per 5min of unbroken editing | done        |
-| 4. Hop-1 warming (optional)    | immediate shares, never-edited-again boards           | negligible                                                     | not started |
+| Phase                       | Covers                                                | Cost                                                           | Status      |
+| --------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- | ----------- |
+| 2. Publish hook             | explicit publish/republish, always fresh              | negligible                                                     | done        |
+| 3. Render on every persist  | the create → draw → share flow and revived old boards | ~1 render per editing session, +1 per 5min of unbroken editing | done        |
+| 4. Hop-1 warming (optional) | immediate shares, never-edited-again boards           | negligible                                                     | not started |
+
+Phase 1 was a fallback that served the default image's bytes from the worker as a `200` rather than redirecting to them. It is not shipping: it existed to protect crawlers that do not follow an `og:image` redirect, and it bought a generic card either way. Phase 4 is what covers the case it aimed at — a board shared within the debounce window of its first edit.
 
 `getOgImage`'s stale-serve behaviour is the residual backstop: a board whose thumbnail is out of date still gets its own picture, on a short TTL, rather than the site-wide default. The on-miss enqueue that used to sit alongside it is gone (see "OG images (queue-backed async rendering)").
 
@@ -471,7 +476,7 @@ There are two constants to tune, both in `config.ts`. `OG_RENDER_DEBOUNCE_MS` (3
 
 ### Explicitly not doing
 
-- Synchronous wait in `getOgImage` — the queue's ~5s default batch linger means a short wait mostly misses, and the layers above remove the need. Revisit only with data showing otherwise.
+- Synchronous wait in `getOgImage` — the queue's ~5s default batch linger means a short wait mostly misses, and the phases above remove the need. Revisit only with data showing otherwise.
 - An `isEmpty`-based trigger — the `file.isEmpty` column is vestigial (written `true` at creation, never flipped by client or server), so there is no replicator-visible first-content transition.
 - A DO-owned render single-flight — the advisory pending marker plus the consumer's version check is the accepted model and stays adequate at these volumes.
 - A cap on thumbnail rendering — see "Request limits". Capping our own derived artifact only buys staler thumbnails; the caps belong on the MCP endpoint, which is the surface an outside caller can actually drive.
@@ -479,7 +484,7 @@ There are two constants to tune, both in `config.ts`. `OG_RENDER_DEBOUNCE_MS` (3
 ### Metrics to watch
 
 - og-route cache hit rate (should be high — every shared, edited board should already have an image). This is now an aggregate only: with no `index1` on these events there is no per-board breakdown and no "first fetch per board".
-- `served_fallback` rate (should fall to near-zero for edited boards)
+- `not_rendered_yet` rate (should fall to near-zero for edited boards; every one of these is a crawler sent to the default image rather than the board)
 - renders/day by `reason`, and total Browser Run minutes — the real spend signal, since the only bound is per-board and nothing caps the total
 - ratio of renders to `persist_success` events: the debounce's whole claim is that this stays well below 1, and it is the number that would show the max wait being hit more often than expected. Note this is now **two aggregate counts divided by each other**, not a per-board join — the screenshot events carry no index. A handful of pathological boards and a uniformly high ratio look the same from here
 - queue depth, especially through the first days after deploy, when every actively edited board renders for the first time

@@ -66,12 +66,9 @@ export async function getSocialPreview(request: IRequest, env: Environment): Pro
 
 // Shared files (`/f/`) and published boards (`/p/`) get a live board thumbnail as their preview
 // image. We only emit the thumbnail URL when the board actually resolves to a public, renderable
-// board — the same gate the image route itself applies (resolveThumbnailBoard). For private, deleted,
-// or unpublished boards the image route has nothing of theirs to serve and answers with the site-wide
-// default, so pointing at it would just be an indirection to the image this file names directly.
-// Returning null keeps the static, directly-fetchable one. A board that is public but not yet
-// rendered still resolves here, and the route serves the default under the board's own URL until a
-// publish or an edit lands the real render.
+// board — the same gate the image route itself applies (resolveThumbnailBoard). For everything else
+// that route has no picture of its own to serve and redirects to the site-wide default, so pointing
+// at it would cost a crawler an extra hop to reach the image this file can name directly.
 async function getBoardOgImageUrl(
 	request: IRequest,
 	env: Environment,
