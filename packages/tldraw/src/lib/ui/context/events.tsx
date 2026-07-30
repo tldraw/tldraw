@@ -137,6 +137,8 @@ export interface TLUiEventMap {
 	'rich-text': {
 		operation:
 			| 'bold'
+			| 'italic'
+			| 'underline'
 			| 'strike'
 			| 'link'
 			| 'link-edit'

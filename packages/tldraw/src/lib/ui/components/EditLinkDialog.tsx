@@ -1,6 +1,16 @@
-import { ExtractShapeByProps, T, TLShape, track, useEditor } from '@tldraw/editor'
+import {
+	ExtractShapeByProps,
+	T,
+	TLRichText,
+	TLShape,
+	TLShapePartial,
+	track,
+	useEditor,
+} from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { getFormattableSelectedShapes, setMarkOnRichText } from '../../utils/text/richText'
 import { TLUiDialogProps } from '../context/dialogs'
+import { useUiEvents } from '../context/events'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
@@ -37,22 +47,18 @@ function assertShapeWithUrl(shape: TLShape | null | undefined): asserts shape is
 	}
 }
 
-export const EditLinkDialog = track(function EditLinkDialog({ onClose }: TLUiDialogProps) {
-	const editor = useEditor()
-
-	const selectedShape = editor.getOnlySelectedShape()
-
-	if (!isShapeWithUrl(selectedShape)) {
-		return null
-	}
-
-	return <EditLinkDialogInner onClose={onClose} selectedShape={selectedShape} />
-})
-
-export const EditLinkDialogInner = track(function EditLinkDialogInner({
+// The shared link-editing dialog UI: a validated url input with save / clear / cancel. The wrappers
+// below decide where the link value comes from and where it gets written.
+const LinkDialog = track(function LinkDialog({
 	onClose,
-	selectedShape,
-}: TLUiDialogProps & { selectedShape: ShapeWithUrl }) {
+	initialValue,
+	onComplete,
+	onClear,
+}: TLUiDialogProps & {
+	initialValue: string
+	onComplete(url: string): void
+	onClear(): void
+}) {
 	const editor = useEditor()
 	const msg = useTranslation()
 
@@ -62,21 +68,21 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		editor.timers.requestAnimationFrame(() => rInput.current?.focus())
 	}, [editor])
 
-	const rInitialValue = useRef(selectedShape.props.url)
+	const rInitialValue = useRef(initialValue)
 
 	const [urlInputState, setUrlInputState] = useState(() => {
-		const urlValidResult = validateUrl(selectedShape.props.url)
+		const urlValidResult = validateUrl(initialValue)
 
-		const initialValue =
+		const value =
 			urlValidResult.isValid === true
 				? urlValidResult.hasProtocol
-					? selectedShape.props.url
-					: 'https://' + selectedShape.props.url
+					? initialValue
+					: 'https://' + initialValue
 				: 'https://'
 
 		return {
-			actual: initialValue,
-			safe: initialValue,
+			actual: value,
+			safe: value,
 			valid: true,
 		}
 	})
@@ -104,49 +110,21 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	}, [])
 
 	const handleClear = useCallback(() => {
-		const onlySelectedShape = editor.getOnlySelectedShape()
-		if (!onlySelectedShape) return
-		assertShapeWithUrl(onlySelectedShape)
-		editor.updateShapes([
-			{ id: onlySelectedShape.id, type: onlySelectedShape.type, props: { url: '' } },
-		])
+		onClear()
 		onClose()
-	}, [editor, onClose])
+	}, [onClear, onClose])
 
 	const handleComplete = useCallback(() => {
-		const onlySelectedShape = editor.getOnlySelectedShape()
-
-		if (!onlySelectedShape) return
-		assertShapeWithUrl(onlySelectedShape)
-
-		// ? URL is a magic value
-		if (onlySelectedShape && 'url' in onlySelectedShape.props) {
-			// Here would be a good place to validate the next shape—would setting the empty
-			if (onlySelectedShape.props.url !== urlInputState.safe) {
-				editor.updateShapes([
-					{
-						id: onlySelectedShape.id,
-						type: onlySelectedShape.type,
-						props: { url: urlInputState.safe },
-					},
-				])
-			}
-		}
+		onComplete(urlInputState.safe)
 		onClose()
-	}, [editor, onClose, urlInputState])
+	}, [onComplete, onClose, urlInputState])
 
 	const handleCancel = useCallback(() => {
 		onClose()
 	}, [onClose])
 
-	if (!selectedShape) {
-		// dismiss modal
-		onClose()
-		return null
-	}
-
 	// Are we going from a valid state to an invalid state?
-	const isRemoving = rInitialValue.current && !urlInputState.valid
+	const isRemoving = !!rInitialValue.current && !urlInputState.valid
 
 	return (
 		<>
@@ -159,6 +137,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 					<TldrawUiInput
 						ref={rInput}
 						className="tlui-edit-link-dialog__input"
+						data-testid="edit-link-dialog.input"
 						label="edit-link-dialog.url"
 						autoFocus
 						autoSelect
@@ -186,6 +165,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 				) : (
 					<TldrawUiButton
 						type="primary"
+						data-testid="edit-link-dialog.save"
 						disabled={!urlInputState.valid}
 						onTouchEnd={handleComplete}
 						onClick={handleComplete}
@@ -195,5 +175,142 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 				)}
 			</TldrawUiDialogFooter>
 		</>
+	)
+})
+
+export const EditLinkDialog = track(function EditLinkDialog({ onClose }: TLUiDialogProps) {
+	const editor = useEditor()
+
+	const selectedShape = editor.getOnlySelectedShape()
+
+	if (!isShapeWithUrl(selectedShape)) {
+		return null
+	}
+
+	return <EditLinkDialogInner onClose={onClose} selectedShape={selectedShape} />
+})
+
+export const EditLinkDialogInner = track(function EditLinkDialogInner({
+	onClose,
+	selectedShape,
+}: TLUiDialogProps & { selectedShape: ShapeWithUrl }) {
+	const editor = useEditor()
+
+	const handleComplete = useCallback(
+		(url: string) => {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (!onlySelectedShape) return
+			assertShapeWithUrl(onlySelectedShape)
+
+			if (onlySelectedShape.props.url !== url) {
+				editor.updateShapes([
+					{ id: onlySelectedShape.id, type: onlySelectedShape.type, props: { url } },
+				])
+			}
+		},
+		[editor]
+	)
+
+	const handleClear = useCallback(() => {
+		const onlySelectedShape = editor.getOnlySelectedShape()
+		if (!onlySelectedShape) return
+		assertShapeWithUrl(onlySelectedShape)
+		editor.updateShapes([
+			{ id: onlySelectedShape.id, type: onlySelectedShape.type, props: { url: '' } },
+		])
+	}, [editor])
+
+	return (
+		<LinkDialog
+			onClose={onClose}
+			initialValue={selectedShape.props.url}
+			onComplete={handleComplete}
+			onClear={handleClear}
+		/>
+	)
+})
+
+// Find the first link href already present in the rich text, so editing an existing link seeds the
+// input with its current value.
+function getFirstLinkHref(richText: TLRichText): string | undefined {
+	let href: string | undefined
+	const visit = (node: any) => {
+		if (href !== undefined || !node || typeof node !== 'object') return
+		if (Array.isArray(node.marks)) {
+			const link = node.marks.find((mark: any) => mark?.type === 'link')
+			if (link?.attrs?.href) {
+				href = link.attrs.href
+				return
+			}
+		}
+		if (Array.isArray(node.content)) {
+			for (const child of node.content) visit(child)
+		}
+	}
+	visit(richText)
+	return href
+}
+
+/**
+ * A dialog for adding, editing, or removing a link on the text of the selected shapes, without
+ * entering text edit mode. Applies a `link` mark to every text node of each selected shape.
+ */
+export const RichTextLinkDialog = track(function RichTextLinkDialog({ onClose }: TLUiDialogProps) {
+	const editor = useEditor()
+	const trackEvent = useUiEvents()
+
+	const shapes = getFormattableSelectedShapes(editor)
+
+	const rInitialValue = useRef(
+		shapes.map((shape) => getFirstLinkHref(shape.props.richText)).find(Boolean) ?? ''
+	)
+
+	const handleComplete = useCallback(
+		(href: string) => {
+			const targets = getFormattableSelectedShapes(editor)
+			if (targets.length === 0) return
+
+			trackEvent('rich-text', { operation: 'link-edit', source: 'kbd' })
+			editor.markHistoryStoppingPoint('rich-text-link')
+			editor.run(() => {
+				editor.updateShapes(
+					targets.map((shape) => ({
+						id: shape.id,
+						type: shape.type,
+						props: { richText: setMarkOnRichText(shape.props.richText, 'link', true, { href }) },
+					})) as TLShapePartial[]
+				)
+			})
+		},
+		[editor, trackEvent]
+	)
+
+	const handleClear = useCallback(() => {
+		const targets = getFormattableSelectedShapes(editor)
+		trackEvent('rich-text', { operation: 'link-remove', source: 'kbd' })
+		editor.markHistoryStoppingPoint('rich-text-link-remove')
+		editor.run(() => {
+			editor.updateShapes(
+				targets.map((shape) => ({
+					id: shape.id,
+					type: shape.type,
+					props: { richText: setMarkOnRichText(shape.props.richText, 'link', false) },
+				})) as TLShapePartial[]
+			)
+		})
+	}, [editor, trackEvent])
+
+	if (shapes.length === 0) {
+		onClose()
+		return null
+	}
+
+	return (
+		<LinkDialog
+			onClose={onClose}
+			initialValue={rInitialValue.current}
+			onComplete={handleComplete}
+			onClear={handleClear}
+		/>
 	)
 })

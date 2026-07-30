@@ -836,6 +836,8 @@ export {
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
 	renderRichTextFromHTML,
+	richTextHasMarkEverywhere,
+	setMarkOnRichText,
 	tipTapDefaultExtensions,
 } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
