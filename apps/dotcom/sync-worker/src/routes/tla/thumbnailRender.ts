@@ -18,9 +18,11 @@ import {
 } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import {
+	ThumbnailBoardAccess,
 	getSharedFileInfo,
 	getSharedFileRoomSnapshot,
 	isFileAnonymouslyViewable,
+	isFileRenderable,
 } from './getSharedFile'
 import { BoardSnapshotReadError, BrowserRenderError } from './thumbnailShared'
 
@@ -38,9 +40,10 @@ import { BoardSnapshotReadError, BrowserRenderError } from './thumbnailShared'
 // The limiters therefore live in sharedBoardScreenshotMcp.ts rather than in this shared core, so a
 // new surface built on these helpers cannot pick one up by accident.
 
-// A publicly viewable board a screenshot surface has resolved. The version rotates when the
-// rendered content changes (lastPublished for published boards, the persisted room snapshot's R2
-// etag for shared files), so it can key the thumbnail caches.
+// A board a screenshot surface has resolved. Whether it is *publicly viewable* depends on the access
+// the caller asked for — see ThumbnailBoardAccess. The version rotates when the rendered content
+// changes (lastPublished for published boards, the persisted room snapshot's R2 etag for shared
+// files), so it can key the thumbnail caches.
 export interface ResolvedThumbnailBoard {
 	kind: ThumbnailBoardKind
 	slug: string
@@ -51,23 +54,39 @@ export type ResolveThumbnailBoardResult =
 	| { ok: true; board: ResolvedThumbnailBoard }
 	| { ok: false; reason: 'not_found' | 'board_empty' }
 
-// Resolves a board slug of a known kind, applying the public-view gates every screenshot surface
-// shares: published boards must be published, shared files must currently be shared via link and
-// have persisted content. `board_empty` means the board passed its gate but has no persisted room
-// content; `not_found` covers unknown, private, deleted, and unpublished boards alike.
+/**
+ * Resolves a board slug of a known kind, applying the gate the caller asked for.
+ *
+ * `access: 'public'` is what every anonymous-facing surface passes — the OG image route, the crawler
+ * HTML, the MCP tool. A published board must be published; a shared file must currently be shared via
+ * link. This is the only thing standing between a private board and the public internet, and it is
+ * re-applied on every request rather than inferred from what is in R2, because thumbnails are no
+ * longer deleted when a board stops being public.
+ *
+ * `access: 'render'` is what the render path passes, and it is deliberately weaker: a thumbnail is
+ * generated for **every** board, private ones included, so an owner-facing surface has one to show.
+ * It still requires that the board exists, is not deleted, and has persisted content.
+ *
+ * `board_empty` means the board passed its gate but has no persisted room content; `not_found` covers
+ * everything the gate refused.
+ */
 export async function resolveThumbnailBoard(
 	env: Environment,
 	kind: ThumbnailBoardKind,
-	slug: string
+	slug: string,
+	{ access }: { access: ThumbnailBoardAccess }
 ): Promise<ResolveThumbnailBoardResult> {
 	if (kind === 'published') {
+		// A published board's whole identity is its published slug, so there is no weaker gate to
+		// apply: an unpublished board has no published snapshot to render in the first place.
 		const file = await getPublishedFileInfo(env, slug)
 		if (!file?.published) return { ok: false, reason: 'not_found' }
 		return { ok: true, board: { kind, slug, version: file.lastPublished } }
 	}
 
 	const file = await getSharedFileInfo(env, slug)
-	if (!isFileAnonymouslyViewable(file)) return { ok: false, reason: 'not_found' }
+	const allowed = access === 'public' ? isFileAnonymouslyViewable(file) : isFileRenderable(file)
+	if (!allowed) return { ok: false, reason: 'not_found' }
 
 	// The persisted room's R2 etag rotates when the board content changes, so it keys the
 	// thumbnail cache without a separate content-version field.
@@ -85,13 +104,14 @@ export async function resolveThumbnailBoard(
 // trace anywhere.
 export async function loadBoardSnapshot(
 	env: Environment,
-	board: { kind: ThumbnailBoardKind; slug: string }
+	board: { kind: ThumbnailBoardKind; slug: string },
+	{ access }: { access: ThumbnailBoardAccess }
 ): Promise<RoomSnapshot | null> {
 	try {
 		const snapshot =
 			board.kind === 'published'
 				? await getPublishedRoomSnapshot(env, board.slug)
-				: await getSharedFileRoomSnapshot(env, board.slug)
+				: await getSharedFileRoomSnapshot(env, board.slug, { access })
 		return snapshot ?? null
 	} catch (error) {
 		// Keep the original message in the wrapper's own text as well as its `cause`, so the Sentry

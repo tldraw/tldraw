@@ -255,9 +255,9 @@ export async function resolveSharedBoardById(
 	env: Environment,
 	boardId: string
 ): Promise<ResolveThumbnailBoardResult> {
-	const shared = await resolveThumbnailBoard(env, 'shared_file', boardId)
+	const shared = await resolveThumbnailBoard(env, 'shared_file', boardId, { access: 'public' })
 	if (shared.ok || shared.reason === 'board_empty') return shared
-	return resolveThumbnailBoard(env, 'published', boardId)
+	return resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
 }
 
 // One R2 cache key per page. The ordinal keys the object directly; the version and theme are in the
@@ -298,7 +298,7 @@ async function callBoardInfoTool(
 			)
 		}
 
-		const snapshot = await loadBoardSnapshot(env, resolved.board)
+		const snapshot = await loadBoardSnapshot(env, resolved.board, { access: 'public' })
 		if (!snapshot) {
 			return toolError('This board has no saved content yet.')
 		}
@@ -399,7 +399,7 @@ async function callSharedBoardScreenshotTool(
 
 		// Cache miss: load the snapshot to resolve the ordinal to a real page (id + name) and validate
 		// the range.
-		const snapshot = await loadBoardSnapshot(env, board)
+		const snapshot = await loadBoardSnapshot(env, board, { access: 'public' })
 		if (!snapshot) {
 			telemetry({ cacheStatus: 'miss', failureReason: 'board_empty' })
 			return toolError('This board has no saved content to screenshot yet.')

@@ -80,7 +80,7 @@ async function getBoardOgImageUrl(
 ): Promise<string | null> {
 	const kind = ogBoardKindForPrefix(prefix)
 	if (!kind) return null
-	const resolved = await resolveThumbnailBoard(env, kind, slug)
+	const resolved = await resolveThumbnailBoard(env, kind, slug, { access: 'public' })
 	if (!resolved.ok) return null
 	return `${getPublicOrigin(request, env)}/api/app/social-preview/${prefix}/${encodeURIComponent(slug)}/image`
 }

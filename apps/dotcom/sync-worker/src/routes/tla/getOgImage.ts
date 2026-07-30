@@ -100,7 +100,9 @@ async function resolveOgBoard(
 	const kind = parseOgKind(request.params.prefix)
 	const slug = parseSlug(request.params.slug)
 	if (!kind || !slug) return null
-	const resolved = await resolveThumbnailBoard(env, kind, slug)
+	// 'public' is load-bearing here: it is the only thing keeping a private board's thumbnail off the
+	// public internet, now that nothing deletes one when a board stops being shared.
+	const resolved = await resolveThumbnailBoard(env, kind, slug, { access: 'public' })
 	return resolved.ok ? resolved.board : null
 }
 

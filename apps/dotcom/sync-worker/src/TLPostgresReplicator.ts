@@ -27,7 +27,11 @@ import {
 	parseTopicSubscriptionTree,
 	serializeSubscriptions,
 } from './replicator/Subscription'
-import { clearOgImagePendingMarker, enqueueOgImageRender } from './routes/tla/ogImageQueue'
+import {
+	clearOgImagePendingMarker,
+	deleteOgImage,
+	enqueueOgImageRender,
+} from './routes/tla/ogImageQueue'
 import {
 	Analytics,
 	Environment,
@@ -905,10 +909,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await this.env.ROOM_SNAPSHOTS.delete(
 				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
 			)
-			// The published snapshot goes, since that is the content itself. The rendered thumbnail stays:
-			// the OG route re-checks `published` on every request, so it is unreachable either way, and a
-			// republish under the same slug starts from the image it already had rather than the default.
-			await clearOgImagePendingMarker(this.env, { kind: 'published', slug: file.publishedSlug })
+			// The published thumbnail goes with the published snapshot it depicts. It is keyed on the
+			// published slug rather than the file, so leaving it behind would strand an object that a
+			// regenerated publish link could make permanently unreadable. Scoped to `kind: 'published'`,
+			// so the board's own file-keyed image — the one an owner-facing surface wants, and the one
+			// that makes a later reshare an immediate cache hit — is untouched.
+			await deleteOgImage(this.env, { kind: 'published', slug: file.publishedSlug })
 		} catch (e) {
 			this.log.debug('Error unpublishing snapshot', e)
 		}

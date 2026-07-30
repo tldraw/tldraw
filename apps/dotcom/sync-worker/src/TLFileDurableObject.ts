@@ -1463,25 +1463,17 @@ export class TLFileDurableObject extends DurableObject {
 	 */
 	private async requestOgRenderForEdit() {
 		try {
-			// The whole gate, from the same method that labels `persist_success`, so the telemetry can
-			// never disagree with the decision it is reporting on. Only `shared` and `unknown` render: a
-			// legacy room has no shareable board identity, a deleted one has nothing worth depicting, and
-			// a private one has no public image to refresh.
+			// Every board gets a thumbnail, private ones included, so an owner-facing surface (a workspace
+			// or project view) always has one to show. Sharing is *not* a condition of rendering — it is a
+			// condition of serving, applied by the OG route on every request via
+			// `resolveThumbnailBoard(..., { access: 'public' })`.
 			//
-			// `unknown` goes ahead rather than guessing private. The file record is read on connect so it
-			// is normally in hand; when it isn't, the consumer re-resolves the board and drops it there if
-			// it isn't public, which is a wasted queue message rather than a missing thumbnail.
-			//
-			// NOTE for an owner-facing thumbnail surface (a workspace or project view showing every
-			// board): this gate, and `resolveThumbnailBoard` in the consumer behind it, mean a board that
-			// has never been shared has never been rendered and so has no thumbnail at all. Nothing
-			// deletes rendered images any more, so every board that was *ever* public still has one — but
-			// "available for boards that were public" is not "available for all boards". Such a surface
-			// needs a render path whose gate is ownership rather than public viewability; it cannot just
-			// read these keys and expect a hit. Both gates exist because the render output is served
-			// unauthenticated today, so neither can simply be relaxed in place.
+			// Two states still skip, and neither is about privacy: a legacy room is not an app file and has
+			// no board identity to render, and a deleted one has nothing worth depicting. `shared`,
+			// `private` and `unknown` all proceed — the state is read from the same method that labels
+			// `persist_success`, so the telemetry can never disagree with the decision it reports on.
 			const state = this.getBoardRenderState()
-			if (state !== 'shared' && state !== 'unknown') return
+			if (state === 'legacy' || state === 'deleted') return
 
 			const slug = this.documentInfo.slug
 			const result = await enqueueOgImageRender(

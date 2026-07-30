@@ -30,7 +30,7 @@ export async function getThumbnailSnapshot(
 	const snapshot = await (
 		job.kind === 'published'
 			? getPublishedRoomSnapshot(env, job.slug)
-			: getSharedFileRoomSnapshot(env, job.slug)
+			: getSharedFileRoomSnapshot(env, job.slug, { access: 'render' })
 	).catch((error) => {
 		// A load failure and a genuinely missing board both answer 404 here, which the render page
 		// turns into an error state and the capture surfaces as a generic render failure. Report the

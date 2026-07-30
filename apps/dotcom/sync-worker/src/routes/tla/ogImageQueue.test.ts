@@ -5,6 +5,7 @@ import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFi
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import {
 	clearOgImagePendingMarker,
+	deleteOgImage,
 	enqueueOgImageRender,
 	getOgImageCacheKey,
 	handleOgImageRenderMessage,
@@ -144,6 +145,36 @@ describe('enqueueOgImageRender for an edit', () => {
 		})
 
 		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
+	})
+})
+
+// The two keys are not symmetric on purpose, and this is the pair that pins it.
+describe('deleteOgImage vs clearOgImagePendingMarker', () => {
+	it("deletes a published board's image, since the snapshot it depicts is gone", async () => {
+		const board = { kind: 'published', slug: 'published-slug' } as const
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+		await enqueueOgImageRender(env, board)
+		await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer)
+
+		await deleteOgImage(env, board)
+
+		expect([...bucket.store.keys()]).toEqual([])
+	})
+
+	// Unpublishing must not reach the file-keyed image. That one is the board's own thumbnail, and it
+	// is what makes a later reshare an immediate cache hit.
+	it('leaves the file-keyed image alone when a published board is unpublished', async () => {
+		const published = { kind: 'published', slug: 'published-slug' } as const
+		const file = { kind: 'shared_file', slug: 'file-1' } as const
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+		await bucket.put(getOgImageCacheKey(published), new Uint8Array([1]).buffer)
+		await bucket.put(getOgImageCacheKey(file), new Uint8Array([2]).buffer)
+
+		await deleteOgImage(env, published)
+
+		expect([...bucket.store.keys()]).toEqual([getOgImageCacheKey(file)])
 	})
 })
 
@@ -288,52 +319,40 @@ describe('handleOgImageRenderMessage', () => {
 		])
 	})
 
-	// A board un-shared between the resolve and the snapshot read looks like any other read failure
-	// from the catch, so this delivery retries rather than dropping. That costs one delivery, not one
-	// render: the retry re-resolves at the top of the handler, finds the board no longer viewable, and
-	// drops it there — neither pass spends any Browser Run.
-	it('retries a board that goes private mid-render, then drops it when the retry re-resolves', async () => {
+	// A read failure mid-render is transient as far as this handler can tell, so the delivery retries.
+	// The retry re-resolves and renders: going private is no longer a reason not to render a board.
+	it('retries a read failure, then renders on the retry even if the board went private', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'shared-file',
 			shared: true,
 			isDeleted: false,
 		})
-		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('not shared'))
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('postgres is down'))
 		const bucket = makeFakeThumbnailsBucket()
 		const cacheKey = getOgImageCacheKey({ kind: 'shared_file', slug: 'shared-file' })
-		bucket.store.set(cacheKey, { body: new ArrayBuffer(1), uploaded: new Date(0) })
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket('etag-1'), THUMBNAILS: bucket })
 
-		// The first delivery, which has two retries left.
 		const first = makeMessage({ kind: 'shared_file', slug: 'shared-file' }, 1)
 		await handleOgImageRenderMessage(env, first)
 
 		expect(first.retry).toHaveBeenCalledExactlyOnceWith({ delaySeconds: 30 })
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 
-		// By the time the retry lands, the board is un-shared, so the resolve gate ends it.
+		// The board is private by the time the retry lands. It renders anyway — privacy gates serving,
+		// not rendering, so an owner-facing surface has a current thumbnail to show.
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'shared-file',
 			shared: false,
 			isDeleted: false,
 		})
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const retry = makeMessage({ kind: 'shared_file', slug: 'shared-file' }, 2)
 		await handleOgImageRenderMessage(env, retry)
 
-		expect(retry.retry).not.toHaveBeenCalled()
+		expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
 		expect(retry.ack).toHaveBeenCalledTimes(1)
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
-		// The image survives the board going private. It is unreachable publicly either way — the OG
-		// route re-checks the gate per request — and an owner-facing surface behind authz can still use
-		// it. Only the pending marker is cleared, so a reshare is not deduped away.
 		expect(bucket.store.has(cacheKey)).toBe(true)
-		// Both deliveries are recorded, and they say different things: the first could not read the
-		// board, the second re-resolved and found it private. Collapsing to one row would lose the
-		// distinction along with the fact that the job cost two deliveries.
-		expect(failureBlobsOf(env)).toEqual([
-			'failure:snapshot_read_error',
-			'failure:board_not_viewable',
-		])
+		expect(failureBlobsOf(env)).toEqual(['failure:snapshot_read_error', 'failure:none'])
 	})
 
 	it('renders shared files and keys their version on the room etag', async () => {
@@ -384,16 +403,16 @@ describe('handleOgImageRenderMessage', () => {
 		expect(message.ack).toHaveBeenCalledTimes(1)
 	})
 
-	// Terminal, not transient: no number of retries makes the board public again. The job is acked
-	// without spending Browser Run, and the image the board already has is kept — nothing deletes a
-	// rendered thumbnail any more, so an owner-facing view behind authz still has one to show.
-	it('drops the job without rendering when the board is no longer viewable, keeping its image', async () => {
+	// Deletion is terminal in a way privacy is not: no number of retries brings the board back, and a
+	// deleted board has nothing worth depicting. The job is acked without spending Browser Run, and
+	// whatever image it already had is kept — nothing deletes a rendered thumbnail any more.
+	it('drops the job without rendering when the board is deleted, keeping its image', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
-			id: 'unshared-file',
+			id: 'deleted-file',
 			shared: false,
-			isDeleted: false,
+			isDeleted: true,
 		})
-		const board = { kind: 'shared_file', slug: 'unshared-file' } as const
+		const board = { kind: 'shared_file', slug: 'deleted-file' } as const
 		const bucket = makeFakeThumbnailsBucket()
 		const cacheKey = getOgImageCacheKey(board)
 		await bucket.put(cacheKey, new Uint8Array([9]).buffer, {

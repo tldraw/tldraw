@@ -186,12 +186,17 @@ describe('getThumbnailSnapshot', () => {
 		)
 
 		expect(response.status).toBe(200)
-		expect(vi.mocked(getSharedFileRoomSnapshot)).toHaveBeenCalledWith(env, 'file-abc')
+		expect(vi.mocked(getSharedFileRoomSnapshot)).toHaveBeenCalledWith(env, 'file-abc', {
+			access: 'render',
+		})
 		expect(vi.mocked(getPublishedRoomSnapshot)).not.toHaveBeenCalled()
 	})
 
-	it('returns 404 when a shared file is un-shared during the token window', async () => {
-		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValue(Error('not shared'))
+	// NOT "un-shared during the token window" any more — this route reads with `access: 'render'`, so a
+	// private board resolves and its content is served to the render page. What still refuses is a board
+	// that is deleted or unknown, which `isFileRenderable` rejects.
+	it('returns 404 when the board is deleted during the token window', async () => {
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValue(Error('not renderable'))
 		const response = await getThumbnailSnapshot(
 			makeRequest(await mintToken({ kind: 'shared_file', slug: 'file-abc', version: 'etag-1' })),
 			env

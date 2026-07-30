@@ -32,24 +32,49 @@ export async function getSharedFileInfo(
 }
 
 /**
- * Whether a file may be screenshotted by the anonymous, image-only MCP tool. This mirrors the
- * anonymous read gate enforced by the file room itself (`TLFileDurableObject.onRequest`): the file
- * must exist, not be deleted, and be shared via link. `sharedLinkType` (`view` vs `edit`) is
- * irrelevant to viewing. Test-slug files require admin auth to read, which the anonymous tool never
- * has, so they are refused outright.
+ * Whether a file is worth rendering a thumbnail of at all: it exists, is not deleted, and is not a
+ * test file. Says nothing about who may *see* that thumbnail — thumbnails are generated for every
+ * board, including private ones, so that an owner-facing surface has one to show. Serving is gated
+ * separately, at the point of serving.
+ *
+ * Test-slug files are excluded because reading them requires admin auth, so they have no business
+ * being pulled through the render page.
  */
-export function isFileAnonymouslyViewable(file: SharedFileInfo | null): file is SharedFileInfo {
-	return !!file && !file.isDeleted && file.shared === true && !isTestFile(file.id)
+export function isFileRenderable(file: SharedFileInfo | null): file is SharedFileInfo {
+	return !!file && !file.isDeleted && !isTestFile(file.id)
 }
 
-// Read the live room snapshot for an anonymously-shared file from R2. Re-checks the share gate so a
-// board that was un-shared after a render token was minted is not served during the token's window.
+/**
+ * Whether a file may be served to an anonymous caller — the MCP tool, the OG image route, the
+ * crawler HTML. Renderable, plus actually shared via link. This mirrors the anonymous read gate
+ * enforced by the file room itself (`TLFileDurableObject.onRequest`). `sharedLinkType` (`view` vs
+ * `edit`) is irrelevant to viewing.
+ */
+export function isFileAnonymouslyViewable(file: SharedFileInfo | null): file is SharedFileInfo {
+	return isFileRenderable(file) && file.shared === true
+}
+
+/**
+ * How much of a board a caller is entitled to. `public` is the anonymous gate: the board must be
+ * shared via link. `render` is for generating a thumbnail we will store but not necessarily serve
+ * publicly, so it only requires that the board exists and has content.
+ *
+ * Required at every call site rather than defaulted, because a default would be the wrong one for
+ * half of them and silence is the wrong way to pick a gate.
+ */
+export type ThumbnailBoardAccess = 'public' | 'render'
+
+// Read the live room snapshot for an app file from R2. Re-checks the caller's gate rather than
+// trusting whatever check happened earlier: a `public` read of a board un-shared since a render
+// token was minted must stop resolving inside that token's window.
 export async function getSharedFileRoomSnapshot(
 	env: Environment,
-	slug: string
+	slug: string,
+	{ access }: { access: ThumbnailBoardAccess }
 ): Promise<RoomSnapshot | undefined> {
 	const file = await getSharedFileInfo(env, slug)
-	if (!isFileAnonymouslyViewable(file)) throw Error('not shared')
+	const allowed = access === 'public' ? isFileAnonymouslyViewable(file) : isFileRenderable(file)
+	if (!allowed) throw Error(access === 'public' ? 'not shared' : 'not renderable')
 
 	return (await env.ROOMS.get(getR2KeyForRoom({ slug, isApp: true })).then((r) => r?.json())) as
 		| RoomSnapshot

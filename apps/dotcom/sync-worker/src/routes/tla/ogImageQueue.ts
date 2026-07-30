@@ -104,26 +104,45 @@ export async function enqueueOgImageRender(
 	return 'enqueued'
 }
 
-// Clears a board's pending render marker. Called when a board stops being publicly viewable
-// (unpublished or unshared) and when the consumer drops a job, because a marker left behind would
-// suppress the next legitimate enqueue — after a reshare, or after the render that failed.
+// Whether an image is kept when a board stops being publicly viewable depends on which of the two
+// keys it is, and the two are not symmetric:
 //
-// The rendered image itself is deliberately NOT deleted. It used to be, on the reasoning that an
-// unshared board's thumbnail is a copy of content that is no longer public. But the thumbnail is not
-// public because it exists, it is public because a route serves it, and the only route that does
-// re-checks the share gate on every request (resolveThumbnailBoard in getOgImage) — so an unshared
-// board's image is already unreachable while it sits in R2. Keeping it means an owner-facing surface
-// behind authz (a workspace or project view showing every board's thumbnail) can read the image a
-// board already has instead of it having been thrown away the moment the board went private.
+// - **`og/shared_file/{fileId}/…`** is the board's own thumbnail. Its key is the file id, which never
+//   changes, so it stays useful for as long as the board exists: an owner-facing surface behind auth
+//   wants it, and switching the link back on makes it an immediate cache hit. Unsharing therefore
+//   keeps it — the image is not public because it exists, it is public because a route serves it, and
+//   the only route that does re-checks the gate on every request.
+// - **`og/published/{publishedSlug}/…`** depicts a *published snapshot*. Unpublishing destroys the
+//   thing it was a picture of, and its key is the published slug rather than the file, so a
+//   regenerated publish link would orphan the object permanently with nothing left to ever read or
+//   overwrite it. Unpublishing therefore deletes it.
 //
-// Note the `og/…` keys carry no version, so each render overwrites in place and a board costs exactly
-// one object however often it is re-rendered. Retaining them does not accumulate.
+// `og/…` keys carry no version, so a live board costs exactly one object per key however often it is
+// re-rendered. Deleting on unpublish is about not stranding objects, not about volume.
+
+// Clears only the pending render marker, keeping the image. For a board that stops being *shared*,
+// and for a dropped render job — a marker left behind would suppress the next legitimate enqueue,
+// after a reshare or after the render that failed.
 export async function clearOgImagePendingMarker(
 	env: Environment,
 	board: { kind: ThumbnailBoardKind; slug: string }
 ): Promise<void> {
 	if (!env.THUMBNAILS) return
 	await env.THUMBNAILS.delete(getOgImagePendingKey(board)).catch(() => {})
+}
+
+// Deletes the image as well as the marker. Only for `published` boards losing their publication —
+// see the note above. Scoped by the `board` passed in, so calling it with `kind: 'published'` cannot
+// touch the file-keyed image of the same board.
+export async function deleteOgImage(
+	env: Environment,
+	board: { kind: ThumbnailBoardKind; slug: string }
+): Promise<void> {
+	if (!env.THUMBNAILS) return
+	await Promise.all([
+		env.THUMBNAILS.delete(getOgImageCacheKey(board)).catch(() => {}),
+		env.THUMBNAILS.delete(getOgImagePendingKey(board)).catch(() => {}),
+	])
 }
 
 // Queue consumer. Re-resolves the board at render time rather than trusting the enqueued state:
@@ -147,11 +166,13 @@ export async function handleOgImageRenderMessage(
 	// Reached from the resolve below — a board that goes private after that point fails its snapshot
 	// read instead, and the retry lands back here on the next delivery.
 	//
-	// Any image the board already has is kept, not deleted: the public route re-checks the share gate
-	// on every request, so it is already unreachable, and an owner-facing surface behind authz can
-	// still use it (see clearOgImagePendingMarker).
+	// Same asymmetry as the effects above: a published board losing its publication loses its image
+	// too, since there is no longer a published snapshot for it to depict and its key may never be read
+	// again. A shared file keeps its image whatever its share state.
 	const dropNoLongerViewable = async () => {
-		await clearOgImagePendingMarker(env, { kind, slug })
+		await (kind === 'published'
+			? deleteOgImage(env, { kind, slug })
+			: clearOgImagePendingMarker(env, { kind, slug }))
 		writeScreenshotTelemetry(env, {
 			source: 'queue',
 			reason,
@@ -162,7 +183,9 @@ export async function handleOgImageRenderMessage(
 	}
 
 	try {
-		const resolved = await resolveThumbnailBoard(env, kind, slug)
+		// 'render' rather than 'public': every board gets a thumbnail, private ones included. The OG
+		// route re-applies the public gate when it serves.
+		const resolved = await resolveThumbnailBoard(env, kind, slug, { access: 'render' })
 		if (!resolved.ok) {
 			await dropNoLongerViewable()
 			return
@@ -193,7 +216,7 @@ export async function handleOgImageRenderMessage(
 		// Target the first page that has content so a board whose first page is empty still gets a
 		// meaningful unfurl image (the render page otherwise exports whichever page the snapshot opens
 		// to, typically the first).
-		const snapshot = await loadBoardSnapshot(env, board)
+		const snapshot = await loadBoardSnapshot(env, board, { access: 'render' })
 		if (!snapshot) {
 			// The board has no persisted content. The render page loads the snapshot from the same
 			// sources through the same functions (getThumbnailSnapshot ->
