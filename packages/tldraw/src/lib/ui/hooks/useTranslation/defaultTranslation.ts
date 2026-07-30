@@ -545,6 +545,8 @@ export const DEFAULT_TRANSLATION = {
 	'comments.mention-you': 'You',
 	'comments.mention-no-matches': 'No matches',
 	'comments.preview-more': '{count} more',
+	'comments.replies-one': '1 reply',
+	'comments.replies': '{count} replies',
 	'comments.pin-label': 'Comment by {name}',
 	'comments.pin-label-resolved': 'Resolved comment by {name}',
 	'comments.cluster-label': '{count} comments here',
