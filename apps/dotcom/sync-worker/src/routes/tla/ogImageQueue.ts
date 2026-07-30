@@ -50,8 +50,21 @@ function pickOgImagePageId(snapshot: RoomSnapshot): string | undefined {
 	return (pages.find((page) => page.hasContent) ?? pages[0]).id
 }
 
+/**
+ * A board's one OG image. The key carries only what can address two objects at once: the board, and
+ * the theme, which a dark-mode card would need.
+ *
+ * Keep it that way, and keep the output dimensions out in particular. This key is the image's sole
+ * address, in a bucket with no expiration rule, so any segment that can change re-addresses every
+ * board's image at once and strands the old objects permanently — unreachable, un-overwritable, one per
+ * board. A size change is a replacement rather than a second object, so it belongs in the object's
+ * metadata, which overwrites in place.
+ *
+ * The trade: a size change serves old-sized images as fresh hits until each board next renders, since
+ * the stored `version` tracks board content rather than render parameters.
+ */
 export function getOgImageCacheKey(board: ThumbnailBoardRef) {
-	return `og/${board.kind}/${board.slug}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/light.png`
+	return `og/${board.kind}/${board.slug}/light.png`
 }
 
 export type EnqueueOgImageResult = 'enqueued' | 'already_pending' | 'unavailable'
@@ -103,10 +116,8 @@ export async function enqueueOgImageRender(
 // regenerated publish link could make permanently unreadable. See "Nothing deletes a rendered image"
 // in browser-run-thumbnails.md.
 
-// Clears only the pending render marker, keeping the image. For a dropped render job: a marker left
-// behind would suppress the next legitimate enqueue until it expired. Unsharing does not call this —
-// it has no effect on rendering at all, since every board renders and the gate is applied at serve
-// time.
+// Clears only the pending render marker, keeping the image. Called when a render job is dropped: a
+// marker left behind would suppress the next legitimate enqueue until it expired.
 export async function clearOgImagePendingMarker(
 	env: Environment,
 	board: ThumbnailBoardRef

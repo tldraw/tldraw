@@ -187,7 +187,10 @@ Both key spaces used to live in `thumbnails`, separated only by prefix. They are
 
 - **Domain.** `MCP_SCREENSHOTS` is where the MCP surface puts what it produces, and that won't stay limited to board thumbnails. Keying the bucket to the tool rather than to the artifact means the next MCP output type lands somewhere that already fits, instead of accreting inside a bucket named for something it isn't.
 - **Retention.** The two caches want opposite lifetimes:
-  - **`og/…`** keys carry no version, so each render overwrites the same object in place and a board costs exactly one object for as long as it exists. Nothing accumulates and nothing deletes one, and the current thumbnail must outlive any lifecycle window — so `THUMBNAILS` gets **no expiration rule**.
+  - **`og/…`** keys (`og/{kind}/{slug}/{theme}.png`) carry no version, so each render overwrites the same object in place and a board costs exactly one object for as long as it exists. Nothing accumulates and nothing deletes one, and the current thumbnail must outlive any lifecycle window — so `THUMBNAILS` gets **no expiration rule**.
+
+    That is also why the key holds nothing but the board and the theme — in particular **not the output dimensions**. This key is the image's sole address, so anything in the path that can change re-addresses every board's image at once and strands the old objects permanently, since there is no lifecycle rule to sweep them. A size change is a replacement rather than a second object, so it belongs in the object's metadata, which overwrites in place. The trade is that a size change serves old-sized images as fresh hits until each board next renders, because the stored `version` tracks board content, not render parameters.
+
   - **`mcp/…`** keys include the board's content version (`mcp/{kind}/{slug}/{version}/{w}x{h}/{theme}/page-{n}.png`), so every edit strands the previous object and the set grows without bound. A pure regenerable cache, so `MCP_SCREENSHOTS` gets an **expiration rule**.
 
 A prefix-scoped lifecycle rule on a single bucket would also work (`wrangler r2 bucket lifecycle add` takes a prefix positionally), and has the nice property of ageing out the existing backlog in place. It was rejected because a future rule added without a prefix, or with a typo'd one, would silently delete every board's live thumbnail, and R2 expiration has no undo. Separate buckets make that mistake impossible.
@@ -269,6 +272,8 @@ Before the first deploy of this feature:
 3. Enable Browser Rendering on the Cloudflare account (the `BROWSER` binding needs it) and add the `MCP_SCREENSHOT_TOKEN_SECRET` GitHub secret. Until the secret exists the deploy passes an empty string and the MCP tool returns a configuration error instead of failing the deploy.
 
 Migration note: MCP screenshots previously lived under `mcp/…` in the `thumbnails` bucket, where nothing ever deleted them. Those objects are now orphaned — the tool reads and writes the new bucket, and the version in the key means nothing will ever hit them again. Clear them out with a one-off prefix-scoped rule (`wrangler r2 bucket lifecycle add thumbnails expire-legacy-mcp mcp/ --expire-days 1 -y`, removed once the prefix is empty) or by deleting the `mcp/` folder from the dashboard.
+
+Second migration note: the OG key dropped its `{w}x{h}` segment, so anything already written as `og/{kind}/{slug}/1200x630/{theme}.png` is orphaned too. Bounded and small — one object per board ever rendered before this deploy, and each board rewrites at its new key on the next publish or edit — but nothing will read or overwrite the old ones, and this bucket has no lifecycle rule to sweep them. A prefix rule cannot match a middle segment, so clear them by listing and deleting the `og/` keys containing `/1200x630/`, or leave them and accept a fixed one-off cost. Do **not** reach for a lifecycle rule on `thumbnails` to do it.
 
 ## Local development
 

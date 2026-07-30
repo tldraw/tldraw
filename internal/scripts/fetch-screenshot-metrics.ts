@@ -5,9 +5,8 @@
  * render consumer).
  *
  * Render time is wall-clock time around each Browser Run capture (double3), not Cloudflare's billed
- * browser milliseconds: the BROWSER binding does not surface a per-render billed-ms figure the way
- * the old REST path did (double4 is always -1), so wall-clock render time is the available proxy for
- * Browser Run spend.
+ * browser milliseconds: the BROWSER binding does not surface a per-render billed-ms figure (double4 is
+ * always -1), so wall-clock render time is the available proxy for Browser Run spend.
  *
  * Usage:
  *   npx tsx internal/scripts/fetch-screenshot-metrics.ts [options]
