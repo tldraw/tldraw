@@ -15,6 +15,12 @@ import {
 } from './TLSyncStorage'
 
 /**
+ * Presence records seen more recently than this are captured into the room
+ * snapshot for archival. Presence is never restored on load.
+ */
+const PRESENCE_SNAPSHOT_ACTIVE_WINDOW_MS = 5 * 60 * 1000
+
+/**
  * Strip potentially large fields from a tldraw instance_presence record so the
  * snapshot stays small when stored in WebSocket attachments (e.g. for hibernation).
  * Keeps cursor, selection, page, and user identity; clears scribbles, chatMessage, brush.
@@ -702,10 +708,20 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * ```
 	 */
 	getCurrentSnapshot() {
-		if (this.storage.getSnapshot) {
-			return this.storage.getSnapshot()
+		if (!this.storage.getSnapshot) {
+			throw new Error('getCurrentSnapshot is not supported for this storage type')
 		}
-		throw new Error('getCurrentSnapshot is not supported for this storage type')
+		const snapshot = this.storage.getSnapshot()
+		const activeSince = Date.now() - PRESENCE_SNAPSHOT_ACTIVE_WINDOW_MS
+		const presence: UnknownRecord[] = []
+		for (const record of this.room.presenceStore.values()) {
+			const lastActivity = (record as { lastActivityTimestamp?: unknown }).lastActivityTimestamp
+			if (typeof lastActivity === 'number' && lastActivity >= activeSince) {
+				presence.push(record)
+			}
+		}
+		if (presence.length > 0) snapshot.presence = presence
+		return snapshot
 	}
 
 	/**

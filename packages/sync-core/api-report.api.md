@@ -288,6 +288,7 @@ export interface RoomSnapshot {
         lastChangedClock: number;
         state: UnknownRecord;
     }>;
+    presence?: UnknownRecord[];
     schema?: SerializedSchema;
     tombstoneHistoryStartsAtClock?: number;
     tombstones?: Record<string, number>;
