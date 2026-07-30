@@ -30,7 +30,7 @@ import { focusThread } from './thread-state'
  */
 export interface CanvasCommentsSidebarProps extends Pick<
 	CommentingContext,
-	'currentUserId' | 'resolveAuthor' | 'isCommentUnread'
+	'currentUserId' | 'resolveAuthor' | 'isCommentUnread' | 'getThreadHref'
 > {
 	/** Header above the list. */
 	header?: ReactNode
@@ -46,7 +46,7 @@ export interface CanvasCommentsSidebarProps extends Pick<
  * @public @react
  */
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
-	const { resolveAuthor, currentUserId, isCommentUnread, header, empty } = props
+	const { resolveAuthor, currentUserId, isCommentUnread, header, empty, getThreadHref } = props
 	// Name-only view of the resolver, for the plaintext previews (which resolve @-mentions).
 	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const editor = useEditor()
@@ -126,6 +126,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 							: undefined,
 					count: threadComments.length,
 					selected: openId === thread.id,
+					href: getThreadHref?.(thread.id),
 				},
 				lastActivity: (last ?? thread).createdAt,
 			}

@@ -22,7 +22,12 @@ export { CommentComposer, type CommentComposerProps } from './ui/comment-compose
 export { CountBadge, type CountBadgeProps } from './ui/count-badge'
 export { CommentPin, type CommentPinProps } from './ui/comment-pin'
 export { CommentThread, type CommentThreadProps } from './ui/comment-thread'
-export { CommentsList, type CommentListItemProps, type CommentsListProps } from './ui/comments-list'
+export {
+	CommentsList,
+	isOpenInNewTabClick,
+	type CommentListItemProps,
+	type CommentsListProps,
+} from './ui/comments-list'
 export { EmptyState, type EmptyStateProps } from './ui/empty-state'
 export { formatRelativeTime } from './ui/format-time'
 export {

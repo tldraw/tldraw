@@ -19,6 +19,7 @@ import { MentionListProps } from '@tldraw/mentions';
 import { MentionMember } from '@tldraw/mentions';
 import { MentionProps } from '@tldraw/mentions';
 import { MentionSuggestionOptions } from '@tldraw/mentions';
+import { MouseEvent as MouseEvent_2 } from 'react';
 import { ReactNode } from 'react';
 import { StateNode } from 'tldraw';
 import { TLComment } from 'tldraw';
@@ -66,7 +67,7 @@ export type CanvasCommentsProps = CommentingContext;
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps): JSX.Element | null;
 
 // @public
-export interface CanvasCommentsSidebarProps extends Pick<CommentingContext, 'currentUserId' | 'isCommentUnread' | 'resolveAuthor'> {
+export interface CanvasCommentsSidebarProps extends Pick<CommentingContext, 'currentUserId' | 'getThreadHref' | 'isCommentUnread' | 'resolveAuthor'> {
     empty?: ReactNode;
     header?: ReactNode;
 }
@@ -150,6 +151,7 @@ export interface CommentingComponents {
 export interface CommentingContext {
     currentUserId: null | string;
     getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
+    getThreadHref?(threadId: TLCommentThreadId): string | undefined;
     isCommentUnread?(commentId: TLCommentId): boolean;
     onCommentRead?(commentId: TLCommentId): void;
     onPostComment?(comment: TLComment): void;
@@ -183,6 +185,7 @@ export interface CommentListItemProps {
     author: CommentAuthor;
     count?: number;
     date: string;
+    href?: string;
     // (undocumented)
     id: string;
     page?: string;
@@ -416,6 +419,9 @@ export function getRevealThreadPending(editor: Editor): null | string;
 
 // @public
 export function isAllowedReactionEmoji(emoji: string, palette?: readonly string[]): boolean;
+
+// @public
+export function isOpenInNewTabClick(e: MouseEvent_2): boolean;
 
 export { Mention }
 

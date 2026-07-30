@@ -10,6 +10,7 @@ import {
 import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { TLUiOverrides, useDialogs, useEditor, useValue } from 'tldraw'
+import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
@@ -180,6 +181,11 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		(query: string) => filterMentionMembers(roster, query),
 		[roster]
 	)
+	// A thread's deep link into this file, so surfaces can offer open-in-new-tab.
+	const getThreadHref = useCallback(
+		(threadId: string) => `${routes.tlaFile(fileId)}?comment=${encodeURIComponent(threadId)}`,
+		[fileId]
+	)
 
 	// Both surfaces read the same context — the signed-in user, the author resolver, read status —
 	// so it's built once here and spread into each rather than repeated on both.
@@ -190,8 +196,17 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			isCommentUnread: app ? isCommentUnread : undefined,
 			onCommentRead: app ? onCommentRead : undefined,
 			getMentionSuggestions,
+			getThreadHref,
 		}),
-		[app, currentUserId, resolveAuthor, isCommentUnread, onCommentRead, getMentionSuggestions]
+		[
+			app,
+			currentUserId,
+			resolveAuthor,
+			isCommentUnread,
+			onCommentRead,
+			getMentionSuggestions,
+			getThreadHref,
+		]
 	)
 
 	return (

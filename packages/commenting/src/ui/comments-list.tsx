@@ -1,5 +1,5 @@
 import { Avatar, type CommentAuthor } from '@tldraw/mentions'
-import { ReactNode } from 'react'
+import { MouseEvent, ReactNode } from 'react'
 import { useTranslation } from 'tldraw'
 import { Byline } from './byline'
 import { replyCountLabel } from './reply-count'
@@ -19,6 +19,11 @@ export interface CommentListItemProps {
 	count?: number
 	/** Whether this thread is the open one. */
 	selected?: boolean
+	/**
+	 * Link target for the item. When set, the row renders as an anchor so browser affordances
+	 * (ctrl/cmd-click, middle-click) open it in a new tab; a plain click still calls `onSelect`.
+	 */
+	href?: string
 }
 
 /** @public */
@@ -92,18 +97,22 @@ function CommentListItem({
 	page,
 	count,
 	selected,
+	href,
 	resolvedLabel = 'Resolved',
 	onSelect,
 }: CommentListItemProps & { resolvedLabel?: string; onSelect?(id: string): void }) {
 	const msg = useTranslation()
-	const handleClick = () => {
+	const handleClick = (e: MouseEvent) => {
+		if (href && isOpenInNewTabClick(e)) return
+		e.preventDefault()
 		if (onSelect) onSelect(id)
 	}
+	const Tag = href ? 'a' : 'button'
 	// `count` is the thread's total comments; a reply is every comment after the opening one.
 	const replies = count !== undefined ? replyCountLabel(msg, count - 1) : null
 	return (
-		<button
-			type="button"
+		<Tag
+			{...(href ? { href } : { type: 'button' })}
 			className={
 				selected ? 'tlui-cmt-list__item tlui-cmt-list__item--selected' : 'tlui-cmt-list__item'
 			}
@@ -127,8 +136,16 @@ function CommentListItem({
 					</div>
 				)}
 			</div>
-		</button>
+		</Tag>
 	)
+}
+
+/**
+ * Whether a click should be left to the browser's link handling (new tab, new window, or download).
+ * @public
+ */
+export function isOpenInNewTabClick(e: MouseEvent) {
+	return e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0
 }
 
 function CheckIcon() {
