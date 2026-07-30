@@ -232,14 +232,17 @@ async function i18nUploadStrings() {
 	// The SDK project has no automated ordering — uploading keeps its source
 	// strings current so a manual order can pick them up. It runs last so a
 	// problem here can't stop the dotcom half of the pipeline.
-	// TODO: turn cleanup mode on here too once a run has confirmed this upload
-	// matches the keys already in the project. It deletes keys missing from the
-	// uploaded file, so a filename or platform mismatch would drop translations.
+	// Cleanup mode deletes keys missing from the uploaded file, which is what
+	// keeps the project matching main.json. Both projects export with
+	// original_filenames, and i18n-download-strings.ts maps every file in a
+	// locale's folder to the same <locale>.json, so a stray file here doesn't
+	// show up as extra keys — it silently overwrites a locale's real strings
+	// depending on export order.
 	await uploadFile(lokaliseApi, {
 		projectId: tldrawProjectId,
 		filePath: path.resolve(__dirname, '../../assets/translations/main.json'),
 		filename: 'main.json',
-		cleanupMode: false,
+		cleanupMode: true,
 	})
 }
 
