@@ -16,7 +16,6 @@ import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	CookieConsentMenuItem,
 	DebugMenuGroup,
-	ImportFileActionItem,
 	LegalSummaryMenuItem,
 	SignOutMenuItem,
 	ThemeSubmenu,
@@ -80,9 +79,6 @@ export function TlaUserSettingsMenu() {
 				>
 					{user && (
 						<>
-							<TldrawUiMenuGroup id="files">
-								<ImportFileActionItem />
-							</TldrawUiMenuGroup>
 							<TldrawUiMenuGroup id="preferences">
 								<ThemeSubmenu />
 								<LanguageMenu />

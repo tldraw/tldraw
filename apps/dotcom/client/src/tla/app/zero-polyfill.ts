@@ -29,7 +29,7 @@ import {
 	uniqueId,
 } from 'tldraw'
 import { TLAppUiContextType } from '../utils/app-ui-events'
-import { evaluateCondition, validateAST } from './ast-helpers'
+import { applyOrderBy, evaluateCondition, type PolyfillData, validateAST } from './ast-helpers'
 import { ClientCRUD } from './ClientCRUD'
 
 export class Zero {
@@ -278,11 +278,19 @@ export class Zero {
 		}
 
 		const tableName = ast.table as keyof typeof data
-		let rows = data[tableName] as unknown[]
+		// A table absent from the snapshot (the comment tables — see ZStoreData) reads as empty
+		// rather than crashing the reactive flush that evaluates this query.
+		let rows = (data[tableName] ?? []) as unknown[]
 
-		// Apply where conditions
+		// Apply where conditions (pass the full store data so EXISTS subqueries can resolve)
 		if (ast.where) {
-			rows = rows.filter((row) => evaluateCondition(ast.where!, row as Record<string, unknown>))
+			rows = rows.filter((row) =>
+				evaluateCondition(
+					ast.where!,
+					row as Record<string, unknown>,
+					data as unknown as PolyfillData
+				)
+			)
 		}
 
 		// Handle table-specific relation expansion
@@ -325,9 +333,15 @@ export class Zero {
 			})
 		}
 
-		// Apply limit (one() sets limit to 1)
+		// Order then limit, after relation expansion — matching real Zero's flat-query semantics.
+		rows = applyOrderBy(rows, ast.orderBy)
+
+		// one() sets limit to 1
 		if (ast.limit === 1) {
 			return rows[0]
+		}
+		if (typeof ast.limit === 'number') {
+			return rows.slice(0, ast.limit)
 		}
 
 		return rows

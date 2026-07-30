@@ -19,6 +19,10 @@ export {
 	type TLCanvasComponentProps,
 } from './lib/components/default-components/DefaultCanvas'
 export {
+	DefaultCursor,
+	type TLCursorProps,
+} from './lib/components/default-components/DefaultCursor'
+export {
 	DefaultErrorFallback,
 	type TLErrorFallbackComponent,
 } from './lib/components/default-components/DefaultErrorFallback'
@@ -318,18 +322,22 @@ export {
 	useUniqueSafeId,
 	type SafeId,
 } from './lib/hooks/useSafeId'
+export { useTransform } from './lib/hooks/useTransform'
+export { isCursorInViewport } from './lib/utils/collaborators'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
 	LicenseManager,
 	type InvalidLicenseKeyResult,
 	type InvalidLicenseReason,
+	type LicenseFeatureName,
 	type LicenseFromKeyResult,
 	type LicenseInfo,
 	type LicenseState,
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
-export { LICENSE_TIMEOUT } from './lib/license/LicenseProvider'
+export { LICENSE_TIMEOUT, useLicenseContext } from './lib/license/LicenseProvider'
+export { useLicenseFeatureFlag } from './lib/license/useLicenseManagerState'
 export {
 	defaultTldrawOptions,
 	type TLClipboardPasteRawInfo,
