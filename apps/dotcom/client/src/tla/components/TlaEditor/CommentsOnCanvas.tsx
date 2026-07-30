@@ -9,6 +9,7 @@ import {
 import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { TLUiOverrides, useDialogs, useEditor, useValue } from 'tldraw'
+import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
@@ -179,6 +180,11 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		(query: string) => filterMentionMembers(roster, query),
 		[roster]
 	)
+	// Sidebar rows link to this file's comment deep link, so modifier-clicks open a new tab.
+	const getThreadHref = useCallback(
+		(threadId: string) => `${routes.tlaFile(fileId)}?comment=${encodeURIComponent(threadId)}`,
+		[fileId]
+	)
 
 	return (
 		<>
@@ -193,6 +199,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 				resolveAuthor={resolveAuthor}
 				currentUserId={currentUserId ?? undefined}
 				isCommentUnread={app ? isCommentUnread : undefined}
+				getThreadHref={getThreadHref}
 			/>
 		</>
 	)

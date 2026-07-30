@@ -19,6 +19,7 @@ import { MentionListProps } from '@tldraw/mentions';
 import { MentionMember } from '@tldraw/mentions';
 import { MentionProps } from '@tldraw/mentions';
 import { MentionSuggestionOptions } from '@tldraw/mentions';
+import { MouseEvent as MouseEvent_2 } from 'react';
 import { ReactNode } from 'react';
 import { StateNode } from 'tldraw';
 import { TLComment } from 'tldraw';
@@ -84,6 +85,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps): JSX.El
 export interface CanvasCommentsSidebarProps {
     currentUserId?: string;
     empty?: ReactNode;
+    getThreadHref?(threadId: TLCommentThreadId): string | undefined;
     header?: ReactNode;
     impreciseShapeAnchor?: {
         x: number;
@@ -248,6 +250,7 @@ export interface CommentListItemProps {
     author: CommentAuthor;
     count?: number;
     date: string;
+    href?: string;
     // (undocumented)
     id: string;
     page?: string;
@@ -543,6 +546,9 @@ export function isAllowedReactionEmoji(emoji: string, palette?: readonly string[
 
 // @public
 export function isDrawingReactionToken(token: string): boolean;
+
+// @public
+export function isOpenInNewTabClick(e: MouseEvent_2): boolean;
 
 // @public
 export interface LeafInput {

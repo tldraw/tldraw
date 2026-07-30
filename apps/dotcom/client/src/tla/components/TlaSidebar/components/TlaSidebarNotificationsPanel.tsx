@@ -2,10 +2,11 @@ import {
 	CommentListItemProps,
 	CommentsList,
 	formatRelativeTime,
+	isOpenInNewTabClick,
 	richTextToPlaintext,
 } from '@tldraw/commenting'
 import { ReactNode, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { createDeepLinkString, TLRichText, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
@@ -84,7 +85,6 @@ function commentLink(fileId: string, shapeId: string | null | undefined, comment
  */
 export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const app = useMaybeApp()
-	const navigate = useNavigate()
 	const { notifications, unreadCount } = useCommentNotifications()
 	const title = useMsg(messages.title)
 	const markAllReadLbl = useMsg(messages.markAllRead)
@@ -104,21 +104,22 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 		date: new Date(c.createdAt).toISOString(),
 		// the document the comment lives on — the headline of the notification row
 		page: c.file?.name || untitledFile,
+		// a real link target, so browser affordances (ctrl/cmd-click, middle-click) open a new tab
+		href: commentLink(c.fileId, c.thread?.shapeId, c.id),
 	}))
 
 	// Row id → why it's a notification, so the byline can be phrased per reason.
 	const reasonById = new Map(notifications.map((n) => [n.comment.id, n.primaryReason]))
 
 	const handleSelect = useCallback(
-		(id: string) => {
+		(id: string, isNewTab: boolean) => {
 			const n = notifications.find((n) => n.comment.id === id)
 			if (!n) return
-			const c = n.comment
-			if (!c.read) app?.markCommentRead(c.id)
-			navigate(commentLink(c.fileId, c.thread?.shapeId, c.id))
-			onClose()
+			if (!n.comment.read) app?.markCommentRead(n.comment.id)
+			// keep the popover open when opening in a new tab, so more can be opened
+			if (!isNewTab) onClose()
 		},
-		[notifications, app, navigate, onClose]
+		[notifications, app, onClose]
 	)
 
 	return (
@@ -143,11 +144,13 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 				}
 				empty={empty}
 				renderItem={(item) => (
-					<button
+					<Link
 						key={item.id}
-						type="button"
+						to={item.href!}
 						className="tlui-cmt-list__item"
-						onClick={() => handleSelect(item.id)}
+						onClick={(e) => handleSelect(item.id, isOpenInNewTabClick(e))}
+						// middle-click opens the tab natively without firing onClick; still mark it read
+						onAuxClick={(e) => e.button === 1 && handleSelect(item.id, true)}
 					>
 						<div className="tlui-cmt-list__item-body">
 							<div className={styles.head}>
@@ -163,7 +166,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 							</div>
 							<div className={styles.preview}>{item.preview}</div>
 						</div>
-					</button>
+					</Link>
 				)}
 			/>
 		</div>

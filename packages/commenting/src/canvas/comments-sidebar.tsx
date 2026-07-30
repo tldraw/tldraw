@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import {
 	TLComment,
 	TLCommentId,
+	TLCommentThreadId,
 	useContainer,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -38,6 +39,11 @@ export interface CanvasCommentsSidebarProps {
 	empty?: ReactNode
 	/** Where imprecise shape pins sit, so navigation centres on the same spot. Default top-right. */
 	impreciseShapeAnchor?: { x: number; y: number }
+	/**
+	 * A link target for a thread's row, so ctrl/cmd-click and middle-click open the thread in a new
+	 * tab. A plain click still navigates in place. Omit to render plain buttons.
+	 */
+	getThreadHref?(threadId: TLCommentThreadId): string | undefined
 }
 
 /**
@@ -48,8 +54,15 @@ export interface CanvasCommentsSidebarProps {
  * @public @react
  */
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
-	const { resolveAuthor, currentUserId, isCommentUnread, header, empty, impreciseShapeAnchor } =
-		props
+	const {
+		resolveAuthor,
+		currentUserId,
+		isCommentUnread,
+		header,
+		empty,
+		impreciseShapeAnchor,
+		getThreadHref,
+	} = props
 	// Name-only view of the resolver, for the plaintext previews (which resolve @-mentions).
 	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const editor = useEditor()
@@ -130,6 +143,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 							: undefined,
 					count: threadComments.length,
 					selected: openId === thread.id,
+					href: getThreadHref?.(thread.id),
 				},
 				lastActivity: (last ?? thread).createdAt,
 			}

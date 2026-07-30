@@ -820,6 +820,9 @@
 	font: inherit;
 	text-align: left;
 	cursor: pointer;
+	/* rows can render as anchors (for open-in-new-tab); keep them looking like list rows */
+	color: inherit;
+	text-decoration: none;
 }
 .tlui-cmt-list__item:hover {
 	background: var(--tl-color-muted-2);
