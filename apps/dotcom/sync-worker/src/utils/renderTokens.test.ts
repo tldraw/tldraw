@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import { makeFakeThumbnailsBucket } from '../routes/tla/screenshotTestHelpers'
 import { Environment } from '../types'
 import {
 	THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	ThumbnailRenderJob,
+	isMintedRenderToken,
 	mintThumbnailRenderToken,
+	recordMintedRenderToken,
 	verifyThumbnailRenderToken,
 } from './renderTokens'
 
@@ -105,5 +108,88 @@ describe('thumbnail render tokens', () => {
 		)
 		const token = await mintThumbnailRenderToken(env, makeJob())
 		expect(await verifyThumbnailRenderToken(emptyEnv, token)).toBeNull()
+	})
+})
+
+// A signature only proves someone holds the secret. The record proves *we* minted the token, which is
+// what keeps a leaked MCP_SCREENSHOT_TOKEN_SECRET from being enough to read a private board.
+describe('render token records', () => {
+	function makeEnvWithBucket() {
+		return {
+			MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		} as unknown as Environment
+	}
+
+	it('accepts a token it recorded', async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob()
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+
+		await recordMintedRenderToken(envWithBucket, job, token)
+
+		expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(true)
+	})
+
+	// The whole point: a perfectly valid signature is refused when we never minted it. This is the
+	// case a compromised secret produces.
+	it('refuses a validly signed token that was never recorded', async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob()
+		const forged = await mintThumbnailRenderToken(envWithBucket, job)
+
+		// The signature verifies...
+		expect(await verifyThumbnailRenderToken(envWithBucket, forged)).toEqual(job)
+		// ...and it is still refused, because no record of it exists.
+		expect(await isMintedRenderToken(envWithBucket, job, forged)).toBe(false)
+	})
+
+	// Records are keyed per board, so one board's record cannot vouch for another's token.
+	it('refuses a token recorded against a different board', async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const mine = makeJob({ slug: 'my-board' })
+		const other = makeJob({ slug: 'someone-elses-board' })
+		const otherToken = await mintThumbnailRenderToken(envWithBucket, other)
+		await recordMintedRenderToken(envWithBucket, other, otherToken)
+
+		expect(await isMintedRenderToken(envWithBucket, mine, otherToken)).toBe(false)
+	})
+
+	// Per board, not per token: a board's newest render replaces the record, so an older in-flight
+	// token for the same board stops working. The pending marker single-flights renders per board, so
+	// this should not arise in practice — but it is the behaviour, not an accident.
+	it('replaces a board record on the next mint', async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob()
+		const first = await mintThumbnailRenderToken(envWithBucket, job)
+		await recordMintedRenderToken(envWithBucket, job, first)
+
+		const second = await mintThumbnailRenderToken(envWithBucket, { ...job, exp: job.exp + 1 })
+		await recordMintedRenderToken(envWithBucket, job, second)
+
+		expect(await isMintedRenderToken(envWithBucket, job, second)).toBe(true)
+		expect(await isMintedRenderToken(envWithBucket, job, first)).toBe(false)
+	})
+
+	// Local dev and tests run without the bucket. Skipping degrades to signature-only verification —
+	// the level this replaces — rather than refusing every render.
+	it('falls back to trusting the signature when no bucket is configured', async () => {
+		const job = makeJob()
+		const token = await mintThumbnailRenderToken(env, job)
+
+		expect(await isMintedRenderToken(env, job, token)).toBe(true)
+	})
+
+	// The bucket must never hold something usable as a credential.
+	it('stores a hash, never the token', async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob()
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+
+		await recordMintedRenderToken(envWithBucket, job, token)
+
+		const stored = JSON.stringify([...(envWithBucket.THUMBNAILS as any).store])
+		expect(stored).not.toContain(token)
+		expect(stored).toContain('tokenHash')
 	})
 })

@@ -217,7 +217,21 @@ Three gates moved together, and all three had to: the durable object's edit trig
 
 The durable object now skips only two states, and neither is about privacy: `legacy` (not an app file, so no board identity to render) and `deleted` (nothing worth depicting). `shared`, `private` and `unknown` all render.
 
-**What this costs, and it is a real security change rather than a refactor.** `GET /api/app/thumbnail-render/snapshot` previously refused anything not publicly viewable, so a leaked or forged render token exposed nothing that was not already public. It now serves a **private** board's full document — every shape — on the strength of an HMAC signature alone. The token is scoped to one board and expires after `THUMBNAIL_RENDER_TOKEN_TTL_MS` (5 minutes), and it is only ever handed to a Browser Run session, but it is now the sole authority over private content. Worth tightening when the authenticated retrieval endpoint lands: a shorter TTL, or single-use tokens.
+**What this costs.** `GET /api/app/thumbnail-render/snapshot` previously refused anything not publicly viewable, so a leaked or forged render token exposed nothing that was not already public. It now serves a **private** board's full document — every shape. That makes the token load-bearing in a way it was not before, so two things guard it.
+
+`THUMBNAIL_RENDER_TOKEN_TTL_MS` is **60 seconds**, down from five minutes. Sized against what the token is actually for: the render page fetches the snapshot in its loader, seconds after navigation, and nothing touches the token afterwards — settle, `toImage` and capture all run without it. So the window has to cover browser start plus navigation plus bundle load, not the whole render. The thing that would break a short TTL is not a slow render but Browser Run _queueing_ before the browser starts (new instances are limited to 1/second); at current volume that is three orders of magnitude away.
+
+**A signature alone is no longer sufficient.** Every mint also records the token's hash in R2, and the route requires the record to be present (`recordMintedRenderToken` / `isMintedRenderToken`). A leaked `MCP_SCREENSHOT_TOKEN_SECRET` therefore stops being catastrophic: an attacker can forge signatures for any board, but without write access to our bucket the forgeries have no record and are refused before the board is read. The secret becomes one of two required factors rather than the sole authority over every private board's contents.
+
+Three details of that worth knowing:
+
+- **Keyed per board** (`render-tokens/{kind}/{slug}`), not per token, so each render overwrites its board's record and the space is bounded by board count — exactly like the `.pending` marker. Nothing accumulates, so there is no lifecycle rule to add, and none must ever be added to this bucket.
+- **Records are not deleted after a capture.** Expiry lives in the signed `exp` and is checked before the record is ever consulted, so a leftover record cannot extend a token's life. Deleting would tighten the window from `exp` to the render's duration — worth nothing against an attacker who cannot get a record written at all, and it would cost a `finally` and a third state to reason about.
+- **A hash, in `customMetadata`.** The bucket never holds a usable credential, and checking one is a `head` rather than a `get`.
+
+When `THUMBNAILS` is unbound (local dev, tests) the check is skipped, which degrades to signature-only verification — the level this replaces, not a hole beneath it. Every deployed environment binds it.
+
+Still worth doing when the authenticated retrieval endpoint lands: serving the render page as inline `html` with the records embedded would remove this public route altogether.
 
 Cost in Browser Run terms is not the constraint. The sizing here assumed ~30% of edited boards are link-shared, so rendering all of them is roughly 3.3x the previous volume — about 3 renders/min against measured production traffic of ~1/min and an account limit of 60/min.
 

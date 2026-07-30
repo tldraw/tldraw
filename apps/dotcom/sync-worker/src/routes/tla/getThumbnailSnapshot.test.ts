@@ -4,10 +4,12 @@ import {
 	THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	ThumbnailRenderJob,
 	mintThumbnailRenderToken,
+	recordMintedRenderToken,
 } from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileRoomSnapshot } from './getSharedFile'
 import { getThumbnailSnapshot } from './getThumbnailSnapshot'
+import { makeFakeThumbnailsBucket } from './screenshotTestHelpers'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedRoomSnapshot: vi.fn(),
@@ -202,6 +204,56 @@ describe('getThumbnailSnapshot', () => {
 			env
 		)
 		expect(response.status).toBe(404)
+	})
+})
+
+// The route is the place this actually protects something: it serves any board's full document now
+// that thumbnails render for every board, so a valid signature must not be sufficient on its own.
+describe('getThumbnailSnapshot render token records', () => {
+	function makeEnvWithBucket() {
+		return {
+			MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		} as unknown as Environment
+	}
+
+	function snapshotOfOneShape() {
+		return {
+			documents: [{ state: { id: 'shape:1', typeName: 'shape' }, lastChangedClock: 0 }],
+			schema: { schemaVersion: 2, sequences: {} },
+			clock: 0,
+		} as any
+	}
+
+	it('serves a token that was recorded at mint time', async () => {
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(snapshotOfOneShape())
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob()
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+		await recordMintedRenderToken(envWithBucket, job, token)
+
+		const response = await getThumbnailSnapshot(makeRequest(token), envWithBucket)
+
+		expect(response.status).toBe(200)
+	})
+
+	// The case a leaked MCP_SCREENSHOT_TOKEN_SECRET produces: signatures that verify, for any board,
+	// minted by someone who cannot write to our bucket. Refused, and with the same 403 a bad signature
+	// gets — which check failed is not the caller's business.
+	it('refuses a validly signed token with no record, without reading the board', async () => {
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(snapshotOfOneShape())
+		const envWithBucket = makeEnvWithBucket()
+		const forged = await mintThumbnailRenderToken(envWithBucket, makeJob())
+
+		const response = await getThumbnailSnapshot(makeRequest(forged), envWithBucket)
+
+		expect(response.status).toBe(403)
+		expect(await response.json()).toEqual({
+			error: true,
+			message: 'Invalid or expired render token',
+		})
+		// Refused before the board is touched, so a forged token cannot even cause a snapshot read.
+		expect(vi.mocked(getPublishedRoomSnapshot)).not.toHaveBeenCalled()
 	})
 })
 

@@ -15,6 +15,7 @@ import {
 	THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	ThumbnailRenderJob,
 	mintThumbnailRenderToken,
+	recordMintedRenderToken,
 } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import {
@@ -208,6 +209,10 @@ export async function captureThumbnailScreenshot(
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	}
 	const token = await mintThumbnailRenderToken(env, job)
+	// Record it as ours before the browser can present it, so the snapshot route can tell a token we
+	// minted from one merely signed with our secret. Awaited, not fired off: the render is about to
+	// depend on this having landed.
+	await recordMintedRenderToken(env, job, token)
 	return renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
 		width,
 		height,

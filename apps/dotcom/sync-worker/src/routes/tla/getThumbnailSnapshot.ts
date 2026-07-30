@@ -2,7 +2,7 @@ import { ThumbnailSnapshotResponseBody } from '@tldraw/dotcom-shared'
 import { TLRecord } from '@tldraw/tlschema'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
-import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
+import { isMintedRenderToken, verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileRoomSnapshot } from './getSharedFile'
 import { reportThumbnailError } from './thumbnailShared'
@@ -22,6 +22,15 @@ export async function getThumbnailSnapshot(
 
 	const job = await verifyThumbnailRenderToken(env, token)
 	if (!job) {
+		return json({ error: true, message: 'Invalid or expired render token' }, 403)
+	}
+
+	// A valid signature only proves the holder of the secret made this. Requiring the token to also be
+	// recorded in our own storage means a leaked MCP_SCREENSHOT_TOKEN_SECRET is not enough to read a
+	// private board — this route serves any board's full document now that thumbnails are rendered for
+	// every board, so the secret must not be the sole authority. Answers the same 403 as a bad
+	// signature, deliberately: which check failed is not the caller's business.
+	if (!(await isMintedRenderToken(env, job, token))) {
 		return json({ error: true, message: 'Invalid or expired render token' }, 403)
 	}
 
