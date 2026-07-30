@@ -69,10 +69,10 @@ describe('getOgImage', () => {
 		expect(new Uint8Array(await response.arrayBuffer())).toEqual(DEFAULT_OG_IMAGE_BYTES)
 		// The only fetch is for the static default image.
 		expect(fetch).toHaveBeenCalledExactlyOnceWith('https://www.tldraw.com/social-og.png')
-		// This route no longer asks for a render on a miss. Unfurl platforms resolve a URL's card once
-		// and reuse it for every repost, so the crawler that triggered the render has already cached the
-		// default by the time it lands — the render was work whose result nobody came back for. Making
-		// the image exist before the share belongs to the publish and edit triggers.
+		// This route never asks for a render, even on a miss. Unfurl platforms resolve a URL's card once
+		// and reuse it for every repost, so a render triggered from here lands after the crawler has
+		// already cached the default — work whose result nobody comes back for. Making the image exist
+		// before the share belongs to the publish and edit triggers.
 		expect(queue.send).not.toHaveBeenCalled()
 		expect(failureBlobsOf(env)).toEqual(['failure:served_fallback'])
 	})
@@ -161,9 +161,9 @@ describe('getOgImage', () => {
 		expect(queue.send).not.toHaveBeenCalled()
 	})
 
-	// There is no "too stale to serve". An old picture of this board beats the generic tldraw logo, so
-	// a version mismatch only shortens the cache lifetime — it never withholds the image or asks for a
-	// render. Age is not consulted at all now that nothing here refreshes.
+	// There is no "too stale to serve". An old picture of this board beats the generic tldraw logo, so a
+	// version mismatch only shortens the cache lifetime — it never withholds the image or asks for a
+	// render, and the image's age is not consulted at all.
 	it('serves a version-mismatched image as stale with a short TTL, however old it is', async () => {
 		vi.useFakeTimers()
 		vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))

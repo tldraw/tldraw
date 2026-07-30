@@ -72,8 +72,8 @@ describe('OgRenderDebouncer', () => {
 		expect(debouncer.onAlarm(30_000)).toEqual({ render: true })
 	})
 
-	// The behaviour the throttle it replaced could not offer: an isolated burst of editing renders
-	// AFTER the burst, so the thumbnail is of the finished board rather than of its first stroke.
+	// The defining behaviour: an isolated burst of editing renders AFTER the burst, so the thumbnail is
+	// of the finished board rather than of its first stroke.
 	it('renders after the last edit of a burst, not the first', () => {
 		const debouncer = makeDebouncer()
 
@@ -117,9 +117,9 @@ describe('OgRenderDebouncer', () => {
 		expect(debouncer.onAlarm(123_456)).toEqual({ render: true })
 	})
 
-	// The point of arming the alarm on every persist. Mid-session eviction used to cost a second
-	// capture: the alarm was only a lower bound on the deadline, so the revived object rendered early
-	// and then again when editing actually settled. Now the alarm is the deadline, so it doesn't.
+	// The point of arming the alarm on every persist. Because the alarm carries the deadline itself
+	// rather than a lower bound on it, a revived object renders once, at the right time — leave the
+	// alarm behind the deadline and it renders early and then again when editing settles.
 	it('costs no extra render when the object is evicted mid-session', () => {
 		const live = makeDebouncer()
 		let alarmAt = live.onPersist(0)
@@ -149,9 +149,9 @@ describe('OgRenderDebouncer', () => {
 		expect(debouncer.onPersist(100_000)).toBe(130_000)
 	})
 
-	// The cost claim the switch away from a throttle was made on. Ten minutes of unbroken editing is
-	// 76 persists, which a 30s throttle turned into roughly 20 renders (two per window). The debounce
-	// pays only for max-wait expiries plus one trailing render.
+	// The cost claim the design rests on. Ten minutes of unbroken editing is 76 persists, which a 30s
+	// throttle would turn into roughly 20 renders (two per window). The debounce pays only for max-wait
+	// expiries plus one trailing render.
 	it('costs far less than a throttle for a long editing session', () => {
 		const { renders, persists } = simulate({ persistEveryMs: PERSIST, forMs: 10 * 60_000 })
 
@@ -171,8 +171,8 @@ describe('OgRenderDebouncer', () => {
 	})
 
 	// The cost of a durable deadline, stated rather than hidden: one alarm write per persist. What it
-	// buys back is alarm invocations — the alarm no longer fires mid-session just to push itself out,
-	// so a sustained session wakes the object twice instead of ~20 times.
+	// buys back is alarm invocations — the alarm never fires mid-session just to push itself out, so a
+	// sustained session wakes the object twice rather than ~20 times.
 	it('writes one alarm per persist, and wakes the object only to render', () => {
 		const { alarmWrites, alarmFires, persists, renders } = simulate({
 			persistEveryMs: PERSIST,

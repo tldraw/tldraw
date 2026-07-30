@@ -88,14 +88,10 @@ export interface Environment {
 
 	RATE_LIMITER: RateLimit
 	// Rate limit bindings for the Browser Run-backed MCP screenshot tool, declared in wrangler.toml.
-	// All three exist to bound what an agent calling the public MCP endpoint can spend — board
-	// thumbnail rendering is deliberately not subject to any of them, because it is our own derived
-	// artifact rather than caller-driven work. The route falls back to an isolate-local guard when the
-	// bindings are absent (local dev, tests).
-	//
-	// There are three rather than two because a binding carries a single `limit` applied per key, so
-	// two budgets that want different numbers cannot share one however their keys differ. Per-IP and
-	// per-board did share MCP_SCREENSHOT_RATE_LIMITER while both were 2; they no longer are.
+	// All three bound what an agent calling the public MCP endpoint can spend; board thumbnail
+	// rendering is subject to none of them. Separate bindings because a binding carries one `limit`
+	// applied per key, so budgets with different numbers cannot share one. The route falls back to an
+	// isolate-local guard when they are absent (local dev, tests).
 	/** Per-IP `get_shared_board_screenshot` calls. */
 	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
 	/** Per-board Browser Run captures, applied only on cache misses. */
@@ -105,26 +101,17 @@ export interface Environment {
 
 	QUEUE: Queue<QueueMessage>
 
-	// R2 cache for board OG images (`og/…` keys) and their pending-render markers. The key has no
-	// version in it, so each render overwrites the same object in place and a board costs exactly one
-	// object forever. Nothing here accumulates and nothing deletes a rendered image — a board keeps its
-	// thumbnail even after it stops being public, so an owner-facing surface behind authz can use it,
-	// while the public OG route re-checks the share gate on every request. No expiration rule.
+	// R2 cache for board OG images (`og/…` keys), their pending-render markers and render token
+	// records. None of those keys carry a version, so a board costs one object per key however often it
+	// re-renders, nothing accumulates, and the bucket must have NO expiration rule — the current
+	// thumbnail has to outlive any lifecycle window.
 	// Optional so tests and unconfigured environments degrade to cacheless rendering.
 	THUMBNAILS: R2Bucket | undefined
 
-	// R2 storage for MCP tool output (`mcp/…` keys today, which are screenshots). Its own bucket rather
-	// than a prefix inside THUMBNAILS for two reasons:
-	//
-	// - Domain. This is where the MCP surface puts what it produces, and that won't stay limited to
-	//   board thumbnails. Keying it to the tool rather than to the artifact means the next MCP output
-	//   type lands somewhere that already fits, instead of accreting inside a bucket named for
-	//   something it isn't.
-	// - Retention. These keys include the board's content version, so every edit strands the previous
-	//   object and the set grows without bound. The bucket carries an expiration lifecycle rule to age
-	//   them out (see the ops setup in browser-run-thumbnails.md), which would be actively wrong
-	//   applied to THUMBNAILS, where the single per-board object must live as long as the board does.
-	//
+	// R2 storage for MCP tool output (`mcp/…` keys, screenshots today). Its own bucket rather than a
+	// prefix inside THUMBNAILS because these keys include the board's content version, so the set grows
+	// without bound and needs the expiration rule that would be actively wrong on THUMBNAILS. See "Why
+	// two buckets" in browser-run-thumbnails.md.
 	// Optional on the same terms as THUMBNAILS.
 	MCP_SCREENSHOTS: R2Bucket | undefined
 
@@ -201,17 +188,15 @@ export type TLServerEvent =
 			type: 'persist_success'
 			attempts: number
 			/**
-			 * Whether this board is link-shared, and therefore whether editing it costs a thumbnail
-			 * render. The shared fraction of *actively edited* boards is what sizes thumbnail spend, and
-			 * nothing else can answer it: Postgres knows which files are shared but not which are being
-			 * edited, and the durable object id this event is indexed on is deliberately one-way, so the
-			 * dataset cannot be joined back to a file row. Recording the flag here sidesteps both.
+			 * Whether this board is link-shared. The shared fraction of *actively edited* boards is what
+			 * sizes thumbnail spend, and nothing else can answer it: Postgres knows which files are shared
+			 * but not which are being edited, and this event's index is one-way, so the dataset cannot be
+			 * joined back to a file row.
 			 *
-			 * `unknown` is an app file whose record has not loaded yet; `legacy` is a non-app room, which
-			 * has no shareable board identity; `deleted` is an app file whose record has been deleted.
-			 * All three are kept distinct from `private` so the denominator stays honest — and the value
-			 * is computed by the same method that gates the render (`getBoardRenderState`), so a state
-			 * that never renders can never be reported as one that does.
+			 * `unknown` is an app file whose record has not loaded yet; `legacy` a non-app room, which has
+			 * no shareable board identity; `deleted` an app file whose record has been deleted. All three
+			 * stay distinct from `private` so the denominator is honest, and all are computed by
+			 * `getBoardRenderState`, which is also what gates the render.
 			 */
 			sharedState: 'shared' | 'private' | 'unknown' | 'legacy' | 'deleted'
 	  }
@@ -275,8 +260,20 @@ export interface AssetUploadQueueMessage {
  */
 export type ThumbnailBoardKind = 'published' | 'shared_file'
 
+/**
+ * Which board, in which namespace. Everything that keys, enqueues, or cleans up a thumbnail takes
+ * this and nothing more — the pair is what a cache key is built from, so a function that took only a
+ * slug could silently address the wrong board's image.
+ */
+export interface ThumbnailBoardRef {
+	kind: ThumbnailBoardKind
+	slug: string
+}
+
 // What prompted a board thumbnail render. Purely telemetry — every trigger is treated identically by
-// the consumer — so renders can be attributed to the thing that asked for them.
+// the consumer — so renders can be attributed to the thing that asked for them. `publish` and `edit`
+// are the two producers; `crawler` is reachable only as the fallback for a queued message that
+// carries no reason of its own.
 export type OgImageRenderReason = 'crawler' | 'publish' | 'edit'
 
 // Asks the queue consumer to render a board's OG image through Browser Run and refresh the R2
@@ -286,7 +283,7 @@ export interface OgImageRenderQueueMessage {
 	type: 'og-image-render'
 	kind: ThumbnailBoardKind
 	slug: string
-	// Absent on messages enqueued before this field existed, which are all crawler misses.
+	// Optional only because a message may already be in the queue without one; every producer sets it.
 	reason?: OgImageRenderReason
 }
 

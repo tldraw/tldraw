@@ -331,10 +331,10 @@ binding = "USER_DO_SNAPSHOTS"
 bucket_name = "user-do-snapshots"
 
 #################### Thumbnails R2 bucket ####################
-# cache for board thumbnails / OG images (`og/…` keys) plus their pending-render markers. One object
-# per board, overwritten in place on every render and deleted when the board stops being public, so
-# nothing accumulates here and the bucket has NO expiration rule — the current thumbnail should
-# outlive any lifecycle window.
+# cache for board thumbnails / OG images (`og/…` keys) plus their pending-render markers and render
+# token records. No key carries a version, so nothing accumulates here, and the bucket has NO
+# expiration rule — the current thumbnail has to outlive any lifecycle window. See "Why two buckets"
+# in apps/dotcom/browser-run-thumbnails.md.
 # in dev, we write to the preview bucket and need a `preview_bucket_name`
 [[env.dev.r2_buckets]]
 binding = "THUMBNAILS"
@@ -356,10 +356,9 @@ binding = "THUMBNAILS"
 bucket_name = "thumbnails"
 
 #################### MCP screenshots R2 bucket ####################
-# cache for MCP tool screenshots (`mcp/…` keys). Separate from THUMBNAILS because the retention
-# semantics are opposite: this key includes the board's content version, so every edit strands the
-# previous object and the set grows without bound. These buckets carry an expiration lifecycle rule
-# (see the ops setup in browser-run-thumbnails.md) that would be actively wrong on the OG bucket.
+# cache for MCP tool screenshots (`mcp/…` keys). Separate from THUMBNAILS because the retention is the
+# opposite: this key includes the board's content version, so every edit strands the previous object.
+# These buckets carry an expiration lifecycle rule (see the ops setup in browser-run-thumbnails.md).
 [[env.dev.r2_buckets]]
 binding = "MCP_SCREENSHOTS"
 bucket_name = "mcp-screenshots-preview"
@@ -508,8 +507,9 @@ namespace_id = "1004"
 simple = { limit = 600, period = 60 }
 
 # MCP screenshot per-IP request guard.
-# A binding carries one `limit` applied per key, so per-IP and per-board need separate bindings to
-# hold different numbers — they shared this one while both were 2. `period` must be 10 or 60.
+# A binding carries one `limit` applied per key, so per-IP and per-board need separate bindings to hold
+# different numbers. `period` must be 10 or 60. Keep these in step with the fallback constants in
+# sharedBoardScreenshotMcp.ts, which are all that unit tests can see.
 [[env.dev.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"

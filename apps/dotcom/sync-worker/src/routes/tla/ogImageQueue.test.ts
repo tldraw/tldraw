@@ -63,8 +63,9 @@ describe('enqueueOgImageRender', () => {
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ THUMBNAILS: bucket })
 
-		const first = await enqueueOgImageRender(env, { kind: 'published', slug: 'board' })
-		const second = await enqueueOgImageRender(env, { kind: 'published', slug: 'board' })
+		const board = { kind: 'published', slug: 'board' } as const
+		const first = await enqueueOgImageRender(env, board, { reason: 'publish' })
+		const second = await enqueueOgImageRender(env, board, { reason: 'publish' })
 
 		expect(first).toBe('enqueued')
 		expect(second).toBe('already_pending')
@@ -72,15 +73,15 @@ describe('enqueueOgImageRender', () => {
 			type: 'og-image-render',
 			kind: 'published',
 			slug: 'board',
-			reason: 'crawler',
+			reason: 'publish',
 		})
 	})
 
 	it('reports unavailable when the thumbnails bucket is not configured', async () => {
 		const env = makeEnv({ THUMBNAILS: undefined })
-		expect(await enqueueOgImageRender(env, { kind: 'published', slug: 'board' })).toBe(
-			'unavailable'
-		)
+		expect(
+			await enqueueOgImageRender(env, { kind: 'published', slug: 'board' }, { reason: 'publish' })
+		).toBe('unavailable')
 	})
 
 	it('tags the message with the trigger that asked for the render', async () => {
@@ -101,7 +102,8 @@ describe('enqueueOgImageRender', () => {
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ THUMBNAILS: bucket })
 
-		expect(await enqueueOgImageRender(env, { kind: 'shared_file', slug: 'board' })).toBe('enqueued')
+		const board = { kind: 'shared_file', slug: 'board' } as const
+		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
 
 		const marker = [...bucket.store.entries()].find(([key]) => key.endsWith('.pending'))!
 		expect(Number(marker[1].customMetadata!.expiresAt)).toBe(
@@ -110,13 +112,11 @@ describe('enqueueOgImageRender', () => {
 
 		// Every persist inside the window asks again and is deduped away.
 		vi.setSystemTime(new Date('2026-01-01T00:01:59Z'))
-		expect(await enqueueOgImageRender(env, { kind: 'shared_file', slug: 'board' })).toBe(
-			'already_pending'
-		)
+		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('already_pending')
 
 		// Once it lapses, the next edit gets a fresh render.
 		vi.setSystemTime(new Date('2026-01-01T00:02:01Z'))
-		expect(await enqueueOgImageRender(env, { kind: 'shared_file', slug: 'board' })).toBe('enqueued')
+		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
 	})
 })
 
@@ -154,7 +154,7 @@ describe('deleteOgImage vs clearOgImagePendingMarker', () => {
 		const board = { kind: 'published', slug: 'published-slug' } as const
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ THUMBNAILS: bucket })
-		await enqueueOgImageRender(env, board)
+		await enqueueOgImageRender(env, board, { reason: 'publish' })
 		await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer)
 
 		await deleteOgImage(env, board)
@@ -187,14 +187,14 @@ describe('clearOgImagePendingMarker', () => {
 		const board = { kind: 'shared_file', slug: 'board' } as const
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ THUMBNAILS: bucket })
-		await enqueueOgImageRender(env, board)
+		await enqueueOgImageRender(env, board, { reason: 'edit' })
 		await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer)
 
 		await clearOgImagePendingMarker(env, board)
 
 		expect([...bucket.store.keys()]).toEqual([getOgImageCacheKey(board)])
 		// With the marker gone, the next enqueue is not deduped away.
-		expect(await enqueueOgImageRender(env, board)).toBe('enqueued')
+		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
 	})
 })
 
@@ -320,7 +320,7 @@ describe('handleOgImageRenderMessage', () => {
 	})
 
 	// A read failure mid-render is transient as far as this handler can tell, so the delivery retries.
-	// The retry re-resolves and renders: going private is no longer a reason not to render a board.
+	// The retry re-resolves and renders, because a board going private is not a reason to skip it.
 	it('retries a read failure, then renders on the retry even if the board went private', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'shared-file',
@@ -404,8 +404,8 @@ describe('handleOgImageRenderMessage', () => {
 	})
 
 	// Deletion is terminal in a way privacy is not: no number of retries brings the board back, and a
-	// deleted board has nothing worth depicting. The job is acked without spending Browser Run, and
-	// whatever image it already had is kept — nothing deletes a rendered thumbnail any more.
+	// deleted board has nothing worth depicting. The job is acked without spending Browser Run, and the
+	// image it already had is kept, since only an unpublish deletes one.
 	it('drops the job without rendering when the board is deleted, keeping its image', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'deleted-file',
@@ -420,7 +420,7 @@ describe('handleOgImageRenderMessage', () => {
 		})
 		// A marker from the enqueue that raced the unshare; it must not outlive the dropped job, or the
 		// next reshare's enqueue is deduped away against a render that never happened.
-		await enqueueOgImageRender(makeEnv({ THUMBNAILS: bucket }), board)
+		await enqueueOgImageRender(makeEnv({ THUMBNAILS: bucket }), board, { reason: 'edit' })
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(), THUMBNAILS: bucket })
 		const message = makeMessage(board)
 
@@ -492,9 +492,8 @@ describe('handleOgImageRenderMessage', () => {
 	})
 
 	// Browser Run answers 422 for a crashed page, an out-of-memory render and every one of its timers
-	// alike, so the reason code has to come from the response body. Before this the status was all the
-	// worker kept, every one of those failures was filed as `browser_failed`, and the dashboard's
-	// timeout rate was structurally always zero.
+	// alike, so the reason code has to come from the response body. Classify on the status alone and
+	// every timeout files as `browser_failed`, leaving the dashboard's timeout rate structurally zero.
 	it('classifies a Browser Run timeout from the response body, not the status', async () => {
 		const reported = vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
@@ -551,9 +550,9 @@ describe('handleOgImageRenderMessage', () => {
 		expect(failureBlobsOf(env)).toEqual(['failure:browser_failed'])
 	})
 
-	// A failed capture created a browser and held it, sometimes for the whole 45s timeout. Recording
-	// -1 there — as every failure used to — understated what an uncapped render path costs, which is
-	// the one number the "no global cap" design leans on watching.
+	// A failed capture created a browser and held it, sometimes for the whole 45s timeout. Recording -1
+	// there would understate what an uncapped render path costs, which is the one number the "no global
+	// cap" design leans on watching.
 	it('records the Browser Run time a failed render spent, and none where it spent none', async () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({

@@ -17,8 +17,8 @@ Rendering runs through the Browser Rendering `/screenshot` Quick Action, invoked
 1. A client calls `get_shared_board_screenshot` with a board id — the `:slug` of a published board (`https://www.tldraw.com/p/:slug`) or of an anonymously-shared file (`https://www.tldraw.com/f/:slug`) — a 0-based `page` ordinal (default 0), and an optional theme (default light). It usually calls `get_board_info` first to discover the board's pages.
 2. The sync worker resolves the id as a shared file first and as a published-board slug second, so callers never need to know which kind of board they hold. Shared files resolve the id directly as the `file.id` (`getSharedFileInfo`) and must pass the same anonymous-view gate the live file room enforces: the file exists, is not deleted, and is `shared` via link (`isFileAnonymouslyViewable`). `sharedLinkType` (`view` vs `edit`) is irrelevant to viewing; test-slug files are refused because they require admin auth the anonymous tool never has. Published boards resolve through the `file` row (`getPublishedFileInfo`) and must be published. Unknown, unpublished, or private boards fail without spending any Browser Rendering capacity. This is the `access: 'public'` gate; the render path uses a weaker one — see "Rendering every board".
 3. The worker builds a per-page R2 cache key from board identity, a content version, the fixed 1200x630 output size, theme, and the page ordinal (`mcp/{kind}/{slug}/{version}/1200x630/{theme}/page-{n}.png`), with the page name in object metadata. The version is the file's `lastPublished` for published boards and the persisted room snapshot's R2 etag for shared files, so republishing or editing rotates every page's key. A cache hit in the `THUMBNAILS` bucket returns immediately — without even loading the board snapshot, since the ordinal alone keys the object and the page name rides in its metadata.
-4. On a miss, the worker loads the board's room snapshot to resolve the ordinal to a real page (its `TLPageId` and name) and to validate the range, then mints an HMAC-signed render token (`renderTokens.ts`) carrying the board identity, that `pageId`, and render parameters with a 5 minute expiry. Page enumeration is capped at `MAX_THUMBNAIL_PAGES` (40), so `pageCount` and the addressable ordinals stop there on very large boards. The snapshot route re-checks that `pageId` still exists at render time: a page deleted inside the token's window fails the render rather than returning a different page's image under the original page's name.
-5. The worker calls the Browser Rendering `/screenshot` Quick Action through `env.BROWSER.quickAction`, targeting `{MCP_SCREENSHOT_RENDER_ORIGIN}/__thumbnail-render?token=...`. The render page (`apps/dotcom/client/src/pages/thumbnail-render.tsx`) exchanges the token for snapshot data at `GET /api/app/thumbnail-render/snapshot`, which verifies the signature and expiry before returning records, schema, and render params. Published boards read a frozen R2 snapshot; shared files read the live persisted room snapshot from R2 (`env.ROOMS`) and re-check the share gate here, not just when the token was minted, so a board un-shared during the token's 5 minute window stops resolving. The page selects the requested `pageId`, content-fits it with margins once fonts and image assets have settled, exports it with `editor.toImage`, and then displays that PNG as a full-viewport `<img>` and sets `data-thumbnail-ready` — so the screenshot captures the exact export rather than the live editor canvas. Any failure (bad token, snapshot load, export, image decode) sets `data-thumbnail-error` instead. The Quick Action waits for _either_ terminal marker and captures `body[data-thumbnail-ready="true"]`, which only exists on the success path — so a failed render returns as soon as it errors rather than holding Browser Run capacity for the whole timeout. The render and settle budgets (`THUMBNAIL_RENDER_TIMEOUT_MS` 45s, `THUMBNAIL_SETTLE_TIMEOUT_MS` 10s) live in `@tldraw/dotcom-shared` so the worker's deadline and the page's can't drift.
+4. On a miss, the worker loads the board's room snapshot to resolve the ordinal to a real page (its `TLPageId` and name) and to validate the range, then mints an HMAC-signed render token (`renderTokens.ts`) carrying the board identity, that `pageId`, and render parameters, expiring in `THUMBNAIL_RENDER_TOKEN_TTL_MS` (60s). Page enumeration is capped at `MAX_THUMBNAIL_PAGES` (40), so `pageCount` and the addressable ordinals stop there on very large boards. The snapshot route re-checks that `pageId` still exists at render time: a page deleted inside the token's window fails the render rather than returning a different page's image under the original page's name.
+5. The worker calls the Browser Rendering `/screenshot` Quick Action through `env.BROWSER.quickAction`, targeting `{MCP_SCREENSHOT_RENDER_ORIGIN}/__thumbnail-render?token=...`. The render page (`apps/dotcom/client/src/pages/thumbnail-render.tsx`) exchanges the token for snapshot data at `GET /api/app/thumbnail-render/snapshot`, which verifies the signature and expiry before returning records, schema, and render params. Published boards read a frozen R2 snapshot; shared files read the live persisted room snapshot from R2 (`env.ROOMS`) and re-check their gate here, not just when the token was minted, so a board deleted during the token's window stops resolving. The page selects the requested `pageId`, content-fits it with margins once fonts and image assets have settled, exports it with `editor.toImage`, and then displays that PNG as a full-viewport `<img>` and sets `data-thumbnail-ready` — so the screenshot captures the exact export rather than the live editor canvas. Any failure (bad token, snapshot load, export, image decode) sets `data-thumbnail-error` instead. The Quick Action waits for _either_ terminal marker and captures `body[data-thumbnail-ready="true"]`, which only exists on the success path — so a failed render returns as soon as it errors rather than holding Browser Run capacity for the whole timeout. The render and settle budgets (`THUMBNAIL_RENDER_TIMEOUT_MS` 45s, `THUMBNAIL_SETTLE_TIMEOUT_MS` 10s) live in `@tldraw/dotcom-shared` so the worker's deadline and the page's can't drift.
 6. The screenshot response body is the PNG bytes. The worker writes them to the page's cache key in R2 (for future hits) and returns two MCP content items: a text item with the page name, followed by the image.
 
 ### OG images (queue-backed async rendering)
@@ -34,7 +34,7 @@ The route is registered with `.all`, because crawlers probe with HEAD before (or
 
 **It does not enqueue a render on a miss, and it has no rate limiting.** It used to do both. The enqueue was pointless in the way that matters: unfurl platforms resolve a URL's card once and reuse it for every repost, so the crawler that triggered the render has already cached the default by the time the render lands — a viral link can be fetched once and shown thousands of times, and none of those views come back here. The render was real work whose result nobody fetched. Making the image exist _before_ the board is ever shared is the job of the publish and edit triggers below, not of the request that discovers it missing. With the enqueue gone, the per-board limit and the one-hour minimum refresh age that bounded it went too, along with `getOgImageAge`.
 
-3. The queue consumer (`ogImageQueue.ts`, dispatched from the worker's `queue()` handler) re-resolves the board at render time: a board un-shared while queued is dropped without rendering (its image is kept — see "Nothing deletes a rendered image" below), and the version is re-read so bursts of enqueues coalesce into one capture of the newest content. It loads the snapshot to pick the first page that _has content_ (so a board with an empty first page still unfurls with a meaningful image), mints a render token with `camera: 'content'` and that `pageId`, screenshots it through the same `env.BROWSER.quickAction` path as the MCP tool, and writes the PNG to the cache key the route reads. If the snapshot can't be read it fails there and then rather than paying for a capture that would fail on the render page for the same reason. Genuine transient failures retry up to three times with backoff, then drop. There is no capacity check: thumbnail rendering is uncapped (see "Request limits").
+3. The queue consumer (`ogImageQueue.ts`, dispatched from the worker's `queue()` handler) re-resolves the board at render time under `access: 'render'`: a board deleted or unpublished while queued is dropped without rendering, an unshared one still renders (see "Rendering every board"), and the version is re-read so bursts of enqueues coalesce into one capture of the newest content. It loads the snapshot to pick the first page that _has content_ (so a board with an empty first page still unfurls with a meaningful image), mints a render token with `camera: 'content'` and that `pageId`, screenshots it through the same `env.BROWSER.quickAction` path as the MCP tool, and writes the PNG to the cache key the route reads. If the snapshot can't be read it fails there and then rather than paying for a capture that would fail on the render page for the same reason. Genuine transient failures retry up to three times with backoff, then drop. There is no capacity check: thumbnail rendering is uncapped (see "Request limits").
 
 #### Default-image fallback
 
@@ -42,10 +42,10 @@ A board with no usable cached image is served the site-wide default (`/social-og
 
 ### Keeping the thumbnail current
 
-Rendering on crawler demand alone means the first share of a board is always the cold one. Three triggers ahead of the crawler close that gap, all of them enqueueing onto the same queue and consumer, and all of them subject to the same re-resolve, version check, and share gate at render time. Every queue message carries a `reason` (`crawler`, `publish`, `edit`) that rides through to telemetry.
+Nothing renders on crawler demand any more, so a board's thumbnail has to exist before its first share. Two triggers make that happen, both enqueueing onto the same queue and consumer, and both subject to the same re-resolve and version check at render time. Every queue message carries a `reason` (`publish`, `edit`) that rides through to telemetry; `crawler` survives in the union only as the fallback for messages enqueued before the field existed.
 
 - **Publish.** The `publish` effect in `TLPostgresReplicator` enqueues a render right after `publishSnapshot` writes the frozen R2 snapshot, so a published board's image is being made before its link is pasted anywhere. `unpublish` deletes the cached image and pending marker instead, and a new `unshare` effect (`shared` true → false in `getEffects`) does the same for shared files — edit-triggered rendering covers many more boards than crawler demand did, so lingering images need a real cleanup path rather than waiting for a queue message to happen to process.
-- **On edit.** `TLFileDurableObject.persistToDatabase` schedules a render on a persist that actually advanced the document clock. The only gate is the share check: the file record says `shared` (an unknown record proceeds; the consumer's resolve will drop it). There is no sampling and no staleness window — a persist means the board's saved content genuinely differs from what the cached thumbnail shows, which is exactly when a re-render is warranted.
+- **On edit.** `TLFileDurableObject.persistToDatabase` schedules a render on a persist that actually advanced the document clock. The only states that skip are `legacy` and `deleted` (see "Rendering every board"); shared and private boards both render. There is no sampling and no staleness window — a persist means the board's saved content genuinely differs from what the cached thumbnail shows, which is exactly when a re-render is warranted.
 
   **The ask is debounced, not throttled.** Each persist pushes the render deadline out by `OG_RENDER_DEBOUNCE_MS` (30s), so a board renders once its editing _settles_ rather than on a cadence while it is still being drawn on — which is what a thumbnail is for. `OG_RENDER_MAX_WAIT_MS` (5 minutes), measured from the first persist since the last render, stops a board that is never left alone from never rendering. The arithmetic lives in `utils/ogRenderDebounce.ts` so it is testable without standing up a durable object; the object supplies the clock and the alarm.
 
@@ -76,11 +76,11 @@ Sizing what remains: Browser Run allows 60 new browser instances per minute per 
 
 ### Request limits
 
-Thumbnail rendering has **no global cap**, deliberately. It is our own derived artifact, triggered by things that already happened (a publish, an edit persisting, a crawler arriving) rather than by anything a caller can drive, so a global rate limiter there would only ever mean "serve a stale thumbnail to save a render we intend to do anyway". The queue consumer performs no capacity check at all.
+Thumbnail rendering has **no global cap**, deliberately. It is our own derived artifact, triggered by things that already happened (a publish, an edit persisting) rather than by anything a caller can drive, so a global rate limiter there would only ever mean "serve a stale thumbnail to save a render we intend to do anyway". The queue consumer performs no capacity check at all.
 
 What bounds it instead is per-board: the render debounce in front of the edit trigger (`OG_RENDER_DEBOUNCE_MS`, with `OG_RENDER_MAX_WAIT_MS` as its ceiling). That is a freshness rule rather than a budget — it does not know or care what the rest of the system is spending — so total thumbnail spend scales with the number of boards being edited at once. See "Keeping the thumbnail current" for how it is sized against Browser Run's account limits, which are now the real ceiling.
 
-Worth being explicit that **no per-board mechanism can cap total spend**, because total is `active boards × per-board rate`. Cloudflare's rate limit binding cannot close that gap either: limits are applied per Cloudflare location, so a single global key gives `limit × locations`, not `limit`. (The same caveat applies to the MCP global cap below — `GLOBAL_BROWSER_RUN_RATE_LIMIT = 6` is really 6/min per colo. It bounds a rogue caller, which is its job, but it is not an account-wide spend ceiling.) The levers that actually bound the total are Browser Run's own account limits and raising them.
+Worth being explicit that **no per-board mechanism can cap total spend**, because total is `active boards × per-board rate`. Cloudflare's rate limit binding cannot close that gap either: limits are applied per Cloudflare location, so a single global key gives `limit × locations`, not `limit`. (The same caveat applies to the MCP global cap below — `GLOBAL_BROWSER_RUN_RATE_LIMIT = 20` is really 20/min per colo. It bounds a rogue caller, which is its job, but it is not an account-wide spend ceiling.) The levers that actually bound the total are Browser Run's own account limits and raising them.
 
 The limits below are therefore the **only** rate limiting in the pipeline, and they exist for the **MCP endpoint** specifically — the one Browser Run-spending surface an outside caller can drive directly, where a rogue or looping agent is the threat being bounded. They live in `sharedBoardScreenshotMcp.ts`, not in the shared render core, so a new surface built on those helpers cannot pick one up by accident:
 
@@ -94,7 +94,7 @@ That gap is only expressible because each budget has **its own binding**. A bind
 
 Two things to know when changing any of these. The numbers live in **two places that must move together** — the constants in `sharedBoardScreenshotMcp.ts` are only the isolate-local fallback for local dev and tests, and every deployed environment is governed by the Cloudflare binding in `wrangler.toml`, so editing one alone changes nothing where it matters. Unit tests run with no bindings at all, so they pin the fallback constants and can never catch a wrong or shared binding; `wrangler.toml` is the only place to check that. And `period` in those bindings [must be either 10 or 60 seconds](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/) — that restriction is on the window, not on `limit`, which is an unconstrained integer. All of these use `period = 60`.
 
-Only the calls that actually spend Browser Run are limited. `get_board_info` is not: it resolves a board and reads its snapshot, which is the same work the ordinary board routes already do for anyone. It previously held its own per-IP budget (`ip-info:`), kept separate from the screenshot one so the usual "list once, then screenshot pages" flow could not burn its allowance on the free call; that budget is now simply absent. The OG image route's per-board limit (`og-board:`) is gone too, along with the route's enqueue — see "Serving OG images" above.
+Only the calls that actually spend Browser Run are limited. `get_board_info` is not: it resolves a board and reads its snapshot, which is the same work the ordinary board routes already do for anyone. It previously held its own per-IP budget (`ip-info:`), kept separate from the screenshot one so the usual "list once, then screenshot pages" flow could not burn its allowance on the free call; that budget is now simply absent. The OG image route's per-board limit (`og-board:`) is gone too, along with the route's enqueue — see "OG images (queue-backed async rendering)" above.
 
 The Cloudflare rate limit bindings are declared in `wrangler.toml` for every environment. When a binding is absent (local dev, tests) the route falls back to an isolate-local guard with the same limits. Changing the global cap means moving the `MCP_SCREENSHOT_BROWSER_RATE_LIMITER` bindings in `wrangler.toml` (one per environment) and the isolate-local fallback constant `GLOBAL_BROWSER_RUN_RATE_LIMIT` in `sharedBoardScreenshotMcp.ts` together.
 
@@ -110,11 +110,9 @@ The index is stamped centrally in `writeEvent` for every file DO event, not per 
 
 It is the durable object id rather than the board slug on purpose: `idFromName` is one-way, and for an app file the slug _is_ the authority of `tldraw.com/f/<id>`, so writing it to an account-readable dataset exported to Grafana would put working capabilities in telemetry. Resolving in the useful direction still works from a slug you already hold, via `env.TLDR_DOC.idFromName('/r/' + slug)`.
 
-Both datasets index on that same id, which is what makes the two joinable — `mcp_shared_board_screenshot` rows for a board line up with its `persist_success` rows, so renders-per-persist is a real per-board number rather than two aggregate counts divided by each other. The screenshot surfaces compute it through `getRoomDurableObjectId`, the same helper `getRoomDurableObject` addresses the room with, so the two derivations cannot drift.
+Only `persist_success` carries that index. The screenshot events deliberately carry none (see "No board identifier leaves this pipeline"), so the two datasets cannot be joined and renders-per-persist is two aggregate counts divided by each other rather than a per-board number.
 
-The subtlety worth knowing when adding a surface: it must be computed from the **file id**, never from the slug the request came in on. For a shared file those are the same string, but a published board's slug is its _published_ slug, which addresses no durable object — `idFromName` would happily hash it into a well-formed id that joins to nothing. `ResolvedThumbnailBoard` carries `fileId` alongside `slug` for exactly this reason; pass that.
-
-That one-way-ness is also why `sharedState` has to be recorded at write time rather than recovered later: the dataset cannot be joined back to a file row. Postgres could not answer it anyway — it knows which files are shared, not which are being edited. See "Open questions".
+The one-way-ness is also why `sharedState` has to be recorded at write time rather than recovered later: the dataset cannot be joined back to a file row. Postgres could not answer it anyway — it knows which files are shared, not which are being edited. See "Open questions".
 
 Bounded reason codes say _that_ a board stopped rendering, never _why_, and every one of these surfaces deliberately swallows its own errors (the OG route falls back to the default image, the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops). So each swallow point also reports the underlying error to Sentry through `reportThumbnailError` (`thumbnailShared.ts`), tagged `thumbnail_surface` with a closed set of values: `og_route`, `og_queue`, `thumbnail_snapshot`, `mcp_board_info`, `mcp_screenshot`. Reporting rides on the handler's `waitUntil` and is itself failure-proof — a missing Sentry env var must never turn a degraded-but-fine response into a 500.
 
@@ -128,7 +126,7 @@ Three routes out, and the third was the sharp one:
 - **Sentry extras** carried raw `slug`/`boardId` at six call sites, then briefly a derived id. They now carry neither — only `kind`, `prefix`, `page`, `theme`, `attempts` and the like.
 - **The request object** is no longer handed to `createSentry` at all. It passes one straight to Toucan with `allowedSearchParams: /(.*)/`, which records the full URL and every query parameter — and on these routes the URL is the sensitive part. `/app/social-preview/f/<id>/image` carries a link-shared file's id in its path, and `/api/app/thumbnail-render/snapshot?token=…` carries a signed render token, which is a live capability to read that board's entire snapshot until it expires. `reportThumbnailError` now takes only the method and user agent from the request; the `thumbnail_surface` tag already says which endpoint it was.
 
-`TLFileDurableObject`'s render log had the same issue and now logs `this.ctx.id`, which is exactly what `getRoomDurableObjectId` derives — the joinable id without the slug.
+`TLFileDurableObject`'s render log had the same issue and now logs only the enqueue result — no slug and no derived id.
 
 #### Reading a Browser Run failure
 
@@ -188,6 +186,9 @@ Both key spaces used to live in `thumbnails`, separated only by prefix. They are
 - **Domain.** `MCP_SCREENSHOTS` is where the MCP surface puts what it produces, and that won't stay limited to board thumbnails. Keying the bucket to the tool rather than to the artifact means the next MCP output type lands somewhere that already fits, instead of accreting inside a bucket named for something it isn't.
 - **Retention.** The two caches want opposite lifetimes:
   - **`og/…`** keys carry no version, so each render overwrites the same object in place and a board costs exactly one object for as long as it exists. Nothing accumulates and nothing deletes one, and the current thumbnail must outlive any lifecycle window — so `THUMBNAILS` gets **no expiration rule**.
+  - **`mcp/…`** keys include the board's content version (`mcp/{kind}/{slug}/{version}/{w}x{h}/{theme}/page-{n}.png`), so every edit strands the previous object and the set grows without bound. A pure regenerable cache, so `MCP_SCREENSHOTS` gets an **expiration rule**.
+
+A prefix-scoped lifecycle rule on a single bucket would also work (`wrangler r2 bucket lifecycle add` takes a prefix positionally), and has the nice property of ageing out the existing backlog in place. It was rejected because a future rule added without a prefix, or with a typo'd one, would silently delete every board's live thumbnail, and R2 expiration has no undo. Separate buckets make that mistake impossible.
 
 #### Nothing deletes a rendered image
 
@@ -198,7 +199,7 @@ Whether an image is deleted when a board stops being publicly viewable depends o
 
 The queue consumer applies the same rule when it drops a job for a board that no longer resolves.
 
-For the file-keyed half, the reasoning is: The reasoning was that an unshared board's thumbnail is a copy of content that is no longer public, but the image is not public because it exists, it is public because a route serves it — and the only route that does re-checks the share gate on every request (`resolveThumbnailBoard` in `getOgImage`). An unshared board's image is already unreachable while it sits in R2.
+The argument for keeping the file-keyed half: an unshared board's thumbnail does depict content that is no longer public, but the image is not public because it exists — it is public because a route serves it, and the only route that does re-checks the share gate on every request (`resolveThumbnailBoard` in `getOgImage`). An unshared board's image is already unreachable while it sits in R2.
 
 Keeping it means an owner-facing surface behind authz — a workspace or project view showing every board's thumbnail — can use the image a board already has, instead of it having been thrown away the moment the board went private. The `og/…` keys carry no version, so retaining them costs one object per board and does not accumulate.
 
@@ -235,11 +236,9 @@ Still worth doing when the authenticated retrieval endpoint lands: serving the r
 
 Cost in Browser Run terms is not the constraint. The sizing here assumed ~30% of edited boards are link-shared, so rendering all of them is roughly 3.3x the previous volume — about 3 renders/min against measured production traffic of ~1/min and an account limit of 60/min.
 
-- **`mcp/…`** keys include the board's content version (`mcp/{kind}/{slug}/{version}/{w}x{h}/{theme}/page-{n}.png`), so every edit strands the previous object and the set grows without bound. A pure regenerable cache, so `MCP_SCREENSHOTS` gets an **expiration rule**.
+### One-time ops setup
 
-A prefix-scoped lifecycle rule on a single bucket would also work (`wrangler r2 bucket lifecycle add` takes a prefix positionally), and has the nice property of ageing out the existing backlog in place. It was rejected because a future rule added without a prefix, or with a typo'd one, would silently delete every board's live thumbnail, and R2 expiration has no undo. Separate buckets make that mistake impossible.
-
-One-time ops setup before the first deploy of this feature:
+Before the first deploy of this feature:
 
 1. Create the R2 buckets:
 
@@ -363,7 +362,6 @@ flowchart TB
     end
 
     SP -->|og:image references| OGR
-    OGR -->|stale / missing → enqueue| QC
     PUB -->|reason: publish| QC
     SPEC -->|reason: edit| QC
 
@@ -373,7 +371,7 @@ flowchart TB
 
     GATE --> SNAP2["Load room snapshot<br/>(enumerate pages; board-info returns here)"]
     SNAP2 -->|name, page list| BI
-    SNAP2 --> TOKEN["Mint HMAC render token<br/>(board identity, pageId, 5 min expiry)"]
+    SNAP2 --> TOKEN["Mint HMAC render token<br/>(board identity, pageId, 60s expiry)"]
     TOKEN --> BR["env.BROWSER.quickAction<br/>(navigate → wait data-thumbnail-ready → PNG)"]
 
     BR --> PAGE["/__thumbnail-render (client render page)"]
@@ -420,7 +418,7 @@ Make the thumbnail exist before the first crawler arrives, and make every residu
 | 3. Render on every persist     | the create → draw → share flow and revived old boards | ~1 render per editing session, +1 per 5min of unbroken editing | done        |
 | 4. Hop-1 warming (optional)    | immediate shares, never-edited-again boards           | negligible                                                     | not started |
 
-The existing on-miss enqueue and stale-serve behavior in `getOgImage` remains the universal backstop, unchanged.
+`getOgImage`'s stale-serve behaviour is the residual backstop: a board whose thumbnail is out of date still gets its own picture, on a short TTL, rather than the site-wide default. The on-miss enqueue that used to sit alongside it is gone (see "OG images (queue-backed async rendering)").
 
 ### Beyond OG images
 
@@ -468,7 +466,7 @@ There are two constants to tune, both in `config.ts`. `OG_RENDER_DEBOUNCE_MS` (3
 
 ### Phase 4 (conditional) — hop-1 warming
 
-- `getBoardOgImageUrl` in `getSocialPreview.ts` already resolves the board; add: if no fresh cached image (one R2 `head` plus version compare, extracted from `getOgImage`'s check), `ctx.waitUntil(enqueueOgImageRender(...))`. Thread `ctx` into the route.
+- `getBoardOgImageUrl` in `getSocialPreview.ts` already resolves the board; add: if no fresh cached image (one R2 `head` plus version compare, extracted from `getOgImage`'s check), `ctx.waitUntil(enqueueOgImageRender(env, board, { reason: 'crawler' }))`. Thread `ctx` into the route. This is the one thing that would put `crawler` back in use as a live reason.
 - Ship only if phase-3 telemetry shows first-fetch misses are still meaningful (dormant never-edited boards, mostly — the delay that immediate sharers used to beat is gone).
 
 ### Explicitly not doing

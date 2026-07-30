@@ -2,9 +2,9 @@ import { vi } from 'vitest'
 import { Environment } from '../../types'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
-// sharedBoardScreenshotMcp, ogImageQueue, getOgImage). These were copy-pasted across those files;
-// keep them here so the R2/browser/queue fakes, snapshot builder, and token helpers stay in one
-// place.
+// sharedBoardScreenshotMcp, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
+// and token helpers belong here rather than in any one test file, so that all four exercise the same
+// stand-ins.
 
 // Builds a room snapshot with the given pages and per-page shape counts. Shapes are parented
 // directly to their page, which is what enumerateBoardPages checks for "has content".
@@ -100,9 +100,8 @@ export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },
 		QUEUE: makeFakeQueue(),
-		// Nothing in the thumbnail pipeline derives a board id any more, so this exists only to make an
-		// accidental reintroduction visible: a legible `do(<name>)` would show up in an assertion rather
-		// than an opaque hash.
+		// Nothing in the thumbnail pipeline derives a board id, and this exists to keep it that way: if
+		// something starts, a legible `do(<name>)` shows up in an assertion rather than an opaque hash.
 		TLDR_DOC: { idFromName: (name: string) => ({ toString: () => `do(${name})` }) },
 		...overrides,
 	} as unknown as Environment
@@ -138,8 +137,8 @@ export function renderDurationsOf(env: Environment): number[] {
 	)
 }
 
-// The index (index1) of every datapoint written. Always `undefined` now — the dataset carries no
-// board identity — so this exists to keep that pinned rather than to read a value out.
+// The index (index1) of every datapoint written. Always `undefined`, since the dataset carries no
+// board identity — this exists to pin that, not to read a value out.
 export function indexesOf(env: Environment): (string | undefined)[] {
 	return (env.MEASURE as any).writeDataPoint.mock.calls.map(
 		(call: any[]) => (call[0].indexes as [string] | undefined)?.[0]

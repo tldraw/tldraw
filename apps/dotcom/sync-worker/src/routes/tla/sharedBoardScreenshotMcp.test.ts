@@ -539,9 +539,9 @@ describe('get_shared_board_screenshot', () => {
 
 	// The cache write happens after the render, so a failure there means we are holding a PNG that
 	// already cost Browser Run capacity and a slot of the caller's rate-limit budget. Returning it is
-	// the only sensible outcome — the cache is an optimization, and the image is exactly what was
-	// asked for. This used to sit in the render's try block, so an R2 outage turned every successful
-	// screenshot into a tool error.
+	// the only sensible outcome — the cache is an optimization, and the image is exactly what was asked
+	// for. Note what this pins: the write must stay outside the render's try block, or an R2 outage
+	// turns every successful screenshot into a tool error.
 	it('returns the screenshot even when the cache write fails', async () => {
 		mockPublishedBoard()
 		const bucket = makeFakeThumbnailsBucket()

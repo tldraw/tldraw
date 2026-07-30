@@ -873,14 +873,12 @@ export class TLFileDurableObject extends DurableObject {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
 
-	// Whether a persist on this board costs a thumbnail render, and why. The single source of truth
-	// for both the gate in `requestOgRenderForEdit` and the `sharedState` blob on `persist_success` —
-	// the telemetry only answers "what fraction of edited boards render?" if it is computed from the
-	// same facts as the decision, so the two must not be able to drift apart.
+	// Whether a persist on this board costs a thumbnail render, and why. The single source of truth for
+	// both the gate in `requestOgRenderForEdit` and the `sharedState` blob on `persist_success`, so the
+	// telemetry cannot report a state that differs from the one the decision was made on.
 	//
-	// `deleted` is its own state rather than folding into `private` or `unknown`: a deleted board
-	// never renders, and counting its persists as either would corrupt the ratio the deploy exists to
-	// measure (`unknown` doubles as the diagnostic for whether that ratio can be trusted at all).
+	// `deleted` is its own state rather than folded into `private` or `unknown`: it never renders, so
+	// counting its persists as either would corrupt the shared fraction this exists to measure.
 	private getBoardRenderState(): 'shared' | 'private' | 'unknown' | 'legacy' | 'deleted' {
 		if (!this.documentInfo.isApp) return 'legacy'
 		if (this.documentInfo.deleted) return 'deleted'
@@ -889,20 +887,9 @@ export class TLFileDurableObject extends DurableObject {
 		return shared ? 'shared' : 'private'
 	}
 
-	// Thumbnail rendering is debounced, not throttled: every persist pushes the render further out, so
-	// a board renders once its editing settles rather than on a cadence while it is still being drawn
-	// on. OG_RENDER_MAX_WAIT_MS caps how long a board that never settles can go without one.
-	//
-	// The durable alarm IS the deadline, not a coarse approximation of one. Every persist re-arms it,
-	// so an evicted object loses the in-memory copy and nothing else: the alarm fires at exactly the
-	// time the debouncer chose, and the render happens once, when it should.
-	//
-	// The alarm used to be left where it was while the deadline moved in memory, which cost one write
-	// per debounce window instead of one per persist. It also meant an evicted object woke to an alarm
-	// that was only a lower bound, rendered early, and rendered again when editing actually settled.
-	// Arming it every time trades storage writes for alarm invocations — the alarm no longer fires
-	// mid-session purely to push itself further out, so a sustained session goes from an invocation
-	// every ~24s to one at the max wait.
+	// Decides when this board's thumbnail is due (see OgRenderDebouncer). This object contributes the
+	// clock and the durable alarm, and the alarm below IS the deadline rather than an approximation of
+	// one: every persist re-arms it, so an eviction loses the in-memory copy and nothing else.
 	private ogRenderDebouncer = new OgRenderDebouncer()
 
 	private scheduleOgRender() {
@@ -944,12 +931,10 @@ export class TLFileDurableObject extends DurableObject {
 	logEvent(event: TLServerEvent) {
 		switch (event.type) {
 			case 'persist_success': {
-				// This event drives thumbnail rendering, so it carries what sizing that costs needs.
-				// `writeEvent` already indexes it on the durable object id, which is what makes distinct
-				// boards countable (`GROUP BY index1` and count the rows — Analytics Engine has no
-				// aggregate for distinct values). `sharedState` supplies the other half: the id is
-				// deliberately one-way, so the shared fraction cannot be recovered by joining back to a
-				// file row and has to be recorded at write time.
+				// This event fires on exactly what triggers a thumbnail render, so it carries what sizing
+				// that spend needs. `writeEvent` already indexes it on the durable object id, which makes
+				// distinct boards countable; `sharedState` is the other half, and has to be recorded here
+				// because the id is one-way and cannot be joined back to a file row.
 				this.writeEvent(event.type, {
 					blobs: [event.sharedState],
 					doubles: [event.attempts],
@@ -1408,9 +1393,9 @@ export class TLFileDurableObject extends DurableObject {
 						this._lastPersistedClock = snapshot.documentClock
 						// The board's content just changed, so its thumbnail is out of date. Push the render
 						// deadline out rather than rendering now: the useful thumbnail is of the settled
-						// board, and a persist mid-session says more edits are probably coming. Synchronous
-						// and allocation-free in the common case (see scheduleOgRender) so it cannot slow a
-						// persist down.
+						// board, and a persist mid-session says more edits are probably coming. Costs one
+						// alarm write per persist, not awaited here (see scheduleOgRender), so a slow or
+						// failed write cannot hold up a persist.
 						this.scheduleOgRender()
 						// Store the clock in DO storage so we can compare against SQLite on next load.
 						if (this.persistenceBad) {
@@ -1450,28 +1435,18 @@ export class TLFileDurableObject extends DurableObject {
 	/**
 	 * Asks for this board's thumbnail to be re-rendered, because the content it depicts just changed.
 	 *
-	 * Called from `alarm()` once the debounce set up by `scheduleOgRender` expires — so this runs after
-	 * editing has settled for OG_RENDER_DEBOUNCE_MS, or after OG_RENDER_MAX_WAIT_MS of unbroken editing,
-	 * whichever comes first. That debounce is what bounds the render rate. Beyond it there is no
-	 * sampling or staleness gate: a persist means the board's saved content genuinely differs from what
-	 * the cached thumbnail shows, which is exactly when a re-render is warranted.
-	 *
-	 * Two further backstops sit downstream, but neither is a rate control: `enqueueOgImageRender`'s
-	 * pending marker suppresses a duplicate ask while one is already queued or rendering (it is cleared
-	 * as soon as the render lands, so it does not impose an interval of its own), and the consumer
-	 * re-checks `(board, version)` before spending a Browser Run slot.
+	 * Called from `alarm()` when the debounce expires, so it runs once editing has settled or the max
+	 * wait is up. That debounce is the render rate control; there is no sampling or staleness gate on
+	 * top, because a persist means the saved content genuinely differs from what the cached thumbnail
+	 * shows. Downstream, the pending marker single-flights the ask and the consumer re-checks
+	 * `(board, version)` before spending a Browser Run slot — neither is a rate control either.
 	 */
 	private async requestOgRenderForEdit() {
 		try {
-			// Every board gets a thumbnail, private ones included, so an owner-facing surface (a workspace
-			// or project view) always has one to show. Sharing is *not* a condition of rendering — it is a
-			// condition of serving, applied by the OG route on every request via
-			// `resolveThumbnailBoard(..., { access: 'public' })`.
-			//
-			// Two states still skip, and neither is about privacy: a legacy room is not an app file and has
-			// no board identity to render, and a deleted one has nothing worth depicting. `shared`,
-			// `private` and `unknown` all proceed — the state is read from the same method that labels
-			// `persist_success`, so the telemetry can never disagree with the decision it reports on.
+			// Two states skip, and neither is about privacy: a legacy room is not an app file and has no
+			// board identity to render, and a deleted one has nothing worth depicting. `shared`, `private`
+			// and `unknown` all proceed — every board gets a thumbnail, so that an owner-facing surface has
+			// one to show. Sharing is a condition of *serving*, re-applied by the OG route per request.
 			const state = this.getBoardRenderState()
 			if (state === 'legacy' || state === 'deleted') return
 
@@ -1481,8 +1456,8 @@ export class TLFileDurableObject extends DurableObject {
 				{ kind: 'shared_file', slug },
 				{ reason: 'edit' }
 			)
-			// No board identifier: the slug is a capability for a shared file, and a derived id is still
-			// a board identity in a log sink. The result alone is what this line is for.
+			// No board identifier: for a shared file the slug is a capability, and a derived id is still a
+			// board identity in a log sink. The result alone is what this line is for.
 			this.log.debug('og render for edit', result)
 		} catch (e) {
 			// Reported, not thrown: this runs off the persist path and must never affect it.

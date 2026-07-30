@@ -474,11 +474,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 							case 'unpublish':
 								return this.unpublishSnapshot(effect.file)
 							case 'unshare':
-								// The image itself is kept — the OG route re-checks the share gate on every
-								// request, so it stops being reachable the moment the file is unshared, and
-								// keeping it means a resharing board (or an owner-facing view behind authz)
-								// starts from the thumbnail it already had. Only the pending marker goes, so a
-								// reshare is not deduped away by a marker left over from before.
+								// Only the marker goes; the image is kept, since it is already unreachable (the
+								// OG route re-checks the gate per request) and a reshare should start from the
+								// thumbnail the board already had. See clearOgImagePendingMarker.
 								return clearOgImagePendingMarker(this.env, {
 									kind: 'shared_file',
 									slug: effect.file.id,
@@ -890,9 +888,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			)
 
 			// The published snapshot is now the content an unfurl would show, so render its OG image
-			// straight away rather than waiting for a crawler to arrive and find a cold cache. Publishing
-			// is an explicit, low-volume act, so this costs about one render per publish. Enqueue failures
-			// are swallowed with the rest of this handler: the crawler-miss path is still the backstop.
+			// straight away rather than leaving the first crawler to find a cold cache. Publishing is an
+			// explicit, low-volume act, so this costs about one render per publish. Enqueue failures are
+			// swallowed with the rest of this handler.
 			await enqueueOgImageRender(
 				this.env,
 				{ kind: 'published', slug: file.publishedSlug },
@@ -909,11 +907,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await this.env.ROOM_SNAPSHOTS.delete(
 				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
 			)
-			// The published thumbnail goes with the published snapshot it depicts. It is keyed on the
-			// published slug rather than the file, so leaving it behind would strand an object that a
-			// regenerated publish link could make permanently unreadable. Scoped to `kind: 'published'`,
-			// so the board's own file-keyed image — the one an owner-facing surface wants, and the one
-			// that makes a later reshare an immediate cache hit — is untouched.
+			// The published thumbnail goes with the published snapshot it depicts. Scoped to
+			// `kind: 'published'`, so the board's own file-keyed image is untouched. See deleteOgImage.
 			await deleteOgImage(this.env, { kind: 'published', slug: file.publishedSlug })
 		} catch (e) {
 			this.log.debug('Error unpublishing snapshot', e)

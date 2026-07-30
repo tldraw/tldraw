@@ -70,8 +70,8 @@ export async function getSocialPreview(request: IRequest, env: Environment): Pro
 // or unpublished boards the image route has nothing of theirs to serve and answers with the site-wide
 // default, so pointing at it would just be an indirection to the image this file names directly.
 // Returning null keeps the static, directly-fetchable one. A board that is public but not yet
-// rendered still resolves here; the route serves the default and enqueues the render on the first
-// crawler hit.
+// rendered still resolves here, and the route serves the default under the board's own URL until a
+// publish or an edit lands the real render.
 async function getBoardOgImageUrl(
 	request: IRequest,
 	env: Environment,

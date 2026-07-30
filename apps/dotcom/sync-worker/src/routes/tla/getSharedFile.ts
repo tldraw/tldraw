@@ -32,13 +32,10 @@ export async function getSharedFileInfo(
 }
 
 /**
- * Whether a file is worth rendering a thumbnail of at all: it exists, is not deleted, and is not a
- * test file. Says nothing about who may *see* that thumbnail — thumbnails are generated for every
- * board, including private ones, so that an owner-facing surface has one to show. Serving is gated
- * separately, at the point of serving.
- *
- * Test-slug files are excluded because reading them requires admin auth, so they have no business
- * being pulled through the render page.
+ * Whether a file is worth rendering a thumbnail of at all: it exists, is not deleted, and is not a test
+ * file (reading one requires admin auth, so it has no business going through the render page). Says
+ * nothing about who may *see* that thumbnail — every board gets one, private ones included, and serving
+ * is gated separately.
  */
 export function isFileRenderable(file: SharedFileInfo | null): file is SharedFileInfo {
 	return !!file && !file.isDeleted && !isTestFile(file.id)
@@ -55,14 +52,26 @@ export function isFileAnonymouslyViewable(file: SharedFileInfo | null): file is 
 }
 
 /**
- * How much of a board a caller is entitled to. `public` is the anonymous gate: the board must be
- * shared via link. `render` is for generating a thumbnail we will store but not necessarily serve
- * publicly, so it only requires that the board exists and has content.
+ * How much of a board a caller is entitled to. `public` is the anonymous gate: the board must be shared
+ * via link. `render` is for generating a thumbnail we will store but not necessarily serve publicly, so
+ * it only requires that the board exists and has content.
  *
- * Required at every call site rather than defaulted, because a default would be the wrong one for
- * half of them and silence is the wrong way to pick a gate.
+ * Required at every call site rather than defaulted: a default would be wrong for half of them, and
+ * silence is the wrong way to pick a gate.
  */
 export type ThumbnailBoardAccess = 'public' | 'render'
+
+/**
+ * Applies the gate an access level asks for. The mapping lives here, once, so that resolving a board
+ * and reading its snapshot cannot end up applying different gates to the same access level — which
+ * would mean a board resolving publicly and then being read under the weaker one.
+ */
+export function isFileViewableFor(
+	file: SharedFileInfo | null,
+	access: ThumbnailBoardAccess
+): file is SharedFileInfo {
+	return access === 'public' ? isFileAnonymouslyViewable(file) : isFileRenderable(file)
+}
 
 // Read the live room snapshot for an app file from R2. Re-checks the caller's gate rather than
 // trusting whatever check happened earlier: a `public` read of a board un-shared since a render
@@ -73,8 +82,9 @@ export async function getSharedFileRoomSnapshot(
 	{ access }: { access: ThumbnailBoardAccess }
 ): Promise<RoomSnapshot | undefined> {
 	const file = await getSharedFileInfo(env, slug)
-	const allowed = access === 'public' ? isFileAnonymouslyViewable(file) : isFileRenderable(file)
-	if (!allowed) throw Error(access === 'public' ? 'not shared' : 'not renderable')
+	if (!isFileViewableFor(file, access)) {
+		throw Error(access === 'public' ? 'not shared' : 'not renderable')
+	}
 
 	return (await env.ROOMS.get(getR2KeyForRoom({ slug, isApp: true })).then((r) => r?.json())) as
 		| RoomSnapshot

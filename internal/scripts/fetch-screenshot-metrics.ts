@@ -169,8 +169,8 @@ async function fetchMetrics(opts: Options): Promise<SourceMetrics[]> {
 	`)
 
 	// double3 is the wall-clock render duration, positive only on rows that actually invoked Browser
-	// Run (cache hits and pre-render failures leave it at -1). It replaces double4 (X-Browser-Ms-Used),
-	// which the BROWSER binding no longer surfaces and is always -1.
+	// Run (cache hits and pre-render failures leave it at -1). It is the spend proxy: double4 holds
+	// billed browser ms, which the BROWSER binding does not surface, so it is always -1.
 	//
 	// Failed captures count here too, deliberately: a render that threw still created a browser and
 	// held it, often for the whole timeout, so excluding it would understate spend by exactly the

@@ -2,6 +2,7 @@ import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotco
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { arrayBufferToBase64 } from '../../utils/base64'
+import { sha256 } from '../../utils/hash'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 import {
 	ResolveThumbnailBoardResult,
@@ -18,7 +19,6 @@ import {
 	classifyScreenshotFailure,
 	describeThumbnailFailure,
 	reportThumbnailError,
-	sha256,
 } from './thumbnailShared'
 
 // The MCP protocol surface over the shared render-and-cache core in thumbnailRender.ts: JSON-RPC
@@ -30,38 +30,24 @@ const BOARD_INFO_TOOL_NAME = 'get_board_info'
 const MCP_PROTOCOL_VERSION = '2024-11-05'
 
 // The only rate limiting anywhere in the thumbnail pipeline, and it lives here rather than in the
-// shared render core (thumbnailRender.ts) so a new surface built on those helpers cannot pick one up
-// by accident. This is the one Browser Run-spending surface an outside caller can drive directly, so
-// a rogue or looping agent is the threat being bounded: per-IP limits stop one caller monopolising
-// it, per-board limits stop one board being hammered, and the global limit bounds what this endpoint
-// as a whole can spend.
+// shared render core so a new surface built on those helpers cannot pick one up by accident. This is
+// the one Browser Run-spending surface an outside caller can drive directly, so a rogue or looping
+// agent is the threat being bounded, and only the calls that actually spend Browser Run are limited —
+// `get_board_info` does the same work the ordinary board routes do for anyone. The global limit is
+// applied per Cloudflare location, so it bounds a caller rather than the account. See "Request limits"
+// in browser-run-thumbnails.md.
 //
-// Only the calls that actually spend Browser Run are limited. `get_board_info` is not: it resolves a
-// board and reads its snapshot, which is the same work the ordinary board routes already do for
-// anyone. Board thumbnail rendering (the OG route and the queue consumer) is not limited either — it
-// is triggered by our own writes rather than by callers, so a cap there would only ever mean serving
-// a stale thumbnail to save a render we intend to do anyway.
-//
-// Note the global limit is applied per Cloudflare location, so it bounds a rogue caller rather than
-// acting as an account-wide ceiling.
-//
-// These constants are only the isolate-local fallback, for local dev and tests. What enforces the
-// limits in every deployed environment is the Cloudflare rate limit bindings in wrangler.toml, so
-// changing a number here without changing the matching binding changes nothing in production. Each
-// budget has its own binding, and the pairs must move together:
+// These constants are only the isolate-local fallback for local dev and tests. Deployed environments
+// are governed by the Cloudflare rate limit bindings in wrangler.toml, so changing a number here alone
+// changes nothing in production. Each budget has its own binding, and the pairs must move together:
 //
 //   PER_IP_RATE_LIMIT              ->  MCP_SCREENSHOT_RATE_LIMITER          (limit = 10)
 //   PER_BOARD_RATE_LIMIT           ->  MCP_SCREENSHOT_BOARD_RATE_LIMITER    (limit = 2)
 //   GLOBAL_BROWSER_RUN_RATE_LIMIT  ->  MCP_SCREENSHOT_BROWSER_RATE_LIMITER  (limit = 20)
-//
-// Three bindings rather than two because a binding carries a single `limit` applied per key: two
-// budgets wanting different numbers cannot share one, however distinct their keys are. Per-IP and
-// per-board did share MCP_SCREENSHOT_RATE_LIMITER while both were 2, which made them look separable
-// when they were not.
 const PER_IP_RATE_LIMIT = 10
-// Deliberately far below the per-IP limit: a caller gets 10 captures a minute, but no single board
-// may absorb more than 2 of them. Cache misses only, so the usual "screenshot several pages of one
-// board" flow is not what this bounds — a repeated capture of the same page is a cache hit.
+// Far below the per-IP limit: a caller gets 10 captures a minute, but no single board may absorb more
+// than 2 of them. Cache misses only, so this does not bound the usual "screenshot several pages of one
+// board" flow — a repeated capture of the same page is a cache hit.
 const PER_BOARD_RATE_LIMIT = 2
 const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
 const GLOBAL_BROWSER_RUN_RATE_LIMIT = 20
@@ -79,8 +65,8 @@ async function isRateLimited(
 	key: string,
 	{ fallbackLimit }: { fallbackLimit: number }
 ): Promise<boolean> {
-	// The mcp- prefix is kept (not renamed) so the deployed Cloudflare rate limit bindings and their
-	// configured buckets stay continuous.
+	// The mcp- prefix is load-bearing: it is what the deployed Cloudflare rate limit bindings have
+	// counted against, so changing it resets every configured bucket.
 	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
 	if (limiter) {
 		const { success } = await limiter.limit({ key: rateLimitKey })
@@ -283,11 +269,7 @@ async function callBoardInfoTool(
 		return toolError(error instanceof Error ? error.message : String(error))
 	}
 
-	// Deliberately not rate limited. The limiters here exist to bound Browser Run, and get_board_info
-	// spends none — it resolves the board and reads its snapshot, the same work the ordinary board
-	// routes do. It used to hold its own per-IP budget, separate from the screenshot one so the usual
-	// "list once, then screenshot pages" flow couldn't exhaust its allowance on the free call; that
-	// budget is now simply absent rather than separate.
+	// Not rate limited: the limiters here bound Browser Run, and this call spends none.
 	try {
 		const resolved = await resolveSharedBoardById(env, input.boardId)
 		if (!resolved.ok) {
@@ -355,8 +337,8 @@ async function callSharedBoardScreenshotTool(
 		writeScreenshotTelemetry(env, { source: 'mcp', ipHash, ...data })
 	}
 
-	// Screenshots have their own per-IP budget (separate from get_board_info), sized to the ~2/min
-	// Browser Run cap: this is the throttle that actually bounds Browser Run spend per client.
+	// Checked before the cache, unlike the two below: this is the per-client ceiling on calls, not on
+	// captures, so a caller looping over cache hits is still bounded.
 	if (
 		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-shot:${clientIp ?? 'unknown'}`, {
 			fallbackLimit: PER_IP_RATE_LIMIT,
@@ -447,12 +429,11 @@ async function callSharedBoardScreenshotTool(
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 		})
 
-		// The render is already paid for in Browser Run capacity and the PNG in hand is exactly what the
-		// caller asked for, so a failed cache write must not throw it away — that would turn a working
-		// screenshot into a tool error and burn the caller's rate-limit budget for nothing. Report it
-		// instead: the caller can't act on it, but a cache that stops absorbing writes means every
-		// subsequent call re-renders, which we do need to see. The page name is URI-encoded into the
-		// object metadata (R2 custom metadata is not reliably unicode-safe).
+		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed
+		// cache write must not throw it away — that would turn a working screenshot into a tool error and
+		// burn the caller's rate-limit budget for nothing. Reported rather than raised: the caller can't
+		// act on it, but a cache that stops absorbing writes means every call re-renders. The page name is
+		// URI-encoded because R2 custom metadata is not reliably unicode-safe.
 		try {
 			await putThumbnailPng(env.MCP_SCREENSHOTS, cacheKey, render.base64, board.version, {
 				pageName: encodeURIComponent(targetPage.name),
@@ -470,11 +451,9 @@ async function callSharedBoardScreenshotTool(
 		telemetry({ cacheStatus: 'miss', browserRunDurationMs: render.durationMs })
 		return toolPageResult(targetPage.name, render.base64)
 	} catch (error) {
-		// One bounded reason code drives both the telemetry blob (so unbounded error strings never
-		// inflate that dimension's cardinality) and the caller's message (so internal Postgres/R2
-		// detail never reaches this anonymous, unauthenticated endpoint). Sentry gets the unbounded
-		// original: this is the surface that actually spends Browser Run, so a Quick Action failing or
-		// the render page erroring out is the thing we most need the stack for.
+		// One bounded reason code drives both the telemetry blob (so unbounded error strings never inflate
+		// that dimension) and the caller's message (so internal Postgres/R2 detail never reaches this
+		// anonymous endpoint). Sentry gets the unbounded original.
 		reportThumbnailError(error, {
 			ctx,
 			env,

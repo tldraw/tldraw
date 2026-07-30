@@ -2,23 +2,15 @@ import { OG_RENDER_DEBOUNCE_MS, OG_RENDER_MAX_WAIT_MS } from '../config'
 
 /**
  * The scheduling decision behind edit-triggered thumbnail rendering, kept separate from
- * `TLFileDurableObject` so it can be tested without standing one up. The object owns the clock and
- * the durable alarm; this owns only the arithmetic of when a render is due.
- *
- * It is a debounce with a max wait, not a throttle: each persist pushes the render out by
- * `debounceMs`, so a board renders once its editing settles rather than on a cadence while it is
- * still being drawn on, and `maxWaitMs` stops a board that never settles from never rendering.
+ * `TLFileDurableObject` so it can be tested without standing one up. The object owns the clock and the
+ * durable alarm; this owns only the arithmetic of when a render is due. A debounce with a max wait —
+ * see `OG_RENDER_DEBOUNCE_MS` for why that shape.
  *
  * `onPersist` always returns the deadline, and the caller always arms the alarm with it, so **the
- * durable alarm and the deadline never disagree**. That is what makes the deadline survive eviction:
- * the in-memory fields can be lost, and the alarm still fires at exactly the right time.
- *
- * This deliberately replaced a cheaper scheme where the deadline moved in memory and the alarm was
- * left where it was, re-armed on each fire. That wrote storage once per debounce window instead of
- * once per persist — but it meant an evicted object woke to an alarm that was merely a lower bound
- * on its deadline, rendered early, and then rendered again when the session actually settled. The
- * cost moved rather than grew: an alarm write per persist, against far fewer alarm *invocations*,
- * since the alarm no longer fires mid-session just to push itself out.
+ * durable alarm and the deadline can never disagree**. That invariant is what makes the deadline
+ * survive eviction: the in-memory fields are lost and the alarm still fires at exactly the right time.
+ * The cost is one alarm write per persist; leaving the alarm behind the deadline instead would wake an
+ * evicted object early, render, then render again when the session actually settled.
  */
 export class OgRenderDebouncer {
 	private readonly debounceMs: number
@@ -47,12 +39,11 @@ export class OgRenderDebouncer {
 
 	/**
 	 * Handles the alarm firing. Since the alarm always carries the current deadline, a fire normally
-	 * means the deadline arrived — including after an eviction, where the in-memory deadline is gone
-	 * and the alarm is the only thing left that knows it.
+	 * means the deadline arrived — including after an eviction, where the alarm is the only thing left
+	 * that knows it.
 	 *
-	 * The re-arm branch survives as a guard against the alarm firing before its time: a persist landing
-	 * in the moment between the alarm firing and this handler running has already moved the deadline
-	 * and re-armed, and this must not render underneath it.
+	 * The re-arm branch guards the one case where it hasn't: a persist landing between the alarm firing
+	 * and this handler running has already moved the deadline, and this must not render underneath it.
 	 */
 	onAlarm(now: number): { render: true } | { render: false; reArmAt: number } {
 		const target = this.targetAt

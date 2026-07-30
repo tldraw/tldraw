@@ -194,9 +194,9 @@ describe('getThumbnailSnapshot', () => {
 		expect(vi.mocked(getPublishedRoomSnapshot)).not.toHaveBeenCalled()
 	})
 
-	// NOT "un-shared during the token window" any more — this route reads with `access: 'render'`, so a
-	// private board resolves and its content is served to the render page. What still refuses is a board
-	// that is deleted or unknown, which `isFileRenderable` rejects.
+	// Deleted, not un-shared: this route reads with `access: 'render'`, so a private board resolves and
+	// its content is served to the render page. What refuses is a board that is deleted or unknown,
+	// which `isFileRenderable` rejects.
 	it('returns 404 when the board is deleted during the token window', async () => {
 		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValue(Error('not renderable'))
 		const response = await getThumbnailSnapshot(

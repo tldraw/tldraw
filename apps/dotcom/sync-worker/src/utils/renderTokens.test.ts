@@ -171,8 +171,8 @@ describe('render token records', () => {
 		expect(await isMintedRenderToken(envWithBucket, job, first)).toBe(false)
 	})
 
-	// Local dev and tests run without the bucket. Skipping degrades to signature-only verification —
-	// the level this replaces — rather than refusing every render.
+	// Local dev and tests run without the bucket, where the check leaves signature-only verification
+	// rather than refusing every render.
 	it('falls back to trusting the signature when no bucket is configured', async () => {
 		const job = makeJob()
 		const token = await mintThumbnailRenderToken(env, job)
