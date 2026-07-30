@@ -1,4 +1,4 @@
-import { Avatar, type CommentAuthor } from '@tldraw/mentions'
+import { type CommentAuthor } from '@tldraw/mentions'
 import { ReactNode } from 'react'
 import { Byline } from './byline'
 
@@ -31,9 +31,8 @@ export function CommentCard({
 }: CommentCardProps) {
 	return (
 		<div className={you ? 'tlui-cmt-card tlui-cmt-card--you' : 'tlui-cmt-card'}>
-			<Avatar author={author} />
+			<Byline author={author} date={date} edited={edited} />
 			<div className="tlui-cmt-body">
-				<Byline author={author} date={date} edited={edited} />
 				{body}
 				{footer}
 			</div>

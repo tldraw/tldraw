@@ -123,13 +123,6 @@
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
-	max-height: 420px;
-	overflow-y: auto;
-	/* A scroll container clips at its own box — including the cards' shadows (setting one overflow
-	   axis makes both non-visible). Pad the clip box outward and pull the list back into place so
-	   the shadows have room to paint. */
-	padding: 16px;
-	margin: -16px;
 }
 
 /* The expanded thread is the only entry with pills floating above its panel — its header actions,
@@ -149,7 +142,7 @@
 	background: var(--tl-color-panel);
 	border-radius: 12px;
 	box-shadow: var(--tl-shadow-3);
-	padding: 10px 14px;
+	padding: 2px 12px 10px;
 	cursor: pointer;
 	text-align: left;
 	display: block;
@@ -172,16 +165,15 @@
 }
 
 /* The wrapper is the card's surface — inside it the comment is plain content, mirroring how the
-   thread panel flattens its own cards. The avatar centers against the short two-line block so a
-   collapsed entry doesn't read as top-heavy. Stacked above the action overlay so the body's links
-   stay clickable. */
+   thread panel flattens its own cards. Stacked above the action overlay so the body's links stay
+   clickable. */
 .tlui-cmt-stack-list__card .tlui-cmt-card {
 	position: relative;
 	width: 100%;
+	gap: 0;
 	padding: 0;
 	background: transparent;
 	border: none;
-	align-items: center;
 }
 
 /* The hover preview, shown for any marker — a pin, a coincident stack, or a cluster badge. Live,
@@ -241,16 +233,18 @@
 	box-sizing: border-box;
 	width: 300px;
 	gap: var(--tlui-cmt-thread-gap);
-	padding: var(--tlui-cmt-thread-padding);
+	/* Top/bottom only — the card pads its own sides now (12px), matching the expanded thread. A
+	   little extra below so the (often truncated) last line doesn't sit against the rounded edge. */
+	padding: 4px 0 8px;
 	background: var(--tl-color-panel);
 	border-radius: var(--tl-radius-4);
 	box-shadow: var(--tl-shadow-3);
 }
 
-/* Previewing a stack or cluster: one card per thread, matching the card list a click opens.
-   Its first card sits flush with the popover's top, so no shift is needed. */
+/* Previewing a stack or cluster: one card per thread, matching the card list a click opens. */
 .tlui-cmt-canvas-preview__panel--list {
 	gap: 8px;
+	padding: 4px 0 8px;
 }
 
 /* Matches the stack list's card surface, so a preview and the list it previews read as the same
@@ -261,7 +255,9 @@
 	background: var(--tl-color-panel);
 	border-radius: 12px;
 	box-shadow: var(--tl-shadow-3);
-	padding: 10px 14px;
+	/* A 2px nudge above the byline's centring — a boxed card reads a touch better with it than the
+	   single preview's flat card, which pads 0 vertically and leans on the panel + byline. */
+	padding: 2px 12px 10px;
 }
 
 .tlui-cmt-preview-card--selectable {
@@ -282,11 +278,8 @@
    so its var() was already substituted there and the white is baked into what we inherit. Instead
    lay a ring of the new surface over the old one — first shadow in the list paints on top. */
 .tlui-cmt-stack-list__card:hover,
-.pseudo-hover.tlui-cmt-stack-list__card,
 .tlui-cmt-preview-card--selectable:hover,
-.pseudo-hover.tlui-cmt-preview-card--selectable,
-.tlui-cmt-canvas-preview__panel--thread.tlui-cmt-canvas-preview__panel--selectable:hover,
-.pseudo-hover.tlui-cmt-canvas-preview__panel--thread {
+.tlui-cmt-canvas-preview__panel--thread.tlui-cmt-canvas-preview__panel--selectable:hover {
 	--tlui-cmt-preview-hover-surface: color-mix(
 		in srgb,
 		var(--tl-color-low) 50%,
@@ -301,10 +294,10 @@
 
 .tlui-cmt-preview-card .tlui-cmt-card {
 	width: 100%;
+	gap: 0;
 	padding: 0;
 	background: transparent;
 	border: none;
-	align-items: center;
 }
 
 /* A preview is a glance, not a list — past a few cards it says how many were left out rather than
@@ -403,6 +396,10 @@
 .tlui-cmt-canvas-pin__marker:hover .tlui-cmt-marker:not(.tlui-cmt-marker--open) {
 	box-shadow: var(--tlui-cmt-marker-shadow-hover);
 }
+/* The comment pin doesn't scale on hover — only the shadow lifts (badges still scale). */
+.tlui-cmt-canvas-pin__marker:hover .tlui-cmt-pin {
+	transform: none;
+}
 
 /* The open thread's popover — portaled to the menus layer (above the UI), positioned at the pin. */
 .tlui-cmt-canvas-popover {
@@ -412,8 +409,8 @@
 }
 
 /* The placement composer — a distinct floating view (portaled to the menus layer, below the click
-   point): a pencil "draft" avatar beside a pill field that is itself the surface (no wrapping
-   panel). Scoped here so the in-thread reply composer keeps its own squarer look. */
+   point): a draft avatar pin beside a pill field that is itself the surface (no wrapping panel).
+   Scoped here so the in-thread reply composer keeps its own squarer look. */
 .tlui-cmt-canvas-composer {
 	position: absolute;
 	z-index: var(--tl-layer-menus);
@@ -422,9 +419,6 @@
 	   into the row, so its bottom-left corner is 4px right of and 4px + a pin below the composer's
 	   top-left corner. */
 	transform: translate(-4px, calc(-4px - var(--tlui-cmt-pin-size)));
-	/* The rich-text editor has no intrinsic width (unlike the old <input>), so give the floating
-	   placement composer a definite width or it collapses to nothing. */
-	width: 280px;
 }
 
 /* A region placement centres the draft avatar on the region's pin corner — the pin it becomes
@@ -449,27 +443,96 @@
 	border-radius: var(--tl-radius-4);
 	box-shadow: var(--tl-shadow-3);
 }
-.tlui-cmt-canvas-composer .tlui-cmt-composer__field {
-	background: var(--tl-color-panel);
-	border-color: transparent;
-	border-radius: var(--tl-radius-4);
-	box-shadow: var(--tl-shadow-3);
-	/* The pin is anchored by its bottom corner at the click point and can't move; raise the
-	   taller field onto the shorter pin's centre instead. */
-	margin-top: -3px;
+.tlui-cmt-canvas-composer .tlui-cmt-composer {
+	gap: 6px;
 }
-/* The draft avatar: panel-white (no author tint while you're still editing), sharing the
-   composer's lift so the pencil and its field match. Not interactive — it drops the pin's
-   pointer cursor and hover affordances (scale + shadow bump). */
-.tlui-cmt-canvas-composer .tlui-cmt-pin {
+/* The card: a fixed 300×42 surface whose uniform 3px padding derives the 294×36 focusable input. */
+.tlui-cmt-canvas-composer .tlui-cmt-composer__field {
+	position: relative;
+	flex: none;
+	width: 300px;
+	min-height: 42px;
+	padding: 3px;
+	border: none;
 	background: var(--tl-color-panel);
-	color: var(--tl-color-text-1);
-	box-shadow: var(--tl-shadow-3);
+	border-radius: var(--tl-radius-3);
+	box-shadow: var(--tl-shadow-2);
+	/* The pin is anchored by its bottom corner at the click point and can't move; raise the taller
+	   card onto the shorter pin's centre instead. */
+	margin-top: -6px;
+}
+/* Focused (the placement composer autofocuses on mount): a selection-blue ring inset 3px from the
+   card edge, so the card frames a bordered input rather than the border sitting on the card edge. */
+.tlui-cmt-canvas-composer .tlui-cmt-composer__field:focus-within::before {
+	content: '';
+	position: absolute;
+	inset: 3px;
+	border: 1px solid var(--tl-color-selected);
+	border-radius: var(--tl-radius-2);
+	pointer-events: none;
+}
+/* The text sits 12px in from the focus ring rather than against it. The placeholder is absolutely
+   positioned (it ignores the wrap's padding), so it carries the same offset itself. */
+.tlui-cmt-canvas-composer .tlui-cmt-composer__input-wrap {
+	padding: 4.5px 12px;
+}
+.tlui-cmt-canvas-composer .tlui-cmt-composer__field--expanded .tlui-cmt-composer__input-wrap {
+	/* The base expanded rule re-pads the right edge for the squarer composer's geometry; here the
+	   12px is already symmetric. */
+	padding-right: 12px;
+}
+.tlui-cmt-canvas-composer .tlui-cmt-input__placeholder {
+	left: 12px;
+}
+/* The draft avatar previews the pin it becomes — a white 28px pin holding the author's 22px avatar
+   circle — sharing the composer's lift. Not interactive: it drops the pin's pointer cursor and
+   hover affordances (scale + shadow bump), but keeps a 40×40 hit area (the ::after below). */
+.tlui-cmt-canvas-composer .tlui-cmt-pin {
+	position: relative;
+	box-shadow: var(--tl-shadow-2);
 	cursor: default;
+}
+.tlui-cmt-canvas-composer .tlui-cmt-pin::after {
+	content: '';
+	position: absolute;
+	inset: -6px;
 }
 .tlui-cmt-canvas-composer .tlui-cmt-pin:hover {
 	transform: none;
-	box-shadow: var(--tl-shadow-3);
+	box-shadow: var(--tl-shadow-2);
+}
+/* The placement composer's send button — a bare arrow, no pill: grey while empty, black once
+   there's something to send. A 28px square centred in the 36px input height, so its hover wash
+   clears the focus ring rather than butting against it; the ::after keeps a 40×40 hit area. */
+.tlui-cmt-canvas-composer .tlui-cmt-send {
+	position: relative;
+	width: 28px;
+	height: 28px;
+	margin-right: 4px;
+	background: transparent;
+	border-radius: var(--tl-radius-2);
+	color: var(--tl-color-text-3);
+}
+.tlui-cmt-canvas-composer .tlui-cmt-send::after {
+	content: '';
+	position: absolute;
+	inset: -6px;
+}
+.tlui-cmt-canvas-composer .tlui-cmt-send:not(:disabled) {
+	color: var(--tl-color-text-1);
+}
+/* Hover and press wash grey behind the bare arrow (the same treatment as the thread actions),
+   overriding the base button's blue fill. */
+.tlui-cmt-canvas-composer .tlui-cmt-send:hover:not(:disabled) {
+	background: var(--tl-color-muted-2);
+}
+.tlui-cmt-canvas-composer .tlui-cmt-send:active:not(:disabled) {
+	background: var(--tl-color-muted-1);
+}
+/* In the expanded (multi-line) layout the send drops to the bottom-right corner; give it the same
+   4px gap from the focus ring on the bottom that it already keeps on the right. */
+.tlui-cmt-canvas-composer .tlui-cmt-composer__field--expanded .tlui-cmt-send {
+	margin-bottom: 4px;
 }
 
 /* The comments list panel — a right-side surface shown while the comments sidebar is open. Below
