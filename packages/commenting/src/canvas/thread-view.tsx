@@ -29,13 +29,21 @@ import {
 	replyDraftSlot,
 	saveCommentDraft,
 } from './comment-drafts'
+import {
+	commitCommentMutation,
+	deleteComment,
+	deleteThread,
+	editComment,
+	putRecordsInCommit,
+	reopenThread,
+	resolveThread,
+} from './comment-mutations'
 import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
-import { putCommentRecords } from './comment-store'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { type CommentingComponents, useCanComment, useCommentingOptions } from './options'
-import { commitCommentMutation, openThreadId } from './state'
+import { openThreadId } from './state'
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
@@ -258,7 +266,7 @@ export function ThreadView({
 				authorId: currentUserId,
 				body: reply,
 			})
-			putCommentRecords(editor, [comment])
+			putRecordsInCommit(editor, [comment])
 			if (onPostComment) onPostComment(comment)
 		})
 		setReply(EMPTY_COMMENT)
@@ -267,28 +275,13 @@ export function ThreadView({
 
 	const toggleResolve = () => {
 		if (!currentUserId) return
-		commitCommentMutation(editor, () => {
-			putCommentRecords(editor, [
-				{
-					...thread,
-					resolved: thread.resolved ? null : { at: Date.now(), by: currentUserId },
-				},
-			])
-		})
+		if (thread.resolved) reopenThread(editor, thread)
+		else resolveThread(editor, thread, currentUserId)
 	}
 
-	const deleteThread = () => {
+	const removeThread = () => {
 		if (!currentUserId) return
-		openThreadId.set(editor, null)
-		// Soft delete: set the flag rather than removing records — the server prunes the thread,
-		// its comments, and their reactions once the flag is persisted, so no client ever deletes
-		// records it doesn't own (reactions belong to whoever reacted). Creator-only; the server
-		// vetoes anyone else (and any hard delete). Never on the undo stack, even with
-		// `history: 'record'`: the flag is write-once server-side, so an undo clearing it would
-		// always be vetoed and rebased.
-		editor.run(() => putCommentRecords(editor, [{ ...thread, isDeleted: true }]), {
-			history: 'ignore',
-		})
+		deleteThread(editor, thread)
 	}
 
 	const startEdit = (comment: TLComment, { fromMoreMenu = false } = {}) => {
@@ -307,32 +300,10 @@ export function ThreadView({
 		setEditText(comment.body)
 	}
 
-	const deleteComment = (comment: TLComment) => {
-		// Soft delete, same model as threads: set the flag, the server prunes the record (and its
-		// reactions, which belong to whoever reacted) once it's persisted. Author-only; the server
-		// vetoes anyone else (and any hard delete). Never on the undo stack: the flag is write-once
-		// server-side, so an undo clearing it would always be vetoed and rebased.
-		editor.run(
-			() => {
-				// Deleting a thread's only comment hides the thread — an empty thread has no surface
-				// (see useCommentThreads). The thread record is left for the server: the deleter may
-				// not be its creator (only creators may delete threads), so the drain prunes a thread
-				// its last comment leaves emptied.
-				if (comments.length === 1) {
-					openThreadId.set(editor, null)
-				}
-				putCommentRecords(editor, [{ ...comment, isDeleted: true }])
-			},
-			{ history: 'ignore' }
-		)
-	}
-
 	const saveEdit = () => {
 		const comment = comments.find((c) => c.id === editingId)
 		if (!comment || isCommentEmpty(editText)) return
-		commitCommentMutation(editor, () => {
-			putCommentRecords(editor, [{ ...comment, body: editText, editedAt: Date.now() }])
-		})
+		editComment(editor, comment, editText)
 		setEditingId(null)
 	}
 
@@ -418,7 +389,7 @@ export function ThreadView({
 												<button
 													type="button"
 													className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-													onClick={() => deleteComment(comment)}
+													onClick={() => deleteComment(editor, comment)}
 												>
 													<span>{msg('action.delete')}</span>
 												</button>
@@ -461,7 +432,7 @@ export function ThreadView({
 								<button
 									type="button"
 									className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-									onClick={deleteThread}
+									onClick={removeThread}
 								>
 									<span>{msg('comments.delete')}</span>
 								</button>

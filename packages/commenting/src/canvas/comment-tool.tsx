@@ -13,8 +13,8 @@ import { commentTargetShapeAt, regionPinPoint, shapeAnchorAt } from './thread-st
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
  *  to. Shared between the tool (which sets it on click) and the overlay (which renders the
- *  composer).
- * @public */
+ *  composer) through the internal `pendingComment` atom.
+ * @internal */
 export interface PendingComment {
 	anchor: TLCommentAnchor
 	/** Page point where the composer opens (the click location, or a region's pin corner). */

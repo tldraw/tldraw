@@ -15,9 +15,9 @@ import {
 } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
-import { getCommentRecord, getComments, putCommentRecords } from './comment-store'
+import { commitCommentMutation, putCommentRecords } from './comment-mutations'
+import { getCommentRecord, getComments } from './comment-store'
 import { CommentTool } from './comment-tool'
-import { commitCommentMutation } from './state'
 
 /**
  * These tests need a real editor: the behavior under test is the interplay between store
