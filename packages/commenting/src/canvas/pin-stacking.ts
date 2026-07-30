@@ -22,19 +22,18 @@ export function pinStackKey(point: { x: number; y: number }): string {
  *
  * Keyed by page-space anchor point, not screen position, so the result only changes when threads
  * or their anchors move — never on camera moves.
- * @public
+ * @internal
  */
 export function computePinStacks(
 	editor: Editor,
-	threads: readonly TLCommentThread[],
-	impreciseShapeAnchor?: { x: number; y: number }
+	threads: readonly TLCommentThread[]
 ): Map<string, readonly string[]> {
 	const pageId = editor.getCurrentPageId()
 	const groups = new Map<string, TLCommentThread[]>()
 
 	for (const thread of threads) {
 		if (thread.pageId !== pageId) continue
-		const point = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
+		const point = anchorPagePoint(editor, thread.anchor)
 		if (!point) continue
 		const key = pinStackKey(point)
 		const group = groups.get(key)

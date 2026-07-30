@@ -15,7 +15,6 @@ export function CommentsVisibilityToggle() {
 		<TooltipButton
 			tooltip={label}
 			className="tlui-cmt-header-btn"
-			aria-pressed={hidden}
 			onClick={() => toggleCommentsHidden(editor)}
 		>
 			{hidden ? <EyeClosedIcon /> : <EyeOpenIcon />}

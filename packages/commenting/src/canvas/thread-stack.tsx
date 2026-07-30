@@ -1,7 +1,16 @@
-import { memo, useEffect, useRef } from 'react'
-import { Editor, TLCommentThread, useContainer, usePassThroughWheelEvents, useValue } from 'tldraw'
+import { type MouseEvent as ReactMouseEvent, memo, useEffect, useRef } from 'react'
+import {
+	Editor,
+	TLCommentThread,
+	useContainer,
+	usePassThroughWheelEvents,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { CountBadge } from '../ui/count-badge'
+import { UNKNOWN_AUTHOR } from './comment-render'
+import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { useCommentingOptions } from './options'
 import { pinStackKey } from './pin-stacking'
@@ -12,7 +21,6 @@ import {
 	POPOVER_OFFSET,
 	ThreadPopover,
 	ThreadView,
-	ThreadViewHostProps,
 	toCardProps,
 	useResolveName,
 } from './thread-view'
@@ -26,16 +34,15 @@ import {
 export const ThreadStackPin = memo(function ThreadStackPin({
 	editor,
 	threads,
-	impreciseShapeAnchor,
 	...props
-}: ThreadViewHostProps & {
+}: CommentingContext & {
 	editor: Editor
 	/** The stack's threads, oldest first. All resolve to the same anchor point. */
 	threads: readonly TLCommentThread[]
-	impreciseShapeAnchor?: { x: number; y: number }
 }) {
 	const container = useContainer()
-	const badgeRef = useRef<HTMLDivElement>(null)
+	const msg = useTranslation()
+	const badgeRef = useRef<HTMLButtonElement>(null)
 	// The badge takes pointer events (to open on click), so wheel input over it would otherwise be
 	// swallowed instead of zooming — pass it through to the canvas, as the pin and cluster badge do.
 	usePassThroughWheelEvents(badgeRef)
@@ -51,10 +58,10 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	const stackId = useValue(
 		'stack id',
 		() => {
-			const pagePoint = anchorPagePoint(editor, threads[0].anchor, impreciseShapeAnchor)
+			const pagePoint = anchorPagePoint(editor, threads[0].anchor)
 			return pagePoint ? pinStackKey(pagePoint) : threads[0].id
 		},
-		[editor, threads, impreciseShapeAnchor]
+		[editor, threads]
 	)
 	const listOpen = useValue('stack list open', () => openStackId.get(editor) === stackId, [
 		editor,
@@ -73,10 +80,10 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 			// cluster badge — so it sits at the raw page point with no pin inset. The inset only
 			// compensates for the single pin's bottom-left anchoring; applying it here would offset
 			// the badge from where the cluster badge sits and make it hop as pins flip between them.
-			const pagePoint = anchorPagePoint(editor, first.anchor, impreciseShapeAnchor)
+			const pagePoint = anchorPagePoint(editor, first.anchor)
 			return pagePoint ? editor.pageToViewport(pagePoint) : null
 		},
-		[editor, threads, impreciseShapeAnchor]
+		[editor, threads]
 	)
 
 	// Clicking outside the popover (and off the badge) closes the whole stack — mirrors the
@@ -129,18 +136,23 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	return (
 		<>
 			<div className="tlui-cmt-canvas-pin" style={{ left: point.x, top: point.y }}>
-				<div
+				<button
 					ref={badgeRef}
-					className="tlui-cmt-canvas-stack-badge"
+					type="button"
+					className="tlui-cmt-button tlui-cmt-canvas-stack-badge"
+					aria-label={msg('comments.stack-label').replace('{count}', String(threads.length))}
+					aria-expanded={open}
 					onPointerDown={(e) => e.stopPropagation()}
 					onClick={(e) => {
 						e.stopPropagation()
 						toggle()
 					}}
 					{...previewHandlers}
+					onFocus={previewHandlers.onPointerEnter}
+					onBlur={previewHandlers.onPointerLeave}
 				>
 					<CountBadge count={threads.length} open={open} />
-				</div>
+				</button>
 			</div>
 			{previewShown && !open && (
 				<ThreadPreview
@@ -196,20 +208,32 @@ function StackThreadCard({
 	thread,
 	onOpen,
 	...props
-}: ThreadViewHostProps & { editor: Editor; thread: TLCommentThread; onOpen(): void }) {
+}: CommentingContext & { editor: Editor; thread: TLCommentThread; onOpen(): void }) {
+	const msg = useTranslation()
 	const options = useCommentingOptions()
 	const comments = useThreadComments(editor, thread.id)
 	const resolveName = useResolveName(props.resolveAuthor)
 	const first = comments[0]
 	if (!first) return null
+	const open = (e: ReactMouseEvent) => {
+		e.stopPropagation()
+		onOpen()
+	}
 	return (
-		<div
-			className="tlui-cmt-stack-list__card"
-			onClick={(e) => {
-				e.stopPropagation()
-				onOpen()
-			}}
-		>
+		<div className="tlui-cmt-stack-list__card" onClick={open}>
+			{/* The card's keyboard affordance. A button *wrapping* the card would put the comment
+			    body inside it, and a body renders its links as real anchors — interactive content
+			    nested in a button, which is an invalid content model and reads to assistive tech as a
+			    broken control. So the button covers the card as a sibling instead, leaving the body's
+			    own links above it and still reachable. */}
+			<button
+				type="button"
+				className="tlui-cmt-button tlui-cmt-stack-list__card-action"
+				aria-label={msg(
+					thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label'
+				).replace('{name}', props.resolveAuthor(thread.createdBy)?.name ?? UNKNOWN_AUTHOR)}
+				onClick={open}
+			/>
 			<CommentCard {...toCardProps(first, props, options.components, resolveName)} />
 		</div>
 	)

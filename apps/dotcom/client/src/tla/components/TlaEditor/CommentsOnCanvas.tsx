@@ -3,6 +3,7 @@ import {
 	CanvasComments,
 	CanvasCommentsSidebar,
 	CommentAuthor,
+	CommentingContext,
 	filterMentionMembers,
 	MentionMember,
 } from '@tldraw/commenting'
@@ -186,21 +187,23 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		[fileId]
 	)
 
+	// Both surfaces read the same context — the signed-in user, the author resolver, read status —
+	// so it's built once here and spread into each rather than repeated on both.
+	const commenting = useMemo(
+		(): CommentingContext => ({
+			currentUserId,
+			resolveAuthor,
+			isCommentUnread: app ? isCommentUnread : undefined,
+			onCommentRead: app ? onCommentRead : undefined,
+			getMentionSuggestions,
+		}),
+		[app, currentUserId, resolveAuthor, isCommentUnread, onCommentRead, getMentionSuggestions]
+	)
+
 	return (
 		<>
-			<CanvasComments
-				currentUserId={currentUserId}
-				resolveAuthor={resolveAuthor}
-				isCommentUnread={app ? isCommentUnread : undefined}
-				onCommentRead={app ? onCommentRead : undefined}
-				getMentionSuggestions={getMentionSuggestions}
-			/>
-			<CanvasCommentsSidebar
-				resolveAuthor={resolveAuthor}
-				currentUserId={currentUserId ?? undefined}
-				isCommentUnread={app ? isCommentUnread : undefined}
-				getThreadHref={getThreadHref}
-			/>
+			<CanvasComments {...commenting} />
+			<CanvasCommentsSidebar {...commenting} getThreadHref={getThreadHref} />
 		</>
 	)
 }

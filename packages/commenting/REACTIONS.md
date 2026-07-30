@@ -109,18 +109,20 @@ isAllowedReaction: (token) => isMyToken(token) || isAllowedReactionEmoji(token)
 
 ## Worked example: draw-your-own reactions
 
-`@tldraw/commenting` ships a complete custom palette — a small tldraw canvas you draw in, stored as
-a `data:` image token — as `drawing-reactions`. Wiring it is the three overrides:
+The [drawn reactions example][drawn] implements a complete custom palette — a small tldraw canvas
+you draw in, stored as a `data:` image token. It lives in the examples app rather than in this
+package, since it's one shape a custom palette can take rather than something the SDK has an
+opinion about. Wiring it is the three overrides:
+
+[drawn]: ../../apps/examples/src/examples/collaboration/comment-drawing-reactions
 
 ```tsx
+import { CommentTool, isAllowedReactionEmoji, type EmojiPickerProps } from '@tldraw/commenting'
 import {
-	CommentTool,
 	DrawingReactionContent,
 	DrawingReactionPalette,
-	isAllowedReactionEmoji,
 	isDrawingReactionToken,
-	type EmojiPickerProps,
-} from '@tldraw/commenting'
+} from './drawing-reactions'
 
 // DrawingReactionPalette is a nested tldraw editor, so bind its license key here.
 function ReactionPalette(props: EmojiPickerProps) {
@@ -208,8 +210,8 @@ There are two levels of customisation, smallest first:
 ## Token gotchas
 
 - **The token goes into the record id** (`id = f(comment, user, token)`), so keep tokens small.
-  Large tokens (e.g. an inlined drawing) bloat the id and the Postgres primary key. The drawing
-  palette caps token length (`DrawingReactionTooLargeError`) for this reason.
+  Large tokens (e.g. an inlined drawing) bloat the id and the Postgres primary key. The drawn
+  reactions example caps token length for this reason.
 - **Tokens arrive from other users over sync.** If a token renders as HTML (an SVG, an image),
   render it in a way that can't execute script or reach the network — the drawing renderer uses
   `<img src>` (never inlined SVG) and gates on an explicit `data:` prefix allowlist.

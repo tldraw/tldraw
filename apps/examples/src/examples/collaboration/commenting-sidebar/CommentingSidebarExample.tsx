@@ -2,6 +2,7 @@ import {
 	CanvasComments,
 	CanvasCommentsSidebar,
 	CommentAuthor,
+	CommentingContext,
 	commentsSidebarOpen,
 	commentToolOverrides,
 	commentTools,
@@ -37,6 +38,10 @@ const AUTHORS: Record<string, CommentAuthor> = {
 	grace: { name: 'Grace Hopper', color: '#4465E9' },
 }
 const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
+
+// The canvas layer and the sidebar read the same context — who you are, and how author ids become
+// names — so it's built once and spread into each rather than repeated on both.
+const commenting: CommentingContext = { currentUserId: 'me', resolveAuthor }
 
 // Two pages with a thread each (so the sidebar's every-page default and page labels have
 // something to show) plus a resolved thread, hidden until "show resolved" is toggled on.
@@ -147,8 +152,8 @@ export default function CommentingSidebarExample() {
 		() => ({
 			InFrontOfTheCanvas: () => (
 				<>
-					<CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />
-					<CanvasCommentsSidebar currentUserId="me" resolveAuthor={resolveAuthor} />
+					<CanvasComments {...commenting} />
+					<CanvasCommentsSidebar {...commenting} />
 				</>
 			),
 			SharePanel: SidebarToggle,

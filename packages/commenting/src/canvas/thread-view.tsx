@@ -1,11 +1,9 @@
-import { type CommentAuthor, type MentionMember } from '@tldraw/mentions'
 import { ReactNode, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import {
 	createComment,
 	Editor,
 	TLComment,
-	TLCommentId,
 	TLCommentThread,
 	TLRichText,
 	TldrawUiDropdownMenuContent,
@@ -34,35 +32,24 @@ import {
 import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { putCommentRecords } from './comment-store'
+import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { type CommentingComponents, useCanComment, useCommentingOptions } from './options'
 import { commitCommentMutation, openThreadId } from './state'
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
-/** The identity/callback props a thread view needs from the host — the same contract
- *  `CanvasComments` takes, minus the pin-placement concerns. */
-export interface ThreadViewHostProps {
-	currentUserId: string | null
-	resolveAuthor(id: string): CommentAuthor | undefined
-	onPostComment?(comment: TLComment): void
-	isCommentUnread?(commentId: TLCommentId): boolean
-	onCommentRead?(commentId: TLCommentId): void
-	getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>
-	renderMentionSuggestion?(member: MentionMember): ReactNode
-}
-
 /**
  * A name-only view of an author resolver, for the mention/rich-text paths. Stable identity, so
  * `CommentBody`'s memoized render doesn't recompute on every render of its host.
  */
-export function useResolveName(resolveAuthor: ThreadViewHostProps['resolveAuthor']) {
+export function useResolveName(resolveAuthor: CommentingContext['resolveAuthor']) {
 	return useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 }
 
 export function toCardProps(
 	comment: TLComment,
-	props: Pick<ThreadViewHostProps, 'currentUserId' | 'resolveAuthor'>,
+	props: Pick<CommentingContext, 'currentUserId' | 'resolveAuthor'>,
 	components: CommentingComponents,
 	resolveName: (id: string) => string | undefined
 ): CommentCardProps {
@@ -155,7 +142,7 @@ export function ThreadView({
 	editor,
 	thread,
 	...props
-}: ThreadViewHostProps & { editor: Editor; thread: TLCommentThread }) {
+}: CommentingContext & { editor: Editor; thread: TLCommentThread }) {
 	const {
 		currentUserId,
 		resolveAuthor,
@@ -184,6 +171,10 @@ export function ThreadView({
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	const canReply = canComment && !thread.resolved
 	const container = useContainer()
+	// Where focus goes when the edit composer closes, resolved at that moment rather than held as an
+	// element: the card (and its edit button with it) unmounts while the composer stands in its
+	// place, so the node captured on the way in is gone by the way out.
+	const editReturnFocus = useRef<(() => HTMLElement | null) | null>(null)
 
 	// Tab from the canvas drops the caret in the reply box. Clicking a pin opens the thread but
 	// leaves focus on the editor container, so the first Tab would otherwise walk the app's own UI
@@ -230,6 +221,20 @@ export function ThreadView({
 			doc.removeEventListener('keyup', onKeyUp, true)
 		}
 	}, [canReply, container])
+
+	// Leaving the edit composer — Escape, or a save — unmounts it while it holds focus, and the
+	// browser drops focus on the editor container. That's outside the thread, so a Tab from there
+	// walks the app's UI instead of carrying on from where the edit left off (the thread's one
+	// Tab-into-the-reply-box has usually been spent by then). Hand focus back to whatever opened the
+	// composer instead: the card's edit button, or the reply box when the edit came from arrow-up.
+	// The card's actions row reveals itself on `:focus-within`, so the button focus is visible.
+	useEffect(() => {
+		if (editingId !== null) return
+		const resolve = editReturnFocus.current
+		editReturnFocus.current = null
+		// Runs after React has swapped the card back in, so the target is mounted again by now.
+		resolve?.()?.focus()
+	}, [editingId])
 
 	// Every unread comment on display gets reported read — including replies that arrive while
 	// the view stays mounted, since the effect re-runs as `comments` changes. The host's receipt
@@ -285,7 +290,18 @@ export function ThreadView({
 		})
 	}
 
-	const startEdit = (comment: TLComment) => {
+	const startEdit = (comment: TLComment, { fromEditButton = false } = {}) => {
+		// The edit button is the thing to come back to when it opened the composer — looked up again
+		// on the way out, since this one is about to unmount with its card. Otherwise come back to
+		// whatever held focus: arrow-up-to-edit comes straight from the reply box, which stays put.
+		// The document body and the editor container are where focus falls when nothing holds it, so
+		// neither is somewhere to return anyone to.
+		const active = container.ownerDocument.activeElement
+		editReturnFocus.current = fromEditButton
+			? () => container.querySelector<HTMLElement>(`[data-cmt-edit-for="${comment.id}"]`)
+			: active instanceof HTMLElement && active !== container && active !== document.body
+				? () => (active.isConnected ? active : null)
+				: null
 		setEditingId(comment.id)
 		setEditText(comment.body)
 	}
@@ -369,7 +385,8 @@ export function ThreadView({
 									<TooltipButton
 										tooltip={msg('comments.edit')}
 										className="tlui-cmt-thread__action"
-										onClick={() => startEdit(comment)}
+										data-cmt-edit-for={comment.id}
+										onClick={() => startEdit(comment, { fromEditButton: true })}
 									>
 										<svg
 											width="15"

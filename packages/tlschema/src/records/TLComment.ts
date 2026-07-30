@@ -32,7 +32,7 @@ export type TLCommentAnchor =
 			w: number
 			h: number
 			/** The normalized (0–1) corner the pin sits on — where the creating drag was released.
-			 *  Absent on older records; consumers fall back to their configured corner. */
+			 *  Absent on older records; consumers fall back to a corner of their own choosing. */
 			pinX?: number
 			pinY?: number
 	  }

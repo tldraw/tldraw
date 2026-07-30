@@ -1,9 +1,7 @@
-import { type CommentAuthor } from '@tldraw/mentions'
 import { ReactNode, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import {
 	TLComment,
-	TLCommentId,
 	TLCommentThreadId,
 	useContainer,
 	useEditor,
@@ -15,6 +13,7 @@ import { CommentListItemProps, CommentsList } from '../ui/comments-list'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
 import { CommentsVisibilityToggle } from './comments-visibility-toggle'
+import { type CommentingContext } from './context'
 import { useComments, useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
 import { useCommentingOptions } from './options'
@@ -22,26 +21,26 @@ import { richTextToPlaintext } from './rich-text'
 import { commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
 import { focusThread } from './thread-state'
 
-/** @public */
-export interface CanvasCommentsSidebarProps {
-	/** Map an author id to their display info, or `undefined` when the id can't be resolved. */
-	resolveAuthor(id: string): CommentAuthor | undefined
-	/** The signed-in user's id. Enables the "only your threads" filter when present. */
-	currentUserId?: string
-	/**
-	 * Whether a comment is unread for the current user (return true for unread). Enables the
-	 * "only unread" filter when present.
-	 */
-	isCommentUnread?(commentId: TLCommentId): boolean
+/**
+ * The host wiring for {@link CanvasCommentsSidebar}: the {@link CommentingContext} fields it reads,
+ * plus the panel's own slots. A non-null `currentUserId` enables the "only your threads" filter, and
+ * an `isCommentUnread` the "only unread" one. `CanvasComments` takes the same fields, so a host
+ * mounting both can spread one object into each.
+ *
+ * @public
+ */
+export interface CanvasCommentsSidebarProps extends Pick<
+	CommentingContext,
+	'currentUserId' | 'resolveAuthor' | 'isCommentUnread'
+> {
 	/** Header above the list. */
 	header?: ReactNode
 	/** Shown when the page has no threads. */
 	empty?: ReactNode
-	/** Where imprecise shape pins sit, so navigation centres on the same spot. Default top-right. */
-	impreciseShapeAnchor?: { x: number; y: number }
 	/**
 	 * A link target for a thread's row, so ctrl/cmd-click and middle-click open the thread in a new
-	 * tab. A plain click still navigates in place. Omit to render plain buttons.
+	 * tab. A plain click still selects the thread in place (the href isn't followed). Omit to
+	 * render plain buttons.
 	 */
 	getThreadHref?(threadId: TLCommentThreadId): string | undefined
 }
@@ -54,15 +53,7 @@ export interface CanvasCommentsSidebarProps {
  * @public @react
  */
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
-	const {
-		resolveAuthor,
-		currentUserId,
-		isCommentUnread,
-		header,
-		empty,
-		impreciseShapeAnchor,
-		getThreadHref,
-	} = props
+	const { resolveAuthor, currentUserId, isCommentUnread, header, empty, getThreadHref } = props
 	// Name-only view of the resolver, for the plaintext previews (which resolve @-mentions).
 	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const editor = useEditor()
@@ -103,8 +94,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		// "Only mine" is ignored without a known user — otherwise a persisted onlyMine=true would
 		// empty the list for a signed-out viewer, with the (hidden) toggle giving no way to clear it.
 		.filter(
-			(thread) =>
-				!filters.onlyMine || currentUserId === undefined || thread.createdBy === currentUserId
+			(thread) => !filters.onlyMine || currentUserId === null || thread.createdBy === currentUserId
 		)
 		// "Only unread" is likewise ignored without a read-status source.
 		.filter(
@@ -153,9 +143,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 
 	const focus = (id: string) => {
 		const thread = threads.find((t) => t.id === id)
-		// Resolve prop-or-option like the overlay pins do, so sidebar navigation centers on the same
-		// spot the pin renders at when the anchor is configured via `CommentTool.configure`.
-		if (thread) focusThread(editor, thread, impreciseShapeAnchor ?? options.impreciseShapeAnchor)
+		if (thread) focusThread(editor, thread)
 	}
 
 	return (
@@ -166,7 +154,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				headerAction={
 					<div className="tlui-cmt-list__header-actions">
 						<CommentsFilterMenu
-							canFilterByAuthor={currentUserId !== undefined}
+							canFilterByAuthor={currentUserId !== null}
 							canFilterByUnread={isCommentUnread !== undefined}
 						/>
 						<CommentsVisibilityToggle />

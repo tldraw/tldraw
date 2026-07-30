@@ -12,9 +12,6 @@ import {
 import { getCommentingOptions } from './options'
 import { openThreadId } from './state'
 
-/** Where an imprecise shape comment sits by default: the shape's top-right corner. Overridable. @public */
-export const DEFAULT_IMPRECISE_SHAPE_ANCHOR = { x: 1, y: 0 }
-
 /** How far an imprecise shape pin steps inside the shape from its anchor spot, in screen px —
  *  most of the marker sits within the shape, with a small overhang past the corner. */
 export const IMPRECISE_PIN_INSET_PX = 20
@@ -24,10 +21,10 @@ export const IMPRECISE_PIN_INSET_PX = 20
  *  pin is screen-fixed while the shape scales with zoom. Null for anchors that need no inset. */
 export function impreciseShapePinInset(
 	editor: Editor,
-	anchor: TLCommentThread['anchor'],
-	spot: { x: number; y: number }
+	anchor: TLCommentThread['anchor']
 ): { x: number; y: number } | null {
 	if (anchor.type !== 'shape' || anchor.isPrecise) return null
+	const spot = getCommentingOptions(editor).impreciseShapeAnchor
 	const inset = {
 		x: Math.sign(0.5 - spot.x) * IMPRECISE_PIN_INSET_PX,
 		y: Math.sign(0.5 - spot.y) * IMPRECISE_PIN_INSET_PX,
@@ -38,21 +35,20 @@ export function impreciseShapePinInset(
 	return rotation === 0 ? inset : Vec.Rot(inset, rotation)
 }
 
-/** The default corner a region's pin and composer sit on, as a normalized 0–1 offset (bottom-right).
- *  Overridable per editor via the `regionPinCorner` commenting option; pin position, composer
- *  placement, region move, and which corner has no resize handle all derive from the chosen corner. */
+/** The corner a region's pin and composer sit on, as a normalized 0–1 offset (bottom-right). Pin
+ *  position, composer placement, region move, and which corner has no resize handle all derive
+ *  from it. */
 export const REGION_PIN_CORNER: VecLike = { x: 1, y: 1 }
 
 /** A region anchor's pin corner: the corner its creating drag released on, when recorded, else
- *  the editor's configured default. @public */
+ *  {@link REGION_PIN_CORNER}. @internal */
 export function regionAnchorPinCorner(
-	editor: Editor,
 	anchor: Extract<TLCommentAnchor, { type: 'region' }>
 ): VecLike {
 	if (anchor.pinX !== undefined && anchor.pinY !== undefined) {
 		return { x: anchor.pinX, y: anchor.pinY }
 	}
-	return getCommentingOptions(editor).regionPinCorner
+	return REGION_PIN_CORNER
 }
 
 /** The page point of a region's pin corner. */
@@ -65,8 +61,8 @@ export function regionPinPoint(region: BoxModel, corner: VecLike = REGION_PIN_CO
 
 /**
  * Where a thread's pin sits on the page, for each anchor kind. Null hides the pin. For imprecise
- * shape anchors the pin uses `impreciseShapeAnchor` (a normalized 0–1 spot, top-right by default)
- * rather than the stored `x`/`y`.
+ * shape anchors the pin uses the editor's {@link CommentingOptions.impreciseShapeAnchor} (a
+ * normalized 0–1 spot, top-right by default) rather than the stored `x`/`y`.
  *
  * A shape anchor's `x`/`y` are normalized within the shape's own bounds and resolved through the
  * shape's page transform, so the pin rides every part of that transform — rotating the shape
@@ -75,8 +71,7 @@ export function regionPinPoint(region: BoxModel, corner: VecLike = REGION_PIN_CO
  */
 export function anchorPagePoint(
 	editor: Editor,
-	anchor: TLCommentAnchor,
-	impreciseShapeAnchor: { x: number; y: number } = DEFAULT_IMPRECISE_SHAPE_ANCHOR
+	anchor: TLCommentAnchor
 ): { x: number; y: number } | null {
 	switch (anchor.type) {
 		case 'shape': {
@@ -85,14 +80,14 @@ export function anchorPagePoint(
 			const transform = editor.getShapePageTransform(shape)
 			if (!transform) return null
 			const { point, size } = editor.getShapeGeometry(shape).bounds
-			// Precise pins sit at their stored x/y; imprecise ones at the consumer's default spot.
-			const spot = anchor.isPrecise ? anchor : impreciseShapeAnchor
+			// Precise pins sit at their stored x/y; imprecise ones at the editor's configured spot.
+			const spot = anchor.isPrecise ? anchor : getCommentingOptions(editor).impreciseShapeAnchor
 			return Mat.applyToPoint(transform, Vec.Add(point, Vec.MulV(spot, size)))
 		}
 		case 'point':
 			return { x: anchor.x, y: anchor.y }
 		case 'region':
-			return regionPinPoint(anchor, regionAnchorPinCorner(editor, anchor))
+			return regionPinPoint(anchor, regionAnchorPinCorner(anchor))
 		case 'page':
 			return null
 	}
@@ -152,15 +147,11 @@ export function shapeAnchorAt(
 }
 
 /** Open a thread and bring it into view — switch to its page if needed, then center its pin. @public */
-export function focusThread(
-	editor: Editor,
-	thread: TLCommentThread,
-	impreciseShapeAnchor?: { x: number; y: number }
-): void {
+export function focusThread(editor: Editor, thread: TLCommentThread): void {
 	if (thread.pageId !== editor.getCurrentPageId()) {
 		editor.setCurrentPage(thread.pageId as any)
 	}
 	openThreadId.set(editor, thread.id)
-	const point = anchorPagePoint(editor, thread.anchor, impreciseShapeAnchor)
+	const point = anchorPagePoint(editor, thread.anchor)
 	if (point) editor.centerOnPoint(point, { animation: { duration: 200 } })
 }

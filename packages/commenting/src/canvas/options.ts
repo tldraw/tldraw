@@ -70,7 +70,8 @@ export interface CommentingComponents {
 /**
  * Configuration for the commenting layer. Static config only — pass it once via
  * `CommentTool.configure({ ... })`, mirroring `ShapeUtil.configure`. Live, reactive values
- * (`currentUserId`, `resolveName`, read-status callbacks) stay as props on `<CanvasComments>`.
+ * (`currentUserId`, author resolution, read-status callbacks) are the `CommentingContext`, passed as
+ * props to each commenting surface.
  *
  * For defaults, see {@link defaultCommentingOptions}.
  *
@@ -117,9 +118,10 @@ export interface CommentingOptions {
 	isAllowedReaction(token: string): boolean
 	/**
 	 * Whether dragging the comment tool out creates a region anchor — a comment attached to a
-	 * rectangular area of the page, drawn as a dashed box with the thread's pin on one corner.
-	 * Off by default: comments attach to points and shapes only, and a drag just trails the
-	 * composer. The `region*` options below tune the interaction.
+	 * rectangular area of the page, drawn as a dashed box with the thread's pin on the corner the
+	 * drag released on. Off by default: comments attach to points and shapes only, and a drag just
+	 * trails the composer. A region reveals its box while the pointer is inside it, moves by its
+	 * pin, and resizes from its corners.
 	 */
 	readonly enableRegions: boolean
 
@@ -154,24 +156,6 @@ export interface CommentingOptions {
 	 */
 	shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean
 
-	// ── Region comments ───────────────────────────────────────────────────────────────────────
-	/** Which corner of a region its pin and composer sit on, as a normalized 0–1 offset within the
-	 *  region. Default bottom-right. */
-	readonly regionPinCorner: { readonly x: number; readonly y: number }
-	/** When a region's dashed box and resize handles reveal: while the pointer is within the
-	 *  region, while its pin is hovered, or only while its thread is open. */
-	readonly regionReveal: 'pointer' | 'pin-hover' | 'open'
-	/** How a region is moved to a new spot: dragging its pin, dragging its body, or either. */
-	readonly regionMove: 'pin' | 'body' | 'both'
-	/** A region's resize affordance: corner handles, edge handles, or none. */
-	readonly regionResize: 'corners' | 'edges' | 'none'
-
-	// ── Clustering tuning ─────────────────────────────────────────────────────────────────────
-	/** Screen-pixel margin by which the viewport is inflated when culling cluster badges. */
-	readonly clusterCullMargin: number
-	/** How far past a cluster's split zoom to land when expanding it (1.05 = 5% overshoot). */
-	readonly clusterSplitZoomFactor: number
-
 	// ── Components ────────────────────────────────────────────────────────────────────────────
 	/** Component overrides. See {@link CommentingComponents}. */
 	readonly components: CommentingComponents
@@ -192,12 +176,6 @@ export const defaultCommentingOptions = {
 	canComment: undefined,
 	impreciseShapeAnchor: { x: 1, y: 0 },
 	shouldBePrecise: () => true,
-	regionPinCorner: { x: 1, y: 1 },
-	regionReveal: 'pointer',
-	regionMove: 'pin',
-	regionResize: 'corners',
-	clusterCullMargin: 120,
-	clusterSplitZoomFactor: 1.05,
 	components: {},
 } as const satisfies CommentingOptions
 

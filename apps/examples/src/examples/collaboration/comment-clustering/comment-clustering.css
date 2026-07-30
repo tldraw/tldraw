@@ -1,17 +1,3 @@
-.comment-clustering__layer {
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-	z-index: 300;
-}
-
-/* Markers centre on their anchor point. No transition: the runtime hard-swaps a pin for a count
-   badge at the merge/split zoom thresholds. */
-.comment-clustering__marker {
-	position: absolute;
-	transform: translate(-50%, -50%);
-}
-
 .comment-clustering__hint {
 	position: absolute;
 	top: 12px;

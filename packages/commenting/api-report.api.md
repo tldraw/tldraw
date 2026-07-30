@@ -37,10 +37,7 @@ import { TLUiOverrides } from 'tldraw';
 import { VecLike } from 'tldraw';
 
 // @public
-export function anchorPagePoint(editor: Editor, anchor: TLCommentAnchor, impreciseShapeAnchor?: {
-    x: number;
-    y: number;
-}): {
+export function anchorPagePoint(editor: Editor, anchor: TLCommentAnchor): {
     x: number;
     y: number;
 } | null;
@@ -60,85 +57,21 @@ export interface BylineProps {
     edited?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export function CanvasComments(props: CanvasCommentsProps): JSX.Element | null;
 
 // @public
-export interface CanvasCommentsProps {
-    currentUserId: null | string;
-    getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
-    impreciseShapeAnchor?: {
-        x: number;
-        y: number;
-    };
-    isCommentUnread?(commentId: TLCommentId): boolean;
-    onCommentRead?(commentId: TLCommentId): void;
-    onPostComment?(comment: TLComment): void;
-    renderMentionSuggestion?(member: MentionMember): ReactNode;
-    resolveAuthor(id: string): CommentAuthor | undefined;
-}
+export type CanvasCommentsProps = CommentingContext;
 
 // @public
 export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps): JSX.Element | null;
 
-// @public (undocumented)
-export interface CanvasCommentsSidebarProps {
-    currentUserId?: string;
+// @public
+export interface CanvasCommentsSidebarProps extends Pick<CommentingContext, 'currentUserId' | 'isCommentUnread' | 'resolveAuthor'> {
     empty?: ReactNode;
     getThreadHref?(threadId: TLCommentThreadId): string | undefined;
     header?: ReactNode;
-    impreciseShapeAnchor?: {
-        x: number;
-        y: number;
-    };
-    isCommentUnread?(commentId: TLCommentId): boolean;
-    resolveAuthor(id: string): CommentAuthor | undefined;
 }
-
-// @public
-export interface ClusterNode {
-    centroid: VecLike;
-    count: number;
-    id: string;
-    members: string[];
-}
-
-// @public (undocumented)
-export interface ClusterOptions {
-    Dmax?: number;
-    eps?: number;
-    maxSplitZoom?: number;
-    // (undocumented)
-    maxZoom: number;
-    minZoom: number;
-    Tc?: number;
-    Tu?: number;
-}
-
-// @public (undocumented)
-export interface ClusterRuntime {
-    detachLeaf(leafId: string): void;
-    getDetachedCount(): number;
-    getSuppressedCount(): number;
-    getVisible(): ReadonlyMap<string, ClusterNode>;
-    readonly k: number;
-    onCamera(zoom: number): void;
-    seed(zoom: number): void;
-    seedFrom(zoom: number, previous: ReadonlyMap<string, ClusterNode>): void;
-    readonly version: number;
-}
-
-// @public
-export interface ClusterTable {
-    events: readonly MergeEvent[];
-    leaves: readonly ClusterNode[];
-}
-
-// @public (undocumented)
-export function collectClusterLeaves(editor: Editor, threads: readonly TLCommentThread[], openThreadId: null | string, impreciseShapeAnchor?: {
-    x: number;
-    y: number;
-}): LeafInput[];
 
 export { CommentAuthor }
 
@@ -216,14 +149,23 @@ export interface CommentingComponents {
 }
 
 // @public
+export interface CommentingContext {
+    currentUserId: null | string;
+    getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
+    isCommentUnread?(commentId: TLCommentId): boolean;
+    onCommentRead?(commentId: TLCommentId): void;
+    onPostComment?(comment: TLComment): void;
+    renderMentionSuggestion?(member: MentionMember): ReactNode;
+    resolveAuthor(id: string): CommentAuthor | undefined;
+}
+
+// @public
 export interface CommentingOptions {
     readonly allowMultipleReactions: boolean;
     readonly canComment: ((ctx: {
         currentUserId: null | string;
         editor: Editor;
     }) => boolean) | undefined;
-    readonly clusterCullMargin: number;
-    readonly clusterSplitZoomFactor: number;
     readonly components: CommentingComponents;
     readonly dragHistory: TLHistoryBatchOptions['history'] | undefined;
     readonly enableClustering: boolean;
@@ -234,13 +176,6 @@ export interface CommentingOptions {
         readonly y: number;
     };
     isAllowedReaction(token: string): boolean;
-    readonly regionMove: 'body' | 'both' | 'pin';
-    readonly regionPinCorner: {
-        readonly x: number;
-        readonly y: number;
-    };
-    readonly regionResize: 'corners' | 'edges' | 'none';
-    readonly regionReveal: 'open' | 'pin-hover' | 'pointer';
     shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean;
 }
 
@@ -373,18 +308,6 @@ export const commentToolOverrides: TLUiOverrides;
 // @public (undocumented)
 export const commentTools: typeof CommentTool[];
 
-// @public
-export function commitCommentMutation<T>(editor: Editor, fn: () => T, kind?: 'drag' | 'mutation'): T;
-
-// @public (undocumented)
-export function computeClusterTable(leaves: readonly LeafInput[], options: ClusterOptions): ClusterTable;
-
-// @public
-export function computePinStacks(editor: Editor, threads: readonly TLCommentThread[], impreciseShapeAnchor?: {
-    x: number;
-    y: number;
-}): Map<string, readonly string[]>;
-
 // @public (undocumented)
 export function CountBadge({ count, open }: CountBadgeProps): JSX.Element;
 
@@ -395,16 +318,7 @@ export interface CountBadgeProps {
     open?: boolean;
 }
 
-// @public (undocumented)
-export function createClusterRuntime(table: ClusterTable): ClusterRuntime;
-
 export { createMentionSuggestion }
-
-// @public
-export const DEFAULT_IMPRECISE_SHAPE_ANCHOR: {
-    x: number;
-    y: number;
-};
 
 // @public
 export const DEFAULT_REACTION_EMOJI: string[];
@@ -416,8 +330,6 @@ export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters;
 export const defaultCommentingOptions: {
     readonly allowMultipleReactions: true;
     readonly canComment: undefined;
-    readonly clusterCullMargin: 120;
-    readonly clusterSplitZoomFactor: 1.05;
     readonly components: {};
     readonly dragHistory: undefined;
     readonly enableClustering: true;
@@ -428,13 +340,6 @@ export const defaultCommentingOptions: {
         readonly y: 0;
     };
     readonly isAllowedReaction: typeof isAllowedReactionEmoji;
-    readonly regionMove: "pin";
-    readonly regionPinCorner: {
-        readonly x: 1;
-        readonly y: 1;
-    };
-    readonly regionResize: "corners";
-    readonly regionReveal: "pointer";
     readonly shouldBePrecise: () => true;
 };
 
@@ -448,46 +353,6 @@ export function DefaultReactionTooltipContent({ reactors }: {
 
 // @public
 export function defaultRenderReaction(token: string): ReactNode;
-
-// @public
-export function DrawingReactionContent({ token }: {
-    token: string;
-}): JSX.Element;
-
-// @public (undocumented)
-export interface DrawingReactionExportOptions {
-    darkMode?: boolean;
-    format?: DrawingReactionFormat;
-    maxTokenLength?: number;
-    size?: number;
-}
-
-// @public
-export type DrawingReactionFormat = 'png' | 'svg';
-
-// @public
-export function DrawingReactionPalette({ emoji, selected, onSelect, renderReaction, size, exportOptions, licenseKey, submitLabel }: DrawingReactionPaletteProps): JSX.Element;
-
-// @public (undocumented)
-export interface DrawingReactionPaletteProps {
-    emoji?: string[];
-    exportOptions?: DrawingReactionExportOptions;
-    licenseKey?: string;
-    onSelect?(token: string): void;
-    renderReaction?: RenderReaction;
-    selected?: string[];
-    size?: number | string;
-    submitLabel?: string;
-}
-
-// @public
-export class DrawingReactionTooLargeError extends Error {
-    constructor(length: number, maxLength: number);
-    // (undocumented)
-    readonly length: number;
-    // (undocumented)
-    readonly maxLength: number;
-}
 
 // @public
 export function EmojiPicker({ emoji, selected, onSelect, renderReaction }: EmojiPickerProps): JSX.Element;
@@ -509,16 +374,10 @@ export interface EmptyStateProps {
     message: string;
 }
 
-// @public
-export function exportDrawingReactionToken(editor: Editor, opts?: DrawingReactionExportOptions): Promise<null | string>;
-
 export { filterMentionMembers }
 
 // @public
-export function focusThread(editor: Editor, thread: TLCommentThread, impreciseShapeAnchor?: {
-    x: number;
-    y: number;
-}): void;
+export function focusThread(editor: Editor, thread: TLCommentThread): void;
 
 // @public
 export function formatRelativeTime(iso: string, locale?: string): string;
@@ -542,19 +401,13 @@ export function getComments(editor: Editor): TLComment[];
 export function getCommentThreads(editor: Editor): TLCommentThread[];
 
 // @public
+export function getRevealThreadPending(editor: Editor): null | string;
+
+// @public
 export function isAllowedReactionEmoji(emoji: string, palette?: readonly string[]): boolean;
 
 // @public
-export function isDrawingReactionToken(token: string): boolean;
-
-// @public
 export function isOpenInNewTabClick(e: MouseEvent_2): boolean;
-
-// @public
-export interface LeafInput {
-    id: string;
-    point: VecLike;
-}
 
 export { Mention }
 
@@ -569,20 +422,6 @@ export { MentionProps }
 export { MentionSuggestionOptions }
 
 // @public
-export interface MergeEvent {
-    // (undocumented)
-    children: ClusterNode[];
-    // (undocumented)
-    result: ClusterNode;
-    // (undocumented)
-    zMerge: number;
-    zSplit: number;
-}
-
-// @public
-export const openStackId: EditorAtom<null | string>;
-
-// @public
 export const openThreadId: EditorAtom<null | string>;
 
 // @public
@@ -591,9 +430,6 @@ export interface PendingComment {
     anchor: TLCommentAnchor;
     point: VecLike;
 }
-
-// @public
-export const pendingComment: EditorAtom<null | PendingComment>;
 
 // @public
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;
@@ -665,27 +501,16 @@ export interface ReactionTooltipProps {
 }
 
 // @public
-export function regionAnchorPinCorner(editor: Editor, anchor: Extract<TLCommentAnchor, {
-    type: 'region';
-}>): VecLike;
-
-// @public
-export function registerCommentAnchorLifecycle(editor: Editor, impreciseShapeAnchor?: {
-    x: number;
-    y: number;
-}): () => void;
+export function registerCommentAnchorLifecycle(editor: Editor): () => void;
 
 // @public
 export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]): void;
 
 // @public
-export function renderDrawingReaction(token: string): ReactNode;
-
-// @public
 export type RenderReaction = (token: string) => ReactNode;
 
 // @public
-export const revealThreadRequest: EditorAtom<null | string>;
+export function revealThread(editor: Editor, threadOrCommentId: string): void;
 
 // @public
 export function richTextToPlaintext(body: TLRichText, resolveName?: (id: string) => string | undefined): string;
@@ -772,7 +597,7 @@ export function useCommentThreads(editor: Editor): TLCommentThread[];
 export function useOpenThreadId(): null | string;
 
 // @public
-export function usePendingComment(): null | PendingComment;
+export function useRevealThreadPending(): null | string;
 
 // @public
 export function useSidebarFilters(): SidebarFilters;

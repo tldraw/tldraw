@@ -1,7 +1,13 @@
-import { getCommentRecord, revealThreadRequest, useCommentingEnabled } from '@tldraw/commenting'
+import {
+	getCommentRecord,
+	getRevealThreadPending,
+	revealThread,
+	useCommentingEnabled,
+	useRevealThreadPending,
+} from '@tldraw/commenting'
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useEditor, useToasts, useValue } from 'tldraw'
+import { useEditor, useToasts } from 'tldraw'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { useIsReady } from '../../../hooks/useIsReady'
 import { defineMessages, useMsg } from '../../../utils/i18n'
@@ -29,7 +35,7 @@ export function SneakyCommentDeepLink() {
 
 	useEffect(() => {
 		if (!commentId) return
-		revealThreadRequest.set(editor, commentId)
+		revealThread(editor, commentId)
 		setSearchParams(
 			(params) => {
 				params.delete('comment')
@@ -45,13 +51,14 @@ export function SneakyCommentDeepLink() {
 	// read so it doesn't keep dead-ending on every click. "Absent" is still a heuristic (the sync
 	// layer has no records-settled signal), so the request is left pending: if the records are
 	// merely late, the overlay still serves them when they land, and an unserved request is inert.
-	const pendingRevealId = useValue('pending reveal', () => revealThreadRequest.get(editor), [
-		editor,
-	])
+	const pendingRevealId = useRevealThreadPending()
 	useEffect(() => {
 		if (!isReady || !commentingEnabled || !pendingRevealId) return
 		const timer = setTimeout(() => {
-			if (revealThreadRequest.get(editor) !== pendingRevealId) return
+			// Re-read rather than trusting the render we closed over: the request can clear inside the
+			// grace period — the overlay unmounting drops it without the records ever arriving — and
+			// this timer can still fire in the gap before React re-runs the effect and cancels it.
+			if (getRevealThreadPending(editor) !== pendingRevealId) return
 			if (getCommentRecord(editor, pendingRevealId)) return
 			addToast({ id: 'comment-deep-link-deleted', severity: 'info', title: deletedMsg })
 			if (app?.getComments().some((c) => c.id === pendingRevealId)) {

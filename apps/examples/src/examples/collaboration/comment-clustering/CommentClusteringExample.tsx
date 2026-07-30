@@ -1,82 +1,100 @@
 import {
-	CommentPin,
-	computeClusterTable,
-	CountBadge,
-	createClusterRuntime,
-	type LeafInput,
+	CanvasComments,
+	CommentAuthor,
+	commentToolOverrides,
+	commentTools,
+	putCommentRecords,
 } from '@tldraw/commenting'
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
-import { Editor, TLComponents, Tldraw, useEditor, useValue } from 'tldraw'
+import {
+	commentSchemaRecords,
+	createComment,
+	createCommentThread,
+	createTLSchema,
+	createTLStore,
+	Editor,
+	TLComponents,
+	Tldraw,
+	toRichText,
+	VecLike,
+} from 'tldraw'
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 import './comment-clustering.css'
 
-// Comment anchors in page space: two loose groups that merge into single badges as you zoom out.
-const LEAVES: (LeafInput & { label: string })[] = [
-	{ id: 'a', label: 'J', point: { x: 250, y: 140 } },
-	{ id: 'b', label: 'M', point: { x: 300, y: 170 } },
-	{ id: 'c', label: 'A', point: { x: 265, y: 220 } },
-	{ id: 'd', label: 'S', point: { x: 470, y: 250 } },
-	{ id: 'e', label: 'K', point: { x: 515, y: 285 } },
+const AUTHORS: Record<string, CommentAuthor> = {
+	ada: { name: 'Ada Lovelace', color: '#0E9F6E' },
+	grace: { name: 'Grace Hopper', color: '#4465E9' },
+	me: { name: 'You', color: '#EC5E41' },
+}
+const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
+
+// [1]
+const THREADS: { point: VecLike; by: string; text: string }[] = [
+	{ point: { x: 250, y: 140 }, by: 'ada', text: 'Should this column be wider?' },
+	{ point: { x: 300, y: 170 }, by: 'grace', text: 'Agreed, it wraps on mobile.' },
+	{ point: { x: 265, y: 220 }, by: 'ada', text: 'Same for the row beneath it.' },
+	{ point: { x: 800, y: 250 }, by: 'grace', text: 'This label reads as a button.' },
+	{ point: { x: 845, y: 285 }, by: 'ada', text: 'Let’s make it a link instead.' },
 ]
 
-// The editor's zoom range, matching how the commenting overlay derives it.
-function zoomBounds(editor: Editor) {
-	const opts = editor.getCameraOptions()
-	const base = opts.constraints ? editor.getBaseZoom() : 1
-	const steps = opts.zoomSteps
-	return { minZoom: steps[0] * base, maxZoom: steps[steps.length - 1] * base }
-}
+export default function CommentClusteringExample() {
+	const store = useMemo(
+		() => createTLStore({ schema: createTLSchema({ records: commentSchemaRecords }) }),
+		[]
+	)
 
-// Rendered as a tldraw component slot, so it lives inside the editor's themed container — that's
-// what gives `CommentPin`/`CountBadge` their colors, since those read tldraw's CSS tokens.
-function ClusterLayer() {
-	const editor = useEditor()
+	const handleMount = (editor: Editor) => {
+		const pageId = editor.getCurrentPageId()
+		for (const { point, by, text } of THREADS) {
+			const thread = createCommentThread({
+				pageId,
+				anchor: { type: 'point', x: point.x, y: point.y },
+				createdBy: by,
+			})
+			const comment = createComment({
+				threadId: thread.id,
+				pageId,
+				authorId: by,
+				body: toRichText(text),
+			})
+			putCommentRecords(editor, [thread, comment])
+		}
+	}
 
-	// `computeClusterTable` precomputes, for the full zoom range, which anchors merge and at what
-	// zoom. The runtime then just looks up the current zoom — cheap enough to run every camera move.
-	const runtime = useMemo(() => {
-		const rt = createClusterRuntime(computeClusterTable(LEAVES, zoomBounds(editor)))
-		rt.seed(editor.getZoomLevel())
-		return rt
-	}, [editor])
-
-	// Track the whole camera, not just zoom: clustering re-flows on zoom, but the pins' screen
-	// positions must also follow x/y so they stay glued to the page as you pan.
-	const camera = useValue('camera', () => editor.getCamera(), [editor])
-	const nodes = useMemo(() => {
-		runtime.onCamera(camera.z)
-		return Array.from(runtime.getVisible().values())
-	}, [runtime, camera.z])
-
-	const labelById = useMemo(() => new Map(LEAVES.map((l) => [l.id, l.label])), [])
+	const components = useMemo<TLComponents>(
+		() => ({
+			InFrontOfTheCanvas: () => <CanvasComments currentUserId="me" resolveAuthor={resolveAuthor} />,
+		}),
+		[]
+	)
 
 	return (
-		<div className="comment-clustering__layer">
-			{nodes.map((node) => {
-				const p = editor.pageToViewport(node.centroid)
-				const style = { left: p.x, top: p.y }
-				// A single-member node renders as a pin; a merged node as a count badge.
-				return (
-					<div key={node.id} className="comment-clustering__marker" style={style}>
-						{node.count === 1 ? (
-							<CommentPin>{labelById.get(node.members[0]) ?? '?'}</CommentPin>
-						) : (
-							<CountBadge count={node.count} />
-						)}
-					</div>
-				)
-			})}
+		<div className="tldraw__editor">
+			<Tldraw
+				licenseKey={getLicenseKey()}
+				store={store}
+				tools={commentTools}
+				overrides={[commentToolOverrides]}
+				components={components}
+				onMount={handleMount}
+			/>
 			<div className="comment-clustering__hint">Zoom out to cluster (⌘/ctrl-scroll or pinch)</div>
 		</div>
 	)
 }
 
-export default function CommentClusteringExample() {
-	const components = useMemo<TLComponents>(() => ({ InFrontOfTheCanvas: ClusterLayer }), [])
-	return (
-		<div className="tldraw__editor">
-			<Tldraw hideUi components={components} />
-		</div>
-	)
-}
+/*
+This example seeds two loose groups of comment threads so you can watch them cluster.
+
+[1]
+Two clusters of pins, far enough apart that they stay separate while the ones within each group
+merge. Zoom out and each group folds into a single count badge; zoom back in and they split apart.
+Splits happen at a wider spacing than merges, so pins don't flicker at the threshold. Clicking a
+badge zooms to just past the point where it splits.
+
+Clustering is on by default and needs no configuration — `CanvasComments` does it for you. Turn it
+off with `CommentTool.configure({ enableClustering: false })` and every pin renders individually at
+every zoom.
+*/
