@@ -138,7 +138,7 @@ function CommentListItem({
 }
 
 /**
- * Whether a click should be left to the browser's link handling (new tab / new window).
+ * Whether a click should be left to the browser's link handling (new tab, new window, or download).
  * @public
  */
 export function isOpenInNewTabClick(e: MouseEvent) {
