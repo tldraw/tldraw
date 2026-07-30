@@ -1249,6 +1249,7 @@ tldraw? probably.
 .tlui-layout__bottom {
 	grid-row: 2;
 	width: 100%;
+	min-width: 0px;
 }
 
 .tlui-layout__bottom__main {

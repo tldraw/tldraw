@@ -1,4 +1,4 @@
-import { isMentionPickerOpen } from '@tldraw/mentions'
+import { Avatar, isMentionPickerOpen } from '@tldraw/mentions'
 import {
 	Fragment,
 	memo,
@@ -17,7 +17,6 @@ import {
 	createComment,
 	createCommentThread,
 	Editor,
-	getFirstCharacter,
 	react,
 	TLCommentThread,
 	TLRichText,
@@ -65,6 +64,7 @@ import {
 	pendingComment,
 	regionDraft,
 	revealThreadRequest,
+	sidebarFilters,
 	toggleCommentsHidden,
 	usePendingComment,
 } from './state'
@@ -106,7 +106,6 @@ function forwardPointerEventToCanvas(container: HTMLElement, e: ReactPointerEven
 	cvs.dispatchEvent(newEvent)
 }
 
-const initialOf = (name: string): string => (getFirstCharacter(name.trim()) || '?').toUpperCase()
 const CLUSTER_FADE_MS = 150
 /** Duration of the click-a-badge zoom-to-split animation. */
 const CLUSTER_EXPAND_ZOOM_MS = 450
@@ -117,26 +116,11 @@ const CLUSTER_SPLIT_ZOOM_FACTOR = 1.05
  *  just off-screen is already mounted when a pan brings it in. */
 const CLUSTER_CULL_MARGIN_PX = 120
 
-/** The leading element for the placement composer — the comment pin's shape, but a pencil
- *  instead of an initial, marking an unsent draft. */
-const draftAvatar = (
-	<CommentPin>
-		<svg
-			viewBox="0 0 24 24"
-			width="15"
-			height="15"
-			fill="none"
-			stroke="currentColor"
-			strokeWidth="2"
-			strokeLinecap="round"
-			strokeLinejoin="round"
-			aria-hidden="true"
-		>
-			<path d="M12 20h9" />
-			<path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-		</svg>
-	</CommentPin>
-)
+/** The opened popover has a header row the hover preview lacks, so it opens this much higher — the
+ *  first comment then lands where the preview's sat. Measured: the expanded first comment sits ~42px
+ *  below the panel top (the 40px header, no gap) vs the preview's 4px (its panel padding).
+ *  Re-measure if the header height or the preview panel padding changes. */
+const THREAD_HEADER_BLOCK = 36
 
 /**
  * A ready-to-use comments layer for a tldraw canvas: pins each thread at its anchor, opens a
@@ -205,7 +189,7 @@ function CanvasCommentsLayer(props: CommentingContext) {
 	// canvas, so any pin past its bottom/right edge inflates the root's scrollHeight — which the
 	// wheel hook's is-this-scrollable guard reads as scrollable, silently disabling pass-through.
 	usePassThroughMouseOverEvents(layerRef)
-	const threads = useCommentThreads(editor)
+	const allThreads = useCommentThreads(editor)
 	const pending = usePendingComment()
 	const canComment = useCanComment(props.currentUserId)
 	// With composing blocked and no fallback slot there's nothing to render for a pending comment —
@@ -218,6 +202,15 @@ function CanvasCommentsLayer(props: CommentingContext) {
 		if (pending && !showPendingComposer) pendingComment.set(editor, null)
 	}, [editor, pending, showPendingComposer])
 	const openId = useValue('open thread id', () => openThreadId.get(editor), [editor])
+	// Hide resolved threads' pins by default, matching the sidebar's `showResolved` filter. The open
+	// thread stays in — resolving from its own popover shouldn't make the pin vanish under it.
+	const showResolved = useValue('show resolved', () => sidebarFilters.get(editor).showResolved, [
+		editor,
+	])
+	const threads = useMemo(
+		() => allThreads.filter((t) => showResolved || t.resolved == null || t.id === openId),
+		[allThreads, showResolved, openId]
+	)
 	useEffect(() => registerCommentAnchorLifecycle(editor), [editor])
 	// Threads held out of clustering because their anchor moved while folded inside a badge
 	// (drag, nudge, align, undo, a collaborator — detected by position, not gesture). They render
@@ -1185,12 +1178,12 @@ const ThreadPin = memo(function ThreadPin({
 	if (!point) return null
 
 	const PinContent = options.components.PinContent
-	// The `PinContent` component slot overrides the built-in author-initial default.
+	// The `PinContent` component slot overrides the built-in author-avatar default.
 	const threadAuthor = resolveAuthor(thread.createdBy)
 	const pinContent = PinContent ? (
 		<PinContent thread={thread} comments={comments} />
 	) : (
-		initialOf(threadAuthor?.name ?? UNKNOWN_AUTHOR)
+		<Avatar author={threadAuthor ?? UNKNOWN_COMMENT_AUTHOR} />
 	)
 	const pinLabel = msg(
 		thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label'
@@ -1382,7 +1375,7 @@ const ThreadPin = memo(function ThreadPin({
 					onFocus={previewHandlers.onPointerEnter}
 					onBlur={previewHandlers.onPointerLeave}
 				>
-					<CommentPin resolved={thread.resolved != null} open={open} color={threadAuthor?.color}>
+					<CommentPin resolved={thread.resolved != null} open={open}>
 						{pinContent}
 					</CommentPin>
 				</button>
@@ -1393,7 +1386,7 @@ const ThreadPin = memo(function ThreadPin({
 						container={container}
 						style={{
 							left: renderPoint.x + POPOVER_OFFSET.thread.x,
-							top: renderPoint.y + POPOVER_OFFSET.thread.y,
+							top: renderPoint.y + POPOVER_OFFSET.thread.y - THREAD_HEADER_BLOCK,
 						}}
 					>
 						<ThreadView editor={editor} thread={thread} {...props} />
@@ -1431,6 +1424,12 @@ function PendingComposer({
 	const ComposerFallback = useCommentingOptions().components.ComposerFallback
 	const canComment = useCanComment(currentUserId)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
+	// The leading pin previews the pin this draft becomes: a white pin holding the author's avatar.
+	const draftAvatar = (
+		<CommentPin>
+			<Avatar author={me ?? UNKNOWN_COMMENT_AUTHOR} />
+		</CommentPin>
+	)
 	// Click-away keeps the draft (saved on every change) and the next placement composer
 	// restores it — the flip side of dismissing without a discard warning.
 	const [text, setText] = useState<TLRichText>(

@@ -123,9 +123,15 @@ export function CommentComposer({
 		if (!send || !input) return
 		mirror.innerHTML = input.innerHTML
 		const textWidth = mirror.offsetWidth
-		// The single-line space the input has beside the send button: when already expanded the
-		// wrap spans the full field, so subtract the button (plus the field's 6px gap) back out.
-		const collapsedAvailable = wrap.clientWidth - (expandedRef.current ? send.offsetWidth + 6 : 0)
+		// The single-line space the input has beside the send button: the wrap's *content* box
+		// (clientWidth minus its own horizontal padding — the text wraps there, not at clientWidth),
+		// less the button plus the field's 6px gap when already expanded (the wrap then spans the
+		// full field). Without subtracting the padding, a padded wrap wraps to a second line ~padding
+		// px before expansion fires, so the input grows a line and then snaps to the expanded layout.
+		const wrapStyle = getComputedStyle(wrap)
+		const wrapPadX = parseFloat(wrapStyle.paddingLeft) + parseFloat(wrapStyle.paddingRight)
+		const collapsedAvailable =
+			wrap.clientWidth - wrapPadX - (expandedRef.current ? send.offsetWidth + 6 : 0)
 		if (!expandedRef.current && textWidth > collapsedAvailable - 8) {
 			setExpanded(true)
 		} else if (expandedRef.current && textWidth < collapsedAvailable - 24) {

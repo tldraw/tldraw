@@ -133,6 +133,14 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 		}
 	}
 
+	// The expanded thread gains a "Comment" header that pushes its first comment down from where the
+	// hover preview showed it. When that thread is the list's first, lift the whole list by the
+	// header block so its "You" holds position across hover -> open: the single thread's
+	// THREAD_HEADER_BLOCK (36) plus the 8px margin above the expanded entry, less the 2px top the
+	// preview card sits its "You" down by. Only the first entry — lifting the list can't also hold a
+	// lower thread's neighbours in place.
+	const liftForHeader = threads[0]?.id === openId ? 42 : 0
+
 	return (
 		<>
 			<div className="tlui-cmt-canvas-pin" style={{ left: point.x, top: point.y }}>
@@ -177,7 +185,10 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 			{open && (
 				<ThreadPopover
 					container={container}
-					style={{ left: point.x + POPOVER_OFFSET.list.x, top: point.y + POPOVER_OFFSET.list.y }}
+					style={{
+						left: point.x + POPOVER_OFFSET.list.x,
+						top: point.y + POPOVER_OFFSET.list.y - liftForHeader,
+					}}
 				>
 					<div className="tlui-cmt-stack-list">
 						{threads.map((thread) =>
