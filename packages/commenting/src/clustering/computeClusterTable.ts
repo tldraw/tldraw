@@ -40,9 +40,9 @@ export function computeClusterTable(
 }
 
 function resolveOptions(options: ClusterOptions): ResolvedClusterOptions {
-	const Tc = options.Tc ?? 25
+	const Tc = options.Tc ?? 22
 	const Tu = options.Tu ?? 1.2 * Tc
-	const eps = options.eps ?? 0.35
+	const eps = options.eps ?? 0.7
 	const Dmax = options.Dmax ?? 3.75 * Tc
 	const maxSplitZoom = options.maxSplitZoom ?? 6
 	const { minZoom, maxZoom } = options
