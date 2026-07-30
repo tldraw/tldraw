@@ -1,5 +1,5 @@
 import type { AST } from '@rocicorp/zero'
-import { evaluateCondition, validateAST } from './ast-helpers'
+import { applyOrderBy, evaluateCondition, validateAST } from './ast-helpers'
 
 describe('validateAST', () => {
 	it('should pass for basic AST without unsupported features', () => {
@@ -21,14 +21,12 @@ describe('validateAST', () => {
 		expect(() => validateAST(ast)).not.toThrow()
 	})
 
-	it('should throw for AST with orderBy', () => {
+	it('should pass for AST with orderBy (supported)', () => {
 		const ast: AST = {
 			table: 'user',
 			orderBy: [['name', 'asc']],
 		}
-		expect(() => validateAST(ast)).toThrow(
-			'Unsupported AST feature: orderBy is not implemented in polyfill'
-		)
+		expect(() => validateAST(ast)).not.toThrow()
 	})
 
 	it('should throw for AST with start (pagination bounds)', () => {
@@ -39,6 +37,54 @@ describe('validateAST', () => {
 		expect(() => validateAST(ast)).toThrow(
 			'Unsupported AST feature: start (pagination bounds) is not implemented in polyfill'
 		)
+	})
+})
+
+describe('applyOrderBy', () => {
+	const rows = [
+		{ id: 'a', createdAt: 3 },
+		{ id: 'b', createdAt: 1 },
+		{ id: 'c', createdAt: 2 },
+	]
+
+	it('returns rows unchanged when there is no orderBy', () => {
+		expect(applyOrderBy(rows, undefined)).toEqual(rows)
+		expect(applyOrderBy(rows, [])).toEqual(rows)
+	})
+
+	it('sorts ascending and descending by a field', () => {
+		expect(applyOrderBy(rows, [['createdAt', 'asc']]).map((r) => r.id)).toEqual(['b', 'c', 'a'])
+		expect(applyOrderBy(rows, [['createdAt', 'desc']]).map((r) => r.id)).toEqual(['a', 'c', 'b'])
+	})
+
+	it('applies order parts in sequence for ties', () => {
+		const tied = [
+			{ id: 'a', group: 1, createdAt: 2 },
+			{ id: 'b', group: 1, createdAt: 1 },
+			{ id: 'c', group: 0, createdAt: 5 },
+		]
+		expect(
+			applyOrderBy(tied, [
+				['group', 'asc'],
+				['createdAt', 'desc'],
+			]).map((r) => r.id)
+		).toEqual(['c', 'a', 'b'])
+	})
+
+	it('sorts undefined values last regardless of direction', () => {
+		const withGaps = [{ id: 'a', createdAt: 2 }, { id: 'b' }, { id: 'c', createdAt: 1 }]
+		expect(applyOrderBy(withGaps, [['createdAt', 'asc']]).map((r) => r.id)).toEqual(['c', 'a', 'b'])
+		expect(applyOrderBy(withGaps, [['createdAt', 'desc']]).map((r) => r.id)).toEqual([
+			'a',
+			'c',
+			'b',
+		])
+	})
+
+	it('does not mutate the input array', () => {
+		const input = [...rows]
+		applyOrderBy(input, [['createdAt', 'asc']])
+		expect(input).toEqual(rows)
 	})
 })
 
@@ -244,21 +290,68 @@ describe('evaluateCondition', () => {
 		})
 	})
 
-	describe('unsupported features', () => {
-		it('should throw for correlatedSubquery (EXISTS)', () => {
-			const condition = {
-				type: 'correlatedSubquery' as const,
-				related: {
-					correlation: { parentField: ['id'], childField: ['userId'] },
-					subquery: { table: 'file' },
+	describe('correlatedSubquery (EXISTS)', () => {
+		// comment(fileId) -> file(id), scoped to files the user has a state for
+		const existsCondition = {
+			type: 'correlatedSubquery' as const,
+			op: 'EXISTS' as const,
+			related: {
+				correlation: { parentField: ['fileId'], childField: ['id'] },
+				subquery: {
+					table: 'file',
+					where: {
+						type: 'correlatedSubquery' as const,
+						op: 'EXISTS' as const,
+						related: {
+							correlation: { parentField: ['id'], childField: ['fileId'] },
+							subquery: {
+								table: 'file_state',
+								where: {
+									type: 'simple' as const,
+									left: { type: 'column' as const, name: 'userId' },
+									op: '=' as const,
+									right: { type: 'literal' as const, value: 'u1' },
+								},
+							},
+						},
+					},
 				},
-				op: 'EXISTS' as const,
+			},
+		}
+
+		it('is true when a correlated child row exists and its nested EXISTS matches', () => {
+			const data = {
+				file: [{ id: 'f1' }],
+				file_state: [{ fileId: 'f1', userId: 'u1' }],
 			}
-			expect(() => evaluateCondition(condition as any, row)).toThrow(
-				'Unsupported condition type: correlatedSubquery (EXISTS/NOT EXISTS) is not implemented in polyfill'
-			)
+			expect(evaluateCondition(existsCondition as any, { fileId: 'f1' }, data)).toBe(true)
 		})
 
+		it('is false when the nested access subquery does not match', () => {
+			const data = {
+				file: [{ id: 'f1' }],
+				file_state: [{ fileId: 'f1', userId: 'someone-else' }],
+			}
+			expect(evaluateCondition(existsCondition as any, { fileId: 'f1' }, data)).toBe(false)
+		})
+
+		it('is false when no correlated child row exists', () => {
+			const data = { file: [{ id: 'other' }], file_state: [] }
+			expect(evaluateCondition(existsCondition as any, { fileId: 'f1' }, data)).toBe(false)
+		})
+
+		it('treats EXISTS as satisfied when no store data is provided', () => {
+			expect(evaluateCondition(existsCondition as any, { fileId: 'f1' })).toBe(true)
+		})
+
+		it('inverts for NOT EXISTS', () => {
+			const notExists = { ...existsCondition, op: 'NOT EXISTS' as const }
+			const data = { file: [{ id: 'f1' }], file_state: [{ fileId: 'f1', userId: 'u1' }] }
+			expect(evaluateCondition(notExists as any, { fileId: 'f1' }, data)).toBe(false)
+		})
+	})
+
+	describe('unsupported features', () => {
 		it('should evaluate IS operator', () => {
 			const condition = {
 				type: 'simple' as const,
