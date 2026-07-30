@@ -557,3 +557,24 @@ binding = "QUEUE"
 queue = "tldraw-multiplayer-queue"
 max_retries = 10
 dead_letter_queue = 'tldraw-multiplayer-dlq'
+
+#################### Observability ####################
+# preview-only for now; export Workers Logs/Traces to Grafana via the OTLP destinations
+# configured in the Cloudflare dashboard (destination names must match exactly)
+#
+# Both streams keep everything: preview traffic is low, and a sampled trace stream is hard to tell
+# from a broken destination when you are only poking a deploy by hand. Promoting this to staging or
+# production should drop the trace rate — every request emits a span per operation, so this worker's
+# request and websocket volume would dominate the trace budget without adding insight. Logs should
+# stay at 1 wherever this runs: a log line is usually the only record that one specific request went
+# wrong, so sampling them loses exactly the ones worth reading. Both rates are written out rather
+# than left to the default (1) so that promotion is an edit here rather than a docs lookup.
+[env.preview.observability.logs]
+enabled = true
+destinations = ["grafana-logs"]
+head_sampling_rate = 1
+
+[env.preview.observability.traces]
+enabled = true
+destinations = ["grafana-traces"]
+head_sampling_rate = 1
