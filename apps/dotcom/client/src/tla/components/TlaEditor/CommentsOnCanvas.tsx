@@ -181,7 +181,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		(query: string) => filterMentionMembers(roster, query),
 		[roster]
 	)
-	// Sidebar rows link to this file's comment deep link, so modifier-clicks open a new tab.
+	// A thread's deep link into this file, so surfaces can offer open-in-new-tab.
 	const getThreadHref = useCallback(
 		(threadId: string) => `${routes.tlaFile(fileId)}?comment=${encodeURIComponent(threadId)}`,
 		[fileId]
@@ -196,14 +196,23 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			isCommentUnread: app ? isCommentUnread : undefined,
 			onCommentRead: app ? onCommentRead : undefined,
 			getMentionSuggestions,
+			getThreadHref,
 		}),
-		[app, currentUserId, resolveAuthor, isCommentUnread, onCommentRead, getMentionSuggestions]
+		[
+			app,
+			currentUserId,
+			resolveAuthor,
+			isCommentUnread,
+			onCommentRead,
+			getMentionSuggestions,
+			getThreadHref,
+		]
 	)
 
 	return (
 		<>
 			<CanvasComments {...commenting} />
-			<CanvasCommentsSidebar {...commenting} getThreadHref={getThreadHref} />
+			<CanvasCommentsSidebar {...commenting} />
 		</>
 	)
 }

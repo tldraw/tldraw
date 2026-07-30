@@ -1,6 +1,6 @@
 import { type CommentAuthor, type MentionMember } from '@tldraw/mentions'
 import { type ReactNode } from 'react'
-import { type TLComment, type TLCommentId } from 'tldraw'
+import { type TLComment, type TLCommentId, type TLCommentThreadId } from 'tldraw'
 
 /**
  * The live, host-supplied half of commenting: who the viewer is, how author ids become names, read
@@ -38,4 +38,10 @@ export interface CommentingContext {
 	getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>
 	/** Override a mention-picker row's content. */
 	renderMentionSuggestion?(member: MentionMember): ReactNode
+	/**
+	 * The host's URL for a thread, so surfaces can link to it — e.g. the sidebar's rows render as
+	 * anchors when this is present, letting ctrl/cmd-click and middle-click open the thread in a
+	 * new tab (a plain click still selects the thread in place; the href isn't followed).
+	 */
+	getThreadHref?(threadId: TLCommentThreadId): string | undefined
 }

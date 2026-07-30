@@ -2,7 +2,6 @@ import { ReactNode, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import {
 	TLComment,
-	TLCommentThreadId,
 	useContainer,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -31,18 +30,12 @@ import { focusThread } from './thread-state'
  */
 export interface CanvasCommentsSidebarProps extends Pick<
 	CommentingContext,
-	'currentUserId' | 'resolveAuthor' | 'isCommentUnread'
+	'currentUserId' | 'resolveAuthor' | 'isCommentUnread' | 'getThreadHref'
 > {
 	/** Header above the list. */
 	header?: ReactNode
 	/** Shown when the page has no threads. */
 	empty?: ReactNode
-	/**
-	 * A link target for a thread's row, so ctrl/cmd-click and middle-click open the thread in a new
-	 * tab. A plain click still selects the thread in place (the href isn't followed). Omit to
-	 * render plain buttons.
-	 */
-	getThreadHref?(threadId: TLCommentThreadId): string | undefined
 }
 
 /**
