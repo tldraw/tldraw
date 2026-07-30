@@ -10,7 +10,8 @@ import {
 	VecLike,
 } from 'tldraw'
 import { getCommentingOptions } from './options'
-import { openThreadId } from './state'
+import { commentsSidebarOpen, openThreadId } from './state'
+import { POPOVER_OFFSET } from './thread-view'
 
 /** How far an imprecise shape pin steps inside the shape from its anchor spot, in screen px —
  *  most of the marker sits within the shape, with a small overhang past the corner. */
@@ -153,5 +154,39 @@ export function focusThread(editor: Editor, thread: TLCommentThread): void {
 	}
 	openThreadId.set(editor, thread.id)
 	const point = anchorPagePoint(editor, thread.anchor)
-	if (point) editor.centerOnPoint(point, { animation: { duration: 200 } })
+	if (!point) return
+	const offset = commentCenterScreenOffset(editor) / editor.getZoomLevel()
+	editor.centerOnPoint({ x: point.x + offset, y: point.y }, { animation: { duration: 200 } })
+}
+
+/** The left inset a nudged pin never crosses, and the gap kept between thread UI and sidebar. */
+const CENTER_MARGIN_PX = 8
+
+/** How far the open thread UI reaches right of its pin, in screen px: the popover's offset plus
+ *  the thread panel's fixed width (300px, `.tlui-cmt-thread`). */
+const THREAD_UI_EXTENT_PX = POPOVER_OFFSET.thread.x + 300
+
+/**
+ * How far right of a centered-on pin the true viewport center should sit, in screen px. While the
+ * comments sidebar covers the viewport's right edge, centering a pin dead-center puts the thread
+ * popover that opens on it under the sidebar — so centering aims the pin at the middle of the
+ * uncovered area instead, nudged further left if the thread UI would still reach the sidebar, but
+ * never past the viewport's left edge. Zero when the sidebar is closed or not on screen.
+ * @internal
+ */
+export function commentCenterScreenOffset(editor: Editor): number {
+	if (!commentsSidebarOpen.get(editor)) return 0
+	const sidebar = editor.getContainer().querySelector('.tlui-cmt-canvas-sidebar')
+	if (!sidebar) return 0
+	const viewport = editor.getViewportScreenBounds()
+	// Viewport screen bounds are the container's client rect, so this is container-local.
+	const sidebarLeft = sidebar.getBoundingClientRect().left - viewport.x
+	if (sidebarLeft >= viewport.w) return 0
+	// Aim the pin at the middle of the uncovered area, nudged left until the thread UI clears the
+	// sidebar — but never past the left edge (the edge wins when there's no room for both).
+	const pinX = Math.max(
+		Math.min(sidebarLeft / 2, sidebarLeft - CENTER_MARGIN_PX - THREAD_UI_EXTENT_PX),
+		CENTER_MARGIN_PX
+	)
+	return viewport.w / 2 - pinX
 }

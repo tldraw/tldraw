@@ -72,6 +72,7 @@ import { ThreadPreview, sortThreadsForPreview, useMarkerPreview } from './thread
 import { ThreadStackPin } from './thread-stack'
 import {
 	anchorPagePoint,
+	commentCenterScreenOffset,
 	commentTargetShapeAt,
 	impreciseShapePinInset,
 	REGION_PIN_CORNER,
@@ -808,7 +809,8 @@ function revealThreadPin(
 		}
 	}
 
-	editor.centerOnPoint(point, { animation: { duration } })
+	const offset = commentCenterScreenOffset(editor) / editor.getZoomLevel()
+	editor.centerOnPoint({ x: point.x + offset, y: point.y }, { animation: { duration } })
 }
 
 function findDirectParentEvent(table: ClusterTable, threadId: string): MergeEvent | undefined {
@@ -822,9 +824,11 @@ function centerOnPointAtZoom(
 	duration = 200
 ) {
 	const viewport = editor.getViewportScreenBounds()
+	// The open sidebar shifts the target left so the pin lands mid-uncovered-area, not under it.
+	const offset = commentCenterScreenOffset(editor)
 	editor.setCamera(
 		{
-			x: viewport.w / (2 * zoom) - point.x,
+			x: (viewport.w / 2 - offset) / zoom - point.x,
 			y: viewport.h / (2 * zoom) - point.y,
 			z: zoom,
 		},
