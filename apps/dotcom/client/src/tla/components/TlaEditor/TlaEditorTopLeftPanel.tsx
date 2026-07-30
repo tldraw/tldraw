@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
-	DefaultPageMenu,
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
@@ -57,6 +56,7 @@ import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
+import { TlaPageMenu } from './TlaPageMenu/TlaPageMenu'
 import styles from './top.module.css'
 
 const messages = defineMessages({
@@ -134,7 +134,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			{hasPages && (
 				<>
 					<span className={styles.topLeftPanelSeparator}>{separator}</span>
-					<DefaultPageMenu />
+					<TlaPageMenu />
 				</>
 			)}
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
@@ -249,7 +249,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				onEnd={handleRenameEnd}
 			/>
 			<span className={styles.topLeftPanelSeparator}>{separator}</span>
-			<DefaultPageMenu />
+			<TlaPageMenu />
 			<TlaFileMenu
 				fileId={fileId}
 				workspaceId={null}

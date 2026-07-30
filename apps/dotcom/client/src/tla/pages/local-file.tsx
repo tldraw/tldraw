@@ -7,11 +7,15 @@ import {
 	TldrawUiMenuGroup,
 } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
+import { TlaEditorContextMenu } from '../components/TlaEditor/editor-components/TlaEditorContextMenu'
+import { TlaPageMenu } from '../components/TlaEditor/TlaPageMenu/TlaPageMenu'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
+	ContextMenu: TlaEditorContextMenu,
+	PageMenu: TlaPageMenu,
 	SharePanel: null,
 	MainMenu: () => (
 		<DefaultMainMenu>

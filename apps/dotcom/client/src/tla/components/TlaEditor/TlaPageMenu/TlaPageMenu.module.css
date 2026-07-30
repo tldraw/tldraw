@@ -1,0 +1,30 @@
+.dividerLine {
+	flex: 1;
+	height: 0;
+	border-top: 1px solid var(--tl-color-divider);
+	pointer-events: none;
+}
+
+/* Divider rows are half the height of a regular page row. The slot pitch is
+   18px (see PAGE_MENU_DIVIDER_ITEM_HEIGHT); like regular rows (40px tall on a
+   36px pitch) the row element is 4px taller than its slot. */
+:global(.tlui-page-menu__item[data-isdivider='true']) {
+	height: 22px;
+}
+
+/* The SDK buttons are 40px tall; fit them to the short divider row so the
+   row's overflow: hidden doesn't clip them. */
+:global(.tlui-page-menu__item[data-isdivider='true'] .tlui-page-menu__item__button),
+:global(.tlui-page-menu__item[data-isdivider='true'] .tlui-page-menu__item__drag-handle),
+:global(
+	.tlui-page-menu__item[data-isdivider='true'] .tlui-page-menu__item__submenu > .tlui-button
+) {
+	height: 100%;
+}
+
+/* No hover highlight on dividers — the row pill only shows while dragging. */
+@media (hover: hover) {
+	:global(.tlui-page-menu__item[data-isdivider='true']:hover:not([data-dragging='true']))::before {
+		opacity: 0;
+	}
+}
