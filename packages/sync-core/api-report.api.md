@@ -58,6 +58,9 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
 }
 
 // @public
+export const COLLABORATIVE_SYNC_FPS = 30;
+
+// @public
 export const DEFAULT_INITIAL_SNAPSHOT: {
     documentClock: number;
     documents: ({
@@ -374,6 +377,9 @@ export interface SyncSqliteDatabase {
     };
 }
 
+// @public
+export const SOLO_SYNC_FPS = 1;
+
 // @internal
 export interface TLConnectRequest {
     // (undocumented)
@@ -660,6 +666,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         presenceMode?: Signal<TLPresenceMode>;
         socket: TLPersistentClientSocket<any, any>;
         store: S;
+        syncFps?: number | Signal<number>;
     });
     close(): void;
     // @internal (undocumented)
@@ -672,6 +679,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     readonly presenceState: Signal<null | R> | undefined;
     // @internal (undocumented)
     readonly socket: TLPersistentClientSocket<TLSocketClientSentEvent<R>, TLSocketServerSentEvent<R>>;
+    // @internal (undocumented)
+    readonly syncFps: number | Signal<number> | undefined;
     // @internal (undocumented)
     readonly store: S;
 }
