@@ -82,8 +82,8 @@ export function ReactionPicker({
 					<SmileyIcon />
 				</TooltipButton>
 			</TldrawUiDropdownMenuTrigger>
-			{/* right-aligned under the trigger, so the grid hangs down the card's right edge */}
-			<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0}>
+			{/* left-aligned under the trigger, so the grid opens rightward off the card's edge */}
+			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={4}>
 				<Palette
 					emoji={emoji}
 					selected={selected}

@@ -196,12 +196,11 @@ export interface CommentListItemProps {
 }
 
 // @public
-export function CommentPin({ children, resolved, open, color }: CommentPinProps): JSX.Element;
+export function CommentPin({ children, resolved, open }: CommentPinProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentPinProps {
     children?: ReactNode;
-    color?: string;
     open?: boolean;
     // (undocumented)
     resolved?: boolean;

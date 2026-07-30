@@ -86,27 +86,27 @@ describe('computeClusterTable composition', () => {
 		}
 	})
 
-	it('resolves all defaults from an empty option set (Tc 40, Tu 60, eps 0.12, Dmax 120)', () => {
+	it('resolves all defaults from an empty option set (Tc 22, Tu 26.4, eps 0.7, Dmax 82.5)', () => {
 		const leaves = randomLeaves(30, 7)
 		const table = computeClusterTable(leaves, { ...ZOOM_BOUNDS })
 		const expected = manualPipeline(leaves, {
-			Tc: 40,
-			Tu: 60,
-			eps: 0.12,
-			Dmax: 120,
+			Tc: 22,
+			Tu: 26.4,
+			eps: 0.7,
+			Dmax: 82.5,
 			...ZOOM_BOUNDS,
 		})
 		expect(tableShapes(table)).toEqual(expected.map(eventShape))
 	})
 
-	it('derives Tu and Dmax from a caller-supplied Tc (Tu = 1.5·Tc, Dmax = 3·Tc)', () => {
+	it('derives Tu and Dmax from a caller-supplied Tc (Tu = 1.2·Tc, Dmax = 3.75·Tc)', () => {
 		const leaves = randomLeaves(30, 13)
 		const table = computeClusterTable(leaves, { Tc: 50, ...ZOOM_BOUNDS })
 		const expected = manualPipeline(leaves, {
 			Tc: 50,
-			Tu: 75,
-			eps: 0.12,
-			Dmax: 150,
+			Tu: 60,
+			eps: 0.7,
+			Dmax: 187.5,
 			...ZOOM_BOUNDS,
 		})
 		expect(tableShapes(table)).toEqual(expected.map(eventShape))
@@ -114,11 +114,12 @@ describe('computeClusterTable composition', () => {
 
 	it('caps coincident pairs at the default maxSplitZoom of 6 (600%)', () => {
 		// Two threads at the same point: raw merge zoom is Infinity (never split), but the
-		// default cap schedules them to merge at 4 and split at 6 like any ultra-tight pair.
+		// default cap schedules them to merge at 5 (maxSplitZoom / (Tu/Tc) = 6 / 1.2) and split
+		// at 6 like any ultra-tight pair.
 		const leaves = [leaf('a', 50, 50), leaf('b', 50, 50)]
 		const table = computeClusterTable(leaves, { ...ZOOM_BOUNDS })
 		expect(table.events).toHaveLength(1)
-		expect(table.events[0].zMerge).toBe(4)
+		expect(table.events[0].zMerge).toBe(5)
 		expect(table.events[0].zSplit).toBe(6)
 	})
 
@@ -126,10 +127,10 @@ describe('computeClusterTable composition', () => {
 		const leaves = randomLeaves(30, 29)
 		const table = computeClusterTable(leaves, { Tu: 100, eps: 0, ...ZOOM_BOUNDS })
 		const expected = manualPipeline(leaves, {
-			Tc: 40,
+			Tc: 22,
 			Tu: 100,
 			eps: 0,
-			Dmax: 120,
+			Dmax: 82.5,
 			...ZOOM_BOUNDS,
 		})
 		expect(tableShapes(table)).toEqual(expected.map(eventShape))
@@ -193,9 +194,9 @@ describe('computeClusterTable validation', () => {
 		expect(() => computeClusterTable(leaves, { Tc: 0, ...ZOOM_BOUNDS })).toThrow()
 		expect(() => computeClusterTable(leaves, { Tc: -5, ...ZOOM_BOUNDS })).toThrow()
 		expect(() => computeClusterTable(leaves, { Tc: 40, Tu: 40, ...ZOOM_BOUNDS })).toThrow()
-		expect(() => computeClusterTable(leaves, { Tu: 30, ...ZOOM_BOUNDS })).toThrow() // < default Tc 40
+		expect(() => computeClusterTable(leaves, { Tu: 20, ...ZOOM_BOUNDS })).toThrow() // < default Tc 22
 		expect(() => computeClusterTable(leaves, { eps: -0.01, ...ZOOM_BOUNDS })).toThrow()
-		expect(() => computeClusterTable(leaves, { Dmax: 30, ...ZOOM_BOUNDS })).toThrow() // < default Tc 40
+		expect(() => computeClusterTable(leaves, { Dmax: 20, ...ZOOM_BOUNDS })).toThrow() // < default Tc 22
 		expect(() => computeClusterTable(leaves, { Tc: 50, Dmax: 40, ...ZOOM_BOUNDS })).toThrow()
 		expect(() => computeClusterTable(leaves, { minZoom: 0, maxZoom: 8 })).toThrow()
 		expect(() => computeClusterTable(leaves, { minZoom: 8, maxZoom: 8 })).toThrow()
@@ -226,8 +227,8 @@ describe('computeClusterTable end-to-end scenarios', () => {
 		const leaves = Array.from({ length: 8 }, (_, i) => leaf(`p${i + 1}`, i * 10, 0))
 		const table = computeClusterTable(leaves, { ...ZOOM_BOUNDS })
 
-		// events (centroid pricing): four pair births at zMerge 4 (zSplit 6), two
-		// quads at zMerge 2 (zSplit 3), the bridge at zMerge 1 (zSplit 1.5)
+		// events (centroid pricing): four pair births at zMerge 2.2 (zSplit 2.64), two
+		// quads at zMerge 1.1 (zSplit 1.32), the bridge at zMerge 0.55 (zSplit 0.66)
 		const seedAt = (zoom: number) => {
 			const rt = createClusterRuntime(table)
 			rt.seed(zoom)
@@ -235,12 +236,12 @@ describe('computeClusterTable end-to-end scenarios', () => {
 		}
 		// zoom 8: above every band midpoint → 8 separate pins
 		expect(seedAt(8)).toEqual(['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8'])
-		// zoom 3: below the pair midpoints (√24 ≈ 4.9), above the quad midpoint (√6 ≈ 2.45)
-		expect(seedAt(3)).toEqual(['cluster:2:p1', 'cluster:2:p3', 'cluster:2:p5', 'cluster:2:p7'])
-		// zoom 2: quads merged, above the bridge midpoint (√1.5 ≈ 1.22)
-		expect(seedAt(2)).toEqual(['cluster:4:p1', 'cluster:4:p5'])
-		// zoom 1: below everything → one badge of 8
-		expect(seedAt(1)).toEqual(['cluster:8:p1'])
+		// zoom 2: below the pair midpoints (√5.81 ≈ 2.41), above the quad midpoint (√1.45 ≈ 1.2)
+		expect(seedAt(2)).toEqual(['cluster:2:p1', 'cluster:2:p3', 'cluster:2:p5', 'cluster:2:p7'])
+		// zoom 1: quads merged, above the bridge midpoint (√0.363 ≈ 0.6)
+		expect(seedAt(1)).toEqual(['cluster:4:p1', 'cluster:4:p5'])
+		// zoom 0.5: below everything → one badge of 8
+		expect(seedAt(0.5)).toEqual(['cluster:8:p1'])
 	})
 
 	it('keeps far-apart groups exactly independent at eps = 0 (bridge pruned by minZoom)', () => {
