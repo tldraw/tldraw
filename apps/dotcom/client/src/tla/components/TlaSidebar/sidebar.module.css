@@ -243,8 +243,12 @@
 	position: relative;
 	top: 0px;
 	right: -4px;
-	height: 40px;
-	width: 40px;
+	height: 36px;
+	width: 36px;
+	/* The base .tlui-button sets min-width: 40px; override it so the width above actually applies
+	   (a bare width < min-width is ignored). Box is 36px so the ::after hover pill (inset 2px) is a
+	   32x32 square, with a 4px gap to the neighbouring pill. */
+	min-width: 36px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -263,10 +267,10 @@
 	display: block;
 	content: '';
 	position: absolute;
-	top: 4px;
-	left: 4px;
-	right: 4px;
-	bottom: 4px;
+	top: 2px;
+	left: 2px;
+	right: 2px;
+	bottom: 2px;
 	border-radius: 4px;
 	pointer-events: none;
 	z-index: 0;

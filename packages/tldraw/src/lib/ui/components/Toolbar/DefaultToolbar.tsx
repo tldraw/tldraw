@@ -4,7 +4,9 @@ import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTldrawUiComponents } from '../../context/components'
+import { useCommentingEnabled } from '../../hooks/useCommentingEnabled'
 import { useReadonly } from '../../hooks/useReadonly'
+import { useTools } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { MobileStylePanel } from '../MobileStylePanel'
 import { TldrawUiOrientationProvider } from '../primitives/layout'
@@ -36,14 +38,29 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 	orientation = 'horizontal',
 	minItems = 4,
 	minSizePx = 310,
-	maxItems = 8,
-	maxSizePx = 470,
+	maxItems,
+	maxSizePx,
 }: DefaultToolbarProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()
 	const activeToolId = useValue('current tool id', () => editor.getCurrentToolId(), [editor])
+
+	// The default toolbar content gains a ninth primary item when the comment tool renders — which
+	// only happens when commenting is licensed *and* the tool is registered. Without that slot, keep
+	// the original eight so the overflow breakpoint (and the mobile layout) is unchanged.
+	//
+	// `OverflowingToolbar` maps the available width onto an item *count*, so the size range has to
+	// grow with the item range to keep items-per-pixel constant: the ramp spans 40px per item
+	// ((470 - 310) / (8 - 4)), so a ninth slot needs 40px more headroom. Otherwise the same ramp
+	// packs nine items into the width that fit eight, every viewport below `maxSizePx` shows one
+	// tool too many, and on phones the toolbar grows past the screen instead of collapsing into the
+	// overflow menu.
+	const tools = useTools()
+	const hasCommentTool = useCommentingEnabled() && !!tools.comment
+	const resolvedMaxItems = maxItems ?? (hasCommentTool ? 9 : 8)
+	const resolvedMaxSizePx = maxSizePx ?? (hasCommentTool ? 510 : 470)
 
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
@@ -87,9 +104,9 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 							orientation={orientation}
 							sizingParentClassName="tlui-main-toolbar"
 							minItems={minItems}
-							maxItems={maxItems}
+							maxItems={resolvedMaxItems}
 							minSizePx={minSizePx}
-							maxSizePx={maxSizePx}
+							maxSizePx={resolvedMaxSizePx}
 						>
 							{children ?? <DefaultToolbarContent />}
 						</OverflowingToolbar>

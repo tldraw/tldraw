@@ -3,14 +3,15 @@ import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tls
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler } from './chunk'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
-import { TLSocketServerSentEvent } from './protocol'
+import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
+	TLSyncForwardDiff,
 	TLSyncStorage,
 } from './TLSyncStorage'
 
@@ -71,6 +72,11 @@ export interface TLSyncLog {
 export interface SessionStateSnapshot {
 	serializedSchema: SerializedSchema
 	isReadonly: boolean
+	/**
+	 * Write access for the record types listed in `objectTypes`. Optional so snapshots persisted
+	 * before this field existed resume cleanly (they fail closed to 'read').
+	 */
+	objectAccess?: TLObjectStoreAccess
 	presenceId: string | null
 	presenceRecord: UnknownRecord | null
 	requiresLegacyRejection: boolean
@@ -120,6 +126,30 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	}) => void
 	/** @internal */
 	onPresenceChange?(): void
+	/**
+	 * Called once after a client push commits, with the committed document diff. Use to react to
+	 * document changes as soon as they commit — e.g. project certain record types to an external
+	 * store. Best-effort: do not throw and do not block.
+	 *
+	 * Only fires for client pushes. Server-initiated changes — `updateStore`, `loadSnapshot`, or
+	 * writing to the storage directly — do not trigger it, so anything mirroring room state through
+	 * this callback must handle those paths itself.
+	 */
+	// eslint-disable-next-line tldraw/method-signature-style
+	onCommittedChanges?: (args: { diff: TLSyncForwardDiff<R>; documentClock: number }) => void
+	/**
+	 * Record type names to serve through the object-store lane instead of the document lane.
+	 * Each must be a document-scoped type registered in the schema. Object-lane writes are gated
+	 * per session by `objectAccess` (see {@link TLSocketRoom.handleSocketConnect}) rather than
+	 * `isReadonly`, so e.g. a session can be allowed to comment without being allowed to edit.
+	 */
+	objectTypes?: readonly string[]
+	/**
+	 * Per-type authorizers for client record writes (create, update, delete): veto writes the
+	 * session isn't allowed to make, or rewrite the record on create — e.g. force a comment's
+	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
+	 */
+	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -230,6 +260,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 						// eslint-disable-next-line @typescript-eslint/no-deprecated
 						opts.initialSnapshot ?? DEFAULT_INITIAL_SNAPSHOT
 					),
+					// keep the storage partition in step with the room's object lane
+					objectTypes: opts.objectTypes,
 				})
 
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -243,6 +275,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		}
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			onPresenceChange: opts.onPresenceChange,
+			onCommittedChanges: opts.onCommittedChanges,
+			objectTypes: opts.objectTypes,
+			authorizeRecord: opts.authorizeRecord,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: opts.log,
 			storage,
@@ -283,6 +318,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *   - sessionId - Unique identifier for the client session (typically from browser tab)
 	 *   - socket - WebSocket-like object for client communication
 	 *   - isReadonly - Whether the client can modify the document (defaults to false)
+	 *   - objectAccess - Write access for object-store lane record types (defaults to 'write').
+	 *     Independent of isReadonly, so a session can be allowed to write objects (e.g. comments)
+	 *     without being allowed to edit the document.
 	 *   - meta - Additional session metadata (required if SessionMeta is not void)
 	 *
 	 * @example
@@ -310,9 +348,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			sessionId: string
 			socket: WebSocketMinimal
 			isReadonly?: boolean
+			objectAccess?: TLObjectStoreAccess
 		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
-		const { sessionId, socket, isReadonly = false } = opts
+		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data)
 		const handleSocketError = this.handleSocketError.bind(this, sessionId)
@@ -331,6 +370,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		this.room.handleNewSession({
 			sessionId,
 			isReadonly,
+			objectAccess,
 			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
@@ -540,6 +580,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		this.room.handleResumedSession({
 			sessionId,
 			isReadonly: snapshot.isReadonly,
+			// snapshots persisted before this field existed fail closed — those sessions predate
+			// the record types gated by objectAccess, so they have nothing to write anyway
+			objectAccess: snapshot.objectAccess ?? 'read',
 			serializedSchema: snapshot.serializedSchema,
 			presenceId: snapshot.presenceId,
 			presenceRecord: snapshot.presenceRecord,
@@ -595,6 +638,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		return {
 			serializedSchema: session.serializedSchema,
 			isReadonly: session.isReadonly,
+			objectAccess: session.objectAccess,
 			presenceId: session.presenceId,
 			presenceRecord,
 			requiresLegacyRejection: session.requiresLegacyRejection,
@@ -670,6 +714,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		sessionId: string
 		isConnected: boolean
 		isReadonly: boolean
+		objectAccess: TLObjectStoreAccess
 		meta: SessionMeta
 	}> {
 		return [...this.room.sessions.values()].map((session) => {
@@ -677,6 +722,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				sessionId: session.sessionId,
 				isConnected: session.state === RoomSessionState.Connected,
 				isReadonly: session.isReadonly,
+				objectAccess: session.objectAccess,
 				meta: session.meta,
 			}
 		})
@@ -706,6 +752,18 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			return this.storage.getSnapshot()
 		}
 		throw new Error('getCurrentSnapshot is not supported for this storage type')
+	}
+
+	/**
+	 * Returns a snapshot of the object-store lane (see `objectTypes`), for persisting
+	 * object-lane records separately from the document. Same entry shape as
+	 * {@link RoomSnapshot.documents}.
+	 */
+	getCurrentObjectsSnapshot(): RoomSnapshot['documents'] {
+		if (this.storage.getObjectsSnapshot) {
+			return this.storage.getObjectsSnapshot()
+		}
+		throw new Error('getCurrentObjectsSnapshot is not supported for this storage type')
 	}
 
 	/**

@@ -86,9 +86,15 @@ export function migrateSqliteSyncStorage(
 	storage: TLSyncSqliteWrapper,
 	{
 		documentsTable = 'documents',
+		objectsTable = 'objects',
 		tombstonesTable = 'tombstones',
 		metadataTable = 'metadata',
-	}: { documentsTable?: string; tombstonesTable?: string; metadataTable?: string } = {}
+	}: {
+		documentsTable?: string
+		objectsTable?: string
+		tombstonesTable?: string
+		metadataTable?: string
+	} = {}
 ): void {
 	let migrationVersion = 0
 	try {
@@ -144,15 +150,31 @@ export function migrateSqliteSyncStorage(
 				state BLOB NOT NULL,
 				lastChangedClock INTEGER NOT NULL
 			);
-			
+
 			INSERT INTO ${documentsTable}_new (id, state, lastChangedClock)
 			SELECT id, CAST(state AS BLOB), lastChangedClock FROM ${documentsTable};
-			
+
 			DROP TABLE ${documentsTable};
-			
+
 			ALTER TABLE ${documentsTable}_new RENAME TO ${documentsTable};
-			
+
 			CREATE INDEX idx_${documentsTable}_lastChangedClock ON ${documentsTable}(lastChangedClock);
+		`)
+	}
+
+	if (migrationVersion === 2) {
+		// Migration 3: Add the object-store lane table. Object-lane records (e.g. comments) are
+		// partitioned out of the documents table so the document snapshot never contains them.
+		// They share the documents' clock and tombstones.
+		migrationVersion++
+		storage.exec(`
+			CREATE TABLE ${objectsTable} (
+				id TEXT PRIMARY KEY,
+				state BLOB NOT NULL,
+				lastChangedClock INTEGER NOT NULL
+			);
+
+			CREATE INDEX idx_${objectsTable}_lastChangedClock ON ${objectsTable}(lastChangedClock);
 		`)
 	}
 
@@ -250,22 +272,64 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 
 	private readonly sql: TLSyncSqliteWrapper
 
+	/** @internal */
+	readonly objectTypes: ReadonlySet<string>
+
 	constructor({
 		sql,
 		snapshot,
+		objectTypes,
 		onChange,
 	}: {
 		sql: TLSyncSqliteWrapper
 		snapshot?: RoomSnapshot | StoreSnapshot<R>
+		/**
+		 * Record type names stored in the object-store lane. Records of these types are routed to
+		 * a separate table: excluded from `getSnapshot()`, returned by `getObjectsSnapshot()`.
+		 * They share the documents' clock, tombstones, and transactions.
+		 */
+		objectTypes?: readonly string[]
 		onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown
 	}) {
 		this.sql = sql
+		this.objectTypes = new Set(objectTypes ?? [])
 		const prefix = sql.config?.tablePrefix ?? ''
 		const documentsTable = `${prefix}documents`
+		const objectsTable = `${prefix}objects`
 		const tombstonesTable = `${prefix}tombstones`
 		const metadataTable = `${prefix}metadata`
 
-		migrateSqliteSyncStorage(this.sql, { documentsTable, tombstonesTable, metadataTable })
+		migrateSqliteSyncStorage(this.sql, {
+			documentsTable,
+			objectsTable,
+			tombstonesTable,
+			metadataTable,
+		})
+
+		// Both record tables have identical shape; prepare the same statements for each.
+		const makeRecordTableStmts = (table: string) => ({
+			get: this.sql.prepare<{ state: Uint8Array }, [id: string]>(
+				`SELECT state FROM ${table} WHERE id = ?`
+			),
+			insert: this.sql.prepare<void, [id: string, state: Uint8Array, lastChangedClock: number]>(
+				`INSERT OR REPLACE INTO ${table} (id, state, lastChangedClock) VALUES (?, ?, ?)`
+			),
+			delete: this.sql.prepare<void, [id: string]>(`DELETE FROM ${table} WHERE id = ?`),
+			exists: this.sql.prepare<{ id: string }, [id: string]>(
+				`SELECT id FROM ${table} WHERE id = ?`
+			),
+			iterate: this.sql.prepare<{ state: Uint8Array; lastChangedClock: number }>(
+				`SELECT state, lastChangedClock FROM ${table}`
+			),
+			iterateEntries: this.sql.prepare<{ id: string; state: Uint8Array }>(
+				`SELECT id, state FROM ${table}`
+			),
+			iterateKeys: this.sql.prepare<{ id: string }>(`SELECT id FROM ${table}`),
+			iterateValues: this.sql.prepare<{ state: Uint8Array }>(`SELECT state FROM ${table}`),
+			changedSince: this.sql.prepare<{ state: Uint8Array }, [sinceClock: number]>(
+				`SELECT state FROM ${table} WHERE lastChangedClock > ?`
+			),
+		})
 
 		// Prepare all statements once
 		this.stmts = {
@@ -285,33 +349,9 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 				`UPDATE ${metadataTable} SET documentClock = documentClock + 1`
 			),
 
-			// Documents
-			getDocument: this.sql.prepare<{ state: Uint8Array }, [id: string]>(
-				`SELECT state FROM ${documentsTable} WHERE id = ?`
-			),
-			insertDocument: this.sql.prepare<
-				void,
-				[id: string, state: Uint8Array, lastChangedClock: number]
-			>(`INSERT OR REPLACE INTO ${documentsTable} (id, state, lastChangedClock) VALUES (?, ?, ?)`),
-			deleteDocument: this.sql.prepare<void, [id: string]>(
-				`DELETE FROM ${documentsTable} WHERE id = ?`
-			),
-			documentExists: this.sql.prepare<{ id: string }, [id: string]>(
-				`SELECT id FROM ${documentsTable} WHERE id = ?`
-			),
-			iterateDocuments: this.sql.prepare<{ state: Uint8Array; lastChangedClock: number }>(
-				`SELECT state, lastChangedClock FROM ${documentsTable}`
-			),
-			iterateDocumentEntries: this.sql.prepare<{ id: string; state: Uint8Array }>(
-				`SELECT id, state FROM ${documentsTable}`
-			),
-			iterateDocumentKeys: this.sql.prepare<{ id: string }>(`SELECT id FROM ${documentsTable}`),
-			iterateDocumentValues: this.sql.prepare<{ state: Uint8Array }>(
-				`SELECT state FROM ${documentsTable}`
-			),
-			getDocumentsChangedSince: this.sql.prepare<{ state: Uint8Array }, [sinceClock: number]>(
-				`SELECT state FROM ${documentsTable} WHERE lastChangedClock > ?`
-			),
+			// Record tables (document lane + object-store lane)
+			documents: makeRecordTableStmts(documentsTable),
+			objects: makeRecordTableStmts(objectsTable),
 
 			// Tombstones
 			insertTombstone: this.sql.prepare<void, [id: string, clock: number]>(
@@ -354,12 +394,17 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 			// Clear existing data
 			this.sql.exec(`
 				DELETE FROM ${documentsTable};
+				DELETE FROM ${objectsTable};
 				DELETE FROM ${tombstonesTable};
 			`)
 
-			// Insert documents
+			// Insert records, routing object-lane types into their partition (a seed snapshot may
+			// carry object-lane records merged in, e.g. loaded from a separate persistence lane)
 			for (const doc of snapshot.documents) {
-				this.stmts.insertDocument.run(doc.state.id, encodeState(doc.state), doc.lastChangedClock)
+				const table = this.objectTypes.has(doc.state.typeName)
+					? this.stmts.objects
+					: this.stmts.documents
+				table.insert.run(doc.state.id, encodeState(doc.state), doc.lastChangedClock)
 			}
 
 			// Insert tombstones
@@ -375,6 +420,21 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 				tombstoneHistoryStartsAtClock,
 				JSON.stringify(snapshot.schema)
 			)
+		} else {
+			// One-time sweep: rooms written before the objects table existed may have object-lane
+			// records sitting in the documents table. Record ids are typeName-prefixed, so a PK
+			// range scan per object type moves them cheaply (no-op once clean).
+			for (const typeName of this.objectTypes) {
+				const lo = `${typeName}:`
+				// ';' is the next code point after ':' — [lo, hi) covers exactly the `type:` prefix
+				const hi = `${typeName};`
+				this.sql.exec(`
+					INSERT OR REPLACE INTO ${objectsTable} (id, state, lastChangedClock)
+					SELECT id, state, lastChangedClock FROM ${documentsTable}
+					WHERE id >= '${lo}' AND id < '${hi}';
+					DELETE FROM ${documentsTable} WHERE id >= '${lo}' AND id < '${hi}';
+				`)
+			}
 		}
 		if (onChange) {
 			this.onChange(onChange)
@@ -470,16 +530,25 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 	)
 
 	getSnapshot(): RoomSnapshot {
+		// object-lane records live in their own table, so the document snapshot is
+		// pure-document by construction
 		return {
 			tombstoneHistoryStartsAtClock: this._getTombstoneHistoryStartsAtClock(),
 			documentClock: this.getClock(),
-			documents: Array.from(this._iterateDocuments()),
+			documents: Array.from(this._iterateRecords(this.stmts.documents)),
 			tombstones: Object.fromEntries(this._iterateTombstones()),
 			schema: this._getSchema(),
 		}
 	}
-	private *_iterateDocuments(): IterableIterator<{ state: R; lastChangedClock: number }> {
-		for (const row of this.stmts.iterateDocuments.iterate()) {
+
+	getObjectsSnapshot(): RoomSnapshot['documents'] {
+		return Array.from(this._iterateRecords(this.stmts.objects))
+	}
+
+	private *_iterateRecords(
+		table: SQLiteSyncStorage<R>['stmts']['documents']
+	): IterableIterator<{ state: R; lastChangedClock: number }> {
+		for (const row of table.iterate.iterate()) {
 			yield { state: decodeState<R>(row.state), lastChangedClock: row.lastChangedClock }
 		}
 	}
@@ -531,9 +600,21 @@ class SQLiteSyncStorageTransaction<R extends UnknownRecord> implements TLSyncSto
 		return this._clock
 	}
 
+	/**
+	 * Which record table an id belongs to. Record ids are typeName-prefixed (`comment:abc`),
+	 * so the partition is derivable from the id alone.
+	 */
+	private tableFor(id: string) {
+		const sep = id.indexOf(':')
+		if (sep === -1) return this.stmts.documents
+		return this.storage.objectTypes.has(id.slice(0, sep))
+			? this.stmts.objects
+			: this.stmts.documents
+	}
+
 	get(id: string): R | undefined {
 		this.assertNotClosed()
-		const row = this.stmts.getDocument.all(id)[0]
+		const row = this.tableFor(id).get.all(id)[0]
 		if (!row) return undefined
 		return decodeState<R>(row.state)
 	}
@@ -544,41 +625,54 @@ class SQLiteSyncStorageTransaction<R extends UnknownRecord> implements TLSyncSto
 		const clock = this.getNextClock()
 		// Automatically clear tombstone if it exists
 		this.stmts.deleteTombstone.run(id)
-		this.stmts.insertDocument.run(id, encodeState(record), clock)
+		// route by type: object-lane records live in their own table
+		const table = this.storage.objectTypes.has(record.typeName)
+			? this.stmts.objects
+			: this.stmts.documents
+		table.insert.run(id, encodeState(record), clock)
 	}
 
 	delete(id: string): void {
 		this.assertNotClosed()
+		const table = this.tableFor(id)
 		// Only create a tombstone if the record actually exists
-		const exists = this.stmts.documentExists.all(id)[0]
+		const exists = table.exists.all(id)[0]
 		if (!exists) return
 		const clock = this.getNextClock()
-		this.stmts.deleteDocument.run(id)
+		table.delete.run(id)
 		this.stmts.insertTombstone.run(id, clock)
 		this.storage.pruneTombstones()
 	}
 
+	// iteration spans both record tables so schema migrations cover object-lane records too
+
 	*entries(): IterableIterator<[string, R]> {
 		this.assertNotClosed()
-		for (const row of this.stmts.iterateDocumentEntries.iterate()) {
-			this.assertNotClosed()
-			yield [row.id, decodeState<R>(row.state)]
+		for (const table of [this.stmts.documents, this.stmts.objects]) {
+			for (const row of table.iterateEntries.iterate()) {
+				this.assertNotClosed()
+				yield [row.id, decodeState<R>(row.state)]
+			}
 		}
 	}
 
 	*keys(): IterableIterator<string> {
 		this.assertNotClosed()
-		for (const row of this.stmts.iterateDocumentKeys.iterate()) {
-			this.assertNotClosed()
-			yield row.id
+		for (const table of [this.stmts.documents, this.stmts.objects]) {
+			for (const row of table.iterateKeys.iterate()) {
+				this.assertNotClosed()
+				yield row.id
+			}
 		}
 	}
 
 	*values(): IterableIterator<R> {
 		this.assertNotClosed()
-		for (const row of this.stmts.iterateDocumentValues.iterate()) {
-			this.assertNotClosed()
-			yield decodeState<R>(row.state)
+		for (const table of [this.stmts.documents, this.stmts.objects]) {
+			for (const row of table.iterateValues.iterate()) {
+				this.assertNotClosed()
+				yield decodeState<R>(row.state)
+			}
 		}
 	}
 
@@ -603,17 +697,22 @@ class SQLiteSyncStorageTransaction<R extends UnknownRecord> implements TLSyncSto
 		const diff: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
 		const wipeAll = sinceClock < this.storage._getTombstoneHistoryStartsAtClock()
 
+		// both record tables share the clock and tombstones, so the change feed spans both
 		if (wipeAll) {
-			// If wipeAll, include all documents
-			for (const row of this.stmts.iterateDocumentValues.iterate()) {
-				const state = decodeState<R>(row.state)
-				diff.puts[state.id] = state
+			// If wipeAll, include all records
+			for (const table of [this.stmts.documents, this.stmts.objects]) {
+				for (const row of table.iterateValues.iterate()) {
+					const state = decodeState<R>(row.state)
+					diff.puts[state.id] = state
+				}
 			}
 		} else {
-			// Get documents changed since clock
-			for (const row of this.stmts.getDocumentsChangedSince.iterate(sinceClock)) {
-				const state = decodeState<R>(row.state)
-				diff.puts[state.id] = state
+			// Get records changed since clock
+			for (const table of [this.stmts.documents, this.stmts.objects]) {
+				for (const row of table.changedSince.iterate(sinceClock)) {
+					const state = decodeState<R>(row.state)
+					diff.puts[state.id] = state
+				}
 			}
 			// When wipeAll, deletes are redundant (full state is in puts). Only include tombstones otherwise.
 			for (const row of this.stmts.getTombstonesChangedSince.iterate(sinceClock)) {

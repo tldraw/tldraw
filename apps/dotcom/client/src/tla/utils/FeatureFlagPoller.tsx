@@ -8,6 +8,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 	zero_enabled: { enabled: false },
 	zero_kill_switch: { enabled: false },
 	rum_enabled: { enabled: false },
+	commenting_enabled: { enabled: false },
 }
 
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }
