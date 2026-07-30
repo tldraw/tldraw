@@ -1,13 +1,18 @@
+// oxlint-disable typescript/no-deprecated -- these tests cover the deprecated canvas cursor overlay
 import { createUserId, InstancePresenceRecordType } from '@tldraw/tlschema'
 import { vi } from 'vitest'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
 import { CollaboratorCursorOverlayUtil } from '../../lib/overlays/CollaboratorCursorOverlayUtil'
 import { TestEditor } from '../TestEditor'
 
+// `CollaboratorCursorOverlayUtil` is deprecated and no longer in `defaultOverlayUtils` — cursors
+// render as DOM elements now — so these tests register it explicitly, the way an app opting back
+// into canvas cursors would.
+
 let editor: TestEditor
 
 beforeEach(() => {
-	editor = new TestEditor({ overlayUtils: defaultOverlayUtils })
+	editor = new TestEditor({ overlayUtils: [...defaultOverlayUtils, CollaboratorCursorOverlayUtil] })
 })
 
 describe('CollaboratorCursorOverlayUtil', () => {
@@ -284,7 +289,9 @@ describe('CollaboratorCursorOverlayUtil', () => {
 		it('invalidates cached overlays as collaborator activity ages', () => {
 			vi.useFakeTimers()
 			try {
-				const timedEditor = new TestEditor({ overlayUtils: defaultOverlayUtils })
+				const timedEditor = new TestEditor({
+					overlayUtils: [...defaultOverlayUtils, CollaboratorCursorOverlayUtil],
+				})
 				const pageId = timedEditor.getCurrentPageId()
 				const now = Date.now()
 				timedEditor.store.put([

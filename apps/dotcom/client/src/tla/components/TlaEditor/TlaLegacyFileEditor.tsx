@@ -6,7 +6,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useMemo } from 'react'
-import { Editor, TLComponents, Tldraw } from 'tldraw'
+import { commentSchemaRecords, Editor, TLComponents, Tldraw } from 'tldraw'
 import { StoreErrorScreen } from '../../../components/StoreErrorScreen'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
@@ -80,6 +80,10 @@ function TlaEditorInner({
 		roomId: fileSlug,
 		assets,
 		trackAnalyticsEvent: trackEvent,
+		// Register the comment record types so the schema matches the server's (see
+		// fileSyncSchema in TLFileDurableObject) — without them the server rejects the
+		// session as too old. Legacy rooms don't render a comments UI.
+		records: commentSchemaRecords,
 	})
 
 	const fileSystemUiOverrides = useFileEditorOverrides({})

@@ -17,6 +17,9 @@
   "04a2dd56d6": {
     "translation": "Invite teammates"
   },
+  "05b2656486": {
+    "translation": "<name>{author}</name> mentioned you"
+  },
   "05f43078e9": {
     "translation": "You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones."
   },
@@ -85,6 +88,9 @@
   },
   "250ddea65c": {
     "translation": "About tldraw"
+  },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> commented on your board"
   },
   "299cb00a7a": {
     "translation": "Upload failed"
@@ -194,6 +200,9 @@
   "54286b1d01": {
     "translation": "Collaborator limit reached"
   },
+  "545241e7dd": {
+    "translation": "{count} unread"
+  },
   "554a05155c": {
     "translation": "Still having trouble? <a>Report a problem</a>"
   },
@@ -229,6 +238,12 @@
   },
   "5fb63579fc": {
     "translation": "Copy"
+  },
+  "608e9d366e": {
+    "translation": "You’re all caught up."
+  },
+  "60a68c29d6": {
+    "translation": "Sign in to comment"
   },
   "61057a0c84": {
     "translation": "Later"
@@ -283,6 +298,9 @@
   },
   "752b79f137": {
     "translation": "You have reached the maximum number of files. You need to delete old files before creating new ones."
+  },
+  "7542d62aac": {
+    "translation": "Mark all as read"
   },
   "7573b8110a": {
     "translation": "No access"
@@ -340,6 +358,9 @@
   },
   "81666c6e4a": {
     "translation": "Are you sure you want to forget <strong>{fileName}</strong>?"
+  },
+  "8413c683b4": {
+    "translation": "Comments"
   },
   "858ba4765e": {
     "translation": "Member"
@@ -431,6 +452,9 @@
   "a239905023": {
     "translation": "Export image"
   },
+  "a274f4d467": {
+    "translation": "Notifications"
+  },
   "a3debabee7": {
     "translation": "Cookie policy"
   },
@@ -455,6 +479,9 @@
   "aac449eef6": {
     "translation": "Create workspace"
   },
+  "aaec8f7cde": {
+    "translation": "Someone"
+  },
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
@@ -464,6 +491,9 @@
   },
   "b028909917": {
     "translation": "Guest user"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> replied"
   },
   "b2326c3a34": {
     "translation": "Regenerate"
@@ -608,6 +638,9 @@
   },
   "ede55d955f": {
     "translation": "Read our <a>cookie policy</a> to learn more."
+  },
+  "edec9387f9": {
+    "translation": "This comment was deleted."
   },
   "ef53538ae4": {
     "translation": "Members"

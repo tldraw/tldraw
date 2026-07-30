@@ -59,6 +59,22 @@
       "value": "Invite teammates"
     }
   ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " mentioned you"
+    }
+  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -217,6 +233,22 @@
     {
       "type": 0,
       "value": "About tldraw"
+    }
+  ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " commented on your board"
     }
   ],
   "299cb00a7a": [
@@ -449,6 +481,16 @@
       "value": "Collaborator limit reached"
     }
   ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " unread"
+    }
+  ],
   "554a05155c": [
     {
       "type": 0,
@@ -529,6 +571,18 @@
     {
       "type": 0,
       "value": "Copy"
+    }
+  ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "You’re all caught up."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Sign in to comment"
     }
   ],
   "61057a0c84": [
@@ -637,6 +691,12 @@
     {
       "type": 0,
       "value": "You have reached the maximum number of files. You need to delete old files before creating new ones."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Mark all as read"
     }
   ],
   "7573b8110a": [
@@ -793,6 +853,12 @@
     {
       "type": 0,
       "value": "?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Comments"
     }
   ],
   "858ba4765e": [
@@ -1025,6 +1091,12 @@
       "value": "Export image"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Notifications"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1073,6 +1145,12 @@
       "value": "Create workspace"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Someone"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1095,6 +1173,22 @@
     {
       "type": 0,
       "value": "Guest user"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " replied"
     }
   ],
   "b2326c3a34": [
@@ -1465,6 +1559,12 @@
     {
       "type": 0,
       "value": " to learn more."
+    }
+  ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "This comment was deleted."
     }
   ],
   "ef53538ae4": [
