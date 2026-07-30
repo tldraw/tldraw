@@ -1,6 +1,10 @@
 import { TLRichText } from 'tldraw'
 import { describe, expect, it } from 'vitest'
-import { categorizeCommentNotifications, CommentNotificationInput } from './commentNotifications'
+import {
+	categorizeCommentNotifications,
+	CommentNotificationInput,
+	summarizeForeignReactors,
+} from './commentNotifications'
 
 const ME = 'user_me'
 const OTHER = 'user_other'
@@ -252,5 +256,158 @@ describe('categorizeCommentNotifications', () => {
 		const newer = comment({ id: 'comment:new', createdAt: at(10), file: { ownerId: ME } })
 		const result = categorizeCommentNotifications([older, newer], ME)
 		expect(result.map((n) => n.comment.id)).toEqual(['comment:new', 'comment:old'])
+	})
+
+	it('marks a comment notification unread until it has a read receipt', () => {
+		const unread = categorizeCommentNotifications([comment({ file: { ownerId: ME } })], ME)
+		expect(unread[0].unread).toBe(true)
+		const read = categorizeCommentNotifications(
+			[comment({ file: { ownerId: ME }, read: { readAt: at(1) } })],
+			ME
+		)
+		expect(read[0].unread).toBe(false)
+	})
+})
+
+describe('reaction notifications', () => {
+	/** My own comment, with reactions. */
+	function mine(overrides: Partial<CommentNotificationInput> = {}): CommentNotificationInput {
+		return comment({
+			authorId: ME,
+			thread: { createdBy: ME },
+			file: { ownerId: THIRD },
+			...overrides,
+		})
+	}
+
+	it("labels my comment with someone else's reaction as reaction", () => {
+		const result = categorizeCommentNotifications(
+			[mine({ reactions: [{ userId: OTHER, emoji: '👍', createdAt: at(10) }] })],
+			ME
+		)
+		expect(result).toHaveLength(1)
+		expect(result[0].reasons).toEqual(['reaction'])
+		expect(result[0].primaryReason).toBe('reaction')
+	})
+
+	it('drops my comment with no reactions, or with only my own', () => {
+		expect(categorizeCommentNotifications([mine()], ME)).toEqual([])
+		expect(
+			categorizeCommentNotifications(
+				[mine({ reactions: [{ userId: ME, emoji: '👍', createdAt: at(10) }] })],
+				ME
+			)
+		).toEqual([])
+	})
+
+	it("never labels others' comments as reaction, whatever their reactions", () => {
+		const theirs = comment({
+			file: { ownerId: ME },
+			reactions: [{ userId: THIRD, emoji: '👍', createdAt: at(10) }],
+		})
+		const result = categorizeCommentNotifications([theirs], ME)
+		expect(result[0].reasons).toEqual(['owned-board'])
+	})
+
+	it('timestamps the entry by the newest foreign reaction, ignoring my own later one', () => {
+		const result = categorizeCommentNotifications(
+			[
+				mine({
+					createdAt: at(0),
+					reactions: [
+						{ userId: OTHER, emoji: '👍', createdAt: at(10) },
+						{ userId: THIRD, emoji: '🎉', createdAt: at(20) },
+						{ userId: ME, emoji: '👍', createdAt: at(30) },
+					],
+				}),
+			],
+			ME
+		)
+		expect(result[0].timestamp).toBe(at(20))
+	})
+
+	it('is unread until my read receipt is newer than the newest foreign reaction', () => {
+		const withReadAt = (readAt: number | undefined) =>
+			categorizeCommentNotifications(
+				[
+					mine({
+						read: readAt === undefined ? undefined : { readAt },
+						reactions: [{ userId: OTHER, emoji: '👍', createdAt: at(10) }],
+					}),
+				],
+				ME
+			)[0].unread
+		expect(withReadAt(undefined)).toBe(true)
+		// a stale receipt (read before this reaction landed) leaves the entry unread
+		expect(withReadAt(at(5))).toBe(true)
+		expect(withReadAt(at(15))).toBe(false)
+	})
+
+	it('sorts reaction entries among comment entries by their reaction time', () => {
+		const reacted = mine({
+			id: 'comment:reacted',
+			createdAt: at(0),
+			reactions: [{ userId: OTHER, emoji: '👍', createdAt: at(20) }],
+		})
+		const replied = comment({ id: 'comment:replied', createdAt: at(10), file: { ownerId: ME } })
+		const result = categorizeCommentNotifications([replied, reacted], ME)
+		expect(result.map((n) => n.comment.id)).toEqual(['comment:reacted', 'comment:replied'])
+	})
+})
+
+describe('summarizeForeignReactors', () => {
+	const names = new Map([
+		[OTHER, 'Olive'],
+		[THIRD, 'Théo'],
+	])
+	const resolve = (id: string) => names.get(id)
+
+	it('names the newest resolvable reactor and counts the rest', () => {
+		const result = summarizeForeignReactors(
+			[
+				{ userId: THIRD, emoji: '👍', createdAt: at(0) },
+				{ userId: OTHER, emoji: '🎉', createdAt: at(10) },
+			],
+			ME,
+			resolve
+		)
+		expect(result).toEqual({ name: 'Olive', others: 1, total: 2 })
+	})
+
+	it('counts a reactor once however many emoji they used, and skips my own reactions', () => {
+		const result = summarizeForeignReactors(
+			[
+				{ userId: OTHER, emoji: '👍', createdAt: at(0) },
+				{ userId: OTHER, emoji: '🎉', createdAt: at(10) },
+				{ userId: ME, emoji: '👍', createdAt: at(20) },
+			],
+			ME,
+			resolve
+		)
+		expect(result).toEqual({ name: 'Olive', others: 0, total: 1 })
+	})
+
+	it('falls back to an older reactor when the newest has no resolvable name', () => {
+		const result = summarizeForeignReactors(
+			[
+				{ userId: THIRD, emoji: '👍', createdAt: at(0) },
+				{ userId: 'user_stranger', emoji: '🎉', createdAt: at(10) },
+			],
+			ME,
+			resolve
+		)
+		expect(result).toEqual({ name: 'Théo', others: 1, total: 2 })
+	})
+
+	it('gives no name when nobody resolves', () => {
+		const result = summarizeForeignReactors(
+			[
+				{ userId: 'user_a', emoji: '👍', createdAt: at(0) },
+				{ userId: 'user_b', emoji: '🎉', createdAt: at(10) },
+			],
+			ME,
+			resolve
+		)
+		expect(result).toEqual({ name: undefined, others: 2, total: 2 })
 	})
 })

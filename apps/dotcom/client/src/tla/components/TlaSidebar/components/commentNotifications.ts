@@ -7,14 +7,16 @@ import { extractMentionIds } from '@tldraw/dotcom-shared'
  * - `reply` — the comment is in a thread the user is a part of (started, or has commented in),
  *   posted after they joined it
  * - `owned-board` — the comment is on a file the user owns
+ * - `reaction` — the user's own comment, reacted to by someone else. The only reason about the
+ *   user's own comments, so it never combines with the others
  *
  * A single comment can match more than one; {@link CommentNotification.primaryReason} picks the one
  * shown to the user, in the order mention \> reply \> owned-board (most-to-least specific).
  */
-export type CommentNotificationReason = 'mention' | 'reply' | 'owned-board'
+export type CommentNotificationReason = 'mention' | 'reply' | 'owned-board' | 'reaction'
 
 /** Priority order for {@link CommentNotification.primaryReason}: most specific first. */
-const REASON_PRIORITY: CommentNotificationReason[] = ['mention', 'reply', 'owned-board']
+const REASON_PRIORITY: CommentNotificationReason[] = ['mention', 'reply', 'owned-board', 'reaction']
 
 /**
  * How far a comment may predate the user's join time and still count as a reply.
@@ -45,13 +47,18 @@ export interface CommentNotificationInput {
 	// Comment body, as rich text JSON. Typed `unknown` so the real Zero row (whose `body` is a wide
 	// `ReadonlyJSONValue`) still satisfies this constraint; extractMentionIds accepts unknown.
 	body: unknown
-	read?: unknown
+	/** The caller's read receipt — a related row when present, absent (falsy) when unread. Its
+	 *  `readAt` dates the receipt, which is what lets a reaction newer than it re-unread the entry. */
+	read?: { readAt?: number | null } | null
 	file?: { ownerId?: string | null } | null
 	thread?: {
 		createdBy?: string | null
 		/** The caller's own comments in the thread (the query syncs no one else's). */
 		comments?: readonly { authorId: string; createdAt: number }[] | null
 	} | null
+	/** Every reaction to the comment, the caller's own included. Categorization only reads who and
+	 *  when; `emoji` rides along for the row's reaction pills. */
+	reactions?: readonly { userId: string; emoji: string; createdAt: number }[] | null
 }
 
 /** A comment in the notifications feed, tagged with why it's there. */
@@ -63,6 +70,13 @@ export interface CommentNotification<
 	reasons: CommentNotificationReason[]
 	/** The single reason to surface, per {@link REASON_PRIORITY}. */
 	primaryReason: CommentNotificationReason
+	/** When the notified-about event happened: the newest foreign reaction for a `reaction` entry,
+	 *  the comment's creation otherwise. Orders the feed and dates the row. */
+	timestamp: number
+	/** Whether the entry needs the user's attention. A comment entry is unread until it has a read
+	 *  receipt; a reaction entry is unread while the newest foreign reaction postdates the receipt —
+	 *  so fresh reactions re-unread a comment the user had already read. */
+	unread: boolean
 }
 
 /**
@@ -83,8 +97,19 @@ export function categorizeCommentNotifications<T extends CommentNotificationInpu
 
 	const notifications: CommentNotification<T>[] = []
 	for (const comment of comments) {
-		// A notification is always about someone else's comment, never your own.
-		if (comment.authorId === userId) continue
+		// The user's own comment only notifies about what others did to it: their reactions.
+		if (comment.authorId === userId) {
+			const latestForeign = latestForeignReactionAt(comment.reactions, userId)
+			if (latestForeign === undefined) continue
+			notifications.push({
+				comment,
+				reasons: ['reaction'],
+				primaryReason: 'reaction',
+				timestamp: latestForeign,
+				unread: latestForeign > (comment.read?.readAt ?? -Infinity),
+			})
+			continue
+		}
 
 		const reasons: CommentNotificationReason[] = []
 		if (extractMentionIds(comment.body).includes(userId)) reasons.push('mention')
@@ -96,10 +121,16 @@ export function categorizeCommentNotifications<T extends CommentNotificationInpu
 		if (reasons.length === 0) continue
 
 		const primaryReason = REASON_PRIORITY.find((r) => reasons.includes(r))!
-		notifications.push({ comment, reasons, primaryReason })
+		notifications.push({
+			comment,
+			reasons,
+			primaryReason,
+			timestamp: comment.createdAt,
+			unread: !comment.read,
+		})
 	}
 
-	return notifications.sort((a, b) => b.comment.createdAt - a.comment.createdAt)
+	return notifications.sort((a, b) => b.timestamp - a.timestamp)
 }
 
 /**
@@ -113,4 +144,47 @@ function joinedThreadAt(thread: CommentNotificationInput['thread'], userId: stri
 		if (c.authorId === userId && c.createdAt < joinedAt) joinedAt = c.createdAt
 	}
 	return joinedAt
+}
+
+/**
+ * The reactor summary a "reacted to your comment" byline is phrased from: the newest reactor with
+ * a resolvable display name (the byline's face), how many other distinct people reacted beyond
+ * them, and the distinct total for when no name resolves at all. `resolveName` covers whatever
+ * identity sources the caller has (comment authors in the feed, workspace members) — reaction rows
+ * themselves carry no name.
+ */
+export function summarizeForeignReactors(
+	reactions: CommentNotificationInput['reactions'],
+	userId: string | undefined | null,
+	resolveName: (userId: string) => string | undefined
+): { name: string | undefined; others: number; total: number } {
+	// distinct foreign reactors, newest reaction first
+	const newestById = new Map<string, number>()
+	for (const r of reactions ?? []) {
+		if (r.userId === userId) continue
+		const newest = newestById.get(r.userId)
+		if (newest === undefined || r.createdAt > newest) newestById.set(r.userId, r.createdAt)
+	}
+	const ordered = [...newestById.entries()].sort(([, a], [, b]) => b - a).map(([id]) => id)
+	const name = ordered.map(resolveName).find((n) => n !== undefined)
+	return {
+		name,
+		others: name === undefined ? ordered.length : ordered.length - 1,
+		total: ordered.length,
+	}
+}
+
+/**
+ * When someone else last reacted to the comment, or undefined if no one has — the user's own
+ * reactions don't notify them.
+ */
+function latestForeignReactionAt(
+	reactions: CommentNotificationInput['reactions'],
+	userId: string
+): number | undefined {
+	let latest: number | undefined
+	for (const r of reactions ?? []) {
+		if (r.userId !== userId && (latest === undefined || r.createdAt > latest)) latest = r.createdAt
+	}
+	return latest
 }
