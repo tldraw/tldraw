@@ -36,11 +36,17 @@ import {
 // limit: the consumer clears it as soon as a render lands, so on a healthy board it never reaches
 // this TTL, which exists only so a consumer dying cannot wedge a board permanently. To change how
 // often a board renders, change OG_RENDER_DEBOUNCE_MS.
-const PENDING_MARKER_TTL_MS = 2 * 60_000
+//
+// Must outlive a job's worst-case retry chain — every capture running to its timeout plus every
+// backoff delay — or the marker lapses while the job is still alive, a fresh ask enqueues a second
+// job for the same board, and the two clobber each other's per-board render token record
+// (renderTokens.ts is keyed on the single-flight this marker provides). A test pins the inequality
+// against the constants below.
+export const PENDING_MARKER_TTL_MS = 5 * 60_000
 // Retries are bounded by max_retries in wrangler.toml too; this lower cap keeps thumbnail jobs from
 // burning Browser Run capacity on a persistently failing board.
-const MAX_RENDER_ATTEMPTS = 3
-const RETRY_DELAY_SECONDS = 30
+export const MAX_RENDER_ATTEMPTS = 3
+export const RETRY_DELAY_SECONDS = 30
 
 // OG images render a single page as the unfurl preview. Pick the first page (in board order) that
 // has content, so a board whose first page is empty still gets a meaningful image; fall back to the

@@ -1,3 +1,4 @@
+import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { OgImageRenderQueueMessage } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
@@ -9,6 +10,9 @@ import {
 	enqueueOgImageRender,
 	getOgImageCacheKey,
 	handleOgImageRenderMessage,
+	MAX_RENDER_ATTEMPTS,
+	PENDING_MARKER_TTL_MS,
+	RETRY_DELAY_SECONDS,
 } from './ogImageQueue'
 import {
 	blobsWithPrefix,
@@ -106,18 +110,33 @@ describe('enqueueOgImageRender', () => {
 		const board = { kind: 'shared_file', slug: 'board' } as const
 		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
 
+		const enqueuedAt = Date.parse('2026-01-01T00:00:00Z')
 		const marker = [...bucket.store.entries()].find(([key]) => key.endsWith('.pending'))!
-		expect(Number(marker[1].customMetadata!.expiresAt)).toBe(
-			Date.parse('2026-01-01T00:00:00Z') + 2 * 60_000
-		)
+		expect(Number(marker[1].customMetadata!.expiresAt)).toBe(enqueuedAt + PENDING_MARKER_TTL_MS)
 
 		// Every persist inside the window asks again and is deduped away.
-		vi.setSystemTime(new Date('2026-01-01T00:01:59Z'))
+		vi.setSystemTime(enqueuedAt + PENDING_MARKER_TTL_MS - 1000)
 		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('already_pending')
 
 		// Once it lapses, the next edit gets a fresh render.
-		vi.setSystemTime(new Date('2026-01-01T00:02:01Z'))
+		vi.setSystemTime(enqueuedAt + PENDING_MARKER_TTL_MS + 1000)
 		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
+	})
+
+	// The marker must outlive a job's worst-case retry chain: every capture running to its full
+	// timeout, plus every backoff delay between deliveries. If it lapsed while a job was still alive,
+	// a fresh ask would enqueue a second job for the same board, the two captures could overlap, and
+	// each would clobber the other's per-board render token record (renderTokens.ts) — 403ing the
+	// loser's snapshot read mid-capture. The record's per-board key is safe only because this marker
+	// single-flights renders per board.
+	it('has a marker TTL longer than the worst-case retry chain', () => {
+		const backoffMs = Array.from(
+			{ length: MAX_RENDER_ATTEMPTS - 1 },
+			(_, i) => RETRY_DELAY_SECONDS * (i + 1) * 1000
+		).reduce((a, b) => a + b, 0)
+		const worstCaseChainMs = MAX_RENDER_ATTEMPTS * THUMBNAIL_RENDER_TIMEOUT_MS + backoffMs
+
+		expect(PENDING_MARKER_TTL_MS).toBeGreaterThan(worstCaseChainMs)
 	})
 })
 
