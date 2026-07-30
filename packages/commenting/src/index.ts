@@ -73,6 +73,7 @@ export {
 	type CommentReactionPickerProps,
 	CommentReactions,
 	type CommentReactionsProps,
+	type ReactionSummaryInput,
 	summarizeReactions,
 	toggleCommentReaction,
 	useCommentReactions,

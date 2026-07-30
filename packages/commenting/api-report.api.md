@@ -190,6 +190,7 @@ export interface CommentListItemProps {
     id: string;
     page?: string;
     preview: ReactNode;
+    reactions?: ReactionSummary[];
     // (undocumented)
     resolved?: boolean;
     selected?: boolean;
@@ -501,6 +502,16 @@ export interface ReactionSummary {
     reactors: ReactionReactor[];
 }
 
+// @public
+export interface ReactionSummaryInput {
+    // (undocumented)
+    createdAt: number;
+    // (undocumented)
+    emoji: string;
+    // (undocumented)
+    userId: string;
+}
+
 // @public (undocumented)
 export interface ReactionTooltipProps {
     children: ReactNode;
@@ -568,7 +579,7 @@ export interface SidebarFilters {
 export const sidebarFilters: EditorAtom<SidebarFilters>;
 
 // @public
-export function summarizeReactions(reactions: TLCommentReaction[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined): ReactionSummary[];
+export function summarizeReactions(reactions: readonly ReactionSummaryInput[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined): ReactionSummary[];
 
 // @public
 export type TLCommentRecord = TLComment | TLCommentReaction | TLCommentThread;

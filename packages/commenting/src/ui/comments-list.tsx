@@ -2,6 +2,7 @@ import { Avatar, type CommentAuthor } from '@tldraw/mentions'
 import { MouseEvent, ReactNode } from 'react'
 import { useTranslation } from 'tldraw'
 import { Byline } from './byline'
+import { Reactions, type ReactionSummary } from './reactions'
 import { replyCountLabel } from './reply-count'
 
 /** @public */
@@ -19,6 +20,9 @@ export interface CommentListItemProps {
 	count?: number
 	/** Whether this thread is the open one. */
 	selected?: boolean
+	/** Tallied reactions for the row (a thread's, or a single comment's when the row is one
+	 *  comment), shown as inert pills under the preview. Omit to hide. */
+	reactions?: ReactionSummary[]
 	/**
 	 * Link target for the item. When set, the row renders as an anchor so browser affordances
 	 * (ctrl/cmd-click, middle-click) open it in a new tab; a plain click still calls `onSelect`.
@@ -97,6 +101,7 @@ function CommentListItem({
 	page,
 	count,
 	selected,
+	reactions,
 	href,
 	resolvedLabel = 'Resolved',
 	onSelect,
@@ -123,6 +128,7 @@ function CommentListItem({
 			<div className="tlui-cmt-list__item-body">
 				<Byline author={author} date={date} />
 				<div className="tlui-cmt-list__item-preview">{preview}</div>
+				{reactions && <Reactions reactions={reactions} canReact={false} enableHoverList={false} />}
 				{(resolved || page !== undefined || replies) && (
 					<div className="tlui-cmt-list__item-meta">
 						{resolved && (

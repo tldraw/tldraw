@@ -414,12 +414,17 @@
 	font-size: 10px;
 	font-weight: 400;
 	color: var(--tl-color-text-1);
+}
+
+/* An inert pill renders as a span (e.g. in a notification row); only the button variant is
+   clickable, so only it gets the pointer cursor and hover shade. */
+button.tlui-cmt-reaction {
 	cursor: pointer;
 }
 
 /* Hover deepens the grey — no border to tint now. Mixing toward the text colour is theme-aware:
    it darkens the fill in light mode and lightens it in dark, tracking the pill's own contrast. */
-.tlui-cmt-reaction:hover {
+button.tlui-cmt-reaction:hover {
 	background: var(--tl-color-muted-1);
 }
 
@@ -429,7 +434,7 @@
 	background: color-mix(in srgb, var(--tl-color-selected) 28%, var(--tl-color-panel));
 }
 
-.tlui-cmt-reaction--active:hover {
+button.tlui-cmt-reaction--active:hover {
 	background: color-mix(in srgb, var(--tl-color-selected) 38%, var(--tl-color-panel));
 }
 

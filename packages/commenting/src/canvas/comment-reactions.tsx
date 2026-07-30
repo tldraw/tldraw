@@ -40,6 +40,19 @@ export function useCommentReactions(
 }
 
 /**
+ * The reaction fields {@link summarizeReactions} needs — a structural subset of
+ * {@link tldraw#TLCommentReaction}, so tallies can also be built from reaction rows synced outside
+ * the editor store (e.g. an app-level reactions table backing a notifications feed).
+ *
+ * @public
+ */
+export interface ReactionSummaryInput {
+	userId: string
+	emoji: string
+	createdAt: number
+}
+
+/**
  * Tally a comment's reactions into an entry per emoji, ordered by when that emoji was first used
  * so the row stays stable as later reactions arrive. `active` marks the emoji the current user
  * reacted with (the pills render those highlighted), and `reactors` lists who reacted with it, in
@@ -49,7 +62,7 @@ export function useCommentReactions(
  * @public
  */
 export function summarizeReactions(
-	reactions: TLCommentReaction[],
+	reactions: readonly ReactionSummaryInput[],
 	currentUserId?: string | null,
 	resolveName?: (userId: string) => string | undefined
 ): ReactionSummary[] {
