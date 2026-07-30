@@ -10,7 +10,7 @@ import { SelectionHandle } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
 import { TLContent } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
-import { TLPageId } from '@tldraw/editor';
+import { TLPageId } from '@tldraw/tlschema';
 import { TLPinchEventInfo } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
@@ -41,21 +41,21 @@ export class Driver {
     getPageRotationById(id: TLShapeId): number;
     getSelectionPageCenter(): null | Vec;
     getViewportPageCenter(): Vec;
-    keyDown(key: string, options?: Partial<Omit<TLKeyboardEventInfo, "key">>): this;
-    keyPress(key: string, options?: Partial<Omit<TLKeyboardEventInfo, "key">>): this;
-    keyRepeat(key: string, options?: Partial<Omit<TLKeyboardEventInfo, "key">>): this;
-    keyUp(key: string, options?: Partial<Omit<TLKeyboardEventInfo, "key">>): this;
+    keyDown(key: string, options?: Partial<Omit<TLKeyboardEventInfo, 'key'>>): this;
+    keyPress(key: string, options?: Partial<Omit<TLKeyboardEventInfo, 'key'>>): this;
+    keyRepeat(key: string, options?: Partial<Omit<TLKeyboardEventInfo, 'key'>>): this;
+    keyUp(key: string, options?: Partial<Omit<TLKeyboardEventInfo, 'key'>>): this;
     pan(offset: VecLike): this;
     paste(point?: VecLike): this;
-    pinchEnd(x: number | undefined, y: number | undefined, z: number, dx: number, dy: number, dz: number, options?: Partial<Omit<TLPinchEventInfo, "delta" | "offset" | "point">>): this;
-    pinchStart(x: number | undefined, y: number | undefined, z: number, dx: number, dy: number, dz: number, options?: Partial<Omit<TLPinchEventInfo, "delta" | "offset" | "point">>): this;
-    pinchTo(x: number | undefined, y: number | undefined, z: number, dx: number, dy: number, dz: number, options?: Partial<Omit<TLPinchEventInfo, "delta" | "offset" | "point">>): this;
+    pinchEnd(x: number | undefined, y: number | undefined, z: number, dx: number, dy: number, dz: number, options?: Partial<Omit<TLPinchEventInfo, 'delta' | 'offset' | 'point'>>): this;
+    pinchStart(x: number | undefined, y: number | undefined, z: number, dx: number, dy: number, dz: number, options?: Partial<Omit<TLPinchEventInfo, 'delta' | 'offset' | 'point'>>): this;
+    pinchTo(x: number | undefined, y: number | undefined, z: number, dx: number, dy: number, dz: number, options?: Partial<Omit<TLPinchEventInfo, 'delta' | 'offset' | 'point'>>): this;
     pointerDown(x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers): this;
     pointerMove(x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers): this;
     pointerUp(x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers): this;
     resizeSelection(scale: {
-        scaleX?: number | undefined;
-        scaleY?: number | undefined;
+        scaleX?: number;
+        scaleY?: number;
     } | undefined, handle: SelectionHandle, options?: Partial<TLPointerEventInfo>): this;
     rightClick(x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers): this;
     rotateSelection(angleRadians: number, options?: {
@@ -63,7 +63,7 @@ export class Driver {
         shiftKey?: boolean;
     }): this;
     translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>): this;
-    wheel(dx: number, dy: number, options?: Partial<Omit<TLWheelEventInfo, "delta">>): this;
+    wheel(dx: number, dy: number, options?: Partial<Omit<TLWheelEventInfo, 'delta'>>): this;
 }
 
 // @public

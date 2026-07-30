@@ -88,7 +88,7 @@
 		"npm": ">=7.0.0",
 		"node": ">=22.12.0"
 	},
-	"packageManager": "yarn@4.12.0",
+	"packageManager": "yarn@4.17.1",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,cjs,mjs}": [
 			"oxfmt --no-error-on-unmatched-pattern",
@@ -110,7 +110,6 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@types/semver": "^7.5.8",
-		"@typescript/native-preview": "^7.0.0-dev.20260129.1",
 		"@vitest/coverage-v8": "^4.1.7",
 		"@vitest/ui": "^4.1.7",
 		"adm-zip": "^0.5.16",
@@ -128,7 +127,7 @@
 		"oxlint-tsgolint": "^0.23.0",
 		"rimraf": "^4.4.1",
 		"tsx": "^4.19.2",
-		"typescript": "^5.8.3",
+		"typescript": "^7.0.2",
 		"vercel": "^52.0.0",
 		"vite-plugin-circular-dependency": "^0.5.0",
 		"vitest": "^4.1.7",
@@ -157,9 +156,6 @@
 			"built": true
 		},
 		"@swc/core": {
-			"built": true
-		},
-		"@typescript/native-preview": {
 			"built": true
 		},
 		"@vscode/vsce-sign": {
