@@ -9,7 +9,7 @@ import {
 	TLRecord,
 	TLRichText,
 } from 'tldraw'
-import { getLiveComments, type TLCommentRecord } from './comment-store'
+import { getCommentRecord, getLiveComments, type TLCommentRecord } from './comment-store'
 import { getCommentingOptions, type CommentingOptions } from './options'
 import { openThreadId } from './state'
 
@@ -21,6 +21,9 @@ import { openThreadId } from './state'
  * it, and the verbs below are those writes plus the one rule each carries — a timestamp to stamp, a
  * shape to put the `resolved` field in, or the soft-delete protocol. The built-in thread view calls
  * exactly these verbs, so a UI of your own behaves the same as the one in the box.
+ *
+ * Every verb takes the record it acts on, but treats it as the identity of what to change rather
+ * than as the value to write back — see {@link readLatest}.
  *
  * Posting carries no such rule, so it isn't a verb here: build the records with
  * `createCommentThread`/`createComment` and write them with {@link putCommentRecords}.
@@ -134,11 +137,40 @@ export function removeCommentRecords(
 }
 
 /**
+ * The record as the store currently holds it, or `undefined` if it isn't there any more.
+ *
+ * A verb is handed a record, but that record is a snapshot of whenever its caller got hold of one,
+ * and a comment record moves underneath it. A thread's `anchor` and `pageId` are rewritten without
+ * anyone touching the thread: deleting a pinned shape converts the anchor to a point, reparenting
+ * one rehomes the thread to another page, a pin drag re-anchors it. Writing the caller's snapshot
+ * back would put those fields as they were and sync the revert out to everyone.
+ *
+ * `put` is also an upsert, so a record a remote delete has already removed would come back — with
+ * `isDeleted: false` on an edit or a resolve. That's the multiplayer surprise the schema warns
+ * about (see `TLComment`), reached by a route the history option doesn't cover.
+ *
+ * So a verb reads what it's changing rather than trusting what it was given, and a record that's
+ * gone is a no-op: whatever the change was, there's nothing left for it to apply to.
+ */
+function readLatest<T extends TLComment | TLCommentThread>(
+	editor: Editor,
+	record: T
+): T | undefined {
+	const current = getCommentRecord(editor, record.id)
+	// Record ids carry their type, so a matching `typeName` means a record of exactly T.
+	return current?.typeName === record.typeName ? (current as T) : undefined
+}
+
+/**
  * Replace a comment's body and stamp it as edited, which is what renders the "(edited)" marker on
  * its byline.
  *
  * Editing is the author's to do. The built-in UI only offers it on your own comments, and a server
  * that enforces per-record permissions rejects anyone else's edit.
+ *
+ * The `comment` you pass says which comment to edit; the body lands on the version the store
+ * currently holds, so a copy you've held on to can't revert a change made since it, and can't
+ * re-create a comment that's already been removed — editing one of those does nothing.
  *
  * @example
  * ```ts
@@ -148,26 +180,42 @@ export function removeCommentRecords(
  * @public
  */
 export function editComment(editor: Editor, comment: TLComment, body: TLRichText): void {
-	putCommentRecords(editor, [{ ...comment, body, editedAt: Date.now() }])
+	commitCommentMutation(editor, () => {
+		const current = readLatest(editor, comment)
+		if (!current) return
+		putRecordsInCommit(editor, [{ ...current, body, editedAt: Date.now() }])
+	})
 }
 
 /**
  * Mark a thread resolved, stamping who resolved it and when. Resolved threads keep their pin (a
  * checked one) and are hidden from the sidebar until its "show resolved" filter is on.
  *
+ * Only the resolution is written: the rest of the thread is read fresh, so resolving with a stale
+ * copy in hand won't drag a pin back to where it used to be. A no-op on a thread that's gone.
+ *
  * @public
  */
 export function resolveThread(editor: Editor, thread: TLCommentThread, userId: string): void {
-	putCommentRecords(editor, [{ ...thread, resolved: { at: Date.now(), by: userId } }])
+	commitCommentMutation(editor, () => {
+		const current = readLatest(editor, thread)
+		if (!current) return
+		putRecordsInCommit(editor, [{ ...current, resolved: { at: Date.now(), by: userId } }])
+	})
 }
 
 /**
- * Reopen a resolved thread, clearing the resolution. A no-op on a thread that isn't resolved.
+ * Reopen a resolved thread, clearing the resolution. A no-op on a thread that isn't resolved, and
+ * on one that's gone. Like {@link resolveThread}, it touches only the resolution.
  *
  * @public
  */
 export function reopenThread(editor: Editor, thread: TLCommentThread): void {
-	putCommentRecords(editor, [{ ...thread, resolved: null }])
+	commitCommentMutation(editor, () => {
+		const current = readLatest(editor, thread)
+		if (!current) return
+		putRecordsInCommit(editor, [{ ...current, resolved: null }])
+	})
 }
 
 /**
@@ -187,18 +235,26 @@ export function reopenThread(editor: Editor, thread: TLCommentThread): void {
  * nothing — and closes it if it's open. The thread record is left for the server to prune, since
  * the deleter may not be its creator.
  *
+ * A comment that's already deleted, or already pruned, is a no-op.
+ *
  * @public
  */
 export function deleteComment(editor: Editor, comment: TLComment): void {
 	commitCommentMutation(
 		editor,
 		() => {
+			const current = readLatest(editor, comment)
+			// Deleting twice — a double activation, a handler firing on a copy taken before the first
+			// delete — is nothing to do rather than something to redo. The check below counts the
+			// comment being deleted among the live ones, so it only reads as "the last one" while
+			// this delete is the one taking it away.
+			if (!current || current.isDeleted) return
 			const isLastInThread =
-				getLiveComments(editor).filter((c) => c.threadId === comment.threadId).length <= 1
-			if (isLastInThread && openThreadId.get(editor) === comment.threadId) {
+				getLiveComments(editor).filter((c) => c.threadId === current.threadId).length <= 1
+			if (isLastInThread && openThreadId.get(editor) === current.threadId) {
 				openThreadId.set(editor, null)
 			}
-			putRecordsInCommit(editor, [{ ...comment, isDeleted: true }])
+			putRecordsInCommit(editor, [{ ...current, isDeleted: true }])
 		},
 		'delete'
 	)
@@ -212,7 +268,7 @@ export function deleteComment(editor: Editor, comment: TLComment): void {
  * thread is its creator's to do — a server enforcing per-record permissions vetoes anyone else —
  * and the write is never undoable.
  *
- * Closes the thread if it's the open one.
+ * Closes the thread if it's the open one. A thread that's already pruned is a no-op.
  *
  * @public
  */
@@ -220,10 +276,12 @@ export function deleteThread(editor: Editor, thread: TLCommentThread): void {
 	commitCommentMutation(
 		editor,
 		() => {
-			if (openThreadId.get(editor) === thread.id) {
+			const current = readLatest(editor, thread)
+			if (!current) return
+			if (openThreadId.get(editor) === current.id) {
 				openThreadId.set(editor, null)
 			}
-			putRecordsInCommit(editor, [{ ...thread, isDeleted: true }])
+			putRecordsInCommit(editor, [{ ...current, isDeleted: true }])
 		},
 		'delete'
 	)

@@ -21,6 +21,7 @@ import {
 	editComment,
 	putCommentRecords,
 	putRecordsInCommit,
+	removeCommentRecords,
 	reopenThread,
 	resolveThread,
 } from './comment-mutations'
@@ -105,6 +106,33 @@ describe('editComment', () => {
 		expect(updated.body).toEqual(toRichText('changed'))
 		expect(typeof updated.editedAt).toBe('number')
 	})
+
+	// The caller's record is a snapshot. Writing it back would revert every field it doesn't mean
+	// to touch — here `meta`, set after the caller took its copy.
+	it('edits the version in the store, not the copy it was handed', () => {
+		const editor = makeEditor()
+		const { comment } = makeThread(editor)
+		putCommentRecords(editor, [{ ...comment, meta: { pinned: true } }])
+
+		editComment(editor, comment, toRichText('changed'))
+
+		expect(readComment(editor, comment)).toMatchObject({
+			body: toRichText('changed'),
+			meta: { pinned: true },
+		})
+	})
+
+	// `put` is an upsert, so writing a snapshot back would re-create the record — with
+	// `isDeleted: false` — after someone else's delete had already taken it away.
+	it('does not resurrect a comment that has been removed since', () => {
+		const editor = makeEditor()
+		const { comment } = makeThread(editor)
+		removeCommentRecords(editor, [comment.id])
+
+		editComment(editor, comment, toRichText('changed'))
+
+		expect(readComment(editor, comment)).toBeUndefined()
+	})
 })
 
 describe('resolveThread and reopenThread', () => {
@@ -127,6 +155,46 @@ describe('resolveThread and reopenThread', () => {
 		reopenThread(editor, readThread(editor, thread)!)
 
 		expect(readThread(editor, thread)!.resolved).toBe(null)
+	})
+
+	// A thread's anchor moves without anyone touching the thread — a pin drag, or a pinned shape's
+	// delete converting it to a point. Resolving from a copy taken before that must not undo it.
+	it('resolves the version in the store, leaving an anchor moved since where it is', () => {
+		const editor = makeEditor()
+		const { thread } = makeThread(editor)
+		putCommentRecords(editor, [{ ...thread, anchor: { type: 'point', x: 50, y: 50 } }])
+
+		resolveThread(editor, thread, 'ada')
+
+		const updated = readThread(editor, thread)!
+		expect(updated.anchor).toEqual({ type: 'point', x: 50, y: 50 })
+		expect(updated.resolved!.by).toBe('ada')
+	})
+
+	it('reopens the version in the store, leaving an anchor moved since where it is', () => {
+		const editor = makeEditor()
+		const { thread } = makeThread(editor)
+		resolveThread(editor, thread, 'ada')
+		putCommentRecords(editor, [
+			{ ...readThread(editor, thread)!, anchor: { type: 'point', x: 50, y: 50 } },
+		])
+
+		reopenThread(editor, thread)
+
+		const updated = readThread(editor, thread)!
+		expect(updated.anchor).toEqual({ type: 'point', x: 50, y: 50 })
+		expect(updated.resolved).toBe(null)
+	})
+
+	it('does nothing to a thread that has been removed since', () => {
+		const editor = makeEditor()
+		const { thread } = makeThread(editor)
+		removeCommentRecords(editor, [thread.id])
+
+		resolveThread(editor, thread, 'ada')
+		reopenThread(editor, thread)
+
+		expect(readThread(editor, thread)).toBeUndefined()
 	})
 })
 
@@ -163,6 +231,30 @@ describe('deleteComment', () => {
 		expect(openThreadId.get(editor)).toBe(thread.id)
 	})
 
+	// Deleting the same comment twice — a double activation, a handler holding a copy taken before
+	// the first delete — shouldn't read as "the last comment went" while a sibling is still live.
+	it('leaves the thread open when the comment was already deleted', () => {
+		const editor = makeEditor()
+		const { thread, comment } = makeThread(editor)
+		addComment(editor, thread)
+		deleteComment(editor, comment)
+		openThreadId.set(editor, thread.id)
+
+		deleteComment(editor, comment)
+
+		expect(openThreadId.get(editor)).toBe(thread.id)
+	})
+
+	it('does not resurrect a comment that has been removed since', () => {
+		const editor = makeEditor()
+		const { comment } = makeThread(editor)
+		removeCommentRecords(editor, [comment.id])
+
+		deleteComment(editor, comment)
+
+		expect(readComment(editor, comment)).toBeUndefined()
+	})
+
 	it('leaves a different open thread alone', () => {
 		const editor = makeEditor()
 		const { comment } = makeThread(editor)
@@ -195,6 +287,29 @@ describe('deleteThread', () => {
 		deleteThread(editor, thread)
 
 		expect(openThreadId.get(editor)).toBe(null)
+	})
+
+	it('flags the version in the store, leaving an anchor moved since where it is', () => {
+		const editor = makeEditor()
+		const { thread } = makeThread(editor)
+		putCommentRecords(editor, [{ ...thread, anchor: { type: 'point', x: 50, y: 50 } }])
+
+		deleteThread(editor, thread)
+
+		expect(readThread(editor, thread)).toMatchObject({
+			isDeleted: true,
+			anchor: { type: 'point', x: 50, y: 50 },
+		})
+	})
+
+	it('does not resurrect a thread that has been removed since', () => {
+		const editor = makeEditor()
+		const { thread } = makeThread(editor)
+		removeCommentRecords(editor, [thread.id])
+
+		deleteThread(editor, thread)
+
+		expect(readThread(editor, thread)).toBeUndefined()
 	})
 })
 

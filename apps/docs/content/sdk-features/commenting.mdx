@@ -425,6 +425,8 @@ resolveThread(editor, thread, currentUserId)
 deleteComment(editor, comment)
 ```
 
+The record you pass says which comment or thread to act on; the change itself lands on the version currently in the store. So a record you took a copy of earlier is safe to pass: it won't put back a field that has moved since — a thread's anchor changes on its own as pinned shapes move, and a comment's body changes when its author edits it elsewhere — and it won't re-create a record that has already been deleted, which a plain `putCommentRecords` of a stale copy would. If the record is gone, the call does nothing.
+
 ### Deleting is a soft delete
 
 `deleteComment` and `deleteThread` don't remove records. They set an `isDeleted` flag and leave the pruning to the server, which then removes the thread, its comments, and their reactions.
