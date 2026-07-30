@@ -22,8 +22,12 @@ export interface ThumbnailRenderJob {
 	 * pipeline mints, and it can read a *private* board's whole document — that is the case the record
 	 * exists for. See recordMintedRenderToken.
 	 *
-	 * Absent on a token already in flight from before the field existed; treated as `render`, which is
-	 * the stricter reading and matches what those tokens had records written for.
+	 * Absent only on a token minted before this field existed. Read as `public`, which is both the
+	 * narrower gate and the one that worker version actually applied — it served every board through
+	 * the anonymous-share check and wrote no records. Reading them as `render` instead would widen
+	 * them past what they were minted under *and* demand a record no old mint ever wrote, so every
+	 * capture in flight across a rolling deploy would 403 until the old tokens expired. Every mint
+	 * since sets this explicitly, from the gate the board was resolved under.
 	 */
 	access?: ThumbnailBoardAccess
 	/**
@@ -138,11 +142,11 @@ export async function verifyThumbnailRenderToken(
 }
 
 /**
- * The gate a job is read under. Absent means a token minted before the field existed, which is treated
- * as `render` — the stricter of the two, and what those tokens were recorded under.
+ * The gate a job is read under. Absent means a token minted before the field existed, read as `public`
+ * — the narrower gate, and the one those tokens were minted under. See ThumbnailRenderJob.access.
  */
 export function renderJobAccess(job: Pick<ThumbnailRenderJob, 'access'>): ThumbnailBoardAccess {
-	return job.access ?? 'render'
+	return job.access ?? 'public'
 }
 
 async function getHmacKey(secret: string) {

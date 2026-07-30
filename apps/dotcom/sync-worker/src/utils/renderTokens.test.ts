@@ -18,6 +18,7 @@ function makeJob(overrides: Partial<ThumbnailRenderJob> = {}): ThumbnailRenderJo
 		kind: 'published',
 		slug: 'my-board',
 		version: 1751234567890,
+		access: 'render',
 		camera: 'content',
 		x: 0,
 		y: 0,
@@ -218,17 +219,18 @@ describe('render token records', () => {
 		expect(await isMintedRenderToken(envWithBucket, render, renderToken)).toBe(true)
 	})
 
-	// A token already in flight from before the field existed. Treated as `render`, the stricter
-	// reading, so it still has to produce a record.
-	it('treats a job with no access as render', async () => {
+	// A token still in flight from a worker version minted before the field existed. Those were served
+	// under the public gate and never recorded, so reading them as `public` is what keeps captures
+	// crossing a rolling deploy from 403ing on a record that was never going to be there.
+	it('treats a job with no access as public, accepting it with no record', async () => {
 		const envWithBucket = makeEnvWithBucket()
 		const job = makeJob({ access: undefined })
 		const token = await mintThumbnailRenderToken(envWithBucket, job)
 
-		expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(false)
+		expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(true)
 
 		await recordMintedRenderToken(envWithBucket, job, token)
-		expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(true)
+		expect([...(envWithBucket.THUMBNAILS as any).store.keys()]).toEqual([])
 	})
 
 	// Local dev and tests run without the bucket, where the check leaves signature-only verification

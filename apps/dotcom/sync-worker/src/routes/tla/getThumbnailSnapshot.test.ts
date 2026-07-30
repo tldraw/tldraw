@@ -31,6 +31,7 @@ function makeJob(overrides: Partial<ThumbnailRenderJob> = {}): ThumbnailRenderJo
 		kind: 'published',
 		slug: 'my-board',
 		version: 1751234567890,
+		access: 'render',
 		camera: 'content',
 		x: 0,
 		y: 0,
@@ -281,6 +282,26 @@ describe('getThumbnailSnapshot render token records', () => {
 		})
 		// Refused before the board is touched, so a forged token cannot even cause a snapshot read.
 		expect(vi.mocked(getPublishedRoomSnapshot)).not.toHaveBeenCalled()
+	})
+
+	// A capture that crosses a rolling deploy: minted by the previous worker version, which had no
+	// `access` field and wrote no records, then presented to this one. It reads as `public`, so it is
+	// served rather than 403ing on a record that was never going to exist.
+	it('serves a pre-deploy token that has no access field and no record', async () => {
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(snapshotOfOneShape())
+		const envWithBucket = makeEnvWithBucket()
+		const token = await mintThumbnailRenderToken(
+			envWithBucket,
+			makeJob({ kind: 'shared_file', slug: 'file-abc', version: 'etag-1', access: undefined })
+		)
+
+		const response = await getThumbnailSnapshot(makeRequest(token), envWithBucket)
+
+		expect(response.status).toBe(200)
+		// And under the gate that worker version applied, not the wider one.
+		expect(vi.mocked(getSharedFileRoomSnapshot)).toHaveBeenCalledWith(envWithBucket, 'file-abc', {
+			access: 'public',
+		})
 	})
 })
 
