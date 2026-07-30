@@ -43,8 +43,9 @@ import {
 	NEW_COMMENT_DRAFT,
 	saveCommentDraft,
 } from './comment-drafts'
+import { commitCommentMutation, putRecordsInCommit } from './comment-mutations'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
-import { getCommentRecord, putCommentRecords } from './comment-store'
+import { getCommentRecord } from './comment-store'
 import { PendingComment } from './comment-tool'
 import { type CommentingContext } from './context'
 import { useCommentThreads, useThreadComments } from './hooks'
@@ -58,7 +59,6 @@ import {
 import { computePinStacks, pinStackKey } from './pin-stacking'
 import {
 	commentsHidden,
-	commitCommentMutation,
 	openStackId,
 	openThreadId,
 	pendingComment,
@@ -72,6 +72,7 @@ import { ThreadPreview, sortThreadsForPreview, useMarkerPreview } from './thread
 import { ThreadStackPin } from './thread-stack'
 import {
 	anchorPagePoint,
+	commentCenterScreenOffset,
 	commentTargetShapeAt,
 	impreciseShapePinInset,
 	REGION_PIN_CORNER,
@@ -808,7 +809,8 @@ function revealThreadPin(
 		}
 	}
 
-	editor.centerOnPoint(point, { animation: { duration } })
+	const offset = commentCenterScreenOffset(editor) / editor.getZoomLevel()
+	editor.centerOnPoint({ x: point.x + offset, y: point.y }, { animation: { duration } })
 }
 
 function findDirectParentEvent(table: ClusterTable, threadId: string): MergeEvent | undefined {
@@ -822,9 +824,11 @@ function centerOnPointAtZoom(
 	duration = 200
 ) {
 	const viewport = editor.getViewportScreenBounds()
+	// The open sidebar shifts the target left so the pin lands mid-uncovered-area, not under it.
+	const offset = commentCenterScreenOffset(editor)
 	editor.setCamera(
 		{
-			x: viewport.w / (2 * zoom) - point.x,
+			x: (viewport.w / 2 - offset) / zoom - point.x,
 			y: viewport.h / (2 * zoom) - point.y,
 			z: zoom,
 		},
@@ -1290,7 +1294,7 @@ const ThreadPin = memo(function ThreadPin({
 					)
 				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
 		}
-		commitCommentMutation(editor, () => putCommentRecords(editor, [{ ...thread, anchor }]), 'drag')
+		commitCommentMutation(editor, () => putRecordsInCommit(editor, [{ ...thread, anchor }]), 'drag')
 	}
 
 	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
@@ -1323,7 +1327,7 @@ const ThreadPin = memo(function ThreadPin({
 		commitCommentMutation(
 			editor,
 			// Spread the existing anchor first so the region's pin corner survives a resize.
-			() => putCommentRecords(editor, [{ ...thread, anchor: { ...regionAnchor!, ...bounds } }]),
+			() => putRecordsInCommit(editor, [{ ...thread, anchor: { ...regionAnchor!, ...bounds } }]),
 			'drag'
 		)
 	}
@@ -1477,7 +1481,7 @@ function PendingComposer({
 				authorId: currentUserId,
 				body: text,
 			})
-			putCommentRecords(editor, [thread, comment])
+			putRecordsInCommit(editor, [thread, comment])
 			if (onPostComment) onPostComment(comment)
 		})
 		setText(EMPTY_COMMENT)

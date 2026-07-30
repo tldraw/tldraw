@@ -1,13 +1,5 @@
-import {
-	EditorAtom,
-	type BoxModel,
-	type Editor,
-	type TLHistoryBatchOptions,
-	useEditor,
-	useValue,
-} from 'tldraw'
+import { EditorAtom, type BoxModel, type Editor, useEditor, useValue } from 'tldraw'
 import type { PendingComment } from './comment-tool'
-import { getCommentingOptions } from './options'
 import { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './sidebar-filters'
 
 /**
@@ -164,28 +156,4 @@ export function useCommentsSidebarOpen(): boolean {
 export function useSidebarFilters(): SidebarFilters {
 	const editor = useEditor()
 	return useValue('sidebar filters', () => sidebarFilters.get(editor), [editor])
-}
-
-/**
- * Commit a comment mutation with the configured undo/redo behavior. All comment writes go through
- * here so the {@link CommentingOptions.history} option (and {@link CommentingOptions.dragHistory}
- * for pin re-anchors) governs whether they land on the undo stack. Defaults to `'ignore'`.
- * @internal
- */
-export function commitCommentMutation<T>(
-	editor: Editor,
-	fn: () => T,
-	kind: 'mutation' | 'drag' = 'mutation'
-): T {
-	const options = getCommentingOptions(editor)
-	const history: TLHistoryBatchOptions['history'] =
-		kind === 'drag' ? (options.dragHistory ?? options.history) : options.history
-	let result: T
-	editor.run(
-		() => {
-			result = fn()
-		},
-		{ history }
-	)
-	return result!
 }

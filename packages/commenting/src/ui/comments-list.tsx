@@ -1,6 +1,8 @@
 import { Avatar, type CommentAuthor } from '@tldraw/mentions'
 import { MouseEvent, ReactNode } from 'react'
+import { useTranslation } from 'tldraw'
 import { Byline } from './byline'
+import { replyCountLabel } from './reply-count'
 
 /** @public */
 export interface CommentListItemProps {
@@ -99,12 +101,15 @@ function CommentListItem({
 	resolvedLabel = 'Resolved',
 	onSelect,
 }: CommentListItemProps & { resolvedLabel?: string; onSelect?(id: string): void }) {
+	const msg = useTranslation()
 	const handleClick = (e: MouseEvent) => {
 		if (href && isOpenInNewTabClick(e)) return
 		e.preventDefault()
 		if (onSelect) onSelect(id)
 	}
 	const Tag = href ? 'a' : 'button'
+	// `count` is the thread's total comments; a reply is every comment after the opening one.
+	const replies = count !== undefined ? replyCountLabel(msg, count - 1) : null
 	return (
 		<Tag
 			{...(href ? { href } : { type: 'button' })}
@@ -118,7 +123,7 @@ function CommentListItem({
 			<div className="tlui-cmt-list__item-body">
 				<Byline author={author} date={date} />
 				<div className="tlui-cmt-list__item-preview">{preview}</div>
-				{(resolved || page !== undefined) && (
+				{(resolved || page !== undefined || replies) && (
 					<div className="tlui-cmt-list__item-meta">
 						{resolved && (
 							<span className="tlui-cmt-list__item-resolved">
@@ -127,12 +132,10 @@ function CommentListItem({
 							</span>
 						)}
 						{page !== undefined && <span className="tlui-cmt-list__item-page">{page}</span>}
+						{replies && <span className="tlui-cmt-list__item-replies">{replies}</span>}
 					</div>
 				)}
 			</div>
-			{count !== undefined && count > 1 && (
-				<span className="tlui-cmt-list__item-count">{count}</span>
-			)}
 		</Tag>
 	)
 }

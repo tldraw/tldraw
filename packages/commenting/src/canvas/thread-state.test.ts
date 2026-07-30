@@ -10,9 +10,11 @@ import {
 	Editor,
 	TLShapeId,
 } from 'tldraw'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { commentsSidebarOpen } from './state'
 import {
 	anchorPagePoint,
+	commentCenterScreenOffset,
 	commentTargetShapeAt,
 	impreciseShapePinInset,
 	IMPRECISE_PIN_INSET_PX,
@@ -155,5 +157,53 @@ describe('shape anchors under a shape transform', () => {
 		const anchor = shapeAnchorAt(editor, id, { x: 200, y: 100 }, true)
 		editor.deleteShape(id)
 		expect(anchorPagePoint(editor, anchor)).toBe(null)
+	})
+})
+
+describe('commentCenterScreenOffset', () => {
+	/** A sidebar element whose left edge sits at `left` client px, in the editor's container. */
+	function mountSidebar(left: number) {
+		const el = document.createElement('div')
+		el.className = 'tlui-cmt-canvas-sidebar'
+		el.getBoundingClientRect = () => ({ left }) as DOMRect
+		document.body.appendChild(el)
+		return el
+	}
+
+	afterEach(() => {
+		document.querySelector('.tlui-cmt-canvas-sidebar')?.remove()
+	})
+
+	it('is zero while the sidebar is closed', () => {
+		mountSidebar(712)
+		expect(commentCenterScreenOffset(editor)).toBe(0)
+	})
+
+	it('is half the covered width, so the pin centers in the uncovered area', () => {
+		commentsSidebarOpen.set(editor, true)
+		// Viewport is 1000px wide; the sidebar covers the rightmost 288px. The centered pin (at
+		// 356px) leaves the thread UI clear of the sidebar, so no nudge is needed.
+		mountSidebar(712)
+		expect(commentCenterScreenOffset(editor)).toBe(144)
+	})
+
+	it('nudges the pin further left when the thread UI would reach the sidebar', () => {
+		commentsSidebarOpen.set(editor, true)
+		// Centered in the uncovered area the pin sits at 300px, and the thread UI (334px wide,
+		// plus the 8px gap) would cross the sidebar's edge — so the pin backs off to 258px.
+		mountSidebar(600)
+		expect(commentCenterScreenOffset(editor)).toBe(500 - 258)
+	})
+
+	it('never nudges the pin past the left edge', () => {
+		commentsSidebarOpen.set(editor, true)
+		// Clearing the sidebar would need a negative pin position; the left inset wins.
+		mountSidebar(300)
+		expect(commentCenterScreenOffset(editor)).toBe(500 - 8)
+	})
+
+	it('is zero while the sidebar element is not mounted', () => {
+		commentsSidebarOpen.set(editor, true)
+		expect(commentCenterScreenOffset(editor)).toBe(0)
 	})
 })

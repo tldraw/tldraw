@@ -243,6 +243,11 @@
 	border-radius: var(--tl-radius-4);
 	box-shadow: var(--tl-shadow-3);
 }
+/* The reply count is a short line that sits closer to the edge than a wrapped comment does, so give
+   it more room below when it's the panel's last line. */
+.tlui-cmt-canvas-preview__panel--thread:has(.tlui-cmt-card__replies) {
+	padding-bottom: 12px;
+}
 
 /* Previewing a stack or cluster: one card per thread, matching the card list a click opens. */
 .tlui-cmt-canvas-preview__panel--list {

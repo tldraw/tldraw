@@ -950,9 +950,14 @@
 	border-radius: 4px;
 	background: var(--tl-color-muted-2);
 }
-.tlui-cmt-list__item-count {
-	flex-shrink: 0;
-	align-self: center;
+.tlui-cmt-list__item-replies {
+	display: inline-flex;
+	align-items: center;
+}
+/* reply count under a preview card's opening comment — the thread continues past what's shown */
+.tlui-cmt-card__replies {
+	display: block;
+	margin-top: 6px;
 	font-size: 12px;
 	color: var(--tl-color-text-3);
 }

@@ -10,6 +10,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
+import { replyCountLabel } from '../ui/reply-count'
 import { type CommentingContext } from './context'
 import { useComments } from './hooks'
 import { useCommentingOptions } from './options'
@@ -193,15 +194,17 @@ export function ThreadPreview({
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
-	// Each thread's opening comment. `useComments` is oldest-first, so the first hit per thread is
-	// that thread's first comment. One pass over every comment beats a per-thread hook — the
-	// thread count here is driven by cluster size, which has no fixed bound.
-	const firstByThread = useMemo(() => {
+	// Each thread's opening comment and its total comment count. `useComments` is oldest-first, so
+	// the first hit per thread is that thread's first comment. One pass over every comment beats a
+	// per-thread hook — the thread count here is driven by cluster size, which has no fixed bound.
+	const { firstByThread, countByThread } = useMemo(() => {
 		const first = new Map<string, TLComment>()
+		const count = new Map<string, number>()
 		for (const comment of comments) {
 			if (!first.has(comment.threadId)) first.set(comment.threadId, comment)
+			count.set(comment.threadId, (count.get(comment.threadId) ?? 0) + 1)
 		}
-		return first
+		return { firstByThread: first, countByThread: count }
 	}, [comments])
 
 	const { cards, overflow } = useMemo(
@@ -250,28 +253,38 @@ export function ThreadPreview({
 			onPointerDown={(e) => e.stopPropagation()}
 		>
 			<div className={panelClass}>
-				{cards.map(({ thread, first }) => (
-					<div
-						key={thread.id}
-						className={
-							isThread
-								? undefined
-								: onSelectThread
-									? 'tlui-cmt-preview-card tlui-cmt-preview-card--selectable'
-									: 'tlui-cmt-preview-card'
-						}
-						onClick={
-							onSelectThread
-								? (e) => {
-										e.stopPropagation()
-										onSelectThread(thread)
-									}
-								: undefined
-						}
-					>
-						<CommentCard {...toCardProps(first, props, options.components, resolveName)} />
-					</div>
-				))}
+				{cards.map(({ thread, first }) => {
+					// The preview shows only the opening comment, so its reply count is what tells the
+					// reader the thread continues past what they see.
+					const replies = replyCountLabel(msg, (countByThread.get(thread.id) ?? 1) - 1)
+					return (
+						<div
+							key={thread.id}
+							className={
+								isThread
+									? undefined
+									: onSelectThread
+										? 'tlui-cmt-preview-card tlui-cmt-preview-card--selectable'
+										: 'tlui-cmt-preview-card'
+							}
+							onClick={
+								onSelectThread
+									? (e) => {
+											e.stopPropagation()
+											onSelectThread(thread)
+										}
+									: undefined
+							}
+						>
+							<CommentCard
+								{...toCardProps(first, props, options.components, resolveName)}
+								footer={
+									replies ? <span className="tlui-cmt-card__replies">{replies}</span> : undefined
+								}
+							/>
+						</div>
+					)
+				})}
 				{overflow > 0 && (
 					<div className="tlui-cmt-preview-more">
 						{msg('comments.preview-more').replace('{count}', String(overflow))}
