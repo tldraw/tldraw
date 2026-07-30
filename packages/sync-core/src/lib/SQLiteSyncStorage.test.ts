@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite'
 import { DocumentRecordType, PageRecordType, TLDOCUMENT_ID, TLRecord } from '@tldraw/tlschema'
 import { ZERO_INDEX_KEY } from '@tldraw/utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	contractRecords,
 	contractSchema,
@@ -234,6 +234,30 @@ describe('SQLiteSyncStorage', () => {
 				.prepare<{ migrationVersion: number }>('SELECT migrationVersion FROM metadata')
 				.all()[0]
 			expect(row?.migrationVersion).toBe(2)
+		})
+	})
+
+	describe('close', () => {
+		it('[SQ7] a pending tombstone prune does not run against a closed database', () => {
+			vi.useFakeTimers()
+			try {
+				const db = new DatabaseSync(':memory:')
+				const storage = new SQLiteSyncStorage<TLRecord>({ sql: new NodeSqliteWrapper(db) })
+				const page = makePage('doomed')
+				storage.transaction((txn) => txn.set(page.id, page))
+				// deleting a record schedules the throttled prune on a timer
+				storage.transaction((txn) => txn.delete(page.id))
+
+				storage.close()
+				db.close()
+
+				// without close(), the pending prune would run its prepared statements
+				// against the closed database and throw 'statement has been finalized'
+				expect(() => vi.advanceTimersByTime(2000)).not.toThrow()
+				expect(() => storage.pruneTombstones.flush()).not.toThrow()
+			} finally {
+				vi.useRealTimers()
+			}
 		})
 	})
 })

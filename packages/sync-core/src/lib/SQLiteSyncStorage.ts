@@ -386,10 +386,37 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 		return this.notifier.register(callback)
 	}
 
+	private _isClosed = false
+
+	/**
+	 * Check whether the storage has been closed.
+	 *
+	 * @returns True if {@link SQLiteSyncStorage.close} has been called
+	 */
+	isClosed(): boolean {
+		return this._isClosed
+	}
+
+	/**
+	 * Close the storage and cancel any pending background work.
+	 *
+	 * Deleting records schedules a throttled tombstone prune on a timer that
+	 * runs the storage's prepared statements. Call this before closing the
+	 * underlying SQLite database so the pending prune does not run against
+	 * finalized statements. Closing more than once is a no-op; transactions
+	 * throw after the storage has been closed.
+	 */
+	close(): void {
+		if (this._isClosed) return
+		this._isClosed = true
+		this.pruneTombstones.cancel()
+	}
+
 	transaction<T>(
 		callback: TLSyncStorageTransactionCallback<R, T>,
 		opts?: TLSyncStorageTransactionOptions
 	): TLSyncStorageTransactionResult<T, R> {
+		assert(!this._isClosed, 'Storage has been closed')
 		const clockBefore = this.getClock()
 		const trackChanges = opts?.emitChanges === 'always'
 		return this.sql.transaction(() => {

@@ -98,6 +98,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SS16** `getSnapshot()` returns `{ documentClock, tombstoneHistoryStartsAtClock, documents, tombstones, schema }` reflecting all committed transactions.
 - **SS17** Snapshot fallbacks at construction: `documentClock ?? clock ?? 0`; `tombstoneHistoryStartsAtClock ?? documentClock`.
 - **SS18** Deleting a record schedules a throttled (1s, trailing-only) tombstone prune; nothing else schedules one, so a storage constructed with an oversized tombstone set stays unpruned until the next delete. When the prune runs and the tombstone count exceeds `MAX_TOMBSTONES` (5000), it deletes the oldest tombstones — the overflow plus `TOMBSTONE_PRUNE_BUFFER_SIZE` (1000) more, never splitting a clock value — and advances `tombstoneHistoryStartsAtClock` to the oldest surviving tombstone's clock.
+- **SS19** `close()` cancels any pending throttled tombstone prune and marks the storage closed (`isClosed()` returns true): calling `close()` again is a no-op, and further `transaction()` calls throw. This lets a consumer release the storage's underlying resources without a stray prune timer firing afterwards.
 
 ## 11. `InMemorySyncStorage` specifics (IM)
 
@@ -116,6 +117,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SQ4** `SQLiteSyncStorage.hasBeenInitialized(wrapper)` is true exactly when the metadata table exists and holds a non-empty schema string; it respects the table prefix and returns false (rather than throwing) on a missing table.
 - **SQ5** `SQLiteSyncStorage.getDocumentClock(wrapper)` returns the persisted clock, or `null` when storage is uninitialized.
 - **SQ6** Document state is stored as JSON-encoded BLOBs. Databases created by the v1 schema (TEXT column) are migrated to BLOB preserving data; fresh databases start at migration version 2.
+- **SQ7** After `close()`, closing the underlying database is safe: a prune scheduled by an earlier delete never runs against the finalized prepared statements.
 
 ## 13. `computeTombstonePruning` (TP) — internal
 

@@ -84,6 +84,20 @@ export interface TLSyncStorage<R extends UnknownRecord> {
 	onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void
 
 	getSnapshot?(): RoomSnapshot
+
+	/**
+	 * Close the storage and cancel any pending background work, like the
+	 * throttled tombstone pruning that record deletion schedules. Call this
+	 * before releasing the storage's underlying resources (e.g. closing a
+	 * SQLite database). Closing more than once is a no-op; the storage must
+	 * not be used after it has been closed.
+	 */
+	close?(): void
+
+	/**
+	 * Check whether the storage has been closed via {@link TLSyncStorage.close}.
+	 */
+	isClosed?(): boolean
 }
 
 /**
