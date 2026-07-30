@@ -893,19 +893,22 @@ export class TLFileDurableObject extends DurableObject {
 	// a board renders once its editing settles rather than on a cadence while it is still being drawn
 	// on. OG_RENDER_MAX_WAIT_MS caps how long a board that never settles can go without one.
 	//
-	// The debouncer holds the deadline we want; the durable alarm is how it gets enforced. They are
-	// allowed to disagree, and disagree safely: if this object is evicted the deadline is lost but the
-	// alarm survives, fires, finds no deadline, and renders. One extra render is the right way to be
-	// wrong — the alternative is silently dropping the last edits of a session, which is the exact
-	// staleness this trigger exists to fix.
+	// The durable alarm IS the deadline, not a coarse approximation of one. Every persist re-arms it,
+	// so an evicted object loses the in-memory copy and nothing else: the alarm fires at exactly the
+	// time the debouncer chose, and the render happens once, when it should.
+	//
+	// The alarm used to be left where it was while the deadline moved in memory, which cost one write
+	// per debounce window instead of one per persist. It also meant an evicted object woke to an alarm
+	// that was only a lower bound, rendered early, and rendered again when editing actually settled.
+	// Arming it every time trades storage writes for alarm invocations — the alarm no longer fires
+	// mid-session purely to push itself further out, so a sustained session goes from an invocation
+	// every ~24s to one at the max wait.
 	private ogRenderDebouncer = new OgRenderDebouncer()
 
 	private scheduleOgRender() {
-		const setAlarmAt = this.ogRenderDebouncer.onPersist(Date.now())
-		// null means an alarm is already outstanding and will pick the new deadline up when it fires,
-		// so the common case costs no I/O at all.
-		if (setAlarmAt === null) return
-		this.ctx.storage.setAlarm(setAlarmAt).catch((e) => this.reportError(e))
+		this.ctx.storage
+			.setAlarm(this.ogRenderDebouncer.onPersist(Date.now()))
+			.catch((e) => this.reportError(e))
 	}
 
 	override async alarm() {

@@ -14,13 +14,14 @@ function makeDebouncer() {
  * TLFileDurableObject does, and reports what it cost.
  *
  * `renders` is the number of Browser Run captures the run would have paid for; `alarmWrites` is the
- * number of times durable storage was touched, which is the per-persist I/O the design is trying to
- * avoid.
+ * number of times durable storage was touched, and `alarmFires` the number of alarm invocations —
+ * the two halves of the cost, which the durable-deadline design trades against each other.
  */
 function simulate({ persistEveryMs, forMs }: { persistEveryMs: number; forMs: number }) {
 	const debouncer = makeDebouncer()
 	const renderTimes: number[] = []
 	let alarmWrites = 0
+	let alarmFires = 0
 	let alarmAt: number | null = null
 	let persists = 0
 
@@ -28,6 +29,7 @@ function simulate({ persistEveryMs, forMs }: { persistEveryMs: number; forMs: nu
 		while (alarmAt !== null && alarmAt <= now) {
 			const firedAt = alarmAt
 			alarmAt = null
+			alarmFires++
 			const result = debouncer.onAlarm(firedAt)
 			if (result.render) {
 				renderTimes.push(firedAt)
@@ -41,16 +43,14 @@ function simulate({ persistEveryMs, forMs }: { persistEveryMs: number; forMs: nu
 	for (let t = 0; t <= forMs; t += persistEveryMs) {
 		serviceAlarmsUntil(t)
 		persists++
-		const setAlarmAt = debouncer.onPersist(t)
-		if (setAlarmAt !== null) {
-			alarmAt = setAlarmAt
-			alarmWrites++
-		}
+		// The object arms the alarm on every persist, so the durable copy never lags the deadline.
+		alarmAt = debouncer.onPersist(t)
+		alarmWrites++
 	}
 	// Let the board settle, so the trailing render lands.
 	serviceAlarmsUntil(forMs + MAX_WAIT + DEBOUNCE)
 
-	return { renderTimes, renders: renderTimes.length, alarmWrites, persists }
+	return { renderTimes, renders: renderTimes.length, alarmWrites, alarmFires, persists }
 }
 
 describe('OgRenderDebouncer', () => {
@@ -109,12 +109,33 @@ describe('OgRenderDebouncer', () => {
 		expect(debouncer.onAlarm(MAX_WAIT)).toEqual({ render: true })
 	})
 
-	// An evicted durable object loses the deadline but not the alarm. Rendering on an unrecognised
-	// alarm costs at most one extra capture; the alternative silently drops a session's last edits.
+	// An evicted object loses the deadline but not the alarm — and because the alarm always carries
+	// the real deadline, an alarm with nothing in memory means the deadline genuinely arrived.
 	it('renders when an alarm arrives with no deadline in memory', () => {
 		const debouncer = makeDebouncer()
 
 		expect(debouncer.onAlarm(123_456)).toEqual({ render: true })
+	})
+
+	// The point of arming the alarm on every persist. Mid-session eviction used to cost a second
+	// capture: the alarm was only a lower bound on the deadline, so the revived object rendered early
+	// and then again when editing actually settled. Now the alarm is the deadline, so it doesn't.
+	it('costs no extra render when the object is evicted mid-session', () => {
+		const live = makeDebouncer()
+		let alarmAt = live.onPersist(0)
+		for (let t = PERSIST; t <= 40_000; t += PERSIST) {
+			alarmAt = live.onPersist(t)
+		}
+		// Last persist at t=40s, so the deadline — and the alarm — sit at t=70s.
+		expect(alarmAt).toBe(70_000)
+
+		// Evicted: every field is gone, only the durable alarm survives.
+		const revived = makeDebouncer()
+
+		// It fires at the deadline the live object chose, and renders exactly once.
+		expect(revived.onAlarm(alarmAt)).toEqual({ render: true })
+		// Nothing is left over to fire a second time.
+		expect(revived.onAlarm(alarmAt + DEBOUNCE)).toEqual({ render: true })
 	})
 
 	it('starts a fresh cycle after a render', () => {
@@ -149,12 +170,17 @@ describe('OgRenderDebouncer', () => {
 		expect(renderTimes).toEqual([54_000])
 	})
 
-	// Keeping the deadline in memory and only writing an alarm when none is outstanding is what keeps
-	// this off the per-persist I/O path: storage is touched about once per debounce window, not once
-	// per persist. If this regresses, every persist starts paying for a durable write.
-	it('writes far fewer alarms than there are persists', () => {
-		const { alarmWrites, persists } = simulate({ persistEveryMs: PERSIST, forMs: 10 * 60_000 })
+	// The cost of a durable deadline, stated rather than hidden: one alarm write per persist. What it
+	// buys back is alarm invocations — the alarm no longer fires mid-session just to push itself out,
+	// so a sustained session wakes the object twice instead of ~20 times.
+	it('writes one alarm per persist, and wakes the object only to render', () => {
+		const { alarmWrites, alarmFires, persists, renders } = simulate({
+			persistEveryMs: PERSIST,
+			forMs: 10 * 60_000,
+		})
 
-		expect(alarmWrites).toBeLessThan(persists / 2)
+		expect(alarmWrites).toBe(persists)
+		expect(alarmFires).toBe(renders)
+		expect(alarmFires).toBe(2)
 	})
 })
