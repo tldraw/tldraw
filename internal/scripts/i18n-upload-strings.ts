@@ -14,7 +14,7 @@ import { LokaliseApi, QueuedProcess } from '@lokalise/node-api'
 
 const UPLOAD_POLL_INTERVAL_MS = 2000
 const UPLOAD_MAX_POLLS = 120
-/** Keys/languages per page when listing. Lokalise caps this at 500. */
+/** Items per page when listing keys and languages, within Lokalise's per-endpoint maximums. */
 const PAGE_LIMIT = 500
 /** Anything pricier than this wants a human to look at it first. */
 const MAX_ORDER_TOTAL = 10
@@ -96,6 +96,10 @@ async function uploadFile(
 		detect_icu_plurals: true,
 		cleanup_mode: cleanupMode,
 	})
+
+	if (!uploadResult.process_id) {
+		throw new Error(`Upload did not return a process_id: ${JSON.stringify(uploadResult, null, 2)}`)
+	}
 
 	const queuedProcess = await waitForUpload(lokaliseApi, projectId, uploadResult.process_id)
 	console.log(`Uploaded ${filename} successfully!`)
