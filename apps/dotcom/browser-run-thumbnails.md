@@ -229,6 +229,9 @@ The durable object now skips only two states, and neither is about privacy: `leg
 Three details of that worth knowing:
 
 - **Keyed per board** (`render-tokens/{kind}/{slug}`), not per token, so each render overwrites its board's record and the space is bounded by board count — exactly like the `.pending` marker. Nothing accumulates, so there is no lifecycle rule to add, and none must ever be added to this bucket.
+
+  The consequence is that **a board's newest mint invalidates any older in-flight token for it**, and that is intended: a fresher request supersedes one already running. Renders for one board do overlap in practice — the MCP tool allows two cache-missing captures per board per minute, and an edit or publish render can land during one — so the superseded capture fails its snapshot fetch with a 403 and surfaces as a render failure. Accepted rather than worked around: it fails closed, the OG queue retries, and an MCP caller can ask again. Per-token keys would avoid it, but only by making the record space unbounded in a bucket that must never carry a lifecycle rule.
+
 - **Records are not deleted after a capture.** Expiry lives in the signed `exp` and is checked before the record is ever consulted, so a leftover record cannot extend a token's life. Deleting would tighten the window from `exp` to the render's duration — worth nothing against an attacker who cannot get a record written at all, and it would cost a `finally` and a third state to reason about.
 - **A hash, in `customMetadata`.** The bucket never holds a usable credential, and checking one is a `head` rather than a `get`.
 

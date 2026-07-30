@@ -164,9 +164,14 @@ function renderTokenRecordKey(job: Pick<ThumbnailRenderJob, 'kind' | 'slug'>) {
  * means the render is about to fail its own token check, and a confusing "invalid token" is worse to
  * debug than the write error that caused it.
  *
- * Note the overwrite makes this load-bearing for correctness, not just deduplication: a board's newest
- * render invalidates any older in-flight token for the same board. The `.pending` marker should mean
- * two are never in flight at once.
+ * The record is keyed per board, so a board's newest mint invalidates any older in-flight token for
+ * it. That is intended: a fresher request supersedes one already running.
+ *
+ * Renders for one board genuinely can overlap — the MCP tool allows two cache-missing captures per
+ * board per minute, and an edit or publish render can land during one — so this is a live path, not a
+ * theoretical one. The superseded capture fails its snapshot fetch with a 403 and surfaces as a render
+ * failure, which is the accepted outcome: it fails closed and before spending anything further, the OG
+ * queue retries it, and an MCP caller can ask again.
  */
 export async function recordMintedRenderToken(
 	env: Environment,
