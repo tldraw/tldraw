@@ -270,6 +270,17 @@ export interface ThumbnailBoardRef {
 	slug: string
 }
 
+/**
+ * How much of a board a caller is entitled to. `public` is the anonymous gate: the board must be
+ * shared via link. `render` is for generating a thumbnail we will store but not necessarily serve
+ * publicly, so it only requires that the board exists and has content.
+ *
+ * Required at every call site rather than defaulted: a default would be wrong for half of them, and
+ * silence is the wrong way to pick a gate. It also rides inside the signed render job, so the gate a
+ * board was resolved under is the same one the snapshot route applies when it is read.
+ */
+export type ThumbnailBoardAccess = 'public' | 'render'
+
 // What prompted a board thumbnail render. Purely telemetry — every trigger is treated identically by
 // the consumer — so renders can be attributed to the thing that asked for them. `publish` and `edit`
 // are the two producers; `crawler` is reachable only as the fallback for a queued message that

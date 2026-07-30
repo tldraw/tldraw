@@ -53,6 +53,19 @@ describe('thumbnail render tokens', () => {
 		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
 	})
 
+	// The access level decides which gate the snapshot route reads under, so an unrecognised one must
+	// not fall through to a default — it is refused outright.
+	it('rejects tokens with an unknown access level', async () => {
+		const token = await mintThumbnailRenderToken(env, makeJob({ access: 'admin' as any }))
+		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
+	})
+
+	it('round-trips the access level it was minted with', async () => {
+		const job = makeJob({ access: 'public' })
+		const token = await mintThumbnailRenderToken(env, job)
+		expect(await verifyThumbnailRenderToken(env, token)).toEqual(job)
+	})
+
 	// An absent camera is valid and means "use the explicit x/y/z viewport". No surface mints one
 	// today — they all ask for `content` — but the path is kept available, so the verifier has to
 	// accept it or the worker could not start sending one without a client deploy first.
@@ -156,8 +169,9 @@ describe('render token records', () => {
 	})
 
 	// Per board, not per token: a board's newest render replaces the record, so an older in-flight
-	// token for the same board stops working. The pending marker single-flights renders per board, so
-	// this should not arise in practice — but it is the behaviour, not an accident.
+	// token for the same board stops working. Only the OG pipeline is recorded, and it is single-flighted
+	// per board by the pending marker, so this is the intended "fresher render wins" rather than two
+	// unrelated captures colliding.
 	it('replaces a board record on the next mint', async () => {
 		const envWithBucket = makeEnvWithBucket()
 		const job = makeJob()
@@ -169,6 +183,52 @@ describe('render token records', () => {
 
 		expect(await isMintedRenderToken(envWithBucket, job, second)).toBe(true)
 		expect(await isMintedRenderToken(envWithBucket, job, first)).toBe(false)
+	})
+
+	// A `public` job renders a board anyone could fetch anyway, so the record buys no security and is
+	// skipped. Keeping the MCP tool out of the record entirely is what stops it sharing a key space
+	// with the OG pipeline.
+	it('does not record a public job, and accepts it with no record', async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob({ access: 'public' })
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+
+		await recordMintedRenderToken(envWithBucket, job, token)
+
+		expect([...(envWithBucket.THUMBNAILS as any).store.keys()]).toEqual([])
+		expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(true)
+	})
+
+	// The guarantee the two surfaces rest on: an MCP capture cannot invalidate a thumbnail render of the
+	// same board, because it writes nothing. Were it to share the key, the render's token would stop
+	// verifying mid-flight and the capture would 403.
+	it('leaves a render record intact when a public job is minted for the same board', async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const render = makeJob({ access: 'render' })
+		const renderToken = await mintThumbnailRenderToken(envWithBucket, render)
+		await recordMintedRenderToken(envWithBucket, render, renderToken)
+
+		const capture = makeJob({ access: 'public', pageId: 'page:two' })
+		await recordMintedRenderToken(
+			envWithBucket,
+			capture,
+			await mintThumbnailRenderToken(envWithBucket, capture)
+		)
+
+		expect(await isMintedRenderToken(envWithBucket, render, renderToken)).toBe(true)
+	})
+
+	// A token already in flight from before the field existed. Treated as `render`, the stricter
+	// reading, so it still has to produce a record.
+	it('treats a job with no access as render', async () => {
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob({ access: undefined })
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+
+		expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(false)
+
+		await recordMintedRenderToken(envWithBucket, job, token)
+		expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(true)
 	})
 
 	// Local dev and tests run without the bucket, where the check leaves signature-only verification

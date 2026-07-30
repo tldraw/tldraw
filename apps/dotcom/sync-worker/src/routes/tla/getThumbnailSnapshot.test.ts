@@ -194,6 +194,33 @@ describe('getThumbnailSnapshot', () => {
 		expect(vi.mocked(getPublishedRoomSnapshot)).not.toHaveBeenCalled()
 	})
 
+	// The gate comes from the signed job, not from this route. An MCP token is minted `public`, so it
+	// reads under the anonymous gate and stays confined to what the MCP tool could resolve — a board
+	// that went private after minting is refused, where a thumbnail render's `render` token is not.
+	it('reads under the access level the token was minted with', async () => {
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue({
+			documents: [{ state: { id: 'shape:1', typeName: 'shape' }, lastChangedClock: 0 }],
+			schema: { schemaVersion: 2, sequences: {} },
+			clock: 0,
+		} as any)
+
+		await getThumbnailSnapshot(
+			makeRequest(
+				await mintToken({
+					kind: 'shared_file',
+					slug: 'file-abc',
+					version: 'etag-1',
+					access: 'public',
+				})
+			),
+			env
+		)
+
+		expect(vi.mocked(getSharedFileRoomSnapshot)).toHaveBeenCalledWith(env, 'file-abc', {
+			access: 'public',
+		})
+	})
+
 	// Deleted, not un-shared: this route reads with `access: 'render'`, so a private board resolves and
 	// its content is served to the render page. What refuses is a board that is deleted or unknown,
 	// which `isFileRenderable` rejects.

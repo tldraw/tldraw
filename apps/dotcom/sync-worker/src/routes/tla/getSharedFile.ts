@@ -1,7 +1,7 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { createPostgresConnectionPool } from '../../postgres'
 import { getR2KeyForRoom } from '../../r2'
-import { Environment } from '../../types'
+import { Environment, ThumbnailBoardAccess } from '../../types'
 import { isTestFile } from '../../utils/tla/isTestFile'
 
 export interface SharedFileInfo {
@@ -50,16 +50,6 @@ export function isFileRenderable(file: SharedFileInfo | null): file is SharedFil
 export function isFileAnonymouslyViewable(file: SharedFileInfo | null): file is SharedFileInfo {
 	return isFileRenderable(file) && file.shared === true
 }
-
-/**
- * How much of a board a caller is entitled to. `public` is the anonymous gate: the board must be shared
- * via link. `render` is for generating a thumbnail we will store but not necessarily serve publicly, so
- * it only requires that the board exists and has content.
- *
- * Required at every call site rather than defaulted: a default would be wrong for half of them, and
- * silence is the wrong way to pick a gate.
- */
-export type ThumbnailBoardAccess = 'public' | 'render'
 
 /**
  * Applies the gate an access level asks for. The mapping lives here, once, so that resolving a board

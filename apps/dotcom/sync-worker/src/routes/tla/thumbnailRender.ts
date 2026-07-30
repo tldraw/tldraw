@@ -11,6 +11,7 @@ import { getR2KeyForRoom } from '../../r2'
 import {
 	Environment,
 	OgImageRenderReason,
+	ThumbnailBoardAccess,
 	ThumbnailBoardKind,
 	ThumbnailBoardRef,
 } from '../../types'
@@ -23,12 +24,7 @@ import {
 	recordMintedRenderToken,
 } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
-import {
-	ThumbnailBoardAccess,
-	getSharedFileInfo,
-	getSharedFileRoomSnapshot,
-	isFileViewableFor,
-} from './getSharedFile'
+import { getSharedFileInfo, getSharedFileRoomSnapshot, isFileViewableFor } from './getSharedFile'
 import { BoardSnapshotReadError, BrowserRenderError } from './thumbnailShared'
 
 // The render-and-cache core shared by every Browser Run screenshot surface: the MCP screenshot
@@ -46,6 +42,12 @@ import { BoardSnapshotReadError, BrowserRenderError } from './thumbnailShared'
 // files), so it can key the thumbnail caches.
 export interface ResolvedThumbnailBoard extends ThumbnailBoardRef {
 	version: string | number
+	/**
+	 * The gate this board was resolved under, carried so a render cannot be minted under a weaker one
+	 * than the resolution used. `captureThumbnailScreenshot` signs it into the job, and the snapshot
+	 * route reads the board back under it.
+	 */
+	access: ThumbnailBoardAccess
 }
 
 export type ResolveThumbnailBoardResult =
@@ -72,7 +74,7 @@ export async function resolveThumbnailBoard(
 		// apply: an unpublished board has no published snapshot to render in the first place.
 		const file = await getPublishedFileInfo(env, slug)
 		if (!file?.published) return { ok: false, reason: 'not_found' }
-		return { ok: true, board: { kind, slug, version: file.lastPublished } }
+		return { ok: true, board: { kind, slug, version: file.lastPublished, access } }
 	}
 
 	const file = await getSharedFileInfo(env, slug)
@@ -83,7 +85,7 @@ export async function resolveThumbnailBoard(
 	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
 	if (!persisted) return { ok: false, reason: 'board_empty' }
 
-	return { ok: true, board: { kind, slug, version: persisted.etag } }
+	return { ok: true, board: { kind, slug, version: persisted.etag, access } }
 }
 
 // Reads a resolved board's snapshot, keeping the two outcomes callers must tell apart distinct.
@@ -184,6 +186,9 @@ export async function captureThumbnailScreenshot(
 		kind: board.kind,
 		slug: board.slug,
 		version: board.version,
+		// Taken from the resolution rather than the caller, so a surface cannot ask for a board under
+		// one gate and render it under another.
+		access: board.access,
 		camera: 'content',
 		...(pageId ? { pageId } : null),
 		// Ignored while `camera` is 'content', which is what every surface mints; carried because the
@@ -199,7 +204,7 @@ export async function captureThumbnailScreenshot(
 	const token = await mintThumbnailRenderToken(env, job)
 	// Record it as ours before the browser can present it, so the snapshot route can tell a token we
 	// minted from one merely signed with our secret. Awaited, not fired off: the render is about to
-	// depend on this having landed.
+	// depend on this having landed. A no-op for `public` jobs — see recordMintedRenderToken.
 	await recordMintedRenderToken(env, job, token)
 	return renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
 		width,

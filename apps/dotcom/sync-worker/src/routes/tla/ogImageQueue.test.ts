@@ -221,6 +221,9 @@ describe('handleOgImageRenderMessage', () => {
 			camera: 'content',
 			width: 1200,
 			height: 630,
+			// The consumer renders every board, private ones included, so its tokens read under the weaker
+			// gate — and are the only ones a minted-token record is kept for.
+			access: 'render',
 		})
 		// the worker writes the rendered image to the cache key itself, stamping the version
 		expect(

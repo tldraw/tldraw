@@ -1,4 +1,4 @@
-import { Environment, ThumbnailBoardKind } from '../types'
+import { Environment, ThumbnailBoardAccess, ThumbnailBoardKind } from '../types'
 import { base64UrlDecode, base64UrlEncode } from './base64'
 import { sha256 } from './hash'
 
@@ -15,6 +15,17 @@ export interface ThumbnailRenderJob {
 	kind: ThumbnailBoardKind
 	/** The board slug: the `:slug` in tldraw.com/p/:slug (published) or /f/:slug (shared file) */
 	slug: string
+	/**
+	 * The gate the snapshot route applies when it serves this job's board, signed so a caller cannot
+	 * widen it. `public` is what the MCP tool mints: it renders only boards anyone could already fetch,
+	 * so the token guards nothing and no minted-token record is kept for it. `render` is what the OG
+	 * pipeline mints, and it can read a *private* board's whole document — that is the case the record
+	 * exists for. See recordMintedRenderToken.
+	 *
+	 * Absent on a token already in flight from before the field existed; treated as `render`, which is
+	 * the stricter reading and matches what those tokens had records written for.
+	 */
+	access?: ThumbnailBoardAccess
 	/**
 	 * A version that rotates when the rendered content changes, so it can key the thumbnail cache.
 	 * Published boards use the file's `lastPublished` timestamp; shared files use the persisted
@@ -114,6 +125,7 @@ export async function verifyThumbnailRenderToken(
 		job.v !== 1 ||
 		(job.kind !== 'published' && job.kind !== 'shared_file') ||
 		typeof job.slug !== 'string' ||
+		(job.access !== undefined && job.access !== 'public' && job.access !== 'render') ||
 		(job.camera !== undefined && job.camera !== 'content') ||
 		(job.pageId !== undefined && typeof job.pageId !== 'string') ||
 		typeof job.exp !== 'number'
@@ -123,6 +135,14 @@ export async function verifyThumbnailRenderToken(
 	if (job.exp <= now) return null
 
 	return job
+}
+
+/**
+ * The gate a job is read under. Absent means a token minted before the field existed, which is treated
+ * as `render` — the stricter of the two, and what those tokens were recorded under.
+ */
+export function renderJobAccess(job: Pick<ThumbnailRenderJob, 'access'>): ThumbnailBoardAccess {
+	return job.access ?? 'render'
 }
 
 async function getHmacKey(secret: string) {
@@ -164,20 +184,25 @@ function renderTokenRecordKey(job: Pick<ThumbnailRenderJob, 'kind' | 'slug'>) {
  * means the render is about to fail its own token check, and a confusing "invalid token" is worse to
  * debug than the write error that caused it.
  *
- * The record is keyed per board, so a board's newest mint invalidates any older in-flight token for
- * it. That is intended: a fresher request supersedes one already running.
+ * **Only `render` jobs are recorded.** A `public` job renders a board anyone could already fetch, so a
+ * forged token for one grants nothing and the record would buy no security — it would only put the MCP
+ * tool into the same key space as the OG pipeline, where the two would clobber each other.
  *
- * Renders for one board genuinely can overlap — the MCP tool allows two cache-missing captures per
- * board per minute, and an edit or publish render can land during one — so this is a live path, not a
- * theoretical one. The superseded capture fails its snapshot fetch with a 403 and surfaces as a render
- * failure, which is the accepted outcome: it fails closed and before spending anything further, the OG
- * queue retries it, and an MCP caller can ask again.
+ * That exclusion is what keeps the key safely per board. The OG pipeline is single-flighted per board
+ * by the `.pending` marker, so its renders do not overlap, and a newer mint superseding an older
+ * in-flight token is then the intended behaviour rather than a collision between unrelated captures.
+ *
+ * **If the MCP tool ever mints `render` jobs** — which authenticating those endpoints would invite,
+ * since it would let them screenshot private boards — this key must be namespaced by surface first.
+ * Without that, two MCP captures of different pages of one board, or an edit-triggered render landing
+ * during a capture, invalidate each other's tokens and fail with a 403.
  */
 export async function recordMintedRenderToken(
 	env: Environment,
 	job: ThumbnailRenderJob,
 	token: string
 ): Promise<void> {
+	if (renderJobAccess(job) !== 'render') return
 	// Unbound only in local dev and tests, where skipping leaves signature-only verification. Deployed
 	// environments all bind THUMBNAILS, so the two-factor check is never optional where it matters.
 	if (!env.THUMBNAILS) return
@@ -190,12 +215,16 @@ export async function recordMintedRenderToken(
  * Whether this token is one we minted. Call only after `verifyThumbnailRenderToken` has accepted the
  * signature and expiry — the `job` argument is what that returns, so the key is derived from signed
  * data rather than from anything the caller supplied.
+ *
+ * Vacuously true for a `public` job, which is not recorded: the board it names is one the caller could
+ * fetch without any of this, so the signature is the whole gate. See recordMintedRenderToken.
  */
 export async function isMintedRenderToken(
 	env: Environment,
 	job: ThumbnailRenderJob,
 	token: string
 ): Promise<boolean> {
+	if (renderJobAccess(job) !== 'render') return true
 	// See recordMintedRenderToken: with no bucket there is no record to check against, so this trusts
 	// the signature alone rather than refusing every render.
 	if (!env.THUMBNAILS) return true

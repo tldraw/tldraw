@@ -334,6 +334,9 @@ describe('get_shared_board_screenshot', () => {
 			slug: 'abc',
 			camera: 'content',
 			pageId: 'page:a',
+			// This tool only ever resolves boards anyone could fetch, so it mints the anonymous gate. That
+			// is what keeps it out of the render-token records, and so out of the OG pipeline's way.
+			access: 'public',
 		})
 		// cached under the page-0 key
 		expect([...bucket.store.keys()]).toEqual([
