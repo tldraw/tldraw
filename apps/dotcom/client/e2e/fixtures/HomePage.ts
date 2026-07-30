@@ -1,9 +1,10 @@
 import { expect } from '@playwright/test'
 import type { Locator, Page } from '@playwright/test'
+import { CLIENT_ORIGIN } from './devPorts'
 import { Editor } from './Editor'
 import { step } from './tla-test'
 
-const rootUrl = 'http://localhost:3000/'
+const rootUrl = `${CLIENT_ORIGIN}/`
 
 export class HomePage {
 	public readonly signInButton: Locator

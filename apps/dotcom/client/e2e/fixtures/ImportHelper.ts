@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test'
+import { CLIENT_ORIGIN } from './devPorts'
 import { step } from './tla-test'
 
 export const IMPORT_URL = 'https://e2e-mock.tldraw.xyz/test-import.tldr'
@@ -46,6 +47,6 @@ export class ImportHelper {
 
 	@step
 	async navigate(url = IMPORT_URL) {
-		await this.page.goto(`http://localhost:3000/import?url=${encodeURIComponent(url)}`)
+		await this.page.goto(`${CLIENT_ORIGIN}/import?url=${encodeURIComponent(url)}`)
 	}
 }

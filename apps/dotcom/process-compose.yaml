@@ -1,26 +1,33 @@
 # Dotcom dev stack, brought up by `yarn dev-app`. Usage notes in apps/dotcom/README.md.
+#
+# Parameterized for parallel worktrees: `yarn dev-app` runs internal/scripts/dotcom-dev-parallel.ts,
+# which gives the worktree a port block, derives the ${VARS} below, and execs process-compose with
+# them. The ${VAR}s are expanded by the shell process-compose runs each command in; the DB URLs /
+# ZERO_* / *_ORIGIN values come from the wrapper env by inheritance (only the static ones are listed).
 
 version: '0.5'
 
 # Readiness = TCP connect (a portable node one-liner; wrangler's `/` 404s, so http_get won't do).
 
 processes:
-  # postgres + pgbouncer — the two containers (wal2json / logical replication)
+  # postgres + pgbouncer — the two containers, on a per-worktree compose project + published ports so
+  # parallel worktrees don't clash on volumes or ports.
   postgres:
-    command: docker compose -f apps/dotcom/zero-cache/docker/docker-compose.yml up
+    command: docker compose -p ${COMPOSE_PROJECT_NAME} -f apps/dotcom/zero-cache/docker/docker-compose.yml up
     shutdown:
-      command: docker compose -f apps/dotcom/zero-cache/docker/docker-compose.yml down
+      command: docker compose -p ${COMPOSE_PROJECT_NAME} -f apps/dotcom/zero-cache/docker/docker-compose.yml down
     readiness_probe:
       exec:
-        command: node -e "require('net').connect(6543,'127.0.0.1').on('connect',function(){this.end();process.exit(0)}).on('error',()=>process.exit(1))"
+        command: node -e "require('net').connect(${PG_PORT},'127.0.0.1').on('connect',function(){this.end();process.exit(0)}).on('error',()=>process.exit(1))"
       initial_delay_seconds: 2
       period_seconds: 2
       # ~180s budget: the first run pulls the postgres image, which can take minutes.
       failure_threshold: 90
 
-  # migrations — one-shot; gates zero-cache
+  # migrations — one-shot; gates zero-cache. Runs against DIRECT postgres, not pgbouncer, so point the
+  # pooled var migrate.ts reads at the direct connection string.
   migrate:
-    command: yarn workspace @tldraw/zero-cache migrate
+    command: BOTCOM_POSTGRES_POOLED_CONNECTION_STRING="$BOTCOM_POSTGRES_CONNECTION_STRING" yarn workspace @tldraw/zero-cache migrate
     depends_on:
       postgres:
         condition: process_healthy
@@ -28,21 +35,16 @@ processes:
       restart: 'no'
 
   # zero-cache — replicates from postgres. Runs directly: nothing reads .schema.js, so there's no
-  # schema rebuild/restart watch.
+  # schema rebuild/restart watch. Binds ZERO_PORT (and +1/+2 for change-streamer + litestream); the
+  # DB URLs / ZERO_PORT / ZERO_REPLICA_FILE come from the wrapper env.
   zero-cache:
     command: yarn workspace @tldraw/zero-cache exec zero-cache
     environment:
       - NODE_ENV=development
-      - ZERO_UPSTREAM_DB=postgresql://user:password@127.0.0.1:6543/postgres
-      - ZERO_CVR_DB=postgresql://user:password@127.0.0.1:6543/postgres
-      - ZERO_CHANGE_DB=postgresql://user:password@127.0.0.1:6543/postgres
-      - ZERO_REPLICA_FILE=/tmp/tldraw-dotcom-zero-dev.db
       - ZERO_NUM_SYNC_WORKERS=1
       - ZERO_CVR_MAX_CONNS=6
       - ZERO_UPSTREAM_MAX_CONNS=6
       - ZERO_APP_PUBLICATIONS=zero_data
-      - ZERO_MUTATE_URL=http://localhost:8787/app/zero/mutate
-      - ZERO_QUERY_URL=http://localhost:8787/app/zero/query
       - ZERO_ENABLE_CRUD_MUTATIONS=false
       - ZERO_LOG_LEVEL=info
       - ZERO_ENABLE_STARTUP_MESSAGE=0
@@ -52,41 +54,59 @@ processes:
         condition: process_completed_successfully
     readiness_probe:
       exec:
-        command: node -e "require('net').connect(4848,'127.0.0.1').on('connect',function(){this.end();process.exit(0)}).on('error',()=>process.exit(1))"
+        command: node -e "require('net').connect(${ZERO_PORT},'127.0.0.1').on('connect',function(){this.end();process.exit(0)}).on('error',()=>process.exit(1))"
       initial_delay_seconds: 3
       period_seconds: 2
       failure_threshold: 90
 
-  # workers — wrangler dev / workerd on the host
+  # workers — wrangler dev / workerd on the host. Each gets --port / --inspector-port from its block,
+  # and they share the per-worktree WRANGLER_REGISTRY_PATH (set by the wrapper) so their service
+  # bindings resolve within the worktree but never cross-talk with another worktree's workers. The
+  # commands inline the shared runner (rather than `yarn workspace X dev`) so the block ports + rewired
+  # inter-service URLs can be passed in.
   sync-worker:
-    command: yarn workspace @tldraw/dotcom-worker dev
+    command: >
+      yarn workspace @tldraw/dotcom-worker exec tsx ../../../internal/scripts/workers/dev.ts
+      --port ${SYNC_PORT} --inspector-port ${SYNC_INSPECTOR} --persist-to .wrangler/state-dev
+      --var ASSET_UPLOAD_ORIGIN:${ASSET_UPLOAD_ORIGIN}
+      --var USER_CONTENT_URL:${USER_CONTENT_URL}
+      --var MULTIPLAYER_SERVER:${CLIENT_ORIGIN}
+      --var BOTCOM_POSTGRES_CONNECTION_STRING:${BOTCOM_POSTGRES_CONNECTION_STRING}
+      --var BOTCOM_POSTGRES_POOLED_CONNECTION_STRING:${BOTCOM_POSTGRES_POOLED_CONNECTION_STRING}
     depends_on:
       zero-cache:
         condition: process_healthy
     readiness_probe:
       exec:
-        command: node -e "require('net').connect(8787,'127.0.0.1').on('connect',function(){this.end();process.exit(0)}).on('error',()=>process.exit(1))"
+        command: node -e "require('net').connect(${SYNC_PORT},'127.0.0.1').on('connect',function(){this.end();process.exit(0)}).on('error',()=>process.exit(1))"
       initial_delay_seconds: 3
       period_seconds: 2
       failure_threshold: 60
 
   asset-upload-worker:
-    command: yarn workspace dotcom-asset-upload dev
+    command: >
+      yarn workspace dotcom-asset-upload exec tsx ../../../internal/scripts/workers/dev.ts
+      --port ${ASSET_PORT} --inspector-port ${ASSET_INSPECTOR} --persist-to tmp-assets
 
   # image-resize + usercontent bind sync-worker by name, so it must come up first
   image-resize-worker:
-    command: yarn workspace images.tldraw.com dev
+    command: >
+      yarn workspace images.tldraw.com exec tsx ../../../internal/scripts/workers/dev.ts
+      --port ${IMAGE_PORT} --inspector-port ${IMAGE_INSPECTOR}
     depends_on:
       sync-worker:
         condition: process_healthy
 
   tldrawusercontent-worker:
-    command: yarn workspace dotcom-tldrawusercontent dev
+    command: >
+      yarn workspace dotcom-tldrawusercontent exec tsx ../../../internal/scripts/workers/dev.ts
+      --port ${USERCONTENT_PORT} --inspector-port ${USERCONTENT_INSPECTOR}
     depends_on:
       sync-worker:
         condition: process_healthy
 
-  # client — vite dev server
+  # client — vite dev server. Reads CLIENT_PORT (via scripts/dev-app.ts) and bakes MULTIPLAYER_SERVER /
+  # ZERO_SERVER / USER_CONTENT_URL (from the wrapper env) into the bundle + the /api proxy.
   client:
     command: yarn workspace dotcom dev
     depends_on:

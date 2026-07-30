@@ -7,6 +7,7 @@ import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { NUMBER_OF_USERS } from '../consts'
 import { Database, getTestUserEmail } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
+import { CLIENT_ORIGIN } from './devPorts'
 import { Editor } from './Editor'
 import { ErrorPage } from './ErrorPages'
 import { getStorageStateFileName } from './helpers'
@@ -23,7 +24,7 @@ type SharedLinkType = 'edit' | 'view' | 'no-access'
 type WorkspaceMemberRole = 'owner' | 'member'
 
 const SCENARIO_USER_POOL_START = 4
-const ROOT_URL = 'http://localhost:3000'
+const ROOT_URL = CLIENT_ORIGIN
 const MENU_INTERACTION_TIMEOUT = 5_000
 
 export async function selectTlaMenuOption(page: Page, select: Locator, optionLabel: string) {
@@ -98,7 +99,7 @@ export class DotcomActor {
 		this.workspaceInviteDialog = new WorkspaceInviteDialog(page)
 	}
 
-	async goto(url = 'http://localhost:3000/') {
+	async goto(url = `${ROOT_URL}/`) {
 		await this.homePage.goto(url)
 		await this.waitForAppReady()
 	}
@@ -584,16 +585,12 @@ class DotcomScenario {
 
 	async downgradeClient(actor: DotcomActor) {
 		const userId = await this.getSignedInActorUserId(actor)
-		await actor.page.request.get(
-			`http://localhost:3000/api/app/__test__/user/${userId}/downgrade-client`
-		)
+		await actor.page.request.get(`${ROOT_URL}/api/app/__test__/user/${userId}/downgrade-client`)
 	}
 
 	async upgradeClient(actor: DotcomActor) {
 		const userId = await this.getSignedInActorUserId(actor)
-		await actor.page.request.get(
-			`http://localhost:3000/api/app/__test__/user/${userId}/upgrade-client`
-		)
+		await actor.page.request.get(`${ROOT_URL}/api/app/__test__/user/${userId}/upgrade-client`)
 	}
 
 	async goToAndOpenSidebar(actor: DotcomActor) {
