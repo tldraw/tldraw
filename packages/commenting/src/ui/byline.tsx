@@ -1,4 +1,4 @@
-import { type CommentAuthor } from '@tldraw/mentions'
+import { Avatar, type CommentAuthor } from '@tldraw/mentions'
 import { formatRelativeTime } from './format-time'
 
 /** @public */
@@ -14,6 +14,7 @@ export interface BylineProps {
 export function Byline({ author, date, edited }: BylineProps) {
 	return (
 		<div className="tlui-cmt-head">
+			<Avatar author={author} />
 			<span className="tlui-cmt-author">{author.name}</span>
 			<span className="tlui-cmt-time">
 				{formatRelativeTime(date)}

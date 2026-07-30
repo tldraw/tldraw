@@ -143,14 +143,15 @@ test.describe('commenting a11y', () => {
 		const reply = page.locator('.tlui-cmt-canvas-popover [contenteditable="true"].tlui-cmt-input')
 		await expect(reply).toBeFocused()
 
-		// Edit from the card's own button: escaping should land back on it, not on the editor
-		// container, where Tab would walk the app's UI instead of the thread's own controls.
-		const editButton = page.locator('.tlui-cmt-canvas-popover [data-cmt-edit-for]')
-		await editButton.click()
+		// Edit from the ⋯ menu: escaping should land back on the ⋯ button that opened it, not on the
+		// editor container, where Tab would walk the app's UI instead of the thread's own controls.
+		const moreButton = page.locator('.tlui-cmt-canvas-popover [data-cmt-more-for]')
+		await moreButton.click()
+		await page.locator('.tlui-cmt-menu-item', { hasText: 'Edit' }).click()
 		await expect(page.locator('.tlui-cmt-editing [contenteditable="true"]')).toBeFocused()
 		await page.keyboard.press('Escape')
 		await expect(page.locator('.tlui-cmt-canvas-popover')).toBeVisible()
-		await expect(editButton).toBeFocused()
+		await expect(moreButton).toBeFocused()
 
 		// Arrow-up-to-edit comes from the reply box, so that's where escaping returns.
 		await reply.focus()

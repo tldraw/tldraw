@@ -35,6 +35,7 @@ export function CommentsOverflowMenu() {
 				side="bottom"
 				align="end"
 				alignOffset={0}
+				sideOffset={4}
 			>
 				<TldrawUiDropdownMenuGroup>
 					<TldrawUiDropdownMenuItem>
