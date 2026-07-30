@@ -190,7 +190,7 @@ export async function handleOgImageRenderMessage(
 			// what we already know. Retry from here instead, in case content lands shortly after the
 			// enqueue. A read that *fails* throws rather than landing here, and the catch below retries it
 			// the same way, so neither path spends Browser Run.
-			retryOrDrop(env, message, 'board_empty')
+			retryOrDrop(env, message, { reason, failureReason: 'board_empty' })
 			return
 		}
 
@@ -229,15 +229,32 @@ export async function handleOgImageRenderMessage(
 		// A board deleted between the resolve above and the snapshot read is retried rather than dropped,
 		// because from here it looks like any other read failure. That costs one extra delivery, not one
 		// extra render: the retry re-resolves at the top and drops before spending any Browser Run.
-		retryOrDrop(env, message, classifyScreenshotFailure(error), browserRunDurationOf(error))
+		retryOrDrop(env, message, {
+			reason,
+			failureReason: classifyScreenshotFailure(error),
+			browserRunDurationMs: browserRunDurationOf(error),
+		})
 	}
 }
 
 function retryOrDrop(
 	env: Environment,
 	message: Message<OgImageRenderQueueMessage>,
-	failureReason: string,
-	browserRunDurationMs?: number
+	{
+		reason,
+		failureReason,
+		browserRunDurationMs,
+	}: {
+		/**
+		 * Passed in already resolved rather than read off the message here, so a delivery that fails is
+		 * attributed to the same trigger as one that succeeds. Reading `message.body.reason` directly
+		 * would bucket a legacy message with no reason as `none` on this path and `crawler` on the
+		 * others, splitting one job's deliveries across two values.
+		 */
+		reason: OgImageRenderReason
+		failureReason: string
+		browserRunDurationMs?: number
+	}
 ) {
 	// One datapoint per delivery, the opposite of the Sentry report above, because this dataset is the
 	// spend ledger for an uncapped render path: every delivery that reaches the capture creates a
@@ -245,7 +262,7 @@ function retryOrDrop(
 	// counts spend, Sentry counts problems — three deliveries are three lots of spend, one problem.
 	writeScreenshotTelemetry(env, {
 		source: 'queue',
-		reason: message.body.reason,
+		reason,
 		cacheStatus: 'miss',
 		failureReason,
 		// Present only when the capture itself failed. A delivery that bailed earlier (an unreadable or
