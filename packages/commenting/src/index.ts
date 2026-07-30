@@ -55,6 +55,15 @@ export { SendButton, type SendButtonProps } from './ui/send-button'
 export { registerCommentAnchorLifecycle } from './canvas/anchor-lifecycle'
 export { CommentBody, type CommentBodyProps } from './canvas/comment-body'
 export {
+	deleteComment,
+	deleteThread,
+	editComment,
+	putCommentRecords,
+	removeCommentRecords,
+	reopenThread,
+	resolveThread,
+} from './canvas/comment-mutations'
+export {
 	CommentReactionPicker,
 	type CommentReactionPickerProps,
 	CommentReactions,
@@ -63,19 +72,14 @@ export {
 	toggleCommentReaction,
 	useCommentReactions,
 } from './canvas/comment-reactions'
-export {
-	CommentTool,
-	commentToolOverrides,
-	commentTools,
-	type PendingComment,
-} from './canvas/comment-tool'
+export { CommentTool, commentToolOverrides, commentTools } from './canvas/comment-tool'
 export {
 	getCommentReactions,
 	getCommentRecord,
 	getComments,
 	getCommentThreads,
-	putCommentRecords,
-	removeCommentRecords,
+	getLiveComments,
+	getLiveCommentThreads,
 	type TLCommentRecord,
 } from './canvas/comment-store'
 export { type CommentingContext } from './canvas/context'

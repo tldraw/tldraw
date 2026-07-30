@@ -321,7 +321,6 @@
 /* pin — a canvas marker: a white teardrop holding the author's avatar circle, so a thread is
    identifiable at a glance. */
 .tlui-cmt-pin {
-	/* A pin is smaller than the count badge, which keeps the marker-size default. */
 	--tlui-cmt-marker-size: var(--tlui-cmt-pin-size);
 	width: var(--tlui-cmt-marker-size);
 	height: var(--tlui-cmt-marker-size);
@@ -522,13 +521,15 @@
    the pixel the panel would. Deriving the preview's offset from these means the two can't drift —
    retune the padding or the header here and the preview follows. */
 .tl-container {
-	/* A cluster badge and a stack badge are this square. The hover preview measures its bridge
-	   against it, so the bridge stops at the marker's edge instead of covering it. */
-	--tlui-cmt-marker-size: 34px;
-	/* A pin is smaller than a badge (a cluster reads fine a touch bigger). Everything that has to
-	   line up against a pin — its preview's bridge, the draft composer's offsets, `PIN_SIZE` in
-	   thread-view.tsx — derives from this, so the pin's size stays one number. */
+	/* Everything that has to line up against a pin — its preview's bridge, the draft composer's
+	   offsets, `PIN_SIZE` in thread-view.tsx — derives from this, so the pin's size stays one
+	   number. */
 	--tlui-cmt-pin-size: 28px;
+	/* A cluster badge and a stack badge are this square — the same size as a pin, so the marker
+	   kinds read as one family. The hover preview measures its bridge against it, so the bridge
+	   stops at the marker's edge instead of covering it. Mirrored by `MARKER_SIZE` in
+	   thread-view.tsx. */
+	--tlui-cmt-marker-size: var(--tlui-cmt-pin-size);
 	/* How a marker sits, lifts, and rings. Shared so a pin and a badge respond identically.
 	   shadow-3's depth without its `inset 1px panel-contrast` edge — that inset reads as a white
 	   border on a coloured pin (it's invisible on the panel-white menus shadow-3 is meant for). */

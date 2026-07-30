@@ -81,13 +81,13 @@ export interface ClusterTable {
 
 /** @internal */
 export interface ClusterOptions {
-	/** Cluster (merge) distance, screen px. Default 40. */
+	/** Cluster (merge) distance, screen px. Default 22. */
 	Tc?: number
-	/** Uncluster (split) distance, screen px. Must be \> Tc. Default 1.5 · Tc. */
+	/** Uncluster (split) distance, screen px. Must be \> Tc. Default 1.2 · Tc. */
 	Tu?: number
-	/** Contraction window ratio. Default 0.12. */
+	/** Contraction window ratio. Default 0.7. */
 	eps?: number
-	/** Max cluster screen extent at birth, screen px. Must be \>= Tc. Default 3 · Tc. */
+	/** Max cluster screen extent at birth, screen px. Must be \>= Tc. Default 3.75 · Tc. */
 	Dmax?: number
 	/** Camera zoom bounds — pass the editor's camera constraints. Required. */
 	minZoom: number

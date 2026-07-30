@@ -351,6 +351,15 @@ export function DefaultReactionTooltipContent({ reactors }: {
 export function defaultRenderReaction(token: string): ReactNode;
 
 // @public
+export function deleteComment(editor: Editor, comment: TLComment): void;
+
+// @public
+export function deleteThread(editor: Editor, thread: TLCommentThread): void;
+
+// @public
+export function editComment(editor: Editor, comment: TLComment, body: TLRichText): void;
+
+// @public
 export function EmojiPicker({ emoji, selected, onSelect, renderReaction }: EmojiPickerProps): JSX.Element;
 
 // @public (undocumented)
@@ -397,6 +406,12 @@ export function getComments(editor: Editor): TLComment[];
 export function getCommentThreads(editor: Editor): TLCommentThread[];
 
 // @public
+export function getLiveComments(editor: Editor): TLComment[];
+
+// @public
+export function getLiveCommentThreads(editor: Editor): TLCommentThread[];
+
+// @public
 export function getRevealThreadPending(editor: Editor): null | string;
 
 // @public
@@ -416,13 +431,6 @@ export { MentionSuggestionOptions }
 
 // @public
 export const openThreadId: EditorAtom<null | string>;
-
-// @public
-export interface PendingComment {
-    // (undocumented)
-    anchor: TLCommentAnchor;
-    point: VecLike;
-}
 
 // @public
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void;
@@ -501,6 +509,12 @@ export function removeCommentRecords(editor: Editor, ids: (TLCommentId | TLComme
 
 // @public
 export type RenderReaction = (token: string) => ReactNode;
+
+// @public
+export function reopenThread(editor: Editor, thread: TLCommentThread): void;
+
+// @public
+export function resolveThread(editor: Editor, thread: TLCommentThread, userId: string): void;
 
 // @public
 export function revealThread(editor: Editor, threadOrCommentId: string): void;

@@ -76,10 +76,11 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 		() => {
 			const first = threads[0]
 			if (first.pageId !== editor.getCurrentPageId()) return null
-			// The badge is centered on its anchor point (transform: translate(-50%, -50%)), like the
-			// cluster badge — so it sits at the raw page point with no pin inset. The inset only
-			// compensates for the single pin's bottom-left anchoring; applying it here would offset
-			// the badge from where the cluster badge sits and make it hop as pins flip between them.
+			// The badge hangs off its anchor point bottom-left (transform: translate(0, -100%)),
+			// like a pin and like the cluster badge — but it sits at the raw page point with no pin
+			// inset. The inset only tucks an imprecise single pin inside its shape; applying it here
+			// would offset the badge from where the cluster badge sits (cluster centroids average
+			// raw anchor points) and make it hop as pins flip between them.
 			const pagePoint = anchorPagePoint(editor, first.anchor)
 			return pagePoint ? editor.pageToViewport(pagePoint) : null
 		},

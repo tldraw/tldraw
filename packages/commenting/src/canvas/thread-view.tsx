@@ -29,13 +29,21 @@ import {
 	replyDraftSlot,
 	saveCommentDraft,
 } from './comment-drafts'
+import {
+	commitCommentMutation,
+	deleteComment,
+	deleteThread,
+	editComment,
+	putRecordsInCommit,
+	reopenThread,
+	resolveThread,
+} from './comment-mutations'
 import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
-import { putCommentRecords } from './comment-store'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { type CommentingComponents, useCanComment, useCommentingOptions } from './options'
-import { commitCommentMutation, openThreadId } from './state'
+import { openThreadId } from './state'
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
@@ -75,9 +83,16 @@ export function toCardProps(
  *  correcting for that. Keep in sync with the stylesheet. */
 const PIN_SIZE = 28
 
-/** A coincident stack's / cluster's card list, whose first card sits flush with the popover top.
- *  x = half the 34px badge (it's centred on its point) + the same 6px gap the pin's preview uses. */
-const LIST_OFFSET = { x: 23, y: -28 } as const
+/** A cluster/stack badge is this square (`--tlui-cmt-marker-size`) — pin-sized, so the marker
+ *  kinds read as one family. Keep in sync with the stylesheet. */
+const MARKER_SIZE = PIN_SIZE
+
+/** Where a popover's top card sits vertically, measured from the marker visual's middle. */
+const CARD_TOP_Y = -28
+
+/** The horizontal gap between a marker visual's right edge and its popover/preview panel. The
+ *  preview's hover bridge spans exactly this (see `--tlui-cmt-preview-bridge`). */
+const PREVIEW_GAP = 6
 
 /**
  * Where a marker's popover sits relative to the marker's anchor point.
@@ -86,21 +101,14 @@ const LIST_OFFSET = { x: 23, y: -28 } as const
  * by the header the popover has — which its own stylesheet then compensates for. Moving a popover
  * here moves its preview with it.
  *
- * The two marker kinds don't anchor alike, which the vertical offsets have to correct for. A
- * badge is centred on its point (`translate(-50%, -50%)`), so `LIST_OFFSET.y` is measured from its
- * middle. A pin hangs off its point (`translate(0, -100%)`), so its point is the pin's *bottom*.
- * Measuring a raw offset from there would drop the pin's preview half a pin below a badge's; the
- * terms below re-base it so the two previews' top cards land on the same line.
+ * Both marker kinds hang off their point the same way (`translate(0, -100%)`): the anchor is the
+ * visual's bottom-left corner. They differ only in size, so each offset clears its own width plus
+ * the shared gap, and re-bases the shared card-top measure from its bottom anchor to its middle —
+ * keeping the two previews' top cards on the same line.
  */
 export const POPOVER_OFFSET = {
-	/**
-	 * A single pin's thread popover. Its preview should read level with a cluster/stack preview's
-	 * top card, so start from the list offset and re-base it from the pin's bottom anchor to the
-	 * pin's middle — where a badge measures from — with `- PIN_SIZE / 2`. The opened popover shares
-	 * the offset and opens from there.
-	 */
-	thread: { x: PIN_SIZE + 6, y: LIST_OFFSET.y - PIN_SIZE / 2 },
-	list: LIST_OFFSET,
+	thread: { x: PIN_SIZE + PREVIEW_GAP, y: CARD_TOP_Y - PIN_SIZE / 2 },
+	list: { x: MARKER_SIZE + PREVIEW_GAP, y: CARD_TOP_Y - MARKER_SIZE / 2 },
 } as const
 
 /** The open thread's popover container, portaled above the UI panels. Over it, wheel and hover
@@ -258,7 +266,7 @@ export function ThreadView({
 				authorId: currentUserId,
 				body: reply,
 			})
-			putCommentRecords(editor, [comment])
+			putRecordsInCommit(editor, [comment])
 			if (onPostComment) onPostComment(comment)
 		})
 		setReply(EMPTY_COMMENT)
@@ -267,28 +275,13 @@ export function ThreadView({
 
 	const toggleResolve = () => {
 		if (!currentUserId) return
-		commitCommentMutation(editor, () => {
-			putCommentRecords(editor, [
-				{
-					...thread,
-					resolved: thread.resolved ? null : { at: Date.now(), by: currentUserId },
-				},
-			])
-		})
+		if (thread.resolved) reopenThread(editor, thread)
+		else resolveThread(editor, thread, currentUserId)
 	}
 
-	const deleteThread = () => {
+	const removeThread = () => {
 		if (!currentUserId) return
-		openThreadId.set(editor, null)
-		// Soft delete: set the flag rather than removing records — the server prunes the thread,
-		// its comments, and their reactions once the flag is persisted, so no client ever deletes
-		// records it doesn't own (reactions belong to whoever reacted). Creator-only; the server
-		// vetoes anyone else (and any hard delete). Never on the undo stack, even with
-		// `history: 'record'`: the flag is write-once server-side, so an undo clearing it would
-		// always be vetoed and rebased.
-		editor.run(() => putCommentRecords(editor, [{ ...thread, isDeleted: true }]), {
-			history: 'ignore',
-		})
+		deleteThread(editor, thread)
 	}
 
 	const startEdit = (comment: TLComment, { fromMoreMenu = false } = {}) => {
@@ -307,32 +300,10 @@ export function ThreadView({
 		setEditText(comment.body)
 	}
 
-	const deleteComment = (comment: TLComment) => {
-		// Soft delete, same model as threads: set the flag, the server prunes the record (and its
-		// reactions, which belong to whoever reacted) once it's persisted. Author-only; the server
-		// vetoes anyone else (and any hard delete). Never on the undo stack: the flag is write-once
-		// server-side, so an undo clearing it would always be vetoed and rebased.
-		editor.run(
-			() => {
-				// Deleting a thread's only comment hides the thread — an empty thread has no surface
-				// (see useCommentThreads). The thread record is left for the server: the deleter may
-				// not be its creator (only creators may delete threads), so the drain prunes a thread
-				// its last comment leaves emptied.
-				if (comments.length === 1) {
-					openThreadId.set(editor, null)
-				}
-				putCommentRecords(editor, [{ ...comment, isDeleted: true }])
-			},
-			{ history: 'ignore' }
-		)
-	}
-
 	const saveEdit = () => {
 		const comment = comments.find((c) => c.id === editingId)
 		if (!comment || isCommentEmpty(editText)) return
-		commitCommentMutation(editor, () => {
-			putCommentRecords(editor, [{ ...comment, body: editText, editedAt: Date.now() }])
-		})
+		editComment(editor, comment, editText)
 		setEditingId(null)
 	}
 
@@ -418,7 +389,7 @@ export function ThreadView({
 												<button
 													type="button"
 													className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-													onClick={() => deleteComment(comment)}
+													onClick={() => deleteComment(editor, comment)}
 												>
 													<span>{msg('action.delete')}</span>
 												</button>
@@ -461,7 +432,7 @@ export function ThreadView({
 								<button
 									type="button"
 									className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-									onClick={deleteThread}
+									onClick={removeThread}
 								>
 									<span>{msg('comments.delete')}</span>
 								</button>

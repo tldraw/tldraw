@@ -39,8 +39,10 @@
 	font: inherit;
 }
 
+/* Anchored by its bottom-left corner like a pin, so the badge sits up-and-right of the cluster's
+   centroid — the same visual-to-anchor relationship a single comment pin has. */
 .tlui-cmt-canvas-cluster {
-	transform: translate(-50%, -50%);
+	transform: translate(0, -100%);
 	pointer-events: auto;
 	cursor: pointer;
 }
@@ -103,7 +105,8 @@
    (`pointer-events: none`) so its box doesn't shadow the canvas — without this the badge renders
    but can't be hovered or clicked, like the cluster badge's own `pointer-events: auto`. */
 .tlui-cmt-canvas-stack-badge {
-	transform: translate(-50%, -50%);
+	/* Bottom-left anchored like the pins it stands in for, and like the cluster badge. */
+	transform: translate(0, -100%);
 	width: max-content;
 	pointer-events: auto;
 	cursor: pointer;
@@ -216,9 +219,9 @@
 	--tlui-cmt-preview-bridge: calc(var(--tlui-cmt-preview-offset) - var(--tlui-cmt-pin-size));
 }
 
-/* A badge is centred on its anchor, so only half of it does. */
+/* A badge is anchored at its bottom-left corner like a pin, so its full width does too. */
 .tlui-cmt-canvas-preview--list {
-	--tlui-cmt-preview-bridge: calc(var(--tlui-cmt-preview-offset) - var(--tlui-cmt-marker-size) / 2);
+	--tlui-cmt-preview-bridge: calc(var(--tlui-cmt-preview-offset) - var(--tlui-cmt-marker-size));
 }
 
 .tlui-cmt-canvas-preview__panel {

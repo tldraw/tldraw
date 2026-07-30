@@ -1,5 +1,6 @@
 import type { Editor } from 'tldraw'
 import { describe, expect, it } from 'vitest'
+import { commitCommentMutation } from './comment-mutations'
 import { CommentTool } from './comment-tool'
 import {
 	defaultCommentingOptions,
@@ -7,7 +8,7 @@ import {
 	getCommentingOptions,
 	type CommentingOptions,
 } from './options'
-import { commitCommentMutation, openThreadId, pendingComment } from './state'
+import { openThreadId, pendingComment } from './state'
 
 // The StateNode constructor doesn't call any editor methods, so a bare stub is enough to
 // instantiate a configured tool and read its merged options.
