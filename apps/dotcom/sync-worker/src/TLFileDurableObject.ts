@@ -1009,9 +1009,14 @@ export class TLFileDurableObject extends DurableObject {
 	//
 	// `deleted` is its own state rather than folded into `private` or `unknown`: it never renders, so
 	// counting its persists as either would corrupt the shared fraction this exists to measure.
+	//
+	// Both delete lanes count. A hard delete arrives as `appFileRecordDidDelete` and flips
+	// `documentInfo.deleted`; a soft delete (trash) arrives as an ordinary record update and only
+	// flips `isDeleted` on the cached row, leaving `documentInfo.deleted` false. The connection path
+	// already treats the two as one, and so does this.
 	private getBoardRenderState(): 'shared' | 'private' | 'unknown' | 'legacy' | 'deleted' {
 		if (!this.documentInfo.isApp) return 'legacy'
-		if (this.documentInfo.deleted) return 'deleted'
+		if (this.documentInfo.deleted || this._fileRecordCache?.isDeleted) return 'deleted'
 		const shared = this._fileRecordCache?.shared
 		if (shared === undefined) return 'unknown'
 		return shared ? 'shared' : 'private'
