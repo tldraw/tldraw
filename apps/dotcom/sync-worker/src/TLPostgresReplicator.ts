@@ -27,11 +27,7 @@ import {
 	parseTopicSubscriptionTree,
 	serializeSubscriptions,
 } from './replicator/Subscription'
-import {
-	clearOgImagePendingMarker,
-	deleteOgImage,
-	enqueueOgImageRender,
-} from './routes/tla/ogImageQueue'
+import { deleteOgImage, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
 	Analytics,
 	Environment,
@@ -473,14 +469,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 								return this.publishSnapshot(effect.file)
 							case 'unpublish':
 								return this.unpublishSnapshot(effect.file)
-							case 'unshare':
-								// Only the marker goes; the image is kept, since it is already unreachable (the
-								// OG route re-checks the gate per request) and a reshare should start from the
-								// thumbnail the board already had. See clearOgImagePendingMarker.
-								return clearOgImagePendingMarker(this.env, {
-									kind: 'shared_file',
-									slug: effect.file.id,
-								}).catch((e) => this.log.debug('Error clearing shared file OG marker', e))
 							case 'notify_file_durable_object':
 								switch (effect.command) {
 									case 'insert':

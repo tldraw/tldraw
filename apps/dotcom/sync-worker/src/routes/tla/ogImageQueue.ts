@@ -103,9 +103,10 @@ export async function enqueueOgImageRender(
 // regenerated publish link could make permanently unreadable. See "Nothing deletes a rendered image"
 // in browser-run-thumbnails.md.
 
-// Clears only the pending render marker, keeping the image. For a board that stops being *shared*,
-// and for a dropped render job — a marker left behind would suppress the next legitimate enqueue,
-// after a reshare or after the render that failed.
+// Clears only the pending render marker, keeping the image. For a dropped render job: a marker left
+// behind would suppress the next legitimate enqueue until it expired. Unsharing does not call this —
+// it has no effect on rendering at all, since every board renders and the gate is applied at serve
+// time.
 export async function clearOgImagePendingMarker(
 	env: Environment,
 	board: ThumbnailBoardRef

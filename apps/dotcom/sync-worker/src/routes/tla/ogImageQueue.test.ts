@@ -421,8 +421,8 @@ describe('handleOgImageRenderMessage', () => {
 		await bucket.put(cacheKey, new Uint8Array([9]).buffer, {
 			customMetadata: { version: 'old', createdAt: String(Date.now()) },
 		})
-		// A marker from the enqueue that raced the unshare; it must not outlive the dropped job, or the
-		// next reshare's enqueue is deduped away against a render that never happened.
+		// A marker from the enqueue that raced the delete; it must not outlive the dropped job, or the
+		// next enqueue is deduped away against a render that never happened.
 		await enqueueOgImageRender(makeEnv({ THUMBNAILS: bucket }), board, { reason: 'edit' })
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(), THUMBNAILS: bucket })
 		const message = makeMessage(board)

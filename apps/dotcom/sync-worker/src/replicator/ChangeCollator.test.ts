@@ -219,7 +219,10 @@ describe('ChangeCollator', () => {
 			})
 		})
 
-		it('should return unshare effect when file stops being shared via link', () => {
+		// Unsharing has no side effect of its own. A thumbnail is rendered for every board, shared or
+		// not, and the OG route re-checks the share gate on every request — so there is nothing derived
+		// from the board's public state to clean up when it goes private.
+		it('should add no effect of its own when a file stops being shared via link', () => {
 			const previous = {
 				id: 'doc1',
 				ownerId: 'alice',
@@ -233,34 +236,12 @@ describe('ChangeCollator', () => {
 
 			const result = getEffects(change)
 
-			expect(result).toHaveLength(2)
-			expect(result![1]).toEqual({
-				type: 'unshare',
-				file: change.row,
-			})
+			expect(result!.map((effect) => effect.type)).toEqual(['notify_file_durable_object'])
 		})
 
-		it('should not return unshare effect when the file stays shared', () => {
-			const previous = {
-				id: 'doc1',
-				ownerId: 'alice',
-				shared: true,
-			}
-
-			const change = createMockFileChangeV2('doc1', 'alice', 'update', {
-				shared: true,
-				sharedLinkType: 'edit',
-				previous,
-			})
-
-			const result = getEffects(change)
-
-			expect(result).toHaveLength(1)
-		})
-
-		// A file can be published and link-shared at the same time, and each has its own cached OG
-		// image, so unpublishing and unsharing in one update has to clean up both.
-		it('should return both unpublish and unshare effects when a file loses both', () => {
+		// Unpublishing still does have one, because the published image depicts a snapshot that no
+		// longer exists and is keyed on a slug that may never be read again.
+		it('should return only the unpublish effect when a file loses both publish and share', () => {
 			const previous = {
 				id: 'doc1',
 				ownerId: 'alice',
@@ -281,7 +262,6 @@ describe('ChangeCollator', () => {
 			expect(result!.map((effect) => effect.type)).toEqual([
 				'notify_file_durable_object',
 				'unpublish',
-				'unshare',
 			])
 		})
 
