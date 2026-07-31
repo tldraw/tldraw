@@ -183,7 +183,7 @@ export interface ReactionNotificationInput {
 }
 
 /** Newest `createdAt` among `reactions` from someone other than `userId`; `undefined` if none. */
-function latestForeignReactionAt(
+export function latestForeignReactionAt(
 	reactions: CommentNotificationInput['reactions'],
 	userId: string
 ): number | undefined {

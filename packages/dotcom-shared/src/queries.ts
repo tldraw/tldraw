@@ -216,6 +216,9 @@ export const queries = defineQueries({
 				file.whereExists('states', (s) => s.where('userId', '=', ctx.userId))
 			)
 			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
+			// so the canvas can flag own comments with fresh foreign reactions as unread, and its
+			// thread-view auto-mark-read can clear the reaction notification on view
+			.related('reactions')
 	),
 
 	/**
