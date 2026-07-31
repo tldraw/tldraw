@@ -4,6 +4,7 @@ import { Kysely } from 'kysely'
 export type UndeleteFileResult =
 	| { result: 'not_found' }
 	| { result: 'not_deleted'; file: TlaFile }
+	| { result: 'group_deleted'; file: TlaFile }
 	| { result: 'restored'; file: TlaFile; rebootUserIds: string[] }
 
 // Restores a soft-deleted file: clears isDeleted, re-creates the owner's file_state (if the
@@ -14,6 +15,15 @@ export async function undeleteFile(db: Kysely<DB>, fileId: string): Promise<Unde
 		const file = await tx.selectFrom('file').where('id', '=', fileId).selectAll().executeTakeFirst()
 		if (!file) return { result: 'not_found' }
 		if (!file.isDeleted) return { result: 'not_deleted', file }
+
+		if (file.owningGroupId) {
+			const group = await tx
+				.selectFrom('group')
+				.select(['isDeleted'])
+				.where('id', '=', file.owningGroupId)
+				.executeTakeFirst()
+			if (!group || group.isDeleted) return { result: 'group_deleted', file }
+		}
 
 		const now = Date.now()
 		await tx

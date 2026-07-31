@@ -27,15 +27,22 @@ function makeFile(overrides: Partial<TlaFile> = {}): TlaFile {
 
 // Stubs the chains undeleteFile uses:
 //   selectFrom('file').where().selectAll().executeTakeFirst()
+//   selectFrom('group').select().where().executeTakeFirst()
 //   selectFrom('group_user').select().where().execute()
 //   selectFrom('user').select().where().executeTakeFirst()
 //   updateTable('file').set().where().execute()
 //   insertInto(table).values().onConflict().execute()
 function makeFakeDb(
 	fileRow: TlaFile | undefined,
-	opts: { groupMembers?: Array<{ userId: string }>; userRow?: { id: string } | undefined } = {}
+	opts: {
+		groupMembers?: Array<{ userId: string }>
+		userRow?: { id: string } | undefined
+		// Use 'none' to simulate a missing group row; omit for a live (isDeleted: false) group.
+		groupRow?: { isDeleted: boolean } | 'none'
+	} = {}
 ) {
-	const { groupMembers = [], userRow } = opts
+	const { groupMembers = [], userRow, groupRow = { isDeleted: false } } = opts
+	const resolvedGroupRow = groupRow === 'none' ? undefined : groupRow
 	const updates: Array<{ table: string; values: any }> = []
 	const inserts: Array<{ table: string; values: any }> = []
 	let transactionCount = 0
@@ -51,6 +58,13 @@ function makeFakeDb(
 				return {
 					where: () => ({
 						selectAll: () => ({ executeTakeFirst: async () => fileRow }),
+					}),
+				}
+			}
+			if (table === 'group') {
+				return {
+					select: () => ({
+						where: () => ({ executeTakeFirst: async () => resolvedGroupRow }),
 					}),
 				}
 			}
@@ -138,6 +152,7 @@ describe('undeleteFile', () => {
 		const { db, inserts } = makeFakeDb(file, {
 			groupMembers: [{ userId: 'user-1' }, { userId: 'user-2' }],
 			userRow: undefined,
+			groupRow: { isDeleted: false },
 		})
 		const result = await undeleteFile(db, file.id)
 		expect(result.result).toBe('restored')
@@ -152,6 +167,26 @@ describe('undeleteFile', () => {
 				},
 			},
 		])
+	})
+
+	it('returns group_deleted and writes nothing when the owning group is soft-deleted', async () => {
+		const file = makeFile({ ownerId: undefined, owningGroupId: 'group-9' })
+		const { db, updates, inserts } = makeFakeDb(file, {
+			groupRow: { isDeleted: true },
+		})
+		expect(await undeleteFile(db, file.id)).toEqual({ result: 'group_deleted', file })
+		expect(updates).toEqual([])
+		expect(inserts).toEqual([])
+	})
+
+	it('returns group_deleted and writes nothing when the owning group row is missing', async () => {
+		const file = makeFile({ ownerId: undefined, owningGroupId: 'group-9' })
+		const { db, updates, inserts } = makeFakeDb(file, {
+			groupRow: 'none',
+		})
+		expect(await undeleteFile(db, file.id)).toEqual({ result: 'group_deleted', file })
+		expect(updates).toEqual([])
+		expect(inserts).toEqual([])
 	})
 
 	describe('rebootUserIds', () => {
