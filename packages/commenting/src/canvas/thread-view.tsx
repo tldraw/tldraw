@@ -14,7 +14,6 @@ import {
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
 	useContainer,
-	useCurrentTranslation,
 	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useTranslation,
@@ -54,14 +53,6 @@ const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
  */
 export function useResolveName(resolveAuthor: CommentingContext['resolveAuthor']) {
 	return useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
-}
-
-/**
- * The editor's current UI locale, for the relative times on comment bylines. Without this the
- * bylines render in English however the rest of the app is localized.
- */
-export function useCommentLocale() {
-	return useCurrentTranslation().locale
 }
 
 /** How long the copy-link item reads "Link copied" before reverting. */
@@ -110,8 +101,7 @@ export function toCardProps(
 	comment: TLComment,
 	props: Pick<CommentingContext, 'currentUserId' | 'resolveAuthor'>,
 	components: CommentingComponents,
-	resolveName: (id: string) => string | undefined,
-	locale?: string
+	resolveName: (id: string) => string | undefined
 ): CommentCardProps {
 	const Body = components.CommentBody
 	// The `CommentBody` component slot overrides the built-in rich-text default (which resolves
@@ -127,7 +117,6 @@ export function toCardProps(
 		date: new Date(comment.createdAt).toISOString(),
 		you: comment.authorId === props.currentUserId,
 		edited: comment.editedAt != null,
-		locale,
 	}
 }
 
@@ -218,7 +207,6 @@ export function ThreadView({
 	const options = useCommentingOptions()
 	const comments = useThreadComments(editor, thread.id)
 	const msg = useTranslation()
-	const locale = useCommentLocale()
 	const resolveName = useResolveName(resolveAuthor)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	// Composing, editing, deleting, and resolving are all commenting writes: gated on the viewer's
@@ -551,7 +539,7 @@ export function ThreadView({
 			header={msg('comments.thread-title')}
 			headerActions={headerActions}
 			renderComment={renderComment}
-			comments={comments.map((c) => toCardProps(c, props, options.components, resolveName, locale))}
+			comments={comments.map((c) => toCardProps(c, props, options.components, resolveName))}
 			resolvedBanner={
 				thread.resolved
 					? msg('comments.resolved-by').replace(

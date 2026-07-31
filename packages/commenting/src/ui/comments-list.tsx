@@ -25,8 +25,6 @@ export interface CommentListItemProps {
 	 * (ctrl/cmd-click, middle-click) open it in a new tab; a plain click still calls `onSelect`.
 	 */
 	href?: string
-	/** BCP 47 locale for the row's relative time. Defaults to English. */
-	locale?: string
 }
 
 /**
@@ -57,11 +55,6 @@ export interface CommentsListProps {
 	/** Label for a resolved thread's marker on its row. Defaults to "Resolved". */
 	resolvedLabel?: string
 	/**
-	 * BCP 47 locale for the rows' relative times, applied to every item that doesn't set its own.
-	 * Defaults to English.
-	 */
-	locale?: string
-	/**
 	 * Override how each item renders. Defaults to `<CommentListItem>`, which is exported — so a
 	 * row that only adds something can spread these props into it rather than start over. The list
 	 * supplies the key, so a custom row doesn't need one.
@@ -82,7 +75,6 @@ export function CommentsList({
 	headerAction,
 	empty,
 	resolvedLabel,
-	locale,
 	renderItem,
 }: CommentsListProps) {
 	return (
@@ -98,12 +90,7 @@ export function CommentsList({
 			) : (
 				<div className="tlui-cmt-list__items">
 					{items.map((item) => {
-						const props: CommentListItemRenderProps = {
-							locale,
-							...item,
-							resolvedLabel,
-							onSelect,
-						}
+						const props: CommentListItemRenderProps = { ...item, resolvedLabel, onSelect }
 						// A custom row is wrapped rather than keyed directly: it's the consumer's element,
 						// and requiring them to remember a key is the kind of thing that only shows up as a
 						// console warning in someone else's app.
@@ -130,7 +117,6 @@ export function CommentListItem({
 	count,
 	selected,
 	href,
-	locale,
 	resolvedLabel = 'Resolved',
 	onSelect,
 }: CommentListItemRenderProps) {
@@ -154,7 +140,7 @@ export function CommentListItem({
 		>
 			<Avatar author={author} />
 			<div className="tlui-cmt-list__item-body">
-				<Byline author={author} date={date} locale={locale} />
+				<Byline author={author} date={date} />
 				<div className="tlui-cmt-list__item-preview">{preview}</div>
 				{(resolved || page !== undefined || replies) && (
 					<div className="tlui-cmt-list__item-meta">

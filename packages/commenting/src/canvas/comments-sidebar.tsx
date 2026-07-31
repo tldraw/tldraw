@@ -20,7 +20,6 @@ import { useCommentingOptions } from './options'
 import { richTextToPlaintext } from './rich-text'
 import { commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
 import { focusThread } from './thread-state'
-import { useCommentLocale } from './thread-view'
 
 /**
  * The host wiring for {@link CanvasCommentsSidebar}: the {@link CommentingContext} fields it reads,
@@ -56,7 +55,6 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 	const container = useContainer()
 	const commentingEnabled = useCommentingEnabled()
 	const msg = useTranslation()
-	const locale = useCommentLocale()
 	const threads = useCommentThreads(editor)
 	const comments = useComments(editor)
 	const currentPageId = useValue('page id', () => editor.getCurrentPageId(), [editor])
@@ -182,7 +180,6 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 						: (empty ?? msg('comments.empty'))
 				}
 				resolvedLabel={msg('comments.resolved')}
-				locale={locale}
 				onSelect={focus}
 				renderItem={renderItem}
 			/>

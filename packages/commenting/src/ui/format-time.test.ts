@@ -15,7 +15,7 @@ describe('formatRelativeTime', () => {
 		)
 	})
 
-	// The bylines render whatever locale the editor is set to; without this a localized app showed
+	// `Byline` passes the UI's current translation locale; without this a localized app showed
 	// English timestamps under localized everything else.
 	it('formats in the given locale', () => {
 		const french = formatRelativeTime(agoIso(TWO_HOURS), 'fr')
@@ -25,8 +25,7 @@ describe('formatRelativeTime', () => {
 		expect(french).not.toBe(formatRelativeTime(agoIso(TWO_HOURS), 'en'))
 	})
 
-	// `locale` is optional the whole way down (card → byline → here), so undefined has to mean
-	// "the default", not "no locale".
+	// The parameter is optional, so undefined has to mean "the default", not "no locale".
 	it('treats an undefined locale as the default', () => {
 		expect(formatRelativeTime(agoIso(TWO_HOURS), undefined)).toBe(
 			formatRelativeTime(agoIso(TWO_HOURS))

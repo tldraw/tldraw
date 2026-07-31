@@ -47,7 +47,7 @@ export { Avatar }
 export { AvatarProps }
 
 // @public
-export function Byline({ author, date, edited, locale }: BylineProps): JSX.Element;
+export function Byline({ author, date, edited }: BylineProps): JSX.Element;
 
 // @public (undocumented)
 export interface BylineProps {
@@ -55,7 +55,6 @@ export interface BylineProps {
     author: CommentAuthor;
     date: string;
     edited?: boolean;
-    locale?: string;
 }
 
 // @public
@@ -86,7 +85,7 @@ export interface CommentBodyProps {
 }
 
 // @public
-export function CommentCard({ author, body, date, you, edited, actions, footer, locale }: CommentCardProps): JSX.Element;
+export function CommentCard({ author, body, date, you, edited, actions, footer }: CommentCardProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentCardProps {
@@ -97,7 +96,6 @@ export interface CommentCardProps {
     date: string;
     edited?: boolean;
     footer?: ReactNode;
-    locale?: string;
     // (undocumented)
     you: boolean;
 }
@@ -189,7 +187,7 @@ export interface CommentingOptions {
 }
 
 // @public
-export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, href, locale, resolvedLabel, onSelect }: CommentListItemRenderProps): JSX.Element;
+export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, href, resolvedLabel, onSelect }: CommentListItemRenderProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentListItemProps {
@@ -200,7 +198,6 @@ export interface CommentListItemProps {
     href?: string;
     // (undocumented)
     id: string;
-    locale?: string;
     page?: string;
     preview: ReactNode;
     // (undocumented)
@@ -260,7 +257,7 @@ export interface CommentsFilterMenuProps {
 export const commentsHidden: EditorAtom<boolean>;
 
 // @public
-export function CommentsList({ items, onSelect, header, headerAction, empty, resolvedLabel, locale, renderItem }: CommentsListProps): JSX.Element;
+export function CommentsList({ items, onSelect, header, headerAction, empty, resolvedLabel, renderItem }: CommentsListProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentsListProps {
@@ -269,7 +266,6 @@ export interface CommentsListProps {
     headerAction?: ReactNode;
     // (undocumented)
     items: CommentListItemProps[];
-    locale?: string;
     onSelect?(id: string): void;
     renderItem?(props: CommentListItemRenderProps): ReactNode;
     resolvedLabel?: string;

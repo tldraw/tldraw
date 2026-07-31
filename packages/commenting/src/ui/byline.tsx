@@ -1,4 +1,5 @@
 import { Avatar, type CommentAuthor } from '@tldraw/mentions'
+import { useCurrentTranslation } from 'tldraw'
 import { formatRelativeTime } from './format-time'
 
 /** @public */
@@ -8,16 +9,13 @@ export interface BylineProps {
 	date: string
 	/** Shows an "edited" marker when the comment has been edited. */
 	edited?: boolean
-	/**
-	 * BCP 47 locale for the relative time, e.g. `'fr'`. Defaults to English. The canvas surfaces
-	 * pass the editor's current locale, so a localized app gets localized timestamps without
-	 * setting this.
-	 */
-	locale?: string
 }
 
 /** A comment's metadata line: author name, relative time, and an edited marker. @public @react */
-export function Byline({ author, date, edited, locale }: BylineProps) {
+export function Byline({ author, date, edited }: BylineProps) {
+	// The relative time is the one piece of a byline that isn't the host's data, so it follows the
+	// same translation context as every other string in the UI rather than a prop of its own.
+	const { locale } = useCurrentTranslation()
 	return (
 		<div className="tlui-cmt-head">
 			<Avatar author={author} />

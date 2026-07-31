@@ -28,18 +28,8 @@ const context = {
 const resolveName = (id: string) => context.resolveAuthor(id)?.name
 
 describe('toCardProps', () => {
-	// The card formats its own byline time, so the editor's locale has to reach it as a prop —
-	// otherwise every surface renders English timestamps whatever the app is set to.
-	it('carries the locale onto the card', () => {
-		expect(toCardProps(comment(), context, {}, resolveName, 'fr').locale).toBe('fr')
-	})
-
-	it('leaves the locale unset when none is given, so the card takes its default', () => {
-		expect(toCardProps(comment(), context, {}, resolveName).locale).toBeUndefined()
-	})
-
 	it('marks your own comments and resolves the author', () => {
-		const card = toCardProps(comment(), context, {}, resolveName, 'en')
+		const card = toCardProps(comment(), context, {}, resolveName)
 		expect(card.you).toBe(true)
 		expect(card.author).toBe(AUTHOR)
 		expect(card.date).toBe('2026-07-30T12:00:00.000Z')
@@ -47,7 +37,7 @@ describe('toCardProps', () => {
 	})
 
 	it('falls back to the unknown author when the id does not resolve', () => {
-		const card = toCardProps(comment({ authorId: 'user:gone' }), context, {}, resolveName, 'en')
+		const card = toCardProps(comment({ authorId: 'user:gone' }), context, {}, resolveName)
 		expect(card.you).toBe(false)
 		expect(card.author).not.toBe(AUTHOR)
 	})

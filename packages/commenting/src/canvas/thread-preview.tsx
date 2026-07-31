@@ -15,7 +15,7 @@ import { type CommentingContext } from './context'
 import { useComments } from './hooks'
 import { useCommentingOptions } from './options'
 import { openStackId, openThreadId } from './state'
-import { POPOVER_OFFSET, toCardProps, useCommentLocale, useResolveName } from './thread-view'
+import { POPOVER_OFFSET, toCardProps, useResolveName } from './thread-view'
 
 /**
  * Hover previews for every canvas marker — a single pin, a coincident stack, or a cluster badge.
@@ -187,7 +187,6 @@ export function ThreadPreview({
 	const msg = useTranslation()
 	const comments = useComments(editor)
 	const resolveName = useResolveName(props.resolveAuthor)
-	const locale = useCommentLocale()
 
 	// The panel floats over the canvas and scrolls nothing of its own, so a wheel on it should zoom
 	// and pan the canvas underneath — like every other tldraw panel, and like the popover it
@@ -278,7 +277,7 @@ export function ThreadPreview({
 							}
 						>
 							<CommentCard
-								{...toCardProps(first, props, options.components, resolveName, locale)}
+								{...toCardProps(first, props, options.components, resolveName)}
 								footer={
 									replies ? <span className="tlui-cmt-card__replies">{replies}</span> : undefined
 								}

@@ -17,8 +17,6 @@ export interface CommentCardProps {
 	actions?: ReactNode
 	/** Content under the body, aligned with it rather than the avatar (e.g. a `<Reactions>` row). */
 	footer?: ReactNode
-	/** BCP 47 locale for the byline's relative time. Defaults to English. */
-	locale?: string
 }
 
 /** A single comment: Avatar, Byline, and a body slot the consumer renders. @public @react */
@@ -30,11 +28,10 @@ export function CommentCard({
 	edited,
 	actions,
 	footer,
-	locale,
 }: CommentCardProps) {
 	return (
 		<div className={you ? 'tlui-cmt-card tlui-cmt-card--you' : 'tlui-cmt-card'}>
-			<Byline author={author} date={date} edited={edited} locale={locale} />
+			<Byline author={author} date={date} edited={edited} />
 			<div className="tlui-cmt-body">
 				{body}
 				{footer}
