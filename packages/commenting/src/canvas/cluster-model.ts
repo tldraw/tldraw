@@ -65,7 +65,7 @@ export function useClusterModel(
 	// as live pins riding their anchor and rejoin clustering on the next zoom-out.
 	const [heldThreadIds, setHeldThreadIds] = useState<ReadonlySet<string>>(EMPTY_SET)
 	const adoptOnRebuild = useRef(false)
-	const clusterLeaves = useValue(
+	const clusterInput = useValue(
 		'comment cluster leaves',
 		() =>
 			collectClusterLeaves(
@@ -81,11 +81,15 @@ export function useClusterModel(
 		[editor]
 	)
 	const latestModel = useMemo(() => {
-		const table = computeClusterTable(clusterLeaves, clusterZoomBounds)
+		const table = computeClusterTable(
+			clusterInput.leaves,
+			clusterZoomBounds,
+			clusterInput.screenOffsets
+		)
 		const runtime = createClusterRuntime(table)
 		runtime.seed(editor.getZoomLevel())
 		return { runtime, table }
-	}, [clusterLeaves, clusterZoomBounds, editor])
+	}, [clusterInput, clusterZoomBounds, editor])
 	const [renderedModel, setRenderedModel] = useState(latestModel)
 	let clusterModel = renderedModel
 	// A page switch replaces the whole scene: hard-reset rather than detach the world.

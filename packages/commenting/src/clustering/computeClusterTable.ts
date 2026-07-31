@@ -1,7 +1,13 @@
 import { mstEdges } from './mst'
 import { cappedReplay } from './replay'
 import { contract, finalize } from './schedule'
-import type { ClusterNode, ClusterOptions, ClusterTable, LeafInput } from './types'
+import type {
+	ClusterNode,
+	ClusterOptions,
+	ClusterTable,
+	LeafInput,
+	LeafScreenOffsets,
+} from './types'
 
 interface ResolvedClusterOptions {
 	Tc: number
@@ -16,7 +22,10 @@ interface ResolvedClusterOptions {
 /** @internal */
 export function computeClusterTable(
 	leaves: readonly LeafInput[],
-	options: ClusterOptions
+	options: ClusterOptions,
+	// Render offsets for markers that draw off their anchor (imprecise pins), keyed by leaf id.
+	// Omitted or empty, the run is identical — output and code paths — to an offset-unaware one.
+	screenOffsets?: LeafScreenOffsets
 ): ClusterTable {
 	const opts = resolveOptions(options)
 	const leafNodes = leaves.map(leafToNode)
@@ -26,7 +35,12 @@ export function computeClusterTable(
 		return { events: [], leaves: leafNodes }
 	}
 
-	const raw = cappedReplay(leaves, edges, { Tc: opts.Tc, Dmax: opts.Dmax })
+	const raw = cappedReplay(
+		leaves,
+		edges,
+		{ Tc: opts.Tc, Dmax: opts.Dmax, Tu: opts.Tu },
+		screenOffsets
+	)
 	const contracted = contract(raw, opts.eps)
 	const events = finalize(contracted, {
 		Tc: opts.Tc,

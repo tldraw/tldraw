@@ -11,6 +11,16 @@ export interface LeafInput {
 	point: VecLike
 }
 
+/**
+ * Constant screen-px render offsets for markers that don't draw exactly on their anchor —
+ * imprecise shape pins, which tuck ~20px into their shape. Keyed by leaf id; leaves absent from
+ * the map render on their anchor. A marker's visual position at zoom z is `z · point + offset`.
+ * Passed as the optional third argument to `computeClusterTable`; when omitted or empty the
+ * algorithm's behavior (and output) is identical to an offset-unaware run.
+ * @internal
+ */
+export type LeafScreenOffsets = ReadonlyMap<string, VecLike>
+
 /** An edge of the Euclidean MST over the leaf anchor points. */
 export interface MstEdge {
 	/** Index into the input leaves array. Normalized: leaves[a].id < leaves[b].id (lexicographic). */
@@ -40,6 +50,12 @@ export interface ClusterNode {
 export interface RawMergeEvent {
 	/** Effective merge threshold zEff = min(Tc/d, Dmax/unionBboxDiag). +Infinity for coincident anchors. */
 	z: number
+	/**
+	 * Exact split threshold — the zoom at which the pair's *visual* distance crosses Tu — set
+	 * only when the merge was priced with screen offsets (see {@link LeafScreenOffsets}). Absent,
+	 * the split derives from the Tu/Tc ratio in `finalize`, exactly as for offset-free events.
+	 */
+	zSplit?: number
 	/** The two clusters consumed, ordered by ascending min-member id. */
 	children: [ClusterNode, ClusterNode]
 	/** The cluster produced. */
@@ -50,6 +66,10 @@ export interface RawMergeEvent {
 export interface ContractedEvent {
 	/** Fires (merges) when zoom <= zMerge. May be +Infinity. */
 	zMerge: number
+	/** Carried from a solo raw event's exact split (see {@link RawMergeEvent.zSplit}). Grouped
+	 *  (multi-way) events drop it — their threshold is already snapped to the window anchor, so
+	 *  the ratio-derived split applies as before. */
+	zSplit?: number
 	/** Clusters consumed — 2 or more, ordered by ascending min-member id. */
 	children: ClusterNode[]
 	/** Cluster produced. */
