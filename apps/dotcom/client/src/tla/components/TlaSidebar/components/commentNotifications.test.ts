@@ -282,7 +282,7 @@ describe('reaction notifications', () => {
 
 	it("labels my comment with someone else's reaction as reaction", () => {
 		const result = categorizeCommentNotifications(
-			[mine({ reactions: [{ userId: OTHER, emoji: '👍', createdAt: at(10) }] })],
+			[mine({ reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) }] })],
 			ME
 		)
 		expect(result).toHaveLength(1)
@@ -294,7 +294,7 @@ describe('reaction notifications', () => {
 		expect(categorizeCommentNotifications([mine()], ME)).toEqual([])
 		expect(
 			categorizeCommentNotifications(
-				[mine({ reactions: [{ userId: ME, emoji: '👍', createdAt: at(10) }] })],
+				[mine({ reactions: [{ userId: ME, userName: 'Me', emoji: '👍', createdAt: at(10) }] })],
 				ME
 			)
 		).toEqual([])
@@ -303,7 +303,7 @@ describe('reaction notifications', () => {
 	it("never labels others' comments as reaction, whatever their reactions", () => {
 		const theirs = comment({
 			file: { ownerId: ME },
-			reactions: [{ userId: THIRD, emoji: '👍', createdAt: at(10) }],
+			reactions: [{ userId: THIRD, userName: 'Third', emoji: '👍', createdAt: at(10) }],
 		})
 		const result = categorizeCommentNotifications([theirs], ME)
 		expect(result[0].reasons).toEqual(['owned-board'])
@@ -315,9 +315,9 @@ describe('reaction notifications', () => {
 				mine({
 					createdAt: at(0),
 					reactions: [
-						{ userId: OTHER, emoji: '👍', createdAt: at(10) },
-						{ userId: THIRD, emoji: '🎉', createdAt: at(20) },
-						{ userId: ME, emoji: '👍', createdAt: at(30) },
+						{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) },
+						{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
+						{ userId: ME, userName: 'Me', emoji: '👍', createdAt: at(30) },
 					],
 				}),
 			],
@@ -332,7 +332,7 @@ describe('reaction notifications', () => {
 				[
 					mine({
 						read: readAt === undefined ? undefined : { readAt },
-						reactions: [{ userId: OTHER, emoji: '👍', createdAt: at(10) }],
+						reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) }],
 					}),
 				],
 				ME
@@ -347,7 +347,7 @@ describe('reaction notifications', () => {
 		const reacted = mine({
 			id: 'comment:reacted',
 			createdAt: at(0),
-			reactions: [{ userId: OTHER, emoji: '👍', createdAt: at(20) }],
+			reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(20) }],
 		})
 		const replied = comment({ id: 'comment:replied', createdAt: at(10), file: { ownerId: ME } })
 		const result = categorizeCommentNotifications([replied, reacted], ME)
@@ -356,58 +356,57 @@ describe('reaction notifications', () => {
 })
 
 describe('summarizeForeignReactors', () => {
-	const names = new Map([
-		[OTHER, 'Olive'],
-		[THIRD, 'Théo'],
-	])
-	const resolve = (id: string) => names.get(id)
-
-	it('names the newest resolvable reactor and counts the rest', () => {
-		const result = summarizeForeignReactors(
-			[
-				{ userId: THIRD, emoji: '👍', createdAt: at(0) },
-				{ userId: OTHER, emoji: '🎉', createdAt: at(10) },
-			],
-			ME,
-			resolve
-		)
-		expect(result).toEqual({ name: 'Olive', others: 1, total: 2 })
+	const r = (userId: string, userName: string, createdAt: number, emoji = '👍') => ({
+		userId,
+		userName,
+		emoji,
+		createdAt,
 	})
 
-	it('counts a reactor once however many emoji they used, and skips my own reactions', () => {
-		const result = summarizeForeignReactors(
-			[
-				{ userId: OTHER, emoji: '👍', createdAt: at(0) },
-				{ userId: OTHER, emoji: '🎉', createdAt: at(10) },
-				{ userId: ME, emoji: '👍', createdAt: at(20) },
-			],
-			ME,
-			resolve
-		)
-		expect(result).toEqual({ name: 'Olive', others: 0, total: 1 })
+	it('returns no names for no foreign reactions', () => {
+		expect(summarizeForeignReactors([r('me', 'Me', 1)], 'me')).toEqual({
+			names: [],
+			others: 0,
+			total: 0,
+		})
 	})
 
-	it('falls back to an older reactor when the newest has no resolvable name', () => {
-		const result = summarizeForeignReactors(
-			[
-				{ userId: THIRD, emoji: '👍', createdAt: at(0) },
-				{ userId: 'user_stranger', emoji: '🎉', createdAt: at(10) },
-			],
-			ME,
-			resolve
-		)
-		expect(result).toEqual({ name: 'Théo', others: 1, total: 2 })
+	it('names a single reactor', () => {
+		expect(summarizeForeignReactors([r('bo', 'Bo', 1)], 'me')).toEqual({
+			names: ['Bo'],
+			others: 0,
+			total: 1,
+		})
 	})
 
-	it('gives no name when nobody resolves', () => {
-		const result = summarizeForeignReactors(
-			[
-				{ userId: 'user_a', emoji: '👍', createdAt: at(0) },
-				{ userId: 'user_b', emoji: '🎉', createdAt: at(10) },
-			],
-			ME,
-			resolve
-		)
-		expect(result).toEqual({ name: undefined, others: 2, total: 2 })
+	it('caps at two names, newest reaction first, counting the rest as others', () => {
+		const reactions = [r('bo', 'Bo', 1), r('ada', 'Ada', 3), r('cy', 'Cy', 2)]
+		expect(summarizeForeignReactors(reactions, 'me')).toEqual({
+			names: ['Ada', 'Cy'],
+			others: 1,
+			total: 3,
+		})
+	})
+
+	it('counts one person with several emoji once, dated by their newest reaction', () => {
+		const reactions = [r('bo', 'Bo', 1, '👍'), r('ada', 'Ada', 2), r('bo', 'Bo', 3, '🔥')]
+		expect(summarizeForeignReactors(reactions, 'me')).toEqual({
+			names: ['Bo', 'Ada'],
+			others: 0,
+			total: 2,
+		})
+	})
+
+	it('skips empty names but still counts them', () => {
+		const reactions = [r('ghost', '', 3), r('bo', 'Bo', 1)]
+		expect(summarizeForeignReactors(reactions, 'me')).toEqual({
+			names: ['Bo'],
+			others: 1,
+			total: 2,
+		})
+	})
+
+	it('handles undefined reactions', () => {
+		expect(summarizeForeignReactors(undefined, 'me')).toEqual({ names: [], others: 0, total: 0 })
 	})
 })

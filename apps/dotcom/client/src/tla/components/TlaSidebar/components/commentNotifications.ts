@@ -57,8 +57,11 @@ export interface CommentNotificationInput {
 		comments?: readonly { authorId: string; createdAt: number }[] | null
 	} | null
 	/** Every reaction to the comment, the caller's own included. Categorization only reads who and
-	 *  when; `emoji` rides along for the row's reaction pills. */
-	reactions?: readonly { userId: string; emoji: string; createdAt: number }[] | null
+	 *  when; `emoji` rides along for the row's reaction pills; `userName` is denormalized from the
+	 *  `reactions` table (task 2 migration 045). */
+	reactions?:
+		| readonly { userId: string; userName: string; emoji: string; createdAt: number }[]
+		| null
 }
 
 /** A comment in the notifications feed, tagged with why it's there. */
@@ -147,31 +150,29 @@ function joinedThreadAt(thread: CommentNotificationInput['thread'], userId: stri
 }
 
 /**
- * The reactor summary a "reacted to your comment" byline is phrased from: the newest reactor with
- * a resolvable display name (the byline's face), how many other distinct people reacted beyond
- * them, and the distinct total for when no name resolves at all. `resolveName` covers whatever
- * identity sources the caller has (comment authors in the feed, workspace members) — reaction rows
- * themselves carry no name.
+ * The reactor summary a "reacted to your comment" byline is phrased from: up to two distinct
+ * reactor names (newest reaction first, blank names skipped — e.g. rows from before the 045
+ * backfill), how many distinct people react beyond the named ones, and the distinct total for
+ * when no name is available at all.
  */
 export function summarizeForeignReactors(
 	reactions: CommentNotificationInput['reactions'],
-	userId: string | undefined | null,
-	resolveName: (userId: string) => string | undefined
-): { name: string | undefined; others: number; total: number } {
+	userId: string | undefined | null
+): { names: string[]; others: number; total: number } {
 	// distinct foreign reactors, newest reaction first
-	const newestById = new Map<string, number>()
+	const byId = new Map<string, { name: string; newest: number }>()
 	for (const r of reactions ?? []) {
 		if (r.userId === userId) continue
-		const newest = newestById.get(r.userId)
-		if (newest === undefined || r.createdAt > newest) newestById.set(r.userId, r.createdAt)
+		const seen = byId.get(r.userId)
+		if (!seen || r.createdAt > seen.newest)
+			byId.set(r.userId, { name: r.userName, newest: r.createdAt })
 	}
-	const ordered = [...newestById.entries()].sort(([, a], [, b]) => b - a).map(([id]) => id)
-	const name = ordered.map(resolveName).find((n) => n !== undefined)
-	return {
-		name,
-		others: name === undefined ? ordered.length : ordered.length - 1,
-		total: ordered.length,
-	}
+	const ordered = [...byId.values()].sort((a, b) => b.newest - a.newest)
+	const names = ordered
+		.map((e) => e.name)
+		.filter((n) => n !== '')
+		.slice(0, 2)
+	return { names, others: ordered.length - names.length, total: ordered.length }
 }
 
 /**

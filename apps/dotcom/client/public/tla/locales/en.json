@@ -621,6 +621,9 @@
   "e404559826": {
     "translation": "Terms of service"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> and <name>{b}</name> reacted to your comment"
+  },
   "e81c4e4f2b": {
     "translation": "or"
   },
@@ -668,6 +671,9 @@
   },
   "f2a6c498fb": {
     "translation": "Delete"
+  },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
   },
   "f4f70727dc": {
     "translation": "Settings"

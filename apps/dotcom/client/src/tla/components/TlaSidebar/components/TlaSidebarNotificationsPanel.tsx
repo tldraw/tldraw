@@ -38,7 +38,7 @@ function ReasonByline({
 	reason: CommentNotificationReason
 	author: string
 	/** Who reacted, for the `reaction` phrasing — see {@link summarizeForeignReactors}. */
-	reactors: { name: string | undefined; others: number; total: number }
+	reactors: { names: string[]; others: number; total: number }
 	nameClassName: string
 }) {
 	const name = (chunks: ReactNode) => <span className={nameClassName}>{chunks}</span>
@@ -54,42 +54,59 @@ function ReasonByline({
 					values={{ author, name }}
 				/>
 			)
-		case 'reaction':
-			// Reaction rows carry no display name, so the face is best-effort — resolved from
-			// comment authors in the feed and workspace members. Nobody resolvable → anonymous count.
-			if (reactors.name === undefined) {
+		case 'reaction': {
+			const { names, others, total } = reactors
+			const [a, b] = names
+			if (names.length === 0) {
 				return (
 					<F
 						defaultMessage="{count, plural, one {Someone reacted to your comment} other {# people reacted to your comment}}"
-						values={{ count: reactors.total }}
+						values={{ count: total }}
 					/>
 				)
 			}
-			if (reactors.others === 0) {
+			if (names.length === 1 && others === 0) {
 				return (
 					<F
 						defaultMessage="<name>{author}</name> reacted to your comment"
-						values={{ author: reactors.name, name }}
+						values={{ author: a, name }}
+					/>
+				)
+			}
+			if (names.length === 2 && others === 0) {
+				return (
+					<F
+						defaultMessage="<name>{a}</name> and <name>{b}</name> reacted to your comment"
+						values={{ a, b, name }}
+					/>
+				)
+			}
+			if (names.length === 1) {
+				return (
+					<F
+						defaultMessage="<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
+						values={{ author: a, count: others, name }}
 					/>
 				)
 			}
 			return (
 				<F
-					defaultMessage="<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
-					values={{ author: reactors.name, count: reactors.others, name }}
+					defaultMessage="<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
+					values={{ a, b, count: others, name }}
 				/>
 			)
+		}
 	}
 }
 
 /**
- * Comments surfaced as notifications. The `comments` synced query already filters to the three
- * categories that concern the user server-side — comments on boards they own, replies in threads
- * they're a part of, and `@`-mentions of them — so out-of-category comments never reach the
- * client; {@link categorizeCommentNotifications} tags each synced comment with why it's there,
- * newest first, and drops reply-only thread history from before the user joined. Also returns
- * the caller's unread count over that set (a notification is unread when it has no read
- * receipt). Shared by the trigger button (for its badge) and the panel (for its list).
+ * Comments surfaced as notifications. The `comments` synced query already filters to four
+ * categories server-side — comments on boards they own, replies in threads they're part of,
+ * `@`-mentions of them, and reactions on their comments — so out-of-category entries never
+ * reach the client; {@link categorizeCommentNotifications} tags each with why it's there,
+ * newest first, and drops reply-only history from before the user joined. Unread: comment
+ * entries when no read receipt, reaction entries when the newest foreign reaction postdates
+ * the caller's read receipt. Shared by trigger button (badge) and panel (list).
  */
 export function useCommentNotifications() {
 	const app = useMaybeApp()
@@ -120,27 +137,6 @@ function commentLink(fileId: string, shapeId: string | null | undefined, comment
 export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const app = useMaybeApp()
 	const { notifications, unreadCount } = useCommentNotifications()
-	// Reactor id → display name, from the identity the app already syncs: workspace member rows
-	// and comment authors in the feed (authors win — comments carry the fresher denormalization
-	// for someone who just wrote). A reactor outside both (e.g. a shared-link guest who never
-	// commented) stays unresolved and the byline falls back to an anonymous count.
-	const resolveReactorName = useValue(
-		'reactor names',
-		() => {
-			const names = new Map<string, string>()
-			if (!app) return (id: string) => names.get(id)
-			for (const membership of app.getWorkspaceMemberships()) {
-				for (const member of membership.groupMembers ?? []) {
-					if (member.userName) names.set(member.userId, member.userName)
-				}
-			}
-			for (const c of app.getComments()) {
-				if (c.authorName) names.set(c.authorId, c.authorName)
-			}
-			return (id: string) => names.get(id)
-		},
-		[app]
-	)
 	const title = useMsg(messages.title)
 	const markAllReadLbl = useMsg(messages.markAllRead)
 	const empty = useMsg(messages.empty)
@@ -163,7 +159,11 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 			date: new Date(n.timestamp).toISOString(),
 			// inert pills: no toggling from the panel, emoji + count with the user's own
 			// reactions highlighted
-			reactions: summarizeReactions(c.reactions ?? [], app?.userId, resolveReactorName),
+			reactions: summarizeReactions(
+				c.reactions ?? [],
+				app?.userId,
+				(id) => c.reactions?.find((r) => r.userId === id)?.userName || undefined
+			),
 			// the document the comment lives on — the headline of the notification row
 			page: c.file?.name || untitledFile,
 			// a real link target, so browser affordances (ctrl/cmd-click, middle-click) open a new tab
@@ -226,11 +226,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 									<ReasonByline
 										reason={n?.primaryReason ?? 'owned-board'}
 										author={item.author.name}
-										reactors={summarizeForeignReactors(
-											n?.comment.reactions,
-											app?.userId,
-											resolveReactorName
-										)}
+										reactors={summarizeForeignReactors(n?.comment.reactions, app?.userId)}
 										nameClassName={styles.author}
 									/>
 								</div>
