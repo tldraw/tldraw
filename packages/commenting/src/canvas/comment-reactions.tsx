@@ -160,7 +160,7 @@ export interface CommentReactionsProps {
 	/** The reacting user. Null/omitted gives a read-only row (signed out): counts show, but the
 	 *  pills don't toggle. */
 	currentUserId?: string | null
-	/** Names a reactor id for the hover list. Ids it can't name fall back to the id. */
+	/** Names a reactor id for the hover list. Ids it can't name fall back to a generic "Someone". */
 	resolveName?(userId: string): string | undefined
 }
 
