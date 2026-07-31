@@ -22,6 +22,7 @@ import {
 	ThreadPopover,
 	ThreadView,
 	toCardProps,
+	useCommentLocale,
 	useResolveName,
 } from './thread-view'
 
@@ -225,6 +226,7 @@ function StackThreadCard({
 	const options = useCommentingOptions()
 	const comments = useThreadComments(editor, thread.id)
 	const resolveName = useResolveName(props.resolveAuthor)
+	const locale = useCommentLocale()
 	const first = comments[0]
 	if (!first) return null
 	const open = (e: ReactMouseEvent) => {
@@ -246,7 +248,7 @@ function StackThreadCard({
 				).replace('{name}', props.resolveAuthor(thread.createdBy)?.name ?? UNKNOWN_AUTHOR)}
 				onClick={open}
 			/>
-			<CommentCard {...toCardProps(first, props, options.components, resolveName)} />
+			<CommentCard {...toCardProps(first, props, options.components, resolveName, locale)} />
 		</div>
 	)
 }

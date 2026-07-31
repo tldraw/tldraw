@@ -13,6 +13,7 @@ import {
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
 	useContainer,
+	useCurrentTranslation,
 	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useTranslation,
@@ -55,11 +56,62 @@ export function useResolveName(resolveAuthor: CommentingContext['resolveAuthor']
 	return useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 }
 
+/**
+ * The editor's current UI locale, for the relative times on comment bylines. Without this the
+ * bylines render in English however the rest of the app is localized.
+ */
+export function useCommentLocale() {
+	return useCurrentTranslation().locale
+}
+
+/** How long the copy-link item reads "Link copied" before reverting. */
+const LINK_COPIED_MS = 2000
+
+/**
+ * What a thread's `getThreadHref` should put on the clipboard. Hosts hand back an href, which is
+ * allowed to be relative (`/file/abc?comment=…`) — that works as a link target but is meaningless
+ * once it's pasted into a chat window, so it's resolved against the current document first. An href
+ * the URL parser can't make sense of is copied as-is rather than dropped.
+ *
+ * @internal
+ */
+export function absoluteThreadLink(href: string, base = window.location.href): string {
+	try {
+		return new URL(href, base).toString()
+	} catch {
+		return href
+	}
+}
+
+/**
+ * Copy a thread's link, with a flag that stays set briefly afterwards so the control can confirm.
+ * The flag only sets once the write actually resolves — a clipboard the browser withholds
+ * (an insecure context, a denied permission) leaves the label alone rather than claiming a copy
+ * that didn't happen.
+ */
+function useCopyLink(href: string | undefined) {
+	const [copied, setCopied] = useState(false)
+	useEffect(() => {
+		if (!copied) return
+		const timeout = window.setTimeout(() => setCopied(false), LINK_COPIED_MS)
+		return () => window.clearTimeout(timeout)
+	}, [copied])
+	const copy = useCallback(() => {
+		if (href === undefined) return
+		navigator.clipboard?.writeText(absoluteThreadLink(href)).then(
+			() => setCopied(true),
+			() => setCopied(false)
+		)
+	}, [href])
+	return [copied, copy] as const
+}
+
 export function toCardProps(
 	comment: TLComment,
 	props: Pick<CommentingContext, 'currentUserId' | 'resolveAuthor'>,
 	components: CommentingComponents,
-	resolveName: (id: string) => string | undefined
+	resolveName: (id: string) => string | undefined,
+	locale?: string
 ): CommentCardProps {
 	const Body = components.CommentBody
 	// The `CommentBody` component slot overrides the built-in rich-text default (which resolves
@@ -75,6 +127,7 @@ export function toCardProps(
 		date: new Date(comment.createdAt).toISOString(),
 		you: comment.authorId === props.currentUserId,
 		edited: comment.editedAt != null,
+		locale,
 	}
 }
 
@@ -160,10 +213,12 @@ export function ThreadView({
 		onCommentRead,
 		getMentionSuggestions,
 		renderMentionSuggestion,
+		getThreadHref,
 	} = props
 	const options = useCommentingOptions()
 	const comments = useThreadComments(editor, thread.id)
 	const msg = useTranslation()
+	const locale = useCommentLocale()
 	const resolveName = useResolveName(resolveAuthor)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	// Composing, editing, deleting, and resolving are all commenting writes: gated on the viewer's
@@ -283,6 +338,14 @@ export function ThreadView({
 		if (!currentUserId) return
 		deleteThread(editor, thread)
 	}
+
+	const ThreadActions = options.components.ThreadActions
+	// The host's URL for this thread, when it supplies one. Its presence is what puts "copy link" in
+	// the header menu — a host that has per-thread URLs shouldn't have to rebuild the thread view to
+	// offer the one affordance every commenting product has.
+	const threadHref = getThreadHref?.(thread.id)
+	const [linkCopied, copyThreadLink] = useCopyLink(threadHref)
+	const canDeleteThread = canComment && currentUserId != null && currentUserId === thread.createdBy
 
 	const startEdit = (comment: TLComment, { fromMoreMenu = false } = {}) => {
 		// The ⋯ menu's button is the thing to come back to when Edit opened the composer — looked up
@@ -409,8 +472,9 @@ export function ThreadView({
 	// resolve stamps into `resolved.by`.
 	const headerActions = (
 		<>
-			{/* Deleting a thread is creator-only (server-enforced), and it's the menu's only item. */}
-			{canComment && currentUserId && currentUserId === thread.createdBy && (
+			{/* Host verbs — assign, link a ticket — sit ahead of the built-in actions. */}
+			{ThreadActions && <ThreadActions thread={thread} comments={comments} />}
+			{(threadHref !== undefined || canDeleteThread) && (
 				<TldrawUiDropdownMenuRoot id={`comment-thread-actions-${thread.id}`}>
 					<TldrawUiDropdownMenuTrigger>
 						<TooltipButton
@@ -428,15 +492,28 @@ export function ThreadView({
 						sideOffset={4}
 					>
 						<TldrawUiDropdownMenuGroup>
-							<TldrawUiDropdownMenuItem>
-								<button
-									type="button"
-									className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-									onClick={removeThread}
-								>
-									<span>{msg('comments.delete')}</span>
-								</button>
-							</TldrawUiDropdownMenuItem>
+							{/* A link is a read affordance: offered to anyone who can see the thread,
+							    including a viewer who can't comment. `noClose` keeps the menu up so the
+							    item can confirm the copy in place. */}
+							{threadHref !== undefined && (
+								<TldrawUiDropdownMenuItem noClose>
+									<button type="button" className="tlui-cmt-menu-item" onClick={copyThreadLink}>
+										<span>{msg(linkCopied ? 'comments.link-copied' : 'comments.copy-link')}</span>
+									</button>
+								</TldrawUiDropdownMenuItem>
+							)}
+							{/* Deleting a thread is creator-only (server-enforced). */}
+							{canDeleteThread && (
+								<TldrawUiDropdownMenuItem>
+									<button
+										type="button"
+										className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
+										onClick={removeThread}
+									>
+										<span>{msg('comments.delete')}</span>
+									</button>
+								</TldrawUiDropdownMenuItem>
+							)}
 						</TldrawUiDropdownMenuGroup>
 					</TldrawUiDropdownMenuContent>
 				</TldrawUiDropdownMenuRoot>
@@ -469,7 +546,7 @@ export function ThreadView({
 			header={msg('comments.thread-title')}
 			headerActions={headerActions}
 			renderComment={renderComment}
-			comments={comments.map((c) => toCardProps(c, props, options.components, resolveName))}
+			comments={comments.map((c) => toCardProps(c, props, options.components, resolveName, locale))}
 			resolvedBanner={
 				thread.resolved
 					? msg('comments.resolved-by').replace(

@@ -47,7 +47,7 @@ export { Avatar }
 export { AvatarProps }
 
 // @public
-export function Byline({ author, date, edited }: BylineProps): JSX.Element;
+export function Byline({ author, date, edited, locale }: BylineProps): JSX.Element;
 
 // @public (undocumented)
 export interface BylineProps {
@@ -55,6 +55,7 @@ export interface BylineProps {
     author: CommentAuthor;
     date: string;
     edited?: boolean;
+    locale?: string;
 }
 
 // @public
@@ -85,7 +86,7 @@ export interface CommentBodyProps {
 }
 
 // @public
-export function CommentCard({ author, body, date, you, edited, actions, footer }: CommentCardProps): JSX.Element;
+export function CommentCard({ author, body, date, you, edited, actions, footer, locale }: CommentCardProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentCardProps {
@@ -96,6 +97,7 @@ export interface CommentCardProps {
     date: string;
     edited?: boolean;
     footer?: ReactNode;
+    locale?: string;
     // (undocumented)
     you: boolean;
 }
@@ -142,8 +144,15 @@ export interface CommentingComponents {
     }>;
     ReactionPalette?: ComponentType<EmojiPickerProps>;
     ReactionTooltip?: ComponentType<ReactionTooltipProps>;
+    ThreadActions?: ComponentType<{
+        comments: TLComment[];
+        thread: TLCommentThread;
+    }>;
     ThreadPreview?: ComponentType<{
         comment: TLComment;
+    }>;
+    ThreadRow?: ComponentType<CommentListItemRenderProps & {
+        thread: TLCommentThread;
     }>;
 }
 
@@ -179,6 +188,9 @@ export interface CommentingOptions {
     shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean;
 }
 
+// @public
+export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, href, locale, resolvedLabel, onSelect }: CommentListItemRenderProps): JSX.Element;
+
 // @public (undocumented)
 export interface CommentListItemProps {
     // (undocumented)
@@ -188,11 +200,18 @@ export interface CommentListItemProps {
     href?: string;
     // (undocumented)
     id: string;
+    locale?: string;
     page?: string;
     preview: ReactNode;
     // (undocumented)
     resolved?: boolean;
     selected?: boolean;
+}
+
+// @public
+export interface CommentListItemRenderProps extends CommentListItemProps {
+    onSelect?(id: string): void;
+    resolvedLabel?: string;
 }
 
 // @public
@@ -241,7 +260,7 @@ export interface CommentsFilterMenuProps {
 export const commentsHidden: EditorAtom<boolean>;
 
 // @public
-export function CommentsList({ items, onSelect, header, headerAction, empty, resolvedLabel, renderItem }: CommentsListProps): JSX.Element;
+export function CommentsList({ items, onSelect, header, headerAction, empty, resolvedLabel, locale, renderItem }: CommentsListProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentsListProps {
@@ -250,8 +269,9 @@ export interface CommentsListProps {
     headerAction?: ReactNode;
     // (undocumented)
     items: CommentListItemProps[];
+    locale?: string;
     onSelect?(id: string): void;
-    renderItem?(item: CommentListItemProps): ReactNode;
+    renderItem?(props: CommentListItemRenderProps): ReactNode;
     resolvedLabel?: string;
 }
 
@@ -566,6 +586,16 @@ export interface SidebarFilters {
 
 // @public
 export const sidebarFilters: EditorAtom<SidebarFilters>;
+
+// @public
+export interface SidebarRow {
+    // (undocumented)
+    item: CommentListItemProps;
+    lastActivity: number;
+}
+
+// @public
+export function sortSidebarRows(rows: readonly SidebarRow[]): readonly SidebarRow[];
 
 // @public
 export function summarizeReactions(reactions: TLCommentReaction[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined): ReactionSummary[];
