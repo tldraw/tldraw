@@ -77,7 +77,7 @@ import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
-import { deleteOgImage, enqueueOgImageRender } from './routes/tla/ogImageQueue'
+import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -87,7 +87,6 @@ import { getRoomDurableObject } from './utils/durableObjects'
 import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
-import { deleteRenderTokenRecord } from './utils/renderTokens'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
@@ -2686,10 +2685,7 @@ export class TLFileDurableObject extends DurableObject {
 			// object, in a bucket with no lifecycle rule to sweep it. The render token record is dropped
 			// for the same reason. MCP screenshots need no equivalent: their keys carry a content version
 			// and their bucket has an expiration rule.
-			await deleteOgImage(this.env, { kind: 'shared_file', slug: id })
-			await deleteOgImage(this.env, { kind: 'published', slug: publishedSlug })
-			await deleteRenderTokenRecord(this.env, { kind: 'shared_file', slug: id })
-			await deleteRenderTokenRecord(this.env, { kind: 'published', slug: publishedSlug })
+			await deleteBoardThumbnails(this.env, { fileId: id, publishedSlug })
 
 			// finally clear storage so we don't keep the data around
 			this.ctx.storage.deleteAll()

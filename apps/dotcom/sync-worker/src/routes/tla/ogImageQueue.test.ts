@@ -6,8 +6,10 @@ import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFi
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import {
 	clearOgImagePendingMarker,
+	deleteBoardThumbnails,
 	deleteOgImage,
 	enqueueOgImageRender,
+	enqueuePublishThumbnailRender,
 	getOgImageCacheKey,
 	handleOgImageRenderMessage,
 	MAX_RENDER_ATTEMPTS,
@@ -215,6 +217,144 @@ describe('clearOgImagePendingMarker', () => {
 		expect([...bucket.store.keys()]).toEqual([getOgImageCacheKey(board)])
 		// With the marker gone, the next enqueue is not deduped away.
 		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
+	})
+})
+
+// The publish effect is the only trigger a published board has: its snapshot is frozen, so nothing
+// edits it into asking again. An ask lost here therefore leaves that board's card generic until
+// somebody republishes, and none of the ways it can be lost throw loudly enough to notice.
+describe('enqueuePublishThumbnailRender', () => {
+	it('enqueues the published board and reports nothing when it takes effect', async () => {
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
+		const reportProblem = vi.fn()
+
+		await enqueuePublishThumbnailRender(env, 'published-slug', reportProblem)
+
+		expect(queue.send).toHaveBeenCalledWith({
+			type: 'og-image-render',
+			kind: 'published',
+			slug: 'published-slug',
+			reason: 'publish',
+		})
+		expect(reportProblem).not.toHaveBeenCalled()
+	})
+
+	// The quiet one. A marker left behind by an earlier failed job turns the ask away with a value, not
+	// an exception, so this is the case that would go unnoticed without the report.
+	it('reports the ask being turned away by a pending marker', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+		const board = { kind: 'published', slug: 'published-slug' } as const
+		await enqueueOgImageRender(env, board, { reason: 'publish' })
+		const reportProblem = vi.fn()
+
+		await enqueuePublishThumbnailRender(env, 'published-slug', reportProblem)
+
+		expect(reportProblem).toHaveBeenCalledTimes(1)
+		expect((reportProblem.mock.calls[0][0] as Error).message).toContain('already_pending')
+	})
+
+	it('reports an unconfigured queue rather than passing for success', async () => {
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: undefined })
+		const reportProblem = vi.fn()
+
+		await enqueuePublishThumbnailRender(env, 'published-slug', reportProblem)
+
+		expect((reportProblem.mock.calls[0][0] as Error).message).toContain('unavailable')
+	})
+
+	// Publishing must survive its thumbnail ask failing: the snapshot is already written, and this is
+	// the last thing the effect does.
+	it('reports a throw without rethrowing it into the publish handler', async () => {
+		const queue = makeFakeQueue()
+		queue.send.mockRejectedValue(new Error('queue is down'))
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
+		const reportProblem = vi.fn()
+
+		await expect(
+			enqueuePublishThumbnailRender(env, 'published-slug', reportProblem)
+		).resolves.toBeUndefined()
+		expect((reportProblem.mock.calls[0][0] as Error).message).toBe('queue is down')
+	})
+})
+
+// Hard deletion is the one place both image keys go. Everywhere else keeps one of them: unsharing
+// keeps the file-keyed image (a reshare should be an immediate hit), and unpublishing only takes the
+// published one. Neither reason survives the board ceasing to exist — and since `og/…` keys carry no
+// version and THUMBNAILS has no lifecycle rule, whatever is left behind is an object nothing will
+// ever read, overwrite or sweep.
+describe('deleteBoardThumbnails', () => {
+	const renderTokenKey = (kind: string, slug: string) => `render-tokens/${kind}/${slug}`
+
+	async function seedBoard(bucket: ReturnType<typeof makeFakeThumbnailsBucket>, env: any) {
+		const file = { kind: 'shared_file', slug: 'file-1' } as const
+		const published = { kind: 'published', slug: 'published-slug' } as const
+		for (const board of [file, published]) {
+			// An enqueue writes the pending marker, so the fixture covers image, marker and token record.
+			await enqueueOgImageRender(env, board, { reason: 'publish' })
+			await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer)
+			await bucket.put(renderTokenKey(board.kind, board.slug), new Uint8Array().buffer)
+		}
+	}
+
+	it('removes both images, both markers and both render token records', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+		await seedBoard(bucket, env)
+
+		await deleteBoardThumbnails(env, { fileId: 'file-1', publishedSlug: 'published-slug' })
+
+		expect([...bucket.store.keys()]).toEqual([])
+	})
+
+	it('touches nothing belonging to another board', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+		await seedBoard(bucket, env)
+		const other = { kind: 'shared_file', slug: 'file-2' } as const
+		await bucket.put(getOgImageCacheKey(other), new Uint8Array([2]).buffer)
+		await bucket.put(renderTokenKey(other.kind, other.slug), new Uint8Array().buffer)
+
+		await deleteBoardThumbnails(env, { fileId: 'file-1', publishedSlug: 'published-slug' })
+
+		expect([...bucket.store.keys()].sort()).toEqual(
+			[getOgImageCacheKey(other), renderTokenKey(other.kind, other.slug)].sort()
+		)
+	})
+
+	// An empty published slug would address `og/published//light.png`, which is not this board's key
+	// and may well be somebody else's neighbourhood.
+	it('skips the published half when the file has no published slug', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+		await seedBoard(bucket, env)
+
+		await deleteBoardThumbnails(env, { fileId: 'file-1', publishedSlug: null })
+
+		expect([...bucket.store.keys()].sort()).toEqual(
+			[
+				getOgImageCacheKey({ kind: 'published', slug: 'published-slug' }),
+				getOgImageCacheKey({ kind: 'published', slug: 'published-slug' }).replace(
+					/\.png$/,
+					'.pending'
+				),
+				renderTokenKey('published', 'published-slug'),
+			].sort()
+		)
+	})
+
+	// It runs inside the teardown that also removes the room snapshot and the histories, so a failure
+	// to tidy up must not abort what follows it.
+	it('resolves even when the bucket refuses a delete', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+		await seedBoard(bucket, env)
+		vi.spyOn(bucket, 'delete').mockRejectedValue(new Error('R2 is down'))
+
+		await expect(
+			deleteBoardThumbnails(env, { fileId: 'file-1', publishedSlug: 'published-slug' })
+		).resolves.toBeUndefined()
 	})
 })
 

@@ -27,7 +27,7 @@ import {
 	parseTopicSubscriptionTree,
 	serializeSubscriptions,
 } from './replicator/Subscription'
-import { deleteOgImage, enqueueOgImageRender } from './routes/tla/ogImageQueue'
+import { deleteOgImage, enqueuePublishThumbnailRender } from './routes/tla/ogImageQueue'
 import {
 	Analytics,
 	Environment,
@@ -885,20 +885,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// by a marker some earlier failure left behind — leaves that board's card generic until it is
 			// republished. `getOgImage` repairs it on the next fetch (see the `published` on-miss enqueue
 			// there); this line is how we find out it happened.
-			try {
-				const result = await enqueueOgImageRender(
-					this.env,
-					{ kind: 'published', slug: file.publishedSlug },
-					{ reason: 'publish' }
-				)
-				if (result !== 'enqueued') {
-					this.captureException(
-						new Error(`Publish thumbnail enqueue did not take effect: ${result}`)
-					)
-				}
-			} catch (e) {
-				this.captureException(e, { publishThumbnailEnqueue: true })
-			}
+			await enqueuePublishThumbnailRender(this.env, file.publishedSlug, (error) =>
+				this.captureException(error, { publishThumbnailEnqueue: true })
+			)
 		} catch (e) {
 			this.log.debug('Error publishing snapshot', e)
 		}

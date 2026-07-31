@@ -6,6 +6,7 @@ import {
 	OgImageRenderReason,
 	ThumbnailBoardRef,
 } from '../../types'
+import { deleteRenderTokenRecord } from '../../utils/renderTokens'
 import {
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
@@ -149,6 +150,63 @@ export async function deleteOgImage(env: Environment, board: ThumbnailBoardRef):
 		env.THUMBNAILS.delete(getOgImageCacheKey(board)).catch(() => {}),
 		env.THUMBNAILS.delete(getOgImagePendingKey(board)).catch(() => {}),
 	])
+}
+
+/**
+ * Everything this pipeline stores for one board, removed when the file is hard deleted
+ * (`TLFileDurableObject.appFileRecordDidDelete`, alongside the room snapshot and the histories).
+ *
+ * Both kinds go, because each is normally kept for a reason about a board that still exists: the
+ * file-keyed image survives *unsharing* deliberately, and the published-slug image only goes on
+ * *unpublish*. A hard delete leaves nothing to reshare and no snapshot to depict.
+ *
+ * The stakes are orphans rather than tidiness. `og/…` keys carry no version, so a board owns exactly
+ * one object, and `THUMBNAILS` has no lifecycle rule and must never be given one — so anything left
+ * behind here is an object nothing will ever read, overwrite or sweep. MCP screenshots need no
+ * equivalent: their keys carry a content version and their bucket expires them.
+ *
+ * Best effort throughout, because it runs inside a teardown that must complete regardless.
+ */
+export async function deleteBoardThumbnails(
+	env: Environment,
+	{ fileId, publishedSlug }: { fileId: string; publishedSlug?: string | null }
+): Promise<void> {
+	const boards: ThumbnailBoardRef[] = [{ kind: 'shared_file', slug: fileId }]
+	// A file with no published slug never had a published key to delete, and deriving one from an empty
+	// slug would address `og/published//light.png` — some other board's neighbourhood, not this one's.
+	if (publishedSlug) boards.push({ kind: 'published', slug: publishedSlug })
+	await Promise.all(
+		boards.flatMap((board) => [deleteOgImage(env, board), deleteRenderTokenRecord(env, board)])
+	)
+}
+
+/**
+ * The publish effect's ask, and the reporting that goes with it.
+ *
+ * This is the *only* trigger a published board has. Its snapshot is frozen, so nothing edits it into
+ * asking again, where a shared file re-asks on every persist that advances its document clock. So an
+ * ask lost here — thrown, or turned away as `already_pending` by a marker an earlier failure left
+ * behind, or `unavailable` — leaves that board's card generic until it is republished, and none of
+ * those are exceptional enough to notice by themselves. `getOgImage` repairs the outcome on the next
+ * fetch; `reportProblem` is how the cause becomes visible.
+ */
+export async function enqueuePublishThumbnailRender(
+	env: Environment,
+	publishedSlug: string,
+	reportProblem: (error: unknown) => void
+): Promise<void> {
+	try {
+		const result = await enqueueOgImageRender(
+			env,
+			{ kind: 'published', slug: publishedSlug },
+			{ reason: 'publish' }
+		)
+		if (result !== 'enqueued') {
+			reportProblem(new Error(`Publish thumbnail enqueue did not take effect: ${result}`))
+		}
+	} catch (error) {
+		reportProblem(error)
+	}
 }
 
 // Queue consumer. Re-resolves the board at render time rather than trusting the enqueued state: a
