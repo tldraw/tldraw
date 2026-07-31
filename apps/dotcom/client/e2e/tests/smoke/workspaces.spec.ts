@@ -408,7 +408,6 @@ test.describe('workspaces', () => {
 			await deleteFileDialog.expectIsVisible()
 			await deleteFileDialog.confirmDeletion()
 			await deleteFileDialog.expectIsNotVisible()
-			await sidebar.mutationResolution()
 
 			// We should land on the workspace's remaining file, not jump to the home workspace.
 			await sidebar.expectFileNotVisible(file2)

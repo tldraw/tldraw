@@ -70,8 +70,6 @@ export class Sidebar {
 			this.page.keyboard.press('Enter'),
 		])
 		await expect.poll(() => this.getNumberOfFiles()).toBe(numDocuments + 1)
-		// give the websocket a chance to catch up
-		await this.mutationResolution()
 		// the create button has a 1000ms throttle - wait so the next creation isn't swallowed
 		await this.page.waitForTimeout(1100)
 	}
@@ -92,7 +90,6 @@ export class Sidebar {
 		await this.openUserSettingsMenu()
 		await this.themeButton.hover()
 		await this.darkModeButton.click()
-		await this.mutationResolution()
 	}
 
 	@step
@@ -119,7 +116,6 @@ export class Sidebar {
 		await this.openLanguageMenu(languageButtonText)
 		await this.page.getByRole('menuitemcheckbox', { name: language }).click()
 		await this.page.keyboard.press('Escape')
-		await this.mutationResolution()
 	}
 
 	@step
@@ -174,7 +170,6 @@ export class Sidebar {
 	@step
 	private async deleteFromFileMenu() {
 		await this.page.getByRole('menuitem', { name: 'Delete' }).click()
-		await this.mutationResolution()
 	}
 
 	@step
@@ -182,22 +177,12 @@ export class Sidebar {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.renameFromFileMenu(newName)
-		await this.mutationResolution()
 	}
 
 	@step
 	async renameFileByName(fileName: string, newName: string) {
 		await this.openFileMenuByName(fileName)
 		await this.renameFromFileMenu(newName)
-		await this.mutationResolution()
-	}
-
-	async mutationResolution() {
-		await expect(async () => {
-			await this.page.evaluate(async () => {
-				await (window as any).app?.z?.__e2e__waitForMutationResolution?.()
-			})
-		}).toPass()
 	}
 
 	@step
@@ -206,7 +191,6 @@ export class Sidebar {
 		const input = this.page.getByTestId('tla-sidebar-rename-input')
 		await input.fill(name)
 		await this.page.keyboard.press('Enter')
-		await this.mutationResolution()
 	}
 
 	@step
@@ -219,7 +203,6 @@ export class Sidebar {
 			await input.fill(name)
 		}
 		await this.page.keyboard.press('Enter')
-		await this.mutationResolution()
 	}
 
 	@step
@@ -227,7 +210,6 @@ export class Sidebar {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.page.getByRole('menuitem', { name: 'Pin' }).click()
-		await this.mutationResolution()
 	}
 
 	@step
@@ -235,7 +217,6 @@ export class Sidebar {
 		const fileLink = this.getFileLink('pinned', index)
 		await this.openFileMenu(fileLink)
 		await this.page.getByRole('menuitem', { name: 'Unpin' }).click()
-		await this.mutationResolution()
 	}
 
 	@step
@@ -243,7 +224,6 @@ export class Sidebar {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.duplicateFromFileMenu(name)
-		await this.mutationResolution()
 	}
 
 	@step
@@ -328,7 +308,6 @@ export class Sidebar {
 		await input.fill(name)
 
 		await this.page.getByRole('button', { name: 'Create workspace' }).click()
-		await this.mutationResolution()
 
 		// Creating a workspace switches to it and opens its seeded welcome file. That file
 		// arrives named, so (unlike a blank file) there is no inline rename to dismiss.
@@ -468,7 +447,6 @@ export class Sidebar {
 
 		// Close the dialog
 		await this.page.getByRole('button', { name: 'Close' }).click()
-		await this.mutationResolution()
 	}
 
 	@step
@@ -481,7 +459,6 @@ export class Sidebar {
 
 		// Confirm in the confirmation dialog, whose button is just "Delete".
 		await this.page.getByRole('button', { name: 'Delete', exact: true }).click()
-		await this.mutationResolution()
 	}
 
 	@step
@@ -559,22 +536,18 @@ export class Sidebar {
 
 		// Release
 		await this.page.mouse.up()
-
-		await this.mutationResolution()
 	}
 
 	@step
 	async pinFile(fileName: string) {
 		await this.openFileMenuByName(fileName)
 		await this.page.getByRole('menuitem', { name: 'Pin' }).click()
-		await this.mutationResolution()
 	}
 
 	@step
 	async unpinFile(fileName: string) {
 		await this.openFileMenuByName(fileName)
 		await this.page.getByRole('menuitem', { name: 'Unpin' }).click()
-		await this.mutationResolution()
 	}
 
 	@step
@@ -658,7 +631,6 @@ export class Sidebar {
 				.getByRole('menuitemcheckbox', { name: targetWorkspaceName, exact: true })
 				.click({ timeout: 2000 })
 		}).toPass({ timeout: 20000 })
-		await this.mutationResolution()
 	}
 
 	@step
