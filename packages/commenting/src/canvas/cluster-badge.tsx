@@ -100,7 +100,6 @@ export const ClusterBadge = memo(function ClusterBadge({
 				<ThreadPreview
 					editor={editor}
 					threads={previewThreads}
-					container={container}
 					variant="list"
 					point={point}
 					onSelectThread={onSelectThread}

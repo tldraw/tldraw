@@ -1,18 +1,8 @@
 import { isMentionPickerOpen } from '@tldraw/mentions'
+import { Fragment, ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
 import {
-	Fragment,
-	ReactNode,
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
-import { createPortal } from 'react-dom'
-import {
+	EditorPortal,
 	TLCommentThread,
-	useContainer,
 	useEditor,
 	usePassThroughMouseOverEvents,
 	useValue,
@@ -81,42 +71,9 @@ export function CanvasComments(props: CanvasCommentsProps) {
 	return <CanvasCommentsLayer {...props} />
 }
 
-/**
- * A mount point appended to the end of the editor container, for a portal that has to come last
- * among the container's children.
- *
- * `createPortal(…, container)` doesn't get to say where its node lands: React places a portal
- * during the same commit that mounts it, and a portal nested this deep in the tree is placed
- * before the container's own, shallower children — so the layer ends up ahead of the UI and its
- * "move focus to canvas" skip link. That link only works if nothing precedes it, and the pins are
- * real buttons, so a single comment would take the first tab stop and leave no keyboard route to
- * the canvas. A layout effect runs after the whole commit instead, by which point the container's
- * children are all in place and appending is guaranteed to land at the end.
- *
- * Null until the effect has run, so the first render has nothing to portal into.
- */
-function useTrailingPortalHost(container: HTMLElement) {
-	const [host, setHost] = useState<HTMLDivElement | null>(null)
-	useLayoutEffect(() => {
-		const elm = container.ownerDocument.createElement('div')
-		// The host is a position in the DOM, not a box — what it holds is positioned against the
-		// container, the same as it was when it hung off the container directly.
-		elm.style.display = 'contents'
-		container.appendChild(elm)
-		setHost(elm)
-		return () => {
-			elm.remove()
-			setHost(null)
-		}
-	}, [container])
-	return host
-}
-
 function CanvasCommentsLayer(props: CommentingContext) {
 	const editor = useEditor()
 	const options = useCommentingOptions()
-	const container = useContainer()
-	const portalHost = useTrailingPortalHost(container)
 	const layerRef = useRef<HTMLDivElement>(null)
 	// Over the pins and cluster badges, hover passes through to the canvas beneath (these events
 	// bubble up from the pointer-interactive markers to this layer root). Wheel pass-through is
@@ -334,79 +291,80 @@ function CanvasCommentsLayer(props: CommentingContext) {
 		return <ThreadPin editor={editor} thread={thread} {...props} />
 	}
 
-	// Render into the container (above the panels' stacking context) so the pins and popovers
-	// live in the UI layer rather than being clipped by the canvas layer — but at the end of it,
-	// behind the editor's own children in the tab order. See `useTrailingPortalHost`.
-	if (!portalHost) return null
-	return createPortal(
-		<div ref={layerRef} className="tlui-cmt-canvas-layer">
-			{options.enableClustering ? (
-				<>
-					{fadeNodes.map(({ node, phase }) => {
-						let content: ReactNode
-						const stackGroup = node.count > 1 ? stackGroupOf(node) : null
-						if (node.count === 1) {
-							const thread = threadsById.get(node.id)
-							if (!thread) return null
-							content = renderThreadPin(thread)
-						} else if (stackGroup) {
-							// A coincident stack standing alone: draw the cascading count-badge list now
-							// instead of a zoom-to-split cluster badge. Route it through the stack's owner so
-							// the open/orphan/held slots stay deduped — when the owner is one of them, that
-							// slot draws the stack and this node draws nothing.
-							const owner = stackGroup.find((id) => renderedThreadIds.has(id))
-							content =
-								owner && node.members.includes(owner)
-									? renderThreadPin(threadsById.get(owner)!)
-									: null
-						} else {
-							content = (
-								<ClusterBadge
-									editor={editor}
-									node={node}
-									onExpand={expandCluster}
-									onSelectThread={revealClusteredThread}
-									threadsById={threadsById}
-									currentUserId={props.currentUserId}
-									resolveAuthor={props.resolveAuthor}
-								/>
+	// Rendered through the editor's portal rather than into the slot this component is mounted in:
+	// the pins sit below the collaborator cursors and the popovers above the UI panels, and no
+	// single canvas layer spans both. `EditorPortal` also fixes where the layer lands among the
+	// container's children, so it stays behind the UI's skip link in the tab order.
+	return (
+		<EditorPortal>
+			<div ref={layerRef} className="tlui-cmt-canvas-layer">
+				{options.enableClustering ? (
+					<>
+						{fadeNodes.map(({ node, phase }) => {
+							let content: ReactNode
+							const stackGroup = node.count > 1 ? stackGroupOf(node) : null
+							if (node.count === 1) {
+								const thread = threadsById.get(node.id)
+								if (!thread) return null
+								content = renderThreadPin(thread)
+							} else if (stackGroup) {
+								// A coincident stack standing alone: draw the cascading count-badge list now
+								// instead of a zoom-to-split cluster badge. Route it through the stack's owner so
+								// the open/orphan/held slots stay deduped — when the owner is one of them, that
+								// slot draws the stack and this node draws nothing.
+								const owner = stackGroup.find((id) => renderedThreadIds.has(id))
+								content =
+									owner && node.members.includes(owner)
+										? renderThreadPin(threadsById.get(owner)!)
+										: null
+							} else {
+								content = (
+									<ClusterBadge
+										editor={editor}
+										node={node}
+										onExpand={expandCluster}
+										onSelectThread={revealClusteredThread}
+										threadsById={threadsById}
+										currentUserId={props.currentUserId}
+										resolveAuthor={props.resolveAuthor}
+									/>
+								)
+							}
+							return (
+								<div key={`cluster-fade:${node.id}`} className={clusterFadeClassName(phase)}>
+									{content}
+								</div>
 							)
-						}
-						return (
-							<div key={`cluster-fade:${node.id}`} className={clusterFadeClassName(phase)}>
-								{content}
-							</div>
-						)
-					})}
-					{orphanThreads.map((thread) => (
-						<Fragment key={thread.id}>{renderThreadPin(thread)}</Fragment>
-					))}
-					{heldThreads.map((thread) => (
-						<Fragment key={thread.id}>{renderThreadPin(thread)}</Fragment>
-					))}
-				</>
-			) : (
-				// Clustering off: every thread renders as its own live pin (each returns null when it's
-				// not on the current page or its anchor is missing). The open thread is excluded here and
-				// rendered once below, mirroring how the clustering path keeps it out of the cluster leaves —
-				// otherwise it would mount a second, stacked pin.
-				threads
-					.filter((thread) => thread.id !== openId)
-					.map((thread) => <Fragment key={thread.id}>{renderThreadPin(thread)}</Fragment>)
-			)}
-			{openThread && (
-				<Fragment key={`open:${openThread.id}`}>{renderThreadPin(openThread)}</Fragment>
-			)}
-			<RegionDraftBox editor={editor} />
-			{/* Keep the region visible while composing — the drag draft is gone by now, and no thread
-			    exists yet, so the pending anchor is what shows the area under the open composer. */}
-			{pending?.anchor.type === 'region' && showPendingComposer && (
-				<RegionBox editor={editor} box={pending.anchor} />
-			)}
-			{pending && showPendingComposer && (
-				<PendingComposer editor={editor} pending={pending} {...props} />
-			)}
-		</div>,
-		portalHost
+						})}
+						{orphanThreads.map((thread) => (
+							<Fragment key={thread.id}>{renderThreadPin(thread)}</Fragment>
+						))}
+						{heldThreads.map((thread) => (
+							<Fragment key={thread.id}>{renderThreadPin(thread)}</Fragment>
+						))}
+					</>
+				) : (
+					// Clustering off: every thread renders as its own live pin (each returns null when it's
+					// not on the current page or its anchor is missing). The open thread is excluded here and
+					// rendered once below, mirroring how the clustering path keeps it out of the cluster leaves —
+					// otherwise it would mount a second, stacked pin.
+					threads
+						.filter((thread) => thread.id !== openId)
+						.map((thread) => <Fragment key={thread.id}>{renderThreadPin(thread)}</Fragment>)
+				)}
+				{openThread && (
+					<Fragment key={`open:${openThread.id}`}>{renderThreadPin(openThread)}</Fragment>
+				)}
+				<RegionDraftBox editor={editor} />
+				{/* Keep the region visible while composing — the drag draft is gone by now, and no thread
+				    exists yet, so the pending anchor is what shows the area under the open composer. */}
+				{pending?.anchor.type === 'region' && showPendingComposer && (
+					<RegionBox editor={editor} box={pending.anchor} />
+				)}
+				{pending && showPendingComposer && (
+					<PendingComposer editor={editor} pending={pending} {...props} />
+				)}
+			</div>
+		</EditorPortal>
 	)
 }

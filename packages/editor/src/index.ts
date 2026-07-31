@@ -35,6 +35,11 @@ export {
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
 export {
+	EditorPortal,
+	useEditorPortalHost,
+	type EditorPortalProps,
+} from './lib/components/EditorPortal'
+export {
 	ErrorBoundary,
 	OptionalErrorBoundary,
 	type TLErrorBoundaryProps,
