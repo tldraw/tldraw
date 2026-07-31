@@ -15,7 +15,11 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/__thumbnail-render/?$",
   },
   {
-    "reactRouterPattern": "/admin/:section?",
+    "reactRouterPattern": "/admin",
+    "vercelRouterPattern": "^/admin/?$",
+  },
+  {
+    "reactRouterPattern": "/admin/:section",
     "vercelRouterPattern": "^/admin/[^/]*/?$",
   },
   {

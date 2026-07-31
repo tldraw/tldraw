@@ -143,7 +143,10 @@ export function createAppRouter({
 					/>
 					{/* Views that require login */}
 					<Route lazy={() => import('./tla/providers/RequireSignedInUser')}></Route>
-					<Route path="/admin/:section?" lazy={() => import('./pages/admin')} />
+					{/* Two explicit routes, not one optional segment: the Vercel rewrite derived from
+					    a trailing optional param drops the optionality and 404s bare /admin */}
+					<Route path="/admin" lazy={() => import('./pages/admin')} />
+					<Route path="/admin/:section" lazy={() => import('./pages/admin')} />
 				</Route>
 			</Route>
 			<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />
