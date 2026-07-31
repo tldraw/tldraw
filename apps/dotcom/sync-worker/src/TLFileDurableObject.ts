@@ -55,7 +55,7 @@ import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { DBLoadResult, Environment, TLDataPointName, TLServerEvent } from './types'
-import { EventData, writeDataPoint } from './utils/analytics'
+import { DataPoint, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -68,6 +68,10 @@ import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
+
+// The room domain's half of a datapoint. Every event this object writes is about this object, so
+// `writeEvent` supplies the subject and callers never name one.
+type RoomEventData = Omit<DataPoint, 'subject'>
 
 const MAX_CONNECTIONS = 50
 
@@ -179,7 +183,7 @@ export class TLFileDurableObject extends DurableObject {
 		// Samples the size distribution of rooms as they cold-load; 0 for rooms with no R2 snapshot.
 		// No room identifier is attached — this is for distribution/percentile queries, not lookups —
 		// so it writes directly rather than through writeEvent's per-room index.
-		writeDataPoint(this.env, 'room_size_mb', { doubles: [result.roomSizeMB] })
+		writeDataPoint(this.env, 'room', 'room_size_mb', { doubles: [result.roomSizeMB] })
 		return storage
 	}
 
@@ -887,10 +891,10 @@ export class TLFileDurableObject extends DurableObject {
 	 * Analytics Engine allows exactly one index, so this is the only object-level dimension these
 	 * events carry.
 	 */
-	private writeEvent(name: TLDataPointName, eventData: EventData) {
-		writeDataPoint(this.env, name, {
+	private writeEvent(name: TLDataPointName, eventData: RoomEventData) {
+		writeDataPoint(this.env, 'room', name, {
 			...eventData,
-			indexes: [this.id.toString()],
+			subject: this.id.toString(),
 		})
 	}
 
@@ -902,7 +906,7 @@ export class TLFileDurableObject extends DurableObject {
 	private timer() {
 		const start = Date.now()
 		return {
-			report: (name: TLDataPointName, data?: EventData) => {
+			report: (name: TLDataPointName, data?: RoomEventData) => {
 				this.writeEvent(name, { ...data, doubles: [...(data?.doubles ?? []), Date.now() - start] })
 			},
 		}
@@ -920,7 +924,12 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			case 'client': {
 				if (event.name === 'rate_limited') {
-					this.writeEvent(event.name, { blobs: [event.userId ?? 'anon-user'] })
+					// The user id goes to the header slot as well as its existing payload position, so
+					// cross-domain user queries work without breaking the panels that read blob3.
+					this.writeEvent(event.name, {
+						blobs: [event.userId ?? 'anon-user'],
+						userId: event.userId,
+					})
 				} else {
 					this.writeEvent(event.name, { blobs: [event.instanceId] })
 				}

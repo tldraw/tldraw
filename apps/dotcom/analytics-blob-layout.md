@@ -1,6 +1,6 @@
 # Analytics Engine blob layout
 
-Status: proposal. Nothing here is implemented.
+Status: implemented, except where noted below. The header and the domain split are in `utils/analytics.ts` and each domain's own writer; the subject unification for the screenshot domain is not done.
 
 Context: <https://github.com/tldraw/tldraw/pull/9676#issuecomment-5094393287>, which proposed a v2 layout for the `MEASURE` dataset. This document records what the layout is today and recommends a variant of that proposal: one writer per domain behind a small standard header, chosen so that no existing position moves.
 
@@ -189,7 +189,7 @@ env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${fileId}`).toString()
 
 That gives one uniform join column across every writer, and better sampling: a hot board's renders sample alongside its sync events, which is the tenant isolation the index is designed for. `blob16` still says which domain emitted the row. The cost is that a worker-emitted row's index won't match a `$workers.durableObjectId` log line — there isn't one — though it still lines up with that object's DO metrics.
 
-Agreeing on that definition is the one piece of real work the split requires: `writeScreenshotTelemetry` currently indexes on `boardHash`, not a derived DO id, so the screenshot domain has to change what it writes for the index to be a join column rather than six per-domain conventions.
+Agreeing on that definition is the one piece of real work the split requires, and it is **not yet done**: `writeScreenshotTelemetry` still indexes on `boardHash`, a hash of the board slug, so screenshot rows don't join to the room domain's index. Unifying them means resolving a published slug to its file id at each of the three screenshot surfaces, and unlike everything else here it changes the values in an existing column — so it is its own change, not part of the split.
 
 For published boards, derive from `file.id`, not `board.slug`: the latter is the published slug, and `getPublishedFileInfo` already resolves it through `SNAPSHOT_SLUG_TO_PARENT_SLUG` and returns the file id. Deriving from the published slug yields a valid-looking id for an object that doesn't exist.
 
@@ -207,7 +207,13 @@ Two dashboard bugs are worth fixing regardless, since they are wrong today rathe
 - Several panels use bare `count()`/`sum()` where sampling requires `sum(_sample_interval)`.
 - **Events** panel 13 has no `blob2` filter, so it silently mixes production, staging and every PR environment.
 
-## Open questions
+## Resolved while implementing
 
-- **Events with no subject.** `postgres.ts` only sees `env`, so it has no room or user to index on. Omitting `indexes` entirely there makes "no index" read as "not object-scoped" rather than inventing a sentinel. The replicator, stats and logger DOs are singletons, so their index is a constant — harmless but inert.
-- **Where the domain modules live.** `writeScreenshotTelemetry` sits next to the code it instruments (`routes/tla/thumbnailRender.ts`) rather than in `utils/analytics.ts`. Either an `analytics/` directory holding all six, or leaving each next to its domain and keeping only the core module shared. The second keeps the diff smaller and matches what's there now.
+- **Events with no subject.** `postgres.ts` only sees `env`, so it has no object to index on, and it omits `subject` entirely — "no index" reads as "not object-scoped" rather than as a sentinel. The replicator is a singleton and writes its constant DO id: inert, but it keeps `index1` meaning one thing everywhere.
+- **Where the domain writers live.** Each stays next to the code it instruments — `logEvent` on the three DOs, `writeScreenshotTelemetry` in `routes/tla/thumbnailRender.ts`, the pool client in `postgres.ts` — with only the core writer shared in `utils/analytics.ts`. An `analytics/` directory holding all six would have moved code without changing it.
+- **Payloads wider than their range.** The core writer truncates at `blob15` rather than overflowing into the header: losing a payload dimension is recoverable, mislabelling every row's domain is not.
+
+## Still open
+
+- **The screenshot domain's subject**, as above: the one part of the layout not yet uniform.
+- **`room_size_mb` has no subject.** It writes directly rather than through the room DO's `writeEvent`, deliberately — the comment there says it's for distribution and percentile queries rather than lookups. Worth revisiting, since an index doesn't cost a distribution query anything and would buy per-room sampling isolation.

@@ -375,7 +375,11 @@ export function writeScreenshotTelemetry(
 	// analysis. Successful calls are the common case, and a per-IP blob there is one distinct
 	// dimension value per client on every request — a large cardinality cost for no query benefit.
 	const isFailure = data.failureReason !== undefined || !rateLimitAllowed
-	writeDataPoint(env, 'mcp_shared_board_screenshot', {
+	writeDataPoint(env, 'screenshot', 'mcp_shared_board_screenshot', {
+		// The subject is a hash of the board slug, not the room's durable object id, so these rows
+		// don't yet join to the room domain's index. Unifying the two means resolving published
+		// slugs to file ids at every surface; see the blob layout doc.
+		subject: data.boardHash,
 		blobs: [
 			`source:${data.source}`,
 			`cache:${data.cacheStatus}`,
@@ -383,7 +387,6 @@ export function writeScreenshotTelemetry(
 			`rate_limit:${rateLimitAllowed ? 'allowed' : 'blocked'}`,
 			`ip:${isFailure && data.ipHash ? data.ipHash : 'none'}`,
 		],
-		indexes: [data.boardHash],
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,
 			DEFAULT_THUMBNAIL_HEIGHT,

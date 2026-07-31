@@ -797,10 +797,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
+	/**
+	 * The replicator domain's writer. This is a singleton, so its subject is a constant — it buys no
+	 * sampling isolation, but it keeps `index1` meaning the same thing in every domain.
+	 */
 	logEvent(event: TLPostgresReplicatorEvent) {
+		const subject = this.ctx.id.toString()
 		switch (event.type) {
 			case 'reboot':
-				writeDataPoint(this.env, 'replicator', { blobs: [event.type, event.source] })
+				writeDataPoint(this.env, 'replicator', 'replicator', {
+					subject,
+					blobs: [event.type, event.source],
+				})
 				break
 			case 'reboot_error':
 			case 'register_user':
@@ -809,25 +817,29 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			case 'prune':
 			case 'get_file_record':
 			case 'resume_sequence':
-				writeDataPoint(this.env, 'replicator', {
+				writeDataPoint(this.env, 'replicator', 'replicator', {
+					subject,
 					blobs: [event.type],
 				})
 				break
 
 			case 'reboot_duration':
-				writeDataPoint(this.env, 'replicator', {
+				writeDataPoint(this.env, 'replicator', 'replicator', {
+					subject,
 					blobs: [event.type],
 					doubles: [event.duration],
 				})
 				break
 			case 'rpm':
-				writeDataPoint(this.env, 'replicator', {
+				writeDataPoint(this.env, 'replicator', 'replicator', {
+					subject,
 					blobs: [event.type],
 					doubles: [event.rpm],
 				})
 				break
 			case 'active_users':
-				writeDataPoint(this.env, 'replicator', {
+				writeDataPoint(this.env, 'replicator', 'replicator', {
+					subject,
 					blobs: [event.type],
 					doubles: [event.count],
 				})

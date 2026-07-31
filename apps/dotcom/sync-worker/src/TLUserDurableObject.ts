@@ -665,18 +665,33 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	/* --------------  */
 
+	/**
+	 * The user domain's writer. `blob1` stays `user_durable_object` with the specific event in
+	 * `blob3` — the inverse of what the room domain does, which is legible now that the domain
+	 * column says which layout `blob3` follows.
+	 *
+	 * `event.id` is the user id, so it goes to the header's user slot as well as its existing
+	 * payload position; the duplication drops out whenever the panels reading blob4 are rewritten.
+	 */
 	logEvent(event: TLUserDurableObjectEvent) {
+		const subject = this.ctx.id.toString()
 		switch (event.type) {
 			case 'reboot_duration':
 			case 'cold_start_time':
-				writeDataPoint(this.env, 'user_durable_object', {
+				writeDataPoint(this.env, 'user', 'user_durable_object', {
+					subject,
+					userId: event.id,
 					blobs: [event.type, event.id],
 					doubles: [event.duration],
 				})
 				break
 
 			default:
-				writeDataPoint(this.env, 'user_durable_object', { blobs: [event.type, event.id] })
+				writeDataPoint(this.env, 'user', 'user_durable_object', {
+					subject,
+					userId: event.id,
+					blobs: [event.type, event.id],
+				})
 		}
 	}
 
