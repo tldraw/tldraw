@@ -142,8 +142,15 @@ export interface CommentingComponents {
     }>;
     ReactionPalette?: ComponentType<EmojiPickerProps>;
     ReactionTooltip?: ComponentType<ReactionTooltipProps>;
+    ThreadActions?: ComponentType<{
+        comments: TLComment[];
+        thread: TLCommentThread;
+    }>;
     ThreadPreview?: ComponentType<{
         comment: TLComment;
+    }>;
+    ThreadRow?: ComponentType<CommentListItemRenderProps & {
+        thread: TLCommentThread;
     }>;
 }
 
@@ -179,6 +186,9 @@ export interface CommentingOptions {
     shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean;
 }
 
+// @public
+export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, href, resolvedLabel, onSelect }: CommentListItemRenderProps): JSX.Element;
+
 // @public (undocumented)
 export interface CommentListItemProps {
     // (undocumented)
@@ -193,6 +203,12 @@ export interface CommentListItemProps {
     // (undocumented)
     resolved?: boolean;
     selected?: boolean;
+}
+
+// @public
+export interface CommentListItemRenderProps extends CommentListItemProps {
+    onSelect?(id: string): void;
+    resolvedLabel?: string;
 }
 
 // @public
@@ -251,7 +267,7 @@ export interface CommentsListProps {
     // (undocumented)
     items: CommentListItemProps[];
     onSelect?(id: string): void;
-    renderItem?(item: CommentListItemProps): ReactNode;
+    renderItem?(props: CommentListItemRenderProps): ReactNode;
     resolvedLabel?: string;
 }
 
@@ -566,6 +582,16 @@ export interface SidebarFilters {
 
 // @public
 export const sidebarFilters: EditorAtom<SidebarFilters>;
+
+// @public
+export interface SidebarRow {
+    // (undocumented)
+    item: CommentListItemProps;
+    lastActivity: number;
+}
+
+// @public
+export function sortSidebarRows(rows: readonly SidebarRow[]): readonly SidebarRow[];
 
 // @public
 export function summarizeReactions(reactions: TLCommentReaction[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined): ReactionSummary[];

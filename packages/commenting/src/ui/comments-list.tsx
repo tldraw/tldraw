@@ -1,5 +1,5 @@
 import { Avatar, type CommentAuthor } from '@tldraw/mentions'
-import { MouseEvent, ReactNode } from 'react'
+import { Fragment, MouseEvent, ReactNode } from 'react'
 import { useTranslation } from 'tldraw'
 import { Byline } from './byline'
 import { CheckIcon } from './icons'
@@ -27,6 +27,20 @@ export interface CommentListItemProps {
 	href?: string
 }
 
+/**
+ * What a row is rendered with: the item, plus the list-level wiring it needs to be interactive.
+ * A custom row gets the same props the default `<CommentListItem>` does, so it can wrap the
+ * default rather than reimplement it.
+ *
+ * @public
+ */
+export interface CommentListItemRenderProps extends CommentListItemProps {
+	/** Label for a resolved thread's marker on its row. */
+	resolvedLabel?: string
+	/** Called with the thread id when the row is chosen. */
+	onSelect?(id: string): void
+}
+
 /** @public */
 export interface CommentsListProps {
 	items: CommentListItemProps[]
@@ -40,8 +54,12 @@ export interface CommentsListProps {
 	empty?: ReactNode
 	/** Label for a resolved thread's marker on its row. Defaults to "Resolved". */
 	resolvedLabel?: string
-	/** Override how each item renders. Defaults to `<CommentListItem>`. */
-	renderItem?(item: CommentListItemProps): ReactNode
+	/**
+	 * Override how each item renders. Defaults to `<CommentListItem>`, which is exported — so a
+	 * row that only adds something can spread these props into it rather than start over. The list
+	 * supplies the key, so a custom row doesn't need one.
+	 */
+	renderItem?(props: CommentListItemRenderProps): ReactNode
 }
 
 /**
@@ -71,25 +89,25 @@ export function CommentsList({
 				<div className="tlui-cmt-list__empty">{empty}</div>
 			) : (
 				<div className="tlui-cmt-list__items">
-					{items.map((item) =>
-						renderItem ? (
-							renderItem(item)
+					{items.map((item) => {
+						const props: CommentListItemRenderProps = { ...item, resolvedLabel, onSelect }
+						// A custom row is wrapped rather than keyed directly: it's the consumer's element,
+						// and requiring them to remember a key is the kind of thing that only shows up as a
+						// console warning in someone else's app.
+						return renderItem ? (
+							<Fragment key={item.id}>{renderItem(props)}</Fragment>
 						) : (
-							<CommentListItem
-								key={item.id}
-								{...item}
-								resolvedLabel={resolvedLabel}
-								onSelect={onSelect}
-							/>
+							<CommentListItem key={item.id} {...props} />
 						)
-					)}
+					})}
 				</div>
 			)}
 		</div>
 	)
 }
 
-function CommentListItem({
+/** One thread's row in a {@link CommentsList}. @public @react */
+export function CommentListItem({
 	id,
 	author,
 	preview,
@@ -101,7 +119,7 @@ function CommentListItem({
 	href,
 	resolvedLabel = 'Resolved',
 	onSelect,
-}: CommentListItemProps & { resolvedLabel?: string; onSelect?(id: string): void }) {
+}: CommentListItemRenderProps) {
 	const msg = useTranslation()
 	const handleClick = (e: MouseEvent) => {
 		if (href && isOpenInNewTabClick(e)) return
