@@ -1,5 +1,6 @@
 import { useCallback, useId, type ComponentType } from 'react'
 import {
+	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -9,7 +10,6 @@ import {
 } from 'tldraw'
 import { EmojiPicker, type EmojiPickerProps } from './emoji-picker'
 import { RenderReaction } from './reaction'
-import { TooltipButton } from './tooltip-button'
 
 /** @public */
 export interface ReactionPickerProps {
@@ -78,9 +78,14 @@ export function ReactionPicker({
 	return (
 		<TldrawUiDropdownMenuRoot id={id}>
 			<TldrawUiDropdownMenuTrigger>
-				<TooltipButton tooltip={msg('comments.add-reaction')} className={className}>
+				<TldrawUiButton
+					type="icon"
+					tooltip={msg('comments.add-reaction')}
+					title={msg('comments.add-reaction')}
+					className={className}
+				>
 					<SmileyIcon />
-				</TooltipButton>
+				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			{/* left-aligned under the trigger, so the grid opens rightward off the card's edge */}
 			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={4}>

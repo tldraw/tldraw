@@ -6,6 +6,7 @@ import {
 	TLComment,
 	TLCommentThread,
 	TLRichText,
+	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuItem,
@@ -21,7 +22,6 @@ import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
 import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { CommentThread } from '../ui/comment-thread'
-import { TooltipButton } from '../ui/tooltip-button'
 import { CommentBody } from './comment-body'
 import {
 	clearCommentDraft,
@@ -356,8 +356,10 @@ export function ThreadView({
 							{comment.authorId === currentUserId && (
 								<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
 									<TldrawUiDropdownMenuTrigger>
-										<TooltipButton
+										<TldrawUiButton
+											type="icon"
 											tooltip={msg('comments.more-options')}
+											title={msg('comments.more-options')}
 											className="tlui-cmt-thread__action"
 											data-cmt-more-for={comment.id}
 										>
@@ -366,7 +368,7 @@ export function ThreadView({
 												label={msg('comments.more-options')}
 												small
 											/>
-										</TooltipButton>
+										</TldrawUiButton>
 									</TldrawUiDropdownMenuTrigger>
 									<TldrawUiDropdownMenuContent
 										className="tlui-cmt-menu"
@@ -407,18 +409,21 @@ export function ThreadView({
 
 	// Resolve and delete are commenting writes: behind `canComment`, plus the `currentUserId` a
 	// resolve stamps into `resolved.by`.
+	const resolveLabel = msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')
 	const headerActions = (
 		<>
 			{/* Deleting a thread is creator-only (server-enforced), and it's the menu's only item. */}
 			{canComment && currentUserId && currentUserId === thread.createdBy && (
 				<TldrawUiDropdownMenuRoot id={`comment-thread-actions-${thread.id}`}>
 					<TldrawUiDropdownMenuTrigger>
-						<TooltipButton
+						<TldrawUiButton
+							type="icon"
 							tooltip={msg('comments.more-options')}
+							title={msg('comments.more-options')}
 							className="tlui-cmt-thread__action"
 						>
 							<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
-						</TooltipButton>
+						</TldrawUiButton>
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent
 						className="tlui-cmt-menu"
@@ -442,25 +447,25 @@ export function ThreadView({
 				</TldrawUiDropdownMenuRoot>
 			)}
 			{canComment && currentUserId && (
-				<TooltipButton
-					tooltip={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
+				<TldrawUiButton
+					type="icon"
+					tooltip={resolveLabel}
+					title={resolveLabel}
 					className="tlui-cmt-thread__action"
 					onClick={toggleResolve}
 				>
-					<TldrawUiIcon
-						icon="check"
-						label={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
-						small
-					/>
-				</TooltipButton>
+					<TldrawUiIcon icon="check" label={resolveLabel} small />
+				</TldrawUiButton>
 			)}
-			<TooltipButton
+			<TldrawUiButton
+				type="icon"
 				tooltip={msg('comments.dismiss')}
+				title={msg('comments.dismiss')}
 				className="tlui-cmt-thread__action"
 				onClick={() => openThreadId.set(editor, null)}
 			>
 				<TldrawUiIcon icon="cross-2" label={msg('comments.dismiss')} small />
-			</TooltipButton>
+			</TldrawUiButton>
 		</>
 	)
 
