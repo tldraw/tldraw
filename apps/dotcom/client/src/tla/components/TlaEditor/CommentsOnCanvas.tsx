@@ -8,7 +8,7 @@ import {
 	MentionMember,
 } from '@tldraw/commenting'
 import { queries } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { TLUiOverrides, useDialogs, useEditor, useValue } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -103,6 +103,12 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		return ids
 	}, [fileComments, currentUserId])
 
+	// Presence records change on every collaborator cursor move, which re-evaluates this computed
+	// dozens of times a second — but the derived content (id → name/color) almost never changes.
+	// Returning the previous Map identity when the content is unchanged keeps the computed's epoch
+	// still, so cursor movement doesn't recreate `resolveAuthor` and re-render the pins overlay
+	// and sidebar.
+	const presenceAuthorsRef = useRef<Map<string, CommentAuthor>>(new Map())
 	const presenceAuthors = useValue(
 		'presence authors',
 		() => {
@@ -112,6 +118,10 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 					authors.set(p.userId.replace(/^user:/, ''), { name: p.userName, color: p.color })
 				}
 			}
+			if (presenceAuthorsEqual(presenceAuthorsRef.current, authors)) {
+				return presenceAuthorsRef.current
+			}
+			presenceAuthorsRef.current = authors
 			return authors
 		},
 		[editor]
@@ -215,6 +225,19 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			<CanvasCommentsSidebar {...commenting} />
 		</>
 	)
+}
+
+/** Value equality for the presence-author maps: same ids, each with the same name and color. */
+function presenceAuthorsEqual(
+	a: ReadonlyMap<string, CommentAuthor>,
+	b: ReadonlyMap<string, CommentAuthor>
+): boolean {
+	if (a.size !== b.size) return false
+	for (const [id, author] of b) {
+		const prev = a.get(id)
+		if (!prev || prev.name !== author.name || prev.color !== author.color) return false
+	}
+	return true
 }
 
 const signInMessages = defineMessages({
