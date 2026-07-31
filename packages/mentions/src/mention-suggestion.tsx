@@ -3,13 +3,7 @@ import { ReactRenderer } from '@tiptap/react'
 import type { SuggestionKeyDownProps, SuggestionOptions } from '@tiptap/suggestion'
 import { assertExists } from '@tldraw/utils'
 import { type ReactNode, forwardRef, useImperativeHandle, useRef, useState } from 'react'
-import {
-	type Editor as TldrawEditor,
-	atom,
-	react,
-	usePassThroughMouseOverEvents,
-	usePassThroughWheelEvents,
-} from 'tldraw'
+import { type Editor as TldrawEditor, atom, react, usePassThroughWheelEvents } from 'tldraw'
 import { MentionList, MentionMember } from './mention-list'
 
 /** The handle the suggestion plugin drives — it forwards navigation keys into the popup. */
@@ -29,14 +23,13 @@ const MentionPopup = forwardRef<MentionPopupHandle, MentionPopupProps>(function 
 	ref
 ) {
 	const [activeIndex, setActiveIndex] = useState(0)
-	// Wheel and hover over the popup drive the canvas beneath it, so scrolling to pan or zoom (and
-	// hovering shapes) isn't swallowed by the roster — the same pass-through every tldraw panel gets.
-	// The wheel hook leaves the list alone while it scrolls its own overflow. The suggestion plugin
-	// builds the popup element imperatively, but the `ReactRenderer` portals this component into the
-	// composer's React tree, so tldraw's container and editor context reach these hooks.
+	// A wheel over the popup drives the canvas beneath it, so scrolling to pan or zoom isn't
+	// swallowed by the roster — the same pass-through every tldraw panel gets. The hook leaves the
+	// list alone while it scrolls its own overflow. The suggestion plugin builds the popup element
+	// imperatively, but the `ReactRenderer` portals this component into the composer's React tree,
+	// so tldraw's container and editor context reach the hook.
 	const listRef = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(listRef)
-	usePassThroughMouseOverEvents(listRef)
 	// A new query yields new items; reset the highlight to the top during render — not in an effect,
 	// which would leave a frame where `activeIndex` still points past a shrunk list and Enter selects
 	// its (now out-of-range, undefined) item, swallowing the key without inserting a mention.
