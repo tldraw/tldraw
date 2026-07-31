@@ -196,9 +196,13 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 						className={styles.markAll}
 						onClick={() => {
 							if (!app) return
-							for (const n of notifications) {
-								if (n.unread) app.markCommentRead(n.comment.id)
-							}
+							// one batched mutation rather than one markRead per comment. A reaction entry
+							// carries its own unread state (a fresh reaction re-unreads a read comment),
+							// so this filters on the entry rather than on the comment's receipt — and
+							// repeats are fine, since the mutator dedupes the batch.
+							app.markCommentsRead(
+								notifications.filter((n) => n.unread).map((n) => n.comment.id)
+							)
 						}}
 						disabled={unreadCount === 0}
 					>

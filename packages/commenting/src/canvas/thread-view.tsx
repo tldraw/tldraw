@@ -204,7 +204,7 @@ export const ThreadView = memo(function ThreadView({
 		resolveAuthor,
 		onPostComment,
 		isCommentUnread,
-		onCommentRead,
+		onCommentsRead,
 		getMentionSuggestions,
 		renderMentionSuggestion,
 		getThreadHref,
@@ -304,16 +304,16 @@ export const ThreadView = memo(function ThreadView({
 	}, [editingId])
 
 	// Every unread comment on display gets reported read — including replies that arrive while
-	// the view stays mounted, since the effect re-runs as `comments` changes. The host's receipt
-	// write flips isCommentUnread to false, so re-runs find nothing to report.
+	// the view stays mounted, since the effect re-runs as `comments` changes. Reported as one
+	// batch so the host can record the receipts in a single write. The host's receipt write flips
+	// isCommentUnread to false, so re-runs find nothing to report.
 	useEffect(() => {
-		if (!isCommentUnread || !onCommentRead) return
-		for (const comment of comments) {
-			if (isCommentUnread(comment.id)) {
-				onCommentRead(comment.id)
-			}
+		if (!isCommentUnread || !onCommentsRead) return
+		const unreadIds = comments.filter((comment) => isCommentUnread(comment.id)).map((c) => c.id)
+		if (unreadIds.length > 0) {
+			onCommentsRead(unreadIds)
 		}
-	}, [comments, isCommentUnread, onCommentRead])
+	}, [comments, isCommentUnread, onCommentsRead])
 
 	const postReply = () => {
 		if (isCommentEmpty(reply) || !currentUserId) return

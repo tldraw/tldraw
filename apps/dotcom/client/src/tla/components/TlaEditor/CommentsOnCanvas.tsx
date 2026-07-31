@@ -184,7 +184,10 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		(commentId: string) => unreadCommentIds.has(commentId),
 		[unreadCommentIds]
 	)
-	const onCommentRead = useCallback((commentId: string) => app?.markCommentRead(commentId), [app])
+	const onCommentsRead = useCallback(
+		(commentIds: string[]) => app?.markCommentsRead(commentIds),
+		[app]
+	)
 	const getMentionSuggestions = useCallback(
 		(query: string) => filterMentionMembers(roster, query),
 		[roster]
@@ -202,7 +205,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			currentUserId,
 			resolveAuthor,
 			isCommentUnread: app ? isCommentUnread : undefined,
-			onCommentRead: app ? onCommentRead : undefined,
+			onCommentsRead: app ? onCommentsRead : undefined,
 			getMentionSuggestions,
 			getThreadHref,
 		}),
@@ -211,7 +214,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			currentUserId,
 			resolveAuthor,
 			isCommentUnread,
-			onCommentRead,
+			onCommentsRead,
 			getMentionSuggestions,
 			getThreadHref,
 		]

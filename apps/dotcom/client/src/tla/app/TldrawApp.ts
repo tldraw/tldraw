@@ -917,6 +917,11 @@ export class TldrawApp {
 		this.z.mutate.comment.markRead({ commentId, readAt: Date.now() })
 	}
 
+	markCommentsRead(commentIds: string[]) {
+		if (commentIds.length === 0) return
+		this.z.mutate.comment.markManyRead({ commentIds, readAt: Date.now() })
+	}
+
 	markCommentUnread(commentId: string) {
 		this.z.mutate.comment.markUnread({ commentId })
 	}
