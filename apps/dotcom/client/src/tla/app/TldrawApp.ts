@@ -674,11 +674,18 @@ export class TldrawApp {
 		}
 
 		this.storeNewRoomCreationTracking(fileId, createSource, Date.now())
-		try {
-			await this.z.mutate.createFile({ fileId, workspaceId, name, createSource, time: Date.now() })
-				.client
-		} catch (e) {
-			this.showMutationRejectionToast((e as Error).message as ZErrorCode)
+		// Zero mutator promises never reject — failures resolve with {type: 'error'} — so a
+		// try/catch here would be dead code and a failed create would navigate to a file that
+		// rolls back.
+		const res = await this.z.mutate.createFile({
+			fileId,
+			workspaceId,
+			name,
+			createSource,
+			time: Date.now(),
+		}).client
+		if (res.type === 'error') {
+			this.showMutationRejectionToast(res.error.message as ZErrorCode)
 			return Result.err('mutation rejected')
 		}
 

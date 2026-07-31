@@ -515,15 +515,26 @@ class DotcomScenario {
 				const workspaceId = uniqueId()
 				const fileId = uniqueId()
 				// Await server acknowledgement (not just optimistic apply) so the file exists
-				// server-side before we navigate to it.
-				await app.z.mutate.createWorkspace({ id: workspaceId, name: workspaceName }).server
-				await app.z.mutate.createFile({
+				// server-side before we navigate to it. These promises never reject — a rejected
+				// mutation resolves with {type: 'error'} — so check the result or a failure
+				// surfaces later as an unrelated timeout.
+				const workspaceRes = await app.z.mutate.createWorkspace({
+					id: workspaceId,
+					name: workspaceName,
+				}).server
+				if (workspaceRes.type !== 'success') {
+					throw new Error(`createWorkspace rejected: ${JSON.stringify(workspaceRes)}`)
+				}
+				const fileRes = await app.z.mutate.createFile({
 					fileId,
 					workspaceId,
 					name: fileName,
 					createSource: null,
 					time: Date.now(),
 				}).server
+				if (fileRes.type !== 'success') {
+					throw new Error(`createFile rejected: ${JSON.stringify(fileRes)}`)
+				}
 				return { fileId }
 			},
 			{ workspaceName, fileName }

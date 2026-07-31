@@ -183,8 +183,12 @@ test.describe('UI scenarios', () => {
 		await owner.shareMenu.unpublishFile()
 		await owner.page.keyboard.press('Escape')
 
-		await visitor.page.goto(publishedUrl, { waitUntil: 'load' })
-		await expect(visitor.page.getByTestId('tla-error')).toBeVisible()
+		// The unpublish applies optimistically; the visitor only sees it once the server has
+		// committed, so reload until the published page stops resolving.
+		await expect(async () => {
+			await visitor.page.goto(publishedUrl, { waitUntil: 'load' })
+			await expect(visitor.page.getByTestId('tla-error')).toBeVisible({ timeout: 3000 })
+		}).toPass({ timeout: 15000 })
 	})
 
 	test('missing files show not-found UI to signed-in and signed-out users', async ({
