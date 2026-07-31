@@ -253,11 +253,29 @@ interface HeapEntry {
 
 class EdgeMaxHeap {
 	private readonly items: HeapEntry[] = []
+	// Per-edge normalized (lo, hi) id pair for the z tie-break, precomputed once so comparisons
+	// allocate nothing. With coincident anchors every edge prices to the same z (+Infinity), so
+	// the tie-break runs on nearly every comparison of a rebuild — allocating the pair there
+	// churned millions of short-lived tuples.
+	private readonly loIds: string[]
+	private readonly hiIds: string[]
 
-	constructor(
-		private readonly edges: readonly MstEdge[],
-		private readonly leaves: readonly LeafInput[]
-	) {}
+	constructor(edges: readonly MstEdge[], leaves: readonly LeafInput[]) {
+		const n = edges.length
+		this.loIds = new Array(n)
+		this.hiIds = new Array(n)
+		for (let i = 0; i < n; i++) {
+			const aId = leaves[edges[i].a].id
+			const bId = leaves[edges[i].b].id
+			if (aId < bId) {
+				this.loIds[i] = aId
+				this.hiIds[i] = bId
+			} else {
+				this.loIds[i] = bId
+				this.hiIds[i] = aId
+			}
+		}
+	}
 
 	peek(): HeapEntry | undefined {
 		return this.items[0]
@@ -282,7 +300,11 @@ class EdgeMaxHeap {
 	higherPriority(a: HeapEntry, b: HeapEntry): boolean {
 		if (a.z > b.z) return true
 		if (a.z < b.z) return false
-		return edgeIdPairLess(this.edges[a.edgeIndex], this.edges[b.edgeIndex], this.leaves)
+		// Tie-break on the normalized leaf-id pair, ascending.
+		const aLo = this.loIds[a.edgeIndex]
+		const bLo = this.loIds[b.edgeIndex]
+		if (aLo !== bLo) return aLo < bLo
+		return this.hiIds[a.edgeIndex] < this.hiIds[b.edgeIndex]
 	}
 
 	private siftUp(index: number) {
@@ -310,17 +332,4 @@ class EdgeMaxHeap {
 			index = best
 		}
 	}
-}
-
-function edgeIdPairLess(a: MstEdge, b: MstEdge, leaves: readonly LeafInput[]): boolean {
-	const [aLo, aHi] = normalizedEdgeIds(a, leaves)
-	const [bLo, bHi] = normalizedEdgeIds(b, leaves)
-	if (aLo !== bLo) return aLo < bLo
-	return aHi < bHi
-}
-
-function normalizedEdgeIds(edge: MstEdge, leaves: readonly LeafInput[]): [string, string] {
-	const aId = leaves[edge.a].id
-	const bId = leaves[edge.b].id
-	return aId < bId ? [aId, bId] : [bId, aId]
 }
