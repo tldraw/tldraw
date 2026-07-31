@@ -165,8 +165,10 @@ function readLatest<T extends TLComment | TLCommentThread>(
  * Replace a comment's body and stamp it as edited, which is what renders the "(edited)" marker on
  * its byline.
  *
- * Editing is the author's to do. The built-in UI only offers it on your own comments, and a server
- * that enforces per-record permissions rejects anyone else's edit.
+ * Editing is the author's to do by default, on both ends: the built-in UI offers it on your own
+ * comments ({@link CommentingOptions.canModifyComment}), and a server enforcing per-record
+ * permissions rejects anyone else's edit. Widening one without the other leaves an edit that's
+ * offered and then rejected, so widen both.
  *
  * The `comment` you pass says which comment to edit; the body lands on the version the store
  * currently holds, so a copy you've held on to can't revert a change made since it, and can't
@@ -225,7 +227,8 @@ export function reopenThread(editor: Editor, thread: TLCommentThread): void {
  * server prunes the comment and its reactions once the flag is persisted. That way no client ever
  * removes records it doesn't own — a reaction belongs to whoever left it — and a server enforcing
  * per-record permissions has a write it can check rather than a deletion it can only refuse.
- * Deleting is the author's to do; the built-in UI only offers it on your own comments.
+ * Deleting is the author's to do by default, and the built-in UI offers it on your own comments;
+ * {@link CommentingOptions.canModifyComment} widens that, as does its counterpart on the server.
  *
  * The write is never undoable, whatever {@link CommentingOptions.history} says: the flag is
  * write-once server-side, so an undo clearing it would be vetoed and rebased rather than bring the
@@ -265,7 +268,8 @@ export function deleteComment(editor: Editor, comment: TLComment): void {
  *
  * A soft delete on the same model as {@link deleteComment}: the flag goes on the thread record and
  * the server prunes the thread, its comments, and their reactions once it's persisted. Deleting a
- * thread is its creator's to do — a server enforcing per-record permissions vetoes anyone else —
+ * thread is its creator's to do by default — {@link CommentingOptions.canModifyComment} widens
+ * that, and a server enforcing per-record permissions vetoes anyone its own rule doesn't allow —
  * and the write is never undoable.
  *
  * Closes the thread if it's the open one. A thread that's already pruned is a no-op.

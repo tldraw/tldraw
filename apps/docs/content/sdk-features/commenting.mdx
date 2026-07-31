@@ -219,6 +219,8 @@ The `ctx` carries the editor, the viewer's `currentUserId`, and the write itself
 
 Resolving, reopening, reacting, and moving a pin aren't asked about: none of them is anyone's in particular, so `canComment` is the only gate on them. `canModifyComment` is checked after `canComment`, so a viewer who may not participate gets no action affordances whatever it returns. Like `canComment`, it's read during render (through `useCanModifyComment`), so a callback that reads signals re-evaluates when they change.
 
+Whatever you decide here, decide it again on the server: `createCommentAuthorizers` takes a `canModifyComment` of its own, and it's the one that counts. See [enforcing the same rules on the server](#syncing-comments).
+
 <Callout type="warning">
 	`canComment` and `canModifyComment` hide UI. They don't enforce anything. Comment records carry a
 	client-supplied `createdBy` and `authorId`, and a client can write whatever your sync server
@@ -536,7 +538,29 @@ const room = new TLSocketRoom({
 
 `onCommittedChanges` only fires for client pushes. Server-initiated writes don't trigger it, including `updateStore`, `loadSnapshot`, and writing to storage directly, so anything mirroring room state has to handle those paths itself.
 
-This is also where per-record permissions belong. The lane's write access is all or nothing. Rules like "only the author may edit a comment" or "only the thread's creator may delete it" are yours to enforce as your server validates each incoming record against the session's identity. Whatever you decide there is the real rule: [`canModifyComment`](#who-can-edit-and-delete) only decides which affordances the UI offers, so widen the two together — a moderator who may remove anyone's comment needs the server to accept the write as well as the client to offer it.
+This is also where per-record permissions belong. The lane's write access is all or nothing, so rules like "only the author may edit a comment" or "only the thread's creator may delete it" are enforced as your server validates each incoming record against the session's identity. `createCommentAuthorizers` is that validation, ready-made — pass it to the room's `authorizeRecord`:
+
+```ts
+import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
+
+const room = new TLSocketRoom({
+	schema,
+	objectTypes: ['comment', 'comment-thread', 'comment-reaction'],
+	authorizeRecord: {
+		...createCommentAuthorizers<SessionMeta>({
+			getUserId: (session) => session.meta.userId,
+			// Moderators may take anything down. Editing stays the author's, whoever you are.
+			canModifyComment: (ctx) =>
+				(ctx.action !== 'edit-comment' && isModerator(ctx.session.meta)) ||
+				ctx.userId === ctx.ownerId,
+		}),
+	},
+})
+```
+
+It stamps authorship from the session so nothing can be posted or resolved in someone else's name, keeps `isDeleted` write-once, and — through `canModifyComment` — decides who may edit a comment, delete a comment, or delete a thread. That last one is the same question the client's [`canModifyComment`](#who-can-edit-and-delete) answers, and this is the answer that counts: the client's only decides which affordances the UI offers. Widen the two together. A moderator offered a delete the server then rejects sees the comment disappear and come back, with nothing to explain it.
+
+Left unset it defaults to the record's owner, matching the client. The callback is asked after the structural rules, so widening it grants those three writes and nothing else: attribution stays immutable, a soft delete stays write-once, and clients still can't hard-delete a record.
 
 ## Building your own comments UI
 
