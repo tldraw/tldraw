@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
+import { AdminButton } from './AdminButton'
 import styles from './admin.module.css'
 
 // Helper component for structured data display.
@@ -18,9 +18,9 @@ export function StructuredDataDisplay({ data }: { data: object }) {
 
 	return (
 		<div className={styles.structuredData}>
-			<TlaButton onClick={handleCopy} variant="secondary" className={styles.copyButton}>
+			<AdminButton onClick={handleCopy} variant="secondary" className={styles.copyButton}>
 				{copied ? 'Copied!' : 'Copy JSON'}
-			</TlaButton>
+			</AdminButton>
 			<pre className={styles.dataDisplay}>{JSON.stringify(data, null, 2)}</pre>
 		</div>
 	)

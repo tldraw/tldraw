@@ -1,7 +1,7 @@
 import { AdminFileAssetsResponseBody } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetch } from 'tldraw'
-import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
+import { AdminButton } from './AdminButton'
 import { formatBytes, StructuredDataDisplay } from './shared'
 import styles from './admin.module.css'
 
@@ -9,21 +9,27 @@ export function FilesSection() {
 	return (
 		<>
 			<section className={styles.adminSection}>
-				<h3 className="tla-text_ui__title">File Operations</h3>
+				<h3 className={styles.sectionTitle}>Downloads</h3>
 				<div className={styles.fileOperations}>
 					<DownloadTldrFile legacy={false} />
 					<DownloadTldrFile legacy={true} />
 					<CreateLegacyFile />
-					<AssetDiagnostics />
-					<UndeleteFileById />
 				</div>
 			</section>
 			<section className={styles.adminSection}>
-				<h3 className="tla-text_ui__title">Welcome template</h3>
+				<h3 className={styles.sectionTitle}>Asset diagnostics</h3>
+				<AssetDiagnostics />
+			</section>
+			<section className={styles.adminSection}>
+				<h3 className={styles.sectionTitle}>Undelete file</h3>
+				<UndeleteFileById />
+			</section>
+			<section className={styles.adminSection}>
+				<h3 className={styles.sectionTitle}>Welcome template</h3>
 				<WelcomeTemplate />
 			</section>
 			<section className={styles.adminSection}>
-				<h3 className="tla-text_ui__title">Danger Zone</h3>
+				<h3 className={styles.sectionTitle}>Danger zone</h3>
 				<HardDeleteFile />
 			</section>
 		</>
@@ -115,7 +121,7 @@ function WelcomeTemplate() {
 
 	return (
 		<div className={styles.fileOperation}>
-			<p className="tla-text_ui__regular">
+			<p>
 				The file new workspaces fork their first file from. Publish the file first, then set it here
 				by its file ID. Clear it to use the built-in default.
 			</p>
@@ -140,12 +146,12 @@ function WelcomeTemplate() {
 					ref={inputRef}
 					className={styles.searchInput}
 				/>
-				<TlaButton onClick={onSet} variant="primary">
+				<AdminButton onClick={onSet} variant="primary">
 					Set as welcome template
-				</TlaButton>
-				<TlaButton onClick={onClear} variant="secondary" disabled={!current}>
+				</AdminButton>
+				<AdminButton onClick={onClear} variant="secondary" disabled={!current}>
 					Clear
-				</TlaButton>
+				</AdminButton>
 			</div>
 		</div>
 	)
@@ -199,9 +205,9 @@ function HardDeleteFile() {
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 			<div className={styles.deleteContainer}>
 				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
-				<TlaButton onClick={onDelete} className={styles.deleteButton}>
+				<AdminButton onClick={onDelete} variant="danger" className={styles.deleteButton}>
 					Delete (cannot be undone)
-				</TlaButton>
+				</AdminButton>
 			</div>
 		</div>
 	)
@@ -236,9 +242,10 @@ function CreateLegacyFile() {
 	return (
 		<div className={styles.fileOperation}>
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
-			<TlaButton onClick={handleCreate} variant="secondary" isLoading={isCreating}>
-				Create Legacy File
-			</TlaButton>
+			<p>Creates an empty legacy multiplayer room and opens it.</p>
+			<AdminButton onClick={handleCreate} variant="primary" isLoading={isCreating}>
+				Create legacy file
+			</AdminButton>
 		</div>
 	)
 }
@@ -292,16 +299,16 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 
 	return (
 		<div className={styles.fileOperation}>
-			<h4 className="tla-text_ui__medium">
-				{legacy ? 'Download Legacy .tldr File' : 'Download .tldr File'}
+			<h4 className={styles.subTitle}>
+				{legacy ? 'Download legacy .tldr file' : 'Download .tldr file'}
 			</h4>
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 			<div className={styles.downloadContainer}>
 				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
-				<TlaButton onClick={onDownload} variant="primary" isLoading={isDownloading}>
+				<AdminButton onClick={onDownload} variant="primary" isLoading={isDownloading}>
 					Download
-				</TlaButton>
+				</AdminButton>
 			</div>
 		</div>
 	)
@@ -347,15 +354,14 @@ function UndeleteFileById() {
 
 	return (
 		<div className={styles.fileOperation}>
-			<h4 className="tla-text_ui__medium">Undelete file</h4>
-			<p className="tla-text_ui__regular">Restores a soft-deleted file by ID.</p>
+			<p>Restores a soft-deleted file by ID.</p>
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 			<div className={styles.searchContainer}>
 				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
-				<TlaButton onClick={onUndelete} variant="primary" isLoading={isLoading}>
+				<AdminButton onClick={onUndelete} variant="primary" isLoading={isLoading}>
 					Undelete
-				</TlaButton>
+				</AdminButton>
 			</div>
 		</div>
 	)
@@ -392,8 +398,7 @@ function AssetDiagnostics() {
 
 	return (
 		<div className={styles.fileOperation}>
-			<h4 className="tla-text_ui__medium">Asset diagnostics</h4>
-			<p className="tla-text_ui__regular">
+			<p>
 				Checks whether each asset in the file&apos;s last persisted snapshot exists in the uploads
 				bucket and is associated with the file.
 			</p>
@@ -408,9 +413,9 @@ function AssetDiagnostics() {
 						if (e.key === 'Enter') onCheck()
 					}}
 				/>
-				<TlaButton onClick={onCheck} variant="primary" isLoading={isLoading}>
+				<AdminButton onClick={onCheck} variant="primary" isLoading={isLoading}>
 					Check assets
-				</TlaButton>
+				</AdminButton>
 			</div>
 			{report && (
 				<>

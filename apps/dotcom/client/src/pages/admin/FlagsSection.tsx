@@ -1,13 +1,13 @@
 import { FeatureFlagValue, PercentageFeatureFlag } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useState } from 'react'
 import { fetch } from 'tldraw'
-import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
+import { AdminButton } from './AdminButton'
 import styles from './admin.module.css'
 
 export function FlagsSection() {
 	return (
 		<section className={styles.adminSection}>
-			<h3 className="tla-text_ui__title">Feature Flags</h3>
+			<h3 className={styles.sectionTitle}>Feature flags</h3>
 			<FeatureFlags />
 		</section>
 	)
@@ -88,16 +88,16 @@ function FeatureFlags() {
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 
-			<p className={`tla-text_ui__small ${styles.featureFlagsNote}`}>
+			<p className={styles.featureFlagsNote}>
 				<strong>Global feature toggles.</strong> Changes take effect immediately for ALL users.
 			</p>
-			<p className={`tla-text_ui__small ${styles.featureFlagsDescription}`}>
+			<p className={styles.featureFlagsDescription}>
 				Boolean flags toggle on/off for everyone. Percentage flags roll out to X% of users
 				(evaluated server-side per userId).
 			</p>
 
 			{isLoading ? (
-				<p className="tla-text_ui__small">Loading flags...</p>
+				<p>Loading flags...</p>
 			) : (
 				<div className={styles.featureFlagsContainer}>
 					{Object.entries(flags)
@@ -156,14 +156,12 @@ function FeatureFlags() {
 											}}
 											disabled={isSaving}
 										/>
-										<span className="tla-text_ui__small">
+										<span>
 											<strong>{label}</strong>
 										</span>
 									</label>
 									{flagValue.description && (
-										<span className={`tla-text_ui__small ${styles.featureFlagsDescription}`}>
-											{flagValue.description}
-										</span>
+										<span className={styles.featureFlagsDescription}>{flagValue.description}</span>
 									)}
 								</div>
 							)
@@ -211,7 +209,7 @@ function PercentageFlag({
 						disabled={isSaving}
 						style={{ cursor: 'pointer' }}
 					/>
-					<span className="tla-text_ui__small">
+					<span>
 						<strong>{label}</strong>
 					</span>
 				</label>
@@ -226,23 +224,17 @@ function PercentageFlag({
 					className={styles.searchInput}
 					style={{ width: 60 }}
 				/>
-				<span
-					className={`tla-text_ui__small ${!flagValue.enabled ? styles.featureFlagDisabled : ''}`}
-				>
-					%
-				</span>
-				<TlaButton
+				<span className={!flagValue.enabled ? styles.featureFlagDisabled : ''}>%</span>
+				<AdminButton
 					onClick={() => onSavePercentage(pct)}
 					variant="primary"
 					disabled={isSaving || !flagValue.enabled || pct === currentPct}
 				>
 					Save
-				</TlaButton>
+				</AdminButton>
 			</div>
 			{flagValue.description && (
-				<span className={`tla-text_ui__small ${styles.featureFlagsDescription}`}>
-					{flagValue.description}
-				</span>
+				<span className={styles.featureFlagsDescription}>{flagValue.description}</span>
 			)}
 		</div>
 	)

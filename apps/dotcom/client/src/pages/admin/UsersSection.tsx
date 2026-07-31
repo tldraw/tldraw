@@ -1,7 +1,7 @@
 import { TlaFile, ZStoreData } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetch } from 'tldraw'
-import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
+import { AdminButton } from './AdminButton'
 import { StructuredDataDisplay } from './shared'
 import styles from './admin.module.css'
 
@@ -98,7 +98,7 @@ function DeletedFilesTable({
 
 	return (
 		<div className={styles.fileOperation}>
-			<h4 className="tla-text_ui__medium">Deleted files</h4>
+			<h4 className={styles.subTitle}>Deleted files</h4>
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			<div className={styles.tableScroll}>
 				<table className={`${styles.diagnosticsTable} ${styles.fitTable}`}>
@@ -123,14 +123,15 @@ function DeletedFilesTable({
 								<td>{file.workspaceRole ?? (file.ownerId === userId ? 'owner' : '—')}</td>
 								<td>{new Date(file.updatedAt).toLocaleString()}</td>
 								<td>
-									<TlaButton
+									<AdminButton
 										variant="secondary"
+										className={styles.btnCompact}
 										disabled={busyId !== null}
 										isLoading={busyId === file.id}
 										onClick={() => onUndelete(file)}
 									>
 										Undelete
-									</TlaButton>
+									</AdminButton>
 								</td>
 							</tr>
 						))}
@@ -219,7 +220,11 @@ export function UsersSection() {
 		<>
 			{/* User Search Section */}
 			<section className={styles.adminSection}>
-				<h2 className="tla-text_ui__title">User Management</h2>
+				<h2 className={styles.sectionTitle}>User management</h2>
+				<p>
+					Look up a user by email or ID to inspect their data, force a reboot, restore deleted
+					files, or delete the account.
+				</p>
 				<div className={styles.searchContainer}>
 					<input
 						ref={inputRef}
@@ -232,9 +237,9 @@ export function UsersSection() {
 						}}
 						className={styles.searchInput}
 					/>
-					<TlaButton onClick={loadData} variant="primary">
-						Find User
-					</TlaButton>
+					<AdminButton onClick={loadData} variant="primary">
+						Find user
+					</AdminButton>
 				</div>
 				{error && <div className={styles.errorMessage}>{error}</div>}
 				{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
@@ -243,26 +248,27 @@ export function UsersSection() {
 			{/* User Data Section */}
 			{data && (
 				<section className={styles.adminSection}>
-					<h3 className="tla-text_ui__title">User Data</h3>
+					<h3 className={styles.sectionTitle}>User data</h3>
 					<UserDataSummary data={data} deletedFileCount={deletedFiles.length} />
 					<div className={styles.userActions}>
-						<TlaButton
+						<AdminButton
 							onClick={() => {
 								navigator.clipboard.writeText(JSON.stringify(data, null, 2))
 								setSuccessMessage('User data copied to clipboard')
 							}}
 							variant="secondary"
 						>
-							Copy Data
-						</TlaButton>
-						<TlaButton
+							Copy data
+						</AdminButton>
+						<AdminButton
+							variant="secondary"
 							disabled={isRebooting}
 							onClick={doReboot}
 							isLoading={isRebooting}
 							className={styles.userActionButton}
 						>
-							Force Reboot
-						</TlaButton>
+							Force reboot
+						</AdminButton>
 					</div>
 					<DeletedFilesTable
 						files={deletedFiles}
@@ -275,7 +281,7 @@ export function UsersSection() {
 
 			{/* Danger Zone Section */}
 			<section className={styles.adminSection}>
-				<h3 className="tla-text_ui__title">Danger Zone</h3>
+				<h3 className={styles.sectionTitle}>Danger zone</h3>
 				<DeleteUser />
 			</section>
 		</>
@@ -346,7 +352,7 @@ function DeleteUser() {
 
 	return (
 		<div className={styles.dangerZone}>
-			<h4>Delete User</h4>
+			<h4 className={styles.subTitle}>Delete user</h4>
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{isComplete && <div className={styles.successMessage}>User deleted successfully! 🧹</div>}
 
@@ -358,20 +364,21 @@ function DeleteUser() {
 					className={styles.searchInput}
 					disabled={isDeleting}
 				/>
-				<TlaButton
+				<AdminButton
 					onClick={onDelete}
+					variant="danger"
 					className={styles.deleteButton}
 					disabled={isDeleting}
 					isLoading={isDeleting}
 				>
-					{isDeleting ? 'Deleting...' : 'Delete User (cannot be undone)'}
-				</TlaButton>
+					{isDeleting ? 'Deleting...' : 'Delete user (cannot be undone)'}
+				</AdminButton>
 			</div>
 
 			{/* Progress Log */}
 			{progressLog.length > 0 && (
 				<div className={styles.progressLog}>
-					<h5>Deletion Progress:</h5>
+					<h5>Deletion progress</h5>
 					<div className={styles.logContainer}>
 						{progressLog.map((log, index) => (
 							<div key={index} className={styles.logEntry}>

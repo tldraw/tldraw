@@ -27,7 +27,7 @@ export function Component() {
 	return (
 		<div className={styles.adminLayout}>
 			<nav className={styles.adminSidebar}>
-				<div className={`tla-text_ui__big ${styles.adminSidebarTitle}`}>Admin</div>
+				<div className={styles.adminSidebarTitle}>Admin</div>
 				{SECTIONS.map((s) => (
 					<NavLink
 						key={s.id}
@@ -38,7 +38,7 @@ export function Component() {
 								: styles.adminSidebarItem
 						}
 					>
-						<span className="tla-text_ui__regular">{s.label}</span>
+						<span>{s.label}</span>
 					</NavLink>
 				))}
 			</nav>

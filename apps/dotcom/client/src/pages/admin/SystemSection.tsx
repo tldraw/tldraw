@@ -26,7 +26,7 @@ export function SystemSection() {
 	return (
 		<>
 			<section className={styles.adminSection}>
-				<h3 className="tla-text_ui__title">Release</h3>
+				<h3 className={styles.sectionTitle}>Release</h3>
 				<p className={styles.adminReleaseMeta}>
 					<span className={styles.adminReleaseLabel}>Release:</span>{' '}
 					<code className={styles.adminReleaseValue} translate="no">
@@ -35,7 +35,7 @@ export function SystemSection() {
 				</p>
 			</section>
 			<section className={styles.adminSection}>
-				<h3 className="tla-text_ui__title">System Health</h3>
+				<h3 className={styles.sectionTitle}>System health</h3>
 				{error && <div className={styles.errorMessage}>{error}</div>}
 				{replicatorData && <StructuredDataDisplay data={replicatorData} />}
 			</section>
