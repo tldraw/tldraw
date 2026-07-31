@@ -8,8 +8,8 @@ import styles from './admin.module.css'
 
 const SECTIONS = [
 	{ id: 'users', label: 'Users' },
-	{ id: 'flags', label: 'Feature flags' },
 	{ id: 'files', label: 'Files & templates' },
+	{ id: 'flags', label: 'Feature flags' },
 	{ id: 'system', label: 'System' },
 ] as const
 
