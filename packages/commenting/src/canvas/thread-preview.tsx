@@ -5,6 +5,7 @@ import {
 	EditorAtom,
 	TLComment,
 	TLCommentThread,
+	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useTranslation,
 	useValue,
@@ -190,9 +191,12 @@ export function ThreadPreview({
 
 	// The panel floats over the canvas and scrolls nothing of its own, so a wheel on it should zoom
 	// and pan the canvas underneath — like every other tldraw panel, and like the popover it
-	// previews. Without this the canvas would freeze wherever the preview happened to be.
+	// previews. Without this the canvas would freeze wherever the preview happened to be. Hover
+	// passes through too: the panel portals to the container, outside the comments layer whose root
+	// does this for the pins, so it needs its own.
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
+	usePassThroughMouseOverEvents(ref)
 
 	// Each thread's opening comment and its total comment count. `useComments` is oldest-first, so
 	// the first hit per thread is that thread's first comment. One pass over every comment beats a
