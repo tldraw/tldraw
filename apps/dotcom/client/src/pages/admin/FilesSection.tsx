@@ -15,6 +15,7 @@ export function FilesSection() {
 					<DownloadTldrFile legacy={true} />
 					<CreateLegacyFile />
 					<AssetDiagnostics />
+					<UndeleteFileById />
 				</div>
 			</section>
 			<section className={styles.adminSection}>
@@ -300,6 +301,60 @@ function DownloadTldrFile({ legacy }: { legacy: boolean }) {
 				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
 				<TlaButton onClick={onDownload} variant="primary" isLoading={isDownloading}>
 					Download
+				</TlaButton>
+			</div>
+		</div>
+	)
+}
+
+function UndeleteFileById() {
+	const inputRef = useRef<HTMLInputElement>(null)
+	const [error, setError] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+	const [isLoading, setIsLoading] = useState(false)
+
+	const onUndelete = useCallback(async () => {
+		const fileId = inputRef.current?.value?.trim()
+		if (!fileId) {
+			setError('Please enter a file ID')
+			return
+		}
+		if (!window.confirm(`Undelete file ${fileId}?`)) return
+		setError(null)
+		setSuccessMessage(null)
+		setIsLoading(true)
+		try {
+			const res = await fetch(`/api/app/admin/undelete_file/${encodeURIComponent(fileId)}`, {
+				method: 'POST',
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setSuccessMessage('File undeleted')
+			inputRef.current!.value = ''
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.fileOperation}>
+			<h4 className="tla-text_ui__medium">Undelete file</h4>
+			<p className="tla-text_ui__regular">Restores a soft-deleted file by ID.</p>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+			<div className={styles.searchContainer}>
+				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
+				<TlaButton onClick={onUndelete} variant="primary" isLoading={isLoading}>
+					Undelete
 				</TlaButton>
 			</div>
 		</div>

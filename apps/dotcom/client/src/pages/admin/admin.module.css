@@ -458,6 +458,34 @@
 
 .adminMain {
 	flex: 1;
+	min-width: 0;
 	overflow-y: auto;
 	padding: 24px;
+}
+
+.tableScroll {
+	overflow-x: auto;
+}
+
+.fitTable {
+	width: auto;
+}
+
+.fitTable th,
+.fitTable td {
+	white-space: nowrap;
+	padding-right: 24px;
+}
+
+.fitTable th:last-child,
+.fitTable td:last-child {
+	padding-right: 8px;
+}
+
+.fileIdCell {
+	max-width: 220px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-family: monospace;
 }

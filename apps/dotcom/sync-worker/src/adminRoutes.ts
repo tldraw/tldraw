@@ -17,6 +17,7 @@ import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
+import { undeleteFile } from './undeleteFile'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
@@ -113,6 +114,69 @@ export const adminRoutes = createRouter<Environment>()
 			}
 		}
 		return await hardDeleteAppFile({ pg, file, env })
+	})
+	.post('/app/admin/undelete_file/:fileId', async (res, env) => {
+		const fileId = res.params.fileId
+		assert(typeof fileId === 'string', 'fileId is required')
+
+		const pg = createPostgresConnectionPool(env, '/app/admin/undelete_file')
+		const outcome = await undeleteFile(pg, fileId)
+		if (outcome.result === 'not_found') {
+			return new Response('File not found', { status: 404 })
+		}
+		if (outcome.result === 'not_deleted') {
+			return new Response('File is not deleted', { status: 400 })
+		}
+		// Hard-reboot the owner so the restored rows replicate to their session (the isDeleted
+		// false-flip case flagged in dotcom-shared mutators.ts).
+		if (outcome.file.ownerId) {
+			await getUserDurableObject(env, outcome.file.ownerId).admin_forceHardReboot(
+				outcome.file.ownerId
+			)
+		}
+		return json({ success: true })
+	})
+	// Deleted files the user OWNS: legacy direct owner, their home workspace (group id = user
+	// id), or a workspace where they hold the owner role. Mere memberships and guest files are
+	// excluded — the per-row Undelete button restores files, so the list must only contain files
+	// the user legitimately owns. Queried from Postgres because the user's replicated store
+	// filters out their own deleted files (see fetchEverythingSql).
+	.get('/app/admin/user/deleted_files', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+		const userRow = await requireUser(env, q)
+		const pg = createPostgresConnectionPool(env, '/app/admin/user/deleted_files')
+		const files = await pg
+			.selectFrom('file')
+			.leftJoin('group', 'group.id', 'file.owningGroupId')
+			.leftJoin('group_user', (join) =>
+				join
+					.onRef('group_user.groupId', '=', 'file.owningGroupId')
+					.on('group_user.userId', '=', userRow.id)
+			)
+			.where('file.isDeleted', '=', true)
+			.where((eb) =>
+				eb.or([
+					eb('file.ownerId', '=', userRow.id),
+					eb('file.owningGroupId', '=', userRow.id),
+					eb(
+						'file.owningGroupId',
+						'in',
+						eb
+							.selectFrom('group_user')
+							.select('group_user.groupId')
+							.where('group_user.userId', '=', userRow.id)
+							.where('group_user.role', '=', 'owner')
+					),
+				])
+			)
+			.selectAll('file')
+			.select(['group.name as workspaceName', 'group_user.role as workspaceRole'])
+			.orderBy('file.updatedAt', 'desc')
+			.execute()
+		return json(files)
 	})
 	.post('/app/admin/delete_user', async (res, env) => {
 		const q = res.query['q']

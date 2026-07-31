@@ -5,19 +5,25 @@ import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
 import { StructuredDataDisplay } from './shared'
 import styles from './admin.module.css'
 
-// Helper component for user data summary
-function UserDataSummary({ data }: { data: ZStoreData }) {
+// Helper component for user data summary. deletedFileCount comes from the dedicated endpoint —
+// the replicated store excludes the user's own deleted files, so it can't be derived from `data`.
+function UserDataSummary({
+	data,
+	deletedFileCount,
+}: {
+	data: ZStoreData
+	deletedFileCount: number
+}) {
 	const getUserInfo = () => {
 		const user = data.user[0]
 		const files = data.file || []
-		const deletedFiles = files.filter((f: TlaFile) => f.isDeleted)
 		const activeFiles = files.filter((f: TlaFile) => !f.isDeleted)
 
 		return {
 			name: user?.name || 'Unknown',
 			email: user?.email || 'No email',
 			activeFiles: activeFiles.length,
-			deletedFiles: deletedFiles.length,
+			deletedFiles: deletedFileCount,
 		}
 	}
 
@@ -47,12 +53,114 @@ function UserDataSummary({ data }: { data: ZStoreData }) {
 	)
 }
 
+type DeletedFileRow = TlaFile & { workspaceName: string | null; workspaceRole: string | null }
+
+function DeletedFilesTable({
+	files,
+	userId,
+	onUndeleted,
+}: {
+	files: DeletedFileRow[]
+	userId: string
+	onUndeleted(): void
+}) {
+	const [busyId, setBusyId] = useState(null as string | null)
+	const [error, setError] = useState(null as string | null)
+
+	const onUndelete = useCallback(
+		async (file: DeletedFileRow) => {
+			if (
+				!window.confirm(
+					`Undelete "${file.name || file.id}"? It will reappear in the owner's sidebar.`
+				)
+			) {
+				return
+			}
+			setBusyId(file.id)
+			setError(null)
+			try {
+				const res = await fetch(`/api/app/admin/undelete_file/${encodeURIComponent(file.id)}`, {
+					method: 'POST',
+				})
+				if (!res.ok) {
+					setError(res.statusText + ': ' + (await res.text()))
+					return
+				}
+				onUndeleted()
+			} finally {
+				setBusyId(null)
+			}
+		},
+		[onUndeleted]
+	)
+
+	if (files.length === 0) return null
+
+	return (
+		<div className={styles.fileOperation}>
+			<h4 className="tla-text_ui__medium">Deleted files</h4>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			<div className={styles.tableScroll}>
+				<table className={`${styles.diagnosticsTable} ${styles.fitTable}`}>
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>File ID</th>
+							<th>Workspace</th>
+							<th>Role</th>
+							<th>Updated</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						{files.map((file) => (
+							<tr key={file.id}>
+								<td>{file.name || 'Untitled'}</td>
+								<td className={styles.fileIdCell} title={file.id}>
+									{file.id}
+								</td>
+								<td>{file.owningGroupId === userId ? 'Home' : (file.workspaceName ?? '—')}</td>
+								<td>{file.workspaceRole ?? (file.ownerId === userId ? 'owner' : '—')}</td>
+								<td>{new Date(file.updatedAt).toLocaleString()}</td>
+								<td>
+									<TlaButton
+										variant="secondary"
+										disabled={busyId !== null}
+										isLoading={busyId === file.id}
+										onClick={() => onUndelete(file)}
+									>
+										Undelete
+									</TlaButton>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	)
+}
+
 export function UsersSection() {
 	const [data, setData] = useState<any>(null)
+	const [deletedFiles, setDeletedFiles] = useState<DeletedFileRow[]>([])
 	const [error, setError] = useState(null as string | null)
 	const [isRebooting, setIsRebooting] = useState(false)
 	const [successMessage, setSuccessMessage] = useState(null as string | null)
 	const inputRef = useRef<HTMLInputElement>(null)
+
+	// The user's replicated store filters out their own deleted files, so the deleted-files
+	// list comes from a dedicated Postgres-backed endpoint.
+	const loadDeletedFiles = useCallback(async () => {
+		const q = inputRef.current?.value?.trim() ?? ''
+		if (!q) return
+		const res = await fetch(`/api/app/admin/user/deleted_files?${new URLSearchParams({ q })}`)
+		if (!res.ok) {
+			setError(res.statusText + ': ' + (await res.text()))
+			return
+		}
+		setDeletedFiles((await res.json()) as DeletedFileRow[])
+	}, [])
 
 	const loadData = useCallback(async () => {
 		const q = inputRef.current?.value?.trim() ?? ''
@@ -71,7 +179,8 @@ export function UsersSection() {
 		}
 		setError(null)
 		setData(await res.json())
-	}, [])
+		await loadDeletedFiles()
+	}, [loadDeletedFiles])
 
 	const doReboot = useCallback(async () => {
 		const q = inputRef.current?.value?.trim() ?? ''
@@ -135,7 +244,7 @@ export function UsersSection() {
 			{data && (
 				<section className={styles.adminSection}>
 					<h3 className="tla-text_ui__title">User Data</h3>
-					<UserDataSummary data={data} />
+					<UserDataSummary data={data} deletedFileCount={deletedFiles.length} />
 					<div className={styles.userActions}>
 						<TlaButton
 							onClick={() => {
@@ -155,6 +264,11 @@ export function UsersSection() {
 							Force Reboot
 						</TlaButton>
 					</div>
+					<DeletedFilesTable
+						files={deletedFiles}
+						userId={data.user[0]?.id}
+						onUndeleted={loadData}
+					/>
 					<StructuredDataDisplay data={data} />
 				</section>
 			)}
