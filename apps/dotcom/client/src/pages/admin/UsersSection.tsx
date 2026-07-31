@@ -172,6 +172,7 @@ export function UsersSection() {
 
 		setError(null)
 		setSuccessMessage(null)
+		setDeletedFiles([])
 
 		const res = await fetch(`/api/app/admin/user?${new URLSearchParams({ q })}`)
 		if (!res.ok) {

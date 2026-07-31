@@ -127,12 +127,16 @@ export const adminRoutes = createRouter<Environment>()
 		if (outcome.result === 'not_deleted') {
 			return new Response('File is not deleted', { status: 400 })
 		}
-		// Hard-reboot the owner so the restored rows replicate to their session (the isDeleted
-		// false-flip case flagged in dotcom-shared mutators.ts).
-		if (outcome.file.ownerId) {
-			await getUserDurableObject(env, outcome.file.ownerId).admin_forceHardReboot(
-				outcome.file.ownerId
-			)
+		// Hard-reboot every affected user so the restored rows replicate to their session (the
+		// isDeleted false-flip case flagged in dotcom-shared mutators.ts). Best-effort: the
+		// writes already committed, so a reboot failure must not surface as a 500 (a retry would
+		// just 400 with 'File is not deleted' without rebooting anyone).
+		for (const userId of outcome.rebootUserIds) {
+			try {
+				await getUserDurableObject(env, userId).admin_forceHardReboot(userId)
+			} catch (e) {
+				console.error(`Failed to reboot user ${userId} after undeleting file ${fileId}`, e)
+			}
 		}
 		return json({ success: true })
 	})

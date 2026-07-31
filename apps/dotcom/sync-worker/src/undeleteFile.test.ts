@@ -27,17 +27,42 @@ function makeFile(overrides: Partial<TlaFile> = {}): TlaFile {
 
 // Stubs the chains undeleteFile uses:
 //   selectFrom('file').where().selectAll().executeTakeFirst()
+//   selectFrom('group_user').select().where().execute()
+//   selectFrom('user').select().where().executeTakeFirst()
 //   updateTable('file').set().where().execute()
 //   insertInto(table).values().onConflict().execute()
-function makeFakeDb(fileRow: TlaFile | undefined) {
+function makeFakeDb(
+	fileRow: TlaFile | undefined,
+	opts: { groupMembers?: Array<{ userId: string }>; userRow?: { id: string } | undefined } = {}
+) {
+	const { groupMembers = [], userRow } = opts
 	const updates: Array<{ table: string; values: any }> = []
 	const inserts: Array<{ table: string; values: any }> = []
 	const db = {
-		selectFrom: () => ({
-			where: () => ({
-				selectAll: () => ({ executeTakeFirst: async () => fileRow }),
-			}),
-		}),
+		selectFrom: (table: string) => {
+			if (table === 'file') {
+				return {
+					where: () => ({
+						selectAll: () => ({ executeTakeFirst: async () => fileRow }),
+					}),
+				}
+			}
+			if (table === 'group_user') {
+				return {
+					select: () => ({
+						where: () => ({ execute: async () => groupMembers }),
+					}),
+				}
+			}
+			if (table === 'user') {
+				return {
+					select: () => ({
+						where: () => ({ executeTakeFirst: async () => userRow }),
+					}),
+				}
+			}
+			throw new Error(`unexpected selectFrom('${table}')`)
+		},
 		updateTable: (table: string) => ({
 			set: (values: any) => ({
 				where: () => ({
@@ -79,7 +104,11 @@ describe('undeleteFile', () => {
 	it('clears the flag and restores the owner file_state', async () => {
 		const file = makeFile()
 		const { db, updates, inserts } = makeFakeDb(file)
-		expect(await undeleteFile(db, file.id)).toEqual({ result: 'restored', file })
+		expect(await undeleteFile(db, file.id)).toEqual({
+			result: 'restored',
+			file,
+			rebootUserIds: ['user-1'],
+		})
 		expect(updates).toEqual([
 			{ table: 'file', values: { isDeleted: false, updatedAt: expect.any(Number) } },
 		])
@@ -97,19 +126,69 @@ describe('undeleteFile', () => {
 	})
 
 	it('restores the group_file link for a group-owned file', async () => {
-		const file = makeFile({ ownerId: undefined, owningGroupId: 'group-1' })
-		const { db, inserts } = makeFakeDb(file)
-		expect(await undeleteFile(db, file.id)).toEqual({ result: 'restored', file })
+		const file = makeFile({ ownerId: undefined, owningGroupId: 'group-9' })
+		const { db, inserts } = makeFakeDb(file, {
+			groupMembers: [{ userId: 'user-1' }, { userId: 'user-2' }],
+			userRow: undefined,
+		})
+		const result = await undeleteFile(db, file.id)
+		expect(result.result).toBe('restored')
 		expect(inserts).toEqual([
 			{
 				table: 'group_file',
 				values: {
 					fileId: 'file-1',
-					groupId: 'group-1',
+					groupId: 'group-9',
 					createdAt: expect.any(Number),
 					updatedAt: expect.any(Number),
 				},
 			},
 		])
+	})
+
+	describe('rebootUserIds', () => {
+		it('is just the owner for a legacy file with no group', async () => {
+			const file = makeFile({ ownerId: 'user-1', owningGroupId: undefined })
+			const { db } = makeFakeDb(file)
+			const result = await undeleteFile(db, file.id)
+			expect(result).toMatchObject({ rebootUserIds: ['user-1'] })
+		})
+
+		it('includes the owner for a home-workspace file (group id == user id)', async () => {
+			const file = makeFile({ ownerId: undefined, owningGroupId: 'user-1' })
+			const { db } = makeFakeDb(file, {
+				groupMembers: [],
+				userRow: { id: 'user-1' },
+			})
+			const result = await undeleteFile(db, file.id)
+			expect(result).toMatchObject({ rebootUserIds: ['user-1'] })
+		})
+
+		it('dedupes when the home-workspace owner also has a group_user row', async () => {
+			const file = makeFile({ ownerId: undefined, owningGroupId: 'user-1' })
+			const { db } = makeFakeDb(file, {
+				groupMembers: [{ userId: 'user-1' }],
+				userRow: { id: 'user-1' },
+			})
+			const result = await undeleteFile(db, file.id)
+			expect(result).toMatchObject({ rebootUserIds: ['user-1'] })
+			if (result.result === 'restored') {
+				expect(result.rebootUserIds).toHaveLength(1)
+			}
+		})
+
+		it('includes all members for a shared workspace and not the group id itself', async () => {
+			const file = makeFile({ ownerId: undefined, owningGroupId: 'group-9' })
+			const { db } = makeFakeDb(file, {
+				groupMembers: [{ userId: 'user-1' }, { userId: 'user-2' }],
+				userRow: undefined,
+			})
+			const result = await undeleteFile(db, file.id)
+			expect(result.result).toBe('restored')
+			if (result.result === 'restored') {
+				expect(result.rebootUserIds.sort()).toEqual(['user-1', 'user-2'])
+				expect(result.rebootUserIds).not.toContain('group-9')
+			}
+		})
 	})
 })
