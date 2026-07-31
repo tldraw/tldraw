@@ -671,12 +671,12 @@ function useFadeVisibleNodes(
 	const hasEntering = renderedNodes.some((item) => item.phase === 'entering')
 	useEffect(() => {
 		if (!hasEntering) return
-		const frame = requestClusterFadeFrame(() => {
+		const frame = requestAnimationFrame(() => {
 			setFadeNodes((previous) =>
 				previous.map((item) => (item.phase === 'entering' ? { ...item, phase: 'present' } : item))
 			)
 		})
-		return () => cancelClusterFadeFrame(frame)
+		return () => cancelAnimationFrame(frame)
 	}, [hasEntering, renderedNodes])
 
 	const hasExiting = renderedNodes.some((item) => item.phase === 'exiting')
@@ -722,16 +722,6 @@ function reconcileFadeNodes(
 	}
 
 	return next
-}
-
-function requestClusterFadeFrame(callback: FrameRequestCallback): number {
-	if (typeof requestAnimationFrame === 'function') return requestAnimationFrame(callback)
-	return window.setTimeout(() => callback(0), 16)
-}
-
-function cancelClusterFadeFrame(frame: number) {
-	if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
-	else window.clearTimeout(frame)
 }
 
 function clusterFadeClassName(phase: ClusterFadePhase): string {
