@@ -1,7 +1,6 @@
 import type { MentionNodeAttrs } from '@tiptap/extension-mention'
 import { ReactRenderer } from '@tiptap/react'
 import type { SuggestionKeyDownProps, SuggestionOptions } from '@tiptap/suggestion'
-import { assertExists } from '@tldraw/utils'
 import { type ReactNode, forwardRef, useImperativeHandle, useRef, useState } from 'react'
 import { type Editor as TldrawEditor, atom, react, usePassThroughWheelEvents } from 'tldraw'
 import { MentionList, MentionMember } from './mention-list'
@@ -216,11 +215,9 @@ export function createMentionSuggestion(
 					container.appendChild(renderer.element)
 					// Mount inside the tldraw container: the popup inherits the theme variables
 					// (--tl-color-*) from it, and the pass-through hooks read it from context to find the
-					// canvas. Anywhere else there'd be no theme and nothing to pass a wheel to.
-					assertExists(
-						editorEl.closest('.tl-container'),
-						'the @-mention picker must be used inside <Tldraw>'
-					).appendChild(container)
+					// canvas. Outside one there's no theme and nothing to pass a wheel to, but the picker
+					// still works, so fall back to the body rather than taking the composer down with us.
+					;(editorEl.closest('.tl-container') ?? document.body).appendChild(container)
 					place()
 					startFollowing()
 					mentionPickerOpen.set(true)
