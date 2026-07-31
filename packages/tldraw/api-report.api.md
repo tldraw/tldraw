@@ -3287,6 +3287,9 @@ export function renderHtmlFromRichText(editor: Editor, richText: TLRichText): st
 export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: TLRichText): string;
 
 // @public
+export function renderHtmlFromRichTextWithExtensions(richText: TLRichText, extensions: Extensions): string;
+
+// @public
 export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText): string;
 
 // @public

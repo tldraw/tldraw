@@ -837,6 +837,7 @@ export {
 	KeyboardShiftEnterTweakExtension,
 	renderHtmlFromRichText,
 	renderHtmlFromRichTextForMeasurement,
+	renderHtmlFromRichTextWithExtensions,
 	renderPlaintextFromRichText,
 	renderRichTextFromHTML,
 	tipTapDefaultExtensions,
