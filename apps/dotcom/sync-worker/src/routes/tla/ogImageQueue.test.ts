@@ -10,6 +10,7 @@ import {
 	MAX_RATE_LIMIT_REQUEUES,
 } from './ogImageQueue'
 import {
+	fakeRoomSubject,
 	failureBlobsOf,
 	makeBrowserBinding,
 	makeFakeRoomsBucket,
@@ -17,6 +18,7 @@ import {
 	makeScreenshotTestEnv as makeEnv,
 	makeSnapshot,
 	screenshotOf,
+	subjectsOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
 import { resetRateLimitFallbackForTests } from './thumbnailRender'
@@ -435,5 +437,54 @@ describe('handleOgImageRenderMessage', () => {
 		const result = await enqueueOgImageRender(env, { kind: 'published', slug: 'board' })
 		expect(result).toBe('already_pending')
 		expect(queue.send).not.toHaveBeenCalled()
+	})
+
+	describe('telemetry subject', () => {
+		it('indexes a published board on the file id the resolve turned up', async () => {
+			vi.mocked(getPublishedFileInfo).mockResolvedValue({
+				id: 'file-1',
+				published: true,
+				lastPublished: 1,
+			})
+			vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+			const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+			await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }))
+
+			expect(subjectsOf(env)).toEqual([fakeRoomSubject('file-1')])
+		})
+
+		// A published slug only resolves to a file id through the resolve, so a job dropped before it
+		// carries no subject rather than an id derived from the slug.
+		it('writes no subject when a published board is dropped before it resolves', async () => {
+			vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
+			const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+			await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'gone' }))
+
+			expect(failureBlobsOf(env)).toEqual(['failure:board_not_viewable'])
+			expect(subjectsOf(env)).toEqual([undefined])
+		})
+
+		// A shared file's slug is already its file id, so even the pre-resolve drop path can name it.
+		it('indexes a shared file even when it is dropped before it resolves', async () => {
+			vi.mocked(getSharedFileInfo).mockResolvedValue({
+				id: 'shared-file',
+				shared: false,
+				isDeleted: false,
+			})
+			const env = makeEnv({
+				ROOMS: makeFakeRoomsBucket('etag-1'),
+				THUMBNAILS: makeFakeThumbnailsBucket(),
+			})
+
+			await handleOgImageRenderMessage(
+				env,
+				makeMessage({ kind: 'shared_file', slug: 'shared-file' })
+			)
+
+			expect(failureBlobsOf(env)).toEqual(['failure:board_not_viewable'])
+			expect(subjectsOf(env)).toEqual([fakeRoomSubject('shared-file')])
+		})
 	})
 })

@@ -44,6 +44,13 @@ const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>(
 export interface ResolvedThumbnailBoard {
 	kind: ThumbnailBoardKind
 	slug: string
+	/**
+	 * The id of the file behind `slug`, which is the room's id. For a shared file the two are the
+	 * same; for a published board `slug` is the published slug and this is what it resolves to.
+	 * Carried on the resolved board because resolution is the only place that knows the mapping,
+	 * and telemetry needs it to name the room a screenshot is of.
+	 */
+	fileId: string
 	version: string | number
 }
 
@@ -63,7 +70,7 @@ export async function resolveThumbnailBoard(
 	if (kind === 'published') {
 		const file = await getPublishedFileInfo(env, slug)
 		if (!file?.published) return { ok: false, reason: 'not_found' }
-		return { ok: true, board: { kind, slug, version: file.lastPublished } }
+		return { ok: true, board: { kind, slug, fileId: file.id, version: file.lastPublished } }
 	}
 
 	const file = await getSharedFileInfo(env, slug)
@@ -74,7 +81,8 @@ export async function resolveThumbnailBoard(
 	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
 	if (!persisted) return { ok: false, reason: 'board_empty' }
 
-	return { ok: true, board: { kind, slug, version: persisted.etag } }
+	// A shared file is addressed by its own id, so the slug is already the file id.
+	return { ok: true, board: { kind, slug, fileId: slug, version: persisted.etag } }
 }
 
 // Reads a resolved board's snapshot, distinguishing the two outcomes callers need to tell apart.
@@ -360,7 +368,15 @@ export function writeScreenshotTelemetry(
 	env: Environment,
 	data: {
 		source: 'mcp' | 'og' | 'queue'
-		boardHash: string
+		/**
+		 * The room durable object id these rows index on, from
+		 * `getRoomDurableObjectId(env, board.fileId)`, so a board's renders sit alongside the sync
+		 * events the room itself emits. Undefined where the board was
+		 * never resolved — an unparseable request, or a slug that no longer names a public board —
+		 * because those rows genuinely aren't about any room, and a sentinel would collect every
+		 * unrelated failure under one id.
+		 */
+		subject?: string
 		cacheStatus: 'hit' | 'stale' | 'miss'
 		/** Hashed client IP, for surfaces that have one. Recorded only on failures — see below. */
 		ipHash?: string
@@ -375,11 +391,8 @@ export function writeScreenshotTelemetry(
 	// analysis. Successful calls are the common case, and a per-IP blob there is one distinct
 	// dimension value per client on every request — a large cardinality cost for no query benefit.
 	const isFailure = data.failureReason !== undefined || !rateLimitAllowed
-	writeDataPoint(env, 'screenshot', 'mcp_shared_board_screenshot', {
-		// The subject is a hash of the board slug, not the room's durable object id, so these rows
-		// don't yet join to the room domain's index. Unifying the two means resolving published
-		// slugs to file ids at every surface; see the blob layout doc.
-		subject: data.boardHash,
+	writeDataPoint(env, 'mcp_shared_board_screenshot', {
+		subject: data.subject,
 		blobs: [
 			`source:${data.source}`,
 			`cache:${data.cacheStatus}`,

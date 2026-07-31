@@ -4,10 +4,12 @@ import { getPublishedFileInfo } from './getPublishedFile'
 import { getSharedFileInfo } from './getSharedFile'
 import { getOgImageCacheKey } from './ogImageQueue'
 import {
+	fakeRoomSubject,
 	makeFakeQueue,
 	makeFakeRoomsBucket,
 	makeFakeThumbnailsBucket,
 	makeScreenshotTestEnv as makeEnv,
+	subjectsOf,
 } from './screenshotTestHelpers'
 import { resetRateLimitFallbackForTests } from './thumbnailRender'
 
@@ -202,5 +204,39 @@ describe('getOgImage', () => {
 		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
 		expect(fetch).not.toHaveBeenCalled()
 		expect(queue.send).not.toHaveBeenCalled()
+	})
+
+	describe('telemetry subject', () => {
+		it('indexes a published board on its file id, not on the published slug', async () => {
+			// The published slug is a pointer; deriving from it yields a valid-looking durable object
+			// id for an object that never existed, which would silently never join to anything.
+			vi.mocked(getPublishedFileInfo).mockResolvedValue({
+				id: 'file-1',
+				published: true,
+				lastPublished: 1,
+			})
+			const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: makeFakeQueue() })
+
+			await getOgImage(makeRequest('p', 'published-board'), env)
+
+			expect(subjectsOf(env)).toEqual([fakeRoomSubject('file-1')])
+		})
+
+		it('indexes a shared file on its slug, which is already the file id', async () => {
+			vi.mocked(getSharedFileInfo).mockResolvedValue({
+				id: 'shared-file',
+				shared: true,
+				isDeleted: false,
+			})
+			const env = makeEnv({
+				ROOMS: makeFakeRoomsBucket('etag-1'),
+				THUMBNAILS: makeFakeThumbnailsBucket(),
+				QUEUE: makeFakeQueue(),
+			})
+
+			await getOgImage(makeRequest('f', 'shared-file'), env)
+
+			expect(subjectsOf(env)).toEqual([fakeRoomSubject('shared-file')])
+		})
 	})
 })

@@ -341,7 +341,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			message: Message<QueueMessage>,
 			outcome: 'ack' | 'retry' | 'handled' | 'error'
 		) => {
-			writeDataPoint(this.env, 'queue', 'queue_message', {
+			writeDataPoint(this.env, 'queue_message', {
 				blobs: [message.body.type, outcome],
 				doubles: [message.attempts, Date.now() - message.timestamp.getTime()],
 			})

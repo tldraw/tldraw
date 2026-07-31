@@ -20,20 +20,20 @@ export function createPostgresConnectionPool(env: Environment, name: string, max
 			// happens to hold it, so there is no object these events are about. Omitting the index
 			// makes that read as "not object-scoped" rather than as a sentinel.
 			this.on('end', () => {
-				writeDataPoint(env, 'postgres', 'postgres_client_end', { blobs: [name] })
+				writeDataPoint(env, 'postgres_client_end', { blobs: [name] })
 			})
 
 			this.on('error', (err) => {
 				// The code (a SQLSTATE like 57P01, or a socket code like ECONNRESET) says why the
 				// connection died, at bounded cardinality.
-				writeDataPoint(env, 'postgres', 'postgres_client_error', {
+				writeDataPoint(env, 'postgres_client_error', {
 					blobs: [name, (err as { code?: string }).code ?? 'unknown'],
 				})
 			})
 		}
 
 		override connect(callback?: any): any {
-			writeDataPoint(env, 'postgres', 'postgres_client_connect', { blobs: [name] })
+			writeDataPoint(env, 'postgres_client_connect', { blobs: [name] })
 			return super.connect(callback)
 		}
 	}

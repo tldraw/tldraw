@@ -805,7 +805,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const subject = this.ctx.id.toString()
 		switch (event.type) {
 			case 'reboot':
-				writeDataPoint(this.env, 'replicator', 'replicator', {
+				writeDataPoint(this.env, 'replicator', {
 					subject,
 					blobs: [event.type, event.source],
 				})
@@ -817,28 +817,28 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			case 'prune':
 			case 'get_file_record':
 			case 'resume_sequence':
-				writeDataPoint(this.env, 'replicator', 'replicator', {
+				writeDataPoint(this.env, 'replicator', {
 					subject,
 					blobs: [event.type],
 				})
 				break
 
 			case 'reboot_duration':
-				writeDataPoint(this.env, 'replicator', 'replicator', {
+				writeDataPoint(this.env, 'replicator', {
 					subject,
 					blobs: [event.type],
 					doubles: [event.duration],
 				})
 				break
 			case 'rpm':
-				writeDataPoint(this.env, 'replicator', 'replicator', {
+				writeDataPoint(this.env, 'replicator', {
 					subject,
 					blobs: [event.type],
 					doubles: [event.rpm],
 				})
 				break
 			case 'active_users':
-				writeDataPoint(this.env, 'replicator', 'replicator', {
+				writeDataPoint(this.env, 'replicator', {
 					subject,
 					blobs: [event.type],
 					doubles: [event.count],

@@ -1,6 +1,7 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { Environment, OgImageRenderQueueMessage, ThumbnailBoardKind } from '../../types'
+import { getRoomDurableObjectId } from '../../utils/durableObjects'
 import {
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
@@ -11,7 +12,7 @@ import {
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
-import { classifyScreenshotFailure, reportThumbnailError, sha256 } from './thumbnailShared'
+import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShared'
 
 // Queue-backed async OG image generation. The GET og-image route never blocks a request on
 // Browser Run: it serves whatever is cached (fresh or stale) or redirects to the default OG image,
@@ -95,7 +96,11 @@ export async function handleOgImageRenderMessage(
 	ctx?: ExecutionContext
 ): Promise<void> {
 	const { kind, slug } = message.body
-	const boardHash = await sha256(slug)
+	// The room this job is about, as the id the room domain indexes on. A shared file's slug is
+	// already its file id, so it derives immediately; a published slug only resolves to one through
+	// the board resolution below, so failures reached before that point carry no subject rather than
+	// an id for an object that never existed.
+	let subject = kind === 'shared_file' ? getRoomDurableObjectId(env, slug) : undefined
 	const cacheKey = getOgImageCacheKey({ kind, slug })
 	const clearPending = async () => {
 		await env.THUMBNAILS?.delete(getOgImagePendingKey({ kind, slug })).catch(() => {})
@@ -110,7 +115,7 @@ export async function handleOgImageRenderMessage(
 		await clearPending()
 		writeScreenshotTelemetry(env, {
 			source: 'queue',
-			boardHash,
+			subject,
 			cacheStatus: 'miss',
 			failureReason: 'board_not_viewable',
 		})
@@ -124,12 +129,13 @@ export async function handleOgImageRenderMessage(
 			return
 		}
 		const board = resolved.board
+		subject = getRoomDurableObjectId(env, board.fileId)
 
 		// Another consumer (or an earlier retry) may already have rendered this version.
 		const cached = await env.THUMBNAILS?.head(cacheKey)
 		if (cached?.customMetadata?.version === String(board.version)) {
 			await clearPending()
-			writeScreenshotTelemetry(env, { source: 'queue', boardHash, cacheStatus: 'hit' })
+			writeScreenshotTelemetry(env, { source: 'queue', subject, cacheStatus: 'hit' })
 			message.ack()
 			return
 		}
@@ -142,7 +148,7 @@ export async function handleOgImageRenderMessage(
 		// consumer draw from one cap rather than two independent buckets. When capacity is busy, requeue
 		// rather than drop: the request path has already returned, so latency is free here.
 		if (await isGlobalBrowserRunRateLimited(env)) {
-			await requeueForRateLimit(env, message, boardHash)
+			await requeueForRateLimit(env, message, subject)
 			return
 		}
 
@@ -158,7 +164,7 @@ export async function handleOgImageRenderMessage(
 			// know. Fail now instead. retryOrDrop still backs off and retries, in case content lands
 			// shortly after the enqueue. A read that *fails* throws rather than landing here; the catch
 			// below reports it and retries the same way, so that path spends no Browser Run either.
-			retryOrDrop(env, message, boardHash, 'board_empty')
+			retryOrDrop(env, message, subject, 'board_empty')
 			return
 		}
 
@@ -175,7 +181,7 @@ export async function handleOgImageRenderMessage(
 
 		writeScreenshotTelemetry(env, {
 			source: 'queue',
-			boardHash,
+			subject,
 			cacheStatus: 'miss',
 			browserRunDurationMs: render.durationMs,
 			browserMsUsed: null,
@@ -195,14 +201,14 @@ export async function handleOgImageRenderMessage(
 		// than dropped here, because a plain read failure looks the same from this catch. That costs
 		// one extra delivery, not one extra render: the retry re-resolves at the top of the handler,
 		// finds the board no longer viewable, and drops it before spending any Browser Run.
-		retryOrDrop(env, message, boardHash, classifyScreenshotFailure(error))
+		retryOrDrop(env, message, subject, classifyScreenshotFailure(error))
 	}
 }
 
 function retryOrDrop(
 	env: Environment,
 	message: Message<OgImageRenderQueueMessage>,
-	boardHash: string,
+	subject: string | undefined,
 	failureReason: string
 ) {
 	// attempts counts this delivery, so attempts >= MAX means this was the final try. Only genuine
@@ -213,7 +219,7 @@ function retryOrDrop(
 		message.retry({ delaySeconds: RETRY_DELAY_SECONDS * message.attempts })
 		return
 	}
-	writeScreenshotTelemetry(env, { source: 'queue', boardHash, cacheStatus: 'miss', failureReason })
+	writeScreenshotTelemetry(env, { source: 'queue', subject, cacheStatus: 'miss', failureReason })
 	message.ack()
 }
 
@@ -230,13 +236,13 @@ function retryOrDrop(
 async function requeueForRateLimit(
 	env: Environment,
 	message: Message<OgImageRenderQueueMessage>,
-	boardHash: string
+	subject: string | undefined
 ) {
 	const requeues = (message.body.rateLimitRequeues ?? 0) + 1
 
 	writeScreenshotTelemetry(env, {
 		source: 'queue',
-		boardHash,
+		subject,
 		cacheStatus: 'miss',
 		rateLimitAllowed: false,
 		failureReason:

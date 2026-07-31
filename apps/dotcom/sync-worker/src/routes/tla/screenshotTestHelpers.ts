@@ -92,6 +92,18 @@ export function makeFakeQueue() {
 	return { send: vi.fn(async (_message: unknown) => undefined) }
 }
 
+// Stand-in for the TLDR_DOC namespace. The screenshot surfaces never `.get()` a room — they only
+// derive its durable object id for telemetry — so a readable deterministic id is enough, and keeps
+// the subject a test asserts on legible.
+export function makeFakeRoomNamespace() {
+	return { idFromName: (name: string) => ({ toString: () => `do:${name}` }) }
+}
+
+/** The durable object id {@link makeFakeRoomNamespace} derives for a file, as telemetry sees it. */
+export function fakeRoomSubject(fileId: string) {
+	return `do:/r/${fileId}`
+}
+
 export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
 		BROWSER: makeBrowserBinding(),
@@ -99,8 +111,14 @@ export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },
 		QUEUE: makeFakeQueue(),
+		TLDR_DOC: makeFakeRoomNamespace(),
 		...overrides,
 	} as unknown as Environment
+}
+
+/** The `index1` of every datapoint written, in order; `undefined` where a row had no subject. */
+export function subjectsOf(env: Environment): Array<string | undefined> {
+	return (env.MEASURE as any).writeDataPoint.mock.calls.map((call: any[]) => call[0].indexes?.[0])
 }
 
 export function screenshotOf(env: Environment) {

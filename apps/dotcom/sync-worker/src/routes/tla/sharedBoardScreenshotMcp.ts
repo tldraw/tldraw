@@ -2,6 +2,7 @@ import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotco
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { arrayBufferToBase64 } from '../../utils/base64'
+import { getRoomDurableObjectId } from '../../utils/durableObjects'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 import {
 	ResolveThumbnailBoardResult,
@@ -278,9 +279,9 @@ async function callSharedBoardScreenshotTool(
 		input = parseSharedBoardScreenshotInput(argumentsValue)
 	} catch (error) {
 		// Telemetry gets a bounded reason code; the caller gets the specific validation message.
+		// No subject: the input never named a board, so this row is not about any room.
 		writeScreenshotTelemetry(env, {
 			source: 'mcp',
-			boardHash: 'unresolved',
 			ipHash,
 			cacheStatus: 'miss',
 			failureReason: 'invalid_input',
@@ -288,14 +289,17 @@ async function callSharedBoardScreenshotTool(
 		return toolError(error instanceof Error ? error.message : String(error))
 	}
 
-	const boardHash = await sha256(input.boardId)
+	// The caller's board id may be either a file id or a published slug, and only resolution knows
+	// which, so the subject stays undefined until the board resolves below. Read at call time rather
+	// than captured, so events written after the resolve carry it and earlier ones honestly don't.
+	let subject: string | undefined
 	const telemetry = (data: {
 		cacheStatus: 'hit' | 'miss'
 		browserRunDurationMs?: number
 		failureReason?: string
 		rateLimitAllowed?: boolean
 	}) => {
-		writeScreenshotTelemetry(env, { source: 'mcp', boardHash, ipHash, ...data })
+		writeScreenshotTelemetry(env, { source: 'mcp', subject, ipHash, ...data })
 	}
 
 	// Screenshots have their own per-IP budget (separate from get_board_info), sized to the ~2/min
@@ -324,6 +328,7 @@ async function callSharedBoardScreenshotTool(
 			)
 		}
 		const board = resolved.board
+		subject = getRoomDurableObjectId(env, board.fileId)
 		if (!env.THUMBNAILS) {
 			throw new Error('THUMBNAILS bucket is not configured')
 		}

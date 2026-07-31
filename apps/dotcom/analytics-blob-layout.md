@@ -1,6 +1,6 @@
 # Analytics Engine blob layout
 
-Status: implemented, except where noted below. The header and the domain split are in `utils/analytics.ts` and each domain's own writer; the subject unification for the screenshot domain is not done.
+Status: implemented. The header lives in `utils/analytics.ts`; each domain's payload lives in that domain's own writer.
 
 Context: <https://github.com/tldraw/tldraw/pull/9676#issuecomment-5094393287>, which proposed a v2 layout for the `MEASURE` dataset. This document records what the layout is today and recommends a variant of that proposal: one writer per domain behind a small standard header, chosen so that no existing position moves.
 
@@ -33,7 +33,7 @@ The worker name sits in the second slot for legacy reasons: the first version of
 
 ### `TLFileDurableObject`
 
-Every event except `room_size_mb` goes through `writeEvent`, which sets `index1` to the object's durable object id. `room_size_mb` writes directly and so carries no index.
+Every event except `room_size_mb` went through `writeEvent`, which sets `index1` to the object's durable object id; `room_size_mb` wrote directly and so carried no index. It goes through `writeEvent` too now, for the reason at the end of this document.
 
 | `blob1` (event)                                                                                                                  | `blob3`                 | Doubles                          |
 | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | -------------------------------- |
@@ -89,39 +89,45 @@ So the change is less a rewrite than a promotion: give every domain that treatme
 | `blob1`           | event                                      | unchanged                    |
 | `blob2`           | env / worker name                          | unchanged                    |
 | `blob3`–`blob15`  | domain-owned payload                       | unchanged                    |
-| `blob16`          | domain                                     | new                          |
-| `blob17`          | user id — raw, empty when N/A              | new                          |
-| `blob18`–`blob20` | reserved for future header fields          | —                            |
+| `blob16`          | user id — raw, empty when N/A              | new                          |
+| `blob17`–`blob20` | reserved for future header fields          | —                            |
 
 Six domains, taken from the existing grouping: `room`, `user`, `replicator`, `postgres`, `queue`, `screenshot`.
 
-One core module owns the header and is the only code in the repo that knows a position:
+The domain is not a parameter and not a column. An event name already determines its domain, so the mapping is stated once and exported for the query side:
 
 ```ts
-// analytics/core.ts
-const DOMAIN_SLOT = 15 // blob16
-const USER_SLOT = 16 // blob17
-const MAX_PAYLOAD_BLOBS = 13 // blob3..blob15
+// utils/analytics.ts — exhaustive, so a new datapoint name without a domain is a type error
+export const EVENT_DOMAINS: Record<TLDataPointName, TLAnalyticsDomain> = {
+	enter: 'room',
+	send_message: 'room',
+	…
+	postgres_client_end: 'postgres',
+	mcp_shared_board_screenshot: 'screenshot',
+}
+```
 
-export type Domain = 'room' | 'user' | 'replicator' | 'postgres' | 'queue' | 'screenshot'
+The same module owns the header and is the only code in the repo that knows a position:
+
+```ts
+const USER_SLOT = 15 // blob16
+const MAX_PAYLOAD_BLOBS = 13 // blob3..blob15
 
 export function writeDataPoint(
 	env: Environment,
-	domain: Domain,
 	name: TLDataPointName,
 	{ subject, userId, blobs, doubles }: DataPoint
 ) { … }
 ```
 
-Each domain module owns `blob3`+ and every double for its own events, and exports a writer that takes the domain's event union rather than an array:
+Each domain owns `blob3`+ and every double for its own events, behind a writer that takes the domain's event union rather than an array:
 
 ```ts
-// analytics/room.ts
-export function writeRoomEvent(env: Environment, roomDoId: string, event: TLServerEvent) {
+// the room domain's writer, on TLFileDurableObject
+logEvent(event: TLServerEvent) {
 	switch (event.type) {
 		case 'send_message':
-			return writeDataPoint(env, 'room', 'send_message', {
-				subject: roomDoId,
+			return this.writeEvent('send_message', {
 				blobs: [event.messageType],
 				doubles: [event.messageLength],
 			})
@@ -130,15 +136,14 @@ export function writeRoomEvent(env: Environment, roomDoId: string, event: TLServ
 }
 ```
 
-The alias map is exported from the core module, so Grafana and `fetch-screenshot-metrics.ts` consume one mapping instead of hand-writing `blob16 AS domain` in every panel:
+The alias map is exported from the core module, so Grafana and `fetch-screenshot-metrics.ts` consume one mapping instead of hand-writing `blob16 AS user` in every panel:
 
 ```ts
 export const COLUMN_ALIASES = {
 	index1: 'subject',
 	blob1: 'event',
 	blob2: 'env',
-	blob16: 'domain',
-	blob17: 'user',
+	blob16: 'user',
 } as const
 ```
 
@@ -147,11 +152,11 @@ export const COLUMN_ALIASES = {
 - **`blob3` stops being ambiguous.** It means one thing per domain, and the domain is a column, so `WHERE domain = 'room'` scopes the payload columns instead of a twenty-name `IN` list on `blob1`. The two competing conventions — specific event in `blob1` versus domain name in `blob1` with the type in `blob3` — both become legible under the same rule, which is why neither has to be migrated.
 - **Doubles get a rule for free.** They are domain-owned and typed exactly like blobs, decided in one file per domain rather than at each call site. This was an open question under the single-writer design; it closes by construction.
 - **Call sites stop being able to get it wrong.** A domain writer takes named fields, so a payload can't be built in the wrong order, and adding an event means editing the one file that defines that domain's layout. That is friction, and it is the point.
-- **The domain column can't drift**, because the core writer sets it from which domain writer called it rather than from an argument.
+- **The domain never enters the dataset at all.** An event name already determines its domain, so a column holding it would be a second copy of `EVENT_DOMAINS` that could disagree with it. The map is exported instead, typed `Record<TLDataPointName, TLAnalyticsDomain>` so that adding a datapoint name without assigning it a domain is a type error rather than a quiet gap. A dashboard grouping by domain applies the map; the alternative — pasting a list of event names into each panel's `WHERE` — goes stale the next time a domain gains an event, which is the same failure mode as the panel bug noted below.
 
 ### Migration cost
 
-None. Every domain writer emits exactly the bytes its call sites emit today, so this is a code-shape change and not a wire-format change: no query changes, no cutover date, no version-marker blob. Old rows read as `''` on `blob16` and `blob17`, which renders as "unknown" rather than as wrong data, and panels can adopt the new dimensions one at a time.
+None. Every domain writer emits exactly the bytes its call sites emit today, so this is a code-shape change and not a wire-format change: no query changes, no cutover date, no version-marker blob. Old rows read as `''` on `blob16`, which renders as "unknown" rather than as wrong data, and panels can adopt the new dimension whenever someone wants it.
 
 That is the whole reason the header keeps `blob1` and `blob2` where they are. The original proposal ordered the slots `env, doType, event, room, user, payload…`, which reads better and fixes the same defect, but moves `event` to `blob3` and `env` to `blob1`. Those two columns are the `WHERE` clause of essentially every panel. With 90-day retention, `WHERE blob2 = 'production-tldraw-multiplayer'` after a cutover still matches old rows and silently matches nothing new — it doesn't error, it returns a shrinking window of stale data for 90 days. `blob1` and `blob2` aren't part of the defect; they're already fixed and universal. Reordering them is aesthetic, and it is the entire cost of the migration.
 
@@ -163,9 +168,9 @@ The tempting version of a domain split is that each domain owns its own identity
 
 So identity is header, not payload. `index1` covers the room side for every domain at once (see below), and one fixed user slot covers the other. Fixed slots with empty strings are free.
 
-Two of the fields are already present in payload positions: `rate_limited`'s `blob3` and `user_durable_object`'s `blob4` are both user ids. Under this layout they get written to `blob17` as well, leaving the existing positions populated so current panels keep working. The duplication drops out whenever those panels are rewritten.
+Two events already carry a user id in a payload position: `rate_limited`'s `blob3` and `user_durable_object`'s `blob4`. `rate_limited` writes it to `blob16` as well, leaving the existing position populated so current panels keep working; the duplication drops out whenever those panels are rewritten. The user DO is left alone: it is legacy code on its way out, so it keeps the payload it has and gains nothing.
 
-There is no separate room blob. The original proposal had both `index1` and a `blob17` room key holding the same derived DO id; `index1` is selectable in queries, so the second copy earns nothing.
+There is no separate room blob either. The original proposal had both `index1` and a room-key blob holding the same derived DO id; `index1` is selectable in queries, so the second copy earns nothing. Both omissions are the same rule: a column that another column already determines is a copy that can disagree, not a dimension.
 
 ### The two identity fields are asymmetric
 
@@ -187,9 +192,16 @@ Cloudflare already keys its own telemetry on it: `$workers.durableObjectId` iden
 env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${fileId}`).toString()
 ```
 
-That gives one uniform join column across every writer, and better sampling: a hot board's renders sample alongside its sync events, which is the tenant isolation the index is designed for. `blob16` still says which domain emitted the row. The cost is that a worker-emitted row's index won't match a `$workers.durableObjectId` log line — there isn't one — though it still lines up with that object's DO metrics.
+That gives one uniform join column across every writer, and better sampling: a hot board's renders sample alongside its sync events, which is the tenant isolation the index is designed for. The cost is that a worker-emitted row's index won't match a `$workers.durableObjectId` log line — there isn't one — though it still lines up with that object's DO metrics.
 
-Agreeing on that definition is the one piece of real work the split requires, and it is **not yet done**: `writeScreenshotTelemetry` still indexes on `boardHash`, a hash of the board slug, so screenshot rows don't join to the room domain's index. Unifying them means resolving a published slug to its file id at each of the three screenshot surfaces, and unlike everything else here it changes the values in an existing column — so it is its own change, not part of the split.
+Agreeing on that definition was the one piece of real work the split required. The screenshot surfaces used to index on a hash of the board slug, which joined to nothing. They now index on `getRoomDurableObjectId(env, board.fileId)`, which shares its name derivation with `getRoomDurableObject` so the two can't drift apart and start naming different objects for the same room.
+
+Getting the file id there meant carrying it on the resolved board: resolution is the only step that knows a published slug's file id, and it already reads it. Two consequences fall out of that:
+
+- A surface that never resolved its board — an unparseable MCP input, a queued job for a slug that no longer names a public board — writes **no** subject rather than a sentinel. A sentinel would collect every unrelated failure under one id and read as a real room.
+- A shared file's slug _is_ its file id, so those surfaces can name the room even on the pre-resolve drop path. A published board can't, and doesn't try.
+
+This is the one part of the layout that changes the values in a column dashboards already read: `index1` on the screenshot rows was a slug hash and is now a durable object id. Nothing queries it today — the hash joined to nothing, which is the whole reason for the change — but it is a value change rather than an addition, unlike everything else here.
 
 For published boards, derive from `file.id`, not `board.slug`: the latter is the published slug, and `getPublishedFileInfo` already resolves it through `SNAPSHOT_SLUG_TO_PARENT_SLUG` and returns the file id. Deriving from the published slug yields a valid-looking id for an object that doesn't exist.
 
@@ -199,7 +211,7 @@ Analytics Engine allows exactly one index, so this spends it. In the file DO it 
 
 Two items from the original proposal are left out, because both are value changes rather than additions and would break panels for real:
 
-- **Promoting the replicator and user DO sub-types to `blob1`.** `replicator` and `user_durable_object` as `blob1` with the real type in `blob3` is a genuine inconsistency, but fixing it changes the set of values in `blob1` for those writers. With a domain column it is also no longer urgent: `blob1` identifies the domain, `blob16` says so explicitly, and `blob3` is unambiguous either way. Separate change.
+- **Promoting the replicator and user DO sub-types to `blob1`.** `replicator` and `user_durable_object` as `blob1` with the real type in `blob3` is a genuine inconsistency, but fixing it changes the set of values in `blob1` for those writers. It is also no longer urgent: `blob1` already determines the domain through `EVENT_DOMAINS`, so `blob3` is unambiguous either way. Separate change.
 - **Dropping the `key:value` prefixes on the screenshot blobs.** `fetch-screenshot-metrics.ts` reads those values as-is, including the prefix. Orthogonal to ordering.
 
 Two dashboard bugs are worth fixing regardless, since they are wrong today rather than wrong after a migration:
@@ -211,9 +223,6 @@ Two dashboard bugs are worth fixing regardless, since they are wrong today rathe
 
 - **Events with no subject.** `postgres.ts` only sees `env`, so it has no object to index on, and it omits `subject` entirely — "no index" reads as "not object-scoped" rather than as a sentinel. The replicator is a singleton and writes its constant DO id: inert, but it keeps `index1` meaning one thing everywhere.
 - **Where the domain writers live.** Each stays next to the code it instruments — `logEvent` on the three DOs, `writeScreenshotTelemetry` in `routes/tla/thumbnailRender.ts`, the pool client in `postgres.ts` — with only the core writer shared in `utils/analytics.ts`. An `analytics/` directory holding all six would have moved code without changing it.
-- **Payloads wider than their range.** The core writer truncates at `blob15` rather than overflowing into the header: losing a payload dimension is recoverable, mislabelling every row's domain is not.
-
-## Still open
-
-- **The screenshot domain's subject**, as above: the one part of the layout not yet uniform.
-- **`room_size_mb` has no subject.** It writes directly rather than through the room DO's `writeEvent`, deliberately — the comment there says it's for distribution and percentile queries rather than lookups. Worth revisiting, since an index doesn't cost a distribution query anything and would buy per-room sampling isolation.
+- **Payloads wider than their range.** The core writer truncates at `blob15` rather than overflowing into the header: losing a payload dimension is recoverable, mislabelling every row's user is not.
+- **Whether the domain is a column.** It isn't, and it isn't a parameter either — see above. `EVENT_DOMAINS` is exported for consumers instead.
+- **`room_size_mb` now carries a subject.** It used to write directly rather than through the room DO's `writeEvent`, on the grounds that it feeds distribution and percentile queries rather than lookups. But an index costs a percentile query nothing, and it makes the outliers a distribution turns up attributable to a room, so it goes through `writeEvent` like everything else.

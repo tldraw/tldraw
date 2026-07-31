@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Environment } from '../types'
-import { DataPoint, writeDataPoint } from './analytics'
+import { DataPoint, EVENT_DOMAINS, writeDataPoint } from './analytics'
 
 function makeEnv(overrides: Partial<Environment> = {}) {
 	return {
@@ -22,7 +22,7 @@ function writtenTo(env: Environment) {
 }
 
 function write(data: DataPoint = {}, env = makeEnv()) {
-	writeDataPoint(env, 'room', 'enter', data)
+	writeDataPoint(env, 'enter', data)
 	return writtenTo(env)
 }
 
@@ -39,14 +39,12 @@ describe('writeDataPoint', () => {
 			expect(written.blob(2)).toBe('development-tldraw-multiplayer')
 		})
 
-		it('puts the domain in blob16 and the user in blob17', () => {
-			const written = write({ userId: 'user:1' })
-			expect(written.blob(16)).toBe('room')
-			expect(written.blob(17)).toBe('user:1')
+		it('puts the user in blob16', () => {
+			expect(write({ userId: 'user:1' }).blob(16)).toBe('user:1')
 		})
 
 		it('writes an empty user slot rather than a sentinel when there is no user', () => {
-			expect(write().blob(17)).toBe('')
+			expect(write().blob(16)).toBe('')
 		})
 
 		it('writes the subject to index1', () => {
@@ -71,9 +69,7 @@ describe('writeDataPoint', () => {
 				'enter',
 				'production-tldraw-multiplayer',
 				'instance-id',
-				...Array(12).fill(''),
-				'room',
-				'',
+				...Array(13).fill(''),
 			])
 		})
 
@@ -82,10 +78,13 @@ describe('writeDataPoint', () => {
 		})
 
 		it('truncates a payload too wide for its range rather than overflowing the header', () => {
-			const written = write({ blobs: Array.from({ length: 20 }, (_, i) => `blob${i}`) })
-			expect(written.blob(15)).toBe('blob12')
-			expect(written.blob(16)).toBe('room')
-			expect(written.blobs).toHaveLength(17)
+			const written = write({
+				userId: 'user:1',
+				blobs: Array.from({ length: 20 }, (_, i) => `b${i}`),
+			})
+			expect(written.blob(15)).toBe('b12')
+			expect(written.blob(16)).toBe('user:1')
+			expect(written.blobs).toHaveLength(16)
 		})
 	})
 
@@ -97,11 +96,41 @@ describe('writeDataPoint', () => {
 				}),
 			},
 		} as unknown as Partial<Environment>)
-		expect(() => writeDataPoint(env, 'room', 'enter', {})).not.toThrow()
+		expect(() => writeDataPoint(env, 'enter', {})).not.toThrow()
 	})
 
 	it('does nothing when the dataset is not bound', () => {
 		const env = makeEnv({ MEASURE: undefined })
-		expect(() => writeDataPoint(env, 'room', 'enter', {})).not.toThrow()
+		expect(() => writeDataPoint(env, 'enter', {})).not.toThrow()
+	})
+})
+
+describe('EVENT_DOMAINS', () => {
+	// The dataset carries no domain column, so this map is the only thing that says which payload
+	// layout an event's blob3 follows. Exhaustiveness is enforced by its Record type; this pins the
+	// grouping itself, which is what a dashboard filtering by domain depends on.
+	it('groups every event by the writer that owns its payload', () => {
+		const byDomain: Record<string, string[]> = {}
+		for (const [event, domain] of Object.entries(EVENT_DOMAINS)) {
+			;(byDomain[domain] ??= []).push(event)
+		}
+		expect(Object.keys(byDomain).sort()).toEqual([
+			'postgres',
+			'queue',
+			'replicator',
+			'room',
+			'screenshot',
+			'user',
+		])
+		expect(byDomain.postgres.sort()).toEqual([
+			'postgres_client_connect',
+			'postgres_client_end',
+			'postgres_client_error',
+		])
+		expect(byDomain.queue).toEqual(['queue_message'])
+		expect(byDomain.replicator).toEqual(['replicator'])
+		expect(byDomain.screenshot).toEqual(['mcp_shared_board_screenshot'])
+		expect(byDomain.user).toEqual(['user_durable_object'])
+		expect(byDomain.room).toHaveLength(32)
 	})
 })

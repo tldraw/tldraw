@@ -3,6 +3,7 @@ import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import {
+	fakeRoomSubject,
 	failureBlobsOf,
 	ipBlobsOf,
 	makeBrowserBinding,
@@ -11,6 +12,7 @@ import {
 	makeScreenshotTestEnv,
 	makeSnapshot,
 	screenshotOf,
+	subjectsOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
 import {
@@ -578,6 +580,47 @@ describe('get_shared_board_screenshot', () => {
 		}
 		expect(lastResult.isError).toBe(true)
 		expect(lastResult.content[0].text).toContain('Rate limited')
+	})
+
+	describe('telemetry subject', () => {
+		it('indexes on the resolved file id, so renders join the room events they are about', async () => {
+			// 'abc' is the board id the caller passed; 'file-1' is what it resolves to. Indexing on the
+			// former would look fine and never join to anything.
+			mockPublishedBoard()
+			const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.40', 'get_shared_board_screenshot', { boardId: 'abc' }),
+				env
+			)
+
+			expect(subjectsOf(env)).toEqual([fakeRoomSubject('file-1')])
+		})
+
+		it('writes no subject when the board never resolved', async () => {
+			vi.mocked(getSharedFileInfo).mockResolvedValue(null)
+			vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
+			const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.41', 'get_shared_board_screenshot', { boardId: 'missing' }),
+				env
+			)
+
+			expect(subjectsOf(env)).toEqual([undefined])
+		})
+
+		it('writes no subject when the input never named a board', async () => {
+			const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+			await sharedBoardScreenshotMcp(
+				makeToolCall('203.0.113.42', 'get_shared_board_screenshot', { boardId: '' }),
+				env
+			)
+
+			expect(failureBlobsOf(env)).toEqual(['failure:invalid_input'])
+			expect(subjectsOf(env)).toEqual([undefined])
+		})
 	})
 
 	it('records the hashed ip only on failures, not on successful screenshots', async () => {

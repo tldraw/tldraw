@@ -181,9 +181,10 @@ export class TLFileDurableObject extends DurableObject {
 		// getStorage under the hood which will only resolve once this function has returned.
 		this.setRoomStorageUsedPercentage(result.roomSizeMB)
 		// Samples the size distribution of rooms as they cold-load; 0 for rooms with no R2 snapshot.
-		// No room identifier is attached — this is for distribution/percentile queries, not lookups —
-		// so it writes directly rather than through writeEvent's per-room index.
-		writeDataPoint(this.env, 'room', 'room_size_mb', { doubles: [result.roomSizeMB] })
+		// Indexed like every other room event: the point of it is percentile queries rather than
+		// lookups, but an index costs those nothing and it makes the outliers a distribution turns up
+		// attributable to a room.
+		this.writeEvent('room_size_mb', { doubles: [result.roomSizeMB] })
 		return storage
 	}
 
@@ -892,7 +893,7 @@ export class TLFileDurableObject extends DurableObject {
 	 * events carry.
 	 */
 	private writeEvent(name: TLDataPointName, eventData: RoomEventData) {
-		writeDataPoint(this.env, 'room', name, {
+		writeDataPoint(this.env, name, {
 			...eventData,
 			subject: this.id.toString(),
 		})

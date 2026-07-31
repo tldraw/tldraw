@@ -1,5 +1,6 @@
 import { IRequest } from 'itty-router'
 import { Environment, ThumbnailBoardKind } from '../../types'
+import { getRoomDurableObjectId } from '../../utils/durableObjects'
 import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { enqueueOgImageRender, getOgImageCacheKey } from './ogImageQueue'
 import {
@@ -8,7 +9,7 @@ import {
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
-import { reportThumbnailError, sha256 } from './thumbnailShared'
+import { reportThumbnailError } from './thumbnailShared'
 
 // OG images are served entirely from the R2 cache; rendering happens asynchronously through the
 // og-image queue consumer (ogImageQueue.ts). A request never waits on Browser Run: it gets the
@@ -53,14 +54,14 @@ export async function getOgImage(
 	})
 	if (!board) return redirectToDefaultOgImage(request, env)
 
-	const boardHash = await sha256(board.slug)
+	const subject = getRoomDurableObjectId(env, board.fileId)
 	const cacheKey = getOgImageCacheKey(board)
 	const cached = wantsBody
 		? await env.THUMBNAILS?.get(cacheKey)
 		: await env.THUMBNAILS?.head(cacheKey)
 	const now = Date.now()
 	if (cached && shouldServeCachedOgImage(cached, board.version, now)) {
-		writeScreenshotTelemetry(env, { source: 'og', boardHash, cacheStatus: 'hit' })
+		writeScreenshotTelemetry(env, { source: 'og', subject, cacheStatus: 'hit' })
 		return imageResponse(wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null, {
 			cacheStatus: 'hit',
 			maxAgeSeconds: FRESH_IMAGE_MAX_AGE_SECONDS,
@@ -82,7 +83,7 @@ export async function getOgImage(
 	}
 
 	if (cached) {
-		writeScreenshotTelemetry(env, { source: 'og', boardHash, cacheStatus: 'stale' })
+		writeScreenshotTelemetry(env, { source: 'og', subject, cacheStatus: 'stale' })
 		return imageResponse(wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null, {
 			cacheStatus: 'stale',
 			maxAgeSeconds: STALE_IMAGE_MAX_AGE_SECONDS,
@@ -92,7 +93,7 @@ export async function getOgImage(
 
 	writeScreenshotTelemetry(env, {
 		source: 'og',
-		boardHash,
+		subject,
 		cacheStatus: 'miss',
 		failureReason: 'not_rendered_yet',
 	})
