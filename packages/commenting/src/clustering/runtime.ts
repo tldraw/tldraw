@@ -150,8 +150,11 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 		// guarantees a suppressed producer's zMerge is >= its consumer's, so anything the walk
 		// needs has already healed. Set iteration is insertion order (ascending index), so a
 		// healed event's suppressed children (larger zMerge, smaller index) heal before it.
+		// Iterated live (no snapshot copy): this runs on every zoom tick while carryover
+		// suppressions exist, and deleting only the entry currently being visited is safe —
+		// Set iteration still yields every remaining entry, in insertion order.
 		if (this.suppressed.size > 0) {
-			for (const i of [...this.suppressed]) {
+			for (const i of this.suppressed) {
 				if (zoom <= this.table.events[i].zMerge) {
 					this.suppressed.delete(i)
 					applyEvent(this.visible, this.table.events[i])
