@@ -197,8 +197,6 @@
 	pointer-events: none;
 	white-space: nowrap;
 	width: max-content;
-	max-height: none;
-	overflow: visible;
 }
 
 .tlui-cmt-input {
