@@ -95,7 +95,7 @@ Once a comment thread exists, its pin is the handle for everything else.
 | `Escape`    | Closes the open thread.                                              |
 | `Shift+C`   | Hides and shows the pins on the canvas.                              |
 
-In the built-in layer, resolve and delete-thread sit in the thread's header, and the edit and delete controls for a single comment appear only on the author's own comments by default. You can customize what a client is able to control and write with comments, as [Syncing comments](#syncing-comments) covers.
+In the built-in layer, resolve and delete-thread sit in the thread's header, and the edit and delete controls for a single comment appear only on the author's own comments by default. [`canModifyComment`](#who-can-edit-and-delete) changes who gets those controls, and [Syncing comments](#syncing-comments) covers enforcing the same rules on the server.
 
 To put the show and hide toggle in a menu of your own, use `CommentsMenuItem`. It's a checkbox item wired to the same state as the `Shift+C` shortcut.
 
@@ -198,11 +198,32 @@ When `canComment` returns false, composers give way to the `ComposerFallback` sl
 
 `canComment` is read during render through `useCanComment`, so a callback that reads signals re-evaluates when they change.
 
+## Who can edit and delete
+
+`canComment` is about the viewer; `canModifyComment` is about the viewer and one particular record. It's asked for the three writes that belong to someone in particular — editing a comment, deleting a comment, deleting a thread — and where it returns false, that affordance isn't rendered.
+
+Left unset, each is its record's owner's to make: you edit and delete your own comments, and delete threads you started. Pass a callback to widen that, composing with `defaultCanModifyComment` so the owner keeps what they already had:
+
+```tsx
+import { CommentTool, defaultCanModifyComment } from '@tldraw/commenting'
+
+CommentTool.configure({
+	canModifyComment: (ctx) =>
+		// Moderators may remove anything. Editing stays the author's, whoever you are.
+		(ctx.action !== 'edit-comment' && isModerator(ctx.currentUserId)) ||
+		defaultCanModifyComment(ctx),
+})
+```
+
+The `ctx` carries the editor, the viewer's `currentUserId`, and the write itself as a discriminated union: `{ action: 'edit-comment' | 'delete-comment', comment }` or `{ action: 'delete-thread', thread }`. Narrowing works too — return false to close edits after an hour, or on a resolved thread.
+
+Resolving, reopening, reacting, and moving a pin aren't asked about: none of them is anyone's in particular, so `canComment` is the only gate on them. `canModifyComment` is checked after `canComment`, so a viewer who may not participate gets no action affordances whatever it returns. Like `canComment`, it's read during render (through `useCanModifyComment`), so a callback that reads signals re-evaluates when they change.
+
 <Callout type="warning">
-	`canComment` hides UI. It doesn't enforce anything. Comment records carry a client-supplied
-	`createdBy` and `authorId`, and a client can write whatever your sync server accepts. Enforce
-	permissions in your server's record authorization, and verify author ids against the session's
-	authenticated identity. See [Syncing comments](#syncing-comments).
+	`canComment` and `canModifyComment` hide UI. They don't enforce anything. Comment records carry a
+	client-supplied `createdBy` and `authorId`, and a client can write whatever your sync server
+	accepts. Enforce permissions in your server's record authorization, and verify author ids against
+	the session's authenticated identity. See [Syncing comments](#syncing-comments).
 </Callout>
 
 ## Mentions
@@ -515,7 +536,7 @@ const room = new TLSocketRoom({
 
 `onCommittedChanges` only fires for client pushes. Server-initiated writes don't trigger it, including `updateStore`, `loadSnapshot`, and writing to storage directly, so anything mirroring room state has to handle those paths itself.
 
-This is also where per-record permissions belong. The lane's write access is all or nothing. Rules like "only the author may edit a comment" or "only the thread's creator may delete it" are yours to enforce as your server validates each incoming record against the session's identity.
+This is also where per-record permissions belong. The lane's write access is all or nothing. Rules like "only the author may edit a comment" or "only the thread's creator may delete it" are yours to enforce as your server validates each incoming record against the session's identity. Whatever you decide there is the real rule: [`canModifyComment`](#who-can-edit-and-delete) only decides which affordances the UI offers, so widen the two together — a moderator who may remove anyone's comment needs the server to accept the write as well as the client to offer it.
 
 ## Building your own comments UI
 
@@ -556,9 +577,10 @@ Every option below is set with `CommentTool.configure()`. Anything you leave uns
 
 ### Permissions
 
-| Option       | Default     | Description                                                                         |
-| ------------ | ----------- | ----------------------------------------------------------------------------------- |
-| `canComment` | `undefined` | Whether the viewer may participate. Unset, allowed whenever `currentUserId` is set. |
+| Option             | Default     | Description                                                                         |
+| ------------------ | ----------- | ----------------------------------------------------------------------------------- |
+| `canComment`       | `undefined` | Whether the viewer may participate. Unset, allowed whenever `currentUserId` is set. |
+| `canModifyComment` | `undefined` | Whether the viewer may edit or delete a record. Unset, each is its owner's to make. |
 
 ### Reactions
 

@@ -26,6 +26,31 @@ export interface ShapeCommentPrecisionContext {
 }
 
 /**
+ * A commenting write that belongs to someone in particular, and the record it targets — the
+ * argument to {@link CommentingOptions.canModifyComment}.
+ *
+ * Resolving, reopening, reacting, and moving a pin aren't here: none of them is anyone's in
+ * particular, so {@link CommentingOptions.canComment} is the only gate on them.
+ *
+ * @public
+ */
+export type CommentModification =
+	| { readonly action: 'edit-comment'; readonly comment: TLComment }
+	| { readonly action: 'delete-comment'; readonly comment: TLComment }
+	| { readonly action: 'delete-thread'; readonly thread: TLCommentThread }
+
+/**
+ * The argument to {@link CommentingOptions.canModifyComment}: which write, against which record,
+ * and by whom.
+ *
+ * @public
+ */
+export type CommentModificationContext = {
+	readonly editor: Editor
+	readonly currentUserId: string | null
+} & CommentModification
+
+/**
  * Component overrides for the batteries-included comments layer. Each slot replaces a built-in
  * piece; leave a slot unset to keep its default.
  *
@@ -142,6 +167,30 @@ export interface CommentingOptions {
 	readonly canComment:
 		| ((ctx: { editor: Editor; currentUserId: string | null }) => boolean)
 		| undefined
+	/**
+	 * Whether the viewer may make a particular write against a particular record: editing or
+	 * deleting a comment, or deleting a thread. Unset, each is its record's owner's to make
+	 * ({@link defaultCanModifyComment}) — you edit and delete your own comments, and delete threads
+	 * you started. Override it to widen that (a workspace admin or moderator who may remove
+	 * anyone's comment) or to narrow it (no edits after an hour). Where it returns false the
+	 * affordance isn't rendered.
+	 *
+	 * Checked after {@link CommentingOptions.canComment}, which gates commenting as a whole: a
+	 * viewer who may not participate gets no action affordances at all, whatever this returns.
+	 *
+	 * Called during render via {@link useCanModifyComment}, so reactive reads (signals) are tracked.
+	 *
+	 * @example
+	 * ```tsx
+	 * CommentTool.configure({
+	 * 	canModifyComment: (ctx) =>
+	 * 		// Moderators may delete anything; everything else stays the owner's to do.
+	 * 		(ctx.action !== 'edit-comment' && isModerator(ctx.currentUserId)) ||
+	 * 		defaultCanModifyComment(ctx),
+	 * })
+	 * ```
+	 */
+	readonly canModifyComment: ((ctx: CommentModificationContext) => boolean) | undefined
 
 	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
@@ -174,6 +223,7 @@ export const defaultCommentingOptions = {
 	isAllowedReaction: isAllowedReactionEmoji,
 	enableRegions: false,
 	canComment: undefined,
+	canModifyComment: undefined,
 	impreciseShapeAnchor: { x: 1, y: 0 },
 	shouldBePrecise: () => true,
 	components: {},
@@ -232,4 +282,71 @@ export function useCanComment(currentUserId: string | null | undefined): boolean
 		editor,
 		currentUserId,
 	])
+}
+
+/**
+ * The default {@link CommentingOptions.canModifyComment}: a write is its record's owner's to make —
+ * a comment's author edits and deletes it, a thread's creator deletes the thread — and a viewer
+ * with no identity may make none of them.
+ *
+ * Exported so a callback can widen the default rather than restate it:
+ * `(ctx) => isModerator(ctx.currentUserId) || defaultCanModifyComment(ctx)`.
+ *
+ * @public
+ */
+export function defaultCanModifyComment(ctx: CommentModificationContext): boolean {
+	const { currentUserId } = ctx
+	if (!currentUserId) return false
+	const owner = ctx.action === 'delete-thread' ? ctx.thread.createdBy : ctx.comment.authorId
+	return owner === currentUserId
+}
+
+/**
+ * Whether the viewer may make a given write against a given record, per
+ * {@link CommentingOptions.canModifyComment} (defaulting to {@link defaultCanModifyComment} when
+ * unset). Where this is false the affordance isn't rendered.
+ *
+ * This is the per-record rule alone: the built-in UI additionally requires
+ * {@link CommentingOptions.canComment}, since a viewer who may not participate gets no action
+ * affordances at all.
+ *
+ * A plain, untracked read — a `canModifyComment` callback that reads signals is not observed. In
+ * React, use {@link useCanModifyComment} instead.
+ *
+ * @public
+ */
+export function getCanModifyComment(
+	editor: Editor,
+	currentUserId: string | null | undefined,
+	modification: CommentModification
+): boolean {
+	const { canModifyComment } = getCommentingOptions(editor)
+	const ctx: CommentModificationContext = {
+		editor,
+		currentUserId: currentUserId ?? null,
+		...modification,
+	}
+	return canModifyComment ? canModifyComment(ctx) : defaultCanModifyComment(ctx)
+}
+
+/**
+ * Reactive React hook for {@link getCanModifyComment}: a `canModifyComment` callback that reads
+ * signals re-evaluates when they change.
+ *
+ * @public
+ */
+export function useCanModifyComment(
+	currentUserId: string | null | undefined,
+	modification: CommentModification
+): boolean {
+	const editor = useEditor()
+	// Comment records are immutable, so the record itself is what changes when the thing being
+	// checked changes — `modification` is a fresh object on every render and can't be a dep.
+	const record =
+		modification.action === 'delete-thread' ? modification.thread : modification.comment
+	return useValue(
+		'can modify comment',
+		() => getCanModifyComment(editor, currentUserId, modification),
+		[editor, currentUserId, modification.action, record]
+	)
 }

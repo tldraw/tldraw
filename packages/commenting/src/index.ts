@@ -94,11 +94,16 @@ export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-over
 export {
 	type CommentingComponents,
 	type CommentingOptions,
+	type CommentModification,
+	type CommentModificationContext,
+	defaultCanModifyComment,
 	defaultCommentingOptions,
 	getCanComment,
+	getCanModifyComment,
 	getCommentingOptions,
 	type ShapeCommentPrecisionContext,
 	useCanComment,
+	useCanModifyComment,
 	useCommentingOptions,
 } from './canvas/options'
 export { CommentsOverflowMenu } from './canvas/comments-overflow-menu'
