@@ -222,6 +222,8 @@ export const comment_reaction = table('comment_reaction')
 		threadId: string(),
 		pageId: string(),
 		userId: string(),
+		// denormalized user display name, stamped and kept fresh by Postgres triggers (045)
+		userName: string(),
 		emoji: string(),
 		createdAt: number(),
 	})

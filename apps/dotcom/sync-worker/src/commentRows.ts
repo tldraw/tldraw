@@ -180,6 +180,8 @@ export function reactionRecordToRow(
 		threadId: record.threadId,
 		pageId: record.pageId,
 		userId: record.userId,
+		// stamped by Postgres (set_comment_reaction_user_name_trigger); value here is ignored
+		userName: '',
 		emoji: record.emoji,
 		createdAt: record.createdAt,
 		meta: record.meta,
