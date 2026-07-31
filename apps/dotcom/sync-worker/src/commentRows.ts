@@ -147,6 +147,17 @@ export function planMentionReconciles(commentRows: DB['comment'][]): CommentMent
 	}))
 }
 
+/**
+ * A canonical, order-insensitive key for a reconcile's mention set. The drain remembers the key of
+ * each comment's last successfully reconciled set (in memory, per DO lifetime) and skips the
+ * Postgres round trips when a later drain plans the same set — the common case for at-least-once
+ * replays and comment edits that don't touch mentions. User ids can't contain whitespace, so the
+ * separator can't collide.
+ */
+export function mentionReconcileKey(userIds: string[]): string {
+	return [...userIds].sort().join(' ')
+}
+
 export function threadRecordToRow(
 	record: TLCommentThread,
 	fileId: string,
