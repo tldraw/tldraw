@@ -925,12 +925,7 @@ export class TLFileDurableObject extends DurableObject {
 			}
 			case 'client': {
 				if (event.name === 'rate_limited') {
-					// The user id goes to the header slot as well as its existing payload position, so
-					// cross-domain user queries work without breaking the panels that read blob3.
-					this.writeEvent(event.name, {
-						blobs: [event.userId ?? 'anon-user'],
-						userId: event.userId,
-					})
+					this.writeEvent(event.name, { blobs: [event.userId ?? 'anon-user'] })
 				} else {
 					this.writeEvent(event.name, { blobs: [event.instanceId] })
 				}

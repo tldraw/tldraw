@@ -69,13 +69,11 @@ export const EVENT_DOMAINS: Record<TLDataPointName, TLAnalyticsDomain> = {
 	mcp_shared_board_screenshot: 'screenshot',
 }
 
-// Header positions, as zero-based offsets into the blobs array. Payload blobs sit between blob2 and
-// the user slot rather than after it: Analytics Engine's schema is fixed at exactly 20 blobs, so the
-// top of the range is a stable anchor, and reserving blob3..blob15 against a current maximum of five
-// payload blobs means the header should never have to move. Padding the gap with empty strings is
-// free against the 16 KB per-datapoint blob budget.
-const USER_SLOT = 15 // blob16
-const MAX_PAYLOAD_BLOBS = USER_SLOT - 2 // blob3..blob15
+// Payload blobs are bounded at blob3..blob15, leaving blob16..blob20 free for header fields a later
+// change may want. Analytics Engine's schema is fixed at exactly 20 blobs, so the top of the range
+// is a stable anchor; reserving 13 payload slots against a current maximum of five means a future
+// header field can be added there without any payload moving.
+const MAX_PAYLOAD_BLOBS = 13 // blob3..blob15
 
 /** The domain-owned half of a datapoint: whatever that domain's writer decides its events carry. */
 export interface DataPointPayload {
@@ -94,29 +92,26 @@ export interface DataPoint extends DataPointPayload {
 	 * sentinel value.
 	 */
 	subject?: string
-	/**
-	 * Written to the header's user slot rather than to a domain-owned position, because
-	 * "everything about user X" is a cross-domain question. Domains that already carry a user id in
-	 * a payload blob keep writing it there too, so existing panels keep working.
-	 */
-	userId?: string
 }
 
 /**
  * Analytics Engine has no way to name columns, so the header's positions are aliased at query time.
- * Exported so dashboards and scripts consume one mapping instead of hand-writing `blob16 AS user`
- * in every panel.
+ * Exported so dashboards and scripts consume one mapping rather than each naming positions itself.
  */
 export const COLUMN_ALIASES = {
 	index1: 'subject',
 	blob1: 'event',
 	blob2: 'env',
-	blob16: 'user',
 } as const
 
 /**
  * Writes a datapoint to the Analytics Engine dataset bound as MEASURE. This is the only place that
  * knows a blob position; call sites go through their domain's writer and pass named fields.
+ *
+ * Identifiers belong in `index1`, not in a blob: Analytics Engine samples, and it samples _per
+ * index value_, which is what makes a per-room query return that room's events rather than a
+ * thinned subset of everything. A high-cardinality blob gets neither that guarantee nor useful
+ * aggregation, and costs storage on every row. So the header carries exactly one identifier.
  *
  * `blob1` (event) and `blob2` (worker name) keep the positions they have always had. They are the
  * `WHERE` clause of essentially every Grafana panel, and with 90-day retention a filter that moved
@@ -129,19 +124,16 @@ export const COLUMN_ALIASES = {
 export function writeDataPoint(
 	env: Environment,
 	name: TLDataPointName,
-	{ subject, userId, blobs, doubles }: DataPoint = {}
+	{ subject, blobs, doubles }: DataPoint = {}
 ) {
 	try {
 		// A payload wider than its reserved range is a bug in that domain's writer. Truncate rather
-		// than overflow into the header: losing a payload dimension is recoverable, mislabelling
-		// every row's user is not.
+		// than let it run into the range a later header field will claim.
 		const columns = [
 			name,
 			env.WORKER_NAME ?? 'development-tldraw-multiplayer',
 			...(blobs ?? []).slice(0, MAX_PAYLOAD_BLOBS),
 		]
-		while (columns.length < USER_SLOT) columns.push('')
-		columns[USER_SLOT] = userId ?? ''
 
 		env.MEASURE?.writeDataPoint({
 			blobs: columns,

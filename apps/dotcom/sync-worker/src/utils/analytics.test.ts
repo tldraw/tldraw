@@ -39,14 +39,6 @@ describe('writeDataPoint', () => {
 			expect(written.blob(2)).toBe('development-tldraw-multiplayer')
 		})
 
-		it('puts the user in blob16', () => {
-			expect(write({ userId: 'user:1' }).blob(16)).toBe('user:1')
-		})
-
-		it('writes an empty user slot rather than a sentinel when there is no user', () => {
-			expect(write().blob(16)).toBe('')
-		})
-
 		it('writes the subject to index1', () => {
 			expect(write({ subject: 'room-do-id' }).indexes).toEqual(['room-do-id'])
 		})
@@ -63,13 +55,11 @@ describe('writeDataPoint', () => {
 			expect(written.blob(4)).toBe('second')
 		})
 
-		it('pads the unused payload range so the header keeps its positions', () => {
-			const written = write({ blobs: ['instance-id'] })
-			expect(written.blobs).toEqual([
+		it('writes nothing beyond the payload, so no row carries empty padding', () => {
+			expect(write({ blobs: ['instance-id'] }).blobs).toEqual([
 				'enter',
 				'production-tldraw-multiplayer',
 				'instance-id',
-				...Array(13).fill(''),
 			])
 		})
 
@@ -77,14 +67,12 @@ describe('writeDataPoint', () => {
 			expect(write({ doubles: [1, 2] }).doubles).toEqual([1, 2])
 		})
 
-		it('truncates a payload too wide for its range rather than overflowing the header', () => {
-			const written = write({
-				userId: 'user:1',
-				blobs: Array.from({ length: 20 }, (_, i) => `b${i}`),
-			})
+		// blob16..blob20 are held for header fields a later change may want, so a payload must not
+		// grow into them.
+		it('truncates a payload at blob15 rather than running into the reserved range', () => {
+			const written = write({ blobs: Array.from({ length: 20 }, (_, i) => `b${i}`) })
 			expect(written.blob(15)).toBe('b12')
-			expect(written.blob(16)).toBe('user:1')
-			expect(written.blobs).toHaveLength(16)
+			expect(written.blobs).toHaveLength(15)
 		})
 	})
 
