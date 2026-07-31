@@ -35,8 +35,13 @@ export function makeSnapshot(
 export function makeFakeThumbnailsBucket() {
 	const store = new Map<
 		string,
-		{ body: ArrayBuffer; customMetadata?: Record<string, string>; uploaded: Date }
+		{ body: ArrayBuffer; customMetadata?: Record<string, string>; uploaded: Date; etag: string }
 	>()
+	// R2 exposes an object's etag twice: `etag` bare and `httpEtag` quoted for the header. The OG route
+	// compares against the first and sends the second, so the fake has to carry both. The value only
+	// has to change when the bytes do, which a counter gives without hashing anything.
+	let version = 0
+	const etagOf = (value: { etag: string }) => ({ etag: value.etag, httpEtag: `"${value.etag}"` })
 	return {
 		store,
 		async get(key: string) {
@@ -45,13 +50,15 @@ export function makeFakeThumbnailsBucket() {
 			return {
 				customMetadata: value.customMetadata,
 				uploaded: value.uploaded,
+				...etagOf(value),
+				body: value.body,
 				arrayBuffer: async () => value.body,
 			}
 		},
 		async head(key: string) {
 			const value = store.get(key)
 			if (!value) return null
-			return { customMetadata: value.customMetadata, uploaded: value.uploaded }
+			return { customMetadata: value.customMetadata, uploaded: value.uploaded, ...etagOf(value) }
 		},
 		async put(
 			key: string,
@@ -62,6 +69,7 @@ export function makeFakeThumbnailsBucket() {
 				body,
 				customMetadata: options?.customMetadata,
 				uploaded: new Date(Date.now()),
+				etag: `etag-${++version}`,
 			})
 		},
 		async delete(key: string) {

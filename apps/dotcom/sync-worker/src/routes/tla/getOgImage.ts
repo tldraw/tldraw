@@ -19,9 +19,14 @@ import { reportThumbnailError } from './thumbnailShared'
 // the crawler has already taken the default away. Rendering inline is worse still — captures run
 // 4-17s, past any crawler's patience. See browser-run-thumbnails.md.
 const DEFAULT_OG_IMAGE_PATH = '/social-og.png'
-const FRESH_IMAGE_MAX_AGE_SECONDS = 60 * 60
-// Stale images and fallbacks use short TTLs so scrapers and browsers come back soon after a publish
-// or an edit lands a fresher render.
+// Short, and deliberately not chosen for cost or freshness. Neither is the binding constraint here:
+// R2 reads are a rounding error next to rendering, and unfurl platforms cache a card their own side
+// for days whatever we say. What the lifetime actually decides is how long an image can be served
+// without the share gate being consulted — nothing deletes a board's image when it stops being
+// public, so this route re-checking the gate per request is the only thing keeping an unshared
+// board's thumbnail off the internet. Every second of cache lifetime is a second that check does not
+// happen, so these are minutes, and revalidation is made cheap with an etag instead.
+const FRESH_IMAGE_MAX_AGE_SECONDS = 5 * 60
 const STALE_IMAGE_MAX_AGE_SECONDS = 5 * 60
 const FALLBACK_MAX_AGE_SECONDS = 60
 
@@ -53,21 +58,36 @@ export async function getOgImage(
 	if (!board) return redirectToDefaultOgImage(imageUrl)
 
 	const cacheKey = getOgImageCacheKey(board)
-	const cached = wantsBody
-		? await env.THUMBNAILS?.get(cacheKey)
-		: await env.THUMBNAILS?.head(cacheKey)
+	// A conditional request needs metadata only: if the etag still matches, the answer is a 304 and the
+	// bytes are never read. A HEAD probe needs metadata only for the same reason.
+	const ifNoneMatch = request.headers.get('if-none-match')
+	let cached =
+		wantsBody && !ifNoneMatch
+			? await env.THUMBNAILS?.get(cacheKey)
+			: await env.THUMBNAILS?.head(cacheKey)
 
 	if (cached) {
-		// Whether the image still depicts the board's current content decides the cache lifetime and
-		// nothing else — both are served. There is no "too stale to serve": an old picture of this board
-		// beats the generic tldraw logo.
-		const isCurrent = cached.customMetadata?.version === String(board.version)
-		writeScreenshotTelemetry(env, { source: 'og', cacheStatus: isCurrent ? 'hit' : 'stale' })
-		return imageResponse(wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null, {
-			cacheStatus: isCurrent ? 'hit' : 'stale',
-			maxAgeSeconds: isCurrent ? FRESH_IMAGE_MAX_AGE_SECONDS : STALE_IMAGE_MAX_AGE_SECONDS,
-			version: cached.customMetadata?.version,
-		})
+		// The caller already holds these bytes. This is the path the short max-age is designed to make
+		// common: a cache revalidates for the price of a 304, and every revalidation re-runs the share
+		// gate above, so an unshared board stops being served within minutes rather than within a day.
+		if (ifNoneMatch && etagMatches(ifNoneMatch, cached.etag)) {
+			writeScreenshotTelemetry(env, { source: 'og', cacheStatus: cacheStatusOf(cached, board) })
+			return notModifiedResponse(cacheParamsOf(cached, board))
+		}
+
+		// A conditional GET whose etag no longer matches: the board has re-rendered since it was cached,
+		// so the bytes are needed after all. Every header below is derived from this second read, so a
+		// render landing between the two cannot make them describe bytes we did not send.
+		if (wantsBody && !('body' in cached)) {
+			cached = await env.THUMBNAILS?.get(cacheKey)
+			if (!cached) return redirectToDefaultOgImage(imageUrl)
+		}
+
+		writeScreenshotTelemetry(env, { source: 'og', cacheStatus: cacheStatusOf(cached, board) })
+		return imageResponse(
+			wantsBody ? await (cached as R2ObjectBody).arrayBuffer() : null,
+			cacheParamsOf(cached, board)
+		)
 	}
 
 	// Never rendered, so the board has nothing of its own to show and the request is sent to the
@@ -104,26 +124,61 @@ function parseSlug(value: unknown) {
 	return typeof value === 'string' && value.length > 0 && !value.includes('/') ? value : null
 }
 
-function imageResponse(
-	body: ArrayBuffer | null,
-	{
+// Whether the image still depicts the board's current content decides the cache lifetime and nothing
+// else — both are served. There is no "too stale to serve": an old picture of this board beats the
+// generic tldraw logo, so a mismatch only asks callers back sooner.
+function cacheStatusOf(cached: R2Object, board: ResolvedThumbnailBoard) {
+	return cached.customMetadata?.version === String(board.version) ? 'hit' : 'stale'
+}
+
+function cacheParamsOf(cached: R2Object, board: ResolvedThumbnailBoard): CacheParams {
+	const cacheStatus = cacheStatusOf(cached, board)
+	return {
 		cacheStatus,
-		maxAgeSeconds,
-		version,
-	}: {
-		cacheStatus: 'hit' | 'stale'
-		maxAgeSeconds: number
-		version?: string
+		maxAgeSeconds:
+			cacheStatus === 'hit' ? FRESH_IMAGE_MAX_AGE_SECONDS : STALE_IMAGE_MAX_AGE_SECONDS,
+		etag: cached.httpEtag,
+		version: cached.customMetadata?.version,
 	}
-) {
+}
+
+interface CacheParams {
+	cacheStatus: 'hit' | 'stale'
+	maxAgeSeconds: number
+	etag?: string
+	version?: string
+}
+
+// `if-none-match` is a list, each entry optionally weak-prefixed and quoted; R2's `etag` is the bare
+// value, so both sides are normalised before comparing.
+function etagMatches(ifNoneMatch: string, etag: string) {
+	return ifNoneMatch
+		.split(',')
+		.map((candidate) => candidate.trim().replace(/^W\//, '').replace(/^"|"$/g, ''))
+		.some((candidate) => candidate === '*' || candidate === etag)
+}
+
+function cacheHeaders({ cacheStatus, maxAgeSeconds, etag, version }: CacheParams) {
+	return {
+		// No `stale-while-revalidate`: it would let a cache keep serving for a day past expiry, which is
+		// a day of serving without the share gate — the same reason the default-image redirect carries
+		// none. See FRESH_IMAGE_MAX_AGE_SECONDS.
+		'cache-control': `public, max-age=${maxAgeSeconds}`,
+		'x-tldraw-og-cache': cacheStatus,
+		...(etag ? { etag } : null),
+		...(version ? { 'x-tldraw-og-version': version } : null),
+	}
+}
+
+function imageResponse(body: ArrayBuffer | null, params: CacheParams) {
 	return new Response(body, {
-		headers: {
-			'content-type': 'image/png',
-			'cache-control': `public, max-age=${maxAgeSeconds}, stale-while-revalidate=86400`,
-			'x-tldraw-og-cache': cacheStatus,
-			...(version ? { 'x-tldraw-og-version': version } : null),
-		},
+		headers: { 'content-type': 'image/png', ...cacheHeaders(params) },
 	})
+}
+
+// A 304 carries no body, and its headers refresh what the caller already holds.
+function notModifiedResponse(params: CacheParams) {
+	return new Response(null, { status: 304, headers: cacheHeaders(params) })
 }
 
 // Sends a request with no board image of its own to the site-wide default. The worker never serves

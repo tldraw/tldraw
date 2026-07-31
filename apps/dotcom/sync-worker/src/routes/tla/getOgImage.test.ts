@@ -26,9 +26,12 @@ afterEach(() => {
 	vi.clearAllMocks()
 })
 
-function makeRequest(prefix: string, slug: string, method = 'GET') {
+function makeRequest(prefix: string, slug: string, method = 'GET', headers?: HeadersInit) {
 	return Object.assign(
-		new Request(`https://sync.tldraw.xyz/app/social-preview/${prefix}/${slug}/image`, { method }),
+		new Request(`https://sync.tldraw.xyz/app/social-preview/${prefix}/${slug}/image`, {
+			method,
+			headers,
+		}),
 		{ params: { prefix, slug } }
 	) as any
 }
@@ -98,6 +101,118 @@ describe('getOgImage', () => {
 		expect(queue.send).not.toHaveBeenCalled()
 	})
 
+	// The lifetime is short and revalidation is cheap on purpose. Nothing deletes a board's image when
+	// it stops being public, so this route re-checking the share gate is the only thing keeping an
+	// unshared board's thumbnail off the internet — and a cache serving without asking is that check not
+	// happening. `stale-while-revalidate` is absent for the same reason: it would extend serving a day
+	// past expiry.
+	it('serves a fresh hit with a short lifetime and an etag, and no stale-while-revalidate', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const bucket = makeFakeThumbnailsBucket()
+		await bucket.put(
+			getOgImageCacheKey({ kind: 'published', slug: 'cached-board' }),
+			new Uint8Array([1, 2, 3]).buffer,
+			{ customMetadata: { version: '1', createdAt: String(Date.now()) } }
+		)
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+
+		const response = await getOgImage(makeRequest('p', 'cached-board'), env)
+
+		expect(response.headers.get('cache-control')).toBe('public, max-age=300')
+		expect(response.headers.get('etag')).toBe('"etag-1"')
+	})
+
+	it('answers a conditional request whose etag still matches with a 304 and no body', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const bucket = makeFakeThumbnailsBucket()
+		await bucket.put(
+			getOgImageCacheKey({ kind: 'published', slug: 'cached-board' }),
+			new Uint8Array([1, 2, 3]).buffer,
+			{ customMetadata: { version: '1', createdAt: String(Date.now()) } }
+		)
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+
+		const response = await getOgImage(
+			makeRequest('p', 'cached-board', 'GET', { 'if-none-match': '"etag-1"' }),
+			env
+		)
+
+		expect(response.status).toBe(304)
+		expect(await response.text()).toBe('')
+		// The headers still refresh what the caller holds, so the next revalidation is a whole lifetime
+		// away rather than immediate.
+		expect(response.headers.get('cache-control')).toBe('public, max-age=300')
+		expect(response.headers.get('etag')).toBe('"etag-1"')
+		expect(response.headers.get('x-tldraw-og-cache')).toBe('hit')
+	})
+
+	// The bytes are read lazily on a conditional request, so a render landing since the caller cached
+	// has to be noticed and served rather than answered with a 304 for content that has moved.
+	it('serves the new bytes when a conditional request holds a superseded etag', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 2,
+		})
+		const bucket = makeFakeThumbnailsBucket()
+		const key = getOgImageCacheKey({ kind: 'published', slug: 'cached-board' })
+		await bucket.put(key, new Uint8Array([1, 2, 3]).buffer, {
+			customMetadata: { version: '1', createdAt: String(Date.now()) },
+		})
+		await bucket.put(key, new Uint8Array([4, 5, 6]).buffer, {
+			customMetadata: { version: '2', createdAt: String(Date.now()) },
+		})
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+
+		const response = await getOgImage(
+			makeRequest('p', 'cached-board', 'GET', { 'if-none-match': '"etag-1"' }),
+			env
+		)
+
+		expect(response.status).toBe(200)
+		expect(await response.arrayBuffer()).toEqual(new Uint8Array([4, 5, 6]).buffer)
+		expect(response.headers.get('etag')).toBe('"etag-2"')
+		expect(response.headers.get('x-tldraw-og-cache')).toBe('hit')
+	})
+
+	// The share gate runs before the etag is ever looked at, so holding a valid etag for a board that
+	// has since been unshared buys nothing. This is what the short lifetime is protecting.
+	it('sends a conditional request for a board that is no longer shared to the default image', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			shared: false,
+			sharedLinkType: 'view',
+			isDeleted: false,
+		} as any)
+		const bucket = makeFakeThumbnailsBucket()
+		await bucket.put(
+			getOgImageCacheKey({ kind: 'shared_file', slug: 'file-1' }),
+			new Uint8Array([1, 2, 3]).buffer,
+			{ customMetadata: { version: 'room-etag-1', createdAt: String(Date.now()) } }
+		)
+		const env = makeEnv({
+			THUMBNAILS: bucket,
+			ROOMS: makeFakeRoomsBucket('room-etag-1'),
+			QUEUE: makeFakeQueue(),
+		})
+
+		const response = await getOgImage(
+			makeRequest('f', 'file-1', 'GET', { 'if-none-match': '"etag-1"' }),
+			env
+		)
+
+		expect(response.status).toBe(302)
+		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
+	})
+
 	// There is no "too stale to serve". An old picture of this board beats the generic tldraw logo, so a
 	// version mismatch only shortens the cache lifetime — it never withholds the image or asks for a
 	// render, and the image's age is not consulted at all.
@@ -124,9 +239,7 @@ describe('getOgImage', () => {
 			const stale = await getOgImage(makeRequest('p', 'cached-board'), env)
 			expect(stale.status).toBe(200)
 			expect(stale.headers.get('x-tldraw-og-cache')).toBe('stale')
-			expect(stale.headers.get('cache-control')).toBe(
-				'public, max-age=300, stale-while-revalidate=86400'
-			)
+			expect(stale.headers.get('cache-control')).toBe('public, max-age=300')
 			expect(await stale.arrayBuffer()).toEqual(new Uint8Array([1, 2, 3]).buffer)
 		}
 		expect(queue.send).not.toHaveBeenCalled()
