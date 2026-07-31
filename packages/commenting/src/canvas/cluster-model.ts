@@ -1,0 +1,344 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Editor, react, TLCommentThread, useValue } from 'tldraw'
+import { computeClusterTable } from '../clustering/computeClusterTable'
+import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
+import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
+import { type ClusterFadeNode, useFadeVisibleNodes } from './cluster-fade'
+import { collectClusterLeaves } from './cluster-input'
+import { type CommentingOptions } from './options'
+import { openThreadId } from './state'
+import { anchorPagePoint, commentCenterScreenOffset } from './thread-state'
+
+/** Duration of the click-a-badge zoom-to-split animation. */
+export const CLUSTER_EXPAND_ZOOM_MS = 450
+/** How far past a cluster's split zoom to land when expanding it — a 5% overshoot, so the badge
+ *  lands clear of the threshold it just crossed rather than flickering on it. */
+const CLUSTER_SPLIT_ZOOM_FACTOR = 1.05
+
+const EMPTY_SET: ReadonlySet<string> = new Set()
+const MOVED_LEAF_EPSILON = 1e-6
+
+/** The clustering table for the current scene, plus the runtime walking its merge events. */
+export interface ClusterModel {
+	runtime: ClusterRuntime
+	table: ClusterTable
+}
+
+export interface ClusterZoomBounds {
+	minZoom: number
+	maxZoom: number
+}
+
+export interface ClusterModelState {
+	/** The partition actually on screen. See {@link useClusterModel} for why it can lag the input. */
+	model: ClusterModel
+	zoomBounds: ClusterZoomBounds
+	/** The displayed nodes, each tagged with its cross-fade phase. */
+	fadeNodes: ClusterFadeNode[]
+	/** Threads in the input that the displayed partition doesn't show — render them as plain pins. */
+	orphanThreads: TLCommentThread[]
+	/** Threads held out of clustering because their anchor moved while folded into a badge. */
+	heldThreads: TLCommentThread[]
+}
+
+/**
+ * The clustering state machine behind the comments layer.
+ *
+ * The core invariant: the only thing that re-flows clustering doc-wide is zoom. Every rebuild
+ * (add / move / delete / open / pop-out) is computed immediately as `latestModel` — the MST
+ * stays correct — but the on-screen partition is `renderedModel`, and it only ever changes via
+ * (a) the cursor walking on zoom, (b) adoption of the pending rebuild on zoom-out, or
+ * (c) LOCAL detach patches: a leaf that left the input (deleted, opened, popped out) is
+ * detached from its own badge in place — count and centroid update for that badge alone,
+ * and nothing else on the canvas moves.
+ *
+ * Threads the displayed partition can't represent are returned separately (`orphanThreads`,
+ * `heldThreads`) for the layer to draw as ordinary pins.
+ */
+export function useClusterModel(
+	editor: Editor,
+	threads: readonly TLCommentThread[],
+	openId: string | null
+): ClusterModelState {
+	// Threads held out of clustering because their anchor moved while folded inside a badge
+	// (drag, nudge, align, undo, a collaborator — detected by position, not gesture). They render
+	// as live pins riding their anchor and rejoin clustering on the next zoom-out.
+	const [heldThreadIds, setHeldThreadIds] = useState<ReadonlySet<string>>(EMPTY_SET)
+	const adoptOnRebuild = useRef(false)
+	const clusterLeaves = useValue(
+		'comment cluster leaves',
+		() =>
+			collectClusterLeaves(
+				editor,
+				threads.filter((thread) => !heldThreadIds.has(thread.id)),
+				openThreadId.get(editor)
+			),
+		[editor, threads, heldThreadIds]
+	)
+	const clusterZoomBounds = useValue(
+		'comment cluster zoom bounds',
+		() => getClusterZoomBounds(editor),
+		[editor]
+	)
+	const latestModel = useMemo(() => {
+		const table = computeClusterTable(clusterLeaves, clusterZoomBounds)
+		const runtime = createClusterRuntime(table)
+		runtime.seed(editor.getZoomLevel())
+		return { runtime, table }
+	}, [clusterLeaves, clusterZoomBounds, editor])
+	const [renderedModel, setRenderedModel] = useState(latestModel)
+	let clusterModel = renderedModel
+	// A page switch replaces the whole scene: hard-reset rather than detach the world.
+	const pageId = useValue('comment cluster page', () => editor.getCurrentPageId(), [editor])
+	const pageRef = useRef(pageId)
+	if (pageRef.current !== pageId) {
+		pageRef.current = pageId
+		adoptOnRebuild.current = false
+		latestModel.runtime.seed(editor.getZoomLevel())
+		if (heldThreadIds.size > 0) setHeldThreadIds(EMPTY_SET)
+		setRenderedModel(latestModel)
+		clusterModel = latestModel
+	}
+	// adoptOnRebuild is set by the rejoin reaction below, outside React's render cycle, paired
+	// with clearing heldThreadIds. Only trust it once that pairing is actually visible here
+	// (heldThreadIds confirmed empty) — an unrelated re-render can land in the gap between the
+	// ref being set and the state update it was paired with being applied.
+	const rejoinPending = heldThreadIds.size === 0 && adoptOnRebuild.current
+	if (renderedModel !== latestModel && rejoinPending) {
+		adoptOnRebuild.current = false
+		// Carryover seed: band events inherit the outgoing partition's merged/unmerged state, so
+		// nothing changes state because of the swap alone. Idempotent, so safe during render.
+		latestModel.runtime.seedFrom(editor.getZoomLevel(), renderedModel.runtime.getVisible())
+		setRenderedModel(latestModel)
+		clusterModel = latestModel
+	} else if (heldThreadIds.size === 0 && renderedModel === latestModel) {
+		// Nothing pending and nothing to adopt: clear any leftover force-adopt intent so it can't
+		// survive to force-adopt a later, unrelated rebuild.
+		adoptOnRebuild.current = false
+	}
+	// Pop-out detection: a leaf folded inside a badge can't follow its anchor (the badge position
+	// is baked into the model), so when its live position drifts from the baked one, hold it out.
+	// It renders as a live pin riding the anchor; the detach loop below shrinks its badge locally.
+	const newlyMovedIds = findMovedClusteredLeafIds(clusterModel, latestModel)
+	if (newlyMovedIds.length > 0) {
+		const next = new Set(heldThreadIds)
+		for (const id of newlyMovedIds) next.add(id)
+		setHeldThreadIds(next)
+	}
+	// Local partition maintenance — the only non-zoom visual change, and it is local by
+	// construction: any displayed leaf that has left the cluster input (deleted, thread opened,
+	// popped out above) is detached from its badge in place. The corrected rebuild is already
+	// sitting in latestModel awaiting the next zoom-out.
+	{
+		const latestLeafIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
+		for (const leaf of clusterModel.table.leaves) {
+			if (!latestLeafIds.has(leaf.id)) {
+				clusterModel.runtime.detachLeaf(leaf.id)
+			}
+		}
+	}
+	// Moved pins rejoin clustering on the next zoom-out motion: clear the set (so the rebuild
+	// includes them again) and adopt that rebuild immediately instead of deferring it. Zooming in
+	// never folds pins into clusters — merging is a zoom-out-only move, matching the runtime.
+	useEffect(() => {
+		if (heldThreadIds.size === 0) return
+		let lastZoom = editor.getZoomLevel()
+		return react('rejoin moved comment pins on zoom out', () => {
+			const zoom = editor.getZoomLevel()
+			const prevZoom = lastZoom
+			lastZoom = zoom
+			if (zoom >= prevZoom) return
+			adoptOnRebuild.current = true
+			setHeldThreadIds(EMPTY_SET)
+		})
+	}, [heldThreadIds, editor])
+	// Adopt a pending rebuild only on zoom-out motion: folding deferred additions into clusters is
+	// a merge, and merging only happens while zooming out. While zooming in, the stale table still
+	// splits correctly on its own (split thresholds are direction-safe by the hysteresis invariant).
+	useEffect(() => {
+		if (clusterModel === latestModel) return
+		let lastZoom = editor.getZoomLevel()
+		return react('adopt pending cluster model on zoom out', () => {
+			const zoom = editor.getZoomLevel()
+			const prevZoom = lastZoom
+			lastZoom = zoom
+			if (zoom >= prevZoom) return
+			latestModel.runtime.seedFrom(zoom, clusterModel.runtime.getVisible())
+			setRenderedModel(latestModel)
+		})
+	}, [clusterModel, latestModel, editor])
+	// Threads in the current input that the displayed partition doesn't show anywhere (new
+	// comments, reopened threads, undone deletions): render as plain pins until the next
+	// zoom-out folds them in. Membership is judged against the *displayed* partition (with
+	// detaches applied), not the rendered table, so a detached-then-restored leaf reappears.
+	const partitionVersion = clusterModel.runtime.version
+	const orphanThreads = useMemo(() => {
+		if (clusterModel === latestModel) return []
+		const displayed = new Set<string>()
+		for (const node of clusterModel.runtime.getVisible().values()) {
+			for (const member of node.members) displayed.add(member)
+		}
+		const latestIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
+		return threads.filter((thread) => latestIds.has(thread.id) && !displayed.has(thread.id))
+		// The runtime mutates its partition in place; partitionVersion is its change stamp.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [clusterModel, latestModel, threads, partitionVersion])
+	const heldThreads = useMemo(
+		() => threads.filter((thread) => heldThreadIds.has(thread.id) && thread.id !== openId),
+		[threads, heldThreadIds, openId]
+	)
+	// Subscribe to the runtime's partition version, not the raw zoom: onCamera runs on every zoom
+	// tick (O(1) threshold checks) but the version only moves when the partition actually changes
+	// — so this component only re-renders on cluster changes, not on every camera frame. The memo
+	// below keys on a fresh inline read of the version rather than the subscribed value, because
+	// render-time detaches (above) bump it after the subscription's computed already evaluated.
+	useValue(
+		'comment cluster version',
+		() => {
+			clusterModel.runtime.onCamera(editor.getZoomLevel())
+			return clusterModel.runtime.version
+		},
+		[clusterModel, editor]
+	)
+	const visibleNodes = useMemo(() => {
+		return Array.from(clusterModel.runtime.getVisible().values())
+		// The runtime mutates its partition in place; partitionVersion is its change stamp.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [clusterModel, partitionVersion])
+	const fadeNodes = useFadeVisibleNodes(visibleNodes, clusterModel)
+
+	return {
+		model: clusterModel,
+		zoomBounds: clusterZoomBounds,
+		fadeNodes,
+		orphanThreads,
+		heldThreads,
+	}
+}
+
+/**
+ * Leaves folded inside a badge whose live anchor no longer matches the position the rendered
+ * model was built with. Visible (unclustered) leaf pins track their anchor live, so they can
+ * stay deferred; a badge can't follow a member, so these must pop out of clustering.
+ */
+function findMovedClusteredLeafIds(rendered: ClusterModel, latest: { table: ClusterTable }) {
+	if (rendered.table === latest.table) return []
+	const visible = rendered.runtime.getVisible()
+	const latestById = new Map(latest.table.leaves.map((leaf) => [leaf.id, leaf]))
+	const moved: string[] = []
+	for (const leaf of rendered.table.leaves) {
+		if (visible.has(leaf.id)) continue
+		const current = latestById.get(leaf.id)
+		if (!current) continue
+		if (
+			Math.abs(current.centroid.x - leaf.centroid.x) > MOVED_LEAF_EPSILON ||
+			Math.abs(current.centroid.y - leaf.centroid.y) > MOVED_LEAF_EPSILON
+		) {
+			moved.push(leaf.id)
+		}
+	}
+	return moved
+}
+
+function getClusterZoomBounds(editor: Editor): ClusterZoomBounds {
+	const cameraOptions = editor.getCameraOptions()
+	const baseZoom = cameraOptions.constraints ? editor.getBaseZoom() : 1
+	const zoomSteps = cameraOptions.zoomSteps
+	return {
+		minZoom: zoomSteps[0] * baseZoom,
+		maxZoom: zoomSteps[zoomSteps.length - 1] * baseZoom,
+	}
+}
+
+/**
+ * Bring a thread's pin into view: switch pages if needed, then zoom to the first cluster split
+ * that unfolds it from its badge (or just centre on it when it isn't clustered).
+ */
+export function revealThreadPin(
+	editor: Editor,
+	thread: TLCommentThread,
+	table: ClusterTable,
+	zoomBounds: ClusterZoomBounds,
+	options: CommentingOptions,
+	duration = 200
+) {
+	if (thread.pageId !== editor.getCurrentPageId()) {
+		editor.setCurrentPage(thread.pageId as any)
+	}
+
+	const point = anchorPagePoint(editor, thread.anchor)
+	if (!point) return
+
+	// With clustering off the pin always renders individually, so skip the zoom-to-split (its cluster
+	// badge never exists) and just center on the pin.
+	if (options.enableClustering) {
+		const parentEvent = findDirectParentEvent(table, thread.id)
+		if (
+			parentEvent &&
+			Number.isFinite(parentEvent.zSplit) &&
+			parentEvent.zSplit <= zoomBounds.maxZoom
+		) {
+			const zoom = clamp(
+				parentEvent.zSplit * CLUSTER_SPLIT_ZOOM_FACTOR,
+				zoomBounds.minZoom,
+				zoomBounds.maxZoom
+			)
+			centerOnPointAtZoom(editor, point, zoom, duration)
+			return
+		}
+	}
+
+	const offset = commentCenterScreenOffset(editor) / editor.getZoomLevel()
+	editor.centerOnPoint({ x: point.x + offset, y: point.y }, { animation: { duration } })
+}
+
+/**
+ * Zoom to just past the zoom at which a cluster first unclusters, centered on its centroid. The
+ * event that created a visible cluster is the event that splits it, and (by the table's sort +
+ * monotone thresholds) it has the smallest zSplit of everything applied inside it — so its zSplit
+ * is exactly the first split within those comments. The animated zoom-in then drives the runtime
+ * cursor like any manual zoom, so the badge splits (and can be drilled into further) with no extra
+ * bookkeeping. A no-op for a node with no split event.
+ */
+export function zoomToClusterSplit(
+	editor: Editor,
+	table: ClusterTable,
+	zoomBounds: ClusterZoomBounds,
+	node: ClusterNode
+) {
+	const event = table.events.find((e) => e.result.id === node.id)
+	if (!event || !Number.isFinite(event.zSplit)) return
+	const zoom = clamp(
+		event.zSplit * CLUSTER_SPLIT_ZOOM_FACTOR,
+		zoomBounds.minZoom,
+		zoomBounds.maxZoom
+	)
+	centerOnPointAtZoom(editor, node.centroid, zoom, CLUSTER_EXPAND_ZOOM_MS)
+}
+
+function findDirectParentEvent(table: ClusterTable, threadId: string): MergeEvent | undefined {
+	return table.events.find((event) => event.children.some((child) => child.id === threadId))
+}
+
+function centerOnPointAtZoom(
+	editor: Editor,
+	point: { x: number; y: number },
+	zoom: number,
+	duration = 200
+) {
+	const viewport = editor.getViewportScreenBounds()
+	// The open sidebar shifts the target left so the pin lands mid-uncovered-area, not under it.
+	const offset = commentCenterScreenOffset(editor)
+	editor.setCamera(
+		{
+			x: (viewport.w / 2 - offset) / zoom - point.x,
+			y: viewport.h / (2 * zoom) - point.y,
+			z: zoom,
+		},
+		{ animation: { duration } }
+	)
+}
+
+function clamp(value: number, min: number, max: number): number {
+	return Math.max(min, Math.min(max, value))
+}

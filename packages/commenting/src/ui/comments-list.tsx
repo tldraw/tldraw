@@ -2,6 +2,7 @@ import { Avatar, type CommentAuthor } from '@tldraw/mentions'
 import { Fragment, MouseEvent, ReactNode } from 'react'
 import { useTranslation } from 'tldraw'
 import { Byline } from './byline'
+import { CheckIcon } from './icons'
 import { replyCountLabel } from './reply-count'
 
 /** @public */
@@ -178,18 +179,4 @@ export function CommentListItem({
  */
 export function isOpenInNewTabClick(e: MouseEvent) {
 	return e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0
-}
-
-function CheckIcon() {
-	return (
-		<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-			<path
-				d="M2.5 6.2 4.7 8.4 9.5 3.6"
-				stroke="currentColor"
-				strokeWidth="1.5"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-			/>
-		</svg>
-	)
 }

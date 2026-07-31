@@ -104,22 +104,10 @@ export function renderHtmlFromRichTextWithExtensions(
 	extensions: Extensions
 ): string {
 	const html = generateHTML(richText as JSONContent, extensions)
-	return fillEmptyParagraphs(html)
-}
-
-// Matches a paragraph with no content, keeping whatever attributes it carries in group 1. The
-// attributes have to be preserved: paragraphs are rendered with a `dir` attribute, which is usually
-// `auto` but is `ltr` or `rtl` when the direction was set explicitly or parsed from pasted HTML.
-const EMPTY_PARAGRAPH_REGEX = /<p([^>]*)><\/p>/g
-
-/**
- * Replaces empty paragraphs with ones containing a single line break, to prevent the browser from
- * collapsing them. Without this, a blank line in rich text takes up no height.
- *
- * @internal
- */
-export function fillEmptyParagraphs(html: string): string {
-	return html.replace(EMPTY_PARAGRAPH_REGEX, '<p$1><br /></p>')
+	// We replace empty paragraphs with a single line break to prevent the browser from collapsing
+	// them. The paragraph's attributes are kept: paragraphs render with a `dir` attribute, usually
+	// `auto` but `ltr` or `rtl` when the direction was set explicitly or parsed from pasted HTML.
+	return html.replace(/<p([^>]*)><\/p>/g, '<p$1><br /></p>')
 }
 
 /**

@@ -67,7 +67,6 @@ export class Editor {
 		await this.fileName.click()
 		await this.page.getByTestId('tla-file-name-input').fill(newName)
 		await this.page.keyboard.press('Enter')
-		await this.sidebar.mutationResolution()
 	}
 
 	@step
