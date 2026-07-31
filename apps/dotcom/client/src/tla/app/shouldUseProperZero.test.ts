@@ -26,6 +26,7 @@ const FLAGS_OFF: FeatureFlags = {
 	zero_kill_switch: { enabled: false },
 	rum_enabled: { enabled: false },
 	commenting_enabled: { enabled: false },
+	mcp_friends_and_family: { enabled: false },
 }
 
 describe('shouldUseProperZero', () => {
@@ -144,6 +145,7 @@ describe('shouldUseProperZero', () => {
 				zero_kill_switch: { enabled: true },
 				rum_enabled: { enabled: false },
 				commenting_enabled: { enabled: false },
+				mcp_friends_and_family: { enabled: false },
 			}
 			// Kill switch wins over everything
 			const result = shouldUseProperZero(flags, 'dev@tldraw.com')
