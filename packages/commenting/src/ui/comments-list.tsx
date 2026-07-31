@@ -1,6 +1,6 @@
 import { Avatar, type CommentAuthor } from '@tldraw/mentions'
 import { MouseEvent, ReactNode } from 'react'
-import { useTranslation } from 'tldraw'
+import { TldrawUiIcon, useTranslation } from 'tldraw'
 import { Byline } from './byline'
 import { replyCountLabel } from './reply-count'
 
@@ -127,7 +127,8 @@ function CommentListItem({
 					<div className="tlui-cmt-list__item-meta">
 						{resolved && (
 							<span className="tlui-cmt-list__item-resolved">
-								<CheckIcon />
+								{/* decorative — the label right next to it already says "resolved" */}
+								<TldrawUiIcon icon="check" label="" tiny aria-hidden="true" />
 								{resolvedLabel}
 							</span>
 						)}
@@ -146,18 +147,4 @@ function CommentListItem({
  */
 export function isOpenInNewTabClick(e: MouseEvent) {
 	return e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0
-}
-
-function CheckIcon() {
-	return (
-		<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-			<path
-				d="M2.5 6.2 4.7 8.4 9.5 3.6"
-				stroke="currentColor"
-				strokeWidth="1.5"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-			/>
-		</svg>
-	)
 }
