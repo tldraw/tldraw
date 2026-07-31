@@ -598,17 +598,28 @@ export class Sidebar {
 		await this.duplicateFromFileMenu(newName)
 	}
 
-	@step
-	async openMoveToMenu(fileName: string) {
+	/**
+	 * One attempt at opening the file menu and its move-to submenu. Every wait in here is
+	 * short and bounded so a failed attempt throws quickly and the caller's retry loop gets to
+	 * re-open the file menu — the open click itself is what flakes (the sidebar can re-render
+	 * mid-click and swallow it), so any recovery must include re-clicking, not just re-waiting.
+	 */
+	private async tryOpenMoveToMenu(fileName: string) {
+		// Close whatever menu/submenu a previous attempt left behind.
+		await this.page.keyboard.press('Escape')
+		await this.page.keyboard.press('Escape')
 		await this.openFileMenuByName(fileName)
 		const moveToButton = this.page.getByTestId('dialog-sub.move-to-workspace-button')
-		await expect(async () => {
-			await expect(moveToButton).toBeVisible()
-			await moveToButton.hover({ force: true })
-			await expect(this.page.getByTestId('dialog-sub.move-to-workspace-content')).toBeVisible({
-				timeout: 1000,
-			})
-		}).toPass()
+		await expect(moveToButton).toBeVisible({ timeout: 2000 })
+		await moveToButton.hover({ force: true })
+		await expect(this.page.getByTestId('dialog-sub.move-to-workspace-content')).toBeVisible({
+			timeout: 1000,
+		})
+	}
+
+	@step
+	async openMoveToMenu(fileName: string) {
+		await expect(() => this.tryOpenMoveToMenu(fileName)).toPass({ timeout: 20000 })
 	}
 
 	@step
@@ -624,9 +635,7 @@ export class Sidebar {
 		// destination we're moving to is never the current (checked) one, so its accessible
 		// name is just the workspace name (an unchecked item adds no "checked" prefix).
 		await expect(async () => {
-			await this.page.keyboard.press('Escape')
-			await this.page.keyboard.press('Escape')
-			await this.openMoveToMenu(fileName)
+			await this.tryOpenMoveToMenu(fileName)
 			await this.page
 				.getByRole('menuitemcheckbox', { name: targetWorkspaceName, exact: true })
 				.click({ timeout: 2000 })
