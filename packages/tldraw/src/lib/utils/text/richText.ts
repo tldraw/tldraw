@@ -90,6 +90,39 @@ export const tipTapDefaultExtensions: Extensions = getTipTapDefaultExtensions()
 const htmlCache = new WeakCache<TLRichText, string>()
 
 /**
+ * Renders HTML from a rich text string using an explicit set of TipTap extensions, rather than the
+ * ones configured on an editor. Use this when rendering rich text outside of a shape's editor
+ * config (e.g. comments, which render through their own headingless extension set).
+ *
+ * @param richText - The rich text content.
+ * @param extensions - The TipTap extensions to render with.
+ *
+ * @public
+ */
+export function renderHtmlFromRichTextWithExtensions(
+	richText: TLRichText,
+	extensions: Extensions
+): string {
+	const html = generateHTML(richText as JSONContent, extensions)
+	return fillEmptyParagraphs(html)
+}
+
+// Matches a paragraph with no content, keeping whatever attributes it carries in group 1. The
+// attributes have to be preserved: paragraphs are rendered with a `dir` attribute, which is usually
+// `auto` but is `ltr` or `rtl` when the direction was set explicitly or parsed from pasted HTML.
+const EMPTY_PARAGRAPH_REGEX = /<p([^>]*)><\/p>/g
+
+/**
+ * Replaces empty paragraphs with ones containing a single line break, to prevent the browser from
+ * collapsing them. Without this, a blank line in rich text takes up no height.
+ *
+ * @internal
+ */
+export function fillEmptyParagraphs(html: string): string {
+	return html.replace(EMPTY_PARAGRAPH_REGEX, '<p$1><br /></p>')
+}
+
+/**
  * Renders HTML from a rich text string.
  *
  * @param editor - The editor instance.
@@ -101,9 +134,7 @@ export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
 	return htmlCache.get(richText, () => {
 		const tipTapExtensions =
 			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-		const html = generateHTML(richText as JSONContent, tipTapExtensions)
-		// We replace empty paragraphs with a single line break to prevent the browser from collapsing them.
-		return html.replaceAll('<p dir="auto"></p>', '<p><br /></p>') ?? ''
+		return renderHtmlFromRichTextWithExtensions(richText, tipTapExtensions)
 	})
 }
 
