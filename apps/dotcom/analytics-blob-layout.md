@@ -2,7 +2,7 @@
 
 Status: proposal. Nothing here is implemented.
 
-Context: <https://github.com/tldraw/tldraw/pull/9676#issuecomment-5094393287>, which proposed a v2 layout for the `MEASURE` dataset. This document records what the layout is today and recommends a variant of that proposal chosen to avoid a migration.
+Context: <https://github.com/tldraw/tldraw/pull/9676#issuecomment-5094393287>, which proposed a v2 layout for the `MEASURE` dataset. This document records what the layout is today and recommends a variant of that proposal: one writer per domain behind a small standard header, chosen so that no existing position moves.
 
 Analytics Engine has no way to name columns. The schema is fixed at `blob1…blob20`, `double1…double20` and exactly one `index1`, and naming only happens at query time via `AS` aliases. So any schema we have has to live in our code.
 
@@ -16,6 +16,8 @@ Analytics Engine has no way to name columns. The schema is fixed at `blob1…blo
 - Most events carry no room or user identity at all, so the highest-volume ones — the `on_request_*` timers, `r2_queue_depth`, `postgres_*` — can't be attributed to anything.
 
 Positions are load-bearing in three places: the **Events** and **Events V2** Grafana dashboards, and `internal/scripts/fetch-screenshot-metrics.ts`, the only tracked consumer. That script reads `blob1` and `blob2` as filters, `blob3`–`blob6` as payload, and `double3`.
+
+The root cause is that one function serves every writer. `writeDataPoint` takes a positional `blobs: string[]`, so the meaning of `blob3` is decided independently at each of ~15 call sites, with nothing to compare them against. There is no place where a payload layout is stated, so there is nothing to keep consistent and nothing to break when it drifts.
 
 ## Current layout
 
@@ -64,70 +66,108 @@ All 16 timer events are doubles-only: `timer()` appends elapsed milliseconds as 
 
 Of 39 datapoint names, 15 carry a blob payload and 24 are timers or counters with none. The widest payload is `mcp_shared_board_screenshot` at five blobs (`blob3`–`blob7`). **`blob8`–`blob15` are unused by every writer.**
 
-## Proposal: name the fields in code, add identity in the unused range
+## Proposal: one writer per domain, behind a standard header
 
-Two identity fields and a writer type get fixed slots at the top of the range, leaving every current position untouched:
+The layout does not need to be global. What needs to be global is the **header** — the handful of columns every panel filters and groups on. Everything after the header can belong to a domain, because a query that reads a payload column has already filtered to the events that populate it.
 
-| Slot              | Contents                                         | Change                       |
-| ----------------- | ------------------------------------------------ | ---------------------------- |
-| `index1`          | id of the DO this datapoint is _about_           | already done for the file DO |
-| `blob1`           | event                                            | unchanged                    |
-| `blob2`           | env / worker name                                | unchanged                    |
-| `blob3`–`blob15`  | event-specific payload                           | unchanged                    |
-| `blob16`          | DO type — `file`, `user`, `replicator`, `worker` | new                          |
-| `blob17`          | room key — derived DO id, empty when N/A         | new                          |
-| `blob18`          | user id — raw, empty when N/A                    | new                          |
-| `blob19`–`blob20` | reserved for future identity fields              | —                            |
-
-Positions become an implementation detail of one module. Call sites use names:
+`TLDataPointName` is already grouped by domain in its own comments, and three of the four big writers already have a per-domain mapper: `TLFileDurableObject.logEvent`, `TLPostgresReplicator.logEvent` and `TLUserDurableObject.logEvent` each take a typed event union and turn it into blobs. `writeScreenshotTelemetry` goes further and is the shape this proposal generalises — named fields in, positions decided in one place, callers that never see an array:
 
 ```ts
-// The single source of truth for the layout. Call sites use names; nothing
-// outside this module knows a position.
-const IDENTITY_ORDER = ['doType', 'room', 'user'] as const
-const IDENTITY_START = 15 // blob16
-const MAX_PAYLOAD_BLOBS = 13 // blob3..blob15
-
-type EventIdentity = Partial<Record<(typeof IDENTITY_ORDER)[number], string>>
+export function writeScreenshotTelemetry(
+	env: Environment,
+	data: { source: 'mcp' | 'og' | 'queue'; boardHash: string; cacheStatus: 'hit' | 'stale' | 'miss'; … }
+)
 ```
 
-The alias map is exported alongside it, so Grafana and `fetch-screenshot-metrics.ts` consume one mapping instead of hand-writing `blob17 AS room` in every panel:
+So the change is less a rewrite than a promotion: give every domain that treatment, and make the header the only thing they share.
+
+### The header
+
+| Slot              | Contents                                   | Change                       |
+| ----------------- | ------------------------------------------ | ---------------------------- |
+| `index1`          | subject — id of the DO this row is _about_ | already done for the file DO |
+| `blob1`           | event                                      | unchanged                    |
+| `blob2`           | env / worker name                          | unchanged                    |
+| `blob3`–`blob15`  | domain-owned payload                       | unchanged                    |
+| `blob16`          | domain                                     | new                          |
+| `blob17`          | user id — raw, empty when N/A              | new                          |
+| `blob18`–`blob20` | reserved for future header fields          | —                            |
+
+Six domains, taken from the existing grouping: `room`, `user`, `replicator`, `postgres`, `queue`, `screenshot`.
+
+One core module owns the header and is the only code in the repo that knows a position:
 
 ```ts
-export const BLOB_ALIASES = {
+// analytics/core.ts
+const DOMAIN_SLOT = 15 // blob16
+const USER_SLOT = 16 // blob17
+const MAX_PAYLOAD_BLOBS = 13 // blob3..blob15
+
+export type Domain = 'room' | 'user' | 'replicator' | 'postgres' | 'queue' | 'screenshot'
+
+export function writeDataPoint(
+	env: Environment,
+	domain: Domain,
+	name: TLDataPointName,
+	{ subject, userId, blobs, doubles }: DataPoint
+) { … }
+```
+
+Each domain module owns `blob3`+ and every double for its own events, and exports a writer that takes the domain's event union rather than an array:
+
+```ts
+// analytics/room.ts
+export function writeRoomEvent(env: Environment, roomDoId: string, event: TLServerEvent) {
+	switch (event.type) {
+		case 'send_message':
+			return writeDataPoint(env, 'room', 'send_message', {
+				subject: roomDoId,
+				blobs: [event.messageType],
+				doubles: [event.messageLength],
+			})
+		…
+	}
+}
+```
+
+The alias map is exported from the core module, so Grafana and `fetch-screenshot-metrics.ts` consume one mapping instead of hand-writing `blob16 AS domain` in every panel:
+
+```ts
+export const COLUMN_ALIASES = {
+	index1: 'subject',
 	blob1: 'event',
 	blob2: 'env',
-	blob16: 'do_type',
-	blob17: 'room',
-	blob18: 'user',
+	blob16: 'domain',
+	blob17: 'user',
 } as const
 ```
 
-### Why identity goes at the top of the range
+### What the split fixes
 
-The original proposal ordered the slots `env, doType, event, room, user, payload…`. That reads better, and it fixes the same `blob3` defect, but it moves `event` from `blob1` to `blob3` and `env` from `blob2` to `blob1`.
+- **`blob3` stops being ambiguous.** It means one thing per domain, and the domain is a column, so `WHERE domain = 'room'` scopes the payload columns instead of a twenty-name `IN` list on `blob1`. The two competing conventions — specific event in `blob1` versus domain name in `blob1` with the type in `blob3` — both become legible under the same rule, which is why neither has to be migrated.
+- **Doubles get a rule for free.** They are domain-owned and typed exactly like blobs, decided in one file per domain rather than at each call site. This was an open question under the single-writer design; it closes by construction.
+- **Call sites stop being able to get it wrong.** A domain writer takes named fields, so a payload can't be built in the wrong order, and adding an event means editing the one file that defines that domain's layout. That is friction, and it is the point.
+- **The domain column can't drift**, because the core writer sets it from which domain writer called it rather than from an argument.
 
-Those two columns are the `WHERE` clause of essentially every panel and of the metrics script. The edit itself is contained — the comment is right that between them the consumers use well under a dozen distinct columns. The problem is the 90-day retention overlap. After a cutover, `WHERE blob2 = 'production-tldraw-multiplayer'` still matches old rows and silently matches nothing new, because `blob2` now holds a DO type. The filter doesn't error, it returns a shrinking window of stale data. Same for `blob1 = 'enter'`. Every panel would need its filters rewritten in lockstep with the deploy, and would then misreport for 90 days as old rows fall out of the new positions.
+### Migration cost
 
-`blob1` and `blob2` aren't part of the defect. They are already fixed and universal across every writer. Reordering them is aesthetic, and it is the entire cost of the migration.
+None. Every domain writer emits exactly the bytes its call sites emit today, so this is a code-shape change and not a wire-format change: no query changes, no cutover date, no version-marker blob. Old rows read as `''` on `blob16` and `blob17`, which renders as "unknown" rather than as wrong data, and panels can adopt the new dimensions one at a time.
 
-Anchoring the new slots to the top of the range instead makes the change purely additive:
+That is the whole reason the header keeps `blob1` and `blob2` where they are. The original proposal ordered the slots `env, doType, event, room, user, payload…`, which reads better and fixes the same defect, but moves `event` to `blob3` and `env` to `blob1`. Those two columns are the `WHERE` clause of essentially every panel. With 90-day retention, `WHERE blob2 = 'production-tldraw-multiplayer'` after a cutover still matches old rows and silently matches nothing new — it doesn't error, it returns a shrinking window of stale data for 90 days. `blob1` and `blob2` aren't part of the defect; they're already fixed and universal. Reordering them is aesthetic, and it is the entire cost of the migration.
 
-- No existing query changes, so no cutover date and no version-marker blob.
-- Old rows read as `''` on the new columns, which renders as "unknown" rather than as wrong data.
-- Panels can adopt the new dimensions one at a time, whenever someone wants them.
+Anchoring the new header fields to the top of the range is deliberate for the same reason. The schema is fixed at exactly 20 blobs, so the top is a stable anchor; "just after the payload" is a guess at how wide payloads will get. Reserving 13 payload slots against a current maximum of five means these positions should never have to move. The cost is that the layout reads oddly on paper — payload before header — and that is invisible everywhere except `COLUMN_ALIASES`, because no call site names a position. Padding the gap with empty strings costs effectively nothing: the per-datapoint blob budget is 16 KB, raised from 5 KB in June 2025.
 
-The cost is that the layout reads oddly on paper — payload before identity. That is the whole price, and it is invisible everywhere except `BLOB_ALIASES`, because no call site names a position.
+### Why the header keeps a user slot
 
-Anchoring to the end of the range rather than to the end of the payload is deliberate. Analytics Engine's schema is fixed at exactly 20 blobs, so the top is a stable anchor; "just after the payload" is a guess at how wide payloads will get. Reserving 13 payload slots against a current maximum of five means these positions should never have to move. Padding the gap with empty strings costs effectively nothing: the per-datapoint blob budget is 16 KB, raised from 5 KB in June 2025.
+The tempting version of a domain split is that each domain owns its own identity columns too — the room domain puts a user id wherever it likes, the user domain somewhere else. That reintroduces the varying-column defect one level up: "everything about user X" is a cross-domain question, and answering it would mean knowing every domain's user column and `OR`-ing them together.
 
-### Identity slots are fixed, not writer-dependent
+So identity is header, not payload. `index1` covers the room side for every domain at once (see below), and one fixed user slot covers the other. Fixed slots with empty strings are free.
 
-The tempting version is "room id or user id next, depending on which DO emitted it". That reintroduces exactly the varying-column defect described above. Fixed slots with empty strings are free.
+Two of the fields are already present in payload positions: `rate_limited`'s `blob3` and `user_durable_object`'s `blob4` are both user ids. Under this layout they get written to `blob17` as well, leaving the existing positions populated so current panels keep working. The duplication drops out whenever those panels are rewritten.
 
-Two of the new fields are already present in payload positions: `rate_limited`'s `blob3` and `user_durable_object`'s `blob4` are both user ids. Under this layout they get written to `blob18` as well, leaving the existing positions populated so current panels keep working. The duplication drops out whenever those panels are rewritten.
+There is no separate room blob. The original proposal had both `index1` and a `blob17` room key holding the same derived DO id; `index1` is selectable in queries, so the second copy earns nothing.
 
-### The two identity slots are asymmetric
+### The two identity fields are asymmetric
 
 A room key is a derived DO id, because the slug is a bearer credential — `tldraw.com/f/<id>` is the access. `idFromName` is one-way, so an id read out of the dataset doesn't open the board.
 
@@ -147,7 +187,9 @@ Cloudflare already keys its own telemetry on it: `$workers.durableObjectId` iden
 env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${fileId}`).toString()
 ```
 
-That gives one uniform join column across every writer, and better sampling: a hot board's renders sample alongside its sync events, which is the tenant isolation the index is designed for. `blob16` still says whether a DO or a worker emitted the row. The cost is that a worker-emitted row's index won't match a `$workers.durableObjectId` log line — there isn't one — though it still lines up with that object's DO metrics.
+That gives one uniform join column across every writer, and better sampling: a hot board's renders sample alongside its sync events, which is the tenant isolation the index is designed for. `blob16` still says which domain emitted the row. The cost is that a worker-emitted row's index won't match a `$workers.durableObjectId` log line — there isn't one — though it still lines up with that object's DO metrics.
+
+Agreeing on that definition is the one piece of real work the split requires: `writeScreenshotTelemetry` currently indexes on `boardHash`, not a derived DO id, so the screenshot domain has to change what it writes for the index to be a join column rather than six per-domain conventions.
 
 For published boards, derive from `file.id`, not `board.slug`: the latter is the published slug, and `getPublishedFileInfo` already resolves it through `SNAPSHOT_SLUG_TO_PARENT_SLUG` and returns the file id. Deriving from the published slug yields a valid-looking id for an object that doesn't exist.
 
@@ -157,7 +199,7 @@ Analytics Engine allows exactly one index, so this spends it. In the file DO it 
 
 Two items from the original proposal are left out, because both are value changes rather than additions and would break panels for real:
 
-- **Promoting the replicator and user DO sub-types to `blob1`.** `replicator` and `user_durable_object` as `blob1` with the real type in `blob3` is a genuine inconsistency, but fixing it changes the set of values in `blob1` for those writers. Separate change.
+- **Promoting the replicator and user DO sub-types to `blob1`.** `replicator` and `user_durable_object` as `blob1` with the real type in `blob3` is a genuine inconsistency, but fixing it changes the set of values in `blob1` for those writers. With a domain column it is also no longer urgent: `blob1` identifies the domain, `blob16` says so explicitly, and `blob3` is unambiguous either way. Separate change.
 - **Dropping the `key:value` prefixes on the screenshot blobs.** `fetch-screenshot-metrics.ts` reads those values as-is, including the prefix. Orthogonal to ordering.
 
 Two dashboard bugs are worth fixing regardless, since they are wrong today rather than wrong after a migration:
@@ -167,5 +209,5 @@ Two dashboard bugs are worth fixing regardless, since they are wrong today rathe
 
 ## Open questions
 
-- **Doubles need a rule too.** They're positional, have no self-describing values, and vary per event today. The simplest honest rule: doubles are always event-specific and never queried across events.
 - **Events with no subject.** `postgres.ts` only sees `env`, so it has no room or user to index on. Omitting `indexes` entirely there makes "no index" read as "not object-scoped" rather than inventing a sentinel. The replicator, stats and logger DOs are singletons, so their index is a constant — harmless but inert.
+- **Where the domain modules live.** `writeScreenshotTelemetry` sits next to the code it instruments (`routes/tla/thumbnailRender.ts`) rather than in `utils/analytics.ts`. Either an `analytics/` directory holding all six, or leaving each next to its domain and keeping only the core module shared. The second keeps the diff smaller and matches what's there now.
