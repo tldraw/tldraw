@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Editor, react, TLCommentThread, useValue } from 'tldraw'
+import { computed, Editor, react, TLCommentThread, useValue } from 'tldraw'
 import { computeClusterTable } from '../clustering/computeClusterTable'
 import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
-import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
+import type { ClusterNode, ClusterTable, LeafInput, MergeEvent } from '../clustering/types'
 import { type ClusterFadeNode, useFadeVisibleNodes } from './cluster-fade'
-import { collectClusterLeaves } from './cluster-input'
+import { clusterLeafIdsEqual, clusterLeavesEqual, collectClusterLeaves } from './cluster-input'
 import { type CommentingOptions } from './options'
 import { openThreadId } from './state'
 import { anchorPagePoint, commentCenterScreenOffset } from './thread-state'
@@ -17,6 +17,21 @@ const CLUSTER_SPLIT_ZOOM_FACTOR = 1.05
 
 const EMPTY_SET: ReadonlySet<string> = new Set()
 const MOVED_LEAF_EPSILON = 1e-6
+
+/** Select-tool session states in which shapes move continuously, one store write per pointermove.
+ *  While one is active, the cluster leaves defer position-only rebuilds until the gesture settles. */
+const SHAPE_DRAG_STATE_PATHS = [
+	'select.translating',
+	'select.resizing',
+	'select.rotating',
+	'select.dragging_handle',
+] as const
+
+/** Whether a shape-moving drag gesture is in progress. Reactive: `isIn` reads the tool state
+ *  path, so a computed reading this re-evaluates when the gesture starts or settles. */
+function isShapeDragInProgress(editor: Editor): boolean {
+	return SHAPE_DRAG_STATE_PATHS.some((path) => editor.isIn(path))
+}
 
 /** The clustering table for the current scene, plus the runtime walking its merge events. */
 export interface ClusterModel {
@@ -65,15 +80,33 @@ export function useClusterModel(
 	// as live pins riding their anchor and rejoin clustering on the next zoom-out.
 	const [heldThreadIds, setHeldThreadIds] = useState<ReadonlySet<string>>(EMPTY_SET)
 	const adoptOnRebuild = useRef(false)
+	// The leaves' array identity is what keys the O(N²) cluster-table rebuild below, so it's gated
+	// on value equality: a recompute whose content matches the last result (a reply, a reaction, a
+	// resolve — anything that touches comment records without moving a pin) returns the previous
+	// array and rebuilds nothing. The ref carries the last result across computed re-creations
+	// (`threads` gets a new identity on any comment mutation), and while shapes are actively
+	// dragging, position-only changes also keep the previous leaves — the stale table is exactly
+	// what the held-pin/pop-out machinery below is built to tolerate, and the corrected table lands
+	// in one rebuild when the drag settles. An added or deleted thread changes the id set, so it
+	// still rebuilds promptly even mid-drag.
+	const clusterLeavesRef = useRef<LeafInput[]>([])
 	const clusterLeaves = useValue(
-		'comment cluster leaves',
-		() =>
-			collectClusterLeaves(
-				editor,
-				threads.filter((thread) => !heldThreadIds.has(thread.id)),
-				openThreadId.get(editor)
-			),
-		[editor, threads, heldThreadIds]
+		useMemo(
+			() =>
+				computed('comment cluster leaves', () => {
+					const leaves = collectClusterLeaves(
+						editor,
+						threads.filter((thread) => !heldThreadIds.has(thread.id)),
+						openThreadId.get(editor)
+					)
+					const prev = clusterLeavesRef.current
+					if (isShapeDragInProgress(editor) && clusterLeafIdsEqual(prev, leaves)) return prev
+					if (clusterLeavesEqual(prev, leaves)) return prev
+					clusterLeavesRef.current = leaves
+					return leaves
+				}),
+			[editor, threads, heldThreadIds]
+		)
 	)
 	const clusterZoomBounds = useValue(
 		'comment cluster zoom bounds',

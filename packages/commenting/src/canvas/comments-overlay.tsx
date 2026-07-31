@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import {
+	computed,
 	TLCommentThread,
 	useContainer,
 	useEditor,
@@ -161,10 +162,22 @@ function CanvasCommentsLayer(props: CommentingContext) {
 	// Zooming separates near pins, but pins with the *same* anchor point (several imprecise
 	// comments on one shape) coincide at every zoom — those render as one count-badge stack that
 	// opens the threads as a list. Keyed on page-space anchors, so camera moves never recompute this.
-	const pinStacks = useValue('comment pin stacks', () => computePinStacks(editor, threads), [
-		editor,
-		threads,
-	])
+	// Value-equality gated like the cluster leaves (see useClusterModel): recomputes triggered by
+	// comment mutations or shape drags that leave the coincident groups unchanged return the
+	// previous Map identity, so nothing downstream re-renders.
+	const pinStacksRef = useRef<Map<string, readonly string[]>>(new Map())
+	const pinStacks = useValue(
+		useMemo(
+			() =>
+				computed('comment pin stacks', () => {
+					const stacks = computePinStacks(editor, threads)
+					if (pinStacksEqual(pinStacksRef.current, stacks)) return pinStacksRef.current
+					pinStacksRef.current = stacks
+					return stacks
+				}),
+			[editor, threads]
+		)
+	)
 	const openThread = openId ? threadsById.get(openId) : null
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 
@@ -409,4 +422,23 @@ function CanvasCommentsLayer(props: CommentingContext) {
 		</div>,
 		portalHost
 	)
+}
+
+/** Value equality for pin-stack maps: same member→group entries, groups element-wise equal. */
+function pinStacksEqual(
+	a: ReadonlyMap<string, readonly string[]>,
+	b: ReadonlyMap<string, readonly string[]>
+): boolean {
+	if (a === b) return true
+	if (a.size !== b.size) return false
+	for (const [id, group] of b) {
+		const prevGroup = a.get(id)
+		if (!prevGroup) return false
+		if (prevGroup === group) continue
+		if (prevGroup.length !== group.length) return false
+		for (let i = 0; i < group.length; i++) {
+			if (prevGroup[i] !== group[i]) return false
+		}
+	}
+	return true
 }
