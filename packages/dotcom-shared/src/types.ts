@@ -209,9 +209,8 @@ export const ZErrorCode = stringEnum(
 )
 export type ZErrorCode = keyof typeof ZErrorCode
 
-// increment this to force clients to reload
-// e.g. if we make backwards-incompatible changes to the schema
-export const Z_PROTOCOL_VERSION = 3
+// The minimum legacy-protocol version /app/:userId/connect still accepts; only pre-polyfill-removal
+// bundles send it. Raise (or delete with the legacy path) to force those clients to reload.
 export const MIN_Z_PROTOCOL_VERSION = 3
 
 export type ZServerSentPacket =

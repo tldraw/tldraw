@@ -21,13 +21,6 @@ import {
 import { TlaButton } from '../../TlaButton/TlaButton'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
-// add errors to zero-polyfill toasts
-// const messages = defineMessages({
-// 	publishChangesError: { defaultMessage: 'Could not publish changes' },
-// 	publishFileError: { defaultMessage: 'Could not publish file' },
-// 	deleteError: { defaultMessage: 'Could not delete' },
-// })
-
 export function TlaPublishTab({ file }: { file: TlaFile }) {
 	const { fileSlug } = useParams()
 	const editor = useEditor()
