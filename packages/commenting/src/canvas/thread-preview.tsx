@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
-import { createPortal } from 'react-dom'
 import {
 	Editor,
 	EditorAtom,
+	EditorPortal,
 	TLComment,
 	TLCommentThread,
 	usePassThroughWheelEvents,
@@ -161,7 +161,6 @@ export function useMarkerPreview(editor: Editor, markerId: string) {
 export function ThreadPreview({
 	editor,
 	threads,
-	container,
 	variant,
 	point,
 	onSelectThread,
@@ -172,7 +171,6 @@ export function ThreadPreview({
 	editor: Editor
 	/** The marker's threads, in the order they should read (oldest first). */
 	threads: readonly TLCommentThread[]
-	container: HTMLElement
 	/** What the marker's click opens, which this panel imitates. */
 	variant: ThreadPreviewVariant
 	/** The marker's anchor point in viewport space — the same origin its popover is placed from. */
@@ -231,68 +229,69 @@ export function ThreadPreview({
 		.filter(Boolean)
 		.join(' ')
 
-	return createPortal(
-		// The root is the hover region — it carries the bridge back to the marker — while the panel
-		// inside it is the visible surface. Keeping them apart is what lets the surface light up on
-		// its own hover without the bridge (which reaches back over the marker) lighting it up too.
-		<div
-			ref={ref}
-			className={`tlui-cmt-canvas-preview tlui-cmt-canvas-preview--${variant}`}
-			style={
-				{
-					left: point.x + offset.x,
-					top: point.y + offset.y,
-					// The stylesheet sizes the hover bridge against this, so the gap it spans follows
-					// the offset rather than being restated as a second magic number.
-					'--tlui-cmt-preview-offset': `${offset.x}px`,
-				} as CSSProperties
-			}
-			onPointerEnter={onPointerEnter}
-			onPointerLeave={onPointerLeave}
-			// The panel sits over the canvas; a press on it is not a canvas press.
-			onPointerDown={(e) => e.stopPropagation()}
-		>
-			<div className={panelClass}>
-				{cards.map(({ thread, first }) => {
-					// The preview shows only the opening comment, so its reply count is what tells the
-					// reader the thread continues past what they see.
-					const replies = replyCountLabel(msg, (countByThread.get(thread.id) ?? 1) - 1)
-					return (
-						<div
-							key={thread.id}
-							className={
-								isThread
-									? undefined
-									: onSelectThread
-										? 'tlui-cmt-preview-card tlui-cmt-preview-card--selectable'
-										: 'tlui-cmt-preview-card'
-							}
-							onClick={
-								onSelectThread
-									? (e) => {
-											e.stopPropagation()
-											onSelectThread(thread)
-										}
-									: undefined
-							}
-						>
-							<CommentCard
-								{...toCardProps(first, props, options.components, resolveName)}
-								footer={
-									replies ? <span className="tlui-cmt-card__replies">{replies}</span> : undefined
+	return (
+		<EditorPortal>
+			{/* The root is the hover region — it carries the bridge back to the marker — while the panel
+		    inside it is the visible surface. Keeping them apart is what lets the surface light up on
+		    its own hover without the bridge (which reaches back over the marker) lighting it up too. */}
+			<div
+				ref={ref}
+				className={`tlui-cmt-canvas-preview tlui-cmt-canvas-preview--${variant}`}
+				style={
+					{
+						left: point.x + offset.x,
+						top: point.y + offset.y,
+						// The stylesheet sizes the hover bridge against this, so the gap it spans follows
+						// the offset rather than being restated as a second magic number.
+						'--tlui-cmt-preview-offset': `${offset.x}px`,
+					} as CSSProperties
+				}
+				onPointerEnter={onPointerEnter}
+				onPointerLeave={onPointerLeave}
+				// The panel sits over the canvas; a press on it is not a canvas press.
+				onPointerDown={(e) => e.stopPropagation()}
+			>
+				<div className={panelClass}>
+					{cards.map(({ thread, first }) => {
+						// The preview shows only the opening comment, so its reply count is what tells the
+						// reader the thread continues past what they see.
+						const replies = replyCountLabel(msg, (countByThread.get(thread.id) ?? 1) - 1)
+						return (
+							<div
+								key={thread.id}
+								className={
+									isThread
+										? undefined
+										: onSelectThread
+											? 'tlui-cmt-preview-card tlui-cmt-preview-card--selectable'
+											: 'tlui-cmt-preview-card'
 								}
-							/>
+								onClick={
+									onSelectThread
+										? (e) => {
+												e.stopPropagation()
+												onSelectThread(thread)
+											}
+										: undefined
+								}
+							>
+								<CommentCard
+									{...toCardProps(first, props, options.components, resolveName)}
+									footer={
+										replies ? <span className="tlui-cmt-card__replies">{replies}</span> : undefined
+									}
+								/>
+							</div>
+						)
+					})}
+					{overflow > 0 && (
+						<div className="tlui-cmt-preview-more">
+							{msg('comments.preview-more').replace('{count}', String(overflow))}
 						</div>
-					)
-				})}
-				{overflow > 0 && (
-					<div className="tlui-cmt-preview-more">
-						{msg('comments.preview-more').replace('{count}', String(overflow))}
-					</div>
-				)}
+					)}
+				</div>
 			</div>
-		</div>,
-		container
+		</EditorPortal>
 	)
 }
 

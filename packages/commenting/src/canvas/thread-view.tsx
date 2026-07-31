@@ -1,8 +1,8 @@
 import { ReactNode, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { createPortal } from 'react-dom'
 import {
 	createComment,
 	Editor,
+	EditorPortal,
 	TLComment,
 	TLCommentThread,
 	TLRichText,
@@ -155,31 +155,24 @@ export const POPOVER_OFFSET = {
 
 /** The open thread's popover container, portaled above the UI panels. Over it, wheel and hover
  *  events pass through to the canvas (unless it scrolls its own content), like tldraw's panels. */
-export function ThreadPopover({
-	container,
-	style,
-	children,
-}: {
-	container: HTMLElement
-	style: CSSProperties
-	children: ReactNode
-}) {
+export function ThreadPopover({ style, children }: { style: CSSProperties; children: ReactNode }) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	usePassThroughMouseOverEvents(ref)
-	return createPortal(
-		// contextmenu also stops here: portals bubble React events to the canvas's context-menu
-		// trigger (the layer mounts inside it), which would open the canvas menu over this panel.
-		<div
-			ref={ref}
-			className="tlui-cmt-canvas-popover"
-			style={style}
-			onPointerDown={stop}
-			onContextMenu={stop}
-		>
-			{children}
-		</div>,
-		container
+	return (
+		<EditorPortal>
+			{/* contextmenu also stops here: portals bubble React events to the canvas's context-menu
+			    trigger (the layer mounts inside it), which would open the canvas menu over this panel. */}
+			<div
+				ref={ref}
+				className="tlui-cmt-canvas-popover"
+				style={style}
+				onPointerDown={stop}
+				onContextMenu={stop}
+			>
+				{children}
+			</div>
+		</EditorPortal>
 	)
 }
 

@@ -2,7 +2,6 @@ import { type MouseEvent as ReactMouseEvent, memo, useEffect, useRef } from 'rea
 import {
 	Editor,
 	TLCommentThread,
-	useContainer,
 	usePassThroughWheelEvents,
 	useTranslation,
 	useValue,
@@ -40,7 +39,6 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	/** The stack's threads, oldest first. All resolve to the same anchor point. */
 	threads: readonly TLCommentThread[]
 }) {
-	const container = useContainer()
 	const msg = useTranslation()
 	const badgeRef = useRef<HTMLButtonElement>(null)
 	// The badge takes pointer events (to open on click), so wheel input over it would otherwise be
@@ -167,7 +165,6 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 				<ThreadPreview
 					editor={editor}
 					threads={threads}
-					container={container}
 					// Lines the preview up with the stack list itself, so opening it leaves the cards
 					// exactly where the preview had them.
 					variant="list"
@@ -185,7 +182,6 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 			)}
 			{open && (
 				<ThreadPopover
-					container={container}
 					style={{
 						left: point.x + POPOVER_OFFSET.list.x,
 						top: point.y + POPOVER_OFFSET.list.y - liftForHeader,

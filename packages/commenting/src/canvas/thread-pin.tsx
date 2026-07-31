@@ -380,7 +380,6 @@ export const ThreadPin = memo(function ThreadPin({
 			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
 				{open && (
 					<ThreadPopover
-						container={container}
 						style={{
 							left: renderPoint.x + POPOVER_OFFSET.thread.x,
 							top: renderPoint.y + POPOVER_OFFSET.thread.y - THREAD_HEADER_BLOCK,
@@ -395,7 +394,6 @@ export const ThreadPin = memo(function ThreadPin({
 					<ThreadPreview
 						editor={editor}
 						threads={previewThreads}
-						container={container}
 						variant="thread"
 						point={renderPoint}
 						onSelectThread={() => openThreadId.set(editor, thread.id)}
