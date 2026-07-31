@@ -1,0 +1,85 @@
+import { ThumbnailSnapshotResponseBody } from '@tldraw/dotcom-shared'
+import { TLRecord } from '@tldraw/tlschema'
+import { IRequest } from 'itty-router'
+import { Environment } from '../../types'
+import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
+import { getPublishedRoomSnapshot } from './getPublishedFile'
+import { getSharedFileRoomSnapshot } from './getSharedFile'
+import { reportThumbnailError } from './thumbnailShared'
+
+// Serves snapshot data to the thumbnail render page. Only accepts short-lived render tokens
+// minted by this worker, so the render page cannot be pointed at arbitrary boards even though
+// published snapshot data is itself public.
+export async function getThumbnailSnapshot(
+	request: IRequest,
+	env: Environment,
+	ctx?: ExecutionContext
+): Promise<Response> {
+	const token = new URL(request.url).searchParams.get('token')
+	if (!token) {
+		return json({ error: true, message: 'token is required' }, 400)
+	}
+
+	const job = await verifyThumbnailRenderToken(env, token)
+	if (!job) {
+		return json({ error: true, message: 'Invalid or expired render token' }, 403)
+	}
+
+	// Shared files re-check their share status here (not just when the token was minted), so that a
+	// board un-shared during a token's 5 minute window stops resolving.
+	const snapshot = await (
+		job.kind === 'published'
+			? getPublishedRoomSnapshot(env, job.slug)
+			: getSharedFileRoomSnapshot(env, job.slug)
+	).catch((error) => {
+		// A load failure and a genuinely missing board both answer 404 here, which the render page
+		// turns into an error state and the capture surfaces as a generic render failure. Report the
+		// real cause so a broken snapshot read doesn't hide behind that.
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			request,
+			surface: 'thumbnail_snapshot',
+			extras: { kind: job.kind, slug: job.slug },
+		})
+		return undefined
+	})
+	// A corrupt or partial R2 payload can carry schema metadata without a documents array; guard it
+	// so it returns a controlled 404 rather than throwing on the .map below and 500ing the render.
+	if (!snapshot?.schema || !snapshot.documents) {
+		return json({ error: true, message: 'Board not found' }, 404)
+	}
+
+	// The token can target a specific page (the MCP tool labels its result with that page's name,
+	// resolved when the token was minted). Shared files reload a live snapshot that may have changed
+	// since then, so confirm the page still exists: if it was deleted meanwhile, the render page would
+	// silently fall back to whichever page the snapshot opens to and the tool would return a PNG
+	// mislabeled with the original page's name. Fail instead, so the capture surfaces as a retryable
+	// render error rather than a wrong image.
+	if (
+		job.pageId &&
+		!snapshot.documents.some((d) => (d.state as TLRecord | undefined)?.id === job.pageId)
+	) {
+		return json({ error: true, message: 'Page not found' }, 404)
+	}
+
+	return json({
+		error: false,
+		records: snapshot.documents.map((d) => d.state) as TLRecord[],
+		schema: snapshot.schema,
+		renderParams: {
+			...(job.camera ? { camera: job.camera } : null),
+			...(job.pageId ? { pageId: job.pageId } : null),
+			x: job.x,
+			y: job.y,
+			z: job.z,
+			width: job.width,
+			height: job.height,
+			theme: job.theme,
+		},
+	})
+}
+
+function json(body: ThumbnailSnapshotResponseBody, status = 200) {
+	return Response.json(body, { status })
+}

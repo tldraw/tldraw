@@ -11,6 +11,7 @@ vi.mock('tldraw', () => {
 function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 	return {
 		rum_enabled: { enabled: false },
+		commenting_enabled: { enabled: false },
 		...overrides,
 	}
 }

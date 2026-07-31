@@ -73,6 +73,15 @@ export {
 export { ZoomBrushOverlayUtil, type TLZoomBrushOverlay } from './lib/overlays/ZoomBrushOverlayUtil'
 export { ScribbleOverlayUtil, type TLScribbleOverlay } from './lib/overlays/ScribbleOverlayUtil'
 export {
+	CollaboratorHintOverlayUtil,
+	type TLCollaboratorHintOverlay,
+} from './lib/overlays/CollaboratorHintOverlayUtil'
+// Deprecated, but still exported so apps that customized canvas-drawn cursors keep working.
+// oxlint-disable-next-line typescript/no-deprecated
+export { CollaboratorCursorOverlayUtil } from './lib/overlays/CollaboratorCursorOverlayUtil'
+// oxlint-disable-next-line typescript/no-deprecated
+export type { TLCollaboratorCursorOverlay } from './lib/overlays/CollaboratorCursorOverlayUtil'
+export {
 	CollaboratorBrushOverlayUtil,
 	type TLCollaboratorBrushOverlay,
 } from './lib/overlays/CollaboratorBrushOverlayUtil'
@@ -80,14 +89,6 @@ export {
 	CollaboratorScribbleOverlayUtil,
 	type TLCollaboratorScribbleOverlay,
 } from './lib/overlays/CollaboratorScribbleOverlayUtil'
-export {
-	CollaboratorHintOverlayUtil,
-	type TLCollaboratorHintOverlay,
-} from './lib/overlays/CollaboratorHintOverlayUtil'
-export {
-	CollaboratorCursorOverlayUtil,
-	type TLCollaboratorCursorOverlay,
-} from './lib/overlays/CollaboratorCursorOverlayUtil'
 export {
 	CollaboratorShapeIndicatorOverlayUtil,
 	type TLCollaboratorShapeIndicatorOverlay,
@@ -395,6 +396,7 @@ export {
 	DuplicateMenuItem,
 	EditLinkMenuItem,
 	EditMenuSubmenu,
+	ExportAsMenuGroup,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	MoveToPageMenu,
@@ -659,6 +661,7 @@ export {
 	AssetToolbarItem,
 	CheckBoxToolbarItem,
 	CloudToolbarItem,
+	CommentToolbarItem,
 	DefaultToolbarContent,
 	DiamondToolbarItem,
 	DrawToolbarItem,
@@ -830,6 +833,7 @@ export {
 export { sanitizeSvg } from './lib/utils/svg/sanitizeSvg'
 export {
 	defaultAddFontsFromNode,
+	getTipTapDefaultExtensions,
 	KeyboardShiftEnterTweakExtension,
 	renderHtmlFromRichText,
 	renderHtmlFromRichTextForMeasurement,

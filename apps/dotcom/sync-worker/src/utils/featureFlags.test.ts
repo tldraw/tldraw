@@ -283,6 +283,6 @@ describe('getFeatureFlagsAdmin (route handler)', () => {
 		const response = await getFeatureFlagsAdmin({} as any, env as any)
 		const body: any = await response.json()
 
-		expect(Object.keys(body).sort()).toEqual(['rum_enabled'])
+		expect(Object.keys(body).sort()).toEqual(['commenting_enabled', 'rum_enabled'])
 	})
 })

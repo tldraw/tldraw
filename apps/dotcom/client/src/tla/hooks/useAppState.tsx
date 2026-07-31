@@ -47,15 +47,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		}
 
 		;(async () => {
-			await fetchFlagsWithTimeout()
+			let flags = await fetchFlagsWithTimeout()
 			if (!wasAuthenticated()) {
-				await fetchFlagsWithTimeout()
+				flags = await fetchFlagsWithTimeout()
 			}
 			if (didCancel) return
 			const token = await auth.getToken()
 			if (!token) throw new Error('no token')
 			const { app } = await TldrawApp.create({
 				userId: auth.userId,
+				email: user.primaryEmailAddress?.emailAddress,
+				flags,
 				getToken: async () => {
 					const token = await auth.getToken()
 					return token || undefined

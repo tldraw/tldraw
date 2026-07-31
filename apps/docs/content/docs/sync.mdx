@@ -351,6 +351,43 @@ Both `props` and `migrations` are optional. If you omit `props`, you won't have 
 validation for your shape, which could result in bad data being stored. If you omit `migrations`,
 clients on different versions won't be able to collaborate without errors.
 
+### Comments and the object-store lane
+
+Comment threads, comments, and reactions are record types that aren't in the default schema. Register
+them with the `records` option on both ends—`useSync` on the client, [`createTLSchema`](?) on the
+server. Both sides must register the same types, or the connection will fail schema validation.
+
+```ts
+import { TLSocketRoom } from '@tldraw/sync-core'
+import { commentSchemaRecords, createTLSchema } from '@tldraw/tlschema'
+
+const schema = createTLSchema({ records: commentSchemaRecords })
+
+const room = new TLSocketRoom({
+	schema,
+	objectTypes: ['comment', 'comment-thread', 'comment-reaction'],
+})
+```
+
+`objectTypes` serves those record types through the room's object-store lane instead of the document
+lane. Lane records are persisted separately from the document, left out of document snapshots, and
+gated by a per-session `objectAccess` permission rather than by `isReadonly`. That's how a session
+can be allowed to comment without being allowed to edit:
+
+```ts
+room.handleSocketConnect({
+	sessionId,
+	socket,
+	isReadonly: true,
+	objectAccess: 'write',
+})
+```
+
+`objectAccess` is `'read'` or `'write'` and defaults to `'write'`. Read the lane's contents with
+[`TLSocketRoom`](?)'s `getCurrentObjectsSnapshot()`, and use the room's `onCommittedChanges` callback to
+mirror committed records into your own database. See [Commenting](/sdk-features/commenting) for the
+client side.
+
 ### Deployment concerns
 
 <Callout type="warning">

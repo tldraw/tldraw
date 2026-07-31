@@ -391,3 +391,24 @@
 		grid-template-columns: 1fr;
 	}
 }
+
+/* Asset diagnostics */
+.diagnosticsTable {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 12px;
+	font-family: monospace;
+}
+
+.diagnosticsTable th,
+.diagnosticsTable td {
+	text-align: left;
+	padding: var(--tl-space-2) var(--tl-space-3);
+	border-bottom: 1px solid var(--tl-color-divider);
+	word-break: break-all;
+}
+
+.diagnosticsTable th {
+	font-weight: 600;
+	color: var(--tl-color-text-3);
+}

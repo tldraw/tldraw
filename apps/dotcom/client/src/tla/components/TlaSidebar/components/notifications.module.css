@@ -1,0 +1,88 @@
+/* Bounds the shared tlui-cmt-list inside the popover so its items scroll. */
+.wrap {
+	display: flex;
+	flex-direction: column;
+	width: 300px;
+	max-width: 92vw;
+	max-height: 60vh;
+}
+
+/* A small text action in the list header, alongside the uppercase title. */
+.markAll {
+	border: none;
+	background: none;
+	margin: 0;
+	padding: 4px 6px;
+	border-radius: 6px;
+	cursor: pointer;
+	font: inherit;
+	font-size: 11px;
+	color: var(--tl-color-selected);
+}
+
+.markAll:hover:not(:disabled) {
+	background: var(--tl-color-muted-2);
+}
+
+.markAll:disabled {
+	color: var(--tl-color-text-3);
+	cursor: not-allowed;
+}
+
+/* Row IA: document title leads, with the byline and comment preview as supporting detail. */
+.head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.docTitle {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--tl-color-text-1);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.time {
+	flex-shrink: 0;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+}
+
+.byline {
+	margin-top: 2px;
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+}
+
+.author {
+	font-weight: 500;
+	color: var(--tl-color-text-2);
+}
+
+.preview {
+	margin-top: 2px;
+	font-size: 12px;
+	color: var(--tl-color-text-3);
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	word-break: break-word;
+}
+
+/* Small dot on the sidebar bell when there are unread notifications. */
+.badge {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background-color: var(--tl-color-selected);
+	box-shadow: 0 0 0 2px var(--tla-color-sidebar);
+	pointer-events: none;
+}

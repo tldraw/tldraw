@@ -1,7 +1,6 @@
 /*!
- * The kbd-string splitter (`getKeys`) and the form-input filter pattern in `shouldSkipEvent`
- * (including its list of non-text INPUT types) are adapted from hotkeys-js, which this hook
- * previously depended on.
+ * The form-input filter pattern in `shouldSkipEvent` (including its list of non-text INPUT
+ * types) is adapted from hotkeys-js, which this hook previously depended on.
  *
  * MIT License: https://github.com/jaywcjlove/hotkeys-js/blob/master/LICENSE
  * Copyright (c) 2015-present, Kenny Wong
@@ -19,6 +18,8 @@ import {
 } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { useActions } from '../context/actions'
+import { splitKbd } from '../kbd-utils'
+import { useCommentingEnabled } from './useCommentingEnabled'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
@@ -38,6 +39,8 @@ export function useKeyboardShortcuts() {
 	const isReadonlyMode = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
+	// The comment tool's shortcut is gated by the same license as its toolbar button.
+	const commentingEnabled = useCommentingEnabled()
 	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
 	useEffect(() => {
 		if (!isFocused) return
@@ -70,6 +73,9 @@ export function useKeyboardShortcuts() {
 			}
 
 			if (SKIP_KBDS.includes(tool.id)) continue
+
+			// The comment tool is a licensed feature; skip its shortcut when commenting isn't enabled.
+			if (tool.id === 'comment' && !commentingEnabled) continue
 
 			register(getHotkeysStringFromKbd(tool.kbd), (event) => {
 				if (areShortcutsDisabled(editor)) return
@@ -201,7 +207,7 @@ export function useKeyboardShortcuts() {
 			body.removeEventListener('keydown', handleKeyDown)
 			body.removeEventListener('keyup', handleKeyUp)
 		}
-	}, [actions, tools, isReadonlyMode, editor, isFocused])
+	}, [actions, tools, isReadonlyMode, editor, isFocused, commentingEnabled])
 }
 
 export function areShortcutsDisabled(editor: Editor) {
@@ -354,7 +360,7 @@ const PHYSICAL_KEY_MAP: Record<string, string> = {
  */
 export function parseKbd(kbd: string): ParsedKbd[] {
 	const out: ParsedKbd[] = []
-	for (const shortcut of getKeys(kbd)) {
+	for (const shortcut of splitKbd(kbd.replace(/\s/g, ''))) {
 		const parsed = parseShortcut(shortcut)
 		if (parsed) out.push(parsed)
 	}
@@ -454,7 +460,7 @@ function shouldSkipEvent(e: KeyboardEvent): boolean {
  * @internal
  */
 export function getHotkeysStringFromKbd(kbd: string) {
-	return getKeys(kbd)
+	return splitKbd(kbd.replace(/\s/g, ''))
 		.map((kbd) => {
 			let str = ''
 
@@ -486,22 +492,4 @@ export function getHotkeysStringFromKbd(kbd: string) {
 			return str
 		})
 		.join(',')
-}
-
-// Split a kbd string on commas, treating an empty entry produced by "x,," as a literal
-// trailing comma on the previous entry. Verbatim port of the splitter from hotkeys-js
-// (MIT, see top-of-file attribution).
-function getKeys(key: string) {
-	if (typeof key !== 'string') key = ''
-	key = key.replace(/\s/g, '')
-	const keys = key.split(',')
-	let index = keys.lastIndexOf('')
-
-	for (; index >= 0; ) {
-		keys[index - 1] += ','
-		keys.splice(index, 1)
-		index = keys.lastIndexOf('')
-	}
-
-	return keys
 }

@@ -3,6 +3,9 @@
 	"description": "build scripts",
 	"version": "0.0.0",
 	"private": true,
+	"bin": {
+		"process-compose": "./process-compose-bin.cjs"
+	},
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"

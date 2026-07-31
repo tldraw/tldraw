@@ -1,3 +1,4 @@
+import { CommentsMenuItem } from '@tldraw/commenting'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -31,7 +32,9 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuSubmenu,
-	ViewSubmenu,
+	ZoomTo100MenuItem,
+	ZoomToFitMenuItem,
+	ZoomToSelectionMenuItem,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
@@ -39,6 +42,7 @@ import {
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
+import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
@@ -48,6 +52,7 @@ import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
 	CookieConsentMenuItem,
 	GiveUsFeedbackMenuItem,
+	ImportFileActionItem,
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
 	UIThemeSubmenu,
@@ -58,6 +63,29 @@ import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
+
+/** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, only for users
+ *  the commenting flag covers). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component
+ *  with no slot to inject into. */
+function TlaViewSubmenu() {
+	const commentingEnabled = useIsCommentingEnabled()
+	return (
+		<TldrawUiMenuSubmenu id="view" label="menu.view">
+			<TldrawUiMenuGroup id="view-actions">
+				<TldrawUiMenuActionItem actionId="zoom-in" />
+				<TldrawUiMenuActionItem actionId="zoom-out" />
+				<ZoomTo100MenuItem />
+				<ZoomToFitMenuItem />
+				<ZoomToSelectionMenuItem />
+			</TldrawUiMenuGroup>
+			{commentingEnabled && (
+				<TldrawUiMenuGroup id="view-comments">
+					<CommentsMenuItem />
+				</TldrawUiMenuGroup>
+			)}
+		</TldrawUiMenuSubmenu>
+	)
+}
 
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
@@ -153,7 +181,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 						<TldrawUiMenuGroup id="basic">
 							<EditSubmenu />
-							<ViewSubmenu />
+							<TlaViewSubmenu />
 							<ExportFileContentSubMenu />
 							<ExtrasGroup />
 							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
@@ -275,9 +303,10 @@ export function TlaEditorTopLeftPanelSignedIn() {
 							onRenameAction={handleRenameAction}
 							workspaceId={null}
 						/>
+						<ImportFileActionItem />
 					</TldrawUiMenuSubmenu>
 					<EditSubmenu />
-					<ViewSubmenu />
+					<TlaViewSubmenu />
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 				</TldrawUiMenuGroup>
@@ -405,6 +434,7 @@ function TlaFileNameEditorInput({
 	return (
 		<>
 			<TldrawUiInput
+				data-testid="tla-file-name-input"
 				value={temporaryFileName}
 				onValueChange={handleValueChange}
 				onCancel={handleCancel}

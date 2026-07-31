@@ -7145,7 +7145,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				shape.index = index
 			})
-			const shapesToCreate = shapesToCreateWithOriginals.map(({ shape }) => shape)
+			const shapesToCreate = shapesToCreateWithOriginals.map(({ shape, originalShape }) => {
+				// Give the shape util a chance to modify the duplicate, e.g. to re-stamp note
+				// attribution to the current user so we don't forge the original author's identity.
+				return this.getShapeUtil(shape).onBeforeDuplicate?.(originalShape, shape) ?? shape
+			})
 
 			if (!this.canCreateShapes(shapesToCreate)) {
 				alertMaxShapes(this)
@@ -10039,7 +10043,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const newId = shapeIdMap.get(oldShape.id)!
 
 			// Create the new shape (new except for the id)
-			const newShape = { ...oldShape, id: newId }
+			let newShape = { ...oldShape, id: newId }
+
+			// Give the shape util a chance to modify the copy, e.g. to re-stamp note
+			// attribution to the current user so we don't forge the original author's identity.
+			// When ids are preserved the shape keeps its identity (e.g. moveShapesToPage
+			// relocating it), so it's not a duplicate and the hook must not run.
+			if (!preserveIds) {
+				newShape = this.getShapeUtil(newShape).onBeforeDuplicate?.(oldShape, newShape) ?? newShape
+			}
 
 			if (rootShapeIds.includes(oldShape.id)) {
 				newShape.parentId = currentPageId

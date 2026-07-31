@@ -16,6 +16,13 @@ function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagV
 			enabled: false,
 			description: 'Real User Monitoring for editor performance metrics',
 		},
+		commenting_enabled: {
+			type: 'percentage',
+			percentage: 0,
+			enabled: false,
+			description:
+				'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
+		},
 	}
 }
 

@@ -8,6 +8,7 @@ import {
 	bind,
 	clamp,
 	computed,
+	PI2,
 	react,
 	uniqueId,
 } from '@tldraw/editor'
@@ -274,6 +275,17 @@ export class MinimapManager {
 			ctx.save()
 			util.renderMinimap(ctx, overlays, zoom)
 			ctx.restore()
+		}
+
+		// Collaborator cursors live on the DOM layer, not the overlay canvas, so the minimap draws
+		// their dots natively — including off-screen collaborators, which is the point of a minimap.
+		const dotRadius = 3 / zoom
+		for (const presence of editor.getVisibleCollaboratorsOnCurrentPage()) {
+			if (!presence.cursor) continue
+			ctx.beginPath()
+			ctx.arc(presence.cursor.x, presence.cursor.y, dotRadius, 0, PI2)
+			ctx.fillStyle = presence.color
+			ctx.fill()
 		}
 	}
 }
