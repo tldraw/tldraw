@@ -77,7 +77,7 @@ import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
-import { enqueueOgImageRender } from './routes/tla/ogImageQueue'
+import { deleteOgImage, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -87,6 +87,7 @@ import { getRoomDurableObject } from './utils/durableObjects'
 import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
+import { deleteRenderTokenRecord } from './utils/renderTokens'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
@@ -2676,6 +2677,19 @@ export class TLFileDurableObject extends DurableObject {
 
 			// remove main file
 			await this.env.ROOMS.delete(r2Key)
+
+			// The board's thumbnails go with it. Both keys, because they are kept for different reasons
+			// and neither reason survives a hard delete: the file-keyed image is deliberately *not*
+			// deleted when a board is unshared (it stays useful behind auth, and resharing makes it an
+			// immediate hit), and the published-slug one only goes when the board is unpublished. Nothing
+			// else would ever remove either — `og/…` keys carry no version, so each board owns exactly one
+			// object, in a bucket with no lifecycle rule to sweep it. The render token record is dropped
+			// for the same reason. MCP screenshots need no equivalent: their keys carry a content version
+			// and their bucket has an expiration rule.
+			await deleteOgImage(this.env, { kind: 'shared_file', slug: id })
+			await deleteOgImage(this.env, { kind: 'published', slug: publishedSlug })
+			await deleteRenderTokenRecord(this.env, { kind: 'shared_file', slug: id })
+			await deleteRenderTokenRecord(this.env, { kind: 'published', slug: publishedSlug })
 
 			// finally clear storage so we don't keep the data around
 			this.ctx.storage.deleteAll()

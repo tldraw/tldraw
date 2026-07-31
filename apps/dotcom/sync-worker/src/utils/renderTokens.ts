@@ -237,3 +237,21 @@ export async function isMintedRenderToken(
 	if (!record) return false
 	return record.customMetadata?.tokenHash === (await sha256(token))
 }
+
+/**
+ * Drops a board's record. Only hard deletion calls this, and not for security: expiry lives in the
+ * signed `exp` and is checked before the record is ever consulted, so a leftover record cannot extend
+ * a token's life. It is about orphans. These keys carry no version and `THUMBNAILS` has no lifecycle
+ * rule, so a record left behind by a board that no longer exists is an object nothing will ever read
+ * or overwrite again.
+ *
+ * Best effort, like the image deletion it runs beside: a board is being torn down, and failing to
+ * tidy up one small object must not abort that.
+ */
+export async function deleteRenderTokenRecord(
+	env: Environment,
+	job: Pick<ThumbnailRenderJob, 'kind' | 'slug'>
+): Promise<void> {
+	if (!env.THUMBNAILS) return
+	await env.THUMBNAILS.delete(renderTokenRecordKey(job)).catch(() => {})
+}
