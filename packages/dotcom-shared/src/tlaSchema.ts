@@ -212,8 +212,8 @@ export const comment_mention = table('comment_mention')
 // One row per (comment, reacting user, emoji) — a user may react with several emoji. Written by
 // the file's Durable Object from the room's comment-reaction records, like comment/comment_thread.
 // The in-document reaction UI reads reactions over the sync object-lane, not from here; this table
-// feeds the app-level `comments` query: its "reacted to your comment" category and the reaction
-// pills on notification rows.
+// feeds the app-level `reactions` query (the notifications feed's "reacted to your comment"
+// category) and the reaction pills on notification rows.
 export const comment_reaction = table('comment_reaction')
 	.columns({
 		id: string(),

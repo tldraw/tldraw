@@ -4,6 +4,7 @@ import {
 	buildReactionNotifications,
 	categorizeCommentNotifications,
 	CommentNotificationInput,
+	mergeNotifications,
 	ReactionNotificationInput,
 	summarizeForeignReactors,
 } from './commentNotifications'
@@ -273,16 +274,16 @@ describe('categorizeCommentNotifications', () => {
 })
 
 describe('buildReactionNotifications', () => {
-	/** My own comment, as the reacted-to comment carried on a reaction row. */
-	function mine(
-		overrides: Partial<CommentNotificationInput> = {}
-	): CommentNotificationInput & { id: string } {
+	/** My own comment, as the related comment carried on a reaction row — full `reactions` set
+	 *  included, since that's what the entry now derives its timestamp and pills from. */
+	function mine(overrides: Partial<CommentNotificationInput> = {}): CommentNotificationInput {
 		return comment({
 			authorId: ME,
 			thread: { createdBy: ME },
 			file: { ownerId: THIRD },
+			reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) }],
 			...overrides,
-		}) as CommentNotificationInput & { id: string }
+		})
 	}
 
 	function reactionRow(
@@ -299,16 +300,15 @@ describe('buildReactionNotifications', () => {
 		}
 	}
 
-	it('groups multiple rows on the same comment into one entry', () => {
+	it('dedupes multiple rows on the same comment into one entry', () => {
 		const result = buildReactionNotifications(
 			[
 				reactionRow({ userId: OTHER, createdAt: at(10) }),
-				reactionRow({ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) }),
+				reactionRow({ userId: THIRD, createdAt: at(20) }),
 			],
 			ME
 		)
 		expect(result).toHaveLength(1)
-		expect(result[0].comment.reactions).toHaveLength(2)
 		expect(result[0].reasons).toEqual(['reaction'])
 		expect(result[0].primaryReason).toBe('reaction')
 	})
@@ -324,18 +324,54 @@ describe('buildReactionNotifications', () => {
 		expect(result.map((n) => n.comment.id).sort()).toEqual(['comment:1', 'comment:2'])
 	})
 
-	it('timestamps the entry by the newest reaction in the group', () => {
+	it("carries the related comment's full reactions set unmodified, not just the feed rows", () => {
+		// three foreign reactions on the comment, but only one made it into the top-N feed window
+		const fullReactions = [
+			{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(5) },
+			{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
+			{ userId: ME, userName: 'Me', emoji: '🔥', createdAt: at(15) },
+		]
+		const result = buildReactionNotifications(
+			[reactionRow({ createdAt: at(5), comment: mine({ reactions: fullReactions }) })],
+			ME
+		)
+		expect(result).toHaveLength(1)
+		expect(result[0].comment.reactions).toBe(fullReactions)
+	})
+
+	it('timestamps the entry by the newest foreign reaction on the comment, not the feed row', () => {
 		const result = buildReactionNotifications(
 			[
-				reactionRow({ createdAt: at(10) }),
-				reactionRow({ userId: THIRD, userName: 'Third', createdAt: at(20) }),
+				reactionRow({
+					createdAt: at(10),
+					comment: mine({
+						reactions: [
+							{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) },
+							{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
+						],
+					}),
+				}),
 			],
 			ME
 		)
 		expect(result[0].timestamp).toBe(at(20))
 	})
 
-	it('is unread until my read receipt is newer than the newest reaction', () => {
+	it('drops the entry when the comment has no foreign reaction left', () => {
+		const result = buildReactionNotifications(
+			[
+				reactionRow({
+					comment: mine({
+						reactions: [{ userId: ME, userName: 'Me', emoji: '👍', createdAt: at(10) }],
+					}),
+				}),
+			],
+			ME
+		)
+		expect(result).toEqual([])
+	})
+
+	it('is unread until my read receipt is newer than the newest foreign reaction', () => {
 		const withReadAt = (readAt: number | undefined) =>
 			buildReactionNotifications(
 				[
@@ -370,7 +406,11 @@ describe('buildReactionNotifications', () => {
 				reactionRow({
 					commentId: 'comment:reacted',
 					createdAt: at(20),
-					comment: mine({ id: 'comment:reacted', createdAt: at(0) }),
+					comment: mine({
+						id: 'comment:reacted',
+						createdAt: at(0),
+						reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(20) }],
+					}),
 				}),
 			],
 			ME
@@ -379,8 +419,31 @@ describe('buildReactionNotifications', () => {
 			[comment({ id: 'comment:replied', createdAt: at(10), file: { ownerId: ME } })],
 			ME
 		)
-		const result = [...replied, ...reacted].sort((a, b) => b.timestamp - a.timestamp)
+		const result = mergeNotifications(replied, reacted)
 		expect(result.map((n) => n.comment.id)).toEqual(['comment:reacted', 'comment:replied'])
+	})
+})
+
+describe('mergeNotifications', () => {
+	it('merges multiple feeds newest first', () => {
+		const a = categorizeCommentNotifications(
+			[
+				comment({ id: 'comment:a1', createdAt: at(0), file: { ownerId: ME } }),
+				comment({ id: 'comment:a2', createdAt: at(20), file: { ownerId: ME } }),
+			],
+			ME
+		)
+		const b = categorizeCommentNotifications(
+			[comment({ id: 'comment:b1', createdAt: at(10), file: { ownerId: ME } })],
+			ME
+		)
+		const result = mergeNotifications(a, b)
+		expect(result.map((n) => n.comment.id)).toEqual(['comment:a2', 'comment:b1', 'comment:a1'])
+	})
+
+	it('handles no feeds and empty feeds', () => {
+		expect(mergeNotifications()).toEqual([])
+		expect(mergeNotifications([], [])).toEqual([])
 	})
 })
 

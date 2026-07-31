@@ -17,6 +17,7 @@ import {
 	buildReactionNotifications,
 	categorizeCommentNotifications,
 	CommentNotificationReason,
+	mergeNotifications,
 	summarizeForeignReactors,
 } from './commentNotifications'
 import styles from './notifications.module.css'
@@ -112,9 +113,7 @@ export function useCommentNotifications() {
 		() => {
 			const comments = categorizeCommentNotifications(app?.getComments() ?? [], app?.userId)
 			const reactionEntries = buildReactionNotifications(app?.getReactions() ?? [], app?.userId)
-			const notifications = [...comments, ...reactionEntries].sort(
-				(a, b) => b.timestamp - a.timestamp
-			)
+			const notifications = mergeNotifications(comments, reactionEntries)
 			const unreadCount = notifications.filter((n) => n.unread).length
 			return { notifications, unreadCount }
 		},

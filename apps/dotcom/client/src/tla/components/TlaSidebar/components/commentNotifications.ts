@@ -34,9 +34,9 @@ const REASON_PRIORITY: CommentNotificationReason[] = ['mention', 'reply', 'owned
 const JOIN_TIME_SKEW_TOLERANCE_MS = 60_000
 
 /**
- * The comment fields the notifications feed needs, from either synced query's related comment —
- * a structural subset of the Zero row so this is unit-testable without Zero types. `read` is the
- * caller's read receipt: a related row when present, absent (falsy) when unread.
+ * The comment fields the notifications feed needs — a structural subset of the Zero row so this
+ * is unit-testable without Zero types. A `T` is either a comments-feed row, or a reactions-feed
+ * row's related comment.
  */
 export interface CommentNotificationInput {
 	id: string
@@ -63,7 +63,7 @@ export interface CommentNotificationInput {
 	 *  when; `emoji` rides along for the row's reaction pills; `userName` is the reactor's display
 	 *  name, denormalized from `user.name` onto reaction rows by Postgres triggers. */
 	reactions?:
-		| readonly { userId: string; userName: string; emoji: string; createdAt: number }[]
+		| readonly { userId: string; userName?: string; emoji: string; createdAt: number }[]
 		| null
 }
 
@@ -144,16 +144,16 @@ function joinedThreadAt(thread: CommentNotificationInput['thread'], userId: stri
 
 /**
  * The reactor summary a "reacted to your comment" byline is phrased from: up to two distinct
- * reactor names (newest reaction first, blank names skipped — e.g. rows from before the 045
- * backfill), how many distinct people react beyond the named ones, and the distinct total for
- * when no name is available at all.
+ * reactor names (newest reaction first, blank or missing names skipped but still counted), how
+ * many distinct people react beyond the named ones, and the distinct total for when no name is
+ * available at all.
  */
 export function summarizeForeignReactors(
 	reactions: CommentNotificationInput['reactions'],
 	userId: string | undefined | null
 ): { names: string[]; others: number; total: number } {
 	// distinct foreign reactors, newest reaction first
-	const byId = new Map<string, { name: string; newest: number }>()
+	const byId = new Map<string, { name?: string; newest: number }>()
 	for (const r of reactions ?? []) {
 		if (r.userId === userId) continue
 		const seen = byId.get(r.userId)
@@ -169,45 +169,56 @@ export function summarizeForeignReactors(
 	return { names, others: ordered.length - names.length, total: ordered.length }
 }
 
-/** One row of the reactions feed: a foreign reaction joined to the reacted-to comment. */
+/** One row of the reactions feed: a foreign reaction joined to the reacted-to comment. Only
+ *  `commentId`/`userId`/`emoji`/`createdAt` matter here (dedupe key and ordering); the byline and
+ *  pills read the comment's own unbounded `reactions` set instead. */
 export interface ReactionNotificationInput {
 	commentId: string
 	userId: string
-	userName: string
+	userName?: string
 	emoji: string
 	createdAt: number
 	/** Absent only if the row outraced its comment's sync; such rows are dropped. */
-	comment?: (CommentNotificationInput & { id: string }) | null
+	comment?: CommentNotificationInput | null
 }
 
-/** Groups the reactions feed into one {@link CommentNotification} per comment, dated and marked
- *  unread by the newest reaction in the group (strict >: same-instant receipt counts as read). */
+/** Newest `createdAt` among `reactions` from someone other than `userId`; `undefined` if none. */
+function latestForeignReactionAt(
+	reactions: CommentNotificationInput['reactions'],
+	userId: string
+): number | undefined {
+	let latest: number | undefined
+	for (const r of reactions ?? []) {
+		if (r.userId !== userId && (latest === undefined || r.createdAt > latest)) latest = r.createdAt
+	}
+	return latest
+}
+
+/**
+ * Groups the reactions feed into one {@link CommentNotification} per reacted-to comment. Feed
+ * rows only decide which comments appear (deduped by `commentId`); the entry's `comment` rides
+ * along as-is, its unbounded `reactions` set feeding the byline and pills. Dated and marked
+ * unread by the newest foreign reaction in that set (strict >: same-instant receipt = read).
+ */
 export function buildReactionNotifications(
 	reactions: readonly ReactionNotificationInput[],
 	userId: string | undefined | null
-): CommentNotification<CommentNotificationInput & { id: string }>[] {
+): CommentNotification<CommentNotificationInput>[] {
 	if (!userId) return []
 
-	const groups = new Map<
-		string,
-		{ comment: CommentNotificationInput & { id: string }; rows: ReactionNotificationInput[] }
-	>()
+	const comments = new Map<string, CommentNotificationInput>()
 	for (const row of reactions) {
 		// server already filters both; cheap belt against a dangling or self row slipping through
 		if (!row.comment || row.userId === userId) continue
-		const group = groups.get(row.commentId)
-		if (group) {
-			group.rows.push(row)
-		} else {
-			groups.set(row.commentId, { comment: row.comment, rows: [row] })
-		}
+		comments.set(row.commentId, row.comment)
 	}
 
-	const notifications: CommentNotification<CommentNotificationInput & { id: string }>[] = []
-	for (const { comment, rows } of groups.values()) {
-		const timestamp = Math.max(...rows.map((r) => r.createdAt))
+	const notifications: CommentNotification<CommentNotificationInput>[] = []
+	for (const comment of comments.values()) {
+		const timestamp = latestForeignReactionAt(comment.reactions, userId)
+		if (timestamp === undefined) continue
 		notifications.push({
-			comment: { ...comment, reactions: rows },
+			comment,
 			reasons: ['reaction'],
 			primaryReason: 'reaction',
 			timestamp,
@@ -216,4 +227,11 @@ export function buildReactionNotifications(
 	}
 
 	return notifications
+}
+
+/** Merges both feeds' entries newest-first; the panel and its tests share this. */
+export function mergeNotifications<T extends CommentNotificationInput>(
+	...feeds: readonly CommentNotification<T>[][]
+): CommentNotification<T>[] {
+	return feeds.flat().sort((a, b) => b.timestamp - a.timestamp)
 }

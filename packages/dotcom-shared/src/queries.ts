@@ -17,7 +17,9 @@ const defineQueries = defineQueriesWithType<TlaSchema>()
 /** Upper bound on the comments notifications feed, so the synced set stays finite as files accrue. */
 const RECENT_COMMENTS_LIMIT = 50
 
-/** Bound on the reactions feed, counted in reaction rows; the byline's "and N others" absorbs undercounts. */
+/** Bound on the reactions feed, counted in reaction rows; the byline's "and N others" absorbs
+ *  undercounts, but a comment with 200+ recent reactions can push every other comment's rows out
+ *  of the window entirely, not just shrink a byline. */
 export const RECENT_REACTIONS_LIMIT = 200
 
 /**
@@ -189,6 +191,9 @@ export const queries = defineQueries({
 					.related('file', (f) => f.one())
 					.related('thread', (t) => t.one())
 					.related('read', (r) => r.where('userId', '=', ctx.userId).one())
+					// every reaction incl. the caller's own: pills need exact counts and the own-reaction
+					// highlight, which the window-capped feed rows can't provide
+					.related('reactions')
 			)
 			.orderBy('createdAt', 'desc')
 			.limit(RECENT_REACTIONS_LIMIT)
