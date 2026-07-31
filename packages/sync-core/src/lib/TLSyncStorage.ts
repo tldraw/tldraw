@@ -92,6 +92,14 @@ export interface TLSyncStorage<R extends UnknownRecord> {
 	 * `RoomSnapshot['documents']` so a lane can be persisted and re-seeded via a merged snapshot.
 	 */
 	getObjectsSnapshot?(): RoomSnapshot['documents']
+
+	/**
+	 * The object-store lane entries for the given ids, in the same entry shape as
+	 * `getObjectsSnapshot`. Ids without an object-lane record are omitted (document-lane ids are
+	 * never returned). Duplicate ids yield one entry. Lets callers that only need a handful of
+	 * records (e.g. an outbox drain) avoid materializing — and parsing — the whole lane.
+	 */
+	getObjectsByIds?(ids: Iterable<string>): RoomSnapshot['documents']
 }
 
 /**

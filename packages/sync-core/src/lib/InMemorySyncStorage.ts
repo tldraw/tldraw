@@ -287,6 +287,18 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	getObjectsSnapshot(): RoomSnapshot['documents'] {
 		return Array.from(this.objects.values())
 	}
+
+	getObjectsByIds(ids: Iterable<string>): RoomSnapshot['documents'] {
+		const result: RoomSnapshot['documents'] = []
+		const seen = new Set<string>()
+		for (const id of ids) {
+			if (seen.has(id)) continue
+			seen.add(id)
+			const doc = this.objects.get(id)
+			if (doc) result.push(doc)
+		}
+		return result
+	}
 }
 
 /**
