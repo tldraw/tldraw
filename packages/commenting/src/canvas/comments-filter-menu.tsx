@@ -1,4 +1,5 @@
 import {
+	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -10,7 +11,6 @@ import {
 	useValue,
 } from 'tldraw'
 import { FilterIcon } from '../ui/icons'
-import { TooltipButton } from '../ui/tooltip-button'
 import { SidebarFilters } from './sidebar-filters'
 import { sidebarFilters } from './state'
 
@@ -38,9 +38,14 @@ export function CommentsFilterMenu({
 	return (
 		<TldrawUiDropdownMenuRoot id="comments-filter">
 			<TldrawUiDropdownMenuTrigger>
-				<TooltipButton tooltip={msg('comments.filter')} className="tlui-cmt-header-btn">
+				<TldrawUiButton
+					type="icon"
+					tooltip={msg('comments.filter')}
+					title={msg('comments.filter')}
+					className="tlui-cmt-header-btn"
+				>
 					<FilterIcon />
-				</TooltipButton>
+				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			{/* No tlui-cmt-menu here: the rows are tldraw menu items, which carry their own insets —
 			    the extra padding would set this menu apart from the canvas menus it should match. */}
