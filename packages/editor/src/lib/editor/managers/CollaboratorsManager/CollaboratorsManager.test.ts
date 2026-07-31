@@ -33,7 +33,7 @@ function createPresence(userId: TLUserId): TLInstancePresence {
 }
 
 function createEditor(presences: TLInstancePresence[] = []) {
-	const setInterval = vi.fn(() => 123)
+	const setInterval = vi.fn((_fn: () => void, _ms: number) => 123)
 	const getInstanceState = vi.fn(() => ({
 		followingUserId: null,
 		highlightedUserIds: [],
@@ -67,6 +67,7 @@ function createEditor(presences: TLInstancePresence[] = []) {
 describe(CollaboratorsManager, () => {
 	afterEach(() => {
 		vi.clearAllMocks()
+		vi.useRealTimers()
 	})
 
 	it('starts the visibility clock on the first visible collaborators read', () => {
@@ -158,6 +159,32 @@ describe(CollaboratorsManager, () => {
 		// they keep the exact same array identity and don't invalidate downstream subscribers.
 		editor.store.put([{ ...peerElsewhere, chatMessage: 'hello from another page' }])
 		expect(manager.getCollaboratorsOnCurrentPage()).toBe(onPage)
+		expect(manager.getVisibleCollaboratorsOnCurrentPage()).toBe(visibleOnPage)
+	})
+
+	it('keeps array identity across a visibility-clock tick that changes nothing', () => {
+		vi.useFakeTimers()
+		const peer = createPresence(createUserId('peer'))
+		const { editor, setInterval, getInstanceState } = createEditor([peer])
+		const manager = new CollaboratorsManager(editor)
+
+		const visible = manager.getVisibleCollaborators()
+		const visibleOnPage = manager.getVisibleCollaboratorsOnCurrentPage()
+		expect(visible).toEqual([peer])
+		expect(getInstanceState).toHaveBeenCalledTimes(1)
+
+		// The clock ticks on a fixed interval whether or not anything changed. Advance far enough
+		// to move the clock atom, but not far enough to change anyone's activity state.
+		const tick = setInterval.mock.calls[0][0]
+		vi.advanceTimersByTime(1000)
+		tick()
+
+		// The tick really did invalidate the query — it re-evaluates and re-reads instance state —
+		// but the result is element-wise identical, so it keeps the previous array's identity. An
+		// idle room therefore doesn't re-render the cursor layer once per interval.
+		const revisited = manager.getVisibleCollaborators()
+		expect(getInstanceState).toHaveBeenCalledTimes(2)
+		expect(revisited).toBe(visible)
 		expect(manager.getVisibleCollaboratorsOnCurrentPage()).toBe(visibleOnPage)
 	})
 

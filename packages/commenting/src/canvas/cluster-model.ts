@@ -132,14 +132,14 @@ export function useClusterModel(
 	// model (the common render) the leaf sets are identical by construction, so skip the scan.
 	if (clusterModel !== latestModel) {
 		const latestLeafIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
-		let removedLeafIds: string[] | null = null
+		const removedLeafIds: string[] = []
 		for (const leaf of clusterModel.table.leaves) {
 			if (!latestLeafIds.has(leaf.id)) {
-				;(removedLeafIds ??= []).push(leaf.id)
+				removedLeafIds.push(leaf.id)
 			}
 		}
 		// Batched: one patch rebuild and one version bump for the whole set.
-		if (removedLeafIds) clusterModel.runtime.detachLeaves(removedLeafIds)
+		if (removedLeafIds.length > 0) clusterModel.runtime.detachLeaves(removedLeafIds)
 	}
 	// Moved pins rejoin clustering on the next zoom-out motion: clear the set (so the rebuild
 	// includes them again) and adopt that rebuild immediately instead of deferring it. Zooming in
