@@ -37,13 +37,7 @@ export function finalize(
 	for (const event of events) {
 		const zMerge = Math.min(event.zMerge, zMergeCap)
 		if (zMerge < opts.minZoom) break
-		// An offset-priced event carries its exact Tu crossing; use it while it still exceeds the
-		// (possibly window-snapped or capped) zMerge, else fall back to the ratio — which is also
-		// the unconditional path for every offset-free event, unchanged.
-		let zSplit =
-			event.zSplit !== undefined && event.zSplit > zMerge
-				? Math.min(event.zSplit, opts.maxSplitZoom)
-				: zMerge * r
+		let zSplit = zMerge * r
 		if (zMerge < opts.maxZoom) {
 			zSplit = Math.min(zSplit, opts.maxZoom)
 		}
@@ -120,12 +114,8 @@ function contractChain(
 		}
 	}
 
-	// A solo chain keeps its exact split (see RawMergeEvent.zSplit); a grouped chain drops it —
-	// its threshold is already snapped to the window anchor, so the ratio-derived split applies.
-	const zSplit = indices.length === 1 ? events[indices[0]].zSplit : undefined
 	return {
 		zMerge,
-		...(zSplit !== undefined ? { zSplit } : {}),
 		children: Array.from(childrenById.values()).sort(compareNodesByMinMember),
 		result: result!,
 	}

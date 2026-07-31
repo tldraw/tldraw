@@ -1,8 +1,7 @@
 import type { VecLike } from 'tldraw'
 import { describe, expect, it } from 'vitest'
 import { computeClusterTable } from './computeClusterTable'
-import { contract } from './schedule'
-import type { ClusterNode, LeafInput, RawMergeEvent } from './types'
+import type { LeafInput } from './types'
 
 function leaf(id: string, x: number, y: number): LeafInput {
 	return { id, point: { x, y } }
@@ -66,7 +65,8 @@ describe('offset-aware pricing', () => {
 
 	it('merges earlier when the insets point toward each other, at the exact visual crossing', () => {
 		// Visual positions: a at 100·0·z + 20, b at 100z − 20 → distance |100z − 40|. Tc = 22
-		// crosses at z = 0.62 (raw anchors would say 0.22); Tu = 26.4 crosses at z = 0.664.
+		// crosses at z = 0.62 (raw anchors would say 0.22); the split derives from the Tu/Tc
+		// ratio, as for every event.
 		const table = computeClusterTable(
 			[A, B],
 			EXACT_OPTS,
@@ -74,11 +74,11 @@ describe('offset-aware pricing', () => {
 		)
 		expect(table.events).toHaveLength(1)
 		expect(table.events[0].zMerge).toBeCloseTo(0.62, 10)
-		expect(table.events[0].zSplit).toBeCloseTo(0.664, 10)
+		expect(table.events[0].zSplit).toBeCloseTo(0.62 * 1.2, 10)
 	})
 
 	it('merges later when the insets point apart, at the exact visual crossing', () => {
-		// Distance 100z + 10: Tc at z = 0.12 (raw: 0.22), Tu at z = 0.164.
+		// Distance 100z + 10: Tc at z = 0.12 (raw: 0.22); ratio split at 0.144.
 		const table = computeClusterTable(
 			[A, B],
 			EXACT_OPTS,
@@ -86,7 +86,7 @@ describe('offset-aware pricing', () => {
 		)
 		expect(table.events).toHaveLength(1)
 		expect(table.events[0].zMerge).toBeCloseTo(0.12, 10)
-		expect(table.events[0].zSplit).toBeCloseTo(0.164, 10)
+		expect(table.events[0].zSplit).toBeCloseTo(0.144, 10)
 	})
 
 	it('never merges a pair whose visual distance never reaches Tc', () => {
@@ -99,10 +99,9 @@ describe('offset-aware pricing', () => {
 		expect(table.events).toEqual([])
 	})
 
-	it('still applies the Dmax fit cap to a corrected merge, with the exact Tu split', () => {
+	it('still applies the Dmax fit cap to a corrected merge', () => {
 		// Exaggerated inward offsets put the Tc crossing at z = 1.42, above the spread cap
-		// Dmax/diag = 82.5/100 = 0.825, so the cap wins the min. The split keeps the exact Tu
-		// crossing (26.4 + 120)/100 = 1.464 — it prices the visuals, not the cap.
+		// Dmax/diag = 82.5/100 = 0.825, so the cap wins the min.
 		const table = computeClusterTable(
 			[A, B],
 			EXACT_OPTS,
@@ -110,7 +109,7 @@ describe('offset-aware pricing', () => {
 		)
 		expect(table.events).toHaveLength(1)
 		expect(table.events[0].zMerge).toBeCloseTo(0.825, 10)
-		expect(table.events[0].zSplit).toBeCloseTo(1.464, 10)
+		expect(table.events[0].zSplit).toBeCloseTo(0.825 * 1.2, 10)
 	})
 
 	it('treats coincident anchors with differing offsets as a constant visual distance', () => {
@@ -129,7 +128,7 @@ describe('offset-aware pricing', () => {
 	it("dilutes a cluster's mean offset as precise members fold in", () => {
 		// a (tucked 20px) and b (precise) share an anchor: constant 20px apart, always merged.
 		// Their cluster's mean offset is (10, 0); against precise c 100 units right the visual
-		// distance is |100z − 10| → Tc at z = 0.32, Tu at 0.364 — half the lone pin's correction.
+		// distance is |100z − 10| → Tc at z = 0.32 — half the lone pin's correction.
 		const table = computeClusterTable(
 			[leaf('a', 0, 0), leaf('b', 0, 0), leaf('c', 100, 0)],
 			EXACT_OPTS,
@@ -138,33 +137,35 @@ describe('offset-aware pricing', () => {
 		expect(table.events).toHaveLength(2)
 		const outer = table.events.find((e) => e.result.count === 3)!
 		expect(outer.zMerge).toBeCloseTo(0.32, 10)
-		expect(outer.zSplit).toBeCloseTo(0.364, 10)
+		expect(outer.zSplit).toBeCloseTo(0.32 * 1.2, 10)
 	})
 })
 
-describe('contract with exact splits', () => {
-	function node(id: string, x: number, y: number, members: string[] = [id]): ClusterNode {
-		return { id, centroid: { x, y }, count: members.length, members }
-	}
-	function raw(a: ClusterNode, b: ClusterNode, z: number, zSplit?: number): RawMergeEvent {
-		const members = [...a.members, ...b.members].sort()
-		const result = node(`cluster:${members.length}:${members[0]}`, 0, 0, members)
-		return zSplit !== undefined
-			? { z, zSplit, children: [a, b], result }
-			: { z, children: [a, b], result }
-	}
-
-	it("keeps a solo event's exact split and drops a grouped chain's", () => {
-		const ab = raw(node('a', 0, 0), node('b', 10, 0), 2, 2.4)
-		// c–d chained onto ab's result within the same window: contraction folds them into one
-		// multi-way event, whose split must fall back to the ratio.
-		const abc = raw(ab.result, node('c', 20, 0), 1.9, 2.28)
-		const solo = raw(node('x', 1000, 0), node('y', 1010, 0), 0.5, 0.62)
-
-		const contracted = contract([ab, abc, solo], 0.2)
-		const grouped = contracted.find((e) => e.result.members.length === 3)!
-		const kept = contracted.find((e) => e.result.members.includes('x'))!
-		expect(grouped.zSplit).toBeUndefined()
-		expect(kept.zSplit).toBe(0.62)
+describe('table ordering with offsets', () => {
+	it('keeps zMerge and zSplit non-increasing (splits are always ratio-derived)', () => {
+		// Mixed offset and plain leaves at varied spacings: every split is zMerge · (Tu/Tc), so
+		// both threshold sequences inherit the table's non-increasing order — the invariant the
+		// runtime's prefix cursor, split walk, and seed bisection rely on.
+		const leaves = [
+			leaf('a', 0, 0),
+			leaf('b', 100, 0),
+			leaf('c', 130, 0),
+			leaf('d', 400, 0),
+			leaf('e', 470, 0),
+			leaf('f', 1000, 300),
+		]
+		const table = computeClusterTable(
+			leaves,
+			EXACT_OPTS,
+			offsets({ a: { x: -20, y: 0 }, b: { x: 14, y: 0 }, d: { x: 20, y: 14 } })
+		)
+		expect(table.events.length).toBeGreaterThan(2)
+		for (let i = 1; i < table.events.length; i++) {
+			expect(table.events[i].zMerge).toBeLessThanOrEqual(table.events[i - 1].zMerge)
+			expect(table.events[i].zSplit).toBeLessThanOrEqual(table.events[i - 1].zSplit)
+		}
+		for (const event of table.events) {
+			expect(event.zSplit).toBeCloseTo(event.zMerge * 1.2, 10)
+		}
 	})
 })

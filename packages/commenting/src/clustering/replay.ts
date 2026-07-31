@@ -5,7 +5,7 @@ export const D_FLOOR = 1e-9
 export function cappedReplay(
 	leaves: readonly LeafInput[],
 	edges: readonly MstEdge[],
-	opts: { Tc: number; Dmax: number; Tu?: number },
+	opts: { Tc: number; Dmax: number },
 	// Render offsets for markers that draw off their anchor (imprecise pins). Omitted or empty,
 	// every code path below is the offset-unaware original — pricing, events, and floats alike.
 	screenOffsets?: LeafScreenOffsets
@@ -50,10 +50,7 @@ export function cappedReplay(
 
 		const z = Math.min(current.z, lastZ)
 		lastZ = z
-		// The exact Tu crossing for offset-priced merges, computed before merge() folds the pair's
-		// state together. Undefined on the offset-free path — finalize's Tu/Tc ratio applies.
-		const zSplit = zSplitForRoots(aRoot, bRoot, clusters, opts, z)
-		events.push(clusters.merge(aRoot, bRoot, z, zSplit))
+		events.push(clusters.merge(aRoot, bRoot, z))
 
 		// eager reprice: the new cluster's centroid and bbox changed, so every
 		// surviving incident edge gets a fresh entry at its current price
@@ -74,7 +71,7 @@ export function cappedReplay(
 	return events
 }
 
-function validateOptions(opts: { Tc: number; Dmax: number; Tu?: number }) {
+function validateOptions(opts: { Tc: number; Dmax: number }) {
 	if (!Number.isFinite(opts.Tc) || opts.Tc <= 0) {
 		throw new Error('Tc must be greater than 0')
 	}
@@ -83,9 +80,6 @@ function validateOptions(opts: { Tc: number; Dmax: number; Tu?: number }) {
 	}
 	if (opts.Dmax < opts.Tc) {
 		throw new Error('Dmax must be greater than or equal to Tc')
-	}
-	if (opts.Tu !== undefined && (!Number.isFinite(opts.Tu) || opts.Tu <= opts.Tc)) {
-		throw new Error('Tu must be finite and greater than Tc')
 	}
 }
 
@@ -136,30 +130,6 @@ function zForRoots(
 	if (gap === null) return 0
 	const fit = opts.Dmax / clusters.unionBboxDiag(aRoot, bRoot)
 	return Math.min(gap, fit)
-}
-
-/**
- * The exact split threshold for an offset-priced pair: the zoom at which its visual distance
- * crosses Tu. Undefined whenever finalize's ratio-derived split should apply instead — offset
- * pricing inactive or Δō = 0 (the original path), no Tu supplied, a dead merge (z = 0), or a
- * constant-distance pair (coincident centroids, governed by the maxSplitZoom band as today).
- * When defined it exceeds the emitted z: the Tu crossing sits above the Tc crossing (Tu > Tc,
- * and the visual distance is increasing there), and the emitted z is at most the Tc crossing.
- */
-function zSplitForRoots(
-	aRoot: number,
-	bRoot: number,
-	clusters: ClusterState,
-	opts: { Tc: number; Dmax: number; Tu?: number },
-	z: number
-): number | undefined {
-	if (opts.Tu === undefined) return undefined
-	if (z <= 0 || !Number.isFinite(z)) return undefined
-	const off = clusters.offsetDelta(aRoot, bRoot)
-	if (off === null) return undefined
-	const dc = clusters.centroidDelta(aRoot, bRoot)
-	if (dc.x === 0 && dc.y === 0) return undefined
-	return largestVisualCrossing(dc.x, dc.y, off.x, off.y, opts.Tu) ?? undefined
 }
 
 /**
@@ -300,7 +270,7 @@ class ClusterState {
 		return Math.hypot(maxX - minX, maxY - minY)
 	}
 
-	merge(aRoot: number, bRoot: number, z: number, zSplit?: number): RawMergeEvent {
+	merge(aRoot: number, bRoot: number, z: number): RawMergeEvent {
 		const leftRoot = this.minMemberIds[aRoot] < this.minMemberIds[bRoot] ? aRoot : bRoot
 		const rightRoot = leftRoot === aRoot ? bRoot : aRoot
 		const left = this.nodes[leftRoot]
@@ -345,9 +315,7 @@ class ClusterState {
 			this.offsetY[leftRoot] += this.offsetY[rightRoot]
 		}
 
-		return zSplit !== undefined
-			? { z, zSplit, children: [left, right], result }
-			: { z, children: [left, right], result }
+		return { z, children: [left, right], result }
 	}
 }
 

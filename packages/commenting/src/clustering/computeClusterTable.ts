@@ -35,12 +35,7 @@ export function computeClusterTable(
 		return { events: [], leaves: leafNodes }
 	}
 
-	const raw = cappedReplay(
-		leaves,
-		edges,
-		{ Tc: opts.Tc, Dmax: opts.Dmax, Tu: opts.Tu },
-		screenOffsets
-	)
+	const raw = cappedReplay(leaves, edges, { Tc: opts.Tc, Dmax: opts.Dmax }, screenOffsets)
 	const contracted = contract(raw, opts.eps)
 	const events = finalize(contracted, {
 		Tc: opts.Tc,

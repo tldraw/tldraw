@@ -50,12 +50,6 @@ export interface ClusterNode {
 export interface RawMergeEvent {
 	/** Effective merge threshold zEff = min(Tc/d, Dmax/unionBboxDiag). +Infinity for coincident anchors. */
 	z: number
-	/**
-	 * Exact split threshold — the zoom at which the pair's *visual* distance crosses Tu — set
-	 * only when the merge was priced with screen offsets (see {@link LeafScreenOffsets}). Absent,
-	 * the split derives from the Tu/Tc ratio in `finalize`, exactly as for offset-free events.
-	 */
-	zSplit?: number
 	/** The two clusters consumed, ordered by ascending min-member id. */
 	children: [ClusterNode, ClusterNode]
 	/** The cluster produced. */
@@ -66,10 +60,6 @@ export interface RawMergeEvent {
 export interface ContractedEvent {
 	/** Fires (merges) when zoom <= zMerge. May be +Infinity. */
 	zMerge: number
-	/** Carried from a solo raw event's exact split (see {@link RawMergeEvent.zSplit}). Grouped
-	 *  (multi-way) events drop it — their threshold is already snapped to the window anchor, so
-	 *  the ratio-derived split applies as before. */
-	zSplit?: number
 	/** Clusters consumed — 2 or more, ordered by ascending min-member id. */
 	children: ClusterNode[]
 	/** Cluster produced. */
