@@ -145,8 +145,8 @@ export const ThreadPin = memo(function ThreadPin({
 			if (target.closest('.tlui-cmt-canvas-popover')) return
 			const marker = markerRef.current
 			if (marker && marker.contains(target)) return
-			// A press on a region's resize handle or movable body edits this thread — don't dismiss it.
-			if (target.closest('.tlui-cmt-canvas-region-handle, .tlui-cmt-canvas-region--movable')) return
+			// A press on a region's resize handle edits this thread — don't dismiss it.
+			if (target.closest('.tlui-cmt-canvas-region-handle')) return
 			// A click inside a menu/popover layered above us (the sidebar's filter or overflow
 			// dropdown, or the composer's mention picker — all portaled elsewhere) belongs to that
 			// layer; defer to its own dismissal instead of closing the thread out from under it.
