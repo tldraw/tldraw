@@ -1,8 +1,8 @@
 import type { MentionNodeAttrs } from '@tiptap/extension-mention'
 import { ReactRenderer } from '@tiptap/react'
 import type { SuggestionKeyDownProps, SuggestionOptions } from '@tiptap/suggestion'
-import { type ReactNode, forwardRef, useImperativeHandle, useState } from 'react'
-import { type Editor as TldrawEditor, atom, react } from 'tldraw'
+import { type ReactNode, forwardRef, useImperativeHandle, useRef, useState } from 'react'
+import { type Editor as TldrawEditor, atom, react, usePassThroughWheelEvents } from 'tldraw'
 import { MentionList, MentionMember } from './mention-list'
 
 /** The handle the suggestion plugin drives — it forwards navigation keys into the popup. */
@@ -22,6 +22,13 @@ const MentionPopup = forwardRef<MentionPopupHandle, MentionPopupProps>(function 
 	ref
 ) {
 	const [activeIndex, setActiveIndex] = useState(0)
+	// A wheel over the popup drives the canvas beneath it, so scrolling to pan or zoom isn't
+	// swallowed by the roster — the same pass-through every tldraw panel gets. The hook leaves the
+	// list alone while it scrolls its own overflow. The suggestion plugin builds the popup element
+	// imperatively, but the `ReactRenderer` portals this component into the composer's React tree,
+	// so tldraw's container and editor context reach the hook.
+	const listRef = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(listRef)
 	// A new query yields new items; reset the highlight to the top during render — not in an effect,
 	// which would leave a frame where `activeIndex` still points past a shrunk list and Enter selects
 	// its (now out-of-range, undefined) item, swallowing the key without inserting a mention.
@@ -59,6 +66,7 @@ const MentionPopup = forwardRef<MentionPopupHandle, MentionPopupProps>(function 
 
 	return (
 		<MentionList
+			ref={listRef}
 			members={items}
 			activeIndex={activeIndex}
 			onSelect={select}
@@ -121,7 +129,6 @@ export function createMentionSuggestion(
 			let renderer: ReactRenderer<MentionPopupHandle, MentionPopupProps> | null = null
 			let container: HTMLElement | null = null
 			let editorEl: HTMLElement | null = null
-			let canvasEl: Element | null = null
 			let stopCameraReaction: (() => void) | null = null
 			// The composer field's top-left in page space, plus the popup's screen width. Captured on a
 			// fresh read so camera moves can re-derive the popup's screen position from the page anchor
@@ -188,20 +195,6 @@ export function createMentionSuggestion(
 				mentionPickerOpen.set(false)
 			}
 
-			// Wheel/panning over the popup drives the canvas beneath it, so scrolling to pan or zoom
-			// isn't swallowed by the roster — the same passthrough the rest of the comments UI gets from
-			// `usePassThroughWheelEvents`. The list still scrolls itself when the roster overflows (we
-			// only redispatch when it can't). Done imperatively because the popup lives outside React.
-			const onWheel = (e: WheelEvent) => {
-				if ((e as any).isSpecialRedispatchedEvent || !canvasEl) return
-				const list = container?.querySelector('.tlui-cmt-mention-list')
-				if (list && list.scrollHeight > list.clientHeight) return
-				e.preventDefault()
-				const redispatched = new WheelEvent('wheel', e)
-				;(redispatched as any).isSpecialRedispatchedEvent = true
-				canvasEl.dispatchEvent(redispatched)
-			}
-
 			return {
 				onStart: (props) => {
 					renderer = new ReactRenderer(MentionPopup, {
@@ -220,12 +213,11 @@ export function createMentionSuggestion(
 					container = document.createElement('div')
 					container.className = 'tlui-cmt-mention-popup'
 					container.appendChild(renderer.element)
-					// Mount inside the tldraw container so the popup inherits the theme variables
-					// (--tl-color-*); portaling to document.body would strip them and lose the panel.
-					const themed = editorEl.closest('.tl-container')
-					;(themed ?? document.body).appendChild(container)
-					canvasEl = themed?.querySelector('.tl-canvas') ?? null
-					container.addEventListener('wheel', onWheel, { passive: false })
+					// Mount inside the tldraw container: the popup inherits the theme variables
+					// (--tl-color-*) from it, and the pass-through hooks read it from context to find the
+					// canvas. Outside one there's no theme and nothing to pass a wheel to, but the picker
+					// still works, so fall back to the body rather than taking the composer down with us.
+					;(editorEl.closest('.tl-container') ?? document.body).appendChild(container)
 					place()
 					startFollowing()
 					mentionPickerOpen.set(true)
@@ -272,12 +264,10 @@ export function createMentionSuggestion(
 				onExit: () => {
 					stopFollowing()
 					if (editorEl) editorEl.removeEventListener('blur', hide)
-					if (container) container.removeEventListener('wheel', onWheel)
 					if (container) container.remove()
 					if (renderer) renderer.destroy()
 					renderer = null
 					container = null
-					canvasEl = null
 					mentionPickerOpen.set(false)
 				},
 			}
