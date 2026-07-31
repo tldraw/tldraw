@@ -1,11 +1,49 @@
 /* The commenting UI's inline icons, kept together so the set is visible in one place.
  *
- * Anything with an equivalent in tldraw's icon assets goes through `TldrawUiIcon` instead (the
- * check, the ⋯ menu, the dismiss cross). What's left lives here because the asset set has no
- * counterpart: a smiley, a send arrow, the eye pair, and a filter. They're inline rather than
- * assets so they render without an `AssetUrlsProvider` and without the consumer serving files.
+ * Anything with an equivalent in tldraw's icon assets goes through `TldrawUiIcon` instead (the ⋯
+ * menu, the dismiss cross, the resolve button's check). What's left lives here because the asset
+ * set has no counterpart — a smiley, a send arrow, the eye pair, a filter — or because the asset
+ * reads wrong at the size it's needed, which is the case for both resolved checks below. Inline
+ * also means they render without an `AssetUrlsProvider` and without the consumer serving files.
  *
  * All internal — none are exported from the package. */
+
+/** The check inside a resolved comment pin. A drawn check, not the '✓' glyph — that character sits
+ * off-baseline and varies by font. Heavier and rounder than `CheckIcon`: it has to hold its weight
+ * against the pin's 28px filled face, where the asset check reads too light. */
+export function PinCheckIcon() {
+	return (
+		<svg
+			viewBox="0 0 24 24"
+			width="15"
+			height="15"
+			fill="none"
+			stroke="currentColor"
+			strokeWidth="2.5"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+			aria-hidden="true"
+		>
+			<path d="M4 12.5l5 5L20 6.5" />
+		</svg>
+	)
+}
+
+/** The check beside the "Resolved" label on a comments list row. Thinner than `PinCheckIcon` — it
+ * sits next to text at 12px, so it's drawn to match the label's weight rather than shout. */
+export function CheckIcon() {
+	return (
+		<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+			<path
+				d="M2.5 6.2 4.7 8.4 9.5 3.6"
+				stroke="currentColor"
+				strokeWidth="1.5"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+		</svg>
+	)
+}
 
 /** The reaction picker's trigger. */
 export function SmileyIcon() {

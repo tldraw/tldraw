@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { TldrawUiIcon } from 'tldraw'
+import { PinCheckIcon } from './icons'
 
 /** @public */
 export interface CommentPinProps {
@@ -11,11 +11,8 @@ export interface CommentPinProps {
 	open?: boolean
 }
 
-/* The icon asset, not a text glyph — the '✓' character sits off-baseline and varies by font.
-   Left at the default 18px rather than `small`: the asset's check sits smaller inside its box than
-   a 15px inline one did, so 18px keeps the weight the pin shipped with. Decorative — the pin's
-   accessible name lives on whatever wraps it. */
-const resolvedCheck = <TldrawUiIcon icon="check" label="" aria-hidden="true" />
+/* Decorative — the pin's accessible name lives on whatever wraps it. */
+const resolvedCheck = <PinCheckIcon />
 
 /** A canvas comment marker: shows its `children` (or a check when resolved). Purely
  * presentational — it reflects open/resolved state via CSS; wrap it to make it clickable.

@@ -1,7 +1,8 @@
 import { Avatar, type CommentAuthor } from '@tldraw/mentions'
 import { MouseEvent, ReactNode } from 'react'
-import { TldrawUiIcon, useTranslation } from 'tldraw'
+import { useTranslation } from 'tldraw'
 import { Byline } from './byline'
+import { CheckIcon } from './icons'
 import { replyCountLabel } from './reply-count'
 
 /** @public */
@@ -127,8 +128,7 @@ function CommentListItem({
 					<div className="tlui-cmt-list__item-meta">
 						{resolved && (
 							<span className="tlui-cmt-list__item-resolved">
-								{/* decorative — the label right next to it already says "resolved" */}
-								<TldrawUiIcon icon="check" label="" tiny aria-hidden="true" />
+								<CheckIcon />
 								{resolvedLabel}
 							</span>
 						)}
