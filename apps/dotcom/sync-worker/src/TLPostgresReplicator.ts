@@ -877,13 +877,28 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 			// The published snapshot is now the content an unfurl would show, so render its OG image
 			// straight away rather than leaving the first crawler to find a cold cache. Publishing is an
-			// explicit, low-volume act, so this costs about one render per publish. Enqueue failures are
-			// swallowed with the rest of this handler.
-			await enqueueOgImageRender(
-				this.env,
-				{ kind: 'published', slug: file.publishedSlug },
-				{ reason: 'publish' }
-			)
+			// explicit, low-volume act, so this costs about one render per publish.
+			//
+			// Reported rather than swallowed, and the no-op results are reported too, because this is the
+			// *only* trigger a published board has. A published snapshot is frozen, so nothing edits it
+			// into needing another render: an ask lost here — thrown, or turned away as `already_pending`
+			// by a marker some earlier failure left behind — leaves that board's card generic until it is
+			// republished. `getOgImage` repairs it on the next fetch (see the `published` on-miss enqueue
+			// there); this line is how we find out it happened.
+			try {
+				const result = await enqueueOgImageRender(
+					this.env,
+					{ kind: 'published', slug: file.publishedSlug },
+					{ reason: 'publish' }
+				)
+				if (result !== 'enqueued') {
+					this.captureException(
+						new Error(`Publish thumbnail enqueue did not take effect: ${result}`)
+					)
+				}
+			} catch (e) {
+				this.captureException(e, { publishThumbnailEnqueue: true })
+			}
 		} catch (e) {
 			this.log.debug('Error publishing snapshot', e)
 		}

@@ -1,7 +1,7 @@
 import { IRequest } from 'itty-router'
 import { Environment, ThumbnailBoardKind } from '../../types'
 import { getPublicOrigin } from '../../utils/getPublicOrigin'
-import { getOgImageCacheKey } from './ogImageQueue'
+import { enqueueOgImageRender, getOgImageCacheKey } from './ogImageQueue'
 import {
 	ResolvedThumbnailBoard,
 	resolveThumbnailBoard,
@@ -9,15 +9,18 @@ import {
 } from './thumbnailRender'
 import { reportThumbnailError } from './thumbnailShared'
 
-// A pure read. Two questions and nothing else: is this board publicly viewable (published, or shared
-// via link), and does a thumbnail for it exist? Both yes, serve it. Anything else, redirect to the
-// site-wide default. No rendering, no enqueueing, no rate limiting, no waiting.
+// Almost a pure read. Two questions and nothing else: is this board publicly viewable (published, or
+// shared via link), and does a thumbnail for it exist? Both yes, serve it. Anything else, redirect to
+// the site-wide default. No rendering inline, no rate limiting, no waiting.
 //
 // Making the thumbnail exist before the board is ever shared is the job of the publish and edit
 // triggers (TLPostgresReplicator, TLFileDurableObject), not of the request that finds it missing:
 // unfurl platforms cache a URL's card on first resolve, so a render triggered from here lands after
 // the crawler has already taken the default away. Rendering inline is worse still — captures run
 // 4-17s, past any crawler's patience. See browser-run-thumbnails.md.
+//
+// The one exception is `repairMissingPublishedImage` below, which asks for a render when a *published*
+// board has no image at all — the single case where no other trigger will ever ask again.
 const DEFAULT_OG_IMAGE_PATH = '/social-og.png'
 // Short, and deliberately not chosen for cost or freshness. Neither is the binding constraint here:
 // R2 reads are a rounding error next to rendering, and unfurl platforms cache a card their own side
@@ -98,6 +101,7 @@ export async function getOgImage(
 		cacheStatus: 'miss',
 		failureReason: 'not_rendered_yet',
 	})
+	await repairMissingPublishedImage(board, env, ctx)
 	return redirectToDefaultOgImage(imageUrl)
 }
 
@@ -122,6 +126,44 @@ function parseOgKind(value: unknown): ThumbnailBoardKind | null {
 
 function parseSlug(value: unknown) {
 	return typeof value === 'string' && value.length > 0 && !value.includes('/') ? value : null
+}
+
+/**
+ * The one case where this route asks for a render, and it is a repair rather than a refresh.
+ *
+ * The two kinds are not symmetric in how many triggers they have. A shared file re-asks on every
+ * persist that advances its document clock, so an ask lost to a queue failure or a stale pending
+ * marker is made good by the next edit. A published board has exactly one trigger — the publish
+ * effect in `TLPostgresReplicator` — and its snapshot is frozen, so nothing ever edits it into
+ * asking again. One lost ask there means a generic card until somebody republishes.
+ *
+ * So this fires only for `published`, and only on a total miss: no image at all, not a stale one.
+ * The pending marker dedupes it, and a board that fails to render permanently is limited to one
+ * attempt per marker TTL rather than one per crawler.
+ *
+ * This does not undo the reasoning that removed the general on-miss enqueue. That enqueue was
+ * pointless because the crawler which triggered it has already cached the default by the time the
+ * render lands, and unfurl platforms resolve a card once — both still true. The point here is not to
+ * serve *this* request; it is that without it, nothing else will ever ask.
+ */
+async function repairMissingPublishedImage(
+	board: ResolvedThumbnailBoard,
+	env: Environment,
+	ctx: ExecutionContext | undefined
+) {
+	if (board.kind !== 'published') return
+	const enqueued = enqueueOgImageRender(env, board, { reason: 'crawler' }).catch((error) => {
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			surface: 'og_route',
+			extras: { kind: board.kind, repair: true },
+		})
+	})
+	// Off the response path in production; awaited only when there is no execution context to hand it
+	// to, which is tests.
+	if (ctx) ctx.waitUntil(enqueued)
+	else await enqueued
 }
 
 // Whether the image still depicts the board's current content decides the cache lifetime and nothing

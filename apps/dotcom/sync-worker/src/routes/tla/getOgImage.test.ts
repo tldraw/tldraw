@@ -39,7 +39,7 @@ function makeRequest(prefix: string, slug: string, method = 'GET', headers?: Hea
 describe('getOgImage', () => {
 	// A board with no image of its own is sent to the site-wide default rather than having the worker
 	// proxy those bytes: it is a static asset on the client origin, already cached at the edge.
-	it('redirects to the default image on a cold cache, and queues nothing', async () => {
+	it('redirects to the default image on a cold cache', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
@@ -53,12 +53,53 @@ describe('getOgImage', () => {
 
 		expect(response.status).toBe(302)
 		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
-		// This route never asks for a render, even on a miss. Unfurl platforms resolve a URL's card once
-		// and reuse it for every repost, so a render triggered from here lands after the crawler has
-		// already cached the default — work whose result nobody comes back for. Making the image exist
-		// before the share belongs to the publish and edit triggers.
-		expect(queue.send).not.toHaveBeenCalled()
 		expect(failureBlobsOf(env)).toEqual(['failure:not_rendered_yet'])
+	})
+
+	// The asymmetry this repair exists for: a published snapshot is frozen and its publish effect is
+	// the only thing that ever asks for a render, so an ask lost to a queue failure or a stale pending
+	// marker would leave a generic card until somebody republished.
+	it('asks for a render when a published board has no image at all', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
+
+		await getOgImage(makeRequest('p', 'published-board'), env)
+
+		expect(queue.send).toHaveBeenCalledTimes(1)
+		expect(queue.send).toHaveBeenCalledWith({
+			type: 'og-image-render',
+			kind: 'published',
+			slug: 'published-board',
+			reason: 'crawler',
+		})
+	})
+
+	// A shared file gets no such repair, and the reason is that it does not need one: every persist
+	// that advances its document clock re-asks, so a lost ask is made good by the next edit. Rendering
+	// from here would be work whose result nobody comes back for — unfurl platforms resolve a card once
+	// and reuse it for every repost.
+	it('does not ask for a render when a shared file has no image yet', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			shared: true,
+			sharedLinkType: 'view',
+			isDeleted: false,
+		} as any)
+		const queue = makeFakeQueue()
+		const env = makeEnv({
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+			ROOMS: makeFakeRoomsBucket('room-etag-1'),
+			QUEUE: queue,
+		})
+
+		await getOgImage(makeRequest('f', 'file-1'), env)
+
+		expect(queue.send).not.toHaveBeenCalled()
 	})
 
 	// The redirect sits on a board's own permanent OG image URL, so nothing between here and the
@@ -332,7 +373,9 @@ describe('getOgImage', () => {
 
 		expect(response.status).toBe(302)
 		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
-		expect(queue.send).not.toHaveBeenCalled()
+		// Including the repair ask: some crawlers only ever probe with HEAD, and a published board with
+		// no image has nothing else that will ask for one.
+		expect(queue.send).toHaveBeenCalledTimes(1)
 	})
 
 	it('sends private or unknown boards to the default tldraw OG image', async () => {
