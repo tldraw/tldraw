@@ -57,8 +57,8 @@ export interface CommentNotificationInput {
 		comments?: readonly { authorId: string; createdAt: number }[] | null
 	} | null
 	/** Every reaction to the comment, the caller's own included. Categorization only reads who and
-	 *  when; `emoji` rides along for the row's reaction pills; `userName` is denormalized from the
-	 *  `reactions` table (task 2 migration 045). */
+	 *  when; `emoji` rides along for the row's reaction pills; `userName` is the reactor's display
+	 *  name, denormalized from `user.name` onto reaction rows by Postgres triggers. */
 	reactions?:
 		| readonly { userId: string; userName: string; emoji: string; createdAt: number }[]
 		| null
@@ -168,9 +168,10 @@ export function summarizeForeignReactors(
 			byId.set(r.userId, { name: r.userName, newest: r.createdAt })
 	}
 	const ordered = [...byId.values()].sort((a, b) => b.newest - a.newest)
+	// typeof guard: rows synced before a view-syncer picks up the userName column arrive without it
 	const names = ordered
 		.map((e) => e.name)
-		.filter((n) => n !== '')
+		.filter((n): n is string => typeof n === 'string' && n !== '')
 		.slice(0, 2)
 	return { names, others: ordered.length - names.length, total: ordered.length }
 }

@@ -57,7 +57,7 @@ export interface ReactionSummaryInput {
  * so the row stays stable as later reactions arrive. `active` marks the emoji the current user
  * reacted with (the pills render those highlighted), and `reactors` lists who reacted with it, in
  * reaction order, for the hover list. `resolveName` names each reactor; an id it can't name falls
- * back to the id itself.
+ * back to a generic "Someone", never the raw user id.
  *
  * @public
  */

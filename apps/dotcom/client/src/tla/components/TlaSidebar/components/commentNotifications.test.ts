@@ -340,6 +340,8 @@ describe('reaction notifications', () => {
 		expect(withReadAt(undefined)).toBe(true)
 		// a stale receipt (read before this reaction landed) leaves the entry unread
 		expect(withReadAt(at(5))).toBe(true)
+		// the watermark comparison is strict: a receipt from the same instant counts as read
+		expect(withReadAt(at(10))).toBe(false)
 		expect(withReadAt(at(15))).toBe(false)
 	})
 
@@ -368,6 +370,17 @@ describe('summarizeForeignReactors', () => {
 			names: [],
 			others: 0,
 			total: 0,
+		})
+	})
+
+	it('drops names missing at runtime but still counts the reactor', () => {
+		// rows synced before a view-syncer picks up the userName column arrive without it,
+		// defeating the type — never render "undefined reacted to your comment"
+		const ghost = { userId: 'ghost', emoji: '👍', createdAt: 3 } as unknown as ReturnType<typeof r>
+		expect(summarizeForeignReactors([r('bo', 'Bo', 1), ghost], 'me')).toEqual({
+			names: ['Bo'],
+			others: 1,
+			total: 2,
 		})
 	})
 

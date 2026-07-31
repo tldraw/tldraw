@@ -183,7 +183,9 @@ export function reactionRecordToRow(
 		// stamped by Postgres (set_comment_reaction_user_name_trigger); value here is ignored
 		userName: '',
 		emoji: record.emoji,
-		createdAt: record.createdAt,
+		// client-dated; clamp so it can't outrun the server-clamped comment_read.readAt watermark,
+		// which would make a "reacted to your comment" notification impossible to mark read
+		createdAt: Math.min(record.createdAt, Date.now()),
 		meta: record.meta,
 		lastChangedClock,
 	}
