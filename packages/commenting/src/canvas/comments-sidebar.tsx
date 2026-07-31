@@ -1,10 +1,9 @@
-import { ReactNode, useCallback, useRef } from 'react'
+import { ReactNode, useCallback } from 'react'
 import {
 	EditorPortal,
 	TLComment,
 	TLCommentThread,
 	useEditor,
-	usePassThroughMouseOverEvents,
 	useTranslation,
 	useValue,
 } from 'tldraw'
@@ -212,14 +211,11 @@ export function sortSidebarRows(rows: readonly SidebarRow[]): readonly SidebarRo
 }
 
 /** The sidebar surface, portaled into the container. It scrolls its own list, so — unlike tldraw's
- *  wheel-transparent panels — a wheel over it doesn't pan the canvas. Hover still passes through so
- *  shapes beneath it stay interactive. */
+ *  wheel-transparent panels — a wheel over it doesn't pan the canvas. */
 function SidebarPanel({ children }: { children: ReactNode }) {
-	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughMouseOverEvents(ref)
 	return (
 		<EditorPortal>
-			<div ref={ref} className="tlui-cmt-canvas-sidebar" onContextMenu={(e) => e.stopPropagation()}>
+			<div className="tlui-cmt-canvas-sidebar" onContextMenu={(e) => e.stopPropagation()}>
 				{children}
 			</div>
 		</EditorPortal>

@@ -1,12 +1,6 @@
 import { isMentionPickerOpen } from '@tldraw/mentions'
-import { Fragment, ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
-import {
-	EditorPortal,
-	TLCommentThread,
-	useEditor,
-	usePassThroughMouseOverEvents,
-	useValue,
-} from 'tldraw'
+import { Fragment, ReactNode, useCallback, useEffect, useMemo } from 'react'
+import { EditorPortal, TLCommentThread, useEditor, useValue } from 'tldraw'
 import type { ClusterNode } from '../clustering/types'
 import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
 import { ClusterBadge } from './cluster-badge'
@@ -74,13 +68,6 @@ export function CanvasComments(props: CanvasCommentsProps) {
 function CanvasCommentsLayer(props: CommentingContext) {
 	const editor = useEditor()
 	const options = useCommentingOptions()
-	const layerRef = useRef<HTMLDivElement>(null)
-	// Over the pins and cluster badges, hover passes through to the canvas beneath (these events
-	// bubble up from the pointer-interactive markers to this layer root). Wheel pass-through is
-	// NOT on this root: it lives on each interactive element instead. The root spans the whole
-	// canvas, so any pin past its bottom/right edge inflates the root's scrollHeight — which the
-	// wheel hook's is-this-scrollable guard reads as scrollable, silently disabling pass-through.
-	usePassThroughMouseOverEvents(layerRef)
 	const allThreads = useCommentThreads(editor)
 	const pending = usePendingComment()
 	const canComment = useCanComment(props.currentUserId)
@@ -297,7 +284,11 @@ function CanvasCommentsLayer(props: CommentingContext) {
 	// container's children, so it stays behind the UI's skip link in the tab order.
 	return (
 		<EditorPortal>
-			<div ref={layerRef} className="tlui-cmt-canvas-layer">
+			{/* Wheel pass-through is deliberately NOT on this root: it lives on each interactive
+			    element instead. The root spans the whole canvas, so any pin past its bottom/right
+			    edge inflates the root's scrollHeight — which the wheel hook's is-this-scrollable
+			    guard reads as scrollable, silently disabling pass-through. */}
+			<div className="tlui-cmt-canvas-layer">
 				{options.enableClustering ? (
 					<>
 						{fadeNodes.map(({ node, phase }) => {
