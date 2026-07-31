@@ -12,10 +12,7 @@ import { CountBadge } from '../ui/count-badge'
 import { forwardPointerEventToCanvas, isCanvasPanGesture } from './canvas-events'
 import { type CommentingContext } from './context'
 import { sortThreadsForPreview, ThreadPreview, useMarkerPreview } from './thread-preview'
-
-/** Screen-pixel margin by which the viewport is inflated when culling cluster badges, so a badge
- *  just off-screen is already mounted when a pan brings it in. */
-const CLUSTER_CULL_MARGIN_PX = 120
+import { isInInflatedViewport } from './thread-state'
 
 /**
  * The count badge standing in for several threads folded together at the current zoom. Hovering it
@@ -110,14 +107,3 @@ export const ClusterBadge = memo(function ClusterBadge({
 		</>
 	)
 })
-
-function isInInflatedViewport(editor: Editor, point: { x: number; y: number }): boolean {
-	const viewport = editor.getViewportScreenBounds()
-	const margin = CLUSTER_CULL_MARGIN_PX
-	return (
-		point.x >= -margin &&
-		point.y >= -margin &&
-		point.x <= viewport.w + margin &&
-		point.y <= viewport.h + margin
-	)
-}
