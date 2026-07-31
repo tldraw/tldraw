@@ -1,13 +1,5 @@
 import type { SchemaValue, TableMutator, TableSchema } from '@rocicorp/zero'
-import {
-	DB,
-	TlaFile,
-	TlaRow,
-	TlaRowPartial,
-	TlaSchema,
-	ZErrorCode,
-	ZTable,
-} from '@tldraw/dotcom-shared'
+import { DB, TlaFile, TlaRow, TlaRowPartial, TlaSchema, ZErrorCode } from '@tldraw/dotcom-shared'
 import { assert, omit } from '@tldraw/utils'
 import {
 	CompiledQuery,
@@ -23,8 +15,11 @@ import { QueryResultRow } from 'pg'
 import { ZMutationError } from './ZMutationError'
 const quote = (s: string) => '"' + s.replace(/"/g, '""') + '"'
 
+// Keyed by every schema table so the generic CRUD below can index it, but only pre-initialized
+// keys ever accumulate (callers seed `file.added` and nothing else), and only ZTable tables can
+// cross the legacy user-DO pipe — see UserDataSyncer.incorporateUnsyncedChanges.
 export type ChangeAccumulator = {
-	[table in ZTable]?: {
+	[table in keyof DB]?: {
 		added?: TlaRow[]
 		updated?: TlaRow[]
 		removed?: TlaRowPartial[]

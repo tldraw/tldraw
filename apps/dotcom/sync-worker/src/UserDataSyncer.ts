@@ -13,6 +13,7 @@ import {
 	ZRowUpdate,
 	ZServerSentPacket,
 	ZStoreData,
+	isZTable,
 } from '@tldraw/dotcom-shared'
 import { react, transact } from '@tldraw/state'
 import {
@@ -653,6 +654,10 @@ export class UserDataSyncer {
 			this.broadcast({ type: 'update', update })
 		}
 		for (const [table, diff] of objectMapEntries(changes)) {
+			// The accumulator spans every schema table, but this store and its wire protocol only
+			// carry the legacy tables. Nothing accumulates outside `file` today; skip rather than
+			// send rows legacy clients can't hold.
+			if (!isZTable(table)) continue
 			for (const newRow of diff?.added ?? []) {
 				apply({ event: 'insert', row: newRow, table })
 			}
