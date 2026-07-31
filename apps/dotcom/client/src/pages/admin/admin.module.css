@@ -412,3 +412,52 @@
 	font-weight: 600;
 	color: var(--tl-color-text-3);
 }
+
+/* Sidebar layout (matches the TLA workspaces sidebar look) */
+.adminLayout {
+	display: flex;
+	height: 100vh;
+	overflow: hidden;
+}
+
+.adminSidebar {
+	width: 240px;
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	padding: 12px 8px;
+	background: var(--tla-color-sidebar, #fbfcfe);
+	border-right: 1px solid var(--tl-color-low, rgba(237, 240, 242, 1));
+}
+
+.adminSidebarTitle {
+	padding: 4px 8px 12px;
+	font-weight: 600;
+}
+
+.adminSidebarItem {
+	display: flex;
+	align-items: center;
+	height: 32px;
+	padding: 0 8px;
+	border-radius: 6px;
+	color: inherit;
+	text-decoration: none;
+}
+
+.adminSidebarItem:hover {
+	background: var(--tla-color-hover, rgba(0, 0, 0, 0.043));
+}
+
+.adminSidebarItemActive,
+.adminSidebarItemActive:hover {
+	background: var(--tla-color-hover, rgba(0, 0, 0, 0.043));
+	font-weight: 600;
+}
+
+.adminMain {
+	flex: 1;
+	overflow-y: auto;
+	padding: 24px;
+}

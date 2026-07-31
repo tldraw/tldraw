@@ -143,7 +143,7 @@ export function createAppRouter({
 					/>
 					{/* Views that require login */}
 					<Route lazy={() => import('./tla/providers/RequireSignedInUser')}></Route>
-					<Route path="/admin" lazy={() => import('./pages/admin')} />
+					<Route path="/admin/:section?" lazy={() => import('./pages/admin')} />
 				</Route>
 			</Route>
 			<Route path="/__debug-tail" lazy={() => import('./tla/pages/worker-debug-tail')} />

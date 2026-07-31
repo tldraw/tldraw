@@ -1,0 +1,446 @@
+import { AdminFileAssetsResponseBody } from '@tldraw/dotcom-shared'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { fetch } from 'tldraw'
+import { TlaButton } from '../../tla/components/TlaButton/TlaButton'
+import { formatBytes, StructuredDataDisplay } from './shared'
+import styles from './admin.module.css'
+
+export function FilesSection() {
+	return (
+		<>
+			<section className={styles.adminSection}>
+				<h3 className="tla-text_ui__title">File Operations</h3>
+				<div className={styles.fileOperations}>
+					<DownloadTldrFile legacy={false} />
+					<DownloadTldrFile legacy={true} />
+					<CreateLegacyFile />
+					<AssetDiagnostics />
+				</div>
+			</section>
+			<section className={styles.adminSection}>
+				<h3 className="tla-text_ui__title">Welcome template</h3>
+				<WelcomeTemplate />
+			</section>
+			<section className={styles.adminSection}>
+				<h3 className="tla-text_ui__title">Danger Zone</h3>
+				<HardDeleteFile />
+			</section>
+		</>
+	)
+}
+
+function WelcomeTemplate() {
+	const inputRef = useRef<HTMLInputElement>(null)
+	const [current, setCurrent] = useState(
+		null as { fileId: string; publishedSlug: string; live?: boolean } | null
+	)
+	const [isLoading, setIsLoading] = useState(true)
+	const [error, setError] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
+	const load = useCallback(async () => {
+		setIsLoading(true)
+		setError(null)
+		try {
+			const res = await fetch('/api/app/admin/welcome-template')
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setCurrent(await res.json())
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to load welcome template')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		load()
+	}, [load])
+
+	const onSet = useCallback(async () => {
+		const fileId = inputRef.current?.value?.trim()
+		if (!fileId) {
+			setError('Please enter a published file ID')
+			return
+		}
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/welcome-template', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ fileId }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setCurrent(await res.json())
+			setSuccessMessage('Welcome template set ✨')
+			inputRef.current!.value = ''
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to set welcome template')
+		}
+	}, [])
+
+	const onClear = useCallback(async () => {
+		if (
+			!window.confirm('Clear the welcome template? New workspaces will use the built-in default.')
+		)
+			return
+		setError(null)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch('/api/app/admin/welcome-template/clear', { method: 'POST' })
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setCurrent(null)
+			setSuccessMessage('Welcome template cleared — using the built-in default')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to clear welcome template')
+		}
+	}, [])
+
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.fileOperation}>
+			<p className="tla-text_ui__regular">
+				The file new workspaces fork their first file from. Publish the file first, then set it here
+				by its file ID. Clear it to use the built-in default.
+			</p>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+			<div className={styles.summaryItem}>
+				<span className={styles.fieldLabel}>Current:</span>
+				<span className={styles.fieldValue}>
+					{isLoading
+						? 'Loading…'
+						: current
+							? `${current.fileId} (published slug ${current.publishedSlug})${
+									current.live ? '' : ' ⚠️ not published — new workspaces fall back to the default'
+								}`
+							: 'none — using the built-in default'}
+				</span>
+			</div>
+			<div className={styles.searchContainer}>
+				<input
+					type="text"
+					placeholder="Published file ID"
+					ref={inputRef}
+					className={styles.searchInput}
+				/>
+				<TlaButton onClick={onSet} variant="primary">
+					Set as welcome template
+				</TlaButton>
+				<TlaButton onClick={onClear} variant="secondary" disabled={!current}>
+					Clear
+				</TlaButton>
+			</div>
+		</div>
+	)
+}
+
+function HardDeleteFile() {
+	const inputRef = useRef<HTMLInputElement>(null)
+	const [error, setError] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
+	const onDelete = useCallback(async () => {
+		const fileId = inputRef.current?.value
+		if (!fileId) {
+			setError('Please enter a file ID')
+			return
+		}
+
+		if (
+			!window.confirm(
+				`Are you sure you want to permanently delete file ${fileId}? This action cannot be undone.`
+			)
+		) {
+			return
+		}
+
+		setError(null)
+		setSuccessMessage(null)
+		const res = await fetch(`/api/app/admin/hard_delete_file/${fileId}`, {
+			method: 'POST',
+		})
+		if (!res.ok) {
+			setError(res.statusText + ': ' + (await res.text()))
+			return
+		} else {
+			setSuccessMessage('File deleted successfully! 🧹')
+			inputRef.current!.value = ''
+		}
+	}, [])
+
+	// Clear success message after 3 seconds
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.dangerZone}>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+			<div className={styles.deleteContainer}>
+				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
+				<TlaButton onClick={onDelete} className={styles.deleteButton}>
+					Delete (cannot be undone)
+				</TlaButton>
+			</div>
+		</div>
+	)
+}
+
+function CreateLegacyFile() {
+	const [isCreating, setIsCreating] = useState(false)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
+	const handleCreate = useCallback(async () => {
+		setIsCreating(true)
+		setSuccessMessage(null)
+		try {
+			const res = await fetch(`/api/app/admin/create_legacy_file`, { method: 'POST' })
+			const { slug } = await res.json()
+			window.open(`/r/${slug}`, '_blank')?.focus()
+		} catch (err) {
+			console.error('Failed to create legacy file:', err)
+		} finally {
+			setIsCreating(false)
+		}
+	}, [])
+
+	// Clear success message after 3 seconds
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.fileOperation}>
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+			<TlaButton onClick={handleCreate} variant="secondary" isLoading={isCreating}>
+				Create Legacy File
+			</TlaButton>
+		</div>
+	)
+}
+
+function DownloadTldrFile({ legacy }: { legacy: boolean }) {
+	const inputRef = useRef<HTMLInputElement>(null)
+	const [error, setError] = useState(null as string | null)
+	const [isDownloading, setIsDownloading] = useState(false)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
+	const onDownload = useCallback(async () => {
+		setError(null)
+		setSuccessMessage(null)
+		const fileSlug = inputRef.current?.value
+		if (!fileSlug) {
+			setError('Please enter a file slug')
+			return
+		}
+		const path = legacy ? 'download-legacy-tldr' : 'download-tldr'
+
+		setIsDownloading(true)
+		try {
+			const res = await fetch(`/api/app/admin/${path}/${fileSlug}`)
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+
+			// Create a blob from the response and trigger download
+			const blob = await res.blob()
+			const url = window.URL.createObjectURL(blob)
+			const a = document.createElement('a')
+			a.href = url
+			a.download = `${fileSlug}.tldr`
+			document.body.appendChild(a)
+			a.click()
+			window.URL.revokeObjectURL(url)
+			document.body.removeChild(a)
+		} finally {
+			setIsDownloading(false)
+		}
+	}, [legacy])
+
+	// Clear success message after 3 seconds
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.fileOperation}>
+			<h4 className="tla-text_ui__medium">
+				{legacy ? 'Download Legacy .tldr File' : 'Download .tldr File'}
+			</h4>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+			<div className={styles.downloadContainer}>
+				<input type="text" placeholder="File ID" ref={inputRef} className={styles.searchInput} />
+				<TlaButton onClick={onDownload} variant="primary" isLoading={isDownloading}>
+					Download
+				</TlaButton>
+			</div>
+		</div>
+	)
+}
+
+function AssetDiagnostics() {
+	const inputRef = useRef<HTMLInputElement>(null)
+	const [error, setError] = useState(null as string | null)
+	const [isLoading, setIsLoading] = useState(false)
+	const [report, setReport] = useState(null as AdminFileAssetsResponseBody | null)
+
+	const onCheck = useCallback(async () => {
+		const slug = inputRef.current?.value?.trim()
+		if (!slug) {
+			setError('Please enter a file slug')
+			return
+		}
+		setError(null)
+		setReport(null)
+		setIsLoading(true)
+		try {
+			const res = await fetch(`/api/app/admin/file-assets/${encodeURIComponent(slug)}`)
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setReport((await res.json()) as AdminFileAssetsResponseBody)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to check assets')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	return (
+		<div className={styles.fileOperation}>
+			<h4 className="tla-text_ui__medium">Asset diagnostics</h4>
+			<p className="tla-text_ui__regular">
+				Checks whether each asset in the file&apos;s last persisted snapshot exists in the uploads
+				bucket and is associated with the file.
+			</p>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			<div className={styles.searchContainer}>
+				<input
+					type="text"
+					placeholder="File slug"
+					ref={inputRef}
+					className={styles.searchInput}
+					onKeyDown={(e) => {
+						if (e.key === 'Enter') onCheck()
+					}}
+				/>
+				<TlaButton onClick={onCheck} variant="primary" isLoading={isLoading}>
+					Check assets
+				</TlaButton>
+			</div>
+			{report && (
+				<>
+					{report.warnings.length > 0 && (
+						<div className={styles.errorMessage}>
+							{report.warnings.length} check(s) failed — counts below may be incomplete.{' '}
+							{report.warnings.slice(0, 3).join('; ')}
+						</div>
+					)}
+					<div className={styles.userSummary}>
+						<div className={styles.summaryGrid}>
+							{[
+								[
+									'Shapes',
+									`${report.shapes.total}${
+										report.shapes.total > 0
+											? ` (${Object.entries(report.shapes.byType)
+													.sort((a, b) => b[1] - a[1])
+													.map(([type, count]) => `${count} ${type}`)
+													.join(', ')})`
+											: ''
+									}`,
+								],
+								['Total assets', report.assets.total],
+								[
+									'Asset size',
+									`${formatBytes(report.assets.totalSizeBytes)} (largest ${formatBytes(report.assets.largestSizeBytes)})`,
+								],
+								['Associated', report.assets.associated],
+								['Pending association', report.assets.pending],
+								['External (bookmarks etc.)', report.assets.external],
+								['Missing in bucket', report.assets.missingInBucket],
+								['Head check failures', report.assets.headFailures],
+								['Old-format URLs', report.assets.oldFormatUrls],
+								[
+									'DB asset rows',
+									`${report.dbRows.forThisFile} (${report.dbRows.orphaned} orphaned)`,
+								],
+								[
+									'Create source',
+									report.source
+										? `${report.source.raw} ${
+												report.source.exists === null
+													? '(not checked)'
+													: report.source.exists
+														? '(exists)'
+														: '⚠️ (missing)'
+											}`
+										: 'none',
+								],
+							].map(([label, value]) => (
+								<div key={label} className={styles.summaryItem}>
+									<span className={styles.fieldLabel}>{label}:</span>
+									<span className={styles.fieldValue}>{value}</span>
+								</div>
+							))}
+						</div>
+					</div>
+					{report.assets.problems.length > 0 && (
+						<table className={styles.diagnosticsTable}>
+							<thead>
+								<tr>
+									<th>Asset</th>
+									<th>Object name</th>
+									<th>In bucket</th>
+									<th>Meta fileId</th>
+									<th>DB fileId</th>
+								</tr>
+							</thead>
+							<tbody>
+								{report.assets.problems.map((p) => (
+									<tr key={p.assetId}>
+										<td>{p.assetId}</td>
+										<td>{p.objectName}</td>
+										<td>{p.inBucket === null ? 'check failed' : p.inBucket ? 'yes' : 'MISSING'}</td>
+										<td>{p.fileIdMeta ?? 'none'}</td>
+										<td>{p.dbRow?.fileId ?? 'none'}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					)}
+					<StructuredDataDisplay data={report} />
+				</>
+			)}
+		</div>
+	)
+}
