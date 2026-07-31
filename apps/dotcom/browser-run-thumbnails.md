@@ -28,7 +28,9 @@ Rendering runs through the Browser Rendering `/screenshot` Quick Action, invoked
 The route is a **pure read** — two questions and nothing else:
 
 1. **Is the board publicly viewable?** Resolved through the same gate as the MCP tool: published, or shared via link. Private, deleted, unpublished, or unknown boards get the default tldraw OG image (see the fallback below). This is checked on every request, which is what keeps an unshared board's image unreachable even though the image itself is never deleted.
-2. **Does a thumbnail exist?** If so it is served, whatever its state. A version match gets `max-age=3600`; a mismatch gets `max-age=300` so crawlers come back sooner for the newer render. That is the only thing the version affects — there is no "too stale to serve", because an old picture of the board beats the generic tldraw logo. Otherwise, the default-image fallback with `max-age=60`.
+2. **Does a thumbnail exist?** If so it is served, whatever its state, with `max-age=300` and the object's etag. That is the only thing the version affects — a mismatch is logged as `stale` and served anyway, because an old picture of the board beats the generic tldraw logo, and there is no "too stale to serve". Otherwise, the default-image fallback with `max-age=60`.
+
+**The lifetime is chosen from the share gate, not from cost or freshness.** R2 reads are a rounding error next to rendering, and unfurl platforms cache a card their own side for days whatever we send, so neither pushes the number around. What the lifetime does decide is how long an image can be served without the gate in step 1 being consulted — and since nothing deletes a board's image when it stops being public, that gate is the only thing keeping an unshared board's thumbnail off the internet. So it is minutes rather than the hour it used to be, `stale-while-revalidate` is absent (it would extend serving a day past expiry, the same objection the default-image redirect already answers), and an `etag` with `if-none-match` support makes the resulting revalidations cheap: a cache that still holds the current bytes gets a 304, and every one of those re-runs the gate.
 
 The route is registered with `.all`, because crawlers probe with HEAD before (or instead of) GET: a HEAD gets the same cache headers from an R2 `head` but never reads the body.
 
@@ -49,7 +51,7 @@ Nothing renders on crawler demand any more, so a board's thumbnail has to exist 
 - **Publish.** The `publish` effect in `TLPostgresReplicator` enqueues a render right after `publishSnapshot` writes the frozen R2 snapshot, so a published board's image is being made before its link is pasted anywhere. `unpublish` deletes the cached image and pending marker instead — the one replicator effect that touches a thumbnail. **Unsharing has no effect of its own**: every board renders whether shared or not, and the share gate is applied at serve time, so there is nothing derived from a board's public state to tear down when it goes private.
 - **On edit.** `TLFileDurableObject.persistToDatabase` schedules a render on a persist that actually advanced the document clock. The only states that skip are `legacy` and `deleted` (see "Rendering every board"); shared and private boards both render. There is no sampling and no staleness window — a persist means the board's saved content genuinely differs from what the cached thumbnail shows, which is exactly when a re-render is warranted.
 
-  **The ask is debounced, not throttled.** Each persist pushes the render deadline out by `OG_RENDER_DEBOUNCE_MS` (30s), so a board renders once its editing _settles_ rather than on a cadence while it is still being drawn on — which is what a thumbnail is for. `OG_RENDER_MAX_WAIT_MS` (5 minutes), measured from the first persist since the last render, stops a board that is never left alone from never rendering. The arithmetic lives in `utils/ogRenderDebounce.ts` so it is testable without standing up a durable object; the object supplies the clock and the alarm.
+  **The ask is debounced, not throttled.** Each persist pushes the render deadline out by `OG_RENDER_DEBOUNCE_MS` (60s), so a board renders once its editing _settles_ rather than on a cadence while it is still being drawn on — which is what a thumbnail is for. `OG_RENDER_MAX_WAIT_MS` (5 minutes), measured from the first persist since the last render, stops a board that is never left alone from never rendering. The arithmetic lives in `utils/ogRenderDebounce.ts` so it is testable without standing up a durable object; the object supplies the clock and the alarm.
 
   **The durable alarm is the deadline**, not an approximation of it. Every persist re-arms it, so the two can never disagree and an eviction loses only the in-memory copy: the alarm still fires at exactly the time the debouncer chose, and the board renders once, when it should.
 
@@ -76,11 +78,11 @@ The debounce is a better fit in shape as well as cost. Cost, for a board edited 
 | None                             | 76                                    | 1              |
 | 30s throttle                     | ~20                                   | 1–2            |
 | 1/min rate limit                 | 10                                    | 1              |
-| **30s debounce + 5min max wait** | **2**                                 | **1**          |
+| **60s debounce + 5min max wait** | **2**                                 | **1**          |
 
 Note the right-hand column: on a bursty board — which the 39s mean gap says is the common case — every mechanism costs the same one render. The debounce is not a saving there; it is a saving on the heavy tail of sustained editing, and it renders the _finished_ burst rather than its first stroke.
 
-Sizing what remains: Browser Run allows 60 new browser instances per minute per account. With a debounce, spend scales with **editing sessions**, not persists and not wall-clock windows, so the quantity to forecast is distinct shared boards starting an editing session per minute. Both inputs — the link-shared fraction `f` and the session shape — now ride on `persist_success` (`blob3` and `index1`), so they are Analytics Engine questions rather than database ones. See "Open questions".
+Sizing what remains: Browser Run allows 60 new browser instances per minute per account. With a debounce, spend scales with **editing sessions**, not persists and not wall-clock windows, so the quantity to forecast is distinct shared boards starting an editing session per minute. Both inputs — the link-shared fraction `f` and the session shape — now ride on `persist_success` (`blob3` and `index1`), so they are Analytics Engine questions rather than database ones. See "Open questions", and "What it costs" for what the answer is worth in dollars.
 
 ### Request limits
 
@@ -107,6 +109,67 @@ Only the calls that actually spend Browser Run are limited. `get_board_info` is 
 The Cloudflare rate limit bindings are declared in `wrangler.toml` for every environment. When a binding is absent (local dev, tests) the route falls back to an isolate-local guard with the same limits. Changing the global cap means moving the `MCP_SCREENSHOT_BROWSER_RATE_LIMITER` bindings in `wrangler.toml` (one per environment) and the isolate-local fallback constant `GLOBAL_BROWSER_RUN_RATE_LIMIT` in `sharedBoardScreenshotMcp.ts` together.
 
 The thing to watch instead of a cap is Browser Rendering's own account limits: a render can hold a session for the full 45s `THUMBNAIL_RENDER_TIMEOUT_MS`, so sustained edit volume is bounded in practice by concurrent-session and new-session-per-minute limits rather than by anything in this worker. Browser Rendering bills by browser duration, so thumbnail spend now scales with editing activity. `fetch-screenshot-metrics.ts` (below) is how that gets watched.
+
+### What it costs
+
+Quick Actions bill [**duration only**](https://developers.cloudflare.com/browser-run/pricing/) — $0.09 per browser hour beyond the 10 hours a month Workers Paid includes. The per-concurrent-browser charge applies to Browser Sessions, which this pipeline does not use, so concurrency is a limit here rather than a line item. A capture that fails on a `waitForTimeout` is not charged at all, which means telemetry's wall-clock `double3` is an upper bound on the bill rather than the bill.
+
+**What it costs today, measured.** The Browser Run dashboard (Compute > Browser Run) for July 2026: **15.22 browser hours across 8.75k Quick Action requests**, all of them `Screenshot` against `www.tldraw.com/__thumbnail-render`, no Browser Sessions at all. Volume was near zero until about July 20 and has run at **~1,000 captures and 1.6–2.6 browser hours a day** since — call it **0.7 renders/min**, against a **$0.47** bill for the month and a **$4–6/month** run rate if that holds. This is the pre-branch pipeline: the edit trigger is not deployed, so what is being measured is publish- and crawler-driven rendering only.
+
+**Those hours are all thumbnails.** Browser Run reports one account-wide figure that both surfaces land in, but the buckets separate them: `mcp-screenshots-preview` holds **0 objects**, and the production `mcp-screenshots` bucket does not exist yet. Since every MCP capture writes exactly one object and its key carries the board's content version, an empty bucket is an unused surface — so the whole 8.75k is the OG pipeline, and the MCP tool's share of the bill is currently zero. That also makes the object count the standing way to split the two later: MCP captures over the last 30 days are just the object count in that bucket, since the lifecycle rule expires them on exactly that schedule.
+
+The useful number that falls out of it is the **mean capture: 6.3 seconds** (15.22h / 8.75k). That is what the forecast below is priced at, rather than an assumption, and it is worth re-deriving the same way whenever these figures move — two dashboard numbers divided by each other.
+
+At that 6.3 seconds, one render is **~$0.00016 of browser time** and **~$0.000018 of everything else**: three R2 class A writes (the pending marker, the render token record, the PNG — deletes are free), roughly seven class B reads across resolve, cache check, snapshot load and token check, three queue operations, and a couple of worker requests. So ~$160 per million renders against ~$18 for the machinery around them, and the only quantity worth forecasting is the render count.
+
+**Renders scale with editing sessions, and the session shape is now measured.** [PR 9708](https://github.com/tldraw/tldraw/pull/9708) put `index1` (the durable object id) on every file DO event in production, which is exactly what open question 2 needs: `persist_success` rows carry a per-board key, so a board's persists can be bucketed by time and the runs between them counted. Replaying the debounce's own rules over a 30 minute production window (`blob1 = 'persist_success'`, `blob2 = 'production-tldraw-multiplayer'`, grouping by `index1`, splitting a board's persists wherever the gap exceeds `OG_RENDER_DEBOUNCE_MS`, and adding one render per `OG_RENDER_MAX_WAIT_MS` a run survives):
+
+| Quantity                                    | Measured                                  |
+| ------------------------------------------- | ----------------------------------------- |
+| Boards persisting in the window             | 553                                       |
+| Persists                                    | 521/min (independently confirms the ~555) |
+| Editing time                                | 69.5 board-minutes per minute             |
+| **Renders — sessions settling**             | **34–51/min**                             |
+| **Renders — `OG_RENDER_MAX_WAIT_MS` fires** | **0.3–4/min**                             |
+| **Total**                                   | **~37–51/min, ~54,000–74,000/day**        |
+| Browser hours/month                         | 2,800–3,900                               |
+| **Browser Run $/month**                     | **$250–350**                              |
+
+The range is sampling, not uncertainty about the mechanism: Analytics Engine thins high-volume indexes, and a thinned timeline splits runs that were really continuous, so the raw count is an upper bound. The low end divides each board's gaps by its own `_sample_interval` before applying the 30 second rule. Both ends assume nothing — they are the branch's constants applied to production timings. **Call it $250–350/month and plan against ~$300.**
+
+Two things fall out of the measurement that the model got wrong:
+
+- **Renders per persist is 0.07–0.10.** The debounce suppresses about 90% of persists, which is the claim in "Why a debounce and not a throttle", now with a number on it.
+- **Editing is far more fragmented than assumed.** The median session spans **8–12 seconds** and the p90 spans 86–216 seconds; in a 10 minute window, 105 of 251 persisting boards persisted exactly once. Sessions are short bursts, not the multi-minute stretches the estimate assumed, which is why the render count is close to one per board-editing-visit.
+
+One caveat on the figure: `persist_success` on `main` carries no `sharedState`, so these counts include `legacy` and `deleted` rooms that the trigger skips. The measurement is an over-count by that fraction, and this branch's `blob3` is what nets it out.
+
+#### The two constants only work as a pair
+
+The same replay run over six hours (3,507 boards) against a grid of both constants, in renders/min and Browser Run $/month:
+
+| Debounce ↓ / max wait → | 5 min           | 10 min      | 15 min      | off         |
+| ----------------------- | --------------- | ----------- | ----------- | ----------- |
+| 30s                     | 35.7 · $240     | 32.1 · $216 | 31.3 · $211 | 30.5 · $205 |
+| **60s (current)**       | **32.3 · $218** | 26.7 · $180 | 25.1 · $169 | 23.3 · $157 |
+| 120s                    | 32.0 · $215     | 24.4 · $164 | 22.0 · $148 | 19.0 · $128 |
+
+Read along the first column: at a 5 minute max wait, quadrupling the debounce from 30s to 120s saves almost nothing (35.7 → 32.0). The reason is mechanical — merging two bursts into one longer session pushes that session past `OG_RENDER_MAX_WAIT_MS`, so a settle render is traded for a max-wait render, and `OG_RENDER_MAX_WAIT_MS` puts a floor under what the debounce alone can achieve. The savings live on the diagonal: 60s with a 10 minute max wait is ~25% fewer renders, 120s with 15 minutes is ~38% fewer.
+
+The debounce is at 60s and the max wait stays at 5 minutes, which buys roughly 10%. That is a deliberate choice rather than the cheapest point on the grid: a board edited without pause keeps a five minute old thumbnail rather than a ten minute old one, and the cheaper cells are available whenever spend matters more than that.
+
+**Raising the account limit is still worth doing, and the grid is why.** Browser Run allows 60 new browsers/min. The mean is ~32 renders/min at the current constants, but the limit applies per minute and the distribution has a tail: p99 is ~47/min and the busiest minute observed reached 71–75/min — most likely a wave of rooms persisting together after a deploy or an eviction, which is exactly the shape that breaches a per-minute limit. `enqueueFollowUpIfBoardMoved` adds up to a tenth on top of all of it. So the debounce change moves the mean but barely touches the peak, and the peak is what the limit sees. Past the limit the spend stops growing and the failure rate starts — a rejected render retries three times holding its pending marker, so overload amplifies rather than backs off. **Ask for the increase before the deploy**, and watch renders/min against 60 from the first hour.
+
+**Render page egress is plausibly larger than the browser time, and is not Cloudflare's.** Every capture is a cold browser loading `/__thumbnail-render` from the client origin: the lazy route chunk, the editor bundle, fonts, and whatever image assets the board contains. At a nominal 2 MB transferred that is ~2 TB and a few hundred dollars per million renders — so at the measured ~60,000 renders/day it is ~3.6 TB and **~$540 a month, more than the browser time itself**, and on a different bill. The transferred size of one render is worth measuring before trusting the magnitude, and it is the one cost that can be cut without touching thumbnail freshness.
+
+Two smaller lines, both fixed rather than per-render:
+
+- **~$24/month of durable object alarm writes.** `scheduleOgRender` calls `setAlarm` on every persist and [each `setAlarm` is one row written](https://developers.cloudflare.com/durable-objects/platform/pricing/#sqlite-storage-backend) — ~24M rows/month at $1.00/M. This is the cost the alarm-is-the-deadline design deliberately took on, and it is paid whether or not a render results. See "Keeping the thumbnail current" for what it buys.
+- **R2 storage is a rounding error.** The `og/…` keys carry no version, so it is one object per board: the production `thumbnails` bucket currently holds **4.71k objects in 404 MB** (~86 KB a thumbnail, plus the zero-byte markers and token records), which is well under a cent a month. Growth is bounded by board count rather than by render volume, so rendering every board on every edit does not move this line. The `mcp/…` keys do accumulate, which is what their expiration rule is for.
+
+The MCP surface prices separately, since it is driven by callers rather than by editing: at the full `GLOBAL_BROWSER_RUN_RATE_LIMIT` of 20 captures/min it is ~$135/month, and because Cloudflare rate limits apply per location that is per colo. It bounds a rogue agent, which is its job; it does not bound spend.
+
+If this needs to come down, in order of leverage: shrink what the render page loads, which is the largest line and costs no freshness at all; then raise `OG_RENDER_MAX_WAIT_MS` alongside the debounce, since the grid above says neither constant does much alone; then cap the render rate outright with the dedicated queue described in "Follow-up work". Prioritising by `sharedState` — a longer debounce for private boards than for shared ones — is the option that goes below the floor of one render per board-editing-visit without capping anything, and the durable object already knows which is which at trigger time.
 
 ### Telemetry and monitoring
 
@@ -357,6 +420,10 @@ The screenshot layer lives in the dotcom sync worker rather than the interactive
 
 ## Remaining follow-up work
 
+- **Move thumbnail rendering onto its own queue and cap it with `max_concurrency`.** This is the only mechanism in this stack that bounds total render rate: per-board rules cannot (total is `boards × rate`), and Cloudflare's rate limit bindings apply per location. Because the consumer captures one screenshot at a time, the arithmetic is exact — at the measured 6.3s capture, `renders/min ≈ 9.6 × max_concurrency`, so 4 is ~38/min and 5 is ~48/min. Its real merit is the failure mode: a capped consumer defers, where an over-limit Browser Run call fails and retries three times, so a cap converts overload into queue depth rather than amplification.
+
+  Two prerequisites, which are why this is a follow-up rather than a config line. **The queue has to be split first** — `tldraw-multiplayer-queue` also carries `asset-upload`, and `max_concurrency` is a per-consumer setting, so capping the shared queue would throttle uploads too. And **`PENDING_MARKER_TTL_MS` has to be re-derived from the cap**: it is sized against a job's retry chain (~3.75 minutes) on the assumption that queue latency is negligible, which is true only while nothing throttles. Once depth can build, a message can wait longer than its marker lives, the marker lapses, the next edit enqueues a second job for the same board, and the two clobber each other's per-board render token record — adding load exactly when the queue is already behind. Either refresh the marker when the job starts or derive its TTL from the cap.
+
 - Schedule `fetch-screenshot-metrics.ts --check` somewhere (cron CI job or an external monitor) and point a dashboard at the SQL queries above; the script and queries exist, the scheduling is an ops decision.
 - Shared files render the last persisted room snapshot from R2, which can lag in-memory edits by the persist debounce. If near-real-time accuracy is ever required, add a `getCurrentSnapshot` RPC on `TLFileDurableObject` (modeled on `onDownloadTldr`) instead of reading R2.
 - Keep private (unshared) files, board metadata, document structure, current-viewport screenshots, and selected-shape screenshots out of the MCP scope.
@@ -377,7 +444,7 @@ flowchart TB
 
     subgraph warm ["Refresh triggers (ahead of the first crawler)"]
         PUB["publish effect<br/>(TLPostgresReplicator)"]
-        SPEC["persist on edit<br/>(TLFileDurableObject,<br/>debounced 30s, 5min max wait)"]
+        SPEC["persist on edit<br/>(TLFileDurableObject,<br/>debounced 60s, 5min max wait)"]
     end
 
     SP -->|og:image references| OGR
@@ -461,7 +528,7 @@ This was originally the gate on turning edit-triggered rendering on, because it 
 flowchart TB
     EDIT["t=0 — a change lands<br/>in TLFileDurableObject"]
     EDIT --> PERSIST["t≤8s — persist tick advances the<br/>document clock (persistToDatabase)"]
-    PERSIST --> DEBOUNCE{"scheduleOgRender<br/>(push deadline out 30s —<br/>THE rate control)"}
+    PERSIST --> DEBOUNCE{"scheduleOgRender<br/>(push deadline out 60s —<br/>THE rate control)"}
 
     DEBOUNCE -->|"more edits arrive first"| WAIT["alarm fires, sees a newer<br/>deadline, re-arms (no render)"]
     WAIT --> DEBOUNCE
@@ -484,7 +551,7 @@ flowchart TB
     R2 --> SHARE["first share: crawler og:image<br/>fetch is a cache hit"]
 ```
 
-There are two constants to tune, both in `config.ts`. `OG_RENDER_DEBOUNCE_MS` (30 seconds) sets how long a board must go quiet before its thumbnail is rendered — lower it for fresher thumbnails after short bursts, raise it to absorb more of a session into one render. `OG_RENDER_MAX_WAIT_MS` (5 minutes) is the dominant cost term for busy boards and therefore the dial to turn if Browser Run spend needs to come down: raising it makes long editing sessions cheaper without touching the far more common short-burst case, which costs exactly one render either way. `PENDING_MARKER_TTL_MS` is not a dial: it is a single-flight guard and a crash ceiling, cleared as soon as a render lands.
+There are two constants to tune, both in `config.ts`, and the measurement in "What it costs" says they only work as a pair. `OG_RENDER_DEBOUNCE_MS` (60 seconds) sets how long a board must go quiet before its thumbnail is rendered — lower it for fresher thumbnails after short bursts, raise it to absorb more of a session into one render. `OG_RENDER_MAX_WAIT_MS` (5 minutes) caps how long a continuously edited board can go stale. Raising either one alone barely moves total spend, because a longer debounce merges bursts into sessions that then run into the max wait, trading a settle render for a max-wait one; raising both together is what actually reduces renders. `PENDING_MARKER_TTL_MS` is not a dial: it is a single-flight guard and a crash ceiling, cleared as soon as a render lands.
 
 ### Phase 4 (conditional) — hop-1 warming
 
@@ -508,7 +575,7 @@ There are two constants to tune, both in `config.ts`. `OG_RENDER_DEBOUNCE_MS` (3
 
 ### Open questions
 
-**These gate the deploy.** The sizing above rests on two unmeasured numbers, and the plausible range spans the account limit, so they want answering before this ships rather than after. Both are answered by telemetry on `persist_success`, which needs a deploy of this branch but nothing else — in particular no query against the production database.
+**These gate the deploy.** The sizing rests on two numbers, and the plausible range spans the account limit, so they want answering before this ships rather than after. Both are answered by telemetry on `persist_success` — in particular by no query against the production database. Question 2 is now answered from production data (see "What it costs"); question 1 still needs this branch's `blob3` deployed, and matters less than it did, since rendering no longer depends on a board being shared.
 
 Deliberately not a Postgres question. Postgres knows which files are `shared`, but not which are being _edited_, and the only way to approximate that there is a predicate on `file.updatedAt` — a sequential scan of a hot table to answer a capacity-planning question. `persist_success` fires on exactly the event that triggers a render, so it can carry both facts itself.
 
@@ -541,19 +608,22 @@ Deliberately not a Postgres question. Postgres knows which files are `shared`, b
    GROUP BY durable_object_id
    ```
 
-2. **How many editing sessions start per minute?** With a debounce, this is the quantity that sets spend — not persists, and not wall-clock windows. A "session" here is a run of persists with no gap longer than `OG_RENDER_DEBOUNCE_MS`, and it costs one render, plus one more for every `OG_RENDER_MAX_WAIT_MS` it runs on for.
+2. **How many editing sessions start per minute? — answered.** [PR 9708](https://github.com/tldraw/tldraw/pull/9708) shipped `index1` on file DO events to production, so this no longer waits on deploying this branch. Replaying the debounce over a 30 minute production window gives **~37–51 renders/min** (the spread is Analytics Engine sampling, which splits runs that were really continuous). See "What it costs" for the method, the resulting $250–350/month, and the two consequences: production would sit at 70–95% of Browser Run's 60/min account limit on day one, and `OG_RENDER_MAX_WAIT_MS` is not the cost dial — it fires for under a tenth of renders, because the median editing session spans about ten seconds.
 
-   What is measured so far bounds it loosely. In a 10 minute window, production ran ~555 persists/min across ~359 boards with client traffic — a mean gap between a board's persists of ~39s, which is longer than the 30s debounce and therefore suggests most persists start their own session:
+   The query is raw rows rather than an aggregate, since sessions are a property of the sequence:
 
-   |                                                | Renders/min at `f ≈ 30%` |
-   | ---------------------------------------------- | ------------------------ |
-   | If persists concentrate into few long sessions | ~44                      |
-   | If most persists start their own short session | ~167                     |
+   ```sql
+   -- Then group by index1 in the client, sort each board's timestamps, and count runs separated by
+   -- more than OG_RENDER_DEBOUNCE_MS, adding floor(run length / OG_RENDER_MAX_WAIT_MS) per run.
+   -- Divide each board's gaps by its own _sample_interval for the low end of the range.
+   SELECT index1, timestamp, _sample_interval
+   FROM MEASURE
+   WHERE blob1 = 'persist_success'
+     AND blob2 = 'production-tldraw-multiplayer'
+     AND timestamp > NOW() - INTERVAL '30' MINUTE
+   LIMIT 100000
+   ```
 
-   Browser Run allows 60 new browsers/min, so the pessimistic end is ~2.8x over. The gap between those rows is entirely "how many distinct boards, and how clustered are their persists", which the `index1` on `persist_success` answers directly: bucket each board's persists by timestamp and count runs separated by more than the debounce.
-
-   Note the caveat on the 359: it counts boards with any client messages, and presence and cursor updates share the `data` message type with edits, so some of those boards never persist at all. If materially fewer persist, sessions are longer and the optimistic row gets closer.
-
-   If sessions turn out too numerous, the lever is `OG_RENDER_MAX_WAIT_MS` for long sessions, or a longer debounce to merge adjacent short ones — but note a longer debounce trades directly against thumbnail freshness after a quick edit, which is the case this feature exists to serve.
+   Worth re-running before the deploy rather than trusting the number here: it is one window on one afternoon, and it includes `legacy` and `deleted` rooms that never render, which this branch's `blob3` would net out.
 
 3. Browser Run's account limits (120 concurrent browsers, 1 new browser/second) are the real ceiling now that nothing in this worker caps renders. New-browsers-per-minute is the binding one, not concurrency: even at 217 renders/min with ~8s renders that is only ~29 concurrent against a limit of 120. Worth confirming whether `quickAction` bills against those or against the separate REST quota, and watching the Browser Run dashboard's Runs tab through rollout — the failure mode is a render error and three retries (so, amplification rather than backpressure), not a clean 429.
