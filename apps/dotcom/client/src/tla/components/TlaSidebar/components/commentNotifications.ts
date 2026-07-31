@@ -34,14 +34,16 @@ const REASON_PRIORITY: CommentNotificationReason[] = ['mention', 'reply', 'owned
 const JOIN_TIME_SKEW_TOLERANCE_MS = 60_000
 
 /**
- * The comment fields {@link categorizeCommentNotifications} needs. A structural subset of the
- * `app.getComments()` row (with its `file`/`thread`/`read` relationships) so the categorization
- * can be unit-tested without Zero types. `read` is the caller's read receipt — a related row
- * when present, absent (falsy) when unread.
+ * The comment fields the notifications feed needs, from either synced query's related comment —
+ * a structural subset of the Zero row so this is unit-testable without Zero types. `read` is the
+ * caller's read receipt: a related row when present, absent (falsy) when unread.
  */
 export interface CommentNotificationInput {
 	id: string
 	authorId: string
+	authorName?: string | null
+	authorColor?: string | null
+	fileId: string
 	threadId: string
 	createdAt: number
 	// Comment body, as rich text JSON. Typed `unknown` so the real Zero row (whose `body` is a wide
@@ -50,9 +52,10 @@ export interface CommentNotificationInput {
 	/** The caller's read receipt — a related row when present, absent (falsy) when unread. Its
 	 *  `readAt` dates the receipt, which is what lets a reaction newer than it re-unread the entry. */
 	read?: { readAt?: number | null } | null
-	file?: { ownerId?: string | null } | null
+	file?: { ownerId?: string | null; name?: string | null } | null
 	thread?: {
 		createdBy?: string | null
+		shapeId?: string | null
 		/** The caller's own comments in the thread (the query syncs no one else's). */
 		comments?: readonly { authorId: string; createdAt: number }[] | null
 	} | null
@@ -100,19 +103,9 @@ export function categorizeCommentNotifications<T extends CommentNotificationInpu
 
 	const notifications: CommentNotification<T>[] = []
 	for (const comment of comments) {
-		// The user's own comment only notifies about what others did to it: their reactions.
-		if (comment.authorId === userId) {
-			const latestForeign = latestForeignReactionAt(comment.reactions, userId)
-			if (latestForeign === undefined) continue
-			notifications.push({
-				comment,
-				reasons: ['reaction'],
-				primaryReason: 'reaction',
-				timestamp: latestForeign,
-				unread: latestForeign > (comment.read?.readAt ?? -Infinity),
-			})
-			continue
-		}
+		// A notification is always about someone else's comment; reactions to the user's own
+		// comments come from the separate reactions feed (see buildReactionNotifications).
+		if (comment.authorId === userId) continue
 
 		const reasons: CommentNotificationReason[] = []
 		if (extractMentionIds(comment.body).includes(userId)) reasons.push('mention')
@@ -176,17 +169,51 @@ export function summarizeForeignReactors(
 	return { names, others: ordered.length - names.length, total: ordered.length }
 }
 
-/**
- * When someone else last reacted to the comment, or undefined if no one has — the user's own
- * reactions don't notify them.
- */
-function latestForeignReactionAt(
-	reactions: CommentNotificationInput['reactions'],
+/** One row of the reactions feed: a foreign reaction joined to the reacted-to comment. */
+export interface ReactionNotificationInput {
+	commentId: string
 	userId: string
-): number | undefined {
-	let latest: number | undefined
-	for (const r of reactions ?? []) {
-		if (r.userId !== userId && (latest === undefined || r.createdAt > latest)) latest = r.createdAt
+	userName: string
+	emoji: string
+	createdAt: number
+	/** Absent only if the row outraced its comment's sync; such rows are dropped. */
+	comment?: (CommentNotificationInput & { id: string }) | null
+}
+
+/** Groups the reactions feed into one {@link CommentNotification} per comment, dated and marked
+ *  unread by the newest reaction in the group (strict >: same-instant receipt counts as read). */
+export function buildReactionNotifications(
+	reactions: readonly ReactionNotificationInput[],
+	userId: string | undefined | null
+): CommentNotification<CommentNotificationInput & { id: string }>[] {
+	if (!userId) return []
+
+	const groups = new Map<
+		string,
+		{ comment: CommentNotificationInput & { id: string }; rows: ReactionNotificationInput[] }
+	>()
+	for (const row of reactions) {
+		// server already filters both; cheap belt against a dangling or self row slipping through
+		if (!row.comment || row.userId === userId) continue
+		const group = groups.get(row.commentId)
+		if (group) {
+			group.rows.push(row)
+		} else {
+			groups.set(row.commentId, { comment: row.comment, rows: [row] })
+		}
 	}
-	return latest
+
+	const notifications: CommentNotification<CommentNotificationInput & { id: string }>[] = []
+	for (const { comment, rows } of groups.values()) {
+		const timestamp = Math.max(...rows.map((r) => r.createdAt))
+		notifications.push({
+			comment: { ...comment, reactions: rows },
+			reasons: ['reaction'],
+			primaryReason: 'reaction',
+			timestamp,
+			unread: timestamp > (comment.read?.readAt ?? -Infinity),
+		})
+	}
+
+	return notifications
 }

@@ -45,3 +45,8 @@ UPDATE comment_reaction cr
 SET "userName" = u."name"
 FROM public."user" u
 WHERE u."id" = cr."userId";
+
+-- Top-N scans for the app-level feeds: the comments and reactions queries order by createdAt
+-- desc with a limit; without these, every query hydration scans and sorts the whole table.
+CREATE INDEX comment_created_at_idx ON comment("createdAt" DESC);
+CREATE INDEX comment_reaction_created_at_idx ON comment_reaction("createdAt" DESC);

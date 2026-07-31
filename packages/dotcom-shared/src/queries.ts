@@ -17,6 +17,9 @@ const defineQueries = defineQueriesWithType<TlaSchema>()
 /** Upper bound on the comments notifications feed, so the synced set stays finite as files accrue. */
 const RECENT_COMMENTS_LIMIT = 50
 
+/** Bound on the reactions feed, counted in reaction rows; the byline's "and N others" absorbs undercounts. */
+export const RECENT_REACTIONS_LIMIT = 200
+
 /**
  * Upper bound on the per-file @-mention roster of past viewers, so a heavily-viewed public board
  * doesn't stream an unbounded set to every collaborator. The composer's autocomplete only ever
@@ -62,9 +65,7 @@ export const queries = defineQueries({
 	 *   mentions need an explicit current-access gate because historical thread participation can
 	 *   outlive access to the file.
 	 *
-	 * The user's own comment qualifies only when someone else has reacted to it (a "reacted to
-	 * your comment" entry), on a file the user can still access — owns, has a file_state for, or
-	 * reaches through a workspace.
+	 * "Reacted to your comment" entries come from the separate {@link reactions} query, not here.
 	 *
 	 * Filtering here (server-side) rather than on the client is what keeps out-of-category
 	 * comments off the wire entirely. One gate stays client-side: `categorizeCommentNotifications`
@@ -78,6 +79,7 @@ export const queries = defineQueries({
 	 */
 	comments: defineQuery(({ ctx }) =>
 		zql.comment
+			.where('authorId', '!=', ctx.userId)
 			// soft-deleted comments and comments of soft-deleted threads stay in Postgres (see
 			// TLComment.isDeleted) but must never surface as notifications
 			.where('isDeleted', '=', false)
@@ -85,66 +87,42 @@ export const queries = defineQueries({
 			// same for soft-deleted boards: their comment rows persist, but a notification would
 			// navigate to a file the user can no longer open
 			.whereExists('file', (f) => f.where('isDeleted', '=', false))
-			.where(({ and, or, cmp, exists }) =>
+			.where(({ and, or, exists }) =>
 				or(
-					// someone else's comment, in one of the three categories that concern the user
+					// on a board the user owns
+					exists('file', (f) => f.where('ownerId', '=', ctx.userId)),
+					// a reply: in a thread the user started or has commented in, on a file they
+					// can still access
 					and(
-						cmp('authorId', '!=', ctx.userId),
-						or(
-							// on a board the user owns
-							exists('file', (f) => f.where('ownerId', '=', ctx.userId)),
-							// a reply: in a thread the user started or has commented in, on a file they
-							// can still access
-							and(
-								exists('thread', (t) =>
-									t.where(({ cmp, or, exists }) =>
-										or(
-											cmp('createdBy', '=', ctx.userId),
-											// live comments only: soft-deleted rows persist, and deleting your
-											// last comment in a thread must end the reply subscription with it
-											exists('comments', (c) =>
-												c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
-											)
-										)
-									)
-								),
-								exists('file', (f) =>
-									f.where(({ or, exists }) =>
-										or(
-											exists('states', (s) => s.where('userId', '=', ctx.userId)),
-											exists('groupFiles', (gf) =>
-												gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
-											)
-										)
+						exists('thread', (t) =>
+							t.where(({ cmp, or, exists }) =>
+								or(
+									cmp('createdBy', '=', ctx.userId),
+									// live comments only: soft-deleted rows persist, and deleting your
+									// last comment in a thread must end the reply subscription with it
+									exists('comments', (c) =>
+										c.where('authorId', '=', ctx.userId).where('isDeleted', '=', false)
 									)
 								)
-							),
-							// @-mentions the user, on a file they can access (opened it, or workspace member)
-							and(
-								exists('mentions', (m) => m.where('userId', '=', ctx.userId)),
-								exists('file', (f) =>
-									f.where(({ or, exists }) =>
-										or(
-											exists('states', (s) => s.where('userId', '=', ctx.userId)),
-											exists('groupFiles', (gf) =>
-												gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
-											)
-										)
+							)
+						),
+						exists('file', (f) =>
+							f.where(({ or, exists }) =>
+								or(
+									exists('states', (s) => s.where('userId', '=', ctx.userId)),
+									exists('groupFiles', (gf) =>
+										gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
 									)
 								)
 							)
 						)
 					),
-					// the user's own comment, once someone else reacts to it — a "reacted to your
-					// comment" entry. Gated on current file access like replies and mentions, with
-					// ownership as its own evidence
+					// @-mentions the user, on a file they can access (opened it, or workspace member)
 					and(
-						cmp('authorId', '=', ctx.userId),
-						exists('reactions', (r) => r.where('userId', '!=', ctx.userId)),
+						exists('mentions', (m) => m.where('userId', '=', ctx.userId)),
 						exists('file', (f) =>
-							f.where(({ cmp, or, exists }) =>
+							f.where(({ or, exists }) =>
 								or(
-									cmp('ownerId', '=', ctx.userId),
 									exists('states', (s) => s.where('userId', '=', ctx.userId)),
 									exists('groupFiles', (gf) =>
 										gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
@@ -174,6 +152,46 @@ export const queries = defineQueries({
 			.related('reactions')
 			.orderBy('createdAt', 'desc')
 			.limit(RECENT_COMMENTS_LIMIT)
+	),
+
+	/**
+	 * Reactions to the user's comments, for the notifications feed. Rooted at comment_reaction and
+	 * ordered by reaction time, not comment time, so a fresh reaction on an old comment still syncs.
+	 * Access gates mirror the comments query; grouping into per-comment entries is client-side.
+	 */
+	reactions: defineQuery(({ ctx }) =>
+		zql.comment_reaction
+			.where('userId', '!=', ctx.userId)
+			.whereExists('comment', (c) =>
+				c
+					.where('authorId', '=', ctx.userId)
+					.where('isDeleted', '=', false)
+					.whereExists('thread', (t) => t.where('isDeleted', '=', false))
+					.whereExists('file', (f) =>
+						f.where(({ and, cmp, or, exists }) =>
+							and(
+								cmp('isDeleted', '=', false),
+								or(
+									cmp('ownerId', '=', ctx.userId),
+									exists('states', (s) => s.where('userId', '=', ctx.userId)),
+									exists('groupFiles', (gf) =>
+										gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
+									)
+								)
+							)
+						)
+					)
+			)
+			// the reacted-to comment, with what the notification row renders
+			.related('comment', (c) =>
+				c
+					.one()
+					.related('file', (f) => f.one())
+					.related('thread', (t) => t.one())
+					.related('read', (r) => r.where('userId', '=', ctx.userId).one())
+			)
+			.orderBy('createdAt', 'desc')
+			.limit(RECENT_REACTIONS_LIMIT)
 	),
 
 	/**

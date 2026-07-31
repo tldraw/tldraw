@@ -1,8 +1,10 @@
 import { TLRichText } from 'tldraw'
 import { describe, expect, it } from 'vitest'
 import {
+	buildReactionNotifications,
 	categorizeCommentNotifications,
 	CommentNotificationInput,
+	ReactionNotificationInput,
 	summarizeForeignReactors,
 } from './commentNotifications'
 
@@ -37,6 +39,7 @@ function comment(overrides: Partial<CommentNotificationInput> = {}): CommentNoti
 	return {
 		id: 'comment:1',
 		authorId: OTHER,
+		fileId: 'file:1',
 		threadId: 'comment-thread:1',
 		createdAt: at(0),
 		body: body('hello'),
@@ -269,70 +272,76 @@ describe('categorizeCommentNotifications', () => {
 	})
 })
 
-describe('reaction notifications', () => {
-	/** My own comment, with reactions. */
-	function mine(overrides: Partial<CommentNotificationInput> = {}): CommentNotificationInput {
+describe('buildReactionNotifications', () => {
+	/** My own comment, as the reacted-to comment carried on a reaction row. */
+	function mine(
+		overrides: Partial<CommentNotificationInput> = {}
+	): CommentNotificationInput & { id: string } {
 		return comment({
 			authorId: ME,
 			thread: { createdBy: ME },
 			file: { ownerId: THIRD },
 			...overrides,
-		})
+		}) as CommentNotificationInput & { id: string }
 	}
 
-	it("labels my comment with someone else's reaction as reaction", () => {
-		const result = categorizeCommentNotifications(
-			[mine({ reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) }] })],
+	function reactionRow(
+		overrides: Partial<ReactionNotificationInput> = {}
+	): ReactionNotificationInput {
+		return {
+			commentId: 'comment:1',
+			userId: OTHER,
+			userName: 'Other',
+			emoji: '👍',
+			createdAt: at(10),
+			comment: mine(),
+			...overrides,
+		}
+	}
+
+	it('groups multiple rows on the same comment into one entry', () => {
+		const result = buildReactionNotifications(
+			[
+				reactionRow({ userId: OTHER, createdAt: at(10) }),
+				reactionRow({ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) }),
+			],
 			ME
 		)
 		expect(result).toHaveLength(1)
+		expect(result[0].comment.reactions).toHaveLength(2)
 		expect(result[0].reasons).toEqual(['reaction'])
 		expect(result[0].primaryReason).toBe('reaction')
 	})
 
-	it('drops my comment with no reactions, or with only my own', () => {
-		expect(categorizeCommentNotifications([mine()], ME)).toEqual([])
-		expect(
-			categorizeCommentNotifications(
-				[mine({ reactions: [{ userId: ME, userName: 'Me', emoji: '👍', createdAt: at(10) }] })],
-				ME
-			)
-		).toEqual([])
-	})
-
-	it("never labels others' comments as reaction, whatever their reactions", () => {
-		const theirs = comment({
-			file: { ownerId: ME },
-			reactions: [{ userId: THIRD, userName: 'Third', emoji: '👍', createdAt: at(10) }],
-		})
-		const result = categorizeCommentNotifications([theirs], ME)
-		expect(result[0].reasons).toEqual(['owned-board'])
-	})
-
-	it('timestamps the entry by the newest foreign reaction, ignoring my own later one', () => {
-		const result = categorizeCommentNotifications(
+	it('groups rows on two different comments into two entries', () => {
+		const result = buildReactionNotifications(
 			[
-				mine({
-					createdAt: at(0),
-					reactions: [
-						{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) },
-						{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
-						{ userId: ME, userName: 'Me', emoji: '👍', createdAt: at(30) },
-					],
-				}),
+				reactionRow({ commentId: 'comment:1', comment: mine({ id: 'comment:1' }) }),
+				reactionRow({ commentId: 'comment:2', comment: mine({ id: 'comment:2' }) }),
+			],
+			ME
+		)
+		expect(result.map((n) => n.comment.id).sort()).toEqual(['comment:1', 'comment:2'])
+	})
+
+	it('timestamps the entry by the newest reaction in the group', () => {
+		const result = buildReactionNotifications(
+			[
+				reactionRow({ createdAt: at(10) }),
+				reactionRow({ userId: THIRD, userName: 'Third', createdAt: at(20) }),
 			],
 			ME
 		)
 		expect(result[0].timestamp).toBe(at(20))
 	})
 
-	it('is unread until my read receipt is newer than the newest foreign reaction', () => {
+	it('is unread until my read receipt is newer than the newest reaction', () => {
 		const withReadAt = (readAt: number | undefined) =>
-			categorizeCommentNotifications(
+			buildReactionNotifications(
 				[
-					mine({
-						read: readAt === undefined ? undefined : { readAt },
-						reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) }],
+					reactionRow({
+						createdAt: at(10),
+						comment: mine({ read: readAt === undefined ? undefined : { readAt } }),
 					}),
 				],
 				ME
@@ -345,14 +354,32 @@ describe('reaction notifications', () => {
 		expect(withReadAt(at(15))).toBe(false)
 	})
 
+	it('drops rows whose comment outraced its sync', () => {
+		const result = buildReactionNotifications([reactionRow({ comment: null })], ME)
+		expect(result).toEqual([])
+	})
+
+	it('drops my own reaction rows as a belt against a self row slipping through', () => {
+		const result = buildReactionNotifications([reactionRow({ userId: ME, userName: 'Me' })], ME)
+		expect(result).toEqual([])
+	})
+
 	it('sorts reaction entries among comment entries by their reaction time', () => {
-		const reacted = mine({
-			id: 'comment:reacted',
-			createdAt: at(0),
-			reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(20) }],
-		})
-		const replied = comment({ id: 'comment:replied', createdAt: at(10), file: { ownerId: ME } })
-		const result = categorizeCommentNotifications([replied, reacted], ME)
+		const reacted = buildReactionNotifications(
+			[
+				reactionRow({
+					commentId: 'comment:reacted',
+					createdAt: at(20),
+					comment: mine({ id: 'comment:reacted', createdAt: at(0) }),
+				}),
+			],
+			ME
+		)
+		const replied = categorizeCommentNotifications(
+			[comment({ id: 'comment:replied', createdAt: at(10), file: { ownerId: ME } })],
+			ME
+		)
+		const result = [...replied, ...reacted].sort((a, b) => b.timestamp - a.timestamp)
 		expect(result.map((n) => n.comment.id)).toEqual(['comment:reacted', 'comment:replied'])
 	})
 })

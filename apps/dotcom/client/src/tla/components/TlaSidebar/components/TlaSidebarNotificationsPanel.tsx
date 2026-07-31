@@ -14,6 +14,7 @@ import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { defineMessages, F, useMsg } from '../../../utils/i18n'
 import {
+	buildReactionNotifications,
 	categorizeCommentNotifications,
 	CommentNotificationReason,
 	summarizeForeignReactors,
@@ -100,20 +101,20 @@ function ReasonByline({
 }
 
 /**
- * Comments surfaced as notifications. The `comments` synced query already filters to four
- * categories server-side — comments on boards they own, replies in threads they're part of,
- * `@`-mentions of them, and reactions on their comments — so out-of-category entries never
- * reach the client; {@link categorizeCommentNotifications} tags each with why it's there,
- * newest first, and drops reply-only history from before the user joined. Unread: comment
- * entries when no read receipt, reaction entries when the newest foreign reaction postdates
- * the caller's read receipt. Shared by trigger button (badge) and panel (list).
+ * Comments and reactions surfaced as notifications, merged from the `comments` and `reactions`
+ * synced queries and sorted by timestamp. {@link categorizeCommentNotifications} and
+ * {@link buildReactionNotifications} do the per-feed shaping. Shared by trigger button and panel.
  */
 export function useCommentNotifications() {
 	const app = useMaybeApp()
 	return useValue(
 		'comment notifications',
 		() => {
-			const notifications = categorizeCommentNotifications(app?.getComments() ?? [], app?.userId)
+			const comments = categorizeCommentNotifications(app?.getComments() ?? [], app?.userId)
+			const reactionEntries = buildReactionNotifications(app?.getReactions() ?? [], app?.userId)
+			const notifications = [...comments, ...reactionEntries].sort(
+				(a, b) => b.timestamp - a.timestamp
+			)
 			const unreadCount = notifications.filter((n) => n.unread).length
 			return { notifications, unreadCount }
 		},
