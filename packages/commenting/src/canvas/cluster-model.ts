@@ -128,14 +128,18 @@ export function useClusterModel(
 	// Local partition maintenance — the only non-zoom visual change, and it is local by
 	// construction: any displayed leaf that has left the cluster input (deleted, thread opened,
 	// popped out above) is detached from its badge in place. The corrected rebuild is already
-	// sitting in latestModel awaiting the next zoom-out.
-	{
+	// sitting in latestModel awaiting the next zoom-out. When the rendered model IS the latest
+	// model (the common render) the leaf sets are identical by construction, so skip the scan.
+	if (clusterModel !== latestModel) {
 		const latestLeafIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
+		let removedLeafIds: string[] | null = null
 		for (const leaf of clusterModel.table.leaves) {
 			if (!latestLeafIds.has(leaf.id)) {
-				clusterModel.runtime.detachLeaf(leaf.id)
+				;(removedLeafIds ??= []).push(leaf.id)
 			}
 		}
+		// Batched: one patch rebuild and one version bump for the whole set.
+		if (removedLeafIds) clusterModel.runtime.detachLeaves(removedLeafIds)
 	}
 	// Moved pins rejoin clustering on the next zoom-out motion: clear the set (so the rebuild
 	// includes them again) and adopt that rebuild immediately instead of deferring it. Zooming in
