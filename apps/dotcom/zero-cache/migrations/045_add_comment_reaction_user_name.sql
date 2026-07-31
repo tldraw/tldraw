@@ -45,10 +45,3 @@ UPDATE comment_reaction cr
 SET "userName" = u."name"
 FROM public."user" u
 WHERE u."id" = cr."userId";
-
--- Reaction rows are client-dated; a future-dated row would outrun the server-clamped
--- comment_read.readAt watermark and its notification could never be marked read. Clamp
--- existing rows; the Durable Object drain clamps new ones the same way.
-UPDATE comment_reaction
-SET "createdAt" = (extract(epoch from now()) * 1000)::bigint
-WHERE "createdAt" > (extract(epoch from now()) * 1000)::bigint;
