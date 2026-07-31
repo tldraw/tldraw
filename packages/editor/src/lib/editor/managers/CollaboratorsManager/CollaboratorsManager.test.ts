@@ -143,6 +143,24 @@ describe(CollaboratorsManager, () => {
 		expect(manager.getVisibleCollaborators()).toHaveLength(1)
 	})
 
+	it('keeps array identity when a presence update leaves the derived lists unchanged', () => {
+		const peerHere = createPresence(createUserId('peer-here'))
+		const peerElsewhere = createPresence(createUserId('peer-elsewhere'))
+		peerElsewhere.currentPageId = PageRecordType.createId('other-page')
+		const { editor } = createEditor([peerHere, peerElsewhere])
+		const manager = new CollaboratorsManager(editor)
+
+		const onPage = manager.getCollaboratorsOnCurrentPage()
+		const visibleOnPage = manager.getVisibleCollaboratorsOnCurrentPage()
+		expect(onPage).toEqual([peerHere])
+
+		// The off-page peer sends a presence update: the current-page lists are unaffected, so
+		// they keep the exact same array identity and don't invalidate downstream subscribers.
+		editor.store.put([{ ...peerElsewhere, chatMessage: 'hello from another page' }])
+		expect(manager.getCollaboratorsOnCurrentPage()).toBe(onPage)
+		expect(manager.getVisibleCollaboratorsOnCurrentPage()).toBe(visibleOnPage)
+	})
+
 	it('shows newly-joined collaborators that have not recorded any activity yet', () => {
 		// A peer who has joined but not moved their pointer broadcasts the default
 		// `lastActivityTimestamp` of 0. They should still be treated as active so
