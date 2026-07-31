@@ -10,52 +10,54 @@ export type UndeleteFileResult =
 // file has an ownerId) and the owning group's group_file link (if owningGroupId). The caller
 // must hard-reboot every user in rebootUserIds afterwards so the restored rows replicate.
 export async function undeleteFile(db: Kysely<DB>, fileId: string): Promise<UndeleteFileResult> {
-	const file = await db.selectFrom('file').where('id', '=', fileId).selectAll().executeTakeFirst()
-	if (!file) return { result: 'not_found' }
-	if (!file.isDeleted) return { result: 'not_deleted', file }
+	return db.transaction().execute(async (tx) => {
+		const file = await tx.selectFrom('file').where('id', '=', fileId).selectAll().executeTakeFirst()
+		if (!file) return { result: 'not_found' }
+		if (!file.isDeleted) return { result: 'not_deleted', file }
 
-	const now = Date.now()
-	await db
-		.updateTable('file')
-		.set({ isDeleted: false, updatedAt: now })
-		.where('id', '=', fileId)
-		.execute()
-
-	if (file.ownerId) {
-		await db
-			.insertInto('file_state')
-			.values({ userId: file.ownerId, fileId, firstVisitAt: now, isFileOwner: true })
-			.onConflict((oc) => oc.columns(['userId', 'fileId']).doNothing())
-			.execute()
-	}
-
-	const rebootUserIds = new Set<string>()
-	if (file.ownerId) rebootUserIds.add(file.ownerId)
-
-	if (file.owningGroupId) {
-		await db
-			.insertInto('group_file')
-			.values({ fileId, groupId: file.owningGroupId, createdAt: now, updatedAt: now })
-			.onConflict((oc) => oc.columns(['fileId', 'groupId']).doNothing())
+		const now = Date.now()
+		await tx
+			.updateTable('file')
+			.set({ isDeleted: false, updatedAt: now })
+			.where('id', '=', fileId)
 			.execute()
 
-		// Workspace members see the file in their sidebar.
-		const members = await db
-			.selectFrom('group_user')
-			.select('userId')
-			.where('groupId', '=', file.owningGroupId)
-			.execute()
-		for (const member of members) rebootUserIds.add(member.userId)
+		if (file.ownerId) {
+			await tx
+				.insertInto('file_state')
+				.values({ userId: file.ownerId, fileId, firstVisitAt: now, isFileOwner: true })
+				.onConflict((oc) => oc.columns(['userId', 'fileId']).doNothing())
+				.execute()
+		}
 
-		// A home workspace's group id equals its owner's user id, and the owner may not have an
-		// explicit group_user row for it, so check for a matching user row too.
-		const ownerAsUser = await db
-			.selectFrom('user')
-			.select('id')
-			.where('id', '=', file.owningGroupId)
-			.executeTakeFirst()
-		if (ownerAsUser) rebootUserIds.add(ownerAsUser.id)
-	}
+		const rebootUserIds = new Set<string>()
+		if (file.ownerId) rebootUserIds.add(file.ownerId)
 
-	return { result: 'restored', file, rebootUserIds: [...rebootUserIds] }
+		if (file.owningGroupId) {
+			await tx
+				.insertInto('group_file')
+				.values({ fileId, groupId: file.owningGroupId, createdAt: now, updatedAt: now })
+				.onConflict((oc) => oc.columns(['fileId', 'groupId']).doNothing())
+				.execute()
+
+			// Workspace members see the file in their sidebar.
+			const members = await tx
+				.selectFrom('group_user')
+				.select('userId')
+				.where('groupId', '=', file.owningGroupId)
+				.execute()
+			for (const member of members) rebootUserIds.add(member.userId)
+
+			// A home workspace's group id equals its owner's user id, and the owner may not have an
+			// explicit group_user row for it, so check for a matching user row too.
+			const ownerAsUser = await tx
+				.selectFrom('user')
+				.select('id')
+				.where('id', '=', file.owningGroupId)
+				.executeTakeFirst()
+			if (ownerAsUser) rebootUserIds.add(ownerAsUser.id)
+		}
+
+		return { result: 'restored', file, rebootUserIds: [...rebootUserIds] }
+	})
 }

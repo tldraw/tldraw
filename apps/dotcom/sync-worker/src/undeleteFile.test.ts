@@ -38,7 +38,14 @@ function makeFakeDb(
 	const { groupMembers = [], userRow } = opts
 	const updates: Array<{ table: string; values: any }> = []
 	const inserts: Array<{ table: string; values: any }> = []
-	const db = {
+	let transactionCount = 0
+	const db: any = {
+		transaction: () => ({
+			execute: async (cb: (tx: any) => Promise<any>) => {
+				transactionCount++
+				return cb(db)
+			},
+		}),
 		selectFrom: (table: string) => {
 			if (table === 'file') {
 				return {
@@ -82,7 +89,7 @@ function makeFakeDb(
 			}),
 		}),
 	}
-	return { db: db as any, updates, inserts }
+	return { db: db as any, updates, inserts, getTransactionCount: () => transactionCount }
 }
 
 describe('undeleteFile', () => {
@@ -103,12 +110,13 @@ describe('undeleteFile', () => {
 
 	it('clears the flag and restores the owner file_state', async () => {
 		const file = makeFile()
-		const { db, updates, inserts } = makeFakeDb(file)
+		const { db, updates, inserts, getTransactionCount } = makeFakeDb(file)
 		expect(await undeleteFile(db, file.id)).toEqual({
 			result: 'restored',
 			file,
 			rebootUserIds: ['user-1'],
 		})
+		expect(getTransactionCount()).toBe(1)
 		expect(updates).toEqual([
 			{ table: 'file', values: { isDeleted: false, updatedAt: expect.any(Number) } },
 		])
