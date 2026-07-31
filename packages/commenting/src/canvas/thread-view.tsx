@@ -14,7 +14,6 @@ import {
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
 	useContainer,
-	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useTranslation,
 } from 'tldraw'
@@ -153,12 +152,11 @@ export const POPOVER_OFFSET = {
 	list: { x: MARKER_SIZE + PREVIEW_GAP, y: CARD_TOP_Y - MARKER_SIZE / 2 },
 } as const
 
-/** The open thread's popover container, portaled above the UI panels. Over it, wheel and hover
- *  events pass through to the canvas (unless it scrolls its own content), like tldraw's panels. */
+/** The open thread's popover container, portaled above the UI panels. A wheel over it passes
+ *  through to the canvas (unless it scrolls its own content), like tldraw's panels. */
 export function ThreadPopover({ style, children }: { style: CSSProperties; children: ReactNode }) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
-	usePassThroughMouseOverEvents(ref)
 	return (
 		<EditorPortal>
 			{/* contextmenu also stops here: portals bubble React events to the canvas's context-menu

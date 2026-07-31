@@ -6,7 +6,6 @@ import {
 	Editor,
 	EditorPortal,
 	TLRichText,
-	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useTranslation,
 	useValue,
@@ -59,9 +58,8 @@ export function PendingComposer({
 	)
 	const ref = useRef<HTMLDivElement>(null)
 	const msg = useTranslation()
-	// Over this floating panel, scroll and hover reach the canvas (except where it scrolls itself).
+	// Over this floating panel, a scroll reaches the canvas (except where it scrolls itself).
 	usePassThroughWheelEvents(ref)
-	usePassThroughMouseOverEvents(ref)
 
 	const point = useValue('composer point', () => editor.pageToViewport(pending.point), [
 		editor,
