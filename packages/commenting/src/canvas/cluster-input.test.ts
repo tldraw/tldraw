@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 // This import is red until step 6's filter module is implemented — that is
 // intentional. Implement `cluster-input.ts` per CLUSTERING-STEPS.md step 6
 // until this suite passes, without modifying this file.
-import { collectClusterLeaves } from './cluster-input'
+import { clusterLeafIdsEqual, clusterLeavesEqual, collectClusterLeaves } from './cluster-input'
 import { defaultCommentingOptions, type CommentingOptions } from './options'
 
 const CURRENT_PAGE = 'page:one'
@@ -227,5 +227,64 @@ describe('collectClusterLeaves filtering', () => {
 		const snapshot = JSON.parse(JSON.stringify(threads))
 		collectClusterLeaves(stubEditor(), threads, 'a')
 		expect(JSON.parse(JSON.stringify(threads))).toEqual(snapshot)
+	})
+})
+
+/**
+ * These two gate the O(N²) cluster-table rebuild in `useClusterModel`: leaves that compare equal
+ * keep their previous array identity, so nothing downstream recomputes. Both compare positionally
+ * — `collectClusterLeaves` walks the threads in order, so a stable thread order is what makes the
+ * gate hold across recomputes. If it ever stops being stable these still return the right answer,
+ * just uselessly (every recompute rebuilds), which is why the order cases below are asserted.
+ */
+describe('clusterLeavesEqual', () => {
+	const leaf = (id: string, x: number, y: number) => ({ id, point: { x, y } })
+
+	it('accepts the same ids at the same positions, and any array identity', () => {
+		const a = [leaf('t1', 0, 0), leaf('t2', 10, 20)]
+		expect(clusterLeavesEqual(a, a)).toBe(true)
+		expect(clusterLeavesEqual(a, [leaf('t1', 0, 0), leaf('t2', 10, 20)])).toBe(true)
+		expect(clusterLeavesEqual([], [])).toBe(true)
+	})
+
+	it('rejects a position change — a moved pin must rebuild the table', () => {
+		expect(clusterLeavesEqual([leaf('t1', 0, 0)], [leaf('t1', 0, 0.5)])).toBe(false)
+		expect(clusterLeavesEqual([leaf('t1', 0, 0)], [leaf('t1', 0.5, 0)])).toBe(false)
+	})
+
+	it('rejects an added, removed, renamed, or reordered leaf', () => {
+		expect(clusterLeavesEqual([leaf('t1', 0, 0)], [leaf('t1', 0, 0), leaf('t2', 1, 1)])).toBe(false)
+		expect(clusterLeavesEqual([leaf('t1', 0, 0), leaf('t2', 1, 1)], [leaf('t1', 0, 0)])).toBe(false)
+		expect(clusterLeavesEqual([leaf('t1', 0, 0)], [leaf('t2', 0, 0)])).toBe(false)
+		expect(
+			clusterLeavesEqual([leaf('t1', 0, 0), leaf('t2', 1, 1)], [leaf('t2', 1, 1), leaf('t1', 0, 0)])
+		).toBe(false)
+	})
+})
+
+describe('clusterLeafIdsEqual', () => {
+	const leaf = (id: string, x: number, y: number) => ({ id, point: { x, y } })
+
+	it('ignores positions — this is what defers the rebuild mid-drag', () => {
+		expect(clusterLeafIdsEqual([leaf('t1', 0, 0)], [leaf('t1', 999, 999)])).toBe(true)
+	})
+
+	it('still rejects an added or removed thread, so those rebuild even mid-drag', () => {
+		expect(clusterLeafIdsEqual([leaf('t1', 0, 0)], [leaf('t1', 0, 0), leaf('t2', 1, 1)])).toBe(
+			false
+		)
+		expect(clusterLeafIdsEqual([leaf('t1', 0, 0), leaf('t2', 1, 1)], [leaf('t1', 0, 0)])).toBe(
+			false
+		)
+		expect(clusterLeafIdsEqual([leaf('t1', 0, 0)], [leaf('t2', 0, 0)])).toBe(false)
+	})
+
+	it('rejects a reorder', () => {
+		expect(
+			clusterLeafIdsEqual(
+				[leaf('t1', 0, 0), leaf('t2', 1, 1)],
+				[leaf('t2', 1, 1), leaf('t1', 0, 0)]
+			)
+		).toBe(false)
 	})
 })

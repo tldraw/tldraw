@@ -47,12 +47,13 @@ export function clusterLeavesEqual(a: readonly LeafInput[], b: readonly LeafInpu
 
 /**
  * Whether two leaf lists contain the same thread ids in the same order, ignoring positions. Used
- * mid-drag: while shapes are moving, position-only changes keep the previous leaves (the stale
- * table tolerates them via the held-pin/pop-out machinery), but an added or removed thread still
- * rebuilds promptly.
+ * mid-drag: while shapes are moving, position-only changes keep the previous leaves (deferring the
+ * table rebuild, and with it the pop-out of any pin folded into a badge, until the drag settles —
+ * see `useClusterModel`), but an added or removed thread still rebuilds promptly.
  * @internal
  */
 export function clusterLeafIdsEqual(a: readonly LeafInput[], b: readonly LeafInput[]): boolean {
+	if (a === b) return true
 	if (a.length !== b.length) return false
 	for (let i = 0; i < a.length; i++) {
 		if (a[i].id !== b[i].id) return false

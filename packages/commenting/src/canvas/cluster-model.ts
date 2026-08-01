@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { computed, Editor, react, TLCommentThread, useValue } from 'tldraw'
+import { Editor, react, TLCommentThread, useValue } from 'tldraw'
 import { computeClusterTable } from '../clustering/computeClusterTable'
 import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, LeafInput, MergeEvent } from '../clustering/types'
@@ -19,18 +19,21 @@ const EMPTY_SET: ReadonlySet<string> = new Set()
 const MOVED_LEAF_EPSILON = 1e-6
 
 /** Select-tool session states in which shapes move continuously, one store write per pointermove.
- *  While one is active, the cluster leaves defer position-only rebuilds until the gesture settles. */
+ *  While one is active, the cluster leaves defer position-only rebuilds until the gesture settles.
+ *  These are the default select tool's paths — an editor with a custom tool in their place just
+ *  never matches, which is the pre-deferral behavior (a rebuild per frame), not a break. */
 const SHAPE_DRAG_STATE_PATHS = [
 	'select.translating',
 	'select.resizing',
 	'select.rotating',
 	'select.dragging_handle',
+	'select.crop.cropping',
 ] as const
 
-/** Whether a shape-moving drag gesture is in progress. Reactive: `isIn` reads the tool state
+/** Whether a shape-moving drag gesture is in progress. Reactive: `isInAny` reads the tool state
  *  path, so a computed reading this re-evaluates when the gesture starts or settles. */
 function isShapeDragInProgress(editor: Editor): boolean {
-	return SHAPE_DRAG_STATE_PATHS.some((path) => editor.isIn(path))
+	return editor.isInAny(...SHAPE_DRAG_STATE_PATHS)
 }
 
 /** The clustering table for the current scene, plus the runtime walking its merge events. */
@@ -83,30 +86,35 @@ export function useClusterModel(
 	// The leaves' array identity is what keys the O(N²) cluster-table rebuild below, so it's gated
 	// on value equality: a recompute whose content matches the last result (a reply, a reaction, a
 	// resolve — anything that touches comment records without moving a pin) returns the previous
-	// array and rebuilds nothing. The ref carries the last result across computed re-creations
-	// (`threads` gets a new identity on any comment mutation), and while shapes are actively
-	// dragging, position-only changes also keep the previous leaves — the stale table is exactly
-	// what the held-pin/pop-out machinery below is built to tolerate, and the corrected table lands
-	// in one rebuild when the drag settles. An added or deleted thread changes the id set, so it
-	// still rebuilds promptly even mid-drag.
+	// array and rebuilds nothing. The ref carries the last result across recomputes and across the
+	// re-created computed `useValue` builds when `threads` changes identity (any comment mutation).
+	// Returning the previous array is safe whichever computed writes the ref last, because the
+	// value returned is always either value-equal to the fresh leaves or the deliberate mid-drag
+	// deferral below.
+	//
+	// That deferral is a real behavior change, not just a scheduling one: while shapes are actively
+	// dragging, position-only changes keep the previous leaves, which freezes `latestModel` — and
+	// `findMovedClusteredLeafIds` reads live positions *from* `latestModel`. So a pin folded inside
+	// a badge no longer pops out mid-drag to ride its anchor; it stays folded and its membership
+	// corrects in one rebuild when the drag settles. Deliberate: the per-frame O(N²) rebuild it
+	// replaces was paid by every drag on the board, comment-anchored or not. An added or deleted
+	// thread changes the id set, so it still rebuilds promptly even mid-drag.
 	const clusterLeavesRef = useRef<LeafInput[]>([])
 	const clusterLeaves = useValue(
-		useMemo(
-			() =>
-				computed('comment cluster leaves', () => {
-					const leaves = collectClusterLeaves(
-						editor,
-						threads.filter((thread) => !heldThreadIds.has(thread.id)),
-						openThreadId.get(editor)
-					)
-					const prev = clusterLeavesRef.current
-					if (isShapeDragInProgress(editor) && clusterLeafIdsEqual(prev, leaves)) return prev
-					if (clusterLeavesEqual(prev, leaves)) return prev
-					clusterLeavesRef.current = leaves
-					return leaves
-				}),
-			[editor, threads, heldThreadIds]
-		)
+		'comment cluster leaves',
+		() => {
+			const leaves = collectClusterLeaves(
+				editor,
+				threads.filter((thread) => !heldThreadIds.has(thread.id)),
+				openThreadId.get(editor)
+			)
+			const prev = clusterLeavesRef.current
+			if (isShapeDragInProgress(editor) && clusterLeafIdsEqual(prev, leaves)) return prev
+			if (clusterLeavesEqual(prev, leaves)) return prev
+			clusterLeavesRef.current = leaves
+			return leaves
+		},
+		[editor, threads, heldThreadIds]
 	)
 	const clusterZoomBounds = useValue(
 		'comment cluster zoom bounds',
