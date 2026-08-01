@@ -11,7 +11,6 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import {
-	computed,
 	TLCommentThread,
 	useContainer,
 	useEditor,
@@ -34,7 +33,7 @@ import { useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
 import { useCanComment, useCommentingOptions } from './options'
 import { PendingComposer } from './pending-composer'
-import { computePinStacks, pinStackKey } from './pin-stacking'
+import { computePinStacks, isOpenStackKeyLive, pinStacksEqual } from './pin-stacking'
 import { RegionBox, RegionDraftBox } from './region-box'
 import {
 	commentsHidden,
@@ -48,7 +47,6 @@ import {
 } from './state'
 import { ThreadPin } from './thread-pin'
 import { ThreadStackPin } from './thread-stack'
-import { anchorPagePoint } from './thread-state'
 
 /**
  * The host wiring for {@link CanvasComments} — see {@link CommentingContext}, which the sidebar
@@ -164,19 +162,19 @@ function CanvasCommentsLayer(props: CommentingContext) {
 	// opens the threads as a list. Keyed on page-space anchors, so camera moves never recompute this.
 	// Value-equality gated like the cluster leaves (see useClusterModel): recomputes triggered by
 	// comment mutations or shape drags that leave the coincident groups unchanged return the
-	// previous Map identity, so nothing downstream re-renders.
+	// previous Map identity, so nothing downstream re-renders. Membership only — the map carries no
+	// positions, so anything that needs the stack's *point* must read it reactively rather than
+	// keying off this identity (see the stale-key check below).
 	const pinStacksRef = useRef<Map<string, readonly string[]>>(new Map())
 	const pinStacks = useValue(
-		useMemo(
-			() =>
-				computed('comment pin stacks', () => {
-					const stacks = computePinStacks(editor, threads)
-					if (pinStacksEqual(pinStacksRef.current, stacks)) return pinStacksRef.current
-					pinStacksRef.current = stacks
-					return stacks
-				}),
-			[editor, threads]
-		)
+		'comment pin stacks',
+		() => {
+			const stacks = computePinStacks(editor, threads)
+			if (pinStacksEqual(pinStacksRef.current, stacks)) return pinStacksRef.current
+			pinStacksRef.current = stacks
+			return stacks
+		},
+		[editor, threads]
 	)
 	const openThread = openId ? threadsById.get(openId) : null
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
@@ -198,17 +196,27 @@ function CanvasCommentsLayer(props: CommentingContext) {
 	// treats any non-null value as "a stack is open" and suppresses every hover preview until it's
 	// cleared. Keep it while any live stack still sits at that key (so losing a member — even the
 	// oldest — keeps the list open under the survivors), and clear it once none does.
+	//
+	// Reactive rather than an effect keyed on `pinStacks`: the key is a *position*, but `pinStacks`
+	// is membership-only and deliberately holds its identity while a coincident group moves together
+	// (the whole group shares one anchor shape, so any move of that shape is exactly this case).
+	// `ThreadStackPin` recomputes its own position-derived `stackId` live and closes the list, and
+	// its Escape/click-away handlers unregister with it — so a move with no local pointerdown
+	// outside the popover (a collaborator, undo, a nudge, align from a menu) would otherwise strand
+	// the key forever. Reading the anchors here subscribes to them; the early-out keeps that
+	// subscription empty whenever no stack is open.
+	const openStackKeyIsStale = useValue(
+		'open stack key stale',
+		() => {
+			const key = openStackId.get(editor)
+			if (!key) return false
+			return !isOpenStackKeyLive(editor, key, pinStacks, threadsById)
+		},
+		[editor, pinStacks, threadsById]
+	)
 	useEffect(() => {
-		const key = openStackId.get(editor)
-		if (!key) return
-		for (const id of pinStacks.keys()) {
-			const thread = threadsById.get(id)
-			if (!thread) continue
-			const point = anchorPagePoint(editor, thread.anchor)
-			if (point && pinStackKey(point) === key) return
-		}
-		openStackId.set(editor, null)
-	}, [editor, pinStacks, threadsById])
+		if (openStackKeyIsStale) openStackId.set(editor, null)
+	}, [editor, openStackKeyIsStale])
 
 	// The requested thread, once it (and, for a comment id, its parent thread) has synced into the
 	// store; null while records are still arriving or when no request is pending.
@@ -422,23 +430,4 @@ function CanvasCommentsLayer(props: CommentingContext) {
 		</div>,
 		portalHost
 	)
-}
-
-/** Value equality for pin-stack maps: same member→group entries, groups element-wise equal. */
-function pinStacksEqual(
-	a: ReadonlyMap<string, readonly string[]>,
-	b: ReadonlyMap<string, readonly string[]>
-): boolean {
-	if (a === b) return true
-	if (a.size !== b.size) return false
-	for (const [id, group] of b) {
-		const prevGroup = a.get(id)
-		if (!prevGroup) return false
-		if (prevGroup === group) continue
-		if (prevGroup.length !== group.length) return false
-		for (let i = 0; i < group.length; i++) {
-			if (prevGroup[i] !== group[i]) return false
-		}
-	}
-	return true
 }
