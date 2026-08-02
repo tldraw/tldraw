@@ -33,7 +33,6 @@ import {
 	deleteComment,
 	deleteThread,
 	editComment,
-	putRecordsInCommit,
 	reopenThread,
 	resolveThread,
 } from './comment-mutations'
@@ -293,16 +292,18 @@ export function ThreadView({
 
 	const postReply = () => {
 		if (isCommentEmpty(reply) || !currentUserId) return
-		commitCommentMutation(editor, () => {
+		const comment = commitCommentMutation(editor, ({ put }) => {
 			const comment = createComment({
 				threadId: thread.id,
 				pageId: thread.pageId,
 				authorId: currentUserId,
 				body: reply,
 			})
-			putRecordsInCommit(editor, [comment])
-			if (onPostComment) onPostComment(comment)
+			put([comment])
+			return comment
 		})
+		// Host code is a separate semantic operation, so keep it outside the post's history scope.
+		onPostComment?.(comment)
 		setReply(EMPTY_COMMENT)
 		clearCommentDraft(replyDraftSlot(thread.id))
 	}

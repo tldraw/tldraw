@@ -19,7 +19,7 @@ import {
 	NEW_COMMENT_DRAFT,
 	saveCommentDraft,
 } from './comment-drafts'
-import { commitCommentMutation, putRecordsInCommit } from './comment-mutations'
+import { commitCommentMutation } from './comment-mutations'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { PendingComment } from './comment-tool'
 import { type CommentingContext } from './context'
@@ -83,7 +83,7 @@ export function PendingComposer({
 
 	const submit = () => {
 		if (isCommentEmpty(text) || !currentUserId) return
-		commitCommentMutation(editor, () => {
+		const comment = commitCommentMutation(editor, ({ put }) => {
 			const pageId = editor.getCurrentPageId()
 			const thread = createCommentThread({
 				pageId,
@@ -96,9 +96,11 @@ export function PendingComposer({
 				authorId: currentUserId,
 				body: text,
 			})
-			putRecordsInCommit(editor, [thread, comment])
-			if (onPostComment) onPostComment(comment)
+			put([thread, comment])
+			return comment
 		})
+		// Host code is a separate semantic operation, so keep it outside the post's history scope.
+		onPostComment?.(comment)
 		setText(EMPTY_COMMENT)
 		clearCommentDraft(NEW_COMMENT_DRAFT)
 		pendingComment.set(editor, null)

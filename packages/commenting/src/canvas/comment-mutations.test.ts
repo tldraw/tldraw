@@ -20,7 +20,6 @@ import {
 	deleteThread,
 	editComment,
 	putCommentRecords,
-	putRecordsInCommit,
 	removeCommentRecords,
 	reopenThread,
 	resolveThread,
@@ -366,8 +365,32 @@ describe('history', () => {
 		expect(readThread(editor, thread)).toMatchObject({ isDeleted: true })
 	})
 
+	it('rejects nested comment mutations instead of choosing the wrong history mode', () => {
+		const editor = makeEditor(CommentTool.configure({ history: 'record' }))
+		const { comment } = makeThread(editor)
+
+		expect(() => commitCommentMutation(editor, () => deleteComment(editor, comment))).toThrow(
+			'Comment mutations cannot be nested'
+		)
+
+		deleteComment(editor, comment)
+		expect(readComment(editor, comment)).toMatchObject({ isDeleted: true })
+	})
+
+	it('rejects a writer used after its commit', () => {
+		const editor = makeEditor()
+		const { thread } = makeThread(editor)
+		let writeAfterCommit: () => void
+
+		commitCommentMutation(editor, ({ put }) => {
+			writeAfterCommit = () => put([{ ...thread, resolved: { at: 1, by: 'ada' } }])
+		})
+
+		expect(() => writeAfterCommit!()).toThrow('cannot be used after its commit has finished')
+	})
+
 	// A host can want pin drags undoable while posts and edits aren't. The drag owns its commit and
-	// writes inside it, which is what keeps `dragHistory` in charge of the mode.
+	// receives the writer for its constituent records, which keeps `dragHistory` in charge of them.
 	it('lets dragHistory govern a drag on its own', () => {
 		const editor = makeEditor(CommentTool.configure({ history: 'ignore', dragHistory: 'record' }))
 		const { thread } = makeThread(editor)
@@ -375,7 +398,7 @@ describe('history', () => {
 
 		commitCommentMutation(
 			editor,
-			() => putRecordsInCommit(editor, [{ ...thread, anchor: { type: 'point', x: 50, y: 50 } }]),
+			({ put }) => put([{ ...thread, anchor: { type: 'point', x: 50, y: 50 } }]),
 			'drag'
 		)
 		editor.undo()

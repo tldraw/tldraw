@@ -16,11 +16,12 @@ import { openThreadId } from './state'
 /**
  * Every write to a comment record, and the undo/redo policy governing them.
  *
- * This file layers bottom-up: {@link commitCommentMutation} resolves the history mode,
- * {@link putCommentRecords} and {@link removeCommentRecords} are the typed writes that run under
- * it, and the verbs below are those writes plus the one rule each carries — a timestamp to stamp, a
- * shape to put the `resolved` field in, or the soft-delete protocol. The built-in thread view calls
- * exactly these verbs, so a UI of your own behaves the same as the one in the box.
+ * This file layers bottom-up: {@link commitCommentMutation} resolves the history mode and gives its
+ * callback a writer for the records in that operation. {@link putCommentRecords} and
+ * {@link removeCommentRecords} wrap that transaction for general-purpose writes, and the verbs
+ * below add the one rule each carries — a timestamp to stamp, a shape to put the `resolved` field
+ * in, or the soft-delete protocol. The built-in thread view calls exactly these verbs, so a UI of
+ * your own behaves the same as the one in the box.
  *
  * Every verb takes the record it acts on, but treats it as the identity of what to change rather
  * than as the value to write back — see {@link readLatest}.
@@ -42,6 +43,13 @@ import { openThreadId } from './state'
  */
 export type CommentMutationKind = 'delete' | 'drag' | 'mutation'
 
+interface CommentMutationWriter {
+	put(records: TLCommentRecord[]): void
+	remove(ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]): void
+}
+
+const activeCommentMutations = new WeakSet<Editor>()
+
 /** The undo/redo mode a write of the given kind runs under. See {@link CommentMutationKind}. */
 function historyModeFor(
 	options: CommentingOptions,
@@ -60,45 +68,58 @@ function historyModeFor(
 /**
  * Commit a comment mutation with the configured undo/redo behavior, so the
  * {@link CommentingOptions.history} option governs whether it lands on the undo stack. Defaults to
- * `'ignore'`. See {@link CommentMutationKind} for what each kind resolves to.
+ * `'ignore'`. The callback's writer keeps every constituent record in that commit without opening
+ * another history scope. Nested comment mutations are rejected: history modes don't compose in a
+ * generally safe way, so a separate operation must run after this one. See
+ * {@link CommentMutationKind} for what each kind resolves to.
  * @internal
  */
 export function commitCommentMutation<T>(
 	editor: Editor,
-	fn: () => T,
+	fn: (writer: CommentMutationWriter) => T,
 	kind: CommentMutationKind = 'mutation'
 ): T {
-	const history = historyModeFor(getCommentingOptions(editor), kind)
-	let result: T
-	editor.run(
-		() => {
-			result = fn()
-		},
-		{ history }
-	)
-	return result!
-}
+	if (activeCommentMutations.has(editor)) {
+		throw new Error(
+			'Comment mutations cannot be nested. Use the provided writer for constituent records and run separate operations after the outer mutation.'
+		)
+	}
 
-/**
- * Write records without opening a commit, for call sites that already sit inside one.
- *
- * `editor.run`'s history option isn't additive — a nested run overwrites the enclosing mode for its
- * own scope — so a {@link putCommentRecords} call inside a commit would discard the mode its caller
- * chose. A pin drag committed as `drag` under `dragHistory: 'record'` would land back on
- * `history: 'ignore'` and quietly stop being undoable. Inside a commit, write with this.
- *
- * @internal
- */
-export function putRecordsInCommit(editor: Editor, records: TLCommentRecord[]): void {
-	editor.store.put(records as unknown as TLRecord[])
-}
-
-/** {@link putRecordsInCommit}'s counterpart for removals. @internal */
-export function removeRecordsInCommit(
-	editor: Editor,
-	ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]
-): void {
-	editor.store.remove(ids as unknown as TLRecord['id'][])
+	activeCommentMutations.add(editor)
+	try {
+		const history = historyModeFor(getCommentingOptions(editor), kind)
+		let result: T
+		editor.run(
+			() => {
+				let isWriterActive = true
+				const assertWriterActive = () => {
+					if (!isWriterActive) {
+						throw new Error(
+							'A comment mutation writer cannot be used after its commit has finished.'
+						)
+					}
+				}
+				try {
+					result = fn({
+						put: (records) => {
+							assertWriterActive()
+							editor.store.put(records as unknown as TLRecord[])
+						},
+						remove: (ids) => {
+							assertWriterActive()
+							editor.store.remove(ids as unknown as TLRecord['id'][])
+						},
+					})
+				} finally {
+					isWriterActive = false
+				}
+			},
+			{ history }
+		)
+		return result!
+	} finally {
+		activeCommentMutations.delete(editor)
+	}
 }
 
 /**
@@ -113,7 +134,7 @@ export function removeRecordsInCommit(
  * @public
  */
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void {
-	commitCommentMutation(editor, () => putRecordsInCommit(editor, records))
+	commitCommentMutation(editor, ({ put }) => put(records))
 }
 
 /**
@@ -133,7 +154,7 @@ export function removeCommentRecords(
 	editor: Editor,
 	ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]
 ): void {
-	commitCommentMutation(editor, () => removeRecordsInCommit(editor, ids))
+	commitCommentMutation(editor, ({ remove }) => remove(ids))
 }
 
 /**
@@ -180,10 +201,10 @@ function readLatest<T extends TLComment | TLCommentThread>(
  * @public
  */
 export function editComment(editor: Editor, comment: TLComment, body: TLRichText): void {
-	commitCommentMutation(editor, () => {
+	commitCommentMutation(editor, ({ put }) => {
 		const current = readLatest(editor, comment)
 		if (!current) return
-		putRecordsInCommit(editor, [{ ...current, body, editedAt: Date.now() }])
+		put([{ ...current, body, editedAt: Date.now() }])
 	})
 }
 
@@ -197,10 +218,10 @@ export function editComment(editor: Editor, comment: TLComment, body: TLRichText
  * @public
  */
 export function resolveThread(editor: Editor, thread: TLCommentThread, userId: string): void {
-	commitCommentMutation(editor, () => {
+	commitCommentMutation(editor, ({ put }) => {
 		const current = readLatest(editor, thread)
 		if (!current) return
-		putRecordsInCommit(editor, [{ ...current, resolved: { at: Date.now(), by: userId } }])
+		put([{ ...current, resolved: { at: Date.now(), by: userId } }])
 	})
 }
 
@@ -211,10 +232,10 @@ export function resolveThread(editor: Editor, thread: TLCommentThread, userId: s
  * @public
  */
 export function reopenThread(editor: Editor, thread: TLCommentThread): void {
-	commitCommentMutation(editor, () => {
+	commitCommentMutation(editor, ({ put }) => {
 		const current = readLatest(editor, thread)
 		if (!current) return
-		putRecordsInCommit(editor, [{ ...current, resolved: null }])
+		put([{ ...current, resolved: null }])
 	})
 }
 
@@ -242,7 +263,7 @@ export function reopenThread(editor: Editor, thread: TLCommentThread): void {
 export function deleteComment(editor: Editor, comment: TLComment): void {
 	commitCommentMutation(
 		editor,
-		() => {
+		({ put }) => {
 			const current = readLatest(editor, comment)
 			// Deleting twice — a double activation, a handler firing on a copy taken before the first
 			// delete — is nothing to do rather than something to redo. The check below counts the
@@ -254,7 +275,7 @@ export function deleteComment(editor: Editor, comment: TLComment): void {
 			if (isLastInThread && openThreadId.get(editor) === current.threadId) {
 				openThreadId.set(editor, null)
 			}
-			putRecordsInCommit(editor, [{ ...current, isDeleted: true }])
+			put([{ ...current, isDeleted: true }])
 		},
 		'delete'
 	)
@@ -275,13 +296,13 @@ export function deleteComment(editor: Editor, comment: TLComment): void {
 export function deleteThread(editor: Editor, thread: TLCommentThread): void {
 	commitCommentMutation(
 		editor,
-		() => {
+		({ put }) => {
 			const current = readLatest(editor, thread)
 			if (!current) return
 			if (openThreadId.get(editor) === current.id) {
 				openThreadId.set(editor, null)
 			}
-			putRecordsInCommit(editor, [{ ...current, isDeleted: true }])
+			put([{ ...current, isDeleted: true }])
 		},
 		'delete'
 	)

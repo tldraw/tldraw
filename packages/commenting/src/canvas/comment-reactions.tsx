@@ -11,11 +11,7 @@ import {
 import { RenderReaction } from '../ui/reaction'
 import { ReactionPicker } from '../ui/reaction-picker'
 import { Reactions, ReactionSummary } from '../ui/reactions'
-import {
-	commitCommentMutation,
-	putRecordsInCommit,
-	removeRecordsInCommit,
-} from './comment-mutations'
+import { commitCommentMutation } from './comment-mutations'
 import { UNKNOWN_AUTHOR } from './comment-render'
 import { getCommentReactions } from './comment-store'
 import { getCommentingOptions, useCommentingOptions } from './options'
@@ -116,19 +112,16 @@ export function toggleCommentReaction(
 	// Only a token the configured palette allows may be added. Removals always go through — if a
 	// reaction somehow carries an off-palette token, the user must still be able to clear it.
 	if (!removing && !isAllowedReaction(emoji)) return
-	commitCommentMutation(editor, () => {
+	commitCommentMutation(editor, ({ put, remove }) => {
 		if (removing) {
-			removeRecordsInCommit(editor, [targetId])
+			remove([targetId])
 			return
 		}
 		// Single-select: a new emoji replaces the user's existing reaction(s) on this comment.
 		if (!allowMultipleReactions && mine.length > 0) {
-			removeRecordsInCommit(
-				editor,
-				mine.map((reaction) => reaction.id)
-			)
+			remove(mine.map((reaction) => reaction.id))
 		}
-		putRecordsInCommit(editor, [
+		put([
 			createCommentReaction({
 				commentId: comment.id,
 				threadId: comment.threadId,
