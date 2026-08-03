@@ -1,13 +1,4 @@
-import {
-	memo,
-	ReactNode,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-	type CSSProperties,
-} from 'react'
+import { memo, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	createComment,
 	Editor,
@@ -52,6 +43,7 @@ import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { type CommentingComponents, useCanComment, useCommentingOptions } from './options'
 import { openThreadId } from './state'
+import { useViewportFit } from './viewport-fit'
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
@@ -162,10 +154,23 @@ export const POPOVER_OFFSET = {
 } as const
 
 /** The open thread's popover container, portaled above the UI panels. A wheel over it passes
- *  through to the canvas (unless it scrolls its own content), like tldraw's panels. */
-export function ThreadPopover({ style, children }: { style: CSSProperties; children: ReactNode }) {
+ *  through to the canvas (unless it scrolls its own content), like tldraw's panels.
+ *
+ *  `left`/`top` are where the popover wants to sit relative to its marker; {@link useViewportFit}
+ *  slides it back on screen and caps its height when that spot runs past the visible viewport —
+ *  off the edge of a phone screen, or under the software keyboard. */
+export function ThreadPopover({
+	left,
+	top,
+	children,
+}: {
+	left: number
+	top: number
+	children: ReactNode
+}) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
+	const fit = useViewportFit(ref, left, top)
 	return (
 		<EditorPortal>
 			{/* contextmenu also stops here: portals bubble React events to the canvas's context-menu
@@ -173,7 +178,7 @@ export function ThreadPopover({ style, children }: { style: CSSProperties; child
 			<div
 				ref={ref}
 				className="tlui-cmt-canvas-popover"
-				style={style}
+				style={fit}
 				onPointerDown={stop}
 				onContextMenu={stop}
 			>

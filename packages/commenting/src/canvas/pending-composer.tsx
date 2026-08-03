@@ -25,6 +25,7 @@ import { PendingComment } from './comment-tool'
 import { type CommentingContext } from './context'
 import { useCanComment, useCommentingOptions } from './options'
 import { pendingComment } from './state'
+import { useViewportFit } from './viewport-fit'
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
@@ -65,6 +66,10 @@ export function PendingComposer({
 		editor,
 		pending.point,
 	])
+	// Slide back on screen when the click point leaves no room for the composer — off the edge of a
+	// phone screen, or under the software keyboard the autofocus below raises. No `maxHeight`: the
+	// field grows with the draft and has nothing to scroll, so capping it would only clip the text.
+	const fit = useViewportFit(ref, point.x, point.y)
 
 	// Dismiss on a click anywhere outside the composer (capture-phase, ahead of stopPropagation).
 	useEffect(() => {
@@ -115,7 +120,7 @@ export function PendingComposer({
 				]
 					.filter(Boolean)
 					.join(' ')}
-				style={{ left: point.x, top: point.y }}
+				style={{ left: fit.left, top: fit.top }}
 				onPointerDown={stop}
 				onContextMenu={stop}
 				onKeyDown={(e) => {

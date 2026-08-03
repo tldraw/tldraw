@@ -403,11 +403,33 @@
 	transform: none;
 }
 
-/* The open thread's popover — portaled to the menus layer (above the UI), positioned at the pin. */
+/* The open thread's popover — portaled to the menus layer (above the UI), positioned at the pin.
+   `useViewportFit` supplies a `max-height` inline when the pin's spot leaves less room than the
+   panel wants (a phone screen, or a software keyboard covering the lower half). The flex column
+   hands that bound to the thread or stack inside, whose list then scrolls; `align-items` keeps
+   children at their own width rather than stretching them to the popover's. No `overflow: hidden`
+   here or on the thread, deliberately: the thread's action pill floats above the panel's top edge
+   and would be clipped by it, and the list is the only child that can outgrow the cap. */
 .tlui-cmt-canvas-popover {
 	position: absolute;
 	z-index: var(--tl-layer-menus);
 	pointer-events: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+/* A flex item won't shrink below its content unless told to, which is what the cap needs it to do. */
+.tlui-cmt-canvas-popover > * {
+	min-height: 0;
+}
+/* The part that scrolls: a thread's comments, or a stack's cards. Everything the thread panel
+   keeps outside its list — the header pill, the reply composer — stays put while they scroll,
+   the same split the comments sidebar uses. */
+.tlui-cmt-canvas-popover .tlui-cmt-thread__list,
+.tlui-cmt-canvas-popover .tlui-cmt-stack-list {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
 }
 
 /* The placement composer — a distinct floating view (portaled to the menus layer, below the click
