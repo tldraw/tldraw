@@ -510,8 +510,9 @@ simple = { limit = 600, period = 60 }
 # A binding carries one `limit` applied per key, so per-IP and per-board need separate bindings to hold
 # different numbers. `period` must be 10 or 60. Keep these in step with the fallback constants in
 # sharedBoardScreenshotMcp.ts, which are all that unit tests can see.
-# The name is the odd one out in this family: it keeps MCP_SCREENSHOT_ because this budget goes away
-# with OAuth on the MCP server, which drops anonymous access and limits by logged-in user instead.
+# The name is the odd one out in this family: it keeps MCP_SCREENSHOT_ because it is deployed and
+# counting. Authentication on the MCP server deletes this budget along with the per-board one and
+# limits by logged-in user instead, so renaming live state on its way out buys nothing.
 [[env.dev.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
