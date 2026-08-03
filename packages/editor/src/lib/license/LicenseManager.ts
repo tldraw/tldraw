@@ -566,6 +566,13 @@ export function getEnabledFeatures(
 		return { ...NO_FEATURES }
 	}
 
+	// Evaluation licenses get every feature so prospects can trial the whole product without us
+	// having to mint per-feature evaluation keys. Expired evaluation licenses are already excluded
+	// above: they resolve to the 'expired' state.
+	if (result.isEvaluationLicense) {
+		return { ...ALL_FEATURES }
+	}
+
 	return {
 		collaboration: result.isCollaborationEnabled,
 		commenting: result.isCommentingEnabled,

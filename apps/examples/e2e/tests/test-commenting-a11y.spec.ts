@@ -21,7 +21,10 @@ test.describe('commenting a11y', () => {
 		if (isMobile) test.skip()
 
 		// Place a comment: pick the comment tool, click the canvas, type, and send.
-		await page.locator('[data-testid="tools.comment"]').click()
+		const commentTool = page.getByTestId('quick-actions.comment')
+		await commentTool.click()
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
+		await expect(commentTool).toHaveAttribute('data-isactive', 'true')
 		await page.mouse.click(400, 300)
 		await page.keyboard.type('hello from the keyboard')
 		await page.keyboard.press('Enter')
@@ -55,7 +58,7 @@ test.describe('commenting a11y', () => {
 	}) => {
 		if (isMobile) test.skip()
 
-		await page.locator('[data-testid="tools.comment"]').click()
+		await page.getByTestId('quick-actions.comment').click()
 		await page.mouse.click(400, 300)
 
 		// The composer is a contenteditable whose visible placeholder is aria-hidden, so without an
@@ -92,7 +95,7 @@ test.describe('commenting a11y', () => {
 	}) => {
 		if (isMobile) test.skip()
 
-		await page.locator('[data-testid="tools.comment"]').click()
+		await page.getByTestId('quick-actions.comment').click()
 		await page.mouse.click(400, 300)
 		await page.keyboard.type('first')
 		await page.keyboard.press('Enter')
@@ -129,7 +132,7 @@ test.describe('commenting a11y', () => {
 	}) => {
 		if (isMobile) test.skip()
 
-		await page.locator('[data-testid="tools.comment"]').click()
+		await page.getByTestId('quick-actions.comment').click()
 		await page.mouse.click(400, 300)
 		await page.keyboard.type('first')
 		await page.keyboard.press('Enter')
@@ -170,12 +173,12 @@ test.describe('commenting a11y', () => {
 
 		// Two comments on the same point stack behind one badge. The first carries a link, which a
 		// comment body renders as a real anchor.
-		await page.locator('[data-testid="tools.comment"]').click()
+		await page.getByTestId('quick-actions.comment').click()
 		await page.mouse.click(400, 300)
 		await page.keyboard.type('see https://tldraw.dev ')
 		await page.keyboard.press('Enter')
 		await page.keyboard.press('Escape')
-		await page.locator('[data-testid="tools.comment"]').click()
+		await page.getByTestId('quick-actions.comment').click()
 		await page.mouse.click(400, 300)
 		await page.keyboard.type('second')
 		await page.keyboard.press('Enter')

@@ -9,6 +9,7 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { type CommentListItemRenderProps } from '../ui/comments-list'
 import { isAllowedReactionEmoji, type EmojiPickerProps } from '../ui/emoji-picker'
 import { type ReactionTooltipProps } from '../ui/reaction'
 
@@ -26,6 +27,31 @@ export interface ShapeCommentPrecisionContext {
 }
 
 /**
+ * A commenting write that belongs to someone in particular, and the record it targets — the
+ * argument to {@link CommentingOptions.canModifyComment}.
+ *
+ * Resolving, reopening, reacting, and moving a pin aren't here: none of them is anyone's in
+ * particular, so {@link CommentingOptions.canComment} is the only gate on them.
+ *
+ * @public
+ */
+export type CommentModification =
+	| { readonly action: 'edit-comment'; readonly comment: TLComment }
+	| { readonly action: 'delete-comment'; readonly comment: TLComment }
+	| { readonly action: 'delete-thread'; readonly thread: TLCommentThread }
+
+/**
+ * The argument to {@link CommentingOptions.canModifyComment}: which write, against which record,
+ * and by whom.
+ *
+ * @public
+ */
+export type CommentModificationContext = {
+	readonly editor: Editor
+	readonly currentUserId: string | null
+} & CommentModification
+
+/**
  * Component overrides for the batteries-included comments layer. Each slot replaces a built-in
  * piece; leave a slot unset to keep its default.
  *
@@ -39,31 +65,41 @@ export interface CommentingComponents {
 	/** A sidebar row's preview. Replaces the plaintext default. */
 	ThreadPreview?: ComponentType<{ comment: TLComment }>
 	/**
+	 * A whole sidebar row. Replaces the default `<CommentListItem>`, which is exported — so a row
+	 * that only adds an unread dot or a status chip can spread these props into it. Use
+	 * `ThreadPreview` instead when only the preview text is changing.
+	 */
+	ThreadRow?: ComponentType<CommentListItemRenderProps & { thread: TLCommentThread }>
+	/**
+	 * Extra controls in an open thread's header, added ahead of the built-in resolve and dismiss
+	 * buttons rather than replacing them. "Copy link" is already built in whenever the host supplies
+	 * `getThreadHref`.
+	 */
+	ThreadActions?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
+	/**
 	 * A reaction's visual, given its token. The default renders the token string for the OS emoji
-	 * font to draw (so the token is the emoji glyph). Override this to render your own palette —
-	 * return an `<img>` for custom emoji, an SVG, or anything. The token is whatever your picker
-	 * emits and is what gets stored/synced; this only controls how it's drawn.
+	 * font. Override to draw a custom palette — an `<img>`, an SVG, anything. The token is what gets
+	 * stored and synced; this only controls how it's drawn.
 	 */
 	ReactionContent?: ComponentType<{ token: string }>
 	/**
-	 * What the add-reaction button opens: the thing that produces a reaction token. Replaces the
-	 * default `<EmojiPicker>` grid. Pairs with `ReactionContent` (which draws whatever tokens this
-	 * emits) and with `isAllowedReaction` (which has to accept them).
+	 * What the add-reaction button opens. Replaces the default `<EmojiPicker>` grid. Pairs with
+	 * `ReactionContent` (which draws the tokens this emits) and `isAllowedReaction` (which must
+	 * accept them).
 	 */
 	ReactionPalette?: ComponentType<EmojiPickerProps>
 	/**
-	 * The hover affordance naming who reacted with an emoji. It receives the reactors and the pill
-	 * (as `children`) and returns the whole thing — so it owns the tooltip, its box, size, shape, and
-	 * position. Replaces the default (`DefaultReactionTooltip`). For a simple wording change, translate
-	 * the `comments.reacted-*` strings instead; reach for this to change the structure — a different
-	 * box, avatars, a banner anywhere on screen.
+	 * The hover affordance naming who reacted with an emoji. Receives the reactors and the pill (as
+	 * `children`) and owns the whole thing — box, size, shape, position. For a wording change,
+	 * translate the `comments.reacted-*` strings instead.
 	 */
 	ReactionTooltip?: ComponentType<ReactionTooltipProps>
-	/** Shown where a composer would sit when the viewer can't compose (see
-	 *  {@link CommentingOptions.canComment} — a signed-out viewer, a viewer role, a host that
-	 *  turns commenting off). `context` says which surface is rendering it: the bottom of an open
-	 *  thread popover (`'thread'`) or the placement popover the comment tool opens (`'pending'`).
-	 *  Unset, those surfaces render nothing. */
+	/**
+	 * Shown where a composer would sit when the viewer can't compose (see
+	 * {@link CommentingOptions.canComment}). `context` is the surface rendering it: an open thread
+	 * popover (`'thread'`) or the comment tool's placement popover (`'pending'`). Unset, those
+	 * surfaces render nothing.
+	 */
 	ComposerFallback?: ComponentType<{ context: 'pending' | 'thread' }>
 }
 
@@ -83,13 +119,11 @@ export interface CommentingComponents {
  * @public
  */
 export interface CommentingOptions {
-	// ── History / undo ───────────────────────────────────────────────────────────────────────
+	// History / undo
 	/**
-	 * How comment mutations (post, reply, edit, resolve, delete) interact with the editor undo
-	 * stack. Defaults to `'ignore'` — comments are deliberately not undoable (see `TLComment`).
-	 * `'record'` is a multiplayer footgun: undoing a delete resurrects a thread a collaborator
-	 * already removed, and undoing a resolve/edit reverts their newer state. Safe only single-player
-	 * or on a non-synced local comment store.
+	 * How comment mutations interact with the editor undo stack. Defaults to `'ignore'` — comments
+	 * are deliberately not undoable (see `TLComment`). `'record'` is a multiplayer footgun: undoing
+	 * a delete resurrects a thread a collaborator already removed. Safe only single-player.
 	 */
 	readonly history: TLHistoryBatchOptions['history']
 	/**
@@ -98,7 +132,7 @@ export interface CommentingOptions {
 	 */
 	readonly dragHistory: TLHistoryBatchOptions['history'] | undefined
 
-	// ── Feature toggles ──────────────────────────────────────────────────────────────────────
+	// Feature toggles
 	/** Fold nearby pins into count badges as the camera zooms out. */
 	readonly enableClustering: boolean
 	/**
@@ -109,54 +143,72 @@ export interface CommentingOptions {
 	 */
 	readonly allowMultipleReactions: boolean
 	/**
-	 * Whether a token may be added as a reaction. Defaults to {@link isAllowedReactionEmoji} against
-	 * the built-in emoji palette, which is what keeps a scripted client from writing junk `emoji`
-	 * values the picker would never offer. Override it alongside a custom `ReactionPalette` so the
-	 * tokens that palette emits get through. Removals aren't checked — a reaction carrying an
-	 * off-palette token must still be clearable.
+	 * Whether a token may be added as a reaction. Defaults to {@link isAllowedReactionEmoji}, which
+	 * keeps a scripted client from writing junk values the picker would never offer. Override
+	 * alongside a custom `ReactionPalette`. Removals aren't checked — an off-palette reaction must
+	 * still be clearable.
 	 */
 	isAllowedReaction(token: string): boolean
 	/**
 	 * Whether dragging the comment tool out creates a region anchor — a comment attached to a
-	 * rectangular area of the page, drawn as a dashed box with the thread's pin on the corner the
-	 * drag released on. Off by default: comments attach to points and shapes only, and a drag just
-	 * trails the composer. A region reveals its box while the pointer is inside it, moves by its
-	 * pin, and resizes from its corners.
+	 * rectangular area, drawn as a dashed box with the pin on the corner the drag released on. Off
+	 * by default, where comments attach to points and shapes only and a drag trails the composer.
 	 */
 	readonly enableRegions: boolean
 
-	// ── Permissions ──────────────────────────────────────────────────────────────────────────
+	// Permissions
 	/**
-	 * Whether the viewer may participate in commenting: composing new threads and replies, editing
-	 * and deleting comments, resolving threads, and moving pins or regions. Composers render when
-	 * it returns true; when it returns false, the {@link CommentingComponents.ComposerFallback}
-	 * slot renders in their place (or nothing, if that slot is unset) and the action affordances
-	 * are hidden. Unset, participation is allowed exactly when `currentUserId` is set.
+	 * Whether the viewer may participate in commenting: composing, editing, deleting, resolving, and
+	 * moving pins. When false, {@link CommentingComponents.ComposerFallback} renders in the
+	 * composer's place and action affordances are hidden. Unset, participation is allowed exactly
+	 * when `currentUserId` is set.
 	 *
-	 * Called during render via {@link useCanComment}, so reactive reads (signals) are tracked.
-	 * The comment tool itself stays registered and selectable — hosts that want its toolbar button
-	 * to do something else (e.g. open a sign-in dialog) can override the tool item's `onSelect`.
-	 * Note posting still requires a `currentUserId` to author the records, so a callback that
-	 * returns true for a signed-out viewer yields a composer whose send button stays disabled.
+	 * Called during render via {@link useCanComment}, so signal reads are tracked. Posting still
+	 * needs a `currentUserId`, so returning true for a signed-out viewer yields a composer whose
+	 * send button stays disabled. A callback that throws is logged and read as false, rather than
+	 * taking the comments layer down with it.
 	 */
 	readonly canComment:
 		| ((ctx: { editor: Editor; currentUserId: string | null }) => boolean)
 		| undefined
+	/**
+	 * Whether the viewer may make a particular write against a particular record: editing or
+	 * deleting a comment, or deleting a thread. Unset, each is its record's owner's to make
+	 * ({@link defaultCanModifyComment}) — you edit and delete your own comments, and delete threads
+	 * you started. Override it to widen that (a workspace admin or moderator who may remove
+	 * anyone's comment) or to narrow it (no edits after an hour). Where it returns false the
+	 * affordance isn't rendered.
+	 *
+	 * Checked after {@link CommentingOptions.canComment}, which gates commenting as a whole: a
+	 * viewer who may not participate gets no action affordances at all, whatever this returns.
+	 *
+	 * Called during render via {@link useCanModifyComment}, so reactive reads (signals) are tracked.
+	 * A callback that throws is logged and read as false: an affordance is withheld rather than the
+	 * comments layer lost, and a denial is what a server enforcing the same rule would have said.
+	 *
+	 * @example
+	 * ```tsx
+	 * CommentTool.configure({
+	 * 	canModifyComment: (ctx) =>
+	 * 		// Moderators may delete anything; everything else stays the owner's to do.
+	 * 		(ctx.action !== 'edit-comment' && isModerator(ctx.currentUserId)) ||
+	 * 		defaultCanModifyComment(ctx),
+	 * })
+	 * ```
+	 */
+	readonly canModifyComment: ((ctx: CommentModificationContext) => boolean) | undefined
 
-	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
+	// Anchoring
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
 	readonly impreciseShapeAnchor: { readonly x: number; readonly y: number }
 	/**
-	 * Whether a comment landing on a shape anchors precisely — pinned to the exact clicked spot
-	 * within the shape — or imprecisely — pinned to the shape as a whole, rendered at
-	 * `impreciseShapeAnchor`. Called wherever a shape anchor is created (placing with the comment
-	 * tool, dropping a dragged pin onto a shape). Always precise by default. Return `false` for
-	 * shape-level anchoring, or decide from the context — the Alt key's state, or the shape itself,
-	 * e.g. precise only on notes. Governs new placements only; existing anchors render as stored.
+	 * Whether a comment landing on a shape pins to the exact clicked spot, or to the shape as a
+	 * whole (rendered at `impreciseShapeAnchor`). Always precise by default; return `false`, or
+	 * decide from the context. Governs new placements only — existing anchors render as stored.
 	 */
 	shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean
 
-	// ── Components ────────────────────────────────────────────────────────────────────────────
+	// Components
 	/** Component overrides. See {@link CommentingComponents}. */
 	readonly components: CommentingComponents
 }
@@ -174,6 +226,7 @@ export const defaultCommentingOptions = {
 	isAllowedReaction: isAllowedReactionEmoji,
 	enableRegions: false,
 	canComment: undefined,
+	canModifyComment: undefined,
 	impreciseShapeAnchor: { x: 1, y: 0 },
 	shouldBePrecise: () => true,
 	components: {},
@@ -204,20 +257,33 @@ export function useCommentingOptions(): CommentingOptions {
 }
 
 /**
- * Whether the viewer may participate in commenting, per {@link CommentingOptions.canComment}
- * (defaulting to `currentUserId != null` when unset). Where this is false, composers give way to
- * the {@link CommentingComponents.ComposerFallback} slot and action affordances are hidden.
+ * Ask a host's permission callback, denying the write if it throws.
  *
- * This is a plain, untracked read — a `canComment` callback that reads signals is not observed.
- * In React, use {@link useCanComment} instead.
+ * These are called during render, so an exception in one would take the comments layer down with
+ * the answer. Denying costs an affordance, which is what a `false` would have cost anyway, and it
+ * can't offer a write a server enforcing the same rule would then reject.
+ */
+function permits(option: string, check: () => boolean): boolean {
+	try {
+		return check()
+	} catch (error) {
+		console.error(`[tldraw] \`${option}\` threw, so the write is denied:`, error)
+		return false
+	}
+}
+
+/**
+ * Whether the viewer may participate in commenting, per {@link CommentingOptions.canComment}
+ * (defaulting to `currentUserId != null` when unset). A callback that throws denies.
+ *
+ * This is a plain, untracked read — in React, use {@link useCanComment} instead.
  *
  * @public
  */
 export function getCanComment(editor: Editor, currentUserId: string | null | undefined): boolean {
 	const { canComment } = getCommentingOptions(editor)
-	return canComment
-		? canComment({ editor, currentUserId: currentUserId ?? null })
-		: currentUserId != null
+	if (!canComment) return currentUserId != null
+	return permits('canComment', () => canComment({ editor, currentUserId: currentUserId ?? null }))
 }
 
 /**
@@ -232,4 +298,72 @@ export function useCanComment(currentUserId: string | null | undefined): boolean
 		editor,
 		currentUserId,
 	])
+}
+
+/**
+ * The default {@link CommentingOptions.canModifyComment}: a write is its record's owner's to make —
+ * a comment's author edits and deletes it, a thread's creator deletes the thread — and a viewer
+ * with no identity may make none of them.
+ *
+ * Exported so a callback can widen the default rather than restate it:
+ * `(ctx) => isModerator(ctx.currentUserId) || defaultCanModifyComment(ctx)`.
+ *
+ * @public
+ */
+export function defaultCanModifyComment(ctx: CommentModificationContext): boolean {
+	const { currentUserId } = ctx
+	if (!currentUserId) return false
+	const owner = ctx.action === 'delete-thread' ? ctx.thread.createdBy : ctx.comment.authorId
+	return owner === currentUserId
+}
+
+/**
+ * Whether the viewer may make a given write against a given record, per
+ * {@link CommentingOptions.canModifyComment} (defaulting to {@link defaultCanModifyComment} when
+ * unset). Where this is false the affordance isn't rendered.
+ *
+ * This is the per-record rule alone: the built-in UI additionally requires
+ * {@link CommentingOptions.canComment}, since a viewer who may not participate gets no action
+ * affordances at all.
+ *
+ * A plain, untracked read — a `canModifyComment` callback that reads signals is not observed. In
+ * React, use {@link useCanModifyComment} instead.
+ *
+ * @public
+ */
+export function getCanModifyComment(
+	editor: Editor,
+	currentUserId: string | null | undefined,
+	modification: CommentModification
+): boolean {
+	const { canModifyComment } = getCommentingOptions(editor)
+	const ctx: CommentModificationContext = {
+		editor,
+		currentUserId: currentUserId ?? null,
+		...modification,
+	}
+	if (!canModifyComment) return defaultCanModifyComment(ctx)
+	return permits('canModifyComment', () => canModifyComment(ctx))
+}
+
+/**
+ * Reactive React hook for {@link getCanModifyComment}: a `canModifyComment` callback that reads
+ * signals re-evaluates when they change.
+ *
+ * @public
+ */
+export function useCanModifyComment(
+	currentUserId: string | null | undefined,
+	modification: CommentModification
+): boolean {
+	const editor = useEditor()
+	// Comment records are immutable, so the record itself is what changes when the thing being
+	// checked changes — `modification` is a fresh object on every render and can't be a dep.
+	const record =
+		modification.action === 'delete-thread' ? modification.thread : modification.comment
+	return useValue(
+		'can modify comment',
+		() => getCanModifyComment(editor, currentUserId, modification),
+		[editor, currentUserId, modification.action, record]
+	)
 }

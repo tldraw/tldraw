@@ -1,7 +1,9 @@
 import { Avatar, type CommentAuthor } from '@tldraw/mentions'
-import { MouseEvent, ReactNode } from 'react'
+import { Fragment, MouseEvent, ReactNode } from 'react'
 import { useTranslation } from 'tldraw'
 import { Byline } from './byline'
+import { CheckIcon } from './icons'
+import { Reactions, type ReactionSummary } from './reactions'
 import { replyCountLabel } from './reply-count'
 
 /** @public */
@@ -19,11 +21,28 @@ export interface CommentListItemProps {
 	count?: number
 	/** Whether this thread is the open one. */
 	selected?: boolean
+	/** Tallied reactions for the row (a thread's, or a single comment's when the row is one
+	 *  comment), shown as inert pills under the preview. Omit to hide. */
+	reactions?: ReactionSummary[]
 	/**
 	 * Link target for the item. When set, the row renders as an anchor so browser affordances
 	 * (ctrl/cmd-click, middle-click) open it in a new tab; a plain click still calls `onSelect`.
 	 */
 	href?: string
+}
+
+/**
+ * What a row is rendered with: the item, plus the list-level wiring it needs to be interactive.
+ * A custom row gets the same props the default `<CommentListItem>` does, so it can wrap the
+ * default rather than reimplement it.
+ *
+ * @public
+ */
+export interface CommentListItemRenderProps extends CommentListItemProps {
+	/** Label for a resolved thread's marker on its row. */
+	resolvedLabel?: string
+	/** Called with the thread id when the row is chosen. */
+	onSelect?(id: string): void
 }
 
 /** @public */
@@ -39,8 +58,12 @@ export interface CommentsListProps {
 	empty?: ReactNode
 	/** Label for a resolved thread's marker on its row. Defaults to "Resolved". */
 	resolvedLabel?: string
-	/** Override how each item renders. Defaults to `<CommentListItem>`. */
-	renderItem?(item: CommentListItemProps): ReactNode
+	/**
+	 * Override how each item renders. Defaults to `<CommentListItem>`, which is exported — so a
+	 * row that only adds something can spread these props into it rather than start over. The list
+	 * supplies the key, so a custom row doesn't need one.
+	 */
+	renderItem?(props: CommentListItemRenderProps): ReactNode
 }
 
 /**
@@ -70,25 +93,25 @@ export function CommentsList({
 				<div className="tlui-cmt-list__empty">{empty}</div>
 			) : (
 				<div className="tlui-cmt-list__items">
-					{items.map((item) =>
-						renderItem ? (
-							renderItem(item)
+					{items.map((item) => {
+						const props: CommentListItemRenderProps = { ...item, resolvedLabel, onSelect }
+						// A custom row is wrapped rather than keyed directly: it's the consumer's element,
+						// and requiring them to remember a key is the kind of thing that only shows up as a
+						// console warning in someone else's app.
+						return renderItem ? (
+							<Fragment key={item.id}>{renderItem(props)}</Fragment>
 						) : (
-							<CommentListItem
-								key={item.id}
-								{...item}
-								resolvedLabel={resolvedLabel}
-								onSelect={onSelect}
-							/>
+							<CommentListItem key={item.id} {...props} />
 						)
-					)}
+					})}
 				</div>
 			)}
 		</div>
 	)
 }
 
-function CommentListItem({
+/** One thread's row in a {@link CommentsList}. @public @react */
+export function CommentListItem({
 	id,
 	author,
 	preview,
@@ -97,10 +120,11 @@ function CommentListItem({
 	page,
 	count,
 	selected,
+	reactions,
 	href,
 	resolvedLabel = 'Resolved',
 	onSelect,
-}: CommentListItemProps & { resolvedLabel?: string; onSelect?(id: string): void }) {
+}: CommentListItemRenderProps) {
 	const msg = useTranslation()
 	const handleClick = (e: MouseEvent) => {
 		if (href && isOpenInNewTabClick(e)) return
@@ -123,6 +147,7 @@ function CommentListItem({
 			<div className="tlui-cmt-list__item-body">
 				<Byline author={author} date={date} />
 				<div className="tlui-cmt-list__item-preview">{preview}</div>
+				{reactions && <Reactions reactions={reactions} canReact={false} enableHoverList={false} />}
 				{(resolved || page !== undefined || replies) && (
 					<div className="tlui-cmt-list__item-meta">
 						{resolved && (
@@ -146,18 +171,4 @@ function CommentListItem({
  */
 export function isOpenInNewTabClick(e: MouseEvent) {
 	return e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0
-}
-
-function CheckIcon() {
-	return (
-		<svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-			<path
-				d="M2.5 6.2 4.7 8.4 9.5 3.6"
-				stroke="currentColor"
-				strokeWidth="1.5"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-			/>
-		</svg>
-	)
 }

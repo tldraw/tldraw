@@ -212,8 +212,8 @@ export const comment_mention = table('comment_mention')
 // One row per (comment, reacting user, emoji) — a user may react with several emoji. Written by
 // the file's Durable Object from the room's comment-reaction records, like comment/comment_thread.
 // The in-document reaction UI reads reactions over the sync object-lane, not from here; this table
-// mirrors comment_mention so a future app-level query (e.g. "reacted to your comment") can reach
-// reactions server-side without a schema change. Nothing consumes it yet.
+// feeds the app-level `reactions` query (the notifications feed's "reacted to your comment"
+// category) and the reaction pills on notification rows.
 export const comment_reaction = table('comment_reaction')
 	.columns({
 		id: string(),
@@ -222,6 +222,8 @@ export const comment_reaction = table('comment_reaction')
 		threadId: string(),
 		pageId: string(),
 		userId: string(),
+		// denormalized user display name, stamped and kept fresh by Postgres triggers (045)
+		userName: string(),
 		emoji: string(),
 		createdAt: number(),
 	})
@@ -367,6 +369,15 @@ const commentThreadRelationships = relationships(comment_thread, ({ one, many })
 	comments: many({
 		sourceField: ['id'],
 		destField: ['threadId'],
+		destSchema: comment,
+	}),
+}))
+
+const commentReactionRelationships = relationships(comment_reaction, ({ one }) => ({
+	// the reacted-to comment, for the reactions query's authorship gate and feed row
+	comment: one({
+		sourceField: ['commentId'],
+		destField: ['id'],
 		destSchema: comment,
 	}),
 }))
@@ -545,6 +556,7 @@ export const schema = createSchema({
 		groupFileRelationships,
 		commentRelationships,
 		commentThreadRelationships,
+		commentReactionRelationships,
 	],
 })
 

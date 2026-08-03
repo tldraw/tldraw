@@ -11,6 +11,16 @@ export interface LeafInput {
 	point: VecLike
 }
 
+/**
+ * Constant screen-px render offsets for markers that don't draw exactly on their anchor —
+ * imprecise shape pins, which tuck ~20px into their shape. Keyed by leaf id; leaves absent from
+ * the map render on their anchor. A marker's visual position at zoom z is `z · point + offset`.
+ * Passed as the optional third argument to `computeClusterTable`; when omitted or empty the
+ * algorithm's behavior (and output) is identical to an offset-unaware run.
+ * @internal
+ */
+export type LeafScreenOffsets = ReadonlyMap<string, VecLike>
+
 /** An edge of the Euclidean MST over the leaf anchor points. */
 export interface MstEdge {
 	/** Index into the input leaves array. Normalized: leaves[a].id < leaves[b].id (lexicographic). */

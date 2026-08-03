@@ -1,4 +1,4 @@
-import { track, useQuickReactor } from '@tldraw/state-react'
+import { track, useQuickReactor, useValue } from '@tldraw/state-react'
 import { TLInstancePresence } from '@tldraw/tlschema'
 import { useLayoutEffect, useRef } from 'react'
 import { useEditorComponents } from '../hooks/EditorComponentsContext'
@@ -15,8 +15,11 @@ import { getHtmlLayerTransform } from '../utils/getHtmlLayerTransform'
  * (CollaboratorHintOverlayUtil), not this layer's.
  *
  * Cursors are DOM rather than canvas-drawn so their chrome styles and composes like the rest of
- * the UI; per-cursor positioning writes `transform` directly (see `useTransform`), so pointer- and
- * camera-frequency updates never re-render more than the moved cursor.
+ * the UI. Re-render traffic is kept narrow: per-cursor positioning writes `transform` directly
+ * (see `useTransform`), so a pointer move re-renders only the moved cursor; the camera transform
+ * is written imperatively below, so a pure pan re-renders only cursors whose viewport visibility
+ * flips (an equality-gated boolean per cursor); a zoom change re-renders every visible cursor,
+ * because each one rescales by `1/zoom`.
  *
  * @public @react
  */
@@ -76,15 +79,26 @@ const Collaborator = track(function Collaborator({
 	const editor = useEditor()
 	const { CollaboratorCursor } = useEditorComponents()
 
-	const zoomLevel = editor.getZoomLevel()
-	const viewportPageBounds = editor.getViewportPageBounds()
 	const { userId, chatMessage, userName, cursor, color } = latestPresence
+
+	// The viewport read lives inside this equality-gated computed rather than the tracked render:
+	// pans move the viewport every frame, but this component only needs to know when the cursor
+	// crosses the edge, so it subscribes to the boolean and re-renders only when it flips.
+	const cursorInViewport = useValue(
+		'cursor in viewport',
+		() =>
+			!!cursor && isCursorInViewport(cursor, editor.getViewportPageBounds(), editor.getZoomLevel()),
+		[editor, cursor]
+	)
+	// The zoom read is tracked directly: the cursor scales by 1/zoom, so zoom changes must
+	// re-render it. Pure pans leave the zoom value unchanged, so they never invalidate this.
+	const zoomLevel = editor.getZoomLevel()
 
 	if (!cursor) return null
 
 	// Off-viewport collaborators show as the canvas-drawn hint arrows
 	// (CollaboratorHintOverlayUtil), which shares this predicate — only the cursor itself is DOM.
-	if (!isCursorInViewport(cursor, viewportPageBounds, zoomLevel)) return null
+	if (!cursorInViewport) return null
 	if (!CollaboratorCursor) return null
 	return (
 		<CollaboratorCursor

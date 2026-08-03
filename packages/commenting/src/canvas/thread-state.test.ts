@@ -18,6 +18,8 @@ import {
 	commentTargetShapeAt,
 	impreciseShapePinInset,
 	IMPRECISE_PIN_INSET_PX,
+	isBoxInInflatedViewport,
+	isInInflatedViewport,
 	shapeAnchorAt,
 } from './thread-state'
 
@@ -205,5 +207,54 @@ describe('commentCenterScreenOffset', () => {
 	it('is zero while the sidebar element is not mounted', () => {
 		commentsSidebarOpen.set(editor, true)
 		expect(commentCenterScreenOffset(editor)).toBe(0)
+	})
+})
+
+describe('isInInflatedViewport', () => {
+	// The viewport is 1000x1000 (see beforeEach) and the margin is 120 screen px.
+	it('accepts a point on screen', () => {
+		expect(isInInflatedViewport(editor, { x: 500, y: 500 })).toBe(true)
+	})
+
+	it('accepts a point just off screen, so a pan finds it already mounted', () => {
+		expect(isInInflatedViewport(editor, { x: -119, y: 500 })).toBe(true)
+		expect(isInInflatedViewport(editor, { x: 1119, y: 500 })).toBe(true)
+		expect(isInInflatedViewport(editor, { x: 500, y: -119 })).toBe(true)
+		expect(isInInflatedViewport(editor, { x: 500, y: 1119 })).toBe(true)
+	})
+
+	it('rejects a point past the margin on any side', () => {
+		expect(isInInflatedViewport(editor, { x: -121, y: 500 })).toBe(false)
+		expect(isInInflatedViewport(editor, { x: 1121, y: 500 })).toBe(false)
+		expect(isInInflatedViewport(editor, { x: 500, y: -121 })).toBe(false)
+		expect(isInInflatedViewport(editor, { x: 500, y: 1121 })).toBe(false)
+	})
+})
+
+describe('isBoxInInflatedViewport', () => {
+	it('accepts a box wholly on screen', () => {
+		expect(isBoxInInflatedViewport(editor, { x: 100, y: 100, w: 200, h: 200 })).toBe(true)
+	})
+
+	it('accepts a box straddling the edge, whose pin corner alone would be culled', () => {
+		// This is the case the point test gets wrong: the box's visible edge is on screen while
+		// its far corner — where a region thread's pin can sit — is thousands of px away.
+		expect(isBoxInInflatedViewport(editor, { x: -5000, y: -5000, w: 5100, h: 5100 })).toBe(true)
+	})
+
+	it('accepts a box larger than the viewport on every side', () => {
+		expect(isBoxInInflatedViewport(editor, { x: -5000, y: -5000, w: 10000, h: 10000 })).toBe(true)
+	})
+
+	it('rejects a box wholly past the margin', () => {
+		expect(isBoxInInflatedViewport(editor, { x: 1200, y: 100, w: 100, h: 100 })).toBe(false)
+		expect(isBoxInInflatedViewport(editor, { x: 100, y: -400, w: 100, h: 100 })).toBe(false)
+	})
+
+	it('follows the camera rather than page coordinates', () => {
+		const box = { x: 2000, y: 0, w: 100, h: 100 }
+		expect(isBoxInInflatedViewport(editor, box)).toBe(false)
+		editor.setCamera({ x: -2000, y: 0, z: 1 })
+		expect(isBoxInInflatedViewport(editor, box)).toBe(true)
 	})
 })
