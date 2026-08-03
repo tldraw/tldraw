@@ -87,6 +87,28 @@ describe('summarizeReactions', () => {
 	})
 })
 
+describe('summarizeReactions input', () => {
+	// the notifications panel tallies rows synced from the app database, which carry only the
+	// fields the tally needs — full TLCommentReaction records must not be required
+	it('accepts minimal rows with only userId, emoji, and createdAt', () => {
+		const rows = [
+			{ userId: 'user1', emoji: '👍', createdAt: 100 },
+			{ userId: 'user2', emoji: '👍', createdAt: 200 },
+		]
+		expect(summarizeReactions(rows, 'user1')).toEqual([
+			{
+				emoji: '👍',
+				count: 2,
+				active: true,
+				reactors: [
+					{ name: 'Someone', you: true },
+					{ name: 'Someone', you: false },
+				],
+			},
+		])
+	})
+})
+
 describe('createCommentReactionId', () => {
 	// the id is what makes reaction identity structural: re-picking the same emoji addresses the
 	// same record (toggle off), while a different emoji is its own record (independent)

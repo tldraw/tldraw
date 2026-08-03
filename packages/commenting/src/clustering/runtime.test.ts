@@ -5,8 +5,6 @@ import { createClusterRuntime } from './runtime'
 import { contract, finalize } from './schedule'
 import { ClusterNode, ClusterTable, LeafInput, MergeEvent } from './types'
 
-// --- Synthetic builders --------------------------------------------------------
-
 function node(ids: string[], x = 0, y = 0): ClusterNode {
 	const members = ids.slice().sort()
 	return {
@@ -78,8 +76,6 @@ function microTraceTable(): ClusterTable {
 		leaves: [A, B, C, D],
 	}
 }
-
-// --- Fixtures -------------------------------------------------------------------
 
 describe('createClusterRuntime micro-trace (CLUSTERING.md §8.5)', () => {
 	it('walks the exact documented trace', () => {
@@ -238,8 +234,6 @@ describe('createClusterRuntime edge cases', () => {
 		expect(JSON.parse(JSON.stringify(table))).toEqual(snapshot)
 	})
 })
-
-// --- Property tests against real pipeline tables --------------------------------
 
 function leaf(id: string, x: number, y: number): LeafInput {
 	return { id, point: { x, y } }

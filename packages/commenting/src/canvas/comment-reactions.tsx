@@ -36,16 +36,28 @@ export function useCommentReactions(
 }
 
 /**
- * Tally a comment's reactions into an entry per emoji, ordered by when that emoji was first used
- * so the row stays stable as later reactions arrive. `active` marks the emoji the current user
- * reacted with (the pills render those highlighted), and `reactors` lists who reacted with it, in
- * reaction order, for the hover list. `resolveName` names each reactor; an id it can't name falls
- * back to the id itself.
+ * The reaction fields {@link summarizeReactions} needs — a structural subset of
+ * {@link tldraw#TLCommentReaction}, so tallies can also be built from rows synced outside the
+ * editor store.
+ *
+ * @public
+ */
+export interface ReactionSummaryInput {
+	userId: string
+	emoji: string
+	createdAt: number
+}
+
+/**
+ * Tally a comment's reactions into an entry per emoji, ordered by when that emoji was first used so
+ * the row stays stable as later reactions arrive. `active` marks the current user's emoji and
+ * `reactors` lists who reacted, in reaction order. `resolveName` names each reactor; an id it can't
+ * name falls back to a generic "Someone", never the raw user id.
  *
  * @public
  */
 export function summarizeReactions(
-	reactions: TLCommentReaction[],
+	reactions: readonly ReactionSummaryInput[],
 	currentUserId?: string | null,
 	resolveName?: (userId: string) => string | undefined
 ): ReactionSummary[] {
@@ -85,14 +97,12 @@ export function summarizeReactions(
 /**
  * Toggle one user's reaction with a given emoji on a comment.
  *
- * Each reaction is its own record keyed by (comment, user, emoji), so this only ever touches that
- * one user's own records — two people reacting at once never conflict. Behaviour depends on the
- * `allowMultipleReactions` option:
+ * Each reaction is its own record keyed by (comment, user, emoji), so this only touches that user's
+ * own records and two people reacting at once never conflict. Behaviour depends on
+ * `allowMultipleReactions`:
  *
- * - **multiple** (default): the emoji toggles independently — add it if absent, remove it if
- *   present, leaving the user's other reactions alone.
- * - **single**: picking a new emoji first removes the user's existing reaction(s) on the comment,
- *   then adds this one (a replace); picking the one they already have removes it.
+ * - **multiple** (default): the emoji toggles independently, leaving other reactions alone.
+ * - **single**: a new emoji replaces the user's existing reaction; the same one removes it.
  *
  * @public
  */
@@ -140,14 +150,13 @@ export interface CommentReactionsProps {
 	/** The reacting user. Null/omitted gives a read-only row (signed out): counts show, but the
 	 *  pills don't toggle. */
 	currentUserId?: string | null
-	/** Names a reactor id for the hover list. Ids it can't name fall back to the id. */
+	/** Names a reactor id for the hover list. Ids it can't name fall back to a generic "Someone". */
 	resolveName?(userId: string): string | undefined
 }
 
 /**
- * Adapts the `ReactionContent` component override (if any) into a `renderReaction` function for the
- * presentational reaction components. Returns undefined when no override is set, so they fall back
- * to the default (the token string, drawn by the OS emoji font).
+ * Adapts the `ReactionContent` override into a `renderReaction` function for the presentational
+ * components. Undefined when no override is set, so they fall back to drawing the token string.
  */
 function useReactionRenderer(): RenderReaction | undefined {
 	const { components } = useCommentingOptions()
@@ -203,9 +212,8 @@ export interface CommentReactionPickerProps {
 }
 
 /**
- * The add-reaction button for one comment. Belongs with the comment card's hover actions (under
- * the ⋯ button) rather than in the reaction row, so opening it doesn't chase the row as reactions
- * are added.
+ * The add-reaction button for one comment. Belongs with the comment card's hover actions rather
+ * than in the reaction row, so opening it doesn't chase the row as reactions are added.
  * @public @react
  */
 export function CommentReactionPicker({

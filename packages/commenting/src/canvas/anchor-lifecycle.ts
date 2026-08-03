@@ -8,10 +8,8 @@ type ShapeAnchor = Extract<TLCommentAnchor, { type: 'shape' }>
 
 /**
  * Threads converted to point anchors because their shape was deleted, kept so the anchor can be
- * restored if the shape comes back (page move re-create, undo of the delete). Owned by the
- * editor, not the registration closure: the registering effect can re-run (a prop identity
- * change, a remount), and an undo can arrive arbitrarily long after the delete — the memory has
- * to outlive any one registration.
+ * restored if the shape comes back. Owned by the editor, not the registration closure: the
+ * registering effect can re-run, and an undo can arrive long after the delete.
  */
 const convertedByShapeCache = new WeakCache<
 	Editor,
@@ -29,35 +27,26 @@ function isAnchoredToShape(
 /**
  * Keep shape-anchored threads alive across their shape's lifecycle:
  *
- * - When the shape is deleted, the thread converts to a `point` anchor at the spot its pin last
- *   occupied, so the conversation outlives the shape instead of becoming invisible (a missing
- *   shape has no bounds, which hides the pin).
+ * - When the shape is deleted, the thread converts to a `point` anchor where its pin last sat, so
+ *   the conversation outlives the shape instead of becoming invisible.
  * - When the shape moves to another page, the thread follows: its `pageId` and each comment's
- *   denormalized `pageId` update to the shape's new page, and the anchor keeps riding the shape.
- * - When a deleted shape comes back (a page move re-creates it with its id preserved; undoing a
- *   delete restores it), the thread re-attaches — unless its pin was manually moved in the
- *   meantime, in which case the manual placement wins.
+ *   denormalized `pageId` update, and the anchor keeps riding the shape.
+ * - When a deleted shape comes back, the thread re-attaches — unless its pin was manually moved in
+ *   the meantime, in which case the manual placement wins.
  *
  * A page move is `deleteShapes` + re-create with preserved ids inside one `editor.run`, but each
- * store write is its own operation — so at no single moment does "this shape is being moved"
- * exist as an observable event. The handlers therefore cooperate across operations:
- * `beforeDelete` snapshots where each affected pin sits (every record is still in the store at
- * that point, so page bounds resolve even for children of a deleted frame); the
- * operation-complete pass converts threads whose shape is really gone, remembering the original
- * anchor; `afterCreate` notes a reappeared shape id, and the operation-complete pass restores
- * the anchor once the store has settled (creation order within an operation is arbitrary, so a
- * fresh shape may not resolve an ancestor page mid-operation). Undo/redo of a move
- * replays as a `parentId` update (remove + add of one id squash to an update in the history
- * diff), so an `afterChange` handler re-homes threads on cross-page reparents — including
- * threads anchored to descendants, which move with their parent without change events of their
- * own.
+ * store write is its own operation, so "this shape is being moved" is never observable as a single
+ * event. The handlers therefore cooperate across operations: `beforeDelete` snapshots where each
+ * affected pin sits, the operation-complete pass converts threads whose shape is really gone, and
+ * `afterCreate` plus that same pass restore the anchor once the store has settled. Undo/redo of a
+ * move replays as a `parentId` update, so `afterChange` re-homes threads on cross-page reparents —
+ * including threads anchored to descendants, which move without change events of their own.
  *
- * Remote changes are ignored: the client that performed the operation runs this same
- * maintenance and syncs the resulting thread updates. Writes honour the
- * {@link CommentingOptions.history} option, so the consumer decides whether they're undoable.
+ * Remote changes are ignored: the client that performed the operation runs this same maintenance
+ * and syncs the result. Writes honour the {@link CommentingOptions.history} option.
  *
- * Registered by `CanvasComments` on mount; parts-built consumers can call this directly.
- * Returns a cleanup function that unregisters all handlers.
+ * Registered by `CanvasComments` on mount; parts-built consumers can call this directly. Returns a
+ * cleanup function that unregisters all handlers.
  *
  * @public
  */
@@ -85,10 +74,8 @@ export function registerCommentAnchorLifecycle(editor: Editor): () => void {
 					snapshot = new Map()
 					pendingByShape.set(shape.id, snapshot)
 				}
-				// Snapshot where the pin is drawn, not just the anchor point: imprecise shape pins
-				// render inset toward the shape's centre, and the converted point pin renders at
-				// its point exactly — without the inset the pin would jump on deletion. The inset
-				// is screen-fixed, so bake it in at the current zoom.
+				// Snapshot where the pin is drawn, not just the anchor point: imprecise shape pins render inset
+				// toward the shape's centre, so without baking the inset in at the current zoom the pin would jump.
 				let point = anchorPagePoint(editor, thread.anchor)
 				const inset = impreciseShapePinInset(editor, thread.anchor)
 				if (point && inset) {
@@ -100,10 +87,9 @@ export function registerCommentAnchorLifecycle(editor: Editor): () => void {
 		}
 	)
 
-	// Shape ids from `convertedByShape` re-created during the current operation. Restores are
-	// settled at operation complete rather than in `afterCreate` itself: creation order within an
-	// operation is arbitrary, so a shape can appear before its parent and not resolve an ancestor
-	// page yet — and the conversion memory must outlive any such partial state.
+	// Shape ids from `convertedByShape` re-created during the current operation. Settled at operation
+	// complete rather than in `afterCreate`: creation order within an operation is arbitrary, so a shape
+	// can appear before its parent and not resolve an ancestor page yet.
 	const returnedShapeIds = new Set<TLShapeId>()
 
 	const disposeOperationComplete = editor.sideEffects.registerOperationCompleteHandler((source) => {
