@@ -226,6 +226,8 @@ function CanvasCommentsLayer(props: CommentingContext) {
 		return node.members.every((id) => group.includes(id)) ? group : null
 	}
 
+	// Which threads are on screen this render. A stack renders once, owned by its first on-screen
+	// member — members arrive by different paths, so ownership can't be decided per-path.
 	const renderedThreadIds = new Set<string>()
 	if (options.enableClustering) {
 		for (const { node } of fadeNodes) {
