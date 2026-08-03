@@ -57,6 +57,12 @@ describe('formatFullDateTime', () => {
 		expect(french).not.toBe(formatFullDateTime('2025-07-22T16:44:00.000Z', 'en'))
 	})
 
+	// The parameter is optional, so undefined has to mean "the default", not "no locale".
+	it('treats an undefined locale as the default', () => {
+		const iso = '2025-07-22T16:44:00.000Z'
+		expect(formatFullDateTime(iso, undefined)).toBe(formatFullDateTime(iso))
+	})
+
 	it('returns an empty string for invalid dates', () => {
 		expect(formatFullDateTime('not a date')).toBe('')
 	})
