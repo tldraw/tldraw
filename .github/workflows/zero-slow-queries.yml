@@ -1,0 +1,56 @@
+name: Zero slow query check
+
+# A Zero synced query that takes longer to materialize than the sync connection's auth token lives
+# invalidates that connection, so clients retry forever and never complete a first sync. Cost is set
+# by query shape against production-sized tables, so neither unit tests nor the PR preview deploy
+# (which runs against a fresh, empty database) can catch it. The view syncer logs it; this reads.
+
+on:
+  schedule:
+    # hourly, offset off the hour so it isn't competing with deploys
+    - cron: '20 * * * *'
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'Fly app to scan'
+        default: 'production-zero-vs'
+      last:
+        description: 'Window to scan (e.g. 30m, 2h)'
+        default: '1h'
+      threshold:
+        description: 'Alert threshold in ms'
+        default: '30000'
+
+permissions:
+  contents: read
+
+env:
+  CI: 1
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check:
+    name: 'Check for slow Zero queries'
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    environment: 'deploy-production'
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Check slow query materializations
+        run: |
+          yarn tsx internal/scripts/dotcom/check-zero-slow-queries.ts \
+            --app "${{ inputs.app || 'production-zero-vs' }}" \
+            --last "${{ inputs.last || '1h' }}" \
+            --threshold "${{ inputs.threshold || '30000' }}"
+        env:
+          FLY_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          DISCORD_HEALTH_WEBHOOK_URL: ${{ secrets.DISCORD_HEALTH_WEBHOOK_URL }}
