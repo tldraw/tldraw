@@ -181,8 +181,9 @@ function readLatest<T extends TLComment | TLCommentThread>(
 
 /**
  * Replace a comment's body and stamp it as edited, which renders the "(edited)" marker on its
- * byline. Editing is the author's to do, and a server enforcing per-record permissions rejects
- * anyone else's.
+ * byline. Editing is the author's to do by default ({@link CommentingOptions.canModifyComment}),
+ * and a server enforcing per-record permissions rejects anyone else's. Widening one end without the
+ * other leaves an edit that's offered and then rejected, so widen both.
  *
  * The body lands on the version the store currently holds, so a stale copy can't revert a later
  * change or re-create a removed comment — editing one of those does nothing.
@@ -240,6 +241,9 @@ export function reopenThread(editor: Editor, thread: TLCommentThread): void {
  * the comment and its reactions once the flag is persisted — so no client removes records it
  * doesn't own, and a server enforcing per-record permissions has a write it can check.
  *
+ * Deleting is the author's to do by default; {@link CommentingOptions.canModifyComment} widens
+ * that, as does its counterpart on the server.
+ *
  * Never undoable, whatever {@link CommentingOptions.history} says: the flag is write-once
  * server-side, so an undo clearing it would be vetoed rather than bring the comment back.
  *
@@ -272,8 +276,8 @@ export function deleteComment(editor: Editor, comment: TLComment): void {
  *
  * A soft delete on the same model as {@link deleteComment}: the server prunes the thread, its
  * comments, and their reactions once the flag is persisted. Deleting a thread is its creator's to
- * do, and the write is never undoable. Closes the thread if it's the open one; a pruned thread is
- * a no-op.
+ * do by default ({@link CommentingOptions.canModifyComment}), and the write is never undoable.
+ * Closes the thread if it's the open one; a pruned thread is a no-op.
  *
  * @public
  */

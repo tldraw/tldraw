@@ -6,6 +6,41 @@ import {
 	type TLCommentReaction,
 	type TLCommentThread,
 } from '@tldraw/tlschema'
+import { isEqual } from '@tldraw/utils'
+
+/**
+ * A comment write that belongs to someone in particular, and the stored record it targets — the
+ * argument to {@link CommentAuthorizerOptions.canModifyComment}, and the server-side mirror of
+ * `CommentModification` in `@tldraw/commenting`.
+ *
+ * The record is the one the room holds, never the client's version of it: the incoming record is
+ * the thing being authorized, so a rule that read it would be asking the writer who owns what
+ * they're writing to.
+ *
+ * Resolving, reopening, and reacting aren't here, matching the client option: none of them is
+ * anyone's in particular, so {@link CommentAuthorizerOptions.canComment} is the only gate on them.
+ *
+ * @public
+ */
+export type CommentModification =
+	| { readonly action: 'edit-comment'; readonly comment: TLComment }
+	| { readonly action: 'delete-comment'; readonly comment: TLComment }
+	| { readonly action: 'delete-thread'; readonly thread: TLCommentThread }
+
+/**
+ * The argument to {@link CommentAuthorizerOptions.canModifyComment}: which write, against which
+ * stored record, by which session.
+ *
+ * `ownerId` is that record's owner — a comment's `authorId`, a thread's `createdBy` — so a callback
+ * widening the default doesn't have to know which field each record keeps it in.
+ *
+ * @public
+ */
+export type CommentModificationAuthContext<SessionMeta> = {
+	readonly session: { sessionId: string; isReadonly: boolean; meta: SessionMeta }
+	readonly userId: string | null
+	readonly ownerId: string
+} & CommentModification
 
 /**
  * Options for {@link createCommentAuthorizers}.
@@ -25,6 +60,42 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 	 * post. Override to decouple the lanes: `() => true` allows commenting on a read-only canvas.
 	 */
 	canComment?(session: { sessionId: string; isReadonly: boolean; meta: SessionMeta }): boolean
+
+	/**
+	 * Whether a session may make a particular write against a particular stored record: editing or
+	 * deleting a comment, or deleting a thread. Defaults to
+	 * `({ userId, ownerId }) => userId === ownerId` — the owner-only rule enforced up to now.
+	 * Override to widen it (a workspace admin or moderator who may take down anyone's comment) or
+	 * to narrow it (no edits after an hour).
+	 *
+	 * The counterpart to `canModifyComment` in `@tldraw/commenting`, which decides which
+	 * affordances the UI offers. This one is the real rule, and the two want widening together: a
+	 * delete the client offers and this rejects is applied locally, vetoed, and rebased away — the
+	 * comment comes back with nothing to explain it.
+	 *
+	 * Asked after {@link CommentAuthorizerOptions.canComment} and after the structural rules, so it
+	 * can only widen *who* may write, never *what* a write may contain. However permissive the
+	 * callback, attribution is still stamped from the session and immutable, `isDeleted` is still
+	 * write-once and never set at create, `threadId` and `createdAt` are still frozen, a
+	 * resolution is still the resolver's own, and clients still can't hard-delete.
+	 *
+	 * A soft delete that changes anything besides the flag is asked about twice — once as the
+	 * delete, once as an edit — so granting deletes alone can't be talked into an edit.
+	 *
+	 * Called at most once per authorized write, twice for that combined case.
+	 *
+	 * @example
+	 * ```ts
+	 * createCommentAuthorizers<SessionMeta>({
+	 * 	getUserId: (session) => session.meta.userId,
+	 * 	// Moderators may take anything down. Editing stays the author's, whoever you are.
+	 * 	canModifyComment: (ctx) =>
+	 * 		(ctx.action !== 'edit-comment' && isModerator(ctx.session.meta)) ||
+	 * 		ctx.userId === ctx.ownerId,
+	 * })
+	 * ```
+	 */
+	canModifyComment?(ctx: CommentModificationAuthContext<SessionMeta>): boolean
 }
 
 /**
@@ -38,9 +109,12 @@ export interface CommentAuthorizerOptions<SessionMeta> {
  *   resolve/reopen, but a non-null `resolved.by` must be the session's own user.
  * - `comment-reaction`: `userId` is stamped and immutable, a create must land at the canonical id
  *   for its (comment, user, emoji) triple, and only the reactor may delete their own.
- * - Deletion is soft for comments and threads: a write-once, owner-only `isDeleted` flag. Client
- *   hard-deletes are always rejected — record removals are server-side only.
+ * - Deletion is soft for comments and threads: a write-once `isDeleted` flag, never set at create.
+ *   Client hard-deletes are always rejected — record removals are server-side only.
  * - `canComment` gates every write before the per-type rules, defaulting to `!isReadonly`.
+ * - `canModifyComment` decides who may edit a comment, delete a comment, or delete a thread. It
+ *   defaults to the record's owner, and is asked after the structural rules above, so widening it
+ *   grants no more than those three writes on records the session doesn't own.
  *
  * Comment records ride alongside your document records, so widen the room's record union to
  * include them, then spread the result into the authorizer map alongside your own entries:
@@ -65,7 +139,12 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 export function createCommentAuthorizers<SessionMeta>(
 	opts: CommentAuthorizerOptions<SessionMeta>
 ): TLRecordAuthorizers<TLComment | TLCommentThread | TLCommentReaction, SessionMeta> {
-	const { getUserId, canComment = ({ isReadonly }: { isReadonly: boolean }) => !isReadonly } = opts
+	const {
+		getUserId,
+		canComment = ({ isReadonly }: { isReadonly: boolean }) => !isReadonly,
+		canModifyComment = ({ userId, ownerId }: CommentModificationAuthContext<SessionMeta>) =>
+			userId === ownerId,
+	} = opts
 
 	/** A rule is an authorizer that receives the session's user id, resolved for it exactly once. */
 	type Rule<Rec extends UnknownRecord> = (
@@ -109,12 +188,22 @@ export function createCommentAuthorizers<SessionMeta>(
 	}
 
 	/**
-	 * Police a soft-deleted record type on top of `base`: `isDeleted` is write-once, owner-only
-	 * (`ownerOf`), never set at create, and clients never hard-delete these records. Removals are
-	 * server-initiated only, so once the server prunes a flagged record there is no un-delete.
+	 * Police a soft-deleted record type on top of `base`, asking `canModifyComment` who may make the
+	 * write: `isDeleted` is write-once, never set at create, and clients never hard-delete these
+	 * records. Removals are server-initiated only, so once the server prunes a flagged record there
+	 * is no un-delete.
+	 *
+	 * An update here is one of two writes, asked about separately: flipping `isDeleted` is a delete,
+	 * anything else is an edit. Telling them apart is what lets a host grant deletes without granting
+	 * edits — and an update that does both has to clear both gates, so a delete can't carry an edit
+	 * out with it.
+	 *
+	 * `modificationFor` returns null for a write `canModifyComment` isn't asked about: a thread's
+	 * "edit" is a resolve or reopen, which is open to anyone with access and policed by `base`.
 	 */
 	function authorizeSoftDeleted<Rec extends UnknownRecord & { isDeleted: boolean }>(
 		ownerOf: (rec: Rec) => string,
+		modificationFor: (rec: Rec, write: 'edit' | 'delete') => CommentModification | null,
 		base: Rule<Rec>
 	): Rule<Rec> {
 		return (userId, args) => {
@@ -122,14 +211,23 @@ export function createCommentAuthorizers<SessionMeta>(
 			const result = base(userId, args)
 			if (!result) return null
 			// A record can't be born deleted — that would smuggle a deletion past the update checks.
-			if (args.type === 'create' && args.next.isDeleted) return null
-			if (args.type === 'update') {
-				const { prev, next } = args
-				if (prev.isDeleted !== next.isDeleted) {
-					if (prev.isDeleted) return null // write-once: never cleared
-					if (userId !== ownerOf(prev)) return null // only the owner deletes
-				}
+			if (args.type === 'create') return args.next.isDeleted ? null : result
+
+			const { prev, next, session } = args
+			const mayModify = (write: 'edit' | 'delete') => {
+				const modification = modificationFor(prev, write)
+				if (!modification) return true
+				return canModifyComment({ session, userId, ownerId: ownerOf(prev), ...modification })
 			}
+
+			if (prev.isDeleted === next.isDeleted) return mayModify('edit') ? result : null
+
+			if (prev.isDeleted) return null // write-once: never cleared
+			if (!mayModify('delete')) return null
+			// The built-in client deletes by setting the flag and nothing else. An update carrying
+			// more than that is also an edit, and has to be allowed as one — otherwise a delete-only
+			// permission could rewrite a comment on its way out.
+			if (!isEqual({ ...next, isDeleted: prev.isDeleted }, prev) && !mayModify('edit')) return null
 			return result
 		}
 	}
@@ -221,17 +319,28 @@ export function createCommentAuthorizers<SessionMeta>(
 		comment: withUserId(
 			authorizeSoftDeleted<TLComment>(
 				(comment) => comment.authorId,
+				(comment, write) => ({
+					action: write === 'delete' ? 'delete-comment' : 'edit-comment',
+					comment,
+				}),
+				// The owner-only update check that used to sit here (`ownerOnlyUpdate`) is now
+				// `canModifyComment`'s to make, since it can tell an edit from a delete. Attribution
+				// is still stamped from the session and immutable either way.
+				//
 				// `pageId` stays mutable: it's denormalized from the thread, and moving an anchored
 				// thread between pages rewrites it on every comment in the thread.
 				immutableFields<TLComment>(
 					['threadId', 'createdAt'],
-					authorizeAuthored<TLComment>('authorId', { ownerOnlyUpdate: true })
+					authorizeAuthored<TLComment>('authorId')
 				)
 			)
 		),
 		'comment-thread': withUserId(
 			authorizeSoftDeleted<TLCommentThread>(
 				(thread) => thread.createdBy,
+				// Resolving and reopening stay open to anyone with access, so a thread's "edit" isn't
+				// asked about — only its delete is.
+				(thread, write) => (write === 'delete' ? { action: 'delete-thread', thread } : null),
 				immutableFields<TLCommentThread>(['createdAt'], authorizeThreadResolution)
 			)
 		),

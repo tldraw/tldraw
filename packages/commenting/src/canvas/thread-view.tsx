@@ -16,6 +16,7 @@ import {
 	useContainer,
 	usePassThroughWheelEvents,
 	useTranslation,
+	useValue,
 } from 'tldraw'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
@@ -41,7 +42,13 @@ import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { useIsMobileCommenting, useMobilePlacement } from './mobile-placement'
-import { type CommentingComponents, useCanComment, useCommentingOptions } from './options'
+import {
+	type CommentingComponents,
+	getCanModifyComment,
+	useCanComment,
+	useCanModifyComment,
+	useCommentingOptions,
+} from './options'
 import { openThreadId } from './state'
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
@@ -216,6 +223,30 @@ export const ThreadView = memo(function ThreadView({
 	// Composing, editing, deleting, and resolving are all gated on the viewer's permission. Where it's
 	// withheld the composer gives way to the ComposerFallback slot and the affordances are hidden.
 	const canComment = useCanComment(currentUserId)
+	// Editing and deleting are further per-record: the author's to do by default, wider or narrower
+	// under a `canModifyComment` callback. Computed for the thread's comments in one pass, since
+	// `renderComment` is a callback rather than a component and can't call a hook per comment.
+	const commentPermissions = useValue(
+		'comment permissions',
+		() =>
+			new Map(
+				comments.map((comment) => [
+					comment.id,
+					{
+						edit: getCanModifyComment(editor, currentUserId, { action: 'edit-comment', comment }),
+						delete: getCanModifyComment(editor, currentUserId, {
+							action: 'delete-comment',
+							comment,
+						}),
+					},
+				])
+			),
+		[editor, currentUserId, comments]
+	)
+	// Deleting a thread is its creator's by default (and server-enforced); `canModifyComment` is what
+	// widens that. Still a commenting write, so `canComment` stays the outer gate.
+	const canModifyThread = useCanModifyComment(currentUserId, { action: 'delete-thread', thread })
+	const canDeleteThread = canComment && canModifyThread
 	const ComposerFallback = options.components.ComposerFallback
 	// An unsent reply survives closing the thread (saved on every change, keyed by thread id) —
 	// the flip side of dismissing without a discard warning.
@@ -317,8 +348,10 @@ export const ThreadView = memo(function ThreadView({
 		else resolveThread(editor, thread, currentUserId)
 	}
 
+	// No `currentUserId` check: unlike a resolve, a delete stamps nothing on the record, so who may
+	// make it is `canModifyComment`'s call alone (which withholds it from an unidentified viewer by
+	// default).
 	const removeThread = () => {
-		if (!currentUserId) return
 		deleteThread(editor, thread)
 	}
 
@@ -326,7 +359,6 @@ export const ThreadView = memo(function ThreadView({
 	// The host's URL for this thread. Its presence is what puts "copy link" in the header menu.
 	const threadHref = getThreadHref?.(thread.id)
 	const [linkCopied, copyThreadLink] = useCopyLink(threadHref)
-	const canDeleteThread = canComment && currentUserId != null && currentUserId === thread.createdBy
 
 	const startEdit = (comment: TLComment, { fromMoreMenu = false } = {}) => {
 		// Edit from the ⋯ menu comes back to that button, looked up again on the way out since the card
@@ -349,9 +381,10 @@ export const ThreadView = memo(function ThreadView({
 	}
 
 	// Swap a comment for a pre-filled composer while it's being edited; otherwise show the card,
-	// with an edit affordance on your own comments.
+	// with the affordances the viewer is allowed on it.
 	const renderComment = (card: CommentCardProps, index: number): ReactNode => {
 		const comment = comments[index]
+		const permissions = commentPermissions.get(comment.id)
 		if (editingId === comment.id) {
 			return (
 				<div
@@ -394,7 +427,7 @@ export const ThreadView = memo(function ThreadView({
 					canComment && (
 						<>
 							<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
-							{comment.authorId === currentUserId && (
+							{(permissions?.edit || permissions?.delete) && (
 								<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
 									<TldrawUiDropdownMenuTrigger>
 										<TldrawUiButton
@@ -419,24 +452,28 @@ export const ThreadView = memo(function ThreadView({
 										sideOffset={4}
 									>
 										<TldrawUiDropdownMenuGroup>
-											<TldrawUiDropdownMenuItem>
-												<button
-													type="button"
-													className="tlui-cmt-menu-item"
-													onClick={() => startEdit(comment, { fromMoreMenu: true })}
-												>
-													<span>{msg('comments.edit')}</span>
-												</button>
-											</TldrawUiDropdownMenuItem>
-											<TldrawUiDropdownMenuItem>
-												<button
-													type="button"
-													className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-													onClick={() => deleteComment(editor, comment)}
-												>
-													<span>{msg('action.delete')}</span>
-												</button>
-											</TldrawUiDropdownMenuItem>
+											{permissions?.edit && (
+												<TldrawUiDropdownMenuItem>
+													<button
+														type="button"
+														className="tlui-cmt-menu-item"
+														onClick={() => startEdit(comment, { fromMoreMenu: true })}
+													>
+														<span>{msg('comments.edit')}</span>
+													</button>
+												</TldrawUiDropdownMenuItem>
+											)}
+											{permissions?.delete && (
+												<TldrawUiDropdownMenuItem>
+													<button
+														type="button"
+														className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
+														onClick={() => deleteComment(editor, comment)}
+													>
+														<span>{msg('action.delete')}</span>
+													</button>
+												</TldrawUiDropdownMenuItem>
+											)}
 										</TldrawUiDropdownMenuGroup>
 									</TldrawUiDropdownMenuContent>
 								</TldrawUiDropdownMenuRoot>
@@ -485,7 +522,6 @@ export const ThreadView = memo(function ThreadView({
 									</button>
 								</TldrawUiDropdownMenuItem>
 							)}
-							{/* Deleting a thread is creator-only (server-enforced). */}
 							{canDeleteThread && (
 								<TldrawUiDropdownMenuItem>
 									<button
@@ -551,10 +587,10 @@ export const ThreadView = memo(function ThreadView({
 							},
 							onSubmit: postReply,
 							// Up in the empty reply box edits the comment directly above it, chat-style —
-							// only when that comment is yours (the same gate as the Edit link).
+							// only when you're allowed to edit it (the same gate as the Edit link).
 							onArrowUpWhenEmpty: () => {
 								const last = comments[comments.length - 1]
-								if (last && last.authorId === currentUserId) startEdit(last)
+								if (last && commentPermissions.get(last.id)?.edit) startEdit(last)
 							},
 							// No user, no author for the record — dead send button.
 							disabled: isCommentEmpty(reply) || !currentUserId,
