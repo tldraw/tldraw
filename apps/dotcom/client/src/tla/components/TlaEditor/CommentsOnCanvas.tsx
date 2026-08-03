@@ -8,7 +8,7 @@ import {
 	MentionMember,
 } from '@tldraw/commenting'
 import { queries } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { TLUiOverrides, useDialogs, useEditor, useValue } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -20,6 +20,11 @@ import { latestForeignReactionAt } from '../TlaSidebar/components/commentNotific
 
 type FileComments = QueryResultType<typeof queries.fileComments>
 type FileVisitors = QueryResultType<typeof queries.fileVisitors>
+
+const commentMessages = defineMessages({
+	// Matches the notifications panel and the toolkit's own byline default for an unnamed author.
+	unknownAuthor: { defaultMessage: 'Someone' },
+})
 
 /**
  * dotcom's comments layer: a thin consumer of `@tldraw/commenting`'s `<CanvasComments>`.
@@ -37,6 +42,9 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	const editor = useEditor()
 	const app = useMaybeApp()
 	const currentUserId = app?.userId ?? null
+	// Guests who signed in by email have no name yet, so their roster rows would be blank. Name them
+	// the same way the rest of the commenting UI names an author it can't resolve.
+	const unknownAuthor = useMsg(commentMessages.unknownAuthor)
 
 	const currentUser = useValue(
 		'current user',
@@ -111,6 +119,10 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		return ids
 	}, [fileComments, currentUserId])
 
+	// Presence changes on every cursor move, dozens of times a second, but the id → name/color it
+	// derives to almost never does. Holding the Map's identity keeps the computed's epoch still, so
+	// cursor movement doesn't re-render the pins overlay and sidebar.
+	const presenceAuthorsRef = useRef<Map<string, CommentAuthor>>(new Map())
 	const presenceAuthors = useValue(
 		'presence authors',
 		() => {
@@ -120,6 +132,10 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 					authors.set(p.userId.replace(/^user:/, ''), { name: p.userName, color: p.color })
 				}
 			}
+			if (presenceAuthorsEqual(presenceAuthorsRef.current, authors)) {
+				return presenceAuthorsRef.current
+			}
+			presenceAuthorsRef.current = authors
 			return authors
 		},
 		[editor]
@@ -135,22 +151,25 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			if (!membership) return []
 			return membership.groupMembers.map((m) => ({
 				id: m.userId,
-				name: m.userName,
+				name: m.userName || unknownAuthor,
 				color: m.userColor,
 				you: m.userId === app.userId,
 			}))
 		},
-		[app, fileId]
+		[app, fileId, unknownAuthor]
 	)
-	// The past-viewer half of the roster: everyone who has opened this file. A row with no userName
-	// is an unresolvable/deleted account, so drop it rather than offer a nameless suggestion. The
-	// query already excludes the current user, so `you` is never set here.
+	// The past-viewer half of the roster: everyone who has opened this file. Their rows are trigger-
+	// written from the user row, so a blank userName is a nameless guest rather than a missing
+	// join — same fallback as members. The query already excludes the current user, so `you` is
+	// never set here.
 	const viewerMembers = useMemo(
 		() =>
-			fileVisitors
-				.filter((v) => !!v.userName)
-				.map((v) => ({ id: v.userId, name: v.userName ?? '', color: v.userColor || undefined })),
-		[fileVisitors]
+			fileVisitors.map((v) => ({
+				id: v.userId,
+				name: v.userName || unknownAuthor,
+				color: v.userColor || undefined,
+			})),
+		[fileVisitors, unknownAuthor]
 	)
 	// The full @-mention roster: workspace members plus any past viewer who isn't already a member.
 	// Members win on id collision: both sources are trigger-synced to the user row, but member
@@ -226,6 +245,19 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			<CanvasCommentsSidebar {...commenting} />
 		</>
 	)
+}
+
+/** Value equality for the presence-author maps: same ids, each with the same name and color. */
+function presenceAuthorsEqual(
+	a: ReadonlyMap<string, CommentAuthor>,
+	b: ReadonlyMap<string, CommentAuthor>
+): boolean {
+	if (a.size !== b.size) return false
+	for (const [id, author] of b) {
+		const prev = a.get(id)
+		if (!prev || prev.name !== author.name || prev.color !== author.color) return false
+	}
+	return true
 }
 
 const signInMessages = defineMessages({

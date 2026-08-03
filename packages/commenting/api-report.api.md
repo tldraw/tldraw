@@ -173,6 +173,7 @@ export interface CommentingOptions {
         currentUserId: null | string;
         editor: Editor;
     }) => boolean) | undefined;
+    readonly canModifyComment: ((ctx: CommentModificationContext) => boolean) | undefined;
     readonly components: CommentingComponents;
     readonly dragHistory: TLHistoryBatchOptions['history'] | undefined;
     readonly enableClustering: boolean;
@@ -211,6 +212,24 @@ export interface CommentListItemRenderProps extends CommentListItemProps {
     onSelect?(id: string): void;
     resolvedLabel?: string;
 }
+
+// @public
+export type CommentModification = {
+    readonly action: 'delete-comment';
+    readonly comment: TLComment;
+} | {
+    readonly action: 'delete-thread';
+    readonly thread: TLCommentThread;
+} | {
+    readonly action: 'edit-comment';
+    readonly comment: TLComment;
+};
+
+// @public
+export type CommentModificationContext = {
+    readonly currentUserId: null | string;
+    readonly editor: Editor;
+} & CommentModification;
 
 // @public
 export function CommentPin({ children, resolved, open }: CommentPinProps): JSX.Element;
@@ -343,9 +362,13 @@ export const DEFAULT_REACTION_EMOJI: string[];
 export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters;
 
 // @public
+export function defaultCanModifyComment(ctx: CommentModificationContext): boolean;
+
+// @public
 export const defaultCommentingOptions: {
     readonly allowMultipleReactions: true;
     readonly canComment: undefined;
+    readonly canModifyComment: undefined;
     readonly components: {};
     readonly dragHistory: undefined;
     readonly enableClustering: true;
@@ -409,6 +432,9 @@ export function formatRelativeTime(iso: string, locale?: string): string;
 
 // @public
 export function getCanComment(editor: Editor, currentUserId: null | string | undefined): boolean;
+
+// @public
+export function getCanModifyComment(editor: Editor, currentUserId: null | string | undefined, modification: CommentModification): boolean;
 
 // @public
 export function getCommentingOptions(editor: Editor): CommentingOptions;
@@ -621,6 +647,9 @@ export function toggleCommentsSidebar(editor: Editor): void;
 
 // @public
 export function useCanComment(currentUserId: null | string | undefined): boolean;
+
+// @public
+export function useCanModifyComment(currentUserId: null | string | undefined, modification: CommentModification): boolean;
 
 // @public
 export function useCommentingEnabled(): boolean;
