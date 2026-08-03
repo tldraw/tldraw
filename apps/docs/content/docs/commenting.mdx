@@ -63,7 +63,7 @@ export default function App() {
 }
 ```
 
-Pick the comment tool from the toolbar, or press `C`, then click the canvas to start a thread.
+Pick the comment tool from Quick Actions, or press `C`, then click the canvas to start a thread.
 
 The layer's two required inputs are both about identity: `currentUserId` is the id stamped on whatever the user posts, and `resolveAuthor` turns an author id into a name, a color, and an optional avatar image. Commenting reads no user directory of its own, so these are where you connect it to whatever your app already knows about its users. With the read-status and mention callbacks they make up the `CommentingContext`, which `CanvasCommentsSidebar` takes too — build it once and spread it into both.
 
