@@ -378,9 +378,8 @@ describe('history', () => {
 		expect(readComment(editor, comment)).toMatchObject({ isDeleted: true })
 	})
 
-	// A host reacting to comment writes — a store listener, a side effect — is called inside the
-	// commit that triggered it, so it has no "after the mutation" to defer to. Matching modes have
-	// nothing to disagree about, so its write goes through rather than throwing.
+	// A store listener runs inside the commit that triggered it, so it has no "after the mutation"
+	// to defer to. Matching modes have nothing to disagree about, so its write goes through.
 	it('lets a store listener write comments during a commit when the modes match', () => {
 		const editor = makeEditor()
 		const { thread, comment } = makeThread(editor)
@@ -408,8 +407,8 @@ describe('history', () => {
 		expect(() => writeAfterCommit!()).toThrow('cannot be used after its commit has finished')
 	})
 
-	// A host can want pin drags undoable while posts and edits aren't. The drag owns its commit and
-	// receives the writer for its constituent records, which keeps `dragHistory` in charge of them.
+	// A host can want pin drags undoable while posts and edits aren't. The drag owns its commit, and
+	// its records go through the writer, which keeps `dragHistory` in charge of them.
 	it('lets dragHistory govern a drag on its own', () => {
 		const editor = makeEditor(CommentTool.configure({ history: 'ignore', dragHistory: 'record' }))
 		const { thread } = makeThread(editor)

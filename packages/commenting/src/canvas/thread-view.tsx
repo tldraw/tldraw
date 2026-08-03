@@ -302,7 +302,7 @@ export function ThreadView({
 			put([comment])
 			return comment
 		})
-		// Host code is a separate semantic operation, so keep it outside the post's history scope.
+		// The host's callback is its own operation, not part of the post's history scope.
 		onPostComment?.(comment)
 		setReply(EMPTY_COMMENT)
 		clearCommentDraft(replyDraftSlot(thread.id))
