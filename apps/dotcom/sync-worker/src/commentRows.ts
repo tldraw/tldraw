@@ -16,25 +16,14 @@ import { JsonObject } from '@tldraw/utils'
 
 /**
  * Conversions between the room's comment records and their Postgres rows. Postgres is the sole
- * durable store for comment records: the columns collectively carry every record field, so the
- * Durable Object can rebuild the records losslessly on cold start (`rowTo*Record`), and the
- * Zero-visible subset serves app-level queries. `lastChangedClock` preserves each record's sync
- * clock across reloads and guards upserts against no-op replays. Timestamps and clocks are read
- * through Number() as defense against driver/config drift: `postgres.ts` installs a global
- * int8-to-number type parser today, so pg already returns bigints as numbers, but nothing else
- * enforces that stays true.
+ * durable store, so the columns carry every record field and the DO can rebuild records losslessly
+ * on cold start. Timestamps and clocks go through Number() in case the global int8-to-number parser
+ * in `postgres.ts` ever goes away.
  */
 
 /**
- * True when `error` is Postgres rejecting a comment upsert because its author's user row no
- * longer exists: foreign key violation (code 23503) on `comment_author_id_fkey`. Deleting a user
- * cascades their comment rows away in Postgres (`ON DELETE CASCADE`), so hitting this means a
- * warm room still holds comment records for a since-deleted author. The caller mirrors the
- * cascade into the room by pruning those records instead of retrying the upsert forever.
- *
- * The error shape (`code`/`constraint`) is what node-postgres surfaces on `DatabaseError` and
- * kysely rethrows unchanged; both fields must match so unrelated FK failures keep the normal
- * at-least-once retry behavior.
+ * The author's user row is gone — deleting a user cascades their comment rows away, so a warm room
+ * is still holding records for a deleted author. Retrying can't succeed; the caller prunes.
  */
 export function isCommentAuthorFkViolation(error: unknown): boolean {
 	if (typeof error !== 'object' || error === null) return false
@@ -43,12 +32,8 @@ export function isCommentAuthorFkViolation(error: unknown): boolean {
 }
 
 /**
- * True when `error` is Postgres rejecting a thread upsert because its file row doesn't exist
- * (code 23503 on `comment_thread_file_id_fkey`). Either the file was deleted while a warm room
- * still held its threads, or a forged client pushed comment records into a room whose slug was
- * never a `file` row. Neither can ever succeed on retry, so the caller prunes the record rather
- * than leaving the outbox entry to fail on every drain forever. Same error-shape contract as
- * {@link isCommentAuthorFkViolation}.
+ * The thread's file row doesn't exist: the file was deleted, or a client pushed comments into a
+ * room whose slug was never a `file` row. Neither can succeed on retry, so the caller prunes.
  */
 export function isCommentThreadFkViolation(error: unknown): boolean {
 	if (typeof error !== 'object' || error === null) return false
@@ -56,12 +41,7 @@ export function isCommentThreadFkViolation(error: unknown): boolean {
 	return code === '23503' && constraint === 'comment_thread_file_id_fkey'
 }
 
-/**
- * True when `error` is Postgres rejecting a comment upsert because its file row doesn't exist
- * (code 23503 on `comment_file_id_fkey`). The file is gone — deleting it cascades every comment
- * row away — so retrying can never succeed and the caller prunes. Same error-shape contract as
- * {@link isCommentAuthorFkViolation}.
- */
+/** The comment's file row is gone, cascading every comment row with it. The caller prunes. */
 export function isCommentFileFkViolation(error: unknown): boolean {
 	if (typeof error !== 'object' || error === null) return false
 	const { code, constraint } = error as { code?: unknown; constraint?: unknown }
@@ -69,21 +49,10 @@ export function isCommentFileFkViolation(error: unknown): boolean {
 }
 
 /**
- * True when `error` is Postgres rejecting a comment upsert because the thread it points at doesn't
- * exist (code 23503 on `comment_thread_id_fkey`).
- *
- * Unlike the other FK matchers this one is **not** on its own sufficient to prune. Threads are
- * upserted before comments in the same drain, so this fires in two very different situations:
- *
- * - the thread genuinely doesn't exist (its create was vetoed by the authorizer, or a forged
- *   client referenced a thread id that never was) — permanent, prune;
- * - the thread exists in the room but its own upsert failed *this drain* for a transient reason
- *   (a timeout, a serialization failure). Its outbox entry is still queued and will retry, so the
- *   comment must wait for it — pruning here would destroy a live comment moments before its
- *   parent lands.
- *
- * The caller tells them apart by looking the comment's `threadId` up in the room's lane: absent
- * means permanent. See the prune predicate in `drainCommentOutbox`.
+ * The comment's thread row doesn't exist. Unlike the other FK matchers this is NOT on its own
+ * sufficient to prune: threads upsert before comments in the same drain, so a thread whose own
+ * upsert just failed transiently also fails its comments' FK, and it's still queued to retry.
+ * The caller only prunes when the threadId is also absent from the room's lane.
  */
 export function isCommentThreadIdFkViolation(error: unknown): boolean {
 	if (typeof error !== 'object' || error === null) return false
@@ -92,12 +61,8 @@ export function isCommentThreadIdFkViolation(error: unknown): boolean {
 }
 
 /**
- * True when `error` is Postgres rejecting a `comment_mention` insert on either of its foreign
- * keys (code 23503): the mentioned user's row no longer exists (deleted account, or a client
- * supplied an id that never was a user), or the comment itself was deleted between its upsert
- * and the mention write (e.g. a version restore's fileId-wide wipe). In both cases the mention
- * row is genuinely unwanted — retrying can't help — so the caller skips the row instead of
- * failing the drain. Same error-shape contract as {@link isCommentAuthorFkViolation}.
+ * A `comment_mention` insert hit either of its foreign keys: the mentioned user is gone, or the
+ * comment was deleted between its upsert and the mention write. The caller skips the row.
  */
 export function isCommentMentionFkViolation(error: unknown): boolean {
 	if (typeof error !== 'object' || error === null) return false
@@ -110,11 +75,8 @@ export function isCommentMentionFkViolation(error: unknown): boolean {
 }
 
 /**
- * True when `error` is Postgres rejecting a reaction upsert on one of its foreign keys (code
- * 23503): the comment, thread, or reacting user's row is gone. Deleting any of them cascades the
- * reaction rows away, so hitting this means a warm room still holds a reaction for something
- * Postgres has already removed. Retrying can never succeed, so the caller prunes the record
- * instead — the same contract as {@link isCommentAuthorFkViolation}.
+ * A reaction's comment, thread, or user row is gone, cascading the reaction rows with it. The
+ * caller prunes.
  */
 export function isCommentReactionFkViolation(error: unknown): boolean {
 	if (typeof error !== 'object' || error === null) return false
@@ -134,11 +96,9 @@ export interface CommentMentionReconcile {
 }
 
 /**
- * The desired end state of the `comment_mention` table for a drain's successfully upserted
- * comment rows: for each comment, the user ids its body currently `@`-mentions (deduped by
- * {@link extractMentionIds}). The caller reconciles Postgres to this — delete rows not in the
- * set, insert the rest with ON CONFLICT DO NOTHING — so the write is idempotent: an
- * at-least-once replay deletes nothing and inserts nothing, producing no WAL churn for Zero.
+ * The desired end state of `comment_mention` for a drain's upserted comments. The caller
+ * reconciles Postgres to this (delete rows not in the set, insert the rest with ON CONFLICT DO
+ * NOTHING), so an at-least-once replay is a no-op rather than WAL churn for Zero.
  */
 export function planMentionReconciles(commentRows: DB['comment'][]): CommentMentionReconcile[] {
 	return commentRows.map((row) => ({
@@ -180,8 +140,12 @@ export function reactionRecordToRow(
 		threadId: record.threadId,
 		pageId: record.pageId,
 		userId: record.userId,
+		// stamped by Postgres (set_comment_reaction_user_name_trigger); value here is ignored
+		userName: '',
 		emoji: record.emoji,
-		createdAt: record.createdAt,
+		// client-dated; clamp so it can't outrun the server-clamped comment_read.readAt watermark,
+		// which would make a "reacted to your comment" notification impossible to mark read
+		createdAt: Math.min(record.createdAt, Date.now()),
 		meta: record.meta,
 		lastChangedClock,
 	}
@@ -225,8 +189,8 @@ export function rowToThreadRecord(row: DB['comment_thread']): TLCommentThread {
 		isDeleted: row.isDeleted,
 		meta: (row.meta ?? {}) as JsonObject,
 	}
-	// The fields above are raw casts from the row; validate the finished record so a corrupt
-	// Postgres row fails the room open loudly instead of seeding an invalid record into the room.
+	// The fields above are raw casts, so validate: a corrupt row should fail the room open rather
+	// than seed an invalid record.
 	return commentThreadRecordConfig.validator.validate(record) as TLCommentThread
 }
 
@@ -243,8 +207,8 @@ export function rowToCommentRecord(row: DB['comment']): TLComment {
 		isDeleted: row.isDeleted,
 		meta: (row.meta ?? {}) as JsonObject,
 	}
-	// The fields above are raw casts from the row; validate the finished record so a corrupt
-	// Postgres row fails the room open loudly instead of seeding an invalid record into the room.
+	// The fields above are raw casts, so validate: a corrupt row should fail the room open rather
+	// than seed an invalid record.
 	return commentRecordConfig.validator.validate(record) as TLComment
 }
 
@@ -260,7 +224,7 @@ export function rowToReactionRecord(row: DB['comment_reaction']): TLCommentReact
 		createdAt: Number(row.createdAt),
 		meta: (row.meta ?? {}) as JsonObject,
 	}
-	// See rowToCommentRecord: validate the finished record so a corrupt row fails loudly.
+	// See rowToCommentRecord.
 	return commentReactionRecordConfig.validator.validate(record) as TLCommentReaction
 }
 
@@ -293,31 +257,20 @@ export function rowsToSnapshotDocuments(
 export interface CommentLoadResult {
 	documents: RoomSnapshot['documents']
 	/**
-	 * The highest `lastChangedClock` across ALL of the file's comment rows, including the
-	 * soft-deleted ones whose records were dropped from `documents`. Merge clamping must use this
-	 * rather than the merged documents' own clocks: a dropped row can hold the file's highest
-	 * clock, and seeding the room's clock below it would let future edits emit clocks the drain's
-	 * lastChangedClock guard rejects.
+	 * The highest `lastChangedClock` across ALL of the file's comment rows, including soft-deleted
+	 * ones dropped from `documents` — a dropped row can hold the file's highest clock, and seeding
+	 * the room below it would make future edits emit clocks the drain's guard rejects.
 	 */
 	clockFloor: number
 }
 
 /**
- * Build the room-seedable comment documents from a file's Postgres rows. Soft-deleted threads
- * (`isDeleted` — see TLCommentThread.isDeleted) and their comments are dropped, as are
- * soft-deleted comments of live threads: their rows stay in Postgres for recovery and Zero-side
- * filtering, but they never re-enter a room.
+ * Build the room-seedable comment documents from a file's Postgres rows. Soft-deleted records stay
+ * in Postgres for recovery and Zero-side filtering but never re-enter a room.
  *
- * A live thread whose comment rows are all soft-deleted is dropped too. It's the durable
- * backstop for the drain's emptied-thread prune: the thread's own isDeleted stamp rides a
- * comment_outbox entry in DO SQLite between drains, so losing that storage in the window leaves
- * the thread live in Postgres with nothing left to ever stamp it — this filter keeps it out of
- * rooms regardless. A thread with no comment rows at all is kept: it's a brand-new thread whose
- * first comment hasn't drained, not an emptied one.
- *
- * Reactions seed only when their comment does. A soft-deleted comment's reaction rows persist
- * (the comment row still exists, so no cascade fired) — this filter is what keeps them out of
- * rooms, mirroring the drain's orphan-reaction lane prune.
+ * A live thread whose comments are all soft-deleted is dropped too — the durable backstop for the
+ * drain's emptied-thread prune, whose isDeleted stamp rides an outbox entry in DO SQLite. A thread
+ * with no comment rows at all is kept: that's a new thread whose first comment hasn't drained.
  */
 export function liveCommentDocuments(
 	threadRows: DB['comment_thread'][],
@@ -356,10 +309,8 @@ export interface CommentOutboxEntry {
 }
 
 /**
- * The pure output of `planCommentDrain`: Postgres writes grouped by table and operation. The
- * delete buckets carry lane-absent ids, and "delete" means stamping the row's `isDeleted` —
- * the drain never hard-deletes comment-lane rows (the only hard deletes are Postgres-side
- * cascades: user-account deletion, file deletion, version restore).
+ * Postgres writes grouped by table and operation. The delete buckets carry lane-absent ids, and
+ * "delete" means stamping `isDeleted` — the drain never hard-deletes comment-lane rows.
  */
 export interface CommentDrainPlan {
 	threadUpserts: DB['comment_thread'][]
@@ -368,22 +319,14 @@ export interface CommentDrainPlan {
 	threadDeletes: string[]
 	commentDeletes: string[]
 	reactionDeletes: string[]
-	/**
-	 * Ids that are none of the comment record types. The outbox should only ever contain those, so
-	 * an unknown id means a bug or a corrupted outbox row; it is reported here instead of being
-	 * misfiled into an upsert/delete bucket, and the caller decides how to surface it.
-	 */
+	/** Ids of no known comment record type — a bug or a corrupted outbox row. */
 	unknownIds: string[]
 }
 
 /**
- * The pure planning half of the comment outbox drain (see drainCommentOutbox in
- * TLFileDurableObject). The outbox stores only ids; whether an id is an upsert or a delete is
- * decided by its presence in the object `lane` at plan time, so multiple entries for one record
- * coalesce into a single write (deduped by recordId, keeping first-occurrence order) and a
- * create-then-prune nets out to a delete bucket entry. Only ids present in `entries` are considered — the
- * caller bounds the entries to its drain's high-water mark, and lane records outside that set
- * belong to a later drain.
+ * The pure planning half of the comment outbox drain (see drainCommentOutbox). The outbox stores
+ * only ids; upsert-vs-delete is decided by presence in the object `lane` at plan time, so multiple
+ * entries for one record coalesce into a single write and a create-then-prune nets out to a delete.
  */
 export function planCommentDrain(
 	entries: CommentOutboxEntry[],
@@ -434,11 +377,8 @@ export function planCommentDrain(
 }
 
 /**
- * Which outbox entries a finished drain may delete. Entries whose recordId is in `failedIds`
- * are kept queued so the next drain retries them; everything else (including entries for pruned
- * or unknown ids, where retrying can't help) is cleared. When nothing failed, `clearAll` is the
- * fast path: the caller can bulk-clear everything up to its drain bound instead of deleting
- * per-seq.
+ * Which outbox entries a finished drain may delete. `failedIds` stay queued for the next drain;
+ * everything else clears. `clearAll` is the fast path when nothing failed.
  */
 export function outboxEntriesToClear(
 	entries: CommentOutboxEntry[],
@@ -454,18 +394,12 @@ export function outboxEntriesToClear(
 }
 
 /**
- * Given the `threadId`s of comment records that were just pruned and a view of the records that
- * remain (read AFTER the pruned comments were deleted), return the threadIds that no longer have
- * any comments referencing them. The callers (the author-FK prune and the soft-delete prune in
- * drainCommentOutbox) delete those threads in the same transaction: an emptied thread never
- * renders (clients hide threads with no comments), and no client may delete a thread it didn't
- * create — the ordinary "delete the last comment" path relies on this server-side prune.
+ * Of the just-pruned comments' threads, which no longer have any comments. Callers delete those
+ * threads in the same transaction: an emptied thread never renders, and no client may delete a
+ * thread it didn't create, so the ordinary "delete the last comment" path needs this prune.
  *
- * The view must be transaction-time (e.g. the prune transaction's own read surface), not an
- * earlier lane snapshot: a reply committed between the snapshot and the transaction must keep its
- * thread alive. The scan iterates `keys()` (an id-only scan; comment ids are typeName-prefixed so
- * non-comment records are skipped without being read) and `get`s only comment records, stopping
- * early once every candidate thread has been kept alive.
+ * `remaining` must be transaction-time, not an earlier lane snapshot — a reply committed in
+ * between has to keep its thread alive.
  */
 export function findEmptiedCommentThreads(
 	candidateThreadIds: ReadonlySet<string>,
@@ -482,16 +416,8 @@ export function findEmptiedCommentThreads(
 }
 
 /**
- * Given the ids of comments that were just pruned and a view of the records that remain, return the
- * ids of reaction records whose `commentId` points at one of those pruned comments. The caller (see
- * the author-FK prune in drainCommentOutbox) deletes those reactions from the room in the same
- * transaction: `comment_reaction.commentId` is `ON DELETE CASCADE`, so Postgres already dropped the
- * rows when the comment row went — this only catches the warm room's SQLite up, so orphan reactions
- * don't linger pointing at a comment that no longer exists.
- *
- * Like {@link findEmptiedCommentThreads}, the scan iterates `keys()` (an id-only scan; reaction ids
- * are typeName-prefixed so non-reaction records are skipped without being read) and `get`s only
- * reaction records.
+ * Reactions pointing at just-pruned comments. Postgres already cascaded these rows away, so this
+ * only catches the warm room's SQLite up.
  */
 export function findOrphanedReactions(
 	prunedCommentIds: ReadonlySet<string>,
@@ -509,25 +435,13 @@ export function findOrphanedReactions(
 
 /**
  * Merge rehydrated comment documents into a room snapshot, clamping the snapshot's clocks up to
- * the load's `clockFloor` (the highest clock across all of the file's comment rows — including
- * soft-deleted ones that contributed no document). Comments push to Postgres per-commit while
- * the document snapshot persists on a throttle, so after a storage loss the comment clocks can
- * be ahead of the snapshot's — seeding the room clock below them would make future edits emit
- * clocks the drain's lastChangedClock guard rejects, silently dropping those edits from
- * Postgres.
+ * the load's `clockFloor`. Comments push to Postgres per-commit while the snapshot persists on a
+ * throttle, so after a storage loss the comment clocks can be ahead — seeding the room below them
+ * would make future edits emit clocks the drain's guard silently rejects.
  *
- * `SQLiteSyncStorage` seeds its clock from `snapshot.documentClock ?? snapshot.clock ?? 0`, so we
- * clamp based on that effective value (setting `documentClock` when only a higher legacy `clock`
- * was present would lower the seed, not raise it) and keep `clock` \>= `documentClock` when both
- * are set.
- *
- * When the clamp fires, the room is claiming a clock higher than anything the stale snapshot
- * actually has history for — the delete/tombstone history between the snapshot's old clock and
- * `maxClock` lived only in the DO's SQLite storage that we just lost, so it's genuinely gone, not
- * merely unsynced. We raise `tombstoneHistoryStartsAtClock` to match so `wipeAll` fires for any
- * client reconnecting with `sinceClock` short of `maxClock`: that forces a full resync instead of
- * a partial incremental diff, which would otherwise let clients silently keep documents the
- * server can no longer account for.
+ * The clamp works off `documentClock ?? clock ?? 0`, matching how `SQLiteSyncStorage` seeds.
+ * `tombstoneHistoryStartsAtClock` rises with it: the tombstone history for that range lived only
+ * in the lost SQLite, so reconnecting clients must full-resync rather than take a partial diff.
  */
 export function mergeCommentDocumentsIntoSnapshot(
 	snapshot: RoomSnapshot,

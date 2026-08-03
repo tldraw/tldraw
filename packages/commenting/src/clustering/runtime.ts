@@ -16,28 +16,29 @@ export interface ClusterRuntime {
 	/** Reset state from scratch for the given zoom (cold start / after rebuild). Clears detaches. */
 	seed(zoom: number): void
 	/**
-	 * Reset state for the given zoom, carrying hysteresis state over from a previous partition
-	 * (the visible map of the model being replaced). Threshold-forced events ignore history:
-	 * zoom \<= zMerge is always merged, zoom \>= zSplit always split. An event inside its band
-	 * keeps its previous state: merged iff its members were merged together in `previous`; a band
-	 * event that was unmerged (or has no history, e.g. introduced by the rebuild) stays unmerged —
-	 * inside the cursor but suppressed — until a zoom-out crosses its own zMerge, exactly like any
-	 * other pending merge. Carryover is exact: no group changes state because of the swap alone.
-	 * Clears detaches.
+	 * Reset state for the given zoom, carrying hysteresis state over from a previous partition.
+	 * Threshold-forced events ignore history: zoom \<= zMerge is always merged, zoom \>= zSplit always
+	 * split. An event inside its band keeps its previous state; one that was unmerged (or has no
+	 * history) stays suppressed inside the cursor until a zoom-out crosses its own zMerge. Carryover is
+	 * exact — no group changes state because of the swap alone. Clears detaches.
 	 */
 	seedFrom(zoom: number, previous: ReadonlyMap<string, ClusterNode>): void
 	/** Advance/retreat the cursor for a camera change. No-op if zoom sits inside all bands. */
 	onCamera(zoom: number): void
 	/**
 	 * Remove one leaf from the displayed partition without touching the event table. Local by
-	 * construction: only the nodes containing the leaf change — a badge shrinks in place (count
-	 * and centroid recomputed from its remaining members), a pair collapses to its surviving
-	 * leaf, and the leaf on its own disappears. Everything else is untouched, so a deletion,
-	 * pop-out, or thread-open never re-flows the rest of the document. The table's thresholds
-	 * around the detached leaf go stale; the caller is expected to hold a corrected rebuild and
-	 * adopt it (with seedFrom) at the next zoom-out. Unknown or already-detached ids are no-ops.
+	 * construction: only the nodes containing the leaf change, so a deletion, pop-out, or thread-open
+	 * never re-flows the rest of the document. The table's thresholds around the detached leaf go
+	 * stale; the caller is expected to adopt a corrected rebuild (with seedFrom) at the next zoom-out.
+	 * Unknown or already-detached ids are no-ops.
 	 */
 	detachLeaf(leafId: string): void
+	/**
+	 * Batch form of {@link ClusterRuntime.detachLeaf}: detach every given leaf with a single
+	 * patch rebuild and a single version bump. Ids that are unknown or already detached are
+	 * skipped; if nothing new detaches, nothing changes.
+	 */
+	detachLeaves(leafIds: Iterable<string>): void
 	/** The displayed partition: cluster id → node, with detaches applied. Do not mutate. */
 	getVisible(): ReadonlyMap<string, ClusterNode>
 }
@@ -56,10 +57,9 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 	// time in getVisible().
 	private visible = new Map<string, ClusterNode>()
 	private seeded = false
-	// Indices (< k) of band events held unmerged by seedFrom carryover. The single cursor can
-	// only express "merged up to here", but a carried-over partition can be "merged except these"
-	// — the exceptions live here. Self-draining: an entry leaves via onCamera when the zoom
-	// crosses its own zMerge (merges) or its zSplit (the split walk retreats past it).
+	// Indices (< k) of band events held unmerged by seedFrom carryover. The single cursor can only
+	// express "merged up to here", but a carried-over partition can be "merged except these". Self-
+	// draining: an entry leaves via onCamera when the zoom crosses its zMerge or its zSplit.
 	private suppressed = new Set<number>()
 	// Leaves removed from the displayed partition (deleted / popped out / opened). Patches map
 	// each structural node containing a detached leaf to its displayed replacement (or null to
@@ -121,10 +121,8 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 		for (let i = 0; i < k; i++) {
 			const event = events[i]
 			if (zoom > event.zMerge && !wasMergedTogether(event.result.members, ownerByMember)) {
-				// In its band and previously unmerged: keep it unmerged, as an exception inside
-				// the cursor. Dependency-safe: an applied event can never consume a suppressed
-				// result — merged members imply merged (subset) children, and threshold-forced
-				// events force their children too (zMerge is non-increasing down the table).
+				// In its band and previously unmerged: keep it unmerged, as an exception inside the cursor.
+				// Dependency-safe, since an applied event can never consume a suppressed result.
 				this.suppressed.add(i)
 			} else {
 				applyEvent(this.visible, event)
@@ -141,17 +139,13 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 		}
 
 		let changed = false
-		// Heal suppressed events at their own merge threshold BEFORE the merge walk: a zoom-out
-		// past zMerge merges a held-out band event exactly as if it had still been ahead of the
-		// cursor. Healing must precede the walk because a single zoom jump can cross both a
-		// suppressed event and an event that consumes its result; applying the consumer first
-		// would leave the unapplied producer's children in `visible` (its delete is a no-op) and
-		// then re-add the producer on top, double-counting those leaves. Threshold monotonicity
-		// guarantees a suppressed producer's zMerge is >= its consumer's, so anything the walk
-		// needs has already healed. Set iteration is insertion order (ascending index), so a
-		// healed event's suppressed children (larger zMerge, smaller index) heal before it.
+		// Heal suppressed events at their own merge threshold BEFORE the merge walk, so a zoom-out past
+		// zMerge merges a held-out band event as if it had still been ahead of the cursor. Healing must come
+		// first: one zoom jump can cross both a suppressed event and an event consuming its result, and
+		// applying the consumer first would double-count the producer's leaves. Iterated live — deleting only
+		// the entry being visited is safe, and Set iteration still yields the rest in insertion order.
 		if (this.suppressed.size > 0) {
-			for (const i of [...this.suppressed]) {
+			for (const i of this.suppressed) {
 				if (zoom <= this.table.events[i].zMerge) {
 					this.suppressed.delete(i)
 					applyEvent(this.visible, this.table.events[i])
@@ -176,9 +170,19 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 	}
 
 	detachLeaf(leafId: string): void {
-		if (this.detached.has(leafId)) return
-		if (!this.getLeafById().has(leafId)) return
-		this.detached.add(leafId)
+		this.detachLeaves([leafId])
+	}
+
+	detachLeaves(leafIds: Iterable<string>): void {
+		const leafById = this.getLeafById()
+		let changed = false
+		for (const leafId of leafIds) {
+			if (this.detached.has(leafId)) continue
+			if (!leafById.has(leafId)) continue
+			this.detached.add(leafId)
+			changed = true
+		}
+		if (!changed) return
 		this.rebuildPatches()
 		this.version++
 	}
@@ -208,10 +212,9 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 		return this.leafById
 	}
 
-	/** Recompute the patch map from the detached set. A node is patched iff it contains a
-	 *  detached member; the patch drops those members and recomputes count/centroid, collapsing
-	 *  to the surviving leaf node at count 1 and to nothing at count 0. Patched nodes keep their
-	 *  structural id, so cursor events keep addressing them. */
+	/** Recompute the patch map from the detached set. A node is patched iff it contains a detached
+	 *  member; the patch drops those members and recomputes count/centroid, collapsing to the surviving
+	 *  leaf at count 1 and to nothing at count 0. Patched nodes keep their structural id. */
 	private rebuildPatches() {
 		this.patched.clear()
 		const leafById = this.getLeafById()

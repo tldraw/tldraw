@@ -197,8 +197,6 @@
 	pointer-events: none;
 	white-space: nowrap;
 	width: max-content;
-	max-height: none;
-	overflow: visible;
 }
 
 .tlui-cmt-input {
@@ -236,6 +234,17 @@
 	line-height: 1.4;
 	color: var(--tl-color-text-3);
 	pointer-events: none;
+}
+
+/* iOS Safari zooms the whole page in when a text input with a sub-16px font takes focus, and doesn't
+   zoom back out. Raising the font to 16px on touch devices suppresses that without disabling
+   pinch-zoom of the canvas (which a `maximum-scale` viewport lock would). Must come after both base
+   rules above: a media query adds no specificity, so it only wins the placeholder on source order. */
+@media (pointer: coarse) {
+	.tlui-cmt-input,
+	.tlui-cmt-input__placeholder {
+		font-size: 16px;
+	}
 }
 
 /* A bare up-arrow icon button (matching the placement composer): no fill by default, a grey square
@@ -414,12 +423,17 @@
 	font-size: 10px;
 	font-weight: 400;
 	color: var(--tl-color-text-1);
+}
+
+/* An inert pill renders as a span (e.g. in a notification row); only the button variant is
+   clickable, so only it gets the pointer cursor and hover shade. */
+button.tlui-cmt-reaction {
 	cursor: pointer;
 }
 
 /* Hover deepens the grey — no border to tint now. Mixing toward the text colour is theme-aware:
    it darkens the fill in light mode and lightens it in dark, tracking the pill's own contrast. */
-.tlui-cmt-reaction:hover {
+button.tlui-cmt-reaction:hover {
 	background: var(--tl-color-muted-1);
 }
 
@@ -429,14 +443,15 @@
 	background: color-mix(in srgb, var(--tl-color-selected) 28%, var(--tl-color-panel));
 }
 
-.tlui-cmt-reaction--active:hover {
+button.tlui-cmt-reaction--active:hover {
 	background: color-mix(in srgb, var(--tl-color-selected) 38%, var(--tl-color-panel));
 }
 
-/* the emoji sits at the same 10px as the count beside it */
+/* The emoji renders larger than the 10px count, but its pinned line-height keeps the pill the
+   count's height — the glyph overflows the line box rather than growing it. */
 .tlui-cmt-reaction__emoji {
-	font-size: 10px;
-	line-height: 1;
+	font-size: 13px;
+	line-height: 10px;
 }
 
 .tlui-cmt-reaction__count {
@@ -539,7 +554,8 @@
 	--tlui-cmt-marker-transition: 0.08s ease;
 	--tlui-cmt-thread-padding: 12px;
 	--tlui-cmt-thread-gap: 0px;
-	--tlui-cmt-thread-action-size: 26px;
+	/* Hit-area width of one .tlui-cmt-thread__action button (drawn as a 32px square inset 4px). */
+	--tlui-cmt-thread-action-size: 40px;
 	/* A floating pill's edge — its hairline ring is the only thing separating it from the panel it
 	   overlaps, so the ring is a theme token rather than a literal black: a near-black hairline
 	   vanishes on a dark panel, where the divider token lightens instead. The drop below it stays
@@ -602,47 +618,28 @@
 	   space-between alone would leave them at the left). */
 	margin-left: auto;
 }
-/* Follows tldraw's toolbar buttons (.tlui-button), used by both the header and card actions: the
-   button is the 40px hit target that tiles with its neighbours; its 32px ::after is the visual
-   square carrying the hover wash, so the hit area (not the ::after) is what's clickable and it
-   never reaches past its row. */
-.tlui-cmt-thread__action {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+/* These are TldrawUiButtons (type="icon"), so the 40px box, the 32px ::after square carrying the
+   hover wash, and the hover z-index flip all come from .tlui-button — the hit area (not the
+   ::after) is what's clickable, and it never reaches past its row. Only the bits that differ from
+   a toolbar button are set here, at .tlui-button's specificity + 1 so stylesheet order can't
+   decide the winner. */
+.tlui-button.tlui-cmt-thread__action {
 	width: 40px;
-	height: 40px;
 	padding: 0;
-	border: none;
 	border-radius: 6px;
-	background: transparent;
 	color: var(--tl-color-text-3);
 	font-size: 14px;
 	line-height: 1;
-	cursor: pointer;
 }
 /* Overlap each button 4px into the previous so the 32px visual squares sit 4px apart, not 8px.
    Left-only, so the last button's hit area still stops at its row's right edge. */
 .tlui-cmt-thread__action + .tlui-cmt-thread__action {
 	margin-left: -4px;
 }
-.tlui-cmt-thread__action::after {
-	content: '';
-	position: absolute;
-	inset: 4px;
-	border-radius: var(--tl-radius-2);
-}
-.tlui-cmt-thread__action:hover {
+.tlui-button.tlui-cmt-thread__action:hover {
 	color: var(--tl-color-text-1);
-	/* Raise the hovered button above its overlapping neighbours so its 40px hit area wins the
-	   overlap zone — the same z-index flip tldraw's own toolbar buttons use. */
-	z-index: 1;
 }
-.tlui-cmt-thread__action:hover::after {
-	background: var(--tl-color-muted-2);
-}
-.tlui-cmt-thread__action--danger:hover {
+.tlui-button.tlui-cmt-thread__action--danger:hover {
 	color: var(--tl-color-danger);
 }
 .tlui-cmt-thread__resolved {
@@ -725,7 +722,7 @@
 .tlui-cmt-canvas-preview--thread .tlui-cmt-card {
 	width: 100%;
 	gap: 0;
-	padding: 0 12px;
+	padding: 0 var(--tlui-cmt-thread-padding);
 	background: transparent;
 	border: none;
 }
@@ -754,14 +751,17 @@
 .tlui-cmt-stack-list .tlui-cmt-card .tlui-cmt-head {
 	min-height: 40px;
 }
-/* Only the opened thread's comments actually carry the pills, so only they reserve room for them.
-   Derived from the action size so it can't drift: n buttons + (n−1) 2px gaps + the pill's 2px
-   padding either side + its 2px right inset. One button (react) on others' comments. */
-.tlui-cmt-thread .tlui-cmt-card .tlui-cmt-head {
-	padding-right: calc(var(--tlui-cmt-thread-action-size) + 6px);
+/* Reserve head room only for pills that actually rendered (one child / two children) — pill count
+   is a permissions question (canModifyComment), not ownership, and empty slots (read-only viewers)
+   keep the full row. Sized from the 40px hit areas (4px overlap), minus the card padding the
+   right:0 pills sit over; text stops 4px shy of the visible square. */
+.tlui-cmt-thread .tlui-cmt-card:has(.tlui-cmt-card__actions > *) .tlui-cmt-head {
+	padding-right: calc(var(--tlui-cmt-thread-action-size) - var(--tlui-cmt-thread-padding));
 }
-.tlui-cmt-thread .tlui-cmt-card--you .tlui-cmt-head {
-	padding-right: calc(3 * var(--tlui-cmt-thread-action-size) + 10px);
+.tlui-cmt-thread .tlui-cmt-card:has(.tlui-cmt-card__actions > * + *) .tlui-cmt-head {
+	padding-right: calc(
+		2 * var(--tlui-cmt-thread-action-size) - 4px - var(--tlui-cmt-thread-padding)
+	);
 }
 
 /* comments list — thread summaries, one per row (used by the canvas sidebar) */
@@ -786,36 +786,34 @@
 	color: var(--tl-color-text-1);
 }
 
-/* a small square icon button in the sidebar header (filter funnel, overflow …) */
-.tlui-cmt-header-btn {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+/* A small square icon button in the sidebar header (filter funnel, overflow …). Also a
+   TldrawUiButton, but a bespoke 26px size — so it has to override .tlui-button's 40px box, and
+   `min-width` in particular would otherwise beat `width`. Selectors carry .tlui-button so
+   stylesheet order can't decide the winner. */
+.tlui-button.tlui-cmt-header-btn {
 	width: 26px;
+	min-width: 26px;
 	height: 26px;
 	padding: 0;
-	border: none;
 	border-radius: 6px;
-	background: transparent;
 	color: var(--tl-color-text-2);
-	cursor: pointer;
 }
 /* Same hit-target expansion as the thread actions, tiled the same way — this row's gap is 2px too
-   (see `.tlui-cmt-list__header-actions`). */
-.tlui-cmt-header-btn::after {
-	content: '';
-	position: absolute;
+   (see `.tlui-cmt-list__header-actions`). Unlike the thread actions, the hover fill sits on the
+   button itself, so .tlui-button's ::after wash is cleared and the pseudo-element is left doing
+   nothing but widening the hit area. */
+.tlui-button.tlui-cmt-header-btn::after {
 	inset: -6px -1px;
+	background: none;
 }
-.tlui-cmt-header-btn:first-child::after {
+.tlui-button.tlui-cmt-header-btn:first-child::after {
 	left: -6px;
 }
-.tlui-cmt-header-btn:last-child::after {
+.tlui-button.tlui-cmt-header-btn:last-child::after {
 	right: -6px;
 }
-.tlui-cmt-header-btn:hover,
-.tlui-cmt-header-btn[data-state='open'] {
+.tlui-button.tlui-cmt-header-btn:hover,
+.tlui-button.tlui-cmt-header-btn[data-state='open'] {
 	background: var(--tl-color-muted-2);
 	color: var(--tl-color-text-1);
 }

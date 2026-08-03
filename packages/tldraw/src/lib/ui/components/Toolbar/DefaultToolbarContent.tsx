@@ -11,7 +11,6 @@ export function DefaultToolbarContent() {
 			<HandToolbarItem />
 			<DrawToolbarItem />
 			<EraserToolbarItem />
-			<CommentToolbarItem />
 			<ArrowToolbarItem />
 			<TextToolbarItem />
 			<NoteToolbarItem />
