@@ -267,6 +267,10 @@ export type TLDataPointName =
 	| 'room_size_mb'
 	| 'r2_queue_depth'
 	| 'pierre_incremental_write_chars'
+	// Hibernation residency — see utils/residency.ts
+	| 'room_wake'
+	| 'room_cold_start'
+	| 'room_resident_gap'
 	// Other durable objects
 	| 'user_durable_object'
 	| 'replicator'

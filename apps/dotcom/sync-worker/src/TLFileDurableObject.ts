@@ -61,6 +61,7 @@ import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
+import { classifyResidency } from './utils/residency'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
@@ -463,6 +464,7 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	override async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
+		this.recordResidency()
 		const attachment = this.getSocketAttachment(ws)
 		if (!attachment?.sessionId) return
 		if (!this._documentInfo) return
@@ -596,6 +598,8 @@ export class TLFileDurableObject extends DurableObject {
 
 	async onRequest(req: IRequest, openMode: RoomOpenMode) {
 		const requestTimer = this.timer()
+		// Before acceptWebSocket below, so a cold start isn't misread as a hibernation wake.
+		this.recordResidency()
 
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
@@ -911,6 +915,34 @@ export class TLFileDurableObject extends DurableObject {
 				this.writeEvent(name, { ...data, doubles: [...(data?.doubles ?? []), Date.now() - start] })
 			},
 		}
+	}
+
+	/**
+	 * When this instance last saw an event. Deliberately in memory rather than storage: hibernation
+	 * wipes it, which is exactly what makes it a probe for whether hibernation happened. See
+	 * {@link classifyResidency}.
+	 */
+	private lastEventAt: number | null = null
+
+	/**
+	 * Reports whether this object hibernated since its last event, or sat in memory being billed for
+	 * wall-clock it did no work in. Call from every entry point that can wake the object, and in
+	 * `onRequest` before `acceptWebSocket`, or a cold start reads as a wake.
+	 */
+	private recordResidency() {
+		const now = Date.now()
+		const observation = classifyResidency({
+			lastEventAt: this.lastEventAt,
+			now,
+			socketCount: this.state.getWebSockets().length,
+		})
+		this.lastEventAt = now
+		if (!observation) return
+		this.writeEvent(observation.event, {
+			doubles: [
+				observation.event === 'room_resident_gap' ? observation.gapMs : observation.socketCount,
+			],
+		})
 	}
 
 	logEvent(event: TLServerEvent) {

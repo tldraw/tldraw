@@ -119,6 +119,6 @@ describe('EVENT_DOMAINS', () => {
 		expect(byDomain.replicator).toEqual(['replicator'])
 		expect(byDomain.screenshot).toEqual(['mcp_shared_board_screenshot'])
 		expect(byDomain.user).toEqual(['user_durable_object'])
-		expect(byDomain.room).toHaveLength(32)
+		expect(byDomain.room).toHaveLength(35)
 	})
 })

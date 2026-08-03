@@ -57,6 +57,10 @@ export const EVENT_DOMAINS: Record<TLDataPointName, TLAnalyticsDomain> = {
 	room_size_mb: 'room',
 	r2_queue_depth: 'room',
 	pierre_incremental_write_chars: 'room',
+	// Hibernation residency
+	room_wake: 'room',
+	room_cold_start: 'room',
+	room_resident_gap: 'room',
 	// Other durable objects
 	user_durable_object: 'user',
 	replicator: 'replicator',
