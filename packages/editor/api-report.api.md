@@ -5223,7 +5223,7 @@ export function useTransform(ref: React.RefObject<HTMLElement | null | SVGElemen
 // @public
 export function useUniqueSafeId(suffix?: string): SafeId;
 
-// @public (undocumented)
+// @public @deprecated
 export function useViewportHeight(): number;
 
 // @internal (undocumented)
