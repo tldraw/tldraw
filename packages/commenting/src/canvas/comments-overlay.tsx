@@ -68,11 +68,16 @@ function CanvasCommentsLayer(props: CommentingContext) {
 	const pending = usePendingComment()
 	const canComment = useCanComment(props.currentUserId)
 	// Nothing renders a pending comment when composing is blocked and there's no fallback slot, and
-	// the dismiss handlers live inside PendingComposer — so clear the atom rather than strand it.
+	// the dismiss handlers live inside PendingComposer — so clear the atom rather than strand it,
+	// and leave the tool too: it holds while a composer is open, so staying would turn every click
+	// into a silently swallowed placement.
 	const canRenderComposer = canComment || options.components.ComposerFallback != null
 	const showPendingComposer = pending != null && canRenderComposer
 	useEffect(() => {
-		if (pending && !showPendingComposer) pendingComment.set(editor, null)
+		if (pending && !showPendingComposer) {
+			pendingComment.set(editor, null)
+			if (editor.isIn('comment')) editor.setCurrentTool('select')
+		}
 	}, [editor, pending, showPendingComposer])
 	const openId = useValue('open thread id', () => openThreadId.get(editor), [editor])
 	// Matches the sidebar's `showResolved` filter. The open thread stays in — resolving from its own

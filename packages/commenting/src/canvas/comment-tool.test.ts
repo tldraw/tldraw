@@ -13,7 +13,7 @@ import {
 } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { CommentTool } from './comment-tool'
-import { commentsSidebarOpen, pendingComment } from './state'
+import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
 
 /**
  * Pointer-driven tests for the comment tool's placement affordances. These need a real editor
@@ -111,7 +111,10 @@ describe('comment tool placement lifecycle', () => {
 		// Placement opens the composer but the interaction isn't over — the tool holds on until
 		// the comment is posted or dismissed, so the surrounding UI stays stable.
 		expect(editor.isIn('comment.idle')).toBe(true)
-		expect(pendingComment.get(editor)).toMatchObject({ anchor: { type: 'point' } })
+		expect(pendingComment.get(editor)).toEqual({
+			anchor: { type: 'point', x: 400, y: 300 },
+			point: { x: 400, y: 300 },
+		})
 	})
 
 	it('re-places the composer on a second click', () => {
@@ -121,7 +124,10 @@ describe('comment tool placement lifecycle', () => {
 		driver.pointerDown(200, 200)
 		driver.pointerUp(200, 200)
 		expect(editor.isIn('comment.idle')).toBe(true)
-		expect(pendingComment.get(editor)).toMatchObject({ point: { x: 200, y: 200 } })
+		expect(pendingComment.get(editor)).toEqual({
+			anchor: { type: 'point', x: 200, y: 200 },
+			point: { x: 200, y: 200 },
+		})
 	})
 
 	it('drops the pending composer when the tool exits', () => {
@@ -149,10 +155,13 @@ describe('comment tool placement lifecycle', () => {
 		expect(commentsSidebarOpen.get(editor)).toBe(false)
 	})
 
-	it('escape leaves the tool for select', () => {
+	it('escape leaves the tool for select and drops the draft', () => {
 		editor.setCurrentTool('comment')
+		driver.pointerDown(400, 300)
+		driver.pointerUp(400, 300)
 		editor.cancel()
 		expect(editor.isIn('select')).toBe(true)
+		expect(pendingComment.get(editor)).toBeNull()
 	})
 })
 
@@ -179,7 +188,35 @@ describe('comment tool placement hints with regions enabled', () => {
 		driver.pointerMove(200, 180)
 		driver.pointerUp(200, 180)
 		expect(editor.isIn('comment.idle')).toBe(true)
-		expect(pendingComment.get(editor)).toMatchObject({ anchor: { type: 'region' } })
+		expect(pendingComment.get(editor)).toEqual({
+			anchor: { type: 'region', x: 100, y: 100, w: 100, h: 80, pinX: 1, pinY: 1 },
+			point: { x: 200, y: 180 },
+		})
+	})
+
+	it('does not hint a shape under the pin corner of a placed region', () => {
+		const driver = makeEditor(CommentTool.configure({ enableRegions: true }))
+		makeShape(100, 100)
+		editor.setCurrentTool('comment')
+		// Release on top of the shape: a region anchors to its rectangle, so the outline that
+		// normally previews a shape anchor would be a lie here.
+		driver.pointerDown(50, 50)
+		driver.pointerMove(150, 125)
+		driver.pointerUp(150, 125)
+		expect(editor.isIn('comment.idle')).toBe(true)
+		expect(editor.getHintingShapeIds()).toEqual([])
+	})
+
+	it('drops the region draft when the tool exits mid-drag', () => {
+		const driver = makeEditor(CommentTool.configure({ enableRegions: true }))
+		editor.setCurrentTool('comment')
+		driver.pointerDown(100, 100)
+		driver.pointerMove(200, 180)
+		expect(regionDraft.get(editor)).not.toBeNull()
+
+		// A direct tool switch (shortcut, toolbar) mid-drag must not strand the drawn rectangle.
+		editor.setCurrentTool('select')
+		expect(regionDraft.get(editor)).toBeNull()
 	})
 })
 

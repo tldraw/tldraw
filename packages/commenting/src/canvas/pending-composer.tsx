@@ -107,9 +107,10 @@ export function PendingComposer({
 		setText(EMPTY_COMMENT)
 		clearCommentDraft(NEW_COMMENT_DRAFT)
 		pendingComment.set(editor, null)
-		// Posting ends the placement interaction — the comment tool held on while the composer was
-		// open, so hand back to select now.
-		if (editor.isIn('comment')) editor.setCurrentTool('select')
+		// Posting ends the placement interaction — hand the comment tool back to select. Only from
+		// the settled idle state: Enter can land while a fresh press is mid-gesture (the composer
+		// trails the pointer), and switching tools under a held pointer would strand the gesture.
+		if (editor.isIn('comment.idle')) editor.setCurrentTool('select')
 		// The host's callback is its own operation, not part of the post's history scope. It runs
 		// last so a throwing host can't strand the composer holding a draft of a posted comment.
 		onPostComment?.(comment)
