@@ -1,6 +1,13 @@
 import { TLRichText } from 'tldraw'
 import { describe, expect, it } from 'vitest'
-import { categorizeCommentNotifications, CommentNotificationInput } from './commentNotifications'
+import {
+	buildReactionNotifications,
+	categorizeCommentNotifications,
+	CommentNotificationInput,
+	mergeNotifications,
+	ReactionNotificationInput,
+	summarizeForeignReactors,
+} from './commentNotifications'
 
 const ME = 'user_me'
 const OTHER = 'user_other'
@@ -33,6 +40,7 @@ function comment(overrides: Partial<CommentNotificationInput> = {}): CommentNoti
 	return {
 		id: 'comment:1',
 		authorId: OTHER,
+		fileId: 'file:1',
 		threadId: 'comment-thread:1',
 		createdAt: at(0),
 		body: body('hello'),
@@ -252,5 +260,256 @@ describe('categorizeCommentNotifications', () => {
 		const newer = comment({ id: 'comment:new', createdAt: at(10), file: { ownerId: ME } })
 		const result = categorizeCommentNotifications([older, newer], ME)
 		expect(result.map((n) => n.comment.id)).toEqual(['comment:new', 'comment:old'])
+	})
+
+	it('marks a comment notification unread until it has a read receipt', () => {
+		const unread = categorizeCommentNotifications([comment({ file: { ownerId: ME } })], ME)
+		expect(unread[0].unread).toBe(true)
+		const read = categorizeCommentNotifications(
+			[comment({ file: { ownerId: ME }, read: { readAt: at(1) } })],
+			ME
+		)
+		expect(read[0].unread).toBe(false)
+	})
+})
+
+describe('buildReactionNotifications', () => {
+	/** My own comment, as the related comment carried on a reaction row — full `reactions` set
+	 *  included, since that's what the entry now derives its timestamp and pills from. */
+	function mine(overrides: Partial<CommentNotificationInput> = {}): CommentNotificationInput {
+		return comment({
+			authorId: ME,
+			thread: { createdBy: ME },
+			file: { ownerId: THIRD },
+			reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) }],
+			...overrides,
+		})
+	}
+
+	function reactionRow(
+		overrides: Partial<ReactionNotificationInput> = {}
+	): ReactionNotificationInput {
+		return {
+			commentId: 'comment:1',
+			userId: OTHER,
+			userName: 'Other',
+			emoji: '👍',
+			createdAt: at(10),
+			comment: mine(),
+			...overrides,
+		}
+	}
+
+	it('dedupes multiple rows on the same comment into one entry', () => {
+		const result = buildReactionNotifications(
+			[
+				reactionRow({ userId: OTHER, createdAt: at(10) }),
+				reactionRow({ userId: THIRD, createdAt: at(20) }),
+			],
+			ME
+		)
+		expect(result).toHaveLength(1)
+		expect(result[0].reasons).toEqual(['reaction'])
+		expect(result[0].primaryReason).toBe('reaction')
+	})
+
+	it('groups rows on two different comments into two entries', () => {
+		const result = buildReactionNotifications(
+			[
+				reactionRow({ commentId: 'comment:1', comment: mine({ id: 'comment:1' }) }),
+				reactionRow({ commentId: 'comment:2', comment: mine({ id: 'comment:2' }) }),
+			],
+			ME
+		)
+		expect(result.map((n) => n.comment.id).sort()).toEqual(['comment:1', 'comment:2'])
+	})
+
+	it("carries the related comment's full reactions set unmodified, not just the feed rows", () => {
+		// three foreign reactions on the comment, but only one made it into the top-N feed window
+		const fullReactions = [
+			{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(5) },
+			{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
+			{ userId: ME, userName: 'Me', emoji: '🔥', createdAt: at(15) },
+		]
+		const result = buildReactionNotifications(
+			[reactionRow({ createdAt: at(5), comment: mine({ reactions: fullReactions }) })],
+			ME
+		)
+		expect(result).toHaveLength(1)
+		expect(result[0].comment.reactions).toBe(fullReactions)
+	})
+
+	it('timestamps the entry by the newest foreign reaction on the comment, not the feed row', () => {
+		const result = buildReactionNotifications(
+			[
+				reactionRow({
+					createdAt: at(10),
+					comment: mine({
+						reactions: [
+							{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) },
+							{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
+						],
+					}),
+				}),
+			],
+			ME
+		)
+		expect(result[0].timestamp).toBe(at(20))
+	})
+
+	it('drops the entry when the comment has no foreign reaction left', () => {
+		const result = buildReactionNotifications(
+			[
+				reactionRow({
+					comment: mine({
+						reactions: [{ userId: ME, userName: 'Me', emoji: '👍', createdAt: at(10) }],
+					}),
+				}),
+			],
+			ME
+		)
+		expect(result).toEqual([])
+	})
+
+	it('is unread until my read receipt is newer than the newest foreign reaction', () => {
+		const withReadAt = (readAt: number | undefined) =>
+			buildReactionNotifications(
+				[
+					reactionRow({
+						createdAt: at(10),
+						comment: mine({ read: readAt === undefined ? undefined : { readAt } }),
+					}),
+				],
+				ME
+			)[0].unread
+		expect(withReadAt(undefined)).toBe(true)
+		// a stale receipt (read before this reaction landed) leaves the entry unread
+		expect(withReadAt(at(5))).toBe(true)
+		// the watermark comparison is strict: a receipt from the same instant counts as read
+		expect(withReadAt(at(10))).toBe(false)
+		expect(withReadAt(at(15))).toBe(false)
+	})
+
+	it('drops rows whose comment outraced its sync', () => {
+		const result = buildReactionNotifications([reactionRow({ comment: null })], ME)
+		expect(result).toEqual([])
+	})
+
+	it('drops my own reaction rows as a belt against a self row slipping through', () => {
+		const result = buildReactionNotifications([reactionRow({ userId: ME, userName: 'Me' })], ME)
+		expect(result).toEqual([])
+	})
+
+	it('sorts reaction entries among comment entries by their reaction time', () => {
+		const reacted = buildReactionNotifications(
+			[
+				reactionRow({
+					commentId: 'comment:reacted',
+					createdAt: at(20),
+					comment: mine({
+						id: 'comment:reacted',
+						createdAt: at(0),
+						reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(20) }],
+					}),
+				}),
+			],
+			ME
+		)
+		const replied = categorizeCommentNotifications(
+			[comment({ id: 'comment:replied', createdAt: at(10), file: { ownerId: ME } })],
+			ME
+		)
+		const result = mergeNotifications(replied, reacted)
+		expect(result.map((n) => n.comment.id)).toEqual(['comment:reacted', 'comment:replied'])
+	})
+})
+
+describe('mergeNotifications', () => {
+	it('merges multiple feeds newest first', () => {
+		const a = categorizeCommentNotifications(
+			[
+				comment({ id: 'comment:a1', createdAt: at(0), file: { ownerId: ME } }),
+				comment({ id: 'comment:a2', createdAt: at(20), file: { ownerId: ME } }),
+			],
+			ME
+		)
+		const b = categorizeCommentNotifications(
+			[comment({ id: 'comment:b1', createdAt: at(10), file: { ownerId: ME } })],
+			ME
+		)
+		const result = mergeNotifications(a, b)
+		expect(result.map((n) => n.comment.id)).toEqual(['comment:a2', 'comment:b1', 'comment:a1'])
+	})
+
+	it('handles no feeds and empty feeds', () => {
+		expect(mergeNotifications()).toEqual([])
+		expect(mergeNotifications([], [])).toEqual([])
+	})
+})
+
+describe('summarizeForeignReactors', () => {
+	const r = (userId: string, userName: string, createdAt: number, emoji = '👍') => ({
+		userId,
+		userName,
+		emoji,
+		createdAt,
+	})
+
+	it('returns no names for no foreign reactions', () => {
+		expect(summarizeForeignReactors([r('me', 'Me', 1)], 'me')).toEqual({
+			names: [],
+			others: 0,
+			total: 0,
+		})
+	})
+
+	it('drops names missing at runtime but still counts the reactor', () => {
+		// rows synced before a view-syncer picks up the userName column arrive without it,
+		// defeating the type — never render "undefined reacted to your comment"
+		const ghost = { userId: 'ghost', emoji: '👍', createdAt: 3 } as unknown as ReturnType<typeof r>
+		expect(summarizeForeignReactors([r('bo', 'Bo', 1), ghost], 'me')).toEqual({
+			names: ['Bo'],
+			others: 1,
+			total: 2,
+		})
+	})
+
+	it('names a single reactor', () => {
+		expect(summarizeForeignReactors([r('bo', 'Bo', 1)], 'me')).toEqual({
+			names: ['Bo'],
+			others: 0,
+			total: 1,
+		})
+	})
+
+	it('caps at two names, newest reaction first, counting the rest as others', () => {
+		const reactions = [r('bo', 'Bo', 1), r('ada', 'Ada', 3), r('cy', 'Cy', 2)]
+		expect(summarizeForeignReactors(reactions, 'me')).toEqual({
+			names: ['Ada', 'Cy'],
+			others: 1,
+			total: 3,
+		})
+	})
+
+	it('counts one person with several emoji once, dated by their newest reaction', () => {
+		const reactions = [r('bo', 'Bo', 1, '👍'), r('ada', 'Ada', 2), r('bo', 'Bo', 3, '🔥')]
+		expect(summarizeForeignReactors(reactions, 'me')).toEqual({
+			names: ['Bo', 'Ada'],
+			others: 0,
+			total: 2,
+		})
+	})
+
+	it('skips empty names but still counts them', () => {
+		const reactions = [r('ghost', '', 3), r('bo', 'Bo', 1)]
+		expect(summarizeForeignReactors(reactions, 'me')).toEqual({
+			names: ['Bo'],
+			others: 1,
+			total: 2,
+		})
+	})
+
+	it('handles undefined reactions', () => {
+		expect(summarizeForeignReactors(undefined, 'me')).toEqual({ names: [], others: 0, total: 0 })
 	})
 })

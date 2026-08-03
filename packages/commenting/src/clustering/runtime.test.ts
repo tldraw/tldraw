@@ -5,8 +5,6 @@ import { createClusterRuntime } from './runtime'
 import { contract, finalize } from './schedule'
 import { ClusterNode, ClusterTable, LeafInput, MergeEvent } from './types'
 
-// --- Synthetic builders --------------------------------------------------------
-
 function node(ids: string[], x = 0, y = 0): ClusterNode {
 	const members = ids.slice().sort()
 	return {
@@ -78,8 +76,6 @@ function microTraceTable(): ClusterTable {
 		leaves: [A, B, C, D],
 	}
 }
-
-// --- Fixtures -------------------------------------------------------------------
 
 describe('createClusterRuntime micro-trace (CLUSTERING.md §8.5)', () => {
 	it('walks the exact documented trace', () => {
@@ -238,8 +234,6 @@ describe('createClusterRuntime edge cases', () => {
 		expect(JSON.parse(JSON.stringify(table))).toEqual(snapshot)
 	})
 })
-
-// --- Property tests against real pipeline tables --------------------------------
 
 function leaf(id: string, x: number, y: number): LeafInput {
 	return { id, point: { x, y } }
@@ -791,6 +785,56 @@ describe('createClusterRuntime detachLeaf (local partition edits)', () => {
 		)
 		expect(rt.getDetachedCount()).toBe(0)
 		expect(rt.getVisible().get(P.id)).toEqual(P)
+	})
+
+	it('detachLeaves batches a whole set into one version bump', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(4) // P = a+b+c visible, d separate
+		const versionBefore = rt.version
+		rt.detachLeaves(['a', 'b'])
+		expect(rt.version).toBe(versionBefore + 1)
+		expect(rt.getDetachedCount()).toBe(2)
+		// P = {a,b,c} minus a,b → the leaf node c, keyed by its own id
+		expect(rt.getVisible().get('c')).toEqual(C)
+		expect(rt.getVisible().has(P.id)).toBe(false)
+		expect(visibleIds(rt)).toEqual(['c', 'd'])
+	})
+
+	it('detachLeaves matches the equivalent one-at-a-time detaches', () => {
+		const makeDetached = (detach: (rt: ReturnType<typeof createClusterRuntime>) => void) => {
+			const rt = createClusterRuntime(microTraceTable())
+			rt.seed(4)
+			detach(rt)
+			return rt
+		}
+		const batched = makeDetached((rt) => rt.detachLeaves(['a', 'd']))
+		const oneByOne = makeDetached((rt) => {
+			rt.detachLeaf('a')
+			rt.detachLeaf('d')
+		})
+		expect(visibleIds(batched)).toEqual(visibleIds(oneByOne))
+		for (const id of visibleIds(batched)) {
+			expect(batched.getVisible().get(id)).toEqual(oneByOne.getVisible().get(id))
+		}
+	})
+
+	it('detachLeaves skips unknown and already-detached ids, and no-ops on an empty batch', () => {
+		const table = microTraceTable()
+		const rt = createClusterRuntime(table)
+		rt.seed(4)
+		rt.detachLeaf('a')
+		const version = rt.version
+		const visible = rt.getVisible()
+		rt.detachLeaves([])
+		rt.detachLeaves(['a', 'nonexistent'])
+		expect(rt.version).toBe(version)
+		expect(rt.getDetachedCount()).toBe(1)
+		expect(rt.getVisible()).toBe(visible)
+		// a mixed batch still applies the new id in a single bump
+		rt.detachLeaves(['a', 'b', 'nonexistent'])
+		expect(rt.version).toBe(version + 1)
+		expect(rt.getDetachedCount()).toBe(2)
 	})
 
 	it('getVisible returns a stable reference until the partition changes', () => {

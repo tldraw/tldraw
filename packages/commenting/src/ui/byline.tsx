@@ -1,5 +1,5 @@
 import { Avatar, type CommentAuthor } from '@tldraw/mentions'
-import { TldrawUiTooltip } from 'tldraw'
+import { TldrawUiTooltip, useCurrentTranslation } from 'tldraw'
 import { formatFullDateTime, formatRelativeTime } from './format-time'
 
 /** @public */
@@ -17,13 +17,16 @@ export interface BylineProps {
  * @public @react
  */
 export function Byline({ author, date, edited }: BylineProps) {
+	// The relative time is the one piece of a byline that isn't the host's data, so it follows the
+	// same translation context as every other string in the UI rather than a prop of its own.
+	const { locale } = useCurrentTranslation()
 	return (
 		<div className="tlui-cmt-head">
 			<Avatar author={author} />
 			<span className="tlui-cmt-author">{author.name}</span>
-			<TldrawUiTooltip content={formatFullDateTime(date)}>
+			<TldrawUiTooltip content={formatFullDateTime(date, locale)}>
 				<span className="tlui-cmt-time">
-					{formatRelativeTime(date)}
+					{formatRelativeTime(date, locale)}
 					{edited && <span className="tlui-cmt-edited"> · edited</span>}
 				</span>
 			</TldrawUiTooltip>

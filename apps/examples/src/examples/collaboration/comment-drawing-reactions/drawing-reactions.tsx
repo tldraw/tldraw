@@ -1,86 +1,187 @@
 import { RenderReaction } from '@tldraw/commenting'
 import { ReactNode, useCallback, useInsertionEffect, useState } from 'react'
-import { Editor, TldrawOptions, TLUiOverrides, Tldraw, useEditor, useValue } from 'tldraw'
+import {
+	BaseRecord,
+	createCustomRecordId,
+	CustomRecordInfo,
+	DefaultSizeStyle,
+	Editor,
+	idValidator,
+	RecordId,
+	T,
+	TLRecord,
+	TldrawOptions,
+	TLUiOverrides,
+	Tldraw,
+	useEditor,
+	useValue,
+} from 'tldraw'
 
 /**
  * Draw-your-own reactions.
  *
  * A reaction's `emoji` field is a free-form string that the commenting layer only ever stores,
- * syncs, and hands back to a renderer — it never assumes the string is an emoji glyph. That makes
- * a custom reaction system exactly two pieces:
+ * syncs, and hands back to a renderer — it never assumes the string is an emoji glyph. It is
+ * bounded, though: the schema caps a token at 64 characters, because the token is embedded
+ * verbatim in the reaction's record id. So a custom reaction can be *anything*, as long as the
+ * token names it rather than contains it. That makes a custom reaction system three pieces:
  *
- * 1. A **palette** — the thing that produces a token. {@link DrawingReactionPalette} below is a
- *    drop-in for the built-in `EmojiPicker`: same props (`emoji`, `selected`, `onSelect`,
+ * 1. A **store** for the reaction's actual content. {@link reactionDrawingRecords} below adds a
+ *    `reaction-drawing` record type to the document: one record per distinct drawing, holding the
+ *    image as a `data:` URL, content-addressed so the record id is a short hash of the image.
+ *    Document records sync and persist exactly like comments do, so every client that can see a
+ *    reaction can also resolve its drawing.
+ * 2. A **palette** — the thing that produces a token. {@link DrawingReactionPalette} is a drop-in
+ *    for the built-in `EmojiPicker`: same props (`emoji`, `selected`, `onSelect`,
  *    `renderReaction`), but instead of a grid of glyphs it offers a small locked-down tldraw
- *    canvas you draw in, and emits the drawing as the token.
- * 2. A **renderer** — the thing that draws a token. {@link renderDrawingReaction} is a drop-in for
- *    `RenderReaction`, and {@link DrawingReactionContent} is the same thing shaped for the
- *    `components.ReactionContent` commenting option.
- *
- * The token here is a `data:` image URL (SVG by default, PNG optionally), so a reaction pill is
- * just an `<img>`. Tokens that don't look like one fall through to the default rendering, so a
- * drawing palette and the stock emoji palette can coexist on the same comment.
+ *    canvas you draw in. On submit it saves the drawing as a record and emits the record id as
+ *    the token.
+ * 3. A **renderer** — the thing that draws a token. {@link DrawingReactionContent} resolves a
+ *    drawing token back to its record and renders the image; anything else falls through to the
+ *    default rendering, so drawn reactions and plain emoji coexist on the same comment.
  *
  * See `CommentDrawingReactionsExample.tsx` for the wiring.
  */
-
-// ── Tokens ───────────────────────────────────────────────────────────────────────────────────
 
 /** The image format a drawn reaction is exported as. */
 export type DrawingReactionFormat = 'svg' | 'png'
 
 /**
- * The `data:` URL prefixes a drawn reaction token may use. Rendering is gated on this list rather
- * than on a bare `data:` check: a token arrives over sync from another user, and this is what keeps
- * an `<img src>` pointed at an image and nothing else.
+ * The `data:` URL prefixes a drawing record's `src` may use. Validation is gated on this list
+ * rather than on a bare `data:` check: a record arrives over sync from another user, and this is
+ * what keeps an `<img src>` pointed at an image and nothing else.
  */
-const TOKEN_PREFIXES = ['data:image/svg+xml,', 'data:image/svg+xml;', 'data:image/png;base64,']
+const SRC_PREFIXES = ['data:image/svg+xml,', 'data:image/svg+xml;', 'data:image/png;base64,']
 
 /**
- * Whether `token` is a drawn reaction (as opposed to a plain emoji glyph). Use it anywhere you need
- * to tell the two kinds apart — validation before a write, or picking a renderer.
+ * The most characters a drawing's `data:` URL may hold. A drawing record is synced document data,
+ * paid for by every client on the file — and because this cap lives in the record's schema
+ * validator, it holds against any writer, not just this palette's export path.
  */
-export function isDrawingReactionToken(token: string): boolean {
-	return TOKEN_PREFIXES.some((prefix) => token.startsWith(prefix))
+export const MAX_DRAWING_SRC_LENGTH = 32_000
+
+/** One distinct drawn reaction. Content-addressed: the id is derived from a hash of `src`. */
+export interface ReactionDrawingRecord extends BaseRecord<'reaction-drawing', ReactionDrawingId> {
+	/** The drawing, as a `data:` image URL. */
+	src: string
 }
 
-// ── Renderer ─────────────────────────────────────────────────────────────────────────────────
+/** @see ReactionDrawingRecord */
+export type ReactionDrawingId = RecordId<ReactionDrawingRecord>
+
+const drawingSrcValidator = T.string.check((value) => {
+	if (!SRC_PREFIXES.some((prefix) => value.startsWith(prefix))) {
+		throw new T.ValidationError('Expected a data: image URL')
+	}
+	if (value.length > MAX_DRAWING_SRC_LENGTH) {
+		throw new T.ValidationError(
+			`Expected a src of at most ${MAX_DRAWING_SRC_LENGTH} characters, got ${value.length}`
+		)
+	}
+})
 
 /**
- * Sized in `em` so a drawn reaction matches whatever font size its host sets — the pill in the
- * reaction row and the larger tile in the palette both come out right without either of them
- * knowing about this file.
+ * The `records` entry that registers the drawing record type. Spread into `createTLSchema`
+ * alongside `commentSchemaRecords` — and, as with those, register it on every peer (client and
+ * server) or schema validation fails on one side of the connection.
+ */
+export const reactionDrawingRecords: Record<string, CustomRecordInfo> = {
+	'reaction-drawing': {
+		scope: 'document',
+		validator: T.object({
+			id: idValidator<ReactionDrawingId>('reaction-drawing'),
+			typeName: T.literal('reaction-drawing'),
+			src: drawingSrcValidator,
+		}),
+	},
+}
+
+/**
+ * Whether `token` is a drawn reaction (as opposed to a plain emoji glyph) — i.e. a
+ * `reaction-drawing` record id. Use it anywhere you need to tell the two kinds apart —
+ * validation before a write, or picking a renderer.
+ */
+export function isDrawingReactionToken(token: string): boolean {
+	return token.startsWith('reaction-drawing:')
+}
+
+/**
+ * Save a drawing to the document and return the token to react with — the drawing record's id.
+ *
+ * Content-addressed: the id is a hash of the image, so saving the same drawing twice (or two
+ * people reusing one) lands on the same record instead of accumulating copies. Records are never
+ * removed here — a real app might garbage-collect drawings no reaction references, but a
+ * content-addressed record is small and reusable, so this example leaves them be.
+ */
+export async function saveDrawingReaction(editor: Editor, src: string): Promise<string> {
+	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(src))
+	const hash = Array.from(new Uint8Array(digest).slice(0, 16), (byte) =>
+		byte.toString(16).padStart(2, '0')
+	).join('')
+	const id = createCustomRecordId('reaction-drawing', hash) as ReactionDrawingId
+	// The store is typed over the built-in record union, so custom records cast through it — the
+	// same idiom the commenting package uses for its own records.
+	if (!editor.store.has(id as unknown as TLRecord['id'])) {
+		const record: ReactionDrawingRecord = { id, typeName: 'reaction-drawing', src }
+		editor.store.put([record] as unknown as TLRecord[])
+	}
+	return id
+}
+
+/**
+ * A fixed size rather than `em`: the reaction pill's font is 10px, and a drawing at emoji scale
+ * is an illegible smudge. Only drawn reactions render through this style, so emoji keep their
+ * hosts' font size; a pill holding a drawing grows taller than its emoji neighbours, which is
+ * the point — you drew it to be seen.
  */
 const drawingTokenImageStyle = {
-	width: '1.15em',
-	height: '1.15em',
+	width: '22px',
+	height: '22px',
 	objectFit: 'contain',
 	display: 'inline-block',
 	verticalAlign: 'middle',
 } as const
 
 /**
- * Draws a reaction token: a drawn token renders as an image, anything else falls through to the
- * token string (the default behaviour, i.e. an emoji glyph drawn by the OS emoji font). Pass it as
- * `renderReaction` to `Reaction`, `Reactions`, `EmojiPicker`, or `ReactionPicker`.
+ * Draws a reaction token, for the `ReactionContent` slot of the commenting options:
+ * `CommentTool.configure({ components: { ReactionContent: DrawingReactionContent } })`.
  *
- * SVG tokens are rendered via `<img>`, never inlined — an `<img>`-hosted SVG can't run script or
- * reach out to the network, which matters because tokens arrive from other users over sync.
+ * A drawing token is resolved through the store — the token is a `reaction-drawing` record id,
+ * and the record holds the image. Any other token falls through to the token string (the default
+ * behaviour, i.e. an emoji glyph drawn by the OS emoji font). A drawing token whose record isn't
+ * in the store renders as nothing: over sync, a reaction can arrive before its drawing, and a
+ * token is only ever a claim — the renderer can't assume it names a real record.
+ *
+ * The image is rendered via `<img>`, never inlined — an `<img>`-hosted SVG can't run script or
+ * reach out to the network, which matters because drawings arrive from other users over sync.
+ * Resolution reads the editor from context, so this only renders inside the host editor's tree
+ * (everywhere the commenting UI puts it).
  */
-export function renderDrawingReaction(token: string): ReactNode {
-	if (!isDrawingReactionToken(token)) return token
-	return <img src={token} alt="" draggable={false} style={drawingTokenImageStyle} />
+export function DrawingReactionContent({ token }: { token: string }) {
+	const editor = useEditor()
+	const src = useValue(
+		'reaction drawing src',
+		() => {
+			if (!isDrawingReactionToken(token)) return null
+			const record = editor.store.get(token as TLRecord['id']) as unknown as
+				| ReactionDrawingRecord
+				| undefined
+			return record?.src ?? null
+		},
+		[editor, token]
+	)
+	if (!isDrawingReactionToken(token)) return <>{token}</>
+	if (!src) return null
+	return <img src={src} alt="" draggable={false} style={drawingTokenImageStyle} />
 }
 
 /**
- * {@link renderDrawingReaction} as a component, for the `ReactionContent` slot of the commenting
- * options: `CommentTool.configure({ components: { ReactionContent: DrawingReactionContent } })`.
+ * {@link DrawingReactionContent} shaped as a `RenderReaction`, for the `renderReaction` prop of
+ * `Reaction`, `Reactions`, `EmojiPicker`, or `ReactionPicker`.
  */
-export function DrawingReactionContent({ token }: { token: string }) {
-	return <>{renderDrawingReaction(token)}</>
+export function renderDrawingReaction(token: string): ReactNode {
+	return <DrawingReactionContent token={token} />
 }
-
-// ── Export ───────────────────────────────────────────────────────────────────────────────────
 
 export interface DrawingReactionExportOptions {
 	/**
@@ -91,16 +192,18 @@ export interface DrawingReactionExportOptions {
 	/** Longest side of the exported image in px. PNG only; SVG scales itself. Defaults to 96. */
 	size?: number
 	/**
-	 * Reject a token longer than this many characters. A reaction is a synced record, so a token is
-	 * paid for by every client on the file, forever — a scribble that won't fit is better refused at
-	 * the palette than stored. Defaults to 32,000 characters (~32KB).
+	 * Reject an image longer than this many characters. The drawing record's schema validator
+	 * enforces {@link MAX_DRAWING_SRC_LENGTH} regardless — this exists so an oversized scribble is
+	 * refused at the palette with a friendly message rather than thrown out by the store. Defaults
+	 * to {@link MAX_DRAWING_SRC_LENGTH}; lower it to be stricter, but raising it past the schema's
+	 * cap only trades a palette error for a validation error.
 	 */
-	maxTokenLength?: number
+	maxSrcLength?: number
 	/** Export in dark mode. Defaults to false, so a reaction looks the same for every viewer. */
 	darkMode?: boolean
 }
 
-/** Thrown by {@link exportDrawingReactionToken} when the drawing doesn't fit in a token. */
+/** Thrown by {@link exportDrawingImage} when the drawing doesn't fit in a record. */
 export class DrawingReactionTooLargeError extends Error {
 	constructor(
 		readonly length: number,
@@ -112,17 +215,23 @@ export class DrawingReactionTooLargeError extends Error {
 }
 
 /**
- * Export everything on an editor's current page as a reaction token — a transparent `data:` image
- * URL, cropped to the ink with no canvas background.
+ * Export everything on an editor's current page as a drawing image — a transparent `data:` URL,
+ * cropped to the ink with no canvas background. This is the `src` a drawing record holds; pass it
+ * to {@link saveDrawingReaction} to get the token to react with.
  *
  * Returns null when there's nothing drawn. Throws {@link DrawingReactionTooLargeError} when the
- * result exceeds `maxTokenLength`.
+ * result exceeds `maxSrcLength`.
  */
-export async function exportDrawingReactionToken(
+export async function exportDrawingImage(
 	editor: Editor,
 	opts: DrawingReactionExportOptions = {}
 ): Promise<string | null> {
-	const { format = 'svg', size = 96, maxTokenLength = 32_000, darkMode = false } = opts
+	const {
+		format = 'svg',
+		size = 96,
+		maxSrcLength = MAX_DRAWING_SRC_LENGTH,
+		darkMode = false,
+	} = opts
 
 	const ids = [...editor.getCurrentPageShapeIds()]
 	if (ids.length === 0) return null
@@ -131,13 +240,13 @@ export async function exportDrawingReactionToken(
 	// what makes the result read as a glyph rather than as a screenshot of a canvas.
 	const exportOpts = { background: false, padding: 'auto', darkMode } as const
 
-	let token: string
+	let src: string
 	if (format === 'svg') {
 		const result = await editor.getSvgString(ids, exportOpts)
 		if (!result) return null
 		// Percent-encoded rather than base64: it's smaller for markup, and stays greppable in the
 		// store when you're debugging what a reaction actually holds.
-		token = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(result.svg)}`
+		src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(result.svg)}`
 	} else {
 		// Scale so the drawing's longest side lands near `size`. The auto-trim above shifts this a
 		// little; near enough, since the pill draws the image at a CSS size anyway.
@@ -149,16 +258,14 @@ export async function exportDrawingReactionToken(
 			pixelRatio: 1,
 			scale: longest > 0 ? size / longest : 1,
 		})
-		token = result.url
+		src = result.url
 	}
 
-	if (token.length > maxTokenLength) {
-		throw new DrawingReactionTooLargeError(token.length, maxTokenLength)
+	if (src.length > maxSrcLength) {
+		throw new DrawingReactionTooLargeError(src.length, maxSrcLength)
 	}
-	return token
+	return src
 }
-
-// ── Palette ──────────────────────────────────────────────────────────────────────────────────
 
 /**
  * Keyboard shortcuts stay mounted when `hideUi` is set, so hiding the toolbar isn't enough on its
@@ -193,8 +300,16 @@ export interface DrawingReactionPaletteProps {
 	emoji?: string[]
 	/** Tokens the current user has already reacted with; shown pressed in the reuse row. */
 	selected?: string[]
-	/** Called with the new token when a drawing is exported, or with an existing token when reused. */
+	/** Called with the new token when a drawing is submitted, or with an existing token when reused. */
 	onSelect?(token: string): void
+	/**
+	 * Turns a submitted drawing (a `data:` image URL) into the token passed to `onSelect` —
+	 * typically {@link saveDrawingReaction} bound to the host editor, which stores the drawing as a
+	 * record and returns its id. Without it, the raw image URL is passed through as the token,
+	 * which only suits staging the palette standalone: the commenting schema caps a token at 64
+	 * characters, so an unsaved drawing can't actually be reacted with.
+	 */
+	saveDrawing?(src: string): string | Promise<string>
 	/** How to draw each token in the reuse row. Defaults to {@link renderDrawingReaction}. */
 	renderReaction?: RenderReaction
 	/**
@@ -212,8 +327,8 @@ export interface DrawingReactionPaletteProps {
 
 /**
  * A palette that lets you draw your own reaction: a small square tldraw canvas with a locked
- * camera, a pen, and an eraser — nothing else — plus a button that exports what's on it as a
- * reaction token.
+ * camera, a pen, and an eraser — nothing else — plus a button that exports what's on it, saves it
+ * via `saveDrawing`, and emits the resulting token.
  *
  * Prop-compatible with `EmojiPicker`, so it drops into the same slot; unlike `EmojiPicker` it
  * renders its own editor, so it doesn't need an editor context of its own and can be staged
@@ -223,6 +338,7 @@ export function DrawingReactionPalette({
 	emoji,
 	selected,
 	onSelect,
+	saveDrawing,
 	renderReaction = renderDrawingReaction,
 	size = 'clamp(180px, 25vmin, 320px)',
 	exportOptions,
@@ -230,6 +346,12 @@ export function DrawingReactionPalette({
 	submitLabel = 'React',
 }: DrawingReactionPaletteProps) {
 	useDrawingReactionStyles()
+
+	// A thicker brush than the draw tool's default: the drawing is displayed at pill size, where
+	// a default-weight stroke thins out to nothing. Scoped to the palette's own editor.
+	const handleMount = useCallback((editor: Editor) => {
+		editor.setStyleForNextShapes(DefaultSizeStyle, 'l')
+	}, [])
 
 	return (
 		// The palette is portaled into the host editor's container, so a wheel event that escapes it
@@ -267,6 +389,7 @@ export function DrawingReactionPalette({
 					licenseKey={licenseKey}
 					options={DRAWING_EDITOR_OPTIONS}
 					overrides={DRAWING_EDITOR_OVERRIDES}
+					onMount={handleMount}
 				>
 					{/* Inside the editor rather than beside it: the toolbar reads the tool and the
 					    emptiness straight off `useEditor()`, so there's no editor instance to lift out
@@ -275,6 +398,7 @@ export function DrawingReactionPalette({
 						exportOptions={exportOptions}
 						submitLabel={submitLabel}
 						onSelect={onSelect}
+						saveDrawing={saveDrawing}
 					/>
 				</Tldraw>
 			</div>
@@ -286,6 +410,7 @@ interface DrawingPaletteToolbarProps {
 	exportOptions: DrawingReactionExportOptions | undefined
 	submitLabel: string
 	onSelect: ((token: string) => void) | undefined
+	saveDrawing: ((src: string) => string | Promise<string>) | undefined
 }
 
 /** The bar over the bottom of the drawing box. Renders as a child of the palette's own editor. */
@@ -293,6 +418,7 @@ function DrawingPaletteToolbar({
 	exportOptions,
 	submitLabel,
 	onSelect,
+	saveDrawing,
 }: DrawingPaletteToolbarProps) {
 	const editor = useEditor()
 	const tool = useValue('drawing palette tool', () => editor.getCurrentToolId(), [editor])
@@ -314,8 +440,11 @@ function DrawingPaletteToolbar({
 		setError(null)
 		setIsExporting(true)
 		try {
-			const token = await exportDrawingReactionToken(editor, exportOptions)
-			if (token) onSelect?.(token)
+			const src = await exportDrawingImage(editor, exportOptions)
+			if (src) {
+				const token = saveDrawing ? await saveDrawing(src) : src
+				onSelect?.(token)
+			}
 		} catch (e) {
 			setError(
 				e instanceof DrawingReactionTooLargeError
@@ -325,7 +454,7 @@ function DrawingPaletteToolbar({
 		} finally {
 			setIsExporting(false)
 		}
-	}, [editor, exportOptions, onSelect])
+	}, [editor, exportOptions, onSelect, saveDrawing])
 
 	return (
 		<>
@@ -441,8 +570,6 @@ function EraserIcon() {
 		</svg>
 	)
 }
-
-// ── Styles ───────────────────────────────────────────────────────────────────────────────────
 
 const STYLE_ELEMENT_ID = 'tlui-cmt-drawing-palette-styles'
 

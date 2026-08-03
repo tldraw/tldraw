@@ -247,6 +247,7 @@ function createMockTx(
 			return rows.filter((r) => {
 				if (op === '=') return r[field] === val
 				if (op === '!=') return r[field] !== val
+				if (op === 'IN') return Array.isArray(val) && val.includes(r[field])
 				return true
 			})
 		}
@@ -1809,5 +1810,91 @@ describe('comment.markRead / comment.markUnread', () => {
 		await mutators.comment.markRead(tx, { commentId: 'c1', readAt: Date.now() })
 		await mutators.comment.markUnread(tx, { commentId: 'c1' })
 		expect(store.comment_read).toEqual([{ userId: 'other1', commentId: 'c1', readAt: 5 }])
+	})
+})
+
+describe('comment.markManyRead', () => {
+	// owner1 owns file1 (comments c1, c2) and file2 (comment c3); other1 owns nothing
+	function manyCommentState(): TableStore {
+		return {
+			user: [makeUser({ id: 'owner1' }), makeUser({ id: 'other1' })],
+			file: [
+				makeFile({ id: 'file1', ownerId: 'owner1' }),
+				makeFile({ id: 'file2', ownerId: 'owner1' }),
+			],
+			file_state: [],
+			group: [],
+			group_user: [],
+			group_file: [],
+			comment: [
+				makeComment({ id: 'c1', fileId: 'file1' }),
+				makeComment({ id: 'c2', fileId: 'file1' }),
+				makeComment({ id: 'c3', fileId: 'file2' }),
+			],
+			comment_read: [],
+		}
+	}
+
+	it('upserts one read row per comment, scoped to the calling user, across files', async () => {
+		const { tx, store } = createMockTx(manyCommentState(), { location: 'server' })
+		const mutators = createMutators('owner1')
+		await mutators.comment.markManyRead(tx, { commentIds: ['c1', 'c2', 'c3'], readAt: Date.now() })
+		expect(store.comment_read).toHaveLength(3)
+		expect(store.comment_read.map((r) => r.commentId).sort()).toEqual(['c1', 'c2', 'c3'])
+		expect(store.comment_read.every((r) => r.userId === 'owner1')).toBe(true)
+	})
+
+	it('dedupes repeated ids and is idempotent, updating readAt', async () => {
+		const { tx, store } = createMockTx(manyCommentState(), { location: 'server' })
+		const mutators = createMutators('owner1')
+		const t1 = Date.now() - 1000
+		const t2 = Date.now()
+		await mutators.comment.markManyRead(tx, { commentIds: ['c1', 'c1', 'c2'], readAt: t1 })
+		await mutators.comment.markManyRead(tx, { commentIds: ['c1', 'c2'], readAt: t2 })
+		expect(store.comment_read).toHaveLength(2)
+		expect(store.comment_read.every((r) => r.readAt === t2)).toBe(true)
+	})
+
+	it('clamps unreasonable timestamps to server time', async () => {
+		const { tx, store } = createMockTx(manyCommentState(), { location: 'server' })
+		const mutators = createMutators('owner1')
+		const before = Date.now()
+		await mutators.comment.markManyRead(tx, { commentIds: ['c1'], readAt: before + 60_000 })
+		expect(store.comment_read[0].readAt).toBeGreaterThanOrEqual(before)
+		expect(store.comment_read[0].readAt).toBeLessThanOrEqual(Date.now())
+	})
+
+	it('is a no-op on an empty batch', async () => {
+		const { tx, store, mutations } = createMockTx(manyCommentState(), { location: 'server' })
+		const mutators = createMutators('owner1')
+		await mutators.comment.markManyRead(tx, { commentIds: [], readAt: Date.now() })
+		expect(store.comment_read).toHaveLength(0)
+		expect(mutations).toHaveLength(0)
+	})
+
+	it('rejects forbidden when the user cannot access an involved file', async () => {
+		const { tx, store } = createMockTx(manyCommentState(), { location: 'server' })
+		const mutators = createMutators('other1')
+		await expectForbidden(() =>
+			mutators.comment.markManyRead(tx, { commentIds: ['c1', 'c2'], readAt: Date.now() })
+		)
+		expect(store.comment_read).toHaveLength(0)
+	})
+
+	it('rejects bad_request when any comment is missing', async () => {
+		const { tx, store } = createMockTx(manyCommentState(), { location: 'server' })
+		const mutators = createMutators('owner1')
+		await expectBadRequest(() =>
+			mutators.comment.markManyRead(tx, { commentIds: ['c1', 'nope'], readAt: Date.now() })
+		)
+		expect(store.comment_read).toHaveLength(0)
+	})
+
+	it('skips the access check on the client', async () => {
+		// optimistic client writes go through; the server re-run is authoritative
+		const { tx, store } = createMockTx(manyCommentState(), { location: 'client' })
+		const mutators = createMutators('other1')
+		await mutators.comment.markManyRead(tx, { commentIds: ['c1', 'c2'], readAt: Date.now() })
+		expect(store.comment_read).toHaveLength(2)
 	})
 })

@@ -440,6 +440,22 @@ describe('round-trip: record -> row -> rowTo*Record', () => {
 		const row = reactionRecordToRow(reaction, 'file1', 45)
 		expect(rowToReactionRecord(row)).toEqual(reaction)
 	})
+
+	it('clamps a future-dated reaction createdAt to server time', () => {
+		const thread = makeThread()
+		const reaction = createCommentReaction({
+			commentId: createCommentId('c1'),
+			threadId: thread.id,
+			pageId,
+			userId: 'user1',
+			emoji: '👍',
+			now: Date.now() + 60 * 60 * 1000,
+		})
+		const before = Date.now()
+		const row = reactionRecordToRow(reaction, 'file1', 45)
+		expect(row.createdAt).toBeGreaterThanOrEqual(before)
+		expect(row.createdAt).toBeLessThanOrEqual(Date.now())
+	})
 })
 
 describe('rehydration validation', () => {
