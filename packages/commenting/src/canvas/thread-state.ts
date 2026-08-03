@@ -148,14 +148,19 @@ export function anchorPagePoint(
  * through to a bare point. A child shape under the pointer still wins (children sort above the
  * frame), so only a frame's empty interior anchors the frame.
  *
+ * The hit shape is resolved through `getOutermostSelectableShape`, matching how clicks select:
+ * a comment dropped on a group's child anchors to the group, unless that group is focused (after
+ * double-clicking in), in which case the child anchors as usual.
+ *
  * @internal
  */
 export function commentTargetShapeAt(editor: Editor, page: VecLike): TLShape | undefined {
-	return editor.getShapeAtPoint(page, {
+	const hit = editor.getShapeAtPoint(page, {
 		hitInside: true,
 		hitFrameInside: true,
 		margin: editor.getHitTestMargin(),
 	})
+	return hit && editor.getOutermostSelectableShape(hit)
 }
 
 /**
