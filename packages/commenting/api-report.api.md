@@ -160,7 +160,7 @@ export interface CommentingContext {
     getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
     getThreadHref?(threadId: TLCommentThreadId): string | undefined;
     isCommentUnread?(commentId: TLCommentId): boolean;
-    onCommentRead?(commentId: TLCommentId): void;
+    onCommentsRead?(commentIds: TLCommentId[]): void;
     onPostComment?(comment: TLComment): void;
     renderMentionSuggestion?(member: MentionMember): ReactNode;
     resolveAuthor(id: string): CommentAuthor | undefined;

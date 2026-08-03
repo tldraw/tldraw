@@ -30,10 +30,11 @@ export interface CommentingContext {
 	/** Whether a comment is unread for the current user (return true for unread). */
 	isCommentUnread?(commentId: TLCommentId): boolean
 	/**
-	 * Called for each unread comment shown to the user in an open thread popover, so hosts can
-	 * record a read receipt. Needs `isCommentUnread` to know what's unread.
+	 * Called with every unread comment shown to the user in an open thread popover, batched per
+	 * report, so hosts can record read receipts without a write per comment. Needs
+	 * `isCommentUnread` to know what's unread.
 	 */
-	onCommentRead?(commentId: TLCommentId): void
+	onCommentsRead?(commentIds: TLCommentId[]): void
 	/** Resolve the members matching an `@`-query in the composers (sync or async). */
 	getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>
 	/** Override a mention-picker row's content. */

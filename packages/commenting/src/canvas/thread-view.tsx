@@ -1,4 +1,13 @@
-import { ReactNode, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+import {
+	memo,
+	ReactNode,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	type CSSProperties,
+} from 'react'
 import {
 	createComment,
 	Editor,
@@ -179,8 +188,13 @@ export function ThreadPopover({ style, children }: { style: CSSProperties; child
  * comments, and the resolve/delete actions. Reads and writes comment records via the editor's
  * store; read receipts are reported for every unread comment while mounted, so only mount it
  * where the thread is actually being shown.
+ *
+ * Memoized: the popover position rides the pin's per-frame render point, so the pin re-renders
+ * on every camera frame while a thread is open. Thread and comment records are identity-stable
+ * while unchanged and the context callbacks are the host's stable references, so memoization
+ * keeps camera frames to moving the thin popover wrapper instead of re-running this whole body.
  */
-export function ThreadView({
+export const ThreadView = memo(function ThreadView({
 	editor,
 	thread,
 	...props
@@ -190,7 +204,7 @@ export function ThreadView({
 		resolveAuthor,
 		onPostComment,
 		isCommentUnread,
-		onCommentRead,
+		onCommentsRead,
 		getMentionSuggestions,
 		renderMentionSuggestion,
 		getThreadHref,
@@ -199,6 +213,16 @@ export function ThreadView({
 	const comments = useThreadComments(editor, thread.id)
 	const msg = useTranslation()
 	const resolveName = useResolveName(resolveAuthor)
+	// Card props rebuild only when the comments (or how they render) actually change — not on
+	// every render of the view, each of which would otherwise re-allocate a date string and body
+	// element per comment.
+	const cards = useMemo(
+		() =>
+			comments.map((c) =>
+				toCardProps(c, { currentUserId, resolveAuthor }, options.components, resolveName)
+			),
+		[comments, currentUserId, resolveAuthor, options.components, resolveName]
+	)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	// Composing, editing, deleting, and resolving are all commenting writes: gated on the viewer's
 	// permission. Where it's withheld the composer gives way to the ComposerFallback slot (a
@@ -280,16 +304,16 @@ export function ThreadView({
 	}, [editingId])
 
 	// Every unread comment on display gets reported read — including replies that arrive while
-	// the view stays mounted, since the effect re-runs as `comments` changes. The host's receipt
-	// write flips isCommentUnread to false, so re-runs find nothing to report.
+	// the view stays mounted, since the effect re-runs as `comments` changes. Reported as one
+	// batch so the host can record the receipts in a single write. The host's receipt write flips
+	// isCommentUnread to false, so re-runs find nothing to report.
 	useEffect(() => {
-		if (!isCommentUnread || !onCommentRead) return
-		for (const comment of comments) {
-			if (isCommentUnread(comment.id)) {
-				onCommentRead(comment.id)
-			}
+		if (!isCommentUnread || !onCommentsRead) return
+		const unreadIds = comments.filter((comment) => isCommentUnread(comment.id)).map((c) => c.id)
+		if (unreadIds.length > 0) {
+			onCommentsRead(unreadIds)
 		}
-	}, [comments, isCommentUnread, onCommentRead])
+	}, [comments, isCommentUnread, onCommentsRead])
 
 	const postReply = () => {
 		if (isCommentEmpty(reply) || !currentUserId) return
@@ -530,7 +554,7 @@ export function ThreadView({
 			header={msg('comments.thread-title')}
 			headerActions={headerActions}
 			renderComment={renderComment}
-			comments={comments.map((c) => toCardProps(c, props, options.components, resolveName))}
+			comments={cards}
 			resolvedBanner={
 				thread.resolved
 					? msg('comments.resolved-by').replace(
@@ -574,4 +598,4 @@ export function ThreadView({
 			}
 		/>
 	)
-}
+})

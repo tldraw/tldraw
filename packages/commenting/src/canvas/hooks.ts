@@ -2,6 +2,7 @@ import {
 	computed,
 	Computed,
 	Editor,
+	isUninitialized,
 	TLComment,
 	TLCommentThread,
 	TLCommentThreadId,
@@ -29,17 +30,30 @@ export function useCommentThreads(editor: Editor): TLCommentThread[] {
  */
 const commentsByThread = new WeakCache<Editor, Computed<Map<TLCommentThreadId, TLComment[]>>>()
 
-function getCommentsByThread(editor: Editor) {
+/** Exported for tests; use {@link useThreadComments} to consume. @internal */
+export function getCommentsByThread(editor: Editor) {
 	return commentsByThread.get(editor, () =>
-		computed('comments by thread', () => {
+		computed('comments by thread', (prev) => {
 			const byThread = new Map<TLCommentThreadId, TLComment[]>()
 			for (const comment of getLiveComments(editor)) {
 				const existing = byThread.get(comment.threadId)
 				if (existing) existing.push(comment)
 				else byThread.set(comment.threadId, [comment])
 			}
-			for (const comments of byThread.values()) {
+			for (const [threadId, comments] of byThread) {
 				comments.sort((a, b) => a.createdAt - b.createdAt)
+				// Reuse the previous per-thread array when that thread's comment list is unchanged
+				// (record identities are stable while unchanged), so `useThreadComments` subscribers
+				// on other threads don't re-render when one thread gains a reply.
+				if (isUninitialized(prev)) continue
+				const prevComments = prev.get(threadId)
+				if (
+					prevComments &&
+					prevComments.length === comments.length &&
+					comments.every((comment, i) => prevComments[i] === comment)
+				) {
+					byThread.set(threadId, prevComments)
+				}
 			}
 			return byThread
 		})

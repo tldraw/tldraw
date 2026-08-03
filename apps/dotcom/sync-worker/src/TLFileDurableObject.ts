@@ -2079,48 +2079,77 @@ export class TLFileDurableObject extends DurableObject {
 				// failure marks the comment failed so its outbox entry stays queued and the next
 				// drain retries the reconcile. Soft-deleted comments keep their mention rows; the
 				// rows are inert because every query filters the comment itself on isDeleted.
+				//
+				// On top of the idempotency, the reconciles share one multi-comment delete and one
+				// multi-row insert per drain instead of paying 1-2 sequential statements per comment.
 				const mentionReconciles = planMentionReconciles(
 					commentUpserts.filter(
 						(row) => !failedIds.has(row.id) && !commentResult.prunedIds.includes(row.id)
 					)
 				)
-				for (const { commentId, userIds } of mentionReconciles) {
+				if (mentionReconciles.length > 0) {
+					const changedCommentIds = mentionReconciles.map((r) => r.commentId)
+					const desiredRows = mentionReconciles.flatMap(({ commentId, userIds }) =>
+						userIds.map((userId) => ({ commentId, userId }))
+					)
+					const mentionFailedIds = new Set<string>()
 					try {
+						// One statement drops every stale row across the batch: rows belonging to a
+						// reconciling comment whose desired set no longer contains them. Comments whose
+						// set emptied contribute no desired pair, so all their rows qualify.
 						let deleteStale = this.db
 							.deleteFrom('comment_mention')
-							.where('commentId', '=', commentId)
-						if (userIds.length > 0) {
-							deleteStale = deleteStale.where('userId', 'not in', userIds)
+							.where('commentId', 'in', changedCommentIds)
+						if (desiredRows.length > 0) {
+							deleteStale = deleteStale.where((eb) =>
+								eb(
+									eb.refTuple('commentId', 'userId'),
+									'not in',
+									desiredRows.map((row) => eb.tuple(row.commentId, row.userId))
+								)
+							)
 						}
 						await deleteStale.execute()
-						if (userIds.length === 0) continue
-						const rows = userIds.map((userId) => ({ commentId, userId }))
-						try {
-							await this.db
-								.insertInto('comment_mention')
-								.values(rows)
-								.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
-								.execute()
-						} catch (batchError) {
-							if (!isCommentMentionFkViolation(batchError)) throw batchError
-							// One row's FK failure aborts the whole batch insert; retry row-by-row so
-							// the valid mentions land and only the FK-violating ones are skipped.
-							for (const row of rows) {
-								try {
-									await this.db
-										.insertInto('comment_mention')
-										.values(row)
-										.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
-										.execute()
-								} catch (rowError) {
-									if (!isCommentMentionFkViolation(rowError)) throw rowError
+						if (desiredRows.length > 0) {
+							try {
+								await this.db
+									.insertInto('comment_mention')
+									.values(desiredRows)
+									.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
+									.execute()
+							} catch (batchError) {
+								if (!isCommentMentionFkViolation(batchError)) throw batchError
+								// One row's FK failure aborts the whole batch insert; retry row-by-row so
+								// the valid mentions land and only the FK-violating ones are skipped.
+								for (const row of desiredRows) {
+									try {
+										await this.db
+											.insertInto('comment_mention')
+											.values(row)
+											.onConflict((oc) => oc.columns(['commentId', 'userId']).doNothing())
+											.execute()
+									} catch (rowError) {
+										if (!isCommentMentionFkViolation(rowError)) {
+											// A non-FK row failure fails only its own comment — the rest of
+											// the batch keeps its at-least-once progress.
+											mentionFailedIds.add(row.commentId)
+											this.reportError(rowError)
+										}
+									}
 								}
 							}
 						}
 					} catch (error) {
+						// The shared delete (or a non-FK batch-insert error) failed: every comment in
+						// the batch retries on the next drain, exactly as the per-comment path did.
+						for (const commentId of changedCommentIds) {
+							mentionFailedIds.add(commentId)
+						}
+						this.reportError(error)
+					}
+					for (const commentId of mentionFailedIds) {
 						failedIds.add(commentId)
 						this.logEvent({ type: 'room', name: 'failed_persist_comments_to_db' })
-						this.reportError(error)
 					}
 				}
 
