@@ -208,9 +208,17 @@ button.topLeftInputNameWidthSetter {
 .commentsSidebarButton {
 	background-color: var(--tl-color-background);
 	border-radius: 8px;
-	/* Match the CTA share button it sits beside; the tldraw icon button is 40px by default. */
+	/* Match the CTA share button it sits beside; the tldraw icon button is 40px by default, and
+	   its min-width would beat our width, so that needs lowering too to get a 36px square. */
 	height: 36px;
 	width: 36px;
+	min-width: 36px;
+}
+
+/* Shape the hover/pressed wash like the share pill beside it: the base .tlui-button::after sits
+   inset 4px (28px tall here); the share button's fill is inset 2px, 32px tall, same 6px radius. */
+.commentsSidebarButton::after {
+	inset: 2px;
 }
 
 /* The comments sidebar toggle shows the same open wash as the main menu trigger while the
