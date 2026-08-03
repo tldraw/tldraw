@@ -71,8 +71,10 @@ function historyModeFor(
  * which would quietly make a `drag` write non-undoable.
  *
  * Commits that nest are only a problem when they resolve to different modes, and then neither is
- * the right one to keep, so it throws. Matching modes have to nest: a host reacting from
- * `store.listen` or a side effect runs inside the commit that triggered it, with no way to defer.
+ * the right one to keep, so it throws. Matching modes have to nest: a store side effect runs inside
+ * the write that triggered it, with no "after the commit" to defer to. (A `store.listen` handler
+ * normally flushes on a later frame, so its writes open a commit of their own, but a synchronous
+ * flush — as under test — lands it inside too.)
  * @internal
  */
 export function commitCommentMutation<T>(

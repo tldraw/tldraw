@@ -378,8 +378,9 @@ describe('history', () => {
 		expect(readComment(editor, comment)).toMatchObject({ isDeleted: true })
 	})
 
-	// A store listener runs inside the commit that triggered it, so it has no "after the mutation"
-	// to defer to. Matching modes have nothing to disagree about, so its write goes through.
+	// Store history flushes synchronously under test, so this listener writes from inside the commit
+	// that triggered it — where a side effect always sits, with no "after the mutation" to defer to.
+	// Matching modes have nothing to disagree about, so its write goes through.
 	it('lets a store listener write comments during a commit when the modes match', () => {
 		const editor = makeEditor()
 		const { thread, comment } = makeThread(editor)

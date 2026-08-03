@@ -336,10 +336,11 @@ export const ThreadView = memo(function ThreadView({
 			put([comment])
 			return comment
 		})
-		// The host's callback is its own operation, not part of the post's history scope.
-		onPostComment?.(comment)
 		setReply(EMPTY_COMMENT)
 		clearCommentDraft(replyDraftSlot(thread.id))
+		// The host's callback is its own operation, not part of the post's history scope. It runs
+		// last so a throwing host can't strand the composer holding a draft of a posted reply.
+		onPostComment?.(comment)
 	}
 
 	const toggleResolve = () => {

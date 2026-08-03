@@ -104,11 +104,12 @@ export function PendingComposer({
 			put([thread, comment])
 			return comment
 		})
-		// The host's callback is its own operation, not part of the post's history scope.
-		onPostComment?.(comment)
 		setText(EMPTY_COMMENT)
 		clearCommentDraft(NEW_COMMENT_DRAFT)
 		pendingComment.set(editor, null)
+		// The host's callback is its own operation, not part of the post's history scope. It runs
+		// last so a throwing host can't strand the composer holding a draft of a posted comment.
+		onPostComment?.(comment)
 	}
 
 	return (
