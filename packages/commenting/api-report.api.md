@@ -187,7 +187,7 @@ export interface CommentingOptions {
 }
 
 // @public
-export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, href, resolvedLabel, onSelect }: CommentListItemRenderProps): JSX.Element;
+export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, reactions, href, resolvedLabel, onSelect }: CommentListItemRenderProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentListItemProps {
