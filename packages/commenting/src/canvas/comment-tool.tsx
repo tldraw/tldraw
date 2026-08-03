@@ -52,7 +52,9 @@ export function regionBetween(a: VecLike, b: VecLike): BoxModel {
  * The comment tool. Pressing down opens the comment composer at the pointer and it follows until
  * release — like placing a sticky note — settling on a point, or on a shape when released over one.
  * With region comments enabled, dragging past the threshold draws a region rectangle instead.
- * Placement only opens a composer; the records are created when the comment is posted.
+ * Placement only opens a composer; the records are created when the comment is posted. The tool
+ * stays active while the composer is open — posting returns to select, and clicking elsewhere
+ * re-places the composer.
  * @public
  */
 export class CommentTool extends StateNode {
@@ -98,8 +100,11 @@ export class CommentTool extends StateNode {
 
 	override onExit() {
 		// Drop the hover hint painted while pointing at shapes (see CommentIdle). The cursor resets
-		// when the next tool takes over.
+		// when the next tool takes over. The draft composer belongs to the tool, so it leaves with
+		// it — posting and cancelling clear it themselves before switching, so this only catches
+		// direct tool switches (toolbar click, shortcut) while a draft is open.
 		this.editor.setHintingShapes([])
+		pendingComment.set(this.editor, null)
 	}
 
 	// Escape leaves the tool, like the built-in tools (the editor dispatches `cancel` on Escape).
@@ -185,7 +190,10 @@ class CommentPointing extends StateNode {
 				)
 			: { type: 'point', x: point.x, y: point.y }
 		pendingComment.set(editor, { anchor, point: { x: point.x, y: point.y } })
-		editor.setCurrentTool('select')
+		// Stay in the tool while the composer is open — the interaction isn't over until the
+		// comment is posted or dismissed, and staying keeps the surrounding UI (style panel,
+		// sidebar) from churning mid-placement. The composer hands back to select on post.
+		this.parent.transition('idle')
 	}
 
 	override onCancel() {
@@ -233,7 +241,8 @@ class CommentDragging extends StateNode {
 			anchor: { type: 'region', ...region, pinX: pin.x, pinY: pin.y },
 			point: regionPinPoint(region, pin),
 		})
-		editor.setCurrentTool('select')
+		// Same as the point placement: the tool stays active while the composer is open.
+		this.parent.transition('idle')
 	}
 
 	override onCancel() {
