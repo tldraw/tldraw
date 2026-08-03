@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This file provides guidance to AI coding agents working in this repository.
+This file provides guidance to AI coding agents working in this repository. It covers what the codebase can't tell you on its own — for structure, packages, and available scripts, read the tree and the root `package.json`.
 
 ## Core rules
 
@@ -8,33 +8,8 @@ This file provides guidance to AI coding agents working in this repository.
 - Run commands from the repo root unless a command explicitly says to run from a workspace.
 - Never run bare `tsc`; use `yarn typecheck` from the repo root.
 - Prefer targeted checks first. Avoid repo-wide test or e2e runs unless the change needs them.
-- Keep changes scoped to the request and the affected package. Do not refactor unrelated code.
 - Respect existing worktree changes. Do not revert user changes unless explicitly asked.
-- Prefer editing existing files over creating new files. Do not add new documentation files unless requested.
-- Use sentence case for headings, titles, labels, and documentation text.
-
-## Repo overview
-
-This is the tldraw monorepo, an infinite canvas SDK for React applications. It is organized with Yarn workspaces.
-
-Core packages:
-
-- `packages/editor` - foundational infinite canvas editor with no default shapes, tools, or UI
-- `packages/tldraw` - complete SDK with default UI, shapes, tools, and interactions
-- `packages/store` - reactive client-side database, persistence, and migrations
-- `packages/tlschema` - shape, binding, and record type definitions and validators
-- `packages/state` - reactive signals library
-- `packages/sync` and `packages/sync-core` - multiplayer sync packages
-- `packages/utils` and `packages/validate` - shared utilities and validation helpers
-- `packages/assets` - icons, fonts, translations, and bundled assets
-
-Apps and examples:
-
-- `apps/examples` - SDK examples and demos; the main place for example development
-- `apps/docs` - documentation site at tldraw.dev
-- `apps/dotcom` - tldraw.com app and workers
-- `apps/vscode` - VS Code extension
-- `templates` - starter templates for supported frameworks
+- Do not add new documentation files unless requested.
 
 ## Setup
 
@@ -44,42 +19,13 @@ Requires Node `>=22.12.0`. Enable Corepack before installing dependencies:
 npm i -g corepack && yarn
 ```
 
-## Common commands
+In a fresh git worktree, run `yarn install` first since worktrees start without `node_modules`.
 
-Development:
+## Running the dev servers
 
-- `yarn dev` - start the examples app at localhost:5420
-- `yarn dev-app` - start the tldraw.com client app
-- `yarn dev-docs` - start the docs site
-- `yarn dev-vscode` - start VS Code extension development
-- `yarn dev-template <template name>` - run a template
+Always run dev commands from the repo root. The root `yarn dev` runs each package's `predev` step, which generates build artifacts like `packages/tldraw/tldraw.css`. Running a per-workspace command (`yarn workspace examples.tldraw.com dev`) skips `predev`, so imports such as `tldraw/tldraw.css` fail to resolve.
 
-Always run dev commands from the repo root. The root `yarn dev` runs each package's `predev` step, which generates build artifacts like `packages/tldraw/tldraw.css`. Running a per-workspace command (`yarn workspace examples.tldraw.com dev`) skips `predev`, so imports such as `tldraw/tldraw.css` fail to resolve. In a fresh git worktree, run `yarn install` first since worktrees start without `node_modules`.
-
-Build:
-
-- `yarn build` - build all changed packages incrementally
-- `yarn build-package` - build SDK packages only
-- `yarn build-app` - build the tldraw.com client app
-- `yarn build-docs` - build the docs site
-
-Testing:
-
-- `yarn test` in a workspace - run tests in watch mode
-- `yarn test run` in a workspace - run tests once
-- `yarn test run --grep "pattern"` in a workspace - run matching tests
-- `yarn vitest` - run all tests across the repo; slow, avoid unless necessary
-- `yarn e2e` - run examples e2e tests
-- `yarn e2e-dotcom` - run tldraw.com e2e tests
-
-Code quality:
-
-- `yarn lint` - lint the package or workspace
-- `yarn lint-current` - lint changed files
-- `yarn typecheck` - type check all packages and refresh assets
-- `yarn format` - format the repo
-- `yarn format-current` - format changed files
-- `yarn api-check` - validate public API reports
+`yarn vitest` runs every test in the repo and is slow; prefer a workspace-scoped run.
 
 ## Validation workflow
 
@@ -114,72 +60,41 @@ Bindings:
 - Shape relationships use binding records and `BindingUtil` classes.
 - Arrows and other connected shapes should update through binding utilities, not ad hoc shape mutation.
 
-Managers:
-
-- Editor subsystems live in `packages/editor/src/lib/editor/managers/` as classes owned and disposed by the `Editor`.
-- A manager that subscribes to events or holds a resource should extend `EditorManager` and register its cleanup so it runs on `dispose()`: `addEditorEvent(event, fn)` for editor bus events, `register(fn)` for everything else (store side effects, reactions, DOM listeners, child resources). Use `editor.timers` for timeouts/intervals/frames and `editor.disposables` for cleanup on the editor itself.
-- Don't extend `EditorManager` for managers with no teardown. See the `EditorManager` doc comment for the full decision guide.
-
 Store and schema:
 
 - Store changes should respect migrations, validators, and schema versioning.
 - Schema-affecting changes usually need updates in `packages/tlschema` and focused migration tests.
 
-## Where to work
-
-- Use `packages/editor` for core editor primitives, geometry, managers, and UI-free behavior.
-- Use `packages/tldraw` for default shapes, default tools, UI, and integration tests that need the full SDK.
-- Use `apps/examples` for runnable SDK examples and demonstrations.
-- Use `apps/docs/content` for documentation articles and release notes.
-- Use `apps/dotcom/client` for tldraw.com frontend behavior.
-- Use `apps/dotcom/*-worker` for Cloudflare worker behavior.
-- Use `templates` for starter project changes.
+Editor manager conventions live in `packages/editor/CLAUDE.md`.
 
 ## Testing guidance
 
-- Unit tests live alongside source files as `*.test.ts`.
-- Integration tests commonly live in `packages/tldraw/src/test/`.
-- E2E tests live in `apps/examples/e2e/` and `apps/dotcom/client/e2e/`.
 - Test in `packages/tldraw` when default shapes, tools, bindings, or UI are involved.
 - Test in `packages/editor` for core editor behavior that should not depend on default shapes or UI.
 - Prefer comparing whole objects in assertions when that gives a clearer failure than checking fields one by one.
-- See `skills/write-unit-tests/` and `skills/write-e2e-tests/` for detailed test patterns.
+- See `skills/write-unit-tests/` and `skills/write-e2e-tests/` for test patterns and file placement.
 
 ## Documentation and examples
 
-- Docs live in `apps/docs/content/`.
-- Examples live in `apps/examples/src/examples/`.
-- Example folders use lowercase kebab-case names.
-- Example README frontmatter drives the examples site; keep titles and descriptions sentence case.
+- Example folders use lowercase kebab-case names, and example README frontmatter drives the examples site.
 - Update docs or examples when an API or user-facing behavior changes.
 - See `skills/write-docs/`, `skills/write-example/`, and `skills/write-release-notes/` for task-specific guidance.
 
 ## Skills
 
-- Canonical agent skills live in `skills/`.
-- `.agents/skills` is a symlink to `../skills` for generic agent compatibility.
-- `.claude/skills` is a symlink to `../skills` for Claude compatibility. Keep `skills/` as the source of truth.
-- `.cursor/skills` is a symlink to `../skills` for Cursor compatibility.
+- Canonical agent skills live in `skills/`. The `.agents/skills`, `.claude/skills`, and `.cursor/skills` symlinks point there for agent compatibility; keep `skills/` as the source of truth.
 - Skill folders use `skill-name/SKILL.md` with YAML frontmatter containing at least `name` and `description`.
 - Put reusable scripts, references, and assets inside the relevant skill folder.
 - Do not duplicate skill content for different agents; add compatibility pointers or symlinks instead.
 - See `skills/skill-creator/` before creating or restructuring skills.
-- User-facing workflow skills include `skills/pr/`, `skills/issue/`, `skills/take/`, `skills/commit-changes/`, and `skills/clean-copy/`.
 
 ## Code conventions
 
 TypeScript:
 
-- Follow existing file-local style and abstractions.
 - Use workspace types and helpers rather than duplicating definitions.
 - Keep public API changes deliberate and reflected in API reports.
 - Avoid boolean or ambiguous positional options in new APIs when a named object or enum would make call sites clearer.
-
-React and UI:
-
-- Follow existing component patterns in the relevant app or package.
-- Keep user-facing text concise and sentence case.
-- Avoid broad UI rewrites when a focused component change is enough.
 
 Generated files:
 
