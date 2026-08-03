@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getVisibleViewport, isSoftKeyboardOpen, SOFT_KEYBOARD_MIN_INSET } from './visual-viewport'
+import { getVisibleViewport } from './visual-viewport'
 
 function makeWindow(
 	innerWidth: number,
@@ -32,38 +32,5 @@ describe('getVisibleViewport', () => {
 			bottom: 768,
 			right: 1024,
 		})
-	})
-})
-
-describe('isSoftKeyboardOpen', () => {
-	it('is true when the visible viewport is shorter than the layout viewport past the threshold', () => {
-		const win = makeWindow(390, 800, { offsetTop: 0, offsetLeft: 0, width: 390, height: 500 })
-		expect(isSoftKeyboardOpen(win)).toBe(true)
-	})
-
-	it('is false when nothing is covering the viewport', () => {
-		const win = makeWindow(390, 800, { offsetTop: 0, offsetLeft: 0, width: 390, height: 800 })
-		expect(isSoftKeyboardOpen(win)).toBe(false)
-	})
-
-	it('needs the inset to exceed the threshold, not just meet it', () => {
-		const atThreshold = makeWindow(390, 800, {
-			offsetTop: 0,
-			offsetLeft: 0,
-			width: 390,
-			height: 800 - SOFT_KEYBOARD_MIN_INSET,
-		})
-		const pastThreshold = makeWindow(390, 800, {
-			offsetTop: 0,
-			offsetLeft: 0,
-			width: 390,
-			height: 800 - SOFT_KEYBOARD_MIN_INSET - 1,
-		})
-		expect(isSoftKeyboardOpen(atThreshold)).toBe(false)
-		expect(isSoftKeyboardOpen(pastThreshold)).toBe(true)
-	})
-
-	it('treats a missing visualViewport as keyboard-down', () => {
-		expect(isSoftKeyboardOpen(makeWindow(390, 800))).toBe(false)
 	})
 })

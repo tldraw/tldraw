@@ -25,13 +25,3 @@ export function getVisibleViewport(win: Window): VisibleViewport {
 	const height = vv ? vv.height : win.innerHeight
 	return { top, left, width, height, bottom: top + height, right: left + width }
 }
-
-/** How much shorter than the layout viewport the visible viewport is — a keyboard is much taller
- *  than any browser UI chrome, so a gap past this reads as the keyboard being up rather than a URL
- *  bar. */
-export const SOFT_KEYBOARD_MIN_INSET = 100
-
-/** Whether the software keyboard is taking up meaningful vertical space right now. */
-export function isSoftKeyboardOpen(win: Window): boolean {
-	return win.innerHeight - getVisibleViewport(win).height > SOFT_KEYBOARD_MIN_INSET
-}
