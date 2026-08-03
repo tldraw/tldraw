@@ -66,12 +66,10 @@ export function CommentComposer({
 	renderMentionSuggestion,
 }: CommentComposerProps) {
 	const interactive = !!onChange || !!onSubmit
-	// The canvas editor the composer lives in, if any — lets the mention popup track the camera. Null
-	// when the composer is used outside a tldraw editor (e.g. an isolated demo).
+	// Lets the mention popup track the camera. Null outside a tldraw editor.
 	const tlEditor = useMaybeEditor()
 
-	// Callbacks are read through refs so the editor instance doesn't need to be recreated when they
-	// change identity between renders.
+	// Read through refs so the editor isn't recreated when callback identity changes.
 	const onChangeRef = useRef(onChange)
 	onChangeRef.current = onChange
 	const onSubmitRef = useRef(onSubmit)
@@ -94,17 +92,16 @@ export function CommentComposer({
 	const inputWrapRef = useRef<HTMLDivElement>(null)
 	const mirrorRef = useRef<HTMLDivElement>(null)
 
-	// Measure whether the content still fits on one line beside the send button. The mirror is a
-	// hidden, nowrap clone of the editor's rendered content, so marks and mention chips measure at
-	// their true width. A small dead zone between the expand and collapse thresholds keeps the
-	// layout from flapping while typing at the boundary.
+	// Measure whether the content still fits on one line beside the send button, against a hidden
+	// nowrap clone so marks and mention chips measure at their true width. The gap between the
+	// expand and collapse thresholds is a dead zone, so the layout can't flap at the boundary.
 	const remeasure = () => {
 		const wrap = inputWrapRef.current
 		const mirror = mirrorRef.current
 		const editor = editorRef.current
 		if (!wrap || !mirror || !editor) return
-		// Empty always fits — and measuring before TipTap's DOM has laid out reads zero widths,
-		// which would flash the expanded layout for a frame on mount.
+		// Empty always fits — and measuring before TipTap has laid out reads zero widths, flashing
+		// the expanded layout for a frame on mount.
 		if (editor.isEmpty) {
 			if (expandedRef.current) setExpanded(false)
 			return
@@ -123,11 +120,8 @@ export function CommentComposer({
 		if (!send || !input) return
 		mirror.innerHTML = input.innerHTML
 		const textWidth = mirror.offsetWidth
-		// The single-line space the input has beside the send button: the wrap's *content* box
-		// (clientWidth minus its own horizontal padding — the text wraps there, not at clientWidth),
-		// less the button plus the field's 6px gap when already expanded (the wrap then spans the
-		// full field). Without subtracting the padding, a padded wrap wraps to a second line ~padding
-		// px before expansion fires, so the input grows a line and then snaps to the expanded layout.
+		// Measured against the wrap's *content* box: text wraps at clientWidth minus padding, so
+		// without subtracting it the input grows a line before expansion fires and then snaps.
 		const wrapStyle = getComputedStyle(wrap)
 		const wrapPadX = parseFloat(wrapStyle.paddingLeft) + parseFloat(wrapStyle.paddingRight)
 		const collapsedAvailable =
@@ -141,34 +135,22 @@ export function CommentComposer({
 	const remeasureRef = useRef(remeasure)
 	remeasureRef.current = remeasure
 
-	// The editor instance, reachable from `handleKeyDown` (which is created before `useEditor`
-	// returns). Updated on every render so the ref never points at a stale editor.
+	// Reachable from `handleKeyDown`, which is created before `useEditor` returns.
 	const editorRef = useRef<ReturnType<typeof useEditor>>(null)
 
-	// Set while we replay Enter through the keymaps for a Shift+Enter newline: `commands.enter()`
-	// re-dispatches Enter through `handleKeyDown`, and without this guard our own handler would catch
-	// that synthetic Enter and submit instead.
+	// `commands.enter()` re-dispatches through `handleKeyDown`; without this guard our own handler
+	// would catch the synthetic Enter and submit.
 	const replayingEnter = useRef(false)
 
-	// Enter and Cmd/Ctrl+Enter submit the comment; Shift+Enter inserts a new line for the occasional
-	// multi-line comment. This is handled through `editorProps.handleKeyDown` (below) rather than a
-	// keyboard-shortcut extension: ProseMirror runs `handleKeyDown` before every keymap plugin, so it
-	// can tell Shift+Enter apart from Enter — an `Enter` keymap binding also fires on Shift/Cmd+Enter
-	// and would otherwise swallow the newline.
-
-	// The suggestion plugin is built once (the editor is recreated only on `interactive`) and runs
-	// outside React, so it must read the mention callbacks through refs — like onChange/onSubmit —
-	// or it queries the roster present at mount forever, never seeing a member who loads or joins
-	// later. Whether mentions (and a custom picker row) are wired at all is fixed at mount; only the
-	// callbacks themselves are live.
+	// The suggestion plugin is built once and runs outside React, so it reads the mention callbacks
+	// through refs — otherwise it queries the roster present at mount forever, never seeing a member
+	// who joins later. Whether mentions are wired at all is fixed at mount; the callbacks are live.
 	const mentionsEnabled = !!getMentionSuggestions
 	const hasCustomRow = !!renderMentionSuggestion
 	const extensions = useMemo(() => {
 		const list = [...commentTipTapExtensions]
-		// Always register the mention node so an existing body that contains a mention keeps it on
-		// edit (an unregistered node would be stripped by ProseMirror when the content loads). The `@`
-		// picker itself only turns on when the host provides a resolver; otherwise the node is present
-		// but its trigger is disabled.
+		// The mention node is always registered, or ProseMirror strips existing mentions when an
+		// edited body loads. Only the `@` trigger is gated on the host providing a resolver.
 		if (mentionsEnabled) {
 			const resolveSuggestions = (query: string) => getMentionSuggestionsRef.current?.(query) ?? []
 			const renderRow = hasCustomRow
@@ -193,9 +175,8 @@ export function CommentComposer({
 			extensions,
 			content: (value ?? EMPTY_COMMENT) as JSONContent,
 			editable: interactive,
-			// tldraw's default extensions add their own TextDirection extension (so it can be
-			// overridden), so disable TipTap's core one to avoid a duplicate-extension warning —
-			// mirrors RichTextArea's setup.
+			// tldraw ships its own TextDirection extension, so TipTap's core one would warn about a
+			// duplicate. Mirrors RichTextArea's setup.
 			enableCoreExtensions: { textDirection: false },
 			textDirection: 'auto',
 			editorProps: {
@@ -210,8 +191,8 @@ export function CommentComposer({
 				handleKeyDown: (_view, event) => {
 					// Let the keymaps handle the synthetic Enter we replay for a Shift+Enter newline.
 					if (replayingEnter.current) return false
-					// Up in an empty composer hands off to the host (edit the comment above). With
-					// content, Up stays cursor movement; with the mention picker open, it navigates it.
+					// Up in an empty composer hands off to the host. With content it stays cursor
+					// movement, and with the picker open it navigates the roster.
 					if (event.key === 'ArrowUp' && !event.isComposing) {
 						if (
 							onArrowUpWhenEmptyRef.current &&
@@ -226,12 +207,10 @@ export function CommentComposer({
 					if (event.key !== 'Enter' || event.isComposing) return false
 					// While the @-mention picker is open, Enter selects the highlighted member — defer.
 					if (isMentionPickerOpen()) return false
-					// Shift+Enter inserts a new line. Replay a plain Enter through the keymaps (guarded so
-					// we don't re-enter and submit) to reuse the editor's list-aware Enter handling — a new
-					// list item in a list, a new paragraph otherwise. tldraw doesn't do soft breaks.
+					// Shift+Enter inserts a new line by replaying a plain Enter through the keymaps, reusing
+					// the editor's list-aware handling. tldraw doesn't do soft breaks.
 					if (event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
-						// An empty field has nothing to break onto — swallow the keypress so it doesn't
-						// open the comment with a stray leading blank line.
+						// An empty field would open the comment with a stray leading blank line.
 						if (editorRef.current?.isEmpty) return true
 						replayingEnter.current = true
 						try {
@@ -248,8 +227,7 @@ export function CommentComposer({
 			},
 			onUpdate: ({ editor }) => {
 				setIsEmpty(editor.isEmpty)
-				// Same-value state sets don't re-render, so measure here — the editor's DOM is
-				// already updated when onUpdate fires.
+				// Same-value state sets don't re-render, and the DOM is already updated here.
 				remeasureRef.current()
 				onChangeRef.current?.(editor.getJSON() as TLRichText)
 			},

@@ -19,26 +19,21 @@ import { POPOVER_OFFSET, toCardProps, useResolveName } from './thread-view'
 
 /**
  * Hover previews for every canvas marker — a single pin, a coincident stack, or a cluster badge.
- * Hovering shows the thread(s) behind the marker as cards; the marker's own click keeps whatever
- * it already did (open the thread, open the stack list, zoom to the cluster's split).
+ * Hovering shows the thread(s) behind the marker as cards; the marker's own click is unchanged.
  *
- * The panel is live, not a passive tooltip: the pointer can travel right into it and hover each
- * card, and clicking one opens that thread — the same affordance the stack list gives its cards.
- * Two pieces make that work. The close delay survives the trip across the gap, and the panel
- * carries an invisible bridge over that gap (see `.tlui-cmt-canvas-preview::before`) so the
- * journey never crosses dead space and retracts the panel mid-move.
+ * The panel is live, not a passive tooltip: the pointer can travel into it and click a card to open
+ * that thread. Two pieces make that work — the close delay survives the trip across the gap, and
+ * the panel carries an invisible bridge over it (see `.tlui-cmt-canvas-preview::before`).
  *
- * Opening a thread from a card needs nothing more than setting `openThreadId`, including for a
- * thread currently folded inside a cluster badge: `collectClusterLeaves` skips the open thread, so
- * it drops out of its badge and renders its own pin and popover.
+ * Opening a thread from a card needs nothing more than setting `openThreadId`, even for one folded
+ * inside a badge: `collectClusterLeaves` skips the open thread, so it drops out and renders itself.
  */
 
 /** How long the pointer must rest on a marker before its preview appears. */
 const PREVIEW_OPEN_DELAY_MS = 180
 /**
- * Grace period after the pointer leaves the marker *or* the panel. Long enough to cross the gap
- * between them by hand — the bridge element covers that gap geometrically, and this covers the
- * moment of transit between the two elements' enter/leave events.
+ * Grace period after the pointer leaves the marker *or* the panel — long enough to cross the gap
+ * between them, which the bridge element covers geometrically.
  */
 const PREVIEW_CLOSE_DELAY_MS = 220
 /** Cards shown before the panel falls back to a "+N more" line. */
@@ -53,9 +48,8 @@ export interface ThreadPreviewCard {
 /**
  * The cards a marker's preview will show, and how many threads it will summarise as "+N more".
  *
- * A thread can exist before its opening comment does — a collaborator's, mid-sync — and has nothing
- * to preview until it arrives. Those are dropped here rather than rendered as blank cards, and they
- * don't count toward the overflow tally either, so "+2 more" always means two readable threads.
+ * A thread can exist before its opening comment does — a collaborator's, mid-sync. Those are
+ * dropped rather than rendered blank, and don't count toward the overflow tally.
  */
 export function selectPreviewCards(
 	threads: readonly TLCommentThread[],
@@ -81,17 +75,15 @@ export type ThreadPreviewVariant = 'thread' | 'list'
 
 /**
  * Which marker's preview is showing, or null. One atom for the whole layer, so previews are
- * mutually exclusive by construction: the close delay means an outgoing marker's timer can still
- * be pending when the next marker opens, and per-component state would briefly show both.
+ * mutually exclusive: the close delay can leave an outgoing marker's timer pending when the next
+ * opens, and per-component state would briefly show both.
  */
 const hoveredMarkerId = new EditorAtom<string | null>('commentHoveredMarkerId', () => null)
 
 /**
  * Hover state for one marker. Returns whether its preview should render, plus the pointer handlers
- * to spread onto the marker element.
- *
- * `markerId` must be stable and unique per marker across the layer — prefix by kind, since a stack
- * is keyed by its oldest member's thread id and would otherwise collide with that thread's own pin.
+ * to spread onto the marker element. `markerId` must be stable and unique per marker across the
+ * layer — prefix by kind, or a stack collides with its oldest member's own pin.
  */
 export function useMarkerPreview(editor: Editor, markerId: string) {
 	const openTimer = useRef(0)
@@ -154,9 +146,8 @@ export function useMarkerPreview(editor: Editor, markerId: string) {
 }
 
 /**
- * The hover panel: each thread's opening comment as a read-only card, capped with a "+N more"
- * line. Mounted only while hovering, so the store subscription it needs to find those comments
- * costs nothing at rest.
+ * The hover panel: each thread's opening comment as a read-only card, capped with a "+N more" line.
+ * Mounted only while hovering, so its store subscription costs nothing at rest.
  */
 export function ThreadPreview({
 	editor,

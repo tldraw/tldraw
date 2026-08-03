@@ -3,15 +3,13 @@ import { Editor, TLComment, TLCommentReaction, TLCommentThread, TLRecord } from 
 /**
  * Typed reads of comment records on the editor store.
  *
- * Comment threads and comments live on the editor's local store so the canvas can render them
- * reactively, but they are opt-in records that aren't part of the `TLRecord` union (they ride the
- * sync server's object-store lane on the wire — see `TLCommentThread`). `editor.store` is therefore
- * statically typed `Store<TLRecord>` and doesn't know about them, so every access has to reinterpret
- * the type. These helpers own that reinterpretation — an `unknown` hop to exactly the type the store
- * expects, so the rest of each call stays checked — behind one boundary, and keep call sites typed.
+ * Comment records live on the editor's local store so the canvas can render them reactively, but
+ * they're opt-in and aren't part of the `TLRecord` union — so `editor.store` is statically typed
+ * `Store<TLRecord>` and every access has to reinterpret the type. These helpers own that
+ * reinterpretation behind one boundary and keep call sites typed.
  *
- * Writes do the same reinterpretation, but they also answer to the undo/redo policy, so they live
- * with the rest of the write path in `comment-mutations.ts`.
+ * Writes do the same, but also answer to the undo/redo policy, so they live in
+ * `comment-mutations.ts`.
  */
 
 /**
@@ -36,9 +34,8 @@ export function getCommentRecord(editor: Editor, id: string): TLCommentRecord | 
 }
 
 /**
- * Every comment thread in the store, **including soft-deleted ones** and ones left empty by their
- * last comment's delete — records that are still present but awaiting the server's prune, and that
- * nothing renders. For the set the UI shows, use {@link getLiveCommentThreads}.
+ * Every comment thread in the store, **including soft-deleted and emptied ones** awaiting the
+ * server's prune, which nothing renders. For the set the UI shows, use {@link getLiveCommentThreads}.
  *
  * Non-reactive; wrap in `useValue`, or use `useCommentThreads`, to react.
  * @public
@@ -62,8 +59,7 @@ export function getComments(editor: Editor): TLComment[] {
 
 /**
  * The comments that should render: not soft-deleted. A deleted record lingers in the store until
- * the server prunes it, so this — not {@link getComments} — is what a count or a list of your own
- * should be built from.
+ * the server prunes it, so build counts and lists from this rather than {@link getComments}.
  *
  * Non-reactive; the reactive equivalent is `useComments` (which also sorts oldest first).
  * @public
@@ -73,10 +69,9 @@ export function getLiveComments(editor: Editor): TLComment[] {
 }
 
 /**
- * The comment threads that should render (pins, sidebar): live — not soft-deleted — and still
- * holding at least one live comment. A soft-deleted thread or comment is awaiting the server's
- * prune, as is a thread emptied by its last comment's delete; until the prune lands, the emptied
- * thread record lingers with no surface.
+ * The comment threads that should render (pins, sidebar): not soft-deleted, and still holding at
+ * least one live comment. A thread emptied by its last comment's delete lingers with no surface
+ * until the server's prune lands.
  *
  * Non-reactive; the reactive equivalent is `useCommentThreads`.
  * @public

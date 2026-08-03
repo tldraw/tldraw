@@ -26,9 +26,8 @@ import {
 
 /**
  * The pin for threads whose anchors resolve to the same page point — pins zooming can never
- * separate, so instead of stacked markers they share one count badge. Clicking it opens a
- * popover listing each thread as a card; clicking a card expands that thread in place (via the
- * single open-thread state, so expanding one collapses another).
+ * separate, so they share one count badge. Clicking it lists each thread as a card; clicking a card
+ * expands that thread in place, via the single open-thread state.
  */
 export const ThreadStackPin = memo(function ThreadStackPin({
 	editor,
@@ -47,12 +46,9 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	// Hovering the badge previews its threads; clicking still opens them as the interactive list.
 	// The preview is what makes the badge legible before you commit to opening it.
 	const { previewShown, previewHandlers } = useMarkerPreview(editor, `stack:${threads[0].id}`)
-	// The list stays open while a member thread is expanded, and on its own after the member
-	// collapses — so Escape steps back: expanded thread → card list → closed. Held in editor
-	// state (not component state) because this pin remounts as its owning render path changes.
-	// Keyed by the coincident page point, not a member id, so the open state survives losing a
-	// member (including the oldest): the survivors keep the same key. Falls back to a thread id
-	// only when the anchor can't resolve (off page), where the list isn't shown anyway.
+	// The list stays open while a member thread is expanded, so Escape steps back: expanded thread ->
+	// card list -> closed. Held in editor state because this pin remounts as its owning render path
+	// changes, and keyed by the coincident page point so the open state survives losing a member.
 	const stackId = useValue(
 		'stack id',
 		() => {
@@ -74,12 +70,9 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 		() => {
 			const first = threads[0]
 			if (first.pageId !== editor.getCurrentPageId()) return null
-			// The badge hangs off its anchor point bottom-left (transform: translate(0, -100%)),
-			// like a pin — and it applies the same imprecise-shape inset the pins it stands in for
-			// would (see ThreadPin): the stack's members share one anchor point, so they share one
-			// inset, and skipping it would snap the marker from tucked inside the shape to the raw
-			// corner the moment a second imprecise comment turns a pin into a stack. The cluster
-			// badge matches by drawing at the centroid of the pins as rendered.
+			// The badge hangs off its anchor point bottom-left like a pin, and applies the same imprecise-shape
+			// inset the pins it stands in for would (see ThreadPin) — otherwise the marker would snap from tucked
+			// inside the shape to the raw corner the moment a second comment turns a pin into a stack.
 			const pagePoint = anchorPagePoint(editor, first.anchor)
 			if (!pagePoint) return null
 			const viewportPoint = editor.pageToViewport(pagePoint)
@@ -136,12 +129,9 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 		}
 	}
 
-	// The expanded thread gains a "Comment" header that pushes its first comment down from where the
-	// hover preview showed it. When that thread is the list's first, lift the whole list by the
-	// header block so its "You" holds position across hover -> open: the single thread's
-	// THREAD_HEADER_BLOCK (36) plus the 8px margin above the expanded entry, less the 2px top the
-	// preview card sits its "You" down by. Only the first entry — lifting the list can't also hold a
-	// lower thread's neighbours in place.
+	// The expanded thread gains a header that pushes its first comment down from where the hover preview
+	// showed it. When that thread is the list's first, lift the whole list so its "You" holds position
+	// across hover -> open. Only the first entry — lifting can't also hold a lower thread's neighbours.
 	const liftForHeader = threads[0]?.id === openId ? 42 : 0
 
 	return (

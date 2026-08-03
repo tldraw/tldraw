@@ -45,9 +45,8 @@ import {
 import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
 
 /** The opened popover has a header row the hover preview lacks, so it opens this much higher — the
- *  first comment then lands where the preview's sat. Measured: the expanded first comment sits ~42px
- *  below the panel top (the 40px header, no gap) vs the preview's 4px (its panel padding).
- *  Re-measure if the header height or the preview panel padding changes. */
+ *  first comment then lands where the preview's sat. Re-measure if the header height or the preview
+ *  panel padding changes. */
 const THREAD_HEADER_BLOCK = 36
 
 /**
@@ -55,9 +54,8 @@ const THREAD_HEADER_BLOCK = 36
  * preview, and — for a region anchor — the dashed box and its resize handles. Dragging the marker
  * re-anchors the thread.
  *
- * Memoized: thread records are identity-stable while unchanged, so a pin skips re-rendering when
- * the layer re-renders for reasons that don't concern it. Camera tracking still works — the pin
- * subscribes to its own viewport position via signals, not via props.
+ * Memoized so a pin skips re-rendering when the layer re-renders for unrelated reasons; camera
+ * tracking still works, since the pin subscribes to its own viewport position via signals.
  */
 export const ThreadPin = memo(function ThreadPin({
 	editor,
@@ -135,10 +133,9 @@ export const ThreadPin = memo(function ThreadPin({
 		}
 	}, [editor])
 
-	// Clicking outside the open popover (and off its own pin) closes the thread — mirrors the
-	// pending composer's dismiss. Capture phase + a class check rather than stopPropagation, since the
-	// popover portals elsewhere in the DOM. The pin marker is excluded so its own click-to-toggle
-	// handles it instead of this closing then the toggle reopening.
+	// Clicking outside the open popover closes the thread. Capture phase + a class check rather than
+	// stopPropagation, since the popover portals elsewhere in the DOM. The marker is excluded so its own
+	// click-to-toggle handles it instead of this closing and the toggle reopening.
 	useEffect(() => {
 		if (!open) return
 		const onPointerDown = (e: PointerEvent) => {
@@ -176,10 +173,8 @@ export const ThreadPin = memo(function ThreadPin({
 			const point = inset
 				? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y }
 				: viewportPoint
-			// Off-screen pins (plus a pre-mount margin) unmount rather than re-rendering on every
-			// camera frame — the same cull the cluster badges apply. A region thread stays mounted
-			// while any part of its box is on screen: the box and its pointer-reveal affordance
-			// render from this component even when the pin corner itself is off-screen.
+			// Off-screen pins (plus a pre-mount margin) unmount rather than re-render every camera frame. A
+			// region thread stays mounted while any part of its box is on screen, since the box renders here too.
 			if (!exemptFromCull) {
 				const visible =
 					thread.anchor.type === 'region'
@@ -205,10 +200,8 @@ export const ThreadPin = memo(function ThreadPin({
 		thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label'
 	).replace('{name}', threadAuthor?.name ?? UNKNOWN_AUTHOR)
 
-	// Drag the marker to move the thread: its position is overridden locally while dragging, then
-	// re-anchored on drop. A point/shape thread re-anchors to whatever it's dropped on (a shape, else
-	// a point); a region thread translates, keeping its size. A pointer that barely moves is a click —
-	// toggle the popover.
+	// Drag the marker to move the thread: position is overridden locally while dragging, then re-anchored
+	// on drop. A region translates keeping its size; a barely-moved pointer is a click.
 	const isRegion = thread.anchor.type === 'region'
 	// The marker is a button (so it's keyboard-reachable), so the drag handlers are typed to it.
 	const startDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
