@@ -7,12 +7,26 @@ import {
 	richTextToPlaintext,
 	summarizeReactions,
 } from '@tldraw/commenting'
-import { ReactNode, useCallback } from 'react'
+import { ReactNode, useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { createDeepLinkString, TLRichText, useValue } from 'tldraw'
+import {
+	createDeepLinkString,
+	TldrawUiButton,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+	TldrawUiMenuCheckboxItem,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+	TLRichText,
+	useValue,
+} from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { defineMessages, F, useMsg } from '../../../utils/i18n'
+import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
+import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	buildReactionNotifications,
 	categorizeCommentNotifications,
@@ -24,11 +38,16 @@ import styles from './notifications.module.css'
 
 const messages = defineMessages({
 	title: { defaultMessage: 'Notifications' },
+	moreOptions: { defaultMessage: 'Notification options' },
+	close: { defaultMessage: 'Close' },
+	filterAll: { defaultMessage: 'All' },
+	filterUnread: { defaultMessage: 'Unread' },
 	markAllRead: { defaultMessage: 'Mark all as read' },
 	empty: { defaultMessage: 'You’re all caught up.' },
 	unknownAuthor: { defaultMessage: 'Someone' },
-	untitledFile: { defaultMessage: 'Untitled file' },
 })
+
+type NotificationFilter = 'all' | 'unread'
 
 /** Byline for a notification row, phrased by why it's there. `<name>` wraps the author's name. */
 function ReasonByline({
@@ -101,6 +120,63 @@ function ReasonByline({
 	}
 }
 
+/** Uses the dotcom sidebar's menu primitives (not the canvas comment menus), so it renders without an editor. */
+function NotificationsOverflowMenu({
+	filter,
+	onFilterChange,
+	onMarkAllRead,
+	hasUnread,
+}: {
+	filter: NotificationFilter
+	onFilterChange(filter: NotificationFilter): void
+	onMarkAllRead(): void
+	hasUnread: boolean
+}) {
+	const moreLbl = useMsg(messages.moreOptions)
+	const allLbl = useMsg(messages.filterAll)
+	const unreadLbl = useMsg(messages.filterUnread)
+	const markAllReadLbl = useMsg(messages.markAllRead)
+
+	return (
+		<TldrawUiDropdownMenuRoot id="notifications-overflow">
+			<TldrawUiMenuContextProvider type="menu" sourceId="menu">
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton type="icon" title={moreLbl} className="tlui-cmt-header-btn">
+						<TlaIcon icon="dots-vertical-strong" />
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent side="bottom" align="end" {...TLA_MENU_POSITION}>
+					<TldrawUiMenuGroup id="notifications-filter">
+						<TldrawUiMenuCheckboxItem
+							id="filter-all"
+							label={allLbl}
+							checked={filter === 'all'}
+							onSelect={() => onFilterChange('all')}
+							readonlyOk
+						/>
+						<TldrawUiMenuCheckboxItem
+							id="filter-unread"
+							label={unreadLbl}
+							checked={filter === 'unread'}
+							onSelect={() => onFilterChange('unread')}
+							readonlyOk
+						/>
+					</TldrawUiMenuGroup>
+					<TldrawUiMenuGroup id="notifications-actions">
+						<TldrawUiMenuItem
+							id="mark-all-read"
+							label={markAllReadLbl}
+							onSelect={onMarkAllRead}
+							disabled={!hasUnread}
+							readonlyOk
+						/>
+					</TldrawUiMenuGroup>
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiMenuContextProvider>
+		</TldrawUiDropdownMenuRoot>
+	)
+}
+
 /**
  * Comments and reactions surfaced as notifications, merged from the `comments` and `reactions`
  * synced queries and sorted by timestamp. {@link categorizeCommentNotifications} and
@@ -131,19 +207,21 @@ function commentLink(fileId: string, shapeId: string | null | undefined, comment
 
 /**
  * Notifications popover contents. Reuses the comments sidebar's list shell (header, scroll, empty)
- * but renders each row document-first — the file title leads, with who-commented and the comment
- * preview as supporting detail — since a notification is about a document, not a person.
+ * but renders each row person-first — an author-coloured pin and a name-led byline (who, and why
+ * you're being notified), the comment preview and any reaction pills beneath, and an unread dot.
  */
 export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const app = useMaybeApp()
 	const { notifications, unreadCount } = useCommentNotifications()
+	const [filter, setFilter] = useState<NotificationFilter>('all')
 	const title = useMsg(messages.title)
-	const markAllReadLbl = useMsg(messages.markAllRead)
+	const closeLbl = useMsg(messages.close)
 	const empty = useMsg(messages.empty)
 	const unknownAuthor = useMsg(messages.unknownAuthor)
-	const untitledFile = useMsg(messages.untitledFile)
 
-	const items: CommentListItemProps[] = notifications.map((n) => {
+	const visible = filter === 'unread' ? notifications.filter((n) => n.unread) : notifications
+
+	const items: CommentListItemProps[] = visible.map((n) => {
 		const c = n.comment
 		return {
 			id: c.id,
@@ -164,15 +242,22 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 				app?.userId,
 				(id) => c.reactions?.find((r) => r.userId === id)?.userName || undefined
 			),
-			// the document the comment lives on — the headline of the notification row
-			page: c.file?.name || untitledFile,
 			// a real link target, so browser affordances (ctrl/cmd-click, middle-click) open a new tab
 			href: commentLink(c.fileId, c.thread?.shapeId, c.id),
 		}
 	})
 
-	// Row id → its notification, so the byline can be phrased per reason and reactor count.
-	const notificationById = new Map(notifications.map((n) => [n.comment.id, n]))
+	// Row id → its notification, for the byline's reason/reactors and the unread dot.
+	const notificationById = new Map(visible.map((n) => [n.comment.id, n]))
+
+	const markAllRead = useCallback(() => {
+		if (!app) return
+		// one batched mutation rather than one markRead per comment. A reaction entry carries its
+		// own unread state (a fresh reaction re-unreads a read comment), so this filters on the
+		// entry rather than on the comment's receipt — and repeats are fine, since the mutator
+		// dedupes the batch.
+		app.markCommentsRead(notifications.filter((n) => n.unread).map((n) => n.comment.id))
+	}, [app, notifications])
 
 	const handleSelect = useCallback(
 		(id: string, isNewTab: boolean) => {
@@ -191,23 +276,22 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 				items={items}
 				header={title}
 				headerAction={
-					<button
-						type="button"
-						className={styles.markAll}
-						onClick={() => {
-							if (!app) return
-							// one batched mutation rather than one markRead per comment. A reaction entry
-							// carries its own unread state (a fresh reaction re-unreads a read comment),
-							// so this filters on the entry rather than on the comment's receipt — and
-							// repeats are fine, since the mutator dedupes the batch.
-							app.markCommentsRead(
-								notifications.filter((n) => n.unread).map((n) => n.comment.id)
-							)
-						}}
-						disabled={unreadCount === 0}
-					>
-						{markAllReadLbl}
-					</button>
+					<div className="tlui-cmt-list__header-actions">
+						<NotificationsOverflowMenu
+							filter={filter}
+							onFilterChange={setFilter}
+							onMarkAllRead={markAllRead}
+							hasUnread={unreadCount > 0}
+						/>
+						<TldrawUiButton
+							type="icon"
+							title={closeLbl}
+							className="tlui-cmt-header-btn"
+							onClick={onClose}
+						>
+							<TlaIcon icon="close" style={{ width: 12, height: 12 }} />
+						</TldrawUiButton>
+					</div>
 				}
 				empty={empty}
 				renderItem={(item) => {
@@ -221,24 +305,29 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 							// middle-click opens the tab natively without firing onClick; still mark it read
 							onAuxClick={(e) => e.button === 1 && handleSelect(item.id, true)}
 						>
+							<span
+								className={styles.pin}
+								style={{ backgroundColor: item.author.color }}
+								aria-hidden="true"
+							/>
 							<div className="tlui-cmt-list__item-body">
 								<div className={styles.head}>
-									<span className={styles.docTitle}>{item.page}</span>
+									<span className={styles.byline}>
+										<ReasonByline
+											reason={n?.primaryReason ?? 'owned-board'}
+											author={item.author.name}
+											reactors={summarizeForeignReactors(n?.comment.reactions, app?.userId)}
+											nameClassName={styles.author}
+										/>
+									</span>
 									<span className={styles.time}>{formatRelativeTime(item.date)}</span>
-								</div>
-								<div className={styles.byline}>
-									<ReasonByline
-										reason={n?.primaryReason ?? 'owned-board'}
-										author={item.author.name}
-										reactors={summarizeForeignReactors(n?.comment.reactions, app?.userId)}
-										nameClassName={styles.author}
-									/>
 								</div>
 								<div className={styles.preview}>{item.preview}</div>
 								{item.reactions && (
 									<Reactions reactions={item.reactions} canReact={false} enableHoverList={false} />
 								)}
 							</div>
+							{n?.unread && <span className={styles.unreadDot} aria-hidden="true" />}
 						</Link>
 					)
 				}}
