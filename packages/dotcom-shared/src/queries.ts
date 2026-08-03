@@ -17,6 +17,11 @@ const defineQueries = defineQueriesWithType<TlaSchema>()
 /** Upper bound on the comments notifications feed, so the synced set stays finite as files accrue. */
 const RECENT_COMMENTS_LIMIT = 50
 
+/** Bound on the reactions feed, counted in reaction rows; the byline's "and N others" absorbs
+ *  undercounts, but a comment with 200+ recent reactions can push every other comment's rows out
+ *  of the window entirely, not just shrink a byline. */
+export const RECENT_REACTIONS_LIMIT = 200
+
 /**
  * Upper bound on the per-file @-mention roster of past viewers, so a heavily-viewed public board
  * doesn't stream an unbounded set to every collaborator. The composer's autocomplete only ever
@@ -49,8 +54,8 @@ export const queries = defineQueries({
 	),
 
 	/**
-	 * Recent comments that concern the current user, for the app-level notifications feed. A
-	 * comment qualifies when it isn't the user's own and matches at least one of three categories:
+	 * Recent comments that concern the current user, for the app-level notifications feed. Someone
+	 * else's comment qualifies when it matches at least one of three categories:
 	 *
 	 * - it's on a file the user owns
 	 * - it's in a thread the user is a part of (started, or has commented in) and on a file they
@@ -61,6 +66,8 @@ export const queries = defineQueries({
 	 *   workspace they're a member of. Ownership carries its own access evidence; replies and
 	 *   mentions need an explicit current-access gate because historical thread participation can
 	 *   outlive access to the file.
+	 *
+	 * "Reacted to your comment" entries come from the separate {@link reactions} query, not here.
 	 *
 	 * Filtering here (server-side) rather than on the client is what keeps out-of-category
 	 * comments off the wire entirely. One gate stays client-side: `categorizeCommentNotifications`
@@ -142,8 +149,54 @@ export const queries = defineQueries({
 			// the caller's read receipt (at most one row: PK is (userId, commentId) and we filter
 			// on userId); absent (for others' comments) = unread
 			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
+			// every reaction to the comment, for the inert reaction pills on notification rows. A
+			// comment's reactions are naturally few, so the set syncs unbounded
+			.related('reactions')
 			.orderBy('createdAt', 'desc')
 			.limit(RECENT_COMMENTS_LIMIT)
+	),
+
+	/**
+	 * Reactions to the user's comments, for the notifications feed. Rooted at comment_reaction and
+	 * ordered by reaction time, not comment time, so a fresh reaction on an old comment still syncs.
+	 * Access gates mirror the comments query; grouping into per-comment entries is client-side.
+	 */
+	reactions: defineQuery(({ ctx }) =>
+		zql.comment_reaction
+			.where('userId', '!=', ctx.userId)
+			.whereExists('comment', (c) =>
+				c
+					.where('authorId', '=', ctx.userId)
+					.where('isDeleted', '=', false)
+					.whereExists('thread', (t) => t.where('isDeleted', '=', false))
+					.whereExists('file', (f) =>
+						f.where(({ and, cmp, or, exists }) =>
+							and(
+								cmp('isDeleted', '=', false),
+								or(
+									cmp('ownerId', '=', ctx.userId),
+									exists('states', (s) => s.where('userId', '=', ctx.userId)),
+									exists('groupFiles', (gf) =>
+										gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
+									)
+								)
+							)
+						)
+					)
+			)
+			// the reacted-to comment, with what the notification row renders
+			.related('comment', (c) =>
+				c
+					.one()
+					.related('file', (f) => f.one())
+					.related('thread', (t) => t.one())
+					.related('read', (r) => r.where('userId', '=', ctx.userId).one())
+					// every reaction incl. the caller's own: pills need exact counts and the own-reaction
+					// highlight, which the window-capped feed rows can't provide
+					.related('reactions')
+			)
+			.orderBy('createdAt', 'desc')
+			.limit(RECENT_REACTIONS_LIMIT)
 	),
 
 	/**
@@ -163,6 +216,9 @@ export const queries = defineQueries({
 				file.whereExists('states', (s) => s.where('userId', '=', ctx.userId))
 			)
 			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
+			// so the canvas can flag own comments with fresh foreign reactions as unread, and its
+			// thread-view auto-mark-read can clear the reaction notification on view
+			.related('reactions')
 	),
 
 	/**

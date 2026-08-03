@@ -90,6 +90,27 @@ export const tipTapDefaultExtensions: Extensions = getTipTapDefaultExtensions()
 const htmlCache = new WeakCache<TLRichText, string>()
 
 /**
+ * Renders HTML from a rich text string using an explicit set of TipTap extensions, rather than the
+ * ones configured on an editor. Use this when rendering rich text outside of a shape's editor
+ * config (e.g. comments, which render through their own headingless extension set).
+ *
+ * @param richText - The rich text content.
+ * @param extensions - The TipTap extensions to render with.
+ *
+ * @public
+ */
+export function renderHtmlFromRichTextWithExtensions(
+	richText: TLRichText,
+	extensions: Extensions
+): string {
+	const html = generateHTML(richText as JSONContent, extensions)
+	// We replace empty paragraphs with a single line break to prevent the browser from collapsing
+	// them. The paragraph's attributes are kept: paragraphs render with a `dir` attribute, usually
+	// `auto` but `ltr` or `rtl` when the direction was set explicitly or parsed from pasted HTML.
+	return html.replace(/<p([^>]*)><\/p>/g, '<p$1><br /></p>')
+}
+
+/**
  * Renders HTML from a rich text string.
  *
  * @param editor - The editor instance.
@@ -101,9 +122,7 @@ export function renderHtmlFromRichText(editor: Editor, richText: TLRichText) {
 	return htmlCache.get(richText, () => {
 		const tipTapExtensions =
 			editor.getTextOptions().tipTapConfig?.extensions ?? tipTapDefaultExtensions
-		const html = generateHTML(richText as JSONContent, tipTapExtensions)
-		// We replace empty paragraphs with a single line break to prevent the browser from collapsing them.
-		return html.replaceAll('<p dir="auto"></p>', '<p><br /></p>') ?? ''
+		return renderHtmlFromRichTextWithExtensions(richText, tipTapExtensions)
 	})
 }
 

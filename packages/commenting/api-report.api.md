@@ -142,8 +142,15 @@ export interface CommentingComponents {
     }>;
     ReactionPalette?: ComponentType<EmojiPickerProps>;
     ReactionTooltip?: ComponentType<ReactionTooltipProps>;
+    ThreadActions?: ComponentType<{
+        comments: TLComment[];
+        thread: TLCommentThread;
+    }>;
     ThreadPreview?: ComponentType<{
         comment: TLComment;
+    }>;
+    ThreadRow?: ComponentType<CommentListItemRenderProps & {
+        thread: TLCommentThread;
     }>;
 }
 
@@ -153,7 +160,7 @@ export interface CommentingContext {
     getMentionSuggestions?(query: string): MentionMember[] | Promise<MentionMember[]>;
     getThreadHref?(threadId: TLCommentThreadId): string | undefined;
     isCommentUnread?(commentId: TLCommentId): boolean;
-    onCommentRead?(commentId: TLCommentId): void;
+    onCommentsRead?(commentIds: TLCommentId[]): void;
     onPostComment?(comment: TLComment): void;
     renderMentionSuggestion?(member: MentionMember): ReactNode;
     resolveAuthor(id: string): CommentAuthor | undefined;
@@ -166,6 +173,7 @@ export interface CommentingOptions {
         currentUserId: null | string;
         editor: Editor;
     }) => boolean) | undefined;
+    readonly canModifyComment: ((ctx: CommentModificationContext) => boolean) | undefined;
     readonly components: CommentingComponents;
     readonly dragHistory: TLHistoryBatchOptions['history'] | undefined;
     readonly enableClustering: boolean;
@@ -179,6 +187,9 @@ export interface CommentingOptions {
     shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean;
 }
 
+// @public
+export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, reactions, href, resolvedLabel, onSelect }: CommentListItemRenderProps): JSX.Element;
+
 // @public (undocumented)
 export interface CommentListItemProps {
     // (undocumented)
@@ -190,10 +201,35 @@ export interface CommentListItemProps {
     id: string;
     page?: string;
     preview: ReactNode;
+    reactions?: ReactionSummary[];
     // (undocumented)
     resolved?: boolean;
     selected?: boolean;
 }
+
+// @public
+export interface CommentListItemRenderProps extends CommentListItemProps {
+    onSelect?(id: string): void;
+    resolvedLabel?: string;
+}
+
+// @public
+export type CommentModification = {
+    readonly action: 'delete-comment';
+    readonly comment: TLComment;
+} | {
+    readonly action: 'delete-thread';
+    readonly thread: TLCommentThread;
+} | {
+    readonly action: 'edit-comment';
+    readonly comment: TLComment;
+};
+
+// @public
+export type CommentModificationContext = {
+    readonly currentUserId: null | string;
+    readonly editor: Editor;
+} & CommentModification;
 
 // @public
 export function CommentPin({ children, resolved, open }: CommentPinProps): JSX.Element;
@@ -251,7 +287,7 @@ export interface CommentsListProps {
     // (undocumented)
     items: CommentListItemProps[];
     onSelect?(id: string): void;
-    renderItem?(item: CommentListItemProps): ReactNode;
+    renderItem?(props: CommentListItemRenderProps): ReactNode;
     resolvedLabel?: string;
 }
 
@@ -326,9 +362,13 @@ export const DEFAULT_REACTION_EMOJI: string[];
 export const DEFAULT_SIDEBAR_FILTERS: SidebarFilters;
 
 // @public
+export function defaultCanModifyComment(ctx: CommentModificationContext): boolean;
+
+// @public
 export const defaultCommentingOptions: {
     readonly allowMultipleReactions: true;
     readonly canComment: undefined;
+    readonly canModifyComment: undefined;
     readonly components: {};
     readonly dragHistory: undefined;
     readonly enableClustering: true;
@@ -388,10 +428,16 @@ export { filterMentionMembers }
 export function focusThread(editor: Editor, thread: TLCommentThread): void;
 
 // @public
+export function formatFullDateTime(iso: string, locale?: string): string;
+
+// @public
 export function formatRelativeTime(iso: string, locale?: string): string;
 
 // @public
 export function getCanComment(editor: Editor, currentUserId: null | string | undefined): boolean;
+
+// @public
+export function getCanModifyComment(editor: Editor, currentUserId: null | string | undefined, modification: CommentModification): boolean;
 
 // @public
 export function getCommentingOptions(editor: Editor): CommentingOptions;
@@ -501,6 +547,16 @@ export interface ReactionSummary {
     reactors: ReactionReactor[];
 }
 
+// @public
+export interface ReactionSummaryInput {
+    // (undocumented)
+    createdAt: number;
+    // (undocumented)
+    emoji: string;
+    // (undocumented)
+    userId: string;
+}
+
 // @public (undocumented)
 export interface ReactionTooltipProps {
     children: ReactNode;
@@ -568,7 +624,17 @@ export interface SidebarFilters {
 export const sidebarFilters: EditorAtom<SidebarFilters>;
 
 // @public
-export function summarizeReactions(reactions: TLCommentReaction[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined): ReactionSummary[];
+export interface SidebarRow {
+    // (undocumented)
+    item: CommentListItemProps;
+    lastActivity: number;
+}
+
+// @public
+export function sortSidebarRows(rows: readonly SidebarRow[]): readonly SidebarRow[];
+
+// @public
+export function summarizeReactions(reactions: readonly ReactionSummaryInput[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined): ReactionSummary[];
 
 // @public
 export type TLCommentRecord = TLComment | TLCommentReaction | TLCommentThread;
@@ -584,6 +650,9 @@ export function toggleCommentsSidebar(editor: Editor): void;
 
 // @public
 export function useCanComment(currentUserId: null | string | undefined): boolean;
+
+// @public
+export function useCanModifyComment(currentUserId: null | string | undefined, modification: CommentModification): boolean;
 
 // @public
 export function useCommentingEnabled(): boolean;

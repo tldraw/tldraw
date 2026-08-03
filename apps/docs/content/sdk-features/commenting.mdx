@@ -84,7 +84,7 @@ Mount the layer through the `InFrontOfTheCanvas` component slot so it sits above
 
 ## Placing comments
 
-`commentToolOverrides` puts the comment tool in the toolbar with the `C` shortcut. With the tool active, clicking empty canvas starts a thread anchored to that point, and clicking a shape anchors a comment to the shape. You can also turn on region comments, where dragging the tool out covers an area. Either way the click only opens a composer: nothing is written to the store until the comment is posted.
+`commentToolOverrides` puts the comment tool in Quick Actions with the `C` shortcut. With the tool active, clicking empty canvas starts a thread anchored to that point, and clicking a shape anchors a comment to the shape. You can also turn on region comments, where dragging the tool out covers an area. Either way the click only opens a composer: nothing is written to the store until the comment is posted.
 
 Once a comment thread exists, its pin is the handle for everything else.
 
@@ -95,7 +95,7 @@ Once a comment thread exists, its pin is the handle for everything else.
 | `Escape`    | Closes the open thread.                                              |
 | `Shift+C`   | Hides and shows the pins on the canvas.                              |
 
-In the built-in layer, resolve and delete-thread sit in the thread's header, and the edit and delete controls for a single comment appear only on the author's own comments by default. You can customize what a client is able to control and write with comments, as [Syncing comments](#syncing-comments) covers.
+In the built-in layer, resolve and delete-thread sit in the thread's header, and the edit and delete controls for a single comment appear only on the author's own comments by default. [`canModifyComment`](#who-can-edit-and-delete) changes who gets those controls, and [Syncing comments](#syncing-comments) covers enforcing the same rules on the server.
 
 To put the show and hide toggle in a menu of your own, use `CommentsMenuItem`. It's a checkbox item wired to the same state as the `Shift+C` shortcut.
 
@@ -198,11 +198,34 @@ When `canComment` returns false, composers give way to the `ComposerFallback` sl
 
 `canComment` is read during render through `useCanComment`, so a callback that reads signals re-evaluates when they change.
 
+## Who can edit and delete
+
+`canComment` is about the viewer; `canModifyComment` is about the viewer and one particular record. It's asked for the three writes that belong to someone in particular — editing a comment, deleting a comment, deleting a thread — and where it returns false, that affordance isn't rendered.
+
+Left unset, each is its record's owner's to make: you edit and delete your own comments, and delete threads you started. Pass a callback to widen that, composing with `defaultCanModifyComment` so the owner keeps what they already had:
+
+```tsx
+import { CommentTool, defaultCanModifyComment } from '@tldraw/commenting'
+
+CommentTool.configure({
+	canModifyComment: (ctx) =>
+		// Moderators may remove anything. Editing stays the author's, whoever you are.
+		(ctx.action !== 'edit-comment' && isModerator(ctx.currentUserId)) ||
+		defaultCanModifyComment(ctx),
+})
+```
+
+The `ctx` carries the editor, the viewer's `currentUserId`, and the write itself as a discriminated union: `{ action: 'edit-comment' | 'delete-comment', comment }` or `{ action: 'delete-thread', thread }`. Narrowing works too — return false to close edits after an hour, or on a resolved thread.
+
+Resolving, reopening, reacting, and moving a pin aren't asked about: none of them is anyone's in particular, so `canComment` is the only gate on them. `canModifyComment` is checked after `canComment`, so a viewer who may not participate gets no action affordances whatever it returns. Like `canComment`, it's read during render (through `useCanModifyComment`), so a callback that reads signals re-evaluates when they change.
+
+Whatever you decide here, decide it again on the server: `createCommentAuthorizers` takes a `canModifyComment` of its own, and it's the one that counts. See [enforcing the same rules on the server](#syncing-comments).
+
 <Callout type="warning">
-	`canComment` hides UI. It doesn't enforce anything. Comment records carry a client-supplied
-	`createdBy` and `authorId`, and a client can write whatever your sync server accepts. Enforce
-	permissions in your server's record authorization, and verify author ids against the session's
-	authenticated identity. See [Syncing comments](#syncing-comments).
+	`canComment` and `canModifyComment` hide UI. They don't enforce anything. Comment records carry a
+	client-supplied `createdBy` and `authorId`, and a client can write whatever your sync server
+	accepts. Enforce permissions in your server's record authorization, and verify author ids against
+	the session's authenticated identity. See [Syncing comments](#syncing-comments).
 </Callout>
 
 ## Mentions
@@ -329,15 +352,17 @@ Unread state drives the pin badges and the sidebar's unread filter. Without `isC
 
 Every visible piece of the layer is a slot. Set them through the `components` option, and leave a slot unset to keep its default.
 
-| Slot               | Replaces                                                             |
-| ------------------ | -------------------------------------------------------------------- |
-| `CommentBody`      | A comment's body, normally the rich-text renderer.                   |
-| `PinContent`       | A pin's inner content, normally the author's initial.                |
-| `ThreadPreview`    | A sidebar row's preview, normally the body as plain text.            |
-| `ComposerFallback` | What shows where a composer would sit when the viewer can't comment. |
-| `ReactionContent`  | How a reaction token is drawn.                                       |
-| `ReactionPalette`  | What the add-reaction button opens.                                  |
-| `ReactionTooltip`  | The list of who reacted, shown on a reaction pill.                   |
+| Slot               | Replaces                                                               |
+| ------------------ | ---------------------------------------------------------------------- |
+| `CommentBody`      | A comment's body, normally the rich-text renderer.                     |
+| `PinContent`       | A pin's inner content, normally the author's initial.                  |
+| `ThreadPreview`    | A sidebar row's preview, normally the body as plain text.              |
+| `ThreadRow`        | A whole sidebar row, normally `CommentListItem`.                       |
+| `ThreadActions`    | Adds controls to an open thread's header. Additive, not a replacement. |
+| `ComposerFallback` | What shows where a composer would sit when the viewer can't comment.   |
+| `ReactionContent`  | How a reaction token is drawn.                                         |
+| `ReactionPalette`  | What the add-reaction button opens.                                    |
+| `ReactionTooltip`  | The list of who reacted, shown on a reaction pill.                     |
 
 ```tsx
 import { CommentTool, richTextToPlaintext } from '@tldraw/commenting'
@@ -354,6 +379,41 @@ const tools = [CommentTool.configure({ components: { CommentBody: PriorityBody }
 ```
 
 Both record types carry a `meta` field the layer never reads. Use it for priorities, categories, external ticket ids, or anything else your app tracks alongside a comment.
+
+`ThreadRow` and `ThreadActions` are the two slots that add to a surface rather than replace a piece of it, so they get the records behind what's on screen.
+
+`ThreadRow` receives the summarized row along with the thread record, and the default row is exported — so a row that only adds something can spread the props into `CommentListItem` rather than start over:
+
+```tsx
+import { CommentListItem, CommentTool } from '@tldraw/commenting'
+
+function StatusRow({ thread, ...row }: CommentListItemRenderProps & { thread: TLCommentThread }) {
+	return (
+		<div className="status-row">
+			<CommentListItem {...row} />
+			{thread.meta.status === 'blocked' && <span className="blocked">Blocked</span>}
+		</div>
+	)
+}
+
+const tools = [CommentTool.configure({ components: { ThreadRow: StatusRow } })]
+```
+
+`ThreadActions` adds controls to an open thread's header, ahead of the built-in resolve and dismiss buttons. This is where host verbs go — assign a thread, link it to a ticket, mark it as a to-do. It adds alongside the built-in actions rather than replacing them, so a thread never loses the ability to be resolved.
+
+```tsx
+function AssignAction({ thread }: { thread: TLCommentThread }) {
+	return (
+		<button type="button" className="tlui-cmt-thread__action" onClick={() => assign(thread.id)}>
+			Assign
+		</button>
+	)
+}
+
+const tools = [CommentTool.configure({ components: { ThreadActions: AssignAction } })]
+```
+
+A link affordance doesn't need this slot: see [Linking to a thread](#linking-to-a-thread).
 
 ## Working with comment records
 
@@ -452,6 +512,22 @@ An unserved request is inert, so it's safe to call before the records have synce
 
 For a thread you already hold, `focusThread(editor, thread)` centers and opens it directly.
 
+## Linking to a thread
+
+The other half of a deep link is producing one. Give the commenting context a `getThreadHref` and every surface that can link to a thread does:
+
+```tsx
+<CanvasComments
+	currentUserId="me"
+	resolveAuthor={resolveAuthor}
+	getThreadHref={(threadId) => `/file/${fileId}?comment=${encodeURIComponent(threadId)}`}
+/>
+```
+
+Sidebar rows become anchors, so ctrl/cmd-click and middle-click open a thread in a new tab, and an open thread's header menu offers **Copy link**. A relative href is resolved against the current document before it reaches the clipboard, so what gets pasted is a whole URL.
+
+Without `getThreadHref` neither appears — a link the host can't construct isn't one the layer can invent.
+
 ## Pin clustering
 
 Zoom out far enough and pins pile on top of each other. Clustering folds nearby pins into a count badge as you zoom out, then splits them apart as you zoom back in. Splits happen at a wider spacing than merges, so pins don't flicker at the boundary. Clicking a badge zooms to just past the point where that cluster breaks up.
@@ -515,7 +591,29 @@ const room = new TLSocketRoom({
 
 `onCommittedChanges` only fires for client pushes. Server-initiated writes don't trigger it, including `updateStore`, `loadSnapshot`, and writing to storage directly, so anything mirroring room state has to handle those paths itself.
 
-This is also where per-record permissions belong. The lane's write access is all or nothing. Rules like "only the author may edit a comment" or "only the thread's creator may delete it" are yours to enforce as your server validates each incoming record against the session's identity.
+This is also where per-record permissions belong. The lane's write access is all or nothing, so rules like "only the author may edit a comment" or "only the thread's creator may delete it" are enforced as your server validates each incoming record against the session's identity. `createCommentAuthorizers` is that validation, ready-made — pass it to the room's `authorizeRecord`:
+
+```ts
+import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
+
+const room = new TLSocketRoom({
+	schema,
+	objectTypes: ['comment', 'comment-thread', 'comment-reaction'],
+	authorizeRecord: {
+		...createCommentAuthorizers<SessionMeta>({
+			getUserId: (session) => session.meta.userId,
+			// Moderators may take anything down. Editing stays the author's, whoever you are.
+			canModifyComment: (ctx) =>
+				(ctx.action !== 'edit-comment' && isModerator(ctx.session.meta)) ||
+				ctx.userId === ctx.ownerId,
+		}),
+	},
+})
+```
+
+It stamps authorship from the session so nothing can be posted or resolved in someone else's name, keeps `isDeleted` write-once, and — through `canModifyComment` — decides who may edit a comment, delete a comment, or delete a thread. That last one is the same question the client's [`canModifyComment`](#who-can-edit-and-delete) answers, and this is the answer that counts: the client's only decides which affordances the UI offers. Widen the two together. A moderator offered a delete the server then rejects sees the comment disappear and come back, with nothing to explain it.
+
+Left unset it defaults to the record's owner, matching the client. The callback is asked after the structural rules, so widening it grants those three writes and nothing else: attribution stays immutable, a soft delete stays write-once, and clients still can't hard-delete a record.
 
 ## Building your own comments UI
 
@@ -527,7 +625,8 @@ This is also where per-record permissions belong. The lane's write access is all
 | `CommentPin`, `CountBadge`               | The pin marker and the clustered-count badge.               |
 | `CommentThread`, `CommentCard`, `Byline` | A thread and its comments.                                  |
 | `CommentComposer`, `SendButton`          | The composer and its send control.                          |
-| `CommentsList`, `EmptyState`             | A list of threads and its empty state.                      |
+| `CommentsList`, `CommentListItem`        | A list of threads and one row of it.                        |
+| `EmptyState`, `sortSidebarRows`          | The list's empty state, and the sidebar's ordering.         |
 | `Avatar`, `Mention`, `MentionList`       | Author avatars and the mention picker.                      |
 | `Reaction`, `Reactions`                  | A reaction pill and a comment's row of them.                |
 | `anchorPagePoint`, `shapeAnchorAt`       | Anchor math: page position from an anchor, and the reverse. |
@@ -556,9 +655,10 @@ Every option below is set with `CommentTool.configure()`. Anything you leave uns
 
 ### Permissions
 
-| Option       | Default     | Description                                                                         |
-| ------------ | ----------- | ----------------------------------------------------------------------------------- |
-| `canComment` | `undefined` | Whether the viewer may participate. Unset, allowed whenever `currentUserId` is set. |
+| Option             | Default     | Description                                                                         |
+| ------------------ | ----------- | ----------------------------------------------------------------------------------- |
+| `canComment`       | `undefined` | Whether the viewer may participate. Unset, allowed whenever `currentUserId` is set. |
+| `canModifyComment` | `undefined` | Whether the viewer may edit or delete a record. Unset, each is its owner's to make. |
 
 ### Reactions
 
