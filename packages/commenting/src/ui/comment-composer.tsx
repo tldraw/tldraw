@@ -17,9 +17,15 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
+import { isEqual, tlenv, TLRichText, useMaybeEditor } from 'tldraw'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
 import { SendButton } from './send-button'
+
+/** How far a touch may travel and still count as a tap rather than a drag or a scroll. */
+const TAP_SLOP = 10
+
+/** A gap this big between the layout and visual viewports means a software keyboard is up. */
+const KEYBOARD_MIN_HEIGHT = 100
 
 /** @public */
 export interface CommentComposerProps {
@@ -280,6 +286,45 @@ export function CommentComposer({
 		const raf = requestAnimationFrame(() => editor.commands.focus('end'))
 		return () => cancelAnimationFrame(raf)
 	}, [autoFocus, editor])
+
+	// iOS raises the software keyboard only on a focus *transition* inside a user gesture. The
+	// deferred autofocus above focuses the input outside one, so the keyboard stays down — and a
+	// tap on the already-focused input is then a no-op, no transition and no keyboard, leaving
+	// nowhere to type. Re-run the transition inside the tap itself: a synchronous blur + refocus
+	// within `touchend` reads as user-initiated and brings the keyboard up.
+	//
+	// Tightly gated, because the blur/refocus also discards the tap's caret placement: iOS only
+	// (elsewhere focus raises the keyboard on its own), stationary taps only (a selection-handle
+	// drag or a scroll ending over the input must not blur it), and only while the keyboard is
+	// actually down — an ordinary editing tap keeps its caret. That last one reads the gap between
+	// the layout and visual viewports, the same signal `useViewportFit` places surfaces by.
+	useEffect(() => {
+		const wrap = inputWrapRef.current
+		if (!wrap || !editor || !tlenv.isIos) return
+		let start: { x: number; y: number } | null = null
+		const onTouchStart = (e: TouchEvent) => {
+			const touch = e.touches[0]
+			start = touch ? { x: touch.clientX, y: touch.clientY } : null
+		}
+		const onTouchEnd = (e: TouchEvent) => {
+			const dom = editor.view?.dom
+			if (!dom || dom.ownerDocument.activeElement !== dom) return
+			const touch = e.changedTouches[0]
+			if (!start || !touch) return
+			if (Math.hypot(touch.clientX - start.x, touch.clientY - start.y) > TAP_SLOP) return
+			const win = dom.ownerDocument.defaultView ?? window
+			const vv = win.visualViewport
+			if (vv && win.innerHeight - vv.height > KEYBOARD_MIN_HEIGHT) return
+			dom.blur()
+			editor.commands.focus()
+		}
+		wrap.addEventListener('touchstart', onTouchStart)
+		wrap.addEventListener('touchend', onTouchEnd)
+		return () => {
+			wrap.removeEventListener('touchstart', onTouchStart)
+			wrap.removeEventListener('touchend', onTouchEnd)
+		}
+	}, [editor])
 
 	// The whole field behaves like the text input: clicking its empty area (the padding, or the
 	// space beside/below a short line) focuses the editor rather than only the text glyphs being
