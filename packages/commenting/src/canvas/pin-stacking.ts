@@ -57,13 +57,10 @@ export function computePinStacks(
 }
 
 /**
- * Value equality for pin-stack maps: same member→group entries, groups element-wise equal. Lets
- * the overlay hold the map's identity across recomputes that didn't change any grouping, so a
- * reply (or a drag frame) doesn't re-render every pin.
- *
- * Membership only — the map carries no positions, so two equal maps can describe stacks sitting at
- * different page points. Anything keyed on a stack's *point* must read the anchors itself rather
- * than treating this identity as "nothing moved" (see {@link isOpenStackKeyLive}).
+ * Value equality for pin-stack maps, so the overlay can hold the map's identity across a recompute
+ * that changed no grouping. Membership only: two equal maps can describe stacks at different page
+ * points, so anything keyed on a stack's *point* must read the anchors itself, as
+ * {@link isOpenStackKeyLive} does.
  * @internal
  */
 export function pinStacksEqual(
@@ -85,13 +82,9 @@ export function pinStacksEqual(
 }
 
 /**
- * Whether any live stack member still sits at `key` — i.e. whether an open-stack key still names
- * something on the canvas. False once the stack it named has been emptied, moved, or left the page,
- * at which point the caller must clear the key: a dangling `openStackId` suppresses every hover
- * preview on the layer.
- *
- * Reads each member's anchor, so a caller inside a reactive context re-evaluates when the stack
- * moves — which a membership-only `computePinStacks` result cannot tell it.
+ * Whether an open-stack key still names a stack on the canvas — false once that stack is emptied,
+ * moved, or off the page, at which point the caller must clear the key. Reads the anchors, so a
+ * reactive caller re-evaluates on a move that {@link pinStacksEqual} can't see.
  * @internal
  */
 export function isOpenStackKeyLive(

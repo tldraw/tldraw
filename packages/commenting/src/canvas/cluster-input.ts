@@ -45,10 +45,8 @@ export function collectClusterLeaves(
 }
 
 /**
- * Whether two cluster inputs are value-equal — same leaves at the same positions in the same order,
- * and the same render offsets. Everything `computeClusterTable` reads, in other words. Used to keep
- * the input's identity stable across recomputes that didn't change anything (a reply, a reaction, a
- * resolve), so the expensive table rebuild only runs when the input actually changed.
+ * Value equality over everything `computeClusterTable` reads. Keeps the input's identity stable
+ * across recomputes that changed nothing, so the O(N²) rebuild only runs when it has to.
  * @internal
  */
 export function clusterInputEqual(a: ClusterInput, b: ClusterInput): boolean {
@@ -59,11 +57,8 @@ export function clusterInputEqual(a: ClusterInput, b: ClusterInput): boolean {
 }
 
 /**
- * Whether two cluster inputs describe the same leaves, ignoring everything positional — the anchor
- * points and the offset vectors alike. Used mid-drag: while shapes are moving, position-only changes
- * keep the previous input (deferring the table rebuild, and with it the pop-out of any pin folded
- * into a badge, until the drag settles — see `useClusterModel`), but an added or removed thread, or
- * one that changed precision, still rebuilds promptly.
+ * The same, ignoring everything positional — anchor points and offset vectors alike. The mid-drag
+ * gate: a move defers, but a thread added, removed, or changed precision still rebuilds.
  * @internal
  */
 export function clusterInputIdsEqual(a: ClusterInput, b: ClusterInput): boolean {
@@ -74,7 +69,6 @@ export function clusterInputIdsEqual(a: ClusterInput, b: ClusterInput): boolean 
 	)
 }
 
-/** Value equality for the offset maps: same ids, each with the same offset vector. */
 function screenOffsetsEqual(a: LeafScreenOffsets | undefined, b: LeafScreenOffsets | undefined) {
 	if (a === b) return true
 	if (!a || !b) return false
@@ -86,8 +80,8 @@ function screenOffsetsEqual(a: LeafScreenOffsets | undefined, b: LeafScreenOffse
 	return true
 }
 
-/** Which leaves carry an offset at all, ignoring the vectors — the mid-drag counterpart. A leaf
- *  gains or loses one by changing precision, which is a record change, not a gesture. */
+/** Which leaves carry an offset, ignoring the vectors: a leaf gains or loses one by changing
+ *  precision, which is a record change rather than a gesture. */
 function screenOffsetIdsEqual(a: LeafScreenOffsets | undefined, b: LeafScreenOffsets | undefined) {
 	if (a === b) return true
 	if (!a || !b) return false

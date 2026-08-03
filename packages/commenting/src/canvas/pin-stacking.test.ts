@@ -172,8 +172,8 @@ describe('pinStacksEqual', () => {
 	})
 
 	it('is blind to position — equal groupings can sit at different page points', () => {
-		// The overlay holds the map's identity while this is true, so nothing keyed on a stack's
-		// *point* may key off that identity. See isOpenStackKeyLive.
+		// The overlay holds the map's identity while this is true, which is why nothing keyed on a
+		// stack's *point* may key off it. See isOpenStackKeyLive.
 		const threads = [
 			thread('t1', impreciseAnchor('shape:a'), { createdAt: 1 }),
 			thread('t2', impreciseAnchor('shape:a'), { createdAt: 2 }),
@@ -200,10 +200,8 @@ describe('isOpenStackKeyLive', () => {
 	})
 
 	it('goes stale when the stack moves — the case pinStacksEqual cannot see', () => {
-		// The anchor shape moved (a collaborator, undo, a nudge, align from a menu), so the stack's
-		// point key changed while its membership did not. `ThreadStackPin` recomputes its own
-		// position-derived stackId and closes the list; if this stayed live the old key would be
-		// stranded in `openStackId`, suppressing every hover preview on the layer.
+		// The anchor shape moved, so the point key changed while the membership didn't. Staying live
+		// here strands the old key in `openStackId`, killing every hover preview on the layer.
 		const editor = stubEditor(SHAPE_MOVED)
 		expect(
 			isOpenStackKeyLive(editor, stackKeyOn(SHAPE), computePinStacks(editor, threads), byId)

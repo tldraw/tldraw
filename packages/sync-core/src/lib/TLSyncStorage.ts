@@ -94,10 +94,9 @@ export interface TLSyncStorage<R extends UnknownRecord> {
 	getObjectsSnapshot?(): RoomSnapshot['documents']
 
 	/**
-	 * The object-store lane entries for the given ids, in the same entry shape as
-	 * `getObjectsSnapshot`. Ids without an object-lane record are omitted (document-lane ids are
-	 * never returned). Duplicate ids yield one entry. Lets callers that only need a handful of
-	 * records (e.g. an outbox drain) avoid materializing — and parsing — the whole lane.
+	 * The same entries for the given ids, for callers that need a handful of records rather than the
+	 * whole (parsed) lane. Ids with no object-lane record are omitted — document-lane ids included —
+	 * and duplicates yield one entry.
 	 */
 	getObjectsByIds?(ids: Iterable<string>): RoomSnapshot['documents']
 }

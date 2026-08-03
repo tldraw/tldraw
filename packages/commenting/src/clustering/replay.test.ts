@@ -51,7 +51,6 @@ function eventShapes(events: RawMergeEvent[]) {
 	return events.map(eventShape)
 }
 
-// --- Reference oracle -------------------------------------------------------
 // Direct transcription of contract clause 4 (CLUSTERING-STEPS.md step 2): at
 // each of the n−1 steps, evaluate every unfired MST edge's zEff against the
 // CURRENT clusters and fire the highest, tie-broken by the edge's normalized
@@ -181,8 +180,6 @@ function referenceReplay(
 	return events
 }
 
-// --- Shared invariant assertions --------------------------------------------
-
 function expectNonIncreasingZ(events: RawMergeEvent[]) {
 	for (let i = 1; i < events.length; i++) {
 		expect(events[i].z).toBeLessThanOrEqual(events[i - 1].z)
@@ -259,8 +256,6 @@ function expectCentroids(events: RawMergeEvent[], leaves: readonly LeafInput[]) 
 		expect(ev.result.centroid.y).toBeCloseTo(sy / ev.result.count, 8)
 	}
 }
-
-// --- Fixtures ----------------------------------------------------------------
 
 describe('cappedReplay fixtures', () => {
 	it('exports the pinned D_FLOOR constant', () => {
@@ -408,8 +403,6 @@ describe('cappedReplay fixtures', () => {
 		expect(events[1].result.id).toBe('cluster:3:a')
 	})
 })
-
-// --- Properties against the reference oracle ---------------------------------
 
 describe('cappedReplay vs reference simulator', () => {
 	const OPTION_SETS = [

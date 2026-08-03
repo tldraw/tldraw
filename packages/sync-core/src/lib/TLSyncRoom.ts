@@ -1184,10 +1184,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			id: string,
 			_state: R,
 			authorize?: (prev: R | null, next: R) => R | null,
-			// The existing document when the caller already fetched it: a record, or null for
-			// fetched-and-absent. `undefined` means not fetched — look it up here. Storage gets are
-			// not free (SQLite-backed storage does a SELECT + JSON.parse per get), so callers that
-			// already read the record pass it through instead of paying for a second read.
+			// The existing document if the caller already fetched it; `null` for fetched-and-absent,
+			// `undefined` for not fetched. Saves a second SELECT + JSON.parse on the push hot path.
 			prevDoc?: R | null
 		): Result<void, void> => {
 			const res = session
@@ -1238,8 +1236,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			id: string,
 			patch: ObjectDiff,
 			authorize?: (prev: R, next: R) => R | null,
-			// The existing document when the caller already fetched it, saving a second storage
-			// read on the push hot path (see `addDocument`).
+			// The existing document if the caller already fetched it (see `addDocument`).
 			prevDoc?: R
 		) => {
 			// if it was already deleted, there's no need to apply the patch
@@ -1362,8 +1359,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// also keys off the incoming typeName while the replace path validates
 								// against the stored one, so a swap would consult the wrong authorizer (or
 								// none). Skip it like a veto; the client self-corrects.
-								// `null` = fetched and absent; `undefined` = not fetched (the server-initiated
-								// path skips the guard, and addDocument does its own lookup).
+								// `undefined` (no session) means the guard didn't fetch, so addDocument will.
 								const prevRecord = session ? ((txn.get(id) as R | undefined) ?? null) : undefined
 								if (session && prevRecord && prevRecord.typeName !== record.typeName) {
 									this.log?.warn?.(
@@ -1420,9 +1416,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 										}
 									}
 								}
-								// The typeName-swap guard above already fetched the record for client pushes;
-								// pass it through so addDocument doesn't hit storage again. Server-initiated
-								// pushes (no session) skipped the guard fetch, so addDocument looks it up.
+								// The guard above already fetched this, so don't hit storage again.
 								addDocument(txn, docChanges, id, record, authorize, prevRecord)
 								break
 							}
@@ -1458,8 +1452,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 											return result
 										}
 									: undefined
-								// Try to patch the document. If it fails, stop here. The record was already
-								// fetched for the write gate above — pass it through to skip a second read.
+								// Try to patch the document. If it fails, stop here. The write gate above
+								// already fetched the record, so pass it through.
 								patchDocument(txn, docChanges, id, op[1], authorize, doc)
 								break
 							}

@@ -1824,11 +1824,9 @@ export class TLFileDurableObject extends DurableObject {
 
 				const storage = await this.getStorage()
 				assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
-				// Targeted lane reads, not a full getObjectsSnapshot: the plan only ever looks up the
-				// outboxed ids, and each lane read is a SELECT + JSON.parse — a full-lane snapshot
-				// makes every drain O(all comments) instead of O(touched ids). Both reads below run
-				// synchronously here at the top of the drain, so `lane` keeps its snapshot semantics
-				// (the prunes after the awaits can't shift what it answers).
+				// Targeted reads, not a full snapshot: each lane read is a SELECT + JSON.parse, so
+				// snapshotting would make every drain O(all comments). Both reads run synchronously
+				// here, before any await, so `lane` keeps its snapshot semantics.
 				const lane = new Map(
 					storage
 						.getObjectsByIds(entries.map((e) => e.recordId))
@@ -1845,9 +1843,8 @@ export class TLFileDurableObject extends DurableObject {
 					reactionDeletes,
 					unknownIds,
 				} = planCommentDrain(entries, lane, fileId)
-				// The comment prune predicate below asks `lane.has(threadId)` for each comment
-				// upsert's parent thread. Those threads may not be outboxed themselves, so fetch
-				// them into the lane map now, before any awaits.
+				// The prune predicate below asks `lane.has(threadId)`, and a parent thread needn't be
+				// outboxed itself — so fetch those too, still before any await.
 				const parentThreadIds = new Set<string>()
 				for (const row of commentUpserts) {
 					if (!lane.has(row.threadId)) parentThreadIds.add(row.threadId)

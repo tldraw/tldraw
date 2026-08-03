@@ -24,8 +24,6 @@ import { Editor, TldrawOptions, TLUiOverrides, Tldraw, useEditor, useValue } fro
  * See `CommentDrawingReactionsExample.tsx` for the wiring.
  */
 
-// ── Tokens ───────────────────────────────────────────────────────────────────────────────────
-
 /** The image format a drawn reaction is exported as. */
 export type DrawingReactionFormat = 'svg' | 'png'
 
@@ -43,8 +41,6 @@ const TOKEN_PREFIXES = ['data:image/svg+xml,', 'data:image/svg+xml;', 'data:imag
 export function isDrawingReactionToken(token: string): boolean {
 	return TOKEN_PREFIXES.some((prefix) => token.startsWith(prefix))
 }
-
-// ── Renderer ─────────────────────────────────────────────────────────────────────────────────
 
 /**
  * Sized in `em` so a drawn reaction matches whatever font size its host sets — the pill in the
@@ -79,8 +75,6 @@ export function renderDrawingReaction(token: string): ReactNode {
 export function DrawingReactionContent({ token }: { token: string }) {
 	return <>{renderDrawingReaction(token)}</>
 }
-
-// ── Export ───────────────────────────────────────────────────────────────────────────────────
 
 export interface DrawingReactionExportOptions {
 	/**
@@ -157,8 +151,6 @@ export async function exportDrawingReactionToken(
 	}
 	return token
 }
-
-// ── Palette ──────────────────────────────────────────────────────────────────────────────────
 
 /**
  * Keyboard shortcuts stay mounted when `hideUi` is set, so hiding the toolbar isn't enough on its
@@ -441,8 +433,6 @@ function EraserIcon() {
 		</svg>
 	)
 }
-
-// ── Styles ───────────────────────────────────────────────────────────────────────────────────
 
 const STYLE_ELEMENT_ID = 'tlui-cmt-drawing-palette-styles'
 

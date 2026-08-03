@@ -23,10 +23,8 @@ const CLUSTER_SPLIT_ZOOM_FACTOR = 1.05
 const EMPTY_SET: ReadonlySet<string> = new Set()
 const MOVED_LEAF_EPSILON = 1e-6
 
-/** Select-tool session states in which shapes move continuously, one store write per pointermove.
- *  While one is active, the cluster leaves defer position-only rebuilds until the gesture settles.
- *  These are the default select tool's paths — an editor with a custom tool in their place just
- *  never matches, which is the pre-deferral behavior (a rebuild per frame), not a break. */
+/** Default select-tool states that move shapes continuously, one store write per pointermove. A
+ *  custom tool in their place just never matches, falling back to a rebuild per frame. */
 const SHAPE_DRAG_STATE_PATHS = [
 	'select.translating',
 	'select.resizing',
@@ -35,8 +33,8 @@ const SHAPE_DRAG_STATE_PATHS = [
 	'select.crop.cropping',
 ] as const
 
-/** Whether a shape-moving drag gesture is in progress. Reactive: `isInAny` reads the tool state
- *  path, so a computed reading this re-evaluates when the gesture starts or settles. */
+/** Reactive: `isInAny` reads the tool state path, so a computed reading this re-evaluates when the
+ *  gesture starts or settles. */
 function isShapeDragInProgress(editor: Editor): boolean {
 	return editor.isInAny(...SHAPE_DRAG_STATE_PATHS)
 }
@@ -67,13 +65,11 @@ export interface ClusterModelState {
 /**
  * The clustering state machine behind the comments layer.
  *
- * The core invariant: the only thing that re-flows clustering doc-wide is zoom. Every rebuild
- * (add / move / delete / open / pop-out) is computed immediately as `latestModel` — the MST
- * stays correct — but the on-screen partition is `renderedModel`, and it only ever changes via
- * (a) the cursor walking on zoom, (b) adoption of the pending rebuild on zoom-out, or
- * (c) LOCAL detach patches: a leaf that left the input (deleted, opened, popped out) is
- * detached from its own badge in place — count and centroid update for that badge alone,
- * and nothing else on the canvas moves.
+ * The core invariant: the only thing that re-flows clustering doc-wide is zoom. Every rebuild is
+ * computed immediately as `latestModel`, but the on-screen partition is `renderedModel`, which only
+ * changes via (a) the cursor walking on zoom, (b) adoption of the pending rebuild on zoom-out, or
+ * (c) LOCAL detach patches, where a leaf that left the input is detached from its own badge in
+ * place and nothing else on the canvas moves.
  *
  * Threads the displayed partition can't represent are returned separately (`orphanThreads`,
  * `heldThreads`) for the layer to draw as ordinary pins.
@@ -88,22 +84,15 @@ export function useClusterModel(
 	// as live pins riding their anchor and rejoin clustering on the next zoom-out.
 	const [heldThreadIds, setHeldThreadIds] = useState<ReadonlySet<string>>(EMPTY_SET)
 	const adoptOnRebuild = useRef(false)
-	// The cluster input's identity is what keys the O(N²) cluster-table rebuild below, so it's gated
-	// on value equality: a recompute whose content matches the last result (a reply, a reaction, a
-	// resolve — anything that touches comment records without moving a pin) returns the previous
-	// input and rebuilds nothing. The ref carries the last result across recomputes and across the
-	// re-created computed `useValue` builds when `threads` changes identity (any comment mutation).
-	// Returning the previous input is safe whichever computed writes the ref last, because the value
-	// returned is always either value-equal to the fresh input or the deliberate mid-drag deferral
-	// below.
+	// This input's identity keys the O(N²) table rebuild below, so it's gated on value equality: a
+	// reply, a reaction, a resolve — anything that touches comment records without moving a pin —
+	// returns the previous input and rebuilds nothing.
 	//
-	// That deferral is a real behavior change, not just a scheduling one: while shapes are actively
-	// dragging, position-only changes keep the previous input, which freezes `latestModel` — and
-	// `findMovedClusteredLeafIds` reads live positions *from* `latestModel`. So a pin folded inside
-	// a badge no longer pops out mid-drag to ride its anchor; it stays folded and its membership
-	// corrects in one rebuild when the drag settles. Deliberate: the per-frame O(N²) rebuild it
-	// replaces was paid by every drag on the board, comment-anchored or not. An added or deleted
-	// thread changes the id set, so it still rebuilds promptly even mid-drag.
+	// Mid-drag the gate widens to ignore positions too, and that costs something real: it freezes
+	// `latestModel`, which is where `findMovedClusteredLeafIds` reads live positions from, so a pin
+	// folded into a badge stops popping out to ride its anchor and corrects on release instead. The
+	// per-frame rebuild it buys back was paid by every drag on the board, comment-anchored or not.
+	// An added or deleted thread changes the id set, so it still rebuilds promptly.
 	const clusterInputRef = useRef<ClusterInput>({ leaves: [], screenOffsets: undefined })
 	const clusterInput = useValue(
 		'comment cluster leaves',
@@ -149,10 +138,8 @@ export function useClusterModel(
 		setRenderedModel(latestModel)
 		clusterModel = latestModel
 	}
-	// adoptOnRebuild is set by the rejoin reaction below, outside React's render cycle, paired
-	// with clearing heldThreadIds. Only trust it once that pairing is actually visible here
-	// (heldThreadIds confirmed empty) — an unrelated re-render can land in the gap between the
-	// ref being set and the state update it was paired with being applied.
+	// adoptOnRebuild is set outside React's render cycle, paired with clearing heldThreadIds. Only trust
+	// it once that pairing is visible here, or an unrelated re-render can land in the gap.
 	const rejoinPending = heldThreadIds.size === 0 && adoptOnRebuild.current
 	if (renderedModel !== latestModel && rejoinPending) {
 		adoptOnRebuild.current = false
@@ -175,11 +162,9 @@ export function useClusterModel(
 		for (const id of newlyMovedIds) next.add(id)
 		setHeldThreadIds(next)
 	}
-	// Local partition maintenance — the only non-zoom visual change, and it is local by
-	// construction: any displayed leaf that has left the cluster input (deleted, thread opened,
-	// popped out above) is detached from its badge in place. The corrected rebuild is already
-	// sitting in latestModel awaiting the next zoom-out. When the rendered model IS the latest
-	// model (the common render) the leaf sets are identical by construction, so skip the scan.
+	// Local partition maintenance — the only non-zoom visual change. Any displayed leaf that has left the
+	// cluster input is detached from its badge in place; the corrected rebuild already sits in latestModel
+	// awaiting the next zoom-out. When the two models match, the leaf sets are identical, so skip the scan.
 	if (clusterModel !== latestModel) {
 		const latestLeafIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
 		const removedLeafIds: string[] = []
@@ -221,10 +206,9 @@ export function useClusterModel(
 			setRenderedModel(latestModel)
 		})
 	}, [clusterModel, latestModel, editor])
-	// Threads in the current input that the displayed partition doesn't show anywhere (new
-	// comments, reopened threads, undone deletions): render as plain pins until the next
-	// zoom-out folds them in. Membership is judged against the *displayed* partition (with
-	// detaches applied), not the rendered table, so a detached-then-restored leaf reappears.
+	// Threads the displayed partition doesn't show anywhere (new comments, reopened threads, undone
+	// deletions) render as plain pins until the next zoom-out folds them in. Judged against the
+	// displayed partition, so a detached-then-restored leaf reappears.
 	const partitionVersion = clusterModel.runtime.version
 	const orphanThreads = useMemo(() => {
 		if (clusterModel === latestModel) return []
@@ -241,11 +225,9 @@ export function useClusterModel(
 		() => threads.filter((thread) => heldThreadIds.has(thread.id) && thread.id !== openId),
 		[threads, heldThreadIds, openId]
 	)
-	// Subscribe to the runtime's partition version, not the raw zoom: onCamera runs on every zoom
-	// tick (O(1) threshold checks) but the version only moves when the partition actually changes
-	// — so this component only re-renders on cluster changes, not on every camera frame. The memo
-	// below keys on a fresh inline read of the version rather than the subscribed value, because
-	// render-time detaches (above) bump it after the subscription's computed already evaluated.
+	// Subscribe to the runtime's partition version, not the raw zoom, so this only re-renders on cluster
+	// changes rather than every camera frame. The memo below re-reads the version inline because
+	// render-time detaches bump it after the subscription's computed already evaluated.
 	useValue(
 		'comment cluster version',
 		() => {
@@ -348,11 +330,9 @@ export function revealThreadPin(
 
 /**
  * Zoom to just past the zoom at which a cluster first unclusters, centered on its centroid. The
- * event that created a visible cluster is the event that splits it, and (by the table's sort +
- * monotone thresholds) it has the smallest zSplit of everything applied inside it — so its zSplit
- * is exactly the first split within those comments. The animated zoom-in then drives the runtime
- * cursor like any manual zoom, so the badge splits (and can be drilled into further) with no extra
- * bookkeeping. A no-op for a node with no split event.
+ * event that created a visible cluster is the event that splits it, and has the smallest zSplit of
+ * everything applied inside it — so its zSplit is exactly the first split within those comments.
+ * The animated zoom drives the runtime cursor like any manual zoom. A no-op with no split event.
  */
 export function zoomToClusterSplit(
 	editor: Editor,

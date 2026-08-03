@@ -111,11 +111,9 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		return ids
 	}, [fileComments, currentUserId])
 
-	// Presence records change on every collaborator cursor move, which re-evaluates this computed
-	// dozens of times a second — but the derived content (id → name/color) almost never changes.
-	// Returning the previous Map identity when the content is unchanged keeps the computed's epoch
-	// still, so cursor movement doesn't recreate `resolveAuthor` and re-render the pins overlay
-	// and sidebar.
+	// Presence changes on every cursor move, dozens of times a second, but the id → name/color it
+	// derives to almost never does. Holding the Map's identity keeps the computed's epoch still, so
+	// cursor movement doesn't re-render the pins overlay and sidebar.
 	const presenceAuthorsRef = useRef<Map<string, CommentAuthor>>(new Map())
 	const presenceAuthors = useValue(
 		'presence authors',

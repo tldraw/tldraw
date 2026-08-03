@@ -3,20 +3,19 @@ import type { PendingComment } from './comment-tool'
 import { DEFAULT_SIDEBAR_FILTERS, type SidebarFilters } from './sidebar-filters'
 
 /**
- * Transient commenting UI state, scoped per editor via {@link EditorAtom}. Editor-scoping (rather
- * than module-global atoms) keeps two editors on one page — or an editor and a second instance —
- * from sharing open-thread, visibility, and filter state. Reachable from both React (`useEditor()`)
- * and the comment tool (`this.editor`).
+ * Transient commenting UI state, scoped per editor via {@link EditorAtom} so two editors on one
+ * page don't share open-thread, visibility, and filter state. Reachable from both React
+ * (`useEditor()`) and the comment tool (`this.editor`).
  */
 
 /** The id of the one open thread (only one popover is open at a time), or null when all closed.
  * @public */
 export const openThreadId = new EditorAtom<string | null>('openThreadId', () => null)
 
-/** The coincident-pin stack whose thread list is showing (keyed by its oldest member's thread
- * id), or null. Editor state rather than component state: the stack pin remounts when its owning
- * render path changes (e.g. a member thread opens), and the open list must survive that.
- * @internal */
+/** The coincident-pin stack whose thread list is showing (keyed by its oldest member's thread id),
+ *  or null. Editor state rather than component state: the stack pin remounts when its owning render
+ *  path changes, and the open list must survive that.
+ *  @internal */
 export const openStackId = new EditorAtom<string | null>('openStackId', () => null)
 
 /** The comment currently being placed (composer open, not yet posted), or null.
@@ -32,13 +31,12 @@ export const pendingComment = new EditorAtom<PendingComment | null>('pendingComm
 export const revealThreadRequest = new EditorAtom<string | null>('revealThreadRequest', () => null)
 
 /**
- * Open a thread and bring it into view, given a thread id or the id of any comment in it. Use it
- * to jump to a thread from outside the canvas — a notification, a deep link, your own list.
+ * Open a thread and bring it into view, given a thread id or the id of any comment in it. Use it to
+ * jump to a thread from outside the canvas — a notification, a deep link, your own list.
  *
- * The request is served by `CanvasComments`, so it works before the records have arrived: the
- * layer waits for them to sync in, switches pages if it needs to, unhides pins, zooms in far
- * enough to split the thread out of any cluster it's folded into, and then opens it. That also
- * means nothing happens if `CanvasComments` isn't mounted.
+ * The request is served by `CanvasComments`, so it works before the records have arrived: the layer
+ * waits for them, switches pages, unhides pins, and zooms far enough to split the thread out of any
+ * cluster. That also means nothing happens if `CanvasComments` isn't mounted.
  *
  * To open a thread you already hold and skip the wait, see {@link focusThread}.
  *
@@ -55,12 +53,10 @@ export function revealThread(editor: Editor, threadOrCommentId: string): void {
 
 /**
  * The id passed to the most recent {@link revealThread} call that `CanvasComments` hasn't served
- * yet, or null when there's nothing outstanding. A request also clears when `CanvasComments`
- * unmounts, since nothing is left to serve it.
+ * yet, or null. A request also clears when `CanvasComments` unmounts.
  *
- * This is a plain, untracked read. In React, use {@link useRevealThreadPending} — but reach for
- * this one inside a timer or callback that needs the value as of *now* rather than as of the
- * render it closed over.
+ * This is a plain, untracked read — in React, use {@link useRevealThreadPending}, unless you need
+ * the value as of *now* rather than as of the render you closed over.
  *
  * @public
  */
@@ -71,11 +67,9 @@ export function getRevealThreadPending(editor: Editor): string | null {
 /**
  * Reactive React hook for {@link getRevealThreadPending}.
  *
- * Use it to notice a reveal that never lands — most often a deep link to a comment that has since
- * been deleted. Give it a grace period before you act: a request also sits here while its records
- * are still syncing in, which is the normal case on a cold load. Re-check with
- * {@link getRevealThreadPending} when the grace period elapses, since the request can clear inside
- * it without this hook's value having caught up yet.
+ * Use it to notice a reveal that never lands — usually a deep link to a deleted comment. Give it a
+ * grace period first, since a request also sits here while its records sync in, and re-check with
+ * {@link getRevealThreadPending} when it elapses.
  *
  * @public
  */
@@ -96,10 +90,8 @@ export const regionDraft = new EditorAtom<BoxModel | null>('regionDraft', () => 
 export const commentsHidden = new EditorAtom<boolean>('commentsHidden', () => false)
 
 /**
- * Whether the comments sidebar (the thread list) is open. Driven by an explicit control — a button
- * next to Share on dotcom — rather than by which tool is active, so browsing threads is separate
- * from placing them. The comment tool additionally closes it on enter, keeping placement
- * canvas-focused.
+ * Whether the comments sidebar (the thread list) is open. Driven by an explicit control rather than
+ * by which tool is active, so browsing threads is separate from placing them.
  * @public
  */
 export const commentsSidebarOpen = new EditorAtom<boolean>('commentsSidebarOpen', () => false)

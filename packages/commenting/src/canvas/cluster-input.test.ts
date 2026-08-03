@@ -284,13 +284,8 @@ describe('collectClusterLeaves screen offsets', () => {
 	})
 })
 
-/**
- * These two gate the O(N²) cluster-table rebuild in `useClusterModel`: an input that compares equal
- * keeps its previous identity, so nothing downstream recomputes. Both compare the leaves
- * positionally — `collectClusterLeaves` walks the threads in order, so a stable thread order is what
- * makes the gate hold across recomputes. If it ever stops being stable these still return the right
- * answer, just uselessly (every recompute rebuilds), which is why the order cases are asserted.
- */
+// These two gate the O(N²) rebuild in `useClusterModel`. Both compare the leaves positionally, so
+// the order cases below are what pin the gate to `collectClusterLeaves` walking threads in order.
 const leaf = (id: string, x: number, y: number) => ({ id, point: { x, y } })
 const input = (leaves: LeafInput[], screenOffsets?: LeafScreenOffsets): ClusterInput => ({
 	leaves,

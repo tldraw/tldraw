@@ -36,25 +36,22 @@ export interface EditorPortalProps {
  *
  * Use this for anything anchored to canvas coordinates that also has to draw over the UI — a
  * popover on a shape, a comment thread, an annotation panel. The `OnTheCanvas` and
- * `InFrontOfTheCanvas` component slots are fixed layers, and each is its own stacking context, so
- * content mounted there can't paint above whatever outranks its layer, no matter what z-index it
- * asks for. Mount your component in whichever slot suits your data flow, wrap the part that needs
- * its own layer in this, and give that part a z-index.
+ * `InFrontOfTheCanvas` slots are fixed layers, each its own stacking context, so content mounted
+ * there can't paint above whatever outranks its layer whatever z-index it asks for. Mount in
+ * whichever slot suits your data flow, wrap the part that needs its own layer in this, and give
+ * that part a z-index.
  *
- * Which z-index depends on what you're drawing over. This package's own layers stop at 250
- * (`--tl-layer-canvas-in-front`); everything above that belongs to whatever renders the UI. In
- * `tldraw`, that's `--tl-layer-panels` (300, the toolbar and style panel) and `--tl-layer-menus`
- * (400) — defined by `tldraw`'s stylesheet rather than this package's, so reach for those variables
- * only if you're building on `tldraw` and not the bare editor.
+ * This package's own layers stop at 250 (`--tl-layer-canvas-in-front`); above that belongs to
+ * whatever renders the UI. In `tldraw` that's `--tl-layer-panels` (300) and `--tl-layer-menus`
+ * (400), defined by `tldraw`'s stylesheet rather than this one.
  *
- * Positioning still resolves against the editor's container, the same as the canvas layers, so a
- * `position: absolute` child uses ordinary container coordinates.
+ * Positioning still resolves against the editor's container, so a `position: absolute` child uses
+ * ordinary container coordinates.
  *
- * Prefer this over `createPortal(children, useContainer())`. A portal picks its DOM position from
- * the commit that mounts it, so portaling straight into the container lands the node ahead of the
- * container's own shallower children — ahead of the UI, and ahead of the "skip to main content"
- * link that only works while nothing precedes it. The host this renders into is a real element in
- * the editor's tree, placed last, so ordering is fixed rather than dependent on mount timing.
+ * Prefer this over `createPortal(children, useContainer())`, which picks its DOM position from the
+ * commit that mounts it — landing the node ahead of the UI and of the "skip to main content" link
+ * that only works while nothing precedes it. This host is a real element placed last, so ordering
+ * is fixed rather than dependent on mount timing.
  *
  * @example
  * ```tsx
