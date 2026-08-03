@@ -40,16 +40,29 @@ export function useCommentReactions(
 }
 
 /**
+ * The reaction fields {@link summarizeReactions} needs — a structural subset of
+ * {@link tldraw#TLCommentReaction}, so tallies can also be built from reaction rows synced outside
+ * the editor store (e.g. an app-level reactions table backing a notifications feed).
+ *
+ * @public
+ */
+export interface ReactionSummaryInput {
+	userId: string
+	emoji: string
+	createdAt: number
+}
+
+/**
  * Tally a comment's reactions into an entry per emoji, ordered by when that emoji was first used
  * so the row stays stable as later reactions arrive. `active` marks the emoji the current user
  * reacted with (the pills render those highlighted), and `reactors` lists who reacted with it, in
  * reaction order, for the hover list. `resolveName` names each reactor; an id it can't name falls
- * back to the id itself.
+ * back to a generic "Someone", never the raw user id.
  *
  * @public
  */
 export function summarizeReactions(
-	reactions: TLCommentReaction[],
+	reactions: readonly ReactionSummaryInput[],
 	currentUserId?: string | null,
 	resolveName?: (userId: string) => string | undefined
 ): ReactionSummary[] {
@@ -147,7 +160,7 @@ export interface CommentReactionsProps {
 	/** The reacting user. Null/omitted gives a read-only row (signed out): counts show, but the
 	 *  pills don't toggle. */
 	currentUserId?: string | null
-	/** Names a reactor id for the hover list. Ids it can't name fall back to the id. */
+	/** Names a reactor id for the hover list. Ids it can't name fall back to a generic "Someone". */
 	resolveName?(userId: string): string | undefined
 }
 

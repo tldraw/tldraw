@@ -227,6 +227,9 @@
   "5bff3c9c88": {
     "translation": "My workspace"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> reacted to your comment"
+  },
   "5d04a002ea": {
     "translation": "Unable to connect"
   },
@@ -247,6 +250,9 @@
   },
   "61057a0c84": {
     "translation": "Later"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, one {Someone reacted to your comment} other {# people reacted to your comment}}"
   },
   "625fd29749": {
     "translation": "Older"
@@ -567,6 +573,9 @@
   "cea291e45e": {
     "translation": "Learn more about publishing."
   },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
+  },
   "d3d2e61733": {
     "translation": "Close"
   },
@@ -611,6 +620,9 @@
   },
   "e404559826": {
     "translation": "Terms of service"
+  },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> and <name>{b}</name> reacted to your comment"
   },
   "e81c4e4f2b": {
     "translation": "or"
@@ -659,6 +671,9 @@
   },
   "f2a6c498fb": {
     "translation": "Delete"
+  },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
   },
   "f4f70727dc": {
     "translation": "Settings"

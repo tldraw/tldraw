@@ -187,7 +187,7 @@ export interface CommentingOptions {
 }
 
 // @public
-export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, href, resolvedLabel, onSelect }: CommentListItemRenderProps): JSX.Element;
+export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, reactions, href, resolvedLabel, onSelect }: CommentListItemRenderProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentListItemProps {
@@ -200,6 +200,7 @@ export interface CommentListItemProps {
     id: string;
     page?: string;
     preview: ReactNode;
+    reactions?: ReactionSummary[];
     // (undocumented)
     resolved?: boolean;
     selected?: boolean;
@@ -517,6 +518,16 @@ export interface ReactionSummary {
     reactors: ReactionReactor[];
 }
 
+// @public
+export interface ReactionSummaryInput {
+    // (undocumented)
+    createdAt: number;
+    // (undocumented)
+    emoji: string;
+    // (undocumented)
+    userId: string;
+}
+
 // @public (undocumented)
 export interface ReactionTooltipProps {
     children: ReactNode;
@@ -594,7 +605,7 @@ export interface SidebarRow {
 export function sortSidebarRows(rows: readonly SidebarRow[]): readonly SidebarRow[];
 
 // @public
-export function summarizeReactions(reactions: TLCommentReaction[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined): ReactionSummary[];
+export function summarizeReactions(reactions: readonly ReactionSummaryInput[], currentUserId?: null | string, resolveName?: (userId: string) => string | undefined): ReactionSummary[];
 
 // @public
 export type TLCommentRecord = TLComment | TLCommentReaction | TLCommentThread;
