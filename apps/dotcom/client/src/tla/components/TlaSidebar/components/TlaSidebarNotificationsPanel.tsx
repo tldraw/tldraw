@@ -1,13 +1,14 @@
 import {
 	CommentListItemProps,
 	CommentsList,
+	formatFullDateTime,
 	formatRelativeTime,
 	isOpenInNewTabClick,
 	richTextToPlaintext,
 } from '@tldraw/commenting'
 import { ReactNode, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { createDeepLinkString, TLRichText, useValue } from 'tldraw'
+import { createDeepLinkString, TldrawUiTooltip, TLRichText, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { defineMessages, F, useMsg } from '../../../utils/i18n'
@@ -155,7 +156,9 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 						<div className="tlui-cmt-list__item-body">
 							<div className={styles.head}>
 								<span className={styles.docTitle}>{item.page}</span>
-								<span className={styles.time}>{formatRelativeTime(item.date)}</span>
+								<TldrawUiTooltip content={formatFullDateTime(item.date)}>
+									<span className={styles.time}>{formatRelativeTime(item.date)}</span>
+								</TldrawUiTooltip>
 							</div>
 							<div className={styles.byline}>
 								<ReasonByline

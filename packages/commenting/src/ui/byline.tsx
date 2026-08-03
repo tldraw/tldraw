@@ -1,5 +1,6 @@
 import { Avatar, type CommentAuthor } from '@tldraw/mentions'
-import { formatRelativeTime } from './format-time'
+import { TldrawUiTooltip } from 'tldraw'
+import { formatFullDateTime, formatRelativeTime } from './format-time'
 
 /** @public */
 export interface BylineProps {
@@ -10,16 +11,22 @@ export interface BylineProps {
 	edited?: boolean
 }
 
-/** A comment's metadata line: author name, relative time, and an edited marker. @public @react */
+/**
+ * A comment's metadata line: author name, relative time, and an edited marker. Hovering the time
+ * shows the full date and time in a tooltip.
+ * @public @react
+ */
 export function Byline({ author, date, edited }: BylineProps) {
 	return (
 		<div className="tlui-cmt-head">
 			<Avatar author={author} />
 			<span className="tlui-cmt-author">{author.name}</span>
-			<span className="tlui-cmt-time">
-				{formatRelativeTime(date)}
-				{edited && <span className="tlui-cmt-edited"> · edited</span>}
-			</span>
+			<TldrawUiTooltip content={formatFullDateTime(date)}>
+				<span className="tlui-cmt-time">
+					{formatRelativeTime(date)}
+					{edited && <span className="tlui-cmt-edited"> · edited</span>}
+				</span>
+			</TldrawUiTooltip>
 		</div>
 	)
 }

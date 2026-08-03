@@ -32,3 +32,14 @@ export function formatRelativeTime(iso: string, locale = 'en'): string {
 	}
 	return ''
 }
+
+/**
+ * Format an ISO datetime as a full date and time ("Tuesday, July 22, 2025 at 4:44 PM").
+ * Locale-aware via Intl.DateTimeFormat.
+ * @public
+ */
+export function formatFullDateTime(iso: string, locale = 'en'): string {
+	const date = new Date(iso)
+	if (Number.isNaN(date.getTime())) return ''
+	return new Intl.DateTimeFormat(locale, { dateStyle: 'full', timeStyle: 'short' }).format(date)
+}

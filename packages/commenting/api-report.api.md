@@ -388,6 +388,9 @@ export { filterMentionMembers }
 export function focusThread(editor: Editor, thread: TLCommentThread): void;
 
 // @public
+export function formatFullDateTime(iso: string, locale?: string): string;
+
+// @public
 export function formatRelativeTime(iso: string, locale?: string): string;
 
 // @public
