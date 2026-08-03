@@ -28,30 +28,35 @@ export function DefaultQuickActionsContent() {
 		<>
 			<UndoRedoGroup />
 			<DeleteDuplicateGroup />
+			<CommentQuickAction />
 		</>
 	)
 }
 
 function DeleteDuplicateGroup() {
-	const editor = useEditor()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 	const isInSelectState = useIsInSelectState()
+	const selectDependentActionsEnabled = oneSelected && isInSelectState
+	return (
+		<>
+			<TldrawUiMenuActionItem actionId="delete" disabled={!selectDependentActionsEnabled} />
+			<TldrawUiMenuActionItem actionId="duplicate" disabled={!selectDependentActionsEnabled} />
+		</>
+	)
+}
+
+function CommentQuickAction() {
+	const editor = useEditor()
 	const commentingEnabled = useCommentingEnabled()
 	const isCommentToolSelected = useValue(
 		'is comment tool selected',
 		() => editor.getCurrentToolId() === 'comment',
 		[editor]
 	)
-	const selectDependentActionsEnabled = oneSelected && isInSelectState
-	return (
-		<>
-			<TldrawUiMenuActionItem actionId="delete" disabled={!selectDependentActionsEnabled} />
-			<TldrawUiMenuActionItem actionId="duplicate" disabled={!selectDependentActionsEnabled} />
-			{commentingEnabled && (
-				<TldrawUiMenuToolItem toolId="comment" isSelected={isCommentToolSelected} />
-			)}
-		</>
-	)
+
+	if (!commentingEnabled) return null
+
+	return <TldrawUiMenuToolItem toolId="comment" isSelected={isCommentToolSelected} />
 }
 
 function UndoRedoGroup() {

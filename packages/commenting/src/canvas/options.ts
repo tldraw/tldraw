@@ -134,7 +134,7 @@ export interface CommentingOptions {
 	 * are hidden. Unset, participation is allowed exactly when `currentUserId` is set.
 	 *
 	 * Called during render via {@link useCanComment}, so reactive reads (signals) are tracked.
-	 * The comment tool itself stays registered and selectable — hosts that want its toolbar button
+	 * The comment tool itself stays registered and selectable — hosts that want its Quick Action
 	 * to do something else (e.g. open a sign-in dialog) can override the tool item's `onSelect`.
 	 * Note posting still requires a `currentUserId` to author the records, so a callback that
 	 * returns true for a signed-out viewer yields a composer whose send button stays disabled.

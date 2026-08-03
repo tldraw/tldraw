@@ -266,7 +266,7 @@ class CommentDragging extends StateNode {
 export const commentTools = [CommentTool]
 
 /** Registers the comment tool in the UI (icon, label, shortcut). Compose into your overrides.
- *  Once registered, tldraw's `DefaultToolbarContent` shows the comment button next to the eraser.
+ *  Once registered, tldraw's `DefaultQuickActionsContent` shows the comment button.
  * @public */
 export const commentToolOverrides: TLUiOverrides = {
 	tools(editor, tools) {
