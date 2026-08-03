@@ -8,9 +8,15 @@ status: published
 last_version: v5.2.0
 ---
 
-This release adds snapping and symmetric resizing while cropping images, a reactive `Editor.getIsMounted()` with a new `unmount` event, and faster viewport culling on large pages. It also fixes a batch of crashes and interaction bugs across arrows, groups, and text.
+This release makes geo shapes flip, adds snapping and symmetric resizing while cropping images, a reactive `Editor.getIsMounted()` with a new `unmount` event, and faster viewport culling on large pages. It also fixes a batch of crashes and interaction bugs across arrows, groups, embeds, and text.
 
 ## What's new
+
+### Flipping geo shapes ([#9530](https://github.com/tldraw/tldraw/pull/9530))
+
+Directional geo shapes (rhombus, the arrow geos, trapezoid) now mirror when you flip them. Previously flipping left them unchanged, so resizing an arrow past its flipping point made it reappear identical on the other side. `TLGeoShape` gains `flipX` and `flipY` props, matching the image shape, and the whole shape flips from a single mirrored path: geometry, hit-testing, the selection indicator, the canvas render, and SVG export all stay consistent. Labels stay upright so text remains readable.
+
+Flips register from the flip command (shift+H and shift+V) and from any negative-scale resize, including dragging a group or selection handle past the opposite edge.
 
 ### Snapping and symmetric resize while cropping ([#9424](https://github.com/tldraw/tldraw/pull/9424))
 
@@ -21,17 +27,26 @@ When cropping an image, crop edges now snap to other shapes and the grid, with t
 - Add an `unmount` event to `TLEventMap` and make `Editor.getIsMounted()` a reactive value that tracks whether the editor's component is currently mounted. ([#9472](https://github.com/tldraw/tldraw/pull/9472), [#9483](https://github.com/tldraw/tldraw/pull/9483))
 - Make the shape hit-test margin pointer-aware and add a `coarseHitTestMargin` option: fine pointers (mouse and trackpad) use a tighter 3px default, coarse pointers (touch and pen) use 4px. ([#9492](https://github.com/tldraw/tldraw/pull/9492))
 - Add a `ShapeUtil.onDuplicate(source, duplicate)` callback, invoked by `Editor.duplicateShapes` and `Editor.putContentOntoCurrentPage`, letting a shape adjust its props when it is copied. Sticky notes now use it to attribute duplicated or pasted text to the current user instead of carrying over the original author. ([#9566](https://github.com/tldraw/tldraw/pull/9566))
+- Add an `assets` prop to `TldrawImage`, so a snapshot's images resolve through a custom asset store the same way they do in `Tldraw`. Omitting it keeps the previous inline base64 behavior. ([#9697](https://github.com/tldraw/tldraw/pull/9697))
+- Add a `requiredActions` prop to `TldrawUiMenuSubmenu`. A submenu with `requiredActions` renders nothing unless at least one of the listed action ids exists, so hiding a submenu's actions through `overrides` now hides the submenu instead of leaving an empty trigger. Also adds an `ExportAsMenuGroup` component for the "Export as" submenu, mirroring `CopyAsMenuGroup`. ([#9589](https://github.com/tldraw/tldraw/pull/9589))
+- Add an `EditorManager` base class for editor-attached managers. Subclasses register teardown next to setup: `addEditorEvent(event, fn)` for editor bus listeners, `register(fn)` for side effects, reactions, DOM listeners, and other resources. Everything registered runs on `dispose()`. `InputsManager`, `FocusManager`, `TextManager`, and `TickManager` now extend it. ([#9204](https://github.com/tldraw/tldraw/pull/9204))
+- Add `PathBuilder.transform(mat)`, which returns a transformed copy of a path with its fill, dash, and close metadata preserved. ([#9530](https://github.com/tldraw/tldraw/pull/9530))
+- Add a `sizeToContentAspectRatio` flag to `EmbedDefinition` and an `EmbedShapeUtil.resolveAspectRatio(shape)` method. An opted-in provider resizes its embed to the content's real aspect ratio, resolved from the URL's OpenGraph image dimensions. ([#9613](https://github.com/tldraw/tldraw/pull/9613))
 
 ## Improvements
 
+- Size Vimeo embeds to their content's real aspect ratio instead of the fixed 16:9 box, so videos are no longer letterboxed inside white "ears". A corrected embed keeps the same visual footprint as the default box, so a portrait video no longer balloons the shape. ([#9613](https://github.com/tldraw/tldraw/pull/9613), [#9756](https://github.com/tldraw/tldraw/pull/9756))
+- Pass the text, html, and url content found on the clipboard alongside a pasted file through to the paste, in the `sources` field of the external content. A registered `files` handler or `onBeforePasteFromClipboard` can now inspect them, for example to read the html and decide whether the paste is your own custom content. Paste priority is unchanged: files still win. ([#9763](https://github.com/tldraw/tldraw/pull/9763))
 - Improve viewport culling performance on large pages: the spatial index now rechecks only the shapes affected by a change instead of every shape on the page. Custom shapes whose geometry depends on unrelated shapes (outside parent/child and binding relationships) are no longer automatically rechecked for culling when those shapes change; built-in shapes and standard patterns are unaffected. ([#9093](https://github.com/tldraw/tldraw/pull/9093))
 - Improve performance when deleting many shapes at once by batching page state cleanup. ([#9456](https://github.com/tldraw/tldraw/pull/9456))
-- Make long toast and dialog content wrap instead of overflowing, so long strings like URLs stay within the toast or dialog. ([#9546](https://github.com/tldraw/tldraw/pull/9546))
+- Make long toast and dialog content wrap instead of overflowing, so long strings like URLs stay within the toast or dialog. ([#9546](https://github.com/tldraw/tldraw/pull/9546), [#9663](https://github.com/tldraw/tldraw/pull/9663))
 - Delay the appearance of the "back to content" button by about a second so it no longer flickers during normal panning and zooming. Hiding stays immediate. ([#9448](https://github.com/tldraw/tldraw/pull/9448))
 - Remove the unnecessary ellipsis from the "Keyboard shortcuts" menu item. ([#9570](https://github.com/tldraw/tldraw/pull/9570))
 
 ## Bug fixes
 
+- Fix zoom and pan doing nothing while the cursor sits over a comment pin or another non-scrollable overlay. Wheel events now fall through to the canvas unless the overlay really can scroll. ([#9698](https://github.com/tldraw/tldraw/pull/9698))
+- Fix a crash when dragging content from another browser tab whose URL an extension had blocked. An invalid URL is now rejected instead of being treated as external content. ([#9598](https://github.com/tldraw/tldraw/pull/9598))
 - Fix rich text headings (H1–H6) rendering with their line-height too tight, causing overlapping lines. ([#9543](https://github.com/tldraw/tldraw/pull/9543))
 - Fix the style panel not highlighting the active fill correctly when the current fill lives in the overflow dropdown. ([#9509](https://github.com/tldraw/tldraw/pull/9509)) (contributed by [@meg-an31](https://github.com/meg-an31))
 - Fix the style panel Shape, Line, and spline dropdown popovers so they open with the same gap as the other dropdowns. ([#9491](https://github.com/tldraw/tldraw/pull/9491))
