@@ -325,7 +325,6 @@ export {
 export { useTransform } from './lib/hooks/useTransform'
 export { isCursorInViewport } from './lib/utils/collaborators'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
-// Deprecated, but still exported so existing callers keep working until it's removed.
 // oxlint-disable-next-line typescript/no-deprecated
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {

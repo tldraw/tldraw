@@ -12,16 +12,11 @@ import { useMaybeEditor } from './useEditor'
  * while using the virtual keyboard.
  */
 /**
- * The height of the visible viewport, including the visual viewport's own offset — so it tracks a
- * mobile software keyboard, which shrinks the visual viewport while leaving the layout viewport
- * (and CSS `dvh`) alone.
+ * The height of the visible viewport, including the visual viewport's own offset.
  *
- * @deprecated Read `window.visualViewport` directly instead. This returns a single scalar — the
- * visible viewport's bottom edge — where keeping UI clear of the software keyboard generally needs
- * the whole visible rectangle: the left and right edges to keep a panel on screen horizontally, and
- * `offsetTop` on its own to find the visible top. It has had no callers since the contextual
- * toolbar it was written for was cut before v3.14 shipped. This will be removed in a future
- * release.
+ * @deprecated Read `window.visualViewport` directly: this flattens the visible rectangle to a
+ * single scalar, and keeping UI clear of the software keyboard usually needs the other edges too.
+ * Unused since v3.14; will be removed in a future release.
  *
  * @public
  */
