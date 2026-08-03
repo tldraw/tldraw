@@ -1,17 +1,20 @@
-import type { ClusterNode, LeafInput, MstEdge, RawMergeEvent } from './types'
+import type { ClusterNode, LeafInput, LeafScreenOffsets, MstEdge, RawMergeEvent } from './types'
 
 export const D_FLOOR = 1e-9
 
 export function cappedReplay(
 	leaves: readonly LeafInput[],
 	edges: readonly MstEdge[],
-	opts: { Tc: number; Dmax: number }
+	opts: { Tc: number; Dmax: number },
+	// Render offsets for markers that draw off their anchor (imprecise pins). Omitted or empty,
+	// every code path below is the offset-unaware original — pricing, events, and floats alike.
+	screenOffsets?: LeafScreenOffsets
 ): RawMergeEvent[] {
 	validateOptions(opts)
 
 	if (edges.length === 0) return []
 
-	const clusters = new ClusterState(leaves)
+	const clusters = new ClusterState(leaves, screenOffsets)
 	const heap = new EdgeMaxHeap(edges, leaves)
 	// Edges incident to each current cluster root, for eager repricing: a merge
 	// moves the result's centroid, which can RAISE an incident edge's key (the
@@ -95,17 +98,62 @@ function zForRoots(
 	clusters: ClusterState,
 	opts: { Tc: number; Dmax: number }
 ): number {
-	if (edge.d < D_FLOOR) return Number.POSITIVE_INFINITY
-	// Badge-anchored gap pricing: clusters render as badges at their centroids,
-	// so the merge is priced by the distance between the rendered centers, not
-	// the nearest members. For leaves the two are identical; for clusters the
-	// centroid distance is larger, so groups merge later than their closest
-	// members would suggest — matching what the user actually sees.
-	// (Coincident CENTROIDS with non-coincident members leave the gap term
-	// Infinity and the fit term finite — the min stays finite, no special case.)
-	const gap = opts.Tc / clusters.centroidDistance(aRoot, bRoot)
+	// Null unless offset pricing is active AND this pair's mean render offsets differ. Every
+	// other pair — including every pair when no offsets were passed — takes the branch below,
+	// which is the offset-unaware pricing verbatim.
+	const off = clusters.offsetDelta(aRoot, bRoot)
+	if (off === null) {
+		if (edge.d < D_FLOOR) return Number.POSITIVE_INFINITY
+		// Badge-anchored gap pricing: clusters render as badges at their centroids,
+		// so the merge is priced by the distance between the rendered centers, not
+		// the nearest members. For leaves the two are identical; for clusters the
+		// centroid distance is larger, so groups merge later than their closest
+		// members would suggest — matching what the user actually sees.
+		// (Coincident CENTROIDS with non-coincident members leave the gap term
+		// Infinity and the fit term finite — the min stays finite, no special case.)
+		const gap = opts.Tc / clusters.centroidDistance(aRoot, bRoot)
+		const fit = opts.Dmax / clusters.unionBboxDiag(aRoot, bRoot)
+		return Math.min(gap, fit)
+	}
+
+	// Offset-aware gap pricing: these markers render at `z·centroid + meanOffset`, so their
+	// visual distance at zoom z is |z·ΔC + Δō| and the merge prices at its Tc crossing. When
+	// that distance never reaches Tc (the constant offsets hold the visuals apart harder than
+	// the anchors close), the pair prices at 0 — visually never mergeable, pruned by finalize's
+	// minZoom cut. No D_FLOOR fast path here: coincident anchors with differing offsets are a
+	// constant |Δō| apart on screen, which is exactly the ΔC = 0 case below.
+	const dc = clusters.centroidDelta(aRoot, bRoot)
+	if (dc.x === 0 && dc.y === 0) {
+		return Math.hypot(off.x, off.y) < opts.Tc ? Number.POSITIVE_INFINITY : 0
+	}
+	const gap = largestVisualCrossing(dc.x, dc.y, off.x, off.y, opts.Tc)
+	if (gap === null) return 0
 	const fit = opts.Dmax / clusters.unionBboxDiag(aRoot, bRoot)
 	return Math.min(gap, fit)
+}
+
+/**
+ * The largest positive root of `|z·ΔC + Δō| = level`, i.e. of
+ * `|ΔC|²·z² + 2(ΔC·Δō)·z + (|Δō|² − level²) = 0` — the zoom at which two offset markers are
+ * exactly `level` screen px apart, with the distance below the level for every smaller zoom
+ * (matching the "merged at z ≤ threshold" model; a lower second crossing, where opposed offsets
+ * push the visuals back above the level near z = 0, is deliberately collapsed). Null when the
+ * visual distance never reaches the level. Callers handle ΔC = 0 (constant distance) themselves.
+ */
+function largestVisualCrossing(
+	dcx: number,
+	dcy: number,
+	dox: number,
+	doy: number,
+	level: number
+): number | null {
+	const a = dcx * dcx + dcy * dcy
+	const b = 2 * (dcx * dox + dcy * doy)
+	const c = dox * dox + doy * doy - level * level
+	const disc = b * b - 4 * a * c
+	if (disc < 0) return null
+	const z = (-b + Math.sqrt(disc)) / (2 * a)
+	return z > 0 ? z : null
 }
 
 class ClusterState {
@@ -120,8 +168,13 @@ class ClusterState {
 	private readonly nodes: ClusterNode[]
 	private readonly memberLists: string[][]
 	private readonly minMemberIds: string[]
+	// Per-cluster sums of member render offsets (screen px), maintained like the centroid sums.
+	// Null when no offsets were passed — offsetDelta() then answers null unconditionally, which
+	// routes every pricing call down the offset-unaware path.
+	private readonly offsetX: Float64Array | null
+	private readonly offsetY: Float64Array | null
 
-	constructor(leaves: readonly LeafInput[]) {
+	constructor(leaves: readonly LeafInput[], screenOffsets?: LeafScreenOffsets) {
 		const n = leaves.length
 		this.parent = new Int32Array(n)
 		this.minX = new Float64Array(n)
@@ -134,6 +187,21 @@ class ClusterState {
 		this.nodes = new Array(n)
 		this.memberLists = new Array(n)
 		this.minMemberIds = new Array(n)
+
+		if (screenOffsets !== undefined && screenOffsets.size > 0) {
+			this.offsetX = new Float64Array(n)
+			this.offsetY = new Float64Array(n)
+			for (let i = 0; i < n; i++) {
+				const offset = screenOffsets.get(leaves[i].id)
+				if (offset) {
+					this.offsetX[i] = offset.x
+					this.offsetY[i] = offset.y
+				}
+			}
+		} else {
+			this.offsetX = null
+			this.offsetY = null
+		}
 
 		for (let i = 0; i < n; i++) {
 			const leaf = leaves[i]
@@ -174,6 +242,24 @@ class ClusterState {
 			this.centroidX[aRoot] - this.centroidX[bRoot],
 			this.centroidY[aRoot] - this.centroidY[bRoot]
 		)
+	}
+
+	centroidDelta(aRoot: number, bRoot: number): { x: number; y: number } {
+		return {
+			x: this.centroidX[aRoot] - this.centroidX[bRoot],
+			y: this.centroidY[aRoot] - this.centroidY[bRoot],
+		}
+	}
+
+	/** The difference of the two clusters' mean render offsets (screen px), or null when it's
+	 *  zero — including always when no offsets were passed. Null routes pricing down the
+	 *  offset-unaware path. */
+	offsetDelta(aRoot: number, bRoot: number): { x: number; y: number } | null {
+		if (this.offsetX === null || this.offsetY === null) return null
+		const x = this.offsetX[aRoot] / this.counts[aRoot] - this.offsetX[bRoot] / this.counts[bRoot]
+		const y = this.offsetY[aRoot] / this.counts[aRoot] - this.offsetY[bRoot] / this.counts[bRoot]
+		if (x === 0 && y === 0) return null
+		return { x, y }
 	}
 
 	unionBboxDiag(aRoot: number, bRoot: number): number {
@@ -224,6 +310,10 @@ class ClusterState {
 		this.nodes[leftRoot] = result
 		this.memberLists[leftRoot] = members
 		this.minMemberIds[leftRoot] = members[0]
+		if (this.offsetX !== null && this.offsetY !== null) {
+			this.offsetX[leftRoot] += this.offsetX[rightRoot]
+			this.offsetY[leftRoot] += this.offsetY[rightRoot]
+		}
 
 		return { z, children: [left, right], result }
 	}
