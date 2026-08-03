@@ -28,7 +28,7 @@ export function makeSnapshot(
 	return { documents, schema: { schemaVersion: 2, sequences: {} } } as any
 }
 
-// In-memory stand-in for an R2 bucket (THUMBNAILS or MCP_SCREENSHOTS, which have the same shape).
+// In-memory stand-in for an R2 bucket (THUMBNAILS or MCP_DATA_BUCKET, which have the same shape).
 // Exposes `store` so tests can inspect or seed
 // entries directly. Covers get/head/put/delete; entries carry the customMetadata and upload time
 // the routes read.

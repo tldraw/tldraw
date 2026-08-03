@@ -95,9 +95,9 @@ export interface Environment {
 	/** Per-IP `get_shared_board_screenshot` calls. */
 	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
 	/** Per-board Browser Run captures, applied only on cache misses. */
-	MCP_SCREENSHOT_BOARD_RATE_LIMITER: RateLimit | undefined
+	MCP_SERVER_BOARD_RATE_LIMITER: RateLimit | undefined
 	/** Total Browser Run invocations made by the tool, on one shared key. */
-	MCP_SCREENSHOT_BROWSER_RATE_LIMITER: RateLimit | undefined
+	MCP_SERVER_BROWSER_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
@@ -113,7 +113,7 @@ export interface Environment {
 	// without bound and needs the expiration rule that would be actively wrong on THUMBNAILS. See "Why
 	// two buckets" in browser-run-thumbnails.md.
 	// Optional on the same terms as THUMBNAILS.
-	MCP_SCREENSHOTS: R2Bucket | undefined
+	MCP_DATA_BUCKET: R2Bucket | undefined
 
 	// Cloudflare Browser Rendering binding. The worker takes thumbnails by calling the binding's
 	// `quickAction` Quick Actions method (e.g. `screenshot`) directly — no @cloudflare/puppeteer and

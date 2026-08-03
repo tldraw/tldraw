@@ -843,7 +843,7 @@ describe('handleOgImageRenderMessage', () => {
 		const env = makeEnv({
 			THUMBNAILS: makeFakeThumbnailsBucket(),
 			QUEUE: queue,
-			MCP_SCREENSHOT_BROWSER_RATE_LIMITER: browserLimiter,
+			MCP_SERVER_BROWSER_RATE_LIMITER: browserLimiter,
 		})
 
 		const message = makeMessage({ kind: 'published', slug: 'board', reason: 'edit' })

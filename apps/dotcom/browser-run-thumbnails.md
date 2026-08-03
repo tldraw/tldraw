@@ -97,18 +97,20 @@ Worth being explicit that **no per-board mechanism can cap total spend**, becaus
 The limits below are therefore the **only** rate limiting in the pipeline, and they exist for the **MCP endpoint** specifically — the one Browser Run-spending surface an outside caller can drive directly, where a rogue or looping agent is the threat being bounded. They live in `sharedBoardScreenshotMcp.ts`, not in the shared render core, so a new surface built on those helpers cannot pick one up by accident:
 
 - Per IP: ~10 `get_shared_board_screenshot` calls per minute (`ip-shot:` on `MCP_SCREENSHOT_RATE_LIMITER`).
-- Per board: ~2 Browser Run captures per minute (`board:` on `MCP_SCREENSHOT_BOARD_RATE_LIMITER`), applied only on cache misses.
-- Global: ~20 Browser Run captures per minute across all MCP callers (`MCP_SCREENSHOT_BROWSER_RATE_LIMITER`, key `global`).
+- Per board: ~2 Browser Run captures per minute (`board:` on `MCP_SERVER_BOARD_RATE_LIMITER`), applied only on cache misses.
+- Global: ~20 Browser Run captures per minute across all MCP callers (`MCP_SERVER_BROWSER_RATE_LIMITER`, key `global`).
 
 Per-board is deliberately far tighter than per-IP: a caller gets 10 captures a minute, but no single board may absorb more than 2 of them. Because captures are counted only on cache misses, this does not bound the usual "screenshot several pages of one board" flow — a repeated capture of the same page is a cache hit.
 
-That gap is only expressible because each budget has **its own binding**. A binding carries a single `limit` applied per key, so two budgets wanting different numbers cannot share one however distinct their keys are. Per-IP and per-board shared `MCP_SCREENSHOT_RATE_LIMITER` while both were 2, which made them look separable when they were not; per-board moved to `MCP_SCREENSHOT_BOARD_RATE_LIMITER` (`namespace_id` 1013–1016) when they diverged.
+That gap is only expressible because each budget has **its own binding**. A binding carries a single `limit` applied per key, so two budgets wanting different numbers cannot share one however distinct their keys are. Per-IP and per-board shared `MCP_SCREENSHOT_RATE_LIMITER` while both were 2, which made them look separable when they were not; per-board moved to `MCP_SERVER_BOARD_RATE_LIMITER` (`namespace_id` 1013–1016) when they diverged.
+
+The `MCP_SERVER_` prefix on two of the three is deliberate. Neither budget is about screenshots as such — the per-board and global caps bound Browser Run spending by the MCP endpoint, and the cluster tools land on the same budget, so a name tied to one tool would be wrong the moment a second tool spends the same allowance. The per-IP binding is the exception and keeps `MCP_SCREENSHOT_RATE_LIMITER`, because it is not being renamed but retired: OAuth on the MCP server blocks anonymous access, which leaves the logged-in user, not the IP, as the thing to limit.
 
 Two things to know when changing any of these. The numbers live in **two places that must move together** — the constants in `sharedBoardScreenshotMcp.ts` are only the isolate-local fallback for local dev and tests, and every deployed environment is governed by the Cloudflare binding in `wrangler.toml`, so editing one alone changes nothing where it matters. Unit tests run with no bindings at all, so they pin the fallback constants and can never catch a wrong or shared binding; `wrangler.toml` is the only place to check that. And `period` in those bindings [must be either 10 or 60 seconds](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/) — that restriction is on the window, not on `limit`, which is an unconstrained integer. All of these use `period = 60`.
 
 Only the calls that actually spend Browser Run are limited. `get_board_info` is not: it resolves a board and reads its snapshot, which is the same work the ordinary board routes already do for anyone. It previously held its own per-IP budget (`ip-info:`), kept separate from the screenshot one so the usual "list once, then screenshot pages" flow could not burn its allowance on the free call; that budget is now simply absent. The OG image route's per-board limit (`og-board:`) is gone too, along with the route's enqueue — see "OG images (queue-backed async rendering)" above.
 
-The Cloudflare rate limit bindings are declared in `wrangler.toml` for every environment. When a binding is absent (local dev, tests) the route falls back to an isolate-local guard with the same limits. Changing the global cap means moving the `MCP_SCREENSHOT_BROWSER_RATE_LIMITER` bindings in `wrangler.toml` (one per environment) and the isolate-local fallback constant `GLOBAL_BROWSER_RUN_RATE_LIMIT` in `sharedBoardScreenshotMcp.ts` together.
+The Cloudflare rate limit bindings are declared in `wrangler.toml` for every environment. When a binding is absent (local dev, tests) the route falls back to an isolate-local guard with the same limits. Changing the global cap means moving the `MCP_SERVER_BROWSER_RATE_LIMITER` bindings in `wrangler.toml` (one per environment) and the isolate-local fallback constant `GLOBAL_BROWSER_RUN_RATE_LIMIT` in `sharedBoardScreenshotMcp.ts` together.
 
 The thing to watch instead of a cap is Browser Rendering's own account limits: a render can hold a session for the full 45s `THUMBNAIL_RENDER_TIMEOUT_MS`, so sustained edit volume is bounded in practice by concurrent-session and new-session-per-minute limits rather than by anything in this worker. Browser Rendering bills by browser duration, so thumbnail spend now scales with editing activity. `fetch-screenshot-metrics.ts` (below) is how that gets watched.
 
@@ -118,7 +120,7 @@ Quick Actions bill [**duration only**](https://developers.cloudflare.com/browser
 
 **What it costs today, measured.** The Browser Run dashboard (Compute > Browser Run) for July 2026: **15.22 browser hours across 8.75k Quick Action requests**, all of them `Screenshot` against `www.tldraw.com/__thumbnail-render`, no Browser Sessions at all. Volume was near zero until about July 20 and has run at **~1,000 captures and 1.6–2.6 browser hours a day** since — call it **0.7 renders/min**, against a **$0.47** bill for the month and a **$4–6/month** run rate if that holds. This is the pre-branch pipeline: the edit trigger is not deployed, so what is being measured is publish- and crawler-driven rendering only.
 
-**Those hours are all thumbnails.** Browser Run reports one account-wide figure that both surfaces land in, but the buckets separate them: `mcp-screenshots-preview` holds **0 objects**, and the production `mcp-screenshots` bucket does not exist yet. Since every MCP capture writes exactly one object and its key carries the board's content version, an empty bucket is an unused surface — so the whole 8.75k is the OG pipeline, and the MCP tool's share of the bill is currently zero. That also makes the object count the standing way to split the two later: MCP captures over the last 30 days are just the object count in that bucket, since the lifecycle rule expires them on exactly that schedule.
+**Those hours are all thumbnails.** Browser Run reports one account-wide figure that both surfaces land in, but the buckets separate them: `dotcom-mcp-data-preview` holds **0 objects**, and the production `dotcom-mcp-data` bucket does not exist yet. Since every MCP capture writes exactly one object and its key carries the board's content version, an empty bucket is an unused surface — so the whole 8.75k is the OG pipeline, and the MCP tool's share of the bill is currently zero. That also makes the object count the standing way to split the two later: MCP captures over the last 30 days are just the object count in that bucket, since the lifecycle rule expires them on exactly that schedule.
 
 The useful number that falls out of it is the **mean capture: 6.3 seconds** (15.22h / 8.75k). That is what the forecast below is priced at, rather than an assumption, and it is worth re-deriving the same way whenever these figures move — two dashboard numbers divided by each other.
 
@@ -250,19 +252,19 @@ The sync worker needs:
 - `MCP_SCREENSHOT_TOKEN_SECRET` (deploy var, GitHub secret) - HMAC secret for render tokens. Local dev uses the placeholder in `[env.dev.vars]`.
 - `MCP_SCREENSHOT_RENDER_ORIGIN` - set in `wrangler.toml` for dev (`http://localhost:3000`), staging, and production. Preview deploys have no `wrangler.toml` entry, so `deploy-dotcom.ts` injects the preview's own client origin (`https://${previewId}-preview-deploy.tldraw.com`) as a deploy var.
 - `THUMBNAILS` R2 bucket binding - board thumbnails / OG images (`og/…` keys) and their pending markers. `thumbnails-preview` in dev/preview/staging, `thumbnails` in production.
-- `MCP_SCREENSHOTS` R2 bucket binding - MCP tool screenshots (`mcp/…` keys). `mcp-screenshots-preview` in dev/preview/staging, `mcp-screenshots` in production.
+- `MCP_DATA_BUCKET` binding - R2 bucket for MCP tool output; today that is screenshots (`mcp/…` keys). `dotcom-mcp-data-preview` in dev/preview/staging, `dotcom-mcp-data` in production.
 
 ### Why two buckets
 
 Both key spaces used to live in `thumbnails`, separated only by prefix. They are now separate buckets for two reasons:
 
-- **Domain.** `MCP_SCREENSHOTS` is where the MCP surface puts what it produces, and that won't stay limited to board thumbnails. Keying the bucket to the tool rather than to the artifact means the next MCP output type lands somewhere that already fits, instead of accreting inside a bucket named for something it isn't.
+- **Domain.** `MCP_DATA_BUCKET` is where the MCP surface puts what it produces, and that won't stay limited to board thumbnails. Keying the bucket to the tool rather than to the artifact means the next MCP output type lands somewhere that already fits, instead of accreting inside a bucket named for something it isn't.
 - **Retention.** The two caches want opposite lifetimes:
   - **`og/…`** keys (`og/{kind}/{slug}/{theme}.png`) carry no version, so each render overwrites the same object in place and a board costs exactly one object for as long as it exists. Nothing accumulates and nothing deletes one, and the current thumbnail must outlive any lifecycle window — so `THUMBNAILS` gets **no expiration rule**.
 
     That is also why the key holds nothing but the board and the theme — in particular **not the output dimensions**. This key is the image's sole address, so anything in the path that can change re-addresses every board's image at once and strands the old objects permanently, since there is no lifecycle rule to sweep them. A size change is a replacement rather than a second object, so it belongs in the object's metadata, which overwrites in place. The trade is that a size change serves old-sized images as fresh hits until each board next renders, because the stored `version` tracks board content, not render parameters.
 
-  - **`mcp/…`** keys include the board's content version (`mcp/{kind}/{slug}/{version}/{w}x{h}/{theme}/page-{n}.png`), so every edit strands the previous object and the set grows without bound. A pure regenerable cache, so `MCP_SCREENSHOTS` gets an **expiration rule**.
+  - **`mcp/…`** keys include the board's content version (`mcp/{kind}/{slug}/{version}/{w}x{h}/{theme}/page-{n}.png`), so every edit strands the previous object and the set grows without bound. A pure regenerable cache, so `MCP_DATA_BUCKET` gets an **expiration rule**.
 
 A prefix-scoped lifecycle rule on a single bucket would also work (`wrangler r2 bucket lifecycle add` takes a prefix positionally), and has the nice property of ageing out the existing backlog in place. It was rejected because a future rule added without a prefix, or with a typo'd one, would silently delete every board's live thumbnail, and R2 expiration has no undo. Separate buckets make that mistake impossible.
 
@@ -329,24 +331,26 @@ Before the first deploy of this feature:
    ```bash
    wrangler r2 bucket create thumbnails-preview
    wrangler r2 bucket create thumbnails
-   wrangler r2 bucket create mcp-screenshots-preview
-   wrangler r2 bucket create mcp-screenshots
+   wrangler r2 bucket create dotcom-mcp-data-preview
+   wrangler r2 bucket create dotcom-mcp-data
    ```
 
-2. Add the expiration rule to the MCP screenshot buckets only (30 days is a starting point — these are a regenerable cache, so the only cost of expiring one is a re-render the next time an agent asks for that exact board version):
+2. Add the expiration rule to the MCP data buckets only (30 days is a starting point — these are a regenerable cache, so the only cost of expiring one is a re-render the next time an agent asks for that exact board version):
 
    ```bash
-   wrangler r2 bucket lifecycle add mcp-screenshots-preview expire-screenshots --expire-days 30 -y
-   wrangler r2 bucket lifecycle add mcp-screenshots expire-screenshots --expire-days 30 -y
+   wrangler r2 bucket lifecycle add dotcom-mcp-data-preview expire-screenshots --expire-days 30 -y
+   wrangler r2 bucket lifecycle add dotcom-mcp-data expire-screenshots --expire-days 30 -y
    ```
 
-   Verify with `wrangler r2 bucket lifecycle list mcp-screenshots`. Do **not** add an equivalent rule to `thumbnails`.
+   Verify with `wrangler r2 bucket lifecycle list dotcom-mcp-data`. Do **not** add an equivalent rule to `thumbnails`.
 
 3. Enable Browser Rendering on the Cloudflare account (the `BROWSER` binding needs it) and add the `MCP_SCREENSHOT_TOKEN_SECRET` GitHub secret. Until the secret exists the deploy passes an empty string and the MCP tool returns a configuration error instead of failing the deploy.
 
 Migration note: MCP screenshots previously lived under `mcp/…` in the `thumbnails` bucket, where nothing ever deleted them. Those objects are now orphaned — the tool reads and writes the new bucket, and the version in the key means nothing will ever hit them again. Clear them out with a one-off prefix-scoped rule (`wrangler r2 bucket lifecycle add thumbnails expire-legacy-mcp mcp/ --expire-days 1 -y`, removed once the prefix is empty) or by deleting the `mcp/` folder from the dashboard.
 
 Second migration note: the OG key dropped its `{w}x{h}` segment, so anything already written as `og/{kind}/{slug}/1200x630/{theme}.png` is orphaned too. Bounded and small — one object per board ever rendered before this deploy, and each board rewrites at its new key on the next publish or edit — but nothing will read or overwrite the old ones, and this bucket has no lifecycle rule to sweep them. A prefix rule cannot match a middle segment, so clear them by listing and deleting the `og/` keys containing `/1200x630/`, or leave them and accept a fixed one-off cost. Do **not** reach for a lifecycle rule on `thumbnails` to do it.
+
+Third migration note: the MCP buckets were originally named `mcp-screenshots-preview` / `mcp-screenshots`, after the one artifact they held rather than the surface that writes them. R2 has no rename, so the names above are fresh buckets. Nothing needs copying — the preview bucket was created but never written to, and the production one was never created — so the old preview bucket can simply be deleted (`wrangler r2 bucket delete mcp-screenshots-preview`) once this config is deployed.
 
 ## Local development
 
@@ -470,7 +474,7 @@ flowchart TB
     EXPORT -->|screenshot captures the img| BR
 
     BR -->|PNG bytes| WORKER["Worker writes R2 + returns image"]
-    WORKER --> R2[("THUMBNAILS bucket (og/… keys)<br/>MCP_SCREENSHOTS bucket (mcp/… keys,<br/>expiring)")]
+    WORKER --> R2[("THUMBNAILS bucket (og/… keys)<br/>MCP_DATA_BUCKET (mcp/… keys,<br/>expiring)")]
     WORKER -->|image in hand| MCP
     R2 -->|serve cached| OGR
     R2 -->|serve cached| MCP

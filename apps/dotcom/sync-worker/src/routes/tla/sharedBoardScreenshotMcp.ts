@@ -41,9 +41,9 @@ const MCP_PROTOCOL_VERSION = '2024-11-05'
 // are governed by the Cloudflare rate limit bindings in wrangler.toml, so changing a number here alone
 // changes nothing in production. Each budget has its own binding, and the pairs must move together:
 //
-//   PER_IP_RATE_LIMIT              ->  MCP_SCREENSHOT_RATE_LIMITER          (limit = 10)
-//   PER_BOARD_RATE_LIMIT           ->  MCP_SCREENSHOT_BOARD_RATE_LIMITER    (limit = 2)
-//   GLOBAL_BROWSER_RUN_RATE_LIMIT  ->  MCP_SCREENSHOT_BROWSER_RATE_LIMITER  (limit = 20)
+//   PER_IP_RATE_LIMIT              ->  MCP_SCREENSHOT_RATE_LIMITER      (limit = 10)
+//   PER_BOARD_RATE_LIMIT           ->  MCP_SERVER_BOARD_RATE_LIMITER    (limit = 2)
+//   GLOBAL_BROWSER_RUN_RATE_LIMIT  ->  MCP_SERVER_BROWSER_RATE_LIMITER  (limit = 20)
 const PER_IP_RATE_LIMIT = 10
 // Far below the per-IP limit: a caller gets 10 captures a minute, but no single board may absorb more
 // than 2 of them. Cache misses only, so this does not bound the usual "screenshot several pages of one
@@ -55,7 +55,7 @@ const RATE_LIMIT_WINDOW_MS = 60_000
 const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
 
 async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
-	return isRateLimited(env.MCP_SCREENSHOT_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
+	return isRateLimited(env.MCP_SERVER_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
 		fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
 	})
 }
@@ -363,14 +363,14 @@ async function callSharedBoardScreenshotTool(
 			)
 		}
 		const board = resolved.board
-		if (!env.MCP_SCREENSHOTS) {
-			throw new Error('MCP_SCREENSHOTS bucket is not configured')
+		if (!env.MCP_DATA_BUCKET) {
+			throw new Error('MCP_DATA_BUCKET bucket is not configured')
 		}
 
 		// The cache key is derived from the requested ordinal alone, so a cache hit skips loading the
 		// board snapshot entirely; the page name rides in the cached object's metadata.
 		const cacheKey = getThumbnailPageCacheKey(board, input.theme, input.page)
-		const cached = await env.MCP_SCREENSHOTS.get(cacheKey)
+		const cached = await env.MCP_DATA_BUCKET.get(cacheKey)
 		if (cached) {
 			telemetry({ cacheStatus: 'hit' })
 			return toolPageResult(
@@ -402,7 +402,7 @@ async function callSharedBoardScreenshotTool(
 		// Only cache misses spend Browser Rendering capacity, so the per-board and global guards sit
 		// here rather than at the top of the tool call.
 		if (
-			await isRateLimited(env.MCP_SCREENSHOT_BOARD_RATE_LIMITER, `board:${input.boardId}`, {
+			await isRateLimited(env.MCP_SERVER_BOARD_RATE_LIMITER, `board:${input.boardId}`, {
 				fallbackLimit: PER_BOARD_RATE_LIMIT,
 			})
 		) {
@@ -435,7 +435,7 @@ async function callSharedBoardScreenshotTool(
 		// act on it, but a cache that stops absorbing writes means every call re-renders. The page name is
 		// URI-encoded because R2 custom metadata is not reliably unicode-safe.
 		try {
-			await putThumbnailPng(env.MCP_SCREENSHOTS, cacheKey, render.base64, board.version, {
+			await putThumbnailPng(env.MCP_DATA_BUCKET, cacheKey, render.base64, board.version, {
 				pageName: encodeURIComponent(targetPage.name),
 			})
 		} catch (error) {

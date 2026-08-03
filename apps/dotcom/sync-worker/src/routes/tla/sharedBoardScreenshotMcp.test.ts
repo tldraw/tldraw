@@ -160,7 +160,7 @@ describe('MCP_SCREENSHOT_ENABLED', () => {
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeSnapshot(THREE_PAGES))
 		const env = makeEnv({
 			MCP_SCREENSHOT_ENABLED: 'false',
-			MCP_SCREENSHOTS: makeFakeThumbnailsBucket(),
+			MCP_DATA_BUCKET: makeFakeThumbnailsBucket(),
 		})
 
 		const response = await sharedBoardScreenshotMcp(
@@ -312,7 +312,7 @@ describe('get_shared_board_screenshot', () => {
 	it('screenshots the first page by default and caches it', async () => {
 		mockPublishedBoard()
 		const bucket = makeFakeThumbnailsBucket()
-		const env = makeEnv({ MCP_SCREENSHOTS: bucket })
+		const env = makeEnv({ MCP_DATA_BUCKET: bucket })
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
@@ -346,7 +346,7 @@ describe('get_shared_board_screenshot', () => {
 
 	it('screenshots the requested page ordinal', async () => {
 		mockPublishedBoard()
-		const env = makeEnv({ MCP_SCREENSHOTS: makeFakeThumbnailsBucket() })
+		const env = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
@@ -362,7 +362,7 @@ describe('get_shared_board_screenshot', () => {
 
 	it('waits on either terminal selector and captures a success-only element so failed renders fail fast', async () => {
 		mockPublishedBoard()
-		const env = makeEnv({ MCP_SCREENSHOTS: makeFakeThumbnailsBucket() })
+		const env = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
 
 		await sharedBoardScreenshotMcp(
 			makeToolCall('203.0.113.18', 'get_shared_board_screenshot', { boardId: 'abc' }),
@@ -391,7 +391,7 @@ describe('get_shared_board_screenshot', () => {
 	it('serves a cached page without screenshotting again', async () => {
 		mockPublishedBoard()
 		const bucket = makeFakeThumbnailsBucket()
-		const env = makeEnv({ MCP_SCREENSHOTS: bucket })
+		const env = makeEnv({ MCP_DATA_BUCKET: bucket })
 
 		await sharedBoardScreenshotMcp(
 			makeToolCall('203.0.113.12', 'get_shared_board_screenshot', { boardId: 'abc' }),
@@ -413,7 +413,7 @@ describe('get_shared_board_screenshot', () => {
 
 	it('errors when the page ordinal is out of range, without screenshotting', async () => {
 		mockPublishedBoard()
-		const env = makeEnv({ MCP_SCREENSHOTS: makeFakeThumbnailsBucket() })
+		const env = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
@@ -431,7 +431,7 @@ describe('get_shared_board_screenshot', () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 		const env = makeEnv({
 			ROOMS: makeFakeRoomsBucket(),
-			MCP_SCREENSHOTS: makeFakeThumbnailsBucket(),
+			MCP_DATA_BUCKET: makeFakeThumbnailsBucket(),
 		})
 
 		const result = await resultOf(
@@ -449,7 +449,7 @@ describe('get_shared_board_screenshot', () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'e', shared: true, isDeleted: false })
 		const env = makeEnv({
 			ROOMS: makeFakeRoomsBucket(null),
-			MCP_SCREENSHOTS: makeFakeThumbnailsBucket(),
+			MCP_DATA_BUCKET: makeFakeThumbnailsBucket(),
 		})
 
 		const result = await resultOf(
@@ -474,7 +474,7 @@ describe('get_shared_board_screenshot', () => {
 		)
 		const env = makeEnv({
 			ROOMS: makeFakeRoomsBucket(),
-			MCP_SCREENSHOTS: makeFakeThumbnailsBucket(),
+			MCP_DATA_BUCKET: makeFakeThumbnailsBucket(),
 		})
 
 		const result = await resultOf(
@@ -501,7 +501,7 @@ describe('get_shared_board_screenshot', () => {
 		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('not shared'))
 		const env = makeEnv({
 			ROOMS: makeFakeRoomsBucket(),
-			MCP_SCREENSHOTS: makeFakeThumbnailsBucket(),
+			MCP_DATA_BUCKET: makeFakeThumbnailsBucket(),
 		})
 
 		const result = await resultOf(
@@ -521,7 +521,7 @@ describe('get_shared_board_screenshot', () => {
 	it('surfaces a render failure when the screenshot call fails', async () => {
 		mockPublishedBoard()
 		const env = makeEnv({
-			MCP_SCREENSHOTS: makeFakeThumbnailsBucket(),
+			MCP_DATA_BUCKET: makeFakeThumbnailsBucket(),
 			BROWSER: makeBrowserBinding(async () => new Response('nope', { status: 500 })),
 		})
 
@@ -551,7 +551,7 @@ describe('get_shared_board_screenshot', () => {
 		bucket.put = async () => {
 			throw new Error('R2 PUT failed: internal-bucket.example')
 		}
-		const env = makeEnv({ MCP_SCREENSHOTS: bucket })
+		const env = makeEnv({ MCP_DATA_BUCKET: bucket })
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
@@ -576,7 +576,7 @@ describe('get_shared_board_screenshot', () => {
 	const PER_IP_RATE_LIMIT = 10
 	it(`allows ${PER_IP_RATE_LIMIT} screenshots per IP per minute, then rate limits`, async () => {
 		mockPublishedBoard()
-		const env = makeEnv({ MCP_SCREENSHOTS: makeFakeThumbnailsBucket() })
+		const env = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
 
 		const results = []
 		for (let i = 0; i <= PER_IP_RATE_LIMIT; i++) {
@@ -606,12 +606,12 @@ describe('get_shared_board_screenshot', () => {
 	// Note what this can and cannot check. Tests run with no rate limit bindings, so both budgets take
 	// the isolate-local fallback and only the key and the fallback limit matter here — the part that
 	// makes different numbers possible in a *deployment* is per-board having its own Cloudflare binding
-	// (MCP_SCREENSHOT_BOARD_RATE_LIMITER), and no unit test can see that. wrangler.toml is the only
+	// (MCP_SERVER_BOARD_RATE_LIMITER), and no unit test can see that. wrangler.toml is the only
 	// place that goes wrong, and the only place to check it.
 	const PER_BOARD_RATE_LIMIT = 2
 	it(`allows ${PER_BOARD_RATE_LIMIT} captures per board per minute, well inside the per-IP budget`, async () => {
 		mockPublishedBoard()
-		const env = makeEnv({ MCP_SCREENSHOTS: makeFakeThumbnailsBucket() })
+		const env = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
 
 		// Distinct pages of one board, so every call is a cache miss on the same board key.
 		const results = []
@@ -640,7 +640,7 @@ describe('get_shared_board_screenshot', () => {
 
 	it('records the hashed ip only on failures, not on successful screenshots', async () => {
 		mockPublishedBoard()
-		const successEnv = makeEnv({ MCP_SCREENSHOTS: makeFakeThumbnailsBucket() })
+		const successEnv = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
 		await sharedBoardScreenshotMcp(
 			makeToolCall('203.0.113.30', 'get_shared_board_screenshot', { boardId: 'abc' }),
 			successEnv
@@ -649,7 +649,7 @@ describe('get_shared_board_screenshot', () => {
 
 		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
-		const failEnv = makeEnv({ MCP_SCREENSHOTS: makeFakeThumbnailsBucket() })
+		const failEnv = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
 		await sharedBoardScreenshotMcp(
 			makeToolCall('203.0.113.31', 'get_shared_board_screenshot', { boardId: 'missing' }),
 			failEnv
