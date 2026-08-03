@@ -17,6 +17,47 @@ import { POPOVER_OFFSET } from './thread-view'
  *  most of the marker sits within the shape, with a small overhang past the corner. */
 export const IMPRECISE_PIN_INSET_PX = 20
 
+/** Screen-pixel margin by which the viewport is inflated when culling canvas markers (thread pins
+ *  and cluster badges), so a marker just off-screen is already mounted when a pan brings it in. */
+const MARKER_CULL_MARGIN_PX = 120
+
+/**
+ * Whether a viewport-space point sits within the viewport inflated by
+ * {@link MARKER_CULL_MARGIN_PX}. The cull test for screen-fixed markers: off-screen markers
+ * return null from their position signal and unmount instead of tracking every camera frame.
+ * @internal
+ */
+export function isInInflatedViewport(editor: Editor, point: VecLike): boolean {
+	const viewport = editor.getViewportScreenBounds()
+	const margin = MARKER_CULL_MARGIN_PX
+	return (
+		point.x >= -margin &&
+		point.y >= -margin &&
+		point.x <= viewport.w + margin &&
+		point.y <= viewport.h + margin
+	)
+}
+
+/**
+ * Whether any part of a page-space box overlaps the viewport inflated by
+ * {@link MARKER_CULL_MARGIN_PX}. The cull test for region-anchored threads, whose dashed box can
+ * be on screen while the pin corner itself is not.
+ * @internal
+ */
+export function isBoxInInflatedViewport(editor: Editor, box: BoxModel): boolean {
+	const viewport = editor.getViewportScreenBounds()
+	const margin = MARKER_CULL_MARGIN_PX
+	// Zoom is positive, so the page box's corners keep their order through the transform.
+	const min = editor.pageToViewport({ x: box.x, y: box.y })
+	const max = editor.pageToViewport({ x: box.x + box.w, y: box.y + box.h })
+	return (
+		max.x >= -margin &&
+		max.y >= -margin &&
+		min.x <= viewport.w + margin &&
+		min.y <= viewport.h + margin
+	)
+}
+
 /** Imprecise shape pins tuck inside the shape rather than hanging off its edge: the marker
  *  extends up-right of its anchor point, so step it toward the shape's centre. Screen px — the
  *  pin is screen-fixed while the shape scales with zoom. Null for anchors that need no inset. */
@@ -61,13 +102,11 @@ export function regionPinPoint(region: BoxModel, corner: VecLike = REGION_PIN_CO
 }
 
 /**
- * Where a thread's pin sits on the page, for each anchor kind. Null hides the pin. For imprecise
- * shape anchors the pin uses the editor's {@link CommentingOptions.impreciseShapeAnchor} (a
- * normalized 0–1 spot, top-right by default) rather than the stored `x`/`y`.
+ * Where a thread's pin sits on the page, for each anchor kind. Null hides the pin. Imprecise shape
+ * anchors use {@link CommentingOptions.impreciseShapeAnchor} rather than the stored `x`/`y`.
  *
- * A shape anchor's `x`/`y` are normalized within the shape's own bounds and resolved through the
- * shape's page transform, so the pin rides every part of that transform — rotating the shape
- * carries the pin around with it instead of leaving it behind in the bounding box.
+ * A shape anchor's `x`/`y` are normalized within the shape's bounds and resolved through its page
+ * transform, so the pin rides rotation instead of being left behind in the bounding box.
  * @public
  */
 export function anchorPagePoint(
@@ -97,15 +136,12 @@ export function anchorPagePoint(
 /**
  * The shape a comment placed at a page point should anchor to, or undefined for empty canvas.
  *
- * Uses the editor's hit-test margin, the same slack select and hover use. Without it, shapes whose
- * geometry is an open path — arrows, lines, draw strokes — are unhittable in practice: their
- * geometry reports a positive distance for every point off the stroke, so a zero margin only
- * matches a pixel-perfect click right on the line.
+ * Uses the editor's hit-test margin, the same slack select and hover use — without it, open-path
+ * shapes (arrows, lines, draw strokes) are unhittable in practice.
  *
- * `hitFrameInside` lets a click inside a frame's body anchor to the frame — without it a frame is
- * hit only on its edge/label (the select-tool convention), so the frame's interior would fall
- * through to a bare point. A child shape under the pointer still wins (children sort above the
- * frame), so only a frame's empty interior anchors the frame.
+ * `hitFrameInside` lets a click inside a frame's body anchor to the frame, which it otherwise
+ * wouldn't (the select-tool convention hits only the edge/label). A child shape under the pointer
+ * still wins, so only a frame's empty interior anchors the frame.
  *
  * @internal
  */
@@ -119,11 +155,9 @@ export function commentTargetShapeAt(editor: Editor, page: VecLike): TLShape | u
 
 /**
  * A shape anchor for a page point. `x`/`y` are the point's normalized (0–1) offset within the
- * shape's own bounds — taken in the shape's own space, so a pin placed on a rotated shape records
- * the spot it was dropped on rather than a spot in the bounding box. Remembered either way: when
- * `precise` the pin sits at exactly `x`/`y`; otherwise it sits at the consumer's imprecise default
- * (top-right out of the box). Placement gestures get `precise` from the `shouldBePrecise`
- * commenting option (always precise, by default).
+ * shape's own bounds, taken in the shape's own space, so a pin on a rotated shape records the spot
+ * it was dropped on. Remembered either way: when `precise` the pin sits at exactly `x`/`y`,
+ * otherwise at the consumer's imprecise default.
  * @public
  */
 export function shapeAnchorAt(
@@ -168,10 +202,9 @@ const THREAD_UI_EXTENT_PX = POPOVER_OFFSET.thread.x + 300
 
 /**
  * How far right of a centered-on pin the true viewport center should sit, in screen px. While the
- * comments sidebar covers the viewport's right edge, centering a pin dead-center puts the thread
- * popover that opens on it under the sidebar — so centering aims the pin at the middle of the
- * uncovered area instead, nudged further left if the thread UI would still reach the sidebar, but
- * never past the viewport's left edge. Zero when the sidebar is closed or not on screen.
+ * comments sidebar covers the viewport's right edge, dead-centering a pin would put its thread
+ * popover under the sidebar — so centering aims at the middle of the uncovered area instead, never
+ * past the viewport's left edge. Zero when the sidebar is closed or not on screen.
  * @internal
  */
 export function commentCenterScreenOffset(editor: Editor): number {

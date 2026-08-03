@@ -49,11 +49,10 @@ export function regionBetween(a: VecLike, b: VecLike): BoxModel {
 }
 
 /**
- * The comment tool. Pressing down opens the comment composer immediately at the pointer, and it
- * follows the pointer until release — like placing a sticky note — settling on a point, or on a
- * shape when released over one. (With region comments enabled, dragging past the threshold instead
- * draws a region rectangle.) Placement only opens a composer (via `pendingComment`); the records
- * are created when the comment is posted.
+ * The comment tool. Pressing down opens the comment composer at the pointer and it follows until
+ * release — like placing a sticky note — settling on a point, or on a shape when released over one.
+ * With region comments enabled, dragging past the threshold draws a region rectangle instead.
+ * Placement only opens a composer; the records are created when the comment is posted.
  * @public
  */
 export class CommentTool extends StateNode {
@@ -126,7 +125,6 @@ class CommentIdle extends StateNode {
 		updateAnchorHint(this.editor)
 	}
 
-	// Hint the shape a click would attach to.
 	override onPointerMove() {
 		updateAnchorHint(this.editor)
 	}
@@ -187,7 +185,6 @@ class CommentPointing extends StateNode {
 				)
 			: { type: 'point', x: point.x, y: point.y }
 		pendingComment.set(editor, { anchor, point: { x: point.x, y: point.y } })
-		// Hand back to select; the open composer is now the focus.
 		editor.setCurrentTool('select')
 	}
 
@@ -210,10 +207,9 @@ class CommentDragging extends StateNode {
 	static override id = 'dragging'
 
 	override onEnter() {
-		// A region drag supersedes the point-follow composer opened in `pointing`. Show a crosshair
-		// again — the composer no longer stands in for the pointer, so a hidden cursor would leave
-		// the drag with no pointer at all. Drop the placement hint too: a region anchors to its
-		// rectangle, so a single-shape outline under the dashed box would be stale.
+		// A region drag supersedes the point-follow composer opened in `pointing`. Show a crosshair again,
+		// since the composer no longer stands in for the pointer, and drop the placement hint — a region
+		// anchors to its rectangle, so a single-shape outline would be stale.
 		pendingComment.set(this.editor, null)
 		this.editor.setHintingShapes([])
 		this.editor.setCursor({ type: 'cross', rotation: 0 })

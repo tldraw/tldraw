@@ -1,12 +1,15 @@
-import type { Editor } from 'tldraw'
-import { describe, expect, it } from 'vitest'
+import { createComment, createCommentThread, toRichText, type Editor, type TLPageId } from 'tldraw'
+import { describe, expect, it, vi } from 'vitest'
 import { commitCommentMutation } from './comment-mutations'
 import { CommentTool } from './comment-tool'
 import {
+	defaultCanModifyComment,
 	defaultCommentingOptions,
 	getCanComment,
+	getCanModifyComment,
 	getCommentingOptions,
 	type CommentingOptions,
+	type CommentModificationContext,
 } from './options'
 import { openThreadId, pendingComment } from './state'
 
@@ -125,6 +128,125 @@ describe('getCanComment', () => {
 	it('lets the callback fully replace the signed-in default', () => {
 		const { editor } = stubEditor({ ...defaultCommentingOptions, canComment: () => true })
 		expect(getCanComment(editor, null)).toBe(true)
+	})
+
+	// This is read during render, so a throwing host rule would take the comments layer with it.
+	it('denies rather than throws when the callback throws', () => {
+		const onError = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const { editor } = stubEditor({
+			...defaultCommentingOptions,
+			canComment: () => {
+				throw new Error('lookup failed')
+			},
+		})
+		expect(getCanComment(editor, 'alice')).toBe(false)
+		expect(onError).toHaveBeenCalled()
+		onError.mockRestore()
+	})
+})
+
+// Plain records for the permission checks — the factories are pure, so no store is involved.
+const PAGE_ID = 'page:test' as TLPageId
+
+function makeThread(createdBy: string) {
+	return createCommentThread({
+		pageId: PAGE_ID,
+		anchor: { type: 'point', x: 0, y: 0 },
+		createdBy,
+	})
+}
+
+function makeComment(authorId: string) {
+	return createComment({
+		threadId: makeThread(authorId).id,
+		pageId: PAGE_ID,
+		authorId,
+		body: toRichText('hello'),
+	})
+}
+
+describe('getCanModifyComment', () => {
+	it('defaults to the record owner: the comment author edits and deletes', () => {
+		const { editor } = stubEditor(defaultCommentingOptions)
+		const comment = makeComment('alice')
+		expect(getCanModifyComment(editor, 'alice', { action: 'edit-comment', comment })).toBe(true)
+		expect(getCanModifyComment(editor, 'alice', { action: 'delete-comment', comment })).toBe(true)
+		expect(getCanModifyComment(editor, 'bob', { action: 'edit-comment', comment })).toBe(false)
+		expect(getCanModifyComment(editor, 'bob', { action: 'delete-comment', comment })).toBe(false)
+	})
+
+	it('defaults to the thread creator for a thread delete', () => {
+		const { editor } = stubEditor(defaultCommentingOptions)
+		const thread = makeThread('alice')
+		expect(getCanModifyComment(editor, 'alice', { action: 'delete-thread', thread })).toBe(true)
+		expect(getCanModifyComment(editor, 'bob', { action: 'delete-thread', thread })).toBe(false)
+	})
+
+	it('withholds everything from a viewer with no identity', () => {
+		const { editor } = stubEditor(defaultCommentingOptions)
+		const comment = makeComment('alice')
+		const thread = makeThread('alice')
+		expect(getCanModifyComment(editor, null, { action: 'edit-comment', comment })).toBe(false)
+		expect(getCanModifyComment(editor, undefined, { action: 'delete-comment', comment })).toBe(
+			false
+		)
+		expect(getCanModifyComment(editor, null, { action: 'delete-thread', thread })).toBe(false)
+	})
+
+	it('passes the editor, the viewer, and the targeted write to the callback', () => {
+		const calls: CommentModificationContext[] = []
+		const { editor } = stubEditor({
+			...defaultCommentingOptions,
+			canModifyComment: (ctx) => {
+				calls.push(ctx)
+				return true
+			},
+		})
+		const comment = makeComment('alice')
+		getCanModifyComment(editor, undefined, { action: 'delete-comment', comment })
+		// An undefined viewer normalizes to null, as it does for `canComment`.
+		expect(calls).toEqual([{ editor, currentUserId: null, action: 'delete-comment', comment }])
+	})
+
+	it("lets a callback widen the default: a moderator deleting anyone's comment", () => {
+		const { editor } = stubEditor({
+			...defaultCommentingOptions,
+			canModifyComment: (ctx) =>
+				(ctx.action !== 'edit-comment' && ctx.currentUserId === 'mod') ||
+				defaultCanModifyComment(ctx),
+		})
+		const comment = makeComment('alice')
+		const thread = makeThread('alice')
+		expect(getCanModifyComment(editor, 'mod', { action: 'delete-comment', comment })).toBe(true)
+		expect(getCanModifyComment(editor, 'mod', { action: 'delete-thread', thread })).toBe(true)
+		// Widening deletion doesn't hand the moderator anyone else's edit affordance.
+		expect(getCanModifyComment(editor, 'mod', { action: 'edit-comment', comment })).toBe(false)
+		// The author keeps their own affordances.
+		expect(getCanModifyComment(editor, 'alice', { action: 'edit-comment', comment })).toBe(true)
+		// Everyone else still gets nothing.
+		expect(getCanModifyComment(editor, 'bob', { action: 'delete-comment', comment })).toBe(false)
+	})
+
+	it('lets a callback narrow the default', () => {
+		const { editor } = stubEditor({ ...defaultCommentingOptions, canModifyComment: () => false })
+		const comment = makeComment('alice')
+		expect(getCanModifyComment(editor, 'alice', { action: 'edit-comment', comment })).toBe(false)
+	})
+
+	// A throw withholds the affordance rather than the whole layer, and never offers a write a
+	// server enforcing the same rule would reject anyway.
+	it('denies rather than throws when the callback throws', () => {
+		const onError = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const { editor } = stubEditor({
+			...defaultCommentingOptions,
+			canModifyComment: () => {
+				throw new Error('lookup failed')
+			},
+		})
+		const comment = makeComment('alice')
+		expect(getCanModifyComment(editor, 'alice', { action: 'edit-comment', comment })).toBe(false)
+		expect(onError).toHaveBeenCalled()
+		onError.mockRestore()
 	})
 })
 

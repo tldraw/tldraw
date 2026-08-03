@@ -121,9 +121,9 @@ The option worth knowing about first is `history`. Comment writes default to `'i
 
 ## Permissions
 
-`canComment` decides whether the viewer may participate, and the UI follows it: composers give way to a fallback slot and the action affordances hide.
+`canComment` decides whether the viewer may participate, and the UI follows it: composers give way to a fallback slot and the action affordances hide. `canModifyComment` decides the writes that belong to someone in particular — editing a comment, deleting a comment, deleting a thread. Unset, each is its record's owner's to make; a callback widens that (a workspace admin who may remove anyone's comment) or narrows it.
 
-It's a UI-level control and nothing more. Comment records carry a client-supplied author id, so rules about who may post, edit, or delete belong in your sync server's record authorization, where each incoming record is checked against the session's identity.
+They're UI-level controls and nothing more. Comment records carry a client-supplied author id, so rules about who may post, edit, or delete belong in your sync server's record authorization, where each incoming record is checked against the session's identity.
 
 ## Syncing
 

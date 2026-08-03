@@ -35,6 +35,11 @@ export {
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
 export {
+	EditorPortal,
+	useEditorPortalHost,
+	type EditorPortalProps,
+} from './lib/components/EditorPortal'
+export {
 	ErrorBoundary,
 	OptionalErrorBoundary,
 	type TLErrorBoundaryProps,
@@ -310,7 +315,6 @@ export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/u
 export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
-export { usePassThroughMouseOverEvents } from './lib/hooks/usePassThroughMouseOverEvents'
 export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'

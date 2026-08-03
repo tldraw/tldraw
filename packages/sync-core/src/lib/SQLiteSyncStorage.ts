@@ -311,6 +311,9 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 			get: this.sql.prepare<{ state: Uint8Array }, [id: string]>(
 				`SELECT state FROM ${table} WHERE id = ?`
 			),
+			getWithClock: this.sql.prepare<{ state: Uint8Array; lastChangedClock: number }, [id: string]>(
+				`SELECT state, lastChangedClock FROM ${table} WHERE id = ?`
+			),
 			insert: this.sql.prepare<void, [id: string, state: Uint8Array, lastChangedClock: number]>(
 				`INSERT OR REPLACE INTO ${table} (id, state, lastChangedClock) VALUES (?, ?, ?)`
 			),
@@ -543,6 +546,19 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 
 	getObjectsSnapshot(): RoomSnapshot['documents'] {
 		return Array.from(this._iterateRecords(this.stmts.objects))
+	}
+
+	getObjectsByIds(ids: Iterable<string>): RoomSnapshot['documents'] {
+		const result: RoomSnapshot['documents'] = []
+		const seen = new Set<string>()
+		for (const id of ids) {
+			if (seen.has(id)) continue
+			seen.add(id)
+			const row = this.stmts.objects.getWithClock.all(id)[0]
+			if (!row) continue
+			result.push({ state: decodeState<R>(row.state), lastChangedClock: row.lastChangedClock })
+		}
+		return result
 	}
 
 	private *_iterateRecords(

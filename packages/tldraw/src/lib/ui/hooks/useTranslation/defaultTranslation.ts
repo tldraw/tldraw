@@ -534,6 +534,8 @@ export const DEFAULT_TRANSLATION = {
 	'comments.edit-comment': 'Edit comment',
 	'comments.delete-comment': 'Delete comment',
 	'comments.dismiss': 'Dismiss',
+	'comments.copy-link': 'Copy link',
+	'comments.link-copied': 'Link copied',
 	'comments.send': 'Send',
 	'comments.resolved-by': 'Resolved by {name}',
 	'comments.add-reaction': 'Add reaction',
