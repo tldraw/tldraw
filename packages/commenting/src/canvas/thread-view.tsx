@@ -1,11 +1,21 @@
-import { ReactNode, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { createPortal } from 'react-dom'
+import {
+	memo,
+	ReactNode,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	type CSSProperties,
+} from 'react'
 import {
 	createComment,
 	Editor,
+	EditorPortal,
 	TLComment,
 	TLCommentThread,
 	TLRichText,
+	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuItem,
@@ -13,7 +23,6 @@ import {
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
 	useContainer,
-	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useTranslation,
 } from 'tldraw'
@@ -21,7 +30,6 @@ import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
 import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { CommentThread } from '../ui/comment-thread'
-import { TooltipButton } from '../ui/tooltip-button'
 import { CommentBody } from './comment-body'
 import {
 	clearCommentDraft,
@@ -53,6 +61,48 @@ const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
  */
 export function useResolveName(resolveAuthor: CommentingContext['resolveAuthor']) {
 	return useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
+}
+
+/** How long the copy-link item reads "Link copied" before reverting. */
+const LINK_COPIED_MS = 2000
+
+/**
+ * What a thread's `getThreadHref` should put on the clipboard. Hosts hand back an href, which is
+ * allowed to be relative (`/file/abc?comment=…`) — that works as a link target but is meaningless
+ * once it's pasted into a chat window, so it's resolved against the current document first. An href
+ * the URL parser can't make sense of is copied as-is rather than dropped.
+ *
+ * @internal
+ */
+export function absoluteThreadLink(href: string, base = window.location.href): string {
+	try {
+		return new URL(href, base).toString()
+	} catch {
+		return href
+	}
+}
+
+/**
+ * Copy a thread's link, with a flag that stays set briefly afterwards so the control can confirm.
+ * The flag only sets once the write actually resolves — a clipboard the browser withholds
+ * (an insecure context, a denied permission) leaves the label alone rather than claiming a copy
+ * that didn't happen.
+ */
+function useCopyLink(href: string | undefined) {
+	const [copied, setCopied] = useState(false)
+	useEffect(() => {
+		if (!copied) return
+		const timeout = window.setTimeout(() => setCopied(false), LINK_COPIED_MS)
+		return () => window.clearTimeout(timeout)
+	}, [copied])
+	const copy = useCallback(() => {
+		if (href === undefined) return
+		navigator.clipboard?.writeText(absoluteThreadLink(href)).then(
+			() => setCopied(true),
+			() => setCopied(false)
+		)
+	}, [href])
+	return [copied, copy] as const
 }
 
 export function toCardProps(
@@ -111,33 +161,25 @@ export const POPOVER_OFFSET = {
 	list: { x: MARKER_SIZE + PREVIEW_GAP, y: CARD_TOP_Y - MARKER_SIZE / 2 },
 } as const
 
-/** The open thread's popover container, portaled above the UI panels. Over it, wheel and hover
- *  events pass through to the canvas (unless it scrolls its own content), like tldraw's panels. */
-export function ThreadPopover({
-	container,
-	style,
-	children,
-}: {
-	container: HTMLElement
-	style: CSSProperties
-	children: ReactNode
-}) {
+/** The open thread's popover container, portaled above the UI panels. A wheel over it passes
+ *  through to the canvas (unless it scrolls its own content), like tldraw's panels. */
+export function ThreadPopover({ style, children }: { style: CSSProperties; children: ReactNode }) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
-	usePassThroughMouseOverEvents(ref)
-	return createPortal(
-		// contextmenu also stops here: portals bubble React events to the canvas's context-menu
-		// trigger (the layer mounts inside it), which would open the canvas menu over this panel.
-		<div
-			ref={ref}
-			className="tlui-cmt-canvas-popover"
-			style={style}
-			onPointerDown={stop}
-			onContextMenu={stop}
-		>
-			{children}
-		</div>,
-		container
+	return (
+		<EditorPortal>
+			{/* contextmenu also stops here: portals bubble React events to the canvas's context-menu
+			    trigger (the layer mounts inside it), which would open the canvas menu over this panel. */}
+			<div
+				ref={ref}
+				className="tlui-cmt-canvas-popover"
+				style={style}
+				onPointerDown={stop}
+				onContextMenu={stop}
+			>
+				{children}
+			</div>
+		</EditorPortal>
 	)
 }
 
@@ -146,8 +188,13 @@ export function ThreadPopover({
  * comments, and the resolve/delete actions. Reads and writes comment records via the editor's
  * store; read receipts are reported for every unread comment while mounted, so only mount it
  * where the thread is actually being shown.
+ *
+ * Memoized: the popover position rides the pin's per-frame render point, so the pin re-renders
+ * on every camera frame while a thread is open. Thread and comment records are identity-stable
+ * while unchanged and the context callbacks are the host's stable references, so memoization
+ * keeps camera frames to moving the thin popover wrapper instead of re-running this whole body.
  */
-export function ThreadView({
+export const ThreadView = memo(function ThreadView({
 	editor,
 	thread,
 	...props
@@ -157,14 +204,25 @@ export function ThreadView({
 		resolveAuthor,
 		onPostComment,
 		isCommentUnread,
-		onCommentRead,
+		onCommentsRead,
 		getMentionSuggestions,
 		renderMentionSuggestion,
+		getThreadHref,
 	} = props
 	const options = useCommentingOptions()
 	const comments = useThreadComments(editor, thread.id)
 	const msg = useTranslation()
 	const resolveName = useResolveName(resolveAuthor)
+	// Card props rebuild only when the comments (or how they render) actually change — not on
+	// every render of the view, each of which would otherwise re-allocate a date string and body
+	// element per comment.
+	const cards = useMemo(
+		() =>
+			comments.map((c) =>
+				toCardProps(c, { currentUserId, resolveAuthor }, options.components, resolveName)
+			),
+		[comments, currentUserId, resolveAuthor, options.components, resolveName]
+	)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	// Composing, editing, deleting, and resolving are all commenting writes: gated on the viewer's
 	// permission. Where it's withheld the composer gives way to the ComposerFallback slot (a
@@ -246,16 +304,16 @@ export function ThreadView({
 	}, [editingId])
 
 	// Every unread comment on display gets reported read — including replies that arrive while
-	// the view stays mounted, since the effect re-runs as `comments` changes. The host's receipt
-	// write flips isCommentUnread to false, so re-runs find nothing to report.
+	// the view stays mounted, since the effect re-runs as `comments` changes. Reported as one
+	// batch so the host can record the receipts in a single write. The host's receipt write flips
+	// isCommentUnread to false, so re-runs find nothing to report.
 	useEffect(() => {
-		if (!isCommentUnread || !onCommentRead) return
-		for (const comment of comments) {
-			if (isCommentUnread(comment.id)) {
-				onCommentRead(comment.id)
-			}
+		if (!isCommentUnread || !onCommentsRead) return
+		const unreadIds = comments.filter((comment) => isCommentUnread(comment.id)).map((c) => c.id)
+		if (unreadIds.length > 0) {
+			onCommentsRead(unreadIds)
 		}
-	}, [comments, isCommentUnread, onCommentRead])
+	}, [comments, isCommentUnread, onCommentsRead])
 
 	const postReply = () => {
 		if (isCommentEmpty(reply) || !currentUserId) return
@@ -283,6 +341,14 @@ export function ThreadView({
 		if (!currentUserId) return
 		deleteThread(editor, thread)
 	}
+
+	const ThreadActions = options.components.ThreadActions
+	// The host's URL for this thread, when it supplies one. Its presence is what puts "copy link" in
+	// the header menu — a host that has per-thread URLs shouldn't have to rebuild the thread view to
+	// offer the one affordance every commenting product has.
+	const threadHref = getThreadHref?.(thread.id)
+	const [linkCopied, copyThreadLink] = useCopyLink(threadHref)
+	const canDeleteThread = canComment && currentUserId != null && currentUserId === thread.createdBy
 
 	const startEdit = (comment: TLComment, { fromMoreMenu = false } = {}) => {
 		// The ⋯ menu's button is the thing to come back to when Edit opened the composer — looked up
@@ -356,8 +422,10 @@ export function ThreadView({
 							{comment.authorId === currentUserId && (
 								<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
 									<TldrawUiDropdownMenuTrigger>
-										<TooltipButton
+										<TldrawUiButton
+											type="icon"
 											tooltip={msg('comments.more-options')}
+											title={msg('comments.more-options')}
 											className="tlui-cmt-thread__action"
 											data-cmt-more-for={comment.id}
 										>
@@ -366,7 +434,7 @@ export function ThreadView({
 												label={msg('comments.more-options')}
 												small
 											/>
-										</TooltipButton>
+										</TldrawUiButton>
 									</TldrawUiDropdownMenuTrigger>
 									<TldrawUiDropdownMenuContent
 										className="tlui-cmt-menu"
@@ -407,18 +475,22 @@ export function ThreadView({
 
 	// Resolve and delete are commenting writes: behind `canComment`, plus the `currentUserId` a
 	// resolve stamps into `resolved.by`.
+	const resolveLabel = msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')
 	const headerActions = (
 		<>
-			{/* Deleting a thread is creator-only (server-enforced), and it's the menu's only item. */}
-			{canComment && currentUserId && currentUserId === thread.createdBy && (
+			{/* Host verbs — assign, link a ticket — sit ahead of the built-in actions. */}
+			{ThreadActions && <ThreadActions thread={thread} comments={comments} />}
+			{(threadHref !== undefined || canDeleteThread) && (
 				<TldrawUiDropdownMenuRoot id={`comment-thread-actions-${thread.id}`}>
 					<TldrawUiDropdownMenuTrigger>
-						<TooltipButton
+						<TldrawUiButton
+							type="icon"
 							tooltip={msg('comments.more-options')}
+							title={msg('comments.more-options')}
 							className="tlui-cmt-thread__action"
 						>
 							<TldrawUiIcon icon="dots-vertical" label={msg('comments.more-options')} small />
-						</TooltipButton>
+						</TldrawUiButton>
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent
 						className="tlui-cmt-menu"
@@ -428,39 +500,52 @@ export function ThreadView({
 						sideOffset={4}
 					>
 						<TldrawUiDropdownMenuGroup>
-							<TldrawUiDropdownMenuItem>
-								<button
-									type="button"
-									className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-									onClick={removeThread}
-								>
-									<span>{msg('comments.delete')}</span>
-								</button>
-							</TldrawUiDropdownMenuItem>
+							{/* A link is a read affordance: offered to anyone who can see the thread,
+							    including a viewer who can't comment. `noClose` keeps the menu up so the
+							    item can confirm the copy in place. */}
+							{threadHref !== undefined && (
+								<TldrawUiDropdownMenuItem noClose>
+									<button type="button" className="tlui-cmt-menu-item" onClick={copyThreadLink}>
+										<span>{msg(linkCopied ? 'comments.link-copied' : 'comments.copy-link')}</span>
+									</button>
+								</TldrawUiDropdownMenuItem>
+							)}
+							{/* Deleting a thread is creator-only (server-enforced). */}
+							{canDeleteThread && (
+								<TldrawUiDropdownMenuItem>
+									<button
+										type="button"
+										className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
+										onClick={removeThread}
+									>
+										<span>{msg('comments.delete')}</span>
+									</button>
+								</TldrawUiDropdownMenuItem>
+							)}
 						</TldrawUiDropdownMenuGroup>
 					</TldrawUiDropdownMenuContent>
 				</TldrawUiDropdownMenuRoot>
 			)}
 			{canComment && currentUserId && (
-				<TooltipButton
-					tooltip={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
+				<TldrawUiButton
+					type="icon"
+					tooltip={resolveLabel}
+					title={resolveLabel}
 					className="tlui-cmt-thread__action"
 					onClick={toggleResolve}
 				>
-					<TldrawUiIcon
-						icon="check"
-						label={msg(thread.resolved ? 'comments.reopen' : 'comments.resolve')}
-						small
-					/>
-				</TooltipButton>
+					<TldrawUiIcon icon="check" label={resolveLabel} small />
+				</TldrawUiButton>
 			)}
-			<TooltipButton
+			<TldrawUiButton
+				type="icon"
 				tooltip={msg('comments.dismiss')}
+				title={msg('comments.dismiss')}
 				className="tlui-cmt-thread__action"
 				onClick={() => openThreadId.set(editor, null)}
 			>
 				<TldrawUiIcon icon="cross-2" label={msg('comments.dismiss')} small />
-			</TooltipButton>
+			</TldrawUiButton>
 		</>
 	)
 
@@ -469,7 +554,7 @@ export function ThreadView({
 			header={msg('comments.thread-title')}
 			headerActions={headerActions}
 			renderComment={renderComment}
-			comments={comments.map((c) => toCardProps(c, props, options.components, resolveName))}
+			comments={cards}
 			resolvedBanner={
 				thread.resolved
 					? msg('comments.resolved-by').replace(
@@ -513,4 +598,4 @@ export function ThreadView({
 			}
 		/>
 	)
-}
+})

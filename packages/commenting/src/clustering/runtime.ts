@@ -38,6 +38,12 @@ export interface ClusterRuntime {
 	 * adopt it (with seedFrom) at the next zoom-out. Unknown or already-detached ids are no-ops.
 	 */
 	detachLeaf(leafId: string): void
+	/**
+	 * Batch form of {@link ClusterRuntime.detachLeaf}: detach every given leaf with a single
+	 * patch rebuild and a single version bump. Ids that are unknown or already detached are
+	 * skipped; if nothing new detaches, nothing changes.
+	 */
+	detachLeaves(leafIds: Iterable<string>): void
 	/** The displayed partition: cluster id → node, with detaches applied. Do not mutate. */
 	getVisible(): ReadonlyMap<string, ClusterNode>
 }
@@ -150,8 +156,11 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 		// guarantees a suppressed producer's zMerge is >= its consumer's, so anything the walk
 		// needs has already healed. Set iteration is insertion order (ascending index), so a
 		// healed event's suppressed children (larger zMerge, smaller index) heal before it.
+		// Iterated live (no snapshot copy): this runs on every zoom tick while carryover
+		// suppressions exist, and deleting only the entry currently being visited is safe —
+		// Set iteration still yields every remaining entry, in insertion order.
 		if (this.suppressed.size > 0) {
-			for (const i of [...this.suppressed]) {
+			for (const i of this.suppressed) {
 				if (zoom <= this.table.events[i].zMerge) {
 					this.suppressed.delete(i)
 					applyEvent(this.visible, this.table.events[i])
@@ -176,9 +185,19 @@ class ClusterRuntimeImpl implements ClusterRuntime {
 	}
 
 	detachLeaf(leafId: string): void {
-		if (this.detached.has(leafId)) return
-		if (!this.getLeafById().has(leafId)) return
-		this.detached.add(leafId)
+		this.detachLeaves([leafId])
+	}
+
+	detachLeaves(leafIds: Iterable<string>): void {
+		const leafById = this.getLeafById()
+		let changed = false
+		for (const leafId of leafIds) {
+			if (this.detached.has(leafId)) continue
+			if (!leafById.has(leafId)) continue
+			this.detached.add(leafId)
+			changed = true
+		}
+		if (!changed) return
 		this.rebuildPatches()
 		this.version++
 	}

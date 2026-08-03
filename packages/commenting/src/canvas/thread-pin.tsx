@@ -35,6 +35,8 @@ import {
 	anchorPagePoint,
 	commentTargetShapeAt,
 	impreciseShapePinInset,
+	isBoxInInflatedViewport,
+	isInInflatedViewport,
 	REGION_PIN_CORNER,
 	regionAnchorPinCorner,
 	regionPinPoint,
@@ -145,8 +147,8 @@ export const ThreadPin = memo(function ThreadPin({
 			if (target.closest('.tlui-cmt-canvas-popover')) return
 			const marker = markerRef.current
 			if (marker && marker.contains(target)) return
-			// A press on a region's resize handle or movable body edits this thread — don't dismiss it.
-			if (target.closest('.tlui-cmt-canvas-region-handle, .tlui-cmt-canvas-region--movable')) return
+			// A press on a region's resize handle edits this thread — don't dismiss it.
+			if (target.closest('.tlui-cmt-canvas-region-handle')) return
 			// A click inside a menu/popover layered above us (the sidebar's filter or overflow
 			// dropdown, or the composer's mention picker — all portaled elsewhere) belongs to that
 			// layer; defer to its own dismissal instead of closing the thread out from under it.
@@ -160,6 +162,9 @@ export const ThreadPin = memo(function ThreadPin({
 		return () => document.removeEventListener('pointerdown', onPointerDown, true)
 	}, [open, editor])
 
+	// The pin must not unmount mid-interaction: an open thread's popover hangs off it, and a drag
+	// or resize holds pointer capture on it — so those states are exempt from the viewport cull.
+	const exemptFromCull = open || dragPagePoint != null || resizeBounds != null
 	const point = useValue(
 		'pin point',
 		() => {
@@ -168,9 +173,23 @@ export const ThreadPin = memo(function ThreadPin({
 			if (!pagePoint) return null
 			const viewportPoint = editor.pageToViewport(pagePoint)
 			const inset = impreciseShapePinInset(editor, thread.anchor)
-			return inset ? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y } : viewportPoint
+			const point = inset
+				? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y }
+				: viewportPoint
+			// Off-screen pins (plus a pre-mount margin) unmount rather than re-rendering on every
+			// camera frame — the same cull the cluster badges apply. A region thread stays mounted
+			// while any part of its box is on screen: the box and its pointer-reveal affordance
+			// render from this component even when the pin corner itself is off-screen.
+			if (!exemptFromCull) {
+				const visible =
+					thread.anchor.type === 'region'
+						? isBoxInInflatedViewport(editor, thread.anchor)
+						: isInInflatedViewport(editor, point)
+				if (!visible) return null
+			}
+			return point
 		},
-		[editor, thread.anchor, thread.pageId]
+		[editor, thread.anchor, thread.pageId, exemptFromCull]
 	)
 	if (!point) return null
 
@@ -380,7 +399,6 @@ export const ThreadPin = memo(function ThreadPin({
 			    the pin itself stays in the canvas-in-front layer, beneath the UI. */}
 				{open && (
 					<ThreadPopover
-						container={container}
 						style={{
 							left: renderPoint.x + POPOVER_OFFSET.thread.x,
 							top: renderPoint.y + POPOVER_OFFSET.thread.y - THREAD_HEADER_BLOCK,
@@ -395,7 +413,6 @@ export const ThreadPin = memo(function ThreadPin({
 					<ThreadPreview
 						editor={editor}
 						threads={previewThreads}
-						container={container}
 						variant="thread"
 						point={renderPoint}
 						onSelectThread={() => openThreadId.set(editor, thread.id)}

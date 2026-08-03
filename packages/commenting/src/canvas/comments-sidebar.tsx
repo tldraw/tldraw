@@ -1,14 +1,13 @@
-import { ReactNode, useCallback, useRef } from 'react'
-import { createPortal } from 'react-dom'
+import { ReactNode, useCallback } from 'react'
 import {
+	EditorPortal,
 	TLComment,
-	useContainer,
+	TLCommentThread,
 	useEditor,
-	usePassThroughMouseOverEvents,
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { CommentListItemProps, CommentsList } from '../ui/comments-list'
+import { CommentListItemProps, CommentListItemRenderProps, CommentsList } from '../ui/comments-list'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
 import { CommentsVisibilityToggle } from './comments-visibility-toggle'
@@ -51,7 +50,6 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const editor = useEditor()
 	const options = useCommentingOptions()
-	const container = useContainer()
 	const commentingEnabled = useCommentingEnabled()
 	const msg = useTranslation()
 	const threads = useCommentThreads(editor)
@@ -139,8 +137,28 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		if (thread) focusThread(editor, thread)
 	}
 
+	// The `ThreadRow` component slot overrides the built-in row. It gets the thread record alongside
+	// the summarized row, so host state on `thread.meta` is in reach without a second lookup. Indexed
+	// once rather than scanned per row — this runs for every row on every render of the panel.
+	const ThreadRow = options.components.ThreadRow
+	const renderItem = ThreadRow
+		? (() => {
+				// Keyed by plain string: a row's id comes back as one, not as a branded thread id.
+				const threadsById = new Map<string, TLCommentThread>(
+					threads.map((thread) => [thread.id, thread])
+				)
+				return (rowProps: CommentListItemRenderProps) => {
+					const thread = threadsById.get(rowProps.id)
+					// Can't happen — the items are built from these threads — but a row with no thread has
+					// nothing to render, and the slot's contract says the record is there.
+					if (!thread) return null
+					return <ThreadRow {...rowProps} thread={thread} />
+				}
+			})()
+		: undefined
+
 	return (
-		<SidebarPanel container={container}>
+		<SidebarPanel>
 			<CommentsList
 				items={items}
 				header={header ?? msg('comments.title')}
@@ -160,13 +178,14 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 				}
 				resolvedLabel={msg('comments.resolved')}
 				onSelect={focus}
+				renderItem={renderItem}
 			/>
 		</SidebarPanel>
 	)
 }
 
-/** A list row paired with the sort key that isn't part of what the row displays. */
-interface SidebarRow {
+/** A list row paired with the sort key that isn't part of what the row displays. @public */
+export interface SidebarRow {
 	item: CommentListItemProps
 	/** When the thread's most recent comment was posted — what the list orders by. */
 	lastActivity: number
@@ -177,6 +196,10 @@ interface SidebarRow {
  * Recency is the thread's *latest* comment, not its first, so a thread someone just replied to rises
  * to the top instead of staying wherever it was started. (The row still shows the thread's opening
  * comment and its date — that's what identifies the thread; only the ordering follows the replies.)
+ *
+ * Exported so a hand-built list can match the sidebar's ordering instead of re-deriving it.
+ *
+ * @public
  */
 export function sortSidebarRows(rows: readonly SidebarRow[]): readonly SidebarRow[] {
 	return [...rows].sort(
@@ -188,15 +211,13 @@ export function sortSidebarRows(rows: readonly SidebarRow[]): readonly SidebarRo
 }
 
 /** The sidebar surface, portaled into the container. It scrolls its own list, so — unlike tldraw's
- *  wheel-transparent panels — a wheel over it doesn't pan the canvas. Hover still passes through so
- *  shapes beneath it stay interactive. */
-function SidebarPanel({ container, children }: { container: HTMLElement; children: ReactNode }) {
-	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughMouseOverEvents(ref)
-	return createPortal(
-		<div ref={ref} className="tlui-cmt-canvas-sidebar" onContextMenu={(e) => e.stopPropagation()}>
-			{children}
-		</div>,
-		container
+ *  wheel-transparent panels — a wheel over it doesn't pan the canvas. */
+function SidebarPanel({ children }: { children: ReactNode }) {
+	return (
+		<EditorPortal>
+			<div className="tlui-cmt-canvas-sidebar" onContextMenu={(e) => e.stopPropagation()}>
+				{children}
+			</div>
+		</EditorPortal>
 	)
 }

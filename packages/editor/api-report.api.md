@@ -32,6 +32,7 @@ import * as React_2 from 'react';
 import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
 import { ReactNode } from 'react';
+import { ReactPortal } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
 import { RefAttributes } from 'react';
@@ -1724,6 +1725,15 @@ export abstract class EditorManager {
     // (undocumented)
     protected readonly editor: Editor;
     protected register(dispose: () => void): () => void;
+}
+
+// @public
+export function EditorPortal({ children }: EditorPortalProps): ReactPortal | null;
+
+// @public (undocumented)
+export interface EditorPortalProps {
+    // (undocumented)
+    children: ReactNode;
 }
 
 // @public (undocumented)
@@ -5068,6 +5078,9 @@ export function useEditor(): Editor;
 // @public (undocumented)
 export function useEditorComponents(): Required<TLEditorComponents>;
 
+// @public
+export function useEditorPortalHost(): HTMLElement | null;
+
 // @internal
 export function useEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
 
@@ -5098,9 +5111,6 @@ export function useMaybeEditor(): Editor | null;
 
 // @internal (undocumented)
 export function useOnMount(onMount?: TLOnMountHandler): void;
-
-// @public (undocumented)
-export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement | null>): void;
 
 // @public (undocumented)
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement | null>): void;

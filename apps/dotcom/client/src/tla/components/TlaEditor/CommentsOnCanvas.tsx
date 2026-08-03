@@ -16,6 +16,7 @@ import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
+import { latestForeignReactionAt } from '../TlaSidebar/components/commentNotifications'
 
 type FileComments = QueryResultType<typeof queries.fileComments>
 type FileVisitors = QueryResultType<typeof queries.fileVisitors>
@@ -92,13 +93,20 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		return authors
 	}, [fileComments])
 
-	// Ids of unread comments: others' comments with no read receipt in Zero. Zero comment row ids
-	// are TLComment record ids verbatim (see commentRecordToRow in the sync-worker), so these map
-	// straight onto store records. Own comments never get a receipt and never count as unread.
+	// Ids of unread comments: others' comments with no read receipt, plus own comments whose
+	// newest foreign reaction postdates the receipt — so opening the thread writes/advances the
+	// receipt and clears the "reacted to your comment" notification. Zero comment row ids are
+	// TLComment record ids verbatim, so these map straight onto store records.
 	const unreadCommentIds = useMemo(() => {
 		const ids = new Set<string>()
 		for (const c of fileComments) {
-			if (c.authorId !== currentUserId && !c.read) ids.add(c.id)
+			if (c.authorId !== currentUserId) {
+				if (!c.read) ids.add(c.id)
+			} else {
+				const latestForeign = latestForeignReactionAt(c.reactions, currentUserId)
+				if (latestForeign !== undefined && latestForeign > (c.read?.readAt ?? -Infinity))
+					ids.add(c.id)
+			}
 		}
 		return ids
 	}, [fileComments, currentUserId])
@@ -186,7 +194,10 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		(commentId: string) => unreadCommentIds.has(commentId),
 		[unreadCommentIds]
 	)
-	const onCommentRead = useCallback((commentId: string) => app?.markCommentRead(commentId), [app])
+	const onCommentsRead = useCallback(
+		(commentIds: string[]) => app?.markCommentsRead(commentIds),
+		[app]
+	)
 	const getMentionSuggestions = useCallback(
 		(query: string) => filterMentionMembers(roster, query),
 		[roster]
@@ -204,7 +215,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			currentUserId,
 			resolveAuthor,
 			isCommentUnread: app ? isCommentUnread : undefined,
-			onCommentRead: app ? onCommentRead : undefined,
+			onCommentsRead: app ? onCommentsRead : undefined,
 			getMentionSuggestions,
 			getThreadHref,
 		}),
@@ -213,7 +224,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			currentUserId,
 			resolveAuthor,
 			isCommentUnread,
-			onCommentRead,
+			onCommentsRead,
 			getMentionSuggestions,
 			getThreadHref,
 		]

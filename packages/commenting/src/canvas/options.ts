@@ -9,6 +9,7 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { type CommentListItemRenderProps } from '../ui/comments-list'
 import { isAllowedReactionEmoji, type EmojiPickerProps } from '../ui/emoji-picker'
 import { type ReactionTooltipProps } from '../ui/reaction'
 
@@ -38,6 +39,23 @@ export interface CommentingComponents {
 	PinContent?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
 	/** A sidebar row's preview. Replaces the plaintext default. */
 	ThreadPreview?: ComponentType<{ comment: TLComment }>
+	/**
+	 * A whole sidebar row. Replaces the default `<CommentListItem>`, which is exported — so a row
+	 * that only adds something (an unread dot, an assignee, a status chip) can spread these props
+	 * into it rather than start over. Receives the summarized row along with the thread record
+	 * behind it, so host state kept in `thread.meta` is available. Use `ThreadPreview` instead when
+	 * only the preview text is changing.
+	 */
+	ThreadRow?: ComponentType<CommentListItemRenderProps & { thread: TLCommentThread }>
+	/**
+	 * Extra controls in an open thread's header, rendered ahead of the built-in resolve and dismiss
+	 * buttons. This is where host verbs go — assign a thread, link it to a ticket, mark it as a
+	 * to-do. The built-in actions stay put; this adds alongside them rather than replacing them.
+	 *
+	 * Note the header already offers "copy link" whenever the host supplies `getThreadHref` on the
+	 * commenting context, so a link affordance doesn't need this slot.
+	 */
+	ThreadActions?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
 	/**
 	 * A reaction's visual, given its token. The default renders the token string for the OS emoji
 	 * font to draw (so the token is the emoji glyph). Override this to render your own palette —

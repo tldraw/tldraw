@@ -295,6 +295,12 @@
 	outline: 1px solid var(--tl-color-low);
 }
 
+/* The host for <EditorPortal>, last among the container's children. It's a position in the DOM
+   rather than a box: `display: contents` keeps what it holds positioned against the container. */
+.tl-portal-host {
+	display: contents;
+}
+
 input,
 *[contenteditable],
 *[contenteditable] * {

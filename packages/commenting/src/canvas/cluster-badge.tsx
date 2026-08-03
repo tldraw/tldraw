@@ -12,10 +12,7 @@ import { CountBadge } from '../ui/count-badge'
 import { forwardPointerEventToCanvas, isCanvasPanGesture } from './canvas-events'
 import { type CommentingContext } from './context'
 import { sortThreadsForPreview, ThreadPreview, useMarkerPreview } from './thread-preview'
-
-/** Screen-pixel margin by which the viewport is inflated when culling cluster badges, so a badge
- *  just off-screen is already mounted when a pan brings it in. */
-const CLUSTER_CULL_MARGIN_PX = 120
+import { impreciseShapePinInset, isInInflatedViewport } from './thread-state'
 
 /**
  * The count badge standing in for several threads folded together at the current zoom. Hovering it
@@ -47,14 +44,38 @@ export const ClusterBadge = memo(function ClusterBadge({
 	// Wheel pass-through sits on the badge (never scrollable), not the layer root — see the
 	// note on the layer.
 	usePassThroughWheelEvents(badgeRef)
+	// The mean of the members' render offsets, in screen px. Imprecise members' pins draw tucked
+	// into their shape (see impreciseShapePinInset), and the merge thresholds are priced at those
+	// visual positions — so the badge draws at the centroid of the pins as drawn, which (screen
+	// mapping being affine) is the anchor centroid plus this mean. Camera-independent: its own
+	// computed so the per-frame point below only adds two numbers, and a cluster of precise
+	// members tracks nothing and adds zero.
+	const meanInset = useValue(
+		'cluster badge inset',
+		() => {
+			let x = 0
+			let y = 0
+			for (const id of node.members) {
+				const thread = threadsById.get(id)
+				if (!thread) continue
+				const inset = impreciseShapePinInset(editor, thread.anchor)
+				if (inset) {
+					x += inset.x
+					y += inset.y
+				}
+			}
+			return { x: x / node.count, y: y / node.count }
+		},
+		[editor, node, threadsById]
+	)
 	const point = useValue(
 		'cluster badge point',
 		() => {
 			const pagePoint = editor.pageToViewport(node.centroid)
 			if (!isInInflatedViewport(editor, pagePoint)) return null
-			return pagePoint
+			return { x: pagePoint.x + meanInset.x, y: pagePoint.y + meanInset.y }
 		},
-		[editor, node]
+		[editor, node, meanInset]
 	)
 
 	// `node.members` is sorted by id (the clustering table's ordering); the preview wants them in
@@ -100,7 +121,6 @@ export const ClusterBadge = memo(function ClusterBadge({
 				<ThreadPreview
 					editor={editor}
 					threads={previewThreads}
-					container={container}
 					variant="list"
 					point={point}
 					onSelectThread={onSelectThread}
@@ -111,14 +131,3 @@ export const ClusterBadge = memo(function ClusterBadge({
 		</>
 	)
 })
-
-function isInInflatedViewport(editor: Editor, point: { x: number; y: number }): boolean {
-	const viewport = editor.getViewportScreenBounds()
-	const margin = CLUSTER_CULL_MARGIN_PX
-	return (
-		point.x >= -margin &&
-		point.y >= -margin &&
-		point.x <= viewport.w + margin &&
-		point.y <= viewport.h + margin
-	)
-}

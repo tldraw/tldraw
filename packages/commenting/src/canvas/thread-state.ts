@@ -17,6 +17,47 @@ import { POPOVER_OFFSET } from './thread-view'
  *  most of the marker sits within the shape, with a small overhang past the corner. */
 export const IMPRECISE_PIN_INSET_PX = 20
 
+/** Screen-pixel margin by which the viewport is inflated when culling canvas markers (thread pins
+ *  and cluster badges), so a marker just off-screen is already mounted when a pan brings it in. */
+const MARKER_CULL_MARGIN_PX = 120
+
+/**
+ * Whether a viewport-space point sits within the viewport inflated by
+ * {@link MARKER_CULL_MARGIN_PX}. The cull test for screen-fixed markers: off-screen markers
+ * return null from their position signal and unmount instead of tracking every camera frame.
+ * @internal
+ */
+export function isInInflatedViewport(editor: Editor, point: VecLike): boolean {
+	const viewport = editor.getViewportScreenBounds()
+	const margin = MARKER_CULL_MARGIN_PX
+	return (
+		point.x >= -margin &&
+		point.y >= -margin &&
+		point.x <= viewport.w + margin &&
+		point.y <= viewport.h + margin
+	)
+}
+
+/**
+ * Whether any part of a page-space box overlaps the viewport inflated by
+ * {@link MARKER_CULL_MARGIN_PX}. The cull test for region-anchored threads, whose dashed box can
+ * be on screen while the pin corner itself is not.
+ * @internal
+ */
+export function isBoxInInflatedViewport(editor: Editor, box: BoxModel): boolean {
+	const viewport = editor.getViewportScreenBounds()
+	const margin = MARKER_CULL_MARGIN_PX
+	// Zoom is positive, so the page box's corners keep their order through the transform.
+	const min = editor.pageToViewport({ x: box.x, y: box.y })
+	const max = editor.pageToViewport({ x: box.x + box.w, y: box.y + box.h })
+	return (
+		max.x >= -margin &&
+		max.y >= -margin &&
+		min.x <= viewport.w + margin &&
+		min.y <= viewport.h + margin
+	)
+}
+
 /** Imprecise shape pins tuck inside the shape rather than hanging off its edge: the marker
  *  extends up-right of its anchor point, so step it toward the shape's centre. Screen px — the
  *  pin is screen-fixed while the shape scales with zoom. Null for anchors that need no inset. */

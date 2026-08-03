@@ -2,9 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Editor, react, TLCommentThread, useValue } from 'tldraw'
 import { computeClusterTable } from '../clustering/computeClusterTable'
 import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
-import type { ClusterNode, ClusterTable, LeafInput, MergeEvent } from '../clustering/types'
+import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
 import { type ClusterFadeNode, useFadeVisibleNodes } from './cluster-fade'
-import { clusterLeafIdsEqual, clusterLeavesEqual, collectClusterLeaves } from './cluster-input'
+import {
+	type ClusterInput,
+	clusterInputEqual,
+	clusterInputIdsEqual,
+	collectClusterLeaves,
+} from './cluster-input'
 import { type CommentingOptions } from './options'
 import { openThreadId } from './state'
 import { anchorPagePoint, commentCenterScreenOffset } from './thread-state'
@@ -83,36 +88,36 @@ export function useClusterModel(
 	// as live pins riding their anchor and rejoin clustering on the next zoom-out.
 	const [heldThreadIds, setHeldThreadIds] = useState<ReadonlySet<string>>(EMPTY_SET)
 	const adoptOnRebuild = useRef(false)
-	// The leaves' array identity is what keys the O(N²) cluster-table rebuild below, so it's gated
+	// The cluster input's identity is what keys the O(N²) cluster-table rebuild below, so it's gated
 	// on value equality: a recompute whose content matches the last result (a reply, a reaction, a
 	// resolve — anything that touches comment records without moving a pin) returns the previous
-	// array and rebuilds nothing. The ref carries the last result across recomputes and across the
+	// input and rebuilds nothing. The ref carries the last result across recomputes and across the
 	// re-created computed `useValue` builds when `threads` changes identity (any comment mutation).
-	// Returning the previous array is safe whichever computed writes the ref last, because the
-	// value returned is always either value-equal to the fresh leaves or the deliberate mid-drag
-	// deferral below.
+	// Returning the previous input is safe whichever computed writes the ref last, because the value
+	// returned is always either value-equal to the fresh input or the deliberate mid-drag deferral
+	// below.
 	//
 	// That deferral is a real behavior change, not just a scheduling one: while shapes are actively
-	// dragging, position-only changes keep the previous leaves, which freezes `latestModel` — and
+	// dragging, position-only changes keep the previous input, which freezes `latestModel` — and
 	// `findMovedClusteredLeafIds` reads live positions *from* `latestModel`. So a pin folded inside
 	// a badge no longer pops out mid-drag to ride its anchor; it stays folded and its membership
 	// corrects in one rebuild when the drag settles. Deliberate: the per-frame O(N²) rebuild it
 	// replaces was paid by every drag on the board, comment-anchored or not. An added or deleted
 	// thread changes the id set, so it still rebuilds promptly even mid-drag.
-	const clusterLeavesRef = useRef<LeafInput[]>([])
-	const clusterLeaves = useValue(
+	const clusterInputRef = useRef<ClusterInput>({ leaves: [], screenOffsets: undefined })
+	const clusterInput = useValue(
 		'comment cluster leaves',
 		() => {
-			const leaves = collectClusterLeaves(
+			const next = collectClusterLeaves(
 				editor,
 				threads.filter((thread) => !heldThreadIds.has(thread.id)),
 				openThreadId.get(editor)
 			)
-			const prev = clusterLeavesRef.current
-			if (isShapeDragInProgress(editor) && clusterLeafIdsEqual(prev, leaves)) return prev
-			if (clusterLeavesEqual(prev, leaves)) return prev
-			clusterLeavesRef.current = leaves
-			return leaves
+			const prev = clusterInputRef.current
+			if (isShapeDragInProgress(editor) && clusterInputIdsEqual(prev, next)) return prev
+			if (clusterInputEqual(prev, next)) return prev
+			clusterInputRef.current = next
+			return next
 		},
 		[editor, threads, heldThreadIds]
 	)
@@ -122,11 +127,15 @@ export function useClusterModel(
 		[editor]
 	)
 	const latestModel = useMemo(() => {
-		const table = computeClusterTable(clusterLeaves, clusterZoomBounds)
+		const table = computeClusterTable(
+			clusterInput.leaves,
+			clusterZoomBounds,
+			clusterInput.screenOffsets
+		)
 		const runtime = createClusterRuntime(table)
 		runtime.seed(editor.getZoomLevel())
 		return { runtime, table }
-	}, [clusterLeaves, clusterZoomBounds, editor])
+	}, [clusterInput, clusterZoomBounds, editor])
 	const [renderedModel, setRenderedModel] = useState(latestModel)
 	let clusterModel = renderedModel
 	// A page switch replaces the whole scene: hard-reset rather than detach the world.
@@ -169,14 +178,18 @@ export function useClusterModel(
 	// Local partition maintenance — the only non-zoom visual change, and it is local by
 	// construction: any displayed leaf that has left the cluster input (deleted, thread opened,
 	// popped out above) is detached from its badge in place. The corrected rebuild is already
-	// sitting in latestModel awaiting the next zoom-out.
-	{
+	// sitting in latestModel awaiting the next zoom-out. When the rendered model IS the latest
+	// model (the common render) the leaf sets are identical by construction, so skip the scan.
+	if (clusterModel !== latestModel) {
 		const latestLeafIds = new Set(latestModel.table.leaves.map((leaf) => leaf.id))
+		const removedLeafIds: string[] = []
 		for (const leaf of clusterModel.table.leaves) {
 			if (!latestLeafIds.has(leaf.id)) {
-				clusterModel.runtime.detachLeaf(leaf.id)
+				removedLeafIds.push(leaf.id)
 			}
 		}
+		// Batched: one patch rebuild and one version bump for the whole set.
+		if (removedLeafIds.length > 0) clusterModel.runtime.detachLeaves(removedLeafIds)
 	}
 	// Moved pins rejoin clustering on the next zoom-out motion: clear the set (so the rebuild
 	// includes them again) and adopt that rebuild immediately instead of deferring it. Zooming in

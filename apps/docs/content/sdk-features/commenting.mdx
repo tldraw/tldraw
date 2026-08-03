@@ -329,15 +329,17 @@ Unread state drives the pin badges and the sidebar's unread filter. Without `isC
 
 Every visible piece of the layer is a slot. Set them through the `components` option, and leave a slot unset to keep its default.
 
-| Slot               | Replaces                                                             |
-| ------------------ | -------------------------------------------------------------------- |
-| `CommentBody`      | A comment's body, normally the rich-text renderer.                   |
-| `PinContent`       | A pin's inner content, normally the author's initial.                |
-| `ThreadPreview`    | A sidebar row's preview, normally the body as plain text.            |
-| `ComposerFallback` | What shows where a composer would sit when the viewer can't comment. |
-| `ReactionContent`  | How a reaction token is drawn.                                       |
-| `ReactionPalette`  | What the add-reaction button opens.                                  |
-| `ReactionTooltip`  | The list of who reacted, shown on a reaction pill.                   |
+| Slot               | Replaces                                                               |
+| ------------------ | ---------------------------------------------------------------------- |
+| `CommentBody`      | A comment's body, normally the rich-text renderer.                     |
+| `PinContent`       | A pin's inner content, normally the author's initial.                  |
+| `ThreadPreview`    | A sidebar row's preview, normally the body as plain text.              |
+| `ThreadRow`        | A whole sidebar row, normally `CommentListItem`.                       |
+| `ThreadActions`    | Adds controls to an open thread's header. Additive, not a replacement. |
+| `ComposerFallback` | What shows where a composer would sit when the viewer can't comment.   |
+| `ReactionContent`  | How a reaction token is drawn.                                         |
+| `ReactionPalette`  | What the add-reaction button opens.                                    |
+| `ReactionTooltip`  | The list of who reacted, shown on a reaction pill.                     |
 
 ```tsx
 import { CommentTool, richTextToPlaintext } from '@tldraw/commenting'
@@ -354,6 +356,41 @@ const tools = [CommentTool.configure({ components: { CommentBody: PriorityBody }
 ```
 
 Both record types carry a `meta` field the layer never reads. Use it for priorities, categories, external ticket ids, or anything else your app tracks alongside a comment.
+
+`ThreadRow` and `ThreadActions` are the two slots that add to a surface rather than replace a piece of it, so they get the records behind what's on screen.
+
+`ThreadRow` receives the summarized row along with the thread record, and the default row is exported — so a row that only adds something can spread the props into `CommentListItem` rather than start over:
+
+```tsx
+import { CommentListItem, CommentTool } from '@tldraw/commenting'
+
+function StatusRow({ thread, ...row }: CommentListItemRenderProps & { thread: TLCommentThread }) {
+	return (
+		<div className="status-row">
+			<CommentListItem {...row} />
+			{thread.meta.status === 'blocked' && <span className="blocked">Blocked</span>}
+		</div>
+	)
+}
+
+const tools = [CommentTool.configure({ components: { ThreadRow: StatusRow } })]
+```
+
+`ThreadActions` adds controls to an open thread's header, ahead of the built-in resolve and dismiss buttons. This is where host verbs go — assign a thread, link it to a ticket, mark it as a to-do. It adds alongside the built-in actions rather than replacing them, so a thread never loses the ability to be resolved.
+
+```tsx
+function AssignAction({ thread }: { thread: TLCommentThread }) {
+	return (
+		<button type="button" className="tlui-cmt-thread__action" onClick={() => assign(thread.id)}>
+			Assign
+		</button>
+	)
+}
+
+const tools = [CommentTool.configure({ components: { ThreadActions: AssignAction } })]
+```
+
+A link affordance doesn't need this slot: see [Linking to a thread](#linking-to-a-thread).
 
 ## Working with comment records
 
@@ -452,6 +489,22 @@ An unserved request is inert, so it's safe to call before the records have synce
 
 For a thread you already hold, `focusThread(editor, thread)` centers and opens it directly.
 
+## Linking to a thread
+
+The other half of a deep link is producing one. Give the commenting context a `getThreadHref` and every surface that can link to a thread does:
+
+```tsx
+<CanvasComments
+	currentUserId="me"
+	resolveAuthor={resolveAuthor}
+	getThreadHref={(threadId) => `/file/${fileId}?comment=${encodeURIComponent(threadId)}`}
+/>
+```
+
+Sidebar rows become anchors, so ctrl/cmd-click and middle-click open a thread in a new tab, and an open thread's header menu offers **Copy link**. A relative href is resolved against the current document before it reaches the clipboard, so what gets pasted is a whole URL.
+
+Without `getThreadHref` neither appears — a link the host can't construct isn't one the layer can invent.
+
 ## Pin clustering
 
 Zoom out far enough and pins pile on top of each other. Clustering folds nearby pins into a count badge as you zoom out, then splits them apart as you zoom back in. Splits happen at a wider spacing than merges, so pins don't flicker at the boundary. Clicking a badge zooms to just past the point where that cluster breaks up.
@@ -527,7 +580,8 @@ This is also where per-record permissions belong. The lane's write access is all
 | `CommentPin`, `CountBadge`               | The pin marker and the clustered-count badge.               |
 | `CommentThread`, `CommentCard`, `Byline` | A thread and its comments.                                  |
 | `CommentComposer`, `SendButton`          | The composer and its send control.                          |
-| `CommentsList`, `EmptyState`             | A list of threads and its empty state.                      |
+| `CommentsList`, `CommentListItem`        | A list of threads and one row of it.                        |
+| `EmptyState`, `sortSidebarRows`          | The list's empty state, and the sidebar's ordering.         |
 | `Avatar`, `Mention`, `MentionList`       | Author avatars and the mention picker.                      |
 | `Reaction`, `Reactions`                  | A reaction pill and a comment's row of them.                |
 | `anchorPagePoint`, `shapeAnchorAt`       | Anchor math: page position from an anchor, and the reverse. |

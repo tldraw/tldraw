@@ -3,7 +3,13 @@ import { describe, expect, it } from 'vitest'
 // This import is red until step 6's filter module is implemented — that is
 // intentional. Implement `cluster-input.ts` per CLUSTERING-STEPS.md step 6
 // until this suite passes, without modifying this file.
-import { clusterLeafIdsEqual, clusterLeavesEqual, collectClusterLeaves } from './cluster-input'
+import type { LeafInput, LeafScreenOffsets } from '../clustering/types'
+import {
+	type ClusterInput,
+	clusterInputEqual,
+	clusterInputIdsEqual,
+	collectClusterLeaves,
+} from './cluster-input'
 import { defaultCommentingOptions, type CommentingOptions } from './options'
 
 const CURRENT_PAGE = 'page:one'
@@ -67,7 +73,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 			stubEditor(),
 			[thread('t1', { type: 'point', x: 12, y: 34 })],
 			null
-		)
+		).leaves
 		expect(leaves).toEqual([{ id: 't1', point: { x: 12, y: 34 } }])
 	})
 
@@ -76,7 +82,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 			stubEditor(),
 			[thread('t1', { type: 'region', x: 10, y: 20, w: 30, h: 40 })],
 			null
-		)
+		).leaves
 		expect(leaves).toEqual([{ id: 't1', point: { x: 40, y: 60 } }])
 	})
 
@@ -88,7 +94,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 			editor,
 			[thread('t1', { type: 'shape', shapeId: 'shape:a' as any, x: 0, y: 0, isPrecise: false })],
 			null
-		)
+		).leaves
 		expect(leaves).toEqual([{ id: 't1', point: { x: 100, y: 5 } }])
 	})
 
@@ -114,7 +120,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 				isPrecise: true,
 			}),
 		]
-		const leaves = collectClusterLeaves(editor, threads, null)
+		const leaves = collectClusterLeaves(editor, threads, null).leaves
 		expect(leaves).toEqual([
 			{ id: 'imprecise', point: { x: 50, y: 50 } },
 			{ id: 'precise', point: { x: 50, y: 25 } },
@@ -135,7 +141,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 				thread('kept', { type: 'point', x: 1, y: 2 }),
 			],
 			null
-		)
+		).leaves
 		expect(leafIds(leaves)).toEqual(['kept'])
 	})
 
@@ -144,7 +150,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 			stubEditor(),
 			[thread('pageThread', { type: 'page' }), thread('kept', { type: 'point', x: 1, y: 2 })],
 			null
-		)
+		).leaves
 		expect(leafIds(leaves)).toEqual(['kept'])
 	})
 })
@@ -158,7 +164,7 @@ describe('collectClusterLeaves filtering', () => {
 				thread('elsewhere', { type: 'point', x: 0, y: 0 }, { pageId: OTHER_PAGE }),
 			],
 			null
-		)
+		).leaves
 		expect(leafIds(leaves)).toEqual(['here'])
 	})
 
@@ -167,10 +173,13 @@ describe('collectClusterLeaves filtering', () => {
 			thread('open', { type: 'point', x: 0, y: 0 }),
 			thread('closed', { type: 'point', x: 10, y: 0 }),
 		]
-		expect(leafIds(collectClusterLeaves(stubEditor(), threads, 'open'))).toEqual(['closed'])
-		expect(leafIds(collectClusterLeaves(stubEditor(), threads, null))).toEqual(['closed', 'open'])
+		expect(leafIds(collectClusterLeaves(stubEditor(), threads, 'open').leaves)).toEqual(['closed'])
+		expect(leafIds(collectClusterLeaves(stubEditor(), threads, null).leaves)).toEqual([
+			'closed',
+			'open',
+		])
 		// an id that matches no thread excludes nothing
-		expect(leafIds(collectClusterLeaves(stubEditor(), threads, 'unknown'))).toEqual([
+		expect(leafIds(collectClusterLeaves(stubEditor(), threads, 'unknown').leaves)).toEqual([
 			'closed',
 			'open',
 		])
@@ -184,12 +193,12 @@ describe('collectClusterLeaves filtering', () => {
 				thread('unresolved', { type: 'point', x: 10, y: 0 }),
 			],
 			null
-		)
+		).leaves
 		expect(leafIds(leaves)).toEqual(['resolved', 'unresolved'])
 	})
 
 	it('returns [] for no threads', () => {
-		expect(collectClusterLeaves(stubEditor(), [], null)).toEqual([])
+		expect(collectClusterLeaves(stubEditor(), [], null).leaves).toEqual([])
 	})
 
 	it('applies every rule at once on a mixed set', () => {
@@ -218,7 +227,7 @@ describe('collectClusterLeaves filtering', () => {
 			thread('openOne', { type: 'point', x: 3, y: 3 }),
 			thread('resolvedOne', { type: 'point', x: 4, y: 4 }, { resolved: true }),
 		]
-		const leaves = collectClusterLeaves(editor, threads, 'openOne')
+		const leaves = collectClusterLeaves(editor, threads, 'openOne').leaves
 		expect(leafIds(leaves)).toEqual(['onShape', 'point', 'region', 'resolvedOne'])
 	})
 
@@ -230,60 +239,131 @@ describe('collectClusterLeaves filtering', () => {
 	})
 })
 
-/**
- * These two gate the O(N²) cluster-table rebuild in `useClusterModel`: leaves that compare equal
- * keep their previous array identity, so nothing downstream recomputes. Both compare positionally
- * — `collectClusterLeaves` walks the threads in order, so a stable thread order is what makes the
- * gate hold across recomputes. If it ever stops being stable these still return the right answer,
- * just uselessly (every recompute rebuilds), which is why the order cases below are asserted.
- */
-describe('clusterLeavesEqual', () => {
-	const leaf = (id: string, x: number, y: number) => ({ id, point: { x, y } })
-
-	it('accepts the same ids at the same positions, and any array identity', () => {
-		const a = [leaf('t1', 0, 0), leaf('t2', 10, 20)]
-		expect(clusterLeavesEqual(a, a)).toBe(true)
-		expect(clusterLeavesEqual(a, [leaf('t1', 0, 0), leaf('t2', 10, 20)])).toBe(true)
-		expect(clusterLeavesEqual([], [])).toBe(true)
+describe('collectClusterLeaves screen offsets', () => {
+	it('is undefined when every pin renders on its anchor', () => {
+		const editor = stubEditor({ 'shape:a': { minX: 0, minY: 0, maxX: 100, maxY: 50 } })
+		const threads = [
+			thread('point', { type: 'point', x: 1, y: 2 }),
+			thread('region', { type: 'region', x: 0, y: 0, w: 5, h: 5 }),
+			thread('precise', {
+				type: 'shape',
+				shapeId: 'shape:a' as any,
+				x: 0.5,
+				y: 0.5,
+				isPrecise: true,
+			}),
+		]
+		expect(collectClusterLeaves(editor, threads, null).screenOffsets).toBeUndefined()
 	})
 
-	it('rejects a position change — a moved pin must rebuild the table', () => {
-		expect(clusterLeavesEqual([leaf('t1', 0, 0)], [leaf('t1', 0, 0.5)])).toBe(false)
-		expect(clusterLeavesEqual([leaf('t1', 0, 0)], [leaf('t1', 0.5, 0)])).toBe(false)
+	it('maps imprecise leaves to their pin inset, and only those', () => {
+		const editor = stubEditor({ 'shape:a': { minX: 0, minY: 0, maxX: 100, maxY: 50 } })
+		const threads = [
+			thread('imprecise', {
+				type: 'shape',
+				shapeId: 'shape:a' as any,
+				x: 0,
+				y: 0,
+				isPrecise: false,
+			}),
+			thread('point', { type: 'point', x: 1, y: 2 }),
+		]
+		const { screenOffsets } = collectClusterLeaves(editor, threads, null)
+		// Default top-right anchor spot: the pin tucks left and down into the shape.
+		expect(screenOffsets).toEqual(new Map([['imprecise', { x: -20, y: 20 }]]))
 	})
 
-	it('rejects an added, removed, renamed, or reordered leaf', () => {
-		expect(clusterLeavesEqual([leaf('t1', 0, 0)], [leaf('t1', 0, 0), leaf('t2', 1, 1)])).toBe(false)
-		expect(clusterLeavesEqual([leaf('t1', 0, 0), leaf('t2', 1, 1)], [leaf('t1', 0, 0)])).toBe(false)
-		expect(clusterLeavesEqual([leaf('t1', 0, 0)], [leaf('t2', 0, 0)])).toBe(false)
-		expect(
-			clusterLeavesEqual([leaf('t1', 0, 0), leaf('t2', 1, 1)], [leaf('t2', 1, 1), leaf('t1', 0, 0)])
-		).toBe(false)
+	it('excludes threads that produced no leaf', () => {
+		const editor = stubEditor({}) // shape does not resolve
+		const threads = [
+			thread('gone', { type: 'shape', shapeId: 'shape:x' as any, x: 0, y: 0, isPrecise: false }),
+		]
+		const input = collectClusterLeaves(editor, threads, null)
+		expect(input.leaves).toEqual([])
+		expect(input.screenOffsets).toBeUndefined()
 	})
 })
 
-describe('clusterLeafIdsEqual', () => {
-	const leaf = (id: string, x: number, y: number) => ({ id, point: { x, y } })
+/**
+ * These two gate the O(N²) cluster-table rebuild in `useClusterModel`: an input that compares equal
+ * keeps its previous identity, so nothing downstream recomputes. Both compare the leaves
+ * positionally — `collectClusterLeaves` walks the threads in order, so a stable thread order is what
+ * makes the gate hold across recomputes. If it ever stops being stable these still return the right
+ * answer, just uselessly (every recompute rebuilds), which is why the order cases are asserted.
+ */
+const leaf = (id: string, x: number, y: number) => ({ id, point: { x, y } })
+const input = (leaves: LeafInput[], screenOffsets?: LeafScreenOffsets): ClusterInput => ({
+	leaves,
+	screenOffsets,
+})
 
-	it('ignores positions — this is what defers the rebuild mid-drag', () => {
-		expect(clusterLeafIdsEqual([leaf('t1', 0, 0)], [leaf('t1', 999, 999)])).toBe(true)
+describe('clusterInputEqual', () => {
+	it('accepts the same leaves at the same positions, whatever the identity', () => {
+		const a = input([leaf('t1', 0, 0), leaf('t2', 10, 20)])
+		expect(clusterInputEqual(a, a)).toBe(true)
+		expect(clusterInputEqual(a, input([leaf('t1', 0, 0), leaf('t2', 10, 20)]))).toBe(true)
+		expect(clusterInputEqual(input([]), input([]))).toBe(true)
+	})
+
+	it('rejects a position change — a moved pin must rebuild the table', () => {
+		expect(clusterInputEqual(input([leaf('t1', 0, 0)]), input([leaf('t1', 0, 0.5)]))).toBe(false)
+		expect(clusterInputEqual(input([leaf('t1', 0, 0)]), input([leaf('t1', 0.5, 0)]))).toBe(false)
+	})
+
+	it('rejects an added, removed, renamed, or reordered leaf', () => {
+		const one = input([leaf('t1', 0, 0)])
+		const two = input([leaf('t1', 0, 0), leaf('t2', 1, 1)])
+		expect(clusterInputEqual(one, two)).toBe(false)
+		expect(clusterInputEqual(two, one)).toBe(false)
+		expect(clusterInputEqual(one, input([leaf('t2', 0, 0)]))).toBe(false)
+		expect(clusterInputEqual(two, input([leaf('t2', 1, 1), leaf('t1', 0, 0)]))).toBe(false)
+	})
+
+	it('rejects an offset change, which prices the same leaves differently', () => {
+		const leaves = [leaf('t1', 0, 0)]
+		const offsets = (x: number) => new Map([['t1', { x, y: 20 }]])
+		expect(clusterInputEqual(input(leaves, offsets(-20)), input(leaves, offsets(-20)))).toBe(true)
+		expect(clusterInputEqual(input(leaves, offsets(-20)), input(leaves, offsets(20)))).toBe(false)
+		// gaining or losing offsets entirely (a pin's precision changed)
+		expect(clusterInputEqual(input(leaves), input(leaves, offsets(-20)))).toBe(false)
+		expect(clusterInputEqual(input(leaves, offsets(-20)), input(leaves))).toBe(false)
+	})
+})
+
+describe('clusterInputIdsEqual', () => {
+	it('ignores positions and offset vectors — this is what defers the rebuild mid-drag', () => {
+		expect(clusterInputIdsEqual(input([leaf('t1', 0, 0)]), input([leaf('t1', 999, 999)]))).toBe(
+			true
+		)
+		// rotating mid-drag turns the inset; deferred like the anchor move it comes with
+		expect(
+			clusterInputIdsEqual(
+				input([leaf('t1', 0, 0)], new Map([['t1', { x: -20, y: 20 }]])),
+				input([leaf('t1', 5, 5)], new Map([['t1', { x: 20, y: -20 }]]))
+			)
+		).toBe(true)
 	})
 
 	it('still rejects an added or removed thread, so those rebuild even mid-drag', () => {
-		expect(clusterLeafIdsEqual([leaf('t1', 0, 0)], [leaf('t1', 0, 0), leaf('t2', 1, 1)])).toBe(
-			false
-		)
-		expect(clusterLeafIdsEqual([leaf('t1', 0, 0), leaf('t2', 1, 1)], [leaf('t1', 0, 0)])).toBe(
-			false
-		)
-		expect(clusterLeafIdsEqual([leaf('t1', 0, 0)], [leaf('t2', 0, 0)])).toBe(false)
+		const one = input([leaf('t1', 0, 0)])
+		const two = input([leaf('t1', 0, 0), leaf('t2', 1, 1)])
+		expect(clusterInputIdsEqual(one, two)).toBe(false)
+		expect(clusterInputIdsEqual(two, one)).toBe(false)
+		expect(clusterInputIdsEqual(one, input([leaf('t2', 0, 0)]))).toBe(false)
+	})
+
+	it('still rejects a leaf that gained or lost its offset — a precision change, not a gesture', () => {
+		const leaves = [leaf('t1', 0, 0)]
+		expect(
+			clusterInputIdsEqual(input(leaves), input(leaves, new Map([['t1', { x: -20, y: 20 }]])))
+		).toBe(false)
 	})
 
 	it('rejects a reorder', () => {
 		expect(
-			clusterLeafIdsEqual(
-				[leaf('t1', 0, 0), leaf('t2', 1, 1)],
-				[leaf('t2', 1, 1), leaf('t1', 0, 0)]
+			clusterInputIdsEqual(
+				input([leaf('t1', 0, 0), leaf('t2', 1, 1)]),
+				input([leaf('t2', 1, 1), leaf('t1', 0, 0)])
 			)
 		).toBe(false)
 	})
