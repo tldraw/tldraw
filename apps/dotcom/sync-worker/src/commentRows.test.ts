@@ -20,7 +20,6 @@ import {
 	isCommentThreadIdFkViolation,
 	isCommentThreadFkViolation,
 	liveCommentDocuments,
-	mentionReconcileKey,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
@@ -366,26 +365,6 @@ describe('planMentionReconciles', () => {
 
 	it('returns one plan per row', () => {
 		expect(planMentionReconciles([])).toEqual([])
-	})
-})
-
-describe('mentionReconcileKey', () => {
-	it('is order-insensitive, so a body reshuffle is not a changed set', () => {
-		expect(mentionReconcileKey(['user_b', 'user_a'])).toBe(
-			mentionReconcileKey(['user_a', 'user_b'])
-		)
-	})
-
-	it('distinguishes different sets, including empty from non-empty', () => {
-		expect(mentionReconcileKey(['user_a'])).not.toBe(mentionReconcileKey(['user_b']))
-		expect(mentionReconcileKey([])).not.toBe(mentionReconcileKey(['user_a']))
-		expect(mentionReconcileKey([])).toBe(mentionReconcileKey([]))
-	})
-
-	it('does not mutate its input', () => {
-		const ids = ['user_b', 'user_a']
-		mentionReconcileKey(ids)
-		expect(ids).toEqual(['user_b', 'user_a'])
 	})
 })
 

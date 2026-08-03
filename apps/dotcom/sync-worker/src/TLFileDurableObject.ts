@@ -67,7 +67,6 @@ import {
 	isCommentThreadFkViolation,
 	isCommentThreadIdFkViolation,
 	liveCommentDocuments,
-	mentionReconcileKey,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
@@ -660,10 +659,6 @@ export class TLFileDurableObject extends DurableObject {
 				// comment.threadId is NOT NULL with an ON DELETE CASCADE FK, so deleting the
 				// file's threads provably deletes all its comments too
 				await this.db.deleteFrom('comment_thread').where('fileId', '=', roomId).execute()
-				// The delete cascaded every comment_mention row away, so the drain's
-				// reconciled-mentions memory is stale: without this, a comment id re-pushed after
-				// the restore could skip its reconcile against rows that no longer exist.
-				this._reconciledMentionKeys.clear()
 				this.ctx.storage.sql.exec('DELETE FROM comment_outbox WHERE seq <= ?', maxSeq)
 			})
 			await cleanup
@@ -1294,14 +1289,6 @@ export class TLFileDurableObject extends DurableObject {
 	// Separate from executionQueue (the R2/main-persist queue) since these pushes fire immediately
 	// on commit, not on the throttle.
 	private _objectPushQueue = new ExecutionQueue()
-
-	// Each comment's last successfully reconciled mention set (see mentionReconcileKey), so a drain
-	// can skip the comment_mention round trips when a comment's mentions haven't changed — the
-	// common case for replays and edits that don't touch mentions. In-memory only, and written only
-	// after a reconcile succeeds: a cold start or an eviction just means the next drain reconciles
-	// unconditionally, which is the safe direction under at-least-once delivery. Cleared by the
-	// restore path, whose fileId-wide Postgres delete drops mention rows out from under the cache.
-	private _reconciledMentionKeys = new Map<string, string>()
 
 	executionQueue = new ExecutionQueue()
 
@@ -2093,22 +2080,16 @@ export class TLFileDurableObject extends DurableObject {
 				// drain retries the reconcile. Soft-deleted comments keep their mention rows; the
 				// rows are inert because every query filters the comment itself on isDeleted.
 				//
-				// Two round-trip savers, on top of the idempotency: comments whose planned mention
-				// set matches their last successful reconcile (per _reconciledMentionKeys) skip the
-				// reconcile outright, and the rest share one multi-comment delete and one multi-row
-				// insert per drain instead of paying 1-2 sequential statements per comment.
+				// On top of the idempotency, the reconciles share one multi-comment delete and one
+				// multi-row insert per drain instead of paying 1-2 sequential statements per comment.
 				const mentionReconciles = planMentionReconciles(
 					commentUpserts.filter(
 						(row) => !failedIds.has(row.id) && !commentResult.prunedIds.includes(row.id)
 					)
 				)
-				const changedReconciles = mentionReconciles.filter(
-					({ commentId, userIds }) =>
-						this._reconciledMentionKeys.get(commentId) !== mentionReconcileKey(userIds)
-				)
-				if (changedReconciles.length > 0) {
-					const changedCommentIds = changedReconciles.map((r) => r.commentId)
-					const desiredRows = changedReconciles.flatMap(({ commentId, userIds }) =>
+				if (mentionReconciles.length > 0) {
+					const changedCommentIds = mentionReconciles.map((r) => r.commentId)
+					const desiredRows = mentionReconciles.flatMap(({ commentId, userIds }) =>
 						userIds.map((userId) => ({ commentId, userId }))
 					)
 					const mentionFailedIds = new Set<string>()
@@ -2166,13 +2147,9 @@ export class TLFileDurableObject extends DurableObject {
 						}
 						this.reportError(error)
 					}
-					for (const { commentId, userIds } of changedReconciles) {
-						if (mentionFailedIds.has(commentId)) {
-							failedIds.add(commentId)
-							this.logEvent({ type: 'room', name: 'failed_persist_comments_to_db' })
-						} else {
-							this._reconciledMentionKeys.set(commentId, mentionReconcileKey(userIds))
-						}
+					for (const commentId of mentionFailedIds) {
+						failedIds.add(commentId)
+						this.logEvent({ type: 'room', name: 'failed_persist_comments_to_db' })
 					}
 				}
 
