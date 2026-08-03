@@ -1,4 +1,4 @@
-import { RefObject, useLayoutEffect, useState } from 'react'
+import { RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT, useBreakpoint, useContainer } from 'tldraw'
 import { getVisibleViewport } from '../ui/visual-viewport'
 
@@ -40,43 +40,60 @@ export function useMobilePlacement(
 	enabled: boolean
 ): { left: number; top: number } {
 	const container = useContainer()
+	// Destructured so the effects below depend on the two numbers rather than the object, which the
+	// call sites build fresh on every render.
+	const { x: baseX, y: baseY } = base
 	const [placed, setPlaced] = useState<{ left: number; top: number }>(() => ({
-		left: base.x,
-		top: base.y,
+		left: baseX,
+		top: baseY,
 	}))
+	// The camera moves `base` every frame while panning. Reading it from a ref keeps `update` stable
+	// across those frames, so the observers below are set up once per panel rather than being torn
+	// down and rebuilt each frame.
+	const baseRef = useRef({ x: baseX, y: baseY })
 
+	const update = useCallback(() => {
+		if (!enabled) return
+		const el = ref.current
+		if (!el) return
+		const win = container.ownerDocument.defaultView ?? window
+		const { x, y } = baseRef.current
+
+		// Panel coordinates are container-relative; the visual viewport is window-relative.
+		const cRect = container.getBoundingClientRect()
+		const vp = getVisibleViewport(win)
+		const top = vp.top - cRect.top + VIEWPORT_MARGIN
+		const bottom = vp.bottom - cRect.top - VIEWPORT_MARGIN
+		const left = vp.left - cRect.left + VIEWPORT_MARGIN
+		const right = vp.right - cRect.left - VIEWPORT_MARGIN
+
+		const w = el.offsetWidth
+		const h = el.offsetHeight
+
+		const nextLeft = Math.max(left, Math.min(x, right - w))
+		// The keyboard only ever covers space from the bottom, so it can pull the panel up (when its
+		// bottom would be hidden) but must never push it down below its natural spot. `y` is the
+		// floor: any spurious rise in `top` (e.g. iOS scrolling the page to reveal a focused input)
+		// is capped here, so a panel that already clears the keyboard doesn't move at all.
+		const nextTop = Math.min(y, Math.max(top, bottom - h))
+		setPlaced((prev) =>
+			prev.left === nextLeft && prev.top === nextTop ? prev : { left: nextLeft, top: nextTop }
+		)
+	}, [container, ref, enabled])
+
+	// Re-place as the camera moves the panel's base point.
+	useLayoutEffect(() => {
+		baseRef.current = { x: baseX, y: baseY }
+		update()
+	}, [baseX, baseY, update])
+
+	// Re-place when the panel grows (replies, edits), when the visual viewport changes (keyboard,
+	// pinch-zoom), or when the window resizes.
 	useLayoutEffect(() => {
 		if (!enabled) return
 		const el = ref.current
 		if (!el) return
 		const win = container.ownerDocument.defaultView ?? window
-
-		const update = () => {
-			// Panel coordinates are container-relative; the visual viewport is window-relative.
-			const cRect = container.getBoundingClientRect()
-			const vp = getVisibleViewport(win)
-			const top = vp.top - cRect.top + VIEWPORT_MARGIN
-			const bottom = vp.bottom - cRect.top - VIEWPORT_MARGIN
-			const left = vp.left - cRect.left + VIEWPORT_MARGIN
-			const right = vp.right - cRect.left - VIEWPORT_MARGIN
-
-			const w = el.offsetWidth
-			const h = el.offsetHeight
-
-			const nextLeft = Math.max(left, Math.min(base.x, right - w))
-			// The keyboard only ever covers space from the bottom, so it can pull the panel up (when its
-			// bottom would be hidden) but must never push it down below its natural spot. `base.y` is the
-			// floor: any spurious rise in `top` (e.g. iOS scrolling the page to reveal a focused input)
-			// is capped here, so a panel that already clears the keyboard doesn't move at all.
-			const nextTop = Math.min(base.y, Math.max(top, bottom - h))
-			setPlaced((prev) =>
-				prev.left === nextLeft && prev.top === nextTop ? prev : { left: nextLeft, top: nextTop }
-			)
-		}
-
-		update()
-		// Re-place when the panel grows (replies, edits), when the visual viewport changes (keyboard,
-		// pinch-zoom), or when the window resizes.
 		const ro = new ResizeObserver(update)
 		ro.observe(el)
 		const vv = win.visualViewport
@@ -89,10 +106,10 @@ export function useMobilePlacement(
 			vv?.removeEventListener('scroll', update)
 			win.removeEventListener('resize', update)
 		}
-	}, [container, ref, base.x, base.y, enabled])
+	}, [container, ref, enabled, update])
 
 	// Desktop keeps its fixed placement, recomputed each render so it tracks the pin as the camera
 	// moves.
-	if (!enabled) return { left: base.x, top: base.y }
+	if (!enabled) return { left: baseX, top: baseY }
 	return placed
 }
