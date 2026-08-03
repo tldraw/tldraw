@@ -303,8 +303,6 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 /* ----------------------- Feature Flags ---------------------- */
 
 export const FEATURE_FLAG_KEYS = [
-	'zero_enabled',
-	'zero_kill_switch',
 	'rum_enabled',
 	'commenting_enabled',
 	'mcp_friends_and_family',

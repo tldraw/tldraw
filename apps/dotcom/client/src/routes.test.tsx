@@ -67,8 +67,10 @@ function convertReactToVercel(path: string): string {
 		throw new Error(`Wildcard routes like '${path}' are not supported yet (you can add support!)`)
 	}
 	// react-router supports optional route segments https://reactrouter.com/en/main/route/route#optional-segments
-	// but we don't use them yet so just fail for now until we need them (if ever)
-	if (path.match(/\?\//)) {
+	// but we don't use them yet so just fail for now until we need them (if ever). A trailing
+	// optional param would silently lose its optionality in the Vercel pattern (use two explicit
+	// routes instead), so reject any '?' here, not just mid-path ones.
+	if (path.includes('?')) {
 		throw new Error(
 			`Optional route segments like in '${path}' are not supported yet (you can add this)`
 		)
