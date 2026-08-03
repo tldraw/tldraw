@@ -176,9 +176,9 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 			)}
 			{open && (
 				<ThreadPopover
-					style={{
-						left: point.x + POPOVER_OFFSET.list.x,
-						top: point.y + POPOVER_OFFSET.list.y - liftForHeader,
+					base={{
+						x: point.x + POPOVER_OFFSET.list.x,
+						y: point.y + POPOVER_OFFSET.list.y - liftForHeader,
 					}}
 				>
 					<div className="tlui-cmt-stack-list">
