@@ -478,7 +478,7 @@ export const ThreadView = memo(function ThreadView({
 									</TldrawUiDropdownMenuContent>
 								</TldrawUiDropdownMenuRoot>
 							)}
-							{/* Last so react is always the rightmost pill, on your comments and others'. */}
+							{/* Last so react is always the rightmost pill. */}
 							<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
 						</>
 					)

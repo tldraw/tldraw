@@ -447,10 +447,11 @@ button.tlui-cmt-reaction--active:hover {
 	background: color-mix(in srgb, var(--tl-color-selected) 38%, var(--tl-color-panel));
 }
 
-/* the emoji sits at the same 10px as the count beside it */
+/* The emoji renders larger than the 10px count, but its pinned line-height keeps the pill the
+   count's height — the glyph overflows the line box rather than growing it. */
 .tlui-cmt-reaction__emoji {
-	font-size: 10px;
-	line-height: 1;
+	font-size: 13px;
+	line-height: 10px;
 }
 
 .tlui-cmt-reaction__count {
@@ -750,16 +751,14 @@ button.tlui-cmt-reaction--active:hover {
 .tlui-cmt-stack-list .tlui-cmt-card .tlui-cmt-head {
 	min-height: 40px;
 }
-/* Only comments that actually carry action pills reserve room for them — the :has(> *) gate skips
-   cards whose actions slot is missing or empty (e.g. read-only viewers), so their names keep the
-   full row. Reserve derived from the action size so it can't drift: n buttons overlapping 4px each
-   (see .tlui-cmt-thread__action), minus the card's right padding the right:0 pills already sit
-   over. Text stops at the hit-area edge, 4px shy of the visual square. One button (react) on
-   others' comments; two (react and the more-options menu) on your own. */
+/* Reserve head room only for pills that actually rendered (one child / two children) — pill count
+   is a permissions question (canModifyComment), not ownership, and empty slots (read-only viewers)
+   keep the full row. Sized from the 40px hit areas (4px overlap), minus the card padding the
+   right:0 pills sit over; text stops 4px shy of the visible square. */
 .tlui-cmt-thread .tlui-cmt-card:has(.tlui-cmt-card__actions > *) .tlui-cmt-head {
 	padding-right: calc(var(--tlui-cmt-thread-action-size) - var(--tlui-cmt-thread-padding));
 }
-.tlui-cmt-thread .tlui-cmt-card--you:has(.tlui-cmt-card__actions > *) .tlui-cmt-head {
+.tlui-cmt-thread .tlui-cmt-card:has(.tlui-cmt-card__actions > * + *) .tlui-cmt-head {
 	padding-right: calc(
 		2 * var(--tlui-cmt-thread-action-size) - 4px - var(--tlui-cmt-thread-padding)
 	);

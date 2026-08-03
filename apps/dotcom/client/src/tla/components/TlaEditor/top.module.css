@@ -208,15 +208,14 @@ button.topLeftInputNameWidthSetter {
 .commentsSidebarButton {
 	background-color: var(--tl-color-background);
 	border-radius: 8px;
-	/* Match the CTA share button it sits beside; the tldraw icon button is 40px by default, and
-	   its min-width would beat our width, so that needs lowering too to get a 36px square. */
+	/* A 36px square matching the share button; min-width because the base button's 40px would
+	   beat width. */
 	height: 36px;
 	width: 36px;
 	min-width: 36px;
 }
 
-/* Shape the hover/pressed wash like the share pill beside it: the base .tlui-button::after sits
-   inset 4px (28px tall here); the share button's fill is inset 2px, 32px tall, same 6px radius. */
+/* Match the hover wash to the share pill's inset and radius (the base ::after sits at 4px). */
 .commentsSidebarButton::after {
 	inset: 2px;
 }
