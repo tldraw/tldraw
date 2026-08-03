@@ -811,6 +811,7 @@ export { RTL_LANGUAGES, type TLUiTranslation } from './lib/ui/hooks/useTranslati
 export {
 	useCurrentTranslation,
 	useDirection,
+	useMaybeCurrentTranslation,
 	useTranslation,
 	type TLUiTranslationContextType,
 	type TLUiTranslationProviderProps,

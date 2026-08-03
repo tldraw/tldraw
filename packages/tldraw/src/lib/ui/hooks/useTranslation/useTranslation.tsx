@@ -37,6 +37,16 @@ export function useCurrentTranslation() {
 }
 
 /**
+ * Like {@link useCurrentTranslation}, but returns `null` instead of throwing when used outside
+ * of a `<TldrawUiTranslationProvider />` / `<TldrawUiContextProvider />`.
+ *
+ * @public
+ */
+export function useMaybeCurrentTranslation() {
+	return React.useContext(TranslationsContext)
+}
+
+/**
  * Provides a translation context to the editor. Wrap this around components that use
  * `useTranslation` (such as `TldrawSelectionForeground`) when you don't want to use the
  * full `TldrawUiContextProvider`. Must be rendered inside an `AssetUrlsProvider`.
@@ -138,8 +148,8 @@ export function useTranslation() {
  * @public
  */
 export function useDirection() {
-	const translation = useCurrentTranslation()
-	return translation.dir
+	const translation = useMaybeCurrentTranslation()
+	return translation?.dir ?? 'ltr'
 }
 
 export function untranslated(string: string) {

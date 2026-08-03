@@ -6524,6 +6524,9 @@ export function useKeyboardShortcuts(): void;
 // @public (undocumented)
 export function useLocalStorageState<T = any>(key: string, defaultValue: T): readonly [T, (setter: ((value: T) => T) | T) => void];
 
+// @public
+export function useMaybeCurrentTranslation(): null | TLUiTranslation;
+
 // @public (undocumented)
 export function useMenuClipboardEvents(): {
     copy: (source: TLUiEventSource) => Promise<void>;
