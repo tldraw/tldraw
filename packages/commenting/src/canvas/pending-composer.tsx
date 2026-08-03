@@ -23,6 +23,7 @@ import { commitCommentMutation, putRecordsInCommit } from './comment-mutations'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { PendingComment } from './comment-tool'
 import { type CommentingContext } from './context'
+import { useIsMobileCommenting, useMobilePlacement } from './mobile-placement'
 import { useCanComment, useCommentingOptions } from './options'
 import { pendingComment } from './state'
 
@@ -65,6 +66,10 @@ export function PendingComposer({
 		editor,
 		pending.point,
 	])
+	// On mobile the composer floats free of the pin so it can clear the software keyboard; desktop
+	// keeps it pinned to the point.
+	const isMobile = useIsMobileCommenting()
+	const placed = useMobilePlacement(ref, point, isMobile)
 
 	// Dismiss on a click anywhere outside the composer (capture-phase, ahead of stopPropagation).
 	useEffect(() => {
@@ -115,7 +120,7 @@ export function PendingComposer({
 				]
 					.filter(Boolean)
 					.join(' ')}
-				style={{ left: point.x, top: point.y }}
+				style={{ left: placed.left, top: placed.top }}
 				onPointerDown={stop}
 				onContextMenu={stop}
 				onKeyDown={(e) => {

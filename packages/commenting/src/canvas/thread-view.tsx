@@ -1,13 +1,4 @@
-import {
-	memo,
-	ReactNode,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-	type CSSProperties,
-} from 'react'
+import { memo, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	createComment,
 	Editor,
@@ -50,6 +41,7 @@ import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
+import { useIsMobileCommenting, useMobilePlacement } from './mobile-placement'
 import { type CommentingComponents, useCanComment, useCommentingOptions } from './options'
 import { openThreadId } from './state'
 
@@ -155,9 +147,19 @@ export const POPOVER_OFFSET = {
 
 /** The open thread's popover container, portaled above the UI panels. A wheel over it passes
  *  through to the canvas (unless it scrolls its own content), like tldraw's panels. */
-export function ThreadPopover({ style, children }: { style: CSSProperties; children: ReactNode }) {
+export function ThreadPopover({
+	base,
+	children,
+}: {
+	base: { x: number; y: number }
+	children: ReactNode
+}) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
+	// On mobile the popover slides off its fixed offset to stay above the software keyboard and
+	// on-screen; desktop keeps the fixed offset (base returned unchanged).
+	const isMobile = useIsMobileCommenting()
+	const placed = useMobilePlacement(ref, base, isMobile)
 	return (
 		<EditorPortal>
 			{/* contextmenu also stops here: portals bubble React events to the canvas's context-menu
@@ -165,7 +167,7 @@ export function ThreadPopover({ style, children }: { style: CSSProperties; child
 			<div
 				ref={ref}
 				className="tlui-cmt-canvas-popover"
-				style={style}
+				style={{ left: placed.left, top: placed.top }}
 				onPointerDown={stop}
 				onContextMenu={stop}
 			>
