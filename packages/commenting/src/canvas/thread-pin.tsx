@@ -18,7 +18,7 @@ import {
 } from 'tldraw'
 import { CommentPin } from '../ui/comment-pin'
 import { forwardPointerEventToCanvas, isCanvasPanGesture } from './canvas-events'
-import { commitCommentMutation, putRecordsInCommit } from './comment-mutations'
+import { commitCommentMutation } from './comment-mutations'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
@@ -297,7 +297,7 @@ export const ThreadPin = memo(function ThreadPin({
 					)
 				: { type: 'point', x: pagePoint.x, y: pagePoint.y }
 		}
-		commitCommentMutation(editor, () => putRecordsInCommit(editor, [{ ...thread, anchor }]), 'drag')
+		commitCommentMutation(editor, ({ put }) => put([{ ...thread, anchor }]), 'drag')
 	}
 
 	// The pin (and its popover) track the live edit: a resize moves it to the region's pin corner, a
@@ -330,7 +330,7 @@ export const ThreadPin = memo(function ThreadPin({
 		commitCommentMutation(
 			editor,
 			// Spread the existing anchor first so the region's pin corner survives a resize.
-			() => putRecordsInCommit(editor, [{ ...thread, anchor: { ...regionAnchor!, ...bounds } }]),
+			({ put }) => put([{ ...thread, anchor: { ...regionAnchor!, ...bounds } }]),
 			'drag'
 		)
 	}

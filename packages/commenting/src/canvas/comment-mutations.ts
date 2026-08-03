@@ -16,11 +16,11 @@ import { openThreadId } from './state'
 /**
  * Every write to a comment record, and the undo/redo policy governing them.
  *
- * The file layers bottom-up: {@link commitCommentMutation} resolves the history mode,
- * {@link putCommentRecords} and {@link removeCommentRecords} are the typed writes that run under
- * it, and the verbs below are those writes plus the one rule each carries. Every verb takes the
- * record it acts on as the identity of what to change, not the value to write back — see
- * {@link readLatest}.
+ * The file layers bottom-up: {@link commitCommentMutation} resolves the history mode and hands its
+ * callback a writer, {@link putCommentRecords} and {@link removeCommentRecords} are the typed
+ * writes that run under it, and the verbs below are those writes plus the one rule each carries.
+ * Every verb takes the record it acts on as the identity of what to change, not the value to write
+ * back — see {@link readLatest}.
  *
  * Posting carries no such rule, so it isn't a verb here: build the records with
  * `createCommentThread`/`createComment` and write them with {@link putCommentRecords}.
@@ -38,6 +38,13 @@ import { openThreadId } from './state'
  * @internal
  */
 export type CommentMutationKind = 'delete' | 'drag' | 'mutation'
+
+interface CommentMutationWriter {
+	put(records: TLCommentRecord[]): void
+	remove(ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]): void
+}
+
+const activeCommentMutations = new WeakMap<Editor, { history: TLHistoryBatchOptions['history'] }>()
 
 /** The undo/redo mode a write of the given kind runs under. See {@link CommentMutationKind}. */
 function historyModeFor(
@@ -58,43 +65,67 @@ function historyModeFor(
  * Commit a comment mutation with the configured undo/redo behavior, so the
  * {@link CommentingOptions.history} option governs whether it lands on the undo stack. Defaults to
  * `'ignore'`. See {@link CommentMutationKind} for what each kind resolves to.
+ *
+ * `editor.run`'s history option isn't additive — a nested run overwrites the enclosing mode — so
+ * constituent records go through the callback's writer instead of opening a commit of their own,
+ * which would quietly make a `drag` write non-undoable.
+ *
+ * Commits that nest are only a problem when they resolve to different modes, and then neither is
+ * the right one to keep, so it throws. Matching modes have to nest: a host reacting from
+ * `store.listen` or a side effect runs inside the commit that triggered it, with no way to defer.
  * @internal
  */
 export function commitCommentMutation<T>(
 	editor: Editor,
-	fn: () => T,
+	fn: (writer: CommentMutationWriter) => T,
 	kind: CommentMutationKind = 'mutation'
 ): T {
 	const history = historyModeFor(getCommentingOptions(editor), kind)
-	let result: T
-	editor.run(
-		() => {
-			result = fn()
-		},
-		{ history }
-	)
-	return result!
-}
+	const enclosing = activeCommentMutations.get(editor)
+	if (enclosing && enclosing.history !== history) {
+		throw new Error(
+			`A comment mutation that records history as '${history}' can't run inside one recording it as '${enclosing.history}': one of the two modes would be silently discarded. Use the provided writer for constituent records, or run this operation after the enclosing one has committed.`
+		)
+	}
 
-/**
- * Write records without opening a commit, for call sites that already sit inside one.
- *
- * `editor.run`'s history option isn't additive — a nested run overwrites the enclosing mode — so
- * {@link putCommentRecords} inside a commit would discard the mode its caller chose, quietly
- * making a `drag` write non-undoable.
- *
- * @internal
- */
-export function putRecordsInCommit(editor: Editor, records: TLCommentRecord[]): void {
-	editor.store.put(records as unknown as TLRecord[])
-}
-
-/** {@link putRecordsInCommit}'s counterpart for removals. @internal */
-export function removeRecordsInCommit(
-	editor: Editor,
-	ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]
-): void {
-	editor.store.remove(ids as unknown as TLRecord['id'][])
+	activeCommentMutations.set(editor, { history })
+	try {
+		let result: T
+		editor.run(
+			() => {
+				let isWriterActive = true
+				const assertWriterActive = () => {
+					if (!isWriterActive) {
+						throw new Error(
+							'A comment mutation writer cannot be used after its commit has finished.'
+						)
+					}
+				}
+				try {
+					result = fn({
+						put: (records) => {
+							assertWriterActive()
+							editor.store.put(records as unknown as TLRecord[])
+						},
+						remove: (ids) => {
+							assertWriterActive()
+							editor.store.remove(ids as unknown as TLRecord['id'][])
+						},
+					})
+				} finally {
+					isWriterActive = false
+				}
+			},
+			{ history }
+		)
+		return result!
+	} finally {
+		if (enclosing) {
+			activeCommentMutations.set(editor, enclosing)
+		} else {
+			activeCommentMutations.delete(editor)
+		}
+	}
 }
 
 /**
@@ -107,7 +138,7 @@ export function removeRecordsInCommit(
  * @public
  */
 export function putCommentRecords(editor: Editor, records: TLCommentRecord[]): void {
-	commitCommentMutation(editor, () => putRecordsInCommit(editor, records))
+	commitCommentMutation(editor, ({ put }) => put(records))
 }
 
 /**
@@ -125,7 +156,7 @@ export function removeCommentRecords(
 	editor: Editor,
 	ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]
 ): void {
-	commitCommentMutation(editor, () => removeRecordsInCommit(editor, ids))
+	commitCommentMutation(editor, ({ remove }) => remove(ids))
 }
 
 /**
@@ -164,10 +195,10 @@ function readLatest<T extends TLComment | TLCommentThread>(
  * @public
  */
 export function editComment(editor: Editor, comment: TLComment, body: TLRichText): void {
-	commitCommentMutation(editor, () => {
+	commitCommentMutation(editor, ({ put }) => {
 		const current = readLatest(editor, comment)
 		if (!current) return
-		putRecordsInCommit(editor, [{ ...current, body, editedAt: Date.now() }])
+		put([{ ...current, body, editedAt: Date.now() }])
 	})
 }
 
@@ -181,10 +212,10 @@ export function editComment(editor: Editor, comment: TLComment, body: TLRichText
  * @public
  */
 export function resolveThread(editor: Editor, thread: TLCommentThread, userId: string): void {
-	commitCommentMutation(editor, () => {
+	commitCommentMutation(editor, ({ put }) => {
 		const current = readLatest(editor, thread)
 		if (!current) return
-		putRecordsInCommit(editor, [{ ...current, resolved: { at: Date.now(), by: userId } }])
+		put([{ ...current, resolved: { at: Date.now(), by: userId } }])
 	})
 }
 
@@ -195,10 +226,10 @@ export function resolveThread(editor: Editor, thread: TLCommentThread, userId: s
  * @public
  */
 export function reopenThread(editor: Editor, thread: TLCommentThread): void {
-	commitCommentMutation(editor, () => {
+	commitCommentMutation(editor, ({ put }) => {
 		const current = readLatest(editor, thread)
 		if (!current) return
-		putRecordsInCommit(editor, [{ ...current, resolved: null }])
+		put([{ ...current, resolved: null }])
 	})
 }
 
@@ -220,7 +251,7 @@ export function reopenThread(editor: Editor, thread: TLCommentThread): void {
 export function deleteComment(editor: Editor, comment: TLComment): void {
 	commitCommentMutation(
 		editor,
-		() => {
+		({ put }) => {
 			const current = readLatest(editor, comment)
 			// Deleting twice is nothing to do rather than something to redo. The check below counts this
 			// comment among the live ones, so it only reads as "the last one" while this delete takes it away.
@@ -230,7 +261,7 @@ export function deleteComment(editor: Editor, comment: TLComment): void {
 			if (isLastInThread && openThreadId.get(editor) === current.threadId) {
 				openThreadId.set(editor, null)
 			}
-			putRecordsInCommit(editor, [{ ...current, isDeleted: true }])
+			put([{ ...current, isDeleted: true }])
 		},
 		'delete'
 	)
@@ -249,13 +280,13 @@ export function deleteComment(editor: Editor, comment: TLComment): void {
 export function deleteThread(editor: Editor, thread: TLCommentThread): void {
 	commitCommentMutation(
 		editor,
-		() => {
+		({ put }) => {
 			const current = readLatest(editor, thread)
 			if (!current) return
 			if (openThreadId.get(editor) === current.id) {
 				openThreadId.set(editor, null)
 			}
-			putRecordsInCommit(editor, [{ ...current, isDeleted: true }])
+			put([{ ...current, isDeleted: true }])
 		},
 		'delete'
 	)

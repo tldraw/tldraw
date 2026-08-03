@@ -33,7 +33,6 @@ import {
 	deleteComment,
 	deleteThread,
 	editComment,
-	putRecordsInCommit,
 	reopenThread,
 	resolveThread,
 } from './comment-mutations'
@@ -296,16 +295,18 @@ export const ThreadView = memo(function ThreadView({
 
 	const postReply = () => {
 		if (isCommentEmpty(reply) || !currentUserId) return
-		commitCommentMutation(editor, () => {
+		const comment = commitCommentMutation(editor, ({ put }) => {
 			const comment = createComment({
 				threadId: thread.id,
 				pageId: thread.pageId,
 				authorId: currentUserId,
 				body: reply,
 			})
-			putRecordsInCommit(editor, [comment])
-			if (onPostComment) onPostComment(comment)
+			put([comment])
+			return comment
 		})
+		// The host's callback is its own operation, not part of the post's history scope.
+		onPostComment?.(comment)
 		setReply(EMPTY_COMMENT)
 		clearCommentDraft(replyDraftSlot(thread.id))
 	}
