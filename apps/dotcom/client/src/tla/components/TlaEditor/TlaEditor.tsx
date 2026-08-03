@@ -337,6 +337,10 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 	const anonCommentToolOverrides = useAnonCommentToolOverrides()
 	const commentingEnabled = useIsCommentingEnabled()
+	// Signed-out visitors get the toolbar button but not the comments layer: with no app there's no
+	// Zero query behind it, so there'd be no threads to show and nothing to write to. Their button
+	// opens the sign-in dialog instead of entering the tool — see `useAnonCommentToolOverrides`.
+	const commentToolItemEnabled = commentingEnabled || !app
 
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
@@ -354,10 +358,10 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	// gated by the tool's `canComment`.
 	const editorOverrides = useMemo(
 		() =>
-			commentingEnabled
+			commentToolItemEnabled
 				? [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides]
 				: [overrides, extraDragIconOverrides],
-		[commentingEnabled, overrides, extraDragIconOverrides, anonCommentToolOverrides]
+		[commentToolItemEnabled, overrides, extraDragIconOverrides, anonCommentToolOverrides]
 	)
 
 	return (
