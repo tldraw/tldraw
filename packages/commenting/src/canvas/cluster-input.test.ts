@@ -3,7 +3,13 @@ import { describe, expect, it } from 'vitest'
 // This import is red until step 6's filter module is implemented — that is
 // intentional. Implement `cluster-input.ts` per CLUSTERING-STEPS.md step 6
 // until this suite passes, without modifying this file.
-import { collectClusterLeaves } from './cluster-input'
+import type { LeafInput, LeafScreenOffsets } from '../clustering/types'
+import {
+	type ClusterInput,
+	clusterInputEqual,
+	clusterInputIdsEqual,
+	collectClusterLeaves,
+} from './cluster-input'
 import { defaultCommentingOptions, type CommentingOptions } from './options'
 
 const CURRENT_PAGE = 'page:one'
@@ -275,5 +281,85 @@ describe('collectClusterLeaves screen offsets', () => {
 		const input = collectClusterLeaves(editor, threads, null)
 		expect(input.leaves).toEqual([])
 		expect(input.screenOffsets).toBeUndefined()
+	})
+})
+
+// These two gate the O(N²) rebuild in `useClusterModel`. Both compare the leaves positionally, so
+// the order cases below are what pin the gate to `collectClusterLeaves` walking threads in order.
+const leaf = (id: string, x: number, y: number) => ({ id, point: { x, y } })
+const input = (leaves: LeafInput[], screenOffsets?: LeafScreenOffsets): ClusterInput => ({
+	leaves,
+	screenOffsets,
+})
+
+describe('clusterInputEqual', () => {
+	it('accepts the same leaves at the same positions, whatever the identity', () => {
+		const a = input([leaf('t1', 0, 0), leaf('t2', 10, 20)])
+		expect(clusterInputEqual(a, a)).toBe(true)
+		expect(clusterInputEqual(a, input([leaf('t1', 0, 0), leaf('t2', 10, 20)]))).toBe(true)
+		expect(clusterInputEqual(input([]), input([]))).toBe(true)
+	})
+
+	it('rejects a position change — a moved pin must rebuild the table', () => {
+		expect(clusterInputEqual(input([leaf('t1', 0, 0)]), input([leaf('t1', 0, 0.5)]))).toBe(false)
+		expect(clusterInputEqual(input([leaf('t1', 0, 0)]), input([leaf('t1', 0.5, 0)]))).toBe(false)
+	})
+
+	it('rejects an added, removed, renamed, or reordered leaf', () => {
+		const one = input([leaf('t1', 0, 0)])
+		const two = input([leaf('t1', 0, 0), leaf('t2', 1, 1)])
+		expect(clusterInputEqual(one, two)).toBe(false)
+		expect(clusterInputEqual(two, one)).toBe(false)
+		expect(clusterInputEqual(one, input([leaf('t2', 0, 0)]))).toBe(false)
+		expect(clusterInputEqual(two, input([leaf('t2', 1, 1), leaf('t1', 0, 0)]))).toBe(false)
+	})
+
+	it('rejects an offset change, which prices the same leaves differently', () => {
+		const leaves = [leaf('t1', 0, 0)]
+		const offsets = (x: number) => new Map([['t1', { x, y: 20 }]])
+		expect(clusterInputEqual(input(leaves, offsets(-20)), input(leaves, offsets(-20)))).toBe(true)
+		expect(clusterInputEqual(input(leaves, offsets(-20)), input(leaves, offsets(20)))).toBe(false)
+		// gaining or losing offsets entirely (a pin's precision changed)
+		expect(clusterInputEqual(input(leaves), input(leaves, offsets(-20)))).toBe(false)
+		expect(clusterInputEqual(input(leaves, offsets(-20)), input(leaves))).toBe(false)
+	})
+})
+
+describe('clusterInputIdsEqual', () => {
+	it('ignores positions and offset vectors — this is what defers the rebuild mid-drag', () => {
+		expect(clusterInputIdsEqual(input([leaf('t1', 0, 0)]), input([leaf('t1', 999, 999)]))).toBe(
+			true
+		)
+		// rotating mid-drag turns the inset; deferred like the anchor move it comes with
+		expect(
+			clusterInputIdsEqual(
+				input([leaf('t1', 0, 0)], new Map([['t1', { x: -20, y: 20 }]])),
+				input([leaf('t1', 5, 5)], new Map([['t1', { x: 20, y: -20 }]]))
+			)
+		).toBe(true)
+	})
+
+	it('still rejects an added or removed thread, so those rebuild even mid-drag', () => {
+		const one = input([leaf('t1', 0, 0)])
+		const two = input([leaf('t1', 0, 0), leaf('t2', 1, 1)])
+		expect(clusterInputIdsEqual(one, two)).toBe(false)
+		expect(clusterInputIdsEqual(two, one)).toBe(false)
+		expect(clusterInputIdsEqual(one, input([leaf('t2', 0, 0)]))).toBe(false)
+	})
+
+	it('still rejects a leaf that gained or lost its offset — a precision change, not a gesture', () => {
+		const leaves = [leaf('t1', 0, 0)]
+		expect(
+			clusterInputIdsEqual(input(leaves), input(leaves, new Map([['t1', { x: -20, y: 20 }]])))
+		).toBe(false)
+	})
+
+	it('rejects a reorder', () => {
+		expect(
+			clusterInputIdsEqual(
+				input([leaf('t1', 0, 0), leaf('t2', 1, 1)]),
+				input([leaf('t2', 1, 1), leaf('t1', 0, 0)])
+			)
+		).toBe(false)
 	})
 })

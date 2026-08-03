@@ -55,3 +55,49 @@ export function computePinStacks(
 	}
 	return stacks
 }
+
+/**
+ * Value equality for pin-stack maps, so the overlay can hold the map's identity across a recompute
+ * that changed no grouping. Membership only: two equal maps can describe stacks at different page
+ * points, so anything keyed on a stack's *point* must read the anchors itself, as
+ * {@link isOpenStackKeyLive} does.
+ * @internal
+ */
+export function pinStacksEqual(
+	a: ReadonlyMap<string, readonly string[]>,
+	b: ReadonlyMap<string, readonly string[]>
+): boolean {
+	if (a === b) return true
+	if (a.size !== b.size) return false
+	for (const [id, group] of b) {
+		const prevGroup = a.get(id)
+		if (!prevGroup) return false
+		if (prevGroup === group) continue
+		if (prevGroup.length !== group.length) return false
+		for (let i = 0; i < group.length; i++) {
+			if (prevGroup[i] !== group[i]) return false
+		}
+	}
+	return true
+}
+
+/**
+ * Whether an open-stack key still names a stack on the canvas — false once that stack is emptied,
+ * moved, or off the page, at which point the caller must clear the key. Reads the anchors, so a
+ * reactive caller re-evaluates on a move that {@link pinStacksEqual} can't see.
+ * @internal
+ */
+export function isOpenStackKeyLive(
+	editor: Editor,
+	key: string,
+	stacks: ReadonlyMap<string, readonly string[]>,
+	threadsById: ReadonlyMap<string, TLCommentThread>
+): boolean {
+	for (const id of stacks.keys()) {
+		const thread = threadsById.get(id)
+		if (!thread) continue
+		const point = anchorPagePoint(editor, thread.anchor)
+		if (point && pinStackKey(point) === key) return true
+	}
+	return false
+}

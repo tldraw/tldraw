@@ -1824,8 +1824,13 @@ export class TLFileDurableObject extends DurableObject {
 
 				const storage = await this.getStorage()
 				assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+				// Targeted reads, not a full snapshot: each lane read is a SELECT + JSON.parse, so
+				// snapshotting would make every drain O(all comments). Both reads run synchronously
+				// here, before any await, so `lane` keeps its snapshot semantics.
 				const lane = new Map(
-					storage.getObjectsSnapshot().map((doc) => [doc.state.id as string, doc])
+					storage
+						.getObjectsByIds(entries.map((e) => e.recordId))
+						.map((doc) => [doc.state.id as string, doc])
 				)
 				const fileId = this.documentInfo.slug
 
@@ -1838,6 +1843,15 @@ export class TLFileDurableObject extends DurableObject {
 					reactionDeletes,
 					unknownIds,
 				} = planCommentDrain(entries, lane, fileId)
+				// The prune predicate below asks `lane.has(threadId)`, and a parent thread needn't be
+				// outboxed itself — so fetch those too, still before any await.
+				const parentThreadIds = new Set<string>()
+				for (const row of commentUpserts) {
+					if (!lane.has(row.threadId)) parentThreadIds.add(row.threadId)
+				}
+				for (const doc of storage.getObjectsByIds(parentThreadIds)) {
+					lane.set(doc.state.id as string, doc)
+				}
 				for (const id of unknownIds) {
 					// enqueueCommentChanges only writes comment record ids, so an unknown
 					// id means a bug or a corrupted outbox row. Skip it — its entry still clears

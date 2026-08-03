@@ -4,7 +4,12 @@ import { computeClusterTable } from '../clustering/computeClusterTable'
 import { type ClusterRuntime, createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, MergeEvent } from '../clustering/types'
 import { type ClusterFadeNode, useFadeVisibleNodes } from './cluster-fade'
-import { collectClusterLeaves } from './cluster-input'
+import {
+	type ClusterInput,
+	clusterInputEqual,
+	clusterInputIdsEqual,
+	collectClusterLeaves,
+} from './cluster-input'
 import { type CommentingOptions } from './options'
 import { openThreadId } from './state'
 import { anchorPagePoint, commentCenterScreenOffset } from './thread-state'
@@ -17,6 +22,22 @@ const CLUSTER_SPLIT_ZOOM_FACTOR = 1.05
 
 const EMPTY_SET: ReadonlySet<string> = new Set()
 const MOVED_LEAF_EPSILON = 1e-6
+
+/** Default select-tool states that move shapes continuously, one store write per pointermove. A
+ *  custom tool in their place just never matches, falling back to a rebuild per frame. */
+const SHAPE_DRAG_STATE_PATHS = [
+	'select.translating',
+	'select.resizing',
+	'select.rotating',
+	'select.dragging_handle',
+	'select.crop.cropping',
+] as const
+
+/** Reactive: `isInAny` reads the tool state path, so a computed reading this re-evaluates when the
+ *  gesture starts or settles. */
+function isShapeDragInProgress(editor: Editor): boolean {
+	return editor.isInAny(...SHAPE_DRAG_STATE_PATHS)
+}
 
 /** The clustering table for the current scene, plus the runtime walking its merge events. */
 export interface ClusterModel {
@@ -63,14 +84,30 @@ export function useClusterModel(
 	// as live pins riding their anchor and rejoin clustering on the next zoom-out.
 	const [heldThreadIds, setHeldThreadIds] = useState<ReadonlySet<string>>(EMPTY_SET)
 	const adoptOnRebuild = useRef(false)
+	// This input's identity keys the O(N²) table rebuild below, so it's gated on value equality: a
+	// reply, a reaction, a resolve — anything that touches comment records without moving a pin —
+	// returns the previous input and rebuilds nothing.
+	//
+	// Mid-drag the gate widens to ignore positions too, and that costs something real: it freezes
+	// `latestModel`, which is where `findMovedClusteredLeafIds` reads live positions from, so a pin
+	// folded into a badge stops popping out to ride its anchor and corrects on release instead. The
+	// per-frame rebuild it buys back was paid by every drag on the board, comment-anchored or not.
+	// An added or deleted thread changes the id set, so it still rebuilds promptly.
+	const clusterInputRef = useRef<ClusterInput>({ leaves: [], screenOffsets: undefined })
 	const clusterInput = useValue(
 		'comment cluster leaves',
-		() =>
-			collectClusterLeaves(
+		() => {
+			const next = collectClusterLeaves(
 				editor,
 				threads.filter((thread) => !heldThreadIds.has(thread.id)),
 				openThreadId.get(editor)
-			),
+			)
+			const prev = clusterInputRef.current
+			if (isShapeDragInProgress(editor) && clusterInputIdsEqual(prev, next)) return prev
+			if (clusterInputEqual(prev, next)) return prev
+			clusterInputRef.current = next
+			return next
+		},
 		[editor, threads, heldThreadIds]
 	)
 	const clusterZoomBounds = useValue(

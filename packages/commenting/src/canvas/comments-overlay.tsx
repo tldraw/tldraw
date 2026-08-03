@@ -1,5 +1,5 @@
 import { isMentionPickerOpen } from '@tldraw/mentions'
-import { Fragment, ReactNode, useCallback, useEffect, useMemo } from 'react'
+import { Fragment, ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
 import { EditorPortal, TLCommentThread, useEditor, useValue } from 'tldraw'
 import type { ClusterNode } from '../clustering/types'
 import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
@@ -17,7 +17,7 @@ import { useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
 import { useCanComment, useCommentingOptions } from './options'
 import { PendingComposer } from './pending-composer'
-import { computePinStacks, pinStackKey } from './pin-stacking'
+import { computePinStacks, isOpenStackKeyLive, pinStacksEqual } from './pin-stacking'
 import { RegionBox, RegionDraftBox } from './region-box'
 import {
 	commentsHidden,
@@ -31,7 +31,6 @@ import {
 } from './state'
 import { ThreadPin } from './thread-pin'
 import { ThreadStackPin } from './thread-stack'
-import { anchorPagePoint } from './thread-state'
 
 /**
  * The host wiring for {@link CanvasComments} — see {@link CommentingContext}, which the sidebar
@@ -98,11 +97,20 @@ function CanvasCommentsLayer(props: CommentingContext) {
 		[threads]
 	)
 	// Pins with the *same* anchor point coincide at every zoom, so they render as one count-badge
-	// stack. Keyed on page-space anchors, so camera moves never recompute this.
-	const pinStacks = useValue('comment pin stacks', () => computePinStacks(editor, threads), [
-		editor,
-		threads,
-	])
+	// stack. Keyed on page-space anchors, so camera moves never recompute this. Holding the map's
+	// identity while the grouping is unchanged keeps a reply from re-rendering every pin — but the
+	// map has no positions in it, so anything needing a stack's *point* must read the anchors itself.
+	const pinStacksRef = useRef<Map<string, readonly string[]>>(new Map())
+	const pinStacks = useValue(
+		'comment pin stacks',
+		() => {
+			const stacks = computePinStacks(editor, threads)
+			if (pinStacksEqual(pinStacksRef.current, stacks)) return pinStacksRef.current
+			pinStacksRef.current = stacks
+			return stacks
+		},
+		[editor, threads]
+	)
 	const openThread = openId ? threadsById.get(openId) : null
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 
@@ -117,18 +125,20 @@ function CanvasCommentsLayer(props: CommentingContext) {
 
 	// Clear a stale open-stack key: only the stack's own mounted handlers clear it, so collapsing to
 	// a single pin strands it — and `useMarkerPreview` reads any non-null value as "a stack is open"
-	// and suppresses every hover preview. Kept while any live stack still sits at that key.
+	// and suppresses every hover preview. Kept while any live stack still sits at that key. Reads the
+	// anchors rather than keying off `pinStacks`, whose identity survives a stack moving as a whole.
+	const openStackKeyIsStale = useValue(
+		'open stack key stale',
+		() => {
+			const key = openStackId.get(editor)
+			if (!key) return false
+			return !isOpenStackKeyLive(editor, key, pinStacks, threadsById)
+		},
+		[editor, pinStacks, threadsById]
+	)
 	useEffect(() => {
-		const key = openStackId.get(editor)
-		if (!key) return
-		for (const id of pinStacks.keys()) {
-			const thread = threadsById.get(id)
-			if (!thread) continue
-			const point = anchorPagePoint(editor, thread.anchor)
-			if (point && pinStackKey(point) === key) return
-		}
-		openStackId.set(editor, null)
-	}, [editor, pinStacks, threadsById])
+		if (openStackKeyIsStale) openStackId.set(editor, null)
+	}, [editor, openStackKeyIsStale])
 
 	// The requested thread, once it (and, for a comment id, its parent thread) has synced into the
 	// store; null while records are still arriving or when no request is pending.
