@@ -3490,7 +3490,6 @@ export interface TLBaseEventInfo {
 export interface TLBaseExternalContent {
     // (undocumented)
     point?: VecLike;
-    // (undocumented)
     sources?: TLExternalContentSource[];
 }
 
