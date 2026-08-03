@@ -17,10 +17,9 @@ const defineQueries = defineQueriesWithType<TlaSchema>()
 /** Upper bound on the comments notifications feed, so the synced set stays finite as files accrue. */
 const RECENT_COMMENTS_LIMIT = 50
 
-/** Bound on the reactions feed, counted in reaction rows; the byline's "and N others" absorbs
- *  undercounts, but a comment with 200+ recent reactions can push every other comment's rows out
- *  of the window entirely, not just shrink a byline. */
-export const RECENT_REACTIONS_LIMIT = 200
+/** Bound on the reactions feed, counted in reacted-to comments — one row per comment of the
+ *  caller's that someone else has reacted to, however many reactions it carries. */
+export const REACTED_COMMENTS_LIMIT = 200
 
 /**
  * Upper bound on the per-file @-mention roster of past viewers, so a heavily-viewed public board
@@ -157,46 +156,60 @@ export const queries = defineQueries({
 	),
 
 	/**
-	 * Reactions to the user's comments, for the notifications feed. Rooted at comment_reaction and
-	 * ordered by reaction time, not comment time, so a fresh reaction on an old comment still syncs.
-	 * Access gates mirror the comments query; grouping into per-comment entries is client-side.
+	 * The caller's own comments that someone else has reacted to, for the notifications feed's
+	 * "reacted to your comment" entries. Access gates mirror the comments query; grouping and
+	 * ordering by reaction time are client-side (see `buildReactionNotifications`).
+	 *
+	 * Rooted at `comment`, *not* at `comment_reaction`, so the file-access gate sits one level from
+	 * the root exactly as it does in {@link comments}. Rooting at the reaction put that gate behind
+	 * a second correlated subquery, and the fileId correlation then stopped being pushed down into
+	 * `file`'s `states`/`groupFiles` relations: the query traversed those tables — hundreds of
+	 * thousands of rows — rather than the handful of files it actually concerned. It materialized in
+	 * ~150s against production data while `comment_reaction` held ~50 rows, which outran the sync
+	 * connection's 60s auth token and left every client unable to finish a first sync. The cost of
+	 * one of these queries is set by how deep the file gate sits, not by how much comment data
+	 * exists, so keep it at depth 1.
+	 *
+	 * Bounded to {@link REACTED_COMMENTS_LIMIT} by comment recency rather than reaction recency, so
+	 * a reaction on a comment older than the window doesn't surface. The window counts only the
+	 * caller's own reacted-to comments, so it's far slacker than the reaction-counted bound it
+	 * replaced.
 	 */
 	reactions: defineQuery(({ ctx }) =>
-		zql.comment_reaction
-			.where('userId', '!=', ctx.userId)
-			.whereExists('comment', (c) =>
-				c
-					.where('authorId', '=', ctx.userId)
-					.where('isDeleted', '=', false)
-					.whereExists('thread', (t) => t.where('isDeleted', '=', false))
-					.whereExists('file', (f) =>
-						f.where(({ and, cmp, or, exists }) =>
-							and(
-								cmp('isDeleted', '=', false),
-								or(
-									cmp('ownerId', '=', ctx.userId),
-									exists('states', (s) => s.where('userId', '=', ctx.userId)),
-									exists('groupFiles', (gf) =>
-										gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
-									)
+		zql.comment
+			.where('authorId', '=', ctx.userId)
+			// soft-deleted comments and comments of soft-deleted threads stay in Postgres but must
+			// never surface as notifications, same as in `comments`
+			.where('isDeleted', '=', false)
+			.whereExists('thread', (t) => t.where('isDeleted', '=', false))
+			.whereExists('file', (f) => f.where('isDeleted', '=', false))
+			// somebody else reacted — the entry's whole reason for existing. Without this the feed
+			// would sync every comment the user has ever written
+			.whereExists('reactions', (r) => r.where('userId', '!=', ctx.userId))
+			// having authored a comment doesn't outlive access to the board it's on
+			.where(({ or, exists }) =>
+				or(
+					exists('file', (f) => f.where('ownerId', '=', ctx.userId)),
+					exists('file', (f) =>
+						f.where(({ or, exists }) =>
+							or(
+								exists('states', (s) => s.where('userId', '=', ctx.userId)),
+								exists('groupFiles', (gf) =>
+									gf.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
 								)
 							)
 						)
 					)
+				)
 			)
-			// the reacted-to comment, with what the notification row renders
-			.related('comment', (c) =>
-				c
-					.one()
-					.related('file', (f) => f.one())
-					.related('thread', (t) => t.one())
-					.related('read', (r) => r.where('userId', '=', ctx.userId).one())
-					// every reaction incl. the caller's own: pills need exact counts and the own-reaction
-					// highlight, which the window-capped feed rows can't provide
-					.related('reactions')
-			)
+			.related('file', (file) => file.one())
+			.related('thread', (thread) => thread.one())
+			.related('read', (read) => read.where('userId', '=', ctx.userId).one())
+			// every reaction incl. the caller's own: pills need exact counts and the own-reaction
+			// highlight
+			.related('reactions')
 			.orderBy('createdAt', 'desc')
-			.limit(RECENT_REACTIONS_LIMIT)
+			.limit(REACTED_COMMENTS_LIMIT)
 	),
 
 	/**
