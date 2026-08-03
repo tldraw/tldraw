@@ -46,19 +46,23 @@ export function Reaction({
 	ReactionTooltip = DefaultReactionTooltip,
 	onClick,
 }: ReactionProps) {
+	// An inert pill (no handler) is plain content, not a control — rendering it as a span keeps it
+	// valid inside an anchor row (e.g. a notification list item) and out of the tab order.
+	const Tag = onClick ? 'button' : 'span'
 	const pill = (
-		<button
+		<Tag
 			className={active ? 'tlui-cmt-reaction tlui-cmt-reaction--active' : 'tlui-cmt-reaction'}
-			type="button"
+			{...(onClick
+				? { type: 'button' as const, 'aria-pressed': active, onClick }
+				: { role: 'img' as const })}
 			// The emoji alone announces as its unicode name ("thumbs up"); pairing it with the count
-			// is what makes the pill's state legible to a screen reader.
+			// is what makes the pill's state legible to a screen reader. The inert span needs the
+			// img role for the label to be announced at all.
 			aria-label={`${emoji} ${count}`}
-			aria-pressed={active}
-			onClick={onClick}
 		>
 			<span className="tlui-cmt-reaction__emoji">{renderReaction(emoji)}</span>
 			<span className="tlui-cmt-reaction__count">{count}</span>
-		</button>
+		</Tag>
 	)
 
 	// A bare pill when hovering is suppressed, or when there's no one to name.

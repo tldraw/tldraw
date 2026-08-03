@@ -412,12 +412,17 @@
 	font-size: 10px;
 	font-weight: 400;
 	color: var(--tl-color-text-1);
+}
+
+/* An inert pill renders as a span (e.g. in a notification row); only the button variant is
+   clickable, so only it gets the pointer cursor and hover shade. */
+button.tlui-cmt-reaction {
 	cursor: pointer;
 }
 
 /* Hover deepens the grey — no border to tint now. Mixing toward the text colour is theme-aware:
    it darkens the fill in light mode and lightens it in dark, tracking the pill's own contrast. */
-.tlui-cmt-reaction:hover {
+button.tlui-cmt-reaction:hover {
 	background: var(--tl-color-muted-1);
 }
 
@@ -427,7 +432,7 @@
 	background: color-mix(in srgb, var(--tl-color-selected) 28%, var(--tl-color-panel));
 }
 
-.tlui-cmt-reaction--active:hover {
+button.tlui-cmt-reaction--active:hover {
 	background: color-mix(in srgb, var(--tl-color-selected) 38%, var(--tl-color-panel));
 }
 
@@ -600,47 +605,28 @@
 	   space-between alone would leave them at the left). */
 	margin-left: auto;
 }
-/* Follows tldraw's toolbar buttons (.tlui-button), used by both the header and card actions: the
-   button is the 40px hit target that tiles with its neighbours; its 32px ::after is the visual
-   square carrying the hover wash, so the hit area (not the ::after) is what's clickable and it
-   never reaches past its row. */
-.tlui-cmt-thread__action {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+/* These are TldrawUiButtons (type="icon"), so the 40px box, the 32px ::after square carrying the
+   hover wash, and the hover z-index flip all come from .tlui-button — the hit area (not the
+   ::after) is what's clickable, and it never reaches past its row. Only the bits that differ from
+   a toolbar button are set here, at .tlui-button's specificity + 1 so stylesheet order can't
+   decide the winner. */
+.tlui-button.tlui-cmt-thread__action {
 	width: 40px;
-	height: 40px;
 	padding: 0;
-	border: none;
 	border-radius: 6px;
-	background: transparent;
 	color: var(--tl-color-text-3);
 	font-size: 14px;
 	line-height: 1;
-	cursor: pointer;
 }
 /* Overlap each button 4px into the previous so the 32px visual squares sit 4px apart, not 8px.
    Left-only, so the last button's hit area still stops at its row's right edge. */
 .tlui-cmt-thread__action + .tlui-cmt-thread__action {
 	margin-left: -4px;
 }
-.tlui-cmt-thread__action::after {
-	content: '';
-	position: absolute;
-	inset: 4px;
-	border-radius: var(--tl-radius-2);
-}
-.tlui-cmt-thread__action:hover {
+.tlui-button.tlui-cmt-thread__action:hover {
 	color: var(--tl-color-text-1);
-	/* Raise the hovered button above its overlapping neighbours so its 40px hit area wins the
-	   overlap zone — the same z-index flip tldraw's own toolbar buttons use. */
-	z-index: 1;
 }
-.tlui-cmt-thread__action:hover::after {
-	background: var(--tl-color-muted-2);
-}
-.tlui-cmt-thread__action--danger:hover {
+.tlui-button.tlui-cmt-thread__action--danger:hover {
 	color: var(--tl-color-danger);
 }
 .tlui-cmt-thread__resolved {
@@ -784,36 +770,34 @@
 	color: var(--tl-color-text-1);
 }
 
-/* a small square icon button in the sidebar header (filter funnel, overflow …) */
-.tlui-cmt-header-btn {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+/* A small square icon button in the sidebar header (filter funnel, overflow …). Also a
+   TldrawUiButton, but a bespoke 26px size — so it has to override .tlui-button's 40px box, and
+   `min-width` in particular would otherwise beat `width`. Selectors carry .tlui-button so
+   stylesheet order can't decide the winner. */
+.tlui-button.tlui-cmt-header-btn {
 	width: 26px;
+	min-width: 26px;
 	height: 26px;
 	padding: 0;
-	border: none;
 	border-radius: 6px;
-	background: transparent;
 	color: var(--tl-color-text-2);
-	cursor: pointer;
 }
 /* Same hit-target expansion as the thread actions, tiled the same way — this row's gap is 2px too
-   (see `.tlui-cmt-list__header-actions`). */
-.tlui-cmt-header-btn::after {
-	content: '';
-	position: absolute;
+   (see `.tlui-cmt-list__header-actions`). Unlike the thread actions, the hover fill sits on the
+   button itself, so .tlui-button's ::after wash is cleared and the pseudo-element is left doing
+   nothing but widening the hit area. */
+.tlui-button.tlui-cmt-header-btn::after {
 	inset: -6px -1px;
+	background: none;
 }
-.tlui-cmt-header-btn:first-child::after {
+.tlui-button.tlui-cmt-header-btn:first-child::after {
 	left: -6px;
 }
-.tlui-cmt-header-btn:last-child::after {
+.tlui-button.tlui-cmt-header-btn:last-child::after {
 	right: -6px;
 }
-.tlui-cmt-header-btn:hover,
-.tlui-cmt-header-btn[data-state='open'] {
+.tlui-button.tlui-cmt-header-btn:hover,
+.tlui-button.tlui-cmt-header-btn[data-state='open'] {
 	background: var(--tl-color-muted-2);
 	color: var(--tl-color-text-1);
 }

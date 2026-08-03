@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import { ReactNode, forwardRef } from 'react'
 import { useTranslation } from 'tldraw'
 import { Avatar } from './avatar'
 import { CommentAuthor } from './comment-author'
@@ -56,23 +56,20 @@ function DefaultMemberRow({ member }: { member: MentionMember }) {
  * placement, and drives this with the host-resolved `members` and the highlighted `activeIndex`.
  * @public @react
  */
-export function MentionList({
-	members,
-	activeIndex = 0,
-	onSelect,
-	emptyLabel,
-	renderMember,
-}: MentionListProps) {
+export const MentionList = forwardRef<HTMLDivElement, MentionListProps>(function MentionList(
+	{ members, activeIndex = 0, onSelect, emptyLabel, renderMember },
+	ref
+) {
 	const msg = useTranslation()
 	if (members.length === 0) {
 		return (
-			<div className="tlui-cmt-mention-list tlui-cmt-mention-list--empty">
+			<div ref={ref} className="tlui-cmt-mention-list tlui-cmt-mention-list--empty">
 				{emptyLabel ?? msg('comments.mention-no-matches')}
 			</div>
 		)
 	}
 	return (
-		<div className="tlui-cmt-mention-list" role="listbox">
+		<div ref={ref} className="tlui-cmt-mention-list" role="listbox">
 			{members.map((member, i) => {
 				const active = i === activeIndex
 				return (
@@ -100,4 +97,4 @@ export function MentionList({
 			})}
 		</div>
 	)
-}
+})

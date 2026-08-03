@@ -67,7 +67,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 			stubEditor(),
 			[thread('t1', { type: 'point', x: 12, y: 34 })],
 			null
-		)
+		).leaves
 		expect(leaves).toEqual([{ id: 't1', point: { x: 12, y: 34 } }])
 	})
 
@@ -76,7 +76,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 			stubEditor(),
 			[thread('t1', { type: 'region', x: 10, y: 20, w: 30, h: 40 })],
 			null
-		)
+		).leaves
 		expect(leaves).toEqual([{ id: 't1', point: { x: 40, y: 60 } }])
 	})
 
@@ -88,7 +88,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 			editor,
 			[thread('t1', { type: 'shape', shapeId: 'shape:a' as any, x: 0, y: 0, isPrecise: false })],
 			null
-		)
+		).leaves
 		expect(leaves).toEqual([{ id: 't1', point: { x: 100, y: 5 } }])
 	})
 
@@ -114,7 +114,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 				isPrecise: true,
 			}),
 		]
-		const leaves = collectClusterLeaves(editor, threads, null)
+		const leaves = collectClusterLeaves(editor, threads, null).leaves
 		expect(leaves).toEqual([
 			{ id: 'imprecise', point: { x: 50, y: 50 } },
 			{ id: 'precise', point: { x: 50, y: 25 } },
@@ -135,7 +135,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 				thread('kept', { type: 'point', x: 1, y: 2 }),
 			],
 			null
-		)
+		).leaves
 		expect(leafIds(leaves)).toEqual(['kept'])
 	})
 
@@ -144,7 +144,7 @@ describe('collectClusterLeaves anchor resolution', () => {
 			stubEditor(),
 			[thread('pageThread', { type: 'page' }), thread('kept', { type: 'point', x: 1, y: 2 })],
 			null
-		)
+		).leaves
 		expect(leafIds(leaves)).toEqual(['kept'])
 	})
 })
@@ -158,7 +158,7 @@ describe('collectClusterLeaves filtering', () => {
 				thread('elsewhere', { type: 'point', x: 0, y: 0 }, { pageId: OTHER_PAGE }),
 			],
 			null
-		)
+		).leaves
 		expect(leafIds(leaves)).toEqual(['here'])
 	})
 
@@ -167,10 +167,13 @@ describe('collectClusterLeaves filtering', () => {
 			thread('open', { type: 'point', x: 0, y: 0 }),
 			thread('closed', { type: 'point', x: 10, y: 0 }),
 		]
-		expect(leafIds(collectClusterLeaves(stubEditor(), threads, 'open'))).toEqual(['closed'])
-		expect(leafIds(collectClusterLeaves(stubEditor(), threads, null))).toEqual(['closed', 'open'])
+		expect(leafIds(collectClusterLeaves(stubEditor(), threads, 'open').leaves)).toEqual(['closed'])
+		expect(leafIds(collectClusterLeaves(stubEditor(), threads, null).leaves)).toEqual([
+			'closed',
+			'open',
+		])
 		// an id that matches no thread excludes nothing
-		expect(leafIds(collectClusterLeaves(stubEditor(), threads, 'unknown'))).toEqual([
+		expect(leafIds(collectClusterLeaves(stubEditor(), threads, 'unknown').leaves)).toEqual([
 			'closed',
 			'open',
 		])
@@ -184,12 +187,12 @@ describe('collectClusterLeaves filtering', () => {
 				thread('unresolved', { type: 'point', x: 10, y: 0 }),
 			],
 			null
-		)
+		).leaves
 		expect(leafIds(leaves)).toEqual(['resolved', 'unresolved'])
 	})
 
 	it('returns [] for no threads', () => {
-		expect(collectClusterLeaves(stubEditor(), [], null)).toEqual([])
+		expect(collectClusterLeaves(stubEditor(), [], null).leaves).toEqual([])
 	})
 
 	it('applies every rule at once on a mixed set', () => {
@@ -218,7 +221,7 @@ describe('collectClusterLeaves filtering', () => {
 			thread('openOne', { type: 'point', x: 3, y: 3 }),
 			thread('resolvedOne', { type: 'point', x: 4, y: 4 }, { resolved: true }),
 		]
-		const leaves = collectClusterLeaves(editor, threads, 'openOne')
+		const leaves = collectClusterLeaves(editor, threads, 'openOne').leaves
 		expect(leafIds(leaves)).toEqual(['onShape', 'point', 'region', 'resolvedOne'])
 	})
 
@@ -227,5 +230,50 @@ describe('collectClusterLeaves filtering', () => {
 		const snapshot = JSON.parse(JSON.stringify(threads))
 		collectClusterLeaves(stubEditor(), threads, 'a')
 		expect(JSON.parse(JSON.stringify(threads))).toEqual(snapshot)
+	})
+})
+
+describe('collectClusterLeaves screen offsets', () => {
+	it('is undefined when every pin renders on its anchor', () => {
+		const editor = stubEditor({ 'shape:a': { minX: 0, minY: 0, maxX: 100, maxY: 50 } })
+		const threads = [
+			thread('point', { type: 'point', x: 1, y: 2 }),
+			thread('region', { type: 'region', x: 0, y: 0, w: 5, h: 5 }),
+			thread('precise', {
+				type: 'shape',
+				shapeId: 'shape:a' as any,
+				x: 0.5,
+				y: 0.5,
+				isPrecise: true,
+			}),
+		]
+		expect(collectClusterLeaves(editor, threads, null).screenOffsets).toBeUndefined()
+	})
+
+	it('maps imprecise leaves to their pin inset, and only those', () => {
+		const editor = stubEditor({ 'shape:a': { minX: 0, minY: 0, maxX: 100, maxY: 50 } })
+		const threads = [
+			thread('imprecise', {
+				type: 'shape',
+				shapeId: 'shape:a' as any,
+				x: 0,
+				y: 0,
+				isPrecise: false,
+			}),
+			thread('point', { type: 'point', x: 1, y: 2 }),
+		]
+		const { screenOffsets } = collectClusterLeaves(editor, threads, null)
+		// Default top-right anchor spot: the pin tucks left and down into the shape.
+		expect(screenOffsets).toEqual(new Map([['imprecise', { x: -20, y: 20 }]]))
+	})
+
+	it('excludes threads that produced no leaf', () => {
+		const editor = stubEditor({}) // shape does not resolve
+		const threads = [
+			thread('gone', { type: 'shape', shapeId: 'shape:x' as any, x: 0, y: 0, isPrecise: false }),
+		]
+		const input = collectClusterLeaves(editor, threads, null)
+		expect(input.leaves).toEqual([])
+		expect(input.screenOffsets).toBeUndefined()
 	})
 })

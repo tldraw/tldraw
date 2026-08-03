@@ -1,13 +1,11 @@
 import { Avatar, isMentionPickerOpen } from '@tldraw/mentions'
 import { useEffect, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import {
 	createComment,
 	createCommentThread,
 	Editor,
+	EditorPortal,
 	TLRichText,
-	useContainer,
-	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useTranslation,
 	useValue,
@@ -60,10 +58,8 @@ export function PendingComposer({
 	)
 	const ref = useRef<HTMLDivElement>(null)
 	const msg = useTranslation()
-	const container = useContainer()
-	// Over this floating panel, scroll and hover reach the canvas (except where it scrolls itself).
+	// Over this floating panel, a scroll reaches the canvas (except where it scrolls itself).
 	usePassThroughWheelEvents(ref)
-	usePassThroughMouseOverEvents(ref)
 
 	const point = useValue('composer point', () => editor.pageToViewport(pending.point), [
 		editor,
@@ -108,45 +104,46 @@ export function PendingComposer({
 		pendingComment.set(editor, null)
 	}
 
-	return createPortal(
-		<div
-			ref={ref}
-			className={[
-				'tlui-cmt-canvas-composer',
-				pending.anchor.type === 'region' && 'tlui-cmt-canvas-composer--region',
-				!canComment && 'tlui-cmt-canvas-composer--fallback',
-			]
-				.filter(Boolean)
-				.join(' ')}
-			style={{ left: point.x, top: point.y }}
-			onPointerDown={stop}
-			onContextMenu={stop}
-			onKeyDown={(e) => {
-				if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(editor, null)
-			}}
-		>
-			{canComment ? (
-				<CommentComposer
-					author={me ?? UNKNOWN_COMMENT_AUTHOR}
-					placeholder={msg('comments.add-placeholder')}
-					sendLabel={msg('comments.send')}
-					value={text}
-					onChange={(value) => {
-						setText(value)
-						saveCommentDraft(NEW_COMMENT_DRAFT, value)
-					}}
-					onSubmit={submit}
-					// No user, no author for the record — dead send button.
-					disabled={isCommentEmpty(text) || !currentUserId}
-					getMentionSuggestions={getMentionSuggestions}
-					renderMentionSuggestion={renderMentionSuggestion}
-					autoFocus
-					leading={draftAvatar}
-				/>
-			) : (
-				ComposerFallback && <ComposerFallback context="pending" />
-			)}
-		</div>,
-		container
+	return (
+		<EditorPortal>
+			<div
+				ref={ref}
+				className={[
+					'tlui-cmt-canvas-composer',
+					pending.anchor.type === 'region' && 'tlui-cmt-canvas-composer--region',
+					!canComment && 'tlui-cmt-canvas-composer--fallback',
+				]
+					.filter(Boolean)
+					.join(' ')}
+				style={{ left: point.x, top: point.y }}
+				onPointerDown={stop}
+				onContextMenu={stop}
+				onKeyDown={(e) => {
+					if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(editor, null)
+				}}
+			>
+				{canComment ? (
+					<CommentComposer
+						author={me ?? UNKNOWN_COMMENT_AUTHOR}
+						placeholder={msg('comments.add-placeholder')}
+						sendLabel={msg('comments.send')}
+						value={text}
+						onChange={(value) => {
+							setText(value)
+							saveCommentDraft(NEW_COMMENT_DRAFT, value)
+						}}
+						onSubmit={submit}
+						// No user, no author for the record — dead send button.
+						disabled={isCommentEmpty(text) || !currentUserId}
+						getMentionSuggestions={getMentionSuggestions}
+						renderMentionSuggestion={renderMentionSuggestion}
+						autoFocus
+						leading={draftAvatar}
+					/>
+				) : (
+					ComposerFallback && <ComposerFallback context="pending" />
+				)}
+			</div>
+		</EditorPortal>
 	)
 }

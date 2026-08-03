@@ -5,12 +5,14 @@
 ```ts
 
 import { Editor } from 'tldraw';
+import { ForwardRefExoticComponent } from 'react';
 import { JsonObject } from 'tldraw';
 import { JSX } from 'react/jsx-runtime';
 import { MentionNodeAttrs } from '@tiptap/extension-mention';
 import { MentionOptions } from '@tiptap/extension-mention';
 import { Node as Node_2 } from '@tiptap/core';
 import { ReactNode } from 'react';
+import { RefAttributes } from 'react';
 import type { SuggestionOptions } from '@tiptap/suggestion';
 
 // @public
@@ -53,7 +55,7 @@ export interface MentionExtensionOptions {
 }
 
 // @public
-export function MentionList({ members, activeIndex, onSelect, emptyLabel, renderMember }: MentionListProps): JSX.Element;
+export const MentionList: ForwardRefExoticComponent<MentionListProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
 export interface MentionListProps {

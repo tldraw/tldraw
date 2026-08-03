@@ -23,9 +23,11 @@ export { CountBadge, type CountBadgeProps } from './ui/count-badge'
 export { CommentPin, type CommentPinProps } from './ui/comment-pin'
 export { CommentThread, type CommentThreadProps } from './ui/comment-thread'
 export {
+	CommentListItem,
 	CommentsList,
 	isOpenInNewTabClick,
 	type CommentListItemProps,
+	type CommentListItemRenderProps,
 	type CommentsListProps,
 } from './ui/comments-list'
 export { EmptyState, type EmptyStateProps } from './ui/empty-state'
@@ -73,6 +75,7 @@ export {
 	type CommentReactionPickerProps,
 	CommentReactions,
 	type CommentReactionsProps,
+	type ReactionSummaryInput,
 	summarizeReactions,
 	toggleCommentReaction,
 	useCommentReactions,
@@ -108,7 +111,12 @@ export {
 } from './canvas/options'
 export { CommentsOverflowMenu } from './canvas/comments-overflow-menu'
 export { CommentsVisibilityToggle } from './canvas/comments-visibility-toggle'
-export { CanvasCommentsSidebar, type CanvasCommentsSidebarProps } from './canvas/comments-sidebar'
+export {
+	CanvasCommentsSidebar,
+	sortSidebarRows,
+	type CanvasCommentsSidebarProps,
+	type SidebarRow,
+} from './canvas/comments-sidebar'
 export { useComments, useCommentThreads, useThreadComments } from './canvas/hooks'
 export { useCommentingEnabled } from './canvas/license'
 export { richTextToPlaintext } from './canvas/rich-text'
