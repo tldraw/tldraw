@@ -125,7 +125,6 @@ class CommentIdle extends StateNode {
 		updateAnchorHint(this.editor)
 	}
 
-	// Hint the shape a click would attach to.
 	override onPointerMove() {
 		updateAnchorHint(this.editor)
 	}
@@ -186,7 +185,6 @@ class CommentPointing extends StateNode {
 				)
 			: { type: 'point', x: point.x, y: point.y }
 		pendingComment.set(editor, { anchor, point: { x: point.x, y: point.y } })
-		// Hand back to select; the open composer is now the focus.
 		editor.setCurrentTool('select')
 	}
 

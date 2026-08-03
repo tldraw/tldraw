@@ -78,7 +78,6 @@ export const ThreadPin = memo(function ThreadPin({
 	])
 	// While dragging the marker, its page point overrides the anchor's; committed on drop.
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
-	// The live bounds while a corner handle is resizing the region, else null.
 	const [resizeBounds, setResizeBounds] = useState<BoxModel | null>(null)
 	// Hovering the marker previews the thread's opening comment, on the delay every marker uses.
 	const { previewShown, previewHandlers } = useMarkerPreview(editor, `pin:${thread.id}`)
@@ -189,7 +188,6 @@ export const ThreadPin = memo(function ThreadPin({
 	if (!point) return null
 
 	const PinContent = options.components.PinContent
-	// The `PinContent` component slot overrides the built-in author-avatar default.
 	const threadAuthor = resolveAuthor(thread.createdBy)
 	const pinContent = PinContent ? (
 		<PinContent thread={thread} comments={comments} />

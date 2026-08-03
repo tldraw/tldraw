@@ -94,7 +94,7 @@ export interface CommentingComponents {
  * @public
  */
 export interface CommentingOptions {
-	// ── History / undo ───────────────────────────────────────────────────────────────────────
+	// History / undo
 	/**
 	 * How comment mutations interact with the editor undo stack. Defaults to `'ignore'` — comments
 	 * are deliberately not undoable (see `TLComment`). `'record'` is a multiplayer footgun: undoing
@@ -107,7 +107,7 @@ export interface CommentingOptions {
 	 */
 	readonly dragHistory: TLHistoryBatchOptions['history'] | undefined
 
-	// ── Feature toggles ──────────────────────────────────────────────────────────────────────
+	// Feature toggles
 	/** Fold nearby pins into count badges as the camera zooms out. */
 	readonly enableClustering: boolean
 	/**
@@ -131,7 +131,7 @@ export interface CommentingOptions {
 	 */
 	readonly enableRegions: boolean
 
-	// ── Permissions ──────────────────────────────────────────────────────────────────────────
+	// Permissions
 	/**
 	 * Whether the viewer may participate in commenting: composing, editing, deleting, resolving, and
 	 * moving pins. When false, {@link CommentingComponents.ComposerFallback} renders in the
@@ -146,7 +146,7 @@ export interface CommentingOptions {
 		| ((ctx: { editor: Editor; currentUserId: string | null }) => boolean)
 		| undefined
 
-	// ── Anchoring ────────────────────────────────────────────────────────────────────────────
+	// Anchoring
 	/** Normalized (0–1) spot within a shape where imprecise shape pins sit. Default top-right. */
 	readonly impreciseShapeAnchor: { readonly x: number; readonly y: number }
 	/**
@@ -156,7 +156,7 @@ export interface CommentingOptions {
 	 */
 	shouldBePrecise(editor: Editor, context: ShapeCommentPrecisionContext): boolean
 
-	// ── Components ────────────────────────────────────────────────────────────────────────────
+	// Components
 	/** Component overrides. See {@link CommentingComponents}. */
 	readonly components: CommentingComponents
 }

@@ -106,8 +106,6 @@ function CanvasCommentsLayer(props: CommentingContext) {
 	const openThread = openId ? threadsById.get(openId) : null
 	const hidden = useValue('comments hidden', () => commentsHidden.get(editor), [editor])
 
-	// Reset the transient UI state (open thread, open stack, half-placed comment, unserved reveal)
-	// when this unmounts.
 	useEffect(() => {
 		return () => {
 			openThreadId.set(editor, null)
@@ -175,7 +173,6 @@ function CanvasCommentsLayer(props: CommentingContext) {
 		[clusterModel.table, clusterZoomBounds, editor, options]
 	)
 
-	// Clicking a badge zooms past the point where that cluster unclusters — see `zoomToClusterSplit`.
 	const expandCluster = useCallback(
 		(node: ClusterNode) => {
 			zoomToClusterSplit(editor, clusterModel.table, clusterZoomBounds, node)
