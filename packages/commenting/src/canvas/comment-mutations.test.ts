@@ -365,16 +365,35 @@ describe('history', () => {
 		expect(readThread(editor, thread)).toMatchObject({ isDeleted: true })
 	})
 
-	it('rejects nested comment mutations instead of choosing the wrong history mode', () => {
+	it('rejects a nested mutation that resolves to a different history mode', () => {
 		const editor = makeEditor(CommentTool.configure({ history: 'record' }))
 		const { comment } = makeThread(editor)
 
+		// A delete always ignores history, so it can't run inside a `record` commit.
 		expect(() => commitCommentMutation(editor, () => deleteComment(editor, comment))).toThrow(
-			'Comment mutations cannot be nested'
+			"records history as 'ignore' can't run inside one recording it as 'record'"
 		)
 
 		deleteComment(editor, comment)
 		expect(readComment(editor, comment)).toMatchObject({ isDeleted: true })
+	})
+
+	// A host reacting to comment writes — a store listener, a side effect — is called inside the
+	// commit that triggered it, so it has no "after the mutation" to defer to. Matching modes have
+	// nothing to disagree about, so its write goes through rather than throwing.
+	it('lets a store listener write comments during a commit when the modes match', () => {
+		const editor = makeEditor()
+		const { thread, comment } = makeThread(editor)
+		let hasReacted = false
+		editor.store.listen(() => {
+			if (hasReacted) return
+			hasReacted = true
+			putCommentRecords(editor, [{ ...thread, meta: { lastEditedComment: comment.id } }])
+		})
+
+		editComment(editor, comment, toRichText('edited'))
+
+		expect(readThread(editor, thread)!.meta).toEqual({ lastEditedComment: comment.id })
 	})
 
 	it('rejects a writer used after its commit', () => {

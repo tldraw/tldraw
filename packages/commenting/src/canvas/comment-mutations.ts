@@ -48,7 +48,8 @@ interface CommentMutationWriter {
 	remove(ids: (TLCommentId | TLCommentReactionId | TLCommentThreadId)[]): void
 }
 
-const activeCommentMutations = new WeakSet<Editor>()
+/** The commit currently open on an editor, if there is one. See {@link commitCommentMutation}. */
+const activeCommentMutations = new WeakMap<Editor, { history: TLHistoryBatchOptions['history'] }>()
 
 /** The undo/redo mode a write of the given kind runs under. See {@link CommentMutationKind}. */
 function historyModeFor(
@@ -69,9 +70,20 @@ function historyModeFor(
  * Commit a comment mutation with the configured undo/redo behavior, so the
  * {@link CommentingOptions.history} option governs whether it lands on the undo stack. Defaults to
  * `'ignore'`. The callback's writer keeps every constituent record in that commit without opening
- * another history scope. Nested comment mutations are rejected: history modes don't compose in a
- * generally safe way, so a separate operation must run after this one. See
- * {@link CommentMutationKind} for what each kind resolves to.
+ * another history scope. See {@link CommentMutationKind} for what each kind resolves to.
+ *
+ * `editor.run`'s history option isn't additive — a nested run overwrites the enclosing mode for its
+ * own scope — so a commit opened inside another one silently rewrites the mode its caller chose. A
+ * pin drag committed as `drag` under `dragHistory: 'record'` would land back on `history: 'ignore'`
+ * and quietly stop being undoable. Constituent records therefore go through the writer, which
+ * writes in the open commit rather than opening one of its own.
+ *
+ * A commit that reaches this while another is open on the same editor is only a problem when the
+ * two resolve to different modes, and then it's unfixable here — neither the outer nor the inner
+ * mode is universally right — so it throws and the caller runs a separate operation instead. Modes
+ * that match nest harmlessly, and they have to: a host reacting to a comment write from a
+ * `store.listen` callback or a store side effect is called inside the commit that triggered it, and
+ * has no way to defer its own write until after that commit finishes.
  * @internal
  */
 export function commitCommentMutation<T>(
@@ -79,15 +91,16 @@ export function commitCommentMutation<T>(
 	fn: (writer: CommentMutationWriter) => T,
 	kind: CommentMutationKind = 'mutation'
 ): T {
-	if (activeCommentMutations.has(editor)) {
+	const history = historyModeFor(getCommentingOptions(editor), kind)
+	const enclosing = activeCommentMutations.get(editor)
+	if (enclosing && enclosing.history !== history) {
 		throw new Error(
-			'Comment mutations cannot be nested. Use the provided writer for constituent records and run separate operations after the outer mutation.'
+			`A comment mutation that records history as '${history}' can't run inside one recording it as '${enclosing.history}': one of the two modes would be silently discarded. Use the provided writer for constituent records, or run this operation after the enclosing one has committed.`
 		)
 	}
 
-	activeCommentMutations.add(editor)
+	activeCommentMutations.set(editor, { history })
 	try {
-		const history = historyModeFor(getCommentingOptions(editor), kind)
 		let result: T
 		editor.run(
 			() => {
@@ -118,7 +131,11 @@ export function commitCommentMutation<T>(
 		)
 		return result!
 	} finally {
-		activeCommentMutations.delete(editor)
+		if (enclosing) {
+			activeCommentMutations.set(editor, enclosing)
+		} else {
+			activeCommentMutations.delete(editor)
+		}
 	}
 }
 
