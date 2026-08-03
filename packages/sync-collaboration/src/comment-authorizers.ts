@@ -50,7 +50,8 @@ export type CommentModificationAuthContext<SessionMeta> = {
 export interface CommentAuthorizerOptions<SessionMeta> {
 	/**
 	 * Resolve the authenticated user id for a session from its host-provided `meta`. Return `null`
-	 * for anonymous sessions — they can't create records or perform any owner-only action.
+	 * for anonymous sessions — they can't create records, and own none, so the default
+	 * {@link CommentAuthorizerOptions.canModifyComment} grants them no edits or deletes either.
 	 */
 	getUserId(session: { sessionId: string; isReadonly: boolean; meta: SessionMeta }): string | null
 
@@ -103,8 +104,9 @@ export interface CommentAuthorizerOptions<SessionMeta> {
  * `authorizeRecord` option (see `TLSocketRoom` in `@tldraw/sync-core`). Forces authorship from the
  * session's identity so nothing can be posted, resolved, or deleted in someone else's name:
  *
- * - `comment`: `authorId` is stamped on create (anonymous creates rejected) and immutable after;
- *   only the author may update. `threadId` and `createdAt` are immutable too.
+ * - `comment`: `authorId` is stamped on create (anonymous creates rejected) and immutable after,
+ *   and who may update is `canModifyComment`'s call — the author's, unless widened. `threadId` and
+ *   `createdAt` are immutable too.
  * - `comment-thread`: `createdBy` and `createdAt` are fixed on create. Anyone with access may
  *   resolve/reopen, but a non-null `resolved.by` must be the session's own user.
  * - `comment-reaction`: `userId` is stamped and immutable, a create must land at the canonical id

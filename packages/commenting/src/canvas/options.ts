@@ -165,7 +165,8 @@ export interface CommentingOptions {
 	 *
 	 * Called during render via {@link useCanComment}, so signal reads are tracked. Posting still
 	 * needs a `currentUserId`, so returning true for a signed-out viewer yields a composer whose
-	 * send button stays disabled.
+	 * send button stays disabled. A callback that throws is logged and read as false, rather than
+	 * taking the comments layer down with it.
 	 */
 	readonly canComment:
 		| ((ctx: { editor: Editor; currentUserId: string | null }) => boolean)
@@ -182,6 +183,8 @@ export interface CommentingOptions {
 	 * viewer who may not participate gets no action affordances at all, whatever this returns.
 	 *
 	 * Called during render via {@link useCanModifyComment}, so reactive reads (signals) are tracked.
+	 * A callback that throws is logged and read as false: an affordance is withheld rather than the
+	 * comments layer lost, and a denial is what a server enforcing the same rule would have said.
 	 *
 	 * @example
 	 * ```tsx
@@ -254,8 +257,24 @@ export function useCommentingOptions(): CommentingOptions {
 }
 
 /**
+ * Ask a host's permission callback, denying the write if it throws.
+ *
+ * These are called during render, so an exception in one would take the comments layer down with
+ * the answer. Denying costs an affordance, which is what a `false` would have cost anyway, and it
+ * can't offer a write a server enforcing the same rule would then reject.
+ */
+function permits(option: string, check: () => boolean): boolean {
+	try {
+		return check()
+	} catch (error) {
+		console.error(`[tldraw] \`${option}\` threw, so the write is denied:`, error)
+		return false
+	}
+}
+
+/**
  * Whether the viewer may participate in commenting, per {@link CommentingOptions.canComment}
- * (defaulting to `currentUserId != null` when unset).
+ * (defaulting to `currentUserId != null` when unset). A callback that throws denies.
  *
  * This is a plain, untracked read — in React, use {@link useCanComment} instead.
  *
@@ -263,9 +282,8 @@ export function useCommentingOptions(): CommentingOptions {
  */
 export function getCanComment(editor: Editor, currentUserId: string | null | undefined): boolean {
 	const { canComment } = getCommentingOptions(editor)
-	return canComment
-		? canComment({ editor, currentUserId: currentUserId ?? null })
-		: currentUserId != null
+	if (!canComment) return currentUserId != null
+	return permits('canComment', () => canComment({ editor, currentUserId: currentUserId ?? null }))
 }
 
 /**
@@ -324,7 +342,8 @@ export function getCanModifyComment(
 		currentUserId: currentUserId ?? null,
 		...modification,
 	}
-	return canModifyComment ? canModifyComment(ctx) : defaultCanModifyComment(ctx)
+	if (!canModifyComment) return defaultCanModifyComment(ctx)
+	return permits('canModifyComment', () => canModifyComment(ctx))
 }
 
 /**

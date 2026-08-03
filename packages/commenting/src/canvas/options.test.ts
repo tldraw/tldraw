@@ -1,5 +1,5 @@
 import { createComment, createCommentThread, toRichText, type Editor, type TLPageId } from 'tldraw'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { commitCommentMutation } from './comment-mutations'
 import { CommentTool } from './comment-tool'
 import {
@@ -129,6 +129,20 @@ describe('getCanComment', () => {
 		const { editor } = stubEditor({ ...defaultCommentingOptions, canComment: () => true })
 		expect(getCanComment(editor, null)).toBe(true)
 	})
+
+	// This is read during render, so a throwing host rule would take the comments layer with it.
+	it('denies rather than throws when the callback throws', () => {
+		const onError = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const { editor } = stubEditor({
+			...defaultCommentingOptions,
+			canComment: () => {
+				throw new Error('lookup failed')
+			},
+		})
+		expect(getCanComment(editor, 'alice')).toBe(false)
+		expect(onError).toHaveBeenCalled()
+		onError.mockRestore()
+	})
 })
 
 // Plain records for the permission checks — the factories are pure, so no store is involved.
@@ -217,6 +231,22 @@ describe('getCanModifyComment', () => {
 		const { editor } = stubEditor({ ...defaultCommentingOptions, canModifyComment: () => false })
 		const comment = makeComment('alice')
 		expect(getCanModifyComment(editor, 'alice', { action: 'edit-comment', comment })).toBe(false)
+	})
+
+	// A throw withholds the affordance rather than the whole layer, and never offers a write a
+	// server enforcing the same rule would reject anyway.
+	it('denies rather than throws when the callback throws', () => {
+		const onError = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const { editor } = stubEditor({
+			...defaultCommentingOptions,
+			canModifyComment: () => {
+				throw new Error('lookup failed')
+			},
+		})
+		const comment = makeComment('alice')
+		expect(getCanModifyComment(editor, 'alice', { action: 'edit-comment', comment })).toBe(false)
+		expect(onError).toHaveBeenCalled()
+		onError.mockRestore()
 	})
 })
 
