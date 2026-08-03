@@ -427,7 +427,6 @@ export const ThreadView = memo(function ThreadView({
 				actions={
 					canComment && (
 						<>
-							<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
 							{(permissions?.edit || permissions?.delete) && (
 								<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
 									<TldrawUiDropdownMenuTrigger>
@@ -479,6 +478,8 @@ export const ThreadView = memo(function ThreadView({
 									</TldrawUiDropdownMenuContent>
 								</TldrawUiDropdownMenuRoot>
 							)}
+							{/* Last so react is always the rightmost pill. */}
+							<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
 						</>
 					)
 				}

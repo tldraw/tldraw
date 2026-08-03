@@ -208,9 +208,16 @@ button.topLeftInputNameWidthSetter {
 .commentsSidebarButton {
 	background-color: var(--tl-color-background);
 	border-radius: 8px;
-	/* Match the CTA share button it sits beside; the tldraw icon button is 40px by default. */
+	/* A 36px square matching the share button; min-width because the base button's 40px would
+	   beat width. */
 	height: 36px;
 	width: 36px;
+	min-width: 36px;
+}
+
+/* Match the hover wash to the share pill's inset and radius (the base ::after sits at 4px). */
+.commentsSidebarButton::after {
+	inset: 2px;
 }
 
 /* The comments sidebar toggle shows the same open wash as the main menu trigger while the

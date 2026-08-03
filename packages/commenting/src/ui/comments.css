@@ -447,10 +447,11 @@ button.tlui-cmt-reaction--active:hover {
 	background: color-mix(in srgb, var(--tl-color-selected) 38%, var(--tl-color-panel));
 }
 
-/* the emoji sits at the same 10px as the count beside it */
+/* The emoji renders larger than the 10px count, but its pinned line-height keeps the pill the
+   count's height — the glyph overflows the line box rather than growing it. */
 .tlui-cmt-reaction__emoji {
-	font-size: 10px;
-	line-height: 1;
+	font-size: 13px;
+	line-height: 10px;
 }
 
 .tlui-cmt-reaction__count {
@@ -553,7 +554,8 @@ button.tlui-cmt-reaction--active:hover {
 	--tlui-cmt-marker-transition: 0.08s ease;
 	--tlui-cmt-thread-padding: 12px;
 	--tlui-cmt-thread-gap: 0px;
-	--tlui-cmt-thread-action-size: 26px;
+	/* Hit-area width of one .tlui-cmt-thread__action button (drawn as a 32px square inset 4px). */
+	--tlui-cmt-thread-action-size: 40px;
 	/* A floating pill's edge — its hairline ring is the only thing separating it from the panel it
 	   overlaps, so the ring is a theme token rather than a literal black: a near-black hairline
 	   vanishes on a dark panel, where the divider token lightens instead. The drop below it stays
@@ -720,7 +722,7 @@ button.tlui-cmt-reaction--active:hover {
 .tlui-cmt-canvas-preview--thread .tlui-cmt-card {
 	width: 100%;
 	gap: 0;
-	padding: 0 12px;
+	padding: 0 var(--tlui-cmt-thread-padding);
 	background: transparent;
 	border: none;
 }
@@ -749,14 +751,17 @@ button.tlui-cmt-reaction--active:hover {
 .tlui-cmt-stack-list .tlui-cmt-card .tlui-cmt-head {
 	min-height: 40px;
 }
-/* Only the opened thread's comments actually carry the pills, so only they reserve room for them.
-   Derived from the action size so it can't drift: n buttons + (n−1) 2px gaps + the pill's 2px
-   padding either side + its 2px right inset. One button (react) on others' comments. */
-.tlui-cmt-thread .tlui-cmt-card .tlui-cmt-head {
-	padding-right: calc(var(--tlui-cmt-thread-action-size) + 6px);
+/* Reserve head room only for pills that actually rendered (one child / two children) — pill count
+   is a permissions question (canModifyComment), not ownership, and empty slots (read-only viewers)
+   keep the full row. Sized from the 40px hit areas (4px overlap), minus the card padding the
+   right:0 pills sit over; text stops 4px shy of the visible square. */
+.tlui-cmt-thread .tlui-cmt-card:has(.tlui-cmt-card__actions > *) .tlui-cmt-head {
+	padding-right: calc(var(--tlui-cmt-thread-action-size) - var(--tlui-cmt-thread-padding));
 }
-.tlui-cmt-thread .tlui-cmt-card--you .tlui-cmt-head {
-	padding-right: calc(3 * var(--tlui-cmt-thread-action-size) + 10px);
+.tlui-cmt-thread .tlui-cmt-card:has(.tlui-cmt-card__actions > * + *) .tlui-cmt-head {
+	padding-right: calc(
+		2 * var(--tlui-cmt-thread-action-size) - 4px - var(--tlui-cmt-thread-padding)
+	);
 }
 
 /* comments list — thread summaries, one per row (used by the canvas sidebar) */
