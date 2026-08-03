@@ -11,11 +11,10 @@ import { TLShapeId } from './TLShape'
  * Where a comment thread is anchored on the canvas. Modeled as a discriminated union so new
  * anchor kinds can be added without breaking existing threads:
  *
- * - `shape` — pinned to a shape. `x`/`y` are normalized (0–1) within the shape's own bounds and
- *   resolved through the shape's page transform, so the pin keeps its spot as the shape moves,
- *   resizes, and rotates. `isPrecise` mirrors arrow bindings: when
- *   true the pin sits at exactly `x`/`y`; when false (the default) it sits at a consumer-defined
- *   spot (top-right out of the box), and `x`/`y` are the remembered precise position
+ * - `shape` — pinned to a shape. `x`/`y` are normalized (0–1) within the shape's bounds, so the pin
+ *   keeps its spot as the shape moves, resizes, and rotates. `isPrecise` mirrors arrow bindings:
+ *   when false (the default) the pin sits at a consumer-defined spot instead, top-right out of the
+ *   box, and `x`/`y` are the remembered precise position
  * - `point` — pinned to a fixed point on the page, in page coordinates
  * - `region` — pinned to a rectangular area of the page, in page coordinates
  * - `page` — a page-level thread with no spatial anchor
@@ -59,20 +58,15 @@ export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentT
 	pageId: TLPageId
 	/** Where the thread is anchored on that page. */
 	anchor: TLCommentAnchor
-	/**
-	 * Who started the thread. Client-supplied for now; the sync server should stamp/verify this
-	 * from the session's authenticated identity once record-level authorization lands (the same
-	 * model presence already uses for self-ownership).
-	 */
+	/** Who started the thread. Client-supplied; sync servers are expected to stamp/verify it. */
 	createdBy: string
 	createdAt: number
 	/** Resolution state: when and by whom the thread was resolved, or null while open. */
 	resolved: { at: number; by: string } | null
 	/**
-	 * Whether the thread is soft-deleted. Clients delete a thread by setting this flag and
-	 * leaving the record (and its comments) in place, hidden from rendering. Sync servers are
-	 * expected to enforce the flag as write-once and creator-only, reject hard deletes from
-	 * clients, and drop flagged threads from future room loads.
+	 * Whether the thread is soft-deleted. Clients set the flag and leave the record in place. Sync
+	 * servers are expected to enforce it as write-once and creator-only, reject client hard
+	 * deletes, and drop flagged threads from future room loads.
 	 */
 	isDeleted: boolean
 	meta: JsonObject
@@ -103,12 +97,7 @@ export interface TLComment extends BaseRecord<'comment', TLCommentId> {
 	editedAt: number | null
 	/** Rich text body. Use `toRichText(...)` for plaintext input. */
 	body: TLRichText
-	/**
-	 * Whether the comment is soft-deleted. Same model as `TLCommentThread.isDeleted` — clients
-	 * delete a comment by setting this flag and leaving the record in place, hidden from
-	 * rendering. Sync servers are expected to enforce the flag as write-once and author-only,
-	 * reject hard deletes from clients, and drop flagged comments from future room loads.
-	 */
+	/** Whether the comment is soft-deleted. Same model as `TLCommentThread.isDeleted`. */
 	isDeleted: boolean
 	meta: JsonObject
 }
@@ -119,16 +108,11 @@ export type TLCommentId = RecordId<TLComment>
 /**
  * One person's emoji reaction to one comment.
  *
- * A reaction is its own record rather than a field on the comment, for the same reason read
- * receipts are their own row: it's one person's data about someone else's comment. Comment records
- * are owner-only for updates, so a reaction could never be written onto them; and holding
- * everyone's reactions in one shared field would mean each write carried the whole set, so two
- * people reacting at once would race to overwrite each other. A record per person keeps every
- * write to its own record, which is what lets concurrent reactions coexist.
+ * A reaction is its own record rather than a field on the comment: comment records are owner-only
+ * for updates, and a shared field would make concurrent reactions race to overwrite each other.
  *
- * A user holds at most one record per (comment, emoji) pair — so one user can react with several
- * different emoji to the same comment. That's enforced by the id: see `createCommentReactionId`.
- * Restricting a user to a single reaction overall is a client-side policy layered on top (see the
+ * A user holds at most one record per (comment, emoji) pair, enforced by the derived id — see
+ * `createCommentReactionId`. Limiting a user to one reaction overall is client-side policy (the
  * commenting package's `reactionMode`), not a property of this record.
  *
  * @public
@@ -189,11 +173,9 @@ const commentAnchorValidator: T.Validator<TLCommentAnchor> = T.union('type', {
 })
 
 /**
- * Guard migrations for the comment record types. Each sequence is retroactive and starts with an
- * identity migration that has no `down`: a sync server whose schema registers the comment types
- * cannot down-migrate records for a session whose schema predates them, so such sessions are
- * rejected with CLIENT_TOO_OLD (prompting a refresh) instead of being sent record types their
- * store cannot represent.
+ * Guard migrations for the comment record types. Each sequence starts with an identity migration
+ * that has no `down`, so a session whose schema predates the comment types is rejected with
+ * CLIENT_TOO_OLD instead of being sent records its store can't represent.
  */
 function createCommentGuardMigrations(
 	typeName: 'comment' | 'comment-thread' | 'comment-reaction',
@@ -337,16 +319,10 @@ export function createCommentId(id?: string): TLCommentId {
 
 /**
  * The id of one user's reaction to one comment, derived from the (comment, user, emoji) triple
- * rather than random. This is what makes reaction identity structural: the same triple always
- * addresses the same record, so re-picking an emoji toggles that one record and two tabs converge
- * instead of racing to create duplicates. A user can hold one record per emoji on a comment
- * (multiple reactions); enforcing "at most one reaction total" is a client concern layered on top,
- * not a property of the id. The sync authorizer leans on this derivation, so it must be injective.
- *
- * `emoji` here is the reaction's token — the emoji glyph for the default palette, or whatever
- * opaque string a consumer's palette uses. All three parts are URI-encoded before joining, so a
- * `:` in any of them can't shift the boundary and collapse two different triples onto one id. The
- * id is only ever recomputed for comparison, never parsed back, so the encoding needs no inverse.
+ * rather than random, so the same triple always addresses the same record and two tabs converge
+ * instead of racing to create duplicates. The sync authorizer leans on this, so it must be
+ * injective: all three parts are URI-encoded before joining, so a `:` in any of them can't shift
+ * the boundary and collapse two triples onto one id.
  *
  * @public
  */
@@ -362,9 +338,8 @@ export function createCommentReactionId(
 }
 
 /**
- * Type guard for `TLCommentThreadId`. Note `isCommentId` does not accept these: the prefixes
- * are `comment-thread:` vs `comment:`, and the character after `comment` differs (`-` vs `:`),
- * so the two never overlap.
+ * Type guard for `TLCommentThreadId`. `isCommentId` rejects these — `comment-thread:` and
+ * `comment:` differ in the character after `comment`, so the prefixes never overlap.
  *
  * @public
  */
@@ -373,8 +348,7 @@ export function isCommentThreadId(id: string): id is TLCommentThreadId {
 }
 
 /**
- * Type guard for `TLCommentId`. See `isCommentThreadId` for why `comment-thread:...` ids are
- * correctly rejected here.
+ * Type guard for `TLCommentId`. See `isCommentThreadId`.
  *
  * @public
  */
@@ -383,8 +357,7 @@ export function isCommentId(id: string): id is TLCommentId {
 }
 
 /**
- * Type guard for `TLCommentReactionId`. As with `isCommentThreadId`, the `comment-reaction:`
- * prefix never overlaps `comment:` — the character after `comment` differs (`-` vs `:`).
+ * Type guard for `TLCommentReactionId`. See `isCommentThreadId`.
  *
  * @public
  */

@@ -7,7 +7,6 @@ import { cappedReplay } from './replay'
 import { contract, finalize } from './schedule'
 import { ClusterNode, ContractedEvent, LeafInput, MergeEvent, RawMergeEvent } from './types'
 
-// --- Synthetic builders -------------------------------------------------------
 // `contract` is specified over plain RawMergeEvent[] input precisely so it can
 // be tested with hand-built events, without running the replay.
 
@@ -54,8 +53,6 @@ const E = node(['e'])
 const F = node(['f'])
 const X = node(['x'])
 const Y = node(['y'])
-
-// --- contract: fixtures -------------------------------------------------------
 
 describe('contract fixtures', () => {
 	it('returns [] for empty input', () => {
@@ -210,8 +207,6 @@ describe('contract validation and purity', () => {
 	})
 })
 
-// --- finalize: fixtures --------------------------------------------------------
-
 const FIN_OPTS = { Tc: 40, Tu: 60, minZoom: 0.1, maxZoom: 8, maxSplitZoom: 1e9 } // r = 1.5
 
 function contracted(zMerge: number, children: ClusterNode[], result: ClusterNode): ContractedEvent {
@@ -322,7 +317,6 @@ describe('finalize fixtures', () => {
 	})
 })
 
-// --- Composed pipeline properties ---------------------------------------------
 // finalize(contract(cappedReplay(mstEdges(leaves)))) must satisfy every table
 // invariant of CLUSTERING.md §7.6.
 

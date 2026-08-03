@@ -19,10 +19,11 @@ import {
 	NEW_COMMENT_DRAFT,
 	saveCommentDraft,
 } from './comment-drafts'
-import { commitCommentMutation, putRecordsInCommit } from './comment-mutations'
+import { commitCommentMutation } from './comment-mutations'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { PendingComment } from './comment-tool'
 import { type CommentingContext } from './context'
+import { useIsMobileCommenting, useMobilePlacement } from './mobile-placement'
 import { useCanComment, useCommentingOptions } from './options'
 import { pendingComment } from './state'
 
@@ -65,6 +66,10 @@ export function PendingComposer({
 		editor,
 		pending.point,
 	])
+	// On mobile the composer floats free of the pin so it can clear the software keyboard; desktop
+	// keeps it pinned to the point.
+	const isMobile = useIsMobileCommenting()
+	const placed = useMobilePlacement(ref, point, isMobile)
 
 	// Dismiss on a click anywhere outside the composer (capture-phase, ahead of stopPropagation).
 	useEffect(() => {
@@ -83,7 +88,7 @@ export function PendingComposer({
 
 	const submit = () => {
 		if (isCommentEmpty(text) || !currentUserId) return
-		commitCommentMutation(editor, () => {
+		const comment = commitCommentMutation(editor, ({ put }) => {
 			const pageId = editor.getCurrentPageId()
 			const thread = createCommentThread({
 				pageId,
@@ -96,12 +101,15 @@ export function PendingComposer({
 				authorId: currentUserId,
 				body: text,
 			})
-			putRecordsInCommit(editor, [thread, comment])
-			if (onPostComment) onPostComment(comment)
+			put([thread, comment])
+			return comment
 		})
 		setText(EMPTY_COMMENT)
 		clearCommentDraft(NEW_COMMENT_DRAFT)
 		pendingComment.set(editor, null)
+		// The host's callback is its own operation, not part of the post's history scope. It runs
+		// last so a throwing host can't strand the composer holding a draft of a posted comment.
+		onPostComment?.(comment)
 	}
 
 	return (
@@ -115,7 +123,7 @@ export function PendingComposer({
 				]
 					.filter(Boolean)
 					.join(' ')}
-				style={{ left: point.x, top: point.y }}
+				style={{ left: placed.left, top: placed.top }}
 				onPointerDown={stop}
 				onContextMenu={stop}
 				onKeyDown={(e) => {

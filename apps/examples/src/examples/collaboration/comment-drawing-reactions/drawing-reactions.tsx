@@ -43,8 +43,6 @@ import {
  * See `CommentDrawingReactionsExample.tsx` for the wiring.
  */
 
-// ── The drawing record ───────────────────────────────────────────────────────────────────────
-
 /** The image format a drawn reaction is exported as. */
 export type DrawingReactionFormat = 'svg' | 'png'
 
@@ -130,8 +128,6 @@ export async function saveDrawingReaction(editor: Editor, src: string): Promise<
 	return id
 }
 
-// ── Renderer ─────────────────────────────────────────────────────────────────────────────────
-
 /**
  * A fixed size rather than `em`: the reaction pill's font is 10px, and a drawing at emoji scale
  * is an illegible smudge. Only drawn reactions render through this style, so emoji keep their
@@ -186,8 +182,6 @@ export function DrawingReactionContent({ token }: { token: string }) {
 export function renderDrawingReaction(token: string): ReactNode {
 	return <DrawingReactionContent token={token} />
 }
-
-// ── Export ───────────────────────────────────────────────────────────────────────────────────
 
 export interface DrawingReactionExportOptions {
 	/**
@@ -272,8 +266,6 @@ export async function exportDrawingImage(
 	}
 	return src
 }
-
-// ── Palette ──────────────────────────────────────────────────────────────────────────────────
 
 /**
  * Keyboard shortcuts stay mounted when `hideUi` is set, so hiding the toolbar isn't enough on its
@@ -578,8 +570,6 @@ function EraserIcon() {
 		</svg>
 	)
 }
-
-// ── Styles ───────────────────────────────────────────────────────────────────────────────────
 
 const STYLE_ELEMENT_ID = 'tlui-cmt-drawing-palette-styles'
 

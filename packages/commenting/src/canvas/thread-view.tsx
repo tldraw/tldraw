@@ -1,13 +1,4 @@
-import {
-	memo,
-	ReactNode,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-	type CSSProperties,
-} from 'react'
+import { memo, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	createComment,
 	Editor,
@@ -25,6 +16,7 @@ import {
 	useContainer,
 	usePassThroughWheelEvents,
 	useTranslation,
+	useValue,
 } from 'tldraw'
 import { CommentCard, CommentCardProps } from '../ui/comment-card'
 import { CommentComposer } from '../ui/comment-composer'
@@ -42,7 +34,6 @@ import {
 	deleteComment,
 	deleteThread,
 	editComment,
-	putRecordsInCommit,
 	reopenThread,
 	resolveThread,
 } from './comment-mutations'
@@ -50,7 +41,14 @@ import { CommentReactionPicker, CommentReactions } from './comment-reactions'
 import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
-import { type CommentingComponents, useCanComment, useCommentingOptions } from './options'
+import { useIsMobileCommenting, useMobilePlacement } from './mobile-placement'
+import {
+	type CommentingComponents,
+	getCanModifyComment,
+	useCanComment,
+	useCanModifyComment,
+	useCommentingOptions,
+} from './options'
 import { openThreadId } from './state'
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
@@ -67,10 +65,9 @@ export function useResolveName(resolveAuthor: CommentingContext['resolveAuthor']
 const LINK_COPIED_MS = 2000
 
 /**
- * What a thread's `getThreadHref` should put on the clipboard. Hosts hand back an href, which is
- * allowed to be relative (`/file/abc?comment=…`) — that works as a link target but is meaningless
- * once it's pasted into a chat window, so it's resolved against the current document first. An href
- * the URL parser can't make sense of is copied as-is rather than dropped.
+ * What a thread's `getThreadHref` should put on the clipboard. Hosts may hand back a relative href,
+ * which is meaningless once pasted elsewhere, so it's resolved against the current document first.
+ * An href the URL parser can't make sense of is copied as-is rather than dropped.
  *
  * @internal
  */
@@ -84,9 +81,7 @@ export function absoluteThreadLink(href: string, base = window.location.href): s
 
 /**
  * Copy a thread's link, with a flag that stays set briefly afterwards so the control can confirm.
- * The flag only sets once the write actually resolves — a clipboard the browser withholds
- * (an insecure context, a denied permission) leaves the label alone rather than claiming a copy
- * that didn't happen.
+ * Only set once the write resolves, so a withheld clipboard doesn't claim a copy that didn't happen.
  */
 function useCopyLink(href: string | undefined) {
 	const [copied, setCopied] = useState(false)
@@ -128,9 +123,8 @@ export function toCardProps(
 	}
 }
 
-/** A pin is this square (mirrors `--tlui-cmt-pin-size`). Needed because the two marker kinds are
- *  different sizes *and* anchor at different points, and lining their previews up means
- *  correcting for that. Keep in sync with the stylesheet. */
+/** A pin is this square (mirrors `--tlui-cmt-pin-size`). The two marker kinds differ in size *and*
+ *  anchor point, so lining their previews up means correcting for both. Keep in sync with the CSS. */
 const PIN_SIZE = 28
 
 /** A cluster/stack badge is this square (`--tlui-cmt-marker-size`) — pin-sized, so the marker
@@ -145,16 +139,12 @@ const CARD_TOP_Y = -28
 const PREVIEW_GAP = 6
 
 /**
- * Where a marker's popover sits relative to the marker's anchor point.
+ * Where a marker's popover sits relative to the marker's anchor point. The hover preview uses the
+ * same origins, so moving a popover here moves its preview with it.
  *
- * The hover preview places itself at these same origins, so the two views of a thread differ only
- * by the header the popover has — which its own stylesheet then compensates for. Moving a popover
- * here moves its preview with it.
- *
- * Both marker kinds hang off their point the same way (`translate(0, -100%)`): the anchor is the
- * visual's bottom-left corner. They differ only in size, so each offset clears its own width plus
- * the shared gap, and re-bases the shared card-top measure from its bottom anchor to its middle —
- * keeping the two previews' top cards on the same line.
+ * Both marker kinds hang off their point the same way (`translate(0, -100%)`), differing only in
+ * size — so each offset clears its own width plus the shared gap, and re-bases the shared card-top
+ * measure from its bottom anchor to its middle.
  */
 export const POPOVER_OFFSET = {
 	thread: { x: PIN_SIZE + PREVIEW_GAP, y: CARD_TOP_Y - PIN_SIZE / 2 },
@@ -163,9 +153,19 @@ export const POPOVER_OFFSET = {
 
 /** The open thread's popover container, portaled above the UI panels. A wheel over it passes
  *  through to the canvas (unless it scrolls its own content), like tldraw's panels. */
-export function ThreadPopover({ style, children }: { style: CSSProperties; children: ReactNode }) {
+export function ThreadPopover({
+	base,
+	children,
+}: {
+	base: { x: number; y: number }
+	children: ReactNode
+}) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
+	// On mobile the popover slides off its fixed offset to stay above the software keyboard and
+	// on-screen; desktop keeps the fixed offset (base returned unchanged).
+	const isMobile = useIsMobileCommenting()
+	const placed = useMobilePlacement(ref, base, isMobile)
 	return (
 		<EditorPortal>
 			{/* contextmenu also stops here: portals bubble React events to the canvas's context-menu
@@ -173,7 +173,7 @@ export function ThreadPopover({ style, children }: { style: CSSProperties; child
 			<div
 				ref={ref}
 				className="tlui-cmt-canvas-popover"
-				style={style}
+				style={{ left: placed.left, top: placed.top }}
 				onPointerDown={stop}
 				onContextMenu={stop}
 			>
@@ -185,14 +185,11 @@ export function ThreadPopover({ style, children }: { style: CSSProperties; child
 
 /**
  * One thread's interactive view: its comments, the reply composer, edit-in-place on your own
- * comments, and the resolve/delete actions. Reads and writes comment records via the editor's
- * store; read receipts are reported for every unread comment while mounted, so only mount it
- * where the thread is actually being shown.
+ * comments, and the resolve/delete actions. Read receipts are reported for every unread comment
+ * while mounted, so only mount it where the thread is actually being shown.
  *
- * Memoized: the popover position rides the pin's per-frame render point, so the pin re-renders
- * on every camera frame while a thread is open. Thread and comment records are identity-stable
- * while unchanged and the context callbacks are the host's stable references, so memoization
- * keeps camera frames to moving the thin popover wrapper instead of re-running this whole body.
+ * Memoized because the popover position rides the pin's per-frame render point, so the pin
+ * re-renders on every camera frame while a thread is open.
  */
 export const ThreadView = memo(function ThreadView({
 	editor,
@@ -213,9 +210,8 @@ export const ThreadView = memo(function ThreadView({
 	const comments = useThreadComments(editor, thread.id)
 	const msg = useTranslation()
 	const resolveName = useResolveName(resolveAuthor)
-	// Card props rebuild only when the comments (or how they render) actually change — not on
-	// every render of the view, each of which would otherwise re-allocate a date string and body
-	// element per comment.
+	// Rebuilt only when the comments change, not on every render — each of which would otherwise
+	// re-allocate a date string and body element per comment.
 	const cards = useMemo(
 		() =>
 			comments.map((c) =>
@@ -224,10 +220,33 @@ export const ThreadView = memo(function ThreadView({
 		[comments, currentUserId, resolveAuthor, options.components, resolveName]
 	)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
-	// Composing, editing, deleting, and resolving are all commenting writes: gated on the viewer's
-	// permission. Where it's withheld the composer gives way to the ComposerFallback slot (a
-	// sign-in prompt, say) and the action affordances are hidden.
+	// Composing, editing, deleting, and resolving are all gated on the viewer's permission. Where it's
+	// withheld the composer gives way to the ComposerFallback slot and the affordances are hidden.
 	const canComment = useCanComment(currentUserId)
+	// Editing and deleting are further per-record: the author's to do by default, wider or narrower
+	// under a `canModifyComment` callback. Computed for the thread's comments in one pass, since
+	// `renderComment` is a callback rather than a component and can't call a hook per comment.
+	const commentPermissions = useValue(
+		'comment permissions',
+		() =>
+			new Map(
+				comments.map((comment) => [
+					comment.id,
+					{
+						edit: getCanModifyComment(editor, currentUserId, { action: 'edit-comment', comment }),
+						delete: getCanModifyComment(editor, currentUserId, {
+							action: 'delete-comment',
+							comment,
+						}),
+					},
+				])
+			),
+		[editor, currentUserId, comments]
+	)
+	// Deleting a thread is its creator's by default (and server-enforced); `canModifyComment` is what
+	// widens that. Still a commenting write, so `canComment` stays the outer gate.
+	const canModifyThread = useCanModifyComment(currentUserId, { action: 'delete-thread', thread })
+	const canDeleteThread = canComment && canModifyThread
 	const ComposerFallback = options.components.ComposerFallback
 	// An unsent reply survives closing the thread (saved on every change, keyed by thread id) —
 	// the flip side of dismissing without a discard warning.
@@ -238,15 +257,12 @@ export const ThreadView = memo(function ThreadView({
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	const canReply = canComment && !thread.resolved
 	const container = useContainer()
-	// Where focus goes when the edit composer closes, resolved at that moment rather than held as an
-	// element: the card (and its edit button with it) unmounts while the composer stands in its
-	// place, so the node captured on the way in is gone by the way out.
+	// Resolved when the composer closes rather than held as an element: the card unmounts while the
+	// composer stands in its place, so the node captured on the way in is gone by the way out.
 	const editReturnFocus = useRef<(() => HTMLElement | null) | null>(null)
 
-	// Tab from the canvas drops the caret in the reply box. Clicking a pin opens the thread but
-	// leaves focus on the editor container, so the first Tab would otherwise walk the app's own UI
-	// instead of the panel the click just opened. Capture phase, ahead of the editor's own handling.
-	// Fires once per open thread, so Tab inside the thread stays plain tab-through.
+	// Tab from the canvas drops the caret in the reply box: a pin click leaves focus on the editor
+	// container, so the first Tab would otherwise walk the app's UI. Capture phase, once per open thread.
 	const [focusReply, setFocusReply] = useState(false)
 	const tabTaken = useRef(false)
 	const swallowTabUp = useRef(false)
@@ -262,9 +278,8 @@ export const ThreadView = memo(function ThreadView({
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.key !== 'Tab' || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
 			if (e.defaultPrevented || tabTaken.current) return
-			// Focus rests on the container (or nothing at all) after a pin click. Anywhere else means
-			// it's already somewhere deliberate — the thread's own controls, the sidebar, a panel —
-			// and Tab belongs to whatever holds it.
+			// Focus rests on the container (or nothing) after a pin click. Anywhere else is deliberate, and
+			// Tab belongs to whatever holds it.
 			if (e.target !== container && e.target !== doc.body) return
 			tabTaken.current = true
 			swallowTabUp.current = true
@@ -272,9 +287,8 @@ export const ThreadView = memo(function ThreadView({
 			e.preventDefault()
 			e.stopPropagation()
 		}
-		// The select tool navigates shapes on Tab's *keyup*, and the composer isn't focused until the
-		// next frame — so a quick tap with shapes selected would both focus the reply and step the
-		// selection. Swallow the release of the press we took, and only that one.
+		// The select tool navigates shapes on Tab's *keyup*, so a quick tap would both focus the reply and
+		// step the selection. Swallow the release of the press we took, and only that one.
 		const onKeyUp = (e: KeyboardEvent) => {
 			if (e.key !== 'Tab' || !swallowTabUp.current) return
 			swallowTabUp.current = false
@@ -289,12 +303,9 @@ export const ThreadView = memo(function ThreadView({
 		}
 	}, [canReply, container])
 
-	// Leaving the edit composer — Escape, or a save — unmounts it while it holds focus, and the
-	// browser drops focus on the editor container. That's outside the thread, so a Tab from there
-	// walks the app's UI instead of carrying on from where the edit left off (the thread's one
-	// Tab-into-the-reply-box has usually been spent by then). Hand focus back to whatever opened the
-	// composer instead: the card's edit button, or the reply box when the edit came from arrow-up.
-	// The card's actions row reveals itself on `:focus-within`, so the button focus is visible.
+	// Leaving the edit composer unmounts it while it holds focus, dropping focus to the editor
+	// container — outside the thread, so a Tab from there walks the app's UI. Hand focus back to
+	// whatever opened the composer instead.
 	useEffect(() => {
 		if (editingId !== null) return
 		const resolve = editReturnFocus.current
@@ -303,9 +314,7 @@ export const ThreadView = memo(function ThreadView({
 		resolve?.()?.focus()
 	}, [editingId])
 
-	// Every unread comment on display gets reported read — including replies that arrive while
-	// the view stays mounted, since the effect re-runs as `comments` changes. Reported as one
-	// batch so the host can record the receipts in a single write. The host's receipt write flips
+	// Reported as one batch so the host can record the receipts in a single write. The write flips
 	// isCommentUnread to false, so re-runs find nothing to report.
 	useEffect(() => {
 		if (!isCommentUnread || !onCommentsRead) return
@@ -317,18 +326,21 @@ export const ThreadView = memo(function ThreadView({
 
 	const postReply = () => {
 		if (isCommentEmpty(reply) || !currentUserId) return
-		commitCommentMutation(editor, () => {
+		const comment = commitCommentMutation(editor, ({ put }) => {
 			const comment = createComment({
 				threadId: thread.id,
 				pageId: thread.pageId,
 				authorId: currentUserId,
 				body: reply,
 			})
-			putRecordsInCommit(editor, [comment])
-			if (onPostComment) onPostComment(comment)
+			put([comment])
+			return comment
 		})
 		setReply(EMPTY_COMMENT)
 		clearCommentDraft(replyDraftSlot(thread.id))
+		// The host's callback is its own operation, not part of the post's history scope. It runs
+		// last so a throwing host can't strand the composer holding a draft of a posted reply.
+		onPostComment?.(comment)
 	}
 
 	const toggleResolve = () => {
@@ -337,25 +349,21 @@ export const ThreadView = memo(function ThreadView({
 		else resolveThread(editor, thread, currentUserId)
 	}
 
+	// No `currentUserId` check: unlike a resolve, a delete stamps nothing on the record, so who may
+	// make it is `canModifyComment`'s call alone (which withholds it from an unidentified viewer by
+	// default).
 	const removeThread = () => {
-		if (!currentUserId) return
 		deleteThread(editor, thread)
 	}
 
 	const ThreadActions = options.components.ThreadActions
-	// The host's URL for this thread, when it supplies one. Its presence is what puts "copy link" in
-	// the header menu — a host that has per-thread URLs shouldn't have to rebuild the thread view to
-	// offer the one affordance every commenting product has.
+	// The host's URL for this thread. Its presence is what puts "copy link" in the header menu.
 	const threadHref = getThreadHref?.(thread.id)
 	const [linkCopied, copyThreadLink] = useCopyLink(threadHref)
-	const canDeleteThread = canComment && currentUserId != null && currentUserId === thread.createdBy
 
 	const startEdit = (comment: TLComment, { fromMoreMenu = false } = {}) => {
-		// The ⋯ menu's button is the thing to come back to when Edit opened the composer — looked up
-		// again on the way out, since the menu item that was clicked (and the card) unmount while the
-		// composer stands in their place. Otherwise come back to whatever held focus: arrow-up-to-edit
-		// comes straight from the reply box, which stays put. The document body and the editor
-		// container are where focus falls when nothing holds it, so neither is somewhere to return to.
+		// Edit from the ⋯ menu comes back to that button, looked up again on the way out since the card
+		// unmounts. Otherwise return to whatever held focus, ignoring the body and the editor container.
 		const active = container.ownerDocument.activeElement
 		editReturnFocus.current = fromMoreMenu
 			? () => container.querySelector<HTMLElement>(`[data-cmt-more-for="${comment.id}"]`)
@@ -374,9 +382,10 @@ export const ThreadView = memo(function ThreadView({
 	}
 
 	// Swap a comment for a pre-filled composer while it's being edited; otherwise show the card,
-	// with an edit affordance on your own comments.
+	// with the affordances the viewer is allowed on it.
 	const renderComment = (card: CommentCardProps, index: number): ReactNode => {
 		const comment = comments[index]
+		const permissions = commentPermissions.get(comment.id)
 		if (editingId === comment.id) {
 			return (
 				<div
@@ -419,7 +428,7 @@ export const ThreadView = memo(function ThreadView({
 					canComment && (
 						<>
 							<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
-							{comment.authorId === currentUserId && (
+							{(permissions?.edit || permissions?.delete) && (
 								<TldrawUiDropdownMenuRoot id={`comment-actions-${comment.id}`}>
 									<TldrawUiDropdownMenuTrigger>
 										<TldrawUiButton
@@ -444,24 +453,28 @@ export const ThreadView = memo(function ThreadView({
 										sideOffset={4}
 									>
 										<TldrawUiDropdownMenuGroup>
-											<TldrawUiDropdownMenuItem>
-												<button
-													type="button"
-													className="tlui-cmt-menu-item"
-													onClick={() => startEdit(comment, { fromMoreMenu: true })}
-												>
-													<span>{msg('comments.edit')}</span>
-												</button>
-											</TldrawUiDropdownMenuItem>
-											<TldrawUiDropdownMenuItem>
-												<button
-													type="button"
-													className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
-													onClick={() => deleteComment(editor, comment)}
-												>
-													<span>{msg('action.delete')}</span>
-												</button>
-											</TldrawUiDropdownMenuItem>
+											{permissions?.edit && (
+												<TldrawUiDropdownMenuItem>
+													<button
+														type="button"
+														className="tlui-cmt-menu-item"
+														onClick={() => startEdit(comment, { fromMoreMenu: true })}
+													>
+														<span>{msg('comments.edit')}</span>
+													</button>
+												</TldrawUiDropdownMenuItem>
+											)}
+											{permissions?.delete && (
+												<TldrawUiDropdownMenuItem>
+													<button
+														type="button"
+														className="tlui-cmt-menu-item tlui-cmt-menu-item--danger"
+														onClick={() => deleteComment(editor, comment)}
+													>
+														<span>{msg('action.delete')}</span>
+													</button>
+												</TldrawUiDropdownMenuItem>
+											)}
 										</TldrawUiDropdownMenuGroup>
 									</TldrawUiDropdownMenuContent>
 								</TldrawUiDropdownMenuRoot>
@@ -510,7 +523,6 @@ export const ThreadView = memo(function ThreadView({
 									</button>
 								</TldrawUiDropdownMenuItem>
 							)}
-							{/* Deleting a thread is creator-only (server-enforced). */}
 							{canDeleteThread && (
 								<TldrawUiDropdownMenuItem>
 									<button
@@ -576,10 +588,10 @@ export const ThreadView = memo(function ThreadView({
 							},
 							onSubmit: postReply,
 							// Up in the empty reply box edits the comment directly above it, chat-style —
-							// only when that comment is yours (the same gate as the Edit link).
+							// only when you're allowed to edit it (the same gate as the Edit link).
 							onArrowUpWhenEmpty: () => {
 								const last = comments[comments.length - 1]
-								if (last && last.authorId === currentUserId) startEdit(last)
+								if (last && commentPermissions.get(last.id)?.edit) startEdit(last)
 							},
 							// No user, no author for the record — dead send button.
 							disabled: isCommentEmpty(reply) || !currentUserId,

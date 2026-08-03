@@ -538,6 +538,28 @@ describe('createCommentAuthorizers', () => {
 			).toBeNull()
 		})
 
+		it('is asked before canModifyComment, so a blocked session is never asked about a record', () => {
+			let asked = 0
+			const blocked = createCommentAuthorizers<TestMeta>({
+				getUserId: (session) => session.meta.userId,
+				canComment: () => false,
+				canModifyComment: () => {
+					asked++
+					return true
+				},
+			})
+			const prev = comment('real-bob')
+			expect(
+				blocked.comment!({
+					session: session('real-bob'),
+					type: 'update',
+					prev,
+					next: { ...prev, isDeleted: true },
+				})
+			).toBeNull()
+			expect(asked).toBe(0)
+		})
+
 		it('lets a custom canComment block sessions on its own criteria', () => {
 			const bannable = createCommentAuthorizers<TestMeta>({
 				getUserId: (session) => session.meta.userId,
@@ -560,6 +582,344 @@ describe('createCommentAuthorizers', () => {
 				next: comment('client-claims-alice'),
 			}) as TLComment
 			expect(result.authorId).toBe('real-bob')
+		})
+	})
+
+	// The default is the owner-only rule the per-type suites above already cover in full. These
+	// exercise the option itself: what a callback can widen, and what stays fixed underneath it.
+	describe('canModifyComment', () => {
+		const comment = (authorId: string) =>
+			createComment({ threadId: thread.id, pageId, authorId, body: toRichText('hi') })
+		const makeThread = (createdBy: string) =>
+			createCommentThread({ pageId, anchor: { type: 'page' }, createdBy })
+
+		// The motivating case: a moderator takes down someone else's comment, but takes over
+		// nobody's voice — editing stays the author's.
+		const moderated = createCommentAuthorizers<TestMeta>({
+			getUserId: (session) => session.meta.userId,
+			canModifyComment: (ctx) =>
+				(ctx.action !== 'edit-comment' && ctx.session.meta.userId === 'real-mod') ||
+				ctx.userId === ctx.ownerId,
+		})
+
+		it('lets a widened rule soft-delete another user’s comment', () => {
+			const prev = comment('real-bob')
+			const next = { ...prev, isDeleted: true }
+			expect(moderated.comment!({ session: session('real-mod'), type: 'update', prev, next })).toBe(
+				next
+			)
+		})
+
+		it('lets a widened rule soft-delete another user’s thread', () => {
+			const prev = makeThread('real-bob')
+			const next = { ...prev, isDeleted: true }
+			expect(
+				moderated['comment-thread']!({ session: session('real-mod'), type: 'update', prev, next })
+			).toBe(next)
+		})
+
+		it('keeps the edit and the delete separate: widening deletes grants no edits', () => {
+			const prev = comment('real-bob')
+			const next = { ...prev, body: toRichText('rewritten by the mod') }
+			expect(
+				moderated.comment!({ session: session('real-mod'), type: 'update', prev, next })
+			).toBeNull()
+		})
+
+		// The gap a delete-only permission would otherwise leave: flip the flag, rewrite the body,
+		// and the edit rides in on a write the delete gate allowed.
+		it('vetoes a delete that carries an edit past a delete-only permission', () => {
+			const prev = comment('real-bob')
+			const next = { ...prev, isDeleted: true, body: toRichText('rewritten on the way out') }
+			expect(
+				moderated.comment!({ session: session('real-mod'), type: 'update', prev, next })
+			).toBeNull()
+		})
+
+		it('still lets the owner delete and edit in one write', () => {
+			const prev = comment('real-bob')
+			const next = { ...prev, isDeleted: true, body: toRichText('last word') }
+			expect(moderated.comment!({ session: session('real-bob'), type: 'update', prev, next })).toBe(
+				next
+			)
+		})
+
+		it('leaves everyone else where the default left them', () => {
+			const prev = comment('real-bob')
+			expect(
+				moderated.comment!({
+					session: session('real-mallory'),
+					type: 'update',
+					prev,
+					next: { ...prev, isDeleted: true },
+				})
+			).toBeNull()
+			const threadPrev = makeThread('real-bob')
+			expect(
+				moderated['comment-thread']!({
+					session: session('real-mallory'),
+					type: 'update',
+					prev: threadPrev,
+					next: { ...threadPrev, isDeleted: true },
+				})
+			).toBeNull()
+		})
+
+		it('narrows as well as widens', () => {
+			const frozen = createCommentAuthorizers<TestMeta>({
+				getUserId: (session) => session.meta.userId,
+				canModifyComment: (ctx) => ctx.action !== 'edit-comment' && ctx.userId === ctx.ownerId,
+			})
+			const prev = comment('real-bob')
+			expect(
+				frozen.comment!({
+					session: session('real-bob'),
+					type: 'update',
+					prev,
+					next: { ...prev, body: toRichText('edited') },
+				})
+			).toBeNull()
+			// ...and the delete it didn't narrow still goes through
+			const deleted = { ...prev, isDeleted: true }
+			expect(
+				frozen.comment!({ session: session('real-bob'), type: 'update', prev, next: deleted })
+			).toBe(deleted)
+		})
+
+		it('is asked with the stored record, not the client’s version of it', () => {
+			const seen: unknown[] = []
+			const spying = createCommentAuthorizers<TestMeta>({
+				getUserId: (session) => session.meta.userId,
+				canModifyComment: (ctx) => {
+					seen.push(ctx)
+					return true
+				},
+			})
+			const prev = comment('real-bob')
+			// mallory's push claims the comment is hers and already deleted; the context must describe
+			// the record the room holds, or an ownership rule would be reading the attacker's claim
+			const next = { ...prev, authorId: 'real-mallory', body: toRichText('edited') }
+			spying.comment!({ session: session('real-mallory'), type: 'update', prev, next })
+			// the attribution guard rejects this one before the option is asked at all
+			expect(seen).toEqual([])
+
+			spying.comment!({
+				session: session('real-mallory'),
+				type: 'update',
+				prev,
+				next: { ...prev, body: toRichText('edited') },
+			})
+			expect(seen).toEqual([
+				{
+					session: session('real-mallory'),
+					userId: 'real-mallory',
+					ownerId: 'real-bob',
+					action: 'edit-comment',
+					comment: prev,
+				},
+			])
+		})
+
+		it('reports the thread’s creator as the owner of a thread delete', () => {
+			const seen: unknown[] = []
+			const spying = createCommentAuthorizers<TestMeta>({
+				getUserId: (session) => session.meta.userId,
+				canModifyComment: (ctx) => {
+					seen.push(ctx)
+					return true
+				},
+			})
+			const prev = makeThread('real-bob')
+			spying['comment-thread']!({
+				session: session('real-mallory'),
+				type: 'update',
+				prev,
+				next: { ...prev, isDeleted: true },
+			})
+			expect(seen).toEqual([
+				{
+					session: session('real-mallory'),
+					userId: 'real-mallory',
+					ownerId: 'real-bob',
+					action: 'delete-thread',
+					thread: prev,
+				},
+			])
+		})
+
+		// Resolving and reopening aren't anyone's in particular, matching the client option: they're
+		// `canComment`'s to gate, and the option is never asked about them.
+		it('is not asked about resolving or reopening a thread', () => {
+			let asked = 0
+			const counting = createCommentAuthorizers<TestMeta>({
+				getUserId: (session) => session.meta.userId,
+				canModifyComment: () => {
+					asked++
+					return true
+				},
+			})
+			const prev = makeThread('real-bob')
+			const resolved = { ...prev, resolved: { at: 1, by: 'real-mallory' } }
+			expect(
+				counting['comment-thread']!({
+					session: session('real-mallory'),
+					type: 'update',
+					prev,
+					next: resolved,
+				})
+			).toBe(resolved)
+			const reopened = { ...resolved, resolved: null }
+			expect(
+				counting['comment-thread']!({
+					session: session('real-mallory'),
+					type: 'update',
+					prev: resolved,
+					next: reopened,
+				})
+			).toBe(reopened)
+			expect(asked).toBe(0)
+		})
+
+		it('is not asked about reactions', () => {
+			let asked = 0
+			const counting = createCommentAuthorizers<TestMeta>({
+				getUserId: (session) => session.meta.userId,
+				canModifyComment: () => {
+					asked++
+					return true
+				},
+			})
+			const prev = createCommentReaction({
+				commentId: createCommentId('c1'),
+				threadId: thread.id,
+				pageId,
+				userId: 'real-bob',
+				emoji: '👍',
+			})
+			// a permissive callback doesn't hand mallory someone else's reaction
+			expect(
+				counting['comment-reaction']!({
+					session: session('real-mallory'),
+					type: 'delete',
+					prev,
+					next: null,
+				})
+			).toBeNull()
+			expect(
+				counting['comment-reaction']!({
+					session: session('real-bob'),
+					type: 'update',
+					prev,
+					next: { ...prev, createdAt: prev.createdAt + 1 },
+				})
+			).not.toBeNull()
+			expect(asked).toBe(0)
+		})
+
+		// The point of asking after the structural rules: a host can hand out these three writes
+		// without handing out the invariants underneath them.
+		describe('the structural rules hold however permissive the callback', () => {
+			const permissive = createCommentAuthorizers<TestMeta>({
+				getUserId: (session) => session.meta.userId,
+				canModifyComment: () => true,
+			})
+
+			it('still vetoes clearing a soft-delete', () => {
+				const prev = { ...comment('real-bob'), isDeleted: true }
+				expect(
+					permissive.comment!({
+						session: session('real-mod'),
+						type: 'update',
+						prev,
+						next: { ...prev, isDeleted: false },
+					})
+				).toBeNull()
+			})
+
+			it('still vetoes every client hard-delete', () => {
+				const prev = comment('real-bob')
+				expect(
+					permissive.comment!({ session: session('real-mod'), type: 'delete', prev, next: null })
+				).toBeNull()
+				const threadPrev = makeThread('real-bob')
+				expect(
+					permissive['comment-thread']!({
+						session: session('real-mod'),
+						type: 'delete',
+						prev: threadPrev,
+						next: null,
+					})
+				).toBeNull()
+			})
+
+			it('still vetoes changing a comment’s author', () => {
+				const prev = comment('real-bob')
+				expect(
+					permissive.comment!({
+						session: session('real-mod'),
+						type: 'update',
+						prev,
+						next: { ...prev, authorId: 'real-mod' },
+					})
+				).toBeNull()
+			})
+
+			it('still vetoes re-parenting and back-dating a comment', () => {
+				const prev = comment('real-bob')
+				expect(
+					permissive.comment!({
+						session: session('real-mod'),
+						type: 'update',
+						prev,
+						next: { ...prev, threadId: 'comment-thread:other' as TLCommentThread['id'] },
+					})
+				).toBeNull()
+				expect(
+					permissive.comment!({
+						session: session('real-mod'),
+						type: 'update',
+						prev,
+						next: { ...prev, createdAt: 1 },
+					})
+				).toBeNull()
+			})
+
+			it('still vetoes a create with the soft-delete flag already set', () => {
+				expect(
+					permissive.comment!({
+						session: session('real-mod'),
+						type: 'create',
+						prev: null,
+						next: { ...comment('real-mod'), isDeleted: true },
+					})
+				).toBeNull()
+			})
+
+			it('still vetoes a resolution attributed to someone else', () => {
+				const prev = makeThread('real-bob')
+				expect(
+					permissive['comment-thread']!({
+						session: session('real-mod'),
+						type: 'update',
+						prev,
+						next: { ...prev, resolved: { at: 1, by: 'real-alice' } },
+					})
+				).toBeNull()
+			})
+
+			// An anonymous session has no identity to check a record against, so the default withholds
+			// all three writes from it. A callback that returns true regardless is taken at its word —
+			// worth knowing before writing one that ignores `userId`.
+			it('takes a callback at its word about an anonymous session', () => {
+				const prev = comment('real-bob')
+				const next = { ...prev, isDeleted: true }
+				expect(permissive.comment!({ session: session(null), type: 'update', prev, next })).toBe(
+					next
+				)
+				expect(
+					authorizers.comment!({ session: session(null), type: 'update', prev, next })
+				).toBeNull()
+			})
 		})
 	})
 })
