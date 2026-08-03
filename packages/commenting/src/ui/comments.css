@@ -236,6 +236,17 @@
 	pointer-events: none;
 }
 
+/* iOS Safari zooms the whole page in when a text input with a sub-16px font takes focus, and doesn't
+   zoom back out. Raising the font to 16px on touch devices suppresses that without disabling
+   pinch-zoom of the canvas (which a `maximum-scale` viewport lock would). Must come after both base
+   rules above: a media query adds no specificity, so it only wins the placeholder on source order. */
+@media (pointer: coarse) {
+	.tlui-cmt-input,
+	.tlui-cmt-input__placeholder {
+		font-size: 16px;
+	}
+}
+
 /* A bare up-arrow icon button (matching the placement composer): no fill by default, a grey square
    on hover, grey while there's nothing to send and dark once there is. */
 .tlui-cmt-send {
