@@ -64,12 +64,18 @@ const readComments = atom<ReadonlySet<TLCommentId>>('read comments', new Set())
 
 const isCommentUnread = (commentId: TLCommentId) => !readComments.get().has(commentId)
 
-const onCommentRead = (commentId: TLCommentId) =>
-	readComments.update((read) => (read.has(commentId) ? read : new Set(read).add(commentId)))
+const onCommentsRead = (commentIds: TLCommentId[]) =>
+	readComments.update((read) => {
+		const unread = commentIds.filter((id) => !read.has(id))
+		if (unread.length === 0) return read
+		const next = new Set(read)
+		for (const id of unread) next.add(id)
+		return next
+	})
 
 // Your own comment is never news to you, so it's marked read the moment it's posted rather than
 // waiting for the thread view to report it.
-const onPostComment = (comment: TLComment) => onCommentRead(comment.id)
+const onPostComment = (comment: TLComment) => onCommentsRead([comment.id])
 
 // [2]
 function mentionedIds(body: TLRichText): string[] {
@@ -320,7 +326,7 @@ const components: TLComponents = {
 			resolveAuthor={resolveAuthor}
 			getMentionSuggestions={(query) => filterMentionMembers(MEMBERS, query)}
 			isCommentUnread={isCommentUnread}
-			onCommentRead={onCommentRead}
+			onCommentsRead={onCommentsRead}
 			onPostComment={onPostComment}
 		/>
 	),
@@ -393,5 +399,6 @@ in, switches pages, unhides pins, and zooms far enough to split the thread out o
 before opening it. It takes a thread id or, as here, the id of any comment in it.
 
 Opening the thread is also what marks it read: the thread view reports every unread comment it
-displays through `onCommentRead`, including replies that arrive while it stays open.
+displays through `onCommentsRead`, batched per report, including replies that arrive while it stays
+open.
 */
