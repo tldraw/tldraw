@@ -23,13 +23,15 @@ export { CountBadge, type CountBadgeProps } from './ui/count-badge'
 export { CommentPin, type CommentPinProps } from './ui/comment-pin'
 export { CommentThread, type CommentThreadProps } from './ui/comment-thread'
 export {
+	CommentListItem,
 	CommentsList,
 	isOpenInNewTabClick,
 	type CommentListItemProps,
+	type CommentListItemRenderProps,
 	type CommentsListProps,
 } from './ui/comments-list'
 export { EmptyState, type EmptyStateProps } from './ui/empty-state'
-export { formatRelativeTime } from './ui/format-time'
+export { formatFullDateTime, formatRelativeTime } from './ui/format-time'
 export {
 	DEFAULT_REACTION_EMOJI,
 	EmojiPicker,
@@ -73,6 +75,7 @@ export {
 	type CommentReactionPickerProps,
 	CommentReactions,
 	type CommentReactionsProps,
+	type ReactionSummaryInput,
 	summarizeReactions,
 	toggleCommentReaction,
 	useCommentReactions,
@@ -94,16 +97,26 @@ export { CanvasComments, type CanvasCommentsProps } from './canvas/comments-over
 export {
 	type CommentingComponents,
 	type CommentingOptions,
+	type CommentModification,
+	type CommentModificationContext,
+	defaultCanModifyComment,
 	defaultCommentingOptions,
 	getCanComment,
+	getCanModifyComment,
 	getCommentingOptions,
 	type ShapeCommentPrecisionContext,
 	useCanComment,
+	useCanModifyComment,
 	useCommentingOptions,
 } from './canvas/options'
 export { CommentsOverflowMenu } from './canvas/comments-overflow-menu'
 export { CommentsVisibilityToggle } from './canvas/comments-visibility-toggle'
-export { CanvasCommentsSidebar, type CanvasCommentsSidebarProps } from './canvas/comments-sidebar'
+export {
+	CanvasCommentsSidebar,
+	sortSidebarRows,
+	type CanvasCommentsSidebarProps,
+	type SidebarRow,
+} from './canvas/comments-sidebar'
 export { useComments, useCommentThreads, useThreadComments } from './canvas/hooks'
 export { useCommentingEnabled } from './canvas/license'
 export { richTextToPlaintext } from './canvas/rich-text'

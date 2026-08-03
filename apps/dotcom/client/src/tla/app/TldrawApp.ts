@@ -160,6 +160,8 @@ export class TldrawApp {
 	 * keep it off the wire entirely, not just hide the UI that reads it.
 	 */
 	private readonly comments$: Signal<QueryResultType<typeof queries.comments>> | null
+	/** Null when commenting is disabled for this user, like {@link comments$}. */
+	private readonly reactions$: Signal<QueryResultType<typeof queries.reactions>> | null
 
 	private readonly useProperZero: boolean
 	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
@@ -311,6 +313,9 @@ export class TldrawApp {
 		this.comments$ = this.isCommentingEnabled
 			? this.signalizeQuery('comments signal', this.commentsQuery())
 			: null
+		this.reactions$ = this.isCommentingEnabled
+			? this.signalizeQuery('reactions signal', this.reactionsQuery())
+			: null
 	}
 
 	private userQuery() {
@@ -329,12 +334,25 @@ export class TldrawApp {
 		return queries.comments()
 	}
 
+	private reactionsQuery() {
+		return queries.reactions()
+	}
+
 	/**
 	 * Recent comments across the user's files, for the notifications feed (bounded, cross-file).
 	 * Empty when commenting is disabled for this user — the query isn't subscribed at all.
 	 */
 	getComments(): QueryResultType<typeof queries.comments> {
 		return this.comments$?.get() ?? []
+	}
+
+	/**
+	 * Recent reactions to the user's comments across their files, for the notifications feed
+	 * (bounded, cross-file). Empty when commenting is disabled for this user — the query isn't
+	 * subscribed at all.
+	 */
+	getReactions(): QueryResultType<typeof queries.reactions> {
+		return this.reactions$?.get() ?? []
 	}
 
 	/**
@@ -935,6 +953,11 @@ export class TldrawApp {
 
 	markCommentRead(commentId: string) {
 		this.z.mutate.comment.markRead({ commentId, readAt: Date.now() })
+	}
+
+	markCommentsRead(commentIds: string[]) {
+		if (commentIds.length === 0) return
+		this.z.mutate.comment.markManyRead({ commentIds, readAt: Date.now() })
 	}
 
 	markCommentUnread(commentId: string) {

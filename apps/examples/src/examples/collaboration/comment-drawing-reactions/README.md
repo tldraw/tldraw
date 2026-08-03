@@ -9,8 +9,8 @@ Replace the emoji reaction picker with one you draw in.
 
 ---
 
-A reaction's token is a free-form string. The commenting layer stores it, syncs it, and hands it back to a renderer — it never assumes the string is an emoji glyph. So a custom reaction system is two pieces that agree with each other: a palette that produces tokens, and a renderer that draws them.
+A reaction's token is a free-form string — short and bounded, but the commenting layer never assumes it's an emoji glyph. So a custom reaction can be anything, as long as the token names the content rather than contains it: store the content in a custom synced record, and react with the record's id.
 
-This example implements both in `drawing-reactions.tsx`. The palette is a small locked-down tldraw canvas with a pen and an eraser, and it emits what you drew as a `data:` image URL. The renderer draws such a token as an `<img>` and lets anything else fall through, so drawn reactions and plain emoji coexist on the same comment.
+This example implements that in `drawing-reactions.tsx`. A `reaction-drawing` record type holds each distinct drawing's image, content-addressed so its id is a short hash. The palette is a small locked-down tldraw canvas with a pen and an eraser; it saves what you drew as a record and emits its id as the token. The renderer resolves a token back through the store and draws the image, letting anything else fall through — so drawn reactions and plain emoji coexist on the same comment.
 
 Post a comment, then open its reaction picker and draw something.

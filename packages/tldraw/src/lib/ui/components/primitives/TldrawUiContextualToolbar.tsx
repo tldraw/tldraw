@@ -6,7 +6,6 @@ import {
 	react,
 	useAtom,
 	useEditor,
-	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
 	useValue,
 	Vec,
@@ -53,7 +52,6 @@ export function TldrawUiContextualToolbar({
 	const toolbarRef = useRef<HTMLDivElement>(null)
 
 	usePassThroughWheelEvents(toolbarRef as RefObject<HTMLDivElement | null>)
-	usePassThroughMouseOverEvents(toolbarRef as RefObject<HTMLDivElement | null>)
 
 	const { isVisible, isInteractive, hide, show, position, move } =
 		useToolbarVisibilityStateMachine(changeOnlyWhenYChanges)

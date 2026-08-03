@@ -304,7 +304,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}
 	}, [fileId, commentingEnabled])
 
-	// Without the tool and its overrides there's no comment button in the toolbar and no `c`
+	// Without the tool and its overrides there's no comment button in Quick Actions and no `c`
 	// shortcut, so commenting is fully absent for users the flag doesn't cover. On read-only
 	// canvases the button and shortcut hide via the UI's readonly handling, and composing is
 	// gated by the tool's `canComment`.

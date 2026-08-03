@@ -1,8 +1,8 @@
 import type { MentionNodeAttrs } from '@tiptap/extension-mention'
 import { ReactRenderer } from '@tiptap/react'
 import type { SuggestionKeyDownProps, SuggestionOptions } from '@tiptap/suggestion'
-import { type ReactNode, forwardRef, useImperativeHandle, useState } from 'react'
-import { type Editor as TldrawEditor, atom, react } from 'tldraw'
+import { type ReactNode, forwardRef, useImperativeHandle, useRef, useState } from 'react'
+import { type Editor as TldrawEditor, atom, react, usePassThroughWheelEvents } from 'tldraw'
 import { MentionList, MentionMember } from './mention-list'
 
 /** The handle the suggestion plugin drives — it forwards navigation keys into the popup. */
@@ -22,6 +22,11 @@ const MentionPopup = forwardRef<MentionPopupHandle, MentionPopupProps>(function 
 	ref
 ) {
 	const [activeIndex, setActiveIndex] = useState(0)
+	// A wheel over the popup drives the canvas beneath it, the same pass-through every tldraw panel gets;
+	// the hook leaves the list alone while it scrolls its own overflow. The suggestion plugin builds the
+	// popup imperatively, but `ReactRenderer` portals this into the composer's tree, so context reaches it.
+	const listRef = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(listRef)
 	// A new query yields new items; reset the highlight to the top during render — not in an effect,
 	// which would leave a frame where `activeIndex` still points past a shrunk list and Enter selects
 	// its (now out-of-range, undefined) item, swallowing the key without inserting a mention.
@@ -59,6 +64,7 @@ const MentionPopup = forwardRef<MentionPopupHandle, MentionPopupProps>(function 
 
 	return (
 		<MentionList
+			ref={listRef}
 			members={items}
 			activeIndex={activeIndex}
 			onSelect={select}
@@ -76,10 +82,9 @@ export function filterMentionMembers(members: MentionMember[], query: string): M
 	return members.filter((m) => m.name.toLowerCase().includes(q)).slice(0, MAX_SUGGESTIONS)
 }
 
-// A reactive flag for whether the @-picker is showing. Deliberately NOT tldraw's open-menu registry:
-// registering there mounts MenuClickCapture, which covers the canvas with a click-capture overlay to
-// make it inert while a menu is open. But the picker is an inline autocomplete, not a modal — the
-// canvas must stay pannable/zoomable beneath it — so we track "open" ourselves instead.
+// Deliberately NOT tldraw's open-menu registry: registering there mounts MenuClickCapture, which
+// makes the canvas inert. The picker is an inline autocomplete, not a modal — the canvas must stay
+// pannable beneath it — so track "open" ourselves.
 const mentionPickerOpen = atom('isMentionPickerOpen', false)
 
 /**
@@ -104,10 +109,8 @@ export interface MentionSuggestionOptions {
 
 /**
  * Build the TipTap `suggestion` config for the \@-picker. `getSuggestions(query)` is the host's
- * resolver — it returns the members matching the query (sync or async); the SDK owns neither the
- * roster nor the filtering. The plugin runs outside React, so `render` mounts `MentionPopup` via a
- * `ReactRenderer`, forwards navigation keys through the popup's imperative handle, and lets it call
- * `command` to insert.
+ * resolver — the SDK owns neither the roster nor the filtering. The plugin runs outside React, so
+ * `render` mounts `MentionPopup` via a `ReactRenderer` and forwards navigation keys to it.
  * @public
  */
 export function createMentionSuggestion(
@@ -121,7 +124,6 @@ export function createMentionSuggestion(
 			let renderer: ReactRenderer<MentionPopupHandle, MentionPopupProps> | null = null
 			let container: HTMLElement | null = null
 			let editorEl: HTMLElement | null = null
-			let canvasEl: Element | null = null
 			let stopCameraReaction: (() => void) | null = null
 			// The composer field's top-left in page space, plus the popup's screen width. Captured on a
 			// fresh read so camera moves can re-derive the popup's screen position from the page anchor
@@ -147,20 +149,17 @@ export function createMentionSuggestion(
 				applyScreen(rect.left, rect.bottom, rect.width)
 			}
 
-			// Re-derive the popup's screen position from the remembered page anchor — pure camera math,
-			// always current. Reading the field's DOM rect here instead would lag by a frame: the canvas
-			// composer re-positions itself on a React commit (a `useValue(pageToViewport(...))`), which
-			// lands after a camera reaction runs, so the rect is still last frame's during a pan.
+			// Re-derived from the remembered page anchor — pure camera math, always current. Reading the field's
+			// DOM rect would lag a frame: the composer re-positions on a React commit, after the camera reaction.
 			const reposition = () => {
 				if (!anchorPage || !options.editor) return
 				const s = options.editor.pageToScreen(anchorPage)
 				applyScreen(s.x, s.y, popupWidth)
 			}
 
-			// The popup is `position: fixed`, but its anchor — a canvas composer — rides the camera:
-			// panning or zooming moves the composer with no scroll/resize event to hook. Re-anchor when
-			// the camera actually changes (via a tldraw reaction) rather than polling every frame, plus
-			// on window scroll/resize for the off-canvas case (which re-read the field directly).
+			// The popup is `position: fixed`, but a canvas composer rides the camera, which moves it with no
+			// scroll/resize event to hook. Re-anchor from a tldraw reaction rather than polling every frame,
+			// plus on window scroll/resize for the off-canvas case.
 			const startFollowing = () => {
 				window.addEventListener('scroll', place, true)
 				window.addEventListener('resize', place)
@@ -179,27 +178,11 @@ export function createMentionSuggestion(
 				anchorPage = null
 			}
 
-			// Dismiss the roster — on Escape, or when the composer loses focus — by hiding it and
-			// clearing the open flag, so isMentionPickerOpen() stays accurate and the thread's own
-			// Escape/outside-click dismissal can take over. The TipTap suggestion stays active, so typing
-			// re-shows the roster via onUpdate.
+			// Dismiss the roster on Escape or blur, clearing the open flag so isMentionPickerOpen() stays
+			// accurate and the thread's own dismissal can take over. Typing re-shows it via onUpdate.
 			const hide = () => {
 				if (container) container.style.display = 'none'
 				mentionPickerOpen.set(false)
-			}
-
-			// Wheel/panning over the popup drives the canvas beneath it, so scrolling to pan or zoom
-			// isn't swallowed by the roster — the same passthrough the rest of the comments UI gets from
-			// `usePassThroughWheelEvents`. The list still scrolls itself when the roster overflows (we
-			// only redispatch when it can't). Done imperatively because the popup lives outside React.
-			const onWheel = (e: WheelEvent) => {
-				if ((e as any).isSpecialRedispatchedEvent || !canvasEl) return
-				const list = container?.querySelector('.tlui-cmt-mention-list')
-				if (list && list.scrollHeight > list.clientHeight) return
-				e.preventDefault()
-				const redispatched = new WheelEvent('wheel', e)
-				;(redispatched as any).isSpecialRedispatchedEvent = true
-				canvasEl.dispatchEvent(redispatched)
 			}
 
 			return {
@@ -220,12 +203,9 @@ export function createMentionSuggestion(
 					container = document.createElement('div')
 					container.className = 'tlui-cmt-mention-popup'
 					container.appendChild(renderer.element)
-					// Mount inside the tldraw container so the popup inherits the theme variables
-					// (--tl-color-*); portaling to document.body would strip them and lose the panel.
-					const themed = editorEl.closest('.tl-container')
-					;(themed ?? document.body).appendChild(container)
-					canvasEl = themed?.querySelector('.tl-canvas') ?? null
-					container.addEventListener('wheel', onWheel, { passive: false })
+					// Mounted inside the tldraw container so the popup inherits the theme variables and the pass-through
+					// hooks can find the canvas. Outside one, fall back to the body — the picker still works.
+					;(editorEl.closest('.tl-container') ?? document.body).appendChild(container)
 					place()
 					startFollowing()
 					mentionPickerOpen.set(true)
@@ -243,10 +223,8 @@ export function createMentionSuggestion(
 					place()
 				},
 				onKeyDown: (props) => {
-					// Once the roster is hidden (a prior Escape), the TipTap suggestion is still active but
-					// this handler goes inert — every key passes through to the composer/thread (so a second
-					// Escape closes them, and Arrow/Enter don't select from an invisible list). Typing
-					// re-shows the roster via onUpdate.
+					// Once the roster is hidden, the suggestion stays active but this handler goes inert — keys pass
+					// through so a second Escape closes the composer. Typing re-shows the roster via onUpdate.
 					if (!isMentionPickerOpen()) return false
 					if (props.event.key === 'Escape') {
 						// Dismiss only the roster: hide it and stop the key so the composer/thread beneath
@@ -272,12 +250,10 @@ export function createMentionSuggestion(
 				onExit: () => {
 					stopFollowing()
 					if (editorEl) editorEl.removeEventListener('blur', hide)
-					if (container) container.removeEventListener('wheel', onWheel)
 					if (container) container.remove()
 					if (renderer) renderer.destroy()
 					renderer = null
 					container = null
-					canvasEl = null
 					mentionPickerOpen.set(false)
 				},
 			}

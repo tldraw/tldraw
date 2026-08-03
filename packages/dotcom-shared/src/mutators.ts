@@ -253,6 +253,32 @@ export function createMutators(userId: string) {
 					readAt: ensureSensibleTimestamp(readAt),
 				})
 			},
+			/**
+			 * Mark a batch of comments as read by the current user in one mutation — opening a thread
+			 * or "mark all read" would otherwise pay a mutation (comment lookup, file lookup, access
+			 * check) per comment. One access check per distinct fileId covers the whole batch.
+			 */
+			markManyRead: async (
+				tx: Tx,
+				{ commentIds, readAt }: { commentIds: string[]; readAt: number }
+			) => {
+				const uniqueIds = [...new Set(commentIds)]
+				if (uniqueIds.length === 0) return
+				if (tx.location === 'server') {
+					// Verify every comment exists and the user can access each involved file
+					const comments = await tx.run(zql.comment.where('id', 'IN', uniqueIds))
+					assert(comments.length === uniqueIds.length, ZErrorCode.bad_request)
+					const fileIds = new Set(comments.map((comment) => comment.fileId))
+					for (const fileId of fileIds) {
+						const file = await tx.run(zql.file.where('id', '=', fileId).one())
+						await assertUserCanAccessFile(tx, userId, file!)
+					}
+				}
+				const timestamp = ensureSensibleTimestamp(readAt)
+				for (const commentId of uniqueIds) {
+					await tx.mutate.comment_read.upsert({ userId, commentId, readAt: timestamp })
+				}
+			},
 			/** Mark a comment as unread by deleting the current user's read row. Own-row-only by construction. */
 			markUnread: async (tx: Tx, { commentId }: { commentId: string }) => {
 				await tx.mutate.comment_read.delete({ userId, commentId })

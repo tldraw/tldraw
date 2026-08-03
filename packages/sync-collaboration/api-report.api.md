@@ -16,12 +16,36 @@ export interface CommentAuthorizerOptions<SessionMeta> {
         meta: SessionMeta;
         sessionId: string;
     }): boolean;
+    canModifyComment?(ctx: CommentModificationAuthContext<SessionMeta>): boolean;
     getUserId(session: {
         isReadonly: boolean;
         meta: SessionMeta;
         sessionId: string;
     }): null | string;
 }
+
+// @public
+export type CommentModification = {
+    readonly action: 'delete-comment';
+    readonly comment: TLComment;
+} | {
+    readonly action: 'delete-thread';
+    readonly thread: TLCommentThread;
+} | {
+    readonly action: 'edit-comment';
+    readonly comment: TLComment;
+};
+
+// @public
+export type CommentModificationAuthContext<SessionMeta> = {
+    readonly ownerId: string;
+    readonly session: {
+        isReadonly: boolean;
+        meta: SessionMeta;
+        sessionId: string;
+    };
+    readonly userId: null | string;
+} & CommentModification;
 
 // @public
 export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLRecordAuthorizers<TLComment | TLCommentReaction | TLCommentThread, SessionMeta>;
