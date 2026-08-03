@@ -1,6 +1,6 @@
-import { generateHTML, generateText, JSONContent } from '@tiptap/core'
+import { generateText, JSONContent } from '@tiptap/core'
 import { type CommentAuthor, createMentionExtension } from '@tldraw/mentions'
-import { TLRichText } from 'tldraw'
+import { renderHtmlFromRichTextWithExtensions, TLRichText } from 'tldraw'
 import { commentTipTapExtensions, isCommentEmpty } from '../ui/comment-extensions'
 
 /**
@@ -44,9 +44,9 @@ const htmlCache = new WeakMap<TLRichText, string>()
 
 /**
  * Render a comment body to HTML through the limited comment extension set (no headings), so a body
- * always renders with comment formatting regardless of the host editor's rich-text config. Mirrors
- * tldraw's `renderHtmlFromRichText`, including the empty-paragraph fix that keeps blank lines from
- * collapsing. `resolveName` maps a member id to its current name for any @mentions.
+ * always renders with comment formatting regardless of the host editor's rich-text config. Renders
+ * through tldraw's shared helper, so it gets the same empty-paragraph fix that keeps blank lines
+ * from collapsing. `resolveName` maps a member id to its current name for any @mentions.
  */
 export function renderCommentHtml(
 	richText: TLRichText,
@@ -60,9 +60,9 @@ export function renderCommentHtml(
 	const extensions = mentions
 		? [...commentTipTapExtensions, createMentionExtension({ resolveName })]
 		: commentTipTapExtensions
-	const html = generateHTML(demoteHeadings(richText as JSONContent), extensions).replaceAll(
-		'<p dir="auto"></p>',
-		'<p><br /></p>'
+	const html = renderHtmlFromRichTextWithExtensions(
+		demoteHeadings(richText as JSONContent) as TLRichText,
+		extensions
 	)
 	if (!mentions) htmlCache.set(richText, html)
 	return html

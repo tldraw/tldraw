@@ -120,6 +120,8 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
     // (undocumented)
     getClock(): number;
     // (undocumented)
+    getObjectsByIds(ids: Iterable<string>): RoomSnapshot['documents'];
+    // (undocumented)
     getObjectsSnapshot(): RoomSnapshot['documents'];
     // (undocumented)
     getSnapshot(): RoomSnapshot;
@@ -340,6 +342,8 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
     // (undocumented)
     getClock(): number;
     static getDocumentClock(storage: TLSyncSqliteWrapper): null | number;
+    // (undocumented)
+    getObjectsByIds(ids: Iterable<string>): RoomSnapshot['documents'];
     // (undocumented)
     getObjectsSnapshot(): RoomSnapshot['documents'];
     // @internal (undocumented)
@@ -803,6 +807,7 @@ export interface TLSyncSqliteWrapperConfig {
 export interface TLSyncStorage<R extends UnknownRecord> {
     // (undocumented)
     getClock(): number;
+    getObjectsByIds?(ids: Iterable<string>): RoomSnapshot['documents'];
     getObjectsSnapshot?(): RoomSnapshot['documents'];
     getSnapshot?(): RoomSnapshot;
     // (undocumented)

@@ -1202,6 +1202,31 @@ describe('getEnabledFeatures', () => {
 		}
 	)
 
+	it('enables every feature for an evaluation license regardless of flags', () => {
+		const result = getDefaultLicenseResult({
+			isEvaluationLicense: true,
+			isCollaborationEnabled: false,
+			isCommentingEnabled: false,
+		})
+		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
+			collaboration: true,
+			commenting: true,
+		})
+	})
+
+	it('disables all features for an expired evaluation license', () => {
+		const result = getDefaultLicenseResult({
+			isEvaluationLicense: true,
+			isEvaluationLicenseExpired: true,
+			isCollaborationEnabled: false,
+			isCommentingEnabled: false,
+		})
+		expect(getEnabledFeatures(result, 'expired', false)).toEqual({
+			collaboration: false,
+			commenting: false,
+		})
+	})
+
 	it('disables all features when the license is not parseable', () => {
 		expect(
 			getEnabledFeatures(

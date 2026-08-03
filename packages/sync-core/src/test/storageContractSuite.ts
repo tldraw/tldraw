@@ -128,6 +128,28 @@ export function registerStorageContractTests(factory: StorageContractFactory) {
 				})
 			})
 
+			it('returns targeted object-lane entries by id from getObjectsByIds', () => {
+				const storage = createPartitioned(makeContractSnapshot(contractRecords))
+				const newPage = makePage('lane')
+				storage.transaction((txn) => txn.set(newPage.id, newPage))
+
+				const pageId = contractRecords[1].id
+				const entries = storage.getObjectsByIds!([newPage.id, pageId])
+				expect(entries.map((d) => d.state.id).sort()).toEqual([newPage.id, pageId].sort())
+				// same entry shape as getObjectsSnapshot: state + lastChangedClock
+				const laneEntry = entries.find((d) => d.state.id === newPage.id)!
+				expect(laneEntry.state).toEqual(newPage)
+				expect(laneEntry.lastChangedClock).toBe(storage.getClock())
+
+				// unknown ids and document-lane ids are omitted; duplicates yield one entry
+				expect(storage.getObjectsByIds!(['page:nope', TLDOCUMENT_ID])).toEqual([])
+				expect(storage.getObjectsByIds!([newPage.id, newPage.id]).length).toBe(1)
+
+				// a deleted record stops being returned
+				storage.transaction((txn) => txn.delete(newPage.id))
+				expect(storage.getObjectsByIds!([newPage.id])).toEqual([])
+			})
+
 			it('round-trips through a merged snapshot (persist lanes separately, re-seed together)', () => {
 				const storage = createPartitioned(makeContractSnapshot(contractRecords))
 				const merged = {

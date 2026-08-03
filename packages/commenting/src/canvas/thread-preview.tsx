@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, type CSSProperties } from 'react'
-import { createPortal } from 'react-dom'
 import {
 	Editor,
 	EditorAtom,
+	EditorPortal,
 	TLComment,
 	TLCommentThread,
 	usePassThroughWheelEvents,
@@ -19,26 +19,21 @@ import { POPOVER_OFFSET, toCardProps, useResolveName } from './thread-view'
 
 /**
  * Hover previews for every canvas marker — a single pin, a coincident stack, or a cluster badge.
- * Hovering shows the thread(s) behind the marker as cards; the marker's own click keeps whatever
- * it already did (open the thread, open the stack list, zoom to the cluster's split).
+ * Hovering shows the thread(s) behind the marker as cards; the marker's own click is unchanged.
  *
- * The panel is live, not a passive tooltip: the pointer can travel right into it and hover each
- * card, and clicking one opens that thread — the same affordance the stack list gives its cards.
- * Two pieces make that work. The close delay survives the trip across the gap, and the panel
- * carries an invisible bridge over that gap (see `.tlui-cmt-canvas-preview::before`) so the
- * journey never crosses dead space and retracts the panel mid-move.
+ * The panel is live, not a passive tooltip: the pointer can travel into it and click a card to open
+ * that thread. Two pieces make that work — the close delay survives the trip across the gap, and
+ * the panel carries an invisible bridge over it (see `.tlui-cmt-canvas-preview::before`).
  *
- * Opening a thread from a card needs nothing more than setting `openThreadId`, including for a
- * thread currently folded inside a cluster badge: `collectClusterLeaves` skips the open thread, so
- * it drops out of its badge and renders its own pin and popover.
+ * Opening a thread from a card needs nothing more than setting `openThreadId`, even for one folded
+ * inside a badge: `collectClusterLeaves` skips the open thread, so it drops out and renders itself.
  */
 
 /** How long the pointer must rest on a marker before its preview appears. */
 const PREVIEW_OPEN_DELAY_MS = 180
 /**
- * Grace period after the pointer leaves the marker *or* the panel. Long enough to cross the gap
- * between them by hand — the bridge element covers that gap geometrically, and this covers the
- * moment of transit between the two elements' enter/leave events.
+ * Grace period after the pointer leaves the marker *or* the panel — long enough to cross the gap
+ * between them, which the bridge element covers geometrically.
  */
 const PREVIEW_CLOSE_DELAY_MS = 220
 /** Cards shown before the panel falls back to a "+N more" line. */
@@ -53,9 +48,8 @@ export interface ThreadPreviewCard {
 /**
  * The cards a marker's preview will show, and how many threads it will summarise as "+N more".
  *
- * A thread can exist before its opening comment does — a collaborator's, mid-sync — and has nothing
- * to preview until it arrives. Those are dropped here rather than rendered as blank cards, and they
- * don't count toward the overflow tally either, so "+2 more" always means two readable threads.
+ * A thread can exist before its opening comment does — a collaborator's, mid-sync. Those are
+ * dropped rather than rendered blank, and don't count toward the overflow tally.
  */
 export function selectPreviewCards(
 	threads: readonly TLCommentThread[],
@@ -81,17 +75,15 @@ export type ThreadPreviewVariant = 'thread' | 'list'
 
 /**
  * Which marker's preview is showing, or null. One atom for the whole layer, so previews are
- * mutually exclusive by construction: the close delay means an outgoing marker's timer can still
- * be pending when the next marker opens, and per-component state would briefly show both.
+ * mutually exclusive: the close delay can leave an outgoing marker's timer pending when the next
+ * opens, and per-component state would briefly show both.
  */
 const hoveredMarkerId = new EditorAtom<string | null>('commentHoveredMarkerId', () => null)
 
 /**
  * Hover state for one marker. Returns whether its preview should render, plus the pointer handlers
- * to spread onto the marker element.
- *
- * `markerId` must be stable and unique per marker across the layer — prefix by kind, since a stack
- * is keyed by its oldest member's thread id and would otherwise collide with that thread's own pin.
+ * to spread onto the marker element. `markerId` must be stable and unique per marker across the
+ * layer — prefix by kind, or a stack collides with its oldest member's own pin.
  */
 export function useMarkerPreview(editor: Editor, markerId: string) {
 	const openTimer = useRef(0)
@@ -154,14 +146,12 @@ export function useMarkerPreview(editor: Editor, markerId: string) {
 }
 
 /**
- * The hover panel: each thread's opening comment as a read-only card, capped with a "+N more"
- * line. Mounted only while hovering, so the store subscription it needs to find those comments
- * costs nothing at rest.
+ * The hover panel: each thread's opening comment as a read-only card, capped with a "+N more" line.
+ * Mounted only while hovering, so its store subscription costs nothing at rest.
  */
 export function ThreadPreview({
 	editor,
 	threads,
-	container,
 	variant,
 	point,
 	onSelectThread,
@@ -172,7 +162,6 @@ export function ThreadPreview({
 	editor: Editor
 	/** The marker's threads, in the order they should read (oldest first). */
 	threads: readonly TLCommentThread[]
-	container: HTMLElement
 	/** What the marker's click opens, which this panel imitates. */
 	variant: ThreadPreviewVariant
 	/** The marker's anchor point in viewport space — the same origin its popover is placed from. */
@@ -231,68 +220,69 @@ export function ThreadPreview({
 		.filter(Boolean)
 		.join(' ')
 
-	return createPortal(
-		// The root is the hover region — it carries the bridge back to the marker — while the panel
-		// inside it is the visible surface. Keeping them apart is what lets the surface light up on
-		// its own hover without the bridge (which reaches back over the marker) lighting it up too.
-		<div
-			ref={ref}
-			className={`tlui-cmt-canvas-preview tlui-cmt-canvas-preview--${variant}`}
-			style={
-				{
-					left: point.x + offset.x,
-					top: point.y + offset.y,
-					// The stylesheet sizes the hover bridge against this, so the gap it spans follows
-					// the offset rather than being restated as a second magic number.
-					'--tlui-cmt-preview-offset': `${offset.x}px`,
-				} as CSSProperties
-			}
-			onPointerEnter={onPointerEnter}
-			onPointerLeave={onPointerLeave}
-			// The panel sits over the canvas; a press on it is not a canvas press.
-			onPointerDown={(e) => e.stopPropagation()}
-		>
-			<div className={panelClass}>
-				{cards.map(({ thread, first }) => {
-					// The preview shows only the opening comment, so its reply count is what tells the
-					// reader the thread continues past what they see.
-					const replies = replyCountLabel(msg, (countByThread.get(thread.id) ?? 1) - 1)
-					return (
-						<div
-							key={thread.id}
-							className={
-								isThread
-									? undefined
-									: onSelectThread
-										? 'tlui-cmt-preview-card tlui-cmt-preview-card--selectable'
-										: 'tlui-cmt-preview-card'
-							}
-							onClick={
-								onSelectThread
-									? (e) => {
-											e.stopPropagation()
-											onSelectThread(thread)
-										}
-									: undefined
-							}
-						>
-							<CommentCard
-								{...toCardProps(first, props, options.components, resolveName)}
-								footer={
-									replies ? <span className="tlui-cmt-card__replies">{replies}</span> : undefined
+	return (
+		<EditorPortal>
+			{/* The root is the hover region — it carries the bridge back to the marker — while the panel
+		    inside it is the visible surface. Keeping them apart is what lets the surface light up on
+		    its own hover without the bridge (which reaches back over the marker) lighting it up too. */}
+			<div
+				ref={ref}
+				className={`tlui-cmt-canvas-preview tlui-cmt-canvas-preview--${variant}`}
+				style={
+					{
+						left: point.x + offset.x,
+						top: point.y + offset.y,
+						// The stylesheet sizes the hover bridge against this, so the gap it spans follows
+						// the offset rather than being restated as a second magic number.
+						'--tlui-cmt-preview-offset': `${offset.x}px`,
+					} as CSSProperties
+				}
+				onPointerEnter={onPointerEnter}
+				onPointerLeave={onPointerLeave}
+				// The panel sits over the canvas; a press on it is not a canvas press.
+				onPointerDown={(e) => e.stopPropagation()}
+			>
+				<div className={panelClass}>
+					{cards.map(({ thread, first }) => {
+						// The preview shows only the opening comment, so its reply count is what tells the
+						// reader the thread continues past what they see.
+						const replies = replyCountLabel(msg, (countByThread.get(thread.id) ?? 1) - 1)
+						return (
+							<div
+								key={thread.id}
+								className={
+									isThread
+										? undefined
+										: onSelectThread
+											? 'tlui-cmt-preview-card tlui-cmt-preview-card--selectable'
+											: 'tlui-cmt-preview-card'
 								}
-							/>
+								onClick={
+									onSelectThread
+										? (e) => {
+												e.stopPropagation()
+												onSelectThread(thread)
+											}
+										: undefined
+								}
+							>
+								<CommentCard
+									{...toCardProps(first, props, options.components, resolveName)}
+									footer={
+										replies ? <span className="tlui-cmt-card__replies">{replies}</span> : undefined
+									}
+								/>
+							</div>
+						)
+					})}
+					{overflow > 0 && (
+						<div className="tlui-cmt-preview-more">
+							{msg('comments.preview-more').replace('{count}', String(overflow))}
 						</div>
-					)
-				})}
-				{overflow > 0 && (
-					<div className="tlui-cmt-preview-more">
-						{msg('comments.preview-more').replace('{count}', String(overflow))}
-					</div>
-				)}
+					)}
+				</div>
 			</div>
-		</div>,
-		container
+		</EditorPortal>
 	)
 }
 

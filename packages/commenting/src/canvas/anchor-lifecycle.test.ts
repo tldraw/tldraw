@@ -212,8 +212,8 @@ describe('shape deletion', () => {
 
 		editor.deleteShape(shapeId)
 		const converted = getCommentRecord(editor, thread.id) as typeof thread
-		commitCommentMutation(editor, () =>
-			putCommentRecords(editor, [{ ...converted, anchor: { type: 'point', x: 900, y: 900 } }])
+		commitCommentMutation(editor, ({ put }) =>
+			put([{ ...converted, anchor: { type: 'point', x: 900, y: 900 } }])
 		)
 
 		editor.undo()
