@@ -26,7 +26,7 @@ import {
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { defineMessages, F, useMsg } from '../../../utils/i18n'
+import { defineMessages, F, useIntl, useMsg } from '../../../utils/i18n'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
@@ -220,6 +220,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const closeLbl = useMsg(messages.close)
 	const empty = useMsg(messages.empty)
 	const unknownAuthor = useMsg(messages.unknownAuthor)
+	const { locale } = useIntl()
 
 	const visible = filter === 'unread' ? notifications.filter((n) => n.unread) : notifications
 
@@ -322,7 +323,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 											nameClassName={styles.author}
 										/>
 									</span>
-									<TldrawUiTooltip content={formatFullDateTime(item.date)}>
+									<TldrawUiTooltip content={formatFullDateTime(item.date, locale)}>
 										<span className={styles.time}>{formatRelativeTime(item.date)}</span>
 									</TldrawUiTooltip>
 								</div>
