@@ -31,7 +31,7 @@ export {
 	type CommentsListProps,
 } from './ui/comments-list'
 export { EmptyState, type EmptyStateProps } from './ui/empty-state'
-export { formatRelativeTime } from './ui/format-time'
+export { formatFullDateTime, formatRelativeTime } from './ui/format-time'
 export {
 	DEFAULT_REACTION_EMOJI,
 	EmojiPicker,
