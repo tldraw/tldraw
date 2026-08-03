@@ -331,11 +331,6 @@ function McpFriendsAndFamily() {
 				line. Each must belong to an existing tldraw account — saving resolves them to user IDs, so
 				an address with no account is rejected rather than stored.
 			</p>
-			<p className={styles.featureFlagsNote}>
-				<strong>Not wired up yet.</strong> The MCP server does not read this list, so editing it
-				changes nothing today — it is here so the list is ready to populate. Enforcement is waiting
-				on MCP callers being able to authenticate.
-			</p>
 			{error && <div className={styles.errorMessage}>{error}</div>}
 			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
 			<div className={styles.summaryItem}>
@@ -348,7 +343,7 @@ function McpFriendsAndFamily() {
 				ref={textareaRef}
 				rows={6}
 				spellCheck={false}
-				placeholder={'@tldraw.com\nfriend@example.com'}
+				placeholder={'someone@tldraw.com\nfriend@example.com'}
 				className={styles.searchInput}
 				disabled={isLoading || isSaving}
 			/>
