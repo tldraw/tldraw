@@ -68,6 +68,9 @@
   "13ddd375ad": {
     "translation": "Export as"
   },
+  "14b03eeeb5": {
+    "translation": "Notification options"
+  },
   "181b90f889": {
     "translation": "Create file"
   },
@@ -193,6 +196,9 @@
   },
   "517bb809d9": {
     "translation": "Page menu"
+  },
+  "53770fd374": {
+    "translation": "Unread"
   },
   "542248f0ba": {
     "translation": "This file is now read-only"
@@ -500,6 +506,9 @@
   },
   "b03400e2db": {
     "translation": "<name>{author}</name> replied"
+  },
+  "b1c94ca2fb": {
+    "translation": "All"
   },
   "b2326c3a34": {
     "translation": "Regenerate"
