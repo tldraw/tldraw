@@ -264,3 +264,44 @@ describe('keyboard shortcuts with a held key', () => {
 		expect(editor.getCurrentPageShapeIds().has(id)).toBe(true)
 	})
 })
+
+// Regression tests for shift+<digit> shortcuts across keyboard layouts. The physical number-row
+// keys are the same everywhere, but the shifted glyph varies by layout: US shift+2 is '@', British
+// PC and German '"'. German is the sharp case — it has no dedicated '=' key, so shift+0 produces
+// '=', which used to alias to the '=' zoom-in shortcut instead of zoom-to-100. Matching keys off
+// the physical Digit<N> code, so these work regardless of layout and never cross-fire.
+describe('shifted number-row shortcuts across keyboard layouts', () => {
+	it.each([
+		['US / Apple British', '@'],
+		['British PC / German', '"'],
+		// On AZERTY the number row is shifted, so shift+Digit2 already types '2'.
+		['AZERTY', '2'],
+	])('fires zoom-to-selection on shift+2 for a %s layout glyph', async (_layout, key) => {
+		const { editor } = await setupFocusedEditor()
+		const id = createShapeId()
+		act(() => {
+			editor.createShape({ id, type: 'geo', x: 0, y: 0 })
+			editor.select(id)
+		})
+		const zoomToSelection = vi.spyOn(editor, 'zoomToSelection').mockImplementation(() => editor)
+
+		keydown(editor, { key, code: 'Digit2', shiftKey: true })
+
+		expect(zoomToSelection).toHaveBeenCalledTimes(1)
+	})
+
+	it.each([
+		['US / UK', ')'],
+		// German has no '=' key; it sits on shift+0, so this press must still mean zoom-to-100.
+		['German', '='],
+	])('zooms to 100%% (never zoom-in) on shift+0 for a %s layout glyph', async (_layout, key) => {
+		const { editor } = await setupFocusedEditor()
+		const resetZoom = vi.spyOn(editor, 'resetZoom').mockImplementation(() => editor)
+		const zoomIn = vi.spyOn(editor, 'zoomIn').mockImplementation(() => editor)
+
+		keydown(editor, { key, code: 'Digit0', shiftKey: true })
+
+		expect(resetZoom).toHaveBeenCalledTimes(1)
+		expect(zoomIn).not.toHaveBeenCalled()
+	})
+})
