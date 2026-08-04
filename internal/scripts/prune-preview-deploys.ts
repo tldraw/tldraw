@@ -155,11 +155,15 @@ async function getCertZoneId() {
 	return _certZoneId
 }
 
-const _certPackCache = new Map<string, string>()
+// `status=all` also returns packs that are already gone (`deleted` /
+// `pending_deletion`); a host can therefore appear on several packs. Skip the
+// dead ones and keep every live pack id per host — caching just the last-seen
+// id would let a dead pack shadow a live one, which would then never be pruned.
+const _certPackCache = new Map<string, string[]>()
 const CERT_PACKS_PER_PAGE = 50
+const CERT_PACK_GONE_STATUSES = new Set(['deleted', 'pending_deletion'])
 async function listPreviewCertPacks() {
 	const zoneId = await getCertZoneId()
-	const hosts: string[] = []
 	for (let page = 1; ; page++) {
 		const res = await cloudflareV4Api(
 			`/zones/${zoneId}/ssl/certificate_packs?status=all&per_page=${CERT_PACKS_PER_PAGE}&page=${page}`
@@ -169,39 +173,45 @@ async function listPreviewCertPacks() {
 		}
 		const data = (await res.json()) as {
 			success: boolean
-			result: { id: string; type: string; hosts: string[] }[]
+			result: { id: string; type: string; status: string; hosts: string[] }[]
 		}
 		if (!data.success) {
 			throw new Error('Failed to list certificate packs ' + JSON.stringify(data))
 		}
 		for (const pack of data.result) {
 			if (pack.type !== 'advanced') continue
+			if (CERT_PACK_GONE_STATUSES.has(pack.status)) continue
 			const prHost = pack.hosts.find((h) => CERT_PACK_HOST_REGEX.test(h))
 			if (!prHost) continue
-			_certPackCache.set(prHost, pack.id)
-			hosts.push(prHost)
+			const ids = _certPackCache.get(prHost) ?? []
+			ids.push(pack.id)
+			_certPackCache.set(prHost, ids)
 		}
 		if (data.result.length < CERT_PACKS_PER_PAGE) break
 	}
-	return hosts
+	return [..._certPackCache.keys()]
 }
 
 async function deletePreviewCertPack(host: string) {
-	const packId = _certPackCache.get(host)
-	if (!packId) {
+	const packIds = _certPackCache.get(host)
+	if (!packIds?.length) {
 		throw new Error(`Certificate pack for ${host} not found in cache`)
 	}
-	nicelog('Deleting certificate pack:', packId, 'for', host)
 	const zoneId = await getCertZoneId()
-	const res = await cloudflareV4Api(`/zones/${zoneId}/ssl/certificate_packs/${packId}`, {
-		method: 'DELETE',
-	})
-	if (!res.ok) {
-		throw new Error(`Failed to delete certificate pack ${packId}: ${res.status} ${res.statusText}`)
-	}
-	const data = (await res.json()) as { success: boolean }
-	if (!data.success) {
-		throw new Error(`Failed to delete certificate pack ${packId}: ${JSON.stringify(data)}`)
+	for (const packId of packIds) {
+		nicelog('Deleting certificate pack:', packId, 'for', host)
+		const res = await cloudflareV4Api(`/zones/${zoneId}/ssl/certificate_packs/${packId}`, {
+			method: 'DELETE',
+		})
+		if (!res.ok) {
+			throw new Error(
+				`Failed to delete certificate pack ${packId}: ${res.status} ${res.statusText}`
+			)
+		}
+		const data = (await res.json()) as { success: boolean }
+		if (!data.success) {
+			throw new Error(`Failed to delete certificate pack ${packId}: ${JSON.stringify(data)}`)
+		}
 	}
 }
 
