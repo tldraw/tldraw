@@ -45,12 +45,15 @@ packs_file="$(mktemp)"
 trap 'rm -f "$packs_file"' EXIT
 page=1
 while :; do
-	resp="$(curl -sfS "${API}/zones/${ZONE_ID}/ssl/certificate_packs?status=all&per_page=100&page=${page}" "${auth[@]}")" \
+	# this endpoint caps per_page at 50; status=all also returns packs that are
+	# already deleted/pending deletion, skip those
+	resp="$(curl -sfS "${API}/zones/${ZONE_ID}/ssl/certificate_packs?status=all&per_page=50&page=${page}" "${auth[@]}")" \
 		|| { echo "failed to fetch certificate packs page ${page}" >&2; exit 1; }
 	jq -e '.success' <<<"$resp" >/dev/null \
 		|| { echo "API error on page ${page}: $(jq -c '.errors' <<<"$resp")" >&2; exit 1; }
 	jq -r '.result[]
 		| select(.type == "advanced")
+		| select(.status != "deleted" and .status != "pending_deletion")
 		| select(any(.hosts[]; test("^pr-[0-9]+-")))
 		| [.id, ([.hosts[] | capture("^pr-(?<n>[0-9]+)-").n] | first), (.hosts | join(","))]
 		| @tsv' <<<"$resp" >> "$packs_file"
