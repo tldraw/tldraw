@@ -273,14 +273,21 @@ export class TldrawApp {
 				})
 			}, msUntilTokenRefresh(token))
 		}
+		// Reschedule on every outcome — a rejected getToken() or a throwing connect() must not kill
+		// the refresh chain, so scheduling happens before connect and in the reject path.
 		const refreshToken = () =>
-			getToken().then((token) => {
-				if (token) {
-					z.connection.connect({ auth: token })
-				}
-				scheduleRefresh(token)
-				return !!token
-			})
+			getToken()
+				.catch((err) => {
+					scheduleRefresh(undefined)
+					throw err
+				})
+				.then((token) => {
+					scheduleRefresh(token)
+					if (token) {
+						z.connection.connect({ auth: token })
+					}
+					return !!token
+				})
 		scheduleRefresh(initialToken)
 		this.disposables.push(() => clearTimeout(refreshTimeout))
 		// A hidden tab's timers are throttled to about once a minute, so a token that lives 60s
