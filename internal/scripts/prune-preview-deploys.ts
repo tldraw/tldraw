@@ -26,7 +26,7 @@ interface ListWorkersResult {
 }
 
 const _isPrClosedCache = new Map<number, boolean>()
-async function isPrClosedForAWhile(prNumber: number) {
+async function isPrClosed(prNumber: number) {
 	if (_isPrClosedCache.has(prNumber)) {
 		return _isPrClosedCache.get(prNumber)!
 	}
@@ -45,10 +45,7 @@ async function isPrClosedForAWhile(prNumber: number) {
 		}
 		throw err
 	}
-	const timeout = 1000 * 60 * 60 * 24 * 2 // two days
-	const result =
-		prResult.data.state === 'closed' &&
-		Date.now() - new Date(prResult.data.closed_at!).getTime() > timeout
+	const result = prResult.data.state === 'closed'
 	_isPrClosedCache.set(prNumber, result)
 	return result
 }
@@ -56,8 +53,8 @@ async function isPrClosedForAWhile(prNumber: number) {
 const CLOUDFLARE_WORKER_REGEX = /^pr-(\d+)-/
 const CLOUDFLARE_SYNC_WORKER_REGEX = /^pr-\d+-tldraw-multiplayer$/
 
-async function cloudflareApi(endpoint: string, options: RequestInit = {}): Promise<Response> {
-	const url = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}${endpoint}`
+async function cloudflareV4Api(endpoint: string, options: RequestInit = {}): Promise<Response> {
+	const url = `https://api.cloudflare.com/client/v4${endpoint}`
 	return fetch(url, {
 		...options,
 		headers: {
@@ -65,6 +62,10 @@ async function cloudflareApi(endpoint: string, options: RequestInit = {}): Promi
 			'Content-Type': 'application/json',
 		},
 	})
+}
+
+async function cloudflareApi(endpoint: string, options: RequestInit = {}): Promise<Response> {
+	return cloudflareV4Api(`/accounts/${env.CLOUDFLARE_ACCOUNT_ID}${endpoint}`, options)
 }
 
 async function listPreviewWorkerDeployments() {
@@ -128,6 +129,69 @@ async function deletePreviewWorkerDeployment(id: string) {
 		}
 	} else {
 		await deletePreviewWorker(id)
+	}
+}
+
+// Deleting a worker with a custom domain leaves its edge certificate behind
+// (https://github.com/cloudflare/workers-sdk/issues/5139), so prune per-PR
+// advanced cert packs on the preview zone separately.
+const CLOUDFLARE_CERT_ZONE = 'tldraw.xyz'
+const CERT_PACK_HOST_REGEX = /^pr-\d+-/
+
+let _certZoneId: string | undefined
+async function getCertZoneId() {
+	if (_certZoneId) return _certZoneId
+	const res = await cloudflareV4Api(`/zones?name=${CLOUDFLARE_CERT_ZONE}`)
+	const data = (await res.json()) as { success: boolean; result: { id: string }[] }
+	if (!data.success || !data.result.length) {
+		throw new Error(`Failed to find zone ${CLOUDFLARE_CERT_ZONE}: ${JSON.stringify(data)}`)
+	}
+	_certZoneId = data.result[0].id
+	return _certZoneId
+}
+
+const _certPackCache = new Map<string, string>()
+async function listPreviewCertPacks() {
+	const zoneId = await getCertZoneId()
+	const hosts: string[] = []
+	for (let page = 1; ; page++) {
+		const res = await cloudflareV4Api(
+			`/zones/${zoneId}/ssl/certificate_packs?status=all&per_page=100&page=${page}`
+		)
+		const data = (await res.json()) as {
+			success: boolean
+			result: { id: string; type: string; hosts: string[] }[]
+			result_info?: { total_pages?: number }
+		}
+		if (!data.success) {
+			throw new Error('Failed to list certificate packs ' + JSON.stringify(data))
+		}
+		for (const pack of data.result) {
+			if (pack.type !== 'advanced') continue
+			const prHost = pack.hosts.find((h) => CERT_PACK_HOST_REGEX.test(h))
+			if (!prHost) continue
+			_certPackCache.set(prHost, pack.id)
+			hosts.push(prHost)
+		}
+		if (page >= (data.result_info?.total_pages ?? 1)) break
+	}
+	return hosts
+}
+
+async function deletePreviewCertPack(host: string) {
+	const packId = _certPackCache.get(host)
+	if (!packId) {
+		nicelog(`Certificate pack for ${host} not found in cache`)
+		return
+	}
+	nicelog('Deleting certificate pack:', packId, 'for', host)
+	const zoneId = await getCertZoneId()
+	const res = await cloudflareV4Api(`/zones/${zoneId}/ssl/certificate_packs/${packId}`, {
+		method: 'DELETE',
+	})
+	const data = (await res.json()) as { success: boolean }
+	if (!res.ok || !data.success) {
+		throw new Error(`Failed to delete certificate pack ${packId}: ${JSON.stringify(data)}`)
 	}
 }
 
@@ -269,6 +333,8 @@ const deletionErrors: string[] = []
 async function main() {
 	nicelog('Getting queues information')
 	await processItems(listPreviewWorkerDeployments, deletePreviewWorkerDeployment)
+	nicelog('\nPruning preview certificate packs')
+	await processItems(listPreviewCertPacks, deletePreviewCertPack)
 	nicelog('\nPruning Supabase preview databases')
 	await processItems(listPreviewDatabases, deletePreviewDatabase)
 	nicelog('\nPruning fly.io preview apps')
@@ -301,7 +367,7 @@ async function processItems(
 			nicelog(`Skipping ${item} because it doesn't match the regex`)
 			continue
 		}
-		if (await isPrClosedForAWhile(number)) {
+		if (await isPrClosed(number)) {
 			nicelog(`Deleting ${item} because PR is closed`)
 			try {
 				await deleteFn(item)
