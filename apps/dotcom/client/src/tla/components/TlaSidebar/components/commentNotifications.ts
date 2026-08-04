@@ -35,8 +35,8 @@ const JOIN_TIME_SKEW_TOLERANCE_MS = 60_000
 
 /**
  * The comment fields the notifications feed needs — a structural subset of the Zero row so this
- * is unit-testable without Zero types. A `T` is either a comments-feed row, or a reactions-feed
- * row's related comment.
+ * is unit-testable without Zero types. Both feeds yield comment rows: `comments` carries other
+ * people's comments that concern the caller, `reactions` the caller's own that were reacted to.
  */
 export interface CommentNotificationInput {
 	id: string
@@ -169,19 +169,6 @@ export function summarizeForeignReactors(
 	return { names, others: ordered.length - names.length, total: ordered.length }
 }
 
-/** One row of the reactions feed: a foreign reaction joined to the reacted-to comment. Only
- *  `commentId`/`userId`/`emoji`/`createdAt` matter here (dedupe key and ordering); the byline and
- *  pills read the comment's own unbounded `reactions` set instead. */
-export interface ReactionNotificationInput {
-	commentId: string
-	userId: string
-	userName?: string
-	emoji: string
-	createdAt: number
-	/** Absent only if the row outraced its comment's sync; such rows are dropped. */
-	comment?: CommentNotificationInput | null
-}
-
 /** Newest `createdAt` among `reactions` from someone other than `userId`; `undefined` if none. */
 export function latestForeignReactionAt(
 	reactions: CommentNotificationInput['reactions'],
@@ -195,26 +182,24 @@ export function latestForeignReactionAt(
 }
 
 /**
- * Groups the reactions feed into one {@link CommentNotification} per reacted-to comment. Feed
- * rows only decide which comments appear (deduped by `commentId`); the entry's `comment` rides
- * along as-is, its unbounded `reactions` set feeding the byline and pills. Dated and marked
- * unread by the newest foreign reaction in that set (strict >: same-instant receipt = read).
+ * Turns the reactions feed — the caller's own comments that someone else has reacted to — into one
+ * {@link CommentNotification} per comment. Each entry is dated and marked unread by the newest
+ * foreign reaction in the comment's own unbounded `reactions` set, which also feeds the byline and
+ * pills (strict >: a receipt from the same instant counts as read).
+ *
+ * The feed rows are comments rather than reactions because the query is rooted at `comment`; see
+ * `queries.reactions` for why that rooting is load-bearing.
  */
 export function buildReactionNotifications(
-	reactions: readonly ReactionNotificationInput[],
+	comments: readonly CommentNotificationInput[],
 	userId: string | undefined | null
 ): CommentNotification<CommentNotificationInput>[] {
 	if (!userId) return []
 
-	const comments = new Map<string, CommentNotificationInput>()
-	for (const row of reactions) {
-		// server already filters both; cheap belt against a dangling or self row slipping through
-		if (!row.comment || row.userId === userId) continue
-		comments.set(row.commentId, row.comment)
-	}
-
 	const notifications: CommentNotification<CommentNotificationInput>[] = []
-	for (const comment of comments.values()) {
+	for (const comment of comments) {
+		// server already filters to the caller's own comments; cheap belt against a foreign row
+		if (comment.authorId !== userId) continue
 		const timestamp = latestForeignReactionAt(comment.reactions, userId)
 		if (timestamp === undefined) continue
 		notifications.push({
