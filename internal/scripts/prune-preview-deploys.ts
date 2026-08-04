@@ -143,12 +143,17 @@ async function listPreviewWorkerRoutes() {
 }
 
 async function deletePreviewWorkerRoute(pattern: string) {
-	nicelog('Deleting worker route:', pattern)
 	const id = _workerRouteIdCache.get(pattern)
 	if (!id) {
-		throw new Error(`Route ${pattern} not found in cache`)
+		nicelog(`Route ${pattern} did not exist, skipping`)
+		return
 	}
+	nicelog('Deleting worker route:', pattern)
 	const res = await cloudflareZoneApi(`/workers/routes/${id}`, { method: 'DELETE' })
+	if (res.status === 404) {
+		nicelog(`Route ${pattern} did not exist, skipping`)
+		return
+	}
 	if (!res.ok) {
 		throw new Error(`Failed to delete worker route ${pattern}: ${res.status} ${res.statusText}`)
 	}
