@@ -777,7 +777,7 @@ button.tlui-cmt-reaction--active:hover {
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
-	padding: 6px 6px 6px 14px;
+	padding: 2px 2px 2px 14px;
 	border-bottom: 1px solid var(--tl-color-divider);
 }
 .tlui-cmt-list__header-title {
@@ -786,41 +786,28 @@ button.tlui-cmt-reaction--active:hover {
 	color: var(--tl-color-text-1);
 }
 
-/* A small square icon button in the sidebar header (filter funnel, overflow …). Also a
-   TldrawUiButton, but a bespoke 26px size — so it has to override .tlui-button's 40px box, and
-   `min-width` in particular would otherwise beat `width`. Selectors carry .tlui-button so
-   stylesheet order can't decide the winner. */
+/* An icon button in the sidebar header (filter funnel, overflow …). Sized like the thread actions:
+   a TldrawUiButton (type="icon") left at its native 40px box, with .tlui-button's 32px ::after
+   square carrying the hover wash. Only the bits that differ are set here, at .tlui-button's
+   specificity + 1 so stylesheet order can't decide the winner. */
 .tlui-button.tlui-cmt-header-btn {
-	width: 26px;
-	min-width: 26px;
-	height: 26px;
+	width: 40px;
 	padding: 0;
 	border-radius: 6px;
 	color: var(--tl-color-text-2);
 }
-/* Same hit-target expansion as the thread actions, tiled the same way — this row's gap is 2px too
-   (see `.tlui-cmt-list__header-actions`). Unlike the thread actions, the hover fill sits on the
-   button itself, so .tlui-button's ::after wash is cleared and the pseudo-element is left doing
-   nothing but widening the hit area. */
-.tlui-button.tlui-cmt-header-btn::after {
-	inset: -6px -1px;
-	background: none;
-}
-.tlui-button.tlui-cmt-header-btn:first-child::after {
-	left: -6px;
-}
-.tlui-button.tlui-cmt-header-btn:last-child::after {
-	right: -6px;
+/* Overlap each button 4px into the previous so the 32px visual squares sit 4px apart, not 8px —
+   the same tiling the thread actions use. */
+.tlui-cmt-header-btn + .tlui-cmt-header-btn {
+	margin-left: -4px;
 }
 .tlui-button.tlui-cmt-header-btn:hover,
 .tlui-button.tlui-cmt-header-btn[data-state='open'] {
-	background: var(--tl-color-muted-2);
 	color: var(--tl-color-text-1);
 }
 .tlui-cmt-list__header-actions {
 	display: flex;
 	align-items: center;
-	gap: 2px;
 }
 
 /* The commenting dropdowns' surface — a little air between the items and the menu edge. */
