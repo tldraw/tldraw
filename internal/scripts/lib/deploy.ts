@@ -173,13 +173,17 @@ export async function setWranglerPreviewConfig(
 	location: string,
 	{
 		name,
-		customDomain,
+		routeHostname,
 		serviceBinding,
-	}: { name: string; customDomain?: string; serviceBinding?: ServiceBinding },
+	}: { name: string; routeHostname?: string; serviceBinding?: ServiceBinding },
 	queueName?: string
 ) {
+	// A zone route instead of a custom domain: custom domains mint a dedicated
+	// certificate pack per hostname, while routes are covered by the zone's
+	// universal wildcard cert and the existing proxied *.tldraw.xyz DNS record.
+	const zoneName = routeHostname?.split('.').slice(-2).join('.')
 	const additionalProperties = `name = "${name}"
-${customDomain ? `routes = [ { pattern = "${customDomain}", custom_domain = true} ]` : ''}
+${routeHostname ? `routes = [ { pattern = "${routeHostname}/*", zone_name = "${zoneName}" } ]` : ''}
 ${serviceBinding ? `services = [ {binding = "${serviceBinding.binding}", service = "${serviceBinding.service}" } ]` : ''}`
 
 	const envPreviewSection = `\n[env.preview]\n${additionalProperties}\n`

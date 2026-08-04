@@ -67,6 +67,30 @@ async function cloudflareApi(endpoint: string, options: RequestInit = {}): Promi
 	})
 }
 
+const CLOUDFLARE_ZONE_NAME = 'tldraw.xyz'
+let _cloudflareZoneId: string | null = null
+async function cloudflareZoneApi(endpoint: string, options: RequestInit = {}): Promise<Response> {
+	if (!_cloudflareZoneId) {
+		const res = await fetch(
+			`https://api.cloudflare.com/client/v4/zones?name=${CLOUDFLARE_ZONE_NAME}`,
+			{ headers: { Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}` } }
+		)
+		const data = (await res.json()) as { success: boolean; result: { id: string }[] }
+		if (!data.success || !data.result[0]) {
+			throw new Error(`Failed to look up zone ${CLOUDFLARE_ZONE_NAME}: ${JSON.stringify(data)}`)
+		}
+		_cloudflareZoneId = data.result[0].id
+	}
+	const url = `https://api.cloudflare.com/client/v4/zones/${_cloudflareZoneId}${endpoint}`
+	return fetch(url, {
+		...options,
+		headers: {
+			Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+			'Content-Type': 'application/json',
+		},
+	})
+}
+
 async function listPreviewWorkerDeployments() {
 	const res = await cloudflareApi('/workers/scripts')
 	const data = (await res.json()) as ListWorkersResult
@@ -86,6 +110,38 @@ async function listPreviewWorkerDeployments() {
 				return 0
 			})
 	)
+}
+
+// Preview workers are reachable via zone routes ("pr-NNNN-<app>.tldraw.xyz/*").
+// Deleting a worker does not delete its routes, so prune them separately.
+const _workerRouteIdCache = new Map<string, string>()
+async function listPreviewWorkerRoutes() {
+	const res = await cloudflareZoneApi('/workers/routes')
+	const data = (await res.json()) as {
+		success: boolean
+		result: { id: string; pattern: string }[]
+	}
+	if (!data.success) {
+		throw new Error('Failed to list worker routes ' + JSON.stringify(data))
+	}
+	const previewRoutes = data.result.filter((r) => CLOUDFLARE_WORKER_REGEX.test(r.pattern))
+	for (const r of previewRoutes) {
+		_workerRouteIdCache.set(r.pattern, r.id)
+	}
+	return previewRoutes.map((r) => r.pattern)
+}
+
+async function deletePreviewWorkerRoute(pattern: string) {
+	nicelog('Deleting worker route:', pattern)
+	const id = _workerRouteIdCache.get(pattern)
+	if (!id) {
+		throw new Error(`Route ${pattern} not found in cache`)
+	}
+	const res = await cloudflareZoneApi(`/workers/routes/${id}`, { method: 'DELETE' })
+	const data = (await res.json()) as { success: boolean }
+	if (!data.success) {
+		throw new Error(`Failed to delete worker route ${pattern}: ${JSON.stringify(data)}`)
+	}
 }
 
 async function deleteQueue(queueName: string) {
@@ -269,6 +325,8 @@ const deletionErrors: string[] = []
 async function main() {
 	nicelog('Getting queues information')
 	await processItems(listPreviewWorkerDeployments, deletePreviewWorkerDeployment)
+	nicelog('\nPruning preview worker routes')
+	await processItems(listPreviewWorkerRoutes, deletePreviewWorkerRoute)
 	nicelog('\nPruning Supabase preview databases')
 	await processItems(listPreviewDatabases, deletePreviewDatabase)
 	nicelog('\nPruning fly.io preview apps')
