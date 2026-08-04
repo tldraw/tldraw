@@ -111,6 +111,9 @@ async function getPreviewZoneId() {
 
 // Preview workers are reachable via zone routes ("pr-NNNN-<app>.tldraw.xyz/*").
 // Deleting a worker does not delete its routes, so prune them separately.
+// Only routes matching this exact preview shape may ever be deleted — anything
+// else on the zone (or anything a future refactor feeds in) must not qualify.
+const PREVIEW_ROUTE_PATTERN_REGEX = /^pr-\d+-[a-z0-9-]+\.tldraw\.xyz\/\*$/
 const _workerRouteIdCache = new Map<string, string>()
 async function listPreviewWorkerRoutes() {
 	const zoneId = await getPreviewZoneId()
@@ -125,7 +128,7 @@ async function listPreviewWorkerRoutes() {
 	if (!data.success) {
 		throw new Error('Failed to list worker routes ' + JSON.stringify(data))
 	}
-	const previewRoutes = data.result.filter((r) => CLOUDFLARE_WORKER_REGEX.test(r.pattern))
+	const previewRoutes = data.result.filter((r) => PREVIEW_ROUTE_PATTERN_REGEX.test(r.pattern))
 	for (const r of previewRoutes) {
 		_workerRouteIdCache.set(r.pattern, r.id)
 	}
@@ -133,6 +136,9 @@ async function listPreviewWorkerRoutes() {
 }
 
 async function deletePreviewWorkerRoute(pattern: string) {
+	if (!PREVIEW_ROUTE_PATTERN_REGEX.test(pattern)) {
+		throw new Error(`Refusing to delete non-preview route ${pattern}`)
+	}
 	const id = _workerRouteIdCache.get(pattern)
 	if (!id) {
 		nicelog(`Route ${pattern} did not exist, skipping`)
