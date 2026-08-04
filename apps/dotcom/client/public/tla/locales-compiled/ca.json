@@ -11,6 +11,32 @@
       "value": "Accepta la invitació"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "Estem treballant per aconseguir compatibilitat amb els fitxers de "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "Convida els companys d'equip"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " t'ha esmentat"
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,16 @@
     {
       "type": 0,
       "value": "Compte"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Encara no es poden obrir els fitxers "
+    },
+    {
+      "type": 1,
+      "value": "extension"
     }
   ],
   "0a91f7fa87": [
@@ -123,6 +175,12 @@
       "value": "Exporta com a"
     }
   ],
+  "14b03eeeb5": [
+    {
+      "type": 0,
+      "value": "Opcions de notificació"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -177,6 +235,22 @@
     {
       "type": 0,
       "value": "Sobre tldraw"
+    }
+  ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ha comentat al teu tauler"
     }
   ],
   "299cb00a7a": [
@@ -331,6 +405,12 @@
       "value": "Gràcies per ajudar-nos a millorar tldraw!"
     }
   ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Accepta les condicions d'ús"
+    }
+  ],
   "477df802ca": [
     {
       "type": 0,
@@ -391,6 +471,12 @@
       "value": "Menú de pàgina"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "No llegit"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -401,6 +487,16 @@
     {
       "type": 0,
       "value": "S'ha arribat al límit de col·laboradors"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " sense llegir"
     }
   ],
   "554a05155c": [
@@ -461,6 +557,22 @@
       "value": "El meu espai de treball"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ha reaccionat al teu comentari"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -485,10 +597,51 @@
       "value": "Còpia"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Ja esteu tots al dia."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Inicia la sessió per comentar"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Més tard"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Algú ha reaccionat al teu comentari"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " persones han reaccionat al teu comentari"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -591,6 +744,12 @@
     {
       "type": 0,
       "value": "Heu arribat al nombre màxim de fitxers. Heu de suprimir fitxers antics abans de crear-ne de nous."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Marca-ho tot com a llegit"
     }
   ],
   "7573b8110a": [
@@ -747,6 +906,12 @@
     {
       "type": 0,
       "value": "?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Comentaris"
     }
   ],
   "858ba4765e": [
@@ -979,6 +1144,12 @@
       "value": "Exportar imatge"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Notificacions"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1027,6 +1198,12 @@
       "value": "Crea un espai de treball"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Algú"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1049,6 +1226,28 @@
     {
       "type": 0,
       "value": "Usuari convidat"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ha respost"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Tot"
     }
   ],
   "b2326c3a34": [
@@ -1235,6 +1434,56 @@
       "value": "Més informació sobre la publicació."
     }
   ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " i "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " han reaccionat al teu comentari"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1353,6 +1602,36 @@
       "value": "Condicions del servei"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " i "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " han reaccionat al teu comentari"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1421,6 +1700,12 @@
       "value": " per obtenir més informació."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Aquest comentari ha estat suprimit."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1457,10 +1742,98 @@
       "value": "Suprimeix"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " i "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " han reaccionat al teu comentari"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Configuració"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "De moment, podeu "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "exportar com a fitxer "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " per utilitzar-lo aquí."
     }
   ],
   "fa2ead697d": [

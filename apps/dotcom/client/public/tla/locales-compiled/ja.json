@@ -11,6 +11,28 @@
       "value": "招待を受け入れる"
     }
   ],
+  "029f235f01": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " からのファイルのサポートに取り組んでいます。"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +53,22 @@
     {
       "type": 0,
       "value": "チームメイトを招待する"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " があなたについて言及しました"
     }
   ],
   "05f43078e9": [
@@ -61,6 +99,16 @@
     {
       "type": 0,
       "value": "アカウント"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " ファイルはまだ開けません"
     }
   ],
   "0a91f7fa87": [
@@ -123,6 +171,12 @@
       "value": "形式を選択してエクスポート"
     }
   ],
+  "14b03eeeb5": [
+    {
+      "type": 0,
+      "value": "通知オプション"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -173,6 +227,22 @@
     {
       "type": 0,
       "value": "tldrawについて"
+    }
+  ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "さんがあなたのボードにコメントしました"
     }
   ],
   "299cb00a7a": [
@@ -323,6 +393,12 @@
       "value": "tldraw の改善にご協力いただきありがとうございます。"
     }
   ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "利用規約に同意する"
+    }
+  ],
   "477df802ca": [
     {
       "type": 0,
@@ -383,6 +459,12 @@
       "value": "ページメニュー"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "未読"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -393,6 +475,16 @@
     {
       "type": 0,
       "value": "共同作業者の上限に達しました"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 未読"
     }
   ],
   "554a05155c": [
@@ -453,6 +545,22 @@
       "value": "私の作業スペース"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "さんがあなたのコメントに反応しました"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -477,10 +585,43 @@
       "value": "コピー"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "すべて追いつきましたね。"
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "コメントするにはログインしてください"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "後で"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " 人々があなたのコメントに反応しました"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -583,6 +724,12 @@
     {
       "type": 0,
       "value": "ファイルの最大数に達しました。新しいファイルを作成する前に、古いファイルを削除する必要があります。"
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "すべて既読にする"
     }
   ],
   "7573b8110a": [
@@ -735,6 +882,12 @@
     {
       "type": 0,
       "value": " を無視してもよろしいですか？"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "コメント"
     }
   ],
   "858ba4765e": [
@@ -955,6 +1108,12 @@
       "value": "画像をエクスポート"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "通知"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1003,6 +1162,12 @@
       "value": "ワークスペースを作成する"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "誰か"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1025,6 +1190,28 @@
     {
       "type": 0,
       "value": "ゲストユーザー"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " が返信しました"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "全て"
     }
   ],
   "b2326c3a34": [
@@ -1199,6 +1386,56 @@
       "value": "公開についてさらに詳しく。"
     }
   ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " と "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " があなたのコメントに反応しました"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1317,6 +1554,36 @@
       "value": "利用規約"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " と "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " があなたのコメントに反応しました"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1385,6 +1652,12 @@
       "value": " をお読みください。"
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "このコメントは削除されました。"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1421,10 +1694,98 @@
       "value": "削除"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "、"
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "、および"
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "があなたのコメントに反応しました"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "設定"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "今のところ、"
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "extension"
+        },
+        {
+          "type": 0,
+          "value": " ファイルとしてエクスポート"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "すればここで使用できます。"
     }
   ],
   "fa2ead697d": [

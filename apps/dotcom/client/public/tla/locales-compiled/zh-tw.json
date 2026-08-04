@@ -11,6 +11,32 @@
       "value": "接受邀請"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "我們正在努力支援來自 "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " 的檔案。"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "邀請隊友"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 提到了你"
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,20 @@
     {
       "type": 0,
       "value": "帳戶"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "尚無法開啟 "
+    },
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " 文件"
     }
   ],
   "0a91f7fa87": [
@@ -123,6 +179,12 @@
       "value": "匯出為"
     }
   ],
+  "14b03eeeb5": [
+    {
+      "type": 0,
+      "value": "通知選項"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -177,6 +239,22 @@
     {
       "type": 0,
       "value": "關於tldraw"
+    }
+  ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 在您的白板上留言"
     }
   ],
   "299cb00a7a": [
@@ -331,6 +409,12 @@
       "value": "感謝您幫助我們改進 tldraw！"
     }
   ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "接受使用條款"
+    }
+  ],
   "477df802ca": [
     {
       "type": 0,
@@ -391,6 +475,12 @@
       "value": "頁面選單"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "未讀"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -401,6 +491,16 @@
     {
       "type": 0,
       "value": "已達到協作者人數上限"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 未讀"
     }
   ],
   "554a05155c": [
@@ -461,6 +561,22 @@
       "value": "我的工作區"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 對您的留言做出了回應"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -485,10 +601,43 @@
       "value": "複製"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "你已經全部跟上了。"
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "登入發表評論"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "稍後"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " 人們對你的評論做出了回應"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -591,6 +740,12 @@
     {
       "type": 0,
       "value": "您已達到最大文件數。您需要在建立新文件之前刪除舊文件。"
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "全部標記為已讀"
     }
   ],
   "7573b8110a": [
@@ -747,6 +902,12 @@
     {
       "type": 0,
       "value": "嗎？"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "評論"
     }
   ],
   "858ba4765e": [
@@ -979,6 +1140,12 @@
       "value": "匯出圖片"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "通知"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1027,6 +1194,12 @@
       "value": "建立工作區"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "某人"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1049,6 +1222,28 @@
     {
       "type": 0,
       "value": "來賓用戶"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 回复"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "全部"
     }
   ],
   "b2326c3a34": [
@@ -1231,6 +1426,56 @@
       "value": "瞭解有關發布的更多資訊。"
     }
   ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 和 "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 對您的評論做出了回應"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1349,6 +1594,36 @@
       "value": "服務條款"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 和 "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 對您的評論做出了回應"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1417,6 +1692,12 @@
       "value": "以了解更多資訊。"
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "這則評論已被刪除。"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1453,10 +1734,102 @@
       "value": "刪除"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "、"
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 和 "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 對您的評論做出了回應"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "設定"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "目前，您可以"
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "匯出為 "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        },
+        {
+          "type": 0,
+          "value": " 檔案"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "以便在此處使用。"
     }
   ],
   "fa2ead697d": [
