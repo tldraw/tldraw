@@ -64,14 +64,15 @@ async function main() {
 	})
 
 	// we set the domain in the wrangler.toml file since it's managed by cloudflare
-	const domain = toml.parse(readFileSync(join(workerDir, 'wrangler.toml')).toString())?.env[
+	const routePattern = toml.parse(readFileSync(join(workerDir, 'wrangler.toml')).toString())?.env[
 		env.TLDRAW_ENV
 	]?.routes?.[0]?.pattern
-	if (!domain) {
+	if (!routePattern) {
 		throw new Error('Could not find the domain in wrangler.toml')
 	}
 
-	const deploymentUrl = `https://${domain}`
+	// preview route patterns carry a path glob ("host/*"); the deployment URL wants just the host
+	const deploymentUrl = `https://${routePattern.split('/')[0]}`
 
 	nicelog('Creating deployment for', deploymentUrl)
 	await createGithubDeployment(env, {
