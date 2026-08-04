@@ -123,6 +123,7 @@ import { TLHandle } from '@tldraw/editor';
 import { TLHandleDragInfo } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
 import { TLHighlightShapeProps } from '@tldraw/editor';
+import { TLI18nAdapter } from '@tldraw/editor';
 import { TLImageAsset } from '@tldraw/editor';
 import { TLImageExportOptions } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
@@ -2866,6 +2867,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     getInterpolatedProps(startShape: TLNoteShape, endShape: TLNoteShape, t: number): TLNoteShapeProps;
     // (undocumented)
     getReferencedUserIds(shape: TLNoteShape): string[];
+    // (undocumented)
+    getShapeName(): string;
     // (undocumented)
     getText(shape: TLNoteShape): string;
     // (undocumented)
@@ -6557,6 +6560,9 @@ export function useShowCollaborationUi(): boolean;
 
 // @public (undocumented)
 export function useStylePanelContext(): StylePanelContext;
+
+// @public
+export function useTldrawI18n(): TLI18nAdapter;
 
 // @public (undocumented)
 export function useTldrawUiComponents(): TLUiComponents;

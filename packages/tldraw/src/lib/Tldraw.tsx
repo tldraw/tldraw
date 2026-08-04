@@ -39,6 +39,7 @@ import { Spinner } from './ui/components/Spinner'
 import { AssetUrlsProvider } from './ui/context/asset-urls'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useUiEvents } from './ui/context/events'
+import { useTldrawI18n } from './ui/context/i18n'
 import { useToasts } from './ui/context/toasts'
 import {
 	TldrawUiTranslationProvider,
@@ -281,31 +282,89 @@ export function Tldraw(props: TldrawProps) {
 				// If the locale prop is provided, then use that and assume it to be controlled
 				locale={locale ?? rest.user?.userPreferences.get().locale ?? defaultUserPreferences.locale}
 			>
-				<TldrawEditor
-					initialState="select"
-					{...rest}
-					components={componentsWithDefault}
-					shapeUtils={shapeUtilsWithDefaults}
-					bindingUtils={bindingUtilsWithDefaults}
-					assetUtils={assetUtilsWithDefaults}
-					overlayUtils={overlayUtilsWithDefaults}
-					tools={toolsWithDefaults}
-					options={optionsWithDefaults}
-					assetUrls={assets}
+				<TldrawEditorWithI18n
+					rest={rest}
+					componentsWithDefault={componentsWithDefault}
+					shapeUtilsWithDefaults={shapeUtilsWithDefaults}
+					bindingUtilsWithDefaults={bindingUtilsWithDefaults}
+					assetUtilsWithDefaults={assetUtilsWithDefaults}
+					overlayUtilsWithDefaults={overlayUtilsWithDefaults}
+					toolsWithDefaults={toolsWithDefaults}
+					optionsWithDefaults={optionsWithDefaults}
+					assets={assets}
+					mediaMimeTypes={mediaMimeTypes}
+					maxImageDimension={maxImageDimension}
+					maxAssetSize={maxAssetSize}
+					acceptedImageMimeTypes={_imageMimeTypes}
+					acceptedVideoMimeTypes={_videoMimeTypes}
+					onMount={onMount}
 				>
-					<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
-						<InsideOfEditorAndUiContext
-							maxImageDimension={maxImageDimension}
-							maxAssetSize={maxAssetSize}
-							acceptedImageMimeTypes={_imageMimeTypes}
-							acceptedVideoMimeTypes={_videoMimeTypes}
-							onMount={onMount}
-						/>
-						{children}
-					</TldrawUi>
-				</TldrawEditor>
+					{children}
+				</TldrawEditorWithI18n>
 			</TldrawUiTranslationProvider>
 		</AssetUrlsProvider>
+	)
+}
+
+// We need this wrapper because useTldrawI18n() must be called inside
+// TldrawUiTranslationProvider, which wraps TldrawEditor.
+function TldrawEditorWithI18n({
+	rest,
+	componentsWithDefault,
+	shapeUtilsWithDefaults,
+	bindingUtilsWithDefaults,
+	assetUtilsWithDefaults,
+	overlayUtilsWithDefaults,
+	toolsWithDefaults,
+	optionsWithDefaults,
+	assets,
+	mediaMimeTypes,
+	maxImageDimension,
+	maxAssetSize,
+	acceptedImageMimeTypes,
+	acceptedVideoMimeTypes,
+	onMount,
+	children,
+}: {
+	rest: any
+	componentsWithDefault: any
+	shapeUtilsWithDefaults: any
+	bindingUtilsWithDefaults: any
+	assetUtilsWithDefaults: any
+	overlayUtilsWithDefaults: any
+	toolsWithDefaults: any
+	optionsWithDefaults: any
+	assets: any
+	mediaMimeTypes: any
+	children?: any
+} & TLExternalContentProps & { onMount?: TLOnMountHandler }) {
+	const i18n = useTldrawI18n()
+
+	return (
+		<TldrawEditor
+			initialState="select"
+			{...rest}
+			components={componentsWithDefault}
+			shapeUtils={shapeUtilsWithDefaults}
+			bindingUtils={bindingUtilsWithDefaults}
+			assetUtils={assetUtilsWithDefaults}
+			overlayUtils={overlayUtilsWithDefaults}
+			tools={toolsWithDefaults}
+			options={optionsWithDefaults}
+			assetUrls={assets}
+			i18n={i18n}
+		>
+			<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
+				<InsideOfEditorAndUiContext
+					maxImageDimension={maxImageDimension}
+					maxAssetSize={maxAssetSize}
+					acceptedImageMimeTypes={acceptedImageMimeTypes}
+					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
+					onMount={onMount}
+				/>
+				{children}
+			</TldrawUi>
+		</TldrawEditor>
 	)
 }
 
