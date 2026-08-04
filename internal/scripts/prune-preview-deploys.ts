@@ -156,12 +156,13 @@ async function getCertZoneId() {
 }
 
 const _certPackCache = new Map<string, string>()
+const CERT_PACKS_PER_PAGE = 50
 async function listPreviewCertPacks() {
 	const zoneId = await getCertZoneId()
 	const hosts: string[] = []
 	for (let page = 1; ; page++) {
 		const res = await cloudflareV4Api(
-			`/zones/${zoneId}/ssl/certificate_packs?status=all&per_page=100&page=${page}`
+			`/zones/${zoneId}/ssl/certificate_packs?status=all&per_page=${CERT_PACKS_PER_PAGE}&page=${page}`
 		)
 		if (!res.ok) {
 			throw new Error(`Failed to list certificate packs: ${res.status} ${res.statusText}`)
@@ -169,7 +170,6 @@ async function listPreviewCertPacks() {
 		const data = (await res.json()) as {
 			success: boolean
 			result: { id: string; type: string; hosts: string[] }[]
-			result_info?: { total_pages?: number }
 		}
 		if (!data.success) {
 			throw new Error('Failed to list certificate packs ' + JSON.stringify(data))
@@ -181,7 +181,7 @@ async function listPreviewCertPacks() {
 			_certPackCache.set(prHost, pack.id)
 			hosts.push(prHost)
 		}
-		if (page >= (data.result_info?.total_pages ?? 1)) break
+		if (data.result.length < CERT_PACKS_PER_PAGE) break
 	}
 	return hosts
 }
