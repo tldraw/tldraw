@@ -157,8 +157,10 @@ export const queries = defineQueries({
 
 	/**
 	 * The caller's own comments that someone else has reacted to, for the notifications feed's
-	 * "reacted to your comment" entries. Access gates mirror the comments query; grouping and
-	 * ordering by reaction time are client-side (see `buildReactionNotifications`).
+	 * "reacted to your comment" entries. Uses the same access building blocks as {@link comments}
+	 * (owner, file state, group membership). Ordering by reaction time is client-side:
+	 * `buildReactionNotifications` stamps each entry with its newest foreign reaction and
+	 * `mergeNotifications` sorts on it.
 	 *
 	 * Rooted at `comment`, *not* at `comment_reaction`, so the file-access gate sits one level from
 	 * the root exactly as it does in {@link comments}. Rooting at the reaction put that gate behind
@@ -184,7 +186,7 @@ export const queries = defineQueries({
 			.whereExists('thread', (t) => t.where('isDeleted', '=', false))
 			.whereExists('file', (f) => f.where('isDeleted', '=', false))
 			// somebody else reacted — the entry's whole reason for existing. Without this the feed
-			// would sync every comment the user has ever written
+			// would sync the caller's most recent comments whether or not anyone reacted
 			.whereExists('reactions', (r) => r.where('userId', '!=', ctx.userId))
 			// having authored a comment doesn't outlive access to the board it's on
 			.where(({ or, exists }) =>

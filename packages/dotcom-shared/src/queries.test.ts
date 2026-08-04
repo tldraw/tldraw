@@ -11,13 +11,15 @@ const ctx: ZeroContext = { userId: 'user_test' }
  * that decides what one of these queries costs.
  *
  * The file-access gate (`file` and its `states`/`groupFiles` relations) is the expensive part of
- * every feed query: `file`, `file_state` and `group_file` each hold hundreds of thousands of rows,
- * against a `comment_reaction` table of ~50. At depth 1 the fileId correlation is pushed into those
- * relations and the gate touches only the handful of files the query concerns. Deeper, it isn't,
- * and the query traverses them wholesale — `reactions` rooted at `comment_reaction` put the gate at
- * depth 2 and took ~150s to materialize in production, outrunning the sync connection's 60s auth
- * token so that no client could complete a first sync. Neither unit tests nor the PR preview deploy
- * can catch that: previews run against a fresh database with no file_state volume.
+ * every feed query: `file`, `file_state` and `group_file` each hold hundreds of thousands of rows.
+ * At depth 1 the fileId correlation is pushed into those relations and the gate touches only the
+ * handful of files the query concerns. Deeper, it isn't, and the query traverses them wholesale —
+ * `reactions` rooted at `comment_reaction` put the gate at depth 2 and took ~150s to materialize
+ * in production (while `comment_reaction` held ~50 rows), outrunning the sync connection's 60s
+ * auth token so that no client could complete a first sync. Neither unit tests nor the PR preview
+ * deploy can catch that: previews run against a fresh database with no file_state volume.
+ *
+ * Scans only the root `where` tree; gates inside `related` branches aren't measured.
  */
 export function accessGateDepth(ast: any, table: string): number {
 	// the deepest occurrence, not the shallowest: one cheap path to `file` doesn't redeem a second
