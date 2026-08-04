@@ -142,6 +142,11 @@ let _certZoneId: string | undefined
 async function getCertZoneId() {
 	if (_certZoneId) return _certZoneId
 	const res = await cloudflareV4Api(`/zones?name=${CLOUDFLARE_CERT_ZONE}`)
+	if (!res.ok) {
+		throw new Error(
+			`Failed to look up zone ${CLOUDFLARE_CERT_ZONE}: ${res.status} ${res.statusText}`
+		)
+	}
 	const data = (await res.json()) as { success: boolean; result: { id: string }[] }
 	if (!data.success || !data.result.length) {
 		throw new Error(`Failed to find zone ${CLOUDFLARE_CERT_ZONE}: ${JSON.stringify(data)}`)
@@ -158,6 +163,9 @@ async function listPreviewCertPacks() {
 		const res = await cloudflareV4Api(
 			`/zones/${zoneId}/ssl/certificate_packs?status=all&per_page=100&page=${page}`
 		)
+		if (!res.ok) {
+			throw new Error(`Failed to list certificate packs: ${res.status} ${res.statusText}`)
+		}
 		const data = (await res.json()) as {
 			success: boolean
 			result: { id: string; type: string; hosts: string[] }[]
@@ -181,16 +189,18 @@ async function listPreviewCertPacks() {
 async function deletePreviewCertPack(host: string) {
 	const packId = _certPackCache.get(host)
 	if (!packId) {
-		nicelog(`Certificate pack for ${host} not found in cache`)
-		return
+		throw new Error(`Certificate pack for ${host} not found in cache`)
 	}
 	nicelog('Deleting certificate pack:', packId, 'for', host)
 	const zoneId = await getCertZoneId()
 	const res = await cloudflareV4Api(`/zones/${zoneId}/ssl/certificate_packs/${packId}`, {
 		method: 'DELETE',
 	})
+	if (!res.ok) {
+		throw new Error(`Failed to delete certificate pack ${packId}: ${res.status} ${res.statusText}`)
+	}
 	const data = (await res.json()) as { success: boolean }
-	if (!res.ok || !data.success) {
+	if (!data.success) {
 		throw new Error(`Failed to delete certificate pack ${packId}: ${JSON.stringify(data)}`)
 	}
 }
@@ -331,7 +341,7 @@ const dotcomAssetsCache: R2BucketRef = {
 const deletionErrors: string[] = []
 
 async function main() {
-	nicelog('Getting queues information')
+	nicelog('Pruning preview worker deployments')
 	await processItems(listPreviewWorkerDeployments, deletePreviewWorkerDeployment)
 	nicelog('\nPruning preview certificate packs')
 	await processItems(listPreviewCertPacks, deletePreviewCertPack)
