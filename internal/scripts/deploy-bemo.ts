@@ -63,12 +63,12 @@ async function main() {
 		await deployBemoWorker({ dryRun: false })
 	})
 
-	// we set the domain in the wrangler.toml file since it's managed by cloudflare
+	// the deploy hostname comes from the env's route pattern in wrangler.toml
 	const routePattern = toml.parse(readFileSync(join(workerDir, 'wrangler.toml')).toString())?.env[
 		env.TLDRAW_ENV
 	]?.routes?.[0]?.pattern
 	if (!routePattern) {
-		throw new Error('Could not find the domain in wrangler.toml')
+		throw new Error('Could not find the route pattern in wrangler.toml')
 	}
 
 	// preview route patterns carry a path glob ("host/*"); the deployment URL wants just the host

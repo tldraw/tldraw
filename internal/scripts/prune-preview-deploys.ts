@@ -75,9 +75,17 @@ async function cloudflareZoneApi(endpoint: string, options: RequestInit = {}): P
 			`https://api.cloudflare.com/client/v4/zones?name=${CLOUDFLARE_ZONE_NAME}`,
 			{ headers: { Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}` } }
 		)
+		if (!res.ok) {
+			throw new Error(
+				`Failed to look up zone ${CLOUDFLARE_ZONE_NAME}: ${res.status} ${res.statusText}`
+			)
+		}
 		const data = (await res.json()) as { success: boolean; result: { id: string }[] }
 		if (!data.success || !data.result[0]) {
-			throw new Error(`Failed to look up zone ${CLOUDFLARE_ZONE_NAME}: ${JSON.stringify(data)}`)
+			// an empty result also happens when the token lacks zone-scoped "Zone: Read"
+			throw new Error(
+				`Failed to look up zone ${CLOUDFLARE_ZONE_NAME} (does CLOUDFLARE_API_TOKEN have "Zone: Read" and "Workers Routes: Edit" on the zone?): ${JSON.stringify(data)}`
+			)
 		}
 		_cloudflareZoneId = data.result[0].id
 	}
@@ -117,6 +125,9 @@ async function listPreviewWorkerDeployments() {
 const _workerRouteIdCache = new Map<string, string>()
 async function listPreviewWorkerRoutes() {
 	const res = await cloudflareZoneApi('/workers/routes')
+	if (!res.ok) {
+		throw new Error(`Failed to list worker routes: ${res.status} ${res.statusText}`)
+	}
 	const data = (await res.json()) as {
 		success: boolean
 		result: { id: string; pattern: string }[]
@@ -138,6 +149,9 @@ async function deletePreviewWorkerRoute(pattern: string) {
 		throw new Error(`Route ${pattern} not found in cache`)
 	}
 	const res = await cloudflareZoneApi(`/workers/routes/${id}`, { method: 'DELETE' })
+	if (!res.ok) {
+		throw new Error(`Failed to delete worker route ${pattern}: ${res.status} ${res.statusText}`)
+	}
 	const data = (await res.json()) as { success: boolean }
 	if (!data.success) {
 		throw new Error(`Failed to delete worker route ${pattern}: ${JSON.stringify(data)}`)
