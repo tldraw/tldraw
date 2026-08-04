@@ -3,8 +3,6 @@ import type { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { shouldEnableCommenting } from './TldrawApp'
 
 const FLAGS_OFF: FeatureFlags = {
-	zero_enabled: { enabled: false },
-	zero_kill_switch: { enabled: false },
 	rum_enabled: { enabled: false },
 	commenting_enabled: { enabled: false },
 }
