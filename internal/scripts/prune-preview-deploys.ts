@@ -89,6 +89,77 @@ async function listPreviewWorkerDeployments() {
 	)
 }
 
+// Preview routes and cert packs live on the preview zone rather than the account.
+const CLOUDFLARE_PREVIEW_ZONE = 'tldraw.xyz'
+let _previewZoneId: string | undefined
+async function getPreviewZoneId() {
+	if (_previewZoneId) return _previewZoneId
+	const res = await cloudflareV4Api(`/zones?name=${CLOUDFLARE_PREVIEW_ZONE}`)
+	if (!res.ok) {
+		throw new Error(
+			`Failed to look up zone ${CLOUDFLARE_PREVIEW_ZONE}: ${res.status} ${res.statusText}`
+		)
+	}
+	const data = (await res.json()) as { success: boolean; result: { id: string }[] }
+	if (!data.success || !data.result.length) {
+		// an empty result also happens when the token lacks zone-scoped "Zone: Read"
+		throw new Error(`Failed to find zone ${CLOUDFLARE_PREVIEW_ZONE}: ${JSON.stringify(data)}`)
+	}
+	_previewZoneId = data.result[0].id
+	return _previewZoneId
+}
+
+// Preview workers are reachable via zone routes ("pr-NNNN-<app>.tldraw.xyz/*").
+// Deleting a worker does not delete its routes, so prune them separately.
+// Only routes matching this exact preview shape may ever be deleted — anything
+// else on the zone (or anything a future refactor feeds in) must not qualify.
+const PREVIEW_ROUTE_PATTERN_REGEX = /^pr-\d+-[a-z0-9-]+\.tldraw\.xyz\/\*$/
+const _workerRouteIdCache = new Map<string, string>()
+async function listPreviewWorkerRoutes() {
+	const zoneId = await getPreviewZoneId()
+	const res = await cloudflareV4Api(`/zones/${zoneId}/workers/routes`)
+	if (!res.ok) {
+		throw new Error(`Failed to list worker routes: ${res.status} ${res.statusText}`)
+	}
+	const data = (await res.json()) as {
+		success: boolean
+		result: { id: string; pattern: string }[]
+	}
+	if (!data.success) {
+		throw new Error('Failed to list worker routes ' + JSON.stringify(data))
+	}
+	const previewRoutes = data.result.filter((r) => PREVIEW_ROUTE_PATTERN_REGEX.test(r.pattern))
+	for (const r of previewRoutes) {
+		_workerRouteIdCache.set(r.pattern, r.id)
+	}
+	return previewRoutes.map((r) => r.pattern)
+}
+
+async function deletePreviewWorkerRoute(pattern: string) {
+	if (!PREVIEW_ROUTE_PATTERN_REGEX.test(pattern)) {
+		throw new Error(`Refusing to delete non-preview route ${pattern}`)
+	}
+	const id = _workerRouteIdCache.get(pattern)
+	if (!id) {
+		nicelog(`Route ${pattern} did not exist, skipping`)
+		return
+	}
+	nicelog('Deleting worker route:', pattern)
+	const zoneId = await getPreviewZoneId()
+	const res = await cloudflareV4Api(`/zones/${zoneId}/workers/routes/${id}`, { method: 'DELETE' })
+	if (res.status === 404) {
+		nicelog(`Route ${pattern} did not exist, skipping`)
+		return
+	}
+	if (!res.ok) {
+		throw new Error(`Failed to delete worker route ${pattern}: ${res.status} ${res.statusText}`)
+	}
+	const data = (await res.json()) as { success: boolean }
+	if (!data.success) {
+		throw new Error(`Failed to delete worker route ${pattern}: ${JSON.stringify(data)}`)
+	}
+}
+
 async function deleteQueue(queueName: string) {
 	nicelog('Deleting queue:', queueName)
 	await exec('npx', ['wrangler', 'queues', 'delete', queueName], {
@@ -135,25 +206,7 @@ async function deletePreviewWorkerDeployment(id: string) {
 // Deleting a worker with a custom domain leaves its edge certificate behind
 // (https://github.com/cloudflare/workers-sdk/issues/5139), so prune per-PR
 // advanced cert packs on the preview zone separately.
-const CLOUDFLARE_CERT_ZONE = 'tldraw.xyz'
 const CERT_PACK_HOST_REGEX = /^pr-\d+-/
-
-let _certZoneId: string | undefined
-async function getCertZoneId() {
-	if (_certZoneId) return _certZoneId
-	const res = await cloudflareV4Api(`/zones?name=${CLOUDFLARE_CERT_ZONE}`)
-	if (!res.ok) {
-		throw new Error(
-			`Failed to look up zone ${CLOUDFLARE_CERT_ZONE}: ${res.status} ${res.statusText}`
-		)
-	}
-	const data = (await res.json()) as { success: boolean; result: { id: string }[] }
-	if (!data.success || !data.result.length) {
-		throw new Error(`Failed to find zone ${CLOUDFLARE_CERT_ZONE}: ${JSON.stringify(data)}`)
-	}
-	_certZoneId = data.result[0].id
-	return _certZoneId
-}
 
 // `status=all` also returns packs that are already gone (`deleted` /
 // `pending_deletion`); a host can therefore appear on several packs. Skip the
@@ -163,7 +216,7 @@ const _certPackCache = new Map<string, string[]>()
 const CERT_PACKS_PER_PAGE = 50
 const CERT_PACK_GONE_STATUSES = new Set(['deleted', 'pending_deletion'])
 async function listPreviewCertPacks() {
-	const zoneId = await getCertZoneId()
+	const zoneId = await getPreviewZoneId()
 	for (let page = 1; ; page++) {
 		const res = await cloudflareV4Api(
 			`/zones/${zoneId}/ssl/certificate_packs?status=all&per_page=${CERT_PACKS_PER_PAGE}&page=${page}`
@@ -197,7 +250,7 @@ async function deletePreviewCertPack(host: string) {
 	if (!packIds?.length) {
 		throw new Error(`Certificate pack for ${host} not found in cache`)
 	}
-	const zoneId = await getCertZoneId()
+	const zoneId = await getPreviewZoneId()
 	for (const packId of packIds) {
 		nicelog('Deleting certificate pack:', packId, 'for', host)
 		const res = await cloudflareV4Api(`/zones/${zoneId}/ssl/certificate_packs/${packId}`, {
@@ -353,6 +406,8 @@ const deletionErrors: string[] = []
 async function main() {
 	nicelog('Pruning preview worker deployments')
 	await processItems(listPreviewWorkerDeployments, deletePreviewWorkerDeployment)
+	nicelog('\nPruning preview worker routes')
+	await processItems(listPreviewWorkerRoutes, deletePreviewWorkerRoute)
 	nicelog('\nPruning preview certificate packs')
 	await processItems(listPreviewCertPacks, deletePreviewCertPack)
 	nicelog('\nPruning Supabase preview databases')
