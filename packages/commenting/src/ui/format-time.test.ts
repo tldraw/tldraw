@@ -11,7 +11,7 @@ const TWO_HOURS = 2 * 60 * 60
 describe('formatRelativeTime', () => {
 	it('formats in English by default', () => {
 		expect(formatRelativeTime(agoIso(TWO_HOURS))).toBe(
-			new Intl.RelativeTimeFormat('en', { numeric: 'auto', style: 'short' }).format(-2, 'hour')
+			new Intl.RelativeTimeFormat('en', { numeric: 'auto', style: 'narrow' }).format(-2, 'hour')
 		)
 	})
 
@@ -20,7 +20,7 @@ describe('formatRelativeTime', () => {
 	it('formats in the given locale', () => {
 		const french = formatRelativeTime(agoIso(TWO_HOURS), 'fr')
 		expect(french).toBe(
-			new Intl.RelativeTimeFormat('fr', { numeric: 'auto', style: 'short' }).format(-2, 'hour')
+			new Intl.RelativeTimeFormat('fr', { numeric: 'auto', style: 'narrow' }).format(-2, 'hour')
 		)
 		expect(french).not.toBe(formatRelativeTime(agoIso(TWO_HOURS), 'en'))
 	})
@@ -34,7 +34,7 @@ describe('formatRelativeTime', () => {
 
 	it('reads under a minute as "now" in the given locale', () => {
 		expect(formatRelativeTime(agoIso(5), 'fr')).toBe(
-			new Intl.RelativeTimeFormat('fr', { numeric: 'auto', style: 'short' }).format(0, 'second')
+			new Intl.RelativeTimeFormat('fr', { numeric: 'auto', style: 'narrow' }).format(0, 'second')
 		)
 	})
 
