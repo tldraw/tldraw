@@ -8,9 +8,35 @@ status: published
 last_version: v5.2.0
 ---
 
-This release adds snapping and symmetric resizing while cropping images, a reactive `Editor.getIsMounted()` with a new `unmount` event, and faster viewport culling on large pages. It also fixes a batch of crashes and interaction bugs across arrows, groups, and text.
+This release adds commenting: a set of new packages for anchored comment threads on the canvas, backed by comment records in the schema and sync support for non-document data. Geo shapes now flip, embeds size themselves to their content's real aspect ratio, `TldrawImage` accepts a custom asset store, and cropping gains snapping and symmetric resizing. It also adds a reactive `Editor.getIsMounted()` with a new `unmount` event, faster viewport culling on large pages, and fixes a batch of crashes and interaction bugs across arrows, groups, and text.
 
 ## What's new
+
+### Commenting ([#9471](https://github.com/tldraw/tldraw/pull/9471), [#9782](https://github.com/tldraw/tldraw/pull/9782))
+
+Comments are now a first-class primitive in the SDK. `@tldraw/commenting` ships a batteries-included canvas comments layer: threads anchor to a point, a shape (precisely or imprecisely), a text range, a region, or the page; you can reply, edit, react, resolve, and delete; pins drag to re-anchor; and `?comment=<id>` deep links open a thread, zooming the camera until its pin is revealed. Pins that crowd together on screen merge into count badges as you zoom out and split apart as you zoom in.
+
+Comment records live in `@tldraw/tlschema` as `TLCommentThread` and `TLComment`, and sync over a new generic object store in `@tldraw/sync-core`, so they ride alongside the document rather than inside it. On the server, `@tldraw/sync-collaboration` enforces write authorization, with a `canModifyComment` rule that lets a host widen the default owner-only permission — so a workspace admin can moderate comments they don't own — without granting anything beyond edit, delete, and resolve.
+
+The layer is built to be taken apart. `ThreadRow` and `ThreadActions` are component slots, `CommentListItem` and `sortSidebarRows` are exported so a hand-built list can match the built-in one, and a host that supplies `getThreadHref` gets copy-link in the thread menu. On phones, the composer and the open thread stay above the software keyboard.
+
+<details>
+<summary>New packages</summary>
+
+| Package                      | What it provides                                                         |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| `@tldraw/commenting`         | Canvas comments layer, comment UI components, and the comment tool       |
+| `@tldraw/mentions`           | @-mention picker and TipTap node, shared by comments and shape rich text |
+| `@tldraw/collaboration`      | Umbrella package for the collaboration pieces                            |
+| `@tldraw/sync-collaboration` | Server-side write authorization for collaboration features               |
+
+</details>
+
+See the [commenting docs](https://tldraw.dev/docs/commenting) for setup.
+
+### Flip geo shapes ([#9530](https://github.com/tldraw/tldraw/pull/9530))
+
+Geo shapes now flip. Flipping a rhombus, trapezoid, or directional arrow used to leave it unchanged, so mirroring a selection silently skipped them. `TLGeoShape` gains `flipX` and `flipY` props, modeled on the image shape, and `getGeoShapePath` mirrors the generated path around the shape's center — so geometry, hit-testing, the selection indicator, the canvas render, and SVG export all stay consistent. Flips register from the flip commands and from any negative-scale resize, such as dragging a group handle past the opposite edge. Labels are deliberately left unmirrored so text stays upright.
 
 ### Snapping and symmetric resize while cropping ([#9424](https://github.com/tldraw/tldraw/pull/9424))
 
@@ -18,12 +44,30 @@ When cropping an image, crop edges now snap to other shapes and the grid, with t
 
 ## API changes
 
+- 💥 Remove `usePassThroughMouseOverEvents` from `@tldraw/editor`. It re-dispatched `mouseover` at `.tl-canvas` so shapes under a floating panel stayed hovered, but the canvas only wires `onPointerEnter`, so the re-dispatched event arrived at an element with no listener for it. ([#9782](https://github.com/tldraw/tldraw/pull/9782))
+- Add `TLCommentThread` and `TLComment` records to `@tldraw/tlschema`, with `createCommentThread` and `createComment` helpers, id helpers, validators, and `commentSchemaRecords` for registering them. ([#9471](https://github.com/tldraw/tldraw/pull/9471))
+- Add a generic object store to `@tldraw/sync-core` for syncing non-document records: `objectTypes` on the room and storage constructors, per-session `TLObjectStoreAccess`, `getObjectsSnapshot()`, `onCommittedChanges`, and an optional `TLSyncStorage.getObjectsByIds(ids)` for callers that need a few object-lane records rather than the whole lane. ([#9471](https://github.com/tldraw/tldraw/pull/9471), [#9782](https://github.com/tldraw/tldraw/pull/9782))
+- Add `EditorPortal`, `EditorPortalProps`, and `useEditorPortalHost` to `@tldraw/editor`, for portalling canvas-anchored content into a host the editor renders last so its DOM order doesn't depend on mount timing. ([#9782](https://github.com/tldraw/tldraw/pull/9782))
+- Add `renderHtmlFromRichTextWithExtensions(richText, extensions)` for rendering rich text outside a shape's editor config. `renderHtmlFromRichText` now fills _every_ empty paragraph with a `<br />` and keeps the paragraph's attributes, so an empty paragraph renders as `<p dir="auto"><br /></p>` — worth knowing if you snapshot that output. ([#9782](https://github.com/tldraw/tldraw/pull/9782))
+- Add `flipX` and `flipY` to `TLGeoShapeProps`, with an `AddFlipProps` migration defaulting both to `false`, and add `PathBuilder.transform(mat)` for producing a transformed copy of a path. ([#9530](https://github.com/tldraw/tldraw/pull/9530))
+- Add an optional `assets` prop to `TldrawImageProps`, matching the `assets` prop on `Tldraw`, so `TldrawImage` renders images from a custom asset store instead of always falling back to the inline base64 store. ([#9697](https://github.com/tldraw/tldraw/pull/9697))
+
+  ```tsx
+  <TldrawImage snapshot={snapshot} assets={assetStore} />
+  ```
+
+- Add an optional `sizeToContentAspectRatio` to `EmbedDefinition` and a public `EmbedShapeUtil.resolveAspectRatio(shape)`. When set, an embed corrects its size after creation to its content's real aspect ratio, resolved from the URL's OpenGraph metadata via the editor's url asset handler. Existing custom embed definitions are unaffected. ([#9613](https://github.com/tldraw/tldraw/pull/9613))
+- Add `ExportAsMenuGroup`, mirroring `CopyAsMenuGroup`, for the "Export as" submenu. ([#9589](https://github.com/tldraw/tldraw/pull/9589))
+- Add `EditorManager`, a public abstract base class for editor managers that own a subscription or resource, so they share one teardown contract. `InputsManager`, `TickManager`, `FocusManager`, and `TextManager` now extend it. ([#9204](https://github.com/tldraw/tldraw/pull/9204))
+- Populate `TLBaseExternalContent.sources` for file pastes, where it was previously always undefined, so custom `files` handlers and `onBeforePasteFromClipboard` can inspect the text, HTML, and url content that came alongside the files. ([#9763](https://github.com/tldraw/tldraw/pull/9763))
 - Add an `unmount` event to `TLEventMap` and make `Editor.getIsMounted()` a reactive value that tracks whether the editor's component is currently mounted. ([#9472](https://github.com/tldraw/tldraw/pull/9472), [#9483](https://github.com/tldraw/tldraw/pull/9483))
 - Make the shape hit-test margin pointer-aware and add a `coarseHitTestMargin` option: fine pointers (mouse and trackpad) use a tighter 3px default, coarse pointers (touch and pen) use 4px. ([#9492](https://github.com/tldraw/tldraw/pull/9492))
 - Add a `ShapeUtil.onDuplicate(source, duplicate)` callback, invoked by `Editor.duplicateShapes` and `Editor.putContentOntoCurrentPage`, letting a shape adjust its props when it is copied. Sticky notes now use it to attribute duplicated or pasted text to the current user instead of carrying over the original author. ([#9566](https://github.com/tldraw/tldraw/pull/9566))
 
 ## Improvements
 
+- Size embeds from providers that report their dimensions, such as Vimeo, to their content's real aspect ratio, so videos are no longer letterboxed. Correcting the size preserves the shape's box area, so a portrait video doesn't balloon the shape. ([#9613](https://github.com/tldraw/tldraw/pull/9613), [#9756](https://github.com/tldraw/tldraw/pull/9756))
+- Hide the "Copy as", "Export as", and "Export file" submenus, and the main menu's export group, when a consumer has removed all of their actions through `overrides`, instead of leaving an empty submenu trigger behind. ([#9589](https://github.com/tldraw/tldraw/pull/9589))
 - Improve viewport culling performance on large pages: the spatial index now rechecks only the shapes affected by a change instead of every shape on the page. Custom shapes whose geometry depends on unrelated shapes (outside parent/child and binding relationships) are no longer automatically rechecked for culling when those shapes change; built-in shapes and standard patterns are unaffected. ([#9093](https://github.com/tldraw/tldraw/pull/9093))
 - Improve performance when deleting many shapes at once by batching page state cleanup. ([#9456](https://github.com/tldraw/tldraw/pull/9456))
 - Make long toast and dialog content wrap instead of overflowing, so long strings like URLs stay within the toast or dialog. ([#9546](https://github.com/tldraw/tldraw/pull/9546))
@@ -32,6 +76,9 @@ When cropping an image, crop edges now snap to other shapes and the grid, with t
 
 ## Bug fixes
 
+- Fix zoom and pan being swallowed when the pointer was over a non-scrollable overlay, such as a comment pin. `usePassThroughWheelEvents` decided "scrollable" from content overflow alone, which a hover transform could trigger on an `overflow: visible` element; it now gates on the computed `overflow` as well and checks both axes up the ancestor chain. ([#9698](https://github.com/tldraw/tldraw/pull/9698))
+- Fix a crash when dragging content from a browser tab whose url isn't valid for a bookmark — an ad blocker can rewrite it to `about:blank#blocked`. Invalid urls now raise a toast instead of throwing. ([#9598](https://github.com/tldraw/tldraw/pull/9598))
+- Fix the "URL" label wrapping onto two lines in the edit link and embed dialogs. ([#9663](https://github.com/tldraw/tldraw/pull/9663))
 - Fix rich text headings (H1–H6) rendering with their line-height too tight, causing overlapping lines. ([#9543](https://github.com/tldraw/tldraw/pull/9543))
 - Fix the style panel not highlighting the active fill correctly when the current fill lives in the overflow dropdown. ([#9509](https://github.com/tldraw/tldraw/pull/9509)) (contributed by [@meg-an31](https://github.com/meg-an31))
 - Fix the style panel Shape, Line, and spline dropdown popovers so they open with the same gap as the other dropdowns. ([#9491](https://github.com/tldraw/tldraw/pull/9491))
