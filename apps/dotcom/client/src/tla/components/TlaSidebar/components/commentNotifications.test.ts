@@ -5,7 +5,6 @@ import {
 	categorizeCommentNotifications,
 	CommentNotificationInput,
 	mergeNotifications,
-	ReactionNotificationInput,
 	summarizeForeignReactors,
 } from './commentNotifications'
 
@@ -274,8 +273,8 @@ describe('categorizeCommentNotifications', () => {
 })
 
 describe('buildReactionNotifications', () => {
-	/** My own comment, as the related comment carried on a reaction row — full `reactions` set
-	 *  included, since that's what the entry now derives its timestamp and pills from. */
+	/** One row of the reactions feed: my own comment, carrying the full `reactions` set the entry
+	 *  derives its timestamp and pills from. */
 	function mine(overrides: Partial<CommentNotificationInput> = {}): CommentNotificationInput {
 		return comment({
 			authorId: ME,
@@ -286,25 +285,15 @@ describe('buildReactionNotifications', () => {
 		})
 	}
 
-	function reactionRow(
-		overrides: Partial<ReactionNotificationInput> = {}
-	): ReactionNotificationInput {
-		return {
-			commentId: 'comment:1',
-			userId: OTHER,
-			userName: 'Other',
-			emoji: '👍',
-			createdAt: at(10),
-			comment: mine(),
-			...overrides,
-		}
-	}
-
-	it('dedupes multiple rows on the same comment into one entry', () => {
+	it('makes one entry per comment, however many people reacted', () => {
 		const result = buildReactionNotifications(
 			[
-				reactionRow({ userId: OTHER, createdAt: at(10) }),
-				reactionRow({ userId: THIRD, createdAt: at(20) }),
+				mine({
+					reactions: [
+						{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) },
+						{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
+					],
+				}),
 			],
 			ME
 		)
@@ -313,43 +302,35 @@ describe('buildReactionNotifications', () => {
 		expect(result[0].primaryReason).toBe('reaction')
 	})
 
-	it('groups rows on two different comments into two entries', () => {
+	it('makes two entries for two reacted-to comments', () => {
 		const result = buildReactionNotifications(
-			[
-				reactionRow({ commentId: 'comment:1', comment: mine({ id: 'comment:1' }) }),
-				reactionRow({ commentId: 'comment:2', comment: mine({ id: 'comment:2' }) }),
-			],
+			[mine({ id: 'comment:1' }), mine({ id: 'comment:2' })],
 			ME
 		)
 		expect(result.map((n) => n.comment.id).sort()).toEqual(['comment:1', 'comment:2'])
 	})
 
-	it("carries the related comment's full reactions set unmodified, not just the feed rows", () => {
-		// three foreign reactions on the comment, but only one made it into the top-N feed window
+	it("carries the comment's full reactions set unmodified, own reaction included", () => {
 		const fullReactions = [
 			{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(5) },
 			{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
 			{ userId: ME, userName: 'Me', emoji: '🔥', createdAt: at(15) },
 		]
-		const result = buildReactionNotifications(
-			[reactionRow({ createdAt: at(5), comment: mine({ reactions: fullReactions }) })],
-			ME
-		)
+		const result = buildReactionNotifications([mine({ reactions: fullReactions })], ME)
 		expect(result).toHaveLength(1)
 		expect(result[0].comment.reactions).toBe(fullReactions)
 	})
 
-	it('timestamps the entry by the newest foreign reaction on the comment, not the feed row', () => {
+	it('timestamps the entry by the newest foreign reaction, ignoring my own and the comment date', () => {
 		const result = buildReactionNotifications(
 			[
-				reactionRow({
-					createdAt: at(10),
-					comment: mine({
-						reactions: [
-							{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) },
-							{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
-						],
-					}),
+				mine({
+					createdAt: at(0),
+					reactions: [
+						{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(10) },
+						{ userId: THIRD, userName: 'Third', emoji: '🎉', createdAt: at(20) },
+						{ userId: ME, userName: 'Me', emoji: '🔥', createdAt: at(30) },
+					],
 				}),
 			],
 			ME
@@ -359,13 +340,7 @@ describe('buildReactionNotifications', () => {
 
 	it('drops the entry when the comment has no foreign reaction left', () => {
 		const result = buildReactionNotifications(
-			[
-				reactionRow({
-					comment: mine({
-						reactions: [{ userId: ME, userName: 'Me', emoji: '👍', createdAt: at(10) }],
-					}),
-				}),
-			],
+			[mine({ reactions: [{ userId: ME, userName: 'Me', emoji: '👍', createdAt: at(10) }] })],
 			ME
 		)
 		expect(result).toEqual([])
@@ -374,12 +349,7 @@ describe('buildReactionNotifications', () => {
 	it('is unread until my read receipt is newer than the newest foreign reaction', () => {
 		const withReadAt = (readAt: number | undefined) =>
 			buildReactionNotifications(
-				[
-					reactionRow({
-						createdAt: at(10),
-						comment: mine({ read: readAt === undefined ? undefined : { readAt } }),
-					}),
-				],
+				[mine({ read: readAt === undefined ? undefined : { readAt } })],
 				ME
 			)[0].unread
 		expect(withReadAt(undefined)).toBe(true)
@@ -390,27 +360,18 @@ describe('buildReactionNotifications', () => {
 		expect(withReadAt(at(15))).toBe(false)
 	})
 
-	it('drops rows whose comment outraced its sync', () => {
-		const result = buildReactionNotifications([reactionRow({ comment: null })], ME)
-		expect(result).toEqual([])
-	})
-
-	it('drops my own reaction rows as a belt against a self row slipping through', () => {
-		const result = buildReactionNotifications([reactionRow({ userId: ME, userName: 'Me' })], ME)
+	it("drops someone else's comment as a belt against a foreign row slipping through", () => {
+		const result = buildReactionNotifications([mine({ authorId: OTHER })], ME)
 		expect(result).toEqual([])
 	})
 
 	it('sorts reaction entries among comment entries by their reaction time', () => {
 		const reacted = buildReactionNotifications(
 			[
-				reactionRow({
-					commentId: 'comment:reacted',
-					createdAt: at(20),
-					comment: mine({
-						id: 'comment:reacted',
-						createdAt: at(0),
-						reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(20) }],
-					}),
+				mine({
+					id: 'comment:reacted',
+					createdAt: at(0),
+					reactions: [{ userId: OTHER, userName: 'Other', emoji: '👍', createdAt: at(20) }],
 				}),
 			],
 			ME
