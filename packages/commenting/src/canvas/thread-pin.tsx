@@ -305,9 +305,10 @@ export const ThreadPin = memo(function ThreadPin({
 	const livePinPage = resizeBounds ? regionPinPoint(resizeBounds, pinCorner) : dragPagePoint
 	const renderPointBase = livePinPage ? editor.pageToViewport(livePinPage) : point
 	// A region's pin centres on its corner — overlapping the box — rather than hanging off it.
-	// The marker anchors bottom-left, so step half its 34px size left and down (screen px).
+	// The marker anchors bottom-left, so step half its 28px size (--tlui-cmt-pin-size) left and
+	// down (screen px), matching the draft composer's --region centring on the same corner.
 	const renderPoint = isRegion
-		? { x: renderPointBase.x - 17, y: renderPointBase.y + 17 }
+		? { x: renderPointBase.x - 14, y: renderPointBase.y + 14 }
 		: renderPointBase
 
 	// A region's live box bounds, by priority: a corner resize, else a pin-drag translation (the pin
