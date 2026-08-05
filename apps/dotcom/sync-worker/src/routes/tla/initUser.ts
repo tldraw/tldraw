@@ -5,13 +5,11 @@ import { Environment } from '../../types'
 import { isRateLimited } from '../../utils/rateLimit'
 import { getClerkClient } from '../../utils/tla/getAuth'
 
-// Ensures the user row + home workspace exist before Zero can query. Idempotent:
-// concurrent calls race safely via the in-transaction re-check.
+// Ensures the user row + home workspace exist before Zero can query. Idempotent: concurrent
+// first-sign-ins race safely because all three inserts no-op on conflict, so the loser of the
+// race falls through to the same 200 as the winner instead of hitting a unique violation.
 export async function initUser(req: IRequest, env: Environment): Promise<Response> {
 	const id = req.params.userId
-	if (await isRateLimited(env, id)) {
-		return new Response('Rate limited', { status: 429 })
-	}
 	const db = createPostgresConnectionPool(env, '/app/init')
 	try {
 		const existing = await db
@@ -21,16 +19,18 @@ export async function initUser(req: IRequest, env: Environment): Promise<Respons
 			.executeTakeFirst()
 		if (existing) return new Response('ok', { status: 200 })
 
+		// Only the creation path is rate-limited: existing users hit the cheap SELECT above on
+		// every sign-in and shouldn't burn rate-limit budget or risk a 429 boot-hang.
+		if (await isRateLimited(env, id)) {
+			return new Response('Rate limited', { status: 429 })
+		}
+
 		// auth is checked in the main worker, so the clerk user definitely exists
 		const clerk = getClerkClient(env)
 		const clerkUser = await clerk.users.getUser(id)
 		if (!clerkUser) return new Response('Clerk user not found', { status: 404 })
 
 		await db.transaction().execute(async (tx) => {
-			// check that user wasn't added by another request in between the auth check and here
-			if (await tx.selectFrom('user').where('id', '=', id).select('id').executeTakeFirst()) {
-				return
-			}
 			const now = Date.now()
 			await tx
 				.insertInto('user')
@@ -49,6 +49,7 @@ export async function initUser(req: IRequest, env: Environment): Promise<Respons
 					// No feature flags on new users; the column is retained for future flags.
 					flags: '',
 				})
+				.onConflict((oc) => oc.doNothing())
 				.execute()
 			await tx
 				.insertInto('group')
@@ -61,6 +62,7 @@ export async function initUser(req: IRequest, env: Environment): Promise<Respons
 					isDeleted: false,
 					inviteSecret: null,
 				})
+				.onConflict((oc) => oc.doNothing())
 				.execute()
 			await tx
 				.insertInto('group_user')
@@ -74,6 +76,7 @@ export async function initUser(req: IRequest, env: Environment): Promise<Respons
 					userName: clerkUser.fullName ?? '',
 					userColor: '',
 				})
+				.onConflict((oc) => oc.doNothing())
 				.execute()
 		})
 		return new Response('ok', { status: 200 })

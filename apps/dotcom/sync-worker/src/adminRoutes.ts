@@ -60,9 +60,10 @@ export const adminRoutes = createRouter<Environment>()
 				.where('group_user.userId', '=', userRow.id)
 				.select(['group.id', 'group.name', 'group.isDeleted', 'group_user.role'])
 				.execute()
-			const fileRows = await db
+			const files = await db
 				.selectFrom('file')
 				.leftJoin('group_file', 'group_file.fileId', 'file.id')
+				.where('file.isDeleted', '=', false)
 				.where((eb) =>
 					eb.or([
 						eb('file.ownerId', '=', userRow.id),
@@ -73,12 +74,14 @@ export const adminRoutes = createRouter<Environment>()
 						),
 					])
 				)
+				// distinctOn dedupes before the limit is applied, so a file matching both the owner
+				// clause and multiple group memberships (join fanout) still only counts once against
+				// the 500 cap.
+				.distinctOn('file.id')
+				.orderBy('file.id')
 				.selectAll('file')
 				.limit(500)
 				.execute()
-			// The left join over group_file can duplicate a file row (owner match + membership in
-			// multiple groups); dedupe by id.
-			const files = [...new Map(fileRows.map((f) => [f.id, f])).values()]
 			return json({ user: userRow, memberships, files })
 		} finally {
 			await db.destroy()
@@ -587,7 +590,9 @@ async function hardDeleteAppFile({
 		// do soft delete first if not done already; the outbox trigger records it
 		await pg.updateTable('file').set('isDeleted', true).where('id', '=', file.id).execute()
 	}
-	// drain the outbox so the room DO closes sessions and cleans R2 before the row vanishes
+	// Drain the outbox so the soft-delete row's effects (session kicks) land before the row is
+	// hard deleted below. R2/room cleanup rides the delete-row effect produced by the DELETE
+	// FROM file below, delivered via the post-delete poke() at the end of this function.
 	await getFileEffectProcessor(env).drainNow()
 	// clean up assets eagerly
 	const assets = await pg.selectFrom('asset').where('fileId', '=', file.id).selectAll().execute()
