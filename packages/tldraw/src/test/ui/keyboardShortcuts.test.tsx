@@ -304,4 +304,13 @@ describe('shifted number-row shortcuts across keyboard layouts', () => {
 		expect(resetZoom).toHaveBeenCalledTimes(1)
 		expect(zoomIn).not.toHaveBeenCalled()
 	})
+
+	it('still fires zoom-out for an unshifted number-row symbol (AZERTY types - on Digit6)', async () => {
+		const { editor } = await setupFocusedEditor()
+		const zoomOut = vi.spyOn(editor, 'zoomOut').mockImplementation(() => editor)
+
+		keydown(editor, { key: '-', code: 'Digit6' })
+
+		expect(zoomOut).toHaveBeenCalledTimes(1)
+	})
 })
