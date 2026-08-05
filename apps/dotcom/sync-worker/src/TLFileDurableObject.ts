@@ -1879,6 +1879,9 @@ export class TLFileDurableObject extends DurableObject {
 								.whereRef('comment_thread.lastChangedClock', '<', 'excluded.lastChangedClock')
 						)
 						.execute()
+				// "createdAt" is deliberately absent from the update set: Postgres stamps it on first
+				// insert (migration 046) and the stamp must survive at-least-once replays and edits.
+				// stamp_comment_created_at.test.ts exercises this conflict shape — keep them in sync.
 				const insertCommentRows = (rows: DB['comment'][]) =>
 					this.db
 						.insertInto('comment')
@@ -1892,6 +1895,9 @@ export class TLFileDurableObject extends DurableObject {
 									body: eb.ref('excluded.body'),
 									editedAt: eb.ref('excluded.editedAt'),
 									isDeleted: eb.ref('excluded.isDeleted'),
+									// excluded.* has been through the BEFORE INSERT stamp trigger, which
+									// lifts updatedAt to the (server) attempt stamp — so this can never
+									// regress updatedAt below the row's createdAt
 									updatedAt: eb.ref('excluded.updatedAt'),
 									meta: eb.ref('excluded.meta'),
 									lastChangedClock: eb.ref('excluded.lastChangedClock'),

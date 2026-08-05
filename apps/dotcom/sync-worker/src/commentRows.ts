@@ -168,6 +168,8 @@ export function commentRecordToRow(
 		authorAvatar: '',
 		// TLRichText's content is unknown[], not structurally a zero ReadonlyJSONValue
 		body: record.body as DB['comment']['body'],
+		// client-dated placeholder — a Postgres trigger re-stamps it with server arrival time on
+		// insert (migration 046), and the upsert's conflict branch never writes this column
 		createdAt: record.createdAt,
 		editedAt: record.editedAt,
 		isDeleted: record.isDeleted,

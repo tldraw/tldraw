@@ -12,11 +12,7 @@ const ME = 'user_me'
 const OTHER = 'user_other'
 const THIRD = 'user_third'
 
-/**
- * Event times, in minutes from an arbitrary epoch. The join gate tolerates a minute of clock skew
- * between authors, so tests that turn on it space their events well past that — timestamps a few
- * milliseconds apart would all land inside the tolerance and say nothing about the gate.
- */
+/** Event times, in minutes from an arbitrary epoch. */
 const at = (minutes: number) => 1_700_000_000_000 + minutes * 60_000
 
 /** A comment body: paragraphs of plain text, with optional `@`-mentions (by member id) interleaved. */
@@ -139,31 +135,27 @@ describe('categorizeCommentNotifications', () => {
 		expect(result[0].primaryReason).toBe('reply')
 	})
 
-	it('keeps a comment from just before my join, absorbing clock skew between authors', () => {
-		// createdAt is stamped by each author's own clock, so a reply that really did follow my
-		// join can carry an earlier timestamp than it. Inside the tolerance it still counts.
-		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] }
-		const tied = comment({
-			id: 'comment:tied',
-			createdAt: at(10),
-			thread,
-			file: { ownerId: THIRD },
-		})
-		const skewed = comment({
-			id: 'comment:skewed',
-			createdAt: at(10) - 30_000,
-			thread,
-			file: { ownerId: THIRD },
-		})
-		const result = categorizeCommentNotifications([tied, skewed], ME)
-		expect(result.map((n) => n.comment.id)).toEqual(['comment:tied', 'comment:skewed'])
-		expect(result.map((n) => n.primaryReason)).toEqual(['reply', 'reply'])
+	it("does not resurface a thread's opening comment when I reply to it seconds later", () => {
+		// A starts a thread, B replies right away: A's opening comment is context B already saw,
+		// not a reply to B, no matter how narrowly it predates B's join.
+		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(0) + 5_000 }] }
+		const opener = comment({ createdAt: at(0), thread, file: { ownerId: THIRD } })
+		expect(categorizeCommentNotifications([opener], ME)).toEqual([])
 	})
 
-	it('drops a comment older than my join by more than the skew tolerance', () => {
+	it('drops a comment stamped at exactly my join time', () => {
+		// The gate is strict: same-instant means "not after me". Postgres stamps createdAt
+		// monotonically per thread (migration 046), so real replies can never tie with my join.
 		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] }
-		const stale = comment({ createdAt: at(10) - 90_000, thread, file: { ownerId: THIRD } })
-		expect(categorizeCommentNotifications([stale], ME)).toEqual([])
+		const tied = comment({ createdAt: at(10), thread, file: { ownerId: THIRD } })
+		expect(categorizeCommentNotifications([tied], ME)).toEqual([])
+	})
+
+	it('keeps a reply stamped just after my join', () => {
+		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(10) }] }
+		const reply = comment({ createdAt: at(10) + 1, thread, file: { ownerId: THIRD } })
+		const result = categorizeCommentNotifications([reply], ME)
+		expect(result.map((n) => n.primaryReason)).toEqual(['reply'])
 	})
 
 	it("ignores others' comments in the thread relation when deriving my join time", () => {
