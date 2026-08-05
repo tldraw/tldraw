@@ -156,6 +156,7 @@ export function getAssetUrlsByImport(opts) {
 			'chevrons-sw': iconsIcon0MergedSvg2 + '#chevrons-sw',
 			'clipboard-copied': iconsIcon0MergedSvg2 + '#clipboard-copied',
 			'clipboard-copy': iconsIcon0MergedSvg2 + '#clipboard-copy',
+			closed: iconsIcon0MergedSvg2 + '#closed',
 			code: iconsIcon0MergedSvg2 + '#code',
 			color: iconsIcon0MergedSvg2 + '#color',
 			comment: iconsIcon0MergedSvg2 + '#comment',

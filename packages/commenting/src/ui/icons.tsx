@@ -2,9 +2,13 @@
  *
  * Anything with an equivalent in tldraw's icon assets goes through `TldrawUiIcon` instead (the ⋯
  * menu, the dismiss cross, the resolve button's check). What's left lives here because the asset
- * set has no counterpart — a smiley, a send arrow, the eye pair, a filter — or because the asset
- * reads wrong at the size it's needed, which is the case for both resolved checks below. Inline
- * also means they render without an `AssetUrlsProvider` and without the consumer serving files.
+ * set has no counterpart — a smiley, a send arrow, a filter — or because the asset reads wrong at
+ * the size it's needed, which is the case for both resolved checks below. The eye pair mirrors
+ * tldraw's presence glyphs: the open state is the `follow` icon — the almond eye whose pupil
+ * tracks presence — and the closed state the `closed` icon, its shut-lid companion. Both are in
+ * the asset set, but they're inlined because the package renders without an `AssetUrlsProvider`,
+ * so `TldrawUiIcon` can't reach them. Inline also means they render without the consumer serving
+ * files.
  *
  * All internal — none are exported from the package. */
 
@@ -73,43 +77,61 @@ export function SendIcon() {
 	)
 }
 
-/** Comment pins are showing. Pairs with `EyeClosedIcon` — the two must stay the same family. */
+/** Comment pins are showing. tldraw's `follow` glyph (icons/icon/follow.svg) inlined at its native
+ *  weight — the almond eye with a centred pupil. Pairs with `EyeClosedIcon`; the two must stay the
+ *  same family. */
 export function EyeOpenIcon() {
 	return (
-		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+		<svg width="15" height="15" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+			<path fill="currentColor" d="M19 15a4 4 0 1 1-8 0 4 4 0 0 1 8 0" />
 			<path
-				d="M7.5 11C4.80285 11 2.52952 9.62184 1.09622 7.50001C2.52952 5.37816 4.80285 4 7.5 4C10.1971 4 12.4705 5.37816 13.9038 7.5C12.4705 9.62183 10.1971 11 7.5 11ZM7.5 3C4.30786 3 1.65639 4.70638 0.0760002 7.23501C-0.0253338 7.39715 -0.0253334 7.60288 0.0760014 7.76501C1.65639 10.2936 4.30786 12 7.5 12C10.6921 12 13.3436 10.2936 14.924 7.76501C15.0253 7.60288 15.0253 7.39715 14.924 7.23501C13.3436 4.70638 10.6921 3 7.5 3ZM7.5 9.5C8.60457 9.5 9.5 8.60457 9.5 7.5C9.5 6.39543 8.60457 5.5 7.5 5.5C6.39543 5.5 5.5 6.39543 5.5 7.5C5.5 8.60457 6.39543 9.5 7.5 9.5Z"
-				fill="currentColor"
-				fillRule="evenodd"
-				clipRule="evenodd"
+				stroke="currentColor"
+				strokeWidth="2"
+				d="M26 15c0 1.77-1.077 3.496-3.07 4.825C20.946 21.149 18.145 22 15 22s-5.945-.851-7.93-2.175C5.076 18.496 4 16.77 4 15c0-1.77 1.077-3.496 3.07-4.825C9.054 8.851 11.855 8 15 8s5.945.851 7.93 2.175C24.924 11.504 26 13.23 26 15Z"
 			/>
 		</svg>
 	)
 }
 
-/** Comment pins are hidden. */
+/** Comment pins are hidden. tldraw's `closed` eye glyph (icons/icon/closed.svg) — a shut lower lid
+ *  with lashes, the design pair to `follow`. Inlined like the open eye: the package renders without
+ *  an `AssetUrlsProvider`. Lash dots are `r=1.5` (vs the asset's `r=1`) because at the 15px header
+ *  size the asset's finer lashes fall below a pixel; the lid keeps `follow`'s native stroke. */
 export function EyeClosedIcon() {
 	return (
-		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+		<svg width="15" height="15" viewBox="0 0 30 30" fill="none" aria-hidden="true">
 			<path
-				d="M14.7649 6.07596C14.9991 6.22231 15.0703 6.53079 14.9239 6.76495C14.4849 7.46743 13.9632 8.10645 13.3702 8.66305L14.5712 9.86406C14.7664 10.0593 14.7664 10.3759 14.5712 10.5712C14.3759 10.7664 14.0593 10.7664 13.8641 10.5712L12.6011 9.30817C11.805 9.90283 10.9089 10.3621 9.93375 10.651L10.383 12.3277C10.4544 12.5944 10.2961 12.8685 10.0294 12.94C9.76267 13.0115 9.4885 12.8532 9.41704 12.5865L8.95917 10.8775C8.48743 10.958 8.00036 11 7.50001 11C6.99965 11 6.51257 10.958 6.04082 10.8775L5.58299 12.5864C5.51153 12.8532 5.23737 13.0115 4.97064 12.94C4.7039 12.8686 4.5456 12.5944 4.61706 12.3277L5.06625 10.651C4.09111 10.3621 3.19503 9.90282 2.39889 9.30815L1.1359 10.5712C0.940638 10.7664 0.624058 10.7664 0.428798 10.5712C0.233537 10.3759 0.233537 10.0593 0.428798 9.86405L1.62982 8.66303C1.03682 8.10643 0.515113 7.46742 0.0760677 6.76495C-0.0702867 6.53079 0.000898544 6.22231 0.235065 6.07596C0.469231 5.9296 0.777703 6.00079 0.924058 6.23496C1.40354 7.00213 1.989 7.68057 2.66233 8.2427C2.67315 8.25096 2.6837 8.25972 2.69397 8.26898C4.00897 9.35527 5.65537 10 7.50001 10C10.3078 10 12.6564 8.5063 14.076 6.23495C14.2223 6.00079 14.5308 5.9296 14.7649 6.07596Z"
-				fill="currentColor"
-				fillRule="evenodd"
-				clipRule="evenodd"
+				stroke="currentColor"
+				strokeWidth="2"
+				strokeLinecap="round"
+				d="M27 15C27 19.4183 21.6274 23 15 23C8.37258 23 3 19.4183 3 15"
 			/>
+			<circle cx="4" cy="20" r="1.5" fill="currentColor" />
+			<circle cx="9" cy="23" r="1.5" fill="currentColor" />
+			<circle cx="15" cy="24" r="1.5" fill="currentColor" />
+			<circle cx="21" cy="23" r="1.5" fill="currentColor" />
+			<circle cx="26" cy="20" r="1.5" fill="currentColor" />
 		</svg>
 	)
 }
 
-/** The sidebar's filter menu trigger. */
-export function FilterIcon() {
+/** The sidebar's comment-menu trigger — tldraw's `dots-vertical` glyph (icons/icon/dots-vertical.svg)
+ *  inlined, a vertical kebab. Inlined like the eye pair because the package renders without an
+ *  `AssetUrlsProvider`. */
+export function MoreMenuIcon() {
 	return (
-		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+		<svg width="15" height="15" viewBox="0 0 30 30" fill="none" aria-hidden="true">
 			<path
-				d="M5.5 3C4.67157 3 4 3.67157 4 4.5C4 5.32843 4.67157 6 5.5 6C6.32843 6 7 5.32843 7 4.5C7 3.67157 6.32843 3 5.5 3ZM3 5C3.01671 5 3.03323 4.99918 3.04952 4.99758C3.28022 6.1399 4.28967 7 5.5 7C6.71033 7 7.71978 6.1399 7.95048 4.99758C7.96677 4.99918 7.98329 5 8 5H13.5C13.7761 5 14 4.77614 14 4.5C14 4.22386 13.7761 4 13.5 4H8C7.98329 4 7.96677 4.00082 7.95048 4.00242C7.71978 2.86009 6.71033 2 5.5 2C4.28967 2 3.28022 2.86009 3.04952 4.00242C3.03323 4.00082 3.01671 4 3 4H1.5C1.22386 4 1 4.22386 1 4.5C1 4.77614 1.22386 5 1.5 5H3ZM11.9505 10.9976C11.7198 12.1399 10.7103 13 9.5 13C8.28967 13 7.28022 12.1399 7.04952 10.9976C7.03323 10.9992 7.01671 11 7 11H1.5C1.22386 11 1 10.7761 1 10.5C1 10.2239 1.22386 10 1.5 10H7C7.01671 10 7.03323 10.0008 7.04952 10.0024C7.28022 8.8601 8.28967 8 9.5 8C10.7103 8 11.7198 8.8601 11.9505 10.0024C11.9668 10.0008 11.9833 10 12 10H13.5C13.7761 10 14 10.2239 14 10.5C14 10.7761 13.7761 11 13.5 11H12C11.9833 11 11.9668 10.9992 11.9505 10.9976ZM8 10.5C8 9.67157 8.67157 9 9.5 9C10.3284 9 11 9.67157 11 10.5C11 11.3284 10.3284 12 9.5 12C8.67157 12 8 11.3284 8 10.5Z"
 				fill="currentColor"
-				fillRule="evenodd"
-				clipRule="evenodd"
+				d="M15 9.48975C14.3167 9.48975 13.7292 9.24747 13.2375 8.76293C12.7458 8.27003 12.5 7.67688 12.5 6.98348C12.5 6.29843 12.7458 5.71364 13.2375 5.22909C13.7292 4.73619 14.3167 4.48975 15 4.48975C15.6833 4.48975 16.2708 4.73619 16.7625 5.22909C17.2542 5.71364 17.5 6.29843 17.5 6.98348C17.5 7.44296 17.3833 7.86485 17.15 8.24914C16.925 8.62508 16.625 8.92583 16.25 9.1514C15.875 9.37696 15.4583 9.48975 15 9.48975Z"
+			/>
+			<path
+				fill="currentColor"
+				d="M15 17.5C14.3167 17.5 13.7292 17.2577 13.2375 16.7732C12.7458 16.2803 12.5 15.6871 12.5 14.9937C12.5 14.3087 12.7458 13.7239 13.2375 13.2393C13.7292 12.7464 14.3167 12.5 15 12.5C15.6833 12.5 16.2708 12.7464 16.7625 13.2393C17.2542 13.7239 17.5 14.3087 17.5 14.9937C17.5 15.4532 17.3833 15.8751 17.15 16.2594C16.925 16.6353 16.625 16.9361 16.25 17.1617C15.875 17.3872 15.4583 17.5 15 17.5Z"
+			/>
+			<path
+				fill="currentColor"
+				d="M15 25.5103C14.3167 25.5103 13.7292 25.268 13.2375 24.7834C12.7458 24.2905 12.5 23.6974 12.5 23.004C12.5 22.319 12.7458 21.7342 13.2375 21.2496C13.7292 20.7567 14.3167 20.5103 15 20.5103C15.6833 20.5103 16.2708 20.7567 16.7625 21.2496C17.2542 21.7342 17.5 22.319 17.5 23.004C17.5 23.4635 17.3833 23.8854 17.15 24.2697C16.925 24.6456 16.625 24.9463 16.25 25.1719C15.875 25.3975 15.4583 25.5103 15 25.5103Z"
 			/>
 		</svg>
 	)
