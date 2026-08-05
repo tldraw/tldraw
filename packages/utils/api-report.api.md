@@ -244,6 +244,9 @@ export function isNonNull<T>(value: T): value is typeof value extends null ? nev
 export function isNonNullish<T>(value: T): value is typeof value extends undefined ? never : typeof value extends null ? never : T;
 
 // @public
+export function iterateGraphemes(str: string): Generator<string, void, undefined>;
+
+// @public
 export type JsonArray = JsonValue[];
 
 // @public
