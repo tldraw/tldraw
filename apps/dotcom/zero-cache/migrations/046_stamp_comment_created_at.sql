@@ -1,8 +1,7 @@
--- Stamp comment."createdAt" on the server instead of trusting the authoring client's clock.
--- Client stamps made the notifications reply gate compare timestamps from different machines:
--- a user who replied to a thread within the gate's clock-skew tolerance got notified about the
--- very comment they were replying to. With a single server clock the gate can compare strictly
--- and drop the tolerance.
+-- Stamp comment."createdAt" on the server. The notifications reply gate compares comment times
+-- against the user's join time with a strict ">", which is only sound when every comment in a
+-- thread is stamped by one clock — client clocks would make thread history and genuine replies
+-- indistinguishable.
 --
 -- The stamp is monotonic per thread, not plain now(): the room's Durable Object drains several
 -- comments in one transaction (where now() is frozen) and even clock_timestamp() can tie at the

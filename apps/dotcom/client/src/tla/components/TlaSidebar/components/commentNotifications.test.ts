@@ -136,9 +136,8 @@ describe('categorizeCommentNotifications', () => {
 	})
 
 	it("does not resurface a thread's opening comment when I reply to it seconds later", () => {
-		// The original bug: A starts a thread, B replies right away, and A's opening comment came
-		// back to B as an "A replied" notification because a clock-skew tolerance readmitted any
-		// comment less than a minute older than B's join.
+		// A starts a thread, B replies right away: A's opening comment is context B already saw,
+		// not a reply to B, no matter how narrowly it predates B's join.
 		const thread = { createdBy: OTHER, comments: [{ authorId: ME, createdAt: at(0) + 5_000 }] }
 		const opener = comment({ createdAt: at(0), thread, file: { ownerId: THIRD } })
 		expect(categorizeCommentNotifications([opener], ME)).toEqual([])
