@@ -41,9 +41,10 @@ import { ThreadStackPin } from './thread-stack'
 export type CanvasCommentsProps = CommentingContext
 
 /**
- * Which thread's pin a fade node should draw: its own thread for a single pin, `stackOwner` for a
- * coincident stack, null for neither. Never the open thread — the open slot below draws that one,
- * and drawing it here too (which the fade-out window would otherwise do) mounts its popover twice.
+ * Which thread's pin a fade node should draw: its own thread for a single pin, `stackOwner` (when
+ * still a member) for a coincident stack, null for neither. Never the open thread — the open-thread
+ * render slot draws that one, and drawing it here too (which the fade-out window would otherwise
+ * do) mounts its popover twice.
  * @internal
  */
 export function fadeNodeMarkerThreadId(

@@ -18,7 +18,7 @@ describe('fadeNodeMarkerThreadId', () => {
 		expect(fadeNodeMarkerThreadId(node(['t1']), null, 't2')).toBe('t1')
 	})
 
-	it('never resolves to the open thread — the open slot renders it', () => {
+	it('returns null for the open thread — the open-thread render slot draws it', () => {
 		// Drawing it here too would mount its popover twice while the node fades out.
 		expect(fadeNodeMarkerThreadId(node(['t1']), null, 't1')).toBeNull()
 	})
@@ -28,16 +28,16 @@ describe('fadeNodeMarkerThreadId', () => {
 		expect(fadeNodeMarkerThreadId(node(['t1', 't2']), 't1', 't2')).toBe('t1')
 	})
 
-	it('yields a stack whose owner is the open thread', () => {
+	it('returns null for a stack whose owner is the open thread', () => {
 		// Otherwise this node and the open slot would both draw the stack.
 		expect(fadeNodeMarkerThreadId(node(['t1', 't2']), 't1', 't1')).toBeNull()
 	})
 
-	it('yields a stack whose owner is no longer a member', () => {
+	it('returns null for a stack whose owner is no longer a member', () => {
 		expect(fadeNodeMarkerThreadId(node(['t2', 't3']), 't1', null)).toBeNull()
 	})
 
-	it('yields a stack with no owner', () => {
+	it('returns null for a stack with no owner', () => {
 		expect(fadeNodeMarkerThreadId(node(['t1', 't2']), null, null)).toBeNull()
 	})
 })
