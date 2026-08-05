@@ -5,6 +5,9 @@
   "00b177e080": {
     "translation": "Acceptera inbjudan"
   },
+  "029f235f01": {
+    "translation": "Vi arbetar med stöd för filer från <a><strong>{appName}</strong></a>."
+  },
   "03b3e13197": {
     "translation": "Dra filen till sidofältet på den här sidan. Eller välj alternativet 'Importera fil' från användarmenyn."
   },
@@ -13,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "Bjud in lagkamrater"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> nämnde dig"
   },
   "05f43078e9": {
     "translation": "Du har nått det maximala antalet arbetsytor. Du måste ta bort gamla arbetsytor innan du skapar nya."
@@ -28,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "Konto"
+  },
+  "093ac7483a": {
+    "translation": "Kan inte öppna filerna {extension} ännu"
   },
   "0a91f7fa87": {
     "translation": "Den här filen har nått sin storleksgräns och ändringarna kanske inte längre sparas. Ta bort en del innehåll eller skapa en ny fil."
@@ -59,6 +68,9 @@
   "13ddd375ad": {
     "translation": "Exportera som"
   },
+  "14b03eeeb5": {
+    "translation": "Aviseringsalternativ"
+  },
   "181b90f889": {
     "translation": "Skapa fil"
   },
@@ -79,6 +91,9 @@
   },
   "250ddea65c": {
     "translation": "Om tldraw"
+  },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> kommenterade på din anslagstavla"
   },
   "299cb00a7a": {
     "translation": "Uppladdningen misslyckades"
@@ -149,6 +164,9 @@
   "46137245cd": {
     "translation": "Tack för att du hjälper oss att förbättra tldraw!"
   },
+  "46de2de6bb": {
+    "translation": "Godkänn användarvillkoren"
+  },
   "477df802ca": {
     "translation": "För att fortsätta redigera, kopiera filen till dina filer."
   },
@@ -179,11 +197,17 @@
   "517bb809d9": {
     "translation": "Sidmenyn"
   },
+  "53770fd374": {
+    "translation": "Oläst"
+  },
   "542248f0ba": {
     "translation": "Den här filen är nu skrivskyddad"
   },
   "54286b1d01": {
     "translation": "Medarbetargräns har nåtts"
+  },
+  "545241e7dd": {
+    "translation": "{count} olästa"
   },
   "554a05155c": {
     "translation": "Har du fortfarande problem? <a>Rapportera ett problem</a>"
@@ -209,6 +233,9 @@
   "5bff3c9c88": {
     "translation": "Min arbetsyta"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> reagerade på din kommentar"
+  },
   "5d04a002ea": {
     "translation": "Det gick inte att ansluta"
   },
@@ -221,8 +248,17 @@
   "5fb63579fc": {
     "translation": "Kopiera"
   },
+  "608e9d366e": {
+    "translation": "Du är ikapp."
+  },
+  "60a68c29d6": {
+    "translation": "Logga in för att kommentera"
+  },
   "61057a0c84": {
     "translation": "Senare"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, one {Någon reagerade på din kommentar} other {# personer reagerade på din kommentar}}"
   },
   "625fd29749": {
     "translation": "Äldre"
@@ -274,6 +310,9 @@
   },
   "752b79f137": {
     "translation": "Du har nått det maximala antalet filer. Du måste ta bort gamla filer innan du skapar nya."
+  },
+  "7542d62aac": {
+    "translation": "Markera alla som lästa"
   },
   "7573b8110a": {
     "translation": "Ingen tillgång"
@@ -331,6 +370,9 @@
   },
   "81666c6e4a": {
     "translation": "Är du säker på att du vill glömma <strong>{fileName}</strong>?"
+  },
+  "8413c683b4": {
+    "translation": "Kommentarer"
   },
   "858ba4765e": {
     "translation": "Medlem"
@@ -422,6 +464,9 @@
   "a239905023": {
     "translation": "Exportera bild"
   },
+  "a274f4d467": {
+    "translation": "Aviseringar"
+  },
   "a3debabee7": {
     "translation": "Cookiepolicy"
   },
@@ -446,6 +491,9 @@
   "aac449eef6": {
     "translation": "Skapa arbetsyta"
   },
+  "aaec8f7cde": {
+    "translation": "Någon"
+  },
   "ab0df9ba36": {
     "translation": "Filgränsen har nåtts"
   },
@@ -455,6 +503,12 @@
   },
   "b028909917": {
     "translation": "Gästanvändare"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> svarade"
+  },
+  "b1c94ca2fb": {
+    "translation": "Alla"
   },
   "b2326c3a34": {
     "translation": "Regenerera"
@@ -528,6 +582,9 @@
   "cea291e45e": {
     "translation": "Läs mer om publicering."
   },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> och {count, plural, one {# other} other {# others}} reagerade på din kommentar"
+  },
   "d3d2e61733": {
     "translation": "Stäng"
   },
@@ -573,6 +630,9 @@
   "e404559826": {
     "translation": "Användarvillkor"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> och <name>{b}</name> har reagerat på din kommentar"
+  },
   "e81c4e4f2b": {
     "translation": "eller"
   },
@@ -600,6 +660,9 @@
   "ede55d955f": {
     "translation": "Läs vår <a>cookiepolicy</a> för att lära dig mer."
   },
+  "edec9387f9": {
+    "translation": "Den här kommentaren togs bort."
+  },
   "ef53538ae4": {
     "translation": "Medlemmar"
   },
@@ -618,8 +681,14 @@
   "f2a6c498fb": {
     "translation": "Radera"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> och {count, plural, one {# other} other {# others}} reagerade på din kommentar"
+  },
   "f4f70727dc": {
     "translation": "Inställningar"
+  },
+  "f5ddc8d9c1": {
+    "translation": "För närvarande kan du <a>exportera som en {extension}-fil</a> för att använda den här."
   },
   "fa2ead697d": {
     "translation": "Integritetspolicy"

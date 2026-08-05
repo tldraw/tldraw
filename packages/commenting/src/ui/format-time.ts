@@ -9,7 +9,7 @@ const DIVISIONS = [
 ] as const
 
 /**
- * Format an ISO datetime as short relative time ("2 hr. ago", "yesterday", "last wk.").
+ * Format an ISO datetime as compact relative time ("2h ago", "yesterday", "last wk.").
  * Locale-aware via Intl.RelativeTimeFormat.
  * @public
  */
@@ -17,7 +17,7 @@ export function formatRelativeTime(iso: string, locale = 'en'): string {
 	const then = new Date(iso).getTime()
 	if (Number.isNaN(then)) return ''
 
-	const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'short' })
+	const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'narrow' })
 	let duration = (then - Date.now()) / 1000
 	// Under a minute is just "now" — with second granularity the label visibly ticks while
 	// typing a reply (every keystroke re-renders the card).
