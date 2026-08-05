@@ -29,6 +29,9 @@
 		"pack-tarball": "yarn pack",
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
+	"devDependencies": {
+		"vitest": "^4.1.7"
+	},
 	"engines": {
 		"node": ">=22.12.0"
 	},
