@@ -2,7 +2,7 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 08/04/2026
+date: 08/05/2026
 order: 0
 status: published
 last_version: v5.2.5
@@ -12,7 +12,7 @@ This release adds commenting: a set of new packages for anchored comment threads
 
 ## What's new
 
-### Commenting ([#9471](https://github.com/tldraw/tldraw/pull/9471), [#9782](https://github.com/tldraw/tldraw/pull/9782))
+### Commenting ([#9471](https://github.com/tldraw/tldraw/pull/9471), [#9782](https://github.com/tldraw/tldraw/pull/9782), [#9850](https://github.com/tldraw/tldraw/pull/9850))
 
 Comments are now a first-class primitive in the SDK. `@tldraw/commenting` ships a batteries-included canvas comments layer: threads anchor to a point, a shape (precisely or imprecisely), a text range, a region, or the page. You can reply, edit, react, resolve, and delete comments. The pins drag to re-anchor, and `?comment=<id>` deep links open a thread and bring the camera to its pin. Comment pins cluster together as you zoom out and separate back out as you zoom in.
 
@@ -73,6 +73,7 @@ See the [commenting docs](https://tldraw.dev/docs/commenting) for setup.
 
 ## Bug fixes
 
+- Fix `tldraw` failing to resolve `@tldraw/state` and `@tldraw/tlschema` on package managers that enforce strict dependency isolation, such as pnpm. Both were imported but never declared in the package's manifest. ([#9762](https://github.com/tldraw/tldraw/pull/9762))
 - Fix zooming and panning not working while the cursor is over a non-scrollable UI overlay. The wheel pass-through guard treated any element whose content overflowed as scrollable, and a hover transform on a small overlay was enough to trigger that. Overlays now count as scrollable only when their computed `overflow` says so. ([#9698](https://github.com/tldraw/tldraw/pull/9698))
 - Fix a crash when dragging content from another browser tab whose URL isn't a valid link, which happens when an ad blocker rewrites the dragged URL to something like `about:blank#blocked`. Dropping one now shows an error toast instead of failing validation on the bookmark shape. ([#9598](https://github.com/tldraw/tldraw/pull/9598))
 - Fix the "URL" label wrapping onto two lines in the edit link and embed dialogs. ([#9663](https://github.com/tldraw/tldraw/pull/9663))
