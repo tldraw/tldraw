@@ -23,6 +23,12 @@ function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagV
 			description:
 				'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
 		},
+		mcp_friends_and_family: {
+			type: 'boolean',
+			enabled: false,
+			description:
+				'Raises the /app/mcp rate limits for signed-in callers on the friends and family list (edited below)',
+		},
 	}
 }
 

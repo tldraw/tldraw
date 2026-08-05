@@ -2,6 +2,7 @@ import {
 	AdminFileAssetsResponseBody,
 	FILE_PREFIX,
 	FeatureFlagKey,
+	FriendsAndFamilyEntry,
 	LOCAL_FILE_PREFIX,
 	PUBLISH_PREFIX,
 	ROOM_PREFIX,
@@ -11,6 +12,7 @@ import {
 import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
+import { sql } from 'kysely'
 import PQueue from 'p-queue'
 import { getUploadObjectName } from './assetAssociation'
 import { createPostgresConnectionPool } from './postgres'
@@ -20,7 +22,49 @@ import { type Environment } from './types'
 import { undeleteFile } from './undeleteFile'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
+import {
+	getFriendsAndFamilyList,
+	parseFriendsAndFamilyEmails,
+	setFriendsAndFamilyList,
+} from './utils/mcpFriendsAndFamily'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
+
+/**
+ * Resolves the admin's emails to user ids once, at save time, so the request path only ever has to
+ * compare the userId `getAuth` already gives it. One query for the whole list rather than a lookup
+ * per address, and an email with no tldraw account fails the save instead of being stored as an
+ * entry that can never match.
+ */
+async function resolveFriendsAndFamilyUsers(
+	env: Environment,
+	emails: string[]
+): Promise<FriendsAndFamilyEntry[]> {
+	if (!emails.length) return []
+
+	const db = createPostgresConnectionPool(env, '/app/admin/mcp-friends-and-family')
+	try {
+		const rows = await db
+			.selectFrom('user')
+			.select(['id', 'email'])
+			.where(sql<string>`lower(email)`, 'in', emails)
+			.execute()
+
+		const byEmail = new Map(rows.map((row) => [row.email.toLowerCase(), row]))
+		const unknown = emails.filter((email) => !byEmail.has(email))
+		if (unknown.length) {
+			throw new StatusError(400, `No tldraw account for: ${unknown.join(', ')}`)
+		}
+
+		// Store the address as the database has it, not as the admin typed it, so the panel shows the
+		// account's real email.
+		return emails.map((email) => {
+			const row = byEmail.get(email)!
+			return { userId: row.id, email: row.email }
+		})
+	} finally {
+		await db.destroy()
+	}
+}
 
 async function requireUser(env: Environment, q: string) {
 	const db = createPostgresConnectionPool(env, '/app/admin/user')
@@ -94,6 +138,25 @@ export const adminRoutes = createRouter<Environment>()
 
 		await setFeatureFlag(env, flag as FeatureFlagKey, update)
 		return json({ success: true, flag, ...update })
+	})
+	.get('/app/admin/mcp-friends-and-family', async (_req, env) => {
+		return json({ entries: await getFriendsAndFamilyList(env) })
+	})
+	.post('/app/admin/mcp-friends-and-family', async (req, env) => {
+		const body: any = await req.json()
+
+		// Parsing before resolving means a typo is rejected at the point someone can still fix it,
+		// rather than sitting in the list looking like it grants access while matching nothing.
+		let emails: string[]
+		try {
+			emails = parseFriendsAndFamilyEmails(body?.entries)
+		} catch (e) {
+			throw new StatusError(400, e instanceof Error ? e.message : String(e))
+		}
+
+		const entries = await resolveFriendsAndFamilyUsers(env, emails)
+		await setFriendsAndFamilyList(env, entries)
+		return json({ success: true, entries })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()

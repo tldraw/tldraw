@@ -302,7 +302,11 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Feature Flags ---------------------- */
 
-export const FEATURE_FLAG_KEYS = ['rum_enabled', 'commenting_enabled'] as const
+export const FEATURE_FLAG_KEYS = [
+	'rum_enabled',
+	'commenting_enabled',
+	'mcp_friends_and_family',
+] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
 export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag
@@ -325,6 +329,16 @@ export interface PercentageFeatureFlag {
 /** Returned by the user-facing endpoint — just the evaluated result, no server internals. */
 export interface EvaluatedFeatureFlag {
 	enabled: boolean
+}
+
+/**
+ * One person on the MCP friends and family list that `mcp_friends_and_family` gates on. Admins enter
+ * an email, which is resolved to a user id on save; matching is on the id, and the email is kept only
+ * so the admin panel can show a readable list.
+ */
+export interface FriendsAndFamilyEntry {
+	userId: string
+	email: string
 }
 
 /** One unassociated or unverifiable asset in an admin asset-diagnostics report. */

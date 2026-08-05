@@ -1,15 +1,25 @@
-import { FeatureFlagValue, PercentageFeatureFlag } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useState } from 'react'
+import {
+	FeatureFlagValue,
+	FriendsAndFamilyEntry,
+	PercentageFeatureFlag,
+} from '@tldraw/dotcom-shared'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
 import styles from './admin.module.css'
 
 export function FlagsSection() {
 	return (
-		<section className={styles.adminSection}>
-			<h3 className={styles.sectionTitle}>Feature flags</h3>
-			<FeatureFlags />
-		</section>
+		<>
+			<section className={styles.adminSection}>
+				<h3 className={styles.sectionTitle}>Feature flags</h3>
+				<FeatureFlags />
+			</section>
+			<section className={styles.adminSection}>
+				<h3 className={styles.sectionTitle}>MCP friends and family</h3>
+				<McpFriendsAndFamily />
+			</section>
+		</>
 	)
 }
 
@@ -236,6 +246,115 @@ function PercentageFlag({
 			{flagValue.description && (
 				<span className={styles.featureFlagsDescription}>{flagValue.description}</span>
 			)}
+		</div>
+	)
+}
+
+function emailsOf(entries: FriendsAndFamilyEntry[]) {
+	return entries.map((entry) => entry.email).join('\n')
+}
+
+function McpFriendsAndFamily() {
+	const textareaRef = useRef<HTMLTextAreaElement>(null)
+	const [entries, setEntries] = useState([] as FriendsAndFamilyEntry[])
+	const [isLoading, setIsLoading] = useState(true)
+	const [isSaving, setIsSaving] = useState(false)
+	const [error, setError] = useState(null as string | null)
+	const [successMessage, setSuccessMessage] = useState(null as string | null)
+
+	const load = useCallback(async () => {
+		setIsLoading(true)
+		setError(null)
+		try {
+			const res = await fetch('/api/app/admin/mcp-friends-and-family')
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			const data = (await res.json()) as { entries: FriendsAndFamilyEntry[] }
+			setEntries(data.entries)
+			// The stored entries are user IDs; the box edits the emails they were resolved from. Only
+			// seed it on load, never on save — overwriting it mid-edit would discard what was typed.
+			if (textareaRef.current) textareaRef.current.value = emailsOf(data.entries)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to load the friends and family list')
+		} finally {
+			setIsLoading(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		load()
+	}, [load])
+
+	const onSave = useCallback(async () => {
+		const value = textareaRef.current?.value ?? ''
+		if (!window.confirm('Replace the MCP friends and family list with what is in the box?')) return
+
+		setError(null)
+		setSuccessMessage(null)
+		setIsSaving(true)
+		try {
+			const res = await fetch('/api/app/admin/mcp-friends-and-family', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ entries: value }),
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			const data = (await res.json()) as { entries: FriendsAndFamilyEntry[] }
+			setEntries(data.entries)
+			// Reflect back the addresses as the accounts actually have them, so the box matches what
+			// was stored rather than what was typed.
+			if (textareaRef.current) textareaRef.current.value = emailsOf(data.entries)
+			setSuccessMessage(`Saved ${data.entries.length} entries`)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to save the friends and family list')
+		} finally {
+			setIsSaving(false)
+		}
+	}, [])
+
+	useEffect(() => {
+		if (successMessage) {
+			const timer = setTimeout(() => setSuccessMessage(null), 3000)
+			return () => clearTimeout(timer)
+		}
+	}, [successMessage])
+
+	return (
+		<div className={styles.fileOperation}>
+			<p className={styles.featureFlagsDescription}>
+				Who will get the raised rate limits on the MCP screenshot server. One email address per
+				line. Each must belong to an existing tldraw account — saving resolves them to user IDs, so
+				an address with no account is rejected rather than stored.
+			</p>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+			<div className={styles.summaryItem}>
+				<span className={styles.fieldLabel}>Current:</span>
+				<span className={styles.fieldValue}>
+					{isLoading ? 'Loading…' : entries.length ? `${entries.length} entries` : 'empty — nobody'}
+				</span>
+			</div>
+			<textarea
+				ref={textareaRef}
+				rows={6}
+				spellCheck={false}
+				placeholder={'someone@tldraw.com\nfriend@example.com'}
+				className={styles.searchInput}
+				disabled={isLoading || isSaving}
+			/>
+			<div className={styles.searchContainer}>
+				<AdminButton onClick={onSave} variant="primary" disabled={isLoading || isSaving}>
+					Save list
+				</AdminButton>
+				<AdminButton onClick={load} variant="secondary" disabled={isLoading || isSaving}>
+					Reset
+				</AdminButton>
+			</div>
 		</div>
 	)
 }
