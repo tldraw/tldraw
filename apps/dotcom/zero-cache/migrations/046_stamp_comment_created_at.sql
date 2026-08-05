@@ -1,13 +1,8 @@
--- Stamp comment."createdAt" on the server. The notifications reply gate compares comment times
--- against the user's join time with a strict ">", which is only sound when every comment in a
--- thread is stamped by one clock — client clocks would make thread history and genuine replies
--- indistinguishable.
---
--- The stamp is monotonic per thread, not plain now(): the room's Durable Object drains several
--- comments in one transaction (where now() is frozen) and even clock_timestamp() can tie at the
--- column's millisecond resolution. Ties break the strict "after my join" compare, so each insert
--- takes at least predecessor + 1ms. Rows never insert concurrently for one thread — a thread
--- belongs to one file and one file is one Durable Object — so the SELECT MAX has no race.
+-- Stamp comment."createdAt" on the server: the notifications reply gate compares comment times
+-- with a strict ">", which needs one clock and one total order per thread. Monotonic (max + 1)
+-- rather than plain time because the Durable Object drains several comments in one transaction,
+-- where now() is frozen and clock_timestamp() ties at millisecond resolution. No race on the
+-- SELECT MAX: a thread belongs to one file, and one file is one Durable Object.
 --
 -- BEFORE INSERT only: the drain retries at-least-once via ON CONFLICT, whose update set does not
 -- include "createdAt", so the first successful insert's stamp is permanent.

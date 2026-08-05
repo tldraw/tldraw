@@ -114,9 +114,10 @@ describeMaybe('set_comment_created_at trigger (server-stamped comment timestamps
 		return Number(res.rows[0].now)
 	}
 
-	// Mirrors the drain's upsert in TLFileDurableObject.ts (insertCommentRows): the conflict
-	// branch's exclusion of "createdAt" is what makes the trigger's stamp permanent across
-	// at-least-once replays and edits — keep the two in sync.
+	// Mirrors the shape of the drain's upsert in TLFileDurableObject.ts (insertCommentRows) over
+	// this table's column subset. The parts that matter — and must stay in sync with the drain —
+	// are the conflict branch excluding "createdAt" (what makes the trigger's stamp permanent
+	// across at-least-once replays and edits) and the lastChangedClock guard.
 	async function upsert(
 		rows: {
 			id: string
