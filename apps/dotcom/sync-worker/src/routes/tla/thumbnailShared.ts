@@ -84,7 +84,7 @@ export type ThumbnailErrorSurface =
 //
 // `ctx` supplies the waitUntil that lets the report outlive the response — route handlers get one
 // from the router, the queue consumer from the worker entrypoint. Without one (unit tests) we log
-// instead, since createSentry throws when SENTRY_DSN and friends are unset.
+// instead.
 export function reportThumbnailError(
 	error: unknown,
 	{
@@ -116,7 +116,6 @@ export function reportThumbnailError(
 		})
 	} catch (_e) {
 		// Reporting runs inside handlers whose whole point is to swallow failure, so it must never be
-		// the thing that throws: a missing Sentry env var would otherwise turn a degraded-but-fine
-		// response into a 500.
+		// the thing that throws and turn a degraded-but-fine response into a 500.
 	}
 }

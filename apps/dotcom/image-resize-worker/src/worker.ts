@@ -6,6 +6,7 @@ import {
 	isAllowedOrigin,
 	notFound,
 	parseRequestQuery,
+	type SentryEnvironment,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 
@@ -17,9 +18,11 @@ declare const caches: {
 	}
 }
 
-interface Environment {
+// SENTRY_DSN, TLDRAW_ENV, WORKER_NAME and CF_VERSION_METADATA come from SentryEnvironment. The
+// deploy script does not yet pass a SENTRY_DSN for this worker, so createSentry returns null and
+// handleApiRequest falls back to console.error; wiring up a DSN is a config change only.
+interface Environment extends SentryEnvironment {
 	IS_LOCAL?: string
-	SENTRY_DSN?: undefined
 	MULTIPLAYER_SERVER?: string
 
 	SYNC_WORKER: Fetcher
@@ -38,7 +41,7 @@ function useServiceBinding(env: Environment, origin: string) {
 }
 
 export default class Worker extends WorkerEntrypoint<Environment> {
-	readonly router = createRouter()
+	readonly router = createRouter<Environment>()
 		.get('/:origin/:path+', async (request) => {
 			const { origin, path } = request.params
 			const query = parseRequestQuery(request, queryValidator)
