@@ -25,7 +25,8 @@
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"react": "^19.2.1",
-		"react-dom": "^19.2.1"
+		"react-dom": "^19.2.1",
+		"vitest": "^4.1.7"
 	},
 	"scripts": {
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
