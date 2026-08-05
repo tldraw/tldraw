@@ -11,6 +11,32 @@
       "value": "接受邀请"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "我们正在努力支持来自 "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " 的文件。"
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "邀请队友"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 提到了你"
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,20 @@
     {
       "type": 0,
       "value": "帐户"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "尚无法打开 "
+    },
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " 文件"
     }
   ],
   "0a91f7fa87": [
@@ -123,6 +179,12 @@
       "value": "导出为"
     }
   ],
+  "14b03eeeb5": [
+    {
+      "type": 0,
+      "value": "通知选项"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -177,6 +239,22 @@
     {
       "type": 0,
       "value": "关于tldraw"
+    }
+  ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 在您的白板上发表了评论"
     }
   ],
   "299cb00a7a": [
@@ -331,6 +409,12 @@
       "value": "感谢您帮助我们改进 tldraw！"
     }
   ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "接受使用条款"
+    }
+  ],
   "477df802ca": [
     {
       "type": 0,
@@ -391,6 +475,12 @@
       "value": "页面菜单"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "未读"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -401,6 +491,16 @@
     {
       "type": 0,
       "value": "协作者达到上限"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 未读"
     }
   ],
   "554a05155c": [
@@ -461,6 +561,22 @@
       "value": "我的工作区"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 对您的评论做出了回应"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -485,10 +601,43 @@
       "value": "复制"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "你已经全部跟上了。"
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "登录发表评论"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "稍后"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " 人对你的评论做出了回应"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -591,6 +740,12 @@
     {
       "type": 0,
       "value": "您已达到文件数量上限。您需要先删除旧文件，然后才能创建新文件。"
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "全部标记为已读"
     }
   ],
   "7573b8110a": [
@@ -747,6 +902,12 @@
     {
       "type": 0,
       "value": "吗？"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "评论"
     }
   ],
   "858ba4765e": [
@@ -979,6 +1140,12 @@
       "value": "导出图片"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "通知"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1027,6 +1194,12 @@
       "value": "创建工作区"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "某人"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1049,6 +1222,28 @@
     {
       "type": 0,
       "value": "来宾用户"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 回复"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "全部"
     }
   ],
   "b2326c3a34": [
@@ -1231,6 +1426,56 @@
       "value": "详细了解发布。"
     }
   ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 和 "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 对您的评论做出了回应"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1349,6 +1594,36 @@
       "value": "服务条款"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 和 "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 对您的评论做出了回应"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1417,6 +1692,12 @@
       "value": "以了解更多信息。"
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "这条评论已被删除。"
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1453,10 +1734,102 @@
       "value": "删除"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "、"
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 和 "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 对您的评论做出了回应"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "设置"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "目前，您可以"
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "导出为 "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        },
+        {
+          "type": 0,
+          "value": " 文件"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "以便在此处使用。"
     }
   ],
   "fa2ead697d": [

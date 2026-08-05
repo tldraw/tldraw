@@ -5,6 +5,9 @@
   "00b177e080": {
     "translation": "接受邀请"
   },
+  "029f235f01": {
+    "translation": "我们正在努力支持来自 <a><strong>{appName}</strong></a> 的文件。"
+  },
   "03b3e13197": {
     "translation": "将文件拖放到本页面的侧边栏，或在用户菜单中选择“导入文件”选项。"
   },
@@ -13,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "邀请队友"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> 提到了你"
   },
   "05f43078e9": {
     "translation": "您已达到工作区数量上限。您需要先删除旧工作区，才能创建新工作区。"
@@ -28,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "帐户"
+  },
+  "093ac7483a": {
+    "translation": "尚无法打开 {extension} 文件"
   },
   "0a91f7fa87": {
     "translation": "此文件已达到大小限制，更改可能无法保存。请删除部分内容或新建一个文件。"
@@ -59,6 +68,9 @@
   "13ddd375ad": {
     "translation": "导出为"
   },
+  "14b03eeeb5": {
+    "translation": "通知选项"
+  },
   "181b90f889": {
     "translation": "创建文件"
   },
@@ -79,6 +91,9 @@
   },
   "250ddea65c": {
     "translation": "关于tldraw"
+  },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> 在您的白板上发表了评论"
   },
   "299cb00a7a": {
     "translation": "上传失败"
@@ -149,6 +164,9 @@
   "46137245cd": {
     "translation": "感谢您帮助我们改进 tldraw！"
   },
+  "46de2de6bb": {
+    "translation": "接受使用条款"
+  },
   "477df802ca": {
     "translation": "要继续编辑，请将文件复制到您的文件中。"
   },
@@ -179,11 +197,17 @@
   "517bb809d9": {
     "translation": "页面菜单"
   },
+  "53770fd374": {
+    "translation": "未读"
+  },
   "542248f0ba": {
     "translation": "此文件现在为只读。"
   },
   "54286b1d01": {
     "translation": "协作者达到上限"
+  },
+  "545241e7dd": {
+    "translation": "{count} 未读"
   },
   "554a05155c": {
     "translation": "仍有问题？<a>报告问题</a>"
@@ -209,6 +233,9 @@
   "5bff3c9c88": {
     "translation": "我的工作区"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> 对您的评论做出了回应"
+  },
   "5d04a002ea": {
     "translation": "无法连接"
   },
@@ -221,8 +248,17 @@
   "5fb63579fc": {
     "translation": "复制"
   },
+  "608e9d366e": {
+    "translation": "你已经全部跟上了。"
+  },
+  "60a68c29d6": {
+    "translation": "登录发表评论"
+  },
   "61057a0c84": {
     "translation": "稍后"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, other {# 人对你的评论做出了回应}}"
   },
   "625fd29749": {
     "translation": "较旧"
@@ -274,6 +310,9 @@
   },
   "752b79f137": {
     "translation": "您已达到文件数量上限。您需要先删除旧文件，然后才能创建新文件。"
+  },
+  "7542d62aac": {
+    "translation": "全部标记为已读"
   },
   "7573b8110a": {
     "translation": "无访问权限"
@@ -331,6 +370,9 @@
   },
   "81666c6e4a": {
     "translation": "您确定要删除<strong>{fileName}</strong>吗？"
+  },
+  "8413c683b4": {
+    "translation": "评论"
   },
   "858ba4765e": {
     "translation": "成员"
@@ -422,6 +464,9 @@
   "a239905023": {
     "translation": "导出图片"
   },
+  "a274f4d467": {
+    "translation": "通知"
+  },
   "a3debabee7": {
     "translation": "Cookie 政策"
   },
@@ -446,6 +491,9 @@
   "aac449eef6": {
     "translation": "创建工作区"
   },
+  "aaec8f7cde": {
+    "translation": "某人"
+  },
   "ab0df9ba36": {
     "translation": "已达到文件限制"
   },
@@ -455,6 +503,12 @@
   },
   "b028909917": {
     "translation": "来宾用户"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> 回复"
+  },
+  "b1c94ca2fb": {
+    "translation": "全部"
   },
   "b2326c3a34": {
     "translation": "再生"
@@ -528,6 +582,9 @@
   "cea291e45e": {
     "translation": "详细了解发布。"
   },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> 和 {count, plural, one {# other} other {# others}} 对您的评论做出了回应"
+  },
   "d3d2e61733": {
     "translation": "关闭"
   },
@@ -573,6 +630,9 @@
   "e404559826": {
     "translation": "服务条款"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> 和 <name>{b}</name> 对您的评论做出了回应"
+  },
   "e81c4e4f2b": {
     "translation": "或者"
   },
@@ -600,6 +660,9 @@
   "ede55d955f": {
     "translation": "请阅读我们的<a>cookie 政策</a>以了解更多信息。"
   },
+  "edec9387f9": {
+    "translation": "这条评论已被删除。"
+  },
   "ef53538ae4": {
     "translation": "成员"
   },
@@ -618,8 +681,14 @@
   "f2a6c498fb": {
     "translation": "删除"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>、<name>{b}</name> 和 {count, plural, one {# other} other {# others}} 对您的评论做出了回应"
+  },
   "f4f70727dc": {
     "translation": "设置"
+  },
+  "f5ddc8d9c1": {
+    "translation": "目前，您可以<a>导出为 {extension} 文件</a>以便在此处使用。"
   },
   "fa2ead697d": {
     "translation": "隐私政策"

@@ -10,7 +10,7 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { FilterIcon } from '../ui/icons'
+import { MoreMenuIcon } from '../ui/icons'
 import { SidebarFilters } from './sidebar-filters'
 import { sidebarFilters } from './state'
 
@@ -44,7 +44,7 @@ export function CommentsFilterMenu({
 					title={msg('comments.filter')}
 					className="tlui-cmt-header-btn"
 				>
-					<FilterIcon />
+					<MoreMenuIcon />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			{/* No tlui-cmt-menu here: the rows are tldraw menu items, which carry their own insets —
