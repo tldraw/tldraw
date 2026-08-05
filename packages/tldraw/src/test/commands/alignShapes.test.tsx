@@ -38,14 +38,14 @@ describe('when less than two shapes are selected', () => {
 describe('when multiple shapes are selected', () => {
 	it('does, undoes and redoes command', () => {
 		editor.markHistoryStoppingPoint('align')
-		editor.alignShapes(editor.getSelectedShapeIds(), 'top')
+		editor.alignShapes(editor.getSelectedShapeIds(), 'center')
 		vi.advanceTimersByTime(1000)
 
-		editor.expectShapeToMatch({ id: ids.boxB, y: 0 })
+		editor.expectShapeToMatch({ id: ids.boxB, x: 225, y: 225 })
 		editor.undo()
-		editor.expectShapeToMatch({ id: ids.boxB, y: 100 })
+		editor.expectShapeToMatch({ id: ids.boxB, x: 100, y: 100 })
 		editor.redo()
-		editor.expectShapeToMatch({ id: ids.boxB, y: 0 })
+		editor.expectShapeToMatch({ id: ids.boxB, x: 225, y: 225 })
 	})
 
 	it('aligns top', () => {
@@ -130,17 +130,17 @@ describe('when multiple shapes are selected', () => {
 			{
 				id: ids.boxA,
 				type: 'geo',
-				rotation: PI,
+				rotation: 0.2,
 			},
 			{
 				id: ids.boxB,
 				type: 'geo',
-				rotation: PI,
+				rotation: 0.4,
 			},
 			{
 				id: ids.boxC,
 				type: 'geo',
-				rotation: PI,
+				rotation: 0.6,
 			},
 		])
 
