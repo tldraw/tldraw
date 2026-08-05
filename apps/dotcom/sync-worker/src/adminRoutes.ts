@@ -18,7 +18,11 @@ import { getR2KeyForRoom } from './r2'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { undeleteFile } from './undeleteFile'
-import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
+import {
+	getFileEffectProcessor,
+	getRoomDurableObject,
+	getUserDurableObject,
+} from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
@@ -47,24 +51,58 @@ export const adminRoutes = createRouter<Environment>()
 			return new Response('Missing query param', { status: 400 })
 		}
 		const userRow = await requireUser(env, q)
-
-		const user = getUserDurableObject(env, userRow.id)
-		return json(await user.admin_getData(userRow.id))
-	})
-	.get('/app/admin/replicator', async (res, env) => {
-		const replicator = getReplicator(env)
-		const diagnostics = await replicator.getDiagnostics()
-		return json(diagnostics)
-	})
-	.post('/app/admin/user/reboot', async (res, env) => {
-		const q = res.query['q']
-		if (typeof q !== 'string') {
-			return new Response('Missing query param', { status: 400 })
+		const db = createPostgresConnectionPool(env, '/app/admin/user')
+		try {
+			const memberships = await db
+				.selectFrom('group_user')
+				.innerJoin('group', 'group.id', 'group_user.groupId')
+				.where('group_user.userId', '=', userRow.id)
+				.select(['group.id', 'group.name', 'group.isDeleted', 'group_user.role'])
+				.execute()
+			const files = await db
+				.selectFrom('file')
+				.leftJoin('group_file', 'group_file.fileId', 'file.id')
+				.where((eb) =>
+					eb.or([
+						eb('file.ownerId', '=', userRow.id),
+						eb(
+							'group_file.groupId',
+							'in',
+							memberships.length ? memberships.map((m) => m.id) : ['']
+						),
+					])
+				)
+				.selectAll('file')
+				.limit(500)
+				.execute()
+			return json({ user: userRow, memberships, files })
+		} finally {
+			await db.destroy()
 		}
-		const userRow = await requireUser(env, q)
-		const user = getUserDurableObject(env, userRow.id)
-		await user.admin_forceHardReboot(userRow.id)
-		return new Response('Rebooted', { status: 200 })
+	})
+	.get('/app/admin/outbox', async (res, env) => {
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox')
+		try {
+			const stats = await db
+				.selectFrom('effect_outbox')
+				.select((eb) => [
+					eb.fn.countAll<number>().filterWhere('attempts', '<', 10).as('pending'),
+					eb.fn.countAll<number>().filterWhere('attempts', '>=', 10).as('parked'),
+					eb.fn.min('createdAt').filterWhere('attempts', '<', 10).as('oldestPending'),
+				])
+				.executeTakeFirstOrThrow()
+			return json({
+				outbox: {
+					pending: Number(stats.pending),
+					parked: Number(stats.parked),
+					oldestPendingAgeSeconds: stats.oldestPending
+						? Math.round((Date.now() - new Date(stats.oldestPending).getTime()) / 1000)
+						: null,
+				},
+			})
+		} finally {
+			await db.destroy()
+		}
 	})
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
@@ -539,12 +577,11 @@ async function hardDeleteAppFile({
 	file: TlaFile
 }) {
 	if (!file.isDeleted) {
-		// do soft delete first if not done already
+		// do soft delete first if not done already; the outbox trigger records it
 		await pg.updateTable('file').set('isDeleted', true).where('id', '=', file.id).execute()
-		// allow a little time for the delete to propagate
-		// don't think this is really needed, but just in case
-		await sleep(1000)
 	}
+	// drain the outbox so the room DO closes sessions and cleans R2 before the row vanishes
+	await getFileEffectProcessor(env).drainNow()
 	// clean up assets eagerly
 	const assets = await pg.selectFrom('asset').where('fileId', '=', file.id).selectAll().execute()
 	for (const asset of assets) {

@@ -46,7 +46,18 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 	}
 
 	async drainNow() {
-		await this.drain()
+		// A drain already in flight may have fetched its batch before rows this call needs to see
+		// were committed, so wait for it, then always run one more drain for read-your-writes
+		// semantics. Can't just call drain() afterwards: if its `finally` hasn't cleared
+		// drainPromise yet by the time we resume, drain() would coalesce into the very promise we
+		// just awaited instead of starting a fresh one. Start the new cycle unconditionally and
+		// only ever clear the latch if it's still pointing at this call's own promise.
+		if (this.drainPromise) await this.drainPromise
+		const promise = this._drain().finally(() => {
+			if (this.drainPromise === promise) this.drainPromise = null
+		})
+		this.drainPromise = promise
+		await promise
 	}
 
 	override async alarm() {
