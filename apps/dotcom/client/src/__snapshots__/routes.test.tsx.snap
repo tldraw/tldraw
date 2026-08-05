@@ -11,8 +11,16 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/__debug-tail/?$",
   },
   {
+    "reactRouterPattern": "/__thumbnail-render",
+    "vercelRouterPattern": "^/__thumbnail-render/?$",
+  },
+  {
     "reactRouterPattern": "/admin",
     "vercelRouterPattern": "^/admin/?$",
+  },
+  {
+    "reactRouterPattern": "/admin/:section",
+    "vercelRouterPattern": "^/admin/[^/]*/?$",
   },
   {
     "reactRouterPattern": "/f/:fileSlug",

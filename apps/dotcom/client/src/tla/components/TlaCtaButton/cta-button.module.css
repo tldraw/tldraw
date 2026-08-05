@@ -14,7 +14,7 @@
 	padding: 0px 16px;
 	font-size: 12px;
 	font-weight: 600;
-	color: var(--tla-color-contrast);
+	color: var(--tl-color-selected-contrast);
 	border: none;
 	cursor: pointer;
 }
@@ -39,8 +39,8 @@
 	content: '';
 	position: absolute;
 	inset: 0px;
-	color: var(--tla-color-contrast);
-	background-color: var(--tla-color-cta);
+	color: var(--tl-color-selected-contrast);
+	background-color: var(--tl-color-primary);
 	border-radius: 6px;
 	z-index: 2;
 }
@@ -60,7 +60,7 @@
 }
 
 .ctaButtonSecondary {
-	color: var(--tl-color-text-1);
+	color: var(--tl-color-text-0);
 }
 
 .ctaButtonSecondary::after {
@@ -80,7 +80,7 @@
 
 @media (hover: hover) {
 	.ctaButton:not(:disabled):hover::before {
-		background-color: var(--tla-color-cta-hover);
+		background-color: var(--tla-color-primary-hover);
 	}
 
 	.ctaButtonSecondary:not(:disabled):hover::before {

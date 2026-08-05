@@ -1,67 +1,78 @@
-import { Fragment } from 'react'
+import classNames from 'classnames'
+import { useCallback } from 'react'
 import { useValue } from 'tldraw'
+import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
 import { getRelevantDates } from '../../../utils/dates'
 import { F } from '../../../utils/i18n'
 import { RecentFile } from './sidebar-shared'
 import { TlaSidebarFileLink } from './TlaSidebarFileLink'
 import { TlaSidebarFileSection } from './TlaSidebarFileSection'
+import styles from '../sidebar.module.css'
 
+/**
+ * The scrollable lower region of the sidebar: the files of whichever space is
+ * currently active (derived from the open file). Pinned files come first, then
+ * the remaining files grouped by recency. There is no per-workspace expand/collapse.
+ */
 export function TlaSidebarRecentFiles() {
 	const app = useApp()
+	const activeWorkspaceId = useActiveWorkspaceId()
+	const homeWorkspaceId = app.getHomeWorkspaceId()
+	const isHome = activeWorkspaceId === homeWorkspaceId
 
 	const results = useValue(
-		'recent user files',
+		'active workspace files',
 		() => {
-			const recentFiles = app.getMyFiles()
-			if (!recentFiles) return null
+			let files = app.getWorkspaceFilesSorted(activeWorkspaceId)
+
+			// Filter by the sidebar search query, if any. Reading the signal here keeps
+			// the list reactive to the query without threading it through props.
+			const query = app.sidebarState.get().searchQuery.trim().toLowerCase()
+			if (query) {
+				files = files.filter((item) => app.getFileName(item.fileId).toLowerCase().includes(query))
+			}
 
 			const { today, yesterday, thisWeek, thisMonth } = getRelevantDates()
 
 			const pinnedFiles: RecentFile[] = []
-
-			// split the files into today, yesterday, this week, this month, and then by month
 			const todayFiles: RecentFile[] = []
 			const yesterdayFiles: RecentFile[] = []
 			const thisWeekFiles: RecentFile[] = []
 			const thisMonthFiles: RecentFile[] = []
-
-			// todo: order by month
 			const olderFiles: RecentFile[] = []
 
-			for (const item of recentFiles) {
+			for (const item of files) {
 				const { date, isPinned } = item
-				if (isPinned) {
-					pinnedFiles.push(item)
-				} else if (date >= today) {
-					todayFiles.push(item)
-				} else if (date >= yesterday) {
-					yesterdayFiles.push(item)
-				} else if (date >= thisWeek) {
-					thisWeekFiles.push(item)
-				} else if (date >= thisMonth) {
-					thisMonthFiles.push(item)
-				} else {
-					olderFiles.push(item)
-				}
+				if (isPinned) pinnedFiles.push(item)
+				else if (date >= today) todayFiles.push(item)
+				else if (date >= yesterday) yesterdayFiles.push(item)
+				else if (date >= thisWeek) thisWeekFiles.push(item)
+				else if (date >= thisMonth) thisMonthFiles.push(item)
+				else olderFiles.push(item)
 			}
 
-			return {
-				pinnedFiles,
-				todayFiles,
-				yesterdayFiles,
-				thisWeekFiles,
-				thisMonthFiles,
-				olderFiles,
-			}
+			return { pinnedFiles, todayFiles, yesterdayFiles, thisWeekFiles, thisMonthFiles, olderFiles }
 		},
-		[app]
+		[app, activeWorkspaceId]
 	)
 
-	if (!results) throw Error('Could not get files')
+	const isSearching = useValue(
+		'is searching',
+		() => app.sidebarState.get().searchQuery.trim().length > 0,
+		[app]
+	)
+	const hasResults = Object.values(results).some((group) => group.length > 0)
+
+	const handleClearSearch = useCallback(() => {
+		app.sidebarState.update((prev) => ({ ...prev, searchQuery: '' }))
+	}, [app])
 
 	return (
-		<Fragment>
+		<div
+			data-drop-target-id={isHome ? homeWorkspaceId : `workspace:${activeWorkspaceId}`}
+			data-workspace-id={activeWorkspaceId}
+		>
 			{results.pinnedFiles.length ? (
 				<TlaSidebarFileSection
 					iconLeft="pin"
@@ -70,8 +81,8 @@ export function TlaSidebarRecentFiles() {
 				>
 					{results.pinnedFiles.map((item, i) => (
 						<TlaSidebarFileLink
-							groupId={app.getHomeGroupId()}
-							key={'file_link_pinned_' + item.fileId}
+							workspaceId={activeWorkspaceId}
+							key={'pinned_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-pinned-${i}`}
 						/>
@@ -82,8 +93,8 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="Today" />}>
 					{results.todayFiles.map((item, i) => (
 						<TlaSidebarFileLink
-							groupId={app.getHomeGroupId()}
-							key={'file_link_today_' + item.fileId}
+							workspaceId={activeWorkspaceId}
+							key={'today_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-today-${i}`}
 						/>
@@ -94,8 +105,8 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="Yesterday" />}>
 					{results.yesterdayFiles.map((item, i) => (
 						<TlaSidebarFileLink
-							groupId={app.getHomeGroupId()}
-							key={'file_link_yesterday_' + item.fileId}
+							workspaceId={activeWorkspaceId}
+							key={'yesterday_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-yesterday-${i}`}
 						/>
@@ -106,8 +117,8 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="This week" />}>
 					{results.thisWeekFiles.map((item, i) => (
 						<TlaSidebarFileLink
-							groupId={app.getHomeGroupId()}
-							key={'file_link_this-week_' + item.fileId}
+							workspaceId={activeWorkspaceId}
+							key={'this-week_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-this-week-${i}`}
 						/>
@@ -118,8 +129,8 @@ export function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="This month" />}>
 					{results.thisMonthFiles.map((item, i) => (
 						<TlaSidebarFileLink
-							groupId={app.getHomeGroupId()}
-							key={'file_link_this-month_' + item.fileId}
+							workspaceId={activeWorkspaceId}
+							key={'this-month_' + item.fileId}
 							item={item}
 							testId={`tla-file-link-this-month-${i}`}
 						/>
@@ -132,14 +143,41 @@ export function TlaSidebarRecentFiles() {
 						.sort((a, b) => b.date - a.date)
 						.map((item, i) => (
 							<TlaSidebarFileLink
-								groupId={app.getHomeGroupId()}
-								key={'file_link_older' + item.fileId}
+								workspaceId={activeWorkspaceId}
+								key={'older_' + item.fileId}
 								item={item}
 								testId={`tla-file-link-older-${i}`}
 							/>
 						))}
 				</TlaSidebarFileSection>
 			) : null}
-		</Fragment>
+			{isSearching && !hasResults ? (
+				<div className={styles.sidebarSearchEmpty} data-testid="tla-sidebar-search-empty">
+					<F defaultMessage="No files found" />
+				</div>
+			) : null}
+			{isSearching ? (
+				<>
+					{/* The same section wrapper as the workspace action rows, so the
+					    button gets the same full width and vertical rhythm. The gap
+					    above comes from the file sections' own bottom margin. */}
+					<div className={styles.sidebarSection}>
+						<button
+							className={classNames(
+								styles.sidebarActionButton,
+								styles.hoverable,
+								'tla-text_ui__regular'
+							)}
+							onClick={handleClearSearch}
+							data-testid="tla-sidebar-search-clear-button"
+						>
+							<span className={styles.sidebarActionButtonLabel}>
+								<F defaultMessage="Clear search" />
+							</span>
+						</button>
+					</div>
+				</>
+			) : null}
+		</div>
 	)
 }

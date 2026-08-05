@@ -13,6 +13,7 @@ import { cursorTypeValidator, TLCursor } from '../misc/TLCursor'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'
 import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
+import { TLUserId, userIdValidator } from './TLUser'
 
 /**
  * Represents the presence state of a user in a collaborative tldraw session.
@@ -39,7 +40,7 @@ import { TLShapeId } from './TLShape'
  * @public
  */
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
-	userId: string
+	userId: TLUserId
 	userName: string
 	lastActivityTimestamp: number | null
 	color: string // can be any hex color
@@ -49,7 +50,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	brush: BoxModel | null
 	scribbles: TLScribble[]
 	screenBounds: BoxModel | null
-	followingUserId: string | null
+	followingUserId: TLUserId | null
 	cursor: {
 		x: number
 		y: number
@@ -101,10 +102,10 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 	T.object({
 		typeName: T.literal('instance_presence'),
 		id: idValidator<TLInstancePresenceID>('instance_presence'),
-		userId: T.string,
+		userId: userIdValidator,
 		userName: T.string,
 		lastActivityTimestamp: T.number.nullable(),
-		followingUserId: T.string.nullable(),
+		followingUserId: userIdValidator.nullable(),
 		cursor: T.object({
 			x: T.number,
 			y: T.number,

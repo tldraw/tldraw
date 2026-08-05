@@ -6,7 +6,7 @@ import { useAtom } from './useAtom'
 import { useQuickReactor } from './useQuickReactor'
 
 describe('useQuickReactor', () => {
-	let mockEffectFn: ReturnType<typeof vi.fn>
+	let mockEffectFn: ReturnType<typeof vi.fn<(...args: any[]) => any>>
 	let _component: () => React.JSX.Element
 	let view: RenderResult
 

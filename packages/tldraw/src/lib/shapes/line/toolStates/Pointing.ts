@@ -12,6 +12,7 @@ import {
 	structuredClone,
 } from '@tldraw/editor'
 
+// Minimum distance, in screen pixels, between two shift-clicked handles before we merge them
 const MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES = 2
 
 export class Pointing extends StateNode {
@@ -51,9 +52,13 @@ export class Pointing extends StateNode {
 			const nextPoint = maybeSnapToGrid(nudgedPoint, this.editor)
 			const points = structuredClone(this.shape.props.points)
 
+			// compare in screen space
+			const minDistance =
+				MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES / this.editor.getZoomLevel()
+
 			if (
-				Vec.DistMin(endHandle, prevEndHandle, MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES) ||
-				Vec.DistMin(nextPoint, endHandle, MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES)
+				Vec.DistMin(endHandle, prevEndHandle, minDistance) ||
+				Vec.DistMin(nextPoint, endHandle, minDistance)
 			) {
 				// Don't add a new point if the distance between the last two points is too small
 				points[endHandle.id] = {
@@ -134,6 +139,11 @@ export class Pointing extends StateNode {
 
 	override onPointerUp() {
 		this.complete()
+	}
+
+	override onLongPress() {
+		// On a touch (coarse pointer) long-press, cancel the pending shape so it leaves nothing behind.
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
 	}
 
 	override onCancel() {

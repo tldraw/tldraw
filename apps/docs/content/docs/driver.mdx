@@ -43,7 +43,7 @@ Every input method returns `this`, so calls can be chained. Call `dispose` when 
 
 ## Simulating input
 
-Pointer, keyboard, wheel, and pinch events all flow through `editor.dispatch`, so they go through the editor's normal tool state machines—a `pointerDown` → `pointerMove`... → `pointerUp` sequence against the draw tool produces real draw shapes, not an image overlay:
+Pointer, keyboard, wheel, and pinch events all flow through `editor.dispatch`, so they go through the editor's normal tool state machines. A `pointerDown` → `pointerMove` → `pointerUp` sequence with the draw tool active creates real draw shapes:
 
 ```ts
 editor.setCurrentTool('draw')
@@ -84,7 +84,7 @@ driver.paste({ x: 400, y: 400 })
 
 ## Queries
 
-The driver tracks shapes it has caused to be created via `editor.sideEffects`, making it easy to grab the most recent result of a scripted action:
+The driver uses `editor.sideEffects` to track the shapes it creates, so you can grab the most recent result of a scripted action:
 
 ```ts
 const shape = driver.getLastCreatedShape()

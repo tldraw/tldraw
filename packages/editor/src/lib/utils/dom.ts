@@ -100,6 +100,40 @@ export function setStyleProperty(
 	elm.style.setProperty(property, String(value))
 }
 
+/**
+ * Move an element into a new parent, preserving its state where the platform allows it.
+ *
+ * Uses `Node.moveBefore` (Chromium 133+, Firefox 144+) when both the element and parent are
+ * connected to the same document — this moves the element without resetting its state, so
+ * iframes don't reload and media keeps playing. Otherwise (older browsers, disconnected nodes,
+ * or a cross-document move) it falls back to `appendChild`, which moves the element but resets
+ * its state like an iframe reload.
+ *
+ * This is the primitive tldraw uses to adopt `ShapeUtil.getAppOwnedElement` elements, exposed so
+ * apps can perform symmetric state-preserving moves from `ShapeUtil.onReleaseAppOwnedElement` —
+ * for example moving an element to an off-canvas parking lot between editor sessions.
+ *
+ * @param parent - The element to move `element` into, as its last child.
+ * @param element - The element to move.
+ * @public
+ */
+export function moveElementInto(parent: HTMLElement, element: HTMLElement) {
+	if (
+		element.isConnected &&
+		parent.isConnected &&
+		typeof (parent as any).moveBefore === 'function' &&
+		element.ownerDocument === parent.ownerDocument
+	) {
+		try {
+			;(parent as any).moveBefore(element, null)
+			return
+		} catch {
+			// fall through to appendChild
+		}
+	}
+	parent.appendChild(element)
+}
+
 /** @internal */
 export function elementShouldCaptureKeys(el: Element | null, includeButtonsAndMenus = true) {
 	if (!el) return false

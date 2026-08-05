@@ -196,14 +196,16 @@ new CubicSpline2d({
 
 ### Point2d
 
-A single point. Requires both `point` and `margin` parameters—the margin determines how close a click must be to register as a hit.
+A single point. The constructor requires both `point` and `margin` parameters.
 
 ```typescript
 new Point2d({
 	point: new Vec(50, 50),
-	margin: 10, // clicks within 10 units count as hits
+	margin: 10,
 })
 ```
+
+The `margin` option doesn't expand the hit area: hit-test margins are supplied by the editor at query time, like every other geometry.
 
 ### Group2d
 

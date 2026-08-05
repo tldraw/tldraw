@@ -2,6 +2,7 @@ import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
+import { getJoinableWorkspaceFromInvite } from '../../utils/tla/getJoinableWorkspaceFromInvite'
 
 export async function getInviteInfo(request: IRequest, env: Environment): Promise<Response> {
 	const { token } = request.params
@@ -12,13 +13,9 @@ export async function getInviteInfo(request: IRequest, env: Environment): Promis
 	const db = createPostgresConnectionPool(env, 'getInviteInfo')
 
 	try {
-		const group = await db
-			.selectFrom('group')
-			.select(['id', 'name', 'isDeleted'])
-			.where('inviteSecret', '=', token)
-			.executeTakeFirst()
+		const workspace = await getJoinableWorkspaceFromInvite(db, token)
 
-		if (!group || group.isDeleted) {
+		if (!workspace) {
 			return Response.json(
 				{
 					error: true,
@@ -30,8 +27,8 @@ export async function getInviteInfo(request: IRequest, env: Environment): Promis
 
 		return Response.json({
 			error: false,
-			groupId: group.id,
-			groupName: group.name,
+			workspaceId: workspace.id,
+			workspaceName: workspace.name,
 			isValid: true,
 			inviteSecret: token,
 		} satisfies GetInviteInfoResponseBody)

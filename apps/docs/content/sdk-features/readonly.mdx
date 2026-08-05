@@ -64,13 +64,15 @@ When readonly is enabled, the editor prevents all document mutations.
 | Assets     | `createAssets`, `updateAssets`, `deleteAssets`                                                 |
 | Transforms | `flipShapes`, `packShapes`, `alignShapes`, `distributeShapes`, `rotateShapesBy`, `resizeShape` |
 | Styles     | `setStyleForSelectedShapes`, `setOpacityForSelectedShapes`, `setOpacityForNextShapes`          |
-| Clipboard  | `cut`, `paste` (for external content)                                                          |
+| Clipboard  | `putExternalContent`, `replaceExternalContent`, plus the `cut` and `paste` UI actions          |
 
 The toolbar automatically hides editing tools. Only the select tool, hand tool, and laser pointer remain visible. UI actions like undo and redo are also disabled in readonly mode.
 
 ## What readonly mode allows
 
-Navigation and viewing operations work normally. You can pan, zoom, and use camera methods like `zoomIn`, `zoomOut`, `zoomToFit`, and `zoomToSelection`. Selection works too: clicking shapes, brush selection, `selectAll`, and `selectNone` all function as expected. You can hover over shapes to inspect them, switch between pages, and export the document using the `exportAs` or `copyAs` helper functions since exporting doesn't modify the document.
+Navigation and viewing operations work normally. You can pan, zoom, and use camera methods like `zoomIn`, `zoomOut`, `zoomToFit`, and `zoomToSelection`. Selection works too: clicking shapes, brush selection, `selectAll`, and `selectNone` all function as expected.
+
+You can also hover over shapes to inspect them and switch between pages. Exporting with the `exportAs` or `copyAs` helper functions works because exporting doesn't modify the document.
 
 ## Using the useReadonly hook
 
@@ -123,7 +125,7 @@ ShapeUtils can override `canEditInReadonly` to allow editing interactions on the
 
 ```typescript
 class InteractiveWidgetUtil extends ShapeUtil<InteractiveWidget> {
-	canEditInReadonly(shape: InteractiveWidget): boolean {
+	override canEditInReadonly(shape: InteractiveWidget): boolean {
 		return true
 	}
 }

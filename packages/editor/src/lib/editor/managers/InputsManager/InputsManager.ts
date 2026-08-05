@@ -1,18 +1,28 @@
 import { atom, computed, unsafe__withoutCapture } from '@tldraw/state'
 import { AtomSet } from '@tldraw/store'
 import { TLINSTANCE_ID, TLPOINTER_ID } from '@tldraw/tlschema'
+import { bind } from '@tldraw/utils'
 import { INTERNAL_POINTER_IDS } from '../../../constants'
 import { Vec } from '../../../primitives/Vec'
 import { isAccelKey } from '../../../utils/keyboard'
 import type { Editor } from '../../Editor'
 import { TLPinchEventInfo, TLPointerEventInfo, TLWheelEventInfo } from '../../types/event-types'
+import { EditorManager } from '../EditorManager'
 
 const POINTER_VELOCITY_REFERENCE_INTERVAL_MS = 16
 const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
 
 /** @public */
-export class InputsManager {
-	constructor(private readonly editor: Editor) {}
+export class InputsManager extends EditorManager {
+	constructor(editor: Editor) {
+		super(editor)
+		this.addEditorEvent('frame', this._onFrame)
+	}
+
+	@bind
+	private _onFrame(elapsed: number) {
+		this.updatePointerVelocity(elapsed)
+	}
 
 	private _originPagePoint = atom<Vec>('originPagePoint', new Vec())
 	/**
@@ -120,8 +130,7 @@ export class InputsManager {
 	}
 
 	/**
-	 * Normally you shouldn't need to set the pointer velocity directly, this is set by the tick manager.
-	 * However, this is currently used in tests to fake pointer velocity.
+	 * Normally you shouldn't need to set the pointer velocity directly. Used in tests to fake pointer velocity.
 	 * @param pointerVelocity - The pointer velocity.
 	 * @internal
 	 */

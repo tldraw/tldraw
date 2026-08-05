@@ -1,4 +1,5 @@
 import { atom } from '@tldraw/state'
+import { createUserId } from '@tldraw/tlschema'
 import { Mocked, vi } from 'vitest'
 import { TLCurrentUser } from '../../../config/createTLCurrentUser'
 import { TLUserPreferences, defaultUserPreferences } from '../../../config/TLUserPreferences'
@@ -296,8 +297,17 @@ describe('UserPreferencesManager', () => {
 			userPreferencesManager = new UserPreferencesManager(mockUser, 'light')
 		})
 
-		describe('getId', () => {
-			it('should return user id', () => {
+		describe('getExternalId / getRecordId', () => {
+			it('should return the raw external user id', () => {
+				expect(userPreferencesManager.getExternalId()).toBe(mockUserPreferences.id)
+			})
+
+			it('should return the prefixed record id', () => {
+				expect(userPreferencesManager.getRecordId()).toBe(createUserId(mockUserPreferences.id))
+			})
+
+			it('getId() still returns the external id', () => {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
 				expect(userPreferencesManager.getId()).toBe(mockUserPreferences.id)
 			})
 		})

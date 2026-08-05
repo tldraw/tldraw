@@ -64,13 +64,13 @@ describe('ShapeHandleOverlayUtil', () => {
 			editor.pointerUp()
 		})
 
-		it('returns true in select.pointing_shape with a handle shape selected', () => {
+		it('returns false in select.pointing_shape with a handle shape selected', () => {
 			editor.createShapes([{ id: ids.line1, type: 'line', x: 120, y: 120 }])
 			const shape = editor.getShape(ids.line1)!
 			editor.pointerDown(shape.x + 1, shape.y + 1, { target: 'shape', shape })
 			editor.expectToBeIn('select.pointing_shape')
 			const util = editor.overlays.getOverlayUtil<ShapeHandleOverlayUtil>('shape_handle')
-			expect(util.isActive()).toBe(true)
+			expect(util.isActive()).toBe(false)
 			editor.pointerUp()
 		})
 

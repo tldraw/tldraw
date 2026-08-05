@@ -2,7 +2,7 @@
 
 This document defines the rules and conventions for tldraw SDK release notes articles in `apps/docs/content/releases/`.
 
-**Prerequisite**: Read the [writing guide](./writing-guide.md) first. This document builds on those foundations with release-notes-specific patterns.
+**Prerequisite**: Read the [voice and style guide](../../VOICE.md) first. This document builds on those foundations with release-notes-specific patterns.
 
 ## Editorial guidance
 
@@ -65,7 +65,7 @@ When a PR is reverted, also remove the original PR's entry from `next.mdx` if it
 
 ## Team members (do not credit)
 
-angrycaptain19, AniKrisn, ds300, kaneel, kostyafarber, max-dra, mimecuvalo, MitjaBezensek, profdl, Siobhantldraw, steveruizok, tldrawdaniel, danieljamesross, jsscclr, frolic, huppy-bot, github-actions, Somehats, todepond, Taha-Hassan-Git, alex-mckenna-1, max-drake
+angrycaptain19, AniKrisn, ds300, kaneel, kostyafarber, max-dra, mimecuvalo, MitjaBezensek, profdl, Siobhantldraw, steveruizok, tldrawdaniel, danieljamesross, jsscclr, frolic, huppy-bot, github-actions, Somehats, todepond, Taha-Hassan-Git, alex-mckenna-1, max-drake, m31-galaxy
 
 Credit community contributors with:
 

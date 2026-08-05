@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { uniqueId } from 'tldraw'
 import { Example } from './examples'
@@ -48,20 +48,26 @@ function storeRoomId(exampleSlug: string, slug: string) {
 
 function useConfirmState() {
 	const [confirm, setConfirm] = useState(false)
-	const [confirmTimeout, setConfirmTimeout] = useState<number | null>(null)
+	const confirmTimeout = useRef<number | null>(null)
 
 	const confirmFn = useCallback(() => {
+		if (confirmTimeout.current) {
+			clearTimeout(confirmTimeout.current)
+		}
 		setConfirm(true)
-		setConfirmTimeout(window.setTimeout(() => setConfirm(false), 3000))
+		confirmTimeout.current = window.setTimeout(() => {
+			setConfirm(false)
+			confirmTimeout.current = null
+		}, 3000)
 	}, [])
 
 	useEffect(() => {
 		return () => {
-			if (confirmTimeout) {
-				clearTimeout(confirmTimeout)
+			if (confirmTimeout.current) {
+				clearTimeout(confirmTimeout.current)
 			}
 		}
-	}, [confirmTimeout])
+	}, [])
 
 	return [confirm, confirmFn] as const
 }
@@ -76,16 +82,19 @@ function MultiplayerExampleWrapper({
 	const [params, setParams] = useSearchParams()
 	const [confirm, confirmFn] = useConfirmState()
 	const exampleSlug = example.path.replace(/^\/?/g, '')
-	let roomId = params.get('roomId')
+	const roomIdParam = params.get('roomId')
+	let roomId = roomIdParam
 	if (!roomId || typeof roomId !== 'string' || encodeURIComponent(roomId) !== roomId) {
 		roomId = getRoomId(exampleSlug)
 	}
 
 	useEffect(() => {
-		if (roomId === params.get('roomId')) return
+		if (roomId === roomIdParam) return
 		storeRoomId(exampleSlug, roomId)
-		setParams({ ...params, roomId }, { replace: true })
-	}, [exampleSlug, roomId, setParams, params])
+		const nextParams = new URLSearchParams(params)
+		nextParams.set('roomId', roomId)
+		setParams(nextParams, { replace: true })
+	}, [exampleSlug, roomId, roomIdParam, setParams, params])
 
 	return (
 		<div className="MultiplayerExampleWrapper">

@@ -173,6 +173,7 @@ export function StylePanelFillPicker() {
 					items={STYLES.fillExtra}
 					value={fill}
 					sideOffset={116}
+					isOverflow
 				/>
 			</TldrawUiToolbar>
 		</>

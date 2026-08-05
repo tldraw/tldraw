@@ -30,6 +30,7 @@ import {
 	getFontsFromRichText,
 	isEqual,
 	lerp,
+	resolveLineHeightPx,
 	toRichText,
 	useColorMode,
 	useValue,
@@ -49,6 +50,7 @@ import {
 import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
 import { getThemeFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import { getFlipForResize } from '../shared/flip'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
@@ -238,6 +240,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			growY: 0,
 			url: '',
 			scale: 1,
+			flipX: false,
+			flipY: false,
 
 			// Text properties
 			color: 'black',
@@ -271,7 +275,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		// Calculate minimum label dimensions based on font size and shape size
 		const unscaledMinWidth = Math.min(100, unscaledShapeW / 2)
 		const unscaledMinHeight = Math.min(
-			dv.labelFontSize * dv.labelLineHeight + dv.labelPadding * 2,
+			resolveLineHeightPx(dv.labelFontSize, dv.labelLineHeight) + dv.labelPadding * 2,
 			unscaledShapeH / 2
 		)
 
@@ -587,6 +591,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				w: Math.max(Math.abs(scaledW), 1),
 				h: Math.max(Math.abs(scaledH), 1),
 				growY: 0,
+				...getFlipForResize(initialShape.props, { scaleX, scaleY }),
 			},
 		}
 	}

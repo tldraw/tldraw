@@ -49,7 +49,7 @@ export default function App() {
 }
 ```
 
-The `@tldraw/tldraw` package includes about 80 default actions covering editing, arrangement, export, zoom, and preferences. You can override any of these or add your own through the `overrides` prop.
+The `tldraw` package includes nearly 100 default actions covering editing, arrangement, export, zoom, and preferences. You can override any of these or add your own through the `overrides` prop.
 
 ## How actions work
 
@@ -131,7 +131,7 @@ The default actions cover most editing operations you'd expect in a canvas appli
 
 **Preferences**: `toggle-dark-mode`, `toggle-snap-mode`, `toggle-grid`, `toggle-focus-mode`
 
-Each action includes appropriate guards. For example, `group` checks that multiple shapes are selected before enabling, and arrangement actions verify that shapes can be reordered.
+Most actions guard themselves inside their handlers. For example, `group` and the arrangement actions do nothing unless shapes are selected and the select tool is active.
 
 ## Overriding actions
 

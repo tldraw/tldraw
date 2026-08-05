@@ -38,7 +38,9 @@ export class ShapeHandleOverlayUtil extends OverlayUtil<TLShapeHandleOverlay> {
 		const handles = editor.getShapeHandles(onlySelectedShape)
 		if (!handles) return false
 
-		if (editor.isInAny('select.idle', 'select.pointing_handle', 'select.pointing_shape')) {
+		// Not shown in select.pointing_shape: hiding handles on pointer down
+		// matches the arrow binding hint, which also waits for pointer up.
+		if (editor.isInAny('select.idle', 'select.pointing_handle')) {
 			return true
 		}
 

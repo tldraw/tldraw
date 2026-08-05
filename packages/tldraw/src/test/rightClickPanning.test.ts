@@ -1,3 +1,4 @@
+import { Vec } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 describe('with rightClickPanning enabled (default)', () => {
@@ -15,6 +16,16 @@ describe('with rightClickPanning enabled (default)', () => {
 		editor.expectCameraToBe(100, 100, 1)
 		editor.pointerUp(200, 200, { button: 2 })
 		expect(editor.inputs.getIsPanning()).toBe(false)
+	})
+
+	it('does not zoom when momentum panning on release', () => {
+		editor.pointerDown(100, 100, { button: 2 })
+		editor.pointerMove(200, 200)
+		expect(editor.inputs.getIsPanning()).toBe(true)
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
+		editor.pointerUp(200, 200, { button: 2 }).forceTick()
+
+		expect(editor.getCamera().z).toBe(1)
 	})
 
 	it('does not pan on a static right-click', () => {

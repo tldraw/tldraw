@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"lib": ["DOM", "DOM.Iterable", "ESNext"],
+		"target": "esnext",
 		"allowJs": true,
 		"skipLibCheck": true,
 		"strict": true,
@@ -13,7 +14,6 @@
 		"isolatedModules": true,
 		"jsx": "preserve",
 		"incremental": true,
-		"downlevelIteration": true,
 		"plugins": [{ "name": "next" }]
 	},
 	"include": ["**/*.ts", "**/*.tsx"],

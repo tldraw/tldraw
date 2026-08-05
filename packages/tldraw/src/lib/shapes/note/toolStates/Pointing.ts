@@ -27,33 +27,57 @@ export class Pointing extends StateNode {
 
 	shape = {} as TLNoteShape
 
+	private shapeId!: TLShapeId
+
+	private shapeCenter = new Vec()
+
+	private hasCreatedShape = false
+
 	override onEnter() {
 		const { editor } = this
 
-		const id = createShapeId()
-		this.markId = editor.markHistoryStoppingPoint(`creating_note:${id}`)
+		this.hasCreatedShape = false
+		this.shapeId = createShapeId()
+		this.markId = editor.markHistoryStoppingPoint(`creating_note:${this.shapeId}`)
 
 		// Resolve note dimensions from the util's defaults
 		const noteUtil = editor.getShapeUtil('note') as NoteShapeUtil
 		const dv = getDisplayValues(noteUtil, { props: noteUtil.getDefaultProps() } as TLNoteShape)
 
 		// Check for note pits; if the pointer is close to one, place the note centered on the pit
-		const center = this.editor.inputs.getOriginPagePoint().clone()
+		const center = editor.inputs.getOriginPagePoint().clone()
 		const offset = getNoteShapeAdjacentPositionOffset(
-			this.editor,
+			editor,
 			center,
-			this.editor.getResizeScaleFactor(),
+			editor.getResizeScaleFactor(),
 			dv.noteWidth,
 			dv.noteHeight
 		)
 		if (offset) {
 			center.sub(offset)
 		}
+		this.shapeCenter = center
 
-		// Allow this to trigger the max shapes reached alert
-		const shape = createNoteShape(this.editor, id, center)
+		// On a coarse pointer, defer creating the note until the gesture commits (a
+		// drag or a release). The note is created on press, and a long-press cancels
+		// the pending creation, so without deferral the note appears on press and
+		// vanishes at the long-press mark — a visible flash. On a fine pointer there
+		// is no long-press cancel, so create immediately to keep the press-and-drag feel.
+		if (!editor.getInstanceState().isCoarsePointer) {
+			this.ensureShapeCreated()
+		}
+	}
+
+	// Create the note now if it hasn't been created yet (idempotent). The deferred
+	// drag and release paths route through here; a max-shapes failure cancels the
+	// gesture, matching the original onEnter behaviour.
+	private ensureShapeCreated() {
+		if (this.hasCreatedShape) return
+
+		const shape = createNoteShape(this.editor, this.shapeId, this.shapeCenter)
 		if (shape) {
 			this.shape = shape
+			this.hasCreatedShape = true
 		} else {
 			this.cancel()
 		}
@@ -61,6 +85,8 @@ export class Pointing extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.getIsDragging()) {
+			this.ensureShapeCreated()
+			if (!this.hasCreatedShape) return
 			this.editor.setCurrentTool('select.translating', {
 				...info,
 				target: 'shape',
@@ -79,6 +105,11 @@ export class Pointing extends StateNode {
 		this.complete()
 	}
 
+	override onLongPress() {
+		// On a touch (coarse pointer) long-press, cancel the pending shape so it leaves nothing behind.
+		if (this.editor.getInstanceState().isCoarsePointer) this.cancel()
+	}
+
 	override onInterrupt() {
 		this.cancel()
 	}
@@ -92,6 +123,8 @@ export class Pointing extends StateNode {
 	}
 
 	private complete() {
+		this.ensureShapeCreated()
+		if (!this.hasCreatedShape) return
 		if (this.editor.getInstanceState().isToolLocked) {
 			this.parent.transition('idle')
 		} else {

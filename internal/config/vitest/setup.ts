@@ -11,6 +11,41 @@ if (typeof window !== 'undefined') {
 	await import('vitest-canvas-mock')
 }
 
+// Web storage polyfill. vitest 4's jsdom environment no longer exposes
+// `localStorage`/`sessionStorage`, so provide a minimal in-memory implementation
+// for code that touches web storage (e.g. LocalIndexedDb's db-name registry).
+if (typeof window !== 'undefined' && typeof window.localStorage === 'undefined') {
+	class MemoryStorage implements Storage {
+		private store = new Map<string, string>()
+		// eslint-disable-next-line tldraw/no-setter-getter
+		get length() {
+			return this.store.size
+		}
+		clear() {
+			this.store.clear()
+		}
+		getItem(key: string) {
+			return this.store.has(key) ? this.store.get(key)! : null
+		}
+		key(index: number) {
+			return Array.from(this.store.keys())[index] ?? null
+		}
+		removeItem(key: string) {
+			this.store.delete(key)
+		}
+		setItem(key: string, value: string) {
+			this.store.set(key, String(value))
+		}
+	}
+	for (const name of ['localStorage', 'sessionStorage'] as const) {
+		const storage = new MemoryStorage()
+		// writable so tests can reassign global.localStorage to their own mocks
+		const descriptor = { value: storage, configurable: true, writable: true }
+		Object.defineProperty(window, name, descriptor)
+		Object.defineProperty(globalThis, name, descriptor)
+	}
+}
+
 // Crypto fallback for environments without a native WebCrypto implementation (e.g. the ai package).
 // jsdom provides window.crypto with subtle crypto, so this only kicks in elsewhere.
 if (typeof globalThis.crypto === 'undefined') {
@@ -94,7 +129,6 @@ expect.extend({
 
 		const EXPECTED_LABEL = 'Expected'
 		const RECEIVED_LABEL = 'Received'
-		const isExpand = (expand?: boolean): boolean => expand !== false
 
 		const newActualObj = convertNumbersInObject(actual, roundToNearest)
 
@@ -118,7 +152,7 @@ expect.extend({
 						getObjectSubset(actual, expected),
 						EXPECTED_LABEL,
 						RECEIVED_LABEL,
-						isExpand(this.expand)
+						true
 					)
 
 		return { message, pass }

@@ -40,14 +40,14 @@ This produces the `.tsbuild/` output that `yarn extract-api` reads from. The `bu
 
 Run all commands from `apps/mcp-app`.
 
-| Command           | What it does                                                                                       |
-| ----------------- | -------------------------------------------------------------------------------------------------- |
-| `yarn build`      | Build the widget HTML                                                                              |
-| `yarn dev`        | Build widget + start local Cloudflare worker (HTTP MCP on `localhost:8787`)                        |
-| `yarn dev:tunnel` | Build widget + start a Cloudflare tunnel + local worker with `WORKER_ORIGIN` set to the tunnel URL |
-| `yarn deploy`     | Build widget + deploy the Cloudflare worker to production                                          |
+| Command           | What it does                                                                                                    |
+| ----------------- | --------------------------------------------------------------------------------------------------------------- |
+| `yarn build`      | Build the widget HTML                                                                                           |
+| `yarn dev`        | Build widget + start local Cloudflare worker (HTTP MCP on `localhost:8787`)                                     |
+| `yarn dev:tunnel` | Build widget + start a stable named Cloudflare tunnel + local worker with `WORKER_ORIGIN` set to the tunnel URL |
+| `yarn deploy`     | Build widget + deploy the Cloudflare worker to production                                                       |
 
-`yarn dev:tunnel` requires the `cloudflared` CLI to be installed on your machine.
+`yarn dev:tunnel` requires the `cloudflared` CLI to be installed on your machine and a one-time `cloudflared tunnel login`. It serves a stable per-user hostname (`<user>-mcp-app-dev.tldraw.xyz`) via a named tunnel, so the URL you register in hosted MCP clients stays the same across runs instead of changing every time. The user slug defaults to `whoami`; override it (or the zone/port) with `MCP_TUNNEL_USER`, `MCP_TUNNEL_ZONE`, and `PORT`. The zone must be a Cloudflare-hosted zone (`tldraw.xyz` is; `tldraw.dev`/`tldraw.com` are on Vercel and won't work).
 
 The worker defaults to production-safe behavior in `wrangler.toml`, including setting `MCP_IS_DEV="false"`. Local HTTP dev scripts override that with `MCP_IS_DEV=true` so local Claude/ChatGPT connectors suppress `ui.domain` while production deployments keep it enabled.
 
@@ -104,12 +104,20 @@ If you need Notion access in Claude Desktop, use the Notion MCP connector for th
 
 ChatGPT requires an HTTPS origin, so you need a Cloudflare tunnel. You must be an admin of your OpenAI org/workspace to do local dev.
 
+First-time setup (once per machine):
+
+1. Run `cloudflared tunnel login` and choose the `tldraw.xyz` zone
+
+Then, each session:
+
 1. Run `yarn dev:tunnel` in `apps/mcp-app`
-2. It prints a `https://...trycloudflare.com` tunnel URL
-3. In ChatGPT web (not the desktop app), go to **Apps** and add your app using that tunnel URL
+2. It serves your stable hostname, e.g. `https://<user>-mcp-app-dev.tldraw.xyz` (the first run also creates the named tunnel and its DNS route)
+3. In ChatGPT web (not the desktop app), go to **Apps** and add your app using that URL
 4. You can then test in both ChatGPT web and the desktop or mobile apps
 
-`dev:tunnel` automatically wires `WORKER_ORIGIN` to the tunnel URL and sets `MCP_IS_DEV=true` for the local worker.
+Because the hostname is stable per user, you only add the app in ChatGPT once — subsequent `yarn dev:tunnel` runs reuse the same URL.
+
+`dev:tunnel` automatically wires `WORKER_ORIGIN` to the stable tunnel URL and sets `MCP_IS_DEV=true` for the local worker.
 
 ### Iteration loop
 

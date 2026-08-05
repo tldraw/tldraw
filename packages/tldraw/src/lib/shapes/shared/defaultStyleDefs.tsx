@@ -74,7 +74,10 @@ const generateImage = (dpr: number, currentZoom: number, solid: string) => {
 		canvasEl.height = size
 
 		const ctx = canvasEl.getContext('2d')
-		if (!ctx) return
+		if (!ctx) {
+			reject()
+			return
+		}
 
 		ctx.fillStyle = solid
 		ctx.fillRect(0, 0, size, size)
@@ -107,6 +110,25 @@ const generateImage = (dpr: number, currentZoom: number, solid: string) => {
 			}
 		})
 	})
+}
+
+// Generating the pattern images is expensive (canvas draw + encode), but the result only depends
+// on the device pixel ratio, zoom level, and solid color. Cache the blobs at the module level so
+// the work is done once and reused across editor mounts and instances. Object URLs are still
+// created and revoked per-instance; only the underlying blobs are shared.
+const patternImageBlobCache = new Map<string, Promise<Blob>>()
+
+function getPatternImageBlob(dpr: number, zoom: number, solid: string): Promise<Blob> {
+	const key = `${dpr}_${zoom}_${solid}`
+	let blob = patternImageBlobCache.get(key)
+	if (!blob) {
+		blob = generateImage(dpr, zoom, solid)
+		// Don't keep a rejected promise around (e.g. the throwToBlob debug flag), so a later call
+		// can retry once the failure condition is gone.
+		blob.catch(() => patternImageBlobCache.delete(key))
+		patternImageBlobCache.set(key, blob)
+	}
+	return blob
 }
 
 const canvasBlob = (size: [number, number], fn: (ctx: CanvasRenderingContext2D) => void) => {
@@ -208,12 +230,12 @@ function usePattern() {
 
 		const promise = Promise.all(
 			getPatternLodsToGenerate(maxEffectiveZoom).flatMap<Promise<PatternDef>>((zoom) => [
-				generateImage(dpr, zoom, lightSolid).then((blob) => ({
+				getPatternImageBlob(dpr, zoom, lightSolid).then((blob) => ({
 					zoom,
 					theme: 'light',
 					url: URL.createObjectURL(blob),
 				})),
-				generateImage(dpr, zoom, darkSolid).then((blob) => ({
+				getPatternImageBlob(dpr, zoom, darkSolid).then((blob) => ({
 					zoom,
 					theme: 'dark',
 					url: URL.createObjectURL(blob),

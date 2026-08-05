@@ -110,7 +110,7 @@ The `snapType` options are:
 
 ### Angle snapping
 
-When the user holds Shift while dragging, handles snap to 15-degree angles. By default, this is relative to the shape's position. You can snap relative to another handle by setting `snapReferenceHandleId`:
+When the user holds Shift while dragging, handles snap to 15-degree angles. By default, the angle is measured relative to an adjacent vertex handle on the shape. You can snap relative to a specific handle by setting `snapReferenceHandleId`:
 
 ```tsx
 {

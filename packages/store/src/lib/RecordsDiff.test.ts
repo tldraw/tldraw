@@ -9,136 +9,142 @@ import {
 	squashRecordDiffsMutable,
 } from './RecordsDiff'
 
-// Test interface for testing
-interface TestBook extends BaseRecord<'book', RecordId<TestBook>> {
+// Tests for SPEC.md §4 (RecordsDiff).
+// Rule IDs like [D3] in test names refer to that document.
+
+interface Book extends BaseRecord<'book', RecordId<Book>> {
 	title: string
-	author: string
-	pages: number
 }
 
-// Helper functions to create test records
-function createBook(id: string, title: string, author: string, pages: number = 100): TestBook {
-	return {
-		id: id as RecordId<TestBook>,
-		typeName: 'book',
-		title,
-		author,
-		pages,
-	}
+function book(id: string, title: string): Book {
+	return { id: id as RecordId<Book>, typeName: 'book', title }
 }
 
-// Helper to create a diff
-function createDiff<R extends TestBook>(
-	added: Record<string, R> = {},
-	updated: Record<string, [R, R]> = {},
-	removed: Record<string, R> = {}
-): RecordsDiff<R> {
-	return {
-		added: added as any,
-		updated: updated as any,
-		removed: removed as any,
-	}
+function diff(
+	added: Record<string, Book> = {},
+	updated: Record<string, [Book, Book]> = {},
+	removed: Record<string, Book> = {}
+): RecordsDiff<Book> {
+	return { added, updated, removed } as RecordsDiff<Book>
 }
 
-describe('isRecordsDiffEmpty', () => {
-	it('should return true for empty diffs and false for non-empty diffs', () => {
-		const emptyDiff = createEmptyRecordsDiff<TestBook>()
-		expect(isRecordsDiffEmpty(emptyDiff)).toBe(true)
+describe('empty diffs (D)', () => {
+	it('[D1] createEmptyRecordsDiff returns a diff with empty collections', () => {
+		expect(createEmptyRecordsDiff()).toEqual({ added: {}, updated: {}, removed: {} })
+	})
 
-		const addedDiff = createDiff<TestBook>({ 'book:1': createBook('book:1', 'Test', 'Author') })
-		expect(isRecordsDiffEmpty(addedDiff)).toBe(false)
+	it('[D1] isRecordsDiffEmpty is true exactly when all three collections are empty', () => {
+		expect(isRecordsDiffEmpty(createEmptyRecordsDiff())).toBe(true)
 
-		const oldBook = createBook('book:1', 'Old Title', 'Author')
-		const newBook = createBook('book:1', 'New Title', 'Author')
-		const updatedDiff = createDiff<TestBook>({}, { 'book:1': [oldBook, newBook] })
-		expect(isRecordsDiffEmpty(updatedDiff)).toBe(false)
-
-		const removedDiff = createDiff<TestBook>(
-			{},
-			{},
-			{ 'book:1': createBook('book:1', 'Deleted', 'Author') }
-		)
-		expect(isRecordsDiffEmpty(removedDiff)).toBe(false)
+		expect(isRecordsDiffEmpty(diff({ 'book:1': book('book:1', 'a') }))).toBe(false)
+		expect(
+			isRecordsDiffEmpty(diff({}, { 'book:1': [book('book:1', 'a'), book('book:1', 'b')] }))
+		).toBe(false)
+		expect(isRecordsDiffEmpty(diff({}, {}, { 'book:1': book('book:1', 'a') }))).toBe(false)
 	})
 })
 
-describe('reverseRecordsDiff', () => {
-	it('should reverse all operation types correctly', () => {
-		const addedBook = createBook('book:1', 'Added Book', 'Author')
-		const oldUpdatedBook = createBook('book:2', 'Old Title', 'Author')
-		const newUpdatedBook = createBook('book:2', 'New Title', 'Author')
-		const removedBook = createBook('book:3', 'Removed Book', 'Author')
+describe('reversing diffs (D)', () => {
+	it('[D2] swaps added and removed and reverses updated pairs', () => {
+		const added = book('book:1', 'Added')
+		const from = book('book:2', 'Old')
+		const to = book('book:2', 'New')
+		const removed = book('book:3', 'Removed')
 
-		const originalDiff = createDiff<TestBook>(
-			{ 'book:1': addedBook },
-			{ 'book:2': [oldUpdatedBook, newUpdatedBook] },
-			{ 'book:3': removedBook }
+		const reversed = reverseRecordsDiff(
+			diff({ 'book:1': added }, { 'book:2': [from, to] }, { 'book:3': removed })
 		)
 
-		const reversedDiff = reverseRecordsDiff(originalDiff)
-
-		// Added becomes removed
-		expect(reversedDiff.removed['book:1']).toEqual(addedBook)
-		// Removed becomes added
-		expect(reversedDiff.added['book:3']).toEqual(removedBook)
-		// Updated swaps from/to
-		expect(reversedDiff.updated['book:2']).toEqual([newUpdatedBook, oldUpdatedBook])
+		expect(reversed).toEqual(
+			diff({ 'book:3': removed }, { 'book:2': [to, from] }, { 'book:1': added })
+		)
 	})
 })
 
-describe('squashRecordDiffs', () => {
-	it('should handle core diff squashing operations', () => {
-		// Add then update becomes single add with final state
-		const initialBook = createBook('book:1', 'Initial Title', 'Author')
-		const updatedBook = createBook('book:1', 'Updated Title', 'Author')
-
-		const diff1 = createDiff<TestBook>({ 'book:1': initialBook })
-		const diff2 = createDiff<TestBook>({}, { 'book:1': [initialBook, updatedBook] })
-		const result1 = squashRecordDiffs([diff1, diff2])
-		expect(result1).toEqual(createDiff<TestBook>({ 'book:1': updatedBook }))
-
-		// Add then remove cancels out
-		const book = createBook('book:1', 'Test Book', 'Author')
-		const diff3 = createDiff<TestBook>({ 'book:1': book })
-		const diff4 = createDiff<TestBook>({}, {}, { 'book:1': book })
-		const result2 = squashRecordDiffs([diff3, diff4])
-		expect(result2).toEqual(createEmptyRecordsDiff<TestBook>())
-
-		// Remove then add becomes update
-		const originalBook = createBook('book:1', 'Original', 'Author')
-		const newBook = createBook('book:1', 'New', 'Author')
-		const diff5 = createDiff<TestBook>({}, {}, { 'book:1': originalBook })
-		const diff6 = createDiff<TestBook>({ 'book:1': newBook })
-		const result3 = squashRecordDiffs([diff5, diff6])
-		expect(result3).toEqual(createDiff<TestBook>({}, { 'book:1': [originalBook, newBook] }))
-
-		// Chain updates together
-		const v1 = createBook('book:1', 'Version 1', 'Author')
-		const v2 = createBook('book:1', 'Version 2', 'Author')
-		const v3 = createBook('book:1', 'Version 3', 'Author')
-		const diff7 = createDiff<TestBook>({}, { 'book:1': [v1, v2] })
-		const diff8 = createDiff<TestBook>({}, { 'book:1': [v2, v3] })
-		const result4 = squashRecordDiffs([diff7, diff8])
-		expect(result4).toEqual(createDiff<TestBook>({}, { 'book:1': [v1, v3] }))
+describe('squashing diffs (D)', () => {
+	it('[D3] add then update becomes an add with the final value', () => {
+		const v1 = book('book:1', 'v1')
+		const v2 = book('book:1', 'v2')
+		expect(squashRecordDiffs([diff({ 'book:1': v1 }), diff({}, { 'book:1': [v1, v2] })])).toEqual(
+			diff({ 'book:1': v2 })
+		)
 	})
-})
 
-describe('squashRecordDiffsMutable', () => {
-	it('should maintain consistency with squashRecordDiffs', () => {
-		const book1 = createBook('book:1', 'Book 1', 'Author')
-		const book2Old = createBook('book:2', 'Book 2 Old', 'Author')
-		const book2New = createBook('book:2', 'Book 2 New', 'Author')
+	it('[D3] add then remove cancels out', () => {
+		const b = book('book:1', 'a')
+		expect(squashRecordDiffs([diff({ 'book:1': b }), diff({}, {}, { 'book:1': b })])).toEqual(
+			createEmptyRecordsDiff()
+		)
+	})
 
-		const diff1 = createDiff<TestBook>({ 'book:1': book1 })
-		const diff2 = createDiff<TestBook>({}, { 'book:2': [book2Old, book2New] })
+	it('[D3] update then update collapses from the original from to the final to', () => {
+		const v1 = book('book:1', 'v1')
+		const v2 = book('book:1', 'v2')
+		const v3 = book('book:1', 'v3')
+		expect(
+			squashRecordDiffs([diff({}, { 'book:1': [v1, v2] }), diff({}, { 'book:1': [v2, v3] })])
+		).toEqual(diff({}, { 'book:1': [v1, v3] }))
+	})
 
-		// Test immutable version
-		const immutableResult = squashRecordDiffs([diff1, diff2])
+	it('[D3] update then remove becomes a remove of the original from', () => {
+		const v1 = book('book:1', 'v1')
+		const v2 = book('book:1', 'v2')
+		expect(
+			squashRecordDiffs([diff({}, { 'book:1': [v1, v2] }), diff({}, {}, { 'book:1': v2 })])
+		).toEqual(diff({}, {}, { 'book:1': v1 }))
+	})
 
-		// Test mutable version
-		const mutableTarget = createEmptyRecordsDiff<TestBook>()
-		squashRecordDiffsMutable(mutableTarget, [diff1, diff2])
+	it('[D3] remove then add becomes an update', () => {
+		const original = book('book:1', 'Original')
+		const replacement = book('book:1', 'New')
+		expect(
+			squashRecordDiffs([diff({}, {}, { 'book:1': original }), diff({ 'book:1': replacement })])
+		).toEqual(diff({}, { 'book:1': [original, replacement] }))
+	})
 
-		expect(immutableResult).toEqual(mutableTarget)
+	it('[D3] remove then add of the identical object cancels out', () => {
+		const same = book('book:1', 'Same')
+		expect(squashRecordDiffs([diff({}, {}, { 'book:1': same }), diff({ 'book:1': same })])).toEqual(
+			createEmptyRecordsDiff()
+		)
+	})
+
+	it('[D4] does not mutate its inputs by default', () => {
+		const v1 = book('book:1', 'v1')
+		const v2 = book('book:1', 'v2')
+		const first = diff({ 'book:1': v1 })
+		const second = diff({}, { 'book:1': [v1, v2] })
+
+		squashRecordDiffs([first, second])
+
+		expect(first).toEqual(diff({ 'book:1': v1 }))
+		expect(second).toEqual(diff({}, { 'book:1': [v1, v2] }))
+	})
+
+	it('[D4] mutateFirstDiff applies the result onto the first diff in place', () => {
+		const v1 = book('book:1', 'v1')
+		const v2 = book('book:1', 'v2')
+		const first = diff({ 'book:1': v1 })
+
+		const result = squashRecordDiffs([first, diff({}, { 'book:1': [v1, v2] })], {
+			mutateFirstDiff: true,
+		})
+
+		expect(result).toBe(first)
+		expect(first).toEqual(diff({ 'book:1': v2 }))
+	})
+
+	it('[D4] squashRecordDiffsMutable agrees with squashRecordDiffs', () => {
+		const added = book('book:1', 'Book 1')
+		const from = book('book:2', 'Old')
+		const to = book('book:2', 'New')
+
+		const diffs = [diff({ 'book:1': added }), diff({}, { 'book:2': [from, to] })]
+
+		const immutableResult = squashRecordDiffs(diffs)
+		const mutableTarget = createEmptyRecordsDiff<Book>()
+		squashRecordDiffsMutable(mutableTarget, diffs)
+
+		expect(mutableTarget).toEqual(immutableResult)
 	})
 })

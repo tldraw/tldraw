@@ -58,8 +58,8 @@ For unsupported types (pie, gantt, class, ER, etc.) pass an `onUnsupportedDiagra
 
 ```tsx
 await createMermaidDiagram(editor, text, {
-	onUnsupportedDiagram(svgString) {
-		editor.putExternalContent({ type: 'svg-text', text: svgString })
+	async onUnsupportedDiagram(svgString) {
+		await editor.putExternalContent({ type: 'svg-text', text: svgString })
 	},
 })
 ```
@@ -135,7 +135,7 @@ The callback receives `diagramKind`, `nodeId`, `kind`, and the full [`MermaidBlu
 ## Examples
 
 - [Hundreds of mermaid diagrams](/examples/use-cases/hundred-mermaids) — A runnable demo rendering many diagram types at once
-- [Customizing mermaid diagrams](/examples/use-cases/custom-shape-mermaids) - Converting mermaid diagram nodes into custom shapes
+- [Customizing mermaid diagrams](/examples/use-cases/custom-shape-mermaids) — Converting mermaid diagram nodes into custom shapes
 
 ## Related
 

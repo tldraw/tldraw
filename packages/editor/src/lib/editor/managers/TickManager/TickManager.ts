@@ -1,5 +1,6 @@
 import { throttleToNextFrame as _throttleToNextFrame, bind } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
+import { EditorManager } from '../EditorManager'
 
 const throttleToNextFrame =
 	typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
@@ -13,9 +14,9 @@ const throttleToNextFrame =
 		: _throttleToNextFrame
 
 /** @internal */
-export class TickManager {
-	constructor(public editor: Editor) {
-		this.editor.disposables.add(this.dispose)
+export class TickManager extends EditorManager {
+	constructor(editor: Editor) {
+		super(editor)
 		this.start()
 	}
 
@@ -40,17 +41,14 @@ export class TickManager {
 		const elapsed = now - this.now
 		this.now = now
 
-		this.editor.inputs.updatePointerVelocity(elapsed)
 		this.editor.emit('frame', elapsed)
 		this.editor.emit('tick', elapsed)
 		this.cancelRaf = throttleToNextFrame(this.tick)
 	}
 
-	// Clear the listener
-	@bind
 	dispose() {
 		this.isPaused = true
-
 		this.cancelRaf?.()
+		super.dispose()
 	}
 }

@@ -63,6 +63,13 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
 	pointerId: number
 	button: number
 	isPen: boolean
+	/**
+	 * Whether this pen event appears to be direct manipulation on the display (e.g. Apple Pencil on
+	 * an iPad or a Surface Pen on a touchscreen) rather than indirect input from a desktop graphics
+	 * tablet (e.g. a Wacom Intuos). Only direct-display pens should auto-enable pen mode. Drawing and
+	 * pressure behavior is driven by `isPen` and applies to all pens regardless of this flag.
+	 */
+	isPenDirect?: boolean
 } & TLPointerEventTarget
 
 /** @public */

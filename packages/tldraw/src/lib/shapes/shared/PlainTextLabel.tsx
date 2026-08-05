@@ -1,4 +1,4 @@
-import { Box, ExtractShapeByProps, TLShapeId } from '@tldraw/editor'
+import { Box, ExtractShapeByProps, TLShapeId, resolveLineHeightPx } from '@tldraw/editor'
 import classNames from 'classnames'
 import React from 'react'
 import { PlainTextArea } from '../text/PlainTextArea'
@@ -105,8 +105,8 @@ export const PlainTextLabel = React.memo(function PlainTextLabel({
 				className={`${cssPrefix}-label__inner tl-text-content__wrapper`}
 				style={{
 					fontSize,
-					lineHeight: lineHeight.toString(),
-					minHeight: Math.floor(fontSize * lineHeight) + 'px',
+					lineHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
+					minHeight: `${resolveLineHeightPx(fontSize, lineHeight)}px`,
 					minWidth: Math.ceil(textWidth || 0),
 					color: labelColor,
 					width: textWidth ? Math.ceil(textWidth) : undefined,

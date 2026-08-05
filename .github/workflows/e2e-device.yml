@@ -1,0 +1,180 @@
+name: End to end tests (device)
+
+# Run-on-request device-realistic e2e tests.
+#
+# These run real Mobile Safari (iOS Simulator) and real Chrome (Android emulator)
+# through the OS input pipeline via Appium + WebdriverIO. Unlike the Playwright
+# suite, this exercises the browser's own gesture recogniser and platform
+# behaviour, so it can catch regressions that synthetic DOM events (CDP) cannot.
+# It currently covers multi-touch gestures (pinch), but the harness is meant to
+# grow to other device-specific behaviour (exports, clipboard, shortcuts, etc.)
+# and other platforms.
+#
+# It is slower and a bit flaky by nature, so it is NOT part of the per-PR checks.
+# Trigger it on demand:
+#
+#   - Manually from the Actions tab (workflow_dispatch), choosing the platform.
+#   - By adding the `e2e-device-tests` label to a PR that touches device behaviour.
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Which platform(s) to run
+        type: choice
+        default: both
+        options: [both, ios, android]
+      ios_device:
+        description: iOS simulator device name (optional; auto-picks newest iPhone if empty)
+        type: string
+        default: ''
+  pull_request:
+    types: [labeled]
+
+env:
+  CI: 1
+  EXAMPLES_PORT: '5420'
+
+defaults:
+  run:
+    shell: bash
+
+# A new push to a PR (or a re-dispatch) cancels the previous in-flight run.
+concurrency:
+  group: e2e-device-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    name: iOS Safari
+    # Run when dispatched with ios/both, or when a PR is labelled `e2e-device-tests`.
+    if: >
+      (github.event_name == 'workflow_dispatch' && inputs.platform != 'android') ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'e2e-device-tests')
+    runs-on: macos-26 # pinned: image version determines Xcode + iOS sim runtimes
+    timeout-minutes: 40
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Build examples
+        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
+
+      - name: Install Appium and the XCUITest driver
+        run: |
+          npm i -g appium@3
+          appium driver install xcuitest
+
+      - name: Resolve Xcode version (WDA cache key)
+        id: xcode
+        run: echo "version=$(xcodebuild -version | head -1 | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache WebDriverAgent build
+        # WDA is rebuilt from source on a cold simulator (~3.5 min). Cache its
+        # DerivedData keyed on the Xcode version so iterating on test fixes reuses
+        # the prebuilt WDA instead of rebuilding. Bump the trailing -vN to bust.
+        id: wda-cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ runner.temp }}/wda-derived
+          key: wda-${{ runner.os }}-xcode-${{ steps.xcode.outputs.version }}-v1
+
+      - name: Boot iOS simulator
+        id: sim
+        # A fresh iOS simulator's first boot runs slow one-time migration plugins
+        # that exceed XCUITest's boot-wait. So boot ONE simulator here, wait for it
+        # to finish (`bootstatus -b`), and hand its UDID to Appium so it attaches to
+        # the ready device instead of booting its own. The available iPhone models
+        # depend on the Xcode the runner image ships, so auto-pick rather than
+        # hardcode a name (an explicit `ios_device` input wins if it matches).
+        env:
+          DEVICE_NAME: ${{ inputs.ios_device }}
+        run: |
+          xcrun simctl list devices available
+          SEL=$(xcrun simctl list devices available --json | node -e '
+            const data = JSON.parse(require("fs").readFileSync(0, "utf8"));
+            const want = process.env.DEVICE_NAME || "";
+            const runtimes = Object.keys(data.devices).filter(r => r.includes("iOS")).sort().reverse();
+            const phones = [];
+            for (const r of runtimes) for (const d of (data.devices[r] || [])) {
+              if (d.isAvailable !== false && d.name.startsWith("iPhone")) phones.push(d);
+            }
+            const pick = (want && phones.find(d => d.name === want)) || phones[0];
+            if (!pick) process.exit(2);
+            process.stdout.write(pick.udid + "|" + pick.name);
+          ') || { echo "No available iPhone simulator on this runner"; exit 1; }
+          UDID="${SEL%%|*}"
+          NAME="${SEL#*|}"
+          echo "Using $NAME ($UDID)"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Serve built examples
+        run: yarn preview --port "$EXAMPLES_PORT" &
+        working-directory: apps/examples
+
+      - name: Wait for examples server
+        run: npx --yes wait-on "http://localhost:$EXAMPLES_PORT/end-to-end" -t 120000
+
+      - name: Run device tests (iOS)
+        run: yarn e2e-device-ios
+        working-directory: apps/examples
+        env:
+          APPIUM_DEVICE_NAME: ${{ steps.sim.outputs.name }}
+          APPIUM_UDID: ${{ steps.sim.outputs.udid }}
+          # Build WDA into the cached dir; reuse the prebuilt one on a cache hit.
+          APPIUM_DERIVED_DATA_PATH: ${{ runner.temp }}/wda-derived
+          APPIUM_USE_PREBUILT_WDA: ${{ steps.wda-cache.outputs.cache-hit }}
+
+  android:
+    name: Android Chrome
+    if: >
+      (github.event_name == 'workflow_dispatch' && inputs.platform != 'ios') ||
+      (github.event_name == 'pull_request' && github.event.label.name == 'e2e-device-tests')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Enable KVM (hardware acceleration for the emulator)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Build examples
+        run: yarn run -T lazy refresh-assets && yarn run -T lazy run prebuild && cd apps/examples && yarn build
+
+      - name: Install Appium and the UiAutomator2 driver
+        run: |
+          npm i -g appium@3
+          appium driver install uiautomator2
+
+      - name: Serve built examples
+        run: yarn preview --port "$EXAMPLES_PORT" &
+        working-directory: apps/examples
+
+      - name: Wait for examples server
+        run: npx --yes wait-on "http://localhost:$EXAMPLES_PORT/end-to-end" -t 120000
+
+      - name: Run device tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          # The emulator's `localhost` is the emulator itself, so forward the host
+          # dev server into it before running the tests.
+          script: |
+            adb reverse tcp:${{ env.EXAMPLES_PORT }} tcp:${{ env.EXAMPLES_PORT }}
+            cd apps/examples && yarn e2e-device-android

@@ -34,7 +34,15 @@ Visit [tldraw.dev](https://tldraw.dev) to learn more.
 
 ## Documentation
 
-The published package includes a generated `DOCS.md` file with the docs-site content and a generated `RELEASE_NOTES.md` file with versioned release notes.
+Documentation for the most recent release can be found on [tldraw.dev/docs](https://tldraw.dev/docs), including [reference docs](https://tldraw.dev/reference/editor/Editor). Our release notes can be found [here](https://tldraw.dev/releases).
+
+For more agent-friendly docs, see our [LLMs.txt](https://tldraw.dev/llms.txt).
+
+From 5.1.x onward, this package also includes a `DOCS.md` file with the appropriate docs-site content and a generated `RELEASE_NOTES.md` file with versioned release notes. If you or your coding agent need release notes for your installed version specifically, check these files alongside the source in your `node_modules` folder.
+
+## Who's using tldraw
+
+The tldraw SDK powers canvas experiences in products from [Google](https://about.google), [Shopify](https://www.shopify.com), [BlackRock](https://www.blackrock.com), [Autodesk](https://blogs.autodesk.com/forma/2024/06/20/forma-board-collaborative-tool-for-architects/), [ClickUp](https://tldraw.dev/blog/clickup), [Replit](https://docs.replit.com/replitai/canvas), [Google Stitch](https://stitch.withgoogle.com), [Luma](https://lumalabs.ai/dream-machine), [Runway](https://runwayml.com), [Padlet](https://tldraw.dev/blog/padlet), [Mobbin](https://tldraw.dev/blog/mobbin), [Jam](https://tldraw.dev/blog/jam), [Craft](https://support.craft.do/en/write-and-edit/whiteboards), [Honeycomb](https://www.honeycomb.io/platform/canvas), [SchoolAI](https://schoolai.com/products/powerups), [Brisk](https://www.briskteaching.com/post/boost-whiteboard), and many more. See our [showcase](https://tldraw.dev/showcase) for case studies.
 
 ## Package development
 
@@ -60,7 +68,7 @@ You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?a
 
 ## Contribution
 
-Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## Community
 

@@ -41,7 +41,6 @@ export function Component() {
 				const state = omit(location.state, ['importUrl'])
 				const result = await importFromUrl(app, pendingImportUrl)
 				if (result.ok) {
-					app.ensureFileVisibleInSidebar(result.fileId)
 					navigate(routes.tlaFile(result.fileId), {
 						replace: true,
 						state,
@@ -66,7 +65,6 @@ export function Component() {
 				const res = await app.slurpFile()
 				if (res.ok) {
 					clearShouldSlurpFile()
-					app.ensureFileVisibleInSidebar(res.value.fileId)
 					navigate(routes.tlaFile(res.value.fileId), {
 						replace: true,
 						state: location.state,
@@ -79,15 +77,15 @@ export function Component() {
 				}
 			}
 
-			const recentFiles = app.getMyFiles()
-			if (recentFiles.length === 0) {
+			// Land on the file the user last had open, across all workspaces, not just home.
+			const mostRecentFileId = app.getMostRecentFileId()
+			if (!mostRecentFileId) {
 				const result = await app.createFile()
 
 				assert(result.ok, 'Failed to create file')
 				// result is only false if the user reached their file limit so
 				// we don't need to handle that case here since they have no files
 				if (result.ok) {
-					app.ensureFileVisibleInSidebar(result.value.fileId)
 					navigate(routes.tlaFile(result.value.fileId), {
 						replace: true,
 						state: location.state,
@@ -96,8 +94,7 @@ export function Component() {
 				return
 			}
 
-			app.ensureFileVisibleInSidebar(recentFiles[0].fileId)
-			navigate(routes.tlaFile(recentFiles[0].fileId), { replace: true, state: location.state })
+			navigate(routes.tlaFile(mostRecentFileId), { replace: true, state: location.state })
 		}
 
 		handleFileOperations()

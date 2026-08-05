@@ -7,10 +7,8 @@ import {
 	ReactNode,
 	useCallback,
 	useContext,
-	useEffect,
-	useState,
 } from 'react'
-import { TldrawUiButton, TldrawUiIcon, TldrawUiTooltip } from 'tldraw'
+import { TldrawUiButton, TldrawUiIcon, TldrawUiTooltip, useContainer } from 'tldraw'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './menu.module.css'
@@ -18,6 +16,18 @@ import styles from './menu.module.css'
 const messages = defineMessages({
 	help: { defaultMessage: 'Help' },
 })
+
+/**
+ * Shared positioning for tla dropdowns, popovers, and selects so they sit consistently
+ * relative to their triggers. Spread onto a Radix/SDK content element (e.g.
+ * `{...TLA_MENU_POSITION}`); tweak here to adjust every tla menu at once. `side` and
+ * `align` stay per-menu since they depend on the trigger's placement.
+ */
+export const TLA_MENU_POSITION = {
+	sideOffset: 4,
+	alignOffset: -4,
+	collisionPadding: 4,
+} as const
 
 // Used to section areas of the menu, ie links vs snapshots
 export function TlaMenuSection({ children }: { children: ReactNode }) {
@@ -30,9 +40,17 @@ export function TlaMenuControlGroup({ children }: { children: ReactNode }) {
 }
 
 // A row for a single control, usually label + input
-export function TlaMenuControl({ children, title }: { children: ReactNode; title?: string }) {
+export function TlaMenuControl({
+	children,
+	title,
+	className,
+}: {
+	children: ReactNode
+	title?: string
+	className?: string
+}) {
 	return (
-		<div className={classNames('tla-control', styles.menuControlRow)} title={title}>
+		<div className={classNames('tla-control', styles.menuControlRow, className)} title={title}>
 			{children}
 		</div>
 	)
@@ -105,6 +123,7 @@ export function TlaMenuSelect<T extends string>({
 	disabled,
 	onChange,
 	options,
+	actions,
 	'data-testid': dataTestId,
 }: {
 	id: string
@@ -112,51 +131,36 @@ export function TlaMenuSelect<T extends string>({
 	value: T
 	disabled?: boolean
 	onChange(value: T): void
-	options: { value: T; label: ReactNode }[]
+	options: { value: T; label: ReactNode; disabled?: boolean }[]
+	// Extra actions shown in their own section below the options (e.g. a
+	// destructive "remove"). Selecting one runs its onSelect instead of onChange.
+	actions?: {
+		id: string
+		label: ReactNode
+		onSelect(): void
+		destructive?: boolean
+		disabled?: boolean
+		// Shown on hover when the action is disabled (e.g. why it can't be used).
+		tooltip?: ReactNode
+	}[]
 	'data-testid'?: string
 }) {
-	const [isOpen, setIsOpen] = useState(false)
+	const container = useContainer()
 	const handleChange = useCallback(
 		(value: string) => {
+			const action = actions?.find((a) => a.id === value)
+			if (action) {
+				if (!action.disabled) action.onSelect()
+				return
+			}
 			onChange(value as T)
 		},
-		[onChange]
+		[actions, onChange]
 	)
 
-	const handleOpenChange = (open: boolean) => {
-		setIsOpen(open)
-	}
-
-	useEffect(() => {
-		if (!isOpen) return
-		// Close the select menu when the user clicks outside of it
-		// This is a workaround for an issue in Radix Select when combined with a popper menu.
-		const handlePointerDown = (event: MouseEvent) => {
-			const target = event.target as HTMLElement
-			if (!target.closest(`.${styles.menuSelectContent}`)) {
-				setIsOpen(false)
-			}
-		}
-
-		document.body.addEventListener('pointerdown', handlePointerDown, { capture: true })
-		return () => {
-			document.body.removeEventListener('pointerdown', handlePointerDown)
-		}
-	}, [isOpen])
-
 	return (
-		<div
-			className={styles.menuSelectWrapper}
-			onClickCapture={(e) => {
-				e.stopPropagation()
-			}}
-		>
-			<_Select.Root
-				open={isOpen}
-				value={value}
-				onOpenChange={handleOpenChange}
-				onValueChange={handleChange}
-			>
+		<div className={styles.menuSelectWrapper}>
+			<_Select.Root value={value} onValueChange={handleChange}>
 				<_Select.Trigger
 					id={id}
 					className={styles.menuSelectTrigger}
@@ -171,22 +175,57 @@ export function TlaMenuSelect<T extends string>({
 						<TlaIcon icon="chevron-down" className={styles.menuSelectChevron} />
 					</_Select.Icon>
 				</_Select.Trigger>
-				<_Select.Content className={styles.menuSelectContent}>
-					<_Select.Viewport>
-						{options.map((option) => (
-							<_Select.Item
-								key={option.value}
-								className={styles.menuSelectOption}
-								value={option.value}
-							>
-								<_Select.ItemIndicator>
-									<TlaIcon icon="check" />
-								</_Select.ItemIndicator>
-								<_Select.ItemText>{option.label}</_Select.ItemText>
-							</_Select.Item>
-						))}
-					</_Select.Viewport>
-				</_Select.Content>
+				<_Select.Portal container={container}>
+					<_Select.Content
+						className={styles.menuSelectContent}
+						position="popper"
+						side="bottom"
+						align="end"
+						{...TLA_MENU_POSITION}
+					>
+						<_Select.Viewport>
+							{options.map((option) => (
+								<_Select.Item
+									key={option.value}
+									className={styles.menuSelectOption}
+									value={option.value}
+									disabled={option.disabled}
+								>
+									<_Select.ItemIndicator>
+										<TlaIcon icon="check" />
+									</_Select.ItemIndicator>
+									<_Select.ItemText>{option.label}</_Select.ItemText>
+								</_Select.Item>
+							))}
+							{actions && actions.length > 0 && (
+								<>
+									<_Select.Separator className={styles.menuSelectSeparator} />
+									{actions.map((action) => {
+										const item = (
+											<_Select.Item
+												key={action.id}
+												className={classNames(
+													styles.menuSelectOption,
+													action.destructive && styles.menuSelectOptionDestructive
+												)}
+												value={action.id}
+												disabled={action.disabled}
+											>
+												<_Select.ItemText>{action.label}</_Select.ItemText>
+											</_Select.Item>
+										)
+										if (!action.tooltip) return item
+										return (
+											<TldrawUiTooltip key={action.id} content={action.tooltip}>
+												{item}
+											</TldrawUiTooltip>
+										)
+									})}
+								</>
+							)}
+						</_Select.Viewport>
+					</_Select.Content>
+				</_Select.Portal>
 			</_Select.Root>
 		</div>
 	)

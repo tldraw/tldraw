@@ -123,6 +123,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		Toasts,
 		Dialogs,
 		A11y,
+		FollowingIndicator,
 	} = useTldrawUiComponents()
 
 	useEditorEvents()
@@ -235,6 +236,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					</div>
 				</>
 			)}
+			{FollowingIndicator && <FollowingIndicator />}
 			{Toasts && <Toasts />}
 			{Dialogs && <Dialogs />}
 		</div>
@@ -243,15 +245,13 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 
 /** @public @react */
 export function TldrawUiInFrontOfTheCanvas() {
-	const { RichTextToolbar, ImageToolbar, VideoToolbar, CursorChatBubble, FollowingIndicator } =
-		useTldrawUiComponents()
+	const { RichTextToolbar, ImageToolbar, VideoToolbar, CursorChatBubble } = useTldrawUiComponents()
 
 	return (
 		<>
 			{RichTextToolbar && <RichTextToolbar />}
 			{ImageToolbar && <ImageToolbar />}
 			{VideoToolbar && <VideoToolbar />}
-			{FollowingIndicator && <FollowingIndicator />}
 			{CursorChatBubble && <CursorChatBubble />}
 		</>
 	)

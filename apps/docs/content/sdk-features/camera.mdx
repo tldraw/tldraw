@@ -24,7 +24,7 @@ The camera handles user input for panning and zooming, supports constraints for 
 
 ## How it works
 
-The camera represents the viewport's position and zoom using three values: `x` and `y` for position in page space, and `z` for zoom level. A zoom of `1` means 100%, `0.5` is 50%, and `2` is 200%. The camera's x and y coordinates represent the top-left corner of the viewport in page coordinates.
+The camera represents the viewport's position and zoom using three values: `x` and `y` for position in page space, and `z` for zoom level. A zoom of `1` means 100%, `0.5` is 50%, and `2` is 200%. The camera's `x` and `y` are the page-space offset of the viewport: the page point at the viewport's top-left corner is `(-x, -y)`.
 
 The camera transforms between two coordinate spaces:
 
@@ -81,7 +81,7 @@ editor.setCameraOptions({
 
 The `bounds` define the constrained area in page space. The camera restricts panning outside this rectangle based on the `behavior` setting.
 
-The `padding` adds screen space margin inside the viewport, preventing content from touching the screen edges.
+The `padding` adds screen space margin inside the viewport so content doesn't touch the screen edges.
 
 The `origin` determines how bounds are positioned within the viewport when using `'fixed'` behavior. Values of `{ x: 0.5, y: 0.5 }` center the bounds, while `{ x: 0, y: 0 }` aligns to the top-left.
 
@@ -90,8 +90,8 @@ The `origin` determines how bounds are positioned within the viewport when using
 The `initialZoom` and `baseZoom` options control how content fits the viewport:
 
 - `'default'`: 100% zoom, showing content at actual size
-- `'fit-min'`: Fit the smaller axis, ensuring all bounds are visible
-- `'fit-max'`: Fit the larger axis, potentially cropping content
+- `'fit-min'`: Fit the smaller axis so the full bounds stay visible
+- `'fit-max'`: Fit the larger axis; the other axis may extend past the viewport
 - `'fit-x'`: Fit horizontally, filling the viewport width
 - `'fit-y'`: Fit vertically, filling the viewport height
 - `'fit-x-100'`: Fit horizontally or use 100%, whichever is smaller
@@ -173,7 +173,7 @@ The `zoomToBounds` method accepts `inset` to add padding around the bounds and `
 
 ### Quick zoom navigation
 
-The default tldraw UI includes a quick zoom tool activated by pressing `z`. This zooms out to show the entire canvas with a viewport brush indicating where you'll zoom to. Move the cursor to reposition the target viewport, then release to zoom to that location. Press Escape to cancel and return to the original view. This provides a fast way to navigate large canvases without losing your place.
+The default tldraw UI includes a quick zoom tool activated by pressing `z`. This zooms out to show the entire canvas with a viewport brush that marks where you'll zoom to. Move the cursor to reposition the target viewport, then release to zoom to that location. Press Escape to cancel and return to the original view.
 
 ### Animated movement
 
@@ -193,7 +193,7 @@ editor.setCamera(
 )
 ```
 
-Camera animations stop automatically when users pan or zoom, ensuring user input takes precedence over programmatic movement. You can also stop camera animations at any time with the editor's `stopCameraAnimation()` method.
+Camera animations stop automatically when users pan or zoom: user input takes precedence over programmatic movement. You can also stop camera animations at any time with the editor's `stopCameraAnimation()` method.
 
 ### Momentum scrolling
 

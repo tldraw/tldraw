@@ -1,7 +1,6 @@
 /*!
- * The kbd-string splitter (`getKeys`) and the form-input filter pattern in `shouldSkipEvent`
- * (including its list of non-text INPUT types) are adapted from hotkeys-js, which this hook
- * previously depended on.
+ * The form-input filter pattern in `shouldSkipEvent` (including its list of non-text INPUT
+ * types) is adapted from hotkeys-js, which this hook previously depended on.
  *
  * MIT License: https://github.com/jaywcjlove/hotkeys-js/blob/master/LICENSE
  * Copyright (c) 2015-present, Kenny Wong
@@ -19,6 +18,8 @@ import {
 } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { useActions } from '../context/actions'
+import { splitKbd } from '../kbd-utils'
+import { useCommentingEnabled } from './useCommentingEnabled'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
@@ -38,6 +39,8 @@ export function useKeyboardShortcuts() {
 	const isReadonlyMode = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
+	// The comment tool's shortcut is gated by the same license as its toolbar button.
+	const commentingEnabled = useCommentingEnabled()
 	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
 	useEffect(() => {
 		if (!isFocused) return
@@ -70,6 +73,9 @@ export function useKeyboardShortcuts() {
 			}
 
 			if (SKIP_KBDS.includes(tool.id)) continue
+
+			// The comment tool is a licensed feature; skip its shortcut when commenting isn't enabled.
+			if (tool.id === 'comment' && !commentingEnabled) continue
 
 			register(getHotkeysStringFromKbd(tool.kbd), (event) => {
 				if (areShortcutsDisabled(editor)) return
@@ -141,12 +147,35 @@ export function useKeyboardShortcuts() {
 
 		const body = editor.getContainerDocument().body
 
+		// Track which registration each physically-held key first triggered, keyed by
+		// `event.code`. While a key is held down, releasing a modifier should not let the
+		// auto-repeat keydown events trigger an adjacent shortcut (e.g. releasing shift while
+		// still holding shift+q shouldn't start firing the plain `q` shortcut). The same
+		// registration is still allowed to repeat (e.g. holding `=` to keep zooming).
+		const heldKeyRegistrations = new Map<string, Registration>()
+
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (shouldSkipEvent(e)) return
+			const code = e.code
 			for (const reg of registry) {
 				if (!reg.onKeyDown) continue
 				for (const p of reg.parsed) {
 					if (matchesEvent(e, p)) {
+						if (code) {
+							// We only guard auto-repeat events. A fresh keypress (`e.repeat` is
+							// false) is always free to trigger whatever it matches, even on the same
+							// physical key — e.g. cmd+z (undo) then cmd+shift+z (redo), where macOS
+							// swallows the `z` keyup while cmd stays held, so we can't rely on keyup
+							// to clear the previous registration.
+							if (e.repeat) {
+								const prev = heldKeyRegistrations.get(code)
+								// The held key already triggered a different shortcut; don't fall back
+								// to this one (or anything else) just because a modifier was released.
+								if (prev && prev !== reg) return
+							} else {
+								heldKeyRegistrations.set(code, reg)
+							}
+						}
 						reg.onKeyDown(e)
 						break
 					}
@@ -155,6 +184,10 @@ export function useKeyboardShortcuts() {
 		}
 
 		const handleKeyUp = (e: KeyboardEvent) => {
+			// Always release the held-key tracking, even for events we'd otherwise skip (e.g. the
+			// key was released after focus moved into a text input), so a stale entry can't block
+			// later shortcuts.
+			if (e.code) heldKeyRegistrations.delete(e.code)
 			if (shouldSkipEvent(e)) return
 			for (const reg of registry) {
 				if (!reg.onKeyUp) continue
@@ -174,7 +207,7 @@ export function useKeyboardShortcuts() {
 			body.removeEventListener('keydown', handleKeyDown)
 			body.removeEventListener('keyup', handleKeyUp)
 		}
-	}, [actions, tools, isReadonlyMode, editor, isFocused])
+	}, [actions, tools, isReadonlyMode, editor, isFocused, commentingEnabled])
 }
 
 export function areShortcutsDisabled(editor: Editor) {
@@ -195,7 +228,10 @@ export function areShortcutsDisabled(editor: Editor) {
 // non-Latin layouts (Cyrillic, Greek, etc.) and macOS Option-letter dead-key combinations,
 // where `event.key` is a non-ASCII glyph.
 
-interface ParsedKbd {
+/**
+ * @internal
+ */
+export interface ParsedKbd {
 	key: string
 	shift: boolean
 	alt: boolean
@@ -319,9 +355,12 @@ const PHYSICAL_KEY_MAP: Record<string, string> = {
 	Backquote: '`',
 }
 
-function parseKbd(kbd: string): ParsedKbd[] {
+/**
+ * @internal
+ */
+export function parseKbd(kbd: string): ParsedKbd[] {
 	const out: ParsedKbd[] = []
-	for (const shortcut of getKeys(kbd)) {
+	for (const shortcut of splitKbd(kbd.replace(/\s/g, ''))) {
 		const parsed = parseShortcut(shortcut)
 		if (parsed) out.push(parsed)
 	}
@@ -373,6 +412,18 @@ function matchesEvent(e: KeyboardEvent, parsed: ParsedKbd): boolean {
 	if (e.ctrlKey !== parsed.ctrl) return false
 	if (e.metaKey !== parsed.meta) return false
 
+	// With shift held, match number-row digits by physical position rather than the typed glyph: the
+	// digit keys sit in the same place on every Latin layout, but their shifted glyph varies
+	// (shift+2 is '@' on US, '"' on British PC and German), so glyph matching misses them. Returning
+	// here also stops a digit press from matching a symbol shortcut that shares its glyph — on
+	// German, shift+0 types '=', which must run zoom-to-100, not the '=' zoom-in shortcut it would
+	// otherwise alias to. Unshifted presses keep glyph matching, because layouts put real symbol
+	// shortcuts on the number row: AZERTY types '-' on Digit6, and that must still zoom out.
+	if (e.shiftKey) {
+		const digitCode = /^Digit([0-9])$/.exec(e.code)
+		if (digitCode) return parsed.key === digitCode[1]
+	}
+
 	const eventKey = getEventKey(e)
 	if (eventKey === parsed.key) return true
 
@@ -411,12 +462,17 @@ function shouldSkipEvent(e: KeyboardEvent): boolean {
 	return false
 }
 
-// The "raw" kbd here will look something like "a" or a combination of keys "del,backspace".
-// We need to first split them up by comma, then parse each key to ensure backwards compatibility
-// with the old kbd format. We used to have symbols to denote cmd/alt/shift,
-// using ! for shift, $ for cmd, and ? for alt.
-function getHotkeysStringFromKbd(kbd: string) {
-	return getKeys(kbd)
+/**
+ * The "raw" kbd here will look something like "a" or a combination of keys
+ * "del,backspace". We need to first split them up by comma, then parse each
+ * key to ensure backwards compatibility with the old kbd format. We used to
+ * have symbols to denote cmd/alt/shift, using ! for shift, $ for cmd, and ?
+ * for alt.
+ *
+ * @internal
+ */
+export function getHotkeysStringFromKbd(kbd: string) {
+	return splitKbd(kbd.replace(/\s/g, ''))
 		.map((kbd) => {
 			let str = ''
 
@@ -448,22 +504,4 @@ function getHotkeysStringFromKbd(kbd: string) {
 			return str
 		})
 		.join(',')
-}
-
-// Split a kbd string on commas, treating an empty entry produced by "x,," as a literal
-// trailing comma on the previous entry. Verbatim port of the splitter from hotkeys-js
-// (MIT, see top-of-file attribution).
-function getKeys(key: string) {
-	if (typeof key !== 'string') key = ''
-	key = key.replace(/\s/g, '')
-	const keys = key.split(',')
-	let index = keys.lastIndexOf('')
-
-	for (; index >= 0; ) {
-		keys[index - 1] += ','
-		keys.splice(index, 1)
-		index = keys.lastIndexOf('')
-	}
-
-	return keys
 }

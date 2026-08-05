@@ -73,7 +73,8 @@ describe('FocusManager', () => {
 	describe('constructor', () => {
 		it('should initialize with editor reference', () => {
 			focusManager = new FocusManager(editor)
-			expect(focusManager.editor).toBe(editor)
+			expect(focusManager).toBeInstanceOf(FocusManager)
+			expect(editor.sideEffects.registerAfterChangeHandler).toHaveBeenCalled()
 		})
 
 		it('should register side effect listener for instance state changes', () => {

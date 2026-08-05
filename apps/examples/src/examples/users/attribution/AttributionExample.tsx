@@ -129,12 +129,10 @@ function AttributionPanel() {
 							<span style={{ color: info.createdByColor }}>{info.createdByName}</span>
 						</div>
 					)}
-					{info.textFirstEditedByName && (
+					{info.textLastEditedByName && (
 						<div className="attribution-row">
-							<span className="attribution-label">Text first edited by</span>
-							<span style={{ color: info.textFirstEditedByColor }}>
-								{info.textFirstEditedByName}
-							</span>
+							<span className="attribution-label">Text last edited by</span>
+							<span style={{ color: info.textLastEditedByColor }}>{info.textLastEditedByName}</span>
 						</div>
 					)}
 				</div>
@@ -153,17 +151,17 @@ function attributionSummary(editor: { store: { props: { users: TLUserStore } } }
 		: null
 
 	const noteProps = shape.type === 'note' ? (shape as TLNoteShape).props : null
-	const textFirstEditedBy = noteProps?.textFirstEditedBy ?? null
-	const textFirstEditedByUser = textFirstEditedBy
-		? (editor.store.props.users.resolve?.(textFirstEditedBy).get() ?? null)
+	const textLastEditedBy = noteProps?.textLastEditedBy ?? null
+	const textLastEditedByUser = textLastEditedBy
+		? (editor.store.props.users.resolve?.(textLastEditedBy).get() ?? null)
 		: null
 
 	return {
 		type: shape.type,
 		createdByName: createdByUser?.name ?? null,
 		createdByColor: createdByUser?.color,
-		textFirstEditedByName: textFirstEditedByUser?.name ?? null,
-		textFirstEditedByColor: textFirstEditedByUser?.color,
+		textLastEditedByName: textLastEditedByUser?.name ?? null,
+		textLastEditedByColor: textLastEditedByUser?.color,
 	}
 }
 
@@ -217,18 +215,18 @@ signals will re-evaluate when the underlying data changes.
 The top panel lets you switch which user is "logged in" and edit the active
 user's name. Try drawing a shape as Alice, then renaming her — the attribution
 panel updates live. Switch to Bob, create a note with text, and you'll also
-see the built-in "Text first edited by" appear.
+see the built-in "Text last edited by" appear.
 
 [4]
 The panel reads `editor.store.props.users.currentUser.get()` to show who is
 active, and resolves both `meta.createdBy` (set by our own side effect) and
-`textFirstEditedBy` (built-in on notes) for the selected shape. Each attribution
+`textLastEditedBy` (built-in on notes) for the selected shape. Each attribution
 field is a user id string — we call `resolve(userId).get()` to get live display
 data, so renames flow through automatically.
 
 [5]
 Extracts attribution info from a shape. We read `meta.createdBy` for any
-shape, and additionally read the built-in `textFirstEditedBy` prop for note
+shape, and additionally read the built-in `textLastEditedBy` prop for note
 shapes.
 
 [6]

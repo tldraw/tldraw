@@ -14,7 +14,7 @@ import {
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { devFreeze } from './devFreeze'
-import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
+import { isRecordsDiffEmpty, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
@@ -504,23 +504,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			},
 			{ scheduleEffect: (cb) => (this.cancelHistoryReactor = throttleToNextFrame(cb)) }
 		)
-		this.scopedTypes = {
-			document: new Set(
-				objectMapValues(this.schema.types)
-					.filter((t) => t.scope === 'document')
-					.map((t) => t.typeName)
-			),
-			session: new Set(
-				objectMapValues(this.schema.types)
-					.filter((t) => t.scope === 'session')
-					.map((t) => t.typeName)
-			),
-			presence: new Set(
-				objectMapValues(this.schema.types)
-					.filter((t) => t.scope === 'presence')
-					.map((t) => t.typeName)
-			),
+		const scopedTypes: { [K in RecordScope]: Set<R['typeName']> } = {
+			document: new Set(),
+			session: new Set(),
+			presence: new Set(),
 		}
+		for (const type of objectMapValues(this.schema.types)) {
+			scopedTypes[type.scope].add(type.typeName)
+		}
+		this.scopedTypes = scopedTypes
 	}
 
 	public _flushHistory() {
@@ -528,30 +520,23 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		if (this.historyAccumulator.hasChanges()) {
 			const entries = this.historyAccumulator.flush()
 			for (const { changes, source } of entries) {
-				let instanceChanges = null as null | RecordsDiff<R>
-				let documentChanges = null as null | RecordsDiff<R>
-				let presenceChanges = null as null | RecordsDiff<R>
+				// Filtered diffs are computed at most once per scope per entry, and shared by every
+				// listener watching that scope.
+				const scopedChanges = new Map<RecordScope, RecordsDiff<R> | null>()
 				for (const { onHistory, filters } of this.listeners) {
 					if (filters.source !== 'all' && filters.source !== source) {
 						continue
 					}
-					if (filters.scope !== 'all') {
-						if (filters.scope === 'document') {
-							documentChanges ??= this.filterChangesByScope(changes, 'document')
-							if (!documentChanges) continue
-							onHistory({ changes: documentChanges, source })
-						} else if (filters.scope === 'session') {
-							instanceChanges ??= this.filterChangesByScope(changes, 'session')
-							if (!instanceChanges) continue
-							onHistory({ changes: instanceChanges, source })
-						} else {
-							presenceChanges ??= this.filterChangesByScope(changes, 'presence')
-							if (!presenceChanges) continue
-							onHistory({ changes: presenceChanges, source })
-						}
-					} else {
+					if (filters.scope === 'all') {
 						onHistory({ changes, source })
+						continue
 					}
+					if (!scopedChanges.has(filters.scope)) {
+						scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
+					}
+					const filtered = scopedChanges.get(filters.scope)
+					if (!filtered) continue
+					onHistory({ changes: filtered, source })
 				}
 			}
 		}
@@ -573,11 +558,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			updated: filterEntries(change.updated, (_, r) => this.scopedTypes[scope].has(r[1].typeName)),
 			removed: filterEntries(change.removed, (_, r) => this.scopedTypes[scope].has(r.typeName)),
 		}
-		if (
-			Object.keys(result.added).length === 0 &&
-			Object.keys(result.updated).length === 0 &&
-			Object.keys(result.removed).length === 0
-		) {
+		if (isRecordsDiffEmpty(result)) {
 			return null
 		}
 		return result
@@ -656,7 +637,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 					if (validated === initialValue) continue
 
-					record = devFreeze(record)
+					record = devFreeze(validated)
 					this.records.set(record.id, record)
 
 					didChange = true
@@ -888,7 +869,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.clear()
 				this.put(Object.values(migrationResult.value))
 				this.ensureStoreIsUsable()
-			})
+			}, false)
 		} finally {
 			this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 		}
@@ -1252,7 +1233,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			this.pendingAfterEvents = new Map()
 			const prevSideEffectsEnabled = this.sideEffects.isEnabled()
-			this.sideEffects.setIsEnabled(runCallbacks ?? prevSideEffectsEnabled)
+			// an operation may switch side effects off, but never on while they are disabled
+			this.sideEffects.setIsEnabled(runCallbacks && prevSideEffectsEnabled)
 			this._isInAtomicOp = true
 
 			if (isMergingRemoteChanges) {
@@ -1328,7 +1310,9 @@ function squashHistoryEntries<T extends UnknownRecord>(
 	return devFreeze(
 		chunked.map((chunk) => ({
 			source: chunk[0].source,
-			changes: squashRecordDiffs(chunk.map((e) => e.changes)),
+			// a single-entry chunk needs no squashing — skip the O(N) copy of its diff
+			changes:
+				chunk.length === 1 ? chunk[0].changes : squashRecordDiffs(chunk.map((e) => e.changes)),
 		}))
 	)
 }

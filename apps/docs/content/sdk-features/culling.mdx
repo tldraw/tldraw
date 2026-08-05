@@ -34,10 +34,10 @@ export default function CullingExample() {
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw
 				onMount={(editor) => {
-					// Get shapes outside the viewport (before selection filtering)
+					// Get the IDs of shapes outside the viewport (before selection filtering)
 					const notVisible = editor.getNotVisibleShapes()
 
-					// Get shapes that should not render (excludes selected/editing shapes)
+					// Get the IDs of shapes that should not render (excludes selected/editing shapes)
 					const culled = editor.getCulledShapes()
 
 					console.log('Not visible:', notVisible.size)
@@ -49,13 +49,13 @@ export default function CullingExample() {
 }
 ```
 
-Use [Editor#getNotVisibleShapes](?) to get all shapes whose bounds don't intersect the viewport. Use [Editor#getCulledShapes](?) to get the final set of shapes that won't render. The difference between these is that `getCulledShapes` excludes selected shapes and the shape currently being edited, so users can always see what they're working with.
+Use [Editor#getNotVisibleShapes](?) to get the IDs of all shapes whose bounds don't intersect the viewport. Use [Editor#getCulledShapes](?) to get the final set of shape IDs that won't render. The difference between these is that `getCulledShapes` excludes selected shapes and the shape currently being edited, so users can always see what they're working with.
 
 ## How it works
 
 The culling system operates in two layers.
 
-The first layer identifies all shapes whose page bounds don't intersect with the viewport. This calculation iterates through every shape on the current page and performs a bounds collision check. The comparison is fast enough to run reactively.
+The first layer identifies all shapes whose page bounds don't intersect with the viewport. It queries the editor's spatial index for shapes inside the viewport bounds, then marks everything else as not visible.
 
 The second layer refines this set by removing shapes that should remain visible despite being outside the viewport. Selected shapes and the currently editing shape are never culled. This means users can scroll a shape partially or fully out of view while still seeing and interacting with it.
 

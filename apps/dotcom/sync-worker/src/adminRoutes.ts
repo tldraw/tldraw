@@ -1,11 +1,23 @@
-import { FeatureFlagKey, TlaFile } from '@tldraw/dotcom-shared'
+import {
+	AdminFileAssetsResponseBody,
+	FILE_PREFIX,
+	FeatureFlagKey,
+	LOCAL_FILE_PREFIX,
+	PUBLISH_PREFIX,
+	ROOM_PREFIX,
+	TlaFile,
+	WELCOME_CREATE_SOURCE,
+} from '@tldraw/dotcom-shared'
 import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
-import { sql } from 'kysely'
+import PQueue from 'p-queue'
+import { getUploadObjectName } from './assetAssociation'
 import { createPostgresConnectionPool } from './postgres'
-import { returnFileSnapshot } from './routes/tla/getFileSnapshot'
+import { getR2KeyForRoom } from './r2'
+import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
+import { undeleteFile } from './undeleteFile'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
@@ -53,91 +65,6 @@ export const adminRoutes = createRouter<Environment>()
 		const user = getUserDurableObject(env, userRow.id)
 		await user.admin_forceHardReboot(userRow.id)
 		return new Response('Rebooted', { status: 200 })
-	})
-	.post('/app/admin/user/migrate', async (res, env) => {
-		const q = res.query['q']
-		if (typeof q !== 'string') {
-			return new Response('Missing query param', { status: 400 })
-		}
-		const userRow = await requireUser(env, q)
-		const user = getUserDurableObject(env, userRow.id)
-		const result = await user.admin_migrateToGroups(userRow.id, uniqueId())
-		return json(result)
-	})
-	.get('/app/admin/unmigrated_users_count', async (_res, env) => {
-		const pg = createPostgresConnectionPool(env, '/app/admin/unmigrated_users_count')
-		return json({ count: await getNumUnmigratedUsers(pg) })
-	})
-	.get('/app/admin/migrate_users_batch', async (res, env) => {
-		let stopRequested = false
-
-		// Parse query parameters for batch configuration
-		const sleepMs = parseInt((res.query['sleepMs'] as string) || '100')
-
-		return new Response(
-			new ReadableStream({
-				async start(controller) {
-					try {
-						// Helper function to send progress events
-						const sendProgress = (step: string, message: string, details?: any) => {
-							const event = {
-								type: 'progress',
-								step,
-								message,
-								timestamp: Date.now(),
-								details,
-							}
-							controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`))
-						}
-
-						const shouldStop = () => stopRequested
-
-						sendProgress('starting', 'Beginning batch user migration process...')
-
-						const hasMore = await startUserMigration(env, sendProgress, shouldStop, sleepMs)
-
-						// Send completion event
-						const completionEvent = {
-							type: 'complete',
-							step: 'finished',
-							message: stopRequested
-								? 'Batch migration stopped by user'
-								: 'Batch migration completed successfully',
-							timestamp: Date.now(),
-							hasMore,
-						}
-						controller.enqueue(
-							new TextEncoder().encode(`data: ${JSON.stringify(completionEvent)}\n\n`)
-						)
-					} catch (error) {
-						// Send error event
-						const errorEvent = {
-							type: 'error',
-							step: 'error',
-							message: error instanceof Error ? error.message : 'Unknown error occurred',
-							timestamp: Date.now(),
-							details: { error: error instanceof Error ? error.stack : String(error) },
-						}
-						controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(errorEvent)}\n\n`))
-					} finally {
-						controller.close()
-					}
-				},
-				cancel() {
-					// Called when client closes the EventSource connection
-					stopRequested = true
-				},
-			}),
-			{
-				headers: {
-					'Content-Type': 'text/event-stream',
-					'Cache-Control': 'no-cache',
-					Connection: 'keep-alive',
-					'Access-Control-Allow-Origin': '*',
-					'Access-Control-Allow-Headers': 'Cache-Control',
-				},
-			}
-		)
 	})
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
@@ -187,6 +114,87 @@ export const adminRoutes = createRouter<Environment>()
 			}
 		}
 		return await hardDeleteAppFile({ pg, file, env })
+	})
+	.post('/app/admin/undelete_file/:fileId', async (res, env) => {
+		const fileId = res.params.fileId
+		assert(typeof fileId === 'string', 'fileId is required')
+
+		const pg = createPostgresConnectionPool(env, '/app/admin/undelete_file')
+		const outcome = await undeleteFile(pg, fileId)
+		if (outcome.result === 'not_found') {
+			return new Response('File not found', { status: 404 })
+		}
+		if (outcome.result === 'not_deleted') {
+			return new Response('File is not deleted', { status: 400 })
+		}
+		if (outcome.result === 'group_deleted') {
+			return new Response('Owning workspace is deleted — restore the workspace first', {
+				status: 409,
+			})
+		}
+		// Hard-reboot every affected user so the restored rows replicate to their session (the
+		// isDeleted false-flip case flagged in dotcom-shared mutators.ts). Best-effort: the
+		// writes already committed, so a reboot failure must not surface as a 500 (a retry would
+		// just 400 with 'File is not deleted' without rebooting anyone). Bounded concurrency keeps
+		// us inside the worker's connection budget for workspaces with many members.
+		const rebootQueue = new PQueue({ concurrency: 5 })
+		await rebootQueue.addAll(
+			outcome.rebootUserIds.map((userId) => async () => {
+				try {
+					await getUserDurableObject(env, userId).admin_forceHardReboot(userId)
+				} catch (e) {
+					console.error(`Failed to reboot user ${userId} after undeleting file ${fileId}`, e)
+				}
+			})
+		)
+		return json({ success: true })
+	})
+	// Deleted files the user OWNS: legacy direct owner, their home workspace (group id = user
+	// id), or a workspace where they hold the owner role. Mere memberships and guest files are
+	// excluded — the per-row Undelete button restores files, so the list must only contain files
+	// the user legitimately owns. Queried from Postgres because the user's replicated store
+	// filters out their own deleted files (see fetchEverythingSql).
+	.get('/app/admin/user/deleted_files', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+		const userRow = await requireUser(env, q)
+		const pg = createPostgresConnectionPool(env, '/app/admin/user/deleted_files')
+		const files = await pg
+			.selectFrom('file')
+			.leftJoin('group', 'group.id', 'file.owningGroupId')
+			.leftJoin('group_user', (join) =>
+				join
+					.onRef('group_user.groupId', '=', 'file.owningGroupId')
+					.on('group_user.userId', '=', userRow.id)
+			)
+			.where('file.isDeleted', '=', true)
+			// A deleted file whose owning workspace is also deleted can't be restored (undeleteFile
+			// blocks it, see undeleteFile.ts) until the workspace is restored first, so hide it here.
+			.where((eb) =>
+				eb.or([eb('group.isDeleted', '=', false), eb('file.owningGroupId', 'is', null)])
+			)
+			.where((eb) =>
+				eb.or([
+					eb('file.ownerId', '=', userRow.id),
+					eb('file.owningGroupId', '=', userRow.id),
+					eb(
+						'file.owningGroupId',
+						'in',
+						eb
+							.selectFrom('group_user')
+							.select('group_user.groupId')
+							.where('group_user.userId', '=', userRow.id)
+							.where('group_user.role', '=', 'owner')
+					),
+				])
+			)
+			.selectAll('file')
+			.select(['group.name as workspaceName', 'group_user.role as workspaceRole'])
+			.orderBy('file.updatedAt', 'desc')
+			.execute()
+		return json(files)
 	})
 	.post('/app/admin/delete_user', async (res, env) => {
 		const q = res.query['q']
@@ -264,6 +272,193 @@ export const adminRoutes = createRouter<Environment>()
 			}
 		)
 	})
+	// Read-only asset health report for a file: is each asset's object still in the uploads
+	// bucket, and is it associated with the file? Explains files stuck in a zero-progress
+	// association loop.
+	.get('/app/admin/file-assets/:slug', async (res, env) => {
+		const slug = res.params.slug
+		assert(typeof slug === 'string', 'slug is required')
+
+		const pg = createPostgresConnectionPool(env, '/app/admin/file-assets')
+		const file = await pg
+			.selectFrom('file')
+			.where('id', '=', slug)
+			.select(['id', 'name', 'ownerId', 'owningGroupId', 'isDeleted', 'createSource'])
+			.executeTakeFirst()
+
+		const snapshot = await getFileSnapshot(env, slug, true)
+		if (!snapshot) {
+			throw new StatusError(404, `No persisted snapshot for ${slug}`)
+		}
+
+		// Mirrors how the association pass parses asset records (see associatePendingAssets)
+		const userContentUrl = env.USER_CONTENT_URL
+		const assets: Array<{
+			assetId: string
+			objectName: string
+			src: string
+			fileIdMeta: string | null
+			associated: boolean
+			oldFormatUrl: boolean
+			inBucket: boolean | null
+			sizeBytes: number | null
+		}> = []
+		let totalShapes = 0
+		const shapesByType: Record<string, number> = {}
+		// Assets the association pass can never act on (bookmarks, non-http srcs, R2-invalid
+		// object names). Counted instead of reported as missing uploads.
+		let external = 0
+		for (const { state } of snapshot.documents) {
+			const record = state as any
+			if (record.typeName === 'shape') {
+				totalShapes++
+				shapesByType[record.type] = (shapesByType[record.type] ?? 0) + 1
+				continue
+			}
+			if (record.typeName !== 'asset') continue
+			const src = record.props?.src
+			if (!src) continue
+			const objectName = getUploadObjectName(record)
+			if (!objectName) {
+				external++
+				continue
+			}
+			const fileIdMeta = record.meta?.fileId ?? null
+			const associated = fileIdMeta === slug
+			assets.push({
+				assetId: record.id,
+				objectName,
+				src,
+				fileIdMeta,
+				associated,
+				oldFormatUrl:
+					associated &&
+					src.startsWith('http') &&
+					!!userContentUrl &&
+					!src.startsWith(userContentUrl),
+				// null until the head check settles; a failed check stays null so R2 flakiness
+				// doesn't read as a confirmed-missing object
+				inBucket: null,
+				sizeBytes: null,
+			})
+		}
+
+		// Bounded concurrency keeps us inside the worker's connection budget; persistent head
+		// failures become warnings rather than failing the report
+		const warnings: string[] = []
+		const headQueue = new PQueue({ concurrency: 5 })
+		await headQueue.addAll(
+			assets.map((asset) => async () => {
+				try {
+					const head = await retry(() => env.UPLOADS.head(asset.objectName), {
+						attempts: 2,
+						waitDuration: 500,
+					})
+					asset.inBucket = !!head
+					asset.sizeBytes = head?.size ?? null
+				} catch (e) {
+					warnings.push(`head failed for ${asset.objectName}: ${e}`)
+				}
+			})
+		)
+
+		// Cross-check the asset table both ways: which fileId the DB thinks owns each referenced
+		// object, and rows claimed by this file whose objects the snapshot no longer references
+		const referencedSet = new Set(assets.map((a) => a.objectName))
+		const [dbRowsForReferenced, rowsForThisFile] = await Promise.all([
+			referencedSet.size > 0
+				? pg
+						.selectFrom('asset')
+						.where('objectName', 'in', [...referencedSet])
+						.select(['objectName', 'fileId'])
+						.execute()
+				: [],
+			pg.selectFrom('asset').where('fileId', '=', slug).select(['objectName']).execute(),
+		])
+		const dbFileIdByObjectName = new Map(dbRowsForReferenced.map((r) => [r.objectName, r.fileId]))
+		const orphaned = rowsForThisFile.filter((row) => !referencedSet.has(row.objectName)).length
+
+		// Mirrors loadCreateSourceData: exists means seeding from this source would find content.
+		// Readonly and snapshot prefixes need slug translation to check, so they report null (not
+		// checked), as does a failed check.
+		let source: { raw: string; exists: boolean | null } | null = null
+		if (file?.createSource) {
+			const raw = file.createSource
+			const [prefix, id] = raw.split('/')
+			let exists: boolean | null = null
+			try {
+				if (raw === WELCOME_CREATE_SOURCE || prefix === LOCAL_FILE_PREFIX) {
+					exists = true
+				} else if (prefix === FILE_PREFIX && id) {
+					exists = !!(await env.ROOMS.head(getR2KeyForRoom({ slug: id, isApp: true })))
+				} else if (prefix === PUBLISH_PREFIX && id) {
+					exists = !!(await pg
+						.selectFrom('file')
+						.where('publishedSlug', '=', id)
+						.where('published', '=', true)
+						.select('id')
+						.executeTakeFirst())
+				} else if (prefix === ROOM_PREFIX && id) {
+					exists = !!(await env.ROOMS.head(getR2KeyForRoom({ slug: id, isApp: false })))
+				}
+			} catch (e) {
+				warnings.push(`createSource check failed for ${raw}: ${e}`)
+				exists = null
+			}
+			source = { raw, exists }
+		}
+
+		let associated = 0
+		let oldFormatUrls = 0
+		let missingInBucket = 0
+		let headFailures = 0
+		let totalSizeBytes = 0
+		let largestSizeBytes = 0
+		for (const a of assets) {
+			if (a.associated) associated++
+			if (a.oldFormatUrl) oldFormatUrls++
+			if (a.inBucket === false) missingInBucket++
+			if (a.inBucket === null) headFailures++
+			if (a.sizeBytes !== null) {
+				totalSizeBytes += a.sizeBytes
+				largestSizeBytes = Math.max(largestSizeBytes, a.sizeBytes)
+			}
+		}
+
+		const report: AdminFileAssetsResponseBody = {
+			file: file ?? null,
+			source,
+			shapes: { total: totalShapes, byType: shapesByType },
+			assets: {
+				// Every asset record in the snapshot; the upload-oriented counts below exclude
+				// the `external` ones
+				total: assets.length + external,
+				associated,
+				pending: assets.length - associated,
+				external,
+				oldFormatUrls,
+				missingInBucket,
+				headFailures,
+				totalSizeBytes,
+				largestSizeBytes,
+				problems: assets
+					.filter((a) => !a.associated || a.inBucket !== true)
+					.map((a) => ({
+						assetId: a.assetId,
+						objectName: a.objectName,
+						src: a.src,
+						fileIdMeta: a.fileIdMeta,
+						inBucket: a.inBucket,
+						dbRow: dbFileIdByObjectName.has(a.objectName)
+							? { fileId: dbFileIdByObjectName.get(a.objectName)! }
+							: null,
+					})),
+			},
+			dbRows: { forThisFile: rowsForThisFile.length, orphaned },
+			warnings,
+		}
+		return json(report)
+	})
 	.get('/app/admin/download-tldr/:fileSlug', async (res, env) => {
 		const fileSlug = res.params.fileSlug
 		assert(typeof fileSlug === 'string', 'fileSlug is required')
@@ -273,6 +468,61 @@ export const adminRoutes = createRouter<Environment>()
 		const fileSlug = res.params.fileSlug
 		assert(typeof fileSlug === 'string', 'fileSlug is required')
 		return await returnFileSnapshot(env, fileSlug, false)
+	})
+	// The current welcome template (the file new workspaces fork their first file from), or
+	// null when none is set and the committed default is used. Also reports whether the marked
+	// file is still live and published: the resolver silently falls back to the default if it
+	// isn't, so the admin needs to see a stale pointer rather than assume it's working. See
+	// resolveWelcomeSnapshot.
+	.get('/app/admin/welcome-template', async (_res, env) => {
+		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
+		const row = await pg.selectFrom('welcome_template').selectAll().executeTakeFirst()
+		if (!row) return json(null)
+		const file = await pg
+			.selectFrom('file')
+			.where('id', '=', row.fileId)
+			.select(['published', 'isDeleted'])
+			.executeTakeFirst()
+		const live = !!file && !file.isDeleted && file.published
+		return json({ ...row, live })
+	})
+	// Mark a published file as the welcome template. We store its publishedSlug, so the file
+	// must be published first; new workspaces then fork its published snapshot.
+	.post('/app/admin/welcome-template', async (req, env) => {
+		const { fileId } = (await req.json()) as { fileId?: unknown }
+		assert(typeof fileId === 'string' && fileId.length > 0, 'fileId (string) is required')
+
+		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
+		const file = await pg
+			.selectFrom('file')
+			.where('id', '=', fileId)
+			.select(['id', 'published', 'publishedSlug', 'isDeleted'])
+			.executeTakeFirst()
+		if (!file) throw new StatusError(404, `File not found: ${fileId}`)
+		if (!file.published) {
+			throw new StatusError(400, 'File must be published before it can be the welcome template')
+		}
+
+		const updatedAt = Date.now()
+		await pg
+			.insertInto('welcome_template')
+			.values({ id: true, fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
+			.onConflict((oc) =>
+				oc
+					.column('id')
+					.doUpdateSet({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt })
+			)
+			.execute()
+		// Return the same shape as GET, including `live`, so the admin UI doesn't flash the
+		// "not published" warning right after a successful set.
+		const live = !file.isDeleted && file.published
+		return json({ fileId: file.id, publishedSlug: file.publishedSlug, updatedAt, live })
+	})
+	// Clear the welcome template, reverting new workspaces to the committed default snapshot.
+	.post('/app/admin/welcome-template/clear', async (_res, env) => {
+		const pg = createPostgresConnectionPool(env, '/app/admin/welcome-template')
+		await pg.deleteFrom('welcome_template').execute()
+		return json({ cleared: true })
 	})
 
 async function maybeHardDeleteLegacyFile({ id, env }: { id: string; env: Environment }) {
@@ -473,139 +723,4 @@ async function performUserDeletion(
 	// Clean up user durable object state and R2 data
 	const user = getUserDurableObject(env, userRow.id)
 	await user.admin_delete(userRow.id)
-}
-
-async function getNextUnmigratedUser(pg: ReturnType<typeof createPostgresConnectionPool>) {
-	return await pg
-		.selectFrom('user')
-		.where((eb) => eb.or([eb('flags', 'not like', '%groups_backend%'), eb('flags', 'is', null)]))
-		.select(['id', 'email', 'name'])
-		.limit(1)
-		.executeTakeFirst()
-}
-
-async function getNumUnmigratedUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
-	const res = await sql<{
-		count: number
-	}>`select count(*) from public.user where flags not like '%groups_backend%' or flags is null`.execute(
-		pg
-	)
-	return res.rows[0].count
-}
-async function getTotalUsers(pg: ReturnType<typeof createPostgresConnectionPool>) {
-	const res = await sql<{ count: number }>`select count(*) from public.user`.execute(pg)
-	return res.rows[0].count
-}
-
-async function startUserMigration(
-	env: Environment,
-	sendProgress: (step: string, message: string, details?: any) => void,
-	shouldStop: () => boolean,
-	sleepTime: number = 100
-): Promise<boolean> {
-	const batchSize = 50
-	const pg = createPostgresConnectionPool(env, '/app/admin/migrate_users_batch')
-
-	sendProgress('query', 'Fetching users without groups_backend flag...')
-
-	const usersToMigrate = await getNumUnmigratedUsers(pg)
-	const totalUsers = await getTotalUsers(pg)
-	let successCount = 0
-	let failureCount = 0
-
-	function getStats() {
-		return {
-			totalUsers,
-			usersToMigrate,
-			successCount,
-			failureCount,
-			progress: successCount / usersToMigrate,
-		}
-	}
-
-	sendProgress('query', `${usersToMigrate}/${totalUsers} users left to migrate`, getStats())
-
-	if (usersToMigrate === 0) {
-		sendProgress('complete', 'No users to migrate')
-		return false
-	}
-
-	const failures: Array<{ userId: string; email: string; error: string }> = []
-	let processedCount = 0
-
-	// Process users in batches
-	while (processedCount < batchSize) {
-		const userRow = await getNextUnmigratedUser(pg)
-		if (!userRow) {
-			break
-		}
-
-		// Check if we should stop
-		if (shouldStop()) {
-			sendProgress('stopped', 'Migration stopped by user', getStats())
-			break
-		}
-
-		sendProgress('migrating', `Migrating user ${userRow.email}`, {
-			userId: userRow.id,
-			email: userRow.email,
-			...getStats(),
-		})
-
-		try {
-			await retry(async () => {
-				const user = getUserDurableObject(env, userRow.id)
-
-				const result = await sql<{
-					files_migrated: number
-					pinned_files_migrated: number
-					flag_added: boolean
-				}>`SELECT * FROM migrate_user_to_groups(${userRow.id}, ${uniqueId()})`.execute(pg)
-				await user.admin_forceHardReboot(userRow.id)
-
-				successCount++
-				sendProgress('success', `Successfully migrated user ${userRow.email}`, {
-					userId: userRow.id,
-					email: userRow.email,
-					result: result.rows[0],
-					...getStats(),
-				})
-			})
-		} catch (error) {
-			failureCount++
-			const errorMessage = error instanceof Error ? error.message : String(error)
-			failures.push({
-				userId: userRow.id,
-				email: userRow.email,
-				error: errorMessage,
-			})
-
-			// Send failure event to client so it can be stored in the log
-			sendProgress('failure', `Failed to migrate ${userRow.email}`, {
-				userId: userRow.id,
-				email: userRow.email,
-				error: errorMessage,
-				...getStats(),
-			})
-
-			// Stop processing immediately after reporting the failure
-			sendProgress('summary', 'Migration stopped due to failure', {
-				failures: failures.length > 0 ? failures : undefined,
-			})
-			return false
-		}
-
-		processedCount++
-
-		// Brief pause between migrations to avoid overwhelming the system
-		await sleep(sleepTime)
-	}
-
-	sendProgress('summary', 'Migration batch complete', {
-		failures: failures.length > 0 ? failures : undefined,
-	})
-
-	// Check if there are more users to migrate
-	const remainingUsers = await getNumUnmigratedUsers(pg)
-	return remainingUsers > 0
 }

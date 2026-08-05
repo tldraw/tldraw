@@ -1,6 +1,13 @@
 name: Deploy MCP app
 
 on:
+  # Auto-deploy whenever production is updated, keeping the public MCP worker on
+  # the same commit and SDK build as production dotcom. Only production triggers a
+  # deploy: there is no staging worker, so a push to main must not overwrite the
+  # shared `tldraw-mcp-app` worker.
+  push:
+    branches:
+      - production
   workflow_dispatch:
     inputs:
       target:
@@ -12,7 +19,7 @@ env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
   TLDRAW_ENV: production
-  TARGET: ${{ github.event.inputs.target }}
+  TARGET: ${{ github.event.inputs.target || github.ref_name }}
 
 defaults:
   run:

@@ -136,3 +136,33 @@ it('Accepts a background option', async () => {
 	)
 	expect(svg2.style.backgroundColor).toBe('transparent')
 })
+
+// Note: this test exports, which bumps a module-level id counter that the snapshot tests
+// above are sensitive to - so keep it after them.
+it('waits for required fonts to load before measuring the export', async () => {
+	// Text geometry is measured from the loaded font, so the export must not be measured
+	// until the fonts it uses have loaded.
+	let resolveFonts!: () => void
+	const fontsLoaded = new Promise<void>((resolve) => {
+		resolveFonts = resolve
+	})
+	const loadFonts = vi
+		.spyOn(editor.fonts, 'loadRequiredFontsForCurrentPage')
+		.mockReturnValue(fontsLoaded)
+
+	let resolved = false
+	const exportPromise = editor.getSvgString(editor.getSelectedShapeIds()).then((result) => {
+		resolved = true
+		return result
+	})
+
+	// let the export run up to the font-loading await
+	await new Promise((resolve) => setTimeout(resolve, 0))
+	expect(loadFonts).toHaveBeenCalled()
+	expect(resolved).toBe(false)
+
+	resolveFonts()
+	const svg = await exportPromise
+	expect(resolved).toBe(true)
+	expect(svg!.svg).toMatch(/^<svg/)
+})

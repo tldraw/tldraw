@@ -407,6 +407,11 @@
 			}
 		},
 		{
+			"files": ["internal/scripts/process-compose-bin.cjs"],
+			"env": { "node": true },
+			"globals": { "fetch": "readonly" }
+		},
+		{
 			"files": ["apps/mcp-app/**/*"],
 			"rules": {
 				"tldraw/no-export-star": "off"

@@ -81,7 +81,6 @@ export class Erasing extends StateNode {
 	update() {
 		const { editor, excludedShapeIds } = this
 		const erasingShapeIds = editor.getErasingShapeIds()
-		const zoomLevel = editor.getZoomLevel()
 		const currentPagePoint = editor.inputs.getCurrentPagePoint()
 		const previousPagePoint = editor.inputs.getPreviousPagePoint()
 
@@ -89,7 +88,7 @@ export class Erasing extends StateNode {
 
 		// Otherwise, erasing shapes are all the shapes that were hit before plus any new shapes that are hit
 		const erasing = new Set<TLShapeId>(erasingShapeIds)
-		const minDist = this.editor.options.hitTestMargin / zoomLevel
+		const minDist = this.editor.getHitTestMargin()
 
 		// Create bounds around line segment with margin
 		const lineBounds = Box.FromPoints([previousPagePoint, currentPagePoint]).expandBy(minDist)

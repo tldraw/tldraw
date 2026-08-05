@@ -12,11 +12,68 @@ status: draft
 date: 1/31/2026
 ---
 
-TODO: Document the eraser tool including:
+The eraser tool deletes shapes from the canvas. Click a shape to erase it, or drag to erase every shape along the pointer's path. Users can select the eraser from the toolbar or press `E`; you can also activate it programmatically:
 
-- How the eraser tool works
-- Eraser interaction patterns (click vs drag)
-- Scribble visualization during erasing
-- What can and cannot be erased
-- Keyboard shortcuts
-- Eraser tool states
+```tsx
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw onMount={(editor) => editor.setCurrentTool('eraser')} />
+		</div>
+	)
+}
+```
+
+## Click vs. drag
+
+A click erases the shapes under the pointer. Hold Cmd/Ctrl while clicking to erase only the topmost shape.
+
+Dragging (or long-pressing, on touch devices) starts scribble erasing. A scribble trail follows the pointer, and every shape the path crosses is marked for deletion. Shapes aren't deleted until you release: marked shapes render at reduced opacity (32% of normal) so the user can see what's about to go.
+
+Releasing the pointer deletes the marked shapes. Pressing Escape cancels the gesture and restores them.
+
+Each erase gesture is a single history stopping point, so one undo brings back everything it deleted.
+
+## What can be erased
+
+Locked shapes can't be erased. The eraser also skips shapes with a locked ancestor. See [Locked shapes](/sdk-features/locked-shapes).
+
+Groups are erased as a unit: hitting any shape inside a group marks the whole group. The exception is when the drag starts inside the group's bounds—then the eraser works on the shapes inside it and leaves the group alone.
+
+Frames behave the same way. Start dragging inside a frame and the eraser deletes the frame's children without deleting the frame itself.
+
+## Erasing state
+
+While a gesture is in progress, the editor tracks marked shapes in the current page state:
+
+```ts
+// Mark shapes as being erased (they render faded)
+editor.setErasingShapes([shapeId1, shapeId2])
+
+// Read the marked shapes
+editor.getErasingShapeIds()
+editor.getErasingShapes()
+```
+
+The eraser uses these methods internally. You can use them from your own tools to get the same faded preview before deleting shapes with [Editor#deleteShapes](?).
+
+## Tool states
+
+The eraser is a [StateNode](?) with the id `eraser` and three child states:
+
+| State      | Description                                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------------------ |
+| `idle`     | Waiting for input. Pointer down transitions to `pointing`.                                                         |
+| `pointing` | The pointer is down. Shapes under the point are marked; releasing deletes them. Dragging transitions to `erasing`. |
+| `erasing`  | Scribble erasing. Marks every shape the pointer path crosses; releasing deletes them.                              |
+
+Hit testing during scribble erasing uses the segment between the previous and current pointer positions, with a margin of `editor.options.hitTestMargin` divided by the zoom level. This catches shapes even when the pointer moves quickly.
+
+## Related
+
+- [Tools](/sdk-features/tools) — How tools and their child states work
+- [Scribble](/sdk-features/scribble) — The scribble system that draws the eraser trail
+- [Locked shapes](/sdk-features/locked-shapes) — Locking shapes to protect them from edits

@@ -1,13 +1,18 @@
-import { InstancePresenceRecordType } from '@tldraw/tlschema'
+// oxlint-disable typescript/no-deprecated -- these tests cover the deprecated canvas cursor overlay
+import { createUserId, InstancePresenceRecordType } from '@tldraw/tlschema'
 import { vi } from 'vitest'
 import { defaultOverlayUtils } from '../../lib/defaultOverlayUtils'
 import { CollaboratorCursorOverlayUtil } from '../../lib/overlays/CollaboratorCursorOverlayUtil'
 import { TestEditor } from '../TestEditor'
 
+// `CollaboratorCursorOverlayUtil` is deprecated and no longer in `defaultOverlayUtils` — cursors
+// render as DOM elements now — so these tests register it explicitly, the way an app opting back
+// into canvas cursors would.
+
 let editor: TestEditor
 
 beforeEach(() => {
-	editor = new TestEditor({ overlayUtils: defaultOverlayUtils })
+	editor = new TestEditor({ overlayUtils: [...defaultOverlayUtils, CollaboratorCursorOverlayUtil] })
 })
 
 describe('CollaboratorCursorOverlayUtil', () => {
@@ -73,7 +78,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer1'),
-					userId: 'peer1',
+					userId: createUserId('peer1'),
 					userName: 'Peer 1',
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 10, y: 10, rotation: 0 },
@@ -98,7 +103,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer1'),
-					userId: 'peer1',
+					userId: createUserId('peer1'),
 					userName: 'Alice',
 					currentPageId: pageId,
 					color: '#a',
@@ -107,7 +112,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 				}),
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer2'),
-					userId: 'peer2',
+					userId: createUserId('peer2'),
 					userName: 'Bob',
 					currentPageId: pageId,
 					color: '#b',
@@ -130,7 +135,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer3'),
-					userId: 'peer3',
+					userId: createUserId('peer3'),
 					userName: 'Carol',
 					currentPageId: pageId,
 					color: '#c',
@@ -150,7 +155,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 				// inactive (way past timeout) — not shown
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('p_inactive'),
-					userId: 'p_inactive',
+					userId: createUserId('p_inactive'),
 					userName: 'Inactive',
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 10, y: 10, rotation: 0 },
@@ -159,7 +164,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 				// idle (between thresholds) — shown
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('p_idle'),
-					userId: 'p_idle',
+					userId: createUserId('p_idle'),
 					userName: 'Idle',
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 15, y: 15, rotation: 0 },
@@ -168,7 +173,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 				// active — shown
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('p_active'),
-					userId: 'p_active',
+					userId: createUserId('p_active'),
 					userName: 'Active',
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 20, y: 20, rotation: 0 },
@@ -184,12 +189,12 @@ describe('CollaboratorCursorOverlayUtil', () => {
 
 		it('shows inactive collaborators when following them', () => {
 			const pageId = editor.getCurrentPageId()
-			editor.updateInstanceState({ followingUserId: 'peerF' })
+			editor.updateInstanceState({ followingUserId: createUserId('peerF') })
 			const now = Date.now()
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('presenceF'),
-					userId: 'peerF',
+					userId: createUserId('peerF'),
 					userName: 'Followed',
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 10, y: 10, rotation: 0 },
@@ -204,12 +209,12 @@ describe('CollaboratorCursorOverlayUtil', () => {
 
 		it('shows inactive collaborators when they are highlighted', () => {
 			const pageId = editor.getCurrentPageId()
-			editor.updateInstanceState({ highlightedUserIds: ['peerH'] })
+			editor.updateInstanceState({ highlightedUserIds: [createUserId('peerH')] })
 			const now = Date.now()
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('presenceH'),
-					userId: 'peerH',
+					userId: createUserId('peerH'),
 					userName: 'Highlighted',
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 20, y: 20, rotation: 0 },
@@ -228,12 +233,12 @@ describe('CollaboratorCursorOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('presenceFU'),
-					userId: 'peerFU',
+					userId: createUserId('peerFU'),
 					userName: 'Follower',
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 30, y: 30, rotation: 0 },
 					lastActivityTimestamp: now - 5 * 1000,
-					followingUserId: editor.user.getId(),
+					followingUserId: editor.user.getRecordId(),
 				}),
 			])
 			const overlays = editor.overlays
@@ -248,12 +253,12 @@ describe('CollaboratorCursorOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('presenceChat'),
-					userId: 'peerChat',
+					userId: createUserId('peerChat'),
 					userName: 'Follower Chat',
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 40, y: 40, rotation: 0 },
 					lastActivityTimestamp: now - 5 * 1000,
-					followingUserId: editor.user.getId(),
+					followingUserId: editor.user.getRecordId(),
 					chatMessage: 'Hello',
 				}),
 			])
@@ -268,7 +273,7 @@ describe('CollaboratorCursorOverlayUtil', () => {
 			editor.store.put([
 				InstancePresenceRecordType.create({
 					id: InstancePresenceRecordType.createId('peer4'),
-					userId: 'peer4',
+					userId: createUserId('peer4'),
 					userName: 'New User',
 					currentPageId: pageId,
 					cursor: { type: 'default', x: 10, y: 10, rotation: 0 },
@@ -284,13 +289,15 @@ describe('CollaboratorCursorOverlayUtil', () => {
 		it('invalidates cached overlays as collaborator activity ages', () => {
 			vi.useFakeTimers()
 			try {
-				const timedEditor = new TestEditor({ overlayUtils: defaultOverlayUtils })
+				const timedEditor = new TestEditor({
+					overlayUtils: [...defaultOverlayUtils, CollaboratorCursorOverlayUtil],
+				})
 				const pageId = timedEditor.getCurrentPageId()
 				const now = Date.now()
 				timedEditor.store.put([
 					InstancePresenceRecordType.create({
 						id: InstancePresenceRecordType.createId('peer_timed'),
-						userId: 'peer_timed',
+						userId: createUserId('peer_timed'),
 						userName: 'Timed Peer',
 						currentPageId: pageId,
 						cursor: { type: 'default', x: 10, y: 10, rotation: 0 },

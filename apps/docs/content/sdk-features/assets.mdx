@@ -108,11 +108,11 @@ The default behavior depends on your store setup:
 
 The interface has three methods:
 
-| Method    | Purpose                                           |
-| --------- | ------------------------------------------------- |
-| `upload`  | Store a file and return its URL                   |
-| `resolve` | Return the URL to use when rendering an asset     |
-| `remove`  | Clean up files when assets are deleted (optional) |
+| Method    | Purpose                                                                           |
+| --------- | --------------------------------------------------------------------------------- |
+| `upload`  | Store a file and return its URL                                                   |
+| `resolve` | Return the URL to use when rendering an asset (optional, defaults to `props.src`) |
+| `remove`  | Clean up files when assets are deleted (optional)                                 |
 
 The **upload** method receives an asset record (with metadata already populated) and the File to store. Return an object with `src` (the URL) and optionally `meta` (custom metadata to merge into the asset record). You also get an AbortSignal for cancellation.
 
@@ -206,7 +206,7 @@ The [Editor](?) class provides methods for managing assets:
 | Method                      | Description                               |
 | --------------------------- | ----------------------------------------- |
 | [Editor#createAssets](?)    | Add asset records to the store            |
-| [Editor#updateAssets](?)    | Update existing assets with partial data  |
+| [Editor#updateAssets](?)    | Update existing assets                    |
 | [Editor#deleteAssets](?)    | Remove assets and call the remove handler |
 | [Editor#getAsset](?)        | Get an asset by ID                        |
 | [Editor#getAssets](?)       | Get all assets in the store               |
@@ -218,8 +218,13 @@ Asset operations happen outside the undo/redo history since they're typically pa
 // Create an asset
 editor.createAssets([imageAsset])
 
-// Update an asset (only provide changed fields)
-editor.updateAssets([{ id: imageAsset.id, type: 'image', props: { name: 'new-name.jpg' } }])
+// Update an asset. Spread the existing props: the update replaces them wholesale
+editor.updateAssets([
+	{
+		...imageAsset,
+		props: { ...imageAsset.props, name: 'new-name.jpg' },
+	},
+])
 
 // Get an asset with type safety
 const asset = editor.getAsset<TLImageAsset>(imageAsset.id)
@@ -370,7 +375,7 @@ const assetUtils = defaultAssetUtils.map((util) =>
 <Tldraw assetUtils={assetUtils} />
 ```
 
-`ImageAssetUtil` and `VideoAssetUtil` both expose `maxDimension` and `supportedMimeTypes` options.
+`ImageAssetUtil` exposes `maxDimension` and `supportedMimeTypes` options. `VideoAssetUtil` exposes `supportedMimeTypes`.
 
 ### Asset validation and migrations
 

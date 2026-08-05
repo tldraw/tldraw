@@ -124,10 +124,14 @@ export function parseNodesFromSvg(
 	return out
 }
 
-export function parseClustersFromSvg(root: Element, selector: string): Map<string, ParsedCluster> {
+export function parseClustersFromSvg(
+	root: Element,
+	selector: string,
+	idParser: NodeIdParser = (id) => id
+): Map<string, ParsedCluster> {
 	const out = new Map<string, ParsedCluster>()
 	for (const groupEl of root.querySelectorAll(selector)) {
-		const id = groupEl.getAttribute('id') || ''
+		const id = idParser(groupEl.getAttribute('id') || '')
 		const rect = groupEl.querySelector('rect')
 		if (!rect) continue
 		const rx = parseFloat(rect.getAttribute('x') || '0')

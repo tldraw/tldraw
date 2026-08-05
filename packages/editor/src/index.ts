@@ -19,14 +19,14 @@ export {
 	type TLCanvasComponentProps,
 } from './lib/components/default-components/DefaultCanvas'
 export {
+	DefaultCursor,
+	type TLCursorProps,
+} from './lib/components/default-components/DefaultCursor'
+export {
 	DefaultErrorFallback,
 	type TLErrorFallbackComponent,
 } from './lib/components/default-components/DefaultErrorFallback'
 export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
-export {
-	DefaultSelectionBackground,
-	type TLSelectionBackgroundProps,
-} from './lib/components/default-components/DefaultSelectionBackground'
 export { type TLShapeErrorFallbackComponent } from './lib/components/default-components/DefaultShapeErrorFallback'
 export {
 	DefaultShapeWrapper,
@@ -34,6 +34,11 @@ export {
 } from './lib/components/default-components/DefaultShapeWrapper'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
+export {
+	EditorPortal,
+	useEditorPortalHost,
+	type EditorPortalProps,
+} from './lib/components/EditorPortal'
 export {
 	ErrorBoundary,
 	OptionalErrorBoundary,
@@ -106,6 +111,7 @@ export { ClickManager, type TLClickState } from './lib/editor/managers/ClickMana
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager/EdgeScrollManager'
 export { FontManager } from './lib/editor/managers/FontManager/FontManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager/HistoryManager'
+export { EditorManager } from './lib/editor/managers/EditorManager'
 export { InputsManager } from './lib/editor/managers/InputsManager/InputsManager'
 export {
 	ScribbleManager,
@@ -128,6 +134,7 @@ export {
 export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
 export {
 	TextManager,
+	resolveLineHeightPx,
 	type BatchMeasurementRequest,
 	type TLMeasuredTextSize,
 	type TLMeasureTextOpts,
@@ -185,11 +192,7 @@ export {
 	type TLOverlay,
 	type TLOverlayUtilConstructor,
 } from './lib/editor/overlays/OverlayUtil'
-export {
-	ShapeIndicatorOverlayUtil,
-	strokeShapeIndicators,
-	type TLShapeIndicatorOverlay,
-} from './lib/editor/overlays/ShapeIndicatorOverlayUtil'
+export { strokeShapeIndicators } from './lib/editor/overlays/strokeShapeIndicators'
 export {
 	getPerfectDashProps,
 	type PerfectDashTerminal,
@@ -312,7 +315,6 @@ export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/u
 export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
-export { usePassThroughMouseOverEvents } from './lib/hooks/usePassThroughMouseOverEvents'
 export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
@@ -324,19 +326,23 @@ export {
 	useUniqueSafeId,
 	type SafeId,
 } from './lib/hooks/useSafeId'
-export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
+export { isCursorInViewport } from './lib/utils/collaborators'
+export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
+// oxlint-disable-next-line typescript/no-deprecated
 export { useViewportHeight } from './lib/hooks/useViewportHeight'
 export {
 	LicenseManager,
 	type InvalidLicenseKeyResult,
 	type InvalidLicenseReason,
+	type LicenseFeatureName,
 	type LicenseFromKeyResult,
 	type LicenseInfo,
 	type LicenseState,
 	type ValidLicenseKeyResult,
 } from './lib/license/LicenseManager'
-export { LICENSE_TIMEOUT } from './lib/license/LicenseProvider'
+export { LICENSE_TIMEOUT, useLicenseContext } from './lib/license/LicenseProvider'
+export { useLicenseFeatureFlag } from './lib/license/useLicenseManagerState'
 export {
 	defaultTldrawOptions,
 	type TLClipboardPasteRawInfo,
@@ -458,6 +464,7 @@ export {
 	getGlobalDocument,
 	getGlobalWindow,
 	loopToHtmlElement,
+	moveElementInto,
 	preventDefault,
 	releasePointerCapture,
 	setPointerCapture,

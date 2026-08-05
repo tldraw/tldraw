@@ -100,6 +100,8 @@ export function createMigrationIds<
 	const ID extends string,
 	const Versions extends Record<string, number>,
 >(sequenceId: ID, versions: Versions): { [K in keyof Versions]: `${ID}/${Versions[K]}` } {
+	// Note: not objectMapFromEntries — `keyof Versions` is not narrowed to `string`, which that
+	// helper requires.
 	return Object.fromEntries(
 		objectMapEntries(versions).map(([key, version]) => [key, `${sequenceId}/${version}`] as const)
 	) as any
@@ -132,18 +134,12 @@ export function createRecordMigrationSequence(opts: {
 	return createMigrationSequence({
 		sequenceId,
 		retroactive: opts.retroactive ?? true,
-		sequence: opts.sequence.map((m) =>
-			'id' in m
-				? {
-						...m,
-						scope: 'record',
-						filter: (r: UnknownRecord) =>
-							r.typeName === opts.recordType &&
-							(m.filter?.(r) ?? true) &&
-							(opts.filter?.(r) ?? true),
-					}
-				: m
-		),
+		sequence: opts.sequence.map((m) => ({
+			...m,
+			scope: 'record',
+			filter: (r: UnknownRecord) =>
+				r.typeName === opts.recordType && (m.filter?.(r) ?? true) && (opts.filter?.(r) ?? true),
+		})),
 	})
 }
 

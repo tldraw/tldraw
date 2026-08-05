@@ -34,8 +34,26 @@ function enforceConsistentDependenciesAcrossTheProject({ Yarn }) {
 	}
 }
 
+/**
+ * Require a Node version where `require()` of an ES module works natively, so
+ * published packages can depend on ESM-only modules without breaking CommonJS
+ * consumers. Node 20 is EOL, so we require Node 22.12+, where `require(esm)` is
+ * unflagged; earlier versions throw `ERR_REQUIRE_ESM`.
+ *
+ * @param {Context} context
+ */
+function enforceNodeEngineOnPackages({ Yarn }) {
+	const nodeEngine = '>=22.12.0'
+	for (const workspace of Yarn.workspaces()) {
+		// only the published library packages under packages/*
+		if (!workspace.cwd.startsWith('packages/')) continue
+		workspace.set(['engines', 'node'], nodeEngine)
+	}
+}
+
 module.exports = defineConfig({
 	constraints: async (ctx) => {
 		enforceConsistentDependenciesAcrossTheProject(ctx)
+		enforceNodeEngineOnPackages(ctx)
 	},
 })
