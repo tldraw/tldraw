@@ -262,6 +262,12 @@ export function useClusterModel(
 /**
  * Whether a position-only input change (ids equal, same order) moved a leaf folded inside a badge
  * of the rendered partition — the one move the mid-drag freeze must let through.
+ *
+ * Folded means a member of a displayed badge, not merely "absent from the displayed partition":
+ * the input also carries orphans (threads the rendered partition has never seen) and detached
+ * leaves, which already ride their anchors as plain pins. Neither is in the rendered table, so the
+ * pop-out below can never hold one — counting them here would break the freeze on every
+ * pointermove for the rest of the drag.
  * @internal
  */
 export function anyFoldedLeafMoved(
@@ -270,9 +276,16 @@ export function anyFoldedLeafMoved(
 	rendered: ClusterModel | null
 ): boolean {
 	if (!rendered) return false
-	const visible = rendered.runtime.getVisible()
+	if (prev.leaves.length !== next.leaves.length) return false
+	const folded = new Set<string>()
+	for (const node of rendered.runtime.getVisible().values()) {
+		if (node.count < 2) continue
+		for (const member of node.members) folded.add(member)
+	}
+	// No badges on screen, so nothing can be folded — the common case, and the cheap way out of it.
+	if (folded.size === 0) return false
 	for (let i = 0; i < next.leaves.length; i++) {
-		if (visible.has(next.leaves[i].id)) continue
+		if (!folded.has(next.leaves[i].id)) continue
 		const a = prev.leaves[i].point
 		const b = next.leaves[i].point
 		if (Math.abs(a.x - b.x) > MOVED_LEAF_EPSILON || Math.abs(a.y - b.y) > MOVED_LEAF_EPSILON) {
