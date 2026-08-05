@@ -84,6 +84,8 @@ See the [commenting docs](https://tldraw.dev/docs/commenting) for setup.
 
 ## Bug fixes
 
+- Fix the `tldraw` package failing to resolve `@tldraw/state` and `@tldraw/tlschema` on package managers that enforce strict dependency isolation, such as pnpm. Both were imported without being declared as dependencies. ([#9762](https://github.com/tldraw/tldraw/pull/9762))
+- Fix the zoom keyboard shortcuts (`shift+1`, `shift+2`, and `shift+0`) not working on non-US keyboard layouts. They matched on the typed character, so on layouts whose shifted number row differs from US QWERTY — British PC and German, for example — zoom to selection did nothing and zoom to 100% zoomed in instead. Number-row shortcuts now resolve by physical key. ([#9863](https://github.com/tldraw/tldraw/pull/9863))
 - Fix zooming and panning not working while the cursor is over a non-scrollable UI overlay. The wheel pass-through guard treated any element whose content overflowed as scrollable, and a hover transform on a small overlay was enough to trigger that. Overlays now count as scrollable only when their computed `overflow` says so. ([#9698](https://github.com/tldraw/tldraw/pull/9698))
 - Fix a crash when dragging content from another browser tab whose URL isn't a valid link, which happens when an ad blocker rewrites the dragged URL to something like `about:blank#blocked`. Dropping one now shows an error toast instead of failing validation on the bookmark shape. ([#9598](https://github.com/tldraw/tldraw/pull/9598))
 - Fix the "URL" label wrapping onto two lines in the edit link and embed dialogs. ([#9663](https://github.com/tldraw/tldraw/pull/9663))
