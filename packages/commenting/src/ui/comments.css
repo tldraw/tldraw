@@ -84,6 +84,15 @@
 	overflow-wrap: anywhere;
 }
 
+/* A comment body is read-only but its text must stay selectable so it can be copied. tldraw's
+   container sets `user-select: none` on every descendant (`.tl-container *`) to keep canvas gestures
+   from selecting UI text, so the body and its rendered children have to opt back in. */
+.tlui-cmt-text,
+.tlui-cmt-text * {
+	-webkit-user-select: text;
+	user-select: text;
+}
+
 .tlui-cmt-edited {
 	font-style: italic;
 }
