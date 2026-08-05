@@ -92,4 +92,4 @@ Present the final draft to the user for review. The draft remains in `assets/<to
 ## References
 
 - **Style guide**: See `../shared/blog-guide.md` for voice, tone, and structure.
-- **Writing guide**: See `../shared/writing-guide.md` for general writing conventions.
+- **Writing guide**: See `../../VOICE.md` for general writing conventions.

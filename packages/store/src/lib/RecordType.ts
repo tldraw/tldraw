@@ -138,7 +138,7 @@ export class RecordType<
 			id: (properties as Partial<R>).id ?? this.createId(),
 		} as any
 
-		for (const [k, v] of Object.entries(properties)) {
+		for (const [k, v] of objectMapEntries(properties)) {
 			if (v !== undefined) {
 				result[k] = v
 			}
