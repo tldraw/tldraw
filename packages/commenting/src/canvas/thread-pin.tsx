@@ -79,6 +79,9 @@ export const ThreadPin = memo(function ThreadPin({
 	// While dragging the marker, its page point overrides the anchor's; committed on drop.
 	const [dragPagePoint, setDragPagePoint] = useState<{ x: number; y: number } | null>(null)
 	const [resizeBounds, setResizeBounds] = useState<BoxModel | null>(null)
+	// True from the moment a press captures the pointer on the marker until it's released — a superset
+	// of the drag, since a press captures before it's moved. Keeps the marker exempt from the cull.
+	const [pressed, setPressed] = useState(false)
 	// Hovering the marker previews the thread's opening comment, on the delay every marker uses.
 	const { previewShown, previewHandlers } = useMarkerPreview(editor, `pin:${thread.id}`)
 	const previewThreads = useMemo(() => [thread], [thread])
@@ -158,9 +161,12 @@ export const ThreadPin = memo(function ThreadPin({
 		return () => document.removeEventListener('pointerdown', onPointerDown, true)
 	}, [open, editor])
 
-	// The pin must not unmount mid-interaction: an open thread's popover hangs off it, and a drag
-	// or resize holds pointer capture on it — so those states are exempt from the viewport cull.
-	const exemptFromCull = open || dragPagePoint != null || resizeBounds != null
+	// The pin must not unmount mid-interaction: an open thread's popover hangs off it, and a press
+	// or resize holds a pointer capture on it. Unmounting a captured element strands the gesture —
+	// its pointer-up never fires, so the drag never ends and the hint never clears — so any pin
+	// holding the pointer is exempt from the viewport cull. `pressed` covers the whole capture, from
+	// pointer-down through release, closing the window before the first drag move sets `dragPagePoint`.
+	const exemptFromCull = open || pressed || resizeBounds != null
 	const point = useValue(
 		'pin point',
 		() => {
@@ -227,6 +233,7 @@ export const ThreadPin = memo(function ThreadPin({
 			offsetX: anchorPage ? anchorPage.x - grabPage.x : 0,
 			offsetY: anchorPage ? anchorPage.y - grabPage.y : 0,
 		}
+		setPressed(true)
 		e.currentTarget.setPointerCapture(e.pointerId)
 	}
 	const onDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
@@ -252,6 +259,7 @@ export const ThreadPin = memo(function ThreadPin({
 	const cancelDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
 		const drag = dragRef.current
 		dragRef.current = null
+		setPressed(false)
 		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
 			e.currentTarget.releasePointerCapture(e.pointerId)
 		}
@@ -262,6 +270,7 @@ export const ThreadPin = memo(function ThreadPin({
 	const endDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
 		const drag = dragRef.current
 		dragRef.current = null
+		setPressed(false)
 		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
 			e.currentTarget.releasePointerCapture(e.pointerId)
 		}
