@@ -723,9 +723,6 @@ async function performUserDeletion(
 
 	// Step 5: Hard delete groups and user in a transaction
 	await pg.transaction().execute(async (tx) => {
-		// Clean up tables that don't have CASCADE delete constraints
-		await tx.deleteFrom('user_mutation_number').where('userId', '=', userRow.id).execute()
-
 		// Clean up assets that reference this user (nullable foreign key)
 		await tx.deleteFrom('asset').where('userId', '=', userRow.id).execute()
 
