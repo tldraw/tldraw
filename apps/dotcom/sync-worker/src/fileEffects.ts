@@ -21,3 +21,39 @@ export function getPublishTransition(
 	}
 	return null
 }
+
+export interface FileEffectDeps {
+	getCurrentFile(fileId: string): Promise<TlaFile | undefined>
+	notifyInsert(file: TlaFile): Promise<void> // room DO appFileRecordCreated
+	notifyUpdate(file: TlaFile): Promise<void> // room DO appFileRecordDidUpdate (fresh row)
+	notifyDelete(fileRow: TlaFile): Promise<void> // room DO appFileRecordDidDelete (outbox payload)
+	publish(file: TlaFile): Promise<void>
+	unpublish(file: TlaFile): Promise<void>
+}
+
+export async function processFileEffect(deps: FileEffectDeps, genericRow: TlaEffectOutbox) {
+	const row = genericRow as FileEffectRow
+	if (row.command === 'delete') {
+		// Terminal: appFileRecordDidDelete is self-guarded, no staleness check needed.
+		await deps.notifyDelete(row.payload)
+		return
+	}
+	// Staleness guard: act on present truth, treat the row as a wake-up signal.
+	const current = await deps.getCurrentFile(row.entityId)
+	if (!current) return // hard-deleted since; a delete row follows or already ran
+	if (row.command === 'insert') {
+		await deps.notifyInsert(current)
+		return
+	}
+	await deps.notifyUpdate(current)
+	const transition = getPublishTransition(row)
+	if (
+		transition === 'publish' &&
+		current.published &&
+		current.lastPublished === row.payload.lastPublished
+	) {
+		await deps.publish(current)
+	} else if (transition === 'unpublish' && !current.published) {
+		await deps.unpublish(current)
+	}
+}
