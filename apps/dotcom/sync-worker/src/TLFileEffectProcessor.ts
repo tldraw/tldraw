@@ -23,7 +23,6 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 		this.sentry = createSentry(ctx, env)
 	}
 
-	// same pattern as TLPostgresReplicator.ts:110-121
 	// eslint-disable-next-line tldraw/prefer-class-methods
 	private captureException = (exception: unknown, extras?: Record<string, unknown>) => {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated

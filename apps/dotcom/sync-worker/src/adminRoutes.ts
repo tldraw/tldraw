@@ -19,11 +19,7 @@ import { getR2KeyForRoom } from './r2'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { undeleteFile } from './undeleteFile'
-import {
-	getFileEffectProcessor,
-	getRoomDurableObject,
-	getUserDurableObject,
-} from './utils/durableObjects'
+import { getFileEffectProcessor, getRoomDurableObject } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
@@ -177,28 +173,13 @@ export const adminRoutes = createRouter<Environment>()
 		// Nudge the outbox so the restore's effects (room DO reopen, etc.) land promptly instead
 		// of waiting for the 30s alarm sweep. poke() is cheap: it just schedules an alarm.
 		await getFileEffectProcessor(env).poke()
-		// Hard-reboot every affected user so the restored rows replicate to their session (the
-		// isDeleted false-flip case flagged in dotcom-shared mutators.ts). Best-effort: the
-		// writes already committed, so a reboot failure must not surface as a 500 (a retry would
-		// just 400 with 'File is not deleted' without rebooting anyone). Bounded concurrency keeps
-		// us inside the worker's connection budget for workspaces with many members.
-		const rebootQueue = new PQueue({ concurrency: 5 })
-		await rebootQueue.addAll(
-			outcome.rebootUserIds.map((userId) => async () => {
-				try {
-					await getUserDurableObject(env, userId).admin_forceHardReboot(userId)
-				} catch (e) {
-					console.error(`Failed to reboot user ${userId} after undeleting file ${fileId}`, e)
-				}
-			})
-		)
 		return json({ success: true })
 	})
 	// Deleted files the user OWNS: legacy direct owner, their home workspace (group id = user
 	// id), or a workspace where they hold the owner role. Mere memberships and guest files are
 	// excluded — the per-row Undelete button restores files, so the list must only contain files
-	// the user legitimately owns. Queried from Postgres because the user's replicated store
-	// filters out their own deleted files (see fetchEverythingSql).
+	// the user legitimately owns. Queried from Postgres because Zero's queries (dotcom-shared
+	// queries.ts) filter out deleted files for the user's own synced store.
 	.get('/app/admin/user/deleted_files', async (res, env) => {
 		const q = res.query['q']
 		if (typeof q !== 'string') {
@@ -764,10 +745,4 @@ async function performUserDeletion(
 	// Delete user from analytics service
 	sendProgress?.('analytics', 'Deleting user from analytics...')
 	await deleteUserFromAnalytics(userRow.id, env, sendProgress)
-
-	sendProgress?.('durable_object', 'Cleaning up user durable object state...')
-
-	// Clean up user durable object state and R2 data
-	const user = getUserDurableObject(env, userRow.id)
-	await user.admin_delete(userRow.id)
 }

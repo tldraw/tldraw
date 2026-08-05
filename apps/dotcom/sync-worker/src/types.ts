@@ -5,9 +5,6 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLFileDurableObject } from './TLFileDurableObject'
 import type { TLFileEffectProcessor } from './TLFileEffectProcessor'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
-import type { TLPostgresReplicator } from './TLPostgresReplicator'
-import { TLStatsDurableObject } from './TLStatsDurableObject'
-import type { TLUserDurableObject } from './TLUserDurableObject'
 
 // The Browser Rendering binding's Quick Actions method. Cloudflare exposes `env.BROWSER.quickAction`
 // so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
@@ -30,11 +27,8 @@ export interface Analytics {
 export interface Environment {
 	// bindings
 	TLDR_DOC: DurableObjectNamespace<TLFileDurableObject>
-	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
-	TL_USER: DurableObjectNamespace<TLUserDurableObject>
 	TL_FILE_EFFECTS: DurableObjectNamespace<TLFileEffectProcessor>
 	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
-	TL_STATS: DurableObjectNamespace<TLStatsDurableObject>
 
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
@@ -133,11 +127,6 @@ export function isDebugLogging(env: Environment) {
 	return env.TLDRAW_ENV === 'development' || env.TLDRAW_ENV === 'preview'
 }
 
-export function getUserDoSnapshotKey(env: Environment, userId: string) {
-	const snapshotPrefix = env.TLDRAW_ENV === 'preview' ? env.WORKER_NAME + '/' : ''
-	return `${snapshotPrefix}${userId}`
-}
-
 export interface DBLoadResult {
 	snapshot: RoomSnapshot
 	roomSizeMB: number
@@ -181,51 +170,6 @@ export type TLServerEvent =
 			type: 'persist_success'
 			attempts: number
 	  }
-
-export type TLPostgresReplicatorRebootSource =
-	| 'constructor'
-	| 'inactivity'
-	| 'retry'
-	| 'subscription_closed'
-	| 'test'
-
-export type TLPostgresReplicatorEvent =
-	| { type: 'reboot'; source: TLPostgresReplicatorRebootSource }
-	| { type: 'request_lsn_update' }
-	| {
-			type:
-				| 'reboot_error'
-				| 'register_user'
-				| 'unregister_user'
-				| 'get_file_record'
-				| 'prune'
-				| 'resume_sequence'
-	  }
-	| { type: 'reboot_duration'; duration: number }
-	| { type: 'rpm'; rpm: number }
-	| { type: 'active_users'; count: number }
-
-export type TLUserDurableObjectEvent =
-	| {
-			type:
-				| 'reboot'
-				| 'full_data_fetch'
-				| 'full_data_fetch_hard'
-				| 'found_snapshot'
-				| 'reboot_error'
-				| 'rate_limited'
-				| 'broadcast_message'
-				| 'mutation'
-				| 'reject_mutation'
-				| 'replication_event'
-				| 'connect_retry'
-				| 'user_do_abort'
-				| 'not_enough_history_for_fast_reboot'
-				| 'woken_up_by_replication_event'
-			id: string
-	  }
-	| { type: 'reboot_duration'; id: string; duration: number }
-	| { type: 'cold_start_time'; id: string; duration: number }
 
 export interface AssetUploadQueueMessage {
 	type: 'asset-upload'
