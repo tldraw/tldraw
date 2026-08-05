@@ -21,6 +21,13 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
 		this.sentry = createSentry(ctx, env)
+		// Bootstrap the sweep so a never-poked DO still drains trigger-only rows (e.g. the
+		// workspace-delete cascade on an otherwise idle env) instead of sitting forever.
+		ctx.blockConcurrencyWhile(async () => {
+			if ((await ctx.storage.getAlarm()) === null) {
+				await ctx.storage.setAlarm(Date.now() + SWEEP_INTERVAL_MS)
+			}
+		})
 	}
 
 	// eslint-disable-next-line tldraw/prefer-class-methods
@@ -67,7 +74,14 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 			// crashes like an unreachable database
 			this.captureException(e)
 		} finally {
-			await this.ctx.storage.setAlarm(Date.now() + SWEEP_INTERVAL_MS)
+			// Don't clobber a sooner alarm: a poke that arrived mid-drain set an immediate alarm,
+			// and unconditionally pushing it to now+30s would swallow that poke. Only schedule the
+			// next sweep if nothing sooner is already pending.
+			const nextSweep = Date.now() + SWEEP_INTERVAL_MS
+			const scheduled = await this.ctx.storage.getAlarm()
+			if (scheduled === null || scheduled > nextSweep) {
+				await this.ctx.storage.setAlarm(nextSweep)
+			}
 		}
 	}
 
@@ -108,16 +122,25 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 						.selectFrom('effect_outbox')
 						.selectAll()
 						.where('attempts', '<', MAX_ATTEMPTS)
+						.where((eb) =>
+							eb.or([eb('nextRetryAt', 'is', null), eb('nextRetryAt', '<=', sql<Date>`now()`)])
+						)
 						.orderBy('id')
 						.limit(50)
 						.execute(),
 				deleteRow: async (id) => {
 					await db.deleteFrom('effect_outbox').where('id', '=', id).execute()
 				},
-				bumpAttempts: async (id) => {
+				bumpAttempts: async (id, attempts) => {
+					// Exponential backoff from the row's current attempt count, capped at 5 minutes,
+					// so rapid pokes can't burn through all attempts in a burst.
+					const backoffSeconds = Math.min(2 ** attempts * 5, 300)
 					await db
 						.updateTable('effect_outbox')
-						.set((eb) => ({ attempts: eb('attempts', '+', 1) }))
+						.set((eb) => ({
+							attempts: eb('attempts', '+', 1),
+							nextRetryAt: sql<Date>`now() + (${backoffSeconds} || ' seconds')::interval`,
+						}))
 						.where('id', '=', id)
 						.execute()
 				},

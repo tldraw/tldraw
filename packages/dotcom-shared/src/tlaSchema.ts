@@ -481,6 +481,7 @@ export interface TlaEffectOutbox {
 	prevPayload: unknown | null
 	attempts: number
 	createdAt: Date
+	nextRetryAt: Date | null
 }
 
 /**
