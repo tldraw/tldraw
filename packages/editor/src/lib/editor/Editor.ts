@@ -7877,9 +7877,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	alignShapes(
 		shapes: TLShapeId[] | TLShape[],
-		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom'
+		operation:
+			| 'left'
+			| 'center-horizontal'
+			| 'right'
+			| 'top'
+			| 'center-vertical'
+			| 'bottom'
+			| 'center'
 	): this {
 		if (this.getIsReadonly()) return this
+		if (operation === 'center') {
+			return this.alignShapes(shapes, 'center-horizontal').alignShapes(shapes, 'center-vertical')
+		}
 
 		const { clusters: shapeClustersToAlign, allBounds } = this.getShapeClusters(shapes, 'align')
 
