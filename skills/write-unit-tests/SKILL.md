@@ -7,7 +7,7 @@ description: Writing unit and integration tests for the tldraw SDK. Use when cre
 
 Unit and integration tests use Vitest and run from workspace directories, not the repo root.
 
-Read a neighbouring test before writing a new one — the existing suites are the specification for how we test, and they stay current in a way prose can't. Good starting points:
+Read a neighboring test before writing a new one — the existing suites are the specification for how we test, and they stay current in a way prose can't. Good starting points:
 
 - `packages/tldraw/src/test/SelectTool.test.ts` — tool state machine assertions
 - `packages/tldraw/src/test/resizing.test.ts` — pointer-driven interaction with handles
