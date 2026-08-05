@@ -222,6 +222,6 @@ After the second run, the docs site reflects the published release and `next.mdx
 
 ## References
 
-- **Style guide**: See `shared/release-notes-guide.md` for guidance on what a release notes article should contain and how to format it.
-- **Writing guide**: See `shared/writing-guide.md` for voice and style conventions.
+- **Style guide**: See `../shared/release-notes-guide.md` for guidance on what a release notes article should contain and how to format it.
+- **Writing guide**: See `../../VOICE.md` for voice and style conventions.
 - **Scripts**: See `scripts/` for automation helpers, including `update-draft-release.sh` for syncing the draft GitHub release
