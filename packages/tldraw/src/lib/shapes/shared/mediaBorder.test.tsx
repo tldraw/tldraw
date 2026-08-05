@@ -13,6 +13,37 @@ function props(el: ReactElement | null) {
 	return el?.props as Record<string, unknown>
 }
 
+// Flatten fragments to the primitives that `filter` actually treats as direct
+// children (a `g` wrapper would be ignored).
+function flattenPrimitives(filter: ReactElement) {
+	const out: ReactElement[] = []
+	const visit = (node: any) => {
+		if (node == null || typeof node !== 'object') return
+		if (Array.isArray(node)) return node.forEach(visit)
+		if (node.type === Fragment) return visit(node.props.children)
+		if (typeof node.type === 'string') out.push(node)
+	}
+	visit(props(filter).children)
+	return out
+}
+
+function getShadowOffsets(addExportDef: ReturnType<typeof makeCtx>['addExportDef']) {
+	const filter = addExportDef.mock.calls[0][0].getElement() as ReactElement
+	return flattenPrimitives(filter)
+		.filter((el) => el.type === 'feOffset')
+		.map((el) => {
+			const { dx, dy } = props(el) as { dx: number; dy: number }
+			// The trig leaves floating-point dust on whichever axis rounds to zero.
+			return { dx: round(dx), dy: round(dy) }
+		})
+}
+
+function round(n: number) {
+	const rounded = Math.round(n * 1000) / 1000
+	// Normalize -0, which `toEqual` reports as a mismatch against 0.
+	return rounded === 0 ? 0 : rounded
+}
+
 describe('getMediaBorderSvg', () => {
 	it('returns nothing for `none`', () => {
 		const { ctx, addExportDef } = makeCtx()
@@ -21,6 +52,7 @@ describe('getMediaBorderSvg', () => {
 			w: 100,
 			h: 80,
 			isCircle: false,
+			rotation: 0,
 			idBase: 'shape:a',
 			ctx,
 		})
@@ -37,6 +69,7 @@ describe('getMediaBorderSvg', () => {
 				w: 100,
 				h: 80,
 				isCircle: false,
+				rotation: 0,
 				idBase: 'shape:abc',
 				ctx,
 			})
@@ -57,6 +90,7 @@ describe('getMediaBorderSvg', () => {
 				w: 120,
 				h: 90,
 				isCircle: true,
+				rotation: 0,
 				idBase: 'shape:e',
 				ctx,
 			})
@@ -71,6 +105,7 @@ describe('getMediaBorderSvg', () => {
 				w: 100,
 				h: 80,
 				isCircle: false,
+				rotation: 0,
 				idBase: 'shape:abc',
 				ctx,
 			})
@@ -85,25 +120,69 @@ describe('getMediaBorderSvg', () => {
 				w: 100,
 				h: 80,
 				isCircle: false,
+				rotation: 0,
 				idBase: 'shape:abc',
 				ctx,
 			})
 			const filter = addExportDef.mock.calls[0][0].getElement() as ReactElement
-
-			// Flatten fragments to see the primitives `filter` actually treats as
-			// direct children (a `g` wrapper would be ignored).
-			const types: string[] = []
-			const visit = (node: any) => {
-				if (node == null || typeof node !== 'object') return
-				if (Array.isArray(node)) return node.forEach(visit)
-				if (node.type === Fragment) return visit(node.props.children)
-				if (typeof node.type === 'string') types.push(node.type)
-			}
-			visit(props(filter).children)
+			const types = flattenPrimitives(filter).map((el) => el.type as string)
 
 			expect(types).not.toContain('g')
 			expect(types).toContain('feGaussianBlur')
 			expect(types).toContain('feMerge')
+		})
+
+		it('offsets straight down for an unrotated shape', () => {
+			const { ctx, addExportDef } = makeCtx()
+			getMediaBorderSvg({
+				border: 'shadow',
+				w: 100,
+				h: 80,
+				isCircle: false,
+				rotation: 0,
+				idBase: 'shape:abc',
+				ctx,
+			})
+			expect(getShadowOffsets(addExportDef)).toEqual([
+				{ dx: 0, dy: 2 },
+				{ dx: 0, dy: 3 },
+			])
+		})
+
+		it('counter-rotates the offsets so the light stays overhead in page space', () => {
+			const { ctx, addExportDef } = makeCtx()
+			getMediaBorderSvg({
+				border: 'shadow',
+				w: 100,
+				h: 80,
+				isCircle: false,
+				rotation: Math.PI / 2,
+				idBase: 'shape:abc',
+				ctx,
+			})
+			// The export group rotates the filter along with the shape, so a quarter
+			// turn moves the straight-down offsets onto the local x axis.
+			expect(getShadowOffsets(addExportDef)).toEqual([
+				{ dx: 2, dy: 0 },
+				{ dx: 3, dy: 0 },
+			])
+		})
+
+		it('flips the offsets for a half-turn instead of pointing the shadow up', () => {
+			const { ctx, addExportDef } = makeCtx()
+			getMediaBorderSvg({
+				border: 'shadow',
+				w: 100,
+				h: 80,
+				isCircle: false,
+				rotation: Math.PI,
+				idBase: 'shape:abc',
+				ctx,
+			})
+			expect(getShadowOffsets(addExportDef)).toEqual([
+				{ dx: 0, dy: -2 },
+				{ dx: 0, dy: -3 },
+			])
 		})
 	})
 
@@ -115,6 +194,7 @@ describe('getMediaBorderSvg', () => {
 				w: 100,
 				h: 80,
 				isCircle: false,
+				rotation: 0,
 				idBase: 'shape:a',
 				ctx,
 			})
@@ -136,6 +216,7 @@ describe('getMediaBorderSvg', () => {
 				w: 100.4,
 				h: 79.8,
 				isCircle: false,
+				rotation: 0,
 				idBase: 'shape:a',
 				ctx,
 			})
@@ -149,6 +230,7 @@ describe('getMediaBorderSvg', () => {
 				w: 100,
 				h: 80,
 				isCircle: false,
+				rotation: 0,
 				idBase: 'shape:a',
 				ctx,
 			})
@@ -162,6 +244,7 @@ describe('getMediaBorderSvg', () => {
 				w: 120,
 				h: 90,
 				isCircle: true,
+				rotation: 0,
 				idBase: 'shape:e',
 				ctx,
 			})

@@ -263,6 +263,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			w: shape.props.w,
 			h: shape.props.h,
 			isCircle: !!shape.props.crop?.isCircle,
+			rotation: this.editor.getShapePageTransform(shape.id)?.rotation() ?? 0,
 			idBase: shape.id,
 			ctx,
 		})
