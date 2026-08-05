@@ -11441,6 +11441,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 							this.inputs.setIsRightPointing(false)
 							this._selectedShapeIdsAtPointerDown = []
 							this._didCaptureSelectionAtPointerDown = false
+							// A release beyond the drag threshold can only be stale-button
+							// recovery for a missed pointerup: interactive moves past the
+							// threshold become a pan before any release arrives. Don't let
+							// it reach the state chart as a right_click at that point, or
+							// it would change the selection where the pointer re-entered.
+							if (
+								Vec.Dist2(this.inputs.getOriginScreenPoint(), this.inputs.getCurrentScreenPoint()) >
+								this.options.dragDistanceSquared
+							) {
+								return this
+							}
 							break // fall through to state chart dispatch as right_click
 						}
 

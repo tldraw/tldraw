@@ -120,6 +120,67 @@ describe('stale pan recovery via real DOM events', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
 	})
 
+	it('preserves the selection when a missed right pointerup is recovered', async () => {
+		const { editor, canvas } = await setup()
+
+		await act(async () => {
+			editor.createShape({ type: 'geo', x: 500, y: 500 })
+			editor.select(editor.getCurrentPageShapes()[0].id)
+		})
+		const selectedIds = editor.getSelectedShapeIds()
+
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 2, buttons: 2 })
+		)
+		expect(editor.inputs.getIsRightPointing()).toBe(true)
+
+		// The pointerup was missed outside the window. Recovery must not complete
+		// a right_click at the re-entry point, which would clear the selection.
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 0 })
+		)
+		expect(editor.inputs.getIsRightPointing()).toBe(false)
+		expect(editor.inputs.getIsPointing()).toBe(false)
+		expect(editor.getSelectedShapeIds()).toEqual(selectedIds)
+	})
+
+	it('recovers a stale right button on non-darwin even while the left button is held', async () => {
+		const prevIsDarwin = tlenv.isDarwin
+		tlenv.isDarwin = false
+		try {
+			const { editor, canvas } = await setup()
+
+			await fire(
+				editor,
+				canvas,
+				pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 2, buttons: 2 })
+			)
+			await fire(
+				editor,
+				document.body,
+				pointerEvent('pointermove', { clientX: 200, clientY: 200, buttons: 2 })
+			)
+			expect(editor.inputs.getIsPanning()).toBe(true)
+
+			// Right released outside the window while the left button is down. Off
+			// darwin the left bit can't stand in for button 2, so the pan must end.
+			editor.inputs.setPointerVelocity(new Vec(0, 0))
+			await fire(
+				editor,
+				document.body,
+				pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 1 })
+			)
+			expect(editor.inputs.getIsPanning()).toBe(false)
+			expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
+		} finally {
+			tlenv.isDarwin = prevIsDarwin
+		}
+	})
+
 	it('keeps panning while the right button is still held', async () => {
 		const { editor, canvas } = await setup()
 

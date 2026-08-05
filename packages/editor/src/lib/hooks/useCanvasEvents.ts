@@ -1,5 +1,6 @@
 import { useValue } from '@tldraw/state-react'
 import React, { useEffect, useMemo } from 'react'
+import { LEFT_MOUSE_BUTTON, MIDDLE_MOUSE_BUTTON, RIGHT_MOUSE_BUTTON } from '../constants'
 import { tlenv } from '../globals/environment'
 import {
 	elementShouldCaptureKeys,
@@ -10,6 +11,25 @@ import {
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { getPointerEventButton, isDirectDisplayPen, isSecondaryClickEvent } from '../utils/pointer'
 import { useEditor } from './useEditor'
+
+// The `button` index and the `buttons` bitmask disagree: button 0 (left) is
+// bit 1, button 1 (middle) is bit 4, button 2 (right) is bit 2.
+function isButtonStillDown(button: number, buttons: number): boolean {
+	switch (button) {
+		case LEFT_MOUSE_BUTTON:
+			return (buttons & 1) !== 0
+		case MIDDLE_MOUSE_BUTTON:
+			return (buttons & 4) !== 0
+		case RIGHT_MOUSE_BUTTON:
+			// On darwin, ctrl+click reports button 2 while the physical bit is
+			// the left button's, so right still counts as down while either bit
+			// is set.
+			return tlenv.isDarwin ? (buttons & (1 | 2)) !== 0 : (buttons & 2) !== 0
+		default:
+			// Other buttons (stylus eraser etc.) are never treated as stale.
+			return true
+	}
+}
 
 export function useCanvasEvents() {
 	const editor = useEditor()
@@ -244,27 +264,14 @@ export function useCanvasEvents() {
 				editor.inputs.getIsPointing()
 			) {
 				for (const button of Array.from(editor.inputs.buttons.keys())) {
-					// Button 0 (left) → bit 1, button 1 (middle) → bit 4, button 2
-					// (right) → bit 2. On darwin, ctrl+click maps to button 2 while
-					// the physical bit is 1 (left), so button 2 only counts as stale
-					// when neither bit is set.
-					const stale =
-						button === 0
-							? !(e.buttons & 1)
-							: button === 1
-								? !(e.buttons & 4)
-								: button === 2
-									? !(e.buttons & 2) && !(e.buttons & 1)
-									: false
-					if (stale) {
-						editor.dispatch({
-							type: 'pointer',
-							target: 'canvas',
-							name: 'pointer_up',
-							...getPointerInfo(editor, e),
-							button,
-						})
-					}
+					if (isButtonStillDown(button, e.buttons)) continue
+					editor.dispatch({
+						type: 'pointer',
+						target: 'canvas',
+						name: 'pointer_up',
+						...getPointerInfo(editor, e),
+						button,
+					})
 				}
 			}
 
