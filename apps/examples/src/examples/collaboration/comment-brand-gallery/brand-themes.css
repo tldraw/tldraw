@@ -1,0 +1,458 @@
+/* ============================================================================================
+   Comment brand gallery
+   --------------------------------------------------------------------------------------------
+   Everything the commenting UI draws is a `tlui-cmt-*` class styled through tldraw's CSS
+   tokens, so a style is pure data: a map of custom properties in themes.ts. That registry is
+   serialized into a stylesheet at runtime (see `brandThemesCss`), one token block per theme,
+   scoped to `[data-comment-theme='<id>'] [class*='tlui-cmt-']` — the tokens land on the comment
+   elements themselves so they win over the values `.tl-container` defines inside the editor,
+   and the rest of the tldraw UI keeps its stock look.
+
+   This file holds what isn't data:
+   - The app chrome (topbar, gallery tiles) and the gallery stage's baseline tokens.
+   - One generic rule block consuming the example-level `--brand-*` tokens — fonts, borders,
+     gradients, pin shapes, letter-spacing — with defaults that reproduce the stock look, so a
+     theme only sets what it changes. The rules use `[data-comment-theme] :where(...)` to stay
+     at class-level specificity: they override the SDK's base rules by source order while its
+     stateful rules (hover, focus-within, resolved) keep winning.
+   ============================================================================================ */
+
+/* --------------------------------------------------------------------------------------------
+   App chrome (not part of any brand)
+   -------------------------------------------------------------------------------------------- */
+
+.bcg-root {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	background: #f6f6f4;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.bcg-topbar {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 10px 16px;
+	background: #fff;
+	border-bottom: 1px solid #e5e5e0;
+	flex-wrap: wrap;
+	z-index: 10;
+}
+
+.bcg-topbar__title {
+	font-size: 14px;
+	font-weight: 700;
+	margin-right: 4px;
+}
+
+.bcg-seg {
+	display: flex;
+	border: 1px solid #d5d5d0;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.bcg-seg__btn {
+	border: none;
+	background: #fff;
+	padding: 6px 14px;
+	font: inherit;
+	font-size: 12px;
+	cursor: pointer;
+	color: #444;
+}
+
+.bcg-seg__btn[data-active='true'] {
+	background: #1d1d1d;
+	color: #fff;
+}
+
+.bcg-btn {
+	border: 1px solid #d5d5d0;
+	background: #fff;
+	border-radius: 8px;
+	padding: 6px 12px;
+	font: inherit;
+	font-size: 12px;
+	cursor: pointer;
+	color: #222;
+}
+
+.bcg-btn:hover:not(:disabled) {
+	background: #f2f2ee;
+}
+
+.bcg-btn:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.bcg-hint {
+	font-size: 11px;
+	color: #888;
+	margin-left: auto;
+}
+
+/* Brand chips (canvas mode's theme picker) */
+.bcg-chips {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.bcg-chip {
+	border: 1px solid #d5d5d0;
+	background: #fff;
+	border-radius: 999px;
+	padding: 4px 10px;
+	font: inherit;
+	font-size: 11px;
+	cursor: pointer;
+	color: #444;
+}
+
+.bcg-chip[data-active='true'] {
+	background: #1d1d1d;
+	border-color: #1d1d1d;
+	color: #fff;
+}
+
+.bcg-btn[data-active='true'] {
+	background: #1d1d1d;
+	border-color: #1d1d1d;
+	color: #fff;
+}
+
+/* Everything under the topbar: the optional style panel beside whichever view is active. */
+.bcg-body {
+	flex: 1;
+	display: flex;
+	min-height: 0;
+}
+
+.bcg-canvas {
+	position: relative;
+	flex: 1;
+	min-width: 0;
+	min-height: 0;
+}
+
+/* --------------------------------------------------------------------------------------------
+   The custom style's configurator
+   -------------------------------------------------------------------------------------------- */
+
+.bcg-style-panel {
+	flex: none;
+	width: 232px;
+	overflow-y: auto;
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	background: #fff;
+	border-right: 1px solid #e5e5e0;
+	font-size: 12px;
+}
+
+.bcg-style-panel__title {
+	font-size: 13px;
+	font-weight: 700;
+	margin-bottom: 4px;
+}
+
+.bcg-field {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	min-height: 26px;
+	color: #555;
+}
+
+.bcg-field select {
+	font: inherit;
+	max-width: 120px;
+}
+
+.bcg-field input[type='range'] {
+	width: 110px;
+}
+
+.bcg-field input[type='color'] {
+	width: 36px;
+	height: 22px;
+	padding: 0;
+	border: 1px solid #d5d5d0;
+	border-radius: 4px;
+	background: none;
+}
+
+.bcg-style-panel__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 8px;
+}
+
+.bcg-style-panel__note {
+	margin: 4px 0 0;
+	font-size: 11px;
+	line-height: 1.4;
+	color: #999;
+}
+
+/* --------------------------------------------------------------------------------------------
+   Gallery
+   -------------------------------------------------------------------------------------------- */
+
+/* Flex lines rather than grid rows: a wrapped flex line always grows to its tallest tile, so
+   tiles can never overlap — and the generous gap gives each brand room to breathe. */
+.bcg-gallery {
+	flex: 1;
+	min-width: 0;
+	overflow-y: auto;
+	padding: 48px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 48px;
+	justify-content: center;
+	align-content: flex-start;
+}
+
+.bcg-tile {
+	flex: none;
+	width: 480px;
+	background: #fff;
+	border: 1px solid #e5e5e0;
+	border-radius: 16px;
+	overflow: hidden;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.bcg-tile__head {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	padding: 14px 16px;
+	border-bottom: 1px solid #eeeee9;
+}
+
+.bcg-tile__name {
+	font-size: 13px;
+	font-weight: 700;
+}
+
+.bcg-tile__tagline {
+	font-size: 11px;
+	color: #999;
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* The tile floor — a checkerboard, so "this exports transparent" is visible at a glance. */
+.bcg-tile__floor {
+	padding: 40px 24px;
+	display: flex;
+	justify-content: center;
+	--bcg-check-a: #f0f0ec;
+	--bcg-check-b: #ffffff;
+	background: repeating-conic-gradient(var(--bcg-check-a) 0% 25%, var(--bcg-check-b) 0% 50%) 0 0 /
+		20px 20px;
+}
+
+.bcg-tile__floor[data-dark='true'] {
+	--bcg-check-a: #26262a;
+	--bcg-check-b: #2e2e33;
+}
+
+/* The stage is the node that gets rasterized — no background of its own, just breathing room so
+   shadows and glows land inside the capture. */
+.brand-stage {
+	display: flex;
+	align-items: flex-start;
+	gap: 20px;
+	padding: 28px;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	font-size: 12px;
+
+	/* tldraw's light-theme tokens, restated here because the stage lives outside any
+	   `.tl-container`. Values mirror packages/editor/editor.css and commenting's comments.css. */
+	--tl-radius-1: 4px;
+	--tl-radius-2: 6px;
+	--tl-radius-3: 9px;
+	--tl-radius-4: 11px;
+	--tl-color-muted-0: hsl(0, 0%, 0%, 2%);
+	--tl-color-muted-1: hsl(0, 0%, 0%, 10%);
+	--tl-color-muted-2: hsl(0, 0%, 0%, 4.3%);
+	--tl-color-divider: hsl(0, 0%, 91%);
+	--tl-color-panel: hsl(0, 0%, 99%);
+	--tl-color-panel-contrast: hsl(0, 0%, 100%);
+	--tl-color-selected: hsl(214, 84%, 56%);
+	--tl-color-text-1: hsl(0, 0%, 18%);
+	--tl-color-text-2: hsl(0, 0%, 30%);
+	--tl-color-text-3: hsl(204, 4%, 45%);
+	--tl-color-danger: hsl(0, 90%, 43%);
+	--tl-shadow-3:
+		0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
+		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+	--tlui-cmt-pin-size: 28px;
+	--tlui-cmt-marker-size: var(--tlui-cmt-pin-size);
+	--tlui-cmt-marker-shadow: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%);
+	--tlui-cmt-marker-shadow-hover: var(--tlui-cmt-marker-shadow);
+	--tlui-cmt-marker-hover-scale: 1.08;
+	--tlui-cmt-marker-transition: 0.08s ease;
+	--tlui-cmt-thread-padding: 12px;
+	--tlui-cmt-thread-gap: 0px;
+	--tlui-cmt-thread-action-size: 40px;
+	--tlui-cmt-pill-shadow: 0 0 0 1px var(--tl-color-divider), 0 1px 3px hsl(0, 0%, 0%, 0.05);
+}
+
+/* The gallery's static composer stand-in (real composers are live in canvas mode) rides in the
+   thread's footer slot — lay it out the way the real composer sits. */
+.brand-stage .tlui-cmt-thread__footer {
+	display: block;
+	padding: 0;
+}
+
+.brand-stage .tlui-cmt-composer__input-wrap {
+	padding: 4.5px 8px 4.5px 0;
+}
+
+/* Editable copy — the tiles are a copy deck, so bodies and names take edits in place. */
+.bcg-editable {
+	cursor: text;
+}
+
+.bcg-editable:focus {
+	outline: 1.5px dashed var(--tl-color-selected);
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------------------------
+   The generic brand rules. Every `--brand-*` token a theme can set is consumed exactly once
+   here, with a default that reproduces the stock look — so the block is also the catalog of
+   what a brand can change.
+   -------------------------------------------------------------------------------------------- */
+
+/* Font, on every comment surface (they're separate portals, so each root is listed). */
+[data-comment-theme]
+	:is(
+		.tlui-cmt-thread,
+		.tlui-cmt-canvas-preview__panel,
+		.tlui-cmt-card,
+		.tlui-cmt-composer,
+		.tlui-cmt-input,
+		.tlui-cmt-input__placeholder,
+		.tlui-cmt-pin,
+		.tlui-cmt-count-badge,
+		.tlui-cmt-empty
+	) {
+	font-family: var(--brand-font, inherit);
+}
+
+/* Body weight on text containers only — the count badge and author keep their own weights. */
+[data-comment-theme] :where(.tlui-cmt-thread, .tlui-cmt-card, .tlui-cmt-composer) {
+	font-weight: var(--brand-body-weight, inherit);
+}
+
+/* The thread panel and its hover preview: one surface, two portals. */
+[data-comment-theme] :where(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: var(--brand-thread-bg, var(--tl-color-panel));
+	border: var(--brand-thread-border, none);
+	border-top: var(--brand-thread-border-top, var(--brand-thread-border, none));
+	border-radius: var(--brand-thread-radius, var(--tl-radius-4));
+	outline: var(--brand-thread-outline, none);
+	outline-offset: var(--brand-thread-outline-offset, 0);
+	transform: rotate(var(--brand-thread-tilt, 0deg));
+	backdrop-filter: var(--brand-backdrop, none);
+	-webkit-backdrop-filter: var(--brand-backdrop, none);
+}
+
+/* The floating chrome on a thread (header pill, composer field) can frost separately. */
+[data-comment-theme] :where(.tlui-cmt-thread__header, .tlui-cmt-composer__field) {
+	backdrop-filter: var(--brand-chrome-backdrop, none);
+	-webkit-backdrop-filter: var(--brand-chrome-backdrop, none);
+}
+
+/* An optional speech-bubble tail (see the comic theme). */
+[data-comment-theme] .tlui-cmt-thread::after {
+	content: '';
+	position: absolute;
+	left: 18px;
+	bottom: -14px;
+	width: 0;
+	height: 0;
+	border-left: 16px solid var(--brand-tail-color, transparent);
+	border-bottom: 16px solid transparent;
+	display: var(--brand-tail, none);
+}
+
+/* Pin shape applies to every pin; surface only to unresolved ones, so a resolved pin keeps its
+   muted grey whatever the brand paints. */
+[data-comment-theme] :where(.tlui-cmt-pin) {
+	border-radius: var(--brand-pin-shape, 50% 50% 50% 0);
+	transform: rotate(var(--brand-pin-tilt, 0deg));
+}
+
+[data-comment-theme] :where(.tlui-cmt-pin:not(.tlui-cmt-pin--resolved)) {
+	background: var(--brand-pin-bg, var(--tl-color-panel));
+	border: var(--brand-pin-border, none);
+	backdrop-filter: var(--brand-pin-backdrop, none);
+	-webkit-backdrop-filter: var(--brand-pin-backdrop, none);
+}
+
+[data-comment-theme] :where(.tlui-cmt-avatar) {
+	border-radius: var(--brand-avatar-shape, 50%);
+	transform: rotate(var(--brand-avatar-tilt, 0deg));
+}
+
+[data-comment-theme] :where(.tlui-cmt-author) {
+	text-transform: var(--brand-author-transform, none);
+	letter-spacing: var(--brand-author-spacing, normal);
+	font-size: var(--brand-author-size, 12px);
+	font-weight: var(--brand-author-weight, 500);
+	color: var(--brand-author-color, var(--tl-color-text-1));
+	font-variant: var(--brand-author-variant, normal);
+}
+
+/* An optional glyph before the author's name (the terminal theme's "> "). */
+[data-comment-theme] .tlui-cmt-author::before {
+	content: var(--brand-author-prefix, '');
+	color: var(--brand-author-prefix-color, inherit);
+}
+
+[data-comment-theme] :where(.tlui-cmt-time) {
+	font-style: var(--brand-time-style, normal);
+	font-size: var(--brand-time-size, 12px);
+	letter-spacing: var(--brand-time-spacing, normal);
+}
+
+[data-comment-theme] :where(.tlui-cmt-text) {
+	font-size: var(--brand-text-size, 12px);
+	line-height: var(--brand-text-leading, 1.4);
+}
+
+[data-comment-theme] :where(.tlui-cmt-reaction) {
+	border: var(--brand-reaction-border, none);
+	background: var(--brand-reaction-bg, var(--tl-color-muted-2));
+	box-shadow: var(--brand-reaction-shadow, none);
+}
+
+[data-comment-theme] :where(.tlui-cmt-reaction--active) {
+	background: var(
+		--brand-reaction-active-bg,
+		color-mix(in srgb, var(--tl-color-selected) 28%, var(--tl-color-panel))
+	);
+	box-shadow: var(--brand-reaction-active-shadow, var(--brand-reaction-shadow, none));
+}
+
+[data-comment-theme] :where(.tlui-cmt-composer__field) {
+	border: var(--brand-field-border, 1px solid var(--tl-color-divider));
+}
