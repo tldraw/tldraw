@@ -7,3 +7,17 @@ order: 0
 status: published
 last_version: v5.3.0
 ---
+
+This release adds a `center` operation for aligning shapes on both axes at once and deprecates `useViewportHeight`. It also fixes bugs in comment threads, keyboard shortcut tooltips, modifier key handling, and frame headings.
+
+## API changes
+
+- 🔜 **`useViewportHeight`** is deprecated. Read `window.visualViewport` directly instead. ([#9826](https://github.com/tldraw/tldraw/pull/9826))
+- Add `'center'` as an `Editor.alignShapes` operation, which centers shapes on both axes at once. ([#9074](https://github.com/tldraw/tldraw/pull/9074))
+
+## Bug fixes
+
+- Fix the comment thread popover briefly rendering with a doubled shadow the first time a thread is opened. ([#9886](https://github.com/tldraw/tldraw/pull/9886))
+- Fix modifier keys (shift, alt, ctrl, cmd) briefly being treated as held at the start of a new click or drag right after being released, which could momentarily affect snapping and other modifier-dependent behavior. ([#9523](https://github.com/tldraw/tldraw/pull/9523))
+- Fix the counterclockwise rotation tooltip not showing its comma keyboard shortcut. ([#9772](https://github.com/tldraw/tldraw/pull/9772))
+- Fix a crash when computing a frame's geometry if its heading text couldn't be measured yet. ([#9496](https://github.com/tldraw/tldraw/pull/9496))
