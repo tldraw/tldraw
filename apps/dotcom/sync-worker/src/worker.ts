@@ -48,6 +48,7 @@ import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
+import { initUser } from './routes/tla/initUser'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
@@ -140,8 +141,7 @@ const router = createRouter<Environment>()
 		// Ensure user exists in DB before Zero can query
 		const auth = await requireAuth(req, env)
 		if (req.params.userId !== auth.userId) return notFound()
-		const stub = getUserDurableObject(env, auth.userId)
-		return stub.fetch(req)
+		return initUser(req, env)
 	})
 	.post('/app/tldr', createFiles)
 	.get('/app/replicator-status', async (_, env) => {
