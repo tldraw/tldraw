@@ -1,6 +1,12 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import {
+	OG_MAX_RENDER_ATTEMPTS,
+	OG_PENDING_MARKER_TTL_MS,
+	OG_REPAIR_COOLDOWN_MS,
+	OG_RETRY_DELAY_SECONDS,
+} from '../../config'
+import {
 	Environment,
 	OgImageRenderQueueMessage,
 	OgImageRenderReason,
@@ -33,22 +39,6 @@ import {
 // once. See "Request limits" in browser-run-thumbnails.md for why, and why the only rate limiting in
 // the pipeline lives on the MCP endpoint instead (sharedBoardScreenshotMcp.ts).
 
-// Suppresses a duplicate enqueue while a render is queued or in flight. A single-flight, not a rate
-// limit: the consumer clears it as soon as a render lands, so on a healthy board it never reaches
-// this TTL, which exists only so a consumer dying cannot wedge a board permanently. To change how
-// often a board renders, change OG_RENDER_DEBOUNCE_MS.
-//
-// Must outlive a job's worst-case retry chain — every capture running to its timeout plus every
-// backoff delay — or the marker lapses while the job is still alive, a fresh ask enqueues a second
-// job for the same board, and the two clobber each other's per-board render token record
-// (renderTokens.ts is keyed on the single-flight this marker provides). A test pins the inequality
-// against the constants below.
-export const PENDING_MARKER_TTL_MS = 5 * 60_000
-// Retries are bounded by max_retries in wrangler.toml too; this lower cap keeps thumbnail jobs from
-// burning Browser Run capacity on a persistently failing board.
-export const MAX_RENDER_ATTEMPTS = 3
-export const RETRY_DELAY_SECONDS = 30
-
 // OG images render a single page as the unfurl preview. Pick the first page (in board order) that
 // has content, so a board whose first page is empty still gets a meaningful image; fall back to the
 // first page when none have content, which renders as a blank.
@@ -77,8 +67,31 @@ export function getOgImageCacheKey(board: ThumbnailBoardRef) {
 
 export type EnqueueOgImageResult = 'enqueued' | 'already_pending' | 'unavailable'
 
+// The single-flight marker. Its TTL and the retry constants live together in config.ts, where the
+// comment on OG_PENDING_MARKER_TTL_MS explains the inequality that binds them.
 function getOgImagePendingKey(board: ThumbnailBoardRef) {
 	return getOgImageCacheKey(board).replace(/\.png$/, '.pending')
+}
+
+// Armed when a crawler-triggered job gives up, consulted only by the OG route's published-board
+// repair (see OG_REPAIR_COOLDOWN_MS in config.ts). Deliberately not consulted by enqueueOgImageRender
+// itself: a republish is a genuine new snapshot and must render regardless of how the last attempt
+// went, so only the one ask an outside caller can cause is metered.
+function getOgImageRepairCooldownKey(board: ThumbnailBoardRef) {
+	return getOgImageCacheKey(board).replace(/\.png$/, '.repair-cooldown')
+}
+
+export async function isOgImageRepairOnCooldown(
+	env: Environment,
+	board: ThumbnailBoardRef
+): Promise<boolean> {
+	if (!env.THUMBNAILS) return false
+	// Fail open on a read error: the enqueue this gates needs the same bucket for its pending marker,
+	// so if R2 is genuinely down the ask fails and reports there rather than being silently skipped.
+	const existing = await env.THUMBNAILS.head(getOgImageRepairCooldownKey(board)).catch(() => null)
+	if (!existing) return false
+	const expiresAt = Number(existing.customMetadata?.expiresAt)
+	return Number.isFinite(expiresAt) && expiresAt > Date.now()
 }
 
 export async function enqueueOgImageRender(
@@ -107,7 +120,7 @@ export async function enqueueOgImageRender(
 
 	await env.THUMBNAILS.put(pendingKey, new Uint8Array(), {
 		customMetadata: {
-			expiresAt: String(Date.now() + PENDING_MARKER_TTL_MS),
+			expiresAt: String(Date.now() + OG_PENDING_MARKER_TTL_MS),
 		},
 	})
 
@@ -141,14 +154,15 @@ export async function clearOgImagePendingMarker(
 	await env.THUMBNAILS.delete(getOgImagePendingKey(board)).catch(() => {})
 }
 
-// Deletes the image as well as the marker. Only for `published` boards losing their publication.
-// Scoped by the `board` passed in, so calling it with `kind: 'published'` cannot touch the
-// file-keyed image of the same board.
+// Deletes the image as well as the marker and the repair cooldown. Only for `published` boards
+// losing their publication. Scoped by the `board` passed in, so calling it with `kind: 'published'`
+// cannot touch the file-keyed image of the same board.
 export async function deleteOgImage(env: Environment, board: ThumbnailBoardRef): Promise<void> {
 	if (!env.THUMBNAILS) return
 	await Promise.all([
 		env.THUMBNAILS.delete(getOgImageCacheKey(board)).catch(() => {}),
 		env.THUMBNAILS.delete(getOgImagePendingKey(board)).catch(() => {}),
+		env.THUMBNAILS.delete(getOgImageRepairCooldownKey(board)).catch(() => {}),
 	])
 }
 
@@ -299,11 +313,11 @@ export async function handleOgImageRenderMessage(
 		message.ack()
 	} catch (error) {
 		// Reported once per job, on the delivery that gives up, rather than once per delivery: a board
-		// that fails deterministically fails all MAX_RENDER_ATTEMPTS times, and one problem should not
+		// that fails deterministically fails all OG_MAX_RENDER_ATTEMPTS times, and one problem should not
 		// file three events. A failure that recovers on retry reports nothing, which is correct — the
 		// render landed. Sentry gets the unbounded original; telemetry below gets a bounded reason code,
 		// since raw error.message would blow up that dimension's cardinality.
-		if (message.attempts >= MAX_RENDER_ATTEMPTS) {
+		if (message.attempts >= OG_MAX_RENDER_ATTEMPTS) {
 			reportThumbnailError(error, {
 				ctx,
 				env,
@@ -400,15 +414,26 @@ async function retryOrDrop(
 		browserRunDurationMs,
 	})
 	// attempts counts this delivery, so attempts >= MAX means this was the final try.
-	if (message.attempts < MAX_RENDER_ATTEMPTS) {
+	if (message.attempts < OG_MAX_RENDER_ATTEMPTS) {
 		// Marker kept: a retry is still this job in flight, and the next delivery re-resolves anyway, so
 		// an ask turned away meanwhile costs nothing — it would have rendered the same content.
-		message.retry({ delaySeconds: RETRY_DELAY_SECONDS * message.attempts })
+		message.retry({ delaySeconds: OG_RETRY_DELAY_SECONDS * message.attempts })
 		return
 	}
 	// Given up, so nothing is in flight and the marker has nothing left to single-flight. Clearing it
 	// rather than letting it lapse means the next ask is acted on immediately instead of being turned
 	// away for the rest of the TTL — which matters most here, since this board has no image at all.
 	await clearOgImagePendingMarker(env, board)
+	// But when the ask that failed was itself the OG route's crawler-triggered repair, "immediately"
+	// is the problem rather than the point: with the marker gone, the next unauthenticated request
+	// would re-arm the whole retry chain, letting traffic an outside caller controls spend Browser Run
+	// on a board that just proved it cannot render. Arm the repair cooldown instead — publish- and
+	// edit-triggered asks don't consult it, so a genuine republish still renders straight away. Best
+	// effort: a cooldown that fails to write costs extra renders, not the ack.
+	if (board.kind === 'published' && reason === 'crawler') {
+		await env.THUMBNAILS?.put(getOgImageRepairCooldownKey(board), new Uint8Array(), {
+			customMetadata: { expiresAt: String(Date.now() + OG_REPAIR_COOLDOWN_MS) },
+		}).catch(() => {})
+	}
 	message.ack()
 }

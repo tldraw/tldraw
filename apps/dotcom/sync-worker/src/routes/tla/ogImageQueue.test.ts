@@ -1,5 +1,11 @@
 import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+	OG_MAX_RENDER_ATTEMPTS,
+	OG_PENDING_MARKER_TTL_MS,
+	OG_REPAIR_COOLDOWN_MS,
+	OG_RETRY_DELAY_SECONDS,
+} from '../../config'
 import { OgImageRenderQueueMessage } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
@@ -12,9 +18,7 @@ import {
 	enqueuePublishThumbnailRender,
 	getOgImageCacheKey,
 	handleOgImageRenderMessage,
-	MAX_RENDER_ATTEMPTS,
-	PENDING_MARKER_TTL_MS,
-	RETRY_DELAY_SECONDS,
+	isOgImageRepairOnCooldown,
 } from './ogImageQueue'
 import {
 	blobsWithPrefix,
@@ -114,14 +118,14 @@ describe('enqueueOgImageRender', () => {
 
 		const enqueuedAt = Date.parse('2026-01-01T00:00:00Z')
 		const marker = [...bucket.store.entries()].find(([key]) => key.endsWith('.pending'))!
-		expect(Number(marker[1].customMetadata!.expiresAt)).toBe(enqueuedAt + PENDING_MARKER_TTL_MS)
+		expect(Number(marker[1].customMetadata!.expiresAt)).toBe(enqueuedAt + OG_PENDING_MARKER_TTL_MS)
 
 		// Every persist inside the window asks again and is deduped away.
-		vi.setSystemTime(enqueuedAt + PENDING_MARKER_TTL_MS - 1000)
+		vi.setSystemTime(enqueuedAt + OG_PENDING_MARKER_TTL_MS - 1000)
 		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('already_pending')
 
 		// Once it lapses, the next edit gets a fresh render.
-		vi.setSystemTime(enqueuedAt + PENDING_MARKER_TTL_MS + 1000)
+		vi.setSystemTime(enqueuedAt + OG_PENDING_MARKER_TTL_MS + 1000)
 		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
 	})
 
@@ -133,12 +137,12 @@ describe('enqueueOgImageRender', () => {
 	// single-flights renders per board.
 	it('has a marker TTL longer than the worst-case retry chain', () => {
 		const backoffMs = Array.from(
-			{ length: MAX_RENDER_ATTEMPTS - 1 },
-			(_, i) => RETRY_DELAY_SECONDS * (i + 1) * 1000
+			{ length: OG_MAX_RENDER_ATTEMPTS - 1 },
+			(_, i) => OG_RETRY_DELAY_SECONDS * (i + 1) * 1000
 		).reduce((a, b) => a + b, 0)
-		const worstCaseChainMs = MAX_RENDER_ATTEMPTS * THUMBNAIL_RENDER_TIMEOUT_MS + backoffMs
+		const worstCaseChainMs = OG_MAX_RENDER_ATTEMPTS * THUMBNAIL_RENDER_TIMEOUT_MS + backoffMs
 
-		expect(PENDING_MARKER_TTL_MS).toBeGreaterThan(worstCaseChainMs)
+		expect(OG_PENDING_MARKER_TTL_MS).toBeGreaterThan(worstCaseChainMs)
 	})
 })
 
@@ -178,6 +182,12 @@ describe('deleteOgImage vs clearOgImagePendingMarker', () => {
 		const env = makeEnv({ THUMBNAILS: bucket })
 		await enqueueOgImageRender(env, board, { reason: 'publish' })
 		await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer)
+		// A cooldown left by an earlier failed repair goes with it: an unpublish-then-republish is a new
+		// snapshot, and its repair must not inherit the old one's failure.
+		await bucket.put(
+			getOgImageCacheKey(board).replace(/\.png$/, '.repair-cooldown'),
+			new Uint8Array().buffer
+		)
 
 		await deleteOgImage(env, board)
 
@@ -706,6 +716,67 @@ describe('handleOgImageRenderMessage', () => {
 
 		await handleOgImageRenderMessage(env, makeMessage(board, 3))
 		expect(bucket.store.has(markerKey)).toBe(false)
+	})
+
+	// The give-up clears the pending marker so a genuine republish is not turned away — but for the
+	// crawler-triggered repair, "acted on immediately" is the attack: with the marker gone, the next
+	// unauthenticated request would re-arm a whole retry chain of Browser Run on a board that just
+	// proved it cannot render. The cooldown is what stands in for the marker on that one path, and
+	// only that path: a publish-triggered failure must not arm it, or the repair loses the immediate
+	// first attempt it exists to provide.
+	it('arms the repair cooldown when a crawler-triggered job gives up, and only then', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const board = { kind: 'published', slug: 'board' } as const
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => {
+				throw new Error('browser session failed')
+			}),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		// A retry is not a give-up, and a publish-triggered give-up arms nothing.
+		await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'crawler' }, 1))
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(false)
+		await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'publish' }, 3))
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(false)
+
+		// The crawler-triggered give-up is the one that does.
+		await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'crawler' }, 3))
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(true)
+	})
+
+	it('lets the repair cooldown lapse after OG_REPAIR_COOLDOWN_MS', async () => {
+		vi.useFakeTimers()
+		vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const board = { kind: 'published', slug: 'board' } as const
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => {
+				throw new Error('browser session failed')
+			}),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'crawler' }, 3))
+		const armedAt = Date.parse('2026-01-01T00:00:00Z')
+
+		vi.setSystemTime(armedAt + OG_REPAIR_COOLDOWN_MS - 1000)
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(true)
+
+		vi.setSystemTime(armedAt + OG_REPAIR_COOLDOWN_MS + 1000)
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(false)
 	})
 
 	// A board that fails deterministically fails every attempt, so reporting each delivery filed three

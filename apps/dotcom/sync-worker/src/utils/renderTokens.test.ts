@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../config'
 import { makeFakeThumbnailsBucket } from '../routes/tla/screenshotTestHelpers'
 import { Environment } from '../types'
 import {
-	THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	ThumbnailRenderJob,
 	isMintedRenderToken,
 	mintThumbnailRenderToken,

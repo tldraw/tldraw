@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
 import { Environment } from '../../types'
 import {
-	THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	ThumbnailRenderJob,
 	mintThumbnailRenderToken,
 	recordMintedRenderToken,

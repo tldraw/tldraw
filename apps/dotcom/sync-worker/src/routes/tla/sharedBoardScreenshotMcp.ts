@@ -1,5 +1,11 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
+import {
+	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
+	MCP_PER_BOARD_RATE_LIMIT,
+	MCP_PER_IP_RATE_LIMIT,
+	MCP_RATE_LIMIT_WINDOW_MS,
+} from '../../config'
 import { Environment } from '../../types'
 import { arrayBufferToBase64 } from '../../utils/base64'
 import { sha256 } from '../../utils/hash'
@@ -29,34 +35,16 @@ const SCREENSHOT_TOOL_NAME = 'get_shared_board_screenshot'
 const BOARD_INFO_TOOL_NAME = 'get_board_info'
 const MCP_PROTOCOL_VERSION = '2024-11-05'
 
-// The only rate limiting anywhere in the thumbnail pipeline, and it lives here rather than in the
-// shared render core so a new surface built on those helpers cannot pick one up by accident. This is
-// the one Browser Run-spending surface an outside caller can drive directly, so a rogue or looping
-// agent is the threat being bounded, and only the calls that actually spend Browser Run are limited —
-// `get_board_info` does the same work the ordinary board routes do for anyone. The global limit is
-// applied per Cloudflare location, so it bounds a caller rather than the account. See "Request limits"
-// in browser-run-thumbnails.md.
-//
-// These constants are only the isolate-local fallback for local dev and tests. Deployed environments
-// are governed by the Cloudflare rate limit bindings in wrangler.toml, so changing a number here alone
-// changes nothing in production. Each budget has its own binding, and the pairs must move together:
-//
-//   PER_IP_RATE_LIMIT              ->  MCP_SCREENSHOT_RATE_LIMITER      (limit = 10)
-//   PER_BOARD_RATE_LIMIT           ->  MCP_SERVER_BOARD_RATE_LIMITER    (limit = 2)
-//   GLOBAL_BROWSER_RUN_RATE_LIMIT  ->  MCP_SERVER_BROWSER_RATE_LIMITER  (limit = 20)
-const PER_IP_RATE_LIMIT = 10
-// Far below the per-IP limit: a caller gets 10 captures a minute, but no single board may absorb more
-// than 2 of them. Cache misses only, so this does not bound the usual "screenshot several pages of one
-// board" flow — a repeated capture of the same page is a cache hit.
-const PER_BOARD_RATE_LIMIT = 2
+// The MCP rate limit budgets themselves live in config.ts (MCP_PER_IP_RATE_LIMIT and friends), with
+// the comment that maps each isolate-local fallback to its deployed Cloudflare binding. They are
+// applied here rather than in the shared render core so a new surface built on those helpers cannot
+// pick one up by accident.
 const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
-const GLOBAL_BROWSER_RUN_RATE_LIMIT = 20
-const RATE_LIMIT_WINDOW_MS = 60_000
 const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
 
 async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
 	return isRateLimited(env.MCP_SERVER_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
-		fallbackLimit: GLOBAL_BROWSER_RUN_RATE_LIMIT,
+		fallbackLimit: MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
 	})
 }
 
@@ -78,7 +66,7 @@ async function isRateLimited(
 	const now = Date.now()
 	const existing = RATE_LIMIT_FALLBACK.get(rateLimitKey)
 	if (!existing || existing.resetAt <= now) {
-		RATE_LIMIT_FALLBACK.set(rateLimitKey, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
+		RATE_LIMIT_FALLBACK.set(rateLimitKey, { count: 1, resetAt: now + MCP_RATE_LIMIT_WINDOW_MS })
 		return false
 	}
 	existing.count++
@@ -341,12 +329,12 @@ async function callSharedBoardScreenshotTool(
 	// captures, so a caller looping over cache hits is still bounded.
 	if (
 		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-shot:${clientIp ?? 'unknown'}`, {
-			fallbackLimit: PER_IP_RATE_LIMIT,
+			fallbackLimit: MCP_PER_IP_RATE_LIMIT,
 		})
 	) {
 		telemetry({ cacheStatus: 'miss', rateLimitAllowed: false, failureReason: 'rate_limited_ip' })
 		return toolError(
-			`Rate limited. Shared board screenshots are limited to about ${PER_IP_RATE_LIMIT} requests per minute per IP.`
+			`Rate limited. Shared board screenshots are limited to about ${MCP_PER_IP_RATE_LIMIT} requests per minute per IP.`
 		)
 	}
 
@@ -403,7 +391,7 @@ async function callSharedBoardScreenshotTool(
 		// here rather than at the top of the tool call.
 		if (
 			await isRateLimited(env.MCP_SERVER_BOARD_RATE_LIMITER, `board:${input.boardId}`, {
-				fallbackLimit: PER_BOARD_RATE_LIMIT,
+				fallbackLimit: MCP_PER_BOARD_RATE_LIMIT,
 			})
 		) {
 			telemetry({

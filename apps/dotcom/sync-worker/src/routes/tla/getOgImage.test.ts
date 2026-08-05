@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { OG_REPAIR_COOLDOWN_MS } from '../../config'
 import { getOgImage } from './getOgImage'
 import { getPublishedFileInfo } from './getPublishedFile'
 import { getSharedFileInfo } from './getSharedFile'
@@ -77,6 +78,39 @@ describe('getOgImage', () => {
 			slug: 'published-board',
 			reason: 'crawler',
 		})
+	})
+
+	// The repair is the one render ask an unauthenticated request can cause, so once a repair job has
+	// failed its whole retry budget, crawler traffic must not be able to re-arm another chain until the
+	// cooldown lapses — otherwise a board that cannot render is a Browser Run spend lever for whoever
+	// fetches its URL.
+	it('does not re-ask while a failed repair has the board on cooldown', async () => {
+		vi.useFakeTimers()
+		vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		const bucket = makeFakeThumbnailsBucket()
+		await bucket.put(
+			getOgImageCacheKey({ kind: 'published', slug: 'failing-board' }).replace(
+				/\.png$/,
+				'.repair-cooldown'
+			),
+			new Uint8Array().buffer,
+			{ customMetadata: { expiresAt: String(Date.now() + OG_REPAIR_COOLDOWN_MS) } }
+		)
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: queue })
+
+		await getOgImage(makeRequest('p', 'failing-board'), env)
+		expect(queue.send).not.toHaveBeenCalled()
+
+		// Once the cooldown lapses, the repair asks again.
+		vi.setSystemTime(Date.parse('2026-01-01T00:00:00Z') + OG_REPAIR_COOLDOWN_MS + 1000)
+		await getOgImage(makeRequest('p', 'failing-board'), env)
+		expect(queue.send).toHaveBeenCalledTimes(1)
 	})
 
 	// A shared file gets no such repair, and the reason is that it does not need one: every persist

@@ -7,6 +7,7 @@ import {
 	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
 import { getR2KeyForRoom } from '../../r2'
 import {
 	Environment,
@@ -18,7 +19,6 @@ import {
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
 import {
-	THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	ThumbnailRenderJob,
 	mintThumbnailRenderToken,
 	recordMintedRenderToken,

@@ -1,7 +1,12 @@
 import { IRequest } from 'itty-router'
+import {
+	OG_FALLBACK_MAX_AGE_SECONDS,
+	OG_FRESH_IMAGE_MAX_AGE_SECONDS,
+	OG_STALE_IMAGE_MAX_AGE_SECONDS,
+} from '../../config'
 import { Environment, ThumbnailBoardKind } from '../../types'
 import { getPublicOrigin } from '../../utils/getPublicOrigin'
-import { enqueueOgImageRender, getOgImageCacheKey } from './ogImageQueue'
+import { enqueueOgImageRender, getOgImageCacheKey, isOgImageRepairOnCooldown } from './ogImageQueue'
 import {
 	ResolvedThumbnailBoard,
 	resolveThumbnailBoard,
@@ -22,16 +27,6 @@ import { reportThumbnailError } from './thumbnailShared'
 // The one exception is `repairMissingPublishedImage` below, which asks for a render when a *published*
 // board has no image at all — the single case where no other trigger will ever ask again.
 const DEFAULT_OG_IMAGE_PATH = '/social-og.png'
-// Short, and deliberately not chosen for cost or freshness. Neither is the binding constraint here:
-// R2 reads are a rounding error next to rendering, and unfurl platforms cache a card their own side
-// for days whatever we say. What the lifetime actually decides is how long an image can be served
-// without the share gate being consulted — nothing deletes a board's image when it stops being
-// public, so this route re-checking the gate per request is the only thing keeping an unshared
-// board's thumbnail off the internet. Every second of cache lifetime is a second that check does not
-// happen, so these are minutes, and revalidation is made cheap with an etag instead.
-const FRESH_IMAGE_MAX_AGE_SECONDS = 5 * 60
-const STALE_IMAGE_MAX_AGE_SECONDS = 5 * 60
-const FALLBACK_MAX_AGE_SECONDS = 60
 
 export async function getOgImage(
 	request: IRequest,
@@ -138,8 +133,11 @@ function parseSlug(value: unknown) {
  * asking again. One lost ask there means a generic card until somebody republishes.
  *
  * So this fires only for `published`, and only on a total miss: no image at all, not a stale one.
- * The pending marker dedupes it, and a board that fails to render permanently is limited to one
- * attempt per marker TTL rather than one per crawler.
+ * The pending marker dedupes it while a job is alive, and the repair cooldown bounds it after one
+ * dies: this is the only render ask an unauthenticated request can cause, so once a crawler-triggered
+ * job has burnt its whole retry budget, a board that cannot render costs one retry chain per
+ * OG_REPAIR_COOLDOWN_MS rather than one per marker-clear — traffic an outside caller controls must
+ * not be able to re-arm it faster than that.
  *
  * This does not undo the reasoning that removed the general on-miss enqueue. That enqueue was
  * pointless because the crawler which triggered it has already cached the default by the time the
@@ -152,6 +150,7 @@ async function repairMissingPublishedImage(
 	ctx: ExecutionContext | undefined
 ) {
 	if (board.kind !== 'published') return
+	if (await isOgImageRepairOnCooldown(env, board)) return
 	const enqueued = enqueueOgImageRender(env, board, { reason: 'crawler' }).catch((error) => {
 		reportThumbnailError(error, {
 			ctx,
@@ -178,7 +177,7 @@ function cacheParamsOf(cached: R2Object, board: ResolvedThumbnailBoard): CachePa
 	return {
 		cacheStatus,
 		maxAgeSeconds:
-			cacheStatus === 'hit' ? FRESH_IMAGE_MAX_AGE_SECONDS : STALE_IMAGE_MAX_AGE_SECONDS,
+			cacheStatus === 'hit' ? OG_FRESH_IMAGE_MAX_AGE_SECONDS : OG_STALE_IMAGE_MAX_AGE_SECONDS,
 		etag: cached.httpEtag,
 		version: cached.customMetadata?.version,
 	}
@@ -204,7 +203,7 @@ function cacheHeaders({ cacheStatus, maxAgeSeconds, etag, version }: CacheParams
 	return {
 		// No `stale-while-revalidate`: it would let a cache keep serving for a day past expiry, which is
 		// a day of serving without the share gate — the same reason the default-image redirect carries
-		// none. See FRESH_IMAGE_MAX_AGE_SECONDS.
+		// none. See OG_FRESH_IMAGE_MAX_AGE_SECONDS in config.ts.
 		'cache-control': `public, max-age=${maxAgeSeconds}`,
 		'x-tldraw-og-cache': cacheStatus,
 		...(etag ? { etag } : null),
@@ -231,7 +230,7 @@ function redirectToDefaultOgImage(imageUrl: string) {
 		status: 302,
 		headers: {
 			location: imageUrl,
-			'cache-control': `public, max-age=${FALLBACK_MAX_AGE_SECONDS}`,
+			'cache-control': `public, max-age=${OG_FALLBACK_MAX_AGE_SECONDS}`,
 		},
 	})
 }

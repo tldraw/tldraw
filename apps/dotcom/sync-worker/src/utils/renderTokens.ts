@@ -61,17 +61,8 @@ export interface ThumbnailRenderJob {
 	exp: number
 }
 
-/**
- * How long a minted render token stays valid.
- *
- * Sized against what a capture needs rather than generously, because this token is what stands between
- * an HMAC signature and a *private* board's full document: thumbnails are rendered for every board, not
- * only public ones. Measured renders run 4s at p50 and 12-17s at p90, so 60s is several times p90.
- *
- * Queue linger and retry backoff do not eat into it — a token is minted immediately before the
- * `quickAction` call, not at enqueue. A render slower than this fails and retries with a fresh token.
- */
-export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
+// The token lifetime (THUMBNAIL_RENDER_TOKEN_TTL_MS) lives in config.ts; expiry rides inside the
+// signed payload as `exp`, minted immediately before the capture.
 
 export async function mintThumbnailRenderToken(
 	env: Environment,
