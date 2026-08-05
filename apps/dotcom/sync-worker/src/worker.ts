@@ -208,7 +208,7 @@ const router = createRouter<Environment>()
 	})
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
-	.post('/app/zero/mutate', async (req, env) => {
+	.post('/app/zero/mutate', async (req, env, ctx) => {
 		const auth = await getAuth(req, env)
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
@@ -218,8 +218,13 @@ const router = createRouter<Environment>()
 			'debug'
 		)
 		const result = await processor.process(createMutators(auth.userId), req)
-		// wake the outbox consumer; poke only schedules an immediate alarm so this is fast
-		await getFileEffectProcessor(env).poke()
+		// Wake the outbox consumer without blocking the response: a poke failure must not 500 a
+		// mutation that already committed, and the singleton DO shouldn't sit on the hot path.
+		ctx.waitUntil(
+			getFileEffectProcessor(env)
+				.poke()
+				.catch((e) => console.error('outbox poke failed', e))
+		)
 		return json(result)
 	})
 	.post('/app/zero/query', async (req, env) => {

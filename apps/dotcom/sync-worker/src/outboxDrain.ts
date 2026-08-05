@@ -13,14 +13,18 @@ export interface OutboxDeps {
 }
 
 export async function drainOutbox(deps: OutboxDeps) {
+	// Hoisted above the batch loop: an entity that fails must be skipped for the rest of this
+	// drain call, not just the rest of its batch, so a stuck entity can't burn all its attempts
+	// (and reach the parking threshold) in a single drain while other entities keep it looping.
+	const failedEntities = new Set<string>()
+	const entityKey = (row: TlaEffectOutbox) => `${row.tableName}:${row.entityId}`
 	while (true) {
 		const rows = await deps.getBatch()
 		if (rows.length === 0) break
-		// A failing entity's later rows must not run out of order; other entities continue.
-		const failedEntities = new Set<string>()
-		const entityKey = (row: TlaEffectOutbox) => `${row.tableName}:${row.entityId}`
+		let processedAny = false
 		for (const row of rows) {
 			if (failedEntities.has(entityKey(row))) continue
+			processedAny = true
 			try {
 				await deps.process(row)
 				await deps.deleteRow(row.id)
@@ -30,9 +34,9 @@ export async function drainOutbox(deps: OutboxDeps) {
 				deps.onError(error, row)
 			}
 		}
-		// If every row in the batch failed we'd spin on the same batch; stop and let the
-		// alarm retry after backoff.
-		if (failedEntities.size > 0 && rows.every((r) => failedEntities.has(entityKey(r)))) break
+		// If every row in the batch was already-failed or failed just now, we'd spin refetching
+		// the same rows; stop and let the alarm retry after backoff.
+		if (!processedAny || rows.every((r) => failedEntities.has(entityKey(r)))) break
 	}
 	await deps.deleteParkedRowsOlderThan(PARKED_ROW_TTL_DAYS)
 }

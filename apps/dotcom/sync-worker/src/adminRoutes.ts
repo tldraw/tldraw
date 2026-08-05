@@ -13,6 +13,7 @@ import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
 import PQueue from 'p-queue'
 import { getUploadObjectName } from './assetAssociation'
+import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
@@ -59,7 +60,7 @@ export const adminRoutes = createRouter<Environment>()
 				.where('group_user.userId', '=', userRow.id)
 				.select(['group.id', 'group.name', 'group.isDeleted', 'group_user.role'])
 				.execute()
-			const files = await db
+			const fileRows = await db
 				.selectFrom('file')
 				.leftJoin('group_file', 'group_file.fileId', 'file.id')
 				.where((eb) =>
@@ -75,6 +76,9 @@ export const adminRoutes = createRouter<Environment>()
 				.selectAll('file')
 				.limit(500)
 				.execute()
+			// The left join over group_file can duplicate a file row (owner match + membership in
+			// multiple groups); dedupe by id.
+			const files = [...new Map(fileRows.map((f) => [f.id, f])).values()]
 			return json({ user: userRow, memberships, files })
 		} finally {
 			await db.destroy()
@@ -86,9 +90,9 @@ export const adminRoutes = createRouter<Environment>()
 			const stats = await db
 				.selectFrom('effect_outbox')
 				.select((eb) => [
-					eb.fn.countAll<number>().filterWhere('attempts', '<', 10).as('pending'),
-					eb.fn.countAll<number>().filterWhere('attempts', '>=', 10).as('parked'),
-					eb.fn.min('createdAt').filterWhere('attempts', '<', 10).as('oldestPending'),
+					eb.fn.countAll<number>().filterWhere('attempts', '<', MAX_ATTEMPTS).as('pending'),
+					eb.fn.countAll<number>().filterWhere('attempts', '>=', MAX_ATTEMPTS).as('parked'),
+					eb.fn.min('createdAt').filterWhere('attempts', '<', MAX_ATTEMPTS).as('oldestPending'),
 				])
 				.executeTakeFirstOrThrow()
 			return json({
@@ -170,6 +174,9 @@ export const adminRoutes = createRouter<Environment>()
 				status: 409,
 			})
 		}
+		// Nudge the outbox so the restore's effects (room DO reopen, etc.) land promptly instead
+		// of waiting for the 30s alarm sweep. poke() is cheap: it just schedules an alarm.
+		await getFileEffectProcessor(env).poke()
 		// Hard-reboot every affected user so the restored rows replicate to their session (the
 		// isDeleted false-flip case flagged in dotcom-shared mutators.ts). Best-effort: the
 		// writes already committed, so a reboot failure must not surface as a 500 (a retry would
@@ -603,6 +610,9 @@ async function hardDeleteAppFile({
 	}
 	// hard delete file (this will trigger a cascade delete of all remaining related records & R2 objects)
 	await pg.deleteFrom('file').where('id', '=', file.id).execute()
+	// Nudge the outbox so the delete's effects land promptly instead of waiting for the 30s
+	// alarm sweep. poke() is cheap: it just schedules an alarm.
+	await getFileEffectProcessor(env).poke()
 	return new Response('Deleted', { status: 200 })
 }
 

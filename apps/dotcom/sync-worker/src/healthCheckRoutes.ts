@@ -1,5 +1,6 @@
 import { createRouter, notFound } from '@tldraw/worker-shared'
 import { sql } from 'kysely'
+import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { isDebugLogging, type Environment } from './types'
 import { getClerkClient } from './utils/tla/getAuth'
@@ -173,7 +174,7 @@ export const healthCheckRoutes = createRouter<Environment>()
 				const thresholdSeconds = 300
 				const result = await sql<{ age_seconds: string | null }>`
 					SELECT EXTRACT(EPOCH FROM (now() - min("createdAt"))) AS age_seconds
-					FROM effect_outbox WHERE attempts < 10
+					FROM effect_outbox WHERE attempts < ${sql.raw(String(MAX_ATTEMPTS))}
 				`.execute(db)
 				const age = result.rows[0]?.age_seconds ? parseFloat(result.rows[0].age_seconds) : 0
 				if (age > thresholdSeconds) {

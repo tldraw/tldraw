@@ -32,6 +32,7 @@ export interface FileEffectDeps {
 }
 
 export async function processFileEffect(deps: FileEffectDeps, genericRow: TlaEffectOutbox) {
+	// Invariant: caller must route only tableName === 'file' rows here.
 	const row = genericRow as FileEffectRow
 	if (row.command === 'delete') {
 		// Terminal: appFileRecordDidDelete is self-guarded, no staleness check needed.

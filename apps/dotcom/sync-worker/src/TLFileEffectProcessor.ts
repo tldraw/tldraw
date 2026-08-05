@@ -75,9 +75,12 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 	private drain() {
 		// Coalesce: one drain in flight; a poke during a drain lands on the next alarm.
 		if (!this.drainPromise) {
-			this.drainPromise = this._drain().finally(() => {
-				this.drainPromise = null
+			const promise = this._drain().finally(() => {
+				// Same identity guard as drainNow(): only clear the latch if it's still ours, so
+				// this doesn't clobber a newer drainPromise set by an interleaved drainNow() call.
+				if (this.drainPromise === promise) this.drainPromise = null
 			})
+			this.drainPromise = promise
 		}
 		return this.drainPromise
 	}
