@@ -2,9 +2,10 @@ import { StyledThread } from './StyledThread'
 import { BRAND_THEMES, isDarkTheme } from './themes'
 
 /**
- * The brand grid: the same demo thread rendered once per theme, each on a checkerboard floor so
- * the transparent export is visible at a glance. The tiles are presentational — the parent owns
- * the stage refs (for rasterizing) and the export buttons' behavior.
+ * The style grid: the same demo thread rendered once per style so the range is visible side by
+ * side, each on a checkerboard floor that shows the export's transparency at a glance. The tiles
+ * are presentational — the parent owns the stage refs (for rasterizing) and the export buttons'
+ * behavior.
  */
 export function GalleryView({
 	registerStage,

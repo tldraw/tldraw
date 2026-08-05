@@ -1,6 +1,6 @@
 /**
- * The brand registry. A brand is pure data: a map of CSS custom properties. Two families of
- * token appear in each map:
+ * The styles. Each entry restyles the entire commenting UI — pins, thread panels, composer,
+ * reactions — and each is nothing but a map of CSS custom properties, in two families:
  *
  * - tldraw's own tokens (`--tl-color-*`, `--tl-radius-*`, `--tlui-cmt-*`), which the commenting
  *   UI already reads — redefining them restyles panels, text, dividers, pills, and markers
@@ -11,7 +11,7 @@
  * `brandThemesCss` serializes the registry into the stylesheet the app mounts, scoping each map
  * to `[data-comment-theme='<id>'] [class*='tlui-cmt-']`. The tokens land on the comment elements
  * themselves so they win over the values `.tl-container` defines inside the editor — one
- * mechanism themes both the gallery tiles and the live canvas, and the rest of the tldraw UI
+ * mechanism styles both the gallery tiles and the live canvas, and the rest of the tldraw UI
  * keeps its stock look.
  */
 export interface BrandTheme {

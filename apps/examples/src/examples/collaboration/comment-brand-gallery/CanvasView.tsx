@@ -137,9 +137,9 @@ function handleMount(editor: Editor) {
 
 /**
  * The live commenting experience — the comment tool, pins, threads, mentions, reactions,
- * drag-to-re-anchor — under whichever brand is active. The `data-comment-theme` attribute on the
- * wrapper is all the theming there is: the generated token blocks target the comment elements
- * inside it, so switching brands restyles the comment layer in place and only the comment layer.
+ * drag-to-re-anchor — under whichever style is active. The `data-comment-theme` attribute on the
+ * wrapper is all the styling there is: the generated token blocks target the comment elements
+ * inside it, so switching styles restyles the comment layer in place and only the comment layer.
  */
 export function CanvasView({
 	store,

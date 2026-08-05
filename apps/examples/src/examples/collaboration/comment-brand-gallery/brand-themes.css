@@ -2,7 +2,7 @@
    Comment brand gallery
    --------------------------------------------------------------------------------------------
    Everything the commenting UI draws is a `tlui-cmt-*` class styled through tldraw's CSS
-   tokens, so a brand is pure data: a map of custom properties in themes.ts. That registry is
+   tokens, so a style is pure data: a map of custom properties in themes.ts. That registry is
    serialized into a stylesheet at runtime (see `brandThemesCss`), one token block per theme,
    scoped to `[data-comment-theme='<id>'] [class*='tlui-cmt-']` — the tokens land on the comment
    elements themselves so they win over the values `.tl-container` defines inside the editor,

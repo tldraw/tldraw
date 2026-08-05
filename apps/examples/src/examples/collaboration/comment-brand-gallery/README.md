@@ -3,15 +3,15 @@ title: Comment brand gallery
 component: ./CommentBrandGalleryExample.tsx
 priority: 10
 keywords:
-  [comments, commenting, theming, branding, custom styles, css, export, png, white label, gallery]
+  [comments, commenting, styling, theming, branding, custom styles, css tokens, restyle, png]
 ---
 
-Restyle the commenting UI into eighteen different brands and export each as a transparent PNG.
+Style the commenting UI to look like eighteen different products, from one set of components.
 
 ---
 
-Every piece of the commenting UI is a `tlui-cmt-*` class driven by tldraw's CSS tokens, which makes a brand mostly a token block: redefine the panel color, text colors, radii, and marker shadows under a `[data-comment-theme]` attribute and the pins, threads, composer, and reactions all follow. A few extra rules per brand cover fonts, borders, gradients, and pin shapes.
+Comments in tldraw don't come with a fixed look. Every pin, thread panel, composer, and reaction pill the commenting UI draws is a `tlui-cmt-*` class driven by CSS tokens, so the same components can pass for a dark keyboard-first SaaS tool, a newspaper, a drafting table, or an 8-bit arcade. This example renders one conversation in eighteen such styles to show the range.
 
-The gallery renders the same thread once per brand using the SDK's presentational components — no store or editor behind the tiles — and each tile is a working mockup: the copy and author names are editable in place (avatars update to match), and reaction pills toggle on click. Export any tile (or all of them) as a transparent-background PNG.
+A style here is mostly data: a map of custom properties (see `themes.ts`) that redefines the panel color, text colors, radii, and shadows, plus a handful of `--brand-*` tokens for fonts, borders, gradients, and pin shapes. Because it's all CSS, one theme applies equally to the standalone presentational components and to the live canvas layer.
 
-The live canvas tab is the real commenting experience with the same themes applied: place comments, reply, react, mention anyone by typing any name after `@`, and switch brands while a thread is open. The open thread exports too.
+The gallery view shows every style side by side — each tile is a working mockup whose copy, names, and reactions you can edit before exporting it as a transparent-background PNG. The live canvas view is the full commenting experience with the same styles: place comments, reply, react, mention anyone, and switch looks while a thread is open.

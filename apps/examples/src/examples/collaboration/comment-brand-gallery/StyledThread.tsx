@@ -11,8 +11,8 @@ import {
 import { useState } from 'react'
 
 /**
- * The demo conversation every gallery tile renders. One shared script makes the brands directly
- * comparable — the only thing changing from tile to tile is the theme.
+ * The demo conversation every gallery tile renders. One shared script makes the styles directly
+ * comparable — the only thing changing from tile to tile is the CSS.
  */
 export interface DemoComment {
 	author: CommentAuthor
@@ -63,13 +63,13 @@ function toggleReaction(list: ReactionSummary[], emoji: string): ReactionSummary
 }
 
 /**
- * One brand's rendition of the demo thread, built from the SDK's presentational pieces:
+ * The demo thread one style gets applied to, built from the SDK's presentational pieces:
  * `CommentPin`, `CommentThread`, `Avatar`, `Reactions`, and `SendButton`. These components take
- * plain props and know nothing about the editor, so a tile needs no store and no license — it's
- * the same markup and class names the live canvas layer produces, which is what lets one theme
- * stylesheet cover both.
+ * plain props and know nothing about the editor, so a tile needs no store and no license — and
+ * because they render the same markup and class names as the live canvas layer, one style
+ * sheet covers both.
  *
- * The tiles are interactive in the ways that matter for a copy deck:
+ * The tiles stay interactive so each style can be tried with real content:
  * - Bodies and author names are `contentEditable`. Renamed authors flow into state so the avatar
  *   (and the pin, for the opening comment) re-render with the new initial.
  * - Reaction pills are live: click one to join or leave it, and a pill you back out of at count

@@ -8,8 +8,7 @@ import { GalleryView } from './GalleryView'
 import { BRAND_THEMES, brandThemesCss } from './themes'
 import './brand-themes.css'
 
-// The brand registry, serialized once into the stylesheet the app mounts — see themes.ts for
-// what a brand is and brand-themes.css for the rules that consume the tokens.
+// [1]
 const THEME_CSS = brandThemesCss(BRAND_THEMES)
 
 export default function CommentBrandGalleryExample() {
@@ -19,15 +18,13 @@ export default function CommentBrandGalleryExample() {
 	const stageRefs = useRef(new Map<string, HTMLDivElement>())
 	const canvasRef = useRef<HTMLDivElement>(null)
 
-	// The store outlives the mode toggle, so comments you post in canvas mode survive a trip to
-	// the gallery and back.
+	// [2]
 	const store = useMemo(
 		() => createTLStore({ schema: createTLSchema({ records: commentSchemaRecords }) }),
 		[]
 	)
 
-	// Export rasterizes a DOM node (via html-to-image) at 2x with no background color, so the PNG
-	// is transparent everywhere the comment UI didn't paint — ready to drop onto a slide.
+	// [3]
 	const registerStage = (id: string, node: HTMLDivElement | null) => {
 		if (node) stageRefs.current.set(id, node)
 		else stageRefs.current.delete(id)
@@ -119,18 +116,25 @@ export default function CommentBrandGalleryExample() {
 }
 
 /*
-This example shows how far the commenting UI can be pushed visually: eighteen "brands", each a
-complete restyle of the same components, plus transparent-PNG export of any of them.
+This example shows that the commenting UI has no fixed look: the same components restyle into
+eighteen completely different products. Everything the layer draws is a `tlui-cmt-*` class driven
+by CSS tokens, so a style is data, not code.
 
-A brand is pure data — a map of CSS custom properties in themes.ts. Everything the commenting UI
-draws is a `tlui-cmt-*` class styled through tldraw's tokens, so redefining `--tl-color-*`, the
-radii, and the marker shadows restyles most of the surface; example-level `--brand-*` tokens
-(consumed by one generic rule block in brand-themes.css) cover the rest — fonts, borders,
-gradients, pin shapes. The registry is serialized into a stylesheet at runtime, which is what
-will let a future theme be edited live.
+[1]
+Each style in themes.ts is a map of custom properties: tldraw's own tokens (`--tl-color-*`,
+radii, marker shadows) restyle most of the surface, and example-level `--brand-*` tokens —
+consumed by one generic rule block in brand-themes.css — cover fonts, borders, gradients, and
+pin shapes. `brandThemesCss` serializes the registry into the stylesheet mounted here, and the
+`data-comment-theme` attribute picks which style an element tree gets. One mechanism styles both
+surfaces: the gallery's standalone components and the live canvas layer.
 
-The gallery (GalleryView) renders the same demo thread once per brand using the SDK's
-presentational components — no store, no editor, and the tiles are editable working mockups. The
-live canvas (CanvasView) is the full commenting experience with the same attribute on its
-wrapper, so the two surfaces share every theme.
+[2]
+The store outlives the mode toggle, so comments posted in canvas mode survive a trip to the
+gallery and back. Comment records are part of the store's schema, exactly like shapes.
+
+[3]
+Exports rasterize a styled DOM node (via html-to-image) at 2x with no background color, so the
+PNG is transparent everywhere the comment UI didn't paint. The gallery exports any tile — with
+whatever copy has been typed into it — and canvas mode exports the open thread in the active
+style.
 */
