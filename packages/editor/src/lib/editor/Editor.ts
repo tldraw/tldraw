@@ -7774,6 +7774,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			| 'center'
 	): this {
 		if (this.getIsReadonly()) return this
+		if (operation === 'center') {
+			return this.alignShapes(shapes, 'center-horizontal').alignShapes(shapes, 'center-vertical')
+		}
 
 		const { clusters: shapeClustersToAlign, allBounds } = this.getShapeClusters(shapes, 'align')
 
@@ -7809,11 +7812,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 				case 'right': {
 					delta.x = commonBounds.maxX - pageBounds.minX - pageBounds.width
-					break
-				}
-				case 'center': {
-					delta.x = commonBounds.midX - pageBounds.minX - pageBounds.width / 2
-					delta.y = commonBounds.midY - pageBounds.minY - pageBounds.height / 2
 					break
 				}
 			}

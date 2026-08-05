@@ -144,9 +144,7 @@ describe('when multiple shapes are selected', () => {
 			},
 		])
 
-		editor.alignShapes(editor.getSelectedShapeIds(), 'center-vertical')
-		vi.advanceTimersByTime(1000)
-		editor.alignShapes(editor.getSelectedShapeIds(), 'center-horizontal')
+		editor.alignShapes(editor.getSelectedShapeIds(), 'center')
 		vi.advanceTimersByTime(1000)
 
 		const commonBounds = Box.Common([
