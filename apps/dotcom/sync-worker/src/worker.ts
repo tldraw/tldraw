@@ -67,6 +67,14 @@ export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 // so this export is just an unbound class on preview - harmless.
 export class TLDrawDurableObject {}
 
+// no-op stubs, same reasoning as TLDrawDurableObject above: staging/prod migration
+// history references these classes (v5 created TLPostgresReplicator + TLUserDurableObject,
+// v7 created TLStatsDurableObject), so the exports must stay or their deploys break
+// (see #8124). Bindings are already gone; preview never created these classes.
+export class TLPostgresReplicator {}
+export class TLUserDurableObject {}
+export class TLStatsDurableObject {}
+
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
 })

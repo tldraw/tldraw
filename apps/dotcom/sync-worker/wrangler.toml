@@ -60,6 +60,11 @@ new_sqlite_classes = ["TLFileEffectProcessor"]
 # preview workers are fresh deploys, so CF rejects v10's delete-class for
 # TLDrawDurableObject (code 10074). skip v1 and v10 here; env-level migrations
 # fully replace the top-level list.
+# v5 (TLPostgresReplicator + TLUserDurableObject) and v7 (TLStatsDurableObject) are also
+# skipped: those classes are being removed, and a fresh preview worker must never see a
+# create+delete pair for a class that no longer exists (same #8819 failure mode as v1/v10
+# above). The eventual delete-class migration for these three only goes in the top-level
+# list, so preview never needs it.
 [[env.preview.migrations]]
 tag = "v2"
 new_classes = ["TLProWorkspaceDurableObject"]
@@ -73,17 +78,8 @@ tag = "v4"
 new_classes = ["TLAppDurableObject"]
 
 [[env.preview.migrations]]
-tag = "v5"
-new_sqlite_classes = ["TLPostgresReplicator"]
-new_classes = ["TLUserDurableObject"]
-
-[[env.preview.migrations]]
 tag = "v6"
 new_sqlite_classes = ["TLLoggerDurableObject"]
-
-[[env.preview.migrations]]
-tag = "v7"
-new_sqlite_classes = ["TLStatsDurableObject"]
 
 [[env.preview.migrations]]
 tag = "v8"
@@ -178,51 +174,36 @@ pattern = "sync.tldraw.xyz"
 [env.dev.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
-	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
-	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
-	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
-	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [env.preview.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
-	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
-	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [env.staging.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
-	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
-	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 [env.production.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
-	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
 	{ name = "TL_LOGGER", class_name = "TLLoggerDurableObject" },
-	{ name = "TL_STATS", class_name = "TLStatsDurableObject" },
 ]
 
 #################### Analytics engine ####################
@@ -322,26 +303,6 @@ bucket_name = 'uploads-preview'
 [[env.production.r2_buckets]]
 binding = "UPLOADS"
 bucket_name = "uploads"
-
-#################### User DO Snapshot R2 bucket ####################
-# in dev, we write to the preview bucket and need a `preview_bucket_name`
-[[env.dev.r2_buckets]]
-binding = 'USER_DO_SNAPSHOTS'
-bucket_name = 'user-do-snapshots-preview'
-preview_bucket_name = 'user-do-snapshots-preview'
-
-[[env.preview.r2_buckets]]
-binding = 'USER_DO_SNAPSHOTS'
-bucket_name = 'user-do-snapshots-preview'
-
-[[env.staging.r2_buckets]]
-binding = 'USER_DO_SNAPSHOTS'
-bucket_name = 'user-do-snapshots-staging'
-
-# in production, we write to the main bucket
-[[env.production.r2_buckets]]
-binding = "USER_DO_SNAPSHOTS"
-bucket_name = "user-do-snapshots"
 
 #################### Thumbnails R2 bucket ####################
 # cache for Browser Run-generated board thumbnails (MCP screenshots)
