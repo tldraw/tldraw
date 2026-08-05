@@ -53,11 +53,17 @@ import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
-import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
+import {
+	getFileEffectProcessor,
+	getLogger,
+	getReplicator,
+	getUserDurableObject,
+} from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
 import { getRole } from './utils/tla/getRole'
 export { TLFileDurableObject } from './TLFileDurableObject'
+export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLStatsDurableObject } from './TLStatsDurableObject'
@@ -212,6 +218,8 @@ const router = createRouter<Environment>()
 			'debug'
 		)
 		const result = await processor.process(createMutators(auth.userId), req)
+		// wake the outbox consumer; poke only schedules an immediate alarm so this is fast
+		await getFileEffectProcessor(env).poke()
 		return json(result)
 	})
 	.post('/app/zero/query', async (req, env) => {
