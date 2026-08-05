@@ -2,7 +2,6 @@
 
 The manifest is a JSON file describing every slide in the video. It bridges the narration/audio step and the hyperframes renderer. Referenced from step 4 of `../SKILL.md`.
 
-The manifest is a JSON file that describes every slide in the video. It bridges the narration/audio step and the hyperframes renderer.
 
 Read the `durations.json` from step 3 to get the duration (in seconds) for each audio clip. Then write a `manifest.json` alongside the audio files:
 
