@@ -95,6 +95,31 @@ describe('stale pan recovery via real DOM events', () => {
 		expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
 	})
 
+	it('ends right-click pointing when the pointerup was missed before panning starts', async () => {
+		const { editor, canvas } = await setup()
+
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 2, buttons: 2 })
+		)
+		expect(editor.inputs.getIsRightPointing()).toBe(true)
+		expect(editor.inputs.getIsPanning()).toBe(false)
+
+		// The pointer leaves before crossing the drag threshold and its pointerup is
+		// lost. The first move back must end the pending right-click rather than turn
+		// it into a pan based on the distance from the original pointerdown.
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 0 })
+		)
+		expect(editor.inputs.getIsRightPointing()).toBe(false)
+		expect(editor.inputs.getIsPointing()).toBe(false)
+		expect(editor.inputs.getIsPanning()).toBe(false)
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+	})
+
 	it('keeps panning while the right button is still held', async () => {
 		const { editor, canvas } = await setup()
 

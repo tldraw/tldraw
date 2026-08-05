@@ -240,7 +240,7 @@ export function useCanvasEvents() {
 				// bare Event objects lack a buttons field entirely; skip the check
 				// for those (a real PointerEvent always has a numeric buttons)
 				typeof e.buttons === 'number' &&
-				editor.inputs.getIsPanning() &&
+				(editor.inputs.getIsPanning() || editor.inputs.getIsRightPointing()) &&
 				editor.inputs.getIsPointing()
 			) {
 				for (const button of Array.from(editor.inputs.buttons.keys())) {
