@@ -412,6 +412,18 @@ function matchesEvent(e: KeyboardEvent, parsed: ParsedKbd): boolean {
 	if (e.ctrlKey !== parsed.ctrl) return false
 	if (e.metaKey !== parsed.meta) return false
 
+	// With shift held, match number-row digits by physical position rather than the typed glyph: the
+	// digit keys sit in the same place on every Latin layout, but their shifted glyph varies
+	// (shift+2 is '@' on US, '"' on British PC and German), so glyph matching misses them. Returning
+	// here also stops a digit press from matching a symbol shortcut that shares its glyph — on
+	// German, shift+0 types '=', which must run zoom-to-100, not the '=' zoom-in shortcut it would
+	// otherwise alias to. Unshifted presses keep glyph matching, because layouts put real symbol
+	// shortcuts on the number row: AZERTY types '-' on Digit6, and that must still zoom out.
+	if (e.shiftKey) {
+		const digitCode = /^Digit([0-9])$/.exec(e.code)
+		if (digitCode) return parsed.key === digitCode[1]
+	}
+
 	const eventKey = getEventKey(e)
 	if (eventKey === parsed.key) return true
 
