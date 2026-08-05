@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { LEFT_MOUSE_BUTTON, MIDDLE_MOUSE_BUTTON, RIGHT_MOUSE_BUTTON } from '../constants'
 import { tlenv } from '../globals/environment'
 import {
@@ -21,9 +21,9 @@ function isButtonStillDown(button: number, buttons: number): boolean {
 		case MIDDLE_MOUSE_BUTTON:
 			return (buttons & 4) !== 0
 		case RIGHT_MOUSE_BUTTON:
-			// On darwin, ctrl+click reports button 2 while the physical bit is
-			// the left button's, so right still counts as down while either bit
-			// is set.
+			// On darwin, ctrl+click is mapped to button 2 (getPointerEventButton),
+			// but browsers disagree on the buttons bit: some report the physical
+			// left bit, others the translated right bit. Accept either.
 			return tlenv.isDarwin ? (buttons & (1 | 2)) !== 0 : (buttons & 2) !== 0
 		default:
 			// Other buttons (stylus eraser etc.) are never treated as stale.
@@ -35,15 +35,16 @@ export function useCanvasEvents() {
 	const editor = useEditor()
 	const ownerDocument = editor.getContainerDocument()
 	const currentTool = useValue('current tool', () => editor.getCurrentTool(), [editor])
+	// Shared with the document-level pointermove listener below so stale-button
+	// recovery can clear it when the pointerup it describes never arrived.
+	const isSecondaryClickPointerDown = useRef(false)
 
 	const events = useMemo(
 		function canvasEvents() {
-			let isSecondaryClickPointerDown = false
-
 			function onPointerDown(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
 				const button = getPointerEventButton(e)
-				isSecondaryClickPointerDown = button === 2
+				isSecondaryClickPointerDown.current = button === 2
 
 				// With right-click panning disabled, fire right_click on press and let the
 				// native contextmenu through so the menu opens at the pointer-down location.
@@ -76,7 +77,7 @@ export function useCanvasEvents() {
 
 			function onPointerUp(e: React.PointerEvent) {
 				if (editor.wasEventAlreadyHandled(e)) return
-				const button = isSecondaryClickPointerDown ? 2 : getPointerEventButton(e)
+				const button = isSecondaryClickPointerDown.current ? 2 : getPointerEventButton(e)
 				if (button !== 0 && button !== 1 && button !== 2 && button !== 5) return
 
 				const rightClickPanning = editor.options.rightClickPanning
@@ -108,7 +109,7 @@ export function useCanvasEvents() {
 					})
 					e.currentTarget.dispatchEvent(contextMenuEvent)
 				}
-				isSecondaryClickPointerDown = false
+				isSecondaryClickPointerDown.current = false
 			}
 
 			function onPointerEnter(e: React.PointerEvent) {
@@ -257,14 +258,21 @@ export function useCanvasEvents() {
 			// through the normal pointer_up path before dispatching this move.
 			if (
 				e.pointerType === 'mouse' &&
-				// bare Event objects lack a buttons field entirely; skip the check
-				// for those (a real PointerEvent always has a numeric buttons)
+				// polyfilled or synthetic events can lack a numeric buttons field;
+				// skip the check for those
 				typeof e.buttons === 'number' &&
 				(editor.inputs.getIsPanning() || editor.inputs.getIsRightPointing()) &&
 				editor.inputs.getIsPointing()
 			) {
 				for (const button of Array.from(editor.inputs.buttons.keys())) {
 					if (isButtonStillDown(button, e.buttons)) continue
+					if (button === RIGHT_MOUSE_BUTTON) isSecondaryClickPointerDown.current = false
+					// The missed pointerup also means the capture taken on
+					// pointerdown was never explicitly released. Browsers usually
+					// drop it implicitly, but if it's still held this event was
+					// retargeted to the captured element, so release it there.
+					const captureTarget = e.target as Element | null
+					if (captureTarget?.hasPointerCapture) releasePointerCapture(captureTarget, e)
 					editor.dispatch({
 						type: 'pointer',
 						target: 'canvas',

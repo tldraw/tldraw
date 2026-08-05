@@ -148,6 +148,69 @@ describe('stale pan recovery via real DOM events', () => {
 		expect(editor.getSelectedShapeIds()).toEqual(selectedIds)
 	})
 
+	it('delivers a static right-click within the drag threshold to the state chart', async () => {
+		const { editor, canvas } = await setup()
+
+		await act(async () => {
+			editor.createShape({ type: 'geo', x: 500, y: 500 })
+			editor.select(editor.getCurrentPageShapes()[0].id)
+		})
+		expect(editor.getSelectedShapeIds()).toHaveLength(1)
+
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 2, buttons: 2 })
+		)
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 102, clientY: 101, buttons: 2 })
+		)
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerup', { clientX: 102, clientY: 101, button: 2, buttons: 0 })
+		)
+		// The right_click reached SelectTool's idle, which resolves the selection
+		// at the click point: empty canvas clears it.
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
+
+	it('suppresses a right-click released past the screen-space threshold at zoom 2', async () => {
+		const { editor, canvas } = await setup()
+
+		await act(async () => {
+			editor.createShape({ type: 'geo', x: 500, y: 500 })
+			editor.select(editor.getCurrentPageShapes()[0].id)
+			editor.setCamera(new Vec(0, 0, 2), { immediate: true })
+		})
+		const selectedIds = editor.getSelectedShapeIds()
+
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 2, buttons: 2 })
+		)
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 101, clientY: 100, buttons: 2 })
+		)
+		expect(editor.inputs.getIsRightPointing()).toBe(true)
+		expect(editor.inputs.getIsPanning()).toBe(false)
+
+		// A fast flick: the release lands 6px screen from the origin (past the
+		// 4px threshold → suppressed) but only 3px page at zoom 2. A page-space
+		// threshold would deliver the right_click and clear the selection.
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerup', { clientX: 106, clientY: 100, button: 2, buttons: 0 })
+		)
+		expect(editor.getSelectedShapeIds()).toEqual(selectedIds)
+	})
+
 	it('recovers a stale right button on non-darwin even while the left button is held', async () => {
 		const prevIsDarwin = tlenv.isDarwin
 		tlenv.isDarwin = false
