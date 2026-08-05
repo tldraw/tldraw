@@ -2,7 +2,6 @@ import { createRouter, notFound } from '@tldraw/worker-shared'
 import { sql } from 'kysely'
 import { createPostgresConnectionPool } from './postgres'
 import { isDebugLogging, type Environment } from './types'
-import { getStatsDurableObjct } from './utils/durableObjects'
 import { getClerkClient } from './utils/tla/getAuth'
 
 function isAuthorized(req: Request, env: Environment) {
@@ -15,26 +14,6 @@ export const healthCheckRoutes = createRouter<Environment>()
 	.all('/health-check/*', (req, env) => {
 		if (isDebugLogging(env) || isAuthorized(req, env)) return undefined
 		return new Response('Unauthorized', { status: 401 })
-	})
-	.get('/health-check/replicator', async (_, env) => {
-		const stats = getStatsDurableObjct(env)
-		const unusualRetries = await stats.unusualNumberOfReplicatorBootRetries()
-		if (unusualRetries) {
-			return new Response('High ammount of replicator boot retries', { status: 500 })
-		}
-		const isGettingUpdates = await stats.isReplicatorGettingUpdates()
-		if (!isGettingUpdates) {
-			return new Response('Replicator is not getting postgres updates', { status: 500 })
-		}
-		return new Response('ok', { status: 200 })
-	})
-	.get('/health-check/user-durable-objects', async (_, env) => {
-		const stats = getStatsDurableObjct(env)
-		const abortsOverThreshold = await stats.unusualNumberOfUserDOAborts()
-		if (abortsOverThreshold) {
-			return new Response('High ammount of user durable object aborts', { status: 500 })
-		}
-		return new Response('ok', { status: 200 })
 	})
 	.get('/health-check/clerk', async (_, env) => {
 		const clerk = getClerkClient(env)
@@ -92,8 +71,8 @@ export const healthCheckRoutes = createRouter<Environment>()
 		}
 	})
 	// Combined postgres health check: db size, changelog size, WAL retention, replication slots, and
-	// tlpr replicator status. Grouped into a single endpoint because updown.io charges per check
-	// invocation. Failures include the sub-check name so alerts remain distinguishable.
+	// outbox lag. Grouped into a single endpoint because updown.io charges per check invocation.
+	// Failures include the sub-check name so alerts remain distinguishable.
 	.get('/health-check/postgres', async (_, env) => {
 		const db = createPostgresConnectionPool(env, '/health-check/postgres')
 		const failures: string[] = []
@@ -172,7 +151,7 @@ export const healthCheckRoutes = createRouter<Environment>()
 				}>`
 					SELECT slot_name, active, wal_status
 					FROM pg_replication_slots
-					WHERE slot_name LIKE 'zero_%' OR slot_name LIKE 'tlpr_%'
+					WHERE slot_name LIKE 'zero_%'
 				`.execute(db)
 				const unhealthy = result.rows.filter(
 					(row) => row.wal_status === 'lost' || row.wal_status === 'unreserved'
@@ -189,31 +168,23 @@ export const healthCheckRoutes = createRouter<Environment>()
 				failures.push('replication-slots: query failed')
 			}
 
-			// tlpr-replicator
+			// outbox-lag
 			try {
-				const result = await sql<{
-					slot_name: string
-					active: boolean
-					wal_status: string | null
-				}>`
-					SELECT slot_name, active, wal_status
-					FROM pg_replication_slots
-					WHERE slot_name LIKE 'tlpr_%'
+				const thresholdSeconds = 300
+				const result = await sql<{ age_seconds: string | null }>`
+					SELECT EXTRACT(EPOCH FROM (now() - min("createdAt"))) AS age_seconds
+					FROM effect_outbox WHERE attempts < 10
 				`.execute(db)
-				if (result.rows.length === 0) {
-					failures.push('tlpr-replicator: no slot found')
+				const age = result.rows[0]?.age_seconds ? parseFloat(result.rows[0].age_seconds) : 0
+				if (age > thresholdSeconds) {
+					failures.push(
+						`outbox-lag: oldest pending effect ${Math.round(age)}s > ${thresholdSeconds}s`
+					)
 				} else {
-					const slot = result.rows[0]
-					if (!slot.active) {
-						failures.push(`tlpr-replicator: ${slot.slot_name} not active`)
-					} else if (slot.wal_status === 'lost' || slot.wal_status === 'unreserved') {
-						failures.push(`tlpr-replicator: ${slot.slot_name} wal_status=${slot.wal_status}`)
-					} else {
-						okDetails.push('tlpr: active')
-					}
+					okDetails.push(`outbox: ${Math.round(age)}s`)
 				}
 			} catch (_e) {
-				failures.push('tlpr-replicator: query failed')
+				failures.push('outbox-lag: query failed')
 			}
 
 			if (failures.length > 0) {
