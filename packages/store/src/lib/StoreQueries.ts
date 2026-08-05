@@ -12,7 +12,7 @@ import { AtomMap } from './AtomMap'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
 import { IncrementalSetConstructor } from './IncrementalSetConstructor'
-import { RecordsDiff } from './RecordsDiff'
+import { hasAnyKey, RecordsDiff } from './RecordsDiff'
 import { diffSets } from './setUtils'
 import { CollectionDiff } from './Store'
 
@@ -470,7 +470,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	record<TypeName extends R['typeName']>(
 		typeName: TypeName,
 		queryCreator: () => QueryExpression<Extract<R, { typeName: TypeName }>> = () => ({}),
-		name = 'record:' + typeName + (queryCreator ? ':' + queryCreator.toString() : '')
+		name = 'record:' + typeName + ':' + queryCreator.toString()
 	): Computed<Extract<R, { typeName: TypeName }> | undefined> {
 		type S = Extract<R, { typeName: TypeName }>
 		const ids = this.ids(typeName, queryCreator, name)
@@ -510,7 +510,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	records<TypeName extends R['typeName']>(
 		typeName: TypeName,
 		queryCreator: () => QueryExpression<Extract<R, { typeName: TypeName }>> = () => ({}),
-		name = 'records:' + typeName + (queryCreator ? ':' + queryCreator.toString() : '')
+		name = 'records:' + typeName + ':' + queryCreator.toString()
 	): Computed<Array<Extract<R, { typeName: TypeName }>>> {
 		type S = Extract<R, { typeName: TypeName }>
 		const ids = this.ids(typeName, queryCreator, 'ids:' + name)
@@ -554,7 +554,7 @@ export class StoreQueries<R extends UnknownRecord> {
 	ids<TypeName extends R['typeName']>(
 		typeName: TypeName,
 		queryCreator: () => QueryExpression<Extract<R, { typeName: TypeName }>> = () => ({}),
-		name = 'ids:' + typeName + (queryCreator ? ':' + queryCreator.toString() : '')
+		name = 'ids:' + typeName + ':' + queryCreator.toString()
 	): Computed<
 		Set<IdOf<Extract<R, { typeName: TypeName }>>>,
 		CollectionDiff<IdOf<Extract<R, { typeName: TypeName }>>>
@@ -567,7 +567,7 @@ export class StoreQueries<R extends UnknownRecord> {
 			// deref type history early to allow first incremental update to use diffs
 			typeHistory.get()
 			const query: QueryExpression<S> = queryCreator()
-			if (Object.keys(query).length === 0) {
+			if (!hasAnyKey(query)) {
 				return this.getAllIdsForType(typeName)
 			}
 
