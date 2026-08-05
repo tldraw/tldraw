@@ -271,6 +271,12 @@
 			}
 		},
 		{
+			"files": ["packages/**/*"],
+			"rules": {
+				"tldraw/no-undeclared-dependencies": "error"
+			}
+		},
+		{
 			"files": ["packages/editor/**/*", "packages/tldraw/**/*", "packages/utils/**/*"],
 			"rules": {
 				"no-restricted-globals": [
