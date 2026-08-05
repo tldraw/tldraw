@@ -82,7 +82,7 @@ async function deployAnalyticsWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateAnalyticsWorker) {
 		await setWranglerPreviewConfig(workerDir, {
 			name: workerId,
-			customDomain: `${previewId}-consent.tldraw.xyz`,
+			routeHostname: `${previewId}-consent.tldraw.xyz`,
 		})
 		didUpdateAnalyticsWorker = true
 	}
