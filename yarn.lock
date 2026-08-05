@@ -11776,6 +11776,7 @@ __metadata:
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
+    vitest: "npm:^4.1.7"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
@@ -11975,6 +11976,7 @@ __metadata:
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
+    vitest: "npm:^4.1.7"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
@@ -12226,6 +12228,7 @@ __metadata:
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    vitest: "npm:^4.1.7"
   languageName: unknown
   linkType: soft
 
