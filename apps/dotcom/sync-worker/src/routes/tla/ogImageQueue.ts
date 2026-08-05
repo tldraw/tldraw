@@ -76,7 +76,10 @@ function getOgImagePendingKey(board: ThumbnailBoardRef) {
 // Armed when a crawler-triggered job gives up, consulted only by the OG route's published-board
 // repair (see OG_REPAIR_COOLDOWN_MS in config.ts). Deliberately not consulted by enqueueOgImageRender
 // itself: a republish is a genuine new snapshot and must render regardless of how the last attempt
-// went, so only the one ask an outside caller can cause is metered.
+// went, so only the one ask an outside caller can cause is metered. For the same reason the publish
+// trigger *clears* it: the cooldown is evidence about the snapshot that failed, and a republish
+// replaces that snapshot, so the new one gets its own repair backstop — and re-arms the cooldown
+// itself if it turns out to fail too.
 function getOgImageRepairCooldownKey(board: ThumbnailBoardRef) {
 	return getOgImageCacheKey(board).replace(/\.png$/, '.repair-cooldown')
 }
@@ -209,12 +212,14 @@ export async function enqueuePublishThumbnailRender(
 	publishedSlug: string,
 	reportProblem: (error: unknown) => void
 ): Promise<void> {
+	const board: ThumbnailBoardRef = { kind: 'published', slug: publishedSlug }
+	// An in-place republish reuses the slug, so a cooldown armed against the previous snapshot's
+	// failure would otherwise outlive the snapshot it was evidence about and block the new one's
+	// repair. Cleared unconditionally and first: even if the enqueue below fails, the next crawl's
+	// repair is exactly the backstop that failure needs.
+	await env.THUMBNAILS?.delete(getOgImageRepairCooldownKey(board)).catch(() => {})
 	try {
-		const result = await enqueueOgImageRender(
-			env,
-			{ kind: 'published', slug: publishedSlug },
-			{ reason: 'publish' }
-		)
+		const result = await enqueueOgImageRender(env, board, { reason: 'publish' })
 		if (result !== 'enqueued') {
 			reportProblem(new Error(`Publish thumbnail enqueue did not take effect: ${result}`))
 		}

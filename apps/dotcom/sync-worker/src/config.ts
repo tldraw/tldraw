@@ -83,7 +83,9 @@ export const OG_RETRY_DELAY_SECONDS = 30
  *
  * Only the *crawler-reason* give-up arms it, so a publish-triggered render that fails transiently
  * still gets one immediate repair on the next crawl — the case the repair exists for — and the
- * cooldown only meters the attempts after that one has also failed.
+ * cooldown only meters the attempts after that one has also failed. The publish trigger clears it,
+ * because an in-place republish reuses the slug: the cooldown is evidence about the snapshot that
+ * failed, and it must not outlive that snapshot and block the new one's repair.
  */
 export const OG_REPAIR_COOLDOWN_MS = 60 * 60_000
 

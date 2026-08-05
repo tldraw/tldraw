@@ -274,6 +274,35 @@ describe('enqueuePublishThumbnailRender', () => {
 		expect((reportProblem.mock.calls[0][0] as Error).message).toContain('unavailable')
 	})
 
+	// An in-place republish reuses the slug, so a repair cooldown armed against the previous
+	// snapshot's failure would otherwise outlive the snapshot it was evidence about — and if the
+	// republished render then failed transiently, the crawler repair that failure relies on would be
+	// suppressed for the rest of the old cooldown.
+	it('clears a leftover repair cooldown, giving the new snapshot its own repair backstop', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const board = { kind: 'published', slug: 'published-slug' } as const
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => {
+				throw new Error('browser session failed')
+			}),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		// The previous snapshot's crawler repair gave up, arming the cooldown.
+		await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'crawler' }, 3))
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(true)
+
+		await enqueuePublishThumbnailRender(env, 'published-slug', vi.fn())
+
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(false)
+	})
+
 	// Publishing must survive its thumbnail ask failing: the snapshot is already written, and this is
 	// the last thing the effect does.
 	it('reports a throw without rethrowing it into the publish handler', async () => {
