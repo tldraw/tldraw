@@ -88,14 +88,9 @@ export function useClusterModel(
 	// reply, a reaction, a resolve — anything that touches comment records without moving a pin —
 	// returns the previous input and rebuilds nothing.
 	//
-	// Mid-drag the gate widens to ignore positions too — except a folded leaf's. A visible pin
-	// rides its anchor live, so its move can wait for release; a pin folded into a badge can't
-	// (the badge position is baked into the model), so the first move of a folded leaf passes
-	// through: a rebuild at drag start, whose pop-out (below) holds the pin out of clustering as a
-	// live pin (one more rebuild, as the held pin leaves the input) — after which the input is
-	// static again and the gate re-freezes for the rest of the drag. The per-frame rebuild the
-	// freeze buys back was paid by every drag on the board, comment-anchored or not. An added or
-	// deleted thread changes the id set, so it still rebuilds promptly.
+	// Mid-drag the gate ignores positions too — except a folded leaf's, which a badge can't
+	// follow. Its first move passes through, the pop-out below holds the pin out as a live pin,
+	// and the input is static again for the rest of the drag.
 	const clusterInputRef = useRef<ClusterInput>({ leaves: [], screenOffsets: undefined })
 	const renderedModelRef = useRef<ClusterModel | null>(null)
 	const clusterInput = useValue(
@@ -163,8 +158,7 @@ export function useClusterModel(
 		// survive to force-adopt a later, unrelated rebuild.
 		adoptOnRebuild.current = false
 	}
-	// The displayed partition, for the input gate above: it runs between renders (one per
-	// pointermove), and folded-vs-visible is a property of what's on screen right now.
+	// For the input gate above: folded-vs-visible is judged against what's on screen.
 	renderedModelRef.current = clusterModel
 	// Pop-out detection: a leaf folded inside a badge can't follow its anchor (the badge position
 	// is baked into the model), so when its live position drifts from the baked one, hold it out.
@@ -266,10 +260,8 @@ export function useClusterModel(
 }
 
 /**
- * Whether a position-only input change (ids already known equal, same order) moved a leaf that is
- * folded inside a badge of the rendered partition. Visible leaves ride their anchors live, so only
- * a folded move needs to break the mid-drag input freeze — it's the one the badge can't follow.
- * With no rendered model yet there's nothing folded, so nothing needs the rebuild.
+ * Whether a position-only input change (ids equal, same order) moved a leaf folded inside a badge
+ * of the rendered partition — the one move the mid-drag freeze must let through.
  * @internal
  */
 export function anyFoldedLeafMoved(
