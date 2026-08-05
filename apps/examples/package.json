@@ -61,6 +61,7 @@
 		"axe-core": "^4.10.3",
 		"classnames": "^2.5.1",
 		"d3-geo": "^3.1.1",
+		"html-to-image": "^1.11.13",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
 		"mermaid": "11.15.0",

@@ -1,0 +1,939 @@
+/* ============================================================================================
+   Comment brand gallery
+   --------------------------------------------------------------------------------------------
+   Everything the commenting UI draws is a `tlui-cmt-*` class styled through tldraw's CSS
+   tokens, so a brand is two things:
+
+   1. A token block scoped to `[data-comment-theme='<id>'] [class*='tlui-cmt-']` — redefining
+      `--tl-color-*`, `--tl-radius-*`, and the `--tlui-cmt-*` marker variables restyles most of
+      the UI (panels, text, dividers, pills, composer) without touching a single component rule.
+   2. A handful of bespoke rules for the parts tokens can't express: fonts, borders, gradients,
+      pin shapes, letter-spacing.
+
+   The same attribute goes on the live canvas wrapper and on each gallery tile, so one theme
+   block styles both surfaces. The tokens are set on the comment elements themselves (not the
+   wrapper) so they win over the values `.tl-container` defines inside the editor — and so the
+   rest of the tldraw UI keeps its stock look.
+   ============================================================================================ */
+
+/* --------------------------------------------------------------------------------------------
+   App chrome (not part of any brand)
+   -------------------------------------------------------------------------------------------- */
+
+.bcg-root {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	background: #f6f6f4;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.bcg-topbar {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 10px 16px;
+	background: #fff;
+	border-bottom: 1px solid #e5e5e0;
+	flex-wrap: wrap;
+	z-index: 10;
+}
+
+.bcg-topbar__title {
+	font-size: 14px;
+	font-weight: 700;
+	margin-right: 4px;
+}
+
+.bcg-seg {
+	display: flex;
+	border: 1px solid #d5d5d0;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.bcg-seg__btn {
+	border: none;
+	background: #fff;
+	padding: 6px 14px;
+	font: inherit;
+	font-size: 12px;
+	cursor: pointer;
+	color: #444;
+}
+
+.bcg-seg__btn[data-active='true'] {
+	background: #1d1d1d;
+	color: #fff;
+}
+
+.bcg-btn {
+	border: 1px solid #d5d5d0;
+	background: #fff;
+	border-radius: 8px;
+	padding: 6px 12px;
+	font: inherit;
+	font-size: 12px;
+	cursor: pointer;
+	color: #222;
+}
+
+.bcg-btn:hover:not(:disabled) {
+	background: #f2f2ee;
+}
+
+.bcg-btn:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.bcg-hint {
+	font-size: 11px;
+	color: #888;
+	margin-left: auto;
+}
+
+/* Brand chips (canvas mode's theme picker) */
+.bcg-chips {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
+.bcg-chip {
+	border: 1px solid #d5d5d0;
+	background: #fff;
+	border-radius: 999px;
+	padding: 4px 10px;
+	font: inherit;
+	font-size: 11px;
+	cursor: pointer;
+	color: #444;
+}
+
+.bcg-chip[data-active='true'] {
+	background: #1d1d1d;
+	border-color: #1d1d1d;
+	color: #fff;
+}
+
+.bcg-canvas {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+}
+
+/* --------------------------------------------------------------------------------------------
+   Gallery
+   -------------------------------------------------------------------------------------------- */
+
+/* Flex lines rather than grid rows: a wrapped flex line always grows to its tallest tile, so
+   tiles can never overlap — and the generous gap gives each brand room to breathe. */
+.bcg-gallery {
+	flex: 1;
+	overflow-y: auto;
+	padding: 48px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 48px;
+	justify-content: center;
+	align-content: flex-start;
+}
+
+.bcg-tile {
+	flex: none;
+	width: 480px;
+	background: #fff;
+	border: 1px solid #e5e5e0;
+	border-radius: 16px;
+	overflow: hidden;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.bcg-tile__head {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	padding: 14px 16px;
+	border-bottom: 1px solid #eeeee9;
+}
+
+.bcg-tile__name {
+	font-size: 13px;
+	font-weight: 700;
+}
+
+.bcg-tile__tagline {
+	font-size: 11px;
+	color: #999;
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* The tile floor — a checkerboard, so "this exports transparent" is visible at a glance. */
+.bcg-tile__floor {
+	padding: 40px 24px;
+	display: flex;
+	justify-content: center;
+	--bcg-check-a: #f0f0ec;
+	--bcg-check-b: #ffffff;
+	background: repeating-conic-gradient(var(--bcg-check-a) 0% 25%, var(--bcg-check-b) 0% 50%) 0 0 /
+		20px 20px;
+}
+
+.bcg-tile__floor[data-dark='true'] {
+	--bcg-check-a: #26262a;
+	--bcg-check-b: #2e2e33;
+}
+
+/* The stage is the node that gets rasterized — no background of its own, just breathing room so
+   shadows and glows land inside the capture. */
+.brand-stage {
+	display: flex;
+	align-items: flex-start;
+	gap: 20px;
+	padding: 28px;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+	font-size: 12px;
+
+	/* tldraw's light-theme tokens, restated here because the stage lives outside any
+	   `.tl-container`. Values mirror packages/editor/editor.css and commenting's comments.css. */
+	--tl-radius-1: 4px;
+	--tl-radius-2: 6px;
+	--tl-radius-3: 9px;
+	--tl-radius-4: 11px;
+	--tl-color-muted-0: hsl(0, 0%, 0%, 2%);
+	--tl-color-muted-1: hsl(0, 0%, 0%, 10%);
+	--tl-color-muted-2: hsl(0, 0%, 0%, 4.3%);
+	--tl-color-divider: hsl(0, 0%, 91%);
+	--tl-color-panel: hsl(0, 0%, 99%);
+	--tl-color-panel-contrast: hsl(0, 0%, 100%);
+	--tl-color-selected: hsl(214, 84%, 56%);
+	--tl-color-text-1: hsl(0, 0%, 18%);
+	--tl-color-text-2: hsl(0, 0%, 30%);
+	--tl-color-text-3: hsl(204, 4%, 45%);
+	--tl-color-danger: hsl(0, 90%, 43%);
+	--tl-shadow-3:
+		0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
+		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
+	--tlui-cmt-pin-size: 28px;
+	--tlui-cmt-marker-size: var(--tlui-cmt-pin-size);
+	--tlui-cmt-marker-shadow: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%);
+	--tlui-cmt-marker-shadow-hover: var(--tlui-cmt-marker-shadow);
+	--tlui-cmt-marker-hover-scale: 1.08;
+	--tlui-cmt-marker-transition: 0.08s ease;
+	--tlui-cmt-thread-padding: 12px;
+	--tlui-cmt-thread-gap: 0px;
+	--tlui-cmt-thread-action-size: 40px;
+	--tlui-cmt-pill-shadow: 0 0 0 1px var(--tl-color-divider), 0 1px 3px hsl(0, 0%, 0%, 0.05);
+}
+
+/* The gallery's static composer stand-in (real composers are live in canvas mode) rides in the
+   thread's footer slot — lay it out the way the real composer sits. */
+.brand-stage .tlui-cmt-thread__footer {
+	display: block;
+	padding: 0;
+}
+
+.brand-stage .tlui-cmt-composer__input-wrap {
+	padding: 4.5px 8px 4.5px 0;
+}
+
+/* Editable copy — the tiles are a copy deck, so bodies and names take edits in place. */
+.bcg-editable {
+	cursor: text;
+}
+
+.bcg-editable:focus {
+	outline: 1.5px dashed var(--tl-color-selected);
+	outline-offset: 2px;
+	border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------------------------
+   Theme font hook — each theme sets `--brand-font` once in its token block and every comment
+   surface picks it up, live canvas and gallery alike.
+   -------------------------------------------------------------------------------------------- */
+[data-comment-theme]
+	:is(
+		.tlui-cmt-thread,
+		.tlui-cmt-canvas-preview__panel,
+		.tlui-cmt-card,
+		.tlui-cmt-composer,
+		.tlui-cmt-input,
+		.tlui-cmt-input__placeholder,
+		.tlui-cmt-pin,
+		.tlui-cmt-count-badge,
+		.tlui-cmt-empty
+	) {
+	font-family: var(--brand-font, inherit);
+}
+
+/* ============================================================================================
+   THE BRANDS
+   ============================================================================================ */
+
+/* ------------------------------------------------------------------ midnight — dark SaaS -- */
+[data-comment-theme='midnight'] [class*='tlui-cmt-'] {
+	--brand-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+	--tl-color-panel: #191921;
+	--tl-color-panel-contrast: #23232e;
+	--tl-color-text-1: #e3e3ec;
+	--tl-color-text-2: #b9b9c6;
+	--tl-color-text-3: #8b8b9c;
+	--tl-color-divider: #2b2b38;
+	--tl-color-muted-0: hsl(240, 15%, 100%, 3%);
+	--tl-color-muted-1: hsl(240, 15%, 100%, 10%);
+	--tl-color-muted-2: hsl(240, 15%, 100%, 6%);
+	--tl-color-selected: #6e79d6;
+	--tl-radius-1: 4px;
+	--tl-radius-2: 6px;
+	--tl-radius-3: 8px;
+	--tl-radius-4: 8px;
+	--tlui-cmt-marker-shadow: 0 2px 8px hsl(240, 40%, 2%, 60%);
+	--tlui-cmt-pill-shadow: 0 0 0 1px #2b2b38, 0 2px 6px hsl(240, 40%, 2%, 50%);
+	--tl-shadow-3: 0 0 0 1px #2b2b38, 0 8px 24px hsl(240, 40%, 2%, 60%);
+}
+[data-comment-theme='midnight'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #191921;
+}
+[data-comment-theme='midnight'] .tlui-cmt-pin {
+	border-radius: 8px 8px 8px 0;
+	background: #6e79d6;
+}
+[data-comment-theme='midnight'] .tlui-cmt-reaction {
+	box-shadow: inset 0 0 0 1px #2b2b38;
+}
+
+/* ------------------------------------------------------- brutalist — borders and offsets -- */
+[data-comment-theme='brutalist'] [class*='tlui-cmt-'] {
+	--brand-font: 'Arial Black', 'Archivo Black', Futura, sans-serif;
+	--tl-color-panel: #fffdf2;
+	--tl-color-panel-contrast: #fffdf2;
+	--tl-color-text-1: #111111;
+	--tl-color-text-2: #111111;
+	--tl-color-text-3: #444444;
+	--tl-color-divider: #111111;
+	--tl-color-muted-0: #fffdf2;
+	--tl-color-muted-1: #ffe500;
+	--tl-color-muted-2: #f4f0dc;
+	--tl-color-selected: #ff5c00;
+	--tl-radius-1: 0px;
+	--tl-radius-2: 0px;
+	--tl-radius-3: 0px;
+	--tl-radius-4: 0px;
+	--tlui-cmt-marker-shadow: 3px 3px 0 #111111;
+	--tlui-cmt-marker-hover-scale: 1;
+	--tlui-cmt-pill-shadow: 0 0 0 2px #111111;
+	--tl-shadow-3: 6px 6px 0 #111111;
+}
+[data-comment-theme='brutalist'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	border: 3px solid #111111;
+	background: #fffdf2;
+}
+[data-comment-theme='brutalist'] .tlui-cmt-pin {
+	border-radius: 0;
+	border: 3px solid #111111;
+	background: #ffe500;
+}
+[data-comment-theme='brutalist'] .tlui-cmt-avatar {
+	border-radius: 0;
+}
+[data-comment-theme='brutalist'] .tlui-cmt-author {
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+[data-comment-theme='brutalist'] .tlui-cmt-reaction {
+	border: 2px solid #111111;
+	background: #fffdf2;
+}
+[data-comment-theme='brutalist'] .tlui-cmt-reaction--active {
+	background: #ffe500;
+}
+[data-comment-theme='brutalist'] .tlui-cmt-composer__field {
+	border: 2px solid #111111;
+}
+
+/* ------------------------------------------------------------------ glass — frosted panels -- */
+[data-comment-theme='glass'] [class*='tlui-cmt-'] {
+	--brand-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	--tl-color-panel: hsla(0, 0%, 100%, 0.62);
+	--tl-color-panel-contrast: hsla(0, 0%, 100%, 0.9);
+	--tl-color-text-1: #1c1c2e;
+	--tl-color-text-2: #3d3d55;
+	--tl-color-text-3: #6d6d88;
+	--tl-color-divider: hsla(240, 30%, 40%, 0.18);
+	--tl-color-muted-0: hsla(0, 0%, 100%, 0.35);
+	--tl-color-muted-1: hsla(240, 30%, 40%, 0.16);
+	--tl-color-muted-2: hsla(240, 30%, 40%, 0.09);
+	--tl-color-selected: #4a7dff;
+	--tl-radius-1: 8px;
+	--tl-radius-2: 10px;
+	--tl-radius-3: 14px;
+	--tl-radius-4: 18px;
+	--tlui-cmt-marker-shadow: 0 4px 16px hsla(240, 40%, 30%, 0.25);
+	--tlui-cmt-pill-shadow: 0 0 0 1px hsla(0, 0%, 100%, 0.6), 0 4px 12px hsla(240, 40%, 30%, 0.15);
+	--tl-shadow-3: 0 0 0 1px hsla(0, 0%, 100%, 0.65), 0 12px 40px hsla(240, 40%, 30%, 0.28);
+}
+[data-comment-theme='glass'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: hsla(0, 0%, 100%, 0.62);
+	backdrop-filter: blur(14px) saturate(1.4);
+	-webkit-backdrop-filter: blur(14px) saturate(1.4);
+}
+[data-comment-theme='glass'] :is(.tlui-cmt-thread__header, .tlui-cmt-composer__field) {
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}
+[data-comment-theme='glass'] .tlui-cmt-pin {
+	background: hsla(0, 0%, 100%, 0.7);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	border: 1px solid hsla(0, 0%, 100%, 0.8);
+}
+
+/* ----------------------------------------------------------- terminal — green phosphor ---- */
+[data-comment-theme='terminal'] [class*='tlui-cmt-'] {
+	--brand-font: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace;
+	--tl-color-panel: #050a06;
+	--tl-color-panel-contrast: #0a140c;
+	--tl-color-text-1: #33ff66;
+	--tl-color-text-2: #2ad956;
+	--tl-color-text-3: #1e9c42;
+	--tl-color-divider: #14522a;
+	--tl-color-muted-0: hsla(140, 100%, 60%, 0.04);
+	--tl-color-muted-1: hsla(140, 100%, 60%, 0.16);
+	--tl-color-muted-2: hsla(140, 100%, 60%, 0.08);
+	--tl-color-selected: #33ff66;
+	--tl-radius-1: 0px;
+	--tl-radius-2: 0px;
+	--tl-radius-3: 0px;
+	--tl-radius-4: 0px;
+	--tlui-cmt-marker-shadow: 0 0 10px hsla(140, 100%, 60%, 0.45);
+	--tlui-cmt-pill-shadow: 0 0 0 1px #14522a;
+	--tl-shadow-3: 0 0 0 1px #33ff66, 0 0 18px hsla(140, 100%, 60%, 0.35);
+}
+[data-comment-theme='terminal'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #050a06;
+}
+[data-comment-theme='terminal'] .tlui-cmt-pin {
+	border-radius: 0;
+	background: #050a06;
+	border: 1px solid #33ff66;
+}
+[data-comment-theme='terminal'] .tlui-cmt-avatar {
+	border-radius: 0;
+}
+[data-comment-theme='terminal'] .tlui-cmt-author {
+	text-transform: uppercase;
+}
+[data-comment-theme='terminal'] .tlui-cmt-author::before {
+	content: '> ';
+	color: #1e9c42;
+}
+[data-comment-theme='terminal'] .tlui-cmt-reaction {
+	border: 1px solid #14522a;
+	background: transparent;
+}
+
+/* ----------------------------------------------------------------- candy — pastel rounded -- */
+[data-comment-theme='candy'] [class*='tlui-cmt-'] {
+	--brand-font:
+		ui-rounded, 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Quicksand, 'Segoe UI', sans-serif;
+	--tl-color-panel: #fff2f8;
+	--tl-color-panel-contrast: #ffffff;
+	--tl-color-text-1: #6b2d5c;
+	--tl-color-text-2: #93487f;
+	--tl-color-text-3: #c286ad;
+	--tl-color-divider: #ffd3e8;
+	--tl-color-muted-0: #ffe9f3;
+	--tl-color-muted-1: #ffc9e2;
+	--tl-color-muted-2: #ffe1ef;
+	--tl-color-selected: #ff5ca8;
+	--tl-radius-1: 10px;
+	--tl-radius-2: 14px;
+	--tl-radius-3: 18px;
+	--tl-radius-4: 22px;
+	--tlui-cmt-marker-shadow: 0 4px 12px hsla(330, 100%, 68%, 0.4);
+	--tlui-cmt-pill-shadow: 0 0 0 2px #ffd3e8, 0 4px 10px hsla(330, 100%, 68%, 0.2);
+	--tl-shadow-3: 0 0 0 2px #ffd3e8, 0 10px 28px hsla(330, 100%, 68%, 0.3);
+}
+[data-comment-theme='candy'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #fff2f8;
+}
+[data-comment-theme='candy'] .tlui-cmt-pin {
+	border-radius: 50%;
+	background: #ff5ca8;
+	border: 2px solid #ffffff;
+}
+
+/* ------------------------------------------------------------ enterprise — corporate blue -- */
+[data-comment-theme='enterprise'] [class*='tlui-cmt-'] {
+	--brand-font: 'Segoe UI', Tahoma, Arial, sans-serif;
+	--tl-color-panel: #ffffff;
+	--tl-color-panel-contrast: #ffffff;
+	--tl-color-text-1: #1f2a44;
+	--tl-color-text-2: #445069;
+	--tl-color-text-3: #64748b;
+	--tl-color-divider: #d8dee9;
+	--tl-color-muted-0: #f6f8fb;
+	--tl-color-muted-1: #dbe4f0;
+	--tl-color-muted-2: #eef2f7;
+	--tl-color-selected: #0b5fff;
+	--tl-radius-1: 3px;
+	--tl-radius-2: 4px;
+	--tl-radius-3: 4px;
+	--tl-radius-4: 4px;
+	--tlui-cmt-marker-shadow: 0 1px 3px hsla(220, 40%, 20%, 0.3);
+	--tlui-cmt-pill-shadow: 0 0 0 1px #d8dee9, 0 1px 3px hsla(220, 40%, 20%, 0.08);
+	--tl-shadow-3: 0 0 0 1px #d8dee9, 0 4px 14px hsla(220, 40%, 20%, 0.12);
+}
+[data-comment-theme='enterprise'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #ffffff;
+	border-top: 3px solid #0b5fff;
+}
+[data-comment-theme='enterprise'] .tlui-cmt-pin {
+	border-radius: 4px 4px 4px 0;
+	background: #0b5fff;
+}
+[data-comment-theme='enterprise'] .tlui-cmt-avatar {
+	border-radius: 4px;
+}
+[data-comment-theme='enterprise'] .tlui-cmt-author {
+	font-weight: 700;
+}
+
+/* --------------------------------------------------------------- editorial — newsprint ---- */
+[data-comment-theme='editorial'] [class*='tlui-cmt-'] {
+	--brand-font: Georgia, 'Times New Roman', Times, serif;
+	--tl-color-panel: #faf7f0;
+	--tl-color-panel-contrast: #faf7f0;
+	--tl-color-text-1: #1a1a1a;
+	--tl-color-text-2: #3c3830;
+	--tl-color-text-3: #6b6459;
+	--tl-color-divider: #c9c2b4;
+	--tl-color-muted-0: #f3efe5;
+	--tl-color-muted-1: #ded7c6;
+	--tl-color-muted-2: #efeadd;
+	--tl-color-selected: #8c1c13;
+	--tl-radius-1: 0px;
+	--tl-radius-2: 0px;
+	--tl-radius-3: 0px;
+	--tl-radius-4: 0px;
+	--tlui-cmt-marker-shadow: 0 2px 5px hsla(40, 20%, 20%, 0.3);
+	--tlui-cmt-pill-shadow: 0 0 0 1px #1a1a1a;
+	--tl-shadow-3: 0 0 0 1px #1a1a1a, 0 6px 18px hsla(40, 20%, 20%, 0.18);
+}
+[data-comment-theme='editorial'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #faf7f0;
+	border-top: 4px double #1a1a1a;
+}
+[data-comment-theme='editorial'] .tlui-cmt-pin {
+	border-radius: 50% 50% 50% 0;
+	background: #faf7f0;
+	border: 1.5px solid #1a1a1a;
+}
+[data-comment-theme='editorial'] .tlui-cmt-author {
+	font-variant: small-caps;
+	letter-spacing: 0.04em;
+	font-size: 13px;
+}
+[data-comment-theme='editorial'] .tlui-cmt-time {
+	font-style: italic;
+}
+[data-comment-theme='editorial'] .tlui-cmt-text {
+	font-size: 13px;
+	line-height: 1.55;
+}
+
+/* -------------------------------------------------------------- sticky — handwritten note -- */
+[data-comment-theme='sticky'] [class*='tlui-cmt-'] {
+	--brand-font: 'Comic Sans MS', 'Marker Felt', 'Segoe Print', cursive;
+	--tl-color-panel: #fff6a9;
+	--tl-color-panel-contrast: #fffbcf;
+	--tl-color-text-1: #4a3b0a;
+	--tl-color-text-2: #6e5a15;
+	--tl-color-text-3: #94803d;
+	--tl-color-divider: hsla(48, 70%, 20%, 0.25);
+	--tl-color-muted-0: hsla(0, 0%, 100%, 0.45);
+	--tl-color-muted-1: hsla(48, 70%, 20%, 0.18);
+	--tl-color-muted-2: hsla(48, 70%, 20%, 0.09);
+	--tl-color-selected: #d97706;
+	--tl-radius-1: 2px;
+	--tl-radius-2: 2px;
+	--tl-radius-3: 2px;
+	--tl-radius-4: 2px;
+	--tlui-cmt-marker-shadow: 1px 3px 6px hsla(48, 70%, 20%, 0.35);
+	--tlui-cmt-pill-shadow: 0 0 0 1px hsla(48, 70%, 20%, 0.25), 1px 2px 4px hsla(48, 70%, 20%, 0.2);
+	--tl-shadow-3: 1px 6px 16px hsla(48, 70%, 20%, 0.35);
+}
+[data-comment-theme='sticky'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #fff6a9;
+	transform: rotate(-0.6deg);
+}
+[data-comment-theme='sticky'] .tlui-cmt-pin {
+	border-radius: 2px;
+	background: #fff6a9;
+	border: 1.5px solid #4a3b0a;
+	transform: rotate(3deg);
+}
+[data-comment-theme='sticky'] .tlui-cmt-avatar {
+	border-radius: 4px;
+	transform: rotate(-4deg);
+}
+
+/* -------------------------------------------------------------------- neon — cyberpunk ---- */
+[data-comment-theme='neon'] [class*='tlui-cmt-'] {
+	--brand-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	--tl-color-panel: #0d0221;
+	--tl-color-panel-contrast: #1a0b38;
+	--tl-color-text-1: #f0e6ff;
+	--tl-color-text-2: #c4afe8;
+	--tl-color-text-3: #9d8ac7;
+	--tl-color-divider: hsla(315, 100%, 59%, 0.35);
+	--tl-color-muted-0: hsla(315, 100%, 59%, 0.06);
+	--tl-color-muted-1: hsla(315, 100%, 59%, 0.25);
+	--tl-color-muted-2: hsla(315, 100%, 59%, 0.12);
+	--tl-color-selected: #00f0ff;
+	--tl-radius-1: 6px;
+	--tl-radius-2: 8px;
+	--tl-radius-3: 10px;
+	--tl-radius-4: 12px;
+	--tlui-cmt-marker-shadow: 0 0 12px hsla(315, 100%, 59%, 0.6);
+	--tlui-cmt-pill-shadow: 0 0 0 1px hsla(315, 100%, 59%, 0.5), 0 0 10px hsla(315, 100%, 59%, 0.35);
+	--tl-shadow-3:
+		0 0 0 1px #ff2ec4, 0 0 20px hsla(315, 100%, 59%, 0.45), 0 0 60px hsla(187, 100%, 50%, 0.15);
+}
+[data-comment-theme='neon'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #0d0221;
+}
+[data-comment-theme='neon'] .tlui-cmt-pin {
+	background: linear-gradient(135deg, #ff2ec4, #00f0ff);
+	border: none;
+}
+[data-comment-theme='neon'] .tlui-cmt-author {
+	color: #00f0ff;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	font-size: 11px;
+}
+[data-comment-theme='neon'] .tlui-cmt-reaction--active {
+	background: hsla(187, 100%, 50%, 0.2);
+	box-shadow: 0 0 8px hsla(187, 100%, 50%, 0.5);
+}
+
+/* -------------------------------------------------------------------- pixel — 8-bit ------- */
+[data-comment-theme='pixel'] [class*='tlui-cmt-'] {
+	--brand-font: 'Courier New', Courier, monospace;
+	--tl-color-panel: #e8e8d0;
+	--tl-color-panel-contrast: #e8e8d0;
+	--tl-color-text-1: #202020;
+	--tl-color-text-2: #202020;
+	--tl-color-text-3: #606050;
+	--tl-color-divider: #202020;
+	--tl-color-muted-0: #dcdcc2;
+	--tl-color-muted-1: #b8b89a;
+	--tl-color-muted-2: #d4d4b8;
+	--tl-color-selected: #d03030;
+	--tl-radius-1: 0px;
+	--tl-radius-2: 0px;
+	--tl-radius-3: 0px;
+	--tl-radius-4: 0px;
+	--tlui-cmt-marker-shadow: 2px 2px 0 #202020;
+	--tlui-cmt-marker-hover-scale: 1;
+	--tlui-cmt-marker-transition: 0s;
+	--tlui-cmt-pill-shadow: 0 0 0 2px #202020;
+	--tl-shadow-3: 4px 4px 0 #202020;
+}
+[data-comment-theme='pixel'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #e8e8d0;
+	border: 4px solid #202020;
+}
+[data-comment-theme='pixel'] :is(.tlui-cmt-thread, .tlui-cmt-card, .tlui-cmt-composer) {
+	font-weight: 700;
+}
+[data-comment-theme='pixel'] .tlui-cmt-pin {
+	border-radius: 0;
+	background: #d03030;
+	border: 3px solid #202020;
+}
+[data-comment-theme='pixel'] .tlui-cmt-avatar {
+	border-radius: 0;
+}
+[data-comment-theme='pixel'] .tlui-cmt-author {
+	text-transform: uppercase;
+}
+[data-comment-theme='pixel'] .tlui-cmt-reaction {
+	border: 2px solid #202020;
+	background: #e8e8d0;
+}
+
+/* ------------------------------------------------------------------- luxe — black & gold -- */
+[data-comment-theme='luxe'] [class*='tlui-cmt-'] {
+	--brand-font: Didot, 'Bodoni MT', Georgia, serif;
+	--tl-color-panel: #0e0d0b;
+	--tl-color-panel-contrast: #1c1a15;
+	--tl-color-text-1: #f5e9cf;
+	--tl-color-text-2: #d9c69c;
+	--tl-color-text-3: #a08d64;
+	--tl-color-divider: #2e2921;
+	--tl-color-muted-0: hsla(45, 60%, 80%, 0.04);
+	--tl-color-muted-1: hsla(45, 60%, 80%, 0.16);
+	--tl-color-muted-2: hsla(45, 60%, 80%, 0.08);
+	--tl-color-selected: #d4af37;
+	--tl-radius-1: 2px;
+	--tl-radius-2: 2px;
+	--tl-radius-3: 2px;
+	--tl-radius-4: 2px;
+	--tlui-cmt-marker-shadow: 0 3px 10px hsla(0, 0%, 0%, 0.6);
+	--tlui-cmt-pill-shadow: 0 0 0 1px #d4af37;
+	--tl-shadow-3: 0 0 0 1px #d4af37, 0 10px 30px hsla(0, 0%, 0%, 0.6);
+}
+[data-comment-theme='luxe'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #0e0d0b;
+}
+[data-comment-theme='luxe'] .tlui-cmt-pin {
+	border-radius: 50%;
+	background: #0e0d0b;
+	border: 1px solid #d4af37;
+}
+[data-comment-theme='luxe'] .tlui-cmt-author {
+	text-transform: uppercase;
+	letter-spacing: 0.14em;
+	font-size: 10px;
+	font-weight: 400;
+}
+[data-comment-theme='luxe'] .tlui-cmt-time {
+	letter-spacing: 0.06em;
+	font-size: 10px;
+}
+
+/* ------------------------------------------------------------------ forest — botanical ---- */
+[data-comment-theme='forest'] [class*='tlui-cmt-'] {
+	--brand-font: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+	--tl-color-panel: #f3f7ee;
+	--tl-color-panel-contrast: #ffffff;
+	--tl-color-text-1: #24371f;
+	--tl-color-text-2: #40573a;
+	--tl-color-text-3: #6f855f;
+	--tl-color-divider: #d5e3c8;
+	--tl-color-muted-0: #ebf2e2;
+	--tl-color-muted-1: #c9dbb6;
+	--tl-color-muted-2: #e2ecd6;
+	--tl-color-selected: #3f7d2c;
+	--tl-radius-1: 8px;
+	--tl-radius-2: 10px;
+	--tl-radius-3: 14px;
+	--tl-radius-4: 18px;
+	--tlui-cmt-marker-shadow: 0 3px 8px hsla(105, 30%, 25%, 0.3);
+	--tlui-cmt-pill-shadow: 0 0 0 1px #d5e3c8, 0 2px 6px hsla(105, 30%, 25%, 0.12);
+	--tl-shadow-3: 0 0 0 1px #d5e3c8, 0 8px 22px hsla(105, 30%, 25%, 0.18);
+}
+[data-comment-theme='forest'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #f3f7ee;
+	border-radius: 20px 6px 20px 6px;
+}
+[data-comment-theme='forest'] .tlui-cmt-pin {
+	border-radius: 0 50% 50% 50%;
+	background: #3f7d2c;
+}
+[data-comment-theme='forest'] .tlui-cmt-avatar {
+	border-radius: 40% 60% 55% 45%;
+}
+
+/* -------------------------------------------------------------- blueprint — drafting table -- */
+[data-comment-theme='blueprint'] [class*='tlui-cmt-'] {
+	--brand-font: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	--tl-color-panel: #0a3d62;
+	--tl-color-panel-contrast: #0f4c78;
+	--tl-color-text-1: #eaf6ff;
+	--tl-color-text-2: #bcdcf2;
+	--tl-color-text-3: #7fb3d5;
+	--tl-color-divider: hsla(204, 100%, 96%, 0.35);
+	--tl-color-muted-0: hsla(204, 100%, 96%, 0.05);
+	--tl-color-muted-1: hsla(204, 100%, 96%, 0.2);
+	--tl-color-muted-2: hsla(204, 100%, 96%, 0.1);
+	--tl-color-selected: #ffd166;
+	--tl-radius-1: 0px;
+	--tl-radius-2: 0px;
+	--tl-radius-3: 0px;
+	--tl-radius-4: 0px;
+	--tlui-cmt-marker-shadow: 0 2px 8px hsla(205, 80%, 10%, 0.5);
+	--tlui-cmt-pill-shadow: 0 0 0 1px hsla(204, 100%, 96%, 0.5);
+	--tl-shadow-3: 0 8px 24px hsla(205, 80%, 10%, 0.45);
+}
+[data-comment-theme='blueprint'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #0a3d62;
+	border: 1px dashed hsla(204, 100%, 96%, 0.65);
+	outline: 1px solid hsla(204, 100%, 96%, 0.25);
+	outline-offset: 3px;
+}
+[data-comment-theme='blueprint'] .tlui-cmt-pin {
+	border-radius: 50%;
+	background: #0a3d62;
+	border: 1px dashed #eaf6ff;
+}
+[data-comment-theme='blueprint'] .tlui-cmt-author {
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	font-size: 10px;
+}
+[data-comment-theme='blueprint'] .tlui-cmt-reaction {
+	border: 1px dashed hsla(204, 100%, 96%, 0.5);
+	background: transparent;
+}
+
+/* ------------------------------------------------------------------- comic — ink & bubble -- */
+[data-comment-theme='comic'] [class*='tlui-cmt-'] {
+	--brand-font: 'Comic Sans MS', 'Chalkboard SE', 'Segoe Print', cursive;
+	--tl-color-panel: #fffef5;
+	--tl-color-panel-contrast: #ffffff;
+	--tl-color-text-1: #14213d;
+	--tl-color-text-2: #2b3a5e;
+	--tl-color-text-3: #5c6b8c;
+	--tl-color-divider: #14213d;
+	--tl-color-muted-0: #fff8e0;
+	--tl-color-muted-1: #ffe8b0;
+	--tl-color-muted-2: #fff3cf;
+	--tl-color-selected: #fca311;
+	--tl-radius-1: 10px;
+	--tl-radius-2: 12px;
+	--tl-radius-3: 16px;
+	--tl-radius-4: 18px;
+	--tlui-cmt-marker-shadow: 3px 3px 0 rgba(20, 33, 61, 0.9);
+	--tlui-cmt-pill-shadow: 0 0 0 2px #14213d;
+	--tl-shadow-3: 0 0 0 3px #14213d, 6px 6px 0 rgba(20, 33, 61, 0.9);
+}
+[data-comment-theme='comic'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #fffef5;
+}
+/* The speech-bubble tail. On canvas the thread opens beside its pin, so the tail points back
+   toward it; in the gallery it just reads as "comic". */
+[data-comment-theme='comic'] .tlui-cmt-thread::after {
+	content: '';
+	position: absolute;
+	left: 18px;
+	bottom: -14px;
+	width: 0;
+	height: 0;
+	border-left: 16px solid #14213d;
+	border-bottom: 16px solid transparent;
+}
+[data-comment-theme='comic'] .tlui-cmt-pin {
+	border-radius: 50% 50% 50% 0;
+	background: #fca311;
+	border: 3px solid #14213d;
+}
+[data-comment-theme='comic'] .tlui-cmt-author {
+	text-transform: uppercase;
+	font-weight: 700;
+}
+[data-comment-theme='comic'] .tlui-cmt-reaction {
+	border: 2px solid #14213d;
+	background: #fffef5;
+}
+
+/* -------------------------------------------------------------------- nordic — quiet air -- */
+[data-comment-theme='nordic'] [class*='tlui-cmt-'] {
+	--brand-font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	--tl-color-panel: #fbfbf9;
+	--tl-color-panel-contrast: #ffffff;
+	--tl-color-text-1: #3d4247;
+	--tl-color-text-2: #5b6167;
+	--tl-color-text-3: #9aa2a9;
+	--tl-color-divider: #eceae5;
+	--tl-color-muted-0: #f5f4f0;
+	--tl-color-muted-1: #e3e1da;
+	--tl-color-muted-2: #f0efe9;
+	--tl-color-selected: #7d9c8d;
+	--tl-radius-1: 8px;
+	--tl-radius-2: 10px;
+	--tl-radius-3: 12px;
+	--tl-radius-4: 14px;
+	--tlui-cmt-thread-padding: 16px;
+	--tlui-cmt-marker-shadow: 0 4px 14px hsla(210, 8%, 30%, 0.18);
+	--tlui-cmt-pill-shadow: 0 2px 10px hsla(210, 8%, 30%, 0.1);
+	--tl-shadow-3: 0 12px 40px hsla(210, 8%, 30%, 0.12);
+}
+[data-comment-theme='nordic'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #fbfbf9;
+}
+[data-comment-theme='nordic'] .tlui-cmt-pin {
+	background: #7d9c8d;
+	border-radius: 50%;
+}
+[data-comment-theme='nordic'] .tlui-cmt-author {
+	font-weight: 500;
+	letter-spacing: 0.01em;
+}
+
+/* ------------------------------------------------------------------ sunset — vaporwave ---- */
+[data-comment-theme='sunset'] [class*='tlui-cmt-'] {
+	--brand-font: Verdana, Geneva, 'DejaVu Sans', sans-serif;
+	--tl-color-panel: #45276b;
+	--tl-color-panel-contrast: #5b3690;
+	--tl-color-text-1: #ffffff;
+	--tl-color-text-2: hsla(0, 0%, 100%, 0.85);
+	--tl-color-text-3: hsla(0, 0%, 100%, 0.65);
+	--tl-color-divider: hsla(0, 0%, 100%, 0.25);
+	--tl-color-muted-0: hsla(0, 0%, 100%, 0.08);
+	--tl-color-muted-1: hsla(0, 0%, 100%, 0.28);
+	--tl-color-muted-2: hsla(0, 0%, 100%, 0.16);
+	--tl-color-selected: #ffd166;
+	--tl-radius-1: 8px;
+	--tl-radius-2: 10px;
+	--tl-radius-3: 12px;
+	--tl-radius-4: 14px;
+	--tlui-cmt-marker-shadow: 0 4px 14px hsla(330, 80%, 40%, 0.5);
+	--tlui-cmt-pill-shadow: 0 0 0 1px hsla(0, 0%, 100%, 0.3), 0 4px 10px hsla(280, 60%, 20%, 0.4);
+	--tl-shadow-3: 0 12px 36px hsla(280, 60%, 15%, 0.55);
+}
+[data-comment-theme='sunset'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: linear-gradient(160deg, #3b1d60 0%, #764ba2 55%, #ff6b9d 130%);
+}
+[data-comment-theme='sunset'] .tlui-cmt-pin {
+	background: linear-gradient(160deg, #764ba2, #ff6b9d);
+	border: none;
+}
+
+/* ------------------------------------------------------------------- crayon — playroom ---- */
+[data-comment-theme='crayon'] [class*='tlui-cmt-'] {
+	--brand-font: 'Chalkboard SE', 'Comic Sans MS', 'Segoe Print', cursive;
+	--tl-color-panel: #ffffff;
+	--tl-color-panel-contrast: #ffffff;
+	--tl-color-text-1: #333333;
+	--tl-color-text-2: #4d4d4d;
+	--tl-color-text-3: #8c8c8c;
+	--tl-color-divider: #bfd7ea;
+	--tl-color-muted-0: #fdf6e3;
+	--tl-color-muted-1: #ffe66d;
+	--tl-color-muted-2: #fff3b8;
+	--tl-color-selected: #e63946;
+	--tl-radius-1: 8px;
+	--tl-radius-2: 10px;
+	--tl-radius-3: 12px;
+	--tl-radius-4: 14px;
+	--tlui-cmt-marker-shadow: 0 3px 8px hsla(0, 0%, 0%, 0.25);
+	--tlui-cmt-pill-shadow: 0 0 0 2px #1d3557, 0 2px 6px hsla(0, 0%, 0%, 0.12);
+	--tl-shadow-3: 0 6px 18px hsla(0, 0%, 0%, 0.18);
+}
+[data-comment-theme='crayon'] :is(.tlui-cmt-thread, .tlui-cmt-canvas-preview__panel) {
+	background: #ffffff;
+	border: 3px dashed #e63946;
+}
+[data-comment-theme='crayon'] .tlui-cmt-pin {
+	border-radius: 50%;
+	background: #457b9d;
+	border: 3px solid #ffe66d;
+}
+[data-comment-theme='crayon'] .tlui-cmt-reaction {
+	background: #ffe66d;
+	border: 2px solid #1d3557;
+}
+[data-comment-theme='crayon'] .tlui-cmt-author {
+	color: #e63946;
+}

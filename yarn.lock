@@ -20072,6 +20072,7 @@ __metadata:
     d3-geo: "npm:^3.1.1"
     dotenv: "npm:^16.4.7"
     expect-webdriverio: "npm:^5.6.8"
+    html-to-image: "npm:^1.11.13"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash: "npm:^4.17.21"
     mermaid: "npm:11.15.0"
@@ -21870,6 +21871,13 @@ __metadata:
   version: 2.0.2
   resolution: "html-escaper@npm:2.0.2"
   checksum: 10/034d74029dcca544a34fb6135e98d427acd73019796ffc17383eaa3ec2fe1c0471dcbbc8f8ed39e46e86d43ccd753a160631615e4048285e313569609b66d5b7
+  languageName: node
+  linkType: hard
+
+"html-to-image@npm:^1.11.13":
+  version: 1.11.13
+  resolution: "html-to-image@npm:1.11.13"
+  checksum: 10/f5950a0221b4ed4e59853db09917606309ebe3ddd2051c2f89aed3e37026d1893880f76e61bc2ca2280e3f1bbc0ad5b9ea5325188ff339987c8eeccbe8284f3f
   languageName: node
   linkType: hard
 
