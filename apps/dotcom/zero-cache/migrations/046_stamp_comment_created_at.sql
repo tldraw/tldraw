@@ -27,25 +27,3 @@ CREATE TRIGGER "set_comment_created_at_trigger"
 BEFORE INSERT ON comment
 FOR EACH ROW
 EXECUTE FUNCTION set_comment_created_at();
-
--- Clamp pre-existing rows whose client stamp sits in the future (a wrong system clock). Left
--- alone, such a row would poison its thread: every new insert chains to future+n via the
--- GREATEST above, and future stamps pin the top of the createdAt-DESC bounded notifications
--- window. Order among clamped rows is preserved by fanning them out just below the migration
--- time; past-dated rows keep their stamps — rewriting history would change displayed times.
-WITH now_ms AS (
-  SELECT (EXTRACT(EPOCH FROM clock_timestamp()) * 1000)::BIGINT AS ms
-),
-clamped AS (
-  SELECT
-    "id",
-    (SELECT ms FROM now_ms)
-      - COUNT(*) OVER (PARTITION BY "threadId")
-      + ROW_NUMBER() OVER (PARTITION BY "threadId" ORDER BY "createdAt", "id") AS stamp
-  FROM comment
-  WHERE "createdAt" > (SELECT ms FROM now_ms)
-)
-UPDATE comment c
-SET "createdAt" = clamped.stamp, "updatedAt" = clamped.stamp
-FROM clamped
-WHERE c."id" = clamped."id";

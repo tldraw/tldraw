@@ -228,28 +228,4 @@ describeMaybe('set_comment_created_at trigger (server-stamped comment timestamps
 		expect(row.editedAt).toBe(2_000)
 		expect(row.updatedAt).toBeGreaterThanOrEqual(row.createdAt)
 	})
-
-	it('backfills future-dated legacy stamps to migration time, preserving thread order', async () => {
-		// Seed a pre-046 state: trigger absent, one thread holding a wildly future-dated row that
-		// would otherwise chain every later reply to future+n. Re-applying the migration must pull
-		// it back below real time without reordering the thread.
-		await client.query(SCHEMA_SQL)
-		const now = await serverNowMs()
-		await upsert([
-			{ id: 'c-past', threadId: 't1', createdAt: now - 3_600_000, clock: 1 },
-			{ id: 'c-future-1', threadId: 't1', createdAt: now + 3_600_000, clock: 2 },
-			{ id: 'c-future-2', threadId: 't1', createdAt: now + 7_200_000, clock: 3 },
-		])
-		await inTestSchema(MIGRATION_SQL)
-		const after = await serverNowMs()
-
-		const rows = await stamps()
-		expect(rows.get('c-past')!.createdAt).toBe(now - 3_600_000)
-		const f1 = rows.get('c-future-1')!
-		const f2 = rows.get('c-future-2')!
-		expect(f1.createdAt).toBeLessThan(f2.createdAt)
-		expect(f2.createdAt).toBeLessThanOrEqual(after)
-		expect(f1.createdAt).toBeGreaterThan(now - 3_600_000)
-		expect(f1.updatedAt).toBe(f1.createdAt)
-	})
 })
