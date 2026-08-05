@@ -344,6 +344,68 @@ const snapshots: Snapshots = {
 				/>
 			),
 		},
+		// Images are the only bordered shape that takes the `toSvg` path, so these are
+		// the cases that exercise getMediaBorderSvg. Bookmarks and embeds export as
+		// rendered HTML, which reuses the canvas CSS instead.
+		Bordered: {
+			lined: <TL.image w={100} h={200} assetId={manAsset} border="lined" />,
+			shadow: <TL.image w={100} h={200} assetId={manAsset} border="shadow" />,
+			'circle lined': (
+				<TL.image w={100} h={100} assetId={manAsset} border="lined" crop={manCropAsCircle} />
+			),
+			'circle shadow': (
+				<TL.image w={100} h={100} assetId={manAsset} border="shadow" crop={manCropAsCircle} />
+			),
+		},
+		// The shadow should keep falling the same way in page space no matter how the
+		// image is turned, while the lined ring rotates along with it.
+		'rotated (note shadow direction)': {
+			'45°': (
+				<TL.image
+					w={100}
+					h={200}
+					assetId={manAsset}
+					border="shadow"
+					rotation={degreesToRadians(45)}
+				/>
+			),
+			'135°': (
+				<TL.image
+					w={100}
+					h={200}
+					assetId={manAsset}
+					border="shadow"
+					rotation={degreesToRadians(135)}
+				/>
+			),
+			'180°': (
+				<TL.image
+					w={100}
+					h={200}
+					assetId={manAsset}
+					border="shadow"
+					rotation={degreesToRadians(180)}
+				/>
+			),
+			'270°': (
+				<TL.image
+					w={100}
+					h={200}
+					assetId={manAsset}
+					border="shadow"
+					rotation={degreesToRadians(270)}
+				/>
+			),
+			'135° lined': (
+				<TL.image
+					w={100}
+					h={200}
+					assetId={manAsset}
+					border="lined"
+					rotation={degreesToRadians(135)}
+				/>
+			),
+		},
 	},
 	Bookmarks: {
 		'not rotated': {

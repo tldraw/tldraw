@@ -142,6 +142,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			w: props.w,
 			h: props.h,
 			isCircle: false,
+			rotation: this.editor.getShapePageTransform(shape.id)?.rotation() ?? 0,
 			idBase: shape.id,
 			ctx,
 		})

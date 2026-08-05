@@ -1,4 +1,4 @@
-import { SafeId, SvgExportContext, TLDefaultBorderStyle } from '@tldraw/editor'
+import { SafeId, SvgExportContext, TLDefaultBorderStyle, Vec } from '@tldraw/editor'
 import { CSSProperties, Fragment, ReactElement } from 'react'
 import { getRotatedBoxShadow, ROTATING_BOX_SHADOWS } from './rotated-box-shadow'
 
@@ -48,6 +48,8 @@ export interface MediaBorderSvgOptions {
 	w: number
 	h: number
 	isCircle: boolean
+	/** The shape's page rotation, in radians. */
+	rotation: number
 	/** Unique per shape; keys the registered shadow filter. */
 	idBase: string
 	ctx: SvgExportContext
@@ -56,8 +58,7 @@ export interface MediaBorderSvgOptions {
 /**
  * SVG elements for a media shape's `border` in exports, mirroring
  * {@link getMediaBorderStyle}. Returns a `behind` element (shadow) and a `front`
- * element (ring), either of which may be `null`. Rotation is applied by the
- * export's shape group, so raw offsets are used here.
+ * element (ring), either of which may be `null`.
  *
  * @internal
  */
@@ -65,7 +66,7 @@ export function getMediaBorderSvg(opts: MediaBorderSvgOptions): {
 	behind: ReactElement | null
 	front: ReactElement | null
 } {
-	const { border, w, h, isCircle, idBase, ctx } = opts
+	const { border, w, h, isCircle, rotation, idBase, ctx } = opts
 
 	if (border === 'shadow') {
 		const filterId = `media-shadow-${idBase.replace(/[^a-zA-Z0-9]/g, '_')}` as SafeId
@@ -82,12 +83,16 @@ export function getMediaBorderSvg(opts: MediaBorderSvgOptions): {
 				>
 					{ROTATING_BOX_SHADOWS.map((s, i) => {
 						const { color, opacity } = parseHexColor(s.color)
+						// The export's shape group rotates this filter along with the shape, so
+						// counter-rotate the offsets to keep the light source overhead in page
+						// space, the same way getRotatedBoxShadow does on canvas.
+						const offset = new Vec(s.offsetX, s.offsetY).rot(-rotation)
 						// Fragment, not `g`: `filter` only accepts filter primitives as
 						// direct children, so a `g` wrapper would drop the shadow.
 						return (
 							<Fragment key={i}>
 								<feGaussianBlur in="SourceAlpha" stdDeviation={s.blur / 2} result={`blur${i}`} />
-								<feOffset in={`blur${i}`} dx={s.offsetX} dy={s.offsetY} result={`off${i}`} />
+								<feOffset in={`blur${i}`} dx={offset.x} dy={offset.y} result={`off${i}`} />
 								<feFlood floodColor={color} floodOpacity={opacity} result={`color${i}`} />
 								<feComposite in={`color${i}`} in2={`off${i}`} operator="in" result={`shadow${i}`} />
 							</Fragment>
