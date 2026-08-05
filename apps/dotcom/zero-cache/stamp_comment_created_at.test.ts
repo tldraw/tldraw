@@ -33,8 +33,8 @@ const MIGRATION_SQL = readFileSync(
 
 const schemaName = `tldraw_test_comment_${process.pid}`
 
-// Only the columns the trigger reads or writes, plus enough NOT NULLs to stay realistic. No
-// foreign keys: the trigger never touches the referenced tables.
+// Only the columns the trigger reads or writes plus the drain's clock guard column. No foreign
+// keys: the trigger never touches the referenced tables.
 const SCHEMA_SQL = `
 DROP TABLE IF EXISTS "${schemaName}"."comment" CASCADE;
 CREATE TABLE "${schemaName}"."comment" (
@@ -43,11 +43,19 @@ CREATE TABLE "${schemaName}"."comment" (
   "body" JSONB NOT NULL,
   "createdAt" BIGINT NOT NULL,
   "editedAt" BIGINT,
-  "updatedAt" BIGINT NOT NULL
+  "updatedAt" BIGINT NOT NULL,
+  "lastChangedClock" BIGINT NOT NULL
 );
 `
 
 const describeMaybe = CONNECTION_STRING ? describe : describe.skip
+if (!CONNECTION_STRING) {
+	// eslint-disable-next-line no-console
+	console.warn(
+		'stamp_comment_created_at.test.ts: skipping — the client notifications gate depends on this ' +
+			'trigger; set ZERO_CACHE_TEST_POSTGRES_URL to verify it against a real postgres.'
+	)
+}
 
 describeMaybe('set_comment_created_at trigger (server-stamped comment timestamps)', () => {
 	// A single Client, not a Pool: inTestSchema's BEGIN/COMMIT must run on one connection.
@@ -106,19 +114,37 @@ describeMaybe('set_comment_created_at trigger (server-stamped comment timestamps
 		return Number(res.rows[0].now)
 	}
 
-	async function insert(
-		rows: { id: string; threadId: string; createdAt: number; editedAt?: number | null }[]
+	// Mirrors the drain's upsert in TLFileDurableObject.ts (insertCommentRows): the conflict
+	// branch's exclusion of "createdAt" is what makes the trigger's stamp permanent across
+	// at-least-once replays and edits — keep the two in sync.
+	async function upsert(
+		rows: {
+			id: string
+			threadId: string
+			createdAt: number
+			editedAt?: number | null
+			body?: string
+			clock?: number
+		}[]
 	) {
 		const values = rows
 			.map(
 				(r) =>
-					`('${r.id}', '${r.threadId}', '{}', ${r.createdAt}, ${r.editedAt ?? 'NULL'}, ${
-						r.editedAt ?? r.createdAt
-					})`
+					`('${r.id}', '${r.threadId}', '${r.body ?? '{}'}', ${r.createdAt}, ${
+						r.editedAt ?? 'NULL'
+					}, ${r.editedAt ?? r.createdAt}, ${r.clock ?? 1})`
 			)
 			.join(', ')
 		await inTestSchema(
-			`INSERT INTO comment ("id", "threadId", "body", "createdAt", "editedAt", "updatedAt") VALUES ${values}`
+			`INSERT INTO comment ("id", "threadId", "body", "createdAt", "editedAt", "updatedAt", "lastChangedClock")
+			 VALUES ${values}
+			 ON CONFLICT ("id") DO UPDATE SET
+			   "threadId" = excluded."threadId",
+			   "body" = excluded."body",
+			   "editedAt" = excluded."editedAt",
+			   "updatedAt" = excluded."updatedAt",
+			   "lastChangedClock" = excluded."lastChangedClock"
+			 WHERE "comment"."lastChangedClock" < excluded."lastChangedClock"`
 		)
 	}
 
@@ -143,7 +169,7 @@ describeMaybe('set_comment_created_at trigger (server-stamped comment timestamps
 
 	it('replaces the client stamp with server time and lifts updatedAt, whether the client clock is slow or fast', async () => {
 		const before = await serverNowMs()
-		await insert([
+		await upsert([
 			{ id: 'c-slow', threadId: 't1', createdAt: before - 3_600_000 },
 			{ id: 'c-fast', threadId: 't2', createdAt: before + 3_600_000, editedAt: 2_000 },
 		])
@@ -164,7 +190,7 @@ describeMaybe('set_comment_created_at trigger (server-stamped comment timestamps
 		// can tie at millisecond resolution. Ties would break the notifications feed's strict
 		// "after my join" compare.
 		const before = await serverNowMs()
-		await insert([
+		await upsert([
 			{ id: 'c1', threadId: 't1', createdAt: 1_000 },
 			{ id: 'c2', threadId: 't1', createdAt: 1_000 },
 			{ id: 'c3', threadId: 't1', createdAt: 500 },
@@ -179,14 +205,51 @@ describeMaybe('set_comment_created_at trigger (server-stamped comment timestamps
 		expect(rows.get('d1')!.createdAt).toBeLessThanOrEqual(after)
 	})
 
-	it('does not re-stamp on update', async () => {
-		// The drain retries at-least-once; its conflict branch updates body/editedAt/etc. but the
-		// trigger is BEFORE INSERT only, so the first insert's stamp is permanent.
-		await insert([{ id: 'c1', threadId: 't1', createdAt: 1_000 }])
+	it('keeps the first stamp through the drain-shaped conflict branch, and keeps updatedAt >= createdAt', async () => {
+		// The drain retries at-least-once, so a row can arrive again as a conflict on id — with an
+		// edit here, carrying a client-clock editedAt/updatedAt far behind the server stamp. The
+		// first stamp must hold. The conflict branch takes excluded."updatedAt" verbatim, which is
+		// safe only because the excluded tuple went through the BEFORE INSERT trigger and had its
+		// updatedAt lifted to the (server) attempt stamp — this asserts that coupling.
+		await upsert([{ id: 'c1', threadId: 't1', createdAt: 1_000, clock: 1 }])
 		const stamped = (await stamps()).get('c1')!.createdAt
-		await client.query(
-			`UPDATE "${schemaName}"."comment" SET "body" = '{"edited": true}', "editedAt" = 5 WHERE "id" = 'c1'`
-		)
-		expect((await stamps()).get('c1')!.createdAt).toBe(stamped)
+		await upsert([
+			{
+				id: 'c1',
+				threadId: 't1',
+				createdAt: 1_000,
+				editedAt: 2_000,
+				body: '{"edited": true}',
+				clock: 2,
+			},
+		])
+		const row = (await stamps()).get('c1')!
+		expect(row.createdAt).toBe(stamped)
+		expect(row.editedAt).toBe(2_000)
+		expect(row.updatedAt).toBeGreaterThanOrEqual(row.createdAt)
+	})
+
+	it('backfills future-dated legacy stamps to migration time, preserving thread order', async () => {
+		// Seed a pre-046 state: trigger absent, one thread holding a wildly future-dated row that
+		// would otherwise chain every later reply to future+n. Re-applying the migration must pull
+		// it back below real time without reordering the thread.
+		await client.query(SCHEMA_SQL)
+		const now = await serverNowMs()
+		await upsert([
+			{ id: 'c-past', threadId: 't1', createdAt: now - 3_600_000, clock: 1 },
+			{ id: 'c-future-1', threadId: 't1', createdAt: now + 3_600_000, clock: 2 },
+			{ id: 'c-future-2', threadId: 't1', createdAt: now + 7_200_000, clock: 3 },
+		])
+		await inTestSchema(MIGRATION_SQL)
+		const after = await serverNowMs()
+
+		const rows = await stamps()
+		expect(rows.get('c-past')!.createdAt).toBe(now - 3_600_000)
+		const f1 = rows.get('c-future-1')!
+		const f2 = rows.get('c-future-2')!
+		expect(f1.createdAt).toBeLessThan(f2.createdAt)
+		expect(f2.createdAt).toBeLessThanOrEqual(after)
+		expect(f1.createdAt).toBeGreaterThan(now - 3_600_000)
+		expect(f1.updatedAt).toBe(f1.createdAt)
 	})
 })

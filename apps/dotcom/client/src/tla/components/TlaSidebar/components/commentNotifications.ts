@@ -76,10 +76,14 @@ export interface CommentNotification<
  * Stricter than the `comments` synced query, whose reply category has no timing condition (ZQL
  * can't compare `createdAt` across correlated rows): the reply reason only applies to comments
  * from strictly after the user joined the thread — earlier ones are context they saw when
- * joining, not notifications. The strict compare is exact because Postgres stamps `createdAt`
- * monotonically per thread on insert (migration 046), so all comments in a thread share one
- * clock and one total order. A comment with no reason left is dropped. Post-join replies stay in
- * the feed once responded to; read receipts, not membership, handle their unread state.
+ * joining, not notifications. The strict compare leans on Postgres stamping `createdAt`
+ * monotonically per thread on insert (migration 046): every new comment lands strictly after the
+ * thread's max, so it can never tie with or fall behind the reader's join and get dropped. Rows
+ * from before that migration keep their client stamps, so in an old thread a pre-migration reply
+ * whose author's clock ran behind the reader's can still read as history and drop — accepted:
+ * that regime only shrinks, and only ever covers comments that predate the migration. A comment
+ * with no reason left is dropped. Post-join replies stay in the feed once responded to; read
+ * receipts, not membership, handle their unread state.
  */
 export function categorizeCommentNotifications<T extends CommentNotificationInput>(
 	comments: readonly T[],
