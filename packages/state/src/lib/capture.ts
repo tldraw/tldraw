@@ -149,17 +149,17 @@ export function stopCapturingParents() {
  */
 export function maybeCaptureParent(p: Signal<any, any>) {
 	if (inst.stack) {
-		const wasCapturedAlready = inst.stack.child.parentSet.has(p)
 		// if the child didn't deref this parent last time it executed, then idx will be -1
 		// if the child did deref this parent last time but in a different order relative to other parents, then idx will be greater than stack.offset
 		// if the child did deref this parent last time in the same order, then idx will be the same as stack.offset
 		// if the child did deref this parent already during this capture session then 0 <= idx < stack.offset
 
-		if (wasCapturedAlready) {
+		// `add` returns false when the parent was already captured. In array mode both `has` and
+		// `add` scan with indexOf, so going straight to `add` halves the scans per captured parent.
+		if (!inst.stack.child.parentSet.add(p)) {
 			return
 		}
 
-		inst.stack.child.parentSet.add(p)
 		if (inst.stack.child.isActivelyListening) {
 			attach(p, inst.stack.child)
 		}
