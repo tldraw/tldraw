@@ -237,6 +237,30 @@ describe('Zoom clamping preserves the focal point', () => {
 	})
 })
 
+describe('Non-finite camera values', () => {
+	beforeEach(() => {
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS })
+	})
+
+	it('rejects a non-finite x', () => {
+		expect(() => editor.setCamera({ x: NaN, y: 0, z: 1 })).toThrow()
+	})
+
+	it('rejects a non-finite y', () => {
+		expect(() => editor.setCamera({ x: 0, y: Infinity, z: 1 })).toThrow()
+	})
+
+	it('rejects a non-finite z', () => {
+		expect(() => editor.setCamera({ x: 0, y: 0, z: NaN })).toThrow()
+	})
+
+	it('does not mutate the point it was given', () => {
+		const point = { x: 0, y: 0, z: NaN }
+		expect(() => editor.setCamera(point)).toThrow()
+		expect(point.z).toBeNaN()
+	})
+})
+
 it('Sets the camera options', () => {
 	const optionsA = { ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2 }
 	editor.setCameraOptions(optionsA)

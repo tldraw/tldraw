@@ -3624,10 +3624,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const _point = Vec.Cast(point)
 
-		if (!Number.isFinite(_point.x)) _point.x = 0
-		if (!Number.isFinite(_point.y)) _point.y = 0
-		if (_point.z === undefined || !Number.isFinite(_point.z)) point.z = this.getZoomLevel()
-
 		const camera = this.getConstrainedCamera(_point, opts)
 
 		if (opts?.animation) {
