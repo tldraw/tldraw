@@ -30,6 +30,12 @@ export async function initUser(req: IRequest, env: Environment): Promise<Respons
 		const clerkUser = await clerk.users.getUser(id)
 		if (!clerkUser) return new Response('Clerk user not found', { status: 404 })
 
+		// A Clerk user can lack an email (e.g. some SSO/social flows); reading [0].emailAddress
+		// on such a user throws and permanently 500s user boot. Fail cleanly with a 400 instead.
+		const email =
+			clerkUser.primaryEmailAddress?.emailAddress ?? clerkUser.emailAddresses[0]?.emailAddress
+		if (!email) return new Response('Clerk user has no email address', { status: 400 })
+
 		await db.transaction().execute(async (tx) => {
 			const now = Date.now()
 			await tx
@@ -37,7 +43,7 @@ export async function initUser(req: IRequest, env: Environment): Promise<Respons
 				.values({
 					id,
 					name: clerkUser.fullName ?? '',
-					email: clerkUser.emailAddresses[0].emailAddress,
+					email,
 					avatar: clerkUser.imageUrl,
 					color: '___INIT___',
 					exportFormat: 'png',
