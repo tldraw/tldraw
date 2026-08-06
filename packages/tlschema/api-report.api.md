@@ -1087,7 +1087,6 @@ export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>;
 // @public
 export interface TLBookmarkShapeProps {
     assetId: null | TLAssetId;
-    border: TLDefaultBorderStyle;
     h: number;
     url: string;
     w: number;
@@ -1314,7 +1313,6 @@ export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>;
 
 // @public
 export interface TLEmbedShapeProps {
-    border: TLDefaultBorderStyle;
     h: number;
     url: string;
     w: number;
@@ -1982,7 +1980,6 @@ export interface TLVideoShapeProps {
     assetId: null | TLAssetId;
     // (undocumented)
     autoplay: boolean;
-    border: TLDefaultBorderStyle;
     // (undocumented)
     h: number;
     // (undocumented)

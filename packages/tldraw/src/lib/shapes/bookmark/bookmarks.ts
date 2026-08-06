@@ -208,9 +208,6 @@ export async function createBookmarkFromUrl(
 				assetId: existingAsset?.id ?? null,
 				w: BOOKMARK_WIDTH,
 				h: getBookmarkHeight(editor, existingAsset?.id),
-				// New bookmarks default to shadow; set here (not forced in onBeforeCreate)
-				// so duplicate/paste keep their own border.
-				border: 'shadow',
 			},
 		}
 

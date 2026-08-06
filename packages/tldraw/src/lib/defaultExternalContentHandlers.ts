@@ -380,9 +380,6 @@ export function defaultHandleExternalEmbedContent<T>(
 			w: width,
 			h: height,
 			url,
-			// New embeds default to shadow; set here (not forced in onBeforeCreate) so
-			// duplicate/paste keep their own border.
-			border: 'shadow',
 		},
 	}
 
@@ -820,9 +817,6 @@ export function createEmptyBookmarkShape(
 		props: {
 			assetId: null,
 			url,
-			// New bookmarks default to shadow; set here (not forced in onBeforeCreate)
-			// so duplicate/paste keep their own border.
-			border: 'shadow',
 		},
 	}
 
