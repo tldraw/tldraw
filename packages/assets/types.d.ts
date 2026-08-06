@@ -47,6 +47,7 @@ export type AssetUrls = {
 		bookmark: string
 		'border-lined': string
 		'border-none': string
+		'border-shadow-hard': string
 		'border-shadow': string
 		'bring-forward': string
 		'bring-to-front': string

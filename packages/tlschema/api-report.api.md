@@ -353,7 +353,7 @@ export const defaultBindingSchemas: {
 };
 
 // @public
-export const DefaultBorderStyle: EnumStyleProp<"lined" | "none" | "shadow">;
+export const DefaultBorderStyle: EnumStyleProp<"lined" | "none" | "shadow-hard" | "shadow">;
 
 // @public (undocumented)
 export const DefaultColorStyle: EnumStyleProp<TLDefaultColorStyle>;

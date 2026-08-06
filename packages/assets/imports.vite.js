@@ -144,6 +144,7 @@ export function getAssetUrlsByImport(opts) {
 			bookmark: iconsIcon0MergedSvg2 + '#bookmark',
 			'border-lined': iconsIcon0MergedSvg2 + '#border-lined',
 			'border-none': iconsIcon0MergedSvg2 + '#border-none',
+			'border-shadow-hard': iconsIcon0MergedSvg2 + '#border-shadow-hard',
 			'border-shadow': iconsIcon0MergedSvg2 + '#border-shadow',
 			'bring-forward': iconsIcon0MergedSvg2 + '#bring-forward',
 			'bring-to-front': iconsIcon0MergedSvg2 + '#bring-to-front',
