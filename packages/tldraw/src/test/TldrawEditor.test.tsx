@@ -13,6 +13,7 @@ import {
 	createTLStore,
 	noop,
 	react,
+	tleditors,
 	toRichText,
 } from '@tldraw/editor'
 import { StrictMode } from 'react'
@@ -181,6 +182,7 @@ describe('<TldrawEditor />', () => {
 
 		// mounted after render:
 		expect(editor.getIsMounted()).toBe(true)
+		expect(tleditors.getMounted()).toEqual([editor])
 
 		// getIsMounted is reactive:
 		const mountedValues: boolean[] = []
@@ -191,6 +193,7 @@ describe('<TldrawEditor />', () => {
 		// the unmount event fired and the mounted state flipped back to false:
 		expect(onUnmount).toHaveBeenCalledTimes(1)
 		expect(editor.getIsMounted()).toBe(false)
+		expect(tleditors.getMounted()).toEqual([])
 		expect(mountedValues).toEqual([true, false])
 
 		stop()

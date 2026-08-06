@@ -118,6 +118,7 @@ import {
 import { getOwnerWindow } from '../exports/domUtils'
 import { exportToSvg } from '../exports/exportToSvg'
 import { getSvgAsImageWithOptions, trimSvgToContent } from '../exports/getSvgAsImage'
+import { tleditors } from '../globals/editors'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
@@ -918,10 +919,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.on('mount', () => {
 			this._isMounted.set(true)
+			tleditors.add(this)
 		})
 
 		this.on('unmount', () => {
 			this._isMounted.set(false)
+			tleditors.remove(this)
 		})
 
 		this.timers.requestAnimationFrame(() => {
