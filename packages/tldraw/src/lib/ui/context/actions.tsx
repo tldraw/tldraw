@@ -490,10 +490,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 									url: url,
 									w: width,
 									h: height,
-									// `border` is a style prop, so createShapes would otherwise
-									// replace it with the style for the next shape. Carry the
-									// bookmark's own border across the conversion instead.
-									border: shape.props.border,
 								},
 							}
 
