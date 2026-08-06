@@ -4,12 +4,20 @@ import { getRotatedBoxShadow, ROTATING_BOX_SHADOWS } from './rotated-box-shadow'
 
 // An outset ring rather than an inset shadow/border, which the media would
 // otherwise cover or get shaved by.
-const LINED_BORDER = '0 0 0 1px var(--tl-color-muted-2)'
+const LINED_BORDER = '0 0 0 1px var(--tl-color-muted-1)'
 
-// `--tl-color-muted-2` per color mode, for exports where CSS vars don't resolve.
+// `--tl-color-muted-1` per color mode, for exports where CSS vars don't resolve.
 const LINED_BORDER_COLOR = {
-	light: 'hsl(0, 0%, 0%, 4.3%)',
-	dark: 'hsl(0, 0%, 100%, 5%)',
+	light: 'hsl(0, 0%, 0%, 10%)',
+	dark: 'hsl(0, 0%, 100%, 10%)',
+}
+
+// Offset diagonally rather than straight down like the soft shadow: with no blur
+// to soften it, a purely vertical offset reads as a bar under the media.
+const HARD_BOX_SHADOW = {
+	offsetX: 6,
+	offsetY: 6,
+	color: '#00000040',
 }
 
 /** @internal */
@@ -27,10 +35,22 @@ export function getMediaBorderStyle(
 			return { boxShadow: LINED_BORDER }
 		case 'shadow':
 			return { boxShadow: getRotatedBoxShadow(shape.rotation) }
+		case 'shadow-hard': {
+			const { x, y } = getHardShadowOffset(shape.rotation)
+			return { boxShadow: `${x}px ${y}px 0px 0px ${HARD_BOX_SHADOW.color}` }
+		}
 		case 'none':
 		default:
 			return undefined
 	}
+}
+
+/**
+ * The hard shadow's offset, counter-rotated so it falls the same way in page
+ * space at any rotation, matching {@link getRotatedBoxShadow}.
+ */
+function getHardShadowOffset(rotation: number) {
+	return new Vec(HARD_BOX_SHADOW.offsetX, HARD_BOX_SHADOW.offsetY).rot(-rotation)
 }
 
 function parseHexColor(hex: string) {
@@ -118,6 +138,26 @@ export function getMediaBorderSvg(opts: MediaBorderSvgOptions): {
 			/>
 		) : (
 			<rect width={w} height={h} fill="black" filter={`url(#${filterId})`} />
+		)
+		return { behind, front: null }
+	}
+
+	if (border === 'shadow-hard') {
+		// No blur means no filter is needed: the shadow is the shape's own silhouette,
+		// offset and flat-filled, so canvas and export match exactly.
+		const { color, opacity } = parseHexColor(HARD_BOX_SHADOW.color)
+		const { x, y } = getHardShadowOffset(rotation)
+		const behind = isCircle ? (
+			<ellipse
+				cx={w / 2 + x}
+				cy={h / 2 + y}
+				rx={w / 2}
+				ry={h / 2}
+				fill={color}
+				fillOpacity={opacity}
+			/>
+		) : (
+			<rect x={x} y={y} width={w} height={h} fill={color} fillOpacity={opacity} />
 		)
 		return { behind, front: null }
 	}

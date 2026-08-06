@@ -116,6 +116,7 @@ export const STYLES = {
 		{ value: 'none', icon: 'border-none' },
 		{ value: 'lined', icon: 'border-lined' },
 		{ value: 'shadow', icon: 'border-shadow' },
+		{ value: 'shadow-hard', icon: 'border-shadow-hard' },
 	],
 	size: [
 		{ value: 's', icon: 'size-small' },

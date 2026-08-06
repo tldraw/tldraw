@@ -170,6 +170,7 @@ export type TLUiTranslationKey =
 	| 'border-style.none'
 	| 'border-style.lined'
 	| 'border-style.shadow'
+	| 'border-style.shadow-hard'
 	| 'size-style.s'
 	| 'size-style.m'
 	| 'size-style.l'
