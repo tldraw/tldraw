@@ -1,13 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
 import { Environment } from '../../types'
 import {
-	THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	ThumbnailRenderJob,
 	mintThumbnailRenderToken,
+	recordMintedRenderToken,
 } from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileRoomSnapshot } from './getSharedFile'
 import { getThumbnailSnapshot } from './getThumbnailSnapshot'
+import { makeFakeThumbnailsBucket } from './screenshotTestHelpers'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedRoomSnapshot: vi.fn(),
@@ -29,9 +31,11 @@ function makeJob(overrides: Partial<ThumbnailRenderJob> = {}): ThumbnailRenderJo
 		kind: 'published',
 		slug: 'my-board',
 		version: 1751234567890,
-		x: 10,
-		y: 20,
-		z: 0.5,
+		access: 'render',
+		camera: 'content',
+		x: 0,
+		y: 0,
+		z: 1,
 		width: 1200,
 		height: 630,
 		theme: 'dark',
@@ -63,9 +67,12 @@ describe('getThumbnailSnapshot', () => {
 			records: [{ id: 'shape:1', typeName: 'shape' }],
 			schema: { schemaVersion: 2, sequences: {} },
 			renderParams: {
-				x: 10,
-				y: 20,
-				z: 0.5,
+				camera: 'content',
+				// Echoed even though `content` makes the render page ignore them, so a job that omits
+				// `camera` has a viewport to fall back on without a second shape of response.
+				x: 0,
+				y: 0,
+				z: 1,
 				width: 1200,
 				height: 630,
 				theme: 'dark',
@@ -182,17 +189,119 @@ describe('getThumbnailSnapshot', () => {
 		)
 
 		expect(response.status).toBe(200)
-		expect(vi.mocked(getSharedFileRoomSnapshot)).toHaveBeenCalledWith(env, 'file-abc')
+		expect(vi.mocked(getSharedFileRoomSnapshot)).toHaveBeenCalledWith(env, 'file-abc', {
+			access: 'render',
+		})
 		expect(vi.mocked(getPublishedRoomSnapshot)).not.toHaveBeenCalled()
 	})
 
-	it('returns 404 when a shared file is un-shared during the token window', async () => {
-		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValue(Error('not shared'))
+	// The gate comes from the signed job, not from this route. An MCP token is minted `public`, so it
+	// reads under the anonymous gate and stays confined to what the MCP tool could resolve — a board
+	// that went private after minting is refused, where a thumbnail render's `render` token is not.
+	it('reads under the access level the token was minted with', async () => {
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue({
+			documents: [{ state: { id: 'shape:1', typeName: 'shape' }, lastChangedClock: 0 }],
+			schema: { schemaVersion: 2, sequences: {} },
+			clock: 0,
+		} as any)
+
+		await getThumbnailSnapshot(
+			makeRequest(
+				await mintToken({
+					kind: 'shared_file',
+					slug: 'file-abc',
+					version: 'etag-1',
+					access: 'public',
+				})
+			),
+			env
+		)
+
+		expect(vi.mocked(getSharedFileRoomSnapshot)).toHaveBeenCalledWith(env, 'file-abc', {
+			access: 'public',
+		})
+	})
+
+	// Deleted, not un-shared: this route reads with `access: 'render'`, so a private board resolves and
+	// its content is served to the render page. What refuses is a board that is deleted or unknown,
+	// which `isFileRenderable` rejects.
+	it('returns 404 when the board is deleted during the token window', async () => {
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValue(Error('not renderable'))
 		const response = await getThumbnailSnapshot(
 			makeRequest(await mintToken({ kind: 'shared_file', slug: 'file-abc', version: 'etag-1' })),
 			env
 		)
 		expect(response.status).toBe(404)
+	})
+})
+
+// The route is the place this actually protects something: it serves any board's full document now
+// that thumbnails render for every board, so a valid signature must not be sufficient on its own.
+describe('getThumbnailSnapshot render token records', () => {
+	function makeEnvWithBucket() {
+		return {
+			MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		} as unknown as Environment
+	}
+
+	function snapshotOfOneShape() {
+		return {
+			documents: [{ state: { id: 'shape:1', typeName: 'shape' }, lastChangedClock: 0 }],
+			schema: { schemaVersion: 2, sequences: {} },
+			clock: 0,
+		} as any
+	}
+
+	it('serves a token that was recorded at mint time', async () => {
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(snapshotOfOneShape())
+		const envWithBucket = makeEnvWithBucket()
+		const job = makeJob()
+		const token = await mintThumbnailRenderToken(envWithBucket, job)
+		await recordMintedRenderToken(envWithBucket, job, token)
+
+		const response = await getThumbnailSnapshot(makeRequest(token), envWithBucket)
+
+		expect(response.status).toBe(200)
+	})
+
+	// The case a leaked MCP_SCREENSHOT_TOKEN_SECRET produces: signatures that verify, for any board,
+	// minted by someone who cannot write to our bucket. Refused, and with the same 403 a bad signature
+	// gets — which check failed is not the caller's business.
+	it('refuses a validly signed token with no record, without reading the board', async () => {
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(snapshotOfOneShape())
+		const envWithBucket = makeEnvWithBucket()
+		const forged = await mintThumbnailRenderToken(envWithBucket, makeJob())
+
+		const response = await getThumbnailSnapshot(makeRequest(forged), envWithBucket)
+
+		expect(response.status).toBe(403)
+		expect(await response.json()).toEqual({
+			error: true,
+			message: 'Invalid or expired render token',
+		})
+		// Refused before the board is touched, so a forged token cannot even cause a snapshot read.
+		expect(vi.mocked(getPublishedRoomSnapshot)).not.toHaveBeenCalled()
+	})
+
+	// A capture that crosses a rolling deploy: minted by the previous worker version, which had no
+	// `access` field and wrote no records, then presented to this one. It reads as `public`, so it is
+	// served rather than 403ing on a record that was never going to exist.
+	it('serves a pre-deploy token that has no access field and no record', async () => {
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(snapshotOfOneShape())
+		const envWithBucket = makeEnvWithBucket()
+		const token = await mintThumbnailRenderToken(
+			envWithBucket,
+			makeJob({ kind: 'shared_file', slug: 'file-abc', version: 'etag-1', access: undefined })
+		)
+
+		const response = await getThumbnailSnapshot(makeRequest(token), envWithBucket)
+
+		expect(response.status).toBe(200)
+		// And under the gate that worker version applied, not the wider one.
+		expect(vi.mocked(getSharedFileRoomSnapshot)).toHaveBeenCalledWith(envWithBucket, 'file-abc', {
+			access: 'public',
+		})
 	})
 })
 

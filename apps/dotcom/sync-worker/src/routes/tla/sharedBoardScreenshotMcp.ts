@@ -1,25 +1,30 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
+import {
+	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
+	MCP_PER_BOARD_RATE_LIMIT,
+	MCP_PER_IP_RATE_LIMIT,
+	MCP_RATE_LIMIT_WINDOW_MS,
+} from '../../config'
 import { Environment } from '../../types'
 import { arrayBufferToBase64 } from '../../utils/base64'
+import { sha256 } from '../../utils/hash'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
 	enumerateBoardPages,
-	isGlobalBrowserRunRateLimited,
-	isRateLimited,
 	loadBoardSnapshot,
 	putThumbnailPng,
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
 import {
+	browserRunDurationOf,
 	classifyScreenshotFailure,
 	describeThumbnailFailure,
 	reportThumbnailError,
-	sha256,
 } from './thumbnailShared'
 
 // The MCP protocol surface over the shared render-and-cache core in thumbnailRender.ts: JSON-RPC
@@ -30,12 +35,50 @@ const SCREENSHOT_TOOL_NAME = 'get_shared_board_screenshot'
 const BOARD_INFO_TOOL_NAME = 'get_board_info'
 const MCP_PROTOCOL_VERSION = '2024-11-05'
 
-// Per-IP and per-board limits protect the endpoint and individual boards; the global limit in
-// thumbnailRender.ts caps total Browser Rendering spend across all callers. The Cloudflare bindings
-// in wrangler.toml enforce these in deployments; the isolate-local fallback only covers local dev
-// and tests.
-const PER_IP_RATE_LIMIT = 2
-const PER_BOARD_RATE_LIMIT = 2
+// The MCP rate limit budgets themselves live in config.ts (MCP_PER_IP_RATE_LIMIT and friends), with
+// the comment that maps each isolate-local fallback to its deployed Cloudflare binding. They are
+// applied here rather than in the shared render core so a new surface built on those helpers cannot
+// pick one up by accident.
+const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
+const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
+
+async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
+	return isRateLimited(env.MCP_SERVER_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
+		fallbackLimit: MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
+	})
+}
+
+async function isRateLimited(
+	limiter: RateLimit | undefined,
+	key: string,
+	{ fallbackLimit }: { fallbackLimit: number }
+): Promise<boolean> {
+	// The mcp- prefix is load-bearing: it is what the deployed Cloudflare rate limit bindings have
+	// counted against, so changing it resets every configured bucket.
+	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
+	if (limiter) {
+		const { success } = await limiter.limit({ key: rateLimitKey })
+		return !success
+	}
+
+	// Isolate-local fallback for local dev and tests; deployments configure the Cloudflare rate
+	// limit bindings in wrangler.toml.
+	const now = Date.now()
+	const existing = RATE_LIMIT_FALLBACK.get(rateLimitKey)
+	if (!existing || existing.resetAt <= now) {
+		RATE_LIMIT_FALLBACK.set(rateLimitKey, { count: 1, resetAt: now + MCP_RATE_LIMIT_WINDOW_MS })
+		return false
+	}
+	existing.count++
+	return existing.count > fallbackLimit
+}
+
+// The isolate-local fallback map is module state that persists across a test file's cases. Tests that
+// exercise the MCP tools must reset it between cases, or accumulated counts (especially on the shared
+// `global` key) would trip the low limits and rate-limit later cases' happy paths.
+export function resetRateLimitFallbackForTests() {
+	RATE_LIMIT_FALLBACK.clear()
+}
 
 type JsonRpcId = string | number | null
 
@@ -186,9 +229,9 @@ export async function resolveSharedBoardById(
 	env: Environment,
 	boardId: string
 ): Promise<ResolveThumbnailBoardResult> {
-	const shared = await resolveThumbnailBoard(env, 'shared_file', boardId)
+	const shared = await resolveThumbnailBoard(env, 'shared_file', boardId, { access: 'public' })
 	if (shared.ok || shared.reason === 'board_empty') return shared
-	return resolveThumbnailBoard(env, 'published', boardId)
+	return resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
 }
 
 // One R2 cache key per page. The ordinal keys the object directly; the version and theme are in the
@@ -207,7 +250,6 @@ async function callBoardInfoTool(
 	env: Environment,
 	ctx?: ExecutionContext
 ) {
-	const clientIp = getClientIp(request)
 	let input: { boardId: string }
 	try {
 		input = parseBoardInfoInput(argumentsValue)
@@ -215,19 +257,7 @@ async function callBoardInfoTool(
 		return toolError(error instanceof Error ? error.message : String(error))
 	}
 
-	// get_board_info spends no Browser Run, so it gets its own per-IP budget rather than sharing the
-	// screenshot one — otherwise the usual "list once, then screenshot pages" flow would exhaust the
-	// per-IP limit on the very first (free) call.
-	if (
-		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-info:${clientIp ?? 'unknown'}`, {
-			fallbackLimit: PER_IP_RATE_LIMIT,
-		})
-	) {
-		return toolError(
-			`Rate limited. Requests are limited to about ${PER_IP_RATE_LIMIT} per minute per IP.`
-		)
-	}
-
+	// Not rate limited: the limiters here bound Browser Run, and this call spends none.
 	try {
 		const resolved = await resolveSharedBoardById(env, input.boardId)
 		if (!resolved.ok) {
@@ -238,7 +268,7 @@ async function callBoardInfoTool(
 			)
 		}
 
-		const snapshot = await loadBoardSnapshot(env, resolved.board)
+		const snapshot = await loadBoardSnapshot(env, resolved.board, { access: 'public' })
 		if (!snapshot) {
 			return toolError('This board has no saved content yet.')
 		}
@@ -257,7 +287,6 @@ async function callBoardInfoTool(
 			env,
 			request,
 			surface: 'mcp_board_info',
-			extras: { boardId: input.boardId },
 		})
 		return toolError(
 			`Could not read board info: ${describeThumbnailFailure(classifyScreenshotFailure(error))}.`
@@ -280,7 +309,6 @@ async function callSharedBoardScreenshotTool(
 		// Telemetry gets a bounded reason code; the caller gets the specific validation message.
 		writeScreenshotTelemetry(env, {
 			source: 'mcp',
-			boardHash: 'unresolved',
 			ipHash,
 			cacheStatus: 'miss',
 			failureReason: 'invalid_input',
@@ -288,26 +316,25 @@ async function callSharedBoardScreenshotTool(
 		return toolError(error instanceof Error ? error.message : String(error))
 	}
 
-	const boardHash = await sha256(input.boardId)
 	const telemetry = (data: {
 		cacheStatus: 'hit' | 'miss'
 		browserRunDurationMs?: number
 		failureReason?: string
 		rateLimitAllowed?: boolean
 	}) => {
-		writeScreenshotTelemetry(env, { source: 'mcp', boardHash, ipHash, ...data })
+		writeScreenshotTelemetry(env, { source: 'mcp', ipHash, ...data })
 	}
 
-	// Screenshots have their own per-IP budget (separate from get_board_info), sized to the ~2/min
-	// Browser Run cap: this is the throttle that actually bounds Browser Run spend per client.
+	// Checked before the cache, unlike the two below: this is the per-client ceiling on calls, not on
+	// captures, so a caller looping over cache hits is still bounded.
 	if (
 		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-shot:${clientIp ?? 'unknown'}`, {
-			fallbackLimit: PER_IP_RATE_LIMIT,
+			fallbackLimit: MCP_PER_IP_RATE_LIMIT,
 		})
 	) {
 		telemetry({ cacheStatus: 'miss', rateLimitAllowed: false, failureReason: 'rate_limited_ip' })
 		return toolError(
-			`Rate limited. Shared board screenshots are limited to about ${PER_IP_RATE_LIMIT} requests per minute per IP.`
+			`Rate limited. Shared board screenshots are limited to about ${MCP_PER_IP_RATE_LIMIT} requests per minute per IP.`
 		)
 	}
 
@@ -324,14 +351,14 @@ async function callSharedBoardScreenshotTool(
 			)
 		}
 		const board = resolved.board
-		if (!env.THUMBNAILS) {
-			throw new Error('THUMBNAILS bucket is not configured')
+		if (!env.MCP_DATA_BUCKET) {
+			throw new Error('MCP_DATA_BUCKET bucket is not configured')
 		}
 
 		// The cache key is derived from the requested ordinal alone, so a cache hit skips loading the
 		// board snapshot entirely; the page name rides in the cached object's metadata.
 		const cacheKey = getThumbnailPageCacheKey(board, input.theme, input.page)
-		const cached = await env.THUMBNAILS.get(cacheKey)
+		const cached = await env.MCP_DATA_BUCKET.get(cacheKey)
 		if (cached) {
 			telemetry({ cacheStatus: 'hit' })
 			return toolPageResult(
@@ -342,7 +369,7 @@ async function callSharedBoardScreenshotTool(
 
 		// Cache miss: load the snapshot to resolve the ordinal to a real page (id + name) and validate
 		// the range.
-		const snapshot = await loadBoardSnapshot(env, board)
+		const snapshot = await loadBoardSnapshot(env, board, { access: 'public' })
 		if (!snapshot) {
 			telemetry({ cacheStatus: 'miss', failureReason: 'board_empty' })
 			return toolError('This board has no saved content to screenshot yet.')
@@ -363,8 +390,8 @@ async function callSharedBoardScreenshotTool(
 		// Only cache misses spend Browser Rendering capacity, so the per-board and global guards sit
 		// here rather than at the top of the tool call.
 		if (
-			await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `board:${input.boardId}`, {
-				fallbackLimit: PER_BOARD_RATE_LIMIT,
+			await isRateLimited(env.MCP_SERVER_BOARD_RATE_LIMITER, `board:${input.boardId}`, {
+				fallbackLimit: MCP_PER_BOARD_RATE_LIMIT,
 			})
 		) {
 			telemetry({
@@ -390,14 +417,13 @@ async function callSharedBoardScreenshotTool(
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 		})
 
-		// The render is already paid for in Browser Run capacity and the PNG in hand is exactly what the
-		// caller asked for, so a failed cache write must not throw it away — that would turn a working
-		// screenshot into a tool error and burn the caller's rate-limit budget for nothing. Report it
-		// instead: the caller can't act on it, but a cache that stops absorbing writes means every
-		// subsequent call re-renders, which we do need to see. The page name is URI-encoded into the
-		// object metadata (R2 custom metadata is not reliably unicode-safe).
+		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed
+		// cache write must not throw it away — that would turn a working screenshot into a tool error and
+		// burn the caller's rate-limit budget for nothing. Reported rather than raised: the caller can't
+		// act on it, but a cache that stops absorbing writes means every call re-renders. The page name is
+		// URI-encoded because R2 custom metadata is not reliably unicode-safe.
 		try {
-			await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version, {
+			await putThumbnailPng(env.MCP_DATA_BUCKET, cacheKey, render.base64, board.version, {
 				pageName: encodeURIComponent(targetPage.name),
 			})
 		} catch (error) {
@@ -406,27 +432,31 @@ async function callSharedBoardScreenshotTool(
 				env,
 				request,
 				surface: 'mcp_screenshot_cache_write',
-				extras: { boardId: input.boardId, page: input.page, theme: input.theme },
+				extras: { page: input.page, theme: input.theme },
 			})
 		}
 
 		telemetry({ cacheStatus: 'miss', browserRunDurationMs: render.durationMs })
 		return toolPageResult(targetPage.name, render.base64)
 	} catch (error) {
-		// One bounded reason code drives both the telemetry blob (so unbounded error strings never
-		// inflate that dimension's cardinality) and the caller's message (so internal Postgres/R2
-		// detail never reaches this anonymous, unauthenticated endpoint). Sentry gets the unbounded
-		// original: this is the surface that actually spends Browser Run, so a Quick Action failing or
-		// the render page erroring out is the thing we most need the stack for.
+		// One bounded reason code drives both the telemetry blob (so unbounded error strings never inflate
+		// that dimension) and the caller's message (so internal Postgres/R2 detail never reaches this
+		// anonymous endpoint). Sentry gets the unbounded original.
 		reportThumbnailError(error, {
 			ctx,
 			env,
 			request,
 			surface: 'mcp_screenshot',
-			extras: { boardId: input.boardId, page: input.page, theme: input.theme },
+			extras: { page: input.page, theme: input.theme },
 		})
 		const failureReason = classifyScreenshotFailure(error)
-		telemetry({ cacheStatus: 'miss', failureReason })
+		// A capture that failed still held a browser, so its duration belongs on the datapoint the same
+		// as a successful one's. Undefined when the failure came before the capture and spent nothing.
+		telemetry({
+			cacheStatus: 'miss',
+			failureReason,
+			browserRunDurationMs: browserRunDurationOf(error),
+		})
 		return toolError(`Screenshot failed: ${describeThumbnailFailure(failureReason)}.`)
 	}
 }
