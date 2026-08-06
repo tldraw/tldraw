@@ -7,8 +7,15 @@ import {
 } from '@tldraw/dotcom-shared'
 import { TLShape } from '@tldraw/tlschema'
 import { IRequest } from 'itty-router'
+import {
+	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
+	MCP_PER_BOARD_RATE_LIMIT,
+	MCP_PER_IP_RATE_LIMIT,
+	MCP_RATE_LIMIT_WINDOW_MS,
+} from '../../config'
 import { Environment } from '../../types'
 import { arrayBufferToBase64 } from '../../utils/base64'
+import { sha256 } from '../../utils/hash'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 import {
 	ResolveThumbnailBoardResult,
@@ -16,8 +23,6 @@ import {
 	captureThumbnailScreenshot,
 	enumerateBoardPages,
 	getShapesOnPage,
-	isGlobalBrowserRunRateLimited,
-	isRateLimited,
 	loadBoardSnapshot,
 	measurePageShapes,
 	putThumbnailPng,
@@ -25,10 +30,10 @@ import {
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
 import {
+	browserRunDurationOf,
 	classifyScreenshotFailure,
 	describeThumbnailFailure,
 	reportThumbnailError,
-	sha256,
 } from './thumbnailShared'
 
 // The MCP protocol surface over the shared render-and-cache core in thumbnailRender.ts: JSON-RPC
@@ -41,12 +46,50 @@ const CLUSTER_INFO_TOOL_NAME = 'get_cluster_info'
 const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
 const MCP_PROTOCOL_VERSION = '2024-11-05'
 
-// Per-IP and per-board limits protect the endpoint and individual boards; the global limit in
-// thumbnailRender.ts caps total Browser Rendering spend across all callers. The Cloudflare bindings
-// in wrangler.toml enforce these in deployments; the isolate-local fallback only covers local dev
-// and tests.
-const PER_IP_RATE_LIMIT = 2
-const PER_BOARD_RATE_LIMIT = 2
+// The MCP rate limit budgets themselves live in config.ts (MCP_PER_IP_RATE_LIMIT and friends), with
+// the comment that maps each isolate-local fallback to its deployed Cloudflare binding. They are
+// applied here rather than in the shared render core so a new surface built on those helpers cannot
+// pick one up by accident.
+const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
+const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
+
+async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
+	return isRateLimited(env.MCP_SERVER_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
+		fallbackLimit: MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
+	})
+}
+
+async function isRateLimited(
+	limiter: RateLimit | undefined,
+	key: string,
+	{ fallbackLimit }: { fallbackLimit: number }
+): Promise<boolean> {
+	// The mcp- prefix is load-bearing: it is what the deployed Cloudflare rate limit bindings have
+	// counted against, so changing it resets every configured bucket.
+	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
+	if (limiter) {
+		const { success } = await limiter.limit({ key: rateLimitKey })
+		return !success
+	}
+
+	// Isolate-local fallback for local dev and tests; deployments configure the Cloudflare rate
+	// limit bindings in wrangler.toml.
+	const now = Date.now()
+	const existing = RATE_LIMIT_FALLBACK.get(rateLimitKey)
+	if (!existing || existing.resetAt <= now) {
+		RATE_LIMIT_FALLBACK.set(rateLimitKey, { count: 1, resetAt: now + MCP_RATE_LIMIT_WINDOW_MS })
+		return false
+	}
+	existing.count++
+	return existing.count > fallbackLimit
+}
+
+// The isolate-local fallback map is module state that persists across a test file's cases. Tests that
+// exercise the MCP tools must reset it between cases, or accumulated counts (especially on the shared
+// `global` key) would trip the low limits and rate-limit later cases' happy paths.
+export function resetRateLimitFallbackForTests() {
+	RATE_LIMIT_FALLBACK.clear()
+}
 
 type JsonRpcId = string | number | null
 
@@ -264,9 +307,9 @@ export async function resolveSharedBoardById(
 	env: Environment,
 	boardId: string
 ): Promise<ResolveThumbnailBoardResult> {
-	const shared = await resolveThumbnailBoard(env, 'shared_file', boardId)
+	const shared = await resolveThumbnailBoard(env, 'shared_file', boardId, { access: 'public' })
 	if (shared.ok || shared.reason === 'board_empty') return shared
-	return resolveThumbnailBoard(env, 'published', boardId)
+	return resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
 }
 
 // A shape set has no bounded key the way a page ordinal does, so it is hashed. Sorted first, so the
@@ -286,7 +329,6 @@ async function callBoardInfoTool(
 	env: Environment,
 	ctx?: ExecutionContext
 ) {
-	const clientIp = getClientIp(request)
 	let input: { boardId: string }
 	try {
 		input = parseBoardInfoInput(argumentsValue)
@@ -294,18 +336,9 @@ async function callBoardInfoTool(
 		return toolError(error instanceof Error ? error.message : String(error))
 	}
 
-	// get_board_info spends no Browser Run, so it gets its own per-IP budget rather than sharing the
-	// screenshot one — otherwise the usual "list once, then screenshot pages" flow would exhaust the
-	// per-IP limit on the very first (free) call.
-	if (
-		await isRateLimited(env, env.MCP_SCREENSHOT_RATE_LIMITER, `ip-page:${clientIp ?? 'unknown'}`, {
-			fallbackLimit: PER_IP_RATE_LIMIT,
-		})
-	) {
-		return toolError(
-			`Rate limited. Requests are limited to about ${PER_IP_RATE_LIMIT} per minute per IP.`
-		)
-	}
+	// Not rate limited: the limiters here bound Browser Run, and this call spends none. The clustering
+	// tools below do spend it — they measure the page in a render before they can group anything — so
+	// they are limited even though they read as "info" calls too.
 
 	try {
 		const resolved = await resolveSharedBoardById(env, input.boardId)
@@ -317,7 +350,7 @@ async function callBoardInfoTool(
 			)
 		}
 
-		const snapshot = await loadBoardSnapshot(env, resolved.board)
+		const snapshot = await loadBoardSnapshot(env, resolved.board, { access: 'public' })
 		if (!snapshot) {
 			return toolError('This board has no saved content yet.')
 		}
@@ -366,17 +399,12 @@ async function callPageInfoTool(
 	}
 
 	if (
-		await isRateLimited(
-			env,
-			env.MCP_SCREENSHOT_RATE_LIMITER,
-			`ip-cluster:${clientIp ?? 'unknown'}`,
-			{
-				fallbackLimit: PER_IP_RATE_LIMIT,
-			}
-		)
+		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-cluster:${clientIp ?? 'unknown'}`, {
+			fallbackLimit: MCP_PER_IP_RATE_LIMIT,
+		})
 	) {
 		return toolError(
-			`Rate limited. Requests are limited to about ${PER_IP_RATE_LIMIT} per minute per IP.`
+			`Rate limited. Requests are limited to about ${MCP_PER_IP_RATE_LIMIT} per minute per IP.`
 		)
 	}
 
@@ -445,7 +473,7 @@ async function resolveBoardPage(
 		}
 	}
 
-	const snapshot = await loadBoardSnapshot(env, resolved.board)
+	const snapshot = await loadBoardSnapshot(env, resolved.board, { access: 'public' })
 	if (!snapshot) {
 		return { ok: false, result: toolError('This board has no saved content yet.') }
 	}
@@ -526,12 +554,12 @@ async function callClusterInfoTool(
 	}
 
 	if (
-		await isRateLimited(env, env.MCP_SCREENSHOT_RATE_LIMITER, `ip-info:${clientIp ?? 'unknown'}`, {
-			fallbackLimit: PER_IP_RATE_LIMIT,
+		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-info:${clientIp ?? 'unknown'}`, {
+			fallbackLimit: MCP_PER_IP_RATE_LIMIT,
 		})
 	) {
 		return toolError(
-			`Rate limited. Requests are limited to about ${PER_IP_RATE_LIMIT} per minute per IP.`
+			`Rate limited. Requests are limited to about ${MCP_PER_IP_RATE_LIMIT} per minute per IP.`
 		)
 	}
 
@@ -600,26 +628,25 @@ async function renderShapeSetScreenshot(
 ) {
 	const clientIp = getClientIp(request)
 	const ipHash = clientIp ? await sha256(clientIp) : 'unknown'
-	const boardHash = await sha256(boardId)
 	const telemetry = (data: {
 		cacheStatus: 'hit' | 'miss'
 		browserRunDurationMs?: number
 		failureReason?: string
 		rateLimitAllowed?: boolean
 	}) => {
-		writeScreenshotTelemetry(env, { source: 'mcp', boardHash, ipHash, ...data })
+		writeScreenshotTelemetry(env, { source: 'mcp', ipHash, ...data })
 	}
 
 	// Shares the screenshot budget with the other capture tools rather than the free info budget:
 	// this spends Browser Run capacity the same way.
 	if (
-		await isRateLimited(env, env.MCP_SCREENSHOT_RATE_LIMITER, `ip-shot:${clientIp ?? 'unknown'}`, {
-			fallbackLimit: PER_IP_RATE_LIMIT,
+		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-shot:${clientIp ?? 'unknown'}`, {
+			fallbackLimit: MCP_PER_IP_RATE_LIMIT,
 		})
 	) {
 		telemetry({ cacheStatus: 'miss', rateLimitAllowed: false, failureReason: 'rate_limited_ip' })
 		return toolError(
-			`Rate limited. Screenshots are limited to about ${PER_IP_RATE_LIMIT} requests per minute per IP.`
+			`Rate limited. Screenshots are limited to about ${MCP_PER_IP_RATE_LIMIT} requests per minute per IP.`
 		)
 	}
 
@@ -658,8 +685,8 @@ async function renderShapeSetScreenshot(
 		// Only cache misses spend Browser Rendering capacity, so the per-board and global guards sit
 		// here rather than at the top of the tool call.
 		if (
-			await isRateLimited(env, env.MCP_SCREENSHOT_RATE_LIMITER, `board:${boardId}`, {
-				fallbackLimit: PER_BOARD_RATE_LIMIT,
+			await isRateLimited(env.MCP_SERVER_BOARD_RATE_LIMITER, `board:${boardId}`, {
+				fallbackLimit: MCP_PER_BOARD_RATE_LIMIT,
 			})
 		) {
 			telemetry({
@@ -713,7 +740,14 @@ async function renderShapeSetScreenshot(
 			extras: { boardId, page: describePageSelector(page), theme, ...extras },
 		})
 		const failureReason = classifyScreenshotFailure(error)
-		telemetry({ cacheStatus: 'miss', failureReason })
+		// A capture that failed still held a browser, so its duration belongs on the datapoint the same
+		// as a successful one's. Undefined when the failure came before the capture and spent nothing —
+		// which for these tools includes a failed measure render, not just a failed screenshot.
+		telemetry({
+			cacheStatus: 'miss',
+			failureReason,
+			browserRunDurationMs: browserRunDurationOf(error),
+		})
 		return toolError(`Screenshot failed: ${describeThumbnailFailure(failureReason)}.`)
 	}
 }
@@ -732,7 +766,6 @@ async function callClusterScreenshotTool(
 	} catch (error) {
 		writeScreenshotTelemetry(env, {
 			source: 'mcp',
-			boardHash: 'unresolved',
 			ipHash: 'unknown',
 			cacheStatus: 'miss',
 			failureReason: 'invalid_input',

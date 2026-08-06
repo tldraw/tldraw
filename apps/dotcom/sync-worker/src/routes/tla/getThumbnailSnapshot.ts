@@ -2,7 +2,11 @@ import { ThumbnailSnapshotResponseBody } from '@tldraw/dotcom-shared'
 import { TLRecord } from '@tldraw/tlschema'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
-import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
+import {
+	isMintedRenderToken,
+	renderJobAccess,
+	verifyThumbnailRenderToken,
+} from '../../utils/renderTokens'
 import { getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileRoomSnapshot } from './getSharedFile'
 import { reportThumbnailError } from './thumbnailShared'
@@ -25,12 +29,21 @@ export async function getThumbnailSnapshot(
 		return json({ error: true, message: 'Invalid or expired render token' }, 403)
 	}
 
-	// Shared files re-check their share status here (not just when the token was minted), so that a
-	// board un-shared during a token's 5 minute window stops resolving.
+	// A valid signature only proves the holder of the secret made this, and a `render` token reads a
+	// private board's full document. So one must also be recorded as ours (see isMintedRenderToken).
+	// Answers the same 403 as a bad signature: which check failed is not the caller's business.
+	if (!(await isMintedRenderToken(env, job, token))) {
+		return json({ error: true, message: 'Invalid or expired render token' }, 403)
+	}
+
+	// Read under the gate the job was signed with, not a fixed one, so an MCP token stays confined to
+	// what the MCP tool could resolve — including a board that has gone private since it was minted.
+	// Shared files re-check here rather than trusting the mint, so a board deleted inside the token's
+	// window (THUMBNAIL_RENDER_TOKEN_TTL_MS) stops resolving either way.
 	const snapshot = await (
 		job.kind === 'published'
 			? getPublishedRoomSnapshot(env, job.slug)
-			: getSharedFileRoomSnapshot(env, job.slug)
+			: getSharedFileRoomSnapshot(env, job.slug, { access: renderJobAccess(job) })
 	).catch((error) => {
 		// A load failure and a genuinely missing board both answer 404 here, which the render page
 		// turns into an error state and the capture surfaces as a generic render failure. Report the
@@ -40,7 +53,7 @@ export async function getThumbnailSnapshot(
 			env,
 			request,
 			surface: 'thumbnail_snapshot',
-			extras: { kind: job.kind, slug: job.slug },
+			extras: { kind: job.kind },
 		})
 		return undefined
 	})

@@ -11,6 +11,32 @@
       "value": "Einladung annehmen"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "Wir arbeiten an der Unterstützung für Dateien von "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "Lade Teamkollegen ein"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " hat dich erwähnt"
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,16 @@
     {
       "type": 0,
       "value": "Konto"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": "-Dateien können noch nicht geöffnet werden."
     }
   ],
   "0a91f7fa87": [
@@ -123,6 +175,12 @@
       "value": "Exportieren als"
     }
   ],
+  "14b03eeeb5": [
+    {
+      "type": 0,
+      "value": "Benachrichtigungsoptionen"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -177,6 +235,22 @@
     {
       "type": 0,
       "value": "Über tldraw"
+    }
+  ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " hat Ihren Beitrag kommentiert"
     }
   ],
   "299cb00a7a": [
@@ -331,6 +405,12 @@
       "value": "Danke, dass Sie uns helfen, tldraw zu verbessern!"
     }
   ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Nutzungsbedingungen akzeptieren"
+    }
+  ],
   "477df802ca": [
     {
       "type": 0,
@@ -391,6 +471,12 @@
       "value": "Seitenmenü"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Ungelesen"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -401,6 +487,16 @@
     {
       "type": 0,
       "value": "Limit für Mitwirkende erreicht"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " ungelesen"
     }
   ],
   "554a05155c": [
@@ -461,6 +557,22 @@
       "value": "Mein Arbeitsbereich"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " hat auf Ihren Kommentar reagiert"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -485,10 +597,51 @@
       "value": "Kopieren"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Sie sind auf dem neuesten Stand."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Melden Sie sich an, um einen Kommentar zu hinterlassen."
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Später"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Jemand hat auf deinen Kommentar reagiert."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " Personen haben auf deinen Kommentar reagiert"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -591,6 +744,12 @@
     {
       "type": 0,
       "value": "Sie haben die maximale Anzahl an Dateien erreicht. Sie müssen alte Dateien löschen, bevor Sie neue erstellen können."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Alle als gelesen markieren"
     }
   ],
   "7573b8110a": [
@@ -747,6 +906,12 @@
     {
       "type": 0,
       "value": " vergessen möchten?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Kommentare"
     }
   ],
   "858ba4765e": [
@@ -975,6 +1140,12 @@
       "value": "Bild exportieren"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Benachrichtigungen"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1023,6 +1194,12 @@
       "value": "Arbeitsbereich erstellen"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Jemand"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1045,6 +1222,28 @@
     {
       "type": 0,
       "value": "Gastbenutzer"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " antwortete"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Alle"
     }
   ],
   "b2326c3a34": [
@@ -1235,6 +1434,56 @@
       "value": "Erfahren Sie mehr über das Veröffentlichen."
     }
   ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " und "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " haben auf Ihren Kommentar reagiert"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1353,6 +1602,36 @@
       "value": "Servicebedingungen"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " und "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " haben auf Ihren Kommentar reagiert"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1421,6 +1700,12 @@
       "value": ", um mehr zu erfahren."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Dieser Kommentar wurde gelöscht."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1457,10 +1742,102 @@
       "value": "Löschen"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " und "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " haben auf Ihren Kommentar reagiert"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Einstellungen"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "Fürs Erste können Sie "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "als "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        },
+        {
+          "type": 0,
+          "value": "-Datei exportieren"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": ", um sie hier zu verwenden."
     }
   ],
   "fa2ead697d": [

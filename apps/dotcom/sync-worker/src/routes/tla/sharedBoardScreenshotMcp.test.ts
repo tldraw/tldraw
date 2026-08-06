@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { MCP_PER_IP_RATE_LIMIT } from '../../config'
 import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
@@ -16,9 +17,9 @@ import {
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parsePageInfoInput,
+	resetRateLimitFallbackForTests,
 	sharedBoardScreenshotMcp,
 } from './sharedBoardScreenshotMcp'
-import { resetRateLimitFallbackForTests } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -220,37 +221,46 @@ describe('board and page info', () => {
 // The limits protect a public endpoint and bound Browser Rendering spend; a dev machine is doing
 // neither, and a ~2/min cap makes the tools impossible to iterate against. Only an environment that
 // sets the var opts out, so these pin both halves of that switch.
-describe('rate limits', () => {
-	// makeToolCall deliberately rotates the client IP per request so tests never limit each other —
-	// which is exactly what these two need to defeat, since the limit is per IP.
-	async function callFromSameIp(env: Environment, ip: string) {
-		const request = new Request('https://sync.tldraw.xyz/app/mcp', {
-			method: 'POST',
-			headers: { 'cf-connecting-ip': ip },
-			body: JSON.stringify({
-				jsonrpc: '2.0',
-				id: 1,
-				method: 'tools/call',
-				params: { name: 'get_board_info', arguments: { boardId: 'abc' } },
-			}),
-		}) as any
-		return rpcResult(await sharedBoardScreenshotMcp(request, env))
-	}
+// Only the tools that spend Browser Run are limited — get_board_info is not, since it renders
+// nothing. The budgets themselves live in config.ts.
+// makeToolCall deliberately rotates the client IP per request so tests never limit each other —
+// which is exactly what a rate limit test has to defeat, since the budget is per IP.
+async function callFromSameIp(env: Environment, ip: string, name: string, args: object) {
+	const request = new Request('https://sync.tldraw.xyz/app/mcp', {
+		method: 'POST',
+		headers: { 'cf-connecting-ip': ip },
+		body: JSON.stringify({
+			jsonrpc: '2.0',
+			id: 1,
+			method: 'tools/call',
+			params: { name, arguments: args },
+		}),
+	}) as any
+	return rpcResult(await sharedBoardScreenshotMcp(request, env))
+}
 
-	it('limits repeated calls from one client by default', async () => {
+describe('rate limits', () => {
+	it('does not limit get_board_info, which spends no Browser Run', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		for (let i = 0; i < MCP_PER_IP_RATE_LIMIT + 4; i++) {
+			const result = await callFromSameIp(env, '203.0.113.200', 'get_board_info', {
+				boardId: 'abc',
+			})
+			expect(result.isError).toBeUndefined()
+		}
+	})
+
+	it('limits a clustering tool, which does', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
 		const outcomes: (boolean | undefined)[] = []
-		for (let i = 0; i < 5; i++) outcomes.push((await callFromSameIp(env, '203.0.113.200')).isError)
-		expect(outcomes.some(Boolean)).toBe(true)
-	})
-
-	it('does not limit when the dev var is set', async () => {
-		mockPublishedBoard()
-		const env = makeEnv({ MCP_SCREENSHOT_RATE_LIMITS_DISABLED: 'true' })
-		for (let i = 0; i < 8; i++) {
-			expect((await callFromSameIp(env, '203.0.113.201')).isError).toBeUndefined()
+		for (let i = 0; i < MCP_PER_IP_RATE_LIMIT + 2; i++) {
+			outcomes.push(
+				(await callFromSameIp(env, '203.0.113.201', 'get_page_info', { boardId: 'abc' })).isError
+			)
 		}
+		expect(outcomes.some(Boolean)).toBe(true)
 	})
 })
 

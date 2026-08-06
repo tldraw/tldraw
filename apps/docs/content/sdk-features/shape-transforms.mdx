@@ -1,7 +1,7 @@
 ---
 title: Shape transforms
 created_at: 12/20/2025
-updated_at: 12/20/2025
+updated_at: 8/5/2026
 keywords:
   - transform
   - align
@@ -41,11 +41,14 @@ Ungrouping reverses this process by moving the group's children back to the grou
 
 ### Alignment
 
-Alignment moves shapes so they share a common edge or center line. The editor supports six alignment operations: left, right, top, bottom, center-horizontal, and center-vertical. When aligning shapes, the editor first calculates the common bounding box of all selected shapes, then moves each shape to align with the appropriate edge or center of that common box.
+Alignment moves shapes so they share a common edge or center line. The six single-axis operations are `left`, `right`, `top`, `bottom`, `center-horizontal`, and `center-vertical`. Use `center` to align shapes by both their horizontal and vertical centers in one call.
+
+When aligning shapes, the editor first calculates the common bounding box of all selected shapes. It then moves each shape to the appropriate edge or center of that common box.
 
 ```typescript
 editor.alignShapes(editor.getSelectedShapeIds(), 'left')
 editor.alignShapes([box1, box2], 'center-vertical')
+editor.alignShapes([box1, box2], 'center')
 ```
 
 Selected shapes connected by arrow bindings move together as a cluster during alignment. If shapes A and B are connected by an arrow and you align them with shape C, A and B move together as a single unit.

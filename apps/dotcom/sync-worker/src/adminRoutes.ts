@@ -2,6 +2,7 @@ import {
 	AdminFileAssetsResponseBody,
 	FILE_PREFIX,
 	FeatureFlagKey,
+	FriendsAndFamilyEntry,
 	LOCAL_FILE_PREFIX,
 	PUBLISH_PREFIX,
 	ROOM_PREFIX,
@@ -11,15 +12,59 @@ import {
 import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
+import { sql } from 'kysely'
 import PQueue from 'p-queue'
 import { getUploadObjectName } from './assetAssociation'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
+import { undeleteFile } from './undeleteFile'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
+import {
+	getFriendsAndFamilyList,
+	parseFriendsAndFamilyEmails,
+	setFriendsAndFamilyList,
+} from './utils/mcpFriendsAndFamily'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
+
+/**
+ * Resolves the admin's emails to user ids once, at save time, so the request path only ever has to
+ * compare the userId `getAuth` already gives it. One query for the whole list rather than a lookup
+ * per address, and an email with no tldraw account fails the save instead of being stored as an
+ * entry that can never match.
+ */
+async function resolveFriendsAndFamilyUsers(
+	env: Environment,
+	emails: string[]
+): Promise<FriendsAndFamilyEntry[]> {
+	if (!emails.length) return []
+
+	const db = createPostgresConnectionPool(env, '/app/admin/mcp-friends-and-family')
+	try {
+		const rows = await db
+			.selectFrom('user')
+			.select(['id', 'email'])
+			.where(sql<string>`lower(email)`, 'in', emails)
+			.execute()
+
+		const byEmail = new Map(rows.map((row) => [row.email.toLowerCase(), row]))
+		const unknown = emails.filter((email) => !byEmail.has(email))
+		if (unknown.length) {
+			throw new StatusError(400, `No tldraw account for: ${unknown.join(', ')}`)
+		}
+
+		// Store the address as the database has it, not as the admin typed it, so the panel shows the
+		// account's real email.
+		return emails.map((email) => {
+			const row = byEmail.get(email)!
+			return { userId: row.id, email: row.email }
+		})
+	} finally {
+		await db.destroy()
+	}
+}
 
 async function requireUser(env: Environment, q: string) {
 	const db = createPostgresConnectionPool(env, '/app/admin/user')
@@ -94,6 +139,25 @@ export const adminRoutes = createRouter<Environment>()
 		await setFeatureFlag(env, flag as FeatureFlagKey, update)
 		return json({ success: true, flag, ...update })
 	})
+	.get('/app/admin/mcp-friends-and-family', async (_req, env) => {
+		return json({ entries: await getFriendsAndFamilyList(env) })
+	})
+	.post('/app/admin/mcp-friends-and-family', async (req, env) => {
+		const body: any = await req.json()
+
+		// Parsing before resolving means a typo is rejected at the point someone can still fix it,
+		// rather than sitting in the list looking like it grants access while matching nothing.
+		let emails: string[]
+		try {
+			emails = parseFriendsAndFamilyEmails(body?.entries)
+		} catch (e) {
+			throw new StatusError(400, e instanceof Error ? e.message : String(e))
+		}
+
+		const entries = await resolveFriendsAndFamilyUsers(env, emails)
+		await setFriendsAndFamilyList(env, entries)
+		return json({ success: true, entries })
+	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
 		await getRoomDurableObject(env, slug).__admin__createLegacyRoom(slug)
@@ -113,6 +177,87 @@ export const adminRoutes = createRouter<Environment>()
 			}
 		}
 		return await hardDeleteAppFile({ pg, file, env })
+	})
+	.post('/app/admin/undelete_file/:fileId', async (res, env) => {
+		const fileId = res.params.fileId
+		assert(typeof fileId === 'string', 'fileId is required')
+
+		const pg = createPostgresConnectionPool(env, '/app/admin/undelete_file')
+		const outcome = await undeleteFile(pg, fileId)
+		if (outcome.result === 'not_found') {
+			return new Response('File not found', { status: 404 })
+		}
+		if (outcome.result === 'not_deleted') {
+			return new Response('File is not deleted', { status: 400 })
+		}
+		if (outcome.result === 'group_deleted') {
+			return new Response('Owning workspace is deleted — restore the workspace first', {
+				status: 409,
+			})
+		}
+		// Hard-reboot every affected user so the restored rows replicate to their session (the
+		// isDeleted false-flip case flagged in dotcom-shared mutators.ts). Best-effort: the
+		// writes already committed, so a reboot failure must not surface as a 500 (a retry would
+		// just 400 with 'File is not deleted' without rebooting anyone). Bounded concurrency keeps
+		// us inside the worker's connection budget for workspaces with many members.
+		const rebootQueue = new PQueue({ concurrency: 5 })
+		await rebootQueue.addAll(
+			outcome.rebootUserIds.map((userId) => async () => {
+				try {
+					await getUserDurableObject(env, userId).admin_forceHardReboot(userId)
+				} catch (e) {
+					console.error(`Failed to reboot user ${userId} after undeleting file ${fileId}`, e)
+				}
+			})
+		)
+		return json({ success: true })
+	})
+	// Deleted files the user OWNS: legacy direct owner, their home workspace (group id = user
+	// id), or a workspace where they hold the owner role. Mere memberships and guest files are
+	// excluded — the per-row Undelete button restores files, so the list must only contain files
+	// the user legitimately owns. Queried from Postgres because the user's replicated store
+	// filters out their own deleted files (see fetchEverythingSql).
+	.get('/app/admin/user/deleted_files', async (res, env) => {
+		const q = res.query['q']
+		if (typeof q !== 'string') {
+			return new Response('Missing query param', { status: 400 })
+		}
+		const userRow = await requireUser(env, q)
+		const pg = createPostgresConnectionPool(env, '/app/admin/user/deleted_files')
+		const files = await pg
+			.selectFrom('file')
+			.leftJoin('group', 'group.id', 'file.owningGroupId')
+			.leftJoin('group_user', (join) =>
+				join
+					.onRef('group_user.groupId', '=', 'file.owningGroupId')
+					.on('group_user.userId', '=', userRow.id)
+			)
+			.where('file.isDeleted', '=', true)
+			// A deleted file whose owning workspace is also deleted can't be restored (undeleteFile
+			// blocks it, see undeleteFile.ts) until the workspace is restored first, so hide it here.
+			.where((eb) =>
+				eb.or([eb('group.isDeleted', '=', false), eb('file.owningGroupId', 'is', null)])
+			)
+			.where((eb) =>
+				eb.or([
+					eb('file.ownerId', '=', userRow.id),
+					eb('file.owningGroupId', '=', userRow.id),
+					eb(
+						'file.owningGroupId',
+						'in',
+						eb
+							.selectFrom('group_user')
+							.select('group_user.groupId')
+							.where('group_user.userId', '=', userRow.id)
+							.where('group_user.role', '=', 'owner')
+					),
+				])
+			)
+			.selectAll('file')
+			.select(['group.name as workspaceName', 'group_user.role as workspaceRole'])
+			.orderBy('file.updatedAt', 'desc')
+			.execute()
+		return json(files)
 	})
 	.post('/app/admin/delete_user', async (res, env) => {
 		const q = res.query['q']

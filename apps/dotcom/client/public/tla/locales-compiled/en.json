@@ -59,6 +59,22 @@
       "value": "Invite teammates"
     }
   ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " mentioned you"
+    }
+  ],
   "05f43078e9": [
     {
       "type": 0,
@@ -163,6 +179,12 @@
       "value": "Export as"
     }
   ],
+  "14b03eeeb5": [
+    {
+      "type": 0,
+      "value": "Notification options"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -217,6 +239,22 @@
     {
       "type": 0,
       "value": "About tldraw"
+    }
+  ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " commented on your board"
     }
   ],
   "299cb00a7a": [
@@ -437,6 +475,12 @@
       "value": "Page menu"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Unread"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -447,6 +491,16 @@
     {
       "type": 0,
       "value": "Collaborator limit reached"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " unread"
     }
   ],
   "554a05155c": [
@@ -507,6 +561,22 @@
       "value": "My workspace"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reacted to your comment"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -531,10 +601,51 @@
       "value": "Copy"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "You’re all caught up."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Sign in to comment"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Later"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Someone reacted to your comment"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " people reacted to your comment"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -637,6 +748,12 @@
     {
       "type": 0,
       "value": "You have reached the maximum number of files. You need to delete old files before creating new ones."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Mark all as read"
     }
   ],
   "7573b8110a": [
@@ -793,6 +910,12 @@
     {
       "type": 0,
       "value": "?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Comments"
     }
   ],
   "858ba4765e": [
@@ -1025,6 +1148,12 @@
       "value": "Export image"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Notifications"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1073,6 +1202,12 @@
       "value": "Create workspace"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Someone"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1095,6 +1230,28 @@
     {
       "type": 0,
       "value": "Guest user"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " replied"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "All"
     }
   ],
   "b2326c3a34": [
@@ -1281,6 +1438,56 @@
       "value": "Learn more about publishing."
     }
   ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reacted to your comment"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1399,6 +1606,36 @@
       "value": "Terms of service"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reacted to your comment"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1467,6 +1704,12 @@
       "value": " to learn more."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "This comment was deleted."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1501,6 +1744,70 @@
     {
       "type": 0,
       "value": "Delete"
+    }
+  ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reacted to your comment"
     }
   ],
   "f4f70727dc": [

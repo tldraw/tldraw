@@ -1,8 +1,14 @@
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import {
+	TlaComment,
+	TlaCommentMention,
+	TlaCommentReaction,
+	TlaCommentRead,
+	TlaCommentThread,
 	TlaFile,
 	TlaFileState,
+	TlaFileVisitor,
 	TlaGroup,
 	TlaGroupFile,
 	TlaGroupUser,
@@ -138,6 +144,11 @@ export const THUMBNAIL_RENDER_TIMEOUT_MS = 45_000
 export const THUMBNAIL_SETTLE_TIMEOUT_MS = 10_000
 
 export interface ThumbnailRenderParams {
+	/**
+	 * `content` fits the page's content to the requested output size. When omitted, the render page
+	 * sets the x/y/z viewport below directly. Every surface mints `content` today; the viewport path
+	 * is kept because the render page and the worker deploy separately (see ThumbnailRenderJob).
+	 */
 	camera?: 'content'
 	/** The TLPageId of the single page to render. When omitted, the page the snapshot opens to. */
 	pageId?: string
@@ -195,6 +206,25 @@ export interface ZStoreData {
 	group: TlaGroup[]
 	group_user: TlaGroupUser[]
 	group_file: TlaGroupFile[]
+	// Optional: comments are served via the proper-Zero synced query, not the legacy polyfill store,
+	// so the polyfill never populates this. Present only so the CRUD types (generic over all schema
+	// tables) compile.
+	comment?: TlaComment[]
+	// Same as comment: never populated by the legacy polyfill store, present only for the
+	// generic CRUD types.
+	comment_thread?: TlaCommentThread[]
+	// Same as comment: never populated by the legacy polyfill store, present only for the
+	// generic CRUD types.
+	comment_read?: TlaCommentRead[]
+	// Same as comment: never populated by the legacy polyfill store, present only for the
+	// generic CRUD types.
+	comment_mention?: TlaCommentMention[]
+	// Same as comment: never populated by the legacy polyfill store, present only for the
+	// generic CRUD types.
+	comment_reaction?: TlaCommentReaction[]
+	// Same as comment: the viewer roster is served via the proper-Zero synced query (fileVisitors),
+	// never populated by the legacy polyfill store; present only for the generic CRUD types.
+	file_visitor?: TlaFileVisitor[]
 	lsn: string
 }
 
@@ -212,7 +242,19 @@ export interface ZRowDeleteOrUpdate {
 	event: 'update' | 'delete'
 }
 
-export type ZTable = 'file' | 'file_state' | 'user' | 'group' | 'group_user' | 'group_file'
+export type ZTable =
+	| 'file'
+	| 'file_state'
+	| 'file_visitor'
+	| 'user'
+	| 'group'
+	| 'group_user'
+	| 'group_file'
+	| 'comment'
+	| 'comment_thread'
+	| 'comment_read'
+	| 'comment_mention'
+	| 'comment_reaction'
 
 export type ZEvent = 'insert' | 'update' | 'delete'
 
@@ -292,7 +334,11 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Feature Flags ---------------------- */
 
-export const FEATURE_FLAG_KEYS = ['zero_enabled', 'zero_kill_switch', 'rum_enabled'] as const
+export const FEATURE_FLAG_KEYS = [
+	'rum_enabled',
+	'commenting_enabled',
+	'mcp_friends_and_family',
+] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
 export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag
@@ -315,6 +361,16 @@ export interface PercentageFeatureFlag {
 /** Returned by the user-facing endpoint — just the evaluated result, no server internals. */
 export interface EvaluatedFeatureFlag {
 	enabled: boolean
+}
+
+/**
+ * One person on the MCP friends and family list that `mcp_friends_and_family` gates on. Admins enter
+ * an email, which is resolved to a user id on save; matching is on the id, and the email is kept only
+ * so the admin panel can show a readable list.
+ */
+export interface FriendsAndFamilyEntry {
+	userId: string
+	email: string
 }
 
 /** One unassociated or unverifiable asset in an admin asset-diagnostics report. */
