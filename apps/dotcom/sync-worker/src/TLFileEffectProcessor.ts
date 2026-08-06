@@ -21,11 +21,12 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
 		this.sentry = createSentry(ctx, env)
-		// Bootstrap the sweep so a never-poked DO still drains trigger-only rows (e.g. the
-		// workspace-delete cascade on an otherwise idle env) instead of sitting forever.
+		// Keep the sweep chain alive across restarts/evictions: if the persisted alarm is
+		// missing or past-due (a past-due alarm can't be trusted to fire), re-arm it. Note this
+		// runs only once something instantiates the DO — the first poke() ever is what starts
+		// the chain; until then, outbox rows wait.
 		ctx.blockConcurrencyWhile(async () => {
 			const scheduled = await ctx.storage.getAlarm()
-			// A past-due persisted alarm can't be trusted to fire; re-arm it too.
 			if (scheduled === null || scheduled <= Date.now()) {
 				await ctx.storage.setAlarm(Date.now() + SWEEP_INTERVAL_MS)
 			}
