@@ -311,10 +311,11 @@ export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'commenting_enabled',
 	'mcp_friends_and_family',
+	'mcp_server_access',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
-export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag
+export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag | AllowlistFeatureFlag
 
 export interface BooleanFeatureFlag {
 	type: 'boolean'
@@ -327,6 +328,28 @@ export interface PercentageFeatureFlag {
 	/** 0–100. Server evaluates per-user: enabled when hash(userId+flag) < percentage. */
 	percentage: number
 	/** Master toggle — when false, disabled for all users regardless of percentage. */
+	enabled: boolean
+	description: string
+}
+
+/**
+ * Names the users a flag is on for, one id at a time.
+ *
+ * Distinct from a percentage rollout, which cannot express this: a percentage buckets users by
+ * `hash(userId + flagName)`, so it yields *a* subset of the requested size but never *the* subset
+ * someone picked. A hand-chosen group — a friends-and-family rollout, a set of design partners —
+ * needs the ids themselves.
+ *
+ * Deliberately keyed on `userId` rather than email. `evaluateFlagForUser` already takes a userId and
+ * every caller has one, whereas server-side email would mean a Clerk `users.getUser()` round trip per
+ * evaluation. Maintaining the list is the cost of that: ids are opaque, so an entry needs looking up
+ * in the admin user search rather than reading as a person.
+ */
+export interface AllowlistFeatureFlag {
+	type: 'allowlist'
+	/** The users the flag is on for. Anyone not named here evaluates false. */
+	userIds: string[]
+	/** Master toggle — when false, disabled for everyone regardless of the list. */
 	enabled: boolean
 	description: string
 }

@@ -1,4 +1,5 @@
 import {
+	AllowlistFeatureFlag,
 	FeatureFlagValue,
 	FriendsAndFamilyEntry,
 	PercentageFeatureFlag,
@@ -7,6 +8,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
 import styles from './admin.module.css'
+
+const FLAG_TYPE_ORDER: FeatureFlagValue['type'][] = ['boolean', 'percentage', 'allowlist']
 
 export function FlagsSection() {
 	return (
@@ -53,7 +56,10 @@ function FeatureFlags() {
 	}, [loadFlags])
 
 	const saveFlag = useCallback(
-		async (flag: string, update: { enabled?: boolean; percentage?: number }) => {
+		async (
+			flag: string,
+			update: { enabled?: boolean; percentage?: number; userIds?: string[] }
+		) => {
 			setIsSaving(true)
 			setError(null)
 			setSuccessMessage(null)
@@ -73,6 +79,12 @@ function FeatureFlags() {
 						update.percentage === 0
 							? `${flag} disabled (0%)`
 							: `${flag} set to ${update.percentage}% of users`
+					)
+				} else if (update.userIds !== undefined) {
+					setSuccessMessage(
+						update.userIds.length === 0
+							? `${flag} allowlist cleared`
+							: `${flag} allowed for ${update.userIds.length} user(s)`
 					)
 				} else {
 					setSuccessMessage(`${flag} ${update.enabled ? 'enabled' : 'disabled'}`)
@@ -103,7 +115,8 @@ function FeatureFlags() {
 			</p>
 			<p className={styles.featureFlagsDescription}>
 				Boolean flags toggle on/off for everyone. Percentage flags roll out to X% of users
-				(evaluated server-side per userId).
+				(evaluated server-side per userId). Allowlist flags are on only for the user ids named,
+				which is the one thing a percentage cannot do — it picks its own subset.
 			</p>
 
 			{isLoading ? (
@@ -112,11 +125,11 @@ function FeatureFlags() {
 				<div className={styles.featureFlagsContainer}>
 					{Object.entries(flags)
 						.sort(([a], [b]) => {
-							// boolean flags first, then percentage flags
-							const aType = flags[a].type ?? 'boolean'
-							const bType = flags[b].type ?? 'boolean'
-							if (aType !== bType) return aType === 'boolean' ? -1 : 1
-							return a.localeCompare(b)
+							// Grouped by type — boolean, then percentage, then allowlist — and alphabetical
+							// within a group. Ranked rather than compared pairwise so the ordering stays a
+							// total one as types are added.
+							const rank = (name: string) => FLAG_TYPE_ORDER.indexOf(flags[name].type ?? 'boolean')
+							return rank(a) - rank(b) || a.localeCompare(b)
 						})
 						.map(([flagName, flagValue]) => {
 							const label = flagName
@@ -140,6 +153,33 @@ function FeatureFlags() {
 										onSavePercentage={(pct) => {
 											if (!window.confirm(`Set "${flagName}" to ${pct}% of users?`)) return
 											saveFlag(flagName, { percentage: pct })
+										}}
+									/>
+								)
+							}
+
+							if (flagValue.type === 'allowlist') {
+								return (
+									<AllowlistFlag
+										key={flagName}
+										flagName={flagName}
+										label={label}
+										flagValue={flagValue}
+										isSaving={isSaving}
+										onToggle={(enabled) => {
+											const action = enabled ? 'Enable' : 'Disable'
+											if (!window.confirm(`${action} "${flagName}"?`)) return
+											saveFlag(flagName, { enabled })
+										}}
+										onSaveUserIds={(userIds) => {
+											if (
+												!window.confirm(
+													`Set "${flagName}" to these ${userIds.length} user id(s)? This replaces the current list.`
+												)
+											) {
+												return
+											}
+											saveFlag(flagName, { userIds })
 										}}
 									/>
 								)
@@ -177,6 +217,85 @@ function FeatureFlags() {
 							)
 						})}
 				</div>
+			)}
+		</div>
+	)
+}
+
+// The list is edited as free text, one user id per line, rather than as a row of chips with an add
+// button. It is a short hand-maintained list that is pasted into as often as it is typed into, and
+// the textarea makes "replace the whole list" the obvious operation — which is what the save does.
+function AllowlistFlag({
+	flagName,
+	label,
+	flagValue,
+	isSaving,
+	onToggle,
+	onSaveUserIds,
+}: {
+	flagName: string
+	label: string
+	flagValue: AllowlistFeatureFlag
+	isSaving: boolean
+	onToggle(enabled: boolean): void
+	onSaveUserIds(userIds: string[]): void
+}) {
+	const currentUserIds = flagValue.userIds ?? []
+	const [text, setText] = useState(() => currentUserIds.join('\n'))
+
+	useEffect(() => {
+		setText(currentUserIds.join('\n'))
+		// Re-synced against the saved list, not the array identity, which is new on every render.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentUserIds.join('\n')])
+
+	const parsed = text
+		.split('\n')
+		.map((line) => line.trim())
+		.filter(Boolean)
+	const isDirty = parsed.join('\n') !== currentUserIds.join('\n')
+
+	return (
+		<div className={styles.featureFlagItem}>
+			<div className={styles.featureFlagLabel}>
+				<label
+					htmlFor={flagName}
+					style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+				>
+					<input
+						id={flagName}
+						type="checkbox"
+						checked={flagValue.enabled}
+						onChange={(e) => onToggle(e.target.checked)}
+						disabled={isSaving}
+						style={{ cursor: 'pointer' }}
+					/>
+					<span>
+						<strong>{label}</strong>
+					</span>
+				</label>
+				<span className={!flagValue.enabled ? styles.featureFlagDisabled : ''}>
+					{currentUserIds.length} user(s)
+				</span>
+				<AdminButton
+					onClick={() => onSaveUserIds(parsed)}
+					variant="primary"
+					disabled={isSaving || !flagValue.enabled || !isDirty}
+				>
+					Save
+				</AdminButton>
+			</div>
+			<textarea
+				value={text}
+				onChange={(e) => setText(e.target.value)}
+				disabled={isSaving || !flagValue.enabled}
+				className={styles.searchInput}
+				rows={4}
+				placeholder="One user id per line, e.g. user_2abc…"
+				style={{ width: '100%', fontFamily: 'monospace' }}
+			/>
+			{flagValue.description && (
+				<span className={styles.featureFlagsDescription}>{flagValue.description}</span>
 			)}
 		</div>
 	)

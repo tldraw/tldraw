@@ -113,7 +113,7 @@ export const adminRoutes = createRouter<Environment>()
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
 		const body: any = await req.json()
-		const { flag, enabled, percentage } = body
+		const { flag, enabled, percentage, userIds } = body
 
 		if (typeof flag !== 'string') {
 			throw new StatusError(400, 'flag (string) is required')
@@ -127,14 +127,23 @@ export const adminRoutes = createRouter<Environment>()
 		) {
 			throw new StatusError(400, 'percentage must be a number between 0 and 100')
 		}
+		// Validated here rather than in setFeatureFlag, so a malformed list is a 400 the admin sees
+		// rather than a value written to KV that every later evaluation has to defend against.
+		if (
+			userIds !== undefined &&
+			(!Array.isArray(userIds) || userIds.some((id) => typeof id !== 'string' || id.length === 0))
+		) {
+			throw new StatusError(400, 'userIds must be an array of non-empty strings')
+		}
 
 		if (!FEATURE_FLAG_KEYS.includes(flag as FeatureFlagKey)) {
 			throw new StatusError(400, `Invalid flag. Must be one of: ${FEATURE_FLAG_KEYS.join(', ')}`)
 		}
 
-		const update: { enabled?: boolean; percentage?: number } = {}
+		const update: { enabled?: boolean; percentage?: number; userIds?: string[] } = {}
 		if (enabled !== undefined) update.enabled = enabled
 		if (percentage !== undefined) update.percentage = percentage
+		if (userIds !== undefined) update.userIds = userIds
 
 		await setFeatureFlag(env, flag as FeatureFlagKey, update)
 		return json({ success: true, flag, ...update })

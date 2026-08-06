@@ -143,6 +143,47 @@ describe('evaluateFlagForUser', () => {
 	})
 })
 
+// The type a percentage rollout cannot stand in for: a percentage buckets users by hash, so it gives
+// you *a* subset of the right size but never *the* subset you picked.
+describe('evaluateFlagForUser (allowlist)', () => {
+	const flag = (userIds: string[], enabled = true) =>
+		({ type: 'allowlist', enabled, userIds, description: '' }) as const
+
+	it('is on only for the named users', () => {
+		expect(evaluateFlagForUser(flag(['user-1', 'user-2']), 'test', 'user-1')).toBe(true)
+		expect(evaluateFlagForUser(flag(['user-1', 'user-2']), 'test', 'user-2')).toBe(true)
+		expect(evaluateFlagForUser(flag(['user-1', 'user-2']), 'test', 'user-3')).toBe(false)
+	})
+
+	it('is off for everyone when the master toggle is off', () => {
+		expect(evaluateFlagForUser(flag(['user-1'], false), 'test', 'user-1')).toBe(false)
+	})
+
+	it('is off for an anonymous caller', () => {
+		expect(evaluateFlagForUser(flag(['user-1']), 'test', null)).toBe(false)
+	})
+
+	it('is off for an empty list', () => {
+		expect(evaluateFlagForUser(flag([]), 'test', 'user-1')).toBe(false)
+	})
+
+	// The value comes from KV, where a hand-edited entry can arrive as anything. A malformed list must
+	// deny rather than admit — the alternative fails open on a flag whose whole job is to keep people
+	// out.
+	it('denies when userIds is missing or not an array', () => {
+		expect(
+			evaluateFlagForUser({ type: 'allowlist', enabled: true, description: '' } as any, 't', 'u')
+		).toBe(false)
+		expect(
+			evaluateFlagForUser(
+				{ type: 'allowlist', enabled: true, userIds: 'user-1', description: '' } as any,
+				't',
+				'u'
+			)
+		).toBe(false)
+	})
+})
+
 describe('getFeatureFlagValue', () => {
 	it('returns defaults when KV has no value', async () => {
 		const env = makeEnv()
@@ -192,6 +233,27 @@ describe('setFeatureFlag', () => {
 		const putCall = env.FEATURE_FLAGS.put.mock.calls[0]
 		const stored = JSON.parse(putCall[1])
 		expect(stored.percentage).toBe(42)
+	})
+
+	// Replaced rather than merged, so removing someone is an ordinary save.
+	it('replaces the allowlist wholesale', async () => {
+		const env = makeEnv({
+			mcp_server_access: JSON.stringify({
+				type: 'allowlist',
+				enabled: true,
+				userIds: ['user-1', 'user-2'],
+			}),
+		})
+		await setFeatureFlag(env as any, 'mcp_server_access', { userIds: ['user-2'] })
+		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1]).userIds).toEqual(['user-2'])
+	})
+
+	// Each field only applies to the type that has it, so a stray argument cannot turn a percentage
+	// flag into something with an allowlist nobody reads.
+	it('ignores userIds on a flag that is not an allowlist', async () => {
+		const env = makeEnv()
+		await setFeatureFlag(env as any, 'rum_enabled', { userIds: ['user-1'] })
+		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1]).userIds).toBeUndefined()
 	})
 })
 
@@ -286,6 +348,7 @@ describe('getFeatureFlagsAdmin (route handler)', () => {
 		expect(Object.keys(body).sort()).toEqual([
 			'commenting_enabled',
 			'mcp_friends_and_family',
+			'mcp_server_access',
 			'rum_enabled',
 		])
 	})
