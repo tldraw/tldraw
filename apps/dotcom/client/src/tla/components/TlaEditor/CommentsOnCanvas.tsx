@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { TLUiOverrides, useDialogs, useEditor, useValue } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useCommentTracking } from '../../hooks/useCommentTracking'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
@@ -42,6 +43,7 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	const editor = useEditor()
 	const app = useMaybeApp()
 	const currentUserId = app?.userId ?? null
+	useCommentTracking()
 	// Guests who signed in by email have no name yet, so their roster rows would be blank. Name them
 	// the same way the rest of the commenting UI names an author it can't resolve.
 	const unknownAuthor = useMsg(commentMessages.unknownAuthor)
