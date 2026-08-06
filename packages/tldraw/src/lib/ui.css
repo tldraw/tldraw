@@ -2157,8 +2157,10 @@ tldraw? probably.
 	margin-bottom: 0;
 }
 
+/* The color swatch and name line up with the ones on the user's own row above,
+   where the swatch sits inside a standard 12px-padded icon button. */
 .tlui-people-menu__item__button {
-	padding: 0 11px;
+	padding: 0 12px;
 	overflow: hidden;
 }
 
@@ -2168,7 +2170,7 @@ tldraw? probably.
 	align-items: auto;
 	justify-content: flex-start;
 	flex-grow: 2;
-	gap: 11px;
+	gap: 12px;
 }
 
 .tlui-people-menu__name {
