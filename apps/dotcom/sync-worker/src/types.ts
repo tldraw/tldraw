@@ -134,6 +134,14 @@ export interface Environment {
 	MCP_SCREENSHOT_RENDER_ORIGIN: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
+	// The MCP server's public URL, which is also its OAuth resource identifier (RFC 8707): the value
+	// advertised in protected resource metadata and required in an access token's `aud`. Set per
+	// environment in wrangler.toml. Left unset, it is derived from the request's own origin, which is
+	// fine locally and wrong anywhere a Host header can be forged — see getMcpResourceUrl.
+	MCP_SERVER_URL: string | undefined
+	// Overrides the OAuth authorization server advertised to MCP clients. Normally unset: the value is
+	// derived from CLERK_PUBLISHABLE_KEY so it cannot drift from the instance whose tokens we verify.
+	MCP_OAUTH_AUTHORIZATION_SERVER: string | undefined
 	// Development only: a local HTTP screenshot service to use instead of the BROWSER binding, which
 	// cannot reach Browser Run in local dev. Set in [env.dev.vars] to the client dev server's
 	// screenshot endpoint; unset everywhere else, which is what keeps deployed environments on
@@ -285,6 +293,16 @@ export interface ThumbnailBoardRef {
  * board was resolved under is the same one the snapshot route applies when it is read.
  */
 export type ThumbnailBoardAccess = 'public' | 'render'
+
+/**
+ * Which pipeline asked for a render. `og` covers the social-preview route and its queue consumer;
+ * `mcp` is the board screenshot MCP server.
+ *
+ * Unlike `OgImageRenderReason` this is not telemetry — it is signed into the render job and
+ * namespaces the minted-token record, so two surfaces rendering the same board at the same time do
+ * not overwrite each other's proof of mint. See `recordMintedRenderToken`.
+ */
+export type ThumbnailRenderSurface = 'og' | 'mcp'
 
 // What prompted a board thumbnail render. Purely telemetry — every trigger is treated identically by
 // the consumer — so renders can be attributed to the thing that asked for them. `publish` and `edit`

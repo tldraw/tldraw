@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../config'
 import { makeFakeThumbnailsBucket } from '../routes/tla/screenshotTestHelpers'
 import { Environment } from '../types'
+import { sha256 } from './hash'
 import {
 	ThumbnailRenderJob,
 	isMintedRenderToken,
@@ -240,6 +241,112 @@ describe('render token records', () => {
 		const token = await mintThumbnailRenderToken(env, job)
 
 		expect(await isMintedRenderToken(env, job, token)).toBe(true)
+	})
+
+	// Everything below covers the key namespacing, which is what made it safe for the MCP tool to start
+	// minting `render`. Before it, records were one per board, and the OG pipeline could get away with
+	// that only because it is single-flighted per board — a guarantee the MCP tool does not have.
+	describe('surface namespacing', () => {
+		it('keeps concurrent MCP captures of different pages of one board independent', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const first = makeJob({ surface: 'mcp', kind: 'shared_file', slug: 'f1', pageId: 'page:a' })
+			const second = makeJob({ surface: 'mcp', kind: 'shared_file', slug: 'f1', pageId: 'page:b' })
+
+			const firstToken = await mintThumbnailRenderToken(envWithBucket, first)
+			await recordMintedRenderToken(envWithBucket, first, firstToken)
+			const secondToken = await mintThumbnailRenderToken(envWithBucket, second)
+			await recordMintedRenderToken(envWithBucket, second, secondToken)
+
+			// Both still verify. Under a per-board key the first would now 403 on its snapshot fetch and
+			// surface to the caller as a generic render failure.
+			expect(await isMintedRenderToken(envWithBucket, first, firstToken)).toBe(true)
+			expect(await isMintedRenderToken(envWithBucket, second, secondToken)).toBe(true)
+		})
+
+		// The other half: an edit-triggered thumbnail render landing while a capture is in flight.
+		it('keeps an MCP capture and an OG render of one board independent', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const ogJob = makeJob({ surface: 'og', kind: 'shared_file', slug: 'f1' })
+			const mcpJob = makeJob({
+				surface: 'mcp',
+				kind: 'shared_file',
+				slug: 'f1',
+				pageId: 'page:a',
+			})
+
+			const ogToken = await mintThumbnailRenderToken(envWithBucket, ogJob)
+			await recordMintedRenderToken(envWithBucket, ogJob, ogToken)
+			const mcpToken = await mintThumbnailRenderToken(envWithBucket, mcpJob)
+			await recordMintedRenderToken(envWithBucket, mcpJob, mcpToken)
+
+			expect(await isMintedRenderToken(envWithBucket, ogJob, ogToken)).toBe(true)
+			expect(await isMintedRenderToken(envWithBucket, mcpJob, mcpToken)).toBe(true)
+		})
+
+		// Same board, same page, different theme: two distinct images, so two distinct captures.
+		it('separates themes of the same page', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const light = makeJob({ surface: 'mcp', slug: 'f1', pageId: 'page:a', theme: 'light' })
+			const dark = makeJob({ surface: 'mcp', slug: 'f1', pageId: 'page:a', theme: 'dark' })
+
+			const lightToken = await mintThumbnailRenderToken(envWithBucket, light)
+			await recordMintedRenderToken(envWithBucket, light, lightToken)
+			await recordMintedRenderToken(
+				envWithBucket,
+				dark,
+				await mintThumbnailRenderToken(envWithBucket, dark)
+			)
+
+			expect(await isMintedRenderToken(envWithBucket, light, lightToken)).toBe(true)
+		})
+
+		// The residual the design accepts: the *same* capture asked for twice at once collides, and the
+		// later mint wins. That is the OG pipeline's case again — one image, rendered twice — so it costs
+		// a retry rather than a wrong result.
+		it('still supersedes an identical in-flight capture', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const job = makeJob({ surface: 'mcp', slug: 'f1', pageId: 'page:a' })
+			const first = await mintThumbnailRenderToken(envWithBucket, job)
+			await recordMintedRenderToken(envWithBucket, job, first)
+
+			const second = await mintThumbnailRenderToken(envWithBucket, { ...job, exp: job.exp + 1 })
+			await recordMintedRenderToken(envWithBucket, job, second)
+
+			expect(await isMintedRenderToken(envWithBucket, job, second)).toBe(true)
+			expect(await isMintedRenderToken(envWithBucket, job, first)).toBe(false)
+		})
+
+		// A token minted by the worker version before the field existed, whose record sits at the old
+		// un-namespaced key. Without this fallback every OG render in flight across the deploy that
+		// introduced namespacing would 403 until its token expired.
+		it('finds the pre-namespacing record for a token with no surface', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const job = makeJob({ surface: undefined })
+			const token = await mintThumbnailRenderToken(envWithBucket, job)
+			// Written where the old worker would have written it.
+			await (envWithBucket.THUMBNAILS as any).put(
+				`render-tokens/${job.kind}/${job.slug}`,
+				new Uint8Array(),
+				{ customMetadata: { tokenHash: await sha256(token) } }
+			)
+
+			expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(true)
+		})
+
+		// The fallback is for old tokens only. A current token missing its record must still be refused,
+		// or the compatibility path would become a way to reuse the old key as a universal record.
+		it('does not fall back to the old key for a token that names its surface', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const job = makeJob({ surface: 'og' })
+			const token = await mintThumbnailRenderToken(envWithBucket, job)
+			await (envWithBucket.THUMBNAILS as any).put(
+				`render-tokens/${job.kind}/${job.slug}`,
+				new Uint8Array(),
+				{ customMetadata: { tokenHash: await sha256(token) } }
+			)
+
+			expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(false)
+		})
 	})
 
 	// The bucket must never hold something usable as a credential.

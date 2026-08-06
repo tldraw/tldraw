@@ -1,10 +1,12 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
+import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
+import { authenticateMcpRequest } from './mcpAuth'
 import {
+	callerBlobsOf,
 	failureBlobsOf,
-	ipBlobsOf,
 	makeBrowserBinding,
 	makeFakeRoomsBucket,
 	makeFakeThumbnailsBucket,
@@ -35,6 +37,25 @@ vi.mock('./getSharedFile', async (importOriginal) => ({
 	getSharedFileRoomSnapshot: vi.fn(),
 }))
 
+// The board access check is a Postgres read. Mocked here so these tests stay about what the tools do
+// with the answer; the check's own logic and the auth layer's are covered in getAuth and mcpAuth.
+vi.mock('../../utils/tla/getAuth', () => ({ hasReadAccessToFile: vi.fn() }))
+
+// Same for authentication: every case below runs as an already-authorized caller, and the token and
+// flag handling that produces that verdict is covered in mcpAuth.test.ts. The user id is read back
+// off the request so a test can act as more than one caller — which the per-user rate limit needs.
+vi.mock('./mcpAuth', () => ({ authenticateMcpRequest: vi.fn() }))
+
+beforeEach(() => {
+	vi.mocked(authenticateMcpRequest).mockImplementation(async (request: any) => ({
+		ok: true,
+		userId: request.headers.get('x-test-user') ?? 'user_default',
+	}))
+	// Not the caller's file unless a test says otherwise, which leaves published boards as the default
+	// way a board resolves — the same starting point these tests had before the access check existed.
+	vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
+})
+
 afterEach(() => {
 	vi.clearAllMocks()
 	resetRateLimitFallbackForTests()
@@ -55,10 +76,12 @@ function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	})
 }
 
-function makeToolCall(ip: string, name: string, args: object) {
+// `userId` is who the mocked auth layer will report for this request — the key the per-user rate
+// limit and the board access check both work from.
+function makeToolCall(userId: string, name: string, args: object) {
 	return new Request('https://sync.tldraw.xyz/app/mcp', {
 		method: 'POST',
-		headers: { 'cf-connecting-ip': ip },
+		headers: { 'x-test-user': userId },
 		body: JSON.stringify({
 			jsonrpc: '2.0',
 			id: 1,
@@ -164,7 +187,7 @@ describe('MCP_SCREENSHOT_ENABLED', () => {
 		})
 
 		const response = await sharedBoardScreenshotMcp(
-			makeToolCall('203.0.113.40', 'get_shared_board_screenshot', { boardId: 'abc' }),
+			makeToolCall('user_40', 'get_shared_board_screenshot', { boardId: 'abc' }),
 			env
 		)
 
@@ -198,7 +221,7 @@ describe('get_board_info', () => {
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeSnapshot(THREE_PAGES, 'My Board'))
 
 		const response = await sharedBoardScreenshotMcp(
-			makeToolCall('203.0.113.1', 'get_board_info', { boardId: 'abc' }),
+			makeToolCall('user_1', 'get_board_info', { boardId: 'abc' }),
 			makeEnv()
 		)
 
@@ -215,12 +238,13 @@ describe('get_board_info', () => {
 	})
 
 	it('resolves a shared file id and never spends browser capacity', async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f1', shared: true, isDeleted: false })
 		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(THREE_PAGES))
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
 
 		const response = await sharedBoardScreenshotMcp(
-			makeToolCall('203.0.113.2', 'get_board_info', { boardId: 'f1' }),
+			makeToolCall('user_2', 'get_board_info', { boardId: 'f1' }),
 			env
 		)
 
@@ -230,18 +254,18 @@ describe('get_board_info', () => {
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 
-	it('errors when no public board exists', async () => {
+	it('errors when no board resolves for this caller', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.3', 'get_board_info', { boardId: 'missing' }),
+				makeToolCall('user_3', 'get_board_info', { boardId: 'missing' }),
 				makeEnv()
 			)
 		)
 		expect(result.isError).toBe(true)
-		expect(result.content[0].text).toContain('No public board')
+		expect(result.content[0].text).toContain('No board was found with this id')
 	})
 
 	// A board that resolves but whose snapshot read fails is not an empty board. Saying "no saved
@@ -263,7 +287,7 @@ describe('get_board_info', () => {
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.4', 'get_board_info', { boardId: 'abc' }),
+				makeToolCall('user_4', 'get_board_info', { boardId: 'abc' }),
 				makeEnv()
 			)
 		)
@@ -279,12 +303,13 @@ describe('get_board_info', () => {
 	// milliseconds wide — so the caller gets the same bounded read-failure message, and Sentry gets
 	// the original.
 	it('reports a board that goes private mid-request as a read failure', async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f', shared: true, isDeleted: false })
 		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('not shared'))
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.5', 'get_board_info', { boardId: 'f' }),
+				makeToolCall('user_5', 'get_board_info', { boardId: 'f' }),
 				makeEnv({ ROOMS: makeFakeRoomsBucket() })
 			)
 		)
@@ -316,7 +341,7 @@ describe('get_shared_board_screenshot', () => {
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.10', 'get_shared_board_screenshot', { boardId: 'abc' }),
+				makeToolCall('user_10', 'get_shared_board_screenshot', { boardId: 'abc' }),
 				env
 			)
 		)
@@ -350,7 +375,7 @@ describe('get_shared_board_screenshot', () => {
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.11', 'get_shared_board_screenshot', { boardId: 'abc', page: 1 }),
+				makeToolCall('user_11', 'get_shared_board_screenshot', { boardId: 'abc', page: 1 }),
 				env
 			)
 		)
@@ -365,7 +390,7 @@ describe('get_shared_board_screenshot', () => {
 		const env = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
 
 		await sharedBoardScreenshotMcp(
-			makeToolCall('203.0.113.18', 'get_shared_board_screenshot', { boardId: 'abc' }),
+			makeToolCall('user_18', 'get_shared_board_screenshot', { boardId: 'abc' }),
 			env
 		)
 
@@ -394,12 +419,12 @@ describe('get_shared_board_screenshot', () => {
 		const env = makeEnv({ MCP_DATA_BUCKET: bucket })
 
 		await sharedBoardScreenshotMcp(
-			makeToolCall('203.0.113.12', 'get_shared_board_screenshot', { boardId: 'abc' }),
+			makeToolCall('user_12', 'get_shared_board_screenshot', { boardId: 'abc' }),
 			env
 		)
 		const second = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.13', 'get_shared_board_screenshot', { boardId: 'abc' }),
+				makeToolCall('user_13', 'get_shared_board_screenshot', { boardId: 'abc' }),
 				env
 			)
 		)
@@ -417,7 +442,7 @@ describe('get_shared_board_screenshot', () => {
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.14', 'get_shared_board_screenshot', { boardId: 'abc', page: 9 }),
+				makeToolCall('user_14', 'get_shared_board_screenshot', { boardId: 'abc', page: 9 }),
 				env
 			)
 		)
@@ -426,7 +451,11 @@ describe('get_shared_board_screenshot', () => {
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 
-	it('errors for a private (unshared) file without screenshotting', async () => {
+	it("errors for someone else's private file without screenshotting", async () => {
+		// The file exists and is not deleted; what stops it is that the access check says this caller
+		// cannot see it. Nothing in the answer distinguishes that from a board id that never existed —
+		// see the existence-oracle test below.
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'p', shared: false, isDeleted: false })
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 		const env = makeEnv({
@@ -436,16 +465,17 @@ describe('get_shared_board_screenshot', () => {
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.15', 'get_shared_board_screenshot', { boardId: 'p' }),
+				makeToolCall('user_15', 'get_shared_board_screenshot', { boardId: 'p' }),
 				env
 			)
 		)
 		expect(result.isError).toBe(true)
-		expect(result.content[0].text).toContain('No public board')
+		expect(result.content[0].text).toContain('No board was found with this id')
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 
 	it('errors for a shared file with no saved content', async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'e', shared: true, isDeleted: false })
 		const env = makeEnv({
 			ROOMS: makeFakeRoomsBucket(null),
@@ -454,7 +484,7 @@ describe('get_shared_board_screenshot', () => {
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.16', 'get_shared_board_screenshot', { boardId: 'e' }),
+				makeToolCall('user_16', 'get_shared_board_screenshot', { boardId: 'e' }),
 				env
 			)
 		)
@@ -468,6 +498,7 @@ describe('get_shared_board_screenshot', () => {
 	// own reason code rather than `render_error`, so a database outage is distinguishable from a
 	// browser one on the dashboard.
 	it('reports a failed snapshot read as a read failure, not an empty board or a render failure', async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f', shared: true, isDeleted: false })
 		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(
 			new Error('R2 GET failed: internal-bucket.example')
@@ -479,7 +510,7 @@ describe('get_shared_board_screenshot', () => {
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.18', 'get_shared_board_screenshot', { boardId: 'f' }),
+				makeToolCall('user_18', 'get_shared_board_screenshot', { boardId: 'f' }),
 				env
 			)
 		)
@@ -497,8 +528,9 @@ describe('get_shared_board_screenshot', () => {
 	// re-checks, which is not told apart from any other read failure. What matters either way is that
 	// it fails before the render: no Browser Run is spent on a board that can't be served.
 	it('reports a board that goes private mid-request as a read failure, without screenshotting', async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f', shared: true, isDeleted: false })
-		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('not shared'))
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('not renderable'))
 		const env = makeEnv({
 			ROOMS: makeFakeRoomsBucket(),
 			MCP_DATA_BUCKET: makeFakeThumbnailsBucket(),
@@ -506,7 +538,7 @@ describe('get_shared_board_screenshot', () => {
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.19', 'get_shared_board_screenshot', { boardId: 'f' }),
+				makeToolCall('user_19', 'get_shared_board_screenshot', { boardId: 'f' }),
 				env
 			)
 		)
@@ -527,7 +559,7 @@ describe('get_shared_board_screenshot', () => {
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.17', 'get_shared_board_screenshot', { boardId: 'abc' }),
+				makeToolCall('user_17', 'get_shared_board_screenshot', { boardId: 'abc' }),
 				env
 			)
 		)
@@ -555,7 +587,7 @@ describe('get_shared_board_screenshot', () => {
 
 		const result = await resultOf(
 			await sharedBoardScreenshotMcp(
-				makeToolCall('203.0.113.32', 'get_shared_board_screenshot', { boardId: 'abc' }),
+				makeToolCall('user_32', 'get_shared_board_screenshot', { boardId: 'abc' }),
 				env
 			)
 		)
@@ -569,35 +601,59 @@ describe('get_shared_board_screenshot', () => {
 		expect(failureBlobsOf(env)).toEqual(['failure:none'])
 	})
 
-	// Pins the configured per-IP budget, not merely that some limit eventually fires. Each call uses a
+	// Pins the configured per-user budget, not merely that some limit eventually fires. Each call uses a
 	// distinct board so the per-board limiter can never be what trips, and the run stops one call past
 	// the budget so it stays below the global cap — otherwise a passing test could not say which of the
 	// three limits it had actually exercised.
-	const PER_IP_RATE_LIMIT = 10
-	it(`allows ${PER_IP_RATE_LIMIT} screenshots per IP per minute, then rate limits`, async () => {
+	const PER_USER_RATE_LIMIT = 10
+	it(`allows ${PER_USER_RATE_LIMIT} screenshots per account per minute, then rate limits`, async () => {
 		mockPublishedBoard()
 		const env = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
 
 		const results = []
-		for (let i = 0; i <= PER_IP_RATE_LIMIT; i++) {
+		for (let i = 0; i <= PER_USER_RATE_LIMIT; i++) {
 			results.push(
 				await resultOf(
 					await sharedBoardScreenshotMcp(
-						makeToolCall('203.0.113.20', 'get_shared_board_screenshot', { boardId: `board-${i}` }),
+						makeToolCall('user_20', 'get_shared_board_screenshot', { boardId: `board-${i}` }),
 						env
 					)
 				)
 			)
 		}
 
-		expect(results.slice(0, PER_IP_RATE_LIMIT).map((r) => r.isError)).toEqual(
-			Array(PER_IP_RATE_LIMIT).fill(undefined)
+		expect(results.slice(0, PER_USER_RATE_LIMIT).map((r) => r.isError)).toEqual(
+			Array(PER_USER_RATE_LIMIT).fill(undefined)
 		)
-		const blocked = results[PER_IP_RATE_LIMIT]
+		const blocked = results[PER_USER_RATE_LIMIT]
 		expect(blocked.isError).toBe(true)
-		// The per-IP message specifically, so this can't pass on the global cap firing instead.
-		expect(blocked.content[0].text).toContain('per minute per IP')
-		expect(failureBlobsOf(env)).toContain('failure:rate_limited_ip')
+		// The per-user message specifically, so this can't pass on the global cap firing instead.
+		expect(blocked.content[0].text).toContain('per minute per account')
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_user')
+	})
+
+	// The point of re-keying off IP: a second account gets its own budget, and one account exhausting
+	// its own does not touch it. Under the old key both callers behind one NAT shared a single budget,
+	// and one caller with a proxy pool had as many as it liked.
+	it('gives each account its own budget', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
+
+		for (let i = 0; i <= PER_USER_RATE_LIMIT; i++) {
+			await sharedBoardScreenshotMcp(
+				makeToolCall('user_noisy', 'get_shared_board_screenshot', { boardId: `board-${i}` }),
+				env
+			)
+		}
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_user')
+
+		const other = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('user_quiet', 'get_shared_board_screenshot', { boardId: 'board-0' }),
+				env
+			)
+		)
+		expect(other.isError).toBeUndefined()
 	})
 
 	// Per-board is deliberately far tighter than per-IP: this blocks on the third capture of one board
@@ -609,7 +665,7 @@ describe('get_shared_board_screenshot', () => {
 	// (MCP_SERVER_BOARD_RATE_LIMITER), and no unit test can see that. wrangler.toml is the only
 	// place that goes wrong, and the only place to check it.
 	const PER_BOARD_RATE_LIMIT = 2
-	it(`allows ${PER_BOARD_RATE_LIMIT} captures per board per minute, well inside the per-IP budget`, async () => {
+	it(`allows ${PER_BOARD_RATE_LIMIT} captures per board per minute, well inside the per-account budget`, async () => {
 		mockPublishedBoard()
 		const env = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
 
@@ -619,7 +675,7 @@ describe('get_shared_board_screenshot', () => {
 			results.push(
 				await resultOf(
 					await sharedBoardScreenshotMcp(
-						makeToolCall('203.0.113.21', 'get_shared_board_screenshot', { boardId: 'abc', page }),
+						makeToolCall('user_21', 'get_shared_board_screenshot', { boardId: 'abc', page }),
 						env
 					)
 				)
@@ -633,29 +689,155 @@ describe('get_shared_board_screenshot', () => {
 		expect(blocked.isError).toBe(true)
 		expect(blocked.content[0].text).toContain('This board is being screenshotted too frequently')
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_board')
-		// Only 3 calls in, so neither the per-IP (10) nor the global (20) budget can be what fired.
-		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_ip')
+		// Only 3 calls in, so neither the per-user (10) nor the global (20) budget can be what fired.
+		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_user')
 		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_global')
 	})
 
-	it('records the hashed ip only on failures, not on successful screenshots', async () => {
+	it('records the hashed account only on failures, not on successful screenshots', async () => {
 		mockPublishedBoard()
 		const successEnv = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
 		await sharedBoardScreenshotMcp(
-			makeToolCall('203.0.113.30', 'get_shared_board_screenshot', { boardId: 'abc' }),
+			makeToolCall('user_30', 'get_shared_board_screenshot', { boardId: 'abc' }),
 			successEnv
 		)
-		expect(ipBlobsOf(successEnv)).toEqual(['ip:none'])
+		expect(callerBlobsOf(successEnv)).toEqual(['caller:none'])
 
 		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 		const failEnv = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
 		await sharedBoardScreenshotMcp(
-			makeToolCall('203.0.113.31', 'get_shared_board_screenshot', { boardId: 'missing' }),
+			makeToolCall('user_31', 'get_shared_board_screenshot', { boardId: 'missing' }),
 			failEnv
 		)
-		const ipBlobs = ipBlobsOf(failEnv)
-		expect(ipBlobs).toHaveLength(1)
-		expect(ipBlobs[0]).toMatch(/^ip:[0-9a-f]{64}$/)
+		const callerBlobs = callerBlobsOf(failEnv)
+		expect(callerBlobs).toHaveLength(1)
+		// Hashed, not the raw user id: the dataset can attribute spend without carrying identities.
+		expect(callerBlobs[0]).toMatch(/^caller:[0-9a-f]{64}$/)
+		expect(callerBlobs[0]).not.toContain('user_31')
+	})
+})
+
+// The behaviour authenticating this server was for: the gate is "can this caller see this board"
+// rather than "is this board public", which is what makes a user's own private files reachable.
+describe('per-user board access', () => {
+	const PRIVATE_FILE = { id: 'mine', shared: false, isDeleted: false }
+
+	it("renders a caller's own unshared board, minting a recorded render token", async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
+		vi.mocked(getSharedFileInfo).mockResolvedValue(PRIVATE_FILE)
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(THREE_PAGES))
+		const env = makeEnv({
+			ROOMS: makeFakeRoomsBucket(),
+			MCP_DATA_BUCKET: makeFakeThumbnailsBucket(),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('user_owner', 'get_shared_board_screenshot', { boardId: 'mine' }),
+				env
+			)
+		)
+
+		expect(result.isError).toBeUndefined()
+		expect(hasReadAccessToFile).toHaveBeenCalledWith(env, 'user_owner', 'mine')
+		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
+		// `render`, not `public`: `public` re-applies the anonymous share gate at snapshot-read time,
+		// which an unshared board cannot pass. The token is recorded and short-lived to compensate.
+		expect(job).toMatchObject({
+			kind: 'shared_file',
+			slug: 'mine',
+			access: 'render',
+			surface: 'mcp',
+		})
+	})
+
+	// The reason the check runs before the cache read rather than only before the render: `mcp/` keys
+	// carry no viewer dimension, so a private board cached for its owner is one object that anyone
+	// naming the right board id would otherwise be handed.
+	it('does not serve a cached private board to a caller who cannot see it', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({
+			ROOMS: makeFakeRoomsBucket(),
+			MCP_DATA_BUCKET: bucket,
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+		vi.mocked(getSharedFileInfo).mockResolvedValue(PRIVATE_FILE)
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(THREE_PAGES))
+
+		// The owner populates the cache.
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
+		await sharedBoardScreenshotMcp(
+			makeToolCall('user_owner', 'get_shared_board_screenshot', { boardId: 'mine' }),
+			env
+		)
+		expect(bucket.store.size).toBe(1)
+
+		// Someone else asks for the same board. The cached object is right there, keyed only by board.
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
+		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('user_stranger', 'get_shared_board_screenshot', { boardId: 'mine' }),
+				env
+			)
+		)
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('No board was found with this id')
+		expect(result.content.some((part: any) => part.type === 'image')).toBe(false)
+	})
+
+	// The try-file-then-published fallback would otherwise answer differently for "this id belongs to
+	// a board you cannot see" and "this id belongs to nothing", which turns a tool anyone can call
+	// into a way to test whether a given file id exists.
+	it('answers the same for an inaccessible board and a nonexistent one', async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
+		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
+		const env = makeEnv({
+			ROOMS: makeFakeRoomsBucket(),
+			MCP_DATA_BUCKET: makeFakeThumbnailsBucket(),
+		})
+
+		vi.mocked(getSharedFileInfo).mockResolvedValue(PRIVATE_FILE)
+		const inaccessible = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('user_a', 'get_board_info', { boardId: 'mine' }),
+				env
+			)
+		)
+
+		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
+		const nonexistent = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeToolCall('user_a', 'get_board_info', { boardId: 'no-such-board' }),
+				env
+			)
+		)
+
+		expect(inaccessible).toEqual(nonexistent)
+	})
+
+	// Published boards keep the anonymous gate. The published slug is the whole capability, so no user
+	// check narrows or widens it — and minting `public` is what keeps them out of the token records.
+	it('still resolves published boards under the public gate', async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
+		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1751234567890,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeSnapshot(THREE_PAGES))
+		const env = makeEnv({ MCP_DATA_BUCKET: makeFakeThumbnailsBucket() })
+
+		await sharedBoardScreenshotMcp(
+			makeToolCall('user_anyone', 'get_shared_board_screenshot', { boardId: 'abc' }),
+			env
+		)
+
+		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
+		expect(job).toMatchObject({ kind: 'published', access: 'public', surface: 'mcp' })
 	})
 })

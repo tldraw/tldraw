@@ -15,6 +15,7 @@ import {
 	ThumbnailBoardAccess,
 	ThumbnailBoardKind,
 	ThumbnailBoardRef,
+	ThumbnailRenderSurface,
 } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
@@ -166,11 +167,14 @@ export async function captureThumbnailScreenshot(
 	env: Environment,
 	board: ResolvedThumbnailBoard,
 	{
+		surface,
 		pageId,
 		theme,
 		width,
 		height,
 	}: {
+		/** Which pipeline is asking. Signed into the job; namespaces the minted-token record. */
+		surface: ThumbnailRenderSurface
 		/**
 		 * The single page to render. When omitted, the render page exports whichever page the
 		 * snapshot opens to (used by OG images).
@@ -189,6 +193,7 @@ export async function captureThumbnailScreenshot(
 		// Taken from the resolution rather than the caller, so a surface cannot ask for a board under
 		// one gate and render it under another.
 		access: board.access,
+		surface,
 		camera: 'content',
 		...(pageId ? { pageId } : null),
 		// Ignored while `camera` is 'content', which is what every surface mints; carried because the
@@ -392,8 +397,15 @@ export function writeScreenshotTelemetry(
 		 */
 		reason?: OgImageRenderReason
 		cacheStatus: 'hit' | 'stale' | 'miss'
-		/** Hashed client IP, for surfaces that have one. Recorded only on failures — see below. */
-		ipHash?: string
+		/**
+		 * Hashed identity of whoever asked, for surfaces that have one. Recorded only on failures —
+		 * see below.
+		 *
+		 * This is a hashed user id on the MCP surface, which now requires authentication; it replaced
+		 * a hashed client IP, and holds the same blob position so the dashboard panels reading it did
+		 * not have to move. The OG surfaces have no caller at all and leave it unset.
+		 */
+		callerHash?: string
 		browserRunDurationMs?: number
 		failureReason?: string
 		rateLimitAllowed?: boolean
@@ -401,7 +413,7 @@ export function writeScreenshotTelemetry(
 ) {
 	const rateLimitAllowed = data.rateLimitAllowed ?? true
 	// Only on failed or rate-limited events, where it's useful for abuse analysis. On the common
-	// success path a per-IP blob is one distinct dimension value per client, per request — a large
+	// success path a per-caller blob is one distinct dimension value per client, per request — a large
 	// cardinality cost for no query benefit.
 	const isFailure = data.failureReason !== undefined || !rateLimitAllowed
 	writeDataPoint(undefined, env.MEASURE, env, 'mcp_shared_board_screenshot', {
@@ -410,7 +422,7 @@ export function writeScreenshotTelemetry(
 			`cache:${data.cacheStatus}`,
 			`failure:${data.failureReason ?? 'none'}`,
 			`rate_limit:${rateLimitAllowed ? 'allowed' : 'blocked'}`,
-			`ip:${isFailure && data.ipHash ? data.ipHash : 'none'}`,
+			`caller:${isFailure && data.callerHash ? data.callerHash : 'none'}`,
 			// Appended rather than slotted in beside `source`, so the existing blob positions (and the
 			// dashboard panels reading them) don't shift.
 			`reason:${data.reason ?? 'none'}`,
