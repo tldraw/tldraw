@@ -2182,7 +2182,9 @@ tldraw? probably.
 	position: absolute;
 	top: 0px;
 	inset-inline-end: 0px;
-	max-width: 40px;
+	/* The button is out of flow, so it opts out of the negative margins that
+	   .tlui-row applies to its children. */
+	margin: 0px;
 	flex-shrink: 0;
 }
 
