@@ -2591,10 +2591,12 @@ export class TLFileDurableObject extends DurableObject {
 
 		this._fileRecordCache = null
 
-		// prevent new connections while we clean everything up
+		// prevent new connections while we clean everything up. Fall back to the argument for the
+		// slug (an app file's slug is its id): a never-initialized room has no documentInfo, and
+		// delete must stay terminal for any DO state instead of tripping the asserting getter.
 		this.setDocumentInfo({
 			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug: this.documentInfo.slug,
+			slug: this._documentInfo?.slug ?? id,
 			isApp: true,
 			deleted: true,
 		})
