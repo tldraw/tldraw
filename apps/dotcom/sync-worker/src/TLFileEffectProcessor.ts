@@ -53,21 +53,6 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 		await this.ctx.storage.setAlarm(Date.now())
 	}
 
-	async drainNow() {
-		// A drain already in flight may have fetched its batch before rows this call needs to see
-		// were committed, so wait for it, then always run one more drain for read-your-writes
-		// semantics. Can't just call drain() afterwards: if its `finally` hasn't cleared
-		// drainPromise yet by the time we resume, drain() would coalesce into the very promise we
-		// just awaited instead of starting a fresh one. Start the new cycle unconditionally and
-		// only ever clear the latch if it's still pointing at this call's own promise.
-		if (this.drainPromise) await this.drainPromise
-		const promise = this._drain().finally(() => {
-			if (this.drainPromise === promise) this.drainPromise = null
-		})
-		this.drainPromise = promise
-		await promise
-	}
-
 	override async alarm() {
 		try {
 			await this.drain()
@@ -90,8 +75,7 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 		// Coalesce: one drain in flight; a poke during a drain lands on the next alarm.
 		if (!this.drainPromise) {
 			const promise = this._drain().finally(() => {
-				// Same identity guard as drainNow(): only clear the latch if it's still ours, so
-				// this doesn't clobber a newer drainPromise set by an interleaved drainNow() call.
+				// Identity guard: only clear the latch if it's still ours.
 				if (this.drainPromise === promise) this.drainPromise = null
 			})
 			this.drainPromise = promise
