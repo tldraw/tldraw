@@ -179,7 +179,11 @@ export const adminRoutes = createRouter<Environment>()
 		}
 		// Nudge the outbox so the restore's effects (room DO reopen, etc.) land promptly instead
 		// of waiting for the 30s alarm sweep. poke() is cheap: it just schedules an alarm.
-		await getFileEffectProcessor(env).poke()
+		// Best-effort nudge: the sweep backstops it, so a poke failure must not fail the request
+		// (the restore already committed; a retry would just 400 with 'File is not deleted').
+		await getFileEffectProcessor(env)
+			.poke()
+			.catch(() => {})
 		// Hard-reboot every affected user so the restored rows replicate to their session (the
 		// isDeleted false-flip case flagged in dotcom-shared mutators.ts). Best-effort: the
 		// writes already committed, so a reboot failure must not surface as a 500 (a retry would
@@ -593,7 +597,17 @@ async function hardDeleteAppFile({
 	// Drain the outbox so the soft-delete row's effects (session kicks) land before the row is
 	// hard deleted below. R2/room cleanup rides the delete-row effect produced by the DELETE
 	// FROM file below, delivered via the post-delete poke() at the end of this function.
-	await getFileEffectProcessor(env).drainNow()
+	// Bounded: drainNow() drains the WHOLE outbox, so under a backlog it can hang for minutes.
+	// Race it against a ~10s cap and proceed either way. This is safe because the post-DELETE
+	// outbox row re-runs the full cleanup (appFileRecordDidDelete) via poke/sweep within ~30s;
+	// the inline drain is only a best-effort kick of sessions before the row disappears, not a
+	// correctness requirement.
+	await Promise.race([
+		getFileEffectProcessor(env)
+			.drainNow()
+			.catch(() => {}),
+		sleep(10_000),
+	])
 	// clean up assets eagerly
 	const assets = await pg.selectFrom('asset').where('fileId', '=', file.id).selectAll().execute()
 	for (const asset of assets) {
@@ -616,8 +630,11 @@ async function hardDeleteAppFile({
 	// hard delete file (this will trigger a cascade delete of all remaining related records & R2 objects)
 	await pg.deleteFrom('file').where('id', '=', file.id).execute()
 	// Nudge the outbox so the delete's effects land promptly instead of waiting for the 30s
-	// alarm sweep. poke() is cheap: it just schedules an alarm.
-	await getFileEffectProcessor(env).poke()
+	// alarm sweep. poke() is cheap: it just schedules an alarm. Best-effort nudge: the sweep
+	// backstops it, so a poke failure must not fail the request after the delete committed.
+	await getFileEffectProcessor(env)
+		.poke()
+		.catch(() => {})
 	return new Response('Deleted', { status: 200 })
 }
 

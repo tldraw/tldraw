@@ -3,7 +3,7 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { sql } from 'kysely'
 import { FileEffectDeps, processFileEffect } from './fileEffects'
-import { MAX_ATTEMPTS, drainOutbox } from './outboxDrain'
+import { EFFECT_TIMEOUT_MS, MAX_ATTEMPTS, computeNextAlarm, drainOutbox } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { Environment } from './types'
 import { getRoomDurableObject } from './utils/durableObjects'
@@ -77,16 +77,13 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 			// crashes like an unreachable database
 			this.captureException(e)
 		} finally {
-			// Don't clobber a sooner FUTURE alarm: a poke that arrived mid-drain set an immediate
-			// alarm, and unconditionally pushing it to now+30s would swallow that poke. But a
-			// PAST-due alarm can't be trusted to fire (stale persisted state, see poke()) — treat
-			// it as absent so the sweep chain can never starve.
-			const now = Date.now()
-			const nextSweep = now + SWEEP_INTERVAL_MS
+			// Re-arm the sweep without swallowing a mid-drain poke. A poke that arrived during the
+			// drain set alarm(now) and is past-due by the time we get here; computeNextAlarm honors
+			// it with a ~1s delay rather than pushing it out to the next full sweep, while still
+			// never trusting a past-due alarm to fire on its own. null => leave it as-is.
 			const scheduled = await this.ctx.storage.getAlarm()
-			if (scheduled === null || scheduled <= now || scheduled > nextSweep) {
-				await this.ctx.storage.setAlarm(nextSweep)
-			}
+			const next = computeNextAlarm(scheduled, Date.now(), SWEEP_INTERVAL_MS)
+			if (next !== null) await this.ctx.storage.setAlarm(next)
 		}
 	}
 
@@ -136,19 +133,34 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 				deleteRow: async (id) => {
 					await db.deleteFrom('effect_outbox').where('id', '=', id).execute()
 				},
-				bumpAttempts: async (id, attempts) => {
+				bumpAttempts: async (row) => {
 					// Exponential backoff from the row's current attempt count, capped at 5 minutes.
-					// The 30s base keeps the first retry at or after the effect timeout, so a
-					// timed-out RPC (which keeps running — it can't be cancelled) usually finishes
-					// before its retry starts instead of overlapping it.
-					const backoffSeconds = Math.min(2 ** attempts * 30, 300)
+					// The base IS the effect timeout, so the first retry can't land before a
+					// timed-out RPC's window closes (the RPC keeps running — it can't be cancelled),
+					// avoiding an overlapping retry.
+					const backoffSeconds = Math.min(2 ** row.attempts * (EFFECT_TIMEOUT_MS / 1000), 300)
+					const backoff = sql<Date>`now() + (${backoffSeconds} || ' seconds')::interval`
+					// (a) Back off the failed row itself and bump its attempt count.
 					await db
 						.updateTable('effect_outbox')
 						.set((eb) => ({
 							attempts: eb('attempts', '+', 1),
-							nextRetryAt: sql<Date>`now() + (${backoffSeconds} || ' seconds')::interval`,
+							nextRetryAt: backoff,
 						}))
-						.where('id', '=', id)
+						.where('id', '=', row.id)
+						.execute()
+					// (b) Defer the failed row's later same-entity siblings so per-entity ordering
+					// holds across drains: they must not run while this row is backing off. Do NOT
+					// touch their attempts (they haven't been tried), and never shrink an existing
+					// later nextRetryAt (GREATEST keeps the furthest-out schedule).
+					await db
+						.updateTable('effect_outbox')
+						.set({
+							nextRetryAt: sql<Date>`GREATEST("nextRetryAt", ${backoff})`,
+						})
+						.where('tableName', '=', row.tableName)
+						.where('entityId', '=', row.entityId)
+						.where('id', '>', row.id)
 						.execute()
 				},
 				deleteParkedRowsOlderThan: async (days) => {

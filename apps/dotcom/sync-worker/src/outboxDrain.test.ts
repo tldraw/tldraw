@@ -1,6 +1,6 @@
 import { TlaEffectOutbox } from '@tldraw/dotcom-shared'
 import { describe, expect, it, vi } from 'vitest'
-import { OutboxDeps, drainOutbox } from './outboxDrain'
+import { OutboxDeps, computeNextAlarm, drainOutbox } from './outboxDrain'
 
 function row(partial: Partial<TlaEffectOutbox>): TlaEffectOutbox {
 	return {
@@ -38,9 +38,9 @@ function makeDeps(rows: TlaEffectOutbox[], timeoutMs = 30_000): TestDeps {
 		deleteRow: async (id) => {
 			calls.push(`deleteRow:${id}`)
 		},
-		bumpAttempts: async (id, attempts) => {
-			calls.push(`bump:${id}`)
-			bumped.push({ id, attempts })
+		bumpAttempts: async (r) => {
+			calls.push(`bump:${r.id}`)
+			bumped.push({ id: r.id, attempts: r.attempts })
 		},
 		deleteParkedRowsOlderThan: async () => {},
 		process: async (r) => {
@@ -205,5 +205,49 @@ describe('drainOutbox', () => {
 		}
 		await drainOutbox(deps)
 		expect(deps.bumped).toEqual([{ id: 7, attempts: 3 }])
+	})
+
+	it('passes the FULL failed row to bumpAttempts so the impl can defer later siblings', async () => {
+		// bumpAttempts is the only hook the DO has to defer the failed row's later same-entity
+		// siblings (set their nextRetryAt) and preserve per-entity ordering across drains, so it
+		// must receive the whole row (tableName + entityId + id), not just id/attempts.
+		const failed = row({ id: 5, tableName: 'file', entityId: 'f1', attempts: 2 })
+		let received: TlaEffectOutbox | undefined
+		const deps = makeDeps([failed, row({ id: 6, tableName: 'file', entityId: 'f1' })])
+		deps.bumpAttempts = async (r) => {
+			received = r
+		}
+		deps.process = async () => {
+			throw new Error('fail')
+		}
+		await drainOutbox(deps)
+		expect(received).toEqual(failed)
+		// the later sibling (id 6) is NOT processed this drain — the DO's sibling deferral keeps it
+		// out of the next drain too, but here we only assert the in-drain skip.
+		expect(deps.calls).not.toContain('process:6')
+	})
+})
+
+describe('computeNextAlarm', () => {
+	const SWEEP = 30_000
+	const now = 1_000_000
+
+	it('arms the next sweep when no alarm is persisted', () => {
+		expect(computeNextAlarm(null, now, SWEEP)).toBe(now + SWEEP)
+	})
+
+	it('arms the next sweep when the persisted alarm is further out than the next sweep', () => {
+		expect(computeNextAlarm(now + SWEEP + 5_000, now, SWEEP)).toBe(now + SWEEP)
+	})
+
+	it('honors a mid-drain poke (past-due alarm) by arming now+1s, not the full sweep', () => {
+		// a poke during the drain set alarm(now); it is past-due in the finally and can't be
+		// trusted to fire on its own, so re-arm with a small delay instead of swallowing it.
+		expect(computeNextAlarm(now, now, SWEEP)).toBe(now + 1_000)
+		expect(computeNextAlarm(now - 5_000, now, SWEEP)).toBe(now + 1_000)
+	})
+
+	it('leaves a sooner future alarm (imminent poke) untouched', () => {
+		expect(computeNextAlarm(now + 1_000, now, SWEEP)).toBe(null)
 	})
 })
