@@ -13,7 +13,6 @@ import {
 	useEditor,
 	useEditorComponents,
 	useIsEditing,
-	useValue,
 	videoShapeMigrations,
 	videoShapeProps,
 } from '@tldraw/editor'
@@ -22,7 +21,6 @@ import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } fro
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { getMediaBorderStyle, getMediaBorderSvg } from '../shared/mediaBorder'
 import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -75,7 +73,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			autoplay: this.options.autoplay,
 			url: '',
 			altText: '',
-			border: 'none',
 			// Not used, but once upon a time were used to sync video state between users
 			time: 0,
 			playing: true,
@@ -137,23 +134,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 		if (!src) return null
 
-		const { behind, front } = getMediaBorderSvg({
-			border: shape.props.border,
-			w: props.w,
-			h: props.h,
-			isCircle: false,
-			rotation: this.editor.getShapePageTransform(shape.id)?.rotation() ?? 0,
-			idBase: shape.id,
-			ctx,
-		})
-
-		return (
-			<>
-				{behind}
-				<image href={src} width={props.w} height={props.h} aria-label={shape.props.altText} />
-				{front}
-			</>
-		)
+		return <image href={src} width={props.w} height={props.h} aria-label={shape.props.altText} />
 	}
 }
 
@@ -182,13 +163,6 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 	}, [])
 
 	const [isFullscreen, setIsFullscreen] = useState(false)
-
-	// Used by the `shadow` border treatment so the shadow rotates with the shape.
-	const rotation = useValue(
-		'shape rotation',
-		() => editor.getShapePageTransform(shape.id)?.rotation() ?? 0,
-		[editor, shape.id]
-	)
 
 	useEffect(() => {
 		const doc = rVideo.current?.ownerDocument ?? editor.getContainerDocument()
@@ -220,7 +194,6 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 					color: 'var(--tl-color-text-3)',
 					backgroundColor: hasVideo ? 'transparent' : 'var(--tl-color-low)',
 					border: hasVideo ? 'none' : '1px solid var(--tl-color-low-border)',
-					...getMediaBorderStyle(shape.props.border, { rotation }),
 				}}
 			>
 				<div className="tl-counter-scaled">

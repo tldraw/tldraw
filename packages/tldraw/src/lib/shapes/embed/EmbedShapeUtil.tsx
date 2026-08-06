@@ -3,7 +3,6 @@
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
-	TLDefaultBorderStyle,
 	TLEmbedShape,
 	TLEmbedShapeProps,
 	TLResizeInfo,
@@ -28,15 +27,10 @@ import {
 import { TLEmbedResult, getCorrectedEmbedSize, getEmbedInfo } from '../../utils/embeds/embeds'
 import { BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
-import { getMediaBorderStyle } from '../shared/mediaBorder'
+import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 /** @public */
 export interface EmbedShapeUtilDisplayValues {
-	/**
-	 * @deprecated Use the `border` style prop instead. This is now derived from
-	 * `border` (`true` when `border` is `'shadow'`) and will be removed in a future
-	 * version.
-	 */
 	showShadow: boolean
 }
 
@@ -74,11 +68,9 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	override options: EmbedShapeOptions = {
 		embedDefinitions: DEFAULT_EMBED_DEFINITIONS,
 		embedConfig: {},
-		getDefaultDisplayValues(_editor, shape): EmbedShapeUtilDisplayValues {
-			// `showShadow` is derived from the `border` style prop for backwards
-			// compatibility; `border` is the source of truth.
+		getDefaultDisplayValues(): EmbedShapeUtilDisplayValues {
 			return {
-				showShadow: shape.props.border === 'shadow',
+				showShadow: true,
 			}
 		},
 		getCustomDisplayValues(): Partial<EmbedShapeUtilDisplayValues> {
@@ -218,7 +210,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			w: 300,
 			h: 300,
 			url: '',
-			border: 'shadow',
 		}
 	}
 
@@ -286,14 +277,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
 
-		// `border` drives the treatment; a deprecated `showShadow: false` override
-		// still suppresses the shadow for backwards compatibility.
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		const showShadow = dv.showShadow
-		const effectiveBorder: TLDefaultBorderStyle =
-			shape.props.border === 'shadow' && !showShadow ? 'none' : shape.props.border
-		const borderStyle = getMediaBorderStyle(effectiveBorder, { rotation: pageRotation })
-
 		if (svgExport) {
 			// for SVG exports, we show a blank embed
 			return (
@@ -302,7 +285,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						className="tl-embed"
 						style={{
 							border: 0,
-							...borderStyle,
+							boxShadow: dv.showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
 							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
 							background: embedInfo?.definition.backgroundColor ?? 'var(--tl-color-background)',
 							width: w,
@@ -347,7 +330,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						width={toDomPrecision(w)!}
 						height={toDomPrecision(h)!}
 						isInteractive={isInteractive}
-						borderStyle={borderStyle}
+						pageRotation={pageRotation}
+						showShadow={dv.showShadow}
 					/>
 				</HTMLContainer>
 			)
@@ -380,7 +364,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 							pointerEvents: isInteractive ? 'auto' : 'none',
 							// Fix for safari <https://stackoverflow.com/a/49150908>
 							zIndex: isInteractive ? '' : '-1',
-							...borderStyle,
+							boxShadow: dv.showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
 							borderRadius: embedInfo?.definition?.overrideOutlineRadius ?? 8,
 							background: embedInfo?.definition?.backgroundColor,
 						}}
@@ -391,7 +375,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						h={h}
 						rotation={pageRotation}
 						assetId={null}
-						border={effectiveBorder}
 						showImageContainer={false}
 					/>
 				)}
@@ -425,14 +408,16 @@ function Gist({
 	width,
 	height,
 	style,
-	borderStyle,
+	pageRotation,
+	showShadow,
 }: {
 	id: string
 	sandbox: string
 	isInteractive: boolean
 	width: number
 	height: number
-	borderStyle?: React.CSSProperties
+	pageRotation: number
+	showShadow: boolean
 	style?: React.CSSProperties
 }) {
 	// Security warning:
@@ -463,7 +448,7 @@ function Gist({
 				pointerEvents: isInteractive ? 'all' : 'none',
 				// Fix for safari <https://stackoverflow.com/a/49150908>
 				zIndex: isInteractive ? '' : '-1',
-				...borderStyle,
+				boxShadow: showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
 			}}
 			srcDoc={`
 			<html>

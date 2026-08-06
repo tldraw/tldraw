@@ -2,8 +2,8 @@ import { T } from '@tldraw/validate'
 import { StyleProp } from './StyleProp'
 
 /**
- * Default border style property used by tldraw media shapes (image and video) for
- * decorative framing. Controls whether a shape renders a border or drop shadow.
+ * Default border style property used by the tldraw image shape for decorative
+ * framing. Controls whether a shape renders a border or drop shadow.
  *
  * Available values:
  * - `none` - No border, the shape is unchanged (default)

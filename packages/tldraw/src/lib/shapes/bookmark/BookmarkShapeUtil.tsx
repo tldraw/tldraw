@@ -8,7 +8,6 @@ import {
 	TLBookmarkAsset,
 	TLBookmarkShape,
 	TLBookmarkShapeProps,
-	TLDefaultBorderStyle,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
 	lerp,
@@ -22,7 +21,7 @@ import { convertCommonTitleHTMLEntities } from '../../utils/text/text'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
-import { getMediaBorderStyle } from '../shared/mediaBorder'
+import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 import {
 	BOOKMARK_HEIGHT,
 	BOOKMARK_WIDTH,
@@ -88,7 +87,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 			w: BOOKMARK_WIDTH,
 			h: BOOKMARK_HEIGHT,
 			assetId: null,
-			border: 'shadow',
 		}
 	}
 
@@ -101,19 +99,11 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override component(shape: TLBookmarkShape) {
-		const { assetId, url, border } = shape.props
+		const { assetId, url } = shape.props
 		const h = getBookmarkShapeHeight(this.editor, shape)
 		const rotation = this.editor.getShapePageTransform(shape)!.rotation()
 
-		return (
-			<BookmarkShapeComponent
-				assetId={assetId}
-				url={url}
-				h={h}
-				rotation={rotation}
-				border={border}
-			/>
-		)
+		return <BookmarkShapeComponent assetId={assetId} url={url} h={h} rotation={rotation} />
 	}
 
 	override getIndicatorPath(shape: TLBookmarkShape): Path2D {
@@ -159,14 +149,12 @@ export function BookmarkShapeComponent({
 	rotation,
 	url,
 	h,
-	border = 'shadow',
 	showImageContainer = true,
 }: {
 	assetId: TLAssetId | null
 	rotation: number
 	h: number
 	url: string
-	border?: TLDefaultBorderStyle
 	showImageContainer?: boolean
 }) {
 	const editor = useEditor()
@@ -193,12 +181,10 @@ export function BookmarkShapeComponent({
 			<div
 				className={classNames(
 					'tl-bookmark__container',
-					// Safari can't export the `box-shadow` from getMediaBorderStyle, so it
-					// substitutes a plain CSS border — but only when there's a border to show.
-					isSafariExport && border !== 'none' && 'tl-bookmark__container--safariExport'
+					isSafariExport && 'tl-bookmark__container--safariExport'
 				)}
 				style={{
-					...(isSafariExport ? undefined : getMediaBorderStyle(border, { rotation })),
+					boxShadow: isSafariExport ? undefined : getRotatedBoxShadow(rotation),
 					maxHeight: h,
 				}}
 			>
