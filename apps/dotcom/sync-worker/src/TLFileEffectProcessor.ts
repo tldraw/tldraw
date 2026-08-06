@@ -24,7 +24,9 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 		// Bootstrap the sweep so a never-poked DO still drains trigger-only rows (e.g. the
 		// workspace-delete cascade on an otherwise idle env) instead of sitting forever.
 		ctx.blockConcurrencyWhile(async () => {
-			if ((await ctx.storage.getAlarm()) === null) {
+			const scheduled = await ctx.storage.getAlarm()
+			// A past-due persisted alarm may never fire (see poke()); re-arm it too.
+			if (scheduled === null || scheduled <= Date.now()) {
 				await ctx.storage.setAlarm(Date.now() + SWEEP_INTERVAL_MS)
 			}
 		})
@@ -44,11 +46,11 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 	}
 
 	async poke() {
-		const scheduled = await this.ctx.storage.getAlarm()
-		const now = Date.now()
-		if (scheduled === null || scheduled > now) {
-			await this.ctx.storage.setAlarm(now)
-		}
+		// Always (re)arm. Skipping when an alarm is already due (scheduled <= now) assumes the
+		// runtime will fire it momentarily — but a stale past-due alarm the runtime dropped
+		// (observed in local dev after restarts) then starves the queue forever, with every
+		// poke no-oping against it. Re-setting an imminent alarm is a harmless storage write.
+		await this.ctx.storage.setAlarm(Date.now())
 	}
 
 	async drainNow() {
@@ -74,12 +76,14 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 			// crashes like an unreachable database
 			this.captureException(e)
 		} finally {
-			// Don't clobber a sooner alarm: a poke that arrived mid-drain set an immediate alarm,
-			// and unconditionally pushing it to now+30s would swallow that poke. Only schedule the
-			// next sweep if nothing sooner is already pending.
-			const nextSweep = Date.now() + SWEEP_INTERVAL_MS
+			// Don't clobber a sooner FUTURE alarm: a poke that arrived mid-drain set an immediate
+			// alarm, and unconditionally pushing it to now+30s would swallow that poke. But a
+			// PAST-due alarm can't be trusted to fire (stale persisted state, see poke()) — treat
+			// it as absent so the sweep chain can never starve.
+			const now = Date.now()
+			const nextSweep = now + SWEEP_INTERVAL_MS
 			const scheduled = await this.ctx.storage.getAlarm()
-			if (scheduled === null || scheduled > nextSweep) {
+			if (scheduled === null || scheduled <= now || scheduled > nextSweep) {
 				await this.ctx.storage.setAlarm(nextSweep)
 			}
 		}
