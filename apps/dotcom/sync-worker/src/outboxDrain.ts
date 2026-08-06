@@ -12,13 +12,34 @@ export const EFFECT_TIMEOUT_MS = 30_000
 export interface OutboxDeps {
 	getBatch(): Promise<TlaEffectOutbox[]> // WHERE attempts < MAX_ATTEMPTS AND ("nextRetryAt" IS NULL OR "nextRetryAt" <= now()) ORDER BY id LIMIT 50
 	deleteRow(id: number): Promise<void>
-	// attempts is the row's CURRENT attempt count, so backoff scheduling can be derived from it.
-	bumpAttempts(id: number, attempts: number): Promise<void>
+	// Called with the FAILED row (its `attempts` is the current count, so backoff can be derived).
+	// The implementation must both back off the failed row AND defer its later same-entity
+	// siblings (see the drainOutbox comment) so per-entity ordering holds across drains, not just
+	// within one.
+	bumpAttempts(row: TlaEffectOutbox): Promise<void>
 	deleteParkedRowsOlderThan(days: number): Promise<void>
 	process(row: TlaEffectOutbox): Promise<void> // dispatches by tableName (wired in the DO)
 	onError(error: unknown, row: TlaEffectOutbox): void
 	// Overridable so tests don't wait the full timeout in real time.
 	timeoutMs?: number
+}
+
+// Decides what to (re)arm the sweep alarm to after a drain finishes, given the currently
+// persisted alarm. Returns null to mean "leave the persisted alarm unchanged".
+//  - scheduled === null || scheduled > nextSweep: nothing sooner is pending → arm the next sweep.
+//  - scheduled <= now: a poke that arrived MID-drain set alarm(now) and is now past-due; a
+//    past-due alarm can't be trusted to fire on its own, so honor the poke by arming now+1s
+//    (a small delay, still never trusting the stale past-due alarm).
+//  - otherwise (future, sooner than nextSweep): a legit imminent poke → leave it.
+export function computeNextAlarm(
+	scheduled: number | null,
+	now: number,
+	sweepIntervalMs: number
+): number | null {
+	const nextSweep = now + sweepIntervalMs
+	if (scheduled === null || scheduled > nextSweep) return nextSweep
+	if (scheduled <= now) return now + 1_000
+	return null
 }
 
 class EffectTimeoutError extends Error {
@@ -50,7 +71,7 @@ async function processWithTimeout(deps: OutboxDeps, row: TlaEffectOutbox): Promi
 		await deps.deleteRow(row.id)
 		return true
 	} catch (error) {
-		await deps.bumpAttempts(row.id, row.attempts)
+		await deps.bumpAttempts(row)
 		deps.onError(error, row)
 		return false
 	} finally {
@@ -75,9 +96,20 @@ async function runWithConcurrency(tasks: Array<() => Promise<void>>, limit: numb
 const entityKey = (row: TlaEffectOutbox) => `${row.tableName}:${row.entityId}`
 
 export async function drainOutbox(deps: OutboxDeps) {
-	// Hoisted above the batch loop: an entity that fails must be skipped for the rest of this
-	// drain call, not just the rest of its batch, so a stuck entity can't burn all its attempts
-	// (and reach the parking threshold) in a single drain while other entities keep it looping.
+	// Per-entity ordering is strict WITHIN and ACROSS drains:
+	//  - within a drain: each entity is one sequential group; a failure stops its group and (via
+	//    failedEntities below) skips any of its rows that resurface in later batches.
+	//  - across drains: when a row fails, bumpAttempts also defers its later same-entity siblings
+	//    (sets their nextRetryAt) so they can't run in a subsequent drain while the failed row is
+	//    still backing off. The failed row itself always retries no later than its siblings.
+	// Exception at the parking boundary: once a row parks (attempts >= MAX_ATTEMPTS) getBatch stops
+	// returning it, so it no longer defers its siblings and they run. Liveness deliberately wins
+	// over strict ordering here — parking is already a Sentry-reported data-loss event.
+	//
+	// failedEntities is hoisted above the batch loop so one failure skips the entity for the rest
+	// of THIS drain call (not just the rest of its batch): it caps a stuck entity at one attempt
+	// per drain, so a single drain can't burn all its attempts to the parking threshold. It does
+	// not by itself provide cross-drain ordering — the sibling deferral in bumpAttempts does that.
 	const failedEntities = new Set<string>()
 
 	while (true) {
