@@ -594,20 +594,12 @@ async function hardDeleteAppFile({
 		// do soft delete first if not done already; the outbox trigger records it
 		await pg.updateTable('file').set('isDeleted', true).where('id', '=', file.id).execute()
 	}
-	// Drain the outbox so the soft-delete row's effects (session kicks) land before the row is
-	// hard deleted below. R2/room cleanup rides the delete-row effect produced by the DELETE
-	// FROM file below, delivered via the post-delete poke() at the end of this function.
-	// Bounded: drainNow() drains the WHOLE outbox, so under a backlog it can hang for minutes.
-	// Race it against a ~10s cap and proceed either way. This is safe because the post-DELETE
-	// outbox row re-runs the full cleanup (appFileRecordDidDelete) via poke/sweep within ~30s;
-	// the inline drain is only a best-effort kick of sessions before the row disappears, not a
-	// correctness requirement.
-	await Promise.race([
-		getFileEffectProcessor(env)
-			.drainNow()
-			.catch(() => {}),
-		sleep(10_000),
-	])
+	// No inline drain here: the DELETE FROM file below writes a terminal delete-row effect that
+	// kicks sessions and cleans up R2/room state via the post-delete poke() (sweep backstop
+	// ~30s), and the soft-delete row's effect is staleness-guarded so it skips harmlessly if it
+	// runs after the row is gone. Draining inline would also run once per file when
+	// performUserDeletion loops over a user's files, stacking whole-outbox drains on the
+	// singleton processor.
 	// clean up assets eagerly
 	const assets = await pg.selectFrom('asset').where('fileId', '=', file.id).selectAll().execute()
 	for (const asset of assets) {
