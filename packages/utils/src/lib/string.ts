@@ -25,7 +25,7 @@ function getGraphemeSegmenter(): Intl.Segmenter | undefined {
  *
  * @public
  */
-export function* iterateGraphemes(str: string): Generator<string, void, undefined> {
+export function* iterateGraphemes(str: string): IterableIterator<string> {
 	const segmenter = getGraphemeSegmenter()
 	if (segmenter) {
 		for (const { segment } of segmenter.segment(str)) yield segment
