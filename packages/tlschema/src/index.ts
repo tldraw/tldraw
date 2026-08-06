@@ -90,6 +90,7 @@ export {
 	createAssetPropsMigrationIds,
 	createAssetPropsMigrationSequence,
 	createAssetRecordType,
+	isAsset,
 	type TLAsset,
 	type TLAssetId,
 	type TLAssetPartial,
@@ -137,6 +138,7 @@ export {
 	type TLInstanceId,
 } from './records/TLInstance'
 export {
+	isPage,
 	isPageId,
 	pageIdValidator,
 	PageRecordType,

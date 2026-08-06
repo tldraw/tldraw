@@ -521,6 +521,9 @@ export const InstancePageStateRecordType: RecordType<TLInstancePageState, "pageI
 export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "userId" | "userName">;
 
 // @public
+export function isAsset(record?: UnknownRecord): record is TLAsset;
+
+// @public
 export function isBinding(record?: UnknownRecord): record is TLBinding;
 
 // @public
@@ -537,6 +540,9 @@ export function isDocument(record?: UnknownRecord): record is TLDocument;
 
 // @internal (undocumented)
 export function isFontEntry(value: unknown): value is TLThemeFont;
+
+// @public
+export function isPage(record?: UnknownRecord): record is TLPage;
 
 // @public
 export function isPageId(id: string): id is TLPageId;

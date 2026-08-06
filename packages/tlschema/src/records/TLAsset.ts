@@ -3,6 +3,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 	RecordId,
+	UnknownRecord,
 } from '@tldraw/store'
 import { mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
@@ -287,4 +288,32 @@ export function createAssetPropsMigrationIds<S extends string, T extends Record<
 	ids: T
 ): { [k in keyof T]: `com.tldraw.asset.${S}/${T[k]}` } {
 	return mapObjectMapValues(ids, (_k, v) => `com.tldraw.asset.${assetType}/${v}`) as any
+}
+
+/**
+ * Type guard to check if a record is an asset.
+ *
+ * @param record - The record to check
+ * @returns True if the record is an asset, false otherwise
+ *
+ * @example
+ * ```ts
+ * // Filter assets from mixed records
+ * const allRecords = store.allRecords()
+ * const assets = allRecords.filter(isAsset)
+ *
+ * // Type guard usage
+ * function processRecord(record: UnknownRecord) {
+ *   if (isAsset(record)) {
+ *     // record is now typed as TLAsset
+ *     console.log(`Asset type: ${record.type}`)
+ *   }
+ * }
+ * ```
+ *
+ * @public
+ */
+export function isAsset(record?: UnknownRecord): record is TLAsset {
+	if (!record) return false
+	return record.typeName === 'asset'
 }
