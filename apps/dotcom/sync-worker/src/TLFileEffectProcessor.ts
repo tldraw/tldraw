@@ -136,9 +136,11 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 					await db.deleteFrom('effect_outbox').where('id', '=', id).execute()
 				},
 				bumpAttempts: async (id, attempts) => {
-					// Exponential backoff from the row's current attempt count, capped at 5 minutes,
-					// so rapid pokes can't burn through all attempts in a burst.
-					const backoffSeconds = Math.min(2 ** attempts * 5, 300)
+					// Exponential backoff from the row's current attempt count, capped at 5 minutes.
+					// The 30s base keeps the first retry at or after the effect timeout, so a
+					// timed-out RPC (which keeps running — it can't be cancelled) usually finishes
+					// before its retry starts instead of overlapping it.
+					const backoffSeconds = Math.min(2 ** attempts * 30, 300)
 					await db
 						.updateTable('effect_outbox')
 						.set((eb) => ({
