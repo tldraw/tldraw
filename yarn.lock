@@ -11884,7 +11884,6 @@ __metadata:
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
-    "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/sync-collaboration": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
@@ -11899,10 +11898,8 @@ __metadata:
     jose: "npm:^5.9.6"
     kysely: "npm:^0.28.12"
     lazyrepo: "npm:0.0.0-alpha.27"
-    lodash.throttle: "npm:^4.1.1"
     p-queue: "npm:^9.3.0"
     pg: "npm:^8.16.3"
-    pg-logical-replication: "npm:^2.0.7"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     typescript: "npm:^5.8.3"
@@ -19976,13 +19973,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventemitter2@npm:>=6.4.0":
-  version: 6.4.9
-  resolution: "eventemitter2@npm:6.4.9"
-  checksum: 10/b829b1c6b11e15926b635092b5ad62b4463d1c928859831dcae606e988cf41893059e3541f5a8209d21d2f15314422ddd4d84d20830b4bf44978608d15b06b08
-  languageName: node
-  linkType: hard
-
 "eventemitter3@npm:^4.0.7":
   version: 4.0.7
   resolution: "eventemitter3@npm:4.0.7"
@@ -27414,16 +27404,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-logical-replication@npm:^2.0.7":
-  version: 2.0.7
-  resolution: "pg-logical-replication@npm:2.0.7"
-  dependencies:
-    eventemitter2: "npm:>=6.4.0"
-    pg: "npm:>=6.2.2"
-  checksum: 10/7b08edb7bfaf4d86834da397d4b4086b14fd14dc0cb7e5987217624b9af525fac3da1be85d9742f63f9b8c2a772f45e93b6c5b27856c93917aec73ad7be0e060
-  languageName: node
-  linkType: hard
-
 "pg-pool@npm:^3.14.0":
   version: 3.14.0
   resolution: "pg-pool@npm:3.14.0"
@@ -27453,7 +27433,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg@npm:>=6.2.2, pg@npm:^8.16.3":
+"pg@npm:^8.16.3":
   version: 8.22.0
   resolution: "pg@npm:8.22.0"
   dependencies:

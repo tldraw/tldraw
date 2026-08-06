@@ -10,7 +10,6 @@
 	"references": [
 		{ "path": "../../../packages/sync-collaboration" },
 		{ "path": "../../../packages/dotcom-shared" },
-		{ "path": "../../../packages/state" },
 		{ "path": "../../../packages/store" },
 		{ "path": "../../../packages/sync-core" },
 		{ "path": "../../../packages/tlschema" },
