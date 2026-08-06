@@ -2163,9 +2163,12 @@ tldraw? probably.
 }
 
 /* The color swatch and name line up with the ones on the user's own row above,
-   where the swatch sits inside a standard 12px-padded icon button. */
+   where the swatch sits inside a standard 12px-padded icon button. No padding on
+   the trailing edge: the follow button brings its own, and the row above only
+   spends that gap once. */
 .tlui-people-menu__item__button {
-	padding: 0 12px;
+	padding-inline-start: 12px;
+	padding-inline-end: 0px;
 	overflow: hidden;
 }
 
