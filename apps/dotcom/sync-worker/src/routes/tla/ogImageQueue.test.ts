@@ -1,25 +1,38 @@
+import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+	OG_MAX_RENDER_ATTEMPTS,
+	OG_PENDING_MARKER_TTL_MS,
+	OG_REPAIR_COOLDOWN_MS,
+	OG_RETRY_DELAY_SECONDS,
+} from '../../config'
 import { OgImageRenderQueueMessage } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import {
+	clearOgImagePendingMarker,
+	deleteBoardThumbnails,
+	deleteOgImage,
 	enqueueOgImageRender,
+	enqueuePublishThumbnailRender,
 	getOgImageCacheKey,
 	handleOgImageRenderMessage,
-	MAX_RATE_LIMIT_REQUEUES,
+	isOgImageRepairOnCooldown,
 } from './ogImageQueue'
 import {
+	blobsWithPrefix,
 	failureBlobsOf,
 	makeBrowserBinding,
+	makeFakeQueue,
 	makeFakeRoomsBucket,
 	makeFakeThumbnailsBucket,
 	makeScreenshotTestEnv as makeEnv,
 	makeSnapshot,
+	renderDurationsOf,
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
-import { resetRateLimitFallbackForTests } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -33,9 +46,9 @@ vi.mock('./getSharedFile', async (importOriginal) => ({
 }))
 
 afterEach(() => {
+	vi.useRealTimers()
 	vi.unstubAllGlobals()
 	vi.clearAllMocks()
-	resetRateLimitFallbackForTests()
 })
 
 function makeMessage(
@@ -61,8 +74,9 @@ describe('enqueueOgImageRender', () => {
 		const bucket = makeFakeThumbnailsBucket()
 		const env = makeEnv({ THUMBNAILS: bucket })
 
-		const first = await enqueueOgImageRender(env, { kind: 'published', slug: 'board' })
-		const second = await enqueueOgImageRender(env, { kind: 'published', slug: 'board' })
+		const board = { kind: 'published', slug: 'board' } as const
+		const first = await enqueueOgImageRender(env, board, { reason: 'publish' })
+		const second = await enqueueOgImageRender(env, board, { reason: 'publish' })
 
 		expect(first).toBe('enqueued')
 		expect(second).toBe('already_pending')
@@ -70,14 +84,316 @@ describe('enqueueOgImageRender', () => {
 			type: 'og-image-render',
 			kind: 'published',
 			slug: 'board',
+			reason: 'publish',
 		})
 	})
 
 	it('reports unavailable when the thumbnails bucket is not configured', async () => {
 		const env = makeEnv({ THUMBNAILS: undefined })
-		expect(await enqueueOgImageRender(env, { kind: 'published', slug: 'board' })).toBe(
-			'unavailable'
+		expect(
+			await enqueueOgImageRender(env, { kind: 'published', slug: 'board' }, { reason: 'publish' })
+		).toBe('unavailable')
+	})
+
+	it('tags the message with the trigger that asked for the render', async () => {
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		await enqueueOgImageRender(env, { kind: 'published', slug: 'board' }, { reason: 'publish' })
+
+		expect((env as any).QUEUE.send).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ reason: 'publish' })
 		)
+	})
+
+	// With no rate limiter left, the marker is the only thing keeping an 8-second persist cadence from
+	// becoming an 8-second render cadence, so its TTL is load-bearing rather than incidental.
+	it('suppresses duplicate enqueues for the marker TTL, then allows one through', async () => {
+		vi.useFakeTimers()
+		vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+
+		const board = { kind: 'shared_file', slug: 'board' } as const
+		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
+
+		const enqueuedAt = Date.parse('2026-01-01T00:00:00Z')
+		const marker = [...bucket.store.entries()].find(([key]) => key.endsWith('.pending'))!
+		expect(Number(marker[1].customMetadata!.expiresAt)).toBe(enqueuedAt + OG_PENDING_MARKER_TTL_MS)
+
+		// Every persist inside the window asks again and is deduped away.
+		vi.setSystemTime(enqueuedAt + OG_PENDING_MARKER_TTL_MS - 1000)
+		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('already_pending')
+
+		// Once it lapses, the next edit gets a fresh render.
+		vi.setSystemTime(enqueuedAt + OG_PENDING_MARKER_TTL_MS + 1000)
+		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
+	})
+
+	// The marker must outlive a job's worst-case retry chain: every capture running to its full
+	// timeout, plus every backoff delay between deliveries. If it lapsed while a job was still alive,
+	// a fresh ask would enqueue a second job for the same board, the two captures could overlap, and
+	// each would clobber the other's per-board render token record (renderTokens.ts) — 403ing the
+	// loser's snapshot read mid-capture. The record's per-board key is safe only because this marker
+	// single-flights renders per board.
+	it('has a marker TTL longer than the worst-case retry chain', () => {
+		const backoffMs = Array.from(
+			{ length: OG_MAX_RENDER_ATTEMPTS - 1 },
+			(_, i) => OG_RETRY_DELAY_SECONDS * (i + 1) * 1000
+		).reduce((a, b) => a + b, 0)
+		const worstCaseChainMs = OG_MAX_RENDER_ATTEMPTS * THUMBNAIL_RENDER_TIMEOUT_MS + backoffMs
+
+		expect(OG_PENDING_MARKER_TTL_MS).toBeGreaterThan(worstCaseChainMs)
+	})
+})
+
+describe('enqueueOgImageRender for an edit', () => {
+	const board = { kind: 'shared_file', slug: 'board' } as const
+
+	// Unconditional by design: a persist means the saved content genuinely differs from what the
+	// cached thumbnail shows, so there is no sampling or staleness window to satisfy first. The share
+	// gate lives in TLFileDurableObject.requestOgRenderForEdit, which decides before calling this.
+	it('enqueues on every edit, with no sampling or staleness gate', async () => {
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
+		expect((env as any).QUEUE.send).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ kind: 'shared_file', slug: 'board', reason: 'edit' })
+		)
+	})
+
+	// A freshly rendered thumbnail is no reason to skip: the board changed again, so the cached image
+	// is stale regardless of its age. The consumer's version check is what avoids redundant renders.
+	it('enqueues even when the cached image was rendered moments ago', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+		await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer, {
+			customMetadata: { version: 'v1', createdAt: String(Date.now()) },
+		})
+
+		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
+	})
+})
+
+// The two keys are not symmetric on purpose, and this is the pair that pins it.
+describe('deleteOgImage vs clearOgImagePendingMarker', () => {
+	it("deletes a published board's image, since the snapshot it depicts is gone", async () => {
+		const board = { kind: 'published', slug: 'published-slug' } as const
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+		await enqueueOgImageRender(env, board, { reason: 'publish' })
+		await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer)
+		// A cooldown left by an earlier failed repair goes with it: an unpublish-then-republish is a new
+		// snapshot, and its repair must not inherit the old one's failure.
+		await bucket.put(
+			getOgImageCacheKey(board).replace(/\.png$/, '.repair-cooldown'),
+			new Uint8Array().buffer
+		)
+
+		await deleteOgImage(env, board)
+
+		expect([...bucket.store.keys()]).toEqual([])
+	})
+
+	// Unpublishing must not reach the file-keyed image. That one is the board's own thumbnail, and it
+	// is what makes a later reshare an immediate cache hit.
+	it('leaves the file-keyed image alone when a published board is unpublished', async () => {
+		const published = { kind: 'published', slug: 'published-slug' } as const
+		const file = { kind: 'shared_file', slug: 'file-1' } as const
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+		await bucket.put(getOgImageCacheKey(published), new Uint8Array([1]).buffer)
+		await bucket.put(getOgImageCacheKey(file), new Uint8Array([2]).buffer)
+
+		await deleteOgImage(env, published)
+
+		expect([...bucket.store.keys()]).toEqual([getOgImageCacheKey(file)])
+	})
+})
+
+describe('clearOgImagePendingMarker', () => {
+	// The rendered image is deliberately kept when a board stops being public. It is unreachable
+	// either way — the OG route re-checks the share gate on every request — and keeping it means an
+	// owner-facing surface behind authz can use the thumbnail a board already has, instead of it
+	// having been thrown away the moment the board went private.
+	it('clears the pending marker so a reshare can render again, and keeps the image', async () => {
+		const board = { kind: 'shared_file', slug: 'board' } as const
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+		await enqueueOgImageRender(env, board, { reason: 'edit' })
+		await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer)
+
+		await clearOgImagePendingMarker(env, board)
+
+		expect([...bucket.store.keys()]).toEqual([getOgImageCacheKey(board)])
+		// With the marker gone, the next enqueue is not deduped away.
+		expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
+	})
+})
+
+// The publish effect is the only trigger a published board has: its snapshot is frozen, so nothing
+// edits it into asking again. An ask lost here therefore leaves that board's card generic until
+// somebody republishes, and none of the ways it can be lost throw loudly enough to notice.
+describe('enqueuePublishThumbnailRender', () => {
+	it('enqueues the published board and reports nothing when it takes effect', async () => {
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
+		const reportProblem = vi.fn()
+
+		await enqueuePublishThumbnailRender(env, 'published-slug', reportProblem)
+
+		expect(queue.send).toHaveBeenCalledWith({
+			type: 'og-image-render',
+			kind: 'published',
+			slug: 'published-slug',
+			reason: 'publish',
+		})
+		expect(reportProblem).not.toHaveBeenCalled()
+	})
+
+	// The quiet one. A marker left behind by an earlier failed job turns the ask away with a value, not
+	// an exception, so this is the case that would go unnoticed without the report.
+	it('reports the ask being turned away by a pending marker', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+		const board = { kind: 'published', slug: 'published-slug' } as const
+		await enqueueOgImageRender(env, board, { reason: 'publish' })
+		const reportProblem = vi.fn()
+
+		await enqueuePublishThumbnailRender(env, 'published-slug', reportProblem)
+
+		expect(reportProblem).toHaveBeenCalledTimes(1)
+		expect((reportProblem.mock.calls[0][0] as Error).message).toContain('already_pending')
+	})
+
+	it('reports an unconfigured queue rather than passing for success', async () => {
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: undefined })
+		const reportProblem = vi.fn()
+
+		await enqueuePublishThumbnailRender(env, 'published-slug', reportProblem)
+
+		expect((reportProblem.mock.calls[0][0] as Error).message).toContain('unavailable')
+	})
+
+	// An in-place republish reuses the slug, so a repair cooldown armed against the previous
+	// snapshot's failure would otherwise outlive the snapshot it was evidence about — and if the
+	// republished render then failed transiently, the crawler repair that failure relies on would be
+	// suppressed for the rest of the old cooldown.
+	it('clears a leftover repair cooldown, giving the new snapshot its own repair backstop', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const board = { kind: 'published', slug: 'published-slug' } as const
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => {
+				throw new Error('browser session failed')
+			}),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		// The previous snapshot's crawler repair gave up, arming the cooldown.
+		await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'crawler' }, 3))
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(true)
+
+		await enqueuePublishThumbnailRender(env, 'published-slug', vi.fn())
+
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(false)
+	})
+
+	// Publishing must survive its thumbnail ask failing: the snapshot is already written, and this is
+	// the last thing the effect does.
+	it('reports a throw without rethrowing it into the publish handler', async () => {
+		const queue = makeFakeQueue()
+		queue.send.mockRejectedValue(new Error('queue is down'))
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
+		const reportProblem = vi.fn()
+
+		await expect(
+			enqueuePublishThumbnailRender(env, 'published-slug', reportProblem)
+		).resolves.toBeUndefined()
+		expect((reportProblem.mock.calls[0][0] as Error).message).toBe('queue is down')
+	})
+})
+
+// Hard deletion is the one place both image keys go. Everywhere else keeps one of them: unsharing
+// keeps the file-keyed image (a reshare should be an immediate hit), and unpublishing only takes the
+// published one. Neither reason survives the board ceasing to exist — and since `og/…` keys carry no
+// version and THUMBNAILS has no lifecycle rule, whatever is left behind is an object nothing will
+// ever read, overwrite or sweep.
+describe('deleteBoardThumbnails', () => {
+	const renderTokenKey = (kind: string, slug: string) => `render-tokens/${kind}/${slug}`
+
+	async function seedBoard(bucket: ReturnType<typeof makeFakeThumbnailsBucket>, env: any) {
+		const file = { kind: 'shared_file', slug: 'file-1' } as const
+		const published = { kind: 'published', slug: 'published-slug' } as const
+		for (const board of [file, published]) {
+			// An enqueue writes the pending marker, so the fixture covers image, marker and token record.
+			await enqueueOgImageRender(env, board, { reason: 'publish' })
+			await bucket.put(getOgImageCacheKey(board), new Uint8Array([1]).buffer)
+			await bucket.put(renderTokenKey(board.kind, board.slug), new Uint8Array().buffer)
+		}
+	}
+
+	it('removes both images, both markers and both render token records', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+		await seedBoard(bucket, env)
+
+		await deleteBoardThumbnails(env, { fileId: 'file-1', publishedSlug: 'published-slug' })
+
+		expect([...bucket.store.keys()]).toEqual([])
+	})
+
+	it('touches nothing belonging to another board', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+		await seedBoard(bucket, env)
+		const other = { kind: 'shared_file', slug: 'file-2' } as const
+		await bucket.put(getOgImageCacheKey(other), new Uint8Array([2]).buffer)
+		await bucket.put(renderTokenKey(other.kind, other.slug), new Uint8Array().buffer)
+
+		await deleteBoardThumbnails(env, { fileId: 'file-1', publishedSlug: 'published-slug' })
+
+		expect([...bucket.store.keys()].sort()).toEqual(
+			[getOgImageCacheKey(other), renderTokenKey(other.kind, other.slug)].sort()
+		)
+	})
+
+	// An empty published slug would address `og/published//light.png`, which is not this board's key
+	// and may well be somebody else's neighbourhood.
+	it('skips the published half when the file has no published slug', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+		await seedBoard(bucket, env)
+
+		await deleteBoardThumbnails(env, { fileId: 'file-1', publishedSlug: null })
+
+		expect([...bucket.store.keys()].sort()).toEqual(
+			[
+				getOgImageCacheKey({ kind: 'published', slug: 'published-slug' }),
+				getOgImageCacheKey({ kind: 'published', slug: 'published-slug' }).replace(
+					/\.png$/,
+					'.pending'
+				),
+				renderTokenKey('published', 'published-slug'),
+			].sort()
+		)
+	})
+
+	// It runs inside the teardown that also removes the room snapshot and the histories, so a failure
+	// to tidy up must not abort what follows it.
+	it('resolves even when the bucket refuses a delete', async () => {
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket, QUEUE: makeFakeQueue() })
+		await seedBoard(bucket, env)
+		vi.spyOn(bucket, 'delete').mockRejectedValue(new Error('R2 is down'))
+
+		await expect(
+			deleteBoardThumbnails(env, { fileId: 'file-1', publishedSlug: 'published-slug' })
+		).resolves.toBeUndefined()
 	})
 })
 
@@ -104,6 +420,9 @@ describe('handleOgImageRenderMessage', () => {
 			camera: 'content',
 			width: 1200,
 			height: 630,
+			// The consumer renders every board, private ones included, so its tokens read under the weaker
+			// gate — and are the only ones a minted-token record is kept for.
+			access: 'render',
 		})
 		// the worker writes the rendered image to the cache key itself, stamping the version
 		expect(
@@ -187,53 +506,55 @@ describe('handleOgImageRenderMessage', () => {
 		expect(firstAttempt.retry).toHaveBeenCalledExactlyOnceWith({ delaySeconds: 30 })
 		expect(firstAttempt.ack).not.toHaveBeenCalled()
 
-		// The final delivery, so the job drops and writes its reason code instead of only retrying.
+		// The final delivery, so the job drops rather than retrying again.
 		vi.mocked(getPublishedRoomSnapshot).mockRejectedValueOnce(new Error('connection terminated'))
 		const finalAttempt = makeMessage({ kind: 'published', slug: 'board' }, 3)
 		await handleOgImageRenderMessage(env, finalAttempt)
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 		expect(finalAttempt.ack).toHaveBeenCalledTimes(1)
-		expect(failureBlobsOf(env)).toEqual(['failure:snapshot_read_error'])
+		// One row per delivery, not per job: the dataset is the spend ledger, so a retried failure is
+		// two events, not one. Neither of these spent Browser Run, but a retried *render* would spend
+		// it twice, and only per-delivery rows can show that.
+		expect(failureBlobsOf(env)).toEqual([
+			'failure:snapshot_read_error',
+			'failure:snapshot_read_error',
+		])
 	})
 
-	// A board un-shared between the resolve and the snapshot read looks like any other read failure
-	// from the catch, so this delivery retries rather than dropping. That costs one delivery, not one
-	// render: the retry re-resolves at the top of the handler, finds the board no longer viewable, and
-	// drops it there — neither pass spends any Browser Run.
-	it('retries a board that goes private mid-render, then drops it when the retry re-resolves', async () => {
+	// A read failure mid-render is transient as far as this handler can tell, so the delivery retries.
+	// The retry re-resolves and renders, because a board going private is not a reason to skip it.
+	it('retries a read failure, then renders on the retry even if the board went private', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'shared-file',
 			shared: true,
 			isDeleted: false,
 		})
-		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('not shared'))
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('postgres is down'))
 		const bucket = makeFakeThumbnailsBucket()
 		const cacheKey = getOgImageCacheKey({ kind: 'shared_file', slug: 'shared-file' })
-		bucket.store.set(cacheKey, { body: new ArrayBuffer(1), uploaded: new Date(0) })
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket('etag-1'), THUMBNAILS: bucket })
 
-		// The first delivery, which has two retries left.
 		const first = makeMessage({ kind: 'shared_file', slug: 'shared-file' }, 1)
 		await handleOgImageRenderMessage(env, first)
 
 		expect(first.retry).toHaveBeenCalledExactlyOnceWith({ delaySeconds: 30 })
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 
-		// By the time the retry lands, the board is un-shared, so the resolve gate ends it.
+		// The board is private by the time the retry lands. It renders anyway — privacy gates serving,
+		// not rendering, so an owner-facing surface has a current thumbnail to show.
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'shared-file',
 			shared: false,
 			isDeleted: false,
 		})
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const retry = makeMessage({ kind: 'shared_file', slug: 'shared-file' }, 2)
 		await handleOgImageRenderMessage(env, retry)
 
-		expect(retry.retry).not.toHaveBeenCalled()
+		expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
 		expect(retry.ack).toHaveBeenCalledTimes(1)
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
-		// The cached image is dropped too, so no-longer-public content does not linger in the cache.
-		expect(bucket.store.has(cacheKey)).toBe(false)
-		expect(failureBlobsOf(env)).toEqual(['failure:board_not_viewable'])
+		expect(bucket.store.has(cacheKey)).toBe(true)
+		expect(failureBlobsOf(env)).toEqual(['failure:snapshot_read_error', 'failure:none'])
 	})
 
 	it('renders shared files and keys their version on the room etag', async () => {
@@ -284,24 +605,32 @@ describe('handleOgImageRenderMessage', () => {
 		expect(message.ack).toHaveBeenCalledTimes(1)
 	})
 
-	it('drops the job and deletes the cached image when the board is no longer viewable', async () => {
+	// Deletion is terminal in a way privacy is not: no number of retries brings the board back, and a
+	// deleted board has nothing worth depicting. The job is acked without spending Browser Run, and the
+	// image it already had is kept, since only an unpublish deletes one.
+	it('drops the job without rendering when the board is deleted, keeping its image', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
-			id: 'unshared-file',
+			id: 'deleted-file',
 			shared: false,
-			isDeleted: false,
+			isDeleted: true,
 		})
+		const board = { kind: 'shared_file', slug: 'deleted-file' } as const
 		const bucket = makeFakeThumbnailsBucket()
-		const cacheKey = getOgImageCacheKey({ kind: 'shared_file', slug: 'unshared-file' })
+		const cacheKey = getOgImageCacheKey(board)
 		await bucket.put(cacheKey, new Uint8Array([9]).buffer, {
 			customMetadata: { version: 'old', createdAt: String(Date.now()) },
 		})
+		// A marker from the enqueue that raced the delete; it must not outlive the dropped job, or the
+		// next enqueue is deduped away against a render that never happened.
+		await enqueueOgImageRender(makeEnv({ THUMBNAILS: bucket }), board, { reason: 'edit' })
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(), THUMBNAILS: bucket })
-		const message = makeMessage({ kind: 'shared_file', slug: 'unshared-file' })
+		const message = makeMessage(board)
 
 		await handleOgImageRenderMessage(env, message)
 
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
-		expect(bucket.store.has(cacheKey)).toBe(false)
+		expect(bucket.store.has(cacheKey)).toBe(true)
+		expect([...bucket.store.keys()]).toEqual([cacheKey])
 		expect(message.ack).toHaveBeenCalledTimes(1)
 		expect(message.retry).not.toHaveBeenCalled()
 	})
@@ -333,107 +662,338 @@ describe('handleOgImageRenderMessage', () => {
 		expect(finalAttempt.ack).toHaveBeenCalledTimes(1)
 	})
 
-	it('re-enqueues a fresh job when global capacity is busy instead of spending a failure retry', async () => {
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		const queue = { send: vi.fn(async () => undefined) }
-		const env = makeEnv({
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-			QUEUE: queue,
-			// A busy global limiter: every check reports the request blocked.
-			MCP_SCREENSHOT_BROWSER_RATE_LIMITER: { limit: vi.fn(async () => ({ success: false })) },
-		})
+	// A capture takes seconds. An edit landing during one asks for a render, is turned away by this
+	// job's pending marker, and that ask is *dropped* — the debouncer has already reset and neither
+	// caller reads the result. Without this check the board would sit on a thumbnail of its
+	// before-the-last-edits state until something happened to ask again.
+	it('re-asks when the board changed while it was capturing', async () => {
+		vi.mocked(getPublishedFileInfo)
+			// resolved at the top of the delivery, and rendered
+			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 1 })
+			// the board moved under the capture
+			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 2 })
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
 
-		// Even on the final delivery, backpressure must re-enqueue rather than drop: the render never
-		// happened, so it should not count against the render-failure budget. The requeue carries an
-		// incremented rate-limit counter so the backoff chain is bounded.
-		const message = makeMessage({ kind: 'published', slug: 'board' }, 3)
-		await handleOgImageRenderMessage(env, message)
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }))
 
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
-		expect(message.retry).not.toHaveBeenCalled()
-		expect(message.ack).toHaveBeenCalledTimes(1)
 		expect(queue.send).toHaveBeenCalledExactlyOnceWith(
-			{ type: 'og-image-render', kind: 'published', slug: 'board', rateLimitRequeues: 1 },
-			{ delaySeconds: 30 }
+			expect.objectContaining({ kind: 'published', slug: 'board', followUp: true })
 		)
 	})
 
-	it('backs off exponentially as rate-limit requeues accumulate', async () => {
+	it('does not re-ask when the board held still', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 1,
 		})
-		const queue = { send: vi.fn(async () => undefined) }
-		const env = makeEnv({
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-			QUEUE: queue,
-			MCP_SCREENSHOT_BROWSER_RATE_LIMITER: { limit: vi.fn(async () => ({ success: false })) },
-		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
 
-		// Already re-enqueued twice: this delivery is requeue #3, so the delay is min(30 * 2^2, 120).
-		const message = makeMessage({ kind: 'published', slug: 'board', rateLimitRequeues: 2 })
-		await handleOgImageRenderMessage(env, message)
-
-		expect(queue.send).toHaveBeenCalledExactlyOnceWith(
-			{ type: 'og-image-render', kind: 'published', slug: 'board', rateLimitRequeues: 3 },
-			{ delaySeconds: 120 }
-		)
-	})
-
-	it('stops requeueing once the rate-limit backoff budget is exhausted', async () => {
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		const queue = { send: vi.fn(async () => undefined) }
-		const env = makeEnv({
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-			QUEUE: queue,
-			MCP_SCREENSHOT_BROWSER_RATE_LIMITER: { limit: vi.fn(async () => ({ success: false })) },
-		})
-
-		// At the cap already: this delivery would be one requeue past the limit, so it gives up rather
-		// than looping forever and keeping the shared limiter saturated.
-		const message = makeMessage({
-			kind: 'published',
-			slug: 'board',
-			rateLimitRequeues: MAX_RATE_LIMIT_REQUEUES,
-		})
-		await handleOgImageRenderMessage(env, message)
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }))
 
 		expect(queue.send).not.toHaveBeenCalled()
-		expect(message.retry).not.toHaveBeenCalled()
-		expect(message.ack).toHaveBeenCalledTimes(1)
 	})
 
-	it('refreshes the pending marker on requeue so concurrent crawler hits coalesce', async () => {
+	// The ceiling on the above. A board edited without pause is stale at the end of every capture, so a
+	// chaining follow-up would render it continuously — exactly the cost the debounce upstream exists to
+	// avoid. One extra render per triggered render, never two.
+	it('never chains: a follow-up does not enqueue another', async () => {
+		vi.mocked(getPublishedFileInfo)
+			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 1 })
+			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 2 })
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const queue = makeFakeQueue()
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
+
+		await handleOgImageRenderMessage(
+			env,
+			makeMessage({ kind: 'published', slug: 'board', followUp: true })
+		)
+
+		expect(queue.send).not.toHaveBeenCalled()
+	})
+
+	// Once a job gives up, nothing is in flight and the marker has nothing left to single-flight.
+	// Leaving it to lapse would turn away the next ask for the rest of its TTL, which bites hardest
+	// here: this board has no image at all.
+	it('clears the pending marker when a job gives up, but keeps it between retries', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
 			published: true,
 			lastPublished: 1,
 		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const board = { kind: 'published', slug: 'board' } as const
 		const bucket = makeFakeThumbnailsBucket()
-		const queue = { send: vi.fn(async () => undefined) }
 		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => {
+				throw new Error('browser session failed')
+			}),
 			THUMBNAILS: bucket,
-			QUEUE: queue,
-			MCP_SCREENSHOT_BROWSER_RATE_LIMITER: { limit: vi.fn(async () => ({ success: false })) },
+		})
+		const markerKey = getOgImageCacheKey(board).replace(/\.png$/, '.pending')
+
+		await enqueueOgImageRender(env, board, { reason: 'publish' })
+		expect(bucket.store.has(markerKey)).toBe(true)
+
+		await handleOgImageRenderMessage(env, makeMessage(board, 1))
+		expect(bucket.store.has(markerKey)).toBe(true)
+
+		await handleOgImageRenderMessage(env, makeMessage(board, 3))
+		expect(bucket.store.has(markerKey)).toBe(false)
+	})
+
+	// The give-up clears the pending marker so a genuine republish is not turned away — but for the
+	// crawler-triggered repair, "acted on immediately" is the attack: with the marker gone, the next
+	// unauthenticated request would re-arm a whole retry chain of Browser Run on a board that just
+	// proved it cannot render. The cooldown is what stands in for the marker on that one path, and
+	// only that path: a publish-triggered failure must not arm it, or the repair loses the immediate
+	// first attempt it exists to provide.
+	it('arms the repair cooldown when a crawler-triggered job gives up, and only then', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const board = { kind: 'published', slug: 'board' } as const
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => {
+				throw new Error('browser session failed')
+			}),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
 		})
 
-		const message = makeMessage({ kind: 'published', slug: 'board' })
+		// A retry is not a give-up, and a publish-triggered give-up arms nothing.
+		await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'crawler' }, 1))
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(false)
+		await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'publish' }, 3))
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(false)
+
+		// The crawler-triggered give-up is the one that does.
+		await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'crawler' }, 3))
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(true)
+	})
+
+	it('lets the repair cooldown lapse after OG_REPAIR_COOLDOWN_MS', async () => {
+		vi.useFakeTimers()
+		vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const board = { kind: 'published', slug: 'board' } as const
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => {
+				throw new Error('browser session failed')
+			}),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'crawler' }, 3))
+		const armedAt = Date.parse('2026-01-01T00:00:00Z')
+
+		vi.setSystemTime(armedAt + OG_REPAIR_COOLDOWN_MS - 1000)
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(true)
+
+		vi.setSystemTime(armedAt + OG_REPAIR_COOLDOWN_MS + 1000)
+		expect(await isOgImageRepairOnCooldown(env, board)).toBe(false)
+	})
+
+	// A board that fails deterministically fails every attempt, so reporting each delivery filed three
+	// events for one problem. The delivery that gives up is the one worth seeing, and it is already the
+	// only one that reaches telemetry. Tests pass no ExecutionContext, so reporting logs instead.
+	it('reports a failing render once per job rather than once per delivery', async () => {
+		const reported = vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => {
+				throw new Error('browser session failed')
+			}),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 1))
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 2))
+		expect(reported).not.toHaveBeenCalled()
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
+		expect(reported).toHaveBeenCalledTimes(1)
+		// No board identity in the report at all — not the slug, not a derived id. For a link-shared
+		// file the slug is the file id, and tldraw.com/f/<id> is the capability to view the board.
+		const context = reported.mock.calls[0]![1]
+		expect(context).toEqual({ kind: 'published', attempts: 3 })
+		expect(JSON.stringify(context)).not.toContain('board')
+	})
+
+	// Browser Run answers 422 for a crashed page, an out-of-memory render and every one of its timers
+	// alike, so the reason code has to come from the response body. Classify on the status alone and
+	// every timeout files as `browser_failed`, leaving the dashboard's timeout rate structurally zero.
+	it('classifies a Browser Run timeout from the response body, not the status', async () => {
+		const reported = vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(
+				async () =>
+					new Response(
+						JSON.stringify({
+							success: false,
+							errors: [{ code: 500, message: 'Navigation timeout of 45000 ms exceeded' }],
+						}),
+						{ status: 422 }
+					)
+			),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
+
+		expect(failureBlobsOf(env)).toEqual(['failure:browser_timeout'])
+		// The unbounded original goes to Sentry, where the cardinality that keeps it out of the blob
+		// doesn't matter and it is the only thing that says what actually went wrong.
+		expect(reported.mock.calls[0]![1]).toMatchObject({
+			browser_render_status: 422,
+			browser_render_detail: 'Navigation timeout of 45000 ms exceeded',
+		})
+	})
+
+	// The same 422 with a different cause: the render page marked data-thumbnail-error, so the
+	// success-only capture selector was absent and the call came back early.
+	it('classifies an early 422 as a render failure', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(
+				async () =>
+					new Response('Element not found: body[data-thumbnail-ready="true"]', { status: 422 })
+			),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
+
+		expect(failureBlobsOf(env)).toEqual(['failure:browser_failed'])
+	})
+
+	// A failed capture created a browser and held it, sometimes for the whole 45s timeout. Recording -1
+	// there would understate what an uncapped render path costs, which is the one number the "no global
+	// cap" design leans on watching.
+	it('records the Browser Run time a failed render spent, and none where it spent none', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			BROWSER: makeBrowserBinding(async () => new Response('boom', { status: 422 })),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
+		expect(renderDurationsOf(env)[0]).toBeGreaterThanOrEqual(0)
+
+		// An empty board never reaches the capture, so it keeps the "spent nothing" sentinel.
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(null as any)
+		const emptyBoardEnv = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+		await handleOgImageRenderMessage(
+			emptyBoardEnv,
+			makeMessage({ kind: 'published', slug: 'board' }, 3)
+		)
+		expect(failureBlobsOf(emptyBoardEnv)).toEqual(['failure:board_empty'])
+		expect(renderDurationsOf(emptyBoardEnv)).toEqual([-1])
+	})
+
+	// Thumbnail rendering is uncapped: the MCP endpoint's limiters exist to bound what an outside
+	// caller can spend, and this consumer is not caller-driven. A saturated MCP limiter must not stop a
+	// board's own thumbnail refreshing.
+	it('renders even when the MCP rate limiters are saturated, and never consults them', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const queue = { send: vi.fn(async () => undefined) }
+		const browserLimiter = { limit: vi.fn(async () => ({ success: false })) }
+		const env = makeEnv({
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+			QUEUE: queue,
+			MCP_SERVER_BROWSER_RATE_LIMITER: browserLimiter,
+		})
+
+		const message = makeMessage({ kind: 'published', slug: 'board', reason: 'edit' })
 		await handleOgImageRenderMessage(env, message)
 
-		// The requeue wrote a fresh pending marker, so a concurrent crawler enqueue dedupes onto this
-		// chain instead of spawning a second one.
-		queue.send.mockClear()
-		const result = await enqueueOgImageRender(env, { kind: 'published', slug: 'board' })
-		expect(result).toBe('already_pending')
+		expect(browserLimiter.limit).not.toHaveBeenCalled()
+		expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
+		expect(message.ack).toHaveBeenCalledTimes(1)
+		expect(message.retry).not.toHaveBeenCalled()
+		// No requeue chain: there is no backpressure signal left to requeue for.
 		expect(queue.send).not.toHaveBeenCalled()
+		expect(failureBlobsOf(env)).toEqual(['failure:none'])
+	})
+
+	it('records the trigger that asked for a completed render', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		await handleOgImageRenderMessage(
+			env,
+			makeMessage({ kind: 'published', slug: 'board', reason: 'publish' })
+		)
+
+		expect(blobsWithPrefix(env, 'reason:')).toEqual(['reason:publish'])
+	})
+
+	// A burst of edits enqueues once and renders once: the marker collapses the enqueues, and for any
+	// that slip past it the version check acks without spending Browser Run.
+	it('acks without rendering when the cache already matches the version', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const bucket = makeFakeThumbnailsBucket()
+		const env = makeEnv({ THUMBNAILS: bucket })
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }))
+		expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
+
+		// A second delivery for the same unchanged content renders nothing.
+		const duplicate = makeMessage({ kind: 'published', slug: 'board', reason: 'edit' })
+		await handleOgImageRenderMessage(env, duplicate)
+		expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
+		expect(duplicate.ack).toHaveBeenCalledTimes(1)
 	})
 })

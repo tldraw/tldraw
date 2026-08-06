@@ -77,12 +77,14 @@ import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
+import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
+import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
@@ -1001,6 +1003,45 @@ export class TLFileDurableObject extends DurableObject {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
 
+	// Whether a persist on this board costs a thumbnail render, and why. The single source of truth for
+	// both the gate in `requestOgRenderForEdit` and the `sharedState` blob on `persist_success`, so the
+	// telemetry cannot report a state that differs from the one the decision was made on.
+	//
+	// `deleted` is its own state rather than folded into `private` or `unknown`: it never renders, so
+	// counting its persists as either would corrupt the shared fraction this exists to measure.
+	//
+	// Both delete lanes count. A hard delete arrives as `appFileRecordDidDelete` and flips
+	// `documentInfo.deleted`; a soft delete (trash) arrives as an ordinary record update and only
+	// flips `isDeleted` on the cached row, leaving `documentInfo.deleted` false. The connection path
+	// already treats the two as one, and so does this.
+	private getBoardRenderState(): 'shared' | 'private' | 'unknown' | 'legacy' | 'deleted' {
+		if (!this.documentInfo.isApp) return 'legacy'
+		if (this.documentInfo.deleted || this._fileRecordCache?.isDeleted) return 'deleted'
+		const shared = this._fileRecordCache?.shared
+		if (shared === undefined) return 'unknown'
+		return shared ? 'shared' : 'private'
+	}
+
+	// Decides when this board's thumbnail is due (see OgRenderDebouncer). This object contributes the
+	// clock and the durable alarm, and the alarm below IS the deadline rather than an approximation of
+	// one: every persist re-arms it, so an eviction loses the in-memory copy and nothing else.
+	private ogRenderDebouncer = new OgRenderDebouncer()
+
+	private scheduleOgRender() {
+		this.ctx.storage
+			.setAlarm(this.ogRenderDebouncer.onPersist(Date.now()))
+			.catch((e) => this.reportError(e))
+	}
+
+	override async alarm() {
+		const result = this.ogRenderDebouncer.onAlarm(Date.now())
+		if (!result.render) {
+			await this.ctx.storage.setAlarm(result.reArmAt)
+			return
+		}
+		await this.requestOgRenderForEdit()
+	}
+
 	/**
 	 * Indexes every data point on this object's durable object id, so any event can be grouped by
 	 * room. The id is the one Cloudflare keys its own telemetry on — `$workers.durableObjectId` in
@@ -1025,7 +1066,14 @@ export class TLFileDurableObject extends DurableObject {
 	logEvent(event: TLServerEvent) {
 		switch (event.type) {
 			case 'persist_success': {
-				this.writeEvent(event.type, { doubles: [event.attempts] })
+				// This event fires on exactly what triggers a thumbnail render, so it carries what sizing
+				// that spend needs. `writeEvent` already indexes it on the durable object id, which makes
+				// distinct boards countable; `sharedState` is the other half, and has to be recorded here
+				// because the id is one-way and cannot be joined back to a file row.
+				this.writeEvent(event.type, {
+					blobs: [event.sharedState],
+					doubles: [event.attempts],
+				})
 				break
 			}
 			case 'room': {
@@ -1539,8 +1587,18 @@ export class TLFileDurableObject extends DurableObject {
 
 						await this.persistToPierre(storage, snapshot)
 
-						this.logEvent({ type: 'persist_success', attempts: attempt })
+						this.logEvent({
+							type: 'persist_success',
+							attempts: attempt,
+							sharedState: this.getBoardRenderState(),
+						})
 						this._lastPersistedClock = snapshot.documentClock
+						// The board's content just changed, so its thumbnail is out of date. Push the render
+						// deadline out rather than rendering now: the useful thumbnail is of the settled
+						// board, and a persist mid-session says more edits are probably coming. Costs one
+						// alarm write per persist, not awaited here (see scheduleOgRender), so a slow or
+						// failed write cannot hold up a persist.
+						this.scheduleOgRender()
 						// Store the clock in DO storage so we can compare against SQLite on next load.
 						if (this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })
@@ -1574,6 +1632,39 @@ export class TLFileDurableObject extends DurableObject {
 				this.logEvent({ type: 'room', name: 'fail_persist' })
 				this.reportError(e)
 			})
+	}
+
+	/**
+	 * Asks for this board's thumbnail to be re-rendered, because the content it depicts just changed.
+	 *
+	 * Called from `alarm()` when the debounce expires, so it runs once editing has settled or the max
+	 * wait is up. That debounce is the render rate control; there is no sampling or staleness gate on
+	 * top, because a persist means the saved content genuinely differs from what the cached thumbnail
+	 * shows. Downstream, the pending marker single-flights the ask and the consumer re-checks
+	 * `(board, version)` before spending a Browser Run slot — neither is a rate control either.
+	 */
+	private async requestOgRenderForEdit() {
+		try {
+			// Two states skip, and neither is about privacy: a legacy room is not an app file and has no
+			// board identity to render, and a deleted one has nothing worth depicting. `shared`, `private`
+			// and `unknown` all proceed — every board gets a thumbnail, so that an owner-facing surface has
+			// one to show. Sharing is a condition of *serving*, re-applied by the OG route per request.
+			const state = this.getBoardRenderState()
+			if (state === 'legacy' || state === 'deleted') return
+
+			const slug = this.documentInfo.slug
+			const result = await enqueueOgImageRender(
+				this.env,
+				{ kind: 'shared_file', slug },
+				{ reason: 'edit' }
+			)
+			// No board identifier: for a shared file the slug is a capability, and a derived id is still a
+			// board identity in a log sink. The result alone is what this line is for.
+			this.log.debug('og render for edit', result)
+		} catch (e) {
+			// Reported, not thrown: this runs off the persist path and must never affect it.
+			this.reportError(e)
+		}
 	}
 
 	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
@@ -2634,6 +2725,16 @@ export class TLFileDurableObject extends DurableObject {
 
 			// remove main file
 			await this.env.ROOMS.delete(r2Key)
+
+			// The board's thumbnails go with it. Both keys, because they are kept for different reasons
+			// and neither reason survives a hard delete: the file-keyed image is deliberately *not*
+			// deleted when a board is unshared (it stays useful behind auth, and resharing makes it an
+			// immediate hit), and the published-slug one only goes when the board is unpublished. Nothing
+			// else would ever remove either — `og/…` keys carry no version, so each board owns exactly one
+			// object, in a bucket with no lifecycle rule to sweep it. The render token record is dropped
+			// for the same reason. MCP screenshots need no equivalent: their keys carry a content version
+			// and their bucket has an expiration rule.
+			await deleteBoardThumbnails(this.env, { fileId: id, publishedSlug })
 
 			// finally clear storage so we don't keep the data around
 			this.ctx.storage.deleteAll()
