@@ -25,14 +25,13 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 		// workspace-delete cascade on an otherwise idle env) instead of sitting forever.
 		ctx.blockConcurrencyWhile(async () => {
 			const scheduled = await ctx.storage.getAlarm()
-			// A past-due persisted alarm may never fire (see poke()); re-arm it too.
+			// A past-due persisted alarm can't be trusted to fire; re-arm it too.
 			if (scheduled === null || scheduled <= Date.now()) {
 				await ctx.storage.setAlarm(Date.now() + SWEEP_INTERVAL_MS)
 			}
 		})
 	}
 
-	// same pattern as TLPostgresReplicator.ts:110-121
 	// eslint-disable-next-line tldraw/prefer-class-methods
 	private captureException = (exception: unknown, extras?: Record<string, unknown>) => {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -47,10 +46,9 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 	}
 
 	async poke() {
-		// Always (re)arm. Skipping when an alarm is already due (scheduled <= now) assumes the
-		// runtime will fire it momentarily — but a stale past-due alarm the runtime dropped
-		// (observed in local dev after restarts) then starves the queue forever, with every
-		// poke no-oping against it. Re-setting an imminent alarm is a harmless storage write.
+		// Always (re)arm: a past-due persisted alarm can't be trusted to fire (the runtime can
+		// drop one, e.g. across restarts), and re-setting an imminent alarm is a harmless
+		// storage write.
 		await this.ctx.storage.setAlarm(Date.now())
 	}
 
@@ -62,10 +60,9 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 			// crashes like an unreachable database
 			this.captureException(e)
 		} finally {
-			// Re-arm the sweep without swallowing a mid-drain poke. A poke that arrived during the
-			// drain set alarm(now) and is past-due by the time we get here; computeNextAlarm honors
-			// it with a ~1s delay rather than pushing it out to the next full sweep, while still
-			// never trusting a past-due alarm to fire on its own. null => leave it as-is.
+			// Re-arm the sweep without swallowing a mid-drain poke: a poke that arrived during
+			// the drain set alarm(now), which is past-due by now; computeNextAlarm re-arms it at
+			// ~1s (a past-due alarm can't be trusted to fire on its own). null => leave as-is.
 			const scheduled = await this.ctx.storage.getAlarm()
 			const next = computeNextAlarm(scheduled, Date.now(), SWEEP_INTERVAL_MS)
 			if (next !== null) await this.ctx.storage.setAlarm(next)
@@ -73,7 +70,8 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 	}
 
 	private drain() {
-		// Coalesce: one drain in flight; a poke during a drain lands on the next alarm.
+		// Coalesce: one drain in flight; a poke during a drain lands on the ~1s follow-up alarm
+		// computeNextAlarm arms after this drain finishes.
 		if (!this.drainPromise) {
 			const promise = this._drain().finally(() => {
 				// Identity guard: only clear the latch if it's still ours.

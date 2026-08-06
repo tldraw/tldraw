@@ -3,7 +3,7 @@ import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
 import { getRoomDurableObject } from './durableObjects'
 
-// Moved from TLPostgresReplicator. Errors propagate so the outbox consumer can retry.
+// Errors propagate so the outbox consumer can retry.
 export async function publishSnapshot(env: Environment, file: TlaFile) {
 	// make sure the room's snapshot is up to date
 	await getRoomDurableObject(env, file.id).awaitPersist()

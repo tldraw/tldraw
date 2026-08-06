@@ -177,10 +177,9 @@ export const adminRoutes = createRouter<Environment>()
 				status: 409,
 			})
 		}
-		// Nudge the outbox so the restore's effects (room DO reopen, etc.) land promptly instead
-		// of waiting for the 30s alarm sweep. poke() is cheap: it just schedules an alarm.
-		// Best-effort nudge: the sweep backstops it, so a poke failure must not fail the request
-		// (the restore already committed; a retry would just 400 with 'File is not deleted').
+		// Best-effort nudge so the restore's effects land promptly; the sweep backstops it, so a
+		// poke failure must not fail the request (the restore already committed; a retry would
+		// just 400 with 'File is not deleted').
 		await getFileEffectProcessor(env)
 			.poke()
 			.catch(() => {})
@@ -594,12 +593,10 @@ async function hardDeleteAppFile({
 		// do soft delete first if not done already; the outbox trigger records it
 		await pg.updateTable('file').set('isDeleted', true).where('id', '=', file.id).execute()
 	}
-	// No inline drain here: the DELETE FROM file below writes a terminal delete-row effect that
-	// kicks sessions and cleans up R2/room state via the post-delete poke() (sweep backstop
-	// ~30s), and the soft-delete row's effect is staleness-guarded so it skips harmlessly if it
-	// runs after the row is gone. Draining inline would also run once per file when
-	// performUserDeletion loops over a user's files, stacking whole-outbox drains on the
-	// singleton processor.
+	// Session kicks and R2/room cleanup ride the terminal delete-row effect written by the
+	// DELETE FROM file below, delivered via the post-delete poke() (sweep backstop ~30s); the
+	// soft-delete row's effect is staleness-guarded, so it skips harmlessly if it runs after
+	// the row is gone.
 	// clean up assets eagerly
 	const assets = await pg.selectFrom('asset').where('fileId', '=', file.id).selectAll().execute()
 	for (const asset of assets) {
