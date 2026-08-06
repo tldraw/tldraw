@@ -127,6 +127,14 @@ const router = createRouter<Environment>()
 		return initUser(req, env)
 	})
 	.post('/app/tldr', createFiles)
+	// Dev/preview only. Wakes the outbox processor: local workerd doesn't fire persisted alarms
+	// for an uninstantiated DO, so without this a restarted dev stack drains nothing until the
+	// first mutation. The dev stack's readiness probe hits this route.
+	.get('/app/outbox-status', async (_, env) => {
+		if (!isDebugLogging(env)) return notFound()
+		await getFileEffectProcessor(env).poke()
+		return new Response('ok')
+	})
 	.get('/app/file/:roomId', (req, env) => {
 		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
 			return forwardRoomRequest(req, env)
