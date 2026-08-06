@@ -350,8 +350,12 @@ const snapshots: Snapshots = {
 			'circle lined': (
 				<TL.image w={100} h={100} assetId={manAsset} border="lined" crop={manCropAsCircle} />
 			),
+			'hard shadow': <TL.image w={100} h={200} assetId={manAsset} border="shadow-hard" />,
 			'circle shadow': (
 				<TL.image w={100} h={100} assetId={manAsset} border="shadow" crop={manCropAsCircle} />
+			),
+			'circle hard shadow': (
+				<TL.image w={100} h={100} assetId={manAsset} border="shadow-hard" crop={manCropAsCircle} />
 			),
 		},
 		// The shadow should keep falling the same way in page space no matter how the
@@ -399,6 +403,15 @@ const snapshots: Snapshots = {
 					h={200}
 					assetId={manAsset}
 					border="lined"
+					rotation={degreesToRadians(135)}
+				/>
+			),
+			'135° hard shadow': (
+				<TL.image
+					w={100}
+					h={200}
+					assetId={manAsset}
+					border="shadow-hard"
 					rotation={degreesToRadians(135)}
 				/>
 			),

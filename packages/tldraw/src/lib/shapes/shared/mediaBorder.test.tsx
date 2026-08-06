@@ -186,6 +186,58 @@ describe('getMediaBorderSvg', () => {
 		})
 	})
 
+	describe('shadow-hard', () => {
+		it('paints an offset rect behind without registering a filter', () => {
+			const { ctx, addExportDef } = makeCtx()
+			const { behind, front } = getMediaBorderSvg({
+				border: 'shadow-hard',
+				w: 100,
+				h: 80,
+				isCircle: false,
+				rotation: 0,
+				idBase: 'shape:abc',
+				ctx,
+			})
+
+			expect(front).toBeNull()
+			expect(addExportDef).not.toHaveBeenCalled()
+			expect(behind!.type).toBe('rect')
+			expect(props(behind)).toMatchObject({ x: 6, y: 6, width: 100, height: 80 })
+		})
+
+		it('paints an offset ellipse behind for circle-cropped images', () => {
+			const { ctx } = makeCtx()
+			const { behind } = getMediaBorderSvg({
+				border: 'shadow-hard',
+				w: 120,
+				h: 90,
+				isCircle: true,
+				rotation: 0,
+				idBase: 'shape:e',
+				ctx,
+			})
+			expect(behind!.type).toBe('ellipse')
+			expect(props(behind)).toMatchObject({ cx: 66, cy: 51, rx: 60, ry: 45 })
+		})
+
+		it('counter-rotates the offset so it falls the same way in page space', () => {
+			const { ctx } = makeCtx()
+			const { behind } = getMediaBorderSvg({
+				border: 'shadow-hard',
+				w: 100,
+				h: 80,
+				isCircle: false,
+				rotation: Math.PI / 2,
+				idBase: 'shape:abc',
+				ctx,
+			})
+			// A quarter turn swings the down-right offset onto the local +x/-y axes,
+			// which the export group's rotation then puts back down-right on the page.
+			const { x, y } = props(behind) as { x: number; y: number }
+			expect({ x: round(x), y: round(y) }).toEqual({ x: 6, y: -6 })
+		})
+	})
+
 	describe('lined', () => {
 		it('paints a filled 1px frame on top with the light-mode color', () => {
 			const { ctx, addExportDef } = makeCtx('light')
@@ -202,7 +254,7 @@ describe('getMediaBorderSvg', () => {
 			expect(addExportDef).not.toHaveBeenCalled()
 			expect(front!.type).toBe('path')
 			expect(props(front)).toMatchObject({
-				fill: 'hsl(0, 0%, 0%, 4.3%)',
+				fill: 'hsl(0, 0%, 0%, 10%)',
 				fillRule: 'evenodd',
 				shapeRendering: 'crispEdges',
 				d: 'M-1 -1H101V81H-1Z M0 0H100V80H0Z',
@@ -234,7 +286,7 @@ describe('getMediaBorderSvg', () => {
 				idBase: 'shape:a',
 				ctx,
 			})
-			expect(props(front)).toMatchObject({ fill: 'hsl(0, 0%, 100%, 5%)' })
+			expect(props(front)).toMatchObject({ fill: 'hsl(0, 0%, 100%, 10%)' })
 		})
 
 		it('paints a filled ring for circle-cropped images', () => {
@@ -249,7 +301,7 @@ describe('getMediaBorderSvg', () => {
 				ctx,
 			})
 			expect(front!.type).toBe('path')
-			expect(props(front)).toMatchObject({ fillRule: 'evenodd', fill: 'hsl(0, 0%, 0%, 4.3%)' })
+			expect(props(front)).toMatchObject({ fillRule: 'evenodd', fill: 'hsl(0, 0%, 0%, 10%)' })
 		})
 	})
 })

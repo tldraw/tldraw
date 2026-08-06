@@ -171,6 +171,7 @@ export const DEFAULT_TRANSLATION = {
 	'border-style.none': 'None',
 	'border-style.lined': 'Lined',
 	'border-style.shadow': 'Shadow',
+	'border-style.shadow-hard': 'Hard shadow',
 	'size-style.s': 'Small',
 	'size-style.m': 'Medium',
 	'size-style.l': 'Large',

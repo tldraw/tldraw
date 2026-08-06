@@ -27,6 +27,7 @@ export type TLUiIconType =
 	| 'bookmark'
 	| 'border-lined'
 	| 'border-none'
+	| 'border-shadow-hard'
 	| 'border-shadow'
 	| 'bring-forward'
 	| 'bring-to-front'
@@ -196,6 +197,7 @@ export const iconTypes = [
 	'bookmark',
 	'border-lined',
 	'border-none',
+	'border-shadow-hard',
 	'border-shadow',
 	'bring-forward',
 	'bring-to-front',

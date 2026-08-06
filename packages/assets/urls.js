@@ -106,6 +106,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			bookmark: iconsIcon0MergedSvg + '#bookmark',
 			'border-lined': iconsIcon0MergedSvg + '#border-lined',
 			'border-none': iconsIcon0MergedSvg + '#border-none',
+			'border-shadow-hard': iconsIcon0MergedSvg + '#border-shadow-hard',
 			'border-shadow': iconsIcon0MergedSvg + '#border-shadow',
 			'bring-forward': iconsIcon0MergedSvg + '#bring-forward',
 			'bring-to-front': iconsIcon0MergedSvg + '#bring-to-front',
