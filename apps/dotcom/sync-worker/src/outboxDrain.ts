@@ -37,11 +37,16 @@ async function processWithTimeout(deps: OutboxDeps, row: TlaEffectOutbox): Promi
 	const timeout = new Promise<never>((_, reject) => {
 		timer = setTimeout(() => reject(new EffectTimeoutError(row, ms)), ms)
 	})
-	// Swallow a late rejection from the losing branch so it doesn't become an unhandled rejection.
+	// Swallow late rejections from BOTH branches: only the race's first settlement drives
+	// delete/bump. Without this, a timeout firing while deleteRow is still awaited (or a late
+	// work rejection) becomes an unhandled rejection.
+	timeout.catch(() => {})
 	const work = deps.process(row)
 	work.catch(() => {})
 	try {
 		await Promise.race([work, timeout])
+		// Stop the clock before the follow-up await so a slow deleteRow can't trip the timeout.
+		if (timer) clearTimeout(timer)
 		await deps.deleteRow(row.id)
 		return true
 	} catch (error) {
