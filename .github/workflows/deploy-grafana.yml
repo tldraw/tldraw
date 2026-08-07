@@ -18,9 +18,15 @@ defaults:
   run:
     shell: bash
 
+env:
+  GCX_VERSION: 1.0.0
+  GCX_SHA256: c88c65958d19d83dc3a192a2a5037e08307a9c776019f24249b89f369c9c4d41
+
 jobs:
   deploy:
     name: ${{ github.event_name == 'push' && 'Deploy grafana resources' || 'Validate grafana resources (dry run)' }}
+    # Validate and push both need the Grafana secrets, which fork PRs don't get.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     timeout-minutes: 10
     runs-on: ubuntu-latest
     concurrency: grafana-deploy-${{ github.event_name == 'push' && 'main' || github.ref }}
@@ -30,7 +36,12 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install gcx
-        run: curl -fsSL https://raw.githubusercontent.com/grafana/gcx/main/scripts/install.sh | sh
+        run: |
+          curl -fsSL -o gcx.tar.gz "https://github.com/grafana/gcx/releases/download/v${GCX_VERSION}/gcx_${GCX_VERSION}_linux_amd64.tar.gz"
+          echo "${GCX_SHA256}  gcx.tar.gz" | sha256sum -c -
+          tar xzf gcx.tar.gz gcx
+          sudo mv gcx /usr/local/bin/gcx
+          gcx --version
 
       - name: Validate resources
         run: gcx resources validate -p internal/grafana/resources
