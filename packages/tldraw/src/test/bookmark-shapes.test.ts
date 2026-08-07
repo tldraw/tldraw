@@ -1,5 +1,6 @@
 import { AssetRecordType, TLBookmarkShape, createShapeId, getHashForString } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { defaultHandleExternalUrlAsset } from '../lib/defaultExternalContentHandlers'
 import {
 	createBookmarkFromUrl,
 	getBookmarkShapeHeight,
@@ -480,5 +481,58 @@ describe('createBookmarkFromUrl', () => {
 		// resolved short bookmark, not the 320px placeholder.
 		expect(getBookmarkShapeHeight(editor, redone)).toBe(shortHeight)
 		expect(editor.getShapeGeometry(redone.id).bounds.height).toBe(shortHeight)
+	})
+})
+
+describe('defaultHandleExternalUrlAsset', () => {
+	const url = 'https://example.com/some/page'
+
+	const opts = {
+		toasts: { addToast: vi.fn(), removeToast: vi.fn(), clearToasts: vi.fn() },
+		msg: (id: string) => id,
+	} as any
+
+	function mockPageHead(head: string) {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue({
+				text: async () => `<html><head>${head}</head><body></body></html>`,
+			})
+		)
+	}
+
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	it('leaves the image and favicon empty when the page provides neither', async () => {
+		mockPageHead('<title>Example</title>')
+
+		const asset = await defaultHandleExternalUrlAsset(editor, { type: 'url', url }, opts)
+
+		// An absent image must stay absent. Resolving '' against the page would
+		// point the bookmark's <img> at the page's own HTML document.
+		expect(asset.props.image).toBe('')
+		expect(asset.props.favicon).toBe('')
+	})
+
+	it('resolves relative image and favicon urls against the page', async () => {
+		mockPageHead(
+			'<meta property="og:image" content="/img/preview.png" />' +
+				'<link rel="icon" href="favicon.ico" />'
+		)
+
+		const asset = await defaultHandleExternalUrlAsset(editor, { type: 'url', url }, opts)
+
+		expect(asset.props.image).toBe('https://example.com/img/preview.png')
+		expect(asset.props.favicon).toBe('https://example.com/some/favicon.ico')
+	})
+
+	it('leaves absolute image urls alone', async () => {
+		mockPageHead('<meta property="og:image" content="https://cdn.example.com/preview.png" />')
+
+		const asset = await defaultHandleExternalUrlAsset(editor, { type: 'url', url }, opts)
+
+		expect(asset.props.image).toBe('https://cdn.example.com/preview.png')
 	})
 })
