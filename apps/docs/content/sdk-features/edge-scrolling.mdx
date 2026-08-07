@@ -29,7 +29,7 @@ When the pointer enters the edge scroll zone, the manager tracks elapsed time. A
 
 ```typescript
 override onTick({ elapsed }: TLTickEventInfo) {
-	editor.edgeScrollManager.updateEdgeScrolling(elapsed)
+	this.editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 }
 ```
 
@@ -49,9 +49,9 @@ For touch input, the system expands the effective pointer size using `editor.opt
 
 ### Inset handling
 
-Edge detection respects screen insets from the editor's instance state. When an edge has an inset (like a toolbar or panel), that edge's scroll zone starts at the inset boundary rather than at the physical screen edge. This prevents scrolling when dragging near UI elements.
+Edge detection respects screen insets from the editor's instance state. The insets array records whether each edge of the editor is flush with the browser window, in CSS order: `[top, right, bottom, left]`.
 
-The insets array follows CSS convention: `[top, right, bottom, left]`. A truthy value means that edge has an inset and won't trigger edge scrolling.
+When an edge is flush with the window, the pointer can't move past it, so the scroll zone extends inward from that edge. When an edge is inset—the editor is embedded with other page content beside it—the zone starts at the editor's boundary instead, and scrolling begins once the pointer moves outside the editor.
 
 ## Scrolling behavior
 
@@ -77,14 +77,13 @@ const scrollDeltaY = (pxSpeed * proximityFactor.y * screenSizeFactorY) / zoomLev
 
 ### Conditions for scrolling
 
-The manager only moves the camera when all these conditions are met:
+The camera only moves when all these conditions are met:
 
-- The editor is dragging (`editor.inputs.getIsDragging()` returns true)
-- The editor is not panning (`editor.inputs.getIsPanning()` returns false)
+- The user is dragging, not panning. The built-in tool states check `editor.inputs.getIsDragging()` and `editor.inputs.getIsPanning()` before calling `updateEdgeScrolling()`.
 - The camera is not locked (`editor.getCameraOptions().isLocked` is false)
 - The proximity factor is non-zero for at least one axis
 
-If any condition fails, scrolling stops and the internal duration timer resets.
+When the pointer leaves the edge zone, scrolling stops and the internal duration timer resets.
 
 ## Configuration options
 
@@ -120,11 +119,11 @@ export default function App() {
 
 ### User preferences
 
-Users can adjust edge scroll speed through `editor.user.getEdgeScrollSpeed()`, which returns a multiplier that defaults to 1 and persists across sessions. This affects all edge scrolling uniformly without changing the base configuration.
+Edge scroll speed is also a user preference. `editor.user.getEdgeScrollSpeed()` returns a multiplier that defaults to 1, and you can change it with `editor.user.updateUserPreferences({ edgeScrollSpeed: 2 })`. The preference persists across sessions and scales all edge scrolling without changing the base configuration.
 
 ## Tool integration
 
-To add edge scrolling to your custom tool, call `updateEdgeScrolling()` in the tick handler. The manager reads the pointer position and drag state from the editor's input system, so you only need to pass the elapsed time.
+To add edge scrolling to your custom tool, call `updateEdgeScrolling()` in the tick handler. The manager reads the pointer position from the editor's input system, so you only need to pass the elapsed time. Like the built-in tool states, skip the call unless the user is dragging:
 
 ```typescript
 import { StateNode, TLTickEventInfo } from '@tldraw/editor'
@@ -133,7 +132,9 @@ export class CustomDragState extends StateNode {
 	static override id = 'dragging'
 
 	override onTick({ elapsed }: TLTickEventInfo) {
-		this.editor.edgeScrollManager.updateEdgeScrolling(elapsed)
+		const { editor } = this
+		if (!editor.inputs.getIsDragging() || editor.inputs.getIsPanning()) return
+		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 }
 ```

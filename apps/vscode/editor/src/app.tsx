@@ -135,7 +135,7 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 	}, [])
 
 	const licenseKey =
-		'tldraw-tldraw-2026-04-22/WyJyWWVGS2JHZSIsWyJ0bGRyYXctb3JnLnRsZHJhdy12c2NvZGUiXSw5LCIyMDI2LTA0LTIyIl0.2FrnO8fHmSUJI+vU2t2YFDdUL5mx+Lyk9NqaCVeZJG1FasJ6tfIv08m9tctEGzQG9BVVHT8g8/Wv/JJT5ueLAA'
+		'tldraw-tldraw-2027-05-22/WyJDOEVmdnNlQyIsWyJ2c2NvZGUtd2VidmlldzpcXC9cXC8uKnRsZHJhdy1vcmdcXC50bGRyYXctdnNjb2RlIl0sNDEsIjIwMjctMDUtMjIiXQ.s/4f2jMqZhK2eAHT0LjZZ48NAcrsZ7UdWMerUzQ6q8SZtpkMmuv3JoPviFo+xkfNxD4eaGTGWgHIYyX1VCbwXg'
 	return (
 		<Tldraw
 			assetUrls={assetUrls}

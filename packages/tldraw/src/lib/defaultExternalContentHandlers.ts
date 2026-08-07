@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Editor,
+	T,
 	TLAsset,
 	TLAssetId,
 	TLBookmarkAsset,
@@ -61,17 +62,21 @@ export interface TLExternalContentProps {
 	 */
 	maxAssetSize?: number
 	/**
-	 * The mime types of images that are allowed to be handled. When using the
-	 * `Tldraw` component, defaults to `DEFAULT_SUPPORTED_IMAGE_TYPES`. If neither
-	 * this nor `acceptedVideoMimeTypes` is provided, the registered asset utils
-	 * determine which MIME types are allowed.
+	 * The mime types of images that are allowed to be handled. When passed to
+	 * the `Tldraw` component, this also reconfigures the default `ImageAssetUtil`
+	 * to only accept files matching these types. If you only want to accept a
+	 * subset of image types and want to additionally block videos, pass
+	 * `acceptedVideoMimeTypes={[]}`. A file is accepted if its MIME type is in
+	 * this list, in `acceptedVideoMimeTypes`, or if any registered asset util
+	 * accepts it.
 	 */
 	acceptedImageMimeTypes?: readonly string[]
 	/**
-	 * The mime types of videos that are allowed to be handled. When using the
-	 * `Tldraw` component, defaults to `DEFAULT_SUPPORT_VIDEO_TYPES`. If neither
-	 * this nor `acceptedImageMimeTypes` is provided, the registered asset utils
-	 * determine which MIME types are allowed.
+	 * The mime types of videos that are allowed to be handled. When passed to
+	 * the `Tldraw` component, this also reconfigures the default `VideoAssetUtil`
+	 * to only accept files matching these types. A file is accepted if its MIME
+	 * type is in this list, in `acceptedImageMimeTypes`, or if any registered
+	 * asset util accepts it.
 	 */
 	acceptedVideoMimeTypes?: readonly string[]
 }
@@ -573,6 +578,22 @@ export async function defaultHandleExternalUrlContent(
 	{ point, url }: { point?: VecLike; url: string },
 	{ toasts, msg }: TLDefaultExternalContentHandlerOpts
 ) {
+	// Bookmark shapes validate their `url` prop with T.linkUrl, so a url we can't
+	// turn into a bookmark would throw a ValidationError and crash the editor
+	// (#8097) — e.g. Chrome with an ad blocker active rewrites dragged content
+	// urls to `about:blank#blocked`. This is a known, handled condition rather
+	// than a bug, so we tell the user with a toast and warn (not error) with the
+	// offending url as a local debugging breadcrumb — deliberately not reported
+	// to error tracking, where it would just be non-actionable noise.
+	if (!T.linkUrl.isValid(url)) {
+		console.warn(`Could not create a bookmark from an invalid url: ${JSON.stringify(url)}`)
+		toasts.addToast({
+			title: msg('assets.url.failed'),
+			severity: 'error',
+		})
+		return
+	}
+
 	// try to paste as an embed first
 	const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
 	const embedInfo = embedUtil?.getEmbedDefinition(url)
@@ -620,12 +641,31 @@ export async function defaultHandleExternalTldrawContent(
 			}
 		}
 
+		// While the user is mid-interaction (dragging a handle, translating,
+		// resizing, or rotating), selecting the pasted content would steal the
+		// selection from the shape being manipulated and interrupt the
+		// interaction — e.g. an arrow's in-progress binding hint disappears
+		// until the drag ends. Leave the selection alone in those cases.
+		const isMidInteraction = editor.isInAny(
+			'select.dragging_handle',
+			'select.translating',
+			'select.resizing',
+			'select.rotating'
+		)
+
 		editor.putContentOntoCurrentPage(content, {
 			point: point,
-			select: true,
+			select: !isMidInteraction,
 		})
 		const selectedBoundsAfter = editor.getSelectionPageBounds()
 		if (
+			// When mid-interaction we don't select the pasted content, so the
+			// selection is unchanged and the before/after bounds are identical —
+			// the overlap check would always pass. The selection flash below
+			// signals that the newly-selected pasted content landed on the old
+			// selection, which is meaningless when we didn't change the
+			// selection, so skip it.
+			!isMidInteraction &&
 			selectionBoundsBefore &&
 			selectedBoundsAfter &&
 			selectionBoundsBefore?.collides(selectedBoundsAfter)
@@ -826,11 +866,17 @@ export function notifyIfFileNotAllowed(
 		msg,
 	} = options
 
+	// Allow if any registered asset util accepts the MIME type, or if it matches
+	// an explicit allow-list. The asset-util branch lets custom AssetUtils
+	// (e.g. for PDFs) extend the default media handling — without it, files
+	// registered via `assetUtils` would be rejected because <Tldraw> forwards
+	// `DEFAULT_SUPPORTED_IMAGE_TYPES` / `DEFAULT_SUPPORT_VIDEO_TYPES` here, and
+	// custom MIME types aren't in those lists. The explicit-list branch supports
+	// callers that pass these props directly to restrict allowed types.
 	const isFileTypeAllowed =
-		acceptedImageMimeTypes || acceptedVideoMimeTypes
-			? (acceptedImageMimeTypes ?? []).includes(file.type) ||
-				(acceptedVideoMimeTypes ?? []).includes(file.type)
-			: !!editor.getAssetUtilForMimeType(file.type)
+		!!editor.getAssetUtilForMimeType(file.type) ||
+		(acceptedImageMimeTypes?.includes(file.type) ?? false) ||
+		(acceptedVideoMimeTypes?.includes(file.type) ?? false)
 	if (!isFileTypeAllowed) {
 		toasts.addToast({
 			title: msg('assets.files.type-not-allowed'),

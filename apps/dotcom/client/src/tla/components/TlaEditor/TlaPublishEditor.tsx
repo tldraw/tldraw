@@ -6,6 +6,7 @@ import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
+import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { globalEditor } from '../../../utils/globalEditor'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorPublishedSharePanel } from './editor-components/TlaEditorPublishedSharePanel'
@@ -48,6 +49,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
+				shapeUtils={embedShapeUtils}
 				snapshot={snapshot}
 				overrides={[fileEditorOverrides]}
 				onUiEvent={handleUiEvent}

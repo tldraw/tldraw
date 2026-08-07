@@ -33,6 +33,7 @@ const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 	shouldNotify: env.TLDRAW_ENV === 'production',
 	totalSteps: 3,
+	secretValues: Object.values(env),
 })
 
 const { previewId, sha } = getDeployInfo()
@@ -62,15 +63,16 @@ async function main() {
 		await deployBemoWorker({ dryRun: false })
 	})
 
-	// we set the domain in the wrangler.toml file since it's managed by cloudflare
-	const domain = toml.parse(readFileSync(join(workerDir, 'wrangler.toml')).toString())?.env[
+	// the deploy hostname comes from the env's route pattern in wrangler.toml
+	const routePattern = toml.parse(readFileSync(join(workerDir, 'wrangler.toml')).toString())?.env[
 		env.TLDRAW_ENV
 	]?.routes?.[0]?.pattern
-	if (!domain) {
-		throw new Error('Could not find the domain in wrangler.toml')
+	if (!routePattern) {
+		throw new Error('Could not find the route pattern in wrangler.toml')
 	}
 
-	const deploymentUrl = `https://${domain}`
+	// preview route patterns carry a path glob ("host/*"); the deployment URL wants just the host
+	const deploymentUrl = `https://${routePattern.split('/')[0]}`
 
 	nicelog('Creating deployment for', deploymentUrl)
 	await createGithubDeployment(env, {
@@ -88,7 +90,7 @@ async function deployBemoWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateBemoWorker) {
 		await setWranglerPreviewConfig(workerDir, {
 			name: workerId,
-			customDomain: `${previewId}-demo.tldraw.xyz`,
+			routeHostname: `${previewId}-demo.tldraw.xyz`,
 		})
 		didUpdateBemoWorker = true
 	}

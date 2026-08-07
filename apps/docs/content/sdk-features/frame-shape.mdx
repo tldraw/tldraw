@@ -1,24 +1,160 @@
 ---
 title: Frame shape
 created_at: 1/31/2026
-updated_at: 1/31/2026
+updated_at: 5/6/2026
 keywords:
   - frame
   - container
   - artboard
   - clipping
   - frame tool
-status: draft
-date: 1/31/2026
+  - BaseFrameLikeShapeUtil
+status: published
+date: 5/6/2026
 ---
 
-TODO: Document the frame shape including:
+The frame shape is a container with a labeled header that holds other shapes. Children of a frame are clipped to its bounds, follow the frame when it moves, and export together as a single image. Frames are useful for laying out artboards, screen mockups, slides, and any visual region that should travel as one unit.
 
-- Creating frames programmatically
-- Frame properties (name, color, dimensions)
-- Child clipping behavior
-- Frame header and naming
-- Configuration options (showColors, resizeChildren)
-- Frame tool interactions
-- Exporting frames
-- Difference between frames and groups
+```tsx
+editor.createShape({
+	type: 'frame',
+	x: 100,
+	y: 100,
+	props: {
+		w: 800,
+		h: 600,
+		name: 'Login screen',
+		color: 'black',
+	},
+})
+```
+
+## Creating frames
+
+You can create a frame programmatically with `editor.createShape`, or interactively with the frame tool. The frame tool ships in the default toolbar; users can also press `F` to switch to it.
+
+When the user drags a frame around existing shapes, the frame tool reparents any sibling shapes that fall fully inside the frame's bounds. Locked shapes are skipped. This is what makes "draw a frame around the things I want to group" work as a single gesture.
+
+Children inside a frame use coordinates relative to the frame's origin. Moving the frame moves every descendant; rotating the frame rotates them too.
+
+## Frame header
+
+Every frame renders a heading above its top edge that displays the frame's `name` property. Double-click the heading to start editing the name. The heading rotates with the frame to stay above whichever edge is currently "up", so it remains readable.
+
+Empty names render as `Frame` in exports so unnamed frames still get a label. The shape's `name` is also exposed via [ShapeUtil#getAriaDescriptor](?) so screen readers announce it during keyboard navigation.
+
+## Child clipping
+
+Frames clip their children to the frame's rectangle during rendering. A shape that extends past the frame edge is rendered up to the boundary and then cut off. Clipping is purely visual — the shape's geometry, hit testing, and bounds are unchanged.
+
+The `BaseFrameLikeShapeUtil` base class implements clipping via `getClipPath`. If you need clipping for a custom container shape, see the [Frames](/sdk-features/shapes#frames) section in the Shapes guide.
+
+## Shape properties
+
+| Property | Type                  | Description                                          |
+| -------- | --------------------- | ---------------------------------------------------- |
+| `w`      | `number`              | Frame width in pixels (default: `320`)               |
+| `h`      | `number`              | Frame height in pixels (default: `180`)              |
+| `name`   | `string`              | Label displayed in the frame header                  |
+| `color`  | `TLDefaultColorStyle` | Color for the border and heading (when `showColors`) |
+
+## Configuration options
+
+`FrameShapeUtil` exposes two configuration options:
+
+| Option           | Type      | Default | Description                                                                                             |
+| ---------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------- |
+| `showColors`     | `boolean` | `false` | When true, frames display a colored border and header background based on the frame's `color` property. |
+| `resizeChildren` | `boolean` | `false` | When true, resizing a frame scales its children proportionally instead of leaving them in place.        |
+
+```tsx
+import { FrameShapeUtil, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+const ConfiguredFrameUtil = FrameShapeUtil.configure({
+	showColors: true,
+	resizeChildren: true,
+})
+
+export default function App() {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw shapeUtils={[ConfiguredFrameUtil]} />
+		</div>
+	)
+}
+```
+
+When `showColors` is on, `color` becomes a real style property — users can change it from the style panel and it syncs across selections like other styles. With `showColors` off (the default), `color` still validates and persists, but the frame renders with a neutral palette so it doesn't compete visually with the shapes inside it.
+
+## Frame helpers
+
+The editor exposes helpers that work with frames and any other shape that opts into frame-like behavior.
+
+### Detecting frames
+
+```tsx
+// Check whether a shape is a frame (or a custom frame-like shape)
+const shape = editor.getShape(shapeId)
+if (shape && editor.isShapeFrameLike(shape)) {
+	// ...
+}
+```
+
+### Fitting a frame to its content
+
+`fitFrameToContent` resizes a frame so it tightly wraps its children, with a configurable padding. Use it after the user has finished arranging shapes inside an artboard:
+
+```tsx
+import { fitFrameToContent } from 'tldraw'
+
+fitFrameToContent(editor, frameId)
+
+// Or with a custom padding
+fitFrameToContent(editor, frameId, { padding: 24 })
+```
+
+### Removing a frame
+
+`removeFrame` deletes a frame but preserves its children — they're moved out of the frame and reselected so they survive:
+
+```tsx
+import { removeFrame } from 'tldraw'
+
+removeFrame(editor, [frameId])
+```
+
+This is also wired up to the **Remove frame** action (`Cmd/Ctrl+Shift+F`) and the **Fit frame to content** action in the actions menu and context menu when a frame is selected.
+
+## Exporting frames
+
+Frames are export bounds containers — `FrameShapeUtil.isExportBoundsContainer()` returns `true`. When a frame contains all the other shapes in an export, the export pipeline skips the usual padding around the result and uses the frame's bounds exactly. The export still includes every descendant of the frame.
+
+This makes frames ideal for mockup-style workflows where you need pixel-perfect output at a specific aspect ratio — design the frame, drop content inside, export.
+
+## Frames vs. groups
+
+Frames and groups both contain other shapes, but they solve different problems:
+
+|                              | Frame                                   | Group                            |
+| ---------------------------- | --------------------------------------- | -------------------------------- |
+| Visible on the canvas        | Yes — bordered rectangle with a heading | No — no visual representation    |
+| Clips children to its bounds | Yes                                     | No                               |
+| Has a fixed size and shape   | Yes (`w`, `h`, position)                | No (geometry follows children)   |
+| Used for export bounds       | Yes                                     | No                               |
+| Auto-deletes when empty      | No                                      | Yes (when last child is removed) |
+| Created by                   | Frame tool or `editor.createShape`      | `editor.groupShapes(...)`        |
+
+Reach for a frame when you want a labeled, bounded region — a slide, a screen, an artboard. Reach for a group when you just need to move several shapes together without changing their visual layout.
+
+## Related articles
+
+- [Shapes](/sdk-features/shapes#frames) — How to build your own container shape with `BaseFrameLikeShapeUtil`
+- [Default shapes](/sdk-features/default-shapes#frame) — Overview of all built-in shapes
+- [Shape clipping](/sdk-features/shape-clipping) — How custom shapes can clip their children
+- [Image export](/sdk-features/image-export) — Exporting frames and selections as images
+- [Parenting](/sdk-features/parenting) — How shapes are nested inside containers
+
+## Related examples
+
+- [Portal shapes](/examples/shapes/tools/portal-shapes) — A custom frame-like shape that teleports children between instances

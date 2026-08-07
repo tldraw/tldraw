@@ -17,13 +17,12 @@ accuracy: 9
 notes: Add more API links. Use more contractions for natural flow.
 ---
 
-Validation in tldraw is handled by `@tldraw/validate` and applied across schemas, record types, and shape props. Validators enforce runtime type safety and provide structured errors when data is malformed.
+The `@tldraw/validate` package handles validation across tldraw's schemas, record types, and shape props. Validators enforce runtime type safety and provide structured errors when data is malformed.
 
 ## Where validation runs
 
 - Shape and binding props via `RecordProps`
 - Record types in the Store via `createRecordType` and `StoreSchema`
-- Worker request parsing via `parseRequestBody` and `parseRequestQuery`
 
 ## Core validators
 
@@ -162,8 +161,8 @@ try {
 	userValidator.validate({ name: 'Alice', settings: { theme: 'invalid' } })
 } catch (error) {
 	if (error instanceof ValidationError) {
-		console.log(error.message) // "At settings.theme: Expected "light" or "dark", got "invalid""
-		console.log(error.rawMessage) // 'Expected "light" or "dark", got "invalid"'
+		console.log(error.message) // 'At settings.theme: Expected "light" or "dark", got invalid'
+		console.log(error.rawMessage) // 'Expected "light" or "dark", got invalid'
 		console.log(error.path) // ['settings', 'theme']
 	}
 }

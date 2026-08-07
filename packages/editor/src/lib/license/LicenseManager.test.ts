@@ -4,6 +4,7 @@ import { publishDates } from '../../version'
 import { str2ab } from '../utils/licensing'
 import {
 	FLAGS,
+	getEnabledFeatures,
 	getLicenseState,
 	LicenseManager,
 	PROPERTIES,
@@ -60,22 +61,30 @@ describe('LicenseManager', () => {
 			expect(result).toMatchObject({ isLicenseParseable: false, reason: 'no-key-provided' })
 		})
 
-		it('Signals that it is development mode when localhost', async () => {
-			const schemes = ['http', 'https']
-			for (const scheme of schemes) {
-				// @ts-ignore
-				delete window.location
-				// @ts-ignore
-				window.location = new URL(`${scheme}://localhost:3000`)
+		it('Signals that it is development mode for loopback hosts', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				const schemes = ['http', 'https']
+				const hosts = ['localhost', '127.0.0.1', '127.0.0.2', '[::1]']
+				for (const scheme of schemes) {
+					for (const host of hosts) {
+						// @ts-ignore
+						delete window.location
+						// @ts-ignore
+						window.location = new URL(`${scheme}://${host}:3000`)
 
-				const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
-				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
-				const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
-				expect(result).toMatchObject({
-					isLicenseParseable: true,
-					isDomainValid: false,
-					isDevelopment: true,
-				})
+						const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey)
+						const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+						const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
+						expect(result).toMatchObject({
+							isLicenseParseable: true,
+							isDomainValid: false,
+							isDevelopment: true,
+						})
+					}
+				}
+			} finally {
+				process.env.NODE_ENV = 'test'
 			}
 		})
 
@@ -500,6 +509,116 @@ describe('LicenseManager', () => {
 			expect(result.isEvaluationLicense).toBe(true)
 			expect(result.isEvaluationLicenseExpired).toBe(true)
 		})
+
+		it('Checks for the commenting feature flag', async () => {
+			const commentingLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			commentingLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.FEAT_COMMENTING
+			const commentingLicenseKey = await generateLicenseKey(
+				JSON.stringify(commentingLicenseInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				commentingLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isCommentingEnabled).toBe(true)
+			expect(result.isCollaborationEnabled).toBe(false)
+		})
+
+		it('Checks for the collaboration feature flag', async () => {
+			const collaborationLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			collaborationLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.FEAT_COLLABORATION
+			const collaborationLicenseKey = await generateLicenseKey(
+				JSON.stringify(collaborationLicenseInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				collaborationLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isCollaborationEnabled).toBe(true)
+			// The collaboration umbrella grants the commenting sub-feature.
+			expect(result.isCommentingEnabled).toBe(true)
+		})
+
+		it('Leaves feature flags off when no feature bits are set', async () => {
+			const standardLicenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+			const result = (await licenseManager.getLicenseFromKey(
+				standardLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isCollaborationEnabled).toBe(false)
+			expect(result.isCommentingEnabled).toBe(false)
+		})
+
+		it('Enables features synchronously in development, before validation resolves', () => {
+			process.env.NODE_ENV = 'development'
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL('https://www.example.com')
+
+			try {
+				// No await: the feature flags should already reflect development (all enabled) rather
+				// than the fail-closed default, which only lifts once async validation resolves.
+				const devLicenseManager = new LicenseManager('', keyPair.publicKey)
+				expect(devLicenseManager.isFeatureEnabled('commenting')).toBe(true)
+				expect(devLicenseManager.isFeatureEnabled('collaboration')).toBe(true)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+	})
+
+	describe('Expiry date timezone handling', () => {
+		afterEach(() => {
+			vi.useRealTimers()
+		})
+
+		// The named expiry date is minted as a date-only string and should mean "the license
+		// is fully usable through the end of that day in UTC", giving every user the same
+		// cutoff regardless of their local timezone.
+		async function makeEvaluationLicenseWithExpiry(expiry: string) {
+			const licenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			licenseInfo[PROPERTIES.FLAGS] = FLAGS.EVALUATION_LICENSE
+			licenseInfo[PROPERTIES.EXPIRY_DATE] = expiry
+			return generateLicenseKey(JSON.stringify(licenseInfo), keyPair)
+		}
+
+		it('Keeps the license valid through the end of the named expiry day (UTC)', async () => {
+			const key = await makeEvaluationLicenseWithExpiry('2026-06-26')
+
+			// The final moment of the named day is still valid.
+			vi.useFakeTimers()
+			vi.setSystemTime(new Date('2026-06-26T23:59:59.000Z'))
+			expect(
+				((await licenseManager.getLicenseFromKey(key)) as ValidLicenseKeyResult)
+					.isEvaluationLicenseExpired
+			).toBe(false)
+		})
+
+		it('Expires the license at the start of the day after the named expiry day (UTC)', async () => {
+			const key = await makeEvaluationLicenseWithExpiry('2026-06-26')
+
+			vi.useFakeTimers()
+			vi.setSystemTime(new Date('2026-06-27T00:00:01.000Z'))
+			expect(
+				((await licenseManager.getLicenseFromKey(key)) as ValidLicenseKeyResult)
+					.isEvaluationLicenseExpired
+			).toBe(true)
+		})
+
+		it('Does not expire early for users west of UTC who are still on the named day locally', async () => {
+			const key = await makeEvaluationLicenseWithExpiry('2026-06-26')
+
+			// Under the old logic a user west of UTC parsed the date one calendar day early and
+			// expired at the *start* of that day, losing most of a day. With the uniform UTC
+			// cutoff the license stays valid all through June 26 for everyone, no matter their
+			// local offset. 1pm UTC on June 26 is well before the cutoff, so it is still valid.
+			vi.useFakeTimers()
+			vi.setSystemTime(new Date('2026-06-26T13:00:00.000Z'))
+			expect(
+				((await licenseManager.getLicenseFromKey(key)) as ValidLicenseKeyResult)
+					.isEvaluationLicenseExpired
+			).toBe(false)
+		})
 	})
 
 	describe('License expiry and grace period', () => {
@@ -532,38 +651,54 @@ describe('LicenseManager', () => {
 		})
 
 		it('Handles grace period correctly - 20 days expired should still be within grace period', async () => {
-			const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-			const expiredDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 20) // 20 days ago
-			expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiredDate.toISOString()
+			// Pin the clock and use a date-only UTC expiry so the calculation is timezone
+			// independent. The named day is fully usable, so an expiry 20 calendar days before
+			// "now" has been past its usable window for 19 full days.
+			vi.useFakeTimers()
+			vi.setSystemTime(new Date('2026-06-26T12:00:00.000Z'))
+			try {
+				const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+				expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = '2026-06-06' // 20 days before now
 
-			const expiredLicenseKey = await generateLicenseKey(
-				JSON.stringify(expiredLicenseInfo),
-				keyPair
-			)
+				const expiredLicenseKey = await generateLicenseKey(
+					JSON.stringify(expiredLicenseInfo),
+					keyPair
+				)
 
-			// Test the getLicenseFromKey method to verify grace period calculation
-			const result = (await licenseManager.getLicenseFromKey(
-				expiredLicenseKey
-			)) as ValidLicenseKeyResult
-			expect(result.isAnnualLicense).toBe(true)
-			expect(result.isAnnualLicenseExpired).toBe(false) // Within 30-day grace period
-			expect(result.daysSinceExpiry).toBe(20)
+				// Test the getLicenseFromKey method to verify grace period calculation
+				const result = (await licenseManager.getLicenseFromKey(
+					expiredLicenseKey
+				)) as ValidLicenseKeyResult
+				expect(result.isAnnualLicense).toBe(true)
+				expect(result.isAnnualLicenseExpired).toBe(false) // Within 30-day grace period
+				expect(result.daysSinceExpiry).toBe(19)
+			} finally {
+				vi.useRealTimers()
+			}
 		})
 
 		it('Calculates days since expiry correctly', async () => {
-			const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-			const expiredDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 15) // 15 days ago
-			expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = expiredDate.toISOString()
+			// Pin the clock and use a date-only UTC expiry so the calculation is timezone
+			// independent. The named day is fully usable, so an expiry 15 calendar days before
+			// "now" has been past its usable window for 14 full days.
+			vi.useFakeTimers()
+			vi.setSystemTime(new Date('2026-06-26T12:00:00.000Z'))
+			try {
+				const expiredLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+				expiredLicenseInfo[PROPERTIES.EXPIRY_DATE] = '2026-06-11' // 15 days before now
 
-			const expiredLicenseKey = await generateLicenseKey(
-				JSON.stringify(expiredLicenseInfo),
-				keyPair
-			)
+				const expiredLicenseKey = await generateLicenseKey(
+					JSON.stringify(expiredLicenseInfo),
+					keyPair
+				)
 
-			const result = (await licenseManager.getLicenseFromKey(
-				expiredLicenseKey
-			)) as ValidLicenseKeyResult
-			expect(result.daysSinceExpiry).toBe(15)
+				const result = (await licenseManager.getLicenseFromKey(
+					expiredLicenseKey
+				)) as ValidLicenseKeyResult
+				expect(result.daysSinceExpiry).toBe(14)
+			} finally {
+				vi.useRealTimers()
+			}
 		})
 	})
 
@@ -605,6 +740,20 @@ describe('LicenseManager', () => {
 			)) as ValidLicenseKeyResult
 			expect(result.isPerpetualLicense).toBe(true)
 			expect(result.isPerpetualLicenseExpired).toBe(true)
+		})
+
+		it('Reports daysSinceExpiry as 0 for a perpetual license past its calendar expiry but still on a covered version', async () => {
+			// Calendar expiry was 10 days ago, but the installed version (publishDates.minor)
+			// was released before the expiry date, so the perpetual license still covers it.
+			const now = new Date()
+			const expiryDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 10)
+			const perpetualLicenseInfo = ['id', ['www.example.com'], FLAGS.PERPETUAL_LICENSE, expiryDate]
+			const licenseKey = await generateLicenseKey(JSON.stringify(perpetualLicenseInfo), keyPair)
+
+			const result = (await licenseManager.getLicenseFromKey(licenseKey)) as ValidLicenseKeyResult
+			expect(result.isPerpetualLicense).toBe(true)
+			expect(result.isPerpetualLicenseExpired).toBe(false)
+			expect(result.daysSinceExpiry).toBe(0)
 		})
 	})
 })
@@ -701,6 +850,8 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isLicensedWithWatermark: false,
 		isEvaluationLicense: false,
 		isEvaluationLicenseExpired: false,
+		isCollaborationEnabled: false,
+		isCommentingEnabled: false,
 		daysSinceExpiry: 0,
 		// WatermarkManager does not check these fields, it relies on the calculated values like isAnnualLicenseExpired
 		license: {
@@ -999,6 +1150,93 @@ describe('getLicenseState', () => {
 				'Your tldraw license has been expired for more than 30 days!',
 				'Please reach out to sales@tldraw.com to renew your license.',
 			])
+		})
+	})
+})
+
+describe('getEnabledFeatures', () => {
+	it('enables every feature in development regardless of flags', () => {
+		const result = getDefaultLicenseResult({
+			isCollaborationEnabled: false,
+			isCommentingEnabled: false,
+		})
+		expect(getEnabledFeatures(result, 'unlicensed', true)).toEqual({
+			collaboration: true,
+			commenting: true,
+		})
+	})
+
+	it('reflects the license flags for a valid licensed state', () => {
+		const result = getDefaultLicenseResult({
+			isCollaborationEnabled: false,
+			isCommentingEnabled: true,
+		})
+		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
+			collaboration: false,
+			commenting: true,
+		})
+	})
+
+	it('still grants features while showing a watermark', () => {
+		const result = getDefaultLicenseResult({
+			isCollaborationEnabled: true,
+			isCommentingEnabled: true,
+		})
+		expect(getEnabledFeatures(result, 'licensed-with-watermark', false)).toEqual({
+			collaboration: true,
+			commenting: true,
+		})
+	})
+
+	it.each(['unlicensed', 'unlicensed-production', 'expired', 'pending'] as const)(
+		'disables all features for the %s state in production',
+		(state) => {
+			const result = getDefaultLicenseResult({
+				isCollaborationEnabled: true,
+				isCommentingEnabled: true,
+			})
+			expect(getEnabledFeatures(result, state, false)).toEqual({
+				collaboration: false,
+				commenting: false,
+			})
+		}
+	)
+
+	it('enables every feature for an evaluation license regardless of flags', () => {
+		const result = getDefaultLicenseResult({
+			isEvaluationLicense: true,
+			isCollaborationEnabled: false,
+			isCommentingEnabled: false,
+		})
+		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
+			collaboration: true,
+			commenting: true,
+		})
+	})
+
+	it('disables all features for an expired evaluation license', () => {
+		const result = getDefaultLicenseResult({
+			isEvaluationLicense: true,
+			isEvaluationLicenseExpired: true,
+			isCollaborationEnabled: false,
+			isCommentingEnabled: false,
+		})
+		expect(getEnabledFeatures(result, 'expired', false)).toEqual({
+			collaboration: false,
+			commenting: false,
+		})
+	})
+
+	it('disables all features when the license is not parseable', () => {
+		expect(
+			getEnabledFeatures(
+				{ isLicenseParseable: false, reason: 'no-key-provided' },
+				'licensed',
+				false
+			)
+		).toEqual({
+			collaboration: false,
+			commenting: false,
 		})
 	})
 })

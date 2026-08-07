@@ -111,9 +111,7 @@ If shapes are already at the target position, no updates occur.
 
 ## Collaboration
 
-Fractional indexing works well for real-time collaboration. When two users simultaneously reorder shapes, they generate different indices in the same region of index space. Both operations succeed and merge cleanly.
-
-The jittering mentioned earlier is important here. Without it, two users inserting at the same position would generate identical indices, causing conflicts. With jittering, they get different indices that sort near each other but remain distinct.
+Fractional indexing works well for real-time collaboration. When two users simultaneously reorder shapes, jittering means they generate different indices in the same region of index space. Both operations succeed and merge cleanly.
 
 Since reordering only updates the moved shapes' indices, it doesn't interfere with other concurrent edits to different shapes.
 

@@ -1,0 +1,292 @@
+name: Publish SDK packages
+
+on:
+  push:
+    branches:
+      - main
+      - production
+      - 'v*.*.x'
+  pull_request:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      publish_type:
+        type: choice
+        description: What to publish
+        required: true
+        default: manual
+        options:
+          - manual
+          - new
+      version:
+        description: Version to republish (manual only)
+        required: false
+      bump_type:
+        type: choice
+        description: Version bump type (new release only)
+        required: false
+        default: minor
+        options:
+          - minor
+          - major
+          - override
+      version_override:
+        type: string
+        description: Version override (new release only)
+        required: false
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  contents: read
+
+jobs:
+  remove-label:
+    name: Remove the publish-packages label
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.label.name == 'publish-packages' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Remove the publish-packages label
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: publish-packages
+
+  publish:
+    name: Publish SDK packages
+    if: |
+      github.event_name != 'pull_request' ||
+      (
+        github.event.label.name == 'publish-packages' &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      )
+    environment: npm deploy
+    timeout-minutes: 60
+    runs-on: ubuntu-latest-16-cores-arm-open
+    concurrency:
+      group: ${{ (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/heads/v')) && 'npm-publish' || format('npm-publish-{0}', github.run_id) }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    outputs:
+      mode: ${{ steps.publish_mode.outputs.mode }}
+      version: ${{ steps.version.outputs.value }}
+      is_latest_version: ${{ steps.publish.outputs.is_latest_version }}
+
+    steps:
+      - name: Determine publish mode
+        id: publish_mode
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_LABEL_NAME: ${{ github.event.label.name }}
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
+          DISPATCH_PUBLISH_TYPE: ${{ inputs.publish_type }}
+          DISPATCH_VERSION: ${{ inputs.version }}
+          DISPATCH_BUMP_TYPE: ${{ inputs.bump_type }}
+          DISPATCH_VERSION_OVERRIDE: ${{ inputs.version_override }}
+        run: |
+          mode=
+          bemo_url=https://demo.tldraw.xyz
+          use_huppy=false
+
+          case "$EVENT_NAME" in
+            push)
+              if [[ "$REF" == "refs/heads/main" ]]; then
+                mode=canary
+                bemo_url=https://canary-demo.tldraw.xyz
+              elif [[ "$REF" == "refs/heads/production" ]]; then
+                mode=next
+                bemo_url=https://canary-demo.tldraw.xyz
+              elif [[ "$REF_NAME" =~ ^v[0-9]+\.[0-9]+\.x$ ]]; then
+                mode=patch
+                use_huppy=true
+              fi
+              ;;
+            pull_request)
+              if [[ "$EVENT_LABEL_NAME" == "publish-packages" ]]; then
+                mode=internal
+                bemo_url=https://canary-demo.tldraw.xyz
+              fi
+              ;;
+            workflow_dispatch)
+              mode="$DISPATCH_PUBLISH_TYPE"
+              if [[ "$mode" == "manual" || "$mode" == "new" ]]; then
+                use_huppy=true
+              fi
+              ;;
+          esac
+
+          if [[ -z "$mode" ]]; then
+            echo "ERROR Could not determine publish mode for $EVENT_NAME on $REF."
+            exit 1
+          fi
+
+          if [[ "$mode" == "manual" && -z "$DISPATCH_VERSION" ]]; then
+            echo "ERROR You must provide a version when manually republishing packages."
+            exit 1
+          fi
+
+          if [[ "$mode" == "new" ]]; then
+            if [[ "$REF_NAME" != "production" ]]; then
+              echo "ERROR You must be on the production branch to publish a new version."
+              exit 1
+            fi
+            if [[ "$DISPATCH_BUMP_TYPE" != "minor" && "$DISPATCH_BUMP_TYPE" != "major" && "$DISPATCH_BUMP_TYPE" != "override" ]]; then
+              echo "ERROR New releases must use a minor, major, or override bump type."
+              exit 1
+            fi
+            if [[ "$DISPATCH_BUMP_TYPE" != "override" && -n "$DISPATCH_VERSION_OVERRIDE" ]]; then
+              echo "ERROR You must set the bump type to override if you supply a custom version number override."
+              exit 1
+            fi
+            if [[ "$DISPATCH_BUMP_TYPE" == "override" && -z "$DISPATCH_VERSION_OVERRIDE" ]]; then
+              echo "ERROR You must supply a version override when using the override bump type."
+              exit 1
+            fi
+          fi
+
+          {
+            echo "mode=$mode"
+            echo "bemo_url=$bemo_url"
+            echo "use_huppy=$use_huppy"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Generate GH token
+        id: generate_token
+        if: steps.publish_mode.outputs.use_huppy == 'true'
+        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
+        with:
+          app_id: ${{ secrets.HUPPY_APP_ID }}
+          private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
+
+      - name: Check out code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: ${{ steps.publish_mode.outputs.use_huppy != 'true' }}
+          token: ${{ (steps.publish_mode.outputs.use_huppy == 'true' && steps.generate_token.outputs.token) || github.token }}
+
+      - name: Configure git credentials
+        if: steps.publish_mode.outputs.use_huppy == 'true'
+        run: |
+          git config --global url."https://x-access-token:${{ steps.generate_token.outputs.token }}@github.com/".insteadOf "https://github.com/"
+          git config --global user.name 'huppy-bot[bot]'
+          git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Publish
+        id: publish
+        env:
+          GH_TOKEN: ${{ (steps.publish_mode.outputs.use_huppy == 'true' && steps.generate_token.outputs.token) || github.token }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
+          TLDRAW_BEMO_URL: ${{ steps.publish_mode.outputs.bemo_url }}
+          TLDRAW_VERSION_STRING: ${{ inputs.version }}
+          PUBLISH_MODE: ${{ steps.publish_mode.outputs.mode }}
+          BUMP_TYPE: ${{ inputs.bump_type }}
+          VERSION_OVERRIDE: ${{ inputs.version_override }}
+        run: |
+          case "$PUBLISH_MODE" in
+            canary | internal | next)
+              yarn tsx ./internal/scripts/publish-prerelease.ts "$PUBLISH_MODE"
+              ;;
+            patch)
+              yarn tsx ./internal/scripts/publish-patch.ts
+              ;;
+            manual)
+              yarn tsx ./internal/scripts/publish-manual.ts
+              ;;
+            new)
+              bump="${BUMP_TYPE:-minor}"
+              if [[ "$bump" == "override" ]]; then
+                bump="$VERSION_OVERRIDE"
+              fi
+              yarn tsx ./internal/scripts/publish-new.ts --bump "$bump"
+              ;;
+            *)
+              echo "ERROR Unknown publish mode: $PUBLISH_MODE"
+              exit 1
+              ;;
+          esac
+
+      - name: Get published version
+        id: version
+        run: echo "value=$(jq -r .version ./packages/tldraw/package.json)" >> "$GITHUB_OUTPUT"
+
+      # Tell tldraw-internal to update its pinned SDK version. Fires only on a
+      # `next` publish — the prerelease channel the internal monorepo tracks.
+      # The tldraw-internal "Update tldraw" workflow listens for the
+      # `tldraw-release` repository_dispatch and resolves the latest `next`
+      # version itself, so the payload version is informational.
+      - name: Generate tldraw-internal token
+        if: steps.publish_mode.outputs.mode == 'next'
+        id: generate_internal_token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.HUPPY_APP_ID }}
+          private-key: ${{ secrets.HUPPY_PRIVATE_KEY }}
+          owner: tldraw
+          repositories: tldraw-internal
+
+      - name: Notify tldraw-internal
+        if: steps.publish_mode.outputs.mode == 'next'
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ steps.generate_internal_token.outputs.token }}" \
+            https://api.github.com/repos/tldraw/tldraw-internal/dispatches \
+            -d '{"event_type":"tldraw-release","client_payload":{"version":"${{ steps.version.outputs.value }}","tag":"next"}}'
+
+      # Earlier steps run before checkout, so re-fetch the local action on failure.
+      - name: Check out Discord notify action
+        if: failure()
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/actions/discord-fail-notify
+
+      - name: Notify Discord on failure
+        if: failure()
+        uses: ./.github/actions/discord-fail-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+
+  comment:
+    name: Tell user released version
+    if: needs.publish.outputs.mode == 'internal'
+    needs: publish
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Tell user released version
+        uses: actions-ecosystem/action-create-comment@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            Published version ${{ needs.publish.outputs.version }} to npm.
+
+  publish_templates:
+    name: Publishes code templates to separate repositories
+    uses: tldraw/tldraw/.github/workflows/publish-templates.yml@main
+    if: needs.publish.outputs.mode == 'new' || ((needs.publish.outputs.mode == 'patch' || needs.publish.outputs.mode == 'manual') && needs.publish.outputs.is_latest_version == 'true')
+    secrets:
+      HUPPY_PRIVATE_KEY: ${{ secrets.HUPPY_PRIVATE_KEY }}
+      HUPPY_APP_ID: ${{ vars.HUPPY_APP_ID }}
+      DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+    needs: publish

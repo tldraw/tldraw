@@ -1,18 +1,19 @@
 import { EvaluatedFeatureFlag, FeatureFlagKey } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
-import { fetch, getFromLocalStorage } from 'tldraw'
+import { fetch } from 'tldraw'
 
 export type FeatureFlags = Record<FeatureFlagKey, EvaluatedFeatureFlag>
 
 export const DEFAULT_FLAGS: FeatureFlags = {
-	zero_enabled: { enabled: false },
-	zero_kill_switch: { enabled: false },
 	rum_enabled: { enabled: false },
+	commenting_enabled: { enabled: false },
+	mcp_friends_and_family: { enabled: false },
 }
 
-let flagsPromise: Promise<FeatureFlags> | null = null
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }
+let flagsPromise: Promise<FeatureFlags> | null = null
 let _wasAuthenticated = false
+let _hasResolvedOnce = false
 
 export function fetchFeatureFlags(): Promise<FeatureFlags> {
 	if (!flagsPromise) {
@@ -25,14 +26,16 @@ export function fetchFeatureFlags(): Promise<FeatureFlags> {
 					// Allow subsequent callers to refetch once auth is available
 					flagsPromise = null
 				}
-				const flags = await r.json()
+				const flags = (await r.json()) as FeatureFlags
 				currentFlags = flags
-				return flags as FeatureFlags
+				_hasResolvedOnce = true
+				return flags
 			} catch (err) {
 				console.error('[FeatureFlags] fetch failed:', err)
 				flagsPromise = null
 				_wasAuthenticated = false
 				currentFlags = { ...DEFAULT_FLAGS }
+				_hasResolvedOnce = true
 				return { ...DEFAULT_FLAGS }
 			}
 		})()
@@ -44,6 +47,20 @@ export function wasAuthenticated(): boolean {
 	return _wasAuthenticated
 }
 
+export function getCurrentFlags(): FeatureFlags {
+	return currentFlags
+}
+
+/**
+ * Whether the feature flag fetch has settled at least once (either
+ * successfully or by falling back to defaults). Used by the A/B hook to
+ * decide whether the values returned by `getCurrentFlags()` are meaningful
+ * yet, or whether we should wait.
+ */
+export function hasResolvedFlagsOnce(): boolean {
+	return _hasResolvedOnce
+}
+
 // Start fetching immediately — fast path for returning users with valid cookies.
 // If the session cookie is missing/expired the response header indicates the flags
 // were evaluated without auth, and useAppState will retry once Clerk is ready.
@@ -52,41 +69,19 @@ fetchFeatureFlags()
 const REFETCH_INTERVAL = 60000 // 1 minute
 
 /**
- * Determines whether a flag change should trigger a page reload.
- * Only reloads when zero_kill_switch transitions to true AND the user
- * was actually using proper Zero (no point reloading polyfill users).
- */
-export function shouldReloadForFlagChange(prev: FeatureFlags, next: FeatureFlags): boolean {
-	const prevKillSwitch = prev.zero_kill_switch?.enabled
-	const nextKillSwitch = next.zero_kill_switch?.enabled
-	if (nextKillSwitch !== true || prevKillSwitch === true) return false
-	// Only reload if this user was actually on proper Zero
-	const wasUsingZero = prev.zero_enabled?.enabled || getFromLocalStorage('useProperZero') === 'true'
-	return !!wasUsingZero
-}
-
-/**
- * Polls for feature flag changes after the initial fetch.
- * - zero_kill_switch: reload when it becomes true (emergency abort)
- * - zero_enabled: changes are silent, take effect on next page load
+ * Polls for feature flag changes after the initial fetch, so changes
+ * (e.g., rum_enabled) take effect without a reload.
  */
 export function FeatureFlagPoller() {
 	useEffect(() => {
 		let mounted = true
-		let prevFlags: FeatureFlags = { ...currentFlags }
 
 		async function pollFlags() {
 			try {
 				const response = await fetch('/api/app/feature-flags')
 				if (!response.ok) return
-				const data = await response.json()
+				const data = (await response.json()) as FeatureFlags
 				if (!mounted) return
-
-				if (shouldReloadForFlagChange(prevFlags, data)) {
-					location.reload()
-					return
-				}
-				prevFlags = data
 				currentFlags = data
 			} catch (err) {
 				console.warn('[FeatureFlags] poll error:', err)
@@ -97,7 +92,6 @@ export function FeatureFlagPoller() {
 
 		fetchFeatureFlags().then(() => {
 			if (!mounted) return
-			prevFlags = { ...currentFlags }
 			interval = setInterval(pollFlags, REFETCH_INTERVAL)
 		})
 

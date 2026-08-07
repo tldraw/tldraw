@@ -1,5 +1,5 @@
-import { TlaFile, TlaUser } from '@tldraw/dotcom-shared'
-import { ReactNode, createContext, useContext } from 'react'
+import { Role, TlaFile, TlaUser } from '@tldraw/dotcom-shared'
+import { createContext, useContext } from 'react'
 import { trackEvent } from '../../utils/analytics'
 import { TldrawAppSessionState } from './local-session-state'
 
@@ -14,6 +14,7 @@ export type TLAppUiEventSource =
 	| 'file-header'
 	| 'anon-landing-page'
 	| 'anon-top-bar'
+	| 'comments'
 	| 'account-menu'
 	| 'top-bar'
 	| 'legacy-import-button'
@@ -21,10 +22,19 @@ export type TLAppUiEventSource =
 	| 'app'
 	| 'cookie-settings'
 	| 'dialog'
+	| 'workspace-settings'
 
 /** @public */
 export interface TLAppUiEventMap {
 	'create-file': null
+	'create-workspace': null
+	'rename-workspace': null
+	'delete-workspace': null
+	'leave-workspace': null
+	'remove-workspace-member': null
+	'set-workspace-member-role': { role: Role }
+	'set-workspace-invite-link-enabled': { enabled: boolean }
+	'regenerate-workspace-invite-secret': null
 	'delete-file': null
 	'rename-file': { name: string }
 	'duplicate-file': null
@@ -63,8 +73,8 @@ export interface TLAppUiEventMap {
 	'create-user': null
 	'room-size-warning-dialog-shown': null
 	'room-size-limit-dialog-shown': null
-	'accept-group-invite': null
-	'add-file-link': null
+	'accept-workspace-invite': null
+	'set-color-theme': { theme: string }
 }
 
 /** @public */
@@ -83,21 +93,6 @@ const defaultEventHandler: TLAppUiContextType = trackEvent
 
 /** @internal */
 export const EventsContext = createContext<TLAppUiContextType>(defaultEventHandler)
-
-/** @public */
-export interface TldrawAppUiEventsProviderProps {
-	onEvent?: TLAppUiHandler
-	children: ReactNode
-}
-
-/** @public @react */
-export function TldrawAppUiEventsProvider({ onEvent, children }: TldrawAppUiEventsProviderProps) {
-	return (
-		<EventsContext.Provider value={onEvent ?? defaultEventHandler}>
-			{children}
-		</EventsContext.Provider>
-	)
-}
 
 /** @public */
 export function useTldrawAppUiEvents(): TLAppUiContextType {

@@ -273,6 +273,7 @@ export class ImmutableMap<K, V> {
 	 * console.log(map.get('missing', 'default')) // 'default'
 	 * ```
 	 */
+	get(k: K, notSetValue: V): V
 	get(k: K, notSetValue?: V): V {
 		return this._root ? this._root.get(0, undefined as any, k, notSetValue)! : notSetValue!
 	}

@@ -11,6 +11,7 @@ const ALIGN_OPERATIONS = [
 	{ operation: 'top', label: 'Align top' },
 	{ operation: 'center-vertical', label: 'Align center V' },
 	{ operation: 'bottom', label: 'Align bottom' },
+	{ operation: 'center', label: 'Align center' },
 ] as const
 
 function ControlPanel({
@@ -164,7 +165,7 @@ export default function RequestAlignAndDistributeShapesExample() {
 
 /*
 [1]
-Define an array of all align operations with their labels. This makes it easy to render buttons for each operation without repetition. The available operations are: left, center-horizontal, right (horizontal alignment), and top, center-vertical, bottom (vertical alignment).
+Define an array of all align operations with their labels. This makes it easy to render buttons for each operation without repetition. The available operations are: left, center-horizontal, right (horizontal alignment); top, center-vertical, bottom (vertical alignment); and center (both axes).
 
 [2]
 The alignShapes method requires at least 2 shapes to be selected. It aligns the selected shapes based on the specified operation. The shapes parameter can be either shape IDs or shape objects.

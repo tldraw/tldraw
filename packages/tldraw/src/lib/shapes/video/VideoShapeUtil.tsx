@@ -10,7 +10,6 @@ import {
 	VecModel,
 	WeakCache,
 	createShapeId,
-	toDomPrecision,
 	useEditor,
 	useEditorComponents,
 	useIsEditing,
@@ -102,14 +101,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 	component(shape: TLVideoShape) {
 		return <VideoShape shape={shape} />
-	}
-
-	indicator(shape: TLVideoShape) {
-		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLVideoShape): Path2D {

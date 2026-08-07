@@ -92,8 +92,10 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		)
 	}
 
-	override indicator() {
-		return <rect width={32} height={32} x={offsetX} y={offsetY} />
+	override getIndicatorPath() {
+		const path = new Path2D()
+		path.rect(offsetX, offsetY, 32, 32)
+		return path
 	}
 
 	override onTranslateStart(shape: StickerShape) {

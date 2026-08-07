@@ -59,8 +59,10 @@ export class CounterShapeUtil extends BaseBoxShapeUtil<CounterShape> {
 		)
 	}
 
-	override indicator(shape: CounterShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	override getIndicatorPath(shape: CounterShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 

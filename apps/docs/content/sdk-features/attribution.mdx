@@ -24,7 +24,7 @@ The attribution system lets you track which users create or edit shapes. Connect
 
 ## User store
 
-A `TLUserStore` provides two reactive signals: `currentUser` for the active user, and `resolve` for looking up any user by ID. Pass it as the `users` prop on the [Tldraw](?) component or sync hooks:
+A `TLUserStore` provides a reactive `currentUser` signal for the active user and an optional `resolve` method for looking up other users by ID. Pass it as the `users` prop on the [Tldraw](?) component or sync hooks:
 
 ```tsx
 import { computed, createUserId, Tldraw, TLUserStore, UserRecordType } from 'tldraw'

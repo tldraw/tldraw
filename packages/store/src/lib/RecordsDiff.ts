@@ -1,4 +1,4 @@
-import { objectMapEntries } from '@tldraw/utils'
+import { objectMapValues } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 
 /**
@@ -79,7 +79,7 @@ export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R
  */
 export function reverseRecordsDiff(diff: RecordsDiff<any>) {
 	const result: RecordsDiff<any> = { added: diff.removed, removed: diff.added, updated: {} }
-	for (const [from, to] of Object.values(diff.updated)) {
+	for (const [from, to] of objectMapValues(diff.updated)) {
 		result.updated[from.id] = [to, from]
 	}
 	return result
@@ -107,11 +107,16 @@ export function reverseRecordsDiff(diff: RecordsDiff<any>) {
  * @public
  */
 export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>) {
-	return (
-		Object.keys(diff.added).length === 0 &&
-		Object.keys(diff.updated).length === 0 &&
-		Object.keys(diff.removed).length === 0
-	)
+	return !hasAnyKey(diff.added) && !hasAnyKey(diff.updated) && !hasAnyKey(diff.removed)
+}
+
+// Cheaper than Object.keys().length, but note that for-in still pays an O(N)
+// key-collection prologue on dictionary-mode objects (which diffs become once keys
+// are deleted from them) — avoid calling this on large diffs in per-frame hot paths.
+/** @internal */
+export function hasAnyKey(obj: object) {
+	for (const _ in obj) return true
+	return false
 }
 
 /**
@@ -155,11 +160,14 @@ export function squashRecordDiffs<T extends UnknownRecord>(
 		mutateFirstDiff?: boolean
 	}
 ): RecordsDiff<T> {
-	const result = options?.mutateFirstDiff
-		? diffs[0]
-		: ({ added: {}, removed: {}, updated: {} } as RecordsDiff<T>)
+	if (options?.mutateFirstDiff) {
+		const result = diffs[0]
+		squashRecordDiffsMutable(result, diffs, 1)
+		return result
+	}
 
-	squashRecordDiffsMutable(result, options?.mutateFirstDiff ? diffs.slice(1) : diffs)
+	const result = { added: {}, removed: {}, updated: {} } as RecordsDiff<T>
+	squashRecordDiffsMutable(result, diffs)
 	return result
 }
 
@@ -201,48 +209,121 @@ export function squashRecordDiffs<T extends UnknownRecord>(
  */
 export function squashRecordDiffsMutable<T extends UnknownRecord>(
 	target: RecordsDiff<T>,
-	diffs: RecordsDiff<T>[]
+	diffs: RecordsDiff<T>[],
+	fromIndex = 0
 ): void {
-	for (const diff of diffs) {
-		for (const [id, value] of objectMapEntries(diff.added)) {
-			if (target.removed[id]) {
+	squashRecordDiffsMutableImpl(target, diffs, fromIndex)
+}
+
+/**
+ * Applies only records of a given type from an array of diffs to a target diff. Returns the net
+ * change in the number of entries in the target.
+ *
+ * @internal
+ */
+export function squashRecordDiffsMutableByType<
+	T extends UnknownRecord,
+	TypeName extends T['typeName'],
+>(
+	target: RecordsDiff<Extract<T, { typeName: TypeName }>>,
+	diffs: RecordsDiff<T>[],
+	typeName: TypeName
+): number {
+	return squashRecordDiffsMutableImpl(target, diffs, 0, typeName)
+}
+
+function squashRecordDiffsMutableImpl<T extends UnknownRecord>(
+	target: RecordsDiff<T>,
+	diffs: RecordsDiff<T>[],
+	fromIndex: number,
+	typeName?: T['typeName']
+): number {
+	let sizeChange = 0
+	const trackSize = typeName !== undefined
+
+	// This runs on every history interceptor call — e.g. once per input tick while
+	// resizing N shapes, with N entries in diff.updated — so the updated loop must not
+	// allocate per entry. We use for-in instead of Object.entries, mutate the target's
+	// existing [from, to] tuples in place, and skip delete calls against collections we
+	// know are empty. In-place tuple mutation is safe because the target exclusively
+	// owns its updated tuples: they are always created here (never shared with a source
+	// diff), and sources are never mutated.
+	for (let i = fromIndex; i < diffs.length; i++) {
+		const diff = diffs[i]
+		// target.removed can only lose entries before the removed loop below, so a
+		// stale `true` is harmless (extra no-op deletes).
+		const targetHasRemoved = hasAnyKey(target.removed)
+
+		for (const _id in diff.added) {
+			const id = _id as IdOf<T>
+			const value = diff.added[id]
+			if (typeName !== undefined && value.typeName !== typeName) continue
+			if (targetHasRemoved && target.removed[id]) {
 				const original = target.removed[id]
 				delete target.removed[id]
+				if (trackSize) sizeChange--
 				if (original !== value) {
 					target.updated[id] = [original, value]
+					if (trackSize) sizeChange++
 				}
 			} else {
+				if (trackSize && !target.added[id]) sizeChange++
 				target.added[id] = value
 			}
 		}
 
-		for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
-			if (target.added[id]) {
+		// the added loop above may have inserted into target.added
+		const targetHasAdded = hasAnyKey(target.added)
+
+		for (const _id in diff.updated) {
+			const id = _id as IdOf<T>
+			const to = diff.updated[id][1]
+			if (typeName !== undefined && to.typeName !== typeName) continue
+			if (targetHasAdded && target.added[id]) {
 				target.added[id] = to
+				if (trackSize && target.updated[id]) sizeChange--
 				delete target.updated[id]
-				delete target.removed[id]
+				if (targetHasRemoved) {
+					if (trackSize && target.removed[id]) sizeChange--
+					delete target.removed[id]
+				}
 				continue
 			}
-			if (target.updated[id]) {
-				target.updated[id] = [target.updated[id][0], to]
-				delete target.removed[id]
+			const existing = target.updated[id]
+			if (existing) {
+				existing[1] = to
+				if (targetHasRemoved) {
+					if (trackSize && target.removed[id]) sizeChange--
+					delete target.removed[id]
+				}
 				continue
 			}
 
-			target.updated[id] = diff.updated[id]
-			delete target.removed[id]
+			// copy the tuple so the target owns it and can mutate it in place later
+			target.updated[id] = [diff.updated[id][0], to]
+			if (trackSize) sizeChange++
+			if (targetHasRemoved) {
+				if (trackSize && target.removed[id]) sizeChange--
+				delete target.removed[id]
+			}
 		}
 
-		for (const [id, value] of objectMapEntries(diff.removed)) {
+		for (const _id in diff.removed) {
+			const id = _id as IdOf<T>
+			if (typeName !== undefined && diff.removed[id].typeName !== typeName) continue
 			// the same record was added in this diff sequence, just drop it
 			if (target.added[id]) {
 				delete target.added[id]
+				if (trackSize) sizeChange--
 			} else if (target.updated[id]) {
 				target.removed[id] = target.updated[id][0]
 				delete target.updated[id]
 			} else {
-				target.removed[id] = value
+				if (trackSize && !target.removed[id]) sizeChange++
+				target.removed[id] = diff.removed[id]
 			}
 		}
 	}
+
+	return sizeChange
 }

@@ -1,4 +1,4 @@
-import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
 
 export class PointingCrop extends StateNode {
 	static override id = 'pointing_crop'
@@ -18,6 +18,20 @@ export class PointingCrop extends StateNode {
 
 	override onPointerUp(info: TLPointerEventInfo) {
 		this.editor.setCurrentTool('select.crop.idle', info)
+	}
+
+	override onDoubleClick(info: TLClickEventInfo) {
+		if (
+			this.editor.inputs.getShiftKey() ||
+			info.phase !== 'down' ||
+			info.ctrlKey ||
+			info.shiftKey
+		) {
+			return
+		}
+
+		this.parent.transition('idle')
+		this.parent.getCurrent()?.handleEvent(info)
 	}
 
 	startDragging(info: TLPointerEventInfo) {

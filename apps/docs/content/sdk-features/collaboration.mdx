@@ -117,7 +117,7 @@ See the [Assets](/docs/assets) documentation for more on implementing asset stor
 
 ## User identity
 
-By default, users get a random name and color from localStorage. To customize this, pass a `users` store whose methods return reactive `Signal` values:
+By default, users get a default name and a random color, stored in localStorage. To customize this, pass a `users` store whose methods return reactive `Signal` values:
 
 ```tsx
 import { computed, UserRecordType, createUserId } from 'tldraw'
@@ -326,6 +326,26 @@ export default function App({ roomId }: { roomId: string }) {
 
 Pass the shape and binding utilities to both the sync hook (for schema registration) and the Tldraw component (for rendering). If they don't match, shapes may fail to sync or render correctly.
 
+## Comments
+
+Comment threads sync the same way, through record types you opt into with the `records` option:
+
+```tsx
+import { useSync } from '@tldraw/sync'
+import { commentSchemaRecords } from 'tldraw'
+
+const store = useSync({
+	uri: `wss://your-server.com/sync/${roomId}`,
+	assets: myAssetStore,
+	records: commentSchemaRecords,
+})
+```
+
+Your server's schema needs the same registration. On the server you can also serve comments through
+the room's object-store lane, which gates them by their own per-session permission—so a viewer who
+can't edit the document can still comment. See [Commenting](/sdk-features/commenting) for the tool,
+the canvas layer, and the server setup.
+
 ## Building custom sync
 
 The `@tldraw/sync` package handles many complexities: connection management, reconnection, conflict resolution, and protocol versioning. For most applications, it's the right choice. However, you might need custom sync when integrating with existing infrastructure, using a different transport (like WebRTC), or implementing specialized conflict resolution.
@@ -469,7 +489,8 @@ editor.store.listen(
 Here's a minimal example using a WebSocket for broadcast sync (no conflict resolution):
 
 ```tsx
-import { Tldraw, createTLStore, defaultShapeUtils, TLRecord } from 'tldraw'
+import { useEffect, useRef, useState } from 'react'
+import { Tldraw, createTLStore, defaultShapeUtils } from 'tldraw'
 
 function App() {
 	const [store] = useState(() => createTLStore({ shapeUtils: defaultShapeUtils }))

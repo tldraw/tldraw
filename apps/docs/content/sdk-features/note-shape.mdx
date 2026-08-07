@@ -50,7 +50,7 @@ Notes display clone handles on their edges—small plus buttons at the top, righ
 
 **Drag a clone handle** to create a new note and immediately begin moving it. When you release, the new note enters edit mode. Spawn notes and position them freely.
 
-Clone handles only appear when the note is selected and the zoom level is high enough. At very low zoom levels (below 25%), handles are hidden entirely. Between 25-50% zoom, only the bottom handle appears to reduce visual clutter.
+Clone handles only appear when the note is selected and the zoom level is high enough. At very low zoom levels (below 25%), handles are hidden entirely. Between 25-50% zoom, only the bottom handle appears to reduce visual clutter. Touch input never shows clone handles.
 
 ```tsx
 // Clone handles are returned by getHandles on the note shape
@@ -68,12 +68,12 @@ This snapping only works between notes with the same rotation and scale. The spa
 
 When editing a note, you can use keyboard shortcuts to create adjacent notes:
 
-| Shortcut            | Action                      |
-| ------------------- | --------------------------- |
-| **Tab**             | Create or select note right |
-| **Shift+Tab**       | Create or select note left  |
-| **Cmd/Ctrl+Enter**  | Create or select note below |
-| **Shift+Cmd+Enter** | Create or select note above |
+| Shortcut                 | Action                      |
+| ------------------------ | --------------------------- |
+| **Tab**                  | Create or select note right |
+| **Shift+Tab**            | Create or select note left  |
+| **Cmd/Ctrl+Enter**       | Create or select note below |
+| **Shift+Cmd/Ctrl+Enter** | Create or select note above |
 
 These shortcuts respect the current note's rotation. They also handle right-to-left text: in RTL content, Tab moves left instead of right.
 
@@ -89,19 +89,20 @@ The note's text color is determined by its `labelColor` property. When set to `'
 
 ## Properties
 
-| Property             | Type                            | Description                                                 |
-| -------------------- | ------------------------------- | ----------------------------------------------------------- |
-| `color`              | `TLDefaultColorStyle`           | Background color of the note                                |
-| `labelColor`         | `TLDefaultColorStyle`           | Text color (independent of background)                      |
-| `richText`           | `TLRichText`                    | Note content with formatting                                |
-| `size`               | `TLDefaultSizeStyle`            | Size preset (`s`, `m`, `l`, `xl`) affecting base font       |
-| `font`               | `TLDefaultFontStyle`            | Font family (`draw`, `sans`, `serif`, `mono`)               |
-| `align`              | `TLDefaultHorizontalAlignStyle` | Horizontal text alignment                                   |
-| `verticalAlign`      | `TLDefaultVerticalAlignStyle`   | Vertical text alignment                                     |
-| `fontSizeAdjustment` | `number`                        | Runtime font size (set automatically based on content)      |
-| `growY`              | `number`                        | Additional height beyond the base 200px (set automatically) |
-| `url`                | `string`                        | Optional hyperlink URL                                      |
-| `scale`              | `number`                        | Scale factor applied to the shape                           |
+| Property             | Type                            | Description                                                                      |
+| -------------------- | ------------------------------- | -------------------------------------------------------------------------------- |
+| `color`              | `TLDefaultColorStyle`           | Background color of the note                                                     |
+| `labelColor`         | `TLDefaultColorStyle`           | Text color (independent of background)                                           |
+| `richText`           | `TLRichText`                    | Note content with formatting                                                     |
+| `size`               | `TLDefaultSizeStyle`            | Size preset (`s`, `m`, `l`, `xl`) affecting base font                            |
+| `font`               | `TLDefaultFontStyle`            | Font family (`draw`, `sans`, `serif`, `mono`)                                    |
+| `align`              | `TLDefaultHorizontalAlignStyle` | Horizontal text alignment                                                        |
+| `verticalAlign`      | `TLDefaultVerticalAlignStyle`   | Vertical text alignment                                                          |
+| `fontSizeAdjustment` | `number \| null`                | Ratio applied to the base font size when text shrinks to fit (set automatically) |
+| `growY`              | `number`                        | Additional height beyond the base 200px (set automatically)                      |
+| `url`                | `string`                        | Optional hyperlink URL                                                           |
+| `scale`              | `number`                        | Scale factor applied to the shape                                                |
+| `textFirstEditedBy`  | `string \| null`                | ID of the user who first edited the note's text                                  |
 
 ## Configuration
 
@@ -130,6 +131,8 @@ export default function App() {
 }
 ```
 
+See the [note resizing example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/examples/configuration/resize-note) for a working demo.
+
 ## Dynamic resize mode
 
 When `editor.user.getIsDynamicResizeMode()` is true, new notes are created at a scale inversely proportional to the current zoom level. Notes stay visually consistent regardless of zoom level when created.
@@ -137,5 +140,12 @@ When `editor.user.getIsDynamicResizeMode()` is true, new notes are created at a 
 ```tsx
 // If dynamic resize mode is on and zoom is 2x, new notes get scale: 0.5
 // If zoom is 0.5x, new notes get scale: 2
-const scale = editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1
+const scale = editor.getResizeScaleFactor()
 ```
+
+## Related articles
+
+- [Attribution](/sdk-features/attribution) — How notes display "first edited by" labels in multiplayer sessions
+- [Default shapes](/sdk-features/default-shapes) — Overview of all built-in shapes
+- [Rich text](/sdk-features/rich-text) — Working with formatted text content
+- [Styles](/sdk-features/styles) — Working with shape styles like color and size

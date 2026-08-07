@@ -12,7 +12,6 @@ import {
 	exhaustiveSwitchError,
 	isEqual,
 	objectMapEntries,
-	structuredClone,
 	uniqueId,
 } from '@tldraw/utils'
 import {
@@ -25,6 +24,7 @@ import {
 } from './diff'
 import { interval } from './interval'
 import {
+	TLObjectStoreAccess,
 	TLPushRequest,
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
@@ -438,8 +438,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * @param self - The TLSyncClient instance that connected
 	 * @param details - Connection details
 	 *   - isReadonly - Whether the connection is in read-only mode
+	 *   - objectAccess - Write access for object-store lane record types (defaults to 'write'
+	 *     when the server doesn't send it, e.g. older servers or rooms with no object lane)
 	 */
-	private readonly onAfterConnect?: (self: this, details: { isReadonly: boolean }) => void
+	private readonly onAfterConnect?: (
+		self: this,
+		details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
+	) => void
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
@@ -479,7 +484,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
-		onAfterConnect?(self: TLSyncClient<R, S>, details: { isReadonly: boolean }): void
+		onAfterConnect?(
+			self: TLSyncClient<R, S>,
+			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
+		): void
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
@@ -758,7 +766,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.isConnectedToRoom = true
 			// this.store.applyDiff(stashedChanges, false)
 
-			this.onAfterConnect?.(this, { isReadonly: event.isReadonly })
+			this.onAfterConnect?.(this, {
+				isReadonly: event.isReadonly,
+				objectAccess: event.objectAccess ?? 'write',
+			})
 			const presence = this.presenceState?.get()
 			if (presence) {
 				this.pushPresence(presence)
@@ -826,6 +837,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.disposables.forEach((dispose) => dispose())
 		this.sendUnsentChanges.cancel?.()
 		this.scheduleRebase.cancel?.()
+		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
+			delete (window as any).tlsync
+		}
 	}
 
 	private lastPushedPresenceState: R | null = null
@@ -850,10 +864,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		// in offline mode, we only accumulate in speculativeChanges
 		if (!this.isConnectedToRoom) return
 		if (!this.unsentChanges.nextDiff) {
-			this.unsentChanges.nextDiff = structuredClone(change)
-		} else {
-			squashRecordDiffsMutable(this.unsentChanges.nextDiff, [change])
+			this.unsentChanges.nextDiff = { added: {} as any, updated: {} as any, removed: {} as any }
 		}
+		// records are immutable, so sharing their references with `change` is fine — the
+		// squash gives nextDiff its own containers and tuples without deep-cloning records
+		squashRecordDiffsMutable(this.unsentChanges.nextDiff, [change])
 		this.sendUnsentChanges()
 	}
 

@@ -17,16 +17,15 @@ export function DefaultContextMenuContent() {
 	const editor = useEditor()
 	const showCollaborationUi = useShowCollaborationUi()
 
-	const selectToolActive = useValue(
-		'isSelectToolActive',
-		() => editor.getCurrentToolId() === 'select',
-		[editor]
-	)
 	const isSinglePageMode = useValue('isSinglePageMode', () => editor.options.maxPages <= 1, [
 		editor,
 	])
 
-	if (!selectToolActive) return null
+	// Note: we intentionally don't bail out for non-select tools. Each submenu
+	// below self-hides when it has nothing to offer (no selection, no shapes,
+	// readonly), so the menu carries the right items in any tool — e.g. Paste
+	// and Select all after a touch long-press while a shape tool is active.
+	// (Closes #8828.)
 
 	return (
 		<>

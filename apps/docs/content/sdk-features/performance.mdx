@@ -257,6 +257,30 @@ If performance degrades with many shapes, look for:
 - Expensive calculations inside component render functions
 - Continuous animations on many shapes
 
+### Subscribing to performance events
+
+For programmatic monitoring — telemetry, RUM, or in-app dashboards — the editor exposes [PerformanceManager](?) at `editor.performance`. Subscribe to events and you'll get aggregated frame-time stats from real interactions, with no overhead when no listeners are attached:
+
+```ts
+const unsub = editor.performance.on('interaction-end', (event) => {
+	console.log(`${event.name}: ${event.fps.toFixed(1)} fps, p95=${event.p95FrameTime.toFixed(1)}ms`)
+})
+// later: unsub()
+```
+
+The `'interaction-end'` event fires when an interaction state exits, with `fps`, `p95FrameTime`, and (in supporting browsers) Long Animation Frame attribution. `'camera-end'` fires after pan/zoom debounce with the same shape. `'shapes-created'`, `'shapes-updated'`, and `'shapes-deleted'` carry per-type counts. `'frame'` fires every animation frame while a listener is attached. See [TLPerfEventMap](?) for the full set.
+
+Custom tools opt into interaction tracking by setting [StateNode#trackPerformance](?) on the state node class. When the state is entered, the manager starts a tracking window; when it exits, it emits `'interaction-start'` / `'interaction-end'` with the state path. Built-in interactions like `select.translating` and `draw.drawing` already track, so you only need this for custom states.
+
+If you're profiling in Chrome DevTools, [PerformanceApiAdapter](?) wires the same events into native `performance.mark()` / `performance.measure()` calls so they show up on the Performance timeline:
+
+```ts
+import { PerformanceApiAdapter } from 'tldraw'
+
+const adapter = new PerformanceApiAdapter(editor.performance)
+// later: adapter.dispose()
+```
+
 ## Related
 
 - [Culling](/sdk-features/culling) — How viewport culling works and how to control it

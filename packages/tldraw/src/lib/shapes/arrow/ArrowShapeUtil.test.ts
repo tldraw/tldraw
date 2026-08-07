@@ -488,6 +488,37 @@ describe("an arrow's parents", () => {
 	let boxBid: TLShapeId
 	let boxCid: TLShapeId
 
+	function createArrowBoundToFrame() {
+		const arrowId = createShapeId('frameArrow')
+		editor.createShapes([
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 50,
+				y: 50,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 40, y: 40 },
+				},
+			},
+		])
+		createOrUpdateArrowBinding(editor, arrowId, frameId, {
+			terminal: 'start',
+			isExact: false,
+			isPrecise: false,
+			normalizedAnchor: { x: 0.2, y: 0.2 },
+			snap: 'none',
+		})
+		createOrUpdateArrowBinding(editor, arrowId, frameId, {
+			terminal: 'end',
+			isExact: false,
+			isPrecise: false,
+			normalizedAnchor: { x: 0.8, y: 0.8 },
+			snap: 'none',
+		})
+		return arrowId
+	}
+
 	beforeEach(() => {
 		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 
@@ -506,13 +537,127 @@ describe("an arrow's parents", () => {
 		boxCid = editor.getOnlySelectedShape()!.id
 	})
 
+	it('parents an arrow bound to the same frame on both ends to that frame without clipping it', () => {
+		const arrowId = createArrowBoundToFrame()
+
+		expect(arrow(arrowId).parentId).toBe(frameId)
+		expect(editor.getShapeClipPath(arrowId)).toBeUndefined()
+		expect(bindings(arrowId)).toMatchObject({
+			start: { toId: frameId },
+			end: { toId: frameId },
+		})
+	})
+
+	it('parents an arrow bound to two different frames to the page', () => {
+		const otherFrameId = createShapeId('otherFrame')
+		const arrowId = createShapeId('twoFrameArrow')
+		editor.createShapes([
+			{
+				id: otherFrameId,
+				type: 'frame',
+				x: 150,
+				y: 0,
+				props: { w: 100, h: 100 },
+			},
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 50,
+				y: 50,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 150, y: 0 },
+				},
+			},
+		])
+		createOrUpdateArrowBinding(editor, arrowId, frameId, {
+			terminal: 'start',
+			isExact: false,
+			isPrecise: false,
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
+		})
+		createOrUpdateArrowBinding(editor, arrowId, otherFrameId, {
+			terminal: 'end',
+			isExact: false,
+			isPrecise: false,
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
+		})
+
+		expect(arrow(arrowId).parentId).toBe(editor.getCurrentPageId())
+		expect(bindings(arrowId)).toMatchObject({
+			start: { toId: frameId },
+			end: { toId: otherFrameId },
+		})
+	})
+
+	it('does not clip an arrow that is bound only to shapes inside the frame', () => {
+		const arrowId = createShapeId('childArrow')
+		editor.createShapes([
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 15,
+				y: 15,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 0, y: 70 },
+				},
+			},
+		])
+		createOrUpdateArrowBinding(editor, arrowId, boxAid, {
+			terminal: 'start',
+			isExact: false,
+			isPrecise: false,
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
+		})
+		createOrUpdateArrowBinding(editor, arrowId, boxBid, {
+			terminal: 'end',
+			isExact: false,
+			isPrecise: false,
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			snap: 'none',
+		})
+
+		expect(arrow(arrowId).parentId).toBe(frameId)
+		expect(editor.getShapeClipPath(arrowId)).toBeUndefined()
+	})
+
+	it('duplicates an arrow bound to the same frame on both ends when duplicating the frame', () => {
+		createArrowBoundToFrame()
+
+		editor.select(frameId).duplicateShapes([frameId])
+
+		const duplicatedFrameId = editor.getOnlySelectedShape()!.id
+		const duplicatedArrowId = editor
+			.getSortedChildIdsForParent(duplicatedFrameId)
+			.find((childId) => editor.getShape(childId)?.type === 'arrow')
+
+		expect(duplicatedArrowId).toBeDefined()
+		expect(arrow(duplicatedArrowId!).parentId).toBe(duplicatedFrameId)
+		expect(bindings(duplicatedArrowId!)).toMatchObject({
+			start: { toId: duplicatedFrameId },
+			end: { toId: duplicatedFrameId },
+		})
+	})
+
+	it('deletes an arrow bound to the same frame on both ends when deleting the frame', () => {
+		const arrowId = createArrowBoundToFrame()
+
+		editor.deleteShapes([frameId])
+
+		expect(editor.getShape(arrowId)).toBeUndefined()
+	})
+
 	it("are updated when the arrow's bound shapes change", () => {
 		// draw arrow from a to empty space within frame, but don't pointer up yet
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(15, 15).pointerMove(50, 50)
 		const arrowId = editor.getOnlySelectedShape()!.id
 
-		expect(arrow(arrowId).parentId).toBe(editor.getCurrentPageId())
+		expect(arrow(arrowId).parentId).toBe(frameId)
 
 		// move arrow to b
 		editor.pointerMove(15, 85)
@@ -524,7 +669,7 @@ describe("an arrow's parents", () => {
 
 		// move back to empty space
 		editor.pointerMove(50, 50)
-		expect(arrow(arrowId).parentId).toBe(editor.getCurrentPageId())
+		expect(arrow(arrowId).parentId).toBe(frameId)
 		expect(bindings(arrowId)).toMatchObject({
 			start: { toId: boxAid },
 			end: { toId: frameId },

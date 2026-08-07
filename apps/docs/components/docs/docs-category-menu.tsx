@@ -34,7 +34,7 @@ const categoryLinks = [
 	{
 		caption: 'Examples',
 		icon: PlayIcon,
-		href: '/examples',
+		href: '/examples/basic',
 		active: (pathname: string) => pathname.startsWith('/examples'),
 	},
 ]

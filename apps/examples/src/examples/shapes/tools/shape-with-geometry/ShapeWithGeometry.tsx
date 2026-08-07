@@ -73,11 +73,11 @@ class HouseShapeUtil extends ShapeUtil<HouseShape> {
 		)
 	}
 	// [3]
-	override indicator(shape: HouseShape) {
+	override getIndicatorPath(shape: HouseShape) {
 		const { house: houseVertices, door: doorVertices } = getHouseVertices(shape)
 		const housePathData = 'M' + houseVertices[0] + 'L' + houseVertices.slice(1) + 'Z'
 		const doorPathData = 'M' + doorVertices[0] + 'L' + doorVertices.slice(1) + 'Z'
-		return <path d={housePathData + doorPathData} />
+		return new Path2D(housePathData + doorPathData)
 	}
 	override onResize(shape: HouseShape, info: TLResizeInfo<HouseShape>) {
 		const resized = resizeBox(shape, info)
@@ -155,7 +155,8 @@ method is called when the shape needs to be drawn on the canvas. The tl-svg-cont
 class contains some helpful styles for rendering the svg correctly.
 
 [3]
-The indicator method renders the same path as a thin blue line when the shape is selected.
+The getIndicatorPath method returns a Path2D for the same outline; tldraw strokes it
+onto the canvas overlay as a thin blue line when the shape is selected.
 
 [4]
 The getHouseVertices function calculates the vertices for both the house body and the door

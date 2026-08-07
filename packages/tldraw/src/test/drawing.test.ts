@@ -78,7 +78,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const segment = shape.props.segments[0]
 			expect(segment.type).toBe('straight')
 
-			const points = base64ToPoints(segment.path)
+			const points = base64ToPoints(segment.path, segment.dim)
 			expect(points.length).toBe(2)
 		})
 
@@ -177,7 +177,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment = shape.props.segments[0]
-			const points = base64ToPoints(segment.path)
+			const points = base64ToPoints(segment.path, segment.dim)
 			expect(points[1].x).toBeCloseTo(snappedX)
 			expect(points[1].y).toBeCloseTo(snappedY)
 		})
@@ -188,11 +188,20 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const x = magnitude * Math.cos(angle)
 			const y = magnitude * Math.sin(angle)
 
-			editor.setCurrentTool(toolType).keyDown('Meta').pointerDown(0, 0).pointerMove(x, y)
+			// Shift held during pointerDown enters straight-line (angle-snapping) mode.
+			// Cmd pressed after pointerDown disables the angle snap. We press cmd
+			// after pointerDown so the accel-to-erase shortcut (which fires from
+			// the tool's idle state) doesn't intercept it.
+			editor
+				.setCurrentTool(toolType)
+				.keyDown('Shift')
+				.pointerDown(0, 0)
+				.keyDown('Meta')
+				.pointerMove(x, y)
 
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment = shape.props.segments[0]
-			const points = base64ToPoints(segment.path)
+			const points = base64ToPoints(segment.path, segment.dim)
 			expect(points[1].x).toBeCloseTo(x)
 			expect(points[1].y).toBeCloseTo(y)
 		})
@@ -212,14 +221,14 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape1 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment1 = last(shape1.props.segments)!
-			const points1 = base64ToPoints(segment1.path)
+			const points1 = base64ToPoints(segment1.path, segment1.dim)
 			const point1 = last(points1)!
 			expect(point1.x).toBe(1)
 
 			editor.keyDown('Meta')
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
-			const points2 = base64ToPoints(segment2.path)
+			const points2 = base64ToPoints(segment2.path, segment2.dim)
 			const point2 = last(points2)!
 			expect(point2.x).toBe(0)
 		})
@@ -239,14 +248,14 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 			const shape1 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment1 = last(shape1.props.segments)!
-			const points1 = base64ToPoints(segment1.path)
+			const points1 = base64ToPoints(segment1.path, segment1.dim)
 			const point1 = last(points1)!
 			expect(point1.x).toBe(1)
 
 			editor.keyDown('Meta')
 			const shape2 = editor.getCurrentPageShapes()[0] as DrawableShape
 			const segment2 = last(shape2.props.segments)!
-			const points2 = base64ToPoints(segment2.path)
+			const points2 = base64ToPoints(segment2.path, segment2.dim)
 			const point2 = last(points2)!
 			expect(point2.x).toBe(0)
 		})
@@ -266,6 +275,47 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			expect(editor.getCurrentPageShapes()).toHaveLength(1)
 			const shape = editor.getCurrentPageShapes()[0] as DrawableShape
 			expect(shape.props.segments.length).toBe(1)
+		})
+
+		describe('chooses the segment encoding from the input device', () => {
+			const getFirstSegment = () => {
+				const shape = editor.getCurrentPageShapes()[0] as DrawableShape
+				return shape.props.segments[0]
+			}
+
+			it('drops pressure (2D) for a non-pressure device like a mouse', () => {
+				editor.setCurrentTool(toolType).pointerDown(0, 0).pointerMove(10, 10).pointerMove(20, 5)
+
+				const segment = getFirstSegment()
+				expect(segment.dim).toBe(2)
+
+				const zs = base64ToPoints(segment.path, segment.dim).map((p) => p.z!)
+				expect(zs.every((z) => Math.abs(z - 0.5) < 0.01)).toBe(true)
+			})
+
+			it('keeps full 3D and preserves varying pressure for a pen', () => {
+				editor
+					.setCurrentTool(toolType)
+					.pointerDown(0, 0, { isPen: true, point: { x: 0, y: 0, z: 0.3 } })
+					.pointerMove(10, 10, { isPen: true, point: { x: 10, y: 10, z: 0.6 } })
+					.pointerMove(20, 5, { isPen: true, point: { x: 20, y: 5, z: 0.9 } })
+
+				const segment = getFirstSegment()
+				expect(segment.dim).toBeUndefined()
+
+				const zs = base64ToPoints(segment.path, segment.dim).map((p) => p.z!)
+				expect(zs.some((z) => Math.abs(z - 0.5) > 0.01)).toBe(true)
+				expect(new Set(zs.map((z) => z.toFixed(2))).size).toBeGreaterThan(1)
+			})
+
+			it('keeps 3D for a stylus that reports as a mouse (pressure that is not the fabricated 0.5)', () => {
+				editor
+					.setCurrentTool(toolType)
+					.pointerDown(0, 0, { point: { x: 0, y: 0, z: 0.7 } })
+					.pointerMove(10, 10, { point: { x: 10, y: 10, z: 0.7 } })
+
+				expect(getFirstSegment().dim).toBeUndefined()
+			})
 		})
 	})
 }

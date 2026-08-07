@@ -31,6 +31,7 @@ const discord = new Discord({
 	shouldNotify: env.TLDRAW_ENV === 'production',
 	totalSteps: 2,
 	messagePrefix: '[ANALYTICS]',
+	secretValues: Object.values(env),
 })
 
 const { previewId, sha } = getDeployInfo()
@@ -81,7 +82,7 @@ async function deployAnalyticsWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId && !didUpdateAnalyticsWorker) {
 		await setWranglerPreviewConfig(workerDir, {
 			name: workerId,
-			customDomain: `${previewId}-consent.tldraw.xyz`,
+			routeHostname: `${previewId}-consent.tldraw.xyz`,
 		})
 		didUpdateAnalyticsWorker = true
 	}

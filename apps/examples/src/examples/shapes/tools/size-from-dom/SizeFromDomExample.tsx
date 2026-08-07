@@ -160,10 +160,11 @@ export class DynamicSizeShapeUtil extends ShapeUtil<DynamicSizeShape> {
 	}
 
 	// [g]
-	indicator(shape: DynamicSizeShape) {
+	getIndicatorPath(shape: DynamicSizeShape) {
 		const { width, height } = this.editor.getShapeGeometry(shape).bounds
-
-		return <rect width={width} height={height} />
+		const path = new Path2D()
+		path.rect(0, 0, width, height)
+		return path
 	}
 }
 

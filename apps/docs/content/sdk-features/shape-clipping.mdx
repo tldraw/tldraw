@@ -57,8 +57,10 @@ class MyClipShapeUtil extends ShapeUtil<MyClipShape> {
 		return <rect width={shape.props.w} height={shape.props.h} fill="transparent" stroke="black" />
 	}
 
-	override indicator(shape: MyClipShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	override getIndicatorPath(shape: MyClipShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 
 	override getClipPath(shape: MyClipShape): Vec[] | undefined {
@@ -97,10 +99,10 @@ This lets you create clipping shapes where some content types break out of the b
 
 ## Frame clipping
 
-Frames are the primary built-in example of clipping. The FrameShapeUtil implements clipping by returning its geometry vertices:
+Frames are the primary built-in example of clipping. FrameShapeUtil extends [BaseFrameLikeShapeUtil](?), which implements clipping by returning its geometry vertices:
 
 ```typescript
-override getClipPath(shape: TLFrameShape) {
+override getClipPath(shape: Shape): Vec[] | undefined {
 	return this.editor.getShapeGeometry(shape.id).vertices
 }
 ```

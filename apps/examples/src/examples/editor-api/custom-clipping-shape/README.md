@@ -16,8 +16,6 @@ keywords:
   ]
 ---
 
-# Custom clipping shape example
-
 This example demonstrates the extensible clipping system in tldraw, showing how to create custom shapes that can clip their children with any polygon geometry.
 
 ## Key implementation details

@@ -74,10 +74,15 @@ export const AssetRecordType: RecordType<TLAsset<"bookmark" | "image" | "video">
 
 // @public
 export class b64Vecs {
-    static decodeFirstPoint(b64Points: string): null | VecModel;
-    static decodeLastPoint(b64Points: string): null | VecModel;
-    static decodePoints(base64: string): VecModel[];
-    static encodePoints(points: VecModel[]): string;
+    static decodeFirstPoint(b64Points: string, dim?: 2 | 3): null | VecModel;
+    static decodeFirstPoint2D(b64Points: string): null | VecModel;
+    static decodeLastPoint(b64Points: string, dim?: 2 | 3): null | VecModel;
+    static decodeLastPoint2D(b64Points: string): null | VecModel;
+    static decodePoints(base64: string, dim?: 2 | 3): VecModel[];
+    static decodePoints2D(base64: string): VecModel[];
+    static encodePoints(points: VecModel[], dim?: 2 | 3): string;
+    static encodePoints2D(points: VecModel[]): string;
+    static isSinglePoint(b64Points: string, dim?: 2 | 3): boolean;
     // @internal
     static _legacyDecodePoints(base64: string): VecModel[];
     // @internal
@@ -127,6 +132,22 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 
 // @public
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
+// @public
+export const commentReactionRecordConfig: CustomRecordInfo;
+
+// @public
+export const commentRecordConfig: CustomRecordInfo;
+
+// @public
+export const commentSchemaRecords: {
+    'comment-reaction': CustomRecordInfo;
+    'comment-thread': CustomRecordInfo;
+    comment: CustomRecordInfo;
+};
+
+// @public
+export const commentThreadRecordConfig: CustomRecordInfo;
 
 // @public
 export function compressLegacySegments(segments: {
@@ -180,6 +201,45 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
 
 // @public
 export function createCachedUserResolve(resolveFn: (userId: string) => null | TLUser): (userId: string) => Signal<null | TLUser>;
+
+// @public
+export function createComment(props: {
+    authorId: string;
+    body: TLRichText;
+    meta?: JsonObject;
+    now?: number;
+    pageId: TLPageId;
+    threadId: TLCommentThreadId;
+}): TLComment;
+
+// @public (undocumented)
+export function createCommentId(id?: string): TLCommentId;
+
+// @public
+export function createCommentReaction(props: {
+    commentId: TLCommentId;
+    emoji: string;
+    meta?: JsonObject;
+    now?: number;
+    pageId: TLPageId;
+    threadId: TLCommentThreadId;
+    userId: string;
+}): TLCommentReaction;
+
+// @public
+export function createCommentReactionId(commentId: TLCommentId, userId: string, emoji: string): TLCommentReactionId;
+
+// @public
+export function createCommentThread(props: {
+    anchor: TLCommentAnchor;
+    createdBy: string;
+    meta?: JsonObject;
+    now?: number;
+    pageId: TLPageId;
+}): TLCommentThread;
+
+// @public (undocumented)
+export function createCommentThreadId(id?: string): TLCommentThreadId;
 
 // @public
 export function createCustomRecordId<T extends string>(typeName: T, id?: string): RecordId<UnknownRecord> & `${T}:${string}`;
@@ -381,6 +441,12 @@ export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 
 // @public
+export const DIM_2D = 2;
+
+// @public
+export const DIM_3D = 3;
+
+// @public
 export const DocumentRecordType: RecordType<TLDocument, never>;
 
 // @public
@@ -451,7 +517,7 @@ export function getDefaultUserPresence(store: TLStore, user: TLUser): {
         x: number;
         y: number;
     };
-    followingUserId: null | string;
+    followingUserId: TLUserId | null;
     lastActivityTimestamp: number;
     meta: {};
     screenBounds: BoxModel;
@@ -514,6 +580,15 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 
 // @public
 export function isBindingId(id?: string): id is TLBindingId;
+
+// @public
+export function isCommentId(id: string): id is TLCommentId;
+
+// @public
+export function isCommentReactionId(id: string): id is TLCommentReactionId;
+
+// @public
+export function isCommentThreadId(id: string): id is TLCommentThreadId;
 
 // @public
 export function isCustomRecord(typeName: string, record?: UnknownRecord): boolean;
@@ -1029,6 +1104,81 @@ export type TLCameraId = RecordId<TLCamera>;
 export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 
 // @public
+export interface TLComment extends BaseRecord<'comment', TLCommentId> {
+    authorId: string;
+    body: TLRichText;
+    // (undocumented)
+    createdAt: number;
+    editedAt: null | number;
+    isDeleted: boolean;
+    // (undocumented)
+    meta: JsonObject;
+    pageId: TLPageId;
+    threadId: TLCommentThreadId;
+}
+
+// @public
+export type TLCommentAnchor = {
+    pinX?: number;
+    h: number;
+    pinY?: number;
+    type: 'region';
+    w: number;
+    x: number;
+    y: number;
+} | {
+    isPrecise: boolean;
+    shapeId: TLShapeId;
+    type: 'shape';
+    x: number;
+    y: number;
+} | {
+    type: 'page';
+} | {
+    type: 'point';
+    x: number;
+    y: number;
+};
+
+// @public (undocumented)
+export type TLCommentId = RecordId<TLComment>;
+
+// @public
+export interface TLCommentReaction extends BaseRecord<'comment-reaction', TLCommentReactionId> {
+    commentId: TLCommentId;
+    // (undocumented)
+    createdAt: number;
+    emoji: string;
+    // (undocumented)
+    meta: JsonObject;
+    pageId: TLPageId;
+    threadId: TLCommentThreadId;
+    userId: string;
+}
+
+// @public (undocumented)
+export type TLCommentReactionId = RecordId<TLCommentReaction>;
+
+// @public
+export interface TLCommentThread extends BaseRecord<'comment-thread', TLCommentThreadId> {
+    anchor: TLCommentAnchor;
+    // (undocumented)
+    createdAt: number;
+    createdBy: string;
+    isDeleted: boolean;
+    // (undocumented)
+    meta: JsonObject;
+    pageId: TLPageId;
+    resolved: {
+        at: number;
+        by: string;
+    } | null;
+}
+
+// @public (undocumented)
+export type TLCommentThreadId = RecordId<TLCommentThread>;
+
+// @public
 export type TLCreateShapePartial<T extends TLShape = TLShape> = T extends T ? {
     meta?: Partial<T['meta']>;
     props?: Partial<T['props']>;
@@ -1147,6 +1297,7 @@ export interface TLDrawShapeProps {
 
 // @public
 export interface TLDrawShapeSegment {
+    dim?: 2 | 3;
     path: string;
     type: 'free' | 'straight';
 }
@@ -1207,6 +1358,8 @@ export interface TLGeoShapeProps {
     color: TLDefaultColorStyle;
     dash: TLDefaultDashStyle;
     fill: TLDefaultFillStyle;
+    flipX: boolean;
+    flipY: boolean;
     font: TLDefaultFontStyle;
     geo: TLGeoShapeGeoStyle;
     growY: number;
@@ -1355,9 +1508,9 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     exportBackground: boolean;
     // (undocumented)
-    followingUserId: null | string;
+    followingUserId: null | TLUserId;
     // (undocumented)
-    highlightedUserIds: string[];
+    highlightedUserIds: TLUserId[];
     // (undocumented)
     insets: boolean[];
     // (undocumented)
@@ -1451,7 +1604,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         y: number;
     } | null;
     // (undocumented)
-    followingUserId: null | string;
+    followingUserId: null | TLUserId;
     // (undocumented)
     lastActivityTimestamp: null | number;
     // (undocumented)
@@ -1463,7 +1616,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     selectedShapeIds: TLShapeId[];
     // (undocumented)
-    userId: string;
+    userId: TLUserId;
     // (undocumented)
     userName: string;
 }
@@ -1512,7 +1665,7 @@ export interface TLNoteShapeProps {
     richText: TLRichText;
     scale: number;
     size: TLDefaultSizeStyle;
-    textFirstEditedBy: null | string;
+    textLastEditedBy: null | string;
     url: string;
     verticalAlign: TLDefaultVerticalAlignStyle;
 }
@@ -1704,12 +1857,15 @@ export interface TLThemeDefaultColors {
     black: TLDefaultColor;
     // (undocumented)
     blue: TLDefaultColor;
+    brushFill: string;
+    brushStroke: string;
     // (undocumented)
     cursor: string;
     // (undocumented)
     green: TLDefaultColor;
     // (undocumented)
     grey: TLDefaultColor;
+    laser: string;
     // (undocumented)
     negativeSpace: string;
     // (undocumented)
@@ -1718,6 +1874,10 @@ export interface TLThemeDefaultColors {
     orange: TLDefaultColor;
     // (undocumented)
     red: TLDefaultColor;
+    selectedContrast: string;
+    selectionFill: string;
+    selectionStroke: string;
+    snap: string;
     // (undocumented)
     solid: string;
     // (undocumented)
@@ -1759,7 +1919,7 @@ export interface TLThemes {
 }
 
 // @public
-export type TLThemeUiColorKeys = 'background' | 'cursor' | 'negativeSpace' | 'noteBorder' | 'solid' | 'text';
+export type TLThemeUiColorKeys = 'background' | 'brushFill' | 'brushStroke' | 'cursor' | 'laser' | 'negativeSpace' | 'noteBorder' | 'selectedContrast' | 'selectionFill' | 'selectionStroke' | 'snap' | 'solid' | 'text';
 
 // @public
 export type TLUnknownAsset = TLBaseAsset<string, object>;

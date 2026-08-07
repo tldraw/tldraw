@@ -11,7 +11,6 @@ import { uploadStaticAssets } from './lib/upload-static-assets'
 
 const env = makeEnv(['TLDRAW_VERSION_STRING'])
 
-// Generate a npm automation token and run this with the NPM_TOKEN env var set.
 async function main() {
 	const latestVersion = await getLatestTldrawVersionFromNpm()
 	const version = parse(env.TLDRAW_VERSION_STRING)

@@ -1,4 +1,4 @@
-import { StateNode, TLPointerEventInfo, TLShape } from '@tldraw/editor'
+import { StateNode, TLClickEventInfo, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getTextLabels } from '../../../utils/shapes/shapes'
 
@@ -63,17 +63,24 @@ export class PointingShape extends StateNode {
 	override onPointerUp(info: TLPointerEventInfo) {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
-		const zoomLevel = this.editor.getZoomLevel()
 		const currentPagePoint = this.editor.inputs.getCurrentPagePoint()
 
 		const additiveSelectionKey = info.shiftKey || info.accelKey
 
 		const hitShape =
 			this.editor.getShapeAtPoint(currentPagePoint, {
-				margin: this.editor.options.hitTestMargin / zoomLevel,
+				margin: this.editor.getHitTestMargin(),
 				hitInside: true,
 				renderingOnly: true,
 			}) ?? this.hitShape
+
+		// The hit shape may have been deleted between pointer down and pointer up
+		// (e.g. by a remote user or an undo), in which case the fallback hitShape
+		// is stale. Bail to idle so we don't dereference a missing shape.
+		if (!this.editor.getShape(hitShape.id)) {
+			this.parent.transition('idle', info)
+			return
+		}
 
 		const selectingShape = hitShape
 			? this.editor.getOutermostSelectableShape(hitShape)
@@ -195,8 +202,24 @@ export class PointingShape extends StateNode {
 		this.parent.transition('idle', info)
 	}
 
-	override onDoubleClick() {
+	override onDoubleClick(info: TLClickEventInfo) {
 		this.isDoubleClick = true
+
+		if (
+			this.editor.inputs.getShiftKey() ||
+			info.phase !== 'down' ||
+			info.ctrlKey ||
+			info.shiftKey
+		) {
+			return
+		}
+
+		const { shape: _shape, ...canvasInfo } = info as TLClickEventInfo & { target: 'shape' }
+		this.parent.transition('idle')
+		this.parent.getCurrent()?.handleEvent({
+			...canvasInfo,
+			target: 'canvas',
+		})
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {

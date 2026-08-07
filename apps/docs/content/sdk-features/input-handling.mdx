@@ -18,7 +18,7 @@ accuracy: 9
 notes: 'Passive constructions ("is calculated", "are added") and formulaic transition ("For each space"). Add API links like [InputsManager](?).'
 ---
 
-The `InputsManager` class tracks pointer and keyboard state for the editor. It stores pointer positions in both screen space and page space, tracks pressed keys and buttons, detects device types (mouse, touch, pen), and calculates pointer velocity.
+The [InputsManager](?) class tracks pointer and keyboard state for the editor. It stores pointer positions in both screen space and page space, tracks pressed keys and buttons, detects device types (mouse, touch, pen), and calculates pointer velocity. Access it through `editor.inputs`.
 
 All input state is reactive. The manager stores values as atoms from `@tldraw/state`, so components that read input state automatically update when those values change. The manager updates on every input event, converting coordinates between screen space and page space.
 
@@ -151,19 +151,19 @@ When an input event occurs, the editor processes it through these stages:
 1. The browser fires a native DOM event
 2. The editor's UI layer captures the event and transforms it into a typed event info object
 3. For pointer, pinch, and wheel events, the editor calls `updateFromEvent()` on the `InputsManager`
-4. For pointer events, the editor dispatches to the `ClickManager` for multi-click detection (double-click, triple-click, etc.)
+4. For pointer events, the editor dispatches to the `ClickManager` for double-click detection and overflow suppression
 5. The editor sends the event to the state machine via `root.handleEvent()`
 6. The state machine propagates the event through active tool states
 
 The typed event info objects are:
 
-| Event type                 | Info type             |
-| -------------------------- | --------------------- |
-| Pointer events             | `TLPointerEventInfo`  |
-| Click events (multi-click) | `TLClickEventInfo`    |
-| Keyboard events            | `TLKeyboardEventInfo` |
-| Wheel events               | `TLWheelEventInfo`    |
-| Pinch events               | `TLPinchEventInfo`    |
+| Event type      | Info type             |
+| --------------- | --------------------- |
+| Pointer events  | `TLPointerEventInfo`  |
+| Click events    | `TLClickEventInfo`    |
+| Keyboard events | `TLKeyboardEventInfo` |
+| Wheel events    | `TLWheelEventInfo`    |
+| Pinch events    | `TLPinchEventInfo`    |
 
 In collaborative sessions, `updateFromEvent()` also updates the user's pointer presence record in the store, broadcasting pointer position to other users.
 

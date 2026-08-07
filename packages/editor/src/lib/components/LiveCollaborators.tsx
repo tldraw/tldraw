@@ -1,41 +1,74 @@
-import { track } from '@tldraw/state-react'
+import { track, useQuickReactor, useValue } from '@tldraw/state-react'
 import { TLInstancePresence } from '@tldraw/tlschema'
-import { useEffect, useRef, useState } from 'react'
-import { Editor } from '../editor/Editor'
+import { useLayoutEffect, useRef } from 'react'
 import { useEditorComponents } from '../hooks/EditorComponentsContext'
 import { useEditor } from '../hooks/useEditor'
-import { usePeerIds } from '../hooks/usePeerIds'
-import { usePresence } from '../hooks/usePresence'
-import {
-	CollaboratorState,
-	getCollaboratorStateFromElapsedTime,
-	shouldShowCollaborator,
-} from '../utils/collaboratorState'
+import { useSharedSafeId } from '../hooks/useSafeId'
+import { isCursorInViewport } from '../utils/collaborators'
+import { setStyleProperty } from '../utils/dom'
+import { getHtmlLayerTransform } from '../utils/getHtmlLayerTransform'
 
-export const LiveCollaborators = track(function Collaborators() {
-	const peerIds = usePeerIds()
-	return peerIds.map((id) => <CollaboratorGuard key={id} collaboratorId={id} />)
-})
-
-const CollaboratorGuard = track(function CollaboratorGuard({
-	collaboratorId,
-}: {
-	collaboratorId: string
-}) {
+/**
+ * The collaborator cursor layer: a DOM layer stacked as a sibling of the canvas — above all canvas
+ * content, below the in-front layer and the UI panels — hosting each visible collaborator's cursor
+ * (arrow, name tag, chat message). Off-viewport collaborators are the canvas-drawn hint arrows' job
+ * (CollaboratorHintOverlayUtil), not this layer's.
+ *
+ * Cursors are DOM rather than canvas-drawn so their chrome styles and composes like the rest of
+ * the UI. Re-render traffic is kept narrow: per-cursor positioning writes `transform` directly
+ * (see `useTransform`), so a pointer move re-renders only the moved cursor; the camera transform
+ * is written imperatively below, so a pure pan re-renders only cursors whose viewport visibility
+ * flips (an equality-gated boolean per cursor); a zoom change re-renders every visible cursor,
+ * because each one rescales by `1/zoom`.
+ *
+ * @public @react
+ */
+export const LiveCollaborators = track(function LiveCollaborators() {
 	const editor = useEditor()
-	const presence = usePresence(collaboratorId)
-	const collaboratorState = useCollaboratorState(editor, presence)
+	const { CollaboratorCursor } = useEditorComponents()
 
-	if (!(presence && presence.currentPageId === editor.getCurrentPageId())) {
-		// No need to render if we don't have a presence or if they're on a different page
-		return null
-	}
+	// The inner layer carries the camera transform, so the cursor components position in page
+	// space exactly as canvas content does. Unlike the canvas's html layers this one unmounts
+	// while no collaborators are visible, so the transform is written at two moments: on every
+	// camera change (the reactor), and after every render (the layout effect, like useTransform
+	// does per cursor) — the reactor's last run hit a null ref while the layer was unmounted,
+	// and without the render-time write a reappearing layer would keep an identity transform
+	// until the next camera move.
+	const rHtmlLayer = useRef<HTMLDivElement | null>(null)
+	useLayoutEffect(() => {
+		const elm = rHtmlLayer.current
+		if (!elm) return
+		setStyleProperty(elm, 'transform', getHtmlLayerTransform(editor))
+	})
+	useQuickReactor(
+		'position collaborators layer',
+		function positionCollaboratorsWhenCameraMoves() {
+			// Reads the camera even while the layer is unmounted, keeping the subscription alive.
+			const transform = getHtmlLayerTransform(editor)
+			setStyleProperty(rHtmlLayer.current, 'transform', transform)
+		},
+		[editor]
+	)
 
-	if (!shouldShowCollaborator(editor, presence, collaboratorState)) {
-		return null
-	}
+	// Visibility (activity state, following, highlighting) is handled by the editor.
+	const collaborators = editor.getVisibleCollaboratorsOnCurrentPage()
+	if (collaborators.length === 0) return null
+	if (!CollaboratorCursor) return null
 
-	return <Collaborator latestPresence={presence} />
+	return (
+		<div className="tl-collaborators">
+			<svg className="tl-svg-context" aria-hidden="true">
+				<defs>
+					<CursorDef />
+				</defs>
+			</svg>
+			<div ref={rHtmlLayer} className="tl-html-layer">
+				{collaborators.map((presence) => (
+					<Collaborator key={presence.userId} latestPresence={presence} />
+				))}
+			</div>
+		</div>
+	)
 })
 
 const Collaborator = track(function Collaborator({
@@ -44,131 +77,57 @@ const Collaborator = track(function Collaborator({
 	latestPresence: TLInstancePresence
 }) {
 	const editor = useEditor()
+	const { CollaboratorCursor } = useEditorComponents()
 
-	const {
-		CollaboratorBrush,
-		CollaboratorScribble,
-		CollaboratorCursor,
-		CollaboratorHint,
-		CollaboratorShapeIndicator,
-	} = useEditorComponents()
+	const { userId, chatMessage, userName, cursor, color } = latestPresence
 
+	// The viewport read lives inside this equality-gated computed rather than the tracked render:
+	// pans move the viewport every frame, but this component only needs to know when the cursor
+	// crosses the edge, so it subscribes to the boolean and re-renders only when it flips.
+	const cursorInViewport = useValue(
+		'cursor in viewport',
+		() =>
+			!!cursor && isCursorInViewport(cursor, editor.getViewportPageBounds(), editor.getZoomLevel()),
+		[editor, cursor]
+	)
+	// The zoom read is tracked directly: the cursor scales by 1/zoom, so zoom changes must
+	// re-render it. Pure pans leave the zoom value unchanged, so they never invalidate this.
 	const zoomLevel = editor.getZoomLevel()
-	const viewportPageBounds = editor.getViewportPageBounds()
-	const { userId, chatMessage, brush, scribbles, selectedShapeIds, userName, cursor, color } =
-		latestPresence
 
 	if (!cursor) return null
 
-	// Add a little padding to the top-left of the viewport
-	// so that the cursor doesn't get cut off
-	const isCursorInViewport = !(
-		cursor.x < viewportPageBounds.minX - 12 / zoomLevel ||
-		cursor.y < viewportPageBounds.minY - 16 / zoomLevel ||
-		cursor.x > viewportPageBounds.maxX - 12 / zoomLevel ||
-		cursor.y > viewportPageBounds.maxY - 16 / zoomLevel
-	)
-
+	// Off-viewport collaborators show as the canvas-drawn hint arrows
+	// (CollaboratorHintOverlayUtil), which shares this predicate — only the cursor itself is DOM.
+	if (!cursorInViewport) return null
+	if (!CollaboratorCursor) return null
 	return (
-		<>
-			{brush && CollaboratorBrush ? (
-				<CollaboratorBrush
-					className="tl-collaborator__brush"
-					key={userId + '_brush'}
-					userId={userId}
-					brush={brush}
-					color={color}
-					opacity={0.1}
-				/>
-			) : null}
-			{isCursorInViewport && CollaboratorCursor ? (
-				<CollaboratorCursor
-					className="tl-collaborator__cursor"
-					key={userId + '_cursor'}
-					userId={userId}
-					point={cursor}
-					color={color}
-					zoom={zoomLevel}
-					name={userName !== 'New User' ? userName : null}
-					chatMessage={chatMessage ?? ''}
-				/>
-			) : CollaboratorHint ? (
-				<CollaboratorHint
-					className="tl-collaborator__cursor-hint"
-					key={userId + '_cursor_hint'}
-					userId={userId}
-					point={cursor}
-					color={color}
-					zoom={zoomLevel}
-					viewport={viewportPageBounds}
-				/>
-			) : null}
-			{CollaboratorScribble && scribbles.length ? (
-				<>
-					{scribbles.map((scribble) => (
-						<CollaboratorScribble
-							key={userId + '_scribble_' + scribble.id}
-							className="tl-collaborator__scribble"
-							userId={userId}
-							scribble={scribble}
-							color={color}
-							zoom={zoomLevel}
-							opacity={scribble.color === 'laser' ? 0.5 : 0.1}
-						/>
-					))}
-				</>
-			) : null}
-			{CollaboratorShapeIndicator &&
-				selectedShapeIds
-					.filter((id) => {
-						// Skip hidden shapes
-						if (editor.isShapeHidden(id)) return false
-						// Only render SVG indicators for shapes that use legacy indicators
-						// Canvas-based indicators are handled by CanvasShapeIndicators
-						const shape = editor.getShape(id)
-						if (!shape) return false
-						const util = editor.getShapeUtil(shape)
-						return util.useLegacyIndicator()
-					})
-					.map((shapeId) => (
-						<CollaboratorShapeIndicator
-							className="tl-collaborator__shape-indicator"
-							key={userId + '_' + shapeId}
-							userId={userId}
-							shapeId={shapeId}
-							color={color}
-							opacity={0.5}
-						/>
-					))}
-		</>
+		<CollaboratorCursor
+			className="tl-collaborator__cursor"
+			userId={userId}
+			point={cursor}
+			color={color}
+			zoom={zoomLevel}
+			name={userName !== 'New User' ? userName : null}
+			chatMessage={chatMessage ?? ''}
+		/>
 	)
 })
 
-function useCollaboratorState(
-	editor: Editor,
-	latestPresence: TLInstancePresence | null
-): CollaboratorState {
-	const rLastActivityTimestamp = useRef(latestPresence?.lastActivityTimestamp ?? -1)
-
-	const [state, setState] = useState<CollaboratorState>(() =>
-		getCollaboratorStateFromElapsedTime(editor, Date.now() - rLastActivityTimestamp.current)
+function CursorDef() {
+	return (
+		<g id={useSharedSafeId('cursor')}>
+			<g fill="rgba(0,0,0,.2)" transform="translate(-11,-11)">
+				<path d="m12 24.4219v-16.015l11.591 11.619h-6.781l-.411.124z" />
+				<path d="m21.0845 25.0962-3.605 1.535-4.682-11.089 3.686-1.553z" />
+			</g>
+			<g fill="white" transform="translate(-12,-12)">
+				<path d="m12 24.4219v-16.015l11.591 11.619h-6.781l-.411.124z" />
+				<path d="m21.0845 25.0962-3.605 1.535-4.682-11.089 3.686-1.553z" />
+			</g>
+			<g fill="currentColor" transform="translate(-12,-12)">
+				<path d="m19.751 24.4155-1.844.774-3.1-7.374 1.841-.775z" />
+				<path d="m13 10.814v11.188l2.969-2.866.428-.139h4.768z" />
+			</g>
+		</g>
 	)
-
-	useEffect(() => {
-		const interval = editor.timers.setInterval(() => {
-			setState(
-				getCollaboratorStateFromElapsedTime(editor, Date.now() - rLastActivityTimestamp.current)
-			)
-		}, editor.options.collaboratorCheckIntervalMs)
-
-		return () => clearInterval(interval)
-	}, [editor])
-
-	if (latestPresence) {
-		// We can do this on every render, it's free and cheaper than an effect
-		// remember, there can be lots and lots of cursors moving around all the time
-		rLastActivityTimestamp.current = latestPresence.lastActivityTimestamp ?? Infinity
-	}
-
-	return state
 }

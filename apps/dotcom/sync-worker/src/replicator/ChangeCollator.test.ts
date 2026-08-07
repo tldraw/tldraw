@@ -219,6 +219,52 @@ describe('ChangeCollator', () => {
 			})
 		})
 
+		// Unsharing has no side effect of its own. A thumbnail is rendered for every board, shared or
+		// not, and the OG route re-checks the share gate on every request — so there is nothing derived
+		// from the board's public state to clean up when it goes private.
+		it('should add no effect of its own when a file stops being shared via link', () => {
+			const previous = {
+				id: 'doc1',
+				ownerId: 'alice',
+				shared: true,
+			}
+
+			const change = createMockFileChangeV2('doc1', 'alice', 'update', {
+				shared: false,
+				previous,
+			})
+
+			const result = getEffects(change)
+
+			expect(result!.map((effect) => effect.type)).toEqual(['notify_file_durable_object'])
+		})
+
+		// Unpublishing still does have one, because the published image depicts a snapshot that no
+		// longer exists and is keyed on a slug that may never be read again.
+		it('should return only the unpublish effect when a file loses both publish and share', () => {
+			const previous = {
+				id: 'doc1',
+				ownerId: 'alice',
+				published: true,
+				lastPublished: 100,
+				shared: true,
+			}
+
+			const change = createMockFileChangeV2('doc1', 'alice', 'update', {
+				published: false,
+				lastPublished: 100,
+				shared: false,
+				previous,
+			})
+
+			const result = getEffects(change)
+
+			expect(result!.map((effect) => effect.type)).toEqual([
+				'notify_file_durable_object',
+				'unpublish',
+			])
+		})
+
 		it('should handle edge case where previous is undefined for non-update commands', () => {
 			const change = createMockFileChangeV2('doc1', 'alice', 'insert', {
 				published: true,

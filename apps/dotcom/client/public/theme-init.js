@@ -8,10 +8,14 @@
 			if (parsed && parsed.theme) {
 				// Always set data-theme to prevent CSS media query fallback from overriding user preference
 				document.documentElement.setAttribute('data-theme', parsed.theme)
-				// this helps with safari
-				if (parsed.theme === 'dark') {
+
+				// If the user has a custom color theme, use its cached background color
+				if (parsed.colorThemeBackground) {
+					document.documentElement.style.backgroundColor = parsed.colorThemeBackground
+					document.documentElement.style.colorScheme = parsed.theme === 'dark' ? 'dark' : 'light'
+				} else if (parsed.theme === 'dark') {
 					// this is the same as --tl-color-background, if you ever update that, update this too
-					document.documentElement.style.backgroundColor = 'hsl(240, 5%, 6.5%)' 
+					document.documentElement.style.backgroundColor = 'hsl(240, 5%, 6.5%)'
 					// this is the same as --tl-color-text, if you ever update that, update this too
 					document.documentElement.style.color = 'hsl(210, 17%, 98%)'
 					document.documentElement.style.colorScheme = 'dark'

@@ -136,6 +136,13 @@ export const DEFAULT_THEME: TLTheme = {
 			solid: '#fcfffe',
 			cursor: 'black',
 			noteBorder: 'rgb(144, 144, 144)',
+			snap: 'hsl(0, 76%, 60%)',
+			selectionStroke: 'hsl(214, 84%, 56%)',
+			selectionFill: 'hsl(210, 100%, 56%, 24%)',
+			brushFill: 'hsl(0, 0%, 56%, 10.2%)',
+			brushStroke: 'hsl(0, 0%, 56%, 25.1%)',
+			selectedContrast: '#ffffff',
+			laser: 'hsl(0, 100%, 50%)',
 			black: {
 				solid: '#1d1d1d',
 				fill: '#1d1d1d',
@@ -351,6 +358,13 @@ export const DEFAULT_THEME: TLTheme = {
 			negativeSpace: 'hsl(240, 5%, 6.5%)',
 			solid: '#010403',
 			cursor: 'white',
+			snap: 'hsl(0, 76%, 60%)',
+			selectionStroke: 'hsl(214, 84%, 56%)',
+			selectionFill: 'hsl(209, 100%, 57%, 20%)',
+			brushFill: 'hsl(0, 0%, 56%, 10.2%)',
+			brushStroke: 'hsl(0, 0%, 56%, 25.1%)',
+			selectedContrast: '#ffffff',
+			laser: 'hsl(0, 100%, 50%)',
 			noteBorder: 'rgb(20, 20, 20)',
 
 			black: {

@@ -21,7 +21,7 @@ When you move or resize shapes, tldraw snaps them to key geometry on nearby shap
 
 The editor provides three types of snapping. Bounds snapping aligns edges, centers, and corners during movement and resizing. Handle snapping connects endpoints to outlines and key points, like arrow tips to shape edges. Gap snapping maintains consistent spacing between shapes.
 
-Snap lines appear when shapes come within the snap threshold, giving real-time visual feedback.
+Snap lines appear when shapes come within the snap threshold.
 
 ## SnapManager
 
@@ -111,7 +111,7 @@ const snapData = editor.snaps.shapeBounds.snapResizeShapes({
 
 Gap snapping maintains consistent spacing between shapes. The system detects gaps between adjacent shapes and provides three types of snapping.
 
-Gap center snapping centers the selection within a gap larger than itself, creating equal spacing on both sides. Gap duplication snapping duplicates an existing gap on the opposite side of a shape. For example, if two shapes have a 100px gap between them, dragging a third shape snaps to create another 100px gap. Adjacent gap detection finds all gaps with matching lengths and displays them together, helping maintain consistent spacing across many shapes.
+Gap center snapping centers the selection within a gap larger than itself, with equal spacing on both sides. Gap duplication snapping duplicates an existing gap on the opposite side of a shape. For example, if two shapes have a 100px gap between them, dragging a third shape snaps to create another 100px gap. Adjacent gap detection finds all gaps with matching lengths and displays them together, so spacing stays consistent across many shapes.
 
 Gaps are calculated separately for horizontal and vertical directions. A gap exists when two shapes don't overlap in one axis but have overlapping ranges in the perpendicular axis.
 
@@ -144,7 +144,7 @@ class MyShapeUtil extends ShapeUtil<MyShape> {
 }
 ```
 
-By default, handles cannot snap to their own shape. Moving the handle would change the snap target, creating feedback loops. The `getSelfSnapOutline()` and `getSelfSnapPoints()` methods enable opt-in self-snapping when the snap geometry remains stable regardless of handle position.
+By default, handles cannot snap to their own shape. Moving the handle would change the snap target and create a feedback loop. The `getSelfSnapOutline()` and `getSelfSnapPoints()` methods enable opt-in self-snapping when the snap geometry remains stable regardless of handle position.
 
 ### Snap types
 
@@ -152,7 +152,7 @@ Handles support two snap types controlled by the `snapType` property on [TLHandl
 
 Point snapping (`snapType: 'point'`) snaps to the single nearest location. The system checks snap points first, then falls back to the nearest point on any outline. This magnetizes to a single best target.
 
-Align snapping (`snapType: 'align'`) snaps to align with nearby points on both x and y axes independently, showing perpendicular snap lines in each direction.
+Align snapping (`snapType: 'align'`) aligns the handle with nearby points on the x and y axes independently, with perpendicular snap lines in each direction.
 
 Each handle uses one snap type based on its `snapType` property. Snap points always have higher priority than outlines.
 
@@ -196,4 +196,4 @@ Indicators are cleared automatically when dragging stops or when you call `clear
 For working examples of custom snapping, see:
 
 - [Custom bounds snapping](/examples/shapes/tools/bounds-snapping-shape): Create shapes with custom snap geometry so they snap to specific points, like playing cards that stack with visible icons.
-- [Custom relative snapping](/examples/custom-relative-snapping): Customize snapping behavior between shapes using getBoundsSnapGeometry.
+- [Custom relative snapping](/examples/shapes/tools/custom-relative-snapping): Customize snapping behavior between shapes using getBoundsSnapGeometry.

@@ -126,7 +126,9 @@ export class PopupShapeUtil extends BaseBoxShapeUtil<IMyPopupShape> {
 		)
 	}
 
-	indicator(shape: IMyPopupShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: IMyPopupShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }

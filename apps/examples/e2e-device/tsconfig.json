@@ -1,0 +1,9 @@
+{
+	"extends": "../../../internal/config/tsconfig.base.json",
+	"compilerOptions": {
+		"types": ["node", "@wdio/globals/types", "@wdio/mocha-framework"],
+		"moduleResolution": "bundler",
+		"noEmit": true
+	},
+	"include": ["."]
+}

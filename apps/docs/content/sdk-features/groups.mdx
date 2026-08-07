@@ -17,11 +17,11 @@ accuracy: 9
 notes: Add API link formatting using [Editor#methodName](?) syntax. Fix blockquote formatting for examples link.
 ---
 
-Groups are logical containers that combine multiple shapes into a single selectable unit. Unlike frames, groups have no visual representation—they exist purely to organize shapes. Their geometry is the union of their children's geometries, their bounds update automatically as children change, and they clean themselves up when their contents are deleted. Groups support nesting, allowing hierarchical organization of shapes on the canvas.
+Groups are logical containers that combine multiple shapes into a single selectable unit. Unlike frames, groups have no visual representation—they exist purely to organize shapes. Their geometry is the union of their children's geometries, their bounds update automatically as children change, and they clean themselves up when their contents are deleted. Groups can be nested inside other groups.
 
 ## Creating groups
 
-Use `editor.groupShapes()` to combine shapes into a group. Pass an array of shape IDs or shape objects, and the method creates a new group containing those shapes:
+Use [Editor#groupShapes](?) to combine shapes into a group. Pass an array of shape IDs or shape objects, and the method creates a new group containing those shapes:
 
 ```typescript
 // Group selected shapes
@@ -43,7 +43,7 @@ The new group is positioned at the top-left of the combined bounds of all groupe
 
 ## Ungrouping
 
-Use `editor.ungroupShapes()` to dissolve groups and release their children:
+Use [Editor#ungroupShapes](?) to dissolve groups and release their children:
 
 ```typescript
 // Ungroup selected groups
@@ -182,7 +182,7 @@ Arrows can't bind to groups. The `canBind()` method returns `false` for group sh
 
 Groups have no visual properties—they're purely structural containers. You can't style a group itself, only its children.
 
-Both grouping and ungrouping require the select tool to be active and in its idle state. The operations won't run while you're in the middle of another interaction.
+Both grouping and ungrouping require the select tool to be active. If you're in the middle of another interaction, the editor cancels it before running the operation.
 
 ## Related examples
 

@@ -66,8 +66,10 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		)
 	}
 
-	indicator(shape: CardShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: CardShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 

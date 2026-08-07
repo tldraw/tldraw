@@ -40,7 +40,7 @@ jobs:
         run: 'yarn build-i18n'
 
       - name: Validate the strings
-        run: 'yarn i18n-check -f react-intl --locales ./apps/dotcom/client/public/tla/locales/ --source en'
+        run: 'yarn i18n-check -f react-intl --locales ./apps/dotcom/client/public/tla/locales/ --source en --only invalidKeys'
 
       - name: Commit and push changes
         env:

@@ -1,8 +1,8 @@
-import { usePresence } from '@tldraw/editor'
+import { getFirstCharacter, TLUserId, usePresence } from '@tldraw/editor'
 
 /** @public */
 export interface TLUiPeopleMenuAvatarProps {
-	userId: string
+	userId: TLUserId
 }
 
 /** @public @react */
@@ -17,7 +17,7 @@ export function DefaultPeopleMenuAvatar({ userId }: TLUiPeopleMenuAvatarProps) {
 				backgroundColor: presence.color,
 			}}
 		>
-			{presence.userName?.[0] ?? ''}
+			{getFirstCharacter(presence.userName ?? '')}
 		</div>
 	)
 }

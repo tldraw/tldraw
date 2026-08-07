@@ -1,14 +1,29 @@
+import { CommentsMenuItem } from '@tldraw/commenting'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
+	AccessibilityMenu,
+	ColorSchemeMenu,
 	DefaultPageMenu,
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	InputModeMenu,
+	KeyboardShortcutsMenuItem,
+	LanguageMenu,
 	PreferencesGroup,
+	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
+	ToggleEdgeScrollingItem,
+	ToggleFocusModeItem,
+	ToggleGridItem,
+	TogglePasteAtCursorItem,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
+	ToggleSnapModeItem,
+	ToggleToolLockItem,
+	ToggleWrapModeItem,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -17,7 +32,9 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuSubmenu,
-	ViewSubmenu,
+	ZoomTo100MenuItem,
+	ZoomToFitMenuItem,
+	ZoomToSelectionMenuItem,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
@@ -25,16 +42,20 @@ import {
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
+import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
+import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
 	CookieConsentMenuItem,
 	GiveUsFeedbackMenuItem,
+	ImportFileActionItem,
 	LegalSummaryMenuItem,
 	UserManualMenuItem,
+	UIThemeSubmenu,
 } from '../menu-items/menu-items'
 import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -42,6 +63,29 @@ import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
+
+/** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, only for users
+ *  the commenting flag covers). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component
+ *  with no slot to inject into. */
+function TlaViewSubmenu() {
+	const commentingEnabled = useIsCommentingEnabled()
+	return (
+		<TldrawUiMenuSubmenu id="view" label="menu.view">
+			<TldrawUiMenuGroup id="view-actions">
+				<TldrawUiMenuActionItem actionId="zoom-in" />
+				<TldrawUiMenuActionItem actionId="zoom-out" />
+				<ZoomTo100MenuItem />
+				<ZoomToFitMenuItem />
+				<ZoomToSelectionMenuItem />
+			</TldrawUiMenuGroup>
+			{commentingEnabled && (
+				<TldrawUiMenuGroup id="view-comments">
+					<CommentsMenuItem />
+				</TldrawUiMenuGroup>
+			)}
+		</TldrawUiMenuSubmenu>
+	)
+}
 
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
@@ -91,9 +135,14 @@ export function TlaEditorTopLeftPanelAnonymous() {
 
 	return (
 		<>
-			<Link to="/" className={styles.topLeftOfflineLogo}>
+			<ExternalLink
+				to="https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=top-left-logo"
+				eventName="top-left-logo-clicked"
+				aria-label="tldraw.dev"
+				className={styles.topLeftOfflineLogo}
+			>
 				<TlaLogo data-testid="tla-top-left-logo-icon" />
-			</Link>
+			</ExternalLink>
 			{anonFileName && (
 				<>
 					<span
@@ -132,13 +181,13 @@ export function TlaEditorTopLeftPanelAnonymous() {
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 						<TldrawUiMenuGroup id="basic">
 							<EditSubmenu />
-							<ViewSubmenu />
+							<TlaViewSubmenu />
 							<ExportFileContentSubMenu />
 							<ExtrasGroup />
 							<TldrawUiMenuActionItem actionId={'save-file-copy'} />
 							{canCopyToApp && <TldrawUiMenuActionItem actionId={'copy-to-my-files'} />}
 						</TldrawUiMenuGroup>
-						<PreferencesGroup />
+						<TlaPreferencesGroup />
 						<TldrawUiMenuGroup id="misc">
 							<UserManualMenuItem />
 							<GiveUsFeedbackMenuItem />
@@ -231,7 +280,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			<DefaultPageMenu />
 			<TlaFileMenu
 				fileId={fileId}
-				groupId={null}
+				workspaceId={null}
 				source="file-header"
 				onRenameAction={handleRenameAction}
 				trigger={
@@ -252,11 +301,12 @@ export function TlaEditorTopLeftPanelSignedIn() {
 							source="file-header"
 							fileId={fileId}
 							onRenameAction={handleRenameAction}
-							groupId={null}
+							workspaceId={null}
 						/>
+						<ImportFileActionItem />
 					</TldrawUiMenuSubmenu>
 					<EditSubmenu />
-					<ViewSubmenu />
+					<TlaViewSubmenu />
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 				</TldrawUiMenuGroup>
@@ -384,6 +434,7 @@ function TlaFileNameEditorInput({
 	return (
 		<>
 			<TldrawUiInput
+				data-testid="tla-file-name-input"
 				value={temporaryFileName}
 				onValueChange={handleValueChange}
 				onCancel={handleCancel}
@@ -413,5 +464,33 @@ function SignInMenuItem() {
 			<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
 			<TlaIcon icon="sign-in" />
 		</TldrawUiButton>
+	)
+}
+
+function TlaPreferencesGroup() {
+	return (
+		<TldrawUiMenuGroup id="preferences">
+			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
+				<TldrawUiMenuGroup id="preferences-actions">
+					<ToggleSnapModeItem />
+					<ToggleToolLockItem />
+					<ToggleGridItem />
+					<ToggleWrapModeItem />
+					<ToggleFocusModeItem />
+					<ToggleEdgeScrollingItem />
+					<ToggleDynamicSizeModeItem />
+					<TogglePasteAtCursorItem />
+					<ToggleDebugModeItem />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="user-interface-submenus">
+					<ColorSchemeMenu />
+					<UIThemeSubmenu />
+					<AccessibilityMenu />
+					<InputModeMenu />
+				</TldrawUiMenuGroup>
+			</TldrawUiMenuSubmenu>
+			<LanguageMenu />
+			<KeyboardShortcutsMenuItem />
+		</TldrawUiMenuGroup>
 	)
 }

@@ -102,6 +102,10 @@ export const tipTapDefaultExtensions: Extensions = [
 			openOnClick: false,
 			autolink: true,
 		},
+		// Prevent trailing paragraph insertion after lists
+		trailingNode: {
+			notAfter: ['paragraph', 'bulletList', 'orderedList', 'listItem'],
+		},
 	}),
 	Highlight,
 	KeyboardShiftEnterTweakExtension,
@@ -156,7 +160,7 @@ export default function App() {
 }
 ```
 
-Note that you must provide a complete list of extensions. If you include custom extensions, also include any default extensions you want to keep. The example above replaces the entire extension list, giving you full control over what features are available.
+Note that you must provide a complete list of extensions. If you include custom extensions, also include any default extensions you want to keep. The example above replaces the entire extension list, so you control exactly which features are available.
 
 ### Rich text toolbar
 
@@ -298,7 +302,7 @@ Arrow labels automatically position themselves based on the arrow's path and cur
 
 ## Font management
 
-Rich text can include multiple fonts and font styles within a single text block. The `FontManager` tracks which fonts are needed and ensures they load before rendering, preventing layout shifts.
+Rich text can include multiple fonts and font styles within a single text block. The `FontManager` tracks which fonts are needed and loads them before rendering. This prevents layout shifts.
 
 Use `getFontsFromRichText` to collect all required font faces based on the text content and formatting marks:
 
@@ -336,7 +340,7 @@ const options = {
 }
 ```
 
-The function receives the current node, font state, and a callback to register required fonts. It returns the updated state for child node processing, letting you walk the document tree while maintaining font context.
+The function receives the current node, font state, and a callback to register required fonts. It returns the updated state, which is passed down when processing the node's children. This lets you walk the document tree while keeping track of the font context.
 
 ## Programmatic formatting
 
@@ -394,7 +398,7 @@ const html = renderHtmlFromRichTextForMeasurement(editor, richText)
 
 The measurement system accounts for formatting that affects layout, like bold text or lists. Font loading completes before measurement to ensure accurate dimensions.
 
-For SVG export, the `RichTextSVG` component renders rich text as a foreignObject element, preserving formatting and layout in exported images.
+For SVG export, the `RichTextSVG` component renders rich text as a foreignObject element. Exported images keep the same formatting and layout as the canvas.
 
 ## Extension points
 
@@ -406,7 +410,7 @@ The rich text system offers several ways to customize behavior:
 | **Custom toolbar**           | Replace or extend the rich text toolbar with different formatting controls     |
 | **Font resolution**          | Override font resolution to use custom fonts or alternative loading strategies |
 
-The `options.text` field accepts a `tipTapConfig` object that passes through to TipTap's editor configuration, giving you access to all TipTap configuration options:
+The `options.text` field accepts a `tipTapConfig` object that passes through to TipTap's editor configuration. All TipTap configuration options are available here:
 
 ```typescript
 const options = {

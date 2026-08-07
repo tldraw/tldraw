@@ -21,7 +21,7 @@ The editor tracks which shapes are selected and gives you methods to change the 
 
 ## Selected shape IDs
 
-The editor tracks selection through the `selectedShapeIds` array in the current page's instance state. This array stores the IDs of all currently selected shapes and serves as the source of truth for selection state.
+The editor tracks selection through the `selectedShapeIds` array in the current page's instance state. This array holds the IDs of all currently selected shapes. Everything else about the selection (bounds, rotation, the selected shape records) is derived from it.
 
 ```typescript
 // Get currently selected shape IDs
@@ -63,11 +63,9 @@ editor.selectAll()
 
 The behavior adapts to context:
 
-- If nothing is selected, it selects all page-level shapes
-- If you select shapes that share a common parent (like shapes inside a group), it selects all shapes within that parent
+- If nothing is selected, it selects all shapes on the current page
+- If the selected shapes share a common parent (like shapes inside a group), it selects all shapes within that parent
 - If the selected shapes have different parents, it does nothing
-
-This allows users to progressively select "outward" by calling `selectAll()` multiple times.
 
 ### Adjacent selection
 
@@ -78,6 +76,8 @@ editor.selectAdjacentShape('next')
 editor.selectAdjacentShape('prev')
 editor.selectAdjacentShape('left')
 editor.selectAdjacentShape('right')
+editor.selectAdjacentShape('up')
+editor.selectAdjacentShape('down')
 ```
 
 When selecting by cardinal direction, the system uses geometric distance and directional scoring to find the most appropriate adjacent shape.
@@ -198,7 +198,7 @@ editor.selectAll()
 editor.deleteShapes(shapeIds) // Only deletes unlocked shapes
 ```
 
-Locks do not restrict individual shape selection through `select()`, allowing users to explicitly select locked shapes when needed.
+Locks do not restrict individual shape selection through `select()`. You can still select locked shapes explicitly when needed.
 
 ## Ancestor checking
 

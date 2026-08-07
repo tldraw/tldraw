@@ -13,6 +13,7 @@ import {
 import { memo, MouseEvent, useCallback, useEffect, useRef } from 'react'
 import { useA11y } from '../context/a11y'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { suppressBackToContent } from './HelperButtons/BackToContent'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 
 export function SkipToMainContent() {
@@ -27,6 +28,7 @@ export function SkipToMainContent() {
 			const shapes = editor.getCurrentPageShapesInReadingOrder()
 			if (!shapes.length) return
 			editor.setSelectedShapes([shapes[0].id])
+			suppressBackToContent(editor, editor.options.animationMediumMs)
 			editor.zoomToSelectionIfOffscreen(256, {
 				animation: {
 					duration: editor.options.animationMediumMs,
@@ -134,7 +136,7 @@ export function generateShapeAnnouncementMessage(args: {
 }
 
 /** @public */
-export const useSelectedShapesAnnouncer = () => {
+export function useSelectedShapesAnnouncer() {
 	const editor = useMaybeEditor()
 	const a11y = useA11y()
 	const msg = useTranslation()

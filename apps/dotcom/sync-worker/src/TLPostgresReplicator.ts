@@ -27,6 +27,7 @@ import {
 	parseTopicSubscriptionTree,
 	serializeSubscriptions,
 } from './replicator/Subscription'
+import { deleteOgImage, enqueuePublishThumbnailRender } from './routes/tla/ogImageQueue'
 import {
 	Analytics,
 	Environment,
@@ -127,7 +128,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private getNewSlotName() {
 		const slotNameMaxLength = 63 // max postgres identifier length
-		const slotId = uniqueId().toLowerCase()
+		// PG slot names only allow [a-z0-9_], replace hyphens from nanoid
+		const slotId = uniqueId().toLowerCase().replace(/-/g, '_')
 		const slotNamePrefix = `tlpr_${slotId}_`
 		const durableObjectId = this.ctx.id.toString()
 		return slotNamePrefix + durableObjectId.slice(0, slotNameMaxLength - slotNamePrefix.length)
@@ -872,6 +874,20 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}|${currentTime}`, isApp: true }),
 				blob
 			)
+
+			// The published snapshot is now the content an unfurl would show, so render its OG image
+			// straight away rather than leaving the first crawler to find a cold cache. Publishing is an
+			// explicit, low-volume act, so this costs about one render per publish.
+			//
+			// Reported rather than swallowed, and the no-op results are reported too, because this is the
+			// *only* trigger a published board has. A published snapshot is frozen, so nothing edits it
+			// into needing another render: an ask lost here — thrown, or turned away as `already_pending`
+			// by a marker some earlier failure left behind — leaves that board's card generic until it is
+			// republished. `getOgImage` repairs it on the next fetch (see the `published` on-miss enqueue
+			// there); this line is how we find out it happened.
+			await enqueuePublishThumbnailRender(this.env, file.publishedSlug, (error) =>
+				this.captureException(error, { publishThumbnailEnqueue: true })
+			)
 		} catch (e) {
 			this.log.debug('Error publishing snapshot', e)
 		}
@@ -883,6 +899,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			await this.env.ROOM_SNAPSHOTS.delete(
 				getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
 			)
+			// The published thumbnail goes with the published snapshot it depicts. Scoped to
+			// `kind: 'published'`, so the board's own file-keyed image is untouched. See deleteOgImage.
+			await deleteOgImage(this.env, { kind: 'published', slug: file.publishedSlug })
 		} catch (e) {
 			this.log.debug('Error unpublishing snapshot', e)
 		}

@@ -4,6 +4,7 @@ import { exec } from './lib/exec'
 import { REPO_ROOT } from './lib/file'
 
 const OXFMT_EXTENSIONS = 'js,jsx,ts,tsx,cjs,mjs,css,md,mdx,html,yml,yaml'
+const CONTEXT_COMPAT_FILE_PATTERN = /^(apps|packages|templates)\/.+\/(?:CLAUDE|AGENTS)\.md$/i
 
 async function main() {
 	const shouldFix = process.argv.includes('--fix')
@@ -25,6 +26,14 @@ async function main() {
 		if (matchingFiles.length === 0) {
 			console.log('No files to lint.')
 			return
+		}
+		// Force one TypeScript file through oxlint so repo-level markdown checks
+		// still run when current-only changes only touch CLAUDE.md / AGENTS.md.
+		if (
+			matchingFiles.some((file) => CONTEXT_COMPAT_FILE_PATTERN.test(file)) &&
+			!matchingFiles.includes('internal/scripts/lint.ts')
+		) {
+			matchingFiles.push('internal/scripts/lint.ts')
 		}
 		target = matchingFiles.join(' ')
 		fmtGlob = target

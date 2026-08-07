@@ -31,7 +31,7 @@ function ShowNumberOfDrawShapesOnPage() {
 	)
 }
 
-export const deriveNumberOfDrawShapesInDocument = (editor: Editor) => {
+export function deriveNumberOfDrawShapesInDocument(editor: Editor) {
 	const { store } = editor
 	const shapesIndex = store.query.ids('shape')
 

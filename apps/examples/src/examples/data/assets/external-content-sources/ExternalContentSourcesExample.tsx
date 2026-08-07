@@ -42,8 +42,10 @@ class DangerousHtmlExample extends BaseBoxShapeUtil<IDangerousHtmlShape> {
 		)
 	}
 
-	override indicator(shape: IDangerousHtmlShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	override getIndicatorPath(shape: IDangerousHtmlShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 

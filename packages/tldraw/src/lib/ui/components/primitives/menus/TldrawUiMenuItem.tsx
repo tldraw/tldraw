@@ -180,7 +180,9 @@ export function TldrawUiMenuItem<
 		case 'icons': {
 			return (
 				<TldrawUiToolbarButton
+					aria-pressed={isSelected === undefined ? undefined : isSelected ? 'true' : 'false'}
 					data-testid={`${sourceId}.${id}`}
+					isActive={isSelected}
 					type="icon"
 					title={titleStr}
 					disabled={disabled}

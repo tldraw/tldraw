@@ -75,6 +75,51 @@ const snapshots: Snapshots = {
 			'rich text': <TL.geo dash="solid" richText={richText} align="start" w={300} h={300} />,
 		},
 	},
+	// A dedicated group (its own snapshot image) for RTL export alignment (#7720): `start` must
+	// flush lines to the right and `end` to the left for RTL — matching the canvas, not the
+	// reversed physical mapping that used to ship. The LTR pair is the mirror-image control.
+	'Text alignment': {
+		rtl: {
+			'start (flush right)': (
+				<TL.text
+					richText={toRichText('مرحباً بكم في تطبيق تلدرو\nسطر قصير')}
+					font="draw"
+					size="l"
+					textAlign="start"
+					color="black"
+				/>
+			),
+			'end (flush left)': (
+				<TL.text
+					richText={toRichText('مرحباً بكم في تطبيق تلدرو\nسطر قصير')}
+					font="draw"
+					size="l"
+					textAlign="end"
+					color="black"
+				/>
+			),
+		},
+		ltr: {
+			'start (flush left)': (
+				<TL.text
+					richText={toRichText('The quick brown fox\nshort')}
+					font="draw"
+					size="l"
+					textAlign="start"
+					color="black"
+				/>
+			),
+			'end (flush right)': (
+				<TL.text
+					richText={toRichText('The quick brown fox\nshort')}
+					font="draw"
+					size="l"
+					textAlign="end"
+					color="black"
+				/>
+			),
+		},
+	},
 	Fills: Object.fromEntries(
 		DefaultFillStyle.values.map((fill) => [
 			`fill=${fill}`,
@@ -164,6 +209,75 @@ const snapshots: Snapshots = {
 					/>,
 				])
 			),
+		])
+	),
+	// Directional geo shapes must mirror their geometry (not just their position) when flipped,
+	// and the label must stay upright/unmirrored (#9373). These rows lock in the mirrored path
+	// and the readable label for each flip combination across the SVG export.
+	'Geo flips': Object.fromEntries(
+		(
+			[
+				'rhombus',
+				'rhombus-2',
+				'trapezoid',
+				'triangle',
+				'arrow-right',
+				'arrow-left',
+				'arrow-up',
+				'arrow-down',
+			] as const
+		).map((geoStyle) => [
+			geoStyle,
+			{
+				none: (
+					<TL.geo
+						geo={geoStyle}
+						dash="solid"
+						fill="solid"
+						color="blue"
+						w={100}
+						h={100}
+						richText={toRichText('flip')}
+					/>
+				),
+				flipX: (
+					<TL.geo
+						geo={geoStyle}
+						dash="solid"
+						fill="solid"
+						color="blue"
+						w={100}
+						h={100}
+						flipX
+						richText={toRichText('flip')}
+					/>
+				),
+				flipY: (
+					<TL.geo
+						geo={geoStyle}
+						dash="solid"
+						fill="solid"
+						color="blue"
+						w={100}
+						h={100}
+						flipY
+						richText={toRichText('flip')}
+					/>
+				),
+				flipXY: (
+					<TL.geo
+						geo={geoStyle}
+						dash="solid"
+						fill="solid"
+						color="blue"
+						w={100}
+						h={100}
+						flipX
+						flipY
+						richText={toRichText('flip')}
+					/>
+				),
+			},
 		])
 	),
 	Frames: {
@@ -967,13 +1081,18 @@ interface SnapshotWithoutJsx {
 test.describe('Export snapshots', () => {
 	const snapshotsToTest = Object.entries(snapshots)
 
-	test.beforeEach(async ({ page, context }) => {
+	test.beforeEach(async ({ page, context, api }) => {
 		const url = page.url()
 		if (!url.includes('end-to-end')) {
 			await setup({ page, context } as any)
 		} else {
 			await hardResetEditor(page)
 		}
+		// These snapshots lay shapes out by their measured bounds, and text is measured from
+		// the loaded font - so load the fonts before anything is measured. Otherwise a shape
+		// can be measured with fallback-font metrics, which shifts the layout and the export's
+		// size and makes the screenshot diff flaky.
+		await api.preloadFonts()
 	})
 
 	for (const [name, snapshotWithJsx] of snapshotsToTest) {

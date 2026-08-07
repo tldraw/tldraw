@@ -1,0 +1,131 @@
+.td-hud {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 8px 12px;
+	background: var(--color-panel);
+	border-radius: 8px;
+	box-shadow: var(--shadow-2);
+	font-size: 12px;
+	color: var(--color-text);
+	max-width: 720px;
+	pointer-events: auto;
+}
+
+.td-hud__row {
+	display: flex;
+	gap: 16px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.td-hud__row strong {
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+}
+
+.td-hud__btn {
+	margin-left: auto;
+	padding: 4px 10px;
+	border: 1px solid var(--color-divider);
+	border-radius: 6px;
+	background: var(--color-low);
+	color: var(--color-text);
+	cursor: pointer;
+	font: inherit;
+}
+
+.td-hud__btn:hover {
+	background: var(--color-hint);
+}
+
+.td-hud__hint {
+	color: var(--color-text-1);
+	font-size: 11px;
+	opacity: 0.85;
+}
+
+.td-hud__hint code,
+.td-hud__hint kbd {
+	display: inline-block;
+	padding: 0 4px;
+	border-radius: 3px;
+	background: var(--color-low);
+	font: inherit;
+	font-size: 10px;
+}
+
+.td-hud__gameover {
+	color: #d33;
+	font-weight: 600;
+}
+
+.td-toolbar {
+	display: flex;
+	gap: 6px;
+	padding: 6px;
+	background: var(--color-panel);
+	border-radius: 10px;
+	box-shadow: var(--shadow-2);
+	pointer-events: auto;
+}
+
+.td-toolbar__btn {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	min-width: 56px;
+	padding: 6px 8px;
+	border: 1px solid transparent;
+	border-radius: 8px;
+	background: transparent;
+	color: var(--color-text);
+	cursor: pointer;
+	font-size: 11px;
+	font: inherit;
+}
+
+.td-toolbar__btn:hover {
+	background: var(--color-hint);
+}
+
+.td-toolbar__btn.is-active {
+	border-color: var(--color-selected);
+	background: var(--color-selected-contrast);
+	color: var(--color-selected);
+}
+
+.td-toolbar__btn.is-disabled,
+.td-toolbar__btn:disabled {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+.td-toolbar__btn.is-disabled:hover,
+.td-toolbar__btn:disabled:hover {
+	background: transparent;
+}
+
+.td-toolbar__label {
+	font-size: 10px;
+	letter-spacing: 0.02em;
+}
+
+.td-toolbar__cost {
+	font-size: 10px;
+	color: var(--color-text-1);
+	font-variant-numeric: tabular-nums;
+}
+
+.td-toolbar__cost kbd {
+	display: inline-block;
+	padding: 0 4px;
+	min-width: 14px;
+	text-align: center;
+	border: 1px solid var(--color-divider);
+	border-radius: 3px;
+	background: var(--color-low);
+	font: inherit;
+	font-size: 9px;
+}

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { createShapeId, Tldraw, TldrawUiButton, TLShapeId, toRichText, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -13,7 +14,20 @@ const TEMPLATE_IDS: TLShapeId[] = [
 function ControlPanel() {
 	const editor = useEditor()
 
-	// [3] Update locked shapes using ignoreShapeLock option
+	// [3] Local state mirrors editor.options.selectLockedShapes for the UI.
+	// The option is readonly at the type level but the editor stores a copy
+	// internally that the SelectTool reads live on every interaction — so
+	// mutating the underlying field flips behaviour immediately, without a
+	// remount.
+	const [selectLocked, setSelectLocked] = useState(editor.options.selectLockedShapes)
+
+	const toggleSelectLocked = () => {
+		const next = !selectLocked
+		;(editor.options as { selectLockedShapes: boolean }).selectLockedShapes = next
+		setSelectLocked(next)
+	}
+
+	// [4] Update locked shapes using ignoreShapeLock option
 	// Without ignoreShapeLock: true, these updates would be blocked
 	const handleScatter = () => {
 		editor.run(
@@ -46,7 +60,21 @@ function ControlPanel() {
 	}
 
 	return (
-		<div className="tlui-menu">
+		<div className="tlui-menu" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+			<label
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					gap: 6,
+					fontSize: 13,
+					cursor: 'pointer',
+					userSelect: 'none',
+				}}
+				title="When on, left-click and brush selection include locked shapes."
+			>
+				<input type="checkbox" checked={selectLocked} onChange={toggleSelectLocked} />
+				Allow selecting locked shapes
+			</label>
 			<TldrawUiButton type="normal" onClick={handleScatter}>
 				Scatter
 			</TldrawUiButton>
@@ -61,7 +89,7 @@ const components = {
 	TopPanel: ControlPanel,
 }
 
-// [4]
+// [5]
 export default function LockedShapesExample() {
 	return (
 		<div className="tldraw__editor">
@@ -74,7 +102,7 @@ export default function LockedShapesExample() {
 						return
 					}
 
-					// [5] Create locked template shapes
+					// [6] Create locked template shapes
 					const shapeProps = {
 						geo: 'rectangle' as const,
 						w: 130,
@@ -92,7 +120,7 @@ export default function LockedShapesExample() {
 						{ id: TEMPLATE_IDS[3], type: 'geo', x: 250, y: 250, props: shapeProps },
 					])
 
-					// [6] Lock them immediately
+					// [7] Lock them immediately
 					editor.toggleLock(TEMPLATE_IDS)
 					editor.zoomToFit({ animation: { duration: 0 } })
 				}}
@@ -102,27 +130,46 @@ export default function LockedShapesExample() {
 }
 
 /*
-This example demonstrates the key distinction between locked shapes and programmatic updates:
+This example demonstrates two ways the editor distinguishes user interaction
+from programmatic mutation on locked shapes:
 
-Locked shapes prevent ALL user interaction (dragging, deleting, etc.), but programs can still
-modify them using the ignoreShapeLock option. This is useful for shapes that should be fixed
-in place by the user but need to be repositioned programmatically.
+1. `editor.run(fn, { ignoreShapeLock: true })` bypasses the lock guard for
+   the duration of the callback, so the Scatter / Reset buttons can move
+   shapes the user can't drag.
+2. `editor.options.selectLockedShapes` controls whether locked shapes can be
+   *selected* (via left-click, brush select, scribble select). The lock
+   guards on moving, resizing, editing, and deleting still apply — selection
+   is the only thing this option unlocks.
 
 [1] Pre-defined shape IDs so we can reference them later.
 
-[2] Control panel with action buttons.
+[2] Control panel with the new toggle plus the existing action buttons.
 
-[3] Both buttons use editor.run() with { ignoreShapeLock: true } to bypass the lock constraint.
-This option allows programmatic updates even though user interactions on these shapes are blocked.
+[3] Local React state mirrors the live editor option. The option is
+`readonly` at the type level (it's intended as initial editor config) but
+the editor stores a single mutable copy that the SelectTool reads on every
+relevant pointer event. Mutating the field changes behaviour immediately
+without remounting. The cast through `{ selectLockedShapes: boolean }`
+isolates the type relaxation to one line.
 
-[4] The main component sets up the editor.
+[4] Both buttons use `editor.run()` with `{ ignoreShapeLock: true }` to
+bypass the lock constraint. This option allows programmatic updates even
+though user interactions on these shapes are blocked.
 
-[5] On mount, we create a 2x2 grid of template shapes.
+[5] The main component sets up the editor.
 
-[6] We immediately lock them with toggleLock(). The key behavior: users cannot move or delete
-these shapes, but the Scatter/Reset buttons can still reposition them programmatically.
+[6] On mount, we create a 2x2 grid of template shapes.
+
+[7] We immediately lock them with `toggleLock()`. The key behavior: users
+cannot move or delete these shapes, but the Scatter / Reset buttons can
+still reposition them programmatically.
 
 Try it:
-- Try dragging any template shape (won't work - they're locked by the user interface)
-- Click Scatter or Reset to see how programmatic updates work with ignoreShapeLock: true
+- Default: try left-clicking a template shape — nothing happens (locked
+  shapes aren't selectable). Right-click still selects.
+- Flip the "Allow selecting locked shapes" toggle on, then left-click or
+  brush-select across a template shape — it gets selected. Try to drag it
+  by the handles — the lock guard still prevents the move.
+- Click Scatter or Reset to see how programmatic updates work with
+  `ignoreShapeLock: true` regardless of the toggle.
 */

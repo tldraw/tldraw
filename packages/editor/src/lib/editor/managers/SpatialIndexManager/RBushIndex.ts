@@ -47,28 +47,6 @@ export class RBushIndex {
 	}
 
 	/**
-	 * Insert or update a shape in the spatial index.
-	 * If the shape already exists, it will be removed first to prevent duplicates.
-	 */
-	upsert(id: TLShapeId, bounds: Box): void {
-		// Remove existing entry to prevent map-tree desync
-		const existing = this.elementsInTree.get(id)
-		if (existing) {
-			this.rBush.remove(existing)
-		}
-
-		const element: SpatialElement = {
-			minX: bounds.minX,
-			minY: bounds.minY,
-			maxX: bounds.maxX,
-			maxY: bounds.maxY,
-			id,
-		}
-		this.rBush.insert(element)
-		this.elementsInTree.set(id, element)
-	}
-
-	/**
 	 * Remove a shape from the spatial index.
 	 */
 	remove(id: TLShapeId): void {
@@ -76,6 +54,25 @@ export class RBushIndex {
 		if (element) {
 			this.rBush.remove(element)
 			this.elementsInTree.delete(id)
+		}
+	}
+
+	/**
+	 * Apply the removals and upserts collected during one incremental update.
+	 * Mutations are applied per item: bulk-rebuilding the whole tree instead
+	 * was measured slower even with ~10% of the index in the batch.
+	 */
+	applyBatch(removes: Set<TLShapeId>, upserts: SpatialElement[]): void {
+		for (const id of removes) {
+			this.remove(id)
+		}
+		for (const element of upserts) {
+			const existing = this.elementsInTree.get(element.id)
+			if (existing) {
+				this.rBush.remove(existing)
+			}
+			this.rBush.insert(element)
+			this.elementsInTree.set(element.id, element)
 		}
 	}
 
@@ -113,25 +110,13 @@ export class RBushIndex {
 	}
 
 	/**
-	 * Get all shape IDs currently in the spatial index.
+	 * Get the raw stored element for a shape, without allocating a Box.
+	 * Use when you only need to read the indexed bounds for comparison.
+	 *
+	 * @internal
 	 */
-	getAllShapeIds(): TLShapeId[] {
-		return Array.from(this.elementsInTree.keys())
-	}
-
-	/**
-	 * Get the bounds currently stored in the spatial index for a shape.
-	 * Returns undefined if the shape is not in the index.
-	 */
-	getBounds(id: TLShapeId): Box | undefined {
-		const element = this.elementsInTree.get(id)
-		if (!element) return undefined
-		return new Box(
-			element.minX,
-			element.minY,
-			element.maxX - element.minX,
-			element.maxY - element.minY
-		)
+	getElement(id: TLShapeId): SpatialElement | undefined {
+		return this.elementsInTree.get(id)
 	}
 
 	/**

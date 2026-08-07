@@ -50,7 +50,6 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 						id={`${sourceId}-sub.${id}-button`}
 						disabled={disabled}
 						label={labelStr!}
-						title={labelStr!}
 					/>
 					<TldrawUiDropdownMenuSubContent id={`${sourceId}-sub.${id}-content`} size={size}>
 						{children}

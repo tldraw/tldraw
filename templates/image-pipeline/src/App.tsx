@@ -5,6 +5,7 @@ import { OnCanvasNodePicker } from './components/OnCanvasNodePicker.tsx'
 import { PipelineRegions } from './components/PipelineRegions.tsx'
 import { overrides, PipelineToolbar } from './components/PipelineToolbar.tsx'
 import { ConnectionBindingUtil } from './connection/ConnectionBindingUtil'
+import { ConnectionCenterHandleOverlayUtil } from './connection/ConnectionCenterHandleOverlayUtil'
 import { ConnectionShapeUtil } from './connection/ConnectionShapeUtil'
 import { keepConnectionsAtBottom } from './connection/keepConnectionsAtBottom'
 import { disableTransparency } from './disableTransparency.tsx'
@@ -13,6 +14,7 @@ import { PointingPort } from './ports/PointingPort'
 
 const shapeUtils = [NodeShapeUtil, ConnectionShapeUtil]
 const bindingUtils = [ConnectionBindingUtil]
+const overlayUtils = [ConnectionCenterHandleOverlayUtil]
 
 const components: TLComponents = {
 	InFrontOfTheCanvas: () => (
@@ -44,6 +46,7 @@ function App() {
 					overrides={overrides}
 					shapeUtils={shapeUtils}
 					bindingUtils={bindingUtils}
+					overlayUtils={overlayUtils}
 					components={components}
 					onMount={(editor) => {
 						;(window as any).editor = editor

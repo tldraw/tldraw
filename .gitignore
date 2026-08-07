@@ -58,12 +58,15 @@ api-md
 
 packages/tldraw/tldraw.css
 packages/namespaced-tldraw/tldraw.css
+packages/commenting/commenting.css
+packages/collaboration/collaboration.css
 
 packages/assets/embed-icons
 packages/assets/fonts
 packages/assets/icons
 packages/assets/translations
 packages/assets/watermarks
+packages/commenting/assets
 apps/examples/www/embed-icons
 apps/examples/www/fonts
 apps/examples/www/icons
@@ -125,9 +128,11 @@ opencode.json
 
 # PR walkthrough intermediate files
 .claude/worktrees
-.claude/skills/pr-walkthrough/tmp
-.claude/skills/pr-walkthrough/out
-.claude/skills/pr-walkthrough/video/node_modules
-.claude/skills/pr-walkthrough/video/dist
-.claude/skills/pr-walkthrough/video/public/audio-*
-.claude/skills/pr-walkthrough/video/public/manifest.json
+.claude/settings.local.json
+skills/pr-walkthrough/tmp
+skills/pr-walkthrough/out
+skills/pr-walkthrough/video/node_modules
+skills/pr-walkthrough/video/dist
+skills/pr-walkthrough/video/public/audio-*
+skills/pr-walkthrough/video/public/manifest.json
+todo.md

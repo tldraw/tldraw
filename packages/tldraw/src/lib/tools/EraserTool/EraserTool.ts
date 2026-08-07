@@ -12,7 +12,24 @@ export class EraserTool extends StateNode {
 		return [Idle, Pointing, Erasing]
 	}
 
-	override onEnter() {
+	info = {} as { onInteractionEnd?: string }
+
+	override onEnter(info: { onInteractionEnd?: string } = {}) {
+		this.info = info
+		if (info.onInteractionEnd) {
+			this.setCurrentToolIdMask(info.onInteractionEnd)
+		}
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
+	}
+
+	override onExit() {
+		this.setCurrentToolIdMask(undefined)
+		this.info = {}
+	}
+
+	maybeReturnToOriginatingTool() {
+		const { onInteractionEnd } = this.info
+		if (!onInteractionEnd) return
+		this.editor.setCurrentTool(onInteractionEnd)
 	}
 }

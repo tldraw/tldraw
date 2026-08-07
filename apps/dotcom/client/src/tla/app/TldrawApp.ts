@@ -1,29 +1,26 @@
-import { Zero } from '@rocicorp/zero'
+import { QueryResultType, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
 import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
 	CreateSnapshotRequestBody,
-	DragFileOperation,
-	DragReorderOperation,
 	FILE_PREFIX,
 	LOCAL_FILE_PREFIX,
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	TlaFile,
+	WELCOME_CREATE_SOURCE,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaFlags,
-	TlaGroup,
 	TlaGroupFile,
-	TlaGroupUser,
 	TlaMutators,
 	TlaSchema,
 	TlaUser,
 	UserPreferencesKeys,
 	ZErrorCode,
-	Z_PROTOCOL_VERSION,
 	ZeroContext,
+	can,
 	createMutators,
 	parseFlags,
 	queries,
@@ -33,10 +30,8 @@ import {
 	Result,
 	assert,
 	fetch,
-	getFromLocalStorage,
 	isEqual,
 	promiseWithResolve,
-	setInLocalStorage,
 	sleep,
 	sortByIndex,
 	sortByMaybeIndex,
@@ -44,7 +39,6 @@ import {
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
-import pick from 'lodash.pick'
 import { useNavigate } from 'react-router-dom'
 import {
 	Atom,
@@ -61,15 +55,13 @@ import {
 	dataUrlToFile,
 	defaultUserPreferences,
 	getUserPreferences,
-	objectMapFromEntries,
-	objectMapKeys,
 	parseTldrawJsonFile,
 	react,
 	transact,
 } from 'tldraw'
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
-import { MULTIPLAYER_SERVER, ZERO_SERVER } from '../../utils/config'
+import { ZERO_SERVER } from '../../utils/config'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TLAppUiContextType } from '../utils/app-ui-events'
@@ -77,58 +69,82 @@ import { getDateFormat } from '../utils/dates'
 import { FeatureFlags } from '../utils/FeatureFlagPoller'
 import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
-import { Zero as ZeroPolyfill } from './zero-polyfill'
-
-export interface DragGroupOperation {
-	reorder?: DragReorderOperation
-}
-
-export type DragState =
-	| null
-	| {
-			type: 'file'
-			id: string
-			operation: DragFileOperation
-			hasDragStarted: boolean
-	  }
-	| {
-			type: 'group'
-			id: string
-			operation: DragGroupOperation
-			hasDragStarted: boolean
-	  }
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 let appId = 0
 
-export function shouldUseProperZero(
+/**
+ * Whether commenting is available to this user. While commenting is being built out it's staff-only:
+ * anyone with a @tldraw.com email gets it, everyone else waits on the `commenting_enabled` flag
+ * (off by default, with a percentage rollout knob on the admin page). Signed-out viewers have no
+ * email and no flags, so they don't see comments at all.
+ */
+export function shouldEnableCommenting(
 	flags: FeatureFlags,
 	email?: string | null
 ): { value: boolean; reason: string } {
-	if (flags.zero_kill_switch?.enabled) {
-		return { value: false, reason: 'kill switch active' }
-	}
-	if (typeof navigator !== 'undefined' && navigator.webdriver) {
-		return { value: false, reason: 'automated testing' }
-	}
-	const localOverride = getFromLocalStorage('useProperZero')
-	if (localOverride !== null) {
-		return { value: localOverride === 'true', reason: 'localStorage override' }
-	}
 	if (email?.endsWith('@tldraw.com')) {
 		return { value: true, reason: '@tldraw.com email' }
 	}
-	const flagEnabled = flags.zero_enabled?.enabled ?? false
-	return { value: flagEnabled, reason: 'server feature flag' }
+	return { value: flags.commenting_enabled?.enabled ?? false, reason: 'server feature flag' }
 }
 
-// @ts-expect-error — dev escape hatch, call window.zero() in console to toggle
-window.zero = () => {
-	const current = getFromLocalStorage('useProperZero') === 'true'
-	setInLocalStorage('useProperZero', String(!current))
-	location.reload()
+/** When the user last opened the file (visit, else edit, else first visit), or undefined if never. */
+export function getFileVisitDate(state: TlaFileState | undefined): number | undefined {
+	return state?.lastVisitAt ?? state?.lastEditAt ?? state?.firstVisitAt ?? undefined
+}
+
+/** Ranks a file for display: when it was last opened, else when it was created. */
+export function getFileRecencyDate(
+	state: TlaFileState | undefined,
+	file: TlaFile | undefined
+): number {
+	return getFileVisitDate(state) ?? file?.createdAt ?? 0
+}
+
+/** Milliseconds until a JWT's `exp`, or null if it can't be read. */
+function msUntilExpiry(token: string | undefined, now = Date.now()): number | null {
+	if (!token) return null
+	try {
+		const [, payload] = token.split('.')
+		if (!payload) return null
+		// base64url, which atob doesn't accept
+		const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+		if (typeof claims?.exp !== 'number') return null
+		return claims.exp * 1000 - now
+	} catch {
+		// a token we can't parse is still a usable token; fall back to the fixed cadence
+		return null
+	}
+}
+
+/** Fallback cadence for a token whose expiry we can't read. Under Clerk's 60s default this is
+ *  already too slow for a hidden tab — see {@link msUntilTokenRefresh}. */
+const FALLBACK_TOKEN_REFRESH_MS = 50_000
+/** Never busy-loop on a token that is expired or nearly so. */
+const MIN_TOKEN_REFRESH_MS = 5_000
+
+/**
+ * When to refresh the auth token, derived from the token's own expiry rather than a fixed cadence.
+ *
+ * This matters more than a normal token refresh because Zero hands the token to zero-cache, which
+ * reuses it for the transform and push fetches behind the connection. An expired token there
+ * doesn't fail one request, it invalidates the whole connection — which is what produced a steady
+ * ~2k `TransformFailed` and ~600 connection invalidations per hour in production.
+ *
+ * Refreshing at half the remaining life means a tick that runs late still has a whole half-life of
+ * slack. Reading the deadline off the token also means raising the session-token lifetime in the
+ * Clerk dashboard takes effect here with no code change — which is the part that actually fixes
+ * this. Browsers throttle timers in hidden tabs to roughly once a minute, so against Clerk's 60s
+ * default the token expires under a backgrounded tab no matter what cadence we ask for; no
+ * client-side schedule can beat that, only a longer-lived token can.
+ */
+export function msUntilTokenRefresh(token: string | undefined, now = Date.now()): number {
+	const remaining = msUntilExpiry(token, now)
+	if (remaining === null) return FALLBACK_TOKEN_REFRESH_MS
+	return Math.max(MIN_TOKEN_REFRESH_MS, remaining / 2)
 }
 
 export class TldrawApp {
@@ -141,16 +157,26 @@ export class TldrawApp {
 	readonly z: Zero<TlaSchema, TlaMutators, ZeroContext>
 
 	private readonly user$: Signal<TlaUser | undefined>
-	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
-	private readonly groupMemberships$: Signal<
-		(TlaGroupUser & {
-			group: TlaGroup
-			groupFiles: Array<TlaGroupFile & { file: TlaFile }>
-			groupMembers: Array<TlaGroupUser>
-		})[]
+	// These signal types are derived from the query definitions in dotcom-shared rather than
+	// hand-written, so the shape (and the nullability of `.one()` joins like `file`) stays in
+	// sync with the queries automatically. A previous hand-written annotation claimed `file` was
+	// always present, which hid a production crash when a `.one()` join resolved to undefined.
+	private readonly fileStates$: Signal<QueryResultType<typeof queries.fileStates>>
+	private readonly workspaceMemberships$: Signal<
+		QueryResultType<typeof queries.workspaceMemberships>
 	>
+	/**
+	 * Null when commenting is disabled for this user: the notifications feed is the most expensive
+	 * query in the schema (nested EXISTS over comment/thread/file/group), so a closed flag has to
+	 * keep it off the wire entirely, not just hide the UI that reads it.
+	 */
+	private readonly comments$: Signal<QueryResultType<typeof queries.comments>> | null
+	/** Null when commenting is disabled for this user, like {@link comments$}. */
+	private readonly reactions$: Signal<QueryResultType<typeof queries.reactions>> | null
 
-	private readonly useProperZero: boolean
+	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
+	readonly isCommentingEnabled: boolean
+
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
 	private getToken: () => Promise<string | undefined>
@@ -195,6 +221,13 @@ export class TldrawApp {
 	trackEvent: TLAppUiContextType
 	navigate: ReturnType<typeof useNavigate>
 
+	/**
+	 * Test-only hook (only set under Playwright, see the constructor) that fires the same
+	 * "client too old" callback Zero's `onUpdateNeeded` would call, so e2e can exercise the
+	 * reload-recovery UI without forcing a real schema/protocol mismatch against zero-cache.
+	 */
+	__test__triggerClientTooOld?: () => void
+
 	private constructor(
 		public readonly userId: string,
 		initialToken: string | undefined,
@@ -208,92 +241,106 @@ export class TldrawApp {
 		this.navigate = navigate
 		this.trackEvent = trackEvent
 		this.getToken = getToken
-		const sessionId = uniqueId()
-		const { value: properZero, reason } = shouldUseProperZero(flags, email)
-		this.useProperZero = properZero
-		// eslint-disable-next-line no-console
-		console.log(`[Zero] Using ${properZero ? 'proper Zero' : 'ZeroPolyfill'} (${reason})`)
-		if (properZero) {
-			const z = new Zero<TlaSchema, TlaMutators, ZeroContext>({
-				auth: initialToken,
-				userID: userId,
-				schema: zeroSchema,
-				cacheURL: ZERO_SERVER,
-				mutators: createMutators(userId),
-				context: { userId } satisfies ZeroContext,
-				onUpdateNeeded(reason) {
-					console.error('update needed', reason)
-					onClientTooOld()
-				},
-				kvStore: window.navigator.webdriver ? 'mem' : 'idb',
-			})
-			this.z = z
-			const refreshToken = () =>
-				getToken().then((token) => {
-					if (token) {
-						z.connection.connect({ auth: token })
-						return true
-					}
-					return false
-				})
-			// Proactively refresh auth token before Clerk's 60s expiry.
-			// In Zero 0.26+, this sends an updateAuth message without reconnecting.
-			const TOKEN_REFRESH_INTERVAL = 50_000
-			const refreshInterval = setInterval(() => {
+		this.isCommentingEnabled = shouldEnableCommenting(flags, email).value
+		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
+		// without a live schema/protocol mismatch against zero-cache.
+		if (window.navigator.webdriver) {
+			this.__test__triggerClientTooOld = () => onClientTooOld()
+		}
+		const z = new Zero<TlaSchema, TlaMutators, ZeroContext>({
+			auth: initialToken,
+			userID: userId,
+			schema: zeroSchema,
+			cacheURL: ZERO_SERVER,
+			mutators: createMutators(userId),
+			context: { userId } satisfies ZeroContext,
+			onUpdateNeeded(reason) {
+				console.error('update needed', reason)
+				onClientTooOld()
+			},
+			kvStore: window.navigator.webdriver ? 'mem' : 'idb',
+		})
+		this.z = z
+		// Refresh the token ahead of its own expiry and reschedule from whatever we get back, so the
+		// cadence follows the session-token lifetime rather than a hardcoded guess at it. In Zero
+		// 0.26+ this sends an updateAuth message without reconnecting.
+		let refreshTimeout: ReturnType<typeof setTimeout> | undefined
+		const scheduleRefresh = (token: string | undefined) => {
+			clearTimeout(refreshTimeout)
+			refreshTimeout = setTimeout(() => {
 				refreshToken().catch((err) => {
 					console.error('Failed to proactively refresh auth token:', err)
 				})
-			}, TOKEN_REFRESH_INTERVAL)
-			this.disposables.push(() => clearInterval(refreshInterval))
-			// Set up token refresh on auth errors with backoff
-			let authRetryCount = 0
-			const MAX_AUTH_RETRIES = 5
-			const unsubscribe = z.connection.state.subscribe((state) => {
-				if (state.name === 'needs-auth') {
-					if (authRetryCount >= MAX_AUTH_RETRIES) {
-						console.error(`Auth retry limit reached (${MAX_AUTH_RETRIES}), giving up`)
-						captureException(new Error('Auth retry limit reached'))
-						return
-					}
-					const delay = Math.min(1000 * Math.pow(2, authRetryCount), 30_000)
-					authRetryCount++
-					setTimeout(() => {
-						refreshToken()
-							.then((didRefresh) => {
-								if (didRefresh) authRetryCount = 0
-							})
-							.catch((err) => {
-								console.error('Failed to refresh auth token:', err)
-								captureException(err)
-							})
-					}, delay)
-				}
-			})
-			this.disposables.push(unsubscribe)
-		} else {
-			this.z = new ZeroPolyfill({
-				userId,
-				getUri: async () => {
-					const params = new URLSearchParams({
-						sessionId,
-						protocolVersion: String(Z_PROTOCOL_VERSION),
-					})
-					const token = await getToken()
-					params.set('accessToken', token || 'no-token-found')
-					return `${MULTIPLAYER_SERVER}/app/${userId}/connect?${params}`
-				},
-				onMutationRejected: this.showMutationRejectionToast,
-				onClientTooOld: () => onClientTooOld(),
-				trackEvent,
-			}) as unknown as Zero<TlaSchema, TlaMutators, ZeroContext>
+			}, msUntilTokenRefresh(token))
 		}
+		// Reschedule on every outcome — a rejected getToken() or a throwing connect() must not kill
+		// the refresh chain, so scheduling happens before connect and in the reject path.
+		const refreshToken = () =>
+			getToken()
+				.catch((err) => {
+					scheduleRefresh(undefined)
+					throw err
+				})
+				.then((token) => {
+					scheduleRefresh(token)
+					if (token) {
+						z.connection.connect({ auth: token })
+					}
+					return !!token
+				})
+		scheduleRefresh(initialToken)
+		this.disposables.push(() => clearTimeout(refreshTimeout))
+		// A hidden tab's timers are throttled to about once a minute, so a token that lives 60s
+		// expires under it however early we schedule. Refresh on the way back rather than leaving the
+		// user to interact with a connection whose token went stale while they were away.
+		const onVisibilityChange = () => {
+			if (document.visibilityState !== 'visible') return
+			refreshToken().catch((err) => {
+				console.error('Failed to refresh auth token on focus:', err)
+			})
+		}
+		document.addEventListener('visibilitychange', onVisibilityChange)
+		this.disposables.push(() =>
+			document.removeEventListener('visibilitychange', onVisibilityChange)
+		)
+		// Set up token refresh on auth errors with backoff
+		let authRetryCount = 0
+		const MAX_AUTH_RETRIES = 5
+		const unsubscribe = z.connection.state.subscribe((state) => {
+			if (state.name === 'needs-auth') {
+				if (authRetryCount >= MAX_AUTH_RETRIES) {
+					console.error(`Auth retry limit reached (${MAX_AUTH_RETRIES}), giving up`)
+					captureException(new Error('Auth retry limit reached'))
+					return
+				}
+				const delay = Math.min(1000 * Math.pow(2, authRetryCount), 30_000)
+				authRetryCount++
+				setTimeout(() => {
+					refreshToken()
+						.then((didRefresh) => {
+							if (didRefresh) authRetryCount = 0
+						})
+						.catch((err) => {
+							console.error('Failed to refresh auth token:', err)
+							captureException(err)
+						})
+				}, delay)
+			}
+		})
+		this.disposables.push(unsubscribe)
 
 		this.user$ = this.signalizeQuery('user signal', this.userQuery())
 		this.fileStates$ = this.signalizeQuery('file states signal', this.fileStateQuery())
-		this.groupMemberships$ = this.signalizeQuery(
-			'group memberships signal',
-			this.groupMembershipsQuery()
+		this.workspaceMemberships$ = this.signalizeQuery(
+			'workspace memberships signal',
+			this.workspaceMembershipsQuery()
 		)
+		this.comments$ = this.isCommentingEnabled
+			? this.signalizeQuery('comments signal', this.commentsQuery())
+			: null
+		this.reactions$ = this.isCommentingEnabled
+			? this.signalizeQuery('reactions signal', this.reactionsQuery())
+			: null
 	}
 
 	private userQuery() {
@@ -304,23 +351,59 @@ export class TldrawApp {
 		return queries.fileStates()
 	}
 
-	private groupMembershipsQuery() {
-		return queries.groupUsers()
+	private workspaceMembershipsQuery() {
+		return queries.workspaceMemberships()
+	}
+
+	private commentsQuery() {
+		return queries.comments()
+	}
+
+	private reactionsQuery() {
+		return queries.reactions()
+	}
+
+	/**
+	 * Recent comments across the user's files, for the notifications feed (bounded, cross-file).
+	 * Empty when commenting is disabled for this user — the query isn't subscribed at all.
+	 */
+	getComments(): QueryResultType<typeof queries.comments> {
+		return this.comments$?.get() ?? []
+	}
+
+	/**
+	 * Recent reactions to the user's comments across their files, for the notifications feed
+	 * (bounded, cross-file). Empty when commenting is disabled for this user — the query isn't
+	 * subscribed at all.
+	 */
+	getReactions(): QueryResultType<typeof queries.reactions> {
+		return this.reactions$?.get() ?? []
+	}
+
+	/**
+	 * Materialize an ad-hoc Zero query into a live view the caller owns and must `destroy()`. For
+	 * parameterized, component-scoped queries (e.g. one file's comments) that shouldn't be
+	 * app-lifetime signals like {@link comments$}.
+	 */
+	materializeQuery<TReturn>(query: unknown) {
+		return this.z.materialize(query as any) as unknown as {
+			readonly data: TReturn
+			addListener(cb: (data: TReturn) => void): () => void
+			destroy(): void
+		}
 	}
 
 	async preload() {
-		if (this.useProperZero) {
-			// Ensure user exists in DB before Zero can query
-			const token = await this.getToken()
-			if (!token) {
-				throw new Error('No auth token available for init')
-			} else {
-				const res = await fetch(`/api/app/${this.userId}/init`, {
-					method: 'POST',
-					headers: { Authorization: `Bearer ${token}` },
-				})
-				if (!res.ok) console.error(`Init failed: ${res.status}`)
-			}
+		// Ensure user exists in DB before Zero can query
+		const token = await this.getToken()
+		if (!token) {
+			throw new Error('No auth token available for init')
+		} else {
+			const res = await fetch(`/api/app/${this.userId}/init`, {
+				method: 'POST',
+				headers: { Authorization: `Bearer ${token}` },
+			})
+			if (!res.ok) console.error(`Init failed: ${res.status}`)
 		}
 		await this.z.preload(this.userQuery()).complete
 		await this.changesFlushed
@@ -330,15 +413,17 @@ export class TldrawApp {
 		})
 		await Promise.all([
 			this.z.preload(this.fileStateQuery()).complete,
-			this.z.preload(this.groupMembershipsQuery()).complete,
+			this.z.preload(this.workspaceMembershipsQuery()).complete,
 		])
 	}
 
 	messages = defineMessages({
-		max_groups_reached: {
+		max_workspaces_reached: {
 			defaultMessage:
-				'You have reached the maximum number of groups. You need to delete old groups before creating new ones.',
+				'You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones.',
 		},
+		// the name of a workspace's seeded first (welcome) file
+		new_workspace_file_name: { defaultMessage: 'Welcome to your workspace' },
 		// toast title
 		mutation_error_toast_title: { defaultMessage: 'Error' },
 		// toast descriptions
@@ -421,40 +506,53 @@ export class TldrawApp {
 	}
 
 	/**
-	 * Check if the user has been migrated to the new groups-based data model.
-	 * Users with the 'groups_backend' flag use group_file for access control and pinning.
-	 * Users without the flag use the legacy file_state-based approach.
+	 * Get the user's home workspace ID.
+	 * Used to store shared files and pinned files.
+	 * The home workspace ID is the same as the user ID.
 	 */
-	isGroupsMigrated() {
-		return this.hasFlag('groups_backend')
-	}
-
-	/**
-	 * Get the user's home group ID.
-	 * For migrated users, this is used to store shared files and pinned files.
-	 * The home group ID is the same as the user ID.
-	 */
-	getHomeGroupId() {
+	getHomeWorkspaceId() {
 		return this.userId
 	}
 
 	@computed({ isEqual })
-	getGroupMemberships() {
-		return this.groupMemberships$.get().slice(0).sort(sortByIndex)
+	getWorkspaceMemberships() {
+		return this.workspaceMemberships$.get().slice(0).sort(sortByIndex)
 	}
 
-	getGroupMembership(groupId: string) {
-		return this.groupMemberships$.get().find((g) => g.groupId === groupId)
+	getWorkspaceMembership(workspaceId: string) {
+		return this.workspaceMemberships$.get().find((g) => g.groupId === workspaceId)
 	}
 
-	getGroupFilesSorted(groupId: string) {
-		const group = this.getGroupMembership(groupId)
-		if (!group) return []
+	getWorkspaceFilesSorted(workspaceId: string) {
+		const membership = this.getWorkspaceMembership(workspaceId)
+		if (!membership) return []
 
-		const pinned = group.groupFiles.filter((f) => f.index !== null)
-		const unpinned = group.groupFiles.filter((f) => f.index === null)
+		// Decide which of the membership's group_file rows actually belong in this list.
+		// A file owned by this workspace always belongs. A non-home workspace lists only the
+		// files it owns. The home workspace additionally lists legacy files (no owning group)
+		// and "guest files" — shared files the user opened that are owned by a workspace they
+		// are NOT a member of. It must NOT list a file owned by a workspace the user IS a
+		// member of: that's a mislinked row (a guest file whose workspace was later joined, or
+		// a workspace's welcome file mirrored during the create-workspace race), and opening it
+		// from home would bounce the user into that workspace. Guarding here keeps such rows out
+		// of the list even before they're cleaned up.
+		const homeWorkspaceId = this.getHomeWorkspaceId()
+		const groupFiles = membership.groupFiles.filter((f): f is TlaGroupFile & { file: TlaFile } => {
+			// A group_file row can outlive (or arrive before) its file: the file may be deleted,
+			// not yet synced, or filtered out server-side because the user can no longer read it.
+			// The `file` relationship is a nullable Zero `.one()`, so guard before dereferencing.
+			// The type predicate narrows `file` to non-undefined for the rest of the function.
+			if (!f.file) return false
+			const owningGroupId = f.file.owningGroupId
+			if (owningGroupId === workspaceId) return true
+			if (workspaceId !== homeWorkspaceId) return false
+			return owningGroupId == null || !this.getWorkspaceMembership(owningGroupId)
+		})
 
-		const lastOrdering = this.lastGroupFileOrderings.get(groupId)
+		const pinned = groupFiles.filter((f) => f.index !== null)
+		const unpinned = groupFiles.filter((f) => f.index === null)
+
+		const lastOrdering = this.lastWorkspaceFileOrderings.get(workspaceId)
 		const retainedOrdering =
 			lastOrdering?.filter((f) => unpinned.some((p) => p.fileId === f.fileId)) ?? []
 		const newOrdering: typeof retainedOrdering = []
@@ -469,7 +567,7 @@ export class TldrawApp {
 			const state = this.getFileState(file.fileId)
 			newOrdering.push({
 				fileId: file.fileId,
-				date: Math.max(state?.lastEditAt ?? state?.firstVisitAt ?? file.file.createdAt),
+				date: getFileRecencyDate(state, file.file),
 			})
 		}
 
@@ -478,7 +576,7 @@ export class TldrawApp {
 
 		const nextOrdering = [...newOrdering, ...retainedOrdering]
 		// Store the ordering for next time
-		this.lastGroupFileOrderings.set(groupId, nextOrdering)
+		this.lastWorkspaceFileOrderings.set(workspaceId, nextOrdering)
 
 		// Return the actual file objects in the stable order
 		return pinned
@@ -486,16 +584,18 @@ export class TldrawApp {
 			.concat(nextOrdering.map((f) => ({ fileId: f.fileId, isPinned: false, date: f.date })))
 	}
 
-	// Clear group file ordering to refresh on expand (like recent files on page reload)
-	clearGroupFileOrdering(groupId: string) {
-		this.lastGroupFileOrderings.delete(groupId)
+	// Clear workspace file ordering to refresh on expand (like recent files on page reload)
+	clearWorkspaceFileOrdering(workspaceId: string) {
+		this.lastWorkspaceFileOrderings.delete(workspaceId)
 	}
 
 	tlUser = createTLCurrentUser({
 		userPreferences: computed('user prefs', () => {
 			const user = this.getUser()
 			return {
-				...(pick(user, UserPreferencesKeys) as TLUserPreferences),
+				...(Object.fromEntries(
+					UserPreferencesKeys.map((key) => [key, user[key]])
+				) as unknown as TLUserPreferences),
 				id: this.userId,
 			}
 		}),
@@ -526,14 +626,8 @@ export class TldrawApp {
 		return this.fileStates$.get()
 	}
 
-	lastRecentFileOrdering = null as null | Array<{
-		fileId: TlaFile['id']
-		isPinned: boolean
-		date: number
-	}>
-
-	// Store stable group file ordering for each group to prevent jumping when files are edited
-	lastGroupFileOrderings = new Map<
+	// Store stable workspace file ordering for each workspace to prevent jumping when files are edited
+	lastWorkspaceFileOrderings = new Map<
 		string,
 		Array<{
 			fileId: TlaFile['id']
@@ -543,100 +637,50 @@ export class TldrawApp {
 
 	@computed({ isEqual })
 	getMyFiles() {
-		if (this.isGroupsMigrated()) {
-			return this.getGroupFilesSorted(this.getHomeGroupId())
-		}
-		const myFiles = objectMapFromEntries(this.getUserOwnFiles().map((f) => [f.id, f]))
-		const myStates = objectMapFromEntries(this.getUserFileStates().map((f) => [f.fileId, f]))
-
-		const myFileIds = new Set<string>([...objectMapKeys(myFiles), ...objectMapKeys(myStates)])
-		const myGroupMemberships = this.getGroupMemberships()
-
-		const nextRecentFileOrdering: {
-			fileId: TlaFile['id']
-			isPinned: boolean
-			date: number
-		}[] = []
-
-		for (const fileId of myFileIds) {
-			const file = myFiles[fileId]
-			let state: (typeof myStates)[string] | undefined = myStates[fileId]
-			if (!file) continue
-			if (file.isDeleted) continue
-
-			if (!state && !file.isDeleted && file.ownerId === this.userId) {
-				state = this.fileStates$.get().find((fs) => fs.fileId === fileId)
-			}
-			if (!state) {
-				// if the file is deleted, we don't want to show it in the recent files
-				continue
-			}
-
-			// if the file is in a group we have access to, we don't want to show it in my files
-			if (myGroupMemberships.some((g) => g.groupFiles.some((gf) => gf.fileId === fileId))) {
-				continue
-			}
-
-			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
-			const isPinned = state.isPinned ?? false
-
-			if (existing && existing.isPinned === isPinned) {
-				// Preserve existing entry to maintain ordering
-				nextRecentFileOrdering.push(existing)
-				continue
-			}
-
-			// For new entries or pinned status changes
-			const newEntry = {
-				fileId,
-				isPinned,
-				date: state.lastEditAt ?? state.firstVisitAt ?? file.createdAt ?? 0,
-			}
-
-			// If this was previously unpinned and we have existing ordering,
-			// preserve its position in the unpinned section to avoid real-time reordering
-			if (!isPinned && existing && !existing.isPinned) {
-				// Keep the old date to preserve ordering in "My files"
-				newEntry.date = existing.date
-			}
-
-			nextRecentFileOrdering.push(newEntry)
-		}
-
-		// separate pinned and unpinned files
-		const pinnedFiles = nextRecentFileOrdering.filter((f) => f.isPinned)
-		const unpinnedFiles = nextRecentFileOrdering.filter((f) => !f.isPinned)
-
-		// sort pinned files by their pinnedIndex
-		pinnedFiles.sort((a, b) => {
-			// If neither has an index, sort by date (fallback)
-			return b.date - a.date
-		})
-
-		// sort unpinned files by date with most recent first
-		unpinnedFiles.sort((a, b) => b.date - a.date)
-
-		// combine: pinned files first, then unpinned
-		const sortedFiles = [...pinnedFiles, ...unpinnedFiles]
-
-		// stash the ordering for next time
-		this.lastRecentFileOrdering = sortedFiles
-
-		return sortedFiles
+		return this.getWorkspaceFilesSorted(this.getHomeWorkspaceId())
 	}
 
-	private canCreateNewFile(groupId: string) {
-		if (this.isGroupsMigrated()) {
-			// For migrated users, count non-deleted files in the home group
-			const group = this.getGroupMembership(groupId)
-			if (!group) return true
-			const nonDeletedCount = group.groupFiles.filter((gf) => !gf.file.isDeleted).length
-			return nonDeletedCount < this.config.maxNumberOfFiles
-		} else {
-			// For unmigrated users, count non-deleted files owned by the user
-			const nonDeletedCount = this.getUserOwnFiles().filter((f) => !f.isDeleted).length
-			return nonDeletedCount < this.config.maxNumberOfFiles
+	/**
+	 * The id of the user's most recently visited file, or null if they have none. Skips files the
+	 * user can no longer access — their `file` relation comes back null (moved/revoked) or flagged
+	 * deleted — so the next available file wins; falls back to the top of the in-scope list when
+	 * none have been visited. Recency comes from per-user `file_state`, so it follows the user
+	 * across devices.
+	 *
+	 * @param workspaceId - When provided, only files visible in that workspace are considered.
+	 */
+	getMostRecentFileId(workspaceId?: string): string | null {
+		// In-scope files, also used as the fallback when none have been visited.
+		const scopedFiles = workspaceId ? this.getWorkspaceFilesSorted(workspaceId) : this.getMyFiles()
+		const fileIdsInScope = workspaceId ? new Set(scopedFiles.map((f) => f.fileId)) : null
+
+		let mostRecent: { fileId: string; date: number } | null = null
+		for (const state of this.getUserFileStates()) {
+			if (fileIdsInScope && !fileIdsInScope.has(state.fileId)) continue
+			if (!state.file || state.file.isDeleted) continue
+			// Rank by actual visits only. A created-but-never-opened file has null visit timestamps
+			// (its `createdAt` must not let it outrank a genuinely visited file); it defers to the
+			// `scopedFiles` fallback below.
+			const date = getFileVisitDate(state)
+			if (date === undefined) continue
+			if (!mostRecent || date > mostRecent.date) mostRecent = { fileId: state.fileId, date }
 		}
+
+		return mostRecent?.fileId ?? scopedFiles[0]?.fileId ?? null
+	}
+
+	private canCreateNewFile(workspaceId: string) {
+		// Count only files the workspace actually owns — not guest files (shared files the
+		// user opened) or mislinked rows that getWorkspaceFilesSorted hides. Counting those
+		// would let the limit fire on files the user can neither see nor remove. createFile
+		// runs no server-side file-limit check, so this is the only gate; scoping it to owned
+		// files keeps it to what the user can actually manage.
+		const membership = this.getWorkspaceMembership(workspaceId)
+		if (!membership) return true
+		const nonDeletedCount = membership.groupFiles.filter(
+			(gf) => gf.file && !gf.file.isDeleted && gf.file.owningGroupId === workspaceId
+		).length
+		return nonDeletedCount < this.config.maxNumberOfFiles
 	}
 
 	private showMaxFilesToast() {
@@ -648,37 +692,88 @@ export class TldrawApp {
 		})
 	}
 
-	isPinned(fileId: string, groupId: string) {
-		if (this.isGroupsMigrated()) {
-			return this.getGroupFilesSorted(groupId).some((f) => f.fileId === fileId && f.isPinned)
-		}
-		return this.getFileState(fileId)?.isPinned ?? false
+	isPinned(fileId: string, workspaceId: string) {
+		return this.getWorkspaceFilesSorted(workspaceId).some((f) => f.fileId === fileId && f.isPinned)
+	}
+
+	// A workspace's welcome file is seeded once, when the workspace is created. Its
+	// `createWorkspace` mutation lands before the file does, so the workspace briefly appears
+	// empty; this single-flights the seed per workspace so a double-submit (or any concurrent
+	// caller) shares one creation and all receive its result, rather than creating duplicates.
+	// Cleared once settled.
+	private readonly workspaceWelcomeFileSeeds = new Map<
+		string,
+		Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>>
+	>()
+
+	/**
+	 * Seed a newly-created workspace's welcome file: a named file whose content the sync worker
+	 * resolves from the welcome template (or a committed default). Called once at workspace
+	 * creation — not on later empty opens, which get a blank file (see useSwitchToWorkspace) —
+	 * and single-flighted so a double-submit shares the same creation.
+	 */
+	createWorkspaceWelcomeFile(
+		workspaceId: string
+	): Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>> {
+		const inFlight = this.workspaceWelcomeFileSeeds.get(workspaceId)
+		if (inFlight) return inFlight
+
+		const seed = this.createFile({
+			workspaceId,
+			name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+			createSource: WELCOME_CREATE_SOURCE,
+		})
+		this.workspaceWelcomeFileSeeds.set(workspaceId, seed)
+		seed.finally(() => {
+			if (this.workspaceWelcomeFileSeeds.get(workspaceId) === seed) {
+				this.workspaceWelcomeFileSeeds.delete(workspaceId)
+			}
+		})
+		return seed
+	}
+
+	/**
+	 * The in-flight welcome-file seed for a workspace, if one is still creating. The empty-workspace
+	 * open path uses this to await a just-created workspace's welcome file rather than racing it with
+	 * a duplicate blank file. Returns undefined once the seed settles (or if none was started).
+	 */
+	getPendingWorkspaceWelcomeFile(workspaceId: string) {
+		return this.workspaceWelcomeFileSeeds.get(workspaceId)
 	}
 
 	async createFile({
 		fileId = uniqueId(),
-		groupId = this.getHomeGroupId(),
+		workspaceId = this.getHomeWorkspaceId(),
 		name = this.getFallbackFileName(Date.now()),
 		createSource = null,
 	}: {
 		fileId?: string
-		groupId?: string
+		workspaceId?: string
 		name?: string
 		createSource?: string | null
-	} = {}): Promise<Result<{ fileId: string }, 'max number of files reached'>> {
-		if (!this.canCreateNewFile(groupId)) {
+	} = {}): Promise<
+		Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>
+	> {
+		if (!this.canCreateNewFile(workspaceId)) {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
 		}
 
 		this.storeNewRoomCreationTracking(fileId, createSource, Date.now())
-		this.z.mutate.createFile({ fileId, groupId, name, createSource, time: Date.now() })
-		// todo: add server error handling for real Zero
-		// .server.catch((res: { error: string; details: string }) => {
-		// 	if (res.details === ZErrorCode.max_files_reached) {
-		// 		this.showMaxFilesToast()
-		// 	}
-		// })
+		// Zero mutator promises never reject — failures resolve with {type: 'error'} — so a
+		// try/catch here would be dead code and a failed create would navigate to a file that
+		// rolls back.
+		const res = await this.z.mutate.createFile({
+			fileId,
+			workspaceId,
+			name,
+			createSource,
+			time: Date.now(),
+		}).client
+		if (res.type === 'error') {
+			this.showMutationRejectionToast(res.error.message as ZErrorCode)
+			return Result.err('mutation rejected')
+		}
 
 		return Result.ok({ fileId })
 	}
@@ -708,6 +803,8 @@ export class TldrawApp {
 
 		if (!createSource) {
 			analyticsSource = 'create-blank-file' // Default for button clicks
+		} else if (createSource === WELCOME_CREATE_SOURCE) {
+			analyticsSource = 'welcome'
 		} else if (createSource.startsWith(`${LOCAL_FILE_PREFIX}/`)) {
 			analyticsSource = 'slurp'
 		} else if (createSource.startsWith(`${FILE_PREFIX}/`)) {
@@ -799,21 +896,22 @@ export class TldrawApp {
 
 	getFile(fileId?: string): TlaFile | null {
 		if (!fileId) return null
-		if (this.isGroupsMigrated()) {
-			return (
-				this.getGroupMemberships()
-					.find((g) => g.groupFiles.some((gf) => gf.fileId === fileId))
-					?.groupFiles.find((gf) => gf.fileId === fileId)?.file ?? null
-			)
-		}
-		return this.getUserOwnFiles().find((f) => f.id === fileId) ?? null
+		return (
+			this.getWorkspaceMemberships()
+				.find((g) => g.groupFiles.some((gf) => gf.fileId === fileId))
+				?.groupFiles.find((gf) => gf.fileId === fileId)?.file ?? null
+		)
 	}
 
 	canUpdateFile(fileId: string): boolean {
 		const file = this.getFile(fileId)
 		if (!file) return false
 		if (file.ownerId) return file.ownerId === this.userId
-		return this.getGroupMemberships().some((g) => g.groupId === file.owningGroupId)
+		if (file.owningGroupId) {
+			const role = this.getWorkspaceMembership(file.owningGroupId)?.role
+			return can(role, 'accessFiles')
+		}
+		return false
 	}
 
 	requireFile(fileId: string): TlaFile {
@@ -842,13 +940,9 @@ export class TldrawApp {
 	/**
 	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
 	 */
-	async deleteOrForgetFile(fileId: string, groupId: string = this.getHomeGroupId()) {
+	async deleteOrForgetFile(fileId: string, workspaceId: string = this.getHomeWorkspaceId()) {
 		// Optimistic update, remove file and file states
-		await this.z.mutate.removeFileFromGroup({ fileId, groupId }).client
-	}
-
-	async addFileLinkToGroup(fileId: string, groupId: string) {
-		await this.z.mutate.addFileLinkToGroup({ fileId, groupId }).client
+		await this.z.mutate.removeFileFromWorkspace({ fileId, workspaceId }).client
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
@@ -885,6 +979,19 @@ export class TldrawApp {
 		const file = this.getFile(fileId)
 		if (!file || file.isDeleted) return
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: this.userId })
+	}
+
+	markCommentRead(commentId: string) {
+		this.z.mutate.comment.markRead({ commentId, readAt: Date.now() })
+	}
+
+	markCommentsRead(commentIds: string[]) {
+		if (commentIds.length === 0) return
+		this.z.mutate.comment.markManyRead({ commentIds, readAt: Date.now() })
+	}
+
+	markCommentUnread(commentId: string) {
+		this.z.mutate.comment.markUnread({ commentId })
 	}
 
 	updateFile(fileId: string, partial: Partial<TlaFile>) {
@@ -979,7 +1086,7 @@ export class TldrawApp {
 	async uploadTldrFiles(
 		files: File[],
 		onFirstFileUploaded?: (fileId: string) => void,
-		groupId?: string,
+		workspaceId?: string,
 		onUploadError?: () => void
 	) {
 		const totalFiles = files.length
@@ -1038,7 +1145,7 @@ export class TldrawApp {
 					bytesUploaded += bytes
 					updateProgress()
 				},
-				groupId
+				workspaceId
 			).catch((e) => Result.err(e))
 			if (!res.ok) {
 				clearTimeout(uploadingToastTimeout)
@@ -1083,7 +1190,7 @@ export class TldrawApp {
 	private async uploadTldrFile(
 		file: File,
 		onProgress?: (bytesUploadedSinceLastProgressUpdate: number) => void,
-		groupId?: string
+		workspaceId?: string
 	) {
 		const json = await file.text()
 		const parseFileResult = parseTldrawJsonFile({
@@ -1151,89 +1258,26 @@ export class TldrawApp {
 			Object.values(snapshot.store).find((d): d is TLDocument => d.typeName === 'document')?.name ??
 			''
 
-		return this.createFile({ fileId, name, groupId })
+		return this.createFile({ fileId, name, workspaceId })
 	}
 
 	sidebarState = atom('sidebar state', {
-		expandedGroups: {} as Record<string, 'closed' | 'expanded_show_less' | 'expanded_show_more'>,
-		recentFilesShowMore: false,
-		noAnimationGroups: [] as string[],
 		renameState: null as null | {
 			fileId: string
-			groupId: string
+			workspaceId: string
 		},
-		dragState: null as DragState,
+		// The current sidebar file-search query. Empty string means no filter.
+		searchQuery: '',
 	})
 
-	ensureSidebarGroupExpanded(groupId: string) {
-		const currentExpansionState = this.sidebarState.get().expandedGroups[groupId]
-		if (!currentExpansionState || currentExpansionState === 'closed') {
-			this.sidebarState.update((prev) => ({
-				...prev,
-				expandedGroups: { ...prev.expandedGroups, [groupId]: 'expanded_show_less' },
-			}))
-		}
-	}
+	/** Returns false when there is no invite link to copy yet (e.g. right after creation). */
+	copyWorkspaceInvite(workspaceId: string, showToast = true): boolean {
+		// The home workspace can't be invited to.
+		if (workspaceId === this.getHomeWorkspaceId()) return false
+		const group = this.getWorkspaceMembership(workspaceId)?.group
+		if (!group?.inviteSecret) return false
 
-	ensureFileVisibleInSidebar(fileId: string) {
-		const file = this.getFile(fileId)
-		if (!file) return
-
-		// If file is pinned, nothing to do
-		if (this.getFileState(fileId)?.isPinned) {
-			return
-		}
-
-		// If file is in a group
-		if (file.owningGroupId) {
-			const group = this.getGroupMembership(file.owningGroupId)
-			if (!group) return
-
-			const groupFiles = this.getGroupFilesSorted(file.owningGroupId)
-			const MAX_FILES_TO_SHOW = 4
-			const fileIndex = groupFiles.findIndex((f) => f?.fileId === fileId)
-
-			if (fileIndex >= MAX_FILES_TO_SHOW) {
-				// File is in the "show more" section, expand fully
-				this.sidebarState.update((prev) => ({
-					...prev,
-					expandedGroups: { ...prev.expandedGroups, [file.owningGroupId!]: 'expanded_show_more' },
-				}))
-			} else {
-				// File is in the "show less" section, ensure group is expanded
-				this.ensureSidebarGroupExpanded(file.owningGroupId)
-			}
-			return
-		}
-
-		// // If file is in recent files (not in a group)
-		// const recentFiles = this.getMyFiles()
-		// if (!recentFiles) return
-
-		// const groupMemberships = this.getGroupMemberships()
-		// const otherFiles = recentFiles.filter(
-		// 	(item) =>
-		// 		!this.isPinned(item.id) &&
-		// 		!groupMemberships.some(
-		// 			(group) => group.group.id === this.getFile(item.fileId)?.owningGroupId
-		// 		)
-		// )
-
-		// const MAX_FILES_TO_SHOW = groupMemberships.length > 0 ? 6 : +Infinity
-		// const fileIndex = otherFiles.findIndex((item) => item.fileId === fileId)
-
-		// if (fileIndex >= MAX_FILES_TO_SHOW) {
-		// 	// File is in the "show more" section of recent files
-		// 	patch(this.sidebarState).recentFilesShowMore(true)
-		// }
-		// If file is in the "show less" section, nothing to do
-	}
-
-	copyGroupInvite(groupId: string, showToast = true) {
-		const group = this.getGroupMembership(groupId)
-		if (!group?.group.inviteSecret) return
-
-		const inviteText = `${location.origin}/invite/${group.group.inviteSecret}`
+		const inviteText = `${location.origin}/invite/${group.inviteSecret}`
 		navigator.clipboard.writeText(inviteText)
 
 		if (showToast) {
@@ -1244,9 +1288,10 @@ export class TldrawApp {
 		}
 
 		this.trackEvent('copy-share-link', { source: 'sidebar' })
+		return true
 	}
 
-	async acceptGroupInvite(inviteSecret: string) {
+	async acceptWorkspaceInvite(inviteSecret: string) {
 		const response = await fetch(`/api/app/invite/${inviteSecret}/accept`, {
 			method: 'POST',
 		})
@@ -1263,34 +1308,39 @@ export class TldrawApp {
 			return
 		}
 
-		this.trackEvent('accept-group-invite', { source: 'sidebar' })
+		this.trackEvent('accept-workspace-invite', { source: 'sidebar' })
 
-		// wait for the group to appear in the store
-		while (!this.getGroupMembership(payload.groupId)) {
-			await sleep(50)
+		// wait for the workspace to appear in the store, but not forever
+		let attempts = 0
+		while (!this.getWorkspaceMembership(payload.workspaceId)) {
+			if (attempts++ > 100) {
+				this.toasts?.addToast({
+					severity: 'error',
+					title: 'Error accepting invite',
+					description: 'Please try again.',
+				})
+				this.navigate(routes.tlaRoot())
+				return
+			}
+			await sleep(100)
 		}
 
-		this.sidebarState.update((prev) => ({
-			...prev,
-			expandedGroups: { ...prev.expandedGroups, [payload.groupId]: 'expanded_show_less' },
-		}))
+		// Clear any existing ordering for this new workspace to get fresh ordering
+		this.lastWorkspaceFileOrderings.delete(payload.workspaceId)
 
-		// Clear any existing ordering for this new group to get fresh ordering
-		this.lastGroupFileOrderings.delete(payload.groupId)
-
-		if (!this.navigateToGroupFiles(payload.groupId)) {
+		if (!this.navigateToWorkspaceFiles(payload.workspaceId)) {
 			this.navigate(routes.tlaRoot())
 		}
 	}
 
-	navigateToGroupFiles(groupId: string) {
-		const files = this.getGroupFilesSorted(groupId)
+	navigateToWorkspaceFiles(workspaceId: string, opts: { replace?: boolean } = {}) {
+		const files = this.getWorkspaceFilesSorted(workspaceId)
 
 		if (!files.length) {
 			return false
 		}
 
-		this.navigate(routes.tlaFile(files[0]!.fileId))
+		this.navigate(routes.tlaFile(files[0]!.fileId), opts)
 		return true
 	}
 }

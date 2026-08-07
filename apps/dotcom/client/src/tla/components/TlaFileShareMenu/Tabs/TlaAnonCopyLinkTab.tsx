@@ -1,4 +1,3 @@
-import { useCallback } from 'react'
 import { useEditor } from 'tldraw'
 import { useEditorDeepLink } from '../../../hooks/useDeepLink'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -26,11 +25,11 @@ function TlaAnonCopyLinkButton({ url }: { url: string }) {
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()
 
-	const handleCopyLinkClick = useCallback(() => {
+	const handleCopyLinkClick = () => {
 		copyTextToClipboard(editor.createDeepLink({ url }).toString())
 		// no toasts please
 		trackEvent('copy-share-link', { source: 'file-share-menu' })
-	}, [url, editor, trackEvent])
+	}
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyLinkClick}>

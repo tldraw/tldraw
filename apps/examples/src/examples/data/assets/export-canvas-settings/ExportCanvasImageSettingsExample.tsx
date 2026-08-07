@@ -25,7 +25,10 @@ function ExportCanvasButton() {
 	})
 
 	// [2]
-	const [box, setBox] = useState({ x: 0, y: 0, w: 0, h: 0 })
+	const [box, setBox] = useState(() => {
+		const v = editor.getViewportPageBounds()
+		return { x: Math.round(v.x), y: Math.round(v.y), w: Math.round(v.w), h: Math.round(v.h) }
+	})
 
 	return (
 		<div
@@ -108,10 +111,9 @@ function ExportCanvasButton() {
 					const { blob } = await editor.toImage([...shapeIds], {
 						format: 'png',
 						...opts,
-						// If we have numbers for all of the box values, we can use them as bounds
-						bounds: Object.values(box).every((b) => !Number.isNaN(b))
-							? new Box(box.x, box.y, box.w, box.h)
-							: undefined,
+						// Use the box as bounds when it has a positive width and height;
+						// otherwise let the export auto-fit all shapes.
+						bounds: box.w > 0 && box.h > 0 ? new Box(box.x, box.y, box.w, box.h) : undefined,
 					})
 
 					const link = document.createElement('a')

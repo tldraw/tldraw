@@ -43,8 +43,8 @@ class UncullableShapeUtil extends BaseBoxShapeUtil<UncullableShape> {
 		return <div>Uncullable shape</div>
 	}
 
-	override indicator() {
-		return <div>Uncullable shape</div>
+	override getIndicatorPath() {
+		return undefined
 	}
 }
 

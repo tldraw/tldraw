@@ -10,6 +10,7 @@ import {
 	TLHighlightShapeProps,
 	TLResizeInfo,
 	VecLike,
+	b64Vecs,
 	debugFlags,
 	getColorValue,
 	highlightShapeMigrations,
@@ -23,9 +24,8 @@ import {
 } from '@tldraw/editor'
 import { getHighlightFreehandSettings, getPointsFromDrawSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
-import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
+import { getStroke } from '../shared/freehand/getStroke'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
-import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { getDisplayValues } from '../shared/getDisplayValues'
@@ -113,12 +113,16 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			})
 		}
 
-		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, true)
-		const opts = getHighlightFreehandSettings({ strokeWidth: sw, showAsComplete: true })
-		setStrokePointRadii(strokePoints, opts)
+		const allPointsFromSegments = getPointsFromDrawSegments(
+			shape.props.segments,
+			shape.props.scaleX,
+			shape.props.scaleY
+		)
+		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
+		const opts = getHighlightFreehandSettings({ strokeWidth, showAsComplete })
 
 		return new Polygon2d({
-			points: getStrokeOutlinePoints(strokePoints, opts),
+			points: getStroke(allPointsFromSegments, opts),
 			isFilled: true,
 		})
 	}
@@ -157,32 +161,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 				/>
 			</SVGContainer>
 		)
-	}
-
-	indicator(shape: TLHighlightShape) {
-		const dv = getDisplayValues(this, shape)
-		const strokeWidth = dv.strokeWidth * shape.props.scale
-		const forceSolid = useHighlightForceSolid(this.editor, strokeWidth)
-
-		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
-		const allPointsFromSegments = getPointsFromDrawSegments(
-			shape.props.segments,
-			shape.props.scaleX,
-			shape.props.scaleY
-		)
-
-		let strokePath
-		if (strokePoints.length < 2) {
-			strokePath = getIndicatorDot(allPointsFromSegments[0], sw)
-		} else {
-			strokePath = getSvgPathFromStrokePoints(strokePoints, false)
-		}
-
-		return <path d={strokePath} />
-	}
-
-	override useLegacyIndicator() {
-		return false
 	}
 
 	override getIndicatorPath(shape: TLHighlightShape): Path2D {
@@ -312,11 +290,10 @@ function getHighlightStrokePoints(
 }
 
 function getIsDot(shape: TLHighlightShape) {
-	// First point is 16 base64 chars (3 Float32s = 12 bytes)
-	// Each delta point is 8 base64 chars (3 Float16s = 6 bytes)
-	// 1 point = 16 chars, 2 points = 24 chars
-	// Check if we have less than 2 points without decoding
-	return shape.props.segments.length === 1 && shape.props.segments[0].path.length < 24
+	// A dot is a single-point segment. isSinglePoint knows the per-encoding length
+	// (and takes the segment's dim), so this stays correct for both 2D and 3D paths.
+	const segment = shape.props.segments[0]
+	return shape.props.segments.length === 1 && b64Vecs.isSinglePoint(segment.path, segment.dim)
 }
 
 function HighlightRenderer({

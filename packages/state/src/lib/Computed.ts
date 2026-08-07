@@ -294,31 +294,35 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 			const result = this.derive(this.state, this.lastCheckedEpoch)
 			const newState = result instanceof WithDiff ? result.value : result
 			const isUninitialized = this.state === UNINITIALIZED
-			if (isUninitialized || !this.isEqual(newState, this.state)) {
+			// `derive` may have advanced the epoch, so re-read it here, but only once — the whole
+			// commit below belongs to a single epoch.
+			const epoch = getGlobalEpoch()
+			if (isUninitialized || !this.isEqual(this.state, newState)) {
 				if (this.historyBuffer && !isUninitialized) {
 					const diff = result instanceof WithDiff ? result.diff : undefined
 					this.historyBuffer.pushEntry(
 						this.lastChangedEpoch,
-						getGlobalEpoch(),
+						epoch,
 						diff ??
-							this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, getGlobalEpoch()) ??
+							this.computeDiff?.(this.state, newState, this.lastCheckedEpoch, epoch) ??
 							RESET_VALUE
 					)
 				}
-				this.lastChangedEpoch = getGlobalEpoch()
+				this.lastChangedEpoch = epoch
 				this.state = newState
 			}
 			this.error = null
-			this.lastCheckedEpoch = getGlobalEpoch()
+			this.lastCheckedEpoch = epoch
 
 			return this.state
 		} catch (e) {
 			// if a derived value throws an error, we reset the state to UNINITIALIZED
+			const epoch = getGlobalEpoch()
 			if (this.state !== UNINITIALIZED) {
 				this.state = UNINITIALIZED as unknown as Value
-				this.lastChangedEpoch = getGlobalEpoch()
+				this.lastChangedEpoch = epoch
 			}
-			this.lastCheckedEpoch = getGlobalEpoch()
+			this.lastCheckedEpoch = epoch
 			// we also clear the history buffer if an error was thrown
 			if (this.historyBuffer) {
 				this.historyBuffer.clear()

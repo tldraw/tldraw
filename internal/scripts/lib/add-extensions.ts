@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, statSync, writeFileSync } from 'fs'
 import path from 'path'
-import glob from 'glob'
+import { glob } from 'glob'
 import { parse, print, visit } from 'recast'
 
 const extensions = ['.js', '.mjs', '.cjs']

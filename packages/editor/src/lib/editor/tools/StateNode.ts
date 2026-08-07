@@ -268,8 +268,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	onLongPress?(info: TLPointerEventInfo): void
 	onPointerUp?(info: TLPointerEventInfo): void
 	onDoubleClick?(info: TLClickEventInfo): void
-	onTripleClick?(info: TLClickEventInfo): void
-	onQuadrupleClick?(info: TLClickEventInfo): void
 	onRightClick?(info: TLPointerEventInfo): void
 	onMiddleClick?(info: TLPointerEventInfo): void
 	onKeyDown?(info: TLKeyboardEventInfo): void

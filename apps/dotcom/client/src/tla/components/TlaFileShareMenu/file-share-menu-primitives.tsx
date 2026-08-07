@@ -9,7 +9,7 @@ export function TlaShareMenuCopyButton({
 }: {
 	children: ReactNode
 	onClick(): void | Promise<void>
-	type?: 'primary' | 'secondary' | 'warning'
+	type?: 'primary' | 'secondary'
 }) {
 	const [copied, setCopied] = useState(false)
 	const [isLoading, setIsLoading] = useState(false)

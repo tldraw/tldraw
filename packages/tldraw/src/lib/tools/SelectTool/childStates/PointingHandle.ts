@@ -1,4 +1,12 @@
-import { Editor, StateNode, TLHandle, TLNoteShape, TLPointerEventInfo, Vec } from '@tldraw/editor'
+import {
+	Editor,
+	StateNode,
+	TLClickEventInfo,
+	TLHandle,
+	TLNoteShape,
+	TLPointerEventInfo,
+	Vec,
+} from '@tldraw/editor'
 import { updateArrowTargetState } from '../../../shapes/arrow/arrowTargetState'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
@@ -15,9 +23,11 @@ export class PointingHandle extends StateNode {
 	didCtrlOnEnter = false
 
 	info = {} as TLPointerEventInfo & { target: 'handle' }
+	isDoubleClick = false
 
 	override onEnter(info: TLPointerEventInfo & { target: 'handle' }) {
 		this.info = info
+		this.isDoubleClick = false
 
 		this.didCtrlOnEnter = info.accelKey
 
@@ -51,6 +61,17 @@ export class PointingHandle extends StateNode {
 	override onPointerUp() {
 		const { shape, handle } = this.info
 
+		if (this.isDoubleClick) {
+			this.parent.transition('idle')
+			this.parent.getCurrent()?.handleEvent({
+				...this.info,
+				type: 'click',
+				name: 'double_click',
+				phase: 'down',
+			})
+			return
+		}
+
 		if (this.editor.isShapeOfType(shape, 'note')) {
 			const { editor } = this
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
@@ -61,6 +82,19 @@ export class PointingHandle extends StateNode {
 		}
 
 		this.parent.transition('idle', this.info)
+	}
+
+	override onDoubleClick(info: TLClickEventInfo) {
+		if (
+			this.editor.inputs.getShiftKey() ||
+			info.phase !== 'down' ||
+			info.ctrlKey ||
+			info.shiftKey
+		) {
+			return
+		}
+
+		this.isDoubleClick = true
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {

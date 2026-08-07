@@ -93,7 +93,7 @@ function TouchFriendlyButton() {
 
 ### Coarse pointer detection
 
-The `isCoarsePointer` value tracks whether the user is currently using touch input. We detect this two ways: by listening to the `(any-pointer: coarse)` media query, and by checking `pointerType` on each pointer event. This dual approach handles devices that support both mouse and touch—like laptops with touchscreens—where the user might switch input methods mid-session.
+The `isCoarsePointer` value tracks whether the user is currently using touch input. We detect this two ways: by listening to the `(any-pointer: coarse)` media query, and by checking `pointerType` on each pointer down event. This dual approach handles devices that support both mouse and touch—like laptops with touchscreens—where the user might switch input methods mid-session.
 
 ```typescript
 import { tlenvReactive, react } from 'tldraw'
@@ -110,13 +110,35 @@ react('pointer type changed', () => {
 
 Note: We force fine pointer mode on Firefox desktop regardless of the actual input device, since Firefox's coarse pointer reporting is unreliable there.
 
+## Cross-window contexts
+
+When the editor is mounted inside an iframe, an Electron pop-out window, or an Obsidian plugin, the global `document` and `window` aren't necessarily the ones the editor's DOM lives in. Reading `document.activeElement` or attaching a listener to the global `window` will silently fail or target the wrong frame.
+
+Use the editor's container helpers instead of bare globals:
+
+```typescript
+const doc = editor.getContainerDocument() // the document the editor is mounted in
+const win = editor.getContainerWindow() // the window the editor is mounted in
+```
+
+When you have a DOM node and want the document or window that owns it (rather than where the editor lives), use the standalone helpers:
+
+```typescript
+import { getOwnerDocument, getOwnerWindow } from 'tldraw'
+
+const doc = getOwnerDocument(node)
+const win = getOwnerWindow(node)
+```
+
+These are what the editor uses internally for export, measurement, focus tracking, and event listeners. Custom shapes and tools that touch the DOM directly should use them too — anything that calls `document` or `window` directly will break the moment your app is embedded in a context with multiple realms.
+
 ## Browser quirks we handle
 
 Here's a sample of what we use environment detection for internally.
 
-**Safari** has the most workarounds. SVG-to-image export fails silently unless we add a 250ms delay after loading the image—a WebKit bug that's been open for years. We also draw minimap triangles four times because Safari's WebGL implementation sometimes drops draw calls. Text outlines render incorrectly, so we disable them entirely on Safari.
+**Safari** has the most workarounds. During SVG-to-image export, Safari fires the image's load event before the fonts inside the SVG have loaded, so we wait an extra 250ms—a WebKit bug that's been open for years. Text outlines are a performance problem on Safari, so we disable them there.
 
-**iOS** coalesced pointer events are broken (they report wrong coordinates), so we skip them entirely and use individual events. We also handle the virtual keyboard differently since iOS doesn't fire standard resize events.
+**iOS** support for coalesced pointer events is unreliable—`getCoalescedEvents` is sometimes missing entirely—so we skip coalesced events on iOS and dispatch individual pointer events instead.
 
 **Firefox** desktop's `(any-pointer: coarse)` media query reports false positives when a touchscreen is present but not in use. We force fine pointer mode on Firefox desktop to avoid jumpy UI.
 

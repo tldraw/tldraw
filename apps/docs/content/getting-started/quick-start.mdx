@@ -66,11 +66,11 @@ export default function App() {
 
 </FocusLines>
 
-Using a `persistenceKey` will use your browser's storage to ensure that your project can survive a browser refresh. It will also synchronize the project between other instances that share the same `persistenceKey`—including in other browser tabs! Give it a try by opening your app in a second window.
+The `persistenceKey` prop saves your project to the browser's storage so that it survives a refresh. It also synchronizes the project with other instances that share the same key—even in other browser tabs! Give it a try by opening your app in a second window.
 
 ## Real-time collaboration
 
-To add support for multiple users collaborating in realtime, you can use the [**tldraw sync**](/docs/sync) demo library. This library adds real-time collaboration using temporary rooms.
+To add support for multiple users collaborating in real time, you can use the [**tldraw sync**](/docs/sync) library. Its demo hook connects your app to tldraw's demo server, which hosts temporary rooms.
 
 First, install the `@tldraw/sync` package:
 
@@ -106,7 +106,7 @@ If you want to go further with real-time collaboration, be sure to check out our
 
 ## Controlling the canvas
 
-The tldraw [editor](/docs/editor) has a runtime JavaScript API. Everything that can happen in tldraw can be done programmatically through the [Editor](/docs/editor) instance.
+The tldraw [editor](/docs/editor) has a runtime JavaScript API. Everything that can happen in tldraw can be done programmatically through the [Editor](?) instance.
 
 For simplicity's sake, let's roll back our persistence and sync code. We can then use the `Tldraw` component's `onMount` callback to get access to the Editor instance. We'll use the editor to create a new shape on the canvas, select it, then slowly zoom to it.
 
@@ -140,7 +140,7 @@ export default function App() {
 }
 ```
 
-The Editor is tldraw's main interface for controlling the canvas. Be sure to check out the Editor API documentation for more information on what you can do with it, as well as our guide on using the editor.
+The Editor is tldraw's main interface for controlling the canvas. Be sure to check out the [Editor](?) API documentation for more information on what you can do with it, as well as our [guide on using the editor](/docs/editor).
 
 ## Next steps
 

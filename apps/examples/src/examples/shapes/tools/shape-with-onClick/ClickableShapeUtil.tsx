@@ -77,8 +77,10 @@ export class ClickableShapeUtil extends BaseBoxShapeUtil<ClickableShape> {
 	}
 
 	// [5]
-	indicator(shape: ClickableShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: ClickableShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 
@@ -107,5 +109,6 @@ The component renders the click count. We don't add any React event handlers her
 click handling is done entirely through ShapeUtil.onClick above.
 
 [5]
-The indicator is the blue outline shown when the shape is selected.
+getIndicatorPath returns a Path2D that tldraw strokes onto the canvas overlay as the
+blue outline when the shape is selected.
 */

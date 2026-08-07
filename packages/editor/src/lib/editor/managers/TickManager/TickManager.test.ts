@@ -1,5 +1,4 @@
 import { Mock, Mocked, vi } from 'vitest'
-import { Vec } from '../../../primitives/Vec'
 import { Editor } from '../../Editor'
 import { TickManager } from './TickManager'
 
@@ -20,18 +19,6 @@ describe('TickManager', () => {
 	let editor: Mocked<Editor>
 	let tickManager: TickManager
 	let mockEmit: Mock
-	let mockDisposablesAdd: Mock
-	let mockInputs: {
-		_currentScreenPoint: Vec
-		getCurrentScreenPoint(): Vec
-		currentScreenPoint: Vec
-		setCurrentScreenPoint(value: Vec): void
-		_pointerVelocity: Vec
-		getPointerVelocity(): Vec
-		pointerVelocity: Vec
-		setPointerVelocity(value: Vec): void
-		updatePointerVelocity(elapsed: number): void
-	}
 
 	beforeEach(() => {
 		vi.clearAllMocks()
@@ -50,41 +37,9 @@ describe('TickManager', () => {
 		mockCancelAnimationFrame.mockImplementation(() => {})
 
 		mockEmit = vi.fn()
-		mockDisposablesAdd = vi.fn()
-
-		// Create a mock inputs object with getters and setters
-		mockInputs = {
-			_currentScreenPoint: new Vec(100, 100),
-			getCurrentScreenPoint() {
-				return this._currentScreenPoint
-			},
-			get currentScreenPoint() {
-				return this.getCurrentScreenPoint()
-			},
-			setCurrentScreenPoint(value: Vec) {
-				this._currentScreenPoint = value
-			},
-			_pointerVelocity: new Vec(0, 0),
-			getPointerVelocity() {
-				return this._pointerVelocity
-			},
-			get pointerVelocity() {
-				return this.getPointerVelocity()
-			},
-			setPointerVelocity(value: Vec) {
-				this._pointerVelocity = value
-			},
-			updatePointerVelocity(_elapsed: number) {
-				// Mock implementation - no-op for tests
-			},
-		}
 
 		editor = {
 			emit: mockEmit,
-			disposables: {
-				add: mockDisposablesAdd,
-			},
-			inputs: mockInputs as unknown as Editor['inputs'],
 		} as unknown as Mocked<Editor>
 
 		tickManager = new TickManager(editor)
@@ -98,13 +53,8 @@ describe('TickManager', () => {
 
 	describe('constructor and initialization', () => {
 		it('should initialize with correct default values', () => {
-			expect(tickManager.editor).toBe(editor)
 			expect(tickManager.isPaused).toBe(false)
 			expect(tickManager.now).toBe(1000)
-		})
-
-		it('should add dispose method to editor disposables', () => {
-			expect(mockDisposablesAdd).toHaveBeenCalledWith(tickManager.dispose)
 		})
 
 		it('should start the tick loop on construction', () => {

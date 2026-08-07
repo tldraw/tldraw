@@ -22,6 +22,7 @@ const ids = {
 	box1: createShapeId('box1'),
 	box2: createShapeId('box2'),
 	box3: createShapeId('box3'),
+	arrow1: createShapeId('arrow1'),
 }
 
 function bindings(id: TLShapeId) {
@@ -133,6 +134,72 @@ describe('When dragging the arrow', () => {
 		const shapesAfter = editor.getCurrentPageShapes().length
 		expect(shapesAfter).toBe(shapesBefore)
 		editor.expectToBeIn('arrow.idle')
+	})
+})
+
+describe('When double-clicking an arrow handle', () => {
+	function createArrow() {
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+		editor.createShapes([
+			{
+				id: ids.arrow1,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 100 },
+					arrowheadEnd: 'arrow',
+				},
+			},
+		])
+		editor.select(ids.arrow1)
+		return editor.getShape(ids.arrow1) as TLArrowShape
+	}
+
+	function getEndHandle() {
+		return { id: 'end', type: 'vertex' as const, index: 'a0' as IndexKey, x: 100, y: 100 }
+	}
+
+	function getEndHandleInfo() {
+		return {
+			target: 'handle' as const,
+			shape: editor.getShape(ids.arrow1) as TLArrowShape,
+			handle: getEndHandle(),
+		}
+	}
+
+	beforeEach(() => {
+		editor._transformPointerDownSpy.mockRestore()
+		editor._transformPointerUpSpy.mockRestore()
+	})
+
+	it('toggles the arrowhead on the second pointer up', () => {
+		createArrow()
+
+		editor.pointerDown(100, 100, getEndHandleInfo()).pointerUp(100, 100, getEndHandleInfo())
+		expect((editor.getShape(ids.arrow1) as TLArrowShape).props.arrowheadEnd).toBe('arrow')
+
+		editor.pointerDown(100, 100, getEndHandleInfo())
+		expect((editor.getShape(ids.arrow1) as TLArrowShape).props.arrowheadEnd).toBe('arrow')
+		editor.expectToBeIn('select.pointing_handle')
+
+		editor.pointerUp(100, 100, getEndHandleInfo())
+		expect((editor.getShape(ids.arrow1) as TLArrowShape).props.arrowheadEnd).toBe('none')
+	})
+
+	it('starts a drag instead of toggling when the second click moves', () => {
+		createArrow()
+
+		editor.pointerDown(100, 100, getEndHandleInfo()).pointerUp(100, 100, getEndHandleInfo())
+
+		editor.pointerDown(100, 100, getEndHandleInfo())
+		expect((editor.getShape(ids.arrow1) as TLArrowShape).props.arrowheadEnd).toBe('arrow')
+
+		editor.pointerMove(140, 140)
+
+		editor.expectToBeIn('select.dragging_handle')
+		expect((editor.getShape(ids.arrow1) as TLArrowShape).props.arrowheadEnd).toBe('arrow')
 	})
 })
 

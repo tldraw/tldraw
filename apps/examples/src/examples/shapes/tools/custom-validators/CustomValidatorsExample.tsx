@@ -50,8 +50,10 @@ class ValidatedShapeUtil extends ShapeUtil<ValidatedShape> {
 		)
 	}
 
-	indicator(shape: ValidatedShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: ValidatedShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }
 

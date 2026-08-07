@@ -61,6 +61,20 @@ export interface TLThemeDefaultColors {
 	solid: string
 	cursor: string
 	noteBorder: string
+	/** Snap indicator line color */
+	snap: string
+	/** Selection outline stroke */
+	selectionStroke: string
+	/** Selection handle fill (typically the background color) */
+	selectionFill: string
+	/** Brush rectangle fill */
+	brushFill: string
+	/** Brush rectangle stroke */
+	brushStroke: string
+	/** Selected contrast color (handle fills, etc.) */
+	selectedContrast: string
+	/** Laser pointer color */
+	laser: string
 	black: TLDefaultColor
 	grey: TLDefaultColor
 	'light-violet': TLDefaultColor
@@ -164,6 +178,13 @@ export type TLThemeUiColorKeys =
 	| 'solid'
 	| 'cursor'
 	| 'noteBorder'
+	| 'snap'
+	| 'selectionStroke'
+	| 'selectionFill'
+	| 'brushFill'
+	| 'brushStroke'
+	| 'selectedContrast'
+	| 'laser'
 
 /**
  * A color palette for one color mode. UI colors are always required.

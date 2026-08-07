@@ -52,8 +52,8 @@ export class Editor {
 	}
 
 	@step
-	async expectShapesCount(expected: number) {
-		await expect(this.shapes).toHaveCount(expected)
+	async expectShapesCount(expected: number, timeout?: number) {
+		await expect(this.shapes).toHaveCount(expected, { timeout })
 	}
 
 	async getCurrentFileName() {
@@ -65,9 +65,8 @@ export class Editor {
 	@step
 	async rename(newName: string) {
 		await this.fileName.click()
-		await this.page.getByRole('textbox').fill(newName)
+		await this.page.getByTestId('tla-file-name-input').fill(newName)
 		await this.page.keyboard.press('Enter')
-		await this.sidebar.mutationResolution()
 	}
 
 	@step

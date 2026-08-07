@@ -1,5 +1,5 @@
 import path from 'path'
-import glob from 'glob'
+import { glob } from 'glob'
 import isCI from 'is-ci'
 import { rimraf } from 'rimraf'
 import { exec } from './lib/exec'

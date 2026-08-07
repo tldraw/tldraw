@@ -18,7 +18,7 @@ export class ErrorShapeUtil extends BaseBoxShapeUtil<ErrorShape> {
 	component() {
 		throw new Error('Error!')
 	}
-	indicator() {
+	getIndicatorPath(): undefined {
 		throw new Error('Error!')
 	}
 }

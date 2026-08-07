@@ -86,8 +86,10 @@ export class EditableShapeUtil extends BaseBoxShapeUtil<IMyEditableShape> {
 		)
 	}
 
-	indicator(shape: IMyEditableShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: IMyEditableShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 
 	// [3]

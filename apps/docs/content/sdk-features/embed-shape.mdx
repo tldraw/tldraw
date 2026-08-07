@@ -37,27 +37,34 @@ editor.createShape({
 
 The embed system recognizes URLs from supported services and converts them to their embeddable equivalents. A YouTube watch URL becomes an embed URL automatically.
 
+### Pasting iframe code
+
+You can also paste raw `<iframe>` HTML directly onto the canvas to create an embed shape, even when the source URL doesn't match a known provider. tldraw extracts the iframe's `src` attribute and creates an embed pointing at it. If the iframe element is missing `width` and `height`, the embed uses default dimensions instead.
+
+This covers services tldraw doesn't know about — OpenStreetMap, SoundCloud, Loom, internal tools — without a custom embed definition. Iframes pasted this way receive a stricter sandbox than the built-in providers (no `allow-same-origin`, no forms, no popups), since tldraw can't make any safety guarantees about the source.
+
 ## Supported services
 
-| Service         | Hostnames                    | Resizable | Aspect ratio locked |
-| --------------- | ---------------------------- | --------- | ------------------- |
-| tldraw          | tldraw.com, beta.tldraw.com  | Yes       | No                  |
-| Figma           | figma.com                    | Yes       | No                  |
-| YouTube         | youtube.com, youtu.be        | Yes       | Yes                 |
-| Google Maps     | google.com/maps              | Yes       | No                  |
-| Google Calendar | calendar.google.com          | Yes       | No                  |
-| Google Slides   | docs.google.com/presentation | Yes       | No                  |
-| CodeSandbox     | codesandbox.io               | Yes       | No                  |
-| CodePen         | codepen.io                   | Yes       | No                  |
-| Scratch         | scratch.mit.edu              | No        | No                  |
-| Val Town        | val.town                     | Yes       | No                  |
-| GitHub Gist     | gist.github.com              | Yes       | No                  |
-| Replit          | replit.com                   | Yes       | No                  |
-| Felt            | felt.com                     | Yes       | No                  |
-| Spotify         | open.spotify.com             | Yes       | No                  |
-| Vimeo           | vimeo.com, player.vimeo.com  | Yes       | Yes                 |
-| Observable      | observablehq.com             | Yes       | No                  |
-| Desmos          | desmos.com                   | Yes       | No                  |
+| Service         | Hostnames                             | Resizable | Aspect ratio locked |
+| --------------- | ------------------------------------- | --------- | ------------------- |
+| tldraw          | tldraw.com, beta.tldraw.com           | Yes       | No                  |
+| Figma           | figma.com                             | Yes       | No                  |
+| YouTube         | youtube.com, \*.youtube.com, youtu.be | Yes       | Yes                 |
+| Google Maps     | google.\*                             | Yes       | No                  |
+| Google Calendar | calendar.google.\*                    | Yes       | No                  |
+| Google Slides   | docs.google.\*                        | Yes       | No                  |
+| CodeSandbox     | codesandbox.io                        | Yes       | No                  |
+| CodePen         | codepen.io                            | Yes       | No                  |
+| Scratch         | scratch.mit.edu                       | No        | No                  |
+| Val Town        | val.town                              | Yes       | No                  |
+| GitHub Gist     | gist.github.com                       | Yes       | No                  |
+| Replit          | replit.com                            | Yes       | No                  |
+| Felt            | felt.com                              | Yes       | No                  |
+| Spotify         | open.spotify.com                      | Yes       | No                  |
+| Vimeo           | vimeo.com, player.vimeo.com           | Yes       | Yes                 |
+| Observable      | observablehq.com                      | Yes       | No                  |
+| Desmos          | desmos.com                            | Yes       | No                  |
+| Canva           | canva.com                             | Yes       | No                  |
 
 Each service has default dimensions appropriate for its content type. YouTube embeds default to 800×450 (16:9), while Spotify defaults to 720×500.
 
@@ -67,7 +74,7 @@ Embed shapes behave differently from other shapes because they contain live inte
 
 **Locked embeds**: When an embed shape is locked, you can interact with the content inside—play videos, scroll through code, use the embedded application—without accidentally moving the shape. This is the recommended way to use embeds for viewing content.
 
-**Unlocked embeds**: When an embed is unlocked, clicking on it selects the shape rather than interacting with the content. To interact with an unlocked embed, double-click to enter editing mode or hold Shift while clicking to interact directly.
+**Unlocked embeds**: When an embed is unlocked, clicking on it selects the shape rather than interacting with the content. To interact with an unlocked embed, double-click it to enter editing mode.
 
 **Editing mode**: In editing mode, pointer events pass through to the iframe. You can scroll, click buttons, and interact with the embedded content. Click outside the shape or press Escape to exit editing mode.
 
@@ -84,7 +91,7 @@ This bidirectional transformation means the shape can display the original URL t
 
 ## Fallback to bookmarks
 
-When you paste a URL that isn't recognized as embeddable, the embed shape falls back to rendering as a [bookmark](/sdk-features/default-shapes#bookmark). The shape's geometry changes to match the bookmark dimensions, and a link card replaces the iframe.
+When you paste a URL that no embed definition recognizes, the default URL handler creates a [bookmark shape](/sdk-features/default-shapes#bookmark) instead of an embed. An existing embed shape whose URL doesn't match any definition still renders the URL in an iframe, using the stricter sandbox for unknown sources.
 
 You can check whether a URL is embeddable before creating a shape:
 
@@ -124,7 +131,7 @@ GitHub Gist embeds receive special handling: they use `srcDoc` instead of `src` 
 
 ## Custom embed definitions
 
-Replace or extend the default embed definitions using `EmbedShapeUtil.setEmbedDefinitions()`:
+Replace or extend the default embed definitions using `EmbedShapeUtil.configure()`:
 
 ```tsx
 import { Tldraw, EmbedShapeUtil, DEFAULT_EMBED_DEFINITIONS } from 'tldraw'
@@ -158,13 +165,12 @@ const myEmbedDefinitions = [
 	},
 ]
 
-// Set before mounting the editor
-EmbedShapeUtil.setEmbedDefinitions(myEmbedDefinitions)
+const shapeUtils = [EmbedShapeUtil.configure({ embedDefinitions: myEmbedDefinitions })]
 
 export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw />
+			<Tldraw shapeUtils={shapeUtils} />
 		</div>
 	)
 }
@@ -196,7 +202,7 @@ export default function App() {
 
 By default, pasting a URL from a supported service creates an embed shape. Set `embedOnPaste: false` in the embed definition to create a bookmark instead.
 
-The tldraw embed definition uses `embedOnPaste: false` because nested tldraw canvases are blocked when the current page is already inside an iframe (to prevent infinite nesting).
+The tldraw embed definition sets `embedOnPaste: false`, so pasting a tldraw.com URL creates a bookmark. Separately, embed shapes refuse to render a nested tldraw canvas when the page itself is running inside an iframe, which prevents infinite nesting.
 
 ## Shape properties
 
@@ -215,4 +221,4 @@ Embed shapes render as blank rectangles in SVG exports. The iframe content can't
 - [Default shapes](/sdk-features/default-shapes) — Overview of all built-in shape types
 - [Bookmark shape](/sdk-features/default-shapes#bookmark) — URL link cards (fallback for non-embeddable URLs)
 - [External content handling](/sdk-features/external-content) — Handling pasted and dropped content
-- [Embedded example](/examples/custom-embed) — Interactive example of embedding tldraw
+- [Custom embeds example](/examples/configuration/custom-embed) — Add a custom embed definition for a new service

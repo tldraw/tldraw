@@ -12,7 +12,7 @@ export default function OnCreateShapeMetaExample() {
 					//[1]
 					editor.getInitialMetaForShape = (_shape) => {
 						return {
-							createdBy: editor.user.getId(),
+							createdBy: editor.user.getExternalId(),
 							createdAt: Date.now(),
 						}
 					}
@@ -43,8 +43,8 @@ export const MetaUiHelper = track(function MetaUiHelper() {
 
 /*
 This example demonstrates how to add your own data to shapes using the meta property as they're
-created. Check out the docs for a more detailed explanation of the meta property: 
-https://tldraw.dev/docs/shapes#Meta-information
+created. Check out the docs for a more detailed explanation of the meta property:
+https://tldraw.dev/docs/shapes#Meta
 
 [1]
 getInitialMetaForShape is a method you can replace at runtime. Here we use a callback on the onMount

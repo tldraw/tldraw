@@ -53,8 +53,6 @@ Each boundary level has a default fallback component.
 
 `DefaultShapeErrorFallback` renders an empty div with the class `tl-shape-error-boundary`. The shape vanishes, but nothing else breaks. Style this class if you want broken shapes to be more visible.
 
-`DefaultShapeIndicatorErrorFallback` renders a red circle where the selection outline would be. It signals that something went wrong without disrupting selection behavior.
-
 ## Customizing error components
 
 Replace any error fallback through the `components` prop:
@@ -152,21 +150,19 @@ The `fallback` prop accepts a component that receives `{ error: unknown; editor?
 
 ### Components
 
-| Component                     | Props                              | Description                           |
-| ----------------------------- | ---------------------------------- | ------------------------------------- |
-| `ErrorFallback`               | `{ error, editor? }`               | Application-level error screen        |
-| `ShapeErrorFallback`          | `{ error }`                        | Per-shape error placeholder           |
-| `ShapeIndicatorErrorFallback` | `{ error }`                        | Selection indicator error placeholder |
-| `ErrorBoundary`               | `{ fallback, onError?, children }` | Reusable error boundary component     |
+| Component            | Props                              | Description                       |
+| -------------------- | ---------------------------------- | --------------------------------- |
+| `ErrorFallback`      | `{ error, editor? }`               | Application-level error screen    |
+| `ShapeErrorFallback` | `{ error }`                        | Per-shape error placeholder       |
+| `ErrorBoundary`      | `{ fallback, onError?, children }` | Reusable error boundary component |
 
 ### Types
 
-| Type                                     | Description                                          |
-| ---------------------------------------- | ---------------------------------------------------- |
-| `TLErrorFallbackComponent`               | `ComponentType<{ error: unknown; editor?: Editor }>` |
-| `TLShapeErrorFallbackComponent`          | `ComponentType<{ error: any }>`                      |
-| `TLShapeIndicatorErrorFallbackComponent` | `ComponentType<{ error: unknown }>`                  |
-| `TLErrorBoundaryProps`                   | Props for the ErrorBoundary component                |
+| Type                            | Description                                          |
+| ------------------------------- | ---------------------------------------------------- |
+| `TLErrorFallbackComponent`      | `ComponentType<{ error: unknown; editor?: Editor }>` |
+| `TLShapeErrorFallbackComponent` | `ComponentType<{ error: any }>`                      |
+| `TLErrorBoundaryProps`          | Props for the ErrorBoundary component                |
 
 ### Functions
 

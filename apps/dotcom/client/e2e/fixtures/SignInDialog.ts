@@ -8,7 +8,6 @@ export class SignInDialog {
 	public readonly continueWithEmailButton: Locator
 	public readonly codeInput: Locator
 	public readonly resendButton: Locator
-	public readonly analyticsCheckbox: Locator
 	public readonly acceptAndContinueButton: Locator
 
 	constructor(private readonly page: Page) {
@@ -17,9 +16,6 @@ export class SignInDialog {
 		this.continueWithEmailButton = this.page.getByTestId('tla-continue-with-email-button')
 		this.codeInput = this.page.locator('#tla-verification-code')
 		this.resendButton = this.page.getByTestId('tla-resend-code-button')
-		this.analyticsCheckbox = this.page.getByRole('checkbox', {
-			name: /Allow analytics to help improve tldraw/i,
-		})
 		this.acceptAndContinueButton = this.page.getByTestId('tla-accept-and-continue-button')
 	}
 
@@ -59,28 +55,8 @@ export class SignInDialog {
 	}
 
 	@step
-	async expectAnalyticsToggleVisible() {
-		await expect(this.analyticsCheckbox).toBeVisible()
-	}
-
-	@step
-	async expectAnalyticsToggleHidden() {
-		await expect(this.analyticsCheckbox).toHaveCount(0)
-	}
-
-	@step
 	async expectAcceptAndContinueDisabled() {
 		await expect(this.acceptAndContinueButton).toBeDisabled()
-	}
-
-	@step
-	async setAnalyticsOptIn(optIn: boolean) {
-		if ((await this.analyticsCheckbox.count()) === 0) return
-		if (optIn) {
-			await this.analyticsCheckbox.check()
-		} else {
-			await this.analyticsCheckbox.uncheck()
-		}
 	}
 
 	@step

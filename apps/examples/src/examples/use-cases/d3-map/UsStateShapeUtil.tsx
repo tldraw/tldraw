@@ -106,7 +106,9 @@ export class UsStateShapeUtil extends ShapeUtil<UsStateShape> {
 		)
 	}
 
-	indicator(shape: UsStateShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+	getIndicatorPath(shape: UsStateShape) {
+		const path = new Path2D()
+		path.rect(0, 0, shape.props.w, shape.props.h)
+		return path
 	}
 }

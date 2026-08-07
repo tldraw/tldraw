@@ -17,7 +17,6 @@ import {
 	resizeScaled,
 	textShapeMigrations,
 	textShapeProps,
-	toDomPrecision,
 	toRichText,
 	useColorMode,
 	useEditor,
@@ -31,6 +30,14 @@ import { FONT_SIZES, TEXT_PROPS, getFontFamily } from '../shared/default-shape-c
 import { getThemeFontFaces } from '../shared/defaultFonts'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { RichTextLabel, RichTextSVG } from '../shared/RichTextLabel'
+
+// Export-only slack (as a fraction of font size) added around a text shape's advance box in `toSvg`,
+// so italic/cursive glyph ink that spills past the box — side bearings, slanted ascenders — isn't
+// clipped at the <foreignObject> edge on export (#8802). The text still renders in the same place;
+// the export's auto-trim crops the extra room back to the real pixels, so the PNG stays tight. This
+// is deliberately export-only: the shape's geometry (selection, hit-testing, the text-edit cursor)
+// stays the advance box, which is the right box for those.
+const TEXT_EXPORT_INK_MARGIN = 0.3
 
 const sizeCache = createComputedCache(
 	'text size',
@@ -188,17 +195,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		)
 	}
 
-	indicator(shape: TLTextShape) {
-		const bounds = this.editor.getShapeGeometry(shape).bounds
-		const editor = useEditor()
-		if (shape.props.autoSize && editor.getEditingShapeId() === shape.id) return null
-		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
-	}
-
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLTextShape): Path2D | undefined {
 		if (shape.props.autoSize && this.editor.getEditingShapeId() === shape.id) return undefined
 		const bounds = this.editor.getShapeGeometry(shape).bounds
@@ -214,7 +210,16 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		const dv = getDisplayValues(this, shape, ctx.colorMode)
 
-		const exportBounds = new Box(0, 0, width, height)
+		// Pad the exported foreignObject by a margin so glyph ink can spill past the advance box
+		// without being clipped at its edge; the text is inset by the same margin so it renders in the
+		// same place, and the export's trim crops the slack back to content. See TEXT_EXPORT_INK_MARGIN.
+		const inkMargin = Math.ceil(dv.fontSize * TEXT_EXPORT_INK_MARGIN)
+		const exportBounds = new Box(
+			-inkMargin,
+			-inkMargin,
+			width + inkMargin * 2,
+			height + inkMargin * 2
+		)
 		return (
 			<RichTextSVG
 				fontSize={dv.fontSize}
@@ -225,7 +230,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				richText={shape.props.richText}
 				labelColor={dv.color}
 				bounds={exportBounds}
-				padding={0}
+				padding={inkMargin}
 				showTextOutline={this.options.showTextOutline}
 			/>
 		)

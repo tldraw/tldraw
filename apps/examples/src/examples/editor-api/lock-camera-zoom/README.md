@@ -22,4 +22,4 @@ Lock the camera at a specific zoom level.
 
 Need to lock the camera at its current zoom level? You can use the camera controls API to keep the zoom level from changing.
 
-In this example, press Shift+K to lock the camera at its current zoom level. Press Shift+L to unlock the camera and allow it to zoom again.
+In this example, press Shift+K to lock the camera at its current zoom level. Press Shift+K again to unlock the camera and allow it to zoom again.

@@ -117,6 +117,28 @@ export {
 } from './records/TLBinding'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
 export {
+	commentReactionRecordConfig,
+	commentRecordConfig,
+	commentSchemaRecords,
+	commentThreadRecordConfig,
+	createComment,
+	createCommentId,
+	createCommentReaction,
+	createCommentReactionId,
+	createCommentThread,
+	createCommentThreadId,
+	isCommentId,
+	isCommentReactionId,
+	isCommentThreadId,
+	type TLComment,
+	type TLCommentAnchor,
+	type TLCommentId,
+	type TLCommentReaction,
+	type TLCommentReactionId,
+	type TLCommentThread,
+	type TLCommentThreadId,
+} from './records/TLComment'
+export {
 	createCustomRecordId,
 	createCustomRecordMigrationIds,
 	createCustomRecordMigrationSequence,
@@ -361,4 +383,4 @@ registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )
 
-export { b64Vecs } from './misc/b64Vecs'
+export { DIM_2D, DIM_3D, b64Vecs } from './misc/b64Vecs'

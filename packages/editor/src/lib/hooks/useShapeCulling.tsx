@@ -61,8 +61,10 @@ export function ShapeCullingProvider({ children }: ShapeCullingProviderProps) {
 	}, [])
 
 	const updateCulling = useCallback((culledShapes: Set<TLShapeId>) => {
+		let shouldBeCulled: boolean
+
 		for (const [id, entry] of containersRef.current) {
-			const shouldBeCulled = culledShapes.has(id)
+			shouldBeCulled = culledShapes.has(id)
 			if (shouldBeCulled !== entry.isCulled) {
 				const display = shouldBeCulled ? 'none' : 'block'
 				setStyleProperty(entry.container, 'display', display)

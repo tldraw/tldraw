@@ -99,13 +99,13 @@ export interface TLUiToolbarToggleGroupProps extends React.HTMLAttributes<HTMLDi
 }
 
 /** @public @react */
-export const TldrawUiToolbarToggleGroup = ({
+export function TldrawUiToolbarToggleGroup({
 	children,
 	className,
 	type,
 	asChild,
 	...props
-}: TLUiToolbarToggleGroupProps) => {
+}: TLUiToolbarToggleGroupProps) {
 	return (
 		<_Toolbar.ToggleGroup
 			asChild={asChild}
@@ -132,14 +132,14 @@ export interface TLUiToolbarToggleItemProps extends React.HTMLAttributes<HTMLBut
 }
 
 /** @public @react */
-export const TldrawUiToolbarToggleItem = ({
+export function TldrawUiToolbarToggleItem({
 	children,
 	className,
 	type,
 	value,
 	tooltip,
 	...props
-}: TLUiToolbarToggleItemProps) => {
+}: TLUiToolbarToggleItemProps) {
 	const toggleItem = (
 		<_Toolbar.ToggleItem
 			{...props}

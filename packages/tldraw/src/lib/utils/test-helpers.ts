@@ -24,14 +24,14 @@ export function pointsToBase64(points: VecModel[]): string {
  *
  * @example
  * ```ts
- * const points = base64ToPoints(shape.props.segments[0].path)
+ * const points = base64ToPoints(shape.props.segments[0].path, shape.props.segments[0].dim)
  * expect(points[0].x).toBe(0)
  * ```
  *
  * @public
  */
-export function base64ToPoints(base64: string): VecModel[] {
-	return b64Vecs.decodePoints(base64)
+export function base64ToPoints(base64: string, dim?: 2 | 3): VecModel[] {
+	return b64Vecs.decodePoints(base64, dim)
 }
 
 /**

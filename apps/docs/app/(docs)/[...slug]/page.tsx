@@ -14,6 +14,7 @@ import { SearchButton } from '@/components/search/SearchButton'
 import { cn } from '@/utils/cn'
 import { db } from '@/utils/ContentDatabase'
 import { parseMarkdown } from '@/utils/parse-markdown'
+import { canonicalDocsPageUrl } from '@/utils/sitemap-canonical-paths'
 
 export async function generateStaticParams() {
 	const paths = await db.getAllPaths()
@@ -27,9 +28,13 @@ export async function generateMetadata(props: {
 }): Promise<Metadata> {
 	const params = await props.params
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
-	const content = await db.getPageContent(`/${path.join('/')}`)
+	const pagePath = `/${path.join('/')}`
+	const content = await db.getPageContent(pagePath)
 	if (!content || content.type !== 'article') notFound()
-	const metadata: Metadata = { title: content.article.title }
+	const metadata: Metadata = {
+		title: content.article.title,
+		alternates: { canonical: canonicalDocsPageUrl(pagePath) },
+	}
 	if (content.article.description) {
 		metadata.description = content.article.description
 	} else {
@@ -95,7 +100,13 @@ export default async function Page(props: { params: Promise<{ slug: string | str
 							'prose-h1:scroll-mt-20 prose-h2:scroll-mt-20 prose-h3:scroll-mt-20 prose-h4:scroll-mt-20 prose-h5:scroll-mt-20'
 						)}
 					>
-						<p>{content.article.description}</p>
+						{content.article.description && (
+							<Content
+								mdx={content.article.description}
+								type={content.article.sectionId}
+								className="mb-6"
+							/>
+						)}
 						<StarterKitEmbed id={content.article.embed ?? content.article.id} />
 					</div>
 					<div className="flex flex-col xl:flex-row gap-6 relative">

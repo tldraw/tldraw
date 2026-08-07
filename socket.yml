@@ -1,0 +1,11 @@
+version: 2
+
+# Socket.dev configuration. See https://docs.socket.dev/docs/socket-yml
+#
+# issueRules turns specific alert types on or off repo-wide. Keys are the alert
+# type slugs shown on Socket's issues page. Anything omitted falls back to the
+# org dashboard settings.
+issueRules:
+  # posthog-js is an intentional, first-party analytics dependency. The telemetry
+  # alert is informational and not actionable here.
+  telemetry: false

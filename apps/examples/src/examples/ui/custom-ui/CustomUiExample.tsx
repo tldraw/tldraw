@@ -22,6 +22,11 @@ const CustomUi = track(() => {
 
 	useEffect(() => {
 		const handleKeyUp = (e: KeyboardEvent) => {
+			if (editor.getEditingShapeId() !== null) return
+			const target = e.target as HTMLElement | null
+			if (target?.isContentEditable) return
+			if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA') return
+
 			switch (e.key) {
 				case 'Delete':
 				case 'Backspace': {

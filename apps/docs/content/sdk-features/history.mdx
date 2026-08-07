@@ -63,12 +63,12 @@ editor.redo() // Reapply changes
 
 Both methods return the editor instance for chaining.
 
-The [Editor#canUndo](?) and [Editor#canRedo](?) properties are reactive, so you can use them to update UI button states automatically:
+The [Editor#canUndo](?) and [Editor#canRedo](?) methods are reactive, so you can use them to update UI button states automatically:
 
 ```typescript
 function UndoButton() {
 	const editor = useEditor()
-	const canUndo = useValue('canUndo', () => editor.canUndo, [editor])
+	const canUndo = useValue('canUndo', () => editor.canUndo(), [editor])
 	return (
 		<button disabled={!canUndo} onClick={() => editor.undo()}>
 			Undo

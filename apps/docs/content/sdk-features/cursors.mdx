@@ -152,53 +152,50 @@ editor.user.updateUserPreferences({ color: '#FF802B' })
 
 ### Rendering collaborator cursors
 
-Remote cursors render through the `CollaboratorCursor` component. The default implementation ([DefaultCursor](?)) displays:
+Remote cursors render as DOM elements in a dedicated layer stacked above the canvas and below the UI panels. Each visible collaborator gets a cursor showing:
 
-- The cursor icon in the user's color
-- The user's name as a label below the cursor
+- The cursor arrow in the user's color
+- The user's name as a label next to the cursor
 - Any active chat message in a bubble
 
-You can customize this by providing your own `CollaboratorCursor` component through [TLEditorComponents](?):
+A collaborator whose cursor is outside your viewport shows as a small hint arrow clamped to the viewport edge, pointing toward them — the hints stay canvas-drawn ([CollaboratorHintOverlayUtil](?)), like the other drawing chrome.
+
+To customize the cursor, pass your own component via the `components` prop's `CollaboratorCursor` slot (see [DefaultCursor](?) and [TLCursorProps](?)):
 
 ```tsx
-import { Tldraw, TLEditorComponents, TLCursorProps } from 'tldraw'
+import { TLCursorProps, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-function CustomCursor({ point, color, name, zoom }: TLCursorProps) {
+function CustomCollaboratorCursor({ point, color, name, zoom }: TLCursorProps) {
 	if (!point) return null
-
 	return (
 		<div
 			style={{
 				position: 'absolute',
+				// The layer is scaled by the camera, so counter-scale by 1 / zoom to keep the
+				// cursor a constant on-screen size (the default components do the same).
 				transform: `translate(${point.x}px, ${point.y}px) scale(${1 / zoom})`,
+				transformOrigin: 'top left',
+				pointerEvents: 'none',
 			}}
 		>
-			<div
-				style={{
-					width: 16,
-					height: 16,
-					borderRadius: '50%',
-					backgroundColor: color,
-				}}
-			/>
-			{name && <span style={{ color }}>{name}</span>}
+			{/* A dot instead of the default arrow */}
+			<div style={{ width: 16, height: 16, borderRadius: '50%', backgroundColor: color }} />
+			{name && <div style={{ color }}>{name}</div>}
 		</div>
 	)
-}
-
-const components: TLEditorComponents = {
-	CollaboratorCursor: CustomCursor,
 }
 
 export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw components={components} />
+			<Tldraw components={{ CollaboratorCursor: CustomCollaboratorCursor }} />
 		</div>
 	)
 }
 ```
+
+Cursor components are positioned in page space inside a camera-transformed layer, so `point` can be used directly as a translation; sizes in screen pixels stay constant on screen by scaling with `1 / zoom` (the default components do this via their `zoom` prop).
 
 ### Cursor position in presence
 
@@ -223,7 +220,7 @@ The editor automatically broadcasts cursor position updates to other users in th
 - [Tools](/sdk-features/tools) - Learn how tools handle input and set cursors
 - [Collaboration](/sdk-features/collaboration) - User presence and multiplayer features
 - [User preferences](/sdk-features/user-preferences) - Manage user colors and other preferences
-- [UI components](/sdk-features/ui-components) - Customize the collaborator cursor component
+- [Overlay utils](/sdk-features/overlay-utils) - Canvas overlays, including the collaborator cursor overlay
 
 ## Related examples
 

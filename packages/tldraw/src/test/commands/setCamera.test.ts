@@ -1,4 +1,4 @@
-import { Box, DEFAULT_CAMERA_OPTIONS, Vec, createShapeId } from '@tldraw/editor'
+import { Box, DEFAULT_CAMERA_OPTIONS, Vec, createShapeId, last } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
@@ -138,6 +138,102 @@ describe('With default options', () => {
 			})
 			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+	})
+})
+
+describe('Zoom clamping preserves the focal point', () => {
+	beforeEach(() => {
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS })
+	})
+
+	// An off-center screen point, so a center-preserving clamp would shift it.
+	const cursor = { x: 200, y: 150 }
+
+	it('keeps the point under the cursor fixed when wheel zooming out past the min', () => {
+		editor.setCamera({ x: 0, y: 0, z: 0.06 }) // just above the 0.05 min
+		editor.pointerMove(cursor.x, cursor.y)
+		const before = editor.screenToPage(cursor)
+
+		// Each event halves the zoom, overshooting the min, then pins at it.
+		for (let i = 0; i < 4; i++) {
+			editor
+				.dispatch({
+					...wheelEvent,
+					point: new Vec(cursor.x, cursor.y),
+					delta: new Vec(0, 0, -0.5),
+					ctrlKey: true,
+				})
+				.forceTick()
+		}
+
+		expect(editor.getZoomLevel()).toBe(DEFAULT_CAMERA_OPTIONS.zoomSteps[0])
+		const after = editor.screenToPage(cursor)
+		expect(after.x).toBeCloseTo(before.x, 4)
+		expect(after.y).toBeCloseTo(before.y, 4)
+	})
+
+	it('keeps the point under the cursor fixed when wheel zooming in past the max', () => {
+		const max = last(DEFAULT_CAMERA_OPTIONS.zoomSteps)!
+		editor.setCamera({ x: 0, y: 0, z: max * 0.9 }) // just below the max
+		editor.pointerMove(cursor.x, cursor.y)
+		const before = editor.screenToPage(cursor)
+
+		for (let i = 0; i < 4; i++) {
+			editor
+				.dispatch({
+					...wheelEvent,
+					point: new Vec(cursor.x, cursor.y),
+					delta: new Vec(0, 0, 0.5),
+					ctrlKey: true,
+				})
+				.forceTick()
+		}
+
+		expect(editor.getZoomLevel()).toBe(max)
+		const after = editor.screenToPage(cursor)
+		expect(after.x).toBeCloseTo(before.x, 4)
+		expect(after.y).toBeCloseTo(before.y, 4)
+	})
+
+	it('does not translate the camera once zoom is pinned at the min', () => {
+		const min = DEFAULT_CAMERA_OPTIONS.zoomSteps[0]
+		editor.setCamera({ x: 0, y: 0, z: min })
+		editor.pointerMove(cursor.x, cursor.y)
+		const camera = { ...editor.getCamera() }
+
+		for (let i = 0; i < 3; i++) {
+			editor
+				.dispatch({
+					...wheelEvent,
+					point: new Vec(cursor.x, cursor.y),
+					delta: new Vec(0, 0, -0.5),
+					ctrlKey: true,
+				})
+				.forceTick()
+		}
+
+		expect(editor.getCamera()).toMatchObject({ x: camera.x, y: camera.y, z: min })
+	})
+
+	it('keeps the focal point fixed when setCamera requests an out-of-range zoom', () => {
+		// Mimic a cursor-anchored zoom request that overshoots the min: choose
+		// x/y so screen point (200, 150) stays fixed at the requested zoom.
+		const px = cursor.x
+		const py = cursor.y
+		editor.setCamera({ x: 0, y: 0, z: 0.06 })
+		const { x: cx, y: cy, z: cz } = editor.getCamera()
+		const before = editor.screenToPage(cursor)
+
+		const requestedZoom = 0.02 // below the 0.05 min
+		editor.setCamera(
+			new Vec(cx + px / requestedZoom - px / cz, cy + py / requestedZoom - py / cz, requestedZoom),
+			{ immediate: true }
+		)
+
+		expect(editor.getZoomLevel()).toBe(DEFAULT_CAMERA_OPTIONS.zoomSteps[0])
+		const after = editor.screenToPage(cursor)
+		expect(after.x).toBeCloseTo(before.x, 4)
+		expect(after.y).toBeCloseTo(before.y, 4)
 	})
 })
 
@@ -330,6 +426,18 @@ describe('CameraOptions.panSpeed', () => {
 			.pointerMove(5, 10)
 			.forceTick()
 		expect(editor.getCamera()).toMatchObject({ x: 5, y: 10, z: 1 })
+	})
+
+	it('Does not zoom when spacebar panning momentum is applied on release', () => {
+		editor
+			.dispatch({ ...keyBoardEvent, key: ' ', code: 'Space' })
+			.pointerDown(0, 0)
+			.pointerMove(50, 50)
+
+		editor.inputs.setPointerVelocity(new Vec(1, 1))
+		editor.pointerUp().forceTick()
+
+		expect(editor.getCamera().z).toBe(1)
 	})
 
 	it('Does not affect edge scroll panning', () => {

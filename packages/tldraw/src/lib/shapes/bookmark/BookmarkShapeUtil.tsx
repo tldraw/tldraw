@@ -2,6 +2,7 @@
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
+	Rectangle2d,
 	T,
 	TLAssetId,
 	TLBookmarkAsset,
@@ -11,7 +12,6 @@ import {
 	bookmarkShapeProps,
 	lerp,
 	tlenv,
-	toDomPrecision,
 	useEditor,
 	useSvgExportContext,
 } from '@tldraw/editor'
@@ -25,7 +25,9 @@ import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 import {
 	BOOKMARK_HEIGHT,
 	BOOKMARK_WIDTH,
+	getBookmarkShapeHeight,
 	getHumanReadableAddress,
+	getResolvedBookmarkAssetId,
 	setBookmarkHeight,
 	updateBookmarkAssetOnUrlChange,
 } from './bookmarks'
@@ -88,24 +90,25 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		}
 	}
 
+	override getGeometry(shape: TLBookmarkShape) {
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: getBookmarkShapeHeight(this.editor, shape),
+			isFilled: true,
+		})
+	}
+
 	override component(shape: TLBookmarkShape) {
-		const { assetId, url, h } = shape.props
+		const { assetId, url } = shape.props
+		const h = getBookmarkShapeHeight(this.editor, shape)
 		const rotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		return <BookmarkShapeComponent assetId={assetId} url={url} h={h} rotation={rotation} />
 	}
 
-	override indicator(shape: TLBookmarkShape) {
-		return <BookmarkIndicatorComponent w={shape.props.w} h={shape.props.h} />
-	}
-
-	override useLegacyIndicator() {
-		return false
-	}
-
 	override getIndicatorPath(shape: TLBookmarkShape): Path2D {
 		const path = new Path2D()
-		path.roundRect(0, 0, shape.props.w, shape.props.h, 6)
+		path.rect(0, 0, shape.props.w, getBookmarkShapeHeight(this.editor, shape))
 		return path
 	}
 
@@ -141,10 +144,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 }
 
-export function BookmarkIndicatorComponent({ w, h }: { w: number; h: number }) {
-	return <rect width={toDomPrecision(w)} height={toDomPrecision(h)} rx="6" ry="6" />
-}
-
 export function BookmarkShapeComponent({
 	assetId,
 	rotation,
@@ -160,7 +159,8 @@ export function BookmarkShapeComponent({
 }) {
 	const editor = useEditor()
 
-	const asset = assetId ? (editor.getAsset(assetId) as TLBookmarkAsset) : null
+	const resolvedAssetId = getResolvedBookmarkAssetId(editor, assetId, url)
+	const asset = resolvedAssetId ? (editor.getAsset(resolvedAssetId) as TLBookmarkAsset) : null
 
 	const isSafariExport = !!useSvgExportContext() && tlenv.isSafari
 

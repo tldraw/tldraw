@@ -110,7 +110,7 @@ interface TLFileReplaceExternalContent {
 	type: 'file-replace'
 	file: File
 	shapeId: TLShapeId
-	isImage: boolean
+	isImage: boolean // Deprecated: no longer used by the default handler
 	point?: VecLike
 }
 ```
@@ -119,7 +119,7 @@ The default handler validates the file, creates a new asset, and updates the tar
 
 ### URLs
 
-URL content represents a URL to insert. The default handler checks if the URL matches a known embed pattern (YouTube, Twitter, etc.) and creates an embed shape. Otherwise, it fetches Open Graph metadata and creates a bookmark shape.
+URL content represents a URL to insert. The default handler checks if the URL matches a known embed pattern (YouTube, Figma, etc.) and creates an embed shape. Otherwise, it fetches Open Graph metadata and creates a bookmark shape.
 
 ```typescript
 interface TLUrlExternalContent {
@@ -274,7 +274,7 @@ editor.registerExternalContentHandler('text', async (content) => {
 })
 ```
 
-The default handlers are exported from `@tldraw/tldraw`:
+The default handlers are exported from `tldraw`:
 
 - `defaultHandleExternalTextContent`
 - `defaultHandleExternalFileContent`

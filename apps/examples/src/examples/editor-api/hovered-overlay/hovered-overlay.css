@@ -1,0 +1,38 @@
+.hovered-overlay-readout {
+	background: var(--color-panel);
+	border: 1px solid var(--color-divider);
+	border-radius: 8px;
+	padding: 8px 12px;
+	margin: 8px;
+	font-size: 12px;
+	color: var(--color-text);
+	pointer-events: none;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 220px;
+}
+
+.hovered-overlay-readout > div {
+	display: flex;
+	gap: 8px;
+	align-items: baseline;
+}
+
+.hovered-overlay-readout span {
+	color: var(--color-text-3);
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	width: 36px;
+}
+
+.hovered-overlay-readout code {
+	font-family: var(--tl-font-mono, monospace);
+	font-size: 12px;
+}
+
+.hovered-overlay-readout__empty {
+	color: var(--color-text-3);
+	font-style: italic;
+}
