@@ -344,6 +344,78 @@ const snapshots: Snapshots = {
 				/>
 			),
 		},
+		Bordered: {
+			lined: <TL.image w={100} h={200} assetId={manAsset} border="lined" />,
+			shadow: <TL.image w={100} h={200} assetId={manAsset} border="shadow" />,
+			'circle lined': (
+				<TL.image w={100} h={100} assetId={manAsset} border="lined" crop={manCropAsCircle} />
+			),
+			'hard shadow': <TL.image w={100} h={200} assetId={manAsset} border="shadow-hard" />,
+			'circle shadow': (
+				<TL.image w={100} h={100} assetId={manAsset} border="shadow" crop={manCropAsCircle} />
+			),
+			'circle hard shadow': (
+				<TL.image w={100} h={100} assetId={manAsset} border="shadow-hard" crop={manCropAsCircle} />
+			),
+		},
+		// The shadow should keep falling the same way in page space no matter how the
+		// image is turned, while the lined ring rotates along with it.
+		'rotated (note shadow direction)': {
+			'45°': (
+				<TL.image
+					w={100}
+					h={200}
+					assetId={manAsset}
+					border="shadow"
+					rotation={degreesToRadians(45)}
+				/>
+			),
+			'135°': (
+				<TL.image
+					w={100}
+					h={200}
+					assetId={manAsset}
+					border="shadow"
+					rotation={degreesToRadians(135)}
+				/>
+			),
+			'180°': (
+				<TL.image
+					w={100}
+					h={200}
+					assetId={manAsset}
+					border="shadow"
+					rotation={degreesToRadians(180)}
+				/>
+			),
+			'270°': (
+				<TL.image
+					w={100}
+					h={200}
+					assetId={manAsset}
+					border="shadow"
+					rotation={degreesToRadians(270)}
+				/>
+			),
+			'135° lined': (
+				<TL.image
+					w={100}
+					h={200}
+					assetId={manAsset}
+					border="lined"
+					rotation={degreesToRadians(135)}
+				/>
+			),
+			'135° hard shadow': (
+				<TL.image
+					w={100}
+					h={200}
+					assetId={manAsset}
+					border="shadow-hard"
+					rotation={degreesToRadians(135)}
+				/>
+			),
+		},
 	},
 	Bookmarks: {
 		'not rotated': {
