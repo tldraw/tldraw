@@ -136,6 +136,9 @@ function ThumbnailRenderPage({
 					if (renderParams.pageId && editor.getPage(renderParams.pageId as TLPageId)) {
 						editor.setCurrentPage(renderParams.pageId as TLPageId)
 					}
+					// `content` is what every surface asks for today; an explicit viewport is still honoured
+					// (see ThumbnailRenderParams) so the worker can start sending one without waiting on a
+					// separate client deploy to teach this page how to handle it.
 					if (renderParams.camera === 'content') {
 						fitContentCamera(editor, width, height)
 					} else {
