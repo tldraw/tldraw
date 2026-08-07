@@ -92,6 +92,11 @@ export function useDocumentEvents() {
 		if (!isAppFocused) return
 
 		const handleKeyDown = (e: KeyboardEvent) => {
+			// Keyboard input counts as activity for collaborator presence, even when
+			// the event never reaches `Editor.dispatch` — e.g. typing in a text shape,
+			// where shortcuts are disabled because the text editor captures keys.
+			editor.inputs.markActivity()
+
 			if (
 				e.altKey &&
 				// todo: When should we allow the alt key to be used? Perhaps states should declare which keys matter to them?

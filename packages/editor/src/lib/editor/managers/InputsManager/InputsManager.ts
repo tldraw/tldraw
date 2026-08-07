@@ -12,6 +12,13 @@ import { EditorManager } from '../EditorManager'
 const POINTER_VELOCITY_REFERENCE_INTERVAL_MS = 16
 const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
 
+// How often `markActivity` is allowed to stamp the activity timestamp. Each
+// stamp re-broadcasts presence, so this must be long enough to keep input
+// bursts (e.g. typing, held keys) from flooding the network, and comfortably
+// shorter than `collaboratorIdleTimeoutMs` (3s) so a continuously-active peer
+// never flickers to idle between stamps.
+const ACTIVITY_TIMESTAMP_THROTTLE_MS = 1000
+
 /** @public */
 export class InputsManager extends EditorManager {
 	constructor(editor: Editor) {
@@ -460,6 +467,34 @@ export class InputsManager extends EditorManager {
 
 	@computed private _getHasCollaborators() {
 		return this.editor.getCollaborators().length > 0 // could we do this more efficiently?
+	}
+
+	private _lastActivityTimestamp = 0
+
+	/**
+	 * Mark the current user as active for collaborator presence without moving the pointer.
+	 * Pointer, pinch, and wheel input stamp the presence activity timestamp automatically, and the
+	 * editor calls this for keyboard input; call it yourself to make other kinds of input count as
+	 * activity too, so peers don't classify this user as idle or inactive while they're still
+	 * interacting. Calls are throttled on the leading edge, so it's safe to call from
+	 * high-frequency input events.
+	 */
+	markActivity() {
+		if (!this._getHasCollaborators()) return
+
+		const now = Date.now()
+		if (now - this._lastActivityTimestamp < ACTIVITY_TIMESTAMP_THROTTLE_MS) return
+		this._lastActivityTimestamp = now
+
+		const pointer = this.editor.store.unsafeGetWithoutCapture(TLPOINTER_ID)
+		if (!pointer) return
+
+		this.editor.run(
+			() => {
+				this.editor.store.put([{ ...pointer, lastActivityTimestamp: now }])
+			},
+			{ history: 'ignore' }
+		)
 	}
 
 	/**

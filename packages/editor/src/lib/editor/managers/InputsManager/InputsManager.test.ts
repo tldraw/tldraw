@@ -1,5 +1,34 @@
+import {
+	PageRecordType,
+	TLPOINTER_ID,
+	createUserId,
+	type TLInstancePresence,
+} from '@tldraw/tlschema'
+import { vi } from 'vitest'
 import { createTLStore } from '../../../config/createTLStore'
 import { Editor } from '../../Editor'
+
+function createPresence(): TLInstancePresence {
+	const userId = createUserId('peer')
+	return {
+		typeName: 'instance_presence',
+		id: `instance_presence:${userId}` as TLInstancePresence['id'],
+		userId,
+		userName: userId,
+		lastActivityTimestamp: Date.now(),
+		color: '#000000',
+		camera: null,
+		selectedShapeIds: [],
+		currentPageId: PageRecordType.createId('page'),
+		brush: null,
+		scribbles: [],
+		screenBounds: null,
+		followingUserId: null,
+		cursor: null,
+		chatMessage: '',
+		meta: {},
+	}
+}
 
 function createTestEditor() {
 	const store = createTLStore({})
@@ -35,6 +64,68 @@ describe('InputsManager', () => {
 		editor.emit('frame', 16)
 
 		expect(editor.inputs.getPointerVelocity().len()).toBeGreaterThan(0)
+	})
+
+	describe('markActivity', () => {
+		beforeEach(() => {
+			vi.useFakeTimers()
+		})
+
+		afterEach(() => {
+			vi.useRealTimers()
+		})
+
+		it('does nothing when there are no collaborators', () => {
+			editor.inputs.markActivity()
+
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(0)
+		})
+
+		it('stamps the pointer record, preserving its position', () => {
+			editor.store.put([createPresence()])
+			editor.store.put([{ ...editor.store.get(TLPOINTER_ID)!, x: 5, y: 6 }])
+
+			editor.inputs.markActivity()
+
+			expect(editor.store.get(TLPOINTER_ID)!).toMatchObject({
+				x: 5,
+				y: 6,
+				lastActivityTimestamp: Date.now(),
+			})
+		})
+
+		it('throttles stamps on the leading edge', () => {
+			editor.store.put([createPresence()])
+
+			editor.inputs.markActivity()
+			const firstStamp = editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp
+
+			vi.advanceTimersByTime(500)
+			editor.inputs.markActivity()
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(firstStamp)
+
+			vi.advanceTimersByTime(600)
+			editor.inputs.markActivity()
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(firstStamp + 1100)
+		})
+
+		it('stamps on keyboard events dispatched through the editor', () => {
+			editor.store.put([createPresence()])
+
+			editor.dispatch({
+				type: 'keyboard',
+				name: 'key_down',
+				key: 'a',
+				code: 'KeyA',
+				shiftKey: false,
+				altKey: false,
+				ctrlKey: false,
+				metaKey: false,
+				accelKey: false,
+			})
+
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(Date.now())
+		})
 	})
 
 	it('stops updating pointer velocity after dispose', () => {

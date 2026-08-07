@@ -11603,6 +11603,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				break
 			}
 			case 'keyboard': {
+				// Keyboard input counts as activity for collaborator presence, the same
+				// way pointer, pinch, and wheel input do.
+				inputs.markActivity()
+
 				// please, please
 				if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
 				if (info.key === 'AltRight') info.key = 'AltLeft'
