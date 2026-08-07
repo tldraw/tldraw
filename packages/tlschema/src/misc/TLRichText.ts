@@ -1,25 +1,6 @@
 import { T } from '@tldraw/validate'
 
 /**
- * Validator for TLRichText objects that ensures they have the correct structure
- * for document-based rich text content. Validates a document with a type field
- * and an array of content blocks.
- *
- * @public
- * @example
- * ```ts
- * const richText = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hello' }] }] }
- * const isValid = richTextValidator.check(richText) // true
- * ```
- */
-
-export const richTextValidator = T.object({
-	type: T.string,
-	content: T.arrayOf(T.unknown),
-	attrs: T.any.optional(),
-})
-
-/**
  * Type representing rich text content in tldraw. Rich text follows a document-based
  * structure with a root document containing an array of content blocks (paragraphs,
  * text nodes, etc.). This enables formatted text with support for multiple paragraphs,
@@ -39,7 +20,32 @@ export const richTextValidator = T.object({
  * }
  * ```
  */
-export type TLRichText = T.TypeOf<typeof richTextValidator>
+export interface TLRichText {
+	type: string
+	content: unknown[]
+	// `attrs` is open-ended and optional. It is declared explicitly here and passed to
+	// `T.object` below so the validator is checked against this type, since an optional
+	// `any` cannot be inferred from the validator's value types alone.
+	attrs?: any
+}
+
+/**
+ * Validator for TLRichText objects that ensures they have the correct structure
+ * for document-based rich text content. Validates a document with a type field
+ * and an array of content blocks.
+ *
+ * @public
+ * @example
+ * ```ts
+ * const richText = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hello' }] }] }
+ * const isValid = richTextValidator.check(richText) // true
+ * ```
+ */
+export const richTextValidator = T.object<TLRichText>({
+	type: T.string,
+	content: T.arrayOf(T.unknown),
+	attrs: T.any.optional(),
+})
 
 /**
  * Converts a plain text string into a TLRichText object. Each line of the input
