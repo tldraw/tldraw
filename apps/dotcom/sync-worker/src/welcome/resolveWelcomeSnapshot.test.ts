@@ -1,7 +1,8 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../types'
-import { defaultWelcomeSnapshotJson } from './defaultWelcomeSnapshot'
 import { resolveWelcomeSnapshot } from './resolveWelcomeSnapshot'
 
 vi.mock('../postgres', () => ({
@@ -14,8 +15,16 @@ vi.mock('../routes/tla/getPublishedFile', () => ({
 const { createPostgresConnectionPool } = await import('../postgres')
 const { getPublishedRoomSnapshot } = await import('../routes/tla/getPublishedFile')
 
-const env = {} as Environment
+// The default lives as a Workers Static Asset; stand in a minimal ASSETS binding that returns
+// the committed JSON so the resolver's fallback path works.
+const defaultWelcomeSnapshotJson = readFileSync(
+	fileURLToPath(new URL('../../assets/welcome-snapshot.json', import.meta.url)),
+	'utf8'
+)
 const defaultSnapshot = JSON.parse(defaultWelcomeSnapshotJson) as RoomSnapshot
+const env = {
+	ASSETS: { fetch: async () => new Response(defaultWelcomeSnapshotJson) },
+} as unknown as Environment
 
 const destroy = vi.fn(async () => {})
 
