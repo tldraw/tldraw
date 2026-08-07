@@ -2,7 +2,6 @@ import { atom, computed, unsafe__withoutCapture } from '@tldraw/state'
 import { AtomSet } from '@tldraw/store'
 import { TLINSTANCE_ID, TLPOINTER_ID } from '@tldraw/tlschema'
 import { bind } from '@tldraw/utils'
-import { INTERNAL_POINTER_IDS } from '../../../constants'
 import { Vec } from '../../../primitives/Vec'
 import { isAccelKey } from '../../../utils/keyboard'
 import type { Editor } from '../../Editor'
@@ -20,11 +19,37 @@ const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
 // when that option is configured below the default.
 const ACTIVITY_TIMESTAMP_THROTTLE_MS = 1000
 
+// DOM events that count as presence activity. `gesturestart`/`gesturechange`
+// are Safari's proprietary trackpad-pinch events, which produce neither pointer
+// nor wheel events.
+const ACTIVITY_EVENTS = [
+	'pointerdown',
+	'pointermove',
+	'pointerup',
+	'keydown',
+	'wheel',
+	'gesturestart',
+	'gesturechange',
+]
+
 /** @public */
 export class InputsManager extends EditorManager {
 	constructor(editor: Editor) {
 		super(editor)
 		this.addEditorEvent('frame', this._onFrame)
+
+		// User input inside the container counts as activity for collaborator
+		// presence. Listen in the capture phase so input that later handlers
+		// swallow (e.g. keystrokes routed to a shape's text editor) still counts.
+		const container = editor.getContainer()
+		for (const name of ACTIVITY_EVENTS) {
+			container.addEventListener(name, this.markActivity, { capture: true })
+		}
+		this.register(() => {
+			for (const name of ACTIVITY_EVENTS) {
+				container.removeEventListener(name, this.markActivity, { capture: true })
+			}
+		})
 	}
 
 	@bind
@@ -473,11 +498,11 @@ export class InputsManager extends EditorManager {
 	private _lastActivityTimestamp = 0
 
 	/**
-	 * Mark the current user as active for collaborator presence without moving the pointer.
-	 * Pointer, pinch, wheel, and keyboard input count as activity automatically; call this to make
-	 * other kinds of input count too, so peers don't classify this user as idle or inactive while
-	 * they're still interacting. Calls are throttled on the leading edge, so it's safe to call
-	 * from high-frequency input events.
+	 * Mark the current user as active for collaborator presence. User input inside the editor's
+	 * container counts as activity automatically; call this to make input from other sources count
+	 * too, so peers don't classify this user as idle or inactive while they're still interacting.
+	 * Calls are throttled on the leading edge, so it's safe to call from high-frequency input
+	 * events.
 	 *
 	 * @example
 	 * ```ts
@@ -487,6 +512,7 @@ export class InputsManager extends EditorManager {
 	 * })
 	 * ```
 	 */
+	@bind
 	markActivity() {
 		if (!this._getHasCollaborators()) return
 
@@ -602,13 +628,12 @@ export class InputsManager extends EditorManager {
 							typeName: 'pointer',
 							x: pagePoint.x,
 							y: pagePoint.y,
+							// The activity timestamp is stamped by the container's input
+							// listeners (see `markActivity`), not by pointer position updates:
+							// synthetic moves, like the camera following another user, don't
+							// count as activity.
 							lastActivityTimestamp:
-								// If our pointer moved only because we're following some other user, then don't
-								// update our last activity timestamp; otherwise, update it to the current timestamp.
-								info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
-									? (this.editor.store.unsafeGetWithoutCapture(TLPOINTER_ID)
-											?.lastActivityTimestamp ?? Date.now())
-									: Date.now(),
+								this.editor.store.unsafeGetWithoutCapture(TLPOINTER_ID)?.lastActivityTimestamp ?? 0,
 							meta: {},
 						},
 					])

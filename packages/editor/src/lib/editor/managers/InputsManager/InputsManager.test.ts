@@ -15,11 +15,12 @@ function createPresence(editor: Editor) {
 function createTestEditor() {
 	const store = createTLStore({})
 	store.ensureStoreIsUsable()
+	const container = document.createElement('div')
 	return new Editor({
 		store,
 		bindingUtils: [],
 		shapeUtils: [],
-		getContainer: () => document.createElement('div'),
+		getContainer: () => container,
 		tools: [],
 	})
 }
@@ -91,14 +92,37 @@ describe('InputsManager', () => {
 			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(firstStamp + 1100)
 		})
 
-		it('stamps on keyboard events dispatched through the editor', () => {
+		it('stamps on keyboard input in the container', () => {
 			editor.store.put([createPresence(editor)])
 
-			editor.dispatch({
-				type: 'keyboard',
-				name: 'key_down',
-				key: 'a',
-				code: 'KeyA',
+			editor.getContainer().dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA' }))
+
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(Date.now())
+		})
+
+		it('stamps on pointer input in the container', () => {
+			editor.store.put([createPresence(editor)])
+
+			editor.getContainer().dispatchEvent(new Event('pointermove'))
+
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(Date.now())
+		})
+
+		it('does not stamp on pointer moves with no container input, e.g. following a user', () => {
+			editor.store.put([createPresence(editor)])
+
+			editor.inputs.markActivity()
+			const stamp = editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp
+
+			vi.advanceTimersByTime(5000)
+			editor.inputs.updateFromEvent({
+				type: 'pointer',
+				name: 'pointer_move',
+				point: { x: 100, y: 50 },
+				pointerId: 1,
+				button: 0,
+				isPen: false,
+				target: 'canvas',
 				shiftKey: false,
 				altKey: false,
 				ctrlKey: false,
@@ -106,7 +130,12 @@ describe('InputsManager', () => {
 				accelKey: false,
 			})
 
-			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(Date.now())
+			// The pointer position updates, but the activity clock doesn't.
+			expect(editor.store.get(TLPOINTER_ID)!).toMatchObject({
+				x: 100,
+				y: 50,
+				lastActivityTimestamp: stamp,
+			})
 		})
 	})
 
