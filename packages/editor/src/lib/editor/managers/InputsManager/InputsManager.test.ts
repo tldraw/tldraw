@@ -1,33 +1,15 @@
-import {
-	PageRecordType,
-	TLPOINTER_ID,
-	createUserId,
-	type TLInstancePresence,
-} from '@tldraw/tlschema'
+import { InstancePresenceRecordType, TLPOINTER_ID, createUserId } from '@tldraw/tlschema'
 import { vi } from 'vitest'
 import { createTLStore } from '../../../config/createTLStore'
 import { Editor } from '../../Editor'
 
-function createPresence(): TLInstancePresence {
-	const userId = createUserId('peer')
-	return {
-		typeName: 'instance_presence',
-		id: `instance_presence:${userId}` as TLInstancePresence['id'],
-		userId,
-		userName: userId,
-		lastActivityTimestamp: Date.now(),
-		color: '#000000',
-		camera: null,
-		selectedShapeIds: [],
-		currentPageId: PageRecordType.createId('page'),
-		brush: null,
-		scribbles: [],
-		screenBounds: null,
-		followingUserId: null,
-		cursor: null,
-		chatMessage: '',
-		meta: {},
-	}
+function createPresence(editor: Editor) {
+	return InstancePresenceRecordType.create({
+		id: InstancePresenceRecordType.createId('peer'),
+		userId: createUserId('peer'),
+		userName: 'Peer',
+		currentPageId: editor.getCurrentPageId(),
+	})
 }
 
 function createTestEditor() {
@@ -82,7 +64,7 @@ describe('InputsManager', () => {
 		})
 
 		it('stamps the pointer record, preserving its position', () => {
-			editor.store.put([createPresence()])
+			editor.store.put([createPresence(editor)])
 			editor.store.put([{ ...editor.store.get(TLPOINTER_ID)!, x: 5, y: 6 }])
 
 			editor.inputs.markActivity()
@@ -95,7 +77,7 @@ describe('InputsManager', () => {
 		})
 
 		it('throttles stamps on the leading edge', () => {
-			editor.store.put([createPresence()])
+			editor.store.put([createPresence(editor)])
 
 			editor.inputs.markActivity()
 			const firstStamp = editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp
@@ -110,7 +92,7 @@ describe('InputsManager', () => {
 		})
 
 		it('stamps on keyboard events dispatched through the editor', () => {
-			editor.store.put([createPresence()])
+			editor.store.put([createPresence(editor)])
 
 			editor.dispatch({
 				type: 'keyboard',
