@@ -4,6 +4,7 @@ import {
 	DefaultContextMenuContent,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
+	Editor,
 	ExampleDialog,
 	PerformanceApiAdapter,
 	TLComponents,
@@ -12,6 +13,8 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	getFromSessionStorage,
+	setInSessionStorage,
 	track,
 	useDialogs,
 	useEditor,
@@ -89,6 +92,16 @@ const components: TLComponents = {
 	),
 }
 
+// Debug mode is on by default on this page. The default is applied once per
+// browser tab so that turning debug mode off still sticks across reloads.
+const DEBUG_MODE_DEFAULT_KEY = 'tldraw_develop_debug_mode_default_applied'
+
+function turnOnDebugModeByDefault(editor: Editor) {
+	if (getFromSessionStorage(DEBUG_MODE_DEFAULT_KEY)) return
+	setInSessionStorage(DEBUG_MODE_DEFAULT_KEY, 'true')
+	editor.updateInstanceState({ isDebugMode: true })
+}
+
 function afterChangeHandler(prev: any, next: any) {
 	const tracked = trackedShapes.get()
 	if (tracked.includes(next.id)) {
@@ -110,6 +123,8 @@ export default function Develop() {
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor
+
+					turnOnDebugModeByDefault(editor)
 
 					Object.defineProperty(window, '$s', {
 						get: function () {
