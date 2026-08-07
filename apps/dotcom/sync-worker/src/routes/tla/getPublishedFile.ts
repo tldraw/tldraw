@@ -38,13 +38,14 @@ export async function getPublishedRoomSnapshot(
 	env: Environment,
 	roomId: string
 ): Promise<RoomSnapshot | undefined> {
-	// Re-resolve the published slug on every read so the published gate holds at serve time, not just
-	// when the board was first resolved. A board un-published between resolution and this read must
-	// stop resolving even though its R2 snapshot lingers until the replicator deletes it (the DB
-	// `published` flag flips immediately; the R2 cleanup lags behind it).
+	// Re-resolve the published slug on every read so the published gate holds at serve time, not
+	// just when the board was first resolved. A board un-published between resolution and this
+	// read must stop resolving even though its R2 snapshot lingers until the outbox's unpublish
+	// effect deletes it (the DB `published` flag flips immediately; R2 cleanup lags behind it).
+	// Undefined (not a throw) so unknown/unpublished slugs surface as a 404, not a 500.
 	const file = await getPublishedFileInfo(env, roomId)
-	if (!file) throw Error('not found')
-	if (!file.published) throw Error('not published')
+	if (!file) return undefined
+	if (!file.published) return undefined
 
 	return (await env.ROOM_SNAPSHOTS.get(
 		getR2KeyForRoom({ slug: `${file.id}/${roomId}`, isApp: true })

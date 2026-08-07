@@ -472,6 +472,18 @@ export interface TlaAsset {
 	userId: string | null
 }
 
+export interface TlaEffectOutbox {
+	id: number
+	tableName: string
+	entityId: string
+	command: 'insert' | 'update' | 'delete'
+	payload: unknown
+	prevPayload: unknown | null
+	attempts: number
+	createdAt: Date
+	nextRetryAt: Date | null
+}
+
 /**
  * The welcome-template pointer (see migration 035). Worker-side config only — not a Zero
  * table (absent from `createSchema` below), so it never replicates to clients.
@@ -521,6 +533,7 @@ export interface DB {
 	comment_read: TlaCommentRead
 	comment_mention: TlaCommentMention
 	comment_reaction: TlaCommentReaction & CommentReactionPersistenceColumns
+	effect_outbox: TlaEffectOutbox
 }
 
 export const schema = createSchema({
