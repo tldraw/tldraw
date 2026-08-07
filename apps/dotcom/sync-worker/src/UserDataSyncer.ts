@@ -277,14 +277,25 @@ export class UserDataSyncer {
 					this.captureException(e, { source })
 					return 'error' as const
 				})
-			const res = await Promise.race([
-				bootPromise,
-				sleep(30_000).then(() => {
-					controller.abort()
-					return 'timeout' as const
-				}),
-			])
-			await bootPromise
+			// The timeout timer must be cleared once boot settles — a pending timer is
+			// outstanding work that blocks DO hibernation, so losing the race would
+			// otherwise hold the DO in memory for the full 30 seconds after every boot.
+			let timeoutTimer: ReturnType<typeof setTimeout> | null = null
+			let res: 'ok' | 'error' | 'timeout'
+			try {
+				res = await Promise.race([
+					bootPromise,
+					new Promise<'timeout'>((resolve) => {
+						timeoutTimer = setTimeout(() => {
+							controller.abort()
+							resolve('timeout')
+						}, 30_000)
+					}),
+				])
+				await bootPromise
+			} finally {
+				if (timeoutTimer !== null) clearTimeout(timeoutTimer)
+			}
 			this.log.debug('rebooted', res)
 			if (res === 'ok') {
 				this.numConsecutiveReboots = 0
