@@ -307,12 +307,7 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Feature Flags ---------------------- */
 
-export const FEATURE_FLAG_KEYS = [
-	'rum_enabled',
-	'commenting_enabled',
-	'mcp_friends_and_family',
-	'mcp_server_access',
-] as const
+export const FEATURE_FLAG_KEYS = ['rum_enabled', 'commenting_enabled', 'mcp_server_access'] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
 export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag | AllowlistFeatureFlag
@@ -333,40 +328,36 @@ export interface PercentageFeatureFlag {
 }
 
 /**
- * Names the users a flag is on for, one id at a time.
+ * Names the users a flag is on for, one person at a time.
  *
  * Distinct from a percentage rollout, which cannot express this: a percentage buckets users by
  * `hash(userId + flagName)`, so it yields *a* subset of the requested size but never *the* subset
  * someone picked. A hand-chosen group — a friends-and-family rollout, a set of design partners —
- * needs the ids themselves.
+ * needs the people themselves.
  *
- * Deliberately keyed on `userId` rather than email. `evaluateFlagForUser` already takes a userId and
- * every caller has one, whereas server-side email would mean a Clerk `users.getUser()` round trip per
- * evaluation. Maintaining the list is the cost of that: ids are opaque, so an entry needs looking up
- * in the admin user search rather than reading as a person.
+ * Matching is on `userId`, never on email. `evaluateFlagForUser` already takes a userId and every
+ * caller has one, whereas matching on email would mean a user lookup per evaluation. Admins enter
+ * emails anyway — ids are opaque — so the admin save resolves each address to a user id up front,
+ * and the email rides along in the entry purely so the admin panel can show a readable list.
  */
 export interface AllowlistFeatureFlag {
 	type: 'allowlist'
 	/** The users the flag is on for. Anyone not named here evaluates false. */
-	userIds: string[]
+	users: AllowlistEntry[]
 	/** Master toggle — when false, disabled for everyone regardless of the list. */
 	enabled: boolean
 	description: string
 }
 
+/** One person on an allowlist flag. Matched by id; the email is only a label. */
+export interface AllowlistEntry {
+	userId: string
+	email: string
+}
+
 /** Returned by the user-facing endpoint — just the evaluated result, no server internals. */
 export interface EvaluatedFeatureFlag {
 	enabled: boolean
-}
-
-/**
- * One person on the MCP friends and family list that `mcp_friends_and_family` gates on. Admins enter
- * an email, which is resolved to a user id on save; matching is on the id, and the email is kept only
- * so the admin panel can show a readable list.
- */
-export interface FriendsAndFamilyEntry {
-	userId: string
-	email: string
 }
 
 /** One unassociated or unverifiable asset in an admin asset-diagnostics report. */

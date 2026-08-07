@@ -13,7 +13,7 @@ Everything in the rollout below except the Clerk-side configuration, which is no
 - The advertised protocol version moved to `2025-06-18`, and `2024-11-05` dropped.
 - The minted-token record key namespaced by surface, page and theme — the blocking prerequisite.
 - The per-user board access check (`hasReadAccessToFile`), gating the cache read as well as the render, with one not-found message for every way a board can fail to resolve.
-- An `allowlist` feature flag type, and `mcp_server_access` using it. This was assigned to the friends-and-family flag work below; it landed here instead because that work has not started and this cannot roll out without it.
+- An `allowlist` feature flag type, and `mcp_server_access` using it — one list, absorbing the friends-and-family list from [#9809](https://github.com/tldraw/tldraw/pull/9809). Entries are edited as emails and stored as `{ userId, email }`, resolved against the database at save time; the separate list and the `mcp_friends_and_family` flag are gone.
 
 **Two things are still open, and both are decisions rather than code.** Whether dynamic client registration on the production Clerk instance is acceptable, and whether that instance issues JWT or opaque access tokens — the second determines whether `@clerk/backend` has to go to v2 first. See [Open questions](#open-questions).
 
@@ -193,7 +193,7 @@ So the flag work picks a key:
 
 ## Overlap and sequencing
 
-- **The friends-and-family flag was to land first.** It has not started, so the allowlist flag type it needed landed here instead. The split the plan described still holds in the code: auth establishes identity, the flag decides who is switched on, and widening the rollout is a KV edit rather than a deploy.
+- **The friends-and-family flag landed first** ([#9809](https://github.com/tldraw/tldraw/pull/9809)), as a boolean flag beside its own list — built to raise rate limits for signed-in callers while the endpoint still served anonymous ones. Requiring auth collapsed that design: once every caller is on a hand-picked list, a raised tier for a subset of that list is two lists doing one job. So the list folded into the `mcp_server_access` allowlist flag — keeping #9809's edit-as-emails, store-as-ids resolution — and the boolean flag was removed. The split the plan described still holds in the code: auth establishes identity, the flag decides who is switched on, and widening the rollout is a KV edit rather than a deploy.
 - **[#9667](https://github.com/tldraw/tldraw/pull/9667) is the significant dependency, and this branch is stacked on it.** It builds the private-board render path, the signed `ThumbnailBoardAccess` level, and two-factor render tokens — most of what the access check would otherwise have needed. It also relocates MCP screenshots to their own bucket and confines rate limiting to the MCP endpoint. **This cannot merge before it does.**
 - **[#9774](https://github.com/tldraw/tldraw/pull/9774)** is concurrently rewriting `sharedBoardScreenshotMcp.ts` and its tests (cluster-based tools, cache key changes, new telemetry surfaces). This branch is not written against it, so expect conflicts in that file. They should be shallow — auth wraps the route rather than changing tool internals — but the per-user resolution does replace `resolveSharedBoardById`, which its new tools will also call, and the cluster tools will need the same access check rather than the public gate.
 - **`apps/mcp-app` is a separate decision.** It's a different server with a different architecture (MCP SDK, `McpAgent`, Durable Objects), gated on a single shared `MCP_AUTH_TOKEN` that isn't set in production, with no per-user identity. It needs its own answer; the two shouldn't be bundled.
@@ -202,7 +202,7 @@ So the flag work picks a key:
 
 The code steps landed together on this branch rather than in the sequence below, because the sequence was written for shipping to production and this is one reviewable change. The sequencing argument still holds for **turning it on**, and the steps are kept as that checklist.
 
-0. ~~Prerequisites: the friends-and-family flag including whatever allowlist mechanism it needs, and [#9667](https://github.com/tldraw/tldraw/pull/9667).~~ #9667 is merged into this branch; the allowlist flag type landed here.
+0. ~~Prerequisites: the friends-and-family flag including whatever allowlist mechanism it needs, and [#9667](https://github.com/tldraw/tldraw/pull/9667).~~ Both merged; the allowlist mechanism landed here and absorbed #9809's list.
 1. ~~Land the protocol upgrade.~~ Done — `2025-06-18`, with `2024-11-05` dropped.
 2. ~~Namespace the minted-token record key by surface.~~ Done, and by page and theme besides: surface alone fixes MCP-versus-OG collisions but not two concurrent MCP captures of one board, which is the case the tests exercise.
 3. ~~Add discovery endpoints and token verification.~~ Done. **Announce the cutover date before enabling** — every existing anonymous caller breaks at step 5.
