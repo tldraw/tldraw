@@ -5137,7 +5137,7 @@ spec:
     hideTimepicker: false
     timezone: browser
     to: now
-  title: Events V2
+  title: Dotcom events
   variables:
     - kind: TextVariable
       spec:

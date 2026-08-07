@@ -1262,7 +1262,7 @@ spec:
       - 2h
       - 1d
   timezone: browser
-  title: Events
+  title: Dotcom events V1
   tags:
     - provisioned
     - repo:tldraw/tldraw

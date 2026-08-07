@@ -592,5 +592,5 @@ spec:
     hideTimepicker: false
     timezone: browser
     to: now
-  title: MCP App Sessions
+  title: MCP app sessions
   variables: []

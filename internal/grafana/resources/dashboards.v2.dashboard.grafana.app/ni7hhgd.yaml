@@ -1148,7 +1148,7 @@ spec:
     hideTimepicker: false
     timezone: browser
     to: now
-  title: Zero-cache on Fly.io
+  title: Zero-cache HTTP edge (Fly.io)
   variables:
     - kind: TextVariable
       spec:
