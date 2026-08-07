@@ -331,7 +331,10 @@ binding = "USER_DO_SNAPSHOTS"
 bucket_name = "user-do-snapshots"
 
 #################### Thumbnails R2 bucket ####################
-# cache for Browser Run-generated board thumbnails (MCP screenshots)
+# cache for board thumbnails / OG images (`og/…` keys) plus their pending-render markers and render
+# token records. No key carries a version, so nothing accumulates here, and the bucket has NO
+# expiration rule — the current thumbnail has to outlive any lifecycle window. See "Why two buckets"
+# in apps/dotcom/browser-run-thumbnails.md.
 # in dev, we write to the preview bucket and need a `preview_bucket_name`
 [[env.dev.r2_buckets]]
 binding = "THUMBNAILS"
@@ -351,6 +354,27 @@ bucket_name = "thumbnails-preview"
 [[env.production.r2_buckets]]
 binding = "THUMBNAILS"
 bucket_name = "thumbnails"
+
+#################### MCP data R2 bucket ####################
+# cache for MCP tool screenshots (`mcp/…` keys). Separate from THUMBNAILS because the retention is the
+# opposite: this key includes the board's content version, so every edit strands the previous object.
+# These buckets carry an expiration lifecycle rule (see the ops setup in browser-run-thumbnails.md).
+[[env.dev.r2_buckets]]
+binding = "MCP_DATA_BUCKET"
+bucket_name = "dotcom-mcp-data-preview"
+preview_bucket_name = "dotcom-mcp-data-preview"
+
+[[env.preview.r2_buckets]]
+binding = "MCP_DATA_BUCKET"
+bucket_name = "dotcom-mcp-data-preview"
+
+[[env.staging.r2_buckets]]
+binding = "MCP_DATA_BUCKET"
+bucket_name = "dotcom-mcp-data-preview"
+
+[[env.production.r2_buckets]]
+binding = "MCP_DATA_BUCKET"
+bucket_name = "dotcom-mcp-data"
 
 #################### Browser Rendering binding ####################
 # Drives the thumbnail render page through a Cloudflare-hosted headless browser (see
@@ -482,55 +506,87 @@ type = "ratelimit"
 namespace_id = "1004"
 simple = { limit = 600, period = 60 }
 
-# MCP screenshot per-IP and per-board request guard
+# MCP server per-IP request guard.
+# A binding carries one `limit` applied per key, so per-IP and per-board need separate bindings to hold
+# different numbers. `period` must be 10 or 60. Keep these in step with the fallback constants in
+# sharedBoardScreenshotMcp.ts, which are all that unit tests can see.
+# The name is the odd one out in this family: it keeps MCP_SCREENSHOT_ because it is deployed and
+# counting. Authentication on the MCP server deletes this budget along with the per-board one and
+# limits by logged-in user instead, so renaming live state on its way out buys nothing.
 [[env.dev.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1005"
-simple = { limit = 2, period = 60 }
+simple = { limit = 10, period = 60 }
 
 [[env.preview.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1006"
-simple = { limit = 2, period = 60 }
+simple = { limit = 10, period = 60 }
 
 [[env.staging.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1007"
-simple = { limit = 2, period = 60 }
+simple = { limit = 10, period = 60 }
 
 [[env.production.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1008"
+simple = { limit = 10, period = 60 }
+
+# MCP server per-board capture guard, kept tighter than the per-IP one so no single board can absorb
+# a caller's whole allowance.
+[[env.dev.unsafe.bindings]]
+name = "MCP_SERVER_BOARD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1013"
 simple = { limit = 2, period = 60 }
 
-# global cap on Browser Run invocations from MCP screenshots (keyed on a single shared key)
-[[env.dev.unsafe.bindings]]
-name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1009"
-simple = { limit = 6, period = 60 }
-
 [[env.preview.unsafe.bindings]]
-name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
+name = "MCP_SERVER_BOARD_RATE_LIMITER"
 type = "ratelimit"
-namespace_id = "1010"
-simple = { limit = 6, period = 60 }
+namespace_id = "1014"
+simple = { limit = 2, period = 60 }
 
 [[env.staging.unsafe.bindings]]
-name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
+name = "MCP_SERVER_BOARD_RATE_LIMITER"
 type = "ratelimit"
-namespace_id = "1011"
-simple = { limit = 6, period = 60 }
+namespace_id = "1015"
+simple = { limit = 2, period = 60 }
 
 [[env.production.unsafe.bindings]]
-name = "MCP_SCREENSHOT_BROWSER_RATE_LIMITER"
+name = "MCP_SERVER_BOARD_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1016"
+simple = { limit = 2, period = 60 }
+
+# global cap on Browser Run invocations from the MCP server (keyed on a single shared key)
+[[env.dev.unsafe.bindings]]
+name = "MCP_SERVER_BROWSER_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1009"
+simple = { limit = 20, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SERVER_BROWSER_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1010"
+simple = { limit = 20, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SERVER_BROWSER_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1011"
+simple = { limit = 20, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SERVER_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1012"
-simple = { limit = 6, period = 60 }
+simple = { limit = 20, period = 60 }
 
 #################### Queues ####################
 [[env.dev.queues.producers]]
