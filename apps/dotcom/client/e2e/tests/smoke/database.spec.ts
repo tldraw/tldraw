@@ -4,7 +4,8 @@ import { HomePage } from '../../fixtures/HomePage'
 import { Sidebar } from '../../fixtures/Sidebar'
 import { expect, test } from '../../fixtures/tla-test'
 
-test('correctly clears db ', async ({ page, browser, editor, sidebar, database }) => {
+test.skip('correctly clears db ', async ({ page, browser, editor, sidebar, database }) => {
+	// db reset test route was removed with TLUserDurableObject; see TODO in fixtures/Database.ts
 	const documentsToAdd = 3
 	await test.step(`create ${documentsToAdd} files file`, async () => {
 		await editor.ensureSidebarOpen()

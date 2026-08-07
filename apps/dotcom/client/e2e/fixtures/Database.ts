@@ -1,10 +1,8 @@
-import fs from 'fs'
 import { Page } from '@playwright/test'
 import { DB } from '@tldraw/dotcom-shared'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
 import { OTHER_USERS, USERS } from '../consts'
-import { getStorageStateFileName } from './helpers'
 
 const db = new Kysely<DB>({
 	dialect: new PostgresDialect({
@@ -24,10 +22,11 @@ export class Database {
 		private parallelIndex: number
 	) {}
 
-	async reset() {
-		await this.cleanUpUser(true)
-		await this.cleanUpUser(false)
-	}
+	// TODO: no server-side test route resets a user's data anymore (the legacy DO's
+	// __test__prepareForTest was removed with TLUserDurableObject). Callers that rely on this to
+	// isolate tests currently get a no-op; reintroduce a route built on adminRoutes.ts's
+	// performUserDeletion/hardDeleteAppFile if that isolation is needed again.
+	async reset() {}
 
 	getEmail(isOther: boolean = false) {
 		return getTestUserEmail(this.parallelIndex, isOther ? 'suppy' : 'huppy')
@@ -43,21 +42,6 @@ export class Database {
 		}>`SELECT id FROM public.user WHERE email = ${email ?? ''}`.execute(db)
 		if (!dbUser.rows[0]) return
 		return dbUser.rows[0].id
-	}
-
-	private async cleanUpUser(isOther: boolean) {
-		const fileName = getStorageStateFileName(this.parallelIndex, isOther ? 'suppy' : 'huppy')
-		if (!fs.existsSync(fileName)) return
-		const id = await this.getUserId(isOther)
-		if (!id) return
-		try {
-			// eslint-disable-next-line no-restricted-globals
-			await fetch(`http://localhost:3000/api/app/__test__/user/${id}/prepare-for-test`, {
-				method: 'POST',
-			})
-		} catch (e) {
-			console.error('Error', e)
-		}
 	}
 }
 

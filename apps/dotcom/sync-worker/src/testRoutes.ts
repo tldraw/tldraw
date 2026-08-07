@@ -3,7 +3,7 @@ import { lns, uniqueId } from '@tldraw/utils'
 import { createRouter, notFound } from '@tldraw/worker-shared'
 import { getR2KeyForRoom, getR2KeyForSnapshot } from './r2'
 import { isDebugLogging, type Environment } from './types'
-import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
+import { getRoomDurableObject } from './utils/durableObjects'
 
 interface CreateLegacyRoomBody {
 	slug?: string
@@ -17,28 +17,6 @@ export const testRoutes = createRouter<Environment>()
 	.all('/app/__test__/*', (_, env) => {
 		if (!isDebugLogging(env)) return notFound()
 		return undefined
-	})
-	.get('/app/__test__/replicator/reboot', async (_, env) => {
-		await getReplicator(env).__test__forceReboot()
-		return new Response('ok')
-	})
-	.get('/app/__test__/replicator/panic', async (_, env) => {
-		await getReplicator(env)
-			.__test__panic()
-			.catch(() => null)
-		return new Response('ok')
-	})
-	.get('/app/__test__/user/:userId/reboot', (req, env) => {
-		getUserDurableObject(env, req.params.userId).handleReplicationEvent({
-			type: 'maybe_force_reboot',
-			sequenceId: 'test',
-			sequenceNumber: 0,
-		})
-		return new Response('ok')
-	})
-	.post('/app/__test__/user/:userId/prepare-for-test', async (req, env) => {
-		await getUserDurableObject(env, req.params.userId).__test__prepareForTest(req.params.userId)
-		return new Response('ok')
 	})
 	.post('/app/__test__/legacy-room', async (req, env) => {
 		const body = (await req.json().catch(() => ({}))) as CreateLegacyRoomBody
