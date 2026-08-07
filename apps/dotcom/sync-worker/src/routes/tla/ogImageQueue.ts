@@ -6,6 +6,7 @@ import {
 	OG_REPAIR_COOLDOWN_MS,
 	OG_RETRY_DELAY_SECONDS,
 } from '../../config'
+import { getR2KeyForRoom } from '../../r2'
 import {
 	Environment,
 	OgImageRenderQueueMessage,
@@ -286,7 +287,13 @@ export async function handleOgImageRenderMessage(
 
 		// Loaded to target the first page that has content, so a board whose first page is empty still
 		// gets a meaningful unfurl image.
-		const snapshot = await loadBoardSnapshot(env, board, { access: 'render' })
+		//
+		// `file` is the row the resolve above already gated on, handed back so this read re-applies the
+		// gate without asking Postgres the same question a second time. Safe precisely here: the two are
+		// microseconds apart in one function, where a re-read would return the row we already hold. The
+		// render page's own read (getThumbnailSnapshot) deliberately does not do this — it is a separate
+		// request, and its re-read is what makes an un-share land inside the token's window.
+		const snapshot = await loadBoardSnapshot(env, board, { access: 'render', file: board.file })
 		if (!snapshot) {
 			// No persisted content. The render page reads the snapshot through the same functions, so it
 			// would 404 and come back as a render failure — after spending a Browser Run slot to learn
@@ -368,11 +375,9 @@ async function enqueueFollowUpIfBoardMoved(
 ) {
 	if (message.body.followUp) return
 	try {
-		const resolved = await resolveThumbnailBoard(env, rendered.kind, rendered.slug, {
-			access: 'render',
-		})
-		if (!resolved.ok) return
-		if (String(resolved.board.version) === String(rendered.version)) return
+		const current = await readCurrentBoardVersion(env, rendered)
+		if (current === null) return
+		if (String(current) === String(rendered.version)) return
 		await enqueueOgImageRender(env, rendered, { reason, followUp: true })
 	} catch (error) {
 		reportThumbnailError(error, {
@@ -382,6 +387,32 @@ async function enqueueFollowUpIfBoardMoved(
 			extras: { kind: rendered.kind, followUpCheck: true },
 		})
 	}
+}
+
+/**
+ * The board's current content version, for the "did it move while we were capturing?" check above and
+ * nothing else. `null` means there is nothing to compare against, which is treated as "don't follow
+ * up".
+ *
+ * A shared file's version *is* the persisted room's R2 etag, so this reads that object's head rather
+ * than going through `resolveThumbnailBoard`. The Postgres half of a resolve answers the gate, and no
+ * gate is needed here: this decides whether to **enqueue**, and the job it enqueues re-resolves in
+ * full before spending any Browser Run. So a board soft-deleted inside this window costs one queue
+ * message that the next delivery drops as `board_not_viewable` — not a render, and not a leak.
+ *
+ * A published board's version is `lastPublished`, a column rather than an etag, so it has no R2
+ * shortcut and keeps the full resolve. Publishing is not the trigger that made this path hot.
+ */
+async function readCurrentBoardVersion(
+	env: Environment,
+	board: ResolvedThumbnailBoard
+): Promise<string | number | null> {
+	if (board.kind === 'published') {
+		const resolved = await resolveThumbnailBoard(env, board.kind, board.slug, { access: 'render' })
+		return resolved.ok ? resolved.board.version : null
+	}
+	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug: board.slug, isApp: true }))
+	return persisted?.etag ?? null
 }
 
 async function retryOrDrop(

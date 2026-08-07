@@ -24,7 +24,12 @@ import {
 	recordMintedRenderToken,
 } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
-import { getSharedFileInfo, getSharedFileRoomSnapshot, isFileViewableFor } from './getSharedFile'
+import {
+	SharedFileInfo,
+	getSharedFileInfo,
+	getSharedFileRoomSnapshot,
+	isFileViewableFor,
+} from './getSharedFile'
 import { BoardSnapshotReadError, BrowserRenderError } from './thumbnailShared'
 
 // The render-and-cache core shared by every Browser Run screenshot surface: the MCP screenshot
@@ -48,6 +53,14 @@ export interface ResolvedThumbnailBoard extends ThumbnailBoardRef {
 	 * route reads the board back under it.
 	 */
 	access: ThumbnailBoardAccess
+	/**
+	 * The `file` row this resolution gated on, for `shared_file` boards only. Carried so a caller that
+	 * reads the snapshot in the same breath can hand it back to `loadBoardSnapshot` instead of asking
+	 * Postgres the same question twice — see the `file` option on `getSharedFileRoomSnapshot` for when
+	 * that is and is not appropriate. Never signed into a render job: the job carries the gate, and a
+	 * row that travelled inside a token could not be re-checked on the way back.
+	 */
+	file?: SharedFileInfo
 }
 
 export type ResolveThumbnailBoardResult =
@@ -85,7 +98,7 @@ export async function resolveThumbnailBoard(
 	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
 	if (!persisted) return { ok: false, reason: 'board_empty' }
 
-	return { ok: true, board: { kind, slug, version: persisted.etag, access } }
+	return { ok: true, board: { kind, slug, version: persisted.etag, access, file } }
 }
 
 // Reads a resolved board's snapshot, keeping the two outcomes callers must tell apart distinct.
@@ -96,13 +109,24 @@ export async function resolveThumbnailBoard(
 export async function loadBoardSnapshot(
 	env: Environment,
 	board: ThumbnailBoardRef,
-	{ access }: { access: ThumbnailBoardAccess }
+	{
+		access,
+		file,
+	}: {
+		access: ThumbnailBoardAccess
+		/**
+		 * The row a caller has *just* resolved this board against, to be gated again rather than
+		 * re-fetched. Opt in per call site rather than reading it off `board`, so a surface takes the
+		 * staleness that comes with it deliberately. See `getSharedFileRoomSnapshot`.
+		 */
+		file?: SharedFileInfo
+	}
 ): Promise<RoomSnapshot | null> {
 	try {
 		const snapshot =
 			board.kind === 'published'
 				? await getPublishedRoomSnapshot(env, board.slug)
-				: await getSharedFileRoomSnapshot(env, board.slug, { access })
+				: await getSharedFileRoomSnapshot(env, board.slug, { access, file })
 		return snapshot ?? null
 	} catch (error) {
 		// Keep the original message in the wrapper's own text as well as its `cause`, so the Sentry
