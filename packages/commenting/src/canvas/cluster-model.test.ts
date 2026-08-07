@@ -1,8 +1,9 @@
+import type { TLCommentThread } from 'tldraw'
 import { describe, expect, it } from 'vitest'
 import { createClusterRuntime } from '../clustering/runtime'
 import type { ClusterNode, ClusterTable, LeafInput } from '../clustering/types'
 import type { ClusterInput } from './cluster-input'
-import { anyFoldedLeafMoved, type ClusterModel } from './cluster-model'
+import { anyFoldedLeafMoved, type ClusterModel, pruneHeldThreadIds } from './cluster-model'
 
 function node(ids: string[], x = 0, y = 0): ClusterNode {
 	const members = ids.slice().sort()
@@ -84,5 +85,25 @@ describe('anyFoldedLeafMoved', () => {
 	it('holds the freeze on mismatched inputs rather than reading past the end', () => {
 		const next = input([leaf('t1', 40, 0), leaf('t2', 10, 0)])
 		expect(anyFoldedLeafMoved(input(AT_REST), next, rendered(0.5))).toBe(false)
+	})
+})
+
+describe('pruneHeldThreadIds', () => {
+	const threads = (...ids: string[]) => ids.map((id) => ({ id })) as unknown as TLCommentThread[]
+
+	it('returns null when nothing is held', () => {
+		expect(pruneHeldThreadIds(new Set(), threads('a'))).toBeNull()
+	})
+
+	it('returns null when every held id is still live (no needless state update)', () => {
+		expect(pruneHeldThreadIds(new Set(['a', 'b']), threads('a', 'b', 'c'))).toBeNull()
+	})
+
+	it('drops held ids whose thread no longer exists', () => {
+		expect(pruneHeldThreadIds(new Set(['a', 'b']), threads('a'))).toEqual(new Set(['a']))
+	})
+
+	it('returns an empty set when no held id is live, so the caller can clear it', () => {
+		expect(pruneHeldThreadIds(new Set(['a', 'b']), threads('c'))).toEqual(new Set())
 	})
 })
