@@ -387,3 +387,76 @@ export interface AdminFileAssetsResponseBody {
 	dbRows: { forThisFile: number; orphaned: number }
 	warnings: string[]
 }
+
+/**
+ * Response of the admin board-stats endpoint: the shape of a board without its contents.
+ *
+ * Every field is a count, an enum tally, a size, or a timestamp. Nothing here is text a user typed,
+ * a URL they pasted, a shape id, or a person's id — so a report can be pasted into an issue, a
+ * Sentry thread, or a support reply without leaking what's on the board or who made it. Anything
+ * added here has to hold that line; use the asset diagnostics report when you need identifiers.
+ */
+export interface AdminFileStatsResponseBody {
+	/** null when no `file` row exists — legacy rooms have a snapshot but no row */
+	file: {
+		ownerType: 'user' | 'group' | 'none'
+		createdAt: number
+		updatedAt: number
+		isDeleted: boolean
+		isEmpty: boolean
+		published: boolean
+		shared: boolean
+		sharedLinkType: string
+		/** Only the prefix (`file`, `room`, `publish`, `local`, …); the id half would name a board */
+		createSourceKind: string | null
+	} | null
+	snapshot: {
+		/** Stored size of the snapshot object in R2; null when the head check failed */
+		sizeBytes: number | null
+		clock: number | null
+		documentClock: number | null
+		tombstones: number
+		records: number
+		recordsByTypeName: Record<string, number>
+		/** Serialized schema version, for spotting boards stuck behind a migration */
+		schemaVersion: number | null
+		/** Per-record-type sequence numbers from the serialized schema, when it has them */
+		sequences: Record<string, number> | null
+	}
+	pages: { total: number; maxShapesOnAPage: number; empty: number }
+	shapes: {
+		total: number
+		byType: Record<string, number>
+		/** Deepest parent chain; 1 means every shape sits directly on a page */
+		maxDepth: number
+		locked: number
+		rotated: number
+		/** Shapes whose parent record is missing from the snapshot */
+		orphaned: number
+		/** Bounds covering every shape, from x/y plus w/h where the shape has them */
+		extent: { width: number; height: number } | null
+	}
+	/** Lengths only — never the text itself */
+	text: { shapesWithText: number; totalCharacters: number; longestCharacters: number }
+	bindings: {
+		total: number
+		byType: Record<string, number>
+		/**
+		 * The first three partition every arrow shape by how many of its terminals have a binding
+		 * record. Whether the bound shape still exists is the separate `dangling` count, so an arrow
+		 * bound to a deleted shape shows up in both `boundOneEnd` and `dangling`.
+		 */
+		arrows: {
+			boundBothEnds: number
+			boundOneEnd: number
+			unbound: number
+			/** Bindings pointing at a shape that isn't in the snapshot */
+			dangling: number
+		}
+	}
+	/** Value tallies for the enum style props, keyed by prop name then value */
+	styles: Record<string, Record<string, number>>
+	assets: { total: number; byType: Record<string, number>; totalSizeBytes: number }
+	collaboration: { visitors: number; commentThreads: number; comments: number }
+	warnings: string[]
+}
