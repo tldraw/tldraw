@@ -2,7 +2,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { createPostgresConnectionPool } from '../postgres'
 import { getPublishedRoomSnapshot } from '../routes/tla/getPublishedFile'
 import { Environment } from '../types'
-import { defaultWelcomeSnapshotJson } from './defaultWelcomeSnapshot'
+import { loadDefaultWelcomeSnapshot } from './defaultWelcomeSnapshot'
 
 /**
  * The content a new workspace's first file is seeded with (createSource 'welcome'): the
@@ -38,5 +38,5 @@ export async function resolveWelcomeSnapshot(
 	} finally {
 		await pg.destroy()
 	}
-	return JSON.parse(defaultWelcomeSnapshotJson) as RoomSnapshot
+	return await loadDefaultWelcomeSnapshot(env)
 }
