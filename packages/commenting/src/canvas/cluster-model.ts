@@ -198,6 +198,14 @@ export function useClusterModel(
 			setHeldThreadIds(EMPTY_SET)
 		})
 	}, [heldThreadIds, editor])
+	// Drop held ids whose thread no longer exists. The set is otherwise cleared only wholesale on
+	// zoom-out, so a held thread deleted before then would linger in it and keep the rejoin
+	// subscription above alive with no live member. Prune to live threads, clearing to EMPTY_SET
+	// when none remain so that subscription can unsubscribe.
+	useEffect(() => {
+		const pruned = pruneHeldThreadIds(heldThreadIds, threads)
+		if (pruned) setHeldThreadIds(pruned)
+	}, [threads, heldThreadIds])
 	// Adopt a pending rebuild only on zoom-out motion: folding deferred additions into clusters is
 	// a merge, and merging only happens while zooming out. While zooming in, the stale table still
 	// splits correctly on its own (split thresholds are direction-safe by the hysteresis invariant).
@@ -270,6 +278,23 @@ export function useClusterModel(
  * pointermove for the rest of the drag.
  * @internal
  */
+/**
+ * Held ids whose thread still exists, or `null` when nothing needs pruning (so the caller can skip
+ * a needless state update). `heldThreadIds` is otherwise cleared only wholesale on zoom-out, so
+ * without this a deleted held thread lingers in the set and keeps the rejoin subscription alive.
+ * @internal
+ */
+export function pruneHeldThreadIds(
+	held: ReadonlySet<string>,
+	threads: readonly TLCommentThread[]
+): ReadonlySet<string> | null {
+	if (held.size === 0) return null
+	const live = new Set<string>(threads.map((thread) => thread.id))
+	const kept = [...held].filter((id) => live.has(id))
+	if (kept.length === held.size) return null
+	return kept.length === 0 ? EMPTY_SET : new Set(kept)
+}
+
 export function anyFoldedLeafMoved(
 	prev: ClusterInput,
 	next: ClusterInput,
