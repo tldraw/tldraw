@@ -1031,7 +1031,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!canApplySelectionAction()) return
 					if (mustGoBackToSelectToolFirst()) return
 
-					editor.markHistoryStoppingPoint('cut')
+					// the history stopping point is marked inside `helpers.cut`, after the
+					// async clipboard write and immediately before the shapes are deleted
 					helpers.cut(source)
 				},
 			},
