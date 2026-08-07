@@ -4,7 +4,7 @@
 
 This directory currently provisions:
 
-- Six dashboards: `Zero on Fly.io — service health` (`zero-fly-health`) and `Zero slow queries` (`slow-queries`) in the `Zero` folder, plus `Events`, `Events V2`, `File effect outbox`, and `MCP App Sessions` (root folder). The events pipeline currently reports from **staging** — set the environment variable accordingly when a dashboard looks empty.
+- Seven dashboards: `Zero on Fly.io — service health` (`zero-fly-health`), `Zero slow queries` (`slow-queries`), and `Zero-cache on Fly.io` (`ni7hhgd`) in the `Zero` folder, plus `Events`, `Events V2`, `File effect outbox`, and `MCP App Sessions` (root folder). The events pipeline currently reports from **staging** — set the environment variable accordingly when a dashboard looks empty.
 - All 12 Grafana-managed alert rules (Zero replication/errors/backups, Fly.io container health, Anthropic cost/usage)
 - The folders `Zero` (dashboard + 9 rules) and `Anthropic` (3 cost rules)
 
