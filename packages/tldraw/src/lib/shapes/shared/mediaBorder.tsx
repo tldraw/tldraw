@@ -75,6 +75,11 @@ export interface MediaBorderSvgOptions {
 	ctx: SvgExportContext
 }
 
+/** Whether a rotation leaves the shape's edges parallel to the page's axes. */
+function isAxisAligned(rotation: number) {
+	return Math.abs(rotation % (Math.PI / 2)) < 0.0001
+}
+
 function safeIdFrom(prefix: string, idBase: string) {
 	return `${prefix}-${idBase.replace(/[^a-zA-Z0-9]/g, '_')}` as SafeId
 }
@@ -215,7 +220,10 @@ export function getMediaBorderSvg(opts: MediaBorderSvgOptions): {
 				d={`M-1 -1H${bw + 1}V${bh + 1}H-1Z M0 0H${bw}V${bh}H0Z`}
 				fillRule="evenodd"
 				fill={color}
-				shapeRendering="crispEdges"
+				// Turning off anti-aliasing keeps the ring crisp while its edges line up
+				// with the pixel grid. The export group rotates the ring with the shape,
+				// so off the quarter turns it needs anti-aliasing or it stair-steps.
+				shapeRendering={isAxisAligned(rotation) ? 'crispEdges' : undefined}
 			/>
 		)
 		return { behind: null, front }

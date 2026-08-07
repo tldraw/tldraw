@@ -349,6 +349,26 @@ describe('getMediaBorderSvg', () => {
 			expect(props(front)).toMatchObject({ d: 'M-1 -1H101V81H-1Z M0 0H100V80H0Z' })
 		})
 
+		it.each([
+			{ name: 'a quarter turn', rotation: Math.PI / 2, shapeRendering: 'crispEdges' },
+			{ name: 'a half turn', rotation: Math.PI, shapeRendering: 'crispEdges' },
+			// The export group rotates the frame with the shape, and an unaliased
+			// frame stair-steps once it stops lining up with the pixel grid.
+			{ name: 'an eighth turn', rotation: Math.PI / 4, shapeRendering: undefined },
+		])('only skips anti-aliasing while the frame is axis-aligned: $name', (t) => {
+			const { ctx } = makeCtx('light')
+			const { front } = getMediaBorderSvg({
+				border: 'lined',
+				w: 100,
+				h: 80,
+				isCircle: false,
+				rotation: t.rotation,
+				idBase: 'shape:a',
+				ctx,
+			})
+			expect(props(front).shapeRendering).toBe(t.shapeRendering)
+		})
+
 		it('uses the dark-mode color in dark mode', () => {
 			const { ctx } = makeCtx('dark')
 			const { front } = getMediaBorderSvg({
