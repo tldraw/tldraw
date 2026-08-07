@@ -27,8 +27,21 @@ function flattenPrimitives(filter: ReactElement) {
 	return out
 }
 
+function getDef(addExportDef: ReturnType<typeof makeCtx>['addExportDef'], key: string) {
+	const call = addExportDef.mock.calls.find((c) => c[0].key === key)
+	if (!call) throw new Error(`no export def registered for ${key}`)
+	return call[0].getElement() as ReactElement
+}
+
+// Shadows come back wrapped in a masked `g` that keeps them from painting under
+// the media; the tests below care about what's inside.
+function unwrapShadow(behind: ReactElement | null) {
+	expect(behind!.type).toBe('g')
+	return props(behind).children as ReactElement
+}
+
 function getShadowOffsets(addExportDef: ReturnType<typeof makeCtx>['addExportDef']) {
-	const filter = addExportDef.mock.calls[0][0].getElement() as ReactElement
+	const filter = getDef(addExportDef, 'media-shadow-shape_abc')
 	return flattenPrimitives(filter)
 		.filter((el) => el.type === 'feOffset')
 		.map((el) => {
@@ -75,12 +88,18 @@ describe('getMediaBorderSvg', () => {
 			})
 
 			expect(front).toBeNull()
-			expect(addExportDef).toHaveBeenCalledTimes(1)
-			const key = addExportDef.mock.calls[0][0].key as string
-			expect(key).toBe('media-shadow-shape_abc')
+			expect(addExportDef.mock.calls.map((c) => c[0].key as string)).toEqual([
+				'media-shadow-shape_abc',
+				'media-shadow-mask-shape_abc',
+			])
 
-			expect(behind!.type).toBe('rect')
-			expect(props(behind)).toMatchObject({ width: 100, height: 80, filter: `url(#${key})` })
+			const shadow = unwrapShadow(behind)
+			expect(shadow.type).toBe('rect')
+			expect(props(shadow)).toMatchObject({
+				width: 100,
+				height: 80,
+				filter: 'url(#media-shadow-shape_abc)',
+			})
 		})
 
 		it('paints an ellipse behind for circle-cropped images', () => {
@@ -94,8 +113,9 @@ describe('getMediaBorderSvg', () => {
 				idBase: 'shape:e',
 				ctx,
 			})
-			expect(behind!.type).toBe('ellipse')
-			expect(props(behind)).toMatchObject({ cx: 60, cy: 45, rx: 60, ry: 45 })
+			const shadow = unwrapShadow(behind)
+			expect(shadow.type).toBe('ellipse')
+			expect(props(shadow)).toMatchObject({ cx: 60, cy: 45, rx: 60, ry: 45 })
 		})
 
 		it('registers a filter element that reproduces the box-shadow layers', () => {
@@ -109,8 +129,7 @@ describe('getMediaBorderSvg', () => {
 				idBase: 'shape:abc',
 				ctx,
 			})
-			const filter = addExportDef.mock.calls[0][0].getElement() as ReactElement
-			expect(filter.type).toBe('filter')
+			expect(getDef(addExportDef, 'media-shadow-shape_abc').type).toBe('filter')
 		})
 
 		it('keeps filter primitives as direct children (never wrapped in a `g`)', () => {
@@ -124,7 +143,7 @@ describe('getMediaBorderSvg', () => {
 				idBase: 'shape:abc',
 				ctx,
 			})
-			const filter = addExportDef.mock.calls[0][0].getElement() as ReactElement
+			const filter = getDef(addExportDef, 'media-shadow-shape_abc')
 			const types = flattenPrimitives(filter).map((el) => el.type as string)
 
 			expect(types).not.toContain('g')
@@ -200,9 +219,12 @@ describe('getMediaBorderSvg', () => {
 			})
 
 			expect(front).toBeNull()
-			expect(addExportDef).not.toHaveBeenCalled()
-			expect(behind!.type).toBe('rect')
-			expect(props(behind)).toMatchObject({ x: 6, y: 6, width: 100, height: 80 })
+			const keys = addExportDef.mock.calls.map((c) => c[0].key as string)
+			expect(keys).toEqual(['media-shadow-mask-shape_abc'])
+
+			const shadow = unwrapShadow(behind)
+			expect(shadow.type).toBe('rect')
+			expect(props(shadow)).toMatchObject({ x: 6, y: 6, width: 100, height: 80 })
 		})
 
 		it('paints an offset ellipse behind for circle-cropped images', () => {
@@ -216,8 +238,9 @@ describe('getMediaBorderSvg', () => {
 				idBase: 'shape:e',
 				ctx,
 			})
-			expect(behind!.type).toBe('ellipse')
-			expect(props(behind)).toMatchObject({ cx: 66, cy: 51, rx: 60, ry: 45 })
+			const shadow = unwrapShadow(behind)
+			expect(shadow.type).toBe('ellipse')
+			expect(props(shadow)).toMatchObject({ cx: 66, cy: 51, rx: 60, ry: 45 })
 		})
 
 		it('counter-rotates the offset so it falls the same way in page space', () => {
@@ -233,8 +256,59 @@ describe('getMediaBorderSvg', () => {
 			})
 			// A quarter turn swings the down-right offset onto the local +x/-y axes,
 			// which the export group's rotation then puts back down-right on the page.
-			const { x, y } = props(behind) as { x: number; y: number }
+			const { x, y } = props(unwrapShadow(behind)) as { x: number; y: number }
 			expect({ x: round(x), y: round(y) }).toEqual({ x: 6, y: -6 })
+		})
+	})
+
+	// On canvas a box-shadow is only painted outside the element's border box, so
+	// an unmasked export would show shadow through transparent images.
+	describe.each(['shadow', 'shadow-hard'] as const)('%s masking', (border) => {
+		it('masks the media out of the shadow', () => {
+			const { ctx, addExportDef } = makeCtx()
+			const { behind } = getMediaBorderSvg({
+				border,
+				w: 100,
+				h: 80,
+				isCircle: false,
+				rotation: 0,
+				idBase: 'shape:abc',
+				ctx,
+			})
+			expect(props(behind).mask).toBe('url(#media-shadow-mask-shape_abc)')
+
+			const mask = getDef(addExportDef, 'media-shadow-mask-shape_abc')
+			expect(mask.type).toBe('mask')
+			const [visible, knockout] = props(mask).children as ReactElement[]
+			// The visible area has to extend past the media on every side, so that
+			// none of the shadow is cropped along with it.
+			const { x, y, width, height } = props(visible) as Record<string, number>
+			expect(props(visible).fill).toBe('white')
+			expect({ left: x < 0, top: y < 0, right: x + width > 100, bottom: y + height > 80 }).toEqual({
+				left: true,
+				top: true,
+				right: true,
+				bottom: true,
+			})
+			expect(knockout.type).toBe('rect')
+			expect(props(knockout)).toMatchObject({ fill: 'black', width: 100, height: 80 })
+		})
+
+		it('knocks out an ellipse for circle-cropped images', () => {
+			const { ctx, addExportDef } = makeCtx()
+			getMediaBorderSvg({
+				border,
+				w: 120,
+				h: 90,
+				isCircle: true,
+				rotation: 0,
+				idBase: 'shape:abc',
+				ctx,
+			})
+			const mask = getDef(addExportDef, 'media-shadow-mask-shape_abc')
+			const [, knockout] = props(mask).children as ReactElement[]
+			expect(knockout.type).toBe('ellipse')
+			expect(props(knockout)).toMatchObject({ cx: 60, cy: 45, rx: 60, ry: 45, fill: 'black' })
 		})
 	})
 
