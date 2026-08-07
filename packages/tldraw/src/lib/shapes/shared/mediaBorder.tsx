@@ -70,9 +70,42 @@ export interface MediaBorderSvgOptions {
 	isCircle: boolean
 	/** The shape's page rotation, in radians. */
 	rotation: number
-	/** Unique per shape; keys the registered shadow filter. */
+	/** Unique per shape; keys the registered shadow filter and mask. */
 	idBase: string
 	ctx: SvgExportContext
+}
+
+function safeIdFrom(prefix: string, idBase: string) {
+	return `${prefix}-${idBase.replace(/[^a-zA-Z0-9]/g, '_')}` as SafeId
+}
+
+/**
+ * Masks the media's own footprint out of its shadow. CSS `box-shadow` only
+ * paints outside the element's border box, so without this the export would
+ * show shadow beneath the media wherever it isn't fully opaque — through a
+ * transparent PNG, say — which never happens on canvas.
+ */
+function maskShadow(shadow: ReactElement, opts: MediaBorderSvgOptions) {
+	const { w, h, isCircle, idBase, ctx } = opts
+	const maskId = safeIdFrom('media-shadow-mask', idBase)
+	// The soft shadow is confined to its filter region, half the media's size on
+	// each side; the hard shadow reaches at most its own diagonal offset.
+	const reach = Math.max(w, h) / 2 + Math.hypot(HARD_BOX_SHADOW.offsetX, HARD_BOX_SHADOW.offsetY)
+	const bounds = { x: -reach, y: -reach, width: w + reach * 2, height: h + reach * 2 }
+	ctx.addExportDef({
+		key: maskId,
+		getElement: () => (
+			<mask id={maskId} maskUnits="userSpaceOnUse" {...bounds}>
+				<rect {...bounds} fill="white" />
+				{isCircle ? (
+					<ellipse cx={w / 2} cy={h / 2} rx={w / 2} ry={h / 2} fill="black" />
+				) : (
+					<rect width={w} height={h} fill="black" />
+				)}
+			</mask>
+		),
+	})
+	return <g mask={`url(#${maskId})`}>{shadow}</g>
 }
 
 /**
@@ -89,7 +122,7 @@ export function getMediaBorderSvg(opts: MediaBorderSvgOptions): {
 	const { border, w, h, isCircle, rotation, idBase, ctx } = opts
 
 	if (border === 'shadow') {
-		const filterId = `media-shadow-${idBase.replace(/[^a-zA-Z0-9]/g, '_')}` as SafeId
+		const filterId = safeIdFrom('media-shadow', idBase)
 		ctx.addExportDef({
 			key: filterId,
 			getElement: () => (
@@ -127,7 +160,7 @@ export function getMediaBorderSvg(opts: MediaBorderSvgOptions): {
 			),
 		})
 
-		const behind = isCircle ? (
+		const shadow = isCircle ? (
 			<ellipse
 				cx={w / 2}
 				cy={h / 2}
@@ -139,15 +172,15 @@ export function getMediaBorderSvg(opts: MediaBorderSvgOptions): {
 		) : (
 			<rect width={w} height={h} fill="black" filter={`url(#${filterId})`} />
 		)
-		return { behind, front: null }
+		return { behind: maskShadow(shadow, opts), front: null }
 	}
 
 	if (border === 'shadow-hard') {
 		// No blur means no filter is needed: the shadow is the shape's own silhouette,
-		// offset and flat-filled, so canvas and export match exactly.
+		// offset and flat-filled.
 		const { color, opacity } = parseHexColor(HARD_BOX_SHADOW.color)
 		const { x, y } = getHardShadowOffset(rotation)
-		const behind = isCircle ? (
+		const shadow = isCircle ? (
 			<ellipse
 				cx={w / 2 + x}
 				cy={h / 2 + y}
@@ -159,7 +192,7 @@ export function getMediaBorderSvg(opts: MediaBorderSvgOptions): {
 		) : (
 			<rect x={x} y={y} width={w} height={h} fill={color} fillOpacity={opacity} />
 		)
-		return { behind, front: null }
+		return { behind: maskShadow(shadow, opts), front: null }
 	}
 
 	if (border === 'lined') {
