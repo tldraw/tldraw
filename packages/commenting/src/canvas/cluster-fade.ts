@@ -8,6 +8,13 @@ export type ClusterFadePhase = 'entering' | 'present' | 'exiting'
 export interface ClusterFadeNode {
 	node: ClusterNode
 	phase: ClusterFadePhase
+	/**
+	 * For an `exiting` node: the timestamp (ms) at which its fade completes and it should be
+	 * removed. Stamped once when the node starts exiting, so each node fades for its own
+	 * `CLUSTER_FADE_MS` and later partition changes can't restart a shared removal timer. Absent
+	 * for `entering`/`present`.
+	 */
+	exitAt?: number
 }
 
 /**
@@ -38,7 +45,7 @@ export function useFadeVisibleNodes(
 
 	useEffect(() => {
 		if (didReset) return
-		setFadeNodes((previous) => reconcileFadeNodes(previous, nodes))
+		setFadeNodes((previous) => reconcileFadeNodes(previous, nodes, Date.now()))
 	}, [didReset, nodes])
 
 	const hasEntering = renderedNodes.some((item) => item.phase === 'entering')
@@ -52,14 +59,29 @@ export function useFadeVisibleNodes(
 		return () => cancelAnimationFrame(frame)
 	}, [hasEntering, renderedNodes])
 
-	const hasExiting = renderedNodes.some((item) => item.phase === 'exiting')
+	// Remove each exiting node at its own deadline. Keying the timer on the earliest pending
+	// `exitAt` (a number) rather than the whole node array means a later-exiting node — or any
+	// unrelated partition change — can't restart the timer for a node already on its way out.
+	const nextExitAt = renderedNodes.reduce(
+		(earliest, item) =>
+			item.phase === 'exiting' && item.exitAt !== undefined
+				? Math.min(earliest, item.exitAt)
+				: earliest,
+		Infinity
+	)
 	useEffect(() => {
-		if (!hasExiting) return
-		const timeout = window.setTimeout(() => {
-			setFadeNodes((previous) => previous.filter((item) => item.phase !== 'exiting'))
-		}, CLUSTER_FADE_MS)
+		if (nextExitAt === Infinity) return
+		const timeout = window.setTimeout(
+			() => {
+				const now = Date.now()
+				setFadeNodes((previous) =>
+					previous.filter((item) => item.phase !== 'exiting' || (item.exitAt ?? 0) > now)
+				)
+			},
+			Math.max(0, nextExitAt - Date.now())
+		)
 		return () => window.clearTimeout(timeout)
-	}, [hasExiting, renderedNodes])
+	}, [nextExitAt])
 
 	return renderedNodes
 }
@@ -68,9 +90,11 @@ function toPresentFadeNodes(nodes: readonly ClusterNode[]): ClusterFadeNode[] {
 	return nodes.map((node) => ({ node, phase: 'present' }))
 }
 
-function reconcileFadeNodes(
+/** @internal — exported for unit testing the exit-deadline stamping. */
+export function reconcileFadeNodes(
 	previous: readonly ClusterFadeNode[],
-	nextNodes: readonly ClusterNode[]
+	nextNodes: readonly ClusterNode[],
+	now: number
 ): ClusterFadeNode[] {
 	const previousById = new Map(previous.map((item) => [item.node.id, item]))
 	const nextIds = new Set(nextNodes.map((node) => node.id))
@@ -91,7 +115,11 @@ function reconcileFadeNodes(
 
 	for (const item of previous) {
 		if (nextIds.has(item.node.id)) continue
-		next.push(item.phase === 'exiting' ? item : { ...item, phase: 'exiting' })
+		// Stamp the deadline once, when the node first starts exiting, and keep it thereafter so a
+		// later reconcile can't extend its fade.
+		next.push(
+			item.phase === 'exiting' ? item : { ...item, phase: 'exiting', exitAt: now + CLUSTER_FADE_MS }
+		)
 	}
 
 	return next
