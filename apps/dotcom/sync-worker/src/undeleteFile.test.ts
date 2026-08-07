@@ -128,7 +128,6 @@ describe('undeleteFile', () => {
 		expect(await undeleteFile(db, file.id)).toEqual({
 			result: 'restored',
 			file,
-			rebootUserIds: ['user-1'],
 		})
 		expect(getTransactionCount()).toBe(1)
 		expect(updates).toEqual([
@@ -187,51 +186,5 @@ describe('undeleteFile', () => {
 		expect(await undeleteFile(db, file.id)).toEqual({ result: 'group_deleted', file })
 		expect(updates).toEqual([])
 		expect(inserts).toEqual([])
-	})
-
-	describe('rebootUserIds', () => {
-		it('is just the owner for a legacy file with no group', async () => {
-			const file = makeFile({ ownerId: 'user-1', owningGroupId: undefined })
-			const { db } = makeFakeDb(file)
-			const result = await undeleteFile(db, file.id)
-			expect(result).toMatchObject({ rebootUserIds: ['user-1'] })
-		})
-
-		it('includes the owner for a home-workspace file (group id == user id)', async () => {
-			const file = makeFile({ ownerId: undefined, owningGroupId: 'user-1' })
-			const { db } = makeFakeDb(file, {
-				groupMembers: [],
-				userRow: { id: 'user-1' },
-			})
-			const result = await undeleteFile(db, file.id)
-			expect(result).toMatchObject({ rebootUserIds: ['user-1'] })
-		})
-
-		it('dedupes when the home-workspace owner also has a group_user row', async () => {
-			const file = makeFile({ ownerId: undefined, owningGroupId: 'user-1' })
-			const { db } = makeFakeDb(file, {
-				groupMembers: [{ userId: 'user-1' }],
-				userRow: { id: 'user-1' },
-			})
-			const result = await undeleteFile(db, file.id)
-			expect(result).toMatchObject({ rebootUserIds: ['user-1'] })
-			if (result.result === 'restored') {
-				expect(result.rebootUserIds).toHaveLength(1)
-			}
-		})
-
-		it('includes all members for a shared workspace and not the group id itself', async () => {
-			const file = makeFile({ ownerId: undefined, owningGroupId: 'group-9' })
-			const { db } = makeFakeDb(file, {
-				groupMembers: [{ userId: 'user-1' }, { userId: 'user-2' }],
-				userRow: undefined,
-			})
-			const result = await undeleteFile(db, file.id)
-			expect(result.result).toBe('restored')
-			if (result.result === 'restored') {
-				expect(result.rebootUserIds.sort()).toEqual(['user-1', 'user-2'])
-				expect(result.rebootUserIds).not.toContain('group-9')
-			}
-		})
 	})
 })
