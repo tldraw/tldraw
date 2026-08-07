@@ -139,7 +139,6 @@ import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLResizeInfo } from '@tldraw/editor';
 import { TLRichText } from '@tldraw/tlschema';
-import { TLRichText as TLRichText_2 } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribble } from '@tldraw/editor';
 import { TLSelectionHandle } from '@tldraw/editor';
@@ -3266,19 +3265,19 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 export function RemoveFrameMenuItem(): JSX.Element | null;
 
 // @public
-export function renderHtmlFromRichText(editor: Editor, richText: TLRichText_2): string;
+export function renderHtmlFromRichText(editor: Editor, richText: TLRichText): string;
 
 // @public
-export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: TLRichText_2): string;
+export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: TLRichText): string;
 
 // @public
-export function renderHtmlFromRichTextWithExtensions(richText: TLRichText_2, extensions: Extensions): string;
+export function renderHtmlFromRichTextWithExtensions(richText: TLRichText, extensions: Extensions): string;
 
 // @public
-export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText_2): string;
+export function renderPlaintextFromRichText(editor: Editor, richText: TLRichText): string;
 
 // @public
-export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText_2;
+export function renderRichTextFromHTML(editor: Editor, html: string): TLRichText;
 
 // @public (undocumented)
 export function ReorderMenuItems(): JSX.Element;
@@ -3318,7 +3317,7 @@ export interface RichTextLabelProps {
     // (undocumented)
     padding?: number;
     // (undocumented)
-    richText?: TLRichText_2;
+    richText?: TLRichText;
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
@@ -3333,7 +3332,7 @@ export interface RichTextLabelProps {
     textWidth?: number;
     // (undocumented)
     type: ExtractShapeByProps<{
-        richText: TLRichText_2;
+        richText: TLRichText;
     }>['type'];
     // (undocumented)
     verticalAlign: 'end' | 'middle' | 'start';
@@ -3359,7 +3358,7 @@ export interface RichTextSVGProps {
     // (undocumented)
     padding: number;
     // (undocumented)
-    richText: TLRichText_2;
+    richText: TLRichText;
     // (undocumented)
     showTextOutline?: boolean;
     // (undocumented)
@@ -3760,7 +3759,7 @@ export interface TextAreaProps {
     // (undocumented)
     handleChange(changeInfo: {
         plaintext?: string;
-        richText?: TLRichText_2;
+        richText?: TLRichText;
     }): void;
     // (undocumented)
     handleDoubleClick(e: any): any;
@@ -3777,7 +3776,7 @@ export interface TextAreaProps {
     // (undocumented)
     isEditing: boolean;
     // (undocumented)
-    richText?: TLRichText_2;
+    richText?: TLRichText;
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
@@ -6453,11 +6452,11 @@ export function useEditablePlainText(shapeId: TLShapeId, type: ExtractShapeByPro
 
 // @public (undocumented)
 export function useEditableRichText(shapeId: TLShapeId, type: ExtractShapeByProps<{
-    richText: TLRichText_2;
-}>['type'], richText?: TLRichText_2): {
+    richText: TLRichText;
+}>['type'], richText?: TLRichText): {
     handleBlur: () => void;
     handleChange: ({ richText }: {
-        richText: TLRichText_2;
+        richText: TLRichText;
     }) => void;
     handleDoubleClick: (e: {
         nativeEvent: Event;

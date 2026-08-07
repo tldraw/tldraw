@@ -3,10 +3,10 @@ import {
 	ExtractShapeByProps,
 	richTextValidator,
 	TLEventInfo,
-	TLRichText,
 	TLShape,
 	TLShapeId,
 } from '@tldraw/editor'
+import { TLRichText } from '@tldraw/tlschema'
 
 /** @internal */
 export function hasRichText(

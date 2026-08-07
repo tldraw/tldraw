@@ -1,4 +1,5 @@
-import { TLRichText, toRichText } from '@tldraw/editor'
+import { toRichText } from '@tldraw/editor'
+import { TLRichText } from '@tldraw/tlschema'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextWithExtensions,
