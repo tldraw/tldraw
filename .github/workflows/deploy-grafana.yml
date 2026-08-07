@@ -1,0 +1,53 @@
+name: Deploy grafana resources
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - 'internal/grafana/**'
+      - '.github/workflows/deploy-grafana.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'internal/grafana/**'
+      - '.github/workflows/deploy-grafana.yml'
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  deploy:
+    name: ${{ github.event_name == 'push' && 'Deploy grafana resources' || 'Validate grafana resources (dry run)' }}
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    concurrency: grafana-deploy-${{ github.event_name == 'push' && 'main' || github.ref }}
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v6
+
+      - name: Install gcx
+        run: curl -fsSL https://raw.githubusercontent.com/grafana/gcx/main/scripts/install.sh | sh
+
+      - name: Validate resources
+        run: gcx resources validate -p internal/grafana/resources
+        env:
+          GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+
+      - name: Dry run
+        if: github.event_name == 'pull_request'
+        run: gcx resources push -p internal/grafana/resources --dry-run --on-error abort
+        env:
+          GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
+
+      - name: Push resources
+        if: github.event_name == 'push'
+        run: gcx resources push -p internal/grafana/resources --on-error abort
+        env:
+          GRAFANA_SERVER: ${{ secrets.GRAFANA_SERVER }}
+          GRAFANA_TOKEN: ${{ secrets.GRAFANA_TOKEN }}
