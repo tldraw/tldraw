@@ -1,5 +1,6 @@
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { TLFileDurableObject } from '../TLFileDurableObject'
+import type { TLFileEffectProcessor } from '../TLFileEffectProcessor'
 import { TLLoggerDurableObject } from '../TLLoggerDurableObject'
 import type { TLPostgresReplicator } from '../TLPostgresReplicator'
 import { TLStatsDurableObject } from '../TLStatsDurableObject'
@@ -14,6 +15,12 @@ export function getReplicator(env: Environment) {
 
 export function getUserDurableObject(env: Environment, userId: string) {
 	return env.TL_USER.get(env.TL_USER.idFromName(userId)) as any as TLUserDurableObject
+}
+
+export function getFileEffectProcessor(env: Environment) {
+	return env.TL_FILE_EFFECTS.get(env.TL_FILE_EFFECTS.idFromName('0'), {
+		locationHint: 'weur',
+	}) as any as TLFileEffectProcessor
 }
 
 export function getLogger(env: Environment) {

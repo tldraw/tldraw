@@ -15,12 +15,17 @@ import { StatusError, json } from 'itty-router'
 import { sql } from 'kysely'
 import PQueue from 'p-queue'
 import { getUploadObjectName } from './assetAssociation'
+import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { undeleteFile } from './undeleteFile'
-import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
+import {
+	getFileEffectProcessor,
+	getRoomDurableObject,
+	getUserDurableObject,
+} from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
 import {
 	getFriendsAndFamilyList,
@@ -91,24 +96,64 @@ export const adminRoutes = createRouter<Environment>()
 			return new Response('Missing query param', { status: 400 })
 		}
 		const userRow = await requireUser(env, q)
-
-		const user = getUserDurableObject(env, userRow.id)
-		return json(await user.admin_getData(userRow.id))
-	})
-	.get('/app/admin/replicator', async (res, env) => {
-		const replicator = getReplicator(env)
-		const diagnostics = await replicator.getDiagnostics()
-		return json(diagnostics)
-	})
-	.post('/app/admin/user/reboot', async (res, env) => {
-		const q = res.query['q']
-		if (typeof q !== 'string') {
-			return new Response('Missing query param', { status: 400 })
+		const db = createPostgresConnectionPool(env, '/app/admin/user')
+		try {
+			const memberships = await db
+				.selectFrom('group_user')
+				.innerJoin('group', 'group.id', 'group_user.groupId')
+				.where('group_user.userId', '=', userRow.id)
+				.select(['group.id', 'group.name', 'group.isDeleted', 'group_user.role'])
+				.execute()
+			const files = await db
+				.selectFrom('file')
+				.leftJoin('group_file', 'group_file.fileId', 'file.id')
+				.where('file.isDeleted', '=', false)
+				.where((eb) =>
+					eb.or([
+						eb('file.ownerId', '=', userRow.id),
+						eb(
+							'group_file.groupId',
+							'in',
+							memberships.length ? memberships.map((m) => m.id) : ['']
+						),
+					])
+				)
+				// distinctOn dedupes before the limit is applied, so a file matching both the owner
+				// clause and multiple group memberships (join fanout) still only counts once against
+				// the 500 cap.
+				.distinctOn('file.id')
+				.orderBy('file.id')
+				.selectAll('file')
+				.limit(500)
+				.execute()
+			return json({ user: userRow, memberships, files })
+		} finally {
+			await db.destroy()
 		}
-		const userRow = await requireUser(env, q)
-		const user = getUserDurableObject(env, userRow.id)
-		await user.admin_forceHardReboot(userRow.id)
-		return new Response('Rebooted', { status: 200 })
+	})
+	.get('/app/admin/outbox', async (res, env) => {
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox')
+		try {
+			const stats = await db
+				.selectFrom('effect_outbox')
+				.select((eb) => [
+					eb.fn.countAll<number>().filterWhere('attempts', '<', MAX_ATTEMPTS).as('pending'),
+					eb.fn.countAll<number>().filterWhere('attempts', '>=', MAX_ATTEMPTS).as('parked'),
+					eb.fn.min('createdAt').filterWhere('attempts', '<', MAX_ATTEMPTS).as('oldestPending'),
+				])
+				.executeTakeFirstOrThrow()
+			return json({
+				outbox: {
+					pending: Number(stats.pending),
+					parked: Number(stats.parked),
+					oldestPendingAgeSeconds: stats.oldestPending
+						? Math.round((Date.now() - new Date(stats.oldestPending).getTime()) / 1000)
+						: null,
+				},
+			})
+		} finally {
+			await db.destroy()
+		}
 	})
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
@@ -204,6 +249,12 @@ export const adminRoutes = createRouter<Environment>()
 				status: 409,
 			})
 		}
+		// Best-effort nudge so the restore's effects land promptly; the sweep backstops it, so a
+		// poke failure must not fail the request (the restore already committed; a retry would
+		// just 400 with 'File is not deleted').
+		await getFileEffectProcessor(env)
+			.poke()
+			.catch(() => {})
 		// Hard-reboot every affected user so the restored rows replicate to their session (the
 		// isDeleted false-flip case flagged in dotcom-shared mutators.ts). Best-effort: the
 		// writes already committed, so a reboot failure must not surface as a 500 (a retry would
@@ -611,12 +662,13 @@ async function hardDeleteAppFile({
 	file: TlaFile
 }) {
 	if (!file.isDeleted) {
-		// do soft delete first if not done already
+		// do soft delete first if not done already; the outbox trigger records it
 		await pg.updateTable('file').set('isDeleted', true).where('id', '=', file.id).execute()
-		// allow a little time for the delete to propagate
-		// don't think this is really needed, but just in case
-		await sleep(1000)
 	}
+	// Session kicks and R2/room cleanup ride the terminal delete-row effect written by the
+	// DELETE FROM file below, delivered via the post-delete poke() (sweep backstop ~30s); the
+	// soft-delete row's effect is staleness-guarded, so it skips harmlessly if it runs after
+	// the row is gone.
 	// clean up assets eagerly
 	const assets = await pg.selectFrom('asset').where('fileId', '=', file.id).selectAll().execute()
 	for (const asset of assets) {
@@ -638,6 +690,12 @@ async function hardDeleteAppFile({
 	}
 	// hard delete file (this will trigger a cascade delete of all remaining related records & R2 objects)
 	await pg.deleteFrom('file').where('id', '=', file.id).execute()
+	// Nudge the outbox so the delete's effects land promptly instead of waiting for the 30s
+	// alarm sweep. poke() is cheap: it just schedules an alarm. Best-effort nudge: the sweep
+	// backstops it, so a poke failure must not fail the request after the delete committed.
+	await getFileEffectProcessor(env)
+		.poke()
+		.catch(() => {})
 	return new Response('Deleted', { status: 200 })
 }
 
