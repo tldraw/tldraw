@@ -2285,6 +2285,7 @@ export class InputsManager extends EditorManager {
     get isSpacebarPanning(): boolean;
     set isSpacebarPanning(isSpacebarPanning: boolean);
     readonly keys: AtomSet<string>;
+    markActivity(): void;
     // @deprecated (undocumented)
     get metaKey(): boolean;
     set metaKey(metaKey: boolean);

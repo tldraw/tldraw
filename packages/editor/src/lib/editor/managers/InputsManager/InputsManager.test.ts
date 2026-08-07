@@ -1,14 +1,26 @@
+import { InstancePresenceRecordType, TLPOINTER_ID, createUserId } from '@tldraw/tlschema'
+import { vi } from 'vitest'
 import { createTLStore } from '../../../config/createTLStore'
 import { Editor } from '../../Editor'
+
+function createPresence(editor: Editor) {
+	return InstancePresenceRecordType.create({
+		id: InstancePresenceRecordType.createId('peer'),
+		userId: createUserId('peer'),
+		userName: 'Peer',
+		currentPageId: editor.getCurrentPageId(),
+	})
+}
 
 function createTestEditor() {
 	const store = createTLStore({})
 	store.ensureStoreIsUsable()
+	const container = document.createElement('div')
 	return new Editor({
 		store,
 		bindingUtils: [],
 		shapeUtils: [],
-		getContainer: () => document.createElement('div'),
+		getContainer: () => container,
 		tools: [],
 	})
 }
@@ -35,6 +47,96 @@ describe('InputsManager', () => {
 		editor.emit('frame', 16)
 
 		expect(editor.inputs.getPointerVelocity().len()).toBeGreaterThan(0)
+	})
+
+	describe('markActivity', () => {
+		beforeEach(() => {
+			vi.useFakeTimers()
+		})
+
+		afterEach(() => {
+			vi.useRealTimers()
+		})
+
+		it('does nothing when there are no collaborators', () => {
+			editor.inputs.markActivity()
+
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(0)
+		})
+
+		it('stamps the pointer record, preserving its position', () => {
+			editor.store.put([createPresence(editor)])
+			editor.store.put([{ ...editor.store.get(TLPOINTER_ID)!, x: 5, y: 6 }])
+
+			editor.inputs.markActivity()
+
+			expect(editor.store.get(TLPOINTER_ID)!).toMatchObject({
+				x: 5,
+				y: 6,
+				lastActivityTimestamp: Date.now(),
+			})
+		})
+
+		it('throttles stamps on the leading edge', () => {
+			editor.store.put([createPresence(editor)])
+
+			editor.inputs.markActivity()
+			const firstStamp = editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp
+
+			vi.advanceTimersByTime(500)
+			editor.inputs.markActivity()
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(firstStamp)
+
+			vi.advanceTimersByTime(600)
+			editor.inputs.markActivity()
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(firstStamp + 1100)
+		})
+
+		it('stamps on keyboard input in the container', () => {
+			editor.store.put([createPresence(editor)])
+
+			editor.getContainer().dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA' }))
+
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(Date.now())
+		})
+
+		it('stamps on pointer input in the container', () => {
+			editor.store.put([createPresence(editor)])
+
+			editor.getContainer().dispatchEvent(new Event('pointermove'))
+
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(Date.now())
+		})
+
+		it('does not stamp on pointer moves with no container input, e.g. following a user', () => {
+			editor.store.put([createPresence(editor)])
+
+			editor.inputs.markActivity()
+			const stamp = editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp
+
+			vi.advanceTimersByTime(5000)
+			editor.inputs.updateFromEvent({
+				type: 'pointer',
+				name: 'pointer_move',
+				point: { x: 100, y: 50 },
+				pointerId: 1,
+				button: 0,
+				isPen: false,
+				target: 'canvas',
+				shiftKey: false,
+				altKey: false,
+				ctrlKey: false,
+				metaKey: false,
+				accelKey: false,
+			})
+
+			// The pointer position updates, but the activity clock doesn't.
+			expect(editor.store.get(TLPOINTER_ID)!).toMatchObject({
+				x: 100,
+				y: 50,
+				lastActivityTimestamp: stamp,
+			})
+		})
 	})
 
 	it('stops updating pointer velocity after dispose', () => {
