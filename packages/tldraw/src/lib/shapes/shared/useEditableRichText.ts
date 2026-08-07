@@ -1,4 +1,5 @@
-import { ExtractShapeByProps, TLRichText, TLShapeId, isAccelKey, useEditor } from '@tldraw/editor'
+import { ExtractShapeByProps, TLShapeId, isAccelKey, useEditor } from '@tldraw/editor'
+import { TLRichText } from '@tldraw/tlschema'
 import { useCallback, useEffect, useRef } from 'react'
 import { isEmptyRichText } from '../../utils/text/richText'
 import { useEditableTextCommon } from './useEditablePlainText'

@@ -2,7 +2,6 @@ import {
 	Box,
 	ExtractShapeByProps,
 	TLEventInfo,
-	TLRichText,
 	TLShapeId,
 	openWindow,
 	preventDefault,
@@ -11,6 +10,7 @@ import {
 	useReactor,
 	useValue,
 } from '@tldraw/editor'
+import { TLRichText } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import React, { useMemo } from 'react'
 import { renderHtmlFromRichText } from '../../utils/text/richText'

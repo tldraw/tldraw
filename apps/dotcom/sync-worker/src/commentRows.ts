@@ -11,6 +11,7 @@ import {
 	isCommentId,
 	isCommentReactionId,
 	isCommentThreadId,
+	richTextValidator,
 } from '@tldraw/tlschema'
 import { JsonObject } from '@tldraw/utils'
 
@@ -151,6 +152,15 @@ export function reactionRecordToRow(
 	}
 }
 
+/**
+ * A `TLRichText` is always valid JSON at runtime, but its shape (`content: unknown[]`, no string
+ * index signature) doesn't structurally overlap Zero's `ReadonlyJSONValue`, so TypeScript can't
+ * prove the widening. Assert it here in one place instead of scattering casts across the mappers.
+ */
+function richTextToRowBody(body: TLComment['body']): DB['comment']['body'] {
+	return body as unknown as DB['comment']['body']
+}
+
 export function commentRecordToRow(
 	record: TLComment,
 	fileId: string,
@@ -166,8 +176,7 @@ export function commentRecordToRow(
 		authorName: '',
 		authorColor: '',
 		authorAvatar: '',
-		// TLRichText's content is unknown[], not structurally a zero ReadonlyJSONValue
-		body: record.body as DB['comment']['body'],
+		body: richTextToRowBody(record.body),
 		// client-dated placeholder — a Postgres trigger re-stamps it with server arrival time on
 		// insert (migration 046), and the upsert's conflict branch never writes this column
 		createdAt: record.createdAt,
@@ -205,7 +214,7 @@ export function rowToCommentRecord(row: DB['comment']): TLComment {
 		authorId: row.authorId,
 		createdAt: Number(row.createdAt),
 		editedAt: row.editedAt != null ? Number(row.editedAt) : null,
-		body: row.body as TLComment['body'],
+		body: richTextValidator.validate(row.body),
 		isDeleted: row.isDeleted,
 		meta: (row.meta ?? {}) as JsonObject,
 	}

@@ -12,6 +12,7 @@ import { ReactNode, useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
 	createDeepLinkString,
+	richTextValidator,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -21,7 +22,6 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiTooltip,
-	TLRichText,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
@@ -234,7 +234,8 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 				name: c.authorName || unknownAuthor,
 				color: c.authorColor || undefined,
 			},
-			preview: richTextToPlaintext(c.body as TLRichText),
+			// a malformed body should only cost this row its preview, not break the whole list
+			preview: richTextValidator.isValid(c.body) ? richTextToPlaintext(c.body) : '',
 			// the notified-about event: a reaction entry dates from its newest foreign reaction,
 			// not from the (older) comment it decorates
 			date: new Date(n.timestamp).toISOString(),

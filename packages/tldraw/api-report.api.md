@@ -138,7 +138,7 @@ import { TLParentId } from '@tldraw/tlschema';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLResizeInfo } from '@tldraw/editor';
-import { TLRichText } from '@tldraw/editor';
+import { TLRichText } from '@tldraw/tlschema';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribble } from '@tldraw/editor';
 import { TLSelectionHandle } from '@tldraw/editor';
@@ -2139,11 +2139,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: TLDefaultColorStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             url: string;
@@ -2176,11 +2172,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: TLDefaultColorStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             url: string;
@@ -2213,11 +2205,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: TLDefaultColorStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             url: string;
@@ -2891,11 +2879,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             fontSizeAdjustment: number;
             growY: number;
             labelColor: TLDefaultColorStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             textLastEditedBy: null | string;
@@ -3854,11 +3838,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             autoSize: boolean;
             color: TLDefaultColorStyle;
             font: TLDefaultFontStyle;
-            richText: {
-                attrs?: any;
-                content: unknown[];
-                type: string;
-            };
+            richText: TLRichText;
             scale: number;
             size: "l" | "m" | "s" | "xl";
             textAlign: "end" | "middle" | "start";
@@ -6476,11 +6456,7 @@ export function useEditableRichText(shapeId: TLShapeId, type: ExtractShapeByProp
 }>['type'], richText?: TLRichText): {
     handleBlur: () => void;
     handleChange: ({ richText }: {
-        richText: {
-            attrs?: any;
-            content: unknown[];
-            type: string;
-        };
+        richText: TLRichText;
     }) => void;
     handleDoubleClick: (e: {
         nativeEvent: Event;
