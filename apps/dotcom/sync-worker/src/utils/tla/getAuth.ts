@@ -1,9 +1,13 @@
 import { ClerkClient, createClerkClient } from '@clerk/backend'
-import { can } from '@tldraw/dotcom-shared'
+import { DB, TlaFile, can } from '@tldraw/dotcom-shared'
+import { type TLObjectStoreAccess } from '@tldraw/sync-core'
 import { IRequest, StatusError } from 'itty-router'
+import { Kysely } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
+import { isRateLimited } from '../rateLimit'
 import { getRole } from './getRole'
+import { isTestFile } from './isTestFile'
 
 export async function requireAuth(request: IRequest, env: Environment): Promise<SignedInAuth> {
 	const auth = await getAuth(request, env)
@@ -120,6 +124,84 @@ export async function requireWriteAccessToFile(
 		// Ensure database connection is properly closed
 		await db.destroy()
 	}
+}
+
+export async function canAccessTestProductionFile(
+	env: Environment,
+	auth: { userId: string } | null
+): Promise<boolean> {
+	try {
+		await requireAdminAccess(env, auth)
+		return true
+	} catch (_e) {
+		return false
+	}
+}
+
+export type FileReadDenialReason = 'not-found' | 'not-authenticated' | 'forbidden' | 'rate-limited'
+
+export type FileReadAccess =
+	| { ok: false; reason: FileReadDenialReason }
+	| { ok: true; isReadonly: boolean; objectAccess: TLObjectStoreAccess }
+
+/**
+ * The read-access ladder for an app file, shared by the room's websocket connect, the .tldr
+ * download, and the REST snapshot route so the three can't drift. Order matters and mirrors the
+ * historical `TLFileDurableObject.onRequest` checks: deleted, test-file gate, anonymous access to
+ * unshared files, rate limit, owner/group access, unshared files for non-owners.
+ */
+export async function checkReadAccessToFile(opts: {
+	env: Environment
+	db: Kysely<DB>
+	file: TlaFile
+	auth: SignedInAuth | null
+	/** Rate-limit bucket: the user id when signed in, else a per-session/IP key. */
+	rateLimitKey: string
+}): Promise<FileReadAccess> {
+	const { env, db, file, auth, rateLimitKey } = opts
+
+	if (file.isDeleted) {
+		return { ok: false, reason: 'not-found' }
+	}
+
+	if (isTestFile(file.id) && !(await canAccessTestProductionFile(env, auth))) {
+		return { ok: false, reason: 'not-found' }
+	}
+
+	if (!auth && !file.shared) {
+		return { ok: false, reason: 'not-authenticated' }
+	}
+
+	if (await isRateLimited(env, rateLimitKey)) {
+		return { ok: false, reason: 'rate-limited' }
+	}
+
+	// Check if user has owner access (directly or via group membership)
+	let hasOwnerAccess = false
+	if (file.ownerId && file.ownerId === auth?.userId) {
+		hasOwnerAccess = true
+	} else if (file.owningGroupId && auth?.userId) {
+		// Check the user can access the owning group's files
+		const role = await getRole(db, auth.userId, file.owningGroupId)
+		if (can(role, 'accessFiles')) {
+			hasOwnerAccess = true
+		}
+	}
+
+	if (!hasOwnerAccess && !file.shared) {
+		return { ok: false, reason: 'forbidden' }
+	}
+
+	// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain string column
+	// with legacy values in it, so anything else fails closed.
+	const isReadonly = !hasOwnerAccess && file.sharedLinkType !== 'edit'
+
+	// Only authenticated users can write comments — authors are stored in Postgres with a foreign
+	// key to the user table, so an anonymous author can't be represented. Tier gating (view-only
+	// sessions) happens in `authorizeFileRecord` off the session's `isReadonly`.
+	const objectAccess: TLObjectStoreAccess = auth?.userId ? 'write' : 'read'
+
+	return { ok: true, isReadonly, objectAccess }
 }
 
 export async function requireAdminAccess(env: Environment, auth: { userId: string } | null) {

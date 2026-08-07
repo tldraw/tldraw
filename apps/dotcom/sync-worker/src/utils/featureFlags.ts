@@ -29,6 +29,13 @@ function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagV
 			description:
 				'Raises the /app/mcp rate limits for signed-in callers on the friends and family list (edited below)',
 		},
+		lazy_board_socket: {
+			type: 'percentage',
+			percentage: 0,
+			enabled: false,
+			description:
+				'Load boards from a REST snapshot and defer the websocket until first edit or until others are present. Users with a @tldraw.com email always have it, regardless of this flag',
+		},
 	}
 }
 

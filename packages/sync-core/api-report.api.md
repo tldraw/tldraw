@@ -160,6 +160,25 @@ export class JsonChunkAssembler {
     };
 }
 
+// @internal
+export class LazyClientWebSocketAdapter implements TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>> {
+    constructor(getUri: () => Promise<string> | string);
+    // (undocumented)
+    close(): void;
+    // (undocumented)
+    get connectionStatus(): 'error' | 'offline' | 'online';
+    connectNow(): void;
+    readonly didRequestConnect: Atom<boolean>;
+    // (undocumented)
+    onReceiveMessage(cb: (msg: TLSocketServerSentEvent<TLRecord>) => void): () => void;
+    // (undocumented)
+    onStatusChange(cb: (event: TLSocketStatusChangeEvent) => void): () => void;
+    // (undocumented)
+    restart(): void;
+    // (undocumented)
+    sendMessage(msg: TLSocketClientSentEvent<TLRecord>): void;
+}
+
 // @public
 export function loadSnapshotIntoStorage<R extends UnknownRecord>(txn: TLSyncStorageTransaction<R>, schema: StoreSchema<R, any>, snapshot: RoomSnapshot | TLStoreSnapshot_2): void;
 
@@ -652,6 +671,7 @@ export type TLSqliteRow = Record<string, TLSqliteOutputValue>;
 // @public
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
+        lastServerClock?: number;
         didCancel?(): boolean;
         onAfterConnect?(self: TLSyncClient<R, S>, details: {
             isReadonly: boolean;

@@ -13,6 +13,7 @@ import {
 	isCommentThreadId,
 } from '@tldraw/tlschema'
 import { JsonObject } from '@tldraw/utils'
+import { Kysely } from 'kysely'
 
 /**
  * Conversions between the room's comment records and their Postgres rows. Postgres is the sole
@@ -253,6 +254,24 @@ export function rowsToSnapshotDocuments(
 			lastChangedClock: Number(row.lastChangedClock),
 		})),
 	]
+}
+
+/**
+ * Load a file's comment rows from Postgres and reduce them to the room-seedable subset. Shared by
+ * the DO's room load and the stateless snapshot route so both merge the same comment state.
+ */
+export async function loadLiveCommentDocuments(
+	db: Kysely<DB>,
+	fileId: string
+): Promise<CommentLoadResult> {
+	const [threadRows, commentRows, reactionRows] = await Promise.all([
+		db.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
+		db.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
+		db.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll().execute(),
+	])
+	// Soft-deleted threads and their comments never re-enter a room, and neither do reactions
+	// whose comment doesn't; their rows stay in Postgres only (see liveCommentDocuments).
+	return liveCommentDocuments(threadRows, commentRows, reactionRows)
 }
 
 /** The room-seedable subset of a file's comment rows; see {@link liveCommentDocuments}. */

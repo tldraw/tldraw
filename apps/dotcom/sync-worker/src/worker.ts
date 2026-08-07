@@ -45,8 +45,10 @@ import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
+import { getLazyFileSnapshot } from './routes/tla/getLazyFileSnapshot'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
+import { getRoomActivity } from './routes/tla/getRoomActivity'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { initUser } from './routes/tla/initUser'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
@@ -163,6 +165,10 @@ const router = createRouter<Environment>()
 		return notFound()
 	})
 	.get('/app/file/:roomId/download', forwardRoomRequest)
+	// Lazy board transport: REST read of the room snapshot and the activity poll, both served
+	// without waking the file durable object.
+	.get('/app/file/:roomId/snapshot', getLazyFileSnapshot)
+	.get('/app/file/:roomId/activity', getRoomActivity)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.get('/app/uploads/:objectName', async (request, env, ctx) => {
 		return handleUserAssetGet({

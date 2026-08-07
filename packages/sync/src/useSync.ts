@@ -1,6 +1,7 @@
-import { atom, transact } from '@tldraw/state'
+import { Signal, atom, transact } from '@tldraw/state'
 import {
-	ClientWebSocketAdapter,
+	LazyClientWebSocketAdapter,
+	RoomSnapshot,
 	TLCustomMessageHandler,
 	TLObjectStoreAccess,
 	TLPersistentClientSocket,
@@ -91,7 +92,31 @@ export type RemoteTLStoreWithStatus =
 			 * be allowed to comment without being allowed to edit. Defaults to `'write'`.
 			 */
 			readonly objectAccess: TLObjectStoreAccess
+			/**
+			 * Present only in snapshot mode (see `UseSyncOptionsBase.snapshot`): dial the deferred
+			 * websocket. Idempotent; a no-op once connected.
+			 *
+			 * @internal
+			 */
+			connect?(): void
 	  })
+
+/**
+ * A pre-fetched room snapshot for `useSync`'s lazy transport mode (see
+ * `UseSyncOptionsBase.snapshot`). Matches the shape persisted by the sync server: the snapshot's
+ * `documentClock` seeds the sync client's server clock so the deferred websocket connect catches
+ * up incrementally instead of re-downloading the document.
+ *
+ * @internal
+ */
+export interface UseSyncSnapshot {
+	/** The room snapshot, in the schema version it was persisted with. */
+	snapshot: RoomSnapshot
+	/** Whether this session may edit the canvas, as decided by the server at fetch time. */
+	isReadonly: boolean
+	/** Object-store lane (e.g. comments) access; defaults to `'write'`. */
+	objectAccess?: TLObjectStoreAccess
+}
 
 /**
  * Creates a reactive store synchronized with a multiplayer server for real-time collaboration.
@@ -181,6 +206,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
 		objectAccess?: TLObjectStoreAccess
+		presentedStatus?: Signal<'online' | 'offline'>
+		connect?(): void
 	} | null>(null)
 	const {
 		uri,
@@ -189,6 +216,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		users: _users,
 		onMount,
 		connect,
+		snapshot,
 		trackAnalyticsEvent: track,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
@@ -261,9 +289,13 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			TLSocketClientSentEvent<TLRecord>,
 			TLSocketServerSentEvent<TLRecord>
 		>
+		let lazySocket: LazyClientWebSocketAdapter | null = null
 		if (connect) {
 			if (uri) {
 				throw new Error('uri and connect cannot be used together')
+			}
+			if (snapshot) {
+				throw new Error('snapshot cannot be used with a custom connect function')
 			}
 
 			socket = connect({
@@ -278,7 +310,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				throw new Error('uri and connect cannot be used together')
 			}
 
-			socket = new ClientWebSocketAdapter(async () => {
+			socket = lazySocket = new LazyClientWebSocketAdapter(async () => {
 				const uriString = typeof uri === 'string' ? uri : await uri()
 
 				// set sessionId as a query param on the uri
@@ -307,9 +339,20 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		function getConnectionStatus() {
 			return socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
 		}
-		const collaborationStatusSignal = atom('collaboration status', getConnectionStatus())
-		const unsubscribeFromConnectionStatus = socket.onStatusChange(() => {
-			collaborationStatusSignal.set(getConnectionStatus())
+		const rawStatusSignal = atom('collaboration status', getConnectionStatus())
+		// While the lazy transport is deliberately detached — and for a grace window after it
+		// dials — the editor presents as online: the user isn't offline, they just don't have (or
+		// need) a socket yet. Once the socket has genuinely been online, presentation always
+		// follows the real status so mid-session disconnects surface as today.
+		const forcePresentOnline = atom('force present online', snapshot !== undefined && !!uri)
+		const collaborationStatusSignal = computed('presented collaboration status', () =>
+			forcePresentOnline.get() ? ('online' as const) : rawStatusSignal.get()
+		)
+		const unsubscribeFromConnectionStatus = socket.onStatusChange((event) => {
+			rawStatusSignal.set(getConnectionStatus())
+			if (event.status === 'online') {
+				forcePresentOnline.set(false)
+			}
 		})
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
@@ -325,6 +368,34 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				mode: syncMode,
 			},
 		})
+
+		// Snapshot mode: hydrate the store BEFORE the sync client is constructed, so none of the
+		// snapshot registers as local user changes (which the client would push as speculative
+		// edits). A migration or validation failure falls back to the plain websocket path — the
+		// connect handshake has real schema negotiation, and its wipe_all replaces any partially
+		// hydrated document records.
+		let seededServerClock: number | undefined
+		if (snapshot && lazySocket && snapshot.snapshot.schema) {
+			try {
+				const migrated = schema.migrateStoreSnapshot({
+					schema: snapshot.snapshot.schema,
+					store: Object.fromEntries(
+						snapshot.snapshot.documents.map((d) => [d.state.id, d.state as TLRecord])
+					),
+				})
+				if (migrated.type === 'success') {
+					store.mergeRemoteChanges(() => {
+						store.put(Object.values(migrated.value))
+						store.ensureStoreIsUsable()
+					})
+					syncMode.set(snapshot.isReadonly ? 'readonly' : 'readwrite')
+					seededServerClock = snapshot.snapshot.documentClock
+				}
+			} catch (e) {
+				console.error('Failed to hydrate sync store from snapshot, connecting instead', e)
+			}
+		}
+		const isLazyDetached = seededServerClock !== undefined
 
 		const presence = createPresenceStateDerivation(currentUser, {
 			getUserPresence,
@@ -346,6 +417,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		const client = new TLSyncClient<TLRecord, TLStore>({
 			store,
 			socket,
+			lastServerClock: seededServerClock,
 			didCancel: () => didCancel,
 			onLoad(client) {
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
@@ -398,8 +470,37 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			presenceMode,
 		})
 
+		// After a deliberate lazy dial, give the handshake a grace window before the presented
+		// status falls through to the real socket status (and the offline indicator can appear).
+		const LAZY_CONNECT_GRACE_MS = 15_000
+		let graceTimeout: ReturnType<typeof setTimeout> | undefined
+		const dial = () => {
+			if (didCancel || !lazySocket) return
+			lazySocket.connectNow()
+			if (forcePresentOnline.get() && graceTimeout === undefined) {
+				graceTimeout = setTimeout(() => forcePresentOnline.set(false), LAZY_CONNECT_GRACE_MS)
+			}
+		}
+
+		if (isLazyDetached) {
+			// The store is fully usable from the snapshot: expose it (and the dial handle)
+			// immediately rather than waiting for a server round-trip.
+			setState({
+				readyClient: client,
+				objectAccess: snapshot?.objectAccess ?? 'write',
+				presentedStatus: collaborationStatusSignal,
+				connect: dial,
+			})
+		} else {
+			// Plain path (no snapshot, or snapshot hydration failed): dial straight away — this is
+			// the legacy behavior, running through the same transport.
+			dial()
+			setState({ presentedStatus: collaborationStatusSignal })
+		}
+
 		return () => {
 			didCancel = true
+			if (graceTimeout !== undefined) clearTimeout(graceTimeout)
 			unsubscribeFromConnectionStatus()
 			client.close()
 			socket.close()
@@ -408,6 +509,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		assets,
 		onMount,
 		connect,
+		snapshot,
 		_users,
 		roomId,
 		schema,
@@ -424,12 +526,15 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			if (!state) return { status: 'loading' }
 			if (state.error) return { status: 'error', error: state.error }
 			if (!state.readyClient) return { status: 'loading' }
-			const connectionStatus = state.readyClient.socket.connectionStatus
+			const connectionStatus = state.presentedStatus
+				? state.presentedStatus.get()
+				: state.readyClient.socket.connectionStatus
 			return {
 				status: 'synced-remote',
 				connectionStatus: connectionStatus === 'error' ? 'offline' : connectionStatus,
 				store: state.readyClient.store,
 				objectAccess: state.objectAccess ?? 'write',
+				connect: state.connect,
 			}
 		},
 		[state]
@@ -532,6 +637,18 @@ export interface UseSyncOptionsBase {
 	roomId?: string
 	/** @internal */
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
+
+	/**
+	 * Lazy transport mode (requires `uri`): hydrate the store from this pre-fetched snapshot and
+	 * DON'T open the websocket — the returned status carries a `connect()` handle to dial it later
+	 * (on first edit, or when other collaborators are detected). The store is exposed with
+	 * `status: 'synced-remote'` immediately, edits made before dialing are pushed after the
+	 * handshake, and the snapshot's `documentClock` makes the catch-up incremental. Must be
+	 * referentially stable; it is read once per mount.
+	 *
+	 * @internal
+	 */
+	snapshot?: UseSyncSnapshot
 
 	/**
 	 * A reactive function that returns a {@link @tldraw/tlschema#TLInstancePresence} object.

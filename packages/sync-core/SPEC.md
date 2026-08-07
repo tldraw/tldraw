@@ -167,6 +167,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 
 - **CL1** If the socket is already online at construction, a connect message is sent immediately; otherwise it is sent when the socket first reports `'online'`.
 - **CL2** The connect message carries a fresh unique `connectRequestId`, the store's serialized schema, protocol version 8, and `lastServerClock` (−1 before any server contact, afterwards the last seen server clock).
+- **CL2a** The constructor accepts an optional `lastServerClock` seed for stores pre-hydrated from a snapshot that carries its `documentClock`; the first connect then sends the seed, so the server can answer with an incremental `wipe_presence` diff. A stale seed degrades safely to `wipe_all` (CL6) — user changes made before the first connect survive as speculative changes either way.
 - **CL3** `onLoad` fires on the first message received from the server, of any type.
 - **CL4** A `connect` response whose `connectRequestId` does not match the latest request is ignored.
 - **CL5** On a `connect` response with `hydrationType: 'wipe_presence'`, the client reverts its speculative changes, removes all presence records, applies the server's diff, then re-applies the speculative changes on top and pushes them as a new push request.

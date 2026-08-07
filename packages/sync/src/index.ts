@@ -10,6 +10,7 @@ export {
 	type UseSyncOptionsBase,
 	type UseSyncOptionsWithConnectFn,
 	type UseSyncOptionsWithUri,
+	type UseSyncSnapshot,
 } from './useSync'
 export { useSyncDemo, type UseSyncDemoOptions } from './useSyncDemo'
 

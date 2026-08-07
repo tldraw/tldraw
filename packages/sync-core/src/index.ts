@@ -1,6 +1,7 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { chunk, JsonChunkAssembler } from './lib/chunk'
 export { ClientWebSocketAdapter, ReconnectManager } from './lib/ClientWebSocketAdapter'
+export { LazyClientWebSocketAdapter } from './lib/LazyClientWebSocketAdapter'
 export {
 	applyObjectDiff,
 	diffRecord,

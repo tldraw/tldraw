@@ -5,6 +5,7 @@
 ```ts
 
 import { Editor } from 'tldraw';
+import { RoomSnapshot } from '@tldraw/sync-core';
 import { TLAssetStore } from 'tldraw';
 import { TLObjectStoreAccess } from '@tldraw/sync-core';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
@@ -20,6 +21,7 @@ import { TLUserStore } from 'tldraw';
 export type RemoteTLStoreWithStatus = (Extract<TLStoreWithStatus, {
     status: 'synced-remote';
 }> & {
+    connect?(): void;
     readonly objectAccess: TLObjectStoreAccess;
 }) | Exclude<TLStoreWithStatus, {
     status: 'not-synced';
@@ -65,6 +67,8 @@ export interface UseSyncOptionsBase {
     onMount?(editor: Editor): void;
     // @internal
     roomId?: string;
+    // @internal
+    snapshot?: UseSyncSnapshot;
     themes?: Partial<TLThemes>;
     // @internal (undocumented)
     trackAnalyticsEvent?(name: string, data: {
@@ -85,6 +89,13 @@ export interface UseSyncOptionsWithUri extends UseSyncOptionsBase {
     // (undocumented)
     connect?: never;
     uri: (() => Promise<string> | string) | string;
+}
+
+// @internal
+export interface UseSyncSnapshot {
+    isReadonly: boolean;
+    objectAccess?: TLObjectStoreAccess;
+    snapshot: RoomSnapshot;
 }
 
 

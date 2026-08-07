@@ -8,6 +8,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 	rum_enabled: { enabled: false },
 	commenting_enabled: { enabled: false },
 	mcp_friends_and_family: { enabled: false },
+	lazy_board_socket: { enabled: false },
 }
 
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }

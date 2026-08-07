@@ -489,8 +489,18 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
 		): void
 		didCancel?(): boolean
+		/**
+		 * Seed for the server clock, for stores pre-hydrated from a snapshot that carries its
+		 * `documentClock`. Lets the first connect catch up incrementally (`wipe_presence`) instead
+		 * of re-downloading the whole document. A stale seed is safe: the server falls back to
+		 * `wipe_all`, and speculative changes re-apply on top.
+		 */
+		lastServerClock?: number
 	}) {
 		this.didCancel = config.didCancel
+		if (config.lastServerClock !== undefined) {
+			this.lastServerClock = config.lastServerClock
+		}
 
 		this.presenceType = config.store.scopedTypes.presence.values().next().value ?? null
 

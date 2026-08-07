@@ -185,6 +185,7 @@ export type TLServerEvent =
 				| 'room_empty'
 				| 'fail_persist'
 				| 'room_start'
+				| 'failed_activity_write'
 	  }
 	| {
 			type: 'send_message'

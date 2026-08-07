@@ -66,7 +66,7 @@ import {
 	isCommentReactionFkViolation,
 	isCommentThreadFkViolation,
 	isCommentThreadIdFkViolation,
-	liveCommentDocuments,
+	loadLiveCommentDocuments,
 	mergeCommentDocumentsIntoSnapshot,
 	outboxEntriesToClear,
 	planCommentDrain,
@@ -76,6 +76,7 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
+import { RoomActivitySnapshot, getR2KeyForRoomActivity } from './roomActivity'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import { generateSnapshotChunks } from './snapshotUtils'
@@ -86,13 +87,11 @@ import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
-import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
+import { checkReadAccessToFile, getAuth, requireWriteAccessToFile } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
-import { isTestFile } from './utils/tla/isTestFile'
 import { resolveWelcomeSnapshot } from './welcome/resolveWelcomeSnapshot'
 
 const MAX_CONNECTIONS = 50
@@ -120,7 +119,7 @@ const R2_QUEUE_DEPTH_ALERT_THRESHOLD = 100
 
 // The kinds of R2 operation that share the connection budget, used to break queue depth down per
 // type in metrics.
-type R2OperationType = 'asset_copy' | 'snapshot_upload'
+type R2OperationType = 'asset_copy' | 'snapshot_upload' | 'activity_write'
 
 // Transient R2 failures worth retrying — dropped connections and the connection-limit error the
 // shared budget exists to avoid. Anything else (a bad request, missing object, etc.) is permanent,
@@ -148,18 +147,6 @@ interface SocketAttachment {
 	// optional: attachments serialized before the object-store lane existed lack this field
 	objectAccess?: TLObjectStoreAccess
 	snapshot: SessionStateSnapshot | null
-}
-
-async function canAccessTestProductionFile(
-	env: Environment,
-	auth: { userId: string } | null
-): Promise<boolean> {
-	try {
-		await requireAdminAccess(env, auth)
-		return true
-	} catch (_e) {
-		return false
-	}
 }
 
 function pruneUnusedAssetsForTldr(records: TLRecord[]): TLRecord[] {
@@ -299,7 +286,10 @@ export class TLFileDurableObject extends DurableObject {
 							instanceId: args.sessionId,
 						})
 
-						if (args.numSessionsRemaining > 0) return
+						if (args.numSessionsRemaining > 0) {
+							this.reportRoomActivity()
+							return
+						}
 						if (!this._room) return
 						this.logEvent({
 							type: 'client',
@@ -316,6 +306,8 @@ export class TLFileDurableObject extends DurableObject {
 						this._room = null
 						room.close()
 						this.logEvent({ type: 'room', name: 'room_empty' })
+						// The write lazy readers depend on most: the room is now empty and R2 is fresh.
+						this.reportRoomActivity()
 						await this._pool?.end()
 						this._pool = null
 						this._db = null
@@ -723,6 +715,12 @@ export class TLFileDurableObject extends DurableObject {
 		storeId ??= params.localClientId
 		const isNewSession = !this._room
 
+		// Lazy transport clients tag why they dialed (first-edit, others-present, ...) so the
+		// rollout can be judged by upgrade mix.
+		if (params.upgradeReason) {
+			this.writeEvent('lazy_socket_upgrade', { blobs: [params.upgradeReason] })
+		}
+
 		// Create the websocket pair for the client; use hibernation API
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		this.state.acceptWebSocket(serverWebSocket)
@@ -745,63 +743,35 @@ export class TLFileDurableObject extends DurableObject {
 			const file = await this.getAppFileRecord()
 
 			if (file) {
-				if (file.isDeleted) {
-					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
-				}
+				const accessTimer = this.timer()
+				const access = await checkReadAccessToFile({
+					env: this.env,
+					db: this.db,
+					file,
+					auth,
+					rateLimitKey: auth?.userId ?? sessionId,
+				})
+				accessTimer.report('on_request_access_check')
 
-				if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
-					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
-				}
-
-				if (!auth && !file.shared) {
-					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
-				}
-
-				const rateLimitTimer = this.timer()
-				if (auth?.userId) {
-					const rateLimited = await isRateLimited(this.env, auth.userId)
-					if (rateLimited) {
-						this.logEvent({
-							type: 'client',
-							userId: auth.userId,
-							name: 'rate_limited',
-						})
-						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
-					}
-				} else {
-					const rateLimited = await isRateLimited(this.env, sessionId)
-					if (rateLimited) {
-						this.logEvent({
-							type: 'client',
-							userId: auth?.userId,
-							name: 'rate_limited',
-						})
-						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+				if (!access.ok) {
+					switch (access.reason) {
+						case 'not-found':
+							return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+						case 'not-authenticated':
+							return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
+						case 'rate-limited':
+							this.logEvent({
+								type: 'client',
+								userId: auth?.userId,
+								name: 'rate_limited',
+							})
+							return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+						case 'forbidden':
+							return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
 				}
-				rateLimitTimer.report('on_request_rate_limit')
 
-				// Check if user has owner access (directly or via group membership)
-				let hasOwnerAccess = false
-				if (file.ownerId && file.ownerId === auth?.userId) {
-					hasOwnerAccess = true
-				} else if (file.owningGroupId && auth?.userId) {
-					// Check the user can access the owning group's files
-					const groupCheckTimer = this.timer()
-					const role = await getRole(this.db, auth.userId, file.owningGroupId)
-					if (can(role, 'accessFiles')) {
-						hasOwnerAccess = true
-					}
-					groupCheckTimer.report('on_request_group_check')
-				}
-
-				if (!hasOwnerAccess && !file.shared) {
-					return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
-				}
-
-				// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain
-				// string column with legacy values in it, so anything else fails closed.
-				if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
+				if (access.isReadonly) {
 					openMode = ROOM_OPEN_MODE.READ_ONLY
 				}
 			}
@@ -847,6 +817,7 @@ export class TLFileDurableObject extends DurableObject {
 				isReadonly,
 				objectAccess,
 			})
+			this.reportRoomActivity()
 			if (isNewSession) {
 				this.logEvent({
 					type: 'client',
@@ -882,36 +853,31 @@ export class TLFileDurableObject extends DurableObject {
 
 		const auth = await getAuth(req, this.env)
 		const file = await this.getAppFileRecord()
-		if (!file || file.isDeleted) {
+		if (!file) {
 			return new Response('Not found', { status: 404 })
-		}
-
-		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, auth))) {
-			return new Response('Not found', { status: 404 })
-		}
-		if (!auth && !file.shared) {
-			return new Response('Unauthorized', { status: 401 })
 		}
 
 		const url = new URL(req.url)
 		const sessionId =
 			url.searchParams.get('instanceId') ?? url.searchParams.get('sessionId') ?? 'anon-download'
-		const rateLimitKey = auth?.userId ?? sessionId
-		if (await isRateLimited(this.env, rateLimitKey)) {
-			return new Response('Rate limited', { status: 429 })
-		}
-
-		let hasOwnerAccess = false
-		if (file.ownerId && file.ownerId === auth?.userId) {
-			hasOwnerAccess = true
-		} else if (file.owningGroupId && auth?.userId) {
-			const role = await getRole(this.db, auth.userId, file.owningGroupId)
-			if (can(role, 'accessFiles')) {
-				hasOwnerAccess = true
+		const access = await checkReadAccessToFile({
+			env: this.env,
+			db: this.db,
+			file,
+			auth,
+			rateLimitKey: auth?.userId ?? sessionId,
+		})
+		if (!access.ok) {
+			switch (access.reason) {
+				case 'not-found':
+					return new Response('Not found', { status: 404 })
+				case 'not-authenticated':
+					return new Response('Unauthorized', { status: 401 })
+				case 'rate-limited':
+					return new Response('Rate limited', { status: 429 })
+				case 'forbidden':
+					return new Response('Forbidden', { status: 403 })
 			}
-		}
-		if (!hasOwnerAccess && !file.shared) {
-			return new Response('Forbidden', { status: 403 })
 		}
 
 		const storage = await this.getStorage()
@@ -1002,6 +968,28 @@ export class TLFileDurableObject extends DurableObject {
 	triggerPersist = throttle(() => {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
+
+	// Advisory activity object for lazy-transport readers (see roomActivity.ts). Written at moments
+	// the durable object is awake anyway; throttled so a join storm coalesces into one write. The
+	// write is fire-and-forget — activity is best-effort and must never fail a connect or persist.
+	private readonly reportRoomActivity = throttle(() => {
+		this.writeRoomActivity().catch(() => {
+			this.logEvent({ type: 'room', name: 'failed_activity_write' })
+		})
+	}, 2000)
+
+	private async writeRoomActivity() {
+		if (!this.documentInfo.isApp) return
+		const activeSessions = this._room ? (await this._room).getNumActiveSessions() : 0
+		const activity: RoomActivitySnapshot = {
+			activeSessions,
+			documentClock: this._lastPersistedClock,
+			updatedAt: Date.now(),
+		}
+		await this.addR2Operation('activity_write', () =>
+			this.env.ROOMS.put(getR2KeyForRoomActivity(this.documentInfo.slug), JSON.stringify(activity))
+		)
+	}
 
 	// Whether a persist on this board costs a thumbnail render, and why. The single source of truth for
 	// both the gate in `requestOgRenderForEdit` and the `sharedState` blob on `persist_success`, so the
@@ -1309,15 +1297,7 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	private async loadCommentsFromPostgres(): Promise<CommentLoadResult> {
-		const fileId = this.documentInfo.slug
-		const [threadRows, commentRows, reactionRows] = await Promise.all([
-			this.db.selectFrom('comment_thread').where('fileId', '=', fileId).selectAll().execute(),
-			this.db.selectFrom('comment').where('fileId', '=', fileId).selectAll().execute(),
-			this.db.selectFrom('comment_reaction').where('fileId', '=', fileId).selectAll().execute(),
-		])
-		// Soft-deleted threads and their comments never re-enter a room, and neither do reactions
-		// whose comment doesn't; their rows stay in Postgres only (see liveCommentDocuments).
-		return liveCommentDocuments(threadRows, commentRows, reactionRows)
+		return loadLiveCommentDocuments(this.db, this.documentInfo.slug)
 	}
 
 	timer() {
@@ -1593,6 +1573,9 @@ export class TLFileDurableObject extends DurableObject {
 							sharedState: this.getBoardRenderState(),
 						})
 						this._lastPersistedClock = snapshot.documentClock
+						// Let lazy-transport pollers see the content clock advance while the room
+						// is occupied.
+						this.reportRoomActivity()
 						// The board's content just changed, so its thumbnail is out of date. Push the render
 						// deadline out rather than rendering now: the useful thumbnail is of the settled
 						// board, and a persist mid-session says more edits are probably coming. Costs one

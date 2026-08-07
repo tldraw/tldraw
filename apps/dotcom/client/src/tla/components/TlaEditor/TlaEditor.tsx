@@ -1,6 +1,6 @@
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
-import { useSync } from '@tldraw/sync'
+import { UseSyncSnapshot, useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	DefaultDebugMenu,
@@ -44,6 +44,8 @@ import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { useLazyBoardSnapshot } from '../../hooks/useLazyBoardSnapshot'
+import { LazyUpgradeReason, useLazySocketUpgrade } from '../../hooks/useLazySocketUpgrade'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
@@ -95,18 +97,28 @@ interface TlaEditorProps {
 }
 
 export function TlaEditor(props: TlaEditorProps) {
+	// Lazy transport: resolve the flag and (maybe) fetch the board's REST snapshot before the
+	// editor mounts, so useSync can hydrate from it instead of dialing the websocket. Resolves to
+	// undefined — the plain websocket path — for anonymous users, flag-off, or any fetch failure.
+	const lazy = useLazyBoardSnapshot(props.fileSlug)
 	// force re-mount when the file slug changes to prevent state from leaking between files
 	return (
 		<>
 			<SneakySetDocumentTitle />
 			<ReadyWrapper key={props.fileSlug}>
-				<TlaEditorInner {...props} key={props.fileSlug} />
+				{lazy.state === 'ready' && (
+					<TlaEditorInner {...props} key={props.fileSlug} lazySnapshot={lazy.snapshot} />
+				)}
 			</ReadyWrapper>
 		</>
 	)
 }
 
-function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
+function TlaEditorInner({
+	fileSlug,
+	deepLinks,
+	lazySnapshot,
+}: TlaEditorProps & { lazySnapshot?: UseSyncSnapshot }) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
 
@@ -232,16 +244,24 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}
 	}, [app?.tlUser.userPreferences])
 
+	// Written by useLazySocketUpgrade before it dials, read by the uri callback below so the
+	// server can attribute lazy upgrades by reason.
+	const upgradeReasonRef = useRef<LazyUpgradeReason | null>(null)
+
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
 			if (hasUser) {
 				url.searchParams.set('accessToken', await getUserToken())
 			}
+			if (upgradeReasonRef.current) {
+				url.searchParams.set('upgradeReason', upgradeReasonRef.current)
+			}
 			return url.toString()
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		users,
+		snapshot: lazySnapshot,
 		// Register the opt-in `comment` record type so comment records sync through the file room.
 		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
 		records: commentSchemaRecords,
@@ -249,6 +269,8 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 			trackEvent(message.type)
 		}, []),
 	})
+
+	useLazySocketUpgrade({ store, snapshot: lazySnapshot, upgradeReasonRef, fileSlug })
 
 	// we need to prevent calling onFileExit if the store is in an error state
 	const storeError = useRef(false)
