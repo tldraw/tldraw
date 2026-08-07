@@ -584,6 +584,29 @@ describe('handleOgImageRenderMessage', () => {
 		).toBe('etag-1')
 	})
 
+	// The resolve above the snapshot read already fetched this row, so it is handed to the read rather
+	// than fetched again — one Postgres connection per job instead of two. The gate still runs, on the
+	// row that was passed (see getSharedFile.test.ts).
+	it('hands the resolved file row to the snapshot read instead of re-reading it', async () => {
+		const file = { id: 'shared-file', shared: true, isDeleted: false }
+		vi.mocked(getSharedFileInfo).mockResolvedValue(file)
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			ROOMS: makeFakeRoomsBucket('etag-1'),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'shared_file', slug: 'shared-file' }))
+
+		expect(getSharedFileRoomSnapshot).toHaveBeenCalledWith(env, 'shared-file', {
+			access: 'render',
+			file,
+		})
+		// Once for the resolve, and not a second time for the read. The follow-up check re-resolves on
+		// purpose, so it is allowed its own.
+		expect(getSharedFileInfo).toHaveBeenCalledTimes(2)
+	})
+
 	it('skips rendering when the cached image already matches the current version', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',

@@ -286,7 +286,13 @@ export async function handleOgImageRenderMessage(
 
 		// Loaded to target the first page that has content, so a board whose first page is empty still
 		// gets a meaningful unfurl image.
-		const snapshot = await loadBoardSnapshot(env, board, { access: 'render' })
+		//
+		// `file` is the row the resolve above already gated on, handed back so this read re-applies the
+		// gate without asking Postgres the same question a second time. Safe precisely here: the two are
+		// microseconds apart in one function, where a re-read would return the row we already hold. The
+		// render page's own read (getThumbnailSnapshot) deliberately does not do this — it is a separate
+		// request, and its re-read is what makes an un-share land inside the token's window.
+		const snapshot = await loadBoardSnapshot(env, board, { access: 'render', file: board.file })
 		if (!snapshot) {
 			// No persisted content. The render page reads the snapshot through the same functions, so it
 			// would 404 and come back as a render failure — after spending a Browser Run slot to learn
