@@ -5,7 +5,8 @@ import { sql } from 'kysely'
 import { FileEffectDeps, processFileEffect } from './fileEffects'
 import { EFFECT_TIMEOUT_MS, MAX_ATTEMPTS, computeNextAlarm, drainOutbox } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
-import { Environment } from './types'
+import { Analytics, Environment } from './types'
+import { EventData, writeDataPoint } from './utils/analytics'
 import { getRoomDurableObject } from './utils/durableObjects'
 import { publishSnapshot, unpublishSnapshot } from './utils/publishSnapshots'
 
@@ -17,10 +18,12 @@ const SWEEP_INTERVAL_MS = 30_000
 export class TLFileEffectProcessor extends DurableObject<Environment> {
 	private drainPromise: Promise<void> | null = null
 	private sentry
+	private measure: Analytics | undefined
 
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
 		this.sentry = createSentry(ctx, env)
+		this.measure = env.MEASURE
 		// Keep the sweep chain alive across restarts/evictions: if the persisted alarm is
 		// missing or past-due (a past-due alarm can't be trusted to fire), re-arm it. Note this
 		// runs only once something instantiates the DO — the first poke() ever is what starts
@@ -44,6 +47,11 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 		if (!this.sentry) {
 			console.error(`[TLFileEffectProcessor]: `, exception)
 		}
+	}
+
+	// eslint-disable-next-line tldraw/prefer-class-methods
+	private writeEvent = (name: string, eventData: EventData) => {
+		writeDataPoint(this.sentry, this.measure, this.env, name, eventData)
 	}
 
 	async poke() {
@@ -84,6 +92,9 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 	}
 
 	private async _drain() {
+		const drainStart = Date.now()
+		let processed = 0
+		let failed = 0
 		const db = createPostgresConnectionPool(this.env, 'TLFileEffectProcessor')
 		const fileDeps: FileEffectDeps = {
 			getCurrentFile: (fileId) =>
@@ -115,8 +126,10 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 						.execute(),
 				deleteRow: async (id) => {
 					await db.deleteFrom('effect_outbox').where('id', '=', id).execute()
+					processed++
 				},
 				bumpAttempts: async (row) => {
+					failed++
 					// Exponential backoff from the row's current attempt count, capped at 5 minutes.
 					// The base IS the effect timeout, so the first retry can't land before a
 					// timed-out RPC's window closes (the RPC keeps running — it can't be cancelled),
@@ -164,10 +177,18 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 						return
 					}
 					await handler(row)
+					// End-to-end effect latency: time from the row landing in the outbox (its
+					// transaction commit) to the effect completing. This is the user-facing number —
+					// how long after a file change the room notification / publish actually lands.
+					this.writeEvent('outbox_effect', {
+						blobs: [row.tableName, row.command],
+						doubles: [Date.now() - new Date(row.createdAt).getTime()],
+					})
 				},
 				onError: (error, row) => {
 					// only report at the parking threshold to avoid a Sentry event per retry
 					if (row.attempts + 1 >= MAX_ATTEMPTS) {
+						this.writeEvent('outbox_parked', { blobs: [row.tableName, row.command] })
 						this.captureException(error, {
 							tableName: row.tableName,
 							entityId: row.entityId,
@@ -179,6 +200,10 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 			})
 		} finally {
 			await db.destroy()
+			// Per-drain summary: throughput (processed/failed) and how long the drain took.
+			// Drains coalesce, so this is low-volume; the sweep also emits an empty summary every
+			// ~30s, which doubles as a liveness heartbeat for the processor.
+			this.writeEvent('outbox_drain', { doubles: [processed, failed, Date.now() - drainStart] })
 		}
 	}
 }
