@@ -4,9 +4,9 @@
 
 This directory currently provisions:
 
-- Nine dashboards: `Zero on Fly.io — service health` (`zero-fly-health`), `Zero slow queries` (`slow-queries`), and `Zero-cache HTTP edge (Fly.io)` (`ni7hhgd`) in the `Zero` folder; `Anthropic scrape overview` in the `Anthropic` folder; `Dotcom events` (`ni5k8zc`), `Dotcom events V1` (`adgumkhou3chsd`), `File effect outbox`, `MCP app sessions`, and `Bemo analytics` in the root folder. The events pipeline currently reports from **staging** — set the environment variable accordingly when a dashboard looks empty.
+- Nine dashboards: `Zero on Fly.io — service health` (`zero-fly-health`), `Zero slow queries` (`slow-queries`), and `Zero-cache HTTP edge (Fly.io)` (`ni7hhgd`) in the `Zero` folder; `Anthropic scrape overview` in the `Anthropic` folder; `Dotcom events` (`ni5k8zc`), `Dotcom events V1` (`adgumkhou3chsd`), `File effect outbox`, `MCP app sessions`, and `Bemo analytics` in the `Dotcom` folder. The events pipeline currently reports from **staging** — set the environment variable accordingly when a dashboard looks empty.
 - All 12 Grafana-managed alert rules (Zero replication/errors/backups, Fly.io container health, Anthropic cost/usage)
-- The folders `Zero` (dashboard + 9 rules) and `Anthropic` (3 cost rules)
+- The folders `Zero` (dashboards + 9 rules), `Dotcom` (5 dashboards), and `Anthropic` (1 dashboard + 3 cost rules)
 
 Contact points, notification policies, and data sources are hand-managed in Grafana on purpose.
 

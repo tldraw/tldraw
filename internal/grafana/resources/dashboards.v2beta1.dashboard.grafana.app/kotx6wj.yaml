@@ -2,7 +2,7 @@ apiVersion: dashboard.grafana.app/v2beta1
 kind: Dashboard
 metadata:
   annotations:
-    grafana.app/folder: ''
+    grafana.app/folder: dotcom
     grafana.app/saved-from-ui: Grafana Cloud (steady)
   labels: {}
   name: kotx6wj

@@ -1,7 +1,8 @@
 apiVersion: dashboard.grafana.app/v0alpha1
 kind: Dashboard
 metadata:
-  annotations: {}
+  annotations:
+    grafana.app/folder: dotcom
   labels: {}
   name: edrigjn435v5sf
   namespace: stacks-890472
