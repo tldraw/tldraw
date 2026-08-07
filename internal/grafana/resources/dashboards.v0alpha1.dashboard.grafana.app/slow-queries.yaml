@@ -268,7 +268,7 @@ spec:
         h: 5
         w: 16
         x: 8
-        y: 6
+        y: 11
       id: 15
       options:
         legend:
@@ -304,7 +304,7 @@ spec:
         h: 1
         w: 24
         x: 0
-        y: 11
+        y: 16
       id: 7
       panels: []
       title: By statement
@@ -326,7 +326,7 @@ spec:
         h: 11
         w: 12
         x: 0
-        y: 12
+        y: 17
       id: 8
       options:
         showHeader: true
@@ -371,7 +371,7 @@ spec:
         h: 11
         w: 12
         x: 12
-        y: 12
+        y: 17
       id: 9
       options:
         showHeader: true
@@ -406,7 +406,7 @@ spec:
         h: 1
         w: 24
         x: 0
-        y: 23
+        y: 28
       id: 10
       panels: []
       title: By table
@@ -432,7 +432,7 @@ spec:
         h: 9
         w: 12
         x: 0
-        y: 24
+        y: 29
       id: 11
       options:
         legend:
@@ -473,7 +473,7 @@ spec:
         h: 9
         w: 12
         x: 12
-        y: 24
+        y: 29
       id: 12
       options:
         legend:
@@ -501,7 +501,7 @@ spec:
         h: 1
         w: 24
         x: 0
-        y: 33
+        y: 38
       id: 13
       panels: []
       title: Raw logs
@@ -513,7 +513,7 @@ spec:
         h: 12
         w: 24
         x: 0
-        y: 34
+        y: 39
       id: 14
       options:
         dedupStrategy: none
