@@ -61,7 +61,7 @@ test.describe('workspaces', () => {
 			await expect(homeItem).toBeVisible()
 		})
 
-		test('clicking a file while the switcher is open closes it and opens that file', async ({
+		test('clicking a file while the switcher is open only dismisses it', async ({
 			page,
 			sidebar,
 		}) => {
@@ -78,8 +78,9 @@ test.describe('workspaces', () => {
 			const homeItem = page.getByTestId('tla-workspace-switcher-home')
 			await expect(homeItem).toBeVisible()
 
-			// Clicking a file link while the switcher is open should both dismiss the switcher
-			// and open that file — letting the click fall through to the sidebar is intended.
+			// Clicking a file link while the switcher is open should ONLY dismiss the switcher. The
+			// sidebar's menu-click-capture overlay absorbs the press, so it must not also navigate
+			// to that file (no click-through).
 			const menuBox = await page.locator('[role="menu"]').boundingBox()
 			if (!menuBox) throw new Error('Missing workspace switcher menu')
 
@@ -104,8 +105,76 @@ test.describe('workspaces', () => {
 
 			await page.mouse.click(target.x, target.y)
 
+			// The switcher dismisses, but the active file is unchanged — the press did not click
+			// through to the file we aimed at.
 			await expect(homeItem).toBeHidden()
-			await sidebar.expectFileActive(target.name)
+			await sidebar.expectFileActive(file3)
+		})
+
+		test('clicking another menu trigger while the switcher is open only dismisses it', async ({
+			page,
+			sidebar,
+		}) => {
+			await sidebar.createNewDocument()
+
+			await sidebar.openWorkspaceSwitcher()
+			const homeItem = page.getByTestId('tla-workspace-switcher-home')
+			await expect(homeItem).toBeVisible()
+
+			// The user-settings trigger sits under the overlay too. Pressing it dismisses the
+			// switcher but must not open the user-settings menu — opening a second menu takes a
+			// second press.
+			const trigger = page.getByTestId('tla-sidebar-user-settings-trigger')
+			const box = await trigger.boundingBox()
+			if (!box) throw new Error('Missing user settings trigger')
+			await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+
+			await expect(homeItem).toBeHidden()
+			await expect(page.getByRole('menu')).toHaveCount(0)
+		})
+
+		test('a canvas press dismisses the switcher without drawing, but a drag draws', async ({
+			page,
+			sidebar,
+		}) => {
+			await sidebar.createNewDocument()
+			await page.evaluate(() => (window as any).editor.setCurrentTool('draw'))
+
+			await sidebar.openWorkspaceSwitcher()
+			const homeItem = page.getByTestId('tla-workspace-switcher-home')
+			await expect(homeItem).toBeVisible()
+
+			// A plain click on the canvas dismisses the switcher without drawing a dot — the
+			// canvas's own MenuClickCapture absorbs the click.
+			await page.mouse.click(600, 300)
+			await expect(homeItem).toBeHidden()
+			expect(await page.evaluate(() => (window as any).editor.getCurrentPageShapes().length)).toBe(
+				0
+			)
+
+			// A click-drag dismisses AND draws from the press location — click-to-draw is preserved.
+			await sidebar.openWorkspaceSwitcher()
+			await expect(homeItem).toBeVisible()
+			await page.mouse.move(600, 300)
+			await page.mouse.down()
+			await page.mouse.move(700, 400, { steps: 10 })
+			await page.mouse.up()
+			await expect(homeItem).toBeHidden()
+			expect(
+				await page.evaluate(() => (window as any).editor.getCurrentPageShapes().length)
+			).toBeGreaterThan(0)
+		})
+
+		test('toggling the sidebar closed dismisses its open menus', async ({ page, sidebar }) => {
+			await sidebar.openWorkspaceSwitcher()
+			const homeItem = page.getByTestId('tla-workspace-switcher-home')
+			await expect(homeItem).toBeVisible()
+
+			// Ctrl/Cmd+\ toggles the sidebar closed. The switcher must close with it — it's rendered
+			// by the (still-mounted) sidebar, so it would otherwise hang over the canvas. No outside
+			// click is involved here, so this exercises the hide-driven dismissal specifically.
+			await page.keyboard.press('Control+\\')
+			await expect(homeItem).toBeHidden()
 		})
 
 		test('closing the mobile sidebar closes open sidebar menus', async ({ page, sidebar }) => {
