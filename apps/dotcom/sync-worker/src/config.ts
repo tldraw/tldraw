@@ -130,18 +130,23 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  * alone changes nothing in production. Each budget has its own binding, and the pairs must move
  * together:
  *
- *   MCP_PER_IP_RATE_LIMIT              ->  MCP_SCREENSHOT_RATE_LIMITER      (limit = 10)
+ *   MCP_PER_USER_RATE_LIMIT            ->  MCP_SCREENSHOT_RATE_LIMITER      (limit = 10)
  *   MCP_PER_BOARD_RATE_LIMIT           ->  MCP_SERVER_BOARD_RATE_LIMITER    (limit = 2)
  *   MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT  ->  MCP_SERVER_BROWSER_RATE_LIMITER  (limit = 20)
  *
- * Per-board is far below per-IP on purpose: a caller gets 10 captures a minute, but no single board
- * may absorb more than 2 of them. Cache misses only, so this does not bound the usual "screenshot
- * several pages of one board" flow — a repeated capture of the same page is a cache hit.
+ * The first of these keyed on client IP until the endpoint required authentication. An account is
+ * the better key in both directions: a proxy pool no longer buys a caller more budget, and everyone
+ * behind one NAT no longer shares a single one. IP limits still matter on endpoints with no caller
+ * identity — the render page's snapshot route, and anything the OAuth flow exposes.
+ *
+ * Per-board is far below per-user on purpose: a caller gets 10 captures a minute, but no single
+ * board may absorb more than 2 of them. Cache misses only, so this does not bound the usual
+ * "screenshot several pages of one board" flow — a repeated capture of the same page is a cache hit.
  *
  * The window matches the period configured on the Cloudflare bindings, which only support 60s (or
  * 10s) periods — this is the one number here that is Cloudflare's rather than ours.
  */
-export const MCP_PER_IP_RATE_LIMIT = 10
+export const MCP_PER_USER_RATE_LIMIT = 10
 export const MCP_PER_BOARD_RATE_LIMIT = 2
 export const MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT = 20
 export const MCP_RATE_LIMIT_WINDOW_MS = 60_000

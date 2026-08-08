@@ -117,6 +117,10 @@ BOTCOM_POSTGRES_POOLED_CONNECTION_STRING = "postgresql://user:password@127.0.0.1
 TLDRAW_ENV = "development"
 MULTIPLAYER_SERVER = "http://localhost:3000"
 MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
+# The MCP server's public URL, which is also its OAuth resource identifier: what protected resource
+# metadata advertises and what an access token's `aud` must match. Points at the client dev server
+# because that is what proxies /api and /.well-known through to this worker.
+MCP_SERVER_URL = "http://localhost:3000/api/app/mcp"
 # Kill switch for the MCP screenshot server (POST /app/mcp). Read per request, so setting it to
 # anything but "true" — here or straight in the Cloudflare dashboard — takes the endpoint down
 # without a rebuild. A dashboard edit lasts until the next deploy overwrites it from this file.
@@ -140,6 +144,7 @@ HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
+MCP_SERVER_URL = "https://staging.tldraw.com/api/app/mcp"
 MCP_SCREENSHOT_ENABLED = "true"
 
 # production gets the proper name
@@ -152,6 +157,7 @@ HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"
 HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://www.tldraw.com"
+MCP_SERVER_URL = "https://www.tldraw.com/api/app/mcp"
 MCP_SCREENSHOT_ENABLED = "true"
 
 #################### Routing ####################
@@ -161,6 +167,14 @@ MCP_SCREENSHOT_ENABLED = "true"
 zone_name = "tldraw.com"
 pattern = "staging.tldraw.com/api/*"
 
+# OAuth protected resource metadata for the MCP server. RFC 9728 puts it at the resource's *origin*,
+# under /.well-known/oauth-protected-resource + the resource path, so it falls outside the /api/*
+# pattern above and needs its own route. Without it a client fetches the metadata URL, gets the SPA's
+# index.html, and never discovers where to authenticate — a failure that logs nothing on our side.
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging.tldraw.com/.well-known/oauth-protected-resource/*"
+
 [[env.staging.routes]]
 custom_domain = true
 pattern = "staging-sync.tldraw.xyz"
@@ -168,6 +182,11 @@ pattern = "staging-sync.tldraw.xyz"
 [[env.production.routes]]
 zone_name = "tldraw.com"
 pattern = "www.tldraw.com/api/*"
+
+# See the staging comment above.
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "www.tldraw.com/.well-known/oauth-protected-resource/*"
 
 [[env.production.routes]]
 custom_domain = true

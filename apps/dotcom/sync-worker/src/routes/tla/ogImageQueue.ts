@@ -307,6 +307,7 @@ export async function handleOgImageRenderMessage(
 		// The render page exports the chosen page; the worker screenshots it through the BROWSER
 		// binding and writes the PNG to the cache key the OG route reads.
 		const render = await captureThumbnailScreenshot(env, board, {
+			surface: 'og',
 			pageId: pickOgImagePageId(snapshot),
 			theme: 'light',
 			width: DEFAULT_THUMBNAIL_WIDTH,

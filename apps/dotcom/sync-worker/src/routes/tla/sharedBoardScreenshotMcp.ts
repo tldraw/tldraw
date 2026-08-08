@@ -3,13 +3,15 @@ import { IRequest } from 'itty-router'
 import {
 	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
 	MCP_PER_BOARD_RATE_LIMIT,
-	MCP_PER_IP_RATE_LIMIT,
+	MCP_PER_USER_RATE_LIMIT,
 	MCP_RATE_LIMIT_WINDOW_MS,
 } from '../../config'
 import { Environment } from '../../types'
 import { arrayBufferToBase64 } from '../../utils/base64'
 import { sha256 } from '../../utils/hash'
+import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
+import { authenticateMcpRequest } from './mcpAuth'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
@@ -28,17 +30,37 @@ import {
 } from './thumbnailShared'
 
 // The MCP protocol surface over the shared render-and-cache core in thumbnailRender.ts: JSON-RPC
-// plumbing, tool definitions, input parsing, and the MCP tools' own per-IP/per-board rate limits
-// and `mcp/` cache keys.
+// plumbing, tool definitions, input parsing, and the MCP tools' own per-user/per-board rate limits
+// and `mcp/` cache keys. Authentication and the feature flag gate live in mcpAuth.ts, applied to the
+// whole endpoint before any of this runs.
 
 const SCREENSHOT_TOOL_NAME = 'get_shared_board_screenshot'
 const BOARD_INFO_TOOL_NAME = 'get_board_info'
-const MCP_PROTOCOL_VERSION = '2024-11-05'
 
-// The MCP rate limit budgets themselves live in config.ts (MCP_PER_IP_RATE_LIMIT and friends), with
-// the comment that maps each isolate-local fallback to its deployed Cloudflare binding. They are
-// applied here rather than in the shared render core so a new surface built on those helpers cannot
-// pick one up by accident.
+// The versions this server will speak, newest first.
+//
+// `2024-11-05` is deliberately absent, and dropping it is what made authentication possible: MCP had
+// no authorization flow until `2025-03-26`, so a client holding this server to that version has no
+// conformant way to obtain the token every request now needs. Advertising it would leave those
+// clients unable to authenticate but convinced the server was working as specified.
+const MCP_PROTOCOL_VERSION = '2025-06-18'
+const SUPPORTED_MCP_PROTOCOL_VERSIONS = [MCP_PROTOCOL_VERSION, '2025-03-26']
+// What to assume when a request carries no MCP-Protocol-Version header. The spec names this exact
+// fallback: the header was introduced in 2025-06-18, so its absence means an earlier client rather
+// than a malformed request.
+const ASSUMED_MCP_PROTOCOL_VERSION = '2025-03-26'
+
+// One message for every way a board can fail to resolve, used by both tools. Deliberately silent on
+// which: a board id is something the caller types, so an error that told "this exists but is not
+// yours" apart from "this does not exist" would let anyone test file ids for existence. It also
+// cannot name what would fix it, since the caller may simply be signed in as the wrong account.
+const BOARD_NOT_FOUND =
+	'No board was found with this id, or this account does not have access to it. Boards you own, boards shared with you via link, and published boards are supported.'
+
+// The MCP rate limit budgets themselves live in config.ts (MCP_PER_USER_RATE_LIMIT and friends),
+// with the comment that maps each isolate-local fallback to its deployed Cloudflare binding. They
+// are applied here rather than in the shared render core so a new surface built on those helpers
+// cannot pick one up by accident.
 const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
 const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
 
@@ -89,6 +111,7 @@ interface JsonRpcRequest {
 	params?: {
 		name?: string
 		arguments?: unknown
+		protocolVersion?: unknown
 	}
 }
 
@@ -123,6 +146,16 @@ export async function sharedBoardScreenshotMcp(
 		return new Response('MCP screenshot server expects POST', { status: 405 })
 	}
 
+	// Every request, `initialize` included: MCP's authorization flow expects the unauthenticated call
+	// to answer 401 with a pointer to the metadata, which is how a client discovers it needs to sign
+	// the user in at all. There is no anonymous tier here — this endpoint used to serve any caller
+	// naming a public board, and requiring a token retires that deliberately.
+	const auth = await authenticateMcpRequest(request, env)
+	if (!auth.ok) return auth.response
+
+	const protocolVersionError = checkRequestProtocolVersion(request)
+	if (protocolVersionError) return protocolVersionError
+
 	const rpcRequest = await readJsonRpcRequest(request)
 	if (!rpcRequest) {
 		return jsonRpcError(null, -32700, 'Parse error')
@@ -135,15 +168,17 @@ export async function sharedBoardScreenshotMcp(
 	switch (rpcRequest.method) {
 		case 'initialize':
 			return jsonRpcResult(rpcRequest.id, {
-				protocolVersion: MCP_PROTOCOL_VERSION,
+				// Echo the client's version when we speak it, so a client on an older-but-supported
+				// version is not forced to downgrade its expectations of us or reconnect.
+				protocolVersion: negotiateProtocolVersion(rpcRequest.params?.protocolVersion),
 				capabilities: { tools: {} },
 				serverInfo: {
 					name: 'tldraw-shared-board-screenshot',
-					title: 'tldraw shared board screenshots',
-					version: '2.0.0',
+					title: 'tldraw board screenshots',
+					version: '3.0.0',
 				},
 				instructions:
-					'MCP server for public tldraw.com boards. get_board_info lists a board’s pages; get_shared_board_screenshot returns a PNG for one page. Accepts published tldraw.com/p/:slug boards and anonymously-shared tldraw.com/f/:slug files, rendered through a signed, tldraw-owned render job.',
+					'MCP server for tldraw.com boards you have access to. get_board_info lists a board’s pages; get_shared_board_screenshot returns a PNG for one page. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job.',
 			})
 		case 'ping':
 			return jsonRpcResult(rpcRequest.id, {})
@@ -156,12 +191,18 @@ export async function sharedBoardScreenshotMcp(
 				case BOARD_INFO_TOOL_NAME:
 					return jsonRpcResult(
 						rpcRequest.id,
-						await callBoardInfoTool(rpcRequest.params.arguments, request, env, ctx)
+						await callBoardInfoTool(rpcRequest.params.arguments, request, env, auth.userId, ctx)
 					)
 				case SCREENSHOT_TOOL_NAME:
 					return jsonRpcResult(
 						rpcRequest.id,
-						await callSharedBoardScreenshotTool(rpcRequest.params.arguments, request, env, ctx)
+						await callSharedBoardScreenshotTool(
+							rpcRequest.params.arguments,
+							request,
+							env,
+							auth.userId,
+							ctx
+						)
 					)
 				default:
 					return jsonRpcError(rpcRequest.id, -32602, `Unknown tool: ${rpcRequest.params?.name}`)
@@ -169,6 +210,29 @@ export async function sharedBoardScreenshotMcp(
 		default:
 			return jsonRpcError(rpcRequest.id, -32601, `Method not found: ${rpcRequest.method}`)
 	}
+}
+
+// Answers `initialize` with the client's requested version when we speak it, and with our newest
+// otherwise — which is what the spec asks for, leaving the client to decide whether it can proceed.
+function negotiateProtocolVersion(requested: unknown): string {
+	return typeof requested === 'string' && SUPPORTED_MCP_PROTOCOL_VERSIONS.includes(requested)
+		? requested
+		: MCP_PROTOCOL_VERSION
+}
+
+// From 2025-06-18 a client states the negotiated version on every subsequent request, and a server
+// that cannot speak it must refuse rather than guess. Rejected at the transport layer with a plain
+// 400, not a JSON-RPC error, because the disagreement is about the envelope rather than the call.
+function checkRequestProtocolVersion(request: Request): Response | null {
+	const version = request.headers.get('mcp-protocol-version') ?? ASSUMED_MCP_PROTOCOL_VERSION
+	if (SUPPORTED_MCP_PROTOCOL_VERSIONS.includes(version)) return null
+	return Response.json(
+		{
+			error: 'unsupported_protocol_version',
+			error_description: `Unsupported MCP-Protocol-Version: ${version}. Supported: ${SUPPORTED_MCP_PROTOCOL_VERSIONS.join(', ')}.`,
+		},
+		{ status: 400 }
+	)
 }
 
 export function parseSharedBoardScreenshotInput(input: unknown): SharedBoardScreenshotInput {
@@ -221,16 +285,33 @@ function parsePageOrdinal(value: unknown): number {
 	return value
 }
 
-// A board id is tried as a shared file id first (the /f/:slug namespace, where the slug is the
-// file id) and as a published-board slug (/p/:slug) second, so callers never need to know which
-// kind of board they hold. A shared file that resolves as empty is still the caller's board, so it
-// does not fall through to the published lookup and get misreported as not found.
-export async function resolveSharedBoardById(
+/**
+ * Resolves a board id **for one user**, which is the whole point of authenticating this server: the
+ * gate is "can this caller see this board" rather than "is this board public", so a user's own
+ * private files are reachable and a board nobody shared with them is not.
+ *
+ * A board id is tried as a file id first (the /f/:slug namespace, where the slug is the file id) and
+ * as a published-board slug (/p/:slug) second, so callers never need to know which kind of board they
+ * hold. A file that resolves as empty is still the caller's board, so it does not fall through to the
+ * published lookup and get misreported as not found.
+ *
+ * The file branch resolves under `render` rather than `public` once the access check passes — that is
+ * what lets it reach an unshared board, and it is why `captureThumbnailScreenshot` mints a recorded
+ * two-factor token for this surface. Published boards stay `public`: the published slug is the whole
+ * capability, and no user check narrows or widens it.
+ *
+ * Both failures answer the same `not_found`, deliberately. Distinguishing "no such board" from "you
+ * cannot see it" would make this an existence oracle for file ids, which a caller supplies directly.
+ */
+export async function resolveSharedBoardForUser(
 	env: Environment,
-	boardId: string
+	boardId: string,
+	userId: string
 ): Promise<ResolveThumbnailBoardResult> {
-	const shared = await resolveThumbnailBoard(env, 'shared_file', boardId, { access: 'public' })
-	if (shared.ok || shared.reason === 'board_empty') return shared
+	if (await hasReadAccessToFile(env, userId, boardId)) {
+		const file = await resolveThumbnailBoard(env, 'shared_file', boardId, { access: 'render' })
+		if (file.ok || file.reason === 'board_empty') return file
+	}
 	return resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
 }
 
@@ -248,6 +329,7 @@ async function callBoardInfoTool(
 	argumentsValue: unknown,
 	request: Request,
 	env: Environment,
+	userId: string,
 	ctx?: ExecutionContext
 ) {
 	let input: { boardId: string }
@@ -259,16 +341,18 @@ async function callBoardInfoTool(
 
 	// Not rate limited: the limiters here bound Browser Run, and this call spends none.
 	try {
-		const resolved = await resolveSharedBoardById(env, input.boardId)
+		const resolved = await resolveSharedBoardForUser(env, input.boardId, userId)
 		if (!resolved.ok) {
 			return toolError(
-				resolved.reason === 'board_empty'
-					? 'This board has no saved content yet.'
-					: 'No public board was found with this id. Only published boards and files shared via link are supported.'
+				resolved.reason === 'board_empty' ? 'This board has no saved content yet.' : BOARD_NOT_FOUND
 			)
 		}
 
-		const snapshot = await loadBoardSnapshot(env, resolved.board, { access: 'public' })
+		// Read under the gate the board resolved under, not a fixed one, so a private file the caller
+		// owns is readable and a published board is still held to the published check.
+		const snapshot = await loadBoardSnapshot(env, resolved.board, {
+			access: resolved.board.access,
+		})
 		if (!snapshot) {
 			return toolError('This board has no saved content yet.')
 		}
@@ -298,10 +382,13 @@ async function callSharedBoardScreenshotTool(
 	argumentsValue: unknown,
 	request: Request,
 	env: Environment,
+	userId: string,
 	ctx?: ExecutionContext
 ) {
-	const clientIp = getClientIp(request)
-	const ipHash = clientIp ? await sha256(clientIp) : 'unknown'
+	// Hashed rather than raw, so the dataset holds an account that spend or abuse can be traced back
+	// to without carrying user ids around. Replaces the hashed client IP this used before it required
+	// authentication — IP was weak in both directions, evaded by a proxy pool and shared across a NAT.
+	const callerHash = await sha256(userId)
 	let input: SharedBoardScreenshotInput
 	try {
 		input = parseSharedBoardScreenshotInput(argumentsValue)
@@ -309,7 +396,7 @@ async function callSharedBoardScreenshotTool(
 		// Telemetry gets a bounded reason code; the caller gets the specific validation message.
 		writeScreenshotTelemetry(env, {
 			source: 'mcp',
-			ipHash,
+			callerHash,
 			cacheStatus: 'miss',
 			failureReason: 'invalid_input',
 		})
@@ -322,33 +409,37 @@ async function callSharedBoardScreenshotTool(
 		failureReason?: string
 		rateLimitAllowed?: boolean
 	}) => {
-		writeScreenshotTelemetry(env, { source: 'mcp', ipHash, ...data })
+		writeScreenshotTelemetry(env, { source: 'mcp', callerHash, ...data })
 	}
 
-	// Checked before the cache, unlike the two below: this is the per-client ceiling on calls, not on
+	// Checked before the cache, unlike the two below: this is the per-caller ceiling on calls, not on
 	// captures, so a caller looping over cache hits is still bounded.
 	if (
-		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-shot:${clientIp ?? 'unknown'}`, {
-			fallbackLimit: MCP_PER_IP_RATE_LIMIT,
+		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `user:${userId}`, {
+			fallbackLimit: MCP_PER_USER_RATE_LIMIT,
 		})
 	) {
-		telemetry({ cacheStatus: 'miss', rateLimitAllowed: false, failureReason: 'rate_limited_ip' })
+		telemetry({ cacheStatus: 'miss', rateLimitAllowed: false, failureReason: 'rate_limited_user' })
 		return toolError(
-			`Rate limited. Shared board screenshots are limited to about ${MCP_PER_IP_RATE_LIMIT} requests per minute per IP.`
+			`Rate limited. Board screenshots are limited to about ${MCP_PER_USER_RATE_LIMIT} requests per minute per account.`
 		)
 	}
 
 	try {
-		const resolved = await resolveSharedBoardById(env, input.boardId)
+		// The access check runs here, ahead of everything below it, and that ordering is load-bearing:
+		// the cache read further down is what it gates. `MCP_SCREENSHOTS` keys carry no viewer
+		// dimension, so a private board cached for its owner would otherwise be served to anyone who
+		// named the right board id. Gating the read rather than adding a viewer to the key is also the
+		// cheaper fix — a viewer dimension would multiply the object count and turn one shared render
+		// into one render per caller.
+		const resolved = await resolveSharedBoardForUser(env, input.boardId, userId)
 		if (!resolved.ok) {
 			if (resolved.reason === 'board_empty') {
 				telemetry({ cacheStatus: 'miss', failureReason: 'board_empty' })
 				return toolError('This board has no saved content to screenshot yet.')
 			}
 			telemetry({ cacheStatus: 'miss', failureReason: 'not_found' })
-			return toolError(
-				'No public board was found with this id. Only published boards and files shared via link can be screenshotted.'
-			)
+			return toolError(BOARD_NOT_FOUND)
 		}
 		const board = resolved.board
 		if (!env.MCP_DATA_BUCKET) {
@@ -369,7 +460,7 @@ async function callSharedBoardScreenshotTool(
 
 		// Cache miss: load the snapshot to resolve the ordinal to a real page (id + name) and validate
 		// the range.
-		const snapshot = await loadBoardSnapshot(env, board, { access: 'public' })
+		const snapshot = await loadBoardSnapshot(env, board, { access: board.access })
 		if (!snapshot) {
 			telemetry({ cacheStatus: 'miss', failureReason: 'board_empty' })
 			return toolError('This board has no saved content to screenshot yet.')
@@ -411,6 +502,7 @@ async function callSharedBoardScreenshotTool(
 		}
 
 		const render = await captureThumbnailScreenshot(env, board, {
+			surface: 'mcp',
 			pageId: targetPage.id,
 			theme: input.theme,
 			width: DEFAULT_THUMBNAIL_WIDTH,
@@ -440,8 +532,8 @@ async function callSharedBoardScreenshotTool(
 		return toolPageResult(targetPage.name, render.base64)
 	} catch (error) {
 		// One bounded reason code drives both the telemetry blob (so unbounded error strings never inflate
-		// that dimension) and the caller's message (so internal Postgres/R2 detail never reaches this
-		// anonymous endpoint). Sentry gets the unbounded original.
+		// that dimension) and the caller's message (so internal Postgres/R2 detail never reaches an
+		// outside caller, authenticated or not). Sentry gets the unbounded original.
 		reportThumbnailError(error, {
 			ctx,
 			env,
@@ -497,7 +589,7 @@ function getBoardInfoToolDefinition() {
 		name: BOARD_INFO_TOOL_NAME,
 		title: 'Get tldraw board info',
 		description:
-			'Return metadata for a public tldraw.com board: its name, page count, and the name, 0-based index, and hasContent flag for each page. Call this first to discover pages, then pass a page index to get_shared_board_screenshot. Accepts the id of a published board (the :slug in tldraw.com/p/:slug) or an anonymously-shared file (the :slug in tldraw.com/f/:slug).',
+			'Return metadata for a tldraw.com board you have access to: its name, page count, and the name, 0-based index, and hasContent flag for each page. Call this first to discover pages, then pass a page index to get_shared_board_screenshot. Accepts the id of a file you can open (the :slug in tldraw.com/f/:slug) or of a published board (the :slug in tldraw.com/p/:slug).',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -505,7 +597,7 @@ function getBoardInfoToolDefinition() {
 				boardId: {
 					type: 'string',
 					description:
-						'The id of a public tldraw.com board: the :slug of a published board URL (https://www.tldraw.com/p/:slug) or of an anonymously-shared file URL (https://www.tldraw.com/f/:slug).',
+						'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
 				},
 			},
 			required: ['boardId'],
@@ -524,8 +616,8 @@ function getSharedBoardScreenshotToolDefinition() {
 		name: SCREENSHOT_TOOL_NAME,
 		title: 'Get shared tldraw board screenshot',
 		description:
-			`Return a ${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT} content-fit PNG screenshot of a single page of a public tldraw.com board, preceded by the page name. Each call renders exactly one page; use get_board_info to list a board's pages, then pass the page's index. ` +
-			'Accepts the id of a published board (the :slug in tldraw.com/p/:slug) or an anonymously-shared file (the :slug in tldraw.com/f/:slug), and renders through a signed tldraw-owned render job.',
+			`Return a ${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT} content-fit PNG screenshot of a single page of a tldraw.com board you have access to, preceded by the page name. Each call renders exactly one page; use get_board_info to list a board's pages, then pass the page's index. ` +
+			'Accepts the id of a file you can open (the :slug in tldraw.com/f/:slug) or of a published board (the :slug in tldraw.com/p/:slug), and renders through a signed tldraw-owned render job.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -533,7 +625,7 @@ function getSharedBoardScreenshotToolDefinition() {
 				boardId: {
 					type: 'string',
 					description:
-						'The id of a public tldraw.com board: the :slug of a published board URL (https://www.tldraw.com/p/:slug) or of an anonymously-shared file URL (https://www.tldraw.com/f/:slug).',
+						'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
 				},
 				page: {
 					type: 'number',
@@ -556,11 +648,6 @@ function getSharedBoardScreenshotToolDefinition() {
 			destructiveHint: false,
 		},
 	}
-}
-
-function getClientIp(request: Request) {
-	const forwardedFor = request.headers.get('x-forwarded-for')
-	return request.headers.get('cf-connecting-ip') ?? forwardedFor?.split(',')[0]?.trim() ?? null
 }
 
 async function readJsonRpcRequest(request: Request): Promise<JsonRpcRequest | null> {

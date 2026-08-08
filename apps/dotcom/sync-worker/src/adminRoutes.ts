@@ -1,8 +1,8 @@
 import {
 	AdminFileAssetsResponseBody,
+	AllowlistEntry,
 	FILE_PREFIX,
 	FeatureFlagKey,
-	FriendsAndFamilyEntry,
 	LOCAL_FILE_PREFIX,
 	PUBLISH_PREFIX,
 	ROOM_PREFIX,
@@ -26,12 +26,12 @@ import {
 	getRoomDurableObject,
 	getUserDurableObject,
 } from './utils/durableObjects'
-import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
 import {
-	getFriendsAndFamilyList,
-	parseFriendsAndFamilyEmails,
-	setFriendsAndFamilyList,
-} from './utils/mcpFriendsAndFamily'
+	FEATURE_FLAG_KEYS,
+	getFeatureFlagsAdmin,
+	parseAllowlistEmails,
+	setFeatureFlag,
+} from './utils/featureFlags'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
 
 /**
@@ -40,13 +40,13 @@ import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/get
  * per address, and an email with no tldraw account fails the save instead of being stored as an
  * entry that can never match.
  */
-async function resolveFriendsAndFamilyUsers(
+async function resolveAllowlistUsers(
 	env: Environment,
 	emails: string[]
-): Promise<FriendsAndFamilyEntry[]> {
+): Promise<AllowlistEntry[]> {
 	if (!emails.length) return []
 
-	const db = createPostgresConnectionPool(env, '/app/admin/mcp-friends-and-family')
+	const db = createPostgresConnectionPool(env, '/app/admin/feature-flags')
 	try {
 		const rows = await db
 			.selectFrom('user')
@@ -158,7 +158,7 @@ export const adminRoutes = createRouter<Environment>()
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
 		const body: any = await req.json()
-		const { flag, enabled, percentage } = body
+		const { flag, enabled, percentage, emails } = body
 
 		if (typeof flag !== 'string') {
 			throw new StatusError(400, 'flag (string) is required')
@@ -177,31 +177,26 @@ export const adminRoutes = createRouter<Environment>()
 			throw new StatusError(400, `Invalid flag. Must be one of: ${FEATURE_FLAG_KEYS.join(', ')}`)
 		}
 
-		const update: { enabled?: boolean; percentage?: number } = {}
+		const update: { enabled?: boolean; percentage?: number; users?: AllowlistEntry[] } = {}
 		if (enabled !== undefined) update.enabled = enabled
 		if (percentage !== undefined) update.percentage = percentage
+		if (emails !== undefined) {
+			// An allowlist is edited as emails and stored as user ids. Parsing before resolving means a
+			// typo is rejected at the point someone can still fix it, rather than sitting in the list
+			// looking like it grants access while matching nothing; resolving at save time means an email
+			// with no tldraw account fails the save instead of being stored as an entry that can never
+			// match.
+			let parsed: string[]
+			try {
+				parsed = parseAllowlistEmails(emails)
+			} catch (e) {
+				throw new StatusError(400, e instanceof Error ? e.message : String(e))
+			}
+			update.users = await resolveAllowlistUsers(env, parsed)
+		}
 
 		await setFeatureFlag(env, flag as FeatureFlagKey, update)
 		return json({ success: true, flag, ...update })
-	})
-	.get('/app/admin/mcp-friends-and-family', async (_req, env) => {
-		return json({ entries: await getFriendsAndFamilyList(env) })
-	})
-	.post('/app/admin/mcp-friends-and-family', async (req, env) => {
-		const body: any = await req.json()
-
-		// Parsing before resolving means a typo is rejected at the point someone can still fix it,
-		// rather than sitting in the list looking like it grants access while matching nothing.
-		let emails: string[]
-		try {
-			emails = parseFriendsAndFamilyEmails(body?.entries)
-		} catch (e) {
-			throw new StatusError(400, e instanceof Error ? e.message : String(e))
-		}
-
-		const entries = await resolveFriendsAndFamilyUsers(env, emails)
-		await setFriendsAndFamilyList(env, entries)
-		return json({ success: true, entries })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()

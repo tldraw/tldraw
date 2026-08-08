@@ -1,4 +1,5 @@
 import {
+	AllowlistEntry,
 	EvaluatedFeatureFlag,
 	FEATURE_FLAG_KEYS,
 	FeatureFlagKey,
@@ -23,11 +24,12 @@ function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagV
 			description:
 				'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
 		},
-		mcp_friends_and_family: {
-			type: 'boolean',
+		mcp_server_access: {
+			type: 'allowlist',
+			users: [],
 			enabled: false,
 			description:
-				'Raises the /app/mcp rate limits for signed-in callers on the friends and family list (edited below)',
+				'Access to the board screenshot MCP server at /api/app/mcp. Off by default: the endpoint requires auth, so an unset flag denies everyone rather than leaving it open',
 		},
 	}
 }
@@ -70,7 +72,8 @@ export async function getFeatureFlagValue(
 
 /**
  * Evaluate a flag for a specific user. Percentage flags use a deterministic
- * hash of userId+flagName. Boolean flags use the `enabled` field directly.
+ * hash of userId+flagName. Allowlist flags check the user against the named ids.
+ * Boolean flags use the `enabled` field directly.
  */
 export function evaluateFlagForUser(
 	flag: FeatureFlagValue,
@@ -81,6 +84,15 @@ export function evaluateFlagForUser(
 	if (flag.type === 'percentage') {
 		if (!userId) return false
 		return hashToPercentage(userId, flagName) < flag.percentage
+	}
+	if (flag.type === 'allowlist') {
+		// An anonymous caller is never on a list of users. Stated rather than left to `some`, which
+		// would also be false but only by accident of `null` matching nobody.
+		if (!userId) return false
+		// Missing or malformed `users` denies rather than admits: this is read from KV, where a
+		// hand-edited value can arrive as anything, and the failure mode of the alternative is a flag
+		// that silently opens to everyone.
+		return Array.isArray(flag.users) && flag.users.some((entry) => entry && entry.userId === userId)
 	}
 	return true
 }
@@ -99,12 +111,24 @@ export async function getFeatureFlagEnabled(
 }
 
 /**
+ * Whether a flag is on for one user, server-side. The counterpart to `getFeatureFlags` (which
+ * evaluates every flag for a browser) for a route that gates itself on a single one.
+ */
+export async function isFeatureFlagEnabledForUser(
+	env: Environment,
+	flag: FeatureFlagKey,
+	userId: string
+): Promise<boolean> {
+	return evaluateFlagForUser(await getFeatureFlagValue(env, flag), flag, userId)
+}
+
+/**
  * Set feature flag value in KV store. Admin only.
  */
 export async function setFeatureFlag(
 	env: Environment,
 	flag: FeatureFlagKey,
-	value: { enabled?: boolean; percentage?: number }
+	value: { enabled?: boolean; percentage?: number; users?: AllowlistEntry[] }
 ): Promise<void> {
 	const current = await getFeatureFlagValue(env, flag)
 	if (value.enabled !== undefined) {
@@ -113,7 +137,35 @@ export async function setFeatureFlag(
 	if (value.percentage !== undefined && current.type === 'percentage') {
 		current.percentage = value.percentage
 	}
+	// Replaces the list rather than merging into it, so removing someone is a normal save and not a
+	// separate operation the admin UI would have to model.
+	if (value.users !== undefined && current.type === 'allowlist') {
+		current.users = value.users
+	}
 	await env.FEATURE_FLAGS.put(flag, JSON.stringify(current))
+}
+
+/**
+ * Parses admin input into the emails an allowlist save should resolve: one per line or comma, blanks
+ * and duplicates dropped, lowercased so the lookup and the dedupe agree. Anything that isn't an email
+ * address is rejected rather than sent to the lookup, so the admin gets "that isn't an email" instead
+ * of the blanker "no account for that".
+ */
+export function parseAllowlistEmails(input: unknown): string[] {
+	const raw = Array.isArray(input)
+		? input.map((entry) => String(entry))
+		: String(input ?? '').split(/[\n,]/)
+
+	const emails: string[] = []
+	for (const value of raw) {
+		const email = value.trim().toLowerCase()
+		if (!email) continue
+		if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+			throw new Error(`"${value.trim()}" is not an email address`)
+		}
+		if (!emails.includes(email)) emails.push(email)
+	}
+	return emails
 }
 
 /**

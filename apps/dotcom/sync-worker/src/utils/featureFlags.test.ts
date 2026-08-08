@@ -6,6 +6,7 @@ import {
 	getFeatureFlags,
 	getFeatureFlagsAdmin,
 	hashToPercentage,
+	parseAllowlistEmails,
 	setFeatureFlag,
 } from './featureFlags'
 
@@ -143,6 +144,104 @@ describe('evaluateFlagForUser', () => {
 	})
 })
 
+// The type a percentage rollout cannot stand in for: a percentage buckets users by hash, so it gives
+// you *a* subset of the right size but never *the* subset you picked.
+describe('evaluateFlagForUser (allowlist)', () => {
+	const flag = (userIds: string[], enabled = true) =>
+		({
+			type: 'allowlist',
+			enabled,
+			users: userIds.map((userId) => ({ userId, email: `${userId}@example.com` })),
+			description: '',
+		}) as const
+
+	it('is on only for the named users', () => {
+		expect(evaluateFlagForUser(flag(['user-1', 'user-2']), 'test', 'user-1')).toBe(true)
+		expect(evaluateFlagForUser(flag(['user-1', 'user-2']), 'test', 'user-2')).toBe(true)
+		expect(evaluateFlagForUser(flag(['user-1', 'user-2']), 'test', 'user-3')).toBe(false)
+	})
+
+	it('is off for everyone when the master toggle is off', () => {
+		expect(evaluateFlagForUser(flag(['user-1'], false), 'test', 'user-1')).toBe(false)
+	})
+
+	it('is off for an anonymous caller', () => {
+		expect(evaluateFlagForUser(flag(['user-1']), 'test', null)).toBe(false)
+	})
+
+	it('is off for an empty list', () => {
+		expect(evaluateFlagForUser(flag([]), 'test', 'user-1')).toBe(false)
+	})
+
+	// The value comes from KV, where a hand-edited entry can arrive as anything. A malformed list must
+	// deny rather than admit — the alternative fails open on a flag whose whole job is to keep people
+	// out.
+	it('denies when users is missing or not an array of entries', () => {
+		expect(
+			evaluateFlagForUser({ type: 'allowlist', enabled: true, description: '' } as any, 't', 'u')
+		).toBe(false)
+		expect(
+			evaluateFlagForUser(
+				{ type: 'allowlist', enabled: true, users: 'user-1', description: '' } as any,
+				't',
+				'u'
+			)
+		).toBe(false)
+		expect(
+			evaluateFlagForUser(
+				{ type: 'allowlist', enabled: true, users: ['user-1'], description: '' } as any,
+				't',
+				'user-1'
+			)
+		).toBe(false)
+	})
+})
+
+// The admin edits an allowlist as emails; this is the input half of that. Resolution to user ids
+// happens against the database in the admin route.
+describe('parseAllowlistEmails', () => {
+	it('splits on newlines and commas, trims, lowercases, and drops blanks', () => {
+		expect(parseAllowlistEmails(' Friend@Example.com \n\nother@example.com, third@x.co ')).toEqual([
+			'friend@example.com',
+			'other@example.com',
+			'third@x.co',
+		])
+	})
+
+	it('accepts an array as well as a block of text', () => {
+		expect(parseAllowlistEmails(['a@example.com', 'b@example.org'])).toEqual([
+			'a@example.com',
+			'b@example.org',
+		])
+	})
+
+	it('drops duplicates that differ only in case or whitespace', () => {
+		expect(parseAllowlistEmails('a@example.com\nA@Example.com\n  a@example.com  ')).toEqual([
+			'a@example.com',
+		])
+	})
+
+	it('treats empty input as an empty list rather than an error', () => {
+		expect(parseAllowlistEmails('')).toEqual([])
+		expect(parseAllowlistEmails('\n\n,  ,\n')).toEqual([])
+		expect(parseAllowlistEmails(undefined)).toEqual([])
+	})
+
+	// Rejected before the lookup runs, so the admin gets "that isn't an email" rather than the
+	// blanker "no account for that".
+	it('rejects anything that is not an email address', () => {
+		expect(() => parseAllowlistEmails('tldraw.com')).toThrow('not an email address')
+		expect(() => parseAllowlistEmails('@tldraw.com')).toThrow('not an email address')
+		expect(() => parseAllowlistEmails('friend@localhost')).toThrow('not an email address')
+		expect(() => parseAllowlistEmails('a@b@example.com')).toThrow('not an email address')
+		expect(() => parseAllowlistEmails('friend @example.com')).toThrow('not an email address')
+	})
+
+	it('names the offending entry so the admin knows which line to fix', () => {
+		expect(() => parseAllowlistEmails('ok@example.com\ntldraw.com')).toThrow('"tldraw.com"')
+	})
+})
+
 describe('getFeatureFlagValue', () => {
 	it('returns defaults when KV has no value', async () => {
 		const env = makeEnv()
@@ -192,6 +291,36 @@ describe('setFeatureFlag', () => {
 		const putCall = env.FEATURE_FLAGS.put.mock.calls[0]
 		const stored = JSON.parse(putCall[1])
 		expect(stored.percentage).toBe(42)
+	})
+
+	// Replaced rather than merged, so removing someone is an ordinary save.
+	it('replaces the allowlist wholesale', async () => {
+		const env = makeEnv({
+			mcp_server_access: JSON.stringify({
+				type: 'allowlist',
+				enabled: true,
+				users: [
+					{ userId: 'user-1', email: 'one@example.com' },
+					{ userId: 'user-2', email: 'two@example.com' },
+				],
+			}),
+		})
+		await setFeatureFlag(env as any, 'mcp_server_access', {
+			users: [{ userId: 'user-2', email: 'two@example.com' }],
+		})
+		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1]).users).toEqual([
+			{ userId: 'user-2', email: 'two@example.com' },
+		])
+	})
+
+	// Each field only applies to the type that has it, so a stray argument cannot turn a percentage
+	// flag into something with an allowlist nobody reads.
+	it('ignores users on a flag that is not an allowlist', async () => {
+		const env = makeEnv()
+		await setFeatureFlag(env as any, 'rum_enabled', {
+			users: [{ userId: 'user-1', email: 'one@example.com' }],
+		})
+		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1]).users).toBeUndefined()
 	})
 })
 
@@ -285,7 +414,7 @@ describe('getFeatureFlagsAdmin (route handler)', () => {
 
 		expect(Object.keys(body).sort()).toEqual([
 			'commenting_enabled',
-			'mcp_friends_and_family',
+			'mcp_server_access',
 			'rum_enabled',
 		])
 	})
