@@ -7,3 +7,21 @@ order: 0
 status: published
 last_version: v5.3.0
 ---
+
+This release adds a `center` alignment operation for aligning shapes on both axes at once, deprecates `useViewportHeight`, and fixes a handful of interaction and crash bugs.
+
+## API changes
+
+- 🔜 **`useViewportHeight()`** is deprecated. Read `window.visualViewport` directly instead. The hook was written for the rich-text contextual toolbar and has had no callers since v3.14, and the single number it returns only describes the visible viewport's bottom edge. ([#9826](https://github.com/tldraw/tldraw/pull/9826))
+- Add `'center'` as an `Editor.alignShapes` operation, applying the existing `'center-horizontal'` and `'center-vertical'` operations together so shapes can be centered on both axes with one command. There's no new default UI action for it. ([#9074](https://github.com/tldraw/tldraw/pull/9074))
+
+  ```ts
+  editor.alignShapes(editor.getSelectedShapeIds(), 'center')
+  ```
+
+## Bug fixes
+
+- Fix `usePassThroughWheelEvents` losing its listener when the element its ref points at unmounts and remounts while the component stays mounted. Comment pins that had scrolled off-screen and back swallowed wheel events instead of passing them through to the canvas. ([#9882](https://github.com/tldraw/tldraw/pull/9882))
+- Fix modifier keys (shift, alt, ctrl, and cmd) briefly being treated as held at the start of a new click or drag right after being released, which could momentarily affect snapping and other modifier-dependent behavior. ([#9523](https://github.com/tldraw/tldraw/pull/9523))
+- Fix a crash when computing a frame's geometry if its heading text couldn't be measured yet. ([#9496](https://github.com/tldraw/tldraw/pull/9496))
+- Fix the "Rotate counterclockwise" tooltip not showing its comma key. ([#9772](https://github.com/tldraw/tldraw/pull/9772))
