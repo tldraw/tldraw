@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Box,
 	Circle2d,
@@ -18,6 +19,7 @@ import {
 	last,
 	lerp,
 	rng,
+	useColorMode,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -161,7 +163,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	component(shape: TLDrawShape) {
-		const dv = getDisplayValues(this, shape)
+		const colorMode = useColorMode()
+		const dv = getDisplayValues(this, shape, colorMode)
 		return (
 			<SVGContainer>
 				<DrawShapeSvg
