@@ -263,6 +263,7 @@ export {
 	type TLHistoryDiff,
 	type TLHistoryEntry,
 	type TLHistoryMark,
+	type TLHistorySnapshot,
 } from './lib/editor/types/history-types'
 export {
 	type OptionalKeys,
