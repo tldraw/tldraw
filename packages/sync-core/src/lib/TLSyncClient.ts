@@ -43,11 +43,24 @@ import {
  */
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void
 
-/** Network sync frame rate when in solo mode (no collaborators) @internal */
-const SOLO_MODE_FPS = 1
+/**
+ * The rate a sync client flushes changes to the server at when it is the only session in the room.
+ *
+ * Low on purpose: with nobody to send cursors to, the only thing worth spending requests on is the
+ * user's own document changes, and those coalesce. Pass `syncFps` to override it — a connection that
+ * costs nothing (a loopback socket to a host process on the same machine) has nothing to save by
+ * waiting, and every push it delays is work that exists only in this client until the next tick.
+ *
+ * @public
+ */
+export const SOLO_SYNC_FPS = 1
 
-/** Network sync frame rate when in collaborative mode (with collaborators) @internal */
-const COLLABORATIVE_MODE_FPS = 30
+/**
+ * The rate a sync client flushes changes to the server at when other sessions are present.
+ *
+ * @public
+ */
+export const COLLABORATIVE_SYNC_FPS = 30
 
 /**
  * WebSocket close code used by the server to signal a non-recoverable sync error.
@@ -212,9 +225,9 @@ export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
  * @public
  */
 export type TLPresenceMode =
-	/** No presence sharing - client operates independently */
+	/** No presence sharing — this client's cursor and selection stay local. */
 	| 'solo'
-	/** Full presence sharing - cursors and selections visible to others */
+	/** Full presence sharing — cursors and selections are visible to others. */
 	| 'full'
 /**
  * Interface for persistent WebSocket-like connections used by TLSyncClient.
@@ -412,6 +425,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	readonly presenceState: Signal<R | null> | undefined
 	/** @internal */
 	readonly presenceMode: Signal<TLPresenceMode> | undefined
+	/** @internal */
+	readonly syncFps: number | Signal<number> | undefined
 
 	// isOnline is true when we have an open socket connection and we have
 	// established a connection with the server room (i.e. we have received a 'connect' message)
@@ -468,6 +483,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 *   - socket - WebSocket adapter for server communication
 	 *   - presence - Reactive signal containing current user's presence data
 	 *   - presenceMode - Optional signal controlling presence sharing (defaults to 'full')
+	 *   - syncFps - Optional rate to flush changes to the server at, overriding the default derived
+	 *     from presenceMode ({@link SOLO_SYNC_FPS} alone, {@link COLLABORATIVE_SYNC_FPS} otherwise)
 	 *   - onLoad - Callback fired when initial sync completes successfully
 	 *   - onSyncError - Callback fired when sync fails with error reason
 	 *   - onCustomMessageReceived - Optional handler for custom messages
@@ -481,6 +498,16 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		socket: TLPersistentClientSocket<any, any>
 		presence: Signal<R | null>
 		presenceMode?: Signal<TLPresenceMode>
+		/**
+		 * How often to flush pending changes to the server, in frames per second. Defaults to a rate
+		 * derived from `presenceMode`: {@link SOLO_SYNC_FPS} while this is the only session in the
+		 * room, {@link COLLABORATIVE_SYNC_FPS} once another joins.
+		 *
+		 * Set it when that default's premise — that a quiet connection is worth saving — does not
+		 * hold: a local transport where bandwidth is free, or an app whose durability depends on
+		 * changes reaching the server promptly rather than on the next tick.
+		 */
+		syncFps?: number | Signal<number>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
@@ -496,7 +523,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		// Create a separate throttle instance for network sync operations
 		// This ensures sync operations have their own queue separate from UI operations
-		this.fpsScheduler = new FpsScheduler(COLLABORATIVE_MODE_FPS)
+		this.fpsScheduler = new FpsScheduler(COLLABORATIVE_SYNC_FPS)
 
 		// Initialize throttled methods after throttle instance is created
 		this.sendUnsentChanges = this.fpsScheduler.fpsThrottle(() => {
@@ -554,6 +581,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		this.presenceState = config.presence
 		this.presenceMode = config.presenceMode
+		this.syncFps = config.syncFps
 
 		this.disposables.push(
 			// when local 'user' changes are made, send them to the server
@@ -627,13 +655,21 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			}, PING_INTERVAL * 2)
 		)
 
+		// The flush rate follows its inputs on its own, rather than as a side effect of pushing
+		// presence: a client with no presence signal at all still has a rate, and a caller that
+		// drives `syncFps` from a signal expects it to take effect when that signal changes.
+		this.disposables.push(
+			react('syncFps', () => {
+				if (this.didCancel?.()) return this.close()
+				this.fpsScheduler.updateTargetFps(this.getSyncFps())
+			})
+		)
+
 		if (this.presenceState) {
 			this.disposables.push(
 				react('pushPresence', () => {
 					if (this.didCancel?.()) return this.close()
-					const mode = this.presenceMode?.get()
-					this.fpsScheduler.updateTargetFps(this.getSyncFps())
-					if (mode !== 'full') return
+					if (this.presenceMode?.get() !== 'full') return
 					this.pushPresence(this.presenceState!.get())
 				})
 			)
@@ -872,9 +908,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.sendUnsentChanges()
 	}
 
-	/** Get the target FPS for network operations based on presence mode */
+	/**
+	 * The rate to flush changes to the server at: whatever the caller asked for, or else derived
+	 * from presence — slow while this is the only session in the room, full once another joins.
+	 */
 	private getSyncFps(): number {
-		return this.presenceMode?.get() === 'solo' ? SOLO_MODE_FPS : COLLABORATIVE_MODE_FPS
+		if (typeof this.syncFps === 'number') return this.syncFps
+		if (this.syncFps) return this.syncFps.get()
+		return this.presenceMode?.get() === 'solo' ? SOLO_SYNC_FPS : COLLABORATIVE_SYNC_FPS
 	}
 
 	/**

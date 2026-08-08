@@ -1,4 +1,4 @@
-import { atom, transact } from '@tldraw/state'
+import { atom, transact, type Signal } from '@tldraw/state'
 import {
 	ClientWebSocketAdapter,
 	TLCustomMessageHandler,
@@ -193,6 +193,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
 		themes,
+		syncFps,
 		...schemaOpts
 	} = opts
 
@@ -396,6 +397,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			onCustomMessageReceived,
 			presence,
 			presenceMode,
+			syncFps,
 		})
 
 		return () => {
@@ -416,6 +418,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
+		syncFps,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -461,6 +464,23 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  * @public
  */
 export interface UseSyncOptionsBase {
+	/**
+	 * How often to flush changes to the server, in frames per second.
+	 *
+	 * Defaults to a rate derived from the room: {@link @tldraw/sync-core#SOLO_SYNC_FPS} while this is
+	 * the only session present, {@link @tldraw/sync-core#COLLABORATIVE_SYNC_FPS} once another joins.
+	 * That default assumes a connection worth being frugal with. Set this when it isn't one — a local
+	 * transport where bandwidth is free — or when the app's durability depends on changes reaching
+	 * the server promptly rather than on the next tick.
+	 *
+	 * @example
+	 * ```ts
+	 * // a room served by a process on this machine: nothing to save by waiting
+	 * useSync({ connect, syncFps: COLLABORATIVE_SYNC_FPS })
+	 * ```
+	 */
+	syncFps?: number | Signal<number>
+
 	/**
 	 * Named theme definitions. When provided, custom color names are automatically
 	 * registered before the store is constructed so persisted data with those
