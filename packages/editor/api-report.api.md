@@ -1441,6 +1441,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getThemes(): TLThemes;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): TLRenderingShape[];
+    getUnusedAssetIds(): TLAssetId[];
     getViewportPageBounds(): Box;
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
@@ -1525,6 +1526,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     pageToViewport(point: VecLike): Vec;
     readonly performance: PerformanceManager;
     popFocusedGroupId(): this;
+    pruneUnusedAssets(): TLAssetId[];
     putContentOntoCurrentPage(content: TLContent, opts?: {
         point?: VecLike;
         preserveIds?: boolean;
