@@ -4002,6 +4002,14 @@ export interface TLEditorRunOptions extends TLHistoryBatchOptions {
 }
 
 // @public (undocumented)
+export const tleditors: {
+    mounted: Atom<readonly Editor[], unknown>;
+    getMounted(): readonly Editor[];
+    add(editor: Editor): void;
+    remove(editor: Editor): void;
+};
+
+// @public (undocumented)
 export interface TLEditorSnapshot {
     // (undocumented)
     document: TLStoreSnapshot;
