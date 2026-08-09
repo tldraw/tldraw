@@ -1,7 +1,7 @@
 import { atom, computed, unsafe__withoutCapture } from '@tldraw/state'
 import { AtomSet } from '@tldraw/store'
 import { TLINSTANCE_ID, TLPOINTER_ID } from '@tldraw/tlschema'
-import { bind } from '@tldraw/utils'
+import { bind, throttle } from '@tldraw/utils'
 import { Vec } from '../../../primitives/Vec'
 import { isAccelKey } from '../../../utils/keyboard'
 import type { Editor } from '../../Editor'
@@ -15,8 +15,8 @@ const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
 // stamp re-broadcasts presence, so this must be long enough to keep input
 // bursts (e.g. typing, held keys) from flooding the network. It must also stay
 // comfortably shorter than `collaboratorIdleTimeoutMs` so a continuously-active
-// peer never flickers to idle between stamps; `markActivity` scales it down
-// when that option is configured below the default.
+// peer never flickers to idle between stamps; the throttle window is capped
+// below that option when it's configured shorter than the default.
 const ACTIVITY_TIMESTAMP_THROTTLE_MS = 1000
 
 // DOM events that count as presence activity. `gesturestart`/`gesturechange`
@@ -49,6 +49,7 @@ export class InputsManager extends EditorManager {
 			for (const name of ACTIVITY_EVENTS) {
 				container.removeEventListener(name, this.markActivity, { capture: true })
 			}
+			this._throttledActivityStamp.cancel()
 		})
 	}
 
@@ -495,7 +496,23 @@ export class InputsManager extends EditorManager {
 		return this.editor.getCollaborators().length > 0 // could we do this more efficiently?
 	}
 
-	private _lastActivityTimestamp = 0
+	private readonly _throttledActivityStamp = throttle(
+		() => {
+			const pointer = this.editor.store.unsafeGetWithoutCapture(TLPOINTER_ID)
+			if (!pointer) return
+
+			this.editor.run(
+				() => {
+					this.editor.store.put([{ ...pointer, lastActivityTimestamp: Date.now() }])
+				},
+				{ history: 'ignore' }
+			)
+		},
+		// Stay comfortably below the idle timeout so a continuously-active peer
+		// never flickers to idle between throttled stamps.
+		Math.min(ACTIVITY_TIMESTAMP_THROTTLE_MS, this.editor.options.collaboratorIdleTimeoutMs / 3),
+		{ trailing: false }
+	)
 
 	/**
 	 * Mark the current user as active for collaborator presence. User input inside the editor's
@@ -514,27 +531,10 @@ export class InputsManager extends EditorManager {
 	 */
 	@bind
 	markActivity() {
+		// Check for collaborators before consuming the throttle window, so input
+		// while alone doesn't delay the first stamp after a peer joins.
 		if (!this._getHasCollaborators()) return
-
-		// Stay comfortably below the idle timeout so a continuously-active peer
-		// never flickers to idle between throttled stamps.
-		const throttleMs = Math.min(
-			ACTIVITY_TIMESTAMP_THROTTLE_MS,
-			this.editor.options.collaboratorIdleTimeoutMs / 3
-		)
-		const now = Date.now()
-		if (now - this._lastActivityTimestamp < throttleMs) return
-		this._lastActivityTimestamp = now
-
-		const pointer = this.editor.store.unsafeGetWithoutCapture(TLPOINTER_ID)
-		if (!pointer) return
-
-		this.editor.run(
-			() => {
-				this.editor.store.put([{ ...pointer, lastActivityTimestamp: now }])
-			},
-			{ history: 'ignore' }
-		)
+		this._throttledActivityStamp()
 	}
 
 	/**
