@@ -110,6 +110,7 @@ describe('Close threshold with zoom', () => {
 	})
 
 	it('Closes a small shape with densely sampled points', () => {
+		// Match the point density of the reported shape that exposed the length calculation bug.
 		const samples = 476
 		const radius = 20
 		const center = { x: 100, y: 100 }
