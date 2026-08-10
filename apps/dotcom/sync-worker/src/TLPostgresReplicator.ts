@@ -108,7 +108,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private lastBootStartTime = Date.now()
 	private dbg(...args: unknown[]) {
 		// eslint-disable-next-line no-console
-		console.warn('[REPL_DBG]', ...args)
+		console.error('[REPL_DBG]', ...args)
 	}
 
 	// we need to guarantee in-order delivery of messages to users
