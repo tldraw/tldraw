@@ -81,6 +81,11 @@ export class TldrawMCP extends McpAgent<Env> {
 			instructions: MCP_SERVER_INSTRUCTIONS,
 		}
 	)
+	// The Agents SDK defaults `observability` to an implementation whose `emit()`
+	// is a bare `console.log(event)`, so every WebSocket connection logs a full
+	// JSON object. The streamable-HTTP transport opens a connection per request,
+	// making this the single noisiest thing the worker prints. Every call site
+	// uses `this.observability?.emit(...)`, so clearing it disables them all.
 	override observability = undefined
 	isDev = this.env.MCP_IS_DEV === 'true'
 	logsEnabled = this.isDev
