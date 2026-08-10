@@ -7,3 +7,25 @@ order: 0
 status: published
 last_version: v5.3.0
 ---
+
+This release adds a `center` option to `Editor.alignShapes()` and makes hit-testing cheaper on every pointer event. It also fixes crashes in frame geometry and wheel panning, along with a batch of interaction and UI fixes.
+
+## API changes
+
+- 🔜 **`useViewportHeight()`** is deprecated. Read `window.visualViewport` directly instead. ([#9826](https://github.com/tldraw/tldraw/pull/9826))
+- Add `'center'` as an `Editor.alignShapes()` operation, which applies `'center-horizontal'` and `'center-vertical'` together to center shapes on both axes. ([#9074](https://github.com/tldraw/tldraw/pull/9074))
+
+## Improvements
+
+- Improve hit-testing performance by removing intermediate array allocations from `Group2d` and `Editor` hit tests, which run on every pointer event. ([#8600](https://github.com/tldraw/tldraw/pull/8600))
+
+## Bug fixes
+
+- Fix a crash when panning with the wheel on devices that report non-finite wheel deltas. ([#9586](https://github.com/tldraw/tldraw/pull/9586))
+- Fix a crash when computing a frame's geometry if its heading text couldn't be measured yet. ([#9496](https://github.com/tldraw/tldraw/pull/9496))
+- Fix modifier keys (shift, alt, ctrl, cmd) briefly being treated as held at the start of a click or drag right after being released, which could momentarily affect snapping and other modifier-dependent behavior. ([#9523](https://github.com/tldraw/tldraw/pull/9523))
+- Fix **Flatten to image** splitting the same selection into different sets of images depending on selection order. ([#8661](https://github.com/tldraw/tldraw/pull/8661))
+- Fix the comment thread popover briefly rendering with a doubled shadow the first time a thread is opened. ([#9886](https://github.com/tldraw/tldraw/pull/9886))
+- Fix the **Rotate counterclockwise** tooltip not showing its comma key. ([#9772](https://github.com/tldraw/tldraw/pull/9772))
+- Fix the people menu rows not lining up: the follow icon sat too close to the panel's right edge, and collaborator names sat slightly left of your own. ([#9900](https://github.com/tldraw/tldraw/pull/9900))
+- Fix the spacing around the cursor chat item in the context menu. ([#9921](https://github.com/tldraw/tldraw/pull/9921))
