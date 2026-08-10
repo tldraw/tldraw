@@ -16,9 +16,9 @@ import {
 	getOwnProperty,
 	RichTextFontVisitorState,
 	TLFontFace,
-	TLRichText,
 	WeakCache,
 } from '@tldraw/editor'
+import { TLRichText } from '@tldraw/tlschema'
 import { DefaultFontFaces } from '../../shapes/shared/defaultFonts'
 
 /** @public */

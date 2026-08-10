@@ -7,7 +7,6 @@ import {
 } from '@tiptap/react'
 import {
 	Editor,
-	TLRichText,
 	TLShapeId,
 	isEqual,
 	preventDefault,
@@ -15,6 +14,7 @@ import {
 	useEvent,
 	useUniqueSafeId,
 } from '@tldraw/editor'
+import { TLRichText } from '@tldraw/tlschema'
 import React, { useLayoutEffect, useRef } from 'react'
 import { isEditingRichTextList } from '../../utils/text/richText'
 
