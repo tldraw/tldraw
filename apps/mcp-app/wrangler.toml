@@ -50,3 +50,6 @@ period = 60
 
 [observability]
 enabled = true
+
+[observability.logs]
+invocation_logs = false

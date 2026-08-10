@@ -81,6 +81,7 @@ export class TldrawMCP extends McpAgent<Env> {
 			instructions: MCP_SERVER_INSTRUCTIONS,
 		}
 	)
+	override observability = undefined
 	isDev = this.env.MCP_IS_DEV === 'true'
 	logsEnabled = this.isDev
 	activeCheckpointId: string | null = null
