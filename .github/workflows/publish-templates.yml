@@ -86,15 +86,26 @@ jobs:
           VERCEL_SHADER_TEMPLATE_PROJECT_ID: ${{ vars.VERCEL_SHADER_TEMPLATE_PROJECT_ID }}
           VERCEL_CHAT_TEMPLATE_PROJECT_ID: ${{ vars.VERCEL_CHAT_TEMPLATE_PROJECT_ID }}
         run: |
+          # the templates import tldraw/tldraw.css, which is generated and gitignored
+          yarn lazy prebuild
+
           cd templates
           all_templates=$(ls -d */ | cut -f1 -d'/')
           cd ..
 
+          # the demos are independent of each other, so deploy them all before failing: one broken
+          # template shouldn't leave the rest stranded on an old build with no signal about which.
+          failed=""
           for template in $all_templates; do
             echo "::group::Deploying $template"
-            yarn tsx ./internal/scripts/deploy-template.ts $template
+            yarn tsx ./internal/scripts/deploy-template.ts $template || failed="$failed $template"
             echo "::endgroup::"
           done
+
+          if [ -n "$failed" ]; then
+            echo "::error::Failed to deploy templates:$failed"
+            exit 1
+          fi
 
       - name: Notify Discord on failure
         if: failure()
