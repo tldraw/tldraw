@@ -292,5 +292,4 @@ jobs:
       TEMPLATES_TLDRAW_LICENSE_KEY: ${{ secrets.TEMPLATES_TLDRAW_LICENSE_KEY }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     needs: publish

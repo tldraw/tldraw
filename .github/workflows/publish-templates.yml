@@ -16,8 +16,6 @@ on:
         required: true
       CLOUDFLARE_ACCOUNT_ID:
         required: true
-      VERCEL_TOKEN:
-        required: true
 
 env:
   CI: 1
@@ -72,19 +70,15 @@ jobs:
             echo "::endgroup::"
           done
 
-      # Deploy the live demos embedded in the docs. These build from this repo rather than from the
-      # exported repos, so the license key comes from one secret here instead of being configured
-      # by hand in each cloudflare/vercel project. Templates with no `deploy` config are skipped.
+      # Deploy the cloudflare-hosted demos embedded in the docs. These build from this repo rather
+      # than from the exported repos, so the license key comes from one secret here instead of being
+      # configured by hand in each cloudflare project. The vercel-hosted demos (chat, shader,
+      # workflow) deploy through vercel's own git integration and have no `deploy` config.
       - name: Deploy templates
         env:
           TEMPLATES_TLDRAW_LICENSE_KEY: ${{ secrets.TEMPLATES_TLDRAW_LICENSE_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-          VERCEL_WORKFLOW_TEMPLATE_PROJECT_ID: ${{ vars.VERCEL_WORKFLOW_TEMPLATE_PROJECT_ID }}
-          VERCEL_SHADER_TEMPLATE_PROJECT_ID: ${{ vars.VERCEL_SHADER_TEMPLATE_PROJECT_ID }}
-          VERCEL_CHAT_TEMPLATE_PROJECT_ID: ${{ vars.VERCEL_CHAT_TEMPLATE_PROJECT_ID }}
         run: |
           # the templates import tldraw/tldraw.css, which is generated and gitignored
           yarn lazy prebuild

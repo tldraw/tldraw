@@ -17,11 +17,6 @@
 			"shortDescription": "Visual node-based builder for workflows.",
 			"order": 4
 		},
-		"deploy": {
-			"target": "vercel",
-			"host": "workflow.templates.tldraw.dev",
-			"projectIdVar": "VERCEL_WORKFLOW_TEMPLATE_PROJECT_ID"
-		},
 		"scripts": {
 			"lint": null
 		}
