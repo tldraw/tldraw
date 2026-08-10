@@ -137,6 +137,12 @@ export class TLPostgresPool implements PostgresPool {
 				blobs: ['user-do', 'error'],
 				doubles: [Date.now() - dialStart],
 			})
+			// A failed dial is also a failed checkout, matching the pool wrapper above — without
+			// this, error acquires drop their lock-wait + dial duration for user-do.
+			writeDataPoint(undefined, this.env.MEASURE, this.env, 'postgres_pool_acquire', {
+				blobs: ['user-do', 'error'],
+				doubles: [Date.now() - acquireStart],
+			})
 			released.resolve(undefined)
 			throw e
 		}
