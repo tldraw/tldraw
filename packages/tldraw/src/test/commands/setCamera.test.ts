@@ -254,10 +254,36 @@ describe('Non-finite camera values', () => {
 		expect(() => editor.setCamera({ x: 0, y: 0, z: NaN })).toThrow()
 	})
 
+	// Every internal camera mover passes a Vec, which Vec.Cast returns as-is.
+	it('rejects a non-finite Vec', () => {
+		expect(() => editor.setCamera(new Vec(NaN, 0, 1))).toThrow()
+	})
+
 	it('does not mutate the point it was given', () => {
 		const point = { x: 0, y: 0, z: NaN }
 		expect(() => editor.setCamera(point)).toThrow()
 		expect(point.z).toBeNaN()
+	})
+
+	it('leaves the camera untouched', () => {
+		const before = { ...editor.getCamera() }
+		expect(() => editor.setCamera({ x: NaN, y: 0, z: 1 })).toThrow()
+		expect(editor.getCamera()).toMatchObject(before)
+	})
+
+	it('throws at the call site when animated, rather than from a later tick', () => {
+		expect(() =>
+			editor.setCamera({ x: NaN, y: 0, z: 1 }, { animation: { duration: 100 } })
+		).toThrow()
+		expect(() => editor.forceTick()).not.toThrow()
+	})
+
+	it('does not stop an in-flight camera animation', () => {
+		editor.setCamera({ x: 100, y: 100, z: 1 }, { animation: { duration: 100 } })
+		expect(() => editor.setCamera({ x: NaN, y: 0, z: 1 })).toThrow()
+
+		editor.forceTick()
+		expect(editor.getCamera()).not.toMatchObject({ x: 0, y: 0, z: 1 })
 	})
 })
 

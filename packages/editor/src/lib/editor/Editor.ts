@@ -3614,6 +3614,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { isLocked } = this._cameraOptions.__unsafe__getWithoutCapture()
 		if (isLocked && !opts?.force) return this
 
+		const _point = Vec.Cast(point)
+
+		// Reject non-finite values before anything else, so the call is a no-op rather than a
+		// partial one. An animated move writes the camera from a 'tick' listener, and a listener
+		// that throws stops TickManager scheduling the next frame, which kills every frame-driven
+		// behavior for the rest of the session instead of surfacing the error to the caller.
+		if (!Number.isFinite(_point.x) || !Number.isFinite(_point.y) || !Number.isFinite(_point.z)) {
+			throw Error(
+				`Editor.setCamera: expected finite values, got (${_point.x}, ${_point.y}, ${_point.z}).`
+			)
+		}
+
 		// Stop any camera animations
 		this.stopCameraAnimation()
 
@@ -3621,8 +3633,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
 		}
-
-		const _point = Vec.Cast(point)
 
 		const camera = this.getConstrainedCamera(_point, opts)
 
