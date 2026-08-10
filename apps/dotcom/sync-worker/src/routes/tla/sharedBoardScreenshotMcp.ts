@@ -538,7 +538,14 @@ type ResolvedPage =
 			pageName: string
 			shapes: TLShape[]
 	  }
-	| { ok: false; result: ReturnType<typeof toolError> }
+	// `reason` is the documented telemetry code for this failure (see the bounded vocabulary in
+	// browser-run-thumbnails.md) — kept alongside the caller-facing result so the screenshot path
+	// doesn't collapse every resolution failure into `not_found` on the dashboard.
+	| {
+			ok: false
+			reason: 'not_found' | 'board_empty' | 'no_pages' | 'page_out_of_range'
+			result: ReturnType<typeof toolError>
+	  }
 
 async function resolveBoardPage(
 	env: Environment,
@@ -550,6 +557,7 @@ async function resolveBoardPage(
 	if (!resolved.ok) {
 		return {
 			ok: false,
+			reason: resolved.reason,
 			result: toolError(
 				resolved.reason === 'board_empty' ? 'This board has no saved content yet.' : BOARD_NOT_FOUND
 			),
@@ -560,18 +568,26 @@ async function resolveBoardPage(
 	// owns is readable and a published board is still held to the published check.
 	const snapshot = await loadBoardSnapshot(env, resolved.board, { access: resolved.board.access })
 	if (!snapshot) {
-		return { ok: false, result: toolError('This board has no saved content yet.') }
+		return {
+			ok: false,
+			reason: 'board_empty',
+			result: toolError('This board has no saved content yet.'),
+		}
 	}
 
 	const pages = enumerateBoardPages(snapshot)
 	if (pages.length === 0) {
-		return { ok: false, result: toolError('This board has no pages.') }
+		return { ok: false, reason: 'no_pages', result: toolError('This board has no pages.') }
 	}
 
 	const targetPage = page.kind === 'id' ? pages.find((p) => p.id === page.id) : pages[page.ordinal]
 	if (!targetPage) {
 		return {
 			ok: false,
+			// An id that resolves to nothing files under the same code as an ordinal past the end:
+			// both mean "the page selector didn't resolve", and the documented vocabulary has one
+			// code for that.
+			reason: 'page_out_of_range',
 			result: toolError(
 				page.kind === 'id'
 					? `No page with id "${page.id}" on this board. Call get_board_info to list its pages; a page id is stable across reordering, an index is not.`
@@ -754,7 +770,7 @@ async function renderShapeSetScreenshot(
 		// render into one render per caller.
 		const resolved = await resolveBoardPage(env, boardId, page, userId)
 		if (!resolved.ok) {
-			telemetry({ cacheStatus: 'miss', failureReason: 'not_found' })
+			telemetry({ cacheStatus: 'miss', failureReason: resolved.reason })
 			return resolved.result
 		}
 

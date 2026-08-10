@@ -637,6 +637,42 @@ describe('shape screenshots', () => {
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('out of range')
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
+		// The documented reason vocabulary keeps selector mistakes distinct from missing boards —
+		// `failure:not_found` here would send a dashboard reader hunting for deleted boards.
+		expect(failureBlobsOf(env)).toContain('failure:page_out_of_range')
+	})
+
+	it('reports an empty board as board_empty in telemetry, not as a missing board', async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'e', shared: true, isDeleted: false })
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(null) })
+
+		const result = await callTool(
+			'user_empty_board',
+			'get_cluster_screenshot',
+			{ boardId: 'e', clusterIds: ['cluster:any'] },
+			env
+		)
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('no saved content')
+		expect(failureBlobsOf(env)).toContain('failure:board_empty')
+	})
+
+	it('reports a board with no pages as no_pages in telemetry', async () => {
+		mockPublishedBoard(makeSnapshot([]))
+		const env = makeEnv()
+
+		const result = await callTool(
+			'user_no_pages',
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: ['cluster:any'] },
+			env
+		)
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('no pages')
+		expect(failureBlobsOf(env)).toContain('failure:no_pages')
 	})
 
 	it('waits on either terminal selector and captures a success-only element so failed renders fail fast', async () => {
