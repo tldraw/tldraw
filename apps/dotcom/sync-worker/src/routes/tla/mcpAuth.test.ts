@@ -1,9 +1,10 @@
 import { verifyToken } from '@clerk/backend'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
 import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
 import {
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
+	McpAuthResult,
 	authenticateMcpRequest,
 	getMcpAuthorizationServer,
 	getMcpProtectedResourceMetadata,
@@ -31,10 +32,24 @@ function makeRequest(headers: Record<string, string> = {}) {
 	return new Request('https://sync.tldraw.xyz/app/mcp', { method: 'POST', headers }) as any
 }
 
+// Typed through the failure arm rather than a structural cast, so renaming `response` there breaks
+// here at compile time instead of as an undefined read in every assertion.
+function responseOf(result: McpAuthResult) {
+	return (result as Extract<McpAuthResult, { ok: false }>).response
+}
+
 beforeEach(() => {
 	vi.clearAllMocks()
-	vi.mocked(verifyToken).mockResolvedValue({ sub: 'user_123' } as any)
+	vi.mocked(verifyToken).mockResolvedValue({ sub: 'user_123', aud: RESOURCE } as any)
 	vi.mocked(isFeatureFlagEnabledForUser).mockResolvedValue(true)
+	// The audience cases below are the expected way to see these logged, and a test run that prints
+	// them reads like a failure. Tests that care which branch refused a token assert on the spies.
+	vi.spyOn(console, 'error').mockImplementation(() => {})
+	vi.spyOn(console, 'warn').mockImplementation(() => {})
+})
+
+afterEach(() => {
+	vi.restoreAllMocks()
 })
 
 describe('getMcpResourceUrl', () => {
@@ -101,7 +116,7 @@ describe('authenticateMcpRequest', () => {
 		const result = await authenticateMcpRequest(makeRequest(), makeEnv())
 
 		expect(result.ok).toBe(false)
-		const response = (result as { response: Response }).response
+		const response = responseOf(result)
 		expect(response.status).toBe(401)
 		expect(response.headers.get('WWW-Authenticate')).toBe(
 			`Bearer resource_metadata="https://www.tldraw.com${MCP_PROTECTED_RESOURCE_METADATA_PATH}"`
@@ -117,14 +132,201 @@ describe('authenticateMcpRequest', () => {
 		expect(result).toEqual({ ok: true, userId: 'user_123' })
 	})
 
-	// RFC 8707: the audience is what stops a token the user granted to some other MCP server being
-	// replayed against this one, and it has to be the resource identifier rather than our hostname.
-	it('requires the token to be minted for this resource', async () => {
+	// The audience binding is deliberately not delegated to Clerk: verifyToken's `audience` option
+	// refuses a present-but-wrong `aud` inside verification — upstream of the escape hatch and the
+	// diagnostic log — and compares nothing when the `aud` is missing. Verification is asked only
+	// about the signature and lifetime; `namesResource` owns the audience.
+	it('does not delegate the audience check to verifyToken', async () => {
 		await authenticateMcpRequest(makeRequest({ authorization: 'Bearer good-token' }), makeEnv())
 
-		expect(verifyToken).toHaveBeenCalledWith('good-token', {
-			secretKey: 'sk_test_secret',
-			audience: RESOURCE,
+		expect(verifyToken).toHaveBeenCalledWith('good-token', { secretKey: 'sk_test_secret' })
+	})
+
+	// RFC 8707: the audience is what stops a token the user granted to some other MCP server being
+	// replayed against this one. It is checked against the payload's `aud` — see above for why the
+	// check is not verifyToken's.
+	describe('audience', () => {
+		async function authenticateWithAudience(
+			aud: unknown,
+			envOverrides: Partial<Record<string, unknown>> = {}
+		) {
+			vi.mocked(verifyToken).mockResolvedValue({ sub: 'user_123', aud } as any)
+			return authenticateMcpRequest(
+				makeRequest({ authorization: 'Bearer tok' }),
+				makeEnv(envOverrides)
+			)
+		}
+
+		// The shape a Clerk *session* JWT takes. Accepting it would make a tldraw.com website credential
+		// a bearer token here, and the agent's consent step decoration.
+		it('refuses a token that carries no audience', async () => {
+			const result = await authenticateWithAudience(undefined)
+
+			expect(result.ok).toBe(false)
+			const response = responseOf(result)
+			expect(response.status).toBe(401)
+			expect(response.headers.get('WWW-Authenticate')).toContain('error="invalid_token"')
+		})
+
+		it('refuses a token minted for another resource', async () => {
+			const result = await authenticateWithAudience('https://example.com/api/app/mcp')
+
+			expect(result.ok).toBe(false)
+			expect(responseOf(result).status).toBe(401)
+		})
+
+		// A rejected audience and a missing subject answer exactly as an expired token does — the caller
+		// can act on none of the differences, and naming one would tell someone guessing which guess was
+		// closest.
+		it('says no more about an audience mismatch or a missing subject than about any other bad token', async () => {
+			const mismatched = await authenticateWithAudience('https://example.com/api/app/mcp')
+			vi.mocked(verifyToken).mockResolvedValue({ aud: RESOURCE } as any)
+			const subjectless = await authenticateMcpRequest(
+				makeRequest({ authorization: 'Bearer tok' }),
+				makeEnv()
+			)
+			vi.mocked(verifyToken).mockRejectedValue(new Error('token expired'))
+			const expired = await authenticateMcpRequest(
+				makeRequest({ authorization: 'Bearer tok' }),
+				makeEnv()
+			)
+
+			const expiredBody = await responseOf(expired).text()
+			expect(await responseOf(mismatched).text()).toBe(expiredBody)
+			expect(await responseOf(subjectless).text()).toBe(expiredBody)
+		})
+
+		it('accepts a token whose audience names this resource', async () => {
+			expect(await authenticateWithAudience(RESOURCE)).toEqual({ ok: true, userId: 'user_123' })
+		})
+
+		// `aud` is an array as often as a string, and a token may legitimately name several resources.
+		it('accepts an audience array that includes this resource', async () => {
+			expect(await authenticateWithAudience(['https://example.com/api/app/mcp', RESOURCE])).toEqual(
+				{ ok: true, userId: 'user_123' }
+			)
+		})
+
+		it('refuses an audience array that does not', async () => {
+			const result = await authenticateWithAudience(['https://example.com/api/app/mcp'])
+
+			expect(responseOf(result).status).toBe(401)
+		})
+
+		// Compared on normalized URLs. Every non-production environment ships with the hatch open, so
+		// the enforcing comparison first runs for real in production — where a cosmetic difference
+		// between what Clerk stamps and MCP_SERVER_URL must not refuse every token with no runtime
+		// lever.
+		it.each([
+			'https://www.tldraw.com/api/app/mcp/',
+			'HTTPS://WWW.TLDRAW.COM/api/app/mcp',
+			'https://www.tldraw.com:443/api/app/mcp',
+		])('accepts %s as naming this resource', async (aud) => {
+			expect(await authenticateWithAudience(aud)).toEqual({ ok: true, userId: 'user_123' })
+		})
+
+		it('normalizes the configured resource the same way', async () => {
+			expect(await authenticateWithAudience(RESOURCE, { MCP_SERVER_URL: `${RESOURCE}/` })).toEqual({
+				ok: true,
+				userId: 'user_123',
+			})
+		})
+
+		it('refuses an audience that is not a URL at all', async () => {
+			expect(responseOf(await authenticateWithAudience('not a resource url')).status).toBe(401)
+		})
+
+		// Nothing is checked before the flag gate that the flag gate would have caught anyway: a token
+		// for the wrong resource must not reach a KV read keyed on the subject it claims.
+		it('refuses before consulting the access flag', async () => {
+			await authenticateWithAudience(undefined)
+
+			expect(isFeatureFlagEnabledForUser).not.toHaveBeenCalled()
+		})
+
+		// The escape hatch exists so staging and preview can exercise the flow before the Clerk instance
+		// is known to stamp the resource indicator. Everything here is about it not becoming the way
+		// this ships.
+		describe('MCP_REQUIRE_TOKEN_AUDIENCE', () => {
+			it('accepts a mismatched audience when explicitly turned off', async () => {
+				expect(
+					await authenticateWithAudience('https://example.com/api/app/mcp', {
+						MCP_REQUIRE_TOKEN_AUDIENCE: 'false',
+					})
+				).toEqual({ ok: true, userId: 'user_123' })
+			})
+
+			// The shape the hatch actually exists for: a Clerk instance that stamps no `aud` at all.
+			it('accepts a token with no audience when explicitly turned off', async () => {
+				expect(
+					await authenticateWithAudience(undefined, { MCP_REQUIRE_TOKEN_AUDIENCE: 'false' })
+				).toEqual({ ok: true, userId: 'user_123' })
+			})
+
+			// Still refused on the way past the hatch — turning the check off must not turn off the
+			// things that do not depend on it.
+			it('still refuses a token with no subject while turned off', async () => {
+				vi.mocked(verifyToken).mockResolvedValue({ aud: RESOURCE } as any)
+
+				const result = await authenticateMcpRequest(
+					makeRequest({ authorization: 'Bearer tok' }),
+					makeEnv({ MCP_REQUIRE_TOKEN_AUDIENCE: 'false' })
+				)
+
+				expect(responseOf(result).status).toBe(401)
+			})
+
+			// The whole reason the hatch is survivable: an environment running without the check still
+			// reports what it would have refused, so the Clerk side can be settled from staging's logs
+			// rather than from production's failures. One constant message with a structured payload, at
+			// warn — with the hatch open this line is the steady state of every call, not an incident.
+			it('reports the audience it would have refused', async () => {
+				await authenticateWithAudience('https://example.com/api/app/mcp', {
+					MCP_REQUIRE_TOKEN_AUDIENCE: 'false',
+				})
+
+				expect(console.warn).toHaveBeenCalledWith(
+					'MCP token audience does not name this resource',
+					{
+						aud: 'https://example.com/api/app/mcp',
+						expected: RESOURCE,
+						enforced: false,
+					}
+				)
+			})
+
+			// Unset is the state a new environment, a dropped var and a typo all land in, so it has to be
+			// the strict one. Only the exact word opts out; "no" and "0" do not.
+			it.each([undefined, '', 'true', 'no', '0', 'flase'])(
+				'enforces when the var is %o',
+				async (value) => {
+					const result = await authenticateWithAudience(undefined, {
+						MCP_REQUIRE_TOKEN_AUDIENCE: value,
+					})
+
+					expect(responseOf(result).status).toBe(401)
+				}
+			)
+
+			// Case and surrounding space are normalized, matching MCP_SCREENSHOT_ENABLED. Nobody writes
+			// "FALSE" meaning "enforce", so tolerating it costs nothing a typo would have found.
+			it('opts out for the word in any case', async () => {
+				expect(
+					await authenticateWithAudience(undefined, { MCP_REQUIRE_TOKEN_AUDIENCE: '  FALSE ' })
+				).toEqual({ ok: true, userId: 'user_123' })
+			})
+
+			// Production is the one environment where the binding is load-bearing, so the hatch is not
+			// consulted there at all.
+			it('is ignored in production', async () => {
+				const result = await authenticateWithAudience(undefined, {
+					MCP_REQUIRE_TOKEN_AUDIENCE: 'false',
+					TLDRAW_ENV: 'production',
+				})
+
+				expect(result.ok).toBe(false)
+				expect(responseOf(result).status).toBe(401)
+			})
 		})
 	})
 
@@ -136,12 +338,16 @@ describe('authenticateMcpRequest', () => {
 			makeEnv()
 		)
 
-		const response = (result as { response: Response }).response
+		const response = responseOf(result)
 		expect(response.status).toBe(401)
 		expect(response.headers.get('WWW-Authenticate')).toContain('error="invalid_token"')
 		// Why it failed is not the caller's business — an expired token and one minted for another
 		// resource answer the same — but a client does need to know to re-authenticate rather than stop.
 		expect(await response.text()).not.toContain('token expired')
+		// The verification branch, not the audience one: the two refusals log differently even though
+		// they answer identically.
+		expect(console.error).toHaveBeenCalledWith('MCP token verification failed:', expect.any(Error))
+		expect(console.warn).not.toHaveBeenCalled()
 	})
 
 	it('rejects a token with no subject', async () => {
@@ -152,7 +358,7 @@ describe('authenticateMcpRequest', () => {
 			makeEnv()
 		)
 
-		expect((result as { response: Response }).response.status).toBe(401)
+		expect(responseOf(result).status).toBe(401)
 	})
 
 	// 403, not 401: the caller did authenticate and still may not in, which retrying the flow cannot
@@ -166,7 +372,7 @@ describe('authenticateMcpRequest', () => {
 		)
 
 		expect(result.ok).toBe(false)
-		const response = (result as { response: Response }).response
+		const response = responseOf(result)
 		expect(response.status).toBe(403)
 		expect(response.headers.get('WWW-Authenticate')).toBe(null)
 		expect(isFeatureFlagEnabledForUser).toHaveBeenCalledWith(
@@ -191,7 +397,7 @@ describe('authenticateMcpRequest', () => {
 			makeEnv()
 		)
 
-		const response = (result as { response: Response }).response
+		const response = responseOf(result)
 		expect(response.status).toBe(401)
 		expect(response.headers.get('WWW-Authenticate')).not.toContain('error=')
 		expect(verifyToken).not.toHaveBeenCalled()

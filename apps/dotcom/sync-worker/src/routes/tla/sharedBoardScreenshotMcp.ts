@@ -6,7 +6,7 @@ import {
 	MCP_PER_USER_RATE_LIMIT,
 	MCP_RATE_LIMIT_WINDOW_MS,
 } from '../../config'
-import { Environment } from '../../types'
+import { Environment, envFlagWord } from '../../types'
 import { arrayBufferToBase64 } from '../../utils/base64'
 import { sha256 } from '../../utils/hash'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
@@ -127,8 +127,8 @@ export interface SharedBoardScreenshotInput {
 // environments that never configure it (previews, local dev, tests) keep working; a var that is set
 // must say 'true', so a stray value disables rather than silently leaving the endpoint up.
 export function isMcpScreenshotEnabled(env: Environment) {
-	const value = env.MCP_SCREENSHOT_ENABLED?.trim().toLowerCase()
-	return value === undefined || value === '' || value === 'true'
+	const word = envFlagWord(env.MCP_SCREENSHOT_ENABLED)
+	return word === undefined || word === 'true'
 }
 
 export async function sharedBoardScreenshotMcp(

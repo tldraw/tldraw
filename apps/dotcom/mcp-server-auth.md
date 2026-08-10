@@ -9,7 +9,7 @@ Companion to [`browser-run-thumbnails.md`](./browser-run-thumbnails.md), which d
 
 Everything in the rollout below except the Clerk-side configuration, which is not code:
 
-- Required auth on every call, with OAuth 2.1 discovery, `401` + `WWW-Authenticate`, and audience-checked Clerk token verification (`mcpAuth.ts`).
+- Required auth on every call, with OAuth 2.1 discovery, `401` + `WWW-Authenticate`, and audience-checked Clerk token verification (`mcpAuth.ts`). The audience is asserted against the token's `aud` explicitly; `verifyToken`'s `audience` option is not passed at all — it compares only when the token carries an `aud` (so on its own it would accept a Clerk _session_ JWT), and a present-but-wrong `aud` would fail inside verification, upstream of the escape hatch and its diagnostic log. Enforcement is behind `MCP_REQUIRE_TOKEN_AUDIENCE`, off in dev, staging and preview until the Clerk instance is confirmed to stamp the resource indicator, and not overridable in production. Flipping staging to enforcing is the first step of enabling this.
 - The advertised protocol version moved to `2025-06-18`, and `2024-11-05` dropped.
 - The minted-token record key namespaced by surface, page and theme — the blocking prerequisite.
 - The per-user board access check (`hasReadAccessToFile`), gating the cache read as well as the render, with one not-found message for every way a board can fail to resolve.
@@ -163,7 +163,7 @@ The auth check sits inside `sharedBoardScreenshotMcp`, after the `isMcpScreensho
 
 - The advertised protocol version is `2025-06-18`, and `initialize` echoes the client's when we speak it. `2024-11-05` is not in the supported list, which is the point: it predates MCP authorization, so advertising it would leave a client unable to obtain a token but convinced the server was behaving to spec.
 - Protected resource metadata at `/.well-known/oauth-protected-resource/api/app/mcp`, and `401` + `WWW-Authenticate` from the route when no valid token is present. Every call needs one.
-- Bearer tokens verified with `verifyToken` from `@clerk/backend`, with `audience` set to the resource URL. This is the token path rather than the session path `getAuth.ts` uses, since MCP clients send bearer tokens rather than cookies — but see open question 2 about the token format.
+- Bearer tokens verified with `verifyToken` from `@clerk/backend` — signature and lifetime only; the audience binding is asserted separately against the verified payload's `aud` (see the TL;DR). This is the token path rather than the session path `getAuth.ts` uses, since MCP clients send bearer tokens rather than cookies — but see open question 2 about the token format.
 - The `mcp_server_access` flag is evaluated for the authenticated user; a user it does not name gets `403`.
 - The public-viewability gate is replaced by a per-user access check, which gates the cache read as well as the render.
 - Rate limits re-keyed from `ip-shot:` to `user:`. `ip-info:` was already gone. IP limits still make sense for endpoints with no caller identity — `/app/thumbnail-render/snapshot` and the discovery endpoint — and there are none there today.

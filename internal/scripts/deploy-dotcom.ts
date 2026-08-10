@@ -604,7 +604,20 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			// MCP_SCREENSHOT_RENDER_ORIGIN in wrangler.toml; previews have no such entry, so inject
 			// it here (Browser Run can't reach an origin that isn't configured for the deployment).
 			...(previewId
-				? { MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com` }
+				? {
+						MCP_SCREENSHOT_RENDER_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com`,
+						// Previews advertise and verify against their own public URL like every other
+						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
+						// local dev and tests only. Injected here because previews have no wrangler.toml
+						// vars block at all.
+						MCP_SERVER_URL: `https://${previewId}-preview-deploy.tldraw.com/api/app/mcp`,
+						// Same reason staging sets it: a preview has no Clerk OAuth instance of its own to
+						// mint a resource-scoped token from, so a missing `aud` is logged rather than
+						// refused. Production ignores this var outright — see isMcpTokenAudienceRequired.
+						// The other two copies are in wrangler.toml ([env.dev.vars] and [env.staging.vars]);
+						// remove all three together once Clerk is confirmed to stamp the resource indicator.
+						MCP_REQUIRE_TOKEN_AUDIENCE: 'false',
+					}
 				: {}),
 		},
 		sentry: {
