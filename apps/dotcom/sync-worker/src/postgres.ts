@@ -76,10 +76,10 @@ export function createPostgresConnectionPool(
  * Runs `fn` against a caller-supplied pool, or one created for this call alone.
  *
  * This is the borrow-or-own contract in one place. A supplied `db` is an invocation-scoped pool —
- * the queue batch loop in worker.ts, which would otherwise pay a fresh connect for every message it
- * resolves — so it is used as-is and its lifetime left to its owner. Without one,
- * create-and-destroy per call: a pg.Pool left idle would pile up in the isolate across MCP
- * resolves, OG image requests, and queue re-resolves.
+ * the queue batch loop in worker.ts, whose reads would otherwise each pay a fresh pool and connect
+ * — so it is used as-is and its lifetime left to its owner. Without one, create-and-destroy per
+ * call: a pg.Pool left idle would pile up in the isolate across MCP resolves, OG image requests,
+ * and queue re-resolves.
  */
 export async function withPostgres<T>(
 	env: Environment,

@@ -244,8 +244,10 @@ export async function handleOgImageRenderMessage(
 		/**
 		 * The batch's invocation-scoped pool (see the queue loop in worker.ts), handed through to
 		 * every Postgres read this delivery makes — the resolve, the snapshot read, and the
-		 * follow-up check — so a batch of deliveries costs one connect instead of one per read.
-		 * Owned by the batch loop; this handler never creates or destroys one.
+		 * follow-up check — so reads that land close together share a connect instead of each
+		 * spinning up its own pool. The capture in between still reaps the client (the pool keeps
+		 * the default idle timeout), so the follow-up check pays a reconnect. Owned by the batch
+		 * loop; this handler never creates or destroys one.
 		 */
 		db?: Kysely<DB>
 	} = {}

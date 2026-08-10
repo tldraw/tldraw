@@ -356,8 +356,8 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
 		// One invocation-scoped pool for the whole batch, shared by both message types, so reads that
-		// land close together — one message's resolve and follow-up reads, a run of asset inserts —
-		// share a connect instead of paying one each. Created eagerly: pg.Pool opens no connection
+		// land close together — a message's resolve and the snapshot read behind it, a run of asset
+		// inserts — share a connect instead of paying one each. Created eagerly: pg.Pool opens no connection
 		// until the first query, so a batch that never queries still costs nothing, and construction
 		// cannot fail inside one message's catch and be retried under that message's policy. The
 		// pool's `max: 1` is correct here: the loop below is sequential, so there is never a second
