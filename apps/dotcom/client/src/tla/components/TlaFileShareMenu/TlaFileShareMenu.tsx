@@ -23,12 +23,14 @@ export function TlaFileShareMenu({
 	context,
 	source,
 	children,
+	onOpenChange,
 }: {
 	// this share menu is shown when viewing a file, or a published file (snapshot), or when the logged out user is on the root (the scratchpad)
 	context: 'file' | 'published-file' | 'scratch' | 'legacy'
 	fileId?: string
 	source: string
 	children: ReactNode
+	onOpenChange?(isOpen: boolean): void
 }) {
 	const trackEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
@@ -78,7 +80,7 @@ export function TlaFileShareMenu({
 	// todo: replace disabled tabs for signed out users with "sign in to do X" content
 
 	return (
-		<TldrawUiPopover id={`share-${fileId}-${source}`}>
+		<TldrawUiPopover id={`share-${fileId}-${source}`} onOpenChange={onOpenChange}>
 			<TldrawUiPopoverTrigger>{children}</TldrawUiPopoverTrigger>
 
 			<TldrawUiPopoverContent

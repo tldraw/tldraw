@@ -211,6 +211,30 @@ describe('filtered history (QH)', () => {
 			},
 		])
 	})
+
+	it('[QH2] squashes matching records while ignoring interleaved record types', () => {
+		const authorHistory = store.query.filterHistory('author')
+		authorHistory.get()
+
+		const lastChangedEpoch = authorHistory.lastChangedEpoch
+		const newAuthor = Author.create({ name: 'Stanley Briggs' })
+		const updatedNewAuthor = { ...newAuthor, age: 38 }
+
+		store.put([newAuthor])
+		store.put([updatedNewAuthor, { ...books.lotr, title: 'The Fellowship of the Ring' }])
+		store.put([{ ...authors.davidMitchellFunny, age: 38 }])
+		store.remove([authors.davidMitchellFunny.id])
+		store.remove([authors.tolkein.id])
+		store.put([authors.tolkein])
+
+		expect(authorHistory.getDiffSince(lastChangedEpoch)).toEqual([
+			{
+				added: { [newAuthor.id]: updatedNewAuthor },
+				updated: {},
+				removed: { [authors.davidMitchellFunny.id]: authors.davidMitchellFunny },
+			},
+		])
+	})
 })
 
 describe('indexes (QI)', () => {

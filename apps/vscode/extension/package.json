@@ -58,6 +58,15 @@
 						"filenamePattern": "*.tldr.json"
 					}
 				]
+			},
+			{
+				"viewType": "tldraw.tldraw-offline",
+				"displayName": "tldraw",
+				"selector": [
+					{
+						"filenamePattern": "*.tldraw"
+					}
+				]
 			}
 		],
 		"keybindings": [

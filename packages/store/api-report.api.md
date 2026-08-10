@@ -375,7 +375,7 @@ export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>
 }): RecordsDiff<T>;
 
 // @internal
-export function squashRecordDiffsMutable<T extends UnknownRecord>(target: RecordsDiff<T>, diffs: RecordsDiff<T>[]): void;
+export function squashRecordDiffsMutable<T extends UnknownRecord>(target: RecordsDiff<T>, diffs: RecordsDiff<T>[], fromIndex?: number): void;
 
 // @public
 export interface StandaloneDependsOn {

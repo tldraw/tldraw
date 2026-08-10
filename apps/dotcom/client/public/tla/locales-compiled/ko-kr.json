@@ -11,6 +11,32 @@
       "value": "초대 수락"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "저희는 "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "에서 제공하는 파일에 대한 지원을 개발 중입니다."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "팀원들을 초대하세요"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 님이 당신을 언급했습니다."
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,16 @@
     {
       "type": 0,
       "value": "계정"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " 파일을 아직 열 수 없습니다."
     }
   ],
   "0a91f7fa87": [
@@ -123,6 +175,12 @@
       "value": "내보내기 형식"
     }
   ],
+  "14b03eeeb5": [
+    {
+      "type": 0,
+      "value": "알림 옵션"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -173,6 +231,22 @@
     {
       "type": 0,
       "value": "tldraw에 대하여"
+    }
+  ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 님이 당신의 게시판에 댓글을 남겼습니다."
     }
   ],
   "299cb00a7a": [
@@ -323,6 +397,12 @@
       "value": "tldraw 개선에 도움을 주셔서 감사합니다!"
     }
   ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "이용약관에 동의합니다"
+    }
+  ],
   "477df802ca": [
     {
       "type": 0,
@@ -383,6 +463,12 @@
       "value": "페이지 메뉴"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "읽지 않음"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -393,6 +479,16 @@
     {
       "type": 0,
       "value": "공동 작업자 정원 도달"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 읽지 않음"
     }
   ],
   "554a05155c": [
@@ -453,6 +549,22 @@
       "value": "내 작업 공간"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "님이 귀하의 댓글에 반응을 남겼습니다."
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -477,10 +589,43 @@
       "value": "복사"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "이제 모든 내용을 따라잡으셨군요."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "댓글을 남기려면 로그인하세요"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "이후"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": "명이 당신의 댓글에 반응했습니다"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -583,6 +728,12 @@
     {
       "type": 0,
       "value": "최대 파일 수에 도달했습니다. 새 파일을 만들기 전에 이전 파일을 삭제해야 합니다."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "모두 읽음으로 표시"
     }
   ],
   "7573b8110a": [
@@ -739,6 +890,12 @@
     {
       "type": 0,
       "value": " 파일을 무시하시겠습니까?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "댓글"
     }
   ],
   "858ba4765e": [
@@ -963,6 +1120,12 @@
       "value": "이미지 내보내기"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "알림"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1011,6 +1174,12 @@
       "value": "작업 공간 생성"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "누구"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1033,6 +1202,28 @@
     {
       "type": 0,
       "value": "게스트 사용자"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "님이 답글을 남겼습니다."
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "모두"
     }
   ],
   "b2326c3a34": [
@@ -1207,6 +1398,56 @@
       "value": "게시에 대해 자세히 알아보세요."
     }
   ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "님과 "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " 명"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " 명"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "이 회원님의 댓글에 반응했습니다."
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1325,6 +1566,36 @@
       "value": "서비스 약관"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "님과 "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": "님이 댓글에 반응을 남겼습니다."
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1393,6 +1664,12 @@
       "value": "을 읽어보세요."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "이 댓글은 삭제되었습니다."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1429,10 +1706,98 @@
       "value": "삭제"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " 및 "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " 님이 귀하의 댓글에 반응했습니다."
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "설정"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "지금은 "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "extension"
+        },
+        {
+          "type": 0,
+          "value": " 파일로 내보냄"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "을 사용하여 여기에서 사용할 수 있습니다."
     }
   ],
   "fa2ead697d": [

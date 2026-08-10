@@ -11,6 +11,32 @@
       "value": "Tanggapin ang imbitasyon"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "Nagsusumikap kaming suportahan ang mga file mula sa "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "Mag-imbita ng mga kasamahan sa koponan"
+    }
+  ],
+  "05b2656486": [
+    {
+      "type": 0,
+      "value": "Binanggit ka ni "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,16 @@
     {
       "type": 0,
       "value": "Account"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Hindi pa mabuksan ang mga file na "
+    },
+    {
+      "type": 1,
+      "value": "extension"
     }
   ],
   "0a91f7fa87": [
@@ -123,6 +175,12 @@
       "value": "I-export bilang"
     }
   ],
+  "14b03eeeb5": [
+    {
+      "type": 0,
+      "value": "Mga opsyon sa abiso"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -177,6 +235,26 @@
     {
       "type": 0,
       "value": "Tungkol sa tldraw"
+    }
+  ],
+  "2755e3ab39": [
+    {
+      "type": 0,
+      "value": "Nagkomento si "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " sa iyong board"
     }
   ],
   "299cb00a7a": [
@@ -331,6 +409,12 @@
       "value": "Salamat sa pagtulong sa amin na mapabuti ang tldraw!"
     }
   ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Tanggapin ang mga tuntunin ng paggamit"
+    }
+  ],
   "477df802ca": [
     {
       "type": 0,
@@ -391,6 +475,12 @@
       "value": "Menu ng page"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Hindi pa nababasa"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -401,6 +491,16 @@
     {
       "type": 0,
       "value": "Naabot na ang limitasyon ng collaborator"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " hindi pa nababasa"
     }
   ],
   "554a05155c": [
@@ -461,6 +561,26 @@
       "value": "Ang aking lugar ng trabaho"
     }
   ],
+  "5bffeebf03": [
+    {
+      "type": 0,
+      "value": "Nag-react si "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " sa komento mo"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -485,10 +605,67 @@
       "value": "Kopyahin"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Nabasa mo na ang lahat."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Mag-sign in para magkomento"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Mamaya"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+          ]
+        },
+        "many": {
+          "value": [
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "May nag-react sa komento mo"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tao ang nag-react sa komento mo"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+          ]
+        },
+        "zero": {
+          "value": [
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -591,6 +768,12 @@
     {
       "type": 0,
       "value": "Naabot mo na ang maximum na bilang ng mga file. Kailangan mong tanggalin ang mga lumang file bago gumawa ng mga bago."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Markahan lahat bilang nabasa na"
     }
   ],
   "7573b8110a": [
@@ -747,6 +930,12 @@
     {
       "type": 0,
       "value": "?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Mga Komento"
     }
   ],
   "858ba4765e": [
@@ -979,6 +1168,12 @@
       "value": "I-export ang larawan"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Mga Abiso"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1027,6 +1222,12 @@
       "value": "Gumawa ng workspace"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "May isang tao"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1049,6 +1250,28 @@
     {
       "type": 0,
       "value": "Guest user"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "type": 0,
+      "value": "Sumagot si "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Lahat"
     }
   ],
   "b2326c3a34": [
@@ -1251,6 +1474,56 @@
       "value": "Matuto pa tungkol sa pag-publish."
     }
   ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " ay nag-react sa iyong komento"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1369,6 +1642,40 @@
       "value": "Mga tuntunin ng serbisyo"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "type": 0,
+      "value": "Nag-react sina "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " sa iyong komento"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1437,6 +1744,12 @@
       "value": " upang matuto nang higit pa."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Binura na ang komentong ito."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1473,10 +1786,106 @@
       "value": "Tanggalin"
     }
   ],
+  "f476ba8646": [
+    {
+      "type": 0,
+      "value": "Sina "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " at "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " pa"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " pa"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " ang nag-react sa iyong komento"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "Mga setting"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "Sa ngayon, maaari mo itong "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "i-export bilang isang "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        },
+        {
+          "type": 0,
+          "value": " file"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " para magamit ito rito."
     }
   ],
   "fa2ead697d": [

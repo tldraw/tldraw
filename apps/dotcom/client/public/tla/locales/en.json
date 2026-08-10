@@ -5,6 +5,9 @@
   "00b177e080": {
     "translation": "Accept invitation"
   },
+  "029f235f01": {
+    "translation": "We’re working on support for files from <a><strong>{appName}</strong></a>."
+  },
   "03b3e13197": {
     "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
   },
@@ -13,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "Invite teammates"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> mentioned you"
   },
   "05f43078e9": {
     "translation": "You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones."
@@ -28,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "Account"
+  },
+  "093ac7483a": {
+    "translation": "Can’t open {extension} files yet"
   },
   "0a91f7fa87": {
     "translation": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
@@ -59,6 +68,9 @@
   "13ddd375ad": {
     "translation": "Export as"
   },
+  "14b03eeeb5": {
+    "translation": "Notification options"
+  },
   "181b90f889": {
     "translation": "Create file"
   },
@@ -79,6 +91,9 @@
   },
   "250ddea65c": {
     "translation": "About tldraw"
+  },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> commented on your board"
   },
   "299cb00a7a": {
     "translation": "Upload failed"
@@ -182,11 +197,17 @@
   "517bb809d9": {
     "translation": "Page menu"
   },
+  "53770fd374": {
+    "translation": "Unread"
+  },
   "542248f0ba": {
     "translation": "This file is now read-only"
   },
   "54286b1d01": {
     "translation": "Collaborator limit reached"
+  },
+  "545241e7dd": {
+    "translation": "{count} unread"
   },
   "554a05155c": {
     "translation": "Still having trouble? <a>Report a problem</a>"
@@ -212,6 +233,9 @@
   "5bff3c9c88": {
     "translation": "My workspace"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> reacted to your comment"
+  },
   "5d04a002ea": {
     "translation": "Unable to connect"
   },
@@ -224,8 +248,17 @@
   "5fb63579fc": {
     "translation": "Copy"
   },
+  "608e9d366e": {
+    "translation": "You’re all caught up."
+  },
+  "60a68c29d6": {
+    "translation": "Sign in to comment"
+  },
   "61057a0c84": {
     "translation": "Later"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, one {Someone reacted to your comment} other {# people reacted to your comment}}"
   },
   "625fd29749": {
     "translation": "Older"
@@ -277,6 +310,9 @@
   },
   "752b79f137": {
     "translation": "You have reached the maximum number of files. You need to delete old files before creating new ones."
+  },
+  "7542d62aac": {
+    "translation": "Mark all as read"
   },
   "7573b8110a": {
     "translation": "No access"
@@ -334,6 +370,9 @@
   },
   "81666c6e4a": {
     "translation": "Are you sure you want to forget <strong>{fileName}</strong>?"
+  },
+  "8413c683b4": {
+    "translation": "Comments"
   },
   "858ba4765e": {
     "translation": "Member"
@@ -425,6 +464,9 @@
   "a239905023": {
     "translation": "Export image"
   },
+  "a274f4d467": {
+    "translation": "Notifications"
+  },
   "a3debabee7": {
     "translation": "Cookie policy"
   },
@@ -449,6 +491,9 @@
   "aac449eef6": {
     "translation": "Create workspace"
   },
+  "aaec8f7cde": {
+    "translation": "Someone"
+  },
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
@@ -458,6 +503,12 @@
   },
   "b028909917": {
     "translation": "Guest user"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> replied"
+  },
+  "b1c94ca2fb": {
+    "translation": "All"
   },
   "b2326c3a34": {
     "translation": "Regenerate"
@@ -531,6 +582,9 @@
   "cea291e45e": {
     "translation": "Learn more about publishing."
   },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
+  },
   "d3d2e61733": {
     "translation": "Close"
   },
@@ -576,6 +630,9 @@
   "e404559826": {
     "translation": "Terms of service"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> and <name>{b}</name> reacted to your comment"
+  },
   "e81c4e4f2b": {
     "translation": "or"
   },
@@ -603,6 +660,9 @@
   "ede55d955f": {
     "translation": "Read our <a>cookie policy</a> to learn more."
   },
+  "edec9387f9": {
+    "translation": "This comment was deleted."
+  },
   "ef53538ae4": {
     "translation": "Members"
   },
@@ -621,8 +681,14 @@
   "f2a6c498fb": {
     "translation": "Delete"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
+  },
   "f4f70727dc": {
     "translation": "Settings"
+  },
+  "f5ddc8d9c1": {
+    "translation": "For now, you can <a>export as a {extension} file</a> to use it here."
   },
   "fa2ead697d": {
     "translation": "Privacy Policy"

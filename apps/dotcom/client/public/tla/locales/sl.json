@@ -5,6 +5,9 @@
   "00b177e080": {
     "translation": "Sprejmi povabilo"
   },
+  "029f235f01": {
+    "translation": "Delamo na podpori za datoteke iz <a><strong>{appName}</strong></a>."
+  },
   "03b3e13197": {
     "translation": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v uporabniškem meniju izberite možnost 'Uvozi datoteko'."
   },
@@ -13,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "Povabi soigralce"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> vas je omenil"
   },
   "05f43078e9": {
     "translation": "Dosegli ste največje dovoljeno število delovnih prostorov. Preden ustvarite nove, morate izbrisati stare delovne prostore."
@@ -28,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "Račun"
+  },
+  "093ac7483a": {
+    "translation": "Datotek {extension} še ni mogoče odpreti"
   },
   "0a91f7fa87": {
     "translation": "Ta datoteka je dosegla omejitev velikosti in spremembe morda ne bodo več shranjene. Odstranite nekaj vsebine ali začnite ustvarjati novo datoteko."
@@ -59,6 +68,9 @@
   "13ddd375ad": {
     "translation": "Izvozi kot"
   },
+  "14b03eeeb5": {
+    "translation": "Možnosti obveščanja"
+  },
   "181b90f889": {
     "translation": "Ustvari datoteko"
   },
@@ -79,6 +91,9 @@
   },
   "250ddea65c": {
     "translation": "O tldrawu"
+  },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> je komentiral/a na vaši tabli"
   },
   "299cb00a7a": {
     "translation": "Nalaganje ni uspelo"
@@ -149,6 +164,9 @@
   "46137245cd": {
     "translation": "Hvala, ker nam pomagate izboljšati tldraw!"
   },
+  "46de2de6bb": {
+    "translation": "Sprejmi pogoje uporabe"
+  },
   "477df802ca": {
     "translation": "Za nadaljevanje urejanja kopirajte datoteko v svoje datoteke."
   },
@@ -179,11 +197,17 @@
   "517bb809d9": {
     "translation": "Meni strani"
   },
+  "53770fd374": {
+    "translation": "Neprebrano"
+  },
   "542248f0ba": {
     "translation": "Ta datoteka je zdaj samo za branje"
   },
   "54286b1d01": {
     "translation": "Dosežena je omejitev sodelavcev"
+  },
+  "545241e7dd": {
+    "translation": "{count} neprebranih"
   },
   "554a05155c": {
     "translation": "Še vedno imate težave? <a>Prijavite težavo</a>"
@@ -209,6 +233,9 @@
   "5bff3c9c88": {
     "translation": "Moj delovni prostor"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> se je odzval na vaš komentar"
+  },
   "5d04a002ea": {
     "translation": "Povezave ni mogoče vzpostaviti"
   },
@@ -221,8 +248,17 @@
   "5fb63579fc": {
     "translation": "Kopiraj"
   },
+  "608e9d366e": {
+    "translation": "Vse ste prebrali."
+  },
+  "60a68c29d6": {
+    "translation": "Prijavite se za komentiranje"
+  },
   "61057a0c84": {
     "translation": "Kasneje"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, one {Nekdo se je odzval na tvoj komentar} two {# osebi sta se odzvali na tvoj komentar} few {# osebe so se odzvale na tvoj komentar} other {# oseb se je odzvalo na tvoj komentar}}"
   },
   "625fd29749": {
     "translation": "Starejši"
@@ -274,6 +310,9 @@
   },
   "752b79f137": {
     "translation": "Dosegli ste največje število datotek. Preden ustvarite nove, morate izbrisati stare datoteke."
+  },
+  "7542d62aac": {
+    "translation": "Označi vse kot prebrano"
   },
   "7573b8110a": {
     "translation": "Ni dostopa"
@@ -331,6 +370,9 @@
   },
   "81666c6e4a": {
     "translation": "Ali ste prepričani, da želite pozabiti <strong>{fileName}</strong>?"
+  },
+  "8413c683b4": {
+    "translation": "Komentarji"
   },
   "858ba4765e": {
     "translation": "Član"
@@ -422,6 +464,9 @@
   "a239905023": {
     "translation": "Izvozi sliko"
   },
+  "a274f4d467": {
+    "translation": "Obvestila"
+  },
   "a3debabee7": {
     "translation": "Politika piškotkov"
   },
@@ -446,6 +491,9 @@
   "aac449eef6": {
     "translation": "Ustvari delovni prostor"
   },
+  "aaec8f7cde": {
+    "translation": "Nekdo"
+  },
   "ab0df9ba36": {
     "translation": "Dosežena je omejitev datotek"
   },
@@ -455,6 +503,12 @@
   },
   "b028909917": {
     "translation": "Gostujoči uporabnik"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> je odgovoril"
+  },
+  "b1c94ca2fb": {
+    "translation": "Vse"
   },
   "b2326c3a34": {
     "translation": "Regeneriraj"
@@ -528,6 +582,9 @@
   "cea291e45e": {
     "translation": "Preberite več o objavljanju."
   },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> in {count, plural, one {# other} other {# others}} sta se odzvala na vaš komentar"
+  },
   "d3d2e61733": {
     "translation": "Zapri"
   },
@@ -573,6 +630,9 @@
   "e404559826": {
     "translation": "Pogoji storitve"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> in <name>{b}</name> sta se odzvala na vaš komentar."
+  },
   "e81c4e4f2b": {
     "translation": "ali"
   },
@@ -600,6 +660,9 @@
   "ede55d955f": {
     "translation": "Za več informacij preberite našo <a>pravilnik o piškotkih</a>."
   },
+  "edec9387f9": {
+    "translation": "Ta komentar je bil izbrisan."
+  },
   "ef53538ae4": {
     "translation": "Člani"
   },
@@ -618,8 +681,14 @@
   "f2a6c498fb": {
     "translation": "Izbriši"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>, <name>{b}</name> in {count, plural, one {# other} other {# others}} so se odzvali na vaš komentar"
+  },
   "f4f70727dc": {
     "translation": "Nastavitve"
+  },
+  "f5ddc8d9c1": {
+    "translation": "Zaenkrat lahko <a>izvozite kot datoteko {extension}</a>, da jo uporabite tukaj."
   },
   "fa2ead697d": {
     "translation": "Pravilnik o zasebnosti"

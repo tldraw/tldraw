@@ -24,6 +24,7 @@ import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { JSX } from 'react/jsx-runtime';
 import { LegacyMigrations } from '@tldraw/store';
+import { MemoExoticComponent } from 'react';
 import { MigrationSequence } from '@tldraw/store';
 import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerformanceTracker } from '@tldraw/utils';
@@ -31,6 +32,7 @@ import * as React_2 from 'react';
 import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
 import { ReactNode } from 'react';
+import { ReactPortal } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
 import { RefAttributes } from 'react';
@@ -700,6 +702,9 @@ export function DefaultBackground(): JSX.Element;
 // @public (undocumented)
 export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Element;
 
+// @public
+export const DefaultCursor: MemoExoticComponent<({ className, zoom, point, color, name, chatMessage, }: TLCursorProps) => JSX.Element | null>;
+
 // @public (undocumented)
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
@@ -871,7 +876,7 @@ export class EdgeScrollManager {
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, }: TLEditorOptions);
-    alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
+    alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
     // @internal (undocumented)
@@ -1538,6 +1543,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent<E>['type'], E>(type: T, handler: ((info: T extends TLExternalContent<E>['type'] ? Extract<TLExternalContent<E>, {
         type: T;
     }> : TLExternalContent<E>) => void) | null): this;
+    // @internal
+    _releaseAltKey(): void;
+    // @internal
+    _releaseCtrlKey(): void;
+    // @internal
+    _releaseMetaKey(): void;
+    // @internal
+    _releaseShiftKey(): void;
     removeTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
@@ -1574,14 +1587,10 @@ export class Editor extends EventEmitter<TLEventMap> {
         considerAllShapes?: boolean;
     }): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
-    // @internal (undocumented)
-    _setAltKeyTimeout(): void;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
     setCameraOptions(opts: Partial<TLCameraOptions>): this;
     setColorMode(mode: 'dark' | 'light'): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
-    // @internal (undocumented)
-    _setCtrlKeyTimeout(): void;
     setCurrentPage(page: TLPage | TLPageId): this;
     setCurrentTheme(id: TLThemeId): this;
     setCurrentTool(id: string, info?: {}): this;
@@ -1591,14 +1600,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
     setHintingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setHoveredShape(shape: null | TLShape | TLShapeId): this;
-    // @internal (undocumented)
-    _setMetaKeyTimeout(): void;
     setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this;
     setOpacityForSelectedShapes(opacity: number): this;
     setRichTextEditor(textEditor: null | TiptapEditor): this;
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
-    // @internal (undocumented)
-    _setShiftKeyTimeout(): void;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
     setTool(Tool: TLStateNodeConstructor, parent?: StateNode): void;
@@ -1721,6 +1726,15 @@ export abstract class EditorManager {
     // (undocumented)
     protected readonly editor: Editor;
     protected register(dispose: () => void): () => void;
+}
+
+// @public
+export function EditorPortal({ children }: EditorPortalProps): ReactPortal | null;
+
+// @public (undocumented)
+export interface EditorPortalProps {
+    // (undocumented)
+    children: ReactNode;
 }
 
 // @public (undocumented)
@@ -2388,6 +2402,14 @@ export function isAccelKey(e: {
 }): boolean;
 
 // @public
+export function isCursorInViewport(cursor: VecLike, viewport: {
+    maxX: number;
+    maxY: number;
+    minX: number;
+    minY: number;
+}, zoom: number): boolean;
+
+// @public
 export function isSafeFloat(n: number): boolean;
 
 // @public
@@ -2397,6 +2419,9 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opt
 
 // @internal (undocumented)
 export const LICENSE_TIMEOUT = 5000;
+
+// @internal
+export type LicenseFeatureName = 'collaboration' | 'commenting';
 
 // @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
@@ -2419,11 +2444,14 @@ export class LicenseManager {
     // (undocumented)
     static className: string;
     // (undocumented)
+    featureFlags: Atom<Record<LicenseFeatureName, boolean>, unknown>;
+    // (undocumented)
     getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult>;
     // (undocumented)
     isCryptoAvailable: boolean;
     // (undocumented)
     isDevelopment: boolean;
+    isFeatureEnabled(feature: LicenseFeatureName): boolean;
     // (undocumented)
     isTest: boolean;
     // (undocumented)
@@ -3473,7 +3501,6 @@ export interface TLBaseEventInfo {
 export interface TLBaseExternalContent {
     // (undocumented)
     point?: VecLike;
-    // (undocumented)
     sources?: TLExternalContentSource[];
 }
 
@@ -3651,6 +3678,24 @@ export interface TLCurrentUser {
     readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
     // (undocumented)
     readonly userPreferences: Signal<TLUserPreferences>;
+}
+
+// @public (undocumented)
+export interface TLCursorProps {
+    // (undocumented)
+    chatMessage: string;
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    color?: string;
+    // (undocumented)
+    name: null | string;
+    // (undocumented)
+    point: null | VecModel;
+    // (undocumented)
+    userId: string;
+    // (undocumented)
+    zoom: number;
 }
 
 // @public (undocumented)
@@ -3900,6 +3945,8 @@ export interface TLEditorComponents {
     Background?: ComponentType | null;
     // (undocumented)
     Canvas?: ComponentType<TLCanvasComponentProps> | null;
+    // (undocumented)
+    CollaboratorCursor?: ComponentType<TLCursorProps> | null;
     // (undocumented)
     ErrorFallback?: TLErrorFallbackComponent;
     // (undocumented)
@@ -5031,6 +5078,9 @@ export function useEditor(): Editor;
 // @public (undocumented)
 export function useEditorComponents(): Required<TLEditorComponents>;
 
+// @public
+export function useEditorPortalHost(): HTMLElement | null;
+
 // @internal
 export function useEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
 
@@ -5044,6 +5094,12 @@ export function useIsCropping(shapeId: TLShapeId): boolean;
 export function useIsEditing(shapeId: TLShapeId): boolean;
 
 // @internal (undocumented)
+export function useLicenseContext(): LicenseManager;
+
+// @internal
+export function useLicenseFeatureFlag(licenseManager: LicenseManager, feature: LicenseFeatureName): boolean;
+
+// @internal (undocumented)
 export function useLocalStore(options: {
     persistenceKey?: string;
     sessionId?: string;
@@ -5055,9 +5111,6 @@ export function useMaybeEditor(): Editor | null;
 
 // @internal (undocumented)
 export function useOnMount(onMount?: TLOnMountHandler): void;
-
-// @public (undocumented)
-export function usePassThroughMouseOverEvents(ref: RefObject<HTMLElement | null>): void;
 
 // @public (undocumented)
 export function usePassThroughWheelEvents(ref: RefObject<HTMLElement | null>): void;
@@ -5166,9 +5219,12 @@ export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TL
 export function useTLStore(opts: TLStoreOptions): TLStore;
 
 // @public
+export function useTransform(ref: React.RefObject<HTMLElement | null | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
+
+// @public
 export function useUniqueSafeId(suffix?: string): SafeId;
 
-// @public (undocumented)
+// @public @deprecated
 export function useViewportHeight(): number;
 
 // @internal (undocumented)
@@ -5181,6 +5237,10 @@ export interface ValidLicenseKeyResult {
     isAnnualLicense: boolean;
     // (undocumented)
     isAnnualLicenseExpired: boolean;
+    // (undocumented)
+    isCollaborationEnabled: boolean;
+    // (undocumented)
+    isCommentingEnabled: boolean;
     // (undocumented)
     isDevelopment: boolean;
     // (undocumented)

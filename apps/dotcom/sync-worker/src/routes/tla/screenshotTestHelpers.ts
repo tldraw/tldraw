@@ -1,10 +1,11 @@
 import { vi } from 'vitest'
 import { Environment } from '../../types'
+import { base64UrlDecode } from '../../utils/base64'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
-// sharedBoardScreenshotMcp, ogImageQueue, getOgImage). These were copy-pasted across those files;
-// keep them here so the R2/browser/queue fakes, snapshot builder, and token helpers stay in one
-// place.
+// sharedBoardScreenshotMcp, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
+// and token helpers belong here rather than in any one test file, so that all four exercise the same
+// stand-ins.
 
 // Builds a room snapshot with the given pages and per-page shape counts. Shapes are parented
 // directly to their page, which is what enumerateBoardPages checks for "has content".
@@ -21,21 +22,36 @@ export function makeSnapshot(
 		})
 		for (let i = 0; i < page.shapes; i++) {
 			documents.push({
-				state: { typeName: 'shape', id: `shape:${page.id}-${i}`, parentId: page.id },
+				state: {
+					typeName: 'shape',
+					id: `shape:${page.id}-${i}`,
+					parentId: page.id,
+					type: 'geo',
+					x: i * 100,
+					y: 0,
+					rotation: 0,
+					props: { w: 80, h: 80 },
+				},
 			})
 		}
 	}
 	return { documents, schema: { schemaVersion: 2, sequences: {} } } as any
 }
 
-// In-memory stand-in for the THUMBNAILS R2 bucket. Exposes `store` so tests can inspect or seed
+// In-memory stand-in for an R2 bucket (THUMBNAILS or MCP_DATA_BUCKET, which have the same shape).
+// Exposes `store` so tests can inspect or seed
 // entries directly. Covers get/head/put/delete; entries carry the customMetadata and upload time
 // the routes read.
 export function makeFakeThumbnailsBucket() {
 	const store = new Map<
 		string,
-		{ body: ArrayBuffer; customMetadata?: Record<string, string>; uploaded: Date }
+		{ body: ArrayBuffer; customMetadata?: Record<string, string>; uploaded: Date; etag: string }
 	>()
+	// R2 exposes an object's etag twice: `etag` bare and `httpEtag` quoted for the header. The OG route
+	// compares against the first and sends the second, so the fake has to carry both. The value only
+	// has to change when the bytes do, which a counter gives without hashing anything.
+	let version = 0
+	const etagOf = (value: { etag: string }) => ({ etag: value.etag, httpEtag: `"${value.etag}"` })
 	return {
 		store,
 		async get(key: string) {
@@ -44,23 +60,30 @@ export function makeFakeThumbnailsBucket() {
 			return {
 				customMetadata: value.customMetadata,
 				uploaded: value.uploaded,
+				...etagOf(value),
+				body: value.body,
 				arrayBuffer: async () => value.body,
+				// R2 objects expose both; the render-result read uses text, the PNG cache uses bytes.
+				text: async () => new TextDecoder().decode(value.body),
 			}
 		},
 		async head(key: string) {
 			const value = store.get(key)
 			if (!value) return null
-			return { customMetadata: value.customMetadata, uploaded: value.uploaded }
+			return { customMetadata: value.customMetadata, uploaded: value.uploaded, ...etagOf(value) }
 		},
 		async put(
 			key: string,
-			body: ArrayBuffer,
+			body: ArrayBuffer | string,
 			options?: { customMetadata?: Record<string, string> }
 		) {
 			store.set(key, {
-				body,
+				// Real R2 accepts a string body; normalize so arrayBuffer() and text() both work
+				// whichever form the caller used.
+				body: typeof body === 'string' ? new TextEncoder().encode(body).buffer : body,
 				customMetadata: options?.customMetadata,
 				uploaded: new Date(Date.now()),
+				etag: `etag-${++version}`,
 			})
 		},
 		async delete(key: string) {
@@ -92,6 +115,32 @@ export function makeFakeQueue() {
 	return { send: vi.fn(async (_message: unknown) => undefined) }
 }
 
+// Stands in for the render page on a `measure` job: a real one POSTs its measurements to
+// /app/thumbnail-render/result before signalling ready, so the fake writes them to the same place
+// the worker reads from. Without this every clustering tool would fail on a missing result, since
+// they all measure the page before clustering it.
+export function makeMeasuringBrowserBinding(
+	env: () => Environment,
+	bounds: Record<
+		string,
+		{ minX: number; minY: number; maxX: number; maxY: number; text?: string }
+	> = {}
+) {
+	return makeBrowserBinding(async (body: any) => {
+		const token = new URL(body.url).searchParams.get('token')
+		const job = token
+			? JSON.parse(new TextDecoder().decode(base64UrlDecode(token.split('.')[0])))
+			: null
+		if (job?.mode === 'measure') {
+			await (env().THUMBNAILS as R2Bucket).put(
+				`render-result/${encodeURIComponent(token!)}.json`,
+				JSON.stringify(bounds)
+			)
+		}
+		return new Response(new Uint8Array([1, 2, 3]), { status: 200 })
+	})
+}
+
 export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
 		BROWSER: makeBrowserBinding(),
@@ -99,6 +148,9 @@ export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },
 		QUEUE: makeFakeQueue(),
+		// Nothing in the thumbnail pipeline derives a board id, and this exists to keep it that way: if
+		// something starts, a legible `do(<name>)` shows up in an assertion rather than an opaque hash.
+		TLDR_DOC: { idFromName: (name: string) => ({ toString: () => `do(${name})` }) },
 		...overrides,
 	} as unknown as Environment
 }
@@ -122,6 +174,23 @@ export function failureBlobsOf(env: Environment) {
 
 export function ipBlobsOf(env: Environment) {
 	return blobsWithPrefix(env, 'ip:')
+}
+
+// The Browser Run duration (double3) of every datapoint written. -1 is the sentinel for "no browser
+// was spent", which is what separates a failure that never reached the capture from one that created
+// a browser and held it — a distinction the spend ledger would otherwise lose on every failed render.
+export function renderDurationsOf(env: Environment): number[] {
+	return (env.MEASURE as any).writeDataPoint.mock.calls.map(
+		(call: any[]) => (call[0].doubles as number[])[2]
+	)
+}
+
+// The index (index1) of every datapoint written. Always `undefined`, since the dataset carries no
+// board identity — this exists to pin that, not to read a value out.
+export function indexesOf(env: Environment): (string | undefined)[] {
+	return (env.MEASURE as any).writeDataPoint.mock.calls.map(
+		(call: any[]) => (call[0].indexes as [string] | undefined)?.[0]
+	)
 }
 
 // quickAction is called as quickAction('screenshot', body); the render URL rides in body (arg 1).

@@ -48,16 +48,24 @@ import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
+import { initUser } from './routes/tla/initUser'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
+import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
-import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
+import {
+	getFileEffectProcessor,
+	getLogger,
+	getReplicator,
+	getUserDurableObject,
+} from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
 import { getRole } from './utils/tla/getRole'
 export { TLFileDurableObject } from './TLFileDurableObject'
+export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLStatsDurableObject } from './TLStatsDurableObject'
@@ -134,12 +142,19 @@ const router = createRouter<Environment>()
 		// Ensure user exists in DB before Zero can query
 		const auth = await requireAuth(req, env)
 		if (req.params.userId !== auth.userId) return notFound()
-		const stub = getUserDurableObject(env, auth.userId)
-		return stub.fetch(req)
+		return initUser(req, env)
 	})
 	.post('/app/tldr', createFiles)
 	.get('/app/replicator-status', async (_, env) => {
 		await getReplicator(env).ping()
+		return new Response('ok')
+	})
+	// Dev/preview only. Wakes the outbox processor: local workerd doesn't fire persisted alarms
+	// for an uninstantiated DO, so without this a restarted dev stack drains nothing until the
+	// first mutation. The dev stack's readiness probe hits this route.
+	.get('/app/outbox-status', async (_, env) => {
+		if (!isDebugLogging(env)) return notFound()
+		await getFileEffectProcessor(env).poke()
 		return new Response('ok')
 	})
 	.get('/app/file/:roomId', (req, env) => {
@@ -187,9 +202,10 @@ const router = createRouter<Environment>()
 	// The board's rendered social preview image, referenced by the og:image tags getSocialPreview
 	// emits. Lives under the social-preview route family so the crawler HTML and its image share one
 	// path prefix. Registered with .all (like the sibling HTML route) so HEAD probes are handled;
-	// getOgImage serves headers only and skips the render enqueue for anything but GET.
+	// getOgImage serves headers only for anything but GET.
 	.all('/app/social-preview/:prefix/:slug/image', getOgImage)
 	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
+	.post('/app/thumbnail-render/result', putThumbnailRenderResult)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)
@@ -202,7 +218,7 @@ const router = createRouter<Environment>()
 	})
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
-	.post('/app/zero/mutate', async (req, env) => {
+	.post('/app/zero/mutate', async (req, env, ctx) => {
 		const auth = await getAuth(req, env)
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
@@ -212,6 +228,13 @@ const router = createRouter<Environment>()
 			'debug'
 		)
 		const result = await processor.process(createMutators(auth.userId), req)
+		// Wake the outbox consumer without blocking the response: a poke failure must not 500 a
+		// mutation that already committed, and the singleton DO shouldn't sit on the hot path.
+		ctx.waitUntil(
+			getFileEffectProcessor(env)
+				.poke()
+				.catch((e) => console.error('outbox poke failed', e))
+		)
 		return json(result)
 	})
 	.post('/app/zero/query', async (req, env) => {

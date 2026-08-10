@@ -32,6 +32,10 @@ import {
 	setColorThemePreview,
 	updateLocalSessionState,
 } from '../../utils/local-session-state'
+import {
+	TLDRAW_OFFLINE_FILE_EXTENSION,
+	useRejectTldrawOfflineFiles,
+} from '../../utils/tldrawOfflineFiles'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
 
@@ -335,6 +339,7 @@ export function ImportFileActionItem() {
 	const navigate = useNavigate()
 
 	const importFileMsg = useMsg(messages.importFile)
+	const rejectTldrawOfflineFiles = useRejectTldrawOfflineFiles()
 
 	return (
 		<TldrawUiMenuItem
@@ -349,11 +354,16 @@ export function ImportFileActionItem() {
 				trackEvent('import-tldr-file', { source: 'account-menu' })
 
 				try {
-					const tldrawFiles = await fileOpen({
-						extensions: [TLDRAW_FILE_EXTENSION],
+					// tldraw offline files are selectable so that we can explain why we can't open them
+					// yet. Leaving them out of the picker would just grey them out with no explanation.
+					const pickedFiles = await fileOpen({
+						extensions: [TLDRAW_FILE_EXTENSION, TLDRAW_OFFLINE_FILE_EXTENSION],
 						multiple: true,
 						description: 'tldraw project',
 					})
+
+					const tldrawFiles = rejectTldrawOfflineFiles(pickedFiles)
+					if (!tldrawFiles.length) return
 
 					app.uploadTldrFiles(tldrawFiles, (fileId) => {
 						navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })

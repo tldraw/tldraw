@@ -1,7 +1,8 @@
-import { RefObject, useEffect } from 'react'
+import { RefObject, useEffect, useRef } from 'react'
 import { preventDefault } from '../utils/dom'
 import { useContainer } from './useContainer'
 import { useMaybeEditor } from './useEditor'
+import { useEvent } from './useEvent'
 
 function isScrollableOverflow(overflow: string) {
 	return overflow === 'auto' || overflow === 'scroll' || overflow === 'overlay'
@@ -51,33 +52,49 @@ export function usePassThroughWheelEvents(ref: RefObject<HTMLElement | null>) {
 	const container = useContainer()
 	const editor = useMaybeEditor()
 
-	useEffect(() => {
-		function onWheel(e: WheelEvent) {
-			// Only pass through wheel events if the editor is focused
-			if (!editor?.getInstanceState().isFocused) return
+	const onWheel = useEvent((e: WheelEvent) => {
+		// Only pass through wheel events if the editor is focused
+		if (!editor?.getInstanceState().isFocused) return
 
-			if ((e as any).isSpecialRedispatchedEvent) return
+		if ((e as any).isSpecialRedispatchedEvent) return
 
-			// If the wheel is over a scrollable element, let it scroll instead of redispatching.
-			const elm = ref.current
-			if (elm && hasScrollableElement(e.target, elm)) {
-				return
-			}
-
-			preventDefault(e)
-			const cvs = container.querySelector('.tl-canvas')
-			if (!cvs) return
-			const newEvent = new WheelEvent('wheel', e as any)
-			;(newEvent as any).isSpecialRedispatchedEvent = true
-			cvs.dispatchEvent(newEvent)
-		}
-
+		// If the wheel is over a scrollable element, let it scroll instead of redispatching.
 		const elm = ref.current
-		if (!elm) return
-
-		elm.addEventListener('wheel', onWheel, { passive: false })
-		return () => {
-			elm.removeEventListener('wheel', onWheel)
+		if (elm && hasScrollableElement(e.target, elm)) {
+			return
 		}
-	}, [container, editor, ref])
+
+		preventDefault(e)
+		const cvs = container.querySelector('.tl-canvas')
+		if (!cvs) return
+		const newEvent = new WheelEvent('wheel', e as any)
+		;(newEvent as any).isSpecialRedispatchedEvent = true
+		cvs.dispatchEvent(newEvent)
+	})
+
+	// The element the listener is currently on, which isn't necessarily `ref.current`: a `RefObject`
+	// gives no notification when its element changes.
+	const attached = useRef<HTMLElement | null>(null)
+
+	// Deliberately no dependency array — this re-checks the ref after every render of the component
+	// that owns it, and re-attaches when the element has been swapped. A component that keeps the
+	// hook mounted while unmounting and remounting the element it points at (a comment pin culled
+	// while its anchor is off screen, say) would otherwise leave the listener on the discarded node
+	// and silently lose pass-through once the element comes back.
+	useEffect(() => {
+		const elm = ref.current
+		if (elm === attached.current) return
+		attached.current?.removeEventListener('wheel', onWheel)
+		attached.current = elm
+		elm?.addEventListener('wheel', onWheel, { passive: false })
+	})
+
+	// Teardown is its own effect so the re-attach check above can skip returning a cleanup that
+	// would tear the listener down and rebuild it on every render.
+	useEffect(() => {
+		return () => {
+			attached.current?.removeEventListener('wheel', onWheel)
+			attached.current = null
+		}
+	}, [onWheel])
 }

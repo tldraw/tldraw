@@ -5,6 +5,9 @@
   "00b177e080": {
     "translation": "接受邀請"
   },
+  "029f235f01": {
+    "translation": "我們正在努力支援來自 <a><strong>{appName}</strong></a> 的檔案。"
+  },
   "03b3e13197": {
     "translation": "將檔案拖曳到本頁面的側邊欄，或從使用者選單中選取「匯入檔案」。"
   },
@@ -13,6 +16,9 @@
   },
   "04a2dd56d6": {
     "translation": "邀請隊友"
+  },
+  "05b2656486": {
+    "translation": "<name>{author}</name> 提到了你"
   },
   "05f43078e9": {
     "translation": "您已達到工作區數量上限。您需要先刪除舊工作區，才能建立新工作區。"
@@ -28,6 +34,9 @@
   },
   "08bd40c754": {
     "translation": "帳戶"
+  },
+  "093ac7483a": {
+    "translation": "尚無法開啟 {extension} 文件"
   },
   "0a91f7fa87": {
     "translation": "此文件已達到大小限制，更改可能無法儲存。請刪除部分內容或新建一個檔案。"
@@ -59,6 +68,9 @@
   "13ddd375ad": {
     "translation": "匯出為"
   },
+  "14b03eeeb5": {
+    "translation": "通知選項"
+  },
   "181b90f889": {
     "translation": "建立檔案"
   },
@@ -79,6 +91,9 @@
   },
   "250ddea65c": {
     "translation": "關於tldraw"
+  },
+  "2755e3ab39": {
+    "translation": "<name>{author}</name> 在您的白板上留言"
   },
   "299cb00a7a": {
     "translation": "上傳失敗"
@@ -149,6 +164,9 @@
   "46137245cd": {
     "translation": "感謝您幫助我們改進 tldraw！"
   },
+  "46de2de6bb": {
+    "translation": "接受使用條款"
+  },
   "477df802ca": {
     "translation": "若要繼續編輯，請將文件複製到您的文件中。"
   },
@@ -179,11 +197,17 @@
   "517bb809d9": {
     "translation": "頁面選單"
   },
+  "53770fd374": {
+    "translation": "未讀"
+  },
   "542248f0ba": {
     "translation": "此文件現在為唯讀。"
   },
   "54286b1d01": {
     "translation": "已達到協作者人數上限"
+  },
+  "545241e7dd": {
+    "translation": "{count} 未讀"
   },
   "554a05155c": {
     "translation": "仍然有問題？ <a>回報問題</a>"
@@ -209,6 +233,9 @@
   "5bff3c9c88": {
     "translation": "我的工作區"
   },
+  "5bffeebf03": {
+    "translation": "<name>{author}</name> 對您的留言做出了回應"
+  },
   "5d04a002ea": {
     "translation": "無法連接"
   },
@@ -221,8 +248,17 @@
   "5fb63579fc": {
     "translation": "複製"
   },
+  "608e9d366e": {
+    "translation": "你已經全部跟上了。"
+  },
+  "60a68c29d6": {
+    "translation": "登入發表評論"
+  },
   "61057a0c84": {
     "translation": "稍後"
+  },
+  "61fb03fd7b": {
+    "translation": "{count, plural, other {# 人們對你的評論做出了回應}}"
   },
   "625fd29749": {
     "translation": "較舊的"
@@ -274,6 +310,9 @@
   },
   "752b79f137": {
     "translation": "您已達到最大文件數。您需要在建立新文件之前刪除舊文件。"
+  },
+  "7542d62aac": {
+    "translation": "全部標記為已讀"
   },
   "7573b8110a": {
     "translation": "無法存取"
@@ -331,6 +370,9 @@
   },
   "81666c6e4a": {
     "translation": "您確定要刪除<strong>{fileName}</strong>嗎？"
+  },
+  "8413c683b4": {
+    "translation": "評論"
   },
   "858ba4765e": {
     "translation": "成員"
@@ -422,6 +464,9 @@
   "a239905023": {
     "translation": "匯出圖片"
   },
+  "a274f4d467": {
+    "translation": "通知"
+  },
   "a3debabee7": {
     "translation": "Cookie 政策"
   },
@@ -446,6 +491,9 @@
   "aac449eef6": {
     "translation": "建立工作區"
   },
+  "aaec8f7cde": {
+    "translation": "某人"
+  },
   "ab0df9ba36": {
     "translation": "已達到文件限制"
   },
@@ -455,6 +503,12 @@
   },
   "b028909917": {
     "translation": "來賓用戶"
+  },
+  "b03400e2db": {
+    "translation": "<name>{author}</name> 回复"
+  },
+  "b1c94ca2fb": {
+    "translation": "全部"
   },
   "b2326c3a34": {
     "translation": "再生"
@@ -528,6 +582,9 @@
   "cea291e45e": {
     "translation": "瞭解有關發布的更多資訊。"
   },
+  "d0e3556476": {
+    "translation": "<name>{author}</name> 和 {count, plural, one {# other} other {# others}} 對您的評論做出了回應"
+  },
   "d3d2e61733": {
     "translation": "關閉"
   },
@@ -573,6 +630,9 @@
   "e404559826": {
     "translation": "服務條款"
   },
+  "e65b2dcb6f": {
+    "translation": "<name>{a}</name> 和 <name>{b}</name> 對您的評論做出了回應"
+  },
   "e81c4e4f2b": {
     "translation": "或者"
   },
@@ -600,6 +660,9 @@
   "ede55d955f": {
     "translation": "請閱讀我們的<a>cookie 政策</a>以了解更多資訊。"
   },
+  "edec9387f9": {
+    "translation": "這則評論已被刪除。"
+  },
   "ef53538ae4": {
     "translation": "成員"
   },
@@ -618,8 +681,14 @@
   "f2a6c498fb": {
     "translation": "刪除"
   },
+  "f476ba8646": {
+    "translation": "<name>{a}</name>、<name>{b}</name> 和 {count, plural, one {# other} other {# others}} 對您的評論做出了回應"
+  },
   "f4f70727dc": {
     "translation": "設定"
+  },
+  "f5ddc8d9c1": {
+    "translation": "目前，您可以<a>匯出為 {extension} 檔案</a>以便在此處使用。"
   },
   "fa2ead697d": {
     "translation": "隱私權政策"

@@ -38,6 +38,33 @@ describe('SQLiteSyncStorage', () => {
 			).toEqual(newPage)
 		})
 
+		it('[SQ1] sweeps pre-partition object-lane rows out of the documents table on reopen', () => {
+			// a database written before the objects table existed: object-lane records (here
+			// 'page' stands in) live in the documents table
+			const sql = createWrapper()
+			const storage = new SQLiteSyncStorage<TLRecord>({
+				sql,
+				snapshot: makeContractSnapshot(contractRecords),
+			})
+			const extraPage = makePage('legacy')
+			storage.transaction((txn) => txn.set(extraPage.id, extraPage))
+			expect(storage.getSnapshot().documents).toHaveLength(3)
+
+			// reopening with objectTypes moves the rows into the objects partition
+			const reopened = new SQLiteSyncStorage<TLRecord>({ sql, objectTypes: ['page'] })
+			expect(reopened.getSnapshot().documents.map((d) => d.state.typeName)).toEqual(['document'])
+			expect(
+				reopened
+					.getObjectsSnapshot()
+					.map((d) => d.state.id)
+					.sort()
+			).toEqual([contractRecords[1].id, extraPage.id].sort())
+			// lastChangedClock survives the move
+			expect(
+				reopened.getObjectsSnapshot().find((d) => d.state.id === extraPage.id)?.lastChangedClock
+			).toBe(1)
+		})
+
 		it('[SQ1] honors the table prefix', () => {
 			const sql = createWrapper({ tablePrefix: 'tldraw_' })
 			const storage = new SQLiteSyncStorage<TLRecord>({
@@ -227,13 +254,13 @@ describe('SQLiteSyncStorage', () => {
 			expect(storage.getSnapshot().documents.length).toBe(3)
 		})
 
-		it('[SQ6] fresh databases start at migration version 2', () => {
+		it('[SQ6] fresh databases start at migration version 3', () => {
 			const sql = createWrapper()
 			new SQLiteSyncStorage<TLRecord>({ sql, snapshot: makeContractSnapshot(contractRecords) })
 			const row = sql
 				.prepare<{ migrationVersion: number }>('SELECT migrationVersion FROM metadata')
 				.all()[0]
-			expect(row?.migrationVersion).toBe(2)
+			expect(row?.migrationVersion).toBe(3)
 		})
 	})
 })

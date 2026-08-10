@@ -11,6 +11,32 @@
       "value": "Terima jemputan"
     }
   ],
+  "029f235f01": [
+    {
+      "type": 0,
+      "value": "Kami sedang berusaha untuk menyokong fail daripada "
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "type": 1,
+              "value": "appName"
+            }
+          ],
+          "type": 8,
+          "value": "strong"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": "."
+    }
+  ],
   "03b3e13197": [
     {
       "type": 0,
@@ -31,6 +57,22 @@
     {
       "type": 0,
       "value": "Jemput rakan sepasukan"
+    }
+  ],
+  "05b2656486": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " menyebut anda"
     }
   ],
   "05f43078e9": [
@@ -61,6 +103,20 @@
     {
       "type": 0,
       "value": "Akaun"
+    }
+  ],
+  "093ac7483a": [
+    {
+      "type": 0,
+      "value": "Tidak dapat membuka fail "
+    },
+    {
+      "type": 1,
+      "value": "extension"
+    },
+    {
+      "type": 0,
+      "value": " lagi"
     }
   ],
   "0a91f7fa87": [
@@ -123,6 +179,12 @@
       "value": "Eksport sebagai"
     }
   ],
+  "14b03eeeb5": [
+    {
+      "type": 0,
+      "value": "Pilihan pemberitahuan"
+    }
+  ],
   "181b90f889": [
     {
       "type": 0,
@@ -177,6 +239,22 @@
     {
       "type": 0,
       "value": "Mengenai tldraw"
+    }
+  ],
+  "2755e3ab39": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " telah mengulas di papan anda"
     }
   ],
   "299cb00a7a": [
@@ -331,6 +409,12 @@
       "value": "Terima kasih kerana membantu kami meningkatkan tldraw!"
     }
   ],
+  "46de2de6bb": [
+    {
+      "type": 0,
+      "value": "Terima syarat penggunaan"
+    }
+  ],
   "477df802ca": [
     {
       "type": 0,
@@ -391,6 +475,12 @@
       "value": "Menu halaman"
     }
   ],
+  "53770fd374": [
+    {
+      "type": 0,
+      "value": "Belum dibaca"
+    }
+  ],
   "542248f0ba": [
     {
       "type": 0,
@@ -401,6 +491,16 @@
     {
       "type": 0,
       "value": "Had kolaborator dicapai"
+    }
+  ],
+  "545241e7dd": [
+    {
+      "type": 1,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " belum dibaca"
     }
   ],
   "554a05155c": [
@@ -461,6 +561,22 @@
       "value": "Ruang kerja saya"
     }
   ],
+  "5bffeebf03": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " telah memberi reaksi terhadap komen anda"
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -485,10 +601,43 @@
       "value": "salin"
     }
   ],
+  "608e9d366e": [
+    {
+      "type": 0,
+      "value": "Anda sudah membaca semuanya."
+    }
+  ],
+  "60a68c29d6": [
+    {
+      "type": 0,
+      "value": "Log masuk untuk mengulas"
+    }
+  ],
   "61057a0c84": [
     {
       "type": 0,
       "value": "Nanti"
+    }
+  ],
+  "61fb03fd7b": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " orang memberi reaksi kepada komen anda"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "625fd29749": [
@@ -591,6 +740,12 @@
     {
       "type": 0,
       "value": "Anda telah mencapai bilangan maksimum fail. Anda perlu memadam fail lama sebelum membuat yang baharu."
+    }
+  ],
+  "7542d62aac": [
+    {
+      "type": 0,
+      "value": "Tandakan semua sebagai telah dibaca"
     }
   ],
   "7573b8110a": [
@@ -747,6 +902,12 @@
     {
       "type": 0,
       "value": "?"
+    }
+  ],
+  "8413c683b4": [
+    {
+      "type": 0,
+      "value": "Komen"
     }
   ],
   "858ba4765e": [
@@ -979,6 +1140,12 @@
       "value": "Eksport imej"
     }
   ],
+  "a274f4d467": [
+    {
+      "type": 0,
+      "value": "Pemberitahuan"
+    }
+  ],
   "a3debabee7": [
     {
       "type": 0,
@@ -1027,6 +1194,12 @@
       "value": "Cipta ruang kerja"
     }
   ],
+  "aaec8f7cde": [
+    {
+      "type": 0,
+      "value": "Seseorang"
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1049,6 +1222,28 @@
     {
       "type": 0,
       "value": "Pengguna tetamu"
+    }
+  ],
+  "b03400e2db": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " membalas"
+    }
+  ],
+  "b1c94ca2fb": [
+    {
+      "type": 0,
+      "value": "Semua"
     }
   ],
   "b2326c3a34": [
@@ -1227,6 +1422,56 @@
       "value": "Ketahui lebih lanjut tentang penerbitan."
     }
   ],
+  "d0e3556476": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " dan "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " memberi reaksi terhadap komen anda"
+    }
+  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1345,6 +1590,36 @@
       "value": "Syarat perkhidmatan"
     }
   ],
+  "e65b2dcb6f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " dan "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " telah memberi reaksi terhadap komen anda"
+    }
+  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1413,6 +1688,12 @@
       "value": " kami untuk mengetahui lebih lanjut."
     }
   ],
+  "edec9387f9": [
+    {
+      "type": 0,
+      "value": "Komen ini telah dipadamkan."
+    }
+  ],
   "ef53538ae4": [
     {
       "type": 0,
@@ -1449,10 +1730,98 @@
       "value": "Padam"
     }
   ],
+  "f476ba8646": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " dan "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " lagi"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " lagi"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " telah memberi reaksi terhadap komen anda"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
       "value": "tetapan"
+    }
+  ],
+  "f5ddc8d9c1": [
+    {
+      "type": 0,
+      "value": "Buat masa ini, anda boleh "
+    },
+    {
+      "children": [
+        {
+          "type": 0,
+          "value": "eksport sebagai fail "
+        },
+        {
+          "type": 1,
+          "value": "extension"
+        }
+      ],
+      "type": 8,
+      "value": "a"
+    },
+    {
+      "type": 0,
+      "value": " untuk menggunakannya di sini."
     }
   ],
   "fa2ead697d": [
