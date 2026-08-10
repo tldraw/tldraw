@@ -152,6 +152,8 @@ describe('tool inputs', () => {
 			page: { kind: 'id', id: 'page:b' },
 		})
 		expect(() => parsePageInfoInput({ boardId: 'abc', page: -1 })).toThrow('page must be')
+		expect(() => parsePageInfoInput({ boardId: 'abc', page: 1.5 })).toThrow('page must be')
+		expect(() => parseBoardInfoInput({})).toThrow('boardId is required')
 		expect(() => parseBoardInfoInput({ boardId: 'https://tldraw.com/p/abc' })).toThrow('not a URL')
 	})
 
@@ -306,6 +308,25 @@ describe('get_board_info', () => {
 			"Could not read board info: the board's saved content could not be read."
 		)
 		expect(result.content[0].text).not.toContain('no saved content')
+	})
+
+	it('errors for a shared file with no saved content', async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'e', shared: true, isDeleted: false })
+
+		const result = await callTool(
+			'user_9',
+			'get_board_info',
+			{ boardId: 'e' },
+			makeEnv({ ROOMS: makeFakeRoomsBucket(null) })
+		)
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('no saved content')
+		// An empty file the caller can see is still their board: it must not fall through to the
+		// published lookup and get misreported as not found.
+		expect(result.content[0].text).not.toContain('No board was found')
+		expect(getPublishedFileInfo).not.toHaveBeenCalled()
 	})
 
 	// A board un-shared between the resolve and the snapshot read trips the gate the reader
@@ -523,7 +544,14 @@ describe('shape screenshots', () => {
 		])
 
 		const job = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
-		expect(job).toMatchObject({ pageId: 'page:a', shapeIds: ['shape:page:a-0'] })
+		expect(job).toMatchObject({ pageId: 'page:a', shapeIds: ['shape:page:a-0'], camera: 'content' })
+		// Every render — the measures included — targets the pinned render origin, never the
+		// user-facing board URL: the browser session only ever visits the tldraw-owned render page.
+		for (const call of screenshotOf(env).mock.calls) {
+			const url = (call[1] as { url: string }).url
+			expect(url).toContain('https://render.example')
+			expect(url).not.toContain('www.tldraw.com')
+		}
 		// Cached under the shape-set key in the MCP bucket, whose keys carry the content version and
 		// age out — not in THUMBNAILS, whose keys live forever.
 		const bucket = env.MCP_DATA_BUCKET as unknown as { store: Map<string, unknown> }
@@ -828,6 +856,26 @@ describe('per-user board access', () => {
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('No board was found with this id')
 		expect(result.content.some((part: any) => part.type === 'image')).toBe(false)
+	})
+
+	// The refusal happens at resolution, before pickShapes runs the paid measure render — a stranger
+	// probing board ids must cost telemetry rows, not Browser Run sessions.
+	it("spends no Browser Run on someone else's private file", async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
+		vi.mocked(getSharedFileInfo).mockResolvedValue(PRIVATE_FILE)
+		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
+
+		const result = await callTool(
+			'user_stranger',
+			'get_cluster_screenshot',
+			{ boardId: 'mine', clusterIds: ['cluster:any'] },
+			env
+		)
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('No board was found with this id')
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 
 	// The try-file-then-published fallback would otherwise answer differently for "this id belongs to
