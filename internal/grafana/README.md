@@ -31,6 +31,8 @@ Note the alert rules selector is `alertrules` — bare `rules` routes to the Ass
 
 Don't hand-reformat gcx output; it needs to round-trip. Exception: `zero-fly-health` is stored as JSON because gcx 1.0.0's YAML writer emits an invalid escape for emoji variation selectors in row titles (its own reader then rejects the file). If a pulled YAML file fails `gcx resources validate`, re-pull that resource with `-o json`.
 
+Alert rules created through Grafana's "import Prometheus rules" flow can't be pushed: they carry `converted_prometheus` provenance, and Grafana only accepts writes to a rule from the tool that owns its provenance. To adopt one, strip the `alerting.grafana.app/prometheus-rule-definition` annotation and set `grafana.com/provenance: ''` in the pulled file, then recreate the rule in Grafana with clear provenance so the push can take ownership: delete the imported group (`gcx api /api/convert/prometheus/config/v1/rules/<folder title>/<group> -X DELETE`), recreate it via `gcx api /api/v1/provisioning/folder/<folder uid>/rule-groups/<group> -X PUT -H 'X-Disable-Provenance: true' -d @group.json`, and push. Recreating grouped rules must go through that group endpoint — the resource API gcx pushes with can't add rules to groups, only update rules already in one. The three Anthropic cost rules went through this adoption on 2026-08-10 and are repo-owned now — don't re-run the integration's rule import for them, which would recreate the imported group alongside the adopted one and bring the provenance clash back.
+
 ## Deleting a resource
 
 Deleting a file here does **not** delete it in Grafana. Remove the file and run `gcx resources delete <type>/<uid>` manually.
