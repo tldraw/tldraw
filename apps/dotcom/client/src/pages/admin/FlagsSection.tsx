@@ -252,7 +252,9 @@ function AllowlistFlag({
 	const isDirty = parsed.join('\n') !== currentEmails.join('\n')
 
 	return (
-		<div className={styles.featureFlagItem}>
+		// The column modifier is what keeps the textarea usable: in the base row layout it is one
+		// flex item among many and shrinks to nothing beside the description.
+		<div className={`${styles.featureFlagItem} ${styles.featureFlagItemColumn}`}>
 			<div className={styles.featureFlagLabel}>
 				<label
 					htmlFor={flagName}
@@ -288,7 +290,8 @@ function AllowlistFlag({
 				className={styles.searchInput}
 				rows={4}
 				placeholder={'One email per line, e.g. someone@tldraw.com'}
-				style={{ width: '100%', fontFamily: 'monospace' }}
+				// `searchInput` pins the 32px single-line height; `auto` hands control back to `rows`.
+				style={{ height: 'auto', padding: '6px 8px', fontFamily: 'monospace' }}
 			/>
 			{flagValue.description && (
 				<span className={styles.featureFlagsDescription}>{flagValue.description}</span>
