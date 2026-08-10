@@ -546,7 +546,7 @@ export function writeScreenshotTelemetry(
 			// Appended for the same reason. `none` rather than `false` for the surfaces that have no
 			// follow-up concept at all, so a query for triggered renders can say `followup:false` and mean
 			// it, instead of sweeping up every og and mcp datapoint too.
-			`followup:${data.followUp === undefined ? 'none' : data.followUp}`,
+			`followup:${data.followUp ?? 'none'}`,
 		],
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,

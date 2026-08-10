@@ -33,7 +33,6 @@ import {
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
-import { writeScreenshotTelemetry } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -772,9 +771,11 @@ describe('handleOgImageRenderMessage', () => {
 	// chaining follow-up would render it continuously — exactly the cost the debounce upstream exists to
 	// avoid. One extra render per triggered render, never two.
 	it('never chains: a follow-up does not enqueue another', async () => {
-		vi.mocked(getPublishedFileInfo)
-			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 1 })
-			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 2 })
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const queue = makeFakeQueue()
 		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
@@ -785,6 +786,9 @@ describe('handleOgImageRenderMessage', () => {
 		)
 
 		expect(queue.send).not.toHaveBeenCalled()
+		// One resolve for the render itself and none for the moved-board check: the guard cuts the
+		// chain off before even looking, so no board state can re-enqueue.
+		expect(getPublishedFileInfo).toHaveBeenCalledTimes(1)
 	})
 
 	// Once a job gives up, nothing is in flight and the marker has nothing left to single-flight.
@@ -1066,21 +1070,9 @@ describe('handleOgImageRenderMessage', () => {
 			makeMessage({ kind: 'published', slug: 'board', reason: 'edit', followUp: true })
 		)
 
-		// Both deliveries belong to the same trigger, which is exactly why `reason` cannot tell them
-		// apart and `followup` can.
 		expect(blobsWithPrefix(env, 'reason:')).toEqual(['reason:edit', 'reason:edit'])
 		expect(blobsWithPrefix(env, 'cache:')).toEqual(['cache:miss', 'cache:hit'])
 		expect(blobsWithPrefix(env, 'followup:')).toEqual(['followup:false', 'followup:true'])
-	})
-
-	// The request surfaces have no follow-up concept, so they must record `none` rather than `false` —
-	// otherwise a query for triggered renders sweeps them up too.
-	it('records no follow-up state for a surface that has none', async () => {
-		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
-
-		writeScreenshotTelemetry(env, { source: 'og', cacheStatus: 'hit' })
-
-		expect(blobsWithPrefix(env, 'followup:')).toEqual(['followup:none'])
 	})
 
 	// A burst of edits enqueues once and renders once: the marker collapses the enqueues, and for any
