@@ -17,6 +17,11 @@
 			"shortDescription": "Shaders on the canvas.",
 			"order": 8
 		},
+		"deploy": {
+			"target": "vercel",
+			"host": "shader.templates.tldraw.dev",
+			"projectIdVar": "VERCEL_SHADER_TEMPLATE_PROJECT_ID"
+		},
 		"scripts": {
 			"lint": null
 		}

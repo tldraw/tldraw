@@ -16,6 +16,11 @@
 			"shortDescription": "A chat UI with sketches and images as context for AI.",
 			"order": 5
 		},
+		"deploy": {
+			"target": "vercel",
+			"host": "chat.templates.tldraw.dev",
+			"projectIdVar": "VERCEL_CHAT_TEMPLATE_PROJECT_ID"
+		},
 		"scripts": {
 			"lint": null
 		}
