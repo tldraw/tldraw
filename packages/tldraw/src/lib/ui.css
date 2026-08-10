@@ -2104,7 +2104,6 @@ tldraw? probably.
 	align-items: center;
 }
 
-/* The buttons at either end of a row hold their size; the name absorbs the slack. */
 .tlui-people-menu__user__color,
 .tlui-people-menu__user__edit {
 	flex-shrink: 0;
@@ -2151,8 +2150,6 @@ tldraw? probably.
 	padding: 0px;
 }
 
-/* Same container as .tlui-people-menu__user above, so the two kinds of row
-   share their insets. */
 .tlui-people-menu__item {
 	display: flex;
 	align-items: center;
@@ -2162,10 +2159,6 @@ tldraw? probably.
 	margin-bottom: 0;
 }
 
-/* The color swatch and name line up with the ones on the user's own row above,
-   where the swatch sits inside a standard 12px-padded icon button. No padding on
-   the trailing edge: the follow button brings its own, and the row above only
-   spends that gap once. */
 .tlui-people-menu__item__button {
 	padding-inline-start: 12px;
 	padding-inline-end: 0px;
@@ -2188,8 +2181,6 @@ tldraw? probably.
 	text-overflow: ellipsis;
 }
 
-/* The button keeps its space whether or not it's showing, so the name doesn't
-   re-truncate as the pointer moves on and off the row. */
 .tlui-people-menu__item__follow {
 	flex-shrink: 0;
 }
