@@ -297,7 +297,5 @@ jobs:
     if: needs.publish.outputs.mode == 'new' || ((needs.publish.outputs.mode == 'patch' || needs.publish.outputs.mode == 'manual') && needs.publish.outputs.is_latest_version == 'true')
     secrets:
       TEMPLATES_TLDRAW_LICENSE_KEY: ${{ secrets.TEMPLATES_TLDRAW_LICENSE_KEY }}
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
     needs: publish
