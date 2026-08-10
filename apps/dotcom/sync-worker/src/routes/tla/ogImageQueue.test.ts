@@ -599,6 +599,75 @@ describe('handleOgImageRenderMessage', () => {
 		).toBe('etag-1')
 	})
 
+	// The resolve above the snapshot read already fetched this row, so it is handed to the read rather
+	// than fetched again — one Postgres connection per job instead of two. The gate still runs, on the
+	// row that was passed (see getSharedFile.test.ts).
+	it('hands the resolved file row to the snapshot read instead of re-reading it', async () => {
+		const file = { id: 'shared-file', shared: true, isDeleted: false }
+		vi.mocked(getSharedFileInfo).mockResolvedValue(file)
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			ROOMS: makeFakeRoomsBucket('etag-1'),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'shared_file', slug: 'shared-file' }))
+
+		expect(getSharedFileRoomSnapshot).toHaveBeenCalledWith(env, 'shared-file', {
+			access: 'render',
+			file,
+		})
+		// One read for the whole job: the resolve. The snapshot read reuses its row, and the follow-up
+		// check compares R2 etags without a gate. Two of the four this path used to cost.
+		expect(getSharedFileInfo).toHaveBeenCalledTimes(1)
+	})
+
+	// The follow-up check only asks "has the content moved since we captured?", and a shared file's
+	// version is its room etag — so it reads R2 and never Postgres. The gate it used to do redundantly
+	// belongs to the job it enqueues, which re-resolves in full before spending anything.
+	it('checks for a moved board without reading Postgres, and follows up when the etag changed', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({
+			id: 'shared-file',
+			shared: true,
+			isDeleted: false,
+		})
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		// The board is captured at one etag and has moved on by the time the follow-up check runs.
+		let etag = 'etag-1'
+		const env = makeEnv({
+			ROOMS: { head: async () => ({ etag }) },
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+		vi.mocked(getSharedFileRoomSnapshot).mockImplementation(async () => {
+			etag = 'etag-2'
+			return makeOnePageSnapshot()
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'shared_file', slug: 'shared-file' }))
+
+		expect(getSharedFileInfo).toHaveBeenCalledTimes(1)
+		expect(env.QUEUE.send).toHaveBeenCalledWith(
+			expect.objectContaining({ kind: 'shared_file', slug: 'shared-file', followUp: true })
+		)
+	})
+
+	it('does not follow up when the board has not moved', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({
+			id: 'shared-file',
+			shared: true,
+			isDeleted: false,
+		})
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			ROOMS: makeFakeRoomsBucket('etag-1'),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+
+		await handleOgImageRenderMessage(env, makeMessage({ kind: 'shared_file', slug: 'shared-file' }))
+
+		expect(env.QUEUE.send).not.toHaveBeenCalledWith(expect.objectContaining({ followUp: true }))
+	})
+
 	it('skips rendering when the cached image already matches the current version', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',

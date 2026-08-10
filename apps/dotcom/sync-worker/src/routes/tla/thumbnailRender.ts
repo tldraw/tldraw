@@ -6,7 +6,9 @@ import {
 	THUMBNAIL_RENDER_TIMEOUT_MS,
 	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
+import { ClusterBounds } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { TLShape, isPage, isShape } from '@tldraw/tlschema'
 import { THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
 import { getR2KeyForRoom } from '../../r2'
 import {
@@ -25,7 +27,12 @@ import {
 	recordMintedRenderToken,
 } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
-import { getSharedFileInfo, getSharedFileRoomSnapshot, isFileViewableFor } from './getSharedFile'
+import {
+	SharedFileInfo,
+	getSharedFileInfo,
+	getSharedFileRoomSnapshot,
+	isFileViewableFor,
+} from './getSharedFile'
 import { BoardSnapshotReadError, BrowserRenderError } from './thumbnailShared'
 
 // The render-and-cache core shared by every Browser Run screenshot surface: the MCP screenshot
@@ -49,6 +56,14 @@ export interface ResolvedThumbnailBoard extends ThumbnailBoardRef {
 	 * route reads the board back under it.
 	 */
 	access: ThumbnailBoardAccess
+	/**
+	 * The `file` row this resolution gated on, for `shared_file` boards only. Carried so a caller that
+	 * reads the snapshot in the same breath can hand it back to `loadBoardSnapshot` instead of asking
+	 * Postgres the same question twice — see the `file` option on `getSharedFileRoomSnapshot` for when
+	 * that is and is not appropriate. Never signed into a render job: the job carries the gate, and a
+	 * row that travelled inside a token could not be re-checked on the way back.
+	 */
+	file?: SharedFileInfo
 }
 
 export type ResolveThumbnailBoardResult =
@@ -86,7 +101,7 @@ export async function resolveThumbnailBoard(
 	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
 	if (!persisted) return { ok: false, reason: 'board_empty' }
 
-	return { ok: true, board: { kind, slug, version: persisted.etag, access } }
+	return { ok: true, board: { kind, slug, version: persisted.etag, access, file } }
 }
 
 // Reads a resolved board's snapshot, keeping the two outcomes callers must tell apart distinct.
@@ -97,13 +112,24 @@ export async function resolveThumbnailBoard(
 export async function loadBoardSnapshot(
 	env: Environment,
 	board: ThumbnailBoardRef,
-	{ access }: { access: ThumbnailBoardAccess }
+	{
+		access,
+		file,
+	}: {
+		access: ThumbnailBoardAccess
+		/**
+		 * The row a caller has *just* resolved this board against, to be gated again rather than
+		 * re-fetched. Opt in per call site rather than reading it off `board`, so a surface takes the
+		 * staleness that comes with it deliberately. See `getSharedFileRoomSnapshot`.
+		 */
+		file?: SharedFileInfo
+	}
 ): Promise<RoomSnapshot | null> {
 	try {
 		const snapshot =
 			board.kind === 'published'
 				? await getPublishedRoomSnapshot(env, board.slug)
-				: await getSharedFileRoomSnapshot(env, board.slug, { access })
+				: await getSharedFileRoomSnapshot(env, board.slug, { access, file })
 		return snapshot ?? null
 	} catch (error) {
 		// Keep the original message in the wrapper's own text as well as its `cause`, so the Sentry
@@ -129,12 +155,10 @@ export interface EnumeratedPage {
 // "has content" when at least one shape sits directly on it (nested shapes always have a top-level
 // ancestor on their page, so checking direct children is sufficient).
 export function enumerateBoardPages(snapshot: RoomSnapshot): EnumeratedPage[] {
-	const records = snapshot.documents.map((d) => d.state) as any[]
-	const pageRecords = records.filter((r) => r?.typeName === 'page')
+	const records = snapshot.documents.map((d) => d.state)
+	const pageRecords = records.filter(isPage)
 	pageRecords.sort((a, b) => (a.index < b.index ? -1 : a.index > b.index ? 1 : 0))
-	const parentIdsWithShapes = new Set(
-		records.filter((r) => r?.typeName === 'shape').map((s) => s.parentId)
-	)
+	const parentIdsWithShapes = new Set(records.filter(isShape).map((s) => s.parentId))
 	return pageRecords.slice(0, MAX_THUMBNAIL_PAGES).map((p, index) => ({
 		index,
 		id: String(p.id),
@@ -169,6 +193,7 @@ export async function captureThumbnailScreenshot(
 	{
 		surface,
 		pageId,
+		shapeIds,
 		theme,
 		width,
 		height,
@@ -180,6 +205,11 @@ export async function captureThumbnailScreenshot(
 		 * snapshot opens to (used by OG images).
 		 */
 		pageId?: string
+		/**
+		 * Restricts the export to these shapes rather than the whole page: the render page fits the
+		 * camera to their common bounds and draws only them.
+		 */
+		shapeIds?: string[]
 		theme: 'light' | 'dark'
 		width: number
 		height: number
@@ -196,6 +226,7 @@ export async function captureThumbnailScreenshot(
 		surface,
 		camera: 'content',
 		...(pageId ? { pageId } : null),
+		...(shapeIds?.length ? { shapeIds } : null),
 		// Ignored while `camera` is 'content', which is what every surface mints; carried because the
 		// job type keeps the explicit-viewport path available (see ThumbnailRenderJob).
 		x: 0,
@@ -214,6 +245,22 @@ export async function captureThumbnailScreenshot(
 	return renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
 		width,
 		height,
+	})
+}
+
+// The shapes belonging to one page, in snapshot order. Nested shapes carry their ancestor's id as
+// `parentId`, so membership is resolved by walking up to a top-level shape whose parent is the page.
+export function getShapesOnPage(snapshot: RoomSnapshot, pageId: string): TLShape[] {
+	const shapes = snapshot.documents.map((d) => d.state).filter(isShape)
+	const byId = new Map(shapes.map((s) => [s.id, s]))
+	return shapes.filter((shape) => {
+		let current: TLShape | undefined = shape
+		// Bounded by the ancestor chain, and guarded against a cyclic parentId in a corrupt snapshot.
+		for (let depth = 0; current && depth < 100; depth++) {
+			if (current.parentId === pageId) return true
+			current = byId.get(current.parentId as TLShape['id'])
+		}
+		return false
 	})
 }
 
@@ -361,6 +408,91 @@ async function callLocalScreenshotService(
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
 // can be detected) alongside any surface-specific metadata.
+// --- Measuring a page in a real editor ----------------------------------------------------------
+//
+// A Worker cannot size a shape: autosizing text needs font metrics, and several shapes store no size
+// at all. So when clustering needs geometry, the render page is driven in `measure` mode — it loads
+// the same snapshot, waits for fonts, reads editor.getShapePageBounds for every shape, and POSTs the
+// result back. Stashed under the job's own token and read once, so it is a rendezvous for a single
+// in-flight render rather than a cache with a lifetime to manage.
+
+/** What one shape's measure render produced: its page bounds, plus the text its ShapeUtil reported. */
+export interface ShapeMeasurement extends ClusterBounds {
+	text?: string
+}
+
+function getRenderResultKey(token: string) {
+	return `render-result/${encodeURIComponent(token)}.json`
+}
+
+export async function putRenderResult(
+	env: Environment,
+	token: string,
+	bounds: Record<string, ShapeMeasurement>
+) {
+	if (!env.THUMBNAILS) return
+	await env.THUMBNAILS.put(getRenderResultKey(token), JSON.stringify(bounds), {
+		httpMetadata: { contentType: 'application/json' },
+	})
+}
+
+/**
+ * Measures every shape on a page through a real editor, returning `shapeId -> bounds and text`.
+ *
+ * Costs one Browser Rendering session, the same as a screenshot — there is no cheaper way to get
+ * geometry the Worker cannot compute. Callers own the rate limiting that implies.
+ */
+export async function measurePageShapes(
+	env: Environment,
+	board: ResolvedThumbnailBoard,
+	pageId: string,
+	{ surface }: { surface: ThumbnailRenderSurface }
+): Promise<Record<string, ShapeMeasurement>> {
+	const job: ThumbnailRenderJob = {
+		v: 1,
+		kind: board.kind,
+		slug: board.slug,
+		version: board.version,
+		// Taken from the resolution rather than the caller, same as captureThumbnailScreenshot: a
+		// measure token for a private board reads the whole document through the snapshot route, so it
+		// carries the gate the board resolved under rather than defaulting to `public`.
+		access: board.access,
+		surface,
+		mode: 'measure',
+		pageId,
+		x: 0,
+		y: 0,
+		z: 1,
+		// Nothing is exported, but the viewport still has to be a sane size: shapes are measured
+		// against a laid-out document, not a zero-sized one.
+		width: DEFAULT_THUMBNAIL_WIDTH,
+		height: DEFAULT_THUMBNAIL_HEIGHT,
+		theme: 'light',
+		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
+	}
+	const token = await mintThumbnailRenderToken(env, job)
+	// Recorded as ours before the browser can present it, exactly like a screenshot job: `render`
+	// access is two-factor, and a measure token is no less able to read a private board than a
+	// screenshot token. A no-op for `public` jobs — see recordMintedRenderToken.
+	await recordMintedRenderToken(env, job, token)
+
+	// The screenshot is discarded — it is only how the browser session is driven, and how we know the
+	// page reached its terminal state. The answer arrives via the result endpoint.
+	await renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
+		width: DEFAULT_THUMBNAIL_WIDTH,
+		height: DEFAULT_THUMBNAIL_HEIGHT,
+	})
+
+	if (!env.THUMBNAILS) throw new Error('THUMBNAILS bucket is not configured')
+	const key = getRenderResultKey(token)
+	const stored = await env.THUMBNAILS.get(key)
+	if (!stored) throw new Error('The render page did not report any measurements')
+	const bounds = JSON.parse(await stored.text())
+	// Read once: the token is single-use, so leaving the object behind would only accumulate.
+	await env.THUMBNAILS.delete(key)
+	return bounds
+}
+
 export async function putThumbnailPng(
 	bucket: R2Bucket,
 	key: string,

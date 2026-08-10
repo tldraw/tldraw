@@ -1,0 +1,9 @@
+apiVersion: folder.grafana.app/v1
+kind: Folder
+metadata:
+  annotations: {}
+  labels: {}
+  name: dotcom
+  namespace: stacks-890472
+spec:
+  title: Dotcom

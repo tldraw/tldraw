@@ -152,12 +152,39 @@ export interface ThumbnailRenderParams {
 	camera?: 'content'
 	/** The TLPageId of the single page to render. When omitted, the page the snapshot opens to. */
 	pageId?: string
+	/**
+	 * Restricts the export to these shapes: the camera fits their common bounds and only they are
+	 * drawn, so neighbouring shapes never leak into the frame. When omitted the whole page renders.
+	 */
+	shapeIds?: string[]
+	/** `measure` means: skip the export, POST the page's measured geometry back, then signal ready. */
+	mode?: 'screenshot' | 'measure'
 	x: number
 	y: number
 	z: number
 	width: number
 	height: number
 	theme: 'light' | 'dark'
+}
+
+/**
+ * What the editor reports for one shape: its page-space box, and the plain text its ShapeUtil says it
+ * holds. Both are things only an editor can answer — sizing needs font metrics, and getText is shape
+ * behaviour rather than something readable off the record.
+ */
+export interface ThumbnailShapeMeasurement {
+	x: number
+	y: number
+	w: number
+	h: number
+	/** `ShapeUtil.getText(shape)`, absent when the shape has no text. */
+	text?: string
+}
+
+/** Body of POST /app/thumbnail-render/result — `shapeId -> measurement`, as the editor measured it. */
+export interface ThumbnailRenderResultRequestBody {
+	token: string
+	bounds: Record<string, ThumbnailShapeMeasurement>
 }
 
 export type ThumbnailSnapshotResponseBody =

@@ -94,7 +94,7 @@ export interface Environment {
 	// rendering is subject to none of them. Separate bindings because a binding carries one `limit`
 	// applied per key, so budgets with different numbers cannot share one. The route falls back to an
 	// isolate-local guard when they are absent (local dev, tests).
-	/** Per-IP `get_shared_board_screenshot` calls. */
+	/** Per-user calls to the Browser Run-spending MCP tools (`user-shot:`/`user-cluster:`/`user-info:`). */
 	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
 	/** Per-board Browser Run captures, applied only on cache misses. */
 	MCP_SERVER_BOARD_RATE_LIMITER: RateLimit | undefined

@@ -64,6 +64,16 @@ export interface ThumbnailRenderJob {
 	 * the snapshot opens to (used by OG images). The worker takes one screenshot of the rendered page.
 	 */
 	pageId?: string
+	/**
+	 * Restricts the export to these shape ids (used by the cluster screenshot tool). The render page
+	 * fits the camera to their common bounds and draws only them. Omitted means the whole page.
+	 */
+	shapeIds?: string[]
+	/**
+	 * `measure` skips the export and POSTs the page's shape geometry back instead — the only way a
+	 * Worker can obtain bounds, since sizing a shape needs an editor and font metrics.
+	 */
+	mode?: 'screenshot' | 'measure'
 	/** The viewport the render page sets directly when `camera` is omitted. */
 	x: number
 	y: number
@@ -138,6 +148,11 @@ export async function verifyThumbnailRenderToken(
 		(job.surface !== undefined && job.surface !== 'og' && job.surface !== 'mcp') ||
 		(job.camera !== undefined && job.camera !== 'content') ||
 		(job.pageId !== undefined && typeof job.pageId !== 'string') ||
+		(job.mode !== undefined && job.mode !== 'screenshot' && job.mode !== 'measure') ||
+		(job.shapeIds !== undefined &&
+			(!Array.isArray(job.shapeIds) ||
+				job.shapeIds.length === 0 ||
+				!job.shapeIds.every((id) => typeof id === 'string'))) ||
 		typeof job.exp !== 'number'
 	) {
 		return null

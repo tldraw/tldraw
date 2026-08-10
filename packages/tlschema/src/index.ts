@@ -159,6 +159,7 @@ export {
 	type TLInstanceId,
 } from './records/TLInstance'
 export {
+	isPage,
 	isPageId,
 	pageIdValidator,
 	PageRecordType,

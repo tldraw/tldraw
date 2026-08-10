@@ -76,6 +76,17 @@ export async function getThumbnailSnapshot(
 		return json({ error: true, message: 'Page not found' }, 404)
 	}
 
+	// Same reasoning as the page check above, and it matters more here: with every requested shape
+	// gone the render page would have nothing to fit the camera to and would export a blank frame,
+	// which the tool would return as if it were a picture of those shapes. Requiring every id to
+	// still be present turns a stale request into a retryable render error instead.
+	if (job.shapeIds) {
+		const presentIds = new Set(snapshot.documents.map((d) => (d.state as TLRecord | undefined)?.id))
+		if (!job.shapeIds.every((id) => presentIds.has(id as TLRecord['id']))) {
+			return json({ error: true, message: 'Shape not found' }, 404)
+		}
+	}
+
 	return json({
 		error: false,
 		records: snapshot.documents.map((d) => d.state) as TLRecord[],
@@ -83,6 +94,8 @@ export async function getThumbnailSnapshot(
 		renderParams: {
 			...(job.camera ? { camera: job.camera } : null),
 			...(job.pageId ? { pageId: job.pageId } : null),
+			...(job.shapeIds ? { shapeIds: job.shapeIds } : null),
+			...(job.mode ? { mode: job.mode } : null),
 			x: job.x,
 			y: job.y,
 			z: job.z,

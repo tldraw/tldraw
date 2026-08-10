@@ -54,6 +54,7 @@ import {
 	getMcpProtectedResourceMetadata,
 } from './routes/tla/mcpAuth'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
+import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
@@ -213,6 +214,7 @@ const router = createRouter<Environment>()
 	// getOgImage serves headers only for anything but GET.
 	.all('/app/social-preview/:prefix/:slug/image', getOgImage)
 	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
+	.post('/app/thumbnail-render/result', putThumbnailRenderResult)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)
