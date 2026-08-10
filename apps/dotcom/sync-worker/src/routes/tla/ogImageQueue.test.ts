@@ -33,6 +33,7 @@ import {
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
+import { writeScreenshotTelemetry } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -1042,6 +1043,44 @@ describe('handleOgImageRenderMessage', () => {
 		)
 
 		expect(blobsWithPrefix(env, 'reason:')).toEqual(['reason:publish'])
+	})
+
+	// Why the blob exists at all: a follow-up carries the reason of the job it follows, so `reason`
+	// alone cannot separate the render a trigger asked for from the extra one the follow-up causes.
+	// Asserted on both a capture and a cache hit, since a follow-up delivery reaches either.
+	it('separates a follow-up delivery from the trigger that caused it', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		await handleOgImageRenderMessage(
+			env,
+			makeMessage({ kind: 'published', slug: 'board', reason: 'edit' })
+		)
+		await handleOgImageRenderMessage(
+			env,
+			makeMessage({ kind: 'published', slug: 'board', reason: 'edit', followUp: true })
+		)
+
+		// Both deliveries belong to the same trigger, which is exactly why `reason` cannot tell them
+		// apart and `followup` can.
+		expect(blobsWithPrefix(env, 'reason:')).toEqual(['reason:edit', 'reason:edit'])
+		expect(blobsWithPrefix(env, 'cache:')).toEqual(['cache:miss', 'cache:hit'])
+		expect(blobsWithPrefix(env, 'followup:')).toEqual(['followup:false', 'followup:true'])
+	})
+
+	// The request surfaces have no follow-up concept, so they must record `none` rather than `false` —
+	// otherwise a query for triggered renders sweeps them up too.
+	it('records no follow-up state for a surface that has none', async () => {
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		writeScreenshotTelemetry(env, { source: 'og', cacheStatus: 'hit' })
+
+		expect(blobsWithPrefix(env, 'followup:')).toEqual(['followup:none'])
 	})
 
 	// A burst of edits enqueues once and renders once: the marker collapses the enqueues, and for any
