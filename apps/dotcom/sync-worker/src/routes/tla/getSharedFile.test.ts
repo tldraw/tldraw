@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
 	SharedFileInfo,
+	getSharedFileInfo,
 	getSharedFileRoomSnapshot,
 	isFileAnonymouslyViewable,
 	isFileRenderable,
 } from './getSharedFile'
+import type { FakePostgresModule } from './screenshotTestHelpers'
 
 function makeFile(overrides: Partial<SharedFileInfo> = {}): SharedFileInfo {
 	return { id: 'file-abc', shared: true, isDeleted: false, ...overrides }
@@ -58,24 +60,53 @@ describe('isFileAnonymouslyViewable', () => {
 })
 
 // The `file` option on getSharedFileRoomSnapshot. It decides whether the gate runs against a freshly
-// read row or one the caller already holds — never whether the gate runs at all. The Postgres pool is
+// read row or one the caller already holds — never whether the gate runs at all. The Postgres seam is
 // faked rather than the reader mocked, so these exercise the real query path and can tell a skipped
-// round trip from a skipped check.
-const pg = vi.hoisted(() => {
-	const executeTakeFirst = vi.fn()
-	const db: any = {
-		selectFrom: () => db,
-		select: () => db,
-		where: () => db,
-		executeTakeFirst,
-		destroy: vi.fn(),
-	}
-	return { db, executeTakeFirst, createPostgresConnectionPool: vi.fn(() => db) }
-})
+// round trip from a skipped check. The fake lives in screenshotTestHelpers so this file and
+// getPublishedFile.test.ts exercise the same stand-in.
+vi.mock('../../postgres', async () =>
+	(await import('./screenshotTestHelpers')).makeFakePostgresModule()
+)
+const pg = (await import('../../postgres')) as unknown as FakePostgresModule
 
-vi.mock('../../postgres', () => ({
-	createPostgresConnectionPool: pg.createPostgresConnectionPool,
-}))
+// The `db` option on getSharedFileInfo. The queue consumer resolves once per delivery, and a batch
+// of deliveries shares one invocation-scoped pool owned by the batch loop in worker.ts — so the
+// reader hands a supplied db straight to withPostgres, whose borrow-or-own contract (pinned in
+// postgres.test.ts) leaves its lifetime alone. Without one, the per-call create-and-destroy stands
+// (the request routes, which see one resolve per invocation anyway).
+describe('getSharedFileInfo', () => {
+	afterEach(() => {
+		vi.resetAllMocks()
+	})
+
+	it('queries once through withPostgres under its own telemetry name when no db is supplied', async () => {
+		pg.executeTakeFirst.mockResolvedValue(makeFile())
+		const env = {} as any
+
+		await expect(getSharedFileInfo(env, 'file-abc')).resolves.toEqual(makeFile())
+		expect(pg.withPostgres).toHaveBeenCalledExactlyOnceWith(
+			env,
+			'getSharedFileInfo',
+			undefined,
+			expect.any(Function)
+		)
+		expect(pg.executeTakeFirst).toHaveBeenCalledTimes(1)
+	})
+
+	it('hands a caller-supplied db through, still querying exactly once', async () => {
+		pg.executeTakeFirst.mockResolvedValue(makeFile())
+		const env = {} as any
+
+		await expect(getSharedFileInfo(env, 'file-abc', pg.db)).resolves.toEqual(makeFile())
+		expect(pg.withPostgres).toHaveBeenCalledExactlyOnceWith(
+			env,
+			'getSharedFileInfo',
+			pg.db,
+			expect.any(Function)
+		)
+		expect(pg.executeTakeFirst).toHaveBeenCalledTimes(1)
+	})
+})
 
 describe('getSharedFileRoomSnapshot', () => {
 	const snapshot = { documents: [], schema: { schemaVersion: 2, sequences: {} } }
@@ -85,7 +116,7 @@ describe('getSharedFileRoomSnapshot', () => {
 	}
 
 	afterEach(() => {
-		vi.clearAllMocks()
+		vi.resetAllMocks()
 	})
 
 	it('reads the file row when none is supplied', async () => {
@@ -94,14 +125,30 @@ describe('getSharedFileRoomSnapshot', () => {
 		await expect(
 			getSharedFileRoomSnapshot(makeEnv(), 'file-abc', { access: 'public' })
 		).resolves.toEqual(snapshot)
-		expect(pg.createPostgresConnectionPool).toHaveBeenCalledTimes(1)
+		expect(pg.executeTakeFirst).toHaveBeenCalledTimes(1)
 	})
 
 	it('reuses a supplied row instead of asking Postgres again', async () => {
 		await expect(
 			getSharedFileRoomSnapshot(makeEnv(), 'file-abc', { access: 'public', file: makeFile() })
 		).resolves.toEqual(snapshot)
-		expect(pg.createPostgresConnectionPool).not.toHaveBeenCalled()
+		expect(pg.executeTakeFirst).not.toHaveBeenCalled()
+	})
+
+	// The queue delivery that has to re-read the row (its resolve was for the other board kind, or
+	// the follow-up check) lends the batch pool, and the read rides it instead of opening its own.
+	it('hands a caller-supplied db to the file read when the row must be fetched', async () => {
+		pg.executeTakeFirst.mockResolvedValue(makeFile())
+
+		await expect(
+			getSharedFileRoomSnapshot(makeEnv(), 'file-abc', { access: 'render', db: pg.db })
+		).resolves.toEqual(snapshot)
+		expect(pg.withPostgres).toHaveBeenCalledExactlyOnceWith(
+			expect.anything(),
+			'getSharedFileInfo',
+			pg.db,
+			expect.any(Function)
+		)
 	})
 
 	// The point of the option is to skip the round trip, not the check. A row that fails the gate is
@@ -123,7 +170,7 @@ describe('getSharedFileRoomSnapshot', () => {
 			})
 		).rejects.toThrow('not renderable')
 
-		expect(pg.createPostgresConnectionPool).not.toHaveBeenCalled()
+		expect(pg.executeTakeFirst).not.toHaveBeenCalled()
 		expect(env.ROOMS.get).not.toHaveBeenCalled()
 	})
 

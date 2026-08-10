@@ -1027,6 +1027,59 @@ describe('handleOgImageRenderMessage', () => {
 		expect(failureBlobsOf(env)).toEqual(['failure:none'])
 	})
 
+	// A batch of deliveries shares one invocation-scoped pool, owned by the batch loop in worker.ts.
+	// The handler hands it through to every Postgres read a delivery makes; creation and destruction
+	// stay with the loop. Asserted per kind because each kind reads through different readers, and
+	// with the message settled so a handler that threw its way past the reads cannot pass.
+	it('resolves a shared file through the caller-supplied db, once, and completes the render', async () => {
+		vi.mocked(getSharedFileInfo).mockResolvedValue({
+			id: 'shared-file',
+			shared: true,
+			isDeleted: false,
+		})
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({
+			ROOMS: makeFakeRoomsBucket('etag-1'),
+			THUMBNAILS: makeFakeThumbnailsBucket(),
+		})
+		const db = { marker: 'batch-db' } as any
+		const message = makeMessage({ kind: 'shared_file', slug: 'shared-file' })
+
+		await handleOgImageRenderMessage(env, message, { db })
+
+		// Exactly once: the snapshot read reuses the resolved row and the follow-up check compares R2
+		// etags, so the resolve is this job's only Postgres read (the invariant of #9913).
+		expect(getSharedFileInfo).toHaveBeenCalledExactlyOnceWith(env, 'shared-file', db)
+		expect(message.ack).toHaveBeenCalledTimes(1)
+		expect(message.retry).not.toHaveBeenCalled()
+	})
+
+	// A published delivery makes three Postgres reads — the resolve, the snapshot read (whose row
+	// re-read is the serve-time gate), and the post-render follow-up check, which resolves again to
+	// ask "did it move?". Every one of them must ride the batch pool: asserted over the full call
+	// lists, because a some-call matcher would pass while any of the three still opened its own.
+	it('makes every published-board read through the caller-supplied db', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+		const db = { marker: 'batch-db' } as any
+		const message = makeMessage({ kind: 'published', slug: 'board' })
+
+		await handleOgImageRenderMessage(env, message, { db })
+
+		expect(vi.mocked(getPublishedFileInfo).mock.calls).toEqual([
+			[env, 'board', db], // the resolve
+			[env, 'board', db], // the follow-up check
+		])
+		expect(getPublishedRoomSnapshot).toHaveBeenCalledExactlyOnceWith(env, 'board', db)
+		expect(message.ack).toHaveBeenCalledTimes(1)
+		expect(message.retry).not.toHaveBeenCalled()
+	})
+
 	it('records the trigger that asked for a completed render', async () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',

@@ -173,7 +173,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.slotName = slotName
 
 		this.log = new Logger(env, 'TLPostgresReplicator', this.sentry)
-		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator', 100)
+		this.db = createPostgresConnectionPool(env, 'TLPostgresReplicator', { max: 100 })
 
 		this.replicationService = new LogicalReplicationService(
 			/**

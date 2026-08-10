@@ -1,5 +1,6 @@
-import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
+import { DB, DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { Kysely } from 'kysely'
 import {
 	OG_MAX_RENDER_ATTEMPTS,
 	OG_PENDING_MARKER_TTL_MS,
@@ -235,7 +236,19 @@ export async function enqueuePublishThumbnailRender(
 export async function handleOgImageRenderMessage(
 	env: Environment,
 	message: Message<OgImageRenderQueueMessage>,
-	ctx?: ExecutionContext
+	{
+		ctx,
+		db,
+	}: {
+		ctx?: ExecutionContext
+		/**
+		 * The batch's invocation-scoped pool (see the queue loop in worker.ts), handed through to
+		 * every Postgres read this delivery makes — the resolve, the snapshot read, and the
+		 * follow-up check — so a batch of deliveries costs one connect instead of one per read.
+		 * Owned by the batch loop; this handler never creates or destroys one.
+		 */
+		db?: Kysely<DB>
+	} = {}
 ): Promise<void> {
 	const { kind, slug } = message.body
 	const boardRef: ThumbnailBoardRef = { kind, slug }
@@ -261,7 +274,7 @@ export async function handleOgImageRenderMessage(
 	try {
 		// 'render' rather than 'public': every board gets a thumbnail, private ones included. The OG
 		// route re-applies the public gate when it serves.
-		const resolved = await resolveThumbnailBoard(env, kind, slug, { access: 'render' })
+		const resolved = await resolveThumbnailBoard(env, kind, slug, { access: 'render', db })
 		if (!resolved.ok) {
 			await dropNoLongerViewable()
 			return
@@ -293,7 +306,7 @@ export async function handleOgImageRenderMessage(
 		// microseconds apart in one function, where a re-read would return the row we already hold. The
 		// render page's own read (getThumbnailSnapshot) deliberately does not do this — it is a separate
 		// request, and its re-read is what makes an un-share land inside the token's window.
-		const snapshot = await loadBoardSnapshot(env, board, { access: 'render', file: board.file })
+		const snapshot = await loadBoardSnapshot(env, board, { access: 'render', file: board.file, db })
 		if (!snapshot) {
 			// No persisted content. The render page reads the snapshot through the same functions, so it
 			// would 404 and come back as a render failure — after spending a Browser Run slot to learn
@@ -314,7 +327,7 @@ export async function handleOgImageRenderMessage(
 		})
 		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
 		await clearOgImagePendingMarker(env, boardRef)
-		await enqueueFollowUpIfBoardMoved(env, message, board, reason, ctx)
+		await enqueueFollowUpIfBoardMoved(env, message, board, reason, { ctx, db })
 
 		writeScreenshotTelemetry(env, {
 			source: 'queue',
@@ -371,11 +384,11 @@ async function enqueueFollowUpIfBoardMoved(
 	message: Message<OgImageRenderQueueMessage>,
 	rendered: ResolvedThumbnailBoard,
 	reason: OgImageRenderReason,
-	ctx?: ExecutionContext
+	{ ctx, db }: { ctx?: ExecutionContext; db?: Kysely<DB> }
 ) {
 	if (message.body.followUp) return
 	try {
-		const current = await readCurrentBoardVersion(env, rendered)
+		const current = await readCurrentBoardVersion(env, rendered, db)
 		if (current === null) return
 		if (String(current) === String(rendered.version)) return
 		await enqueueOgImageRender(env, rendered, { reason, followUp: true })
@@ -405,10 +418,14 @@ async function enqueueFollowUpIfBoardMoved(
  */
 async function readCurrentBoardVersion(
 	env: Environment,
-	board: ResolvedThumbnailBoard
+	board: ResolvedThumbnailBoard,
+	db?: Kysely<DB>
 ): Promise<string | number | null> {
 	if (board.kind === 'published') {
-		const resolved = await resolveThumbnailBoard(env, board.kind, board.slug, { access: 'render' })
+		const resolved = await resolveThumbnailBoard(env, board.kind, board.slug, {
+			access: 'render',
+			db,
+		})
 		return resolved.ok ? resolved.board.version : null
 	}
 	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug: board.slug, isApp: true }))
