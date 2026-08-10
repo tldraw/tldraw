@@ -1,4 +1,4 @@
-import { ClerkClient, createClerkClient } from '@clerk/backend'
+import { ClerkClient, createClerkClient, verifyToken } from '@clerk/backend'
 import { can } from '@tldraw/dotcom-shared'
 import { IRequest, StatusError } from 'itty-router'
 import { createPostgresConnectionPool } from '../../postgres'
@@ -62,6 +62,50 @@ export async function getAuth(request: IRequest, env: Environment): Promise<Sign
 	}
 
 	return res.toAuth() as SignedInAuth
+}
+
+/**
+ * Auth for the two endpoints zero-cache calls on the client's behalf (`/app/zero/query` and
+ * `/app/zero/mutate`).
+ *
+ * These take a token minted from the `zero` Clerk JWT template rather than a session token, because
+ * zero-cache holds the token for the life of a connection and reuses it for every transform and
+ * push behind that connection. A session token lives 60s and browsers throttle timers in hidden
+ * tabs to about once a minute, so a backgrounded tab cannot land a refresh before expiry — and an
+ * expired token here doesn't fail one request, it invalidates the whole connection. That produced a
+ * steady ~670 connection invalidations an hour in production.
+ *
+ * The trade is revocation latency: a template token isn't session-bound (no `sid`), so signing out
+ * doesn't invalidate one — it stays good until it expires. That's why the template is set to 3
+ * minutes rather than something longer: it only has to clear the ~1/minute timer budget, and every
+ * second beyond that is revocation window bought for nothing. Scoped deliberately to these two
+ * endpoints; everything else still authenticates with session tokens.
+ *
+ * Falls back to {@link getAuth} so a client running an older bundle, which still sends a session
+ * token, keeps working across the deploy.
+ */
+export async function getZeroAuth(
+	request: IRequest,
+	env: Environment
+): Promise<{ userId: string } | null> {
+	const header = request.headers.get('Authorization')
+	const token = header?.startsWith('Bearer ') ? header.slice('Bearer '.length) : null
+	if (token) {
+		try {
+			// the template does mint `azp`, so hold it to the same origin allowlist as a session
+			// token rather than accepting anything our instance signed
+			const { sub } = await verifyToken(token, {
+				secretKey: env.CLERK_SECRET_KEY,
+				authorizedParties: getAuthorizedParties(env),
+			})
+			if (sub) return { userId: sub }
+		} catch (e) {
+			// getAuth deliberately says nothing about why it rejected a token, which made an outage
+			// considerably harder to diagnose than it needed to be. Say it here.
+			console.error('[zero-auth] template token rejected:', (e as Error).message)
+		}
+	}
+	return getAuth(request, env)
 }
 
 export type SignedInAuth = ReturnType<
