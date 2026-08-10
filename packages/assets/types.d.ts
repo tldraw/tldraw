@@ -45,6 +45,10 @@ export type AssetUrls = {
 		blob: string
 		bold: string
 		bookmark: string
+		'border-lined': string
+		'border-none': string
+		'border-shadow-hard': string
+		'border-shadow': string
 		'bring-forward': string
 		'bring-to-front': string
 		broken: string
