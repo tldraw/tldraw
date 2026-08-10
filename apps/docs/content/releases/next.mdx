@@ -7,3 +7,29 @@ order: 0
 status: published
 last_version: v5.3.0
 ---
+
+This release adds a `center` operation to `Editor.alignShapes`, deprecates `useViewportHeight`, and cuts allocations in the hit-test paths that run on every pointer event. It also fixes crashes in wheel panning and frame geometry, along with a batch of interaction and menu layout bugs.
+
+## API changes
+
+- 🔜 **`useViewportHeight()`** is deprecated. Read `window.visualViewport` directly instead. The hook returns only the visible viewport's bottom edge, and keeping a panel clear of the software keyboard generally needs the whole visible rectangle. ([#9826](https://github.com/tldraw/tldraw/pull/9826))
+- Add `'center'` as an `Editor.alignShapes` operation, for centering shapes on both axes at once. It applies the existing `'center-horizontal'` and `'center-vertical'` operations together. ([#9074](https://github.com/tldraw/tldraw/pull/9074))
+
+  ```ts
+  editor.alignShapes(editor.getSelectedShapeIds(), 'center')
+  ```
+
+## Improvements
+
+- Reduce per-pointer-event allocations in `Group2d` and `Editor` hit-testing. The filter-then-find chains in `hitTestPoint`, `getShapeAtPoint`, `getShapesAtPoint`, and the `Group2d` intersection methods no longer materialize intermediate arrays. Return types and ordering are unchanged. ([#8600](https://github.com/tldraw/tldraw/pull/8600))
+
+## Bug fixes
+
+- Fix a crash when panning with the wheel on devices that report non-finite wheel deltas, which wrote `NaN` to the camera and failed store validation. Non-finite deltas are now coerced to zero at the input boundary, so the event becomes a no-op. ([#9586](https://github.com/tldraw/tldraw/pull/9586))
+- Fix a crash when computing a frame's geometry if its heading text couldn't be measured yet, which could happen while an editor with an existing frame was mounting. ([#9496](https://github.com/tldraw/tldraw/pull/9496))
+- Fix modifier keys (shift, alt, ctrl, cmd) briefly being treated as held at the start of a new click or drag right after being released, which could momentarily affect snapping and other modifier-dependent behavior. ([#9523](https://github.com/tldraw/tldraw/pull/9523))
+- Fix **Flatten to image** producing different groupings depending on selection order, and not merging clusters that were connected only through a bridging shape. ([#8661](https://github.com/tldraw/tldraw/pull/8661))
+- Fix the "Rotate counterclockwise" tooltip not showing its comma key. ([#9772](https://github.com/tldraw/tldraw/pull/9772))
+- Fix the comment thread popover briefly rendering with a doubled shadow the first time a thread is opened. ([#9886](https://github.com/tldraw/tldraw/pull/9886))
+- Fix the people menu's collaborator rows not lining up with your own row above: the follow icon sat closer to the panel's right edge than the edit icon, and the color swatch and name sat slightly further left. Collaborator names also no longer re-truncate as the pointer moves on and off the row. ([#9900](https://github.com/tldraw/tldraw/pull/9900))
+- Fix the spacing around the cursor chat item in the context menu. It now gets its own group and divider, like every other section. ([#9921](https://github.com/tldraw/tldraw/pull/9921))
