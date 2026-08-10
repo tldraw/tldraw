@@ -283,6 +283,59 @@ describe('render token records', () => {
 			expect(await isMintedRenderToken(envWithBucket, mcpJob, mcpToken)).toBe(true)
 		})
 
+		// The clustering tools measure a page (a render with nothing exported) and then screenshot part
+		// of it, and the two overlap whenever a caller drills down or parallelizes. Measure jobs mint
+		// light-theme tokens for the same page a screenshot names, so without `mode` in the key the
+		// later mint would invalidate the earlier's in-flight token and the loser would 403.
+		it('keeps a measure render and a screenshot of one page independent', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const measure = makeJob({
+				surface: 'mcp',
+				kind: 'shared_file',
+				slug: 'f1',
+				pageId: 'page:a',
+				mode: 'measure',
+			})
+			const shot = makeJob({ surface: 'mcp', kind: 'shared_file', slug: 'f1', pageId: 'page:a' })
+
+			const measureToken = await mintThumbnailRenderToken(envWithBucket, measure)
+			await recordMintedRenderToken(envWithBucket, measure, measureToken)
+			const shotToken = await mintThumbnailRenderToken(envWithBucket, shot)
+			await recordMintedRenderToken(envWithBucket, shot, shotToken)
+
+			expect(await isMintedRenderToken(envWithBucket, measure, measureToken)).toBe(true)
+			expect(await isMintedRenderToken(envWithBucket, shot, shotToken)).toBe(true)
+		})
+
+		// Two cluster screenshots of one page render different images when their shape sets differ, so
+		// they are distinct captures the same way two pages are — while the same shape set requested
+		// twice deliberately shares a key, the same image rendered twice.
+		it('keeps concurrent screenshots of different shape sets of one page independent', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const first = makeJob({
+				surface: 'mcp',
+				kind: 'shared_file',
+				slug: 'f1',
+				pageId: 'page:a',
+				shapeIds: ['shape:1'],
+			})
+			const second = makeJob({
+				surface: 'mcp',
+				kind: 'shared_file',
+				slug: 'f1',
+				pageId: 'page:a',
+				shapeIds: ['shape:2', 'shape:3'],
+			})
+
+			const firstToken = await mintThumbnailRenderToken(envWithBucket, first)
+			await recordMintedRenderToken(envWithBucket, first, firstToken)
+			const secondToken = await mintThumbnailRenderToken(envWithBucket, second)
+			await recordMintedRenderToken(envWithBucket, second, secondToken)
+
+			expect(await isMintedRenderToken(envWithBucket, first, firstToken)).toBe(true)
+			expect(await isMintedRenderToken(envWithBucket, second, secondToken)).toBe(true)
+		})
+
 		// Same board, same page, different theme: two distinct images, so two distinct captures.
 		it('separates themes of the same page', async () => {
 			const envWithBucket = makeEnvWithBucket()

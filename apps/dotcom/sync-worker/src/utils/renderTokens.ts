@@ -208,12 +208,14 @@ async function getHmacKey(secret: string) {
  * - **`mcp`** is not single-flighted. Concurrent captures of different pages of one board are supported
  *   and tested, so a per-board key would have them invalidate each other's tokens, and the loser would
  *   403 on its snapshot fetch and surface as a generic render failure. Its key therefore carries what
- *   distinguishes those captures: the page and theme being rendered.
+ *   distinguishes those captures: the mode (a measure render or a screenshot), the page and theme, and
+ *   a digest of the shape set when the render is restricted to one — the cluster tools measure a page
+ *   and then screenshot parts of it, and both job kinds mint recorded tokens for a private board.
  *
  * Both live under `render-tokens/{kind}/{slug}/` so hard-delete cleanup can clear a board's records with
  * one prefix listing rather than having to know every surface. Two concurrent MCP captures of the *same*
- * page and theme still share a key, which is the OG case again — the same image, rendered twice, where
- * the later mint winning costs one retry rather than a wrong result.
+ * mode, page, theme and shape set still share a key, which is the OG case again — the same image (or
+ * measurement), rendered twice, where the later mint winning costs one retry rather than a wrong result.
  *
  * Records are **not** deleted after a capture. Expiry lives in the signed `exp` and is checked before
  * this is consulted, so a leftover record cannot extend a token's life; deleting would only tighten the
@@ -228,16 +230,22 @@ export function renderTokenRecordPrefix(board: ThumbnailBoardRef) {
 	return `${RENDER_TOKEN_RECORD_PREFIX}/${board.kind}/${board.slug}/`
 }
 
-function renderTokenRecordKey(
-	job: Pick<ThumbnailRenderJob, 'kind' | 'slug' | 'surface' | 'pageId' | 'theme'>
+async function renderTokenRecordKey(
+	job: Pick<
+		ThumbnailRenderJob,
+		'kind' | 'slug' | 'surface' | 'pageId' | 'theme' | 'mode' | 'shapeIds'
+	>
 ) {
 	const surface = renderJobSurface(job)
 	const base = `${renderTokenRecordPrefix(job)}${surface}`
 	if (surface !== 'mcp') return base
 	// Derived from the signed job, so the key a capture is checked against is the one it was minted
 	// under and a caller cannot steer it. `default` stands in for the OG-style whole-board render,
-	// which the MCP tool does not currently mint but the job type still allows.
-	return `${base}/${job.theme}/${job.pageId ?? 'default'}`
+	// which the MCP tool does not currently mint but the job type still allows. The shape set is
+	// digested rather than joined so the key stays bounded however many shapes a cluster holds, and
+	// sorted so the same set always lands on the same record.
+	const shapeSet = job.shapeIds?.length ? await sha256([...job.shapeIds].sort().join(',')) : 'page'
+	return `${base}/${job.mode ?? 'screenshot'}/${job.theme}/${job.pageId ?? 'default'}/${shapeSet}`
 }
 
 /**
@@ -260,7 +268,7 @@ export async function recordMintedRenderToken(
 	// Unbound only in local dev and tests, where skipping leaves signature-only verification. Deployed
 	// environments all bind THUMBNAILS, so the two-factor check is never optional where it matters.
 	if (!env.THUMBNAILS) return
-	await env.THUMBNAILS.put(renderTokenRecordKey(job), new Uint8Array(), {
+	await env.THUMBNAILS.put(await renderTokenRecordKey(job), new Uint8Array(), {
 		customMetadata: { tokenHash: await sha256(token) },
 	})
 }
@@ -284,7 +292,7 @@ export async function isMintedRenderToken(
 	if (!env.THUMBNAILS) return true
 
 	const record =
-		(await env.THUMBNAILS.head(renderTokenRecordKey(job))) ??
+		(await env.THUMBNAILS.head(await renderTokenRecordKey(job))) ??
 		// A token with no `surface` was minted before the key was namespaced, and its record is at the
 		// old un-namespaced key. Checked only for those tokens, so this costs nothing once the rolling
 		// deploy that introduced the field has finished — and without it every OG render already in
