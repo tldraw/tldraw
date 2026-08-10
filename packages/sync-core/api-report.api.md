@@ -105,7 +105,7 @@ export function getTlsyncProtocolVersion(): number;
 
 // @public
 export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
-    constructor({ snapshot, objectTypes, onChange }?: {
+    constructor({ snapshot, objectTypes, onChange, }?: {
         objectTypes?: readonly string[];
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot;
@@ -247,9 +247,9 @@ export type RecordOp<R extends UnknownRecord> = [typeof RecordOpType.Patch, Obje
 
 // @internal
 export const RecordOpType: {
-    readonly Patch: "patch";
-    readonly Put: "put";
-    readonly Remove: "remove";
+    readonly Patch: 'patch';
+    readonly Put: 'put';
+    readonly Remove: 'remove';
 };
 
 // @internal
@@ -285,9 +285,9 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 
 // @internal
 export const RoomSessionState: {
-    readonly AwaitingRemoval: "awaiting-removal";
-    readonly Connected: "connected";
-    readonly AwaitingConnectMessage: "awaiting-connect-message";
+    readonly AwaitingRemoval: 'awaiting-removal';
+    readonly Connected: 'connected';
+    readonly AwaitingConnectMessage: 'awaiting-connect-message';
 };
 
 // @internal
@@ -333,7 +333,7 @@ export interface SessionStateSnapshot {
 
 // @public
 export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage<R> {
-    constructor({ sql, snapshot, objectTypes, onChange }: {
+    constructor({ sql, snapshot, objectTypes, onChange, }: {
         objectTypes?: readonly string[];
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot | StoreSnapshot<R>;
@@ -397,10 +397,10 @@ export type TLCustomMessageHandler = (this: null, data: any) => void;
 
 // @internal @deprecated
 export const TLIncompatibilityReason: {
-    readonly ClientTooOld: "clientTooOld";
-    readonly InvalidOperation: "invalidOperation";
-    readonly InvalidRecord: "invalidRecord";
-    readonly ServerTooOld: "serverTooOld";
+    readonly ClientTooOld: 'clientTooOld';
+    readonly InvalidOperation: 'invalidOperation';
+    readonly InvalidRecord: 'invalidRecord';
+    readonly ServerTooOld: 'serverTooOld';
 };
 
 // @internal @deprecated
@@ -685,15 +685,15 @@ export const TLSyncErrorCloseEventCode: 4099;
 
 // @public
 export const TLSyncErrorCloseEventReason: {
-    readonly RATE_LIMITED: "RATE_LIMITED";
-    readonly CLIENT_TOO_OLD: "CLIENT_TOO_OLD";
-    readonly INVALID_RECORD: "INVALID_RECORD";
-    readonly ROOM_FULL: "ROOM_FULL";
-    readonly NOT_FOUND: "NOT_FOUND";
-    readonly SERVER_TOO_OLD: "SERVER_TOO_OLD";
-    readonly UNKNOWN_ERROR: "UNKNOWN_ERROR";
-    readonly NOT_AUTHENTICATED: "NOT_AUTHENTICATED";
-    readonly FORBIDDEN: "FORBIDDEN";
+    readonly RATE_LIMITED: 'RATE_LIMITED';
+    readonly CLIENT_TOO_OLD: 'CLIENT_TOO_OLD';
+    readonly INVALID_RECORD: 'INVALID_RECORD';
+    readonly ROOM_FULL: 'ROOM_FULL';
+    readonly NOT_FOUND: 'NOT_FOUND';
+    readonly SERVER_TOO_OLD: 'SERVER_TOO_OLD';
+    readonly UNKNOWN_ERROR: 'UNKNOWN_ERROR';
+    readonly NOT_AUTHENTICATED: 'NOT_AUTHENTICATED';
+    readonly FORBIDDEN: 'FORBIDDEN';
 };
 
 // @public
@@ -862,10 +862,10 @@ export type ValueOp = AppendOp | DeleteOp | PatchOp | PutOp;
 
 // @internal
 export const ValueOpType: {
-    readonly Append: "append";
-    readonly Delete: "delete";
-    readonly Patch: "patch";
-    readonly Put: "put";
+    readonly Append: 'append';
+    readonly Delete: 'delete';
+    readonly Patch: 'patch';
+    readonly Put: 'put';
 };
 
 // @internal
