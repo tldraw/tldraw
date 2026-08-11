@@ -1,5 +1,6 @@
 import {
 	AdminFileAssetsResponseBody,
+	AdminFileStatsResponseBody,
 	FILE_PREFIX,
 	FeatureFlagKey,
 	FriendsAndFamilyEntry,
@@ -15,6 +16,7 @@ import { StatusError, json } from 'itty-router'
 import { sql } from 'kysely'
 import PQueue from 'p-queue'
 import { getUploadObjectName } from './assetAssociation'
+import { summarizeSnapshotDocuments } from './fileStats'
 import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
@@ -572,6 +574,128 @@ export const adminRoutes = createRouter<Environment>()
 			warnings,
 		}
 		return json(report)
+	})
+	// A board's shape without its contents. Answers "how big and how unusual is this board" for
+	// perf reports, migration bugs, and support threads without anyone having to open it — and
+	// without putting anything a user typed into the report. Read AdminFileStatsResponseBody
+	// before adding a field: staying content-free is the point of this endpoint.
+	.get('/app/admin/file-stats/:slug', async (res, env) => {
+		const slug = res.params.slug
+		assert(typeof slug === 'string', 'slug is required')
+
+		const warnings: string[] = []
+		const pg = createPostgresConnectionPool(env, '/app/admin/file-stats')
+		const [fileRow, snapshot, head] = await Promise.all([
+			pg
+				.selectFrom('file')
+				.where('id', '=', slug)
+				.select([
+					'ownerId',
+					'owningGroupId',
+					'createdAt',
+					'updatedAt',
+					'isDeleted',
+					'isEmpty',
+					'published',
+					'shared',
+					'sharedLinkType',
+					'createSource',
+				])
+				.executeTakeFirst(),
+			getFileSnapshot(env, slug, true),
+			env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true })).catch((e) => {
+				// Label only: an R2 error stringifies to the object key, which names the board
+				console.error('file-stats snapshot head failed', e)
+				warnings.push('snapshot head failed')
+				return null
+			}),
+		])
+		if (!snapshot) {
+			throw new StatusError(404, `No persisted snapshot for ${slug}`)
+		}
+
+		const summary = summarizeSnapshotDocuments(snapshot.documents)
+
+		// file_visitor, comment_thread, and comment all have a fileId index. file_state is
+		// deliberately not counted here: its primary key is (userId, fileId), so counting by fileId
+		// would sequentially scan the whole table.
+		const countRows = async (
+			label: string,
+			query: Promise<{ count: number | string | bigint } | undefined>
+		) => {
+			try {
+				return Number((await query)?.count ?? 0)
+			} catch (e) {
+				// Label only: a query error can carry table, column, and parameter detail
+				console.error(`file-stats ${label} count failed`, e)
+				warnings.push(`${label} count failed`)
+				return 0
+			}
+		}
+		const [visitors, commentThreads, comments] = await Promise.all([
+			countRows(
+				'file_visitor',
+				pg
+					.selectFrom('file_visitor')
+					.where('fileId', '=', slug)
+					.select((eb) => eb.fn.countAll<number>().as('count'))
+					.executeTakeFirst()
+			),
+			countRows(
+				'comment_thread',
+				pg
+					.selectFrom('comment_thread')
+					.where('fileId', '=', slug)
+					.where('isDeleted', '=', false)
+					.select((eb) => eb.fn.countAll<number>().as('count'))
+					.executeTakeFirst()
+			),
+			countRows(
+				'comment',
+				pg
+					.selectFrom('comment')
+					.where('fileId', '=', slug)
+					.where('isDeleted', '=', false)
+					.select((eb) => eb.fn.countAll<number>().as('count'))
+					.executeTakeFirst()
+			),
+		])
+
+		const schema = snapshot.schema as
+			| { schemaVersion?: number; sequences?: Record<string, number> }
+			| undefined
+		const createSourceKind = fileRow?.createSource?.split('/')[0] ?? null
+
+		const { recordsByTypeName, ...snapshotStats } = summary
+		const stats: AdminFileStatsResponseBody = {
+			file: fileRow
+				? {
+						ownerType: fileRow.ownerId ? 'user' : fileRow.owningGroupId ? 'group' : 'none',
+						createdAt: fileRow.createdAt,
+						updatedAt: fileRow.updatedAt,
+						isDeleted: fileRow.isDeleted,
+						isEmpty: fileRow.isEmpty,
+						published: fileRow.published,
+						shared: fileRow.shared,
+						sharedLinkType: fileRow.sharedLinkType,
+						createSourceKind,
+					}
+				: null,
+			snapshot: {
+				sizeBytes: head?.size ?? null,
+				clock: snapshot.clock ?? null,
+				documentClock: snapshot.documentClock ?? null,
+				tombstones: Object.keys(snapshot.tombstones ?? {}).length,
+				records: snapshot.documents.length,
+				recordsByTypeName,
+				schemaVersion: schema?.schemaVersion ?? null,
+				sequences: schema?.sequences ?? null,
+			},
+			...snapshotStats,
+			collaboration: { visitors, commentThreads, comments },
+			warnings,
+		}
+		return json(stats)
 	})
 	.get('/app/admin/download-tldr/:fileSlug', async (res, env) => {
 		const fileSlug = res.params.fileSlug
