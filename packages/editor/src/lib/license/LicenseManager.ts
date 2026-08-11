@@ -179,11 +179,13 @@ export class LicenseManager {
 		// Native apps are the exception: they serve the app from a custom protocol (e.g. `app-bundle:`)
 		// which would otherwise always look like development, so a native license opts out of the
 		// protocol check and relies on the loopback and NODE_ENV checks instead. We only know the
-		// license is native once it has been parsed, so this is recomputed in `getLicenseFromKey`.
-		const isNonProductionProtocol =
+		// license is native once it has been parsed, so this is recomputed in `getLicenseFromKey` —
+		// which also means a native app with a missing or unparseable key can't be recognised as
+		// native, and still falls back to being treated as development.
+		const failsProtocolCheck =
 			!opts?.isNativeLicense && !['https:', 'vscode-webview:'].includes(window.location.protocol)
 		return (
-			isNonProductionProtocol ||
+			failsProtocolCheck ||
 			this.isLoopbackHost(window.location.hostname) ||
 			process.env.NODE_ENV !== 'production'
 		)
