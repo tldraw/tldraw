@@ -1,6 +1,7 @@
 import { InstancePresenceRecordType, TLPOINTER_ID, createUserId } from '@tldraw/tlschema'
 import { vi } from 'vitest'
 import { createTLStore } from '../../../config/createTLStore'
+import { TldrawOptions } from '../../../options'
 import { Editor } from '../../Editor'
 
 function createPresence(editor: Editor) {
@@ -12,7 +13,7 @@ function createPresence(editor: Editor) {
 	})
 }
 
-function createTestEditor() {
+function createTestEditor(options?: Partial<TldrawOptions>) {
 	const store = createTLStore({})
 	store.ensureStoreIsUsable()
 	// Attached to the document so that events dispatched on the container
@@ -25,6 +26,7 @@ function createTestEditor() {
 		shapeUtils: [],
 		getContainer: () => container,
 		tools: [],
+		options,
 	})
 	editor.disposables.add(() => container.remove())
 	return editor
@@ -113,12 +115,36 @@ describe('InputsManager', () => {
 			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(Date.now())
 		})
 
+		it('stamps on text input that fires no keydown, e.g. IME and gesture typing', () => {
+			editor.store.put([createPresence(editor)])
+
+			editor.getContainer().dispatchEvent(new Event('beforeinput', { bubbles: true }))
+
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(Date.now())
+		})
+
 		it('stamps on input elsewhere in the tab, outside the container', () => {
 			editor.store.put([createPresence(editor)])
 
 			document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA' }))
 
 			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(Date.now())
+		})
+
+		it('keeps a minimum throttle window when the idle timeout is tiny', () => {
+			const tinyEditor = createTestEditor({ collaboratorIdleTimeoutMs: 0 })
+			try {
+				tinyEditor.store.put([createPresence(tinyEditor)])
+
+				tinyEditor.inputs.markActivity()
+				const stamp = tinyEditor.store.get(TLPOINTER_ID)!.lastActivityTimestamp
+
+				vi.advanceTimersByTime(50)
+				tinyEditor.inputs.markActivity()
+				expect(tinyEditor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(stamp)
+			} finally {
+				tinyEditor.dispose()
+			}
 		})
 
 		it('does not stamp on pointer moves with no DOM input, e.g. following a user', () => {

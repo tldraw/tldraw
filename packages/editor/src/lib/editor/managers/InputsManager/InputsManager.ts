@@ -16,17 +16,21 @@ const POINTER_VELOCITY_REFERENCE_SMOOTHING = 0.5
 // bursts (e.g. typing, held keys) from flooding the network. It must also stay
 // comfortably shorter than `collaboratorIdleTimeoutMs` so a continuously-active
 // peer never flickers to idle between stamps; the throttle window is capped
-// below that option when it's configured shorter than the default.
+// below that option when it's configured shorter than the default, but never
+// below the floor, so a degenerate idle timeout can't disable throttling.
 const ACTIVITY_TIMESTAMP_THROTTLE_MS = 1000
+const ACTIVITY_TIMESTAMP_THROTTLE_FLOOR_MS = 100
 
-// DOM events that count as presence activity. `gesturestart`/`gesturechange`
-// are Safari's proprietary trackpad-pinch events, which produce neither pointer
-// nor wheel events.
+// DOM events that count as presence activity. `beforeinput` covers IME and
+// mobile keyboards (e.g. gesture typing), which often don't fire per-character
+// keydown events. `gesturestart`/`gesturechange` are Safari's proprietary
+// trackpad-pinch events, which produce neither pointer nor wheel events.
 const ACTIVITY_EVENTS = [
 	'pointerdown',
 	'pointermove',
 	'pointerup',
 	'keydown',
+	'beforeinput',
 	'wheel',
 	'gesturestart',
 	'gesturechange',
@@ -512,7 +516,10 @@ export class InputsManager extends EditorManager {
 		},
 		// Stay comfortably below the idle timeout so a continuously-active peer
 		// never flickers to idle between throttled stamps.
-		Math.min(ACTIVITY_TIMESTAMP_THROTTLE_MS, this.editor.options.collaboratorIdleTimeoutMs / 3),
+		Math.max(
+			ACTIVITY_TIMESTAMP_THROTTLE_FLOOR_MS,
+			Math.min(ACTIVITY_TIMESTAMP_THROTTLE_MS, this.editor.options.collaboratorIdleTimeoutMs / 3)
+		),
 		{ trailing: false }
 	)
 
@@ -525,10 +532,13 @@ export class InputsManager extends EditorManager {
 	 *
 	 * @example
 	 * ```ts
-	 * // Count gamepad input as presence activity
-	 * window.addEventListener('gamepadconnected', () => {
-	 * 	editor.inputs.markActivity()
-	 * })
+	 * // Gamepads are polled rather than event-driven, so stamp activity from the poll
+	 * editor.timers.setInterval(() => {
+	 * 	const isPressed = navigator
+	 * 		.getGamepads()
+	 * 		.some((pad) => pad?.buttons.some((button) => button.pressed))
+	 * 	if (isPressed) editor.inputs.markActivity()
+	 * }, 50)
 	 * ```
 	 */
 	@bind
