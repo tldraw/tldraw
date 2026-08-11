@@ -47,9 +47,11 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
     isDisposed: boolean;
     onReceiveMessage(cb: (val: TLSocketServerSentEvent<TLRecord>) => void): () => void;
     onStatusChange(cb: TLSocketStatusListener): () => void;
+    pause(): void;
     // (undocumented)
     readonly _reconnectManager: ReconnectManager;
     restart(): void;
+    resume(): void;
     sendMessage(msg: TLSocketClientSentEvent<TLRecord>): void;
     // (undocumented)
     _setNewSocket(ws: WebSocket): void;
@@ -240,6 +242,8 @@ export class ReconnectManager {
     // (undocumented)
     intendedDelay: number;
     maybeReconnected(): void;
+    pause(): void;
+    resume(): void;
 }
 
 // @internal

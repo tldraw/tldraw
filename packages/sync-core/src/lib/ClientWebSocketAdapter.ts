@@ -369,6 +369,26 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 		this._closeSocket()
 		this._reconnectManager.maybeReconnected()
 	}
+
+	/**
+	 * Close the socket and stop all reconnection attempts until `resume()` is called.
+	 * @internal
+	 */
+	pause() {
+		assert(!this.isDisposed, 'Tried to pause a disposed socket')
+		// pause the manager first so the close event below cannot schedule a reconnect
+		this._reconnectManager.pause()
+		this._closeSocket()
+	}
+
+	/**
+	 * Leave the paused state and reconnect immediately.
+	 * @internal
+	 */
+	resume() {
+		assert(!this.isDisposed, 'Tried to resume a disposed socket')
+		this._reconnectManager.resume()
+	}
 }
 
 /**
@@ -445,6 +465,7 @@ export const ATTEMPT_TIMEOUT = 1000
  */
 export class ReconnectManager {
 	private isDisposed = false
+	private isPaused = false
 	private disposables: (() => void)[] = [
 		() => {
 			if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout)
@@ -517,8 +538,9 @@ export class ReconnectManager {
 		assert(this.state === 'pendingAttempt')
 		debug('scheduling a connection attempt')
 		Promise.resolve(this.getUri()).then((uri) => {
-			// this can happen if the promise gets resolved too late
-			if (this.state !== 'pendingAttempt' || this.isDisposed) return
+			// the promise may resolve too late, or we may have been paused/disposed
+			// while getUri was pending
+			if (this.state !== 'pendingAttempt' || this.isDisposed || this.isPaused) return
 			assert(
 				this.socketAdapter._ws?.readyState !== WebSocket.OPEN,
 				'There should be no connection attempts while already connected'
@@ -570,6 +592,8 @@ export class ReconnectManager {
 	 */
 	maybeReconnected() {
 		debug('ReconnectManager.maybeReconnected')
+		if (this.isPaused) return
+
 		// It doesn't make sense to have another check scheduled if we're already checking it now.
 		// If we have a CONNECTING check scheduled and relevant, it'll be recreated below anyway
 		this.clearRecheckConnectingTimeout()
@@ -639,6 +663,8 @@ export class ReconnectManager {
 	 */
 	disconnected() {
 		debug('ReconnectManager.disconnected')
+		if (this.isPaused) return
+
 		// This either means we're freshly disconnected, or the last connection attempt failed;
 		// either way, time to try again.
 
@@ -708,6 +734,25 @@ export class ReconnectManager {
 			this.clearReconnectTimeout()
 			this.intendedDelay = ACTIVE_MIN_DELAY
 		}
+	}
+
+	/**
+	 * Stops all reconnection attempts and cancels pending timers until `resume()` is called.
+	 */
+	pause() {
+		this.isPaused = true
+		this.clearReconnectTimeout()
+		this.clearRecheckConnectingTimeout()
+	}
+
+	/**
+	 * Leaves the paused state, resets the backoff, and attempts to reconnect immediately.
+	 */
+	resume() {
+		if (!this.isPaused) return
+		this.isPaused = false
+		this.intendedDelay = ACTIVE_MIN_DELAY
+		this.maybeReconnected()
 	}
 
 	/**

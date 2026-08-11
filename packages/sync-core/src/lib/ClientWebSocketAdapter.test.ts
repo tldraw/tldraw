@@ -793,4 +793,91 @@ describe('ReconnectManager', () => {
 		// closing again is safe
 		expect(() => manager.close()).not.toThrow()
 	})
+
+	describe('pause and resume (CW11, CW12, RM6)', () => {
+		it('[CW11] pause closes the socket and reports offline', async () => {
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			const statuses: string[] = []
+			adapter.onStatusChange((e) => statuses.push(e.status))
+
+			adapter.pause()
+
+			expect(adapter._ws).toBeNull()
+			expect(adapter.connectionStatus).toBe('offline')
+			expect(statuses).toEqual(['offline'])
+		})
+
+		it('[RM6] no reconnection attempts happen while paused', async () => {
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			const connectionsBefore = connectMock.mock.calls.length
+
+			adapter.pause()
+			await vi.advanceTimersByTimeAsync(INACTIVE_MAX_DELAY * 2)
+
+			expect(adapter._ws).toBeNull()
+			expect(connectMock.mock.calls.length).toBe(connectionsBefore)
+		})
+
+		it('[RM6] reconnect hints are ignored while paused', async () => {
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			adapter.pause()
+
+			// what the window online/visibilitychange/connection-change listeners call
+			adapter._reconnectManager.maybeReconnected()
+			await vi.advanceTimersByTimeAsync(INACTIVE_MAX_DELAY * 2)
+
+			expect(adapter._ws).toBeNull()
+		})
+
+		it('[RM6] pausing while getUri is pending aborts the in-flight attempt', async () => {
+			let resolveUri: (uri: string) => void
+			const uriPromise = new Promise<string>((resolve) => {
+				resolveUri = resolve
+			})
+			const asyncAdapter = new ClientWebSocketAdapter(() => uriPromise)
+			try {
+				// the initial attempt is stuck waiting for getUri
+				expect(asyncAdapter._ws).toBeNull()
+				const connectionsBefore = connectMock.mock.calls.length
+
+				asyncAdapter.pause()
+				resolveUri!('ws://localhost:2233')
+				await vi.advanceTimersByTimeAsync(INACTIVE_MAX_DELAY * 2)
+
+				expect(asyncAdapter._ws).toBeNull()
+				expect(connectMock.mock.calls.length).toBe(connectionsBefore)
+			} finally {
+				asyncAdapter.close()
+			}
+		})
+
+		it('[CW12] resume reconnects promptly', async () => {
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			adapter.pause()
+
+			adapter.resume()
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			expect(adapter.connectionStatus).toBe('online')
+		})
+
+		it('[CW11][CW12] pause is idempotent and resume without pause is a no-op', async () => {
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+
+			adapter.resume() // not paused: no-op
+			expect(adapter._ws?.readyState).toBe(WebSocket.OPEN)
+
+			adapter.pause()
+			adapter.pause() // second pause: no-op, no throw
+			expect(adapter._ws).toBeNull()
+		})
+
+		it('[CW11] close() while paused disposes cleanly', async () => {
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			adapter.pause()
+			adapter.close()
+			expect(adapter.isDisposed).toBe(true)
+			expect(() => adapter.pause()).toThrow()
+			expect(() => adapter.resume()).toThrow()
+		})
+	})
 })

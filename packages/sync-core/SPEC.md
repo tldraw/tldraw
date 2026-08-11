@@ -154,6 +154,8 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **CW8** `restart()` closes the current socket (notifying `'offline'`) and starts a reconnection attempt.
 - **CW9** `close()` disposes the adapter: `restart`, `sendMessage`, and listener registration then throw; `close` itself is idempotent.
 - **CW10** Events from orphaned sockets (a socket replaced after `restart`/offline handling) are ignored — they cannot change status.
+- **CW11** `pause()` closes the active socket (reporting `'offline'`) and puts the adapter into a paused state in which no reconnection attempts are made. Pausing an already-paused adapter is a no-op. After `close()` it throws.
+- **CW12** `resume()` leaves the paused state, resets the backoff, and immediately starts a reconnection attempt. Resuming a non-paused adapter is a no-op. After `close()` it throws.
 
 ## 18. `ReconnectManager` (RM) — internal
 
@@ -162,6 +164,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **RM3** The window `offline` event closes the active socket (which triggers the reconnect cycle).
 - **RM4** Reconnect hints (window `online`, the document becoming visible) call `maybeReconnected`: a socket that is OPEN is left alone; one that is CONNECTING for less than `ATTEMPT_TIMEOUT` (1s) is rechecked later; one CONNECTING for longer is closed and retried; otherwise the backoff is reset and a reconnect attempt happens immediately (honoring the minimum delay).
 - **RM5** `close()` cancels all timers and event listeners.
+- **RM6** While paused, both `disconnected()` and `maybeReconnected()` return without scheduling anything, so neither backoff timers nor reconnect hints (window `online`, document visibility, `navigator.connection` changes) can start a connection. Pausing cancels any already-scheduled attempt timers, and an in-flight attempt (a pending `getUri`) aborts before opening a socket.
 
 ## 19. `TLSyncClient` — connection lifecycle (CL)
 
