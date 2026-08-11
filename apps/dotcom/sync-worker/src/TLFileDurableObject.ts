@@ -697,7 +697,9 @@ export class TLFileDurableObject extends DurableObject {
 	 *   here explicitly. Without that they would reach connected clients and still be lost, since
 	 *   a room rebuilds its comment records from Postgres on cold start.
 	 *
-	 * The drain is awaited so a 200 means the comment is durable, not merely broadcast.
+	 * The author is checked up front and the drain is awaited, so a 200 means the comment is
+	 * durable rather than merely broadcast. Awaiting alone isn't enough: the drain's job is to
+	 * reconcile the room with Postgres, and pruning an unpersistable record is a success for it.
 	 */
 	private async onServerComment(req: IRequest) {
 		const body = (await req.json()) as {
@@ -709,6 +711,21 @@ export class TLFileDurableObject extends DurableObject {
 		const { text, authorId } = body
 		if (!text || !authorId) {
 			return new Response('text and authorId are required', { status: 400 })
+		}
+
+		// The author has to exist before anything is written, not because the write would fail —
+		// it succeeds — but because the drain resolves a `comment.authorId` foreign key violation
+		// by pruning the record from the room. Left unchecked, an unknown author gets a committed
+		// comment broadcast to every connected client and then withdrawn, with the caller holding
+		// a success response and ids that no longer resolve. Client pushes can't reach that state,
+		// since they stamp the author from an authenticated session.
+		const author = await this.db
+			.selectFrom('user')
+			.select('id')
+			.where('id', '=', authorId)
+			.executeTakeFirst()
+		if (!author) {
+			return new Response(`unknown authorId: ${authorId}`, { status: 422 })
 		}
 
 		const storage = await this.getStorage()
