@@ -512,6 +512,14 @@ export function writeScreenshotTelemetry(
 		 * meaningful on queue datapoints; the request paths have no trigger and record `none`.
 		 */
 		reason?: OgImageRenderReason
+		/**
+		 * Whether this delivery is the follow-up a completed render enqueues when the board moved during
+		 * its capture (see `enqueueFollowUpIfBoardMoved`), rather than the ask a trigger made. Separates
+		 * the two halves of render spend, which `reason` cannot: a follow-up inherits the reason of the
+		 * job it follows, so both land in the same bucket. Only meaningful on queue datapoints; the
+		 * request paths have no follow-up and record `none`.
+		 */
+		followUp?: boolean
 		cacheStatus: 'hit' | 'stale' | 'miss'
 		/** Hashed client IP, for surfaces that have one. Recorded only on failures — see below. */
 		ipHash?: string
@@ -535,6 +543,10 @@ export function writeScreenshotTelemetry(
 			// Appended rather than slotted in beside `source`, so the existing blob positions (and the
 			// dashboard panels reading them) don't shift.
 			`reason:${data.reason ?? 'none'}`,
+			// Appended for the same reason. `none` rather than `false` for the surfaces that have no
+			// follow-up concept at all, so a query for triggered renders can say `followup:false` and mean
+			// it, instead of sweeping up every og and mcp datapoint too.
+			`followup:${data.followUp ?? 'none'}`,
 		],
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,
