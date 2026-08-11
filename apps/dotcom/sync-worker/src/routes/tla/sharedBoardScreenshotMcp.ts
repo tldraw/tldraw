@@ -14,7 +14,7 @@ import {
 	MCP_RATE_LIMIT_WINDOW_MS,
 } from '../../config'
 import { Environment } from '../../types'
-import { arrayBufferToBase64 } from '../../utils/base64'
+import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
 import { sha256 } from '../../utils/hash'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 import {
@@ -39,12 +39,54 @@ import {
 // The MCP protocol surface over the shared render-and-cache core in thumbnailRender.ts: JSON-RPC
 // plumbing, tool definitions, input parsing, and the MCP tools' own per-IP/per-board rate limits
 // and `mcp/` cache keys.
+//
+// The era is decided once in sharedBoardScreenshotMcp and only affects the result envelope and a
+// few status codes. Everything below the dispatch is era-agnostic.
 
 const BOARD_INFO_TOOL_NAME = 'get_board_info'
 const PAGE_INFO_TOOL_NAME = 'get_page_info'
 const CLUSTER_INFO_TOOL_NAME = 'get_cluster_info'
 const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
-const MCP_PROTOCOL_VERSION = '2024-11-05'
+
+// The two protocol revisions this server speaks, newest first, as `server/discover` reports them.
+//
+// 2026-07-28 is the *modern* era: no handshake and no session, every request carrying its own
+// protocol version, and the routing-relevant body fields mirrored into HTTP headers. 2025-11-25 is
+// the *legacy* era, which opens with an `initialize` handshake instead. We serve both for now.
+//
+// 2025-11-25 is the oldest version this server implements. a client asking for older versions
+// will be met with this version.
+const MCP_PROTOCOL_VERSION_MODERN = '2026-07-28'
+const MCP_PROTOCOL_VERSION_LEGACY = '2025-11-25'
+const SUPPORTED_PROTOCOL_VERSIONS = [MCP_PROTOCOL_VERSION_MODERN, MCP_PROTOCOL_VERSION_LEGACY]
+
+type ProtocolEra = 'modern' | 'legacy'
+
+// -32700/-32601/-32602 are plain JSON-RPC.
+// -32020 and up are reserved by the MCP spec
+const PARSE_ERROR = -32700
+const METHOD_NOT_FOUND = -32601
+const INVALID_PARAMS = -32602
+const HEADER_MISMATCH = -32020
+const UNSUPPORTED_PROTOCOL_VERSION = -32022
+
+// `_meta` keys the modern era uses for per-request version and identity.
+const META_PROTOCOL_VERSION = 'io.modelcontextprotocol/protocolVersion'
+const META_SERVER_INFO = 'io.modelcontextprotocol/serverInfo'
+
+const SERVER_INFO = {
+	name: 'tldraw-shared-board-screenshot',
+	title: 'tldraw shared board screenshots',
+	version: '2.0.0',
+}
+
+const SERVER_INSTRUCTIONS =
+	'MCP server for public tldraw.com boards. Drill down in order: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards and anonymously-shared tldraw.com/f/:slug files, rendered through a signed, tldraw-owned render job.'
+
+// Modern `tools/list` is cacheable. This list is the same for every caller, so it's public — if the
+// tool set ever varies by caller, `cacheScope` has to drop to 'private'.
+const TOOLS_LIST_TTL_MS = 3_600_000
+const TOOLS_LIST_CACHE_SCOPE = 'public'
 
 // The MCP rate limit budgets themselves live in config.ts (MCP_PER_IP_RATE_LIMIT and friends), with
 // the comment that maps each isolate-local fallback to its deployed Cloudflare binding. They are
@@ -100,6 +142,10 @@ interface JsonRpcRequest {
 	params?: {
 		name?: string
 		arguments?: unknown
+		/** Legacy `initialize` only: the version the client is asking to speak. */
+		protocolVersion?: string
+		/** Modern only: per-request version, client identity and capabilities. */
+		_meta?: Record<string, unknown>
 	}
 }
 
@@ -123,70 +169,216 @@ export async function sharedBoardScreenshotMcp(
 		return new Response('Not Found', { status: 404 })
 	}
 
+	// new MCP spec (2026-07-28 onwards) no longer allows get or delete requests
 	if (request.method !== 'POST') {
 		return new Response('MCP screenshot server expects POST', { status: 405 })
 	}
 
 	const rpcRequest = await readJsonRpcRequest(request)
 	if (!rpcRequest) {
-		return jsonRpcError(null, -32700, 'Parse error')
+		return jsonRpcError(null, PARSE_ERROR, 'Parse error', { status: 400 })
 	}
 
+	// No id means a notification: acknowledged, never answered.
 	if (rpcRequest.id === undefined) {
 		return new Response(null, { status: 202 })
 	}
 
+	// `initialize` is legacy-only and carries the client's version in its params, not a header.
+	if (rpcRequest.method === 'initialize') {
+		return jsonRpcResult(rpcRequest.id, {
+			// Answering with our legacy version regardless is how the handshake declines a version.
+			protocolVersion: MCP_PROTOCOL_VERSION_LEGACY,
+			capabilities: { tools: {} },
+			serverInfo: SERVER_INFO,
+			instructions: SERVER_INSTRUCTIONS,
+		})
+	}
+
+	const requestedVersion = getRequestedProtocolVersion(request, rpcRequest)
+	const era = getProtocolEra(requestedVersion)
+
+	if (era === 'modern') {
+		const mismatch = checkModernHeaders(request, rpcRequest)
+		if (mismatch) return mismatch
+	}
+
+	// Answered under any version, including ones we don't serve — it's how a client finds one we share.
+	if (rpcRequest.method === 'server/discover') {
+		return jsonRpcResult(rpcRequest.id, {
+			resultType: 'complete',
+			supportedVersions: SUPPORTED_PROTOCOL_VERSIONS,
+			capabilities: { tools: {} },
+			instructions: SERVER_INSTRUCTIONS,
+			ttlMs: TOOLS_LIST_TTL_MS,
+			cacheScope: TOOLS_LIST_CACHE_SCOPE,
+			_meta: { [META_SERVER_INFO]: SERVER_INFO },
+		})
+	}
+
+	if (!era) {
+		return jsonRpcError(
+			rpcRequest.id,
+			UNSUPPORTED_PROTOCOL_VERSION,
+			`Unsupported protocol version: ${requestedVersion}`,
+			{
+				status: 400,
+				data: { supported: SUPPORTED_PROTOCOL_VERSIONS, requested: requestedVersion },
+			}
+		)
+	}
+
 	switch (rpcRequest.method) {
-		case 'initialize':
-			return jsonRpcResult(rpcRequest.id, {
-				protocolVersion: MCP_PROTOCOL_VERSION,
-				capabilities: { tools: {} },
-				serverInfo: {
-					name: 'tldraw-shared-board-screenshot',
-					title: 'tldraw shared board screenshots',
-					version: '2.0.0',
-				},
-				instructions:
-					'MCP server for public tldraw.com boards. Drill down in order: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter.  Accepts published tldraw.com/p/:slug boards and anonymously-shared tldraw.com/f/:slug files, rendered through a signed, tldraw-owned render job.',
-			})
 		case 'ping':
+			// Removed in 2026-07-28, so modern callers fall through to method-not-found.
+			if (era === 'modern') break
 			return jsonRpcResult(rpcRequest.id, {})
 		case 'tools/list':
-			return jsonRpcResult(rpcRequest.id, {
-				tools: [
-					getBoardInfoToolDefinition(),
-					getPageInfoToolDefinition(),
-					getClusterInfoToolDefinition(),
-					getClusterScreenshotToolDefinition(),
-				],
-			})
-		case 'tools/call':
-			switch (rpcRequest.params?.name) {
-				case BOARD_INFO_TOOL_NAME:
-					return jsonRpcResult(
-						rpcRequest.id,
-						await callBoardInfoTool(rpcRequest.params.arguments, request, env, ctx)
-					)
-				case PAGE_INFO_TOOL_NAME:
-					return jsonRpcResult(
-						rpcRequest.id,
-						await callPageInfoTool(rpcRequest.params.arguments, request, env, ctx)
-					)
-				case CLUSTER_INFO_TOOL_NAME:
-					return jsonRpcResult(
-						rpcRequest.id,
-						await callClusterInfoTool(rpcRequest.params.arguments, request, env, ctx)
-					)
-				case CLUSTER_SCREENSHOT_TOOL_NAME:
-					return jsonRpcResult(
-						rpcRequest.id,
-						await callClusterScreenshotTool(rpcRequest.params.arguments, request, env, ctx)
-					)
-				default:
-					return jsonRpcError(rpcRequest.id, -32602, `Unknown tool: ${rpcRequest.params?.name}`)
+			return jsonRpcResult(
+				rpcRequest.id,
+				withResultEnvelope(
+					{
+						tools: [
+							getBoardInfoToolDefinition(),
+							getPageInfoToolDefinition(),
+							getClusterInfoToolDefinition(),
+							getClusterScreenshotToolDefinition(),
+						],
+						...(era === 'modern'
+							? { ttlMs: TOOLS_LIST_TTL_MS, cacheScope: TOOLS_LIST_CACHE_SCOPE }
+							: {}),
+					},
+					era
+				)
+			)
+		case 'tools/call': {
+			const result = await callToolByName(rpcRequest, request, env, ctx)
+			if (!result) {
+				return jsonRpcError(
+					rpcRequest.id,
+					INVALID_PARAMS,
+					`Unknown tool: ${rpcRequest.params?.name}`
+				)
 			}
+			return jsonRpcResult(rpcRequest.id, withResultEnvelope(result, era))
+		}
+	}
+
+	// Modern callers get a 404, which tells them the endpoint is live but lacks the method. Legacy
+	// has no such rule, so those callers keep getting the JSON-RPC error on a 200.
+	return jsonRpcError(rpcRequest.id, METHOD_NOT_FOUND, `Method not found: ${rpcRequest.method}`, {
+		status: era === 'modern' ? 404 : 200,
+	})
+}
+
+async function callToolByName(
+	rpcRequest: JsonRpcRequest,
+	request: Request,
+	env: Environment,
+	ctx?: ExecutionContext
+) {
+	switch (rpcRequest.params?.name) {
+		case BOARD_INFO_TOOL_NAME:
+			return callBoardInfoTool(rpcRequest.params.arguments, request, env, ctx)
+		case PAGE_INFO_TOOL_NAME:
+			return callPageInfoTool(rpcRequest.params.arguments, request, env, ctx)
+		case CLUSTER_INFO_TOOL_NAME:
+			return callClusterInfoTool(rpcRequest.params.arguments, request, env, ctx)
+		case CLUSTER_SCREENSHOT_TOOL_NAME:
+			return callClusterScreenshotTool(rpcRequest.params.arguments, request, env, ctx)
 		default:
-			return jsonRpcError(rpcRequest.id, -32601, `Method not found: ${rpcRequest.method}`)
+			return null
+	}
+}
+
+/** Which era a request is speaking, or null for a version we don't implement. */
+function getProtocolEra(version: string | undefined): ProtocolEra | null {
+	// No version means legacy: clients are meant to send it and plenty don't, and the request is
+	// identical either way.
+	if (version === undefined) return 'legacy'
+	if (version === MCP_PROTOCOL_VERSION_MODERN) return 'modern'
+	if (version === MCP_PROTOCOL_VERSION_LEGACY) return 'legacy'
+	return null
+}
+
+function getRequestedProtocolVersion(request: Request, rpcRequest: JsonRpcRequest) {
+	const header = request.headers.get('mcp-protocol-version')
+	if (header !== null) return header
+	const meta = rpcRequest.params?._meta?.[META_PROTOCOL_VERSION]
+	return typeof meta === 'string' ? meta : undefined
+}
+
+// The modern transport mirrors method and tool name into headers so gateways can route without
+// parsing the body. If a header and the body disagree, the spec requires rejecting the request
+// rather than picking a side.
+function checkModernHeaders(request: Request, rpcRequest: JsonRpcRequest): Response | null {
+	const id = rpcRequest.id ?? null
+
+	const headerVersion = request.headers.get('mcp-protocol-version')
+	if (headerVersion === null) {
+		return headerMismatch(id, 'MCP-Protocol-Version header is required')
+	}
+	const metaVersion = rpcRequest.params?._meta?.[META_PROTOCOL_VERSION]
+	if (typeof metaVersion === 'string' && metaVersion !== headerVersion) {
+		return headerMismatch(
+			id,
+			`MCP-Protocol-Version header value '${headerVersion}' does not match body value '${metaVersion}'`
+		)
+	}
+
+	const headerMethod = request.headers.get('mcp-method')
+	if (headerMethod === null) {
+		return headerMismatch(id, 'Mcp-Method header is required')
+	}
+	if (headerMethod !== rpcRequest.method) {
+		return headerMismatch(
+			id,
+			`Mcp-Method header value '${headerMethod}' does not match body value '${rpcRequest.method}'`
+		)
+	}
+
+	// tools/call is the only method we implement that names a target, so the only one with Mcp-Name.
+	if (rpcRequest.method === 'tools/call') {
+		const headerName = request.headers.get('mcp-name')
+		if (headerName === null) {
+			return headerMismatch(id, 'Mcp-Name header is required for tools/call')
+		}
+		const decoded = decodeHeaderValue(headerName)
+		if (decoded !== rpcRequest.params?.name) {
+			return headerMismatch(
+				id,
+				`Mcp-Name header value '${decoded}' does not match body value '${rpcRequest.params?.name}'`
+			)
+		}
+	}
+
+	return null
+}
+
+function headerMismatch(id: JsonRpcId, message: string) {
+	return jsonRpcError(id, HEADER_MISMATCH, `Header mismatch: ${message}`, { status: 400 })
+}
+
+// Tool names aren't required to be header-safe, so a client may wrap `Mcp-Name` in this base64
+// sentinel. Ours are all ASCII, but the comparison still has to decode first.
+function decodeHeaderValue(value: string) {
+	if (!value.startsWith('=?base64?') || !value.endsWith('?=')) return value
+	try {
+		return new TextDecoder().decode(
+			base64ToArrayBuffer(value.slice('=?base64?'.length, -'?='.length))
+		)
+	} catch {
+		return value
+	}
+}
+
+// `resultType` and `_meta` serverInfo are modern-only, so they go on here rather than in each tool.
+function withResultEnvelope(result: object, era: ProtocolEra) {
+	if (era !== 'modern') return result
+	return {
+		resultType: 'complete',
+		...result,
+		_meta: { [META_SERVER_INFO]: SERVER_INFO },
 	}
 }
 
@@ -1000,10 +1192,20 @@ function jsonRpcResult(id: JsonRpcId, result: unknown) {
 	})
 }
 
-function jsonRpcError(id: JsonRpcId, code: number, message: string) {
-	return Response.json({
-		jsonrpc: '2.0',
-		id,
-		error: { code, message },
-	})
+// Modern errors carry a real HTTP status: 400 when the transport rejects the request, 404 for an
+// unknown method. Everything else stays on 200.
+function jsonRpcError(
+	id: JsonRpcId,
+	code: number,
+	message: string,
+	{ status = 200, data }: { status?: number; data?: unknown } = {}
+) {
+	return Response.json(
+		{
+			jsonrpc: '2.0',
+			id,
+			error: { code, message, ...(data === undefined ? {} : { data }) },
+		},
+		{ status }
+	)
 }
