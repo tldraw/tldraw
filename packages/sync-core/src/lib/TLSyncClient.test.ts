@@ -598,19 +598,22 @@ describe('TLSyncClient', () => {
 			expect(socket.getSentMessages().filter((m) => m.type === 'ping')).toHaveLength(2)
 		})
 
-		it('[CL9] warns and resets the connection after 10 seconds without server interaction', () => {
+		it('[CL9][CL14] resets when pings keep being sent but nothing comes back (half-open socket)', () => {
 			const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 			client = createClient()
 			socket.mockServerMessage(createConnectMessage())
 
-			// advance time beyond the health check threshold
-			vi.advanceTimersByTime(15000)
+			// pings at 5s/10s go unanswered but the sends still "succeed"
+			vi.advanceTimersByTime(10_000)
+			// health tick at 10s: the oldest unanswered ping (t=5s) is only 5s old — not yet overdue
+			expect(client.isConnectedToRoom).toBe(true)
 
-			expect(consoleSpy).toHaveBeenCalledWith(
-				expect.stringContaining("Haven't heard from the server in a while")
-			)
+			vi.advanceTimersByTime(10_000)
+			// health tick at 20s: the t=5s ping is 15s overdue — evidence of a dead socket
 			expect(client.isConnectedToRoom).toBe(false)
-
+			expect(consoleSpy).toHaveBeenCalledWith(
+				expect.stringContaining("Haven't heard from the server")
+			)
 			consoleSpy.mockRestore()
 		})
 
@@ -626,10 +629,32 @@ describe('TLSyncClient', () => {
 			vi.advanceTimersByTime(4000)
 			expect(client.isConnectedToRoom).toBe(true)
 
-			// at t=20s nothing has been heard since the pong, so the connection resets
-			vi.advanceTimersByTime(10000)
+			// at t=20s the oldest unanswered ping (t=10s) is exactly 10s old — not yet overdue
+			vi.advanceTimersByTime(10_000)
+			expect(client.isConnectedToRoom).toBe(true)
+
+			// at t=30s it is 20s overdue — reset
+			vi.advanceTimersByTime(10_000)
 			expect(client.isConnectedToRoom).toBe(false)
 
+			consoleSpy.mockRestore()
+		})
+
+		it('[CL9] does not reset a healthy connection when timers wake infrequently (hidden-tab throttling)', () => {
+			const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+			client = createClient()
+			socket.mockServerMessage(createConnectMessage())
+
+			// Chrome batches a hidden tab's timers to ~1/min wakes: the clock jumps, then the
+			// overdue ping + health ticks fire together, and the pong arrives right after.
+			for (let i = 0; i < 3; i++) {
+				vi.setSystemTime(Date.now() + 60_000)
+				vi.advanceTimersByTime(10_000)
+				expect(client.isConnectedToRoom).toBe(true)
+				socket.mockServerMessage({ type: 'pong' })
+			}
+
+			expect(consoleSpy).not.toHaveBeenCalled()
 			consoleSpy.mockRestore()
 		})
 
