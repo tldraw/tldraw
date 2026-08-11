@@ -151,7 +151,7 @@ const router = createRouter<Environment>()
 	})
 	// Dev/preview only. Wakes the outbox processor: local workerd doesn't fire persisted alarms
 	// for an uninstantiated DO, so without this a restarted dev stack drains nothing until the
-	// first mutation. The dev stack's readiness probe hits this route.
+	// first mutation. The dev stack's one-shot wake-outbox process hits this route on startup.
 	.get('/app/outbox-status', async (_, env) => {
 		if (!isDebugLogging(env)) return notFound()
 		await getFileEffectProcessor(env).poke()

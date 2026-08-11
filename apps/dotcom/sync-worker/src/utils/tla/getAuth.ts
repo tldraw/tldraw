@@ -135,3 +135,7 @@ export async function requireAdminAccess(env: Environment, auth: { userId: strin
 	}
 	return user
 }
+
+export async function requireAdminAccessToRequest(request: IRequest, env: Environment) {
+	return requireAdminAccess(env, await requireAuth(request, env))
+}
