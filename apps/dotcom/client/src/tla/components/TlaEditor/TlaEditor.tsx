@@ -352,37 +352,36 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 function CustomDebugMenu() {
 	const app = useMaybeApp()
+	const user = useTldrawCurrentUser()
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
 	return (
 		<DefaultDebugMenu>
 			<A11yAudit />
-			{!isReadOnly && app && (
-				<>
-					<TldrawUiMenuItem
-						id="user-manual"
-						label="File history"
-						readonlyOk
-						onSelect={() => {
-							const url = new URL(window.location.href)
-							url.pathname += '/history'
-							openAndTrack(url.toString())
-						}}
-					/>
-					{!isProductionEnv && (
-						<TldrawUiMenuItem
-							id="user-manual"
-							label="File history (pierre)"
-							readonlyOk
-							onSelect={() => {
-								const url = new URL(window.location.href)
-								url.pathname += '/pierre-history'
-								openAndTrack(url.toString())
-							}}
-						/>
-					)}
-				</>
+			{!isReadOnly && app && user?.isTldraw && (
+				<TldrawUiMenuItem
+					id="user-manual"
+					label="File history"
+					readonlyOk
+					onSelect={() => {
+						const url = new URL(window.location.href)
+						url.pathname += '/history'
+						openAndTrack(url.toString())
+					}}
+				/>
+			)}
+			{!isReadOnly && app && !isProductionEnv && (
+				<TldrawUiMenuItem
+					id="user-manual"
+					label="File history (pierre)"
+					readonlyOk
+					onSelect={() => {
+						const url = new URL(window.location.href)
+						url.pathname += '/pierre-history'
+						openAndTrack(url.toString())
+					}}
+				/>
 			)}
 			<DefaultDebugMenuContent />
 		</DefaultDebugMenu>
