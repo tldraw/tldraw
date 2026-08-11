@@ -15,7 +15,7 @@ Everything in the rollout below except the Clerk-side configuration, which is no
 - The per-user board access check (`hasReadAccessToFile`), gating the cache read as well as the render, with one not-found message for every way a board can fail to resolve.
 - An `allowlist` feature flag type, and `mcp_server_access` using it — one list, absorbing the friends-and-family list from [#9809](https://github.com/tldraw/tldraw/pull/9809). Entries are edited as emails and stored as `{ userId, email }`, resolved against the database at save time; the separate list and the `mcp_friends_and_family` flag are gone.
 
-**Two things are still open, and both are decisions rather than code.** Whether dynamic client registration on the production Clerk instance is acceptable, and whether that instance issues JWT or opaque access tokens — the second determines whether `@clerk/backend` has to go to v2 first. See [Open questions](#open-questions).
+**One thing is still open, and it is a decision rather than code.** Whether the Clerk instance issues JWT or opaque access tokens, which determines whether `@clerk/backend` has to go to v2 first. Client registration is settled: clients identify themselves with Client ID Metadata Documents (CIMD), and we don't support dynamic client registration; a client that lacks CIMD isn't supported until it updates. See [Open questions](#open-questions).
 
 ## Summary
 
@@ -62,7 +62,7 @@ Verified against the SDK vendored in this repo and current docs, not from memory
 2. Return `401` with `WWW-Authenticate: Bearer resource_metadata="..."` when unauthenticated, so clients can discover where to authenticate.
 3. Accept only tokens issued for this resource; reject tokens minted for a different audience (RFC 8707 resource indicators).
 
-The authorization server needs authorization code + PKCE, `/.well-known/oauth-authorization-server` metadata, and — in practice, for Claude and ChatGPT — dynamic client registration (RFC 7591), because those clients register themselves at connect time rather than using a pre-shared client ID.
+The authorization server needs authorization code + PKCE, `/.well-known/oauth-authorization-server` metadata, and a way for clients to identify themselves without a pre-shared client ID. That is Client ID Metadata Documents (CIMD): the `client_id` is an HTTPS URL to a metadata document the client's vendor hosts, checked against an allowlist on the authorization server. We don't support dynamic client registration (RFC 7591) because of the security concerns of a public, unauthenticated registration endpoint — the spec deprecated it in favour of CIMD — so a client that requires it isn't supported until it updates. CIMD asks nothing of the resource server and is not tied to protocol version negotiation: the client chooses it from the authorization server's metadata (`client_id_metadata_document_supported`) during the OAuth flow our `401` triggers, before `initialize` ever succeeds. The advertised protocol version therefore stays `2025-06-18`.
 
 One routing wrinkle flagged as worth confirming early, correctly: the public URL is `/api/app/mcp` while the worker route is `/app/mcp`, so the `/api` prefix is applied upstream. Protected resource metadata must be served at the resource's own origin and path.
 
@@ -72,15 +72,15 @@ One routing wrinkle flagged as worth confirming early, correctly: the public URL
 
 ### Option A: Clerk as the authorization server
 
-sync-worker already authenticates users with Clerk, and Clerk can act as an OAuth 2.1 authorization server with dynamic client registration. The worker serves protected resource metadata and verifies Clerk-issued tokens; Clerk owns `/authorize`, `/token`, `/register`, consent, and token lifecycle.
+sync-worker already authenticates users with Clerk, and Clerk can act as an OAuth 2.1 authorization server. The worker serves protected resource metadata and verifies Clerk-issued tokens; Clerk owns `/authorize`, `/token`, consent, and token lifecycle.
 
 Pros: substantially less code, one identity system, no new token store, and it builds on wiring that is already here and already maintained.
 
-Cons: enabling dynamic client registration creates a public, unauthenticated client registration endpoint on the production Clerk instance that also guards tldraw.com — Clerk's own docs flag this. It also couples MCP token policy to that instance's configuration. There is a report of Claude.ai connectors failing against Clerk-fronted MCP servers ([anthropics/claude-ai-mcp#164](https://github.com/anthropics/claude-ai-mcp/issues/164) — Claude Code via `mcp-remote` worked, the web connector did not); it's closed without a published resolution, so it may be fixed, but it's someone else's interop to depend on.
+Cons: it couples MCP token policy to that instance's configuration. There is a report of Claude.ai connectors failing against Clerk-fronted MCP servers ([anthropics/claude-ai-mcp#164](https://github.com/anthropics/claude-ai-mcp/issues/164) — Claude Code via `mcp-remote` worked, the web connector did not); it's closed without a published resolution, so it may be fixed, but it's someone else's interop to depend on.
 
 ### Option B: sync-worker runs its own authorization server
 
-Stand up `@cloudflare/workers-oauth-provider` in the worker, with Clerk as the upstream identity provider. Tokens are ours, scoped to this resource, revocable independently, and dynamic client registration sits on our endpoint where we control its rate limits.
+Stand up `@cloudflare/workers-oauth-provider` in the worker, with Clerk as the upstream identity provider. Tokens are ours, scoped to this resource, and revocable independently.
 
 Cons: we operate an authorization server — a KV namespace, grant storage, token lifetime decisions — and reason about two token systems instead of one.
 
@@ -88,9 +88,9 @@ Cons: we operate an authorization server — a KV namespace, grant storage, toke
 
 **Option A**, on the grounds that it adds least machinery to a worker that already speaks Clerk. This is the opposite call from what would suit a standalone worker with no existing identity story; it turns on sync-worker already being a Clerk consumer.
 
-**But the access check changes the weighting, and this should be re-examined rather than assumed.** The proportionality argument for Option A was strongest when the tools only reached public boards: a leaked token bought an attacker nothing they couldn't get from a browser. If [the access check admits private boards](#the-scope-question-this-raises), tokens minted through this flow become credentials for private user content, and Option B's advantages get more valuable — tokens scoped to this resource alone rather than usable against tldraw.com, revocable independently, and dynamic client registration kept off the Clerk instance that guards the main app.
+**But the access check changes the weighting, and this should be re-examined rather than assumed.** The proportionality argument for Option A was strongest when the tools only reached public boards: a leaked token bought an attacker nothing they couldn't get from a browser. If [the access check admits private boards](#the-scope-question-this-raised), tokens minted through this flow become credentials for private user content, and Option B's advantages get more valuable — tokens scoped to this resource alone rather than usable against tldraw.com, revocable independently, and dynamic client registration kept off the Clerk instance that guards the main app.
 
-**Private boards are in scope, so that re-examination is owed and has not happened.** What is built is Option A — the worker verifies Clerk-issued tokens and serves the metadata; Clerk owns issuance. That is the smaller change and the one that can be swapped later, since only `mcpAuth.ts` knows where a token came from. But it was chosen when the alternative was still theoretical, and the conditional above has now been met. Settle it before enabling anything, not after: migrating token issuance once clients hold live grants is far more expensive than choosing now.
+**Private boards are in scope, so that re-examination was owed — CIMD settles it in Option A's favour.** Option B's heaviest advantage was keeping client registration off the Clerk instance that guards the main app; with CIMD there is no registration endpoint on either option (we don't support dynamic client registration). Clerk's side is two settings that belong together — **Advertise CIMD support** and **Only allow pre-registered clients to connect**; the second is load-bearing, since advertising CIMD alone admits any client that connects. What remains of Option B's case — token issuance independent of tldraw.com's Clerk instance — isn't worth operating an authorization server for while the audience check holds. What is built stays Option A; only `mcpAuth.ts` knows where a token came from, so it can be swapped if that weighting ever changes.
 
 ## Checking board access
 
@@ -163,7 +163,7 @@ The auth check sits inside `sharedBoardScreenshotMcp`, after the `isMcpScreensho
 
 - The advertised protocol version is `2025-06-18`, and `initialize` echoes the client's when we speak it. `2024-11-05` is not in the supported list, which is the point: it predates MCP authorization, so advertising it would leave a client unable to obtain a token but convinced the server was behaving to spec.
 - Protected resource metadata at `/.well-known/oauth-protected-resource/api/app/mcp`, and `401` + `WWW-Authenticate` from the route when no valid token is present. Every call needs one.
-- Bearer tokens verified with `verifyToken` from `@clerk/backend` — signature and lifetime only; the audience binding is asserted separately against the verified payload's `aud` (see the TL;DR). This is the token path rather than the session path `getAuth.ts` uses, since MCP clients send bearer tokens rather than cookies — but see open question 2 about the token format.
+- Bearer tokens verified with `verifyToken` from `@clerk/backend` — signature and lifetime only; the audience binding is asserted separately against the verified payload's `aud` (see the TL;DR). This is the token path rather than the session path `getAuth.ts` uses, since MCP clients send bearer tokens rather than cookies — but see open question 1 about the token format.
 - The `mcp_server_access` flag is evaluated for the authenticated user; a user it does not name gets `403`.
 - The public-viewability gate is replaced by a per-user access check, which gates the cache read as well as the render.
 - Rate limits re-keyed from `ip-shot:` to `user:`. `ip-info:` was already gone. IP limits still make sense for endpoints with no caller identity — `/app/thumbnail-render/snapshot` and the discovery endpoint — and there are none there today.
@@ -206,7 +206,7 @@ The code steps landed together on this branch rather than in the sequence below,
 1. ~~Land the protocol upgrade.~~ Done — `2025-06-18`, with `2024-11-05` dropped.
 2. ~~Namespace the minted-token record key by surface.~~ Done, and by page and theme besides: surface alone fixes MCP-versus-OG collisions but not two concurrent MCP captures of one board, which is the case the tests exercise.
 3. ~~Add discovery endpoints and token verification.~~ Done. **Announce the cutover date before enabling** — every existing anonymous caller breaks at step 5.
-4. **Verify each client end to end.** Not done, and it cannot be until the Clerk instance is configured. This is a gate, not a formality — connector-side OAuth failures produce opaque errors with nothing in our logs.
+4. **Verify each client end to end.** Not done, and it cannot be until the Clerk instance is configured (CIMD with the pre-registered-clients allowlist). A client that cannot connect via CIMD isn't supported until it updates. This is a gate, not a formality — connector-side OAuth failures produce opaque errors with nothing in our logs.
 5. **Enforce for flag-enabled users.** The code enforces already; the flag ships `enabled: false` with an empty list, so today the endpoint answers `403` to every authenticated caller and `401` to everyone else. Turning the flag on is the breaking moment, and there is no anonymous path to fall back to.
 6. ~~Land the per-user board access check and switch the tool to minting `render`.~~ Done.
 7. **Widen the flag as confidence builds**, toward the stated bar of any signed-in user.
@@ -215,13 +215,13 @@ Steps 5 and 6 were worth keeping apart when this was a deployment plan: step 5 i
 
 ## Open questions
 
-Still open, and both are blocking:
+Still open, and blocking:
 
-1. **Is DCR on the production Clerk instance acceptable?** Claude and ChatGPT register themselves at connect time, so they need it; enabling it puts a public, unauthenticated registration endpoint on the instance that also guards tldraw.com. A no reverses the Option A recommendation and means standing up our own authorization server. Worth more scrutiny now than when this was drafted, because the access check means these tokens reach private boards.
-2. **Does that instance issue JWT or opaque access tokens?** Verification is `verifyToken` from `@clerk/backend`, which checks a JWT against the instance JWKS. Opaque tokens need `idPOAuthAccessToken.verifySecret`, which is `@clerk/backend` v2; this worker pins 1.23.7, which has no OAuth token API at all. If they are opaque, the SDK upgrade is a prerequisite and it touches every auth path in the worker, not just this one.
+1. **Does the Clerk instance issue JWT or opaque access tokens?** Verification is `verifyToken` from `@clerk/backend`, which checks a JWT against the instance JWKS. Opaque tokens need `idPOAuthAccessToken.verifySecret`, which is `@clerk/backend` v2; this worker pins 1.23.7, which has no OAuth token API at all. If they are opaque, the SDK upgrade is a prerequisite and it touches every auth path in the worker, not just this one.
 
 Answered:
 
+2. **Do we support dynamic client registration?** No, because of the security concerns of a public, unauthenticated registration endpoint. Clients identify themselves with CIMD, allowlisted through Clerk's **Advertise CIMD support** and **Only allow pre-registered clients to connect** settings, turned on together — the second is what makes the first safe, since advertising CIMD alone admits any client. CIMD is in beta, enabled per account. A client that requires registration isn't supported until it updates; Clerk's connection guide covers Claude Code, Claude Desktop, Cursor, VS Code, and Windsurf, but not ChatGPT, and step 4 is where any casualty of this policy shows up.
 3. **Does the access check admit private boards, or only tighten the public gate?** It admits them. A board resolves for the caller who owns it, can reach it through its owning group, or holds its share link.
 4. **How does the flag name specific users?** A new `allowlist` flag type, added here rather than by the flag work — see [What auth hands to the feature flag gate](#what-auth-hands-to-the-feature-flag-gate).
 5. **Does the flag gate on `userId` or `email`?** `userId`. `evaluateFlagForUser` already takes one, so nothing new was needed; email would have meant a Clerk `users.getUser()` round trip per evaluation, or a verified email claim added to the session token. The cost is that the list is opaque to read — an entry has to be looked up in the admin user search rather than recognized.
@@ -232,5 +232,7 @@ Answered:
 
 - [MCP authorization specification](https://modelcontextprotocol.io/specification/draft/basic/authorization)
 - [Clerk: build an MCP server](https://clerk.com/docs/mcp/build-mcp-server)
+- [Clerk: how Clerk implements OAuth](https://clerk.com/docs/guides/configure/auth-strategies/oauth/how-clerk-implements-oauth) — the DCR and CIMD settings
+- [Clerk: connect MCP clients](https://clerk.com/docs/guides/ai/mcp/connect-mcp-client) — per-client connection guidance, CIMD-first
 - [cloudflare/workers-oauth-provider](https://github.com/cloudflare/workers-oauth-provider)
 - [anthropics/claude-ai-mcp#164](https://github.com/anthropics/claude-ai-mcp/issues/164)
