@@ -16,8 +16,8 @@ import {
 	makeMeasuringBrowserBinding,
 	makeScreenshotTestEnv,
 	makeSnapshot,
-	renderDurationsOf,
 	screenshotOf,
+	sessionsOf,
 } from './screenshotTestHelpers'
 import {
 	isMcpScreenshotEnabled,
@@ -525,9 +525,9 @@ describe('rate limits', () => {
 		// fired.
 		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_user')
 		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_global')
-		// The board guard fires after the measure the cache key required, so the blocked row still
-		// carries that session's spend rather than the -1 sentinel.
-		expect(renderDurationsOf(env).at(-1)).not.toBe(-1)
+		// The board guard fires after the measure the cache key required — that session is on the
+		// spend ledger even though the request was blocked.
+		expect(sessionsOf(env).at(-1)).toMatchObject({ mode: 'measure', outcome: 'ok' })
 	})
 })
 
@@ -627,13 +627,18 @@ describe('shape screenshots', () => {
 		])
 		// helper measure (1) + first call's measure and capture (2) + second call's measure only (1).
 		expect(screenshotOf(env)).toHaveBeenCalledTimes(4)
-		// The hit skipped the capture but not the measure, and its datapoint must say so: the -1
-		// sentinel here would report a full Browser Run session as free.
+		// The hit's request row records only the cache outcome; the measure it unavoidably ran is a
+		// session on its own ledger, so the spend is neither lost nor smuggled into a cache row.
 		expect(blobsWithPrefix(env, 'cache:').at(-1)).toBe('cache:hit')
-		expect(renderDurationsOf(env).at(-1)).not.toBe(-1)
+		expect(sessionsOf(env).map((s) => `${s.mode}:${s.outcome}`)).toEqual([
+			'measure:ok',
+			'measure:ok',
+			'screenshot:ok',
+			'measure:ok',
+		])
 	})
 
-	it('records the measure spend of get_page_info in telemetry', async () => {
+	it('records the measure session of get_page_info on the spend ledger', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
 
@@ -645,13 +650,21 @@ describe('shape screenshots', () => {
 		)
 
 		expect(result.isError).toBeUndefined()
+		// The request row has no cache to report on; the spend lives on the session row.
+		expect(blobsWithPrefix(env, 'cache:')).toEqual(['cache:none'])
 		expect(failureBlobsOf(env)).toEqual(['failure:none'])
-		// The measure render held a browser; -1 would keep this tool's spend out of the ledger.
-		expect(renderDurationsOf(env)).toHaveLength(1)
-		expect(renderDurationsOf(env)[0]).not.toBe(-1)
+		expect(sessionsOf(env)).toEqual([
+			{
+				source: 'mcp',
+				mode: 'measure',
+				outcome: 'ok',
+				reason: 'none',
+				durationMs: expect.any(Number),
+			},
+		])
 	})
 
-	it('records the measure spend of get_cluster_info in telemetry', async () => {
+	it('records the measure session of get_cluster_info on the spend ledger', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
 		const clusterId = await firstClusterId(env, 'user_ci_spend', 'abc')
@@ -664,9 +677,8 @@ describe('shape screenshots', () => {
 		)
 
 		expect(result.isError).toBeUndefined()
-		// One row from the firstClusterId helper's get_page_info, one from this call.
-		expect(renderDurationsOf(env)).toHaveLength(2)
-		expect(renderDurationsOf(env).at(-1)).not.toBe(-1)
+		// One session from the firstClusterId helper's get_page_info, one from this call.
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
 	})
 
 	it('writes a telemetry row when get_page_info cannot resolve the board', async () => {
@@ -679,8 +691,8 @@ describe('shape screenshots', () => {
 
 		expect(result.isError).toBe(true)
 		expect(failureBlobsOf(env)).toEqual(['failure:not_found'])
-		// The refusal came before the measure, so nothing was spent and the sentinel stands.
-		expect(renderDurationsOf(env)).toEqual([-1])
+		// The refusal came before the measure: no session existed, so none is on the ledger.
+		expect(sessionsOf(env)).toEqual([])
 	})
 
 	it('errors when the page is out of range, without spending a render', async () => {

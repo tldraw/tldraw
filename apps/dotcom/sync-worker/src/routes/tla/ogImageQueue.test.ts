@@ -29,7 +29,7 @@ import {
 	makeFakeThumbnailsBucket,
 	makeScreenshotTestEnv as makeEnv,
 	makeSnapshot,
-	renderDurationsOf,
+	sessionsOf,
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
@@ -985,7 +985,7 @@ describe('handleOgImageRenderMessage', () => {
 	// A failed capture created a browser and held it, sometimes for the whole 45s timeout. Recording -1
 	// there would understate what an uncapped render path costs, which is the one number the "no global
 	// cap" design leans on watching.
-	it('records the Browser Run time a failed render spent, and none where it spent none', async () => {
+	it('puts a failed render on the session ledger, and nothing where no browser ran', async () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
@@ -999,9 +999,19 @@ describe('handleOgImageRenderMessage', () => {
 		})
 
 		await handleOgImageRenderMessage(env, makeMessage({ kind: 'published', slug: 'board' }, 3))
-		expect(renderDurationsOf(env)[0]).toBeGreaterThanOrEqual(0)
+		// The session that failed still held a browser; its spend and outcome live on its own row,
+		// while the delivery's request row records only the failure reason.
+		expect(sessionsOf(env)).toEqual([
+			{
+				source: 'queue',
+				mode: 'screenshot',
+				outcome: 'browser_failed',
+				reason: 'crawler',
+				durationMs: expect.any(Number),
+			},
+		])
 
-		// An empty board never reaches the capture, so it keeps the "spent nothing" sentinel.
+		// An empty board never reaches the capture: no session existed, so none is on the ledger.
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(null as any)
 		const emptyBoardEnv = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
 		await handleOgImageRenderMessage(
@@ -1009,7 +1019,7 @@ describe('handleOgImageRenderMessage', () => {
 			makeMessage({ kind: 'published', slug: 'board' }, 3)
 		)
 		expect(failureBlobsOf(emptyBoardEnv)).toEqual(['failure:board_empty'])
-		expect(renderDurationsOf(emptyBoardEnv)).toEqual([-1])
+		expect(sessionsOf(emptyBoardEnv)).toEqual([])
 	})
 
 	// Thumbnail rendering is uncapped: the MCP endpoint's limiters exist to bound what an outside

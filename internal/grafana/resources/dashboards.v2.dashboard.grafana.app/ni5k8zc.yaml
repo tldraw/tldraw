@@ -3737,9 +3737,11 @@ spec:
 
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
-                        AND blob1 = 'mcp_shared_board_screenshot'
+                        AND blob1 = 'browser_run_session'
 
-                        AND double3 > 0
+                        AND blob4 = 'mode:screenshot'
+
+                        AND blob5 = 'outcome:ok'
 
                         AND blob2 = '${environment}-tldraw-multiplayer'"
                       rawQuery: "SELECT count() as renders
@@ -3748,9 +3750,11 @@ spec:
 
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
-                        AND blob1 = 'mcp_shared_board_screenshot'
+                        AND blob1 = 'browser_run_session'
 
-                        AND double3 > 0
+                        AND blob4 = 'mode:screenshot'
+
+                        AND blob5 = 'outcome:ok'
 
                         AND blob2 = '${environment}-tldraw-multiplayer'"
                       round: 0s
@@ -3762,9 +3766,9 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: Screenshot events that actually spent Browser Run capacity (double3
-          carries a render duration; -1 means no render happened). Cache hits and
-          failures are excluded.
+        description: Browser sessions that produced a PNG (browser_run_session rows
+          with mode:screenshot and outcome:ok), across the MCP tool and the OG queue.
+          Measure renders, cache hits, and failed sessions are excluded.
         id: 33
         links: []
         title: Board screenshots rendered
@@ -4227,8 +4231,8 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, substring(blob4, 7) as cache_status, count()
-                        as total
+                        SECOND) as date, substring(blob3, 8) as source, countIf(blob4
+                        = 'cache:hit') / count() * 100 as hit_rate
 
                         FROM 'MEASURE'
 
@@ -4236,14 +4240,16 @@ spec:
 
                         AND blob1 = 'mcp_shared_board_screenshot'
 
+                        AND blob4 != 'cache:none'
+
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
-                        GROUP BY date, cache_status
+                        GROUP BY date, source
 
                         ORDER BY date ASC"
                       rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, substring(blob4, 7) as cache_status, count()
-                        as total
+                        SECOND) as date, substring(blob3, 8) as source, countIf(blob4
+                        = 'cache:hit') / count() * 100 as hit_rate
 
                         FROM 'MEASURE'
 
@@ -4251,9 +4257,11 @@ spec:
 
                         AND blob1 = 'mcp_shared_board_screenshot'
 
+                        AND blob4 != 'cache:none'
+
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
-                        GROUP BY date, cache_status
+                        GROUP BY date, source
 
                         ORDER BY date ASC"
                       round: 0s
@@ -4265,11 +4273,15 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Cache outcome per event: hit (fresh), stale (served old while
-          re-rendering), miss (nothing to serve).'
+        description: 'Share of cache-consulting requests served a fresh image, per
+          source. og is the one that matters most: a miss there sends a crawler the
+          default image and degrades the link unfurl, while an mcp miss just pays for
+          a render. Stale counts against it; cache:none rows (refusals, and the info
+          tools which have no cache) are excluded so refusal volume cannot move this
+          number.'
         id: 38
         links: []
-        title: Screenshot cache status
+        title: Cache hit rate by source
         vizConfig:
           group: timeseries
           kind: VizConfig
@@ -4286,8 +4298,8 @@ spec:
                   axisPlacement: auto
                   barAlignment: 0
                   barWidthFactor: 0.8
-                  drawStyle: bars
-                  fillOpacity: 80
+                  drawStyle: line
+                  fillOpacity: 10
                   gradientMode: none
                   hideFrom:
                     legend: false
@@ -4295,7 +4307,7 @@ spec:
                     viz: false
                   insertNulls: false
                   lineInterpolation: linear
-                  lineWidth: 0
+                  lineWidth: 2
                   pointSize: 5
                   scaleDistribution:
                     type: linear
@@ -4304,14 +4316,17 @@ spec:
                   spanNulls: false
                   stacking:
                     group: A
-                    mode: normal
+                    mode: none
                   thresholdsStyle:
                     mode: 'off'
+                max: 100
+                min: 0
                 thresholds:
                   mode: absolute
                   steps:
                     - color: green
                       value: 0
+                unit: percent
               overrides: []
             options:
               annotations:
@@ -4497,39 +4512,37 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, quantileWeighted(0.5, double3, _sample_interval)
-                        as p50, quantileWeighted(0.95, double3, _sample_interval) as
-                        p95, quantileWeighted(0.99, double3, _sample_interval) as p99
+                        SECOND) as date, substring(blob4, 6) as mode, quantileWeighted(0.5,
+                        double3, _sample_interval) as p50, quantileWeighted(0.95, double3,
+                        _sample_interval) as p95, quantileWeighted(0.99, double3, _sample_interval)
+                        as p99
 
                         FROM 'MEASURE'
 
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
-                        AND blob1 = 'mcp_shared_board_screenshot'
-
-                        AND double3 > 0
+                        AND blob1 = 'browser_run_session'
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
-                        GROUP BY date
+                        GROUP BY date, mode
 
                         ORDER BY date ASC"
                       rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, quantileWeighted(0.5, double3, _sample_interval)
-                        as p50, quantileWeighted(0.95, double3, _sample_interval) as
-                        p95, quantileWeighted(0.99, double3, _sample_interval) as p99
+                        SECOND) as date, substring(blob4, 6) as mode, quantileWeighted(0.5,
+                        double3, _sample_interval) as p50, quantileWeighted(0.95, double3,
+                        _sample_interval) as p95, quantileWeighted(0.99, double3, _sample_interval)
+                        as p99
 
                         FROM 'MEASURE'
 
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
 
-                        AND blob1 = 'mcp_shared_board_screenshot'
-
-                        AND double3 > 0
+                        AND blob1 = 'browser_run_session'
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
-                        GROUP BY date
+                        GROUP BY date, mode
 
                         ORDER BY date ASC"
                       round: 0s
@@ -4541,9 +4554,10 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: Time spent in Browser Run per screenshot, weighted by _sample_interval
-          to account for Analytics Engine sampling. Only events that rendered (double3
-          > 0) are included.
+        description: Wall-clock per browser session from the browser_run_session
+          ledger, split by what the session was for (measure vs screenshot) and
+          weighted by _sample_interval to account for Analytics Engine sampling.
+          Failed sessions are included — they held a browser too.
         id: 40
         links: []
         title: Browser Run render duration percentiles

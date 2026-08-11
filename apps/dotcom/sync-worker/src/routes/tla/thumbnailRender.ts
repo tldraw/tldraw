@@ -33,7 +33,11 @@ import {
 	getSharedFileRoomSnapshot,
 	isFileViewableFor,
 } from './getSharedFile'
-import { BoardSnapshotReadError, BrowserRenderError } from './thumbnailShared'
+import {
+	BoardSnapshotReadError,
+	BrowserRenderError,
+	classifyScreenshotFailure,
+} from './thumbnailShared'
 
 // The render-and-cache core shared by every Browser Run screenshot surface: the MCP screenshot
 // tool (sharedBoardScreenshotMcp.ts), the OG image route (getOgImage.ts), and the OG render queue
@@ -197,6 +201,7 @@ export async function captureThumbnailScreenshot(
 		theme,
 		width,
 		height,
+		telemetry,
 	}: {
 		/** Which pipeline is asking. Signed into the job; namespaces the minted-token record. */
 		surface: ThumbnailRenderSurface
@@ -213,6 +218,12 @@ export async function captureThumbnailScreenshot(
 		theme: 'light' | 'dark'
 		width: number
 		height: number
+		/**
+		 * Who this session is for on the spend ledger. Required so a new caller cannot create
+		 * browser sessions that never appear on it; `mode` is stamped here, since this path is by
+		 * definition a screenshot render.
+		 */
+		telemetry: { source: BrowserRunSessionContext['source']; reason?: OgImageRenderReason }
 	}
 ): Promise<{ base64: string; durationMs: number }> {
 	const job: ThumbnailRenderJob = {
@@ -245,6 +256,7 @@ export async function captureThumbnailScreenshot(
 	return renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
 		width,
 		height,
+		session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
 	})
 }
 
@@ -264,6 +276,47 @@ export function getShapesOnPage(snapshot: RoomSnapshot, pageId: string): TLShape
 	})
 }
 
+/** What a browser session was created for, stamped on its `browser_run_session` datapoint. */
+export interface BrowserRunSessionContext {
+	source: 'mcp' | 'og' | 'queue'
+	mode: 'measure' | 'screenshot'
+	/** The queue trigger, on sessions the queue runs. Request-path sessions have none. */
+	reason?: OgImageRenderReason
+}
+
+// The Browser Run spend ledger: one datapoint per browser session actually created, written here at
+// the choke point every session flows through rather than by each surface's own bookkeeping. This is
+// deliberately a separate event from `mcp_shared_board_screenshot`, which stays request-level: that
+// event answers cache and refusal questions, this one answers spend. Analytics Engine cannot join,
+// so each event carries the dimensions its own questions need — `mode` is what separates a measure
+// render from a screenshot render, which the request event cannot express.
+function writeBrowserRunSessionTelemetry(
+	env: Environment,
+	session: BrowserRunSessionContext,
+	{
+		outcome,
+		durationMs,
+		width,
+		height,
+	}: {
+		/** `ok`, or the bounded browser failure code for a session that died. */
+		outcome: string
+		durationMs: number
+		width: number
+		height: number
+	}
+) {
+	writeDataPoint(undefined, env.MEASURE, env, 'browser_run_session', {
+		blobs: [
+			`source:${session.source}`,
+			`mode:${session.mode}`,
+			`outcome:${outcome}`,
+			`reason:${session.reason ?? 'none'}`,
+		],
+		doubles: [width, height, durationMs],
+	})
+}
+
 // The pixels come from editor.toImage on the render page, which displays its own export as a
 // full-viewport image for the Quick Action to capture. A failed render marks an error state rather
 // than the ready one, so it returns as a failure immediately instead of burning the timeout (see
@@ -271,7 +324,7 @@ export function getShapesOnPage(snapshot: RoomSnapshot, pageId: string): TLShape
 async function renderThumbnailScreenshot(
 	env: Environment,
 	renderUrl: string,
-	{ width, height }: { width: number; height: number }
+	{ width, height, session }: { width: number; height: number; session: BrowserRunSessionContext }
 ): Promise<{ base64: string; durationMs: number }> {
 	// Built once and handed to whichever transport runs, so the wait strategy, capture target and
 	// timeout cannot drift between Browser Run and its development stand-in.
@@ -285,15 +338,44 @@ async function renderThumbnailScreenshot(
 	// Local dev has no route to Browser Run, so it points this at a screenshot service instead (the
 	// client's dev server, which can drive Playwright). Selected on the var being set rather than on
 	// an environment name, so only an environment that configures one can take this path.
-	const { response, durationMs } = env.LOCAL_SCREENSHOT_SERVICE_URL
-		? await callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, requestBody)
-		: await callBrowserRun(env, requestBody)
+	let timed: TimedCapture
+	try {
+		timed = env.LOCAL_SCREENSHOT_SERVICE_URL
+			? await callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, requestBody)
+			: await callBrowserRun(env, requestBody)
+	} catch (error) {
+		// A BrowserRenderError is a session that existed and died, so it lands on the ledger with the
+		// time it held its browser. Anything else never created a session and records nothing.
+		if (error instanceof BrowserRenderError) {
+			writeBrowserRunSessionTelemetry(env, session, {
+				outcome: classifyScreenshotFailure(error),
+				durationMs: error.durationMs,
+				width,
+				height,
+			})
+		}
+		throw error
+	}
 
-	const buffer = await response.arrayBuffer()
+	const buffer = await timed.response.arrayBuffer()
 	if (buffer.byteLength === 0) {
+		// The session ran to completion — the spend is real — it just produced nothing usable.
+		writeBrowserRunSessionTelemetry(env, session, {
+			outcome: 'empty_render',
+			durationMs: timed.durationMs,
+			width,
+			height,
+		})
 		throw new Error('Render produced an empty screenshot')
 	}
-	return { base64: arrayBufferToBase64(buffer), durationMs }
+
+	writeBrowserRunSessionTelemetry(env, session, {
+		outcome: 'ok',
+		durationMs: timed.durationMs,
+		width,
+		height,
+	})
+	return { base64: arrayBufferToBase64(buffer), durationMs: timed.durationMs }
 }
 
 type ThumbnailScreenshotRequestBody = ReturnType<typeof getThumbnailScreenshotRequestBody>
@@ -437,19 +519,19 @@ export async function putRenderResult(
 }
 
 /**
- * Measures every shape on a page through a real editor, returning `shapeId -> bounds and text`
- * along with how long the browser session took.
+ * Measures every shape on a page through a real editor, returning `shapeId -> bounds and text`.
  *
  * Costs one Browser Rendering session, the same as a screenshot — there is no cheaper way to get
- * geometry the Worker cannot compute. Callers own the rate limiting that implies, and `durationMs`
- * is how they put that spend on the telemetry ledger rather than reporting the session as free.
+ * geometry the Worker cannot compute. Callers own the rate limiting that implies; the session
+ * itself lands on the `browser_run_session` spend ledger with `mode:measure`, written at the render
+ * choke point rather than by callers.
  */
 export async function measurePageShapes(
 	env: Environment,
 	board: ResolvedThumbnailBoard,
 	pageId: string,
 	{ surface }: { surface: ThumbnailRenderSurface }
-): Promise<{ measurements: Record<string, ShapeMeasurement>; durationMs: number }> {
+): Promise<Record<string, ShapeMeasurement>> {
 	const job: ThumbnailRenderJob = {
 		v: 1,
 		kind: board.kind,
@@ -480,14 +562,13 @@ export async function measurePageShapes(
 
 	// The screenshot is discarded — it is only how the browser session is driven, and how we know the
 	// page reached its terminal state. The answer arrives via the result endpoint.
-	const { durationMs } = await renderThumbnailScreenshot(
-		env,
-		buildThumbnailRenderUrl(getRenderOrigin(env), token),
-		{
-			width: DEFAULT_THUMBNAIL_WIDTH,
-			height: DEFAULT_THUMBNAIL_HEIGHT,
-		}
-	)
+	await renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
+		width: DEFAULT_THUMBNAIL_WIDTH,
+		height: DEFAULT_THUMBNAIL_HEIGHT,
+		// The measure runs only on the MCP surface today; `surface` names the render pipeline for the
+		// signed job, not the telemetry source, so this is stated rather than derived.
+		session: { source: 'mcp', mode: 'measure' },
+	})
 
 	if (!env.THUMBNAILS) throw new Error('THUMBNAILS bucket is not configured')
 	const key = getRenderResultKey(token)
@@ -496,7 +577,7 @@ export async function measurePageShapes(
 	const bounds = JSON.parse(await stored.text())
 	// Read once: the token is single-use, so leaving the object behind would only accumulate.
 	await env.THUMBNAILS.delete(key)
-	return { measurements: bounds, durationMs }
+	return bounds
 }
 
 export async function putThumbnailPng(
@@ -516,13 +597,18 @@ export async function putThumbnailPng(
 	})
 }
 
-// One datapoint writer for every screenshot surface, so they share a dataset and blob layout and one
-// dashboard covers them all; the source blob distinguishes mcp (the tool), og (the GET route) and
-// queue (the render consumer). The dataset name covers all three despite its mcp_ prefix, and must
-// keep doing so: renaming it would split the dashboard's history.
+// The request-level datapoint writer for every screenshot surface, so they share a dataset and blob
+// layout and one dashboard covers them all; the source blob distinguishes mcp (the tool), og (the
+// GET route) and queue (the render consumer). The dataset name covers all three despite its mcp_
+// prefix, and must keep doing so: renaming it would split the dashboard's history.
+//
+// This event answers cache and refusal questions — hit rates by source, who was refused and why,
+// what was rate-limited. What requests *spend* lives on the separate `browser_run_session` event
+// (see writeBrowserRunSessionTelemetry): one request can hold zero, one, or two browser sessions,
+// so durations on request rows could only ever be sums that answer neither ledger cleanly.
 //
 // Carries **no board identity**: no index, no slug, no hash, no derived id. Not an omission — these
-// datapoints answer aggregate spend and failure-rate questions, and the cost of that choice is a
+// datapoints answer aggregate cache and failure-rate questions, and the cost of that choice is a
 // dataset that cannot say which board is failing. See "No board identifier leaves this pipeline" in
 // browser-run-thumbnails.md.
 export function writeScreenshotTelemetry(
@@ -530,11 +616,17 @@ export function writeScreenshotTelemetry(
 	data: {
 		source: 'mcp' | 'og' | 'queue'
 		/**
-		 * Which trigger asked for this render — what attributes spend to publishing or editing. Only
-		 * meaningful on queue datapoints; the request paths have no trigger and record `none`.
+		 * Which trigger asked for this render — what attributes a render to publishing or editing.
+		 * Only meaningful on queue datapoints; the request paths have no trigger and record `none`.
 		 */
 		reason?: OgImageRenderReason
-		cacheStatus: 'hit' | 'stale' | 'miss'
+		/**
+		 * What the PNG cache did for this request. `none` when the request never consulted it: the
+		 * info tools have no cache at all, and a screenshot request refused before the cache read
+		 * (bad input, rate-limited caller, unresolvable board) says nothing about cache health.
+		 * Excluding `none` is what keeps a hit-rate-by-source panel honest.
+		 */
+		cacheStatus: 'hit' | 'stale' | 'miss' | 'none'
 		/**
 		 * Hashed identity of whoever asked, for surfaces that have one. Recorded only on failures —
 		 * see below.
@@ -544,7 +636,6 @@ export function writeScreenshotTelemetry(
 		 * not have to move. The OG surfaces have no caller at all and leave it unset.
 		 */
 		callerHash?: string
-		browserRunDurationMs?: number
 		failureReason?: string
 		rateLimitAllowed?: boolean
 	}
@@ -568,10 +659,9 @@ export function writeScreenshotTelemetry(
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,
 			DEFAULT_THUMBNAIL_HEIGHT,
-			data.browserRunDurationMs ?? -1,
-			// Billed browser ms, which the BROWSER binding does not surface, so it is always the sentinel.
-			// The slot stays occupied to hold the doubles positions after it — and the dashboard panels
-			// reading them — in place; double3 above is the spend proxy.
+			// Durations moved to the browser_run_session event; the sentinel holds this position (and
+			// the ones after it) so historical rows and the panels reading them keep their meaning.
+			-1,
 			-1,
 			rateLimitAllowed ? 1 : 0,
 		],

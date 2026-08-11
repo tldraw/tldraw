@@ -170,13 +170,25 @@ export function screenshotOf(env: Environment) {
 	return (env.BROWSER as any).quickAction as ReturnType<typeof vi.fn>
 }
 
-// Pulls the `<prefix>:…` telemetry blob out of every writeDataPoint call, so tests can assert on the
-// low-cardinality dimensions (failure reason codes, and the caller recorded only on failures) without
-// depending on the order of the blobs array.
-export function blobsWithPrefix(env: Environment, prefix: string): string[] {
+// Datapoints of one event, told apart by blob1: `mcp_shared_board_screenshot` rows are
+// request-level (cache and refusals), `browser_run_session` rows are one per browser session (the
+// spend ledger).
+function datapointsOfEvent(
+	env: Environment,
+	eventName: string
+): Array<{ blobs: string[]; doubles: number[] }> {
 	return (env.MEASURE as any).writeDataPoint.mock.calls
-		.map((call: any[]) => (call[0].blobs as string[]).find((blob) => blob.startsWith(prefix)))
-		.filter(Boolean)
+		.map((call: any[]) => call[0] as { blobs: string[]; doubles: number[] })
+		.filter((point: { blobs: string[] }) => point.blobs[0] === eventName)
+}
+
+// Pulls the `<prefix>:…` telemetry blob out of every request-level datapoint, so tests can assert on
+// the low-cardinality dimensions (failure reason codes, and the caller recorded only on failures)
+// without depending on the order of the blobs array.
+export function blobsWithPrefix(env: Environment, prefix: string): string[] {
+	return datapointsOfEvent(env, 'mcp_shared_board_screenshot')
+		.map((point) => point.blobs.find((blob) => blob.startsWith(prefix)))
+		.filter(Boolean) as string[]
 }
 
 export function failureBlobsOf(env: Environment) {
@@ -187,13 +199,23 @@ export function callerBlobsOf(env: Environment) {
 	return blobsWithPrefix(env, 'caller:')
 }
 
-// The Browser Run duration (double3) of every datapoint written. -1 is the sentinel for "no browser
-// was spent", which is what separates a failure that never reached the capture from one that created
-// a browser and held it — a distinction the spend ledger would otherwise lose on every failed render.
-export function renderDurationsOf(env: Environment): number[] {
-	return (env.MEASURE as any).writeDataPoint.mock.calls.map(
-		(call: any[]) => (call[0].doubles as number[])[2]
-	)
+// Every browser_run_session datapoint, parsed for whole-object assertions: one entry per browser
+// session actually created, in creation order. `durationMs` is that session's own wall-clock —
+// request rows carry no durations at all under the split ledger.
+export function sessionsOf(
+	env: Environment
+): Array<{ source: string; mode: string; outcome: string; reason: string; durationMs: number }> {
+	return datapointsOfEvent(env, 'browser_run_session').map((point) => {
+		const value = (prefix: string) =>
+			point.blobs.find((blob) => blob.startsWith(prefix))!.slice(prefix.length)
+		return {
+			source: value('source:'),
+			mode: value('mode:'),
+			outcome: value('outcome:'),
+			reason: value('reason:'),
+			durationMs: point.doubles[2],
+		}
+	})
 }
 
 // The index (index1) of every datapoint written. Always `undefined`, since the dataset carries no
