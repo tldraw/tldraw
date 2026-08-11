@@ -65,6 +65,14 @@ export async function getAuth(request: IRequest, env: Environment): Promise<Sign
 }
 
 /**
+ * The `purpose` claim the `zero` Clerk JWT template mints, and which {@link getZeroAuth} requires.
+ * It is what separates a token meant for these endpoints from any other token our Clerk instance
+ * signs. Configured in the Clerk dashboard under JWT Templates → zero → Claims; if you rename it
+ * there, the template has to carry both values until every worker is on the new name.
+ */
+const ZERO_TOKEN_PURPOSE = 'zero'
+
+/**
  * Auth for the two endpoints zero-cache calls on the client's behalf (`/app/zero/query` and
  * `/app/zero/mutate`).
  *
@@ -92,13 +100,21 @@ export async function getZeroAuth(
 	const token = header?.startsWith('Bearer ') ? header.slice('Bearer '.length) : null
 	if (token) {
 		try {
-			// the template does mint `azp`, so hold it to the same origin allowlist as a session
-			// token rather than accepting anything our instance signed
-			const { sub } = await verifyToken(token, {
+			// `verifyToken` accepts anything our Clerk instance signed, which is a wider door than we
+			// want: a token minted from some other JWT template — the kind you hand to a third-party
+			// integration — would otherwise be a valid credential for these two endpoints, mutate
+			// included. The `zero` template mints `purpose: 'zero'`; nothing else does.
+			const claims = await verifyToken(token, {
 				secretKey: env.CLERK_SECRET_KEY,
+				// holds the token to the same origin allowlist as a session token when it carries an
+				// `azp`; Clerk skips the check entirely on a token without one, so this narrows the
+				// door rather than closing it — the `purpose` check below is what actually gates.
 				authorizedParties: getAuthorizedParties(env),
 			})
-			if (sub) return { userId: sub }
+			if (claims.purpose !== ZERO_TOKEN_PURPOSE) {
+				throw new Error(`not a ${ZERO_TOKEN_PURPOSE}-template token`)
+			}
+			if (claims.sub) return { userId: claims.sub }
 		} catch (e) {
 			// getAuth deliberately says nothing about why it rejected a token, which made an outage
 			// considerably harder to diagnose than it needed to be. Say it here.
