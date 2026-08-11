@@ -15,14 +15,19 @@ function createPresence(editor: Editor) {
 function createTestEditor() {
 	const store = createTLStore({})
 	store.ensureStoreIsUsable()
+	// Attached to the document so that events dispatched on the container
+	// propagate to the window, where the activity listeners live.
 	const container = document.createElement('div')
-	return new Editor({
+	document.body.appendChild(container)
+	const editor = new Editor({
 		store,
 		bindingUtils: [],
 		shapeUtils: [],
 		getContainer: () => container,
 		tools: [],
 	})
+	editor.disposables.add(() => container.remove())
+	return editor
 }
 
 describe('InputsManager', () => {
@@ -103,12 +108,20 @@ describe('InputsManager', () => {
 		it('stamps on pointer input in the container', () => {
 			editor.store.put([createPresence(editor)])
 
-			editor.getContainer().dispatchEvent(new Event('pointermove'))
+			editor.getContainer().dispatchEvent(new Event('pointermove', { bubbles: true }))
 
 			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(Date.now())
 		})
 
-		it('does not stamp on pointer moves with no container input, e.g. following a user', () => {
+		it('stamps on input elsewhere in the tab, outside the container', () => {
+			editor.store.put([createPresence(editor)])
+
+			document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA' }))
+
+			expect(editor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(Date.now())
+		})
+
+		it('does not stamp on pointer moves with no DOM input, e.g. following a user', () => {
 			editor.store.put([createPresence(editor)])
 
 			editor.inputs.markActivity()

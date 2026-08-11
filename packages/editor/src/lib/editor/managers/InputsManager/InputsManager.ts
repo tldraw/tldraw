@@ -38,16 +38,18 @@ export class InputsManager extends EditorManager {
 		super(editor)
 		this.addEditorEvent('frame', this._onFrame)
 
-		// User input inside the container counts as activity for collaborator
-		// presence. Listen in the capture phase so input that later handlers
-		// swallow (e.g. keystrokes routed to a shape's text editor) still counts.
-		const container = editor.getContainer()
+		// User input anywhere in the editor's tab counts as activity for
+		// collaborator presence — presence means "this person is here", whether or
+		// not the input lands on the editor itself (e.g. typing in a sidebar next
+		// to the canvas). Listen on the window, in the capture phase, so input
+		// that other handlers swallow still counts.
+		const win = editor.getContainerWindow()
 		for (const name of ACTIVITY_EVENTS) {
-			container.addEventListener(name, this.markActivity, { capture: true })
+			win.addEventListener(name, this.markActivity, { capture: true })
 		}
 		this.register(() => {
 			for (const name of ACTIVITY_EVENTS) {
-				container.removeEventListener(name, this.markActivity, { capture: true })
+				win.removeEventListener(name, this.markActivity, { capture: true })
 			}
 			this._throttledActivityStamp.cancel()
 		})
@@ -515,11 +517,11 @@ export class InputsManager extends EditorManager {
 	)
 
 	/**
-	 * Mark the current user as active for collaborator presence. User input inside the editor's
-	 * container counts as activity automatically; call this to make input from other sources count
-	 * too, so peers don't classify this user as idle or inactive while they're still interacting.
-	 * Calls are throttled on the leading edge, so it's safe to call from high-frequency input
-	 * events.
+	 * Mark the current user as active for collaborator presence. User input anywhere in the
+	 * editor's tab counts as activity automatically; call this to make input that doesn't produce
+	 * DOM events count too, so peers don't classify this user as idle or inactive while they're
+	 * still interacting. Calls are throttled on the leading edge, so it's safe to call from
+	 * high-frequency input events.
 	 *
 	 * @example
 	 * ```ts
