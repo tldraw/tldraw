@@ -9,9 +9,11 @@ import { TLAssetStore } from 'tldraw';
 import { TLObjectStoreAccess } from '@tldraw/sync-core';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
 import { TLPresenceStateInfo } from 'tldraw';
+import { TLRecord } from 'tldraw';
 import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
+import { TLSyncClient } from '@tldraw/sync-core';
 import { TLThemes } from 'tldraw';
 import { TLUser } from 'tldraw';
 import { TLUserStore } from 'tldraw';
@@ -63,6 +65,8 @@ export interface UseSyncOptionsBase {
     onCustomMessageReceived?(data: any): void;
     // @internal (undocumented)
     onMount?(editor: Editor): void;
+    // @internal
+    onSyncClientCreated?(client: TLSyncClient<TLRecord, TLStore>): void;
     // @internal
     roomId?: string;
     themes?: Partial<TLThemes>;

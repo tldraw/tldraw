@@ -192,6 +192,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
+		onSyncClientCreated: _onSyncClientCreated,
 		themes,
 		...schemaOpts
 	} = opts
@@ -210,6 +211,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		(_getUserPresence ?? getDefaultUserPresence) as typeof getDefaultUserPresence
 	)
 	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
+	const onSyncClientCreated = useEvent(_onSyncClientCreated ?? (() => void 0))
 
 	useEffect(() => {
 		const storeId = uniqueId()
@@ -398,6 +400,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			presenceMode,
 		})
 
+		onSyncClientCreated(client)
+
 		return () => {
 			didCancel = true
 			unsubscribeFromConnectionStatus()
@@ -416,6 +420,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
+		onSyncClientCreated,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -532,6 +537,8 @@ export interface UseSyncOptionsBase {
 	roomId?: string
 	/** @internal */
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
+	/** @internal called with the sync client right after it is created; may fire again if the connection is recreated */
+	onSyncClientCreated?(client: TLSyncClient<TLRecord, TLStore>): void
 
 	/**
 	 * A reactive function that returns a {@link @tldraw/tlschema#TLInstancePresence} object.
