@@ -5,6 +5,7 @@ import { getPublishedFileInfo } from './getPublishedFile'
 import { getSharedFileInfo } from './getSharedFile'
 import { getOgImageCacheKey } from './ogImageQueue'
 import {
+	blobsWithPrefix,
 	failureBlobsOf,
 	indexesOf,
 	makeFakeQueue,
@@ -55,6 +56,9 @@ describe('getOgImage', () => {
 		expect(response.status).toBe(302)
 		expect(response.headers.get('location')).toBe('https://www.tldraw.com/social-og.png')
 		expect(failureBlobsOf(env)).toEqual(['failure:not_rendered_yet'])
+		// This surface has no follow-up concept, so it records `none` rather than `false` — otherwise
+		// a query for triggered renders would sweep up every og datapoint too.
+		expect(blobsWithPrefix(env, 'followup:')).toEqual(['followup:none'])
 	})
 
 	// The asymmetry this repair exists for: a published snapshot is frozen and its publish effect is
