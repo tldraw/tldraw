@@ -262,6 +262,17 @@ describe('rate limits', () => {
 		}
 		expect(outcomes.some(Boolean)).toBe(true)
 	})
+
+	it('does not limit when the dev var is set', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({ MCP_SCREENSHOT_RATE_LIMITS_DISABLED: 'true' })
+		for (let i = 0; i < MCP_PER_IP_RATE_LIMIT + 2; i++) {
+			const result = await callFromSameIp(env, '203.0.113.202', 'get_page_info', {
+				boardId: 'abc',
+			})
+			expect(result.isError).toBeUndefined()
+		}
+	})
 })
 
 describe('shape screenshots', () => {

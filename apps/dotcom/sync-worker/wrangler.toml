@@ -121,6 +121,10 @@ MCP_SCREENSHOT_RENDER_ORIGIN = "http://localhost:3000"
 # anything but "true" — here or straight in the Cloudflare dashboard — takes the endpoint down
 # without a rebuild. A dashboard edit lasts until the next deploy overwrites it from this file.
 MCP_SCREENSHOT_ENABLED = "true"
+# The rate limits bound Browser Rendering spend and protect a public endpoint; locally neither
+# applies, and ~2/min makes the MCP tools impossible to iterate against. Dev only — no other
+# environment sets this, so deployments stay limited.
+MCP_SCREENSHOT_RATE_LIMITS_DISABLED = "true"
 # local-only signing secret; deployments get a real one via deploy vars
 MCP_SCREENSHOT_TOKEN_SECRET = "local-dev-thumbnail-render-secret"
 # Browser Run is unreachable from local dev (see the BROWSER binding note below), so screenshots go

@@ -54,16 +54,24 @@ const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
 const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
 
 async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
-	return isRateLimited(env.MCP_SERVER_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
+	return isRateLimited(env, env.MCP_SERVER_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
 		fallbackLimit: MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
 	})
 }
 
 async function isRateLimited(
+	env: Environment,
 	limiter: RateLimit | undefined,
 	key: string,
 	{ fallbackLimit }: { fallbackLimit: number }
 ): Promise<boolean> {
+	// Local dev opts out entirely. These limits exist to bound Browser Rendering spend and to protect
+	// a public, unauthenticated endpoint — a dev machine driving its own screenshot service is doing
+	// neither, and a ~2/min cap makes the tools unusable to iterate against. Selected on the var
+	// being set rather than on an environment name, so only an environment that configures one can
+	// take this path; every deployed environment leaves it unset and stays limited.
+	if (env.MCP_SCREENSHOT_RATE_LIMITS_DISABLED === 'true') return false
+
 	// The mcp- prefix is load-bearing: it is what the deployed Cloudflare rate limit bindings have
 	// counted against, so changing it resets every configured bucket.
 	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
@@ -399,9 +407,14 @@ async function callPageInfoTool(
 	}
 
 	if (
-		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-cluster:${clientIp ?? 'unknown'}`, {
-			fallbackLimit: MCP_PER_IP_RATE_LIMIT,
-		})
+		await isRateLimited(
+			env,
+			env.MCP_SCREENSHOT_RATE_LIMITER,
+			`ip-cluster:${clientIp ?? 'unknown'}`,
+			{
+				fallbackLimit: MCP_PER_IP_RATE_LIMIT,
+			}
+		)
 	) {
 		return toolError(
 			`Rate limited. Requests are limited to about ${MCP_PER_IP_RATE_LIMIT} per minute per IP.`
@@ -554,7 +567,7 @@ async function callClusterInfoTool(
 	}
 
 	if (
-		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-info:${clientIp ?? 'unknown'}`, {
+		await isRateLimited(env, env.MCP_SCREENSHOT_RATE_LIMITER, `ip-info:${clientIp ?? 'unknown'}`, {
 			fallbackLimit: MCP_PER_IP_RATE_LIMIT,
 		})
 	) {
@@ -640,7 +653,7 @@ async function renderShapeSetScreenshot(
 	// Shares the screenshot budget with the other capture tools rather than the free info budget:
 	// this spends Browser Run capacity the same way.
 	if (
-		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-shot:${clientIp ?? 'unknown'}`, {
+		await isRateLimited(env, env.MCP_SCREENSHOT_RATE_LIMITER, `ip-shot:${clientIp ?? 'unknown'}`, {
 			fallbackLimit: MCP_PER_IP_RATE_LIMIT,
 		})
 	) {
@@ -685,7 +698,7 @@ async function renderShapeSetScreenshot(
 		// Only cache misses spend Browser Rendering capacity, so the per-board and global guards sit
 		// here rather than at the top of the tool call.
 		if (
-			await isRateLimited(env.MCP_SERVER_BOARD_RATE_LIMITER, `board:${boardId}`, {
+			await isRateLimited(env, env.MCP_SERVER_BOARD_RATE_LIMITER, `board:${boardId}`, {
 				fallbackLimit: MCP_PER_BOARD_RATE_LIMIT,
 			})
 		) {
