@@ -299,6 +299,18 @@ describe('summarizeSnapshotDocuments', () => {
 		expect(shapes.total).toBe(1)
 		expect(recordsByTypeName).toEqual({ page: 1, shape: 1 })
 	})
+
+	it('buckets a record with no type under `unknown` rather than tallying it as "undefined"', () => {
+		const { shapes, bindings, assets } = summarize([
+			page('page:1'),
+			shape({ id: 'shape:1', type: undefined }),
+			{ typeName: 'binding', id: 'binding:1', fromId: 'shape:1', toId: 'shape:1' },
+			{ typeName: 'asset', id: 'asset:1', props: { fileSize: 10 } },
+		])
+		expect(shapes.byType).toEqual({ unknown: 1 })
+		expect(bindings.byType).toEqual({ unknown: 1 })
+		expect(assets.byType).toEqual({ unknown: 1 })
+	})
 })
 
 describe('countRichTextCharacters', () => {

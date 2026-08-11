@@ -431,9 +431,16 @@ export interface AdminFileStatsResponseBody {
 		maxDepth: number
 		locked: number
 		rotated: number
-		/** Shapes whose parent record is missing from the snapshot */
+		/**
+		 * Shapes whose parent chain doesn't end at a page: a missing or unusable `parentId`, a chain
+		 * that stops on a record that isn't a page, or a chain long enough to be a cycle.
+		 */
 		orphaned: number
-		/** Bounds covering every shape, from x/y plus w/h where the shape has them */
+		/**
+		 * Bounds covering the shapes parented directly to a page, from x/y plus w/h where the shape
+		 * has them. Nested shapes are left out — their x/y is relative to their frame or group, so
+		 * mixing the two would give a meaningless box. Rotation is ignored.
+		 */
 		extent: { width: number; height: number } | null
 	}
 	/** Lengths only — never the text itself */

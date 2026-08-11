@@ -29,6 +29,14 @@ const STYLE_PROP_NAMES = [
 const MAX_PARENT_DEPTH = 100
 
 /**
+ * A record's `type` as a tally key. Snapshots are read unvalidated, so a broken record can carry no
+ * type at all; those go in one bucket rather than becoming a literal `"undefined"` row in the report.
+ */
+function typeKey(type: unknown): string {
+	return typeof type === 'string' ? type : 'unknown'
+}
+
+/**
  * Total length of the text in a rich text document, without ever holding the text itself. Rich text
  * is a ProseMirror document (see TLRichText), so the text lives in `text` nodes at arbitrary depth.
  */
@@ -94,7 +102,8 @@ export function summarizeSnapshotDocuments(
 				if (typeof record.parentId === 'string') {
 					parentIdByShapeId.set(record.id, record.parentId)
 				}
-				shapesByType[record.type] = (shapesByType[record.type] ?? 0) + 1
+				const shapeType = typeKey(record.type)
+				shapesByType[shapeType] = (shapesByType[shapeType] ?? 0) + 1
 				if (record.isLocked) locked++
 				if (record.rotation) rotated++
 
@@ -130,8 +139,9 @@ export function summarizeSnapshotDocuments(
 			}
 			case 'binding': {
 				totalBindings++
-				bindingsByType[record.type] = (bindingsByType[record.type] ?? 0) + 1
-				if (record.type === 'arrow') {
+				const bindingType = typeKey(record.type)
+				bindingsByType[bindingType] = (bindingsByType[bindingType] ?? 0) + 1
+				if (bindingType === 'arrow') {
 					arrowBindings.push({
 						fromId: record.fromId,
 						toId: record.toId,
@@ -142,7 +152,8 @@ export function summarizeSnapshotDocuments(
 			}
 			case 'asset': {
 				assetsTotal++
-				assetsByType[record.type] = (assetsByType[record.type] ?? 0) + 1
+				const assetType = typeKey(record.type)
+				assetsByType[assetType] = (assetsByType[assetType] ?? 0) + 1
 				const size = record.props?.fileSize
 				if (typeof size === 'number' && size > 0) assetSizeBytes += size
 				break

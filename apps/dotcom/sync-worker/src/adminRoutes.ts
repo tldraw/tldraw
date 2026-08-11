@@ -604,7 +604,9 @@ export const adminRoutes = createRouter<Environment>()
 				.executeTakeFirst(),
 			getFileSnapshot(env, slug, true),
 			env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true })).catch((e) => {
-				warnings.push(`snapshot head failed: ${e}`)
+				// Label only: an R2 error stringifies to the object key, which names the board
+				console.error('file-stats snapshot head failed', e)
+				warnings.push('snapshot head failed')
 				return null
 			}),
 		])
@@ -624,7 +626,9 @@ export const adminRoutes = createRouter<Environment>()
 			try {
 				return Number((await query)?.count ?? 0)
 			} catch (e) {
-				warnings.push(`${label} count failed: ${e}`)
+				// Label only: a query error can carry table, column, and parameter detail
+				console.error(`file-stats ${label} count failed`, e)
+				warnings.push(`${label} count failed`)
 				return 0
 			}
 		}
