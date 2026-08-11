@@ -39,14 +39,19 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLComment,
+	TLCommentAnchor,
 	TLDOCUMENT_ID,
 	TLDocument,
+	TLPageId,
 	TLRecord,
 	commentSchemaRecords,
+	createComment,
+	createCommentThread,
 	createTLSchema,
 	isCommentId,
 	isCommentReactionId,
 	isCommentThreadId,
+	toRichText,
 } from '@tldraw/tlschema'
 import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
@@ -478,6 +483,11 @@ export class TLFileDurableObject extends DurableObject {
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRestore(req, true)
 		)
+		.post(
+			`/app/file/:roomId/server-comment`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onServerComment(req)
+		)
 		.all('*', () => new Response('Not found', { status: 404 }))
 
 	// eslint-disable-next-line tldraw/no-setter-getter
@@ -671,6 +681,69 @@ export class TLFileDurableObject extends DurableObject {
 		} finally {
 			this._isRestoring = false
 		}
+	}
+
+	/**
+	 * Create a comment thread and its first message from the server, with no client session
+	 * involved. Spike: the path a host needs when comments originate outside the canvas (an agent,
+	 * a backend API) rather than from someone typing in the editor.
+	 *
+	 * Two consequences of writing through storage rather than as a client push, both load-bearing:
+	 *
+	 * - Record authorizers don't run — they're gated on a session (see `authorizeFileRecord`), so
+	 *   the `authorId` in the request body is taken on trust. Authenticating the caller is this
+	 *   endpoint's job; nothing downstream will do it.
+	 * - `onCommittedChanges` doesn't fire for storage transactions, so this write never reaches
+	 *   `comment_outbox` and is not persisted to Postgres. It lives in the room's SQLite working
+	 *   copy and reaches connected clients, and a room rebuilt from Postgres will not have it.
+	 */
+	private async onServerComment(req: IRequest) {
+		const body = (await req.json()) as {
+			text?: string
+			authorId?: string
+			pageId?: TLPageId
+			anchor?: TLCommentAnchor
+		}
+		const { text, authorId } = body
+		if (!text || !authorId) {
+			return new Response('text and authorId are required', { status: 400 })
+		}
+
+		const storage = await this.getStorage()
+		const { result } = storage.transaction((txn) => {
+			let pageId = body.pageId
+			if (!pageId) {
+				for (const record of txn.values()) {
+					if (record.typeName === 'page') {
+						pageId = record.id
+						break
+					}
+				}
+			}
+			if (!pageId) return null
+
+			const thread = createCommentThread({
+				pageId,
+				anchor: body.anchor ?? { type: 'page' },
+				createdBy: authorId,
+			})
+			const comment = createComment({
+				threadId: thread.id,
+				pageId,
+				authorId,
+				body: toRichText(text),
+			})
+			txn.set(thread.id, thread as unknown as TLRecord)
+			txn.set(comment.id, comment as unknown as TLRecord)
+			return { threadId: thread.id, commentId: comment.id }
+		})
+
+		if (!result) {
+			return new Response('no page found in this room', { status: 409 })
+		}
+		return new Response(JSON.stringify(result), {
+			headers: { 'content-type': 'application/json' },
+		})
 	}
 
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
