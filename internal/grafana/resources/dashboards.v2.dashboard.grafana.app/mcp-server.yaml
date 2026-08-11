@@ -110,7 +110,7 @@ spec:
               showPercentChange: false
               textMode: auto
               wideLayout: true
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-10:
       kind: Panel
       spec:
@@ -220,7 +220,7 @@ spec:
                 maxHeight: 600
                 mode: multi
                 sort: desc
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-11:
       kind: Panel
       spec:
@@ -308,7 +308,7 @@ spec:
                 hideZeros: false
                 mode: single
                 sort: none
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-12:
       kind: Panel
       spec:
@@ -387,7 +387,7 @@ spec:
                   - sum
                 show: false
               showHeader: true
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-13:
       kind: Panel
       spec:
@@ -501,7 +501,7 @@ spec:
                 maxHeight: 600
                 mode: multi
                 sort: desc
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-14:
       kind: Panel
       spec:
@@ -613,7 +613,7 @@ spec:
                 maxHeight: 600
                 mode: multi
                 sort: desc
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-15:
       kind: Panel
       spec:
@@ -726,7 +726,7 @@ spec:
                 maxHeight: 600
                 mode: multi
                 sort: desc
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-16:
       kind: Panel
       spec:
@@ -841,7 +841,7 @@ spec:
                 maxHeight: 600
                 mode: multi
                 sort: desc
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-2:
       kind: Panel
       spec:
@@ -915,7 +915,7 @@ spec:
               showPercentChange: false
               textMode: auto
               wideLayout: true
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-3:
       kind: Panel
       spec:
@@ -990,7 +990,7 @@ spec:
               showPercentChange: false
               textMode: auto
               wideLayout: true
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-4:
       kind: Panel
       spec:
@@ -1068,7 +1068,7 @@ spec:
               showPercentChange: false
               textMode: auto
               wideLayout: true
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-5:
       kind: Panel
       spec:
@@ -1178,7 +1178,7 @@ spec:
                 maxHeight: 600
                 mode: multi
                 sort: desc
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-6:
       kind: Panel
       spec:
@@ -1288,7 +1288,7 @@ spec:
                 maxHeight: 600
                 mode: multi
                 sort: desc
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-7:
       kind: Panel
       spec:
@@ -1339,10 +1339,13 @@ spec:
             queryOptions: {}
             transformations: []
         description: 'Bounded reason codes: invalid_input, not_found, board_empty, page_not_found,
-          cluster_not_found, unknown_tool, the rate_limited_* codes, and the render failure
-          classes. Caller mistakes (invalid_input, *_not_found) are expected traffic; the
-          render classes are ours. unhandled_error means a tool threw instead of returning
-          an error, which is always a bug.'
+          cluster_not_found, unknown_tool, board_lookup_error, the rate_limited_* codes, and
+          the render failure classes. Caller mistakes (invalid_input, *_not_found) are expected
+          traffic; the render classes are ours. unhandled_error means a tool threw instead
+          of returning an error, which is always a bug. Caveat on the clustering tools: they
+          resolve the board and then render it under one catch, so a Postgres stall during
+          the lookup can be reported as browser_timeout — check Postgres before trusting a
+          browser class from get_page_info or get_cluster_info.'
         id: 7
         links: []
         title: Tool call errors by reason
@@ -1402,7 +1405,7 @@ spec:
                 maxHeight: 600
                 mode: multi
                 sort: desc
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-8:
       kind: Panel
       spec:
@@ -1430,6 +1433,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND blob5 NOT IN ('reason:unknown_tool', 'reason:invalid_input')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date
                         ORDER BY date ASC
@@ -1438,6 +1442,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND blob5 NOT IN ('reason:unknown_tool', 'reason:invalid_input')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date
                         ORDER BY date ASC
@@ -1452,7 +1457,9 @@ spec:
             transformations: []
         description: End-to-end time inside the tools/call handler, weighted by _sample_interval
           to account for Analytics Engine sampling. Includes the board lookup, any measure
-          render, and the screenshot itself.
+          render, and the screenshot itself. Calls rejected before doing any work (an unknown
+          tool name, or arguments that failed to parse) are excluded — they always measure
+          zero, and a client looping one would otherwise hold the reported p50 at zero.
         id: 8
         links: []
         title: Tool call duration percentiles
@@ -1512,7 +1519,7 @@ spec:
                 maxHeight: 600
                 mode: multi
                 sort: desc
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
     panel-9:
       kind: Panel
       spec:
@@ -1622,7 +1629,7 @@ spec:
                 maxHeight: 600
                 mode: multi
                 sort: desc
-            version: 13.2.0-29854286369
+          version: 13.2.0-29854286369
   layout:
     kind: GridLayout
     spec:

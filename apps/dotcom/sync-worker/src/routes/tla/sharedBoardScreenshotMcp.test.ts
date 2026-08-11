@@ -410,6 +410,44 @@ describe('protocol telemetry', () => {
 		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'outcome')).toEqual(['error'])
 	})
 
+	// The tool name comes straight off the wire, so the lookup must not resolve inherited names. A
+	// plain object would hand back Object.prototype's own methods and call them as tools: `constructor`
+	// would echo the caller's arguments back as a successful result, and `__proto__` would 500.
+	it('reports inherited property names as unknown tools rather than calling them', async () => {
+		for (const name of ['constructor', 'toString', '__proto__', 'valueOf', 'hasOwnProperty']) {
+			const env = makeEnv()
+			const response = await sharedBoardScreenshotMcp(
+				makeToolCall(name, { secret: 'echo-me' }),
+				env
+			)
+			const body = (await response.json()) as any
+
+			expect(body.error, name).toMatchObject({ code: -32602 })
+			expect(body.result, name).toBeUndefined()
+			expect(blobValuesOf(env, TOOL_CALL_EVENT, 'tool'), name).toEqual(['unknown'])
+			expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason'), name).toEqual(['unknown_tool'])
+		}
+	})
+
+	// clientInfo is whatever the client put in the body. Before the telemetry existed, initialize
+	// ignored params entirely, so a loose serializer sending a non-string name still connected.
+	it('handles a non-string clientInfo.name at initialize', async () => {
+		for (const name of [123, true, ['a'], { x: 1 }, null]) {
+			const env = makeEnv()
+			const response = await sharedBoardScreenshotMcp(
+				makeRpcRequest('initialize', { clientInfo: { name } }),
+				env
+			)
+
+			expect(response.status, String(name)).toBe(200)
+			expect((await response.json()) as any, String(name)).toMatchObject({
+				result: { protocolVersion: expect.any(String) },
+			})
+			expect(blobValuesOf(env, INITIALIZE_EVENT, 'client'), String(name)).toEqual(['none'])
+			expect(blobValuesOf(env, INITIALIZE_EVENT, 'raw'), String(name)).toEqual(['none'])
+		}
+	})
+
 	it('records the client family from the user agent', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()

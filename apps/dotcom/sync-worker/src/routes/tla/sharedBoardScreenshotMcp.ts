@@ -101,9 +101,11 @@ interface JsonRpcRequest {
 	params?: {
 		name?: string
 		arguments?: unknown
+		// Typed as unknown because it is whatever the client put in the request body; the telemetry
+		// writer narrows it rather than trusting it.
 		clientInfo?: {
-			name?: string
-			version?: string
+			name?: unknown
+			version?: unknown
 		}
 	}
 }
@@ -139,8 +141,10 @@ const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: strin
 	['mozilla', 'browser'],
 ]
 
-export function normalizeMcpClient(value: string | null | undefined): string {
-	if (!value) return 'none'
+// Takes unknown because one caller passes a header and the other passes a field parsed straight out
+// of the request body, which is whatever the client chose to send.
+export function normalizeMcpClient(value: unknown): string {
+	if (typeof value !== 'string' || value === '') return 'none'
 	const lower = value.toLowerCase()
 	for (const [needle, family] of MCP_CLIENT_FAMILIES) {
 		if (lower.includes(needle)) return family
@@ -175,18 +179,22 @@ function writeMcpToolCallTelemetry(
 function writeMcpInitializeTelemetry(
 	env: Environment,
 	request: Request,
-	clientInfo: { name?: string; version?: string } | undefined
+	clientInfo: { name?: unknown; version?: unknown } | undefined
 ) {
+	const name = clientInfo?.name
 	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_initialize', {
 		blobs: [
-			`client:${normalizeMcpClient(clientInfo?.name)}`,
-			`raw:${(clientInfo?.name ?? 'none').slice(0, 64)}`,
+			`client:${normalizeMcpClient(name)}`,
+			`raw:${typeof name === 'string' ? name.slice(0, 64) : 'none'}`,
 			`ua:${normalizeMcpClient(request.headers.get('user-agent'))}`,
 		],
 	})
 }
 
-const TOOL_HANDLERS: Record<
+// A Map rather than an object literal, because the key comes straight off the wire: a plain object
+// would resolve inherited names too, so `tools/call` for `constructor` or `toString` would find one
+// of Object's own methods and call it as a tool instead of reporting an unknown tool.
+const TOOL_HANDLERS = new Map<
 	string,
 	(
 		argumentsValue: unknown,
@@ -194,12 +202,12 @@ const TOOL_HANDLERS: Record<
 		env: Environment,
 		ctx?: ExecutionContext
 	) => Promise<ToolCallResult>
-> = {
-	[BOARD_INFO_TOOL_NAME]: callBoardInfoTool,
-	[PAGE_INFO_TOOL_NAME]: callPageInfoTool,
-	[CLUSTER_INFO_TOOL_NAME]: callClusterInfoTool,
-	[CLUSTER_SCREENSHOT_TOOL_NAME]: callClusterScreenshotTool,
-}
+>([
+	[BOARD_INFO_TOOL_NAME, callBoardInfoTool],
+	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
+	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
+	[CLUSTER_SCREENSHOT_TOOL_NAME, callClusterScreenshotTool],
+])
 
 export async function sharedBoardScreenshotMcp(
 	request: IRequest,
@@ -252,7 +260,7 @@ export async function sharedBoardScreenshotMcp(
 			})
 		case 'tools/call': {
 			const toolName = rpcRequest.params?.name ?? ''
-			const toolHandler = TOOL_HANDLERS[toolName]
+			const toolHandler = TOOL_HANDLERS.get(toolName)
 			if (!toolHandler) {
 				// The requested name is not recorded — it is caller-controlled and unbounded, so it would
 				// leak cardinality into the dataset. `unknown_tool` plus the JSON-RPC error is enough.
@@ -264,23 +272,15 @@ export async function sharedBoardScreenshotMcp(
 				return jsonRpcError(rpcRequest.id, -32602, `Unknown tool: ${rpcRequest.params?.name}`)
 			}
 			const startedAt = Date.now()
+			let called: ToolCallResult
+			// Scoped to the handler call alone, so that only a failure inside the tool can be recorded as
+			// unhandled_error. Every tool catches its own failures and returns a toolError, so reaching the
+			// catch means a bug rather than a bad request; it is recorded and rethrown, because the
+			// datapoint is worth most on the path nobody anticipated and swallowing it here would turn a
+			// 500 into a silently empty result.
 			try {
-				const { telemetryReason, ...result } = await toolHandler(
-					rpcRequest.params?.arguments,
-					request,
-					env,
-					ctx
-				)
-				writeMcpToolCallTelemetry(env, request, {
-					tool: toolName,
-					reason: telemetryReason,
-					durationMs: Date.now() - startedAt,
-				})
-				return jsonRpcResult(rpcRequest.id, result)
+				called = await toolHandler(rpcRequest.params?.arguments, request, env, ctx)
 			} catch (error) {
-				// Every tool catches its own failures and returns a toolError, so reaching here means a bug
-				// rather than a bad request. Recorded and rethrown: the datapoint is worth most on the path
-				// nobody anticipated, and swallowing it here would turn a 500 into a silent empty result.
 				writeMcpToolCallTelemetry(env, request, {
 					tool: toolName,
 					reason: 'unhandled_error',
@@ -288,6 +288,13 @@ export async function sharedBoardScreenshotMcp(
 				})
 				throw error
 			}
+			const { telemetryReason, ...result } = called
+			writeMcpToolCallTelemetry(env, request, {
+				tool: toolName,
+				reason: telemetryReason,
+				durationMs: Date.now() - startedAt,
+			})
+			return jsonRpcResult(rpcRequest.id, result)
 		}
 		default:
 			return jsonRpcError(rpcRequest.id, -32601, `Method not found: ${rpcRequest.method}`)
@@ -473,9 +480,6 @@ async function callBoardInfoTool(
 			})),
 		})
 	} catch (error) {
-		// The caller gets a bounded description, but nothing else records it: this tool writes no
-		// telemetry (it spends no Browser Run), so without a report a failing board lookup is
-		// invisible to us.
 		reportThumbnailError(error, {
 			ctx,
 			env,
@@ -484,9 +488,15 @@ async function callBoardInfoTool(
 			extras: { boardId: input.boardId },
 		})
 		const failureReason = classifyScreenshotFailure(error)
+		// The classifier reads render failures, and this tool starts no render: it resolves the board
+		// and reads its snapshot, and the lookup goes through a Postgres pool whose timeouts the
+		// classifier would otherwise report as `browser_timeout`. Only the snapshot-read class can
+		// honestly apply here, so everything else is recorded as what it is.
+		const telemetryReason =
+			failureReason === 'snapshot_read_error' ? failureReason : 'board_lookup_error'
 		return toolError(
 			`Could not read board info: ${describeThumbnailFailure(failureReason)}.`,
-			failureReason
+			telemetryReason
 		)
 	}
 }
