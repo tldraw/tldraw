@@ -894,6 +894,29 @@ describe('TLSyncClient', () => {
 			expect(socket.getSentMessages()).toHaveLength(0)
 		})
 
+		it('[CP8] hasPendingChanges reflects unconfirmed local changes', () => {
+			connectClient()
+			expect(client.hasPendingChanges()).toBe(false)
+
+			store.put([makePage('New page', 'a2')])
+			expect(client.hasPendingChanges()).toBe(true)
+
+			// the throttle sends the push; still pending until the server confirms
+			vi.advanceTimersByTime(100)
+			const push = getSentPushes()[0]
+			expect(push).toBeDefined()
+			expect(client.hasPendingChanges()).toBe(true)
+
+			socket.mockServerMessage({
+				type: 'push_result',
+				serverClock: 2,
+				clientClock: push.clientClock,
+				action: 'commit',
+			})
+			vi.advanceTimersByTime(100)
+			expect(client.hasPendingChanges()).toBe(false)
+		})
+
 		describe('push coalescing (multiple push() calls become a single network message)', () => {
 			/**
 			 * These tests verify that multiple store changes (each triggering push())

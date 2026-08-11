@@ -192,6 +192,7 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **CP5** Presence pushes: the first send is `['put', record]`, subsequent sends are `['patch', diff]` against the last pushed state; an unchanged presence sends nothing; document and presence changes ride in the same push request when both are pending. After a reconnect, presence is re-put in full.
 - **CP6** In `'solo'` presence mode the presence signal is not pushed at all (document changes still are); the network throttle drops from 30fps to 1fps.
 - **CP7** When the store reports possible corruption, pushes stop.
+- **CP8** `hasPendingChanges()` reports whether any local document change is not yet confirmed by the server: an in-flight push request, an unsent document diff, or a non-empty speculative diff.
 
 ## 21. `TLSyncClient` — receiving and rebasing (CR)
 

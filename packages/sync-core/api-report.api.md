@@ -670,6 +670,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         store: S;
     });
     close(): void;
+    // @internal
+    hasPendingChanges(): boolean;
     // @internal (undocumented)
     isConnectedToRoom: boolean;
     // @internal (undocumented)

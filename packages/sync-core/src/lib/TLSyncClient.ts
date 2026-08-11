@@ -843,6 +843,20 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	}
 
 	/**
+	 * Whether any local document change has not yet been confirmed by the server.
+	 * @internal
+	 */
+	hasPendingChanges(): boolean {
+		return (
+			this.pendingPushRequests.length > 0 ||
+			this.unsentChanges.nextDiff !== undefined ||
+			Object.keys(this.speculativeChanges.added).length > 0 ||
+			Object.keys(this.speculativeChanges.updated).length > 0 ||
+			Object.keys(this.speculativeChanges.removed).length > 0
+		)
+	}
+
+	/**
 	 * Closes the sync client and cleans up all resources.
 	 *
 	 * Call this method when you no longer need the sync client to prevent
