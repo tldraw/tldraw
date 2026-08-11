@@ -20,19 +20,23 @@ export interface CiMetricEvent {
 }
 
 /**
- * Send events to the CI metrics PostHog project. Events are sent one at a time against the same
- * `/capture/` endpoint the e2e performance reporter uses.
+ * Send events to the CI metrics PostHog project. Everything goes in a single request to the
+ * `/batch/` endpoint: a build reports a few dozen events, and sending them one at a time would
+ * mean a few dozen round trips at the tail of a deploy, where a failure partway through leaves a
+ * build with some of its events recorded and the rest missing.
  */
 export async function captureCiMetricEvents(events: CiMetricEvent[]) {
+	if (events.length === 0) return
+
 	const apiHost = process.env.POSTHOG_API_HOST || DEFAULT_API_HOST
 	const timestamp = new Date().toISOString()
 
-	for (const { event, distinctId, properties } of events) {
-		const response = await fetch(`${apiHost}/capture/`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				api_key: CI_METRICS_API_KEY,
+	const response = await fetch(`${apiHost}/batch/`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			api_key: CI_METRICS_API_KEY,
+			batch: events.map(({ event, distinctId, properties }) => ({
 				event,
 				properties: {
 					...properties,
@@ -41,12 +45,12 @@ export async function captureCiMetricEvents(events: CiMetricEvent[]) {
 					$lib_version: '1.0.0',
 				},
 				timestamp,
-			}),
-		})
+			})),
+		}),
+	})
 
-		if (!response.ok) {
-			throw new Error(`PostHog API error: ${response.status} ${response.statusText}`)
-		}
+	if (!response.ok) {
+		throw new Error(`PostHog API error: ${response.status} ${response.statusText}`)
 	}
 
 	nicelog(`Sent ${events.length} event(s) to PostHog`)
