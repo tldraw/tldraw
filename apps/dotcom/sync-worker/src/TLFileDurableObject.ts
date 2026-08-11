@@ -688,14 +688,16 @@ export class TLFileDurableObject extends DurableObject {
 	 * involved. Spike: the path a host needs when comments originate outside the canvas (an agent,
 	 * a backend API) rather than from someone typing in the editor.
 	 *
-	 * Two consequences of writing through storage rather than as a client push, both load-bearing:
+	 * Two consequences of writing through storage rather than as a client push:
 	 *
 	 * - Record authorizers don't run — they're gated on a session (see `authorizeFileRecord`), so
 	 *   the `authorId` in the request body is taken on trust. Authenticating the caller is this
 	 *   endpoint's job; nothing downstream will do it.
-	 * - `onCommittedChanges` doesn't fire for storage transactions, so this write never reaches
-	 *   `comment_outbox` and is not persisted to Postgres. It lives in the room's SQLite working
-	 *   copy and reaches connected clients, and a room rebuilt from Postgres will not have it.
+	 * - `onCommittedChanges` doesn't fire for storage transactions, so the records are outboxed
+	 *   here explicitly. Without that they would reach connected clients and still be lost, since
+	 *   a room rebuilds its comment records from Postgres on cold start.
+	 *
+	 * The drain is awaited so a 200 means the comment is durable, not merely broadcast.
 	 */
 	private async onServerComment(req: IRequest) {
 		const body = (await req.json()) as {
@@ -741,6 +743,10 @@ export class TLFileDurableObject extends DurableObject {
 		if (!result) {
 			return new Response('no page found in this room', { status: 409 })
 		}
+
+		// Same task as the transaction above, so the output gate flushes the outbox rows with it.
+		await this.enqueueCommentRecordIds([result.threadId, result.commentId])
+
 		return new Response(JSON.stringify(result), {
 			headers: { 'content-type': 'application/json' },
 		})
@@ -1949,12 +1955,24 @@ export class TLFileDurableObject extends DurableObject {
 				ids.push(id)
 			}
 		}
-		if (ids.length === 0) return
+		this.enqueueCommentRecordIds(ids)
+	}
+
+	/**
+	 * Queue comment record ids for persistence and kick a drain. Callers must run this in the same
+	 * task as the commit that produced the ids, so the output gate flushes the queue rows with it.
+	 *
+	 * The returned promise resolves when the kicked drain has finished, which a caller that owes
+	 * its own client a durability answer can await; the client-push path deliberately doesn't,
+	 * since its commit is already acknowledged over the socket.
+	 */
+	private enqueueCommentRecordIds(ids: readonly string[]): Promise<void> {
+		if (ids.length === 0) return Promise.resolve()
 		this.ensureCommentOutbox()
 		for (const id of ids) {
 			this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
 		}
-		this.drainCommentOutbox()
+		return this.drainCommentOutbox()
 	}
 
 	/**
