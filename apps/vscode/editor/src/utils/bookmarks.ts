@@ -41,9 +41,6 @@ export async function onCreateAssetFromUrl({ url }: TLUrlExternalContent): Promi
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
-			// Only resolve an image or favicon we actually found. Resolving an empty
-			// string against the page would yield the page's own address, and the
-			// bookmark would then try to render an HTML document as an <img>.
 			if (meta.image && !meta.image.startsWith('http')) {
 				meta.image = new URL(meta.image, url).href
 			}

@@ -515,8 +515,6 @@ describe('defaultHandleExternalUrlAsset', () => {
 
 		const asset = await defaultHandleExternalUrlAsset(editor, { type: 'url', url }, opts)
 
-		// An absent image must stay absent. Resolving '' against the page would
-		// point the bookmark's <img> at the page's own HTML document.
 		expect(asset.props.image).toBe('')
 		expect(asset.props.favicon).toBe('')
 	})
@@ -558,16 +556,11 @@ describe('defaultHandleExternalUrlAsset', () => {
 		consoleSpy.mockRestore()
 	})
 
-	// These pin down behaviour that is currently wrong or incomplete. They exist
-	// so that changing it is a deliberate act with a visible diff, rather than
-	// something that can drift either way unnoticed.
+	// Pins behaviour we'd like to change, so that changing it is deliberate.
 	describe('behaviour to revisit', () => {
 		it('extracts nothing at all from a cross-origin page', async () => {
-			// The fetch below uses `mode: 'no-cors'`, which yields an opaque
-			// response for any cross-origin URL, and an opaque response's body is
-			// always the empty string. So every querySelector in this handler is
-			// dead code for the cross-origin case — which is essentially every
-			// pasted link.
+			// `mode: 'no-cors'` makes the response opaque cross-origin, and an
+			// opaque body always reads as ''.
 			mockResponseBody('')
 
 			const asset = await defaultHandleExternalUrlAsset(editor, { type: 'url', url }, opts)
@@ -576,10 +569,7 @@ describe('defaultHandleExternalUrlAsset', () => {
 			expect(asset.props.image).toBe('')
 			expect(asset.props.favicon).toBe('')
 			expect(asset.props.description).toBe('')
-			// The only thing salvaged is the address we already had. Note this
-			// differs from the fetch-throws path above, which leaves title empty.
 			expect(asset.props.title).toBe(url)
-			// ...and no toast, so the user is told nothing.
 			expect(opts.toasts.addToast).not.toHaveBeenCalled()
 		})
 
@@ -594,9 +584,8 @@ describe('defaultHandleExternalUrlAsset', () => {
 
 			const asset = await defaultHandleExternalUrlAsset(editor, { type: 'url', url }, opts)
 
-			// cloudflare-workers-unfurl reads all four of these. This handler reads
-			// only the plain `og:` tags, so a page carrying twitter cards and no
-			// Open Graph tags unfurls to nothing even when the body is readable.
+			// cloudflare-workers-unfurl reads all four of these; this handler
+			// reads only the plain `og:` tags.
 			expect(asset.props.image).toBe('')
 			expect(asset.props.description).toBe('')
 			expect(asset.props.title).toBe(url)
