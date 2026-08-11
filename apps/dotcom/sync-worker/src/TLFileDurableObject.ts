@@ -93,6 +93,7 @@ import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
+import { getBearerToken, verifyServerCommentToken } from './utils/serverCommentTokens'
 import { throttle } from './utils/throttle'
 import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
@@ -688,29 +689,42 @@ export class TLFileDurableObject extends DurableObject {
 	 * involved. Spike: the path a host needs when comments originate outside the canvas (an agent,
 	 * a backend API) rather than from someone typing in the editor.
 	 *
-	 * Two consequences of writing through storage rather than as a client push:
+	 * Three consequences of writing through storage rather than as a client push:
 	 *
 	 * - Record authorizers don't run — they're gated on a session (see `authorizeFileRecord`), so
-	 *   the `authorId` in the request body is taken on trust. Authenticating the caller is this
-	 *   endpoint's job; nothing downstream will do it.
+	 *   nothing downstream establishes who the comment is by. The author therefore comes from the
+	 *   signed grant rather than the request body, so a token minted for one author cannot be spent
+	 *   posting as another.
 	 * - `onCommittedChanges` doesn't fire for storage transactions, so the records are outboxed
 	 *   here explicitly. Without that they would reach connected clients and still be lost, since
 	 *   a room rebuilds its comment records from Postgres on cold start.
+	 * - The granted author still has to exist, checked before anything is written. The drain
+	 *   resolves a `comment.authorId` foreign key violation by pruning the record from the room,
+	 *   so an unknown author would otherwise be broadcast to every client and then withdrawn.
 	 *
-	 * The author is checked up front and the drain is awaited, so a 200 means the comment is
-	 * durable rather than merely broadcast. Awaiting alone isn't enough: the drain's job is to
-	 * reconcile the room with Postgres, and pruning an unpersistable record is a success for it.
+	 * Between the author check and the awaited drain, a 200 means the comment is durable rather
+	 * than merely broadcast. Awaiting alone isn't enough: the drain's job is to reconcile the room
+	 * with Postgres, and pruning an unpersistable record is a success for it.
 	 */
 	private async onServerComment(req: IRequest) {
+		const token = getBearerToken(req as unknown as Request)
+		const grant = token ? await verifyServerCommentToken(this.env, token) : null
+		if (!grant) {
+			return new Response('a valid server-comment token is required', { status: 401 })
+		}
+		if (grant.fileId !== this.documentInfo.slug) {
+			return new Response('token is not valid for this file', { status: 403 })
+		}
+		const authorId = grant.authorId
+
 		const body = (await req.json()) as {
 			text?: string
-			authorId?: string
 			pageId?: TLPageId
 			anchor?: TLCommentAnchor
 		}
-		const { text, authorId } = body
-		if (!text || !authorId) {
-			return new Response('text and authorId are required', { status: 400 })
+		const { text } = body
+		if (!text) {
+			return new Response('text is required', { status: 400 })
 		}
 
 		// The author has to exist before anything is written, not because the write would fail —

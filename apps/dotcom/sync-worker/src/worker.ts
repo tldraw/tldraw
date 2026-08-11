@@ -121,11 +121,9 @@ const router = createRouter<Environment>()
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/pierre-restore`, forwardRoomRequest)
-	// Spike: server-authored comments. Writes a comment as an arbitrary author with no session and
-	// no authorizer, so it stays local-only until the caller-authentication question is settled.
-	.post(`/app/file/:roomId/server-comment`, (req, env) =>
-		env.IS_LOCAL === 'true' ? forwardRoomRequest(req, env) : notFound()
-	)
+	// Server-authored comments. Authorized by a signed grant carrying the author and file, verified
+	// in the room; an environment with no SERVER_COMMENT_TOKEN_SECRET rejects every request.
+	.post(`/app/file/:roomId/server-comment`, forwardRoomRequest)
 	.get('/app/:userId/connect', async (req, env) => {
 		// forward req to the user durable object
 		const auth = await getAuth(req, env)
