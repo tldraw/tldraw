@@ -525,6 +525,9 @@ describe('rate limits', () => {
 		// fired.
 		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_user')
 		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_global')
+		// The board guard fires after the measure the cache key required, so the blocked row still
+		// carries that session's spend rather than the -1 sentinel.
+		expect(renderDurationsOf(env).at(-1)).not.toBe(-1)
 	})
 })
 

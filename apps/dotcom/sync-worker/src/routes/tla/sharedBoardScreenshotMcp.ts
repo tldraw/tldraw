@@ -848,8 +848,9 @@ async function renderShapeSetScreenshot(
 			)
 		}
 
-		// Only cache misses spend Browser Rendering capacity, so the per-board and global guards sit
-		// here rather than at the top of the tool call.
+		// Only cache misses spend Browser Rendering capacity on the capture, so the per-board and
+		// global guards sit here rather than at the top of the tool call. The measure has already run
+		// by this point — the cache key needed it — so a blocked call still carries that spend.
 		if (
 			await isRateLimited(env.MCP_SERVER_BOARD_RATE_LIMITER, `board:${boardId}`, {
 				fallbackLimit: MCP_PER_BOARD_RATE_LIMIT,
@@ -859,6 +860,7 @@ async function renderShapeSetScreenshot(
 				cacheStatus: 'miss',
 				rateLimitAllowed: false,
 				failureReason: 'rate_limited_board',
+				browserRunDurationMs: measureMs,
 			})
 			return toolError('Rate limited. This board is being screenshotted too frequently.')
 		}
@@ -867,6 +869,7 @@ async function renderShapeSetScreenshot(
 				cacheStatus: 'miss',
 				rateLimitAllowed: false,
 				failureReason: 'rate_limited_global',
+				browserRunDurationMs: measureMs,
 			})
 			return toolError('Rate limited. Screenshot capacity is busy, try again in a minute.')
 		}
