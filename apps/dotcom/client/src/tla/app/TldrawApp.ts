@@ -91,6 +91,20 @@ export function shouldEnableCommenting(
 	return { value: flags.commenting_enabled?.enabled ?? false, reason: 'server feature flag' }
 }
 
+/**
+ * Whether the sync websocket should suspend in hidden tabs. Staff (@tldraw.com email) always have
+ * it; everyone else waits on the `hidden_tab_suspend` flag.
+ */
+export function shouldSuspendHiddenTab(
+	flags: FeatureFlags,
+	email?: string | null
+): { value: boolean; reason: string } {
+	if (email?.endsWith('@tldraw.com')) {
+		return { value: true, reason: '@tldraw.com email' }
+	}
+	return { value: flags.hidden_tab_suspend?.enabled ?? false, reason: 'server feature flag' }
+}
+
 /** When the user last opened the file (visit, else edit, else first visit), or undefined if never. */
 export function getFileVisitDate(state: TlaFileState | undefined): number | undefined {
 	return state?.lastVisitAt ?? state?.lastEditAt ?? state?.firstVisitAt ?? undefined
@@ -177,6 +191,9 @@ export class TldrawApp {
 	/** Whether this user gets the commenting UI — see {@link shouldEnableCommenting}. */
 	readonly isCommentingEnabled: boolean
 
+	/** Whether the sync websocket suspends in hidden tabs — see {@link shouldSuspendHiddenTab}. */
+	readonly isHiddenTabSuspendEnabled: boolean
+
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
 	private getToken: () => Promise<string | undefined>
@@ -242,6 +259,7 @@ export class TldrawApp {
 		this.trackEvent = trackEvent
 		this.getToken = getToken
 		this.isCommentingEnabled = shouldEnableCommenting(flags, email).value
+		this.isHiddenTabSuspendEnabled = shouldSuspendHiddenTab(flags, email).value
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
 		if (window.navigator.webdriver) {

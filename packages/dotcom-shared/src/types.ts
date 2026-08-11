@@ -338,6 +338,7 @@ export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'commenting_enabled',
 	'mcp_friends_and_family',
+	'hidden_tab_suspend',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 

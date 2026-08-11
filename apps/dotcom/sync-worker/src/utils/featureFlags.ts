@@ -29,6 +29,13 @@ function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagV
 			description:
 				'Raises the /app/mcp rate limits for signed-in callers on the friends and family list (edited below)',
 		},
+		hidden_tab_suspend: {
+			type: 'percentage',
+			percentage: 0,
+			enabled: false,
+			description:
+				'Suspend the sync websocket in tabs hidden for 2+ minutes so file rooms can hibernate. Users with a @tldraw.com email always have it, regardless of this flag',
+		},
 	}
 }
 

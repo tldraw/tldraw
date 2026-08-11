@@ -1,16 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import type { FeatureFlags } from '../utils/FeatureFlagPoller'
-import { shouldEnableCommenting } from './TldrawApp'
+import { shouldEnableCommenting, shouldSuspendHiddenTab } from './TldrawApp'
 
 const FLAGS_OFF: FeatureFlags = {
 	rum_enabled: { enabled: false },
 	commenting_enabled: { enabled: false },
 	mcp_friends_and_family: { enabled: false },
+	hidden_tab_suspend: { enabled: false },
 }
 
 const FLAGS_COMMENTING_ON: FeatureFlags = {
 	...FLAGS_OFF,
 	commenting_enabled: { enabled: true },
+}
+
+const FLAGS_HIDDEN_TAB_SUSPEND_ON: FeatureFlags = {
+	...FLAGS_OFF,
+	hidden_tab_suspend: { enabled: true },
 }
 
 describe('shouldEnableCommenting', () => {
@@ -50,5 +56,35 @@ describe('shouldEnableCommenting', () => {
 	it('handles a null email', () => {
 		expect(shouldEnableCommenting(FLAGS_OFF, null).value).toBe(false)
 		expect(shouldEnableCommenting(FLAGS_COMMENTING_ON, null).value).toBe(true)
+	})
+})
+
+describe('shouldSuspendHiddenTab', () => {
+	it('is off with default flags and no email', () => {
+		expect(shouldSuspendHiddenTab(FLAGS_OFF)).toEqual({
+			value: false,
+			reason: 'server feature flag',
+		})
+	})
+
+	it('is on for a @tldraw.com email even when the flag is off', () => {
+		expect(shouldSuspendHiddenTab(FLAGS_OFF, 'dev@tldraw.com')).toEqual({
+			value: true,
+			reason: '@tldraw.com email',
+		})
+	})
+
+	it('is on for anyone when the flag is on', () => {
+		expect(shouldSuspendHiddenTab(FLAGS_HIDDEN_TAB_SUSPEND_ON, 'alice@example.com')).toEqual({
+			value: true,
+			reason: 'server feature flag',
+		})
+	})
+
+	it('is off for a non-tldraw email when the flag is off', () => {
+		expect(shouldSuspendHiddenTab(FLAGS_OFF, 'alice@example.com')).toEqual({
+			value: false,
+			reason: 'server feature flag',
+		})
 	})
 })

@@ -285,6 +285,7 @@ describe('getFeatureFlagsAdmin (route handler)', () => {
 
 		expect(Object.keys(body).sort()).toEqual([
 			'commenting_enabled',
+			'hidden_tab_suspend',
 			'mcp_friends_and_family',
 			'rum_enabled',
 		])

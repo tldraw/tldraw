@@ -13,6 +13,7 @@ function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 		rum_enabled: { enabled: false },
 		commenting_enabled: { enabled: false },
 		mcp_friends_and_family: { enabled: false },
+		hidden_tab_suspend: { enabled: false },
 		...overrides,
 	}
 }
