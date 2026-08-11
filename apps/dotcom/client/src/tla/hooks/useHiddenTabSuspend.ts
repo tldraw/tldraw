@@ -39,7 +39,11 @@ export function useHiddenTabSuspend(clientRef: RefObject<TLSyncClient<TLRecord, 
 			if (paused || document.visibilityState !== 'hidden' || hiddenAt === null) return
 			const client = clientRef.current
 			const adapter = getAdapter()
-			if (!client || !adapter) return
+			// client/adapter may not exist yet (or mid-recreation); keep retrying rather than giving up
+			if (!client || !adapter) {
+				timer = setTimeout(trySuspend, RETRY_INTERVAL_MS)
+				return
+			}
 			// unconfirmed changes must drain before we cut the socket; check again later
 			if (Date.now() - hiddenAt < SUSPEND_AFTER_HIDDEN_MS || client.hasPendingChanges()) {
 				timer = setTimeout(trySuspend, RETRY_INTERVAL_MS)
@@ -49,24 +53,34 @@ export function useHiddenTabSuspend(clientRef: RefObject<TLSyncClient<TLRecord, 
 			paused = true
 		}
 
+		// arms the suspend timer for an already-hidden tab; also covers tabs that mount hidden
+		function enterHidden() {
+			if (hiddenAt !== null) return
+			hiddenAt = Date.now()
+			timer = setTimeout(trySuspend, SUSPEND_AFTER_HIDDEN_MS)
+		}
+
 		function resume() {
 			hiddenAt = null
 			clearTimer()
-			if (!paused) return
-			paused = false
-			getAdapter()?.resume()
+			if (paused) {
+				paused = false
+				getAdapter()?.resume()
+			}
+			// spurious resume (e.g. synthetic input) while still hidden: restart the suspend chain
+			if (document.visibilityState === 'hidden') enterHidden()
 		}
 
 		function onVisibilityChange() {
 			if (document.visibilityState === 'hidden') {
-				if (hiddenAt === null) {
-					hiddenAt = Date.now()
-					timer = setTimeout(trySuspend, SUSPEND_AFTER_HIDDEN_MS)
-				}
+				enterHidden()
 			} else {
 				resume()
 			}
 		}
+
+		// a tab opened in the background starts hidden and gets no visibilitychange event until revealed
+		if (document.visibilityState === 'hidden') enterHidden()
 
 		// user input implies visible even if a visibility event was missed
 		document.addEventListener('visibilitychange', onVisibilityChange)
@@ -78,7 +92,7 @@ export function useHiddenTabSuspend(clientRef: RefObject<TLSyncClient<TLRecord, 
 			document.removeEventListener('visibilitychange', onVisibilityChange)
 			document.removeEventListener('pointerdown', resume, { capture: true })
 			document.removeEventListener('keydown', resume, { capture: true })
-			// never leave a socket paused behind us
+			// never leave a socket paused behind us; safe no-op if useSync's cleanup already closed the socket
 			if (paused) getAdapter()?.resume()
 		}
 	}, [enabled, clientRef])
