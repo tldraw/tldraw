@@ -122,6 +122,19 @@ export class TLPostgresPool implements PostgresPool {
 			application_name: 'user-do',
 			keepAlive: false,
 		})
+		// Mirror LoggingClient's end/error accounting: the connection-events panel balances
+		// connects against ends to spot leaks, so a client that records a connect but never an
+		// end would read as a permanent leak there.
+		client.on('end', () => {
+			writeDataPoint(undefined, this.env.MEASURE, this.env, 'postgres_client_end', {
+				blobs: ['user-do'],
+			})
+		})
+		client.on('error', () => {
+			writeDataPoint(undefined, this.env.MEASURE, this.env, 'postgres_client_error', {
+				blobs: ['user-do'],
+			})
+		})
 
 		// Same start/done pairing as LoggingClient above: a hung dial only ever shows up as a
 		// start with no matching done, and this fresh-client-per-checkout path is otherwise
