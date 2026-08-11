@@ -61,19 +61,26 @@ test.describe('legacy routes', () => {
 		await expect(owner.page.getByTestId('tla-sidebar-layout')).toBeVisible()
 	})
 
-	test('legacy history routes load seeded versions', async ({ actors, scenario }) => {
+	test('legacy history routes are staff-only', async ({ actors, scenario }) => {
 		const owner = await actors.open('owner', { goto: false })
 		const fixture = await scenario.createLegacyRouteFixture(owner)
-		const visitor = await actors.open('visitor', { goto: false })
 
-		await visitor.page.goto(fixture.urls.history, { waitUntil: 'load' })
-		await expect(visitor.page.getByRole('heading', { name: 'Board history' })).toBeVisible()
+		// History is restricted to tldraw staff. The signed-in test users use @tldraw.com
+		// emails, so the owner is staff and can load history and restore versions.
+		await owner.page.goto(fixture.urls.history, { waitUntil: 'load' })
+		await expect(owner.page.getByRole('heading', { name: 'Board history' })).toBeVisible()
 		await expect
-			.poll(async () => await visitor.page.locator('.board-history').getByRole('link').count())
+			.poll(async () => await owner.page.locator('.board-history').getByRole('link').count())
 			.toBeGreaterThan(0)
 
-		await visitor.page.goto(fixture.urls.historySnapshot, { waitUntil: 'load' })
-		await visitor.homePage.isLoaded()
-		await expect(visitor.page.getByRole('button', { name: 'Restore version' })).toBeVisible()
+		await owner.page.goto(fixture.urls.historySnapshot, { waitUntil: 'load' })
+		await owner.homePage.isLoaded()
+		await expect(owner.page.getByRole('button', { name: 'Restore version' })).toBeVisible()
+
+		// Non-staff visitors (here, signed out) are redirected away from history.
+		const visitor = await actors.open('visitor', { goto: false })
+		await visitor.page.goto(fixture.urls.history, { waitUntil: 'load' })
+		await expect(visitor.page).not.toHaveURL(/history/)
+		await expect(visitor.page.getByRole('heading', { name: 'Board history' })).toHaveCount(0)
 	})
 })
