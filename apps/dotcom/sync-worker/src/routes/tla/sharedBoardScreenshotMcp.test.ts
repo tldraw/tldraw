@@ -206,6 +206,58 @@ describe('MCP server', () => {
 	})
 })
 
+describe('protocol version negotiation', () => {
+	// A post-handshake request states its version in a header rather than the body; makeRpcRequest
+	// deliberately sends none (the pre-2025-06-18 shape every other test exercises), so this builds
+	// the request by hand.
+	function makeVersionedListRequest(version: string) {
+		return new Request('https://sync.tldraw.xyz/app/mcp', {
+			method: 'POST',
+			headers: { 'x-test-user': 'user_60', 'mcp-protocol-version': version },
+			body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+		}) as any
+	}
+
+	it('echoes any supported version on initialize, and answers the newest for anything else', async () => {
+		for (const version of ['2025-11-25', '2025-06-18', '2025-03-26']) {
+			const result = await resultOf(
+				await sharedBoardScreenshotMcp(
+					makeRpcRequest('user_60', 'initialize', { protocolVersion: version }),
+					makeEnv()
+				)
+			)
+			expect(result.protocolVersion).toBe(version)
+		}
+
+		// A version we don't speak — older, newer, or absent — gets our newest back, leaving the
+		// client to decide whether it can proceed, which is the shape the spec asks for.
+		for (const params of [{ protocolVersion: '2026-07-28' }, undefined]) {
+			const result = await resultOf(
+				await sharedBoardScreenshotMcp(makeRpcRequest('user_60', 'initialize', params), makeEnv())
+			)
+			expect(result.protocolVersion).toBe('2025-11-25')
+		}
+	})
+
+	it('serves requests stating any supported version, and refuses others naming the list', async () => {
+		for (const version of ['2025-11-25', '2025-06-18', '2025-03-26']) {
+			const response = await sharedBoardScreenshotMcp(makeVersionedListRequest(version), makeEnv())
+			expect(response.status).toBe(200)
+		}
+
+		// Refusal covers both directions: a version this server predates is as unspeakable as one it
+		// dropped, and guessing at either would have the client trusting answers shaped for a
+		// different revision.
+		for (const version of ['2024-11-05', '2026-07-28']) {
+			const response = await sharedBoardScreenshotMcp(makeVersionedListRequest(version), makeEnv())
+			expect(response.status).toBe(400)
+			const body = (await response.json()) as any
+			expect(body.error).toBe('unsupported_protocol_version')
+			expect(body.error_description).toContain('2025-11-25')
+		}
+	})
+})
+
 describe('MCP_SCREENSHOT_ENABLED', () => {
 	// The switch is read per request rather than baked in at build time, so flipping the var takes
 	// the server down without a rebuild.

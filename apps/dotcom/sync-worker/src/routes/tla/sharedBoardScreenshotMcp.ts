@@ -53,8 +53,14 @@ const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
 // no authorization flow until `2025-03-26`, so a client holding this server to that version has no
 // conformant way to obtain the token every request now needs. Advertising it would leave those
 // clients unable to authenticate but convinced the server was working as specified.
-const MCP_PROTOCOL_VERSION = '2025-06-18'
-const SUPPORTED_MCP_PROTOCOL_VERSIONS = [MCP_PROTOCOL_VERSION, '2025-03-26']
+//
+// `2026-07-28` is also absent, for the opposite reason: it is not a version bump but a different
+// wire protocol — it removes the `initialize` handshake (version and capabilities move into `_meta`
+// on every request), requires a `server/discover` RPC, a `resultType` field on every result, and
+// `ttlMs`/`cacheScope` on `tools/list`. Claiming it means implementing all of that; `2025-11-25`
+// asks nothing of this server beyond what `2025-06-18` did.
+const MCP_PROTOCOL_VERSION = '2025-11-25'
+const SUPPORTED_MCP_PROTOCOL_VERSIONS = [MCP_PROTOCOL_VERSION, '2025-06-18', '2025-03-26']
 // What to assume when a request carries no MCP-Protocol-Version header. The spec names this exact
 // fallback: the header was introduced in 2025-06-18, so its absence means an earlier client rather
 // than a malformed request.
