@@ -1,13 +1,16 @@
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
+import { TLSyncClient } from '@tldraw/sync-core'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
 	Editor,
 	TLComponents,
+	TLRecord,
 	TLSessionStateSnapshot,
+	TLStore,
 	TLUiDialogsContextType,
 	TLUserStore,
 	Tldraw,
@@ -42,6 +45,7 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useHiddenTabSuspend } from '../../hooks/useHiddenTabSuspend'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
@@ -232,6 +236,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}
 	}, [app?.tlUser.userPreferences])
 
+	const syncClientRef = useRef<TLSyncClient<TLRecord, TLStore> | null>(null)
+	useHiddenTabSuspend(syncClientRef)
+
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
@@ -247,6 +254,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		records: commentSchemaRecords,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
 			trackEvent(message.type)
+		}, []),
+		onSyncClientCreated: useCallback((client: TLSyncClient<TLRecord, TLStore>) => {
+			syncClientRef.current = client
 		}, []),
 	})
 
