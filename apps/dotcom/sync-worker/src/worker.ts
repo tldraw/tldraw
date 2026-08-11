@@ -202,7 +202,8 @@ const router = createRouter<Environment>()
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
-	.post('/app/mcp', sharedBoardScreenshotMcp)
+	// .all so MCP server can correctly respond to non-post reqest with 405
+	.all('/app/mcp', sharedBoardScreenshotMcp)
 	// Registered at the origin rather than under /app, because RFC 9728 puts protected resource
 	// metadata at a well-known path derived from the resource's own path — a client looks for exactly
 	// this URL and nowhere else. The /api/* route pattern does not cover it, so wrangler.toml carries

@@ -104,6 +104,43 @@ function makeToolCall(userId: string, name: string, args: object) {
 	return makeRpcRequest(userId, 'tools/call', { name, arguments: args })
 }
 
+const MODERN_VERSION = '2026-07-28'
+const LEGACY_VERSION = '2025-11-25'
+
+// A 2026-07-28 request: version on every request, method and tool name mirrored into headers.
+// `headers` overrides let a test break one of those mirrors on purpose.
+function makeModernRpcRequest(
+	userId: string,
+	method: string,
+	params?: object,
+	{
+		version = MODERN_VERSION,
+		headers = {},
+	}: { version?: string; headers?: Record<string, string> } = {}
+) {
+	const name = (params as { name?: string } | undefined)?.name
+	return new Request('https://sync.tldraw.xyz/app/mcp', {
+		method: 'POST',
+		headers: {
+			'x-test-user': userId,
+			'mcp-protocol-version': version,
+			'mcp-method': method,
+			...(name ? { 'mcp-name': name } : {}),
+			...headers,
+		},
+		body: JSON.stringify({
+			jsonrpc: '2.0',
+			id: 1,
+			method,
+			params: { ...params, _meta: { 'io.modelcontextprotocol/protocolVersion': version } },
+		}),
+	}) as any
+}
+
+async function errorOf(response: Response) {
+	return ((await response.json()) as any).error
+}
+
 async function resultOf(response: Response) {
 	return ((await response.json()) as any).result
 }
@@ -218,43 +255,173 @@ describe('protocol version negotiation', () => {
 		}) as any
 	}
 
-	it('echoes any supported version on initialize, and answers the newest for anything else', async () => {
-		for (const version of ['2025-11-25', '2025-06-18', '2025-03-26']) {
-			const result = await resultOf(
-				await sharedBoardScreenshotMcp(
-					makeRpcRequest('user_60', 'initialize', { protocolVersion: version }),
-					makeEnv()
-				)
-			)
-			expect(result.protocolVersion).toBe(version)
-		}
-
-		// A version we don't speak — older, newer, or absent — gets our newest back, leaving the
-		// client to decide whether it can proceed, which is the shape the spec asks for.
-		for (const params of [{ protocolVersion: '2026-07-28' }, undefined]) {
+	it('answers initialize with the legacy version, whatever was asked for', async () => {
+		// `initialize` belongs to the legacy era, so it can only ever produce the legacy version: a
+		// client that speaks modern never calls it. Anything else asked for is offered this instead,
+		// and the client decides whether it can follow — the shape the spec asks for.
+		for (const params of [
+			{ protocolVersion: '2025-11-25' },
+			{ protocolVersion: '2025-06-18' },
+			{ protocolVersion: '2024-11-05' },
+			{ protocolVersion: MODERN_VERSION },
+			undefined,
+		]) {
 			const result = await resultOf(
 				await sharedBoardScreenshotMcp(makeRpcRequest('user_60', 'initialize', params), makeEnv())
 			)
-			expect(result.protocolVersion).toBe('2025-11-25')
+			expect(result.protocolVersion).toBe(LEGACY_VERSION)
 		}
 	})
 
-	it('serves requests stating any supported version, and refuses others naming the list', async () => {
-		for (const version of ['2025-11-25', '2025-06-18', '2025-03-26']) {
-			const response = await sharedBoardScreenshotMcp(makeVersionedListRequest(version), makeEnv())
+	it('serves both supported versions and refuses others naming the list', async () => {
+		for (const version of [MODERN_VERSION, LEGACY_VERSION]) {
+			// The modern era mirrors the method into a header, so send it for that one.
+			const request =
+				version === MODERN_VERSION
+					? makeModernRpcRequest('user_60', 'tools/list')
+					: makeVersionedListRequest(version)
+			const response = await sharedBoardScreenshotMcp(request, makeEnv())
 			expect(response.status).toBe(200)
 		}
 
 		// Refusal covers both directions: a version this server predates is as unspeakable as one it
 		// dropped, and guessing at either would have the client trusting answers shaped for a
 		// different revision.
-		for (const version of ['2024-11-05', '2026-07-28']) {
+		for (const version of ['2024-11-05', '2025-03-26', '2025-06-18']) {
 			const response = await sharedBoardScreenshotMcp(makeVersionedListRequest(version), makeEnv())
 			expect(response.status).toBe(400)
-			const body = (await response.json()) as any
-			expect(body.error).toBe('unsupported_protocol_version')
-			expect(body.error_description).toContain('2025-11-25')
+			const error = await errorOf(response)
+			expect(error.code).toBe(-32022)
+			expect(error.data).toEqual({
+				supported: [MODERN_VERSION, LEGACY_VERSION],
+				requested: version,
+			})
 		}
+	})
+
+	it('reports what it speaks, so a client can pick a version', async () => {
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(makeModernRpcRequest('user_60', 'server/discover'), makeEnv())
+		)
+		expect(result).toMatchObject({
+			resultType: 'complete',
+			supportedVersions: [MODERN_VERSION, LEGACY_VERSION],
+			capabilities: { tools: {} },
+			cacheScope: 'public',
+			_meta: { 'io.modelcontextprotocol/serverInfo': { name: 'tldraw-shared-board-screenshot' } },
+		})
+	})
+
+	it('answers server/discover even when the request names a version it does not speak', async () => {
+		// Refusing here would leave the client no way to find a version we have in common.
+		const response = await sharedBoardScreenshotMcp(
+			makeModernRpcRequest('user_60', 'server/discover', undefined, { version: '2024-11-05' }),
+			makeEnv()
+		)
+		expect(response.status).toBe(200)
+		expect((await resultOf(response)).supportedVersions).toEqual([MODERN_VERSION, LEGACY_VERSION])
+	})
+
+	it('still requires authentication to discover', async () => {
+		// Discovery sits behind the same 401 as everything else: that response is what points a client
+		// at the metadata it needs, and exempting one method would reopen the anonymous tier.
+		vi.mocked(authenticateMcpRequest).mockResolvedValue({
+			ok: false,
+			response: new Response('Unauthorized', { status: 401 }),
+		} as any)
+		const response = await sharedBoardScreenshotMcp(
+			makeModernRpcRequest('user_60', 'server/discover'),
+			makeEnv()
+		)
+		expect(response.status).toBe(401)
+	})
+
+	it('envelopes modern results and leaves legacy ones alone', async () => {
+		const modern = await resultOf(
+			await sharedBoardScreenshotMcp(makeModernRpcRequest('user_60', 'tools/list'), makeEnv())
+		)
+		expect(modern).toMatchObject({ resultType: 'complete', cacheScope: 'public' })
+		expect(modern.ttlMs).toBeGreaterThan(0)
+
+		const legacy = await resultOf(
+			await sharedBoardScreenshotMcp(makeRpcRequest('user_61', 'tools/list'), makeEnv())
+		)
+		expect(legacy.resultType).toBeUndefined()
+		expect(legacy.ttlMs).toBeUndefined()
+		expect(legacy._meta).toBeUndefined()
+		// Same tools either way — only the envelope differs.
+		expect(legacy.tools).toEqual(modern.tools)
+	})
+
+	it('drops ping for modern callers, which no longer have it', async () => {
+		const response = await sharedBoardScreenshotMcp(
+			makeModernRpcRequest('user_60', 'ping'),
+			makeEnv()
+		)
+		expect(response.status).toBe(404)
+		expect((await errorOf(response)).code).toBe(-32601)
+	})
+
+	it('answers anything but POST with 405', async () => {
+		const response = await sharedBoardScreenshotMcp(
+			new Request('https://sync.tldraw.xyz/app/mcp', { method: 'GET' }) as any,
+			makeEnv()
+		)
+		expect(response.status).toBe(405)
+	})
+})
+
+// The routing headers duplicate body fields, so a disagreement between them has to be rejected.
+describe('modern request headers', () => {
+	it('rejects a method header that disagrees with the body', async () => {
+		const response = await sharedBoardScreenshotMcp(
+			makeModernRpcRequest('user_62', 'tools/list', undefined, {
+				headers: { 'mcp-method': 'tools/call' },
+			}),
+			makeEnv()
+		)
+		expect(response.status).toBe(400)
+		expect((await errorOf(response)).code).toBe(-32020)
+	})
+
+	it('rejects a tool call whose name header disagrees with the body', async () => {
+		const response = await sharedBoardScreenshotMcp(
+			makeModernRpcRequest(
+				'user_62',
+				'tools/call',
+				{ name: 'get_board_info', arguments: { boardId: 'abc' } },
+				{ headers: { 'mcp-name': 'get_cluster_screenshot' } }
+			),
+			makeEnv()
+		)
+		expect(response.status).toBe(400)
+		expect((await errorOf(response)).code).toBe(-32020)
+	})
+
+	it('rejects a modern request missing a required header', async () => {
+		const request = makeModernRpcRequest('user_62', 'tools/list')
+		request.headers.delete('mcp-method')
+		const response = await sharedBoardScreenshotMcp(request, makeEnv())
+		expect(response.status).toBe(400)
+		expect((await errorOf(response)).code).toBe(-32020)
+	})
+
+	it('decodes a base64-wrapped name header before comparing it', async () => {
+		// Tool names are only *recommended* to be header-safe, so a conforming client may wrap one.
+		mockPublishedBoard()
+		const result = await resultOf(
+			await sharedBoardScreenshotMcp(
+				makeModernRpcRequest(
+					'user_62',
+					'tools/call',
+					{ name: 'get_board_info', arguments: { boardId: 'abc' } },
+					{ headers: { 'mcp-name': `=?base64?${btoa('get_board_info')}?=` } }
+				),
+				makeEnv()
+			)
+		)
+		expect(result.resultType).toBe('complete')
+		expect(JSON.parse(result.content[0].text).pageCount).toBe(3)
 	})
 })
 
