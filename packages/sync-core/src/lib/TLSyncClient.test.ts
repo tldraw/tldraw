@@ -662,12 +662,12 @@ describe('TLSyncClient', () => {
 			vi.advanceTimersByTime(4000)
 			expect(client.isConnectedToRoom).toBe(true)
 
-			// at t=20s the oldest unanswered ping (t=10s) is exactly 10s old — not yet overdue
-			vi.advanceTimersByTime(10_000)
+			// at t=15s the oldest unanswered ping (t=10s) is 5s old — not yet overdue
+			vi.advanceTimersByTime(5000)
 			expect(client.isConnectedToRoom).toBe(true)
 
-			// at t=30s it is 20s old, past PONG_TIMEOUT — reset
-			vi.advanceTimersByTime(10_000)
+			// at t=20s it is exactly PONG_TIMEOUT old — reset
+			vi.advanceTimersByTime(5000)
 			expect(client.isConnectedToRoom).toBe(false)
 
 			consoleSpy.mockRestore()

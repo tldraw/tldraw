@@ -646,7 +646,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				const pingOverdue =
 					firstUnansweredPingAt !== null &&
 					this.lastServerInteractionTimestamp < firstUnansweredPingAt &&
-					Date.now() - firstUnansweredPingAt > PONG_TIMEOUT
+					Date.now() - firstUnansweredPingAt >= PONG_TIMEOUT
 				if (!pingOverdue) {
 					this.debug('health check stale but no overdue ping', { timeSinceLastServerInteraction })
 					return
