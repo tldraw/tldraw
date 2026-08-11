@@ -173,11 +173,12 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **CL6** With `hydrationType: 'wipe_all'`, all document records are additionally wiped before the server's diff is applied; speculative changes still re-apply on top afterwards.
 - **CL7** After connecting, `onAfterConnect` is called with `{ isReadonly }` from the connect message, and the current presence state (if any) is pushed.
 - **CL8** When the socket goes `'offline'`, the client resets: presence records are removed from the store, pending and unsent pushes are dropped, and the client waits to reconnect. When the socket reports `'error'`, `onSyncError(reason)` fires and the client closes permanently.
-- **CL9** While connected, a ping is sent every 5 seconds; if nothing has been heard from the server for 10 seconds, the client warns and restarts the socket.
+- **CL9** While connected, a ping is sent every 5 seconds; the client warns and restarts the socket only when nothing has been heard from the server for 10 seconds AND a ping has been outstanding and unanswered for more than 10 seconds (`PONG_TIMEOUT`). Staleness without an unanswered ping (e.g. a throttled hidden tab whose own ping loop stopped) never resets.
 - **CL10** A `pong` (or any server message) refreshes the server-interaction timestamp.
 - **CL11** When `didCancel` is provided and returns true, the next event causes the client to close instead of processing.
 - **CL12** `close()` disposes all listeners and timers and removes the `window.tlsync` debugging reference (which construction installs).
 - **CL13** An `incompatibility_error` server message is legacy: it is logged as an error and otherwise ignored.
+- **CL14** The unanswered-ping marker advances only when the previous ping was answered (oldest-outstanding semantics), so a half-open socket that still accepts sends cannot defer detection indefinitely. The marker clears on connection reset.
 
 ## 20. `TLSyncClient` — pushing changes (CP)
 

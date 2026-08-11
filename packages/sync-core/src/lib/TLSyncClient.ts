@@ -286,6 +286,8 @@ export interface TLPersistentClientSocket<
 
 const PING_INTERVAL = 5000
 const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING_INTERVAL * 2
+/** How long an unanswered ping may stay outstanding before the connection is considered dead */
+const PONG_TIMEOUT = PING_INTERVAL * 2
 
 // Should connect support chunking the response to allow for large payloads?
 
@@ -367,6 +369,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	/** The last clock time from the most recent server update */
 	private lastServerClock = -1
 	private lastServerInteractionTimestamp = Date.now()
+	/** When the oldest ping that has not yet been answered was sent, or null if all pings were answered */
+	private firstUnansweredPingAt: number | null = null
 
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
 	private pendingPushRequests: TLPushRequest<R>[] = []
@@ -600,6 +604,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				this.debug('ping loop', { isConnectedToRoom: this.isConnectedToRoom })
 				if (!this.isConnectedToRoom) return
 				try {
+					// advance the marker only when the previous ping was answered: a half-open socket
+					// that accepts sends but returns nothing must not keep refreshing its own alibi
+					if (
+						this.firstUnansweredPingAt === null ||
+						this.lastServerInteractionTimestamp >= this.firstUnansweredPingAt
+					) {
+						this.firstUnansweredPingAt = Date.now()
+					}
 					this.socket.sendMessage({ type: 'ping' })
 				} catch (error) {
 					console.warn('ping failed, resetting', error)
@@ -618,7 +630,17 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION
 				) {
 					this.debug('health check passed', { timeSinceLastServerInteraction })
-					// last ping was recent, so no need to take any action
+					return
+				}
+
+				// Silence alone is not evidence of a dead socket: in a throttled hidden tab our own ping
+				// loop stops, so the server had nothing to answer. Only reset on an unanswered ping.
+				const pingOverdue =
+					this.firstUnansweredPingAt !== null &&
+					this.lastServerInteractionTimestamp < this.firstUnansweredPingAt &&
+					Date.now() - this.firstUnansweredPingAt > PONG_TIMEOUT
+				if (!pingOverdue) {
+					this.debug('health check stale but no overdue ping', { timeSinceLastServerInteraction })
 					return
 				}
 
@@ -684,6 +706,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 		this.lastPushedPresenceState = null
 		this.isConnectedToRoom = false
+		this.firstUnansweredPingAt = null
 		this.pendingPushRequests = []
 		this.incomingDiffBuffer = []
 		this.unsentChanges.nextDiff = undefined
