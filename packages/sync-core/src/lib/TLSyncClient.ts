@@ -286,7 +286,11 @@ export interface TLPersistentClientSocket<
 
 const PING_INTERVAL = 5000
 const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING_INTERVAL * 2
-/** How long an unanswered ping may stay outstanding before the connection is considered dead */
+/**
+ * How long an unanswered ping may stay outstanding before the connection is considered dead.
+ * Tuned together with MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION:
+ * a reset needs both stale interaction and a ping overdue by this much.
+ */
 const PONG_TIMEOUT = PING_INTERVAL * 2
 
 // Should connect support chunking the response to allow for large payloads?
@@ -369,7 +373,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	/** The last clock time from the most recent server update */
 	private lastServerClock = -1
 	private lastServerInteractionTimestamp = Date.now()
-	/** When the oldest ping that has not yet been answered was sent, or null if all pings were answered */
+	/**
+	 * Send time of the oldest outstanding ping; answered iff `lastServerInteractionTimestamp >= it`
+	 * (any server message counts). Null until the first ping after (re)connect.
+	 */
 	private firstUnansweredPingAt: number | null = null
 
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
@@ -635,16 +642,22 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 				// Silence alone is not evidence of a dead socket: in a throttled hidden tab our own ping
 				// loop stops, so the server had nothing to answer. Only reset on an unanswered ping.
+				const firstUnansweredPingAt = this.firstUnansweredPingAt
 				const pingOverdue =
-					this.firstUnansweredPingAt !== null &&
-					this.lastServerInteractionTimestamp < this.firstUnansweredPingAt &&
-					Date.now() - this.firstUnansweredPingAt > PONG_TIMEOUT
+					firstUnansweredPingAt !== null &&
+					this.lastServerInteractionTimestamp < firstUnansweredPingAt &&
+					Date.now() - firstUnansweredPingAt > PONG_TIMEOUT
 				if (!pingOverdue) {
 					this.debug('health check stale but no overdue ping', { timeSinceLastServerInteraction })
 					return
 				}
 
-				console.warn(`Haven't heard from the server in a while, resetting connection...`)
+				// A frozen tab can deliver a queued pong only after these catch-up ticks run, so one
+				// spurious reset on unfreeze is still possible — rare, and the reconnect is clean.
+				console.warn(`Haven't heard from the server in a while, resetting connection...`, {
+					timeSinceLastServerInteraction,
+					pingOutstandingMs: Date.now() - firstUnansweredPingAt!,
+				})
 				this.resetConnection()
 			}, PING_INTERVAL * 2)
 		)

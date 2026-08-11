@@ -609,11 +609,44 @@ describe('TLSyncClient', () => {
 			expect(client.isConnectedToRoom).toBe(true)
 
 			vi.advanceTimersByTime(10_000)
-			// health tick at 20s: the t=5s ping is 15s overdue — evidence of a dead socket
+			// health tick at 20s: the t=5s ping is 15s old, past PONG_TIMEOUT — evidence of a dead socket
 			expect(client.isConnectedToRoom).toBe(false)
 			expect(consoleSpy).toHaveBeenCalledWith(
-				expect.stringContaining("Haven't heard from the server")
+				expect.stringContaining("Haven't heard from the server"),
+				expect.objectContaining({ pingOutstandingMs: expect.any(Number) })
 			)
+			consoleSpy.mockRestore()
+		})
+
+		it('[CL14] a pong landing in the same millisecond as the ping still counts as an answer', () => {
+			const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+			client = createClient()
+			socket.mockServerMessage(createConnectMessage())
+
+			// three ping/pong rounds where the pong arrives in the same ms as the ping send
+			for (let i = 0; i < 3; i++) {
+				vi.advanceTimersByTime(5000)
+				socket.mockServerMessage({ type: 'pong' })
+			}
+			expect(client.isConnectedToRoom).toBe(true)
+
+			// then the socket dies: the t=20s ping goes unanswered and must still convict.
+			// Guards the >= in the marker-advance rule: with > the same-ms pongs above would
+			// freeze the marker and the dead socket would never reset.
+			vi.advanceTimersByTime(25_000)
+			expect(client.isConnectedToRoom).toBe(false)
+			consoleSpy.mockRestore()
+		})
+
+		it('[CL14] the unanswered-ping marker clears on connection reset', () => {
+			const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+			client = createClient()
+			socket.mockServerMessage(createConnectMessage())
+
+			// drive a reset via a dead socket
+			vi.advanceTimersByTime(20_000)
+			expect(client.isConnectedToRoom).toBe(false)
+			expect((client as any).firstUnansweredPingAt).toBeNull()
 			consoleSpy.mockRestore()
 		})
 
@@ -633,7 +666,7 @@ describe('TLSyncClient', () => {
 			vi.advanceTimersByTime(10_000)
 			expect(client.isConnectedToRoom).toBe(true)
 
-			// at t=30s it is 20s overdue — reset
+			// at t=30s it is 20s old, past PONG_TIMEOUT — reset
 			vi.advanceTimersByTime(10_000)
 			expect(client.isConnectedToRoom).toBe(false)
 
@@ -646,7 +679,7 @@ describe('TLSyncClient', () => {
 			socket.mockServerMessage(createConnectMessage())
 
 			// Chrome batches a hidden tab's timers to ~1/min wakes: the clock jumps, then the
-			// overdue ping + health ticks fire together, and the pong arrives right after.
+			// delayed ping + health ticks fire together, and the pong arrives right after.
 			for (let i = 0; i < 3; i++) {
 				vi.setSystemTime(Date.now() + 60_000)
 				vi.advanceTimersByTime(10_000)
