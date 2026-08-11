@@ -7,6 +7,7 @@ import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFi
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { authenticateMcpRequest } from './mcpAuth'
 import {
+	blobsWithPrefix,
 	callerBlobsOf,
 	failureBlobsOf,
 	makeBrowserBinding,
@@ -15,6 +16,7 @@ import {
 	makeMeasuringBrowserBinding,
 	makeScreenshotTestEnv,
 	makeSnapshot,
+	renderDurationsOf,
 	screenshotOf,
 } from './screenshotTestHelpers'
 import {
@@ -622,6 +624,60 @@ describe('shape screenshots', () => {
 		])
 		// helper measure (1) + first call's measure and capture (2) + second call's measure only (1).
 		expect(screenshotOf(env)).toHaveBeenCalledTimes(4)
+		// The hit skipped the capture but not the measure, and its datapoint must say so: the -1
+		// sentinel here would report a full Browser Run session as free.
+		expect(blobsWithPrefix(env, 'cache:').at(-1)).toBe('cache:hit')
+		expect(renderDurationsOf(env).at(-1)).not.toBe(-1)
+	})
+
+	it('records the measure spend of get_page_info in telemetry', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+
+		const result = await callTool(
+			'user_pi_spend',
+			'get_page_info',
+			{ boardId: 'abc', page: 0 },
+			env
+		)
+
+		expect(result.isError).toBeUndefined()
+		expect(failureBlobsOf(env)).toEqual(['failure:none'])
+		// The measure render held a browser; -1 would keep this tool's spend out of the ledger.
+		expect(renderDurationsOf(env)).toHaveLength(1)
+		expect(renderDurationsOf(env)[0]).not.toBe(-1)
+	})
+
+	it('records the measure spend of get_cluster_info in telemetry', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const clusterId = await firstClusterId(env, 'user_ci_spend', 'abc')
+
+		const result = await callTool(
+			'user_ci_spend',
+			'get_cluster_info',
+			{ boardId: 'abc', clusterId },
+			env
+		)
+
+		expect(result.isError).toBeUndefined()
+		// One row from the firstClusterId helper's get_page_info, one from this call.
+		expect(renderDurationsOf(env)).toHaveLength(2)
+		expect(renderDurationsOf(env).at(-1)).not.toBe(-1)
+	})
+
+	it('writes a telemetry row when get_page_info cannot resolve the board', async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
+		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
+		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
+
+		const result = await callTool('user_pi_nf', 'get_page_info', { boardId: 'nope', page: 0 }, env)
+
+		expect(result.isError).toBe(true)
+		expect(failureBlobsOf(env)).toEqual(['failure:not_found'])
+		// The refusal came before the measure, so nothing was spent and the sentinel stands.
+		expect(renderDurationsOf(env)).toEqual([-1])
 	})
 
 	it('errors when the page is out of range, without spending a render', async () => {
@@ -781,8 +837,9 @@ describe('shape screenshots', () => {
 			{ type: 'text', text: 'Cover' },
 			{ type: 'image', data: 'AQID', mimeType: 'image/png' },
 		])
-		// The render itself succeeded, so this is not recorded as a screenshot failure.
-		expect(failureBlobsOf(env)).toEqual(['failure:none'])
+		// The render itself succeeded, so this is not recorded as a screenshot failure. Two rows:
+		// the firstClusterId helper's get_page_info measure, then the screenshot — neither failed.
+		expect(failureBlobsOf(env)).toEqual(['failure:none', 'failure:none'])
 	})
 
 	it('records the hashed account only on failures, not on successful screenshots', async () => {
@@ -795,7 +852,9 @@ describe('shape screenshots', () => {
 			{ boardId: 'abc', clusterIds: [clusterId] },
 			successEnv
 		)
-		expect(callerBlobsOf(successEnv)).toEqual(['caller:none'])
+		// Both successful rows — the helper's get_page_info measure and the screenshot — omit the
+		// caller: the per-client dimension must stay off the common success path for every tool.
+		expect(callerBlobsOf(successEnv)).toEqual(['caller:none', 'caller:none'])
 
 		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)

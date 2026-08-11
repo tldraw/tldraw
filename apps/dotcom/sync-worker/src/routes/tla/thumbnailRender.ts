@@ -437,17 +437,19 @@ export async function putRenderResult(
 }
 
 /**
- * Measures every shape on a page through a real editor, returning `shapeId -> bounds and text`.
+ * Measures every shape on a page through a real editor, returning `shapeId -> bounds and text`
+ * along with how long the browser session took.
  *
  * Costs one Browser Rendering session, the same as a screenshot — there is no cheaper way to get
- * geometry the Worker cannot compute. Callers own the rate limiting that implies.
+ * geometry the Worker cannot compute. Callers own the rate limiting that implies, and `durationMs`
+ * is how they put that spend on the telemetry ledger rather than reporting the session as free.
  */
 export async function measurePageShapes(
 	env: Environment,
 	board: ResolvedThumbnailBoard,
 	pageId: string,
 	{ surface }: { surface: ThumbnailRenderSurface }
-): Promise<Record<string, ShapeMeasurement>> {
+): Promise<{ measurements: Record<string, ShapeMeasurement>; durationMs: number }> {
 	const job: ThumbnailRenderJob = {
 		v: 1,
 		kind: board.kind,
@@ -478,10 +480,14 @@ export async function measurePageShapes(
 
 	// The screenshot is discarded — it is only how the browser session is driven, and how we know the
 	// page reached its terminal state. The answer arrives via the result endpoint.
-	await renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
-		width: DEFAULT_THUMBNAIL_WIDTH,
-		height: DEFAULT_THUMBNAIL_HEIGHT,
-	})
+	const { durationMs } = await renderThumbnailScreenshot(
+		env,
+		buildThumbnailRenderUrl(getRenderOrigin(env), token),
+		{
+			width: DEFAULT_THUMBNAIL_WIDTH,
+			height: DEFAULT_THUMBNAIL_HEIGHT,
+		}
+	)
 
 	if (!env.THUMBNAILS) throw new Error('THUMBNAILS bucket is not configured')
 	const key = getRenderResultKey(token)
@@ -490,7 +496,7 @@ export async function measurePageShapes(
 	const bounds = JSON.parse(await stored.text())
 	// Read once: the token is single-use, so leaving the object behind would only accumulate.
 	await env.THUMBNAILS.delete(key)
-	return bounds
+	return { measurements: bounds, durationMs }
 }
 
 export async function putThumbnailPng(

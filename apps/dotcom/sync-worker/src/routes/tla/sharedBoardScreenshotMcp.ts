@@ -492,14 +492,19 @@ async function callPageInfoTool(
 		)
 	}
 
+	const telemetry = await mcpTelemetryWriter(env, userId)
 	try {
 		// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve
 		// cluster ids against a single page, so listing every shape on the board here would hand out
 		// ids that neither of them can look up.
 		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId)
-		if (!resolved.ok) return resolved.result
+		if (!resolved.ok) {
+			telemetry({ cacheStatus: 'miss', failureReason: resolved.reason })
+			return resolved.result
+		}
 
-		const clusters = await clusterPage(env, resolved)
+		const { clusters, browserRunDurationMs } = await clusterPage(env, resolved)
+		telemetry({ cacheStatus: 'miss', browserRunDurationMs })
 		return toolJsonResult({
 			name: resolved.pageName,
 			clusterCount: clusters.length,
@@ -511,9 +516,10 @@ async function callPageInfoTool(
 			})),
 		})
 	} catch (error) {
-		// The caller gets a bounded description, but nothing else records it: this tool writes no
-		// telemetry (it spends no Browser Run), so without a report a failing board lookup is
-		// invisible to us.
+		// Unlike get_board_info, this tool spends a Browser Run session on its measure render, so its
+		// failures belong on the same ledger as the screenshot tool's: one bounded reason code for the
+		// blob and the caller, the duration when the failed render carried one, and the unbounded
+		// original for Sentry.
 		reportThumbnailError(error, {
 			ctx,
 			env,
@@ -521,9 +527,13 @@ async function callPageInfoTool(
 			surface: 'mcp_board_info',
 			extras: { boardId: input.boardId },
 		})
-		return toolError(
-			`Could not read page info: ${describeThumbnailFailure(classifyScreenshotFailure(error))}.`
-		)
+		const failureReason = classifyScreenshotFailure(error)
+		telemetry({
+			cacheStatus: 'miss',
+			failureReason,
+			browserRunDurationMs: browserRunDurationOf(error),
+		})
+		return toolError(`Could not read page info: ${describeThumbnailFailure(failureReason)}.`)
 	}
 }
 
@@ -604,21 +614,48 @@ async function resolveBoardPage(
 	}
 }
 
+// One datapoint shape for every MCP tool: `source: 'mcp'` plus the caller. Hashed rather than raw,
+// so the dataset holds an account that spend or abuse can be traced back to without carrying user
+// ids around — it replaced the hashed client IP the screenshot tool used before authentication was
+// required, which was weak in both directions: evaded by a proxy pool and shared across a NAT.
+async function mcpTelemetryWriter(env: Environment, userId: string) {
+	const callerHash = await sha256(userId)
+	return (data: {
+		cacheStatus: 'hit' | 'miss'
+		browserRunDurationMs?: number
+		failureReason?: string
+		rateLimitAllowed?: boolean
+	}) => {
+		writeScreenshotTelemetry(env, { source: 'mcp', callerHash, ...data })
+	}
+}
+
 // Clustering needs real geometry, and the only way to get it is to run an editor in Browser
 // Rendering — the same cost as a screenshot. Every caller goes through here, so that cost is stated
-// once rather than implied in three places.
+// once rather than implied in three places — and returned, so every caller can put it on the
+// telemetry ledger instead of reporting the session as free.
 async function clusterPage(env: Environment, resolved: Extract<ResolvedPage, { ok: true }>) {
-	const measured = await measurePageShapes(env, resolved.board, resolved.pageId, { surface: 'mcp' })
+	const { measurements, durationMs } = await measurePageShapes(
+		env,
+		resolved.board,
+		resolved.pageId,
+		{
+			surface: 'mcp',
+		}
+	)
 
 	// The render answers two things a Worker cannot: where each shape sits, and what
 	// ShapeUtil.getText says it holds. Bounds drive the linkage; the text is attached to the shapes
 	// so labelling reads the editor's answer rather than re-deriving one from props.
 	const shapes: TLShapeWithPlainText[] = resolved.shapes.map((shape) => {
-		const text = measured[shape.id as string]?.text
+		const text = measurements[shape.id as string]?.text
 		return text ? { ...shape, plainText: text } : shape
 	})
 
-	return getShapeClusters(shapes, resolved.pageId, measured)
+	return {
+		clusters: getShapeClusters(shapes, resolved.pageId, measurements),
+		browserRunDurationMs: durationMs,
+	}
 }
 
 // The shape as stored, with one substitution: `props.richText` — a ProseMirror document, deeply
@@ -664,17 +701,25 @@ async function callClusterInfoTool(
 		)
 	}
 
+	const telemetry = await mcpTelemetryWriter(env, userId)
 	try {
 		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId)
-		if (!resolved.ok) return resolved.result
+		if (!resolved.ok) {
+			telemetry({ cacheStatus: 'miss', failureReason: resolved.reason })
+			return resolved.result
+		}
 
-		const cluster = (await clusterPage(env, resolved)).find((c) => c.id === input.clusterId)
+		const { clusters, browserRunDurationMs } = await clusterPage(env, resolved)
+		const cluster = clusters.find((c) => c.id === input.clusterId)
 		if (!cluster) {
+			// The measure already ran, so this refusal still carries its cost.
+			telemetry({ cacheStatus: 'miss', failureReason: 'shape_not_found', browserRunDurationMs })
 			return toolError(
 				`No cluster with id "${input.clusterId}" on page ${describePageSelector(input.page)}. Call get_page_info to list this page's clusters.`
 			)
 		}
 
+		telemetry({ cacheStatus: 'miss', browserRunDurationMs })
 		return toolJsonResult({
 			clusterId: cluster.id,
 			label: cluster.label,
@@ -695,9 +740,13 @@ async function callClusterInfoTool(
 				clusterId: input.clusterId,
 			},
 		})
-		return toolError(
-			`Could not read cluster info: ${describeThumbnailFailure(classifyScreenshotFailure(error))}.`
-		)
+		const failureReason = classifyScreenshotFailure(error)
+		telemetry({
+			cacheStatus: 'miss',
+			failureReason,
+			browserRunDurationMs: browserRunDurationOf(error),
+		})
+		return toolError(`Could not read cluster info: ${describeThumbnailFailure(failureReason)}.`)
 	}
 }
 
@@ -722,25 +771,23 @@ async function renderShapeSetScreenshot(
 		userId: string
 		/** Extra Sentry context identifying which tool asked. */
 		extras: Record<string, unknown>
+		/**
+		 * Resolves which shapes to draw. `browserRunDurationMs` is what the resolution itself spent in
+		 * Browser Run (the cluster tool's measure render) — reported in both branches, because a
+		 * cluster id that resolves to nothing has still paid for the measure.
+		 */
 		pickShapes(
 			resolved: Extract<ResolvedPage, { ok: true }>
 		): Promise<
-			{ ok: true; shapeIds: string[] } | { ok: false; result: ReturnType<typeof toolError> }
+			| { ok: true; shapeIds: string[]; browserRunDurationMs?: number }
+			| { ok: false; result: ReturnType<typeof toolError>; browserRunDurationMs?: number }
 		>
 	}
 ) {
-	// Hashed rather than raw, so the dataset holds an account that spend or abuse can be traced back
-	// to without carrying user ids around. Replaces the hashed client IP this used before it required
-	// authentication — IP was weak in both directions, evaded by a proxy pool and shared across a NAT.
-	const callerHash = await sha256(userId)
-	const telemetry = (data: {
-		cacheStatus: 'hit' | 'miss'
-		browserRunDurationMs?: number
-		failureReason?: string
-		rateLimitAllowed?: boolean
-	}) => {
-		writeScreenshotTelemetry(env, { source: 'mcp', callerHash, ...data })
-	}
+	const telemetry = await mcpTelemetryWriter(env, userId)
+	// What pickShapes spent, held outside the try so the catch can add it to a failed capture's own
+	// duration — a screenshot that dies after the measure has still paid for both sessions.
+	let measureMs: number | undefined
 
 	// Checked before the cache, unlike the two below: this is the per-caller ceiling on calls, not on
 	// captures, so a caller looping over cache hits is still bounded. Shares the screenshot budget
@@ -775,8 +822,13 @@ async function renderShapeSetScreenshot(
 		}
 
 		const picked = await pickShapes(resolved)
+		measureMs = picked.browserRunDurationMs
 		if (!picked.ok) {
-			telemetry({ cacheStatus: 'miss', failureReason: 'shape_not_found' })
+			telemetry({
+				cacheStatus: 'miss',
+				failureReason: 'shape_not_found',
+				browserRunDurationMs: measureMs,
+			})
 			return picked.result
 		}
 		const shapeIds = picked.shapeIds
@@ -786,7 +838,10 @@ async function renderShapeSetScreenshot(
 		const cacheKey = await getShapesCacheKey(resolved.board, theme, shapeIds)
 		const cached = await env.MCP_DATA_BUCKET.get(cacheKey)
 		if (cached) {
-			telemetry({ cacheStatus: 'hit' })
+			// A hit skips the capture but not the measure pickShapes already ran — the cache key needs
+			// the resolved cluster ids, which is the measure. Omitting the duration here would file a
+			// full Browser Run session under "spent nothing".
+			telemetry({ cacheStatus: 'hit', browserRunDurationMs: measureMs })
 			return toolPageResult(
 				decodeThumbnailPageName(cached.customMetadata?.pageName),
 				arrayBufferToBase64(await cached.arrayBuffer())
@@ -844,7 +899,12 @@ async function renderShapeSetScreenshot(
 			})
 		}
 
-		telemetry({ cacheStatus: 'miss', browserRunDurationMs: render.durationMs })
+		// The measure and the capture were both real browser sessions serving this one call, so the
+		// datapoint carries their sum: double3 is the call's total Browser Run wall-clock.
+		telemetry({
+			cacheStatus: 'miss',
+			browserRunDurationMs: (measureMs ?? 0) + render.durationMs,
+		})
 		return toolPageResult(resolved.pageName, render.base64)
 	} catch (error) {
 		// One bounded reason code drives both the telemetry blob (so unbounded error strings never
@@ -858,13 +918,18 @@ async function renderShapeSetScreenshot(
 			extras: { boardId, page: describePageSelector(page), theme, ...extras },
 		})
 		const failureReason = classifyScreenshotFailure(error)
-		// A capture that failed still held a browser, so its duration belongs on the datapoint the same
-		// as a successful one's. Undefined when the failure came before the capture and spent nothing —
-		// which for these tools includes a failed measure render, not just a failed screenshot.
+		// A failed session still held a browser, so whatever was spent belongs on the datapoint: the
+		// measure when pickShapes got that far, plus the failed render's own duration when the error
+		// carried one. Undefined only when the failure preceded any browser work, keeping the -1
+		// sentinel meaning "spent nothing".
+		const failedMs = browserRunDurationOf(error)
 		telemetry({
 			cacheStatus: 'miss',
 			failureReason,
-			browserRunDurationMs: browserRunDurationOf(error),
+			browserRunDurationMs:
+				measureMs === undefined && failedMs === undefined
+					? undefined
+					: (measureMs ?? 0) + (failedMs ?? 0),
 		})
 		return toolError(`Screenshot failed: ${describeThumbnailFailure(failureReason)}.`)
 	}
@@ -900,7 +965,7 @@ async function callClusterScreenshotTool(
 		userId,
 		extras: { clusterIds: input.clusterIds.join(',') },
 		pickShapes: async (resolved) => {
-			const clusters = await clusterPage(env, resolved)
+			const { clusters, browserRunDurationMs } = await clusterPage(env, resolved)
 			const byId = new Map(clusters.map((cluster) => [cluster.id, cluster]))
 
 			// Reject unknown ids rather than quietly rendering the subset that resolved — a caller
@@ -909,6 +974,7 @@ async function callClusterScreenshotTool(
 			if (missing.length > 0) {
 				return {
 					ok: false,
+					browserRunDurationMs,
 					result: toolError(
 						`No cluster on page ${describePageSelector(input.page)} with id ${missing.map((id) => `"${id}"`).join(', ')}. Call get_page_info to list this page's clusters.`
 					),
@@ -922,7 +988,7 @@ async function callClusterScreenshotTool(
 					input.clusterIds.flatMap((id) => byId.get(id)!.shapes.map((shape) => shape.id as string))
 				),
 			]
-			return { ok: true, shapeIds }
+			return { ok: true, shapeIds, browserRunDurationMs }
 		},
 	})
 }
