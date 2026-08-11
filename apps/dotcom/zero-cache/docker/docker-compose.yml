@@ -1,3 +1,7 @@
+# Pin the Compose project name so `docker compose up` (run by process-compose), its shutdown hook,
+# and `yarn dev-app:clean` all act on the same project, containers, and volumes.
+name: tldraw_dotcom_dev
+
 services:
   zstart_postgres:
     image: simonfuhrer/postgresql:16.1-wal2json

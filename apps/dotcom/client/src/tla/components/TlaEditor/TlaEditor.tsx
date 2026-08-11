@@ -1,3 +1,4 @@
+import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
@@ -12,6 +13,7 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	UserRecordType,
+	commentSchemaRecords,
 	computed,
 	createSessionStateSnapshotSignal,
 	createUserId,
@@ -40,15 +42,18 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
+import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
 import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
 import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { SneakyCommentDeepLink } from './sneaky/SneakyCommentDeepLink'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
@@ -59,6 +64,16 @@ import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+
+// Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
+// editable canvas get a sign-in prompt where the composers would be; view-only sessions
+// read threads without composers (the server rejects their writes in the authorizers).
+const tlaCommentTools = [
+	CommentTool.configure({
+		canComment: ({ editor, currentUserId }) => currentUserId !== null && !editor.getIsReadonly(),
+		components: { ComposerFallback: SignInToComment },
+	}),
+]
 
 /** @internal */
 export const components: TLComponents = {
@@ -227,6 +242,9 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 		}, [fileSlug, hasUser, getUserToken]),
 		assets,
 		users,
+		// Register the opt-in `comment` record type so comment records sync through the file room.
+		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
+		records: commentSchemaRecords,
 		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
 			trackEvent(message.type)
 		}, []),
@@ -273,13 +291,30 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
+	const anonCommentToolOverrides = useAnonCommentToolOverrides()
+	const commentingEnabled = useIsCommentingEnabled()
 
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
+			InFrontOfTheCanvas: commentingEnabled
+				? () => <CommentsOnCanvas fileId={fileId} />
+				: undefined,
 		}
-	}, [])
+	}, [fileId, commentingEnabled])
+
+	// Without the tool and its overrides there's no comment button in Quick Actions and no `c`
+	// shortcut, so commenting is fully absent for users the flag doesn't cover. On read-only
+	// canvases the button and shortcut hide via the UI's readonly handling, and composing is
+	// gated by the tool's `canComment`.
+	const editorOverrides = useMemo(
+		() =>
+			commentingEnabled
+				? [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides]
+				: [overrides, extraDragIconOverrides],
+		[commentingEnabled, overrides, extraDragIconOverrides, anonCommentToolOverrides]
+	)
 
 	return (
 		<TlaEditorWrapper>
@@ -289,6 +324,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
+				tools={commentingEnabled ? tlaCommentTools : undefined}
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
@@ -297,7 +333,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 					actionShortcutsLocation: 'toolbar',
 					deepLinks: deepLinks ? true : undefined,
 				}}
-				overrides={[overrides, extraDragIconOverrides]}
+				overrides={editorOverrides}
 				getShapeVisibility={getShapeVisibility}
 			>
 				<ThemeUpdater />
@@ -307,6 +343,7 @@ function TlaEditorInner({ fileSlug, deepLinks }: TlaEditorProps) {
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
+				{commentingEnabled && <SneakyCommentDeepLink />}
 				<TlaAnonDotDevLink />
 			</Tldraw>
 		</TlaEditorWrapper>

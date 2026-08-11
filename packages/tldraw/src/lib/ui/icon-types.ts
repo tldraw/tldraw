@@ -39,6 +39,7 @@ export type TLUiIconType =
 	| 'chevrons-sw'
 	| 'clipboard-copied'
 	| 'clipboard-copy'
+	| 'closed'
 	| 'code'
 	| 'color'
 	| 'comment'
@@ -204,6 +205,7 @@ export const iconTypes = [
 	'chevrons-sw',
 	'clipboard-copied',
 	'clipboard-copy',
+	'closed',
 	'code',
 	'color',
 	'comment',

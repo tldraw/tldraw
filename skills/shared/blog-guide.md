@@ -2,7 +2,7 @@
 
 This document defines the rules and conventions for tldraw technical blog posts.
 
-**Prerequisite**: Read the [writing guide](./writing-guide.md) first. This document builds on those foundations with blog-specific patterns.
+**Prerequisite**: Read the [voice and style guide](../../VOICE.md) first. This document builds on those foundations with blog-specific patterns.
 
 ## What technical blog posts are
 
@@ -186,4 +186,4 @@ When reviewing a technical blog post, check:
 - [ ] **Links** — Points to actual code in the repo?
 - [ ] **Length** — Appropriate depth for the topic?
 
-For voice and style, refer to the [writing guide](./writing-guide.md) checklist.
+For voice and style, refer to the [voice and style guide](../../VOICE.md) checklist.

@@ -1,0 +1,69 @@
+apiVersion: rules.alerting.grafana.app/v0alpha1
+kind: AlertRule
+metadata:
+  annotations:
+    grafana.app/folder: f6hsw6
+    grafana.com/provenance: ''
+    grafana.com/updateTimestamp: '2026-04-21T09:06:29Z'
+    grafana.com/updatedBy: ae5t47muqbegwf
+  labels:
+    grafana.app/folder: f6hsw6
+    grafana.com/group: zero-alerts
+    grafana.com/group-index: '1'
+  name: dfjn3qe3l7w8wc
+  namespace: stacks-890472
+spec:
+  execErrState: Error
+  expressions:
+    A:
+      datasourceUID: grafanacloud-prom
+      model:
+        editorMode: code
+        expr: zero_replica_backup_lag_millisecond{deployment_environment="production",
+          service_name="zero-rm"}
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+      relativeTimeRange:
+        from: 10m0s
+        to: 0s
+    C:
+      model:
+        conditions:
+          - evaluator:
+              params:
+                - 1200000
+              type: gt
+            operator:
+              type: and
+            query:
+              params:
+                - C
+            reducer:
+              params: []
+              type: last
+            type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+      queryType: expression
+      source: true
+  for: 20m0s
+  labels:
+    service: zero
+    severity: critical
+  noDataState: NoData
+  notificationSettings:
+    receiver: Discord
+    type: SimplifiedRouting
+  title: Zero replica backup lag
+  trigger:
+    interval: 20m

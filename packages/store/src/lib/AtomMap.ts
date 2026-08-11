@@ -165,6 +165,50 @@ export class AtomMap<K, V> implements Map<K, V> {
 	}
 
 	/**
+	 * Gets the value associated with a key, inserting `defaultValue` first if the key doesn't exist.
+	 * This method is reactive and will cause reactive contexts to update when the value changes.
+	 *
+	 * @param key - The key to retrieve the value for
+	 * @param defaultValue - The value to insert if the key doesn't exist
+	 * @returns The existing value, or `defaultValue` if the key was missing
+	 * @example
+	 * ```ts
+	 * const map = new AtomMap('myMap')
+	 * console.log(map.getOrInsert('count', 0)) // 0, and 'count' is now set
+	 * console.log(map.getOrInsert('count', 10)) // 0
+	 * ```
+	 */
+	getOrInsert(key: K, defaultValue: V): V {
+		return this.getOrInsertComputed(key, () => defaultValue)
+	}
+
+	/**
+	 * Gets the value associated with a key, inserting the result of `callback` first if the key
+	 * doesn't exist. The callback only runs when the key is missing.
+	 * This method is reactive and will cause reactive contexts to update when the value changes.
+	 *
+	 * @param key - The key to retrieve the value for
+	 * @param callback - Called with the key to produce the value to insert
+	 * @returns The existing value, or the newly computed value if the key was missing
+	 * @example
+	 * ```ts
+	 * const map = new AtomMap<string, string[]>('myMap')
+	 * map.getOrInsertComputed('tags', () => []).push('new')
+	 * ```
+	 */
+	getOrInsertComputed(key: K, callback: (key: K) => V): V {
+		const valueAtom = this.getAtom(key)
+		if (valueAtom) {
+			const value = valueAtom.get()
+			if (value !== UNINITIALIZED) return value
+		}
+
+		const value = callback(key)
+		this.set(key, value)
+		return value
+	}
+
+	/**
 	 * Updates an existing value using an updater function.
 	 *
 	 * @param key - The key of the value to update

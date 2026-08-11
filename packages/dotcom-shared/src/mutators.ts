@@ -19,7 +19,6 @@ import {
 	TlaFileStatePartial,
 	TlaFlags,
 	TlaGroupFile,
-	TlaGroupUser,
 	TlaSchema,
 	TlaUser,
 	TlaUserPartial,
@@ -235,6 +234,57 @@ export function createMutators(userId: string) {
 			},
 		},
 
+		comment: {
+			/**
+			 * Mark a comment as read by the current user. Row present = read; readAt is stored so
+			 * an "edits reset unread" rule can later be added client-side without a migration.
+			 */
+			markRead: async (tx: Tx, { commentId, readAt }: { commentId: string; readAt: number }) => {
+				if (tx.location === 'server') {
+					// Verify the comment exists and the user can access its file
+					const comment = await tx.run(zql.comment.where('id', '=', commentId).one())
+					assert(comment, ZErrorCode.bad_request)
+					const file = await tx.run(zql.file.where('id', '=', comment.fileId).one())
+					await assertUserCanAccessFile(tx, userId, file!)
+				}
+				await tx.mutate.comment_read.upsert({
+					userId,
+					commentId,
+					readAt: ensureSensibleTimestamp(readAt),
+				})
+			},
+			/**
+			 * Mark a batch of comments as read by the current user in one mutation — opening a thread
+			 * or "mark all read" would otherwise pay a mutation (comment lookup, file lookup, access
+			 * check) per comment. One access check per distinct fileId covers the whole batch.
+			 */
+			markManyRead: async (
+				tx: Tx,
+				{ commentIds, readAt }: { commentIds: string[]; readAt: number }
+			) => {
+				const uniqueIds = [...new Set(commentIds)]
+				if (uniqueIds.length === 0) return
+				if (tx.location === 'server') {
+					// Verify every comment exists and the user can access each involved file
+					const comments = await tx.run(zql.comment.where('id', 'IN', uniqueIds))
+					assert(comments.length === uniqueIds.length, ZErrorCode.bad_request)
+					const fileIds = new Set(comments.map((comment) => comment.fileId))
+					for (const fileId of fileIds) {
+						const file = await tx.run(zql.file.where('id', '=', fileId).one())
+						await assertUserCanAccessFile(tx, userId, file!)
+					}
+				}
+				const timestamp = ensureSensibleTimestamp(readAt)
+				for (const commentId of uniqueIds) {
+					await tx.mutate.comment_read.upsert({ userId, commentId, readAt: timestamp })
+				}
+			},
+			/** Mark a comment as unread by deleting the current user's read row. Own-row-only by construction. */
+			markUnread: async (tx: Tx, { commentId }: { commentId: string }) => {
+				await tx.mutate.comment_read.delete({ userId, commentId })
+			},
+		},
+
 		/** @deprecated */
 		init: async (tx: Tx, { user, time }: { user: TlaUser; time: number }) => {
 			assert(user.id === userId, ZErrorCode.forbidden)
@@ -409,34 +459,45 @@ export function createMutators(userId: string) {
 			assert(fileId, ZErrorCode.bad_request)
 			time = ensureSensibleTimestamp(time)
 
+			const file = await tx.run(zql.file.where('id', '=', fileId).one())
+
 			// Verify the user has permission to access this file
 			if (tx.location === 'server') {
-				const file = await tx.run(zql.file.where('id', '=', fileId).one())
 				await assertUserCanAccessFile(tx, userId, file!)
 			}
 
 			// If we get here, the user has legitimate access to the file
 			await tx.mutate.file_state.upsert({ fileId, userId, firstVisitAt: time })
 
-			const workspaceFileRows = await tx.run(zql.group_file.where('fileId', '=', fileId))
-			const userWorkspaceMemberships = await tx.run(zql.group_user.where('userId', '=', userId))
-			// Add a visited file to the user's home group unless it already belongs to one of
-			// their groups. This is what surfaces a shared file the user opened as a "guest
-			// file" in their sidebar. (Files owned by a workspace the user is a member of are
-			// not mirrored here — and the sidebar read path also filters out any that slip
-			// through, see getWorkspaceFilesSorted — so a workspace file never shows in home.)
-			if (
-				!userWorkspaceMemberships.some((g: TlaGroupUser) =>
-					workspaceFileRows.some((gf: TlaGroupFile) => gf.groupId === g.groupId)
-				)
-			) {
-				await tx.mutate.group_file.insert({
-					fileId,
-					groupId: userId,
-					createdAt: time,
-					updatedAt: time,
-					index: null,
-				})
+			// Add a visited file to the user's home group so it shows as a "guest file" in the
+			// sidebar — unless it's already visible to the user somewhere else. A file is listed
+			// in a workspace only when that workspace actually OWNS it (getWorkspaceFilesSorted
+			// lists a non-home workspace's file only when owningGroupId === workspaceId), so the
+			// only thing that should suppress the home link is the file being owned by a
+			// workspace the user belongs to.
+			//
+			// We deliberately do NOT key off "any group_file row in one of my groups": a
+			// stale/mislinked row (e.g. a leftover from the removed drag-to-link feature,
+			// #9107/#9254, or a create-workspace-race mirror) points at a workspace that does
+			// not own the file, so it shows the file nowhere. Counting it here would skip the
+			// home link and make the file invisible in the sidebar entirely.
+			const alreadyLinkedInHome = await tx.run(
+				zql.group_file.where('fileId', '=', fileId).where('groupId', '=', userId).one()
+			)
+			if (!alreadyLinkedInHome) {
+				// getRole returns null when the user isn't a member of the file's owning
+				// workspace (and for a null owningGroupId), so this is true only when the file
+				// is genuinely owned by a workspace the user belongs to.
+				const ownedByOneOfMyWorkspaces = (await getRole(tx, userId, file?.owningGroupId)) !== null
+				if (!ownedByOneOfMyWorkspaces) {
+					await tx.mutate.group_file.insert({
+						fileId,
+						groupId: userId,
+						createdAt: time,
+						updatedAt: time,
+						index: null,
+					})
+				}
 			}
 		},
 		createWorkspace: async (tx: Tx, { id, name }: { id: string; name: string }) => {

@@ -1,5 +1,5 @@
 import { TLPageId, useEditor, useValue } from '@tldraw/editor'
-import { supportsDownloadingOriginal } from '../context/actions'
+import { supportsDownloadingOriginal, useActions } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
 import {
@@ -239,8 +239,12 @@ export function ClipboardMenuGroup() {
 /** @public @react */
 export function CopyAsMenuGroup() {
 	const editor = useEditor()
+	const actions = useActions()
 	const atLeastOneShapeOnPage = useHasShapesOnPage()
 	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
+
+	const showCopyAsJson = !!actions['copy-as-json'] && isDebugMode
+	if (!actions['copy-as-svg'] && !actions['copy-as-png'] && !showCopyAsJson) return null
 
 	return (
 		<TldrawUiMenuSubmenu
@@ -254,9 +258,29 @@ export function CopyAsMenuGroup() {
 				{Boolean(editor.getContainerWindow().navigator.clipboard?.write) && (
 					<TldrawUiMenuActionItem actionId="copy-as-png" />
 				)}
-				{isDebugMode && <TldrawUiMenuActionItem actionId="copy-as-json" />}
+				{showCopyAsJson && <TldrawUiMenuActionItem actionId="copy-as-json" />}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="copy-as-bg">
+				<ToggleTransparentBgMenuItem />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+/** @public @react */
+export function ExportAsMenuGroup() {
+	const actions = useActions()
+
+	// If a consumer has removed the export actions via `overrides`, don't render an empty submenu.
+	if (!actions['export-as-svg'] && !actions['export-as-png']) return null
+
+	return (
+		<TldrawUiMenuSubmenu id="export-as" label="context-menu.export-as" size="small">
+			<TldrawUiMenuGroup id="export-as-group">
+				<TldrawUiMenuActionItem actionId="export-as-svg" />
+				<TldrawUiMenuActionItem actionId="export-as-png" />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="export-as-bg">
 				<ToggleTransparentBgMenuItem />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
@@ -301,15 +325,7 @@ export function ConversionsMenuGroup() {
 	return (
 		<TldrawUiMenuGroup id="conversions">
 			<CopyAsMenuGroup />
-			<TldrawUiMenuSubmenu id="export-as" label="context-menu.export-as" size="small">
-				<TldrawUiMenuGroup id="export-as-group">
-					<TldrawUiMenuActionItem actionId="export-as-svg" />
-					<TldrawUiMenuActionItem actionId="export-as-png" />
-				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="export-as-bg">
-					<ToggleTransparentBgMenuItem />
-				</TldrawUiMenuGroup>
-			</TldrawUiMenuSubmenu>
+			<ExportAsMenuGroup />
 			<DownloadOriginalMenuItem />
 		</TldrawUiMenuGroup>
 	)

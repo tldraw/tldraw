@@ -1,0 +1,819 @@
+apiVersion: dashboard.grafana.app/v2
+kind: Dashboard
+metadata:
+  annotations:
+    grafana.app/folder: dotcom
+    grafana.app/saved-from-ui: Grafana Cloud
+  labels: {}
+  name: mix4slb
+  namespace: stacks-890472
+spec:
+  annotations:
+    - kind: AnnotationQuery
+      spec:
+        builtIn: true
+        enable: true
+        hide: true
+        iconColor: rgba(0, 211, 255, 1)
+        name: Annotations & Alerts
+        query:
+          datasource:
+            name: -- Grafana --
+          group: grafana
+          kind: DataQuery
+          spec: {}
+          version: v0
+  cursorSync: 'Off'
+  editable: true
+  elements:
+    panel-1:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: builder
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      formattedQuery: "SELECT toStartOfInterval(timestamp, INTERVAL\
+                        \ '$interval' SECOND) as date, quantileWeighted(0.5)(double1,\
+                        \ _sample_interval) as p50_ms, quantileWeighted(0.95)(double1,\
+                        \ _sample_interval) as p95_ms, quantileWeighted(0.99)(double1,\
+                        \ _sample_interval) as p99_ms\n\tFROM 'MEASURE'\n\tWHERE timestamp\
+                        \ >= toDateTime($from) AND timestamp <= toDateTime($to)\n\t\
+                        AND blob2 = '${environment}-tldraw-multiplayer'\n\tAND blob1\
+                        \ = 'outbox_effect'\n\tGROUP BY date\n\tORDER BY date ASC"
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'\
+                        \ SECOND) as date, quantileWeighted(0.5)(double1, _sample_interval)\
+                        \ as p50_ms, quantileWeighted(0.95)(double1, _sample_interval)\
+                        \ as p95_ms, quantileWeighted(0.99)(double1, _sample_interval)\
+                        \ as p99_ms\n\tFROM 'MEASURE'\n\tWHERE timestamp >= toDateTime($from)\
+                        \ AND timestamp <= toDateTime($to)\n\tAND blob2 = '${environment}-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_effect'\n\tGROUP BY date\n\tORDER BY date\
+                        \ ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '120'\
+                        \ SECOND) as date, quantileWeighted(0.5)(double1, _sample_interval)\
+                        \ as p50_ms, quantileWeighted(0.95)(double1, _sample_interval)\
+                        \ as p95_ms, quantileWeighted(0.99)(double1, _sample_interval)\
+                        \ as p99_ms\n\tFROM 'MEASURE'\n\tWHERE timestamp >= toDateTime(1762170000)\
+                        \ AND timestamp <= toDateTime(1762180000)\n\tAND blob2 = 'production-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_effect'\n\tGROUP BY date\n\tORDER BY date\
+                        \ ASC"
+                      round: 0s
+                      showFormattedSQL: true
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'End-to-end: time from a file change committing to its effect
+          completing (room notification / publish). double1 = ageMs.'
+        id: 1
+        links: []
+        title: Outbox effect latency (p50 / p95 / p99)
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: right
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: line
+                  fillOpacity: 0
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: auto
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                    - color: red
+                      value: 80
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: single
+                sort: none
+          version: 13.2.0-30616302309
+    panel-2:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: builder
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      formattedQuery: "SELECT toStartOfInterval(timestamp, INTERVAL\
+                        \ '$interval' SECOND) as date, sum(double1) as processed, sum(double2)\
+                        \ as failed\n\tFROM 'MEASURE'\n\tWHERE timestamp >= toDateTime($from)\
+                        \ AND timestamp <= toDateTime($to)\n\tAND blob2 = '${environment}-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_drain'\n\tGROUP BY date\n\tORDER BY date\
+                        \ ASC"
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'\
+                        \ SECOND) as date, sum(double1) as processed, sum(double2) as\
+                        \ failed\n\tFROM 'MEASURE'\n\tWHERE timestamp >= toDateTime($from)\
+                        \ AND timestamp <= toDateTime($to)\n\tAND blob2 = '${environment}-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_drain'\n\tGROUP BY date\n\tORDER BY date\
+                        \ ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '120'\
+                        \ SECOND) as date, sum(double1) as processed, sum(double2) as\
+                        \ failed\n\tFROM 'MEASURE'\n\tWHERE timestamp >= toDateTime(1762170000)\
+                        \ AND timestamp <= toDateTime(1762180000)\n\tAND blob2 = 'production-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_drain'\n\tGROUP BY date\n\tORDER BY date\
+                        \ ASC"
+                      round: 0s
+                      showFormattedSQL: true
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Per-drain summary. double1 = rows processed, double2 = rows failed
+          this drain.
+        id: 2
+        links: []
+        title: Outbox throughput (processed / failed)
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: right
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: line
+                  fillOpacity: 0
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: auto
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                    - color: red
+                      value: 80
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: single
+                sort: none
+          version: 13.2.0-30616302309
+    panel-3:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: builder
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      formattedQuery: "SELECT toStartOfInterval(timestamp, INTERVAL\
+                        \ '$interval' SECOND) as date, blob4 as command, quantileWeighted(0.95)(double1,\
+                        \ _sample_interval) as p95_ms\n\tFROM 'MEASURE'\n\tWHERE timestamp\
+                        \ >= toDateTime($from) AND timestamp <= toDateTime($to)\n\t\
+                        AND blob2 = '${environment}-tldraw-multiplayer'\n\tAND blob1\
+                        \ = 'outbox_effect'\n\tGROUP BY date, command\n\tORDER BY date\
+                        \ ASC"
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'\
+                        \ SECOND) as date, blob4 as command, quantileWeighted(0.95)(double1,\
+                        \ _sample_interval) as p95_ms\n\tFROM 'MEASURE'\n\tWHERE timestamp\
+                        \ >= toDateTime($from) AND timestamp <= toDateTime($to)\n\t\
+                        AND blob2 = '${environment}-tldraw-multiplayer'\n\tAND blob1\
+                        \ = 'outbox_effect'\n\tGROUP BY date, command\n\tORDER BY date\
+                        \ ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '120'\
+                        \ SECOND) as date, blob4 as command, quantileWeighted(0.95)(double1,\
+                        \ _sample_interval) as p95_ms\n\tFROM 'MEASURE'\n\tWHERE timestamp\
+                        \ >= toDateTime(1762170000) AND timestamp <= toDateTime(1762180000)\n\
+                        \tAND blob2 = 'production-tldraw-multiplayer'\n\tAND blob1 =\
+                        \ 'outbox_effect'\n\tGROUP BY date, command\n\tORDER BY date\
+                        \ ASC"
+                      round: 0s
+                      showFormattedSQL: true
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: publish/unpublish ride the update command (awaitPersist) and
+          are the slowest. blob3=table, blob4=command.
+        id: 3
+        links: []
+        title: Outbox effect latency p95 by command
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: right
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: line
+                  fillOpacity: 0
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: auto
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                    - color: red
+                      value: 80
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: single
+                sort: none
+          version: 13.2.0-30616302309
+    panel-4:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: builder
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      formattedQuery: "SELECT toStartOfInterval(timestamp, INTERVAL\
+                        \ '$interval' SECOND) as date, quantileWeighted(0.95)(double3,\
+                        \ _sample_interval) as drain_p95_ms\n\tFROM 'MEASURE'\n\tWHERE\
+                        \ timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)\n\
+                        \tAND blob2 = '${environment}-tldraw-multiplayer'\n\tAND blob1\
+                        \ = 'outbox_drain'\n\tGROUP BY date\n\tORDER BY date ASC"
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'\
+                        \ SECOND) as date, quantileWeighted(0.95)(double3, _sample_interval)\
+                        \ as drain_p95_ms\n\tFROM 'MEASURE'\n\tWHERE timestamp >= toDateTime($from)\
+                        \ AND timestamp <= toDateTime($to)\n\tAND blob2 = '${environment}-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_drain'\n\tGROUP BY date\n\tORDER BY date\
+                        \ ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '120'\
+                        \ SECOND) as date, quantileWeighted(0.95)(double3, _sample_interval)\
+                        \ as drain_p95_ms\n\tFROM 'MEASURE'\n\tWHERE timestamp >= toDateTime(1762170000)\
+                        \ AND timestamp <= toDateTime(1762180000)\n\tAND blob2 = 'production-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_drain'\n\tGROUP BY date\n\tORDER BY date\
+                        \ ASC"
+                      round: 0s
+                      showFormattedSQL: true
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: double3 = drainMs. Rising with flat throughput = individual effects
+          getting slower.
+        id: 4
+        links: []
+        title: Outbox drain duration p95
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: right
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: line
+                  fillOpacity: 0
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: auto
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                    - color: red
+                      value: 80
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: single
+                sort: none
+          version: 13.2.0-30616302309
+    panel-5:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: builder
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      formattedQuery: "SELECT toStartOfInterval(timestamp, INTERVAL\
+                        \ '$interval' SECOND) as date, blob4 as command, count() as\
+                        \ total\n\tFROM 'MEASURE'\n\tWHERE timestamp >= toDateTime($from)\
+                        \ AND timestamp <= toDateTime($to)\n\tAND blob2 = '${environment}-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_effect'\n\tGROUP BY date, command\n\t\
+                        ORDER BY date ASC"
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'\
+                        \ SECOND) as date, blob4 as command, count() as total\n\tFROM\
+                        \ 'MEASURE'\n\tWHERE timestamp >= toDateTime($from) AND timestamp\
+                        \ <= toDateTime($to)\n\tAND blob2 = '${environment}-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_effect'\n\tGROUP BY date, command\n\t\
+                        ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '120'\
+                        \ SECOND) as date, blob4 as command, count() as total\n\tFROM\
+                        \ 'MEASURE'\n\tWHERE timestamp >= toDateTime(1762170000) AND\
+                        \ timestamp <= toDateTime(1762180000)\n\tAND blob2 = 'production-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_effect'\n\tGROUP BY date, command\n\t\
+                        ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: true
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Volume of each effect type (insert / update / delete).
+        id: 5
+        links: []
+        title: Outbox effects by command
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: right
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: line
+                  fillOpacity: 0
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: auto
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                    - color: red
+                      value: 80
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: single
+                sort: none
+          version: 13.2.0-30616302309
+    panel-6:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: builder
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      formattedQuery: "SELECT toStartOfInterval(timestamp, INTERVAL\
+                        \ '$interval' SECOND) as date, blob4 as command, count() as\
+                        \ parked\n\tFROM 'MEASURE'\n\tWHERE timestamp >= toDateTime($from)\
+                        \ AND timestamp <= toDateTime($to)\n\tAND blob2 = '${environment}-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_parked'\n\tGROUP BY date, command\n\t\
+                        ORDER BY date ASC"
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'\
+                        \ SECOND) as date, blob4 as command, count() as parked\n\tFROM\
+                        \ 'MEASURE'\n\tWHERE timestamp >= toDateTime($from) AND timestamp\
+                        \ <= toDateTime($to)\n\tAND blob2 = '${environment}-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_parked'\n\tGROUP BY date, command\n\t\
+                        ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '120'\
+                        \ SECOND) as date, blob4 as command, count() as parked\n\tFROM\
+                        \ 'MEASURE'\n\tWHERE timestamp >= toDateTime(1762170000) AND\
+                        \ timestamp <= toDateTime(1762180000)\n\tAND blob2 = 'production-tldraw-multiplayer'\n\
+                        \tAND blob1 = 'outbox_parked'\n\tGROUP BY date, command\n\t\
+                        ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: true
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: A parked effect (10 failed attempts) is a data-loss event and
+          also fires Sentry. Any line here = investigate.
+        id: 6
+        links: []
+        title: Outbox parked effects (should be 0)
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: right
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: line
+                  fillOpacity: 0
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: auto
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                    - color: red
+                      value: 80
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: single
+                sort: none
+          version: 13.2.0-30616302309
+  layout:
+    kind: GridLayout
+    spec:
+      items:
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-1
+            height: 8
+            width: 12
+            x: 0
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-2
+            height: 8
+            width: 12
+            x: 12
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-3
+            height: 8
+            width: 12
+            x: 0
+            y: 8
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-4
+            height: 8
+            width: 12
+            x: 12
+            y: 8
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-5
+            height: 8
+            width: 12
+            x: 0
+            y: 16
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-6
+            height: 8
+            width: 12
+            x: 12
+            y: 16
+  links: []
+  liveNow: false
+  preload: false
+  tags:
+    - dotcom
+    - outbox
+    - sync-worker
+    - provisioned
+    - repo:tldraw/tldraw
+  timeSettings:
+    autoRefresh: ''
+    autoRefreshIntervals:
+      - 5s
+      - 10s
+      - 30s
+      - 1m
+      - 5m
+      - 15m
+      - 30m
+      - 1h
+      - 2h
+      - 1d
+    fiscalYearStartMonth: 0
+    from: now-6h
+    hideTimepicker: false
+    timezone: browser
+    to: now
+  title: File effect outbox
+  variables:
+    - kind: TextVariable
+      spec:
+        current:
+          text: production
+          value: production
+        description: Environment to filter by. Use production, staging, or your pr number
+          (pr-42).
+        hide: dontHide
+        label: 'Environment: production | staging | pr-42'
+        name: environment
+        query: production
+        skipUrlSync: false

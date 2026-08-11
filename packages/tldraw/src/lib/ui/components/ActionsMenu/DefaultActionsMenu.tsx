@@ -1,5 +1,5 @@
-import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
-import { ReactNode, memo, useRef } from 'react'
+import { useEditor, useValue } from '@tldraw/editor'
+import { ReactNode, memo } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useReadonly } from '../../hooks/useReadonly'
@@ -28,9 +28,6 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()
 	const { orientation } = useTldrawUiOrientation()
-
-	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref)
 
 	const editor = useEditor()
 	const isInAcceptableReadonlyState = useValue(
@@ -71,7 +68,6 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				sideOffset={6}
 			>
 				<TldrawUiToolbar
-					ref={ref}
 					label={msg('actions-menu.title')}
 					className="tlui-actions-menu"
 					data-testid="actions-menu.content"

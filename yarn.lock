@@ -2,7 +2,7 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 8
+  version: 10
   cacheKey: 10
 
 "@actions/github@npm:^6.0.0":
@@ -27,15 +27,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/anthropic@npm:^2.0.2":
-  version: 2.0.11
-  resolution: "@ai-sdk/anthropic@npm:2.0.11"
+"@ai-sdk/anthropic@npm:^2.0.80":
+  version: 2.0.80
+  resolution: "@ai-sdk/anthropic@npm:2.0.80"
   dependencies:
-    "@ai-sdk/provider": "npm:2.0.0"
-    "@ai-sdk/provider-utils": "npm:3.0.7"
+    "@ai-sdk/provider": "npm:2.0.3"
+    "@ai-sdk/provider-utils": "npm:3.0.25"
   peerDependencies:
-    zod: ^3.25.76 || ^4
-  checksum: 10/6b7874d4857baee09020cb951f2367ef62ef97a22da9c9b61a0464015f8f39530e57b58d712ea570355a3d880acf4c6b9edf615a5aae1496de0c7d11ecfcf5f3
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10/de62552b7af936eba3a6f72fbd9e13f85a8b51dd2d2d55889310958a16ca5118a63ff3c4bad35ab0a2b90fd7e9e45a315727b4227c6b8e956488f80805e1a324
   languageName: node
   linkType: hard
 
@@ -51,40 +51,40 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/gateway@npm:2.0.85":
-  version: 2.0.85
-  resolution: "@ai-sdk/gateway@npm:2.0.85"
+"@ai-sdk/gateway@npm:2.0.95":
+  version: 2.0.95
+  resolution: "@ai-sdk/gateway@npm:2.0.95"
   dependencies:
     "@ai-sdk/provider": "npm:2.0.3"
     "@ai-sdk/provider-utils": "npm:3.0.25"
     "@vercel/oidc": "npm:3.1.0"
   peerDependencies:
     zod: ^3.25.76 || ^4.1.8
-  checksum: 10/87e58c8e6781a48dbb71fe7395a388cc62e0c9a0198473ccc6d297f32cfb4d86f0c5cc706a913510a9b37a6b59fcd9859aec6c0da518febdbd17ba84a90f56e1
+  checksum: 10/ea2afb94269a5d16fa122fa6c92a7b996ea44ee01643a8934b176a669d288c5d07c69da0a4c0aadfe77aa7ed7106d5c740f863fd2103c795347d82777e60cb5b
   languageName: node
   linkType: hard
 
-"@ai-sdk/google@npm:^2.0.14":
-  version: 2.0.14
-  resolution: "@ai-sdk/google@npm:2.0.14"
+"@ai-sdk/google@npm:^2.0.74":
+  version: 2.0.74
+  resolution: "@ai-sdk/google@npm:2.0.74"
   dependencies:
-    "@ai-sdk/provider": "npm:2.0.0"
-    "@ai-sdk/provider-utils": "npm:3.0.9"
+    "@ai-sdk/provider": "npm:2.0.3"
+    "@ai-sdk/provider-utils": "npm:3.0.25"
   peerDependencies:
-    zod: ^3.25.76 || ^4
-  checksum: 10/c79be7f051ece82947f5881317cef22712b145429cd68486a0a17d64b1b9a7c9dec43dc35bfd92bec0432b2c31736f6c28489eba090e1a60b873c81cdfaefa1b
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10/1490041d25d10afa690d66c5037b8a0a6469c8bfe096356cbdf363997189b4ef898e6400a59312f617b617da01a2d3fbc358c04ac01947dbe6729df730c9148d
   languageName: node
   linkType: hard
 
-"@ai-sdk/openai@npm:^2.0.24":
-  version: 2.0.24
-  resolution: "@ai-sdk/openai@npm:2.0.24"
+"@ai-sdk/openai@npm:^2.0.106":
+  version: 2.0.106
+  resolution: "@ai-sdk/openai@npm:2.0.106"
   dependencies:
-    "@ai-sdk/provider": "npm:2.0.0"
-    "@ai-sdk/provider-utils": "npm:3.0.8"
+    "@ai-sdk/provider": "npm:2.0.3"
+    "@ai-sdk/provider-utils": "npm:3.0.25"
   peerDependencies:
-    zod: ^3.25.76 || ^4
-  checksum: 10/c15ffe86ebcf854e44a93d933b1f622358beffb3f3731c1f44b0ba8c75533ee0a39704597c309963a8ccc95c4eaf845805a61ae09dfe7e45bf18019cb350e773
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10/4757cddb717eaf814290cdfe10f52ec69ade375eaa4b9c8512c7cdafac488a79fa3d350929dbabab05732aa7ef3984804b5d09b49f7322e42bf0541bd7573691
   languageName: node
   linkType: hard
 
@@ -112,45 +112,6 @@ __metadata:
   peerDependencies:
     zod: ^3.25.76 || ^4
   checksum: 10/1b4f9042211afc14ebe8d50ad7b224dfa4f53ed6c0fcf5a4f31653cd22572946f6925d86edcca36bf36c92b5cff3c09b337073fdd21fab3a6448fa9db8201722
-  languageName: node
-  linkType: hard
-
-"@ai-sdk/provider-utils@npm:3.0.7":
-  version: 3.0.7
-  resolution: "@ai-sdk/provider-utils@npm:3.0.7"
-  dependencies:
-    "@ai-sdk/provider": "npm:2.0.0"
-    "@standard-schema/spec": "npm:^1.0.0"
-    eventsource-parser: "npm:^3.0.5"
-  peerDependencies:
-    zod: ^3.25.76 || ^4
-  checksum: 10/7d3feb4c617360faa1554b6f1b0db38f53eadc67ce952aa08cc87efbc08e6e54acf3ba0a78f8eedd2e2d850cbf5b681badecbebdfc3c2e3e6fb1dca97fa818c3
-  languageName: node
-  linkType: hard
-
-"@ai-sdk/provider-utils@npm:3.0.8":
-  version: 3.0.8
-  resolution: "@ai-sdk/provider-utils@npm:3.0.8"
-  dependencies:
-    "@ai-sdk/provider": "npm:2.0.0"
-    "@standard-schema/spec": "npm:^1.0.0"
-    eventsource-parser: "npm:^3.0.5"
-  peerDependencies:
-    zod: ^3.25.76 || ^4
-  checksum: 10/62113bcad1aeaec6d097d63b3b84154b3eaacf6074cc48e2f5bfc19a5e82360e055ac3b097eacbb66822ee398129fd2db148099c6aa59169b7a2e86c82570649
-  languageName: node
-  linkType: hard
-
-"@ai-sdk/provider-utils@npm:3.0.9":
-  version: 3.0.9
-  resolution: "@ai-sdk/provider-utils@npm:3.0.9"
-  dependencies:
-    "@ai-sdk/provider": "npm:2.0.0"
-    "@standard-schema/spec": "npm:^1.0.0"
-    eventsource-parser: "npm:^3.0.5"
-  peerDependencies:
-    zod: ^3.25.76 || ^4
-  checksum: 10/a58d61502d3f73dc615b19bc2cfef0931cdd2dbec4e58b20e523461622a23671a91cf65290bc8f245905c918b8db4712387343bdaf8c6aba871d4838fb756ef4
   languageName: node
   linkType: hard
 
@@ -9414,9 +9375,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rocicorp/zero@npm:1.7.0":
-  version: 1.7.0
-  resolution: "@rocicorp/zero@npm:1.7.0"
+"@rocicorp/zero@npm:1.8.0":
+  version: 1.8.0
+  resolution: "@rocicorp/zero@npm:1.8.0"
   dependencies:
     "@badrap/valita": "npm:0.3.11"
     "@databases/escape-identifier": "npm:^1.0.3"
@@ -9499,7 +9460,7 @@ __metadata:
     zero-cache-dev: ./out/zero/src/zero-cache-dev.js
     zero-deploy-permissions: ./out/zero/src/deploy-permissions.js
     zero-out: ./out/zero/src/zero-out.js
-  checksum: 10/3ae3325c51a82d43f83aa16ad8e37ca5567b20c14a80479c5dd209b63ac23d6a4ae80e09271f8dcb32d9764e21f515ca9ed4c448e69799a66eccb6bfa3b21299
+  checksum: 10/5134965f0e6efeb0ac3b4c29ed2940484a1764d06ca0788ca2babd25a4d8ddcce5c8ed6d0ce7559b9d0e27a96007dfd5da5143872a7863afd2bb204f1d3cdb78
   languageName: node
   linkType: hard
 
@@ -11554,6 +11515,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/extension-mention@npm:3.13.0":
+  version: 3.13.0
+  resolution: "@tiptap/extension-mention@npm:3.13.0"
+  peerDependencies:
+    "@tiptap/core": ^3.13.0
+    "@tiptap/pm": ^3.13.0
+    "@tiptap/suggestion": ^3.13.0
+  checksum: 10/0862dddc12393cb6c7d7e4c371c6556fac6da9ec58aa0d17063b164ed1e1a9222e772d6504ebb0eed50dacc9fbb629523faeacd269746fdfec0165ace885ee22
+  languageName: node
+  linkType: hard
+
 "@tiptap/extension-ordered-list@npm:^3.13.0":
   version: 3.13.0
   resolution: "@tiptap/extension-ordered-list@npm:3.13.0"
@@ -11701,6 +11673,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tiptap/suggestion@npm:3.13.0":
+  version: 3.13.0
+  resolution: "@tiptap/suggestion@npm:3.13.0"
+  peerDependencies:
+    "@tiptap/core": ^3.13.0
+    "@tiptap/pm": ^3.13.0
+  checksum: 10/8c80cc771a707579e4b500a6419aaee42b35f1ee88a65a47f385023342f43a4abc51a9b2146d5bc80dbf9a53450bd2376b0ec237ff4efed846c042f6b7d14992
+  languageName: node
+  linkType: hard
+
 "@tldraw/analytics-worker@workspace:apps/analytics-worker":
   version: 0.0.0-use.local
   resolution: "@tldraw/analytics-worker@workspace:apps/analytics-worker"
@@ -11708,7 +11690,7 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20260302.0"
     esbuild: "npm:^0.28.0"
     lazyrepo: "npm:0.0.0-alpha.27"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
     wrangler: "npm:^4.75.0"
   languageName: unknown
   linkType: soft
@@ -11721,7 +11703,7 @@ __metadata:
     "@types/js-cookie": "npm:^3.0.6"
     js-cookie: "npm:^3.0.5"
     posthog-js: "npm:^1.281.0"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
     vite: "npm:^8.0.16"
     vitest: "npm:^4.1.7"
     wrangler: "npm:^4.75.0"
@@ -11735,7 +11717,7 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     lazyrepo: "npm:0.0.0-alpha.27"
     ts-node-dev: "npm:^1.1.8"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
   languageName: unknown
   linkType: soft
 
@@ -11758,8 +11740,46 @@ __metadata:
     lazyrepo: "npm:0.0.0-alpha.27"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
     wrangler: "npm:^4.75.0"
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/collaboration@workspace:packages/collaboration":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/collaboration@workspace:packages/collaboration"
+  dependencies:
+    "@tldraw/commenting": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+  peerDependencies:
+    react: ^18.2.0 || ^19.2.1
+    react-dom: ^18.2.0 || ^19.2.1
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/commenting@workspace:*, @tldraw/commenting@workspace:packages/commenting":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/commenting@workspace:packages/commenting"
+  dependencies:
+    "@tiptap/core": "npm:^3.12.1"
+    "@tiptap/pm": "npm:^3.12.1"
+    "@tiptap/react": "npm:^3.12.1"
+    "@tldraw/driver": "workspace:*"
+    "@tldraw/mentions": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    tldraw: "workspace:*"
+    vitest: "npm:^4.1.7"
+  peerDependencies:
+    react: ^18.2.0 || ^19.2.1
+    react-dom: ^18.2.0 || ^19.2.1
   languageName: unknown
   linkType: soft
 
@@ -11826,7 +11846,7 @@ __metadata:
     tailwindcss: "npm:^3.4.17"
     tldraw: "workspace:*"
     tsx: "npm:^4.19.2"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
     ws: "npm:^8.18.0"
   languageName: unknown
   linkType: soft
@@ -11835,7 +11855,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
-    "@rocicorp/zero": "npm:1.7.0"
+    "@rocicorp/zero": "npm:1.8.0"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -11846,6 +11866,7 @@ __metadata:
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
+    vitest: "npm:^4.1.7"
   peerDependencies:
     react: ^18.2.0 || ^19.2.1
     react-dom: ^18.2.0 || ^19.2.1
@@ -11859,12 +11880,13 @@ __metadata:
     "@clerk/backend": "npm:^1.23.7"
     "@cloudflare/workers-types": "npm:^4.20260302.0"
     "@pierre/storage": "npm:^1.1.0"
-    "@rocicorp/zero": "npm:1.7.0"
+    "@rocicorp/zero": "npm:1.8.0"
     "@supabase/auth-helpers-remix": "npm:^0.2.6"
     "@supabase/supabase-js": "npm:^2.48.1"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/sync-collaboration": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
@@ -11878,11 +11900,12 @@ __metadata:
     kysely: "npm:^0.28.12"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.throttle: "npm:^4.1.1"
+    p-queue: "npm:^9.3.0"
     pg: "npm:^8.16.3"
     pg-logical-replication: "npm:^2.0.7"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
     vitest: "npm:^4.1.7"
     wrangler: "npm:^4.75.0"
   languageName: unknown
@@ -11938,6 +11961,28 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/mentions@workspace:*, @tldraw/mentions@workspace:packages/mentions":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/mentions@workspace:packages/mentions"
+  dependencies:
+    "@tiptap/core": "npm:^3.12.1"
+    "@tiptap/extension-mention": "npm:3.13.0"
+    "@tiptap/pm": "npm:^3.12.1"
+    "@tiptap/react": "npm:^3.12.1"
+    "@tiptap/suggestion": "npm:3.13.0"
+    "@tldraw/utils": "workspace:*"
+    "@types/react": "npm:^19.2.7"
+    "@types/react-dom": "npm:^19.2.3"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    tldraw: "workspace:*"
+    vitest: "npm:^4.1.7"
+  peerDependencies:
+    react: ^18.2.0 || ^19.2.1
+    react-dom: ^18.2.0 || ^19.2.1
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/mermaid@workspace:*, @tldraw/mermaid@workspace:packages/mermaid":
   version: 0.0.0-use.local
   resolution: "@tldraw/mermaid@workspace:packages/mermaid"
@@ -11962,6 +12007,7 @@ __metadata:
     "@microsoft/api-extractor": "npm:^7.55.2"
     "@sentry/cli": "npm:^2.41.1"
     "@swc/core": "npm:^1.15.18"
+    "@tldraw/scripts": "workspace:*"
     "@types/adm-zip": "npm:^0.5.7"
     "@types/aws-lambda": "npm:8.10.148"
     "@types/glob": "npm:^8.1.0"
@@ -11969,7 +12015,6 @@ __metadata:
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@types/semver": "npm:^7.5.8"
-    "@typescript/native-preview": "npm:^7.0.0-dev.20260129.1"
     "@vitest/coverage-v8": "npm:^4.1.7"
     "@vitest/ui": "npm:^4.1.7"
     "@yarnpkg/types": "npm:^4.0.0"
@@ -11993,7 +12038,7 @@ __metadata:
     rimraf: "npm:^4.4.1"
     svgo: "npm:^3.3.3"
     tsx: "npm:^4.19.2"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
     vercel: "npm:^52.0.0"
     vite-plugin-circular-dependency: "npm:^0.5.0"
     vitest: "npm:^4.1.7"
@@ -12004,8 +12049,6 @@ __metadata:
     "@sentry/cli":
       built: true
     "@swc/core":
-      built: true
-    "@typescript/native-preview":
       built: true
     "@vscode/vsce-sign":
       built: true
@@ -12028,7 +12071,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/scripts@workspace:internal/scripts":
+"@tldraw/scripts@workspace:*, @tldraw/scripts@workspace:internal/scripts":
   version: 0.0.0-use.local
   resolution: "@tldraw/scripts@workspace:internal/scripts"
   dependencies:
@@ -12063,7 +12106,9 @@ __metadata:
     tar: "npm:^7.5.11"
     tmp: "npm:^0.2.3"
     toml: "npm:^3.0.0"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
+  bin:
+    process-compose: ./process-compose-bin.cjs
   languageName: unknown
   linkType: soft
 
@@ -12172,6 +12217,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/sync-collaboration@workspace:*, @tldraw/sync-collaboration@workspace:packages/sync-collaboration":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/sync-collaboration@workspace:packages/sync-collaboration"
+  dependencies:
+    "@tldraw/store": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    vitest: "npm:^4.1.7"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/sync-core@workspace:*, @tldraw/sync-core@workspace:packages/sync-core":
   version: 0.0.0-use.local
   resolution: "@tldraw/sync-core@workspace:packages/sync-core"
@@ -12187,7 +12244,7 @@ __metadata:
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
     uuid-by-string: "npm:^4.0.0"
     uuid-readable: "npm:^0.0.2"
     vitest: "npm:^4.1.7"
@@ -12212,7 +12269,7 @@ __metadata:
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
     tldraw: "workspace:*"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
     uuid-by-string: "npm:^4.0.0"
     uuid-readable: "npm:^0.0.2"
     vitest: "npm:^4.1.7"
@@ -12314,11 +12371,11 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20260302.0"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
-    cloudflare-workers-unfurl: "npm:^0.0.8"
+    cloudflare-workers-unfurl: "npm:^0.0.9"
     itty-router: "npm:^5.0.18"
     lazyrepo: "npm:0.0.0-alpha.27"
     toucan-js: "npm:^3.4.0"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
     vitest: "npm:^4.1.7"
   languageName: unknown
   linkType: soft
@@ -12327,7 +12384,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
   dependencies:
-    "@rocicorp/zero": "npm:1.7.0"
+    "@rocicorp/zero": "npm:1.8.0"
     concurrently: "npm:^9.1.2"
     dotenv: "npm:^16.4.7"
     kysely: "npm:^0.28.12"
@@ -13587,84 +13644,143 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-darwin-arm64@npm:7.0.0-dev.20260129.1":
-  version: 7.0.0-dev.20260129.1
-  resolution: "@typescript/native-preview-darwin-arm64@npm:7.0.0-dev.20260129.1"
+"@typescript/typescript-aix-ppc64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-aix-ppc64@npm:7.0.2"
+  conditions: os=aix & cpu=ppc64
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-darwin-arm64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-darwin-arm64@npm:7.0.2"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-darwin-x64@npm:7.0.0-dev.20260129.1":
-  version: 7.0.0-dev.20260129.1
-  resolution: "@typescript/native-preview-darwin-x64@npm:7.0.0-dev.20260129.1"
+"@typescript/typescript-darwin-x64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-darwin-x64@npm:7.0.2"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-linux-arm64@npm:7.0.0-dev.20260129.1":
-  version: 7.0.0-dev.20260129.1
-  resolution: "@typescript/native-preview-linux-arm64@npm:7.0.0-dev.20260129.1"
+"@typescript/typescript-freebsd-arm64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-freebsd-arm64@npm:7.0.2"
+  conditions: os=freebsd & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-freebsd-x64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-freebsd-x64@npm:7.0.2"
+  conditions: os=freebsd & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-linux-arm64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-linux-arm64@npm:7.0.2"
   conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-linux-arm@npm:7.0.0-dev.20260129.1":
-  version: 7.0.0-dev.20260129.1
-  resolution: "@typescript/native-preview-linux-arm@npm:7.0.0-dev.20260129.1"
+"@typescript/typescript-linux-arm@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-linux-arm@npm:7.0.2"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-linux-x64@npm:7.0.0-dev.20260129.1":
-  version: 7.0.0-dev.20260129.1
-  resolution: "@typescript/native-preview-linux-x64@npm:7.0.0-dev.20260129.1"
+"@typescript/typescript-linux-loong64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-linux-loong64@npm:7.0.2"
+  conditions: os=linux & cpu=loong64
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-linux-mips64el@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-linux-mips64el@npm:7.0.2"
+  conditions: os=linux & cpu=mips64el
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-linux-ppc64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-linux-ppc64@npm:7.0.2"
+  conditions: os=linux & cpu=ppc64
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-linux-riscv64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-linux-riscv64@npm:7.0.2"
+  conditions: os=linux & cpu=riscv64
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-linux-s390x@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-linux-s390x@npm:7.0.2"
+  conditions: os=linux & cpu=s390x
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-linux-x64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-linux-x64@npm:7.0.2"
   conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-win32-arm64@npm:7.0.0-dev.20260129.1":
-  version: 7.0.0-dev.20260129.1
-  resolution: "@typescript/native-preview-win32-arm64@npm:7.0.0-dev.20260129.1"
+"@typescript/typescript-netbsd-arm64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-netbsd-arm64@npm:7.0.2"
+  conditions: os=netbsd & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-netbsd-x64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-netbsd-x64@npm:7.0.2"
+  conditions: os=netbsd & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-openbsd-arm64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-openbsd-arm64@npm:7.0.2"
+  conditions: os=openbsd & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-openbsd-x64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-openbsd-x64@npm:7.0.2"
+  conditions: os=openbsd & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-sunos-x64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-sunos-x64@npm:7.0.2"
+  conditions: os=sunos & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@typescript/typescript-win32-arm64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-win32-arm64@npm:7.0.2"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@typescript/native-preview-win32-x64@npm:7.0.0-dev.20260129.1":
-  version: 7.0.0-dev.20260129.1
-  resolution: "@typescript/native-preview-win32-x64@npm:7.0.0-dev.20260129.1"
+"@typescript/typescript-win32-x64@npm:7.0.2":
+  version: 7.0.2
+  resolution: "@typescript/typescript-win32-x64@npm:7.0.2"
   conditions: os=win32 & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@typescript/native-preview@npm:^7.0.0-dev.20260129.1":
-  version: 7.0.0-dev.20260129.1
-  resolution: "@typescript/native-preview@npm:7.0.0-dev.20260129.1"
-  dependencies:
-    "@typescript/native-preview-darwin-arm64": "npm:7.0.0-dev.20260129.1"
-    "@typescript/native-preview-darwin-x64": "npm:7.0.0-dev.20260129.1"
-    "@typescript/native-preview-linux-arm": "npm:7.0.0-dev.20260129.1"
-    "@typescript/native-preview-linux-arm64": "npm:7.0.0-dev.20260129.1"
-    "@typescript/native-preview-linux-x64": "npm:7.0.0-dev.20260129.1"
-    "@typescript/native-preview-win32-arm64": "npm:7.0.0-dev.20260129.1"
-    "@typescript/native-preview-win32-x64": "npm:7.0.0-dev.20260129.1"
-  dependenciesMeta:
-    "@typescript/native-preview-darwin-arm64":
-      optional: true
-    "@typescript/native-preview-darwin-x64":
-      optional: true
-    "@typescript/native-preview-linux-arm":
-      optional: true
-    "@typescript/native-preview-linux-arm64":
-      optional: true
-    "@typescript/native-preview-linux-x64":
-      optional: true
-    "@typescript/native-preview-win32-arm64":
-      optional: true
-    "@typescript/native-preview-win32-x64":
-      optional: true
-  bin:
-    tsgo: bin/tsgo.js
-  checksum: 10/9d165edef7a1916df1065519fe16e95afc347f95e544f008a11bdb9c256967aef01031ab8995d787771a245bb7bb8d3229b2360771874df236e4d445416bcb8f
   languageName: node
   linkType: hard
 
@@ -15417,17 +15533,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai@npm:^5.0.63":
-  version: 5.0.182
-  resolution: "ai@npm:5.0.182"
+"ai@npm:^5.0.194":
+  version: 5.0.194
+  resolution: "ai@npm:5.0.194"
   dependencies:
-    "@ai-sdk/gateway": "npm:2.0.85"
+    "@ai-sdk/gateway": "npm:2.0.95"
     "@ai-sdk/provider": "npm:2.0.3"
     "@ai-sdk/provider-utils": "npm:3.0.25"
     "@opentelemetry/api": "npm:1.9.0"
   peerDependencies:
     zod: ^3.25.76 || ^4.1.8
-  checksum: 10/c9869544d159ebbdfd02ec861c47813f34a9599107791d4d47db63d5862c8f552d2be7bf83b375e02779b1bd844b50a1d9b5a3191b7bf1e1e055157dbfac400f
+  checksum: 10/f7d8ec35fbdb1b8812283eba4083ed18146d1a72f699a6d9a0cc5229e7642876b909b59a59ffbb1641bfd51fcf300eafd52a6ebebc0994d5be98df4fe3290065
   languageName: node
   linkType: hard
 
@@ -17074,10 +17190,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cloudflare-workers-unfurl@npm:^0.0.8":
-  version: 0.0.8
-  resolution: "cloudflare-workers-unfurl@npm:0.0.8"
-  checksum: 10/3f6354096c2f15a4a5766c8fa2620924f2e43a014aba69ec76419c6887a5d1ca6c399634959a3bb8223c248ee82d2a80cd4a8e9df7bd652e5362ded8d2ce4c58
+"cloudflare-workers-unfurl@npm:^0.0.9":
+  version: 0.0.9
+  resolution: "cloudflare-workers-unfurl@npm:0.0.9"
+  checksum: 10/88b2c169ee807602297771393fe43a6589ab174fa0e47eaab24ff4d78c97abd0f9ac77cdc3f7015c039dc0277dd61a3a9cf0404a11413e810510389e1ec6614d
   languageName: node
   linkType: hard
 
@@ -18651,11 +18767,12 @@ __metadata:
     "@formatjs/cli": "npm:^6.5.1"
     "@formatjs/unplugin": "npm:^1.1.0"
     "@playwright/test": "npm:^1.61.0"
-    "@rocicorp/zero": "npm:1.7.0"
+    "@rocicorp/zero": "npm:1.8.0"
     "@sentry/cli": "npm:^2.41.1"
     "@sentry/integrations": "npm:^7.120.3"
     "@sentry/react": "npm:^7.120.3"
     "@tldraw/assets": "workspace:*"
+    "@tldraw/commenting": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/mermaid": "workspace:*"
     "@tldraw/sync": "workspace:*"
@@ -19929,10 +20046,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventemitter3@npm:^5.0.1":
-  version: 5.0.1
-  resolution: "eventemitter3@npm:5.0.1"
-  checksum: 10/ac6423ec31124629c84c7077eed1e6987f6d66c31cf43c6fcbf6c87791d56317ce808d9ead483652436df171b526fc7220eccdc9f3225df334e81582c3cf7dd5
+"eventemitter3@npm:^5.0.1, eventemitter3@npm:^5.0.4":
+  version: 5.0.4
+  resolution: "eventemitter3@npm:5.0.4"
+  checksum: 10/54f5c8c543650d65f92d03dbef1bb73a682a920490c44699ad8f863a6b19bbca42fb7409aa09ca09cb98a44149d9a7bc1dffd55ca88a740bd928c7be0ad666a0
   languageName: node
   linkType: hard
 
@@ -19959,7 +20076,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventsource-parser@npm:^3.0.0, eventsource-parser@npm:^3.0.1, eventsource-parser@npm:^3.0.3, eventsource-parser@npm:^3.0.5, eventsource-parser@npm:^3.0.6":
+"eventsource-parser@npm:^3.0.0, eventsource-parser@npm:^3.0.1, eventsource-parser@npm:^3.0.3, eventsource-parser@npm:^3.0.6":
   version: 3.0.6
   resolution: "eventsource-parser@npm:3.0.6"
   checksum: 10/febf7058b9c2168ecbb33e92711a1646e06bd1568f60b6eb6a01a8bf9f8fcd29cc8320d57247059cacf657a296280159f21306d2e3ff33309a9552b2ef889387
@@ -19987,6 +20104,7 @@ __metadata:
     "@tiptap/pm": "npm:^3.12.1"
     "@tiptap/starter-kit": "npm:^3.12.1"
     "@tldraw/assets": "workspace:*"
+    "@tldraw/commenting": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/driver": "workspace:*"
     "@tldraw/mermaid": "workspace:*"
@@ -21706,7 +21824,7 @@ __metadata:
     "@types/node": "npm:^22.15.31"
     discord-api-types: "npm:^0.37.118"
     esbuild: "npm:^0.28.0"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
     wrangler: "npm:^4.75.0"
   languageName: unknown
   linkType: soft
@@ -22836,7 +22954,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-diff@npm:30.4.1":
+"jest-diff@npm:30.4.1, jest-diff@npm:^30.4.1":
   version: 30.4.1
   resolution: "jest-diff@npm:30.4.1"
   dependencies:
@@ -26887,6 +27005,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"p-queue@npm:^9.3.0":
+  version: 9.3.0
+  resolution: "p-queue@npm:9.3.0"
+  dependencies:
+    eventemitter3: "npm:^5.0.4"
+    p-timeout: "npm:^7.0.0"
+  checksum: 10/ad1a229436508f166ad28cdb88377f5b7dc8557dacc44948558e95472b717709d33ad75d52096f56d41dc94507cad3137e60b42b73676a246c8314aef06b3131
+  languageName: node
+  linkType: hard
+
+"p-timeout@npm:^7.0.0":
+  version: 7.0.1
+  resolution: "p-timeout@npm:7.0.1"
+  checksum: 10/1d65827a07fd10eae5bc1fa493ef5c40522acda21cbbb04131cdb0f63f703c91e5fac2701431e28e308992284a86807d7138dbc2be694e2b8342bee20be652f6
+  languageName: node
+  linkType: hard
+
 "p-try@npm:^2.0.0":
   version: 2.2.0
   resolution: "p-try@npm:2.2.0"
@@ -29231,14 +29366,14 @@ __metadata:
 
 "resolve@patch:resolve@npm%3A^1.0.0#optional!builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.1.7#optional!builtin<compat/resolve>, resolve@patch:resolve@npm%3A^1.22.8#optional!builtin<compat/resolve>, resolve@patch:resolve@npm%3A~1.22.1#optional!builtin<compat/resolve>, resolve@patch:resolve@npm%3A~1.22.2#optional!builtin<compat/resolve>":
   version: 1.22.10
-  resolution: "resolve@patch:resolve@npm%3A1.22.10#optional!builtin<compat/resolve>::version=1.22.10&hash=c3c19d"
+  resolution: "resolve@patch:resolve@npm%3A1.22.10#optional!builtin<compat/resolve>::version=1.22.10&hash=9bd1a5"
   dependencies:
     is-core-module: "npm:^2.16.0"
     path-parse: "npm:^1.0.7"
     supports-preserve-symlinks-flag: "npm:^1.0.0"
   bin:
     resolve: bin/resolve
-  checksum: 10/d4d878bfe3702d215ea23e75e0e9caf99468e3db76f5ca100d27ebdc527366fee3877e54bce7d47cc72ca8952fc2782a070d238bfa79a550eeb0082384c3b81a
+  checksum: 10/c202d86f0b7090886c41427c7161c781169fafe20c9389c5feb0bc021a83e29db8f691c02fcd7d9730db2e7de6ef608a45d0e509733e7e54060d64f0e38521a5
   languageName: node
   linkType: hard
 
@@ -31477,9 +31612,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-agent@workspace:templates/agent"
   dependencies:
-    "@ai-sdk/anthropic": "npm:^2.0.2"
-    "@ai-sdk/google": "npm:^2.0.14"
-    "@ai-sdk/openai": "npm:^2.0.24"
+    "@ai-sdk/anthropic": "npm:^2.0.80"
+    "@ai-sdk/google": "npm:^2.0.74"
+    "@ai-sdk/openai": "npm:^2.0.106"
     "@cloudflare/vite-plugin": "npm:^1.29.1"
     "@cloudflare/workers-types": "npm:^4.20260302.0"
     "@google/generative-ai": "npm:^0.24.1"
@@ -31488,7 +31623,7 @@ __metadata:
     "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react": "npm:^6.0.1"
     "@worker-tools/json-stream": "npm:^0.1.0-pre.12"
-    ai: "npm:^5.0.63"
+    ai: "npm:^5.0.194"
     best-effort-json-parser: "npm:^1.1.3"
     itty-router: "npm:^5.0.18"
     react: "npm:^19.2.1"
@@ -31506,13 +31641,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-branching-chat@workspace:templates/branching-chat"
   dependencies:
-    "@ai-sdk/google": "npm:^2.0.14"
+    "@ai-sdk/google": "npm:^2.0.74"
     "@cloudflare/vite-plugin": "npm:^1.29.1"
     "@cloudflare/workers-types": "npm:^4.20260302.0"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react": "npm:^6.0.1"
-    ai: "npm:^5.0.63"
+    ai: "npm:^5.0.194"
     classnames: "npm:^2.5.1"
     itty-router: "npm:^5.0.18"
     radix-ui: "npm:^1.4.2"
@@ -31530,13 +31665,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw-chat-app-example@workspace:templates/chat"
   dependencies:
-    "@ai-sdk/google": "npm:^2.0.14"
+    "@ai-sdk/google": "npm:^2.0.74"
     "@ai-sdk/react": "npm:^2.0.15"
     "@google/genai": "npm:^1.17.0"
     "@types/node": "npm:^22.15.31"
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
-    ai: "npm:^5.0.63"
+    ai: "npm:^5.0.194"
     next: "npm:^15.5.16"
     react: "npm:^19.2.1"
     react-dom: "npm:^19.2.1"
@@ -31608,7 +31743,7 @@ __metadata:
     "@types/react": "npm:^19.2.7"
     "@types/react-dom": "npm:^19.2.3"
     "@vitejs/plugin-react": "npm:^6.0.1"
-    cloudflare-workers-unfurl: "npm:^0.0.8"
+    cloudflare-workers-unfurl: "npm:^0.0.9"
     concurrently: "npm:^9.1.2"
     itty-router: "npm:^5.0.18"
     react: "npm:^19.2.1"
@@ -31663,7 +31798,7 @@ __metadata:
     ts-loader: "npm:^9.5.2"
     tslib: "npm:^2.8.1"
     tsx: "npm:^4.19.2"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
     vsce: "npm:^2.15.0"
     webpack: "npm:^5.97.1"
   peerDependencies:
@@ -31724,7 +31859,9 @@ __metadata:
     "@tiptap/starter-kit": "npm:^3.12.1"
     "@tldraw/driver": "workspace:*"
     "@tldraw/editor": "workspace:*"
+    "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
     "@types/classnames": "npm:^2.3.4"
     "@types/lz-string": "npm:^1.5.0"
     "@types/react": "npm:^19.2.7"
@@ -31732,6 +31869,7 @@ __metadata:
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.5.1"
     idb: "npm:^7.1.1"
+    jest-diff: "npm:^30.4.1"
     lazyrepo: "npm:0.0.0-alpha.27"
     lz-string: "npm:^1.5.0"
     radix-ui: "npm:^1.4.2"
@@ -32199,6 +32337,77 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:^7.0.2":
+  version: 7.0.2
+  resolution: "typescript@npm:7.0.2"
+  dependencies:
+    "@typescript/typescript-aix-ppc64": "npm:7.0.2"
+    "@typescript/typescript-darwin-arm64": "npm:7.0.2"
+    "@typescript/typescript-darwin-x64": "npm:7.0.2"
+    "@typescript/typescript-freebsd-arm64": "npm:7.0.2"
+    "@typescript/typescript-freebsd-x64": "npm:7.0.2"
+    "@typescript/typescript-linux-arm": "npm:7.0.2"
+    "@typescript/typescript-linux-arm64": "npm:7.0.2"
+    "@typescript/typescript-linux-loong64": "npm:7.0.2"
+    "@typescript/typescript-linux-mips64el": "npm:7.0.2"
+    "@typescript/typescript-linux-ppc64": "npm:7.0.2"
+    "@typescript/typescript-linux-riscv64": "npm:7.0.2"
+    "@typescript/typescript-linux-s390x": "npm:7.0.2"
+    "@typescript/typescript-linux-x64": "npm:7.0.2"
+    "@typescript/typescript-netbsd-arm64": "npm:7.0.2"
+    "@typescript/typescript-netbsd-x64": "npm:7.0.2"
+    "@typescript/typescript-openbsd-arm64": "npm:7.0.2"
+    "@typescript/typescript-openbsd-x64": "npm:7.0.2"
+    "@typescript/typescript-sunos-x64": "npm:7.0.2"
+    "@typescript/typescript-win32-arm64": "npm:7.0.2"
+    "@typescript/typescript-win32-x64": "npm:7.0.2"
+  dependenciesMeta:
+    "@typescript/typescript-aix-ppc64":
+      optional: true
+    "@typescript/typescript-darwin-arm64":
+      optional: true
+    "@typescript/typescript-darwin-x64":
+      optional: true
+    "@typescript/typescript-freebsd-arm64":
+      optional: true
+    "@typescript/typescript-freebsd-x64":
+      optional: true
+    "@typescript/typescript-linux-arm":
+      optional: true
+    "@typescript/typescript-linux-arm64":
+      optional: true
+    "@typescript/typescript-linux-loong64":
+      optional: true
+    "@typescript/typescript-linux-mips64el":
+      optional: true
+    "@typescript/typescript-linux-ppc64":
+      optional: true
+    "@typescript/typescript-linux-riscv64":
+      optional: true
+    "@typescript/typescript-linux-s390x":
+      optional: true
+    "@typescript/typescript-linux-x64":
+      optional: true
+    "@typescript/typescript-netbsd-arm64":
+      optional: true
+    "@typescript/typescript-netbsd-x64":
+      optional: true
+    "@typescript/typescript-openbsd-arm64":
+      optional: true
+    "@typescript/typescript-openbsd-x64":
+      optional: true
+    "@typescript/typescript-sunos-x64":
+      optional: true
+    "@typescript/typescript-win32-arm64":
+      optional: true
+    "@typescript/typescript-win32-x64":
+      optional: true
+  bin:
+    tsc: bin/tsc
+  checksum: 10/b0179005349b43dc1febb35c4e79162cdf89b84eae60f6deac142429109041e07582e69a6aacf5a897e085869686d4512ea444a10acf5b5aa2b60910f82a19ca
+  languageName: node
+  linkType: hard
+
 "typescript@patch:typescript@npm%3A5#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.0.4#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.6.0#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.8.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3Atypescript@5.9.3#optional!builtin<compat/typescript>":
   version: 5.9.3
   resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
@@ -32216,6 +32425,77 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10/97920a082ffc57583b1cb6bc4faa502acc156358e03f54c7fc7fdf0b61c439a717f4c9070c449ee9ee683d4cfc3bb203127c2b9794b2950f66d9d307a4ff262c
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A^7.0.2#optional!builtin<compat/typescript>":
+  version: 7.0.2
+  resolution: "typescript@patch:typescript@npm%3A7.0.2#optional!builtin<compat/typescript>::version=7.0.2&hash=3bafbf"
+  dependencies:
+    "@typescript/typescript-aix-ppc64": "npm:7.0.2"
+    "@typescript/typescript-darwin-arm64": "npm:7.0.2"
+    "@typescript/typescript-darwin-x64": "npm:7.0.2"
+    "@typescript/typescript-freebsd-arm64": "npm:7.0.2"
+    "@typescript/typescript-freebsd-x64": "npm:7.0.2"
+    "@typescript/typescript-linux-arm": "npm:7.0.2"
+    "@typescript/typescript-linux-arm64": "npm:7.0.2"
+    "@typescript/typescript-linux-loong64": "npm:7.0.2"
+    "@typescript/typescript-linux-mips64el": "npm:7.0.2"
+    "@typescript/typescript-linux-ppc64": "npm:7.0.2"
+    "@typescript/typescript-linux-riscv64": "npm:7.0.2"
+    "@typescript/typescript-linux-s390x": "npm:7.0.2"
+    "@typescript/typescript-linux-x64": "npm:7.0.2"
+    "@typescript/typescript-netbsd-arm64": "npm:7.0.2"
+    "@typescript/typescript-netbsd-x64": "npm:7.0.2"
+    "@typescript/typescript-openbsd-arm64": "npm:7.0.2"
+    "@typescript/typescript-openbsd-x64": "npm:7.0.2"
+    "@typescript/typescript-sunos-x64": "npm:7.0.2"
+    "@typescript/typescript-win32-arm64": "npm:7.0.2"
+    "@typescript/typescript-win32-x64": "npm:7.0.2"
+  dependenciesMeta:
+    "@typescript/typescript-aix-ppc64":
+      optional: true
+    "@typescript/typescript-darwin-arm64":
+      optional: true
+    "@typescript/typescript-darwin-x64":
+      optional: true
+    "@typescript/typescript-freebsd-arm64":
+      optional: true
+    "@typescript/typescript-freebsd-x64":
+      optional: true
+    "@typescript/typescript-linux-arm":
+      optional: true
+    "@typescript/typescript-linux-arm64":
+      optional: true
+    "@typescript/typescript-linux-loong64":
+      optional: true
+    "@typescript/typescript-linux-mips64el":
+      optional: true
+    "@typescript/typescript-linux-ppc64":
+      optional: true
+    "@typescript/typescript-linux-riscv64":
+      optional: true
+    "@typescript/typescript-linux-s390x":
+      optional: true
+    "@typescript/typescript-linux-x64":
+      optional: true
+    "@typescript/typescript-netbsd-arm64":
+      optional: true
+    "@typescript/typescript-netbsd-x64":
+      optional: true
+    "@typescript/typescript-openbsd-arm64":
+      optional: true
+    "@typescript/typescript-openbsd-x64":
+      optional: true
+    "@typescript/typescript-sunos-x64":
+      optional: true
+    "@typescript/typescript-win32-arm64":
+      optional: true
+    "@typescript/typescript-win32-x64":
+      optional: true
+  bin:
+    tsc: bin/tsc
+  checksum: 10/6d7f3d34ca7fbd3eb4999f06db29340d3dcedd7d40ed71654ea53ecd0f28a330edf0f55a0acf541bf294a2f024f11242075c1a83aed4bd99776fe99af45b994b
   languageName: node
   linkType: hard
 

@@ -4,25 +4,51 @@ import { createPostgresConnectionPool } from '../../postgres'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
 
+export interface PublishedFileInfo {
+	id: string
+	published: boolean
+	lastPublished: number
+}
+
+// Look up the file behind a published slug without loading the room snapshot itself. Returns null
+// when the slug is unknown; callers decide how to treat unpublished files.
+export async function getPublishedFileInfo(
+	env: Environment,
+	publishedSlug: string
+): Promise<PublishedFileInfo | null> {
+	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(publishedSlug)
+	if (!parentSlug) return null
+
+	// createPostgresConnectionPool news up a pg.Pool; destroy it so idle pools don't pile up in the
+	// isolate across MCP resolves, OG image requests, and queue re-resolves.
+	const db = createPostgresConnectionPool(env, 'getPublishedFileInfo')
+	try {
+		const file = await db
+			.selectFrom('file')
+			.select(['id', 'published', 'lastPublished'])
+			.where('id', '=', parentSlug)
+			.executeTakeFirst()
+		return file ?? null
+	} finally {
+		await db.destroy()
+	}
+}
+
 export async function getPublishedRoomSnapshot(
 	env: Environment,
 	roomId: string
 ): Promise<RoomSnapshot | undefined> {
-	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
-	if (!parentSlug) throw Error('not found')
-
-	const file = await createPostgresConnectionPool(env, 'getPublishedRoomSnapshot')
-		.selectFrom('file')
-		.selectAll()
-		.where('id', '=', parentSlug)
-		.executeTakeFirst()
-
-	if (!file) throw Error('not found')
-
-	if (!file.published) throw Error('not published')
+	// Re-resolve the published slug on every read so the published gate holds at serve time, not
+	// just when the board was first resolved. A board un-published between resolution and this
+	// read must stop resolving even though its R2 snapshot lingers until the outbox's unpublish
+	// effect deletes it (the DB `published` flag flips immediately; R2 cleanup lags behind it).
+	// Undefined (not a throw) so unknown/unpublished slugs surface as a 404, not a 500.
+	const file = await getPublishedFileInfo(env, roomId)
+	if (!file) return undefined
+	if (!file.published) return undefined
 
 	return (await env.ROOM_SNAPSHOTS.get(
-		getR2KeyForRoom({ slug: `${parentSlug}/${roomId}`, isApp: true })
+		getR2KeyForRoom({ slug: `${file.id}/${roomId}`, isApp: true })
 	).then((r) => r?.json())) as RoomSnapshot | undefined
 }
 

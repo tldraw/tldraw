@@ -14,6 +14,7 @@ import {
 	queries,
 	schema,
 } from '@tldraw/dotcom-shared'
+import { exhaustiveSwitchError } from '@tldraw/utils'
 import {
 	blockUnknownOrigins,
 	createRouter,
@@ -37,21 +38,34 @@ import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
+import { getSocialPreview } from './routes/getSocialPreview'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
+import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
+import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
+import { initUser } from './routes/tla/initUser'
+import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
+import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
+import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
-import { Environment, QueueMessage, isDebugLogging } from './types'
-import { getLogger, getReplicator, getUserDurableObject } from './utils/durableObjects'
+import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
+import {
+	getFileEffectProcessor,
+	getLogger,
+	getReplicator,
+	getUserDurableObject,
+} from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
 import { getAuth, requireAuth } from './utils/tla/getAuth'
 import { getRole } from './utils/tla/getRole'
 export { TLFileDurableObject } from './TLFileDurableObject'
+export { TLFileEffectProcessor } from './TLFileEffectProcessor'
 export { TLLoggerDurableObject } from './TLLoggerDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLStatsDurableObject } from './TLStatsDurableObject'
@@ -73,6 +87,10 @@ const router = createRouter<Environment>()
 	.all('*', blockUnknownOrigins)
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
+	// Social preview metadata for board links. Vercel routes social crawlers (by user-agent) here so
+	// the unfurled link preview includes the board's name. See apps/dotcom/client/scripts/build.ts.
+	// Registered with .all because some crawlers probe with HEAD before (or instead of) GET.
+	.all('/app/social-preview/:prefix/:slug', getSocialPreview)
 	.get(`/${ROOM_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_WRITE)
 	)
@@ -124,12 +142,19 @@ const router = createRouter<Environment>()
 		// Ensure user exists in DB before Zero can query
 		const auth = await requireAuth(req, env)
 		if (req.params.userId !== auth.userId) return notFound()
-		const stub = getUserDurableObject(env, auth.userId)
-		return stub.fetch(req)
+		return initUser(req, env)
 	})
 	.post('/app/tldr', createFiles)
 	.get('/app/replicator-status', async (_, env) => {
 		await getReplicator(env).ping()
+		return new Response('ok')
+	})
+	// Dev/preview only. Wakes the outbox processor: local workerd doesn't fire persisted alarms
+	// for an uninstantiated DO, so without this a restarted dev stack drains nothing until the
+	// first mutation. The dev stack's readiness probe hits this route.
+	.get('/app/outbox-status', async (_, env) => {
+		if (!isDebugLogging(env)) return notFound()
+		await getFileEffectProcessor(env).poke()
 		return new Response('ok')
 	})
 	.get('/app/file/:roomId', (req, env) => {
@@ -173,6 +198,14 @@ const router = createRouter<Environment>()
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
+	.post('/app/mcp', sharedBoardScreenshotMcp)
+	// The board's rendered social preview image, referenced by the og:image tags getSocialPreview
+	// emits. Lives under the social-preview route family so the crawler HTML and its image share one
+	// path prefix. Registered with .all (like the sibling HTML route) so HEAD probes are handled;
+	// getOgImage serves headers only for anything but GET.
+	.all('/app/social-preview/:prefix/:slug/image', getOgImage)
+	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
+	.post('/app/thumbnail-render/result', putThumbnailRenderResult)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)
@@ -185,7 +218,7 @@ const router = createRouter<Environment>()
 	})
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
-	.post('/app/zero/mutate', async (req, env) => {
+	.post('/app/zero/mutate', async (req, env, ctx) => {
 		const auth = await getAuth(req, env)
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
@@ -195,6 +228,13 @@ const router = createRouter<Environment>()
 			'debug'
 		)
 		const result = await processor.process(createMutators(auth.userId), req)
+		// Wake the outbox consumer without blocking the response: a poke failure must not 500 a
+		// mutation that already committed, and the singleton DO shouldn't sit on the hot path.
+		ctx.waitUntil(
+			getFileEffectProcessor(env)
+				.poke()
+				.catch((e) => console.error('outbox poke failed', e))
+		)
 		return json(result)
 	})
 	.post('/app/zero/query', async (req, env) => {
@@ -315,20 +355,49 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 	}
 
 	override async queue(batch: MessageBatch<QueueMessage>): Promise<void> {
-		const db = createPostgresConnectionPool(this.env, 'sync-worker-queue')
+		// The pool is only needed for asset-upload messages, so create it lazily: OG image render
+		// batches should not open database connections they never use.
+		let db: ReturnType<typeof createPostgresConnectionPool> | undefined
 		for (const message of batch.messages) {
-			const { objectName, fileId, userId } = message.body
-			try {
-				await db
-					.insertInto('asset')
-					.values({ objectName, fileId, userId })
-					.onConflict((oc) => oc.column('objectName').doNothing())
-					.execute()
-				message.ack()
-			} catch (_e) {
-				message.retry({
-					delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
-				})
+			switch (message.body.type) {
+				case 'og-image-render':
+					try {
+						await handleOgImageRenderMessage(
+							this.env,
+							message as Message<OgImageRenderQueueMessage>,
+							this.ctx
+						)
+					} catch (_e) {
+						// handleOgImageRenderMessage settles the message itself; this guards the batch loop
+						// against an unexpected throw escaping it, so one bad message can't abort processing
+						// of the rest of the batch. Retry is a no-op if the handler already settled.
+						message.retry()
+					}
+					break
+				case 'asset-upload': {
+					const { objectName, fileId, userId } = message.body
+					try {
+						db ??= createPostgresConnectionPool(this.env, 'sync-worker-queue')
+						await db
+							.insertInto('asset')
+							.values({ objectName, fileId, userId })
+							.onConflict((oc) => oc.column('objectName').doNothing())
+							.execute()
+						message.ack()
+					} catch (_e) {
+						message.retry({
+							delaySeconds: QUEUE_BASE_DELAY ** message.attempts,
+						})
+					}
+					break
+				}
+				default:
+					// One shared queue carries every message type, so a newly added type that nobody
+					// handles here would otherwise fall through to whichever branch happens to be last
+					// and be mis-parsed as that type. This makes it a compile error instead. At runtime
+					// it only fires on deploy skew (a producer ahead of this consumer), where throwing
+					// is what we want: the batch is redelivered once the new consumer is live.
+					exhaustiveSwitchError(message.body, 'type')
 			}
 		}
 	}

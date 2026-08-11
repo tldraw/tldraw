@@ -25,6 +25,17 @@ export function getTlsyncProtocolVersion() {
 }
 
 /**
+ * Access level for object-store lane record types (see `objectTypes` on the room).
+ *
+ * Object-lane records (e.g. comments) are gated by this per-session value instead of the
+ * document-lane `isReadonly` flag, so a session can be allowed to write objects without
+ * being allowed to edit the document ("can comment but not edit"), or vice versa.
+ *
+ * @public
+ */
+export type TLObjectStoreAccess = 'read' | 'write'
+
+/**
  * Constants defining the different types of protocol incompatibility reasons.
  *
  * These values indicate why a client-server connection was rejected due to
@@ -108,6 +119,12 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			diff: NetworkDiff<R>
 			serverClock: number
 			isReadonly: boolean
+			/**
+			 * Write access for object-store lane record types, when the room has an object lane.
+			 * Optional and additive: servers without an object lane (or older servers) omit it, and
+			 * older clients ignore it — no protocol version bump needed.
+			 */
+			objectAccess?: TLObjectStoreAccess
 	  }
 	| {
 			type: 'incompatibility_error'

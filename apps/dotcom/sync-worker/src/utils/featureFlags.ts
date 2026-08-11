@@ -10,22 +10,24 @@ import { getAuth } from './tla/getAuth'
 
 function getFlagDefaults(_env: Environment): Record<FeatureFlagKey, FeatureFlagValue> {
 	return {
-		zero_enabled: {
-			type: 'percentage',
-			percentage: 0,
-			enabled: false,
-			description: 'Percentage rollout of proper Zero client (takes effect on next page load)',
-		},
-		zero_kill_switch: {
-			type: 'boolean',
-			enabled: false,
-			description: 'Emergency kill switch — when enabled, forces all users off Zero immediately',
-		},
 		rum_enabled: {
 			type: 'percentage',
 			percentage: 0,
 			enabled: false,
 			description: 'Real User Monitoring for editor performance metrics',
+		},
+		commenting_enabled: {
+			type: 'percentage',
+			percentage: 0,
+			enabled: false,
+			description:
+				'Commenting on files (tool, pins, threads, sidebar, notifications). Users with a @tldraw.com email always have it, regardless of this flag',
+		},
+		mcp_friends_and_family: {
+			type: 'boolean',
+			enabled: false,
+			description:
+				'Raises the /app/mcp rate limits for signed-in callers on the friends and family list (edited below)',
 		},
 	}
 }
@@ -132,6 +134,12 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
 			}
 		})
 	)
+
+	// Legacy client compat: bundles built before the polyfill removal still read
+	// these flags to choose a sync path. Force them onto Zero. Remove once stale
+	// bundles have aged out.
+	flags.zero_enabled = { enabled: true }
+	flags.zero_kill_switch = { enabled: false }
 
 	return new Response(JSON.stringify(flags), {
 		headers: {

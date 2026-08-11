@@ -11,16 +11,7 @@
 		"defaults"
 	],
 	"scripts": {
-		"dev": "yarn run -T tsx ./dev.ts",
-		"dev:clean": "yarn run -T tsx ./dev-clean.ts",
-		"dev:clean:all": "yarn run -T tsx ./dev-clean.ts --all",
-		"dev:doctor": "yarn run -T tsx ./dev-doctor.ts",
-		"wait-for-dev-readiness": "yarn run -T tsx ./wait-for-dev-readiness.ts",
-		"docker-up": "yarn run -T tsx ./docker-compose.ts up",
-		"docker-down": "yarn run -T tsx ./docker-compose.ts down",
 		"migrate": "yarn tsx ./migrate.ts",
-		"clean": "yarn dev:clean",
-		"clean:all": "yarn dev:clean:all",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
 		"test": "yarn run -T vitest --passWithNoTests",
 		"test-ci": "yarn run -T vitest run --passWithNoTests",
@@ -28,7 +19,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@rocicorp/zero": "1.7.0",
+		"@rocicorp/zero": "1.8.0",
 		"kysely": "^0.28.12",
 		"pg": "^8.16.3"
 	},
