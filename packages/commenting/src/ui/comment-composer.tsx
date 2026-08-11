@@ -19,6 +19,7 @@ import {
 } from 'react'
 import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
+import { focusOnGestureEnd } from './gesture-focus'
 import { SendButton } from './send-button'
 
 /** @public */
@@ -257,6 +258,14 @@ export function CommentComposer({
 		if (!autoFocus || !editor) return
 		const raf = requestAnimationFrame(() => editor.commands.focus('end'))
 		return () => cancelAnimationFrame(raf)
+	}, [autoFocus, editor])
+
+	// The frame-later focus above places the caret but can't raise iOS's software keyboard, leaving
+	// the composer looking ready while it swallows every keystroke. Focus once more from the release
+	// that ends the placing gesture, which can.
+	useEffect(() => {
+		if (!autoFocus || !editor) return
+		return focusOnGestureEnd(editor.view.dom.ownerDocument, () => editor.commands.focus('end'))
 	}, [autoFocus, editor])
 
 	// The whole field behaves like the text input: clicking its empty area (the padding, or the
