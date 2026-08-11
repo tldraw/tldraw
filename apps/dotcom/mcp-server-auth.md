@@ -15,7 +15,7 @@ Everything in the rollout below except the Clerk-side configuration, which is no
 - The per-user board access check (`hasReadAccessToFile`), gating the cache read as well as the render, with one not-found message for every way a board can fail to resolve.
 - An `allowlist` feature flag type, and `mcp_server_access` using it — one list, absorbing the friends-and-family list from [#9809](https://github.com/tldraw/tldraw/pull/9809). Entries are edited as emails and stored as `{ userId, email }`, resolved against the database at save time; the separate list and the `mcp_friends_and_family` flag are gone.
 
-**One thing is still open, and it is a decision rather than code.** Whether the Clerk instance issues JWT or opaque access tokens, which determines whether `@clerk/backend` has to go to v2 first. Client registration is settled: clients identify themselves with Client ID Metadata Documents (CIMD), and we don't support dynamic client registration; a client that lacks CIMD isn't supported until it updates. See [Open questions](#open-questions).
+**Nothing is left open.** Client registration is settled: clients identify themselves with Client ID Metadata Documents (CIMD), and we don't support dynamic client registration; a client that lacks CIMD isn't supported until it updates. Token format is settled: access tokens stay JWTs — Clerk's default, kept by a dashboard toggle — which keeps verification on `verifyToken` and the worker on `@clerk/backend` v1. See [Open questions](#open-questions).
 
 ## Summary
 
@@ -127,9 +127,11 @@ That last detail is what makes this worth treating as blocking rather than as a 
 
 > **If the MCP tool ever mints `render` jobs** — which authenticating those endpoints would invite, since it would let them screenshot private boards — this key must be namespaced by surface first.
 
-**What landed goes one step further than "by surface."** Surface alone separates MCP from OG, which fixes the edit-triggered-render case, but two concurrent MCP captures of different pages of one board would still share a key — the case the tool's own tests exercise. The MCP key therefore carries the page and theme as well: `render-tokens/{kind}/{slug}/{surface}[/{theme}/{pageId}]`. Board first so hard-delete cleanup can clear a board's records with one prefix listing rather than having to know every surface.
+**What landed goes several steps further than "by surface."** Surface alone separates MCP from OG, which fixes the edit-triggered-render case, but two concurrent MCP captures of one board would still share a key — the case the tool's own tests exercise. An MCP screenshot is therefore keyed by what it draws, page and theme and shape set: `render-tokens/{kind}/{slug}/mcp/screenshot/{theme}/{pageId}/{shapeSetDigest}`. Board first so hard-delete cleanup can clear a board's records with one prefix listing rather than having to know every surface.
 
-Two residuals, both deliberate. Two identical captures in flight at once still collide, and the later mint wins — the OG case again, one image rendered twice, costing a retry rather than a wrong result. And a token minted before the `surface` field existed reads as `og` and falls back to the old key, without which every OG render in flight across that deploy would `403` until it expired.
+**A measure render needed a different key again, and this was missed the first time round.** Keying by content cannot separate two measures: a measure exports nothing, and every measure of a page mints an identical job down to the hardcoded light theme, so they all collapsed onto one key. That is not a rare race but the ordinary agent pattern — the clustering tools all measure before they can do anything, so any two of `get_page_info`, `get_cluster_info` and `get_cluster_screenshot` aimed at one page raced, and the loser `403`d as a generic `browser_failed`. Measures are keyed by their own token (`…/mcp/measure/{tokenHash}`), which is unique per capture, and each deletes its record when it finishes — a per-token key is the one shape here that would otherwise accumulate.
+
+Two residuals, both deliberate. Two identical _screenshots_ in flight at once still collide, and the later mint wins. Both would have drawn the same image, so the loser costs a repeat rather than a wrong one, and what that repeat actually costs differs by surface: on OG a queue redelivery, which re-resolves at the top, finds the winner's image already at the current version, and acks as a cache hit without spending Browser Run; on MCP a failed tool call, which the agent repeats if it still wants the picture. Neither surface leaves a stale image up to save that, which would trade a redelivery for a thumbnail that stays wrong until the board is next edited. And a token minted before the `surface` field existed reads as `og` and falls back to the old key, without which every OG render in flight across that deploy would `403` until it expired. That old key sits at the board prefix without its trailing slash, so hard-delete cleanup deletes it by name as well as listing the prefix; a prefix listing alone walks straight past it, and nothing else would ever collect them.
 
 ### What the access check needed
 
@@ -215,12 +217,9 @@ Steps 5 and 6 were worth keeping apart when this was a deployment plan: step 5 i
 
 ## Open questions
 
-Still open, and blocking:
+All answered:
 
-1. **Does the Clerk instance issue JWT or opaque access tokens?** Verification is `verifyToken` from `@clerk/backend`, which checks a JWT against the instance JWKS. Opaque tokens need `idPOAuthAccessToken.verifySecret`, which is `@clerk/backend` v2; this worker pins 1.23.7, which has no OAuth token API at all. If they are opaque, the SDK upgrade is a prerequisite and it touches every auth path in the worker, not just this one.
-
-Answered:
-
+1. **Does the Clerk instance issue JWT or opaque access tokens?** JWTs — Clerk's default, controlled by the **Generate access tokens as JWTs** toggle on the OAuth applications settings tab, which stays on. That keeps verification on `verifyToken` against the instance JWKS and the worker on `@clerk/backend` 1.x. Opaque tokens would need `idPOAuthAccessToken.verifySecret` from `@clerk/backend` v2, an upgrade that touches every auth path in the worker — deliberately avoided.
 2. **Do we support dynamic client registration?** No, because of the security concerns of a public, unauthenticated registration endpoint. Clients identify themselves with CIMD, allowlisted through Clerk's **Advertise CIMD support** and **Only allow pre-registered clients to connect** settings, turned on together — the second is what makes the first safe, since advertising CIMD alone admits any client. CIMD is in beta, enabled per account. A client that requires registration isn't supported until it updates; Clerk's connection guide covers Claude Code, Claude Desktop, Cursor, VS Code, and Windsurf, but not ChatGPT, and step 4 is where any casualty of this policy shows up.
 3. **Does the access check admit private boards, or only tighten the public gate?** It admits them. A board resolves for the caller who owns it, can reach it through its owning group, or holds its share link.
 4. **How does the flag name specific users?** A new `allowlist` flag type, added here rather than by the flag work — see [What auth hands to the feature flag gate](#what-auth-hands-to-the-feature-flag-gate).

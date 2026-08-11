@@ -23,6 +23,7 @@ import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
 import {
 	ThumbnailRenderJob,
+	deleteMintedRenderToken,
 	mintThumbnailRenderToken,
 	recordMintedRenderToken,
 } from '../../utils/renderTokens'
@@ -560,15 +561,24 @@ export async function measurePageShapes(
 	// screenshot token. A no-op for `public` jobs — see recordMintedRenderToken.
 	await recordMintedRenderToken(env, job, token)
 
-	// The screenshot is discarded — it is only how the browser session is driven, and how we know the
-	// page reached its terminal state. The answer arrives via the result endpoint.
-	await renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
-		width: DEFAULT_THUMBNAIL_WIDTH,
-		height: DEFAULT_THUMBNAIL_HEIGHT,
-		// The measure runs only on the MCP surface today; `surface` names the render pipeline for the
-		// signed job, not the telemetry source, so this is stated rather than derived.
-		session: { source: 'mcp', mode: 'measure' },
-	})
+	try {
+		// The screenshot is discarded — it is only how the browser session is driven, and how we know the
+		// page reached its terminal state. The answer arrives via the result endpoint.
+		await renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
+			width: DEFAULT_THUMBNAIL_WIDTH,
+			height: DEFAULT_THUMBNAIL_HEIGHT,
+			// The measure runs only on the MCP surface today; `surface` names the render pipeline for the
+			// signed job, not the telemetry source, so this is stated rather than derived.
+			session: { source: 'mcp', mode: 'measure' },
+		})
+	} finally {
+		// A measure's record is keyed by its own token, so that concurrent measures of one page cannot
+		// invalidate each other — which also means nothing later overwrites it, and it has to be dropped
+		// here rather than left to accumulate one object per call. In `finally` because a failed render
+		// leaves exactly the same orphan a successful one would, and the snapshot fetch the record guards
+		// is over either way by the time the browser session ends.
+		await deleteMintedRenderToken(env, job, token)
+	}
 
 	if (!env.THUMBNAILS) throw new Error('THUMBNAILS bucket is not configured')
 	const key = getRenderResultKey(token)

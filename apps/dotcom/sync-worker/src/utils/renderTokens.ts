@@ -207,21 +207,27 @@ async function getHmacKey(secret: string) {
  *   behaviour rather than a collision between unrelated captures.
  * - **`mcp`** is not single-flighted. Concurrent captures of different pages of one board are supported
  *   and tested, so a per-board key would have them invalidate each other's tokens, and the loser would
- *   403 on its snapshot fetch and surface as a generic render failure. Its key therefore carries what
- *   distinguishes those captures: the mode (a measure render or a screenshot), the page and theme, and
- *   a digest of the shape set when the render is restricted to one — the cluster tools measure a page
- *   and then screenshot parts of it, and both job kinds mint recorded tokens for a private board.
+ *   403 on its snapshot fetch and surface as a generic render failure. A **screenshot** is identified by
+ *   what it draws, so its key carries the page and theme, and a digest of the shape set when the render
+ *   is restricted to one. A **measure** has no such content: it exports nothing, and every measure of a
+ *   page mints an identical job down to the hardcoded light theme. Keying one by content would collide
+ *   with every other measure of that page — which is the ordinary agent pattern rather than a rare race,
+ *   since get_page_info, get_cluster_info and get_cluster_screenshot all measure before they can do
+ *   anything. Measure records are keyed by the token instead, which is unique per capture.
  *
- * Both live under `render-tokens/{kind}/{slug}/` so hard-delete cleanup can clear a board's records with
- * one prefix listing rather than having to know every surface. Two concurrent MCP captures of the *same*
- * mode, page, theme and shape set still share a key, which is the OG case again — the same image (or
- * measurement), rendered twice, where the later mint winning costs one retry rather than a wrong result.
+ * All of them live under `render-tokens/{kind}/{slug}/` so hard-delete cleanup can clear a board's
+ * records with one prefix listing rather than having to know every surface. Two concurrent screenshots of
+ * the *same* page, theme and shape set do still share a key, which is the OG case again — one image
+ * rendered twice, where the later mint winning costs a retry rather than a wrong result.
  *
- * Records are **not** deleted after a capture. Expiry lives in the signed `exp` and is checked before
- * this is consulted, so a leftover record cannot extend a token's life; deleting would only tighten the
- * window from `exp` to the render's duration, which buys nothing against an attacker who cannot get a
- * record written at all. A hash is stored rather than the token, in `customMetadata` so that checking
- * one is a `head` and the record costs no stored bytes.
+ * Content-keyed records are **not** deleted after a capture: they overwrite in place, so the space stays
+ * bounded whatever the traffic. A per-token measure key has no such ceiling, so those records *are*
+ * deleted once the measure completes — see deleteMintedRenderToken. Deleting is safe either way, and for
+ * the content-keyed records it is simply pointless: expiry lives in the signed `exp` and is checked
+ * before this is consulted, so a leftover record cannot extend a token's life, and deleting only tightens
+ * the window from `exp` to the render's duration against an attacker who cannot get a record written at
+ * all. A hash is stored rather than the token, in `customMetadata` so that checking one is a `head` and
+ * the record costs no stored bytes.
  */
 const RENDER_TOKEN_RECORD_PREFIX = 'render-tokens'
 
@@ -234,18 +240,23 @@ async function renderTokenRecordKey(
 	job: Pick<
 		ThumbnailRenderJob,
 		'kind' | 'slug' | 'surface' | 'pageId' | 'theme' | 'mode' | 'shapeIds'
-	>
+	>,
+	token: string
 ) {
 	const surface = renderJobSurface(job)
 	const base = `${renderTokenRecordPrefix(job)}${surface}`
 	if (surface !== 'mcp') return base
-	// Derived from the signed job, so the key a capture is checked against is the one it was minted
-	// under and a caller cannot steer it. `default` stands in for the OG-style whole-board render,
+	// A measure names no content of its own, so it is keyed by the capture instead: the token, which is
+	// unique per mint. Two clustering calls on one page would otherwise share a key and invalidate each
+	// other. Hashed rather than used raw because the token is a credential and this is an object name.
+	if (job.mode === 'measure') return `${base}/measure/${await sha256(token)}`
+	// Otherwise derived from the signed job, so the key a capture is checked against is the one it was
+	// minted under and a caller cannot steer it. `default` stands in for the OG-style whole-board render,
 	// which the MCP tool does not currently mint but the job type still allows. The shape set is
 	// digested rather than joined so the key stays bounded however many shapes a cluster holds, and
 	// sorted so the same set always lands on the same record.
 	const shapeSet = job.shapeIds?.length ? await sha256([...job.shapeIds].sort().join(',')) : 'page'
-	return `${base}/${job.mode ?? 'screenshot'}/${job.theme}/${job.pageId ?? 'default'}/${shapeSet}`
+	return `${base}/screenshot/${job.theme}/${job.pageId ?? 'default'}/${shapeSet}`
 }
 
 /**
@@ -268,9 +279,33 @@ export async function recordMintedRenderToken(
 	// Unbound only in local dev and tests, where skipping leaves signature-only verification. Deployed
 	// environments all bind THUMBNAILS, so the two-factor check is never optional where it matters.
 	if (!env.THUMBNAILS) return
-	await env.THUMBNAILS.put(await renderTokenRecordKey(job), new Uint8Array(), {
+	await env.THUMBNAILS.put(await renderTokenRecordKey(job, token), new Uint8Array(), {
 		customMetadata: { tokenHash: await sha256(token) },
 	})
+}
+
+/**
+ * Drops one capture's record, for the keys that do not overwrite in place. Only measure jobs need this:
+ * their key carries the token, so nothing later reuses it and each call would otherwise leave an object
+ * behind forever — see recordMintedRenderToken. Call it once the render is done with the token, which is
+ * after the snapshot fetch this record guards has already happened.
+ *
+ * Best effort, unlike the write: a record that fails to write means the render is about to fail its token
+ * check, but one that fails to delete only leaves an orphan, and failing the caller's measure over it
+ * would turn a working answer into an error. Hard deletion sweeps the board's whole prefix later anyway.
+ */
+export async function deleteMintedRenderToken(
+	env: Environment,
+	job: ThumbnailRenderJob,
+	token: string
+): Promise<void> {
+	if (renderJobAccess(job) !== 'render') return
+	if (!env.THUMBNAILS) return
+	try {
+		await env.THUMBNAILS.delete(await renderTokenRecordKey(job, token))
+	} catch {
+		// Ignored — see above.
+	}
 }
 
 /**
@@ -292,7 +327,7 @@ export async function isMintedRenderToken(
 	if (!env.THUMBNAILS) return true
 
 	const record =
-		(await env.THUMBNAILS.head(await renderTokenRecordKey(job))) ??
+		(await env.THUMBNAILS.head(await renderTokenRecordKey(job, token))) ??
 		// A token with no `surface` was minted before the key was namespaced, and its record is at the
 		// old un-namespaced key. Checked only for those tokens, so this costs nothing once the rolling
 		// deploy that introduced the field has finished — and without it every OG render already in
@@ -315,8 +350,9 @@ function legacyRenderTokenRecordKey(job: Pick<ThumbnailRenderJob, 'kind' | 'slug
  * object nothing will ever read or overwrite again.
  *
  * Lists rather than deleting a known key, because the key space under a board is per surface and, for
- * MCP, per page and theme — see `renderTokenRecordKey`. A caller that had to enumerate those itself
- * would silently stop cleaning up the day a surface changed what it keys on.
+ * MCP, per page and theme or — for measures — per token, which no caller could enumerate at all. See
+ * `renderTokenRecordKey`. A caller that had to work those out itself would silently stop cleaning up the
+ * day a surface changed what it keys on.
  *
  * Best effort, like the image deletion it runs beside: a board is being torn down, and failing to
  * tidy up a few small objects must not abort that.
@@ -328,11 +364,18 @@ export async function deleteRenderTokenRecord(
 	if (!env.THUMBNAILS) return
 	try {
 		const prefix = renderTokenRecordPrefix(board)
-		// A board's records number in the low tens at most (surfaces × pages × themes), so a single
-		// unpaginated listing covers it; `truncated` is not chased because leaving a few orphans behind
-		// is exactly the cost this function already accepts on failure.
+		// A board's records number in the low tens at most — surfaces × pages × themes, plus any measure
+		// record whose own cleanup failed — so a single unpaginated listing covers it; `truncated` is not
+		// chased because leaving a few orphans behind is exactly the cost this function already accepts on
+		// failure.
 		const listed = await env.THUMBNAILS.list({ prefix })
-		await Promise.all(listed.objects.map((object) => env.THUMBNAILS!.delete(object.key)))
+		await Promise.all([
+			...listed.objects.map((object) => env.THUMBNAILS!.delete(object.key)),
+			// The pre-namespacing record sits at that prefix *without* its trailing slash, so the listing
+			// cannot see it and it has to go by name. Every board rendered by a worker older than the
+			// namespacing has one, and this is the only thing that would ever collect them.
+			env.THUMBNAILS.delete(legacyRenderTokenRecordKey(board)),
+		])
 	} catch {
 		// Ignored — see above.
 	}

@@ -5,6 +5,8 @@ import { Environment } from '../types'
 import { sha256 } from './hash'
 import {
 	ThumbnailRenderJob,
+	deleteMintedRenderToken,
+	deleteRenderTokenRecord,
 	isMintedRenderToken,
 	mintThumbnailRenderToken,
 	recordMintedRenderToken,
@@ -353,7 +355,47 @@ describe('render token records', () => {
 			expect(await isMintedRenderToken(envWithBucket, light, lightToken)).toBe(true)
 		})
 
-		// The residual the design accepts: the *same* capture asked for twice at once collides, and the
+		// Every measure of a page mints the same job — no shape set, and the theme is hardcoded light —
+		// so content cannot tell two of them apart. They are keyed by their tokens instead. This is the
+		// ordinary agent pattern rather than a rare race: get_page_info, get_cluster_info and
+		// get_cluster_screenshot each measure before they can do anything, so any two of them running
+		// against one page would otherwise have the loser 403 as a generic "Screenshot failed".
+		it('keeps concurrent measures of one page independent', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const job = makeJob({
+				surface: 'mcp',
+				kind: 'shared_file',
+				slug: 'f1',
+				pageId: 'page:a',
+				mode: 'measure',
+			})
+
+			const first = await mintThumbnailRenderToken(envWithBucket, job)
+			await recordMintedRenderToken(envWithBucket, job, first)
+			// A second measure of the same page, minted while the first is still in flight. Identical job
+			// but for the expiry, which is what makes the two tokens differ.
+			const secondJob = { ...job, exp: job.exp + 1 }
+			const second = await mintThumbnailRenderToken(envWithBucket, secondJob)
+			await recordMintedRenderToken(envWithBucket, secondJob, second)
+
+			expect(await isMintedRenderToken(envWithBucket, job, first)).toBe(true)
+			expect(await isMintedRenderToken(envWithBucket, secondJob, second)).toBe(true)
+		})
+
+		// The flip side of a per-token key: nothing later overwrites it, so the measure drops it itself.
+		it('drops a measure record once the measure is done with it', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const job = makeJob({ surface: 'mcp', slug: 'f1', pageId: 'page:a', mode: 'measure' })
+			const token = await mintThumbnailRenderToken(envWithBucket, job)
+			await recordMintedRenderToken(envWithBucket, job, token)
+
+			await deleteMintedRenderToken(envWithBucket, job, token)
+
+			expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(false)
+			expect([...(envWithBucket.THUMBNAILS as any).store.keys()]).toEqual([])
+		})
+
+		// The residual the design accepts: the *same screenshot* asked for twice at once collides, and the
 		// later mint wins. That is the OG pipeline's case again — one image, rendered twice — so it costs
 		// a retry rather than a wrong result.
 		it('still supersedes an identical in-flight capture', async () => {
@@ -399,6 +441,56 @@ describe('render token records', () => {
 			)
 
 			expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(false)
+		})
+	})
+
+	// Hard-delete cleanup. Not a security boundary — expiry is checked before a record is read — but
+	// these keys carry no version and THUMBNAILS has no lifecycle rule, so anything missed here is an
+	// object nothing will ever read, overwrite or sweep again.
+	describe('board cleanup', () => {
+		it('clears both the namespaced records and the pre-namespacing one', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const board = { kind: 'shared_file', slug: 'f1' } as const
+			const bucket = envWithBucket.THUMBNAILS as any
+
+			const shot = makeJob({ ...board, surface: 'mcp', pageId: 'page:a' })
+			await recordMintedRenderToken(envWithBucket, shot, await mintThumbnailRenderToken(env, shot))
+			const measure = makeJob({ ...board, surface: 'mcp', pageId: 'page:a', mode: 'measure' })
+			await recordMintedRenderToken(
+				envWithBucket,
+				measure,
+				await mintThumbnailRenderToken(env, measure)
+			)
+			// The record an older worker wrote, which sits at the board prefix *without* its trailing
+			// slash — so a prefix listing walks straight past it.
+			await bucket.put(`render-tokens/${board.kind}/${board.slug}`, new Uint8Array())
+
+			await deleteRenderTokenRecord(envWithBucket, board)
+
+			expect([...bucket.store.keys()]).toEqual([])
+		})
+
+		it('leaves another board’s records alone', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const bucket = envWithBucket.THUMBNAILS as any
+			const other = makeJob({ kind: 'shared_file', slug: 'f2', surface: 'mcp', pageId: 'page:a' })
+			await recordMintedRenderToken(
+				envWithBucket,
+				other,
+				await mintThumbnailRenderToken(env, other)
+			)
+			// A neighbour whose slug merely starts with the deleted one, which an exact-key delete of the
+			// pre-namespacing record must not touch.
+			await bucket.put('render-tokens/shared_file/f1-archived', new Uint8Array())
+
+			await deleteRenderTokenRecord(envWithBucket, { kind: 'shared_file', slug: 'f1' })
+
+			expect([...bucket.store.keys()].sort()).toEqual(
+				[
+					'render-tokens/shared_file/f1-archived',
+					'render-tokens/shared_file/f2/mcp/screenshot/light/page:a/page',
+				].sort()
+			)
 		})
 	})
 
