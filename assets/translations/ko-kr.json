@@ -211,6 +211,7 @@
 	"comments.empty-filtered": "필터와 일치하는 댓글이 없습니다.",
 	"comments.filter": "댓글 필터링",
 	"comments.hide": "댓글 숨기기",
+	"comments.link-copied": "복사된 링크",
 	"comments.mention-no-matches": "일치하는 결과가 없음",
 	"comments.mention-you": "나",
 	"comments.more-options": "더 많은 옵션",
