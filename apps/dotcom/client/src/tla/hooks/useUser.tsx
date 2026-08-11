@@ -66,8 +66,3 @@ export function useLoggedInUser() {
 	if (!user) throw new Error('User not signed in')
 	return user
 }
-
-export function useIsTldrawStaff() {
-	const { user } = useClerkUser()
-	return getIsTldrawStaff(user)
-}
