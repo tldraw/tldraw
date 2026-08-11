@@ -70,7 +70,7 @@
 	"action.flip-vertical.short": "垂直翻转",
 	"action.fork-project": "Fork 这个项目",
 	"action.fork-project-on-tldraw": "在 tldraw 上 Fork 项目",
-	"action.frame-selection": "框架选择",
+	"action.frame-selection": "将所选内容放入画框",
 	"action.group": "分组",
 	"action.insert-embed": "创建嵌入",
 	"action.insert-media": "上传媒体文件",

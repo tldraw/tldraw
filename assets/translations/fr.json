@@ -215,7 +215,7 @@
 	"comments.mention-you": "Vous",
 	"comments.more-options": "Options supplémentaires",
 	"comments.only-my-comments": "Seulement mes commentaires",
-	"comments.only-unread": "Seulement les pages non lues",
+	"comments.only-unread": "Non lus uniquement",
 	"comments.pin-label": "Commentaire de {name}",
 	"comments.pin-label-resolved": "Commentaire résolu par {name}",
 	"comments.preview-more": "{count} de plus",
