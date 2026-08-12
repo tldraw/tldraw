@@ -3354,364 +3354,6 @@ spec:
                 mode: single
                 sort: none
           version: 13.2.0-29854286369
-    panel-30:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, count() as sessions
-
-                        FROM 'MCP_ANALYTICS'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'session_start'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, count() as sessions
-
-                        FROM 'MCP_ANALYTICS'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'session_start'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: session_start events from the tldraw MCP server (MCP_ANALYTICS
-          dataset). Requires the MCP_ANALYTICS table in this datasource.
-        id: 30
-        links: []
-        title: MCP sessions started
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: bars
-                  fillOpacity: 80
-                  gradientMode: none
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 0
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: never
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: none
-                  thresholdsStyle:
-                    mode: 'off'
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: false
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
-          version: 13.2.0-29854286369
-    panel-31:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, blob2 as tool, count() as calls
-
-                        FROM 'MCP_ANALYTICS'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'tool_called'
-
-                        GROUP BY date, tool
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, blob2 as tool, count() as calls
-
-                        FROM 'MCP_ANALYTICS'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'tool_called'
-
-                        GROUP BY date, tool
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: tool_called events split by tool name (search, exec).
-        id: 31
-        links: []
-        title: MCP tool calls by tool
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: bars
-                  fillOpacity: 80
-                  gradientMode: none
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 0
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: never
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: normal
-                  thresholdsStyle:
-                    mode: 'off'
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: true
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
-          version: 13.2.0-29854286369
-    panel-32:
-      kind: Panel
-      spec:
-        data:
-          kind: QueryGroup
-          spec:
-            queries:
-              - kind: PanelQuery
-                spec:
-                  hidden: false
-                  query:
-                    datasource:
-                      name: bdgu7tk03irr4e
-                    group: vertamedia-clickhouse-datasource
-                    kind: DataQuery
-                    spec:
-                      dateTimeType: DATETIME
-                      editorMode: code
-                      extrapolate: true
-                      format: time_series
-                      formatAs: time_series
-                      intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, count() as reads
-
-                        FROM 'MCP_ANALYTICS'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'resource_called'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval'
-                        SECOND) as date, count() as reads
-
-                        FROM 'MCP_ANALYTICS'
-
-                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-
-                        AND blob1 = 'resource_called'
-
-                        GROUP BY date
-
-                        ORDER BY date ASC"
-                      round: 0s
-                      showFormattedSQL: false
-                      showHelp: false
-                      skip_comments: true
-                      step: ''
-                    version: v0
-                  refId: A
-            queryOptions: {}
-            transformations: []
-        description: resource_called events for the tldraw-canvas UI resource.
-        id: 32
-        links: []
-        title: MCP canvas resource reads
-        vizConfig:
-          group: timeseries
-          kind: VizConfig
-          spec:
-            fieldConfig:
-              defaults:
-                color:
-                  mode: palette-classic
-                custom:
-                  axisBorderShow: false
-                  axisCenteredZero: false
-                  axisColorMode: text
-                  axisLabel: ''
-                  axisPlacement: auto
-                  barAlignment: 0
-                  barWidthFactor: 0.8
-                  drawStyle: line
-                  fillOpacity: 25
-                  gradientMode: opacity
-                  hideFrom:
-                    legend: false
-                    tooltip: false
-                    viz: false
-                  insertNulls: false
-                  lineInterpolation: linear
-                  lineWidth: 1.5
-                  pointSize: 5
-                  scaleDistribution:
-                    type: linear
-                  showPoints: never
-                  showValues: false
-                  spanNulls: false
-                  stacking:
-                    group: A
-                    mode: none
-                  thresholdsStyle:
-                    mode: 'off'
-                thresholds:
-                  mode: absolute
-                  steps:
-                    - color: green
-                      value: 0
-              overrides: []
-            options:
-              annotations:
-                clustering: -1
-                multiLane: false
-              legend:
-                calcs: []
-                displayMode: list
-                enableFacetedFilter: false
-                overflow: ellipsis
-                placement: bottom
-                showLegend: false
-              tooltip:
-                hideZeros: false
-                maxHeight: 600
-                mode: multi
-                sort: desc
-          version: 13.2.0-29854286369
     panel-33:
       kind: Panel
       spec:
@@ -5700,38 +5342,11 @@ spec:
           spec:
             element:
               kind: ElementReference
-              name: panel-30
-            height: 8
-            width: 8
-            x: 0
-            y: 87
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-31
-            height: 8
-            width: 8
-            x: 8
-            y: 87
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-32
-            height: 8
-            width: 8
-            x: 16
-            y: 87
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
               name: panel-33
             height: 4
             width: 6
             x: 0
-            y: 95
+            y: 87
         - kind: GridLayoutItem
           spec:
             element:
@@ -5740,7 +5355,7 @@ spec:
             height: 4
             width: 6
             x: 6
-            y: 95
+            y: 87
         - kind: GridLayoutItem
           spec:
             element:
@@ -5749,7 +5364,7 @@ spec:
             height: 4
             width: 6
             x: 12
-            y: 95
+            y: 87
         - kind: GridLayoutItem
           spec:
             element:
@@ -5758,7 +5373,7 @@ spec:
             height: 4
             width: 6
             x: 18
-            y: 95
+            y: 87
         - kind: GridLayoutItem
           spec:
             element:
@@ -5767,7 +5382,7 @@ spec:
             height: 8
             width: 8
             x: 0
-            y: 99
+            y: 91
         - kind: GridLayoutItem
           spec:
             element:
@@ -5776,7 +5391,7 @@ spec:
             height: 8
             width: 8
             x: 8
-            y: 99
+            y: 91
         - kind: GridLayoutItem
           spec:
             element:
@@ -5785,7 +5400,7 @@ spec:
             height: 8
             width: 8
             x: 16
-            y: 99
+            y: 91
         - kind: GridLayoutItem
           spec:
             element:
@@ -5794,7 +5409,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 107
+            y: 99
         - kind: GridLayoutItem
           spec:
             element:
@@ -5803,7 +5418,7 @@ spec:
             height: 8
             width: 12
             x: 12
-            y: 107
+            y: 99
         - kind: GridLayoutItem
           spec:
             element:
@@ -5812,7 +5427,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 115
+            y: 107
         - kind: GridLayoutItem
           spec:
             element:
@@ -5821,7 +5436,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 131
+            y: 123
         - kind: GridLayoutItem
           spec:
             element:
@@ -5830,7 +5445,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 123
+            y: 115
         - kind: GridLayoutItem
           spec:
             element:
@@ -5839,7 +5454,7 @@ spec:
             height: 8
             width: 12
             x: 12
-            y: 131
+            y: 123
         - kind: GridLayoutItem
           spec:
             element:
@@ -5848,7 +5463,7 @@ spec:
             height: 8
             width: 12
             x: 12
-            y: 115
+            y: 107
         - kind: GridLayoutItem
           spec:
             element:
@@ -5857,7 +5472,7 @@ spec:
             height: 8
             width: 12
             x: 12
-            y: 123
+            y: 115
         - kind: GridLayoutItem
           spec:
             element:
@@ -5866,7 +5481,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 139
+            y: 131
   links: []
   liveNow: false
   preload: false
@@ -5899,8 +5514,8 @@ spec:
           text: production
           value: production
         description: Environment to filter by. Use production, staging, or your pr number
-          (pr-42). Applies to MEASURE panels only — the demo server and MCP sections
-          query their own datasets.
+          (pr-42). Applies to MEASURE panels only — the demo server panels query their
+          own dataset.
         hide: dontHide
         label: 'Environment: production | staging | pr-42'
         name: environment
