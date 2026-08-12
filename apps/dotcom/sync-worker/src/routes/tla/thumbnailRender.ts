@@ -1,4 +1,5 @@
 import {
+	DB,
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_PAGES,
@@ -9,6 +10,7 @@ import {
 import { ClusterBounds } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { TLShape, isPage, isShape } from '@tldraw/tlschema'
+import { Kysely } from 'kysely'
 import { THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
 import { getR2KeyForRoom } from '../../r2'
 import {
@@ -82,17 +84,27 @@ export async function resolveThumbnailBoard(
 	env: Environment,
 	kind: ThumbnailBoardKind,
 	slug: string,
-	{ access }: { access: ThumbnailBoardAccess }
+	{
+		access,
+		db,
+	}: {
+		access: ThumbnailBoardAccess
+		/**
+		 * An invocation-scoped pool to resolve through, for the queue batch loop that resolves many
+		 * boards per invocation. Passed to the readers, never owned here — see getSharedFileInfo.
+		 */
+		db?: Kysely<DB>
+	}
 ): Promise<ResolveThumbnailBoardResult> {
 	if (kind === 'published') {
 		// A published board's whole identity is its published slug, so there is no weaker gate to
 		// apply: an unpublished board has no published snapshot to render in the first place.
-		const file = await getPublishedFileInfo(env, slug)
+		const file = await getPublishedFileInfo(env, slug, db)
 		if (!file?.published) return { ok: false, reason: 'not_found' }
 		return { ok: true, board: { kind, slug, version: file.lastPublished, access } }
 	}
 
-	const file = await getSharedFileInfo(env, slug)
+	const file = await getSharedFileInfo(env, slug, db)
 	if (!isFileViewableFor(file, access)) return { ok: false, reason: 'not_found' }
 
 	// The persisted room's R2 etag rotates when the board content changes, so it keys the
@@ -114,6 +126,7 @@ export async function loadBoardSnapshot(
 	{
 		access,
 		file,
+		db,
 	}: {
 		access: ThumbnailBoardAccess
 		/**
@@ -122,13 +135,19 @@ export async function loadBoardSnapshot(
 		 * staleness that comes with it deliberately. See `getSharedFileRoomSnapshot`.
 		 */
 		file?: SharedFileInfo
+		/**
+		 * An invocation-scoped pool for whatever file-row read the load makes — same contract as on
+		 * `resolveThumbnailBoard`. Shares the connection only; whether the row is re-read at all is
+		 * still `file`'s decision above.
+		 */
+		db?: Kysely<DB>
 	}
 ): Promise<RoomSnapshot | null> {
 	try {
 		const snapshot =
 			board.kind === 'published'
-				? await getPublishedRoomSnapshot(env, board.slug)
-				: await getSharedFileRoomSnapshot(env, board.slug, { access, file })
+				? await getPublishedRoomSnapshot(env, board.slug, db)
+				: await getSharedFileRoomSnapshot(env, board.slug, { access, file, db })
 		return snapshot ?? null
 	} catch (error) {
 		// Keep the original message in the wrapper's own text as well as its `cause`, so the Sentry

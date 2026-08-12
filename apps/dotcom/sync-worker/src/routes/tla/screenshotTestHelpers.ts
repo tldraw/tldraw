@@ -38,6 +38,31 @@ export function makeSnapshot(
 	return { documents, schema: { schemaVersion: 2, sequences: {} } } as any
 }
 
+// Stand-in for the postgres module, for tests that fake the Postgres seam rather than mocking the
+// reader on top of it (getSharedFile.test.ts, getPublishedFile.test.ts — pass it to
+// `vi.mock('../../postgres', ...)`). The Kysely chain is self-returning, so a reader's builder
+// calls all land on the one `executeTakeFirst` — which is what lets a test tell a skipped round
+// trip from a skipped query. `withPostgres` only runs the callback, against the supplied db or
+// this fake when the caller lends none; the real borrow-or-own lifetime lives in postgres.ts and
+// is pinned by postgres.test.ts.
+export function makeFakePostgresModule() {
+	const executeTakeFirst = vi.fn()
+	const db: any = {
+		selectFrom: () => db,
+		select: () => db,
+		where: () => db,
+		executeTakeFirst,
+		destroy: vi.fn(),
+	}
+	const withPostgres = vi.fn(
+		async (_env: unknown, _name: string, suppliedDb: any, fn: (db: any) => Promise<unknown>) =>
+			fn(suppliedDb ?? db)
+	)
+	return { db, executeTakeFirst, withPostgres }
+}
+
+export type FakePostgresModule = ReturnType<typeof makeFakePostgresModule>
+
 // In-memory stand-in for an R2 bucket (THUMBNAILS or MCP_DATA_BUCKET, which have the same shape).
 // Exposes `store` so tests can inspect or seed
 // entries directly. Covers get/head/put/delete; entries carry the customMetadata and upload time
