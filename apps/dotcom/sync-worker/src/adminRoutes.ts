@@ -169,40 +169,60 @@ export const adminRoutes = createRouter<Environment>()
 		if (!/^[0-9a-f]{64}$/.test(objectId)) {
 			throw new StatusError(400, 'objectId must be a 64-char lowercase hex string')
 		}
-		const info = await getRoomDurableObjectById(env, objectId).__admin__getDocumentInfo()
+		let roomDo: ReturnType<typeof getRoomDurableObjectById>
+		try {
+			// idFromString rejects hex that fails the namespace checksum (garbage, or an id copied
+			// from another durable object class)
+			roomDo = getRoomDurableObjectById(env, objectId)
+		} catch {
+			throw new StatusError(400, 'not a valid durable object id for the file namespace')
+		}
+		const info = await roomDo.__admin__getDocumentInfo()
 		if (!info) return json({ match: null, history: null })
 
+		// Stream the stats instead of collecting objects, so any number of snapshots fits. Keys are
+		// ISO timestamps (oldest first); min/max tracking keeps the newest save correct either way.
 		const prefix = `${getR2KeyForRoom({ slug: info.slug, isApp: info.isApp })}/`
-		const saves: { uploaded: number; size: number }[] = []
+		let saves = 0
+		let totalBytes = 0
+		let firstAt: number | null = null
+		let lastAt: number | null = null
+		let latestSize: number | null = null
 		let cursor: string | undefined
+		let pages = 0
 		let listTruncated = false
 		do {
 			const page = await env.ROOMS_HISTORY_EPHEMERAL.list({ prefix, cursor })
 			for (const obj of page.objects) {
-				saves.push({ uploaded: obj.uploaded.getTime(), size: obj.size })
+				saves++
+				totalBytes += obj.size
+				const t = obj.uploaded.getTime()
+				if (firstAt === null || t < firstAt) firstAt = t
+				if (lastAt === null || t > lastAt) {
+					lastAt = t
+					latestSize = obj.size
+				}
 			}
 			cursor = page.truncated ? page.cursor : undefined
-			if (saves.length >= 10_000) {
+			// subrequest backstop: 500 pages = 500k snapshots, far beyond any real room
+			if (++pages >= 500 && cursor) {
 				listTruncated = true
 				break
 			}
 		} while (cursor)
-		saves.sort((a, b) => a.uploaded - b.uploaded)
 
-		const first = saves[0]
-		const last = saves[saves.length - 1]
 		return json({
 			match: info,
 			history: {
-				saves: saves.length,
-				firstSaveAt: first ? new Date(first.uploaded).toISOString() : null,
-				lastSaveAt: last ? new Date(last.uploaded).toISOString() : null,
+				saves,
+				firstSaveAt: firstAt !== null ? new Date(firstAt).toISOString() : null,
+				lastSaveAt: lastAt !== null ? new Date(lastAt).toISOString() : null,
 				avgSecondsBetweenSaves:
-					saves.length > 1
-						? Math.round((last.uploaded - first.uploaded) / 1000 / (saves.length - 1))
+					saves > 1 && firstAt !== null && lastAt !== null
+						? Math.round((lastAt - firstAt) / 1000 / (saves - 1))
 						: null,
-				latestSizeBytes: last?.size ?? null,
-				totalSizeBytes: saves.reduce((sum, s) => sum + s.size, 0),
+				latestSizeBytes: latestSize,
+				totalSizeBytes: totalBytes,
 				listTruncated,
 			},
 		})
