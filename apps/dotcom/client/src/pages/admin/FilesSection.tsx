@@ -30,6 +30,10 @@ export function FilesSection() {
 				<UndeleteFileById />
 			</section>
 			<section className={styles.adminSection}>
+				<h3 className={styles.sectionTitle}>Durable object lookup</h3>
+				<ResolveDoId />
+			</section>
+			<section className={styles.adminSection}>
 				<h3 className={styles.sectionTitle}>Welcome template</h3>
 				<WelcomeTemplate />
 			</section>
@@ -38,6 +42,148 @@ export function FilesSection() {
 				<HardDeleteFile />
 			</section>
 		</>
+	)
+}
+
+interface ResolvedDoRoom {
+	slug: string
+	isApp: boolean
+	deleted: boolean
+	connectedSockets: number
+	roomLoaded: boolean
+}
+
+interface ResolvedDoHistory {
+	saves: number
+	firstSaveAt: string | null
+	lastSaveAt: string | null
+	avgSecondsBetweenSaves: number | null
+	latestSizeBytes: number | null
+	totalSizeBytes: number
+	listTruncated: boolean
+}
+
+function formatAgo(iso: string) {
+	const seconds = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000))
+	if (seconds < 120) return `${seconds}s ago`
+	if (seconds < 7200) return `${Math.round(seconds / 60)}m ago`
+	if (seconds < 172800) return `${Math.round(seconds / 3600)}h ago`
+	return `${Math.round(seconds / 86400)}d ago`
+}
+
+function formatInterval(seconds: number) {
+	if (seconds < 120) return `${seconds}s`
+	if (seconds < 7200) return `${Math.round(seconds / 60)}m`
+	return `${(seconds / 3600).toFixed(1)}h`
+}
+
+/** The question this section exists to answer: is anyone actually using this room? */
+function activityVerdict(match: ResolvedDoRoom, history: ResolvedDoHistory) {
+	const lastSaveAgeMs = history.lastSaveAt
+		? Date.now() - new Date(history.lastSaveAt).getTime()
+		: Infinity
+	if (match.connectedSockets === 0) {
+		return 'idle — no tabs connected'
+	}
+	if (lastSaveAgeMs < 60 * 60 * 1000) {
+		return 'actively edited — connected and saving'
+	}
+	return 'parked tab(s) — connected but not editing'
+}
+
+/**
+ * Maps a durable object id (from Cloudflare analytics or the dash) back to its room slug, with
+ * liveness and persist-history signals. The object stores its own identity, so the resolver asks
+ * it directly.
+ */
+function ResolveDoId() {
+	const [input, setInput] = useState('')
+	const [isRunning, setIsRunning] = useState(false)
+	const [error, setError] = useState(null as string | null)
+	const [result, setResult] = useState(
+		null as { match: ResolvedDoRoom | null; history: ResolvedDoHistory | null } | null
+	)
+
+	const onResolve = useCallback(async () => {
+		const objectId = input.trim()
+		if (!/^[0-9a-f]{64}$/.test(objectId)) {
+			setError('Paste a 64-character lowercase hex durable object id')
+			return
+		}
+		setError(null)
+		setResult(null)
+		setIsRunning(true)
+		try {
+			const res = await fetch(`/api/app/admin/resolve-do-id/${objectId}`)
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			setResult(await res.json())
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Resolve failed')
+		} finally {
+			setIsRunning(false)
+		}
+	}, [input])
+
+	const match = result?.match
+	const history = result?.history
+
+	return (
+		<div>
+			<div className={styles.searchContainer}>
+				<input
+					className={styles.searchInput}
+					placeholder="Durable object id (64-char hex)"
+					value={input}
+					onChange={(e) => setInput(e.target.value)}
+					onKeyDown={(e) => e.key === 'Enter' && onResolve()}
+					disabled={isRunning}
+				/>
+				<AdminButton variant="primary" onClick={onResolve} isLoading={isRunning}>
+					Resolve
+				</AdminButton>
+			</div>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{result && !match && (
+				<div className={styles.subTitle}>No room for that id (never initialized)</div>
+			)}
+			{match && (
+				<div className={styles.subTitle}>
+					<div>
+						<a
+							href={match.isApp ? `/f/${match.slug}` : `/r/${match.slug}`}
+							target="_blank"
+							rel="noreferrer"
+						>
+							{match.slug}
+						</a>{' '}
+						— {match.isApp ? 'app file' : 'legacy room'}
+						{match.deleted ? ' (deleted)' : ''}
+					</div>
+					<div>
+						{history ? <b>{activityVerdict(match, history)}</b> : null} · {match.connectedSockets}{' '}
+						socket{match.connectedSockets === 1 ? '' : 's'} connected · room{' '}
+						{match.roomLoaded ? 'loaded in memory' : 'not loaded (hibernated or idle)'}
+					</div>
+					{history && (
+						<div>
+							{history.saves === 0
+								? 'No snapshots in the history bucket (retention window)'
+								: `${history.saves.toLocaleString()}${history.listTruncated ? '+' : ''} saves · ` +
+									`last ${history.lastSaveAt ? formatAgo(history.lastSaveAt) : '-'} · ` +
+									`first ${history.firstSaveAt ? formatAgo(history.firstSaveAt) : '-'} · ` +
+									(history.avgSecondsBetweenSaves !== null
+										? `every ~${formatInterval(history.avgSecondsBetweenSaves)} · `
+										: '') +
+									`latest ${history.latestSizeBytes !== null ? formatBytes(history.latestSizeBytes) : '-'} · ` +
+									`total ${formatBytes(history.totalSizeBytes)}`}
+						</div>
+					)}
+				</div>
+			)}
+		</div>
 	)
 }
 
