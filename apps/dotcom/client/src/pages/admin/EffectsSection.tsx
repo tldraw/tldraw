@@ -2,6 +2,7 @@ import {
 	AdminOutboxRow,
 	AdminOutboxRowsResponseBody,
 	AdminOutboxStatsResponseBody,
+	TlaFile,
 } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useState } from 'react'
 import { fetch } from 'tldraw'
@@ -128,6 +129,7 @@ export function EffectsSection() {
 								<th>Id</th>
 								<th>Entity</th>
 								<th>Command</th>
+								<th>Change</th>
 								<th>Attempts</th>
 								<th>Age</th>
 								<th>Next retry</th>
@@ -152,6 +154,32 @@ export function EffectsSection() {
 			)}
 		</section>
 	)
+}
+
+// Human-readable summary of what a row's effect represents, diffing the same columns
+// the file trigger considers effect-relevant.
+function describeChange(row: AdminOutboxRow): string {
+	if (row.command === 'insert') return 'created'
+	if (row.command === 'delete') return 'hard-deleted'
+	const prev = row.prevPayload as Partial<TlaFile> | null
+	const next = row.payload as Partial<TlaFile> | null
+	if (!prev || !next) return 'updated'
+	const changes: string[] = []
+	if (prev.isDeleted !== next.isDeleted) changes.push(next.isDeleted ? 'trashed' : 'restored')
+	if (prev.name !== next.name) changes.push(`renamed "${prev.name}" → "${next.name}"`)
+	if (prev.published !== next.published) {
+		changes.push(next.published ? 'published' : 'unpublished')
+	} else if (next.published && prev.lastPublished !== next.lastPublished) {
+		changes.push('republished')
+	}
+	if (prev.shared !== next.shared) changes.push(next.shared ? 'shared' : 'unshared')
+	if (prev.sharedLinkType !== next.sharedLinkType) {
+		changes.push(`link type → ${next.sharedLinkType}`)
+	}
+	if (prev.ownerId !== next.ownerId || prev.owningGroupId !== next.owningGroupId) {
+		changes.push('ownership moved')
+	}
+	return changes.length ? changes.join(', ') : 'updated'
 }
 
 function OutboxRowView({
@@ -183,6 +211,7 @@ function OutboxRowView({
 					{row.tableName}:{row.entityId}
 				</td>
 				<td>{row.command}</td>
+				<td>{describeChange(row)}</td>
 				<td className={attemptsClass}>
 					{row.attempts}
 					{row.parked ? ' (parked)' : ''}
@@ -210,7 +239,7 @@ function OutboxRowView({
 			</tr>
 			{expanded && (
 				<tr>
-					<td colSpan={7}>
+					<td colSpan={8}>
 						<div className={styles.outboxDetails}>
 							<div className={styles.outboxDetailsColumn}>
 								<div className={styles.fieldLabel}>Payload</div>
