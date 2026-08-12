@@ -186,15 +186,17 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 					})
 				},
 				onError: (error, row) => {
-					// only report at the parking threshold to avoid a Sentry event per retry
+					// Every failed attempt is reported (Sentry groups the retries); parking
+					// additionally emits its own event because it means giving up on the effect.
+					this.captureException(error, {
+						tableName: row.tableName,
+						entityId: row.entityId,
+						command: row.command,
+						outboxId: row.id,
+						attempts: row.attempts + 1,
+					})
 					if (row.attempts + 1 >= MAX_ATTEMPTS) {
 						this.writeEvent('outbox_parked', { blobs: [row.tableName, row.command] })
-						this.captureException(error, {
-							tableName: row.tableName,
-							entityId: row.entityId,
-							command: row.command,
-							outboxId: row.id,
-						})
 					}
 				},
 			})

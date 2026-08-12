@@ -11,7 +11,10 @@ export async function publishSnapshot(env: Environment, file: TlaFile) {
 	const snapshot = await env.ROOMS.get(getR2KeyForRoom({ slug: file.id, isApp: true }))
 
 	if (!snapshot) {
-		throw new Error(`Snapshot not found for file ${file.id}`)
+		// No persisted room content (e.g. created and trashed before the first persist):
+		// there is nothing to publish and retrying cannot produce it.
+		console.error(`publishSnapshot: no snapshot for file ${file.id}, skipping`)
+		return
 	}
 	const blob = await snapshot.blob()
 
