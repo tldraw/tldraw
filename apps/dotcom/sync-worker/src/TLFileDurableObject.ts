@@ -139,7 +139,14 @@ interface DocumentInfo {
 	deleted: boolean
 }
 
-export const ROOM_NOT_FOUND = Symbol('room_not_found')
+// A real Error (not a sentinel symbol) so it serializes across DO RPC boundaries and
+// lands in Sentry with a message and stack.
+export class RoomNotFoundError extends Error {
+	constructor(slug: string) {
+		super(`Room not found: ${slug}`)
+		this.name = 'RoomNotFoundError'
+	}
+}
 
 interface SocketAttachment {
 	sessionId: string
@@ -231,9 +238,9 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		if (!this._storage) {
 			this._storage = retry(() => this.loadStorage(this.documentInfo.slug), {
-				// Allow ROOM_NOT_FOUND to bubble up since it means the room doesn't exist
+				// Allow RoomNotFoundError to bubble up since it means the room doesn't exist
 				// and there's no point in retrying.
-				matchError: (error) => error !== ROOM_NOT_FOUND,
+				matchError: (error) => !(error instanceof RoomNotFoundError),
 			})
 				.then((storage) => {
 					storage.onChange(() => {
@@ -867,7 +874,7 @@ export class TLFileDurableObject extends DurableObject {
 
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
-			if (e === ROOM_NOT_FOUND) {
+			if (e instanceof RoomNotFoundError) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
 			throw e
@@ -1112,7 +1119,7 @@ export class TLFileDurableObject extends DurableObject {
 		fetchTimer.report('create_from_source_fetch_total')
 
 		if (!data) {
-			throw ROOM_NOT_FOUND
+			throw new RoomNotFoundError(this._fileRecordCache.id)
 		}
 
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
@@ -1131,7 +1138,7 @@ export class TLFileDurableObject extends DurableObject {
 
 	/**
 	 * Resolve the seed content for a file's `createSource`, as a RoomSnapshot or its serialized
-	 * string. Returns undefined for an unknown source, which the caller turns into ROOM_NOT_FOUND.
+	 * string. Returns undefined for an unknown source, which the caller turns into RoomNotFoundError.
 	 */
 	private async loadCreateSourceData(
 		createSource: string | null | undefined
@@ -1144,7 +1151,7 @@ export class TLFileDurableObject extends DurableObject {
 
 		const split = createSource?.split('/')
 		if (!split || split.length !== 2) {
-			throw ROOM_NOT_FOUND
+			throw new RoomNotFoundError(String(createSource))
 		}
 		const [prefix, id] = split
 		switch (prefix) {
@@ -1191,7 +1198,7 @@ export class TLFileDurableObject extends DurableObject {
 			// only the merge points further down actually await it.
 			const commentsPromise = this.documentInfo.isApp ? this.loadCommentsFromPostgres() : null
 			// Prevent an unhandled rejection if we exit via a path that never merges (e.g.
-			// ROOM_NOT_FOUND). Merge points still await commentsPromise itself, so a Postgres
+			// RoomNotFoundError). Merge points still await commentsPromise itself, so a Postgres
 			// failure there still fails the room open.
 			commentsPromise?.catch(() => {})
 
@@ -1251,7 +1258,7 @@ export class TLFileDurableObject extends DurableObject {
 
 				loadTimer.report('db_load_total')
 				if (!file) {
-					throw ROOM_NOT_FOUND
+					throw new RoomNotFoundError(slug)
 				}
 
 				// Comments can exist in Postgres before the first throttled R2 persist ever runs
@@ -1269,7 +1276,7 @@ export class TLFileDurableObject extends DurableObject {
 
 			// if we don't have a room in the bucket, try to load from supabase
 			if (!this.supabaseClient) {
-				throw ROOM_NOT_FOUND
+				throw new RoomNotFoundError(slug)
 			}
 
 			const supabaseFetchTimer = this.timer()
@@ -1291,7 +1298,7 @@ export class TLFileDurableObject extends DurableObject {
 			// if it didn't find a document, data will be an empty array
 			if (data.length === 0) {
 				loadTimer.report('db_load_total')
-				throw ROOM_NOT_FOUND
+				throw new RoomNotFoundError(slug)
 			}
 
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
@@ -2597,7 +2604,11 @@ export class TLFileDurableObject extends DurableObject {
 
 	protected reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		this.sentry?.captureException(e)
+		this.sentry?.withScope((scope) => {
+			scope.setExtra('slug', this._documentInfo?.slug)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry?.captureException(e)
+		})
 		console.error(e)
 	}
 
