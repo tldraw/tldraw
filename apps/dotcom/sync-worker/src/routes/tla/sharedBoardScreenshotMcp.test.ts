@@ -11,6 +11,8 @@ import {
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo } from './getSharedFile'
 import {
+	blobValuesOf,
+	datapointsNamed,
 	makeFakeThumbnailsBucket,
 	makeMeasuringBrowserBinding,
 	makeScreenshotTestEnv,
@@ -19,6 +21,7 @@ import {
 } from './screenshotTestHelpers'
 import {
 	isMcpScreenshotEnabled,
+	normalizeMcpClient,
 	resetRateLimitFallbackForTests,
 	sharedBoardScreenshotMcp,
 } from './sharedBoardScreenshotMcp'
@@ -60,10 +63,17 @@ function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return env
 }
 
-function makeRpcRequest(method: string, params?: unknown) {
+function makeRpcRequest(
+	method: string,
+	params?: unknown,
+	{ userAgent }: { userAgent?: string } = {}
+) {
 	return new Request('https://sync.tldraw.xyz/app/mcp', {
 		method: 'POST',
-		headers: { 'cf-connecting-ip': `203.0.113.${++requestId}` },
+		headers: {
+			'cf-connecting-ip': `203.0.113.${++requestId}`,
+			...(userAgent ? { 'user-agent': userAgent } : {}),
+		},
 		body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
 	}) as any
 }
@@ -284,17 +294,19 @@ describe('protocol versions', () => {
 
 	it('runs a tool under the modern envelope', async () => {
 		mockPublishedBoard()
+		const env = makeEnv()
 		const result = await rpcResult(
 			await sharedBoardScreenshotMcp(
 				makeModernRpcRequest('tools/call', {
 					name: 'get_board_info',
 					arguments: { boardId: 'abc' },
 				}),
-				makeEnv()
+				env
 			)
 		)
 		expect(result.resultType).toBe('complete')
 		expect(JSON.parse(result.content[0].text).pageCount).toBe(3)
+		expect(blobValuesOf(env, 'mcp_server_tool_call', 'tool')).toEqual(['get_board_info'])
 	})
 })
 
@@ -521,5 +533,159 @@ describe('shape screenshots', () => {
 			env
 		)
 		expect(missing.isError).toBe(true)
+	})
+})
+
+// The render ledger (mcp_shared_board_screenshot) only fires when a screenshot is attempted, so on its
+// own it cannot see the info tools, the early failures, or who is calling. These datapoints are that
+// missing half: one per tools/call, plus the calling application's own name at initialize.
+const TOOL_CALL_EVENT = 'mcp_server_tool_call'
+const INITIALIZE_EVENT = 'mcp_server_initialize'
+
+describe('protocol telemetry', () => {
+	it('records one datapoint per tool call, with the tool, outcome and duration', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		await callTool('get_board_info', { boardId: 'abc' }, env)
+
+		const points = datapointsNamed(env, TOOL_CALL_EVENT)
+		expect(points).toHaveLength(1)
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'tool')).toEqual(['get_board_info'])
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'outcome')).toEqual(['ok'])
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual(['none'])
+		expect(points[0].doubles![0]).toBeGreaterThanOrEqual(0)
+	})
+
+	// get_board_info spends no Browser Run and so writes no render telemetry at all — without this
+	// event, a client hammering the info tools is invisible.
+	it('records the info tools, which write no render telemetry', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		await callTool('get_page_info', { boardId: 'abc' }, env)
+
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'tool')).toEqual(['get_page_info'])
+		expect(datapointsNamed(env, 'mcp_shared_board_screenshot')).toHaveLength(0)
+	})
+
+	it('records the reason a call failed, and never reports a failure as ok', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		// Missing boardId, then a tool that does not exist.
+		await callTool('get_board_info', {}, env)
+		await callTool('get_nothing', {}, env)
+
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'tool')).toEqual(['get_board_info', 'unknown'])
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'outcome')).toEqual(['error', 'error'])
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual(['invalid_input', 'unknown_tool'])
+	})
+
+	// The per-IP limit on the clustering tools rejected callers silently before this: it returns a tool
+	// error without reaching the render path that writes the screenshot ledger.
+	it('records a rate-limited info call', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		for (let i = 0; i < MCP_PER_IP_RATE_LIMIT + 2; i++) {
+			await callFromSameIp(env, '203.0.113.202', 'get_page_info', { boardId: 'abc' })
+		}
+
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toContain('rate_limited_ip')
+	})
+
+	// A handler is supposed to catch its own failures, so an escaped throw is a bug — which is exactly
+	// when the datapoint matters most. The rate limit check is the one step that sits outside a
+	// handler's try, so a limiter binding that rejects is the reachable version of that bug. The error
+	// still propagates; only the recording is added.
+	it('records a tool that throws, and still lets the error through', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			MCP_SCREENSHOT_RATE_LIMITER: {
+				limit: async () => {
+					throw new Error('limiter unavailable')
+				},
+			},
+		})
+
+		await expect(callTool('get_page_info', { boardId: 'abc' }, env)).rejects.toThrow(
+			'limiter unavailable'
+		)
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual(['unhandled_error'])
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'outcome')).toEqual(['error'])
+	})
+
+	// The tool name comes straight off the wire, so the lookup must not resolve inherited names. A
+	// plain object would hand back Object.prototype's own methods and call them as tools: `constructor`
+	// would echo the caller's arguments back as a successful result, and `__proto__` would 500.
+	it('reports inherited property names as unknown tools rather than calling them', async () => {
+		for (const name of ['constructor', 'toString', '__proto__', 'valueOf', 'hasOwnProperty']) {
+			const env = makeEnv()
+			const response = await sharedBoardScreenshotMcp(
+				makeToolCall(name, { secret: 'echo-me' }),
+				env
+			)
+			const body = (await response.json()) as any
+
+			expect(body.error, name).toMatchObject({ code: -32602 })
+			expect(body.result, name).toBeUndefined()
+			expect(blobValuesOf(env, TOOL_CALL_EVENT, 'tool'), name).toEqual(['unknown'])
+			expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason'), name).toEqual(['unknown_tool'])
+		}
+	})
+
+	// clientInfo is whatever the client put in the body. Before the telemetry existed, initialize
+	// ignored params entirely, so a loose serializer sending a non-string name still connected.
+	it('handles a non-string clientInfo.name at initialize', async () => {
+		for (const name of [123, true, ['a'], { x: 1 }, null]) {
+			const env = makeEnv()
+			const response = await sharedBoardScreenshotMcp(
+				makeRpcRequest('initialize', { clientInfo: { name } }),
+				env
+			)
+
+			expect(response.status, String(name)).toBe(200)
+			expect((await response.json()) as any, String(name)).toMatchObject({
+				result: { protocolVersion: expect.any(String) },
+			})
+			expect(blobValuesOf(env, INITIALIZE_EVENT, 'client'), String(name)).toEqual(['none'])
+			expect(blobValuesOf(env, INITIALIZE_EVENT, 'raw'), String(name)).toEqual(['none'])
+		}
+	})
+
+	it('records the client family from the user agent', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		await sharedBoardScreenshotMcp(
+			makeRpcRequest(
+				'tools/call',
+				{ name: 'get_board_info', arguments: { boardId: 'abc' } },
+				{ userAgent: 'python-httpx/0.27.0' }
+			),
+			env
+		)
+
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'client')).toEqual(['python'])
+	})
+
+	it('records the calling application named at initialize', async () => {
+		const env = makeEnv()
+		await sharedBoardScreenshotMcp(
+			makeRpcRequest('initialize', { clientInfo: { name: 'Claude', version: '1.0' } }),
+			env
+		)
+
+		expect(blobValuesOf(env, INITIALIZE_EVENT, 'client')).toEqual(['claude'])
+		// The raw name is kept alongside the family, so a client we do not recognize yet can be found.
+		expect(blobValuesOf(env, INITIALIZE_EVENT, 'raw')).toEqual(['Claude'])
+		expect(blobValuesOf(env, INITIALIZE_EVENT, 'ua')).toEqual(['none'])
+	})
+
+	it('normalizes client strings into a bounded set of families', () => {
+		expect(normalizeMcpClient('claude-ai/1.0')).toBe('claude')
+		// A Claude user agent also says Mozilla, so the more specific match has to win.
+		expect(normalizeMcpClient('Mozilla/5.0 (Macintosh) Claude/1.2')).toBe('claude')
+		expect(normalizeMcpClient('python-httpx/0.27.0')).toBe('python')
+		expect(normalizeMcpClient('Mozilla/5.0 (Macintosh)')).toBe('browser')
+		// Unrecognized agents collapse to one value rather than becoming a new dimension each.
+		expect(normalizeMcpClient('some-new-agent/1.0')).toBe('other')
+		expect(normalizeMcpClient(null)).toBe('none')
 	})
 })

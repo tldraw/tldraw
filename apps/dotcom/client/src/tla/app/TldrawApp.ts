@@ -230,8 +230,9 @@ export class TldrawApp {
 
 	private constructor(
 		public readonly userId: string,
-		initialToken: string | undefined,
+		initialZeroToken: string | undefined,
 		getToken: () => Promise<string | undefined>,
+		getZeroToken: () => Promise<string | undefined>,
 		onClientTooOld: () => void,
 		trackEvent: TLAppUiContextType,
 		navigate: ReturnType<typeof useNavigate>,
@@ -248,7 +249,7 @@ export class TldrawApp {
 			this.__test__triggerClientTooOld = () => onClientTooOld()
 		}
 		const z = new Zero<TlaSchema, TlaMutators, ZeroContext>({
-			auth: initialToken,
+			auth: initialZeroToken,
 			userID: userId,
 			schema: zeroSchema,
 			cacheURL: ZERO_SERVER,
@@ -262,8 +263,8 @@ export class TldrawApp {
 		})
 		this.z = z
 		// Refresh the token ahead of its own expiry and reschedule from whatever we get back, so the
-		// cadence follows the session-token lifetime rather than a hardcoded guess at it. In Zero
-		// 0.26+ this sends an updateAuth message without reconnecting.
+		// cadence follows the token's lifetime rather than a hardcoded guess at it. In Zero 0.26+
+		// this sends an updateAuth message without reconnecting.
 		let refreshTimeout: ReturnType<typeof setTimeout> | undefined
 		const scheduleRefresh = (token: string | undefined) => {
 			clearTimeout(refreshTimeout)
@@ -273,10 +274,10 @@ export class TldrawApp {
 				})
 			}, msUntilTokenRefresh(token))
 		}
-		// Reschedule on every outcome — a rejected getToken() or a throwing connect() must not kill
-		// the refresh chain, so scheduling happens before connect and in the reject path.
+		// Reschedule on every outcome — a rejected getZeroToken() or a throwing connect() must not
+		// kill the refresh chain, so scheduling happens before connect and in the reject path.
 		const refreshToken = () =>
-			getToken()
+			getZeroToken()
 				.catch((err) => {
 					scheduleRefresh(undefined)
 					throw err
@@ -288,11 +289,12 @@ export class TldrawApp {
 					}
 					return !!token
 				})
-		scheduleRefresh(initialToken)
+		scheduleRefresh(initialZeroToken)
 		this.disposables.push(() => clearTimeout(refreshTimeout))
-		// A hidden tab's timers are throttled to about once a minute, so a token that lives 60s
-		// expires under it however early we schedule. Refresh on the way back rather than leaving the
-		// user to interact with a connection whose token went stale while they were away.
+		// Timers in a hidden tab are throttled to about once a minute, so the refresh has to sit well
+		// inside that budget — see the `zero` JWT template's lifetime. Refreshing on the way back
+		// covers the cases no schedule can (a frozen tab, a slept laptop), where the token goes stale
+		// while nothing is running at all.
 		const onVisibilityChange = () => {
 			if (document.visibilityState !== 'visible') return
 			refreshToken().catch((err) => {
@@ -1021,7 +1023,10 @@ export class TldrawApp {
 		userId: string
 		email?: string | null
 		flags: FeatureFlags
+		/** Clerk session token, for this app's own REST endpoints. */
 		getToken(): Promise<string | undefined>
+		/** Token for the Zero connection — see {@link getZeroAuth} on the worker for why it differs. */
+		getZeroToken(): Promise<string | undefined>
 		onClientTooOld(): void
 		trackEvent: TLAppUiContextType
 		navigate: ReturnType<typeof useNavigate>
@@ -1032,11 +1037,12 @@ export class TldrawApp {
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
 		// Get initial token before creating Zero instance
-		const initialToken = await opts.getToken()
+		const initialZeroToken = await opts.getZeroToken()
 		const app = new TldrawApp(
 			opts.userId,
-			initialToken,
+			initialZeroToken,
 			opts.getToken,
+			opts.getZeroToken,
 			opts.onClientTooOld,
 			opts.trackEvent,
 			opts.navigate,

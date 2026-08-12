@@ -271,18 +271,19 @@ export function getBoardInfo(snapshot: RoomSnapshot): ToolResult {
 // page, and measuring is what produces the `measurements` those tools need.
 export type ResolvedPage =
 	| { ok: true; pageId: string; pageName: string; shapes: TLShape[] }
-	| { ok: false; result: ToolResult }
+	| { ok: false; reason: 'no_pages' | 'page_out_of_range'; result: ToolResult }
 
 export function resolvePage(snapshot: RoomSnapshot, page: PageSelector): ResolvedPage {
 	const pages = enumerateBoardPages(snapshot)
 	if (pages.length === 0) {
-		return { ok: false, result: toolError('This board has no pages.') }
+		return { ok: false, reason: 'no_pages', result: toolError('This board has no pages.') }
 	}
 
 	const targetPage = page.kind === 'id' ? pages.find((p) => p.id === page.id) : pages[page.ordinal]
 	if (!targetPage) {
 		return {
 			ok: false,
+			reason: 'page_out_of_range',
 			result: toolError(
 				page.kind === 'id'
 					? `No page with id "${page.id}" on this board. Call get_board_info to list its pages; a page id is stable across reordering, an index is not.`
