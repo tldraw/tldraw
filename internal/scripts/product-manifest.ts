@@ -26,10 +26,12 @@ async function main() {
 		const product = packageJson[PRODUCT_CONFIG_KEY]
 		if (!product) continue
 
+		// packages sharing a stable id are required to have identical product metadata; this is
+		// enforced by `yarn check-packages`, so taking the first package's config here is safe
 		const component = componentsById.get(product.stableId) ?? { ...product, packages: [] }
 		component.packages.push({
 			name: packageJson.name,
-			description: (packageJson as any).description,
+			description: packageJson.description,
 		})
 		componentsById.set(product.stableId, component)
 	}

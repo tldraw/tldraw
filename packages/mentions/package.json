@@ -9,10 +9,10 @@
 	"homepage": "https://tldraw.dev",
 	"license": "SEE LICENSE IN LICENSE.md",
 	"tldraw_product": {
-		"stableId": "tldraw:collaboration",
+		"stableId": "tldraw:commenting",
 		"type": "premium_module",
 		"premium": true,
-		"licenseFlag": "FEAT_COLLABORATION"
+		"licenseFlag": "FEAT_COMMENTING"
 	},
 	"repository": {
 		"type": "git",

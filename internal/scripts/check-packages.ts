@@ -366,7 +366,7 @@ async function checkProductMetadata({
 		throw new Error('Could not read LicenseManager.ts to validate license flags')
 	}
 	const knownLicenseFlags = new Set(
-		[...licenseManagerSource.matchAll(/^\t(FEAT_[A-Z_]+):/gm)].map((m) => m[1])
+		[...licenseManagerSource.matchAll(/^\t(FEAT_[A-Z0-9_]+):/gm)].map((m) => m[1])
 	)
 
 	const byStableId = new Map<string, { name: string; config: string }[]>()
@@ -403,6 +403,9 @@ async function checkProductMetadata({
 		}
 		if (product.premium && !product.licenseFlag) {
 			error(name, 'is premium but has no licenseFlag')
+		}
+		if (!product.premium && product.licenseFlag) {
+			error(name, 'has a licenseFlag but is not premium')
 		}
 		if (product.licenseFlag && !knownLicenseFlags.has(product.licenseFlag)) {
 			error(

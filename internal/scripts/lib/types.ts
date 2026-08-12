@@ -51,6 +51,7 @@ export const PackageJson = T.object({
 	[EXPORT_CONFIG_KEY]: TemplateConfig.optional(),
 	[PRODUCT_CONFIG_KEY]: ProductConfig.optional(),
 	license: T.string.optional(),
+	description: T.string.optional(),
 	scripts: T.dict(T.string, T.nullable(T.string)).optional(),
 	dependencies: T.dict(T.string, T.string).optional(),
 	devDependencies: T.dict(T.string, T.string).optional(),
