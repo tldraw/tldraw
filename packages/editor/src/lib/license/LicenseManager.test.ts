@@ -422,7 +422,7 @@ describe('LicenseManager', () => {
 			expect(result.isDomainValid).toBe(true)
 		})
 
-		it('Is not development mode for a native app on a custom protocol', async () => {
+		it('Is not development mode on a custom protocol', async () => {
 			process.env.NODE_ENV = 'production'
 			try {
 				// @ts-ignore
@@ -447,34 +447,48 @@ describe('LicenseManager', () => {
 					isDomainValid: true,
 					isDevelopment: false,
 				})
+				expect(getLicenseState(result, () => {}, result.isDevelopment)).toBe('licensed')
 			} finally {
 				process.env.NODE_ENV = 'test'
 			}
 		})
 
-		it('Is unlicensed in production for a native app whose protocol does not match', async () => {
+		it('Validates the domain on a custom protocol', async () => {
 			process.env.NODE_ENV = 'production'
 			try {
 				// @ts-ignore
 				delete window.location
 				// @ts-ignore
-				window.location = new URL('blah-bundle://app/index.html')
+				window.location = new URL('app-bundle://app/index.html')
 
-				const nativeLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
-				nativeLicenseInfo[PROPERTIES.FLAGS] = FLAGS.NATIVE_LICENSE
-				nativeLicenseInfo[PROPERTIES.HOSTS] = ['app-bundle:']
-				const nativeLicenseKey = await generateLicenseKey(
-					JSON.stringify(nativeLicenseInfo),
-					keyPair
-				)
-				const nativeLicenseManager = new LicenseManager('', keyPair.publicKey)
-				const result = (await nativeLicenseManager.getLicenseFromKey(
-					nativeLicenseKey
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const customProtocolLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await customProtocolLicenseManager.getLicenseFromKey(
+					licenseKey
 				)) as ValidLicenseKeyResult
 				expect(result).toMatchObject({ isDomainValid: false, isDevelopment: false })
 				expect(getLicenseState(result, () => {}, result.isDevelopment)).toBe(
 					'unlicensed-production'
 				)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
+		it('Is development mode on a loopback host regardless of protocol', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL('app-bundle://localhost/index.html')
+
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const loopbackLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await loopbackLicenseManager.getLicenseFromKey(
+					licenseKey
+				)) as ValidLicenseKeyResult
+				expect(result.isDevelopment).toBe(true)
 			} finally {
 				process.env.NODE_ENV = 'test'
 			}

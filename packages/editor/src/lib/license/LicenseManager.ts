@@ -173,22 +173,8 @@ export class LicenseManager {
 		return this.featureFlags.get()[feature]
 	}
 
-	private getIsDevelopment(opts?: { isNativeLicense?: boolean }) {
-		// If we are using https on a non-loopback domain we assume it's a production env and a development one otherwise.
-		//
-		// Native apps are the exception: they serve the app from a custom protocol (e.g. `app-bundle:`)
-		// which would otherwise always look like development, so a native license opts out of the
-		// protocol check and relies on the loopback and NODE_ENV checks instead. We only know the
-		// license is native once it has been parsed, so this is recomputed in `getLicenseFromKey` —
-		// which also means a native app with a missing or unparseable key can't be recognised as
-		// native, and still falls back to being treated as development.
-		const failsProtocolCheck =
-			!opts?.isNativeLicense && !['https:', 'vscode-webview:'].includes(window.location.protocol)
-		return (
-			failsProtocolCheck ||
-			this.isLoopbackHost(window.location.hostname) ||
-			process.env.NODE_ENV !== 'production'
-		)
+	private getIsDevelopment() {
+		return this.isLoopbackHost(window.location.hostname) || process.env.NODE_ENV !== 'production'
 	}
 
 	private isLoopbackHost(hostname: string) {
@@ -335,15 +321,6 @@ export class LicenseManager {
 
 		try {
 			const licenseInfo = await this.extractLicenseKey(cleanedLicenseKey)
-
-			const isNativeLicense = this.isNativeLicense(licenseInfo)
-			if (isNativeLicense) {
-				// The constructor couldn't know the license was for a native app, so the custom
-				// protocol will have been read as development. Now that we know, recompute it —
-				// everything downstream (license state, features, tracking) runs after this.
-				this.isDevelopment = this.getIsDevelopment({ isNativeLicense: true })
-			}
-
 			const expiryDate = new Date(licenseInfo.expiryDate)
 			const isAnnualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.ANNUAL_LICENSE)
 			const isPerpetualLicense = this.isFlagEnabled(licenseInfo.flags, FLAGS.PERPETUAL_LICENSE)
@@ -377,7 +354,7 @@ export class LicenseManager {
 				isPerpetualLicense,
 				isPerpetualLicenseExpired,
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
-				isNativeLicense,
+				isNativeLicense: this.isNativeLicense(licenseInfo),
 				isLicensedWithWatermark: this.isFlagEnabled(licenseInfo.flags, FLAGS.WITH_WATERMARK),
 				isEvaluationLicense,
 				isEvaluationLicenseExpired:
