@@ -152,12 +152,39 @@ export interface ThumbnailRenderParams {
 	camera?: 'content'
 	/** The TLPageId of the single page to render. When omitted, the page the snapshot opens to. */
 	pageId?: string
+	/**
+	 * Restricts the export to these shapes: the camera fits their common bounds and only they are
+	 * drawn, so neighbouring shapes never leak into the frame. When omitted the whole page renders.
+	 */
+	shapeIds?: string[]
+	/** `measure` means: skip the export, POST the page's measured geometry back, then signal ready. */
+	mode?: 'screenshot' | 'measure'
 	x: number
 	y: number
 	z: number
 	width: number
 	height: number
 	theme: 'light' | 'dark'
+}
+
+/**
+ * What the editor reports for one shape: its page-space box, and the plain text its ShapeUtil says it
+ * holds. Both are things only an editor can answer — sizing needs font metrics, and getText is shape
+ * behaviour rather than something readable off the record.
+ */
+export interface ThumbnailShapeMeasurement {
+	x: number
+	y: number
+	w: number
+	h: number
+	/** `ShapeUtil.getText(shape)`, absent when the shape has no text. */
+	text?: string
+}
+
+/** Body of POST /app/thumbnail-render/result — `shapeId -> measurement`, as the editor measured it. */
+export interface ThumbnailRenderResultRequestBody {
+	token: string
+	bounds: Record<string, ThumbnailShapeMeasurement>
 }
 
 export type ThumbnailSnapshotResponseBody =
@@ -307,7 +334,11 @@ export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persis
 
 /* ----------------------- Feature Flags ---------------------- */
 
-export const FEATURE_FLAG_KEYS = ['rum_enabled', 'commenting_enabled'] as const
+export const FEATURE_FLAG_KEYS = [
+	'rum_enabled',
+	'commenting_enabled',
+	'mcp_friends_and_family',
+] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
 export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag
@@ -330,6 +361,16 @@ export interface PercentageFeatureFlag {
 /** Returned by the user-facing endpoint — just the evaluated result, no server internals. */
 export interface EvaluatedFeatureFlag {
 	enabled: boolean
+}
+
+/**
+ * One person on the MCP friends and family list that `mcp_friends_and_family` gates on. Admins enter
+ * an email, which is resolved to a user id on save; matching is on the id, and the email is kept only
+ * so the admin panel can show a readable list.
+ */
+export interface FriendsAndFamilyEntry {
+	userId: string
+	email: string
 }
 
 /** One unassociated or unverifiable asset in an admin asset-diagnostics report. */
@@ -371,5 +412,85 @@ export interface AdminFileAssetsResponseBody {
 		problems: AdminFileAssetProblem[]
 	}
 	dbRows: { forThisFile: number; orphaned: number }
+	warnings: string[]
+}
+
+/**
+ * Response of the admin board-stats endpoint: the shape of a board without its contents.
+ *
+ * Every field is a count, an enum tally, a size, or a timestamp. Nothing here is text a user typed,
+ * a URL they pasted, a shape id, or a person's id — so a report can be pasted into an issue, a
+ * Sentry thread, or a support reply without leaking what's on the board or who made it. Anything
+ * added here has to hold that line; use the asset diagnostics report when you need identifiers.
+ */
+export interface AdminFileStatsResponseBody {
+	/** null when no `file` row exists — legacy rooms have a snapshot but no row */
+	file: {
+		ownerType: 'user' | 'group' | 'none'
+		createdAt: number
+		updatedAt: number
+		isDeleted: boolean
+		isEmpty: boolean
+		published: boolean
+		shared: boolean
+		sharedLinkType: string
+		/** Only the prefix (`file`, `room`, `publish`, `local`, …); the id half would name a board */
+		createSourceKind: string | null
+	} | null
+	snapshot: {
+		/** Stored size of the snapshot object in R2; null when the head check failed */
+		sizeBytes: number | null
+		clock: number | null
+		documentClock: number | null
+		tombstones: number
+		records: number
+		recordsByTypeName: Record<string, number>
+		/** Serialized schema version, for spotting boards stuck behind a migration */
+		schemaVersion: number | null
+		/** Per-record-type sequence numbers from the serialized schema, when it has them */
+		sequences: Record<string, number> | null
+	}
+	pages: { total: number; maxShapesOnAPage: number; empty: number }
+	shapes: {
+		total: number
+		byType: Record<string, number>
+		/** Deepest parent chain; 1 means every shape sits directly on a page */
+		maxDepth: number
+		locked: number
+		rotated: number
+		/**
+		 * Shapes whose parent chain doesn't end at a page: a missing or unusable `parentId`, a chain
+		 * that stops on a record that isn't a page, or a chain long enough to be a cycle.
+		 */
+		orphaned: number
+		/**
+		 * Bounds covering the shapes parented directly to a page, from x/y plus w/h where the shape
+		 * has them. Nested shapes are left out — their x/y is relative to their frame or group, so
+		 * mixing the two would give a meaningless box. Rotation is ignored.
+		 */
+		extent: { width: number; height: number } | null
+	}
+	/** Lengths only — never the text itself */
+	text: { shapesWithText: number; totalCharacters: number; longestCharacters: number }
+	bindings: {
+		total: number
+		byType: Record<string, number>
+		/**
+		 * The first three partition every arrow shape by how many of its terminals have a binding
+		 * record. Whether the bound shape still exists is the separate `dangling` count, so an arrow
+		 * bound to a deleted shape shows up in both `boundOneEnd` and `dangling`.
+		 */
+		arrows: {
+			boundBothEnds: number
+			boundOneEnd: number
+			unbound: number
+			/** Bindings pointing at a shape that isn't in the snapshot */
+			dangling: number
+		}
+	}
+	/** Value tallies for the enum style props, keyed by prop name then value */
+	styles: Record<string, Record<string, number>>
+	assets: { total: number; byType: Record<string, number>; totalSizeBytes: number }
+	collaboration: { visitors: number; commentThreads: number; comments: number }
 	warnings: string[]
 }

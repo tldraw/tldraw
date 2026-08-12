@@ -461,7 +461,7 @@ export function retry<T>(fn: (args: {
     attempt: number;
     remaining: number;
     total: number;
-}) => Promise<T>, { attempts, waitDuration, abortSignal, matchError }?: {
+}) => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
     abortSignal?: AbortSignal;
     attempts?: number;
     matchError?(error: unknown): boolean;
@@ -526,8 +526,8 @@ export class Timers {
     forContext(contextId: string): {
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
-        setInterval: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
-        setTimeout: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
+        setInterval: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
+        setTimeout: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
     };
     requestAnimationFrame(contextId: string, callback: FrameRequestCallback): number;
     setInterval(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number;

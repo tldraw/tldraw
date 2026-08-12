@@ -98,11 +98,6 @@ export function createAppRouter({
 					/>
 					{/* File view */}
 					<Route path={ROUTES.tlaFile} lazy={() => import('./tla/pages/file')} />
-					<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
-					<Route
-						path={ROUTES.tlaFileHistorySnapshot}
-						lazy={() => import('./tla/pages/file-history-snapshot')}
-					/>
 					<Route
 						path={ROUTES.tlaFilePierreHistory}
 						lazy={() => import('./tla/pages/file-pierre-history')}
@@ -111,6 +106,21 @@ export function createAppRouter({
 						path={ROUTES.tlaFilePierreHistorySnapshot}
 						lazy={() => import('./tla/pages/file-pierre-history-snapshot')}
 					/>
+					<Route lazy={() => import('./tla/providers/RequireTldrawStaff')}>
+						<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
+						<Route
+							path={ROUTES.tlaFileHistorySnapshot}
+							lazy={() => import('./tla/pages/file-history-snapshot')}
+						/>
+						<Route
+							path={ROUTES.tlaLegacyRoomHistory}
+							lazy={() => import('./tla/pages/legacy-history')}
+						/>
+						<Route
+							path={ROUTES.tlaLegacyRoomHistorySnapshot}
+							lazy={() => import('./tla/pages/legacy-history-snapshot')}
+						/>
+					</Route>
 
 					<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
 					<Route path={ROUTES.tlaImport} lazy={() => import('./tla/pages/import')} />
@@ -130,16 +140,6 @@ export function createAppRouter({
 					<Route
 						path={ROUTES.tlaLegacySnapshot}
 						lazy={() => import('./tla/pages/legacy-snapshot')}
-					/>
-					{/* Legacy history */}
-					<Route
-						path={ROUTES.tlaLegacyRoomHistory}
-						lazy={() => import('./tla/pages/legacy-history')}
-					/>
-					{/* Legacy history snapshot */}
-					<Route
-						path={ROUTES.tlaLegacyRoomHistorySnapshot}
-						lazy={() => import('./tla/pages/legacy-history-snapshot')}
 					/>
 					{/* Views that require login */}
 					<Route lazy={() => import('./tla/providers/RequireSignedInUser')}></Route>

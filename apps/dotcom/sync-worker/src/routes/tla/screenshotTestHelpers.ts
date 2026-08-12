@@ -1,5 +1,6 @@
 import { vi } from 'vitest'
 import { Environment } from '../../types'
+import { base64UrlDecode } from '../../utils/base64'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
 // sharedBoardScreenshotMcp, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
@@ -21,7 +22,16 @@ export function makeSnapshot(
 		})
 		for (let i = 0; i < page.shapes; i++) {
 			documents.push({
-				state: { typeName: 'shape', id: `shape:${page.id}-${i}`, parentId: page.id },
+				state: {
+					typeName: 'shape',
+					id: `shape:${page.id}-${i}`,
+					parentId: page.id,
+					type: 'geo',
+					x: i * 100,
+					y: 0,
+					rotation: 0,
+					props: { w: 80, h: 80 },
+				},
 			})
 		}
 	}
@@ -53,6 +63,8 @@ export function makeFakeThumbnailsBucket() {
 				...etagOf(value),
 				body: value.body,
 				arrayBuffer: async () => value.body,
+				// R2 objects expose both; the render-result read uses text, the PNG cache uses bytes.
+				text: async () => new TextDecoder().decode(value.body),
 			}
 		},
 		async head(key: string) {
@@ -62,11 +74,13 @@ export function makeFakeThumbnailsBucket() {
 		},
 		async put(
 			key: string,
-			body: ArrayBuffer,
+			body: ArrayBuffer | string,
 			options?: { customMetadata?: Record<string, string> }
 		) {
 			store.set(key, {
-				body,
+				// Real R2 accepts a string body; normalize so arrayBuffer() and text() both work
+				// whichever form the caller used.
+				body: typeof body === 'string' ? new TextEncoder().encode(body).buffer : body,
 				customMetadata: options?.customMetadata,
 				uploaded: new Date(Date.now()),
 				etag: `etag-${++version}`,
@@ -101,6 +115,32 @@ export function makeFakeQueue() {
 	return { send: vi.fn(async (_message: unknown) => undefined) }
 }
 
+// Stands in for the render page on a `measure` job: a real one POSTs its measurements to
+// /app/thumbnail-render/result before signalling ready, so the fake writes them to the same place
+// the worker reads from. Without this every clustering tool would fail on a missing result, since
+// they all measure the page before clustering it.
+export function makeMeasuringBrowserBinding(
+	env: () => Environment,
+	bounds: Record<
+		string,
+		{ minX: number; minY: number; maxX: number; maxY: number; text?: string }
+	> = {}
+) {
+	return makeBrowserBinding(async (body: any) => {
+		const token = new URL(body.url).searchParams.get('token')
+		const job = token
+			? JSON.parse(new TextDecoder().decode(base64UrlDecode(token.split('.')[0])))
+			: null
+		if (job?.mode === 'measure') {
+			await (env().THUMBNAILS as R2Bucket).put(
+				`render-result/${encodeURIComponent(token!)}.json`,
+				JSON.stringify(bounds)
+			)
+		}
+		return new Response(new Uint8Array([1, 2, 3]), { status: 200 })
+	})
+}
+
 export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
 		BROWSER: makeBrowserBinding(),
@@ -126,6 +166,26 @@ export function blobsWithPrefix(env: Environment, prefix: string): string[] {
 	return (env.MEASURE as any).writeDataPoint.mock.calls
 		.map((call: any[]) => (call[0].blobs as string[]).find((blob) => blob.startsWith(prefix)))
 		.filter(Boolean)
+}
+
+// The datapoints for one event name (blob1). The MCP route writes two events per screenshot tool
+// call — the render ledger and the protocol-level tool call — and they share prefixes (`reason:`), so
+// a test asserting on one has to say which.
+export function datapointsNamed(
+	env: Environment,
+	name: string
+): { blobs: string[]; doubles?: number[] }[] {
+	return (env.MEASURE as any).writeDataPoint.mock.calls
+		.map((call: any[]) => call[0])
+		.filter((point: any) => (point.blobs as string[])[0] === name)
+}
+
+// The `<prefix>:…` blobs of one event's datapoints, with the prefix stripped, in write order.
+export function blobValuesOf(env: Environment, name: string, prefix: string): string[] {
+	return datapointsNamed(env, name)
+		.map((point) => point.blobs.find((blob) => blob.startsWith(`${prefix}:`)))
+		.filter((blob): blob is string => Boolean(blob))
+		.map((blob) => blob.slice(prefix.length + 1))
 }
 
 export function failureBlobsOf(env: Environment) {

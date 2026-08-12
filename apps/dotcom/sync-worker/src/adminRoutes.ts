@@ -1,7 +1,9 @@
 import {
 	AdminFileAssetsResponseBody,
+	AdminFileStatsResponseBody,
 	FILE_PREFIX,
 	FeatureFlagKey,
+	FriendsAndFamilyEntry,
 	LOCAL_FILE_PREFIX,
 	PUBLISH_PREFIX,
 	ROOM_PREFIX,
@@ -11,16 +13,65 @@ import {
 import { assert, retry, sleep, uniqueId } from '@tldraw/utils'
 import { createRouter } from '@tldraw/worker-shared'
 import { StatusError, json } from 'itty-router'
+import { sql } from 'kysely'
 import PQueue from 'p-queue'
 import { getUploadObjectName } from './assetAssociation'
+import { summarizeSnapshotDocuments } from './fileStats'
+import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
 import { getFileSnapshot, returnFileSnapshot } from './routes/tla/getFileSnapshot'
 import { type Environment } from './types'
 import { undeleteFile } from './undeleteFile'
-import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
+import {
+	getFileEffectProcessor,
+	getRoomDurableObject,
+	getUserDurableObject,
+} from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
+import {
+	getFriendsAndFamilyList,
+	parseFriendsAndFamilyEmails,
+	setFriendsAndFamilyList,
+} from './utils/mcpFriendsAndFamily'
 import { getClerkClient, requireAdminAccess, requireAuth } from './utils/tla/getAuth'
+
+/**
+ * Resolves the admin's emails to user ids once, at save time, so the request path only ever has to
+ * compare the userId `getAuth` already gives it. One query for the whole list rather than a lookup
+ * per address, and an email with no tldraw account fails the save instead of being stored as an
+ * entry that can never match.
+ */
+async function resolveFriendsAndFamilyUsers(
+	env: Environment,
+	emails: string[]
+): Promise<FriendsAndFamilyEntry[]> {
+	if (!emails.length) return []
+
+	const db = createPostgresConnectionPool(env, '/app/admin/mcp-friends-and-family')
+	try {
+		const rows = await db
+			.selectFrom('user')
+			.select(['id', 'email'])
+			.where(sql<string>`lower(email)`, 'in', emails)
+			.execute()
+
+		const byEmail = new Map(rows.map((row) => [row.email.toLowerCase(), row]))
+		const unknown = emails.filter((email) => !byEmail.has(email))
+		if (unknown.length) {
+			throw new StatusError(400, `No tldraw account for: ${unknown.join(', ')}`)
+		}
+
+		// Store the address as the database has it, not as the admin typed it, so the panel shows the
+		// account's real email.
+		return emails.map((email) => {
+			const row = byEmail.get(email)!
+			return { userId: row.id, email: row.email }
+		})
+	} finally {
+		await db.destroy()
+	}
+}
 
 async function requireUser(env: Environment, q: string) {
 	const db = createPostgresConnectionPool(env, '/app/admin/user')
@@ -47,24 +98,64 @@ export const adminRoutes = createRouter<Environment>()
 			return new Response('Missing query param', { status: 400 })
 		}
 		const userRow = await requireUser(env, q)
-
-		const user = getUserDurableObject(env, userRow.id)
-		return json(await user.admin_getData(userRow.id))
-	})
-	.get('/app/admin/replicator', async (res, env) => {
-		const replicator = getReplicator(env)
-		const diagnostics = await replicator.getDiagnostics()
-		return json(diagnostics)
-	})
-	.post('/app/admin/user/reboot', async (res, env) => {
-		const q = res.query['q']
-		if (typeof q !== 'string') {
-			return new Response('Missing query param', { status: 400 })
+		const db = createPostgresConnectionPool(env, '/app/admin/user')
+		try {
+			const memberships = await db
+				.selectFrom('group_user')
+				.innerJoin('group', 'group.id', 'group_user.groupId')
+				.where('group_user.userId', '=', userRow.id)
+				.select(['group.id', 'group.name', 'group.isDeleted', 'group_user.role'])
+				.execute()
+			const files = await db
+				.selectFrom('file')
+				.leftJoin('group_file', 'group_file.fileId', 'file.id')
+				.where('file.isDeleted', '=', false)
+				.where((eb) =>
+					eb.or([
+						eb('file.ownerId', '=', userRow.id),
+						eb(
+							'group_file.groupId',
+							'in',
+							memberships.length ? memberships.map((m) => m.id) : ['']
+						),
+					])
+				)
+				// distinctOn dedupes before the limit is applied, so a file matching both the owner
+				// clause and multiple group memberships (join fanout) still only counts once against
+				// the 500 cap.
+				.distinctOn('file.id')
+				.orderBy('file.id')
+				.selectAll('file')
+				.limit(500)
+				.execute()
+			return json({ user: userRow, memberships, files })
+		} finally {
+			await db.destroy()
 		}
-		const userRow = await requireUser(env, q)
-		const user = getUserDurableObject(env, userRow.id)
-		await user.admin_forceHardReboot(userRow.id)
-		return new Response('Rebooted', { status: 200 })
+	})
+	.get('/app/admin/outbox', async (res, env) => {
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox')
+		try {
+			const stats = await db
+				.selectFrom('effect_outbox')
+				.select((eb) => [
+					eb.fn.countAll<number>().filterWhere('attempts', '<', MAX_ATTEMPTS).as('pending'),
+					eb.fn.countAll<number>().filterWhere('attempts', '>=', MAX_ATTEMPTS).as('parked'),
+					eb.fn.min('createdAt').filterWhere('attempts', '<', MAX_ATTEMPTS).as('oldestPending'),
+				])
+				.executeTakeFirstOrThrow()
+			return json({
+				outbox: {
+					pending: Number(stats.pending),
+					parked: Number(stats.parked),
+					oldestPendingAgeSeconds: stats.oldestPending
+						? Math.round((Date.now() - new Date(stats.oldestPending).getTime()) / 1000)
+						: null,
+				},
+			})
+		} finally {
+			await db.destroy()
+		}
 	})
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
@@ -94,6 +185,25 @@ export const adminRoutes = createRouter<Environment>()
 
 		await setFeatureFlag(env, flag as FeatureFlagKey, update)
 		return json({ success: true, flag, ...update })
+	})
+	.get('/app/admin/mcp-friends-and-family', async (_req, env) => {
+		return json({ entries: await getFriendsAndFamilyList(env) })
+	})
+	.post('/app/admin/mcp-friends-and-family', async (req, env) => {
+		const body: any = await req.json()
+
+		// Parsing before resolving means a typo is rejected at the point someone can still fix it,
+		// rather than sitting in the list looking like it grants access while matching nothing.
+		let emails: string[]
+		try {
+			emails = parseFriendsAndFamilyEmails(body?.entries)
+		} catch (e) {
+			throw new StatusError(400, e instanceof Error ? e.message : String(e))
+		}
+
+		const entries = await resolveFriendsAndFamilyUsers(env, emails)
+		await setFriendsAndFamilyList(env, entries)
+		return json({ success: true, entries })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()
@@ -132,6 +242,12 @@ export const adminRoutes = createRouter<Environment>()
 				status: 409,
 			})
 		}
+		// Best-effort nudge so the restore's effects land promptly; the sweep backstops it, so a
+		// poke failure must not fail the request (the restore already committed; a retry would
+		// just 400 with 'File is not deleted').
+		await getFileEffectProcessor(env)
+			.poke()
+			.catch(() => {})
 		// Hard-reboot every affected user so the restored rows replicate to their session (the
 		// isDeleted false-flip case flagged in dotcom-shared mutators.ts). Best-effort: the
 		// writes already committed, so a reboot failure must not surface as a 500 (a retry would
@@ -459,6 +575,128 @@ export const adminRoutes = createRouter<Environment>()
 		}
 		return json(report)
 	})
+	// A board's shape without its contents. Answers "how big and how unusual is this board" for
+	// perf reports, migration bugs, and support threads without anyone having to open it — and
+	// without putting anything a user typed into the report. Read AdminFileStatsResponseBody
+	// before adding a field: staying content-free is the point of this endpoint.
+	.get('/app/admin/file-stats/:slug', async (res, env) => {
+		const slug = res.params.slug
+		assert(typeof slug === 'string', 'slug is required')
+
+		const warnings: string[] = []
+		const pg = createPostgresConnectionPool(env, '/app/admin/file-stats')
+		const [fileRow, snapshot, head] = await Promise.all([
+			pg
+				.selectFrom('file')
+				.where('id', '=', slug)
+				.select([
+					'ownerId',
+					'owningGroupId',
+					'createdAt',
+					'updatedAt',
+					'isDeleted',
+					'isEmpty',
+					'published',
+					'shared',
+					'sharedLinkType',
+					'createSource',
+				])
+				.executeTakeFirst(),
+			getFileSnapshot(env, slug, true),
+			env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true })).catch((e) => {
+				// Label only: an R2 error stringifies to the object key, which names the board
+				console.error('file-stats snapshot head failed', e)
+				warnings.push('snapshot head failed')
+				return null
+			}),
+		])
+		if (!snapshot) {
+			throw new StatusError(404, `No persisted snapshot for ${slug}`)
+		}
+
+		const summary = summarizeSnapshotDocuments(snapshot.documents)
+
+		// file_visitor, comment_thread, and comment all have a fileId index. file_state is
+		// deliberately not counted here: its primary key is (userId, fileId), so counting by fileId
+		// would sequentially scan the whole table.
+		const countRows = async (
+			label: string,
+			query: Promise<{ count: number | string | bigint } | undefined>
+		) => {
+			try {
+				return Number((await query)?.count ?? 0)
+			} catch (e) {
+				// Label only: a query error can carry table, column, and parameter detail
+				console.error(`file-stats ${label} count failed`, e)
+				warnings.push(`${label} count failed`)
+				return 0
+			}
+		}
+		const [visitors, commentThreads, comments] = await Promise.all([
+			countRows(
+				'file_visitor',
+				pg
+					.selectFrom('file_visitor')
+					.where('fileId', '=', slug)
+					.select((eb) => eb.fn.countAll<number>().as('count'))
+					.executeTakeFirst()
+			),
+			countRows(
+				'comment_thread',
+				pg
+					.selectFrom('comment_thread')
+					.where('fileId', '=', slug)
+					.where('isDeleted', '=', false)
+					.select((eb) => eb.fn.countAll<number>().as('count'))
+					.executeTakeFirst()
+			),
+			countRows(
+				'comment',
+				pg
+					.selectFrom('comment')
+					.where('fileId', '=', slug)
+					.where('isDeleted', '=', false)
+					.select((eb) => eb.fn.countAll<number>().as('count'))
+					.executeTakeFirst()
+			),
+		])
+
+		const schema = snapshot.schema as
+			| { schemaVersion?: number; sequences?: Record<string, number> }
+			| undefined
+		const createSourceKind = fileRow?.createSource?.split('/')[0] ?? null
+
+		const { recordsByTypeName, ...snapshotStats } = summary
+		const stats: AdminFileStatsResponseBody = {
+			file: fileRow
+				? {
+						ownerType: fileRow.ownerId ? 'user' : fileRow.owningGroupId ? 'group' : 'none',
+						createdAt: fileRow.createdAt,
+						updatedAt: fileRow.updatedAt,
+						isDeleted: fileRow.isDeleted,
+						isEmpty: fileRow.isEmpty,
+						published: fileRow.published,
+						shared: fileRow.shared,
+						sharedLinkType: fileRow.sharedLinkType,
+						createSourceKind,
+					}
+				: null,
+			snapshot: {
+				sizeBytes: head?.size ?? null,
+				clock: snapshot.clock ?? null,
+				documentClock: snapshot.documentClock ?? null,
+				tombstones: Object.keys(snapshot.tombstones ?? {}).length,
+				records: snapshot.documents.length,
+				recordsByTypeName,
+				schemaVersion: schema?.schemaVersion ?? null,
+				sequences: schema?.sequences ?? null,
+			},
+			...snapshotStats,
+			collaboration: { visitors, commentThreads, comments },
+			warnings,
+		}
+		return json(stats)
+	})
 	.get('/app/admin/download-tldr/:fileSlug', async (res, env) => {
 		const fileSlug = res.params.fileSlug
 		assert(typeof fileSlug === 'string', 'fileSlug is required')
@@ -539,12 +777,13 @@ async function hardDeleteAppFile({
 	file: TlaFile
 }) {
 	if (!file.isDeleted) {
-		// do soft delete first if not done already
+		// do soft delete first if not done already; the outbox trigger records it
 		await pg.updateTable('file').set('isDeleted', true).where('id', '=', file.id).execute()
-		// allow a little time for the delete to propagate
-		// don't think this is really needed, but just in case
-		await sleep(1000)
 	}
+	// Session kicks and R2/room cleanup ride the terminal delete-row effect written by the
+	// DELETE FROM file below, delivered via the post-delete poke() (sweep backstop ~30s); the
+	// soft-delete row's effect is staleness-guarded, so it skips harmlessly if it runs after
+	// the row is gone.
 	// clean up assets eagerly
 	const assets = await pg.selectFrom('asset').where('fileId', '=', file.id).selectAll().execute()
 	for (const asset of assets) {
@@ -566,6 +805,12 @@ async function hardDeleteAppFile({
 	}
 	// hard delete file (this will trigger a cascade delete of all remaining related records & R2 objects)
 	await pg.deleteFrom('file').where('id', '=', file.id).execute()
+	// Nudge the outbox so the delete's effects land promptly instead of waiting for the 30s
+	// alarm sweep. poke() is cheap: it just schedules an alarm. Best-effort nudge: the sweep
+	// backstops it, so a poke failure must not fail the request after the delete committed.
+	await getFileEffectProcessor(env)
+		.poke()
+		.catch(() => {})
 	return new Response('Deleted', { status: 200 })
 }
 

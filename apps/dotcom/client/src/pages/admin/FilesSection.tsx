@@ -2,6 +2,7 @@ import { AdminFileAssetsResponseBody } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
+import { FileStats } from './FileStats'
 import { formatBytes, StructuredDataDisplay } from './shared'
 import styles from './admin.module.css'
 
@@ -15,6 +16,10 @@ export function FilesSection() {
 					<DownloadTldrFile legacy={true} />
 					<CreateLegacyFile />
 				</div>
+			</section>
+			<section className={styles.adminSection}>
+				<h3 className={styles.sectionTitle}>Board stats</h3>
+				<FileStats />
 			</section>
 			<section className={styles.adminSection}>
 				<h3 className={styles.sectionTitle}>Asset diagnostics</h3>

@@ -1810,18 +1810,14 @@
       "value": "सध्यासाठी, तुम्ही येथे वापरण्यासाठी "
     },
     {
-      "type": 1,
-      "value": "extension"
-    },
-    {
-      "type": 0,
-      "value": " फाईल म्हणून "
-    },
-    {
       "children": [
         {
+          "type": 1,
+          "value": "extension"
+        },
+        {
           "type": 0,
-          "value": "निर्यात"
+          "value": " फाईल म्हणून निर्यात"
         }
       ],
       "type": 8,

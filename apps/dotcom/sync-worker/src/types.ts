@@ -3,6 +3,7 @@
 import { Queue } from '@cloudflare/workers-types'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import type { TLFileDurableObject } from './TLFileDurableObject'
+import type { TLFileEffectProcessor } from './TLFileEffectProcessor'
 import type { TLLoggerDurableObject } from './TLLoggerDurableObject'
 import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { TLStatsDurableObject } from './TLStatsDurableObject'
@@ -31,6 +32,7 @@ export interface Environment {
 	TLDR_DOC: DurableObjectNamespace<TLFileDurableObject>
 	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
 	TL_USER: DurableObjectNamespace<TLUserDurableObject>
+	TL_FILE_EFFECTS: DurableObjectNamespace<TLFileEffectProcessor>
 	TL_LOGGER: DurableObjectNamespace<TLLoggerDurableObject>
 	TL_STATS: DurableObjectNamespace<TLStatsDurableObject>
 

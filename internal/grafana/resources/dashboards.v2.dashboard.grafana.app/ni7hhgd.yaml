@@ -1,0 +1,1164 @@
+apiVersion: dashboard.grafana.app/v2
+kind: Dashboard
+metadata:
+  annotations:
+    grafana.app/folder: f6hsw6
+    grafana.app/message: 'using the fly.io datasource '
+    grafana.app/saved-from-ui: Grafana Cloud
+  labels: {}
+  name: ni7hhgd
+  namespace: stacks-890472
+spec:
+  annotations:
+    - kind: AnnotationQuery
+      spec:
+        builtIn: true
+        enable: true
+        hide: true
+        iconColor: rgba(0, 211, 255, 1)
+        name: Annotations & Alerts
+        query:
+          datasource:
+            name: -- Grafana --
+          group: grafana
+          kind: DataQuery
+          spec: {}
+          version: v0
+  cursorSync: Crosshair
+  editable: true
+  elements:
+    panel-1:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr: sum(rate(fly_app_http_responses_count{app=~"$app"}[$__rate_interval]))
+                      legendFormat: req/s
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Total HTTP requests/sec across the selected zero-cache apps.
+        id: 1
+        links: []
+        title: Request rate
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: reqps
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-28926505616
+    panel-2:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr:
+                        sum(rate(fly_app_http_responses_count{app=~"$app", status=~"5.."}[$__rate_interval]))
+                        / sum(rate(fly_app_http_responses_count{app=~"$app"}[$__rate_interval]))
+                      legendFormat: 5xx ratio
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Share of responses with a 5xx status across selected apps.
+        id: 2
+        links: []
+        title: 5xx ratio
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                    - color: orange
+                      value: 0.01
+                    - color: red
+                      value: 0.05
+                unit: percentunit
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-28926505616
+    panel-3:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr:
+                        histogram_quantile(0.99, sum(rate(fly_app_http_response_time_seconds_bucket{app=~"$app"}[$__rate_interval]))
+                        by (le))
+                      legendFormat: p99
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: App-level p99 HTTP response time across selected apps.
+        id: 3
+        links: []
+        title: p99 response time
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                    - color: orange
+                      value: 0.5
+                    - color: red
+                      value: 2
+                unit: s
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-28926505616
+    panel-4:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr: max(1 - fly_instance_memory_mem_available{app=~"$app"} /
+                        fly_instance_memory_mem_total{app=~"$app"})
+                      legendFormat: max util
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Highest memory utilization among instances of the selected apps.
+        id: 4
+        links: []
+        title: Worst memory utilization
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                    - color: orange
+                      value: 0.8
+                    - color: red
+                      value: 0.9
+                unit: percentunit
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-28926505616
+    panel-5:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr: sum(rate(fly_app_http_responses_count{app=~"$app"}[$__rate_interval]))
+                        by (status)
+                      legendFormat: '{{status}}'
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Response rate split by HTTP status code — traffic and error signals
+          in one view.
+        id: 5
+        links: []
+        title: HTTP responses by status
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: reqps
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: multi
+                sort: desc
+          version: 13.2.0-28926505616
+    panel-6:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr: sum(rate(fly_app_http_responses_count{app=~"$app"}[$__rate_interval]))
+                        by (app)
+                      legendFormat: '{{app}}'
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: HTTP request rate per app (view syncers, replication manager,
+          PR previews).
+        id: 6
+        links: []
+        title: Request rate by app
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: line
+                  fillOpacity: 12
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: reqps
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: multi
+                sort: desc
+          version: 13.2.0-28926505616
+    panel-7:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr:
+                        histogram_quantile(0.5, sum(rate(fly_app_http_response_time_seconds_bucket{app=~"$app"}[$__rate_interval]))
+                        by (le, app))
+                      legendFormat: '{{app}} p50'
+                    version: v0
+                  refId: A
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr:
+                        histogram_quantile(0.95, sum(rate(fly_app_http_response_time_seconds_bucket{app=~"$app"}[$__rate_interval]))
+                        by (le, app))
+                      legendFormat: '{{app}} p95'
+                    version: v0
+                  refId: B
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr:
+                        histogram_quantile(0.99, sum(rate(fly_app_http_response_time_seconds_bucket{app=~"$app"}[$__rate_interval]))
+                        by (le, app))
+                      legendFormat: '{{app}} p99'
+                    version: v0
+                  refId: C
+            queryOptions: {}
+            transformations: []
+        description: p50 / p95 / p99 from the app-level response time histogram, per
+          app.
+        id: 7
+        links: []
+        title: App response time percentiles
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: line
+                  fillOpacity: 12
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: s
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: multi
+                sort: desc
+          version: 13.2.0-28926505616
+    panel-8:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr:
+                        sum(rate(fly_app_http_responses_count{app=~"$app", status=~"5.."}[$__rate_interval]))
+                        by (app) / sum(rate(fly_app_http_responses_count{app=~"$app"}[$__rate_interval]))
+                        by (app)
+                      legendFormat: '{{app}}'
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Server error ratio per app over time. Flat at zero is the goal.
+        id: 8
+        links: []
+        title: 5xx ratio by app
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: line
+                  fillOpacity: 25
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: percentunit
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: multi
+                sort: desc
+          version: 13.2.0-28926505616
+    panel-9:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr: sum(rate(fly_edge_http_responses_count{app=~"$app"}[$__rate_interval]))
+                        by (region)
+                      legendFormat: '{{region}}'
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Requests/sec entering through Fly edge nodes, by region — where
+          the WebSocket/zero-sync traffic comes from.
+        id: 9
+        links: []
+        title: Edge traffic by region
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: reqps
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: multi
+                sort: desc
+          version: 13.2.0-28926505616
+    panel-10:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr:
+                        histogram_quantile(0.95, sum(rate(fly_edge_http_response_time_seconds_bucket{app=~"$app"}[$__rate_interval]))
+                        by (le, region))
+                      legendFormat: '{{region}}'
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Edge-measured p95 latency per region — includes network path,
+          so compare against the app-level histogram to separate network from compute.
+        id: 10
+        links: []
+        title: Edge p95 response time by region
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: line
+                  fillOpacity: 12
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: s
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: multi
+                sort: desc
+          version: 13.2.0-28926505616
+    panel-11:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr: sum(rate(fly_instance_cpu{app=~"$app", mode!="idle"}[$__rate_interval]))
+                        by (app, instance)
+                      legendFormat: '{{app}} {{instance}}'
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Non-idle CPU time per instance (sum of user/system/etc. modes).
+          Values approach the machine core count at saturation.
+        id: 11
+        links: []
+        title: CPU busy by instance
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: line
+                  fillOpacity: 12
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: multi
+                sort: desc
+          version: 13.2.0-28926505616
+    panel-12:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: flyio
+                    group: prometheus
+                    kind: DataQuery
+                    spec:
+                      expr: 1 - fly_instance_memory_mem_available{app=~"$app"} / fly_instance_memory_mem_total{app=~"$app"}
+                      legendFormat: '{{app}} {{instance}}'
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Fraction of memory in use (1 - available/total) per instance.
+          The replication manager and view syncers hold replica state in memory, so
+          this is the key saturation gauge for zero-cache.
+        id: 12
+        links: []
+        title: Memory utilization by instance
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.6
+                  drawStyle: line
+                  fillOpacity: 20
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                max: 1
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: percentunit
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                mode: multi
+                sort: desc
+          version: 13.2.0-28926505616
+  layout:
+    kind: GridLayout
+    spec:
+      items:
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-1
+            height: 4
+            width: 6
+            x: 0
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-2
+            height: 4
+            width: 6
+            x: 6
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-3
+            height: 4
+            width: 6
+            x: 12
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-4
+            height: 4
+            width: 6
+            x: 18
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-5
+            height: 9
+            width: 12
+            x: 0
+            y: 4
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-6
+            height: 9
+            width: 12
+            x: 12
+            y: 4
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-7
+            height: 9
+            width: 12
+            x: 0
+            y: 13
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-8
+            height: 9
+            width: 12
+            x: 12
+            y: 13
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-9
+            height: 8
+            width: 12
+            x: 0
+            y: 22
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-10
+            height: 8
+            width: 12
+            x: 12
+            y: 22
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-11
+            height: 8
+            width: 12
+            x: 0
+            y: 30
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-12
+            height: 8
+            width: 12
+            x: 12
+            y: 30
+  links: []
+  liveNow: false
+  preload: false
+  tags:
+    - tldraw
+    - flyio
+    - zero-cache
+    - platform
+    - provisioned
+    - repo:tldraw/tldraw
+  timeSettings:
+    autoRefresh: 30s
+    autoRefreshIntervals:
+      - 30s
+      - 1m
+      - 5m
+      - 15m
+      - 30m
+      - 1h
+      - 2h
+      - 1d
+    fiscalYearStartMonth: 0
+    from: now-6h
+    hideTimepicker: false
+    timezone: browser
+    to: now
+  title: Zero-cache HTTP edge (Fly.io)
+  variables:
+    - kind: TextVariable
+      spec:
+        current:
+          text: .*
+          value: .*
+        description: App name regex. Use .* for all apps, production-zero-.* for production
+          only, or a PR app like pr-123-zero-cache.
+        hide: dontHide
+        label: 'App regex: .* | production-zero-.* | pr-…'
+        name: app
+        query: .*
+        skipUrlSync: false
