@@ -11,19 +11,6 @@ function staysOnTypescript5(workspace) {
 	return workspace.cwd.startsWith('templates/') || workspace.cwd === 'apps/mcp-app'
 }
 
-// Templates take a new Next major on their own schedule — they're starters people copy out of the
-// repo — so they stay on Next 15 while the docs site is on 16.
-function staysOnNext15(workspace) {
-	return workspace.cwd.startsWith('templates/')
-}
-
-// Dependencies where some workspaces intentionally sit on an older major than the rest.
-function lagsBehindOnPurpose(ident, workspace) {
-	if (ident === 'typescript') return staysOnTypescript5(workspace)
-	if (ident === 'next') return staysOnNext15(workspace)
-	return false
-}
-
 function enforceConsistentDependenciesAcrossTheProject({ Yarn }) {
 	// check non-peer deps:
 	for (const dependency of Yarn.dependencies()) {
@@ -33,8 +20,8 @@ function enforceConsistentDependenciesAcrossTheProject({ Yarn }) {
 			if (otherDependency.type === 'peerDependencies') continue
 
 			if (
-				lagsBehindOnPurpose(dependency.ident, dependency.workspace) !==
-				lagsBehindOnPurpose(dependency.ident, otherDependency.workspace)
+				dependency.ident === 'typescript' &&
+				staysOnTypescript5(dependency.workspace) !== staysOnTypescript5(otherDependency.workspace)
 			) {
 				continue
 			}
