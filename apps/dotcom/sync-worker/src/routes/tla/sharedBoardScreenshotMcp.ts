@@ -14,6 +14,7 @@ import {
 	MCP_RATE_LIMIT_WINDOW_MS,
 } from '../../config'
 import { Environment } from '../../types'
+import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
 import { sha256 } from '../../utils/hash'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
@@ -146,6 +147,12 @@ interface JsonRpcRequest {
 		protocolVersion?: string
 		/** Modern only: per-request version, client identity and capabilities. */
 		_meta?: Record<string, unknown>
+		// Typed as unknown because it is whatever the client put in the request body; the telemetry
+		// writer narrows it rather than trusting it.
+		clientInfo?: {
+			name?: unknown
+			version?: unknown
+		}
 	}
 }
 
@@ -157,6 +164,96 @@ export function isMcpScreenshotEnabled(env: Environment) {
 	const value = env.MCP_SCREENSHOT_ENABLED?.trim().toLowerCase()
 	return value === undefined || value === '' || value === 'true'
 }
+
+// --- MCP protocol telemetry ---
+
+// Known MCP client families, matched as case-insensitive substrings against the User-Agent header
+// and the clientInfo.name from initialize. Bounded on purpose: raw agent strings are
+// unbounded-cardinality, so anything unrecognized lands in `other`, and the initialize event keeps a
+// truncated raw name for spotting families worth adding here. Order matters where strings overlap —
+// a Claude UA also says Mozilla, so `mozilla` sits last.
+const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: string]> = [
+	['claude', 'claude'],
+	['anthropic', 'claude'],
+	['chatgpt', 'openai'],
+	['openai', 'openai'],
+	['cursor', 'cursor'],
+	['python', 'python'],
+	['httpx', 'python'],
+	['aiohttp', 'python'],
+	['node', 'node'],
+	['undici', 'node'],
+	['curl', 'curl'],
+	['mozilla', 'browser'],
+]
+
+// Takes unknown because one caller passes a header and the other passes a field parsed straight out
+// of the request body, which is whatever the client chose to send.
+export function normalizeMcpClient(value: unknown): string {
+	if (typeof value !== 'string' || value === '') return 'none'
+	const lower = value.toLowerCase()
+	for (const [needle, family] of MCP_CLIENT_FAMILIES) {
+		if (lower.includes(needle)) return family
+	}
+	return 'other'
+}
+
+// One datapoint per tools/call dispatch, whatever the tool did: the render path's
+// mcp_shared_board_screenshot event only fires when a screenshot is attempted, so without this the
+// info tools (and every early failure) are invisible. Written at the dispatcher rather than inside
+// the tools, so a new tool cannot ship unmetered.
+function writeMcpToolCallTelemetry(
+	env: Environment,
+	request: Request,
+	data: { tool: string; durationMs: number; reason?: string }
+) {
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_tool_call', {
+		blobs: [
+			`tool:${data.tool}`,
+			`outcome:${data.reason ? 'error' : 'ok'}`,
+			`reason:${data.reason ?? 'none'}`,
+			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+		],
+		doubles: [data.durationMs],
+	})
+}
+
+// initialize is the one request where the calling application names itself, so it gets its own
+// event. The raw name is kept (truncated) alongside the normalized family: initializes are rare
+// enough that the cardinality is affordable, and it is how new families get discovered. The UA
+// family rides along as a cross-check for hosts whose header and clientInfo disagree.
+function writeMcpInitializeTelemetry(
+	env: Environment,
+	request: Request,
+	clientInfo: { name?: unknown; version?: unknown } | undefined
+) {
+	const name = clientInfo?.name
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_initialize', {
+		blobs: [
+			`client:${normalizeMcpClient(name)}`,
+			`raw:${typeof name === 'string' ? name.slice(0, 64) : 'none'}`,
+			`ua:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+		],
+	})
+}
+
+// A Map rather than an object literal, because the key comes straight off the wire: a plain object
+// would resolve inherited names too, so `tools/call` for `constructor` or `toString` would find one
+// of Object's own methods and call it as a tool instead of reporting an unknown tool.
+const TOOL_HANDLERS = new Map<
+	string,
+	(
+		argumentsValue: unknown,
+		request: Request,
+		env: Environment,
+		ctx?: ExecutionContext
+	) => Promise<ToolCallResult>
+>([
+	[BOARD_INFO_TOOL_NAME, callBoardInfoTool],
+	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
+	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
+	[CLUSTER_SCREENSHOT_TOOL_NAME, callClusterScreenshotTool],
+])
 
 export async function sharedBoardScreenshotMcp(
 	request: IRequest,
@@ -186,6 +283,7 @@ export async function sharedBoardScreenshotMcp(
 
 	// `initialize` is legacy-only and carries the client's version in its params, not a header.
 	if (rpcRequest.method === 'initialize') {
+		writeMcpInitializeTelemetry(env, request, rpcRequest.params?.clientInfo)
 		return jsonRpcResult(rpcRequest.id, {
 			// Answering with our legacy version regardless is how the handshake declines a version.
 			protocolVersion: MCP_PROTOCOL_VERSION_LEGACY,
@@ -252,14 +350,42 @@ export async function sharedBoardScreenshotMcp(
 				)
 			)
 		case 'tools/call': {
-			const result = await callToolByName(rpcRequest, request, env, ctx)
-			if (!result) {
+			const toolName = rpcRequest.params?.name ?? ''
+			const toolHandler = TOOL_HANDLERS.get(toolName)
+			if (!toolHandler) {
+				// The requested name is caller-controlled and unbounded, so telemetry records a bounded
+				// value while the JSON-RPC error still tells the caller which name was unknown.
+				writeMcpToolCallTelemetry(env, request, {
+					tool: 'unknown',
+					reason: 'unknown_tool',
+					durationMs: 0,
+				})
 				return jsonRpcError(
 					rpcRequest.id,
 					INVALID_PARAMS,
 					`Unknown tool: ${rpcRequest.params?.name}`
 				)
 			}
+
+			const startedAt = Date.now()
+			let called: ToolCallResult
+			try {
+				called = await toolHandler(rpcRequest.params?.arguments, request, env, ctx)
+			} catch (error) {
+				writeMcpToolCallTelemetry(env, request, {
+					tool: toolName,
+					reason: 'unhandled_error',
+					durationMs: Date.now() - startedAt,
+				})
+				throw error
+			}
+
+			const { telemetryReason, ...result } = called
+			writeMcpToolCallTelemetry(env, request, {
+				tool: toolName,
+				reason: telemetryReason,
+				durationMs: Date.now() - startedAt,
+			})
 			return jsonRpcResult(rpcRequest.id, withResultEnvelope(result, era))
 		}
 	}
@@ -269,26 +395,6 @@ export async function sharedBoardScreenshotMcp(
 	return jsonRpcError(rpcRequest.id, METHOD_NOT_FOUND, `Method not found: ${rpcRequest.method}`, {
 		status: era === 'modern' ? 404 : 200,
 	})
-}
-
-async function callToolByName(
-	rpcRequest: JsonRpcRequest,
-	request: Request,
-	env: Environment,
-	ctx?: ExecutionContext
-) {
-	switch (rpcRequest.params?.name) {
-		case BOARD_INFO_TOOL_NAME:
-			return callBoardInfoTool(rpcRequest.params.arguments, request, env, ctx)
-		case PAGE_INFO_TOOL_NAME:
-			return callPageInfoTool(rpcRequest.params.arguments, request, env, ctx)
-		case CLUSTER_INFO_TOOL_NAME:
-			return callClusterInfoTool(rpcRequest.params.arguments, request, env, ctx)
-		case CLUSTER_SCREENSHOT_TOOL_NAME:
-			return callClusterScreenshotTool(rpcRequest.params.arguments, request, env, ctx)
-		default:
-			return null
-	}
 }
 
 /** Which era a request is speaking, or null for a version we don't implement. */
@@ -525,7 +631,7 @@ async function callBoardInfoTool(
 	try {
 		input = parseBoardInfoInput(argumentsValue)
 	} catch (error) {
-		return toolError(error instanceof Error ? error.message : String(error))
+		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
 	}
 
 	// Not rate limited: the limiters here bound Browser Run, and this call spends none. The clustering
@@ -538,13 +644,14 @@ async function callBoardInfoTool(
 			return toolError(
 				resolved.reason === 'board_empty'
 					? 'This board has no saved content yet.'
-					: 'No public board was found with this id. Only published boards and files shared via link are supported.'
+					: 'No public board was found with this id. Only published boards and files shared via link are supported.',
+				resolved.reason === 'board_empty' ? 'board_empty' : 'not_found'
 			)
 		}
 
 		const snapshot = await loadBoardSnapshot(env, resolved.board, { access: 'public' })
 		if (!snapshot) {
-			return toolError('This board has no saved content yet.')
+			return toolError('This board has no saved content yet.', 'board_empty')
 		}
 		const pages = enumerateBoardPages(snapshot)
 		return toolJsonResult({
@@ -560,9 +667,6 @@ async function callBoardInfoTool(
 			})),
 		})
 	} catch (error) {
-		// The caller gets a bounded description, but nothing else records it: this tool writes no
-		// telemetry (it spends no Browser Run), so without a report a failing board lookup is
-		// invisible to us.
 		reportThumbnailError(error, {
 			ctx,
 			env,
@@ -570,8 +674,16 @@ async function callBoardInfoTool(
 			surface: 'mcp_board_info',
 			extras: { boardId: input.boardId },
 		})
+		const failureReason = classifyScreenshotFailure(error)
+		// The classifier reads render failures, and this tool starts no render: it resolves the board
+		// and reads its snapshot, and the lookup goes through a Postgres pool whose timeouts the
+		// classifier would otherwise report as `browser_timeout`. Only the snapshot-read class can
+		// honestly apply here, so everything else is recorded as what it is.
+		const telemetryReason =
+			failureReason === 'snapshot_read_error' ? failureReason : 'board_lookup_error'
 		return toolError(
-			`Could not read board info: ${describeThumbnailFailure(classifyScreenshotFailure(error))}.`
+			`Could not read board info: ${describeThumbnailFailure(failureReason)}.`,
+			telemetryReason
 		)
 	}
 }
@@ -587,7 +699,7 @@ async function callPageInfoTool(
 	try {
 		input = parsePageInfoInput(argumentsValue)
 	} catch (error) {
-		return toolError(error instanceof Error ? error.message : String(error))
+		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
 	}
 
 	if (
@@ -596,7 +708,8 @@ async function callPageInfoTool(
 		})
 	) {
 		return toolError(
-			`Rate limited. Requests are limited to about ${MCP_PER_IP_RATE_LIMIT} per minute per IP.`
+			`Rate limited. Requests are limited to about ${MCP_PER_IP_RATE_LIMIT} per minute per IP.`,
+			'rate_limited_ip'
 		)
 	}
 
@@ -629,8 +742,10 @@ async function callPageInfoTool(
 			surface: 'mcp_board_info',
 			extras: { boardId: input.boardId },
 		})
+		const failureReason = classifyScreenshotFailure(error)
 		return toolError(
-			`Could not read page info: ${describeThumbnailFailure(classifyScreenshotFailure(error))}.`
+			`Could not read page info: ${describeThumbnailFailure(failureReason)}.`,
+			failureReason
 		)
 	}
 }
@@ -660,19 +775,20 @@ async function resolveBoardPage(
 			result: toolError(
 				resolved.reason === 'board_empty'
 					? 'This board has no saved content yet.'
-					: 'No public board was found with this id. Only published boards and files shared via link are supported.'
+					: 'No public board was found with this id. Only published boards and files shared via link are supported.',
+				resolved.reason === 'board_empty' ? 'board_empty' : 'not_found'
 			),
 		}
 	}
 
 	const snapshot = await loadBoardSnapshot(env, resolved.board, { access: 'public' })
 	if (!snapshot) {
-		return { ok: false, result: toolError('This board has no saved content yet.') }
+		return { ok: false, result: toolError('This board has no saved content yet.', 'board_empty') }
 	}
 
 	const pages = enumerateBoardPages(snapshot)
 	if (pages.length === 0) {
-		return { ok: false, result: toolError('This board has no pages.') }
+		return { ok: false, result: toolError('This board has no pages.', 'board_empty') }
 	}
 
 	const targetPage = page.kind === 'id' ? pages.find((p) => p.id === page.id) : pages[page.ordinal]
@@ -682,7 +798,8 @@ async function resolveBoardPage(
 			result: toolError(
 				page.kind === 'id'
 					? `No page with id "${page.id}" on this board. Call get_board_info to list its pages; a page id is stable across reordering, an index is not.`
-					: `Page ${page.ordinal} is out of range: this board has ${pages.length} page(s) (0–${pages.length - 1}). Call get_board_info to list them.`
+					: `Page ${page.ordinal} is out of range: this board has ${pages.length} page(s) (0–${pages.length - 1}). Call get_board_info to list them.`,
+				'page_not_found'
 			),
 		}
 	}
@@ -742,7 +859,7 @@ async function callClusterInfoTool(
 	try {
 		input = parseClusterInfoInput(argumentsValue)
 	} catch (error) {
-		return toolError(error instanceof Error ? error.message : String(error))
+		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
 	}
 
 	if (
@@ -751,7 +868,8 @@ async function callClusterInfoTool(
 		})
 	) {
 		return toolError(
-			`Rate limited. Requests are limited to about ${MCP_PER_IP_RATE_LIMIT} per minute per IP.`
+			`Rate limited. Requests are limited to about ${MCP_PER_IP_RATE_LIMIT} per minute per IP.`,
+			'rate_limited_ip'
 		)
 	}
 
@@ -762,7 +880,8 @@ async function callClusterInfoTool(
 		const cluster = (await clusterPage(env, resolved)).find((c) => c.id === input.clusterId)
 		if (!cluster) {
 			return toolError(
-				`No cluster with id "${input.clusterId}" on page ${describePageSelector(input.page)}. Call get_page_info to list this page's clusters.`
+				`No cluster with id "${input.clusterId}" on page ${describePageSelector(input.page)}. Call get_page_info to list this page's clusters.`,
+				'cluster_not_found'
 			)
 		}
 
@@ -786,8 +905,10 @@ async function callClusterInfoTool(
 				clusterId: input.clusterId,
 			},
 		})
+		const failureReason = classifyScreenshotFailure(error)
 		return toolError(
-			`Could not read cluster info: ${describeThumbnailFailure(classifyScreenshotFailure(error))}.`
+			`Could not read cluster info: ${describeThumbnailFailure(failureReason)}.`,
+			failureReason
 		)
 	}
 }
@@ -838,7 +959,8 @@ async function renderShapeSetScreenshot(
 	) {
 		telemetry({ cacheStatus: 'miss', rateLimitAllowed: false, failureReason: 'rate_limited_ip' })
 		return toolError(
-			`Rate limited. Screenshots are limited to about ${MCP_PER_IP_RATE_LIMIT} requests per minute per IP.`
+			`Rate limited. Screenshots are limited to about ${MCP_PER_IP_RATE_LIMIT} requests per minute per IP.`,
+			'rate_limited_ip'
 		)
 	}
 
@@ -886,7 +1008,10 @@ async function renderShapeSetScreenshot(
 				rateLimitAllowed: false,
 				failureReason: 'rate_limited_board',
 			})
-			return toolError('Rate limited. This board is being screenshotted too frequently.')
+			return toolError(
+				'Rate limited. This board is being screenshotted too frequently.',
+				'rate_limited_board'
+			)
 		}
 		if (await isGlobalBrowserRunRateLimited(env)) {
 			telemetry({
@@ -894,7 +1019,10 @@ async function renderShapeSetScreenshot(
 				rateLimitAllowed: false,
 				failureReason: 'rate_limited_global',
 			})
-			return toolError('Rate limited. Screenshot capacity is busy, try again in a minute.')
+			return toolError(
+				'Rate limited. Screenshot capacity is busy, try again in a minute.',
+				'rate_limited_global'
+			)
 		}
 
 		const render = await captureThumbnailScreenshot(env, resolved.board, {
@@ -940,7 +1068,10 @@ async function renderShapeSetScreenshot(
 			failureReason,
 			browserRunDurationMs: browserRunDurationOf(error),
 		})
-		return toolError(`Screenshot failed: ${describeThumbnailFailure(failureReason)}.`)
+		return toolError(
+			`Screenshot failed: ${describeThumbnailFailure(failureReason)}.`,
+			failureReason
+		)
 	}
 }
 
@@ -962,7 +1093,7 @@ async function callClusterScreenshotTool(
 			cacheStatus: 'miss',
 			failureReason: 'invalid_input',
 		})
-		return toolError(error instanceof Error ? error.message : String(error))
+		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
 	}
 
 	return renderShapeSetScreenshot(request, env, ctx, {
@@ -981,7 +1112,8 @@ async function callClusterScreenshotTool(
 				return {
 					ok: false,
 					result: toolError(
-						`No cluster on page ${describePageSelector(input.page)} with id ${missing.map((id) => `"${id}"`).join(', ')}. Call get_page_info to list this page's clusters.`
+						`No cluster on page ${describePageSelector(input.page)} with id ${missing.map((id) => `"${id}"`).join(', ')}. Call get_page_info to list this page's clusters.`,
+						'cluster_not_found'
 					),
 				}
 			}
@@ -998,14 +1130,25 @@ async function callClusterScreenshotTool(
 	})
 }
 
-function toolError(message: string) {
+interface ToolCallResult {
+	content: Array<Record<string, unknown>>
+	isError?: boolean
+	/**
+	 * Machine-readable failure code for the mcp_server_tool_call datapoint, read and stripped by the
+	 * tools/call dispatcher before the result is serialized — callers never see it.
+	 */
+	telemetryReason?: string
+}
+
+function toolError(message: string, reason: string): ToolCallResult {
 	return {
 		content: [{ type: 'text', text: message }],
 		isError: true,
+		telemetryReason: reason,
 	}
 }
 
-function toolPageResult(name: string, base64: string) {
+function toolPageResult(name: string, base64: string): ToolCallResult {
 	return {
 		content: [
 			{ type: 'text', text: name },
@@ -1014,7 +1157,7 @@ function toolPageResult(name: string, base64: string) {
 	}
 }
 
-function toolJsonResult(value: unknown) {
+function toolJsonResult(value: unknown): ToolCallResult {
 	return {
 		content: [{ type: 'text', text: JSON.stringify(value) }],
 	}
