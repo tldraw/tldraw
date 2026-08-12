@@ -367,16 +367,18 @@ export async function handleOgImageRenderMessage(
  * is what closes that, and it is `published`-only because published boards are the only kind whose
  * dropped ask stays dropped.
  *
- * A shared file's dropped ask is deferred by construction. The persist that moved the board re-armed
- * the file DO's debounce alarm, and that alarm's enqueue always finds the marker gone: the marker
- * clears when the capture completes — at most THUMBNAIL_RENDER_TIMEOUT_MS after it started — while
- * the alarm fires a full OG_RENDER_DEBOUNCE_MS after the persist. The inequality that makes this
- * airtight is pinned in ogImageQueue.test.ts ("debounces edits for longer than a capture can
- * possibly run"). Retry chains do hold the marker longer, but every delivery re-resolves before
- * capturing, so an ask dropped during one was asking for content the job renders anyway. Following
- * up here as well cost roughly a fifth of shared-file queue captures in production (measured
- * 2026-08-11 via the `followup` telemetry blob): the follow-up rendered the moved content, then the
- * debounced ask arrived to find it already cached.
+ * A shared file's dropped ask is deferred by construction, in two halves pinned in
+ * ogImageQueue.test.ts. A *debounced* fire's ask is only turned away while this job's marker is
+ * alive, which places its persist a full OG_RENDER_DEBOUNCE_MS before the marker's clear — while
+ * the image whose write performs that clear read its snapshot at most THUMBNAIL_RENDER_TIMEOUT_MS
+ * plus the post-capture tail before it, retries included. The debounce being the longer of the two
+ * means the dropped ask's content is already in the image. A *max-wait* fire escapes that bound but
+ * cannot be turned away at all: the fire that enqueued this job reset the debouncer's window, so a
+ * clamped fire lands at or past the marker's TTL. Following up here as well bought nothing worth
+ * its cost — follow-ups were roughly a fifth of shared-file
+ * queue captures in production (measured 2026-08-11 via the `followup` telemetry blob): on a board
+ * that settled, the follow-up merely relocated the render the debounced ask was about to do; on a
+ * board still moving, it rendered a mid-edit state the next debounced render superseded.
  *
  * Deliberately never chained. A published board republished without pause would otherwise find
  * itself stale on every follow-up and render continuously. One extra render per triggered render is

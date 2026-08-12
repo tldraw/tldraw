@@ -46,6 +46,11 @@ export const OG_RENDER_DEBOUNCE_MS = 60_000
  * debounce itself nearly inert. Left at 5 minutes deliberately — a board edited without pause holds a
  * five minute old thumbnail rather than a ten minute old one — but this is the first dial to turn if
  * spend needs to come down.
+ *
+ * Its floor is OG_PENDING_MARKER_TTL_MS. Shared files have no follow-up render: a max-wait fire is
+ * the one ask the debounce doesn't bound, and it is safe only because it lands at or past the TTL of
+ * any marker that could turn it away. Below that floor, an ask can be dropped with nothing left to
+ * re-ask (the inequality is pinned in ogImageQueue.test.ts).
  */
 export const OG_RENDER_MAX_WAIT_MS = 5 * 60_000
 
