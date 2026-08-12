@@ -158,16 +158,54 @@ export const adminRoutes = createRouter<Environment>()
 			await db.destroy()
 		}
 	})
-	// Maps a durable object id back to its room slug. The id is a one-way hash of the room name,
-	// but the room object stores its own identity, so it is asked directly — a never-initialized
-	// id resolves to null. The brief wake is storage-read only; no room boot.
+	// Maps a durable object id back to its room slug and reports activity signals. The id is a
+	// one-way hash of the room name, but the room object stores its own identity, so it is asked
+	// directly — a never-initialized id resolves to null. The brief wake is storage-read only; no
+	// room boot. Persist history comes from the version-cache bucket: one timestamped snapshot per
+	// persist, so save cadence separates an actively edited room from a parked tab holding a
+	// socket open.
 	.get('/app/admin/resolve-do-id/:objectId', async (res, env) => {
 		const objectId = res.params.objectId
 		if (!/^[0-9a-f]{64}$/.test(objectId)) {
 			throw new StatusError(400, 'objectId must be a 64-char lowercase hex string')
 		}
 		const info = await getRoomDurableObjectById(env, objectId).__admin__getDocumentInfo()
-		return json({ match: info })
+		if (!info) return json({ match: null, history: null })
+
+		const prefix = `${getR2KeyForRoom({ slug: info.slug, isApp: info.isApp })}/`
+		const saves: { uploaded: number; size: number }[] = []
+		let cursor: string | undefined
+		let listTruncated = false
+		do {
+			const page = await env.ROOMS_HISTORY_EPHEMERAL.list({ prefix, cursor })
+			for (const obj of page.objects) {
+				saves.push({ uploaded: obj.uploaded.getTime(), size: obj.size })
+			}
+			cursor = page.truncated ? page.cursor : undefined
+			if (saves.length >= 10_000) {
+				listTruncated = true
+				break
+			}
+		} while (cursor)
+		saves.sort((a, b) => a.uploaded - b.uploaded)
+
+		const first = saves[0]
+		const last = saves[saves.length - 1]
+		return json({
+			match: info,
+			history: {
+				saves: saves.length,
+				firstSaveAt: first ? new Date(first.uploaded).toISOString() : null,
+				lastSaveAt: last ? new Date(last.uploaded).toISOString() : null,
+				avgSecondsBetweenSaves:
+					saves.length > 1
+						? Math.round((last.uploaded - first.uploaded) / 1000 / (saves.length - 1))
+						: null,
+				latestSizeBytes: last?.size ?? null,
+				totalSizeBytes: saves.reduce((sum, s) => sum + s.size, 0),
+				listTruncated,
+			},
+		})
 	})
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
