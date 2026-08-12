@@ -148,6 +148,15 @@ export class RoomNotFoundError extends Error {
 	}
 }
 
+// Marks "query ran, row absent" inside getAppFileRecord's retry so it can be told apart
+// from infra failures, which must throw rather than masquerade as a missing file.
+class FileRecordNotFoundError extends Error {
+	constructor() {
+		super('File not found')
+		this.name = 'FileRecordNotFoundError'
+	}
+}
+
 interface SocketAttachment {
 	sessionId: string
 	meta: SessionMeta
@@ -711,7 +720,7 @@ export class TLFileDurableObject extends DurableObject {
 						.executeTakeFirst()
 
 					if (!result) {
-						throw new Error('File not found')
+						throw new FileRecordNotFoundError()
 					}
 					this._fileRecordCache = result
 					return this._fileRecordCache
@@ -724,9 +733,12 @@ export class TLFileDurableObject extends DurableObject {
 
 			timer.report('get_file_record')
 			return result
-		} catch (_e) {
+		} catch (e) {
 			timer.report('get_file_record_error')
-			return null
+			if (e instanceof FileRecordNotFoundError) return null
+			// Query errors are infra failures, not absence: bubble so callers retry
+			// instead of treating the room as nonexistent.
+			throw e
 		}
 	}
 
