@@ -14,10 +14,10 @@ import {
 	ThumbnailBoardRef,
 } from '../../types'
 import { deleteRenderTokenRecord } from '../../utils/renderTokens'
+import { enumerateBoardPages } from './boardTools'
 import {
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
-	enumerateBoardPages,
 	loadBoardSnapshot,
 	putThumbnailPng,
 	resolveThumbnailBoard,
