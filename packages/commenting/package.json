@@ -8,6 +8,12 @@
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "SEE LICENSE IN LICENSE.md",
+	"tldraw_product": {
+		"stableId": "tldraw:commenting",
+		"type": "premium_module",
+		"premium": true,
+		"licenseFlag": "FEAT_COMMENTING"
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"

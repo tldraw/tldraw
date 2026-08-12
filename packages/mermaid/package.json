@@ -8,6 +8,11 @@
 	},
 	"homepage": "https://tldraw.dev",
 	"license": "SEE LICENSE IN LICENSE.md",
+	"tldraw_product": {
+		"stableId": "tldraw:mermaid",
+		"type": "module",
+		"premium": false
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
