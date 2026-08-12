@@ -72,7 +72,7 @@ export const healthCheckRoutes = createRouter<Environment>()
 		}
 	})
 	// Combined postgres health check: db size, changelog size, WAL retention, replication slots, and
-	// outbox lag. Grouped into a single endpoint because updown.io charges per check invocation.
+	// outbox parked rows. Grouped into a single endpoint because updown.io charges per check invocation.
 	// Failures include the sub-check name so alerts remain distinguishable.
 	.get('/health-check/postgres', async (_, env) => {
 		const db = createPostgresConnectionPool(env, '/health-check/postgres')
@@ -169,31 +169,21 @@ export const healthCheckRoutes = createRouter<Environment>()
 				failures.push('replication-slots: query failed')
 			}
 
-			// outbox-lag
+			// outbox-parked
 			try {
-				const thresholdSeconds = 300
-				const result = await sql<{ age_seconds: string | null; parked: string }>`
-					SELECT
-						EXTRACT(EPOCH FROM (now() - min("createdAt") FILTER (WHERE attempts < ${sql.raw(String(MAX_ATTEMPTS))}))) AS age_seconds,
-						count(*) FILTER (WHERE attempts >= ${sql.raw(String(MAX_ATTEMPTS))}) AS parked
+				const result = await sql<{ parked: string }>`
+					SELECT count(*) FILTER (WHERE attempts >= ${sql.raw(String(MAX_ATTEMPTS))}) AS parked
 					FROM effect_outbox
 				`.execute(db)
 				const row = result.rows[0]
-				const age = row?.age_seconds ? parseFloat(row.age_seconds) : 0
 				const parked = row?.parked ? parseInt(row.parked, 10) : 0
-				if (age > thresholdSeconds) {
-					failures.push(
-						`outbox-lag: oldest pending effect ${Math.round(age)}s > ${thresholdSeconds}s`
-					)
-				}
 				if (parked > 0) {
 					failures.push(`outbox-parked: ${parked} rows parked`)
-				}
-				if (age <= thresholdSeconds && parked === 0) {
-					okDetails.push(`outbox: ${Math.round(age)}s, 0 parked`)
+				} else {
+					okDetails.push('outbox: 0 parked')
 				}
 			} catch (_e) {
-				failures.push('outbox-lag: query failed')
+				failures.push('outbox: query failed')
 			}
 
 			if (failures.length > 0) {
