@@ -11846,7 +11846,7 @@ __metadata:
     tailwindcss: "npm:^3.4.17"
     tldraw: "workspace:*"
     tsx: "npm:^4.19.2"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^7.0.2"
     ws: "npm:^8.18.0"
   languageName: unknown
   linkType: soft
