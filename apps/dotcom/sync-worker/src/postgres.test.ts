@@ -1,7 +1,25 @@
 import { Kysely } from 'kysely'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { withPostgres } from './postgres'
+import { Logger } from './Logger'
+import { TLPostgresPool, withPostgres } from './postgres'
 import { Environment } from './types'
+
+// TLPostgresPool news up a pg.Client directly, so the only seam for the teardown test is the module
+// itself. Everything else on pg (types.setTypeParser, Pool) has to stay real: postgres.ts calls it at
+// import time, and the withPostgres tests below run against the genuine pool.
+const { stubClient } = vi.hoisted(() => ({
+	stubClient: { create: null as null | (() => unknown) },
+}))
+vi.mock('pg', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('pg')>()
+	class StubbableClient extends actual.Client {
+		constructor(...args: ConstructorParameters<typeof actual.Client>) {
+			super(...args)
+			if (stubClient.create) return stubClient.create() as StubbableClient
+		}
+	}
+	return { ...actual, Client: StubbableClient }
+})
 
 // The borrow-or-own contract, pinned against the real implementation rather than a fake: a supplied
 // pool is used as-is and its lifetime left to its owner; without one, a pool is created for the call
@@ -61,5 +79,44 @@ describe('withPostgres', () => {
 
 		expect(destroySpy).toHaveBeenCalledTimes(1)
 		expect(destroySpy.mock.instances[0]).toBe(captured)
+	})
+})
+
+describe('TLPostgresPool', () => {
+	afterEach(() => {
+		stubClient.create = null
+		vi.restoreAllMocks()
+	})
+
+	// Destroying the socket while pg's graceful terminate is still in flight cancels the stream out
+	// from under it. workerd reports that as a socket error carrying no `code`, and pg only suppresses
+	// ECONNRESET/EPIPE while ending, so it reaches the client's 'error' event — one phantom
+	// postgres_client_error per release, which is what buried real connection errors in MEASURE.
+	it('does not destroy the socket until the graceful terminate has settled', async () => {
+		const order: string[] = []
+		let settleEnd: () => void = () => {}
+		const fakeClient = {
+			on: () => {},
+			connect: async () => {},
+			query: () => {},
+			end: () =>
+				new Promise<void>((resolve) => {
+					settleEnd = () => {
+						order.push('end settled')
+						resolve()
+					}
+				}),
+			connection: { stream: { destroy: () => order.push('stream destroyed') } },
+		}
+		stubClient.create = () => fakeClient
+
+		const pool = new TLPostgresPool({} as Environment, {} as Logger)
+		const client = await pool.connect()
+		client.release()
+
+		expect(order).toEqual([])
+
+		settleEnd()
+		await vi.waitFor(() => expect(order).toEqual(['end settled', 'stream destroyed']))
 	})
 })

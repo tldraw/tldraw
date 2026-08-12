@@ -2828,7 +2828,7 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Connection lifecycle from the logging pg client: connect, end, error. Excludes user-do — it dials a fresh client per checkout at roughly 20x the volume of every other pool combined, and its teardown currently mis-fires an error event per release, which would drown this panel. user-do has its own dial, acquire and lifecycle panels below.'
+        description: 'Connection lifecycle from the logging pg client: connect, end, error. Excludes user-do — it dials a fresh client per checkout at roughly 20x the volume of every other pool combined, which would drown this panel. user-do has its own dial, acquire and lifecycle panels below.'
         id: 25
         links: []
         title: Postgres client connection events (excluding user-do)
@@ -5009,7 +5009,7 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Connection lifecycle for the user-do pool: connect, end, error. Split from the shared events panel because user-do dials a fresh client per DO checkout at roughly 20x the volume of every other pool combined. Known artifact: teardown currently mis-fires an error event per client release, so the error series runs at end volume — read spikes above that baseline, not the baseline itself.'
+        description: 'Connection lifecycle for the user-do pool: connect, end, error. Split from the shared events panel because user-do dials a fresh client per DO checkout at roughly 20x the volume of every other pool combined. Reading windows before 2026-08-12: teardown mis-fired an error per client release, so the error series sat at end volume — in those windows read spikes above that baseline, not the baseline itself.'
         id: 48
         links: []
         title: Postgres client connection events (user-do)

@@ -216,15 +216,21 @@ export class TLPostgresPool implements PostgresPool {
 		return {
 			query: (...args: any[]) => (client.query as any)(...args),
 			release() {
-				client.end().catch(() => {})
-				// Forcefully destroy the TCP socket so it doesn't linger
-				// and block Durable Object hibernation. The graceful end()
-				// above sends the PG Terminate message; destroy() ensures
-				// the socket handle is removed from the event loop immediately.
-				const stream = (client as any).connection?.stream
-				if (stream && typeof stream.destroy === 'function') {
-					stream.destroy()
-				}
+				// Graceful terminate first, then forcefully destroy the TCP socket so it doesn't
+				// linger and block Durable Object hibernation. The destroy has to wait for end() to
+				// settle: cancelling the stream while pg's Terminate write is still in flight makes
+				// workerd surface a socket error carrying no `code`, and pg only suppresses
+				// ECONNRESET/EPIPE while ending, so it reaches the client's 'error' event — one
+				// phantom postgres_client_error per release, drowning out real ones in MEASURE.
+				client
+					.end()
+					.catch(() => {})
+					.finally(() => {
+						const stream = (client as any).connection?.stream
+						if (stream && typeof stream.destroy === 'function') {
+							stream.destroy()
+						}
+					})
 				released.resolve(undefined)
 			},
 		} as PostgresPoolClient
