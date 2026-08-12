@@ -91,6 +91,10 @@ function activityVerdict(match: ResolvedDoRoom, history: ResolvedDoHistory) {
 	return 'parked tab(s) — connected but not editing'
 }
 
+// Cloudflare dash coordinates for the production TLDR_DOC namespace, for metrics deep links only
+const CF_ACCOUNT_TAG = 'c34edc4e76350954b63adebde86d5eb1'
+const CF_TLDR_DOC_NAMESPACE_ID = '5864db4344ac4c55bfd94e81dd25a043'
+
 /**
  * Maps a durable object id (from Cloudflare analytics or the dash) back to its room slug, with
  * liveness and persist-history signals. The object stores its own identity, so the resolver asks
@@ -100,8 +104,13 @@ function ResolveDoId() {
 	const [input, setInput] = useState('')
 	const [isRunning, setIsRunning] = useState(false)
 	const [error, setError] = useState(null as string | null)
+	const [copied, setCopied] = useState(false)
 	const [result, setResult] = useState(
-		null as { match: ResolvedDoRoom | null; history: ResolvedDoHistory | null } | null
+		null as {
+			objectId: string
+			match: ResolvedDoRoom | null
+			history: ResolvedDoHistory | null
+		} | null
 	)
 
 	const onResolve = useCallback(async () => {
@@ -112,6 +121,7 @@ function ResolveDoId() {
 		}
 		setError(null)
 		setResult(null)
+		setCopied(false)
 		setIsRunning(true)
 		try {
 			const res = await fetch(`/api/app/admin/resolve-do-id/${objectId}`)
@@ -119,7 +129,7 @@ function ResolveDoId() {
 				setError(res.statusText + ': ' + (await res.text()))
 				return
 			}
-			setResult(await res.json())
+			setResult({ objectId, ...(await res.json()) })
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Resolve failed')
 		} finally {
@@ -127,11 +137,31 @@ function ResolveDoId() {
 		}
 	}, [input])
 
+	const onCopySlug = useCallback(async (slug: string) => {
+		await navigator.clipboard.writeText(slug)
+		setCopied(true)
+		setTimeout(() => setCopied(false), 1500)
+	}, [])
+
 	const match = result?.match
 	const history = result?.history
 
 	return (
 		<div>
+			<p>
+				Finds the room behind a durable object id. Cloudflare analytics (the durable objects dash,
+				GraphQL, our Analytics Engine events) rank hot objects by id, but the id is a one-way hash
+				of the room name — this asks the object itself for its stored identity. Paste the full
+				64-character id (dash lists often truncate; use the search dropdown or GraphQL for the full
+				one).
+			</p>
+			<p>
+				Reading the result: <b>sockets</b> are live browser tabs holding a connection, and the save
+				stats come from the snapshot history bucket (one snapshot per persist) — recent, frequent
+				saves mean someone is editing; a connected socket with stale saves is a parked background
+				tab; no sockets means the room is idle. The slug is copyable on purpose instead of linked —
+				we do not open users&apos; files.
+			</p>
 			<div className={styles.searchContainer}>
 				<input
 					className={styles.searchInput}
@@ -149,15 +179,20 @@ function ResolveDoId() {
 			{result && !match && (
 				<div className={styles.subTitle}>No room for that id (never initialized)</div>
 			)}
-			{match && (
+			{match && result && (
 				<div className={styles.subTitle}>
 					<div>
+						{/* deliberately not a file link — we don't open users' files, we copy the slug */}
+						<code>{match.slug}</code>{' '}
+						<AdminButton onClick={() => onCopySlug(match.slug)}>
+							{copied ? 'Copied' : 'Copy slug'}
+						</AdminButton>{' '}
 						<a
-							href={match.isApp ? `/f/${match.slug}` : `/r/${match.slug}`}
+							href={`https://dash.cloudflare.com/${CF_ACCOUNT_TAG}/workers/durable-objects/view/${CF_TLDR_DOC_NAMESPACE_ID}?id=${result.objectId}&name=${encodeURIComponent(`/r/${match.slug}`)}`}
 							target="_blank"
 							rel="noreferrer"
 						>
-							{match.slug}
+							metrics ↗
 						</a>{' '}
 						— {match.isApp ? 'app file' : 'legacy room'}
 						{match.deleted ? ' (deleted)' : ''}
