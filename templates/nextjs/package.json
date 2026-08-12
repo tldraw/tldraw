@@ -11,7 +11,7 @@
 	"tldraw_template": {
 		"repo": "tldraw/nextjs-template",
 		"scripts": {
-			"lint": "next lint"
+			"lint": null
 		}
 	},
 	"scripts": {
@@ -24,7 +24,7 @@
 		"@types/node": "^22.15.31",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
-		"next": "^15.5.16",
+		"next": "^16.3.0",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",

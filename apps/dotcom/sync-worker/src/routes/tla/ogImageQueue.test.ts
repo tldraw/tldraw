@@ -771,9 +771,11 @@ describe('handleOgImageRenderMessage', () => {
 	// chaining follow-up would render it continuously — exactly the cost the debounce upstream exists to
 	// avoid. One extra render per triggered render, never two.
 	it('never chains: a follow-up does not enqueue another', async () => {
-		vi.mocked(getPublishedFileInfo)
-			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 1 })
-			.mockResolvedValueOnce({ id: 'file-1', published: true, lastPublished: 2 })
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
 		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
 		const queue = makeFakeQueue()
 		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket(), QUEUE: queue })
@@ -784,6 +786,9 @@ describe('handleOgImageRenderMessage', () => {
 		)
 
 		expect(queue.send).not.toHaveBeenCalled()
+		// One resolve for the render itself and none for the moved-board check: the guard cuts the
+		// chain off before even looking, so no board state can re-enqueue.
+		expect(getPublishedFileInfo).toHaveBeenCalledTimes(1)
 	})
 
 	// Once a job gives up, nothing is in flight and the marker has nothing left to single-flight.
@@ -1095,6 +1100,32 @@ describe('handleOgImageRenderMessage', () => {
 		)
 
 		expect(blobsWithPrefix(env, 'reason:')).toEqual(['reason:publish'])
+	})
+
+	// Why the blob exists at all: a follow-up carries the reason of the job it follows, so `reason`
+	// alone cannot separate the render a trigger asked for from the extra one the follow-up causes.
+	// Asserted on both a capture and a cache hit, since a follow-up delivery reaches either.
+	it('separates a follow-up delivery from the trigger that caused it', async () => {
+		vi.mocked(getPublishedFileInfo).mockResolvedValue({
+			id: 'file-1',
+			published: true,
+			lastPublished: 1,
+		})
+		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+		const env = makeEnv({ THUMBNAILS: makeFakeThumbnailsBucket() })
+
+		await handleOgImageRenderMessage(
+			env,
+			makeMessage({ kind: 'published', slug: 'board', reason: 'edit' })
+		)
+		await handleOgImageRenderMessage(
+			env,
+			makeMessage({ kind: 'published', slug: 'board', reason: 'edit', followUp: true })
+		)
+
+		expect(blobsWithPrefix(env, 'reason:')).toEqual(['reason:edit', 'reason:edit'])
+		expect(blobsWithPrefix(env, 'cache:')).toEqual(['cache:miss', 'cache:hit'])
+		expect(blobsWithPrefix(env, 'followup:')).toEqual(['followup:false', 'followup:true'])
 	})
 
 	// A burst of edits enqueues once and renders once: the marker collapses the enqueues, and for any

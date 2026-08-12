@@ -62,7 +62,7 @@ import {
 	getUserDurableObject,
 } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
-import { getAuth, requireAuth } from './utils/tla/getAuth'
+import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
 import { getRole } from './utils/tla/getRole'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
@@ -151,7 +151,7 @@ const router = createRouter<Environment>()
 	})
 	// Dev/preview only. Wakes the outbox processor: local workerd doesn't fire persisted alarms
 	// for an uninstantiated DO, so without this a restarted dev stack drains nothing until the
-	// first mutation. The dev stack's readiness probe hits this route.
+	// first mutation. The dev stack's one-shot wake-outbox process hits this route on startup.
 	.get('/app/outbox-status', async (_, env) => {
 		if (!isDebugLogging(env)) return notFound()
 		await getFileEffectProcessor(env).poke()
@@ -219,7 +219,7 @@ const router = createRouter<Environment>()
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
 	.post('/app/zero/mutate', async (req, env, ctx) => {
-		const auth = await getAuth(req, env)
+		const auth = await getZeroAuth(req, env)
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
@@ -238,7 +238,7 @@ const router = createRouter<Environment>()
 		return json(result)
 	})
 	.post('/app/zero/query', async (req, env) => {
-		const auth = await getAuth(req, env)
+		const auth = await getZeroAuth(req, env)
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}

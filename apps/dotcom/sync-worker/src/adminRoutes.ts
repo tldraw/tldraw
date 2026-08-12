@@ -1,5 +1,6 @@
 import {
 	AdminFileAssetsResponseBody,
+	AdminFileStatsResponseBody,
 	FILE_PREFIX,
 	FeatureFlagKey,
 	FriendsAndFamilyEntry,
@@ -15,6 +16,7 @@ import { StatusError, json } from 'itty-router'
 import { sql } from 'kysely'
 import PQueue from 'p-queue'
 import { getUploadObjectName } from './assetAssociation'
+import { summarizeSnapshotDocuments } from './fileStats'
 import { MAX_ATTEMPTS } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
@@ -24,6 +26,7 @@ import { undeleteFile } from './undeleteFile'
 import {
 	getFileEffectProcessor,
 	getRoomDurableObject,
+	getRoomDurableObjectById,
 	getUserDurableObject,
 } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
@@ -154,6 +157,75 @@ export const adminRoutes = createRouter<Environment>()
 		} finally {
 			await db.destroy()
 		}
+	})
+	// Maps a durable object id back to its room slug and reports activity signals. The id is a
+	// one-way hash of the room name, but the room object stores its own identity, so it is asked
+	// directly — a never-initialized id resolves to null. The brief wake is storage-read only; no
+	// room boot. Persist history comes from the version-cache bucket: one timestamped snapshot per
+	// persist, so save cadence separates an actively edited room from a parked tab holding a
+	// socket open.
+	.get('/app/admin/resolve-do-id/:objectId', async (res, env) => {
+		const objectId = res.params.objectId
+		if (!/^[0-9a-f]{64}$/.test(objectId)) {
+			throw new StatusError(400, 'objectId must be a 64-char lowercase hex string')
+		}
+		let roomDo: ReturnType<typeof getRoomDurableObjectById>
+		try {
+			// idFromString rejects hex that fails the namespace checksum (garbage, or an id copied
+			// from another durable object class)
+			roomDo = getRoomDurableObjectById(env, objectId)
+		} catch {
+			throw new StatusError(400, 'not a valid durable object id for the file namespace')
+		}
+		const info = await roomDo.__admin__getDocumentInfo()
+		if (!info) return json({ match: null, history: null })
+
+		// Stream the stats instead of collecting objects, so any number of snapshots fits. Keys are
+		// ISO timestamps (oldest first); min/max tracking keeps the newest save correct either way.
+		const prefix = `${getR2KeyForRoom({ slug: info.slug, isApp: info.isApp })}/`
+		let saves = 0
+		let totalBytes = 0
+		let firstAt: number | null = null
+		let lastAt: number | null = null
+		let latestSize: number | null = null
+		let cursor: string | undefined
+		let pages = 0
+		let listTruncated = false
+		do {
+			const page = await env.ROOMS_HISTORY_EPHEMERAL.list({ prefix, cursor })
+			for (const obj of page.objects) {
+				saves++
+				totalBytes += obj.size
+				const t = obj.uploaded.getTime()
+				if (firstAt === null || t < firstAt) firstAt = t
+				if (lastAt === null || t > lastAt) {
+					lastAt = t
+					latestSize = obj.size
+				}
+			}
+			cursor = page.truncated ? page.cursor : undefined
+			// subrequest backstop: 500 pages = 500k snapshots, far beyond any real room
+			if (++pages >= 500 && cursor) {
+				listTruncated = true
+				break
+			}
+		} while (cursor)
+
+		return json({
+			match: info,
+			history: {
+				saves,
+				firstSaveAt: firstAt !== null ? new Date(firstAt).toISOString() : null,
+				lastSaveAt: lastAt !== null ? new Date(lastAt).toISOString() : null,
+				avgSecondsBetweenSaves:
+					saves > 1 && firstAt !== null && lastAt !== null
+						? Math.round((lastAt - firstAt) / 1000 / (saves - 1))
+						: null,
+				latestSizeBytes: latestSize,
+				totalSizeBytes: totalBytes,
+				listTruncated,
+			},
+		})
 	})
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
@@ -572,6 +644,128 @@ export const adminRoutes = createRouter<Environment>()
 			warnings,
 		}
 		return json(report)
+	})
+	// A board's shape without its contents. Answers "how big and how unusual is this board" for
+	// perf reports, migration bugs, and support threads without anyone having to open it — and
+	// without putting anything a user typed into the report. Read AdminFileStatsResponseBody
+	// before adding a field: staying content-free is the point of this endpoint.
+	.get('/app/admin/file-stats/:slug', async (res, env) => {
+		const slug = res.params.slug
+		assert(typeof slug === 'string', 'slug is required')
+
+		const warnings: string[] = []
+		const pg = createPostgresConnectionPool(env, '/app/admin/file-stats')
+		const [fileRow, snapshot, head] = await Promise.all([
+			pg
+				.selectFrom('file')
+				.where('id', '=', slug)
+				.select([
+					'ownerId',
+					'owningGroupId',
+					'createdAt',
+					'updatedAt',
+					'isDeleted',
+					'isEmpty',
+					'published',
+					'shared',
+					'sharedLinkType',
+					'createSource',
+				])
+				.executeTakeFirst(),
+			getFileSnapshot(env, slug, true),
+			env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true })).catch((e) => {
+				// Label only: an R2 error stringifies to the object key, which names the board
+				console.error('file-stats snapshot head failed', e)
+				warnings.push('snapshot head failed')
+				return null
+			}),
+		])
+		if (!snapshot) {
+			throw new StatusError(404, `No persisted snapshot for ${slug}`)
+		}
+
+		const summary = summarizeSnapshotDocuments(snapshot.documents)
+
+		// file_visitor, comment_thread, and comment all have a fileId index. file_state is
+		// deliberately not counted here: its primary key is (userId, fileId), so counting by fileId
+		// would sequentially scan the whole table.
+		const countRows = async (
+			label: string,
+			query: Promise<{ count: number | string | bigint } | undefined>
+		) => {
+			try {
+				return Number((await query)?.count ?? 0)
+			} catch (e) {
+				// Label only: a query error can carry table, column, and parameter detail
+				console.error(`file-stats ${label} count failed`, e)
+				warnings.push(`${label} count failed`)
+				return 0
+			}
+		}
+		const [visitors, commentThreads, comments] = await Promise.all([
+			countRows(
+				'file_visitor',
+				pg
+					.selectFrom('file_visitor')
+					.where('fileId', '=', slug)
+					.select((eb) => eb.fn.countAll<number>().as('count'))
+					.executeTakeFirst()
+			),
+			countRows(
+				'comment_thread',
+				pg
+					.selectFrom('comment_thread')
+					.where('fileId', '=', slug)
+					.where('isDeleted', '=', false)
+					.select((eb) => eb.fn.countAll<number>().as('count'))
+					.executeTakeFirst()
+			),
+			countRows(
+				'comment',
+				pg
+					.selectFrom('comment')
+					.where('fileId', '=', slug)
+					.where('isDeleted', '=', false)
+					.select((eb) => eb.fn.countAll<number>().as('count'))
+					.executeTakeFirst()
+			),
+		])
+
+		const schema = snapshot.schema as
+			| { schemaVersion?: number; sequences?: Record<string, number> }
+			| undefined
+		const createSourceKind = fileRow?.createSource?.split('/')[0] ?? null
+
+		const { recordsByTypeName, ...snapshotStats } = summary
+		const stats: AdminFileStatsResponseBody = {
+			file: fileRow
+				? {
+						ownerType: fileRow.ownerId ? 'user' : fileRow.owningGroupId ? 'group' : 'none',
+						createdAt: fileRow.createdAt,
+						updatedAt: fileRow.updatedAt,
+						isDeleted: fileRow.isDeleted,
+						isEmpty: fileRow.isEmpty,
+						published: fileRow.published,
+						shared: fileRow.shared,
+						sharedLinkType: fileRow.sharedLinkType,
+						createSourceKind,
+					}
+				: null,
+			snapshot: {
+				sizeBytes: head?.size ?? null,
+				clock: snapshot.clock ?? null,
+				documentClock: snapshot.documentClock ?? null,
+				tombstones: Object.keys(snapshot.tombstones ?? {}).length,
+				records: snapshot.documents.length,
+				recordsByTypeName,
+				schemaVersion: schema?.schemaVersion ?? null,
+				sequences: schema?.sequences ?? null,
+			},
+			...snapshotStats,
+			collaboration: { visitors, commentThreads, comments },
+			warnings,
+		}
+		return json(stats)
 	})
 	.get('/app/admin/download-tldr/:fileSlug', async (res, env) => {
 		const fileSlug = res.params.fileSlug

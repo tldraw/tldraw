@@ -253,7 +253,7 @@ export function createCustomRecordMigrationIds<const S extends string, const T e
 export function createCustomRecordMigrationSequence(migrations: TLPropsMigrations): TLPropsMigrations;
 
 // @public
-export function createPresenceStateDerivation($user: Signal<null | TLUser>, opts?: CreatePresenceStateDerivationOpts): (store: TLStore) => Signal<null | TLInstancePresence, unknown>;
+export function createPresenceStateDerivation($user: Signal<null | TLUser>, opts?: CreatePresenceStateDerivationOpts): (store: TLStore) => Signal<null | TLInstancePresence>;
 
 // @public (undocumented)
 export interface CreatePresenceStateDerivationOpts {
@@ -280,7 +280,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
-export function createTLSchema({ shapes, bindings, assets, user, records, migrations }?: {
+export function createTLSchema({ shapes, bindings, assets, user, records, migrations, }?: {
     assets?: Record<string, SchemaPropsInfo>;
     bindings?: Record<string, SchemaPropsInfo>;
     migrations?: readonly MigrationSequence[];
@@ -619,152 +619,152 @@ export function isUserId(id: string): id is TLUserId;
 
 // @public (undocumented)
 export const LANGUAGES: readonly [{
-    readonly label: "Bahasa Indonesia";
-    readonly locale: "id";
+    readonly label: 'Bahasa Indonesia';
+    readonly locale: 'id';
 }, {
-    readonly label: "Bahasa Melayu";
-    readonly locale: "ms";
+    readonly label: 'Bahasa Melayu';
+    readonly locale: 'ms';
 }, {
-    readonly label: "Català";
-    readonly locale: "ca";
+    readonly label: 'Català';
+    readonly locale: 'ca';
 }, {
-    readonly label: "Čeština";
-    readonly locale: "cs";
+    readonly label: 'Čeština';
+    readonly locale: 'cs';
 }, {
-    readonly label: "Danish";
-    readonly locale: "da";
+    readonly label: 'Danish';
+    readonly locale: 'da';
 }, {
-    readonly label: "Deutsch";
-    readonly locale: "de";
+    readonly label: 'Deutsch';
+    readonly locale: 'de';
 }, {
-    readonly label: "English";
-    readonly locale: "en";
+    readonly label: 'English';
+    readonly locale: 'en';
 }, {
-    readonly label: "Español";
-    readonly locale: "es";
+    readonly label: 'Español';
+    readonly locale: 'es';
 }, {
-    readonly label: "Filipino";
-    readonly locale: "tl";
+    readonly label: 'Filipino';
+    readonly locale: 'tl';
 }, {
-    readonly label: "Français";
-    readonly locale: "fr";
+    readonly label: 'Français';
+    readonly locale: 'fr';
 }, {
-    readonly label: "Galego";
-    readonly locale: "gl";
+    readonly label: 'Galego';
+    readonly locale: 'gl';
 }, {
-    readonly label: "Hrvatski";
-    readonly locale: "hr";
+    readonly label: 'Hrvatski';
+    readonly locale: 'hr';
 }, {
-    readonly label: "Italiano";
-    readonly locale: "it";
+    readonly label: 'Italiano';
+    readonly locale: 'it';
 }, {
-    readonly label: "Magyar";
-    readonly locale: "hu";
+    readonly label: 'Magyar';
+    readonly locale: 'hu';
 }, {
-    readonly label: "Nederlands";
-    readonly locale: "nl";
+    readonly label: 'Nederlands';
+    readonly locale: 'nl';
 }, {
-    readonly label: "Norwegian";
-    readonly locale: "no";
+    readonly label: 'Norwegian';
+    readonly locale: 'no';
 }, {
-    readonly label: "Polski";
-    readonly locale: "pl";
+    readonly label: 'Polski';
+    readonly locale: 'pl';
 }, {
-    readonly label: "Português - Brasil";
-    readonly locale: "pt-br";
+    readonly label: 'Português - Brasil';
+    readonly locale: 'pt-br';
 }, {
-    readonly label: "Português - Europeu";
-    readonly locale: "pt-pt";
+    readonly label: 'Português - Europeu';
+    readonly locale: 'pt-pt';
 }, {
-    readonly label: "Română";
-    readonly locale: "ro";
+    readonly label: 'Română';
+    readonly locale: 'ro';
 }, {
-    readonly label: "Slovenščina";
-    readonly locale: "sl";
+    readonly label: 'Slovenščina';
+    readonly locale: 'sl';
 }, {
-    readonly label: "Somali";
-    readonly locale: "so";
+    readonly label: 'Somali';
+    readonly locale: 'so';
 }, {
-    readonly label: "Suomi";
-    readonly locale: "fi";
+    readonly label: 'Suomi';
+    readonly locale: 'fi';
 }, {
-    readonly label: "Svenska";
-    readonly locale: "sv";
+    readonly label: 'Svenska';
+    readonly locale: 'sv';
 }, {
-    readonly label: "Tiếng Việt";
-    readonly locale: "vi";
+    readonly label: 'Tiếng Việt';
+    readonly locale: 'vi';
 }, {
-    readonly label: "Türkçe";
-    readonly locale: "tr";
+    readonly label: 'Türkçe';
+    readonly locale: 'tr';
 }, {
-    readonly label: "Ελληνικά";
-    readonly locale: "el";
+    readonly label: 'Ελληνικά';
+    readonly locale: 'el';
 }, {
-    readonly label: "Русский";
-    readonly locale: "ru";
+    readonly label: 'Русский';
+    readonly locale: 'ru';
 }, {
-    readonly label: "Українська";
-    readonly locale: "uk";
+    readonly label: 'Українська';
+    readonly locale: 'uk';
 }, {
-    readonly label: "עברית";
-    readonly locale: "he";
+    readonly label: 'עברית';
+    readonly locale: 'he';
 }, {
-    readonly label: "اردو";
-    readonly locale: "ur";
+    readonly label: 'اردو';
+    readonly locale: 'ur';
 }, {
-    readonly label: "عربي";
-    readonly locale: "ar";
+    readonly label: 'عربي';
+    readonly locale: 'ar';
 }, {
-    readonly label: "فارسی";
-    readonly locale: "fa";
+    readonly label: 'فارسی';
+    readonly locale: 'fa';
 }, {
-    readonly label: "नेपाली";
-    readonly locale: "ne";
+    readonly label: 'नेपाली';
+    readonly locale: 'ne';
 }, {
-    readonly label: "मराठी";
-    readonly locale: "mr";
+    readonly label: 'मराठी';
+    readonly locale: 'mr';
 }, {
-    readonly label: "हिन्दी";
-    readonly locale: "hi-in";
+    readonly label: 'हिन्दी';
+    readonly locale: 'hi-in';
 }, {
-    readonly label: "বাংলা";
-    readonly locale: "bn";
+    readonly label: 'বাংলা';
+    readonly locale: 'bn';
 }, {
-    readonly label: "ਪੰਜਾਬੀ";
-    readonly locale: "pa";
+    readonly label: 'ਪੰਜਾਬੀ';
+    readonly locale: 'pa';
 }, {
-    readonly label: "ગુજરાતી";
-    readonly locale: "gu-in";
+    readonly label: 'ગુજરાતી';
+    readonly locale: 'gu-in';
 }, {
-    readonly label: "தமிழ்";
-    readonly locale: "ta";
+    readonly label: 'தமிழ்';
+    readonly locale: 'ta';
 }, {
-    readonly label: "తెలుగు";
-    readonly locale: "te";
+    readonly label: 'తెలుగు';
+    readonly locale: 'te';
 }, {
-    readonly label: "ಕನ್ನಡ";
-    readonly locale: "kn";
+    readonly label: 'ಕನ್ನಡ';
+    readonly locale: 'kn';
 }, {
-    readonly label: "മലയാളം";
-    readonly locale: "ml";
+    readonly label: 'മലയാളം';
+    readonly locale: 'ml';
 }, {
-    readonly label: "ภาษาไทย";
-    readonly locale: "th";
+    readonly label: 'ภาษาไทย';
+    readonly locale: 'th';
 }, {
-    readonly label: "ភាសាខ្មែរ";
-    readonly locale: "km-kh";
+    readonly label: 'ភាសាខ្មែរ';
+    readonly locale: 'km-kh';
 }, {
-    readonly label: "한국어";
-    readonly locale: "ko-kr";
+    readonly label: '한국어';
+    readonly locale: 'ko-kr';
 }, {
-    readonly label: "日本語";
-    readonly locale: "ja";
+    readonly label: '日本語';
+    readonly locale: 'ja';
 }, {
-    readonly label: "简体中文";
-    readonly locale: "zh-cn";
+    readonly label: '简体中文';
+    readonly locale: 'zh-cn';
 }, {
-    readonly label: "繁體中文 (台灣)";
-    readonly locale: "zh-tw";
+    readonly label: '繁體中文 (台灣)';
+    readonly locale: 'zh-tw';
 }];
 
 // @public

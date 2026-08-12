@@ -193,6 +193,26 @@ export function blobsWithPrefix(env: Environment, prefix: string): string[] {
 		.filter(Boolean)
 }
 
+// The datapoints for one event name (blob1). The MCP route writes two events per screenshot tool
+// call — the render ledger and the protocol-level tool call — and they share prefixes (`reason:`), so
+// a test asserting on one has to say which.
+export function datapointsNamed(
+	env: Environment,
+	name: string
+): { blobs: string[]; doubles?: number[] }[] {
+	return (env.MEASURE as any).writeDataPoint.mock.calls
+		.map((call: any[]) => call[0])
+		.filter((point: any) => (point.blobs as string[])[0] === name)
+}
+
+// The `<prefix>:…` blobs of one event's datapoints, with the prefix stripped, in write order.
+export function blobValuesOf(env: Environment, name: string, prefix: string): string[] {
+	return datapointsNamed(env, name)
+		.map((point) => point.blobs.find((blob) => blob.startsWith(`${prefix}:`)))
+		.filter((blob): blob is string => Boolean(blob))
+		.map((blob) => blob.slice(prefix.length + 1))
+}
+
 export function failureBlobsOf(env: Environment) {
 	return blobsWithPrefix(env, 'failure:')
 }

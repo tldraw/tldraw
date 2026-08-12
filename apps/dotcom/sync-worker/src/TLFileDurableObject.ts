@@ -51,7 +51,7 @@ import {
 import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
-import { IRequest, Router } from 'itty-router'
+import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { collectAssetAssociationChanges } from './assetAssociation'
@@ -89,7 +89,7 @@ import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
+import { getAuth, requireAdminAccess, requireAdminAccessToRequest } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
@@ -514,6 +514,11 @@ export class TLFileDurableObject extends DurableObject {
 		try {
 			return await this.router.fetch(req)
 		} catch (err) {
+			// Auth failures (e.g. non-staff hitting restore) are expected denials, not
+			// server errors: return their real status instead of a 500 + Sentry noise.
+			if (err instanceof StatusError) {
+				return new Response(err.message, { status: err.status })
+			}
 			console.error(err)
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			sentry?.captureException(err)
@@ -581,9 +586,7 @@ export class TLFileDurableObject extends DurableObject {
 			if (isPierre && !this.documentInfo.isApp) {
 				return new Response('Pierre restore must be for an app file', { status: 400 })
 			}
-			if (this.documentInfo.isApp) {
-				await requireWriteAccessToFile(req, this.env, this.documentInfo.slug)
-			}
+			await requireAdminAccessToRequest(req, this.env)
 			let dataText = ''
 			const roomId = this.documentInfo.slug
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
@@ -2749,6 +2752,24 @@ export class TLFileDurableObject extends DurableObject {
 	async awaitPersist() {
 		if (!this._documentInfo) return
 		await this.persistToDatabase()
+	}
+
+	/**
+	 * Reports this object's stored identity and liveness without booting the room. Reads raw
+	 * storage so rooms with a stale documentInfo version still resolve; null for a
+	 * never-initialized object. `connectedSockets` counts hibernation-API sockets, so it is
+	 * accurate even while the room itself is not loaded.
+	 */
+	async __admin__getDocumentInfo() {
+		const info = (await this.storage.get('documentInfo')) as DocumentInfo | null
+		if (!info) return null
+		return {
+			slug: info.slug,
+			isApp: !!info.isApp,
+			deleted: !!info.deleted,
+			connectedSockets: this.ctx.getWebSockets().length,
+			roomLoaded: this._room !== null,
+		}
 	}
 
 	async __admin__hardDeleteIfLegacy() {
