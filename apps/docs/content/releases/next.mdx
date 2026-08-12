@@ -7,3 +7,36 @@ order: 0
 status: published
 last_version: v5.3.0
 ---
+
+This release adds a `center` option to `Editor.alignShapes()`, `getOrInsert` and `getOrInsertComputed` on `AtomMap`, and deprecates `useViewportHeight`. The SDK now builds with TypeScript 7. There are also fixes for sync reconnect loops in background tabs, undo after cutting, and modifier keys at the start of a drag.
+
+## API changes
+
+- 🔜 **`useViewportHeight()`** is deprecated. Read `window.visualViewport` directly instead: the value it returns is only the visible viewport's bottom edge, and keeping a panel on screen usually needs the whole visible rectangle. ([#9826](https://github.com/tldraw/tldraw/pull/9826))
+- Add `'center'` as an `Editor.alignShapes()` operation, which applies `'center-horizontal'` and `'center-vertical'` together. ([#9074](https://github.com/tldraw/tldraw/pull/9074))
+
+  ```ts
+  editor.alignShapes(editor.getSelectedShapeIds(), 'center')
+  ```
+
+- Add `getOrInsert(key, defaultValue)` and `getOrInsertComputed(key, callback)` to `AtomMap`, matching the methods newer JavaScript runtimes add to `Map`. Both are reactive, and the callback only runs when the key is absent. ([#9752](https://github.com/tldraw/tldraw/pull/9752))
+- Add `isPage(record)` to `@tldraw/tlschema`, alongside the existing record type guards. ([#9774](https://github.com/tldraw/tldraw/pull/9774))
+- The SDK now builds with TypeScript 7, so published type declarations come from the new compiler. Most of the difference is cosmetic — redundant `| undefined` dropped from optional parameters, default type arguments elided — but memoized components are now typed as `MemoExoticComponent<...>` rather than `NamedExoticComponent<Props>`, which is worth knowing if you annotate them by hand. ([#9752](https://github.com/tldraw/tldraw/pull/9752))
+
+## Improvements
+
+- Reduce per-pointer-event allocations in `Group2d` and `Editor` hit-testing. ([#8600](https://github.com/tldraw/tldraw/pull/8600))
+
+## Bug fixes
+
+- Fix background tabs repeatedly dropping and re-establishing their sync connection when the browser throttles timers. ([#9964](https://github.com/tldraw/tldraw/pull/9964))
+- Fix undo after a cut also reverting the change made before it. ([#9920](https://github.com/tldraw/tldraw/pull/9920))
+- Fix modifier keys (shift, alt, ctrl, cmd) briefly being treated as held at the start of a new click or drag right after being released, which could momentarily affect snapping and other modifier-dependent behavior. ([#9523](https://github.com/tldraw/tldraw/pull/9523))
+- Fix a crash when computing a frame's geometry if its heading text couldn't be measured yet. ([#9496](https://github.com/tldraw/tldraw/pull/9496))
+- Fix **Flatten to image** producing inconsistent groupings depending on selection order, and not merging clusters that were only connected through a bridging shape. ([#8661](https://github.com/tldraw/tldraw/pull/8661))
+- Fix non-finite delta values slipping through wheel event normalization. ([#9586](https://github.com/tldraw/tldraw/pull/9586))
+- Fix pasted links showing a broken preview image when the linked page has no Open Graph image. ([#9909](https://github.com/tldraw/tldraw/pull/9909))
+- Fix the comment thread popover briefly rendering with a doubled shadow the first time a thread is opened. ([#9886](https://github.com/tldraw/tldraw/pull/9886))
+- Fix the counterclockwise rotation tooltip not showing its comma key. ([#9772](https://github.com/tldraw/tldraw/pull/9772))
+- Fix the people menu rows not lining up: the follow icon sat too close to the right edge, and collaborator names sat slightly left of your own. ([#9900](https://github.com/tldraw/tldraw/pull/9900))
+- Fix the spacing around the cursor chat item in the context menu. ([#9921](https://github.com/tldraw/tldraw/pull/9921))
