@@ -475,6 +475,25 @@ describe('LicenseManager', () => {
 			}
 		})
 
+		it('Is development mode over http on a non-loopback host', async () => {
+			process.env.NODE_ENV = 'production'
+			try {
+				// @ts-ignore
+				delete window.location
+				// @ts-ignore
+				window.location = new URL('http://www.example.com')
+
+				const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
+				const httpLicenseManager = new LicenseManager('', keyPair.publicKey)
+				const result = (await httpLicenseManager.getLicenseFromKey(
+					licenseKey
+				)) as ValidLicenseKeyResult
+				expect(result.isDevelopment).toBe(true)
+			} finally {
+				process.env.NODE_ENV = 'test'
+			}
+		})
+
 		it('Is development mode on a loopback host regardless of protocol', async () => {
 			process.env.NODE_ENV = 'production'
 			try {

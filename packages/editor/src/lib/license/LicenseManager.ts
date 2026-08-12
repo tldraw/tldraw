@@ -174,7 +174,11 @@ export class LicenseManager {
 	}
 
 	private getIsDevelopment() {
-		return this.isLoopbackHost(window.location.hostname) || process.env.NODE_ENV !== 'production'
+		return (
+			window.location.protocol === 'http:' ||
+			this.isLoopbackHost(window.location.hostname) ||
+			process.env.NODE_ENV !== 'production'
+		)
 	}
 
 	private isLoopbackHost(hostname: string) {
