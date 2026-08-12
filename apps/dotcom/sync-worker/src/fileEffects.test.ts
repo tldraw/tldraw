@@ -1,5 +1,5 @@
 import { TlaEffectOutbox, TlaFile } from '@tldraw/dotcom-shared'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { FileEffectDeps, getPublishTransition, processFileEffect } from './fileEffects'
 
 function file(partial: Partial<TlaFile>): TlaFile {
@@ -205,51 +205,34 @@ describe('processFileEffect', () => {
 	})
 })
 
-function makeDeps(current: TlaFile | undefined): FileEffectDeps {
-	return {
-		getCurrentFile: vi.fn(async () => current),
-		notifyInsert: vi.fn(async () => {}),
-		notifyUpdate: vi.fn(async () => {}),
-		notifyDelete: vi.fn(async () => {}),
-		publish: vi.fn(async () => {}),
-		unpublish: vi.fn(async () => {}),
-	}
-}
-
 describe('processFileEffect on trashed files', () => {
 	it('still notifies update but skips publish when current file is soft-deleted', async () => {
-		const current = file({ published: true, lastPublished: 100, isDeleted: true })
-		const deps = makeDeps(current)
-		await processFileEffect(deps, {
-			id: 1,
-			tableName: 'file',
-			entityId: 'f1',
-			command: 'update',
-			payload: file({ published: true, lastPublished: 100, isDeleted: true }),
-			prevPayload: file({ published: false, lastPublished: 0 }),
-			attempts: 0,
-			createdAt: new Date() as any,
-			nextRetryAt: null,
-		} as any)
-		expect(deps.notifyUpdate).toHaveBeenCalledWith(current)
-		expect(deps.publish).not.toHaveBeenCalled()
+		const current = file({ id: 'f1', published: true, lastPublished: 100, isDeleted: true })
+		const deps = makeFileDeps({ f1: current })
+		await processFileEffect(
+			deps,
+			effectRow({
+				id: 1,
+				command: 'update',
+				payload: file({ id: 'f1', published: true, lastPublished: 100, isDeleted: true }),
+				prevPayload: file({ id: 'f1', published: false, lastPublished: 0 }),
+			})
+		)
+		expect(deps.calls).toEqual(['update:f1'])
 	})
 
 	it('still unpublishes when current file is soft-deleted', async () => {
-		const current = file({ published: false, isDeleted: true })
-		const deps = makeDeps(current)
-		await processFileEffect(deps, {
-			id: 2,
-			tableName: 'file',
-			entityId: 'f1',
-			command: 'update',
-			payload: file({ published: false, isDeleted: true }),
-			prevPayload: file({ published: true, lastPublished: 100 }),
-			attempts: 0,
-			createdAt: new Date() as any,
-			nextRetryAt: null,
-		} as any)
-		expect(deps.notifyUpdate).toHaveBeenCalledWith(current)
-		expect(deps.unpublish).toHaveBeenCalledWith(current)
+		const current = file({ id: 'f1', published: false, isDeleted: true })
+		const deps = makeFileDeps({ f1: current })
+		await processFileEffect(
+			deps,
+			effectRow({
+				id: 2,
+				command: 'update',
+				payload: file({ id: 'f1', published: false, isDeleted: true }),
+				prevPayload: file({ id: 'f1', published: true, lastPublished: 100 }),
+			})
+		)
+		expect(deps.calls).toEqual(['update:f1', 'unpublish:f1'])
 	})
 })

@@ -5,6 +5,8 @@ import { getRoomDurableObject } from './durableObjects'
 
 // Errors propagate so the outbox consumer can retry.
 export async function publishSnapshot(env: Environment, file: TlaFile) {
+	// Nothing can be published without a slug.
+	if (!file.publishedSlug) return
 	// make sure the room's snapshot is up to date
 	await getRoomDurableObject(env, file.id).awaitPersist()
 	// and that it exists

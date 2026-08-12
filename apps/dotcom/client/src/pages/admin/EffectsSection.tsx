@@ -1,17 +1,15 @@
-import { AdminOutboxRow, AdminOutboxRowsResponseBody } from '@tldraw/dotcom-shared'
+import {
+	AdminOutboxRow,
+	AdminOutboxRowsResponseBody,
+	AdminOutboxStatsResponseBody,
+} from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
 import styles from './admin.module.css'
 
-interface OutboxStats {
-	pending: number
-	parked: number
-	oldestPendingAgeSeconds: number | null
-}
-
 export function EffectsSection() {
-	const [stats, setStats] = useState(null as OutboxStats | null)
+	const [stats, setStats] = useState(null as AdminOutboxStatsResponseBody['outbox'] | null)
 	const [rows, setRows] = useState(null as AdminOutboxRow[] | null)
 	const [expandedId, setExpandedId] = useState(null as number | null)
 	const [error, setError] = useState(null as string | null)
@@ -34,7 +32,7 @@ export function EffectsSection() {
 				setError(rowsRes.statusText + ': ' + (await rowsRes.text()))
 				return
 			}
-			const statsData = await statsRes.json()
+			const statsData = (await statsRes.json()) as AdminOutboxStatsResponseBody
 			const rowsData = (await rowsRes.json()) as AdminOutboxRowsResponseBody
 			setStats(statsData.outbox)
 			setRows(rowsData.rows)
@@ -56,10 +54,18 @@ export function EffectsSection() {
 			try {
 				const res = await fetch(`/api/app/admin/outbox/${id}/retry`, { method: 'POST' })
 				if (!res.ok) {
-					setError(res.statusText + ': ' + (await res.text()))
+					if (res.status === 404) {
+						// A concurrent drain already consumed the row; refresh to show its current state.
+						await load()
+						setError('row already gone - refreshed')
+						return
+					}
+					setError(`retry failed: ${res.status} ${res.statusText}`)
 					return
 				}
 				await load()
+			} catch (err) {
+				setError(err instanceof Error ? `retry failed: ${err.message}` : 'retry failed')
 			} finally {
 				setBusyId(null)
 			}
@@ -75,10 +81,18 @@ export function EffectsSection() {
 			try {
 				const res = await fetch(`/api/app/admin/outbox/${id}/delete`, { method: 'POST' })
 				if (!res.ok) {
-					setError(res.statusText + ': ' + (await res.text()))
+					if (res.status === 404) {
+						// A concurrent drain already consumed the row; refresh to show its current state.
+						await load()
+						setError('row already gone - refreshed')
+						return
+					}
+					setError(`delete failed: ${res.status} ${res.statusText}`)
 					return
 				}
 				await load()
+			} catch (err) {
+				setError(err instanceof Error ? `delete failed: ${err.message}` : 'delete failed')
 			} finally {
 				setBusyId(null)
 			}

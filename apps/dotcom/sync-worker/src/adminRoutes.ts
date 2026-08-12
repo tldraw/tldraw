@@ -2,6 +2,7 @@ import {
 	AdminFileAssetsResponseBody,
 	AdminFileStatsResponseBody,
 	AdminOutboxRowsResponseBody,
+	AdminOutboxStatsResponseBody,
 	FILE_PREFIX,
 	FeatureFlagKey,
 	FriendsAndFamilyEntry,
@@ -145,7 +146,7 @@ export const adminRoutes = createRouter<Environment>()
 					eb.fn.min('createdAt').filterWhere('attempts', '<', MAX_ATTEMPTS).as('oldestPending'),
 				])
 				.executeTakeFirstOrThrow()
-			return json({
+			const result: AdminOutboxStatsResponseBody = {
 				outbox: {
 					pending: Number(stats.pending),
 					parked: Number(stats.parked),
@@ -153,7 +154,8 @@ export const adminRoutes = createRouter<Environment>()
 						? Math.round((Date.now() - new Date(stats.oldestPending).getTime()) / 1000)
 						: null,
 				},
-			})
+			}
+			return json(result)
 		} finally {
 			await db.destroy()
 		}
@@ -164,9 +166,12 @@ export const adminRoutes = createRouter<Environment>()
 	.get('/app/admin/outbox/rows', async (_res, env) => {
 		const db = createPostgresConnectionPool(env, '/app/admin/outbox/rows')
 		try {
+			// Pending rows first, then parked, so old parked rows can't crowd new pending rows out
+			// of the 100-row cap.
 			const rows = await db
 				.selectFrom('effect_outbox')
 				.selectAll()
+				.orderBy(sql`("attempts" >= ${sql.raw(String(MAX_ATTEMPTS))})`)
 				.orderBy('id')
 				.limit(100)
 				.execute()
@@ -201,14 +206,20 @@ export const adminRoutes = createRouter<Environment>()
 		}
 
 		const db = createPostgresConnectionPool(env, '/app/admin/outbox/retry')
+		let numUpdatedRows: bigint
 		try {
-			await db
+			const result = await db
 				.updateTable('effect_outbox')
 				.set({ attempts: 0, nextRetryAt: null })
 				.where('id', '=', id)
-				.execute()
+				.executeTakeFirst()
+			numUpdatedRows = result.numUpdatedRows
 		} finally {
 			await db.destroy()
+		}
+		// The drain (or another operator) may have deleted the row concurrently.
+		if (numUpdatedRows === 0n) {
+			throw new StatusError(404, `Outbox row ${id} not found`)
 		}
 		await getFileEffectProcessor(env).poke()
 		return json({ ok: true })
@@ -220,10 +231,16 @@ export const adminRoutes = createRouter<Environment>()
 		}
 
 		const db = createPostgresConnectionPool(env, '/app/admin/outbox/delete')
+		let numDeletedRows: bigint
 		try {
-			await db.deleteFrom('effect_outbox').where('id', '=', id).execute()
+			const result = await db.deleteFrom('effect_outbox').where('id', '=', id).executeTakeFirst()
+			numDeletedRows = result.numDeletedRows
 		} finally {
 			await db.destroy()
+		}
+		// The drain (or another operator) may have already deleted the row.
+		if (numDeletedRows === 0n) {
+			throw new StatusError(404, `Outbox row ${id} not found`)
 		}
 		return json({ ok: true })
 	})

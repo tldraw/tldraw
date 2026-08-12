@@ -508,3 +508,12 @@ export interface AdminOutboxRow extends TlaEffectOutbox {
 export interface AdminOutboxRowsResponseBody {
 	rows: AdminOutboxRow[]
 }
+
+/** Response of the admin effect-outbox stats endpoint. */
+export interface AdminOutboxStatsResponseBody {
+	outbox: {
+		pending: number
+		parked: number
+		oldestPendingAgeSeconds: number | null
+	}
+}
