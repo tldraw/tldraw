@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
 	OG_MAX_RENDER_ATTEMPTS,
 	OG_PENDING_MARKER_TTL_MS,
+	OG_RENDER_DEBOUNCE_MS,
 	OG_REPAIR_COOLDOWN_MS,
 	OG_RETRY_DELAY_SECONDS,
 } from '../../config'
@@ -143,6 +144,18 @@ describe('enqueueOgImageRender', () => {
 		const worstCaseChainMs = OG_MAX_RENDER_ATTEMPTS * THUMBNAIL_RENDER_TIMEOUT_MS + backoffMs
 
 		expect(OG_PENDING_MARKER_TTL_MS).toBeGreaterThan(worstCaseChainMs)
+	})
+
+	// What lets shared files skip the follow-up render entirely. An edit landing during a capture
+	// re-arms the file DO's debounce alarm for persist + OG_RENDER_DEBOUNCE_MS, while the pending
+	// marker is cleared when the capture completes — at most THUMBNAIL_RENDER_TIMEOUT_MS after it
+	// started, which is before the capture-time persist's alarm can possibly fire. So the debounced
+	// ask always finds the marker gone and enqueues: "dropped, not deferred" cannot happen on the
+	// success path. (Retry chains hold the marker longer, but re-resolve fresh content per delivery,
+	// so a dropped ask during one was going to render the same content anyway.) If this inequality
+	// ever flips, shared files need the follow-up back — see enqueueFollowUpIfBoardMoved.
+	it('debounces edits for longer than a capture can possibly run', () => {
+		expect(OG_RENDER_DEBOUNCE_MS).toBeGreaterThan(THUMBNAIL_RENDER_TIMEOUT_MS)
 	})
 })
 
@@ -602,22 +615,24 @@ describe('handleOgImageRenderMessage', () => {
 			access: 'render',
 			file,
 		})
-		// One read for the whole job: the resolve. The snapshot read reuses its row, and the follow-up
-		// check compares R2 etags without a gate. Two of the four this path used to cost.
+		// One read for the whole job: the resolve. The snapshot read reuses its row, and shared files
+		// have no follow-up check at all — the DO's debounce covers a board that moves mid-capture.
 		expect(getSharedFileInfo).toHaveBeenCalledTimes(1)
 	})
 
-	// The follow-up check only asks "has the content moved since we captured?", and a shared file's
-	// version is its room etag — so it reads R2 and never Postgres. The gate it used to do redundantly
-	// belongs to the job it enqueues, which re-resolves in full before spending anything.
-	it('checks for a moved board without reading Postgres, and follows up when the etag changed', async () => {
+	// A shared file that moves during its own capture needs no follow-up: the persist that moved it
+	// re-armed the file DO's debounce alarm, and that alarm's enqueue always finds the pending marker
+	// gone, because OG_RENDER_DEBOUNCE_MS > THUMBNAIL_RENDER_TIMEOUT_MS (pinned below). A follow-up
+	// here rendered the same content the debounced ask was about to render — roughly a fifth of
+	// shared-file queue captures in production, measured 2026-08-11 via the `followup` telemetry blob.
+	it('does not follow up a shared file even when the board moved during capture', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({
 			id: 'shared-file',
 			shared: true,
 			isDeleted: false,
 		})
-		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
-		// The board is captured at one etag and has moved on by the time the follow-up check runs.
+		// The board is captured at one etag and has moved on by the time the capture completes — the
+		// exact situation the follow-up used to fire on.
 		let etag = 'etag-1'
 		const env = makeEnv({
 			ROOMS: { head: async () => ({ etag }) },
@@ -630,10 +645,10 @@ describe('handleOgImageRenderMessage', () => {
 
 		await handleOgImageRenderMessage(env, makeMessage({ kind: 'shared_file', slug: 'shared-file' }))
 
+		// Not merely "no follow-up": nothing is enqueued at all, and the moved-board check costs no
+		// reads — resolve remains this path's single Postgres question.
+		expect(env.QUEUE.send).not.toHaveBeenCalled()
 		expect(getSharedFileInfo).toHaveBeenCalledTimes(1)
-		expect(env.QUEUE.send).toHaveBeenCalledWith(
-			expect.objectContaining({ kind: 'shared_file', slug: 'shared-file', followUp: true })
-		)
 	})
 
 	it('does not follow up when the board has not moved', async () => {
