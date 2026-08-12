@@ -237,7 +237,7 @@ export class TLFileDurableObject extends DurableObject {
 			throw new Error('documentInfo must be present when accessing room')
 		}
 		if (!this._storage) {
-			this._storage = retry(() => this.loadStorage(this.documentInfo.slug), {
+			const promise = retry(() => this.loadStorage(this.documentInfo.slug), {
 				// Allow RoomNotFoundError to bubble up since it means the room doesn't exist
 				// and there's no point in retrying.
 				matchError: (error) => !(error instanceof RoomNotFoundError),
@@ -265,8 +265,12 @@ export class TLFileDurableObject extends DurableObject {
 				})
 				.catch((error) => {
 					this.reportError(error)
+					// Never cache a rejection: the condition may heal (file created, PG back),
+					// and a cached rejection makes every later retry fail instantly.
+					if (this._storage === promise) this._storage = null
 					throw error
 				})
+			this._storage = promise
 		}
 		return this._storage
 	}
@@ -280,89 +284,95 @@ export class TLFileDurableObject extends DurableObject {
 			throw new Error('documentInfo must be present when accessing room')
 		}
 		if (!this._room) {
-			this._room = this.getStorage().then(async (storage) => {
-				const room = new TLSocketRoom<TLRecord, SessionMeta>({
-					storage,
-					schema: fileSyncSchema,
-					objectTypes: OBJECT_TYPES,
-					clientTimeout: Infinity,
-					log: {
-						warn: (...args) => this.log.debug('sync warn', ...args),
-						error: (...args) => {
-							this.reportError(args.find((a) => a instanceof Error) ?? new Error(args.join(' ')))
+			const promise = this.getStorage()
+				.then(async (storage) => {
+					const room = new TLSocketRoom<TLRecord, SessionMeta>({
+						storage,
+						schema: fileSyncSchema,
+						objectTypes: OBJECT_TYPES,
+						clientTimeout: Infinity,
+						log: {
+							warn: (...args) => this.log.debug('sync warn', ...args),
+							error: (...args) => {
+								this.reportError(args.find((a) => a instanceof Error) ?? new Error(args.join(' ')))
+							},
 						},
-					},
-					onSessionSnapshot: (sessionId, snapshot) => {
-						const ws = this.sessionIdToWs.get(sessionId)
-						if (!ws) return
-						const attachment = this.getSocketAttachment(ws)
-						if (!attachment) return
-						ws.serializeAttachment({ ...attachment, snapshot })
-					},
-					onSessionRemoved: async (room, args) => {
-						this.logEvent({
-							type: 'client',
-							name: 'leave',
-							instanceId: args.sessionId,
-						})
+						onSessionSnapshot: (sessionId, snapshot) => {
+							const ws = this.sessionIdToWs.get(sessionId)
+							if (!ws) return
+							const attachment = this.getSocketAttachment(ws)
+							if (!attachment) return
+							ws.serializeAttachment({ ...attachment, snapshot })
+						},
+						onSessionRemoved: async (room, args) => {
+							this.logEvent({
+								type: 'client',
+								name: 'leave',
+								instanceId: args.sessionId,
+							})
 
-						if (args.numSessionsRemaining > 0) return
-						if (!this._room) return
-						this.logEvent({
-							type: 'client',
-							name: 'last_out',
-							instanceId: args.sessionId,
-						})
-						try {
-							await this.persistToDatabase()
-						} catch {
-							// already logged
+							if (args.numSessionsRemaining > 0) return
+							if (!this._room) return
+							this.logEvent({
+								type: 'client',
+								name: 'last_out',
+								instanceId: args.sessionId,
+							})
+							try {
+								await this.persistToDatabase()
+							} catch {
+								// already logged
+							}
+							// make sure nobody joined the room while we were persisting
+							if (room.getNumActiveSessions() > 0) return
+							this._room = null
+							room.close()
+							this.logEvent({ type: 'room', name: 'room_empty' })
+							await this._pool?.end()
+							this._pool = null
+							this._db = null
+						},
+						onBeforeSendMessage: ({ message, stringified }) => {
+							this.logEvent({
+								type: 'send_message',
+								messageType: message.type,
+								messageLength: stringified.length,
+							})
+						},
+						// Record object-lane (comment) changes in the durable outbox as soon as they
+						// commit and push them to Postgres (not on the throttled R2 persist) so Zero
+						// replicates them to the app-level view quickly.
+						onCommittedChanges: ({ diff }) => {
+							this.enqueueCommentChanges(diff)
+						},
+						// Guard attribution with the session's authenticated identity so a client can't
+						// post or edit in someone else's name.
+						authorizeRecord: authorizeFileRecord,
+					})
+
+					this.logEvent({ type: 'room', name: 'room_start' })
+					// Resume any sessions that survived hibernation
+					for (const ws of this.state.getWebSockets()) {
+						const attachment = ws.deserializeAttachment() as SocketAttachment | null
+						if (!attachment?.sessionId) continue
+						if (attachment.snapshot) {
+							room.handleSocketResume({
+								sessionId: attachment.sessionId,
+								socket: ws,
+								snapshot: attachment.snapshot,
+								meta: attachment.meta,
+							})
 						}
-						// make sure nobody joined the room while we were persisting
-						if (room.getNumActiveSessions() > 0) return
-						this._room = null
-						room.close()
-						this.logEvent({ type: 'room', name: 'room_empty' })
-						await this._pool?.end()
-						this._pool = null
-						this._db = null
-					},
-					onBeforeSendMessage: ({ message, stringified }) => {
-						this.logEvent({
-							type: 'send_message',
-							messageType: message.type,
-							messageLength: stringified.length,
-						})
-					},
-					// Record object-lane (comment) changes in the durable outbox as soon as they
-					// commit and push them to Postgres (not on the throttled R2 persist) so Zero
-					// replicates them to the app-level view quickly.
-					onCommittedChanges: ({ diff }) => {
-						this.enqueueCommentChanges(diff)
-					},
-					// Guard attribution with the session's authenticated identity so a client can't
-					// post or edit in someone else's name.
-					authorizeRecord: authorizeFileRecord,
-				})
-
-				this.logEvent({ type: 'room', name: 'room_start' })
-				// Resume any sessions that survived hibernation
-				for (const ws of this.state.getWebSockets()) {
-					const attachment = ws.deserializeAttachment() as SocketAttachment | null
-					if (!attachment?.sessionId) continue
-					if (attachment.snapshot) {
-						room.handleSocketResume({
-							sessionId: attachment.sessionId,
-							socket: ws,
-							snapshot: attachment.snapshot,
-							meta: attachment.meta,
-						})
 					}
-				}
-				// Also associate file assets after we load the room
-				setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
-				return room
-			})
+					// Also associate file assets after we load the room
+					setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
+					return room
+				})
+				.catch((error) => {
+					if (this._room === promise) this._room = null
+					throw error
+				})
+			this._room = promise
 		}
 		return this._room
 	}
