@@ -198,7 +198,8 @@ const router = createRouter<Environment>()
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
-	.post('/app/mcp', sharedBoardScreenshotMcp)
+	// .all so MCP server can correctly respond to non-post requests with 405
+	.all('/app/mcp', sharedBoardScreenshotMcp)
 	// The board's rendered social preview image, referenced by the og:image tags getSocialPreview
 	// emits. Lives under the social-preview route family so the crawler HTML and its image share one
 	// path prefix. Registered with .all (like the sibling HTML route) so HEAD probes are handled;
