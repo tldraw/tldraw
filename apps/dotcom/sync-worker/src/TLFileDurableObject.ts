@@ -139,8 +139,7 @@ interface DocumentInfo {
 	deleted: boolean
 }
 
-// A real Error (not a sentinel symbol) so it serializes across DO RPC boundaries and
-// lands in Sentry with a message and stack.
+// A real Error so Sentry shows the slug and a stack; checks are DO-local instanceof.
 export class RoomNotFoundError extends Error {
 	constructor(slug: string) {
 		super(`Room not found: ${slug}`)
@@ -273,9 +272,10 @@ export class TLFileDurableObject extends DurableObject {
 					return storage
 				})
 				.catch((error) => {
-					this.reportError(error)
-					// Never cache a rejection: the condition may heal (file created, PG back),
-					// and a cached rejection makes every later retry fail instantly.
+					// Every caller of getStorage handles or reports room-not-found itself.
+					if (!(error instanceof RoomNotFoundError)) this.reportError(error)
+					// Never cache a rejection: the condition may heal, and a cached rejection
+					// makes every later retry fail instantly.
 					if (this._storage === promise) this._storage = null
 					throw error
 				})
@@ -378,6 +378,8 @@ export class TLFileDurableObject extends DurableObject {
 					return room
 				})
 				.catch((error) => {
+					// Never cache a rejection: the condition may heal, and a cached rejection
+					// makes every later retry fail instantly.
 					if (this._room === promise) this._room = null
 					throw error
 				})
@@ -2649,9 +2651,10 @@ export class TLFileDurableObject extends DurableObject {
 		try {
 			await this.getRoom()
 		} catch (e) {
-			// No loadable room means nothing to initialize; the next real open builds it.
-			if (e instanceof RoomNotFoundError) {
-				console.error('appFileRecordCreated: room not found, skipping', file.id)
+			// A trashed file's room may never have existed; nothing to do. A live file's
+			// missing room is usually the duplicate-from-source race, which retry heals.
+			if (e instanceof RoomNotFoundError && file.isDeleted) {
+				console.error('appFileRecordCreated: room not found for deleted file, skipping', e)
 				return
 			}
 			throw e
@@ -2676,9 +2679,10 @@ export class TLFileDurableObject extends DurableObject {
 		try {
 			await this.updateRoomForFileRecord(file)
 		} catch (e) {
-			// No loadable room means no sessions to kick and no document record to rename.
-			if (e instanceof RoomNotFoundError) {
-				console.error('appFileRecordDidUpdate: room not found, skipping', file.id)
+			// A trashed file's room may never have existed; nothing to do. A live file's
+			// missing room is usually the duplicate-from-source race, which retry heals.
+			if (e instanceof RoomNotFoundError && file.isDeleted) {
+				console.error('appFileRecordDidUpdate: room not found for deleted file, skipping', e)
 				return
 			}
 			throw e

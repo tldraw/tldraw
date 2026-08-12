@@ -103,8 +103,7 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 			notifyUpdate: (file) => getRoomDurableObject(this.env, file.id).appFileRecordDidUpdate(file),
 			notifyDelete: (fileRow) =>
 				getRoomDurableObject(this.env, fileRow.id).appFileRecordDidDelete(fileRow),
-			publish: (file) =>
-				publishSnapshot(this.env, file, (e) => this.captureException(e, { fileId: file.id })),
+			publish: (file) => publishSnapshot(this.env, file),
 			unpublish: (file) => unpublishSnapshot(this.env, file),
 		}
 		// One handler per source table. Future effect sources (e.g. notifications)
@@ -188,7 +187,7 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 				},
 				onError: (error, row) => {
 					// Every failed attempt is reported (Sentry groups the retries); parking
-					// additionally emits its own event because it means giving up on the effect.
+					// additionally emits its own analytics event because it means giving up on the effect.
 					this.captureException(error, {
 						tableName: row.tableName,
 						entityId: row.entityId,
