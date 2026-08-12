@@ -1600,7 +1600,7 @@ export class TLFileDurableObject extends DurableObject {
 	persistenceBad = false
 
 	// Save the room to r2
-	async persistToDatabase() {
+	async persistToDatabase(opts?: { throwOnFailure?: boolean }) {
 		await this.executionQueue
 			.push(async () => {
 				await retry(
@@ -1679,6 +1679,7 @@ export class TLFileDurableObject extends DurableObject {
 			.catch((e) => {
 				this.logEvent({ type: 'room', name: 'fail_persist' })
 				this.reportError(e)
+				if (opts?.throwOnFailure) throw e
 			})
 	}
 
@@ -2832,7 +2833,9 @@ export class TLFileDurableObject extends DurableObject {
 	 */
 	async awaitPersist() {
 		if (!this._documentInfo) return
-		await this.persistToDatabase()
+		// publishSnapshot reads the R2 blob straight after this resolves; a swallowed persist
+		// failure here would let it publish a stale snapshot, so surface it instead.
+		await this.persistToDatabase({ throwOnFailure: true })
 	}
 
 	async __admin__hardDeleteIfLegacy() {
