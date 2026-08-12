@@ -2787,24 +2787,40 @@ export class TLFileDurableObject extends DurableObject {
 		const sockets = this.ctx.getWebSockets()
 		if (sockets.length === 0) return { closedSockets: 0 }
 
-		const room = this._documentInfo ? await this.getRoom() : null
+		// A room that can't boot (a hard-deleted legacy room with tabs still attached, a transient
+		// storage error) must not abort the drain — the raw close below suffices on its own for
+		// every non-legacy-protocol client.
+		let room: TLSocketRoom<TLRecord, SessionMeta> | null = null
+		if (this._documentInfo) {
+			try {
+				room = await this.getRoom()
+			} catch (e) {
+				this.log.debug('closeAllSessions: room failed to boot, falling back to raw closes', e)
+			}
+		}
 		for (const ws of sockets) {
 			const attachment = this.getSocketAttachment(ws)
 			const sessionId = attachment?.sessionId
+			// If the DO was hibernating, this session was never re-added to the room; resume it
+			// so closeSession can reject it with the session's negotiated protocol.
+			if (room && sessionId && attachment.snapshot && !room.getSessionSnapshot(sessionId)) {
+				room.handleSocketResume({
+					sessionId,
+					socket: ws,
+					snapshot: attachment.snapshot,
+					meta: attachment.meta,
+				})
+			}
+			// Drop the stored snapshot before closing: the close handshake queues a
+			// webSocketClose event, and handleWebSocketEnd would otherwise resume the
+			// just-rejected session into the room again (duplicate leave, possible room re-boot).
+			if (attachment?.snapshot) {
+				ws.serializeAttachment({ ...attachment, snapshot: undefined })
+			}
 			if (room && sessionId) {
-				// If the DO was hibernating, this session was never re-added to the room; resume
-				// it so closeSession can reject it with the session's negotiated protocol.
-				if (attachment.snapshot && !room.getSessionSnapshot(sessionId)) {
-					room.handleSocketResume({
-						sessionId,
-						socket: ws,
-						snapshot: attachment.snapshot,
-						meta: attachment.meta,
-					})
-				}
 				room.closeSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			}
-			// Backstop for sockets the room never saw (mid-handshake, or no documentInfo):
+			// Backstop for sockets the room never saw (mid-handshake, or the room didn't boot):
 			// close directly with the same terminal code. Closing twice is a no-op.
 			try {
 				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)

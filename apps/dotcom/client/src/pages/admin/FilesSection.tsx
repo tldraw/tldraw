@@ -101,15 +101,14 @@ function ResolveDoId() {
 	const [isRunning, setIsRunning] = useState(false)
 	const [error, setError] = useState(null as string | null)
 	const [result, setResult] = useState(
-		null as { match: ResolvedDoRoom | null; history: ResolvedDoHistory | null } | null
+		null as {
+			objectId: string
+			match: ResolvedDoRoom | null
+			history: ResolvedDoHistory | null
+		} | null
 	)
 
-	const onResolve = useCallback(async () => {
-		const objectId = input.trim()
-		if (!/^[0-9a-f]{64}$/.test(objectId)) {
-			setError('Paste a 64-character lowercase hex durable object id')
-			return
-		}
+	const resolve = useCallback(async (objectId: string) => {
 		setError(null)
 		setResult(null)
 		setIsRunning(true)
@@ -119,21 +118,31 @@ function ResolveDoId() {
 				setError(res.statusText + ': ' + (await res.text()))
 				return
 			}
-			setResult(await res.json())
+			setResult({ objectId, ...(await res.json()) })
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Resolve failed')
 		} finally {
 			setIsRunning(false)
 		}
-	}, [input])
+	}, [])
+
+	const onResolve = useCallback(async () => {
+		const objectId = input.trim()
+		if (!/^[0-9a-f]{64}$/.test(objectId)) {
+			setError('Paste a 64-character lowercase hex durable object id')
+			return
+		}
+		await resolve(objectId)
+	}, [input, resolve])
 
 	const match = result?.match
 	const history = result?.history
 
 	const [isClosing, setIsClosing] = useState(false)
 	const onForceClose = useCallback(async () => {
-		if (!match) return
-		const objectId = input.trim()
+		// target the id that was resolved, not the live input — the admin may have edited the
+		// input since, and the button describes the resolved room
+		if (!result || !match) return
 		if (
 			!window.confirm(
 				`Force-close ${match.connectedSockets} session(s) on ${match.slug}? ` +
@@ -146,19 +155,21 @@ function ResolveDoId() {
 		setError(null)
 		setIsClosing(true)
 		try {
-			const res = await fetch(`/api/app/admin/close-do-sessions/${objectId}`, { method: 'POST' })
+			const res = await fetch(`/api/app/admin/close-do-sessions/${result.objectId}`, {
+				method: 'POST',
+			})
 			if (!res.ok) {
 				setError(res.statusText + ': ' + (await res.text()))
 				return
 			}
-			// re-resolve so the socket count and verdict reflect the drain
-			await onResolve()
+			// re-resolve the same object so the socket count and verdict reflect the drain
+			await resolve(result.objectId)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Force-close failed')
 		} finally {
 			setIsClosing(false)
 		}
-	}, [input, match, onResolve])
+	}, [result, match, resolve])
 
 	return (
 		<div>
