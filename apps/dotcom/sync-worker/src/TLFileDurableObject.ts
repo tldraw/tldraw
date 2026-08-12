@@ -2754,6 +2754,15 @@ export class TLFileDurableObject extends DurableObject {
 		await this.persistToDatabase()
 	}
 
+	/**
+	 * Reports this object's stored identity without booting the room. Reads raw storage so rooms
+	 * with a stale documentInfo version still resolve; null for a never-initialized object.
+	 */
+	async __admin__getDocumentInfo() {
+		const info = (await this.storage.get('documentInfo')) as DocumentInfo | null
+		return info ? { slug: info.slug, isApp: !!info.isApp, deleted: !!info.deleted } : null
+	}
+
 	async __admin__hardDeleteIfLegacy() {
 		if (!this._documentInfo || this.documentInfo.deleted || this.documentInfo.isApp) return false
 		this.setDocumentInfo({

@@ -26,6 +26,7 @@ import { undeleteFile } from './undeleteFile'
 import {
 	getFileEffectProcessor,
 	getRoomDurableObject,
+	getRoomDurableObjectById,
 	getUserDurableObject,
 } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
@@ -157,48 +158,16 @@ export const adminRoutes = createRouter<Environment>()
 			await db.destroy()
 		}
 	})
-	// Maps durable object ids back to file ids. The DO id is a one-way hash of the room name, so
-	// the only way back is forward: hash every file id and compare. One call scans one page of the
-	// file table; loop with the returned cursor until it is null or every id is matched.
-	.post('/app/admin/resolve-do-ids', async (req, env) => {
-		const body = (await req.json().catch(() => null)) as {
-			ids?: string[]
-			cursor?: string
-			batchSize?: number
-		} | null
-		const ids = body?.ids
-		if (!Array.isArray(ids) || ids.length === 0 || ids.length > 500) {
-			throw new StatusError(400, 'ids must be an array of 1-500 durable object ids')
+	// Maps a durable object id back to its room slug. The id is a one-way hash of the room name,
+	// but the room object stores its own identity, so it is asked directly — a never-initialized
+	// id resolves to null. The brief wake is storage-read only; no room boot.
+	.get('/app/admin/resolve-do-id/:objectId', async (res, env) => {
+		const objectId = res.params.objectId
+		if (!/^[0-9a-f]{64}$/.test(objectId)) {
+			throw new StatusError(400, 'objectId must be a 64-char lowercase hex string')
 		}
-		if (!ids.every((id) => typeof id === 'string' && /^[0-9a-f]{64}$/.test(id))) {
-			throw new StatusError(400, 'ids must be 64-char lowercase hex strings')
-		}
-		const batchSize = Math.min(Math.max(body?.batchSize ?? 50_000, 1_000), 200_000)
-		const wanted = new Set(ids)
-		const db = createPostgresConnectionPool(env, '/app/admin/resolve-do-ids')
-		try {
-			let query = db.selectFrom('file').select('id').orderBy('id').limit(batchSize)
-			if (typeof body?.cursor === 'string') {
-				query = query.where('id', '>', body.cursor)
-			}
-			const rows = await query.execute()
-			const matches: { objectId: string; fileId: string }[] = []
-			for (const row of rows) {
-				// mirrors getRoomDurableObject's naming; legacy (pre-app) room slugs are not in the
-				// file table, so their ids come back unmatched
-				const objectId = env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${row.id}`).toString()
-				if (wanted.has(objectId)) {
-					matches.push({ objectId, fileId: row.id })
-				}
-			}
-			return json({
-				matches,
-				scanned: rows.length,
-				nextCursor: rows.length === batchSize ? rows[rows.length - 1].id : null,
-			})
-		} finally {
-			await db.destroy()
-		}
+		const info = await getRoomDurableObjectById(env, objectId).__admin__getDocumentInfo()
+		return json({ match: info })
 	})
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
