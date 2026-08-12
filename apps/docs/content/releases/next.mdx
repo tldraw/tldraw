@@ -7,3 +7,34 @@ order: 0
 status: published
 last_version: v5.3.0
 ---
+
+This release adds a `'center'` operation to `Editor.alignShapes`, deprecates `useViewportHeight`, and cuts allocations out of the hit-test hot paths. It also fixes background tabs looping their sync connection, undo after a cut, broken bookmark previews, and a batch of crashes and interaction bugs.
+
+## API changes
+
+- 🔜 **`useViewportHeight()`** is deprecated. Read `window.visualViewport` directly instead. It was written for the rich-text contextual toolbar, whose only caller was removed in v3.14, and the scalar it returns is only the visible viewport's bottom edge — keeping a panel on screen generally needs the whole visible rectangle. ([#9826](https://github.com/tldraw/tldraw/pull/9826))
+- Add `'center'` as an `Editor.alignShapes()` operation, which applies the existing `'center-horizontal'` and `'center-vertical'` operations together. There's no matching action in the default UI. ([#9074](https://github.com/tldraw/tldraw/pull/9074))
+
+  ```ts
+  editor.alignShapes(editor.getSelectedShapeIds(), 'center')
+  ```
+
+- Add `getOrInsert(key, defaultValue)` and `getOrInsertComputed(key, callback)` to `AtomMap` in `@tldraw/store`, matching the new `Map` methods in `lib.esnext.collection`. `getOrInsertComputed` only runs its callback when the key is absent. ([#9752](https://github.com/tldraw/tldraw/pull/9752))
+
+## Improvements
+
+- Reduce per-pointer-event allocations in the core hit-test paths. `Group2d`'s hit-testing, intersection, and vertex methods, along with `Editor.getShapeAtPoint()` and `Editor.getSelectedShapeAtPoint()`, no longer materialize intermediate filtered arrays. ([#8600](https://github.com/tldraw/tldraw/pull/8600))
+
+## Bug fixes
+
+- Fix background tabs repeatedly dropping and re-establishing their sync connection. When a browser throttles a hidden tab's timers, the client's own ping loop starved and the health check read the resulting silence as a dead connection; it now only resets when a ping was actually sent and went unanswered. ([#9964](https://github.com/tldraw/tldraw/pull/9964))
+- Fix undo after a cut also reverting the change made before it. ([#9920](https://github.com/tldraw/tldraw/pull/9920))
+- Fix pasted links producing a bookmark with a broken preview image. When a page's OpenGraph metadata can't be read, the bookmark now renders in its compact form instead of resolving an empty image URL against the page's own address. ([#9909](https://github.com/tldraw/tldraw/pull/9909))
+- Fix a crash when panning with the wheel on devices that report a non-finite wheel delta. ([#9586](https://github.com/tldraw/tldraw/pull/9586))
+- Fix a crash when computing a frame's geometry if its heading text couldn't be measured yet. ([#9496](https://github.com/tldraw/tldraw/pull/9496))
+- Fix modifier keys (shift, alt, ctrl, and cmd) briefly being treated as held at the start of a click or drag that begins just after they're released. ([#9523](https://github.com/tldraw/tldraw/pull/9523))
+- Fix **Flatten to image** producing different groupings depending on selection order, and not merging clusters that were only connected through a bridging shape. ([#8661](https://github.com/tldraw/tldraw/pull/8661))
+- Fix collaborator rows in the people menu not lining up with your own row. ([#9900](https://github.com/tldraw/tldraw/pull/9900))
+- Fix the comment thread popover briefly rendering with a doubled shadow the first time a thread is opened. ([#9886](https://github.com/tldraw/tldraw/pull/9886))
+- Fix the spacing around the cursor chat item in the context menu. ([#9921](https://github.com/tldraw/tldraw/pull/9921))
+- Fix the rotate counterclockwise tooltip not showing its comma key. ([#9772](https://github.com/tldraw/tldraw/pull/9772))
