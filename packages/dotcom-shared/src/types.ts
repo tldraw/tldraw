@@ -6,6 +6,7 @@ import {
 	TlaCommentReaction,
 	TlaCommentRead,
 	TlaCommentThread,
+	TlaEffectOutbox,
 	TlaFile,
 	TlaFileState,
 	TlaFileVisitor,
@@ -493,4 +494,17 @@ export interface AdminFileStatsResponseBody {
 	assets: { total: number; byType: Record<string, number>; totalSizeBytes: number }
 	collaboration: { visitors: number; commentThreads: number; comments: number }
 	warnings: string[]
+}
+
+/** One row of the admin effect-outbox listing, with derived fields the UI needs. */
+export interface AdminOutboxRow extends TlaEffectOutbox {
+	ageSeconds: number
+	parked: boolean
+	/** Current `file` row for tableName 'file' rows; null if hard-deleted or not a file row */
+	currentEntity: TlaFile | null
+}
+
+/** Response of the admin effect-outbox row listing endpoint. */
+export interface AdminOutboxRowsResponseBody {
+	rows: AdminOutboxRow[]
 }

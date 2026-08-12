@@ -1,6 +1,7 @@
 import {
 	AdminFileAssetsResponseBody,
 	AdminFileStatsResponseBody,
+	AdminOutboxRowsResponseBody,
 	FILE_PREFIX,
 	FeatureFlagKey,
 	FriendsAndFamilyEntry,
@@ -156,6 +157,75 @@ export const adminRoutes = createRouter<Environment>()
 		} finally {
 			await db.destroy()
 		}
+	})
+	// Up to 100 outbox rows for manual inspection. Batches the current 'file' row per file-table
+	// entity in one query (rather than N+1) so the operator can compare payload vs. live state
+	// without a separate lookup per row.
+	.get('/app/admin/outbox/rows', async (_res, env) => {
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/rows')
+		try {
+			const rows = await db
+				.selectFrom('effect_outbox')
+				.selectAll()
+				.orderBy('id')
+				.limit(100)
+				.execute()
+
+			const fileIds = [
+				...new Set(rows.filter((r) => r.tableName === 'file').map((r) => r.entityId)),
+			]
+			const currentFiles = fileIds.length
+				? await db.selectFrom('file').where('id', 'in', fileIds).selectAll().execute()
+				: []
+			const currentFileById = new Map(currentFiles.map((f) => [f.id, f]))
+
+			const now = Date.now()
+			const result: AdminOutboxRowsResponseBody = {
+				rows: rows.map((row) => ({
+					...row,
+					ageSeconds: Math.round((now - new Date(row.createdAt).getTime()) / 1000),
+					parked: row.attempts >= MAX_ATTEMPTS,
+					currentEntity:
+						row.tableName === 'file' ? (currentFileById.get(row.entityId) ?? null) : null,
+				})),
+			}
+			return json(result)
+		} finally {
+			await db.destroy()
+		}
+	})
+	.post('/app/admin/outbox/:id/retry', async (res, env) => {
+		const id = Number(res.params.id)
+		if (Number.isNaN(id)) {
+			throw new StatusError(400, 'id must be numeric')
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/retry')
+		try {
+			await db
+				.updateTable('effect_outbox')
+				.set({ attempts: 0, nextRetryAt: null })
+				.where('id', '=', id)
+				.execute()
+		} finally {
+			await db.destroy()
+		}
+		await getFileEffectProcessor(env).poke()
+		return json({ ok: true })
+	})
+	.post('/app/admin/outbox/:id/delete', async (res, env) => {
+		const id = Number(res.params.id)
+		if (Number.isNaN(id)) {
+			throw new StatusError(400, 'id must be numeric')
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/delete')
+		try {
+			await db.deleteFrom('effect_outbox').where('id', '=', id).execute()
+		} finally {
+			await db.destroy()
+		}
+		return json({ ok: true })
 	})
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
