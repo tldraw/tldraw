@@ -2797,6 +2797,8 @@ spec:
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
+                        AND blob3 != 'user-do'
+
                         GROUP BY date, event
 
                         ORDER BY date ASC"
@@ -2812,6 +2814,8 @@ spec:
 
                         AND blob2 = '${environment}-tldraw-multiplayer'
 
+                        AND blob3 != 'user-do'
+
                         GROUP BY date, event
 
                         ORDER BY date ASC"
@@ -2824,11 +2828,10 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Connection lifecycle from the logging pg client: connect, end,
-          error.'
+        description: 'Connection lifecycle from the logging pg client: connect, end, error. Excludes user-do — it dials a fresh client per checkout at roughly 20x the volume of every other pool combined, and its teardown currently mis-fires an error event per release, which would drown this panel. user-do has its own dial, acquire and lifecycle panels below.'
         id: 25
         links: []
-        title: Postgres client connection events
+        title: Postgres client connection events (excluding user-do)
         vizConfig:
           group: timeseries
           kind: VizConfig
@@ -4740,6 +4743,694 @@ spec:
                 mode: multi
                 sort: desc
           version: 13.2.0-29854286369
+    panel-42:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double1, _sample_interval) as p50, quantileWeighted(0.95, double1, _sample_interval) as p95, quantileWeighted(0.99, double1, _sample_interval) as p99 FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'postgres_client_connect_done' AND blob3 = 'user-do' AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double1, _sample_interval) as p50, quantileWeighted(0.95, double1, _sample_interval) as p95, quantileWeighted(0.99, double1, _sample_interval) as p99 FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'postgres_client_connect_done' AND blob3 = 'user-do' AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Time to establish a postgres connection for the user-do pool — TCP, TLS and auth through pgbouncer — from postgres_client_connect_done (double1), weighted by _sample_interval. user-do dials a fresh client per DO checkout and carries ~95% of dial volume, so it gets the full percentile treatment; every other pool is on the dial p95 by pool panel. A dial that hangs never completes and only shows up on the never-completed panel.'
+        id: 42
+        links: []
+        title: Postgres dial duration percentiles (user-do)
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 12
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-43:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob3 as pool, sum(if(blob1 = 'postgres_client_connect', _sample_interval, -_sample_interval)) as pending FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 IN ('postgres_client_connect', 'postgres_client_connect_done') AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, pool ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob3 as pool, sum(if(blob1 = 'postgres_client_connect', _sample_interval, -_sample_interval)) as pending FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 IN ('postgres_client_connect', 'postgres_client_connect_done') AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, pool ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: "Dial starts minus completions per pool, weighted by _sample_interval because the dataset is sampled. postgres_client_connect fires when a dial starts and postgres_client_connect_done when it resolves either way, so a healthy pool oscillates around zero and a persistently positive line counts dials that hung. Absolute dial volume is on the connections-by-pool panel. Ignore ranges before 2026-08-11 12:40 UTC — the done event didn't exist yet, so everything before then reads as a gap."
+        id: 43
+        links: []
+        title: Postgres dials never completed by pool
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 12
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-44:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double1, _sample_interval) as p50, quantileWeighted(0.95, double1, _sample_interval) as p95, quantileWeighted(0.99, double1, _sample_interval) as p99 FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'postgres_pool_acquire' AND blob3 = 'user-do' AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double1, _sample_interval) as p50, quantileWeighted(0.95, double1, _sample_interval) as p95, quantileWeighted(0.99, double1, _sample_interval) as p99 FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'postgres_pool_acquire' AND blob3 = 'user-do' AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Time from asking the user-do pool for a client to holding one, from postgres_pool_acquire (double1), weighted by _sample_interval. user-do serializes checkouts, so this is lock wait plus a fresh dial — a slow holder shows up here even when the dial itself is fast. Other pools are on the acquire p95 by pool panel.'
+        id: 44
+        links: []
+        title: Postgres pool acquire wait percentiles (user-do)
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 12
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-45:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob9 as followup, count() as total FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'mcp_shared_board_screenshot' AND blob3 = 'source:queue' AND blob9 != '' AND double3 > 0 AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, followup ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob9 as followup, count() as total FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'mcp_shared_board_screenshot' AND blob3 = 'source:queue' AND blob9 != '' AND double3 > 0 AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, followup ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Queue renders that spent Browser Run (double3 > 0) split by blob9. followup:false is the render a trigger asked for; followup:true is the extra render a completed job enqueues because the board moved during its capture. Request surfaces record followup:none and are excluded by the source filter. Data starts 2026-08-11 — earlier queue renders predate the followup blob and are filtered out.'
+        id: 45
+        links: []
+        title: Queue renders by follow-up state
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-46:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob3 as pool, quantileWeighted(0.95, double1, _sample_interval) as p95 FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'postgres_client_connect_done' AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, pool ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob3 as pool, quantileWeighted(0.95, double1, _sample_interval) as p95 FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'postgres_client_connect_done' AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, pool ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'p95 dial time split by pool (blob3), weighted by _sample_interval. Aggregate percentiles would just track user-do (~95% of dial volume), so every pool gets a line of its own here. Low-traffic pools are spiky — read trends, not single buckets.'
+        id: 46
+        links: []
+        title: Postgres dial p95 by pool
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 12
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-47:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob3 as pool, quantileWeighted(0.95, double1, _sample_interval) as p95 FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'postgres_pool_acquire' AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, pool ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob3 as pool, quantileWeighted(0.95, double1, _sample_interval) as p95 FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'postgres_pool_acquire' AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, pool ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'p95 acquire wait split by pool (blob3), weighted by _sample_interval. For the pg pools this is queueing while every client is busy plus any fresh dial; for user-do it is lock wait plus dial, since checkouts serialize.'
+        id: 47
+        links: []
+        title: Postgres pool acquire p95 by pool
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 12
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                min: 0
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-48:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob1 as event, count() as total FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 IN ('postgres_client_connect', 'postgres_client_end', 'postgres_client_error') AND blob3 = 'user-do' AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, event ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob1 as event, count() as total FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 IN ('postgres_client_connect', 'postgres_client_end', 'postgres_client_error') AND blob3 = 'user-do' AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, event ORDER BY date ASC"
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Connection lifecycle for the user-do pool: connect, end, error. Split from the shared events panel because user-do dials a fresh client per DO checkout at roughly 20x the volume of every other pool combined. Known artifact: teardown currently mis-fires an error event per client release, so the error series runs at end volume — read spikes above that baseline, not the baseline itself.'
+        id: 48
+        links: []
+        title: Postgres client connection events (user-do)
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
   layout:
     kind: GridLayout
     spec:
@@ -5113,6 +5804,69 @@ spec:
             width: 12
             x: 12
             y: 107
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-42
+            height: 8
+            width: 12
+            x: 0
+            y: 115
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-43
+            height: 8
+            width: 12
+            x: 0
+            y: 131
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-44
+            height: 8
+            width: 12
+            x: 0
+            y: 123
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-45
+            height: 8
+            width: 12
+            x: 12
+            y: 131
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-46
+            height: 8
+            width: 12
+            x: 12
+            y: 115
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-47
+            height: 8
+            width: 12
+            x: 12
+            y: 123
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-48
+            height: 8
+            width: 12
+            x: 0
+            y: 139
   links: []
   liveNow: false
   preload: false
