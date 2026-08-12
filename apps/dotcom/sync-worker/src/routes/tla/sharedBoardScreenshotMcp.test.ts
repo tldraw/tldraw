@@ -3,6 +3,12 @@ import { MCP_PER_USER_RATE_LIMIT } from '../../config'
 import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
+import {
+	parseBoardInfoInput,
+	parseClusterInfoInput,
+	parseClusterScreenshotInput,
+	parsePageInfoInput,
+} from './boardTools'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { authenticateMcpRequest } from './mcpAuth'
@@ -21,10 +27,6 @@ import {
 } from './screenshotTestHelpers'
 import {
 	isMcpScreenshotEnabled,
-	parseBoardInfoInput,
-	parseClusterInfoInput,
-	parseClusterScreenshotInput,
-	parsePageInfoInput,
 	resetRateLimitFallbackForTests,
 	sharedBoardScreenshotMcp,
 } from './sharedBoardScreenshotMcp'

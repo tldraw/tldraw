@@ -2,7 +2,8 @@ import { ThumbnailRenderResultRequestBody } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
-import { ShapeMeasurement, putRenderResult } from './thumbnailRender'
+import { ShapeMeasurement } from './boardTools'
+import { putRenderResult } from './thumbnailRender'
 
 // How measurements get out of the browser.
 //

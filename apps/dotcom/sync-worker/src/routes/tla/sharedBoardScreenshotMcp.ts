@@ -1,11 +1,4 @@
-import {
-	DEFAULT_THUMBNAIL_HEIGHT,
-	DEFAULT_THUMBNAIL_WIDTH,
-	getShapeClusters,
-	getShapeText,
-	type TLShapeWithPlainText,
-} from '@tldraw/dotcom-shared'
-import { TLShape } from '@tldraw/tlschema'
+import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
 	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
@@ -17,14 +10,38 @@ import { Environment, envFlagWord } from '../../types'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
 import { sha256 } from '../../utils/hash'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
-import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
+import {
+	BOARD_EMPTY_MESSAGE,
+	BOARD_INFO_TOOL_NAME,
+	BOARD_NOT_FOUND_MESSAGE,
+	CLUSTER_INFO_TOOL_NAME,
+	CLUSTER_SCREENSHOT_TOOL_NAME,
+	MCP_SERVER_INFO,
+	MCP_SERVER_INSTRUCTIONS,
+	PAGE_INFO_TOOL_NAME,
+	PageSelector,
+	ResolvedPageOk,
+	ShapeMeasurement,
+	ToolResult,
+	describePageSelector,
+	getBoardInfo,
+	getClusterInfo,
+	getPageInfo,
+	getToolDefinitions,
+	parseBoardInfoInput,
+	parseClusterInfoInput,
+	parseClusterScreenshotInput,
+	parsePageInfoInput,
+	pickClusterShapes,
+	resolvePage,
+	toolError,
+	toolPageResult,
+} from './boardTools'
 import { authenticateMcpRequest } from './mcpAuth'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
-	enumerateBoardPages,
-	getShapesOnPage,
 	loadBoardSnapshot,
 	measurePageShapes,
 	putThumbnailPng,
@@ -37,18 +54,13 @@ import {
 	reportThumbnailError,
 } from './thumbnailShared'
 
-// The MCP protocol surface over the shared render-and-cache core in thumbnailRender.ts: JSON-RPC
-// plumbing, tool definitions, input parsing, and the MCP tools' own per-user/per-board rate limits
-// and `mcp/` cache keys. Authentication and the feature flag gate live in mcpAuth.ts, applied to the
-// whole endpoint before any of this runs.
+// What it takes to run the board tools on Cloudflare: authentication, board resolution against
+// Postgres and R2, Browser Rendering, the `mcp/` PNG cache, rate limits, telemetry, and the HTTP
+// shell around JSON-RPC dispatch.
 //
-// The server speaks two protocol eras. The era is decided once in sharedBoardScreenshotMcp and only
-// affects the result envelope and a few status codes; everything below the dispatch is era-agnostic.
-
-const BOARD_INFO_TOOL_NAME = 'get_board_info'
-const PAGE_INFO_TOOL_NAME = 'get_page_info'
-const CLUSTER_INFO_TOOL_NAME = 'get_cluster_info'
-const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
+// The model-facing tools themselves live in boardTools.ts. That pure boundary lets the private eval
+// harness serve the exact same tool descriptions, parsing, clustering, and errors from local board
+// fixtures without needing a database or Browser Rendering.
 
 // The versions this server will speak, newest first — one per era.
 //
@@ -84,15 +96,6 @@ const UNSUPPORTED_PROTOCOL_VERSION = -32022
 const META_PROTOCOL_VERSION = 'io.modelcontextprotocol/protocolVersion'
 const META_SERVER_INFO = 'io.modelcontextprotocol/serverInfo'
 
-const SERVER_INFO = {
-	name: 'tldraw-shared-board-screenshot',
-	title: 'tldraw board screenshots',
-	version: '3.0.0',
-}
-
-const SERVER_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Drill down in order: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job.'
-
 // Modern `tools/list` is cacheable. The list is the same for every caller — authentication decides
 // whether you may call a tool, not which tools exist — so it's public. If that stops being true,
 // `cacheScope` has to drop to 'private'.
@@ -103,9 +106,6 @@ const TOOLS_LIST_CACHE_SCOPE = 'public'
 // which: a board id is something the caller types, so an error that told "this exists but is not
 // yours" apart from "this does not exist" would let anyone test file ids for existence. It also
 // cannot name what would fix it, since the caller may simply be signed in as the wrong account.
-const BOARD_NOT_FOUND =
-	'No board was found with this id, or this account does not have access to it. Boards you own, boards shared with you via link, and published boards are supported.'
-
 // The MCP rate limit budgets themselves live in config.ts (MCP_PER_USER_RATE_LIMIT and friends),
 // with the comment that maps each isolate-local fallback to its deployed Cloudflare binding. They
 // are applied here rather than in the shared render core so a new surface built on those helpers
@@ -219,8 +219,8 @@ export async function sharedBoardScreenshotMcp(
 			// offered this and decides whether it can follow.
 			protocolVersion: MCP_PROTOCOL_VERSION_LEGACY,
 			capabilities: { tools: {} },
-			serverInfo: SERVER_INFO,
-			instructions: SERVER_INSTRUCTIONS,
+			serverInfo: MCP_SERVER_INFO,
+			instructions: MCP_SERVER_INSTRUCTIONS,
 		})
 	}
 
@@ -238,10 +238,10 @@ export async function sharedBoardScreenshotMcp(
 			resultType: 'complete',
 			supportedVersions: SUPPORTED_MCP_PROTOCOL_VERSIONS,
 			capabilities: { tools: {} },
-			instructions: SERVER_INSTRUCTIONS,
+			instructions: MCP_SERVER_INSTRUCTIONS,
 			ttlMs: TOOLS_LIST_TTL_MS,
 			cacheScope: TOOLS_LIST_CACHE_SCOPE,
-			_meta: { [META_SERVER_INFO]: SERVER_INFO },
+			_meta: { [META_SERVER_INFO]: MCP_SERVER_INFO },
 		})
 	}
 
@@ -267,12 +267,7 @@ export async function sharedBoardScreenshotMcp(
 				rpcRequest.id,
 				withResultEnvelope(
 					{
-						tools: [
-							getBoardInfoToolDefinition(),
-							getPageInfoToolDefinition(),
-							getClusterInfoToolDefinition(),
-							getClusterScreenshotToolDefinition(),
-						],
+						tools: getToolDefinitions(),
 						...(era === 'modern'
 							? { ttlMs: TOOLS_LIST_TTL_MS, cacheScope: TOOLS_LIST_CACHE_SCOPE }
 							: {}),
@@ -408,117 +403,8 @@ function withResultEnvelope(result: object, era: ProtocolEra) {
 	return {
 		resultType: 'complete',
 		...result,
-		_meta: { [META_SERVER_INFO]: SERVER_INFO },
+		_meta: { [META_SERVER_INFO]: MCP_SERVER_INFO },
 	}
-}
-
-export function parseBoardInfoInput(input: unknown): { boardId: string } {
-	const value = requireArgumentsObject(input)
-	return { boardId: parseBoardId(value.boardId) }
-}
-
-export function parsePageInfoInput(input: unknown): { boardId: string; page: PageSelector } {
-	const value = requireArgumentsObject(input)
-	return { boardId: parseBoardId(value.boardId), page: parsePageSelector(value.page) }
-}
-
-export function parseClusterInfoInput(input: unknown): {
-	boardId: string
-	page: PageSelector
-	clusterId: string
-} {
-	const value = requireArgumentsObject(input)
-	return {
-		boardId: parseBoardId(value.boardId),
-		page: parsePageSelector(value.page),
-		clusterId: parseClusterId(value.clusterId),
-	}
-}
-
-export function parseClusterScreenshotInput(input: unknown): {
-	boardId: string
-	page: PageSelector
-	clusterIds: string[]
-	theme: 'light' | 'dark'
-} {
-	const value = requireArgumentsObject(input)
-	return {
-		boardId: parseBoardId(value.boardId),
-		page: parsePageSelector(value.page),
-		clusterIds: parseClusterIds(value.clusterIds),
-		theme: parseTheme(value.theme),
-	}
-}
-
-// Accepts one id or several. A single string is allowed because asking for one cluster is the common
-// case and making callers wrap it in an array is friction for nothing.
-export function parseClusterIds(value: unknown): string[] {
-	if (typeof value === 'string') return [parseClusterId(value)]
-	if (!Array.isArray(value) || value.length === 0) {
-		throw new Error('clusterIds is required: a cluster id, or an array of them')
-	}
-	return value.map((id) => parseClusterId(id))
-}
-
-export function parseClusterId(value: unknown): string {
-	if (typeof value !== 'string' || value.length === 0) {
-		throw new Error('clusterId is required')
-	}
-	return value
-}
-
-function requireArgumentsObject(input: unknown): Record<string, unknown> {
-	if (!input || typeof input !== 'object') {
-		throw new Error('Tool arguments must be an object')
-	}
-	return input as Record<string, unknown>
-}
-
-function parseBoardId(value: unknown): string {
-	if (typeof value !== 'string' || value.length === 0) {
-		throw new Error('boardId is required')
-	}
-	if (value.includes('/')) {
-		throw new Error('boardId must be a board id, not a URL')
-	}
-	return value
-}
-
-// Omitting the theme means light, but an unrecognized one is rejected rather than quietly treated
-// as light: a caller asking for `blue` gets a wrong-but-plausible image back and no signal that the
-// argument was ignored.
-function parseTheme(value: unknown): 'light' | 'dark' {
-	if (value === undefined || value === null) return 'light'
-	if (value !== 'light' && value !== 'dark') {
-		throw new Error(`theme must be 'light' or 'dark'`)
-	}
-	return value
-}
-
-// A page is named either by its 0-based ordinal or by its id. Ordinals read naturally but shift the
-// moment pages are reordered, so an id a caller is holding from an earlier call keeps pointing at the
-// same page. Both are accepted in the one argument so the tool surface stays small.
-export type PageSelector = { kind: 'ordinal'; ordinal: number } | { kind: 'id'; id: string }
-
-function parsePageSelector(value: unknown): PageSelector {
-	if (value === undefined || value === null) return { kind: 'ordinal', ordinal: 0 }
-	if (typeof value === 'string') {
-		if (!value.startsWith('page:')) {
-			throw new Error(
-				'page must be a 0-based page ordinal (a number) or a page id (the "page:…" string from get_board_info)'
-			)
-		}
-		return { kind: 'id', id: value }
-	}
-	if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
-		throw new Error('page must be a non-negative integer (0-based page ordinal) or a page id')
-	}
-	return { kind: 'ordinal', ordinal: value }
-}
-
-/** How the page was named, for error messages that echo back what the caller actually passed. */
-function describePageSelector(selector: PageSelector) {
-	return selector.kind === 'id' ? `"${selector.id}"` : String(selector.ordinal)
 }
 
 /**
@@ -581,34 +467,9 @@ async function callBoardInfoTool(
 	// they are limited even though they read as "info" calls too.
 
 	try {
-		const resolved = await resolveSharedBoardForUser(env, input.boardId, userId)
-		if (!resolved.ok) {
-			return toolError(
-				resolved.reason === 'board_empty' ? 'This board has no saved content yet.' : BOARD_NOT_FOUND
-			)
-		}
-
-		// Read under the gate the board resolved under, not a fixed one, so a private file the caller
-		// owns is readable and a published board is still held to the published check.
-		const snapshot = await loadBoardSnapshot(env, resolved.board, {
-			access: resolved.board.access,
-		})
-		if (!snapshot) {
-			return toolError('This board has no saved content yet.')
-		}
-		const pages = enumerateBoardPages(snapshot)
-		return toolJsonResult({
-			name: getDocumentNameFromSnapshot(snapshot),
-			pageCount: pages.length,
-			// `id` is the stable handle: it survives page reordering, `index` does not. Either can be
-			// passed as `page` to the other tools.
-			pages: pages.map((p) => ({
-				index: p.index,
-				id: p.id,
-				name: p.name,
-				hasContent: p.hasContent,
-			})),
-		})
+		const loaded = await loadBoardForTool(env, input.boardId, userId)
+		if (!loaded.ok) return loaded.result
+		return getBoardInfo(loaded.snapshot)
 	} catch (error) {
 		// The caller gets a bounded description, but nothing else records it: this tool writes no
 		// telemetry (it spends no Browser Run), so without a report a failing board lookup is
@@ -652,27 +513,15 @@ async function callPageInfoTool(
 
 	const telemetry = await mcpTelemetryWriter(env, userId)
 	try {
-		// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve
-		// cluster ids against a single page, so listing every shape on the board here would hand out
-		// ids that neither of them can look up.
 		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId)
 		if (!resolved.ok) {
 			telemetry({ cacheStatus: 'none', failureReason: resolved.reason })
 			return resolved.result
 		}
 
-		const clusters = await clusterPage(env, resolved)
+		const measurements = await measureFor(env, resolved)
 		telemetry({ cacheStatus: 'none' })
-		return toolJsonResult({
-			name: resolved.pageName,
-			clusterCount: clusters.length,
-			clusters: clusters.map((c) => ({
-				id: c.id,
-				label: c.label,
-				keywords: c.keywords,
-				numberOfShapes: c.numberOfShapes,
-			})),
-		})
+		return getPageInfo(resolved.page, measurements)
 	} catch (error) {
 		// Unlike get_board_info, this tool can fail mid-measure, so its failures belong on the same
 		// request ledger as the screenshot tool's: one bounded reason code for the blob and the
@@ -690,24 +539,39 @@ async function callPageInfoTool(
 	}
 }
 
-// Every page-scoped tool needs the same four steps before it can do anything: resolve the board,
-// load its snapshot, validate the page ordinal, and pull that page's shapes. Returning the tool's
-// own error shape on failure keeps the wording identical across tools.
-type ResolvedPage =
-	| {
-			ok: true
-			board: ResolvedThumbnailBoard
-			pageId: string
-			pageName: string
-			shapes: TLShape[]
-	  }
-	// `reason` is the documented telemetry code for this failure (see the bounded vocabulary in
-	// browser-run-thumbnails.md) — kept alongside the caller-facing result so the screenshot path
-	// doesn't collapse every resolution failure into `not_found` on the dashboard.
+type LoadedBoard =
+	| { ok: true; board: ResolvedThumbnailBoard; snapshot: import('@tldraw/sync-core').RoomSnapshot }
+	| { ok: false; reason: 'not_found' | 'board_empty'; result: ToolResult }
+
+async function loadBoardForTool(
+	env: Environment,
+	boardId: string,
+	userId: string
+): Promise<LoadedBoard> {
+	const resolved = await resolveSharedBoardForUser(env, boardId, userId)
+	if (!resolved.ok) {
+		return {
+			ok: false,
+			reason: resolved.reason,
+			result: toolError(
+				resolved.reason === 'board_empty' ? BOARD_EMPTY_MESSAGE : BOARD_NOT_FOUND_MESSAGE
+			),
+		}
+	}
+
+	const snapshot = await loadBoardSnapshot(env, resolved.board, { access: resolved.board.access })
+	if (!snapshot) {
+		return { ok: false, reason: 'board_empty', result: toolError(BOARD_EMPTY_MESSAGE) }
+	}
+	return { ok: true, board: resolved.board, snapshot }
+}
+
+type ResolvedBoardPage =
+	| { ok: true; board: ResolvedThumbnailBoard; page: ResolvedPageOk }
 	| {
 			ok: false
 			reason: 'not_found' | 'board_empty' | 'no_pages' | 'page_out_of_range'
-			result: ReturnType<typeof toolError>
+			result: ToolResult
 	  }
 
 async function resolveBoardPage(
@@ -715,56 +579,13 @@ async function resolveBoardPage(
 	boardId: string,
 	page: PageSelector,
 	userId: string
-): Promise<ResolvedPage> {
-	const resolved = await resolveSharedBoardForUser(env, boardId, userId)
-	if (!resolved.ok) {
-		return {
-			ok: false,
-			reason: resolved.reason,
-			result: toolError(
-				resolved.reason === 'board_empty' ? 'This board has no saved content yet.' : BOARD_NOT_FOUND
-			),
-		}
-	}
+): Promise<ResolvedBoardPage> {
+	const loaded = await loadBoardForTool(env, boardId, userId)
+	if (!loaded.ok) return loaded
 
-	// Read under the gate the board resolved under, not a fixed one, so a private file the caller
-	// owns is readable and a published board is still held to the published check.
-	const snapshot = await loadBoardSnapshot(env, resolved.board, { access: resolved.board.access })
-	if (!snapshot) {
-		return {
-			ok: false,
-			reason: 'board_empty',
-			result: toolError('This board has no saved content yet.'),
-		}
-	}
-
-	const pages = enumerateBoardPages(snapshot)
-	if (pages.length === 0) {
-		return { ok: false, reason: 'no_pages', result: toolError('This board has no pages.') }
-	}
-
-	const targetPage = page.kind === 'id' ? pages.find((p) => p.id === page.id) : pages[page.ordinal]
-	if (!targetPage) {
-		return {
-			ok: false,
-			// An id that resolves to nothing files under the same code as an ordinal past the end:
-			// both mean "the page selector didn't resolve", and the documented vocabulary has one
-			// code for that.
-			reason: 'page_out_of_range',
-			result: toolError(
-				page.kind === 'id'
-					? `No page with id "${page.id}" on this board. Call get_board_info to list its pages; a page id is stable across reordering, an index is not.`
-					: `Page ${page.ordinal} is out of range: this board has ${pages.length} page(s) (0–${pages.length - 1}). Call get_board_info to list them.`
-			),
-		}
-	}
-	return {
-		ok: true,
-		board: resolved.board,
-		pageId: targetPage.id,
-		pageName: targetPage.name,
-		shapes: getShapesOnPage(snapshot, targetPage.id),
-	}
+	const pageResult = resolvePage(loaded.snapshot, page)
+	if (!pageResult.ok) return pageResult
+	return { ok: true, board: loaded.board, page: pageResult }
 }
 
 // One datapoint shape for every MCP tool: `source: 'mcp'` plus the caller. Hashed rather than raw,
@@ -785,41 +606,11 @@ async function mcpTelemetryWriter(env: Environment, userId: string) {
 	}
 }
 
-// Clustering needs real geometry, and the only way to get it is to run an editor in Browser
-// Rendering — the same cost as a screenshot. Every caller goes through here, so that cost is stated
-// once rather than implied in three places. The session lands on the `browser_run_session` spend
-// ledger inside the measure itself, so callers carry no duration bookkeeping.
-async function clusterPage(env: Environment, resolved: Extract<ResolvedPage, { ok: true }>) {
-	const measured = await measurePageShapes(env, resolved.board, resolved.pageId, { surface: 'mcp' })
-
-	// The render answers two things a Worker cannot: where each shape sits, and what
-	// ShapeUtil.getText says it holds. Bounds drive the linkage; the text is attached to the shapes
-	// so labelling reads the editor's answer rather than re-deriving one from props.
-	const shapes: TLShapeWithPlainText[] = resolved.shapes.map((shape) => {
-		const text = measured[shape.id as string]?.text
-		return text ? { ...shape, plainText: text } : shape
-	})
-
-	return getShapeClusters(shapes, resolved.pageId, measured)
-}
-
-// The shape as stored, with one substitution: `props.richText` — a ProseMirror document, deeply
-// nested and unreadable — is dropped in favour of the plain string the editor's ShapeUtil.getText
-// reported for that shape during the measure render. Everything else is passed through untouched, so
-// a caller still sees type, position, rotation, size, colour and the rest exactly as stored.
-//
-// This matters beyond readability: a geo shape's label is not in `props` at all under any key a
-// Worker could find, so without the editor's answer that text is simply invisible.
-function toReadableShape(shape: TLShapeWithPlainText) {
-	const { plainText, ...rest } = shape
-	const props = { ...(rest.props as Record<string, unknown>) }
-	delete props.richText
-
-	const text = plainText ?? getShapeText(shape)
-	if (text) props.text = text
-	else delete props.text
-
-	return { ...rest, props }
+function measureFor(
+	env: Environment,
+	resolved: Extract<ResolvedBoardPage, { ok: true }>
+): Promise<Record<string, ShapeMeasurement>> {
+	return measurePageShapes(env, resolved.board, resolved.page.pageId, { surface: 'mcp' })
 }
 
 async function callClusterInfoTool(
@@ -854,24 +645,13 @@ async function callClusterInfoTool(
 			return resolved.result
 		}
 
-		const clusters = await clusterPage(env, resolved)
-		const cluster = clusters.find((c) => c.id === input.clusterId)
-		if (!cluster) {
-			telemetry({ cacheStatus: 'none', failureReason: 'shape_not_found' })
-			return toolError(
-				`No cluster with id "${input.clusterId}" on page ${describePageSelector(input.page)}. Call get_page_info to list this page's clusters.`
-			)
-		}
-
-		telemetry({ cacheStatus: 'none' })
-		return toolJsonResult({
-			clusterId: cluster.id,
-			label: cluster.label,
-			keywords: cluster.keywords,
-			pageName: resolved.pageName,
-			numberOfShapes: cluster.numberOfShapes,
-			shapes: cluster.shapes.map(toReadableShape),
+		const measurements = await measureFor(env, resolved)
+		const result = getClusterInfo(resolved.page, measurements, input.clusterId, input.page)
+		telemetry({
+			cacheStatus: 'none',
+			...(result.isError ? { failureReason: 'shape_not_found' } : {}),
 		})
+		return result
 	} catch (error) {
 		reportThumbnailError(error, {
 			ctx,
@@ -917,7 +697,7 @@ async function renderShapeSetScreenshot(
 		 * ledger, so nothing here needs to know.
 		 */
 		pickShapes(
-			resolved: Extract<ResolvedPage, { ok: true }>
+			resolved: Extract<ResolvedBoardPage, { ok: true }>
 		): Promise<
 			{ ok: true; shapeIds: string[] } | { ok: false; result: ReturnType<typeof toolError> }
 		>
@@ -1005,7 +785,7 @@ async function renderShapeSetScreenshot(
 
 		const render = await captureThumbnailScreenshot(env, resolved.board, {
 			surface: 'mcp',
-			pageId: resolved.pageId,
+			pageId: resolved.page.pageId,
 			shapeIds,
 			theme,
 			width: DEFAULT_THUMBNAIL_WIDTH,
@@ -1020,7 +800,7 @@ async function renderShapeSetScreenshot(
 		// name is URI-encoded because R2 custom metadata is not reliably unicode-safe.
 		try {
 			await putThumbnailPng(env.MCP_DATA_BUCKET, cacheKey, render.base64, resolved.board.version, {
-				pageName: encodeURIComponent(resolved.pageName),
+				pageName: encodeURIComponent(resolved.page.pageName),
 			})
 		} catch (error) {
 			reportThumbnailError(error, {
@@ -1033,7 +813,7 @@ async function renderShapeSetScreenshot(
 		}
 
 		telemetry({ cacheStatus: 'miss' })
-		return toolPageResult(resolved.pageName, render.base64)
+		return toolPageResult(resolved.page.pageName, render.base64)
 	} catch (error) {
 		// One bounded reason code drives both the telemetry blob (so unbounded error strings never
 		// inflate that dimension) and the caller's message (so internal Postgres/R2 detail never reaches
@@ -1082,53 +862,10 @@ async function callClusterScreenshotTool(
 		userId,
 		extras: { clusterIds: input.clusterIds.join(',') },
 		pickShapes: async (resolved) => {
-			const clusters = await clusterPage(env, resolved)
-			const byId = new Map(clusters.map((cluster) => [cluster.id, cluster]))
-
-			// Reject unknown ids rather than quietly rendering the subset that resolved — a caller
-			// asking for three clusters and getting a picture of two has no way to notice.
-			const missing = input.clusterIds.filter((id) => !byId.has(id))
-			if (missing.length > 0) {
-				return {
-					ok: false,
-					result: toolError(
-						`No cluster on page ${describePageSelector(input.page)} with id ${missing.map((id) => `"${id}"`).join(', ')}. Call get_page_info to list this page's clusters.`
-					),
-				}
-			}
-
-			// Several clusters render as one framed image of their union, which is the point of taking
-			// more than one: seeing how they sit relative to each other.
-			const shapeIds = [
-				...new Set(
-					input.clusterIds.flatMap((id) => byId.get(id)!.shapes.map((shape) => shape.id as string))
-				),
-			]
-			return { ok: true, shapeIds }
+			const measurements = await measureFor(env, resolved)
+			return pickClusterShapes(resolved.page, measurements, input.clusterIds, input.page)
 		},
 	})
-}
-
-function toolError(message: string) {
-	return {
-		content: [{ type: 'text', text: message }],
-		isError: true,
-	}
-}
-
-function toolPageResult(name: string, base64: string) {
-	return {
-		content: [
-			{ type: 'text', text: name },
-			{ type: 'image', data: base64, mimeType: 'image/png' },
-		],
-	}
-}
-
-function toolJsonResult(value: unknown) {
-	return {
-		content: [{ type: 'text', text: JSON.stringify(value) }],
-	}
 }
 
 function decodeThumbnailPageName(value: string | undefined): string {
@@ -1137,146 +874,6 @@ function decodeThumbnailPageName(value: string | undefined): string {
 		return decodeURIComponent(value)
 	} catch {
 		return value
-	}
-}
-
-function getBoardInfoToolDefinition() {
-	return {
-		name: BOARD_INFO_TOOL_NAME,
-		title: 'Get tldraw board info',
-		description:
-			'Return metadata for a tldraw.com board you have access to: its name, page count, and the id, name, 0-based index, and hasContent flag for each page. Call this first, then pass a page id or index to get_page_info.',
-		inputSchema: {
-			type: 'object',
-			additionalProperties: false,
-			properties: {
-				boardId: {
-					type: 'string',
-					description:
-						'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
-				},
-			},
-			required: ['boardId'],
-		},
-		annotations: {
-			readOnlyHint: true,
-			idempotentHint: true,
-			openWorldHint: false,
-			destructiveHint: false,
-		},
-	}
-}
-
-function getPageInfoToolDefinition() {
-	return {
-		name: PAGE_INFO_TOOL_NAME,
-		title: 'Get tldraw page info',
-		description:
-			'List the shape clusters on one page of a tldraw.com board you have access to. Each top-level shape is a cluster together with its descendants, so frames and groups stay together while ungrouped shapes remain individually addressable. Pass a cluster id to get_cluster_info or get_cluster_screenshot.',
-		inputSchema: {
-			type: 'object',
-			additionalProperties: false,
-			properties: {
-				boardId: {
-					type: 'string',
-					description:
-						'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
-				},
-				page: {
-					type: ['number', 'string'],
-					description:
-						'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
-					default: 0,
-				},
-			},
-			required: ['boardId'],
-		},
-		annotations: {
-			readOnlyHint: true,
-			idempotentHint: true,
-			openWorldHint: false,
-			destructiveHint: false,
-		},
-	}
-}
-
-function getClusterInfoToolDefinition() {
-	return {
-		name: CLUSTER_INFO_TOOL_NAME,
-		title: 'Get tldraw cluster info',
-		description:
-			"Describe one cluster from get_page_info: its label, keywords, and the full record of every shape it contains — type, position, rotation, size, style and so on. Each shape's rich text document is replaced by `props.text`, the plain string the editor reports for it, which also surfaces text that is not stored on the record at all (a geo shape's label, for instance).",
-		inputSchema: {
-			type: 'object',
-			additionalProperties: false,
-			properties: {
-				boardId: {
-					type: 'string',
-					description:
-						'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
-				},
-				page: {
-					type: ['number', 'string'],
-					description:
-						'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
-					default: 0,
-				},
-				clusterId: {
-					type: 'string',
-					description: 'The id of the cluster to get info for.',
-				},
-			},
-			required: ['boardId', 'clusterId'],
-		},
-		annotations: {
-			readOnlyHint: true,
-			idempotentHint: true,
-			openWorldHint: false,
-			destructiveHint: false,
-		},
-	}
-}
-
-function getClusterScreenshotToolDefinition() {
-	return {
-		name: CLUSTER_SCREENSHOT_TOOL_NAME,
-		title: 'Get tldraw cluster screenshot',
-		description: `Return a ${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT} PNG of one or more clusters from get_page_info, preceded by the page name. The camera fits the clusters requested and only their shapes are drawn, so nothing else on the page appears. Pass several ids to see how those clusters sit relative to each other in a single image. This is the direct route from a cluster id to a picture — get_cluster_info is only needed when the individual shapes matter.`,
-		inputSchema: {
-			type: 'object',
-			additionalProperties: false,
-			properties: {
-				boardId: {
-					type: 'string',
-					description:
-						'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
-				},
-				page: {
-					type: ['number', 'string'],
-					description:
-						'Which page: either its 0-based index or its page id from get_board_info. Ids survive page reordering, indexes do not. Defaults to 0, the first page.',
-					default: 0,
-				},
-				clusterIds: {
-					type: 'array',
-					items: { type: 'string' },
-					description:
-						'One or more cluster ids from get_page_info. All of them must be on the given page. A bare string is also accepted for a single cluster.',
-				},
-				theme: {
-					type: 'string',
-					enum: ['light', 'dark'],
-					default: 'light',
-				},
-			},
-			required: ['boardId', 'page', 'clusterIds'],
-		},
-		annotations: {
-			readOnlyHint: true,
-			idempotentHint: true,
-			openWorldHint: false,
-			destructiveHint: false,
-		},
 	}
 }
 
