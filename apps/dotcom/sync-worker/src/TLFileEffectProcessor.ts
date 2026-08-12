@@ -103,7 +103,8 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 			notifyUpdate: (file) => getRoomDurableObject(this.env, file.id).appFileRecordDidUpdate(file),
 			notifyDelete: (fileRow) =>
 				getRoomDurableObject(this.env, fileRow.id).appFileRecordDidDelete(fileRow),
-			publish: (file) => publishSnapshot(this.env, file),
+			publish: (file) =>
+				publishSnapshot(this.env, file, (e) => this.captureException(e, { fileId: file.id })),
 			unpublish: (file) => unpublishSnapshot(this.env, file),
 		}
 		// One handler per source table. Future effect sources (e.g. notifications)

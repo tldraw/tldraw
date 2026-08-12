@@ -3,8 +3,12 @@ import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
 import { getRoomDurableObject } from './durableObjects'
 
-// Errors propagate so the outbox consumer can retry.
-export async function publishSnapshot(env: Environment, file: TlaFile) {
+// Infra errors propagate so the outbox consumer can retry; a missing snapshot is terminal and skips.
+export async function publishSnapshot(
+	env: Environment,
+	file: TlaFile,
+	reportError?: (error: unknown) => void
+) {
 	// make sure the room's snapshot is up to date
 	await getRoomDurableObject(env, file.id).awaitPersist()
 	// and that it exists
@@ -13,7 +17,9 @@ export async function publishSnapshot(env: Environment, file: TlaFile) {
 	if (!snapshot) {
 		// No persisted room content (e.g. created and trashed before the first persist):
 		// there is nothing to publish and retrying cannot produce it.
-		console.error(`publishSnapshot: no snapshot for file ${file.id}, skipping`)
+		const error = new Error(`publishSnapshot: no snapshot for file ${file.id}, skipping`)
+		reportError?.(error)
+		console.error(error.message)
 		return
 	}
 	const blob = await snapshot.blob()
