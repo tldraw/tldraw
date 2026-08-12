@@ -76,6 +76,7 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
+import { RoomNotFoundError, shouldSkipMissingRoomEffect } from './roomEffectHelpers'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import { generateSnapshotChunks } from './snapshotUtils'
@@ -137,14 +138,6 @@ interface DocumentInfo {
 	slug: string
 	isApp: boolean
 	deleted: boolean
-}
-
-// A real Error so Sentry shows the slug and a stack; checks are DO-local instanceof.
-export class RoomNotFoundError extends Error {
-	constructor(slug: string) {
-		super(`Room not found: ${slug}`)
-		this.name = 'RoomNotFoundError'
-	}
 }
 
 // Marks "query ran, row absent" inside getAppFileRecord's retry so it can be told apart
@@ -272,7 +265,10 @@ export class TLFileDurableObject extends DurableObject {
 					return storage
 				})
 				.catch((error) => {
-					// Every caller of getStorage handles or reports room-not-found itself.
+					// Every caller of getStorage now catches RoomNotFoundError and either closes the
+					// socket (onRequest, webSocketMessage) or no-ops (handleWebSocketEnd, the
+					// appFileRecord* effects), so it's never silently unhandled — just unreported here
+					// to avoid double-reporting what the caller already logs.
 					if (!(error instanceof RoomNotFoundError)) this.reportError(error)
 					// Never cache a rejection: the condition may heal, and a cached rejection
 					// makes every later retry fail instantly.
@@ -569,8 +565,17 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this._documentInfo) return
 
 		this.sessionIdToWs.set(attachment.sessionId, ws)
-		const room = await this.getRoom()
-		room.handleSocketMessage(attachment.sessionId, message)
+		try {
+			const room = await this.getRoom()
+			room.handleSocketMessage(attachment.sessionId, message)
+		} catch (e) {
+			if (e instanceof RoomNotFoundError) {
+				// Post-hibernation resume raced a deleted room; there's no room left to message.
+				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.NOT_FOUND)
+				return
+			}
+			throw e
+		}
 	}
 
 	override async webSocketClose(ws: WebSocket) {
@@ -591,20 +596,29 @@ export class TLFileDurableObject extends DurableObject {
 		this.sessionIdToWs.delete(attachment.sessionId)
 		if (!this._documentInfo) return
 
-		const room = await this.getRoom()
+		try {
+			const room = await this.getRoom()
 
-		// If the DO was hibernating, this session was never re-added to the room.
-		// Resume it briefly so the room can broadcast presence removal to other clients.
-		if (attachment.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
-			room.handleSocketResume({
-				sessionId: attachment.sessionId,
-				socket: ws,
-				snapshot: attachment.snapshot,
-				meta: attachment.meta,
-			})
+			// If the DO was hibernating, this session was never re-added to the room.
+			// Resume it briefly so the room can broadcast presence removal to other clients.
+			if (attachment.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
+				room.handleSocketResume({
+					sessionId: attachment.sessionId,
+					socket: ws,
+					snapshot: attachment.snapshot,
+					meta: attachment.meta,
+				})
+			}
+
+			room[method](attachment.sessionId)
+		} catch (e) {
+			if (e instanceof RoomNotFoundError) {
+				// The socket is already closing/closed; nothing left to clean up on the room side.
+				console.error('handleWebSocketEnd: room not found, skipping', e)
+				return
+			}
+			throw e
 		}
-
-		room[method](attachment.sessionId)
 	}
 
 	_isRestoring = false
@@ -2638,6 +2652,7 @@ export class TLFileDurableObject extends DurableObject {
 
 	async appFileRecordCreated(file: TlaFile) {
 		if (this._fileRecordCache) return
+		const priorFileRecordCache = this._fileRecordCache
 		this._fileRecordCache = file
 
 		if (!this._documentInfo) {
@@ -2651,12 +2666,14 @@ export class TLFileDurableObject extends DurableObject {
 		try {
 			await this.getRoom()
 		} catch (e) {
-			// A trashed file's room may never have existed; nothing to do. A live file's
-			// missing room is usually the duplicate-from-source race, which retry heals.
-			if (e instanceof RoomNotFoundError && file.isDeleted) {
+			if (shouldSkipMissingRoomEffect(e, file)) {
 				console.error('appFileRecordCreated: room not found for deleted file, skipping', e)
 				return
 			}
+			// Restore the pre-call cache so a retry re-enters the `if (this._fileRecordCache)
+			// return` guard as a miss and actually re-attempts the room load, instead of
+			// silently no-oping on the next outbox attempt.
+			this._fileRecordCache = priorFileRecordCache
 			throw e
 		}
 	}
@@ -2679,9 +2696,7 @@ export class TLFileDurableObject extends DurableObject {
 		try {
 			await this.updateRoomForFileRecord(file)
 		} catch (e) {
-			// A trashed file's room may never have existed; nothing to do. A live file's
-			// missing room is usually the duplicate-from-source race, which retry heals.
-			if (e instanceof RoomNotFoundError && file.isDeleted) {
+			if (shouldSkipMissingRoomEffect(e, file)) {
 				console.error('appFileRecordDidUpdate: room not found for deleted file, skipping', e)
 				return
 			}
