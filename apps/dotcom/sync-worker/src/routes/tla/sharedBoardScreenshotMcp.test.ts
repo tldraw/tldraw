@@ -2,6 +2,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { MCP_PER_IP_RATE_LIMIT } from '../../config'
 import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
+import {
+	parseBoardInfoInput,
+	parseClusterInfoInput,
+	parseClusterScreenshotInput,
+	parsePageInfoInput,
+} from './boardTools'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo } from './getSharedFile'
 import {
@@ -16,10 +22,6 @@ import {
 import {
 	isMcpScreenshotEnabled,
 	normalizeMcpClient,
-	parseBoardInfoInput,
-	parseClusterInfoInput,
-	parseClusterScreenshotInput,
-	parsePageInfoInput,
 	resetRateLimitFallbackForTests,
 	sharedBoardScreenshotMcp,
 } from './sharedBoardScreenshotMcp'

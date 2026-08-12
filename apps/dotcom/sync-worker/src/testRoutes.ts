@@ -2,6 +2,12 @@ import { DEFAULT_INITIAL_SNAPSHOT } from '@tldraw/sync-core'
 import { lns, uniqueId } from '@tldraw/utils'
 import { createRouter, notFound } from '@tldraw/worker-shared'
 import { getR2KeyForRoom, getR2KeyForSnapshot } from './r2'
+import {
+	deleteEvalsFixtureSession,
+	evalsFixtureMcp,
+	planEvalsFixtureScreenshots,
+	putEvalsFixtureBoard,
+} from './routes/tla/evalsLocalMcp'
 import { isDebugLogging, type Environment } from './types'
 import { getReplicator, getRoomDurableObject, getUserDurableObject } from './utils/durableObjects'
 
@@ -40,6 +46,10 @@ export const testRoutes = createRouter<Environment>()
 		await getUserDurableObject(env, req.params.userId).__test__prepareForTest(req.params.userId)
 		return new Response('ok')
 	})
+	.post('/app/__test__/evals/plan', planEvalsFixtureScreenshots)
+	.put('/app/__test__/evals/sessions/:sessionId/boards/:boardId', putEvalsFixtureBoard)
+	.post('/app/__test__/evals/sessions/:sessionId/mcp', evalsFixtureMcp)
+	.delete('/app/__test__/evals/sessions/:sessionId', deleteEvalsFixtureSession)
 	.post('/app/__test__/legacy-room', async (req, env) => {
 		const body = (await req.json().catch(() => ({}))) as CreateLegacyRoomBody
 		const slug = body.slug ?? uniqueId()
