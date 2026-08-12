@@ -30,6 +30,10 @@ export function FilesSection() {
 				<UndeleteFileById />
 			</section>
 			<section className={styles.adminSection}>
+				<h3 className={styles.sectionTitle}>Durable object lookup</h3>
+				<ResolveDoIds />
+			</section>
+			<section className={styles.adminSection}>
 				<h3 className={styles.sectionTitle}>Welcome template</h3>
 				<WelcomeTemplate />
 			</section>
@@ -38,6 +42,132 @@ export function FilesSection() {
 				<HardDeleteFile />
 			</section>
 		</>
+	)
+}
+
+/**
+ * Maps durable object ids (from Cloudflare analytics or the dash) back to file ids by looping the
+ * cursor-paged resolver endpoint until every id is matched or the file table is exhausted.
+ */
+function ResolveDoIds() {
+	const [input, setInput] = useState('')
+	const [isRunning, setIsRunning] = useState(false)
+	const [error, setError] = useState(null as string | null)
+	const [progress, setProgress] = useState(null as { scanned: number; found: number } | null)
+	const [matches, setMatches] = useState([] as { objectId: string; fileId: string }[])
+	const [unmatched, setUnmatched] = useState([] as string[])
+	const cancelRef = useRef(false)
+
+	const onResolve = useCallback(async () => {
+		const ids = Array.from(new Set(input.split(/[\s,]+/).filter(Boolean)))
+		if (ids.length === 0) {
+			setError('Paste at least one durable object id')
+			return
+		}
+		if (ids.length > 500) {
+			setError('At most 500 ids per run')
+			return
+		}
+		if (ids.some((id) => !/^[0-9a-f]{64}$/.test(id))) {
+			setError('Ids must be 64-character lowercase hex strings')
+			return
+		}
+		setError(null)
+		setMatches([])
+		setUnmatched([])
+		setProgress({ scanned: 0, found: 0 })
+		setIsRunning(true)
+		cancelRef.current = false
+		try {
+			const remaining = new Set(ids)
+			const found: { objectId: string; fileId: string }[] = []
+			let cursor: string | null = null
+			let scanned = 0
+			do {
+				const res = await fetch('/api/app/admin/resolve-do-ids', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ ids: Array.from(remaining), cursor }),
+				})
+				if (!res.ok) {
+					setError(res.statusText + ': ' + (await res.text()))
+					return
+				}
+				const body: {
+					matches: { objectId: string; fileId: string }[]
+					scanned: number
+					nextCursor: string | null
+				} = await res.json()
+				for (const m of body.matches) {
+					remaining.delete(m.objectId)
+					found.push(m)
+				}
+				scanned += body.scanned
+				cursor = body.nextCursor
+				setProgress({ scanned, found: found.length })
+				setMatches([...found])
+			} while (cursor && remaining.size > 0 && !cancelRef.current)
+			setUnmatched(Array.from(remaining))
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Resolve failed')
+		} finally {
+			setIsRunning(false)
+		}
+	}, [input])
+
+	return (
+		<div>
+			<textarea
+				className={styles.searchInput}
+				rows={4}
+				placeholder="Durable object ids, one per line (or comma separated)"
+				value={input}
+				onChange={(e) => setInput(e.target.value)}
+				disabled={isRunning}
+			/>
+			<div className={styles.fileOperations}>
+				<AdminButton variant="primary" onClick={onResolve} isLoading={isRunning}>
+					Resolve
+				</AdminButton>
+				{isRunning && <AdminButton onClick={() => (cancelRef.current = true)}>Cancel</AdminButton>}
+			</div>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{progress && (
+				<div className={styles.subTitle}>
+					Scanned {progress.scanned.toLocaleString()} files, matched {progress.found}
+					{isRunning ? '…' : ''}
+				</div>
+			)}
+			{matches.length > 0 && (
+				<table className={styles.diagnosticsTable}>
+					<thead>
+						<tr>
+							<th>Durable object id</th>
+							<th>File</th>
+						</tr>
+					</thead>
+					<tbody>
+						{matches.map((m) => (
+							<tr key={m.objectId}>
+								<td>
+									<code>{m.objectId.slice(0, 16)}…</code>
+								</td>
+								<td>
+									<a href={`/f/${m.fileId}`} target="_blank" rel="noreferrer">
+										{m.fileId}
+									</a>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			)}
+			{!isRunning && unmatched.length > 0 && (
+				<div className={styles.subTitle}>
+					{unmatched.length} unmatched (legacy room, hard-deleted file, or scan cancelled early)
+				</div>
+			)}
+		</div>
 	)
 }
 
