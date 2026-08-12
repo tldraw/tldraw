@@ -1,7 +1,11 @@
 import { useValue } from '@tldraw/state-react'
 import { type PointerEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { useCanvasEvents } from '../hooks/useCanvasEvents'
+import {
+	consumeRecoveredPointerUp,
+	isButtonStillDown,
+	useCanvasEvents,
+} from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { Vec } from '../primitives/Vec'
 import { releasePointerCapture, setPointerCapture } from '../utils/dom'
@@ -111,6 +115,25 @@ export function MenuClickCapture() {
 			const state = rPointerState.current
 			if (!state.isDown) return
 
+			// The tracked button is no longer down: its pointerup was missed. Don't
+			// dispatch this move (it would drag the camera to the re-entry point);
+			// left unmarked, the event reaches the document-level stale-button
+			// recovery in useCanvasEvents, which ends the gesture.
+			if (
+				e.pointerType === 'mouse' &&
+				typeof e.buttons === 'number' &&
+				!isButtonStillDown(state.button, e.buttons)
+			) {
+				setIsPointing(false)
+				rPointerState.current = {
+					isDown: false,
+					isDragging: false,
+					button: 0,
+					start: new Vec(e.clientX, e.clientY),
+				}
+				return
+			}
+
 			// Left-click: wait for the drag threshold before forwarding anything, then
 			// replay pointerdown at the original start so the editor records the
 			// correct drag origin. Right-click forwards moves immediately (pointerdown
@@ -143,6 +166,22 @@ export function MenuClickCapture() {
 
 	const handlePointerUp = useCallback(
 		(e: PointerEvent) => {
+			const button = rPointerState.current.button === 2 ? 2 : getPointerEventButton(e)
+
+			// Stale-button recovery already synthesized this button's pointer_up:
+			// swallow the late real one so it isn't dispatched again.
+			if (consumeRecoveredPointerUp(editor, e.pointerId, button)) {
+				releasePointerCapture(e.currentTarget, e)
+				setIsPointing(false)
+				rPointerState.current = {
+					isDown: false,
+					isDragging: false,
+					button: 0,
+					start: new Vec(e.clientX, e.clientY),
+				}
+				return
+			}
+
 			const isStaticRightClick =
 				rPointerState.current.button === 2 && !rPointerState.current.isDragging
 
@@ -151,7 +190,7 @@ export function MenuClickCapture() {
 				target: 'canvas',
 				name: 'pointer_up',
 				...getPointerInfo(editor, e),
-				button: rPointerState.current.button === 2 ? 2 : getPointerEventButton(e),
+				button,
 			})
 
 			if (isStaticRightClick && editor.options.rightClickPanning) {

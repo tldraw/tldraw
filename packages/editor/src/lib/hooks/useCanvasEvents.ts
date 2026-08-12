@@ -1,6 +1,7 @@
 import { useValue } from '@tldraw/state-react'
 import React, { useEffect, useMemo, useRef } from 'react'
 import { LEFT_MOUSE_BUTTON, MIDDLE_MOUSE_BUTTON, RIGHT_MOUSE_BUTTON } from '../constants'
+import type { Editor } from '../editor/Editor'
 import { tlenv } from '../globals/environment'
 import {
 	elementShouldCaptureKeys,
@@ -12,9 +13,57 @@ import { getPointerInfo } from '../utils/getPointerInfo'
 import { getPointerEventButton, isDirectDisplayPen, isSecondaryClickEvent } from '../utils/pointer'
 import { useEditor } from './useEditor'
 
+// pointerId → buttons whose pointer_up was synthesized by stale-button
+// recovery; a late real pointerup for one of these is swallowed. Keyed by
+// editor, not per hook instance: useCanvasEvents runs in both Canvas and
+// MenuClickCapture, and recovery may fire in one while the pointerup lands
+// in the other.
+const recoveredPointerUpsByEditor = new WeakMap<Editor, Map<number, Set<number>>>()
+
+function recordRecoveredPointerUp(editor: Editor, pointerId: number, button: number) {
+	let map = recoveredPointerUpsByEditor.get(editor)
+	if (!map) {
+		map = new Map()
+		recoveredPointerUpsByEditor.set(editor, map)
+	}
+	const buttons = map.get(pointerId) ?? new Set<number>()
+	buttons.add(button)
+	map.set(pointerId, buttons)
+}
+
+function clearRecoveredPointerUps(editor: Editor, pointerId: number) {
+	recoveredPointerUpsByEditor.get(editor)?.delete(pointerId)
+}
+
+/**
+ * Whether a pointerup was already synthesized by stale-button recovery and the
+ * real one should be swallowed. Consumes the record.
+ * @internal
+ */
+export function consumeRecoveredPointerUp(
+	editor: Editor,
+	pointerId: number,
+	button: number
+): boolean {
+	const map = recoveredPointerUpsByEditor.get(editor)
+	const buttons = map?.get(pointerId)
+	if (!buttons) return false
+	// darwin ctrl maps the physical left button to button 2, so a late
+	// pointerup can resolve to either: treat them as the same button.
+	const isLeftOrRight = (b: number) => b === LEFT_MOUSE_BUTTON || b === RIGHT_MOUSE_BUTTON
+	const matched =
+		buttons.has(button) ||
+		(tlenv.isDarwin &&
+			isLeftOrRight(button) &&
+			(buttons.has(LEFT_MOUSE_BUTTON) || buttons.has(RIGHT_MOUSE_BUTTON)))
+	if (matched) map!.delete(pointerId)
+	return matched
+}
+
 // The `button` index and the `buttons` bitmask disagree: button 0 (left) is
 // bit 1, button 1 (middle) is bit 4, button 2 (right) is bit 2.
-function isButtonStillDown(button: number, buttons: number): boolean {
+/** @internal */
+export function isButtonStillDown(button: number, buttons: number): boolean {
 	switch (button) {
 		case LEFT_MOUSE_BUTTON:
 			return (buttons & 1) !== 0
@@ -79,6 +128,13 @@ export function useCanvasEvents() {
 				if (editor.wasEventAlreadyHandled(e)) return
 				const button = isSecondaryClickPointerDown.current ? 2 : getPointerEventButton(e)
 				if (button !== 0 && button !== 1 && button !== 2 && button !== 5) return
+
+				// Recovery already synthesized this button's pointer_up.
+				if (consumeRecoveredPointerUp(editor, e.pointerId, button)) {
+					releasePointerCapture(e.currentTarget, e)
+					isSecondaryClickPointerDown.current = false
+					return
+				}
 
 				const rightClickPanning = editor.options.rightClickPanning
 				// Check before dispatch (which resets isPanning)
@@ -267,6 +323,7 @@ export function useCanvasEvents() {
 				for (const button of Array.from(editor.inputs.buttons.keys())) {
 					if (isButtonStillDown(button, e.buttons)) continue
 					if (button === RIGHT_MOUSE_BUTTON) isSecondaryClickPointerDown.current = false
+					recordRecoveredPointerUp(editor, e.pointerId, button)
 					// The missed pointerup also means the capture taken on
 					// pointerdown was never explicitly released. Browsers usually
 					// drop it implicitly, but if it's still held this event was
@@ -304,9 +361,17 @@ export function useCanvasEvents() {
 			}
 		}
 
+		// Any real press starts a new gesture: a pointerup after it must not be
+		// swallowed. Capture phase on the document so no handler can hide it.
+		function onPointerDownCapture(e: PointerEvent) {
+			clearRecoveredPointerUps(editor, e.pointerId)
+		}
+
 		ownerDocument.body.addEventListener('pointermove', onPointerMove)
+		ownerDocument.addEventListener('pointerdown', onPointerDownCapture, { capture: true })
 		return () => {
 			ownerDocument.body.removeEventListener('pointermove', onPointerMove)
+			ownerDocument.removeEventListener('pointerdown', onPointerDownCapture, { capture: true })
 		}
 	}, [editor, currentTool, ownerDocument])
 

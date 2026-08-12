@@ -48,6 +48,18 @@ async function setup() {
 	return { editor, canvas }
 }
 
+// Editor.dispatch mutates info.name in place (e.g. pointer_up → right_click),
+// so spy call args can't be inspected after the fact: capture names at call time.
+function captureDispatchNames(editor: any): string[] {
+	const names: string[] = []
+	const original = editor.dispatch.bind(editor)
+	vi.spyOn(editor, 'dispatch').mockImplementation((info: any) => {
+		names.push(info.name)
+		return original(info)
+	})
+	return names
+}
+
 // Dispatch a DOM event and flush the editor's pending event queue.
 async function fire(editor: any, target: Element | HTMLElement, event: Event) {
 	await act(async () => {
@@ -341,6 +353,251 @@ describe('stale pan recovery via real DOM events', () => {
 		expect(editor.inputs.getIsSpacebarPanning()).toBe(true)
 		// With no button down, moving the mouse must not pan.
 		expect(editor.getCamera()).toMatchObject({ x: 100, y: 100, z: 1 })
+	})
+
+	it('swallows a late real pointerup after recovery instead of firing a contextmenu', async () => {
+		const { editor, canvas } = await setup()
+
+		const contextmenu = vi.fn()
+		canvas.addEventListener('contextmenu', contextmenu)
+
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 2, buttons: 2 })
+		)
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 200, clientY: 200, buttons: 2 })
+		)
+		expect(editor.inputs.getIsPanning()).toBe(true)
+
+		// Recovery ends the pan on a stale-buttons move.
+		editor.inputs.setPointerVelocity(new Vec(0, 0))
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 0 })
+		)
+		expect(editor.inputs.getIsPanning()).toBe(false)
+
+		// The real pointerup arrives late anyway: must be swallowed, not
+		// processed as a fresh static right-click with a contextmenu.
+		const dispatched = captureDispatchNames(editor)
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerup', { clientX: 300, clientY: 300, button: 2, buttons: 0 })
+		)
+		expect(contextmenu).not.toHaveBeenCalled()
+		expect(dispatched.filter((name) => name === 'pointer_up')).toHaveLength(0)
+	})
+
+	it('swallows a late darwin pointerup that resolves to button 0 once ctrl is released', async () => {
+		const prevIsDarwin = tlenv.isDarwin
+		tlenv.isDarwin = true
+		try {
+			const { editor, canvas } = await setup()
+
+			await fire(
+				editor,
+				canvas,
+				pointerEvent('pointerdown', {
+					clientX: 100,
+					clientY: 100,
+					button: 0,
+					buttons: 1,
+					ctrlKey: true,
+				})
+			)
+			await fire(
+				editor,
+				document.body,
+				pointerEvent('pointermove', { clientX: 200, clientY: 200, buttons: 1, ctrlKey: true })
+			)
+			expect(editor.inputs.getIsPanning()).toBe(true)
+
+			editor.inputs.setPointerVelocity(new Vec(0, 0))
+			await fire(
+				editor,
+				document.body,
+				pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 0, ctrlKey: true })
+			)
+			expect(editor.inputs.getIsPanning()).toBe(false)
+
+			// Ctrl released before the late pointerup → it resolves to button 0,
+			// but still belongs to the recovered ctrl+click: swallow it.
+			const dispatched = captureDispatchNames(editor)
+			await fire(
+				editor,
+				canvas,
+				pointerEvent('pointerup', { clientX: 300, clientY: 300, button: 0, buttons: 0 })
+			)
+			expect(dispatched.filter((name) => name === 'pointer_up')).toHaveLength(0)
+		} finally {
+			tlenv.isDarwin = prevIsDarwin
+		}
+	})
+
+	it('swallows a late darwin spacebar-pan pointerup that resolves to button 2 under ctrl', async () => {
+		const prevIsDarwin = tlenv.isDarwin
+		tlenv.isDarwin = true
+		try {
+			const { editor, canvas } = await setup()
+			const contextmenu = vi.fn()
+			canvas.addEventListener('contextmenu', contextmenu)
+
+			await act(async () => {
+				editor.dispatch({
+					type: 'keyboard',
+					name: 'key_down',
+					key: ' ',
+					code: 'Space',
+					shiftKey: false,
+					ctrlKey: false,
+					altKey: false,
+					metaKey: false,
+					accelKey: false,
+				})
+				editor.emit('tick', 16)
+			})
+
+			await fire(
+				editor,
+				canvas,
+				pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 0, buttons: 1 })
+			)
+			await fire(
+				editor,
+				document.body,
+				pointerEvent('pointermove', { clientX: 200, clientY: 200, buttons: 1 })
+			)
+
+			// The left button's pointerup is lost outside; recovery records button 0.
+			editor.inputs.setPointerVelocity(new Vec(0, 0))
+			await fire(
+				editor,
+				document.body,
+				pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 0 })
+			)
+			expect(editor.inputs.getIsPointing()).toBe(false)
+
+			// The late pointerup arrives with ctrl held → resolves to button 2. It
+			// still belongs to the recovered left press: swallow it instead of
+			// firing a static right-click contextmenu.
+			const dispatched = captureDispatchNames(editor)
+			await fire(
+				editor,
+				canvas,
+				pointerEvent('pointerup', {
+					clientX: 300,
+					clientY: 300,
+					button: 0,
+					buttons: 0,
+					ctrlKey: true,
+				})
+			)
+			expect(dispatched.filter((name) => name === 'pointer_up')).toHaveLength(0)
+			expect(contextmenu).not.toHaveBeenCalled()
+		} finally {
+			tlenv.isDarwin = prevIsDarwin
+		}
+	})
+
+	it('swallows a late pointerup landing on the menu click capture overlay', async () => {
+		const { editor } = await setup()
+
+		await act(async () => {
+			editor.menus.addOpenMenu('test-menu')
+		})
+		const overlay = document.querySelector(
+			'[data-testid="menu-click-capture.content"]'
+		) as HTMLElement
+		expect(overlay).toBeTruthy()
+
+		// Right pointerdown on the overlay is forwarded to the canvas handler,
+		// so dragging starts a pan.
+		await fire(
+			editor,
+			overlay,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 2, buttons: 2 })
+		)
+		await fire(
+			editor,
+			overlay,
+			pointerEvent('pointermove', { clientX: 200, clientY: 200, buttons: 2 })
+		)
+		expect(editor.inputs.getIsPanning()).toBe(true)
+
+		// Missed pointerup outside: the re-entry move over the overlay must not
+		// be forwarded as a drag, and recovery must end the pan.
+		editor.inputs.setPointerVelocity(new Vec(0, 0))
+		await fire(
+			editor,
+			overlay,
+			pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 0 })
+		)
+		expect(editor.inputs.getIsPanning()).toBe(false)
+		expect(editor.inputs.getIsPointing()).toBe(false)
+
+		// The late real pointerup lands on the overlay's own handler: it must
+		// consult the recovery record too, not re-dispatch pointer_up.
+		const dispatched = captureDispatchNames(editor)
+		await fire(
+			editor,
+			overlay,
+			pointerEvent('pointerup', { clientX: 300, clientY: 300, button: 2, buttons: 0 })
+		)
+		expect(dispatched.filter((name) => name === 'pointer_up')).toHaveLength(0)
+	})
+
+	it('processes a fresh right-click normally after a recovered pan', async () => {
+		const { editor, canvas } = await setup()
+
+		await act(async () => {
+			editor.createShape({ type: 'geo', x: 500, y: 500 })
+			editor.select(editor.getCurrentPageShapes()[0].id)
+		})
+		const selectedIds = editor.getSelectedShapeIds()
+
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 2, buttons: 2 })
+		)
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 200, clientY: 200, buttons: 2 })
+		)
+		editor.inputs.setPointerVelocity(new Vec(0, 0))
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 0 })
+		)
+		expect(editor.inputs.getIsPanning()).toBe(false)
+		expect(editor.getSelectedShapeIds()).toEqual(selectedIds)
+
+		// A new press clears the recovery record: this static right-click's
+		// pointerup must reach the state chart.
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 400, clientY: 400, button: 2, buttons: 2 })
+		)
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 402, clientY: 401, buttons: 2 })
+		)
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerup', { clientX: 402, clientY: 401, button: 2, buttons: 0 })
+		)
+		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 
 	it('recovers a darwin ctrl+click pan only after the physical left button is released', async () => {
