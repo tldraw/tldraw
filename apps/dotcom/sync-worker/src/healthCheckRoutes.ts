@@ -177,6 +177,11 @@ export const healthCheckRoutes = createRouter<Environment>()
 			await db.destroy()
 		}
 	})
+	// Split from /health-check/postgres so the monitor name identifies the outbox subsystem
+	// directly instead of burying it in a combined postgres failure string. There's no lag
+	// alert here: backoff rows are expected to sit with a future nextRetryAt, so alerting on
+	// lag alone would trip on healthy backoff; Sentry already covers individual sub-parking
+	// failures. Parked and stalled below cover the two failure modes that actually matter.
 	.get('/health-check/outbox', async (_, env) => {
 		const db = createPostgresConnectionPool(env, '/health-check/outbox')
 		const failures: string[] = []
@@ -197,6 +202,30 @@ export const healthCheckRoutes = createRouter<Environment>()
 				}
 			} catch (_e) {
 				failures.push('outbox: query failed')
+			}
+
+			// outbox-stalled: parked-only detection needs the drain to run at all. If the alarm
+			// chain died, fresh rows sit at attempts=0/nextRetryAt=null forever and never reach
+			// the parked threshold, so the check above stays green. A live drain sweeps every
+			// 30s and would have deleted, bumped attempts, or deferred (set nextRetryAt) any
+			// such row well within 15 minutes.
+			try {
+				const result = await sql<{ stalled: string }>`
+					SELECT count(*) AS stalled
+					FROM effect_outbox
+					WHERE attempts = 0
+						AND "nextRetryAt" IS NULL
+						AND "createdAt" < now() - interval '15 minutes'
+				`.execute(db)
+				const row = result.rows[0]
+				const stalled = row?.stalled ? parseInt(row.stalled, 10) : 0
+				if (stalled > 0) {
+					failures.push(`outbox-stalled: ${stalled} rows untouched > 15m`)
+				} else {
+					okDetails.push('outbox: 0 stalled')
+				}
+			} catch (_e) {
+				failures.push('outbox-stalled: query failed')
 			}
 
 			if (failures.length > 0) {
