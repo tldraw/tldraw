@@ -148,6 +148,20 @@ function ResolveDoId() {
 
 	return (
 		<div>
+			<p>
+				Finds the room behind a durable object id. Cloudflare analytics (the durable objects dash,
+				GraphQL, our Analytics Engine events) rank hot objects by id, but the id is a one-way hash
+				of the room name — this asks the object itself for its stored identity. Paste the full
+				64-character id (dash lists often truncate; use the search dropdown or GraphQL for the full
+				one).
+			</p>
+			<p>
+				Reading the result: <b>sockets</b> are live browser tabs holding a connection, and the save
+				stats come from the snapshot history bucket (one snapshot per persist) — recent, frequent
+				saves mean someone is editing; a connected socket with stale saves is a parked background
+				tab; no sockets means the room is idle. The slug is copyable on purpose instead of linked —
+				we do not open users&apos; files.
+			</p>
 			<div className={styles.searchContainer}>
 				<input
 					className={styles.searchInput}
