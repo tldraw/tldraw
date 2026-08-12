@@ -265,10 +265,8 @@ export class TLFileDurableObject extends DurableObject {
 					return storage
 				})
 				.catch((error) => {
-					// Every caller of getStorage now catches RoomNotFoundError and either closes the
-					// socket (onRequest, webSocketMessage) or no-ops (handleWebSocketEnd, the
-					// appFileRecord* effects), so it's never silently unhandled — just unreported here
-					// to avoid double-reporting what the caller already logs.
+					// RoomNotFoundError is an expected outcome (missing room), not an infra failure;
+					// callers decide how to surface it, so don't Sentry-report it here.
 					if (!(error instanceof RoomNotFoundError)) this.reportError(error)
 					// Never cache a rejection: the condition may heal, and a cached rejection
 					// makes every later retry fail instantly.
@@ -579,11 +577,11 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	override async webSocketClose(ws: WebSocket) {
-		this.handleWebSocketEnd(ws, 'handleSocketClose')
+		return this.handleWebSocketEnd(ws, 'handleSocketClose')
 	}
 
 	override async webSocketError(ws: WebSocket) {
-		this.handleWebSocketEnd(ws, 'handleSocketError')
+		return this.handleWebSocketEnd(ws, 'handleSocketError')
 	}
 
 	private async handleWebSocketEnd(
@@ -2653,7 +2651,6 @@ export class TLFileDurableObject extends DurableObject {
 
 	async appFileRecordCreated(file: TlaFile) {
 		if (this._fileRecordCache) return
-		const priorFileRecordCache = this._fileRecordCache
 		this._fileRecordCache = file
 
 		if (!this._documentInfo) {
@@ -2671,10 +2668,9 @@ export class TLFileDurableObject extends DurableObject {
 				console.error('appFileRecordCreated: room not found for deleted file, skipping', e)
 				return
 			}
-			// Restore the pre-call cache so a retry re-enters the `if (this._fileRecordCache)
-			// return` guard as a miss and actually re-attempts the room load, instead of
-			// silently no-oping on the next outbox attempt.
-			this._fileRecordCache = priorFileRecordCache
+			// Clear the cache so a retry re-enters the `if (this._fileRecordCache) return`
+			// guard as a miss and actually re-attempts the room load.
+			this._fileRecordCache = null
 			throw e
 		}
 	}

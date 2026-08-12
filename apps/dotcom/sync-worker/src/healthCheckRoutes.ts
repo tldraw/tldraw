@@ -200,7 +200,8 @@ export const healthCheckRoutes = createRouter<Environment>()
 				} else {
 					okDetails.push('outbox: 0 parked')
 				}
-			} catch (_e) {
+			} catch (e) {
+				console.error('health-check outbox:', e)
 				failures.push('outbox: query failed')
 			}
 
@@ -224,7 +225,8 @@ export const healthCheckRoutes = createRouter<Environment>()
 				} else {
 					okDetails.push('outbox: 0 stalled')
 				}
-			} catch (_e) {
+			} catch (e) {
+				console.error('health-check outbox:', e)
 				failures.push('outbox-stalled: query failed')
 			}
 
