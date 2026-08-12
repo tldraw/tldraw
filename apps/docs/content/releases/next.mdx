@@ -7,3 +7,29 @@ order: 0
 status: published
 last_version: v5.3.0
 ---
+
+This release adds a `center` operation to `Editor.alignShapes()`, `getOrInsert` methods on `AtomMap`, and faster hit-testing on pointer events. It also fixes background tabs reconnect-looping their sync connection, along with a batch of fixes across cutting, bookmarks, keyboard modifiers, frame headings, and comments.
+
+## API changes
+
+- 🔜 **`useViewportHeight()`** is deprecated. Read `window.visualViewport` directly instead. ([#9826](https://github.com/tldraw/tldraw/pull/9826))
+- Add `'center'` as an `Editor.alignShapes()` operation, which applies the existing `'center-horizontal'` and `'center-vertical'` operations together. ([#9074](https://github.com/tldraw/tldraw/pull/9074))
+- Add `getOrInsert()` and `getOrInsertComputed()` to `AtomMap`, matching the `Map` methods added in newer JavaScript runtimes. Both are reactive, and the callback only runs when the key is absent. ([#9752](https://github.com/tldraw/tldraw/pull/9752))
+
+## Improvements
+
+- Reduce per-pointer-event allocations in `Group2d` and `Editor` hit-testing. ([#8600](https://github.com/tldraw/tldraw/pull/8600))
+
+## Bug fixes
+
+- Fix background tabs repeatedly dropping and re-establishing their sync connection when the browser throttles timers. ([#9964](https://github.com/tldraw/tldraw/pull/9964))
+- Fix undo after a cut also reverting the change made before it. ([#9920](https://github.com/tldraw/tldraw/pull/9920))
+- Fix modifier keys briefly being treated as held at the start of a new click or drag right after being released, which could momentarily affect snapping and other modifier-dependent behavior. ([#9523](https://github.com/tldraw/tldraw/pull/9523))
+- Fix a crash when computing a frame's geometry if its heading text couldn't be measured yet. ([#9496](https://github.com/tldraw/tldraw/pull/9496))
+- Fix pasted links showing a broken preview image when the linked page has no Open Graph image. ([#9909](https://github.com/tldraw/tldraw/pull/9909))
+- Fix **Flatten to image** producing inconsistent groupings depending on selection order, and not merging clusters that were only connected through a bridging shape. ([#8661](https://github.com/tldraw/tldraw/pull/8661))
+- Fix wheel event normalization when a delta value isn't finite. ([#9586](https://github.com/tldraw/tldraw/pull/9586))
+- Fix the comment thread popover briefly rendering with a doubled shadow the first time a thread is opened. ([#9886](https://github.com/tldraw/tldraw/pull/9886))
+- Fix the people menu rows not lining up: the follow icon sat too close to the right edge, and collaborator names sat slightly left of your own. ([#9900](https://github.com/tldraw/tldraw/pull/9900))
+- Fix the spacing around the cursor chat item in the context menu. ([#9921](https://github.com/tldraw/tldraw/pull/9921))
+- Fix the counterclockwise rotation tooltip to show its comma key. ([#9772](https://github.com/tldraw/tldraw/pull/9772))
