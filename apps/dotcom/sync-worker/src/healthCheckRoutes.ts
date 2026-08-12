@@ -205,17 +205,17 @@ export const healthCheckRoutes = createRouter<Environment>()
 			}
 
 			// outbox-stalled: parked-only detection needs the drain to run at all. If the alarm
-			// chain died, fresh rows sit at attempts=0/nextRetryAt=null forever and never reach
-			// the parked threshold, so the check above stays green. A live drain sweeps every
-			// 30s and would have deleted, bumped attempts, or deferred (set nextRetryAt) any
-			// such row well within 15 minutes.
+			// chain died, unparked rows sit untouched forever and never reach the parked
+			// threshold, so the check above stays green. A row is stalled when it has been
+			// ELIGIBLE to process (created, or past its backoff) for 15+ minutes: a live drain
+			// sweeps every 30s and backoff caps at 5 minutes, so it would have deleted, bumped,
+			// or re-deferred any eligible row long before that.
 			try {
 				const result = await sql<{ stalled: string }>`
 					SELECT count(*) AS stalled
 					FROM effect_outbox
-					WHERE attempts = 0
-						AND "nextRetryAt" IS NULL
-						AND "createdAt" < now() - interval '15 minutes'
+					WHERE attempts < ${sql.raw(String(MAX_ATTEMPTS))}
+						AND GREATEST("createdAt", coalesce("nextRetryAt", "createdAt")) < now() - interval '15 minutes'
 				`.execute(db)
 				const row = result.rows[0]
 				const stalled = row?.stalled ? parseInt(row.stalled, 10) : 0
