@@ -2624,7 +2624,16 @@ export class TLFileDurableObject extends DurableObject {
 				deleted: false,
 			})
 		}
-		await this.getRoom()
+		try {
+			await this.getRoom()
+		} catch (e) {
+			// No loadable room means nothing to initialize; the next real open builds it.
+			if (e instanceof RoomNotFoundError) {
+				console.error('appFileRecordCreated: room not found, skipping', file.id)
+				return
+			}
+			throw e
+		}
 	}
 
 	async appFileRecordDidUpdate(file: TlaFile) {
@@ -2642,6 +2651,19 @@ export class TLFileDurableObject extends DurableObject {
 			})
 		}
 
+		try {
+			await this.updateRoomForFileRecord(file)
+		} catch (e) {
+			// No loadable room means no sessions to kick and no document record to rename.
+			if (e instanceof RoomNotFoundError) {
+				console.error('appFileRecordDidUpdate: room not found, skipping', file.id)
+				return
+			}
+			throw e
+		}
+	}
+
+	private async updateRoomForFileRecord(file: TlaFile) {
 		const storage = await this.getStorage()
 		// if the app file record updated, it might mean that the file name changed
 		storage.transaction((txn) => {
@@ -2718,18 +2740,25 @@ export class TLFileDurableObject extends DurableObject {
 			this._room = null
 			// delete should be handled by the delete endpoint now
 
-			// Delete published slug mapping
-			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(publishedSlug)
+			// A row from a partially-created file can lack a publishedSlug; there are no
+			// published artifacts to clean up in that case.
+			if (publishedSlug) {
+				// Delete published slug mapping
+				await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(publishedSlug)
 
-			// remove published files
-			const publishedPrefixKey = getR2KeyForRoom({
-				slug: `${id}/${publishedSlug}`,
-				isApp: true,
-			})
+				// remove published files
+				const publishedPrefixKey = getR2KeyForRoom({
+					slug: `${id}/${publishedSlug}`,
+					isApp: true,
+				})
 
-			const publishedHistory = await listAllObjectKeys(this.env.ROOM_SNAPSHOTS, publishedPrefixKey)
-			if (publishedHistory.length > 0) {
-				await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
+				const publishedHistory = await listAllObjectKeys(
+					this.env.ROOM_SNAPSHOTS,
+					publishedPrefixKey
+				)
+				if (publishedHistory.length > 0) {
+					await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
+				}
 			}
 
 			// remove edit history
