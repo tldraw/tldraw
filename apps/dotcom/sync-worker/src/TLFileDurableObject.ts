@@ -2772,6 +2772,49 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
+	/**
+	 * Force-closes every connected session with CLIENT_TOO_OLD, which shipped clients treat as
+	 * terminal: they stop reconnecting and show a "please reload" screen. This is the admin drain
+	 * for rooms held awake around the clock by parked background tabs reconnect-looping on stale
+	 * bundles — clients that predate the background-tab fix can only be stopped from the server.
+	 *
+	 * Boots the room (a one-time cost per drain), because rejection must run the protocol-aware
+	 * path: legacy-protocol clients need an incompatibility_error message rather than a close
+	 * code, and a hibernated session must be resumed into the room first so presence removal is
+	 * broadcast and the leave is logged.
+	 */
+	async __admin__closeAllSessions() {
+		const sockets = this.ctx.getWebSockets()
+		if (sockets.length === 0) return { closedSockets: 0 }
+
+		const room = this._documentInfo ? await this.getRoom() : null
+		for (const ws of sockets) {
+			const attachment = this.getSocketAttachment(ws)
+			const sessionId = attachment?.sessionId
+			if (room && sessionId) {
+				// If the DO was hibernating, this session was never re-added to the room; resume
+				// it so closeSession can reject it with the session's negotiated protocol.
+				if (attachment.snapshot && !room.getSessionSnapshot(sessionId)) {
+					room.handleSocketResume({
+						sessionId,
+						socket: ws,
+						snapshot: attachment.snapshot,
+						meta: attachment.meta,
+					})
+				}
+				room.closeSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+			}
+			// Backstop for sockets the room never saw (mid-handshake, or no documentInfo):
+			// close directly with the same terminal code. Closing twice is a no-op.
+			try {
+				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+			} catch {
+				// an already-closed socket is fine
+			}
+		}
+		return { closedSockets: sockets.length }
+	}
+
 	async __admin__hardDeleteIfLegacy() {
 		if (!this._documentInfo || this.documentInfo.deleted || this.documentInfo.isApp) return false
 		this.setDocumentInfo({

@@ -130,6 +130,36 @@ function ResolveDoId() {
 	const match = result?.match
 	const history = result?.history
 
+	const [isClosing, setIsClosing] = useState(false)
+	const onForceClose = useCallback(async () => {
+		if (!match) return
+		const objectId = input.trim()
+		if (
+			!window.confirm(
+				`Force-close ${match.connectedSockets} session(s) on ${match.slug}? ` +
+					'Every connected tab (including anyone actively editing) is disconnected and shown ' +
+					'a "please reload" screen.'
+			)
+		) {
+			return
+		}
+		setError(null)
+		setIsClosing(true)
+		try {
+			const res = await fetch(`/api/app/admin/close-do-sessions/${objectId}`, { method: 'POST' })
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			// re-resolve so the socket count and verdict reflect the drain
+			await onResolve()
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Force-close failed')
+		} finally {
+			setIsClosing(false)
+		}
+	}, [input, match, onResolve])
+
 	return (
 		<div>
 			<div className={styles.searchContainer}>
@@ -179,6 +209,14 @@ function ResolveDoId() {
 										: '') +
 									`latest ${history.latestSizeBytes !== null ? formatBytes(history.latestSizeBytes) : '-'} · ` +
 									`total ${formatBytes(history.totalSizeBytes)}`}
+						</div>
+					)}
+					{match.connectedSockets > 0 && (
+						<div>
+							<AdminButton variant="danger" onClick={onForceClose} isLoading={isClosing}>
+								Force-close {match.connectedSockets} session
+								{match.connectedSockets === 1 ? '' : 's'}
+							</AdminButton>
 						</div>
 					)}
 				</div>
