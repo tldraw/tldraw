@@ -17,9 +17,23 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { isEqual, TLRichText, useMaybeEditor } from 'tldraw'
+import { isEqual, tlenv, TLRichText, useMaybeEditor } from 'tldraw'
 import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from './comment-extensions'
 import { SendButton } from './send-button'
+
+/** How far a touch may travel and still count as a tap rather than a drag or a scroll. */
+const TAP_SLOP = 10
+/** Visual-viewport shortfall above which the software keyboard is already up. */
+const KEYBOARD_INSET = 100
+
+/**
+ * Whether this is an iOS device, including an iPad. `tlenv.isIos` reads the user agent for
+ * iPad/iPhone, which misses iPadOS entirely: Safari there requests desktop sites by default and
+ * identifies as `Macintosh`. A Mac has no touch screen, so Darwin plus a touch screen is an iPad.
+ */
+function isIosLike() {
+	return tlenv.isIos || (tlenv.isDarwin && tlenv.isTouchDevice)
+}
 
 /** @public */
 export interface CommentComposerProps {
@@ -258,6 +272,44 @@ export function CommentComposer({
 		const raf = requestAnimationFrame(() => editor.commands.focus('end'))
 		return () => cancelAnimationFrame(raf)
 	}, [autoFocus, editor])
+
+	// iOS raises the software keyboard only for a focus *transition* that happens inside a user
+	// gesture. The deferred focus above runs outside one, so the caret lands but the keyboard stays
+	// down — and because the input is then already focused, tapping it is a no-op: no transition, so
+	// nothing asks for the keyboard, and the field reads as dead. Re-run the transition inside the
+	// tap: a blur and refocus during `touchend` counts as user-initiated and raises it.
+	//
+	// Narrowly gated, because that blur also discards whatever the tap was doing — caret placement,
+	// a touch selection. iOS only (focus raises the keyboard by itself elsewhere); stationary taps
+	// only, so a selection-handle drag or a scroll ending over the field isn't caught; and only
+	// while the keyboard is down, so an ordinary editing tap keeps its caret.
+	useEffect(() => {
+		const wrap = inputWrapRef.current
+		if (!wrap || !editor || !isIosLike()) return
+		let start: { x: number; y: number } | null = null
+		const onTouchStart = (e: TouchEvent) => {
+			const touch = e.touches[0]
+			start = touch ? { x: touch.clientX, y: touch.clientY } : null
+		}
+		const onTouchEnd = (e: TouchEvent) => {
+			const dom = editor.view?.dom
+			if (!dom || dom.ownerDocument.activeElement !== dom) return
+			const touch = e.changedTouches[0]
+			if (!start || !touch) return
+			if (Math.hypot(touch.clientX - start.x, touch.clientY - start.y) > TAP_SLOP) return
+			const win = dom.ownerDocument.defaultView ?? window
+			const vv = win.visualViewport
+			if (vv && win.innerHeight - vv.height > KEYBOARD_INSET) return
+			dom.blur()
+			editor.commands.focus()
+		}
+		wrap.addEventListener('touchstart', onTouchStart)
+		wrap.addEventListener('touchend', onTouchEnd)
+		return () => {
+			wrap.removeEventListener('touchstart', onTouchStart)
+			wrap.removeEventListener('touchend', onTouchEnd)
+		}
+	}, [editor])
 
 	// The whole field behaves like the text input: clicking its empty area (the padding, or the
 	// space beside/below a short line) focuses the editor rather than only the text glyphs being
