@@ -497,7 +497,11 @@ export interface AdminFileStatsResponseBody {
 }
 
 /** One row of the admin effect-outbox listing, with derived fields the UI needs. */
-export interface AdminOutboxRow extends TlaEffectOutbox {
+export interface AdminOutboxRow extends Omit<TlaEffectOutbox, 'createdAt' | 'nextRetryAt'> {
+	/** ISO string: crosses the wire as JSON, not a kysely Date. */
+	createdAt: string
+	/** ISO string: crosses the wire as JSON, not a kysely Date. */
+	nextRetryAt: string | null
 	ageSeconds: number
 	parked: boolean
 	/** Current `file` row for tableName 'file' rows; null if hard-deleted or not a file row */

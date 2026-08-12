@@ -188,7 +188,9 @@ export const adminRoutes = createRouter<Environment>()
 			const result: AdminOutboxRowsResponseBody = {
 				rows: rows.map((row) => ({
 					...row,
-					ageSeconds: Math.round((now - new Date(row.createdAt).getTime()) / 1000),
+					createdAt: row.createdAt.toISOString(),
+					nextRetryAt: row.nextRetryAt ? row.nextRetryAt.toISOString() : null,
+					ageSeconds: Math.round((now - row.createdAt.getTime()) / 1000),
 					parked: row.attempts >= MAX_ATTEMPTS,
 					currentEntity:
 						row.tableName === 'file' ? (currentFileById.get(row.entityId) ?? null) : null,
@@ -221,7 +223,13 @@ export const adminRoutes = createRouter<Environment>()
 		if (numUpdatedRows === 0n) {
 			throw new StatusError(404, `Outbox row ${id} not found`)
 		}
-		await getFileEffectProcessor(env).poke()
+		// Best-effort nudge: the reset already committed, so a poke failure must not 500 this
+		// request; the sweep alarm picks the row up within 30s regardless.
+		try {
+			await getFileEffectProcessor(env).poke()
+		} catch (e) {
+			console.error(`Failed to poke effect processor after resetting outbox row ${id}`, e)
+		}
 		return json({ ok: true })
 	})
 	.post('/app/admin/outbox/:id/delete', async (res, env) => {

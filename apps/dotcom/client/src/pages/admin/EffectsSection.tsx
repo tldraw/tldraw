@@ -58,15 +58,16 @@ export function EffectsSection() {
 					if (res.status === 404) {
 						// A concurrent drain already consumed the row; refresh to show its current state.
 						await load()
-						setError('row already gone - refreshed')
+						setError('Row already gone - refreshed')
 						return
 					}
-					setError(`retry failed: ${res.status} ${res.statusText}`)
+					const text = await res.text().catch(() => '')
+					setError(`Retry failed: ${res.status} ${text}`)
 					return
 				}
 				await load()
 			} catch (err) {
-				setError(err instanceof Error ? `retry failed: ${err.message}` : 'retry failed')
+				setError(err instanceof Error ? `Retry failed: ${err.message}` : 'Retry failed')
 			} finally {
 				setBusyId(null)
 			}
@@ -85,15 +86,16 @@ export function EffectsSection() {
 					if (res.status === 404) {
 						// A concurrent drain already consumed the row; refresh to show its current state.
 						await load()
-						setError('row already gone - refreshed')
+						setError('Row already gone - refreshed')
 						return
 					}
-					setError(`delete failed: ${res.status} ${res.statusText}`)
+					const text = await res.text().catch(() => '')
+					setError(`Delete failed: ${res.status} ${text}`)
 					return
 				}
 				await load()
 			} catch (err) {
-				setError(err instanceof Error ? `delete failed: ${err.message}` : 'delete failed')
+				setError(err instanceof Error ? `Delete failed: ${err.message}` : 'Delete failed')
 			} finally {
 				setBusyId(null)
 			}
@@ -172,6 +174,7 @@ function describeChange(row: AdminOutboxRow): string {
 	} else if (next.published && prev.lastPublished !== next.lastPublished) {
 		changes.push('republished')
 	}
+	if (prev.publishedSlug !== next.publishedSlug) changes.push('publish slug changed')
 	if (prev.shared !== next.shared) changes.push(next.shared ? 'shared' : 'unshared')
 	if (prev.sharedLinkType !== next.sharedLinkType) {
 		changes.push(`link type → ${next.sharedLinkType}`)

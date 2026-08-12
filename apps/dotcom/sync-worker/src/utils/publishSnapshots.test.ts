@@ -77,6 +77,23 @@ describe('publishSnapshot', () => {
 		expect(env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put).not.toHaveBeenCalled()
 		expect(env.ROOM_SNAPSHOTS.put).not.toHaveBeenCalled()
 	})
+
+	it('propagates an awaitPersist rejection without writing to KV or R2', async () => {
+		const env = makeEnv()
+		const persistError = new Error('persist failed')
+		const awaitPersist = vi.fn(async () => {
+			throw persistError
+		})
+		env.TLDR_DOC.get.mockReturnValue({ awaitPersist })
+
+		await expect(
+			publishSnapshot(env as any as Environment, file({ id: 'f1', publishedSlug: 'slug-1' }))
+		).rejects.toThrow(persistError)
+
+		expect(env.ROOMS.get).not.toHaveBeenCalled()
+		expect(env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put).not.toHaveBeenCalled()
+		expect(env.ROOM_SNAPSHOTS.put).not.toHaveBeenCalled()
+	})
 })
 
 describe('unpublishSnapshot', () => {
