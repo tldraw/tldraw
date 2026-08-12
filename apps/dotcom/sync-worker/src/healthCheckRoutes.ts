@@ -71,8 +71,8 @@ export const healthCheckRoutes = createRouter<Environment>()
 			await db.destroy()
 		}
 	})
-	// Combined postgres health check: db size, changelog size, WAL retention, replication slots, and
-	// outbox parked rows. Grouped into a single endpoint because updown.io charges per check invocation.
+	// Combined postgres health check: db size, changelog size, WAL retention, and replication slots.
+	// Grouped into a single endpoint because updown.io charges per check invocation.
 	// Failures include the sub-check name so alerts remain distinguishable.
 	.get('/health-check/postgres', async (_, env) => {
 		const db = createPostgresConnectionPool(env, '/health-check/postgres')
@@ -169,6 +169,19 @@ export const healthCheckRoutes = createRouter<Environment>()
 				failures.push('replication-slots: query failed')
 			}
 
+			if (failures.length > 0) {
+				return new Response(`FAIL ${failures.join('; ')}`, { status: 500 })
+			}
+			return new Response(`ok (${okDetails.join(', ')})`, { status: 200 })
+		} finally {
+			await db.destroy()
+		}
+	})
+	.get('/health-check/outbox', async (_, env) => {
+		const db = createPostgresConnectionPool(env, '/health-check/outbox')
+		const failures: string[] = []
+		const okDetails: string[] = []
+		try {
 			// outbox-parked
 			try {
 				const result = await sql<{ parked: string }>`
