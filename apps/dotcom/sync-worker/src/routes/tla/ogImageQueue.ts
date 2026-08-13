@@ -14,10 +14,10 @@ import {
 	ThumbnailBoardRef,
 } from '../../types'
 import { deleteRenderTokenRecord } from '../../utils/renderTokens'
+import { enumerateBoardPages } from './boardTools'
 import {
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
-	enumerateBoardPages,
 	loadBoardSnapshot,
 	putThumbnailPng,
 	resolveThumbnailBoard,
@@ -237,6 +237,9 @@ export async function handleOgImageRenderMessage(
 	const boardRef: ThumbnailBoardRef = { kind, slug }
 	// A message already in the queue may carry no reason; see OgImageRenderQueueMessage.
 	const reason = message.body.reason ?? 'crawler'
+	// Normalised once, for the same reason `reason` is: the flag is optional on the wire (only follow-up
+	// messages set it), and every delivery of one job must record the same value on every path.
+	const followUp = message.body.followUp ?? false
 	const cacheKey = getOgImageCacheKey(boardRef)
 	// The board was deleted, was unpublished, or has no persisted content. Terminal, not transient: ack
 	// rather than retry, since no number of retries brings the board back. Applies the same delete/keep
@@ -248,6 +251,7 @@ export async function handleOgImageRenderMessage(
 		writeScreenshotTelemetry(env, {
 			source: 'queue',
 			reason,
+			followUp,
 			cacheStatus: 'miss',
 			failureReason: 'board_not_viewable',
 		})
@@ -268,7 +272,7 @@ export async function handleOgImageRenderMessage(
 		const cached = await env.THUMBNAILS?.head(cacheKey)
 		if (cached?.customMetadata?.version === String(board.version)) {
 			await clearOgImagePendingMarker(env, boardRef)
-			writeScreenshotTelemetry(env, { source: 'queue', reason, cacheStatus: 'hit' })
+			writeScreenshotTelemetry(env, { source: 'queue', reason, followUp, cacheStatus: 'hit' })
 			message.ack()
 			return
 		}
@@ -296,7 +300,12 @@ export async function handleOgImageRenderMessage(
 			// what we already know. Retry from here instead, in case content lands shortly after the
 			// enqueue. A read that *fails* throws rather than landing here, and the catch below retries it
 			// the same way, so neither path spends Browser Run.
-			await retryOrDrop(env, message, { reason, failureReason: 'board_empty', board: boardRef })
+			await retryOrDrop(env, message, {
+				reason,
+				followUp,
+				failureReason: 'board_empty',
+				board: boardRef,
+			})
 			return
 		}
 
@@ -316,7 +325,7 @@ export async function handleOgImageRenderMessage(
 		await clearOgImagePendingMarker(env, boardRef)
 		await enqueueFollowUpIfBoardMoved(env, message, board, reason, ctx)
 
-		writeScreenshotTelemetry(env, { source: 'queue', reason, cacheStatus: 'miss' })
+		writeScreenshotTelemetry(env, { source: 'queue', reason, followUp, cacheStatus: 'miss' })
 		message.ack()
 	} catch (error) {
 		// Reported once per job, on the delivery that gives up, rather than once per delivery: a board
@@ -337,6 +346,7 @@ export async function handleOgImageRenderMessage(
 		// extra render: the retry re-resolves at the top and drops before spending any Browser Run.
 		await retryOrDrop(env, message, {
 			reason,
+			followUp,
 			failureReason: classifyScreenshotFailure(error),
 			board: boardRef,
 		})
@@ -414,6 +424,7 @@ async function retryOrDrop(
 	message: Message<OgImageRenderQueueMessage>,
 	{
 		reason,
+		followUp,
 		failureReason,
 		board,
 	}: {
@@ -424,6 +435,8 @@ async function retryOrDrop(
 		 * others, splitting one job's deliveries across two values.
 		 */
 		reason: OgImageRenderReason
+		/** Resolved by the caller for the same reason as `reason` above. */
+		followUp: boolean
 		failureReason: string
 		board: ThumbnailBoardRef
 	}
@@ -434,6 +447,7 @@ async function retryOrDrop(
 	writeScreenshotTelemetry(env, {
 		source: 'queue',
 		reason,
+		followUp,
 		cacheStatus: 'miss',
 		failureReason,
 	})

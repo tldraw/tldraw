@@ -3,12 +3,20 @@ import { MCP_PER_USER_RATE_LIMIT } from '../../config'
 import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
+import {
+	parseBoardInfoInput,
+	parseClusterInfoInput,
+	parseClusterScreenshotInput,
+	parsePageInfoInput,
+} from './boardTools'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { authenticateMcpRequest } from './mcpAuth'
 import {
+	blobValuesOf,
 	blobsWithPrefix,
 	callerBlobsOf,
+	datapointsNamed,
 	failureBlobsOf,
 	makeBrowserBinding,
 	makeFakeRoomsBucket,
@@ -21,10 +29,7 @@ import {
 } from './screenshotTestHelpers'
 import {
 	isMcpScreenshotEnabled,
-	parseBoardInfoInput,
-	parseClusterInfoInput,
-	parseClusterScreenshotInput,
-	parsePageInfoInput,
+	normalizeMcpClient,
 	resetRateLimitFallbackForTests,
 	sharedBoardScreenshotMcp,
 } from './sharedBoardScreenshotMcp'
@@ -77,6 +82,8 @@ const PAGES = [
 // measure results and render-token records; MCP_DATA_BUCKET is where the tools cache their PNGs.
 // The clustering tools measure the page in a render before they can group anything, so the fake
 // browser plays the render page's part and posts a measure result.
+let requestId = 0
+
 function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	const env: Environment = makeScreenshotTestEnv({
 		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://render.example',
@@ -92,25 +99,79 @@ function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 
 // `userId` is who the mocked auth layer will report for this request — the key the per-user rate
 // limits and the board access check both work from.
-function makeRpcRequest(userId: string, method: string, params?: unknown) {
+function makeRpcRequest(
+	method: string,
+	params?: unknown,
+	{ userAgent, userId = 'user_default' }: { userAgent?: string; userId?: string } = {}
+) {
 	return new Request('https://sync.tldraw.xyz/app/mcp', {
 		method: 'POST',
-		headers: { 'x-test-user': userId },
+		headers: {
+			'cf-connecting-ip': `203.0.113.${++requestId}`,
+			'x-test-user': userId,
+			...(userAgent ? { 'user-agent': userAgent } : {}),
+		},
 		body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
 	}) as any
 }
 
-function makeToolCall(userId: string, name: string, args: object) {
-	return makeRpcRequest(userId, 'tools/call', { name, arguments: args })
+function makeToolCall(name: string, args: object, userId = 'user_default') {
+	return makeRpcRequest('tools/call', { name, arguments: args }, { userId })
 }
 
-async function resultOf(response: Response) {
+const MODERN_VERSION = '2026-07-28'
+const LEGACY_VERSION = '2025-11-25'
+
+// A 2026-07-28 request: version on every request, method and tool name mirrored into headers.
+// `headers` overrides let a test break one of those mirrors on purpose.
+function makeModernRpcRequest(
+	method: string,
+	params?: object,
+	{
+		version = MODERN_VERSION,
+		headers = {},
+	}: { version?: string; headers?: Record<string, string> } = {}
+) {
+	const name = (params as { name?: string } | undefined)?.name
+	return new Request('https://sync.tldraw.xyz/app/mcp', {
+		method: 'POST',
+		headers: {
+			'cf-connecting-ip': `203.0.113.${++requestId}`,
+			'mcp-protocol-version': version,
+			'mcp-method': method,
+			...(name ? { 'mcp-name': name } : {}),
+			...headers,
+		},
+		body: JSON.stringify({
+			jsonrpc: '2.0',
+			id: 1,
+			method,
+			params: {
+				...params,
+				_meta: { 'io.modelcontextprotocol/protocolVersion': version },
+			},
+		}),
+	}) as any
+}
+
+async function rpcResult(response: Response) {
 	return ((await response.json()) as any).result
 }
 
-async function callTool(userId: string, name: string, args: object, env = makeEnv()) {
-	return resultOf(await sharedBoardScreenshotMcp(makeToolCall(userId, name, args), env))
+async function rpcError(response: Response) {
+	return ((await response.json()) as any).error
 }
+
+// `userId` is who the mocked auth layer will report for this request — the key the per-user rate
+// limits and the board access check both work from. Defaulted, so only tests that care about
+// caller identity have to name one.
+async function callTool(name: string, args: object, env = makeEnv(), userId = 'user_default') {
+	return rpcResult(await sharedBoardScreenshotMcp(makeToolCall(name, args, userId), env))
+}
+
+// Kept as an alias so the pre-merge assertions that read a result off a raw response still read
+// naturally alongside main's rpcResult/rpcError pair.
+const resultOf = rpcResult
 
 function mockPublishedBoard(snapshot = makeSnapshot(PAGES)) {
 	// clearAllMocks (afterEach) resets call history but not mockResolvedValue, so a shared-file
@@ -138,7 +199,7 @@ function jobTokenOfCall(env: Environment, index: number) {
 // fetched once names the same cluster on every board. Fetched by a helper user where the test is
 // about budgets, so the lookup spends nobody's budget but the helper's.
 async function firstClusterId(env: Environment, userId: string, boardId: string, page?: unknown) {
-	const pageResult = await callTool(userId, 'get_page_info', { boardId, page }, env)
+	const pageResult = await callTool('get_page_info', { boardId, page }, env, userId)
 	return JSON.parse(pageResult.content[0].text).clusters[0].id as string
 }
 
@@ -195,7 +256,10 @@ describe('tool inputs', () => {
 describe('MCP server', () => {
 	it('lists the replacement tools without the old page screenshot tool', async () => {
 		const result = await resultOf(
-			await sharedBoardScreenshotMcp(makeRpcRequest('user_1', 'tools/list'), makeEnv())
+			await sharedBoardScreenshotMcp(
+				makeRpcRequest('tools/list', undefined, { userId: 'user_1' }),
+				makeEnv()
+			)
 		)
 		expect(result.tools.map((tool: any) => tool.name)).toEqual([
 			'get_board_info',
@@ -203,58 +267,6 @@ describe('MCP server', () => {
 			'get_cluster_info',
 			'get_cluster_screenshot',
 		])
-	})
-})
-
-describe('protocol version negotiation', () => {
-	// A post-handshake request states its version in a header rather than the body; makeRpcRequest
-	// deliberately sends none (the pre-2025-06-18 shape every other test exercises), so this builds
-	// the request by hand.
-	function makeVersionedListRequest(version: string) {
-		return new Request('https://sync.tldraw.xyz/app/mcp', {
-			method: 'POST',
-			headers: { 'x-test-user': 'user_60', 'mcp-protocol-version': version },
-			body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
-		}) as any
-	}
-
-	it('echoes any supported version on initialize, and answers the newest for anything else', async () => {
-		for (const version of ['2025-11-25', '2025-06-18', '2025-03-26']) {
-			const result = await resultOf(
-				await sharedBoardScreenshotMcp(
-					makeRpcRequest('user_60', 'initialize', { protocolVersion: version }),
-					makeEnv()
-				)
-			)
-			expect(result.protocolVersion).toBe(version)
-		}
-
-		// A version we don't speak — older, newer, or absent — gets our newest back, leaving the
-		// client to decide whether it can proceed, which is the shape the spec asks for.
-		for (const params of [{ protocolVersion: '2026-07-28' }, undefined]) {
-			const result = await resultOf(
-				await sharedBoardScreenshotMcp(makeRpcRequest('user_60', 'initialize', params), makeEnv())
-			)
-			expect(result.protocolVersion).toBe('2025-11-25')
-		}
-	})
-
-	it('serves requests stating any supported version, and refuses others naming the list', async () => {
-		for (const version of ['2025-11-25', '2025-06-18', '2025-03-26']) {
-			const response = await sharedBoardScreenshotMcp(makeVersionedListRequest(version), makeEnv())
-			expect(response.status).toBe(200)
-		}
-
-		// Refusal covers both directions: a version this server predates is as unspeakable as one it
-		// dropped, and guessing at either would have the client trusting answers shaped for a
-		// different revision.
-		for (const version of ['2024-11-05', '2026-07-28']) {
-			const response = await sharedBoardScreenshotMcp(makeVersionedListRequest(version), makeEnv())
-			expect(response.status).toBe(400)
-			const body = (await response.json()) as any
-			expect(body.error).toBe('unsupported_protocol_version')
-			expect(body.error_description).toContain('2025-11-25')
-		}
 	})
 })
 
@@ -282,10 +294,11 @@ describe('MCP_SCREENSHOT_ENABLED', () => {
 		const env = makeEnv({ MCP_SCREENSHOT_ENABLED: 'false' })
 
 		const response = await sharedBoardScreenshotMcp(
-			makeToolCall('user_40', 'get_cluster_screenshot', {
-				boardId: 'abc',
-				clusterIds: ['cluster:any'],
-			}),
+			makeToolCall(
+				'get_cluster_screenshot',
+				{ boardId: 'abc', clusterIds: ['cluster:any'] },
+				'user_40'
+			),
 			env
 		)
 
@@ -298,18 +311,179 @@ describe('MCP_SCREENSHOT_ENABLED', () => {
 	// would advertise tools that every call then rejects.
 	it('hides the protocol handshake while disabled', async () => {
 		const response = await sharedBoardScreenshotMcp(
-			makeRpcRequest('user_41', 'initialize'),
+			makeRpcRequest('initialize', undefined, { userId: 'user_41' }),
 			makeEnv({ MCP_SCREENSHOT_ENABLED: 'false' })
 		)
 
 		expect(response.status).toBe(404)
+	})
+
+	it('answers anything but POST with 405', async () => {
+		const response = await sharedBoardScreenshotMcp(
+			new Request('https://sync.tldraw.xyz/app/mcp', { method: 'GET' }) as any,
+			makeEnv()
+		)
+		expect(response.status).toBe(405)
+	})
+})
+
+// Both eras share one endpoint: 2026-07-28 (version per request) and 2025-11-25 (`initialize`).
+describe('protocol versions', () => {
+	it('reports what it speaks, so a client can pick a version', async () => {
+		const result = await rpcResult(
+			await sharedBoardScreenshotMcp(makeModernRpcRequest('server/discover'), makeEnv())
+		)
+		expect(result).toMatchObject({
+			resultType: 'complete',
+			supportedVersions: [MODERN_VERSION, LEGACY_VERSION],
+			capabilities: { tools: {} },
+			cacheScope: 'public',
+			_meta: {
+				'io.modelcontextprotocol/serverInfo': { name: 'tldraw-shared-board-screenshot' },
+			},
+		})
+	})
+
+	it('answers server/discover even when the request names a version it does not speak', async () => {
+		// Refusing here would leave the client no way to find a version we have in common.
+		const response = await sharedBoardScreenshotMcp(
+			makeModernRpcRequest('server/discover', undefined, { version: '2024-11-05' }),
+			makeEnv()
+		)
+		expect(response.status).toBe(200)
+		expect((await rpcResult(response)).supportedVersions).toEqual([MODERN_VERSION, LEGACY_VERSION])
+	})
+
+	it('rejects a version it does not speak, naming the ones it does', async () => {
+		const response = await sharedBoardScreenshotMcp(
+			makeModernRpcRequest('tools/list', undefined, { version: '2024-11-05' }),
+			makeEnv()
+		)
+		expect(response.status).toBe(400)
+		expect(await rpcError(response)).toMatchObject({
+			code: -32022,
+			data: { supported: [MODERN_VERSION, LEGACY_VERSION], requested: '2024-11-05' },
+		})
+	})
+
+	it('offers 2025-11-25 to a client that asks to initialize at 2024-11-05', async () => {
+		// Naming a version we do support is how the handshake declines one.
+		const result = await rpcResult(
+			await sharedBoardScreenshotMcp(
+				makeRpcRequest('initialize', { protocolVersion: '2024-11-05' }),
+				makeEnv()
+			)
+		)
+		expect(result.protocolVersion).toBe(LEGACY_VERSION)
+	})
+
+	it('serves a request with no version header as legacy', async () => {
+		// Clients are meant to send the header and plenty don't, so it's served rather than rejected.
+		const response = await sharedBoardScreenshotMcp(makeRpcRequest('ping'), makeEnv())
+		expect(response.status).toBe(200)
+		expect(await rpcResult(response)).toEqual({})
+	})
+
+	it('envelopes modern results and leaves legacy ones alone', async () => {
+		const modern = await rpcResult(
+			await sharedBoardScreenshotMcp(makeModernRpcRequest('tools/list'), makeEnv())
+		)
+		expect(modern).toMatchObject({
+			resultType: 'complete',
+			cacheScope: 'public',
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.0.0' } },
+		})
+		expect(modern.ttlMs).toBeGreaterThan(0)
+
+		const legacy = await rpcResult(
+			await sharedBoardScreenshotMcp(makeRpcRequest('tools/list'), makeEnv())
+		)
+		expect(legacy.resultType).toBeUndefined()
+		expect(legacy.ttlMs).toBeUndefined()
+		expect(legacy._meta).toBeUndefined()
+		// Same tools either way — only the envelope differs.
+		expect(legacy.tools).toEqual(modern.tools)
+	})
+
+	it('drops ping for modern callers, which no longer have it', async () => {
+		const response = await sharedBoardScreenshotMcp(makeModernRpcRequest('ping'), makeEnv())
+		expect(response.status).toBe(404)
+		expect((await rpcError(response)).code).toBe(-32601)
+	})
+
+	it('runs a tool under the modern envelope', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const result = await rpcResult(
+			await sharedBoardScreenshotMcp(
+				makeModernRpcRequest('tools/call', {
+					name: 'get_board_info',
+					arguments: { boardId: 'abc' },
+				}),
+				env
+			)
+		)
+		expect(result.resultType).toBe('complete')
+		expect(JSON.parse(result.content[0].text).pageCount).toBe(3)
+		expect(blobValuesOf(env, 'mcp_server_tool_call', 'tool')).toEqual(['get_board_info'])
+	})
+})
+
+// The routing headers duplicate body fields, so a disagreement between them has to be rejected.
+describe('modern request headers', () => {
+	it('rejects a method header that disagrees with the body', async () => {
+		const response = await sharedBoardScreenshotMcp(
+			makeModernRpcRequest('tools/list', undefined, { headers: { 'mcp-method': 'tools/call' } }),
+			makeEnv()
+		)
+		expect(response.status).toBe(400)
+		expect(await rpcError(response)).toMatchObject({ code: -32020 })
+	})
+
+	it('rejects a tool call whose name header disagrees with the body', async () => {
+		const response = await sharedBoardScreenshotMcp(
+			makeModernRpcRequest(
+				'tools/call',
+				{ name: 'get_board_info', arguments: { boardId: 'abc' } },
+				{ headers: { 'mcp-name': 'get_cluster_screenshot' } }
+			),
+			makeEnv()
+		)
+		expect(response.status).toBe(400)
+		expect(await rpcError(response)).toMatchObject({ code: -32020 })
+	})
+
+	it('rejects a modern request missing a required header', async () => {
+		const request = makeModernRpcRequest('tools/list')
+		request.headers.delete('mcp-method')
+		const response = await sharedBoardScreenshotMcp(request, makeEnv())
+		expect(response.status).toBe(400)
+		expect(await rpcError(response)).toMatchObject({ code: -32020 })
+	})
+
+	it('decodes a base64-wrapped name header before comparing it', async () => {
+		// Tool names are only *recommended* to be header-safe, so a conforming client may wrap one.
+		mockPublishedBoard()
+		const encoded = `=?base64?${btoa('get_board_info')}?=`
+		const result = await rpcResult(
+			await sharedBoardScreenshotMcp(
+				makeModernRpcRequest(
+					'tools/call',
+					{ name: 'get_board_info', arguments: { boardId: 'abc' } },
+					{ headers: { 'mcp-name': encoded } }
+				),
+				makeEnv()
+			)
+		)
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text).pageCount).toBe(3)
 	})
 })
 
 describe('get_board_info', () => {
 	it('returns the board name, page count, and stable page ids as well as indexes', async () => {
 		mockPublishedBoard()
-		const result = await callTool('user_1', 'get_board_info', { boardId: 'abc' })
+		const result = await callTool('get_board_info', { boardId: 'abc' }, undefined, 'user_1')
 
 		expect(JSON.parse(result.content[0].text)).toEqual({
 			name: 'My Board',
@@ -328,7 +502,7 @@ describe('get_board_info', () => {
 		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
 
-		const result = await callTool('user_2', 'get_board_info', { boardId: 'f1' }, env)
+		const result = await callTool('get_board_info', { boardId: 'f1' }, env, 'user_2')
 
 		expect(JSON.parse(result.content[0].text).pageCount).toBe(3)
 		expect(getPublishedFileInfo).not.toHaveBeenCalled()
@@ -339,7 +513,7 @@ describe('get_board_info', () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 
-		const result = await callTool('user_3', 'get_board_info', { boardId: 'missing' })
+		const result = await callTool('get_board_info', { boardId: 'missing' }, undefined, 'user_3')
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('No board was found with this id')
 	})
@@ -356,7 +530,7 @@ describe('get_board_info', () => {
 			new Error('connect ECONNREFUSED 10.0.0.5:5432')
 		)
 
-		const result = await callTool('user_4', 'get_board_info', { boardId: 'abc' })
+		const result = await callTool('get_board_info', { boardId: 'abc' }, undefined, 'user_4')
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toBe(
 			"Could not read board info: the board's saved content could not be read."
@@ -369,10 +543,10 @@ describe('get_board_info', () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'e', shared: true, isDeleted: false })
 
 		const result = await callTool(
-			'user_9',
 			'get_board_info',
 			{ boardId: 'e' },
-			makeEnv({ ROOMS: makeFakeRoomsBucket(null) })
+			makeEnv({ ROOMS: makeFakeRoomsBucket(null) }),
+			'user_9'
 		)
 
 		expect(result.isError).toBe(true)
@@ -393,10 +567,10 @@ describe('get_board_info', () => {
 		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('not shared'))
 
 		const result = await callTool(
-			'user_5',
 			'get_board_info',
 			{ boardId: 'f' },
-			makeEnv({ ROOMS: makeFakeRoomsBucket() })
+			makeEnv({ ROOMS: makeFakeRoomsBucket() }),
+			'user_5'
 		)
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toBe(
@@ -408,7 +582,12 @@ describe('get_board_info', () => {
 describe('page and cluster info', () => {
 	it('lists one cluster per top-level shape', async () => {
 		mockPublishedBoard()
-		const result = await callTool('user_6', 'get_page_info', { boardId: 'abc', page: 'page:a' })
+		const result = await callTool(
+			'get_page_info',
+			{ boardId: 'abc', page: 'page:a' },
+			undefined,
+			'user_6'
+		)
 		const info = JSON.parse(result.content[0].text)
 
 		expect(info.name).toBe('Cover')
@@ -425,7 +604,7 @@ describe('page and cluster info', () => {
 		mockPublishedBoard()
 		const env = makeEnv()
 		const clusterId = await firstClusterId(env, 'user_7', 'abc')
-		const result = await callTool('user_7', 'get_cluster_info', { boardId: 'abc', clusterId }, env)
+		const result = await callTool('get_cluster_info', { boardId: 'abc', clusterId }, env, 'user_7')
 		const info = JSON.parse(result.content[0].text)
 
 		expect(info).toMatchObject({
@@ -447,7 +626,7 @@ describe('page and cluster info', () => {
 		})
 
 		const clusterId = await firstClusterId(env, 'user_8', 'abc')
-		const result = await callTool('user_8', 'get_cluster_info', { boardId: 'abc', clusterId }, env)
+		const result = await callTool('get_cluster_info', { boardId: 'abc', clusterId }, env, 'user_8')
 		const shape = JSON.parse(result.content[0].text).shapes[0]
 
 		expect(shape.props.text).toBe('Checkout total')
@@ -467,7 +646,7 @@ describe('rate limits', () => {
 		mockPublishedBoard()
 		const env = makeEnv()
 		for (let i = 0; i < MCP_PER_USER_RATE_LIMIT + 4; i++) {
-			const result = await callTool('user_50', 'get_board_info', { boardId: 'abc' }, env)
+			const result = await callTool('get_board_info', { boardId: 'abc' }, env, 'user_50')
 			expect(result.isError).toBeUndefined()
 		}
 	})
@@ -477,7 +656,7 @@ describe('rate limits', () => {
 		const env = makeEnv()
 		const outcomes: (boolean | undefined)[] = []
 		for (let i = 0; i < MCP_PER_USER_RATE_LIMIT + 2; i++) {
-			outcomes.push((await callTool('user_51', 'get_page_info', { boardId: 'abc' }, env)).isError)
+			outcomes.push((await callTool('get_page_info', { boardId: 'abc' }, env, 'user_51')).isError)
 		}
 		expect(outcomes.some(Boolean)).toBe(true)
 	})
@@ -495,10 +674,10 @@ describe('rate limits', () => {
 		for (let i = 0; i <= MCP_PER_USER_RATE_LIMIT; i++) {
 			results.push(
 				await callTool(
-					'user_20',
 					'get_cluster_screenshot',
 					{ boardId: `board-${i}`, clusterIds: [clusterId] },
-					env
+					env,
+					'user_20'
 				)
 			)
 		}
@@ -523,19 +702,19 @@ describe('rate limits', () => {
 
 		for (let i = 0; i <= MCP_PER_USER_RATE_LIMIT; i++) {
 			await callTool(
-				'user_noisy',
 				'get_cluster_screenshot',
 				{ boardId: `board-${i}`, clusterIds: [clusterId] },
-				env
+				env,
+				'user_noisy'
 			)
 		}
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_user')
 
 		const other = await callTool(
-			'user_quiet',
 			'get_cluster_screenshot',
 			{ boardId: 'board-0', clusterIds: [clusterId] },
-			env
+			env,
+			'user_quiet'
 		)
 		expect(other.isError).toBeUndefined()
 	})
@@ -563,7 +742,7 @@ describe('rate limits', () => {
 
 		const results = []
 		for (const args of calls) {
-			results.push(await callTool('user_21', 'get_cluster_screenshot', args, env))
+			results.push(await callTool('get_cluster_screenshot', args, env, 'user_21'))
 		}
 
 		expect(results.slice(0, PER_BOARD_RATE_LIMIT).map((r) => r.isError)).toEqual(
@@ -590,10 +769,10 @@ describe('shape screenshots', () => {
 		const clusterId = await firstClusterId(env, 'user_60', 'abc')
 
 		const result = await callTool(
-			'user_60',
 			'get_cluster_screenshot',
 			{ boardId: 'abc', clusterIds: [clusterId] },
-			env
+			env,
+			'user_60'
 		)
 		expect(result.content).toEqual([
 			{ type: 'text', text: 'Cover' },
@@ -622,17 +801,17 @@ describe('shape screenshots', () => {
 	it('renders several clusters into one image, signing the union of their shapes', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
-		const pageResult = await callTool('user_61', 'get_page_info', { boardId: 'abc' }, env)
+		const pageResult = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_61')
 		const clusterIds = JSON.parse(pageResult.content[0].text)
 			.clusters.slice(0, 2)
 			.map((cluster: any) => cluster.id)
 		expect(clusterIds).toHaveLength(2)
 
 		const result = await callTool(
-			'user_61',
 			'get_cluster_screenshot',
 			{ boardId: 'abc', clusterIds },
-			env
+			env,
+			'user_61'
 		)
 		expect(result.isError).toBeUndefined()
 
@@ -645,10 +824,10 @@ describe('shape screenshots', () => {
 		const env = makeEnv()
 
 		const missing = await callTool(
-			'user_62',
 			'get_cluster_screenshot',
 			{ boardId: 'abc', clusterIds: ['cluster:nope'] },
-			env
+			env,
+			'user_62'
 		)
 		expect(missing.isError).toBe(true)
 	})
@@ -661,16 +840,16 @@ describe('shape screenshots', () => {
 		const clusterId = await firstClusterId(env, 'user_63', 'abc')
 
 		await callTool(
-			'user_63',
 			'get_cluster_screenshot',
 			{ boardId: 'abc', clusterIds: [clusterId] },
-			env
+			env,
+			'user_63'
 		)
 		const second = await callTool(
-			'user_64',
 			'get_cluster_screenshot',
 			{ boardId: 'abc', clusterIds: [clusterId] },
-			env
+			env,
+			'user_64'
 		)
 
 		expect(second.content).toEqual([
@@ -695,10 +874,10 @@ describe('shape screenshots', () => {
 		const env = makeEnv()
 
 		const result = await callTool(
-			'user_pi_spend',
 			'get_page_info',
 			{ boardId: 'abc', page: 0 },
-			env
+			env,
+			'user_pi_spend'
 		)
 
 		expect(result.isError).toBeUndefined()
@@ -722,10 +901,10 @@ describe('shape screenshots', () => {
 		const clusterId = await firstClusterId(env, 'user_ci_spend', 'abc')
 
 		const result = await callTool(
-			'user_ci_spend',
 			'get_cluster_info',
 			{ boardId: 'abc', clusterId },
-			env
+			env,
+			'user_ci_spend'
 		)
 
 		expect(result.isError).toBeUndefined()
@@ -739,7 +918,7 @@ describe('shape screenshots', () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
 
-		const result = await callTool('user_pi_nf', 'get_page_info', { boardId: 'nope', page: 0 }, env)
+		const result = await callTool('get_page_info', { boardId: 'nope', page: 0 }, env, 'user_pi_nf')
 
 		expect(result.isError).toBe(true)
 		expect(failureBlobsOf(env)).toEqual(['failure:not_found'])
@@ -752,17 +931,17 @@ describe('shape screenshots', () => {
 		const env = makeEnv()
 
 		const result = await callTool(
-			'user_65',
 			'get_cluster_screenshot',
 			{ boardId: 'abc', page: 9, clusterIds: ['cluster:any'] },
-			env
+			env,
+			'user_65'
 		)
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('out of range')
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 		// The documented reason vocabulary keeps selector mistakes distinct from missing boards —
 		// `failure:not_found` here would send a dashboard reader hunting for deleted boards.
-		expect(failureBlobsOf(env)).toContain('failure:page_out_of_range')
+		expect(failureBlobsOf(env)).toContain('failure:page_not_found')
 	})
 
 	it('reports an empty board as board_empty in telemetry, not as a missing board', async () => {
@@ -771,10 +950,10 @@ describe('shape screenshots', () => {
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(null) })
 
 		const result = await callTool(
-			'user_empty_board',
 			'get_cluster_screenshot',
 			{ boardId: 'e', clusterIds: ['cluster:any'] },
-			env
+			env,
+			'user_empty_board'
 		)
 
 		expect(result.isError).toBe(true)
@@ -782,20 +961,20 @@ describe('shape screenshots', () => {
 		expect(failureBlobsOf(env)).toContain('failure:board_empty')
 	})
 
-	it('reports a board with no pages as no_pages in telemetry', async () => {
+	it('reports a board with no pages as board_empty in telemetry', async () => {
 		mockPublishedBoard(makeSnapshot([]))
 		const env = makeEnv()
 
 		const result = await callTool(
-			'user_no_pages',
 			'get_cluster_screenshot',
 			{ boardId: 'abc', clusterIds: ['cluster:any'] },
-			env
+			env,
+			'user_no_pages'
 		)
 
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('no pages')
-		expect(failureBlobsOf(env)).toContain('failure:no_pages')
+		expect(failureBlobsOf(env)).toContain('failure:board_empty')
 	})
 
 	it('waits on either terminal selector and captures a success-only element so failed renders fail fast', async () => {
@@ -804,10 +983,10 @@ describe('shape screenshots', () => {
 		const clusterId = await firstClusterId(env, 'user_66', 'abc')
 
 		await callTool(
-			'user_66',
 			'get_cluster_screenshot',
 			{ boardId: 'abc', clusterIds: [clusterId] },
-			env
+			env,
+			'user_66'
 		)
 
 		const calls = screenshotOf(env).mock.calls
@@ -842,10 +1021,10 @@ describe('shape screenshots', () => {
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
 
 		const result = await callTool(
-			'user_67',
 			'get_cluster_screenshot',
 			{ boardId: 'f', clusterIds: ['cluster:any'] },
-			env
+			env,
+			'user_67'
 		)
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toBe(
@@ -864,10 +1043,10 @@ describe('shape screenshots', () => {
 		})
 
 		const result = await callTool(
-			'user_68',
 			'get_cluster_screenshot',
 			{ boardId: 'abc', clusterIds: ['cluster:any'] },
-			env
+			env,
+			'user_68'
 		)
 		expect(result.isError).toBe(true)
 		// One bounded reason code drives both the caller's message and the telemetry blob, so the raw
@@ -893,10 +1072,10 @@ describe('shape screenshots', () => {
 		const clusterId = await firstClusterId(env, 'user_69', 'abc')
 
 		const result = await callTool(
-			'user_69',
 			'get_cluster_screenshot',
 			{ boardId: 'abc', clusterIds: [clusterId] },
-			env
+			env,
+			'user_69'
 		)
 
 		expect(result.isError).toBeUndefined()
@@ -914,10 +1093,10 @@ describe('shape screenshots', () => {
 		const successEnv = makeEnv()
 		const clusterId = await firstClusterId(successEnv, 'user_70', 'abc')
 		await callTool(
-			'user_70',
 			'get_cluster_screenshot',
 			{ boardId: 'abc', clusterIds: [clusterId] },
-			successEnv
+			successEnv,
+			'user_70'
 		)
 		// Both successful rows — the helper's get_page_info measure and the screenshot — omit the
 		// caller: the per-client dimension must stay off the common success path for every tool.
@@ -927,10 +1106,10 @@ describe('shape screenshots', () => {
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 		const failEnv = makeEnv()
 		await callTool(
-			'user_71',
 			'get_cluster_screenshot',
 			{ boardId: 'missing', clusterIds: ['cluster:any'] },
-			failEnv
+			failEnv,
+			'user_71'
 		)
 		const callerBlobs = callerBlobsOf(failEnv)
 		expect(callerBlobs).toHaveLength(1)
@@ -957,10 +1136,10 @@ describe('per-user board access', () => {
 		const clusterId = await firstClusterId(env, 'user_owner', 'mine')
 
 		const result = await callTool(
-			'user_owner',
 			'get_cluster_screenshot',
 			{ boardId: 'mine', clusterIds: [clusterId] },
-			env
+			env,
+			'user_owner'
 		)
 
 		expect(result.isError).toBeUndefined()
@@ -997,10 +1176,10 @@ describe('per-user board access', () => {
 		// The owner populates the cache.
 		const clusterId = await firstClusterId(env, 'user_owner', 'mine')
 		await callTool(
-			'user_owner',
 			'get_cluster_screenshot',
 			{ boardId: 'mine', clusterIds: [clusterId] },
-			env
+			env,
+			'user_owner'
 		)
 		expect(bucket.store.size).toBe(1)
 
@@ -1009,10 +1188,10 @@ describe('per-user board access', () => {
 		vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 		const result = await callTool(
-			'user_stranger',
 			'get_cluster_screenshot',
 			{ boardId: 'mine', clusterIds: [clusterId] },
-			env
+			env,
+			'user_stranger'
 		)
 
 		expect(result.isError).toBe(true)
@@ -1029,10 +1208,10 @@ describe('per-user board access', () => {
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
 
 		const result = await callTool(
-			'user_stranger',
 			'get_cluster_screenshot',
 			{ boardId: 'mine', clusterIds: ['cluster:any'] },
-			env
+			env,
+			'user_stranger'
 		)
 
 		expect(result.isError).toBe(true)
@@ -1049,14 +1228,14 @@ describe('per-user board access', () => {
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
 
 		vi.mocked(getSharedFileInfo).mockResolvedValue(PRIVATE_FILE)
-		const inaccessible = await callTool('user_a', 'get_board_info', { boardId: 'mine' }, env)
+		const inaccessible = await callTool('get_board_info', { boardId: 'mine' }, env, 'user_a')
 
 		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
 		const nonexistent = await callTool(
-			'user_a',
 			'get_board_info',
 			{ boardId: 'no-such-board' },
-			env
+			env,
+			'user_a'
 		)
 
 		expect(inaccessible).toEqual(nonexistent)
@@ -1071,13 +1250,170 @@ describe('per-user board access', () => {
 		const clusterId = await firstClusterId(env, 'user_anyone', 'abc')
 
 		await callTool(
-			'user_anyone',
 			'get_cluster_screenshot',
 			{ boardId: 'abc', clusterIds: [clusterId] },
-			env
+			env,
+			'user_anyone'
 		)
 
 		const job = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
 		expect(job).toMatchObject({ kind: 'published', access: 'public', surface: 'mcp' })
+	})
+})
+
+// The render ledger (mcp_shared_board_screenshot) only fires when a screenshot is attempted, so on its
+// own it cannot see the info tools, the early failures, or who is calling. These datapoints are that
+// missing half: one per tools/call, plus the calling application's own name at initialize.
+const TOOL_CALL_EVENT = 'mcp_server_tool_call'
+const INITIALIZE_EVENT = 'mcp_server_initialize'
+
+describe('protocol telemetry', () => {
+	it('records one datapoint per tool call, with the tool, outcome and duration', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		await callTool('get_board_info', { boardId: 'abc' }, env)
+
+		const points = datapointsNamed(env, TOOL_CALL_EVENT)
+		expect(points).toHaveLength(1)
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'tool')).toEqual(['get_board_info'])
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'outcome')).toEqual(['ok'])
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual(['none'])
+		expect(points[0].doubles![0]).toBeGreaterThanOrEqual(0)
+	})
+
+	// The info tools do reach the request-level event, recording cache:none rather than a hit or a
+	// miss — they consult no PNG cache, and keeping those rows out of hit/miss is what lets a
+	// hit-rate-by-source panel read cache health instead of refusal volume.
+	it('records the info tools on both ledgers, with no cache verdict', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		await callTool('get_page_info', { boardId: 'abc' }, env)
+
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'tool')).toEqual(['get_page_info'])
+		expect(blobsWithPrefix(env, 'cache:')).toEqual(['cache:none'])
+	})
+
+	it('records the reason a call failed, and never reports a failure as ok', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		// Missing boardId, then a tool that does not exist.
+		await callTool('get_board_info', {}, env)
+		await callTool('get_nothing', {}, env)
+
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'tool')).toEqual(['get_board_info', 'unknown'])
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'outcome')).toEqual(['error', 'error'])
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual(['invalid_input', 'unknown_tool'])
+	})
+
+	// The per-user limit on the clustering tools rejects callers silently: it returns a tool error
+	// without reaching the render path that writes the screenshot ledger. Every call names the same
+	// user, since the budget is per account and the default caller would otherwise be shared with
+	// whatever else ran in this file.
+	it('records a rate-limited info call', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		for (let i = 0; i < MCP_PER_USER_RATE_LIMIT + 2; i++) {
+			await callTool('get_page_info', { boardId: 'abc' }, env, 'user_rl_info')
+		}
+
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toContain('rate_limited_user')
+	})
+
+	// A handler is supposed to catch its own failures, so an escaped throw is a bug — which is exactly
+	// when the datapoint matters most. The rate limit check is the one step that sits outside a
+	// handler's try, so a limiter binding that rejects is the reachable version of that bug. The error
+	// still propagates; only the recording is added.
+	it('records a tool that throws, and still lets the error through', async () => {
+		mockPublishedBoard()
+		const env = makeEnv({
+			MCP_SCREENSHOT_RATE_LIMITER: {
+				limit: async () => {
+					throw new Error('limiter unavailable')
+				},
+			},
+		})
+
+		await expect(callTool('get_page_info', { boardId: 'abc' }, env)).rejects.toThrow(
+			'limiter unavailable'
+		)
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual(['unhandled_error'])
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'outcome')).toEqual(['error'])
+	})
+
+	// The tool name comes straight off the wire, so the lookup must not resolve inherited names. A
+	// plain object would hand back Object.prototype's own methods and call them as tools: `constructor`
+	// would echo the caller's arguments back as a successful result, and `__proto__` would 500.
+	it('reports inherited property names as unknown tools rather than calling them', async () => {
+		for (const name of ['constructor', 'toString', '__proto__', 'valueOf', 'hasOwnProperty']) {
+			const env = makeEnv()
+			const response = await sharedBoardScreenshotMcp(
+				makeToolCall(name, { secret: 'echo-me' }),
+				env
+			)
+			const body = (await response.json()) as any
+
+			expect(body.error, name).toMatchObject({ code: -32602 })
+			expect(body.result, name).toBeUndefined()
+			expect(blobValuesOf(env, TOOL_CALL_EVENT, 'tool'), name).toEqual(['unknown'])
+			expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason'), name).toEqual(['unknown_tool'])
+		}
+	})
+
+	// clientInfo is whatever the client put in the body. Before the telemetry existed, initialize
+	// ignored params entirely, so a loose serializer sending a non-string name still connected.
+	it('handles a non-string clientInfo.name at initialize', async () => {
+		for (const name of [123, true, ['a'], { x: 1 }, null]) {
+			const env = makeEnv()
+			const response = await sharedBoardScreenshotMcp(
+				makeRpcRequest('initialize', { clientInfo: { name } }),
+				env
+			)
+
+			expect(response.status, String(name)).toBe(200)
+			expect((await response.json()) as any, String(name)).toMatchObject({
+				result: { protocolVersion: expect.any(String) },
+			})
+			expect(blobValuesOf(env, INITIALIZE_EVENT, 'client'), String(name)).toEqual(['none'])
+			expect(blobValuesOf(env, INITIALIZE_EVENT, 'raw'), String(name)).toEqual(['none'])
+		}
+	})
+
+	it('records the client family from the user agent', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		await sharedBoardScreenshotMcp(
+			makeRpcRequest(
+				'tools/call',
+				{ name: 'get_board_info', arguments: { boardId: 'abc' } },
+				{ userAgent: 'python-httpx/0.27.0' }
+			),
+			env
+		)
+
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'client')).toEqual(['python'])
+	})
+
+	it('records the calling application named at initialize', async () => {
+		const env = makeEnv()
+		await sharedBoardScreenshotMcp(
+			makeRpcRequest('initialize', { clientInfo: { name: 'Claude', version: '1.0' } }),
+			env
+		)
+
+		expect(blobValuesOf(env, INITIALIZE_EVENT, 'client')).toEqual(['claude'])
+		// The raw name is kept alongside the family, so a client we do not recognize yet can be found.
+		expect(blobValuesOf(env, INITIALIZE_EVENT, 'raw')).toEqual(['Claude'])
+		expect(blobValuesOf(env, INITIALIZE_EVENT, 'ua')).toEqual(['none'])
+	})
+
+	it('normalizes client strings into a bounded set of families', () => {
+		expect(normalizeMcpClient('claude-ai/1.0')).toBe('claude')
+		// A Claude user agent also says Mozilla, so the more specific match has to win.
+		expect(normalizeMcpClient('Mozilla/5.0 (Macintosh) Claude/1.2')).toBe('claude')
+		expect(normalizeMcpClient('python-httpx/0.27.0')).toBe('python')
+		expect(normalizeMcpClient('Mozilla/5.0 (Macintosh)')).toBe('browser')
+		// Unrecognized agents collapse to one value rather than becoming a new dimension each.
+		expect(normalizeMcpClient('some-new-agent/1.0')).toBe('other')
+		expect(normalizeMcpClient(null)).toBe('none')
 	})
 })

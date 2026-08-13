@@ -1,14 +1,11 @@
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
-	MAX_THUMBNAIL_PAGES,
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
 	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
-import { ClusterBounds } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { TLShape, isPage, isShape } from '@tldraw/tlschema'
 import { THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
 import { getR2KeyForRoom } from '../../r2'
 import {
@@ -27,6 +24,7 @@ import {
 	mintThumbnailRenderToken,
 	recordMintedRenderToken,
 } from '../../utils/renderTokens'
+import { ShapeMeasurement } from './boardTools'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import {
 	SharedFileInfo,
@@ -146,32 +144,6 @@ export async function loadBoardSnapshot(
 	}
 }
 
-// A board page in stable board order. `index` is the 0-based ordinal callers pass to the screenshot
-// tool; `id` is the internal TLPageId used to drive the render page.
-export interface EnumeratedPage {
-	index: number
-	id: string
-	name: string
-	hasContent: boolean
-}
-
-// Lists a board's pages in the same order the editor shows them. tldraw page indexes are fractional
-// indexes that sort lexicographically, so a plain string sort matches the editor's ordering. A page
-// "has content" when at least one shape sits directly on it (nested shapes always have a top-level
-// ancestor on their page, so checking direct children is sufficient).
-export function enumerateBoardPages(snapshot: RoomSnapshot): EnumeratedPage[] {
-	const records = snapshot.documents.map((d) => d.state)
-	const pageRecords = records.filter(isPage)
-	pageRecords.sort((a, b) => (a.index < b.index ? -1 : a.index > b.index ? 1 : 0))
-	const parentIdsWithShapes = new Set(records.filter(isShape).map((s) => s.parentId))
-	return pageRecords.slice(0, MAX_THUMBNAIL_PAGES).map((p, index) => ({
-		index,
-		id: String(p.id),
-		name: typeof p.name === 'string' && p.name.length > 0 ? p.name : `Page ${index + 1}`,
-		hasContent: parentIdsWithShapes.has(p.id),
-	}))
-}
-
 export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
 	const url = new URL(THUMBNAIL_RENDER_PATH, renderOrigin)
 	url.searchParams.set('token', token)
@@ -258,22 +230,6 @@ export async function captureThumbnailScreenshot(
 		width,
 		height,
 		session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
-	})
-}
-
-// The shapes belonging to one page, in snapshot order. Nested shapes carry their ancestor's id as
-// `parentId`, so membership is resolved by walking up to a top-level shape whose parent is the page.
-export function getShapesOnPage(snapshot: RoomSnapshot, pageId: string): TLShape[] {
-	const shapes = snapshot.documents.map((d) => d.state).filter(isShape)
-	const byId = new Map(shapes.map((s) => [s.id, s]))
-	return shapes.filter((shape) => {
-		let current: TLShape | undefined = shape
-		// Bounded by the ancestor chain, and guarded against a cyclic parentId in a corrupt snapshot.
-		for (let depth = 0; current && depth < 100; depth++) {
-			if (current.parentId === pageId) return true
-			current = byId.get(current.parentId as TLShape['id'])
-		}
-		return false
 	})
 }
 
@@ -499,11 +455,6 @@ async function callLocalScreenshotService(
 // result back. Stashed under the job's own token and read once, so it is a rendezvous for a single
 // in-flight render rather than a cache with a lifetime to manage.
 
-/** What one shape's measure render produced: its page bounds, plus the text its ShapeUtil reported. */
-export interface ShapeMeasurement extends ClusterBounds {
-	text?: string
-}
-
 function getRenderResultKey(token: string) {
 	return `render-result/${encodeURIComponent(token)}.json`
 }
@@ -631,6 +582,14 @@ export function writeScreenshotTelemetry(
 		 */
 		reason?: OgImageRenderReason
 		/**
+		 * Whether this delivery is the follow-up a completed render enqueues when the board moved during
+		 * its capture (see `enqueueFollowUpIfBoardMoved`), rather than the ask a trigger made. Separates
+		 * the two halves of render spend, which `reason` cannot: a follow-up inherits the reason of the
+		 * job it follows, so both land in the same bucket. Only meaningful on queue datapoints; the
+		 * request paths have no follow-up and record `none`.
+		 */
+		followUp?: boolean
+		/**
 		 * What the PNG cache did for this request. `none` when the request never consulted it: the
 		 * info tools have no cache at all, and a screenshot request refused before the cache read
 		 * (bad input, rate-limited caller, unresolvable board) says nothing about cache health.
@@ -665,6 +624,10 @@ export function writeScreenshotTelemetry(
 			// Appended rather than slotted in beside `source`, so the existing blob positions (and the
 			// dashboard panels reading them) don't shift.
 			`reason:${data.reason ?? 'none'}`,
+			// Appended for the same reason. `none` rather than `false` for the surfaces that have no
+			// follow-up concept at all, so a query for triggered renders can say `followup:false` and mean
+			// it, instead of sweeping up every og and mcp datapoint too.
+			`followup:${data.followUp ?? 'none'}`,
 		],
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,

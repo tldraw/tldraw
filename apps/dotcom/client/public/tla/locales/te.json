@@ -258,7 +258,7 @@
     "translation": "తరువాత"
   },
   "61fb03fd7b": {
-    "translation": "{count, plural, one {మీ వ్యాఖ్యకు ఎవరో స్పందించారు} other {మీ వ్యాఖ్యకు ప్రజలు స్పందించారు}}"
+    "translation": "{count, plural, one {మీ వ్యాఖ్యకు ఎవరో స్పందించారు} other {మీ వ్యాఖ్యకు # మంది స్పందించారు}}"
   },
   "625fd29749": {
     "translation": "పాతది"

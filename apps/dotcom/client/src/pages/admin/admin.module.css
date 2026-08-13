@@ -489,6 +489,40 @@
 	font-family: monospace;
 }
 
+.clickableRow {
+	cursor: pointer;
+}
+
+.clickableRow:hover {
+	background: var(--admin-hover);
+}
+
+.attemptsWarn {
+	color: var(--admin-red);
+	font-weight: 600;
+}
+
+.attemptsParked {
+	color: var(--admin-surface);
+	background: var(--admin-red);
+	padding: 1px 6px;
+	border-radius: 4px;
+}
+
+.outboxDetails {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	padding: 8px;
+	background: var(--admin-bg);
+	border: 1px solid var(--admin-border-2);
+}
+
+.outboxDetailsColumn {
+	flex: 1 1 240px;
+	min-width: 0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
 	.searchContainer,

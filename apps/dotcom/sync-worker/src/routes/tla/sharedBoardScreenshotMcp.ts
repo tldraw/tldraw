@@ -1,11 +1,4 @@
-import {
-	DEFAULT_THUMBNAIL_HEIGHT,
-	DEFAULT_THUMBNAIL_WIDTH,
-	getShapeClusters,
-	getShapeText,
-	type TLShapeWithPlainText,
-} from '@tldraw/dotcom-shared'
-import { TLShape } from '@tldraw/tlschema'
+import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
 	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
@@ -14,17 +7,42 @@ import {
 	MCP_RATE_LIMIT_WINDOW_MS,
 } from '../../config'
 import { Environment, envFlagWord } from '../../types'
-import { arrayBufferToBase64 } from '../../utils/base64'
+import { writeDataPoint } from '../../utils/analytics'
+import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
 import { sha256 } from '../../utils/hash'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
-import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
+import {
+	BOARD_EMPTY_MESSAGE,
+	BOARD_INFO_TOOL_NAME,
+	BOARD_NOT_FOUND_MESSAGE,
+	CLUSTER_INFO_TOOL_NAME,
+	CLUSTER_SCREENSHOT_TOOL_NAME,
+	MCP_SERVER_INFO,
+	MCP_SERVER_INSTRUCTIONS,
+	PAGE_INFO_TOOL_NAME,
+	PageSelector,
+	ResolvedPageOk,
+	ShapeMeasurement,
+	ToolResult,
+	describePageSelector,
+	getBoardInfo,
+	getClusterInfo,
+	getPageInfo,
+	getToolDefinitions,
+	parseBoardInfoInput,
+	parseClusterInfoInput,
+	parseClusterScreenshotInput,
+	parsePageInfoInput,
+	pickClusterShapes,
+	resolvePage,
+	toolError as modelToolError,
+	toolPageResult as modelToolPageResult,
+} from './boardTools'
 import { authenticateMcpRequest } from './mcpAuth'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
-	enumerateBoardPages,
-	getShapesOnPage,
 	loadBoardSnapshot,
 	measurePageShapes,
 	putThumbnailPng,
@@ -37,41 +55,48 @@ import {
 	reportThumbnailError,
 } from './thumbnailShared'
 
-// The MCP protocol surface over the shared render-and-cache core in thumbnailRender.ts: JSON-RPC
-// plumbing, tool definitions, input parsing, and the MCP tools' own per-user/per-board rate limits
-// and `mcp/` cache keys. Authentication and the feature flag gate live in mcpAuth.ts, applied to the
-// whole endpoint before any of this runs.
-
-const BOARD_INFO_TOOL_NAME = 'get_board_info'
-const PAGE_INFO_TOOL_NAME = 'get_page_info'
-const CLUSTER_INFO_TOOL_NAME = 'get_cluster_info'
-const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
-
-// The versions this server will speak, newest first.
+// What it takes to run the board tools on Cloudflare: board resolution against Postgres and R2,
+// Browser Rendering, the `mcp/` PNG cache, rate limits, telemetry, and the HTTP shell around the
+// JSON-RPC dispatch.
 //
-// `2024-11-05` is deliberately absent, and dropping it is what made authentication possible: MCP had
-// no authorization flow until `2025-03-26`, so a client holding this server to that version has no
-// conformant way to obtain the token every request now needs. Advertising it would leave those
-// clients unable to authenticate but convinced the server was working as specified.
+// The model-facing tools themselves live in boardTools.ts. That pure boundary lets the private eval
+// harness serve the exact same tool descriptions, parsing, clustering, and errors from local board
+// fixtures without needing a database or Browser Rendering.
 //
-// `2026-07-28` is also absent, for the opposite reason: it is not a version bump but a different
-// wire protocol — it removes the `initialize` handshake (version and capabilities move into `_meta`
-// on every request), requires a `server/discover` RPC, a `resultType` field on every result, and
-// `ttlMs`/`cacheScope` on `tools/list`. Claiming it means implementing all of that; `2025-11-25`
-// asks nothing of this server beyond what `2025-06-18` did.
-const MCP_PROTOCOL_VERSION = '2025-11-25'
-const SUPPORTED_MCP_PROTOCOL_VERSIONS = [MCP_PROTOCOL_VERSION, '2025-06-18', '2025-03-26']
-// What to assume when a request carries no MCP-Protocol-Version header. The spec names this exact
-// fallback: the header was introduced in 2025-06-18, so its absence means an earlier client rather
-// than a malformed request.
-const ASSUMED_MCP_PROTOCOL_VERSION = '2025-03-26'
+// Authentication and the feature flag gate live in mcpAuth.ts, applied to the whole endpoint before
+// any of this runs; the verified `userId` it returns is threaded through every tool below, keying
+// the per-user rate limits and the per-user board access check.
 
-// One message for every way a board can fail to resolve, used by every tool. Deliberately silent on
-// which: a board id is something the caller types, so an error that told "this exists but is not
-// yours" apart from "this does not exist" would let anyone test file ids for existence. It also
-// cannot name what would fix it, since the caller may simply be signed in as the wrong account.
-const BOARD_NOT_FOUND =
-	'No board was found with this id, or this account does not have access to it. Boards you own, boards shared with you via link, and published boards are supported.'
+// The two protocol revisions this server speaks, newest first, as `server/discover` reports them.
+//
+// 2026-07-28 is the *modern* era: no handshake and no session, every request carrying its own
+// protocol version, and the routing-relevant body fields mirrored into HTTP headers. 2025-11-25 is
+// the *legacy* era, which opens with an `initialize` handshake instead. We serve both for now.
+//
+// 2025-11-25 is the oldest version this server implements. a client asking for older versions
+// will be met with this version.
+const MCP_PROTOCOL_VERSION_MODERN = '2026-07-28'
+const MCP_PROTOCOL_VERSION_LEGACY = '2025-11-25'
+const SUPPORTED_PROTOCOL_VERSIONS = [MCP_PROTOCOL_VERSION_MODERN, MCP_PROTOCOL_VERSION_LEGACY]
+
+type ProtocolEra = 'modern' | 'legacy'
+
+// -32700/-32601/-32602 are plain JSON-RPC.
+// -32020 and up are reserved by the MCP spec
+const PARSE_ERROR = -32700
+const METHOD_NOT_FOUND = -32601
+const INVALID_PARAMS = -32602
+const HEADER_MISMATCH = -32020
+const UNSUPPORTED_PROTOCOL_VERSION = -32022
+
+// `_meta` keys the modern era uses for per-request version and identity.
+const META_PROTOCOL_VERSION = 'io.modelcontextprotocol/protocolVersion'
+const META_SERVER_INFO = 'io.modelcontextprotocol/serverInfo'
+
+// Modern `tools/list` is cacheable. This list is the same for every caller, so it's public — if the
+// tool set ever varies by caller, `cacheScope` has to drop to 'private'.
+const TOOLS_LIST_TTL_MS = 3_600_000
+const TOOLS_LIST_CACHE_SCOPE = 'public'
 
 // The MCP rate limit budgets themselves live in config.ts (MCP_PER_USER_RATE_LIMIT and friends),
 // with the comment that maps each isolate-local fallback to its deployed Cloudflare binding. They
@@ -127,7 +152,16 @@ interface JsonRpcRequest {
 	params?: {
 		name?: string
 		arguments?: unknown
-		protocolVersion?: unknown
+		/** Legacy `initialize` only: the version the client is asking to speak. */
+		protocolVersion?: string
+		/** Modern only: per-request version, client identity and capabilities. */
+		_meta?: Record<string, unknown>
+		// Typed as unknown because it is whatever the client put in the request body; the telemetry
+		// writer narrows it rather than trusting it.
+		clientInfo?: {
+			name?: unknown
+			version?: unknown
+		}
 	}
 }
 
@@ -140,6 +174,97 @@ export function isMcpScreenshotEnabled(env: Environment) {
 	return word === undefined || word === 'true'
 }
 
+// --- MCP protocol telemetry ---
+
+// Known MCP client families, matched as case-insensitive substrings against the User-Agent header
+// and the clientInfo.name from initialize. Bounded on purpose: raw agent strings are
+// unbounded-cardinality, so anything unrecognized lands in `other`, and the initialize event keeps a
+// truncated raw name for spotting families worth adding here. Order matters where strings overlap —
+// a Claude UA also says Mozilla, so `mozilla` sits last.
+const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: string]> = [
+	['claude', 'claude'],
+	['anthropic', 'claude'],
+	['chatgpt', 'openai'],
+	['openai', 'openai'],
+	['cursor', 'cursor'],
+	['python', 'python'],
+	['httpx', 'python'],
+	['aiohttp', 'python'],
+	['node', 'node'],
+	['undici', 'node'],
+	['curl', 'curl'],
+	['mozilla', 'browser'],
+]
+
+// Takes unknown because one caller passes a header and the other passes a field parsed straight out
+// of the request body, which is whatever the client chose to send.
+export function normalizeMcpClient(value: unknown): string {
+	if (typeof value !== 'string' || value === '') return 'none'
+	const lower = value.toLowerCase()
+	for (const [needle, family] of MCP_CLIENT_FAMILIES) {
+		if (lower.includes(needle)) return family
+	}
+	return 'other'
+}
+
+// One datapoint per tools/call dispatch, whatever the tool did: the render path's
+// mcp_shared_board_screenshot event only fires when a screenshot is attempted, so without this the
+// info tools (and every early failure) are invisible. Written at the dispatcher rather than inside
+// the tools, so a new tool cannot ship unmetered.
+function writeMcpToolCallTelemetry(
+	env: Environment,
+	request: Request,
+	data: { tool: string; durationMs: number; reason?: string }
+) {
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_tool_call', {
+		blobs: [
+			`tool:${data.tool}`,
+			`outcome:${data.reason ? 'error' : 'ok'}`,
+			`reason:${data.reason ?? 'none'}`,
+			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+		],
+		doubles: [data.durationMs],
+	})
+}
+
+// initialize is the one request where the calling application names itself, so it gets its own
+// event. The raw name is kept (truncated) alongside the normalized family: initializes are rare
+// enough that the cardinality is affordable, and it is how new families get discovered. The UA
+// family rides along as a cross-check for hosts whose header and clientInfo disagree.
+function writeMcpInitializeTelemetry(
+	env: Environment,
+	request: Request,
+	clientInfo: { name?: unknown; version?: unknown } | undefined
+) {
+	const name = clientInfo?.name
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_initialize', {
+		blobs: [
+			`client:${normalizeMcpClient(name)}`,
+			`raw:${typeof name === 'string' ? name.slice(0, 64) : 'none'}`,
+			`ua:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+		],
+	})
+}
+
+// A Map rather than an object literal, because the key comes straight off the wire: a plain object
+// would resolve inherited names too, so `tools/call` for `constructor` or `toString` would find one
+// of Object's own methods and call it as a tool instead of reporting an unknown tool.
+const TOOL_HANDLERS = new Map<
+	string,
+	(
+		argumentsValue: unknown,
+		request: Request,
+		env: Environment,
+		userId: string,
+		ctx?: ExecutionContext
+	) => Promise<ToolCallResult>
+>([
+	[BOARD_INFO_TOOL_NAME, callBoardInfoTool],
+	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
+	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
+	[CLUSTER_SCREENSHOT_TOOL_NAME, callClusterScreenshotTool],
+])
+
 export async function sharedBoardScreenshotMcp(
 	request: IRequest,
 	env: Environment,
@@ -151,6 +276,7 @@ export async function sharedBoardScreenshotMcp(
 		return new Response('Not Found', { status: 404 })
 	}
 
+	// new MCP spec (2026-07-28 onwards) no longer allows get or delete requests
 	if (request.method !== 'POST') {
 		return new Response('MCP screenshot server expects POST', { status: 405 })
 	}
@@ -162,210 +288,216 @@ export async function sharedBoardScreenshotMcp(
 	const auth = await authenticateMcpRequest(request, env)
 	if (!auth.ok) return auth.response
 
-	const protocolVersionError = checkRequestProtocolVersion(request)
-	if (protocolVersionError) return protocolVersionError
-
 	const rpcRequest = await readJsonRpcRequest(request)
 	if (!rpcRequest) {
-		return jsonRpcError(null, -32700, 'Parse error')
+		return jsonRpcError(null, PARSE_ERROR, 'Parse error', { status: 400 })
 	}
 
+	// No id means a notification: acknowledged, never answered.
 	if (rpcRequest.id === undefined) {
 		return new Response(null, { status: 202 })
 	}
 
+	// `initialize` is legacy-only and carries the client's version in its params, not a header.
+	if (rpcRequest.method === 'initialize') {
+		writeMcpInitializeTelemetry(env, request, rpcRequest.params?.clientInfo)
+		return jsonRpcResult(rpcRequest.id, {
+			// Answering with our legacy version regardless is how the handshake declines a version.
+			protocolVersion: MCP_PROTOCOL_VERSION_LEGACY,
+			capabilities: { tools: {} },
+			serverInfo: MCP_SERVER_INFO,
+			instructions: MCP_SERVER_INSTRUCTIONS,
+		})
+	}
+
+	const requestedVersion = getRequestedProtocolVersion(request, rpcRequest)
+	const era = getProtocolEra(requestedVersion)
+
+	if (era === 'modern') {
+		const mismatch = checkModernHeaders(request, rpcRequest)
+		if (mismatch) return mismatch
+	}
+
+	// Answered under any version, including ones we don't serve — it's how a client finds one we share.
+	if (rpcRequest.method === 'server/discover') {
+		return jsonRpcResult(rpcRequest.id, {
+			resultType: 'complete',
+			supportedVersions: SUPPORTED_PROTOCOL_VERSIONS,
+			capabilities: { tools: {} },
+			instructions: MCP_SERVER_INSTRUCTIONS,
+			ttlMs: TOOLS_LIST_TTL_MS,
+			cacheScope: TOOLS_LIST_CACHE_SCOPE,
+			_meta: { [META_SERVER_INFO]: MCP_SERVER_INFO },
+		})
+	}
+
+	if (!era) {
+		return jsonRpcError(
+			rpcRequest.id,
+			UNSUPPORTED_PROTOCOL_VERSION,
+			`Unsupported protocol version: ${requestedVersion}`,
+			{
+				status: 400,
+				data: { supported: SUPPORTED_PROTOCOL_VERSIONS, requested: requestedVersion },
+			}
+		)
+	}
+
 	switch (rpcRequest.method) {
-		case 'initialize':
-			return jsonRpcResult(rpcRequest.id, {
-				// Echo the client's version when we speak it, so a client on an older-but-supported
-				// version is not forced to downgrade its expectations of us or reconnect.
-				protocolVersion: negotiateProtocolVersion(rpcRequest.params?.protocolVersion),
-				capabilities: { tools: {} },
-				serverInfo: {
-					name: 'tldraw-shared-board-screenshot',
-					title: 'tldraw board screenshots',
-					version: '3.0.0',
-				},
-				instructions:
-					'MCP server for tldraw.com boards you have access to. Drill down in order: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job.',
-			})
 		case 'ping':
+			// Removed in 2026-07-28, so modern callers fall through to method-not-found.
+			if (era === 'modern') break
 			return jsonRpcResult(rpcRequest.id, {})
 		case 'tools/list':
-			return jsonRpcResult(rpcRequest.id, {
-				tools: [
-					getBoardInfoToolDefinition(),
-					getPageInfoToolDefinition(),
-					getClusterInfoToolDefinition(),
-					getClusterScreenshotToolDefinition(),
-				],
-			})
-		case 'tools/call':
-			switch (rpcRequest.params?.name) {
-				case BOARD_INFO_TOOL_NAME:
-					return jsonRpcResult(
-						rpcRequest.id,
-						await callBoardInfoTool(rpcRequest.params.arguments, request, env, auth.userId, ctx)
-					)
-				case PAGE_INFO_TOOL_NAME:
-					return jsonRpcResult(
-						rpcRequest.id,
-						await callPageInfoTool(rpcRequest.params.arguments, request, env, auth.userId, ctx)
-					)
-				case CLUSTER_INFO_TOOL_NAME:
-					return jsonRpcResult(
-						rpcRequest.id,
-						await callClusterInfoTool(rpcRequest.params.arguments, request, env, auth.userId, ctx)
-					)
-				case CLUSTER_SCREENSHOT_TOOL_NAME:
-					return jsonRpcResult(
-						rpcRequest.id,
-						await callClusterScreenshotTool(
-							rpcRequest.params.arguments,
-							request,
-							env,
-							auth.userId,
-							ctx
-						)
-					)
-				default:
-					return jsonRpcError(rpcRequest.id, -32602, `Unknown tool: ${rpcRequest.params?.name}`)
+			return jsonRpcResult(
+				rpcRequest.id,
+				withResultEnvelope(
+					{
+						tools: getToolDefinitions(),
+						...(era === 'modern'
+							? { ttlMs: TOOLS_LIST_TTL_MS, cacheScope: TOOLS_LIST_CACHE_SCOPE }
+							: {}),
+					},
+					era
+				)
+			)
+		case 'tools/call': {
+			const toolName = rpcRequest.params?.name ?? ''
+			const toolHandler = TOOL_HANDLERS.get(toolName)
+			if (!toolHandler) {
+				// The requested name is caller-controlled and unbounded, so telemetry records a bounded
+				// value while the JSON-RPC error still tells the caller which name was unknown.
+				writeMcpToolCallTelemetry(env, request, {
+					tool: 'unknown',
+					reason: 'unknown_tool',
+					durationMs: 0,
+				})
+				return jsonRpcError(
+					rpcRequest.id,
+					INVALID_PARAMS,
+					`Unknown tool: ${rpcRequest.params?.name}`
+				)
 			}
-		default:
-			return jsonRpcError(rpcRequest.id, -32601, `Method not found: ${rpcRequest.method}`)
+
+			const startedAt = Date.now()
+			let called: ToolCallResult
+			try {
+				called = await toolHandler(rpcRequest.params?.arguments, request, env, auth.userId, ctx)
+			} catch (error) {
+				writeMcpToolCallTelemetry(env, request, {
+					tool: toolName,
+					reason: 'unhandled_error',
+					durationMs: Date.now() - startedAt,
+				})
+				throw error
+			}
+
+			const { telemetryReason, ...result } = called
+			writeMcpToolCallTelemetry(env, request, {
+				tool: toolName,
+				reason: telemetryReason,
+				durationMs: Date.now() - startedAt,
+			})
+			return jsonRpcResult(rpcRequest.id, withResultEnvelope(result, era))
+		}
 	}
+
+	// Modern callers get a 404, which tells them the endpoint is live but lacks the method. Legacy
+	// has no such rule, so those callers keep getting the JSON-RPC error on a 200.
+	return jsonRpcError(rpcRequest.id, METHOD_NOT_FOUND, `Method not found: ${rpcRequest.method}`, {
+		status: era === 'modern' ? 404 : 200,
+	})
 }
 
-// Answers `initialize` with the client's requested version when we speak it, and with our newest
-// otherwise — which is what the spec asks for, leaving the client to decide whether it can proceed.
-function negotiateProtocolVersion(requested: unknown): string {
-	return typeof requested === 'string' && SUPPORTED_MCP_PROTOCOL_VERSIONS.includes(requested)
-		? requested
-		: MCP_PROTOCOL_VERSION
+/** Which era a request is speaking, or null for a version we don't implement. */
+function getProtocolEra(version: string | undefined): ProtocolEra | null {
+	// No version means legacy: clients are meant to send it and plenty don't, and the request is
+	// identical either way.
+	if (version === undefined) return 'legacy'
+	if (version === MCP_PROTOCOL_VERSION_MODERN) return 'modern'
+	if (version === MCP_PROTOCOL_VERSION_LEGACY) return 'legacy'
+	return null
 }
 
-// From 2025-06-18 a client states the negotiated version on every subsequent request, and a server
-// that cannot speak it must refuse rather than guess. Rejected at the transport layer with a plain
-// 400, not a JSON-RPC error, because the disagreement is about the envelope rather than the call.
-function checkRequestProtocolVersion(request: Request): Response | null {
-	const version = request.headers.get('mcp-protocol-version') ?? ASSUMED_MCP_PROTOCOL_VERSION
-	if (SUPPORTED_MCP_PROTOCOL_VERSIONS.includes(version)) return null
-	return Response.json(
-		{
-			error: 'unsupported_protocol_version',
-			error_description: `Unsupported MCP-Protocol-Version: ${version}. Supported: ${SUPPORTED_MCP_PROTOCOL_VERSIONS.join(', ')}.`,
-		},
-		{ status: 400 }
-	)
+function getRequestedProtocolVersion(request: Request, rpcRequest: JsonRpcRequest) {
+	const header = request.headers.get('mcp-protocol-version')
+	if (header !== null) return header
+	const meta = rpcRequest.params?._meta?.[META_PROTOCOL_VERSION]
+	return typeof meta === 'string' ? meta : undefined
 }
 
-export function parseBoardInfoInput(input: unknown): { boardId: string } {
-	const value = requireArgumentsObject(input)
-	return { boardId: parseBoardId(value.boardId) }
-}
+// The modern transport mirrors method and tool name into headers so gateways can route without
+// parsing the body. If a header and the body disagree, the spec requires rejecting the request
+// rather than picking a side.
+function checkModernHeaders(request: Request, rpcRequest: JsonRpcRequest): Response | null {
+	const id = rpcRequest.id ?? null
 
-export function parsePageInfoInput(input: unknown): { boardId: string; page: PageSelector } {
-	const value = requireArgumentsObject(input)
-	return { boardId: parseBoardId(value.boardId), page: parsePageSelector(value.page) }
-}
-
-export function parseClusterInfoInput(input: unknown): {
-	boardId: string
-	page: PageSelector
-	clusterId: string
-} {
-	const value = requireArgumentsObject(input)
-	return {
-		boardId: parseBoardId(value.boardId),
-		page: parsePageSelector(value.page),
-		clusterId: parseClusterId(value.clusterId),
+	const headerVersion = request.headers.get('mcp-protocol-version')
+	if (headerVersion === null) {
+		return headerMismatch(id, 'MCP-Protocol-Version header is required')
 	}
-}
-
-export function parseClusterScreenshotInput(input: unknown): {
-	boardId: string
-	page: PageSelector
-	clusterIds: string[]
-	theme: 'light' | 'dark'
-} {
-	const value = requireArgumentsObject(input)
-	return {
-		boardId: parseBoardId(value.boardId),
-		page: parsePageSelector(value.page),
-		clusterIds: parseClusterIds(value.clusterIds),
-		theme: parseTheme(value.theme),
+	const metaVersion = rpcRequest.params?._meta?.[META_PROTOCOL_VERSION]
+	if (typeof metaVersion === 'string' && metaVersion !== headerVersion) {
+		return headerMismatch(
+			id,
+			`MCP-Protocol-Version header value '${headerVersion}' does not match body value '${metaVersion}'`
+		)
 	}
-}
 
-// Accepts one id or several. A single string is allowed because asking for one cluster is the common
-// case and making callers wrap it in an array is friction for nothing.
-export function parseClusterIds(value: unknown): string[] {
-	if (typeof value === 'string') return [parseClusterId(value)]
-	if (!Array.isArray(value) || value.length === 0) {
-		throw new Error('clusterIds is required: a cluster id, or an array of them')
+	const headerMethod = request.headers.get('mcp-method')
+	if (headerMethod === null) {
+		return headerMismatch(id, 'Mcp-Method header is required')
 	}
-	return value.map((id) => parseClusterId(id))
-}
-
-export function parseClusterId(value: unknown): string {
-	if (typeof value !== 'string' || value.length === 0) {
-		throw new Error('clusterId is required')
+	if (headerMethod !== rpcRequest.method) {
+		return headerMismatch(
+			id,
+			`Mcp-Method header value '${headerMethod}' does not match body value '${rpcRequest.method}'`
+		)
 	}
-	return value
-}
 
-function requireArgumentsObject(input: unknown): Record<string, unknown> {
-	if (!input || typeof input !== 'object') {
-		throw new Error('Tool arguments must be an object')
-	}
-	return input as Record<string, unknown>
-}
-
-function parseBoardId(value: unknown): string {
-	if (typeof value !== 'string' || value.length === 0) {
-		throw new Error('boardId is required')
-	}
-	if (value.includes('/')) {
-		throw new Error('boardId must be a board id, not a URL')
-	}
-	return value
-}
-
-// Omitting the theme means light, but an unrecognized one is rejected rather than quietly treated
-// as light: a caller asking for `blue` gets a wrong-but-plausible image back and no signal that the
-// argument was ignored.
-function parseTheme(value: unknown): 'light' | 'dark' {
-	if (value === undefined || value === null) return 'light'
-	if (value !== 'light' && value !== 'dark') {
-		throw new Error(`theme must be 'light' or 'dark'`)
-	}
-	return value
-}
-
-// A page is named either by its 0-based ordinal or by its id. Ordinals read naturally but shift the
-// moment pages are reordered, so an id a caller is holding from an earlier call keeps pointing at the
-// same page. Both are accepted in the one argument so the tool surface stays small.
-export type PageSelector = { kind: 'ordinal'; ordinal: number } | { kind: 'id'; id: string }
-
-function parsePageSelector(value: unknown): PageSelector {
-	if (value === undefined || value === null) return { kind: 'ordinal', ordinal: 0 }
-	if (typeof value === 'string') {
-		if (!value.startsWith('page:')) {
-			throw new Error(
-				'page must be a 0-based page ordinal (a number) or a page id (the "page:…" string from get_board_info)'
+	// tools/call is the only method we implement that names a target, so the only one with Mcp-Name.
+	if (rpcRequest.method === 'tools/call') {
+		const headerName = request.headers.get('mcp-name')
+		if (headerName === null) {
+			return headerMismatch(id, 'Mcp-Name header is required for tools/call')
+		}
+		const decoded = decodeHeaderValue(headerName)
+		if (decoded !== rpcRequest.params?.name) {
+			return headerMismatch(
+				id,
+				`Mcp-Name header value '${decoded}' does not match body value '${rpcRequest.params?.name}'`
 			)
 		}
-		return { kind: 'id', id: value }
 	}
-	if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
-		throw new Error('page must be a non-negative integer (0-based page ordinal) or a page id')
-	}
-	return { kind: 'ordinal', ordinal: value }
+
+	return null
 }
 
-/** How the page was named, for error messages that echo back what the caller actually passed. */
-function describePageSelector(selector: PageSelector) {
-	return selector.kind === 'id' ? `"${selector.id}"` : String(selector.ordinal)
+function headerMismatch(id: JsonRpcId, message: string) {
+	return jsonRpcError(id, HEADER_MISMATCH, `Header mismatch: ${message}`, { status: 400 })
+}
+
+// Tool names aren't required to be header-safe, so a client may wrap `Mcp-Name` in this base64
+// sentinel. Ours are all ASCII, but the comparison still has to decode first.
+function decodeHeaderValue(value: string) {
+	if (!value.startsWith('=?base64?') || !value.endsWith('?=')) return value
+	try {
+		return new TextDecoder().decode(
+			base64ToArrayBuffer(value.slice('=?base64?'.length, -'?='.length))
+		)
+	} catch {
+		return value
+	}
+}
+
+// `resultType` and `_meta` serverInfo are modern-only, so they go on here rather than in each tool.
+function withResultEnvelope(result: object, era: ProtocolEra) {
+	if (era !== 'modern') return result
+	return {
+		resultType: 'complete',
+		...result,
+		_meta: { [META_SERVER_INFO]: MCP_SERVER_INFO },
+	}
 }
 
 /**
@@ -420,7 +552,7 @@ async function callBoardInfoTool(
 	try {
 		input = parseBoardInfoInput(argumentsValue)
 	} catch (error) {
-		return toolError(error instanceof Error ? error.message : String(error))
+		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
 	}
 
 	// Not rate limited: the limiters here bound Browser Run, and this call spends none. The clustering
@@ -428,38 +560,10 @@ async function callBoardInfoTool(
 	// they are limited even though they read as "info" calls too.
 
 	try {
-		const resolved = await resolveSharedBoardForUser(env, input.boardId, userId)
-		if (!resolved.ok) {
-			return toolError(
-				resolved.reason === 'board_empty' ? 'This board has no saved content yet.' : BOARD_NOT_FOUND
-			)
-		}
-
-		// Read under the gate the board resolved under, not a fixed one, so a private file the caller
-		// owns is readable and a published board is still held to the published check.
-		const snapshot = await loadBoardSnapshot(env, resolved.board, {
-			access: resolved.board.access,
-		})
-		if (!snapshot) {
-			return toolError('This board has no saved content yet.')
-		}
-		const pages = enumerateBoardPages(snapshot)
-		return toolJsonResult({
-			name: getDocumentNameFromSnapshot(snapshot),
-			pageCount: pages.length,
-			// `id` is the stable handle: it survives page reordering, `index` does not. Either can be
-			// passed as `page` to the other tools.
-			pages: pages.map((p) => ({
-				index: p.index,
-				id: p.id,
-				name: p.name,
-				hasContent: p.hasContent,
-			})),
-		})
+		const loaded = await loadBoardForTool(env, input.boardId, userId)
+		if (!loaded.ok) return loaded.result
+		return getBoardInfo(loaded.snapshot)
 	} catch (error) {
-		// The caller gets a bounded description, but nothing else records it: this tool writes no
-		// telemetry (it spends no Browser Run), so without a report a failing board lookup is
-		// invisible to us.
 		reportThumbnailError(error, {
 			ctx,
 			env,
@@ -467,8 +571,16 @@ async function callBoardInfoTool(
 			surface: 'mcp_board_info',
 			extras: { boardId: input.boardId },
 		})
+		const failureReason = classifyScreenshotFailure(error)
+		// The classifier reads render failures, and this tool starts no render: it resolves the board
+		// and reads its snapshot, and the lookup goes through a Postgres pool whose timeouts the
+		// classifier would otherwise report as `browser_timeout`. Only the snapshot-read class can
+		// honestly apply here, so everything else is recorded as what it is.
+		const telemetryReason =
+			failureReason === 'snapshot_read_error' ? failureReason : 'board_lookup_error'
 		return toolError(
-			`Could not read board info: ${describeThumbnailFailure(classifyScreenshotFailure(error))}.`
+			`Could not read board info: ${describeThumbnailFailure(failureReason)}.`,
+			telemetryReason
 		)
 	}
 }
@@ -484,7 +596,7 @@ async function callPageInfoTool(
 	try {
 		input = parsePageInfoInput(argumentsValue)
 	} catch (error) {
-		return toolError(error instanceof Error ? error.message : String(error))
+		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
 	}
 
 	if (
@@ -493,7 +605,8 @@ async function callPageInfoTool(
 		})
 	) {
 		return toolError(
-			`Rate limited. Requests are limited to about ${MCP_PER_USER_RATE_LIMIT} per minute per account.`
+			`Rate limited. Requests are limited to about ${MCP_PER_USER_RATE_LIMIT} per minute per account.`,
+			'rate_limited_user'
 		)
 	}
 
@@ -508,18 +621,9 @@ async function callPageInfoTool(
 			return resolved.result
 		}
 
-		const clusters = await clusterPage(env, resolved)
+		const measurements = await measureFor(env, resolved)
 		telemetry({ cacheStatus: 'none' })
-		return toolJsonResult({
-			name: resolved.pageName,
-			clusterCount: clusters.length,
-			clusters: clusters.map((c) => ({
-				id: c.id,
-				label: c.label,
-				keywords: c.keywords,
-				numberOfShapes: c.numberOfShapes,
-			})),
-		})
+		return getPageInfo(resolved.page, measurements)
 	} catch (error) {
 		// Unlike get_board_info, this tool can fail mid-measure, so its failures belong on the same
 		// request ledger as the screenshot tool's: one bounded reason code for the blob and the
@@ -533,43 +637,40 @@ async function callPageInfoTool(
 		})
 		const failureReason = classifyScreenshotFailure(error)
 		telemetry({ cacheStatus: 'none', failureReason })
-		return toolError(`Could not read page info: ${describeThumbnailFailure(failureReason)}.`)
+		return toolError(
+			`Could not read page info: ${describeThumbnailFailure(failureReason)}.`,
+			failureReason
+		)
 	}
 }
 
-// Every page-scoped tool needs the same four steps before it can do anything: resolve the board,
-// load its snapshot, validate the page ordinal, and pull that page's shapes. Returning the tool's
-// own error shape on failure keeps the wording identical across tools.
-type ResolvedPage =
-	| {
-			ok: true
-			board: ResolvedThumbnailBoard
-			pageId: string
-			pageName: string
-			shapes: TLShape[]
-	  }
-	// `reason` is the documented telemetry code for this failure (see the bounded vocabulary in
-	// browser-run-thumbnails.md) — kept alongside the caller-facing result so the screenshot path
-	// doesn't collapse every resolution failure into `not_found` on the dashboard.
-	| {
-			ok: false
-			reason: 'not_found' | 'board_empty' | 'no_pages' | 'page_out_of_range'
-			result: ReturnType<typeof toolError>
-	  }
+// The documented telemetry codes a board/page resolution can fail with — the bounded vocabulary in
+// browser-run-thumbnails.md. Carried on the failure shapes below alongside the caller-facing result,
+// so the request-level `mcp_shared_board_screenshot` event can record which failure this was without
+// re-deriving it from the message. Main's `withTelemetryReason` carries the same code on the result
+// for the per-call `mcp_server_tool_call` event; the two events want it in different places.
+// boardTools' own `no_pages` and `page_out_of_range` are resolution states, not telemetry codes:
+// resolveBoardPage maps them onto `board_empty` and `page_not_found` before anything is recorded, so
+// they never reach a datapoint and are absent here.
+type BoardToolFailureReason = 'not_found' | 'board_empty' | 'page_not_found'
 
-async function resolveBoardPage(
+type LoadedBoard =
+	| { ok: true; board: ResolvedThumbnailBoard; snapshot: import('@tldraw/sync-core').RoomSnapshot }
+	| { ok: false; reason: BoardToolFailureReason; result: ToolCallResult }
+
+async function loadBoardForTool(
 	env: Environment,
 	boardId: string,
-	page: PageSelector,
 	userId: string
-): Promise<ResolvedPage> {
+): Promise<LoadedBoard> {
 	const resolved = await resolveSharedBoardForUser(env, boardId, userId)
 	if (!resolved.ok) {
 		return {
 			ok: false,
-			reason: resolved.reason,
+			reason: resolved.reason === 'board_empty' ? 'board_empty' : 'not_found',
 			result: toolError(
-				resolved.reason === 'board_empty' ? 'This board has no saved content yet.' : BOARD_NOT_FOUND
+				resolved.reason === 'board_empty' ? BOARD_EMPTY_MESSAGE : BOARD_NOT_FOUND_MESSAGE,
+				resolved.reason === 'board_empty' ? 'board_empty' : 'not_found'
 			),
 		}
 	}
@@ -581,37 +682,35 @@ async function resolveBoardPage(
 		return {
 			ok: false,
 			reason: 'board_empty',
-			result: toolError('This board has no saved content yet.'),
+			result: toolError(BOARD_EMPTY_MESSAGE, 'board_empty'),
 		}
 	}
+	return { ok: true, board: resolved.board, snapshot }
+}
 
-	const pages = enumerateBoardPages(snapshot)
-	if (pages.length === 0) {
-		return { ok: false, reason: 'no_pages', result: toolError('This board has no pages.') }
-	}
+type ResolvedBoardPage =
+	| { ok: true; board: ResolvedThumbnailBoard; page: ResolvedPageOk }
+	| { ok: false; reason: BoardToolFailureReason; result: ToolCallResult }
 
-	const targetPage = page.kind === 'id' ? pages.find((p) => p.id === page.id) : pages[page.ordinal]
-	if (!targetPage) {
+async function resolveBoardPage(
+	env: Environment,
+	boardId: string,
+	page: PageSelector,
+	userId: string
+): Promise<ResolvedBoardPage> {
+	const loaded = await loadBoardForTool(env, boardId, userId)
+	if (!loaded.ok) return loaded
+
+	const pageResult = resolvePage(loaded.snapshot, page)
+	if (!pageResult.ok) {
+		const reason = pageResult.reason === 'no_pages' ? 'board_empty' : 'page_not_found'
 		return {
-			ok: false,
-			// An id that resolves to nothing files under the same code as an ordinal past the end:
-			// both mean "the page selector didn't resolve", and the documented vocabulary has one
-			// code for that.
-			reason: 'page_out_of_range',
-			result: toolError(
-				page.kind === 'id'
-					? `No page with id "${page.id}" on this board. Call get_board_info to list its pages; a page id is stable across reordering, an index is not.`
-					: `Page ${page.ordinal} is out of range: this board has ${pages.length} page(s) (0–${pages.length - 1}). Call get_board_info to list them.`
-			),
+			...pageResult,
+			reason,
+			result: withTelemetryReason(pageResult.result, reason),
 		}
 	}
-	return {
-		ok: true,
-		board: resolved.board,
-		pageId: targetPage.id,
-		pageName: targetPage.name,
-		shapes: getShapesOnPage(snapshot, targetPage.id),
-	}
+	return { ok: true, board: loaded.board, page: pageResult }
 }
 
 // One datapoint shape for every MCP tool: `source: 'mcp'` plus the caller. Hashed rather than raw,
@@ -636,37 +735,11 @@ async function mcpTelemetryWriter(env: Environment, userId: string) {
 // Rendering — the same cost as a screenshot. Every caller goes through here, so that cost is stated
 // once rather than implied in three places. The session lands on the `browser_run_session` spend
 // ledger inside the measure itself, so callers carry no duration bookkeeping.
-async function clusterPage(env: Environment, resolved: Extract<ResolvedPage, { ok: true }>) {
-	const measured = await measurePageShapes(env, resolved.board, resolved.pageId, { surface: 'mcp' })
-
-	// The render answers two things a Worker cannot: where each shape sits, and what
-	// ShapeUtil.getText says it holds. Bounds drive the linkage; the text is attached to the shapes
-	// so labelling reads the editor's answer rather than re-deriving one from props.
-	const shapes: TLShapeWithPlainText[] = resolved.shapes.map((shape) => {
-		const text = measured[shape.id as string]?.text
-		return text ? { ...shape, plainText: text } : shape
-	})
-
-	return getShapeClusters(shapes, resolved.pageId, measured)
-}
-
-// The shape as stored, with one substitution: `props.richText` — a ProseMirror document, deeply
-// nested and unreadable — is dropped in favour of the plain string the editor's ShapeUtil.getText
-// reported for that shape during the measure render. Everything else is passed through untouched, so
-// a caller still sees type, position, rotation, size, colour and the rest exactly as stored.
-//
-// This matters beyond readability: a geo shape's label is not in `props` at all under any key a
-// Worker could find, so without the editor's answer that text is simply invisible.
-function toReadableShape(shape: TLShapeWithPlainText) {
-	const { plainText, ...rest } = shape
-	const props = { ...(rest.props as Record<string, unknown>) }
-	delete props.richText
-
-	const text = plainText ?? getShapeText(shape)
-	if (text) props.text = text
-	else delete props.text
-
-	return { ...rest, props }
+function measureFor(
+	env: Environment,
+	resolved: Extract<ResolvedBoardPage, { ok: true }>
+): Promise<Record<string, ShapeMeasurement>> {
+	return measurePageShapes(env, resolved.board, resolved.page.pageId, { surface: 'mcp' })
 }
 
 async function callClusterInfoTool(
@@ -680,7 +753,7 @@ async function callClusterInfoTool(
 	try {
 		input = parseClusterInfoInput(argumentsValue)
 	} catch (error) {
-		return toolError(error instanceof Error ? error.message : String(error))
+		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
 	}
 
 	if (
@@ -689,7 +762,8 @@ async function callClusterInfoTool(
 		})
 	) {
 		return toolError(
-			`Rate limited. Requests are limited to about ${MCP_PER_USER_RATE_LIMIT} per minute per account.`
+			`Rate limited. Requests are limited to about ${MCP_PER_USER_RATE_LIMIT} per minute per account.`,
+			'rate_limited_user'
 		)
 	}
 
@@ -701,24 +775,14 @@ async function callClusterInfoTool(
 			return resolved.result
 		}
 
-		const clusters = await clusterPage(env, resolved)
-		const cluster = clusters.find((c) => c.id === input.clusterId)
-		if (!cluster) {
-			telemetry({ cacheStatus: 'none', failureReason: 'shape_not_found' })
-			return toolError(
-				`No cluster with id "${input.clusterId}" on page ${describePageSelector(input.page)}. Call get_page_info to list this page's clusters.`
-			)
+		const measurements = await measureFor(env, resolved)
+		const result = getClusterInfo(resolved.page, measurements, input.clusterId, input.page)
+		if (result.isError) {
+			telemetry({ cacheStatus: 'none', failureReason: 'cluster_not_found' })
+			return withTelemetryReason(result, 'cluster_not_found')
 		}
-
 		telemetry({ cacheStatus: 'none' })
-		return toolJsonResult({
-			clusterId: cluster.id,
-			label: cluster.label,
-			keywords: cluster.keywords,
-			pageName: resolved.pageName,
-			numberOfShapes: cluster.numberOfShapes,
-			shapes: cluster.shapes.map(toReadableShape),
-		})
+		return result
 	} catch (error) {
 		reportThumbnailError(error, {
 			ctx,
@@ -733,7 +797,10 @@ async function callClusterInfoTool(
 		})
 		const failureReason = classifyScreenshotFailure(error)
 		telemetry({ cacheStatus: 'none', failureReason })
-		return toolError(`Could not read cluster info: ${describeThumbnailFailure(failureReason)}.`)
+		return toolError(
+			`Could not read cluster info: ${describeThumbnailFailure(failureReason)}.`,
+			failureReason
+		)
 	}
 }
 
@@ -764,7 +831,7 @@ async function renderShapeSetScreenshot(
 		 * ledger, so nothing here needs to know.
 		 */
 		pickShapes(
-			resolved: Extract<ResolvedPage, { ok: true }>
+			resolved: Extract<ResolvedBoardPage, { ok: true }>
 		): Promise<
 			{ ok: true; shapeIds: string[] } | { ok: false; result: ReturnType<typeof toolError> }
 		>
@@ -786,7 +853,8 @@ async function renderShapeSetScreenshot(
 	) {
 		telemetry({ cacheStatus: 'none', rateLimitAllowed: false, failureReason: 'rate_limited_user' })
 		return toolError(
-			`Rate limited. Screenshots are limited to about ${MCP_PER_USER_RATE_LIMIT} requests per minute per account.`
+			`Rate limited. Screenshots are limited to about ${MCP_PER_USER_RATE_LIMIT} requests per minute per account.`,
+			'rate_limited_user'
 		)
 	}
 
@@ -839,7 +907,10 @@ async function renderShapeSetScreenshot(
 				rateLimitAllowed: false,
 				failureReason: 'rate_limited_board',
 			})
-			return toolError('Rate limited. This board is being screenshotted too frequently.')
+			return toolError(
+				'Rate limited. This board is being screenshotted too frequently.',
+				'rate_limited_board'
+			)
 		}
 		if (await isGlobalBrowserRunRateLimited(env)) {
 			telemetry({
@@ -847,12 +918,15 @@ async function renderShapeSetScreenshot(
 				rateLimitAllowed: false,
 				failureReason: 'rate_limited_global',
 			})
-			return toolError('Rate limited. Screenshot capacity is busy, try again in a minute.')
+			return toolError(
+				'Rate limited. Screenshot capacity is busy, try again in a minute.',
+				'rate_limited_global'
+			)
 		}
 
 		const render = await captureThumbnailScreenshot(env, resolved.board, {
 			surface: 'mcp',
-			pageId: resolved.pageId,
+			pageId: resolved.page.pageId,
 			shapeIds,
 			theme,
 			width: DEFAULT_THUMBNAIL_WIDTH,
@@ -867,7 +941,7 @@ async function renderShapeSetScreenshot(
 		// name is URI-encoded because R2 custom metadata is not reliably unicode-safe.
 		try {
 			await putThumbnailPng(env.MCP_DATA_BUCKET, cacheKey, render.base64, resolved.board.version, {
-				pageName: encodeURIComponent(resolved.pageName),
+				pageName: encodeURIComponent(resolved.page.pageName),
 			})
 		} catch (error) {
 			reportThumbnailError(error, {
@@ -880,7 +954,7 @@ async function renderShapeSetScreenshot(
 		}
 
 		telemetry({ cacheStatus: 'miss' })
-		return toolPageResult(resolved.pageName, render.base64)
+		return toolPageResult(resolved.page.pageName, render.base64)
 	} catch (error) {
 		// One bounded reason code drives both the telemetry blob (so unbounded error strings never
 		// inflate that dimension) and the caller's message (so internal Postgres/R2 detail never reaches
@@ -895,7 +969,10 @@ async function renderShapeSetScreenshot(
 		})
 		const failureReason = classifyScreenshotFailure(error)
 		telemetry({ cacheStatus: consultedCache ? 'miss' : 'none', failureReason })
-		return toolError(`Screenshot failed: ${describeThumbnailFailure(failureReason)}.`)
+		return toolError(
+			`Screenshot failed: ${describeThumbnailFailure(failureReason)}.`,
+			failureReason
+		)
 	}
 }
 
@@ -919,7 +996,7 @@ async function callClusterScreenshotTool(
 			cacheStatus: 'none',
 			failureReason: 'invalid_input',
 		})
-		return toolError(error instanceof Error ? error.message : String(error))
+		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
 	}
 
 	return renderShapeSetScreenshot(request, env, ctx, {
@@ -929,53 +1006,33 @@ async function callClusterScreenshotTool(
 		userId,
 		extras: { clusterIds: input.clusterIds.join(',') },
 		pickShapes: async (resolved) => {
-			const clusters = await clusterPage(env, resolved)
-			const byId = new Map(clusters.map((cluster) => [cluster.id, cluster]))
-
-			// Reject unknown ids rather than quietly rendering the subset that resolved — a caller
-			// asking for three clusters and getting a picture of two has no way to notice.
-			const missing = input.clusterIds.filter((id) => !byId.has(id))
-			if (missing.length > 0) {
-				return {
-					ok: false,
-					result: toolError(
-						`No cluster on page ${describePageSelector(input.page)} with id ${missing.map((id) => `"${id}"`).join(', ')}. Call get_page_info to list this page's clusters.`
-					),
-				}
-			}
-
-			// Several clusters render as one framed image of their union, which is the point of taking
-			// more than one: seeing how they sit relative to each other.
-			const shapeIds = [
-				...new Set(
-					input.clusterIds.flatMap((id) => byId.get(id)!.shapes.map((shape) => shape.id as string))
-				),
-			]
-			return { ok: true, shapeIds }
+			const measurements = await measureFor(env, resolved)
+			const picked = pickClusterShapes(resolved.page, measurements, input.clusterIds, input.page)
+			return picked.ok
+				? picked
+				: { ...picked, result: withTelemetryReason(picked.result, 'cluster_not_found') }
 		},
 	})
 }
 
-function toolError(message: string) {
-	return {
-		content: [{ type: 'text', text: message }],
-		isError: true,
-	}
+interface ToolCallResult extends ToolResult {
+	/**
+	 * Machine-readable failure code for the mcp_server_tool_call datapoint, read and stripped by the
+	 * tools/call dispatcher before the result is serialized — callers never see it.
+	 */
+	telemetryReason?: string
 }
 
-function toolPageResult(name: string, base64: string) {
-	return {
-		content: [
-			{ type: 'text', text: name },
-			{ type: 'image', data: base64, mimeType: 'image/png' },
-		],
-	}
+function withTelemetryReason(result: ToolResult, reason: string): ToolCallResult {
+	return { ...result, telemetryReason: reason }
 }
 
-function toolJsonResult(value: unknown) {
-	return {
-		content: [{ type: 'text', text: JSON.stringify(value) }],
-	}
+function toolError(message: string, reason: string): ToolCallResult {
+	return withTelemetryReason(modelToolError(message), reason)
+}
+
+function toolPageResult(name: string, base64: string): ToolCallResult {
+	return modelToolPageResult(name, base64)
 }
 
 function decodeThumbnailPageName(value: string | undefined): string {
@@ -984,146 +1041,6 @@ function decodeThumbnailPageName(value: string | undefined): string {
 		return decodeURIComponent(value)
 	} catch {
 		return value
-	}
-}
-
-function getBoardInfoToolDefinition() {
-	return {
-		name: BOARD_INFO_TOOL_NAME,
-		title: 'Get tldraw board info',
-		description:
-			'Return metadata for a tldraw.com board you have access to: its name, page count, and the id, name, 0-based index, and hasContent flag for each page. Call this first, then pass a page id or index to get_page_info.',
-		inputSchema: {
-			type: 'object',
-			additionalProperties: false,
-			properties: {
-				boardId: {
-					type: 'string',
-					description:
-						'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
-				},
-			},
-			required: ['boardId'],
-		},
-		annotations: {
-			readOnlyHint: true,
-			idempotentHint: true,
-			openWorldHint: false,
-			destructiveHint: false,
-		},
-	}
-}
-
-function getPageInfoToolDefinition() {
-	return {
-		name: PAGE_INFO_TOOL_NAME,
-		title: 'Get tldraw page info',
-		description:
-			'List the shape clusters on one page of a tldraw.com board you have access to. Each top-level shape is a cluster together with its descendants, so frames and groups stay together while ungrouped shapes remain individually addressable. Pass a cluster id to get_cluster_info or get_cluster_screenshot.',
-		inputSchema: {
-			type: 'object',
-			additionalProperties: false,
-			properties: {
-				boardId: {
-					type: 'string',
-					description:
-						'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
-				},
-				page: {
-					type: ['number', 'string'],
-					description:
-						'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
-					default: 0,
-				},
-			},
-			required: ['boardId'],
-		},
-		annotations: {
-			readOnlyHint: true,
-			idempotentHint: true,
-			openWorldHint: false,
-			destructiveHint: false,
-		},
-	}
-}
-
-function getClusterInfoToolDefinition() {
-	return {
-		name: CLUSTER_INFO_TOOL_NAME,
-		title: 'Get tldraw cluster info',
-		description:
-			"Describe one cluster from get_page_info: its label, keywords, and the full record of every shape it contains — type, position, rotation, size, style and so on. Each shape's rich text document is replaced by `props.text`, the plain string the editor reports for it, which also surfaces text that is not stored on the record at all (a geo shape's label, for instance).",
-		inputSchema: {
-			type: 'object',
-			additionalProperties: false,
-			properties: {
-				boardId: {
-					type: 'string',
-					description:
-						'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
-				},
-				page: {
-					type: ['number', 'string'],
-					description:
-						'The page id or 0-based index from get_board_info. Defaults to 0, the first page.',
-					default: 0,
-				},
-				clusterId: {
-					type: 'string',
-					description: 'The id of the cluster to get info for.',
-				},
-			},
-			required: ['boardId', 'clusterId'],
-		},
-		annotations: {
-			readOnlyHint: true,
-			idempotentHint: true,
-			openWorldHint: false,
-			destructiveHint: false,
-		},
-	}
-}
-
-function getClusterScreenshotToolDefinition() {
-	return {
-		name: CLUSTER_SCREENSHOT_TOOL_NAME,
-		title: 'Get tldraw cluster screenshot',
-		description: `Return a ${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT} PNG of one or more clusters from get_page_info, preceded by the page name. The camera fits the clusters requested and only their shapes are drawn, so nothing else on the page appears. Pass several ids to see how those clusters sit relative to each other in a single image. This is the direct route from a cluster id to a picture — get_cluster_info is only needed when the individual shapes matter.`,
-		inputSchema: {
-			type: 'object',
-			additionalProperties: false,
-			properties: {
-				boardId: {
-					type: 'string',
-					description:
-						'The id of a tldraw.com board: the :slug of a file URL (https://www.tldraw.com/f/:slug) you own or that was shared with you, or of a published board URL (https://www.tldraw.com/p/:slug).',
-				},
-				page: {
-					type: ['number', 'string'],
-					description:
-						'Which page: either its 0-based index or its page id from get_board_info. Ids survive page reordering, indexes do not. Defaults to 0, the first page.',
-					default: 0,
-				},
-				clusterIds: {
-					type: 'array',
-					items: { type: 'string' },
-					description:
-						'One or more cluster ids from get_page_info. All of them must be on the given page. A bare string is also accepted for a single cluster.',
-				},
-				theme: {
-					type: 'string',
-					enum: ['light', 'dark'],
-					default: 'light',
-				},
-			},
-			required: ['boardId', 'page', 'clusterIds'],
-		},
-		annotations: {
-			readOnlyHint: true,
-			idempotentHint: true,
-			openWorldHint: false,
-			destructiveHint: false,
-		},
 	}
 }
 
@@ -1145,10 +1062,20 @@ function jsonRpcResult(id: JsonRpcId, result: unknown) {
 	})
 }
 
-function jsonRpcError(id: JsonRpcId, code: number, message: string) {
-	return Response.json({
-		jsonrpc: '2.0',
-		id,
-		error: { code, message },
-	})
+// Modern errors carry a real HTTP status: 400 when the transport rejects the request, 404 for an
+// unknown method. Everything else stays on 200.
+function jsonRpcError(
+	id: JsonRpcId,
+	code: number,
+	message: string,
+	{ status = 200, data }: { status?: number; data?: unknown } = {}
+) {
+	return Response.json(
+		{
+			jsonrpc: '2.0',
+			id,
+			error: { code, message, ...(data === undefined ? {} : { data }) },
+		},
+		{ status }
+	)
 }
