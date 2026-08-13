@@ -71,8 +71,8 @@ export const healthCheckRoutes = createRouter<Environment>()
 			await db.destroy()
 		}
 	})
-	// Combined postgres health check: db size, changelog size, WAL retention, replication slots, and
-	// outbox lag. Grouped into a single endpoint because updown.io charges per check invocation.
+	// Combined postgres health check: db size, changelog size, WAL retention, and replication slots.
+	// Grouped into a single endpoint because updown.io charges per check invocation.
 	// Failures include the sub-check name so alerts remain distinguishable.
 	.get('/health-check/postgres', async (_, env) => {
 		const db = createPostgresConnectionPool(env, '/health-check/postgres')
@@ -169,31 +169,65 @@ export const healthCheckRoutes = createRouter<Environment>()
 				failures.push('replication-slots: query failed')
 			}
 
-			// outbox-lag
+			if (failures.length > 0) {
+				return new Response(`FAIL ${failures.join('; ')}`, { status: 500 })
+			}
+			return new Response(`ok (${okDetails.join(', ')})`, { status: 200 })
+		} finally {
+			await db.destroy()
+		}
+	})
+	// Split from /health-check/postgres so the monitor name identifies the outbox subsystem
+	// directly instead of burying it in a combined postgres failure string. There's no lag
+	// alert here: backoff rows are expected to sit with a future nextRetryAt, so alerting on
+	// lag alone would trip on healthy backoff; Sentry already covers individual sub-parking
+	// failures. Parked and stalled below cover the two failure modes that actually matter.
+	.get('/health-check/outbox', async (_, env) => {
+		const db = createPostgresConnectionPool(env, '/health-check/outbox')
+		const failures: string[] = []
+		const okDetails: string[] = []
+		try {
+			// outbox-parked
 			try {
-				const thresholdSeconds = 300
-				const result = await sql<{ age_seconds: string | null; parked: string }>`
-					SELECT
-						EXTRACT(EPOCH FROM (now() - min("createdAt") FILTER (WHERE attempts < ${sql.raw(String(MAX_ATTEMPTS))}))) AS age_seconds,
-						count(*) FILTER (WHERE attempts >= ${sql.raw(String(MAX_ATTEMPTS))}) AS parked
+				const result = await sql<{ parked: string }>`
+					SELECT count(*) FILTER (WHERE attempts >= ${sql.raw(String(MAX_ATTEMPTS))}) AS parked
 					FROM effect_outbox
 				`.execute(db)
 				const row = result.rows[0]
-				const age = row?.age_seconds ? parseFloat(row.age_seconds) : 0
 				const parked = row?.parked ? parseInt(row.parked, 10) : 0
-				if (age > thresholdSeconds) {
-					failures.push(
-						`outbox-lag: oldest pending effect ${Math.round(age)}s > ${thresholdSeconds}s`
-					)
-				}
 				if (parked > 0) {
 					failures.push(`outbox-parked: ${parked} rows parked`)
+				} else {
+					okDetails.push('outbox: 0 parked')
 				}
-				if (age <= thresholdSeconds && parked === 0) {
-					okDetails.push(`outbox: ${Math.round(age)}s, 0 parked`)
+			} catch (e) {
+				console.error('health-check outbox:', e)
+				failures.push('outbox: query failed')
+			}
+
+			// outbox-stalled: parked-only detection needs the drain to run at all. If the alarm
+			// chain died, unparked rows sit untouched forever and never reach the parked
+			// threshold, so the check above stays green. A row is stalled when it has been
+			// ELIGIBLE to process (created, or past its backoff) for 15+ minutes: a live drain
+			// sweeps every 30s and backoff caps at 5 minutes, so it would have deleted, bumped,
+			// or re-deferred any eligible row long before that.
+			try {
+				const result = await sql<{ stalled: string }>`
+					SELECT count(*) AS stalled
+					FROM effect_outbox
+					WHERE attempts < ${sql.raw(String(MAX_ATTEMPTS))}
+						AND GREATEST("createdAt", coalesce("nextRetryAt", "createdAt")) < now() - interval '15 minutes'
+				`.execute(db)
+				const row = result.rows[0]
+				const stalled = row?.stalled ? parseInt(row.stalled, 10) : 0
+				if (stalled > 0) {
+					failures.push(`outbox-stalled: ${stalled} rows untouched > 15m`)
+				} else {
+					okDetails.push('outbox: 0 stalled')
 				}
-			} catch (_e) {
-				failures.push('outbox-lag: query failed')
+			} catch (e) {
+				console.error('health-check outbox:', e)
+				failures.push('outbox-stalled: query failed')
 			}
 
 			if (failures.length > 0) {

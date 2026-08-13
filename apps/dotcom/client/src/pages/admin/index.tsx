@@ -1,5 +1,6 @@
 import { Navigate, NavLink, useParams } from 'react-router-dom'
 import { useTldrawCurrentUser } from '../../tla/hooks/useUser'
+import { EffectsSection } from './EffectsSection'
 import { FilesSection } from './FilesSection'
 import { FlagsSection } from './FlagsSection'
 import { SystemSection } from './SystemSection'
@@ -10,6 +11,7 @@ const SECTIONS = [
 	{ id: 'users', label: 'Users' },
 	{ id: 'files', label: 'Files & templates' },
 	{ id: 'flags', label: 'Feature flags' },
+	{ id: 'effects', label: 'Effect outbox' },
 	{ id: 'system', label: 'System' },
 ] as const
 
@@ -46,6 +48,7 @@ export function Component() {
 				{section === 'users' && <UsersSection />}
 				{section === 'flags' && <FlagsSection />}
 				{section === 'files' && <FilesSection />}
+				{section === 'effects' && <EffectsSection />}
 				{section === 'system' && <SystemSection />}
 			</main>
 		</div>
