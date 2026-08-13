@@ -19,19 +19,25 @@ export function ErrorBoundary() {
 	return <TlaFileError error={error} />
 }
 
+/** This module serves both commit-history backends; the route path names the source. */
+function sourceFromUrl(url: string): 'pierre' | 'artifacts' {
+	return new URL(url).pathname.includes('/artifacts-history') ? 'artifacts' : 'pierre'
+}
+
 const { loader, useData } = defineLoader(async (args) => {
 	const fileSlug = args.params.fileSlug
 	const commitHash = args.params.commitHash
 
 	if (!fileSlug || !commitHash) return null
 
-	const result = await fetch(`/api/${FILE_PREFIX}/${fileSlug}/pierre-history/${commitHash}`, {
+	const source = sourceFromUrl(args.request.url)
+	const result = await fetch(`/api/${FILE_PREFIX}/${fileSlug}/${source}-history/${commitHash}`, {
 		headers: {},
 	})
 	if (!result.ok) return null
 	const data = (await result.json()) as RoomSnapshot
 
-	return { data, fileSlug, commitHash }
+	return { data, fileSlug, commitHash, source }
 })
 
 export { loader }
@@ -73,7 +79,7 @@ export function Component() {
 						fileSlug={result.fileSlug}
 						snapshot={snapshot}
 						onRestore={async () => {
-							const res = await fetch(`/api/app/file/${result.fileSlug}/pierre-restore`, {
+							const res = await fetch(`/api/app/file/${result.fileSlug}/${result.source}-restore`, {
 								method: 'POST',
 								headers: {
 									'Content-Type': 'application/json',

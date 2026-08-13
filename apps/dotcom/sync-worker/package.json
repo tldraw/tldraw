@@ -54,6 +54,6 @@
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^7.0.2",
 		"vitest": "^4.1.7",
-		"wrangler": "^4.75.0"
+		"wrangler": "~4.119.0"
 	}
 }

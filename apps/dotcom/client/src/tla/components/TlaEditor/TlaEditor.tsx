@@ -383,6 +383,18 @@ function CustomDebugMenu() {
 					}}
 				/>
 			)}
+			{!isReadOnly && app && user?.isTldraw && (
+				<TldrawUiMenuItem
+					id="file-history-artifacts"
+					label="File history (artifacts)"
+					readonlyOk
+					onSelect={() => {
+						const url = new URL(window.location.href)
+						url.pathname += '/artifacts-history'
+						openAndTrack(url.toString())
+					}}
+				/>
+			)}
 			<DefaultDebugMenuContent />
 		</DefaultDebugMenu>
 	)

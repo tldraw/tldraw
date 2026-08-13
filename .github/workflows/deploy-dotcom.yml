@@ -194,6 +194,9 @@ jobs:
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
           PIERRE_KEY: ${{ secrets.PIERRE_KEY }}
+          # Optional: enables the Artifacts history routes' REST read fallback while the
+          # beta binding lacks content reads. Empty (secret unset) degrades routes to 503.
+          ARTIFACTS_API_TOKEN: ${{ secrets.ARTIFACTS_API_TOKEN }}
           ZERO_ADMIN_PASSWORD: ${{ secrets.ZERO_ADMIN_PASSWORD }}
           ZERO_R2_ENDPOINT: ${{ secrets.ZERO_R2_ENDPOINT }}
           ZERO_R2_BUCKET_NAME: ${{ secrets.ZERO_R2_BUCKET_NAME }}

@@ -153,6 +153,10 @@ HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://www.tldraw.com"
 MCP_SCREENSHOT_ENABLED = "true"
+# Percentage of app file slugs dual-writing snapshot history to Artifacts (same hash
+# bucket space as the Pierre rollout, so "10" gives the identical cohort). Unset or
+# non-numeric means off.
+ARTIFACTS_ROLLOUT_PERCENT = "10"
 
 #################### Routing ####################
 # no custom routes for previews and development
@@ -280,6 +284,30 @@ bucket_name = "rooms-history-ephemeral-preview"
 [[env.production.r2_buckets]]
 binding = "ROOMS_HISTORY_EPHEMERAL"
 bucket_name = "rooms-history-ephemeral"
+
+#################### Artifacts snapshot history ####################
+# Git-backed snapshot history (dual-write rollout beside R2 history + Pierre; blob
+# layout, one snapshot.json per commit). Namespaces follow the -preview convention:
+# dev/preview/staging share "snapshots-preview", production owns "snapshots"; the
+# "snapshots-eval" namespace used by internal/scripts/artifacts-eval is separate.
+# The binding is ambient (no API token secret). Code treats a missing binding as
+# feature-unavailable, so environments without it degrade to 503 on the read routes
+# and skip the writer.
+[[env.dev.artifacts]]
+binding = "ARTIFACTS"
+namespace = "snapshots-preview"
+
+[[env.preview.artifacts]]
+binding = "ARTIFACTS"
+namespace = "snapshots-preview"
+
+[[env.staging.artifacts]]
+binding = "ARTIFACTS"
+namespace = "snapshots-preview"
+
+[[env.production.artifacts]]
+binding = "ARTIFACTS"
+namespace = "snapshots"
 
 #################### Room snapshots bucket ####################
 # in dev, we write to the preview bucket and need a `preview_bucket_name`

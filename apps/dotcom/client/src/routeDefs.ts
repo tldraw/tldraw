@@ -10,6 +10,8 @@ export const ROUTES = {
 	tlaFileHistorySnapshot: `/f/:fileSlug/history/:timestamp`,
 	tlaFilePierreHistory: `/f/:fileSlug/pierre-history`,
 	tlaFilePierreHistorySnapshot: `/f/:fileSlug/pierre-history/:commitHash`,
+	tlaFileArtifactsHistory: `/f/:fileSlug/artifacts-history`,
+	tlaFileArtifactsHistorySnapshot: `/f/:fileSlug/artifacts-history/:commitHash`,
 	tlaLocalFileIndex: `/lf`,
 	tlaLocalFile: `/lf/:fileSlug`,
 	tlaPublish: `/p/:fileSlug`,

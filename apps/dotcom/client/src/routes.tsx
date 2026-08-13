@@ -112,6 +112,16 @@ export function createAppRouter({
 							path={ROUTES.tlaFileHistorySnapshot}
 							lazy={() => import('./tla/pages/file-history-snapshot')}
 						/>
+						{/* Artifacts history reuses the pierre page modules, which derive the
+						    backend from the URL path. Staff-gated, unlike the pierre routes. */}
+						<Route
+							path={ROUTES.tlaFileArtifactsHistory}
+							lazy={() => import('./tla/pages/file-pierre-history')}
+						/>
+						<Route
+							path={ROUTES.tlaFileArtifactsHistorySnapshot}
+							lazy={() => import('./tla/pages/file-pierre-history-snapshot')}
+						/>
 						<Route
 							path={ROUTES.tlaLegacyRoomHistory}
 							lazy={() => import('./tla/pages/legacy-history')}

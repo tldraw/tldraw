@@ -22,8 +22,12 @@ export async function fetchHistory(
 	}
 }
 
-// Helper function to fetch Pierre history data
-export async function fetchPierreHistory(
+/** Backends serving commit-addressed history (git-based, unlike the timestamped R2 history). */
+export type CommitHistorySource = 'pierre' | 'artifacts'
+
+// Helper function to fetch commit-based history data (Pierre or Artifacts)
+export async function fetchCommitHistory(
+	source: CommitHistorySource,
 	fileSlug: string,
 	nextCursor?: string | null
 ): Promise<{
@@ -32,8 +36,8 @@ export async function fetchPierreHistory(
 } | null> {
 	try {
 		const url = nextCursor
-			? `/api/${FILE_PREFIX}/${fileSlug}/pierre-history?nextCursor=${nextCursor}`
-			: `/api/${FILE_PREFIX}/${fileSlug}/pierre-history`
+			? `/api/${FILE_PREFIX}/${fileSlug}/${source}-history?nextCursor=${nextCursor}`
+			: `/api/${FILE_PREFIX}/${fileSlug}/${source}-history`
 
 		const result = await fetch(url)
 
@@ -41,7 +45,7 @@ export async function fetchPierreHistory(
 
 		return await result.json()
 	} catch (err) {
-		console.error('Failed to fetch Pierre history:', err)
+		console.error(`Failed to fetch ${source} history:`, err)
 		return null
 	}
 }

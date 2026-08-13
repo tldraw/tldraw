@@ -18,6 +18,46 @@ export interface BrowserBinding {
 	quickAction(action: 'screenshot', options: unknown): Promise<Response>
 }
 
+// The Cloudflare Artifacts binding (private beta). Shapes below match the ambient types
+// wrangler 4.119 generates (`wrangler types`), which are the source of truth: the binding
+// exposes repo management and token minting ONLY — no commit/content reads (the docs'
+// log/readCommit/readTree are not in the 4.119 surface, so content reads feature-detect at
+// runtime and fall back to the REST API, see utils/artifacts.ts). Declared locally because
+// @cloudflare/workers-types does not ship them yet.
+export interface ArtifactsCreateRepoResult {
+	id: string
+	name: string
+	/** HTTPS git remote URL. */
+	remote: string
+	/** Plaintext access token, only returned at creation time. */
+	token: string
+	tokenExpiresAt: string
+}
+
+export interface ArtifactsCreateTokenResult {
+	id: string
+	/** Plaintext token, only returned at creation time. May carry a `?expires=` suffix. */
+	plaintext: string
+	scope: 'read' | 'write'
+	expiresAt: string
+}
+
+export interface ArtifactsRepoHandle {
+	name: string
+	/** HTTPS git remote URL. */
+	remote: string
+	createToken(scope?: 'write' | 'read', ttl?: number): Promise<ArtifactsCreateTokenResult>
+}
+
+export interface ArtifactsBinding {
+	/** Throws ArtifactsError code ALREADY_EXISTS if the repo exists. */
+	create(name: string, opts?: { description?: string }): Promise<ArtifactsCreateRepoResult>
+	/** Throws ArtifactsError code NOT_FOUND if the repo does not exist. */
+	get(name: string): Promise<ArtifactsRepoHandle>
+	/** Returns true if deleted, false if not found. */
+	delete(name: string): Promise<boolean>
+}
+
 // This type isn't available in @cloudflare/workers-types yet
 export interface Analytics {
 	writeDataPoint(data: {
@@ -87,6 +127,20 @@ export interface Environment {
 	ANALYTICS_API_TOKEN: string | undefined
 
 	PIERRE_KEY: string | undefined
+
+	// Cloudflare Artifacts: git-backed snapshot history (dual-write rollout beside R2
+	// history and Pierre). Binding is undefined in tests and any env without the
+	// wrangler.toml block; all artifacts code degrades to no-op/503 without it.
+	ARTIFACTS: ArtifactsBinding | undefined
+	// Percentage (0-100, string) of app file slugs dual-writing to Artifacts in
+	// production; same hash bucket space as the Pierre rollout. Unset/non-numeric = off.
+	ARTIFACTS_ROLLOUT_PERCENT: string | undefined
+	// Optional REST fallback for content reads (history list, snapshot at commit) while
+	// the beta binding lacks read methods. Both must be set for the fallback to engage;
+	// plumbed like PIERRE_KEY. CLOUDFLARE_ACCOUNT_ID identifies the account owning the
+	// Artifacts namespaces.
+	CLOUDFLARE_ACCOUNT_ID: string | undefined
+	ARTIFACTS_API_TOKEN: string | undefined
 
 	RATE_LIMITER: RateLimit
 	// Rate limit bindings for the Browser Run-backed MCP screenshot tool, declared in wrangler.toml.

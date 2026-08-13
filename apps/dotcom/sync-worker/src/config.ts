@@ -150,3 +150,38 @@ export const MCP_RATE_LIMIT_WINDOW_MS = 60_000
  * The URL of the PostHog instance to use.
  */
 export const POSTHOG_URL = 'https://eu.i.posthog.com'
+
+/**
+ * Minimum spacing between Artifacts snapshot pushes for one room. 5 minutes.
+ *
+ * This is the ops-cost dial: Artifacts bills every push as an operation ($0.15/1k), so
+ * per-persist pushing (8s cadence) at fleet scale would cost more than the storage it
+ * saves. 5 minutes is ~37x fewer ops than per-persist for a continuously edited room,
+ * and history granularity — not durability — is all it trades away: R2 keeps every
+ * persist during the dual-write rollout. A room's final state always lands via the
+ * flush in onSessionRemoved when the last user leaves.
+ */
+export const ARTIFACTS_PUSH_INTERVAL_MS = 5 * 60_000
+
+/**
+ * CAS retries for an Artifacts push (stale old-oid -> resync from info/refs -> retry).
+ * Mirrors Pierre's MAX_CAS_RETRIES. Conflicts should be rare — one DO owns each room —
+ * so this bounds pathological loops rather than expected contention.
+ */
+export const ARTIFACTS_MAX_CAS_RETRIES = 3
+
+/**
+ * Abort an Artifacts push after this long. Server-side pack processing measured 20-65s
+ * on backfill-sized packs in the eval; incremental pushes are far smaller, but the beta
+ * endpoint can be slow, and an abandoned push is safe: the next attempt verifies the
+ * remote head before assuming anything.
+ */
+export const ARTIFACTS_PUSH_TIMEOUT_MS = 90_000
+
+/**
+ * How long the last-user-out flush is allowed to delay room teardown. The flush push
+ * usually completes in a few seconds; this bounds the tail so an unhealthy Artifacts
+ * endpoint cannot hold rooms open. A push cut off here either completed server-side
+ * (verified next wake) or is retried on the next session.
+ */
+export const ARTIFACTS_FLUSH_AWAIT_MS = 45_000

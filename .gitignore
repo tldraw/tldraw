@@ -136,3 +136,6 @@ skills/pr-walkthrough/video/dist
 skills/pr-walkthrough/video/public/audio-*
 skills/pr-walkthrough/video/public/manifest.json
 todo.md
+
+# Artifacts evaluation prototype work dir
+internal/scripts/artifacts-eval/.data

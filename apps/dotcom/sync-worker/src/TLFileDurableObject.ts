@@ -48,7 +48,14 @@ import {
 	isCommentReactionId,
 	isCommentThreadId,
 } from '@tldraw/tlschema'
-import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	assertExists,
+	exhaustiveSwitchError,
+	retry,
+	sleep,
+} from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router, StatusError } from 'itty-router'
@@ -72,7 +79,13 @@ import {
 	planCommentDrain,
 	planMentionReconciles,
 } from './commentRows'
-import { PERSIST_INTERVAL_MS } from './config'
+import {
+	ARTIFACTS_FLUSH_AWAIT_MS,
+	ARTIFACTS_MAX_CAS_RETRIES,
+	ARTIFACTS_PUSH_INTERVAL_MS,
+	ARTIFACTS_PUSH_TIMEOUT_MS,
+	PERSIST_INTERVAL_MS,
+} from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
@@ -81,9 +94,22 @@ import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImag
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
+import {
+	ARTIFACTS_AUTHOR,
+	getArtifactsRepoName,
+	getSnapshotJsonAtCommit,
+	isSlugInArtifactsRollout,
+} from './utils/artifacts'
+import {
+	ArtifactsWriterRepo,
+	fetchRemoteHead,
+	getOrCreateArtifactsRepo,
+	pushPack,
+} from './utils/artifactsClient'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
+import { buildSnapshotPush } from './utils/gitPack'
 import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
@@ -102,7 +128,9 @@ const MAX_CONNECTIONS = 50
 // persistence — through a single queue so they can never collectively exceed that budget. An
 // asset copy holds two connections (the R2 get body streaming into the put); a snapshot upload
 // holds ~one at a time (multipart parts are uploaded sequentially). With two operations in flight
-// the worst case is two copies = four connections, leaving two free for Pierre pushes and Postgres
+// the worst case is two copies = four connections, leaving two free for Pierre pushes, Artifacts
+// pushes (one connection held up to ARTIFACTS_PUSH_TIMEOUT_MS, at most once per
+// ARTIFACTS_PUSH_INTERVAL_MS), and Postgres
 // queries. Without a shared budget the upload and a concurrent association pass contend for the
 // same connections, which surfaces as "Network connection lost" during multipart uploads.
 // https://developers.cloudflare.com/workers/platform/limits/#simultaneous-open-connections
@@ -311,6 +339,11 @@ export class TLFileDurableObject extends DurableObject {
 						} catch {
 							// already logged
 						}
+						// Final Artifacts commit for the session, bypassing the push interval so the
+						// settled document always lands. Awaited (bounded) to keep the DO alive long
+						// enough; a push cut off by the race either completed server-side (verified
+						// on the next wake) or is retried next session.
+						await Promise.race([this.flushArtifacts(), sleep(ARTIFACTS_FLUSH_AWAIT_MS)])
 						// make sure nobody joined the room while we were persisting
 						if (room.getNumActiveSessions() > 0) return
 						this._room = null
@@ -367,6 +400,16 @@ export class TLFileDurableObject extends DurableObject {
 	supabaseClient: SupabaseClient | void
 	pierreClient: ReturnType<typeof createPierreClient>
 	pierreState: PierreState | null = null
+
+	// Artifacts dual-write (blob layout, batched pushes; see utils/artifacts.ts). The
+	// CAS-relevant state lives in DO storage under ARTIFACTS_STATE_KEY as a verified
+	// cache (a stale head surfaces as a rejected push and self-heals via info/refs);
+	// everything here is in-memory cadence/caching state that eviction safely resets.
+	private _artifactsRepo: Promise<ArtifactsWriterRepo> | null = null
+	private _artifactsPushPromise: Promise<void> | null = null
+	private _artifactsLastPushAt = 0
+	private _artifactsBackoffUntil = 0
+	private _artifactsFailureCount = 0
 
 	// For analytics
 	measure: Analytics | undefined
@@ -476,7 +519,12 @@ export class TLFileDurableObject extends DurableObject {
 		.post(
 			`/app/file/:roomId/pierre-restore`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
-			(req) => this.onRestore(req, true)
+			(req) => this.onRestore(req, 'pierre')
+		)
+		.post(
+			`/app/file/:roomId/artifacts-restore`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
+			(req) => this.onRestore(req, 'artifacts')
 		)
 		.all('*', () => new Response('Not found', { status: 404 }))
 
@@ -580,17 +628,17 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	_isRestoring = false
-	async onRestore(req: IRequest, isPierre: boolean = false) {
+	async onRestore(req: IRequest, source: 'r2' | 'pierre' | 'artifacts' = 'r2') {
 		this._isRestoring = true
 		try {
-			if (isPierre && !this.documentInfo.isApp) {
-				return new Response('Pierre restore must be for an app file', { status: 400 })
+			if (source !== 'r2' && !this.documentInfo.isApp) {
+				return new Response(`${source} restore must be for an app file`, { status: 400 })
 			}
 			await requireAdminAccessToRequest(req, this.env)
 			let dataText = ''
 			const roomId = this.documentInfo.slug
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
-			if (isPierre) {
+			if (source === 'pierre') {
 				const commitHash = ((await req.json()) as any).commitHash
 				if (!commitHash) {
 					return new Response('Missing commit hash', { status: 400 })
@@ -602,6 +650,20 @@ export class TLFileDurableObject extends DurableObject {
 				const snapshot = await reconstructSnapshotFromPierre(repo, commitHash)
 				dataText = JSON.stringify(snapshot)
 				this.pierreState = null
+			} else if (source === 'artifacts') {
+				const commitHash = ((await req.json()) as any).commitHash
+				if (!commitHash) {
+					return new Response('Missing commit hash', { status: 400 })
+				}
+				const text = await getSnapshotJsonAtCommit(
+					this.env,
+					getArtifactsRepoName(roomId),
+					commitHash
+				)
+				if (text === null) {
+					return new Response('Snapshot not found or Artifacts not available', { status: 404 })
+				}
+				dataText = text
 			} else {
 				const timestamp = ((await req.json()) as any).timestamp
 				if (!timestamp) {
@@ -613,6 +675,12 @@ export class TLFileDurableObject extends DurableObject {
 				}
 				dataText = await data.text()
 			}
+
+			// Any restore moves documentClock backwards, so the Artifacts head state must be
+			// invalidated whatever the restore source — a stale clock would otherwise skip
+			// pushes forever, and a stale head sha would mis-CAS. Cleared, not rewritten: the
+			// next push resyncs from the remote and force-commits the restored content.
+			await this.storage.delete(ARTIFACTS_STATE_KEY)
 
 			await this.r2.rooms.put(roomKey, dataText)
 
@@ -1589,6 +1657,11 @@ export class TLFileDurableObject extends DurableObject {
 						await this._uploadSnapshotToR2(snapshot, key)
 
 						await this.persistToPierre(storage, snapshot)
+
+						// Not awaited: Artifacts pushes take seconds server-side and are throttled to
+						// ARTIFACTS_PUSH_INTERVAL_MS, so they ride beside the persist rather than on
+						// its critical path. All failure handling is internal.
+						this.maybePushToArtifacts()
 
 						this.logEvent({
 							type: 'persist_success',
@@ -2595,6 +2668,183 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
+	// ---- Artifacts dual-write (blob layout: one snapshot.json per commit) ----
+
+	/**
+	 * Gate chain + memoized repo provisioning. Returns null when the feature is off for
+	 * this room. The handle is created at most once per DO lifetime (deliberately unlike
+	 * getPierreRepo, which does a find-then-create round trip on every persist).
+	 */
+	private getArtifactsRepo(): Promise<ArtifactsWriterRepo> | null {
+		const env = this.env
+		if (!env.ARTIFACTS) return null
+		if (!this._documentInfo?.isApp || this._documentInfo.deleted) return null
+		if (!env.TLDRAW_ENV) return null
+		if (!isSlugInArtifactsRollout(env, this.documentInfo.slug)) return null
+		if (!this._artifactsRepo) {
+			this._artifactsRepo = getOrCreateArtifactsRepo(
+				env.ARTIFACTS,
+				getArtifactsRepoName(this.documentInfo.slug),
+				`tldraw file snapshot history: ${this.documentInfo.slug}`
+			)
+			// A rejected promise must not be cached, or provisioning could never retry.
+			this._artifactsRepo.catch(() => {
+				this._artifactsRepo = null
+			})
+		}
+		return this._artifactsRepo
+	}
+
+	/**
+	 * Throttled trigger, called (not awaited) from persistToDatabase. Pushes at most once
+	 * per ARTIFACTS_PUSH_INTERVAL_MS. No timer is armed for the tail of the interval —
+	 * a pending setTimeout would block WebSocket hibernation for quiet rooms — so edits
+	 * landing mid-interval ride on a later persist tick, or on flushArtifacts when the
+	 * last user leaves (which is also what bounds staleness for rooms that go quiet).
+	 */
+	private maybePushToArtifacts() {
+		if (this._isRestoring) return
+		if (!this.getArtifactsRepo()) return
+		const now = Date.now()
+		if (now < this._artifactsBackoffUntil) return
+		if (now - this._artifactsLastPushAt < ARTIFACTS_PUSH_INTERVAL_MS) return
+		this.runArtifactsPush()
+	}
+
+	/** Final commit for the session: bypasses the push interval (not the no-op check). */
+	async flushArtifacts() {
+		if (this._isRestoring) return
+		if (!this.getArtifactsRepo()) return
+		// A push already in flight may carry an older snapshot; wait it out, then run
+		// again — the clock comparison makes that second run free if nothing changed.
+		if (this._artifactsPushPromise) await this._artifactsPushPromise
+		await this.runArtifactsPush()
+	}
+
+	/** Single-flight. All failures are contained here; callers never observe a rejection. */
+	private runArtifactsPush(): Promise<void> {
+		if (this._artifactsPushPromise) return this._artifactsPushPromise
+		this._artifactsPushPromise = this.pushSnapshotToArtifacts()
+			.catch((e) => {
+				console.error('Artifacts push failed:', e)
+				this.reportError(e)
+			})
+			.finally(() => {
+				this._artifactsPushPromise = null
+			})
+		return this._artifactsPushPromise
+	}
+
+	private async pushSnapshotToArtifacts() {
+		const repoPromise = this.getArtifactsRepo()
+		if (!repoPromise || this._isRestoring || !this._room) return
+		const repo = await repoPromise
+
+		const storage = await this.getStorage()
+		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+		const snapshot = storage.getSnapshot()
+		const documentClock = snapshot.documentClock ?? snapshot.clock ?? 0
+		let state =
+			((await this.storage.get(ARTIFACTS_STATE_KEY)) as ArtifactsState | undefined) ?? null
+		if (state && state.documentClock === documentClock) return
+
+		const snapshotJson = concatChunks(generateSnapshotChunks(snapshot))
+		const start = Date.now()
+		let casRetries = 0
+
+		// The stored state is a verified cache: its head sha is used optimistically as the
+		// push's old-oid (which is the CAS), and a stale value surfaces as a rejected push.
+		for (let attempt = 0; attempt <= ARTIFACTS_MAX_CAS_RETRIES; attempt++) {
+			const timestamp = new Date().toISOString()
+			const { body, commitSha, packBytes } = await buildSnapshotPush({
+				snapshotJson,
+				parentSha: state?.headCommitSha,
+				author: ARTIFACTS_AUTHOR,
+				timestampSec: Math.floor(Date.now() / 1000),
+				// First line matches Pierre's history-parsing convention; the trailer lets any
+				// reader (and a future resync) recover the clock without fetching the blob.
+				message: `Snapshot at ${timestamp}\n\nDocument-Clock: ${documentClock}`,
+			})
+
+			let result = await pushPack({
+				remote: repo.remote,
+				secret: await repo.getToken(),
+				body,
+				signal: AbortSignal.timeout(ARTIFACTS_PUSH_TIMEOUT_MS),
+			})
+			if (result.outcome === 'auth') {
+				repo.invalidateToken()
+				result = await pushPack({
+					remote: repo.remote,
+					secret: await repo.getToken(),
+					body,
+					signal: AbortSignal.timeout(ARTIFACTS_PUSH_TIMEOUT_MS),
+				})
+			}
+			if (result.outcome === 'ambiguous') {
+				// The beta endpoint has been observed failing the response after a successful
+				// ref update. The commit sha was computed client-side, so the remote head
+				// answers exactly.
+				try {
+					const head = await fetchRemoteHead(repo.remote, await repo.getToken())
+					if (head === commitSha) {
+						this.writeEvent('artifacts_push_verified_after_error', {
+							doubles: [Date.now() - start],
+						})
+						result = { outcome: 'ok' }
+					}
+				} catch {
+					// verification unavailable; treated as failure below
+				}
+			}
+
+			if (result.outcome === 'ok') {
+				const newState: ArtifactsState = { headCommitSha: commitSha, documentClock }
+				await this.storage.put(ARTIFACTS_STATE_KEY, newState)
+				const now = Date.now()
+				this.writeEvent('artifacts_push_success', {
+					doubles: [
+						now - start,
+						packBytes,
+						snapshotJson.length,
+						casRetries,
+						this._artifactsLastPushAt ? now - this._artifactsLastPushAt : 0,
+					],
+				})
+				this._artifactsLastPushAt = now
+				this._artifactsBackoffUntil = 0
+				this._artifactsFailureCount = 0
+				return
+			}
+
+			if (result.outcome === 'rejected') {
+				casRetries++
+				this.writeEvent('artifacts_cas_conflict', { doubles: [1] })
+				// Resync from the remote. Clock -1 forces a full-content commit, which is the
+				// correct recovery whether the mismatch came from a restore, an eviction
+				// between push and state write, or an external writer.
+				const head = await fetchRemoteHead(repo.remote, await repo.getToken())
+				state = { headCommitSha: head, documentClock: -1 }
+				continue
+			}
+
+			this._artifactsFailureCount++
+			this._artifactsBackoffUntil =
+				Date.now() + Math.min(2 ** this._artifactsFailureCount * 60_000, 15 * 60_000)
+			this.writeEvent('artifacts_push_failure', {
+				blobs: [result.outcome === 'auth' ? 'auth' : 'ambiguous'],
+				doubles: [Date.now() - start],
+			})
+			return
+		}
+
+		console.error('Artifacts: exhausted CAS retries')
+		this.writeEvent('artifacts_push_failure', {
+			blobs: ['cas_exhausted'],
+			doubles: [Date.now() - start],
+		})
+	}
+
 	protected reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(e)
@@ -2728,6 +2978,17 @@ export class TLFileDurableObject extends DurableObject {
 				await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
 			}
 
+			// remove artifacts snapshot history. Best-effort and not gated on the rollout —
+			// membership at delete time can differ from membership when the repo was created —
+			// and it must never block the rest of cleanup.
+			if (this.env.ARTIFACTS) {
+				try {
+					await this.env.ARTIFACTS.delete(getArtifactsRepoName(id))
+				} catch (e) {
+					console.error('Failed to delete artifacts repo for', id, e)
+				}
+			}
+
 			// remove main file
 			await this.env.ROOMS.delete(r2Key)
 
@@ -2815,6 +3076,27 @@ const PIERRE_AUTHOR = { email: 'huppy@tldraw.com', name: 'huppy [bot]' }
 interface PierreState {
 	headSha: string | undefined
 	documentClock: number
+}
+
+/** DO-storage key for the Artifacts head cache; cleared on any restore. */
+const ARTIFACTS_STATE_KEY = 'artifactsState'
+
+interface ArtifactsState {
+	/** Commit sha of the last verified push; undefined only before the first commit. */
+	headCommitSha: string | undefined
+	/** documentClock of the snapshot at that commit; -1 forces the next push. */
+	documentClock: number
+}
+
+function concatChunks(chunks: Iterable<Uint8Array>): Uint8Array {
+	const list = [...chunks]
+	const out = new Uint8Array(list.reduce((sum, c) => sum + c.length, 0))
+	let offset = 0
+	for (const chunk of list) {
+		out.set(chunk, offset)
+		offset += chunk.length
+	}
+	return out
 }
 
 /** Shape of meta.json stored in Pierre archives. */

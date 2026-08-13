@@ -124,6 +124,12 @@ const flyioReplAppName = deployZero === 'flyio-multinode' ? `${env.TLDRAW_ENV}-z
 // pierre is not in production yet, so get the key directly from process.env
 const pierreKey = process.env.PIERRE_KEY ?? ''
 
+// Optional REST fallback for Artifacts content reads (history routes) while the beta
+// binding lacks read methods; empty disables the fallback and the routes degrade to 503.
+// Not in the validated makeEnv list yet for the same reason as PIERRE_KEY above.
+const artifactsApiToken = process.env.ARTIFACTS_API_TOKEN ?? ''
+const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID ?? ''
+
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 	shouldNotify: env.TLDRAW_ENV === 'production',
@@ -584,6 +590,8 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			SENTRY_DSN: env.WORKER_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
 			PIERRE_KEY: pierreKey,
+			ARTIFACTS_API_TOKEN: artifactsApiToken,
+			CLOUDFLARE_ACCOUNT_ID: cloudflareAccountId,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
 			USER_CONTENT_URL: env.USER_CONTENT_URL,
 			WORKER_NAME: workerId,
