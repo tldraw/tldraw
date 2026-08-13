@@ -2834,6 +2834,24 @@ export class TLFileDurableObject extends DurableObject {
 		await this.persistToDatabase({ throwOnFailure: true })
 	}
 
+	/**
+	 * Reports this object's stored identity and liveness without booting the room. Reads raw
+	 * storage so rooms with a stale documentInfo version still resolve; null for a
+	 * never-initialized object. `connectedSockets` counts hibernation-API sockets, so it is
+	 * accurate even while the room itself is not loaded.
+	 */
+	async __admin__getDocumentInfo() {
+		const info = (await this.storage.get('documentInfo')) as DocumentInfo | null
+		if (!info) return null
+		return {
+			slug: info.slug,
+			isApp: !!info.isApp,
+			deleted: !!info.deleted,
+			connectedSockets: this.ctx.getWebSockets().length,
+			roomLoaded: this._room !== null,
+		}
+	}
+
 	async __admin__hardDeleteIfLegacy() {
 		if (!this._documentInfo || this.documentInfo.deleted || this.documentInfo.isApp) return false
 		this.setDocumentInfo({
