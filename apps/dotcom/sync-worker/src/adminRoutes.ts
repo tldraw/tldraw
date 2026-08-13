@@ -1,6 +1,8 @@
 import {
 	AdminFileAssetsResponseBody,
 	AdminFileStatsResponseBody,
+	AdminOutboxRowsResponseBody,
+	AdminOutboxStatsResponseBody,
 	FILE_PREFIX,
 	FeatureFlagKey,
 	FriendsAndFamilyEntry,
@@ -145,7 +147,7 @@ export const adminRoutes = createRouter<Environment>()
 					eb.fn.min('createdAt').filterWhere('attempts', '<', MAX_ATTEMPTS).as('oldestPending'),
 				])
 				.executeTakeFirstOrThrow()
-			return json({
+			const result: AdminOutboxStatsResponseBody = {
 				outbox: {
 					pending: Number(stats.pending),
 					parked: Number(stats.parked),
@@ -153,10 +155,103 @@ export const adminRoutes = createRouter<Environment>()
 						? Math.round((Date.now() - new Date(stats.oldestPending).getTime()) / 1000)
 						: null,
 				},
-			})
+			}
+			return json(result)
 		} finally {
 			await db.destroy()
 		}
+	})
+	// Up to 100 outbox rows for manual inspection. Batches the current 'file' row per file-table
+	// entity in one query (rather than N+1) so the operator can compare payload vs. live state
+	// without a separate lookup per row.
+	.get('/app/admin/outbox/rows', async (_res, env) => {
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/rows')
+		try {
+			// Pending rows first, then parked, so old parked rows can't crowd new pending rows out
+			// of the 100-row cap.
+			const rows = await db
+				.selectFrom('effect_outbox')
+				.selectAll()
+				.orderBy(sql`("attempts" >= ${sql.raw(String(MAX_ATTEMPTS))})`)
+				.orderBy('id')
+				.limit(100)
+				.execute()
+
+			const fileIds = [
+				...new Set(rows.filter((r) => r.tableName === 'file').map((r) => r.entityId)),
+			]
+			const currentFiles = fileIds.length
+				? await db.selectFrom('file').where('id', 'in', fileIds).selectAll().execute()
+				: []
+			const currentFileById = new Map(currentFiles.map((f) => [f.id, f]))
+
+			const now = Date.now()
+			const result: AdminOutboxRowsResponseBody = {
+				rows: rows.map((row) => ({
+					...row,
+					createdAt: row.createdAt.toISOString(),
+					nextRetryAt: row.nextRetryAt ? row.nextRetryAt.toISOString() : null,
+					ageSeconds: Math.round((now - row.createdAt.getTime()) / 1000),
+					parked: row.attempts >= MAX_ATTEMPTS,
+					currentEntity:
+						row.tableName === 'file' ? (currentFileById.get(row.entityId) ?? null) : null,
+				})),
+			}
+			return json(result)
+		} finally {
+			await db.destroy()
+		}
+	})
+	.post('/app/admin/outbox/:id/retry', async (res, env) => {
+		const id = Number(res.params.id)
+		if (Number.isNaN(id)) {
+			throw new StatusError(400, 'id must be numeric')
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/retry')
+		let numUpdatedRows: bigint
+		try {
+			const result = await db
+				.updateTable('effect_outbox')
+				.set({ attempts: 0, nextRetryAt: null })
+				.where('id', '=', id)
+				.executeTakeFirst()
+			numUpdatedRows = result.numUpdatedRows
+		} finally {
+			await db.destroy()
+		}
+		// The drain (or another operator) may have deleted the row concurrently.
+		if (numUpdatedRows === 0n) {
+			throw new StatusError(404, `Outbox row ${id} not found`)
+		}
+		// Best-effort nudge: the reset already committed, so a poke failure must not 500 this
+		// request; the sweep alarm picks the row up within 30s regardless.
+		try {
+			await getFileEffectProcessor(env).poke()
+		} catch (e) {
+			console.error(`Failed to poke effect processor after resetting outbox row ${id}`, e)
+		}
+		return json({ ok: true })
+	})
+	.post('/app/admin/outbox/:id/delete', async (res, env) => {
+		const id = Number(res.params.id)
+		if (Number.isNaN(id)) {
+			throw new StatusError(400, 'id must be numeric')
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/delete')
+		let numDeletedRows: bigint
+		try {
+			const result = await db.deleteFrom('effect_outbox').where('id', '=', id).executeTakeFirst()
+			numDeletedRows = result.numDeletedRows
+		} finally {
+			await db.destroy()
+		}
+		// The drain (or another operator) may have already deleted the row.
+		if (numDeletedRows === 0n) {
+			throw new StatusError(404, `Outbox row ${id} not found`)
+		}
+		return json({ ok: true })
 	})
 	// Maps a durable object id back to its room slug and reports activity signals. The id is a
 	// one-way hash of the room name, but the room object stores its own identity, so it is asked
