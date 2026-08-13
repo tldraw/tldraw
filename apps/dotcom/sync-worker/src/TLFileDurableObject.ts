@@ -2650,8 +2650,11 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	async appFileRecordCreated(file: TlaFile) {
-		if (this._fileRecordCache) return
-		this._fileRecordCache = file
+		// Seed the cache for a cold DO but never clobber a fresher row, and never null it on
+		// failure: loadFromDatabase's createSource check reads it across an async gap, and a
+		// mid-flight null would seed a from-source duplicate as an empty room. Retries stay
+		// honest without a cache reset because getRoom() never caches a rejection.
+		if (!this._fileRecordCache) this._fileRecordCache = file
 
 		if (!this._documentInfo) {
 			this.setDocumentInfo({
@@ -2668,9 +2671,6 @@ export class TLFileDurableObject extends DurableObject {
 				console.error('appFileRecordCreated: room not found for deleted file, skipping', e)
 				return
 			}
-			// Clear the cache so a retry re-enters the `if (this._fileRecordCache) return`
-			// guard as a miss and actually re-attempts the room load.
-			this._fileRecordCache = null
 			throw e
 		}
 	}
