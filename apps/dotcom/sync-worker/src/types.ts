@@ -166,6 +166,9 @@ export type TLServerEvent =
 			type: 'client'
 			name: 'room_create' | 'room_reopen' | 'enter' | 'leave' | 'last_out'
 			instanceId: string
+			// `enter` only: the client bundle's build timestamp from the `?v=` connect param,
+			// so bundle age is queryable per connect. Absent = a bundle from before the param.
+			clientVersion?: string
 	  }
 	| {
 			type: 'client'
