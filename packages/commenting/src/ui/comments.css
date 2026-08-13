@@ -482,6 +482,8 @@ button.tlui-cmt-reaction--active:hover {
 
 .tlui-cmt-emoji-picker__item {
 	position: relative;
+	/* own stacking context so the z-index: -1 wash can't fall behind the menu panel */
+	isolation: isolate;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -512,8 +514,10 @@ button.tlui-cmt-reaction--active:hover {
 	background: var(--tl-color-muted-2);
 }
 
-.tlui-cmt-emoji-picker__item--active::after {
-	background: color-mix(in srgb, var(--tl-color-selected) 28%, var(--tl-color-panel));
+/* same greys as the style panel buttons: muted-2 on hover, hint when selected (also while hovered) */
+.tlui-cmt-emoji-picker__item--active::after,
+.tlui-cmt-emoji-picker__item--active:hover::after {
+	background: var(--tl-color-hint);
 }
 
 /* empty state */
