@@ -505,6 +505,65 @@ describe('stale pan recovery via real DOM events', () => {
 		}
 	})
 
+	it('opens the context menu for a static right-click recovered from a mid-release stale move', async () => {
+		const { editor, canvas } = await setup()
+
+		await act(async () => {
+			editor.createShape({ type: 'geo', x: 500, y: 500 })
+			editor.select(editor.getCurrentPageShapes()[0].id)
+		})
+		const contextmenu = vi.fn()
+		canvas.addEventListener('contextmenu', contextmenu)
+
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 2, buttons: 2 })
+		)
+		// Chrome can emit a buttons:0 move during the release of a static
+		// right-click. Recovery consumes the gesture within the drag threshold:
+		// the state chart gets the right_click AND the menu must still open.
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 101, clientY: 100, buttons: 0 })
+		)
+		expect(editor.inputs.getIsPointing()).toBe(false)
+		expect(editor.getSelectedShapeIds()).toEqual([])
+		expect(contextmenu).toHaveBeenCalledTimes(1)
+
+		// The late real pointerup is swallowed: no second menu or pointer_up.
+		const dispatched = captureDispatchNames(editor)
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerup', { clientX: 101, clientY: 100, button: 2, buttons: 0 })
+		)
+		expect(contextmenu).toHaveBeenCalledTimes(1)
+		expect(dispatched.filter((name) => name === 'pointer_up')).toHaveLength(0)
+	})
+
+	it('does not open a context menu when recovery lands beyond the drag threshold', async () => {
+		const { editor, canvas } = await setup()
+		const contextmenu = vi.fn()
+		canvas.addEventListener('contextmenu', contextmenu)
+
+		await fire(
+			editor,
+			canvas,
+			pointerEvent('pointerdown', { clientX: 100, clientY: 100, button: 2, buttons: 2 })
+		)
+		// Released outside the window, re-entering far from the press point:
+		// the right_click is suppressed, so no menu either.
+		await fire(
+			editor,
+			document.body,
+			pointerEvent('pointermove', { clientX: 300, clientY: 300, buttons: 0 })
+		)
+		expect(editor.inputs.getIsPointing()).toBe(false)
+		expect(contextmenu).not.toHaveBeenCalled()
+	})
+
 	it('swallows a late pointerup landing on the menu click capture overlay', async () => {
 		const { editor } = await setup()
 

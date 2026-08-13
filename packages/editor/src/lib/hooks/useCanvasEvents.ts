@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef } from 'react'
 import { LEFT_MOUSE_BUTTON, MIDDLE_MOUSE_BUTTON, RIGHT_MOUSE_BUTTON } from '../constants'
 import type { Editor } from '../editor/Editor'
 import { tlenv } from '../globals/environment'
+import { Vec } from '../primitives/Vec'
 import {
 	elementShouldCaptureKeys,
 	preventDefault,
@@ -58,6 +59,32 @@ export function consumeRecoveredPointerUp(
 			(buttons.has(LEFT_MOUSE_BUTTON) || buttons.has(RIGHT_MOUSE_BUTTON)))
 	if (matched) map!.delete(pointerId)
 	return matched
+}
+
+// Synthetic contextmenu (isTrusted false) that passes through onContextMenu
+// so Radix opens the menu at the given position.
+function dispatchSyntheticContextMenu(
+	target: Element,
+	e: {
+		clientX: number
+		clientY: number
+		pointerId: number
+		pointerType: string
+		isPrimary: boolean
+	}
+) {
+	target.dispatchEvent(
+		new PointerEvent('contextmenu', {
+			bubbles: true,
+			clientX: e.clientX,
+			clientY: e.clientY,
+			button: 2,
+			buttons: 0,
+			pointerId: e.pointerId,
+			pointerType: e.pointerType,
+			isPrimary: e.isPrimary,
+		})
+	)
 }
 
 // The `button` index and the `buttons` bitmask disagree: button 0 (left) is
@@ -153,17 +180,7 @@ export function useCanvasEvents() {
 
 				// Static right-click: fire contextmenu at the pointer-up location
 				if (rightClickPanning && button === 2 && !wasRightClickPanning) {
-					const contextMenuEvent = new PointerEvent('contextmenu', {
-						bubbles: true,
-						clientX: e.clientX,
-						clientY: e.clientY,
-						button: 2,
-						buttons: 0,
-						pointerId: e.pointerId,
-						pointerType: e.pointerType,
-						isPrimary: e.isPrimary,
-					})
-					e.currentTarget.dispatchEvent(contextMenuEvent)
+					dispatchSyntheticContextMenu(e.currentTarget, e)
 				}
 				isSecondaryClickPointerDown.current = false
 			}
@@ -324,6 +341,20 @@ export function useCanvasEvents() {
 					if (isButtonStillDown(button, e.buttons)) continue
 					if (button === RIGHT_MOUSE_BUTTON) isSecondaryClickPointerDown.current = false
 					recordRecoveredPointerUp(editor, e.pointerId, button)
+					// Within the drag threshold the editor delivers this pointer_up
+					// as a right_click (selection updates), so the contextmenu that
+					// onPointerUp would have fired must open here too — the real
+					// pointerup, if it ever arrives, is swallowed. Same screen-space
+					// distance check as the editor's pointer_up handling.
+					const screenBounds = editor.getViewportScreenBounds()
+					const isStaticRightClick =
+						button === RIGHT_MOUSE_BUTTON &&
+						editor.options.rightClickPanning &&
+						!editor.inputs.getIsPanning() &&
+						Vec.Dist2(editor.inputs.getOriginScreenPoint(), {
+							x: e.clientX - screenBounds.x,
+							y: e.clientY - screenBounds.y,
+						}) <= editor.options.dragDistanceSquared
 					// The missed pointerup also means the capture taken on
 					// pointerdown was never explicitly released. Browsers usually
 					// drop it implicitly, but if it's still held this event was
@@ -337,6 +368,10 @@ export function useCanvasEvents() {
 						...getPointerInfo(editor, e),
 						button,
 					})
+					if (isStaticRightClick) {
+						const canvas = editor.getContainer().querySelector('.tl-canvas')
+						if (canvas) dispatchSyntheticContextMenu(canvas, e)
+					}
 				}
 			}
 
