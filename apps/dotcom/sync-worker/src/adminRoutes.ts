@@ -417,8 +417,9 @@ export const adminRoutes = createRouter<Environment>()
 	// Deleted files the user OWNS: legacy direct owner, their home workspace (group id = user
 	// id), or a workspace where they hold the owner role. Mere memberships and guest files are
 	// excluded — the per-row Undelete button restores files, so the list must only contain files
-	// the user legitimately owns. Queried from Postgres because Zero's queries (dotcom-shared
-	// queries.ts) filter out deleted files for the user's own synced store.
+	// the user legitimately owns. Queried from Postgres because the synced store never surfaces
+	// deleted files: the client filters on file.isDeleted, and the join rows that sync a file
+	// (file_state, group_file) are removed on delete.
 	.get('/app/admin/user/deleted_files', async (res, env) => {
 		const q = res.query['q']
 		if (typeof q !== 'string') {

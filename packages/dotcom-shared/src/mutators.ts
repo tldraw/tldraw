@@ -683,9 +683,6 @@ export function createMutators(userId: string) {
 			}
 
 			await tx.mutate.group.update({ id: id, isDeleted: true })
-			// TODO: test that this works on the client and that the groups and group_users are removed
-			// from the user's durable object state.
-			// ALSO TODO: add special case for isDeleted becoming false in user data syncer to trigger a hard reboot
 			if (tx.location !== 'server') {
 				await tx.mutate.group_user.delete({ userId, groupId: id })
 			}
