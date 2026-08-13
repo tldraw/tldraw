@@ -61,10 +61,10 @@ new_sqlite_classes = ["TLFileEffectProcessor"]
 # TLDrawDurableObject (code 10074). skip v1 and v10 here; env-level migrations
 # fully replace the top-level list.
 # v5 (TLPostgresReplicator + TLUserDurableObject) and v7 (TLStatsDurableObject) are also
-# skipped: those classes are being removed, and a fresh preview worker must never see a
-# create+delete pair for a class that no longer exists (same #8819 failure mode as v1/v10
-# above). The eventual delete-class migration for these three only goes in the top-level
-# list, so preview never needs it.
+# skipped. Their delete-class migration can only ever go in the top-level list, because a
+# fresh preview worker replaying create+delete for one class hits the same 10074 as v1/v10
+# above. Skipping the creates here keeps preview consistent with that: the classes are
+# never created, so preview needs neither the delete nor the classes.
 [[env.preview.migrations]]
 tag = "v2"
 new_classes = ["TLProWorkspaceDurableObject"]
