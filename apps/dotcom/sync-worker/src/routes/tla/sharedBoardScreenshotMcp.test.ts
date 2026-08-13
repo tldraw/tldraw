@@ -509,6 +509,26 @@ describe('get_board_info', () => {
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 
+	// Every tool call already dials Postgres twice — once for the access check, once to resolve the
+	// board. The snapshot read must not make it three: getSharedFileRoomSnapshot falls back to its own
+	// getSharedFileInfo when no row is handed to it, so the resolved row is passed through instead.
+	// Asserted on the argument rather than a call count, because these tests mock the room-snapshot
+	// reader outright and its internal fallback never runs here.
+	it('hands the resolved file row to the snapshot read instead of re-fetching it', async () => {
+		const file = { id: 'f1', shared: true, isDeleted: false }
+		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
+		vi.mocked(getSharedFileInfo).mockResolvedValue(file)
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
+
+		await callTool('get_board_info', { boardId: 'f1' }, makeEnv({ ROOMS: makeFakeRoomsBucket() }))
+
+		expect(getSharedFileRoomSnapshot).toHaveBeenCalledWith(
+			expect.anything(),
+			'f1',
+			expect.objectContaining({ file })
+		)
+	})
+
 	it('errors when no board resolves for this caller', async () => {
 		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
@@ -1088,7 +1108,7 @@ describe('shape screenshots', () => {
 		expect(failureBlobsOf(env)).toEqual(['failure:none', 'failure:none'])
 	})
 
-	it('records the hashed account only on failures, not on successful screenshots', async () => {
+	it('records the hashed account only on rate-limited rows', async () => {
 		mockPublishedBoard()
 		const successEnv = makeEnv()
 		const clusterId = await firstClusterId(successEnv, 'user_70', 'abc')
@@ -1102,6 +1122,10 @@ describe('shape screenshots', () => {
 		// caller: the per-client dimension must stay off the common success path for every tool.
 		expect(callerBlobsOf(successEnv)).toEqual(['caller:none', 'caller:none'])
 
+		// An ordinary failure omits it too, which is the narrower part of the rule. A board id that
+		// resolves to nothing is the commonest mistake a model makes, so recording a caller for it
+		// would put a distinct blob value on very nearly every user — the cardinality this gate exists
+		// to avoid, just reached one wrong id at a time instead of one request at a time.
 		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 		const failEnv = makeEnv()
@@ -1111,11 +1135,27 @@ describe('shape screenshots', () => {
 			failEnv,
 			'user_71'
 		)
-		const callerBlobs = callerBlobsOf(failEnv)
-		expect(callerBlobs).toHaveLength(1)
+		expect(callerBlobsOf(failEnv)).toEqual(['caller:none'])
+
+		// A rate-limited row keeps it: that is the caller worth naming when spend spikes. Distinct
+		// boards each time, so the per-board budget can't be what fires first.
+		mockPublishedBoard()
+		const limitedEnv = makeEnv()
+		const limitedCluster = await firstClusterId(limitedEnv, 'user_helper', 'board-0')
+		for (let i = 0; i <= MCP_PER_USER_RATE_LIMIT; i++) {
+			await callTool(
+				'get_cluster_screenshot',
+				{ boardId: `board-${i}`, clusterIds: [limitedCluster] },
+				limitedEnv,
+				'user_72'
+			)
+		}
+		expect(failureBlobsOf(limitedEnv)).toContain('failure:rate_limited_user')
+		const named = callerBlobsOf(limitedEnv).filter((blob) => blob !== 'caller:none')
+		expect(named).not.toHaveLength(0)
 		// Hashed, not the raw user id: the dataset can attribute spend without carrying identities.
-		expect(callerBlobs[0]).toMatch(/^caller:[0-9a-f]{64}$/)
-		expect(callerBlobs[0]).not.toContain('user_71')
+		expect(named[0]).toMatch(/^caller:[0-9a-f]{64}$/)
+		expect(named[0]).not.toContain('user_72')
 	})
 })
 

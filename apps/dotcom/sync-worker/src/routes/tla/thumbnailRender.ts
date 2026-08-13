@@ -597,8 +597,8 @@ export function writeScreenshotTelemetry(
 		 */
 		cacheStatus: 'hit' | 'stale' | 'miss' | 'none'
 		/**
-		 * Hashed identity of whoever asked, for surfaces that have one. Recorded only on failures —
-		 * see below.
+		 * Hashed identity of whoever asked, for surfaces that have one. Recorded only on rate-limited
+		 * rows — see below.
 		 *
 		 * This is a hashed user id on the MCP surface, which now requires authentication; it replaced
 		 * a hashed client IP, and holds the same blob position so the dashboard panels reading it did
@@ -610,17 +610,21 @@ export function writeScreenshotTelemetry(
 	}
 ) {
 	const rateLimitAllowed = data.rateLimitAllowed ?? true
-	// Only on failed or rate-limited events, where it's useful for abuse analysis. On the common
-	// success path a per-caller blob is one distinct dimension value per client, per request — a large
-	// cardinality cost for no query benefit.
-	const isFailure = data.failureReason !== undefined || !rateLimitAllowed
+	// Only on rate-limited rows, which is the whole question a per-caller blob answers: who to look at
+	// when spend spikes or a limit keeps firing.
+	//
+	// Deliberately narrower than "any failure". Cardinality is about distinct *values*, not row count,
+	// and the failure set is mostly routine model mistakes — a wrong board id, a stale cluster id, a
+	// page that moved. Nearly every caller produces one of those eventually, so gating on failure
+	// would leave the number of distinct callers converging on the number of users, which is the cost
+	// the gate exists to avoid. Rate limits fire rarely and only for callers worth naming.
 	writeDataPoint(undefined, env.MEASURE, env, 'mcp_shared_board_screenshot', {
 		blobs: [
 			`source:${data.source}`,
 			`cache:${data.cacheStatus}`,
 			`failure:${data.failureReason ?? 'none'}`,
 			`rate_limit:${rateLimitAllowed ? 'allowed' : 'blocked'}`,
-			`caller:${isFailure && data.callerHash ? data.callerHash : 'none'}`,
+			`caller:${!rateLimitAllowed && data.callerHash ? data.callerHash : 'none'}`,
 			// Appended rather than slotted in beside `source`, so the existing blob positions (and the
 			// dashboard panels reading them) don't shift.
 			`reason:${data.reason ?? 'none'}`,

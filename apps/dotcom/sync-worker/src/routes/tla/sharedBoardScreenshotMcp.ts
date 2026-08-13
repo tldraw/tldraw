@@ -610,7 +610,7 @@ async function callPageInfoTool(
 		)
 	}
 
-	const telemetry = await mcpTelemetryWriter(env, userId)
+	const telemetry = mcpTelemetryWriter(env)
 	try {
 		// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve
 		// cluster ids against a single page, so listing every shape on the board here would hand out
@@ -677,7 +677,18 @@ async function loadBoardForTool(
 
 	// Read under the gate the board resolved under, not a fixed one, so a private file the caller
 	// owns is readable and a published board is still held to the published check.
-	const snapshot = await loadBoardSnapshot(env, resolved.board, { access: resolved.board.access })
+	//
+	// `file` is the row the resolve above already gated on, handed back so this read re-applies the
+	// gate without asking Postgres the same question a second time — otherwise every tool call dials
+	// twice for one row, on top of the access check's own dial. Safe precisely here, for the same
+	// reason it is in the OG queue: the two are microseconds apart inside one function, where the
+	// re-read would return the row we already hold. It is not a general licence — the render page's
+	// own read (getThumbnailSnapshot) deliberately re-reads, because it is a separate request, and
+	// that re-read is what makes an un-share land inside the render token's window.
+	const snapshot = await loadBoardSnapshot(env, resolved.board, {
+		access: resolved.board.access,
+		file: resolved.board.file,
+	})
 	if (!snapshot) {
 		return {
 			ok: false,
@@ -713,12 +724,14 @@ async function resolveBoardPage(
 	return { ok: true, board: loaded.board, page: pageResult }
 }
 
-// One datapoint shape for every MCP tool: `source: 'mcp'` plus the caller. Hashed rather than raw,
-// so the dataset holds an account that spend or abuse can be traced back to without carrying user
-// ids around — it replaced the hashed client IP the screenshot tool used before authentication was
-// required, which was weak in both directions: evaded by a proxy pool and shared across a NAT.
-async function mcpTelemetryWriter(env: Environment, userId: string) {
-	const callerHash = await sha256(userId)
+// One datapoint shape for every MCP tool: `source: 'mcp'`, plus whatever the row carries.
+//
+// The caller is deliberately *not* filled in here. It belongs only on rate-limited rows, so the
+// handful of sites that write one hash the user id themselves — see the note on `callerHash` in
+// writeScreenshotTelemetry for why the blob is scoped that narrowly. Hashing here instead would put
+// a SubtleCrypto round trip on every successful tool call to produce a value the writer then throws
+// away as `caller:none`.
+function mcpTelemetryWriter(env: Environment) {
 	return (data: {
 		// `none` = the request never consulted the PNG cache: all info-tool rows, and screenshot
 		// requests refused before the cache read. Keeping those out of hit/miss is what lets a
@@ -726,8 +739,9 @@ async function mcpTelemetryWriter(env: Environment, userId: string) {
 		cacheStatus: 'hit' | 'miss' | 'none'
 		failureReason?: string
 		rateLimitAllowed?: boolean
+		callerHash?: string
 	}) => {
-		writeScreenshotTelemetry(env, { source: 'mcp', callerHash, ...data })
+		writeScreenshotTelemetry(env, { source: 'mcp', ...data })
 	}
 }
 
@@ -767,7 +781,7 @@ async function callClusterInfoTool(
 		)
 	}
 
-	const telemetry = await mcpTelemetryWriter(env, userId)
+	const telemetry = mcpTelemetryWriter(env)
 	try {
 		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId)
 		if (!resolved.ok) {
@@ -837,7 +851,7 @@ async function renderShapeSetScreenshot(
 		>
 	}
 ) {
-	const telemetry = await mcpTelemetryWriter(env, userId)
+	const telemetry = mcpTelemetryWriter(env)
 	// Whether the PNG cache was actually consulted, for the catch below: a failure before the cache
 	// read says nothing about cache health and files under `cache:none`, one after it was a miss.
 	let consultedCache = false
@@ -851,7 +865,12 @@ async function renderShapeSetScreenshot(
 			fallbackLimit: MCP_PER_USER_RATE_LIMIT,
 		})
 	) {
-		telemetry({ cacheStatus: 'none', rateLimitAllowed: false, failureReason: 'rate_limited_user' })
+		telemetry({
+			cacheStatus: 'none',
+			rateLimitAllowed: false,
+			failureReason: 'rate_limited_user',
+			callerHash: await sha256(userId),
+		})
 		return toolError(
 			`Rate limited. Screenshots are limited to about ${MCP_PER_USER_RATE_LIMIT} requests per minute per account.`,
 			'rate_limited_user'
@@ -906,6 +925,7 @@ async function renderShapeSetScreenshot(
 				cacheStatus: 'miss',
 				rateLimitAllowed: false,
 				failureReason: 'rate_limited_board',
+				callerHash: await sha256(userId),
 			})
 			return toolError(
 				'Rate limited. This board is being screenshotted too frequently.',
@@ -917,6 +937,7 @@ async function renderShapeSetScreenshot(
 				cacheStatus: 'miss',
 				rateLimitAllowed: false,
 				failureReason: 'rate_limited_global',
+				callerHash: await sha256(userId),
 			})
 			return toolError(
 				'Rate limited. Screenshot capacity is busy, try again in a minute.',
@@ -992,7 +1013,6 @@ async function callClusterScreenshotTool(
 		// Telemetry gets a bounded reason code; the caller gets the specific validation message.
 		writeScreenshotTelemetry(env, {
 			source: 'mcp',
-			callerHash: await sha256(userId),
 			cacheStatus: 'none',
 			failureReason: 'invalid_input',
 		})
