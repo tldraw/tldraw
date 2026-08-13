@@ -8,9 +8,8 @@ import { useCommentingEnabled } from '../lib/ui/hooks/useCommentingEnabled'
 import { renderTldrawComponentWithEditor } from './testutils/renderTldrawComponent'
 
 // Default UI components can be mounted beside <Tldraw /> rather than inside it, wrapped in the
-// providers the caller recreates (container, editor, ui context). The license context is not among
-// them: it lives inside <TldrawEditor />, so license-gated hooks must resolve the license through
-// the editor instance instead.
+// providers the caller recreates (container, editor, ui context). The license provider is not
+// among them — it only exists inside <TldrawEditor />.
 describe('default UI mounted outside <Tldraw />', () => {
 	it('renders the default toolbar and resolves license feature flags through the editor', async () => {
 		const { editor } = await renderTldrawComponentWithEditor(
@@ -56,7 +55,7 @@ describe('default UI mounted outside <Tldraw />', () => {
 		expect(commentingEnabled).toBe(false)
 	})
 
-	it('useLicenseContext names the missing provider instead of returning an empty object', () => {
+	it('useLicenseContext throws when there is no license provider and no editor', () => {
 		function LicenseProbe() {
 			useLicenseContext()
 			return null
