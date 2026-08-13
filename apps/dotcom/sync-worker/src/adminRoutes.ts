@@ -1,6 +1,8 @@
 import {
 	AdminFileAssetsResponseBody,
 	AdminFileStatsResponseBody,
+	AdminOutboxRowsResponseBody,
+	AdminOutboxStatsResponseBody,
 	FILE_PREFIX,
 	FeatureFlagKey,
 	FriendsAndFamilyEntry,
@@ -26,6 +28,7 @@ import { undeleteFile } from './undeleteFile'
 import {
 	getFileEffectProcessor,
 	getRoomDurableObject,
+	getRoomDurableObjectById,
 	getUserDurableObject,
 } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
@@ -144,7 +147,7 @@ export const adminRoutes = createRouter<Environment>()
 					eb.fn.min('createdAt').filterWhere('attempts', '<', MAX_ATTEMPTS).as('oldestPending'),
 				])
 				.executeTakeFirstOrThrow()
-			return json({
+			const result: AdminOutboxStatsResponseBody = {
 				outbox: {
 					pending: Number(stats.pending),
 					parked: Number(stats.parked),
@@ -152,10 +155,189 @@ export const adminRoutes = createRouter<Environment>()
 						? Math.round((Date.now() - new Date(stats.oldestPending).getTime()) / 1000)
 						: null,
 				},
-			})
+			}
+			return json(result)
 		} finally {
 			await db.destroy()
 		}
+	})
+	// Up to 100 outbox rows for manual inspection. Batches the current 'file' row per file-table
+	// entity in one query (rather than N+1) so the operator can compare payload vs. live state
+	// without a separate lookup per row.
+	.get('/app/admin/outbox/rows', async (_res, env) => {
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/rows')
+		try {
+			// Pending rows first, then parked, so old parked rows can't crowd new pending rows out
+			// of the 100-row cap.
+			const rows = await db
+				.selectFrom('effect_outbox')
+				.selectAll()
+				.orderBy(sql`("attempts" >= ${sql.raw(String(MAX_ATTEMPTS))})`)
+				.orderBy('id')
+				.limit(100)
+				.execute()
+
+			const fileIds = [
+				...new Set(rows.filter((r) => r.tableName === 'file').map((r) => r.entityId)),
+			]
+			const currentFiles = fileIds.length
+				? await db.selectFrom('file').where('id', 'in', fileIds).selectAll().execute()
+				: []
+			const currentFileById = new Map(currentFiles.map((f) => [f.id, f]))
+
+			const now = Date.now()
+			const result: AdminOutboxRowsResponseBody = {
+				rows: rows.map((row) => ({
+					...row,
+					createdAt: row.createdAt.toISOString(),
+					nextRetryAt: row.nextRetryAt ? row.nextRetryAt.toISOString() : null,
+					ageSeconds: Math.round((now - row.createdAt.getTime()) / 1000),
+					parked: row.attempts >= MAX_ATTEMPTS,
+					currentEntity:
+						row.tableName === 'file' ? (currentFileById.get(row.entityId) ?? null) : null,
+				})),
+			}
+			return json(result)
+		} finally {
+			await db.destroy()
+		}
+	})
+	.post('/app/admin/outbox/:id/retry', async (res, env) => {
+		const id = Number(res.params.id)
+		if (Number.isNaN(id)) {
+			throw new StatusError(400, 'id must be numeric')
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/retry')
+		let numUpdatedRows: bigint
+		try {
+			const result = await db
+				.updateTable('effect_outbox')
+				.set({ attempts: 0, nextRetryAt: null })
+				.where('id', '=', id)
+				.executeTakeFirst()
+			numUpdatedRows = result.numUpdatedRows
+		} finally {
+			await db.destroy()
+		}
+		// The drain (or another operator) may have deleted the row concurrently.
+		if (numUpdatedRows === 0n) {
+			throw new StatusError(404, `Outbox row ${id} not found`)
+		}
+		// Best-effort nudge: the reset already committed, so a poke failure must not 500 this
+		// request; the sweep alarm picks the row up within 30s regardless.
+		try {
+			await getFileEffectProcessor(env).poke()
+		} catch (e) {
+			console.error(`Failed to poke effect processor after resetting outbox row ${id}`, e)
+		}
+		return json({ ok: true })
+	})
+	.post('/app/admin/outbox/:id/delete', async (res, env) => {
+		const id = Number(res.params.id)
+		if (Number.isNaN(id)) {
+			throw new StatusError(400, 'id must be numeric')
+		}
+
+		const db = createPostgresConnectionPool(env, '/app/admin/outbox/delete')
+		let numDeletedRows: bigint
+		try {
+			const result = await db.deleteFrom('effect_outbox').where('id', '=', id).executeTakeFirst()
+			numDeletedRows = result.numDeletedRows
+		} finally {
+			await db.destroy()
+		}
+		// The drain (or another operator) may have already deleted the row.
+		if (numDeletedRows === 0n) {
+			throw new StatusError(404, `Outbox row ${id} not found`)
+		}
+		return json({ ok: true })
+	})
+	// Maps a durable object id back to its room slug and reports activity signals. The id is a
+	// one-way hash of the room name, but the room object stores its own identity, so it is asked
+	// directly — a never-initialized id resolves to null. The brief wake is storage-read only; no
+	// room boot. Persist history comes from the version-cache bucket: one timestamped snapshot per
+	// persist, so save cadence separates an actively edited room from a parked tab holding a
+	// socket open.
+	.get('/app/admin/resolve-do-id/:objectId', async (res, env) => {
+		const objectId = res.params.objectId
+		if (!/^[0-9a-f]{64}$/.test(objectId)) {
+			throw new StatusError(400, 'objectId must be a 64-char lowercase hex string')
+		}
+		let roomDo: ReturnType<typeof getRoomDurableObjectById>
+		try {
+			// idFromString rejects hex that fails the namespace checksum (garbage, or an id copied
+			// from another durable object class)
+			roomDo = getRoomDurableObjectById(env, objectId)
+		} catch {
+			throw new StatusError(400, 'not a valid durable object id for the file namespace')
+		}
+		const info = await roomDo.__admin__getDocumentInfo()
+		if (!info) return json({ match: null, history: null })
+
+		// Stream the stats instead of collecting objects, so any number of snapshots fits. Keys are
+		// ISO timestamps (oldest first); min/max tracking keeps the newest save correct either way.
+		const prefix = `${getR2KeyForRoom({ slug: info.slug, isApp: info.isApp })}/`
+		let saves = 0
+		let totalBytes = 0
+		let firstAt: number | null = null
+		let lastAt: number | null = null
+		let latestSize: number | null = null
+		let cursor: string | undefined
+		let pages = 0
+		let listTruncated = false
+		do {
+			const page = await env.ROOMS_HISTORY_EPHEMERAL.list({ prefix, cursor })
+			for (const obj of page.objects) {
+				saves++
+				totalBytes += obj.size
+				const t = obj.uploaded.getTime()
+				if (firstAt === null || t < firstAt) firstAt = t
+				if (lastAt === null || t > lastAt) {
+					lastAt = t
+					latestSize = obj.size
+				}
+			}
+			cursor = page.truncated ? page.cursor : undefined
+			// subrequest backstop: 500 pages = 500k snapshots, far beyond any real room
+			if (++pages >= 500 && cursor) {
+				listTruncated = true
+				break
+			}
+		} while (cursor)
+
+		return json({
+			match: info,
+			history: {
+				saves,
+				firstSaveAt: firstAt !== null ? new Date(firstAt).toISOString() : null,
+				lastSaveAt: lastAt !== null ? new Date(lastAt).toISOString() : null,
+				avgSecondsBetweenSaves:
+					saves > 1 && firstAt !== null && lastAt !== null
+						? Math.round((lastAt - firstAt) / 1000 / (saves - 1))
+						: null,
+				latestSizeBytes: latestSize,
+				totalSizeBytes: totalBytes,
+				listTruncated,
+			},
+		})
+	})
+	// Force-closes every session on a file room with CLIENT_TOO_OLD. Shipped clients treat that
+	// as terminal — no reconnect, a "please reload" screen — so a room held awake around the
+	// clock by parked background tabs on stale bundles can finally hibernate. Resolve the id
+	// first and check the verdict: this closes actively edited sessions just the same.
+	.post('/app/admin/close-do-sessions/:objectId', async (res, env) => {
+		const objectId = res.params.objectId
+		if (!/^[0-9a-f]{64}$/.test(objectId)) {
+			throw new StatusError(400, 'objectId must be a 64-char lowercase hex string')
+		}
+		let roomDo: ReturnType<typeof getRoomDurableObjectById>
+		try {
+			roomDo = getRoomDurableObjectById(env, objectId)
+		} catch {
+			throw new StatusError(400, 'not a valid durable object id for the file namespace')
+		}
+		return json(await roomDo.__admin__closeAllSessions())
 	})
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
