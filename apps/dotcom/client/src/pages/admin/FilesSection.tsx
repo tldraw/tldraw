@@ -113,12 +113,7 @@ function ResolveDoId() {
 		} | null
 	)
 
-	const onResolve = useCallback(async () => {
-		const objectId = input.trim()
-		if (!/^[0-9a-f]{64}$/.test(objectId)) {
-			setError('Paste a 64-character lowercase hex durable object id')
-			return
-		}
+	const resolve = useCallback(async (objectId: string) => {
 		setError(null)
 		setResult(null)
 		setCopied(false)
@@ -135,7 +130,16 @@ function ResolveDoId() {
 		} finally {
 			setIsRunning(false)
 		}
-	}, [input])
+	}, [])
+
+	const onResolve = useCallback(async () => {
+		const objectId = input.trim()
+		if (!/^[0-9a-f]{64}$/.test(objectId)) {
+			setError('Paste a 64-character lowercase hex durable object id')
+			return
+		}
+		await resolve(objectId)
+	}, [input, resolve])
 
 	const onCopySlug = useCallback(async (slug: string) => {
 		await navigator.clipboard.writeText(slug)
@@ -145,6 +149,39 @@ function ResolveDoId() {
 
 	const match = result?.match
 	const history = result?.history
+
+	const [isClosing, setIsClosing] = useState(false)
+	const onForceClose = useCallback(async () => {
+		// target the id that was resolved, not the live input — the admin may have edited the
+		// input since, and the button describes the resolved room
+		if (!result || !match) return
+		if (
+			!window.confirm(
+				`Force-close ${match.connectedSockets} session(s) on ${match.slug}? ` +
+					'Every connected tab (including anyone actively editing) is disconnected and shown ' +
+					'a "please reload" screen.'
+			)
+		) {
+			return
+		}
+		setError(null)
+		setIsClosing(true)
+		try {
+			const res = await fetch(`/api/app/admin/close-do-sessions/${result.objectId}`, {
+				method: 'POST',
+			})
+			if (!res.ok) {
+				setError(res.statusText + ': ' + (await res.text()))
+				return
+			}
+			// re-resolve the same object so the socket count and verdict reflect the drain
+			await resolve(result.objectId)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Force-close failed')
+		} finally {
+			setIsClosing(false)
+		}
+	}, [result, match, resolve])
 
 	return (
 		<div>
@@ -214,6 +251,14 @@ function ResolveDoId() {
 										: '') +
 									`latest ${history.latestSizeBytes !== null ? formatBytes(history.latestSizeBytes) : '-'} · ` +
 									`total ${formatBytes(history.totalSizeBytes)}`}
+						</div>
+					)}
+					{match.connectedSockets > 0 && (
+						<div>
+							<AdminButton variant="danger" onClick={onForceClose} isLoading={isClosing}>
+								Force-close {match.connectedSockets} session
+								{match.connectedSockets === 1 ? '' : 's'}
+							</AdminButton>
 						</div>
 					)}
 				</div>
