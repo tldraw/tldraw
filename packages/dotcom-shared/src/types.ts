@@ -6,6 +6,7 @@ import {
 	TlaCommentReaction,
 	TlaCommentRead,
 	TlaCommentThread,
+	TlaEffectOutbox,
 	TlaFile,
 	TlaFileState,
 	TlaFileVisitor,
@@ -493,4 +494,30 @@ export interface AdminFileStatsResponseBody {
 	assets: { total: number; byType: Record<string, number>; totalSizeBytes: number }
 	collaboration: { visitors: number; commentThreads: number; comments: number }
 	warnings: string[]
+}
+
+/** One row of the admin effect-outbox listing, with derived fields the UI needs. */
+export interface AdminOutboxRow extends Omit<TlaEffectOutbox, 'createdAt' | 'nextRetryAt'> {
+	/** ISO string: crosses the wire as JSON, not a kysely Date. */
+	createdAt: string
+	/** ISO string: crosses the wire as JSON, not a kysely Date. */
+	nextRetryAt: string | null
+	ageSeconds: number
+	parked: boolean
+	/** Current `file` row for tableName 'file' rows; null if hard-deleted or not a file row */
+	currentEntity: TlaFile | null
+}
+
+/** Response of the admin effect-outbox row listing endpoint. */
+export interface AdminOutboxRowsResponseBody {
+	rows: AdminOutboxRow[]
+}
+
+/** Response of the admin effect-outbox stats endpoint. */
+export interface AdminOutboxStatsResponseBody {
+	outbox: {
+		pending: number
+		parked: number
+		oldestPendingAgeSeconds: number | null
+	}
 }
