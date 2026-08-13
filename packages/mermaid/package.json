@@ -10,7 +10,9 @@
 	"license": "SEE LICENSE IN LICENSE.md",
 	"tldraw_product": {
 		"stableId": "tldraw:mermaid",
-		"type": "module",
+		"name": "Mermaid",
+		"type": "feature",
+		"parent": "tldraw:sdk-core",
 		"premium": false
 	},
 	"repository": {

@@ -10,7 +10,8 @@
 	"license": "MIT",
 	"tldraw_product": {
 		"stableId": "tldraw:sdk-core",
-		"type": "sdk_core",
+		"name": "SDK",
+		"type": "product",
 		"premium": false
 	},
 	"repository": {

@@ -10,7 +10,8 @@
 	"license": "SEE LICENSE IN LICENSE.md",
 	"tldraw_product": {
 		"stableId": "tldraw:collaboration",
-		"type": "premium_module",
+		"name": "Collaboration module",
+		"type": "product",
 		"premium": true,
 		"licenseFlag": "FEAT_COLLABORATION"
 	},

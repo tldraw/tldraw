@@ -35,7 +35,15 @@ export const PRODUCT_CONFIG_KEY = 'tldraw_product' as const
 export const ProductConfig = T.object({
 	// Immutable commercial identifier, e.g. `tldraw:sdk-core`. Never changes on rename/refactor.
 	stableId: T.string,
-	type: T.literalEnum('sdk_core', 'module', 'premium_module', 'tool'),
+	// Customer-facing label, matching the wording used on the order form, e.g. 'Collaboration
+	// module'. Unlike stableId this may be reworded; the id is what contracts reference.
+	name: T.string,
+	// `product` is a top-level order form line item; `feature` is an optional part of its parent
+	// that can be licensed on its own, listed indented beneath it on the order form.
+	type: T.literalEnum('product', 'feature'),
+	// The component this one belongs to, e.g. commenting's parent is the collaboration module.
+	// Components without a parent are top-level order form line items.
+	parent: T.string.optional(),
 	// Whether this component is separately licensed rather than part of the standard SDK offering.
 	premium: T.boolean,
 	// For premium components: the license key FLAGS bit (in packages/editor's LicenseManager) that

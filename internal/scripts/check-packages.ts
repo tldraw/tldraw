@@ -414,9 +414,25 @@ async function checkProductMetadata({
 			)
 		}
 
-		// all packages sharing a stable id must agree on type/premium/licenseFlag, since they
+		if (product.type === 'feature' && !product.parent) {
+			error(name, 'is a feature but has no parent component')
+		}
+		if (product.type === 'product' && product.parent) {
+			error(name, 'is a top-level product but declares a parent')
+		}
+		if (product.parent === product.stableId) {
+			error(name, 'is its own parent')
+		}
+
+		// all packages sharing a stable id must agree on the rest of the metadata, since they
 		// describe the same commercial component
-		const configKey = JSON.stringify([product.type, product.premium, product.licenseFlag ?? null])
+		const configKey = JSON.stringify([
+			product.name,
+			product.type,
+			product.parent ?? null,
+			product.premium,
+			product.licenseFlag ?? null,
+		])
 		const others = byStableId.get(product.stableId) ?? []
 		others.push({ name, config: configKey })
 		byStableId.set(product.stableId, others)
@@ -428,6 +444,16 @@ async function checkProductMetadata({
 				stableId,
 				`packages disagree on product metadata: ${entries.map((e) => e.name).join(', ')}`
 			)
+		}
+	}
+
+	// every parent must be a component that actually exists, or the order form would reference a
+	// line item nothing defines
+	for (const { packageJson, name, relativePath } of packages) {
+		if (!relativePath.startsWith('packages/') || packageJson.private) continue
+		const parent = packageJson[PRODUCT_CONFIG_KEY]?.parent
+		if (parent && !byStableId.has(parent)) {
+			error(name, `has parent "${parent}" which is not a known component`)
 		}
 	}
 

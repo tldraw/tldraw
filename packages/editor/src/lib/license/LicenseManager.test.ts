@@ -522,6 +522,24 @@ describe('LicenseManager', () => {
 			)) as ValidLicenseKeyResult
 			expect(result.isCommentingEnabled).toBe(true)
 			expect(result.isCollaborationEnabled).toBe(false)
+			// Commenting is built on mentions, so it grants them too.
+			expect(result.isMentionsEnabled).toBe(true)
+		})
+
+		it('Checks for the mentions feature flag', async () => {
+			const mentionsLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			mentionsLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.FEAT_MENTIONS
+			const mentionsLicenseKey = await generateLicenseKey(
+				JSON.stringify(mentionsLicenseInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				mentionsLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isMentionsEnabled).toBe(true)
+			// Mentions can be licensed on their own, without commenting.
+			expect(result.isCommentingEnabled).toBe(false)
+			expect(result.isCollaborationEnabled).toBe(false)
 		})
 
 		it('Checks for the collaboration feature flag', async () => {
@@ -535,8 +553,9 @@ describe('LicenseManager', () => {
 				collaborationLicenseKey
 			)) as ValidLicenseKeyResult
 			expect(result.isCollaborationEnabled).toBe(true)
-			// The collaboration umbrella grants the commenting sub-feature.
+			// The collaboration umbrella grants every sub-feature.
 			expect(result.isCommentingEnabled).toBe(true)
+			expect(result.isMentionsEnabled).toBe(true)
 		})
 
 		it('Leaves feature flags off when no feature bits are set', async () => {
@@ -546,6 +565,7 @@ describe('LicenseManager', () => {
 			)) as ValidLicenseKeyResult
 			expect(result.isCollaborationEnabled).toBe(false)
 			expect(result.isCommentingEnabled).toBe(false)
+			expect(result.isMentionsEnabled).toBe(false)
 		})
 
 		it('Enables features synchronously in development, before validation resolves', () => {
@@ -852,6 +872,7 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isEvaluationLicenseExpired: false,
 		isCollaborationEnabled: false,
 		isCommentingEnabled: false,
+		isMentionsEnabled: false,
 		daysSinceExpiry: 0,
 		// WatermarkManager does not check these fields, it relies on the calculated values like isAnnualLicenseExpired
 		license: {
@@ -1159,10 +1180,12 @@ describe('getEnabledFeatures', () => {
 		const result = getDefaultLicenseResult({
 			isCollaborationEnabled: false,
 			isCommentingEnabled: false,
+			isMentionsEnabled: false,
 		})
 		expect(getEnabledFeatures(result, 'unlicensed', true)).toEqual({
 			collaboration: true,
 			commenting: true,
+			mentions: true,
 		})
 	})
 
@@ -1170,10 +1193,12 @@ describe('getEnabledFeatures', () => {
 		const result = getDefaultLicenseResult({
 			isCollaborationEnabled: false,
 			isCommentingEnabled: true,
+			isMentionsEnabled: true,
 		})
 		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
 			collaboration: false,
 			commenting: true,
+			mentions: true,
 		})
 	})
 
@@ -1181,10 +1206,12 @@ describe('getEnabledFeatures', () => {
 		const result = getDefaultLicenseResult({
 			isCollaborationEnabled: true,
 			isCommentingEnabled: true,
+			isMentionsEnabled: true,
 		})
 		expect(getEnabledFeatures(result, 'licensed-with-watermark', false)).toEqual({
 			collaboration: true,
 			commenting: true,
+			mentions: true,
 		})
 	})
 
@@ -1194,10 +1221,12 @@ describe('getEnabledFeatures', () => {
 			const result = getDefaultLicenseResult({
 				isCollaborationEnabled: true,
 				isCommentingEnabled: true,
+				isMentionsEnabled: true,
 			})
 			expect(getEnabledFeatures(result, state, false)).toEqual({
 				collaboration: false,
 				commenting: false,
+				mentions: false,
 			})
 		}
 	)
@@ -1207,10 +1236,12 @@ describe('getEnabledFeatures', () => {
 			isEvaluationLicense: true,
 			isCollaborationEnabled: false,
 			isCommentingEnabled: false,
+			isMentionsEnabled: false,
 		})
 		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
 			collaboration: true,
 			commenting: true,
+			mentions: true,
 		})
 	})
 
@@ -1220,10 +1251,12 @@ describe('getEnabledFeatures', () => {
 			isEvaluationLicenseExpired: true,
 			isCollaborationEnabled: false,
 			isCommentingEnabled: false,
+			isMentionsEnabled: false,
 		})
 		expect(getEnabledFeatures(result, 'expired', false)).toEqual({
 			collaboration: false,
 			commenting: false,
+			mentions: false,
 		})
 	})
 
@@ -1237,6 +1270,7 @@ describe('getEnabledFeatures', () => {
 		).toEqual({
 			collaboration: false,
 			commenting: false,
+			mentions: false,
 		})
 	})
 })

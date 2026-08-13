@@ -10,7 +10,9 @@
 	"license": "SEE LICENSE IN LICENSE.md",
 	"tldraw_product": {
 		"stableId": "tldraw:commenting",
-		"type": "premium_module",
+		"name": "Commenting",
+		"type": "feature",
+		"parent": "tldraw:collaboration",
 		"premium": true,
 		"licenseFlag": "FEAT_COMMENTING"
 	},
