@@ -34,7 +34,10 @@ export interface EmojiPickerProps {
 	emoji?: string[]
 	/** Emoji the current user has already reacted with; shown as pressed. */
 	selected?: string[]
-	/** Called when an emoji is chosen. `event` is the DOM event behind the choice, if any. */
+	/**
+	 * Called when an emoji is chosen. Custom palettes should forward their click or keydown event
+	 * so `ReactionPicker` can keep the palette open on shift-picks.
+	 */
 	onSelect?(emoji: string, event?: MouseEvent | KeyboardEvent): void
 	/** How to draw each emoji token. Defaults to the token string (OS emoji font). */
 	renderReaction?: RenderReaction

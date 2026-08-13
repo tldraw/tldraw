@@ -40,7 +40,10 @@ export interface ReactionPickerProps {
 	className?: string
 }
 
-/** Whether a palette pick asked to keep the palette open (shift held) for multi-select. */
+/**
+ * Whether a palette pick asked to keep the palette open (shift held) for multi-select.
+ * @internal
+ */
 export function isMultiSelectPick(event?: MouseEvent | KeyboardEvent): boolean {
 	return !!event?.shiftKey
 }
