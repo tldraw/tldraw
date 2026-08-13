@@ -5,6 +5,8 @@ import { getRoomDurableObject } from './durableObjects'
 
 // Errors propagate so the outbox consumer can retry.
 export async function publishSnapshot(env: Environment, file: TlaFile) {
+	// Nothing can be published without a slug.
+	if (!file.publishedSlug) return
 	// make sure the room's snapshot is up to date
 	await getRoomDurableObject(env, file.id).awaitPersist()
 	// and that it exists
@@ -31,6 +33,8 @@ export async function publishSnapshot(env: Environment, file: TlaFile) {
 }
 
 export async function unpublishSnapshot(env: Environment, file: TlaFile) {
+	// Partially-created rows can lack a slug; nothing published to remove.
+	if (!file.publishedSlug) return
 	await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
 	await env.ROOM_SNAPSHOTS.delete(
 		getR2KeyForRoom({ slug: `${file.id}/${file.publishedSlug}`, isApp: true })
