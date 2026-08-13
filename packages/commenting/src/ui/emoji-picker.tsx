@@ -1,3 +1,4 @@
+import { type KeyboardEvent, type MouseEvent } from 'react'
 import { RenderReaction, defaultRenderReaction } from './reaction'
 
 /**
@@ -33,8 +34,8 @@ export interface EmojiPickerProps {
 	emoji?: string[]
 	/** Emoji the current user has already reacted with; shown as pressed. */
 	selected?: string[]
-	/** Called when an emoji is chosen. */
-	onSelect?(emoji: string): void
+	/** Called when an emoji is chosen. `event` is the DOM event behind the choice, if any. */
+	onSelect?(emoji: string, event?: MouseEvent | KeyboardEvent): void
 	/** How to draw each emoji token. Defaults to the token string (OS emoji font). */
 	renderReaction?: RenderReaction
 }
@@ -65,7 +66,7 @@ export function EmojiPicker({
 						}
 						aria-label={value}
 						aria-pressed={active}
-						onClick={() => onSelect?.(value)}
+						onClick={(e) => onSelect?.(value, e)}
 					>
 						{renderReaction(value)}
 					</button>
