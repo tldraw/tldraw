@@ -175,10 +175,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 		}
 	}, [isEditing, isLoaded])
 
-	// Show the same loading plate as the image shape until the video element is
-	// actually visible: the asset record may be missing, its src may still be
-	// uploading, or the video data may not have loaded yet.
-	const isVideoVisible = !!asset?.props.src && !!url && isLoaded
+	const hasVideo = !!asset?.props.src && !!url && isLoaded
 
 	return (
 		<>
@@ -186,8 +183,8 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 				id={shape.id}
 				style={{
 					color: 'var(--tl-color-text-3)',
-					backgroundColor: isVideoVisible ? 'transparent' : 'var(--tl-color-low)',
-					border: isVideoVisible ? 'none' : '1px solid var(--tl-color-low-border)',
+					backgroundColor: hasVideo ? 'transparent' : 'var(--tl-color-low)',
+					border: hasVideo ? 'none' : '1px solid var(--tl-color-low-border)',
 				}}
 			>
 				<div className="tl-counter-scaled">
