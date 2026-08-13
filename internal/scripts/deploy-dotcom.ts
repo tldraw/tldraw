@@ -611,12 +611,6 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 						// local dev and tests only. Injected here because previews have no wrangler.toml
 						// vars block at all.
 						MCP_SERVER_URL: `https://${previewId}-preview-deploy.tldraw.com/api/app/mcp`,
-						// Same reason staging sets it: a preview has no Clerk OAuth instance of its own to
-						// mint a resource-scoped token from, so a missing `aud` is logged rather than
-						// refused. Production ignores this var outright — see isMcpTokenAudienceRequired.
-						// The other two copies are in wrangler.toml ([env.dev.vars] and [env.staging.vars]);
-						// remove all three together once Clerk is confirmed to stamp the resource indicator.
-						MCP_REQUIRE_TOKEN_AUDIENCE: 'false',
 					}
 				: {}),
 		},

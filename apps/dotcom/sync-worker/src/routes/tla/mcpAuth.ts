@@ -1,6 +1,6 @@
 import { IRequest } from 'itty-router'
 import { JWTPayload, createRemoteJWKSet, jwtVerify } from 'jose'
-import { Environment, envFlagWord, isProduction } from '../../types'
+import { Environment } from '../../types'
 import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
 
 // The OAuth 2.1 resource-server half of the board screenshot MCP server: discovery metadata, bearer
@@ -14,8 +14,8 @@ import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
 /**
  * The MCP endpoint's public path, including the `/api` prefix that is applied upstream and stripped
  * before the router sees it (see the worker's `fetch`). The public URL is the resource identifier
- * clients authenticate against, so this is the form that appears in metadata and in `aud` claims —
- * not the `/app/mcp` the router matches.
+ * clients authenticate against, so this is the form that appears in discovery metadata — not the
+ * `/app/mcp` the router matches.
  */
 export const MCP_RESOURCE_PATH = '/api/app/mcp'
 
@@ -30,15 +30,17 @@ export const MCP_RESOURCE_PATH = '/api/app/mcp'
 export const MCP_PROTECTED_RESOURCE_METADATA_PATH = `/.well-known/oauth-protected-resource${MCP_RESOURCE_PATH}`
 
 /**
- * The resource identifier this server accepts tokens for (RFC 8707). Tokens minted for anything else
- * are rejected, so a token a user granted to some other MCP server cannot be replayed against this
- * one.
+ * This server's own identifier: what RFC 9728 metadata advertises as the resource, and what the
+ * `WWW-Authenticate` challenge points a client at.
+ *
+ * Not a test applied to incoming tokens, despite RFC 8707 intending exactly that — see
+ * `authenticateMcpRequest` for why there is no audience check and what stands in for one.
  *
  * Deployments set `MCP_SERVER_URL` explicitly rather than letting this be derived from the request,
  * because the derivation reads the `Host` header: a request carrying a forged one would otherwise
- * move both the advertised metadata and the audience we check against to a host of the caller's
- * choosing. The fallback exists for local dev and tests, where there is no configured origin and no
- * attacker to speak of.
+ * move the advertised metadata and the challenge pointer to a host of the caller's choosing, which
+ * is how a client gets aimed at an authorization server that is not ours. The fallback exists for
+ * local dev and tests, where there is no configured origin and no attacker to speak of.
  */
 export function getMcpResourceUrl(request: Request, env: Environment): string {
 	if (env.MCP_SERVER_URL) return env.MCP_SERVER_URL
@@ -144,8 +146,6 @@ export async function authenticateMcpRequest(
 		return { ok: false, response: mcpUnauthorized(request, env) }
 	}
 
-	const resource = getMcpResourceUrl(request, env)
-
 	// Verified against the Clerk instance's published signing keys — signature, issuer, lifetime and
 	// token type.
 	//
@@ -155,15 +155,11 @@ export async function authenticateMcpRequest(
 	// each other and a resource server has to do this itself. #10005 tracks the v2 SDK, which handles
 	// both kinds; until then this is a JWKS check like any other resource server's.
 	//
-	// `typ` is load-bearing rather than pedantry. Clerk stamps no `aud` on either kind of token, so the
-	// audience check below cannot tell them apart, and a session JWT — `typ: JWT` — would otherwise be
-	// a valid bearer token here. That would make a tldraw.com website credential enough to drive this
-	// server, and the consent step an agent walks the user through decoration.
-	//
-	// The audience binding is deliberately not delegated to jose's `audience` option: it throws inside
-	// verification, upstream of the escape hatch and the diagnostic log below, so the one
-	// misconfiguration the hatch exists to surface would drown in a generic verification failure.
-	// `namesResource` owns the whole decision instead.
+	// `typ` is load-bearing rather than pedantry, and is the only thing separating an OAuth access token
+	// from a Clerk *session* JWT. Clerk stamps no `aud` on either, so nothing here can tell them apart
+	// by audience, and a session token — `typ: JWT` — would otherwise be a valid bearer token. That
+	// would make an ordinary tldraw.com website credential enough to drive this server, and the consent
+	// step an agent walks the user through decoration.
 	const issuer = getMcpAuthorizationServer(env)
 	if (!issuer) {
 		// Nothing to verify against. This is our misconfiguration rather than a bad token, so it is
@@ -216,33 +212,25 @@ export async function authenticateMcpRequest(
 		}
 	}
 
-	if (!namesResource(payload.aud, resource)) {
-		// Logged either way, and deliberately noisy about the audience the token did carry: the
-		// expected way to see this is a Clerk instance that is not stamping the resource indicator,
-		// and that diagnosis is the difference between a five-minute configuration fix and a hunt
-		// through the client's OAuth flow. Logging it even when the check is not enforced is the
-		// point of the escape hatch — an environment that skips the refusal still reports what it
-		// would have refused, so the Clerk side can be confirmed before production meets it.
-		//
-		// Warn rather than error, one constant message, and a structured payload rather than a
-		// string: in an environment with the hatch open this line is the steady state of every
-		// successful call, not an incident, and it has to stay greppable and queryable by field.
-		const enforced = isMcpTokenAudienceRequired(env)
-		console.warn('MCP token audience does not name this resource', {
-			aud: payload.aud ?? null,
-			expected: resource,
-			enforced,
-		})
-		if (enforced) {
-			return {
-				ok: false,
-				response: mcpUnauthorized(request, env, {
-					error: 'invalid_token',
-					description: INVALID_TOKEN_DESCRIPTION,
-				}),
-			}
-		}
-	}
+	// There is deliberately no check here that this token was issued for *this* resource, and its
+	// absence is the part of this file most likely to look like an oversight.
+	//
+	// RFC 8707 would bind a token to the resource it was minted for, via `aud`, so a token the user
+	// granted to somebody else's MCP server could not be replayed against ours. Clerk does not
+	// implement it: it stamps no `aud` on an access token whether or not the client sends a `resource`
+	// parameter, so there is nothing here to compare. An earlier version of this file checked anyway
+	// and, because production enforced unconditionally, would have refused every token ever issued.
+	//
+	// What closes the hole instead lives on the authorization server, where the client registry is:
+	// Clerk's `client_id_metadata_documents_only_allow_pre_registered_clients` refuses to issue tokens
+	// to CIMD clients nobody approved, so a client we have never heard of cannot obtain a token for our
+	// users in the first place. Approving one is a Clerk dashboard action, not a deploy.
+	//
+	// The consequence to keep in mind: that setting is the whole of the protection, and it is invisible
+	// from this repository. If it is ever turned off, every self-registered client in the world can
+	// call this endpoint with a token its user consented to for something else entirely. A `client_id`
+	// allowlist here would be the belt to that setting's braces if we ever want one — the claim is on
+	// every token.
 
 	const userId = payload.sub
 
@@ -288,93 +276,13 @@ function getClerkJwks(issuer: string) {
 }
 
 /**
- * One message for every way a token can be refused. An expired token, a revoked one, a subjectless
- * one and one minted for somebody else's resource all answer the same thing: the caller cannot act
- * on the difference, and spelling it out would tell an attacker which of their guesses was closest.
+ * One message for every way a token can be refused. An expired token, one signed by another Clerk
+ * instance, a session token wearing the wrong `typ` and a subjectless one all answer the same thing:
+ * the caller cannot act on the difference, and spelling it out would tell an attacker which of their
+ * guesses was closest.
  */
 const INVALID_TOKEN_DESCRIPTION =
 	'The access token is expired, revoked, or issued for another resource'
-
-/**
- * Whether a token whose `aud` does not name this resource is refused, as opposed to merely logged.
- *
- * Configurable because it was unknown, when this was written, whether Clerk stamps the resource
- * indicator. It is now known and the answer is no: a Clerk OAuth access token carries `iss`, `sub`,
- * `client_id`, `scope`, `jti` and its lifetimes, and no `aud` — whether or not the client sends an
- * RFC 8707 `resource` parameter on the authorization request. Every token therefore reaches
- * `namesResource` with nothing to match, and the hatch is the only reason any environment works.
- *
- * That turns this from a temporary hatch into an open decision. Production does not consult the var,
- * so as things stand it would refuse every token; whatever replaces the binding — Clerk's
- * `client_id_metadata_documents_only_allow_pre_registered_clients`, a `client_id` allowlist here, or
- * RFC 8707 support from Clerk — has to be settled before this endpoint is enabled there.
- *
- * Three things keep the hatch from becoming the way this ships:
- *
- * - **Unset enforces.** The safe state is the one an environment lands in by accident, so a new
- *   deployment, a dropped var and a typo are all strict. Only the exact string `false` opts out —
- *   note this is the opposite parsing to `MCP_SCREENSHOT_ENABLED`, for the same reason in both cases:
- *   a stray value should fail towards the guarded state, and for that flag the guarded state is off.
- * - **Production never consults the var.** Production is the one environment where the audience
- *   binding is load-bearing, so the hatch is skipped there whatever the var says. A guard rail
- *   rather than tamper-proofing: `TLDRAW_ENV` is itself an ordinary deploy var, editable on the same
- *   dashboard screen, so opening the hatch in production takes two edits rather than zero — and only
- *   until the next deploy restores both. What actually keeps production strict is that unset
- *   enforces and neither var appears in production config.
- * - **Skipping is logged** at the call site, so an environment running without the check still tells
- *   you what it would have refused.
- *
- * Delete this once the binding question above is settled, whichever way it goes. The var is set in
- * three places that all go away with it: `[env.dev.vars]` and `[env.staging.vars]` in
- * `wrangler.toml`, and the preview deploy vars in `internal/scripts/deploy-dotcom.ts`.
- */
-function isMcpTokenAudienceRequired(env: Environment): boolean {
-	if (isProduction(env)) return true
-	return envFlagWord(env.MCP_REQUIRE_TOKEN_AUDIENCE) !== 'false'
-}
-
-/**
- * Whether a token's `aud` names this resource (RFC 8707) — what stops a token the user granted to
- * some other MCP server being replayed against this one.
- *
- * Asserted here rather than through jose's `audience` option, which is deliberately not passed at
- * all: that option throws inside verification for a wrong `aud` and a missing one alike — upstream of
- * the `MCP_REQUIRE_TOKEN_AUDIENCE` escape hatch and the diagnostic log — so the one misconfiguration
- * the hatch exists to surface from staging's logs would drown in a generic verification failure
- * instead.
- *
- * This is not what keeps a Clerk *session* JWT out, though it reads like it once did: Clerk stamps no
- * `aud` on an OAuth access token either, so the two shapes are indistinguishable here. The `typ:
- * 'at+jwt'` assertion in verification is what separates them.
- *
- * Compared on normalized URLs rather than raw strings: the enforcing comparison first runs for real
- * in production, where a cosmetic difference between what Clerk stamps and `MCP_SERVER_URL` — host
- * case, a default port, a trailing slash — must not refuse every token with no runtime lever.
- */
-function namesResource(aud: unknown, resource: string): boolean {
-	const expected = normalizeResourceUrl(resource)
-	if (!expected) return false
-	if (typeof aud === 'string') return normalizeResourceUrl(aud) === expected
-	if (Array.isArray(aud)) {
-		return aud.some(
-			(entry) => typeof entry === 'string' && normalizeResourceUrl(entry) === expected
-		)
-	}
-	return false
-}
-
-/**
- * `new URL` lowercases the scheme and host and drops a default port; the trailing slash is stripped
- * here, since `…/mcp` and `…/mcp/` name the same resource. A value that does not parse as a URL
- * cannot name this resource at all.
- */
-function normalizeResourceUrl(value: string): string | null {
-	try {
-		return new URL(value).href.replace(/\/+$/, '')
-	} catch {
-		return null
-	}
-}
 
 function getBearerToken(request: Request): string | null {
 	const header = request.headers.get('authorization')

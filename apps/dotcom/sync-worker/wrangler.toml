@@ -125,13 +125,6 @@ MCP_SERVER_URL = "http://localhost:3000/api/app/mcp"
 # anything but "true" — here or straight in the Cloudflare dashboard — takes the endpoint down
 # without a rebuild. A dashboard edit lasts until the next deploy overwrites it from this file.
 MCP_SCREENSHOT_ENABLED = "true"
-# Log, rather than refuse, an access token whose `aud` does not name this resource. Local dev has no
-# Clerk OAuth authorization server to mint a properly-scoped token from, so enforcing would make the
-# MCP endpoint untestable here. Unset enforces; production enforces regardless. The var is set in
-# three places — here, [env.staging.vars] below, and the preview deploy vars injected by
-# internal/scripts/deploy-dotcom.ts — remove all three together once the Clerk instance is confirmed
-# to stamp the resource indicator.
-MCP_REQUIRE_TOKEN_AUDIENCE = "false"
 # local-only signing secret; deployments get a real one via deploy vars
 MCP_SCREENSHOT_TOKEN_SECRET = "local-dev-thumbnail-render-secret"
 # Browser Run is unreachable from local dev (see the BROWSER binding note below), so screenshots go
@@ -153,13 +146,6 @@ HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
 MCP_SERVER_URL = "https://staging.tldraw.com/api/app/mcp"
 MCP_SCREENSHOT_ENABLED = "true"
-# Temporary, and the thing to flip first when the Clerk OAuth instance is set up: staging is where we
-# find out whether it stamps `aud` with the resource indicator, and it cannot answer that if a
-# missing audience is a 401. The worker logs every token it would have refused, so the answer shows
-# up in the logs either way. Delete this line to make staging match production, and expect to do that
-# before the flag is widened — the other two copies are in [env.dev.vars] above and the preview
-# deploy vars in internal/scripts/deploy-dotcom.ts. See isMcpTokenAudienceRequired.
-MCP_REQUIRE_TOKEN_AUDIENCE = "false"
 
 # production gets the proper name
 [env.production]

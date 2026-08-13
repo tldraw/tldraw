@@ -145,11 +145,6 @@ export interface Environment {
 	// Overrides the OAuth authorization server advertised to MCP clients. Normally unset: the value is
 	// derived from CLERK_PUBLISHABLE_KEY so it cannot drift from the instance whose tokens we verify.
 	MCP_OAUTH_AUTHORIZATION_SERVER: string | undefined
-	// Set to "false" to log an access token whose `aud` does not name this resource instead of
-	// refusing it. Temporary, for dev, staging and preview while the Clerk OAuth instance is being
-	// set up and it is not yet known whether it stamps the resource indicator. Unset enforces, and
-	// production always enforces no matter what this var says — see isMcpTokenAudienceRequired.
-	MCP_REQUIRE_TOKEN_AUDIENCE: string | undefined
 	// Development only: a local HTTP screenshot service to use instead of the BROWSER binding, which
 	// cannot reach Browser Run in local dev. Set in [env.dev.vars] to the client dev server's
 	// screenshot endpoint; unset everywhere else, which is what keeps deployed environments on
@@ -167,8 +162,9 @@ export function isProduction(env: Environment) {
 
 /**
  * The word a boolean-ish env var holds: trimmed, lowercased, with unset and empty folded together.
- * Shared by MCP_SCREENSHOT_ENABLED and MCP_REQUIRE_TOKEN_AUDIENCE so the two flags' parsing cannot
- * drift — each call site keeps its own fail-safe direction, this owns what a value *is*.
+ * Used by MCP_SCREENSHOT_ENABLED. Kept as a shared helper rather than inlined so a second
+ * boolean-ish var cannot arrive parsing its value differently — each call site keeps its own
+ * fail-safe direction, this owns what a value *is*.
  */
 export function envFlagWord(value: string | undefined): string | undefined {
 	const word = value?.trim().toLowerCase()
