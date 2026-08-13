@@ -36,13 +36,11 @@
 		"itty-router": "^5.0.18",
 		"kysely": "^0.28.12",
 		"p-queue": "^9.3.0",
-		"pg": "^8.16.3",
-		"react": "^19.2.1"
+		"pg": "^8.16.3"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20260302.0",
 		"@types/pg": "^8.11.11",
-		"@types/react": "^19.2.7",
 		"esbuild": "^0.28.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^7.0.2",
