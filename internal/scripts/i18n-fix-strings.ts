@@ -70,6 +70,11 @@ const FIXES: StringFix[] = [
 					'আমরা <a><strong>[%1$s:appName]</strong></a> থেকে আসা ফাইলগুলির জন্য সমর্থন যোগ করার কাজ করছি।',
 				note: 'Closing </a> was dropped, which fails ICU parsing with UNCLOSED_TAG and breaks build-i18n.',
 			},
+			'pt-pt': {
+				value:
+					'Estamos a trabalhar no suporte para ficheiros de <a><strong>[%1$s:appName]</strong></a>.',
+				note: 'Was the pt-BR wording ("Estamos trabalhando", "arquivos"); pt-PT uses "a trabalhar" and "ficheiros".',
+			},
 		},
 	},
 	{
@@ -92,6 +97,10 @@ const FIXES: StringFix[] = [
 			gl: {
 				value: 'Aínda non se poden abrir os ficheiros [%1$s:extension]',
 				note: 'Placeholder name was localised ([%1$s:extensión]), so it never interpolated at runtime.',
+			},
+			'pt-pt': {
+				value: 'Ainda não é possível abrir ficheiros [%1$s:extension]',
+				note: 'Was "arquivos", the pt-BR word for files; pt-PT uses "ficheiros".',
 			},
 		},
 	},
@@ -538,8 +547,8 @@ const FIXES: StringFix[] = [
 		translations: {
 			'pt-pt': {
 				value:
-					'Por enquanto, você pode <a>exportar como um arquivo [%1$s:extension]</a> para usá-lo aqui.',
-				note: 'Placeholder name was localised ([%1$s:extensão]), so it never interpolated at runtime.',
+					'Por agora, pode <a>exportar como um ficheiro [%1$s:extension]</a> para o utilizar aqui.',
+				note: 'The earlier fix restored the placeholder but kept the pt-BR wording ("você pode", "arquivo", "usá-lo"); pt-PT reads "pode", "ficheiro", "para o utilizar".',
 			},
 			'pt-br': {
 				value:
@@ -1243,6 +1252,542 @@ const FIXES: StringFix[] = [
 			'gu-in': {
 				value: 'આ સ્થાન પર {count} ટિપ્પણીઓ',
 				note: 'Placeholder name was localised ({ગણતરી}), so it never interpolated at runtime.',
+			},
+		},
+	},
+	// pt-PT batch: Google's Portuguese model outputs Brazilian Portuguese, so most
+	// machine-translated pt-pt strings arrived as pt-BR (vocabulary: arquivo/ficheiro,
+	// gerenciar/gerir, usuário/utilizador; grammar: "estamos trabalhando"/"estamos a
+	// trabalhar", "Tem certeza"/"Tem a certeza"). Reported by a community member.
+	{
+		project: 'dotcom',
+		key: '04a2dd56d6',
+		english: 'Invite teammates',
+		translations: {
+			'pt-pt': {
+				value: 'Convide os seus colegas de equipa',
+				note: 'Was "equipe", the pt-BR spelling; pt-PT is "equipa".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '05f43078e9',
+		english:
+			'You have reached the maximum number of workspaces. You need to delete old workspaces before creating new ones.',
+		translations: {
+			'pt-pt': {
+				value:
+					'Atingiu o número máximo de espaços de trabalho. É necessário eliminar os espaços de trabalho antigos antes de criar novos.',
+				note: 'Was pt-BR ("Você atingiu", "excluir"); pt-PT drops the pronoun and uses "eliminar" for delete.',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '0a91f7fa87',
+		english:
+			'This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file.',
+		translations: {
+			'pt-pt': {
+				value:
+					'Este ficheiro atingiu o limite de tamanho e as alterações podem deixar de ser guardadas. Remova algum conteúdo ou crie um novo ficheiro.',
+				note: 'Was pt-BR ("arquivo", "salvas"); pt-PT uses "ficheiro" and "guardadas".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '12a6766ba1',
+		english: 'Unpin file',
+		translations: {
+			'pt-pt': {
+				value: 'Desafixar ficheiro',
+				note: 'Was "arquivo", the pt-BR word for files; pt-PT uses "ficheiro".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '2e2b3c700b',
+		english: 'Include link to current file',
+		translations: {
+			'pt-pt': {
+				value: 'Incluir link para o ficheiro atual',
+				note: 'Was "arquivo", the pt-BR word for files; pt-PT uses "ficheiro".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '2de510be71',
+		english:
+			'Regenerating replaces the current invite link with a new one. Anyone using the old link will need the new one to join.',
+		translations: {
+			'pt-pt': {
+				value:
+					'A regeneração substitui o link de convite atual por um novo. Qualquer pessoa que estiver a usar o link antigo precisará do novo para participar.',
+				note: 'Was the pt-BR progressive "estiver usando"; pt-PT uses "estiver a usar".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '34e34c43ec',
+		english: 'Manage',
+		translations: {
+			'pt-pt': {
+				value: 'Gerir',
+				note: 'Was "Gerenciar", the pt-BR verb; pt-PT is "Gerir".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '454aad3b3c',
+		english: 'Are you sure you want to delete <strong>[%1$s:fileName]</strong>?',
+		translations: {
+			'pt-pt': {
+				value: 'Tem a certeza de que pretende eliminar <strong>[%1$s:fileName]</strong>?',
+				note: 'Was pt-BR ("Tem certeza", "deseja excluir"); pt-PT is "Tem a certeza de que pretende eliminar".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '477df802ca',
+		english: 'To continue editing please copy the file to your files.',
+		translations: {
+			'pt-pt': {
+				value: 'Para continuar a editar, copie o ficheiro para os seus ficheiros.',
+				note: 'Was pt-BR ("o arquivo", "pasta de arquivos"); pt-PT uses "ficheiro(s)".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '47f493a590',
+		english: 'Pin file',
+		translations: {
+			'pt-pt': {
+				value: 'Afixar ficheiro',
+				note: 'Was "Arquivo PIN" — "Pin" read as a PIN code; pairs with "Desafixar ficheiro" (Unpin file).',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '4d0d3ddec9',
+		english: 'This site uses cookies to make the app work and to collect analytics.',
+		translations: {
+			'pt-pt': {
+				value:
+					'Este site utiliza cookies para fazer a aplicação funcionar e recolher dados analíticos.',
+				note: 'Was pt-BR ("aplicativo", "coletar análises"); pt-PT uses "aplicação" and "recolher".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '51317dcad5',
+		english: 'This is your private workspace. Create a new workspace to invite teammates.',
+		translations: {
+			'pt-pt': {
+				value:
+					'Este é o seu espaço de trabalho privado. Crie um novo espaço de trabalho para convidar colegas de equipa.',
+				note: 'Was "equipe", the pt-BR spelling; pt-PT is "equipa".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '542248f0ba',
+		english: 'This file is now read-only',
+		translations: {
+			'pt-pt': {
+				value: 'Este ficheiro é agora apenas de leitura.',
+				note: 'Was pt-BR ("arquivo", "somente leitura"); pt-PT reads "apenas de leitura".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '5bec508475',
+		english: 'Old browser detected. Please update your browser to use this app.',
+		translations: {
+			'pt-pt': {
+				value: 'Navegador antigo detetado. Atualize o seu navegador para utilizar esta aplicação.',
+				note: 'Was pt-BR ("detectado", "aplicativo"); pt-PT spells "detetado" and uses "aplicação".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '60a68c29d6',
+		english: 'Sign in to comment',
+		translations: {
+			'pt-pt': {
+				value: 'Inicie sessão para comentar',
+				note: 'Was "Faça login", the pt-BR idiom; pt-PT uses "iniciar sessão".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '681e10aecb',
+		english: 'New file',
+		translations: {
+			'pt-pt': {
+				value: 'Novo ficheiro',
+				note: 'Was "arquivo", the pt-BR word for files; pt-PT uses "ficheiro".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '694f82ed9d',
+		english: 'Delete workspace',
+		translations: {
+			'pt-pt': {
+				value: 'Eliminar espaço de trabalho',
+				note: 'Was "Excluir", the pt-BR verb for delete; pt-PT uses "Eliminar".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '74ff4bad28',
+		english: 'No files found',
+		translations: {
+			'pt-pt': {
+				value: 'Nenhum ficheiro encontrado',
+				note: 'Was "arquivo", the pt-BR word for files; pt-PT uses "ficheiro".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '752b79f137',
+		english:
+			'You have reached the maximum number of files. You need to delete old files before creating new ones.',
+		translations: {
+			'pt-pt': {
+				value:
+					'Atingiu o número máximo de ficheiros. É necessário eliminar os ficheiros antigos antes de criar novos.',
+				note: 'Was pt-BR ("Você atingiu", "excluir", "arquivos"); pt-PT drops the pronoun and uses "eliminar" and "ficheiros".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '761e93ede9',
+		english: 'Manage cookies',
+		translations: {
+			'pt-pt': {
+				value: 'Gerir cookies',
+				note: 'Was "Gerenciar", the pt-BR verb; pt-PT is "Gerir".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '764671e008',
+		english: 'Chat with us on Discord',
+		translations: {
+			'pt-pt': {
+				value: 'Fale connosco no Discord',
+				note: 'Was pt-BR ("Converse conosco"); pt-PT spells "connosco".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '7827371d1a',
+		english:
+			'This anonymous tldraw multiplayer file is now read-only. To continue editing, please sign in and copy it to your files.',
+		translations: {
+			'pt-pt': {
+				value:
+					'Este ficheiro multiplayer anónimo do tldraw é agora apenas de leitura. Para continuar a editar, inicie sessão e copie-o para os seus ficheiros.',
+				note: 'Was pt-BR throughout ("arquivo", "anônimo", "somente leitura", "continuar editando", "faça login").',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '7b1329f5ca',
+		english: 'User manual',
+		translations: {
+			'pt-pt': {
+				value: 'Manual do utilizador',
+				note: 'Was "usuário", the pt-BR word for user; pt-PT is "utilizador".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '81666c6e4a',
+		english: 'Are you sure you want to forget <strong>[%1$s:fileName]</strong>?',
+		translations: {
+			'pt-pt': {
+				value: 'Tem a certeza de que pretende esquecer <strong>[%1$s:fileName]</strong>?',
+				note: 'Was pt-BR ("Tem certeza", "deseja"); pt-PT is "Tem a certeza de que pretende".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '815e116a2e',
+		english:
+			'Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>.',
+		translations: {
+			'pt-pt': {
+				value:
+					'Tem um bug, problema ou ideia para o tldraw? Diga-nos! Preencha este formulário e entraremos em contacto por e-mail, se necessário. Também pode <discord>falar connosco no Discord</discord> ou <github>submeter um problema no GitHub</github>.',
+				note: 'Was pt-BR throughout ("Conte para a gente", "contato", "conversar conosco"); pt-PT reads "Diga-nos", "contacto", "falar connosco".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '86353d2c41',
+		english: 'Added [%1$s:total] .tldr files.',
+		translations: {
+			'pt-pt': {
+				value: 'Adicionados [%1$s:total] ficheiros .tldr.',
+				note: 'Was "arquivos", the pt-BR word for files; pt-PT uses "ficheiros".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '86c66437fd',
+		english: 'Rename file',
+		translations: {
+			'pt-pt': {
+				value: 'Renomear ficheiro',
+				note: 'Was "arquivo", the pt-BR word for files; pt-PT uses "ficheiro".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '90646db02d',
+		english:
+			'Are you sure you want to delete <strong>[%1$s:workspaceName]</strong>? This action cannot be undone.',
+		translations: {
+			'pt-pt': {
+				value:
+					'Tem a certeza de que pretende eliminar <strong>[%1$s:workspaceName]</strong>? Esta ação não pode ser desfeita.',
+				note: 'Was pt-BR ("Tem certeza", "deseja excluir"); pt-PT is "Tem a certeza de que pretende eliminar".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: '9e93c98d88',
+		english: 'Opt out',
+		translations: {
+			'pt-pt': {
+				value: 'Recusar',
+				note: 'Was "Excluir" ("Delete") — a mistranslation; this button declines analytics cookies.',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'a0da245992',
+		english: "Export the content as a .tldr file: Select 'Download' in the top left menu.",
+		translations: {
+			'pt-pt': {
+				value:
+					'Exporte o conteúdo como um ficheiro .tldr: selecione "Download" no menu superior esquerdo.',
+				note: 'Was "arquivo"; keeps "Download" verbatim because that menu label is untranslated in pt-PT.',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'a8873770ab',
+		english: 'File is getting large',
+		translations: {
+			'pt-pt': {
+				value: 'O ficheiro está a ficar grande.',
+				note: 'Was the pt-BR progressive "O arquivo está ficando grande"; pt-PT uses "está a ficar".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'ab0df9ba36',
+		english: 'File limit reached',
+		translations: {
+			'pt-pt': {
+				value: 'Limite do ficheiro atingido',
+				note: 'Was "Limite de arquivo"; pt-PT uses "ficheiro".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'b028909917',
+		english: 'Guest user',
+		translations: {
+			'pt-pt': {
+				value: 'Utilizador convidado',
+				note: 'Was "Usuário", the pt-BR word for user; pt-PT is "Utilizador".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'b2c3c2e30c',
+		english: 'File is full',
+		translations: {
+			'pt-pt': {
+				value: 'O ficheiro está cheio',
+				note: 'Was "arquivo", the pt-BR word for files; pt-PT uses "ficheiro".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'bbbcefd7ce',
+		english:
+			'{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}',
+		translations: {
+			'pt-pt': {
+				value: {
+					one: 'A carregar ficheiro .tldr…',
+					other: 'A carregar [%1$s:uploaded] de [%2$s:total] ficheiros .tldr…',
+				},
+				note: 'Was pt-BR ("Carregando", "arquivos"); pt-PT uses "A carregar" and "ficheiros".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'c17466812d',
+		english: 'Manage workspace',
+		translations: {
+			'pt-pt': {
+				value: 'Gerir espaço de trabalho',
+				note: 'Was "Gerenciar", the pt-BR verb; pt-PT is "Gerir".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'ce0547606c',
+		english:
+			'This file is approaching its size limit. Consider removing some content or starting a new file.',
+		translations: {
+			'pt-pt': {
+				value:
+					'Este ficheiro está a aproximar-se do limite de tamanho. Considere remover algum conteúdo ou criar um novo ficheiro.',
+				note: 'Was pt-BR ("arquivo", "está se aproximando"); pt-PT uses "ficheiro" and "está a aproximar-se".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'f09b16bc5f',
+		english:
+			'We use cookies to keep you logged in, to sync your files, and to collect analytics to help us improve tldraw.',
+		translations: {
+			'pt-pt': {
+				value:
+					'Utilizamos cookies para manter a sua sessão iniciada, sincronizar os seus ficheiros e recolher dados analíticos que nos ajudam a melhorar o tldraw.',
+				note: 'Was pt-BR ("mantê-lo conectado", "arquivos", "coletar análises"); pt-PT reads "manter a sessão iniciada", "ficheiros", "recolher dados analíticos".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'f0e8bff6f9',
+		english: 'User settings',
+		translations: {
+			'pt-pt': {
+				value: 'Definições do utilizador',
+				note: 'Was pt-BR ("Configurações do usuário"); pt-PT is "Definições do utilizador".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'f2569594b2',
+		english: 'We use these cookies to save your files and settings.',
+		translations: {
+			'pt-pt': {
+				value: 'Utilizamos estes cookies para guardar os seus ficheiros e definições.',
+				note: 'Was pt-BR ("salvar seus arquivos e configurações"); pt-PT uses "guardar", "ficheiros", "definições".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'fc9d47046b',
+		english: 'Are you sure you want to leave this workspace?',
+		translations: {
+			'pt-pt': {
+				value: 'Tem a certeza de que pretende sair deste espaço de trabalho?',
+				note: 'Was pt-BR ("Tem certeza", "deseja"); pt-PT is "Tem a certeza de que pretende".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'ff2fefd3c6',
+		english: 'Are you sure you want to remove [%1$s:name] from this workspace?',
+		translations: {
+			'pt-pt': {
+				value: 'Tem a certeza de que pretende remover [%1$s:name] deste espaço de trabalho?',
+				note: 'Was pt-BR ("Tem certeza", "deseja"); pt-PT is "Tem a certeza de que pretende".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'ff52811b98',
+		english: 'Create a free account to save your files and tldraw with your teammates.',
+		translations: {
+			'pt-pt': {
+				value:
+					'Crie uma conta gratuita para guardar os seus ficheiros e desenhar com os seus colegas de equipa.',
+				note: 'Was pt-BR ("salvar", "arquivos", "compartilhar", "equipe"); pt-PT uses "guardar", "ficheiros", "desenhar", "equipa".',
+			},
+		},
+	},
+	{
+		project: 'dotcom',
+		key: 'ffcd73e997',
+		english: 'Import file…',
+		translations: {
+			'pt-pt': {
+				value: 'Importar ficheiro…',
+				note: 'Was "arquivo", the pt-BR word for files; pt-PT uses "ficheiro".',
+			},
+		},
+	},
+	{
+		project: 'sdk',
+		key: 'assets.files.amount-too-many',
+		english: 'Too many files',
+		translations: {
+			'pt-pt': {
+				value: 'Demasiados ficheiros',
+				note: 'Was pt-BR ("Muitos arquivos"); pt-PT reads "Demasiados ficheiros".',
+			},
+		},
+	},
+	{
+		project: 'sdk',
+		key: 'people-menu.anonymous-user',
+		english: 'New user',
+		translations: {
+			'pt-pt': {
+				value: 'Novo utilizador',
+				note: 'Was "usuário", the pt-BR word for user; pt-PT is "utilizador".',
 			},
 		},
 	},
