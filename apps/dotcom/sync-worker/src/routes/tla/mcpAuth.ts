@@ -1,5 +1,5 @@
-import { verifyToken } from '@clerk/backend'
 import { IRequest } from 'itty-router'
+import { JWTPayload, createRemoteJWKSet, jwtVerify } from 'jose'
 import { Environment, envFlagWord, isProduction } from '../../types'
 import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
 
@@ -146,19 +146,50 @@ export async function authenticateMcpRequest(
 
 	const resource = getMcpResourceUrl(request, env)
 
-	// Verified against the Clerk instance's JWKS — signature and lifetime. The audience binding is
-	// deliberately not delegated to verifyToken's `audience` option: that option refuses a
-	// present-but-wrong `aud` inside verification, upstream of the escape hatch and the diagnostic
-	// log below, and compares nothing when the `aud` is missing. `namesResource` owns the whole
-	// decision instead.
+	// Verified against the Clerk instance's published signing keys — signature, issuer, lifetime and
+	// token type.
 	//
-	// NOTE: this is the JWT path. If the Clerk OAuth authorization server is configured to issue
-	// opaque access tokens instead, they cannot be verified this way and need
-	// `idPOAuthAccessToken.verifySecret` from @clerk/backend v2 — this worker pins 1.23.7, which
-	// has no OAuth token API at all. Confirm the token format when the Clerk instance is set up.
-	let payload: Awaited<ReturnType<typeof verifyToken>>
+	// Not @clerk/backend's `verifyToken`, which verifies Clerk *session* tokens and refuses an OAuth
+	// access token on its header alone: `Invalid JWT type "at+jwt". Expected "JWT"`. RFC 9068 requires
+	// `at+jwt` of an access token, so Clerk's authorization server and its backend SDK disagree with
+	// each other and a resource server has to do this itself. #10005 tracks the v2 SDK, which handles
+	// both kinds; until then this is a JWKS check like any other resource server's.
+	//
+	// `typ` is load-bearing rather than pedantry. Clerk stamps no `aud` on either kind of token, so the
+	// audience check below cannot tell them apart, and a session JWT — `typ: JWT` — would otherwise be
+	// a valid bearer token here. That would make a tldraw.com website credential enough to drive this
+	// server, and the consent step an agent walks the user through decoration.
+	//
+	// The audience binding is deliberately not delegated to jose's `audience` option: it throws inside
+	// verification, upstream of the escape hatch and the diagnostic log below, so the one
+	// misconfiguration the hatch exists to surface would drown in a generic verification failure.
+	// `namesResource` owns the whole decision instead.
+	const issuer = getMcpAuthorizationServer(env)
+	if (!issuer) {
+		// Nothing to verify against. This is our misconfiguration rather than a bad token, so it is
+		// logged as one — but the caller is told only what every other refusal tells it, since naming
+		// the difference would describe our deployment to someone guessing at it.
+		console.error(
+			'MCP token verification is unconfigured: no authorization server to verify against'
+		)
+		return {
+			ok: false,
+			response: mcpUnauthorized(request, env, {
+				error: 'invalid_token',
+				description: INVALID_TOKEN_DESCRIPTION,
+			}),
+		}
+	}
+
+	let payload: JWTPayload
 	try {
-		payload = await verifyToken(token, { secretKey: env.CLERK_SECRET_KEY })
+		;({ payload } = await jwtVerify(token, getClerkJwks(issuer), {
+			issuer,
+			typ: 'at+jwt',
+			// What @clerk/backend allowed by default, kept so swapping the verifier does not quietly
+			// start refusing tokens on a worker whose clock runs a second or two fast.
+			clockTolerance: 5,
+		}))
 	} catch (error) {
 		// The reason a token failed is not the caller's business — an expired token and one minted for
 		// somebody else's resource answer the same thing — but a client does need to know it should
@@ -235,6 +266,28 @@ export async function authenticateMcpRequest(
 }
 
 /**
+ * The Clerk instance's public signing keys, one key set per issuer, held at module scope.
+ *
+ * `createRemoteJWKSet` caches the keys it fetches and goes back to Clerk only when a token names a
+ * key it has not seen, which is what makes Clerk's key rotation survivable without a deploy. That
+ * only holds if the key set outlives the request: built per call it would fetch JWKS on every single
+ * MCP request, adding a round trip to Clerk in front of each one.
+ *
+ * Keyed by issuer because a preview, staging and production worker each authenticate against a
+ * different Clerk instance, and the same module is deployed to all three.
+ */
+const clerkJwksByIssuer = new Map<string, ReturnType<typeof createRemoteJWKSet>>()
+
+function getClerkJwks(issuer: string) {
+	const existing = clerkJwksByIssuer.get(issuer)
+	if (existing) return existing
+
+	const jwks = createRemoteJWKSet(new URL('/.well-known/jwks.json', issuer))
+	clerkJwksByIssuer.set(issuer, jwks)
+	return jwks
+}
+
+/**
  * One message for every way a token can be refused. An expired token, a revoked one, a subjectless
  * one and one minted for somebody else's resource all answer the same thing: the caller cannot act
  * on the difference, and spelling it out would tell an attacker which of their guesses was closest.
@@ -245,10 +298,16 @@ const INVALID_TOKEN_DESCRIPTION =
 /**
  * Whether a token whose `aud` does not name this resource is refused, as opposed to merely logged.
  *
- * Configurable because the Clerk OAuth instance is not set up yet, and until it is there is no way to
- * know whether it stamps the resource indicator at all. Enforcing unconditionally would mean staging
- * and preview cannot exercise the MCP flow end to end until that question is settled, which is the
- * wrong order: staging is where the answer is supposed to come from.
+ * Configurable because it was unknown, when this was written, whether Clerk stamps the resource
+ * indicator. It is now known and the answer is no: a Clerk OAuth access token carries `iss`, `sub`,
+ * `client_id`, `scope`, `jti` and its lifetimes, and no `aud` — whether or not the client sends an
+ * RFC 8707 `resource` parameter on the authorization request. Every token therefore reaches
+ * `namesResource` with nothing to match, and the hatch is the only reason any environment works.
+ *
+ * That turns this from a temporary hatch into an open decision. Production does not consult the var,
+ * so as things stand it would refuse every token; whatever replaces the binding — Clerk's
+ * `client_id_metadata_documents_only_allow_pre_registered_clients`, a `client_id` allowlist here, or
+ * RFC 8707 support from Clerk — has to be settled before this endpoint is enabled there.
  *
  * Three things keep the hatch from becoming the way this ships:
  *
@@ -265,9 +324,9 @@ const INVALID_TOKEN_DESCRIPTION =
  * - **Skipping is logged** at the call site, so an environment running without the check still tells
  *   you what it would have refused.
  *
- * Delete this once the Clerk instance is confirmed to stamp `aud`. The var is set in three places
- * that all go away with it: `[env.dev.vars]` and `[env.staging.vars]` in `wrangler.toml`, and the
- * preview deploy vars in `internal/scripts/deploy-dotcom.ts`.
+ * Delete this once the binding question above is settled, whichever way it goes. The var is set in
+ * three places that all go away with it: `[env.dev.vars]` and `[env.staging.vars]` in
+ * `wrangler.toml`, and the preview deploy vars in `internal/scripts/deploy-dotcom.ts`.
  */
 function isMcpTokenAudienceRequired(env: Environment): boolean {
 	if (isProduction(env)) return true
@@ -278,18 +337,15 @@ function isMcpTokenAudienceRequired(env: Environment): boolean {
  * Whether a token's `aud` names this resource (RFC 8707) — what stops a token the user granted to
  * some other MCP server being replayed against this one.
  *
- * Asserted here rather than through `verifyToken`'s `audience` option, which is deliberately not
- * passed at all, for two reasons:
+ * Asserted here rather than through jose's `audience` option, which is deliberately not passed at
+ * all: that option throws inside verification for a wrong `aud` and a missing one alike — upstream of
+ * the `MCP_REQUIRE_TOKEN_AUDIENCE` escape hatch and the diagnostic log — so the one misconfiguration
+ * the hatch exists to surface from staging's logs would drown in a generic verification failure
+ * instead.
  *
- * - The option compares only when the token actually carries an `aud`: @clerk/backend gates the
- *   whole comparison on `audienceList.length > 0 && audList.length > 0`, so a token with no
- *   audience passes it untouched. A Clerk *session* JWT is exactly that shape — `sub`, no `aud` —
- *   which would make a tldraw.com website credential a valid bearer here and turn the consent step
- *   an agent walks the user through into decoration.
- * - When a token carries a *wrong* `aud`, the option throws inside verification — upstream of the
- *   `MCP_REQUIRE_TOKEN_AUDIENCE` escape hatch and the diagnostic log, so the one misconfiguration
- *   the hatch exists to surface from staging's logs would drown in the generic verification
- *   failure instead.
+ * This is not what keeps a Clerk *session* JWT out, though it reads like it once did: Clerk stamps no
+ * `aud` on an OAuth access token either, so the two shapes are indistinguishable here. The `typ:
+ * 'at+jwt'` assertion in verification is what separates them.
  *
  * Compared on normalized URLs rather than raw strings: the enforcing comparison first runs for real
  * in production, where a cosmetic difference between what Clerk stamps and `MCP_SERVER_URL` — host

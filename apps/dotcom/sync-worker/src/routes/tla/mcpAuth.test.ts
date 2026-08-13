@@ -1,4 +1,4 @@
-import { verifyToken } from '@clerk/backend'
+import { createRemoteJWKSet, jwtVerify } from 'jose'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
 import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
@@ -11,13 +11,29 @@ import {
 	getMcpResourceUrl,
 } from './mcpAuth'
 
-vi.mock('@clerk/backend', () => ({ verifyToken: vi.fn() }))
+const REMOTE_KEY_SET = Symbol('remote key set')
+vi.mock('jose', () => ({
+	jwtVerify: vi.fn(),
+	createRemoteJWKSet: vi.fn(() => REMOTE_KEY_SET),
+}))
 vi.mock('../../utils/featureFlags', () => ({ isFeatureFlagEnabledForUser: vi.fn() }))
 
 const RESOURCE = 'https://www.tldraw.com/api/app/mcp'
 
 // pk_test_<base64 of "clerk.tldraw.com$">, which is the shape Clerk publishable keys take.
 const PUBLISHABLE_KEY = `pk_test_${btoa('clerk.tldraw.com$')}`
+
+// The Clerk instance the publishable key above names, which is both the issuer tokens are checked
+// against and the origin their signing keys are fetched from.
+const ISSUER = 'https://clerk.tldraw.com'
+
+// jose resolves to `{ payload }` rather than the payload itself.
+function mockVerifiedPayload(payload: Record<string, unknown>) {
+	vi.mocked(jwtVerify).mockResolvedValue({ payload } as any)
+}
+
+// Hands the key-set test an issuer nothing else has cached. See its comment.
+let jwksTestCounter = 0
 
 function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
@@ -40,7 +56,7 @@ function responseOf(result: McpAuthResult) {
 
 beforeEach(() => {
 	vi.clearAllMocks()
-	vi.mocked(verifyToken).mockResolvedValue({ sub: 'user_123', aud: RESOURCE } as any)
+	mockVerifiedPayload({ sub: 'user_123', aud: RESOURCE })
 	vi.mocked(isFeatureFlagEnabledForUser).mockResolvedValue(true)
 	// The audience cases below are the expected way to see these logged, and a test run that prints
 	// them reads like a failure. Tests that care which branch refused a token assert on the spies.
@@ -132,25 +148,74 @@ describe('authenticateMcpRequest', () => {
 		expect(result).toEqual({ ok: true, userId: 'user_123' })
 	})
 
-	// The audience binding is deliberately not delegated to Clerk: verifyToken's `audience` option
-	// refuses a present-but-wrong `aud` inside verification — upstream of the escape hatch and the
-	// diagnostic log — and compares nothing when the `aud` is missing. Verification is asked only
-	// about the signature and lifetime; `namesResource` owns the audience.
-	it('does not delegate the audience check to verifyToken', async () => {
+	// Verification is asked about the signature, the issuer, the lifetime and the token type, and
+	// nothing else. The audience is deliberately not delegated to jose's `audience` option: it throws
+	// inside verification for a missing `aud` as well as a wrong one, upstream of the escape hatch and
+	// the diagnostic log, so `namesResource` owns that decision instead.
+	it('verifies against the issuer without delegating the audience check', async () => {
 		await authenticateMcpRequest(makeRequest({ authorization: 'Bearer good-token' }), makeEnv())
 
-		expect(verifyToken).toHaveBeenCalledWith('good-token', { secretKey: 'sk_test_secret' })
+		expect(jwtVerify).toHaveBeenCalledWith('good-token', REMOTE_KEY_SET, {
+			issuer: ISSUER,
+			typ: 'at+jwt',
+			clockTolerance: 5,
+		})
+	})
+
+	// Clerk stamps no `aud` on an OAuth access token, so the audience check cannot tell one apart from
+	// a Clerk *session* JWT. The token type is what does: sessions carry `typ: JWT`, and accepting one
+	// would make a tldraw.com website credential a bearer token here.
+	it('requires the RFC 9068 access token type', async () => {
+		await authenticateMcpRequest(makeRequest({ authorization: 'Bearer good-token' }), makeEnv())
+
+		expect(vi.mocked(jwtVerify).mock.calls[0][2]).toMatchObject({ typ: 'at+jwt' })
+	})
+
+	// The signing keys come from the same Clerk instance the publishable key names, so the authorization
+	// server clients are sent to and the keys their tokens are checked against cannot drift apart. Held
+	// per issuer at module scope: rebuilt per request it would fetch JWKS in front of every MCP call,
+	// so the second request here must reuse the first one's key set.
+	//
+	// Its own issuer, because that module-scope cache outlives `clearAllMocks` — a shared one would
+	// make this pass or fail on whether another test happened to warm it first.
+	it('fetches signing keys from the issuer once and reuses them', async () => {
+		const host = `clerk.jwks-${jwksTestCounter++}.example`
+		const env = makeEnv({ CLERK_PUBLISHABLE_KEY: `pk_test_${btoa(`${host}$`)}` })
+
+		await authenticateMcpRequest(makeRequest({ authorization: 'Bearer tok' }), env)
+		await authenticateMcpRequest(makeRequest({ authorization: 'Bearer tok' }), env)
+
+		expect(createRemoteJWKSet).toHaveBeenCalledTimes(1)
+		expect(createRemoteJWKSet).toHaveBeenCalledWith(
+			new URL(`https://${host}/.well-known/jwks.json`)
+		)
+	})
+
+	// Without a derivable authorization server there is nothing to verify against. That is our
+	// misconfiguration rather than a bad token, so it is logged as one — but answered like every other
+	// refusal, since naming the difference would describe the deployment to someone guessing at it.
+	it('refuses when no authorization server can be derived', async () => {
+		const result = await authenticateMcpRequest(
+			makeRequest({ authorization: 'Bearer good-token' }),
+			makeEnv({ CLERK_PUBLISHABLE_KEY: undefined })
+		)
+
+		expect(responseOf(result).status).toBe(401)
+		expect(jwtVerify).not.toHaveBeenCalled()
+		expect(console.error).toHaveBeenCalledWith(
+			'MCP token verification is unconfigured: no authorization server to verify against'
+		)
 	})
 
 	// RFC 8707: the audience is what stops a token the user granted to some other MCP server being
 	// replayed against this one. It is checked against the payload's `aud` — see above for why the
-	// check is not verifyToken's.
+	// check is not the verifier's.
 	describe('audience', () => {
 		async function authenticateWithAudience(
 			aud: unknown,
 			envOverrides: Partial<Record<string, unknown>> = {}
 		) {
-			vi.mocked(verifyToken).mockResolvedValue({ sub: 'user_123', aud } as any)
+			mockVerifiedPayload({ sub: 'user_123', aud })
 			return authenticateMcpRequest(
 				makeRequest({ authorization: 'Bearer tok' }),
 				makeEnv(envOverrides)
@@ -180,12 +245,12 @@ describe('authenticateMcpRequest', () => {
 		// closest.
 		it('says no more about an audience mismatch or a missing subject than about any other bad token', async () => {
 			const mismatched = await authenticateWithAudience('https://example.com/api/app/mcp')
-			vi.mocked(verifyToken).mockResolvedValue({ aud: RESOURCE } as any)
+			mockVerifiedPayload({ aud: RESOURCE })
 			const subjectless = await authenticateMcpRequest(
 				makeRequest({ authorization: 'Bearer tok' }),
 				makeEnv()
 			)
-			vi.mocked(verifyToken).mockRejectedValue(new Error('token expired'))
+			vi.mocked(jwtVerify).mockRejectedValue(new Error('token expired'))
 			const expired = await authenticateMcpRequest(
 				makeRequest({ authorization: 'Bearer tok' }),
 				makeEnv()
@@ -266,7 +331,7 @@ describe('authenticateMcpRequest', () => {
 			// Still refused on the way past the hatch — turning the check off must not turn off the
 			// things that do not depend on it.
 			it('still refuses a token with no subject while turned off', async () => {
-				vi.mocked(verifyToken).mockResolvedValue({ aud: RESOURCE } as any)
+				mockVerifiedPayload({ aud: RESOURCE })
 
 				const result = await authenticateMcpRequest(
 					makeRequest({ authorization: 'Bearer tok' }),
@@ -331,7 +396,7 @@ describe('authenticateMcpRequest', () => {
 	})
 
 	it('answers 401 invalid_token when verification fails', async () => {
-		vi.mocked(verifyToken).mockRejectedValue(new Error('token expired'))
+		vi.mocked(jwtVerify).mockRejectedValue(new Error('token expired'))
 
 		const result = await authenticateMcpRequest(
 			makeRequest({ authorization: 'Bearer stale-token' }),
@@ -351,7 +416,7 @@ describe('authenticateMcpRequest', () => {
 	})
 
 	it('rejects a token with no subject', async () => {
-		vi.mocked(verifyToken).mockResolvedValue({} as any)
+		mockVerifiedPayload({})
 
 		const result = await authenticateMcpRequest(
 			makeRequest({ authorization: 'Bearer subjectless' }),
@@ -386,7 +451,7 @@ describe('authenticateMcpRequest', () => {
 		expect(
 			await authenticateMcpRequest(makeRequest({ authorization: '  bearer   tok  ' }), makeEnv())
 		).toEqual({ ok: true, userId: 'user_123' })
-		expect(verifyToken).toHaveBeenCalledWith('tok', expect.anything())
+		expect(jwtVerify).toHaveBeenCalledWith('tok', expect.anything(), expect.anything())
 	})
 
 	// Anything that is not a bearer token is treated as no token at all, so the client is told where to
@@ -400,6 +465,6 @@ describe('authenticateMcpRequest', () => {
 		const response = responseOf(result)
 		expect(response.status).toBe(401)
 		expect(response.headers.get('WWW-Authenticate')).not.toContain('error=')
-		expect(verifyToken).not.toHaveBeenCalled()
+		expect(jwtVerify).not.toHaveBeenCalled()
 	})
 })
