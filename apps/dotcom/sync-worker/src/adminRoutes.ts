@@ -322,6 +322,23 @@ export const adminRoutes = createRouter<Environment>()
 			},
 		})
 	})
+	// Force-closes every session on a file room with CLIENT_TOO_OLD. Shipped clients treat that
+	// as terminal — no reconnect, a "please reload" screen — so a room held awake around the
+	// clock by parked background tabs on stale bundles can finally hibernate. Resolve the id
+	// first and check the verdict: this closes actively edited sessions just the same.
+	.post('/app/admin/close-do-sessions/:objectId', async (res, env) => {
+		const objectId = res.params.objectId
+		if (!/^[0-9a-f]{64}$/.test(objectId)) {
+			throw new StatusError(400, 'objectId must be a 64-char lowercase hex string')
+		}
+		let roomDo: ReturnType<typeof getRoomDurableObjectById>
+		try {
+			roomDo = getRoomDurableObjectById(env, objectId)
+		} catch {
+			throw new StatusError(400, 'not a valid durable object id for the file namespace')
+		}
+		return json(await roomDo.__admin__closeAllSessions())
+	})
 	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
 	.post('/app/admin/feature-flags', async (req, env) => {
 		const body: any = await req.json()
