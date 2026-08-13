@@ -14,9 +14,11 @@ interface CommitHistoryData {
 	nextCursor?: string | null
 }
 
-/** This module serves both commit-history backends; the route path names the source. */
+/** This module serves both commit-history backends; the route path names the source.
+ * Anchored as a full path segment so a slug beginning with "artifacts-history" can't
+ * misdetect. */
 function sourceFromUrl(url: string): CommitHistorySource {
-	return new URL(url).pathname.includes('/artifacts-history') ? 'artifacts' : 'pierre'
+	return /\/artifacts-history(\/|$)/.test(new URL(url).pathname) ? 'artifacts' : 'pierre'
 }
 
 const { loader, useData } = defineLoader(async (args) => {

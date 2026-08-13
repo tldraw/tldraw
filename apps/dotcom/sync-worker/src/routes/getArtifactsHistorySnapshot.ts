@@ -1,7 +1,11 @@
 import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
-import { getArtifactsRepoName, getSnapshotJsonAtCommit } from '../utils/artifacts'
+import {
+	getArtifactsRepoName,
+	getSnapshotJsonAtCommit,
+	isValidCommitHash,
+} from '../utils/artifacts'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
 import { isTestFile } from '../utils/tla/isTestFile'
@@ -20,8 +24,8 @@ export async function getArtifactsHistorySnapshot(
 
 	if (!roomId) return notFound()
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
-	if (!commitHash) {
-		return new Response('Missing commit hash', { status: 400 })
+	if (!commitHash || !isValidCommitHash(commitHash)) {
+		return new Response('Invalid commit hash', { status: 400 })
 	}
 
 	await requireAdminAccessToRequest(request, env)

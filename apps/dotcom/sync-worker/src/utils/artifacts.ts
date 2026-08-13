@@ -48,6 +48,11 @@ export interface ArtifactsHistoryEntry {
 	commitHash: string
 }
 
+/** Commit hashes are interpolated into URLs and DO requests; accept only full hex shas. */
+export function isValidCommitHash(commitHash: string): boolean {
+	return /^[0-9a-f]{40}$/.test(commitHash)
+}
+
 export interface ArtifactsHistoryPage {
 	entries: ArtifactsHistoryEntry[]
 	nextCursor: string | null
@@ -60,12 +65,17 @@ interface RestCommit {
 	committer?: { name: string; email: string }
 }
 
-/** Commits carry `Snapshot at <ISO>Z` messages (same convention as Pierre). */
-function commitToEntry(commit: RestCommit): ArtifactsHistoryEntry {
+/**
+ * Commits carry `Snapshot at <ISO>Z` messages (same convention as Pierre), with the
+ * committer date as fallback. A commit with neither is dropped rather than given a
+ * placeholder — the history page date-formats every timestamp and an unparseable one
+ * would throw during render.
+ */
+function commitToEntry(commit: RestCommit): ArtifactsHistoryEntry | null {
 	const match = commit.message?.match(/Snapshot at (.+Z)/)
 	const timestamp =
-		match?.[1] ??
-		(commit.committedAt ? new Date(commit.committedAt * 1000).toISOString() : 'unknown')
+		match?.[1] ?? (commit.committedAt ? new Date(commit.committedAt * 1000).toISOString() : null)
+	if (!timestamp) return null
 	return { timestamp, commitHash: commit.hash }
 }
 
@@ -128,21 +138,27 @@ export async function listArtifactsHistory(
 		}
 	}
 
-	const commits = await restJson<RestCommit[]>(
+	// The offset param is verified against the live API (2026-08: distinct pages for
+	// limit+offset on a 2,397-commit repo).
+	const log = await restJson<any>(
 		env,
 		`/repos/${repoName}/log?limit=${ARTIFACTS_HISTORY_PAGE_SIZE}${offset ? `&offset=${offset}` : ''}`
 	)
-	if (commits === null) {
+	if (log === null) {
 		// Distinguish "no read path configured" from "repo missing": getRestConfig null
 		// means unavailable; a 404 from REST means the repo does not exist.
 		return getRestConfig(env) ? { entries: [], nextCursor: null } : null
 	}
+	// Observed shape is a bare array; tolerate an object wrapper like the binding path.
+	const commits: RestCommit[] = Array.isArray(log) ? log : (log?.commits ?? [])
 	return pageFromCommits(commits, offset)
 }
 
 function pageFromCommits(commits: RestCommit[], offset: number): ArtifactsHistoryPage {
 	return {
-		entries: commits.map(commitToEntry),
+		entries: commits.map(commitToEntry).filter((e): e is ArtifactsHistoryEntry => e !== null),
+		// Cursor advances by raw commit count (not surviving entries) so dropped commits
+		// cannot stall pagination.
 		nextCursor:
 			commits.length === ARTIFACTS_HISTORY_PAGE_SIZE ? String(offset + commits.length) : null,
 	}

@@ -127,8 +127,8 @@ const pierreKey = process.env.PIERRE_KEY ?? ''
 // Optional REST fallback for Artifacts content reads (history routes) while the beta
 // binding lacks read methods; empty disables the fallback and the routes degrade to 503.
 // Not in the validated makeEnv list yet for the same reason as PIERRE_KEY above.
+// (CLOUDFLARE_ACCOUNT_ID is already validated in makeEnv and used from `env` below.)
 const artifactsApiToken = process.env.ARTIFACTS_API_TOKEN ?? ''
-const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID ?? ''
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -591,7 +591,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			TLDRAW_ENV: env.TLDRAW_ENV,
 			PIERRE_KEY: pierreKey,
 			ARTIFACTS_API_TOKEN: artifactsApiToken,
-			CLOUDFLARE_ACCOUNT_ID: cloudflareAccountId,
+			CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
 			USER_CONTENT_URL: env.USER_CONTENT_URL,
 			WORKER_NAME: workerId,

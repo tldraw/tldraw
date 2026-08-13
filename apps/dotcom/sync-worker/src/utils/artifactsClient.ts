@@ -69,7 +69,9 @@ export async function getOrCreateArtifactsRepo(
 	return {
 		remote,
 		async getToken() {
-			if (!cached || cached.expiresAt - Date.now() < TOKEN_REFRESH_MARGIN_MS) {
+			// Negated comparison so a NaN expiry (malformed timestamp) re-mints rather
+			// than being treated as never-expiring.
+			if (!cached || !(cached.expiresAt - Date.now() >= TOKEN_REFRESH_MARGIN_MS)) {
 				cached = await mintToken!()
 			}
 			return cached.secret

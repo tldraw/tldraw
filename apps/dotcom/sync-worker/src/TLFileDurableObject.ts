@@ -48,14 +48,7 @@ import {
 	isCommentReactionId,
 	isCommentThreadId,
 } from '@tldraw/tlschema'
-import {
-	ExecutionQueue,
-	assert,
-	assertExists,
-	exhaustiveSwitchError,
-	retry,
-	sleep,
-} from '@tldraw/utils'
+import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router, StatusError } from 'itty-router'
@@ -99,6 +92,7 @@ import {
 	getArtifactsRepoName,
 	getSnapshotJsonAtCommit,
 	isSlugInArtifactsRollout,
+	isValidCommitHash,
 } from './utils/artifacts'
 import {
 	ArtifactsWriterRepo,
@@ -341,9 +335,16 @@ export class TLFileDurableObject extends DurableObject {
 						}
 						// Final Artifacts commit for the session, bypassing the push interval so the
 						// settled document always lands. Awaited (bounded) to keep the DO alive long
-						// enough; a push cut off by the race either completed server-side (verified
-						// on the next wake) or is retried next session.
-						await Promise.race([this.flushArtifacts(), sleep(ARTIFACTS_FLUSH_AWAIT_MS)])
+						// enough; a push cut off by the deadline either completed server-side
+						// (verified on the next wake) or is retried next session. The deadline timer
+						// is cleared when the flush wins so no dangling timeout blocks hibernation.
+						let flushDeadline: ReturnType<typeof setTimeout> | undefined
+						await Promise.race([
+							this.flushArtifacts(),
+							new Promise<void>((resolve) => {
+								flushDeadline = setTimeout(resolve, ARTIFACTS_FLUSH_AWAIT_MS)
+							}),
+						]).finally(() => clearTimeout(flushDeadline))
 						// make sure nobody joined the room while we were persisting
 						if (room.getNumActiveSessions() > 0) return
 						this._room = null
@@ -652,8 +653,8 @@ export class TLFileDurableObject extends DurableObject {
 				this.pierreState = null
 			} else if (source === 'artifacts') {
 				const commitHash = ((await req.json()) as any).commitHash
-				if (!commitHash) {
-					return new Response('Missing commit hash', { status: 400 })
+				if (!commitHash || !isValidCommitHash(commitHash)) {
+					return new Response('Invalid commit hash', { status: 400 })
 				}
 				const text = await getSnapshotJsonAtCommit(
 					this.env,
@@ -2711,9 +2712,12 @@ export class TLFileDurableObject extends DurableObject {
 		this.runArtifactsPush()
 	}
 
-	/** Final commit for the session: bypasses the push interval (not the no-op check). */
+	/** Final commit for the session: bypasses the push interval (not the no-op check,
+	 * and not the failure backoff — during an Artifacts outage every last-out flush
+	 * would otherwise burn its full await window on a doomed push). */
 	async flushArtifacts() {
 		if (this._isRestoring) return
+		if (Date.now() < this._artifactsBackoffUntil) return
 		if (!this.getArtifactsRepo()) return
 		// A push already in flight may carry an older snapshot; wait it out, then run
 		// again — the clock comparison makes that second run free if nothing changed.
@@ -2726,6 +2730,10 @@ export class TLFileDurableObject extends DurableObject {
 		if (this._artifactsPushPromise) return this._artifactsPushPromise
 		this._artifactsPushPromise = this.pushSnapshotToArtifacts()
 			.catch((e) => {
+				// Thrown paths (provisioning, token minting, resync) must back off like the
+				// explicit failure branch, or a persistently failing dependency is retried
+				// at persist cadence with a Sentry event per tick.
+				this.applyArtifactsBackoff()
 				console.error('Artifacts push failed:', e)
 				this.reportError(e)
 			})
@@ -2733,6 +2741,12 @@ export class TLFileDurableObject extends DurableObject {
 				this._artifactsPushPromise = null
 			})
 		return this._artifactsPushPromise
+	}
+
+	private applyArtifactsBackoff() {
+		this._artifactsFailureCount++
+		this._artifactsBackoffUntil =
+			Date.now() + Math.min(2 ** this._artifactsFailureCount * 60_000, 15 * 60_000)
 	}
 
 	private async pushSnapshotToArtifacts() {
@@ -2786,7 +2800,11 @@ export class TLFileDurableObject extends DurableObject {
 				// ref update. The commit sha was computed client-side, so the remote head
 				// answers exactly.
 				try {
-					const head = await fetchRemoteHead(repo.remote, await repo.getToken())
+					const head = await fetchRemoteHead(
+						repo.remote,
+						await repo.getToken(),
+						AbortSignal.timeout(ARTIFACTS_PUSH_TIMEOUT_MS)
+					)
 					if (head === commitSha) {
 						this.writeEvent('artifacts_push_verified_after_error', {
 							doubles: [Date.now() - start],
@@ -2799,6 +2817,11 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			if (result.outcome === 'ok') {
+				// A restore may have started while this push was in flight and cleared the
+				// state key; writing the pre-restore clock back would silently skip the next
+				// push whose clock happens to match it. The commit itself is harmless (the
+				// post-restore push force-commits on top), so just skip the state write.
+				if (this._isRestoring) return
 				const newState: ArtifactsState = { headCommitSha: commitSha, documentClock }
 				await this.storage.put(ARTIFACTS_STATE_KEY, newState)
 				const now = Date.now()
@@ -2823,14 +2846,16 @@ export class TLFileDurableObject extends DurableObject {
 				// Resync from the remote. Clock -1 forces a full-content commit, which is the
 				// correct recovery whether the mismatch came from a restore, an eviction
 				// between push and state write, or an external writer.
-				const head = await fetchRemoteHead(repo.remote, await repo.getToken())
+				const head = await fetchRemoteHead(
+					repo.remote,
+					await repo.getToken(),
+					AbortSignal.timeout(ARTIFACTS_PUSH_TIMEOUT_MS)
+				)
 				state = { headCommitSha: head, documentClock: -1 }
 				continue
 			}
 
-			this._artifactsFailureCount++
-			this._artifactsBackoffUntil =
-				Date.now() + Math.min(2 ** this._artifactsFailureCount * 60_000, 15 * 60_000)
+			this.applyArtifactsBackoff()
 			this.writeEvent('artifacts_push_failure', {
 				blobs: [result.outcome === 'auth' ? 'auth' : 'ambiguous'],
 				doubles: [Date.now() - start],
@@ -2839,6 +2864,7 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		console.error('Artifacts: exhausted CAS retries')
+		this.applyArtifactsBackoff()
 		this.writeEvent('artifacts_push_failure', {
 			blobs: ['cas_exhausted'],
 			doubles: [Date.now() - start],
