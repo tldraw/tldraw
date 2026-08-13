@@ -1,41 +1,142 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
+import {
+	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
+	MCP_PER_BOARD_RATE_LIMIT,
+	MCP_PER_IP_RATE_LIMIT,
+	MCP_RATE_LIMIT_WINDOW_MS,
+} from '../../config'
 import { Environment } from '../../types'
-import { arrayBufferToBase64 } from '../../utils/base64'
-import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
+import { writeDataPoint } from '../../utils/analytics'
+import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
+import { sha256 } from '../../utils/hash'
+import {
+	BOARD_EMPTY_MESSAGE,
+	BOARD_INFO_TOOL_NAME,
+	BOARD_NOT_FOUND_MESSAGE,
+	CLUSTER_INFO_TOOL_NAME,
+	CLUSTER_SCREENSHOT_TOOL_NAME,
+	MCP_SERVER_INFO,
+	MCP_SERVER_INSTRUCTIONS,
+	PAGE_INFO_TOOL_NAME,
+	PageSelector,
+	ResolvedPageOk,
+	ShapeMeasurement,
+	ToolResult,
+	describePageSelector,
+	getBoardInfo,
+	getClusterInfo,
+	getPageInfo,
+	getToolDefinitions,
+	parseBoardInfoInput,
+	parseClusterInfoInput,
+	parseClusterScreenshotInput,
+	parsePageInfoInput,
+	pickClusterShapes,
+	resolvePage,
+	toolError as modelToolError,
+	toolPageResult as modelToolPageResult,
+} from './boardTools'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
-	enumerateBoardPages,
-	isGlobalBrowserRunRateLimited,
-	isRateLimited,
 	loadBoardSnapshot,
+	measurePageShapes,
 	putThumbnailPng,
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
 import {
+	browserRunDurationOf,
 	classifyScreenshotFailure,
 	describeThumbnailFailure,
 	reportThumbnailError,
-	sha256,
 } from './thumbnailShared'
 
-// The MCP protocol surface over the shared render-and-cache core in thumbnailRender.ts: JSON-RPC
-// plumbing, tool definitions, input parsing, and the MCP tools' own per-IP/per-board rate limits
-// and `mcp/` cache keys.
+// What it takes to run the board tools on Cloudflare: board resolution against Postgres and R2,
+// Browser Rendering, the `mcp/` PNG cache, rate limits, telemetry, and the HTTP shell around the
+// JSON-RPC dispatch.
+//
+// The model-facing tools themselves live in boardTools.ts. That pure boundary lets the private eval
+// harness serve the exact same tool descriptions, parsing, clustering, and errors from local board
+// fixtures without needing a database or Browser Rendering.
 
-const SCREENSHOT_TOOL_NAME = 'get_shared_board_screenshot'
-const BOARD_INFO_TOOL_NAME = 'get_board_info'
-const MCP_PROTOCOL_VERSION = '2024-11-05'
+// The two protocol revisions this server speaks, newest first, as `server/discover` reports them.
+//
+// 2026-07-28 is the *modern* era: no handshake and no session, every request carrying its own
+// protocol version, and the routing-relevant body fields mirrored into HTTP headers. 2025-11-25 is
+// the *legacy* era, which opens with an `initialize` handshake instead. We serve both for now.
+//
+// 2025-11-25 is the oldest version this server implements. a client asking for older versions
+// will be met with this version.
+const MCP_PROTOCOL_VERSION_MODERN = '2026-07-28'
+const MCP_PROTOCOL_VERSION_LEGACY = '2025-11-25'
+const SUPPORTED_PROTOCOL_VERSIONS = [MCP_PROTOCOL_VERSION_MODERN, MCP_PROTOCOL_VERSION_LEGACY]
 
-// Per-IP and per-board limits protect the endpoint and individual boards; the global limit in
-// thumbnailRender.ts caps total Browser Rendering spend across all callers. The Cloudflare bindings
-// in wrangler.toml enforce these in deployments; the isolate-local fallback only covers local dev
-// and tests.
-const PER_IP_RATE_LIMIT = 2
-const PER_BOARD_RATE_LIMIT = 2
+type ProtocolEra = 'modern' | 'legacy'
+
+// -32700/-32601/-32602 are plain JSON-RPC.
+// -32020 and up are reserved by the MCP spec
+const PARSE_ERROR = -32700
+const METHOD_NOT_FOUND = -32601
+const INVALID_PARAMS = -32602
+const HEADER_MISMATCH = -32020
+const UNSUPPORTED_PROTOCOL_VERSION = -32022
+
+// `_meta` keys the modern era uses for per-request version and identity.
+const META_PROTOCOL_VERSION = 'io.modelcontextprotocol/protocolVersion'
+const META_SERVER_INFO = 'io.modelcontextprotocol/serverInfo'
+
+// Modern `tools/list` is cacheable. This list is the same for every caller, so it's public — if the
+// tool set ever varies by caller, `cacheScope` has to drop to 'private'.
+const TOOLS_LIST_TTL_MS = 3_600_000
+const TOOLS_LIST_CACHE_SCOPE = 'public'
+
+// The MCP rate limit budgets themselves live in config.ts (MCP_PER_IP_RATE_LIMIT and friends), with
+// the comment that maps each isolate-local fallback to its deployed Cloudflare binding. They are
+// applied here rather than in the shared render core so a new surface built on those helpers cannot
+// pick one up by accident.
+const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
+const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
+
+async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
+	return isRateLimited(env.MCP_SERVER_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
+		fallbackLimit: MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
+	})
+}
+
+async function isRateLimited(
+	limiter: RateLimit | undefined,
+	key: string,
+	{ fallbackLimit }: { fallbackLimit: number }
+): Promise<boolean> {
+	// The mcp- prefix is load-bearing: it is what the deployed Cloudflare rate limit bindings have
+	// counted against, so changing it resets every configured bucket.
+	const rateLimitKey = `mcp-shared-board-screenshot:${key}`
+	if (limiter) {
+		const { success } = await limiter.limit({ key: rateLimitKey })
+		return !success
+	}
+
+	// Isolate-local fallback for local dev and tests; deployments configure the Cloudflare rate
+	// limit bindings in wrangler.toml.
+	const now = Date.now()
+	const existing = RATE_LIMIT_FALLBACK.get(rateLimitKey)
+	if (!existing || existing.resetAt <= now) {
+		RATE_LIMIT_FALLBACK.set(rateLimitKey, { count: 1, resetAt: now + MCP_RATE_LIMIT_WINDOW_MS })
+		return false
+	}
+	existing.count++
+	return existing.count > fallbackLimit
+}
+
+// The isolate-local fallback map is module state that persists across a test file's cases. Tests that
+// exercise the MCP tools must reset it between cases, or accumulated counts (especially on the shared
+// `global` key) would trip the low limits and rate-limit later cases' happy paths.
+export function resetRateLimitFallbackForTests() {
+	RATE_LIMIT_FALLBACK.clear()
+}
 
 type JsonRpcId = string | number | null
 
@@ -46,14 +147,17 @@ interface JsonRpcRequest {
 	params?: {
 		name?: string
 		arguments?: unknown
+		/** Legacy `initialize` only: the version the client is asking to speak. */
+		protocolVersion?: string
+		/** Modern only: per-request version, client identity and capabilities. */
+		_meta?: Record<string, unknown>
+		// Typed as unknown because it is whatever the client put in the request body; the telemetry
+		// writer narrows it rather than trusting it.
+		clientInfo?: {
+			name?: unknown
+			version?: unknown
+		}
 	}
-}
-
-export interface SharedBoardScreenshotInput {
-	boardId: string
-	// 0-based page ordinal to screenshot. Defaults to 0 (the first page).
-	page: number
-	theme: 'light' | 'dark'
 }
 
 // Runtime kill switch for the whole MCP server, read per request so flipping MCP_SCREENSHOT_ENABLED
@@ -64,6 +168,96 @@ export function isMcpScreenshotEnabled(env: Environment) {
 	const value = env.MCP_SCREENSHOT_ENABLED?.trim().toLowerCase()
 	return value === undefined || value === '' || value === 'true'
 }
+
+// --- MCP protocol telemetry ---
+
+// Known MCP client families, matched as case-insensitive substrings against the User-Agent header
+// and the clientInfo.name from initialize. Bounded on purpose: raw agent strings are
+// unbounded-cardinality, so anything unrecognized lands in `other`, and the initialize event keeps a
+// truncated raw name for spotting families worth adding here. Order matters where strings overlap —
+// a Claude UA also says Mozilla, so `mozilla` sits last.
+const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: string]> = [
+	['claude', 'claude'],
+	['anthropic', 'claude'],
+	['chatgpt', 'openai'],
+	['openai', 'openai'],
+	['cursor', 'cursor'],
+	['python', 'python'],
+	['httpx', 'python'],
+	['aiohttp', 'python'],
+	['node', 'node'],
+	['undici', 'node'],
+	['curl', 'curl'],
+	['mozilla', 'browser'],
+]
+
+// Takes unknown because one caller passes a header and the other passes a field parsed straight out
+// of the request body, which is whatever the client chose to send.
+export function normalizeMcpClient(value: unknown): string {
+	if (typeof value !== 'string' || value === '') return 'none'
+	const lower = value.toLowerCase()
+	for (const [needle, family] of MCP_CLIENT_FAMILIES) {
+		if (lower.includes(needle)) return family
+	}
+	return 'other'
+}
+
+// One datapoint per tools/call dispatch, whatever the tool did: the render path's
+// mcp_shared_board_screenshot event only fires when a screenshot is attempted, so without this the
+// info tools (and every early failure) are invisible. Written at the dispatcher rather than inside
+// the tools, so a new tool cannot ship unmetered.
+function writeMcpToolCallTelemetry(
+	env: Environment,
+	request: Request,
+	data: { tool: string; durationMs: number; reason?: string }
+) {
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_tool_call', {
+		blobs: [
+			`tool:${data.tool}`,
+			`outcome:${data.reason ? 'error' : 'ok'}`,
+			`reason:${data.reason ?? 'none'}`,
+			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+		],
+		doubles: [data.durationMs],
+	})
+}
+
+// initialize is the one request where the calling application names itself, so it gets its own
+// event. The raw name is kept (truncated) alongside the normalized family: initializes are rare
+// enough that the cardinality is affordable, and it is how new families get discovered. The UA
+// family rides along as a cross-check for hosts whose header and clientInfo disagree.
+function writeMcpInitializeTelemetry(
+	env: Environment,
+	request: Request,
+	clientInfo: { name?: unknown; version?: unknown } | undefined
+) {
+	const name = clientInfo?.name
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_initialize', {
+		blobs: [
+			`client:${normalizeMcpClient(name)}`,
+			`raw:${typeof name === 'string' ? name.slice(0, 64) : 'none'}`,
+			`ua:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+		],
+	})
+}
+
+// A Map rather than an object literal, because the key comes straight off the wire: a plain object
+// would resolve inherited names too, so `tools/call` for `constructor` or `toString` would find one
+// of Object's own methods and call it as a tool instead of reporting an unknown tool.
+const TOOL_HANDLERS = new Map<
+	string,
+	(
+		argumentsValue: unknown,
+		request: Request,
+		env: Environment,
+		ctx?: ExecutionContext
+	) => Promise<ToolCallResult>
+>([
+	[BOARD_INFO_TOOL_NAME, callBoardInfoTool],
+	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
+	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
+	[CLUSTER_SCREENSHOT_TOOL_NAME, callClusterScreenshotTool],
+])
 
 export async function sharedBoardScreenshotMcp(
 	request: IRequest,
@@ -76,129 +270,241 @@ export async function sharedBoardScreenshotMcp(
 		return new Response('Not Found', { status: 404 })
 	}
 
+	// new MCP spec (2026-07-28 onwards) no longer allows get or delete requests
 	if (request.method !== 'POST') {
 		return new Response('MCP screenshot server expects POST', { status: 405 })
 	}
 
 	const rpcRequest = await readJsonRpcRequest(request)
 	if (!rpcRequest) {
-		return jsonRpcError(null, -32700, 'Parse error')
+		return jsonRpcError(null, PARSE_ERROR, 'Parse error', { status: 400 })
 	}
 
+	// No id means a notification: acknowledged, never answered.
 	if (rpcRequest.id === undefined) {
 		return new Response(null, { status: 202 })
 	}
 
+	// `initialize` is legacy-only and carries the client's version in its params, not a header.
+	if (rpcRequest.method === 'initialize') {
+		writeMcpInitializeTelemetry(env, request, rpcRequest.params?.clientInfo)
+		return jsonRpcResult(rpcRequest.id, {
+			// Answering with our legacy version regardless is how the handshake declines a version.
+			protocolVersion: MCP_PROTOCOL_VERSION_LEGACY,
+			capabilities: { tools: {} },
+			serverInfo: MCP_SERVER_INFO,
+			instructions: MCP_SERVER_INSTRUCTIONS,
+		})
+	}
+
+	const requestedVersion = getRequestedProtocolVersion(request, rpcRequest)
+	const era = getProtocolEra(requestedVersion)
+
+	if (era === 'modern') {
+		const mismatch = checkModernHeaders(request, rpcRequest)
+		if (mismatch) return mismatch
+	}
+
+	// Answered under any version, including ones we don't serve — it's how a client finds one we share.
+	if (rpcRequest.method === 'server/discover') {
+		return jsonRpcResult(rpcRequest.id, {
+			resultType: 'complete',
+			supportedVersions: SUPPORTED_PROTOCOL_VERSIONS,
+			capabilities: { tools: {} },
+			instructions: MCP_SERVER_INSTRUCTIONS,
+			ttlMs: TOOLS_LIST_TTL_MS,
+			cacheScope: TOOLS_LIST_CACHE_SCOPE,
+			_meta: { [META_SERVER_INFO]: MCP_SERVER_INFO },
+		})
+	}
+
+	if (!era) {
+		return jsonRpcError(
+			rpcRequest.id,
+			UNSUPPORTED_PROTOCOL_VERSION,
+			`Unsupported protocol version: ${requestedVersion}`,
+			{
+				status: 400,
+				data: { supported: SUPPORTED_PROTOCOL_VERSIONS, requested: requestedVersion },
+			}
+		)
+	}
+
 	switch (rpcRequest.method) {
-		case 'initialize':
-			return jsonRpcResult(rpcRequest.id, {
-				protocolVersion: MCP_PROTOCOL_VERSION,
-				capabilities: { tools: {} },
-				serverInfo: {
-					name: 'tldraw-shared-board-screenshot',
-					title: 'tldraw shared board screenshots',
-					version: '2.0.0',
-				},
-				instructions:
-					'MCP server for public tldraw.com boards. get_board_info lists a board’s pages; get_shared_board_screenshot returns a PNG for one page. Accepts published tldraw.com/p/:slug boards and anonymously-shared tldraw.com/f/:slug files, rendered through a signed, tldraw-owned render job.',
-			})
 		case 'ping':
+			// Removed in 2026-07-28, so modern callers fall through to method-not-found.
+			if (era === 'modern') break
 			return jsonRpcResult(rpcRequest.id, {})
 		case 'tools/list':
-			return jsonRpcResult(rpcRequest.id, {
-				tools: [getBoardInfoToolDefinition(), getSharedBoardScreenshotToolDefinition()],
-			})
-		case 'tools/call':
-			switch (rpcRequest.params?.name) {
-				case BOARD_INFO_TOOL_NAME:
-					return jsonRpcResult(
-						rpcRequest.id,
-						await callBoardInfoTool(rpcRequest.params.arguments, request, env, ctx)
-					)
-				case SCREENSHOT_TOOL_NAME:
-					return jsonRpcResult(
-						rpcRequest.id,
-						await callSharedBoardScreenshotTool(rpcRequest.params.arguments, request, env, ctx)
-					)
-				default:
-					return jsonRpcError(rpcRequest.id, -32602, `Unknown tool: ${rpcRequest.params?.name}`)
+			return jsonRpcResult(
+				rpcRequest.id,
+				withResultEnvelope(
+					{
+						tools: getToolDefinitions(),
+						...(era === 'modern'
+							? { ttlMs: TOOLS_LIST_TTL_MS, cacheScope: TOOLS_LIST_CACHE_SCOPE }
+							: {}),
+					},
+					era
+				)
+			)
+		case 'tools/call': {
+			const toolName = rpcRequest.params?.name ?? ''
+			const toolHandler = TOOL_HANDLERS.get(toolName)
+			if (!toolHandler) {
+				// The requested name is caller-controlled and unbounded, so telemetry records a bounded
+				// value while the JSON-RPC error still tells the caller which name was unknown.
+				writeMcpToolCallTelemetry(env, request, {
+					tool: 'unknown',
+					reason: 'unknown_tool',
+					durationMs: 0,
+				})
+				return jsonRpcError(
+					rpcRequest.id,
+					INVALID_PARAMS,
+					`Unknown tool: ${rpcRequest.params?.name}`
+				)
 			}
-		default:
-			return jsonRpcError(rpcRequest.id, -32601, `Method not found: ${rpcRequest.method}`)
+
+			const startedAt = Date.now()
+			let called: ToolCallResult
+			try {
+				called = await toolHandler(rpcRequest.params?.arguments, request, env, ctx)
+			} catch (error) {
+				writeMcpToolCallTelemetry(env, request, {
+					tool: toolName,
+					reason: 'unhandled_error',
+					durationMs: Date.now() - startedAt,
+				})
+				throw error
+			}
+
+			const { telemetryReason, ...result } = called
+			writeMcpToolCallTelemetry(env, request, {
+				tool: toolName,
+				reason: telemetryReason,
+				durationMs: Date.now() - startedAt,
+			})
+			return jsonRpcResult(rpcRequest.id, withResultEnvelope(result, era))
+		}
+	}
+
+	// Modern callers get a 404, which tells them the endpoint is live but lacks the method. Legacy
+	// has no such rule, so those callers keep getting the JSON-RPC error on a 200.
+	return jsonRpcError(rpcRequest.id, METHOD_NOT_FOUND, `Method not found: ${rpcRequest.method}`, {
+		status: era === 'modern' ? 404 : 200,
+	})
+}
+
+/** Which era a request is speaking, or null for a version we don't implement. */
+function getProtocolEra(version: string | undefined): ProtocolEra | null {
+	// No version means legacy: clients are meant to send it and plenty don't, and the request is
+	// identical either way.
+	if (version === undefined) return 'legacy'
+	if (version === MCP_PROTOCOL_VERSION_MODERN) return 'modern'
+	if (version === MCP_PROTOCOL_VERSION_LEGACY) return 'legacy'
+	return null
+}
+
+function getRequestedProtocolVersion(request: Request, rpcRequest: JsonRpcRequest) {
+	const header = request.headers.get('mcp-protocol-version')
+	if (header !== null) return header
+	const meta = rpcRequest.params?._meta?.[META_PROTOCOL_VERSION]
+	return typeof meta === 'string' ? meta : undefined
+}
+
+// The modern transport mirrors method and tool name into headers so gateways can route without
+// parsing the body. If a header and the body disagree, the spec requires rejecting the request
+// rather than picking a side.
+function checkModernHeaders(request: Request, rpcRequest: JsonRpcRequest): Response | null {
+	const id = rpcRequest.id ?? null
+
+	const headerVersion = request.headers.get('mcp-protocol-version')
+	if (headerVersion === null) {
+		return headerMismatch(id, 'MCP-Protocol-Version header is required')
+	}
+	const metaVersion = rpcRequest.params?._meta?.[META_PROTOCOL_VERSION]
+	if (typeof metaVersion === 'string' && metaVersion !== headerVersion) {
+		return headerMismatch(
+			id,
+			`MCP-Protocol-Version header value '${headerVersion}' does not match body value '${metaVersion}'`
+		)
+	}
+
+	const headerMethod = request.headers.get('mcp-method')
+	if (headerMethod === null) {
+		return headerMismatch(id, 'Mcp-Method header is required')
+	}
+	if (headerMethod !== rpcRequest.method) {
+		return headerMismatch(
+			id,
+			`Mcp-Method header value '${headerMethod}' does not match body value '${rpcRequest.method}'`
+		)
+	}
+
+	// tools/call is the only method we implement that names a target, so the only one with Mcp-Name.
+	if (rpcRequest.method === 'tools/call') {
+		const headerName = request.headers.get('mcp-name')
+		if (headerName === null) {
+			return headerMismatch(id, 'Mcp-Name header is required for tools/call')
+		}
+		const decoded = decodeHeaderValue(headerName)
+		if (decoded !== rpcRequest.params?.name) {
+			return headerMismatch(
+				id,
+				`Mcp-Name header value '${decoded}' does not match body value '${rpcRequest.params?.name}'`
+			)
+		}
+	}
+
+	return null
+}
+
+function headerMismatch(id: JsonRpcId, message: string) {
+	return jsonRpcError(id, HEADER_MISMATCH, `Header mismatch: ${message}`, { status: 400 })
+}
+
+// Tool names aren't required to be header-safe, so a client may wrap `Mcp-Name` in this base64
+// sentinel. Ours are all ASCII, but the comparison still has to decode first.
+function decodeHeaderValue(value: string) {
+	if (!value.startsWith('=?base64?') || !value.endsWith('?=')) return value
+	try {
+		return new TextDecoder().decode(
+			base64ToArrayBuffer(value.slice('=?base64?'.length, -'?='.length))
+		)
+	} catch {
+		return value
 	}
 }
 
-export function parseSharedBoardScreenshotInput(input: unknown): SharedBoardScreenshotInput {
-	const value = requireArgumentsObject(input)
+// `resultType` and `_meta` serverInfo are modern-only, so they go on here rather than in each tool.
+function withResultEnvelope(result: object, era: ProtocolEra) {
+	if (era !== 'modern') return result
 	return {
-		boardId: parseBoardId(value.boardId),
-		page: parsePageOrdinal(value.page),
-		theme: parseTheme(value.theme),
+		resultType: 'complete',
+		...result,
+		_meta: { [META_SERVER_INFO]: MCP_SERVER_INFO },
 	}
 }
 
-export function parseBoardInfoInput(input: unknown): { boardId: string } {
-	const value = requireArgumentsObject(input)
-	return { boardId: parseBoardId(value.boardId) }
-}
-
-function requireArgumentsObject(input: unknown): Record<string, unknown> {
-	if (!input || typeof input !== 'object') {
-		throw new Error('Tool arguments must be an object')
-	}
-	return input as Record<string, unknown>
-}
-
-function parseBoardId(value: unknown): string {
-	if (typeof value !== 'string' || value.length === 0) {
-		throw new Error('boardId is required')
-	}
-	if (value.includes('/')) {
-		throw new Error('boardId must be a board id, not a URL')
-	}
-	return value
-}
-
-// Omitting the theme means light, but an unrecognized one is rejected rather than quietly treated
-// as light: a caller asking for `blue` gets a wrong-but-plausible image back and no signal that the
-// argument was ignored.
-function parseTheme(value: unknown): 'light' | 'dark' {
-	if (value === undefined || value === null) return 'light'
-	if (value !== 'light' && value !== 'dark') {
-		throw new Error(`theme must be 'light' or 'dark'`)
-	}
-	return value
-}
-
-function parsePageOrdinal(value: unknown): number {
-	if (value === undefined || value === null) return 0
-	if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
-		throw new Error('page must be a non-negative integer (0-based page ordinal)')
-	}
-	return value
-}
-
-// A board id is tried as a shared file id first (the /f/:slug namespace, where the slug is the
-// file id) and as a published-board slug (/p/:slug) second, so callers never need to know which
-// kind of board they hold. A shared file that resolves as empty is still the caller's board, so it
-// does not fall through to the published lookup and get misreported as not found.
 export async function resolveSharedBoardById(
 	env: Environment,
 	boardId: string
 ): Promise<ResolveThumbnailBoardResult> {
-	const shared = await resolveThumbnailBoard(env, 'shared_file', boardId)
+	const shared = await resolveThumbnailBoard(env, 'shared_file', boardId, { access: 'public' })
 	if (shared.ok || shared.reason === 'board_empty') return shared
-	return resolveThumbnailBoard(env, 'published', boardId)
+	return resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
 }
 
-// One R2 cache key per page. The ordinal keys the object directly; the version and theme are in the
-// path, so republishing or editing rotates every page's key.
-export function getThumbnailPageCacheKey(
+// A shape set has no bounded key the way a page ordinal does, so it is hashed. Sorted first, so the
+// same shapes requested in a different order hit the same cached PNG — the render is identical.
+export async function getShapesCacheKey(
 	board: Pick<ResolvedThumbnailBoard, 'kind' | 'slug' | 'version'>,
 	theme: 'light' | 'dark',
-	page: number
+	shapeIds: string[]
 ) {
-	return `mcp/${board.kind}/${board.slug}/${board.version}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/${theme}/page-${page}.png`
+	const digest = await sha256([...shapeIds].sort().join(','))
+	return `mcp/${board.kind}/${board.slug}/${board.version}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/${theme}/shapes-${digest}.png`
 }
 
 async function callBoardInfoTool(
@@ -207,47 +513,74 @@ async function callBoardInfoTool(
 	env: Environment,
 	ctx?: ExecutionContext
 ) {
-	const clientIp = getClientIp(request)
 	let input: { boardId: string }
 	try {
 		input = parseBoardInfoInput(argumentsValue)
 	} catch (error) {
-		return toolError(error instanceof Error ? error.message : String(error))
+		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
 	}
 
-	// get_board_info spends no Browser Run, so it gets its own per-IP budget rather than sharing the
-	// screenshot one — otherwise the usual "list once, then screenshot pages" flow would exhaust the
-	// per-IP limit on the very first (free) call.
+	// Not rate limited: the limiters here bound Browser Run, and this call spends none. The clustering
+	// tools below do spend it — they measure the page in a render before they can group anything — so
+	// they are limited even though they read as "info" calls too.
+
+	try {
+		const loaded = await loadBoardForTool(env, input.boardId)
+		if (!loaded.ok) return loaded.result
+		return getBoardInfo(loaded.snapshot)
+	} catch (error) {
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			request,
+			surface: 'mcp_board_info',
+			extras: { boardId: input.boardId },
+		})
+		const failureReason = classifyScreenshotFailure(error)
+		// The classifier reads render failures, and this tool starts no render: it resolves the board
+		// and reads its snapshot, and the lookup goes through a Postgres pool whose timeouts the
+		// classifier would otherwise report as `browser_timeout`. Only the snapshot-read class can
+		// honestly apply here, so everything else is recorded as what it is.
+		const telemetryReason =
+			failureReason === 'snapshot_read_error' ? failureReason : 'board_lookup_error'
+		return toolError(
+			`Could not read board info: ${describeThumbnailFailure(failureReason)}.`,
+			telemetryReason
+		)
+	}
+}
+
+async function callPageInfoTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	ctx?: ExecutionContext
+) {
+	const clientIp = getClientIp(request)
+	let input: { boardId: string; page: PageSelector }
+	try {
+		input = parsePageInfoInput(argumentsValue)
+	} catch (error) {
+		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
+	}
+
 	if (
-		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-info:${clientIp ?? 'unknown'}`, {
-			fallbackLimit: PER_IP_RATE_LIMIT,
+		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-cluster:${clientIp ?? 'unknown'}`, {
+			fallbackLimit: MCP_PER_IP_RATE_LIMIT,
 		})
 	) {
 		return toolError(
-			`Rate limited. Requests are limited to about ${PER_IP_RATE_LIMIT} per minute per IP.`
+			`Rate limited. Requests are limited to about ${MCP_PER_IP_RATE_LIMIT} per minute per IP.`,
+			'rate_limited_ip'
 		)
 	}
 
 	try {
-		const resolved = await resolveSharedBoardById(env, input.boardId)
-		if (!resolved.ok) {
-			return toolError(
-				resolved.reason === 'board_empty'
-					? 'This board has no saved content yet.'
-					: 'No public board was found with this id. Only published boards and files shared via link are supported.'
-			)
-		}
+		const resolved = await resolveBoardPage(env, input.boardId, input.page)
+		if (!resolved.ok) return resolved.result
 
-		const snapshot = await loadBoardSnapshot(env, resolved.board)
-		if (!snapshot) {
-			return toolError('This board has no saved content yet.')
-		}
-		const pages = enumerateBoardPages(snapshot)
-		return toolJsonResult({
-			name: getDocumentNameFromSnapshot(snapshot),
-			pageCount: pages.length,
-			pages: pages.map((p) => ({ index: p.index, name: p.name, hasContent: p.hasContent })),
-		})
+		const measurements = await measureFor(env, resolved)
+		return getPageInfo(resolved.page, measurements)
 	} catch (error) {
 		// The caller gets a bounded description, but nothing else records it: this tool writes no
 		// telemetry (it spends no Browser Run), so without a report a failing board lookup is
@@ -259,78 +592,193 @@ async function callBoardInfoTool(
 			surface: 'mcp_board_info',
 			extras: { boardId: input.boardId },
 		})
+		const failureReason = classifyScreenshotFailure(error)
 		return toolError(
-			`Could not read board info: ${describeThumbnailFailure(classifyScreenshotFailure(error))}.`
+			`Could not read page info: ${describeThumbnailFailure(failureReason)}.`,
+			failureReason
 		)
 	}
 }
 
-async function callSharedBoardScreenshotTool(
+type LoadedBoard =
+	| { ok: true; board: ResolvedThumbnailBoard; snapshot: import('@tldraw/sync-core').RoomSnapshot }
+	| { ok: false; result: ToolCallResult }
+
+async function loadBoardForTool(env: Environment, boardId: string): Promise<LoadedBoard> {
+	const resolved = await resolveSharedBoardById(env, boardId)
+	if (!resolved.ok) {
+		return {
+			ok: false,
+			result: toolError(
+				resolved.reason === 'board_empty' ? BOARD_EMPTY_MESSAGE : BOARD_NOT_FOUND_MESSAGE,
+				resolved.reason === 'board_empty' ? 'board_empty' : 'not_found'
+			),
+		}
+	}
+
+	const snapshot = await loadBoardSnapshot(env, resolved.board, { access: 'public' })
+	if (!snapshot) return { ok: false, result: toolError(BOARD_EMPTY_MESSAGE, 'board_empty') }
+	return { ok: true, board: resolved.board, snapshot }
+}
+
+type ResolvedBoardPage =
+	| { ok: true; board: ResolvedThumbnailBoard; page: ResolvedPageOk }
+	| { ok: false; result: ToolCallResult }
+
+async function resolveBoardPage(
+	env: Environment,
+	boardId: string,
+	page: PageSelector
+): Promise<ResolvedBoardPage> {
+	const loaded = await loadBoardForTool(env, boardId)
+	if (!loaded.ok) return loaded
+
+	const pageResult = resolvePage(loaded.snapshot, page)
+	if (!pageResult.ok) {
+		return {
+			...pageResult,
+			result: withTelemetryReason(
+				pageResult.result,
+				pageResult.reason === 'no_pages' ? 'board_empty' : 'page_not_found'
+			),
+		}
+	}
+	return { ok: true, board: loaded.board, page: pageResult }
+}
+
+function measureFor(
+	env: Environment,
+	resolved: Extract<ResolvedBoardPage, { ok: true }>
+): Promise<Record<string, ShapeMeasurement>> {
+	return measurePageShapes(env, resolved.board, resolved.page.pageId)
+}
+
+async function callClusterInfoTool(
 	argumentsValue: unknown,
 	request: Request,
 	env: Environment,
 	ctx?: ExecutionContext
 ) {
 	const clientIp = getClientIp(request)
-	const ipHash = clientIp ? await sha256(clientIp) : 'unknown'
-	let input: SharedBoardScreenshotInput
+	let input: { boardId: string; page: PageSelector; clusterId: string }
 	try {
-		input = parseSharedBoardScreenshotInput(argumentsValue)
+		input = parseClusterInfoInput(argumentsValue)
 	} catch (error) {
-		// Telemetry gets a bounded reason code; the caller gets the specific validation message.
-		writeScreenshotTelemetry(env, {
-			source: 'mcp',
-			boardHash: 'unresolved',
-			ipHash,
-			cacheStatus: 'miss',
-			failureReason: 'invalid_input',
-		})
-		return toolError(error instanceof Error ? error.message : String(error))
+		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
 	}
 
-	const boardHash = await sha256(input.boardId)
+	if (
+		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-info:${clientIp ?? 'unknown'}`, {
+			fallbackLimit: MCP_PER_IP_RATE_LIMIT,
+		})
+	) {
+		return toolError(
+			`Rate limited. Requests are limited to about ${MCP_PER_IP_RATE_LIMIT} per minute per IP.`,
+			'rate_limited_ip'
+		)
+	}
+
+	try {
+		const resolved = await resolveBoardPage(env, input.boardId, input.page)
+		if (!resolved.ok) return resolved.result
+
+		const measurements = await measureFor(env, resolved)
+		const result = getClusterInfo(resolved.page, measurements, input.clusterId, input.page)
+		return result.isError ? withTelemetryReason(result, 'cluster_not_found') : result
+	} catch (error) {
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			request,
+			surface: 'mcp_board_info',
+			extras: {
+				boardId: input.boardId,
+				page: describePageSelector(input.page),
+				clusterId: input.clusterId,
+			},
+		})
+		const failureReason = classifyScreenshotFailure(error)
+		return toolError(
+			`Could not read cluster info: ${describeThumbnailFailure(failureReason)}.`,
+			failureReason
+		)
+	}
+}
+
+// Both shape-set screenshot tools do the same thing once they know which shapes to draw; they differ
+// only in how they get there — one is handed the ids, the other resolves them from a cluster. That
+// difference is `pickShapes`; everything downstream (rate limits, cache, capture, telemetry) is here.
+async function renderShapeSetScreenshot(
+	request: Request,
+	env: Environment,
+	ctx: ExecutionContext | undefined,
+	{
+		boardId,
+		page,
+		theme,
+		extras,
+		pickShapes,
+	}: {
+		boardId: string
+		page: PageSelector
+		theme: 'light' | 'dark'
+		/** Extra Sentry context identifying which tool asked. */
+		extras: Record<string, unknown>
+		pickShapes(
+			resolved: Extract<ResolvedBoardPage, { ok: true }>
+		): Promise<
+			{ ok: true; shapeIds: string[] } | { ok: false; result: ReturnType<typeof toolError> }
+		>
+	}
+) {
+	const clientIp = getClientIp(request)
+	const ipHash = clientIp ? await sha256(clientIp) : 'unknown'
 	const telemetry = (data: {
 		cacheStatus: 'hit' | 'miss'
 		browserRunDurationMs?: number
 		failureReason?: string
 		rateLimitAllowed?: boolean
 	}) => {
-		writeScreenshotTelemetry(env, { source: 'mcp', boardHash, ipHash, ...data })
+		writeScreenshotTelemetry(env, { source: 'mcp', ipHash, ...data })
 	}
 
-	// Screenshots have their own per-IP budget (separate from get_board_info), sized to the ~2/min
-	// Browser Run cap: this is the throttle that actually bounds Browser Run spend per client.
+	// Shares the screenshot budget with the other capture tools rather than the free info budget:
+	// this spends Browser Run capacity the same way.
 	if (
 		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `ip-shot:${clientIp ?? 'unknown'}`, {
-			fallbackLimit: PER_IP_RATE_LIMIT,
+			fallbackLimit: MCP_PER_IP_RATE_LIMIT,
 		})
 	) {
 		telemetry({ cacheStatus: 'miss', rateLimitAllowed: false, failureReason: 'rate_limited_ip' })
 		return toolError(
-			`Rate limited. Shared board screenshots are limited to about ${PER_IP_RATE_LIMIT} requests per minute per IP.`
+			`Rate limited. Screenshots are limited to about ${MCP_PER_IP_RATE_LIMIT} requests per minute per IP.`,
+			'rate_limited_ip'
 		)
 	}
 
 	try {
-		const resolved = await resolveSharedBoardById(env, input.boardId)
-		if (!resolved.ok) {
-			if (resolved.reason === 'board_empty') {
-				telemetry({ cacheStatus: 'miss', failureReason: 'board_empty' })
-				return toolError('This board has no saved content to screenshot yet.')
-			}
-			telemetry({ cacheStatus: 'miss', failureReason: 'not_found' })
-			return toolError(
-				'No public board was found with this id. Only published boards and files shared via link can be screenshotted.'
-			)
-		}
-		const board = resolved.board
 		if (!env.THUMBNAILS) {
 			throw new Error('THUMBNAILS bucket is not configured')
 		}
 
-		// The cache key is derived from the requested ordinal alone, so a cache hit skips loading the
-		// board snapshot entirely; the page name rides in the cached object's metadata.
-		const cacheKey = getThumbnailPageCacheKey(board, input.theme, input.page)
+		// The cache key can't be built before resolving the board: it includes the board version, and
+		// the shape set has to be resolved against the page anyway.
+		const resolved = await resolveBoardPage(env, boardId, page)
+		if (!resolved.ok) {
+			telemetry({ cacheStatus: 'miss', failureReason: 'not_found' })
+			return resolved.result
+		}
+
+		const picked = await pickShapes(resolved)
+		if (!picked.ok) {
+			telemetry({ cacheStatus: 'miss', failureReason: 'shape_not_found' })
+			return picked.result
+		}
+		const shapeIds = picked.shapeIds
+
+		// Keyed on the shape set, so a cluster screenshot and an equivalent get_shapes_screenshot of the
+		// same shapes share one cached PNG — they render identically.
+		const cacheKey = await getShapesCacheKey(resolved.board, theme, shapeIds)
 		const cached = await env.THUMBNAILS.get(cacheKey)
 		if (cached) {
 			telemetry({ cacheStatus: 'hit' })
@@ -340,31 +788,11 @@ async function callSharedBoardScreenshotTool(
 			)
 		}
 
-		// Cache miss: load the snapshot to resolve the ordinal to a real page (id + name) and validate
-		// the range.
-		const snapshot = await loadBoardSnapshot(env, board)
-		if (!snapshot) {
-			telemetry({ cacheStatus: 'miss', failureReason: 'board_empty' })
-			return toolError('This board has no saved content to screenshot yet.')
-		}
-		const pages = enumerateBoardPages(snapshot)
-		if (pages.length === 0) {
-			telemetry({ cacheStatus: 'miss', failureReason: 'no_pages' })
-			return toolError('This board has no pages to screenshot.')
-		}
-		if (input.page >= pages.length) {
-			telemetry({ cacheStatus: 'miss', failureReason: 'page_out_of_range' })
-			return toolError(
-				`Page ${input.page} is out of range: this board has ${pages.length} page(s) (0–${pages.length - 1}). Call get_board_info to list them.`
-			)
-		}
-		const targetPage = pages[input.page]
-
 		// Only cache misses spend Browser Rendering capacity, so the per-board and global guards sit
 		// here rather than at the top of the tool call.
 		if (
-			await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `board:${input.boardId}`, {
-				fallbackLimit: PER_BOARD_RATE_LIMIT,
+			await isRateLimited(env.MCP_SERVER_BOARD_RATE_LIMITER, `board:${boardId}`, {
+				fallbackLimit: MCP_PER_BOARD_RATE_LIMIT,
 			})
 		) {
 			telemetry({
@@ -372,7 +800,10 @@ async function callSharedBoardScreenshotTool(
 				rateLimitAllowed: false,
 				failureReason: 'rate_limited_board',
 			})
-			return toolError('Rate limited. This board is being screenshotted too frequently.')
+			return toolError(
+				'Rate limited. This board is being screenshotted too frequently.',
+				'rate_limited_board'
+			)
 		}
 		if (await isGlobalBrowserRunRateLimited(env)) {
 			telemetry({
@@ -380,25 +811,25 @@ async function callSharedBoardScreenshotTool(
 				rateLimitAllowed: false,
 				failureReason: 'rate_limited_global',
 			})
-			return toolError('Rate limited. Screenshot capacity is busy, try again in a minute.')
+			return toolError(
+				'Rate limited. Screenshot capacity is busy, try again in a minute.',
+				'rate_limited_global'
+			)
 		}
 
-		const render = await captureThumbnailScreenshot(env, board, {
-			pageId: targetPage.id,
-			theme: input.theme,
+		const render = await captureThumbnailScreenshot(env, resolved.board, {
+			pageId: resolved.page.pageId,
+			shapeIds,
+			theme,
 			width: DEFAULT_THUMBNAIL_WIDTH,
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 		})
 
-		// The render is already paid for in Browser Run capacity and the PNG in hand is exactly what the
-		// caller asked for, so a failed cache write must not throw it away — that would turn a working
-		// screenshot into a tool error and burn the caller's rate-limit budget for nothing. Report it
-		// instead: the caller can't act on it, but a cache that stops absorbing writes means every
-		// subsequent call re-renders, which we do need to see. The page name is URI-encoded into the
-		// object metadata (R2 custom metadata is not reliably unicode-safe).
+		// The PNG already cost Browser Run capacity and is exactly what was asked for, so a failed cache
+		// write is reported but never turns a good render into an error.
 		try {
-			await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version, {
-				pageName: encodeURIComponent(targetPage.name),
+			await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, resolved.board.version, {
+				pageName: encodeURIComponent(resolved.page.pageName),
 			})
 		} catch (error) {
 			reportThumbnailError(error, {
@@ -406,51 +837,90 @@ async function callSharedBoardScreenshotTool(
 				env,
 				request,
 				surface: 'mcp_screenshot_cache_write',
-				extras: { boardId: input.boardId, page: input.page, theme: input.theme },
+				extras: { boardId, page: describePageSelector(page), theme, ...extras },
 			})
 		}
 
 		telemetry({ cacheStatus: 'miss', browserRunDurationMs: render.durationMs })
-		return toolPageResult(targetPage.name, render.base64)
+		return toolPageResult(resolved.page.pageName, render.base64)
 	} catch (error) {
-		// One bounded reason code drives both the telemetry blob (so unbounded error strings never
-		// inflate that dimension's cardinality) and the caller's message (so internal Postgres/R2
-		// detail never reaches this anonymous, unauthenticated endpoint). Sentry gets the unbounded
-		// original: this is the surface that actually spends Browser Run, so a Quick Action failing or
-		// the render page erroring out is the thing we most need the stack for.
 		reportThumbnailError(error, {
 			ctx,
 			env,
 			request,
 			surface: 'mcp_screenshot',
-			extras: { boardId: input.boardId, page: input.page, theme: input.theme },
+			extras: { boardId, page: describePageSelector(page), theme, ...extras },
 		})
 		const failureReason = classifyScreenshotFailure(error)
-		telemetry({ cacheStatus: 'miss', failureReason })
-		return toolError(`Screenshot failed: ${describeThumbnailFailure(failureReason)}.`)
+		// A capture that failed still held a browser, so its duration belongs on the datapoint the same
+		// as a successful one's. Undefined when the failure came before the capture and spent nothing —
+		// which for these tools includes a failed measure render, not just a failed screenshot.
+		telemetry({
+			cacheStatus: 'miss',
+			failureReason,
+			browserRunDurationMs: browserRunDurationOf(error),
+		})
+		return toolError(
+			`Screenshot failed: ${describeThumbnailFailure(failureReason)}.`,
+			failureReason
+		)
 	}
 }
 
-function toolError(message: string) {
-	return {
-		content: [{ type: 'text', text: message }],
-		isError: true,
+// The one-call path: a cluster id straight to a picture, without a get_cluster_info round trip to
+// pull its shape ids out first.
+async function callClusterScreenshotTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	ctx?: ExecutionContext
+) {
+	let input: { boardId: string; page: PageSelector; clusterIds: string[]; theme: 'light' | 'dark' }
+	try {
+		input = parseClusterScreenshotInput(argumentsValue)
+	} catch (error) {
+		writeScreenshotTelemetry(env, {
+			source: 'mcp',
+			ipHash: 'unknown',
+			cacheStatus: 'miss',
+			failureReason: 'invalid_input',
+		})
+		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
 	}
+
+	return renderShapeSetScreenshot(request, env, ctx, {
+		boardId: input.boardId,
+		page: input.page,
+		theme: input.theme,
+		extras: { clusterIds: input.clusterIds.join(',') },
+		pickShapes: async (resolved) => {
+			const measurements = await measureFor(env, resolved)
+			const picked = pickClusterShapes(resolved.page, measurements, input.clusterIds, input.page)
+			return picked.ok
+				? picked
+				: { ...picked, result: withTelemetryReason(picked.result, 'cluster_not_found') }
+		},
+	})
 }
 
-function toolPageResult(name: string, base64: string) {
-	return {
-		content: [
-			{ type: 'text', text: name },
-			{ type: 'image', data: base64, mimeType: 'image/png' },
-		],
-	}
+interface ToolCallResult extends ToolResult {
+	/**
+	 * Machine-readable failure code for the mcp_server_tool_call datapoint, read and stripped by the
+	 * tools/call dispatcher before the result is serialized — callers never see it.
+	 */
+	telemetryReason?: string
 }
 
-function toolJsonResult(value: unknown) {
-	return {
-		content: [{ type: 'text', text: JSON.stringify(value) }],
-	}
+function withTelemetryReason(result: ToolResult, reason: string): ToolCallResult {
+	return { ...result, telemetryReason: reason }
+}
+
+function toolError(message: string, reason: string): ToolCallResult {
+	return withTelemetryReason(modelToolError(message), reason)
+}
+
+function toolPageResult(name: string, base64: string): ToolCallResult {
+	return modelToolPageResult(name, base64)
 }
 
 function decodeThumbnailPageName(value: string | undefined): string {
@@ -459,72 +929,6 @@ function decodeThumbnailPageName(value: string | undefined): string {
 		return decodeURIComponent(value)
 	} catch {
 		return value
-	}
-}
-
-function getBoardInfoToolDefinition() {
-	return {
-		name: BOARD_INFO_TOOL_NAME,
-		title: 'Get tldraw board info',
-		description:
-			'Return metadata for a public tldraw.com board: its name, page count, and the name, 0-based index, and hasContent flag for each page. Call this first to discover pages, then pass a page index to get_shared_board_screenshot. Accepts the id of a published board (the :slug in tldraw.com/p/:slug) or an anonymously-shared file (the :slug in tldraw.com/f/:slug).',
-		inputSchema: {
-			type: 'object',
-			additionalProperties: false,
-			properties: {
-				boardId: {
-					type: 'string',
-					description:
-						'The id of a public tldraw.com board: the :slug of a published board URL (https://www.tldraw.com/p/:slug) or of an anonymously-shared file URL (https://www.tldraw.com/f/:slug).',
-				},
-			},
-			required: ['boardId'],
-		},
-		annotations: {
-			readOnlyHint: true,
-			idempotentHint: true,
-			openWorldHint: false,
-			destructiveHint: false,
-		},
-	}
-}
-
-function getSharedBoardScreenshotToolDefinition() {
-	return {
-		name: SCREENSHOT_TOOL_NAME,
-		title: 'Get shared tldraw board screenshot',
-		description:
-			`Return a ${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT} content-fit PNG screenshot of a single page of a public tldraw.com board, preceded by the page name. Each call renders exactly one page; use get_board_info to list a board's pages, then pass the page's index. ` +
-			'Accepts the id of a published board (the :slug in tldraw.com/p/:slug) or an anonymously-shared file (the :slug in tldraw.com/f/:slug), and renders through a signed tldraw-owned render job.',
-		inputSchema: {
-			type: 'object',
-			additionalProperties: false,
-			properties: {
-				boardId: {
-					type: 'string',
-					description:
-						'The id of a public tldraw.com board: the :slug of a published board URL (https://www.tldraw.com/p/:slug) or of an anonymously-shared file URL (https://www.tldraw.com/f/:slug).',
-				},
-				page: {
-					type: 'number',
-					description:
-						'0-based index of the page to screenshot (see get_board_info). Defaults to 0, the first page.',
-					default: 0,
-				},
-				theme: {
-					type: 'string',
-					enum: ['light', 'dark'],
-					default: 'light',
-				},
-			},
-			required: ['boardId'],
-		},
-		annotations: {
-			readOnlyHint: true,
-			idempotentHint: true,
-			openWorldHint: false,
-			destructiveHint: false,
-		},
 	}
 }
 
@@ -551,10 +955,20 @@ function jsonRpcResult(id: JsonRpcId, result: unknown) {
 	})
 }
 
-function jsonRpcError(id: JsonRpcId, code: number, message: string) {
-	return Response.json({
-		jsonrpc: '2.0',
-		id,
-		error: { code, message },
-	})
+// Modern errors carry a real HTTP status: 400 when the transport rejects the request, 404 for an
+// unknown method. Everything else stays on 200.
+function jsonRpcError(
+	id: JsonRpcId,
+	code: number,
+	message: string,
+	{ status = 200, data }: { status?: number; data?: unknown } = {}
+) {
+	return Response.json(
+		{
+			jsonrpc: '2.0',
+			id,
+			error: { code, message, ...(data === undefined ? {} : { data }) },
+		},
+		{ status }
+	)
 }

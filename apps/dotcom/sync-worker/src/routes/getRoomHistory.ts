@@ -4,7 +4,7 @@ import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
-import { requireWriteAccessToFile } from '../utils/tla/getAuth'
+import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
 import { isTestFile } from '../utils/tla/isTestFile'
 
 function getMonthPrefix(date: Date): string {
@@ -78,9 +78,7 @@ export async function getRoomHistory(
 	if (!roomId) return notFound()
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 
-	if (isApp) {
-		await requireWriteAccessToFile(request, env, roomId)
-	}
+	await requireAdminAccessToRequest(request, env)
 
 	if (isTestFile(roomId)) {
 		return new Response('Not found', { status: 404 })

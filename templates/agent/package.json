@@ -17,6 +17,10 @@
 			"shortDescription": "An AI-powered agent.",
 			"order": 3
 		},
+		"deploy": {
+			"target": "cloudflare",
+			"host": "agent.templates.tldraw.dev"
+		},
 		"scripts": {
 			"lint": null
 		}

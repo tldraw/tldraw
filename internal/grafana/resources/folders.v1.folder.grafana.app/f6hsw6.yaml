@@ -1,0 +1,9 @@
+apiVersion: folder.grafana.app/v1
+kind: Folder
+metadata:
+  annotations: {}
+  labels: {}
+  name: f6hsw6
+  namespace: stacks-890472
+spec:
+  title: Zero

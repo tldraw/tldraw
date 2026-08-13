@@ -51,6 +51,8 @@ export async function processFileEffect(deps: FileEffectDeps, genericRow: TlaEff
 	const transition = getPublishTransition(row)
 	if (
 		transition === 'publish' &&
+		// Publishing a trashed file is a race artifact; never publish it.
+		!current.isDeleted &&
 		current.published &&
 		current.lastPublished === row.payload.lastPublished
 	) {

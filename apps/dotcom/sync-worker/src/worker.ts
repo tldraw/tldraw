@@ -50,13 +50,14 @@ import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { initUser } from './routes/tla/initUser'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
+import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { sharedBoardScreenshotMcp } from './routes/tla/sharedBoardScreenshotMcp'
 import { upload } from './routes/tla/uploads'
 import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
-import { getAuth, requireAuth } from './utils/tla/getAuth'
+import { getAuth, getZeroAuth, requireAuth } from './utils/tla/getAuth'
 import { getRole } from './utils/tla/getRole'
 export { TLFileDurableObject } from './TLFileDurableObject'
 export { TLFileEffectProcessor } from './TLFileEffectProcessor'
@@ -129,7 +130,7 @@ const router = createRouter<Environment>()
 	.post('/app/tldr', createFiles)
 	// Dev/preview only. Wakes the outbox processor: local workerd doesn't fire persisted alarms
 	// for an uninstantiated DO, so without this a restarted dev stack drains nothing until the
-	// first mutation. The dev stack's readiness probe hits this route.
+	// first mutation. The dev stack's one-shot wake-outbox process hits this route on startup.
 	.get('/app/outbox-status', async (_, env) => {
 		if (!isDebugLogging(env)) return notFound()
 		await getFileEffectProcessor(env).poke()
@@ -176,13 +177,15 @@ const router = createRouter<Environment>()
 	})
 	.post('/app/submit-feedback', submitFeedback)
 	.get('/app/feature-flags', getFeatureFlags)
-	.post('/app/mcp', sharedBoardScreenshotMcp)
+	// .all so MCP server can correctly respond to non-post requests with 405
+	.all('/app/mcp', sharedBoardScreenshotMcp)
 	// The board's rendered social preview image, referenced by the og:image tags getSocialPreview
 	// emits. Lives under the social-preview route family so the crawler HTML and its image share one
 	// path prefix. Registered with .all (like the sibling HTML route) so HEAD probes are handled;
-	// getOgImage serves headers only and skips the render enqueue for anything but GET.
+	// getOgImage serves headers only for anything but GET.
 	.all('/app/social-preview/:prefix/:slug/image', getOgImage)
 	.get('/app/thumbnail-render/snapshot', getThumbnailSnapshot)
+	.post('/app/thumbnail-render/result', putThumbnailRenderResult)
 	// end app
 	.all('/ph/*', (req) => {
 		const url = new URL(req.url)
@@ -196,7 +199,7 @@ const router = createRouter<Environment>()
 	.all('/health-check/*', healthCheckRoutes.fetch)
 	.all('/app/admin/*', adminRoutes.fetch)
 	.post('/app/zero/mutate', async (req, env, ctx) => {
-		const auth = await getAuth(req, env)
+		const auth = await getZeroAuth(req, env)
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
@@ -215,7 +218,7 @@ const router = createRouter<Environment>()
 		return json(result)
 	})
 	.post('/app/zero/query', async (req, env) => {
-		const auth = await getAuth(req, env)
+		const auth = await getZeroAuth(req, env)
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}

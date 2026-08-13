@@ -51,7 +51,7 @@ import {
 import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
-import { IRequest, Router } from 'itty-router'
+import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { collectAssetAssociationChanges } from './assetAssociation'
@@ -76,18 +76,21 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool } from './postgres'
 import { getR2KeyForRoom } from './r2'
+import { RoomNotFoundError, shouldSkipMissingRoomEffect } from './roomEffectHelpers'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
+import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import { generateSnapshotChunks } from './snapshotUtils'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { createPierreClient, isSlugInPierreRollout } from './utils/createPierreClient'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getRoomDurableObject } from './utils/durableObjects'
+import { OgRenderDebouncer } from './utils/ogRenderDebounce'
 import { reconstructSnapshotFromPierre } from './utils/pierreSnapshot'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
-import { getAuth, requireAdminAccess, requireWriteAccessToFile } from './utils/tla/getAuth'
+import { getAuth, requireAdminAccess, requireAdminAccessToRequest } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
@@ -137,7 +140,14 @@ interface DocumentInfo {
 	deleted: boolean
 }
 
-export const ROOM_NOT_FOUND = Symbol('room_not_found')
+// Marks "query ran, row absent" inside getAppFileRecord's retry so it can be told apart
+// from infra failures, which must throw rather than masquerade as a missing file.
+class FileRecordNotFoundError extends Error {
+	constructor() {
+		super('File not found')
+		this.name = 'FileRecordNotFoundError'
+	}
+}
 
 interface SocketAttachment {
 	sessionId: string
@@ -228,10 +238,10 @@ export class TLFileDurableObject extends DurableObject {
 			throw new Error('documentInfo must be present when accessing room')
 		}
 		if (!this._storage) {
-			this._storage = retry(() => this.loadStorage(this.documentInfo.slug), {
-				// Allow ROOM_NOT_FOUND to bubble up since it means the room doesn't exist
+			const promise = retry(() => this.loadStorage(this.documentInfo.slug), {
+				// Allow RoomNotFoundError to bubble up since it means the room doesn't exist
 				// and there's no point in retrying.
-				matchError: (error) => error !== ROOM_NOT_FOUND,
+				matchError: (error) => !(error instanceof RoomNotFoundError),
 			})
 				.then((storage) => {
 					storage.onChange(() => {
@@ -255,9 +265,15 @@ export class TLFileDurableObject extends DurableObject {
 					return storage
 				})
 				.catch((error) => {
-					this.reportError(error)
+					// RoomNotFoundError is an expected outcome (missing room), not an infra failure;
+					// callers decide how to surface it, so don't Sentry-report it here.
+					if (!(error instanceof RoomNotFoundError)) this.reportError(error)
+					// Never cache a rejection: the condition may heal, and a cached rejection
+					// makes every later retry fail instantly.
+					if (this._storage === promise) this._storage = null
 					throw error
 				})
+			this._storage = promise
 		}
 		return this._storage
 	}
@@ -271,89 +287,97 @@ export class TLFileDurableObject extends DurableObject {
 			throw new Error('documentInfo must be present when accessing room')
 		}
 		if (!this._room) {
-			this._room = this.getStorage().then(async (storage) => {
-				const room = new TLSocketRoom<TLRecord, SessionMeta>({
-					storage,
-					schema: fileSyncSchema,
-					objectTypes: OBJECT_TYPES,
-					clientTimeout: Infinity,
-					log: {
-						warn: (...args) => this.log.debug('sync warn', ...args),
-						error: (...args) => {
-							this.reportError(args.find((a) => a instanceof Error) ?? new Error(args.join(' ')))
+			const promise = this.getStorage()
+				.then(async (storage) => {
+					const room = new TLSocketRoom<TLRecord, SessionMeta>({
+						storage,
+						schema: fileSyncSchema,
+						objectTypes: OBJECT_TYPES,
+						clientTimeout: Infinity,
+						log: {
+							warn: (...args) => this.log.debug('sync warn', ...args),
+							error: (...args) => {
+								this.reportError(args.find((a) => a instanceof Error) ?? new Error(args.join(' ')))
+							},
 						},
-					},
-					onSessionSnapshot: (sessionId, snapshot) => {
-						const ws = this.sessionIdToWs.get(sessionId)
-						if (!ws) return
-						const attachment = this.getSocketAttachment(ws)
-						if (!attachment) return
-						ws.serializeAttachment({ ...attachment, snapshot })
-					},
-					onSessionRemoved: async (room, args) => {
-						this.logEvent({
-							type: 'client',
-							name: 'leave',
-							instanceId: args.sessionId,
-						})
+						onSessionSnapshot: (sessionId, snapshot) => {
+							const ws = this.sessionIdToWs.get(sessionId)
+							if (!ws) return
+							const attachment = this.getSocketAttachment(ws)
+							if (!attachment) return
+							ws.serializeAttachment({ ...attachment, snapshot })
+						},
+						onSessionRemoved: async (room, args) => {
+							this.logEvent({
+								type: 'client',
+								name: 'leave',
+								instanceId: args.sessionId,
+							})
 
-						if (args.numSessionsRemaining > 0) return
-						if (!this._room) return
-						this.logEvent({
-							type: 'client',
-							name: 'last_out',
-							instanceId: args.sessionId,
-						})
-						try {
-							await this.persistToDatabase()
-						} catch {
-							// already logged
+							if (args.numSessionsRemaining > 0) return
+							if (!this._room) return
+							this.logEvent({
+								type: 'client',
+								name: 'last_out',
+								instanceId: args.sessionId,
+							})
+							try {
+								await this.persistToDatabase()
+							} catch {
+								// already logged
+							}
+							// make sure nobody joined the room while we were persisting
+							if (room.getNumActiveSessions() > 0) return
+							this._room = null
+							room.close()
+							this.logEvent({ type: 'room', name: 'room_empty' })
+							await this._pool?.end()
+							this._pool = null
+							this._db = null
+						},
+						onBeforeSendMessage: ({ message, stringified }) => {
+							this.logEvent({
+								type: 'send_message',
+								messageType: message.type,
+								messageLength: stringified.length,
+							})
+						},
+						// Record object-lane (comment) changes in the durable outbox as soon as they
+						// commit and push them to Postgres (not on the throttled R2 persist) so Zero
+						// replicates them to the app-level view quickly.
+						onCommittedChanges: ({ diff }) => {
+							this.enqueueCommentChanges(diff)
+						},
+						// Guard attribution with the session's authenticated identity so a client can't
+						// post or edit in someone else's name.
+						authorizeRecord: authorizeFileRecord,
+					})
+
+					this.logEvent({ type: 'room', name: 'room_start' })
+					// Resume any sessions that survived hibernation
+					for (const ws of this.state.getWebSockets()) {
+						const attachment = ws.deserializeAttachment() as SocketAttachment | null
+						if (!attachment?.sessionId) continue
+						if (attachment.snapshot) {
+							room.handleSocketResume({
+								sessionId: attachment.sessionId,
+								socket: ws,
+								snapshot: attachment.snapshot,
+								meta: attachment.meta,
+							})
 						}
-						// make sure nobody joined the room while we were persisting
-						if (room.getNumActiveSessions() > 0) return
-						this._room = null
-						room.close()
-						this.logEvent({ type: 'room', name: 'room_empty' })
-						await this._pool?.end()
-						this._pool = null
-						this._db = null
-					},
-					onBeforeSendMessage: ({ message, stringified }) => {
-						this.logEvent({
-							type: 'send_message',
-							messageType: message.type,
-							messageLength: stringified.length,
-						})
-					},
-					// Record object-lane (comment) changes in the durable outbox as soon as they
-					// commit and push them to Postgres (not on the throttled R2 persist) so Zero
-					// replicates them to the app-level view quickly.
-					onCommittedChanges: ({ diff }) => {
-						this.enqueueCommentChanges(diff)
-					},
-					// Guard attribution with the session's authenticated identity so a client can't
-					// post or edit in someone else's name.
-					authorizeRecord: authorizeFileRecord,
-				})
-
-				this.logEvent({ type: 'room', name: 'room_start' })
-				// Resume any sessions that survived hibernation
-				for (const ws of this.state.getWebSockets()) {
-					const attachment = ws.deserializeAttachment() as SocketAttachment | null
-					if (!attachment?.sessionId) continue
-					if (attachment.snapshot) {
-						room.handleSocketResume({
-							sessionId: attachment.sessionId,
-							socket: ws,
-							snapshot: attachment.snapshot,
-							meta: attachment.meta,
-						})
 					}
-				}
-				// Also associate file assets after we load the room
-				setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
-				return room
-			})
+					// Also associate file assets after we load the room
+					setTimeout(this.maybeAssociateFileAssets.bind(this), PERSIST_INTERVAL_MS)
+					return room
+				})
+				.catch((error) => {
+					// Never cache a rejection: the condition may heal, and a cached rejection
+					// makes every later retry fail instantly.
+					if (this._room === promise) this._room = null
+					throw error
+				})
+			this._room = promise
 		}
 		return this._room
 	}
@@ -512,6 +536,11 @@ export class TLFileDurableObject extends DurableObject {
 		try {
 			return await this.router.fetch(req)
 		} catch (err) {
+			// Auth failures (e.g. non-staff hitting restore) are expected denials, not
+			// server errors: return their real status instead of a 500 + Sentry noise.
+			if (err instanceof StatusError) {
+				return new Response(err.message, { status: err.status })
+			}
 			console.error(err)
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			sentry?.captureException(err)
@@ -534,16 +563,25 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this._documentInfo) return
 
 		this.sessionIdToWs.set(attachment.sessionId, ws)
-		const room = await this.getRoom()
-		room.handleSocketMessage(attachment.sessionId, message)
+		try {
+			const room = await this.getRoom()
+			room.handleSocketMessage(attachment.sessionId, message)
+		} catch (e) {
+			if (e instanceof RoomNotFoundError) {
+				// Post-hibernation resume raced a deleted room; there's no room left to message.
+				ws.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.NOT_FOUND)
+				return
+			}
+			throw e
+		}
 	}
 
 	override async webSocketClose(ws: WebSocket) {
-		this.handleWebSocketEnd(ws, 'handleSocketClose')
+		return this.handleWebSocketEnd(ws, 'handleSocketClose')
 	}
 
 	override async webSocketError(ws: WebSocket) {
-		this.handleWebSocketEnd(ws, 'handleSocketError')
+		return this.handleWebSocketEnd(ws, 'handleSocketError')
 	}
 
 	private async handleWebSocketEnd(
@@ -556,20 +594,29 @@ export class TLFileDurableObject extends DurableObject {
 		this.sessionIdToWs.delete(attachment.sessionId)
 		if (!this._documentInfo) return
 
-		const room = await this.getRoom()
+		try {
+			const room = await this.getRoom()
 
-		// If the DO was hibernating, this session was never re-added to the room.
-		// Resume it briefly so the room can broadcast presence removal to other clients.
-		if (attachment.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
-			room.handleSocketResume({
-				sessionId: attachment.sessionId,
-				socket: ws,
-				snapshot: attachment.snapshot,
-				meta: attachment.meta,
-			})
+			// If the DO was hibernating, this session was never re-added to the room.
+			// Resume it briefly so the room can broadcast presence removal to other clients.
+			if (attachment.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
+				room.handleSocketResume({
+					sessionId: attachment.sessionId,
+					socket: ws,
+					snapshot: attachment.snapshot,
+					meta: attachment.meta,
+				})
+			}
+
+			room[method](attachment.sessionId)
+		} catch (e) {
+			if (e instanceof RoomNotFoundError) {
+				// The socket is already closing/closed; nothing left to clean up on the room side.
+				console.error('handleWebSocketEnd: room not found, skipping', e)
+				return
+			}
+			throw e
 		}
-
-		room[method](attachment.sessionId)
 	}
 
 	_isRestoring = false
@@ -579,9 +626,7 @@ export class TLFileDurableObject extends DurableObject {
 			if (isPierre && !this.documentInfo.isApp) {
 				return new Response('Pierre restore must be for an app file', { status: 400 })
 			}
-			if (this.documentInfo.isApp) {
-				await requireWriteAccessToFile(req, this.env, this.documentInfo.slug)
-			}
+			await requireAdminAccessToRequest(req, this.env)
 			let dataText = ''
 			const roomId = this.documentInfo.slug
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
@@ -689,7 +734,7 @@ export class TLFileDurableObject extends DurableObject {
 						.executeTakeFirst()
 
 					if (!result) {
-						throw new Error('File not found')
+						throw new FileRecordNotFoundError()
 					}
 					this._fileRecordCache = result
 					return this._fileRecordCache
@@ -702,9 +747,12 @@ export class TLFileDurableObject extends DurableObject {
 
 			timer.report('get_file_record')
 			return result
-		} catch (_e) {
+		} catch (e) {
 			timer.report('get_file_record_error')
-			return null
+			if (e instanceof FileRecordNotFoundError) return null
+			// Query errors are infra failures, not absence: bubble so callers retry
+			// instead of treating the room as nonexistent.
+			throw e
 		}
 	}
 
@@ -862,7 +910,7 @@ export class TLFileDurableObject extends DurableObject {
 
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
-			if (e === ROOM_NOT_FOUND) {
+			if (e instanceof RoomNotFoundError) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
 			throw e
@@ -1001,6 +1049,45 @@ export class TLFileDurableObject extends DurableObject {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL_MS)
 
+	// Whether a persist on this board costs a thumbnail render, and why. The single source of truth for
+	// both the gate in `requestOgRenderForEdit` and the `sharedState` blob on `persist_success`, so the
+	// telemetry cannot report a state that differs from the one the decision was made on.
+	//
+	// `deleted` is its own state rather than folded into `private` or `unknown`: it never renders, so
+	// counting its persists as either would corrupt the shared fraction this exists to measure.
+	//
+	// Both delete lanes count. A hard delete arrives as `appFileRecordDidDelete` and flips
+	// `documentInfo.deleted`; a soft delete (trash) arrives as an ordinary record update and only
+	// flips `isDeleted` on the cached row, leaving `documentInfo.deleted` false. The connection path
+	// already treats the two as one, and so does this.
+	private getBoardRenderState(): 'shared' | 'private' | 'unknown' | 'legacy' | 'deleted' {
+		if (!this.documentInfo.isApp) return 'legacy'
+		if (this.documentInfo.deleted || this._fileRecordCache?.isDeleted) return 'deleted'
+		const shared = this._fileRecordCache?.shared
+		if (shared === undefined) return 'unknown'
+		return shared ? 'shared' : 'private'
+	}
+
+	// Decides when this board's thumbnail is due (see OgRenderDebouncer). This object contributes the
+	// clock and the durable alarm, and the alarm below IS the deadline rather than an approximation of
+	// one: every persist re-arms it, so an eviction loses the in-memory copy and nothing else.
+	private ogRenderDebouncer = new OgRenderDebouncer()
+
+	private scheduleOgRender() {
+		this.ctx.storage
+			.setAlarm(this.ogRenderDebouncer.onPersist(Date.now()))
+			.catch((e) => this.reportError(e))
+	}
+
+	override async alarm() {
+		const result = this.ogRenderDebouncer.onAlarm(Date.now())
+		if (!result.render) {
+			await this.ctx.storage.setAlarm(result.reArmAt)
+			return
+		}
+		await this.requestOgRenderForEdit()
+	}
+
 	/**
 	 * Indexes every data point on this object's durable object id, so any event can be grouped by
 	 * room. The id is the one Cloudflare keys its own telemetry on — `$workers.durableObjectId` in
@@ -1025,7 +1112,14 @@ export class TLFileDurableObject extends DurableObject {
 	logEvent(event: TLServerEvent) {
 		switch (event.type) {
 			case 'persist_success': {
-				this.writeEvent(event.type, { doubles: [event.attempts] })
+				// This event fires on exactly what triggers a thumbnail render, so it carries what sizing
+				// that spend needs. `writeEvent` already indexes it on the durable object id, which makes
+				// distinct boards countable; `sharedState` is the other half, and has to be recorded here
+				// because the id is one-way and cannot be joined back to a file row.
+				this.writeEvent(event.type, {
+					blobs: [event.sharedState],
+					doubles: [event.attempts],
+				})
 				break
 			}
 			case 'room': {
@@ -1061,7 +1155,7 @@ export class TLFileDurableObject extends DurableObject {
 		fetchTimer.report('create_from_source_fetch_total')
 
 		if (!data) {
-			throw ROOM_NOT_FOUND
+			throw new RoomNotFoundError(this._fileRecordCache.id)
 		}
 
 		const serialized = typeof data === 'string' ? data : JSON.stringify(data)
@@ -1080,7 +1174,7 @@ export class TLFileDurableObject extends DurableObject {
 
 	/**
 	 * Resolve the seed content for a file's `createSource`, as a RoomSnapshot or its serialized
-	 * string. Returns undefined for an unknown source, which the caller turns into ROOM_NOT_FOUND.
+	 * string. Returns undefined for an unknown source, which the caller turns into RoomNotFoundError.
 	 */
 	private async loadCreateSourceData(
 		createSource: string | null | undefined
@@ -1093,7 +1187,7 @@ export class TLFileDurableObject extends DurableObject {
 
 		const split = createSource?.split('/')
 		if (!split || split.length !== 2) {
-			throw ROOM_NOT_FOUND
+			throw new RoomNotFoundError(String(createSource))
 		}
 		const [prefix, id] = split
 		switch (prefix) {
@@ -1140,7 +1234,7 @@ export class TLFileDurableObject extends DurableObject {
 			// only the merge points further down actually await it.
 			const commentsPromise = this.documentInfo.isApp ? this.loadCommentsFromPostgres() : null
 			// Prevent an unhandled rejection if we exit via a path that never merges (e.g.
-			// ROOM_NOT_FOUND). Merge points still await commentsPromise itself, so a Postgres
+			// RoomNotFoundError). Merge points still await commentsPromise itself, so a Postgres
 			// failure there still fails the room open.
 			commentsPromise?.catch(() => {})
 
@@ -1200,7 +1294,7 @@ export class TLFileDurableObject extends DurableObject {
 
 				loadTimer.report('db_load_total')
 				if (!file) {
-					throw ROOM_NOT_FOUND
+					throw new RoomNotFoundError(slug)
 				}
 
 				// Comments can exist in Postgres before the first throttled R2 persist ever runs
@@ -1218,7 +1312,7 @@ export class TLFileDurableObject extends DurableObject {
 
 			// if we don't have a room in the bucket, try to load from supabase
 			if (!this.supabaseClient) {
-				throw ROOM_NOT_FOUND
+				throw new RoomNotFoundError(slug)
 			}
 
 			const supabaseFetchTimer = this.timer()
@@ -1240,7 +1334,7 @@ export class TLFileDurableObject extends DurableObject {
 			// if it didn't find a document, data will be an empty array
 			if (data.length === 0) {
 				loadTimer.report('db_load_total')
-				throw ROOM_NOT_FOUND
+				throw new RoomNotFoundError(slug)
 			}
 
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
@@ -1504,7 +1598,7 @@ export class TLFileDurableObject extends DurableObject {
 	persistenceBad = false
 
 	// Save the room to r2
-	async persistToDatabase() {
+	async persistToDatabase(opts?: { throwOnFailure?: boolean }) {
 		await this.executionQueue
 			.push(async () => {
 				await retry(
@@ -1539,8 +1633,18 @@ export class TLFileDurableObject extends DurableObject {
 
 						await this.persistToPierre(storage, snapshot)
 
-						this.logEvent({ type: 'persist_success', attempts: attempt })
+						this.logEvent({
+							type: 'persist_success',
+							attempts: attempt,
+							sharedState: this.getBoardRenderState(),
+						})
 						this._lastPersistedClock = snapshot.documentClock
+						// The board's content just changed, so its thumbnail is out of date. Push the render
+						// deadline out rather than rendering now: the useful thumbnail is of the settled
+						// board, and a persist mid-session says more edits are probably coming. Costs one
+						// alarm write per persist, not awaited here (see scheduleOgRender), so a slow or
+						// failed write cannot hold up a persist.
+						this.scheduleOgRender()
 						// Store the clock in DO storage so we can compare against SQLite on next load.
 						if (this.persistenceBad) {
 							this.broadcastPersistenceEvent({ type: 'persistence_good' })
@@ -1573,7 +1677,41 @@ export class TLFileDurableObject extends DurableObject {
 			.catch((e) => {
 				this.logEvent({ type: 'room', name: 'fail_persist' })
 				this.reportError(e)
+				if (opts?.throwOnFailure) throw e
 			})
+	}
+
+	/**
+	 * Asks for this board's thumbnail to be re-rendered, because the content it depicts just changed.
+	 *
+	 * Called from `alarm()` when the debounce expires, so it runs once editing has settled or the max
+	 * wait is up. That debounce is the render rate control; there is no sampling or staleness gate on
+	 * top, because a persist means the saved content genuinely differs from what the cached thumbnail
+	 * shows. Downstream, the pending marker single-flights the ask and the consumer re-checks
+	 * `(board, version)` before spending a Browser Run slot — neither is a rate control either.
+	 */
+	private async requestOgRenderForEdit() {
+		try {
+			// Two states skip, and neither is about privacy: a legacy room is not an app file and has no
+			// board identity to render, and a deleted one has nothing worth depicting. `shared`, `private`
+			// and `unknown` all proceed — every board gets a thumbnail, so that an owner-facing surface has
+			// one to show. Sharing is a condition of *serving*, re-applied by the OG route per request.
+			const state = this.getBoardRenderState()
+			if (state === 'legacy' || state === 'deleted') return
+
+			const slug = this.documentInfo.slug
+			const result = await enqueueOgImageRender(
+				this.env,
+				{ kind: 'shared_file', slug },
+				{ reason: 'edit' }
+			)
+			// No board identifier: for a shared file the slug is a capability, and a derived id is still a
+			// board identity in a log sink. The result alone is what this line is for.
+			this.log.debug('og render for edit', result)
+		} catch (e) {
+			// Reported, not thrown: this runs off the persist path and must never affect it.
+			this.reportError(e)
+		}
 	}
 
 	private async _uploadSnapshotToR2(snapshot: RoomSnapshot, key: string) {
@@ -2503,13 +2641,20 @@ export class TLFileDurableObject extends DurableObject {
 
 	protected reportError(e: unknown) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		this.sentry?.captureException(e)
+		this.sentry?.withScope((scope) => {
+			scope.setExtra('slug', this._documentInfo?.slug)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry?.captureException(e)
+		})
 		console.error(e)
 	}
 
 	async appFileRecordCreated(file: TlaFile) {
-		if (this._fileRecordCache) return
-		this._fileRecordCache = file
+		// Seed the cache for a cold DO but never clobber a fresher row, and never null it on
+		// failure: loadFromDatabase's createSource check reads it across an async gap, and a
+		// mid-flight null would seed a from-source duplicate as an empty room. Retries stay
+		// honest without a cache reset because getRoom() never caches a rejection.
+		if (!this._fileRecordCache) this._fileRecordCache = file
 
 		if (!this._documentInfo) {
 			this.setDocumentInfo({
@@ -2519,7 +2664,15 @@ export class TLFileDurableObject extends DurableObject {
 				deleted: false,
 			})
 		}
-		await this.getRoom()
+		try {
+			await this.getRoom()
+		} catch (e) {
+			if (shouldSkipMissingRoomEffect(e, file)) {
+				console.error('appFileRecordCreated: room not found for deleted file, skipping', e)
+				return
+			}
+			throw e
+		}
 	}
 
 	async appFileRecordDidUpdate(file: TlaFile) {
@@ -2537,6 +2690,18 @@ export class TLFileDurableObject extends DurableObject {
 			})
 		}
 
+		try {
+			await this.updateRoomForFileRecord(file)
+		} catch (e) {
+			if (shouldSkipMissingRoomEffect(e, file)) {
+				console.error('appFileRecordDidUpdate: room not found for deleted file, skipping', e)
+				return
+			}
+			throw e
+		}
+	}
+
+	private async updateRoomForFileRecord(file: TlaFile) {
 		const storage = await this.getStorage()
 		// if the app file record updated, it might mean that the file name changed
 		storage.transaction((txn) => {
@@ -2613,18 +2778,25 @@ export class TLFileDurableObject extends DurableObject {
 			this._room = null
 			// delete should be handled by the delete endpoint now
 
-			// Delete published slug mapping
-			await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(publishedSlug)
+			// A row from a partially-created file can lack a publishedSlug; there are no
+			// published artifacts to clean up in that case.
+			if (publishedSlug) {
+				// Delete published slug mapping
+				await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(publishedSlug)
 
-			// remove published files
-			const publishedPrefixKey = getR2KeyForRoom({
-				slug: `${id}/${publishedSlug}`,
-				isApp: true,
-			})
+				// remove published files
+				const publishedPrefixKey = getR2KeyForRoom({
+					slug: `${id}/${publishedSlug}`,
+					isApp: true,
+				})
 
-			const publishedHistory = await listAllObjectKeys(this.env.ROOM_SNAPSHOTS, publishedPrefixKey)
-			if (publishedHistory.length > 0) {
-				await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
+				const publishedHistory = await listAllObjectKeys(
+					this.env.ROOM_SNAPSHOTS,
+					publishedPrefixKey
+				)
+				if (publishedHistory.length > 0) {
+					await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
+				}
 			}
 
 			// remove edit history
@@ -2637,6 +2809,16 @@ export class TLFileDurableObject extends DurableObject {
 			// remove main file
 			await this.env.ROOMS.delete(r2Key)
 
+			// The board's thumbnails go with it. Both keys, because they are kept for different reasons
+			// and neither reason survives a hard delete: the file-keyed image is deliberately *not*
+			// deleted when a board is unshared (it stays useful behind auth, and resharing makes it an
+			// immediate hit), and the published-slug one only goes when the board is unpublished. Nothing
+			// else would ever remove either — `og/…` keys carry no version, so each board owns exactly one
+			// object, in a bucket with no lifecycle rule to sweep it. The render token record is dropped
+			// for the same reason. MCP screenshots need no equivalent: their keys carry a content version
+			// and their bucket has an expiration rule.
+			await deleteBoardThumbnails(this.env, { fileId: id, publishedSlug })
+
 			// finally clear storage so we don't keep the data around
 			this.ctx.storage.deleteAll()
 		})
@@ -2647,7 +2829,27 @@ export class TLFileDurableObject extends DurableObject {
 	 */
 	async awaitPersist() {
 		if (!this._documentInfo) return
-		await this.persistToDatabase()
+		// publishSnapshot reads the R2 blob straight after this resolves; a swallowed persist
+		// failure here would let it publish a stale snapshot, so surface it instead.
+		await this.persistToDatabase({ throwOnFailure: true })
+	}
+
+	/**
+	 * Reports this object's stored identity and liveness without booting the room. Reads raw
+	 * storage so rooms with a stale documentInfo version still resolve; null for a
+	 * never-initialized object. `connectedSockets` counts hibernation-API sockets, so it is
+	 * accurate even while the room itself is not loaded.
+	 */
+	async __admin__getDocumentInfo() {
+		const info = (await this.storage.get('documentInfo')) as DocumentInfo | null
+		if (!info) return null
+		return {
+			slug: info.slug,
+			isApp: !!info.isApp,
+			deleted: !!info.deleted,
+			connectedSockets: this.ctx.getWebSockets().length,
+			roomLoaded: this._room !== null,
+		}
 	}
 
 	async __admin__hardDeleteIfLegacy() {

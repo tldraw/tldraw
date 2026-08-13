@@ -66,12 +66,9 @@ export async function getSocialPreview(request: IRequest, env: Environment): Pro
 
 // Shared files (`/f/`) and published boards (`/p/`) get a live board thumbnail as their preview
 // image. We only emit the thumbnail URL when the board actually resolves to a public, renderable
-// board — the same gate the image route itself applies (resolveThumbnailBoard). For private, deleted,
-// or unpublished boards the image route only ever 302s to the default OG image, and crawlers that
-// don't follow og:image redirects (notably X/Twitter) would then show a broken card. Returning null
-// for those boards keeps the static, directly-fetchable site-wide preview image instead. A board
-// that is public but not yet rendered still resolves here; the route serves the default and enqueues
-// the render on the first crawler hit.
+// board — the same gate the image route itself applies (resolveThumbnailBoard). For everything else
+// that route has no picture of its own to serve and redirects to the site-wide default, so pointing
+// at it would cost a crawler an extra hop to reach the image this file can name directly.
 async function getBoardOgImageUrl(
 	request: IRequest,
 	env: Environment,
@@ -80,7 +77,7 @@ async function getBoardOgImageUrl(
 ): Promise<string | null> {
 	const kind = ogBoardKindForPrefix(prefix)
 	if (!kind) return null
-	const resolved = await resolveThumbnailBoard(env, kind, slug)
+	const resolved = await resolveThumbnailBoard(env, kind, slug, { access: 'public' })
 	if (!resolved.ok) return null
 	return `${getPublicOrigin(request, env)}/api/app/social-preview/${prefix}/${encodeURIComponent(slug)}/image`
 }

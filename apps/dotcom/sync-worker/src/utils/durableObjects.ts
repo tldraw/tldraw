@@ -19,3 +19,7 @@ export function getRoomDurableObject(env: Environment, roomId: string) {
 		env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${roomId}`)
 	) as any as TLFileDurableObject
 }
+
+export function getRoomDurableObjectById(env: Environment, objectId: string) {
+	return env.TLDR_DOC.get(env.TLDR_DOC.idFromString(objectId)) as any as TLFileDurableObject
+}
