@@ -120,6 +120,7 @@ import { exportToSvg } from '../exports/exportToSvg'
 import { getSvgAsImageWithOptions, trimSvgToContent } from '../exports/getSvgAsImage'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
+import { LicenseManager } from '../license/LicenseManager'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { EASINGS } from '../primitives/easings'
@@ -972,6 +973,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	readonly options: TldrawOptions
+
+	/**
+	 * The license manager whose feature flags apply to this editor. Assigned by `<TldrawEditor />`
+	 * when it creates the editor, so that UI rendered outside the editor tree can resolve the
+	 * editor's license through the editor instance. Undefined for editors created directly.
+	 *
+	 * @internal
+	 */
+	licenseManager?: LicenseManager
 
 	readonly contextId = uniqueId()
 
