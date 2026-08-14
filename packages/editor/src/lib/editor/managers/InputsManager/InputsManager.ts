@@ -1,4 +1,4 @@
-import { atom, computed, unsafe__withoutCapture } from '@tldraw/state'
+import { atom, computed, react, unsafe__withoutCapture } from '@tldraw/state'
 import { AtomSet } from '@tldraw/store'
 import { TLINSTANCE_ID, TLPOINTER_ID } from '@tldraw/tlschema'
 import { bind, throttle } from '@tldraw/utils'
@@ -42,21 +42,54 @@ export class InputsManager extends EditorManager {
 		super(editor)
 		this.addEditorEvent('frame', this._onFrame)
 
-		// User input anywhere in the editor's tab counts as activity for
-		// collaborator presence — presence means "this person is here", whether or
-		// not the input lands on the editor itself (e.g. typing in a sidebar next
-		// to the canvas). Listen on the window, in the capture phase, so input
-		// that other handlers swallow still counts.
-		const win = editor.getContainerWindow()
+		// Track input only while mounted and sharing with someone: a solo user
+		// pays for no listeners at all, and the window is resolved on attach
+		// rather than up front, when the container is guaranteed to exist.
+		//
+		// The mount check must come first. This runs eagerly during the editor's
+		// constructor, where `editor.collaborators` isn't assigned yet, so reading
+		// collaborators here would throw; a never-mounted editor short-circuits
+		// before that, and re-runs once mount flips the atom.
+		this.register(
+			react('presence activity listeners', () => {
+				if (this.editor.getIsMounted() && this._getHasCollaborators()) {
+					this._attachActivityListeners()
+				} else {
+					this._detachActivityListeners()
+				}
+			})
+		)
+		this.register(() => {
+			this._detachActivityListeners()
+			this._throttledActivityStamp.cancel()
+		})
+	}
+
+	private _detachActivityListenersFn: null | (() => void) = null
+
+	/**
+	 * User input anywhere in the editor's tab counts as activity for collaborator presence —
+	 * presence means "this person is here", whether or not the input lands on the editor itself
+	 * (e.g. typing in a sidebar next to the canvas). Listen in the capture phase so input that
+	 * other handlers swallow still counts.
+	 */
+	private _attachActivityListeners() {
+		if (this._detachActivityListenersFn) return
+
+		const win = this.editor.getContainerWindow()
 		for (const name of ACTIVITY_EVENTS) {
 			win.addEventListener(name, this.markActivity, { capture: true })
 		}
-		this.register(() => {
+		this._detachActivityListenersFn = () => {
 			for (const name of ACTIVITY_EVENTS) {
 				win.removeEventListener(name, this.markActivity, { capture: true })
 			}
-			this._throttledActivityStamp.cancel()
-		})
+		}
+	}
+
+	private _detachActivityListeners() {
+		this._detachActivityListenersFn?.()
+		this._detachActivityListenersFn = null
 	}
 
 	@bind

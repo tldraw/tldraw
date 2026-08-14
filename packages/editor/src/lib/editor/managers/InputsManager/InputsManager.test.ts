@@ -3,6 +3,7 @@ import { vi } from 'vitest'
 import { createTLStore } from '../../../config/createTLStore'
 import { TldrawOptions } from '../../../options'
 import { Editor } from '../../Editor'
+import { StateNode } from '../../tools/StateNode'
 
 function createPresence(editor: Editor) {
 	return InstancePresenceRecordType.create({
@@ -29,6 +30,9 @@ function createTestEditor(options?: Partial<TldrawOptions>) {
 		options,
 	})
 	editor.disposables.add(() => container.remove())
+	// Input listeners only attach once the editor is mounted, which is normally
+	// emitted by `TldrawEditor` when the container is in the DOM.
+	editor.emit('mount')
 	return editor
 }
 
@@ -144,6 +148,57 @@ describe('InputsManager', () => {
 				expect(tinyEditor.store.get(TLPOINTER_ID)!.lastActivityTimestamp).toBe(stamp)
 			} finally {
 				tinyEditor.dispose()
+			}
+		})
+
+		it('attaches input listeners only while sharing with someone', () => {
+			const addEventListener = vi.spyOn(window, 'addEventListener')
+			const removeEventListener = vi.spyOn(window, 'removeEventListener')
+			const soloEditor = createTestEditor()
+			try {
+				expect(addEventListener).not.toHaveBeenCalled()
+
+				soloEditor.store.put([createPresence(soloEditor)])
+				expect(addEventListener).toHaveBeenCalledWith('pointermove', expect.anything(), {
+					capture: true,
+				})
+
+				soloEditor.store.remove([createPresence(soloEditor).id])
+				expect(removeEventListener).toHaveBeenCalledWith('pointermove', expect.anything(), {
+					capture: true,
+				})
+			} finally {
+				soloEditor.dispose()
+				addEventListener.mockRestore()
+				removeEventListener.mockRestore()
+			}
+		})
+
+		it('attaches no input listeners when construction fails before mount', () => {
+			class DuplicateTool extends StateNode {
+				static override id = 'duplicate-tool'
+			}
+
+			const addEventListener = vi.spyOn(window, 'addEventListener')
+			try {
+				const store = createTLStore({})
+				store.ensureStoreIsUsable()
+				expect(
+					() =>
+						new Editor({
+							store,
+							bindingUtils: [],
+							shapeUtils: [],
+							getContainer: () => document.createElement('div'),
+							// The duplicate id makes the constructor throw after the inputs
+							// manager is built, so the editor is never disposed.
+							tools: [DuplicateTool, DuplicateTool],
+						})
+				).toThrow()
+
+				expect(addEventListener).not.toHaveBeenCalled()
+			} finally {
+				addEventListener.mockRestore()
 			}
 		})
 
