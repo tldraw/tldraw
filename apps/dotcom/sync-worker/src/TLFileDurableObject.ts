@@ -149,7 +149,7 @@ interface SocketAttachment {
 	objectAccess?: TLObjectStoreAccess
 	// The client bundle's monotonic build timestamp (epoch ms), from the `?v=` connect param.
 	// Absent for bundles that predate the param — which itself marks them as older than it.
-	clientVersion?: string
+	clientBuildTimestamp?: string
 	snapshot: SessionStateSnapshot | null
 }
 
@@ -728,7 +728,7 @@ export class TLFileDurableObject extends DurableObject {
 		sessionId ??= params.sessionKey ?? params.instanceId
 		storeId ??= params.localClientId
 		// the client bundle's build timestamp; length-capped because it lands in analytics
-		const clientVersion = params.v?.slice(0, 32)
+		const clientBuildTimestamp = params.v?.slice(0, 32)
 		const isNewSession = !this._room
 
 		// Create the websocket pair for the client; use hibernation API
@@ -834,7 +834,7 @@ export class TLFileDurableObject extends DurableObject {
 				meta,
 				isReadonly,
 				objectAccess,
-				clientVersion,
+				clientBuildTimestamp,
 				snapshot: null,
 			}
 			serverWebSocket.serializeAttachment(attachment)
@@ -867,7 +867,7 @@ export class TLFileDurableObject extends DurableObject {
 				type: 'client',
 				name: 'enter',
 				instanceId: sessionId,
-				clientVersion,
+				clientBuildTimestamp,
 			})
 
 			requestTimer.report('on_request_total')
@@ -1097,7 +1097,7 @@ export class TLFileDurableObject extends DurableObject {
 					// blob order is positional per event name; 'pre-v' marks bundles that predate
 					// the `?v=` connect param and is therefore older than any real timestamp
 					this.writeEvent(event.name, {
-						blobs: [event.instanceId, event.clientVersion ?? 'pre-v'],
+						blobs: [event.instanceId, event.clientBuildTimestamp ?? 'pre-v'],
 					})
 				} else {
 					this.writeEvent(event.name, { blobs: [event.instanceId] })

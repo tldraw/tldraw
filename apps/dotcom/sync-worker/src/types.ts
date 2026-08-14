@@ -168,7 +168,7 @@ export type TLServerEvent =
 			instanceId: string
 			// `enter` only: the client bundle's build timestamp from the `?v=` connect param,
 			// so bundle age is queryable per connect. Absent = a bundle from before the param.
-			clientVersion?: string
+			clientBuildTimestamp?: string
 	  }
 	| {
 			type: 'client'
