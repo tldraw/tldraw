@@ -186,16 +186,22 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 					})
 				},
 				onError: (error, row) => {
-					// Every failed attempt is reported (Sentry groups the retries); parking
-					// additionally emits its own analytics event because it means giving up on the effect.
-					this.captureException(error, {
-						tableName: row.tableName,
-						entityId: row.entityId,
-						command: row.command,
-						outboxId: row.id,
-						attempts: row.attempts + 1,
-					})
-					if (row.attempts + 1 >= MAX_ATTEMPTS) {
+					// Report the first failure (immediate visibility) and the parking failure (data
+					// loss), but not every retry in between - under an outage, one row can burn through
+					// MAX_ATTEMPTS attempts, and reporting each would eat Sentry's rate limit and drop
+					// the parking events that matter most.
+					const isFirstAttempt = row.attempts === 0
+					const isParking = row.attempts + 1 >= MAX_ATTEMPTS
+					if (isFirstAttempt || isParking) {
+						this.captureException(error, {
+							tableName: row.tableName,
+							entityId: row.entityId,
+							command: row.command,
+							outboxId: row.id,
+							attempts: row.attempts + 1,
+						})
+					}
+					if (isParking) {
 						this.writeEvent('outbox_parked', { blobs: [row.tableName, row.command] })
 					}
 				},
