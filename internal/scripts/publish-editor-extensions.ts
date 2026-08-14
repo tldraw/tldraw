@@ -12,6 +12,7 @@ const env = makeEnv(['VSCE_PAT', 'OVSX_PAT', 'TLDRAW_ENV'])
 const EXTENSION_DIR = 'apps/vscode/extension'
 const DISTRIBUTION_DIR = 'apps/vscode/extension/release'
 const MAX_RETRIES = 5
+const RETRY_DELAY_MS = 60_000
 
 function isVersionConflictError(err: unknown): boolean {
 	const message = err instanceof Error ? err.message : ''
@@ -119,8 +120,9 @@ async function main() {
 			if (isVersionConflictError(err) && attempt < MAX_RETRIES) {
 				conflictedVersion = version
 				nicelog(
-					`Version ${version} already exists (attempt ${attempt}/${MAX_RETRIES}), bumping past it and retrying...`
+					`Version ${version} already exists (attempt ${attempt}/${MAX_RETRIES}), bumping past it and retrying in ${RETRY_DELAY_MS / 1000}s...`
 				)
+				await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
 				continue
 			}
 			throw err
