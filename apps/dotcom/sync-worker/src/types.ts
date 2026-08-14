@@ -46,6 +46,11 @@ export interface Environment {
 
 	MEASURE: Analytics | undefined
 
+	// Workers Static Assets binding — reads the committed default welcome snapshot
+	// (assets/welcome-snapshot.json) at seed time; the worker never serves the directory
+	// publicly (run_worker_first is set).
+	ASSETS: Fetcher
+
 	ROOMS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
 
