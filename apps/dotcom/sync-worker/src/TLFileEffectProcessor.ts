@@ -105,6 +105,10 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 				getRoomDurableObject(this.env, fileRow.id).appFileRecordDidDelete(fileRow),
 			publish: (file) => publishSnapshot(this.env, file),
 			unpublish: (file) => unpublishSnapshot(this.env, file),
+			reportSkippedPublish: (file) =>
+				this.captureException(new Error(`publish skipped for trashed file ${file.id}`), {
+					fileId: file.id,
+				}),
 		}
 		// One handler per source table. Future effect sources (e.g. notifications)
 		// register here alongside their trigger.
