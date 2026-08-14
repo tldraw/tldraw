@@ -753,6 +753,9 @@ export class TLFileDurableObject extends DurableObject {
 				{
 					attempts: 20,
 					waitDuration: 100,
+					// Absence is retried (the row may still be committing); infra errors fail fast -
+					// the caller surfaces a retryable close and the client reconnects.
+					matchError: (error) => error instanceof FileRecordNotFoundError,
 				}
 			)
 
@@ -799,7 +802,18 @@ export class TLFileDurableObject extends DurableObject {
 
 		if (this.documentInfo.isApp) {
 			openMode = ROOM_OPEN_MODE.READ_WRITE
-			const file = await this.getAppFileRecord()
+			let file: TlaFile | null
+			try {
+				file = await this.getAppFileRecord()
+			} catch (e) {
+				// An infra failure here (not absence, which resolves to null) would otherwise escape
+				// as a 500 with the accepted server socket leaked in the hibernation set. Close it
+				// instead - UNKNOWN_ERROR (rather than NOT_FOUND) so the client shows its generic
+				// "something went wrong, try refreshing" copy instead of falsely claiming the file
+				// doesn't exist.
+				this.reportError(e)
+				return closeSocket(TLSyncErrorCloseEventReason.UNKNOWN_ERROR)
+			}
 
 			if (file) {
 				if (file.isDeleted) {
