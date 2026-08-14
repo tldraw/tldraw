@@ -1,4 +1,4 @@
-import { RoomSnapshot } from '@tldraw/sync-core'
+import { DEFAULT_INITIAL_SNAPSHOT, RoomSnapshot } from '@tldraw/sync-core'
 import { createPostgresConnectionPool } from '../postgres'
 import { getPublishedRoomSnapshot } from '../routes/tla/getPublishedFile'
 import { Environment } from '../types'
@@ -14,6 +14,10 @@ import { loadDefaultWelcomeSnapshot } from './defaultWelcomeSnapshot'
  * missing R2, transient DB error) is a misconfiguration, not the fresh-env no-template case,
  * so it is reported via `reportError` while still degrading to the default. `reportError` is
  * the calling Durable Object's error reporter; the no-template case is silent.
+ *
+ * The default itself is a static-asset read, so it too can fail (missing asset, transient
+ * fetch error). That is a broken deploy and is reported, but seeding still succeeds — the
+ * last resort is the shared empty-room seed.
  */
 export async function resolveWelcomeSnapshot(
 	env: Environment,
@@ -38,5 +42,13 @@ export async function resolveWelcomeSnapshot(
 	} finally {
 		await pg.destroy()
 	}
-	return await loadDefaultWelcomeSnapshot(env)
+	try {
+		return await loadDefaultWelcomeSnapshot(env)
+	} catch (e) {
+		// The default is a static-asset read that can fail (missing asset, transient fetch
+		// error). Report it — that's a broken deploy — but don't fail the seed: degrade to
+		// the empty-room seed, which the caller already knows may be the shared constant.
+		reportError?.(e)
+		return DEFAULT_INITIAL_SNAPSHOT
+	}
 }

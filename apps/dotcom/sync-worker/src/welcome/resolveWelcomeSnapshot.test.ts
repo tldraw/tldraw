@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { RoomSnapshot } from '@tldraw/sync-core'
+import { DEFAULT_INITIAL_SNAPSHOT, RoomSnapshot } from '@tldraw/sync-core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../types'
 import { resolveWelcomeSnapshot } from './resolveWelcomeSnapshot'
@@ -11,9 +11,16 @@ vi.mock('../postgres', () => ({
 vi.mock('../routes/tla/getPublishedFile', () => ({
 	getPublishedRoomSnapshot: vi.fn(),
 }))
+// Spy on the default loader while keeping the real implementation, so the failure test can
+// reject one call without fighting the module-level JSON cache inside defaultWelcomeSnapshot.
+vi.mock('./defaultWelcomeSnapshot', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('./defaultWelcomeSnapshot')>()
+	return { ...actual, loadDefaultWelcomeSnapshot: vi.fn(actual.loadDefaultWelcomeSnapshot) }
+})
 
 const { createPostgresConnectionPool } = await import('../postgres')
 const { getPublishedRoomSnapshot } = await import('../routes/tla/getPublishedFile')
+const { loadDefaultWelcomeSnapshot } = await import('./defaultWelcomeSnapshot')
 
 // The default lives as a Workers Static Asset; stand in a minimal ASSETS binding that returns
 // the committed JSON so the resolver's fallback path works.
@@ -94,6 +101,15 @@ describe('resolveWelcomeSnapshot', () => {
 		expect(await resolveWelcomeSnapshot(env, reportError)).toEqual(defaultSnapshot)
 		expect(getPublishedRoomSnapshot).not.toHaveBeenCalled()
 		expect(reportError).toHaveBeenCalledOnce()
+	})
+
+	it('degrades to the empty-room seed AND reports when even the default fails to load', async () => {
+		const reportError = vi.fn()
+		const error = new Error('failed to load default welcome snapshot: 404')
+		mockWelcomeTemplateRow(undefined)
+		vi.mocked(loadDefaultWelcomeSnapshot).mockRejectedValueOnce(error)
+		expect(await resolveWelcomeSnapshot(env, reportError)).toBe(DEFAULT_INITIAL_SNAPSHOT)
+		expect(reportError).toHaveBeenCalledExactlyOnceWith(error)
 	})
 
 	it('destroys the Postgres pool on every path (DO hibernation hygiene)', async () => {
