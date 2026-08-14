@@ -114,6 +114,8 @@ export type TLUiTranslationKey =
 	| 'action.toggle-focus-mode'
 	| 'action.toggle-dynamic-size-mode.menu'
 	| 'action.toggle-dynamic-size-mode'
+	| 'action.toggle-text-outline.menu'
+	| 'action.toggle-text-outline'
 	| 'action.toggle-grid.menu'
 	| 'action.toggle-grid'
 	| 'action.toggle-lock'

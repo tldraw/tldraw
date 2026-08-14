@@ -54,6 +54,7 @@ export class UserPreferencesManager {
 			enhancedA11yMode: this.getEnhancedA11yMode(),
 			inputMode: this.getInputMode(),
 			isZoomDirectionInverted: this.getIsZoomDirectionInverted(),
+			isTextOutlineEnabled: this.getIsTextOutlineEnabled(),
 		}
 	}
 
@@ -136,6 +137,13 @@ export class UserPreferencesManager {
 
 	@computed getIsWrapMode() {
 		return this.user.userPreferences.get().isWrapMode ?? defaultUserPreferences.isWrapMode
+	}
+
+	@computed getIsTextOutlineEnabled() {
+		return (
+			this.user.userPreferences.get().isTextOutlineEnabled ??
+			defaultUserPreferences.isTextOutlineEnabled
+		)
 	}
 
 	@computed getIsDynamicResizeMode() {
