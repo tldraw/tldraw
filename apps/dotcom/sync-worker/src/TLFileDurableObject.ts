@@ -2838,12 +2838,14 @@ export class TLFileDurableObject extends DurableObject {
 
 	/**
 	 * @internal
+	 * Best-effort by default: a failed persist here just means callers fall back to the
+	 * last-persisted snapshot, as before. Pass `{ throwOnFailure: true }` only for callers that
+	 * must not act on stale data (e.g. publishSnapshot reads the R2 blob straight after this
+	 * resolves, so a swallowed failure there would publish a stale snapshot).
 	 */
-	async awaitPersist() {
+	async awaitPersist(opts?: { throwOnFailure?: boolean }) {
 		if (!this._documentInfo) return
-		// publishSnapshot reads the R2 blob straight after this resolves; a swallowed persist
-		// failure here would let it publish a stale snapshot, so surface it instead.
-		await this.persistToDatabase({ throwOnFailure: true })
+		await this.persistToDatabase(opts?.throwOnFailure ? { throwOnFailure: true } : undefined)
 	}
 
 	/**

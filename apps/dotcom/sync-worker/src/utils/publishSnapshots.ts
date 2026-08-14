@@ -7,8 +7,8 @@ import { getRoomDurableObject } from './durableObjects'
 export async function publishSnapshot(env: Environment, file: TlaFile) {
 	// Nothing can be published without a slug.
 	if (!file.publishedSlug) return
-	// make sure the room's snapshot is up to date
-	await getRoomDurableObject(env, file.id).awaitPersist()
+	// make sure the room's snapshot is up to date; a stale/missing snapshot must not get published
+	await getRoomDurableObject(env, file.id).awaitPersist({ throwOnFailure: true })
 	// and that it exists
 	const snapshot = await env.ROOMS.get(getR2KeyForRoom({ slug: file.id, isApp: true }))
 
