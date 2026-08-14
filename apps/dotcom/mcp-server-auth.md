@@ -11,7 +11,7 @@ Everything in the rollout below except verifying each client end to end. The Cle
 
 - Required auth on every call, with OAuth 2.1 discovery, `401` + `WWW-Authenticate`, and Clerk token verification against the instance's JWKS with `jose` (`mcpAuth.ts`) — signature, issuer, `exp` and `typ: at+jwt`. **There is no audience check**, because Clerk stamps no `aud` on an access token whether or not the client sends a `resource` parameter, so there is nothing to compare; an earlier version of this branch checked anyway and would have refused every token Clerk ever issued. `typ` is what carries the weight instead: it is the only thing separating an OAuth access token from a Clerk _session_ JWT. What stops a token minted for somebody else's MCP server being replayed here lives on the authorization server, where the client registry is — Clerk's **Only allow pre-registered clients to connect**, **Block implicitly allowed clients**, and dynamic client registration off. All three are confirmed on (see [Open questions](#open-questions) 8), and all three are dashboard state with no representation in this repo, which is the standing caveat rather than an open question.
 - The advertised protocol versions are `2026-07-28` and `2025-11-25`. `2024-11-05`, `2025-03-26` and `2025-06-18` are all gone; see [Open questions](#open-questions) 10.
-- The minted-token record key namespaced by surface, page and theme — the blocking prerequisite.
+- The minted-token record key namespaced by surface, and keyed per capture for MCP — the blocking prerequisite.
 - The per-user board access check (`hasReadAccessToFile`), gating the cache read as well as the render, with one not-found message for every way a board can fail to resolve.
 - An `allowlist` feature flag type, and `mcp_server_access` using it — one list, absorbing the friends-and-family list from [#9809](https://github.com/tldraw/tldraw/pull/9809). Entries are edited as emails and stored as `{ userId, email }`, resolved against the database at save time; the separate list and the `mcp_friends_and_family` flag are gone.
 
@@ -208,13 +208,46 @@ The code steps landed together on this branch rather than in the sequence below,
 1. ~~Land the protocol upgrade.~~ Done — `2026-07-28` and `2025-11-25`, with everything older dropped.
 2. ~~Namespace the minted-token record key by surface.~~ Done. MCP records are keyed by the capture — the token — rather than by content: surface alone fixes MCP-versus-OG collisions, and content keys still had two identical concurrent captures of one board invalidate each other, which agents produce routinely.
 3. ~~Add discovery endpoints and token verification.~~ Done. **Announce the cutover date before enabling** — every existing anonymous caller breaks at step 5.
-4. **Verify each client end to end.** Not done, and it cannot be until the Clerk instance is configured. A client that cannot connect via CIMD isn't supported until it updates. This is a gate, not a formality — connector-side OAuth failures produce opaque errors with nothing in our logs. **Include one browser-context client** (MCP Inspector, or a web connector): it takes a different path through the worker's CORS handling than Claude Desktop or `mcp-remote`, so one client passing is not evidence for the others.
+4. **Verify each client end to end**, using [Connecting a client](#connecting-a-client) below. The server side is proven — a real OAuth token drives `get_board_info` → `get_page_info` → `get_cluster_screenshot` on the preview, render included — but each _client_ still has to be walked through its own flow. This is a gate, not a formality: connector-side OAuth failures produce opaque errors with nothing in our logs. **Include one browser-context client** (MCP Inspector, or a web connector): it takes a different path through the worker's CORS handling than Claude Desktop or `mcp-remote`, so one client passing is not evidence for the others.
    4b. **Re-confirm the Clerk client registry, and check the approved client list is what you expect.** Dynamic client registration off, **Only allow pre-registered clients to connect** on, **Block implicitly allowed clients** on — all three verified on the instance, and all three worth checking again here. This is a standing invariant rather than a one-time step: with no `aud` on Clerk's tokens it is the entire client-authorization story, and nothing in this repo would notice one of them being turned off.
 5. **Enforce for flag-enabled users.** The code enforces already; the flag ships `enabled: false` with an empty list, so today the endpoint answers `403` to every authenticated caller and `401` to everyone else. Turning the flag on is the breaking moment, and there is no anonymous path to fall back to. **Re-enter the friends-and-family cohort by hand first.** `mcp_friends_and_family_users` is orphaned rather than migrated — nothing carries it into `mcp_server_access.users` — so that population loses access on deploy until an admin pastes the addresses back in. The direction is fail-safe, but it is silent, and the list is only readable from the old KV key. The admin panel accepts an allowlist while the flag is still off, so this can be staged before step 5 rather than during it.
 6. ~~Land the per-user board access check and switch the tool to minting `render`.~~ Done.
 7. **Widen the flag as confidence builds**, toward the stated bar of any signed-in user.
 
 Steps 5 and 6 were worth keeping apart when this was a deployment plan: step 5 is the disruptive one for existing callers, step 6 changes what the tools can reach. They are one change here, which means the first enablement exercises both at once — worth remembering if something misbehaves.
+
+## Connecting a client
+
+The endpoint is `https://www.tldraw.com/api/app/mcp` (staging: `https://staging.tldraw.com/…`, previews: `https://pr-{number}-preview-deploy.tldraw.com/…`). Every client needs an OAuth access token from the tldraw Clerk instance and an account the `mcp_server_access` flag names.
+
+**Claude, and other clients with a hosted redirect URI.** Nothing special — add the endpoint as an HTTP MCP server and complete the sign-in the `401` triggers. Claude's CIMD document registers `https://claude.ai/api/mcp/auth_callback`, an exact non-loopback URI, so it needs no workaround.
+
+**Claude Code needs an explicit client id.** Its CIMD document registers the _portless_ `http://localhost/callback` and `http://127.0.0.1/callback`, while the CLI listens on a port and sends `http://localhost:{port}/callback`. Clerk matches redirect URIs exactly, so it refuses:
+
+```
+http://localhost:54545/callback   400  "does not match any of the OAuth 2.0 Client's pre-registered redirect urls"
+http://127.0.0.1:54545/callback   302  (accepted — RFC 8252 §7.3 grants any-port only to loopback IP literals)
+```
+
+This is Claude Code's bug, not Clerk's — RFC 8252 §8.3 says `localhost` is NOT RECOMMENDED precisely because it does not get that treatment. [`anthropics/claude-code#37747`](https://github.com/anthropics/claude-code/issues/37747) concedes both halves of the fix (`application_type: "native"` in the document, `127.0.0.1` from the CLI) and was closed without shipping either.
+
+Until it ships, hand Claude Code an explicit client id, which short-circuits its CIMD branch entirely:
+
+```bash
+claude mcp add --transport http tldraw https://www.tldraw.com/api/app/mcp \
+  --client-id <client-id> --callback-port 54545
+```
+
+Two requirements on the Clerk OAuth application behind that id, and both fail _late_ and confusingly if missed:
+
+- **It must be a public client.** Clerk creates applications as confidential by default, and a confidential one answers `/oauth/token` with `401 invalid_client` — after the browser sign-in and consent have already succeeded, so it reads as a mysterious final-step failure. To tell the two apart, POST a bogus code to `/oauth/token`: a public client gets `400 invalid_grant`, a confidential one `401 invalid_client`.
+- **Its redirect URIs must include every `localhost` port you document**, spelled exactly (`http://localhost:54545/callback`). Register a few, since a port already in use on the user's machine is otherwise a dead end — and `localhost` gets no port flexibility, for the reason below.
+
+Register `http://127.0.0.1:54545/callback` alongside them. Verified against staging: Clerk implements RFC 8252 §7.3 exactly, so **one loopback-IP entry covers every port** — `127.0.0.1:1234`, `:8080`, `:61234` are all accepted off that single registration, while `localhost:1234` is refused unless registered literally. Path and host are still matched strictly (`127.0.0.1:61234/evil` and `attacker.example:61234/callback` are both refused), so this widens nothing else. It costs one entry and means the day Claude Code starts sending the IP literal, every port works with no further Clerk change.
+
+**Changing redirect URIs only helps for a client id you own.** They are editable on your own OAuth applications (`PATCH /oauth_applications/{id}`, field `redirect_uris`). They are _not_ editable for a CIMD client: Clerk fetches those from the document the client's vendor hosts, and the Backend API exposes no CIMD client resource at all — the only CIMD surface is three instance-level booleans (`client_id_metadata_documents_advertised`, `…_only_allow_pre_registered_clients`, `…_block_implicitly_allowed_clients`). Pre-registering Claude Code on the CIMD clients list allows it; it does not let you rewrite what it sends.
+
+**Do not turn on dynamic client registration to work around this.** It would fix the mismatch — a client registering itself records the URI it actually uses — but `…_only_allow_pre_registered_clients` is CIMD-scoped and constrains DCR clients not at all. With no `aud` on Clerk's tokens, that registry is the whole of the client-authorization story here; see [Open questions](#open-questions) 8.
 
 ## Open questions
 
