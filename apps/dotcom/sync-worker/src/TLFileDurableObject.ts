@@ -148,7 +148,7 @@ interface SocketAttachment {
 	// optional: attachments serialized before the object-store lane existed lack this field
 	objectAccess?: TLObjectStoreAccess
 	// The client bundle's monotonic build timestamp (epoch ms), from the `?v=` connect param.
-	// Absent for bundles that predate the param — which itself marks them as older than it.
+	// Absent for bundles that predate the param, or when the param didn't validate.
 	clientBuildTimestamp?: string
 	snapshot: SessionStateSnapshot | null
 }
@@ -727,8 +727,10 @@ export class TLFileDurableObject extends DurableObject {
 		// handle legacy param names
 		sessionId ??= params.sessionKey ?? params.instanceId
 		storeId ??= params.localClientId
-		// the client bundle's build timestamp; length-capped because it lands in analytics
-		const clientBuildTimestamp = params.v?.slice(0, 32)
+		// the client bundle's build timestamp. Unvalidated client input that lands in analytics, so
+		// only accept a plain epoch-ms number — anything else (empty, non-numeric, absurdly long)
+		// is treated the same as an absent param rather than recorded verbatim.
+		const clientBuildTimestamp = /^\d{1,16}$/.test(params.v ?? '') ? params.v : undefined
 		const isNewSession = !this._room
 
 		// Create the websocket pair for the client; use hibernation API
@@ -1094,10 +1096,11 @@ export class TLFileDurableObject extends DurableObject {
 				if (event.name === 'rate_limited') {
 					this.writeEvent(event.name, { blobs: [event.userId ?? 'anon-user'] })
 				} else if (event.name === 'enter') {
-					// blob order is positional per event name; 'pre-v' marks bundles that predate
-					// the `?v=` connect param and is therefore older than any real timestamp
+					// blob order is positional per event name. '0' covers bundles that predate the
+					// `?v=` connect param (and clients that sent a bogus one): it stays a number, so
+					// it sorts as the oldest possible build under both string and numeric ordering.
 					this.writeEvent(event.name, {
-						blobs: [event.instanceId, event.clientBuildTimestamp ?? 'pre-v'],
+						blobs: [event.instanceId, event.clientBuildTimestamp ?? '0'],
 					})
 				} else {
 					this.writeEvent(event.name, { blobs: [event.instanceId] })
