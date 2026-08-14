@@ -29,6 +29,7 @@ import {
 	getFileEffectProcessor,
 	getRoomDurableObject,
 	getRoomDurableObjectById,
+	getRoomDurableObjectId,
 	getUserDurableObject,
 } from './utils/durableObjects'
 import { FEATURE_FLAG_KEYS, getFeatureFlagsAdmin, setFeatureFlag } from './utils/featureFlags'
@@ -253,16 +254,28 @@ export const adminRoutes = createRouter<Environment>()
 		}
 		return json({ ok: true })
 	})
-	// Maps a durable object id back to its room slug and reports activity signals. The id is a
-	// one-way hash of the room name, but the room object stores its own identity, so it is asked
-	// directly — a never-initialized id resolves to null. The brief wake is storage-read only; no
-	// room boot. Persist history comes from the version-cache bucket: one timestamped snapshot per
-	// persist, so save cadence separates an actively edited room from a parked tab holding a
-	// socket open.
-	.get('/app/admin/resolve-do-id/:objectId', async (res, env) => {
-		const objectId = res.params.objectId
-		if (!/^[0-9a-f]{64}$/.test(objectId)) {
-			throw new StatusError(400, 'objectId must be a 64-char lowercase hex string')
+	// Maps a durable object id or room slug to the room's activity signals. The id is a one-way
+	// hash of the room name, but the room object stores its own identity, so it is asked directly —
+	// a never-initialized id resolves to null. A slug (anything that isn't 64-char hex) is hashed
+	// forward via idFromName. The brief wake is storage-read only; no room boot. Persist history
+	// comes from the version-cache bucket: one timestamped snapshot per persist, so save cadence
+	// separates an actively edited room from a parked tab holding a socket open.
+	.get('/app/admin/resolve-do-id/:objectIdOrSlug', async (res, env) => {
+		const param = res.params.objectIdOrSlug
+		let objectId: string
+		if (/^[0-9a-f]{64}$/.test(param)) {
+			objectId = param
+		} else if (/^[0-9a-fA-F]{16,}$/.test(param)) {
+			// hex is a subset of the slug charset — without this, a truncated or uppercase id would
+			// hash as a slug and report a confident "never initialized"
+			throw new StatusError(
+				400,
+				'looks like a truncated or uppercase durable object id — paste the full 64-char lowercase hex'
+			)
+		} else if (/^[a-zA-Z0-9_-]+$/.test(param)) {
+			objectId = getRoomDurableObjectId(env, param).toString()
+		} else {
+			throw new StatusError(400, 'pass a 64-char hex durable object id or a room slug')
 		}
 		let roomDo: ReturnType<typeof getRoomDurableObjectById>
 		try {
@@ -273,7 +286,7 @@ export const adminRoutes = createRouter<Environment>()
 			throw new StatusError(400, 'not a valid durable object id for the file namespace')
 		}
 		const info = await roomDo.__admin__getDocumentInfo()
-		if (!info) return json({ match: null, history: null })
+		if (!info) return json({ objectId, match: null, history: null })
 
 		// Stream the stats instead of collecting objects, so any number of snapshots fits. Keys are
 		// ISO timestamps (oldest first); min/max tracking keeps the newest save correct either way.
@@ -307,6 +320,7 @@ export const adminRoutes = createRouter<Environment>()
 		} while (cursor)
 
 		return json({
+			objectId,
 			match: info,
 			history: {
 				saves,
