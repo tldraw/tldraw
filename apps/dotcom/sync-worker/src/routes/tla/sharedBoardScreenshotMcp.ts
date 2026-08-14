@@ -36,9 +36,9 @@ import {
 	pickClusterShapes,
 	resolvePage,
 	toolError as modelToolError,
-	toolPageResult as modelToolPageResult,
+	toolPageResult,
 } from './boardTools'
-import { authenticateMcpRequest } from './mcpAuth'
+import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
@@ -50,6 +50,7 @@ import {
 	writeScreenshotTelemetry,
 } from './thumbnailRender'
 import {
+	ThumbnailErrorSurface,
 	classifyScreenshotFailure,
 	describeThumbnailFailure,
 	reportThumbnailError,
@@ -104,6 +105,22 @@ const TOOLS_LIST_CACHE_SCOPE = 'public'
 // cannot pick one up by accident.
 const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
 const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
+
+/**
+ * The one per-caller budget, shared by every tool that can spend Browser Run.
+ *
+ * One key rather than three. The tools used to hold `user-cluster:`, `user-info:` and `user-shot:`
+ * buckets — and the first two were crossed besides, `get_page_info` counting against the cluster
+ * bucket and `get_cluster_info` against the info one — so the real per-caller ceiling was three times
+ * the single number config.ts documents and the refusal messages quote. Merging them is what makes
+ * that number true, and it is the reading every comment in this file already assumed.
+ *
+ * The `mcp-shared-board-screenshot:` prefix that `isRateLimited` adds is what the deployed bindings
+ * count against; this key sits under it, so this rename costs every caller one reset window.
+ */
+function perUserRateLimitKey(userId: string) {
+	return `user:${userId}`
+}
 
 async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
 	return isRateLimited(env.MCP_SERVER_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
@@ -227,6 +244,20 @@ function writeMcpToolCallTelemetry(
 	})
 }
 
+// One datapoint per refused request, which nothing else records: `mcp_server_tool_call` is written by
+// the tools/call dispatcher, and an unauthenticated or unauthorized request never reaches it. During a
+// flag-gated rollout this is the number that matters most — how many callers are being turned away,
+// and whether it is "not signed in" or "signed in and not on the list", which call for entirely
+// different responses.
+//
+// Reason and client are both closed vocabularies (see McpAuthRefusal and MCP_CLIENT_FAMILIES). No
+// token, subject, client id or board identity goes near this, in keeping with every other event here.
+function writeMcpAuthRefusalTelemetry(env: Environment, request: Request, reason: McpAuthRefusal) {
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_server_auth_refusal', {
+		blobs: [`reason:${reason}`, `client:${normalizeMcpClient(request.headers.get('user-agent'))}`],
+	})
+}
+
 // initialize is the one request where the calling application names itself, so it gets its own
 // event. The raw name is kept (truncated) alongside the normalized family: initializes are rare
 // enough that the cardinality is affordable, and it is how new families get discovered. The UA
@@ -286,7 +317,10 @@ export async function sharedBoardScreenshotMcp(
 	// the user in at all. There is no anonymous tier here — this endpoint used to serve any caller
 	// naming a public board, and requiring a token retires that deliberately.
 	const auth = await authenticateMcpRequest(request, env)
-	if (!auth.ok) return auth.response
+	if (!auth.ok) {
+		writeMcpAuthRefusalTelemetry(env, request, auth.reason)
+		return auth.response
+	}
 
 	const rpcRequest = await readJsonRpcRequest(request)
 	if (!rpcRequest) {
@@ -523,8 +557,15 @@ export async function resolveSharedBoardForUser(
 	boardId: string,
 	userId: string
 ): Promise<ResolveThumbnailBoardResult> {
-	if (await hasReadAccessToFile(env, userId, boardId)) {
-		const file = await resolveThumbnailBoard(env, 'shared_file', boardId, { access: 'render' })
+	const readAccess = await hasReadAccessToFile(env, userId, boardId)
+	if (readAccess.ok) {
+		// The row the access check just read, handed on so the resolution re-applies the gate without
+		// asking Postgres for a strict subset of the same columns microseconds later. See the `file`
+		// option on resolveThumbnailBoard for when that is and is not appropriate.
+		const file = await resolveThumbnailBoard(env, 'shared_file', boardId, {
+			access: 'render',
+			file: readAccess.file,
+		})
 		if (file.ok || file.reason === 'board_empty') return file
 	}
 	return resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
@@ -548,12 +589,9 @@ async function callBoardInfoTool(
 	userId: string,
 	ctx?: ExecutionContext
 ) {
-	let input: { boardId: string }
-	try {
-		input = parseBoardInfoInput(argumentsValue)
-	} catch (error) {
-		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
-	}
+	const parsed = parseToolInput(() => parseBoardInfoInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
 
 	// Not rate limited: the limiters here bound Browser Run, and this call spends none. The clustering
 	// tools below do spend it — they measure the page in a render before they can group anything — so
@@ -564,24 +602,21 @@ async function callBoardInfoTool(
 		if (!loaded.ok) return loaded.result
 		return getBoardInfo(loaded.snapshot)
 	} catch (error) {
-		reportThumbnailError(error, {
-			ctx,
+		// No `telemetry`: this tool spends no Browser Run and so writes nothing to the screenshot
+		// ledger, which is the one that answers cache and refusal questions about renders.
+		return toolFailure(error, {
 			env,
 			request,
+			ctx,
 			surface: 'mcp_board_info',
 			extras: { boardId: input.boardId },
+			summary: 'Could not read board info',
+			// The classifier reads render failures, and this tool starts no render: it resolves the board
+			// and reads its snapshot, and the lookup goes through a Postgres pool whose timeouts the
+			// classifier would otherwise report as `browser_timeout`. Only the snapshot-read class can
+			// honestly apply here, so everything else is recorded as what it is.
+			recordAs: (reason) => (reason === 'snapshot_read_error' ? reason : 'board_lookup_error'),
 		})
-		const failureReason = classifyScreenshotFailure(error)
-		// The classifier reads render failures, and this tool starts no render: it resolves the board
-		// and reads its snapshot, and the lookup goes through a Postgres pool whose timeouts the
-		// classifier would otherwise report as `browser_timeout`. Only the snapshot-read class can
-		// honestly apply here, so everything else is recorded as what it is.
-		const telemetryReason =
-			failureReason === 'snapshot_read_error' ? failureReason : 'board_lookup_error'
-		return toolError(
-			`Could not read board info: ${describeThumbnailFailure(failureReason)}.`,
-			telemetryReason
-		)
 	}
 }
 
@@ -592,26 +627,18 @@ async function callPageInfoTool(
 	userId: string,
 	ctx?: ExecutionContext
 ) {
-	let input: { boardId: string; page: PageSelector }
-	try {
-		input = parsePageInfoInput(argumentsValue)
-	} catch (error) {
-		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
-	}
-
-	if (
-		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `user-cluster:${userId}`, {
-			fallbackLimit: MCP_PER_USER_RATE_LIMIT,
-		})
-	) {
-		return toolError(
-			`Rate limited. Requests are limited to about ${MCP_PER_USER_RATE_LIMIT} per minute per account.`,
-			'rate_limited_user'
-		)
-	}
-
 	const telemetry = mcpTelemetryWriter(env)
+	const parsed = parseToolInput(() => parsePageInfoInput(argumentsValue), telemetry)
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	// Inside the try, so a limiter that throws — a binding erroring, not a caller over budget — becomes
+	// a structured MCP error rather than an unhandled throw the dispatcher turns into an unparseable
+	// 500. Same reason in every tool below.
 	try {
+		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
+		if (refusal) return refusal
+
 		// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve
 		// cluster ids against a single page, so listing every shape on the board here would hand out
 		// ids that neither of them can look up.
@@ -621,26 +648,22 @@ async function callPageInfoTool(
 			return resolved.result
 		}
 
-		const measurements = await measureFor(env, resolved)
+		const measured = await measureFor(env, resolved, userId, telemetry)
+		if (!measured.ok) return measured.result
 		telemetry({ cacheStatus: 'none' })
-		return getPageInfo(resolved.page, measurements)
+		return getPageInfo(resolved.page, measured.measurements)
 	} catch (error) {
 		// Unlike get_board_info, this tool can fail mid-measure, so its failures belong on the same
-		// request ledger as the screenshot tool's: one bounded reason code for the blob and the
-		// caller, the unbounded original for Sentry. The measure session itself reports separately.
-		reportThumbnailError(error, {
-			ctx,
+		// request ledger as the screenshot tool's. The measure session itself reports separately.
+		return toolFailure(error, {
 			env,
 			request,
+			ctx,
 			surface: 'mcp_board_info',
 			extras: { boardId: input.boardId },
+			summary: 'Could not read page info',
+			telemetry,
 		})
-		const failureReason = classifyScreenshotFailure(error)
-		telemetry({ cacheStatus: 'none', failureReason })
-		return toolError(
-			`Could not read page info: ${describeThumbnailFailure(failureReason)}.`,
-			failureReason
-		)
 	}
 }
 
@@ -745,15 +768,88 @@ function mcpTelemetryWriter(env: Environment) {
 	}
 }
 
+type McpTelemetryWriter = ReturnType<typeof mcpTelemetryWriter>
+
+/**
+ * The per-caller ceiling on calls, not on captures, so a caller looping over cache hits is still
+ * bounded. Returns the refusal to hand back, or `undefined` to carry on.
+ *
+ * Written once rather than per tool because the message and the reason code are what config.ts's
+ * documented number means to a caller, and three copies of it drifted from each other and from the
+ * key they counted against — see `perUserRateLimitKey`. Refusals are recorded on the screenshot
+ * ledger here too: they used to be written by the screenshot tool alone, because the info tools
+ * returned before their telemetry writer existed, so a caller hitting the limit through
+ * `get_page_info` was invisible on the one panel that answers "who is being turned away".
+ */
+async function checkPerUserRateLimit(
+	env: Environment,
+	userId: string,
+	telemetry: McpTelemetryWriter
+): Promise<ToolCallResult | undefined> {
+	if (
+		!(await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, perUserRateLimitKey(userId), {
+			fallbackLimit: MCP_PER_USER_RATE_LIMIT,
+		}))
+	) {
+		return undefined
+	}
+	telemetry({
+		cacheStatus: 'none',
+		rateLimitAllowed: false,
+		failureReason: 'rate_limited_user',
+		callerHash: await sha256(userId),
+	})
+	return toolError(
+		`Rate limited. Requests are limited to about ${MCP_PER_USER_RATE_LIMIT} per minute per account.`,
+		'rate_limited_user'
+	)
+}
+
+type MeasureResult =
+	| { ok: true; measurements: Record<string, ShapeMeasurement> }
+	| { ok: false; result: ToolCallResult }
+
 // Clustering needs real geometry, and the only way to get it is to run an editor in Browser
 // Rendering — the same cost as a screenshot. Every caller goes through here, so that cost is stated
-// once rather than implied in three places. The session lands on the `browser_run_session` spend
-// ledger inside the measure itself, so callers carry no duration bookkeeping.
-function measureFor(
+// once rather than implied in three places, and so it is *counted*: a measure used to run a full
+// Browser Run session checked against neither the global limiter nor the per-board one. Three of the
+// four tools measure before they can answer anything, so the account-wide ceiling the global limiter
+// describes was several times the one it actually enforced.
+//
+// The global limiter only. The per-board limiter is deliberately left to the capture path: it allows
+// 2 a minute, and the ordinary cluster-screenshot flow measures three times against one board
+// (get_page_info, get_cluster_info, then the screenshot's own), so counting measures against it would
+// refuse the documented flow rather than an abusive one.
+//
+// The session lands on the `browser_run_session` spend ledger inside the measure itself, so callers
+// carry no duration bookkeeping.
+async function measureFor(
 	env: Environment,
-	resolved: Extract<ResolvedBoardPage, { ok: true }>
-): Promise<Record<string, ShapeMeasurement>> {
-	return measurePageShapes(env, resolved.board, resolved.page.pageId, { surface: 'mcp' })
+	resolved: Extract<ResolvedBoardPage, { ok: true }>,
+	userId: string,
+	telemetry: McpTelemetryWriter
+): Promise<MeasureResult> {
+	if (await isGlobalBrowserRunRateLimited(env)) {
+		telemetry({
+			cacheStatus: 'none',
+			rateLimitAllowed: false,
+			failureReason: 'rate_limited_global',
+			callerHash: await sha256(userId),
+		})
+		return {
+			ok: false,
+			result: toolError(
+				'Rate limited. Screenshot capacity is busy, try again in a minute.',
+				'rate_limited_global'
+			),
+		}
+	}
+	return {
+		ok: true,
+		measurements: await measurePageShapes(env, resolved.board, resolved.page.pageId, {
+			surface: 'mcp',
+		}),
+	}
 }
 
 async function callClusterInfoTool(
@@ -763,34 +859,24 @@ async function callClusterInfoTool(
 	userId: string,
 	ctx?: ExecutionContext
 ) {
-	let input: { boardId: string; page: PageSelector; clusterId: string }
-	try {
-		input = parseClusterInfoInput(argumentsValue)
-	} catch (error) {
-		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
-	}
-
-	if (
-		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `user-info:${userId}`, {
-			fallbackLimit: MCP_PER_USER_RATE_LIMIT,
-		})
-	) {
-		return toolError(
-			`Rate limited. Requests are limited to about ${MCP_PER_USER_RATE_LIMIT} per minute per account.`,
-			'rate_limited_user'
-		)
-	}
-
 	const telemetry = mcpTelemetryWriter(env)
+	const parsed = parseToolInput(() => parseClusterInfoInput(argumentsValue), telemetry)
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
 	try {
+		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
+		if (refusal) return refusal
+
 		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId)
 		if (!resolved.ok) {
 			telemetry({ cacheStatus: 'none', failureReason: resolved.reason })
 			return resolved.result
 		}
 
-		const measurements = await measureFor(env, resolved)
-		const result = getClusterInfo(resolved.page, measurements, input.clusterId, input.page)
+		const measured = await measureFor(env, resolved, userId, telemetry)
+		if (!measured.ok) return measured.result
+		const result = getClusterInfo(resolved.page, measured.measurements, input.clusterId, input.page)
 		if (result.isError) {
 			telemetry({ cacheStatus: 'none', failureReason: 'cluster_not_found' })
 			return withTelemetryReason(result, 'cluster_not_found')
@@ -798,23 +884,19 @@ async function callClusterInfoTool(
 		telemetry({ cacheStatus: 'none' })
 		return result
 	} catch (error) {
-		reportThumbnailError(error, {
-			ctx,
+		return toolFailure(error, {
 			env,
 			request,
+			ctx,
 			surface: 'mcp_board_info',
 			extras: {
 				boardId: input.boardId,
 				page: describePageSelector(input.page),
 				clusterId: input.clusterId,
 			},
+			summary: 'Could not read cluster info',
+			telemetry,
 		})
-		const failureReason = classifyScreenshotFailure(error)
-		telemetry({ cacheStatus: 'none', failureReason })
-		return toolError(
-			`Could not read cluster info: ${describeThumbnailFailure(failureReason)}.`,
-			failureReason
-		)
 	}
 }
 
@@ -840,12 +922,16 @@ async function renderShapeSetScreenshot(
 		/** Extra Sentry context identifying which tool asked. */
 		extras: Record<string, unknown>
 		/**
-		 * Resolves which shapes to draw. `browserRunDurationMs` is what the resolution itself spent in
-		 * Browser Run (the cluster tool's measure render); that session reports itself to the spend
-		 * ledger, so nothing here needs to know.
+		 * Resolves which shapes to draw. Any Browser Run it spends on the way (the cluster tool's measure
+		 * render) reports itself to the spend ledger, so nothing here needs to know.
+		 *
+		 * Owns the telemetry for its own refusals, which is why it is handed the writer: only it knows
+		 * whether a failure was a missing cluster or a limiter, and a row written here as well would file
+		 * one call on the ledger twice, under two different reason codes.
 		 */
 		pickShapes(
-			resolved: Extract<ResolvedBoardPage, { ok: true }>
+			resolved: Extract<ResolvedBoardPage, { ok: true }>,
+			telemetry: McpTelemetryWriter
 		): Promise<
 			{ ok: true; shapeIds: string[] } | { ok: false; result: ReturnType<typeof toolError> }
 		>
@@ -856,28 +942,13 @@ async function renderShapeSetScreenshot(
 	// read says nothing about cache health and files under `cache:none`, one after it was a miss.
 	let consultedCache = false
 
-	// Checked before the cache, unlike the two below: this is the per-caller ceiling on calls, not on
-	// captures, so a caller looping over cache hits is still bounded. Shares the screenshot budget
-	// with the clustering tools rather than the free info budget: this spends Browser Run capacity
-	// the same way.
-	if (
-		await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, `user-shot:${userId}`, {
-			fallbackLimit: MCP_PER_USER_RATE_LIMIT,
-		})
-	) {
-		telemetry({
-			cacheStatus: 'none',
-			rateLimitAllowed: false,
-			failureReason: 'rate_limited_user',
-			callerHash: await sha256(userId),
-		})
-		return toolError(
-			`Rate limited. Screenshots are limited to about ${MCP_PER_USER_RATE_LIMIT} requests per minute per account.`,
-			'rate_limited_user'
-		)
-	}
-
 	try {
+		// Checked before the cache, unlike the two below: this is the per-caller ceiling on calls, not
+		// on captures, so a caller looping over cache hits is still bounded. One budget shared with the
+		// clustering tools — see perUserRateLimitKey.
+		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
+		if (refusal) return refusal
+
 		if (!env.MCP_DATA_BUCKET) {
 			throw new Error('MCP_DATA_BUCKET bucket is not configured')
 		}
@@ -894,11 +965,8 @@ async function renderShapeSetScreenshot(
 			return resolved.result
 		}
 
-		const picked = await pickShapes(resolved)
-		if (!picked.ok) {
-			telemetry({ cacheStatus: 'none', failureReason: 'shape_not_found' })
-			return picked.result
-		}
+		const picked = await pickShapes(resolved, telemetry)
+		if (!picked.ok) return picked.result
 		const shapeIds = picked.shapeIds
 
 		// Keyed on the shape set, so two requests naming the same shapes share one cached PNG — they
@@ -977,23 +1045,18 @@ async function renderShapeSetScreenshot(
 		telemetry({ cacheStatus: 'miss' })
 		return toolPageResult(resolved.page.pageName, render.base64)
 	} catch (error) {
-		// One bounded reason code drives both the telemetry blob (so unbounded error strings never
-		// inflate that dimension) and the caller's message (so internal Postgres/R2 detail never reaches
-		// an outside caller, authenticated or not). Sentry gets the unbounded original; the sessions
-		// this call held, failed or not, are already on the spend ledger.
-		reportThumbnailError(error, {
-			ctx,
+		// The sessions this call held, failed or not, are already on the spend ledger; what is recorded
+		// here is the request's own outcome.
+		return toolFailure(error, {
 			env,
 			request,
+			ctx,
 			surface: 'mcp_screenshot',
 			extras: { boardId, page: describePageSelector(page), theme, ...extras },
+			summary: 'Screenshot failed',
+			telemetry,
+			cacheStatus: consultedCache ? 'miss' : 'none',
 		})
-		const failureReason = classifyScreenshotFailure(error)
-		telemetry({ cacheStatus: consultedCache ? 'miss' : 'none', failureReason })
-		return toolError(
-			`Screenshot failed: ${describeThumbnailFailure(failureReason)}.`,
-			failureReason
-		)
 	}
 }
 
@@ -1006,18 +1069,12 @@ async function callClusterScreenshotTool(
 	userId: string,
 	ctx?: ExecutionContext
 ) {
-	let input: { boardId: string; page: PageSelector; clusterIds: string[]; theme: 'light' | 'dark' }
-	try {
-		input = parseClusterScreenshotInput(argumentsValue)
-	} catch (error) {
-		// Telemetry gets a bounded reason code; the caller gets the specific validation message.
-		writeScreenshotTelemetry(env, {
-			source: 'mcp',
-			cacheStatus: 'none',
-			failureReason: 'invalid_input',
-		})
-		return toolError(error instanceof Error ? error.message : String(error), 'invalid_input')
-	}
+	const parsed = parseToolInput(
+		() => parseClusterScreenshotInput(argumentsValue),
+		mcpTelemetryWriter(env)
+	)
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
 
 	return renderShapeSetScreenshot(request, env, ctx, {
 		boardId: input.boardId,
@@ -1025,12 +1082,21 @@ async function callClusterScreenshotTool(
 		theme: input.theme,
 		userId,
 		extras: { clusterIds: input.clusterIds.join(',') },
-		pickShapes: async (resolved) => {
-			const measurements = await measureFor(env, resolved)
-			const picked = pickClusterShapes(resolved.page, measurements, input.clusterIds, input.page)
-			return picked.ok
-				? picked
-				: { ...picked, result: withTelemetryReason(picked.result, 'cluster_not_found') }
+		pickShapes: async (resolved, telemetry) => {
+			const measured = await measureFor(env, resolved, userId, telemetry)
+			if (!measured.ok) return { ok: false, result: measured.result }
+			const picked = pickClusterShapes(
+				resolved.page,
+				measured.measurements,
+				input.clusterIds,
+				input.page
+			)
+			if (picked.ok) return picked
+			// `cluster_not_found` on both events. The request ledger used to file this as
+			// `failure:shape_not_found` while the per-call event filed the very same refusal as
+			// `reason:cluster_not_found`, so the two dashboards disagreed about what had happened.
+			telemetry({ cacheStatus: 'none', failureReason: 'cluster_not_found' })
+			return { ...picked, result: withTelemetryReason(picked.result, 'cluster_not_found') }
 		},
 	})
 }
@@ -1051,8 +1117,85 @@ function toolError(message: string, reason: string): ToolCallResult {
 	return withTelemetryReason(modelToolError(message), reason)
 }
 
-function toolPageResult(name: string, base64: string): ToolCallResult {
-	return modelToolPageResult(name, base64)
+type ParsedToolInput<T> = { ok: true; input: T } | { ok: false; result: ToolCallResult }
+
+/**
+ * Parses one tool's arguments, turning a validation failure into a tool error.
+ *
+ * The caller gets the validator's own message verbatim — it names the field and what was wrong with
+ * it, which is the one class of failure a model can actually act on — while telemetry gets the
+ * bounded `invalid_input`. That split was written out at all four call sites and stated at none.
+ *
+ * `telemetry` is passed by every tool that appears on the request ledger, so a call rejected for bad
+ * arguments is counted there like any other refusal. Only the screenshot tool used to record one,
+ * which left that ledger silently under-counting the info tools — the same blind spot as auth
+ * refusals, one layer in. `get_board_info` is the one tool that genuinely has no writer: it spends no
+ * Browser Run and is absent from that ledger entirely.
+ */
+function parseToolInput<T>(parse: () => T, telemetry?: McpTelemetryWriter): ParsedToolInput<T> {
+	try {
+		return { ok: true, input: parse() }
+	} catch (error) {
+		telemetry?.({ cacheStatus: 'none', failureReason: 'invalid_input' })
+		return {
+			ok: false,
+			result: toolError(error instanceof Error ? error.message : String(error), 'invalid_input'),
+		}
+	}
+}
+
+/**
+ * The failure tail every tool shares: report the unbounded original to Sentry, reduce it to one
+ * bounded reason code, file that on the request ledger, and answer the caller with a message that
+ * names the failure class and nothing else.
+ *
+ * One copy rather than four. The rule it encodes is the same at every site and worth stating once:
+ * the caller's message and the telemetry blob both come from a closed vocabulary, because internal
+ * Postgres and R2 detail must reach neither an outside caller nor a dimension whose cardinality it
+ * would blow up. Sentry gets the original, with the unbounded context. The four copies had already
+ * drifted — that rationale was written out at one of them and nowhere else.
+ */
+function toolFailure(
+	error: unknown,
+	{
+		env,
+		request,
+		ctx,
+		surface,
+		extras,
+		summary,
+		telemetry,
+		cacheStatus = 'none',
+		recordAs,
+	}: {
+		env: Environment
+		request: Request
+		ctx: ExecutionContext | undefined
+		/** Which tool family this came from, for the Sentry event. */
+		surface: ThumbnailErrorSurface
+		/** Sentry-only context identifying the call. Unbounded, and never reaches a datapoint. */
+		extras: Record<string, unknown>
+		/** Prefixes the caller's message: `${summary}: ${failure class}.` */
+		summary: string
+		/**
+		 * The request ledger writer. Omitted by `get_board_info` alone, which spends no Browser Run and
+		 * so does not appear on that ledger at all.
+		 */
+		telemetry?: McpTelemetryWriter
+		/** What the cache had done by the time this failed. See `consultedCache`. */
+		cacheStatus?: 'hit' | 'miss' | 'none'
+		/**
+		 * Narrows the code that gets *recorded*, leaving the caller's message on the classifier's own
+		 * verdict. For the one tool whose failures the classifier can misread — see `get_board_info`.
+		 */
+		recordAs?(failureReason: string): string
+	}
+): ToolCallResult {
+	reportThumbnailError(error, { ctx, env, request, surface, extras })
+	const failureReason = classifyScreenshotFailure(error)
+	const recorded = recordAs ? recordAs(failureReason) : failureReason
+	telemetry?.({ cacheStatus, failureReason: recorded })
+	return toolError(`${summary}: ${describeThumbnailFailure(failureReason)}.`, recorded)
 }
 
 function decodeThumbnailPageName(value: string | undefined): string {

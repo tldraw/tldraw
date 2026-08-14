@@ -174,7 +174,7 @@ export function renderJobAccess(job: Pick<ThumbnailRenderJob, 'access'>): Thumbn
  * The surface a job is read under. Absent means a token minted before the field existed, read as
  * `og` — the only surface that was writing records then. See ThumbnailRenderJob.surface.
  */
-export function renderJobSurface(job: Pick<ThumbnailRenderJob, 'surface'>): ThumbnailRenderSurface {
+function renderJobSurface(job: Pick<ThumbnailRenderJob, 'surface'>): ThumbnailRenderSurface {
 	return job.surface ?? 'og'
 }
 
@@ -204,59 +204,56 @@ async function getHmacKey(secret: string) {
  *
  * - **`og`** is single-flighted per board by the `.pending` marker, so its renders never overlap and one
  *   key per board is right — a newer mint superseding an older in-flight token is then the intended
- *   behaviour rather than a collision between unrelated captures.
- * - **`mcp`** is not single-flighted. Concurrent captures of different pages of one board are supported
- *   and tested, so a per-board key would have them invalidate each other's tokens, and the loser would
- *   403 on its snapshot fetch and surface as a generic render failure. A **screenshot** is identified by
- *   what it draws, so its key carries the page and theme, and a digest of the shape set when the render
- *   is restricted to one. A **measure** has no such content: it exports nothing, and every measure of a
- *   page mints an identical job down to the hardcoded light theme. Keying one by content would collide
- *   with every other measure of that page — which is the ordinary agent pattern rather than a rare race,
- *   since get_page_info, get_cluster_info and get_cluster_screenshot all measure before they can do
- *   anything. Measure records are keyed by the token instead, which is unique per capture.
+ *   behaviour rather than a collision between unrelated captures. That key overwrites in place, so the
+ *   space stays bounded by boards rather than by traffic and nothing has to be cleaned up.
+ * - **`mcp`** is not single-flighted, and nothing about a capture's *content* identifies it. Two agents
+ *   asking for the same cluster of the same board, or one agent issuing the same tool call twice in
+ *   parallel — which agents do — mint two tokens for byte-identical jobs. Keyed by content, the second
+ *   mint would overwrite the first's `tokenHash`, and the first's snapshot fetch would 403 and surface
+ *   as a bare `the render failed` after it had already spent a browser session and a slot of the
+ *   caller's budget. So every MCP record is keyed by the capture instead: the token, which is unique
+ *   per mint. The same applies to measures, which have even less content to key on — they export
+ *   nothing, and every measure of a page mints an identical job down to the hardcoded light theme.
  *
  * All of them live under `render-tokens/{kind}/{slug}/` so hard-delete cleanup can clear a board's
- * records with one prefix listing rather than having to know every surface. Two concurrent screenshots of
- * the *same* page, theme and shape set do still share a key, which is the OG case again — one image
- * rendered twice, where the later mint winning costs a retry rather than a wrong result.
+ * records with one prefix listing rather than having to know every surface.
  *
- * Content-keyed records are **not** deleted after a capture: they overwrite in place, so the space stays
- * bounded whatever the traffic. A per-token measure key has no such ceiling, so those records *are*
- * deleted once the measure completes — see deleteMintedRenderToken. Deleting is safe either way, and for
- * the content-keyed records it is simply pointless: expiry lives in the signed `exp` and is checked
- * before this is consulted, so a leftover record cannot extend a token's life, and deleting only tightens
- * the window from `exp` to the render's duration against an attacker who cannot get a record written at
- * all. A hash is stored rather than the token, in `customMetadata` so that checking one is a `head` and
- * the record costs no stored bytes.
+ * A per-token key has no ceiling the way an overwrite-in-place one does, so MCP records *are* deleted
+ * once their capture completes — see deleteMintedRenderToken. Deleting is safe: expiry lives in the
+ * signed `exp` and is checked before this is consulted, so a leftover record could not extend a token's
+ * life anyway, and dropping it only tightens the window from `exp` to the render's own duration. A hash
+ * is stored rather than the token, in `customMetadata` so that checking one is a `head` and the record
+ * costs no stored bytes.
  */
 const RENDER_TOKEN_RECORD_PREFIX = 'render-tokens'
 
 /** The prefix holding every surface's records for one board. Hard-delete cleanup lists this. */
-export function renderTokenRecordPrefix(board: ThumbnailBoardRef) {
+function renderTokenRecordPrefix(board: ThumbnailBoardRef) {
 	return `${RENDER_TOKEN_RECORD_PREFIX}/${board.kind}/${board.slug}/`
 }
 
+/**
+ * Whether a job's record key names this one capture rather than something that outlives it. Those keys
+ * are never reused, so nothing overwrites them and each has to be deleted once its capture is done —
+ * and equally, deleting one cannot pull a record out from under a concurrent capture. See
+ * `deleteMintedRenderToken`.
+ */
+function isPerCaptureRecordKey(job: Pick<ThumbnailRenderJob, 'surface'>) {
+	return renderJobSurface(job) === 'mcp'
+}
+
 async function renderTokenRecordKey(
-	job: Pick<
-		ThumbnailRenderJob,
-		'kind' | 'slug' | 'surface' | 'pageId' | 'theme' | 'mode' | 'shapeIds'
-	>,
+	job: Pick<ThumbnailRenderJob, 'kind' | 'slug' | 'surface' | 'mode'>,
 	token: string
 ) {
 	const surface = renderJobSurface(job)
 	const base = `${renderTokenRecordPrefix(job)}${surface}`
-	if (surface !== 'mcp') return base
-	// A measure names no content of its own, so it is keyed by the capture instead: the token, which is
-	// unique per mint. Two clustering calls on one page would otherwise share a key and invalidate each
-	// other. Hashed rather than used raw because the token is a credential and this is an object name.
-	if (job.mode === 'measure') return `${base}/measure/${await sha256(token)}`
-	// Otherwise derived from the signed job, so the key a capture is checked against is the one it was
-	// minted under and a caller cannot steer it. `default` stands in for the OG-style whole-board render,
-	// which the MCP tool does not currently mint but the job type still allows. The shape set is
-	// digested rather than joined so the key stays bounded however many shapes a cluster holds, and
-	// sorted so the same set always lands on the same record.
-	const shapeSet = job.shapeIds?.length ? await sha256([...job.shapeIds].sort().join(',')) : 'page'
-	return `${base}/screenshot/${job.theme}/${job.pageId ?? 'default'}/${shapeSet}`
+	if (!isPerCaptureRecordKey(job)) return base
+	// Keyed by the capture rather than by what it draws: two identical MCP captures are an ordinary
+	// concurrent case, not a race, and a content key would have them invalidate each other. Hashed
+	// rather than used raw because the token is a credential and this is an object name. The mode
+	// segment carries no meaning for the lookup — it is there so a listing reads.
+	return `${base}/${job.mode === 'measure' ? 'measure' : 'screenshot'}/${await sha256(token)}`
 }
 
 /**
@@ -285,13 +282,17 @@ export async function recordMintedRenderToken(
 }
 
 /**
- * Drops one capture's record, for the keys that do not overwrite in place. Only measure jobs need this:
- * their key carries the token, so nothing later reuses it and each call would otherwise leave an object
- * behind forever — see recordMintedRenderToken. Call it once the render is done with the token, which is
- * after the snapshot fetch this record guards has already happened.
+ * Drops one capture's record, for the keys that do not overwrite in place — every MCP job, measure and
+ * screenshot alike, since their key carries the token and so nothing later reuses it. Each capture would
+ * otherwise leave an object behind forever; see recordMintedRenderToken. Call it once the render is done
+ * with the token, which is after the snapshot fetch this record guards has already happened.
+ *
+ * A no-op for the surfaces whose key outlives one capture. Deleting an OG record here would be worse
+ * than pointless: that key is per board, so a finishing render could drop the record a *newer* in-flight
+ * mint had just written, and 403 it.
  *
  * Best effort, unlike the write: a record that fails to write means the render is about to fail its token
- * check, but one that fails to delete only leaves an orphan, and failing the caller's measure over it
+ * check, but one that fails to delete only leaves an orphan, and failing the caller's capture over it
  * would turn a working answer into an error. Hard deletion sweeps the board's whole prefix later anyway.
  */
 export async function deleteMintedRenderToken(
@@ -300,6 +301,7 @@ export async function deleteMintedRenderToken(
 	token: string
 ): Promise<void> {
 	if (renderJobAccess(job) !== 'render') return
+	if (!isPerCaptureRecordKey(job)) return
 	if (!env.THUMBNAILS) return
 	try {
 		await env.THUMBNAILS.delete(await renderTokenRecordKey(job, token))

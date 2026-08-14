@@ -6,6 +6,7 @@ import {
 	AllowlistEntry,
 	FILE_PREFIX,
 	FeatureFlagKey,
+	FeatureFlagValue,
 	LOCAL_FILE_PREFIX,
 	PUBLISH_PREFIX,
 	ROOM_PREFIX,
@@ -33,7 +34,9 @@ import {
 } from './utils/durableObjects'
 import {
 	FEATURE_FLAG_KEYS,
-	getFeatureFlagsAdmin,
+	FeatureFlagUpdate,
+	getAllFeatureFlagValues,
+	getFeatureFlagType,
 	parseAllowlistEmails,
 	setFeatureFlag,
 } from './utils/featureFlags'
@@ -74,6 +77,58 @@ async function resolveAllowlistUsers(
 	} finally {
 		await db.destroy()
 	}
+}
+
+/**
+ * Refreshes the email labels an allowlist carries, and marks the entries whose user id no longer
+ * resolves to an account.
+ *
+ * The stored email is written once at save time and never updated, so it rots: an address change
+ * leaves an entry that still *works* — matching is by id — while displaying the old address, and
+ * re-saving the list as displayed then 400s on a line the admin cannot pick out from the rest. A
+ * deleted account leaves an entry that looks like a live grant and matches nobody. Resolved on read
+ * instead, which costs the admin panel one query per page load and the request path nothing.
+ */
+async function withResolvedAllowlistLabels(
+	env: Environment,
+	flags: Record<string, FeatureFlagValue>
+): Promise<Record<string, FeatureFlagValue>> {
+	const entriesOf = (flag: FeatureFlagValue) =>
+		flag.type === 'allowlist' && Array.isArray(flag.users) ? flag.users : []
+
+	const ids = [
+		...new Set(Object.values(flags).flatMap((flag) => entriesOf(flag).map((e) => e.userId))),
+	]
+	if (!ids.length) return flags
+
+	const db = createPostgresConnectionPool(env, '/app/admin/feature-flags')
+	let emailById: Map<string, string>
+	try {
+		const rows = await db
+			.selectFrom('user')
+			.select(['id', 'email'])
+			.where('id', 'in', ids)
+			.execute()
+		emailById = new Map(rows.map((row) => [row.id, row.email]))
+	} finally {
+		await db.destroy()
+	}
+
+	return Object.fromEntries(
+		Object.entries(flags).map(([key, flag]) => {
+			if (flag.type !== 'allowlist') return [key, flag]
+			return [
+				key,
+				{
+					...flag,
+					users: entriesOf(flag).map((entry) => {
+						const email = emailById.get(entry.userId)
+						return email ? { ...entry, email } : { ...entry, missing: true }
+					}),
+				},
+			]
+		})
+	)
 }
 
 async function requireUser(env: Environment, q: string) {
@@ -322,7 +377,9 @@ export const adminRoutes = createRouter<Environment>()
 			},
 		})
 	})
-	.get('/app/admin/feature-flags', getFeatureFlagsAdmin)
+	.get('/app/admin/feature-flags', async (_req, env) => {
+		return json(await withResolvedAllowlistLabels(env, await getAllFeatureFlagValues(env)))
+	})
 	.post('/app/admin/feature-flags', async (req, env) => {
 		const body: any = await req.json()
 		const { flag, enabled, percentage, emails } = body
@@ -343,27 +400,46 @@ export const adminRoutes = createRouter<Environment>()
 		if (!FEATURE_FLAG_KEYS.includes(flag as FeatureFlagKey)) {
 			throw new StatusError(400, `Invalid flag. Must be one of: ${FEATURE_FLAG_KEYS.join(', ')}`)
 		}
+		const flagKey = flag as FeatureFlagKey
 
-		const update: { enabled?: boolean; percentage?: number; users?: AllowlistEntry[] } = {}
-		if (enabled !== undefined) update.enabled = enabled
-		if (percentage !== undefined) update.percentage = percentage
-		if (emails !== undefined) {
-			// An allowlist is edited as emails and stored as user ids. Parsing before resolving means a
-			// typo is rejected at the point someone can still fix it, rather than sitting in the list
-			// looking like it grants access while matching nothing; resolving at save time means an email
-			// with no tldraw account fails the save instead of being stored as an entry that can never
-			// match.
-			let parsed: string[]
-			try {
-				parsed = parseAllowlistEmails(emails)
-			} catch (e) {
-				throw new StatusError(400, e instanceof Error ? e.message : String(e))
-			}
-			update.users = await resolveAllowlistUsers(env, parsed)
+		// A field that means nothing for this flag's type is refused rather than dropped. It used to be
+		// dropped silently and still answered `{success: true, users: […]}`, so an admin could send an
+		// allowlist to a percentage flag, be told it saved, and have nothing stored anywhere.
+		const type = getFeatureFlagType(env, flagKey)
+		if (percentage !== undefined && type !== 'percentage') {
+			throw new StatusError(400, `"${flagKey}" is a ${type} flag; percentage does not apply to it`)
+		}
+		if (emails !== undefined && type !== 'allowlist') {
+			throw new StatusError(400, `"${flagKey}" is a ${type} flag; emails do not apply to it`)
 		}
 
-		await setFeatureFlag(env, flag as FeatureFlagKey, update)
-		return json({ success: true, flag, ...update })
+		let update: FeatureFlagUpdate
+		if (type === 'allowlist') {
+			let users: AllowlistEntry[] | undefined
+			if (emails !== undefined) {
+				// An allowlist is edited as emails and stored as user ids. Parsing before resolving means a
+				// typo is rejected at the point someone can still fix it, rather than sitting in the list
+				// looking like it grants access while matching nothing; resolving at save time means an email
+				// with no tldraw account fails the save instead of being stored as an entry that can never
+				// match.
+				let parsed: string[]
+				try {
+					parsed = parseAllowlistEmails(emails)
+				} catch (e) {
+					throw new StatusError(400, e instanceof Error ? e.message : String(e))
+				}
+				users = await resolveAllowlistUsers(env, parsed)
+			}
+			update = { type, enabled, users }
+		} else if (type === 'percentage') {
+			update = { type, enabled, percentage }
+		} else {
+			update = { type, enabled }
+		}
+
+		await setFeatureFlag(env, flagKey, update)
+		const { type: _type, ...stored } = update
+		return json({ success: true, flag, ...stored })
 	})
 	.post('/app/admin/create_legacy_file', async (_res, env) => {
 		const slug = uniqueId()

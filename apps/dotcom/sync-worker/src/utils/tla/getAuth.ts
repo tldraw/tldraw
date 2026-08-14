@@ -196,28 +196,42 @@ export async function requireWriteAccessToFile(
  *
  * Says nothing about whether the file exists, is deleted, or is a test file: a missing file is simply
  * not accessible, and callers that need to tell those apart do so through their own resolution step.
+ *
+ * Hands back the row it read on success, structurally the `SharedFileInfo` the thumbnail resolution
+ * wants, so the caller does not immediately dial Postgres again for a strict subset of the same
+ * columns. Deliberately not a licence to cache it: it is safe only for a caller re-applying the gate
+ * microseconds later inside one function, which is exactly where `loadBoardSnapshot` already accepts
+ * one and where the render page's own read deliberately does not.
  */
+export type ReadAccessToFile =
+	| { ok: true; file: { id: string; shared: boolean; isDeleted: boolean } }
+	| { ok: false }
+
 export async function hasReadAccessToFile(
 	env: Environment,
 	userId: string,
 	fileId: string
-): Promise<boolean> {
+): Promise<ReadAccessToFile> {
 	const db = createPostgresConnectionPool(env, 'sync-worker/hasReadAccessToFile')
 
 	try {
 		const file = await db
 			.selectFrom('file')
-			.select(['ownerId', 'owningGroupId', 'shared', 'isDeleted'])
+			.select(['id', 'ownerId', 'owningGroupId', 'shared', 'isDeleted'])
 			.where('id', '=', fileId)
 			.executeTakeFirst()
 
-		if (!file || file.isDeleted) return false
-		if (file.ownerId === userId) return true
+		if (!file || file.isDeleted) return { ok: false }
+		const granted = {
+			ok: true,
+			file: { id: file.id, shared: file.shared, isDeleted: false },
+		} as const
+		if (file.ownerId === userId) return granted
 		if (file.owningGroupId) {
 			const role = await getRole(db, userId, file.owningGroupId)
-			if (can(role, 'accessFiles')) return true
+			if (can(role, 'accessFiles')) return granted
 		}
-		return file.shared === true
+		return file.shared === true ? granted : { ok: false }
 	} finally {
 		await db.destroy()
 	}

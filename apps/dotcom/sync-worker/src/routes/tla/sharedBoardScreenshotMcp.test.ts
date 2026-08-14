@@ -51,6 +51,20 @@ vi.mock('./getSharedFile', async (importOriginal) => ({
 // with the answer; the check's own logic and the auth layer's are covered in getAuth and mcpAuth.
 vi.mock('../../utils/tla/getAuth', () => ({ hasReadAccessToFile: vi.fn() }))
 
+// The check hands back the row it read, so the resolution re-applies the gate to it rather than
+// dialling Postgres for the same row again. The granted row is derived from the id asked about, so it
+// stays consistent with the board under test the way the real one would.
+function grantReadAccess() {
+	vi.mocked(hasReadAccessToFile).mockImplementation(async (_env, _userId, fileId) => ({
+		ok: true,
+		file: { id: fileId, shared: true, isDeleted: false },
+	}))
+}
+
+function denyReadAccess() {
+	vi.mocked(hasReadAccessToFile).mockResolvedValue({ ok: false })
+}
+
 // Same for authentication: every case below runs as an already-authorized caller, and the token and
 // flag handling that produces that verdict is covered in mcpAuth.test.ts. The user id is read back
 // off the request so a test can act as more than one caller — which the per-user rate limit needs.
@@ -63,7 +77,7 @@ beforeEach(() => {
 	}))
 	// Not the caller's file unless a test says otherwise, which leaves published boards as the default
 	// way a board resolves — the same starting point these tests had before the access check existed.
-	vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
+	denyReadAccess()
 })
 
 afterEach(() => {
@@ -83,6 +97,12 @@ const PAGES = [
 // The clustering tools measure the page in a render before they can group anything, so the fake
 // browser plays the render page's part and posts a measure result.
 let requestId = 0
+
+// A limiter binding that never refuses, for tests that are about one *other* limit and must not be
+// able to pass on this one firing instead. Load-bearing for the global limiter now that a measure
+// counts against it: one cluster screenshot spends two browser sessions, so a per-user run of ten
+// would exhaust the isolate-local global fallback before the per-user budget was reached.
+const UNLIMITED_LIMITER = { limit: async () => ({ success: true }) }
 
 function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	const env: Environment = makeScreenshotTestEnv({
@@ -267,6 +287,74 @@ describe('MCP server', () => {
 			'get_cluster_info',
 			'get_cluster_screenshot',
 		])
+	})
+})
+
+// The premise of the whole change: there is no anonymous tier on this endpoint. The 401/403 logic
+// itself is tested a layer down in mcpAuth.test.ts — what is tested here is the *wiring*, which
+// nothing else covered. Move the two auth lines below the `initialize` early return and every other
+// test in this file still passes while initialize, server/discover and tools/list quietly go
+// anonymous again.
+describe('authentication', () => {
+	const REFUSAL = { error: 'unauthorized' }
+
+	function refuseAuth(reason = 'no_token') {
+		vi.mocked(authenticateMcpRequest).mockResolvedValue({
+			ok: false,
+			reason: reason as any,
+			response: Response.json(REFUSAL, {
+				status: 401,
+				headers: { 'WWW-Authenticate': 'Bearer resource_metadata="https://example/meta"' },
+			}),
+		})
+	}
+
+	// `initialize` included, which is the one that looks like it could be exempt: MCP's authorization
+	// flow *expects* the unauthenticated opening call to answer 401 with a pointer to the metadata,
+	// because that is how a client discovers it has to sign the user in at all.
+	it.each([
+		['initialize', () => makeRpcRequest('initialize')],
+		['server/discover', () => makeRpcRequest('server/discover')],
+		['tools/list', () => makeRpcRequest('tools/list')],
+		['tools/call', () => makeToolCall('get_board_info', { boardId: 'abc' })],
+	])('returns the refusal verbatim for %s', async (_method, makeRequest) => {
+		refuseAuth()
+		mockPublishedBoard()
+		const env = makeEnv()
+
+		const response = await sharedBoardScreenshotMcp(makeRequest(), env)
+
+		expect(response.status).toBe(401)
+		expect(await response.json()).toEqual(REFUSAL)
+		// Passed through rather than rebuilt, so the pointer a client needs to start signing in survives.
+		expect(response.headers.get('WWW-Authenticate')).toContain('resource_metadata=')
+	})
+
+	// Refused before anything is spent or read: no board lookup, no browser session, and nothing that
+	// would tell an unauthenticated caller whether a board exists.
+	it('does no board lookup and opens no browser session', async () => {
+		refuseAuth()
+		mockPublishedBoard()
+		const env = makeEnv()
+
+		await sharedBoardScreenshotMcp(makeToolCall('get_cluster_screenshot', { boardId: 'abc' }), env)
+
+		expect(getPublishedFileInfo).not.toHaveBeenCalled()
+		expect(getSharedFileInfo).not.toHaveBeenCalled()
+		expect(hasReadAccessToFile).not.toHaveBeenCalled()
+		expect(screenshotOf(env)).not.toHaveBeenCalled()
+	})
+
+	// The one number that matters most during a flag-gated rollout, and nothing recorded it: the
+	// per-call event is written by the tools/call dispatcher, which a refused request never reaches.
+	it('records the refusal with its reason', async () => {
+		refuseAuth('not_allowlisted')
+		const env = makeEnv()
+
+		await sharedBoardScreenshotMcp(makeRpcRequest('tools/list'), env)
+
+		expect(blobValuesOf(env, 'mcp_server_auth_refusal', 'reason')).toEqual(['not_allowlisted'])
+		expect(datapointsNamed(env, TOOL_CALL_EVENT)).toEqual([])
 	})
 })
 
@@ -497,7 +585,7 @@ describe('get_board_info', () => {
 	})
 
 	it('resolves a shared file id and never spends browser capacity', async () => {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
+		grantReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f1', shared: true, isDeleted: false })
 		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
@@ -516,7 +604,7 @@ describe('get_board_info', () => {
 	// reader outright and its internal fallback never runs here.
 	it('hands the resolved file row to the snapshot read instead of re-fetching it', async () => {
 		const file = { id: 'f1', shared: true, isDeleted: false }
-		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
+		grantReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue(file)
 		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
 
@@ -559,7 +647,7 @@ describe('get_board_info', () => {
 	})
 
 	it('errors for a shared file with no saved content', async () => {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
+		grantReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'e', shared: true, isDeleted: false })
 
 		const result = await callTool(
@@ -582,7 +670,7 @@ describe('get_board_info', () => {
 	// milliseconds wide — so the caller gets the same bounded read-failure message, and Sentry gets
 	// the original.
 	it('reports a board that goes private mid-request as a read failure', async () => {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
+		grantReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f', shared: true, isDeleted: false })
 		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(new Error('not shared'))
 
@@ -687,7 +775,7 @@ describe('rate limits', () => {
 	// which of the three limits it had actually exercised.
 	it(`allows ${MCP_PER_USER_RATE_LIMIT} screenshots per account per minute, then rate limits`, async () => {
 		mockPublishedBoard()
-		const env = makeEnv()
+		const env = makeEnv({ MCP_SERVER_BROWSER_RATE_LIMITER: UNLIMITED_LIMITER })
 		const clusterId = await firstClusterId(env, 'user_helper', 'board-0')
 
 		const results = []
@@ -717,7 +805,7 @@ describe('rate limits', () => {
 	// single budget, and one caller with a proxy pool had as many as it liked.
 	it('gives each account its own budget', async () => {
 		mockPublishedBoard()
-		const env = makeEnv()
+		const env = makeEnv({ MCP_SERVER_BROWSER_RATE_LIMITER: UNLIMITED_LIMITER })
 		const clusterId = await firstClusterId(env, 'user_helper', 'board-0')
 
 		for (let i = 0; i <= MCP_PER_USER_RATE_LIMIT; i++) {
@@ -933,7 +1021,7 @@ describe('shape screenshots', () => {
 	})
 
 	it('writes a telemetry row when get_page_info cannot resolve the board', async () => {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
+		denyReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
@@ -965,7 +1053,7 @@ describe('shape screenshots', () => {
 	})
 
 	it('reports an empty board as board_empty in telemetry, not as a missing board', async () => {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
+		grantReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'e', shared: true, isDeleted: false })
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(null) })
 
@@ -1033,7 +1121,7 @@ describe('shape screenshots', () => {
 	// land in the same place an empty board does, and telemetry gets its own reason code so a
 	// database outage is distinguishable from a browser one on the dashboard.
 	it('reports a failed snapshot read as a read failure, not a render failure, without rendering', async () => {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
+		grantReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f', shared: true, isDeleted: false })
 		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(
 			new Error('R2 GET failed: internal-bucket.example')
@@ -1165,7 +1253,7 @@ describe('per-user board access', () => {
 	const PRIVATE_FILE = { id: 'mine', shared: false, isDeleted: false }
 
 	function mockPrivateBoard() {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue(true)
+		grantReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue(PRIVATE_FILE)
 		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
 	}
@@ -1225,7 +1313,7 @@ describe('per-user board access', () => {
 
 		// Someone else asks for the same board. The cached object is right there, keyed only by board
 		// and shapes.
-		vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
+		denyReadAccess()
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 		const result = await callTool(
 			'get_cluster_screenshot',
@@ -1242,7 +1330,7 @@ describe('per-user board access', () => {
 	// The refusal happens at resolution, before pickShapes runs the paid measure render — a stranger
 	// probing board ids must cost telemetry rows, not Browser Run sessions.
 	it("spends no Browser Run on someone else's private file", async () => {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
+		denyReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue(PRIVATE_FILE)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
@@ -1263,7 +1351,7 @@ describe('per-user board access', () => {
 	// a board you cannot see" and "this id belongs to nothing", which turns a tool anyone can call
 	// into a way to test whether a given file id exists.
 	it('answers the same for an inaccessible board and a nonexistent one', async () => {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
+		denyReadAccess()
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
 
@@ -1285,7 +1373,7 @@ describe('per-user board access', () => {
 	// check narrows or widens it — and minting `public` is what keeps them out of the token records.
 	it('still resolves published boards under the public gate', async () => {
 		mockPublishedBoard()
-		vi.mocked(hasReadAccessToFile).mockResolvedValue(false)
+		denyReadAccess()
 		const env = makeEnv()
 		const clusterId = await firstClusterId(env, 'user_anyone', 'abc')
 
@@ -1305,6 +1393,8 @@ describe('per-user board access', () => {
 // own it cannot see the info tools, the early failures, or who is calling. These datapoints are that
 // missing half: one per tools/call, plus the calling application's own name at initialize.
 const TOOL_CALL_EVENT = 'mcp_server_tool_call'
+// The request ledger: one row per request that reached a tool, answering cache and refusal questions.
+const SCREENSHOT_EVENT = 'mcp_shared_board_screenshot'
 const INITIALIZE_EVENT = 'mcp_server_initialize'
 
 describe('protocol telemetry', () => {
@@ -1345,6 +1435,33 @@ describe('protocol telemetry', () => {
 		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual(['invalid_input', 'unknown_tool'])
 	})
 
+	// Every tool that appears on the request ledger files a rejected call there, not just the
+	// screenshot one — which is all that used to, leaving the ledger silently under-counting the info
+	// tools' refusals. `get_board_info` is absent by design: it spends no Browser Run and writes to
+	// that ledger at all, which is why the per-call event below is the one that covers it.
+	it('files bad arguments on the request ledger for every tool that is on it', async () => {
+		mockPublishedBoard()
+		for (const tool of ['get_page_info', 'get_cluster_info', 'get_cluster_screenshot']) {
+			const env = makeEnv()
+			// Missing boardId, which every one of these requires.
+			const result = await callTool(tool, {}, env)
+
+			expect(result.isError).toBe(true)
+			expect(blobValuesOf(env, SCREENSHOT_EVENT, 'failure')).toEqual(['invalid_input'])
+			expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual(['invalid_input'])
+		}
+	})
+
+	it('keeps get_board_info off the screenshot ledger even when its arguments are bad', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+
+		await callTool('get_board_info', {}, env)
+
+		expect(datapointsNamed(env, SCREENSHOT_EVENT)).toEqual([])
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual(['invalid_input'])
+	})
+
 	// The per-user limit on the clustering tools rejects callers silently: it returns a tool error
 	// without reaching the render path that writes the screenshot ledger. Every call names the same
 	// user, since the budget is per account and the default caller would otherwise be shared with
@@ -1359,11 +1476,12 @@ describe('protocol telemetry', () => {
 		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toContain('rate_limited_user')
 	})
 
-	// A handler is supposed to catch its own failures, so an escaped throw is a bug — which is exactly
-	// when the datapoint matters most. The rate limit check is the one step that sits outside a
-	// handler's try, so a limiter binding that rejects is the reachable version of that bug. The error
-	// still propagates; only the recording is added.
-	it('records a tool that throws, and still lets the error through', async () => {
+	// A limiter binding that rejects is an outage on our side, not a caller mistake. The rate limit
+	// check used to sit outside the handler's try, so that rejection escaped and reached the client as
+	// an unparseable 500 — the one failure on this route that did not come back as MCP. Now it is
+	// caught where every other failure is. The dispatcher's own catch stays as a backstop for a handler
+	// that throws despite its try, which nothing here can now reach on purpose.
+	it('turns a failing rate limiter into a structured error rather than a 500', async () => {
 		mockPublishedBoard()
 		const env = makeEnv({
 			MCP_SCREENSHOT_RATE_LIMITER: {
@@ -1373,10 +1491,9 @@ describe('protocol telemetry', () => {
 			},
 		})
 
-		await expect(callTool('get_page_info', { boardId: 'abc' }, env)).rejects.toThrow(
-			'limiter unavailable'
-		)
-		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual(['unhandled_error'])
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env)
+
+		expect(result.isError).toBe(true)
 		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'outcome')).toEqual(['error'])
 	})
 

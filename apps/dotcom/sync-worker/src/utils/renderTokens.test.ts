@@ -395,20 +395,52 @@ describe('render token records', () => {
 			expect([...(envWithBucket.THUMBNAILS as any).store.keys()]).toEqual([])
 		})
 
-		// The residual the design accepts: the *same screenshot* asked for twice at once collides, and the
-		// later mint wins. That is the OG pipeline's case again — one image, rendered twice — so it costs
-		// a retry rather than a wrong result.
-		it('still supersedes an identical in-flight capture', async () => {
+		// Two agents asking for the same cluster of the same board, or one agent issuing the same tool
+		// call twice in parallel — which agents do. The jobs are byte-identical, so a content-derived key
+		// would have the second mint overwrite the first's hash: the first would then 403 on its snapshot
+		// fetch and surface as a bare "the render failed", after a browser session and a slot of the
+		// caller's budget had already been spent on it.
+		it('keeps two identical concurrent screenshots independent', async () => {
 			const envWithBucket = makeEnvWithBucket()
 			const job = makeJob({ surface: 'mcp', slug: 'f1', pageId: 'page:a' })
 			const first = await mintThumbnailRenderToken(envWithBucket, job)
 			await recordMintedRenderToken(envWithBucket, job, first)
 
-			const second = await mintThumbnailRenderToken(envWithBucket, { ...job, exp: job.exp + 1 })
-			await recordMintedRenderToken(envWithBucket, job, second)
+			// Identical but for the expiry, which is what makes the two tokens differ.
+			const secondJob = { ...job, exp: job.exp + 1 }
+			const second = await mintThumbnailRenderToken(envWithBucket, secondJob)
+			await recordMintedRenderToken(envWithBucket, secondJob, second)
 
-			expect(await isMintedRenderToken(envWithBucket, job, second)).toBe(true)
-			expect(await isMintedRenderToken(envWithBucket, job, first)).toBe(false)
+			expect(await isMintedRenderToken(envWithBucket, job, first)).toBe(true)
+			expect(await isMintedRenderToken(envWithBucket, secondJob, second)).toBe(true)
+		})
+
+		// The flip side of a per-token key, for screenshots as well as measures: nothing later overwrites
+		// it, so the capture drops it itself once the render is over.
+		it('drops a screenshot record once the capture is done with it', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const job = makeJob({ surface: 'mcp', slug: 'f1', pageId: 'page:a' })
+			const token = await mintThumbnailRenderToken(envWithBucket, job)
+			await recordMintedRenderToken(envWithBucket, job, token)
+
+			await deleteMintedRenderToken(envWithBucket, job, token)
+
+			expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(false)
+			expect([...(envWithBucket.THUMBNAILS as any).store.keys()]).toEqual([])
+		})
+
+		// An OG record is per board and overwrites in place, so it has to outlive the capture that wrote
+		// it: dropping it here would let a finishing render pull the record out from under a newer mint
+		// that is still in flight.
+		it('leaves an OG record in place', async () => {
+			const envWithBucket = makeEnvWithBucket()
+			const job = makeJob({ surface: 'og', slug: 'f1' })
+			const token = await mintThumbnailRenderToken(envWithBucket, job)
+			await recordMintedRenderToken(envWithBucket, job, token)
+
+			await deleteMintedRenderToken(envWithBucket, job, token)
+
+			expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(true)
 		})
 
 		// A token minted by the worker version before the field existed, whose record sits at the old
@@ -474,11 +506,8 @@ describe('render token records', () => {
 			const envWithBucket = makeEnvWithBucket()
 			const bucket = envWithBucket.THUMBNAILS as any
 			const other = makeJob({ kind: 'shared_file', slug: 'f2', surface: 'mcp', pageId: 'page:a' })
-			await recordMintedRenderToken(
-				envWithBucket,
-				other,
-				await mintThumbnailRenderToken(env, other)
-			)
+			const otherToken = await mintThumbnailRenderToken(env, other)
+			await recordMintedRenderToken(envWithBucket, other, otherToken)
 			// A neighbour whose slug merely starts with the deleted one, which an exact-key delete of the
 			// pre-namespacing record must not touch.
 			await bucket.put('render-tokens/shared_file/f1-archived', new Uint8Array())
@@ -488,7 +517,7 @@ describe('render token records', () => {
 			expect([...bucket.store.keys()].sort()).toEqual(
 				[
 					'render-tokens/shared_file/f1-archived',
-					'render-tokens/shared_file/f2/mcp/screenshot/light/page:a/page',
+					`render-tokens/shared_file/f2/mcp/screenshot/${await sha256(otherToken)}`,
 				].sort()
 			)
 		})

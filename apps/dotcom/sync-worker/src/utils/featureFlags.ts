@@ -5,6 +5,7 @@ import {
 	FeatureFlagKey,
 	FeatureFlagValue,
 } from '@tldraw/dotcom-shared'
+import { exhaustiveSwitchError } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
 import { getAuth } from './tla/getAuth'
@@ -58,16 +59,33 @@ export async function getFeatureFlagValue(
 	env: Environment,
 	flag: FeatureFlagKey
 ): Promise<FeatureFlagValue> {
+	const defaults = getFlagDefaults(env)[flag]
 	try {
 		const value = await env.FEATURE_FLAGS.get(flag)
 		if (!value) {
-			return getFlagDefaults(env)[flag]
+			return defaults
 		}
-		return { ...getFlagDefaults(env)[flag], ...JSON.parse(value) }
+		// The defaults table is the schema; KV holds only state. A stored `type` is therefore discarded
+		// rather than spread over the default one: `{"type":"allowList"}` — a capital L, or any other
+		// typo — would otherwise reach `evaluateFlagForUser` as a shape none of its arms recognise, and
+		// the value it lands on decides who is let in.
+		return { ...defaults, ...JSON.parse(value), type: defaults.type } as FeatureFlagValue
 	} catch (e) {
 		console.error(`Failed to get feature flag ${flag}:`, e)
-		return getFlagDefaults(env)[flag]
+		return defaults
 	}
+}
+
+/**
+ * The type a flag is. Read from the defaults table rather than from KV, which is what makes it a
+ * schema: a caller can tell which fields apply to a flag without a KV round trip, and without a
+ * stored value getting a say in the answer.
+ */
+export function getFeatureFlagType(
+	env: Environment,
+	flag: FeatureFlagKey
+): FeatureFlagValue['type'] {
+	return getFlagDefaults(env)[flag].type
 }
 
 /**
@@ -81,33 +99,29 @@ export function evaluateFlagForUser(
 	userId: string | null
 ): boolean {
 	if (!flag.enabled) return false
-	if (flag.type === 'percentage') {
-		if (!userId) return false
-		return hashToPercentage(userId, flagName) < flag.percentage
+	// Switched exhaustively rather than ending in a fall-through, so a fourth flag type is a compile
+	// error here instead of a flag that quietly evaluates true for everyone. The type itself can only
+	// be one the defaults table names — see getFeatureFlagValue.
+	switch (flag.type) {
+		case 'boolean':
+			// `enabled` is the whole evaluation, and it was checked above.
+			return true
+		case 'percentage':
+			if (!userId) return false
+			return hashToPercentage(userId, flagName) < flag.percentage
+		case 'allowlist':
+			// An anonymous caller is never on a list of users. Stated rather than left to `some`, which
+			// would also be false but only by accident of `null` matching nobody.
+			if (!userId) return false
+			// Missing or malformed `users` denies rather than admits: this is read from KV, where a
+			// hand-edited value can arrive as anything, and the failure mode of the alternative is a flag
+			// that silently opens to everyone.
+			return (
+				Array.isArray(flag.users) && flag.users.some((entry) => entry && entry.userId === userId)
+			)
+		default:
+			exhaustiveSwitchError(flag)
 	}
-	if (flag.type === 'allowlist') {
-		// An anonymous caller is never on a list of users. Stated rather than left to `some`, which
-		// would also be false but only by accident of `null` matching nobody.
-		if (!userId) return false
-		// Missing or malformed `users` denies rather than admits: this is read from KV, where a
-		// hand-edited value can arrive as anything, and the failure mode of the alternative is a flag
-		// that silently opens to everyone.
-		return Array.isArray(flag.users) && flag.users.some((entry) => entry && entry.userId === userId)
-	}
-	return true
-}
-
-/**
- * Get the master enabled switch for a flag. For boolean flags this is the full
- * evaluation. For percentage flags this ignores the per-user rollout — use
- * `getFeatureFlags` (the route handler) for per-user evaluation instead.
- */
-export async function getFeatureFlagEnabled(
-	env: Environment,
-	flag: FeatureFlagKey
-): Promise<boolean> {
-	const value = await getFeatureFlagValue(env, flag)
-	return value.enabled
 }
 
 /**
@@ -123,50 +137,75 @@ export async function isFeatureFlagEnabledForUser(
 }
 
 /**
+ * A change to one flag, discriminated by the type of flag it applies to.
+ *
+ * Discriminated rather than an optional-field bag, because the fields are not interchangeable: a bag
+ * of `{ enabled?, percentage?, users? }` is matched by independent `if` guards that silently drop a
+ * field belonging to another type — a `users` list sent for a percentage flag wrote nothing and still
+ * reported success. Here a mismatch is a compile error at the call site, and a fourth flag type makes
+ * the compiler name every place that has to learn about it.
+ */
+export type FeatureFlagUpdate =
+	| { type: 'boolean'; enabled?: boolean }
+	| { type: 'percentage'; enabled?: boolean; percentage?: number }
+	| { type: 'allowlist'; enabled?: boolean; users?: AllowlistEntry[] }
+
+/** Thrown when an update names a different type than the flag it addresses. */
+export class FeatureFlagTypeError extends Error {}
+
+function expectFlagType<T extends FeatureFlagValue['type']>(
+	flag: FeatureFlagKey,
+	current: FeatureFlagValue,
+	type: T
+): Extract<FeatureFlagValue, { type: T }> {
+	if (current.type !== type) {
+		throw new FeatureFlagTypeError(
+			`"${flag}" is a ${current.type} flag; ${type} fields do not apply to it`
+		)
+	}
+	return current as Extract<FeatureFlagValue, { type: T }>
+}
+
+/**
  * Set feature flag value in KV store. Admin only.
  */
 export async function setFeatureFlag(
 	env: Environment,
 	flag: FeatureFlagKey,
-	value: { enabled?: boolean; percentage?: number; users?: AllowlistEntry[] }
+	update: FeatureFlagUpdate
 ): Promise<void> {
 	const current = await getFeatureFlagValue(env, flag)
-	if (value.enabled !== undefined) {
-		current.enabled = value.enabled
-	}
-	if (value.percentage !== undefined && current.type === 'percentage') {
-		current.percentage = value.percentage
-	}
-	// Replaces the list rather than merging into it, so removing someone is a normal save and not a
-	// separate operation the admin UI would have to model.
-	if (value.users !== undefined && current.type === 'allowlist') {
-		current.users = value.users
-	}
-	await env.FEATURE_FLAGS.put(flag, JSON.stringify(current))
-}
+	const put = (value: FeatureFlagValue) => env.FEATURE_FLAGS.put(flag, JSON.stringify(value))
 
-/**
- * Parses admin input into the emails an allowlist save should resolve: one per line or comma, blanks
- * and duplicates dropped, lowercased so the lookup and the dedupe agree. Anything that isn't an email
- * address is rejected rather than sent to the lookup, so the admin gets "that isn't an email" instead
- * of the blanker "no account for that".
- */
-export function parseAllowlistEmails(input: unknown): string[] {
-	const raw = Array.isArray(input)
-		? input.map((entry) => String(entry))
-		: String(input ?? '').split(/[\n,]/)
-
-	const emails: string[] = []
-	for (const value of raw) {
-		const email = value.trim().toLowerCase()
-		if (!email) continue
-		if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-			throw new Error(`"${value.trim()}" is not an email address`)
+	switch (update.type) {
+		case 'boolean': {
+			const value = expectFlagType(flag, current, 'boolean')
+			return put({ ...value, enabled: update.enabled ?? value.enabled })
 		}
-		if (!emails.includes(email)) emails.push(email)
+		case 'percentage': {
+			const value = expectFlagType(flag, current, 'percentage')
+			return put({
+				...value,
+				enabled: update.enabled ?? value.enabled,
+				percentage: update.percentage ?? value.percentage,
+			})
+		}
+		case 'allowlist': {
+			const value = expectFlagType(flag, current, 'allowlist')
+			return put({
+				...value,
+				enabled: update.enabled ?? value.enabled,
+				// Replaces the list rather than merging into it, so removing someone is a normal save and
+				// not a separate operation the admin UI would have to model.
+				users: update.users ?? value.users,
+			})
+		}
+		default:
+			exhaustiveSwitchError(update)
 	}
-	return emails
 }
+
+export { parseAllowlistEmails } from '@tldraw/dotcom-shared'
 
 /**
  * Route handler: Get all feature flags evaluated for the requesting user.
@@ -202,13 +241,15 @@ export async function getFeatureFlags(request: IRequest, env: Environment): Prom
 }
 
 /**
- * Route handler: Get all feature flags with raw values (for admin UI).
- * Does NOT evaluate per-user — returns the stored percentage and enabled as-is.
+ * Every flag's stored value, unevaluated — the admin view. Does NOT evaluate per-user: the stored
+ * percentage, enabled and user list are returned as-is.
+ *
+ * Returns the record rather than a Response so the admin route can decorate it before answering —
+ * see the allowlist label resolution there, which needs Postgres and has no business in here.
  */
-export async function getFeatureFlagsAdmin(
-	_request: IRequest,
+export async function getAllFeatureFlagValues(
 	env: Environment
-): Promise<Response> {
+): Promise<Record<string, FeatureFlagValue>> {
 	const flags: Record<string, FeatureFlagValue> = {}
 
 	await Promise.all(
@@ -217,5 +258,5 @@ export async function getFeatureFlagsAdmin(
 		})
 	)
 
-	return new Response(JSON.stringify(flags), { headers: { 'Content-Type': 'application/json' } })
+	return flags
 }

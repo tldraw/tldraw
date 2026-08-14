@@ -101,6 +101,58 @@ export function getMcpProtectedResourceMetadata(request: IRequest, env: Environm
 }
 
 /**
+ * CORS for the MCP endpoint and its discovery metadata, which are deliberately not held to the
+ * worker's origin allowlist.
+ *
+ * That allowlist exists to stop a page on somebody else's site from riding a visitor's tldraw.com
+ * *cookie*. This endpoint has no cookie to ride — it authenticates a bearer token and nothing else —
+ * so an origin check buys nothing here and costs real clients. A browser-context MCP client (the
+ * Inspector on `localhost:6274`, a web connector fetching directly) is on no allowlist and never will
+ * be, and what it gets instead of a legible refusal is a bare `403 Not allowed` carrying no CORS
+ * headers at all: indistinguishable from "there is no MCP server here". That is precisely the silent
+ * discovery failure the extra `wrangler.toml` route exists to prevent, moved one layer further in.
+ *
+ * Clients holding no `Origin` at all — Claude Desktop, `mcp-remote`, Cursor — were always fine, which
+ * is why this is easy to miss: testing with one of them proves nothing about the others.
+ */
+export const MCP_CORS_HEADERS: Record<string, string> = {
+	// Safe as `*` precisely because there are no credentials in play: nothing here reads a cookie, and
+	// a bearer token is something the client already holds rather than something the browser would
+	// attach on its behalf. `*` and credentials are mutually exclusive, and we want the former.
+	'Access-Control-Allow-Origin': '*',
+	'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+	'Access-Control-Allow-Headers':
+		'authorization, content-type, mcp-protocol-version, mcp-method, mcp-name, mcp-session-id',
+	// The whole content of a 401 is its `WWW-Authenticate` challenge — without it a browser client can
+	// see that it was refused but not the `resource_metadata` pointer telling it where to sign in, so
+	// it cannot start the flow the refusal is inviting.
+	'Access-Control-Expose-Headers': 'WWW-Authenticate',
+	'Access-Control-Max-Age': '86400',
+}
+
+/**
+ * Stamps the MCP CORS headers onto a response. Set rather than appended, and set before the worker's
+ * own `corsify` runs — which returns a response untouched once it already carries an
+ * `Access-Control-Allow-Origin`, so this wins without having to be special-cased there.
+ */
+export function withMcpCors(response: Response): Response {
+	const corsified = new Response(response.body, response)
+	for (const [header, value] of Object.entries(MCP_CORS_HEADERS)) {
+		corsified.headers.set(header, value)
+	}
+	return corsified
+}
+
+/**
+ * The preflight answer for the MCP routes. Registered ahead of the router's shared `preflight`, which
+ * answers from the origin allowlist and so would hand a browser client a 204 with no
+ * `Access-Control-Allow-Origin` — a refusal it can't read either.
+ */
+export function mcpCorsPreflight(): Response {
+	return withMcpCors(new Response(null, { status: 204 }))
+}
+
+/**
  * The `401` that starts an MCP client's sign-in. The `resource_metadata` parameter is the whole
  * point of it: without that pointer a client knows only that it was refused, not where to go.
  */
@@ -123,7 +175,21 @@ export function mcpUnauthorized(
 	)
 }
 
-export type McpAuthResult = { ok: true; userId: string } | { ok: false; response: Response }
+/**
+ * Why a request was turned away, as a closed vocabulary. Carried on the refusal so the route can put
+ * it on a datapoint: during a flag-gated rollout the number that matters most is how many callers are
+ * being refused and *which* kind of no they got — "not signed in" and "signed in, not on the list"
+ * call for entirely different responses — and neither was visible anywhere, since the per-call event
+ * is written by the dispatcher, which a refused request never reaches.
+ *
+ * Written by the route rather than here, which is where every other MCP datapoint is written and
+ * which keeps this module free of a dependency on the one that imports it.
+ */
+export type McpAuthRefusal = 'no_token' | 'invalid_token' | 'unconfigured' | 'not_allowlisted'
+
+export type McpAuthResult =
+	| { ok: true; userId: string }
+	| { ok: false; response: Response; reason: McpAuthRefusal }
 
 /**
  * Authenticates and authorizes one MCP request: a valid bearer token minted for this resource, for a
@@ -141,9 +207,23 @@ export async function authenticateMcpRequest(
 	request: IRequest,
 	env: Environment
 ): Promise<McpAuthResult> {
+	// One 401 for every way a token can be refused, built once. The reason rides on the result for
+	// telemetry; the *response* says the same thing whichever it was, deliberately — see
+	// INVALID_TOKEN_DESCRIPTION.
+	const invalidToken = (reason: McpAuthRefusal): McpAuthResult => ({
+		ok: false,
+		reason,
+		response: mcpUnauthorized(request, env, {
+			error: 'invalid_token',
+			description: INVALID_TOKEN_DESCRIPTION,
+		}),
+	})
+
 	const token = getBearerToken(request)
 	if (!token) {
-		return { ok: false, response: mcpUnauthorized(request, env) }
+		// No `error` parameter: nothing was presented, so there is nothing to call invalid, and a bare
+		// challenge is what tells a first-contact client to go and authenticate.
+		return { ok: false, reason: 'no_token', response: mcpUnauthorized(request, env) }
 	}
 
 	// Verified against the Clerk instance's published signing keys — signature, issuer, lifetime and
@@ -168,13 +248,7 @@ export async function authenticateMcpRequest(
 		console.error(
 			'MCP token verification is unconfigured: no authorization server to verify against'
 		)
-		return {
-			ok: false,
-			response: mcpUnauthorized(request, env, {
-				error: 'invalid_token',
-				description: INVALID_TOKEN_DESCRIPTION,
-			}),
-		}
+		return invalidToken('unconfigured')
 	}
 
 	let payload: JWTPayload
@@ -182,6 +256,10 @@ export async function authenticateMcpRequest(
 		;({ payload } = await jwtVerify(token, getClerkJwks(issuer), {
 			issuer,
 			typ: 'at+jwt',
+			// jose enforces only the claims it is told to require, so an access token minted without an
+			// `exp` would verify here and then never expire. Clerk stamps one on every token today, which
+			// is exactly what makes this the kind of thing to state rather than rely on.
+			requiredClaims: ['exp'],
 			// What @clerk/backend allowed by default, kept so swapping the verifier does not quietly
 			// start refusing tokens on a worker whose clock runs a second or two fast.
 			clockTolerance: 5,
@@ -190,26 +268,22 @@ export async function authenticateMcpRequest(
 		// The reason a token failed is not the caller's business — an expired token and one minted for
 		// somebody else's resource answer the same thing — but a client does need to know it should
 		// re-authenticate rather than give up, which is what `invalid_token` says.
-		console.error('MCP token verification failed:', error)
-		return {
-			ok: false,
-			response: mcpUnauthorized(request, env, {
-				error: 'invalid_token',
-				description: INVALID_TOKEN_DESCRIPTION,
-			}),
-		}
+		//
+		// The message only, never the error object: jose hangs the decoded `payload` off its errors, so
+		// logging the error logs `sub`, `client_id`, `scope` and `jti` — every one of the things the
+		// response above is careful not to disclose, written to a log with a wider audience than the
+		// caller.
+		console.error(
+			'MCP token verification failed:',
+			error instanceof Error ? error.message : String(error)
+		)
+		return invalidToken('invalid_token')
 	}
 	// The try ends with verification: nothing below throws, and a future check that does should not
 	// be swallowed and reported as a verification failure.
 
 	if (!payload.sub) {
-		return {
-			ok: false,
-			response: mcpUnauthorized(request, env, {
-				error: 'invalid_token',
-				description: INVALID_TOKEN_DESCRIPTION,
-			}),
-		}
+		return invalidToken('invalid_token')
 	}
 
 	// There is deliberately no check here that this token was issued for *this* resource, and its
@@ -240,6 +314,7 @@ export async function authenticateMcpRequest(
 		// nothing.
 		return {
 			ok: false,
+			reason: 'not_allowlisted',
 			response: Response.json(
 				{
 					error: 'forbidden',

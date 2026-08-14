@@ -2,6 +2,7 @@ import {
 	AllowlistFeatureFlag,
 	FeatureFlagValue,
 	PercentageFeatureFlag,
+	parseAllowlistEmails,
 } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useState } from 'react'
 import { fetch } from 'tldraw'
@@ -100,8 +101,16 @@ function FeatureFlags() {
 
 	return (
 		<div className={styles.fileOperation}>
-			{error && <div className={styles.errorMessage}>{error}</div>}
-			{successMessage && <div className={styles.successMessage}>{successMessage}</div>}
+			{error && (
+				<div className={styles.errorMessage} role="alert">
+					{error}
+				</div>
+			)}
+			{successMessage && (
+				<div className={styles.successMessage} role="status" aria-live="polite">
+					{successMessage}
+				</div>
+			)}
 
 			<p className={styles.featureFlagsNote}>
 				<strong>Global feature toggles.</strong> Changes take effect immediately for ALL users.
@@ -245,10 +254,17 @@ function AllowlistFlag({
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [currentEmails.join('\n')])
 
-	const parsed = text
-		.split('\n')
-		.map((line) => line.trim())
-		.filter(Boolean)
+	// The server's own parser, not a second implementation of it: this count is what the confirm
+	// dialog and the success message quote, and the worker is what decides what gets stored. Splitting
+	// on newlines only — as this did — reported "1 user" for a comma-separated paste the server then
+	// stored as five. A malformed address surfaces here rather than as a 400 after the confirm.
+	let parsed: string[] = []
+	let parseError: string | null = null
+	try {
+		parsed = parseAllowlistEmails(text)
+	} catch (err) {
+		parseError = err instanceof Error ? err.message : String(err)
+	}
 	const isDirty = parsed.join('\n') !== currentEmails.join('\n')
 
 	return (
@@ -275,10 +291,13 @@ function AllowlistFlag({
 				<span className={!flagValue.enabled ? styles.featureFlagDisabled : ''}>
 					{currentEmails.length} user(s)
 				</span>
+				{/* Editable while the flag is off, deliberately: an empty enabled allowlist admits nobody,
+				    so staging the list first and then enabling is the calm order. Requiring the flag on
+				    first forces the alarming one — enable for a list that is still empty, then fill it. */}
 				<AdminButton
 					onClick={() => onSaveEmails(parsed)}
 					variant="primary"
-					disabled={isSaving || !flagValue.enabled || !isDirty}
+					disabled={isSaving || !isDirty || !!parseError}
 				>
 					Save
 				</AdminButton>
@@ -286,13 +305,33 @@ function AllowlistFlag({
 			<textarea
 				value={text}
 				onChange={(e) => setText(e.target.value)}
-				disabled={isSaving || !flagValue.enabled}
+				disabled={isSaving}
 				className={styles.searchInput}
 				rows={4}
+				// The label above is spent on the checkbox, so the textarea names itself.
+				aria-label={`${label} allowlist, one email per line`}
+				aria-invalid={!!parseError}
 				placeholder={'One email per line, e.g. someone@tldraw.com'}
 				// `searchInput` pins the 32px single-line height; `auto` hands control back to `rows`.
 				style={{ height: 'auto', padding: '6px 8px', fontFamily: 'monospace' }}
 			/>
+			{parseError && (
+				<span className={styles.errorMessage} role="alert">
+					{parseError}
+				</span>
+			)}
+			{/* An entry whose user id no longer resolves is a grant that looks live and matches nobody the
+			    admin can see — a deleted account, or one whose address moved. Named here rather than left
+			    to look like an ordinary line, since re-saving the list as displayed would 400 on it. */}
+			{(flagValue.users ?? []).some((entry) => entry.missing) && (
+				<span className={styles.errorMessage} role="alert">
+					No account for:{' '}
+					{(flagValue.users ?? [])
+						.filter((entry) => entry.missing)
+						.map((entry) => entry.email)
+						.join(', ')}
+				</span>
+			)}
 			{flagValue.description && (
 				<span className={styles.featureFlagsDescription}>{flagValue.description}</span>
 			)}

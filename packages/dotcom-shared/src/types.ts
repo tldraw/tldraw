@@ -381,6 +381,52 @@ export interface AllowlistFeatureFlag {
 export interface AllowlistEntry {
 	userId: string
 	email: string
+	/**
+	 * Set by the admin GET only, on an entry whose `userId` no longer resolves to an account — a
+	 * deleted user, or an id that was never one. Never stored: matching is by id and an unresolvable
+	 * id matches nobody, so this exists purely so the panel can show a dead grant as dead rather than
+	 * as an ordinary line the admin would then fail to re-save.
+	 */
+	missing?: boolean
+}
+
+/**
+ * How many people one allowlist may name. A hand-maintained list of design partners is tens of
+ * people; a save an order of magnitude past that is a mistake — a pasted address book, a script gone
+ * wrong — and it would be stored in a single KV value that every evaluation reads.
+ */
+export const MAX_ALLOWLIST_ENTRIES = 200
+
+/**
+ * Parses admin input into the emails an allowlist save should resolve: one per line or comma, blanks
+ * and duplicates dropped, lowercased so the lookup and the dedupe agree. Anything that isn't an email
+ * address is rejected rather than sent to the lookup, so the admin gets "that isn't an email" instead
+ * of the blanker "no account for that".
+ *
+ * Shared rather than implemented either side, because the admin panel counts what it is about to send
+ * and the worker decides what to store: two implementations disagreeing means a save that reports
+ * "1 user" and stores five. A comma-separated paste is exactly that case.
+ */
+export function parseAllowlistEmails(input: unknown): string[] {
+	const raw = Array.isArray(input)
+		? input.map((entry) => String(entry))
+		: String(input ?? '').split(/[\n,]/)
+
+	const emails: string[] = []
+	for (const value of raw) {
+		const email = value.trim().toLowerCase()
+		if (!email) continue
+		if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+			throw new Error(`"${value.trim()}" is not an email address`)
+		}
+		if (!emails.includes(email)) emails.push(email)
+	}
+	if (emails.length > MAX_ALLOWLIST_ENTRIES) {
+		throw new Error(
+			`An allowlist can name at most ${MAX_ALLOWLIST_ENTRIES} people; that is ${emails.length}`
+		)
+	}
+	return emails
 }
 
 /** Returned by the user-facing endpoint — just the evaluated result, no server internals. */

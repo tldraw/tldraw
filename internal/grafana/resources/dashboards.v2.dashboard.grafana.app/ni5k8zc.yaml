@@ -4335,7 +4335,7 @@ spec:
             transformations: []
         description: Which surface is hitting a limiter. Sustained queue blocking
           means the shared global Browser Run cap is saturated; mcp blocking is usually
-          a single caller hitting the per-IP limit.
+          a single account hitting its per-account limit.
         id: 41
         links: []
         title: Rate-limited screenshots by surface
@@ -4717,8 +4717,8 @@ spec:
                       format: time_series
                       formatAs: time_series
                       intervalFactor: 1
-                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob9 as followup, count() as total FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'mcp_shared_board_screenshot' AND blob3 = 'source:queue' AND blob9 != '' AND double3 > 0 AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, followup ORDER BY date ASC"
-                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob9 as followup, count() as total FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'mcp_shared_board_screenshot' AND blob3 = 'source:queue' AND blob9 != '' AND double3 > 0 AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, followup ORDER BY date ASC"
+                      query: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob9 as followup, count() as total FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'mcp_shared_board_screenshot' AND blob3 = 'source:queue' AND blob9 != '' AND blob4 = 'cache:miss' AND blob5 = 'failure:none' AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, followup ORDER BY date ASC"
+                      rawQuery: "SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, blob9 as followup, count() as total FROM 'MEASURE' WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to) AND blob1 = 'mcp_shared_board_screenshot' AND blob3 = 'source:queue' AND blob9 != '' AND blob4 = 'cache:miss' AND blob5 = 'failure:none' AND blob2 = '${environment}-tldraw-multiplayer' GROUP BY date, followup ORDER BY date ASC"
                       round: 0s
                       showFormattedSQL: false
                       showHelp: false
@@ -4728,7 +4728,7 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Queue renders that spent Browser Run (double3 > 0) split by blob9. followup:false is the render a trigger asked for; followup:true is the extra render a completed job enqueues because the board moved during its capture. Request surfaces record followup:none and are excluded by the source filter. Data starts 2026-08-11 — earlier queue renders predate the followup blob and are filtered out.'
+        description: 'Queue renders that spent Browser Run (a cache miss that then rendered without failing; durations moved to browser_run_session, so double3 is now a -1 sentinel) split by blob9. followup:false is the render a trigger asked for; followup:true is the extra render a completed job enqueues because the board moved during its capture. Request surfaces record followup:none and are excluded by the source filter. Data starts 2026-08-11 — earlier queue renders predate the followup blob and are filtered out.'
         id: 45
         links: []
         title: Queue renders by follow-up state

@@ -1,10 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	evaluateFlagForUser,
-	getFeatureFlagEnabled,
+	getAllFeatureFlagValues,
 	getFeatureFlagValue,
 	getFeatureFlags,
-	getFeatureFlagsAdmin,
 	hashToPercentage,
 	parseAllowlistEmails,
 	setFeatureFlag,
@@ -263,6 +262,18 @@ describe('getFeatureFlagValue', () => {
 		expect(value.description).toBeTruthy()
 	})
 
+	// The defaults table is the schema and KV holds only state, so a stored `type` never gets a say.
+	// `"allowList"` — a capital L — used to reach evaluateFlagForUser as a type none of its arms
+	// matched, and the fall-through admitted everyone holding any token.
+	it('discards a stored type that disagrees with the default', async () => {
+		const env = makeEnv({
+			mcp_server_access: JSON.stringify({ type: 'allowList', enabled: true }),
+		})
+		const value = await getFeatureFlagValue(env as any, 'mcp_server_access')
+		expect(value.type).toBe('allowlist')
+		expect(evaluateFlagForUser(value, 'mcp_server_access', 'user-1')).toBe(false)
+	})
+
 	it('returns defaults on KV error', async () => {
 		const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const env = makeEnv()
@@ -278,7 +289,7 @@ describe('getFeatureFlagValue', () => {
 describe('setFeatureFlag', () => {
 	it('updates enabled', async () => {
 		const env = makeEnv()
-		await setFeatureFlag(env as any, 'rum_enabled', { enabled: true })
+		await setFeatureFlag(env as any, 'rum_enabled', { type: 'percentage', enabled: true })
 		expect(env.FEATURE_FLAGS.put).toHaveBeenCalledWith(
 			'rum_enabled',
 			expect.stringContaining('"enabled":true')
@@ -287,7 +298,7 @@ describe('setFeatureFlag', () => {
 
 	it('updates percentage', async () => {
 		const env = makeEnv()
-		await setFeatureFlag(env as any, 'rum_enabled', { percentage: 42 })
+		await setFeatureFlag(env as any, 'rum_enabled', { type: 'percentage', percentage: 42 })
 		const putCall = env.FEATURE_FLAGS.put.mock.calls[0]
 		const stored = JSON.parse(putCall[1])
 		expect(stored.percentage).toBe(42)
@@ -306,6 +317,7 @@ describe('setFeatureFlag', () => {
 			}),
 		})
 		await setFeatureFlag(env as any, 'mcp_server_access', {
+			type: 'allowlist',
 			users: [{ userId: 'user-2', email: 'two@example.com' }],
 		})
 		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1]).users).toEqual([
@@ -313,14 +325,18 @@ describe('setFeatureFlag', () => {
 		])
 	})
 
-	// Each field only applies to the type that has it, so a stray argument cannot turn a percentage
-	// flag into something with an allowlist nobody reads.
-	it('ignores users on a flag that is not an allowlist', async () => {
+	// A field that means nothing for this flag's type is refused rather than dropped. It used to be
+	// dropped in silence, and the admin route still answered `{success: true, users: […]}` — so an
+	// allowlist sent to a percentage flag reported a save that stored nothing anywhere.
+	it('refuses an update naming a different type than the flag', async () => {
 		const env = makeEnv()
-		await setFeatureFlag(env as any, 'rum_enabled', {
-			users: [{ userId: 'user-1', email: 'one@example.com' }],
-		})
-		expect(JSON.parse(env.FEATURE_FLAGS.put.mock.calls[0][1]).users).toBeUndefined()
+		await expect(
+			setFeatureFlag(env as any, 'rum_enabled', {
+				type: 'allowlist',
+				users: [{ userId: 'user-1', email: 'one@example.com' }],
+			})
+		).rejects.toThrow('is a percentage flag')
+		expect(env.FEATURE_FLAGS.put).not.toHaveBeenCalled()
 	})
 })
 
@@ -383,36 +399,26 @@ describe('getFeatureFlags (route handler)', () => {
 	})
 })
 
-describe('getFeatureFlagEnabled', () => {
-	it('returns the master toggle for a percentage flag (ignores per-user rollout)', async () => {
-		const env = makeEnv({
-			rum_enabled: JSON.stringify({ enabled: true, percentage: 0 }),
-		})
-		// enabled=true even though percentage=0 would exclude all users
-		expect(await getFeatureFlagEnabled(env as any, 'rum_enabled')).toBe(true)
-	})
-})
-
-describe('getFeatureFlagsAdmin (route handler)', () => {
+describe('getAllFeatureFlagValues', () => {
 	it('returns raw flag values including percentage and description', async () => {
 		const env = makeEnv({
 			rum_enabled: JSON.stringify({ enabled: true, percentage: 30 }),
 		})
-		const response = await getFeatureFlagsAdmin({} as any, env as any)
-		const body: any = await response.json()
+		const flags = await getAllFeatureFlagValues(env as any)
 
-		expect(body.rum_enabled.percentage).toBe(30)
-		expect(body.rum_enabled.enabled).toBe(true)
-		expect(body.rum_enabled.type).toBe('percentage')
-		expect(body.rum_enabled.description).toBeTruthy()
+		expect(flags.rum_enabled).toMatchObject({
+			type: 'percentage',
+			enabled: true,
+			percentage: 30,
+		})
+		expect(flags.rum_enabled.description).toBeTruthy()
 	})
 
 	it('returns all flags even when KV is empty', async () => {
 		const env = makeEnv()
-		const response = await getFeatureFlagsAdmin({} as any, env as any)
-		const body: any = await response.json()
+		const flags = await getAllFeatureFlagValues(env as any)
 
-		expect(Object.keys(body).sort()).toEqual([
+		expect(Object.keys(flags).sort()).toEqual([
 			'commenting_enabled',
 			'mcp_server_access',
 			'rum_enabled',

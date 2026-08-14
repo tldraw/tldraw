@@ -86,17 +86,31 @@ export async function resolveThumbnailBoard(
 	env: Environment,
 	kind: ThumbnailBoardKind,
 	slug: string,
-	{ access }: { access: ThumbnailBoardAccess }
+	{
+		access,
+		file: knownFile,
+	}: {
+		access: ThumbnailBoardAccess
+		/**
+		 * The row a caller has *just* read for this same file, to be gated again rather than fetched a
+		 * second time. The MCP path's access check reads `file` and this then selects a strict subset of
+		 * the same columns microseconds later, so without this every tool call opens two Postgres pools
+		 * for one row — three when the published fallback runs. Opt in per call site, like the same
+		 * option on `loadBoardSnapshot`: the gate below is applied either way, so what a caller takes on
+		 * is the staleness of the row, not a weaker check.
+		 */
+		file?: SharedFileInfo
+	}
 ): Promise<ResolveThumbnailBoardResult> {
 	if (kind === 'published') {
 		// A published board's whole identity is its published slug, so there is no weaker gate to
 		// apply: an unpublished board has no published snapshot to render in the first place.
-		const file = await getPublishedFileInfo(env, slug)
-		if (!file?.published) return { ok: false, reason: 'not_found' }
-		return { ok: true, board: { kind, slug, version: file.lastPublished, access } }
+		const publishedFile = await getPublishedFileInfo(env, slug)
+		if (!publishedFile?.published) return { ok: false, reason: 'not_found' }
+		return { ok: true, board: { kind, slug, version: publishedFile.lastPublished, access } }
 	}
 
-	const file = await getSharedFileInfo(env, slug)
+	const file = knownFile ?? (await getSharedFileInfo(env, slug))
 	if (!isFileViewableFor(file, access)) return { ok: false, reason: 'not_found' }
 
 	// The persisted room's R2 etag rotates when the board content changes, so it keys the
@@ -142,6 +156,25 @@ export async function loadBoardSnapshot(
 			{ cause: error }
 		)
 	}
+}
+
+/**
+ * Mints a render job's token and records it as ours, in one step because the two halves must not be
+ * separable.
+ *
+ * A token minted without a record fails its own check at the snapshot route and surfaces as a generic
+ * render failure — and the way that arrived the first time was exactly this: a second mint site that
+ * did the first half only, leaving every measure token unrecorded. Both mint sites go through here so
+ * a third cannot repeat it.
+ *
+ * Recorded before the browser can present the token, so the snapshot route can tell one we minted from
+ * one merely signed with our secret. Awaited, not fired off: the render is about to depend on it
+ * having landed. A no-op for `public` jobs — see recordMintedRenderToken.
+ */
+async function mintRecordedRenderToken(env: Environment, job: ThumbnailRenderJob) {
+	const token = await mintThumbnailRenderToken(env, job)
+	await recordMintedRenderToken(env, job, token)
+	return token
 }
 
 export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
@@ -221,16 +254,25 @@ export async function captureThumbnailScreenshot(
 		theme,
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	}
-	const token = await mintThumbnailRenderToken(env, job)
-	// Record it as ours before the browser can present it, so the snapshot route can tell a token we
-	// minted from one merely signed with our secret. Awaited, not fired off: the render is about to
-	// depend on this having landed. A no-op for `public` jobs — see recordMintedRenderToken.
-	await recordMintedRenderToken(env, job, token)
-	return renderThumbnailScreenshot(env, buildThumbnailRenderUrl(getRenderOrigin(env), token), {
-		width,
-		height,
-		session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
-	})
+	const token = await mintRecordedRenderToken(env, job)
+	try {
+		return await renderThumbnailScreenshot(
+			env,
+			buildThumbnailRenderUrl(getRenderOrigin(env), token),
+			{
+				width,
+				height,
+				session: { source: telemetry.source, mode: 'screenshot', reason: telemetry.reason },
+			}
+		)
+	} finally {
+		// The MCP surface keys its records by token, so nothing later overwrites this one and it has to
+		// be dropped here — the same cleanup a measure gets, for the same reason. In `finally` because a
+		// failed render leaves exactly the orphan a successful one would, and the snapshot fetch the
+		// record guards is over either way by the time the session ends. A no-op for OG, whose per-board
+		// key must outlive the capture; see deleteMintedRenderToken.
+		await deleteMintedRenderToken(env, job, token)
+	}
 }
 
 /** What a browser session was created for, stamped on its `browser_run_session` datapoint. */
@@ -506,11 +548,13 @@ export async function measurePageShapes(
 		theme: 'light',
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	}
-	const token = await mintThumbnailRenderToken(env, job)
-	// Recorded as ours before the browser can present it, exactly like a screenshot job: `render`
-	// access is two-factor, and a measure token is no less able to read a private board than a
-	// screenshot token. A no-op for `public` jobs — see recordMintedRenderToken.
-	await recordMintedRenderToken(env, job, token)
+	// Checked before the render rather than after it: the read below cannot work without the bucket, and
+	// discovering that once a full browser session has already been spent makes the failure cost a
+	// capture it was never going to use.
+	if (!env.THUMBNAILS) throw new Error('THUMBNAILS bucket is not configured')
+
+	const token = await mintRecordedRenderToken(env, job)
+	const key = getRenderResultKey(token)
 
 	try {
 		// The screenshot is discarded — it is only how the browser session is driven, and how we know the
@@ -522,23 +566,28 @@ export async function measurePageShapes(
 			// signed job, not the telemetry source, so this is stated rather than derived.
 			session: { source: 'mcp', mode: 'measure' },
 		})
-	} finally {
-		// A measure's record is keyed by its own token, so that concurrent measures of one page cannot
-		// invalidate each other — which also means nothing later overwrites it, and it has to be dropped
-		// here rather than left to accumulate one object per call. In `finally` because a failed render
-		// leaves exactly the same orphan a successful one would, and the snapshot fetch the record guards
-		// is over either way by the time the browser session ends.
-		await deleteMintedRenderToken(env, job, token)
-	}
 
-	if (!env.THUMBNAILS) throw new Error('THUMBNAILS bucket is not configured')
-	const key = getRenderResultKey(token)
-	const stored = await env.THUMBNAILS.get(key)
-	if (!stored) throw new Error('The render page did not report any measurements')
-	const bounds = JSON.parse(await stored.text())
-	// Read once: the token is single-use, so leaving the object behind would only accumulate.
-	await env.THUMBNAILS.delete(key)
-	return bounds
+		const stored = await env.THUMBNAILS.get(key)
+		if (!stored) throw new Error('The render page did not report any measurements')
+		return JSON.parse(await stored.text())
+	} finally {
+		// Both of this capture's leftovers, dropped on the failure path as well as the success one.
+		//
+		// The record is keyed by its own token, so concurrent measures of one page cannot invalidate each
+		// other — which also means nothing later overwrites it. The result object is keyed the same way,
+		// and the render page POSTs it *before* signalling ready: a Quick Action that then times out —
+		// chronically a few percent of renders — leaves an object nothing will ever read or overwrite, in
+		// a bucket that deliberately carries no lifecycle rule.
+		//
+		// Best effort on the result key, and not for the sake of a tidy bucket: throwing here would
+		// replace a measure's real answer, or its real error, with a cleanup failure.
+		await deleteMintedRenderToken(env, job, token)
+		try {
+			await env.THUMBNAILS.delete(key)
+		} catch {
+			// Ignored — see above.
+		}
+	}
 }
 
 export async function putThumbnailPng(
