@@ -174,8 +174,9 @@ export class LicenseManager {
 	}
 
 	private getIsDevelopment() {
+		// If we are using https on a non-loopback domain we assume it's a production env and a development one otherwise
 		return (
-			window.location.protocol === 'http:' ||
+			!['https:', 'vscode-webview:'].includes(window.location.protocol) ||
 			this.isLoopbackHost(window.location.hostname) ||
 			process.env.NODE_ENV !== 'production'
 		)
