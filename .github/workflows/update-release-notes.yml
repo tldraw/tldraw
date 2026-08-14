@@ -59,6 +59,20 @@ jobs:
           git checkout -b "$BRANCH_NAME"
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
+      # Recorded before the skill runs so the close step below can tell an
+      # already-open PR from an earlier run apart from the one this run opens.
+      - name: Find open release notes PRs
+        id: existing_prs
+        run: |
+          {
+            echo 'numbers<<PR_LIST_EOF'
+            gh pr list --state open --base main --limit 100 --json number,headRefName \
+              --jq '.[] | select(.headRefName | test("^(release-notes/update-|update-release-notes-)")) | .number'
+            echo 'PR_LIST_EOF'
+          } >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
 
@@ -106,6 +120,36 @@ jobs:
             --base main \
             --head "${{ steps.branch.outputs.branch_name }}" \
             --label "docs-hotfix-please"
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+
+      # Each run regenerates the notes from scratch, so a PR opened by this run
+      # supersedes any release notes PR left open by an earlier run. The PR may come
+      # from the step above or from the skill itself, so this compares the currently
+      # open PRs against the ones recorded before the skill ran rather than relying on
+      # a single known PR number. When this run opened nothing, the older PR is still
+      # the pending update and is left alone.
+      - name: Close superseded PRs
+        run: |
+          EXISTING="${{ steps.existing_prs.outputs.numbers }}"
+          CURRENT=$(gh pr list --state open --base main --limit 100 --json number,headRefName \
+            --jq '.[] | select(.headRefName | test("^(release-notes/update-|update-release-notes-)")) | .number')
+
+          NEW_PRS=$(comm -13 <(echo "$EXISTING" | sort) <(echo "$CURRENT" | sort))
+          if [ -z "$NEW_PRS" ]; then
+            echo "This run did not open a release notes PR, nothing to supersede"
+            exit 0
+          fi
+
+          # The new PR is already open at this point, so a failure to tidy up an old
+          # one is a warning, not a reason to fail the run.
+          NEWEST=$(echo "$NEW_PRS" | sort -n | tail -n 1)
+          echo "$EXISTING" | while read -r PR; do
+            [ -n "$PR" ] || continue
+            echo "Closing superseded release notes PR #$PR"
+            gh pr close "$PR" --delete-branch --comment "Superseded by #$NEWEST." \
+              || echo "Warning: could not close #$PR"
+          done
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 

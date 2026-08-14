@@ -46,6 +46,11 @@ export interface Environment {
 
 	MEASURE: Analytics | undefined
 
+	// Workers Static Assets binding — reads the committed default welcome snapshot
+	// (assets/welcome-snapshot.json) at seed time; the worker never serves the directory
+	// publicly (run_worker_first is set).
+	ASSETS: Fetcher
+
 	ROOMS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
 
@@ -94,11 +99,11 @@ export interface Environment {
 	// rendering is subject to none of them. Separate bindings because a binding carries one `limit`
 	// applied per key, so budgets with different numbers cannot share one. The route falls back to an
 	// isolate-local guard when they are absent (local dev, tests).
-	/** Per-user calls to the Browser Run-spending MCP tools (`user-shot:`/`user-cluster:`/`user-info:`). */
+	/** One per-account budget (`user:`) across every Browser Run-spending MCP tool. */
 	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
-	/** Per-board Browser Run captures, applied only on cache misses. */
+	/** Per-board Browser Run captures, applied only on cache misses. Measures are not counted here. */
 	MCP_SERVER_BOARD_RATE_LIMITER: RateLimit | undefined
-	/** Total Browser Run invocations made by the tool, on one shared key. */
+	/** Total Browser Run sessions the tools spend, captures and measures alike, on one shared key. */
 	MCP_SERVER_BROWSER_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>

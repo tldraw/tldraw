@@ -4,6 +4,16 @@ compatibility_date = "2026-03-24"
 workers_dev = true
 compatibility_flags = ["nodejs_compat"]
 
+# Static Assets: the default welcome snapshot (assets/welcome-snapshot.json) is read at seed
+# time via the ASSETS binding, so it is not bundled into the worker script. run_worker_first
+# keeps the worker in front of every request — the directory is never served publicly; the
+# worker only reads the asset through the binding. `assets` is a non-inheritable key and this
+# file overrides bindings per environment, so it is repeated in each [env.*] block below.
+[assets]
+directory = "assets"
+binding = "ASSETS"
+run_worker_first = true
+
 [dev]
 port = 8787
 ip = "0.0.0.0"
@@ -138,7 +148,7 @@ LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
 # staging is the same as a preview on main:
 [env.staging]
 name = "main-tldraw-multiplayer"
-workers_dev = true # todo: remove this once clients are updated
+workers_dev = false
 
 [env.staging.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "4"
@@ -151,7 +161,7 @@ MCP_SCREENSHOT_ENABLED = "true"
 # production gets the proper name
 [env.production]
 name = "tldraw-multiplayer"
-workers_dev = true # todo: remove this once clients are updated
+workers_dev = false
 
 [env.production.vars]
 HEALTH_CHECK_DB_SIZE_THRESHOLD_GB = "10"
@@ -653,3 +663,24 @@ binding = "QUEUE"
 queue = "tldraw-multiplayer-queue"
 max_retries = 10
 dead_letter_queue = 'tldraw-multiplayer-dlq'
+
+# Static Assets per environment (see the top-level [assets] note — non-inheritable, so repeated).
+[env.dev.assets]
+directory = "assets"
+binding = "ASSETS"
+run_worker_first = true
+
+[env.preview.assets]
+directory = "assets"
+binding = "ASSETS"
+run_worker_first = true
+
+[env.staging.assets]
+directory = "assets"
+binding = "ASSETS"
+run_worker_first = true
+
+[env.production.assets]
+directory = "assets"
+binding = "ASSETS"
+run_worker_first = true
